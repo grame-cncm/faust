@@ -6,26 +6,26 @@
  it under the terms of the GNU Lesser General Public License as published by
  the Free Software Foundation; either version 2.1 of the License, or
  (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- 
+
  EXCEPTION : As a special exception, you may create a larger work
  that contains this FAUST architecture section and distribute
  that work under terms of your choice, so long as this FAUST
  architecture section is not modified.
  **************************************************************************/
 
+#include <limits>
+#include <ostream>
 #include <string>
 #include <vector>
-#include <ostream>
-#include <limits>
 
 #ifndef LIBFAUSTCOMMON_H
 #define LIBFAUSTCOMMON_H
@@ -40,7 +40,7 @@
 /**
  * Opaque types.
  */
-class LIBFAUST_API CTree;
+class LIBFAUST_API          CTree;
 typedef std::vector<CTree*> tvec;
 
 typedef CTree* Signal;
@@ -83,15 +83,32 @@ typedef std::vector<SType> svec;
 
 typedef std::vector<std::string> nvec;
 
-enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
+enum SOperator {
+    kAdd,
+    kSub,
+    kMul,
+    kDiv,
+    kRem,
+    kLsh,
+    kARsh,
+    kLRsh,
+    kGT,
+    kLT,
+    kGE,
+    kLE,
+    kEQ,
+    kNE,
+    kAND,
+    kOR,
+    kXOR
+};
 
 /**
  * Base class for factories.
  */
 struct LIBFAUST_API dsp_factory_base {
-    
     virtual ~dsp_factory_base() {}
-    
+
     virtual void write(std::ostream* /*out*/, bool /*binary*/ = false, bool /*compact*/ = false) {}
 };
 
@@ -100,7 +117,8 @@ struct LIBFAUST_API dsp_factory_base {
  *
  * @param box - the box to be printed
  * @param shared - whether the identical sub boxes are printed as identifiers
- * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
+ * @param max_size - the maximum number of characters to be printed (possibly needed for big
+ * expressions in non shared mode)
  *
  * @return the printed box as a string
  */
@@ -111,7 +129,8 @@ LIBFAUST_API std::string printBox(Box box, bool shared, int max_size);
  *
  * @param sig - the signal to be printed
  * @param shared - whether the identical sub signals are printed as identifiers
- * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
+ * @param max_size - the maximum number of characters to be printed (possibly needed for big
+ * expressions in non shared mode)
  *
  * @return the printed signal as a string
  */
@@ -125,17 +144,15 @@ LIBFAUST_API std::string printSignal(Signal sig, bool shared, int max_size);
 // To be used with getSigInterval/setSigInterval
 // see: https://stackoverflow.com/questions/27442885/syntax-error-with-stdnumeric-limitsmax
 struct Interval {
-    double fLo = std::numeric_limits<double>::lowest();    //< minimal value
-    double fHi = (std::numeric_limits<double>::max)();     //< maximal value
-    int    fLSB = -24;                                     //< lsb in bits
-    
+    double fLo  = std::numeric_limits<double>::lowest();  //< minimal value
+    double fHi  = (std::numeric_limits<double>::max)();   //< maximal value
+    int    fLSB = -24;                                    //< lsb in bits
+
     // To be used to set a full interval
-    Interval(double lo, double hi, int lsb):fLo(lo), fHi(hi), fLSB(lsb)
-    {}
-    
+    Interval(double lo, double hi, int lsb) : fLo(lo), fHi(hi), fLSB(lsb) {}
+
     // To be used to only set the LSB, with fLo and fHi taking default values
-    Interval(int lsb):fLSB(lsb)
-    {}
+    Interval(int lsb) : fLSB(lsb) {}
 };
 
 inline static std::ostream& operator<<(std::ostream& dst, const Interval& it)
@@ -160,16 +177,16 @@ extern "C" LIBFAUST_API void destroyLibContext();
 
 /**
  * Get the signal interval.
- * 
+ *
  * @param s - the signal
- * 
+ *
  * @return the signal interval
  */
 LIBFAUST_API Interval getSigInterval(Signal s);
 
 /**
  * Set the signal interval.
- * 
+ *
  * @param s - the signal
  * @param inter - the signal interval
  */
@@ -221,6 +238,15 @@ LIBFAUST_API unsigned int xtendedArity(Signal s);
 LIBFAUST_API const char* xtendedName(Signal s);
 
 /**
+ * Return the branches of a signal.
+ *
+ * @param s - the signal
+ *
+ * @return the branches as a vector of signals.
+ */
+LIBFAUST_API tvec sigBranches(Signal s);
+
+/**
  * Constant integer : for all t, x(t) = n.
  *
  * @param n - the integer
@@ -228,6 +254,15 @@ LIBFAUST_API const char* xtendedName(Signal s);
  * @return the integer signal.
  */
 LIBFAUST_API Signal sigInt(int n);
+
+/**
+ * Constant 64 integer : for all t, x(t) = n.
+ *
+ * @param n - the integer
+ *
+ * @return the integer signal.
+ */
+LIBFAUST_API Signal sigInt64(int64_t n);
 
 /**
  * Constant real : for all t, x(t) = n.
@@ -251,7 +286,8 @@ LIBFAUST_API Signal sigInput(int idx);
  * Create a delayed signal.
  *
  * @param s - the signal to be delayed
- * @param del - the delay signal that doesn't have to be fixed but must be bounded and cannot be negative
+ * @param del - the delay signal that doesn't have to be fixed but must be bounded and cannot be
+ * negative
  *
  * @return the delayed signal.
  */
@@ -278,7 +314,8 @@ LIBFAUST_API Signal sigIntCast(Signal s);
 /**
  * Create a casted signal.
  *
- * @param s - the signal to be casted as float/double value (depends of -single or -double compilation parameter)
+ * @param s - the signal to be casted as float/double value (depends of -single or -double
+ * compilation parameter)
  *
  * @return the casted signal.
  */
@@ -331,7 +368,8 @@ LIBFAUST_API Signal sigSoundfile(const std::string& label);
  * Create the length signal of a given soundfile in frames.
  *
  * @param sf - the soundfile
- * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
+ * @param part - in the [0..255] range to select a given sound number, a constant numerical
+ * expression (see [1])
  *
  * @return the soundfile length signal.
  */
@@ -341,7 +379,8 @@ LIBFAUST_API Signal sigSoundfileLength(Signal sf, Signal part);
  * Create the rate signal of a given soundfile in Hz.
  *
  * @param sf - the soundfile
- * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
+ * @param part - in the [0..255] range to select a given sound number, a constant numerical
+ * expression (see [1])
  *
  * @return the soundfile rate signal.
  */
@@ -352,7 +391,8 @@ LIBFAUST_API Signal sigSoundfileRate(Signal sf, Signal part);
  *
  * @param sf - the soundfile
  * @param chan - an integer to select a given channel, a constant numerical expression (see [1])
- * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
+ * @param part - in the [0..255] range to select a given sound number, a constant numerical
+ * expression (see [1])
  * @param ridx - the read index (an integer between 0 and the selected sound length)
  *
  * @return the soundfile buffer signal.
@@ -374,8 +414,8 @@ LIBFAUST_API Signal sigSelect2(Signal selector, Signal s1, Signal s2);
 /**
  * Create a selector between three signals.
  *
- * @param selector - when 0 at time t returns s1[t], when 1 at time t returns s2[t], otherwise returns s3[t]
- * (selector is automatically wrapped with sigIntCast)
+ * @param selector - when 0 at time t returns s1[t], when 1 at time t returns s2[t], otherwise
+ * returns s3[t] (selector is automatically wrapped with sigIntCast)
  * @param s1 - first signal to be selected
  * @param s2 - second signal to be selected
  * @param s3 - third signal to be selected
@@ -396,7 +436,8 @@ LIBFAUST_API Signal sigSelect3(Signal selector, Signal s1, Signal s2, Signal s3)
  *
  * @return the foreign function signal.
  */
-LIBFAUST_API Signal sigFFun(SType rtype, nvec names, svec atypes, const std::string& incfile, const std::string& libfile, tvec largs);
+LIBFAUST_API Signal sigFFun(SType rtype, nvec names, svec atypes, const std::string& incfile,
+                            const std::string& libfile, tvec largs);
 
 /**
  * Create a foreign constant signal.
@@ -509,7 +550,8 @@ LIBFAUST_API Signal sigRecursion(Signal s);
 /**
  * Create a recursive signal inside the sigRecursionN expression.
  *
- * @param id - the recursive signal index (starting from 0, up to the number of outputs signals in the recursive block)
+ * @param id - the recursive signal index (starting from 0, up to the number of outputs signals in
+ * the recursive block)
  *
  * @return the recursive signal.
  */
@@ -554,7 +596,8 @@ LIBFAUST_API Signal sigCheckbox(const std::string& label);
  *
  * @return the vertical slider signal.
  */
-LIBFAUST_API Signal sigVSlider(const std::string& label, Signal init, Signal min, Signal max, Signal step);
+LIBFAUST_API Signal sigVSlider(const std::string& label, Signal init, Signal min, Signal max,
+                               Signal step);
 
 /**
  * Create an horizontal slider signal.
@@ -567,7 +610,8 @@ LIBFAUST_API Signal sigVSlider(const std::string& label, Signal init, Signal min
  *
  * @return the horizontal slider signal.
  */
-LIBFAUST_API Signal sigHSlider(const std::string& label, Signal init, Signal min, Signal max, Signal step);
+LIBFAUST_API Signal sigHSlider(const std::string& label, Signal init, Signal min, Signal max,
+                               Signal step);
 
 /**
  * Create a num entry signal.
@@ -580,7 +624,8 @@ LIBFAUST_API Signal sigHSlider(const std::string& label, Signal init, Signal min
  *
  * @return the num entry signal.
  */
-LIBFAUST_API Signal sigNumEntry(const std::string& label, Signal init, Signal min, Signal max, Signal step);
+LIBFAUST_API Signal sigNumEntry(const std::string& label, Signal init, Signal min, Signal max,
+                                Signal step);
 
 /**
  * Create a vertical bargraph signal.
@@ -626,6 +671,7 @@ LIBFAUST_API Signal sigAttach(Signal s1, Signal s2);
  * @return true and fill the specific parameters if the signal is of a given type, false otherwise
  */
 LIBFAUST_API bool isSigInt(Signal t, int* i);
+LIBFAUST_API bool isSigInt64(Signal t, int64_t* i);
 LIBFAUST_API bool isSigReal(Signal t, double* r);
 LIBFAUST_API bool isSigInput(Signal t, int* i);
 LIBFAUST_API bool isSigOutput(Signal t, int* i, Signal& t0);
@@ -659,9 +705,12 @@ LIBFAUST_API bool isSigCheckbox(Signal s, Signal& lbl);
 
 LIBFAUST_API bool isSigWaveform(Signal s);
 
-LIBFAUST_API bool isSigHSlider(Signal s, Signal& lbl, Signal& init, Signal& min, Signal& max, Signal& step);
-LIBFAUST_API bool isSigVSlider(Signal s, Signal& lbl, Signal& init, Signal& min, Signal& max, Signal& step);
-LIBFAUST_API bool isSigNumEntry(Signal s, Signal& lbl, Signal& init, Signal& min, Signal& max, Signal& step);
+LIBFAUST_API bool isSigHSlider(Signal s, Signal& lbl, Signal& init, Signal& min, Signal& max,
+                               Signal& step);
+LIBFAUST_API bool isSigVSlider(Signal s, Signal& lbl, Signal& init, Signal& min, Signal& max,
+                               Signal& step);
+LIBFAUST_API bool isSigNumEntry(Signal s, Signal& lbl, Signal& init, Signal& min, Signal& max,
+                                Signal& step);
 
 LIBFAUST_API bool isSigHBargraph(Signal s, Signal& lbl, Signal& min, Signal& max, Signal& x);
 LIBFAUST_API bool isSigVBargraph(Signal s, Signal& lbl, Signal& min, Signal& max, Signal& x);
@@ -674,13 +723,14 @@ LIBFAUST_API bool isSigControl(Signal s, Signal& s0, Signal& s1);
 LIBFAUST_API bool isSigSoundfile(Signal s, Signal& label);
 LIBFAUST_API bool isSigSoundfileLength(Signal s, Signal& sf, Signal& part);
 LIBFAUST_API bool isSigSoundfileRate(Signal s, Signal& sf, Signal& part);
-LIBFAUST_API bool isSigSoundfileBuffer(Signal s, Signal& sf, Signal& chan, Signal& part, Signal& ridx);
+LIBFAUST_API bool isSigSoundfileBuffer(Signal s, Signal& sf, Signal& chan, Signal& part,
+                                       Signal& ridx);
 
 /**
  *  Simplify a signal to its normal form, where:
  *  - all possible optimisations, simplications, and compile time computations have been done
- *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile primitive...
- *  are properly typed (arguments and result)
+ *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile
+ * primitive... are properly typed (arguments and result)
  *  - signal cast are properly done when needed
  *
  * @param sig - the signal to be processed
@@ -692,8 +742,8 @@ LIBFAUST_API Signal simplifyToNormalForm(Signal s);
 /**
  *  Simplify a signal list to its normal form, where:
  *  - all possible optimisations, simplications, and compile time computations have been done
- *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile primitive...
- *  are properly typed (arguments and result)
+ *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile
+ * primitive... are properly typed (arguments and result)
  *  - signal cast are properly done when needed
  *
  * @param siglist - the signal list to be processed
@@ -719,13 +769,13 @@ LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist);
  * @return a string of source code on success, setting error_msg on error.
  */
 LIBFAUST_API std::string createSourceFromSignals(const std::string& name_app, tvec osigs,
-                                                 const std::string& lang,
-                                                 int argc, const char* argv[],
-                                                 std::string& error_msg);
+                                                 const std::string& lang, int argc,
+                                                 const char* argv[], std::string& error_msg);
 
 /*
- [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions
- [2] Label definition : https://faustdoc.grame.fr/manual/syntax/#variable-parts-of-a-label
+ [1] Constant numerical expression : see
+ https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions [2] Label definition :
+ https://faustdoc.grame.fr/manual/syntax/#variable-parts-of-a-label
  */
 
 /*!

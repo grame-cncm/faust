@@ -106,6 +106,11 @@ LIBFAUST_API unsigned int xtendedArity(Tree tree)
     return ((xtended*)userData)->arity();
 }
 
+LIBFAUST_API tvec sigBranches(Tree tree)
+{
+    return tree->branches();
+}
+
 LIBFAUST_API string createSourceFromSignals(const string& name_app, tvec signals,
                                             const string& lang, int argc, const char* argv[],
                                             string& error_msg)
@@ -291,6 +296,11 @@ LIBFAUST_API void* CgetUserData(Tree s)
 LIBFAUST_API Tree CsigInt(int n)
 {
     return sigInt(n);
+}
+
+LIBFAUST_API Tree CsigInt64(int64_t n)
+{
+    return sigInt64(n);
 }
 
 LIBFAUST_API Tree CsigReal(double n)
@@ -641,6 +651,10 @@ LIBFAUST_API Tree CsigAttach(Tree x, Tree y)
 LIBFAUST_API bool CisSigInt(Tree t, int* i)
 {
     return isSigInt(t, i);
+}
+LIBFAUST_API bool CisSigInt64(Tree t, int64_t* i)
+{
+    return isSigInt64(t, i);
 }
 LIBFAUST_API bool CisSigReal(Tree t, double* r)
 {
@@ -1135,7 +1149,9 @@ LIBFAUST_API char* CcreateSourceFromSignals(const char* name_app, Signal* osigs,
 // Box C++ API
 // ============
 
-static void* boxesToSignalsAux2(void* arg)
+typedef void* (*box2sig)(void* arg);
+
+static void* boxesToSignalsRegular(void* arg)
 {
     CallContext* context = static_cast<CallContext*>(arg);
     try {
@@ -1150,9 +1166,26 @@ static void* boxesToSignalsAux2(void* arg)
     }
 }
 
+// Special version for MLIR export that does not simplify
+static void* boxesToSignalsMLIR(void* arg)
+{
+    CallContext* context = static_cast<CallContext*>(arg);
+    try {
+        Tree outputs =
+            boxPropagateSig(gGlobal->nil, context->fTree, makeSigInputList(context->fNumInputs));
+        context->fTree = deBruijn2Sym(outputs);
+        typeAnnotation(context->fTree, gGlobal->gLocalCausalityCheck);
+        return nullptr;
+    } catch (faustexception& e) {
+        context->fTree         = nullptr;
+        gGlobal->gErrorMessage = e.Message();
+        return nullptr;
+    }
+}
+
 // Can generate faustexception, used in createDSPFactoryFromBoxes and
 // createInterpreterDSPFactoryFromBoxes
-tvec boxesToSignalsAux(Tree box)
+tvec boxesToSignalsOp(Tree box, box2sig op)
 {
     // Cleanup all variables and reset gGlobal state
     DeclareVarInst::cleanup();
@@ -1169,7 +1202,7 @@ tvec boxesToSignalsAux(Tree box)
     CallContext context;
     context.fTree      = box;
     context.fNumInputs = numInputs;
-    callFun(boxesToSignalsAux2, &context);
+    callFun(op, &context);
     if (context.fTree) {
         return treeConvert(context.fTree);
     } else {
@@ -1177,10 +1210,25 @@ tvec boxesToSignalsAux(Tree box)
     }
 }
 
+tvec boxesToSignalsAux(Tree box)
+{
+    return boxesToSignalsOp(box, boxesToSignalsRegular);
+}
+
 LIBFAUST_API tvec boxesToSignals(Tree box, string& error_msg)
 {
     try {
-        return boxesToSignalsAux(box);
+        return boxesToSignalsOp(box, boxesToSignalsRegular);
+    } catch (faustexception& e) {
+        error_msg = e.Message();
+        return {};
+    }
+}
+
+LIBFAUST_API tvec boxesToSignals2(Tree box, string& error_msg)
+{
+    try {
+        return boxesToSignalsOp(box, boxesToSignalsMLIR);
     } catch (faustexception& e) {
         error_msg = e.Message();
         return {};
@@ -1831,6 +1879,24 @@ LIBFAUST_API Tree* CboxesToSignals(Tree box, char* error_msg)
 {
     string error_msg_aux;
     tvec   signals = boxesToSignals(box, error_msg_aux);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
+    if (signals.size() > 0) {
+        Tree*  res = (Tree*)malloc(sizeof(Tree) * (signals.size() + 1));
+        size_t i;
+        for (i = 0; i < signals.size(); i++) {
+            res[i] = signals[i];
+        }
+        res[i] = nullptr;
+        return res;
+    } else {
+        return nullptr;
+    }
+}
+
+LIBFAUST_API Tree* CboxesToSignals2(Tree box, char* error_msg)
+{
+    string error_msg_aux;
+    tvec   signals = boxesToSignals2(box, error_msg_aux);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     if (signals.size() > 0) {
         Tree*  res = (Tree*)malloc(sizeof(Tree) * (signals.size() + 1));
