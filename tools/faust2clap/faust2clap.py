@@ -295,32 +295,21 @@ def detect_faust_sdk():
             'plist_template': os.path.join(this_dir, "cmake/generic.plist.in")
         }
     
-    # check for system installation SDK
-    # try multiple system paths where SDK might be installed
-    system_paths = [
-        "/usr/local/share/faust/tools/faust2clap",
-        "/usr/share/faust/tools/faust2clap",
-        "/opt/homebrew/share/faust/tools/faust2clap"
-    ]
-    
-    # also try based on current script location
-    if "/share/faust/tools/faust2clap" in this_dir:
-        system_paths.insert(0, this_dir)
-    
-    for base_path in system_paths:
-        if os.path.isdir(base_path):
-            sdk_path = os.path.join(base_path, "sdk")
-            if os.path.isdir(sdk_path):
-                return {
-                    'type': 'system',
-                    'clap_sdk': os.path.join(sdk_path, "clap-sdk"),
-                    'clap_helpers': os.path.join(sdk_path, "clap-helpers"),
-                    'faust_lib': faust_root,
-                    'cmake_template': os.path.join(sdk_path, "CMakeLists.txt"),
-                    'plugin_template': os.path.join(sdk_path, "plugin.cc"),
-                    'gui_glue': os.path.join(sdk_path, "faust_gui_glue.cpp"),
-                    'plist_template': os.path.join(sdk_path, "generic.plist.in")
-                }
+    # check for system installation SDK using faust_root from --archdir
+    if faust_root and os.path.isdir(faust_root):
+        #try to find SDK in the faust installation
+        sdk_path = os.path.join(faust_root, "tools/faust2clap/sdk")
+        if os.path.isdir(sdk_path):
+            return {
+                'type': 'system',
+                'clap_sdk': os.path.join(sdk_path, "clap-sdk"),
+                'clap_helpers': os.path.join(sdk_path, "clap-helpers"),
+                'faust_lib': faust_root,
+                'cmake_template': os.path.join(sdk_path, "CMakeLists.txt"),
+                'plugin_template': os.path.join(sdk_path, "plugin.cc"),
+                'gui_glue': os.path.join(sdk_path, "faust_gui_glue.cpp"),
+                'plist_template': os.path.join(sdk_path, "generic.plist.in")
+            }
     
     # fallback: try to use current development setup even if incomplete
     return {
@@ -387,45 +376,6 @@ if(APPLE)
     set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS target")
 endif()
 
-# Find RtMidi library
-find_package(PkgConfig QUIET)
-if(PkgConfig_FOUND)
-    pkg_check_modules(RTMIDI rtmidi)
-endif()
-
-# Fallback to common system locations if pkg-config fails
-if(NOT RTMIDI_FOUND)
-    find_library(RTMIDI_LIBRARY 
-        NAMES rtmidi librtmidi librtmidi.7 librtmidi.6 librtmidi.5
-        PATHS 
-            /opt/homebrew/lib
-            /opt/homebrew/Cellar/rtmidi/*/lib
-            /usr/local/lib 
-            /usr/lib
-        PATH_SUFFIXES lib
-    )
-    find_path(RTMIDI_INCLUDE_DIR 
-        NAMES RtMidi.h rtmidi/RtMidi.h
-        PATHS 
-            /opt/homebrew/include
-            /opt/homebrew/Cellar/rtmidi/*/include
-            /usr/local/include 
-            /usr/include
-        PATH_SUFFIXES include
-    )
-    
-    if(RTMIDI_LIBRARY AND RTMIDI_INCLUDE_DIR)
-        set(RTMIDI_FOUND TRUE)
-        set(RTMIDI_LIBRARIES "${{RTMIDI_LIBRARY}}")
-        set(RTMIDI_INCLUDE_DIRS "${{RTMIDI_INCLUDE_DIR}}")
-    endif()
-endif()
-
-if(NOT RTMIDI_FOUND)
-    message(WARNING "RtMidi not found. MIDI support will be limited.")
-    set(RTMIDI_LIBRARIES "")
-    set(RTMIDI_INCLUDE_DIRS "")
-endif()
 
 # Include CLAP SDK and helpers
 add_subdirectory("{sdk_info['clap_sdk']}" clap-sdk)
@@ -453,7 +403,6 @@ target_include_directories({plugin_name} PRIVATE
     "{sdk_info['faust_lib']}/architecture/faust/dsp"
     "{sdk_info['clap_helpers']}/include"
     "{sdk_info['clap_sdk']}/include"
-    ${{RTMIDI_INCLUDE_DIRS}}
 )
 
 # Link libraries  
@@ -463,17 +412,6 @@ target_link_libraries({plugin_name} PRIVATE
     faust_gui_glue
 )
 
-# Add RtMidi if found
-if(RTMIDI_FOUND)
-    if(RTMIDI_LDFLAGS)
-        # Use LDFLAGS for complete linking setup (includes -L and -l flags)
-        target_link_options({plugin_name} PRIVATE ${{RTMIDI_LDFLAGS}})
-    else()
-        # Use LIBRARIES and LIBRARY_DIRS separately
-        target_link_directories({plugin_name} PRIVATE ${{RTMIDI_LIBRARY_DIRS}})
-        target_link_libraries({plugin_name} PRIVATE ${{RTMIDI_LIBRARIES}})
-    endif()
-endif()
 
 # macOS bundle properties
 if(APPLE)
