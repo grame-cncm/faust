@@ -23,10 +23,36 @@ import subprocess #run shell commands
 import json
 import re
 import argparse
+import shutil
+import hashlib
+import platform
 
 #config
 ARCH_REL_PATH="architecture/clap/clap-arch.cpp"
 OUTPUT_ROOT="build"
+
+#cache and SDK paths
+def get_cache_dir():
+    """Get user-specific cache directory for faust2clap builds"""
+    home = os.path.expanduser("~")
+    if platform.system() == "Darwin":
+        return os.path.join(home, "Library", "Caches", "faust", "faust2clap")
+    elif platform.system() == "Linux":
+        return os.path.join(home, ".cache", "faust", "faust2clap")
+    elif platform.system() == "Windows":
+        return os.path.join(home, "AppData", "Local", "faust", "faust2clap")
+    else:
+        return os.path.join(home, ".cache", "faust", "faust2clap")
+
+def get_faust_version():
+    """Get Faust version for cache versioning"""
+    try:
+        result = subprocess.check_output(["faust", "--version"], universal_newlines=True)
+        # extract version from output
+        match = re.search(r'Version\s+([\d\.]+)', result)
+        return match.group(1) if match else "unknown"
+    except:
+        return "unknown"
 
 #parse command line arguments properly
 parser = argparse.ArgumentParser(description='faust2clap - Generate CLAP plugins from Faust DSP code')
@@ -39,7 +65,7 @@ args = parser.parse_args()
 
 dsp_path = args.dsp_file #full path to the provided .dsp file
 nvoices = args.nvoices
-# Note: is_polyphonic will be set later based on auto-detection or user override
+# note: is_polyphonic will be set later based on auto-detection or user override
 if not os.path.isfile(dsp_path):
     print(f"[!] dsp file not found: {dsp_path}")
     sys.exit(1)
@@ -63,22 +89,29 @@ try:
         arch_path = arch_path_from_faust
         # get faust root from libdir for CMake builds
         faust_root = subprocess.check_output(["faust", "--libdir"], universal_newlines=True).strip()
-    # If faust --archdir doesn't have CLAP files, keep arch_path as None to try fallbacks
+    # if faust --archdir doesn't have CLAP files, keep arch_path as None to try fallbacks
 except (subprocess.CalledProcessError, FileNotFoundError):
     # faust command not available or failed
     pass
 
 # fallback: try other possible locations
 if not arch_path:
+    # check both installed and development locations for CLAP arch file
     possible_paths = [
         # relative to script location (development setup)
         os.path.join(this_dir, "../..", ARCH_REL_PATH),
+        # system installation paths (installed via CMake)
+        os.path.join(this_dir, "../../clap/clap-arch.cpp"),  # installed location
         # check FAUST_LIB environment variable
         os.path.join(os.environ.get("FAUST_LIB", ""), ARCH_REL_PATH) if os.environ.get("FAUST_LIB") else "",
-        # system-wide fallbacks (last resort)
-        f"/usr/local/share/faust/{ARCH_REL_PATH}",
+        os.path.join(os.environ.get("FAUST_LIB", ""), "clap/clap-arch.cpp") if os.environ.get("FAUST_LIB") else "",
+        # system-wide fallbacks (both patterns)
+        f"/usr/local/share/faust/{ARCH_REL_PATH}",  # development pattern
+        f"/usr/local/share/faust/clap/clap-arch.cpp",  # installed pattern
         f"/usr/share/faust/{ARCH_REL_PATH}",
+        f"/usr/share/faust/clap/clap-arch.cpp",
         f"/opt/homebrew/share/faust/{ARCH_REL_PATH}",
+        f"/opt/homebrew/share/faust/clap/clap-arch.cpp",
     ]
     
     for path in possible_paths:
@@ -242,47 +275,334 @@ except subprocess.CalledProcessError:
     print("[!] faust compilation failed.")
     sys.exit(1)
 
-#run cMake with macOS sdk path to find stdlib headers
-try:
-    print("[*] running cmake build")
-    sdk_path = subprocess.check_output(["xcrun", "--sdk", "macosx", "--show-sdk-path"], universal_newlines=True).strip()
-    cxx_include_path = "/Library/Developer/CommandLineTools/usr/include/c++/v1"
-
-    # Find the directory containing CMakeLists.txt
-    cmake_dir = this_dir
-    if not os.path.isfile(os.path.join(cmake_dir, "CMakeLists.txt")):
-        # If CMakeLists.txt not in script dir, check if we're in a system installation
-        # In that case, the files should be in the source tree
-        if arch_path and "tools/faust2clap" in os.path.dirname(arch_path):
-            # arch_path points to source tree, use that
-            cmake_dir = os.path.join(os.path.dirname(arch_path), "../../tools/faust2clap")
-            cmake_dir = os.path.abspath(cmake_dir)
+# detect environment and setup build system
+def detect_faust_sdk():
+    """Detect if we're in development or system installation and find SDK components"""
     
-    if not os.path.isfile(os.path.join(cmake_dir, "CMakeLists.txt")):
-        print("[!] CMakeLists.txt not found. faust2clap installation may be incomplete.")
-        print(f"[!] Searched in: {cmake_dir}")
+    # check for development environment (has external dependencies)
+    dev_clap_sdk = os.path.join(this_dir, "../../external/clap-sdk")
+    dev_clap_helpers = os.path.join(this_dir, "../../external/clap-helpers")
+    
+    if os.path.isdir(dev_clap_sdk) and os.path.isdir(dev_clap_helpers):
+        return {
+            'type': 'development',
+            'clap_sdk': dev_clap_sdk,
+            'clap_helpers': dev_clap_helpers,
+            'faust_lib': os.path.join(this_dir, "../.."),
+            'cmake_template': os.path.join(this_dir, "CMakeLists.txt"),
+            'plugin_template': os.path.join(this_dir, "lib/plugin.cc"),
+            'gui_glue': os.path.join(this_dir, "lib/faust_gui_glue.cpp"),
+            'plist_template': os.path.join(this_dir, "cmake/generic.plist.in")
+        }
+    
+    # check for system installation SDK
+    # try multiple system paths where SDK might be installed
+    system_paths = [
+        "/usr/local/share/faust/tools/faust2clap",
+        "/usr/share/faust/tools/faust2clap",
+        "/opt/homebrew/share/faust/tools/faust2clap"
+    ]
+    
+    # also try based on current script location
+    if "/share/faust/tools/faust2clap" in this_dir:
+        system_paths.insert(0, this_dir)
+    
+    for base_path in system_paths:
+        if os.path.isdir(base_path):
+            sdk_path = os.path.join(base_path, "sdk")
+            if os.path.isdir(sdk_path):
+                return {
+                    'type': 'system',
+                    'clap_sdk': os.path.join(sdk_path, "clap-sdk"),
+                    'clap_helpers': os.path.join(sdk_path, "clap-helpers"),
+                    'faust_lib': faust_root,
+                    'cmake_template': os.path.join(sdk_path, "CMakeLists.txt"),
+                    'plugin_template': os.path.join(sdk_path, "plugin.cc"),
+                    'gui_glue': os.path.join(sdk_path, "faust_gui_glue.cpp"),
+                    'plist_template': os.path.join(sdk_path, "generic.plist.in")
+                }
+    
+    # fallback: try to use current development setup even if incomplete
+    return {
+        'type': 'fallback',
+        'clap_sdk': dev_clap_sdk,
+        'clap_helpers': dev_clap_helpers,
+        'faust_lib': os.path.join(this_dir, "../.."),
+        'cmake_template': os.path.join(this_dir, "CMakeLists.txt"),
+        'plugin_template': os.path.join(this_dir, "lib/plugin.cc"),
+        'gui_glue': os.path.join(this_dir, "lib/faust_gui_glue.cpp"),
+        'plist_template': os.path.join(this_dir, "cmake/generic.plist.in")
+    }
+
+def setup_build_environment(sdk_info, base_name):
+    """Setup user-writable build environment in cache directory"""
+    
+    # create cache directory structure
+    cache_base = get_cache_dir()
+    faust_version = get_faust_version()
+    platform_name = platform.system().lower()
+    
+    cache_dir = os.path.join(cache_base, faust_version, platform_name)
+    build_dir = os.path.join(cache_dir, "build", base_name)
+    
+    # create directories
+    os.makedirs(build_dir, exist_ok=True)
+    os.makedirs(os.path.join(cache_dir, "sdk"), exist_ok=True)
+    
+    # copy SDK files to cache if needed (for system installations)
+    sdk_cache_dir = os.path.join(cache_dir, "sdk")
+    
+    if sdk_info['type'] == 'system':
+        # copy SDK files to cache for out-of-tree builds
+        for name, path in sdk_info.items():
+            if name.startswith('clap_') and os.path.isdir(path):
+                cache_path = os.path.join(sdk_cache_dir, os.path.basename(path))
+                if not os.path.exists(cache_path):
+                    print(f"[i] Copying {name} to cache...")
+                    shutil.copytree(path, cache_path)
+                sdk_info[name] = cache_path
+            elif name.endswith('_template') and os.path.isfile(path):
+                cache_path = os.path.join(sdk_cache_dir, os.path.basename(path))
+                if not os.path.exists(cache_path):
+                    shutil.copy2(path, cache_path)
+                sdk_info[name] = cache_path
+    
+    return build_dir, sdk_info
+
+def generate_cmake_content(sdk_info, plugin_name, cpp_path, metadata_path):
+    """Generate CMakeLists.txt content for out-of-tree builds"""
+    
+    return f"""# Generated CMakeLists.txt for {plugin_name} CLAP plugin
+# Auto-generated by faust2clap - do not edit manually
+
+cmake_minimum_required(VERSION 3.15)
+project({plugin_name}_clap LANGUAGES C CXX)
+
+# C++17 standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# macOS deployment target
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "macOS target")
+endif()
+
+# Find RtMidi library
+find_package(PkgConfig QUIET)
+if(PkgConfig_FOUND)
+    pkg_check_modules(RTMIDI rtmidi)
+endif()
+
+# Fallback to common system locations if pkg-config fails
+if(NOT RTMIDI_FOUND)
+    find_library(RTMIDI_LIBRARY 
+        NAMES rtmidi librtmidi librtmidi.7 librtmidi.6 librtmidi.5
+        PATHS 
+            /opt/homebrew/lib
+            /opt/homebrew/Cellar/rtmidi/*/lib
+            /usr/local/lib 
+            /usr/lib
+        PATH_SUFFIXES lib
+    )
+    find_path(RTMIDI_INCLUDE_DIR 
+        NAMES RtMidi.h rtmidi/RtMidi.h
+        PATHS 
+            /opt/homebrew/include
+            /opt/homebrew/Cellar/rtmidi/*/include
+            /usr/local/include 
+            /usr/include
+        PATH_SUFFIXES include
+    )
+    
+    if(RTMIDI_LIBRARY AND RTMIDI_INCLUDE_DIR)
+        set(RTMIDI_FOUND TRUE)
+        set(RTMIDI_LIBRARIES "${{RTMIDI_LIBRARY}}")
+        set(RTMIDI_INCLUDE_DIRS "${{RTMIDI_INCLUDE_DIR}}")
+    endif()
+endif()
+
+if(NOT RTMIDI_FOUND)
+    message(WARNING "RtMidi not found. MIDI support will be limited.")
+    set(RTMIDI_LIBRARIES "")
+    set(RTMIDI_INCLUDE_DIRS "")
+endif()
+
+# Include CLAP SDK and helpers
+add_subdirectory("{sdk_info['clap_sdk']}" clap-sdk)
+add_subdirectory("{sdk_info['clap_helpers']}" clap-helpers)
+
+# Build GUI glue library
+add_library(faust_gui_glue STATIC "{sdk_info['gui_glue']}")
+target_include_directories(faust_gui_glue PRIVATE
+    "{sdk_info['faust_lib']}/architecture"
+    "{sdk_info['faust_lib']}/architecture/faust/gui"
+)
+
+# Main plugin target
+add_library({plugin_name} MODULE "{os.path.basename(cpp_path)}")
+
+# Add plugin implementation
+target_sources({plugin_name} PRIVATE "{sdk_info['plugin_template']}")
+
+# Include directories
+target_include_directories({plugin_name} PRIVATE
+    "${{CMAKE_CURRENT_SOURCE_DIR}}"
+    "{sdk_info['faust_lib']}/architecture"
+    "{sdk_info['faust_lib']}/architecture/faust/gui"
+    "{sdk_info['faust_lib']}/architecture/faust/midi"
+    "{sdk_info['faust_lib']}/architecture/faust/dsp"
+    "{sdk_info['clap_helpers']}/include"
+    "{sdk_info['clap_sdk']}/include"
+    ${{RTMIDI_INCLUDE_DIRS}}
+)
+
+# Link libraries  
+target_link_libraries({plugin_name} PRIVATE
+    clap
+    clap-helpers
+    faust_gui_glue
+)
+
+# Add RtMidi if found
+if(RTMIDI_FOUND)
+    if(RTMIDI_LDFLAGS)
+        # Use LDFLAGS for complete linking setup (includes -L and -l flags)
+        target_link_options({plugin_name} PRIVATE ${{RTMIDI_LDFLAGS}})
+    else()
+        # Use LIBRARIES and LIBRARY_DIRS separately
+        target_link_directories({plugin_name} PRIVATE ${{RTMIDI_LIBRARY_DIRS}})
+        target_link_libraries({plugin_name} PRIVATE ${{RTMIDI_LIBRARIES}})
+    endif()
+endif()
+
+# macOS bundle properties
+if(APPLE)
+    set_target_properties({plugin_name} PROPERTIES
+        OUTPUT_NAME {plugin_name}
+        BUNDLE TRUE
+        BUNDLE_EXTENSION clap
+        MACOSX_BUNDLE_GUI_IDENTIFIER org.faust.{plugin_name}
+        MACOSX_BUNDLE_BUNDLE_NAME {plugin_name}
+        MACOSX_BUNDLE_BUNDLE_VERSION "1.0"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
+    )
+    
+    # Generate Info.plist if template exists
+    if(EXISTS "{sdk_info.get('plist_template', '')}")
+        configure_file(
+            "{sdk_info['plist_template']}"
+            "${{CMAKE_CURRENT_BINARY_DIR}}/{plugin_name}.plist"
+            @ONLY
+        )
+        set_target_properties({plugin_name} PROPERTIES
+            MACOSX_BUNDLE_INFO_PLIST "${{CMAKE_CURRENT_BINARY_DIR}}/{plugin_name}.plist"
+        )
+    endif()
+endif()
+"""
+
+# detect SDK and setup build environment
+sdk_info = detect_faust_sdk()
+print(f"[i] Detected {sdk_info['type']} environment")
+
+# check if we can actually build
+can_build = False
+if sdk_info['type'] != 'fallback':
+    #verify all required components exist
+    required_components = ['clap_sdk', 'clap_helpers', 'cmake_template', 'plugin_template']
+    missing = [comp for comp in required_components if not os.path.exists(sdk_info[comp])]
+    
+    if missing:
+        print(f"[!] Missing SDK components: {missing}")
+        can_build = False
+    else:
+        can_build = True
+else:
+    print("[!] Incomplete SDK installation detected")
+
+if can_build:
+    # setup build environment in user cache
+    try:
+        build_dir, updated_sdk_info = setup_build_environment(sdk_info, base)
+        
+        print("[*] Setting up build environment in user cache")
+        print(f"[i] Build directory: {build_dir}")
+        
+        # generate CMakeLists.txt in build directory
+        cmake_content = generate_cmake_content(updated_sdk_info, base, out_cpp_path, metadata_header_path)
+        cmake_path = os.path.join(build_dir, "CMakeLists.txt")
+        
+        with open(cmake_path, "w") as f:
+            f.write(cmake_content)
+        
+        # copy necessary files to build directory
+        shutil.copy2(out_cpp_path, build_dir)
+        shutil.copy2(metadata_header_path, build_dir)
+        
+        print("[*] Running cmake build")
+        
+        # platform-specific build setup
+        cmake_args = [
+            "cmake", "-S", build_dir, "-B", os.path.join(build_dir, "_build")
+        ]
+        
+        if platform.system() == "Darwin":
+            try:
+                sdk_path = subprocess.check_output(["xcrun", "--sdk", "macosx", "--show-sdk-path"], universal_newlines=True).strip()
+                cmake_args.append(f"-DCMAKE_OSX_SYSROOT={sdk_path}")
+            except:
+                pass  # continue without SDK path if xcrun fails
+        
+        subprocess.run(cmake_args, check=True, capture_output=True)
+        subprocess.run(["cmake", "--build", os.path.join(build_dir, "_build")], check=True, capture_output=True)
+        
+        # copy built plugin to output location
+        if platform.system() == "Darwin":
+            built_plugin = os.path.join(build_dir, "_build", f"{base}.clap")
+            if os.path.exists(built_plugin):
+                # copy to system plugin directory
+                system_plugin_dir = os.path.expanduser("~/Library/Audio/Plug-Ins/CLAP")
+                os.makedirs(system_plugin_dir, exist_ok=True)
+                final_plugin_path = os.path.join(system_plugin_dir, f"{base}.clap")
+                if os.path.exists(final_plugin_path):
+                    shutil.rmtree(final_plugin_path)
+                shutil.copytree(built_plugin, final_plugin_path)
+                print(f"[✓] Plugin installed: {final_plugin_path}")
+        
+        print("[✓] Build completed successfully.")
+        
+    except subprocess.CalledProcessError as e:
+        print("[!] cmake build failed.")
+        print(f"[stderr]\n{e.stderr.decode() if e.stderr else 'No stderr'}")
+        print(f"[stdout]\n{e.stdout.decode() if e.stdout else 'No stdout'}")
         sys.exit(1)
-    
-    subprocess.run([
-        "cmake", "-S", cmake_dir, "-B", os.path.join(cmake_dir, "build"),
-        f"-DCMAKE_CXX_FLAGS=-isysroot {sdk_path} -I{cxx_include_path}"
-    ], check=True, capture_output=True)
-
-    subprocess.run(["cmake", "--build", os.path.join(cmake_dir, "build")], check=True, capture_output=True)
-
-    print("[✓] build completed successfully.")
-except subprocess.CalledProcessError as e:
-    print("[!] cmake build failed.")
-    print(f"[stderr]\n{e.stderr.decode() if e.stderr else 'No stderr'}")
-    print(f"[stdout]\n{e.stdout.decode() if e.stdout else 'No stdout'}")
-    sys.exit(1)
-
-    
-except subprocess.CalledProcessError as e:
-    print("[!] cmake build failed.")
-    print(f"[stderr]\n{e.stderr.decode() if e.stderr else 'No stderr'}")
-    print(f"[stdout]\n{e.stdout.decode() if e.stdout else 'No stdout'}")
-    sys.exit(1)
-
-
-
+    except Exception as e:
+        print(f"[!] Build setup failed: {e}")
+        sys.exit(1)
+else:
+    # cannot build, provide helpful instructions
+    print("[i] C++ generation completed")
+    print("")
+    if sdk_info['type'] == 'fallback':
+        print("⚠️  Incomplete faust2clap installation detected")
+        print("")
+        print("To build CLAP plugins, you need:")
+        print("  1. A complete Faust installation with CLAP support")
+        print("  2. CLAP SDK and helper libraries")
+        print("")
+        print("Solutions:")
+        print("  • Install Faust from source:")
+        print("    git clone https://github.com/grame-cncm/faust")
+        print("    cd faust")
+        print("    make && sudo make install")
+        print("")
+        print("  • Or run from development environment:")
+        print(f"    cd faust/tools/faust2clap && ./faust2clap {dsp_path}")
+    else:
+        print("To complete the build manually:")
+        print(f"  1. Copy generated files to a build environment")
+        print(f"  2. Compile with CLAP SDK and helper libraries")
+    print("")
+    print(f"Generated files:")
+    print(f"  C++ source: {out_cpp_path}")
+    print(f"  Metadata:   {metadata_header_path}")
