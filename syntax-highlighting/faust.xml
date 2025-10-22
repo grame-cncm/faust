@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE language SYSTEM "language.dtd">
-<language name="Faust" version="1" kateversion="2.4" section="Sources" extensions="*.dsp;*.lib" mimetype="text/x-faust" priority="9">
+<language name="Faust" version="2" kateversion="2.4" section="Sources" extensions="*.dsp;*.lib" mimetype="text/x-faust" priority="9">
   <highlighting>
     <list name="primitives">
-	  <item> mem </item>
+      <item> mem </item>
       <item> prefix </item>
       <item> int </item>
       <item> float </item>
@@ -14,9 +14,9 @@
       <item> ffunction </item>
       <item> fconstant</item>
       <item> fvariable</item>
-      <item> route <item>
-      <item> waveform <item>
-      <item> soundfile <item>
+      <item> route </item>
+      <item> waveform </item>
+      <item> soundfile </item>
       <item> button </item>
       <item> checkbox </item>
       <item> vslider </item>
@@ -49,40 +49,1131 @@
       <item> ceil </item>
       <item> rint </item>
     </list>
-	
     <list name="operators">
-	  <item> process </item>
-	  
-	  <item> with </item>
-	  <item> case </item>
+      <item> process </item>
+      <item> with </item>
+      <item> case </item>
       <item> seq </item>
-	  <item> par </item>
-	  <item> sum </item>
-	  <item> prod </item>
-	  <item> import </item>
-	  
+      <item> par </item>
+      <item> sum </item>
+      <item> prod </item>
+      <item> import </item>
       <item> component </item>
       <item> library </item>
       <item> environment </item>
-      
-	  <item> declare </item>
+      <item> declare </item>
     </list>
-	
+    <list name="aa_suffixes">
+      <item> clip </item>
+      <item> Rsqrt </item>
+      <item> Rlog </item>
+      <item> Rtan </item>
+      <item> Racos </item>
+      <item> Rasin </item>
+      <item> Racosh </item>
+      <item> Rcosh </item>
+      <item> Rsinh </item>
+      <item> Ratanh </item>
+      <item> ADAA1 </item>
+      <item> ADAA2 </item>
+      <item> hardclip </item>
+      <item> hardclip2 </item>
+      <item> cubic1 </item>
+      <item> parabolic </item>
+      <item> parabolic2 </item>
+      <item> hyperbolic </item>
+      <item> hyperbolic2 </item>
+      <item> sinarctan </item>
+      <item> sinarctan2 </item>
+      <item> softclipQuadratic1 </item>
+      <item> softclipQuadratic2 </item>
+      <item> tanh1 </item>
+      <item> arctan </item>
+      <item> arctan2 </item>
+      <item> asinh1 </item>
+      <item> asinh2 </item>
+      <item> cosine1 </item>
+      <item> cosine2 </item>
+      <item> arccos </item>
+      <item> arccos2 </item>
+      <item> acosh1 </item>
+      <item> acosh2 </item>
+      <item> sine </item>
+      <item> sine2 </item>
+      <item> arcsin </item>
+      <item> arcsin2 </item>
+      <item> tangent </item>
+      <item> atanh1 </item>
+      <item> atanh2 </item>
+    </list>
+    <list name="an_suffixes">
+      <item> abs_envelope_rect </item>
+      <item> abs_envelope_tau </item>
+      <item> abs_envelope_t60 </item>
+      <item> abs_envelope_t19 </item>
+      <item> amp_follower </item>
+      <item> amp_follower_ud </item>
+      <item> amp_follower_ar </item>
+      <item> ms_envelope_rect </item>
+      <item> ms_envelope_tau </item>
+      <item> ms_envelope_t60 </item>
+      <item> ms_envelope_t19 </item>
+      <item> rms_envelope_rect </item>
+      <item> rms_envelope_tau </item>
+      <item> rms_envelope_t60 </item>
+      <item> rms_envelope_t19 </item>
+      <item> zcr </item>
+      <item> pitchTracker </item>
+      <item> spectralCentroid </item>
+      <item> mth_octave_analyzer </item>
+      <item> mth_octave_analyzer3 </item>
+      <item> mth_octave_analyzer5 </item>
+      <item> mth_octave_analyzer6e </item>
+      <item> mth_octave_analyzer_default </item>
+      <item> third_octave_analyzer </item>
+      <item> half_octave_analyzer </item>
+      <item> octave_analyzer </item>
+      <item> third_octave_filterbank </item>
+      <item> half_octave_filterbank </item>
+      <item> octave_filterbank </item>
+      <item> mth_octave_spectral_level6e </item>
+      <item> mth_octave_spectral_level_default </item>
+      <item> spectral_level </item>
+      <item> analyzer </item>
+      <item> goertzelOpt </item>
+      <item> goertzelComp </item>
+      <item> goertzel </item>
+      <item> resonator </item>
+      <item> fft </item>
+      <item> ifft </item>
+      <item> logsweep </item>
+      <item> linsweep </item>
+    </list>
+    <list name="ba_suffixes">
+      <item> samp2sec </item>
+      <item> sec2samp </item>
+      <item> db2linear </item>
+      <item> linear2db </item>
+      <item> lin2LogGain </item>
+      <item> log2LinGain </item>
+      <item> tau2pole </item>
+      <item> pole2tau </item>
+      <item> midikey2hz </item>
+      <item> hz2midikey </item>
+      <item> semi2ratio </item>
+      <item> ratio2semi </item>
+      <item> cent2ratio </item>
+      <item> ratio2cent </item>
+      <item> pianokey2hz </item>
+      <item> hz2pianokey </item>
+      <item> counter </item>
+      <item> countdown </item>
+      <item> countup </item>
+      <item> sweep </item>
+      <item> time </item>
+      <item> ramp </item>
+      <item> line </item>
+      <item> tempo </item>
+      <item> period </item>
+      <item> spulse </item>
+      <item> pulse </item>
+      <item> pulsen </item>
+      <item> cycle </item>
+      <item> beat </item>
+      <item> pulse_countup </item>
+      <item> pulse_countdown </item>
+      <item> pulse_countup_loop </item>
+      <item> pulse_countdown_loop </item>
+      <item> resetCtr </item>
+      <item> count </item>
+      <item> take </item>
+      <item> pick </item>
+      <item> pickN </item>
+      <item> subseq </item>
+      <item> tabulate </item>
+      <item> tabulate_chebychev </item>
+      <item> tabulateNd </item>
+      <item> if </item>
+      <item> ifNc </item>
+      <item> ifNcNo </item>
+      <item> selector </item>
+      <item> select2stereo </item>
+      <item> selectn </item>
+      <item> selectbus </item>
+      <item> selectxbus </item>
+      <item> selectmulti </item>
+      <item> selectoutn </item>
+      <item> latch </item>
+      <item> sAndH </item>
+      <item> tAndH </item>
+      <item> downSample </item>
+      <item> downSampleCV </item>
+      <item> peakhold </item>
+      <item> peakholder </item>
+      <item> kr2ar </item>
+      <item> impulsify </item>
+      <item> automat </item>
+      <item> bpf </item>
+      <item> listInterp </item>
+      <item> bypass1 </item>
+      <item> bypass2 </item>
+      <item> bypass1to2 </item>
+      <item> bypass_fade </item>
+      <item> toggle </item>
+      <item> on_and_off </item>
+      <item> bitcrusher </item>
+      <item> mulaw_bitcrusher </item>
+      <item> slidingReduce </item>
+      <item> slidingSum </item>
+      <item> slidingSump </item>
+      <item> slidingMax </item>
+      <item> slidingMin </item>
+      <item> slidingMean </item>
+      <item> slidingMeanp </item>
+      <item> slidingRMS </item>
+      <item> slidingRMSp </item>
+      <item> parallelOp </item>
+      <item> parallelMax </item>
+      <item> parallelMin </item>
+      <item> parallelMean </item>
+      <item> parallelRMS </item>
+    </list>
+    <list name="co_suffixes">
+      <item> ratio2strength </item>
+      <item> strength2ratio </item>
+      <item> peak_compression_gain_mono_db </item>
+      <item> peak_compression_gain_N_chan_db </item>
+      <item> FFcompressor_N_chan </item>
+      <item> FBcompressor_N_chan </item>
+      <item> FBFFcompressor_N_chan </item>
+      <item> RMS_compression_gain_mono_db </item>
+      <item> RMS_compression_gain_N_chan_db </item>
+      <item> RMS_FBFFcompressor_N_chan </item>
+      <item> RMS_FBcompressor_peak_limiter_N_chan </item>
+      <item> peak_compression_gain_mono </item>
+      <item> peak_compression_gain_N_chan </item>
+      <item> RMS_compression_gain_mono </item>
+      <item> RMS_compression_gain_N_chan </item>
+      <item> compressor_lad_mono </item>
+      <item> compressor_mono </item>
+      <item> compressor_stereo </item>
+      <item> compression_gain_mono </item>
+      <item> limiter_1176_R4_mono </item>
+      <item> limiter_1176_R4_stereo </item>
+      <item> peak_expansion_gain_N_chan_db </item>
+      <item> expander_N_chan </item>
+      <item> expanderSC_N_chan </item>
+      <item> limiter_lad_N </item>
+      <item> limiter_lad_mono </item>
+      <item> limiter_lad_stereo </item>
+      <item> limiter_lad_quad </item>
+      <item> limiter_lad_bw </item>
+    </list>
+    <list name="de_suffixes">
+      <item> delay </item>
+      <item> fdelay </item>
+      <item> sdelay </item>
+      <item> prime_power_delays </item>
+      <item> fdelaylti </item>
+      <item> fdelayltv </item>
+      <item> fdelay1 </item>
+      <item> fdelay2 </item>
+      <item> fdelay3 </item>
+      <item> fdelay4 </item>
+      <item> fdelay5 </item>
+      <item> fdelay1a </item>
+      <item> fdelay2a </item>
+      <item> fdelay3a </item>
+      <item> fdelay4a </item>
+      <item> multiTapSincDelay </item>
+    </list>
+    <list name="dm_suffixes">
+      <item> mth_octave_spectral_level_demo </item>
+      <item> spectral_level_demo </item>
+      <item> parametric_eq_demo </item>
+      <item> spectral_tilt_demo </item>
+      <item> mth_octave_filterbank_demo </item>
+      <item> filterbank_demo </item>
+      <item> cubicnl_demo </item>
+      <item> gate_demo </item>
+      <item> compressor_demo </item>
+      <item> moog_vcf_demo </item>
+      <item> wah4_demo </item>
+      <item> crybaby_demo </item>
+      <item> flanger_demo </item>
+      <item> phaser2_demo </item>
+      <item> tapeStop_demo </item>
+      <item> freeverb_demo </item>
+      <item> stereo_reverb_tester </item>
+      <item> fdnrev0_demo </item>
+      <item> zita_rev_fdn_demo </item>
+      <item> zita_light </item>
+      <item> zita_rev1 </item>
+      <item> vital_rev_demo </item>
+      <item> reverbTank_demo </item>
+      <item> kb_rom_rev1_demo </item>
+      <item> dattorro_rev_demo </item>
+      <item> jprev_demo </item>
+      <item> greyhole_demo </item>
+      <item> sawtooth_demo </item>
+      <item> virtual_analog_oscillator_demo </item>
+      <item> oscrs_demo </item>
+      <item> velvet_noise_demo </item>
+      <item> latch_demo </item>
+      <item> envelopes_demo </item>
+      <item> fft_spectral_level_demo </item>
+      <item> reverse_echo_demo </item>
+      <item> pospass_demo </item>
+      <item> exciter </item>
+      <item> vocoder_demo </item>
+      <item> colored_noise_demo </item>
+    </list>
+    <list name="dx_suffixes">
+      <item> fdbkscalef </item>
+      <item> fdbkscalef2 </item>
+      <item> algorithms </item>
+      <item> algorithm </item>
+      <item> env </item>
+      <item> lfo </item>
+      <item> operator </item>
+      <item> pitchenv </item>
+      <item>bitcrusher</item>
+      <item>overdrive</item>
+      <item>overdrive2</item>
+      <item>distortion_table</item>
+      <item>amp_tube_drive</item>
+      <item>tube_amp_model</item>
+      <item>reverb_damper</item>
+      <item>n3r3verb</item>
+      <item>i3r3verb</item>
+      <item>lowpass_reverb</item>
+      <item>highpass_reverb</item>
+      <item>stereo_chorus</item>
+      <item>stereo_flanger</item>
+      <item>pingpong_delay</item>
+      <item>delay_f</item>
+      <item>allpass_delay</item>
+      <item>comb_delay</item>
+      <item>delay</item>
+      <item>delay_n</item>
+      <item>delay_t</item>
+      <item>stereodelay</item>
+      <item>chorus</item>
+      <item>chorus_l</item>
+      <item>flanger</item>
+      <item>flanger_l</item>
+      <item>phaser_l</item>
+      <item>vibrato</item>
+      <item>wah</item>
+      <item>pitch_shifter</item>
+      <item>feedback_shifter</item>
+      <item>freq_shifter</item>
+      <item>autowah</item>
+      <item>tremolo</item>
+    </list>
+    <list name="ef_suffixes">
+      <item> cubicnl </item>
+      <item> gate_mono </item>
+      <item> gate_stereo </item>
+      <item> fibonacci </item>
+      <item> fibonacciGeneral </item>
+      <item> fibonacciSeq </item>
+      <item> speakerbp </item>
+      <item> piano_dispersion_filter </item>
+      <item> stereo_width </item>
+      <item> mesh_square </item>
+      <item> dryWetMixer </item>
+      <item> dryWetMixerConstantPower </item>
+      <item> mixLinearClamp </item>
+      <item> mixLinearLoop </item>
+      <item> mixPowerClamp </item>
+      <item> mixPowerLoop </item>
+      <item> echo </item>
+      <item> reverseEchoN </item>
+      <item> reverseDelayRamped </item>
+      <item> uniformPanToStereo </item>
+      <item> tapeStop </item>
+      <item> transpose </item>
+      <item> softclipQuadratic </item>
+      <item> wavefold </item>
+    </list>
+    <list name="en_suffixes">
+      <item> ar </item>
+      <item> asr </item>
+      <item> adsr </item>
+      <item> adsrf_bias </item>
+      <item> adsr_bias </item>
+      <item> ahdsrf_bias </item>
+      <item> ahdsr_bias </item>
+      <item> smoothEnvelope </item>
+      <item> arfe </item>
+      <item> are </item>
+      <item> asre </item>
+      <item> adsre </item>
+      <item> ahdsre </item>
+      <item> dx7envelope </item>
+    </list>
+    <list name="fd_suffixes">
+      <item> model1D </item>
+      <item> model2D </item>
+      <item> stairsInterp1D </item>
+      <item> stairsInterp2D </item>
+      <item> linInterp1D </item>
+      <item> linInterp2D </item>
+      <item> stairsInterp1DOut </item>
+      <item> stairsInterp2DOut </item>
+      <item> linInterp1DOut </item>
+      <item> linInterp2DOut </item>
+      <item> route1D </item>
+      <item> route2D </item>
+      <item> schemePoint </item>
+      <item> buildScheme1D </item>
+      <item> buildScheme2D </item>
+      <item> hammer </item>
+      <item> bow </item>
+    </list>
+    <list name="fi_suffixes">
+      <item> zero </item>
+      <item> pole </item>
+      <item> integrator </item>
+      <item> dcblockerat </item>
+      <item> dcblocker </item>
+      <item> lptN </item>
+      <item> ff_comb </item>
+      <item> ff_fcomb </item>
+      <item> ffcombfilter </item>
+      <item> fb_comb_common </item>
+      <item> fb_comb </item>
+      <item> fb_fcomb </item>
+      <item> rev1 </item>
+      <item> fbcombfilter </item>
+      <item> ffbcombfilter </item>
+      <item> allpass_comb </item>
+      <item> allpass_fcomb </item>
+      <item> rev2 </item>
+      <item> allpass_fcomb5 </item>
+      <item> allpass_fcomb1a </item>
+      <item> iir </item>
+      <item> fir </item>
+      <item> conv </item>
+      <item> convN </item>
+      <item> tf1 </item>
+      <item> tf2 </item>
+      <item> tf3 </item>
+      <item> notchw </item>
+      <item> tf21 </item>
+      <item> tf22 </item>
+      <item> tf22t </item>
+      <item> tf21t </item>
+      <item> av2sv </item>
+      <item> bvav2nuv </item>
+      <item> iir_lat2 </item>
+      <item> allpassnt </item>
+      <item> iir_kl </item>
+      <item> allpassnklt </item>
+      <item> iir_lat1 </item>
+      <item> allpassn1mt </item>
+      <item> iir_nl </item>
+      <item> allpassnnlt </item>
+      <item> tf2np </item>
+      <item> wgr </item>
+      <item> nlf2 </item>
+      <item> apnl </item>
+      <item> scatN </item>
+      <item> scat </item>
+      <item> allpassn </item>
+      <item> allpassnn </item>
+      <item> allpassnkl </item>
+      <item> allpass1m </item>
+      <item> tf2s </item>
+      <item> tf2snp </item>
+      <item> tf1snp </item>
+      <item> tf3slf </item>
+      <item> tf1s </item>
+      <item> tf2sb </item>
+      <item> tf1sb </item>
+      <item> resonlp </item>
+      <item> resonhp </item>
+      <item> resonbp </item>
+      <item> lowpass </item>
+      <item> highpass </item>
+      <item> lowpass0_highpass1 </item>
+      <item> lowpass_plus_highpass </item>
+      <item> lowpass_minus_highpass </item>
+      <item> lowpass3e </item>
+      <item> lowpass6e </item>
+      <item> highpass3e </item>
+      <item> highpass6e </item>
+      <item> bandpass </item>
+      <item> bandstop </item>
+      <item> bandpass6e </item>
+      <item> bandpass12e </item>
+      <item> pospass </item>
+      <item> low_shelf </item>
+      <item> high_shelf </item>
+      <item> peak_eq </item>
+      <item> peak_eq_cq </item>
+      <item> peak_eq_rm </item>
+      <item> spectral_tilt </item>
+      <item> levelfilter </item>
+      <item> levelfilterN </item>
+      <item> mth_octave_filterbank </item>
+      <item> filterbank </item>
+      <item> filterbanki </item>
+      <item> svf </item>
+      <item> svf_morph </item>
+      <item> svf_notch_morph </item>
+      <item> SVFTPT </item>
+      <item> dynamicSmoother </item>
+      <item> oneEuro </item>
+      <item> lowpassLR4 </item>
+      <item> highpassLR4 </item>
+      <item> crossover2LR4 </item>
+      <item> crossover3LR4 </item>
+      <item> crossover4LR4 </item>
+      <item> crossover8LR4 </item>
+      <item> itu_r_bs_1770_4_kfilter </item>
+      <item> avg_rect </item>
+      <item> avg_tau </item>
+      <item> avg_t60 </item>
+      <item> avg_t19 </item>
+      <item> kalman </item>
+    </list>
+    <list name="ho_suffixes">
+      <item> encoder </item>
+      <item> rEncoder </item>
+      <item> stereoEncoder </item>
+      <item> multiEncoder </item>
+      <item> decoder </item>
+      <item> decoderStereo </item>
+      <item> iBasicDecoder </item>
+      <item> circularScaledVBAP </item>
+      <item> imlsDecoder </item>
+      <item> iDecoder </item>
+      <item> optimBasic </item>
+      <item> optimMaxRe </item>
+      <item> optimInPhase </item>
+      <item> optim </item>
+      <item> wider </item>
+      <item> mirror </item>
+      <item> map </item>
+      <item> rotate </item>
+      <item> scope </item>
+      <item> fxDecorrelation </item>
+      <item> synDecorrelation </item>
+      <item> fxRingMod </item>
+      <item> synRingMod </item>
+      <item> encoder3D </item>
+      <item> rEncoder3D </item>
+      <item> optimBasic3D </item>
+      <item> optimMaxRe3D </item>
+      <item> optimInPhase3D </item>
+      <item> optim3D </item>
+    </list>
+    <list name="it_suffixes">
+      <item> interpolate_linear </item>
+      <item> interpolate_cosine </item>
+      <item> interpolate_cubic </item>
+      <item> interpolator_two_points </item>
+      <item> interpolator_linear </item>
+      <item> interpolator_cosine </item>
+      <item> interpolator_four_points </item>
+      <item> interpolator_cubic </item>
+      <item> interpolator_select </item>
+      <item> lerp </item>
+      <item> piecewise </item>
+      <item> lagrangeCoeffs </item>
+      <item> lagrangeInterpolation </item>
+      <item> frdtable </item>
+      <item> frwtable </item>
+      <item> remap </item>
+    </list>
+    <list name="la_suffixes">
+      <item> determinant </item>
+      <item> minor </item>
+      <item> inverse </item>
+      <item> transpose2 </item>
+      <item> matMul </item>
+      <item> identity </item>
+      <item> diag </item>
+    </list>
+    <list name="ma_suffixes">
+      <item> SR </item>
+      <item> T </item>
+      <item> BS </item>
+      <item> PI </item>
+      <item> E </item>
+      <item> EPSILON </item>
+      <item> MIN </item>
+      <item> MAX </item>
+      <item> deg2rad </item>
+      <item> rad2deg </item>
+      <item> FTZ </item>
+      <item> copysign </item>
+      <item> neg </item>
+      <item> not </item>
+      <item> sub </item>
+      <item> inv </item>
+      <item> cbrt </item>
+      <item> hypot </item>
+      <item> ldexp </item>
+      <item> scalb </item>
+      <item> log1p </item>
+      <item> logb </item>
+      <item> ilogb </item>
+      <item> log2 </item>
+      <item> expm1 </item>
+      <item> fabs </item>
+      <item> fmax </item>
+      <item> fmin </item>
+      <item> np2 </item>
+      <item> frac </item>
+      <item> modulo </item>
+      <item> isnan </item>
+      <item> isinf </item>
+      <item> diffn </item>
+      <item> signum </item>
+      <item> nextpow2 </item>
+      <item> zc </item>
+      <item> unwrap </item>
+      <item> primes </item>
+      <item> acosh </item>
+      <item> asinh </item>
+      <item> atanh </item>
+      <item> sinh </item>
+      <item> cosh </item>
+      <item> tanh </item>
+      <item> erf </item>
+      <item> erfc </item>
+      <item> gamma </item>
+      <item> lgamma </item>
+      <item> J0 </item>
+      <item> J1 </item>
+      <item> Jn </item>
+      <item> Y0 </item>
+      <item> Y1 </item>
+      <item> Yn </item>
+      <item> chebychev </item>
+      <item> chebychevpoly </item>
+    </list>
+    <list name="mi_suffixes">
+      <item> initState </item>
+      <item> mass </item>
+      <item> oscil </item>
+      <item> ground </item>
+      <item> posInput </item>
+      <item> spring </item>
+      <item> damper </item>
+      <item> springDamper </item>
+      <item> nlSpringDamper2 </item>
+      <item> nlSpringDamper3 </item>
+      <item> nlSpringDamperClipped </item>
+      <item> nlPluck </item>
+      <item> nlBow </item>
+      <item> collision </item>
+      <item> nlCollisionClipped </item>
+    </list>
+    <list name="no_suffixes">
+      <item> noise </item>
+      <item> multirandom </item>
+      <item> multinoise </item>
+      <item> noises </item>
+      <item> dnoise </item>
+      <item> rnoise </item>
+      <item> rmultirandom </item>
+      <item> rmultinoise </item>
+      <item> rnoises </item>
+      <item> pink_noise </item>
+      <item> pink_noise_vm </item>
+      <item> colored_noise </item>
+      <item> lfnoise </item>
+      <item> lfnoise0 </item>
+      <item> lfnoiseN </item>
+      <item> sparse_noise </item>
+      <item> velvet_noise_vm </item>
+      <item> gnoise </item>
+      <item> randomseed </item>
+    </list>
+    <list name="os_suffixes">
+      <item> sinwaveform </item>
+      <item> coswaveform </item>
+      <item> phasor </item>
+      <item> hs_phasor </item>
+      <item> hsp_phasor </item>
+      <item> oscsin </item>
+      <item> hs_oscsin </item>
+      <item> osccos </item>
+      <item> hs_osccos </item>
+      <item> oscp </item>
+      <item> osci </item>
+      <item> osc </item>
+      <item> m_oscsin </item>
+      <item> m_osccos </item>
+      <item> lf_imptrain </item>
+      <item> lf_pulsetrainpos </item>
+      <item> lf_pulsetrain </item>
+      <item> lf_squarewavepos </item>
+      <item> lf_squarewave </item>
+      <item> lf_trianglepos </item>
+      <item> lf_triangle </item>
+      <item> lf_rawsaw </item>
+      <item> lf_sawpos </item>
+      <item> lf_sawpos_phase </item>
+      <item> lf_sawpos_reset </item>
+      <item> lf_sawpos_phase_reset </item>
+      <item> lf_saw </item>
+      <item> sawN </item>
+      <item> sawNp </item>
+      <item> saw2 </item>
+      <item> saw3 </item>
+      <item> saw4 </item>
+      <item> saw2ptr </item>
+      <item> saw2dpw </item>
+      <item> sawtooth </item>
+      <item> saw2f2 </item>
+      <item> saw2f4 </item>
+      <item> impulse </item>
+      <item> pulsetrainN </item>
+      <item> pulsetrain </item>
+      <item> squareN </item>
+      <item> square </item>
+      <item> imptrainN </item>
+      <item> imptrain </item>
+      <item> triangleN </item>
+      <item> triangle </item>
+      <item> oscb </item>
+      <item> oscrq </item>
+      <item> oscrs </item>
+      <item> oscrc </item>
+      <item> oscs </item>
+      <item> quadosc </item>
+      <item> sidebands </item>
+      <item> sidebands_list </item>
+      <item> dsf </item>
+      <item> oscwc </item>
+      <item> oscws </item>
+      <item> oscq </item>
+      <item> oscw </item>
+      <item> CZsaw </item>
+      <item> CZsawP </item>
+      <item> CZsquare </item>
+      <item> CZsquareP </item>
+      <item> CZpulse </item>
+      <item> CZpulseP </item>
+      <item> CZsinePulse </item>
+      <item> CZsinePulseP </item>
+      <item> CZhalfSine </item>
+      <item> CZhalfSineP </item>
+      <item> CZresSaw </item>
+      <item> CZresTriangle </item>
+      <item> CZresTrap </item>
+      <item> polyblep </item>
+      <item> polyblep_saw </item>
+      <item> polyblep_square </item>
+      <item> polyblep_triangle </item>
+    </list>
+    <list name="pf_suffixes">
+      <item> flanger_mono </item>
+      <item> flanger_stereo </item>
+      <item> phaser2_mono </item>
+      <item> phaser2_stereo </item>
+    </list>
+    <list name="pm_suffixes">
+      <item> speedOfSound </item>
+      <item> maxLength </item>
+      <item> f2l </item>
+      <item> l2f </item>
+      <item> l2s </item>
+      <item> basicBlock </item>
+      <item> chain </item>
+      <item> inLeftWave </item>
+      <item> inRightWave </item>
+      <item> in </item>
+      <item> outLeftWave </item>
+      <item> outRightWave </item>
+      <item> out </item>
+      <item> terminations </item>
+      <item> lTermination </item>
+      <item> rTermination </item>
+      <item> closeIns </item>
+      <item> closeOuts </item>
+      <item> endChain </item>
+      <item> waveguideN </item>
+      <item> waveguideUd </item>
+      <item> waveguideFd </item>
+      <item> waveguideFd2 </item>
+      <item> waveguideFd4 </item>
+      <item> waveguide </item>
+      <item> bridgeFilter </item>
+      <item> modeFilter </item>
+      <item> stringSegment </item>
+      <item> openString </item>
+      <item> nylonString </item>
+      <item> steelString </item>
+      <item> openStringPick </item>
+      <item> openStringPickUp </item>
+      <item> openStringPickDown </item>
+      <item> ksReflexionFilter </item>
+      <item> rStringRigidTermination </item>
+      <item> lStringRigidTermination </item>
+      <item> elecGuitarBridge </item>
+      <item> elecGuitarNuts </item>
+      <item> guitarBridge </item>
+      <item> guitarNuts </item>
+      <item> idealString </item>
+      <item> ks </item>
+      <item> ks_ui_MIDI </item>
+      <item> elecGuitarModel </item>
+      <item> elecGuitar </item>
+      <item> elecGuitar_ui_MIDI </item>
+      <item> guitarBody </item>
+      <item> guitarModel </item>
+      <item> guitar </item>
+      <item> guitar_ui_MIDI </item>
+      <item> nylonGuitarModel </item>
+      <item> nylonGuitar </item>
+      <item> nylonGuitar_ui_MIDI </item>
+      <item> modeInterpRes </item>
+      <item> modularInterpBody </item>
+      <item> modularInterpStringModel </item>
+      <item> modularInterpInstr </item>
+      <item> modularInterpInstr_ui_MIDI </item>
+      <item> bowTable </item>
+      <item> violinBowTable </item>
+      <item> bowInteraction </item>
+      <item> violinBow </item>
+      <item> violinBowedString </item>
+      <item> violinNuts </item>
+      <item> violinBridge </item>
+      <item> violinBody </item>
+      <item> violinModel </item>
+      <item> violin_ui </item>
+      <item> violin_ui_MIDI </item>
+      <item> openTube </item>
+      <item> reedTable </item>
+      <item> fluteJetTable </item>
+      <item> brassLipsTable </item>
+      <item> clarinetReed </item>
+      <item> clarinetMouthPiece </item>
+      <item> brassLips </item>
+      <item> fluteEmbouchure </item>
+      <item> wBell </item>
+      <item> fluteHead </item>
+      <item> fluteFoot </item>
+      <item> clarinetModel </item>
+      <item> clarinetModel_ui </item>
+      <item> clarinet_ui </item>
+      <item> clarinet_ui_MIDI </item>
+      <item> brassModel </item>
+      <item> brassModel_ui </item>
+      <item> brass_ui </item>
+      <item> brass_ui_MIDI </item>
+      <item> fluteModel </item>
+      <item> fluteModel_ui </item>
+      <item> flute_ui </item>
+      <item> flute_ui_MIDI </item>
+      <item> impulseExcitation </item>
+      <item> strikeModel </item>
+      <item> strike </item>
+      <item> pluckString </item>
+      <item> blower </item>
+      <item> blower_ui </item>
+      <item> djembeModel </item>
+      <item> djembe </item>
+      <item> djembe_ui_MIDI </item>
+      <item> marimbaBarModel </item>
+      <item> marimbaResTube </item>
+      <item> marimbaModel </item>
+      <item> marimba </item>
+      <item> marimba_ui_MIDI </item>
+      <item> churchBellModel </item>
+      <item> churchBell </item>
+      <item> churchBell_ui </item>
+      <item> englishBellModel </item>
+      <item> englishBell </item>
+      <item> englishBell_ui </item>
+      <item> frenchBellModel </item>
+      <item> frenchBell </item>
+      <item> frenchBell_ui </item>
+      <item> germanBellModel </item>
+      <item> germanBell </item>
+      <item> germanBell_ui </item>
+      <item> russianBellModel </item>
+      <item> russianBell </item>
+      <item> russianBell_ui </item>
+      <item> standardBellModel </item>
+      <item> standardBell </item>
+      <item> standardBell_ui </item>
+      <item> formantValues </item>
+      <item> voiceGender </item>
+      <item> skirtWidthMultiplier </item>
+      <item> autobendFreq </item>
+      <item> vocalEffort </item>
+      <item> fof </item>
+      <item> fofSH </item>
+      <item> fofCycle </item>
+      <item> fofSmooth </item>
+      <item> formantFilterFofCycle </item>
+      <item> formantFilterFofSmooth </item>
+      <item> formantFilterBP </item>
+      <item> formantFilterbank </item>
+      <item> formantFilterbankFofCycle </item>
+      <item> formantFilterbankFofSmooth </item>
+      <item> formantFilterbankBP </item>
+      <item> SFFormantModel </item>
+      <item> SFFormantModelFofCycle </item>
+      <item> SFFormantModelFofSmooth </item>
+      <item> SFFormantModelBP </item>
+      <item> SFFormantModelFofCycle_ui </item>
+      <item> SFFormantModelFofSmooth_ui </item>
+      <item> SFFormantModelBP_ui </item>
+      <item> SFFormantModelFofCycle_ui_MIDI </item>
+      <item> SFFormantModelFofSmooth_ui_MIDI </item>
+      <item> SFFormantModelBP_ui_MIDI </item>
+      <item> allpassNL </item>
+      <item> modalModel </item>
+      <item> rk_solve </item>
+    </list>
+    <list name="qu_suffixes">
+      <item> quantize </item>
+      <item> quantizeSmoothed </item>
+      <item> ionian </item>
+      <item> dorian </item>
+      <item> phrygian </item>
+      <item> lydian </item>
+      <item> mixo </item>
+      <item> eolian </item>
+      <item> locrian </item>
+      <item> pentanat </item>
+      <item> kumoi </item>
+      <item> natural </item>
+      <item> dodeca </item>
+      <item> dimin </item>
+      <item> penta </item>
+    </list>
+    <list name="rm_suffixes">
+      <item> parReduce </item>
+      <item> topReduce </item>
+      <item> botReduce </item>
+      <item> reduce </item>
+      <item> reducemap </item>
+    </list>
+    <list name="re_suffixes">
+      <item> jcrev </item>
+      <item> satrev </item>
+      <item> fdnrev0 </item>
+      <item> zita_rev_fdn </item>
+      <item> zita_rev1_stereo </item>
+      <item> zita_rev1_ambi </item>
+      <item> vital_rev </item>
+      <item> mono_freeverb </item>
+      <item> stereo_freeverb </item>
+      <item> dattorro_rev </item>
+      <item> dattorro_rev_default </item>
+      <item> jpverb </item>
+      <item> greyhole </item>
+      <item> kb_rom_rev1 </item>
+    </list>
+    <list name="ro_suffixes">
+      <item> cross </item>
+      <item> crossnn </item>
+      <item> crossn1 </item>
+      <item> cross1n </item>
+      <item> crossNM </item>
+      <item> interleave </item>
+      <item> butterfly </item>
+      <item> hadamard </item>
+      <item> recursivize </item>
+      <item> bubbleSort </item>
+    </list>
+    <list name="si_suffixes">
+      <item> bus </item>
+      <item> block </item>
+      <item> interpolate </item>
+      <item> repeat </item>
+      <item> rev </item>
+      <item> smoo </item>
+      <item> polySmooth </item>
+      <item> smoothAndH </item>
+      <item> bsmooth </item>
+      <item> smooth </item>
+      <item> smoothq </item>
+      <item> onePoleSwitching </item>
+      <item> dot </item>
+      <item> vecOp </item>
+      <item> cbus </item>
+      <item> cmul </item>
+      <item> cconj </item>
+      <item> bpar </item>
+      <item> bsum </item>
+      <item> bprod </item>
+    </list>
+    <list name="so_suffixes">
+      <item> loop </item>
+      <item> loop_speed </item>
+      <item> loop_speed_level </item>
+    </list>
+    <list name="sp_suffixes">
+      <item> panner </item>
+      <item> constantPowerPan </item>
+      <item> spat </item>
+      <item> wfs </item>
+      <item> wfs_ui </item>
+      <item> stereoize </item>
+    </list>
+    <list name="sy_suffixes">
+      <item> popFilterDrum </item>
+      <item> additiveDrum </item>
+      <item> kick </item>
+      <item> clap </item>
+      <item> hat </item>
+      <item> dubDub </item>
+      <item> sawTrombone </item>
+      <item> combString </item>
+      <item> fm </item>
+    </list>
+    <list name="ve_suffixes">
+      <item> moog_vcf </item>
+      <item> moog_vcf_2b </item>
+      <item> moog_vcf_2bn </item>
+      <item> moogLadder </item>
+      <item> lowpassLadder4 </item>
+      <item> moogHalfLadder </item>
+      <item> diodeLadder </item>
+      <item> korg35LPF </item>
+      <item> korg35HPF </item>
+      <item> oberheim </item>
+      <item> oberheimBSF </item>
+      <item> oberheimBPF </item>
+      <item> oberheimHPF </item>
+      <item> oberheimLPF </item>
+      <item> sallenKeyOnePole </item>
+      <item> sallenKeyOnePoleLPF </item>
+      <item> sallenKeyOnePoleHPF </item>
+      <item> sallenKey2ndOrder </item>
+      <item> sallenKey2ndOrderLPF </item>
+      <item> sallenKey2ndOrderBPF </item>
+      <item> sallenKey2ndOrderHPF </item>
+      <item> biquad </item>
+      <item> lowpass2Matched </item>
+      <item> highpass2Matched </item>
+      <item> bandpass2Matched </item>
+      <item> peaking2Matched </item>
+      <item> lowshelf2Matched </item>
+      <item> highshelf2Matched </item>
+      <item> wah4 </item>
+      <item> autowah </item>
+      <item> crybaby </item>
+      <item> vocoder </item>
+    </list>
+    <list name="vl_suffixes">
+      <item> version </item>
+    </list>
+    <list name="wd_suffixes">
+      <item> resistor </item>
+      <item> resistor_Vout </item>
+      <item> resistor_Iout </item>
+      <item> u_voltage </item>
+      <item> u_current </item>
+      <item> resVoltage </item>
+      <item> resVoltage_Vout </item>
+      <item> u_resVoltage </item>
+      <item> resCurrent </item>
+      <item> u_resCurrent </item>
+      <item> u_switch </item>
+      <item> capacitor </item>
+      <item> capacitor_Vout </item>
+      <item> inductor </item>
+      <item> inductor_Vout </item>
+      <item> u_idealDiode </item>
+      <item> u_chua </item>
+      <item> lambert </item>
+      <item> u_diodePair </item>
+      <item> u_diodeSingle </item>
+      <item> u_diodeAntiparallel </item>
+      <item> u_parallel2Port </item>
+      <item> parallel2Port </item>
+      <item> u_series2Port </item>
+      <item> series2Port </item>
+      <item> parallelCurrent </item>
+      <item> seriesVoltage </item>
+      <item> u_transformer </item>
+      <item> transformer </item>
+      <item> u_transformerActive </item>
+      <item> transformerActive </item>
+      <item> parallel </item>
+      <item> series </item>
+      <item> u_sixportPassive </item>
+      <item> genericNode </item>
+      <item> genericNode_Vout </item>
+      <item> genericNode_Iout </item>
+      <item> u_genericNode </item>
+      <item> builddown </item>
+      <item> buildup </item>
+      <item> getres </item>
+      <item> parres </item>
+      <item> buildout </item>
+      <item> buildtree </item>
+    </list>
+    <list name="wa_suffixes">
+      <item> lowpass2 </item>
+      <item> highpass2 </item>
+      <item> bandpass2 </item>
+      <item> notch2 </item>
+      <item> allpass2 </item>
+      <item> peaking2 </item>
+      <item> lowshelf2 </item>
+      <item> highshelf2 </item>
+    </list>
     <contexts>
       <context attribute="Normal Text" lineEndContext="#stay" name="Normal">
-        <DetectSpaces />
-        <Detect2Chars attribute="BlockDiagram" context="#stay" char="&lt;" char1=":"  />
-		<Detect2Chars attribute="BlockDiagram" context="#stay" char=":" char1="&gt;"  />
-		<Detect2Chars attribute="BlockDiagram" context="#stay" char="+" char1="&gt;"  />
-		<DetectChar attribute="BlockDiagram" context="#stay" char=":" />
-		<DetectChar attribute="BlockDiagram" context="#stay" char="," />
-		<DetectChar attribute="BlockDiagram" context="#stay" char="~" />
-		<DetectChar attribute="BlockDiagram" context="#stay" char=";" />
-		<keyword attribute="BlockDiagram" context="#stay" String="operators" />
-		<keyword attribute="Primitive" context="#stay" String="primitives" />
+        <DetectSpaces/>
+        <StringDetect attribute="LibraryPrefix" context="aa_function_context" String="aa." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="an_function_context" String="an." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="ba_function_context" String="ba." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="co_function_context" String="co." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="de_function_context" String="de." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="dm_function_context" String="dm." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="dx_function_context" String="dx." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="ef_function_context" String="ef." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="en_function_context" String="en." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="fd_function_context" String="fd." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="fi_function_context" String="fi." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="ho_function_context" String="ho." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="it_function_context" String="it." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="la_function_context" String="la." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="ma_function_context" String="ma." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="mi_function_context" String="mi." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="no_function_context" String="no." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="os_function_context" String="os." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="pf_function_context" String="pf." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="pm_function_context" String="pm." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="qu_function_context" String="qu." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="rm_function_context" String="rm." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="re_function_context" String="re." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="ro_function_context" String="ro." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="si_function_context" String="si." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="so_function_context" String="so." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="sp_function_context" String="sp." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="sy_function_context" String="sy." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="ve_function_context" String="ve." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="vl_function_context" String="vl." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="wd_function_context" String="wd." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="wa_function_context" String="wa." wordOnly="true"/>
+        <Detect2Chars attribute="BlockDiagram" context="#stay" char="_" char1="&lt;"/>
+        <Detect2Chars attribute="BlockDiagram" context="#stay" char="&lt;" char1=":"/>
+        <Detect2Chars attribute="BlockDiagram" context="#stay" char="&lt;" char1=":"/>
+        <Detect2Chars attribute="BlockDiagram" context="#stay" char=":" char1="&gt;"/>
+        <Detect2Chars attribute="BlockDiagram" context="#stay" char="+" char1="&gt;"/>
+        <DetectChar attribute="BlockDiagram" context="#stay" char=":"/>
+        <DetectChar attribute="BlockDiagram" context="#stay" char=","/>
+        <DetectChar attribute="BlockDiagram" context="#stay" char="~"/>
+        <DetectChar attribute="BlockDiagram" context="#stay" char=";"/>
+        <keyword attribute="BlockDiagram" context="#stay" String="operators"/>
+        <keyword attribute="Primitive" context="#stay" String="primitives"/>
         <HlCChar attribute="Char" context="#stay"/>
         <DetectChar attribute="String" context="String" char="&quot;"/>
-        <DetectIdentifier />
+        <DetectIdentifier/>
         <Float attribute="Float" context="#stay">
           <AnyChar String="fF" attribute="Float" context="#stay"/>
         </Float>
@@ -98,12 +1189,12 @@
           <StringDetect attribute="Decimal" context="#stay" String="U" insensitive="TRUE"/>
           <StringDetect attribute="Decimal" context="#stay" String="L" insensitive="TRUE"/>
         </Int>
-        <IncludeRules context="##Doxygen" />
+        <IncludeRules context="##Doxygen"/>
         <Detect2Chars attribute="Comment" context="Commentar 1" char="/" char1="/"/>
         <Detect2Chars attribute="Comment" context="Commentar 2" char="/" char1="*" beginRegion="Comment"/>
-        <DetectChar attribute="Symbol" context="#stay" char="{" beginRegion="Brace1" />
-        <DetectChar attribute="Symbol" context="#stay" char="}" endRegion="Brace1" />
-        <AnyChar attribute="Symbol" context="#stay" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^&#59;"/>
+        <DetectChar attribute="Symbol" context="#stay" char="{" beginRegion="Brace1"/>
+        <DetectChar attribute="Symbol" context="#stay" char="}" endRegion="Brace1"/>
+        <AnyChar attribute="Symbol" context="#stay" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^;"/>
       </context>
       <context attribute="String" lineEndContext="#pop" name="String">
         <LineContinue attribute="String" context="#stay"/>
@@ -113,15 +1204,15 @@
       <context attribute="Region Marker" lineEndContext="#pop" name="Region Marker">
       </context>
       <context attribute="Comment" lineEndContext="#pop" name="Commentar 1">
-        <DetectSpaces />
-        <IncludeRules context="##Alerts" />
-        <DetectIdentifier />
+        <DetectSpaces/>
+        <IncludeRules context="##Alerts"/>
+        <DetectIdentifier/>
       </context>
       <context attribute="Comment" lineEndContext="#stay" name="Commentar 2">
-        <DetectSpaces />
+        <DetectSpaces/>
         <Detect2Chars attribute="Comment" context="#pop" char="*" char1="/" endRegion="Comment"/>
-        <IncludeRules context="##Alerts" />
-        <DetectIdentifier />
+        <IncludeRules context="##Alerts"/>
+        <DetectIdentifier/>
       </context>
       <context attribute="Preprocessor" lineEndContext="#pop" name="Preprocessor">
         <LineContinue attribute="Preprocessor" context="#stay"/>
@@ -129,7 +1220,7 @@
         <RegExpr attribute="Preprocessor" context="#stay" String="define.*"/>
         <RangeDetect attribute="Prep. Lib" context="#stay" char="&quot;" char1="&quot;"/>
         <RangeDetect attribute="Prep. Lib" context="#stay" char="&lt;" char1="&gt;"/>
-        <IncludeRules context="##Doxygen" />
+        <IncludeRules context="##Doxygen"/>
         <Detect2Chars attribute="Comment" context="Commentar 1" char="/" char1="/"/>
         <Detect2Chars attribute="Comment" context="Commentar/Preprocessor" char="/" char1="*"/>
       </context>
@@ -137,49 +1228,212 @@
         <LineContinue attribute="Preprocessor" context="#stay"/>
       </context>
       <context attribute="Comment" lineEndContext="#stay" name="Commentar/Preprocessor">
-        <DetectSpaces />
-        <Detect2Chars attribute="Comment" context="#pop" char="*" char1="/" />
-        <DetectIdentifier />
+        <DetectSpaces/>
+        <Detect2Chars attribute="Comment" context="#pop" char="*" char1="/"/>
+        <DetectIdentifier/>
       </context>
-      <context attribute="Comment" lineEndContext="#stay" name="Outscoped" >
-        <DetectSpaces />
+      <context attribute="Comment" lineEndContext="#stay" name="Outscoped">
+        <DetectSpaces/>
         <Detect2Chars attribute="Comment" context="Commentar 2" char="/" char1="*" beginRegion="Comment"/>
-        <IncludeRules context="##Alerts" />
-        <DetectIdentifier />
-        <RegExpr attribute="Comment" context="Outscoped intern" String="#\s*if" beginRegion="Outscoped" firstNonSpace="true" />
-        <RegExpr attribute="Preprocessor" context="#pop" String="#\s*(endif|else|elif)" endRegion="Outscoped" firstNonSpace="true" />
+        <IncludeRules context="##Alerts"/>
+        <DetectIdentifier/>
+        <RegExpr attribute="Comment" context="Outscoped intern" String="#\s*if" beginRegion="Outscoped" firstNonSpace="true"/>
+        <RegExpr attribute="Preprocessor" context="#pop" String="#\s*(endif|else|elif)" endRegion="Outscoped" firstNonSpace="true"/>
       </context>
       <context attribute="Comment" lineEndContext="#stay" name="Outscoped intern">
-        <DetectSpaces />
+        <DetectSpaces/>
         <Detect2Chars attribute="Comment" context="Commentar 2" char="/" char1="*" beginRegion="Comment"/>
         <RegExpr attribute="Comment" context="Outscoped intern" String="#\s*if" beginRegion="Outscoped" firstNonSpace="true"/>
         <RegExpr attribute="Comment" context="#pop" String="#\s*endif" endRegion="Outscoped" firstNonSpace="true"/>
       </context>
+      <context name="aa_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#pop" String="aa_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="an_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#pop" String="an_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="ba_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#pop" String="ba_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="co_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#pop" String="co_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="de_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="de_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="dm_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="dm_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="dx_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="dx_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="ef_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#pop" String="ef_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="en_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#pop" String="en_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="fd_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="fd_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="fi_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#pop" String="fi_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="ho_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="ho_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="it_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="it_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="la_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="la_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="ma_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#pop" String="ma_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="mi_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <DetectChar attribute="Symbol" context="#stay" char="."/>
+        <keyword attribute="LibraryFunction" context="#pop" String="mi_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="no_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#pop" String="no_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="os_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#pop" String="os_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="pf_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="pf_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="pm_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="pm_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="qu_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="qu_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="rm_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="rm_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="re_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="re_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="ro_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="ro_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="si_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="si_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="so_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="so_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="sp_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="sp_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="sy_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="sy_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="ve_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="ve_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="vl_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="vl_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="wd_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="wd_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="wa_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#stay" String="wa_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
     </contexts>
     <itemDatas>
-      <itemData name="Normal Text"  defStyleNum="dsNormal"/>
-	  <itemData name="BlockDiagram"   defStyleNum="dsKeyword"/>
-	  <itemData name="Primitive"      defStyleNum="dsKeyword" color="#A07832"/>
-	  <itemData name="Data Type"    defStyleNum="dsDataType"/>
-      <itemData name="Decimal"      defStyleNum="dsDecVal"/>
-      <itemData name="Octal"        defStyleNum="dsBaseN"/>
-      <itemData name="Hex"          defStyleNum="dsBaseN"/>
-      <itemData name="Float"        defStyleNum="dsFloat"/>
-      <itemData name="Char"         defStyleNum="dsChar"/>
-      <itemData name="String"       defStyleNum="dsString"/>
-      <itemData name="String Char"  defStyleNum="dsChar"/>
-      <itemData name="Comment"      defStyleNum="dsComment"/>
-      <itemData name="Symbol"       defStyleNum="dsNormal"/>
+      <itemData name="Normal Text" defStyleNum="dsNormal"/>
+      <itemData name="BlockDiagram" defStyleNum="dsFunction" bold="1"/>
+      <itemData name="Primitive" defStyleNum="dsKeyword"/>
+      <itemData name="LibraryPrefix" defStyleNum="dsDataType" bold="1"/>
+      <itemData name="LibraryFunction" defStyleNum="dsFunction" bold="1"/>
+      <itemData name="Data Type" defStyleNum="dsDataType"/>
+      <itemData name="Decimal" defStyleNum="dsDecVal"/>
+      <itemData name="Octal" defStyleNum="dsBaseN"/>
+      <itemData name="Hex" defStyleNum="dsBaseN"/>
+      <itemData name="Float" defStyleNum="dsFloat"/>
+      <itemData name="Char" defStyleNum="dsChar"/>
+      <itemData name="String" defStyleNum="dsString"/>
+      <itemData name="String Char" defStyleNum="dsChar"/>
+      <itemData name="Comment" defStyleNum="dsComment"/>
+      <itemData name="Symbol" defStyleNum="dsNormal"/>
       <itemData name="Preprocessor" defStyleNum="dsOthers"/>
-      <itemData name="Prep. Lib"    defStyleNum="dsOthers"/>
-      <itemData name="Region Marker" defStyleNum="dsRegionMarker" />
+      <itemData name="Prep. Lib" defStyleNum="dsOthers"/>
+      <itemData name="Region Marker" defStyleNum="dsRegionMarker"/>
     </itemDatas>
   </highlighting>
   <general>
     <comments>
-      <comment name="singleLine" start="//" />
+      <comment name="singleLine" start="//"/>
       <comment name="multiLine" start="/*" end="*/" region="Comment"/>
     </comments>
-    <keywords casesensitive="1" />
+    <keywords casesensitive="1"/>
   </general>
 </language>
