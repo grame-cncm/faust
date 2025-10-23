@@ -868,6 +868,10 @@ void GTKUI::addButton(const char* label, FAUSTFLOAT* zone)
     GtkGesture* gesture = gtk_gesture_click_new();
     g_signal_connect(gesture, "pressed", G_CALLBACK(uiButton::pressed), (gpointer)c);
     g_signal_connect(gesture, "released", G_CALLBACK(uiButton::released), (gpointer)c);
+    
+    // Run this controller in the "capture" phase (before the widget's default)
+    gtk_event_controller_set_propagation_phase(GTK_EVENT_CONTROLLER(gesture), GTK_PHASE_CAPTURE);
+    
     gtk_widget_add_controller(button, GTK_EVENT_CONTROLLER(gesture));
 
     checkForTooltip(zone, button);
