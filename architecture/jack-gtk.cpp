@@ -40,7 +40,7 @@
 #include "faust/gui/FUI.h"
 #include "faust/gui/PrintUI.h"
 #include "faust/misc.h"
-#include "faust/gui/GTKUI.h"
+#include "faust/gui/GTK4UI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/PresetUI.h"
 #include "faust/audio/jack-dsp.h"
