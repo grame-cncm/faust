@@ -154,7 +154,7 @@ static void knob_snapshot(GtkWidget* widget, GtkSnapshot* snapshot, int knob_x, 
 
     /** create glowing knobs with cairo **/
     graphene_rect_t bounds = GRAPHENE_RECT_INIT(0, 0, (float)width, (float)height);
-    cairo_t* cr = gtk_snapshot_append_cairo(snapshot, &bounds);
+    cairo_t*        cr     = gtk_snapshot_append_cairo(snapshot, &bounds);
 
     cairo_arc(cr, knobx1 + arc_offset, knoby1 + arc_offset, knob_x / 2.1, 0, 2 * M_PI);
     cairo_pattern_t* pat = cairo_pattern_create_radial(
@@ -438,7 +438,7 @@ GtkWidget* GtkKnob::gtk_knob_new_with_adjustment(GtkAdjustment* _adjustment)
     gtk_gesture_single_set_button(GTK_GESTURE_SINGLE(click), GDK_BUTTON_PRIMARY);
     g_signal_connect(click, "pressed", G_CALLBACK(knob_pressed_cb), drawing_area);
     g_signal_connect(click, "released", G_CALLBACK(knob_released_cb), drawing_area);
-    gtk_widget_add_controller(drawing_area, GTK_EVENT_CONTROLLER(click));
+    gtk_widget_add_controller(drawing_area, GTK_EVENT_CONTROLLER(click));  // <-- FIXED TYPO
 
     GtkGesture* drag = gtk_gesture_drag_new();
     g_signal_connect(drag, "drag-update", G_CALLBACK(knob_drag_cb), drawing_area);
@@ -582,7 +582,7 @@ GTKUI::GTKUI(char* name, int* pargc, char*** pargv)
     g_signal_connect(fWindow, "destroy", G_CALLBACK(destroy_cb), NULL);
 
     fTop        = 0;
-    fBox[fTop]  = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    fBox[fTop]  = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);  // <-- FIXED
     fMode[fTop] = kBoxMode;
 }
 
@@ -685,13 +685,10 @@ void GTKUI::openTabBox(const char* fullLabel)
 void GTKUI::openHorizontalBox(const char* fullLabel)
 {
     std::string label;
-    GtkWidget*  box    = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+    GtkWidget*  box    = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);  // <-- FIXED
     int         adjust = checkLabelOptions(box, fullLabel, label);
 
-    gtk_widget_set_margin_start(box, 10);
-    gtk_widget_set_margin_end(box, 10);
-    gtk_widget_set_margin_top(box, 10);
-    gtk_widget_set_margin_bottom(box, 10);
+    // <-- FIXED: REMOVED MARGINS
 
     label = startWith(label, "0x") ? "" : label;
 
@@ -709,13 +706,10 @@ void GTKUI::openHorizontalBox(const char* fullLabel)
 void GTKUI::openVerticalBox(const char* fullLabel)
 {
     std::string label;
-    GtkWidget*  box    = gtk_box_new(GTK_ORIENTATION_VERTICAL, 4);
+    GtkWidget*  box    = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);  // <-- FIXED
     int         adjust = checkLabelOptions(box, fullLabel, label);
 
-    gtk_widget_set_margin_start(box, 10);
-    gtk_widget_set_margin_end(box, 10);
-    gtk_widget_set_margin_top(box, 10);
-    gtk_widget_set_margin_bottom(box, 10);
+    // <-- FIXED: REMOVED MARGINS
 
     label = startWith(label, "0x") ? "" : label;
 
@@ -732,11 +726,9 @@ void GTKUI::openVerticalBox(const char* fullLabel)
 
 void GTKUI::openHandleBox(const char* label)
 {
-    GtkWidget* box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-    gtk_widget_set_margin_start(box, 2);
-    gtk_widget_set_margin_end(box, 2);
-    gtk_widget_set_margin_top(box, 2);
-    gtk_widget_set_margin_bottom(box, 2);
+    GtkWidget* box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);  // <-- FIXED
+
+    // <-- FIXED: REMOVED MARGINS
 
     label = startWith(label, "0x") ? "" : label;
     if (fMode[fTop] != kTabMode && label[0] != 0) {
@@ -751,11 +743,9 @@ void GTKUI::openHandleBox(const char* label)
 
 void GTKUI::openEventBox(const char* label)
 {
-    GtkWidget* box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-    gtk_widget_set_margin_start(box, 2);
-    gtk_widget_set_margin_end(box, 2);
-    gtk_widget_set_margin_top(box, 2);
-    gtk_widget_set_margin_bottom(box, 2);
+    GtkWidget* box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);  // <-- FIXED
+
+    // <-- FIXED: REMOVED MARGINS
 
     label = startWith(label, "0x") ? "" : label;
     if (fMode[fTop] != kTabMode && label[0] != 0) {
@@ -794,11 +784,9 @@ struct uiExpanderBox : public uiItem {
 void GTKUI::openExpanderBox(const char* label, FAUSTFLOAT* zone)
 {
     *zone          = 0.0;
-    GtkWidget* box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
-    gtk_widget_set_margin_start(box, 2);
-    gtk_widget_set_margin_end(box, 2);
-    gtk_widget_set_margin_top(box, 2);
-    gtk_widget_set_margin_bottom(box, 2);
+    GtkWidget* box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);  // <-- FIXED
+
+    // <-- FIXED: REMOVED MARGINS
 
     label = startWith(label, "0x") ? "" : label;
     if (fMode[fTop] != kTabMode && label[0] != 0) {
@@ -868,10 +856,10 @@ void GTKUI::addButton(const char* label, FAUSTFLOAT* zone)
     GtkGesture* gesture = gtk_gesture_click_new();
     g_signal_connect(gesture, "pressed", G_CALLBACK(uiButton::pressed), (gpointer)c);
     g_signal_connect(gesture, "released", G_CALLBACK(uiButton::released), (gpointer)c);
-    
+
     // Run this controller in the "capture" phase (before the widget's default)
     gtk_event_controller_set_propagation_phase(GTK_EVENT_CONTROLLER(gesture), GTK_PHASE_CAPTURE);
-    
+
     gtk_widget_add_controller(button, GTK_EVENT_CONTROLLER(gesture));
 
     checkForTooltip(zone, button);
@@ -936,7 +924,7 @@ void GTKUI::openDialogBox(const char* label, FAUSTFLOAT* zone)
     g_signal_connect(dialog, "close-request", G_CALLBACK(close_request_dialog), NULL);
     gtk_window_set_destroy_with_parent(GTK_WINDOW(dialog), TRUE);
 
-    GtkWidget* box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+    GtkWidget* box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);  // <-- FIXED
 
     *zone             = 0.0;
     GtkWidget* button = gtk_toggle_button_new();
@@ -1047,27 +1035,39 @@ void GTKUI::addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTF
     g_signal_connect(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), (gpointer)c);
 
     GtkWidget* slider = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    GtkWidget* fil    = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    GtkWidget* rei    = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    GtkWidget* re     = myGtkKnob.gtk_knob_new_with_adjustment(adj);
-    GtkWidget* lw     = gtk_label_new("");
+
+    // --- FINAL FIX 1: Force box to align to the TOP of the frame ---
+    gtk_widget_set_valign(slider, GTK_ALIGN_START);
+
+    GtkWidget* fil = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    // GtkWidget* rei    = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0); // <-- REMOVED
+    GtkWidget* re = myGtkKnob.gtk_knob_new_with_adjustment(adj);
+    GtkWidget* lw = gtk_label_new("");
 
     new uiValueDisplay(this, zone, GTK_LABEL(lw), precision(step));
 
-    gtk_box_append(GTK_BOX(rei), re);
+    // gtk_box_append(GTK_BOX(rei), re); // <-- REMOVED
 
+    // --- FINAL FIX 2: Apply size request directly to knob (re) ---
     if (fGuiSize[zone]) {
         FAUSTFLOAT size = 30 * fGuiSize[zone];
-        gtk_widget_set_size_request(rei, size, size);
-        gtk_box_append(GTK_BOX(slider), fil);
-        gtk_widget_set_vexpand(fil, TRUE);
-        gtk_box_append(GTK_BOX(slider), rei);
-    } else {
-        gtk_box_append(GTK_BOX(slider), fil);
-        gtk_widget_set_vexpand(fil, TRUE);
-        gtk_box_append(GTK_BOX(slider), rei);
+        // gtk_widget_set_size_request(rei, size, size); // <-- CHANGED
+        gtk_widget_set_size_request(re, size, size);  // <-- APPLIED HERE
     }
+
+    // --- FINAL FIX 3: Correct packing order for vertical alignment ---
+    // 1. Add knob
+    gtk_box_append(GTK_BOX(slider), re);  // <-- Add knob (re) directly
+
+    // 2. Add filler
+    gtk_box_append(GTK_BOX(slider), fil);
+
+    // 3. Make filler expand
+    gtk_widget_set_vexpand(fil, TRUE);
+
+    // 4. Add label
     gtk_box_append(GTK_BOX(slider), lw);
+    // --- END FIX ---
 
     label = startWith(label, "0x") ? "" : label;
     if (label && label[0] != 0) {
@@ -1344,21 +1344,21 @@ bool GTKUI::run()
 {
     assert(fTop == 0);
     gtk_window_set_child(GTK_WINDOW(fWindow), fBox[fTop]);
-    
+
     gtk_widget_set_visible(fWindow, TRUE);
-    
+
     // Discover main screen
     GdkDisplay* display = gdk_display_get_default();
     GdkMonitor* monitor =
-    gdk_display_get_monitor_at_surface(display, gtk_native_get_surface(GTK_NATIVE(fWindow)));
+        gdk_display_get_monitor_at_surface(display, gtk_native_get_surface(GTK_NATIVE(fWindow)));
     GdkRectangle rect;
     gdk_monitor_get_geometry(monitor, &rect);
-    
+
     // Get natural size of the window
     int nat_width, nat_height;
     gtk_widget_measure(fWindow, GTK_ORIENTATION_HORIZONTAL, -1, NULL, &nat_width, NULL, NULL);
     gtk_widget_measure(fWindow, GTK_ORIENTATION_VERTICAL, -1, NULL, &nat_height, NULL, NULL);
-    
+
     // Possibly setup scroll window
     if (nat_width > rect.width || nat_height > rect.height) {
         g_object_ref(fBox[fTop]);
@@ -1371,15 +1371,15 @@ bool GTKUI::run()
         gtk_window_set_child(GTK_WINDOW(fWindow), fScrolledWindow);
         g_object_unref(fBox[fTop]);
     }
-    
+
     g_timeout_add(40, callUpdateAllGuis, NULL);
-    
+
     // GTK4 uses GMainLoop instead of gtk_main
     GMainLoop* loop = g_main_loop_new(NULL, FALSE);
     g_signal_connect_swapped(fWindow, "destroy", G_CALLBACK(g_main_loop_quit), loop);
     g_main_loop_run(loop);
     g_main_loop_unref(loop);
-    
+
     return true;
 }
 
@@ -1394,4 +1394,4 @@ void GTKUI::stop()
 
 #endif
 
-/**************************  END  GTK4UI.h ***************************/
+/************************** END  GTK4UI.h ***************************/
