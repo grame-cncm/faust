@@ -1,6 +1,6 @@
 # faust2max6/faust2msp
 
-The **faust2max6/faust2msp** tools transform a Faust DSP program into a compiled Max/MSP external, and a ready-to-use patch to load and use it. Polyphonic and MIDI controllable instruments can be created. Note that **faust2msp** is the old version compiling 32 bits external for Max5, and **faust2max6** compiles 64 bits for Max6 and newer versions, and should be preferably used. 
+The **faust2max6/faust2msp** tools transform a Faust DSP program into a compiled Max/MSP external, and a ready-to-use patch to load and use it, containing the control GUI. Polyphonic and MIDI controllable instruments can be created. Note that **faust2msp** is the old version compiling 32 bits external for Max5, and **faust2max6** compiles 64 bits for Max6 and newer versions, and should be preferably used. 
 
 ## How to use
 
@@ -89,6 +89,21 @@ If you plan to use **faust2max6/faust2msp** on your own machine, you will have t
 ## Misc
 
 - the original DSP file as well as the compiled self-contained C++ file are kept in the compiled `.mxo` external, to be accessed using the *Show Package Contents* option. 
+
+# faust2gen
+
+The **faust2gen** tool transforms a Faust DSP program into a ready-to-use patch containing a **faustgen~/mc.faustgen~** object to compile it. Polyphonic and MIDI controllable patches can be created. The `read` message with the given DSP filename is added in the patch, so that the DSP code can be read and compiled. The control GUI is automatically created and connected to the **faustgen~/mc.faustgen~** object after the compilation step. The DSP code can be edited with an external editor. After the DSP code has been changed externally, the `read` message has to be used again to trigger compilation and GUI update.   
+
+## How to use
+
+**faust2gen** is used with the following options: `faust2gen [-nvoices <num>] [-mc] <file.dsp>` 
+
+## Options
+
+Here are the available options:
+
+ - `-nvoices <num>` : to produce a polyphonic ready patch to be used with MIDI events
+ - `-mc` : to use a mc.faustgen~ object
 
 # faust2rnbo
 
