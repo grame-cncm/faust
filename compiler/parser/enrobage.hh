@@ -19,6 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
+#pragma once
+
+#include <filesystem>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -33,10 +36,20 @@ std::unique_ptr<std::ifstream> openArchStream(const char* filename);
 FILE* fopenSearch(const char* filename, std::string& fullpath);
 
 bool checkURL(const char* filename);
-		
-const char* fileBasename(const char* name);         // returns a pointer on the basename part of name
 
-std::string fileDirname(const std::string& name);   // allocate a string containing the dirname of name
+inline std::string fileBasename(const std::string& name)
+{
+    std::filesystem::path path(name);
+    auto                  filename = path.filename();
+    return (filename.empty()) ? name : filename.string();
+}
+
+inline std::string fileDirname(const std::string& name)
+{
+    std::filesystem::path path(name);
+    auto                  parent = path.parent_path();
+    return (parent.empty()) ? "." : parent.string();
+}
 
 std::string stripEnd(const std::string& name, const std::string& ext);
 

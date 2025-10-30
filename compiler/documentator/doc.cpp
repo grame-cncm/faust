@@ -362,8 +362,7 @@ static void printFaustListing(string& faustfile, ostream& docout)
     src.open(faustfile.c_str(), ifstream::in);
 
     docout << endl << "\\bigskip\\bigskip" << endl;
-    docout << "\\begin{lstlisting}[caption=\\texttt{" << fileBasename(faustfile.c_str()) << "}]"
-           << endl;
+    docout << "\\begin{lstlisting}[caption=\\texttt{" << fileBasename(faustfile) << "}]" << endl;
 
     bool isInsideDoc = false;
 
@@ -1046,7 +1045,7 @@ static void copyFaustSources(const char* projname, const vector<string>& pathnam
         ifstream src;
         ofstream dst;
         string   faustfile = pathnames[i];
-        string   copy      = subst("$0/$1", srcdir, fileBasename(faustfile.c_str()));
+        string   copy      = subst("$0/$1", srcdir, fileBasename(faustfile));
         // cerr << "Documentator : copyFaustSources : Opening input file  '" << faustfile << "'" <<
         // endl; cerr << "Documentator : copyFaustSources : Opening output file '" << copy << "'" <<
         // endl;

@@ -21,19 +21,25 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <filesystem>
 #include <limits.h>
 #include <stdlib.h>
+#include <algorithm>
 #include <cctype>
 #include <climits>
+#include <cstdio>
+#include <optional>
 
 #include "enrobage.hh"
 #include "compatibility.hh"
 #include "exception.hh"
 #include "garbageable.hh"
 #include "global.hh"
+#include "fileresolver.hh"
 #include "sourcefetcher.hh"
 
 using namespace std;
+using faust::parser::FileResolver;
 
 /**
  * Returns true is a line is blank (contains only white caracters)
@@ -184,13 +190,6 @@ static string removeSpaces(const string& line)
     return res;
 }
 
-#define TRY_OPEN(filename)           \
-    unique_ptr<ifstream> f = unique_ptr<ifstream>(new ifstream());    \
-    f->open(filename, ifstream::in); \
-    err = chdir(old);                \
-    if (f->is_open())                \
-        return f;                    \
-
 /**
  * Check if an URL exists.
  * @return true if the URL exist, throw on exception otherwise
@@ -209,94 +208,22 @@ static bool checkFile(const char* filename)
     }
 }
 
-/**
- * Try to open the file '<dir>/<filename>'. If it succeed, it stores the full pathname
- * of the file into <fullpath>
- */
-static FILE* fopenAt(string& fullpath, const char* dir, const char* filename)
+static FileResolver buildImportResolver()
 {
-    int  err;
-    char olddirbuffer[FAUST_PATH_MAX];
-    char newdirbuffer[FAUST_PATH_MAX];
-
-    char* olddir = getcwd(olddirbuffer, FAUST_PATH_MAX);
-
-    if (chdir(dir) == 0) {
-        FILE* f      = fopen(filename, "r");
-        char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
-        if (!newdir) {
-            fclose(f);
-            stringstream error;
-            error << "ERROR : getcwd : " << strerror(errno) << endl;
-            throw faustexception(error.str());
-        }
-        fullpath = newdir;
-        fullpath += '/';
-        fullpath += filename;
-        err = chdir(olddir);
-        if (err != 0) {
-            fclose(f);
-            stringstream error;
-            error << "ERROR : cannot change back directory to '" << ((olddir) ? olddir : "null")
-                  << "' : " << strerror(errno) << endl;
-            throw faustexception(error.str());
-        }
-        return f;
+    FileResolver resolver;
+    for (const auto& dir : gGlobal->gImportDirList) {
+        resolver.addImportDirectory(dir);
     }
-    err = chdir(olddir);
-    if (err != 0) {
-        stringstream error;
-        error << "ERROR : cannot change back directory to '" << ((olddir) ? olddir : "null")
-              << "' : " << strerror(errno) << endl;
-        throw faustexception(error.str());
-    }
-    return nullptr;
+    return resolver;
 }
 
-/**
- * Try to open the file '<dir>/<filename>'. If it succeed, it stores the full pathname
- * of the file into <fullpath>
- */
-static FILE* fopenAt(string& fullpath, const string& dir, const char* filename)
+static FileResolver buildArchitectureResolver()
 {
-    return fopenAt(fullpath, dir.c_str(), filename);
-}
-
-/**
- * Test absolute pathname.
- */
-static bool isAbsolutePathname(const string& filename)
-{
-    // test windows absolute pathname "x:xxxxxx"
-    if (filename.size() > 1 && filename[1] == ':') return true;
-
-    // test unix absolute pathname "/xxxxxx"
-    if (filename.size() > 0 && filename[0] == '/') return true;
-
-    return false;
-}
-
-/**
- * Build a full pathname of <filename>.
- * <fullpath> = <currentdir>/<filename>
- */
-static void buildFullPathname(string& fullpath, const char* filename)
-{
-    char old[FAUST_PATH_MAX];
-
-    if (isAbsolutePathname(filename)) {
-        fullpath = filename;
-    } else {
-        char* newdir = getcwd(old, FAUST_PATH_MAX);
-        if (!newdir) {
-            stringstream error;
-            error << "ERROR : getcwd : " << strerror(errno) << endl;
-            throw faustexception(error.str());
-        }
-        fullpath = newdir;
-        fullpath += '/';
-        fullpath += filename;
+    FileResolver resolver;
+    for (const auto& dir : gGlobal->gArchitectureDirList) {
+        resolver.addArchitectureDirectory(dir);
     }
+    return resolver;
 }
 
 //---------------------------
@@ -308,18 +235,23 @@ static void buildFullPathname(string& fullpath, const char* filename)
  */
 unique_ptr<ifstream> openArchStream(const char* filename)
 {
-    char  buffer[FAUST_PATH_MAX];
-    char* old = getcwd(buffer, FAUST_PATH_MAX);
-    int   err;
-    
-    TRY_OPEN(filename);
-    for (string dirname : gGlobal->gArchitectureDirList) {
-        if ((err = chdir(dirname.c_str())) == 0) {
-            TRY_OPEN(filename);
-        }
+    if (!filename) {
+        return nullptr;
     }
-    
-    return nullptr;
+
+    auto resolver = buildArchitectureResolver();
+    auto resolved = resolver.resolveArchitecture(filename);
+    if (!resolved) {
+        return nullptr;
+    }
+
+    auto stream = std::make_unique<ifstream>(resolved->string(), ifstream::in);
+    if (!stream->is_open()) {
+        return nullptr;
+    }
+
+    faust::parser::appendUniqueDirectory(gGlobal->gArchitectureDirList, resolved->parent_path());
+    return stream;
 }
 
 /**
@@ -328,89 +260,24 @@ unique_ptr<ifstream> openArchStream(const char* filename)
  */
 FILE* fopenSearch(const char* filename, string& fullpath)
 {
-    FILE* f;
-
-    // tries to open file with its filename
-    if ((f = fopen(filename, "r"))) {
-        buildFullPathname(fullpath, filename);
-        // enrich the supplied directories paths with the directory containing the loaded file,
-        // so that local files relative to this added directory can then be loaded
-        gGlobal->gImportDirList.push_back(fileDirname(fullpath));
-        return f;
+    if (!filename) {
+        return nullptr;
     }
- 
-    // otherwise search file in user supplied directories paths
-    for (string dirname : gGlobal->gImportDirList) {
-        if ((f = fopenAt(fullpath, dirname, filename))) {
-            return f;
-        }
+
+    auto resolver = buildImportResolver();
+    auto resolved = resolver.resolveImport(filename);
+    if (!resolved) {
+        return nullptr;
     }
-    return nullptr;
-}
 
-/**
- * filebasename returns the basename of a path.
- * (adapted by kb from basename.c)
- *
- * @param[in]	The path to parse.
- * @return		The last component of the given path.
- */
-#ifndef DIR_SEPARATOR
-#define DIR_SEPARATOR '/'
-#endif
-
-#ifdef _WIN32
-#define HAVE_DOS_BASED_FILE_SYSTEM
-#ifndef DIR_SEPARATOR_2
-#define DIR_SEPARATOR_2 '\\'
-#endif
-#endif
-
-/* Define IS_DIR_SEPARATOR.  */
-#ifndef DIR_SEPARATOR_2
-#define IS_DIR_SEPARATOR(ch) ((ch) == DIR_SEPARATOR)
-#else /* DIR_SEPARATOR_2 */
-#define IS_DIR_SEPARATOR(ch) (((ch) == DIR_SEPARATOR) || ((ch) == DIR_SEPARATOR_2))
-#endif /* DIR_SEPARATOR_2 */
-
-/**
- * returns a pointer on the basename part of name
- */
-const char* fileBasename(const char* name)
-{
-#if defined(HAVE_DOS_BASED_FILE_SYSTEM)
-    /* Skip over the disk name in MSDOS pathnames. */
-    if (isalpha(name[0]) && name[1] == ':') name += 2;
-#endif
-    const char* base;
-    for (base = name; *name; name++) {
-        if (IS_DIR_SEPARATOR(*name)) {
-            base = name + 1;
-        }
+    fullpath = resolved->string();
+    FILE* f  = fopen(fullpath.c_str(), "r");
+    if (!f) {
+        return nullptr;
     }
-    return base;
-}
 
-/**
- * returns a string containing the dirname of name
- * If no dirname, returns "."
- */
-string fileDirname(const string& name)
-{
-    const char*        base = fileBasename(name.c_str());
-    const unsigned int size = base - name.c_str();
-    string            dirname;
-
-    if (size == 0) {
-        dirname += '.';
-    } else if (size == 1) {
-        dirname += name[0];
-    } else {
-        for (unsigned int i = 0; i < size - 1; i++) {
-            dirname += name[i];
-        }
-    }
-    return dirname;
+    faust::parser::appendUniqueDirectory(gGlobal->gImportDirList, resolved->parent_path());
+    return f;
 }
 
 string stripEnd(const string& name, const string& ext)

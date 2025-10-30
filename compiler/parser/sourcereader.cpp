@@ -272,7 +272,7 @@ Tree SourceReader::parseFile(const char* fname)
         
         // Try to open local file
         string fullpath1;
-        FILE* tmp_file = FAUSTin = fopenSearch(FAUSTfilename, fullpath1); // Keep file to properly close it
+        FILE* tmp_file = FAUSTin = fopenSearch(FAUSTfilename, fullpath1);  // Keep file to properly close it
         if (FAUSTin) {
             Tree res = parseLocal(fullpath1.c_str());
             fclose(tmp_file);

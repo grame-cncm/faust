@@ -34,6 +34,7 @@
 #include "exepath.hh"
 #include "exp10prim.hh"
 #include "expprim.hh"
+#include "fileresolver.hh"
 #include "floats.hh"
 #include "floorprim.hh"
 #include "fmodprim.hh"
@@ -117,6 +118,7 @@
 #endif
 
 using namespace std;
+using faust::parser::canonicalDirectoryString;
 
 #ifndef AP_INT_MAX_W
 #define AP_INT_MAX_W 1024
@@ -1553,7 +1555,7 @@ bool global::processCmdline(int argc, const char* argv[])
                 if (path) {
                     // We want to search user given directories *before* the standard ones, so
                     // insert at the beginning
-                    gImportDirList.insert(gImportDirList.begin(), path);
+                    gImportDirList.insert(gImportDirList.begin(), canonicalDirectoryString(path));
                 }
             }
             i += 2;
@@ -1565,7 +1567,7 @@ bool global::processCmdline(int argc, const char* argv[])
                 char  temp[PATH_MAX + 1];
                 char* path = realpath(argv[i + 1], temp);
                 if (path) {
-                    gArchitectureDirList.push_back(path);
+                    gArchitectureDirList.push_back(canonicalDirectoryString(path));
                 }
             }
             i += 2;
@@ -1885,6 +1887,8 @@ void global::initDocumentNames()
         gDocName         = fxName(gMasterDocument);
     }
 
+    gMasterDirectory = canonicalDirectoryString(gMasterDirectory);
+
     // Add gMasterDirectory in gImportDirList and gArchitectureDirList
     gImportDirList.push_back(gMasterDirectory);
     gArchitectureDirList.push_back(gMasterDirectory);
@@ -1896,45 +1900,49 @@ void global::initDirectories(int argc, const char* argv[])
     char s[1024];
     getFaustPathname(s, 1024);
 
-    gFaustExeDir              = exepath::get(argv[0]);
-    gFaustRootDir             = exepath::dirup(gFaustExeDir);
-    gFaustDirectory           = fileDirname(s);
-    gFaustSuperDirectory      = fileDirname(gFaustDirectory);
-    gFaustSuperSuperDirectory = fileDirname(gFaustSuperDirectory);
+    gFaustExeDir              = canonicalDirectoryString(exepath::get(argv[0]));
+    gFaustRootDir             = canonicalDirectoryString(exepath::dirup(gFaustExeDir));
+    gFaustDirectory           = canonicalDirectoryString(fileDirname(s));
+    gFaustSuperDirectory      = canonicalDirectoryString(fileDirname(gFaustDirectory));
+    gFaustSuperSuperDirectory = canonicalDirectoryString(fileDirname(gFaustSuperDirectory));
 
     //-------------------------------------------------------------------------------------
     // init gImportDirList : a list of path where to search .lib files
     //-------------------------------------------------------------------------------------
     if (char* envpath = getenv("FAUST_LIB_PATH")) {
-        gImportDirList.push_back(envpath);
+        gImportDirList.push_back(canonicalDirectoryString(envpath));
     }
 #ifdef INSTALL_PREFIX
-    gImportDirList.push_back(INSTALL_PREFIX "/share/faust");
+    gImportDirList.push_back(canonicalDirectoryString(INSTALL_PREFIX "/share/faust"));
 #endif
-
-    gImportDirList.push_back(exepath::dirup(gFaustExeDir) + "/share/faust");
-    gImportDirList.push_back("/usr/local/share/faust");
-    gImportDirList.push_back("/usr/share/faust");
+    gImportDirList.push_back(
+        canonicalDirectoryString(exepath::dirup(gFaustExeDir) + "/share/faust"));
+    gImportDirList.push_back(canonicalDirectoryString("/usr/local/share/faust"));
+    gImportDirList.push_back(canonicalDirectoryString("/usr/share/faust"));
 
     //-------------------------------------------------------------------------------------
     // init gArchitectureDirList : a list of path where to search architectures files
     //-------------------------------------------------------------------------------------
     if (char* envpath = getenv("FAUST_ARCH_PATH")) {
-        gArchitectureDirList.push_back(envpath);
+        gArchitectureDirList.push_back(canonicalDirectoryString(envpath));
     }
-    gArchitectureDirList.push_back(gFaustDirectory + "/architecture");
-    gArchitectureDirList.push_back(gFaustSuperDirectory + "/architecture");
-    gArchitectureDirList.push_back(gFaustSuperSuperDirectory + "/architecture");
+    gArchitectureDirList.push_back(canonicalDirectoryString(gFaustDirectory + "/architecture"));
+    gArchitectureDirList.push_back(
+        canonicalDirectoryString(gFaustSuperDirectory + "/architecture"));
+    gArchitectureDirList.push_back(
+        canonicalDirectoryString(gFaustSuperSuperDirectory + "/architecture"));
 #ifdef INSTALL_PREFIX
-    gArchitectureDirList.push_back(INSTALL_PREFIX "/share/faust");
-    gArchitectureDirList.push_back(INSTALL_PREFIX "/include");
+    gArchitectureDirList.push_back(canonicalDirectoryString(INSTALL_PREFIX "/share/faust"));
+    gArchitectureDirList.push_back(canonicalDirectoryString(INSTALL_PREFIX "/include"));
 #endif
-    gArchitectureDirList.push_back(exepath::dirup(gFaustExeDir) + "/share/faust");
-    gArchitectureDirList.push_back(exepath::dirup(gFaustExeDir) + "/include");
-    gArchitectureDirList.push_back("/usr/local/share/faust");
-    gArchitectureDirList.push_back("/usr/share/faust");
-    gArchitectureDirList.push_back("/usr/local/include");
-    gArchitectureDirList.push_back("/usr/include");
+    gArchitectureDirList.push_back(
+        canonicalDirectoryString(exepath::dirup(gFaustExeDir) + "/share/faust"));
+    gArchitectureDirList.push_back(
+        canonicalDirectoryString(exepath::dirup(gFaustExeDir) + "/include"));
+    gArchitectureDirList.push_back(canonicalDirectoryString("/usr/local/share/faust"));
+    gArchitectureDirList.push_back(canonicalDirectoryString("/usr/share/faust"));
+    gArchitectureDirList.push_back(canonicalDirectoryString("/usr/local/include"));
+    gArchitectureDirList.push_back(canonicalDirectoryString("/usr/include"));
 
     // for debugging purposes
     //    cerr << "gArchitectureDirList:\n";
