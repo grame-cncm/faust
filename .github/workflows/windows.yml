@@ -3,7 +3,7 @@ name: Windows
 on:
   push:
     branches:
-        - '*'
+      - '*'
   pull_request:
     branches: [ master-dev ]
 
@@ -11,81 +11,103 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  msvc-build:
     if: github.repository_owner == 'grame-cncm' || github.event_name == 'pull_request'
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1
-  
-    - name: Get latest CMake and ninja
-      uses: lukka/get-cmake@latest
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1
 
-    - name: Build Faust
-      run: |
-        make -C build cmake BACKENDS=regular.cmake TARGETS=win-ci.cmake
-        make -C build
+      - name: Install latest CMake and Ninja
+        uses: lukka/get-cmake@latest
 
-    - name: Run parser FileResolver tests
-      shell: pwsh
-      run: |
-        $buildDir = "compiler\tests\parser\build-ci"
-        if (Test-Path $buildDir) { Remove-Item $buildDir -Recurse -Force }
-        New-Item -ItemType Directory -Force -Path $buildDir | Out-Null
-        cl /nologo /std:c++17 /EHsc /I compiler compiler\tests\parser\test_file_resolver.cpp /Fe:$buildDir\file_resolver_tests.exe
-        & "$buildDir\file_resolver_tests.exe"
+      - name: Configure and build Faust with MSVC
+        shell: bash
+        run: |
+          make -C build cmake BACKENDS=regular.cmake TARGETS=win-ci.cmake
+          make -C build
 
-    - name: Compile example DSPs with Faust
-      shell: bash
-      run: |
-        cat <<'PY' > compile_examples.py
-        import pathlib
-        import subprocess
-        import sys
+  msys2-build-test:
+    needs: msvc-build
+    if: github.repository_owner == 'grame-cncm' || github.event_name == 'pull_request'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
 
-        repo_root = pathlib.Path(".").resolve()
-        faust = repo_root / "build" / "bin" / "faust.exe"
-        if not faust.exists():
-            faust = faust.with_suffix("")
-        if not faust.exists():
-            sys.exit(f"Faust executable not found at {faust}")
+      - name: Set up MSYS2 toolchain
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            base-devel
+            git
+            make
+            python
+            mingw-w64-x86_64-toolchain
 
-        examples_root = repo_root / "examples"
-        if not examples_root.exists():
-            sys.exit(f"Examples directory not found at {examples_root}")
+      - name: Build Faust with MSYS2
+        shell: msys2 {0}
+        run: |
+          make -C build cmake BACKENDS=regular.cmake TARGETS=win-ci.cmake
+          make -C build
 
-        libraries_dir = repo_root / "libraries"
+      - name: Run parser FileResolver tests
+        shell: msys2 {0}
+        run: |
+          cd compiler/tests/parser
+          make clean
+          make run
 
-        output_root = repo_root / "build" / "ci_examples"
-        output_root.mkdir(parents=True, exist_ok=True)
+      - name: Compile sample DSPs with Faust
+        shell: msys2 {0}
+        run: |
+          python - <<'PY'
+          import pathlib
+          import subprocess
+          import sys
 
-        failures = []
+          repo_root = pathlib.Path(".").resolve()
+          faust = repo_root / "build" / "bin" / "faust"
+          if not faust.exists():
+              faust = faust.with_suffix(".exe")
+          if not faust.exists():
+              sys.exit(f"Faust executable not found at {faust}")
 
-        for dsp in sorted(examples_root.rglob("*.dsp")):
-            rel = dsp.relative_to(examples_root)
-            safe_name = "_".join(rel.parts).replace(".dsp", "")
-            target = output_root / f"{safe_name}.cpp"
-            cmd = [
-                str(faust),
-                "-lang",
-                "cpp",
-                "-I",
-                str(libraries_dir),
-                "-o",
-                str(target),
-                str(dsp),
-            ]
-            result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            if result.returncode != 0:
-                log = result.stderr if result.stderr else result.stdout
-                failures.append((dsp, log))
+          examples_root = repo_root / "examples"
+          if not examples_root.exists():
+              sys.exit(f"Examples directory not found at {examples_root}")
 
-        if failures:
-            for dsp, log in failures:
-                print(f"--- Failed: {dsp} ---")
-                print(log)
-            sys.exit(f"{len(failures)} example DSP(s) failed to compile")
-        PY
-        python compile_examples.py
+          libraries_dir = repo_root / "libraries"
+          output_root = repo_root / "build" / "ci_examples"
+          output_root.mkdir(parents=True, exist_ok=True)
+
+          failures = []
+
+          for dsp in sorted(examples_root.rglob("*.dsp")):
+              rel = dsp.relative_to(examples_root)
+              safe_name = "_".join(rel.parts).replace(".dsp", "")
+              target = output_root / f"{safe_name}.cpp"
+              cmd = [
+                  str(faust),
+                  "-lang",
+                  "cpp",
+                  "-I",
+                  str(libraries_dir),
+                  "-o",
+                  str(target),
+                  str(dsp),
+              ]
+              result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+              if result.returncode != 0:
+                  log = result.stderr if result.stderr else result.stdout
+                  failures.append((dsp, log))
+
+          if failures:
+              for dsp, log in failures:
+                  print(f"--- Failed: {dsp} ---")
+                  print(log)
+              sys.exit(f"{len(failures)} example DSP(s) failed to compile")
+          PY
