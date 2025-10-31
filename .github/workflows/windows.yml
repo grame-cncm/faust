@@ -47,6 +47,7 @@ jobs:
             make
             python
             mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
 
       - name: Build Faust with MSYS2
         shell: msys2 {0}
@@ -64,6 +65,7 @@ jobs:
       - name: Compile sample DSPs with Faust
         shell: msys2 {0}
         run: |
+          git submodule update --init libraries/
           python - <<'PY'
           import pathlib
           import subprocess

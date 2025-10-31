@@ -21,6 +21,7 @@
 
 #include <limits.h>
 #include <cstdint>
+#include <filesystem>
 
 #include "absprim.hh"
 #include "acosprim.hh"
@@ -1999,15 +2000,6 @@ void global::parseSourceFiles()
 /****************************************************************
  Faust directories information
  *****************************************************************/
-#ifdef WIN32
-#define kPSEP '\\'
-#else
-#define kPSEP '/'
-#endif
-
-#ifndef LIBDIR
-#define LIBDIR "lib"
-#endif
 
 static void enumBackends(ostream& out)
 {
@@ -2547,27 +2539,27 @@ string global::printHelp()
 
 string global::printLibDir()
 {
-    stringstream sstr;
-    sstr << gFaustRootDir << kPSEP << LIBDIR << endl;
-    return sstr.str();
+    namespace fs = std::filesystem;
+    fs::path path = fs::path(gFaustRootDir) / "lib";
+    return path.string() + '\n';
 }
 string global::printIncludeDir()
 {
-    stringstream sstr;
-    sstr << gFaustRootDir << kPSEP << "include" << endl;
-    return sstr.str();
+    namespace fs = std::filesystem;
+    fs::path path = fs::path(gFaustRootDir) / "include";
+    return path.string() + '\n';
 }
 string global::printArchDir()
 {
-    stringstream sstr;
-    sstr << gFaustRootDir << kPSEP << "share" << kPSEP << "faust" << endl;
-    return sstr.str();
+    namespace fs = std::filesystem;
+    fs::path path = fs::path(gFaustRootDir) / "share" / "faust";
+    return path.string() + '\n';
 }
 string global::printDspDir()
 {
-    stringstream sstr;
-    sstr << gFaustRootDir << kPSEP << "share" << kPSEP << "faust" << endl;
-    return sstr.str();
+    namespace fs = std::filesystem;
+    fs::path path = fs::path(gFaustRootDir) / "share" / "faust";
+    return path.string() + '\n';
 }
 string global::printPaths()
 {
