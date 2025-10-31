@@ -31,7 +31,6 @@
 #include <optional>
 
 #include "enrobage.hh"
-#include "compatibility.hh"
 #include "exception.hh"
 #include "garbageable.hh"
 #include "global.hh"
@@ -103,17 +102,13 @@ static string& replaceClassName(string& str)
  * A minimalistic parser used to recognize '#include <faust/...>' patterns when copying
  * architecture files
  */
-class myparser {
-    
-   private:
+struct faustparser {
     
     string str;
     size_t N;
     size_t p;
-
-   public:
-    
-    myparser(const string& s) : str(s), N(s.length()), p(0) {}
+   
+    faustparser(const string& s) : str(s), N(s.length()), p(0) {}
     
     bool skip()
     {
@@ -150,14 +145,14 @@ class myparser {
  */
 static bool isFaustInclude(const string& line, string& fname)
 {
-    myparser P(line);
+    faustparser P(line);
     // C/C++ case
     if (P.skip() && P.parse("#include") && P.skip() && P.filename(fname)) {
-        myparser Q(fname);
+        faustparser Q(fname);
         return Q.parse("faust/");
     // Julia case
     } else if (P.skip() && P.parse("include(") && P.skip() && P.filename(fname)) {
-        myparser Q(fname);
+        faustparser Q(fname);
         return Q.parse("/usr/local/share/faust/julia");
     } else {
         return false;
@@ -167,7 +162,6 @@ static bool isFaustInclude(const string& line, string& fname)
 /**
  * Inject file fname into dst ostream
  */
-
 static void inject(ostream& dst, const string& fname)
 {
     if (gGlobal->gAlreadyIncluded.find(fname) == gGlobal->gAlreadyIncluded.end()) {
@@ -208,6 +202,7 @@ static bool checkFile(const char* filename)
     }
 }
 
+// Construct a resolver seeded with all known import search directories maintained in global state
 static FileResolver buildImportResolver()
 {
     FileResolver resolver;
@@ -217,6 +212,7 @@ static FileResolver buildImportResolver()
     return resolver;
 }
 
+// Construct a resolver seeded with all known architecture search directories maintained in global state
 static FileResolver buildArchitectureResolver()
 {
     FileResolver resolver;
@@ -355,7 +351,6 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
 /**
  * Copy src to dst until a specific line
  */
-
 void streamCopyUntil(istream& src, ostream& dst, const string& until)
 {
     string fname, line;

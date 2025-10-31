@@ -2539,25 +2539,25 @@ string global::printHelp()
 
 string global::printLibDir()
 {
-    namespace fs = std::filesystem;
+    namespace fs  = std::filesystem;
     fs::path path = fs::path(gFaustRootDir) / "lib";
     return path.string() + '\n';
 }
 string global::printIncludeDir()
 {
-    namespace fs = std::filesystem;
+    namespace fs  = std::filesystem;
     fs::path path = fs::path(gFaustRootDir) / "include";
     return path.string() + '\n';
 }
 string global::printArchDir()
 {
-    namespace fs = std::filesystem;
+    namespace fs  = std::filesystem;
     fs::path path = fs::path(gFaustRootDir) / "share" / "faust";
     return path.string() + '\n';
 }
 string global::printDspDir()
 {
-    namespace fs = std::filesystem;
+    namespace fs  = std::filesystem;
     fs::path path = fs::path(gFaustRootDir) / "share" / "faust";
     return path.string() + '\n';
 }

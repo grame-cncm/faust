@@ -78,7 +78,7 @@ jobs:
           if not faust.exists():
               sys.exit(f"Faust executable not found at {faust}")
 
-          examples_root = repo_root / "examples"
+          examples_root = repo_root / "examples" / "reverb"
           if not examples_root.exists():
               sys.exit(f"Examples directory not found at {examples_root}")
 

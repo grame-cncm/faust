@@ -39,7 +39,6 @@
 #include <emscripten.h>
 #endif
 
-#include "compatibility.hh"
 #include "sourcereader.hh"
 #include "sourcefetcher.hh"
 #include "enrobage.hh"
@@ -197,9 +196,10 @@ void SourceReader::checkName()
     if (gGlobal->gMasterDocument == FAUSTfilename) {
         Tree name = tree("name");
         if (gGlobal->gMetaDataSet.find(name) == gGlobal->gMetaDataSet.end()) {
-            gGlobal->gMetaDataSet[name].insert(tree(quote(stripEnd(basename((char*)FAUSTfilename), ".dsp"))));
+            string base = fileBasename(FAUSTfilename);
+            gGlobal->gMetaDataSet[name].insert(tree(quote(stripEnd(base, ".dsp"))));
         }
-        gGlobal->gMetaDataSet[tree("filename")].insert(tree(quote(basename((char*)FAUSTfilename))));
+        gGlobal->gMetaDataSet[tree("filename")].insert(tree(quote(fileBasename(FAUSTfilename))));
     }
 }
 
