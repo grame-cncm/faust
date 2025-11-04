@@ -13,75 +13,83 @@
 #   - CLAP SDK and helpers in ../../external/
 #   - C++17 compatible compiler
 
-CXX = g++
-CXXFLAGS = -std=c++17 -fPIC -O2 -Wall -Wextra
-INCLUDES = -I../../architecture \
-           -I../../external/clap-sdk/include \
-           -I../../external/clap-helpers/include \
-           -I/usr/local/include \
-           -I/opt/homebrew/include \
-           -Iefsw/include \
-           -Iefsw/src
+CXX := /usr/bin/clang++
+CXXFLAGS := -std=c++17 -fPIC -O2 -Wall -Wextra -fvisibility=default
 
-LIBS = -L/usr/local/lib -L/opt/homebrew/lib -lfaust -ldl -framework CoreServices -framework CoreFoundation
+# Detect whether we're inside an installed faust2clap tree or building in-repo
+SCRIPT_DIR := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
+TOP_DIR := $(abspath $(SCRIPT_DIR)/../..)
 
-TARGET = FaustDynamic.clap
-SOURCE = simple-faust.cpp
-HELPER_OBJS = clap-helpers-impl.o interpreter-clap.o
-MAIN_OBJ = faust-dynamic.o
-EFSW_LIB = efsw/build/libefsw-static.a
+# Allow override via env, useful for installed tree
+FAUST2CLAP_ROOT ?= $(TOP_DIR)
+
+# External dependencies
+CLAP_SDK_INC := $(FAUST2CLAP_ROOT)/external/clap-sdk/include
+CLAP_HELPERS_INC := $(FAUST2CLAP_ROOT)/external/clap-helpers/include
+EFSW_INC := $(FAUST2CLAP_ROOT)/external/efsw/include
+EFSW_SRC := $(FAUST2CLAP_ROOT)/external/efsw/src
+EFSW_LIB := $(FAUST2CLAP_ROOT)/external/efsw/build/libefsw-static.a
+
+INCLUDES = \
+  -I../../architecture \
+  -I$(FAUST2CLAP_ROOT)/external/clap-sdk/include \
+  -I$(FAUST2CLAP_ROOT)/external/clap-helpers/include \
+  -I$(FAUST2CLAP_ROOT)/external/efsw/include \
+  -I$(FAUST2CLAP_ROOT)/external/efsw/src \
+  -I/usr/local/include \
+  -I/opt/homebrew/include
+
+LIBS := -L$(FAUST2CLAP_ROOT)/external/efsw/build \
+        -lfaust -ldl \
+        -framework CoreServices -framework CoreFoundation
+
+# Output target
+TARGET := FaustDynamic.clap
+
+# Source files
+SOURCE := simple-faust.cpp
+MAIN_OBJ := faust-dynamic.o
+HELPER_OBJS := clap-helpers-impl.o interpreter-clap.o
 
 all: $(TARGET)
 
 $(TARGET): $(MAIN_OBJ) $(HELPER_OBJS) $(EFSW_LIB)
 	@echo "🔗 Linking $(TARGET)..."
-	$(CXX) -shared $(MAIN_OBJ) $(HELPER_OBJS) $(EFSW_LIB) $(LIBS) -o $@
+	$(CXX) -bundle -undefined dynamic_lookup \
+		$(MAIN_OBJ) $(HELPER_OBJS) $(EFSW_LIB) $(LIBS) \
+		-Wl,-headerpad_max_install_names \
+		-Wl,-exported_symbol,_clap_entry \
+		-Wl,-rpath,/usr/local/lib \
+		-o $@
 	@echo "✅ Built $(TARGET) successfully"
 
 $(MAIN_OBJ): $(SOURCE)
 	@echo "🔨 Compiling main plugin source..."
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $(SOURCE) -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 clap-helpers-impl.o: clap-helpers-impl.cpp
 	@echo "🔨 Compiling CLAP helpers..."
-	$(CXX) $(CXXFLAGS) $(INCLUDES) -c clap-helpers-impl.cpp -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
 
 interpreter-clap.o: interpreter-clap.cpp interpreter-clap.h
 	@echo "🔨 Compiling Faust interpreter interface..."
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c interpreter-clap.cpp -o $@
 
 $(EFSW_LIB):
-	@echo "🔨 Building efsw library..."
-	@cd efsw && mkdir -p build && cd build && cmake .. && make efsw-static
-
-clean:
-	@echo "🧹 Cleaning build artifacts..."
-	rm -f $(MAIN_OBJ) $(HELPER_OBJS) $(TARGET)
-	@echo "✅ Clean complete"
+	@echo "🔨 Building efsw..."
+	cd $(FAUST2CLAP_ROOT)/external/efsw && mkdir -p build && cd build && cmake .. && make efsw-static
 
 install: $(TARGET)
 	@echo "📦 Installing $(TARGET)..."
-	@mkdir -p $(HOME)/Library/Audio/Plug-Ins/CLAP/
-	@mkdir -p $(HOME)/.clap/plugins/
-	cp $(TARGET) $(HOME)/Library/Audio/Plug-Ins/CLAP/
-	cp $(TARGET) $(HOME)/.clap/plugins/
-	@echo "✅ Installed $(TARGET) to system plugin directories"
+	mkdir -p $(HOME)/Library/Audio/Plug-Ins/CLAP/
+	mkdir -p $(HOME)/.clap/plugins/
+	cp -f $(TARGET) $(HOME)/Library/Audio/Plug-Ins/CLAP/
+	cp -f $(TARGET) $(HOME)/.clap/plugins/
+	@echo "✅ Plugin installed to user plugin directories"
 
-# Development targets
-test: $(TARGET)
-	@echo "🧪 Testing plugin load..."
-	@if [ -n "$(CLAP_VALIDATOR)" ]; then \
-		$(CLAP_VALIDATOR) $(TARGET); \
-	else \
-		echo "⚠️  CLAP_VALIDATOR not set, skipping validation"; \
-	fi
+clean:
+	@echo "🧹 Cleaning build artifacts..."
+	rm -f *.o $(TARGET)
+	@echo "✅ Clean complete"
 
-# Show build info
-info:
-	@echo "🛠️  Faust Dynamic CLAP Plugin Build Configuration:"
-	@echo "   Compiler: $(CXX)"
-	@echo "   Flags: $(CXXFLAGS)"
-	@echo "   Target: $(TARGET)"
-	@echo "   Dependencies: libfaust (with interpreter), CLAP SDK"
-
-.PHONY: all clean install test info
+.PHONY: all install clean
