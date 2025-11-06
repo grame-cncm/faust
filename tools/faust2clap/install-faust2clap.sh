@@ -25,11 +25,14 @@ for dir in architecture external; do
   fi
 done
 
-# Copy lib from tool subdir instead
-if [ -d "$SCRIPT_DIR/lib" ]; then
-  sudo cp -R "$SCRIPT_DIR/lib" "$INSTALL_ROOT/"
+# copy gui_stuff contents into architecture/clap/gui_stuff
+GUI_ASSETS_SRC="$REPO_ROOT/architecture/clap/gui_stuff"
+GUI_ASSETS_DEST="$INSTALL_ROOT/architecture/clap/gui_stuff"
+if [ -d "$GUI_ASSETS_SRC" ]; then
+  sudo mkdir -p "$GUI_ASSETS_DEST"
+  sudo cp -R "$GUI_ASSETS_SRC/"* "$GUI_ASSETS_DEST/"
 else
-  echo "⚠️  Missing lib directory in tools/faust2clap"
+  echo "⚠️  gui_stuff folder not found at: $GUI_ASSETS_SRC"
 fi
 
 # copy core files from SCRIPT_DIR (tools/faust2clap)
@@ -40,6 +43,40 @@ for file in faust2clap.py faust2clap.sh CMakeLists.txt; do
     echo "⚠️  Missing expected file: $file"
   fi
 done
+
+# copy Makefile.simple from architecture/clap instead
+MAKEFILE_SRC="$REPO_ROOT/architecture/clap/Makefile.simple"
+if [ -f "$MAKEFILE_SRC" ]; then
+  sudo cp "$MAKEFILE_SRC" "$INSTALL_ROOT/"
+else
+  echo "⚠️  Missing Makefile.simple in architecture/clap"
+fi
+
+# patch Makefile.simple include paths to point to install location
+MAKEFILE_INSTALLED="$INSTALL_ROOT/Makefile.simple"
+if [ -f "$MAKEFILE_INSTALLED" ]; then
+  sudo sed -i '' "s|../../architecture|$INSTALL_ROOT/architecture|g" "$MAKEFILE_INSTALLED"
+  sudo sed -i '' "s|\$(FAUST2CLAP_ROOT)/external|$INSTALL_ROOT/external|g" "$MAKEFILE_INSTALLED"
+fi
+
+# copy GUI script from gui_stuff
+GUI_SCRIPT_SRC="$REPO_ROOT/architecture/clap/faust-hot-reload.py"
+if [ -f "$GUI_SCRIPT_SRC" ]; then
+  sudo cp "$GUI_SCRIPT_SRC" "$INSTALL_ROOT/"
+else
+  echo "⚠️  GUI script not found at: $GUI_SCRIPT_SRC"
+fi
+
+# copy icon asset for desktop gui
+ICON_SRC="$REPO_ROOT/architecture/clap/gui_stuff/grame.icns"
+ICON_DEST="$INSTALL_ROOT/architecture/clap/gui_stuff/grame.icns"
+
+if [ -f "$ICON_SRC" ]; then
+  sudo mkdir -p "$(dirname "$ICON_DEST")"
+  sudo cp "$ICON_SRC" "$ICON_DEST"
+else
+  echo "⚠️  grame.icns not found at: $ICON_SRC"
+fi
 
 # create CLI symlink
 sudo ln -sf "$INSTALL_ROOT/faust2clap.sh" "$BIN_LINK"

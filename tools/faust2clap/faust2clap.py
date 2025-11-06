@@ -139,13 +139,20 @@ def locate_clap_dir():
 
 def build_dynamic_plugin(install=False):
     global clap_dir
-    
+
     clap_dir = (
-    Path(os.environ["FAUST_SRC"]) / "architecture" / "clap"
-    if "FAUST_SRC" in os.environ
-    else Path(os.path.dirname(__file__)) / "architecture" / "clap"
+        Path(os.environ["FAUST_SRC"]) / "architecture" / "clap"
+        if "FAUST_SRC" in os.environ
+        else Path(os.path.dirname(__file__)) / "architecture" / "clap"
     )
-    make_cmd = ["make", "-f", "Makefile.simple"]
+
+    # explicitly use the fallback location for Makefile.simple
+    makefile_path = "/usr/local/share/faust2clap/Makefile.simple"
+    if not Path(makefile_path).exists():
+        print(f"{RED}[!] Missing Makefile.simple at: {makefile_path}{RESET}")
+        sys.exit(1)
+
+    make_cmd = ["make", "-f", makefile_path]
 
     try:
         print(f"{CYAN}[*] Building dynamic plugin in: {clap_dir}{RESET}")
@@ -153,21 +160,16 @@ def build_dynamic_plugin(install=False):
         print(f"{GREEN}[✓] Built dynamic plugin{RESET}")
 
         if install:
-        # create proper macOS bundle layout
+            # create proper macOS bundle layout
             plugin_binary = clap_dir / "FaustDynamic.clap"
             bundle_dir = Path.home() / "Library" / "Audio" / "Plug-Ins" / "CLAP" / "FaustDynamic.clap"
             contents_dir = bundle_dir / "Contents" / "MacOS"
             plist_path = bundle_dir / "Contents" / "Info.plist"
 
             shutil.rmtree(bundle_dir, ignore_errors=True)
-
-            # create directories
             contents_dir.mkdir(parents=True, exist_ok=True)
-
-            # move binary
             shutil.copy2(plugin_binary, contents_dir / "FaustDynamic")
 
-            # write Info.plist
             info = get_dynamic_plugin_metadata()
             plist_contents = generate_info_plist(
                 app_name=info["app_name"],
@@ -177,6 +179,7 @@ def build_dynamic_plugin(install=False):
             )
             with open(plist_path, "w") as f:
                 f.write(plist_contents)
+
             print(f"{GREEN}[✓] Info.plist written to: {plist_path}{RESET}")
             print(f"{GREEN}[✓] Bundled and installed dynamic plugin as .clap bundle{RESET}")
             print(f"{GREEN}[✓] Installed dynamic plugin{RESET}")

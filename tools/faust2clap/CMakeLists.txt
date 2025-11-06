@@ -30,7 +30,7 @@ add_subdirectory(${FAUST2CLAP_ROOT}/external/clap-sdk clap-sdk)
 add_subdirectory(${FAUST2CLAP_ROOT}/external/clap-helpers clap-helpers)
 
 # GUI glue lib
-add_library(faust_gui_glue STATIC ${FAUST2CLAP_ROOT}/lib/faust_gui_glue.cpp)
+add_library(faust_gui_glue STATIC ${FAUST2CLAP_ROOT}/architecture/clap/faust_gui_glue.cpp)
 
 target_include_directories(faust_gui_glue PRIVATE
   ${FAUST2CLAP_ROOT}/architecture
@@ -62,7 +62,7 @@ foreach(FAUST_CPP ${FAUST_SOURCES})
 
   add_library(${PLUGIN_NAME} MODULE ${FAUST_CPP})
 
-  target_sources(${PLUGIN_NAME} PRIVATE ${FAUST2CLAP_ROOT}/lib/plugin.cc)
+  target_sources(${PLUGIN_NAME} PRIVATE ${FAUST2CLAP_ROOT}/architecture/clap/plugin.cc)
 
   target_include_directories(${PLUGIN_NAME} PRIVATE
     ${CMAKE_BINARY_DIR}

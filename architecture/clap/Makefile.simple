@@ -31,7 +31,7 @@ EFSW_SRC := $(FAUST2CLAP_ROOT)/external/efsw/src
 EFSW_LIB := $(FAUST2CLAP_ROOT)/external/efsw/build/libefsw-static.a
 
 INCLUDES = \
-  -I../../architecture \
+  -I$(FAUST2CLAP_ROOT)/architecture \
   -I$(FAUST2CLAP_ROOT)/external/clap-sdk/include \
   -I$(FAUST2CLAP_ROOT)/external/clap-helpers/include \
   -I$(FAUST2CLAP_ROOT)/external/efsw/include \
@@ -75,9 +75,21 @@ interpreter-clap.o: interpreter-clap.cpp interpreter-clap.h
 	@echo "🔨 Compiling Faust interpreter interface..."
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c interpreter-clap.cpp -o $@
 
+
+# Build efsw automatically if missing
+ifeq ("$(wildcard $(EFSW_LIB))","")
+$(info ⚠️ efsw not built yet – will build it now)
+NEED_EFSW := 1
+endif
+
+
 $(EFSW_LIB):
 	@echo "🔨 Building efsw..."
-	cd $(FAUST2CLAP_ROOT)/external/efsw && mkdir -p build && cd build && cmake .. && make efsw-static
+	cd $(FAUST2CLAP_ROOT)/external/efsw && \
+		mkdir -p build && \
+		cd build && \
+		cmake .. && \
+		make efsw-static
 
 install: $(TARGET)
 	@echo "📦 Installing $(TARGET)..."
