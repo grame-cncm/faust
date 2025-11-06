@@ -47,12 +47,12 @@ Depending of the number of audio inputs and outputs described in the DSP source 
 
 When double-clicking on it, the **faustgen~/mc.faustgen~** object opens several menu items:
 
-- *Edit DSP code* allows to open the integrated text editor, edit the DSP code, then JIT compile it when the window is closed
-- *View DSP parameters* print each parameters in the Max console window with its label, complete path (as *xxx/yyy/zzz* syntax) and range, as well as the complete DSP JSON 
-- *View compile options* print all Faust compilation options in the Max console window
-- *View SVG digram* creates the block diagram SVG view and opens it in a browser
--  *View Web documention* access the standard Faust documention in a browser
-- *View libraries* open the embedded Faust libraies in a text editor
+- *Edit DSP code*: allows to open the integrated text editor, edit the DSP code, then JIT compile it when the window is closed
+- *View DSP parameters*: print each parameters in the Max console window with its label, complete path (as *xxx/yyy/zzz* syntax) and range, as well as the complete DSP JSON 
+- *View compile options*: print all Faust compilation options in the Max console window
+- *View SVG diagram*: creates the block diagram SVG view and opens it in a browser
+- *View Web documention*: access the standard Faust documention in a browser
+- *View libraries*: open the embedded Faust libraies in a text editor
 
 ### Controlling
 
