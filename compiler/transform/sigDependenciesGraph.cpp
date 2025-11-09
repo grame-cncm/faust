@@ -5,6 +5,7 @@
 #include "sigRecursiveDependencies.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
+#include "tree.hh"
 
 #undef TRACE
 /**
@@ -354,30 +355,6 @@ std::vector<Tree> ondemandCompilationOrder(const tvec& signals)
 }
 
 /**
- * @brief Check if a signal is a projection and get its definition
- *
- * @param sig the signal to check
- * @param def reference to store the definition if found
- * @return true if sig is a projection, false otherwise
- */
-static bool hasProjDefinition(Tree sig, Tree& def)
-{
-    int  i;
-    Tree w;
-
-    // Check if sig is a projection
-    if (isProj(sig, &i, w)) {
-        // Get the definition
-        Tree id, le;
-        faustassert(isRec(w, id, le));
-        def = nth(le, i);
-        return true;
-    }
-
-    return false;
-}
-
-/**
  * @brief Visit recursive definitions and build the recursion graph
  *
  * @param graph the graph being constructed
@@ -530,6 +507,15 @@ std::set<Tree> analyzeDegenerateRecursions(const digraph<Tree>& graph)
             // Check if the component has no internal connections
             if (component.destinations(singleNode).empty()) {
                 degenerateRecursions.insert(singleNode);
+            }
+        } else {
+            // we are in a cycle and we look for proj(i,X) = clk(h, y@d)
+            for (Tree w : nodes) {
+                Tree def;
+                faustassert(hasProjDefinition(w, def));
+                if (Tree h, x, y, d; isSigClocked(def, h, x) && isSigDelay(x, y, d)) {
+                    degenerateRecursions.insert(w);
+                }
             }
         }
     }
