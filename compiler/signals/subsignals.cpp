@@ -313,3 +313,227 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     }
     return 0;
 }
+
+/**
+ * Reconstruct a signal with new sub signals. This is the inverse operation of getSubSignals.
+ * @param sig the original signal
+ * @param vsigs the vector of new subsignals
+ * @param visitgen true if we want to visit generator signals
+ * @return the reconstructed signal
+ */
+Tree setSubSignals(Tree sig, const tvec& vsigs, bool visitgen)
+{
+    int     i;
+    int64_t i64;
+    double  r;
+    Tree size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name,
+        file, sf;
+
+    if (getUserData(sig)) {
+        vector<Tree> newBranches;
+        for (size_t i1 = 0; i1 < vsigs.size(); i1++) {
+            newBranches.push_back(vsigs[i1]);
+        }
+        return tree(sig->node(), newBranches);
+    } else if (isSigInt(sig, &i)) {
+        return sig; // No subsignals
+    } else if (isSigInt64(sig, &i64)) {
+        return sig; // No subsignals
+    } else if (isSigReal(sig, &r)) {
+        return sig; // No subsignals
+    } else if (isSigWaveform(sig)) {
+        return tree(sig->node(), vsigs);
+    }
+
+    else if (isSigInput(sig, &i)) {
+        return sig; // No subsignals
+    } else if (isSigOutput(sig, &i, x)) {
+        faustassert(vsigs.size() == 1);
+        return sigOutput(i, vsigs[0]);
+    }
+
+    else if (isSigDelay1(sig, x)) {
+        faustassert(vsigs.size() == 1);
+        return sigDelay1(vsigs[0]);
+    }
+
+    else if (isSigDelay(sig, x, y)) {
+        faustassert(vsigs.size() == 2);
+        return sigDelay(vsigs[0], vsigs[1]);
+    } else if (isSigPrefix(sig, x, y)) {
+        faustassert(vsigs.size() == 2);
+        return sigPrefix(vsigs[0], vsigs[1]);
+    } else if (isSigBinOp(sig, &i, x, y)) {
+        faustassert(vsigs.size() == 2);
+        return sigBinOp(i, vsigs[0], vsigs[1]);
+    } else if (isSigFFun(sig, ff, largs)) {
+        Tree newArgs = gGlobal->nil;
+        for (int idx = int(vsigs.size()) - 1; idx >= 0; idx--) {
+            newArgs = cons(vsigs[idx], newArgs);
+        }
+        return sigFFun(ff, newArgs);
+    } else if (isSigFConst(sig, type, name, file)) {
+        return sig; // No subsignals
+    } else if (isSigFVar(sig, type, name, file)) {
+        return sig; // No subsignals
+    }
+
+    else if (isSigWRTbl(sig, size, gen, wi, ws)) {
+        if (wi == gGlobal->nil) {
+            // rdtable
+            faustassert(vsigs.size() == 2);
+            return sigWRTbl(vsigs[0], vsigs[1]);
+        } else {
+            // rwtable
+            faustassert(vsigs.size() == 4);
+            return sigWRTbl(vsigs[0], vsigs[1], vsigs[2], vsigs[3]);
+        }
+    } else if (isSigRDTbl(sig, tbl, ri)) {
+        faustassert(vsigs.size() == 2);
+        return sigRDTbl(vsigs[0], vsigs[1]);
+    }
+
+    else if (isSigDocConstantTbl(sig, x, y)) {
+        faustassert(vsigs.size() == 2);
+        return sigDocConstantTbl(vsigs[0], vsigs[1]);
+    } else if (isSigDocWriteTbl(sig, x, y, u, v)) {
+        faustassert(vsigs.size() == 4);
+        return sigDocWriteTbl(vsigs[0], vsigs[1], vsigs[2], vsigs[3]);
+    } else if (isSigDocAccessTbl(sig, x, y)) {
+        faustassert(vsigs.size() == 2);
+        return sigDocAccessTbl(vsigs[0], vsigs[1]);
+    }
+
+    else if (isSigSelect2(sig, sel, x, y)) {
+        faustassert(vsigs.size() == 3);
+        return sigSelect2(vsigs[0], vsigs[1], vsigs[2]);
+    }
+
+    else if (isSigGen(sig, x)) {
+        if (visitgen) {
+            faustassert(vsigs.size() == 1);
+            return sigGen(vsigs[0]);
+        } else {
+            return sig; // No subsignals visited
+        }
+    }
+
+    else if (isProj(sig, &i, x)) {
+        faustassert(vsigs.size() == 1);
+        return sigProj(i, vsigs[0]);
+    } else if (isRec(sig, var, le)) {
+        faustassert(vsigs.size() == 1);
+        return rec(var, vsigs[0]);
+    }
+
+    else if (isSigIntCast(sig, x)) {
+        faustassert(vsigs.size() == 1);
+        return sigIntCast(vsigs[0]);
+    } else if (isSigBitCast(sig, x)) {
+        faustassert(vsigs.size() == 1);
+        return sigBitCast(vsigs[0]);
+    } else if (isSigFloatCast(sig, x)) {
+        faustassert(vsigs.size() == 1);
+        return sigFloatCast(vsigs[0]);
+    }
+
+    else if (isSigButton(sig, label)) {
+        return sig; // No subsignals
+    } else if (isSigCheckbox(sig, label)) {
+        return sig; // No subsignals
+    } else if (isSigVSlider(sig, label, c, x, y, z)) {
+        faustassert(vsigs.size() == 4);
+        return sigVSlider(label, vsigs[0], vsigs[1], vsigs[2], vsigs[3]);
+    } else if (isSigHSlider(sig, label, c, x, y, z)) {
+        faustassert(vsigs.size() == 4);
+        return sigHSlider(label, vsigs[0], vsigs[1], vsigs[2], vsigs[3]);
+    } else if (isSigNumEntry(sig, label, c, x, y, z)) {
+        faustassert(vsigs.size() == 4);
+        return sigNumEntry(label, vsigs[0], vsigs[1], vsigs[2], vsigs[3]);
+    }
+
+    else if (isSigVBargraph(sig, label, x, y, z)) {
+        faustassert(vsigs.size() == 3);
+        return sigVBargraph(label, vsigs[0], vsigs[1], vsigs[2]);
+    } else if (isSigHBargraph(sig, label, x, y, z)) {
+        faustassert(vsigs.size() == 3);
+        return sigHBargraph(label, vsigs[0], vsigs[1], vsigs[2]);
+    }
+
+    else if (isSigSoundfile(sig, label)) {
+        return sig; // No subsignals
+    } else if (isSigSoundfileLength(sig, sf, x)) {
+        faustassert(vsigs.size() == 2);
+        return sigSoundfileLength(vsigs[0], vsigs[1]);
+    } else if (isSigSoundfileRate(sig, sf, x)) {
+        faustassert(vsigs.size() == 2);
+        return sigSoundfileRate(vsigs[0], vsigs[1]);
+    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
+        faustassert(vsigs.size() == 4);
+        return sigSoundfileBuffer(vsigs[0], vsigs[1], vsigs[2], vsigs[3]);
+    }
+
+    else if (isSigAssertBounds(sig, x, y, z)) {
+        faustassert(vsigs.size() == 3);
+        return sigAssertBounds(vsigs[0], vsigs[1], vsigs[2]);
+    } else if (isSigHighest(sig, x)) {
+        faustassert(vsigs.size() == 1);
+        return sigHighest(vsigs[0]);
+    } else if (isSigLowest(sig, x)) {
+        faustassert(vsigs.size() == 1);
+        return sigLowest(vsigs[0]);
+    }
+
+    else if (isSigFIR(sig)) {
+        return tree(sig->node(), vsigs);
+    } else if (isSigIIR(sig)) {
+        return tree(sig->node(), vsigs);
+    } else if (isSigSum(sig)) {
+        return tree(sig->node(), vsigs);
+    } else if (isSigTempVar(sig, x)) {
+        faustassert(vsigs.size() == 1);
+        return sigTempVar(vsigs[0]);
+    } else if (isSigPermVar(sig, x)) {
+        faustassert(vsigs.size() == 1);
+        return sigPermVar(vsigs[0]);
+    } else if (isSigZeroPad(sig, x, y)) {
+        faustassert(vsigs.size() == 2);
+        return sigZeroPad(vsigs[0], vsigs[1]);
+    } else if (isSigSeq(sig, x, y)) {
+        faustassert(vsigs.size() == 2);
+        return sigSeq(vsigs[0], vsigs[1]);
+    } else if (isSigOD(sig)) {
+        return tree(sig->node(), vsigs);
+    } else if (isSigUS(sig)) {
+        return tree(sig->node(), vsigs);
+    } else if (isSigDS(sig)) {
+        return tree(sig->node(), vsigs);
+    } else if (isSigClocked(sig, x, y)) {
+        faustassert(vsigs.size() == 1);
+        return sigClocked(x, vsigs[0]); // x is the clock context, vsigs[0] is the signal
+    } else if (isSigAttach(sig, x, y)) {
+        faustassert(vsigs.size() == 2);
+        return sigAttach(vsigs[0], vsigs[1]);
+    } else if (isSigEnable(sig, x, y)) {
+        faustassert(vsigs.size() == 2);
+        return sigEnable(vsigs[0], vsigs[1]);
+    } else if (isSigControl(sig, x, y)) {
+        faustassert(vsigs.size() == 2);
+        return sigControl(vsigs[0], vsigs[1]);
+    } else if (isList(sig)) {
+        faustassert(vsigs.size() == 2);
+        return cons(vsigs[0], vsigs[1]);
+    } else if (isNil(sig)) {
+        return sig; // No subsignals
+
+    } else if (isSigRegister(sig, &i, x)) {
+        faustassert(vsigs.size() == 1);
+        return sigRegister(i, vsigs[0]);
+    }
+
+    else {
+        cerr << "ASSERT : setSubSignals unrecognized signal : " << *sig << endl;
+        faustassert(false);
+    }
+    return sig; // Fallback
+}
