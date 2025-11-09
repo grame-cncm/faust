@@ -1405,3 +1405,83 @@ Tree recTempVar(Tree clkenv1, Tree clkenv2, Tree sig)
     return sigClocked(clkenv1,
                       sigClocked(hd(clkenv1), sigTempVar(recTempVar(hd(clkenv1), clkenv2, sig))));
 }
+
+//------------------------------------------------------------------------------
+// Projection utilities
+//------------------------------------------------------------------------------
+
+/**
+ * Test if sig is a recursive projection and get its definition
+ * @param sig the signal to test
+ * @param def reference to store the definition if found
+ * @return true if sig is a projection, false otherwise
+ */
+bool hasProjDefinition(Tree sig, Tree& def)
+{
+    int  i;
+    Tree w;
+
+    // Check if sig is a projection
+    if (isProj(sig, &i, w)) {
+        // Get the definition
+        Tree id, le;
+        faustassert(isRec(w, id, le));
+        def = nth(le, i);
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Create a new projection with modified definition (asserts if not a projection)
+ * @param sig the original projection signal (must be a projection)
+ * @param newDef the new definition to set
+ * @return new projection signal with the modified definition
+ */
+Tree setProjDefinition(Tree sig, Tree newDef)
+{
+    int  i;
+    Tree w, id, le;
+
+    // Assert that sig is a projection
+    faustassert(isProj(sig, &i, w));
+    faustassert(isRec(w, id, le));
+
+    // Create new list with modified definition at position i
+    tvec newList;
+    int  n       = 0;
+    Tree current = le;
+    while (!isNil(current)) {
+        if (n == i) {
+            std::cerr << "setProjDefinition: " << getProjName(sig) << '\n';
+            std::cerr << "\t oldDef=" << ppsig(hd(current)) << '\n';
+            std::cerr << "\t newDef=" << ppsig(newDef) << '\n' << std::endl;
+
+            newList.push_back(newDef);
+        } else {
+            newList.push_back(hd(current));
+        }
+        current = tl(current);
+        n++;
+    }
+
+    // Create new recursive structure with modified list
+    extern Tree listConvert(const tvec& a);
+    Tree        newLe  = listConvert(newList);
+    Tree        newRec = rec(id, newLe);
+
+    // Return new projection
+    return sigProj(i, newRec);
+}
+
+std::string getProjName(Tree sig)
+{
+    int  i;
+    Tree w, id, le;
+
+    faustassert(isProj(sig, &i, w));
+    faustassert(isRec(w, id, le));
+    std::string projname = std::string(tree2str(id)) + "_" + std::to_string(i);
+    return projname;
+}
