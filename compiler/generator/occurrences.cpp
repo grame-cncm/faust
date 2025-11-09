@@ -265,6 +265,9 @@ Occurrences* OccMarkup::getOcc(Tree t)
 
 void OccMarkup::setOcc(Tree t, Occurrences* occ)
 {
+    // if (isSigClocked(t)) {
+    //     std::cerr << "We have occurrences for sigcloked signal " << t << ": " << *occ << endl;
+    // }
     t->setProperty(fPropKey, tree(occ));
 }
 

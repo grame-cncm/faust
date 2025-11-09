@@ -406,7 +406,8 @@ Tree sigCartesianProd(Tree s1, Tree s2);
                              Access to sub signals of a signal
 *****************************************************************************/
 
-int getSubSignals(Tree sig, tvec& vsigs, bool visitgen = true);
+int  getSubSignals(Tree sig, tvec& vsigs, bool visitgen = true);
+Tree setSubSignals(Tree sig, const tvec& vsigs, bool visitgen = true);
 
 /**
  * Test if exp is very simple that is it
@@ -455,4 +456,15 @@ Tree getClockenvBox(Tree clkenv);
 Tree getClockenvEnv(Tree clkenv);
 
 Tree recTempVar(Tree clkenv1, Tree clkenv2, Tree sig);
+
+// Projection utilities
+
+bool hasProjDefinition(
+    Tree sig, Tree& def);  ///< test if sig is a recursive projection and get its definition
+Tree setProjDefinition(
+    Tree sig,
+    Tree newDef);  ///< create new projection with modified definition (asserts if not projection)
+
+std::string getProjName(Tree sig);
+
 #endif

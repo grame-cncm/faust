@@ -49,6 +49,8 @@
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "revealSum.hh"
+
+#include "sigDegenerateRecursionElimination.hh"
 #include "sigDependenciesGraph.hh"
 #include "sigNewConstantPropagation.hh"
 #include "sigPromotion.hh"
@@ -128,6 +130,20 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("Sum revealer");
     L2a = revealSum(L2a);
     endTiming("Sum revealer");
+
+    // eliminate degenerate recursive projections if required
+    if (gGlobal->gEliminateDegenerateRecursions) {
+        startTiming("Degenerate recursion eliminator");
+        //    L2a = inlineDegenerateRecursions(L2a, true);
+        // Try to find a fix point
+
+        for (int iteration = 1; iteration <= 4; iteration++) {
+            std::cerr << " iteration " << iteration << " L2a " << L2a << '\n';
+            L2a = inlineDegenerateRecursions(L2a, true);
+        }
+
+        endTiming("Degenerate recursion eliminator");
+    }
 
     Tree L2;
     // detect FIRs and IIRs if required
@@ -548,10 +564,20 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     }
 
     // Compute the hierarchical scheduling of L applying the chosen strategy
-    fHschedule = scheduleSigList(L, mySchedFun);
+    fHschedule     = scheduleSigList(L, mySchedFun);
+    fScheduleOrder = numberSchedule(fHschedule);
 
     if (gGlobal->gPrintHSchedule) {
-        printHsched(fHschedule);
+        printHschedWithDelays(fHschedule, fOccMarkup);
+
+        // Also generate DOT graph with same option
+        std::string   dotfilename = gGlobal->gMasterName + "-phs.dot";
+        std::ofstream dotfile(dotfilename);
+        if (dotfile.is_open()) {
+            printHschedDOT(fHschedule, dotfile);
+            dotfile.close();
+            std::cerr << "Hierarchical schedule DOT graph written to: " << dotfilename << std::endl;
+        }
     }
 
     // Then first compile the control or constant signals (i.e. non sample rate signals)
@@ -1026,30 +1052,35 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
             // The variable is used in compute (kBlock or kSamp), so define is as a field in the DSP
             // struct
             if (o->getOccurrence(kBlock) || o->getOccurrence(kSamp)) {
-                fClass->addDeclCode(subst("$0 \t$1; // step: $2", ctype, vname, T(gGlobal->gSTEP)));
-                fClass->addInitCode(subst("$0 = $1; // step: $2", vname, exp, T(gGlobal->gSTEP)));
+                fClass->addDeclCode(
+                    subst("$0 \t$1; // step: $2", ctype, vname, T(fScheduleOrder[sig])));
+                fClass->addInitCode(
+                    subst("$0 = $1; // step: $2", vname, exp, T(fScheduleOrder[sig])));
             } else {
                 // Otherwise it can stay as a local variable
                 // fClass->addInitCode(subst("$0 \t$1 = $2; // step: $3", ctype, vname, exp,
-                // T(gGlobal->gSTEP))); FIX Bug const ???
-                fClass->addDeclCode(subst("$0 \t$1; // step: $2", ctype, vname, T(gGlobal->gSTEP)));
-                fClass->addInitCode(subst("$0 = $1; // step: $2", vname, exp, T(gGlobal->gSTEP)));
+                // T(fScheduleOrder[sig]))); FIX Bug const ???
+                fClass->addDeclCode(
+                    subst("$0 \t$1; // step: $2", ctype, vname, T(fScheduleOrder[sig])));
+                fClass->addInitCode(
+                    subst("$0 = $1; // step: $2", vname, exp, T(fScheduleOrder[sig])));
             }
             break;
 
         case kBlock:
             getTypedNames(t, "Slow", ctype, vname);
             fClass->addFirstPrivateDecl(vname);
-            fClass->addZone2(
-                subst("$0 \t$1 = $2; // Zone 2, step: $3", ctype, vname, exp, T(gGlobal->gSTEP)));
+            fClass->addZone2(subst("$0 \t$1 = $2; // Zone 2, step: $3", ctype, vname, exp,
+                                   T(fScheduleOrder[sig])));
             break;
 
         case kSamp:
             getTypedNames(t, "Temp", ctype, vname);
             if (getConditionCode(sig) == "") {
-                fClass->addZone2(subst("$0 \t$1; // step: $2", ctype, vname, T(gGlobal->gSTEP)));
+                fClass->addZone2(
+                    subst("$0 \t$1; // step: $2", ctype, vname, T(fScheduleOrder[sig])));
                 fClass->addExecCode(Statement(
-                    "", subst("$1 = $2; // step: $3", ctype, vname, exp, T(gGlobal->gSTEP))));
+                    "", subst("$1 = $2; // step: $3", ctype, vname, exp, T(fScheduleOrder[sig]))));
             } else {
                 getTypedNames(t, "TempPerm", ctype, vname_perm);
                 // need to be preserved because of new enable and control primitives
@@ -1437,12 +1468,14 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
     }
     if (ty->variability() == kBlock) {
         fClass->addZone2(
-            subst("$0 \t$1 = $2; // FR step: $3", ctype, vecname, CS(def), T(gGlobal->gSTEP)));
+            subst("$0 \t$1 = $2; // FR step: $3", ctype, vecname, CS(def), T(fScheduleOrder[sig])));
         return vecname;
     }
     if (ty->variability() == kKonst) {
-        fClass->addDeclCode(subst("$0 \t$1; // FR step: $2", ctype, vecname, T(gGlobal->gSTEP)));
-        fClass->addInitCode(subst("$0 = $1; // FR step: $2", vecname, CS(def), T(gGlobal->gSTEP)));
+        fClass->addDeclCode(
+            subst("$0 \t$1; // FR step: $2", ctype, vecname, T(fScheduleOrder[sig])));
+        fClass->addInitCode(
+            subst("$0 = $1; // FR step: $2", vecname, CS(def), T(fScheduleOrder[sig])));
         return vecname;
     }
     return "[[IMPOSSIBLE]]";
@@ -2139,7 +2172,7 @@ string ScalarCompiler::generateOD(Tree sig, const tvec& w)
     faustassert(w.size() > 1);
     Tree clock = w[0];
     Type ty    = getCertifiedSigType(clock);
-    std::cerr << "Print OD condition type " << *ty << std::endl;
+    //    std::cerr << "Print OD condition type " << *ty << std::endl;
     bool isBoolean = (ty->getInterval().lo() >= 0.0) && (ty->getInterval().hi() <= 1.0);
     if (isBoolean) {
         fClass->openIFblock(CS(clock));

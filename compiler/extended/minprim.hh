@@ -28,7 +28,7 @@
 
 class MinPrim : public xtended {
    public:
-    MinPrim() : xtended("min") {}
+    MinPrim() : xtended("std::min") {}
 
     virtual unsigned int arity() override { return 2; }
 
