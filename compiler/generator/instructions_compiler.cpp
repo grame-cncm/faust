@@ -3572,7 +3572,7 @@ ValueInst* InstructionsCompiler::generateOD(Tree sig, const tvec& w)
     faustassert(w.size() > 1);
     Tree clock = w[0];
     Type ty    = getCertifiedSigType(clock);
-    std::cerr << "Print OD condition type " << *ty << std::endl;
+    //    std::cerr << "Print OD condition type " << *ty << std::endl;
     bool isBoolean = (ty->getInterval().lo() >= 0.0) && (ty->getInterval().hi() <= 1.0);
     if (isBoolean) {
         fContainer->getCurLoop()->openIfblock(CS(clock));

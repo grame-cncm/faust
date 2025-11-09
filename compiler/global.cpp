@@ -438,6 +438,7 @@ void global::reset()
     gDrawSignals      = false;
     gDrawRetiming     = false;
     gDrawRecProjGraph = false;
+    gEliminateDegenerateRecursions = false;
     gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
     gScaledSVG        = false;
@@ -1293,6 +1294,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-rpg", "--recursive-projection-graph")) {
             gDrawRecProjGraph = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-edr", "--eliminate-degenerated-recursions")) {
+            gEliminateDegenerateRecursions = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-drf", "--draw-route-frame")) {
@@ -2587,6 +2592,8 @@ string global::printHelp()
             "memory type), used in -mem1/-mem2 "
             "mode."
          << endl;
+    sstr << tab
+         << "-huf <n>    --hls-unroll-factor <n>     emit HLS unroll pragma when > 0." << endl;
 
     sstr << tab
          << "-fsr <n>    --fix-sampling-rate <n>     fix sampling rate at compile time instead of "
@@ -2647,6 +2654,8 @@ string global::printHelp()
     sstr << tab << "-blur      --shadow-blur                add a shadow blur to SVG boxes."
          << endl;
     sstr << tab << "-sc        --scaled-svg                 automatic scalable SVG." << endl;
+    sstr << tab
+         << "-style <file> --svgstyle <file>         specify a SVG style file." << endl;
 
     sstr << endl << "Math doc options:" << line;
     sstr << tab
@@ -2673,7 +2682,15 @@ string global::printHelp()
             "eval process."
          << endl;
     sstr << tab
+         << "-phs        --print-hschedule           print the internal task graph hierarchical "
+            "schedule."
+         << endl;
+    sstr << tab
          << "-tg         --task-graph                print the internal task graph in dot format."
+         << endl;
+    sstr << tab
+         << "-gt         --graph-topology            print the internal task graph topology in dot "
+            "format."
          << endl;
     sstr << tab
          << "-sg         --signal-graph              print the internal signal graph in dot format."
@@ -2685,6 +2702,9 @@ string global::printHelp()
     sstr << tab
          << "-rpg        --recursive-projection-graph print the recursive projection graph in dot "
             "format."
+         << endl;
+    sstr << tab
+         << "-edr        --eliminate-degenerated-recursions eliminate degenerated recursive projections."
          << endl;
     sstr << tab
          << "-norm       --normalized-form           print signals in normalized form and exit."
@@ -2709,6 +2729,8 @@ string global::printHelp()
          << "-sts        --strict-select             generate strict code for 'selectX' even for "
             "stateless branches (both are computed)."
          << endl;
+    sstr << tab
+         << "-diff       --auto-differentiate        automatic differentiation." << endl;
     sstr << tab << "-wall       --warning-all               print all warnings." << endl;
     sstr << tab
          << "-t <sec>    --timeout <sec>             abort compilation after <sec> seconds "
