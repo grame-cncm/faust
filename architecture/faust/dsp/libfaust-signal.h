@@ -176,6 +176,22 @@ extern "C" LIBFAUST_API void createLibContext();
 extern "C" LIBFAUST_API void destroyLibContext();
 
 /**
+ * Get the current reference count of the library context.
+ * Useful for debugging and to check if context is still alive.
+ *
+ * @return The number of active references to the context
+ */
+extern "C" LIBFAUST_API int getLibContextRefCount();
+
+/**
+ * Prepare for shutdown.
+ *
+ * Note: This will cause a one-time memory leak of the global context, which is
+ * acceptable for single-process applications that are exiting anyway.
+ */
+extern "C" LIBFAUST_API void prepareForShutdown();
+
+/**
  * Get the signal interval.
  *
  * @param s - the signal

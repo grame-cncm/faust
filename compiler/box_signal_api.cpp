@@ -24,6 +24,8 @@
 #endif
 
 #include <string>
+#include <atomic>
+#include <mutex>
 
 #include "dsp_factory.hh"
 #include "faust/export.h"
@@ -49,16 +51,50 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
 // ===============
 
 // Global context, to be used in C and C++ API
+// Reference counting for safer context management
+static std::atomic<int> gContextRefCount{0};
+static std::mutex gContextMutex;
 
 extern "C" LIBFAUST_API void createLibContext()
 {
-    gGlobal = nullptr;
-    global::allocate();
+    std::lock_guard<std::mutex> lock(gContextMutex);
+    if (gContextRefCount == 0) {
+        gGlobal = nullptr;
+        global::allocate();
+    }
+    gContextRefCount++;
 }
 
 extern "C" LIBFAUST_API void destroyLibContext()
 {
-    global::destroy();
+    std::lock_guard<std::mutex> lock(gContextMutex);
+    if (gContextRefCount > 0) {
+        gContextRefCount--;
+        if (gContextRefCount == 0) {
+            global::destroy();
+        }
+    }
+}
+
+// Get the current reference count
+extern "C" LIBFAUST_API int getLibContextRefCount()
+{
+    return gContextRefCount.load();
+}
+
+/**
+ * Prepare for shutdown.
+ *
+ * Note: This will cause a one-time memory leak of the global context, which is
+ * acceptable for single-process applications that are exiting anyway.
+ */
+extern "C" LIBFAUST_API void prepareForShutdown()
+{
+    std::lock_guard<std::mutex> lock(gContextMutex);
+    // Set ref count to 1 to prevent destroy() from being called
+    if (gContextRefCount > 0) {
+        gContextRefCount = 1;
+    }
 }
 
 // MUST match definition in libfaust-signal.h
