@@ -1,0 +1,5 @@
+source "/Users/anantrohmetra/esp/v5.1.6/esp-idf/components/bootloader/Kconfig.projbuild"
+source "/Users/anantrohmetra/esp/v5.1.6/esp-idf/components/esp_app_format/Kconfig.projbuild"
+source "/Users/anantrohmetra/esp/v5.1.6/esp-idf/components/esp_rom/Kconfig.projbuild"
+source "/Users/anantrohmetra/esp/v5.1.6/esp-idf/components/esptool_py/Kconfig.projbuild"
+source "/Users/anantrohmetra/esp/v5.1.6/esp-idf/components/partition_table/Kconfig.projbuild"

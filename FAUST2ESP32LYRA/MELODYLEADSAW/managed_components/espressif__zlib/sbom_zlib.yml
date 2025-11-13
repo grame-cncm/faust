@@ -1,0 +1,7 @@
+name: zlib
+version: 1.3.1
+cpe: cpe:2.3:a:zlib:zlib:{}:*:*:*:*:*:*:*
+supplier: 'Organization: zlib <http://www.zlib.net/>'
+description: A massively spiffy yet delicately unobtrusive compression library
+url: https://github.com/madler/zlib
+hash: 51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf

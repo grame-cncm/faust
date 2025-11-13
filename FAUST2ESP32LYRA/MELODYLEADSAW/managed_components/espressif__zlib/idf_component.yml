@@ -1,0 +1,11 @@
+dependencies:
+  idf: '>=4.4'
+description: zlib C library
+documentation: https://www.zlib.net/manual.html
+issues: https://github.com/espressif/idf-extra-components/issues
+repository: git://github.com/espressif/idf-extra-components.git
+repository_info:
+  commit_sha: 81988eedc0a837930b561e75c753e2d6707edbcb
+  path: zlib
+url: https://github.com/espressif/idf-extra-components/tree/master/zlib
+version: 1.3.1

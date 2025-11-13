@@ -1,0 +1,8 @@
+dependencies:
+  cmake_utilities:
+    version: 0.*
+  idf:
+    version: '>=4.4'
+description: ESP LCD ILI9341
+url: https://github.com/espressif/esp-bsp/tree/master/components/lcd/esp_lcd_ili9341
+version: 1.2.0

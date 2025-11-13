@@ -1,0 +1,6 @@
+version: "3.2.1"
+description: Test2 for cmake utilities
+url: https://github.com/espressif/esp-iot-solution/tree/master/tools/cmake_utilities
+issues: https://github.com/espressif/esp-iot-solution/issues
+dependencies:
+  idf: ">=4.1"

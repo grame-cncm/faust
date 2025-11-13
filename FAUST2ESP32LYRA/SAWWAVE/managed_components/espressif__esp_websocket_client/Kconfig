@@ -1,0 +1,23 @@
+menu "ESP WebSocket client"
+
+    config ESP_WS_CLIENT_ENABLE_DYNAMIC_BUFFER
+        bool "Enable websocket client dynamic buffer for send and receive data"
+        default n
+        help
+            Enable this option will reallocated buffer when send or receive data and free them when end of use.
+            This can save about 2 KB memory when no websocket data send and receive.
+
+    config ESP_WS_CLIENT_SEPARATE_TX_LOCK
+        bool "Enable separate tx lock for send and receive data"
+        default n
+        help
+            Enable this option will use separate lock for send and receive data.
+            This can avoid the lock contention when send and receive data at the same time.
+
+    config ESP_WS_CLIENT_TX_LOCK_TIMEOUT_MS
+        int "TX lock timeout in milliseconds"
+        depends on ESP_WS_CLIENT_SEPARATE_TX_LOCK
+        default 2000
+        help
+            Timeout for acquiring the TX lock when using separate TX lock.
+endmenu

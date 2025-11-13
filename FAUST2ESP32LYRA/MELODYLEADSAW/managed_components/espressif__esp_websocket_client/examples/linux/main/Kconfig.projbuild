@@ -1,0 +1,15 @@
+menu "Host-test config"
+
+    config GCOV_ENABLED
+        bool "Coverage analyzer"
+        default n
+        help
+            Enables coverage analyzing for host tests.
+
+    config WEBSOCKET_URI
+          string "Websocket endpoint URI"
+          default "ws://echo.websocket.events"
+          help
+              URL of websocket endpoint this example connects to and sends echo
+
+endmenu

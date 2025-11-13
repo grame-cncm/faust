@@ -1,0 +1,65 @@
+menu "CMake Utilities"
+    
+    config CU_RELINKER_ENABLE
+        bool "Enable relinker"
+        default n
+        help
+            "Enable relinker to linker some IRAM functions to Flash"
+
+    if CU_RELINKER_ENABLE
+        config CU_RELINKER_ENABLE_PRINT_ERROR_INFO_WHEN_MISSING_FUNCTION
+            bool "Print error information when missing function"
+            default y
+            help
+                "Enable this option to print error information instead of
+                    throwing exception when missing function"
+
+        config CU_RELINKER_ENABLE_CUSTOMIZED_CONFIGURATION_FILES
+            bool "Enable customized relinker configuration files"
+            default n
+            help
+                "Enable this option to use customized relinker configuration
+                files instead of default ones"
+
+        if CU_RELINKER_ENABLE_CUSTOMIZED_CONFIGURATION_FILES
+            config CU_RELINKER_CUSTOMIZED_CONFIGURATION_FILES_PATH
+                string "Customized relinker configuration files path"
+                default ""
+                help
+                    "Customized relinker configuration files path. This path is
+                    evaluated relative to the project root directory."
+        endif
+    endif
+
+    choice CU_DIAGNOSTICS_COLOR
+        prompt "Color in diagnostics"
+        default CU_DIAGNOSTICS_COLOR_ALWAYS
+        help
+            Use color in diagnostics. "never", "always", or "auto". If "always", GCC will output
+            with color defined in GCC_COLORS environment variable. If "never", only output plain
+            text. If "auto", only output with color when the standard error is a terminal and when
+            not executing in an emacs shell.
+
+        config CU_DIAGNOSTICS_COLOR_NEVER
+            bool "never"
+        config CU_DIAGNOSTICS_COLOR_ALWAYS
+            bool "always"
+        config CU_DIAGNOSTICS_COLOR_AUTO
+            bool "auto"
+    endchoice
+
+    config CU_GCC_LTO_ENABLE
+        bool "Enable GCC link time optimization(LTO)"
+        default n
+        help
+            "Enable this option, users can enable GCC link time optimization(LTO)
+             feature for target components or dependencies.
+    
+    config CU_GCC_STRING_1BYTE_ALIGN
+        bool "GCC string 1-byte align"
+        default n
+        help
+            "Enable this option, user can make string in designated components align
+             by 1-byte instead 1-word(4-byte), this can reduce unnecessary filled data
+             so that to reduce firmware size."
+endmenu

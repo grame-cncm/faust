@@ -1,0 +1,8 @@
+---
+commitizen:
+  bump_message: 'bump(websocket): $current_version -> $new_version'
+  pre_bump_hooks: python ../../ci/changelog.py esp_websocket_client
+  tag_format: websocket-v$version
+  version: 1.5.0
+  version_files:
+  - idf_component.yml
