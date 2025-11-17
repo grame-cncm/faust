@@ -1698,8 +1698,7 @@ bool global::processCmdline(int argc, const char* argv[])
         !startWith(gOutputLang, "cmajor") && gOutputLang != "fir" && gOutputLang != "rust") {
         throw faustexception(
             "ERROR : '-os' option can only be used with 'cpp', 'c', 'cmajor', 'dlang', 'fir' or "
-            "'rust'"
-            "backends\n");
+            "'rust' backends\n");
     }
 
     if (gExtControl && gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "cmajor" &&
