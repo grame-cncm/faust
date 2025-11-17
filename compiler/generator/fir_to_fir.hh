@@ -89,6 +89,7 @@ inline void dump2FIR(Typed* type, std::ostream& out = std::cerr, bool complete =
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
 bool sortTypeDeclarations(StatementInst* a, StatementInst* b);
 bool sortSoundfiles(StatementInst* a, StatementInst* b);
+bool sortIO(StatementInst* a, StatementInst* b);
 
 // Analysis to change stack access to struct access
 struct Stack2StructRewriter1 : public DispatchVisitor {
