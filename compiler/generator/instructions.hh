@@ -2594,7 +2594,7 @@ struct IB {
     static BoolNumInst*  genBoolNumInst(bool num) { return new BoolNumInst(num); }
 
     // Numerical computation
-    static NegInst*   genNeg(ValueInst* inst) { return new NegInst(inst); }
+    static NegInst*   genNegInst(ValueInst* inst) { return new NegInst(inst); }
     static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2)
     {
         return new BinopInst(opcode, inst1, inst2);
@@ -3246,7 +3246,7 @@ struct IB {
     static ValueInst* genSub(ValueInst* a1, ValueInst* a2)
     {
         if (isZero(a1)) {
-            return genMinusInst(a2);
+            return genNegInst(a2);
         }
         if (isZero(a2)) {
             return a1;
