@@ -28,16 +28,9 @@ architecture section is not modified.
 #include <cstdlib>
 
 #include "driver/uart.h"
-
-#include "jdksmidi/world.h"
-#include "jdksmidi/midi.h"
-#include "jdksmidi/msg.h"
-#include "jdksmidi/sysex.h"
-#include "jdksmidi/parser.h"
+#include "esp_log.h"
 
 #include "faust/midi/midi.h"
-
-using namespace jdksmidi;
 
 #ifndef RX1
 #define RX1 GPIO_NUM_5
@@ -48,7 +41,11 @@ using namespace jdksmidi;
 #endif
 
 #define PORT_NUM UART_NUM_1
+
 #define RX_BUF_SIZE 1024
+
+#define TAG "MIDI_IO"
+
 
 /**
  * MIDI handler for the ESP32 boards.
@@ -58,78 +55,265 @@ class esp32_midi : public midi_handler {
     private:
     
         TaskHandle_t fProcessMidiHandle;
-    
+        
+        /**
+         * Simple MIDI parser implementation based on MIDI 1.0 specification.
+         * Written from scratch for the FAUST project.
+         */
+        class MidiParser {
+        private:
+            uint8_t fRunningStatus;      // Current running status byte
+            uint8_t fDataByte1;           // First data byte
+            bool fWaitingForDataByte2;    // Waiting for second data byte
+            
+            // Determine if a byte is a status byte (bit 7 set)
+            inline bool isStatusByte(uint8_t byte) const {
+                return (byte & 0x80) != 0;
+            }
+            
+            // Extract message type (upper nibble of status byte)
+            inline uint8_t getMessageType(uint8_t status) const {
+                return status & 0xF0;
+            }
+            
+            // Extract channel (lower nibble of status byte)
+            inline uint8_t getChannel(uint8_t status) const {
+                return status & 0x0F;
+            }
+            
+            // Determine number of data bytes needed for a message type
+            int getExpectedDataBytes(uint8_t status) const {
+                if (status >= 0xF8) {
+                    // System Real-Time messages: no data bytes
+                    return 0;
+                } else if (status >= 0xF0) {
+                    // System Common messages
+                    switch (status) {
+                        case 0xF0: // SysEx Start - variable length
+                        case 0xF7: // SysEx End/Escape
+                            return 0; // Handle separately
+                        case 0xF1: // MIDI Time Code Quarter Frame
+                        case 0xF3: // Song Select
+                            return 1;
+                        case 0xF2: // Song Position Pointer
+                            return 2;
+                        case 0xF4: // Undefined
+                        case 0xF5: // Undefined
+                        case 0xF6: // Tune Request
+                            return 0;
+                        default:
+                            return 0;
+                    }
+                } else {
+                    // Channel Voice/Mode messages
+                    uint8_t type = getMessageType(status);
+                    switch (type) {
+                        case 0x80: // Note Off
+                        case 0x90: // Note On
+                        case 0xA0: // Polyphonic Key Pressure
+                        case 0xB0: // Control Change
+                        case 0xE0: // Pitch Bend
+                            return 2;
+                        case 0xC0: // Program Change
+                        case 0xD0: // Channel Pressure
+                            return 1;
+                        default:
+                            return 0;
+                    }
+                }
+            }
+            
+        public:
+            struct MidiMessage {
+                uint8_t status;      // Complete status byte including channel
+                uint8_t data1;       // First data byte
+                uint8_t data2;       // Second data byte
+                bool isComplete;     // Message is complete and valid
+                
+                // Helper to get channel from status
+                uint8_t getChannel() const {
+                    return status & 0x0F;
+                }
+                
+                // Helper to get message type
+                uint8_t getType() const {
+                    return status & 0xF0;
+                }
+            };
+            
+            MidiParser() : fRunningStatus(0), fDataByte1(0), fWaitingForDataByte2(false) {}
+            
+            /**
+             * Parse a single MIDI byte and return a message when complete.
+             * Based on MIDI 1.0 specification for message parsing.
+             */
+            MidiMessage parse(uint8_t byte) {
+                MidiMessage msg = {0, 0, 0, false};
+                
+                // System Real-Time messages can appear anywhere
+                if (byte >= 0xF8) {
+                    msg.status = byte;
+                    msg.isComplete = true;
+                    return msg;
+                }
+                
+                // Check if this is a new status byte
+                if (isStatusByte(byte)) {
+                    // System Common messages cancel running status
+                    if (byte >= 0xF0 && byte < 0xF8) {
+                        fRunningStatus = 0;
+                        msg.status = byte;
+                        
+                        // Some system common messages have no data bytes
+                        if (getExpectedDataBytes(byte) == 0) {
+                            msg.isComplete = true;
+                        }
+                        return msg;
+                    }
+                    
+                    // Channel Voice/Mode message - update running status
+                    fRunningStatus = byte;
+                    fWaitingForDataByte2 = false;
+                    return msg; // Not complete yet
+                }
+                
+                // This is a data byte (bit 7 clear)
+                if (fRunningStatus == 0) {
+                    // No running status - ignore this data byte
+                    return msg;
+                }
+                
+                int expectedBytes = getExpectedDataBytes(fRunningStatus);
+                
+                if (expectedBytes == 0) {
+                    // No data bytes expected
+                    return msg;
+                } else if (expectedBytes == 1) {
+                    // Single data byte message
+                    msg.status = fRunningStatus;
+                    msg.data1 = byte;
+                    msg.isComplete = true;
+                    return msg;
+                } else {
+                    // Two data byte message
+                    if (!fWaitingForDataByte2) {
+                        // This is the first data byte
+                        fDataByte1 = byte;
+                        fWaitingForDataByte2 = true;
+                        return msg; // Not complete yet
+                    } else {
+                        // This is the second data byte - message complete
+                        msg.status = fRunningStatus;
+                        msg.data1 = fDataByte1;
+                        msg.data2 = byte;
+                        msg.isComplete = true;
+                        fWaitingForDataByte2 = false;
+                        return msg;
+                    }
+                }
+            }
+            
+            // Reset parser state
+            void reset() {
+                fRunningStatus = 0;
+                fDataByte1 = 0;
+                fWaitingForDataByte2 = false;
+            }
+        };
+            
         void processMidi()
         {
             double time = 0;
+            MidiParser parser;
             uint8_t data[RX_BUF_SIZE];
-            MIDIParser parser;
-            jdksMIDIMessage message;
-            
-            while (true) {
+
+            while (true)
+            {
                 int rxBytes = uart_read_bytes(UART_NUM_1, data, RX_BUF_SIZE, 1);
-                if (rxBytes > 0) {
-                    for (int i = 0; i < rxBytes; i++) {
-                        if (parser.Parse((uchar)data[i], &message)) {
-                            unsigned char status = message.GetStatus();
-                            if (status < 0xF0)
-                            { // channel/system message discriminator.
-                                unsigned char type = message.GetType();
+                if (rxBytes > 0)
+                {
+                    for (int i = 0; i < rxBytes; i++)
+                    {
+                        MidiParser::MidiMessage msg = parser.parse(data[i]);
+                        
+                        if (msg.isComplete)
+                        {
+                            if (msg.status < 0xF0)
+                            { // Channel Voice/Mode messages
+                                uint8_t type = msg.getType();
+                                uint8_t channel = msg.getChannel();
+                                
                                 switch (type)
                                 {
                                 case 0x80: // Note Off
-                                    handleKeyOff(time, message.GetChannel(), message.GetNote(), message.GetVelocity());
+                                    handleKeyOff(time, channel, msg.data1, msg.data2);
+                                    ESP_LOGI(TAG, "Note Off - Channel: %d, Note: %d, Velocity: %d", channel, msg.data1, msg.data2);
                                     break;
                                 case 0x90: // Note On
-                                    handleKeyOn(time, message.GetChannel(), message.GetNote(), message.GetVelocity());
+                                    handleKeyOn(time, channel, msg.data1, msg.data2);
+                                    ESP_LOGI(TAG, "Note On - Channel: %d, Note: %d, Velocity: %d", channel, msg.data1, msg.data2);
                                     break;
-                                case 0xA0: // Poly Key Pressure
-                                    handlePolyAfterTouch(time, message.GetChannel(), message.GetNote(), message.GetByte2());
+                                case 0xA0: // Poly Key Pressure (Aftertouch)
+                                    handlePolyAfterTouch(time, channel, msg.data1, msg.data2);
+                                    ESP_LOGI(TAG, "Polyphonic Key Pressure (Aftertouch) - Channel: %d, Note: %d, Pressure: %d", channel, msg.data1, msg.data2);
                                     break;
                                 case 0xB0: // Control Change
-                                    handleCtrlChange(time, message.GetChannel(), message.GetController(), message.GetControllerValue());
+                                    handleCtrlChange(time, channel, msg.data1, msg.data2);
+                                    ESP_LOGI(TAG, "Control Change - Channel: %d, Controller: %d, Value: %d", channel, msg.data1, msg.data2);
                                     break;
-                                case 0xC0: // Program Change // No Bank Select in faust?
-                                    handleProgChange(time, message.GetChannel(), message.GetPGValue());
+                                case 0xC0: // Program Change
+                                    handleProgChange(time, channel, msg.data1);
+                                    ESP_LOGI(TAG, "Program Change - Channel: %d, Program Number: %d", channel, msg.data1);
                                     break;
                                 case 0xD0: // Channel Pressure
-                                    handleAfterTouch(time, message.GetChannel(), message.GetChannelPressure());
+                                    handleAfterTouch(time, channel, msg.data1);
+                                    ESP_LOGI(TAG, "Channel Pressure (Aftertouch) - Channel: %d, Pressure: %d", channel, msg.data1);
                                     break;
                                 case 0xE0: // Pitch Bend
-                                    handlePitchWheel(time, message.GetChannel(), message.GetByte1(), message.GetByte2());
+                                    handlePitchWheel(time, channel, msg.data1, msg.data2);
+                                    ESP_LOGI(TAG, "Pitch Bend Change - Channel: %d, LSB: %d, MSB: %d", channel, msg.data1, msg.data2);
                                     break;
                                 default:
+                                    ESP_LOGI(TAG, "Unsupported MIDI message type: 0x%02X", type);
                                     break;
                                 }
                             }
-                            else
-                            {
-                                switch (status)
+                            else if (msg.status >= 0xF0)
+                            { // System messages
+                                switch (msg.status)
                                 {
                                 case 0xF8: // Timing Clock
                                     handleClock(time);
+                                    ESP_LOGI(TAG, "Timing Clock");
                                     break;
-                                // We can consider start and continue as identical messages.
                                 case 0xFA: // Start
+                                    handleStart(time);
+                                    ESP_LOGI(TAG, "Start");
+                                    break;
                                 case 0xFB: // Continue
                                     handleStart(time);
+                                    ESP_LOGI(TAG, "Continue");
                                     break;
                                 case 0xFC: // Stop
                                     handleStop(time);
+                                    ESP_LOGI(TAG, "Stop");
                                     break;
                                 case 0xF0: // SysEx Start
-                                    // TODO
+                                    // TODO: Implement SysEx handling
+                                    ESP_LOGI(TAG, "SysEx Start");
                                     break;
-                                case 0xF7: // SysEx Stop
-                                    // TODO
+                                case 0xF7: // SysEx End
+                                    // TODO: Implement SysEx handling
+                                    ESP_LOGI(TAG, "SysEx End");
                                     break;
                                 default:
+                                    ESP_LOGI(TAG, "Unsupported system message: 0x%02X", msg.status);
                                     break;
                                 }
                             }
+                            // Synchronize all GUI controllers
+                            GUI::updateAllGuis();
                         }
-                        // Synchronize all GUI controllers
-                        GUI::updateAllGuis();
                     }
                 }
             }
