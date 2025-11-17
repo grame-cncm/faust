@@ -1174,9 +1174,9 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
 ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tree a2)
 {
     if ((opcode == kMul) && isMinusOne(a1)) {
-        return IB::genNeg(CS(a2));
+        return IB::genNegInst(CS(a2));
     } else if ((opcode == kMul) && isMinusOne(a2)) {
-        return IB::genNeg(CS(a1));
+        return IB::genNegInst(CS(a1));
     } else {
         return generateCacheCode(sig, IB::genBinopInst(opcode, CS(a1), CS(a2)));
     }
@@ -1347,7 +1347,8 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             getTypedNames(t, "Const", ctype, vname);
 
             // TODO: deactivated for now since getOccurrence fails in some cases
-
+          
+            /*
             // The variable is used in compute (kBlock or kSamp),
             // so define is as a field in the DSP struct
             if (o->getOccurrence(kBlock) || o->getOccurrence(kSamp)) {
@@ -1359,13 +1360,13 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
                 pushInitMethod(IB::genDecStackVar(vname, ctype, exp));
                 return IB::genLoadStackVar(vname);
             }
+            */
 
-            /*
             // Always put variables in DSP struct for now
             pushDeclare(IB::genDecStructVar(vname, ctype));
             pushInitMethod(IB::genStoreStructVar(vname, exp));
             return IB::genLoadStructVar(vname);
-            */
+    
         case kBlock: {
             getTypedNames(t, "Slow", ctype, vname);
 
