@@ -91,6 +91,18 @@ bool sortSoundfiles(StatementInst* a, StatementInst* b)
     }
 }
 
+bool sortIO(StatementInst* a, StatementInst* b)
+{
+    DeclareVarInst* inst1 = dynamic_cast<DeclareVarInst*>(a);
+    
+    if (inst1) {
+        return (startWith(inst1->getName(), "input") || startWith(inst1->getName(), "output"));
+    } else {
+        return false;
+    }
+}
+
+
 // Inlining tools
 // TODO: stack variables should be renamed since inlining the same function several times will
 // create variables name clash
