@@ -240,6 +240,8 @@ void CmajorCodeContainer::produceClass()
     // Second pass to generate
     generateUserInterface(&fUIVisitor);
     *fOut << fUIVisitor.fOut.str();
+    // Put inputs/outputs declarations at the beginning of the block
+    fDeclarationInstructions->fCode.sort(sortIO);
     generateDeclarations(&fCodeProducer);
 
     // Control
