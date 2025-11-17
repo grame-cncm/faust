@@ -167,9 +167,9 @@ void SignalFIRCompiler::compileSigBinOp(Tree sig, int opt_op, Tree x_tree, Tree 
     self(y_tree);
     ValueInst* v2 = popRes();
     if ((opt_op == kMul) && isMinusOne(x_tree)) {
-        pushRes(IB::genNeg(v2));
+        pushRes(IB::genNegInst(v2));
     } else if ((opt_op == kMul) && isMinusOne(y_tree)) {
-        pushRes(IB::genNeg(v1));
+        pushRes(IB::genNegInst(v1));
     } else {
         pushRes(IB::genBinopInst(opt_op, v1, v2));
     }
