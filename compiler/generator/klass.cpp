@@ -1061,6 +1061,8 @@ void Klass::printComputeMethodScalar(int n, ostream& fout)
 {
     tab(n + 1, fout);
     fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
+    tab(n + 2, fout);
+    fout << "if (count <= 0) return;";
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
@@ -1078,6 +1080,8 @@ void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
 {
     tab(n + 1, fout);
     fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
+    tab(n + 2, fout);
+    fout << "if (count <= 0) return;";
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
@@ -1110,6 +1114,8 @@ void Klass::printComputeMethodVectorFaster(int n, ostream& fout)
     // than gVecSize
     tab(n + 1, fout);
     fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
+    tab(n + 2, fout);
+    fout << "if (count <= 0) return;";
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
@@ -1156,6 +1162,8 @@ void Klass::printComputeMethodVectorSimple(int n, ostream& fout)
     // than gVecSize
     tab(n + 1, fout);
     fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
+    tab(n + 2, fout);
+    fout << "if (count <= 0) return;";
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
@@ -1235,6 +1243,8 @@ void Klass::printComputeMethodOpenMP(int n, ostream& fout)
     // than gVecSize and add OpenMP pragmas
     tab(n + 1, fout);
     fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
+    tab(n + 2, fout);
+    fout << "if (count <= 0) return;";
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     tab(n + 2, fout);
@@ -1494,6 +1504,8 @@ void SigIntGenKlass::println(int n, ostream& fout)
 
     tab(n + 1, fout);
     fout << "void fill(int count, int output[]) {";
+    tab(n + 2, fout);
+    fout << "if (count <= 0) return;";
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
@@ -1561,6 +1573,8 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 
     tab(n + 1, fout);
     fout << subst("void fill(int count, $0 output[]) {", ifloat());
+    tab(n + 2, fout);
+    fout << "if (count <= 0) return;";
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
