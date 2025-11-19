@@ -499,16 +499,16 @@ string ScalarCompiler::CS(Tree sig)
 #ifdef TRACE
         int step = gGlobal->gSTEP;
         cerr << "\n"
-             << step << " [order: " << fScheduleOrder[sig] << "] "
-             << "::" << sig << "\t: generateCode( " << ppsig(sig, 10) << " )" << endl;
+             << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
+             << "\t: generateCode( " << ppsig(sig, 10) << " )" << endl;
 #endif
         code = generateCode(sig);
         setCompiledExpression(sig, code);
 
 #ifdef TRACE
         cerr << "\n"
-             << step << " [order: " << fScheduleOrder[sig] << "] "
-             << "::" << sig << "\t: ============> " << code << endl;
+             << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
+             << "\t: ============> " << code << endl;
 #endif
     }
     return code;
@@ -592,8 +592,9 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     // Then compile the output signals
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree s = hd(L);
-        fClass->addExecCode(Statement("", subst("output$0[i] = $2($1);  // Zone Exec Code", T(i),
-                                                generateCacheCode(s, CS(s)), xcast())));
+        fClass->addExecCode(
+            Statement("", subst("output$0[i] = static_cast<$2>($1);  // Zone Exec Code", T(i),
+                                generateCacheCode(s, CS(s)), xfloat())));
     }
 
     generateMetaData();
@@ -876,16 +877,16 @@ string ScalarCompiler::generateInput(Tree sig, const string& idx)
 {
     if (gGlobal->gInPlace) {
         // inputs must be cached for in-place transformations
-        return forceCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+        return forceCacheCode(sig, subst("static_cast<$1>(input$0[i])", idx, ifloat()));
     } else {
-        return generateCacheCode(sig, subst("$1input$0[i]", idx, icast()));
+        return generateCacheCode(sig, subst("static_cast<$1>(input$0[i])", idx, ifloat()));
     }
 }
 
 string ScalarCompiler::generateOutput(Tree sig, const string& idx, const string& arg)
 {
     string dst = subst("output$0[i]", idx);
-    fClass->addExecCode(Statement("", subst("$0 = $2$1;", dst, arg, xcast())));
+    fClass->addExecCode(Statement("", subst("$0 = static_cast<$2>($1);", dst, arg, xfloat())));
     return dst;
 }
 
@@ -1105,7 +1106,7 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 
 string ScalarCompiler::generateIntCast(Tree sig, Tree x)
 {
-    return generateCacheCode(sig, subst("int($0)", CS(x)));
+    return generateCacheCode(sig, subst("static_cast<int>($0)", CS(x)));
 }
 
 string ScalarCompiler::generateBitCast(Tree sig, Tree x)
@@ -1122,7 +1123,7 @@ string ScalarCompiler::generateBitCast(Tree sig, Tree x)
 
 string ScalarCompiler::generateFloatCast(Tree sig, Tree x)
 {
-    return generateCacheCode(sig, subst("$1($0)", CS(x), ifloat()));
+    return generateCacheCode(sig, subst("static_cast<$1>($0)", CS(x), ifloat()));
 }
 
 /*****************************************************************************
