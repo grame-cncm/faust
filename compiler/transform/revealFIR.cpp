@@ -118,7 +118,16 @@ Tree FIRRevealer::postprocess(Tree sig)
 
     if (Tree f, d; isSigDelay(sig, f, d)) {
         // std::cerr << "Rule 1\n";
-        return delaySigFIR(f, d);
+        int delay_val;
+        if (isSigInt(d, &delay_val)) {
+            // Constant delay: transform to FIR
+            return delaySigFIR(f, d);
+        } else {
+            // Variable delay: keep as-is
+            // std::cerr << "Rule 1: VARIABLE DELAY, keeping original signal: " << ppsig(sig) <<
+            // "\n";
+            return sig;
+        }
     }
 
     if (Tree ck, h, f, c; isSigMul(sig, ck, c) && isSigClocked(ck, h, f) && isSigFIR(f)) {
