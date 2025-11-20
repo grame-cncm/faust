@@ -1028,12 +1028,9 @@ static Type inferWriteTableType(Type tbl, Type wi, Type ws)
     int vec = wi->vectorability() | ws->vectorability();
     // Interval is the reunion of tbl (and its init signal) and ws
     interval i = itv::reunion(tbl->getInterval(), ws->getInterval());
-    TRACE(cerr << gGlobal->TABBER << "infering write table type : n="
-               << "NR"[n] << ", v="
-               << "KB?S"[v] << ", c="
-               << "CI?E"[c] << ", vec="
-               << "VS?TS"[vec] << ", b="
-               << "N?B"[b] << ", i=" << i << endl);
+    TRACE(cerr << gGlobal->TABBER << "infering write table type : n=" << "NR"[n]
+               << ", v=" << "KB?S"[v] << ", c=" << "CI?E"[c] << ", vec=" << "VS?TS"[vec]
+               << ", b=" << "N?B"[b] << ", i=" << i << endl);
     Type tbltype = makeTableType(tt->content(), n, v, c, vec, b, i);
     TRACE(cerr << gGlobal->TABBER << "infering write table type : result = " << tbltype << endl);
     return tbltype;
@@ -1276,12 +1273,50 @@ static Type inferIIRType(Tree sig, Tree env)
     for (unsigned int i = 3; i < coef.size(); i++) {
         ct.push_back(T(coef[i], env));
     }
-    std::vector<double> numcoefs;
+    // For worst-case gain analysis with variable coefficients, we need to test
+    // all 2^nz combinations where nz is the number of variable coefficients
+    double gain = 0.0;
+    int    n    = ct.size();  // total number of coefficients
+
+    // Extract coefficient intervals and count variable coefficients
+    std::vector<itv::interval> coef_intervals;
+    int                        nz = 0;  // number of variable coefficients (hi > lo)
     for (Type t : ct) {
         itv::interval C = t->getInterval();
-        numcoefs.push_back((C.lo() + C.hi()) / 2.0);
+        coef_intervals.push_back(C);
+        if (C.hi() > C.lo()) {
+            nz++;
+        }
     }
-    double gain = IIRWorstPeakGain(numcoefs);
+
+    // Test all 2^nz corner cases (only for variable coefficients)
+    int num_combinations = (nz == 0) ? 1 : (1 << nz);  // 2^nz
+    for (int mask = 0; mask < num_combinations; mask++) {
+        std::vector<double> numcoefs;
+        int                 bit_index = 0;
+
+        for (int i = 0; i < n; i++) {
+            double coef;
+            if (coef_intervals[i].hi() > coef_intervals[i].lo()) {
+                // Variable coefficient: use the corresponding bit
+                coef = (mask & (1 << bit_index)) ? coef_intervals[i].hi() : coef_intervals[i].lo();
+                bit_index++;
+            } else {
+                // Constant coefficient: use the unique value
+                coef = coef_intervals[i].lo();
+            }
+            numcoefs.push_back(coef);
+        }
+
+        double g = IIRWorstPeakGain(numcoefs);
+        if (g > gain) {
+            gain = g;
+        }
+    }
+
+    // std::cerr << "IIR worst-case gain = " << gain << " (tested " << num_combinations
+    //           << " combinations, " << nz << " variable out of " << n << " coefficients)"
+    //           << std::endl;
 
     // for (unsigned int i = 2; i < 16; i++) {
     //     double g = IIRWorstPeakGain(numcoefs, 1 << i);
@@ -1295,6 +1330,47 @@ static Type inferIIRType(Tree sig, Tree env)
     const int vectorability = kScal;  // because we are recursive
     const int booleanity    = kNum;   // probably not a boolean value
 
-    itv::interval R2 = gAlgebra.Mul(tx->getInterval(), itv::interval(gain));
-    return makeSimpleType(nature, variability, computability, vectorability, booleanity, R2);
+    // Distinguish between integer and floating-point IIR filters
+    // See compiler/transform/iirgain.md for detailed explanation
+    bool isIntegerIIR = (tx->nature() == kInt);
+    for (Type t : ct) {
+        if (t->nature() != kInt) {
+            isIntegerIIR = false;
+            break;
+        }
+    }
+
+    itv::interval R2;
+    if (isIntegerIIR) {
+        // Integer IIR filter: high/infinite gain means wrapping or unbounded accumulation
+        // Use full int range to represent all possible wrapped values
+        itv::interval input_range = tx->getInterval();
+        double        max_output =
+            std::max(std::abs(input_range.lo() * gain), std::abs(input_range.hi() * gain));
+
+        const double INT_MAX_THRESHOLD = 2147483647.0;  // 2^31 - 1
+
+        if (max_output > INT_MAX_THRESHOLD || std::isinf(gain) || gain > 1e9) {
+            // IIR can produce any integer (wrapping or unlimited accumulation)
+            R2 = itv::interval(-INT_MAX_THRESHOLD, INT_MAX_THRESHOLD);
+            // std::cerr << "IIR integer filter with high/infinite gain: using full int range"
+            //           << std::endl;
+        } else {
+            R2 = gAlgebra.Mul(input_range, itv::interval(gain));
+        }
+    } else {
+        // Floating-point IIR filter: high/infinite gain means instability
+        if (std::isinf(gain) || gain > 1e12) {
+            // Unstable filter: can diverge to ±∞
+            R2 = itv::interval(-INFINITY, INFINITY);
+            // std::cerr << "WARNING: IIR floating-point filter is unstable (gain = " << gain << ")"
+            //           << std::endl;
+        } else {
+            R2 = gAlgebra.Mul(tx->getInterval(), itv::interval(gain));
+        }
+    }
+
+    Type tr = makeSimpleType(nature, variability, computability, vectorability, booleanity, R2);
+    // std::cerr << "IIR type is " << *tr << " for signal " << ppsig(sig) << std::endl;
+    return tr;
 }
