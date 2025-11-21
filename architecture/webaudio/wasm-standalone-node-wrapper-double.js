@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2025 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -25,326 +25,505 @@
 
 'use strict';
 
-var faust = faust || {};
+let faust = globalThis.faust || {};
 
-var fs = require('fs');
+const fs = require('fs');
 
-// Standard Faust DSP
-faust.mydsp = function (context, instance, buffer_size, sample_rate) {
+// Wrapper that loads a double-precision Faust WebAssembly module in Node.js
+// and exposes the DSP through a class with a small runner harness.
 
-    var output_handler = null;
-    var ins, outs;
+class FaustDSP {
+    /**
+     * @param {*} context - Placeholder context (unused in this standalone wrapper).
+     * @param {WebAssembly.Instance} instance - Instantiated WASM module.
+     * @param {number} buffer_size - Audio block size.
+     * @param {number} sample_rate - Sample rate.
+     */
+    constructor(context, instance, buffer_size, sample_rate) {
+        this.context = context;
+        this.instance = instance;
+        this.buffer_size = buffer_size;
+        this.sample_rate = sample_rate;
 
-    var dspInChannnels = [];
-    var dspOutChannnels = [];
+        this.output_handler = null;
+        this.ins = null;
+        this.outs = null;
 
-    // Keep JSON parsed object
-    var json_file_text = fs.readFileSync('DSP.json', 'utf8');
-    var json_object = JSON.parse(json_file_text);
+        this.dspInChannnels = [];
+        this.dspOutChannnels = [];
 
-    var numIn = parseInt(json_object.inputs);
-    var numOut = parseInt(json_object.outputs);
+        const json_file_text = fs.readFileSync('DSP.json', 'utf8');
+        this.json_object = JSON.parse(json_file_text);
 
-    // Memory allocator
-    var ptr_size = 8;
-    var sample_size = 8;  // double
+        this.numIn = parseInt(this.json_object.inputs);
+        this.numOut = parseInt(this.json_object.outputs);
 
-    function pow2limit(x) {
-        var n = 65536; // Minimum = 64 kB
-        while (n < x) { n = 2 * n; }
-        return n;
+        this.ptr_size = 8;
+        this.sample_size = 8;  // double
+
+        this.factory = instance.exports;
+
+        this.HEAP = this.factory.memory.buffer;
+        this.HEAP32 = new Int32Array(this.HEAP);
+        this.HEAPF = new Float64Array(this.HEAP);
+
+        this.outputs_timer = 5;
+        this.outputs_items = [];
+        this.inputs_items = [];
+        this.buttons_items = [];
+        this.default_values = [];
+
+        this.audio_heap_ptr = parseInt(this.json_object.size);
+        this.audio_heap_ptr_inputs = this.audio_heap_ptr;
+        this.audio_heap_ptr_outputs = this.audio_heap_ptr_inputs + (this.numIn * this.ptr_size);
+
+        this.audio_heap_inputs = this.audio_heap_ptr_outputs + (this.numOut * this.ptr_size);
+        this.audio_heap_outputs = this.audio_heap_inputs + (this.numIn * buffer_size * this.sample_size);
+
+        this.dsp = 0;
+        this.pathTable = [];
+
+        this.setup();
     }
 
-    var memory_size = pow2limit(parseInt(json_object.size) + (numIn + numOut) * (ptr_size + (buffer_size * sample_size)));
-
-    var factory = instance.exports;
-
-    var HEAP = instance.exports.memory.buffer;
-    var HEAP32 = new Int32Array(HEAP);
-    var HEAPF = new Float64Array(HEAP);
-
-    // bargraph
-    var outputs_timer = 5;
-    var outputs_items = [];
-
-    // input items
-    var inputs_items = [];
-
-    // buttons items
-    var buttons_items = [];
-
-    // default values
-    var default_values = [];
-
-    // DSP is placed first with index 0. Audio buffer start at the end of DSP.
-    var audio_heap_ptr = parseInt(json_object.size);
-
-    // Setup pointers offset
-    var audio_heap_ptr_inputs = audio_heap_ptr;
-    var audio_heap_ptr_outputs = audio_heap_ptr_inputs + (numIn * ptr_size);
-
-    // Setup buffer offset
-    var audio_heap_inputs = audio_heap_ptr_outputs + (numOut * ptr_size);
-    var audio_heap_outputs = audio_heap_inputs + (numIn * buffer_size * sample_size);
-
-    // Start of DSP memory : DSP is placed first with index 0
-    var dsp = 0;
-
-    var pathTable = [];
-
-    function update_outputs() {
-        if (outputs_items.length > 0 && output_handler && outputs_timer-- === 0) {
-            outputs_timer = 5;
-            for (var i = 0; i < outputs_items.length; i++) {
-                output_handler(outputs_items[i], factory.getParamValue(dsp, pathTable[outputs_items[i]]));
+    /**
+     * Periodically forward bargraph outputs to the registered handler.
+     */
+    update_outputs() {
+        if (this.outputs_items.length > 0 && this.output_handler && this.outputs_timer-- === 0) {
+            this.outputs_timer = 5;
+            for (let i = 0; i < this.outputs_items.length; i++) {
+                this.output_handler(this.outputs_items[i], this.factory.getParamValue(this.dsp, this.pathTable[this.outputs_items[i]]));
             }
         }
     }
 
-    function computeAux(inputs, outputs) {
-        var i, j;
+    /**
+     * Copy inputs to DSP heap, invoke compute, and copy outputs back.
+     * @param {Float64Array[]} inputs - Input channels from host.
+     * @param {Float64Array[]} outputs - Output channels to fill.
+     */
+    computeAux(inputs, outputs) {
+        let i;
 
-        // Read inputs
-        for (i = 0; i < numIn; i++) {
-            var input = inputs[i];
-            var dspInput = dspInChannnels[i];
+        for (i = 0; i < this.numIn; i++) {
+            const input = inputs[i];
+            const dspInput = this.dspInChannnels[i];
             dspInput.set(input);
         }
 
-        // Compute
-        factory.compute(dsp, buffer_size, ins, outs);
+        this.factory.compute(this.dsp, this.buffer_size, this.ins, this.outs);
 
-        // Update bargraph
-        update_outputs();
+        this.update_outputs();
 
-        // Write outputs
-        for (i = 0; i < numOut; i++) {
-            var output = outputs[i];
-            var dspOutput = dspOutChannnels[i];
+        for (i = 0; i < this.numOut; i++) {
+            const output = outputs[i];
+            const dspOutput = this.dspOutChannnels[i];
             output.set(dspOutput);
         }
-    };
+    }
 
-    // JSON parsing
-    function parse_ui(ui) {
-        for (var i = 0; i < ui.length; i++) {
-            parse_group(ui[i]);
+    /**
+     * Parse UI description JSON tree.
+     * @param {Array} ui - UI description array.
+     */
+    parse_ui(ui) {
+        for (let i = 0; i < ui.length; i++) {
+            this.parse_group(ui[i]);
         }
     }
 
-    function parse_group(group) {
+    /**
+     * Parse a single UI group node.
+     * @param {Object} group - Group node.
+     */
+    parse_group(group) {
         if (group.items) {
-            parse_items(group.items);
+            this.parse_items(group.items);
         }
     }
 
-    function parse_items(items) {
-        var i;
-        for (i = 0; i < items.length; i++) {
-            parse_item(items[i]);
+    /**
+     * Parse a list of UI items.
+     * @param {Array} items - UI item list.
+     */
+    parse_items(items) {
+        for (let i = 0; i < items.length; i++) {
+            this.parse_item(items[i]);
         }
     }
 
-    function parse_item(item) {
+    /**
+     * Collect UI item metadata and populate path tables.
+     * @param {Object} item - UI item node.
+     */
+    parse_item(item) {
         if (item.type === "vgroup"
             || item.type === "hgroup"
             || item.type === "tgroup") {
-            parse_items(item.items);
+            this.parse_items(item.items);
         } else if (item.type === "hbargraph"
             || item.type === "vbargraph") {
-            // Keep bargraph adresses
-            outputs_items.push(item.address);
-            pathTable[item.address] = parseInt(item.index);
+            this.outputs_items.push(item.address);
+            this.pathTable[item.address] = parseInt(item.index);
         } else if (item.type === "vslider"
             || item.type === "hslider"
             || item.type === "button"
             || item.type === "checkbox"
             || item.type === "nentry") {
-            // Keep inputs adresses
-            inputs_items.push(item.address);
-            pathTable[item.address] = parseInt(item.index);
+            this.inputs_items.push(item.address);
+            this.pathTable[item.address] = parseInt(item.index);
             if (item.type === "button") {
-                buttons_items.push(item.address);
-                default_values.push(0);
+                this.buttons_items.push(item.address);
+                this.default_values.push(0);
             } else if (item.type === "checkbox") {
-                default_values.push(0);
+                this.default_values.push(0);
             } else {
-                default_values.push(parseFloat(item.init));
+                this.default_values.push(parseFloat(item.init));
             }
         }
     }
 
-    function init() {
-        var i;
+    /**
+     * Initialize heap pointers, channel views, parse UI, and initialize DSP.
+     */
+    setup() {
+        let i;
 
-        if (numIn > 0) {
-            ins = audio_heap_ptr_inputs;
-            for (i = 0; i < numIn; i++) {
-                HEAP32[(ins >> 2) + i] = audio_heap_inputs + ((buffer_size * sample_size) * i);
+        if (this.numIn > 0) {
+            this.ins = this.audio_heap_ptr_inputs;
+            for (i = 0; i < this.numIn; i++) {
+                this.HEAP32[(this.ins >> 2) + i] = this.audio_heap_inputs + ((this.buffer_size * this.sample_size) * i);
             }
 
-            // Prepare Ins buffer tables
-            var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
-            for (i = 0; i < numIn; i++) {
-                dspInChannnels[i] = HEAPF.subarray(dspInChans[i] >> 3, (dspInChans[i] + buffer_size * sample_size) >> 3);
-            }
-        }
-
-        if (numOut > 0) {
-            outs = audio_heap_ptr_outputs;
-            for (i = 0; i < numOut; i++) {
-                HEAP32[(outs >> 2) + i] = audio_heap_outputs + ((buffer_size * sample_size) * i);
-            }
-
-            // Prepare Out buffer tables
-            var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
-            for (i = 0; i < numOut; i++) {
-                dspOutChannnels[i] = HEAPF.subarray(dspOutChans[i] >> 3, (dspOutChans[i] + buffer_size * sample_size) >> 3);
+            const dspInChans = this.HEAP32.subarray(this.ins >> 2, (this.ins + this.numIn * this.ptr_size) >> 2);
+            for (i = 0; i < this.numIn; i++) {
+                this.dspInChannnels[i] = this.HEAPF.subarray(dspInChans[i] >> 3, (dspInChans[i] + this.buffer_size * this.sample_size) >> 3);
             }
         }
 
-        // bargraph
-        parse_ui(json_object.ui);
+        if (this.numOut > 0) {
+            this.outs = this.audio_heap_ptr_outputs;
+            for (i = 0; i < this.numOut; i++) {
+                this.HEAP32[(this.outs >> 2) + i] = this.audio_heap_outputs + ((this.buffer_size * this.sample_size) * i);
+            }
 
-        // Init DSP
-        factory.init(dsp, sample_rate);
+            const dspOutChans = this.HEAP32.subarray(this.outs >> 2, (this.outs + this.numOut * this.ptr_size) >> 2);
+            for (i = 0; i < this.numOut; i++) {
+                this.dspOutChannnels[i] = this.HEAPF.subarray(dspOutChans[i] >> 3, (dspOutChans[i] + this.buffer_size * this.sample_size) >> 3);
+            }
+        }
+
+        this.parse_ui(this.json_object.ui);
+        this.factory.init(this.dsp, this.sample_rate);
     }
 
-    init();
+    /**
+     * Get sample rate reported by the DSP.
+     */
+    getSampleRate() {
+        return this.factory.getSampleRate(this.dsp);
+    }
 
-    // External API
-    return {
+    /**
+     * Get declared input channels.
+     */
+    getNumInputs() {
+        return this.numIn;
+    }
 
-        getSampleRate: function () {
-            return factory.getSampleRate(dsp);
-        },
+    /**
+     * Get declared output channels.
+     */
+    getNumOutputs() {
+        return this.numOut;
+    }
 
-        getNumInputs: function () {
-            return numIn;
-        },
+    /**
+     * Initialize DSP instance with a sample rate.
+     * @param {number} sample_rate - Sample rate in Hz.
+     */
+    init(sample_rate) {
+        this.factory.init(this.dsp, sample_rate);
+    }
 
-        getNumOutputs: function () {
-            return numOut;
-        },
+    /**
+     * Initialize DSP instance state.
+     * @param {number} sample_rate - Sample rate in Hz.
+     */
+    instanceInit(sample_rate) {
+        this.factory.instanceInit(this.dsp, sample_rate);
+    }
 
-        init: function (sample_rate) {
-            factory.init(dsp, sample_rate);
-        },
+    /**
+     * Push new constants to the DSP instance.
+     * @param {number} sample_rate - Sample rate in Hz.
+     */
+    instanceConstants(sample_rate) {
+        this.factory.instanceConstants(this.dsp, sample_rate);
+    }
 
-        instanceInit: function (sample_rate) {
-            factory.instanceInit(dsp, sample_rate);
-        },
+    /**
+     * Reset UI-controlled parameters.
+     */
+    instanceResetUserInterface() {
+        this.factory.instanceResetUserInterface(this.dsp);
+    }
 
-        instanceConstants: function (sample_rate) {
-            factory.instanceConstants(dsp, sample_rate);
-        },
+    /**
+     * Clear DSP internal state.
+     */
+    instanceClear() {
+        this.factory.instanceClear(this.dsp);
+    }
 
-        instanceResetUserInterface: function () {
-            factory.instanceResetUserInterface(dsp);
-        },
+    /**
+     * Register a callback for bargraph outputs.
+     * @param {Function} handler - Callback receiving (path, value).
+     */
+    setOutputParamHandler(handler) {
+        this.output_handler = handler;
+    }
 
-        instanceClear: function () {
-            factory.instanceClear(dsp);
-        },
+    /**
+     * Return the active bargraph callback.
+     */
+    getOutputParamHandler() {
+        return this.output_handler;
+    }
 
-        setOutputParamHandler: function (handler) {
-            output_handler = handler;
-        },
+    /**
+     * Set a parameter value by path.
+     * @param {string} path - Parameter path.
+     * @param {number} val - Value to set.
+     */
+    setParamValue(path, val) {
+        this.factory.setParamValue(this.dsp, this.pathTable[path], val);
+    }
 
-        getOutputParamHandler: function () {
-            return output_handler;
-        },
+    /**
+     * Get a parameter value by path.
+     * @param {string} path - Parameter path.
+     * @returns {number} Current value.
+     */
+    getParamValue(path) {
+        return this.factory.getParamValue(this.dsp, this.pathTable[path]);
+    }
 
-        setParamValue: function (path, val) {
-            factory.setParamValue(dsp, pathTable[path], val);
-        },
+    /**
+     * Get list of parameter paths.
+     */
+    getParams() {
+        return this.inputs_items;
+    }
 
-        getParamValue: function (path) {
-            return factory.getParamValue(dsp, pathTable[path]);
-        },
+    /**
+     * Get list of button parameter paths.
+     */
+    getButtonsParams() {
+        return this.buttons_items;
+    }
 
-        getParams: function () {
-            return inputs_items;
-        },
+    /**
+     * Return raw JSON description.
+     */
+    getJSON() {
+        return getJSONmydsp();
+    }
 
-        getButtonsParams: function () {
-            return buttons_items;
-        },
+    /**
+     * Compute one audio block.
+     * @param {Float64Array[]} inputs - Input channels.
+     * @param {Float64Array[]} outputs - Output channels.
+     */
+    compute(inputs, outputs) {
+        this.computeAux(inputs, outputs);
+    }
 
-        getJSON: function () {
-            return getJSONmydsp();
-        },
-
-        compute: function (inputs, outputs) {
-            computeAux(inputs, outputs);
-        },
-
-        checkDefaults: function () {
-            for (var i = 0; i < default_values.length; i++) {
-                if (default_values[i] !== factory.getParamValue(dsp, pathTable[inputs_items[i]])) return false;
-            }
-            return true;
-        },
-
-        initRandom: function () {
-            for (var i = 0; i < default_values.length; i++) {
-                factory.setParamValue(dsp, pathTable[inputs_items[i]], 0.123456789);
-            }
+    /**
+     * Verify parameters match defaults.
+     * @returns {boolean} True if all defaults match.
+     */
+    checkDefaults() {
+        for (let i = 0; i < this.default_values.length; i++) {
+            if (this.default_values[i] !== this.factory.getParamValue(this.dsp, this.pathTable[this.inputs_items[i]])) return false;
         }
-    };
+        return true;
+    }
+
+    /**
+     * Seed parameters with a fixed non-default value.
+     */
+    initRandom() {
+        for (let i = 0; i < this.default_values.length; i++) {
+            this.factory.setParamValue(this.dsp, this.pathTable[this.inputs_items[i]], 0.123456789);
+        }
+    }
+
+    /**
+     * Build the WebAssembly import object for the DSP.
+     * @returns {Object} Import object for WebAssembly.instantiate.
+     */
+    static createImportObject() {
+        return {
+            env: {
+                memoryBase: 0,
+                tableBase: 0,
+
+                // Integer version
+                _abs: Math.abs,
+
+                // Float version
+                _acosf: Math.acos,
+                _asinf: Math.asin,
+                _atanf: Math.atan,
+                _atan2f: Math.atan2,
+                _ceilf: Math.ceil,
+                _cosf: Math.cos,
+                _expf: Math.exp,
+                _floorf: Math.floor,
+                _fmodf: function (x, y) { return x % y; },
+                _logf: Math.log,
+                _log10f: Math.log10,
+                _max_f: Math.max,
+                _min_f: Math.min,
+                _remainderf: function (x, y) { return x - Math.round(x / y) * y; },
+                _powf: Math.pow,
+                _roundf: Math.round,
+                _sinf: Math.sin,
+                _sqrtf: Math.sqrt,
+                _tanf: Math.tan,
+                _acosh: Math.acosh,
+                _asinh: Math.asinh,
+                _atanh: Math.atanh,
+                _cosh: Math.cosh,
+                _sinh: Math.sinh,
+                _tanh: Math.tanh,
+                _isnanf: Number.isNaN,
+                _isinff: function (x) { return !isFinite(x); },
+                _copysignf: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
+
+                // Double version
+                _acos: Math.acos,
+                _asin: Math.asin,
+                _atan: Math.atan,
+                _atan2: Math.atan2,
+                _ceil: Math.ceil,
+                _cos: Math.cos,
+                _exp: Math.exp,
+                _floor: Math.floor,
+                _fmod: function (x, y) { return x % y; },
+                _log: Math.log,
+                _log10: Math.log10,
+                _max_: Math.max,
+                _min_: Math.min,
+                _remainder: function (x, y) { return x - Math.round(x / y) * y; },
+                _pow: Math.pow,
+                _round: Math.round,
+                _sin: Math.sin,
+                _sqrt: Math.sqrt,
+                _tan: Math.tan,
+                _acosh: Math.acosh,
+                _asinh: Math.asinh,
+                _atanh: Math.atanh,
+                _cosh: Math.cosh,
+                _sinh: Math.sinh,
+                _tanh: Math.tanh,
+                _isnan: Number.isNaN,
+                _isinf: function (x) { return !isFinite(x); },
+                _copysign: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
+
+                table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
+            }
+        };
+    }
+}
+faust.mydsp = function (context, instance, buffer_size, sample_rate) {
+    return new FaustDSP(context, instance, buffer_size, sample_rate);
 };
 
 // Helper functions
 
-var create = function (ins, outs, buffer_size) {
-    for (var i = 0; i < ins; i++) {
+/**
+ * Allocate input/output buffers for the test harness.
+ * @param {number} ins - Number of input channels.
+ * @param {number} outs - Number of output channels.
+ * @param {number} buffer_size - Block size.
+ */
+const create = function (ins, outs, buffer_size) {
+    for (let i = 0; i < ins; i++) {
         inputs.push(new Float64Array(buffer_size));
     }
-    for (var i = 0; i < outs; i++) {
+    for (let i = 0; i < outs; i++) {
         outputs.push(new Float64Array(buffer_size));
     }
 }
 
-var impulse = function (ins, buffer_size) {
-    for (var i = 0; i < ins; i++) {
+/**
+ * Fill inputs with an impulse for initial block.
+ * @param {number} ins - Number of input channels.
+ * @param {number} buffer_size - Block size.
+ */
+const impulse = function (ins, buffer_size) {
+    for (let i = 0; i < ins; i++) {
         inputs[i][0] = 1.0;
-        for (var f = 1; f < buffer_size; f++) {
+        for (let f = 1; f < buffer_size; f++) {
             inputs[i][f] = 0.0;
         }
     }
 }
 
-var zero = function (ins, buffer_size) {
-    for (var i = 0; i < ins; i++) {
-        for (var f = 0; f < buffer_size; f++) {
+/**
+ * Zero input buffers.
+ * @param {number} ins - Number of input channels.
+ * @param {number} buffer_size - Block size.
+ */
+const zero = function (ins, buffer_size) {
+    for (let i = 0; i < ins; i++) {
+        for (let f = 0; f < buffer_size; f++) {
             inputs[i][f] = 0.0;
         }
     }
 }
 
-var normalize = function (f) {
+/**
+ * Guard tiny values against rounding noise.
+ * @param {number} f - Sample value.
+ * @returns {number} Normalized value.
+ */
+const normalize = function (f) {
     return (Math.abs(f) < 0.000001) ? 0.0 : f;
 }
 
-var setButtons = function (dsp, value) {
-    var buttons = dsp.getButtonsParams();
-    for (var i = 0; i < buttons.length; i++) {
+/**
+ * Apply a button value to all button params.
+ * @param {Object} dsp - DSP instance.
+ * @param {number} value - Value to set.
+ */
+const setButtons = function (dsp, value) {
+    const buttons = dsp.getButtonsParams();
+    for (let i = 0; i < buttons.length; i++) {
         dsp.setParamValue(buttons[i], value);
     }
 }
 
-var buffer_size = 64;
-var sample_rate = 44100;
-var inputs = [];
-var outputs = [];
-var nbsamples = 15000;
-var linenum = 0;
-var run = 0;
-var control_data;
+const buffer_size = 64;
+const sample_rate = 44100;
+const inputs = [];
+const outputs = [];
+let nbsamples = 15000;
+let linenum = 0;
+let run = 0;
+let control_data;
 
+/**
+ * Instantiate DSP, perform validation, and print output samples.
+ * @param {WebAssembly.Instance} instance - Instantiated DSP module.
+ * @param {number} buffer_size - Block size.
+ */
 function startDSP(instance, buffer_size) {
     // Creates DSP and buffers
-    var DSP = faust.mydsp(null, instance, buffer_size, sample_rate);
+    const DSP = faust.mydsp(null, instance, buffer_size, sample_rate);
     create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
 
     // Write output file header
@@ -359,8 +538,8 @@ function startDSP(instance, buffer_size) {
     }
 
     // Check setParamValue/getParamValue
-    var path_table = DSP.getParams();
-    for (var i = 0; i < path_table.length; i++) {
+    const path_table = DSP.getParams();
+    for (let i = 0; i < path_table.length; i++) {
         DSP.setParamValue(path_table[i], 0.1234);
         if (DSP.getParamValue(path_table[i]) !== 0.1234) {
             console.error("ERROR in setParamValue/getParamValue for " + path_table[i] + " " + DSP.getParamValue(path_table[i]));
@@ -397,9 +576,9 @@ function startDSP(instance, buffer_size) {
     // Read control parameters
     try {
         control_data = fs.readFileSync('mydsprc', 'utf8');
-        var lines = control_data.split('\n');
-        for (var line = 0; line < lines.length; line++) {
-            var param = lines[line].split(' ');
+        const lines = control_data.split('\n');
+        for (let line = 0; line < lines.length; line++) {
+            const param = lines[line].split(' ');
             DSP.setParamValue('/' + param[1], parseFloat(param[0]));
         }
     } catch (e) { }
@@ -414,13 +593,13 @@ function startDSP(instance, buffer_size) {
             zero(DSP.getNumInputs(), buffer_size);
             setButtons(DSP, 0.0);
         }
-        var nFrames = Math.min(buffer_size, nbsamples);
+        const nFrames = Math.min(buffer_size, nbsamples);
         DSP.compute(inputs, outputs);
         run++;
-        for (var i = 0; i < nFrames; i++) {
-            var line = (linenum++) + " : ";
-            for (var c = 0; c < DSP.getNumOutputs(); c++) {
-                var f = normalize(outputs[c][i]);
+        for (let i = 0; i < nFrames; i++) {
+            let line = (linenum++) + " : ";
+            for (let c = 0; c < DSP.getNumOutputs(); c++) {
+                const f = normalize(outputs[c][i]);
                 line = line + f + " ";
             }
             console.log(line);
@@ -429,93 +608,62 @@ function startDSP(instance, buffer_size) {
     }
 }
 
+/**
+ * Convert Node.js Buffer to Uint8Array.
+ * @param {Buffer} buf - Input buffer.
+ * @returns {Uint8Array} Converted array.
+ */
 function toUint8Array(buf) {
-    var res = new Uint8Array(buf.length);
-    for (var i = 0; i < buf.length; ++i) {
+    const res = new Uint8Array(buf.length);
+    for (let i = 0; i < buf.length; ++i) {
         res[i] = buf[i];
     }
     return res;
 }
 
-var importObject = {
-    env: {
-        memoryBase: 0,
-        tableBase: 0,
-
-        // Integer version
-        _abs: Math.abs,
-
-        // Float version
-        _acosf: Math.acos,
-        _asinf: Math.asin,
-        _atanf: Math.atan,
-        _atan2f: Math.atan2,
-        _ceilf: Math.ceil,
-        _cosf: Math.cos,
-        _expf: Math.exp,
-        _floorf: Math.floor,
-        _fmodf: function (x, y) { return x % y; },
-        _logf: Math.log,
-        _log10f: Math.log10,
-        _max_f: Math.max,
-        _min_f: Math.min,
-        _remainderf: function (x, y) { return x - Math.round(x / y) * y; },
-        _powf: Math.pow,
-        _roundf: Math.round,
-        _sinf: Math.sin,
-        _sqrtf: Math.sqrt,
-        _tanf: Math.tan,
-        _acosh: Math.acosh,
-        _asinh: Math.asinh,
-        _atanh: Math.atanh,
-        _cosh: Math.cosh,
-        _sinh: Math.sinh,
-        _tanh: Math.tanh,
-        _isnanf: Number.isNaN,
-        _isinff: function (x) { return !isFinite(x); },
-        _copysignf: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
-
-        // Double version
-        _acos: Math.acos,
-        _asin: Math.asin,
-        _atan: Math.atan,
-        _atan2: Math.atan2,
-        _ceil: Math.ceil,
-        _cos: Math.cos,
-        _exp: Math.exp,
-        _floor: Math.floor,
-        _fmod: function (x, y) { return x % y; },
-        _log: Math.log,
-        _log10: Math.log10,
-        _max_: Math.max,
-        _min_: Math.min,
-        _remainder: function (x, y) { return x - Math.round(x / y) * y; },
-        _pow: Math.pow,
-        _round: Math.round,
-        _sin: Math.sin,
-        _sqrt: Math.sqrt,
-        _tan: Math.tan,
-        _acosh: Math.acosh,
-        _asinh: Math.asinh,
-        _atanh: Math.atanh,
-        _cosh: Math.cosh,
-        _sinh: Math.sinh,
-        _tanh: Math.tanh,
-        _isnan: Number.isNaN,
-        _isinf: function (x) { return !isFinite(x); },
-        _copysign: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
-
-        table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
+/**
+ * Minimal runner to instantiate the DSP WASM and execute startDSP.
+ */
+class FaustDSPRunner {
+    /**
+     * @param {ArrayBuffer} wasmBytes - WASM binary bytes.
+     * @param {number} bufferSize - Block size.
+     */
+    constructor(wasmBytes, bufferSize) {
+        this.wasmBytes = wasmBytes;
+        this.imports = FaustDSP.createImportObject();
+        this.bufferSize = bufferSize;
     }
-};
 
-var response = toUint8Array(fs.readFileSync('DSP.wasm'));
-var bytes = response.buffer;
+    /**
+     * Instantiate the WASM module with the DSP imports.
+     * @returns {Promise<WebAssembly.Instance>} Instantiated module.
+     */
+    async createInstance() {
+        const { instance } = await WebAssembly.instantiate(this.wasmBytes, this.imports);
+        return instance;
+    }
 
-var res = WebAssembly.compile(bytes)
-    .then(m => {
-        WebAssembly.instantiate(m, importObject)
-            .then(instance => { startDSP(instance, buffer_size); })
-            .catch(function (e1) { console.error(e1); console.error("WebAssembly.instantiate ERROR"); process.exit(1); });
-    })
-    .catch(function (e2) { console.error(e2); console.error("WebAssembly.compile ERROR"); process.exit(1); });
+    /**
+     * Instantiate and run the test harness, exiting on error.
+     */
+    async start() {
+        try {
+            const instance = await this.createInstance();
+            startDSP(instance, this.bufferSize);
+        } catch (error) {
+            console.error(error);
+            console.error("WebAssembly instantiation failed");
+            process.exit(1);
+        }
+    }
+}
+
+// Main code
+if (require.main === module) {
+    const response = toUint8Array(fs.readFileSync('DSP.wasm'));
+    const bytes = response.buffer;
+
+    const dspRunner = new FaustDSPRunner(bytes, buffer_size);
+    dspRunner.start();
+}
