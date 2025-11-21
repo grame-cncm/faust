@@ -110,7 +110,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("prepare");
     Tree L1 = simplifyToNormalForm(LS);
 
-    // dump normal form
+    // dump normal form (-norm, -norm1, -norm2 options)
     if (gGlobal->gDumpNorm == 0) {
         cout << ppsig(L1) << endl;
         throw faustexception("Dump normal form finished...\n");
@@ -131,22 +131,22 @@ Tree ScalarCompiler::prepare(Tree LS)
     L2a = revealSum(L2a);
     endTiming("Sum revealer");
 
-    // eliminate degenerate recursive projections if required
+    // eliminate degenerate recursive projections if required (-edr option)
     if (gGlobal->gEliminateDegenerateRecursions) {
         startTiming("Degenerate recursion eliminator");
-        //    L2a = inlineDegenerateRecursions(L2a, true);
+        L2a = inlineDegenerateRecursions(L2a, true);
         // Try to find a fix point
 
-        for (int iteration = 1; iteration <= 4; iteration++) {
-            std::cerr << " iteration " << iteration << " L2a " << L2a << '\n';
-            L2a = inlineDegenerateRecursions(L2a, true);
-        }
+        // for (int iteration = 1; iteration <= 4; iteration++) {
+        //     // std::cerr << " iteration " << iteration << " L2a " << L2a << '\n';
+        //     L2a = inlineDegenerateRecursions(L2a, false);
+        // }
 
         endTiming("Degenerate recursion eliminator");
     }
 
     Tree L2;
-    // detect FIRs and IIRs if required
+    // detect FIRs and IIRs if required (-fir option)
     if (gGlobal->gReconstructFIRIIRs) {
         startTiming("FIR revealer");
         Tree L2b = revealFIR(L2a);
@@ -155,6 +155,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         Tree L2c = revealIIR(L2b);
         endTiming("IIR revealer");
         L2 = L2c;
+        // factorize FIRs and IIRs if required (-ff option)
         if (gGlobal->gFactorizeFIRIIRs) {
             startTiming("FIR/IIR factorizer");
             Tree L2d = factorizeFIRIIRs(L2);
@@ -198,7 +199,9 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     endTiming("prepare");
 
+    // draw signal graph if requested (-sg option)
     if (gGlobal->gDrawSignals) {
+        // draw retiming graph if requested (-rg option)
         if (gGlobal->gDrawRetiming) {
             Tree L3 = sigRetiming(L2, false);
             conditionAnnotation(L3);
@@ -557,7 +560,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
 
     validateSignalList(L);  // validate the signal list
 
-    // Compute and draw the recursion graph if requested
+    // Compute and draw the recursion graph if requested (-rpg option)
     if (gGlobal->gDrawRecProjGraph) {
         digraph<Tree> recursionG = recursionGraph(L);
         printRecursionGraphDot(recursionG, subst("$0-recsig.dot", gGlobal->makeDrawPath()));
@@ -567,6 +570,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     fHschedule     = scheduleSigList(L, mySchedFun);
     fScheduleOrder = numberSchedule(fHschedule);
 
+    // print hierarchical schedule if requested (-phs option)
     if (gGlobal->gPrintHSchedule) {
         printHschedWithDelays(fHschedule, fOccMarkup);
 
@@ -604,6 +608,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         fDescription->ui(fUITree.prepareUserInterfaceTree());
     }
 
+    // generate JSON output if requested (-json option)
     if (gGlobal->gPrintJSONSwitch) {
         ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
         xout << fJSON.JSON();
