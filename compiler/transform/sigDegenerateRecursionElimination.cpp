@@ -165,9 +165,10 @@ Tree inlineDegenerateRecursions(Tree siglist, bool trace)
 {
     // compute the list of degenerated recursins that can be replaced by their definition
     std::set<Tree> DR = analyzeDegenerateRecursions(recursionGraph(siglist));
-    Normalize      N(InlineRec{DR}, InlineClkRec{DR}, CombineDelays(), CombineClockDelaysAtom());
+    // Normalize      N(InlineRec{DR}, InlineClkRec{DR}, CombineDelays(), CombineClockDelaysAtom());
+    Normalize N(InlineRec{DR});
 
-    N.setDebugLevel(DebugLevel::DETAILED);
+    N.setDebugLevel(DebugLevel::NONE);
 
     return sigListTransform(N, siglist);
 }
