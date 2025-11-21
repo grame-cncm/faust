@@ -134,7 +134,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     // eliminate degenerate recursive projections if required (-edr option)
     if (gGlobal->gEliminateDegenerateRecursions) {
         startTiming("Degenerate recursion eliminator");
-        L2a = inlineDegenerateRecursions(L2a, true);
+        L2a = inlineDegenerateRecursions(L2a, false);
         // Try to find a fix point
 
         // for (int iteration = 1; iteration <= 4; iteration++) {
