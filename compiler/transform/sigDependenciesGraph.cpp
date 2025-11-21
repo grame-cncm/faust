@@ -508,16 +508,17 @@ std::set<Tree> analyzeDegenerateRecursions(const digraph<Tree>& graph)
             if (component.destinations(singleNode).empty()) {
                 degenerateRecursions.insert(singleNode);
             }
-        } else {
-            // we are in a cycle and we look for proj(i,X) = clk(h, y@d)
-            for (Tree w : nodes) {
-                Tree def;
-                faustassert(hasProjDefinition(w, def));
-                if (Tree h, x, y, d; isSigClocked(def, h, x) && isSigDelay(x, y, d)) {
-                    degenerateRecursions.insert(w);
-                }
-            }
         }
+        // else {
+        //     // we are in a cycle and we look for proj(i,X) = clk(h, y@d)
+        //     for (Tree w : nodes) {
+        //         Tree def;
+        //         faustassert(hasProjDefinition(w, def));
+        //         if (Tree h, x, y, d; isSigClocked(def, h, x) && isSigDelay(x, y, d)) {
+        //             degenerateRecursions.insert(w);
+        //         }
+        //     }
+        // }
     }
 
     return degenerateRecursions;
