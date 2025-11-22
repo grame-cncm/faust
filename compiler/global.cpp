@@ -524,6 +524,7 @@ void global::reset()
     gFAUSTFLOAT2Internal  = false;
     gInPlace              = false;
     gStrictSelect         = false;
+    gSimplifySelect2      = false;
     gHasExp10             = false;
     gLoopVarInBytes       = false;
     gUseMemmove           = false;
@@ -833,6 +834,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gStrictSelect) {
         dst << "-sts ";
+    }
+    if (gSimplifySelect2) {
+        dst << "-ssel ";
     }
     if (gFPGAMemory > 0) {
         dst << "-fpga-mem " << gFPGAMemory << " ";
@@ -1798,6 +1802,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-sts", "--strict-select")) {
             gStrictSelect = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-ssel", "--simplify-select2")) {
+            gSimplifySelect2 = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-es", "--enable-semantics")) {
@@ -2768,6 +2776,10 @@ string global::printHelp()
     sstr << tab
          << "-sts        --strict-select             generate strict code for 'selectX' even for "
             "stateless branches (both are computed)."
+         << endl;
+    sstr << tab
+         << "-ssel       --simplify-select2           apply select2 simplifications based on "
+            "type/interval analysis."
          << endl;
     sstr << tab
          << "-diff       --auto-differentiate        automatic differentiation." << endl;
