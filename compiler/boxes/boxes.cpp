@@ -55,7 +55,7 @@ static std::string normalizeControlPath(const std::string& path)
 {
     if (path.empty()) return std::string();
 
-    bool absolute = (!path.empty() && path[0] == '/');
+    bool absolute = (path[0] == '/');
 
     std::vector<std::string> toks;
     {
@@ -71,6 +71,7 @@ static std::string normalizeControlPath(const std::string& path)
         if (tok.empty() || tok == ".") {
             continue;
         } else if (tok == "..") {
+            // Don't pop ".." entries - they represent unresolved parent refs
             if (!stack.empty() && stack.back() != "..") {
                 stack.pop_back();
             } else {
@@ -98,7 +99,7 @@ static std::string normalizeControlPath(const std::string& path)
 static std::string joinControlPathsStr(const std::string& parent, const std::string& child)
 {
     if (child.empty()) return normalizeControlPath(parent);
-    if (!child.empty() && child.front() == '/') {
+    if (child.front() == '/') {
         return normalizeControlPath(child);
     }
     if (parent.empty()) return normalizeControlPath(child);
@@ -112,7 +113,7 @@ static Tree normalizeLabelTree(Tree lbl)
 {
     std::string s = tree2str(lbl);
     std::string ns = normalizeControlPath(s);
-    return tree(symbol(ns.c_str()));
+    return tree(symbol(ns));
 }
 // --- END PATCH FOR NORMALIZING LABELS ---
 
