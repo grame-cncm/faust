@@ -30,9 +30,16 @@
 #include <string>
 #include "global.hh"
 #include "property.hh"
+#include "smartpointer.hh"
 #include "tree.hh"
 
 using namespace std;
+
+// Forward declarations for type system
+class AudioType;
+typedef P<AudioType> Type;
+Type getSigType(Tree sig);
+void setSigType(Tree sig, Type t);
 
 //------------------------------------------------------------------------------
 // Debug levels for rule tracing
@@ -79,12 +86,37 @@ public:
     
     /**
      * @brief Apply the rewrite rule to a signal
-     * 
+     *
+     * This method automatically propagates type information from the original
+     * signal to the transformed signal if a type exists.
+     *
      * @param signal The input signal to potentially transform
      * @return nullopt if rule doesn't apply, transformed signal otherwise
      */
-    virtual optional<Tree> operator()(Tree signal) = 0;
-    
+    virtual optional<Tree> operator()(Tree signal) {
+        // Try to apply the transformation
+        if (auto result = applyRule(signal)) {
+            // If the original signal has a type, copy it to the result
+            Type existingType = getSigType(signal);
+            if (existingType) {
+                setSigType(*result, existingType);
+            }
+            return result;
+        }
+        return nullopt;
+    }
+
+    /**
+     * @brief The actual rewrite rule implementation (to be overridden by subclasses)
+     *
+     * Subclasses should implement this method instead of operator().
+     * Type propagation is handled automatically by operator().
+     *
+     * @param signal The input signal to potentially transform
+     * @return nullopt if rule doesn't apply, transformed signal otherwise
+     */
+    virtual optional<Tree> applyRule(Tree signal) = 0;
+
 };
 
 //------------------------------------------------------------------------------
