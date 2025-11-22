@@ -62,7 +62,7 @@ class esp32_midi : public midi_handler {
          */
         class MidiParser {
         private:
-            uint8_t fRunningStatus;      // Current running status byte
+            uint8_t fRunningStatus;       // Current running status byte
             uint8_t fDataByte1;           // First data byte
             bool fWaitingForDataByte2;    // Waiting for second data byte
             
@@ -227,24 +227,18 @@ class esp32_midi : public midi_handler {
             MidiParser parser;
             uint8_t data[RX_BUF_SIZE];
 
-            while (true)
-            {
+            while (true) {
                 int rxBytes = uart_read_bytes(UART_NUM_1, data, RX_BUF_SIZE, 1);
-                if (rxBytes > 0)
-                {
-                    for (int i = 0; i < rxBytes; i++)
-                    {
+                if (rxBytes > 0) {
+                    for (int i = 0; i < rxBytes; i++) {
                         MidiParser::MidiMessage msg = parser.parse(data[i]);
                         
-                        if (msg.isComplete)
-                        {
-                            if (msg.status < 0xF0)
-                            { // Channel Voice/Mode messages
+                        if (msg.isComplete) {
+                            if (msg.status < 0xF0) { // Channel Voice/Mode messages
                                 uint8_t type = msg.getType();
                                 uint8_t channel = msg.getChannel();
                                 
-                                switch (type)
-                                {
+                                switch (type) {
                                 case 0x80: // Note Off
                                     handleKeyOff(time, channel, msg.data1, msg.data2);
                                     ESP_LOGI(TAG, "Note Off - Channel: %d, Note: %d, Velocity: %d", channel, msg.data1, msg.data2);
@@ -278,10 +272,8 @@ class esp32_midi : public midi_handler {
                                     break;
                                 }
                             }
-                            else if (msg.status >= 0xF0)
-                            { // System messages
-                                switch (msg.status)
-                                {
+                            else if (msg.status >= 0xF0) { // System messages
+                                switch (msg.status) {
                                 case 0xF8: // Timing Clock
                                     handleClock(time);
                                     ESP_LOGI(TAG, "Timing Clock");
