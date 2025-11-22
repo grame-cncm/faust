@@ -25,6 +25,8 @@
 #include "description.hh"
 #include "global.hh"
 
+#include <vector>
+
 using namespace std;
 
 //=========================== PATHNAME ===============================
@@ -300,9 +302,6 @@ bool matchGroup(Tree gpath, Tree lpath, Tree& rpath)
  */
 Tree normalizeGroupPath(int groupType, Tree label, Tree currentPath)
 {
-    // Debug: uncomment to trace
-    // std::cerr << "normalizeGroupPath called: groupType=" << groupType << std::endl;
-    
     // Safety check
     if (!label) {
         return cons(cons(tree(groupType), tree("")), currentPath);
@@ -344,35 +343,33 @@ Tree normalizeGroupPath(int groupType, Tree label, Tree currentPath)
         }
     }
     
-    // The parsed path has multiple components
-    // We need to process relative parts and then add the final name with encoding
-    // Strategy: concat all but the last element, then encode and add the last
+    // The parsed path has multiple components: [elem1, elem2, ..., finalName]
+    // We need to split off the final name and apply the rest (prefix) to currentPath.
+    // Strategy: Build a list of all elements except the last, then process them.
     
-    // Find the last non-nil element
-    Tree finalName = gGlobal->nil;
-    Tree pathPrefix = gGlobal->nil;
-    
-    // Split parsedPath into prefix and final name
-    // parsedPath is a list like: cons(elem1, cons(elem2, ... cons(finalName, nil)))
+    // Collect all elements except the last into a vector for easier processing
+    std::vector<Tree> elements;
     Tree temp = parsedPath;
-    
     while (!isNil(temp)) {
-        Tree current = hd(temp);
-        Tree rest = tl(temp);
-        
-        if (isNil(rest)) {
-            // This is the last element
-            finalName = current;
-            // pathPrefix is everything before this
-            break;
-        } else {
-            // Add to prefix
-            pathPrefix = cons(current, pathPrefix);
-            temp = rest;
-        }
+        elements.push_back(hd(temp));
+        temp = tl(temp);
     }
     
-    // Reverse pathPrefix (since we built it backwards)
+    if (elements.empty()) {
+        // Should not happen, but be safe
+        return cons(cons(tree(groupType), label), currentPath);
+    }
+    
+    // The last element is the final name
+    Tree finalName = elements.back();
+    
+    // Build the prefix path (all elements except the last) in correct order
+    Tree pathPrefix = gGlobal->nil;
+    for (size_t i = 0; i + 1 < elements.size(); i++) {
+        pathPrefix = cons(elements[i], pathPrefix);
+    }
+    
+    // Reverse pathPrefix to get correct top-down order
     Tree reversedPrefix = gGlobal->nil;
     while (!isNil(pathPrefix)) {
         reversedPrefix = cons(hd(pathPrefix), reversedPrefix);
@@ -380,14 +377,15 @@ Tree normalizeGroupPath(int groupType, Tree label, Tree currentPath)
     }
     
     // Apply the prefix to current path (this handles .. and .)
+    // concatPath resolves relative path elements (.., .) against the current path
     Tree adjustedPath = concatPath(reversedPrefix, currentPath);
     
-    // Check if adjustedPath contains unresolved path markers
-    // This can happen when trying to go ".." beyond the root
+    // Check if adjustedPath is a bare path marker (not a list)
+    // This happens when ".." tries to go beyond the root of an empty path.
+    // In this case, concatPath returns a single pathParent marker.
+    // We wrap it in a list to maintain the path structure invariant.
     if (adjustedPath && !isNil(adjustedPath) && !isList(adjustedPath)) {
-        // adjustedPath is a single path marker (like pathParent)
-        // This means we tried to go up beyond the root
-        // Keep it as part of the path structure
+        // adjustedPath is a single marker (like pathParent), wrap it in a list
         adjustedPath = cons(adjustedPath, gGlobal->nil);
     }
     
