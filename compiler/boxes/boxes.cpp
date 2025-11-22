@@ -46,6 +46,76 @@
 
 using namespace std;
 
+// --- BEGIN PATCH FOR NORMALIZING LABELS ---
+#include <sstream>
+#include <vector>
+#include <string>
+
+static std::string normalizeControlPath(const std::string& path)
+{
+    if (path.empty()) return std::string();
+
+    bool absolute = (!path.empty() && path[0] == '/');
+
+    std::vector<std::string> toks;
+    {
+        std::istringstream iss(path);
+        std::string token;
+        while (std::getline(iss, token, '/')) {
+            toks.push_back(token);
+        }
+    }
+
+    std::vector<std::string> stack;
+    for (const auto& tok : toks) {
+        if (tok.empty() || tok == ".") {
+            continue;
+        } else if (tok == "..") {
+            if (!stack.empty() && stack.back() != "..") {
+                stack.pop_back();
+            } else {
+                // nothing to pop -> preserve leading ".."
+                stack.push_back("..");
+            }
+        } else {
+            stack.push_back(tok);
+        }
+    }
+
+    std::string out;
+    if (absolute) out = "/";
+
+    for (size_t i = 0; i < stack.size(); ++i) {
+        if (i) out += "/";
+        out += stack[i];
+    }
+
+    if (out.empty() && absolute) out = "/";
+
+    return out;
+}
+
+static std::string joinControlPathsStr(const std::string& parent, const std::string& child)
+{
+    if (child.empty()) return normalizeControlPath(parent);
+    if (!child.empty() && child.front() == '/') {
+        return normalizeControlPath(child);
+    }
+    if (parent.empty()) return normalizeControlPath(child);
+    std::string j = parent;
+    if (!j.empty() && j.back() != '/') j += '/';
+    j += child;
+    return normalizeControlPath(j);
+}
+
+static Tree normalizeLabelTree(Tree lbl)
+{
+    std::string s = tree2str(lbl);
+    std::string ns = normalizeControlPath(s);
+    return tree(symbol(ns.c_str()));
+}
+// --- END PATCH FOR NORMALIZING LABELS ---
+
 /*****************************************************************************
                                     Identifiers
 *****************************************************************************/
@@ -730,7 +800,7 @@ LIBFAUST_API bool isBoxFVar(Tree s, Tree& type, Tree& name, Tree& file)
 
 LIBFAUST_API Tree boxButton(Tree lbl)
 {
-    return tree(gGlobal->BOXBUTTON, lbl);
+    return tree(gGlobal->BOXBUTTON, normalizeLabelTree(lbl));
 }
 LIBFAUST_API bool isBoxButton(Tree s)
 {
@@ -744,7 +814,7 @@ LIBFAUST_API bool isBoxButton(Tree s, Tree& lbl)
 
 LIBFAUST_API Tree boxCheckbox(Tree lbl)
 {
-    return tree(gGlobal->BOXCHECKBOX, lbl);
+    return tree(gGlobal->BOXCHECKBOX, normalizeLabelTree(lbl));
 }
 LIBFAUST_API bool isBoxCheckbox(Tree s)
 {
@@ -758,7 +828,7 @@ LIBFAUST_API bool isBoxCheckbox(Tree s, Tree& lbl)
 
 LIBFAUST_API Tree boxHSlider(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 {
-    return tree(gGlobal->BOXHSLIDER, lbl, list4(cur, min, max, step));
+    return tree(gGlobal->BOXHSLIDER, normalizeLabelTree(lbl), list4(cur, min, max, step));
 }
 LIBFAUST_API bool isBoxHSlider(Tree s)
 {
@@ -782,7 +852,7 @@ LIBFAUST_API bool isBoxHSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& ma
 
 LIBFAUST_API Tree boxVSlider(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 {
-    return tree(gGlobal->BOXVSLIDER, lbl, list4(cur, min, max, step));
+    return tree(gGlobal->BOXVSLIDER, normalizeLabelTree(lbl), list4(cur, min, max, step));
 }
 LIBFAUST_API bool isBoxVSlider(Tree s)
 {
@@ -806,7 +876,7 @@ LIBFAUST_API bool isBoxVSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& ma
 
 LIBFAUST_API Tree boxNumEntry(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 {
-    return tree(gGlobal->BOXNUMENTRY, lbl, list4(cur, min, max, step));
+    return tree(gGlobal->BOXNUMENTRY, normalizeLabelTree(lbl), list4(cur, min, max, step));
 }
 LIBFAUST_API bool isBoxNumEntry(Tree s)
 {
@@ -830,7 +900,7 @@ LIBFAUST_API bool isBoxNumEntry(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& m
 
 LIBFAUST_API Tree boxHGroup(Tree lbl, Tree x)
 {
-    return tree(gGlobal->BOXHGROUP, lbl, x);
+    return tree(gGlobal->BOXHGROUP, normalizeLabelTree(lbl), x);
 }
 LIBFAUST_API bool isBoxHGroup(Tree s)
 {
@@ -844,7 +914,7 @@ LIBFAUST_API bool isBoxHGroup(Tree s, Tree& lbl, Tree& x)
 
 LIBFAUST_API Tree boxVGroup(Tree lbl, Tree x)
 {
-    return tree(gGlobal->BOXVGROUP, lbl, x);
+    return tree(gGlobal->BOXVGROUP, normalizeLabelTree(lbl), x);
 }
 LIBFAUST_API bool isBoxVGroup(Tree s)
 {
@@ -858,7 +928,7 @@ LIBFAUST_API bool isBoxVGroup(Tree s, Tree& lbl, Tree& x)
 
 LIBFAUST_API Tree boxTGroup(Tree lbl, Tree x)
 {
-    return tree(gGlobal->BOXTGROUP, lbl, x);
+    return tree(gGlobal->BOXTGROUP, normalizeLabelTree(lbl), x);
 }
 LIBFAUST_API bool isBoxTGroup(Tree s)
 {
@@ -872,7 +942,7 @@ LIBFAUST_API bool isBoxTGroup(Tree s, Tree& lbl, Tree& x)
 
 LIBFAUST_API Tree boxHBargraph(Tree lbl, Tree min, Tree max)
 {
-    return tree(gGlobal->BOXHBARGRAPH, lbl, min, max);
+    return tree(gGlobal->BOXHBARGRAPH, normalizeLabelTree(lbl), min, max);
 }
 LIBFAUST_API bool isBoxHBargraph(Tree s)
 {
@@ -886,7 +956,7 @@ LIBFAUST_API bool isBoxHBargraph(Tree s, Tree& lbl, Tree& min, Tree& max)
 
 LIBFAUST_API Tree boxVBargraph(Tree lbl, Tree min, Tree max)
 {
-    return tree(gGlobal->BOXVBARGRAPH, lbl, min, max);
+    return tree(gGlobal->BOXVBARGRAPH, normalizeLabelTree(lbl), min, max);
 }
 LIBFAUST_API bool isBoxVBargraph(Tree s)
 {
@@ -900,7 +970,7 @@ LIBFAUST_API bool isBoxVBargraph(Tree s, Tree& lbl, Tree& min, Tree& max)
 
 LIBFAUST_API Tree boxSoundfile(Tree lbl, Tree chan)
 {
-    return tree(gGlobal->BOXSOUNDFILE, lbl, chan);
+    return tree(gGlobal->BOXSOUNDFILE, normalizeLabelTree(lbl), chan);
 }
 
 LIBFAUST_API bool isBoxSoundfile(Tree s)

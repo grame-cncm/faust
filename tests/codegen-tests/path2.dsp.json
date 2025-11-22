@@ -1,0 +1,102 @@
+{
+	"name": "path2",
+	"filename": "path2.dsp",
+	"version": "2.82.2",
+	"compile_options": "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
+	"include_pathnames": ["/home/runner/work/faust/faust/build/share/faust","/usr/local/share/faust","/usr/share/faust","tests/codegen-tests","/home/runner/work/faust/faust/tests/codegen-tests"],
+	"size": 24,
+	"inputs": 4,
+	"outputs": 4,
+	"meta": [ 
+		{ "compile_options": "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0" },
+		{ "filename": "path2.dsp" },
+		{ "name": "path2" }
+	],
+	"ui": [ 
+		{
+			"type": "tgroup",
+			"label": "toto",
+			"items": [ 
+				{
+					"type": "hslider",
+					"label": "common",
+					"varname": "fHslider1",
+					"shortname": "common",
+					"address": "/toto/common",
+					"init": 0,
+					"min": 0,
+					"max": 1,
+					"step": 0.1
+				},
+				{
+					"type": "vgroup",
+					"label": "foo 0",
+					"items": [ 
+						{
+							"type": "hslider",
+							"label": "slid",
+							"varname": "fHslider0",
+							"shortname": "foo_0_slid",
+							"address": "/toto/foo_0/slid",
+							"init": 0,
+							"min": 0,
+							"max": 1,
+							"step": 0.1
+						}
+					]
+				},
+				{
+					"type": "vgroup",
+					"label": "foo 1",
+					"items": [ 
+						{
+							"type": "hslider",
+							"label": "slid",
+							"varname": "fHslider2",
+							"shortname": "foo_1_slid",
+							"address": "/toto/foo_1/slid",
+							"init": 0,
+							"min": 0,
+							"max": 1,
+							"step": 0.1
+						}
+					]
+				},
+				{
+					"type": "vgroup",
+					"label": "foo 2",
+					"items": [ 
+						{
+							"type": "hslider",
+							"label": "slid",
+							"varname": "fHslider3",
+							"shortname": "foo_2_slid",
+							"address": "/toto/foo_2/slid",
+							"init": 0,
+							"min": 0,
+							"max": 1,
+							"step": 0.1
+						}
+					]
+				},
+				{
+					"type": "vgroup",
+					"label": "foo 3",
+					"items": [ 
+						{
+							"type": "hslider",
+							"label": "slid",
+							"varname": "fHslider4",
+							"shortname": "foo_3_slid",
+							"address": "/toto/foo_3/slid",
+							"init": 0,
+							"min": 0,
+							"max": 1,
+							"step": 0.1
+						}
+					]
+				}
+			]
+		}
+	]
+}
