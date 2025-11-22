@@ -71,7 +71,7 @@ int getRecursivness(Tree sig)
 {
     Tree tr;
     if (!getProperty(sig, gGlobal->RECURSIVNESS, tr)) {
-        cerr << "ASSERT : getRecursivness of " << *sig << endl;
+        cerr << "ASSERT : getRecursivness of " << ppsig(sig) << endl;
         faustassert(false);
     }
     return tree2int(tr);
@@ -186,4 +186,53 @@ Tree symlist(Tree sig)
     }
     // cerr << "SYMLIST " << *S << " OF " << ppsig(sig) << endl;
     return S;
+}
+
+//-------------------------------- Clear recursivness annotations ----------------------
+
+/**
+ * Recursively clear RECURSIVNESS property from a signal tree.
+ * Uses a visited set to avoid infinite loops with recursive signals.
+ * @param sig the signal to clear
+ * @param visited set of already visited signals
+ */
+static void clearRecursivnessVisit(Tree sig, set<Tree>& visited)
+{
+    // Avoid infinite loops
+    if (visited.count(sig) > 0) {
+        return;
+    }
+    visited.insert(sig);
+
+    // Clear the RECURSIVNESS property if it exists
+    Tree recProp;
+    if (getProperty(sig, gGlobal->RECURSIVNESS, recProp)) {
+        sig->clearProperty(gGlobal->RECURSIVNESS);
+    }
+
+    // Recursively clear subsignals
+    Tree var, body;
+    if (isRec(sig, var, body)) {
+        // For recursive signals, clear the body (which is a list)
+        // This will clear the body itself and recursively all its elements
+        clearRecursivnessVisit(body, visited);
+    } else {
+        // For other signals, clear all subsignals
+        tvec subsigs;
+        int  n = getSubSignals(sig, subsigs, true);  // include tables
+        for (int i = 0; i < n; i++) {
+            clearRecursivnessVisit(subsigs[i], visited);
+        }
+    }
+}
+
+/**
+ * Clear recursivness annotations from a signal tree.
+ * This allows re-annotation after signal transformations.
+ * @param sig signal tree to clear
+ */
+void clearRecursivnessAnnotations(Tree sig)
+{
+    set<Tree> visited;
+    clearRecursivnessVisit(sig, visited);
 }

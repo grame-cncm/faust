@@ -33,6 +33,7 @@
 #include "recursivness.hh"
 #include "sigFIR.hh"
 #include "sigIIR.hh"
+#include "signals.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -457,6 +458,24 @@ static void annotationStatistics()
 ::Type getCertifiedSigType(Tree sig)
 {
     Type ty = getSigType(sig);
+    if (!ty) {
+        std::cerr << "ERROR: getCertifiedSigType called on signal WITHOUT type!" << std::endl;
+        std::cerr << "  Signal ptr: " << sig << std::endl;
+
+        // Try to identify the signal type
+        int  i;
+        Tree x;
+        if (isProj(sig, &i, x)) {
+            std::cerr << "  Signal is proj(" << i << ", ...)" << std::endl;
+            std::cerr << "  Projection source ptr: " << x << std::endl;
+            Type xType = getSigType(x);
+            std::cerr << "  Projection source has type? " << (xType ? "YES" : "NO") << std::endl;
+        } else if (isList(sig)) {
+            std::cerr << " NO type for list " << ppsig(sig) << std::endl;
+        } else {
+            std::cerr << " NO type for signal " << ppsig(sig) << std::endl;
+        }
+    }
     faustassert(ty);
     return ty;
 }
