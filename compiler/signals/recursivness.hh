@@ -48,4 +48,11 @@ int getRecursivness(Tree t);
  */
 Tree symlist(Tree sig);
 
+/**
+ * Clear recursivness annotations from a signal tree.
+ * This allows re-annotation after signal transformations.
+ * @param sig signal tree to clear
+ */
+void clearRecursivnessAnnotations(Tree sig);
+
 #endif
