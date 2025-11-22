@@ -73,7 +73,7 @@ static std::string normalizeControlPath(const std::string& path)
     // Check if path is absolute (starts with '/')
     bool isAbsolute = (path[0] == '/');
     
-    // Split path into segments
+    // Split path into segments (skip empty segments from consecutive slashes)
     std::vector<std::string> segments;
     std::stringstream ss(path);
     std::string segment;
@@ -93,13 +93,20 @@ static std::string normalizeControlPath(const std::string& path)
             continue;
         } else if (seg == "..") {
             // Go up one level if possible
-            if (!result.empty() && result.back() != "..") {
-                result.pop_back();
+            if (!result.empty()) {
+                // Check if the last segment is a normal segment (not "..")
+                if (result.back() != "..") {
+                    result.pop_back();
+                } else if (!isAbsolute) {
+                    // For relative paths, preserve consecutive ".." segments
+                    result.push_back(seg);
+                }
+                // For absolute paths with only ".." in result, ignore this ".."
             } else if (!isAbsolute) {
                 // Preserve leading ".." for relative paths
                 result.push_back(seg);
             }
-            // For absolute paths, ".." at root is ignored
+            // For absolute paths at root, ignore ".."
         } else {
             result.push_back(seg);
         }
@@ -115,13 +122,15 @@ static std::string normalizeControlPath(const std::string& path)
         normalized += result[i];
     }
     
-    // Handle special cases
-    if (normalized.empty() && isAbsolute) {
-        // Empty absolute path should be "/"
-        normalized = "/";
-    } else if (!normalized.empty() && isAbsolute && normalized[0] != '/') {
-        // Prepend "/" for absolute paths
-        normalized = "/" + normalized;
+    // Handle special cases for absolute paths
+    if (isAbsolute) {
+        if (normalized.empty()) {
+            // Empty absolute path should be "/"
+            normalized = "/";
+        } else {
+            // Prepend "/" for absolute paths
+            normalized = "/" + normalized;
+        }
     }
     
     return normalized;
@@ -143,7 +152,7 @@ static std::string joinControlPathsStr(const std::string& parent, const std::str
         return normalizeControlPath(parent);
     }
     
-    if (child[0] == '/') {
+    if (!child.empty() && child[0] == '/') {
         // Child is absolute, ignore parent
         return normalizeControlPath(child);
     }
@@ -152,9 +161,10 @@ static std::string joinControlPathsStr(const std::string& parent, const std::str
         return normalizeControlPath(child);
     }
     
-    // Join parent and child
+    // Join parent and child with '/' separator
+    // At this point, parent is guaranteed to be non-empty
     std::string joined = parent;
-    if (joined.back() != '/') {
+    if (parent.back() != '/') {
         joined += "/";
     }
     joined += child;
