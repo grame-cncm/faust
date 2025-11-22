@@ -39,12 +39,146 @@
 #include "boxes.hh"
 #include <stdio.h>
 #include <string.h>
+#include <sstream>
+#include <vector>
 #include "exception.hh"
 #include "global.hh"
 #include "prim2.hh"
 #include "xtended.hh"
 
 using namespace std;
+
+/*****************************************************************************
+                    Helper functions for control path normalization
+*****************************************************************************/
+
+/**
+ * @brief Normalize a control path by resolving "." and ".." segments.
+ * 
+ * This function processes a control path string to:
+ * - Remove "." segments (current directory)
+ * - Resolve ".." segments by popping previous segments when possible
+ * - Preserve leading ".." if they escape above root
+ * - Keep leading '/' for absolute paths
+ * 
+ * @param path The input control path string
+ * @return The normalized path string
+ */
+static std::string normalizeControlPath(const std::string& path)
+{
+    if (path.empty()) {
+        return path;
+    }
+
+    // Check if path is absolute (starts with '/')
+    bool isAbsolute = (path[0] == '/');
+    
+    // Split path into segments
+    std::vector<std::string> segments;
+    std::stringstream ss(path);
+    std::string segment;
+    
+    while (std::getline(ss, segment, '/')) {
+        if (!segment.empty()) {
+            segments.push_back(segment);
+        }
+    }
+    
+    // Process segments to resolve . and ..
+    std::vector<std::string> result;
+    
+    for (const auto& seg : segments) {
+        if (seg == ".") {
+            // Skip current directory references
+            continue;
+        } else if (seg == "..") {
+            // Go up one level if possible
+            if (!result.empty() && result.back() != "..") {
+                result.pop_back();
+            } else if (!isAbsolute) {
+                // Preserve leading ".." for relative paths
+                result.push_back(seg);
+            }
+            // For absolute paths, ".." at root is ignored
+        } else {
+            result.push_back(seg);
+        }
+    }
+    
+    // Reconstruct the path
+    std::string normalized;
+    
+    for (size_t i = 0; i < result.size(); ++i) {
+        if (i > 0) {
+            normalized += "/";
+        }
+        normalized += result[i];
+    }
+    
+    // Handle special cases
+    if (normalized.empty() && isAbsolute) {
+        // Empty absolute path should be "/"
+        normalized = "/";
+    } else if (!normalized.empty() && isAbsolute && normalized[0] != '/') {
+        // Prepend "/" for absolute paths
+        normalized = "/" + normalized;
+    }
+    
+    return normalized;
+}
+
+/**
+ * @brief Join two control paths and normalize the result.
+ * 
+ * If child starts with '/', it's treated as absolute and returned normalized.
+ * Otherwise, parent and child are joined with '/' and the result is normalized.
+ * 
+ * @param parent The parent path
+ * @param child The child path
+ * @return The joined and normalized path
+ */
+static std::string joinControlPathsStr(const std::string& parent, const std::string& child)
+{
+    if (child.empty()) {
+        return normalizeControlPath(parent);
+    }
+    
+    if (child[0] == '/') {
+        // Child is absolute, ignore parent
+        return normalizeControlPath(child);
+    }
+    
+    if (parent.empty()) {
+        return normalizeControlPath(child);
+    }
+    
+    // Join parent and child
+    std::string joined = parent;
+    if (joined.back() != '/') {
+        joined += "/";
+    }
+    joined += child;
+    
+    return normalizeControlPath(joined);
+}
+
+/**
+ * @brief Normalize a label Tree by extracting the string, normalizing it, and creating a new Tree.
+ * 
+ * @param lbl The label Tree to normalize
+ * @return A new Tree with the normalized label string
+ */
+static Tree normalizeLabelTree(Tree lbl)
+{
+    // Extract the label string from the tree
+    const char* labelStr = tree2str(lbl);
+    
+    // Normalize the path
+    std::string normalized = normalizeControlPath(std::string(labelStr));
+    
+    // Create a new tree with the normalized string
+    return tree(symbol(normalized.c_str()));
+}
 
 /*****************************************************************************
                                     Identifiers
@@ -730,7 +864,7 @@ LIBFAUST_API bool isBoxFVar(Tree s, Tree& type, Tree& name, Tree& file)
 
 LIBFAUST_API Tree boxButton(Tree lbl)
 {
-    return tree(gGlobal->BOXBUTTON, lbl);
+    return tree(gGlobal->BOXBUTTON, normalizeLabelTree(lbl));
 }
 LIBFAUST_API bool isBoxButton(Tree s)
 {
@@ -744,7 +878,7 @@ LIBFAUST_API bool isBoxButton(Tree s, Tree& lbl)
 
 LIBFAUST_API Tree boxCheckbox(Tree lbl)
 {
-    return tree(gGlobal->BOXCHECKBOX, lbl);
+    return tree(gGlobal->BOXCHECKBOX, normalizeLabelTree(lbl));
 }
 LIBFAUST_API bool isBoxCheckbox(Tree s)
 {
@@ -758,7 +892,7 @@ LIBFAUST_API bool isBoxCheckbox(Tree s, Tree& lbl)
 
 LIBFAUST_API Tree boxHSlider(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 {
-    return tree(gGlobal->BOXHSLIDER, lbl, list4(cur, min, max, step));
+    return tree(gGlobal->BOXHSLIDER, normalizeLabelTree(lbl), list4(cur, min, max, step));
 }
 LIBFAUST_API bool isBoxHSlider(Tree s)
 {
@@ -782,7 +916,7 @@ LIBFAUST_API bool isBoxHSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& ma
 
 LIBFAUST_API Tree boxVSlider(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 {
-    return tree(gGlobal->BOXVSLIDER, lbl, list4(cur, min, max, step));
+    return tree(gGlobal->BOXVSLIDER, normalizeLabelTree(lbl), list4(cur, min, max, step));
 }
 LIBFAUST_API bool isBoxVSlider(Tree s)
 {
@@ -806,7 +940,7 @@ LIBFAUST_API bool isBoxVSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& ma
 
 LIBFAUST_API Tree boxNumEntry(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 {
-    return tree(gGlobal->BOXNUMENTRY, lbl, list4(cur, min, max, step));
+    return tree(gGlobal->BOXNUMENTRY, normalizeLabelTree(lbl), list4(cur, min, max, step));
 }
 LIBFAUST_API bool isBoxNumEntry(Tree s)
 {
@@ -830,7 +964,7 @@ LIBFAUST_API bool isBoxNumEntry(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& m
 
 LIBFAUST_API Tree boxHGroup(Tree lbl, Tree x)
 {
-    return tree(gGlobal->BOXHGROUP, lbl, x);
+    return tree(gGlobal->BOXHGROUP, normalizeLabelTree(lbl), x);
 }
 LIBFAUST_API bool isBoxHGroup(Tree s)
 {
@@ -844,7 +978,7 @@ LIBFAUST_API bool isBoxHGroup(Tree s, Tree& lbl, Tree& x)
 
 LIBFAUST_API Tree boxVGroup(Tree lbl, Tree x)
 {
-    return tree(gGlobal->BOXVGROUP, lbl, x);
+    return tree(gGlobal->BOXVGROUP, normalizeLabelTree(lbl), x);
 }
 LIBFAUST_API bool isBoxVGroup(Tree s)
 {
@@ -858,7 +992,7 @@ LIBFAUST_API bool isBoxVGroup(Tree s, Tree& lbl, Tree& x)
 
 LIBFAUST_API Tree boxTGroup(Tree lbl, Tree x)
 {
-    return tree(gGlobal->BOXTGROUP, lbl, x);
+    return tree(gGlobal->BOXTGROUP, normalizeLabelTree(lbl), x);
 }
 LIBFAUST_API bool isBoxTGroup(Tree s)
 {
@@ -872,7 +1006,7 @@ LIBFAUST_API bool isBoxTGroup(Tree s, Tree& lbl, Tree& x)
 
 LIBFAUST_API Tree boxHBargraph(Tree lbl, Tree min, Tree max)
 {
-    return tree(gGlobal->BOXHBARGRAPH, lbl, min, max);
+    return tree(gGlobal->BOXHBARGRAPH, normalizeLabelTree(lbl), min, max);
 }
 LIBFAUST_API bool isBoxHBargraph(Tree s)
 {
@@ -886,7 +1020,7 @@ LIBFAUST_API bool isBoxHBargraph(Tree s, Tree& lbl, Tree& min, Tree& max)
 
 LIBFAUST_API Tree boxVBargraph(Tree lbl, Tree min, Tree max)
 {
-    return tree(gGlobal->BOXVBARGRAPH, lbl, min, max);
+    return tree(gGlobal->BOXVBARGRAPH, normalizeLabelTree(lbl), min, max);
 }
 LIBFAUST_API bool isBoxVBargraph(Tree s)
 {
@@ -900,7 +1034,7 @@ LIBFAUST_API bool isBoxVBargraph(Tree s, Tree& lbl, Tree& min, Tree& max)
 
 LIBFAUST_API Tree boxSoundfile(Tree lbl, Tree chan)
 {
-    return tree(gGlobal->BOXSOUNDFILE, lbl, chan);
+    return tree(gGlobal->BOXSOUNDFILE, normalizeLabelTree(lbl), chan);
 }
 
 LIBFAUST_API bool isBoxSoundfile(Tree s)
