@@ -33,9 +33,9 @@ using namespace std;
 class InlineRec : public RewriteRule {
     const std::set<Tree>& fDegenerate;  // set of degenerate recursion to inline
    public:
-    virtual string getRuleName() const { return "REC"; }
+    virtual string getRuleName() const override { return "REC"; }
     InlineRec(const std::set<Tree>& degenerate) : fDegenerate(degenerate) {}
-    virtual optional<Tree> operator()(Tree signal)
+    virtual optional<Tree> applyRule(Tree signal) override
     {
         // Xi @ 0 -> def(Xi) if Xi is a degenerate recursion
         // Xi @ d -> def(Xi) @ d if Xi is a degenerate recursion and d > 0
@@ -56,9 +56,9 @@ class InlineRec : public RewriteRule {
 class InlineClkRec : public RewriteRule {
     const std::set<Tree>& fDegenerate;  // set of degenerate recursion to inline
    public:
-    virtual string getRuleName() const { return "CLKREC"; }
+    virtual string getRuleName() const override { return "CLKREC"; }
     InlineClkRec(const std::set<Tree>& degenerate) : fDegenerate(degenerate) {}
-    virtual optional<Tree> operator()(Tree sig)
+    virtual optional<Tree> applyRule(Tree sig) override
     {
         // Xi @ 0 -> def(Xi) if Xi is a degenerate recursion
         // Xi @ d -> def(Xi) @ d if Xi is a degenerate recursion and d > 0
@@ -79,8 +79,8 @@ class InlineClkRec : public RewriteRule {
 
 class CombineDelays : public RewriteRule {
    public:
-    virtual string         getRuleName() const { return "DLY"; }
-    virtual optional<Tree> operator()(Tree signal)
+    virtual string         getRuleName() const override { return "DLY"; }
+    virtual optional<Tree> applyRule(Tree signal) override
     {
         // (X@d2)@d1 -> X@(d1+d2)
         // clock(H,X@d2)@d1 -> clock(H,X)@(d1+d2)
@@ -117,8 +117,8 @@ class CombineDelays : public RewriteRule {
 
 class CombineClockDelays : public RewriteRule {
    public:
-    virtual string         getRuleName() const { return "CDL"; }
-    virtual optional<Tree> operator()(Tree signal)
+    virtual string         getRuleName() const override { return "CDL"; }
+    virtual optional<Tree> applyRule(Tree signal) override
     {
         if (Tree h1, h2, d1, d2, x, y, z, w; isSigClocked(signal, h1, x) && isSigDelay(x, y, d1) &&
                                              isSigClocked(y, h2, z) && isSigDelay(z, w, d2) &&
@@ -139,8 +139,8 @@ class CombineClockDelays : public RewriteRule {
 //------------------------------------------------------------------------------
 class CombineClockDelaysAtom : public RewriteRule {
    public:
-    virtual string         getRuleName() const { return "CDL_ATOM"; }
-    virtual optional<Tree> operator()(Tree sig)
+    virtual string         getRuleName() const override { return "CDL_ATOM"; }
+    virtual optional<Tree> applyRule(Tree sig) override
     {
         // p::in(sig) >> p::clk(h1) >> p::dl(d1) >> p::clk(h2) >> p::dl(d2) >> p::out(w)
         if (Tree h1, h2, d1, d2, w;
