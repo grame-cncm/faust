@@ -49,6 +49,7 @@
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "revealSum.hh"
+#include "sigTypeChecker.hh"
 
 #include "sigDegenerateRecursionElimination.hh"
 #include "sigDependenciesGraph.hh"
@@ -56,6 +57,7 @@
 #include "sigPromotion.hh"
 #include "sigRecursiveDependencies.hh"
 #include "sigRetiming.hh"
+#include "sigSelect2Simplification.hh"
 #include "sigToGraph.hh"
 #include "signalValidator.hh"
 #include "sigprint.hh"
@@ -183,6 +185,33 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("L2 typeAnnotation");
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");
+
+    // Simplify select2 signals based on type/interval analysis
+    if (gGlobal->gSimplifySelect2) {
+        startTiming("Simplify Select2");
+        L2 = simplifySelect2(L2, false);
+        endTiming("Simplify Select2");
+    }
+    // TRY TO REDO ALL THE ANNOTATIONS
+
+    startTiming("conditionAnnotation");
+    conditionAnnotation(L2);
+    endTiming("conditionAnnotation");
+
+    // Clear old recursivness annotations before re-computing
+    startTiming("clearRecursivnessAnnotations");
+    clearRecursivnessAnnotations(L2);
+    endTiming("clearRecursivnessAnnotations");
+
+    startTiming("recursivnessAnnotation");
+    recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
+    endTiming("recursivnessAnnotation");
+
+    startTiming("L2 typeAnnotation");
+    typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
+    endTiming("L2 typeAnnotation");
+
+    // END
 
     startTiming("occurrences analysis");
     delete fOccMarkup;

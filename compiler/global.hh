@@ -205,6 +205,8 @@ struct global {
     bool gInPlace;   // -inpl option, add cache to input for correct in-place computations
     bool gStrictSelect;  // -sts option, generate strict code for 'selectX' even for stateless
                          // branches (both are computed)
+    bool gSimplifySelect2;  // -ssel --simplify-select2 option, apply select2 simplifications based on
+                            // type/interval analysis
 
     bool gDSPStruct;  // to control method generation in -fun mode
     bool gLightMode;  // -light option, do not generate the entire DSP API (to be used with

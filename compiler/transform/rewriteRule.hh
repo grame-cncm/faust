@@ -96,10 +96,14 @@ public:
     virtual optional<Tree> operator()(Tree signal) {
         // Try to apply the transformation
         if (auto result = applyRule(signal)) {
-            // If the original signal has a type, copy it to the result
-            Type existingType = getSigType(signal);
-            if (existingType) {
-                setSigType(*result, existingType);
+            // If the result doesn't have a type yet, copy it from the original signal
+            // (this preserves types when replacing a signal with a new one)
+            Type resultType = getSigType(*result);
+            if (!resultType) {
+                Type originalType = getSigType(signal);
+                if (originalType) {
+                    setSigType(*result, originalType);
+                }
             }
             return result;
         }
