@@ -1,0 +1,58 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+    Copyright (C) 2003-2006 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
+#ifndef _RECURSIVNESS_
+#define _RECURSIVNESS_
+
+#include "signals.hh"
+
+/**
+ * Annotate a signal with recursiveness information, the amount of
+ * recursive dependencies of a signal. Should be used before
+ * calling getRecursiveness.
+ * @param sig signal to annotate
+ */
+void recursivenessAnnotation(Tree sig);
+
+/**
+ * Return the recursiveness of a previously
+ * annotated signal. An error is generated
+ * if the signal has no recursiveness property.
+ * @param sig signal
+ * @return recursiveness of the signal
+ */
+int getRecursiveness(Tree t);
+
+/**
+ * Return the set of recursive symbols appearing in a signal.
+ * @param sig the signal to analyze
+ * @return the set of symbols
+ */
+Tree symlist(Tree sig);
+
+/**
+ * Clear recursiveness annotations from a signal tree.
+ * This allows re-annotation after signal transformations.
+ * @param sig signal tree to clear
+ */
+void clearRecursivenessAnnotations(Tree sig);
+
+#endif
