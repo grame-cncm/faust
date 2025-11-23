@@ -25,7 +25,7 @@
 
 #include "global.hh"
 #include "occurrences.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "sigtyperules.hh"
 
 using namespace std;
@@ -180,7 +180,7 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         // 1) We build initial occurence information
         Type ty = getCertifiedSigType(t);
         int  v0 = ty->variability();
-        int  r0 = getRecursivness(t);
+        int  r0 = getRecursiveness(t);
         // fConditions may have been initialized empty
         Tree c0 = (fConditions.find(t) == fConditions.end()) ? gGlobal->nil : fConditions[t];
         occ     = new Occurrences(v0, r0, c0);
