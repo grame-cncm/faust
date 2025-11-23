@@ -42,7 +42,7 @@
 #include "names.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -75,7 +75,7 @@ string DocCompiler::getFreshID(const string& prefix)
 
 Tree DocCompiler::annotate(Tree LS)
 {
-    recursivnessAnnotation(LS);                         // Annotate LS with recursivness information
+    recursivenessAnnotation(LS);  // Annotate LS with recursiveness information
     typeAnnotation(LS, gGlobal->gLocalCausalityCheck);  // Annotate LS with type information
     sharingAnalysis(LS);                                // annotate LS with sharing count
     fOccMarkup.mark(LS);                                // annotate LS with occurences analysis

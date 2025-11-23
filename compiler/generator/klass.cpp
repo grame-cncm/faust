@@ -41,7 +41,7 @@
 #include "Text.hh"
 #include "floats.hh"
 #include "klass.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "signals.hh"
 #include "uitree.hh"
 
@@ -290,9 +290,7 @@ void Klass::printMetadata(int n, const MetaDataSet& S, ostream& fout)
                     fout << "m->declare(\"" << *(i.first) << "\", " << *j << ");";
                 } else {
                     tab(n + 1, fout);
-                    fout << "m->declare(\""
-                         << "contributor"
-                         << "\", " << *j << ");";
+                    fout << "m->declare(\"" << "contributor" << "\", " << *j << ");";
                 }
             }
         }
@@ -889,21 +887,17 @@ void Klass::println(int n, ostream& fout)
 
     if (gGlobal->gSchedulerSwitch) {
         tab(n + 1, fout);
-        fout << fKlassName << "() { "
-             << "fThreadPool = DSPThreadPool::Init(); }";
+        fout << fKlassName << "() { " << "fThreadPool = DSPThreadPool::Init(); }";
 
         tab(n + 1, fout);
-        fout << "virtual ~" << fKlassName << "() { "
-             << "DSPThreadPool::Destroy(); }";
+        fout << "virtual ~" << fKlassName << "() { " << "DSPThreadPool::Destroy(); }";
     }
 
     tab(n + 1, fout);
-    fout << "virtual int getNumInputs() { "
-         << "return " << fNumInputs << "; }";
+    fout << "virtual int getNumInputs() { " << "return " << fNumInputs << "; }";
 
     tab(n + 1, fout);
-    fout << "virtual int getNumOutputs() { "
-         << "return " << fNumOutputs << "; }";
+    fout << "virtual int getNumOutputs() { " << "return " << fNumOutputs << "; }";
 
     tab(n + 1, fout);
     fout << "static void classInit(int sample_rate) {";
@@ -1009,8 +1003,7 @@ void Klass::println(int n, ostream& fout)
             }
         }
         tab(n + 1, fout);
-        fout << "#define FAUST_CLASS_NAME "
-             << "\"" << fKlassName << "\"";
+        fout << "#define FAUST_CLASS_NAME " << "\"" << fKlassName << "\"";
         tab(n + 1, fout);
         fout << "#define FAUST_COMPILATION_OPIONS \"" << gGlobal->printCompilationOptions1()
              << "\"";
@@ -1490,11 +1483,9 @@ void SigIntGenKlass::println(int n, ostream& fout)
     fout << "  public:";
 
     tab(n + 1, fout);
-    fout << "int getNumInputs() { "
-         << "return " << fNumInputs << "; }";
+    fout << "int getNumInputs() { " << "return " << fNumInputs << "; }";
     tab(n + 1, fout);
-    fout << "int getNumOutputs() { "
-         << "return " << fNumOutputs << "; }";
+    fout << "int getNumOutputs() { " << "return " << fNumOutputs << "; }";
 
     tab(n + 1, fout);
     fout << "void init(int sample_rate) {";
@@ -1559,11 +1550,9 @@ void SigFloatGenKlass::println(int n, ostream& fout)
     fout << "  public:";
 
     tab(n + 1, fout);
-    fout << "int getNumInputs() { "
-         << "return " << fNumInputs << "; }";
+    fout << "int getNumInputs() { " << "return " << fNumInputs << "; }";
     tab(n + 1, fout);
-    fout << "int getNumOutputs() { "
-         << "return " << fNumOutputs << "; }";
+    fout << "int getNumOutputs() { " << "return " << fNumOutputs << "; }";
 
     tab(n + 1, fout);
     fout << "void init(int sample_rate) {";

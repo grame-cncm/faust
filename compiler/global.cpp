@@ -434,20 +434,20 @@ void global::reset()
     gResult          = nullptr;
     gExpandedDefList = nullptr;
 
-    gDetailsSwitch    = false;
-    gDrawSignals      = false;
-    gDrawRetiming     = false;
-    gDrawRecProjGraph = false;
+    gDetailsSwitch                 = false;
+    gDrawSignals                   = false;
+    gDrawRetiming                  = false;
+    gDrawRecProjGraph              = false;
     gEliminateDegenerateRecursions = false;
-    gDrawRouteFrame   = false;
-    gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
-    gScaledSVG        = false;
-    gStripDocSwitch   = false;  // Strip <mdoc> content from doc listings.
-    gFoldThreshold    = 25;
-    gFoldComplexity   = 2;
-    gMaxNameSize      = 40;
-    gSimpleNames      = false;
-    gSimplifyDiagrams = false;
+    gDrawRouteFrame                = false;
+    gShadowBlur                    = false;  // note: svg2pdf doesn't like the blur filter
+    gScaledSVG                     = false;
+    gStripDocSwitch                = false;  // Strip <mdoc> content from doc listings.
+    gFoldThreshold                 = 25;
+    gFoldComplexity                = 2;
+    gMaxNameSize                   = 40;
+    gSimpleNames                   = false;
+    gSimplifyDiagrams              = false;
 
     // new compilation options related to FIRs, IIRs and delaylines
 
@@ -687,7 +687,7 @@ void global::init()
     NULLENV          = tree(symbol("NullRenameEnv"));
     COLORPROPERTY    = tree(symbol("ColorProperty"));
     ORDERPROP        = tree(symbol("OrderProp"));
-    RECURSIVNESS     = tree(symbol("RecursivnessProp"));
+    RECURSIVNESS     = tree(symbol("RecursivenessProp"));
     NULLTYPEENV      = tree(symbol("NullTypeEnv"));
     RECDEF           = tree(symbol("RECDEF"));
     DEBRUIJN2SYM     = tree(symbol("deBruijn2Sym"));
@@ -924,10 +924,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     dst << printFloat();
     dst << "-ftz " << gFTZMode << " ";
     if (gVectorSwitch) {
-        dst << "-vec "
-            << "-lv " << gVectorLoopVariant << " "
-            << "-vs " << gVecSize << " " << ((gFunTaskSwitch) ? "-fun " : "")
-            << ((gGroupTaskSwitch) ? "-g " : "") << ((gDeepFirstSwitch) ? "-dfs " : "");
+        dst << "-vec " << "-lv " << gVectorLoopVariant << " " << "-vs " << gVecSize << " "
+            << ((gFunTaskSwitch) ? "-fun " : "") << ((gGroupTaskSwitch) ? "-g " : "")
+            << ((gDeepFirstSwitch) ? "-dfs " : "");
     }
 
     // Add 'compile_options' metadata
@@ -2600,8 +2599,8 @@ string global::printHelp()
             "memory type), used in -mem1/-mem2 "
             "mode."
          << endl;
-    sstr << tab
-         << "-huf <n>    --hls-unroll-factor <n>     emit HLS unroll pragma when > 0." << endl;
+    sstr << tab << "-huf <n>    --hls-unroll-factor <n>     emit HLS unroll pragma when > 0."
+         << endl;
 
     sstr << tab
          << "-fsr <n>    --fix-sampling-rate <n>     fix sampling rate at compile time instead of "
@@ -2662,8 +2661,7 @@ string global::printHelp()
     sstr << tab << "-blur      --shadow-blur                add a shadow blur to SVG boxes."
          << endl;
     sstr << tab << "-sc        --scaled-svg                 automatic scalable SVG." << endl;
-    sstr << tab
-         << "-style <file> --svgstyle <file>         specify a SVG style file." << endl;
+    sstr << tab << "-style <file> --svgstyle <file>         specify a SVG style file." << endl;
 
     sstr << endl << "Math doc options:" << line;
     sstr << tab
@@ -2712,7 +2710,8 @@ string global::printHelp()
             "format."
          << endl;
     sstr << tab
-         << "-edr        --eliminate-degenerated-recursions eliminate degenerated recursive projections."
+         << "-edr        --eliminate-degenerated-recursions eliminate degenerated recursive "
+            "projections."
          << endl;
     sstr << tab
          << "-norm       --normalized-form           print signals in normalized form and exit."
@@ -2741,8 +2740,7 @@ string global::printHelp()
          << "-ssel       --simplify-select2           apply select2 simplifications based on "
             "type/interval analysis."
          << endl;
-    sstr << tab
-         << "-diff       --auto-differentiate        automatic differentiation." << endl;
+    sstr << tab << "-diff       --auto-differentiate        automatic differentiation." << endl;
     sstr << tab << "-wall       --warning-all               print all warnings." << endl;
     sstr << tab
          << "-t <sec>    --timeout <sec>             abort compilation after <sec> seconds "

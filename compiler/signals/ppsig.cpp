@@ -26,7 +26,7 @@
 #include "exception.hh"
 #include "global.hh"
 #include "prim2.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "xtended.hh"
 
 using namespace std;
@@ -275,7 +275,7 @@ ostream& ppsig::print(ostream& fout) const
     } else if (isProj(fSig, &i, x)) {
         fout << "proj" << i << '(' << ppsig(x, fEnv, 0, fMaxSize) << ')';
     } else if (isRec(fSig, var, le)) {
-        printrec(fout, var, le, fHideRecursion /*&& (getRecursivness(sig)==0)*/);
+        printrec(fout, var, le, fHideRecursion /*&& (getRecursiveness(sig)==0)*/);
     }
 
     // debruinj notation

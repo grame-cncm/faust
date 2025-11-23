@@ -45,7 +45,7 @@
 #include "normalform.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "revealSum.hh"
@@ -178,9 +178,9 @@ Tree ScalarCompiler::prepare(Tree LS)
     conditionAnnotation(L2);
     endTiming("conditionAnnotation");
 
-    startTiming("recursivnessAnnotation");
-    recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
-    endTiming("recursivnessAnnotation");
+    startTiming("recursivenessAnnotation");
+    recursivenessAnnotation(L2);  // Annotate L2 with recursiveness information
+    endTiming("recursivenessAnnotation");
 
     startTiming("L2 typeAnnotation");
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
@@ -198,14 +198,14 @@ Tree ScalarCompiler::prepare(Tree LS)
     conditionAnnotation(L2);
     endTiming("conditionAnnotation");
 
-    // Clear old recursivness annotations before re-computing
-    startTiming("clearRecursivnessAnnotations");
-    clearRecursivnessAnnotations(L2);
-    endTiming("clearRecursivnessAnnotations");
+    // Clear old recursiveness annotations before re-computing
+    startTiming("clearRecursivenessAnnotations");
+    clearRecursivenessAnnotations(L2);
+    endTiming("clearRecursivenessAnnotations");
 
-    startTiming("recursivnessAnnotation");
-    recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
-    endTiming("recursivnessAnnotation");
+    startTiming("recursivenessAnnotation");
+    recursivenessAnnotation(L2);  // Annotate L2 with recursiveness information
+    endTiming("recursivenessAnnotation");
 
     startTiming("L2 typeAnnotation");
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
@@ -234,7 +234,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         if (gGlobal->gDrawRetiming) {
             Tree L3 = sigRetiming(L2, false);
             conditionAnnotation(L3);
-            recursivnessAnnotation(L3);
+            recursivenessAnnotation(L3);
             typeAnnotation(L3, false);
 
             ofstream dotfile(subst("$0-rtsig.dot", gGlobal->makeDrawPath()).c_str());
@@ -257,8 +257,8 @@ Tree ScalarCompiler::prepare2(Tree L0)
 {
     startTiming("ScalarCompiler::prepare2");
 
-    recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
-    typeAnnotation(L0, true);    // Annotate L0 with type information
+    recursivenessAnnotation(L0);  // Annotate L0 with recursiveness information
+    typeAnnotation(L0, true);     // Annotate L0 with type information
 
     delete fOccMarkup;
     fOccMarkup = new OccMarkup();
@@ -518,14 +518,14 @@ string ScalarCompiler::ensureVectorNameProperty(const string& altname, Tree sig)
 
 string ScalarCompiler::CS(Tree sig)
 {
-    // contextor contextRecursivness;
+    // contextor contextRecursiveness;
     string code;
 
     if (!getCompiledExpression(sig, code)) {
 // not compiled yet
 /*
- if (getRecursivness(sig) != contextRecursivness.get()) {
-    contextRecursivness.set(getRecursivness(sig));
+ if (getRecursiveness(sig) != contextRecursiveness.get()) {
+    contextRecursiveness.set(getRecursiveness(sig));
  }
  */
 #ifdef TRACE
@@ -652,7 +652,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
 
 void ScalarCompiler::compileSingleSignal(Tree sig)
 {
-    // contextor recursivness(0);
+    // contextor recursiveness(0);
     sig = prepare2(sig);  // optimize and annotate expression
 
 #ifdef TRACE
