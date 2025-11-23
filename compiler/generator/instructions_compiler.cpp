@@ -32,7 +32,7 @@
 #include "interpreter_code_container.hh"
 #include "normalform.hh"
 #include "prim2.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "revealSum.hh"
@@ -171,9 +171,9 @@ Tree InstructionsCompiler::prepare(Tree LS)
     conditionAnnotation(L2);
     endTiming("conditionAnnotation");
 
-    startTiming("recursivnessAnnotation");
-    recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
-    endTiming("recursivnessAnnotation");
+    startTiming("recursivenessAnnotation");
+    recursivenessAnnotation(L2);  // Annotate L2 with recursiveness information
+    endTiming("recursivenessAnnotation");
 
     startTiming("L2 typeAnnotation");
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
@@ -198,7 +198,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
         if (gGlobal->gDrawRetiming) {
             Tree L3 = sigRetiming(L2, false);
             conditionAnnotation(L3);
-            recursivnessAnnotation(L3);
+            recursivenessAnnotation(L3);
             typeAnnotation(L3, false);
 
             ofstream dotfile(subst("$0-rtsig.dot", gGlobal->makeDrawPath()).c_str());
@@ -215,8 +215,8 @@ Tree InstructionsCompiler::prepare2(Tree L0)
 {
     startTiming("prepare2");
 
-    recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
-    typeAnnotation(L0, true);    // Annotate L0 with type information
+    recursivenessAnnotation(L0);  // Annotate L0 with recursiveness information
+    typeAnnotation(L0, true);     // Annotate L0 with type information
 
     delete fOccMarkup;
     fOccMarkup = new OccMarkup();
@@ -1347,7 +1347,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             getTypedNames(t, "Const", ctype, vname);
 
             // TODO: deactivated for now since getOccurrence fails in some cases
-          
+
             /*
             // The variable is used in compute (kBlock or kSamp),
             // so define is as a field in the DSP struct
@@ -1366,7 +1366,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             pushDeclare(IB::genDecStructVar(vname, ctype));
             pushInitMethod(IB::genStoreStructVar(vname, exp));
             return IB::genLoadStructVar(vname);
-    
+
         case kBlock: {
             getTypedNames(t, "Slow", ctype, vname);
 

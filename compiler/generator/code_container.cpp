@@ -27,7 +27,7 @@
 #include "floats.hh"
 #include "global.hh"
 #include "instructions_complexity.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "struct_manager.hh"
 #include "text_instructions.hh"
 #include "timing.hh"
@@ -826,8 +826,7 @@ void CodeContainer::printMacros(ostream& fout, int n)
                 }
             }
             tab(n + 1, fout);
-            fout << "#define FAUST_CLASS_NAME "
-                 << "\"" << fKlassName << "\"";
+            fout << "#define FAUST_CLASS_NAME " << "\"" << fKlassName << "\"";
             tab(n + 1, fout);
             fout << "#define FAUST_COMPILATION_OPIONS \"" << gGlobal->printCompilationOptions1()
                  << "\"";
@@ -844,15 +843,13 @@ void CodeContainer::printMacros(ostream& fout, int n)
             tab(n, fout);
             tab(n, fout);
             {
-                fout << "\t"
-                     << "#define FAUST_LIST_ACTIVES(p) \\";
+                fout << "\t" << "#define FAUST_LIST_ACTIVES(p) \\";
                 printlines(n + 2, fUIMacroActives, fout);
                 tab(n, fout);
                 tab(n, fout);
             }
             {
-                fout << "\t"
-                     << "#define FAUST_LIST_PASSIVES(p) \\";
+                fout << "\t" << "#define FAUST_LIST_PASSIVES(p) \\";
                 printlines(n + 2, fUIMacroPassives, fout);
                 tab(n, fout);
                 tab(n, fout);

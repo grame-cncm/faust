@@ -30,7 +30,7 @@
 #include "interval_def.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "sigFIR.hh"
 #include "sigIIR.hh"
 #include "signals.hh"

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2006 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -19,40 +19,25 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _RECURSIVNESS_
-#define _RECURSIVNESS_
+#ifndef __SIGSELECT2SIMPLIFICATION__
+#define __SIGSELECT2SIMPLIFICATION__
 
-#include "signals.hh"
-
-/**
- * Annotate a signal with recursivness information, the amount of
- * recursive dependencies of a signal. Should be used before
- * calling getRecursivness.
- * @param sig signal to annotate
- */
-void recursivnessAnnotation(Tree sig);
+#include "tree.hh"
 
 /**
- * Return the recursivness of a previously
- * annotated signal. An error is generated
- * if the signal has no recursivness property.
- * @param sig signal
- * @return recursivness of the signal
+ * @brief Simplify sigSelect2 based on selector interval analysis
+ *
+ * This transformation simplifies select2 signals when:
+ * - The selector interval is [0,0] → returns first branch
+ * - The selector interval doesn't contain 0 → returns second branch
+ * - Both branches are identical → returns the branch
+ *
+ * Precondition: signals must have been typed (typeAnnotation must have been called)
+ *
+ * @param siglist The list of signals to transform
+ * @param trace Enable debug tracing (optional)
+ * @return Tree The transformed signal list
  */
-int getRecursivness(Tree t);
-
-/**
- * Return the set of recursive symbols appearing in a signal.
- * @param sig the signal to analyze
- * @return the set of symbols
- */
-Tree symlist(Tree sig);
-
-/**
- * Clear recursivness annotations from a signal tree.
- * This allows re-annotation after signal transformations.
- * @param sig signal tree to clear
- */
-void clearRecursivnessAnnotations(Tree sig);
+Tree simplifySelect2(Tree siglist, bool trace = false);
 
 #endif
