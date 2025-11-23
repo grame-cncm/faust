@@ -20,6 +20,9 @@
  ************************************************************************/
 
 #include "sigTransform.hh"
+#include "ppsig.hh"
+#include "signals.hh"
+#include "sigtype.hh"
 
 using namespace std;
 
@@ -56,7 +59,26 @@ static Tree sigTransformCached(Normalize& normalize, property<Tree>& cache, Tree
         cache.set(signal, signal);
 
         // Transform the definitions: [s1,s2,...] -> [TF(s1),TF(s2),...]
-        Tree result = rec(id, sigListTransformCached(normalize, cache, ldefs, visitgen));
+        Tree new_ldefs = sigListTransformCached(normalize, cache, ldefs, visitgen);
+        Tree result    = rec(id, new_ldefs);
+
+        // DEBUG: Check if transformation changed anything
+        if (ldefs != new_ldefs) {
+            std::cerr << "WARNING: Recursive definitions transformed but rec pointer may be reused "
+                         "by hash-consing"
+                      << std::endl;
+            std::cerr << "  signal ptr: " << signal << std::endl;
+            std::cerr << "  result ptr: " << result << std::endl;
+            std::cerr << "  same pointer? " << (signal == result ? "YES" : "NO") << std::endl;
+
+            // Check if types are preserved
+            Type sigType = getSigType(signal);
+            Type resType = getSigType(result);
+            std::cerr << "  signal has type? " << (sigType.pointee() != nullptr ? "YES" : "NO")
+                      << std::endl;
+            std::cerr << "  result has type? " << (resType.pointee() != nullptr ? "YES" : "NO")
+                      << std::endl;
+        }
 
         // Sanity check: recursive group structure unchanged
         faustassert(signal == result);
@@ -79,6 +101,26 @@ static Tree sigTransformCached(Normalize& normalize, property<Tree>& cache, Tree
 
     // Apply normalization: N(op[TF(s1),TF(s2),...])
     Tree result = normalize(tmp);
+
+    // Propagate type and recursivness information from original signal to transformed signal
+    if (signal != result) {
+        // Copy TYPE property
+        Type sigType = getSigType(signal);
+        Type resType = getSigType(result);
+        if (sigType && !resType) {
+            // Copy type from original to transformed signal
+            setSigType(result, sigType);
+        }
+
+        // Copy RECURSIVNESS property
+        Tree recProp;
+        if (getProperty(signal, gGlobal->RECURSIVNESS, recProp)) {
+            Tree resultRecProp;
+            if (!getProperty(result, gGlobal->RECURSIVNESS, resultRecProp)) {
+                setProperty(result, gGlobal->RECURSIVNESS, recProp);
+            }
+        }
+    }
 
     // Cache and return result
     cache.set(signal, result);
