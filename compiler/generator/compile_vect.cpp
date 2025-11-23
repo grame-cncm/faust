@@ -32,7 +32,7 @@ using namespace std;
 
 void VectorCompiler::compileMultiSignal(Tree L)
 {
-    // contextor recursivness(0);
+    // contextor recursiveness(0);
     L = prepare(L);  // optimize, share and annotate expression
 
     for (int i = 0; i < fClass->inputs(); i++) {

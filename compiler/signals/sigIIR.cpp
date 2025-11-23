@@ -57,7 +57,7 @@ if Ci constant, then (Ci@d)*(Vi@(d+k)) = Ci*(Vi@(d+k)) PROOF t<d+k : Vi@(d+k) = 
 
 // for test purposes
 #include "occurrences.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "sharing.hh"
 
 #define TRACE 1

@@ -28,20 +28,20 @@
 #include "global.hh"
 #include "ppsig.hh"
 #include "property.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "signals.hh"
 
 using namespace std;
 
 /**
- * @file recursivness.cpp
- * Annotate a signal expression with recursivness information, the amount of
+ * @file recursiveness.cpp
+ * Annotate a signal expression with recursiveness information, the amount of
  * recursive dependencies of a signal. A closed signal
- * has a recursivness of 0 because is has no recursive dependencies. This means
+ * has a recursiveness of 0 because is has no recursive dependencies. This means
  * that the successive samples of this signal can be computed in parallel.
- * In a signal of type \x.(...F(x)...), F(x) has a recursivness of 1. In a
- * signal of type \x.(... \y.(...F(x)...G(y)...)...), F(x) has a recursivness of 2
- * while G(y) has a recursivness of 1.
+ * In a signal of type \x.(...F(x)...), F(x) has a recursiveness of 1. In a
+ * signal of type \x.(... \y.(...F(x)...G(y)...)...), F(x) has a recursiveness of 2
+ * while G(y) has a recursiveness of 1.
  */
 
 //--------------------------------------------------------------------------
@@ -50,28 +50,28 @@ static int position(Tree env, Tree t, int p = 1);
 //--------------------------------------------------------------------------
 
 /**
- * Annotate a signal with recursivness information, the amount of
+ * Annotate a signal with recursiveness information, the amount of
  * recursive dependencies of a signal. Should be used before
- * calling getRecursivness.
+ * calling getRecursiveness.
  * @param sig signal to annotate
  */
-void recursivnessAnnotation(Tree sig)
+void recursivenessAnnotation(Tree sig)
 {
     annotate(gGlobal->nil, sig);
 }
 
 /**
- * Return the recursivness of a previously
+ * Return the recursiveness of a previously
  * annotated signal. An error is generated
- * if the signal has no recursivness property
+ * if the signal has no recursiveness property
  * @param sig signal
- * @return recursivness of the signal
+ * @return recursiveness of the signal
  */
-int getRecursivness(Tree sig)
+int getRecursiveness(Tree sig)
 {
     Tree tr;
     if (!getProperty(sig, gGlobal->RECURSIVNESS, tr)) {
-        cerr << "ASSERT : getRecursivness of " << ppsig(sig) << endl;
+        cerr << "ASSERT : getRecursiveness of " << ppsig(sig) << endl;
         faustassert(false);
     }
     return tree2int(tr);
@@ -79,10 +79,10 @@ int getRecursivness(Tree sig)
 
 //-------------------------------------- IMPLEMENTATION ------------------------------------
 /**
- * Annotate a signal with recursivness
+ * Annotate a signal with recursiveness
  * @param env the current environment
  * @param sig signal to annotate
- * @return recursivness of the signal
+ * @return recursiveness of the signal
  */
 static int annotate(Tree env, Tree sig)
 {
@@ -188,7 +188,7 @@ Tree symlist(Tree sig)
     return S;
 }
 
-//-------------------------------- Clear recursivness annotations ----------------------
+//-------------------------------- Clear recursiveness annotations ----------------------
 
 /**
  * Recursively clear RECURSIVNESS property from a signal tree.
@@ -196,7 +196,7 @@ Tree symlist(Tree sig)
  * @param sig the signal to clear
  * @param visited set of already visited signals
  */
-static void clearRecursivnessVisit(Tree sig, set<Tree>& visited)
+static void clearRecursivenessVisit(Tree sig, set<Tree>& visited)
 {
     // Avoid infinite loops
     if (visited.count(sig) > 0) {
@@ -215,24 +215,24 @@ static void clearRecursivnessVisit(Tree sig, set<Tree>& visited)
     if (isRec(sig, var, body)) {
         // For recursive signals, clear the body (which is a list)
         // This will clear the body itself and recursively all its elements
-        clearRecursivnessVisit(body, visited);
+        clearRecursivenessVisit(body, visited);
     } else {
         // For other signals, clear all subsignals
         tvec subsigs;
         int  n = getSubSignals(sig, subsigs, true);  // include tables
         for (int i = 0; i < n; i++) {
-            clearRecursivnessVisit(subsigs[i], visited);
+            clearRecursivenessVisit(subsigs[i], visited);
         }
     }
 }
 
 /**
- * Clear recursivness annotations from a signal tree.
+ * Clear recursiveness annotations from a signal tree.
  * This allows re-annotation after signal transformations.
  * @param sig signal tree to clear
  */
-void clearRecursivnessAnnotations(Tree sig)
+void clearRecursivenessAnnotations(Tree sig)
 {
     set<Tree> visited;
-    clearRecursivnessVisit(sig, visited);
+    clearRecursivenessVisit(sig, visited);
 }

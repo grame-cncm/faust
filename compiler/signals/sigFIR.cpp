@@ -43,7 +43,7 @@
 
 // for test purposes
 #include "occurrences.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "sharing.hh"
 #include "sigorderrules.hh"
 
@@ -836,7 +836,7 @@ void testFIR()
     Tree L2          = cons(s5, gGlobal->nil);
     Tree fSharingKey = tree("sharingkey");
     // conditionAnnotation(L2);
-    recursivnessAnnotation(L2);        // Annotate L2 with recursivness information
+    recursivenessAnnotation(L2);       // Annotate L2 with recursiveness information
     typeAnnotation(L2, true);          // Annotate L2 with type information and check causality
     sharingAnalysis(L2, fSharingKey);  // Annotate L2 with sharing count
     OccMarkup occ;

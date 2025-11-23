@@ -18,7 +18,7 @@
 #include "normalform.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "revealSum.hh"
@@ -71,8 +71,7 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
         if (isOne(coefs[i])) {
             oss << " + " << access;
         } else {
-            oss << " + "
-                << "(" << CS(coefs[i]) << ") * " << access;
+            oss << " + " << "(" << CS(coefs[i]) << ") * " << access;
         }
     }
     std::string exp = oss.str();

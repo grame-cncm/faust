@@ -17,7 +17,7 @@
 #include "normalform.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "revealSum.hh"
