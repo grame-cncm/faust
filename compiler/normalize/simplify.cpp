@@ -29,7 +29,7 @@
 #include "normalize.hh"
 #include "num.hh"
 #include "ppsig.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "signals.hh"
 #include "sigorderrules.hh"
 #include "sigprint.hh"

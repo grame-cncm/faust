@@ -72,7 +72,7 @@
 #include "ppbox.hh"
 #include "prim2.hh"
 #include "propagate.hh"
-#include "recursivness.hh"
+#include "recursiveness.hh"
 #include "sigprint.hh"
 #include "simplify.hh"
 #include "sourcereader.hh"
