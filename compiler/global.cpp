@@ -2441,7 +2441,9 @@ string global::printHelp()
             "delay <n> and a "
             "select based ring buffers above (default INT_MAX samples)."
          << endl;
-    sstr << tab << "-ss <n>     --scheduling-strategy <n>   0=deep first, 1=breadth first" << endl;
+    sstr << tab << "-ss <n>     --scheduling-strategy <n>   0=depth-first, 1=breadth-first, 2=special, "
+            "3+=reverse breadth-first (default: 0)"
+         << endl;
 #endif
 #ifndef EMCC
     sstr
