@@ -2491,12 +2491,26 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
                     IB::genAddMetaDeclareInst("0", rmWhiteSpaces(key), rmWhiteSpaces(j)));
             }
         }
-        // At root level and if label is empty, use the name kept in "metadata" (either
-        // the one coded in 'declare name "XXX";' line, or the filename)
-        string group = (root && (simplifiedLabel == ""))
-                           ? unquote(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())))
-                           : checkNullLabel(t, simplifiedLabel);
-
+        // At root level and if label is empty, use the name kept in "metadata" (either the one
+        // coded in 'declare name "XXX";' line, or the filename). For non-root empty labels, skip
+        // creating an extra box.
+        
+        // Determine base group label
+        string group = simplifiedLabel;
+        
+        if (root && simplifiedLabel.empty()) {
+            group = unquote(tree2str(*gGlobal->gMetaDataSet[tree("name")].begin()));
+        }
+        
+        // If not root and group is still empty, just generate UI elements
+        if (!root && group.empty()) {
+            generateUserInterfaceElements(elements);
+            return;
+        }
+        
+        // Normalize/validate the label
+        group = checkNullLabel(t, group);
+        
         pushUserInterfaceMethod(IB::genOpenboxInst(group, orient));
         generateUserInterfaceElements(elements);
         pushUserInterfaceMethod(IB::genCloseboxInst());

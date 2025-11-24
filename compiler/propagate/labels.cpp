@@ -41,37 +41,66 @@ using namespace std;
  * <gtype> = "h:" | "H:" | "v:" | V:" | "t:" | "T:"
  */
 
+/**
+ * Root path marker ('/').
+ * @return root marker tree node
+ */
 static Tree pathRoot()
 {
     return tree(gGlobal->PATHROOT);
 }
+/**
+ * Check if a node is the root path marker.
+ * @param t candidate node
+ * @return true if t equals PATHROOT
+ */
 static bool isPathRoot(Tree t)
 {
     return isTree(t, gGlobal->PATHROOT);
 }
 
+/**
+ * Parent path marker ("..").
+ * @return parent marker tree node
+ */
 static Tree pathParent()
 {
     return tree(gGlobal->PATHPARENT);
 }
+/**
+ * Check if a node is the parent path marker.
+ * @param t candidate node
+ * @return true if t equals PATHPARENT
+ */
 static bool isPathParent(Tree t)
 {
     return isTree(t, gGlobal->PATHPARENT);
 }
 
+/**
+ * Current path marker (".").
+ * @return current marker tree node
+ */
 static Tree pathCurrent()
 {
     return tree(gGlobal->PATHCURRENT);
 }
+/**
+ * Check if a node is the current path marker.
+ * @param t candidate node
+ * @return true if t equals PATHCURRENT
+ */
 static bool isPathCurrent(Tree t)
 {
     return isTree(t, gGlobal->PATHCURRENT);
 }
 
 /**
- * analyze name for "H:name" | "V:name" etc
+ * Encode a label with its group code ("H:name", "V:name", "T:name").
+ * @param g group code character ('v','h','t' and upper-case variants)
+ * @param name label string without group prefix
+ * @return cons(group code, label)
  */
-
 static Tree encodeName(char g, const string& name)
 {
     switch (g) {
@@ -93,9 +122,11 @@ static Tree encodeName(char g, const string& name)
 }
 
 /**
- * Analyzes a label and converts it as a path
+ * Analyze a label string and convert it to a top-down path.
+ * Handles '/', '.', '..' and group prefixes (v:/h:/t:).
+ * @param label C string representation of the label
+ * @return path as a list of tree nodes (top-down)
  */
-
 Tree label2path(const char* label)
 {
     if (label[0] == 0) {
@@ -140,12 +171,11 @@ Tree label2path(const char* label)
  * @param target The target string to convert.
  * @return Tree The reversed path representation of the target.
  */
-
 Tree target2path(const std::string& target)
 {
     bool   frontier = true;          // Indicates if we are at the start of a new symbol
     Tree   path     = gGlobal->nil;  // The resulting path (constructed in reverse order)
-    string currentSymbol;            // Holds the current symbol being builded
+    string currentSymbol;            // Holds the current symbol being built
 
     for (char c : target) {
         if (frontier) {
@@ -158,7 +188,7 @@ Tree target2path(const std::string& target)
                 currentSymbol += c;  // Continue building the current symbol
             } else {
                 path     = cons(tree(currentSymbol), path);  // add current symbol to the path
-                frontier = true;  // abck to frontier mode for next symbol
+                frontier = true;  // back to frontier mode for next symbol
             }
         }
     }
@@ -172,11 +202,12 @@ Tree target2path(const std::string& target)
 }
 
 /**
- * Concatenate the relative path to the absolute path
- * Note that the relpath is top-down while the abspath
- * is bottom-up
+ * Concatenate a top-down relative path with a bottom-up absolute path.
+ * Handles '/', '..' and '.' navigation markers and clamps ".." at the root.
+ * @param relpath relative path (top-down)
+ * @param abspath absolute path (bottom-up)
+ * @return combined absolute path (bottom-up)
  */
-
 static Tree concatPath(Tree relpath, Tree abspath)
 {
     if (isList(relpath)) {
@@ -184,12 +215,11 @@ static Tree concatPath(Tree relpath, Tree abspath)
         if (isPathRoot(head)) {
             return concatPath(tl(relpath), gGlobal->nil);
         } else if (isPathParent(head)) {
-            if (!isList(abspath)) {
-                // cerr << "abspath : " << *abspath << endl;
-                return concatPath(tl(relpath), hd(relpath));
-            } else {
+            if (isList(abspath)) {
                 return concatPath(tl(relpath), tl(abspath));
             }
+            // Already at root: drop the parent and keep going
+            return concatPath(tl(relpath), gGlobal->nil);
         } else if (isPathCurrent(head)) {
             return concatPath(tl(relpath), abspath);
         } else {
@@ -201,11 +231,93 @@ static Tree concatPath(Tree relpath, Tree abspath)
     }
 }
 
+/**
+ * Extract a group code from a tree node. Only integer nodes are accepted.
+ * @param codeTree node containing the code
+ * @param code resulting integer code
+ * @return true if codeTree holds an int code (0,1,2 expected)
+ */
+static bool getGroupCode(Tree codeTree, int& code)
+{
+    return isInt(codeTree->node(), &code);
+}
+
+/**
+ * Detect a group label of the form (code,label) and extract components.
+ * @param label candidate label tree
+ * @param gcode group code (0=v,1=h,2=t) output
+ * @param glabel inner label output
+ * @return true if label matches the group pattern
+ */
+static bool isGroupLabel(Tree label, Tree& gcode, Tree& glabel)
+{
+    if (isList(label)) {
+        Tree tail = tl(label);
+        int  code;
+        if (getGroupCode(hd(label), code) && (0 <= code) && (code <= 2)) {
+            if (isList(tail) && isNil(tl(tail))) {
+                gcode  = hd(label);
+                glabel = hd(tail);
+                return true;
+            } else if (!isNil(tail)) {
+                // Common case: label is a pair (gcode, glabel)
+                gcode  = hd(label);
+                glabel = tail;
+                return true;
+            }
+        } else {
+            faustassert(false && "Invalid group code in UI label");
+        }
+    }
+    return false;
+}
+
+/**
+ * Attach the group code to every element of a relative path, leaving
+ * navigation markers (/ .. .) untouched.
+ * @param relpath relative path (top-down)
+ * @param gcode group code to attach (0=v,1=h,2=t)
+ * @return relative path with group code applied
+ */
+static Tree addGroupCode(Tree relpath, Tree gcode)
+{
+    if (isList(relpath)) {
+        Tree head = hd(relpath);
+        if (isPathRoot(head) || isPathParent(head) || isPathCurrent(head)) {
+            return cons(head, addGroupCode(tl(relpath), gcode));
+        } else if (isList(head)) {
+            return cons(head, addGroupCode(tl(relpath), gcode));
+        } else {
+            return cons(cons(gcode, head), addGroupCode(tl(relpath), gcode));
+        }
+    } else {
+        faustassert(isNil(relpath));
+        return gGlobal->nil;
+    }
+}
+
+/**
+ * Normalize a single label component against the current path.
+ * - Plain symbols are converted through label2path then concatenated.
+ * - Group labels propagate their navigation markers and apply the group code
+ *   to each path element.
+ * @param label label tree to normalize
+ * @param path current absolute path (bottom-up)
+ * @return new absolute path including the label
+ */
 static Tree normalizeLabel(Tree label, Tree path)
 {
     // we suppose label = "../label" or "name/label" or "name"
     // cout << "Normalize Label " << *label << " with path " << *path << endl;
     if (isList(label)) {
+        Tree gcode, glabel;
+        if (isGroupLabel(label, gcode, glabel)) {
+            Sym  s;
+            bool is_sym = isSym(glabel->node(), &s);
+            faustassert(is_sym);
+            // Apply path modifiers (/, .., .) contained in the group label on the current path
+            return concatPath(addGroupCode(label2path(name(s)), gcode), path);
+        }
         return cons(label, path);
     } else {
         Sym  s;
@@ -215,10 +327,13 @@ static Tree normalizeLabel(Tree label, Tree path)
     }
 }
 
-// Normalize a path. For example, assuming i=3, "h:bidule/foo%i"
-// is transformed into: cons[foo3,cons[cons[1,bidule],nil]]
-// Where 0 indicates v, 1 indicates h, and 2 indicates t.
-// Metadata are not removed !
+/**
+ * Normalize a full path.
+ * Example: "h:bidule/foo%i" -> cons[foo3, cons[cons[1,bidule], nil]]
+ * (0=v, 1=h, 2=t). Metadata are preserved.
+ * @param path path to normalize
+ * @return normalized path
+ */
 Tree normalizePath(Tree path)
 {
     // cout << "Normalize Path [[" << *path << "]]" << endl;
@@ -232,11 +347,13 @@ Tree normalizePath(Tree path)
     return npath;
 }
 
-// SuperNormalize a path by removing vht indications.
-// For example, assuming i=3, "h:bidule/foo%i"
-// is transformed into: cons[foo3,cons[bidule,nil]]
-// Where 0 indicates v, 1 indicates h, and 2 indicates t.
-// Metadata are not removed !
+/**
+ * Normalize a path, drop group codes, and remove widget metadata.
+ * Example: "h:bidule/foo%i" -> cons[foo3, cons[bidule, nil]].
+ * The calls to removeMetadata() ensure label decorations like [unit:Hz] are discarded here.
+ * @param path path to normalize
+ * @return normalized path without group codes and metadata
+ */
 Tree superNormalizePath(Tree path)
 {
     Tree npath = normalizePath(path);

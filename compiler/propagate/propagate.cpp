@@ -431,15 +431,15 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     // User Interface Groups
 
     else if (isBoxVGroup(box, label, t1)) {
-        return propagate(slotenv, cons(cons(tree(0), label), path), t1, lsig);
+        return propagate(slotenv, normalizePath(cons(cons(tree(0), label), path)), t1, lsig);
     }
 
     else if (isBoxHGroup(box, label, t1)) {
-        return propagate(slotenv, cons(cons(tree(1), label), path), t1, lsig);
+        return propagate(slotenv, normalizePath(cons(cons(tree(1), label), path)), t1, lsig);
     }
 
     else if (isBoxTGroup(box, label, t1)) {
-        return propagate(slotenv, cons(cons(tree(2), label), path), t1, lsig);
+        return propagate(slotenv, normalizePath(cons(cons(tree(2), label), path)), t1, lsig);
     }
 
     // Block Diagram Composition Algebra
