@@ -778,6 +778,8 @@ EMSCRIPTEN_BINDINGS(FaustBoxSignal)
         .property("fLo",  &Interval::fLo)
         .property("fHi",  &Interval::fHi)
         .property("fLSB", &Interval::fLSB);
+    
+    class_<CTree>("CTree");  // ensures CTree* is a known embind type
 
     register_vector<CTree*>("vector<CTree*>");
     register_vector<std::string>("vector<string>");
