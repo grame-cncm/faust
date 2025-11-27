@@ -47,6 +47,10 @@ class libFaustWasm {
 
     FaustWasm createDSPFactory(const std::string name, const std::string dsp_content,
                                const std::string args_aux, bool internal_memory);
+    FaustWasm createDSPFactoryFromSignals(const std::string name, tvec signals,
+                                          const std::string args_aux, bool internal_memory);
+    FaustWasm createDSPFactoryFromBoxes(const std::string name, Tree box,
+                                        const std::string args_aux, bool internal_memory);
     void      deleteAllDSPFactories() { ::deleteAllWasmDSPFactories(); }
     void      deleteDSPFactory(int cfactory);
 

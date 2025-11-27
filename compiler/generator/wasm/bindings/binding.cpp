@@ -704,6 +704,10 @@ EMSCRIPTEN_BINDINGS(FaustModule)
         .function("version", &libFaustWasm::version, allow_raw_pointers())
 
         .function("createDSPFactory", &libFaustWasm::createDSPFactory, allow_raw_pointers())
+        .function("createDSPFactoryFromSignals", &libFaustWasm::createDSPFactoryFromSignals,
+                  allow_raw_pointers())
+        .function("createDSPFactoryFromBoxes", &libFaustWasm::createDSPFactoryFromBoxes,
+                  allow_raw_pointers())
         .function("deleteDSPFactory", &libFaustWasm::deleteDSPFactory, allow_raw_pointers())
         .function("deleteAllDSPFactories", &libFaustWasm::deleteAllDSPFactories)
 

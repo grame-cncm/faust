@@ -87,6 +87,60 @@ FaustWasm libFaustWasm::createDSPFactory(const string name, const string dsp_con
     return out;
 }
 
+FaustWasm libFaustWasm::createDSPFactoryFromSignals(const string name, tvec signals,
+                                                    const string args_aux, bool internal_memory)
+{
+    vector<string> argsv;
+    string2StringsVector(args_aux, argsv);
+    size_t n = argsv.size();
+
+    string            error_msg;
+    const char**      args = stringVector2argv(argsv);
+    wasm_dsp_factory* factory =
+        ::createWasmDSPFactoryFromSignals(name, signals, n, args, error_msg, internal_memory);
+    delete[] args;
+
+    FaustWasm out;
+    if (factory) {
+        out.cfactory = int(factory);
+        string code  = factory->getBinaryCode();
+        for (size_t i = 0; i < code.size(); i++) {
+            out.data.push_back(code[i]);
+        }
+        stringstream json;
+        factory->writeHelper(&json, false, false);
+        out.json = json.str();
+    }
+    return out;
+}
+
+FaustWasm libFaustWasm::createDSPFactoryFromBoxes(const string name, Tree box,
+                                                  const string args_aux, bool internal_memory)
+{
+    vector<string> argsv;
+    string2StringsVector(args_aux, argsv);
+    size_t n = argsv.size();
+
+    string            error_msg;
+    const char**      args = stringVector2argv(argsv);
+    wasm_dsp_factory* factory =
+        ::createWasmDSPFactoryFromBoxes(name, box, n, args, error_msg, internal_memory);
+    delete[] args;
+
+    FaustWasm out;
+    if (factory) {
+        out.cfactory = int(factory);
+        string code  = factory->getBinaryCode();
+        for (size_t i = 0; i < code.size(); i++) {
+            out.data.push_back(code[i]);
+        }
+        stringstream json;
+        factory->writeHelper(&json, false, false);
+        out.json = json.str();
+    }
+    return out;
+}
+
 void libFaustWasm::deleteDSPFactory(int cfactory)
 {
     deleteWasmDSPFactory(static_cast<wasm_dsp_factory*>((void*)cfactory));
