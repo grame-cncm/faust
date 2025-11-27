@@ -104,15 +104,6 @@ enum SOperator {
 };
 
 /**
- * Base class for factories.
- */
-struct LIBFAUST_API dsp_factory_base {
-    virtual ~dsp_factory_base() {}
-
-    virtual void write(std::ostream* /*out*/, bool /*binary*/ = false, bool /*compact*/ = false) {}
-};
-
-/**
  * Print the box.
  *
  * @param box - the box to be printed

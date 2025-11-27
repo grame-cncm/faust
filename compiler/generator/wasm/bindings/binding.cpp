@@ -687,6 +687,24 @@ val wrapIsSigSoundfileBuffer(Signal s)
                       resultField("part", ptrValue(part)), resultField("index", ptrValue(ridx)));
 }
 
+struct SplitResult {
+    bool ok;
+    Box left;
+    Box right;
+};
+
+SplitResult isBoxSplit_wrap(Box in)
+{
+    Box left = nullptr;
+    Box right = nullptr;
+    bool ok = isBoxSplit(in, left, right);
+    return { ok, left, right };
+}
+
+Box getLeft(const SplitResult& s) { return s.left; }
+Box getRight(const SplitResult& s) { return s.right; }
+bool getOk(const SplitResult& s) { return s.ok; }
+
 }  // namespace
 
 EMSCRIPTEN_BINDINGS(CStruct)
@@ -695,6 +713,12 @@ EMSCRIPTEN_BINDINGS(CStruct)
         .field("cfactory", &FaustWasm::cfactory)
         .field("data", &FaustWasm::data)
         .field("json", &FaustWasm::json);
+    
+    class_<SplitResult>("SplitResult")
+        .constructor<>()
+        .function("ok", &getOk)
+        .function("left", &getLeft, allow_raw_pointers())
+        .function("right", &getRight, allow_raw_pointers()); 
 }
 
 EMSCRIPTEN_BINDINGS(FaustModule)
@@ -748,10 +772,12 @@ EMSCRIPTEN_BINDINGS(FaustBoxSignal)
         .value("kOR", kOR)
         .value("kXOR", kXOR);
 
-    value_object<Interval>("Interval")
-        .field("fLo", &Interval::fLo)
-        .field("fHi", &Interval::fHi)
-        .field("fLSB", &Interval::fLSB);
+    
+    class_<Interval>("Interval")
+        .constructor<int>()             // matches Interval(int lsb)
+        .property("fLo",  &Interval::fLo)
+        .property("fHi",  &Interval::fHi)
+        .property("fLSB", &Interval::fLSB);
 
     register_vector<CTree*>("vector<CTree*>");
     register_vector<std::string>("vector<string>");
@@ -776,12 +802,9 @@ EMSCRIPTEN_BINDINGS(FaustBoxSignal)
     function("extractName", &extractName, allow_raw_pointers());
     function("getDefNameProperty", &wrapGetDefNameProperty, allow_raw_pointers());
 
-    function("isNil", select_overload<bool(Box)>(&isNil), allow_raw_pointers());
-    function("isNil", select_overload<bool(Signal)>(&isNil), allow_raw_pointers());
-
+    function("isNil", select_overload<bool(Tree)>(&isNil), allow_raw_pointers());
     function("tree2str", select_overload<const char*(Box)>(&tree2str), allow_raw_pointers());
     function("tree2str", select_overload<const char*(Signal)>(&tree2str), allow_raw_pointers());
-
     function("tree2int", &tree2int, allow_raw_pointers());
 
     function("getUserData", select_overload<void*(Box)>(&getUserData), allow_raw_pointers());
@@ -957,7 +980,7 @@ EMSCRIPTEN_BINDINGS(FaustBoxSignal)
     function("isBoxPrim4", select_overload<bool(Box)>(&isBoxPrim4), allow_raw_pointers());
     function("isBoxPrim5", select_overload<bool(Box)>(&isBoxPrim5), allow_raw_pointers());
     function("isBoxSoundfile", select_overload<bool(Box)>(&isBoxSoundfile), allow_raw_pointers());
-    function("isBoxSplit", select_overload<bool(Box)>(&isBoxSplit), allow_raw_pointers());
+    function("isBoxSplit", &isBoxSplit_wrap, allow_raw_pointers());
     function("isBoxSymbolic", select_overload<bool(Box)>(&isBoxSymbolic), allow_raw_pointers());
     function("isBoxTGroup", select_overload<bool(Box)>(&isBoxTGroup), allow_raw_pointers());
     function("isBoxVBargraph", select_overload<bool(Box)>(&isBoxVBargraph), allow_raw_pointers());
