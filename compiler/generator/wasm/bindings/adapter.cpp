@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST compiler
- Copyright (C) 2003-2024 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2025 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -30,6 +30,7 @@ using namespace std;
 
 static void string2StringsVector(const string& args, vector<string>& strings)
 {
+    // Split a space-delimited argument string into a vector of tokens.
     stringstream tokenizer(args);
     string       token;
 
@@ -41,6 +42,7 @@ static void string2StringsVector(const string& args, vector<string>& strings)
 
 static const char** stringVector2argv(const vector<string>& v)
 {
+    // Build a transient argv-style array (no trailing nullptr).
     const char** argv = nullptr;
     size_t       n    = v.size();
     if (n > 0) {
@@ -52,102 +54,94 @@ static const char** stringVector2argv(const vector<string>& v)
     return argv;
 }
 
+// Convert a native wasm_dsp_factory into the embind-friendly FaustWasm struct.
+static FaustWasm makeFaustWasm(wasm_dsp_factory* factory)
+{
+    // Convert a native factory into the embind-friendly struct (pointer + code + JSON).
+    FaustWasm out;
+    if (!factory) {
+        return out;
+    }
+
+    // Keep C++ pointer as an int
+    out.cfactory = int(factory);
+
+    // 'Binary' string, so directly copy its raw content
+    string code = factory->getBinaryCode();
+    out.data.assign(code.begin(), code.end());
+
+    // JSON file
+    stringstream json;
+    factory->writeHelper(&json, false, false);
+    out.json = json.str();
+    return out;
+}
+
+// Common wrapper to parse CLI args and invoke a factory builder lambda.
+template <typename Builder>
+static FaustWasm buildFactory(const string& args_aux, Builder&& builder)
+{
+    // Parse args, run the provided builder, then serialize into FaustWasm.
+    vector<string> argsv;
+    string2StringsVector(args_aux, argsv);
+    size_t n = argsv.size();
+
+    const char** argv = stringVector2argv(argsv);
+    wasm_dsp_factory* factory = builder(n, argv);
+    delete[] argv;
+
+    return makeFaustWasm(factory);
+}
+
 // Public API
+
+// Build a wasm DSP factory from DSP source code.
 FaustWasm libFaustWasm::createDSPFactory(const string name, const string dsp_content,
                                          const string args_aux, bool internal_memory)
 {
-    vector<string> argsv;
-    string2StringsVector(args_aux, argsv);
-    size_t n = argsv.size();
-
-    // 'error_msg' is actually not used: the possible error is returned in
-    // 'faustexception::gJSExceptionMsg'
-    string            error_msg;
-    const char**      args = stringVector2argv(argsv);
-    wasm_dsp_factory* factory =
-        ::createWasmDSPFactoryFromString(name, dsp_content, n, args, error_msg, internal_memory);
-    delete[] args;
-
-    FaustWasm out;
-    if (factory) {
-        // Keep C++ pointer as an int
-        out.cfactory = int(factory);
-
-        // 'Binary' string, so directly copy its raw content
-        string code = factory->getBinaryCode();
-        for (size_t i = 0; i < code.size(); i++) {
-            out.data.push_back(code[i]);
-        }
-
-        // JSON file
-        stringstream json;
-        factory->writeHelper(&json, false, false);
-        out.json = json.str();
-    }
-    return out;
+    return buildFactory(args_aux, [&](size_t n, const char** argv) {
+        // 'error_msg' is actually not used: the possible error is returned in
+        // 'faustexception::gJSExceptionMsg'
+        string error_msg;
+        return ::createWasmDSPFactoryFromString(name, dsp_content, n, argv, error_msg,
+                                                internal_memory);
+    });
 }
 
+// Build a wasm DSP factory directly from a vector of signals.
 FaustWasm libFaustWasm::createDSPFactoryFromSignals(const string name, tvec signals,
                                                     const string args_aux, bool internal_memory)
 {
-    vector<string> argsv;
-    string2StringsVector(args_aux, argsv);
-    size_t n = argsv.size();
-
-    string            error_msg;
-    const char**      args = stringVector2argv(argsv);
-    wasm_dsp_factory* factory =
-        ::createWasmDSPFactoryFromSignals(name, signals, n, args, error_msg, internal_memory);
-    delete[] args;
-
-    FaustWasm out;
-    if (factory) {
-        out.cfactory = int(factory);
-        string code  = factory->getBinaryCode();
-        for (size_t i = 0; i < code.size(); i++) {
-            out.data.push_back(code[i]);
-        }
-        stringstream json;
-        factory->writeHelper(&json, false, false);
-        out.json = json.str();
-    }
-    return out;
+    return buildFactory(args_aux, [&](size_t n, const char** argv) {
+        // 'error_msg' is actually not used: the possible error is returned in
+        // 'faustexception::gJSExceptionMsg'
+        string error_msg;
+        return ::createWasmDSPFactoryFromSignals(name, signals, n, argv, error_msg,
+                                                 internal_memory);
+    });
 }
 
+// Build a wasm DSP factory from a box expression.
 FaustWasm libFaustWasm::createDSPFactoryFromBoxes(const string name, Tree box,
                                                   const string args_aux, bool internal_memory)
 {
-    vector<string> argsv;
-    string2StringsVector(args_aux, argsv);
-    size_t n = argsv.size();
-
-    string            error_msg;
-    const char**      args = stringVector2argv(argsv);
-    wasm_dsp_factory* factory =
-        ::createWasmDSPFactoryFromBoxes(name, box, n, args, error_msg, internal_memory);
-    delete[] args;
-
-    FaustWasm out;
-    if (factory) {
-        out.cfactory = int(factory);
-        string code  = factory->getBinaryCode();
-        for (size_t i = 0; i < code.size(); i++) {
-            out.data.push_back(code[i]);
-        }
-        stringstream json;
-        factory->writeHelper(&json, false, false);
-        out.json = json.str();
-    }
-    return out;
+    return buildFactory(args_aux, [&](size_t n, const char** argv) {
+        // 'error_msg' is actually not used: the possible error is returned in
+        // 'faustexception::gJSExceptionMsg'
+        string error_msg;
+        return ::createWasmDSPFactoryFromBoxes(name, box, n, argv, error_msg, internal_memory);
+    });
 }
 
 void libFaustWasm::deleteDSPFactory(int cfactory)
 {
+    // Delete a single factory created via wasm helpers.
     deleteWasmDSPFactory(static_cast<wasm_dsp_factory*>((void*)cfactory));
 }
 
 string libFaustWasm::expandDSP(const string name, const string dsp_content, const string args_aux)
 {
+    // Expand a DSP string (inline imports) using the core libfaust API.
     vector<string> argsv;
     string2StringsVector(args_aux, argsv);
     size_t n = argsv.size();
@@ -164,6 +158,7 @@ string libFaustWasm::expandDSP(const string name, const string dsp_content, cons
 bool libFaustWasm::generateAuxFiles(const string name, const string dsp_content,
                                     const string args_aux)
 {
+    // Run auxiliary file generation (SVG/JSON/other backends) from a DSP string.
     vector<string> argsv;
     string2StringsVector(args_aux, argsv);
     // 'error_msg' is actually not used: the possible error is returned in
@@ -178,6 +173,7 @@ bool libFaustWasm::generateAuxFiles(const string name, const string dsp_content,
 
 string libFaustWasm::getInfos(const std::string what)
 {
+    // Return string info about libfaust environment (version, dirs, help...).
     if (what == "version") {
         return global::printVersion();
     }
