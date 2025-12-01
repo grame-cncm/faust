@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to CLI alsa                 #
-#               (c) Grame, 2009-2018                                #
+#               (c) Grame, 2009-2025                                #
 #                                                                   #
 #####################################################################
 
@@ -17,6 +17,10 @@ ARCHFILE=$FAUSTARCH/alsa-console.cpp
 
 POLY="POLY"
 NVOICES=-1
+EFFECT=""
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILELIBS=""
 OSCDEFS=""
 
 echoHelp() 
@@ -26,8 +30,10 @@ echoHelp()
     require Alsa
     echo "Compiles Faust programs to CLI and ALSA"
     option
-    options -httpd -osc -midi
+    options -httpd -osc -midi -soundfile
     option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
     option -arch32 "compiles a 32 bits binary"
     option -arch64 "compiles a 64 bits binary"
     option "Faust options"
@@ -54,15 +60,22 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
        echoHelp
-    fi
-
-    if [ $p = "-nvoices" ]; then
-        POLYDEFS="DEFINES += POLY"
+    elif [ $p = "-nvoices" ]; then
+        POLYDEFS="-DPOLY"
         shift
         NVOICES=$1
         if [ $NVOICES -ge 0 ]; then
             CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
         fi
+    elif [ $p = "-effect" ]; then
+        POLYDEFS="-DPOLY2"
+        POLY="POLY2"
+        shift
+        EFFECT=$1
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE"
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-osc" ]; then
@@ -92,13 +105,32 @@ done
 for f in $FILES; do
 
     # compile faust to c++
-    faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+    if [ $POLY = "POLY2" ]; then
+        if [ $EFFECT = "auto" ]; then
+            cat > effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
+EndOfCode
+            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp effect.dsp -o effect.h || exit
+            rm effect.dsp
+        else
+            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "effect.h" || exit
+        fi
+    else
+        faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+    fi
 
     # compile c++ to binary
     (
-        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS $POLYDEFS $MIDIDEFS -pthread -o "${f%.dsp}"
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $HTTPLIBS $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS -pthread -o "${f%.dsp}"
     ) > /dev/null || exit
-    rm "$f.cpp"
+    rm -f "$f.cpp" effect.h "$f.json"
 
     # collect binary file name for FaustWorks
     BINARIES="$BINARIES${f%.dsp};"

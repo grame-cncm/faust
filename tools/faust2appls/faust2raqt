@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to RtAudio-qt               #
-#               (c) Grame, 2015                                     #
+#               (c) Grame, 2015-2025                                #
 #                                                                   #
 #####################################################################
 
@@ -16,7 +16,14 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 ARCHFILE=$FAUSTARCH/ra-qt.cpp
 ARCHLIB="$(pkg-config --libs rtaudio || echo -L/usr/local/lib -lrtaudio)"
 CXXFLAGS+=" $(pkg-config --cflags rtaudio || true)"
-
+POLY="POLY"
+POLYDEFS=""
+NVOICES=-1
+EFFECT=""
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILEINC=""
+SOUNDFILELIBS=""
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
@@ -35,7 +42,10 @@ echoHelp()
     require QT
     echo "Compiles Faust programs to RtAudio and QT"
     option
-    options -httpd -osc -midi -qrcode -poly -nodeploy
+    options -httpd -osc -midi -qrcode -soundfile -nodeploy
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
     option "Faust options"
     exit
 }
@@ -55,8 +65,23 @@ DEPLOY="yes"
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
-    elif [ $p = "-poly" ]; then
+    elif [ $p = "-nvoices" ]; then
         POLYDEFS="DEFINES += POLY"
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
+    elif [ $p = "-effect" ]; then
+        POLYDEFS="DEFINES += POLY2"
+        POLY="POLY2"
+        shift
+        EFFECT=$1
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="DEFINES += SOUNDFILE"
+        SOUNDFILEINC=$(pkg-config --cflags sndfile | cut -c 3-)
+        SOUNDFILELIBS=`pkg-config --static --libs sndfile`
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-osc" ]; then
@@ -120,12 +145,31 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-     faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    if [ $POLY = "POLY2" ]; then
+        if [ $EFFECT = "auto" ]; then
+            cat > "$TMP/effect.dsp" << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
+EndOfCode
+            faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.h" || exit
+            rm "$TMP/effect.dsp"
+        else
+            faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "$TMP/effect.h" || exit
+        fi
+    else
+        faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    fi
 
     # compile c++ to binary
     (
         cd "$TMP"
-        $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS"
+        $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "INCLUDEPATH+=$SOUNDFILEINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS"
         $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
@@ -143,6 +187,7 @@ for p in $FILES; do
         codesign --sign - --deep --force "$SRCDIR/${f%.dsp}$EXT"
     fi
     rm -rf "$TDR"
+    rm -f "$TMP/effect.h" "$SRCDIR/$f.json"
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"

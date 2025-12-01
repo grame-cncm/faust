@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to alsa-gtk                 #
-#               (c) Grame, 2009-2019                                #
+#               (c) Grame, 2009-2025                                #
 #                                                                   #
 #####################################################################
 
@@ -15,6 +15,12 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/alsa-gtk.cpp
 OSCDEFS=""
+POLY="POLY"
+NVOICES=-1
+EFFECT=""
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILELIBS=""
 
 if [[ $(uname -s) != Darwin ]]; then
     LFLAGS+="-no-pie"
@@ -27,7 +33,10 @@ echoHelp()
     require Alsa
     echo "Compiles Faust programs to ALSA and GTK"
     option
-    options -httpd -osc -midi -qrcode -poly
+    options -httpd -osc -midi -qrcode -soundfile
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
     option "Faust options"
     exit
 }
@@ -46,13 +55,28 @@ fi
 #
 
 # dispatch command arguments
-for p in $@; do
+while [ $1 ]
+do
+    p=$1
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
-    fi
-
-    if [ $p = "-poly" ]; then
+    elif [ $p = "-nvoices" ]; then
         POLYDEFS="-DPOLY"
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE"
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
+    elif [ $p = "-effect" ]; then
+        POLYDEFS="-DPOLY2"
+        POLY="POLY2"
+        shift
+        EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-osc" ]; then
@@ -73,6 +97,9 @@ for p in $@; do
     else
         OPTIONS="$OPTIONS $p"
     fi
+
+shift
+
 done
 
 #-------------------------------------------------------------------
@@ -81,18 +108,35 @@ done
 for f in $FILES; do
 
     # compile faust to c++
-    faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+    if [ $POLY = "POLY2" ]; then
+        if [ $EFFECT = "auto" ]; then
+            cat > effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
+EndOfCode
+            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp effect.dsp -o effect.h || exit
+            rm effect.dsp
+        else
+            faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "effect.h" || exit
+        fi
+    else
+        faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+    fi
 
     # compile c++ to binary
     (
-        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $PROCARCH $YPATH $OSCDEFS $HTTPDEFS $HTTPLIBS $POLYDEFS $MIDIDEFS $LFLAGS -o "${f%.dsp}"
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa gtk+-2.0` $SOUNDFILELIBS $PROCARCH $YPATH $OSCDEFS $HTTPDEFS $HTTPLIBS $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $LFLAGS -o "${f%.dsp}"
     )> /dev/null  || exit
-    rm "$f.cpp"
+    rm -f "$f.cpp" effect.h "$f.json"
 
     # collect binary file name for FaustWorks
     BINARIES="$BINARIES${f%.dsp};"
 done
 
 echo $BINARIES
-
-

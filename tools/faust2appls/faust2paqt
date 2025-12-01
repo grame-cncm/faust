@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to PortAudio and QT         #
-#               (c) Grame, 2009-2019                                #
+#               (c) Grame, 2009-2025                                #
 #                                                                   #
 #####################################################################
 
@@ -25,7 +25,7 @@ echoHelp()
     require PortAudio, QT
     echo "Compiles Faust programs to PortAudio and QT"
     option
-    options -httpd -osc -midi -qrcode
+    options -httpd -osc -midi -qrcode -soundfile
     option "-nvoices <num>"
     option "-effect <effect.dsp>"
     option "-effect auto"
@@ -56,9 +56,14 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 QTDEFS=""
 OSCLIB=""
 POLY="POLY"
+POLYDEFS=""
 DEPLOY="yes"
 EFFECT=""
 NVOICES=-1
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILEINC=""
+SOUNDFILELIBS=""
 
 while [ $1 ]
 do
@@ -67,6 +72,7 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
        echoHelp
     elif [ $p = "-nvoices" ]; then
+        POLYDEFS="DEFINES += POLY"
         shift
         NVOICES=$1
         if [ $NVOICES -ge 0 ]; then
@@ -77,6 +83,11 @@ do
         POLY="POLY2"
         shift
         EFFECT=$1
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="DEFINES += SOUNDFILE"
+        SOUNDFILEINC=$(pkg-config --cflags sndfile | cut -c 3-)
+        SOUNDFILELIBS=`pkg-config --static --libs sndfile`
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-osc" ]; then
@@ -152,7 +163,7 @@ EndOfCode
     # compile c++ to binary
     (
         cd "$TMP"
-        $QMAKE -project "QT += widgets printsupport" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+=$FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS"
+        $QMAKE -project "QT += widgets printsupport" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "INCLUDEPATH+=$SOUNDFILEINC" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+=$FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS"
         $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit

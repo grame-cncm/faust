@@ -3,7 +3,7 @@
 #######################################################
 #                                                     #
 #    Compiles Faust programs to PortAudio (no GUI)    #
-#    (c) Aaron Krister Johnson, Grame, 2024           #
+#    (c) Aaron Krister Johnson, Grame, 2025           #
 #                                                     #
 #######################################################
 
@@ -16,7 +16,10 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 ARCHFILE=$FAUSTARCH/pa-console.cpp
 
 OSCDEFS=""
+POLY="POLY"
+POLYDEFS=""
 NVOICES=-1
+EFFECT=""
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
@@ -35,7 +38,7 @@ echoHelp()
     require PortAudio
     echo "Compiles Faust programs to PortAudio"
     option
-    options -httpd -osc -midi
+    options -httpd -osc -midi -soundfile
     option "-nvoices <num>"
     option "-effect <effect.dsp>"
     option "-effect auto"
