@@ -3,8 +3,8 @@
 #####################################################################
 #                                                                   #
 #               Bench several versions of a Faust DSP program       #
-#               usign different compilation options                 #
-#               (c) Grame, 2020-2023                                #
+#               using different compilation options                 #
+#               (c) Grame, 2020-2025                                #
 #                                                                   #
 #####################################################################
 
@@ -170,6 +170,16 @@ for p in $FILES; do
         faust -cn dsp_scal_mcd16 $OPTIONS -mcd 16 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd16.h"
         faust -cn dsp_scal_mcd32 $OPTIONS -mcd 32 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd32.h"
         faust -cn dsp_scal_mcd64 $OPTIONS -mcd 64 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd64.h"
+        if [[ $(uname) == Darwin ]]; then
+            faust -cn dsp_scal_clang $OPTIONS -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_clang.h"
+            faust -cn dsp_scal_exp10_clang $OPTIONS -exp10 -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_exp10_clang.h"
+            faust -cn dsp_scal_mcd0_clang $OPTIONS -mcd 0 -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd0_clang.h"
+            faust -cn dsp_scal_mcd2_clang $OPTIONS -mcd 2 -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd2_clang.h"
+            faust -cn dsp_scal_mcd8_clang $OPTIONS -mcd 8 -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd8_clang.h"
+            faust -cn dsp_scal_mcd16_clang $OPTIONS -mcd 16 -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd16_clang.h"
+            faust -cn dsp_scal_mcd32_clang $OPTIONS -mcd 32 -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd32_clang.h"
+            faust -cn dsp_scal_mcd64_clang $OPTIONS -mcd 64 -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd64_clang.h"
+        fi
       
         faust -cn dsp_vec0_4 $OPTIONS -vec -lv 0 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec0_4.h"
         faust -cn dsp_vec0_8 $OPTIONS -vec -lv 0 -vs 8 "$SRCDIR/$f" -o "$TMP/dsp_vec0_8.h"
@@ -198,6 +208,35 @@ for p in $FILES; do
         faust -cn dsp_vec0g_256 $OPTIONS -vec -lv 0 -vs 256 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_256.h"
         faust -cn dsp_vec0g_512 $OPTIONS -vec -lv 0 -vs 512 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_512.h"
 
+        if [[ $(uname) == Darwin ]]; then
+            faust -cn dsp_vec0_4_clang $OPTIONS -vec -lv 0 -vs 4 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_4_clang.h"
+            faust -cn dsp_vec0_8_clang $OPTIONS -vec -lv 0 -vs 8 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_8_clang.h"
+            faust -cn dsp_vec0_16_clang $OPTIONS -vec -lv 0 -vs 16 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_16_clang.h"
+            faust -cn dsp_vec0_32_clang $OPTIONS -vec -lv 0 -vs 32 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_32_clang.h"
+            faust -cn dsp_vec0_64_clang $OPTIONS -vec -lv 0 -vs 64 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_64_clang.h"
+            faust -cn dsp_vec0_128_clang $OPTIONS -vec -lv 0 -vs 128 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_128_clang.h"
+            faust -cn dsp_vec0_256_clang $OPTIONS -vec -lv 0 -vs 256 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_256_clang.h"
+            faust -cn dsp_vec0_512_clang $OPTIONS -vec -lv 0 -vs 512 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_512_clang.h"
+
+            faust -cn dsp_vec0_fun_4_clang $OPTIONS -vec -fun -lv 0 -vs 4 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_4_clang.h"
+            faust -cn dsp_vec0_fun_8_clang $OPTIONS -vec -fun -lv 0 -vs 8 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_8_clang.h"
+            faust -cn dsp_vec0_fun_16_clang $OPTIONS -vec -fun -lv 0 -vs 16 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_16_clang.h"
+            faust -cn dsp_vec0_fun_32_clang $OPTIONS -vec -fun -lv 0 -vs 32 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_32_clang.h"
+            faust -cn dsp_vec0_fun_64_clang $OPTIONS -vec -fun -lv 0 -vs 64 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_64_clang.h"
+            faust -cn dsp_vec0_fun_128_clang $OPTIONS -vec -fun -lv 0 -vs 128 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_128_clang.h"
+            faust -cn dsp_vec0_fun_256_clang $OPTIONS -vec -fun -lv 0 -vs 256 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_256_clang.h"
+            faust -cn dsp_vec0_fun_512_clang $OPTIONS -vec -fun -lv 0 -vs 512 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_fun_512_clang.h"
+
+            faust -cn dsp_vec0g_4_clang $OPTIONS -vec -lv 0 -vs 4 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0g_4_clang.h"
+            faust -cn dsp_vec0g_8_clang $OPTIONS -vec -lv 0 -vs 8 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0g_8_clang.h"
+            faust -cn dsp_vec0g_16_clang $OPTIONS -vec -lv 0 -vs 16 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0g_16_clang.h"
+            faust -cn dsp_vec0g_32_clang $OPTIONS -vec -lv 0 -vs 32 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0g_32_clang.h"
+            faust -cn dsp_vec0g_64_clang $OPTIONS -vec -lv 0 -vs 64 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0g_64_clang.h"
+            faust -cn dsp_vec0g_128_clang $OPTIONS -vec -lv 0 -vs 128 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0g_128_clang.h"
+            faust -cn dsp_vec0g_256_clang $OPTIONS -vec -lv 0 -vs 256 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0g_256_clang.h"
+            faust -cn dsp_vec0g_512_clang $OPTIONS -vec -lv 0 -vs 512 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0g_512_clang.h"
+        fi
+
         faust -cn dsp_vec1_4 $OPTIONS -vec -lv 1 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec1_4.h"
         faust -cn dsp_vec1_8 $OPTIONS -vec -lv 1 -vs 8 "$SRCDIR/$f" -o "$TMP/dsp_vec1_8.h"
         faust -cn dsp_vec1_16 $OPTIONS -vec -lv 1 -vs 16 "$SRCDIR/$f" -o "$TMP/dsp_vec1_16.h"
@@ -216,6 +255,26 @@ for p in $FILES; do
         faust -cn dsp_vec1g_256 $OPTIONS -vec -lv 1 -vs 256 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_256.h"
         faust -cn dsp_vec1g_512 $OPTIONS -vec -lv 1 -vs 512 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_512.h"
 
+        if [[ $(uname) == Darwin ]]; then
+            faust -cn dsp_vec1_4_clang $OPTIONS -vec -lv 1 -vs 4 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1_4_clang.h"
+            faust -cn dsp_vec1_8_clang $OPTIONS -vec -lv 1 -vs 8 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1_8_clang.h"
+            faust -cn dsp_vec1_16_clang $OPTIONS -vec -lv 1 -vs 16 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1_16_clang.h"
+            faust -cn dsp_vec1_32_clang $OPTIONS -vec -lv 1 -vs 32 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1_32_clang.h"
+            faust -cn dsp_vec1_64_clang $OPTIONS -vec -lv 1 -vs 64 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1_64_clang.h"
+            faust -cn dsp_vec1_128_clang $OPTIONS -vec -lv 1 -vs 128 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1_128_clang.h"
+            faust -cn dsp_vec1_256_clang $OPTIONS -vec -lv 1 -vs 256 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1_256_clang.h"
+            faust -cn dsp_vec1_512_clang $OPTIONS -vec -lv 1 -vs 512 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1_512_clang.h"
+
+            faust -cn dsp_vec1g_4_clang $OPTIONS -vec -lv 1 -vs 4 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1g_4_clang.h"
+            faust -cn dsp_vec1g_8_clang $OPTIONS -vec -lv 1 -vs 8 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1g_8_clang.h"
+            faust -cn dsp_vec1g_16_clang $OPTIONS -vec -lv 1 -vs 16 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1g_16_clang.h"
+            faust -cn dsp_vec1g_32_clang $OPTIONS -vec -lv 1 -vs 32 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1g_32_clang.h"
+            faust -cn dsp_vec1g_64_clang $OPTIONS -vec -lv 1 -vs 64 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1g_64_clang.h"
+            faust -cn dsp_vec1g_128_clang $OPTIONS -vec -lv 1 -vs 128 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1g_128_clang.h"
+            faust -cn dsp_vec1g_256_clang $OPTIONS -vec -lv 1 -vs 256 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1g_256_clang.h"
+            faust -cn dsp_vec1g_512_clang $OPTIONS -vec -lv 1 -vs 512 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1g_512_clang.h"
+        fi
+
     elif [ $TESTS == "fast" ]; then
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
@@ -223,14 +282,30 @@ for p in $FILES; do
         faust -cn dsp_scal_mcd0 $OPTIONS -mcd 0 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd0.h"
         faust -cn dsp_scal_mcd8 $OPTIONS -mcd 8 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd8.h"
         faust -cn dsp_scal_mcd32 $OPTIONS -mcd 32 "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd32.h"
+        if [[ $(uname) == Darwin ]]; then
+            faust -cn dsp_scal_clang $OPTIONS -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_clang.h"
+            faust -cn dsp_scal_exp10_clang $OPTIONS -exp10 -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_exp10_clang.h"
+            faust -cn dsp_scal_mcd0_clang $OPTIONS -mcd 0 -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd0_clang.h"
+            faust -cn dsp_scal_mcd8_clang $OPTIONS -mcd 8 -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd8_clang.h"
+            faust -cn dsp_scal_mcd32_clang $OPTIONS -mcd 32 -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_mcd32_clang.h"
+        fi
         
         faust -cn dsp_vec0_32 $OPTIONS -vec -lv 0 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec0_32.h"
         faust -cn dsp_vec0g_32 $OPTIONS -vec -lv 0 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_32.h"
         faust -cn dsp_vec1_32 $OPTIONS -vec -lv 1 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec1_32.h"
         faust -cn dsp_vec1g_32 $OPTIONS -vec -lv 1 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_32.h"
+        if [[ $(uname) == Darwin ]]; then
+            faust -cn dsp_vec0_32_clang $OPTIONS -vec -lv 0 -vs 32 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0_32_clang.h"
+            faust -cn dsp_vec0g_32_clang $OPTIONS -vec -lv 0 -vs 32 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec0g_32_clang.h"
+            faust -cn dsp_vec1_32_clang $OPTIONS -vec -lv 1 -vs 32 -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1_32_clang.h"
+            faust -cn dsp_vec1g_32_clang $OPTIONS -vec -lv 1 -vs 32 -g -clang "$SRCDIR/$f" -o "$TMP/dsp_vec1g_32_clang.h"
+        fi
 
     elif [ $TESTS == "single" ]; then
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
+        if [[ $(uname) == Darwin ]]; then
+            faust -cn dsp_scal_clang $OPTIONS -clang "$SRCDIR/$f" -o "$TMP/dsp_scal_clang.h"
+        fi
     fi
   
     if [ $IOS == "1" ]; then
@@ -333,4 +408,3 @@ for p in $FILES; do
     fi
 
 done
-
