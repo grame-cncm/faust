@@ -1,26 +1,28 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ FAUST compiler
+ Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
 
 #include "uitree.hh"
+#include <algorithm>
 #include <sstream>
+#include <vector>
 #include "exception.hh"
 #include "global.hh"
 
@@ -29,6 +31,8 @@ using namespace std;
 static Tree makeSubFolderChain(Tree path, Tree elem);
 static Tree putFolder(Tree folder, Tree item);
 static Tree getFolder(Tree folder, Tree ilabel);
+static Tree sortPropList(Tree pl);
+static Tree sortFolderTree(Tree t);
 
 static void error(const char* s, Tree t)
 {
@@ -44,51 +48,93 @@ static void error(const char* s, Tree t)
 //------------------------------------------------------------------------------
 // Property list
 //------------------------------------------------------------------------------
+//
+// Property lists are represented as a simple association list:
+//   pl = [ (key1 . val1), (key2 . val2), ... ]
+// where each element of the list is itself a cons(key, val).
+// The basic operations below do *not* keep the list sorted; insertion is O(1).
+// The final UI tree is sorted once in UITree::prepareUserInterfaceTree().
 
-#if 0
-
-// normal version, which works, but does not arrange in alphabetical order
+/**
+ * Look up a value in a property list.
+ * This is a simple linear search with no ordering assumption.
+ */
 static bool findKey(Tree pl, Tree key, Tree& val)
 {
-    if (isNil(pl)) {
-        return false;
+    for (Tree l = pl; !isNil(l); l = tl(l)) {
+        Tree kv = hd(l);
+        if (left(kv) == key) {
+            val = right(kv);
+            return true;
+        }
     }
-    if (left(hd(pl)) == key) {
-        val = right(hd(pl));
-        return true;
-    }
-    /*  left(hd(pl)) != key	*/ return findKey(tl(pl), key, val);
+    return false;
 }
 
+/**
+ * Update (or insert) a key in a property list.
+ * If the key already exists, its value is replaced.
+ * Otherwise a new (key, val) pair is added at the head of the list.
+ */
 static Tree updateKey(Tree pl, Tree key, Tree val)
 {
     if (isNil(pl)) {
+        // Key does not exist yet: create a one-element list.
         return cons(cons(key, val), gGlobal->nil);
     }
     if (left(hd(pl)) == key) {
+        // Replace existing value for this key.
         return cons(cons(key, val), tl(pl));
     }
-    /*  left(hd(pl)) != key	*/ return cons(hd(pl), updateKey(tl(pl), key, val));
+    // Keep current head and update in the tail.
+    return cons(hd(pl), updateKey(tl(pl), key, val));
 }
 
+/**
+ * Remove the first occurrence of a key from a property list.
+ */
 static Tree removeKey(Tree pl, Tree key)
 {
     if (isNil(pl)) {
         return gGlobal->nil;
     }
     if (left(hd(pl)) == key) {
+        // Drop the first matching element.
         return tl(pl);
     }
-    /*  left(hd(pl)) != key	*/ return cons(hd(pl), removeKey(tl(pl), key));
+    // Keep current head and continue in the tail.
+    return cons(hd(pl), removeKey(tl(pl), key));
 }
 
-#else
+/**
+ * Insert a (key, val) pair without trying to keep the list sorted.
+ * This keeps insertion O(1); the cost of sorting is paid once later
+ * in UITree::prepareUserInterfaceTree().
+ *
+ * This is particularly important when building large folders: instead of
+ * an O(n^2) cost for n sequential insertions in a sorted list, we get O(n)
+ * for construction plus O(n log n) for a single sort at the end.
+ */
+static Tree addKey(Tree pl, Tree key, Tree val)
+{
+    return cons(cons(key, val), pl);
+}
 
-// Experimental version that arranges in alphabetical order
+//------------------------------------------------------------------------------
+// Sorting helpers
+//------------------------------------------------------------------------------
 
+/**
+ * Experimental ordering predicate: arrange keys in alphabetical order
+ * based on their label.
+ *
+ * Keys can be either:
+ *   - directly a label symbol, or
+ *   - a pair (type . label), in which case we compare on the label.
+ */
 static bool isBefore(Tree k1, Tree k2)
 {
-    // before comparing replace (type . label) by label
+    // Before comparing replace (type . label) by label.
     if (isList(k1)) {
         k1 = tl(k1);
     }
@@ -96,8 +142,6 @@ static bool isBefore(Tree k1, Tree k2)
         k2 = tl(k2);
     }
 
-    // fprintf(stderr, "isBefore("); print(k1, stderr); fprintf(stderr,", "); print(k2, stderr);
-    // fprintf(stderr,")\n");
     Sym s1, s2;
     if (!isSym(k1->node(), &s1)) {
         FAUST_ERROR("the node of the tree is not a symbol", k1);
@@ -106,64 +150,65 @@ static bool isBefore(Tree k1, Tree k2)
         FAUST_ERROR("the node of the tree is not a symbol", k2);
     }
 
-    // fprintf (stderr, "strcmp(\"%s\", \"%s\") = %d\n", name(s1), name(s2), strcmp(name(s1),
-    // name(s2)));
     return strcmp(name(s1), name(s2)) < 0;
 }
 
-static bool findKey(Tree pl, Tree key, Tree& val)
+/**
+ * Sort a property list by key using the isBefore() ordering.
+ * Complexity: O(n log n) for a folder with n entries.
+ */
+static Tree sortPropList(Tree pl)
 {
-    if (isNil(pl)) {
-        return false;
-    }
-    if (left(hd(pl)) == key) {
-        val = right(hd(pl));
-        return true;
-    }
-    if (isBefore(left(hd(pl)), key)) {
-        return findKey(tl(pl), key, val);
-    }
-    return false;
-}
+    std::vector<Tree> items;
 
-static Tree updateKey(Tree pl, Tree key, Tree val)
-{
-    if (isNil(pl)) {
-        return cons(cons(key, val), gGlobal->nil);
+    // Copy list elements into a temporary vector.
+    for (Tree l = pl; !isNil(l); l = tl(l)) {
+        items.push_back(hd(l));  // (key . val)
     }
-    if (left(hd(pl)) == key) {
-        return cons(cons(key, val), tl(pl));
+
+    std::sort(items.begin(), items.end(),
+              [](Tree a, Tree b) { return isBefore(left(a), left(b)); });
+
+    // Rebuild a list in the sorted order.
+    Tree res = gGlobal->nil;
+    for (auto it = items.rbegin(); it != items.rend(); ++it) {
+        res = cons(*it, res);
     }
-    if (isBefore(left(hd(pl)), key)) {
-        return cons(hd(pl), updateKey(tl(pl), key, val));
-    }
-    return cons(cons(key, val), pl);
+    return res;
 }
 
 /**
- * Like updateKey but allow multiple items with same key
+ * Recursively sort the content of all UI folders.
+ *
+ * This keeps the external behaviour (alphabetically ordered UI)
+ * while avoiding the cost of maintaining a sorted property list
+ * on every insertion.
  */
-static Tree addKey(Tree pl, Tree key, Tree val)
+static Tree sortFolderTree(Tree t)
 {
-    if (isNil(pl)) {
-        return cons(cons(key, val), gGlobal->nil);
-    }
-    if (isBefore(key, left(hd(pl)))) {
-        return cons(cons(key, val), pl);
-    }
-    return cons(hd(pl), addKey(tl(pl), key, val));
-}
+    Tree label, elements;
+    if (isUiFolder(t, label, elements)) {
+        // First sort the property list at this level.
+        Tree sortedElems = sortPropList(elements);
 
-#if 0
-static Tree removeKey(Tree pl, Tree key)
-{
-	if (isNil(pl)) 					return gGlobal->nil;
-	if (left(hd(pl)) == key) 		return tl(pl);
-	if (isBefore(left(hd(pl)),key))	return cons(hd(pl), removeKey(tl(pl), key));
-	return pl;
+        // Then recursively sort subfolders.
+        Tree newElemsRev = gGlobal->nil;
+        for (Tree l = sortedElems; !isNil(l); l = tl(l)) {
+            Tree kv      = hd(l);
+            Tree k       = left(kv);
+            Tree v       = right(kv);
+            Tree sortedV = sortFolderTree(v);
+            newElemsRev  = cons(cons(k, sortedV), newElemsRev);
+        }
+
+        // Reverse to restore forward order.
+        Tree newElems = reverse(newElemsRev);
+        return uiFolder(label, newElems);
+    }
+
+    // Non-folder nodes are left untouched.
+    return t;
 }
-#endif
-#endif
 
 //-----------------------------------------------------
 // Management of the user interface tree construction
@@ -265,7 +310,7 @@ Tree putSubFolder(Tree folder, Tree path, Tree item)
  ADD (Folder[(l1,d1)...(ln,dn)], (lx,dx)) -> Folder[(l1,d1)...(lx,dx)...(ln,dn)]
 
  ADD (Folder[(l1,d1)...(lx,dx)...(ln,dn)], (lx,dx')) -> Folder[(l1,d1)...(lx,dx')...(ln,dn)]
-*/
+ */
 
 string checkNullLabel(Tree t, const string& label)
 {
@@ -288,14 +333,24 @@ void UITree::addUIWidget(Tree path, Tree widget)
 
 /**
  * Remove fake root folder if not needed (that is if the UI
- * is completely enclosed in one folder)
+ * is completely enclosed in one folder), then sort the full tree once.
  */
 Tree UITree::prepareUserInterfaceTree()
 {
+    // Start from the current root.
     Tree root, elems;
+    Tree ui = fUIRoot;
+
+    // Remove fake root folder if not needed.
     if (isUiFolder(fUIRoot, root, elems) && isList(elems) && isNil(tl(elems))) {
         Tree folder = right(hd(elems));
-        return (isUiFolder(folder)) ? folder : fUIRoot;
+        if (isUiFolder(folder)) {
+            ui = folder;
+        }
     }
-    return fUIRoot;
+
+    // Sort all folders by key labels. This keeps alphabetical ordering of the
+    // UI while avoiding the O(n^2) cost of maintaining sorted property lists
+    // during construction.
+    return sortFolderTree(ui);
 }
