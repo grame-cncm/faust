@@ -120,8 +120,12 @@ emcc: $(FASTMATH)
 	emcc -O3 -s WASM=1 -s SIDE_MODULE=1 -s LEGALIZE_JS_FFI=0 $(FASTMATH) -o fastmath.wasm
 	wasm-dis fastmath.wasm -o fastmath.wast
 
+EXISTING := $(wildcard $(TARGETS))
+
 install:
-	cp $(TARGETS) $(prefix)/bin
+	@if [ -n "$(EXISTING)" ]; then \
+		cp $(EXISTING) $(prefix)/bin; \
+	fi
 	cp wasm-node-bench.js wasm-bench.js wasm-bench-emcc.js wasm-bench-jsmem.js $(prefix)/share/faust/webaudio
 	cp faustbench.cpp $(prefix)/share/faust
 	cp faustbench $(prefix)/bin
