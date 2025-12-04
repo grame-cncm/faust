@@ -31,6 +31,7 @@ echoHelp()
 {
     usage faust2minimal "[options] [Faust options] <file.dsp>"
     echo "Compiles Faust programs to a minimal executable"
+    option "-clone" "Use architecture/minimal-clone.cpp (state-transfer demo: clone/copy ctor/assignment)"
     option "Faust options"
     exit
 }
@@ -53,10 +54,11 @@ do
         echoHelp
     fi
 
-    echo "dispatch command arguments"
     if [ $p = "-fx" ]; then
         OPTIONS="$OPTIONS $p"
         CXXFLAGS="$CXXFLAGS -I /usr/local/include/ap_fixed -DFIXED_POINT"
+    elif [ $p = "-clone" ]; then
+        ARCHFILE=$FAUSTARCH/minimal-clone.cpp
     elif [ $p = "-layout" ]; then
         UI="-DLAYOUT_UI"
     elif [ ${p:0:1} = "-" ]; then
@@ -95,5 +97,4 @@ for f in $FILES; do
 done
 
 echo $BINARIES
-
 
