@@ -469,6 +469,15 @@ void CPPCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "}";
         tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+        *fOut << fKlassName << "(const " << fKlassName << "&) = default;";
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+        *fOut << "virtual ~" << fKlassName << "() = default;";
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+        *fOut << fKlassName << "& operator=(const " << fKlassName << "&) = default;";
+        tab(n + 1, *fOut);
     }
 
     generateDestructor(n);
@@ -643,7 +652,12 @@ void CPPCodeContainer::produceClass()
     *fOut << genVirtual() << fKlassName << "* clone() {";
     tab(n + 2, *fOut);
     if (gGlobal->gMemoryManager == 0 || gGlobal->gMemoryManager == 1) {
-        *fOut << "return create();";
+        *fOut << fKlassName << "* dsp = create();";
+        tab(n + 2, *fOut);
+        //*fOut << "*dsp = *this;";
+        *fOut << "// TODO: deep copy would be needed here";
+        tab(n + 2, *fOut);
+        *fOut << "return dsp;";
     } else if (gGlobal->gMemoryManager == 2) {
         // TODO: use the same memory for now...
         *fOut << "return new " << fKlassName << "(";
@@ -652,7 +666,7 @@ void CPPCodeContainer::produceClass()
         *fOut << ((gGlobal->gIntZone->getSize() > 0) ? "iZone, " : "nullptr, ");
         *fOut << ((gGlobal->gRealZone->getSize() > 0) ? "fZone);" : "nullptr);");
     } else {
-        *fOut << "return new " << fKlassName << "();";
+        *fOut << "return new " << fKlassName << "(*this);";
     }
     tab(n + 1, *fOut);
     *fOut << "}";
