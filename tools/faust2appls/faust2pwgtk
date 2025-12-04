@@ -39,7 +39,7 @@ fi
 
 echoHelp()
 {
-    usage faust2pipewire "[options] [Faust options] <file.dsp>"
+    usage faust2pwgtk "[options] [Faust options] <file.dsp>"
     platform Linux
     require Pipewire
     echo "Compiles Faust programs to Pipewire and GTK"

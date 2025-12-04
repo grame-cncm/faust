@@ -12,18 +12,13 @@
 . usage.sh
 
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
-CXXFLAGS+=" $(pkg-config --cflags libpipewire-0.3 libspa-0.2)"
 
 ARCHFILE=$FAUSTARCH/pipewire-qt.cpp
+SHOWHELP=0
 
 if [[ $(uname -s) != Darwin ]]; then
     LFLAGS+="-no-pie"
 fi
-
-#-------------------------------------------------------------------
-# Set Faust include path
-
-ARCHLIB="`pkg-config --libs libpipewire-0.3 libspa-0.2`"
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
@@ -75,6 +70,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
+    	SHOWHELP=1
         echoHelp
     fi
 
@@ -135,6 +131,12 @@ do
 
 shift
 done
+
+# Only run pkg-config if we are actually compiling something
+if [ "$SHOWHELP" != "1" ]; then
+    CXXFLAGS+=" $(pkg-config --cflags libpipewire-0.3 libspa-0.2)"
+    ARCHLIB+=" $(pkg-config --libs libpipewire-0.3 libspa-0.2)"
+fi
 
 #-------------------------------------------------------------------
 # Check Darwin specifics
