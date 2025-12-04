@@ -1,6 +1,7 @@
-#
-# Makefile for testing the Faust compiler output
-#
+# Makefile to exercise Faust compiler output across many backends.
+# Default target builds C/C++, Cmajor, JSFX, Julia, etc. into a directory
+# named after the Faust version (e.g., 2.82.5/...). Additional targets
+# cover JSON generation/compare, platform-specific runs, and tracer demos.
 system := $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), MINGW)
@@ -10,10 +11,18 @@ else
 endif
 MAKE ?= make
 
+# Source locations and includes shared across targets
 SAMPLESROOT := ../..
 REGRESSION := ..
+FAUSTLIBS1 ?= ../../libraries
+FAUSTLIBS2 ?= ../../libraries/old
 FAUSTINC  ?= ../../architecture/faust
 
+# Lists of DSPs used by the JSON targets (examples + codegen-tests, minus exclusions)
+DSP_EXAMPLES := $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v "TODO\|old\|faust-stk\|SAM")
+DSP_REGRESSION := $(shell find $(REGRESSION)/codegen-tests -name "*.dsp" | grep -v BUG)
+
+# Capture current Faust version to segregate outputs
 version := $(shell $(FAUST) --version | grep Version | sed -e 's/^..*Version //')
 
 cxxfiles  = $(shell find $(version) -name "*.cpp")
@@ -28,6 +37,7 @@ CPP_OPTIONS := -std=c++14 -Wno-unused-command-line-argument -I$(FAUSTINC)
 
 C_OPTIONS := -Wno-unused-command-line-argument -I$(FAUSTINC)
 
+# Default: run all backends plus native C/C++ compilation checks
 all:
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -a ./min.cpp"
 	$(MAKE) -f Make.lang outdir=ocpp lang=ocpp ext=cpp FAUSTOPTIONS=" -a ./min.cpp"
@@ -46,6 +56,19 @@ all:
 	$(MAKE) -f Make.lang outdir=wast lang=wast ext=wast FAUSTOPTIONS=""
 	$(MAKE) gcc1
 	$(MAKE) gcc2
+	
+json:  # Generate JSON descriptors only (-json/-O)
+	$(call GENJSON,$(version)/json)
+	
+json-compare:
+	@olddir=$(version)/json; newdir=$(version)/json-new; \
+	if [ ! -d $$olddir ]; then \
+		echo "Reference JSON directory '$$olddir' not found; run 'make json' first."; \
+		exit 1; \
+	fi; \
+	rm -rf $$newdir; \
+	$(call GENJSON,$$newdir); \
+	diff -ru $$olddir $$newdir
 	
 check: 
 	export FAUST_DEBUG=FIR_VAR_CHECKER; \
@@ -67,37 +90,37 @@ os:
 	$(MAKE) -f Make.lang outdir=cppos0 lang=cpp ext=cpp FAUSTOPTIONS=" -os -a ./min.cpp"
 	$(MAKE) -f Make.lang outdir=cos0 lang=c ext=c FAUSTOPTIONS="-lang c -os -a ./min.c"
 
-c:
+c:  # Only C and C++ backends with minimal arch files
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -a ./min.cpp"
 	$(MAKE) -f Make.lang outdir=ocpp lang=ocpp ext=o.cpp FAUSTOPTIONS=" -a ./min.cpp"
 	$(MAKE) -f Make.lang outdir=c lang=c ext=c FAUSTOPTIONS=" -a ./min.c"
 
-llvm:
+llvm:  # LLVM backend (scalar + vector)
 	$(MAKE) -f Make.lang outdir=llvm lang=llvm ext=llvm FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=llvm/vec lang=llvm ext=llvm FAUSTOPTIONS=" -vec -lv 1"
 
-julia:
+julia:  # Julia backend
 	$(MAKE) -f Make.lang outdir=julia lang=julia ext=julia FAUSTOPTIONS=""
 	
-rust:
+rust:   # Rust backend
 	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rust FAUSTOPTIONS=""
 	
-trace:
+trace:  # Interpreter tracer demo
 	$(MAKE) -f Make.lang interp-tracer 
 	
-jtrace:
+jtrace: # Julia tracer demo
 	$(MAKE) -f Make.lang julia-tracer 
 
-cmajor:
+cmajor: # faust2cmajor wrapper
 	$(MAKE) -f Make.lang cmajor 
 
-rnbo:
+rnbo:   # faust2rnbo wrapper
 	$(MAKE) -f Make.lang rnbo 
 	
-doc:
+doc:    # Markdown/SVG documentation generation
 	$(MAKE) -f Make.lang doc 
 
-me:
+me:     # C++ backend with -me option
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -me -a ./min.cpp"
 
 #########################################################################
@@ -129,6 +152,8 @@ help:
 	@echo " 'rnbo'       : compiles using faust2rnbo"
 	@echo " 'trace'      : compiles using the interp-tracer application"
 	@echo " 'jtrace'     : compiles using Julia minimal-control architecture"
+	@echo " 'json'       : generates JSON descriptions with '-json' and keeps them"
+	@echo " 'json-compare': regenerates JSON (-json) and diffs against existing $(version)/json"
 	@echo " 'me'         : compiles using the C++ backend with -me option"
 	@echo " 'check'      : compiles using the C++ backend and FAUST_DEBUG=FIR_VAR_CHECKER"
 	@echo " 'doc'        : test the -mdoc, -svg options"
@@ -143,6 +168,23 @@ gcc2: $(cobj)
 
 clean:
 	rm -rf $(version)
+
+# Generate JSON files only (no .o/.cpp) into a versioned directory using -json/-O.
+#
+# $(1): output root directory (e.g., $(version)/json or $(version)/json-new)
+define GENJSON
+@outdir=$(1); \
+mkdir -p $$outdir; \
+for file in $(DSP_EXAMPLES) $(DSP_REGRESSION); do \
+	case $$file in \
+	  $(SAMPLESROOT)/*) rel=$${file#$(SAMPLESROOT)/};; \
+	  $(REGRESSION)/*) rel=$${file#$(REGRESSION)/};; \
+	esac; \
+	dest=$$outdir/$$(dirname -- "$$rel"); \
+	mkdir -p "$$dest"; \
+	$(FAUST) -lang cpp -I $(FAUSTLIBS1) -I $(FAUSTLIBS2) -json "$$file" -O "$$dest" > /dev/null; \
+done
+endef
 
 #########################################################################
 # rules for c/c++ compilation
