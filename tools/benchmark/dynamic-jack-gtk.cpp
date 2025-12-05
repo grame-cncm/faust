@@ -51,6 +51,7 @@
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/SoundUI.h"
 #include "faust/misc.h"
+#include "faust/dsp/proxy-dsp.h"
 
 using namespace std;
 
@@ -77,6 +78,16 @@ static void splitTarget(const string& target, string& triple, string& cpu)
     if (pos1 != string::npos) {
         cpu = target.substr(pos1 + 1);
     }
+}
+
+static double dopt(char* argv[], const char* key, double def)
+{
+    for (int i = 1; argv[i] && argv[i + 1]; i++) {
+        if (string(argv[i]) == key) {
+            return atof(argv[i + 1]);
+        }
+    }
+    return def;
 }
 
 struct DynamicDSP {
@@ -135,12 +146,22 @@ struct DynamicDSP {
         bool is_generic = isopt(argv, "-generic");
         bool is_httpd = isopt(argv, "-httpd");
         bool is_resample = isopt(argv, "-resample");
+        bool is_smoothing_linear = isopt(argv, "-smooth-lin");
+        bool is_smoothing_exp = isopt(argv, "-smooth-exp");
+        bool is_smoothing = is_smoothing_linear || is_smoothing_exp;
+        double smoothing_sec = 0.02; // default 20ms if enabled
+        if (is_smoothing_linear) {
+            smoothing_sec = dopt(argv, "-smooth-lin", smoothing_sec);
+        }
+        if (is_smoothing_exp) {
+            smoothing_sec = dopt(argv, "-smooth-exp", smoothing_sec);
+        }
         
         if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
         #ifdef JACK
-            cout << "dynamic-jack-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+            cout << "dynamic-jack-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [-smooth-lin <sec>] [-smooth-exp <sec>] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
         #else
-            cout << "dynamic-coreaudio-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+            cout << "dynamic-coreaudio-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [-smooth-lin <sec>] [-smooth-exp <sec>] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
         #endif
             cout << "Use '-llvm' to use LLVM backend, using either .dsp, .ll, .bc or .mc files\n";
             cout << "Use '-interp' to use Interpreter backend, using either .dsp or .fbc (Faust Byte Code) files\n";
@@ -152,6 +173,8 @@ struct DynamicDSP {
             cout << "Use '-osc' to activate OSC control\n";
             cout << "Use '-httpd' to activate HTTP control\n";
             cout << "Use '-resample' to resample soundfiles to the audio driver sample rate\n";
+            cout << "Use '-smooth-lin <sec>' to enable linear smoothing of controls over the given seconds\n";
+            cout << "Use '-smooth-exp <sec>' to enable exponential smoothing of controls over the given seconds\n";
             exit(EXIT_FAILURE);
         }
         
@@ -173,6 +196,8 @@ struct DynamicDSP {
                 || (string(argv[i]) == "-resample")) {
                 continue;
             } else if ((string(argv[i]) == "-nvoices")
+                       || (string(argv[i]) == "-smooth-lin")
+                       || (string(argv[i]) == "-smooth-exp")
                        || (string(argv[i]) == "-port")
                        || (string(argv[i]) == "-outport")
                        || (string(argv[i]) == "-errport")
@@ -272,6 +297,14 @@ struct DynamicDSP {
         if (nvoices > 0) {
             cout << "Starting polyphonic mode 'nvoices' : " << nvoices << " and 'all' : " << is_all << endl;
             fDSP = new mydsp_poly(fDSP, nvoices, !is_all, true);
+        }
+        
+        if (is_smoothing && smoothing_sec > 0) {
+            cout << "Enabling smoothing (" << (is_smoothing_exp ? "exponential" : "linear")
+                 << ") over " << smoothing_sec << " seconds" << endl;
+            fDSP = is_smoothing_exp
+                ? static_cast<::dsp*>(new smoothing_dsp_exp(fDSP, smoothing_sec))
+                : static_cast<::dsp*>(new smoothing_dsp_linear(fDSP, smoothing_sec));
         }
         
         fInterface = new GTKUI(filename, &argc, &argv);
@@ -425,4 +458,3 @@ int main(int argc, char* argv[])
     
     return 0;
 }
-
