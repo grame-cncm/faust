@@ -165,11 +165,27 @@ class proxy_dsp : public ::dsp {
  *   duration in seconds when constructing the decorator.
  */
 
+// Base class for Smoother
+// - finish: snaps to exact targets and clears any stored steps.
+struct Smoother {
+    
+    // Snap to targets at ramp completion and clear step deltas.
+    template <typename ControlContainer>
+    void finish(ControlContainer& controls)
+    {
+        size_t count = controls.size();
+        for (size_t i = 0; i < count; ++i) {
+            controls[i].fCurrent = controls[i].fTarget;
+            *controls[i].fDspZone = controls[i].fCurrent;
+            controls[i].fStep = FAUSTFLOAT(0);
+        }
+    }
+};
+
 // Linear ramp: distributes the delta evenly across durationSamples.
 // - start: computes per-control steps = (target - current) / durationSamples and sets remaining.
 // - step: adds one step to each control, writes the zone.
-// - finish: snaps to exact targets and clears steps.
-struct LinearSmoother {
+struct LinearSmoother : public Smoother {
     template <typename ControlContainer>
     void start(ControlContainer& controls, int durationSamples, int& remaining)
     {
@@ -198,25 +214,13 @@ struct LinearSmoother {
         }
     }
     
-    // Snap to targets at ramp completion and clear step deltas.
-    template <typename ControlContainer>
-    void finish(ControlContainer& controls)
-    {
-        size_t count = controls.size();
-        for (size_t i = 0; i < count; ++i) {
-            controls[i].fCurrent = controls[i].fTarget;
-            *controls[i].fDspZone = controls[i].fCurrent;
-            controls[i].fStep = FAUSTFLOAT(0);
-        }
-    }
 };
 
 // Exponential approach toward target: current = target + (current - target) * alpha.
 // - start: precomputes alpha so the residual after durationSamples is ~1e-4 (-80 dB) and sets remaining
 //   (the -80 dB tail is an arbitrary choice; change if you want a different decay depth).
 // - step: decays current toward target using alpha, writes the zone.
-// - finish: snaps to exact targets and clears any stored steps.
-struct ExpSmoother {
+struct ExpSmoother : public Smoother {
     double fAlpha;
     
     ExpSmoother():fAlpha(0) {}
@@ -251,17 +255,6 @@ struct ExpSmoother {
         }
     }
     
-    // Snap to targets at completion and clear any stored steps.
-    template <typename ControlContainer>
-    void finish(ControlContainer& controls)
-    {
-        size_t count = controls.size();
-        for (size_t i = 0; i < count; ++i) {
-            controls[i].fCurrent = controls[i].fTarget;
-            *controls[i].fDspZone = controls[i].fCurrent;
-            controls[i].fStep = FAUSTFLOAT(0);
-        }
-    }
 };
 
 template <typename Smoother>

@@ -27,6 +27,7 @@
 
 #include <vector>
 #include <string>
+#include <string_view>
 
 #include "faust/gui/OSCControler.h"
 #include "faust/gui/GUI.h"
@@ -77,26 +78,23 @@ class OSCUI : public GUI
         std::vector<const char*> fAlias;
         JSONUI fJSON;
         
-        const char* tr(const char* label) const
+        std::string tr(std::string_view label) const
         {
-            static char buffer[1024];
-            char* ptr = buffer; int n = 1;
-            while (*label && (n++ < 1024)) {
-                switch (*label) {
+            std::string out;
+            out.reserve(label.size());
+            for (char c : label) {
+                switch (c) {
                     case ' ': case '	':
-                        *ptr++ = '_';
-                        break;
                     case '#': case '*': case ',': case '/': case '?':
                     case '[': case ']': case '{': case '}': case '(': case ')':
-                        *ptr++ = '_';
+                        out.push_back('_');
                         break;
                     default:
-                        *ptr++ = *label;
+                        out.push_back(c);
+                        break;
                 }
-                label++;
             }
-            *ptr = 0;
-            return buffer;
+            return out;
         }
         
         // add all accumulated alias
@@ -124,45 +122,45 @@ class OSCUI : public GUI
         
         // -- widget's layouts
         
-        virtual void openTabBox(const char* label)          { fCtrl->opengroup(tr(label)); fJSON.openTabBox(label); }
-        virtual void openHorizontalBox(const char* label)   { fCtrl->opengroup(tr(label)); fJSON.openHorizontalBox(label); }
-        virtual void openVerticalBox(const char* label)     { fCtrl->opengroup(tr(label)); fJSON.openVerticalBox(label); }
+        virtual void openTabBox(const char* label)          { const std::string l = tr(label); fCtrl->opengroup(l.c_str()); fJSON.openTabBox(label); }
+        virtual void openHorizontalBox(const char* label)   { const std::string l = tr(label); fCtrl->opengroup(l.c_str()); fJSON.openHorizontalBox(label); }
+        virtual void openVerticalBox(const char* label)     { const std::string l = tr(label); fCtrl->opengroup(l.c_str()); fJSON.openVerticalBox(label); }
         virtual void closeBox()                             { fCtrl->closegroup(); fJSON.closeBox(); }
         
         // -- active widgets
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            const char* l = tr(label);
-            addalias(zone, 0, 0, 1, l);
-            fCtrl->addnode(l, zone, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(1));
+            const std::string l = tr(label);
+            addalias(zone, 0, 0, 1, l.c_str());
+            fCtrl->addnode(l.c_str(), zone, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(1));
             fJSON.addButton(label, zone);
         }
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            const char* l = tr(label);
-            addalias(zone, 0, 0, 1, l);
-            fCtrl->addnode(l, zone, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(1));
+            const std::string l = tr(label);
+            addalias(zone, 0, 0, 1, l.c_str());
+            fCtrl->addnode(l.c_str(), zone, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(1));
             fJSON.addCheckButton(label, zone);
         }
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            const char* l = tr(label);
-            addalias(zone, init, min, max, l);
-            fCtrl->addnode(l, zone, init, min, max);
+            const std::string l = tr(label);
+            addalias(zone, init, min, max, l.c_str());
+            fCtrl->addnode(l.c_str(), zone, init, min, max);
             fJSON.addVerticalSlider(label, zone, init, min, max, step);
         }
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            const char* l = tr(label);
-            addalias(zone, init, min, max, l);
-            fCtrl->addnode(l, zone, init, min, max);
+            const std::string l = tr(label);
+            addalias(zone, init, min, max, l.c_str());
+            fCtrl->addnode(l.c_str(), zone, init, min, max);
             fJSON.addHorizontalSlider(label, zone, init, min, max, step);
         }
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            const char* l = tr(label);
-            addalias(zone, init, min, max, l);
-            fCtrl->addnode(l, zone, init, min, max);
+            const std::string l = tr(label);
+            addalias(zone, init, min, max, l.c_str());
+            fCtrl->addnode(l.c_str(), zone, init, min, max);
             fJSON.addNumEntry(label, zone, init, min, max, step);
         }
         
@@ -170,16 +168,16 @@ class OSCUI : public GUI
         
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            const char* l = tr(label);
-            addalias(zone, 0, min, max, l);
-            fCtrl->addnode(l, zone, FAUSTFLOAT(0), min, max, false);
+            const std::string l = tr(label);
+            addalias(zone, 0, min, max, l.c_str());
+            fCtrl->addnode(l.c_str(), zone, FAUSTFLOAT(0), min, max, false);
             fJSON.addHorizontalBargraph(label, zone, min, max);
         }
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            const char* l = tr(label);
-            addalias(zone, 0, min, max, l);
-            fCtrl->addnode(l, zone, FAUSTFLOAT(0), min, max, false);
+            const std::string l = tr(label);
+            addalias(zone, 0, min, max, l.c_str());
+            fCtrl->addnode(l.c_str(), zone, FAUSTFLOAT(0), min, max, false);
             fJSON.addVerticalBargraph(label, zone, min, max);
         }
             

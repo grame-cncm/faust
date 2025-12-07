@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <vector>
 
 #include "faust/audio/audio.h"
 
@@ -63,23 +64,25 @@ class miniaudio : public audio {
         {
             AVOIDDENORMALS;
           
-            float** in_buffers = (float**)alloca(fDSP->getNumInputs() * sizeof(float*));
+            std::vector<std::vector<float>> in_storage(fDSP->getNumInputs(), std::vector<float>(frameCount, 0.0f));
+            std::vector<std::vector<float>> out_storage(fDSP->getNumOutputs(), std::vector<float>(frameCount, 0.0f));
+            std::vector<float*> in_buffers(fDSP->getNumInputs());
+            std::vector<float*> out_buffers(fDSP->getNumOutputs());
             for (int i = 0; i < fDSP->getNumInputs(); ++i) {
-                in_buffers[i] = (float*)alloca(frameCount * sizeof(float));
+                in_buffers[i] = in_storage[i].data();
             }
-            float** out_buffers = (float**)alloca(fDSP->getNumOutputs() * sizeof(float*));
             for (int i = 0; i < fDSP->getNumOutputs(); ++i) {
-                out_buffers[i] = (float*)alloca(frameCount * sizeof(float));
+                out_buffers[i] = out_storage[i].data();
             }
             
             // Deinterleave the input audio frames into the input buffers
-            ma_deinterleave_pcm_frames(ma_format_f32, fDSP->getNumInputs(), frameCount, pInput, (void **)in_buffers);
+            ma_deinterleave_pcm_frames(ma_format_f32, fDSP->getNumInputs(), frameCount, pInput, (void **)in_buffers.data());
             
             // Compute the DSP process on the deinterleaved buffers
-            fDSP->compute(frameCount, in_buffers, out_buffers);
+            fDSP->compute(frameCount, in_buffers.data(), out_buffers.data());
             
             // Re-interleave the output frames back into a single interleaved buffer
-            ma_interleave_pcm_frames(ma_format_f32, fDSP->getNumOutputs(), frameCount, (const void **)out_buffers, pOutput);
+            ma_interleave_pcm_frames(ma_format_f32, fDSP->getNumOutputs(), frameCount, (const void **)out_buffers.data(), pOutput);
         }
         
     public:

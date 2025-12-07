@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <memory>
 #include <portaudio.h>
 
 #include "faust/audio/audio.h"
@@ -102,10 +103,8 @@ class portaudio : public audio {
             if (fAudioStream) {
                 pa_error(Pa_StopStream(fAudioStream));
                 pa_error(Pa_CloseStream(fAudioStream));
-                fAudioStream = 0;
+                fAudioStream = nullptr;
             }
-            // Note that Pa_Initialize handled multiple times calls and 
-            // must be matched with a corresponding call to Pa_Terminate
             Pa_Terminate();
         }
         
@@ -176,6 +175,7 @@ class portaudio : public audio {
             if (pa_error(Pa_OpenStream(&fAudioStream, ((fDevNumInChans > 0) ? &fInputParameters : 0),
                                        ((fDevNumOutChans > 0) ? &fOutputParameters : 0), 
                                        fSampleRate, fBufferSize, paNoFlag, audioCallback, this))) {
+                fAudioStream = nullptr;
                 return false;
             }    
             

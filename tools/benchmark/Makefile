@@ -123,6 +123,7 @@ emcc: $(FASTMATH)
 EXISTING := $(wildcard $(TARGETS))
 
 install:
+	@echo "EXISTING = $(EXISTING)"
 	@if [ -n "$(EXISTING)" ]; then \
 		cp $(EXISTING) $(prefix)/bin; \
 	fi

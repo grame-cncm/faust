@@ -26,9 +26,11 @@ architecture section is not modified.
 #define __dsp_optimizer__
 
 #include <stdio.h>
+#ifdef __unix__
 #include <sys/types.h>
 #include <pwd.h>
 #include <unistd.h>
+#endif
 #include <typeinfo>
 #include <tuple>
 
@@ -70,6 +72,20 @@ class dsp_optimizer_real {
     
         TOptionTable fScalOptionsTable;
         TOptionTable fVecOptionsTable;
+
+    public:
+
+        virtual ~dsp_optimizer_real()
+        {
+            if (fDSP) {
+                delete fDSP;
+                fDSP = nullptr;
+            }
+            if (fFactory) {
+                deleteDSPFactory(fFactory);
+                fFactory = nullptr;
+            }
+        }
     
         std::tuple<double, double, double> bench(int run)
         {
@@ -98,50 +114,57 @@ class dsp_optimizer_real {
     
         void init()
         {
-            // Scalar mode with exp10
-            std::vector <std::string> t0_exp10;
-            t0_exp10.push_back("-scal");
-            t0_exp10.push_back("-exp10");
-            fScalOptionsTable.push_back(t0_exp10);
-            
-            // Scalar mode with -mcd 0
-            std::vector <std::string> t0;
-            t0.push_back("-scal");
-            t0.push_back("-mcd");
-            t0.push_back("0");
-            fScalOptionsTable.push_back(t0);
-            
-            // Scalar mode with different -mcd
-            for (int size = 2; size <= fBufferSize; size *= 2) {
-                std::vector <std::string> t1;
-                t1.push_back("-scal");
-                t1.push_back("-mcd");
-                t1.push_back(std::to_string(size));
-                fScalOptionsTable.push_back(t1);
+            if (fScalOptionsTable.empty()) {
+                // Reserve rough counts to avoid reallocations
+                fScalOptionsTable.reserve(static_cast<size_t>(std::log2(std::max(2, fBufferSize))) + 2);
+                // Scalar mode with exp10
+                std::vector <std::string> t0_exp10;
+                t0_exp10.push_back("-scal");
+                t0_exp10.push_back("-exp10");
+                fScalOptionsTable.push_back(t0_exp10);
+                
+                // Scalar mode with -mcd 0
+                std::vector <std::string> t0;
+                t0.push_back("-scal");
+                t0.push_back("-mcd");
+                t0.push_back("0");
+                fScalOptionsTable.push_back(t0);
+                
+                // Scalar mode with different -mcd
+                for (int size = 2; size <= fBufferSize; size *= 2) {
+                    std::vector <std::string> t1;
+                    t1.push_back("-scal");
+                    t1.push_back("-mcd");
+                    t1.push_back(std::to_string(size));
+                    fScalOptionsTable.push_back(t1);
+                }
             }
             
-            // vec -lv 0
-            for (int size = 4; size <= fBufferSize; size *= 2) {
-                std::vector <std::string> t1;
-                t1.push_back("-vec");
-                t1.push_back("-lv");
-                t1.push_back("0");
-                t1.push_back("-vs");
-                t1.push_back(std::to_string(size));
-                fVecOptionsTable.push_back(t1);
-            }
-            
-            // vec -lv 0 -fun
-            for (int size = 4; size <= fBufferSize; size *= 2) {
-                std::vector <std::string> t1;
-                t1.push_back("-vec");
-                t1.push_back("-fun");
-                t1.push_back("-lv");
-                t1.push_back("0");
-                t1.push_back("-vs");
-                t1.push_back(std::to_string(size));
-                fVecOptionsTable.push_back(t1);
-            }
+            if (fVecOptionsTable.empty()) {
+                fVecOptionsTable.reserve(static_cast<size_t>(std::log2(std::max(4, fBufferSize))) * 4);
+                
+                // vec -lv 0
+                for (int size = 4; size <= fBufferSize; size *= 2) {
+                    std::vector <std::string> t1;
+                    t1.push_back("-vec");
+                    t1.push_back("-lv");
+                    t1.push_back("0");
+                    t1.push_back("-vs");
+                    t1.push_back(std::to_string(size));
+                    fVecOptionsTable.push_back(t1);
+                }
+                
+                // vec -lv 0 -fun
+                for (int size = 4; size <= fBufferSize; size *= 2) {
+                    std::vector <std::string> t1;
+                    t1.push_back("-vec");
+                    t1.push_back("-fun");
+                    t1.push_back("-lv");
+                    t1.push_back("0");
+                    t1.push_back("-vs");
+                    t1.push_back(std::to_string(size));
+                    fVecOptionsTable.push_back(t1);
+                }
         
             /*
             // vec -lv 0 -g
@@ -169,27 +192,28 @@ class dsp_optimizer_real {
             }
             */
             
-            // vec -lv 1
-            for (int size = 4; size <= fBufferSize; size *= 2) {
-                std::vector <std::string> t1;
-                t1.push_back("-vec");
-                t1.push_back("-lv");
-                t1.push_back("1");
-                t1.push_back("-vs");
-                t1.push_back(std::to_string(size));
-                fVecOptionsTable.push_back(t1);
-            }
-             
-            // vec -lv 1 -fun
-            for (int size = 4; size <= fBufferSize; size *= 2) {
-                std::vector <std::string> t1;
-                t1.push_back("-vec");
-                t1.push_back("-fun");
-                t1.push_back("-lv");
-                t1.push_back("1");
-                t1.push_back("-vs");
-                t1.push_back(std::to_string(size));
-                fVecOptionsTable.push_back(t1);
+                // vec -lv 1
+                for (int size = 4; size <= fBufferSize; size *= 2) {
+                    std::vector <std::string> t1;
+                    t1.push_back("-vec");
+                    t1.push_back("-lv");
+                    t1.push_back("1");
+                    t1.push_back("-vs");
+                    t1.push_back(std::to_string(size));
+                    fVecOptionsTable.push_back(t1);
+                }
+                 
+                // vec -lv 1 -fun
+                for (int size = 4; size <= fBufferSize; size *= 2) {
+                    std::vector <std::string> t1;
+                    t1.push_back("-vec");
+                    t1.push_back("-fun");
+                    t1.push_back("-lv");
+                    t1.push_back("1");
+                    t1.push_back("-vs");
+                    t1.push_back(std::to_string(size));
+                    fVecOptionsTable.push_back(t1);
+                }
             }
             
             /*
@@ -384,9 +408,6 @@ class dsp_optimizer_real {
                 throw std::bad_alloc();
             }
         }
-    
-        virtual ~dsp_optimizer_real()
-        {}
     
         /**
          * Returns the best compilations parameters.

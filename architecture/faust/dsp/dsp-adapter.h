@@ -71,14 +71,18 @@ class dsp_adapter : public decorator_dsp {
             fBufferSize = buffer_size;
             fDelete = to_delete;
             
-            fAdaptedInputs = new FAUSTFLOAT*[std::max<int>(dsp->getNumInputs(), hw_inputs)];
-            for (int i = 0; i < dsp->getNumInputs() - fHWInputs; i++) {
+            const int input_slots = std::max<int>(fDSPInputs, fHWInputs);
+            fAdaptedInputs = new FAUSTFLOAT*[input_slots];
+            const int extra_inputs = std::max(0, fDSPInputs - fHWInputs);
+            for (int i = 0; i < extra_inputs; i++) {
                 fAdaptedInputs[i + fHWInputs] = new FAUSTFLOAT[buffer_size];
                 memset(fAdaptedInputs[i + fHWInputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
             }
             
-            fAdaptedOutputs = new FAUSTFLOAT*[std::max<int>(dsp->getNumOutputs(), hw_outputs)];
-            for (int i = 0; i < dsp->getNumOutputs() - fHWOutputs; i++) {
+            const int output_slots = std::max<int>(fDSPOutputs, fHWOutputs);
+            fAdaptedOutputs = new FAUSTFLOAT*[output_slots];
+            const int extra_outputs = std::max(0, fDSPOutputs - fHWOutputs);
+            for (int i = 0; i < extra_outputs; i++) {
                 fAdaptedOutputs[i + fHWOutputs] = new FAUSTFLOAT[buffer_size];
                 memset(fAdaptedOutputs[i + fHWOutputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
             }

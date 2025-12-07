@@ -58,7 +58,7 @@ struct MidiMeta : public Meta {
         fData[key] = value;
     }
     
-    const std::string get(const char* key, const char* def)
+    const std::string get(const char* key, const char* def) const noexcept
     {
         auto it = fData.find(key);
         return (it != fData.end()) ? it->second : def;

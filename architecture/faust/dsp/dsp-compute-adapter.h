@@ -55,7 +55,7 @@ class dsp_compute_mix : public decorator_dsp {
             fDSP->compute(count, inputs, outputs);
         }
     
-        virtual void computeRemplacing(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void computeReplacing(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
                 memset(outputs[chan], 0, sizeof(FAUSTFLOAT) * count);
@@ -128,8 +128,8 @@ class dsp_compute_inpl_mix : public decorator_dsp {
                     // Use ' ' as delim for cutting string
                     std::string token;
                     while (getline(tokenizer, token, ' ')) {
-                        cm = (token == "-cm");
-                        inpl = (token == "-inpl");
+                        cm |= (token == "-cm");
+                        inpl |= (token == "-inpl");
                     }
                     
                     if (fInputs > 0 && cm && inpl) {

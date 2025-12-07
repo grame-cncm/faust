@@ -98,7 +98,7 @@ class FAUST_API Interpolator {
             double fHi;
 
             Range(double x, double y) : fLo(std::min<double>(x,y)), fHi(std::max<double>(x,y)) {}
-            double operator()(double x) { return (x<fLo) ? fLo : (x>fHi) ? fHi : x; }
+            double operator()(double x) const noexcept { return (x<fLo) ? fLo : (x>fHi) ? fHi : x; }
         };
 
         Range fRange;
@@ -119,13 +119,15 @@ class FAUST_API Interpolator {
                 fOffset = (v1+v2)/2;
             }
         }
-        double operator()(double v)
+        double operator()(double v) const noexcept
         {
             double x = fRange(v);
             return  fOffset + x*fCoef;
         }
 
-        void getLowHigh(double& amin, double& amax)
+        double coef() const noexcept { return fCoef; }
+
+        void getLowHigh(double& amin, double& amax) const noexcept
         {
             amin = fRange.fLo;
             amax = fRange.fHi;
@@ -150,9 +152,9 @@ class FAUST_API Interpolator3pt {
             fSegment1(lo, mi, v1, vm),
             fSegment2(mi, hi, vm, v2),
             fMid(mi) {}
-        double operator()(double x) { return  (x < fMid) ? fSegment1(x) : fSegment2(x); }
+        double operator()(double x) const noexcept { return  (x < fMid) ? fSegment1(x) : fSegment2(x); }
 
-        void getMappingValues(double& amin, double& amid, double& amax)
+        void getMappingValues(double& amin, double& amid, double& amax) const noexcept
         {
             fSegment1.getLowHigh(amin, amid);
             fSegment2.getLowHigh(amid, amax);
@@ -215,7 +217,18 @@ class FAUST_API LinearValueConverter : public ValueConverter {
         LinearValueConverter() : fUI2F(0.,0.,0.,0.), fF2UI(0.,0.,0.,0.)
         {}
         virtual double ui2faust(double x) { return fUI2F(x); }
-        virtual double faust2ui(double x) { return fF2UI(x); }
+        virtual double faust2ui(double x)
+        {
+            // Avoid division by zero; if coef is zero, fall back to midpoint in the clamped range.
+            if (fF2UI.coef() != 0.0) {
+                return fF2UI(x);
+            } else {
+                double lo, hi;
+                fF2UI.getLowHigh(lo, hi);
+                double mid = (lo + hi) / 2.0;
+                return fF2UI(mid);
+            }
+        }
     
 };
 

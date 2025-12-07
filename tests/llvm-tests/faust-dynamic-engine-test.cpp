@@ -33,22 +33,31 @@
 
 using namespace std;
 
+RendererType audio_renderer = kRtAudioRenderer;
+
 void test1()
 {
     // Create an osc DSP using a code string
     const char* code = "import(\"stdfaust.lib\"); declare soundfiles \"https://url1;https://url2;https://url3\"; process = os.osc(500);";
     dsp* DSP = createDsp("Test1", code, 0, NULL, "", -1);
     if (!DSP) {
-        printf("ERROR in createDsp : %s", getLastError());
+        printf("ERROR in createDsp : %s\n", getLastError());
         return;
     }
-    initDsp(DSP, kPortAudioRenderer, 44100, 512);
-    startDsp(DSP);
+    if (!initDsp(DSP, audio_renderer, 44100, 512)) {
+        printf("ERROR in initDsp : %s\n", getLastError());
+        goto error;
+    }
+    if (!startDsp(DSP)) {
+        printf("ERROR in startDsp : %s\n", getLastError());
+        goto error;
+    }
 
     printf("Type 'n' to go to next test\n");
     char c;
     while ((c = getchar()) && (c != 'n')) { usleep(100000); }
 
+error:
     stopDsp(DSP);
     destroyDsp(DSP);
 }
@@ -66,7 +75,7 @@ void test2()
         // Create an osc DSP using a code string
         Box osc = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); declare soundfiles \"https://url1;https://url2;https://url3\"; process = os.osc(500);", 0, nullptr, &inputs, &outputs, error_msg);
         if (!osc) {
-            printf("ERROR in CDSPToBoxes : %s", error_msg);
+            printf("ERROR in CDSPToBoxes : %s\n", error_msg);
             destroyLibContext();
             return;
         }
@@ -82,13 +91,20 @@ void test2()
     }
     destroyLibContext();
     
-    initDsp(DSP, kPortAudioRenderer, 44100, 512);
-    startDsp(DSP);
+    if (!initDsp(DSP, audio_renderer, 44100, 512)) {
+        printf("ERROR in initDsp : %s\n", getLastError());
+        goto error;
+    }
+    if (!startDsp(DSP)) {
+        printf("ERROR in startDsp : %s\n", getLastError());
+        goto error;
+    }
     
     printf("Type 'n' to go to next test\n");
     char c;
     while ((c = getchar()) && (c != 'n')) { usleep(100000); }
     
+error:
     stopDsp(DSP);
     destroyDsp(DSP);
 }
@@ -107,7 +123,7 @@ void test3()
         Box osc = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); declare soundfiles \"https://url1;https://url2;https://url3\"; process = os.osc(500);", 0, nullptr, &inputs, &outputs, error_msg);
     
         if (!osc) {
-            printf("ERROR in CDSPToBoxes : %s", error_msg);
+            printf("ERROR in CDSPToBoxes : %s\n", error_msg);
             destroyLibContext();
             return;
         }
@@ -128,16 +144,24 @@ void test3()
     }
     destroyLibContext();
     
-    initDsp(DSP, kPortAudioRenderer, 44100, 512);
-    startDsp(DSP);
+    if (!initDsp(DSP, audio_renderer, 44100, 512)) {
+        printf("ERROR in initDsp : %s\n", getLastError());
+        goto error;
+    }
+    if (!startDsp(DSP)) {
+        printf("ERROR in startDsp : %s\n", getLastError());
+        goto error;
+    }
     
     printf("Type 'n' to go to next test\n");
     char c;
     while ((c = getchar()) && (c != 'n')) { usleep(100000); }
     
+error:
     stopDsp(DSP);
     destroyDsp(DSP);
 }
+
 int main()
 {
     test1();

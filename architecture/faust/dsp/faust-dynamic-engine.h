@@ -50,6 +50,12 @@
 #define FAUSTFLOAT float
 #endif
 
+#ifndef __cplusplus
+#include <stdbool.h>
+#endif
+#include <stddef.h>
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -74,13 +80,13 @@ extern "C" {
      * @brief Renderer types for different platforms.
      */
     enum RendererType {
-        kPortAudioRenderer,   ///< PortAudio
-        kRtAudioRenderer,     ///< RtAudio
-        kJackRenderer,        ///< JACK Audio Connection Kit
-        kCoreAudioRenderer,   ///< Apple Core Audio
-        kiOSRenderer,         ///< iOS Audio
-        kAlsaRenderer,        ///< Advanced Linux Sound Architecture
-        kAndroidRenderer      ///< Android Audio
+        kPortAudioRenderer = 0,   ///< PortAudio
+        kRtAudioRenderer,         ///< RtAudio
+        kJackRenderer,            ///< JACK Audio Connection Kit
+        kCoreAudioRenderer,       ///< Apple Core Audio
+        kiOSRenderer,             ///< iOS Audio
+        kAlsaRenderer,            ///< Advanced Linux Sound Architecture
+        kAndroidRenderer          ///< Android Audio
     };
     
     /**
@@ -89,6 +95,13 @@ extern "C" {
      * @return A pointer to the last error message.
      */
     const char* getLastError();
+    
+    /**
+     * @brief Enable or disable runtime logging in the dynamic engine.
+     *
+     * @param enable - true to enable stderr logging, false to disable.
+     */
+    void setDynamicEngineLogging(int enable);
     
     /**
      * @brief Create a DSP object.

@@ -84,32 +84,35 @@ class pipewireaudio : public audio {
             AVOIDDENORMALS;
             int nframes = position->clock.duration;
 
-            float** fInChannel = (float**)alloca(fInputPorts.size() * sizeof(float*));
+            std::vector<float*> fInChannel(fInputPorts.size());
+            std::vector<std::vector<float>> in_storage;
+            in_storage.reserve(fInputPorts.size());
             for (size_t i = 0; i < fInputPorts.size(); i++) {
                 void *buf = pw_filter_get_dsp_buffer(fInputPorts[i], nframes);
                 
                 // returns null if buffer is unavailable (eg. unconnected ports), need to allocate buffers manually
                 if (!buf) {
-                    buf = alloca(nframes * sizeof(float));
-                    // zeroed buffer representing silence
-                    memset(buf, 0, nframes * sizeof(float));
+                    in_storage.emplace_back(nframes, 0.0f);
+                    buf = in_storage.back().data();
                 }
-                fInChannel[i] = (float*)buf;
+                fInChannel[i] = static_cast<float*>(buf);
             }
             
-            float** fOutChannel = (float**)alloca(fOutputPorts.size() * sizeof(float*));
+            std::vector<float*> fOutChannel(fOutputPorts.size());
+            std::vector<std::vector<float>> out_storage;
+            out_storage.reserve(fOutputPorts.size());
             for (size_t i = 0; i < fOutputPorts.size(); i++) {
                 void *buf = pw_filter_get_dsp_buffer(fOutputPorts[i], nframes);
 
                 // returns null if buffer is unavailable (eg. unconnected ports), need to allocate buffers manually
                 if (!buf) {
-                    // dummy buffer to write to on compute
-                    buf = alloca(nframes * sizeof(float));
+                    out_storage.emplace_back(nframes, 0.0f);
+                    buf = out_storage.back().data();
                 }
-                fOutChannel[i] = (float*) buf;
+                fOutChannel[i] = static_cast<float*>(buf);
             }
 
-            fDSP->compute(nframes, reinterpret_cast<FAUSTFLOAT**>(fInChannel), reinterpret_cast<FAUSTFLOAT**>(fOutChannel));
+            fDSP->compute(nframes, reinterpret_cast<FAUSTFLOAT**>(fInChannel.data()), reinterpret_cast<FAUSTFLOAT**>(fOutChannel.data()));
             
             runControlCallbacks();
             return 0;
@@ -162,9 +165,27 @@ class pipewireaudio : public audio {
             pw_init(nullptr, nullptr);
 
             fLoop = pw_thread_loop_new(nullptr, nullptr);
+            if (!fLoop) {
+                fprintf(stderr, "cannot create pipewire thread loop\n");
+                return false;
+            }
 
             pw_context *context = pw_context_new(pw_thread_loop_get_loop(fLoop), nullptr, 0);
+            if (!context) {
+                fprintf(stderr, "cannot create pipewire context\n");
+                pw_thread_loop_destroy(fLoop);
+                fLoop = nullptr;
+                return false;
+            }
+
             pw_core *core = pw_context_connect(context, nullptr, 0);
+            if (!core) {
+                fprintf(stderr, "cannot connect pipewire context\n");
+                pw_context_destroy(context);
+                pw_thread_loop_destroy(fLoop);
+                fLoop = nullptr;
+                return false;
+            }
 
             fFilter = pw_filter_new(core, name, pw_properties_new(
                 PW_KEY_MEDIA_TYPE, "Audio",
@@ -172,6 +193,14 @@ class pipewireaudio : public audio {
                 PW_KEY_MEDIA_ROLE, "DSP",
                 nullptr
             ));
+            if (!fFilter) {
+                fprintf(stderr, "cannot create pipewire filter\n");
+                pw_core_disconnect(core);
+                pw_context_destroy(context);
+                pw_thread_loop_destroy(fLoop);
+                fLoop = nullptr;
+                return false;
+            }
 
             pw_filter_add_listener(fFilter, &fFilter_listener, &fFilter_events, this);
             return true;
@@ -182,23 +211,29 @@ class pipewireaudio : public audio {
             uint8_t buffer[1024];
             struct spa_pod_builder b = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
 
-            if (pw_filter_connect(fFilter,
+            int res = pw_filter_connect(fFilter,
                         PW_FILTER_FLAG_RT_PROCESS,
-                        nullptr, 0) < 0) {
-                fprintf(stderr, "can't connect the filter\n");
+                        nullptr, 0);
+            if (res < 0) {
+                fprintf(stderr, "can't connect the filter: %s\n", spa_strerror(res));
                 return false;
             }
-            pw_thread_loop_start(fLoop);
+            if (pw_thread_loop_start(fLoop) != 0) {
+                fprintf(stderr, "can't start pipewire thread loop\n");
+                return false;
+            }
             return true;
         }
     
         virtual void stop()
         {
-            // need to lock thread_loop while calling function on objects associated with thread_loop
-            pw_thread_loop_lock(fLoop);
-            pw_filter_disconnect(fFilter);
-            pw_thread_loop_unlock(fLoop);
-            pw_thread_loop_stop(fLoop);
+            if (fLoop && fFilter) {
+                // need to lock thread_loop while calling function on objects associated with thread_loop
+                pw_thread_loop_lock(fLoop);
+                pw_filter_disconnect(fFilter);
+                pw_thread_loop_unlock(fLoop);
+                pw_thread_loop_stop(fLoop);
+            }
         }
 
         virtual int getBufferSize() {

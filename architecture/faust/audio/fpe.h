@@ -100,9 +100,9 @@ inline int fedisableexcept(unsigned int excepts)
 #endif
 #endif
 
-// https://en.cppreference.com/w/c/numeric/fenv/FE_exceptions
-
-static void fPEHandler(int sig, siginfo_t* sip, ucontext_t* scp)
+// Install a signal handler for floating-point exceptions to turn them into C++ exceptions.
+// On scope exit, restores the previous FPU environment and signal handler.
+static void fPEHandler(int, siginfo_t* sip, ucontext_t*)
 {
     int fe_code = sip->si_code;
     
@@ -122,22 +122,33 @@ static void fPEHandler(int sig, siginfo_t* sip, ucontext_t* scp)
     }
 }
 
-static bool gSetFPEHandler = false;
-static void setFPEHandler()
-{
-    feclearexcept(FE_ALL_EXCEPT);
-    feenableexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
-    
-    if (!gSetFPEHandler) {
-        gSetFPEHandler = true;
+struct ScopedFPEHandler {
+    // Installs the handler and enables FE_INVALID/FE_DIVBYZERO/FE_OVERFLOW
+    ScopedFPEHandler()
+    {
+        feclearexcept(FE_ALL_EXCEPT);
+        feenableexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
         
         struct sigaction act;
         act.sa_sigaction = (void(*)(int, siginfo_t*, void*))fPEHandler;
         sigemptyset(&act.sa_mask);
         act.sa_flags = SA_SIGINFO;
-        int res = sigaction(SIGFPE, &act, (struct sigaction*)0);
+        sigaction(SIGFPE, &act, &fOldAction);
     }
-}
+    
+    ~ScopedFPEHandler()
+    {
+        fesetenv(&fOldEnv);
+        sigaction(SIGFPE, &fOldAction, nullptr);
+    }
+    
+    ScopedFPEHandler(const ScopedFPEHandler&) = delete;
+    ScopedFPEHandler& operator=(const ScopedFPEHandler&) = delete;
+    
+private:
+    fenv_t fOldEnv{};
+    struct sigaction fOldAction{};
+};
 
 /* 
  
@@ -150,7 +161,7 @@ CATCH_FPE
 */
 
 #define TRY_FPE     \
-setFPEHandler();    \
+ScopedFPEHandler fpe_scope;    \
 try {               \
 
 #define CATCH_FPE                   \

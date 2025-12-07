@@ -226,11 +226,11 @@ class dummyaudio_real : public dummyaudio_base {
             }
         }
         
-        virtual int getBufferSize() { return fBufferSize; }
-        virtual int getSampleRate() { return fSampleRate; }
+        virtual int getBufferSize() noexcept { return fBufferSize; }
+        virtual int getSampleRate() noexcept { return fSampleRate; }
         
-        virtual int getNumInputs() { return fNumInputs; }
-        virtual int getNumOutputs() { return fNumOutputs; }
+        virtual int getNumInputs() noexcept { return fNumInputs; }
+        virtual int getNumOutputs() noexcept { return fNumOutputs; }
 
         REAL** getOutput() { return fOutChannel; }
     

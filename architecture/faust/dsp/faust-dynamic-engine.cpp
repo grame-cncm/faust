@@ -24,9 +24,12 @@ architecture section is not modified.
 
 #include <stdlib.h>
 #include <string.h>
+#include <cassert>
 #include <iostream>
+#include <memory>
 #include <string>
-#include <assert.h>
+#include <vector>
+#include <stdexcept>
 
 #include "faust/audio/audio.h"
 #include "faust/gui/APIUI.h"
@@ -68,6 +71,15 @@ architecture section is not modified.
 
 using namespace std;
 
+// Optional lightweight logging; enable at runtime via setDynamicEngineLogging(true)
+static bool gEnableDynamicEngineLog = false;
+static void logError(const std::string& msg)
+{
+    if (gEnableDynamicEngineLog) {
+        std::cerr << msg << std::endl;
+    }
+}
+
 // Audio renderer types
 
 enum RendererType {
@@ -87,12 +99,32 @@ enum RendererType {
 // DSP wrapper
 
 struct dsp_aux {
-    dsp_factory* fFactory;
+    struct FactoryDeleter {
+        void operator()(dsp_factory* factory) const noexcept
+        {
+        #ifdef LLVM_DSP
+            deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        #elif INTERP_DSP
+            deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
+        #endif
+        }
+    };
+    struct DriverDeleter {
+        void operator()(audio* driver) const noexcept
+        {
+            if (driver) {
+                driver->stop();
+                delete driver;
+            }
+        }
+    };
+
+    std::unique_ptr<dsp_factory, FactoryDeleter> fFactory;
 #if SOUNDFILE
-    SoundUI*    fSoundInterface;
+    std::unique_ptr<SoundUI>    fSoundInterface;
 #endif
-    dsp*        fDSP;
-    audio*      fDriver;
+    std::unique_ptr<dsp>        fDSP;
+    std::unique_ptr<audio, DriverDeleter>      fDriver;
     APIUI       fParams;
     string      fJSON;
     const char* fNameApp;
@@ -105,16 +137,19 @@ struct dsp_aux {
     {
         fNameApp = name_app;
     #ifdef LLVM_DSP
-        fFactory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, gLastError, opt_level);
+        fFactory.reset(createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, gLastError, opt_level));
     #elif INTERP_DSP
-        fFactory = createInterpreterDSPFactoryFromString(name_app, dsp_content, argc, argv, gLastError);
+        fFactory.reset(createInterpreterDSPFactoryFromString(name_app, dsp_content, argc, argv, gLastError));
     #endif
-        if (fFactory) {
-            fDSP = fFactory->createDSPInstance();
-            createJSON(name_app);
-        } else {
-            throw std::bad_alloc();
+        if (!fFactory) {
+            throw std::runtime_error(gLastError.empty() ? "Factory creation failed" : gLastError);
         }
+        fDSP.reset(fFactory->createDSPInstance());
+        if (!fDSP) {
+            gLastError = "Cannot create DSP instance";
+            throw std::runtime_error(gLastError);
+        }
+        createJSON(name_app);
     }
     
     dsp_aux(const char* name_app, Box box, int argc, const char* argv[], const char* target, int opt_level)
@@ -122,16 +157,19 @@ struct dsp_aux {
     {
         fNameApp = name_app;
     #ifdef LLVM_DSP
-        fFactory = createDSPFactoryFromBoxes(name_app, box, argc, argv, target, gLastError, opt_level);
+        fFactory.reset(createDSPFactoryFromBoxes(name_app, box, argc, argv, target, gLastError, opt_level));
     #elif INTERP_DSP
-        fFactory = createInterpreterDSPFactoryFromBoxes(name_app, box, argc, argv, gLastError);
+        fFactory.reset(createInterpreterDSPFactoryFromBoxes(name_app, box, argc, argv, gLastError));
     #endif
-        if (fFactory) {
-            fDSP = fFactory->createDSPInstance();
-            createJSON(name_app);
-        } else {
-            throw std::bad_alloc();
+        if (!fFactory) {
+            throw std::runtime_error(gLastError.empty() ? "Factory creation failed" : gLastError);
         }
+        fDSP.reset(fFactory->createDSPInstance());
+        if (!fDSP) {
+            gLastError = "Cannot create DSP instance";
+            throw std::runtime_error(gLastError);
+        }
+        createJSON(name_app);
     }
     
     dsp_aux(const char* name_app, Signal* signals_aux, int argc, const char* argv[], const char* target, int opt_level)
@@ -145,33 +183,24 @@ struct dsp_aux {
             k++;
         }
     #ifdef LLVM_DSP
-        fFactory = createDSPFactoryFromSignals(name_app, signals, argc, argv, target, gLastError, opt_level);
+        fFactory.reset(createDSPFactoryFromSignals(name_app, signals, argc, argv, target, gLastError, opt_level));
     #elif INTERP_DSP
-        fFactory = createInterpreterDSPFactoryFromSignals(name_app, signals, argc, argv, gLastError);
+        fFactory.reset(createInterpreterDSPFactoryFromSignals(name_app, signals, argc, argv, gLastError));
     #endif
-        if (fFactory) {
-            fDSP = fFactory->createDSPInstance();
-            createJSON(name_app);
-        } else {
-            throw std::bad_alloc();
+        if (!fFactory) {
+            throw std::runtime_error(gLastError.empty() ? "Factory creation failed" : gLastError);
         }
+        fDSP.reset(fFactory->createDSPInstance());
+        if (!fDSP) {
+            gLastError = "Cannot create DSP instance";
+            throw std::runtime_error(gLastError);
+        }
+        createJSON(name_app);
     }
   
     virtual ~dsp_aux()
     {
-        if (fDriver) {
-            fDriver->stop();
-            delete fDriver;
-        }
-        delete fDSP;
-    #if SOUNDFILE
-        delete fSoundInterface;
-    #endif
-    #ifdef LLVM_DSP
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(fFactory));
-    #elif INTERP_DSP
-        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fFactory));
-    #endif
+        // unique_ptr deleters handle cleanup.
     }
 
     void createJSON(const string& name_app)
@@ -188,69 +217,76 @@ struct dsp_aux {
         switch (renderer) {
         #ifdef JACK_DRIVER
             case kJackRenderer:
-                fDriver = new jackaudio();
+                fDriver.reset(new jackaudio());
                 break;
         #endif
 
         #ifdef PORTAUDIO_DRIVER
             case kPortAudioRenderer:
-                fDriver = new portaudio(sr, bsize);
+                fDriver.reset(new portaudio(sr, bsize));
                 break;
         #endif
 
         #ifdef RTAUDIO_DRIVER
             case kRtAudioRenderer:
-                fDriver = new rtaudio(sr, bsize);
+                fDriver.reset(new rtaudio(sr, bsize));
                 break;
         #endif
 
         #ifdef COREAUDIO_DRIVER
             case kCoreAudioRenderer:
-                fDriver = new coreaudio(sr, bsize);
+                fDriver.reset(new coreaudio(sr, bsize));
                 break;
         #endif
 
         #ifdef IOS_DRIVER
             case kiOSRenderer:
-                fDriver = new iosaudio(sr, bsize);
+                fDriver.reset(new iosaudio(sr, bsize));
                 break;
         #endif
 
         #ifdef ANDROID_DRIVER
             case kAndroidRenderer:
-                fDriver = new androidaudio(sr, bsize);
+                fDriver.reset(new androidaudio(sr, bsize));
                 break;
         #endif
 
         #ifdef ALSA_DRIVER
             case kAlsaRenderer:
-                fDriver = new alsaaudio(sr, bsize);
+                fDriver.reset(new alsaaudio(sr, bsize));
                 break;
         #endif
                 
             default:
-                assert(false);
-                break;
+                gLastError = "Unknown renderer type";
+                logError(gLastError);
+                return false;
         };
 
         if (fDriver) {
-            fDriver->init(fNameApp, fDSP);
+            if (!fDriver->init(fNameApp, fDSP.get())) {
+                gLastError = "Driver init failed";
+                logError(gLastError);
+                fDriver.reset();
+                return false;
+            }
             fDSP->buildUserInterface(&fParams);
     #if SOUNDFILE
             // Use bundle path and "soundfiles" metadata URLs
-            vector<string> base_url = SoundUI::getSoundfilePaths(fDSP);
+            vector<string> base_url = SoundUI::getSoundfilePaths(fDSP.get());
             base_url.push_back(SoundUI::getBinaryPath());
-            fSoundInterface = new SoundUI(base_url);
-            fDSP->buildUserInterface(fSoundInterface);
+            fSoundInterface.reset(new SoundUI(base_url));
+            fDSP->buildUserInterface(fSoundInterface.get());
     #endif
             return true;
         } else {
+            gLastError = "Cannot create audio driver";
             return false;
         }
     }
 
-    int getNumInputs() { return fDSP->getNumInputs(); }
-    int getNumOutputs() { return fDSP->getNumOutputs(); }
+    int getNumInputs() const noexcept { return fDSP ? fDSP->getNumInputs() : -1; }
+    int getNumOutputs() const noexcept { return fDSP ? fDSP->getNumOutputs() : -1; }
 };
 
 #if JACK_DRIVER
@@ -261,7 +297,11 @@ static audio* createDriver()
 
 static jackaudio* getJackDriver(dsp* dsp_ext)
 {
-    return (dsp_ext) ? dynamic_cast<jackaudio*>(reinterpret_cast<dsp_aux*>(dsp_ext)->fDriver) : nullptr;
+    if (!dsp_ext) {
+        return nullptr;
+    }
+    auto* driver = reinterpret_cast<dsp_aux*>(dsp_ext)->fDriver.get();
+    return dynamic_cast<jackaudio*>(driver);
 }
 #endif
 
@@ -301,7 +341,7 @@ int getNumOutputsDsp(dsp* dsp_ext)
         int    res    = 0;
         audio* driver = createDriver();
         if (driver && driver->init("dummy", nullptr)) {
-            res = driver->getNumInputs();
+            res = driver->getNumOutputs();
             delete driver;
         }
         return res;
@@ -378,8 +418,13 @@ dsp* createDsp(const char* name_app, const char* dsp_content, int argc, const ch
 {
     try {
         return reinterpret_cast<dsp*>(new dsp_aux(name_app, dsp_content, argc, argv, target, opt_level));
+    } catch (const std::exception& e) {
+        dsp_aux::gLastError = e.what();
+        cerr << "Cannot create DSP: " << dsp_aux::gLastError << "\n";
+        return nullptr;
     } catch (...) {
-        cerr << "Cannot create DSP\n";
+        dsp_aux::gLastError = "Cannot create DSP";
+        cerr << dsp_aux::gLastError << "\n";
         return nullptr;
     }
 }
@@ -388,8 +433,13 @@ dsp* createDspFromBoxes(const char* name_app, Box box, int argc, const char* arg
 {
     try {
         return reinterpret_cast<dsp*>(new dsp_aux(name_app, box, argc, argv, target, opt_level));
+    } catch (const std::exception& e) {
+        dsp_aux::gLastError = e.what();
+        cerr << "Cannot create DSP: " << dsp_aux::gLastError << "\n";
+        return nullptr;
     } catch (...) {
-        cerr << "Cannot create DSP\n";
+        dsp_aux::gLastError = "Cannot create DSP";
+        cerr << dsp_aux::gLastError << "\n";
         return nullptr;
     }
 }
@@ -398,8 +448,13 @@ dsp* createDspFromSignals(const char* name_app, Signal* signals, int argc, const
 {
     try {
         return reinterpret_cast<dsp*>(new dsp_aux(name_app, signals, argc, argv, target, opt_level));
+    } catch (const std::exception& e) {
+        dsp_aux::gLastError = e.what();
+        cerr << "Cannot create DSP: " << dsp_aux::gLastError << "\n";
+        return nullptr;
     } catch (...) {
-        cerr << "Cannot create DSP\n";
+        dsp_aux::gLastError = "Cannot create DSP";
+        cerr << dsp_aux::gLastError << "\n";
         return nullptr;
     }
 }
@@ -409,26 +464,43 @@ const char* getLastError()
     return dsp_aux::gLastError.c_str();
 }
 
+void setDynamicEngineLogging(int enable)
+{
+    gEnableDynamicEngineLog = (enable != 0);
+}
+
 bool initDsp(dsp* dsp_ext, RendererType renderer, int sr, int bsize)
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->init(renderer, sr, bsize);
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->init(renderer, sr, bsize) : false;
 }
 
 void destroyDsp(dsp* dsp_ext)
 {
-    delete reinterpret_cast<dsp_aux*>(dsp_ext);
+    if (dsp_ext) {
+        delete reinterpret_cast<dsp_aux*>(dsp_ext);
+    }
 }
 
 bool startDsp(dsp* dsp_ext)
 {
     dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext);
-    return (dsp->fDriver) ? dsp->fDriver->start() : false;
+    if (dsp && dsp->fDriver) {
+        if (!dsp->fDriver->start()) {
+            dsp_aux::gLastError = "Driver start failed";
+            logError(dsp_aux::gLastError);
+            return false;
+        }
+        return true;
+    }
+    dsp_aux::gLastError = "Driver not initialized";
+    logError(dsp_aux::gLastError);
+    return false;
 }
 
 void stopDsp(dsp* dsp_ext)
 {
     dsp_aux* dsp = reinterpret_cast<dsp_aux*>(dsp_ext);
-    if (dsp->fDriver) dsp->fDriver->stop();
+    if (dsp && dsp->fDriver) dsp->fDriver->stop();
 }
 
 /*
@@ -441,108 +513,128 @@ void stopDsp(dsp* dsp_ext)
  * getNamedParamDsp(const char* name) retrieves the value of a parameter by its name
  * getIndexParamDsp(int i) retrieves the value of a parameter by its index
  */
-const char* getJSONDsp(dsp* dsp_ext)
+const char* getJSONDsp(dsp* dsp_ext) noexcept
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fJSON.c_str();
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->fJSON.c_str() : nullptr;
 }
 
-int getParamsCountDsp(dsp* dsp_ext)
+int getParamsCountDsp(dsp* dsp_ext) noexcept
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamsCount();
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamsCount() : 0;
 }
 
-int getParamIndexDsp(dsp* dsp_ext, const char* name)
+int getParamIndexDsp(dsp* dsp_ext, const char* name) noexcept
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamIndex(name);
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamIndex(name) : -1;
 }
-const char* getParamAddressDsp(dsp* dsp_ext, int p)
+const char* getParamAddressDsp(dsp* dsp_ext, int p) noexcept
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamAddress(p);
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamAddress(p) : nullptr;
 }
-const char* getParamUnitDsp(dsp* dsp_ext, int p)
+const char* getParamUnitDsp(dsp* dsp_ext, int p) noexcept
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getMetadata(p, "unit");
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getMetadata(p, "unit") : nullptr;
 }
-FAUSTFLOAT getParamMinDsp(dsp* dsp_ext, int p)
+FAUSTFLOAT getParamMinDsp(dsp* dsp_ext, int p) noexcept
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMin(p);
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMin(p) : FAUSTFLOAT(0);
 }
-FAUSTFLOAT getParamMaxDsp(dsp* dsp_ext, int p)
+FAUSTFLOAT getParamMaxDsp(dsp* dsp_ext, int p) noexcept
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMax(p);
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMax(p) : FAUSTFLOAT(0);
 }
-FAUSTFLOAT getParamStepDsp(dsp* dsp_ext, int p)
+FAUSTFLOAT getParamStepDsp(dsp* dsp_ext, int p) noexcept
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamStep(p);
-}
-
-FAUSTFLOAT getParamValueDsp(dsp* dsp_ext, int p)
-{
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamValue(p);
-}
-void setParamValueDsp(dsp* dsp_ext, int p, FAUSTFLOAT v)
-{
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamValue(p, v);
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamStep(p) : FAUSTFLOAT(0);
 }
 
-FAUSTFLOAT getParamRatioDsp(dsp* dsp_ext, int p)
+FAUSTFLOAT getParamValueDsp(dsp* dsp_ext, int p) noexcept
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamRatio(p);
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamValue(p) : FAUSTFLOAT(0);
 }
-void setParamRatioDsp(dsp* dsp_ext, int p, FAUSTFLOAT v)
+void setParamValueDsp(dsp* dsp_ext, int p, FAUSTFLOAT v) noexcept
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamRatio(p, v);
-}
-
-FAUSTFLOAT value2ratioDsp(dsp* dsp_ext, int p, FAUSTFLOAT r)
-{
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.value2ratio(p, r);
-}
-FAUSTFLOAT ratio2valueDsp(dsp* dsp_ext, int p, FAUSTFLOAT r)
-{
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.ratio2value(p, r);
+    if (dsp_ext) reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamValue(p, v);
 }
 
-void propagateAccDsp(dsp* dsp_ext, int acc, FAUSTFLOAT a)
+FAUSTFLOAT getParamRatioDsp(dsp* dsp_ext, int p) noexcept
 {
-    reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAcc(acc, a);
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamRatio(p) : FAUSTFLOAT(0);
 }
-void setAccConverterDsp(dsp* dsp_ext, int p, int acc, int curve, FAUSTFLOAT amin, FAUSTFLOAT amid, FAUSTFLOAT amax)
+void setParamRatioDsp(dsp* dsp_ext, int p, FAUSTFLOAT v) noexcept
 {
-    reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setAccConverter(p, acc, curve, double(amin), double(amid),
-                                                                 double(amax));
+    if (dsp_ext) reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setParamRatio(p, v);
 }
-void getAccConverterDsp(dsp* dsp_ext, int p, int* acc, int* curve, FAUSTFLOAT* amin, FAUSTFLOAT* amid, FAUSTFLOAT* amax)
+
+FAUSTFLOAT value2ratioDsp(dsp* dsp_ext, int p, FAUSTFLOAT r) noexcept
 {
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.value2ratio(p, r) : FAUSTFLOAT(0);
+}
+FAUSTFLOAT ratio2valueDsp(dsp* dsp_ext, int p, FAUSTFLOAT r) noexcept
+{
+    return (dsp_ext) ? reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.ratio2value(p, r) : FAUSTFLOAT(0);
+}
+
+void propagateAccDsp(dsp* dsp_ext, int acc, FAUSTFLOAT a) noexcept
+{
+    if (dsp_ext) reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateAcc(acc, a);
+}
+void setAccConverterDsp(dsp* dsp_ext, int p, int acc, int curve, FAUSTFLOAT amin, FAUSTFLOAT amid, FAUSTFLOAT amax) noexcept
+{
+    if (dsp_ext) {
+        reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setAccConverter(p, acc, curve, double(amin), double(amid),
+                                                                     double(amax));
+    }
+}
+void getAccConverterDsp(dsp* dsp_ext, int p, int* acc, int* curve, FAUSTFLOAT* amin, FAUSTFLOAT* amid, FAUSTFLOAT* amax) noexcept
+{
+    if (!dsp_ext) {
+        if (acc) *acc = 0;
+        if (curve) *curve = 0;
+        if (amin) *amin = FAUSTFLOAT(0);
+        if (amid) *amid = FAUSTFLOAT(0);
+        if (amax) *amax = FAUSTFLOAT(0);
+        return;
+    }
     double amin_tmp, amid_tmp, amax_tmp;
     int    acc_tmp, curve_tmp;
     reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getAccConverter(p, acc_tmp, curve_tmp, amin_tmp, amid_tmp, amax_tmp);
     *acc   = acc_tmp;
     *curve = curve_tmp;
     *amin  = FAUSTFLOAT(amin_tmp);
-    *amin  = FAUSTFLOAT(amid_tmp);
-    *amin  = FAUSTFLOAT(amax_tmp);
+    *amid  = FAUSTFLOAT(amid_tmp);
+    *amax  = FAUSTFLOAT(amax_tmp);
 }
 
-void propagateGyrDsp(dsp* dsp_ext, int gyr, FAUSTFLOAT a)
+void propagateGyrDsp(dsp* dsp_ext, int gyr, FAUSTFLOAT a) noexcept
 {
-    return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateGyr(gyr, a);
+    if (dsp_ext) reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.propagateGyr(gyr, a);
 }
-void setGyrConverterDsp(dsp* dsp_ext, int p, int gyr, int curve, FAUSTFLOAT amin, FAUSTFLOAT amid, FAUSTFLOAT amax)
+void setGyrConverterDsp(dsp* dsp_ext, int p, int gyr, int curve, FAUSTFLOAT amin, FAUSTFLOAT amid, FAUSTFLOAT amax) noexcept
 {
-    reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setGyrConverter(p, gyr, curve, double(amin), double(amid),
-                                                                 double(amax));
+    if (dsp_ext) {
+        reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.setGyrConverter(p, gyr, curve, double(amin), double(amid),
+                                                                     double(amax));
+    }
 }
-void getGyrConverterDsp(dsp* dsp_ext, int p, int* gyr, int* curve, FAUSTFLOAT* amin, FAUSTFLOAT* amid, FAUSTFLOAT* amax)
+void getGyrConverterDsp(dsp* dsp_ext, int p, int* gyr, int* curve, FAUSTFLOAT* amin, FAUSTFLOAT* amid, FAUSTFLOAT* amax) noexcept
 {
+    if (!dsp_ext) {
+        if (gyr) *gyr = 0;
+        if (curve) *curve = 0;
+        if (amin) *amin = FAUSTFLOAT(0);
+        if (amid) *amid = FAUSTFLOAT(0);
+        if (amax) *amax = FAUSTFLOAT(0);
+        return;
+    }
     double amin_tmp, amid_tmp, amax_tmp;
     int    gyr_tmp, curve_tmp;
     reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getGyrConverter(p, gyr_tmp, curve_tmp, amin_tmp, amid_tmp, amax_tmp);
     *gyr   = gyr_tmp;
     *curve = curve_tmp;
     *amin  = FAUSTFLOAT(amin_tmp);
-    *amin  = FAUSTFLOAT(amid_tmp);
-    *amin  = FAUSTFLOAT(amax_tmp);
+    *amid  = FAUSTFLOAT(amid_tmp);
+    *amax  = FAUSTFLOAT(amax_tmp);
 }
 
 #ifdef __cplusplus

@@ -591,7 +591,7 @@ static void* __run(void* ptr);
 
 class alsaaudio : public audio
 {
-    AudioInterface* fAudio;
+    std::unique_ptr<AudioInterface> fAudio;
     ::dsp*          fDSP;
     pthread_t       fAudioThread;
     bool            fRunning;
@@ -620,7 +620,7 @@ class alsaaudio : public audio
                                     .periods(2));
     }
 
-    virtual ~alsaaudio() { stop(); delete fAudio; }
+    virtual ~alsaaudio() { stop(); }
 
     virtual bool init(const char* /*name*/, ::dsp* DSP)
     {
@@ -640,7 +640,7 @@ class alsaaudio : public audio
         }
         return fRunning;
     }
-
+    
     virtual void stop()
     {
         if (fRunning) {

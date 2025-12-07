@@ -119,12 +119,12 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
             if (fDSP->getNumInputs() > 0) {
                 
                 // Read inputs
-                float* inbuffer = static_cast<float*>(alloca(fDSP->getNumInputs() * sizeof(float) * framesWrite));
-                oboe::ResultWithValue<int32_t> res = fInputStream->read(inbuffer, framesWrite, 0);
+                std::vector<float> inbuffer(fDSP->getNumInputs() * framesWrite);
+                oboe::ResultWithValue<int32_t> res = fInputStream->read(inbuffer.data(), framesWrite, 0);
                 
                 if (res) {
                     int32_t framesRead = res.value();
-                    fInputs->interleavedRead(inbuffer, framesWrite, fDSP->getNumInputs());
+                    fInputs->interleavedRead(inbuffer.data(), framesWrite, fDSP->getNumInputs());
                 
                     // Call compute only when 'read frames' == 'frames to write'
                     if (framesRead == framesWrite) {

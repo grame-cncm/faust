@@ -62,8 +62,10 @@ class rtaudio : public audio {
         {
             AVOIDDENORMALS;
             
-            float** inputs = (float**)alloca(fDSP->getNumInputs() * sizeof(float*));
-            float** outputs = (float**)alloca(fDSP->getNumOutputs() * sizeof(float*));
+            std::vector<float*> inputs_vec(fDSP->getNumInputs());
+            std::vector<float*> outputs_vec(fDSP->getNumOutputs());
+            float** inputs = inputs_vec.data();
+            float** outputs = outputs_vec.data();
             
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 inputs[i] = &(static_cast<float*>(inbuf))[i * frames];
@@ -95,17 +97,34 @@ class rtaudio : public audio {
         {
 #if RTAUDIO_VERSION_MAJOR < 6
             try {
+                if (fAudioDAC.isStreamRunning()) {
+                    fAudioDAC.stopStream();
+                }
+                if (fAudioDAC.isStreamOpen()) {
+                    fAudioDAC.closeStream();
+                }
+            } catch (RtAudioError& e) {
+                std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+            }
+#else
+        #if RTAUDIO_VERSION_MAJOR >= 6
+            if (fAudioDAC.isStreamRunning()) {
+                RtAudioErrorType err = fAudioDAC.stopStream();
+                if (err != RTAUDIO_NO_ERROR) {
+                    std::cout << '\n' << fAudioDAC.getErrorText() << '\n' << std::endl;
+                }
+            }
+            if (fAudioDAC.isStreamOpen()) {
+                fAudioDAC.closeStream();
+            }
+        #else
+            try {
                 fAudioDAC.stopStream();
                 fAudioDAC.closeStream();
             } catch (RtAudioError& e) {
                 std::cout << '\n' << e.getMessage() << '\n' << std::endl;
             }
-#else
-            RtAudioErrorType err = fAudioDAC.stopStream();
-            if (err != RTAUDIO_NO_ERROR) {
-                std::cout << '\n' << fAudioDAC.getErrorText() << '\n' << std::endl;
-            }
-            fAudioDAC.closeStream();
+        #endif
 #endif
         }
         

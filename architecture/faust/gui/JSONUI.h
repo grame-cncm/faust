@@ -32,6 +32,7 @@
 #include <sstream>
 #include <algorithm>
 #include <limits>
+#include <iterator>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/PathBuilder.h"
@@ -122,7 +123,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
     
         int fInputs, fOutputs, fSRIndex;
          
-        void tab(int n, std::ostream& fout)
+        void tab(int n, std::ostream& fout) noexcept
         {
             fout << '\n';
             while (n-- > 0) {
@@ -130,7 +131,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             }
         }
     
-        std::string flatten(const std::string& src)
+        std::string flatten(const std::string& src) const
         {
             std::string dst;
             for (size_t i = 0; i < src.size(); i++) {
@@ -533,7 +534,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             tab(fTab, fMeta); fMeta << "{ " << "\"" << key << "\"" << ": " << "\"" << value << "\" }";
             fCloseMetaPar = ',';
         }
-    
+
         std::string JSON(bool flat = false)
         {
             if (fJSON.empty()) {
@@ -666,6 +667,13 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                 fJSON = JSON.str();
             }
             return (flat) ? flatten(fJSON) : fJSON;
+        }
+
+        // Stream JSON to a caller-provided output to avoid extra copies.
+        void writeJSON(std::ostream& out, bool flat = false)
+        {
+            const std::string& json = JSON(flat);
+            out << json;
         }
     
 };

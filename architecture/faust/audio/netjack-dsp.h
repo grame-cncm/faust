@@ -97,7 +97,7 @@ class netjackaudio : public audio
 
         bool initAux(const char* name, ::dsp* DSP, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs)
         {
-            if (initAux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)) {
+            if (openNet(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)) {
                 setDsp(DSP);
                 return true;
             } else {
@@ -105,7 +105,7 @@ class netjackaudio : public audio
             }
         }
     
-        bool initAux(const char* name, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs)
+        bool openNet(const char* name, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs)
         {
             jack_slave_t request = {
                 audio_inputs,
@@ -162,8 +162,8 @@ class netjackaudio : public audio
 
         virtual void process(int count, float** audio_inputs, float** audio_outputs, void** midi_inputs, void** midi_outputs)
         {
-             AVOIDDENORMALS;
-             fDSP->compute(count, audio_inputs, audio_outputs);
+            AVOIDDENORMALS;
+            fDSP->compute(count, audio_inputs, audio_outputs);
         }
 
     public:
@@ -183,7 +183,8 @@ class netjackaudio : public audio
             fMTU(mtu),
             fLatency(latency),
             fMIDIInputs(midi_in),
-            fMIDIOutputs(midi_out)
+            fMIDIOutputs(midi_out),
+            fResult()
         {}
         
         virtual ~netjackaudio() 
@@ -191,6 +192,7 @@ class netjackaudio : public audio
             if (fNet) {
                 stop();
                 jack_net_slave_close(fNet);
+                fNet = nullptr;
             }
         }
 
