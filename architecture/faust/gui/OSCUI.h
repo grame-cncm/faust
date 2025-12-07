@@ -78,7 +78,7 @@ class OSCUI : public GUI
         std::vector<const char*> fAlias;
         JSONUI fJSON;
         
-        std::string tr(std::string_view label) const
+        std::string tr(const std::string& label) const
         {
             std::string out;
             out.reserve(label.size());

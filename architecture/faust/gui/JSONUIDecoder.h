@@ -153,7 +153,7 @@ struct FAUST_API JSONUIDecoderReal : public JSONUIDecoderBase {
     controlMap fPathInputTable;     // [path, ZoneParam]
     controlMap fPathOutputTable;    // [path, ZoneParam]
     
-    bool startWith(std::string_view str, std::string_view prefix) const noexcept
+    bool startWith(const std::string& str, const std::string& prefix) const noexcept
     {
         return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
     }
@@ -188,11 +188,6 @@ struct FAUST_API JSONUIDecoderReal : public JSONUIDecoderBase {
     JSONUIDecoderReal(const std::string& json)
     {
         initFromJSON(json);
-    }
-
-    JSONUIDecoderReal(std::string_view json_view)
-    {
-        initFromJSON(std::string(json_view));
     }
 
     void initFromJSON(const std::string& json)
@@ -598,13 +593,11 @@ struct FAUST_API JSONUIDecoder : public JSONUIDecoderReal<FAUSTFLOAT>
 {
     JSONUIDecoder(const std::string& json):JSONUIDecoderReal<FAUSTFLOAT>(json)
     {}
-    JSONUIDecoder(std::string_view json):JSONUIDecoderReal<FAUSTFLOAT>(json)
-    {}
 };
 
 // Generic factory
 
-static JSONUIDecoderBase* createJSONUIDecoder(std::string_view json)
+static JSONUIDecoderBase* createJSONUIDecoder(const std::string& json)
 {
     JSONUIDecoder decoder(json);
     if (decoder.hasCompileOption("-double")) {
