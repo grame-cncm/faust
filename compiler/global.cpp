@@ -580,24 +580,25 @@ void global::reset()
     gCodeboxVisitor = nullptr;  // Will be (possibly) allocated in Codebox backend
 #endif
 
-    gHelpSwitch        = false;
-    gVersionSwitch     = false;
-    gLibDirSwitch      = false;
-    gIncludeDirSwitch  = false;
-    gArchDirSwitch     = false;
-    gDspDirSwitch      = false;
-    gPathListSwitch    = false;
-    gGraphSwitch       = false;
-    gDrawPSSwitch      = false;
-    gDrawSVGSwitch     = false;
-    gVHDLTrace         = false;
-    gVHDLFloatEncoding = false;
-    gFPGAMemory        = 0;
-    gPrintXMLSwitch    = false;
-    gPrintJSONSwitch   = false;
-    gPrintDocSwitch    = false;
-    gArchFile          = "";
-    gExportDSP         = false;
+    gHelpSwitch          = false;
+    gVersionSwitch       = false;
+    gLibDirSwitch        = false;
+    gIncludeDirSwitch    = false;
+    gArchDirSwitch       = false;
+    gDspDirSwitch        = false;
+    gPathListSwitch      = false;
+    gGraphSwitch         = false;
+    gDrawPSSwitch        = false;
+    gDrawSVGSwitch       = false;
+    gVHDLTrace           = false;
+    gVHDLFloatEncoding   = false;
+    gFPGAMemory          = 0;
+    gFPGAMemoryThreshold = 4;
+    gPrintXMLSwitch      = false;
+    gPrintJSONSwitch     = false;
+    gPrintDocSwitch      = false;
+    gArchFile            = "";
+    gExportDSP           = false;
 
     gTimeout = 120;  // Time out to abort compiler (in seconds)
 
@@ -792,6 +793,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gFPGAMemory > 0) {
         dst << "-fpga-mem " << gFPGAMemory << " ";
+    }
+    if (gFPGAMemoryThreshold > 0) {
+        dst << "-fpga-mem-th " << gFPGAMemoryThreshold << " ";
     }
     if (gOneSample) {
         dst << "-os ";
@@ -1256,8 +1260,12 @@ bool global::processCmdline(int argc, const char* argv[])
             gVHDLComponentsFile = std::string(argv[i + 1]);
             i += 2;
 
-        } else if (isCmd(argv[i], "-fpga-mem", "-fpga-mem") && (i + 1 < argc)) {
+        } else if (isCmd(argv[i], "-fpga-mem", "--fpga-mem") && (i + 1 < argc)) {
             gFPGAMemory = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-fpga-mem-th", "--fpga-mem-th") && (i + 1 < argc)) {
+            gFPGAMemoryThreshold = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-style", "--svgstyle")) {
@@ -2377,7 +2385,12 @@ string global::printHelp()
             "VHDL backend."
          << endl;
     sstr << tab
-         << "-fpga-mem <n>  --fpga-mem <n>           FPGA block ram max size, used in -mem1/-mem2 "
+         << "-fpga-mem <n>     --fpga-mem <n>        FPGA block ram max size, used in -mem1/-mem2 "
+            "mode."
+         << endl;
+    sstr << tab
+         << "-fpga-mem-th <n>  --fpga-mem-th <n>     FPGA array size threshold (in unit of the "
+            "memory type), used in -mem1/-mem2 "
             "mode."
          << endl;
 

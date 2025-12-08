@@ -110,13 +110,15 @@ CodeContainer::CodeContainer()
         fIntControl  = nullptr;
         fRealControl = nullptr;
     }
- 
+
     // Memory handling with gMemoryManager
     if (gGlobal->gMemoryManager >= 1 && !gGlobal->gIntZone && !gGlobal->gRealZone) {
         // Allocation done once to be shared by all containers
         ZoneArray::gInternalMemorySize = gGlobal->gFPGAMemory;
-        gGlobal->gIntZone              = new ZoneArray("iZone", access, Typed::kInt32, 4);
-        gGlobal->gRealZone             = new ZoneArray("fZone", access, itfloat(), 4);
+        gGlobal->gIntZone =
+            new ZoneArray("iZone", access, Typed::kInt32, gGlobal->gFPGAMemoryThreshold);
+        gGlobal->gRealZone =
+            new ZoneArray("fZone", access, itfloat(), gGlobal->gFPGAMemoryThreshold);
     }
 }
 

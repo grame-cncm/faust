@@ -150,6 +150,8 @@ struct global {
     bool gDrawPSSwitch;         // -ps option
     bool gDrawSVGSwitch;        // -svg option
     int  gFPGAMemory;           // -fpga-mem option: FPGA block RAM max size
+    int  gFPGAMemoryThreshold;  // -fpga-mem-threshold option: FPGA array size threshold, used in
+                                // -mem1/-mem2
     bool gPrintXMLSwitch;       // -xml option
     bool gPrintJSONSwitch;      // -json option
     bool gPrintDocSwitch;       // -mdoc option
