@@ -782,7 +782,7 @@ void CPPCodeContainer::produceClass()
                 tab(n + 2, *fOut);
                 *fOut << "fManager->info(\"" << item.name << "\", "
                       << MemoryLayoutItem::gStringType[item.type] << ", " << item.size << ", "
-                      << ", " << item.size_bytes << ", " << item.read << ", " << item.write << ");";
+                      << item.size_bytes << ", " << item.read << ", " << item.write << ");";
                 tab(n + 2, *fOut);
             }
         }
