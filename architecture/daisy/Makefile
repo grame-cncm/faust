@@ -9,7 +9,7 @@ LIBDAISY_DIR ?= ../../../libdaisy
 DAISYSP_DIR ?= ../../../DaisySP
 
 # Linker Settings
-APP_TYPE = BOOT_SRAM
+APP_TYPE ?= BOOT_NONE
 
 # Optimization Level (default: -Os for size optimization)
 OPT ?= -Os

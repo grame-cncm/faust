@@ -16,6 +16,12 @@ Here are the available options:
 - `-bs <num>`: to specify buffer size (default 16)
 - `-source`: to only create the source folder
 
+Flash mode options: 
+Flash mode defaults to FLASH (it will use native STM32 bootloader), for program whose binary can be up to 128KB.
+One of the following options can be used for larger programs (it will propose to install Daisy bootloader first on FLASH first) : 
+- `-sram`: to flash program on SRAM - for binary up to 512KB. It will enable `-sdram` option since SRAM won't be usable for RAM anymore. 
+- `-qspi`: to flash program on QSPIFLASH - for binary up do 8MB. 
+
 It is recommended to put your Faust DSP files inside a directory [DaisyExamples](https://github.com/electro-smith/DaisyExamples/)`/DaisySP/faust_examples`. Then execute `faust2daisy code.dsp` with your chosen options. To use `faust2daisy` in an arbitrary directory, you should specify environment variables. For example, on macOS/Linux:
 ```bash
 export LIBDAISY_DIR=~/GitHub/DaisyExamples/libdaisy
