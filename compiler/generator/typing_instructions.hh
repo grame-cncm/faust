@@ -89,7 +89,7 @@ struct TypingVisitor : public InstVisitor {
 
     virtual void visit(DoubleNumInst* inst) { fCurType = Typed::kDouble; }
 
-    virtual void visit(MinusInst* inst) { inst->fInst->accept(this); }
+    virtual void visit(NegInst* inst) { inst->fInst->accept(this); }
 
     virtual void visit(BinopInst* inst)
     {

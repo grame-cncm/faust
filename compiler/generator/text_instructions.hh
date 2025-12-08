@@ -299,7 +299,7 @@ class TextInstVisitor : public InstVisitor {
         }
     }
 
-    virtual void visit(MinusInst* inst)
+    virtual void visit(NegInst* inst)
     {
         if (inst->fInst->isSimpleValue()) {
             *fOut << "-";

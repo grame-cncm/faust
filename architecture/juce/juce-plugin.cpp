@@ -468,7 +468,7 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
         fDSP = std::make_unique<dsp_sequencer>(dsp, new effect());
     }
 #else
-    fDSP = std::make_unique<dsp_sequencer>(dsp, new effects());
+    fDSP = std::make_unique<dsp_sequencer>(dsp, new effect());
 #endif
     
 #else

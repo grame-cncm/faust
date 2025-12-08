@@ -381,7 +381,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["acosf"]  = "acos";
         gPolyMathLibTable["asinf"]  = "asin";
         gPolyMathLibTable["atanf"]  = "atan";
-        gPolyMathLibTable["atan2f"] = "atan";
+        gPolyMathLibTable["atan2f"] = "atan2";
         gPolyMathLibTable["ceilf"]  = "ceil";
         gPolyMathLibTable["cosf"]   = "cos";
         gPolyMathLibTable["expf"]   = "exp";
@@ -421,7 +421,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["acos"]  = "acos";
         gPolyMathLibTable["asin"]  = "asin";
         gPolyMathLibTable["atan"]  = "atan";
-        gPolyMathLibTable["atan2"] = "atan";
+        gPolyMathLibTable["atan2"] = "atan2";
         gPolyMathLibTable["ceil"]  = "ceil";
         gPolyMathLibTable["cos"]   = "cos";
         gPolyMathLibTable["exp"]   = "exp";
@@ -535,7 +535,7 @@ class CodeboxInstVisitor : public TextInstVisitor {
     }
 
     // Simply multiply the value by -1 here
-    virtual void visit(MinusInst* inst)
+    virtual void visit(NegInst* inst)
     {
         Typed::VarType type = TypingVisitor::getType(inst->fInst);
         IB::genMul(IB::genTypedNum(type, -1.), inst->fInst)->accept(this);

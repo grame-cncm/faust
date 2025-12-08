@@ -55,7 +55,11 @@ class LLVMCodeContainer : public virtual CodeContainer {
     template <typename REAL>
     void generateGetJSON()
     {
-        LLVMPtrType         string_ptr = llvm::PointerType::get(fBuilder->getInt8Ty(), 0);
+#if LLVM_VERSION_MAJOR >= 21
+        LLVMPtrType string_ptr = llvm::PointerType::get(fModule->getContext(), 0);
+#else
+        LLVMPtrType string_ptr = llvm::PointerType::get(fBuilder->getInt8Ty(), 0);
+#endif
         LLVMVecTypes        getJSON_args;
         llvm::FunctionType* getJSON_type =
             llvm::FunctionType::get(string_ptr, makeArrayRef(getJSON_args), false);

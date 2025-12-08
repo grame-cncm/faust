@@ -90,7 +90,12 @@ void LLVMCodeContainer::init(const string& name, int numInputs, int numOutputs, 
         fBuilder->setFastMathFlags(FMF);
     }
 
+#if LLVM_VERSION_MAJOR >= 21
+    llvm::Triple TT(llvm::sys::getDefaultTargetTriple());
+    fModule->setTargetTriple(TT);
+#else
     fModule->setTargetTriple(sys::getDefaultTargetTriple());
+#endif
 }
 
 LLVMCodeContainer::~LLVMCodeContainer()
@@ -278,7 +283,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 
     // Possibly link with additional LLVM modules
     if (!linkAllModules(fContext, fModule, error)) {
-        throw faustexception("ERROR : " + error);
+        throw faustexception("ERROR/LLVM : " + error);
     }
 
     return new llvm_dynamic_dsp_factory_aux("", fModule, fContext, "", -1);

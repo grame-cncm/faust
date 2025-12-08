@@ -20,11 +20,10 @@ JSFILE_PATH="ui.js"
 echoHelp()
 {
     usage faust2gen "[options] <file.dsp>"
-    require Max/MSP SDK
     echo "Compiles Faust programs to a fausgen~/mc.faustgen patch"
     option
-    option '-nvoices <num>'
-    option -mc "to activate multi-channels model"
+    echo '   -nvoices <num> : to produce a polyphonic ready patch to be used with MIDI events'
+    echo '   -mc : to use a mc.faustgen~ object'
     exit
 }
 

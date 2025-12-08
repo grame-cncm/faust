@@ -457,7 +457,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     // Numerical computation
 
     // Simply multiply the value by -1 here
-    virtual void visit(MinusInst* inst)
+    virtual void visit(NegInst* inst)
     {
         Typed::VarType type = TypingVisitor::getType(inst->fInst);
         IB::genMul(IB::genTypedNum(type, -1.), inst->fInst)->accept(this);

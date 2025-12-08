@@ -263,6 +263,8 @@ class CInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
+    virtual void visit(NewDSPInst* inst) { *fOut << "calloc(1, sizeof(" << inst->fName << "))"; }
+
     virtual void visit(DeclareVarInst* inst)
     {
         if (inst->fAddress->isStaticStruct()) {
@@ -452,6 +454,28 @@ class CInstVisitor : public TextInstVisitor {
             *fOut << "}";
             tab(fTab, *fOut);
         }
+    }
+
+    virtual void visit(ModuleInst* inst)
+    {
+        *fOut << "typedef struct {";
+        fTab++;
+        tab(fTab, *fOut);
+        inst->fDSPStruct->accept(this);
+        tab(fTab, *fOut);
+        back(1, *fOut);
+        *fOut << "} " << inst->fName << ";";
+        tab(fTab, *fOut);
+        // TODO
+        // fTab--;
+        inst->fGlobals->accept(this);
+        tab(fTab, *fOut);
+        for (const auto& it : inst->fFunctions) {
+            tab(fTab, *fOut);
+            it->accept(this);
+        }
+        fTab--;
+        tab(fTab, *fOut);
     }
 
     static void cleanup() { gFunctionSymbolTable.clear(); }

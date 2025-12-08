@@ -479,6 +479,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
         virtual void addGenericSoundfile(const char* label, const char* varname, const char* url, Soundfile** zone)
         {
             std::string path = buildPath(label);
+            fFullPaths.push_back(path);
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
@@ -486,6 +487,14 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             tab(fTab, fUI); fUI << "\"type\": \"" << "soundfile" << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
             if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << varname << "\","; }
+        
+            // Generate 'shortname' entry
+            tab(fTab, fUI); fUI << "\"shortname\": \"";
+        
+            // Add fUI section
+            fAllUI.push_back(fUI.str());
+            fUI.str("");
+        
             tab(fTab, fUI); fUI << "\"url\": \"" << url << "\"" << ",";
             tab(fTab, fUI); fUI << "\"address\": \"" << path << "\"" << ((fPathTable.size() > 0) ? "," : "");
             if (fPathTable.size() > 0) {

@@ -165,7 +165,7 @@ void CPPOpenCLCodeContainer::produceClass()
     // Separate control and non-controls fields in 2 separeted structures
     tab1(n, *fGPUOut);
     *fGPUOut << "typedef struct {";
-    DSPOpenCLInstVisitor dsp_visitor(fGPUOut, n + 1);
+    DSPOpenCLInstVisitor dsp_visitor(fGPUOut, fKlassName, n + 1);
     fDeclarationInstructions->accept(&dsp_visitor);
     tab1(n, *fGPUOut);
     *fGPUOut << "} faustdsp;";
@@ -173,7 +173,7 @@ void CPPOpenCLCodeContainer::produceClass()
 
     tab1(n, *fGPUOut);
     *fGPUOut << "typedef struct {";
-    ControlOpenCLInstVisitor control_visitor(fGPUOut, n + 1);
+    ControlOpenCLInstVisitor control_visitor(fGPUOut, fKlassName, n + 1);
     fDeclarationInstructions->accept(&control_visitor);
     tab1(n, *fGPUOut);
     *fGPUOut << "} faustcontrol;";
@@ -221,7 +221,7 @@ void CPPOpenCLCodeContainer::produceClass()
         // Separate control and non-controls fields in 2 structures
         tab(n + 1, *fOut);
         *fOut << "typedef struct {";
-        DSPInstVisitor dsp_visitor1(fOut, n + 2);
+        DSPInstVisitor dsp_visitor1(fOut, fKlassName, n + 2);
         fDeclarationInstructions->accept(&dsp_visitor1);
         tab(n + 1, *fOut);
         *fOut << "} faustdsp;";
@@ -229,7 +229,7 @@ void CPPOpenCLCodeContainer::produceClass()
 
         tab(n + 1, *fOut);
         *fOut << "typedef struct {";
-        ControlInstVisitor control_visitor1(fOut, n + 2);
+        ControlInstVisitor control_visitor1(fOut, fKlassName, n + 2);
         fDeclarationInstructions->accept(&control_visitor1);
         tab(n + 1, *fOut);
         *fOut << "} faustcontrol;";
@@ -943,7 +943,7 @@ void CPPOpenCLCodeContainer::produceClass()
     if (fUserInterfaceInstructions->fCode.size() > 0) {
         tab(n + 2, *fOut);
         fCodeProducer->Tab(n + 2);
-        UIInstVisitor ui_visitor(fOut, n + 2);
+        UIInstVisitor ui_visitor(fOut, fKlassName, n + 2);
         fUserInterfaceInstructions->accept(&ui_visitor);
     }
     tab(n + 1, *fOut);
@@ -1065,7 +1065,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     tab1(n + 1, *fGPUOut);
 
     // Generates local variables declaration and setup
-    BlockKernelInstVisitor block_visitor(fGPUOut, n + 1);
+    BlockKernelInstVisitor block_visitor(fGPUOut, fKlassName, n + 1);
     fComputeBlockInstructions->accept(&block_visitor);
 
     lclgraph    dag;
@@ -1318,7 +1318,7 @@ void CPPCUDACodeContainer::produceClass()
     tab(n, *fGPUOut);
     tab(n, *fGPUOut);
     *fGPUOut << "typedef struct {";
-    DSPInstVisitor dsp_visitor(fGPUOut, n + 1);
+    DSPInstVisitor dsp_visitor(fGPUOut, fKlassName, n + 1);
     fDeclarationInstructions->accept(&dsp_visitor);
     tab(n, *fGPUOut);
     *fGPUOut << "} faustdsp;";
@@ -1326,7 +1326,7 @@ void CPPCUDACodeContainer::produceClass()
 
     tab(n, *fGPUOut);
     *fGPUOut << "typedef struct {";
-    ControlInstVisitor control_visitor(fGPUOut, n + 1);
+    ControlInstVisitor control_visitor(fGPUOut, fKlassName, n + 1);
     fDeclarationInstructions->accept(&control_visitor);
     tab(n, *fGPUOut);
     *fGPUOut << "} faustcontrol;";
@@ -1358,7 +1358,7 @@ void CPPCUDACodeContainer::produceClass()
     // Separate control and non-controls fields in 2 structures
     tab(n, *fOut);
     *fOut << "typedef struct {";
-    DSPInstVisitor dsp_visitor1(fOut, n + 1);
+    DSPInstVisitor dsp_visitor1(fOut, fKlassName, n + 1);
     fDeclarationInstructions->accept(&dsp_visitor1);
     tab(n, *fOut);
     *fOut << "} faustdsp;";
@@ -1366,7 +1366,7 @@ void CPPCUDACodeContainer::produceClass()
 
     tab(n, *fOut);
     *fOut << "typedef struct {";
-    ControlInstVisitor control_visitor1(fOut, n + 1);
+    ControlInstVisitor control_visitor1(fOut, fKlassName, n + 1);
     fDeclarationInstructions->accept(&control_visitor1);
     tab(n, *fOut);
     *fOut << "} faustcontrol;";
@@ -1876,7 +1876,7 @@ void CPPCUDACodeContainer::produceClass()
     if (fUserInterfaceInstructions->fCode.size() > 0) {
         tab(n + 2, *fOut);
         fCodeProducer->Tab(n + 2);
-        UIInstVisitor ui_visitor(fOut, n + 2);
+        UIInstVisitor ui_visitor(fOut, fKlassName, n + 2);
         fUserInterfaceInstructions->accept(&ui_visitor);
     }
     tab(n + 1, *fOut);
@@ -2012,7 +2012,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     tab(n + 1, *fGPUOut);
 
     // Generates local variables declaration and setup
-    BlockKernelInstVisitor block_visitor(fGPUOut, n + 1);
+    BlockKernelInstVisitor block_visitor(fGPUOut, fKlassName, n + 1);
     fComputeBlockInstructions->accept(&block_visitor);
 
     lclgraph    dag;

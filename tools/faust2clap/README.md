@@ -1,8 +1,5 @@
-<h1 align="center">faust2clap</h1>
-
-
-
-<p align="center"><em>by Facundo Franchino, under the mentorship of Stéphane Letz and Jatin Chowdhury</em></p>
+# faust2clap 
+#### by Facundo Franchino, under the mentorship of Stéphane Letz and Jatin Chowdhury
 
 ## Overview
 
@@ -11,11 +8,11 @@ This tool supports both **statically compiled** and **dynamically reloaded (hot 
 
 In addition to this static mode, a dynamic implementation has been added. In this form, a single plugin can compile and reload any .dsp program while it is running. The user does not need to build a new binary or close and reopen the plugin in the host. The code may be altered and hot-reloaded directly, while the host continues without interruption. This approach makes testing and development faster, and allows experiments to be carried out in the same environment in which the final plugin will be used, for example in a DAW such as Reaper.
 
-
 ---
 
 ## Features
 - ✅ Generate CLAP plugins directly from Faust (.dsp file) code  
+- ✅ Modern CLI tool with global install support  
 - ✅ Hot-reloading of DSP: update `.dsp` files without restarting the host or closing the plugin
 - ✅ Parameter discovery and synchronisation with host  
 - ✅ MIDI and polyphonic support via Faust’s `mydsp_poly`  
@@ -24,78 +21,57 @@ In addition to this static mode, a dynamic implementation has been added. In thi
 
 ---
 
-## Prerequisites
-
-Before using faust2clap, make sure you have:
-
-- **Faust** (version 2.54.0 or later) - See [official installation guide](https://faust.grame.fr/downloads/)
-- **Python 3.7+** for the build script
-- **C++ compiler** with C++17 support (Clang/GCC/MSVC)
-- **CMake 3.16+** for building plugins
-- **libfaust** with interpreter support (required for dynamic mode only)
-
-### Installation
-
-Since faust2clap is now integrated into Faust, simply install Faust from source:
-
-```bash
-git clone https://github.com/grame-cncm/faust.git
-cd faust
-make
-sudo make install
-```
-
-After installation, faust2clap will be available in:
-- Build script: `tools/faust2clap/faust2clap.py`
-- Architecture files: `architecture/clap/`
-
 ## 💻 Usage
 
-### 🛠️ Static build 
-Generate and build a static CLAP plugin from your DSP file
 
-```python
-python tools/faust2clap/faust2clap.py your_file.dsp
+### 🌍 Global Installation
+
+Install `faust2clap` globally (CLI + dependencies):
+
+```bash
+cd tools/faust2clap
+chmod +x install-faust2clap.sh
+sudo ./install-faust2clap.sh
 ```
+
+### 🛠️ Static Plugin Generation
+Generate and build a static CLAP plugin from your DSP file's directory
+
+```bash
+faust2clap your_file.dsp
+```
+
 ```shell
-optional flags:
-  -mono        generate monophonic plugin
-  -poly        generate polyphonic plugin (default)
-  -nvoices N   set number of polyphonic voices (default: 16)
+optional arguments:
+  --mono              generate monophonic plugin
+  --poly              generate polyphonic plugin (default)
+  -nvoices N          number of polyphonic voices (default: 16)
+  --dry-run           simulate build without compiling
 ```
 
-The plugin will be automatically built and installed to:
-```shell
-~/Library/Audio/Plug-Ins/CLAP/your_file.clap
+```bash
+faust2clap myplugin.dsp
+faust2clap --dynamic --install
 ```
 
-###  Dynamic (Interpreter) mode
+###  Dynamic Plugin (Hot Reload)
 Build the dynamic hot-reload plugin
 ```bash
-cd architecture/clap
-make -f Makefile.simple
+faust2clap --dynamic --install
 ```
+
 Install to system plugin directories
 
-```bash
-make -f Makefile.simple install
-```
 The dynamic plugin (FaustDynamic.clap) will be installed to:
 ```bash
 ~/Library/Audio/Plug-Ins/CLAP/
 ~/.clap/plugins/
 ```
 
-Clean build artifacts
-```bash
-make -f Makefile.simple clean
-```
-
 Once installed, use the GUI to load DSP files for hot-reloading:
 Run the hot-reload GUI controller
 ```bash
-cd architecture/clap
-python faust-hot-reload.py
+faust2clap --gui
 ```
 The GUI allows you to:
 - Browse and load .dsp files
@@ -146,7 +122,6 @@ The dynamic plugin watches bash `/tmp/faust-current-dsp.txt`  for DSP file paths
 
 ---
 
-
 ## 🔐 Broader Limitations
 - Design choice of a 12 fixed-parameter system places a limitation on dsp designs requiring more parameters (e.g a complex synthesiser), one could say this is a tool targeted towards effects processing, mainly.
 - No "friendly" UI, yet. I will be working on a JUCE implementation for the GUI and a on-display preset management system which will end the need for an external python script that runs the .dsp selector.
@@ -154,32 +129,11 @@ The dynamic plugin watches bash `/tmp/faust-current-dsp.txt`  for DSP file paths
 
 ---
 
-## Testing
-
-The faust2clap tool has been tested with various DSP examples from the Faust distribution:
-
-### Manual Testing
-To verify functionality:
-1. Build a static plugin: `python tools/faust2clap/faust2clap.py examples/reverb/dattorro.dsp`
-2. Build the dynamic plugin: `cd architecture/clap && make -f Makefile.simple`
-3. Load generated plugins in a CLAP-compatible DAW (Reaper, Bitwig, etc.)
-4. Test audio processing, parameter changes, and state save/restore
-
-### Test Coverage
-- ✅ Effects processing (reverbs, filters, delays)
-- ✅ Synthesisers with MIDI input
-- ✅ Polyphonic voice management
-- ✅ Parameter automation
-- ✅ State persistence
-- ✅ Hot-reload functionality
-
-### Known Test Issues
-See "Known Issues" section above for DSPs that currently have issues.
-
 ## Next Steps
 - [ ] Simplify UI management (remove redundant classes)  
 - [ ] Fix static build I/O conversion (investigate `dsp_sample_adapter`)  
-- [ ] Add automated test suite for CI/CD  
+- [ ] Add test suite for hot reload with various DSPs  
+- [ ] Test with measure_dsp and dsp_optimizer classes to measure CPU consumption
 
 ---
 
@@ -190,30 +144,9 @@ See "Known Issues" section above for DSPs that currently have issues.
 
 ---
 
-## Contributing
-
-We welcome contributions to faust2clap! Here's how you can help:
-
-### Reporting Issues
-- **Bug reports**: Open an issue on [GitHub Issues](https://github.com/grame-cncm/faust/issues) with the `faust2clap` tag
-- **Feature requests**: Discuss new features by opening an issue first
-- **Questions**: For general questions, use GitHub Discussions or the Faust Discord server
-
-### Making Contributions
-- Fork the repository and create a feature branch from `master-dev`
-- Make your changes and make sure tests pass
-- Submit a pull request with a clear description of your changes
-- Follow the existing code style and conventions
-
-### Getting Support
-- **Documentation**: Check the README and Faust documentation
-- **Community**: Join the [Faust Discord](https://discord.gg/N29N8CVN) or [CLAP Discord](https://discord.gg/5EHpsbNR)
-- **Email me**: [Reach me here](facundo@gauchodsp.com)
-
 ## Authors
 - **Facundo Franchino**, under the mentorship of **Stéphane Letz** and **Jatin Chowdhury**
 - Based on Faust (GRAME) and CLAP 
-
 
 ## Acknowledgements
 - **Stéphane Letz** for choosing me to take on this project, and giving me the opportunity to contribute to the Faust ecosystem, as well as the constant support and feedback throughout the whole process.

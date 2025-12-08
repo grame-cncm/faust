@@ -28,7 +28,7 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
-VERSION := 2.81.6
+VERSION := 2.82.0
 
 #===============================================================
 # current generator and backends
@@ -344,7 +344,7 @@ WASMFS := wasm-filesystem
 WASMLIBDIR := share/faust
 wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@$(MAKE) checkemcc
-	mkdir -p $(WASMFS)/$(WASMLIBDIR) && cp ../libraries/*.lib ../libraries/old/*.lib $(WASMFS)/$(WASMLIBDIR)
+	mkdir -p $(WASMFS)/$(WASMLIBDIR) && cp ../libraries/*.lib ../libraries/dx7/*.lib ../libraries/old/*.lib $(WASMFS)/$(WASMLIBDIR)
 	mkdir -p $(WASMFS)/rsrc && cp ../architecture/webaudio/mixer32.wasm $(WASMFS)/rsrc && cp ../architecture/webaudio/mixer64.wasm $(WASMFS)/rsrc
 	$(CMAKE) --build $(FAUSTDIR) --target wasmlib $(BUILDOPT) -- $(JOBS)
 	cp $(FAUSTDIR)/emcc/libfaust-wasm.* lib

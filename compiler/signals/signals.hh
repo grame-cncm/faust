@@ -51,7 +51,7 @@ Tree              sigInt64(int64_t n);
 LIBFAUST_API Tree sigReal(double n);
 
 LIBFAUST_API bool isSigInt(Tree t, int* i);
-bool              isSigInt64(Tree t, int64_t* i);
+LIBFAUST_API bool isSigInt64(Tree t, int64_t* i);
 LIBFAUST_API bool isSigReal(Tree t, double* r);
 
 // Waveforms

@@ -2,20 +2,20 @@
 // ui.js
 // -----------------
 //
-// Automatically (re)generate/destroy sliders according to Faust DSP module
+// Automatically (re)generate/destroy sliders/buttons according to Faust DSP module.
 // By Edgar Berdahl, July 2014
-// Grame, 2014-2016
+// Revised by Grame, 2014-2025
 //
 // Currently addHorizontalBargraph, addVerticalBargraph, declare,
-// openTabBox, openHorizontalBox, openVerticalBox, and closeBox are not really handled.
+// openTabBox, openHorizontalBox, openVerticalBox, and closeBox are not handled.
 //
 // Started from autosurface.js by rld, 5.04
 //
 
 // Global table
-const dsp_ui_table = [];
+var dsp_ui_table = (typeof dsp_ui_table === 'undefined') ? [] : dsp_ui_table;
 
-const faust = faust || {};
+var faust = (typeof faust === 'undefined') ? {} : faust;
 
 // global variables and arrays
 faust.numwidgets = -1;
@@ -26,27 +26,62 @@ faust.theSliders = new Array(128);
 faust.theMessages = new Array(128);
 faust.thenumberBoxes = new Array(128);
 
+// Function to check if a string starts with a prefix
+faust.starts_with = function (str, prefix) {
+    return (str.lastIndexOf(prefix, 0) === 0);
+}
+
+// Function to get the DSP object by its name of class
+faust.get_with_name = function (patcher, name) {
+    var obj = patcher.firstobject;
+    while (obj) {
+        if (faust.starts_with(obj.varname, name) || faust.starts_with(obj.maxclass, name)) {
+            return obj;
+        }
+        obj = obj.nextobject;
+    }
+    return null;
+}
+
+// Function to remove all existing faust UI objects
+faust.remove_ui = function () {
+    // Remove comments
+    for (var i = 0; i < faust.theComments.length; i++) {
+        patcher.remove(faust.theComments[i]);
+    }
+    faust.theComments = [];
+
+    // Remove sliders
+    for (var i = 0; i < faust.theSliders.length; i++) {
+        patcher.remove(faust.theSliders[i]);
+    }
+    faust.theSliders = [];
+
+    // Remove messages
+    for (var i = 0; i < faust.theMessages.length; i++) {
+        patcher.remove(faust.theMessages[i]);
+    }
+    faust.theMessages = [];
+
+    // Remove number boxes
+    for (var i = 0; i < faust.thenumberBoxes.length; i++) {
+        patcher.remove(faust.thenumberBoxes[i]);
+    }
+    faust.thenumberBoxes = [];
+
+    // Reset the counter
+    faust.numwidgets = 0;
+};
+
+// Main function
 faust.ui = function (json, patcher) {
 
     var widgHeight = 30;
     var hBase = 150;
 
-    starts_with = function (str, prefix) {
-        return (str.lastIndexOf(prefix, 0) === 0);
-    }
-
-    getDSPName = function (patcher, name) {
-        var obj = patcher.firstobject;
-        while (obj) {
-            if (starts_with(obj.varname, name)) {
-                return obj;
-            }
-            obj = obj.nextobject;
-        }
-        return null;
-    }
-
     // JSON parsing
+
+    // Recursive functions to parse the JSON UI description
     parse_ui = function (ui, target, patcher) {
         var i;
         for (i = 0; i < ui.length; i++) {
@@ -54,12 +89,14 @@ faust.ui = function (json, patcher) {
         }
     }
 
+    // Parse a group
     parse_group = function (group, target, patcher) {
         if (group.items) {
             parse_items(group.items, target, patcher);
         }
     }
 
+    // Parse items in a group
     parse_items = function (items, target, patcher) {
         var i;
         for (i = 0; i < items.length; i++) {
@@ -67,6 +104,7 @@ faust.ui = function (json, patcher) {
         }
     }
 
+    // Parse a single item
     parse_item = function (item, target, patcher) {
         if (item.type === "vgroup" || item.type === "hgroup" || item.type === "tgroup") {
 
@@ -190,29 +228,23 @@ faust.ui = function (json, patcher) {
     }
 
     // Remove old
-    while (faust.numwidgets >= 0) {
-        patcher.remove(faust.theComments[faust.numwidgets]);
-        patcher.remove(faust.theSliders[faust.numwidgets]);
-        patcher.remove(faust.theMessages[faust.numwidgets]);
-        patcher.remove(faust.thenumberBoxes[faust.numwidgets]);
-        faust.numwidgets--;
-    }
+    faust.remove_ui();
 
     // Create new
-    var parsed_json = JSON.parse(json);
+    const parsed_json = JSON.parse(json);
 
     // Tries to find the compiled object from the "name" field in the JSON
-    var dsp_object1 = patcher.getnamed(parsed_json.name + "~");
-    if (dsp_object1 !== patcher.getnamed("null_object")) {
-        parse_ui(parsed_json.ui, dsp_object1, patcher);
+    var dsp_object = patcher.getnamed(parsed_json.name + "~");
+    if (dsp_object !== patcher.getnamed("null_object")) {
+        parse_ui(parsed_json.ui, dsp_object, patcher);
     } else {
         // Tries to find the compiled object from the "filename" field in the JSON
-        var dsp_object2 = patcher.getnamed(parsed_json.filename.slice(0, -4) + "~");
-        if (dsp_object2 !== patcher.getnamed("null_object")) {
-            parse_ui(parsed_json.ui, dsp_object2, patcher);
+        dsp_object = patcher.getnamed(parsed_json.filename.slice(0, -4) + "~");
+        if (dsp_object !== patcher.getnamed("null_object")) {
+            parse_ui(parsed_json.ui, dsp_object, patcher);
         } else {
             // Tries to find the compiled object from the "name" argument (used with faustgen~)
-            var dsp_object = getDSPName(patcher, "faustgen");
+            dsp_object = faust.get_with_name(patcher, "faustgen");
             if (dsp_object !== patcher.getnamed("null_object")) {
                 parse_ui(parsed_json.ui, dsp_object, patcher);
             } else {
@@ -222,8 +254,9 @@ faust.ui = function (json, patcher) {
     }
 }
 
+// Main entry point
 function anything() {
-    var args = arrayfromargs(messagename, arguments);
+    const args = arrayfromargs(messagename, arguments);
     dsp_ui_table.push(faust.ui(args[1], this.patcher));
 }
 

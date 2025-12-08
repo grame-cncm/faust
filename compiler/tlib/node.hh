@@ -83,7 +83,7 @@ class Node : public virtual Garbageable {
 
     Node(int x) : fType(kIntNode)
     {
-        fData.f = 0.0; 
+        fData.f = 0.0;
         fData.i = x;
     }
 
@@ -305,9 +305,9 @@ inline const Node divExtendedNode(const Node& x, const Node& y)
     } else if (isDouble(x) || isDouble(y)) {
         return Node(double(x) / double(y));
     } else {
-        int xi     = int(x);
-        int yi     = int(y);
-        int intDiv = xi / yi;
+        int    xi     = int(x);
+        int    yi     = int(y);
+        int    intDiv = xi / yi;
         double dblDiv = double(xi) / double(yi);
         return (double(intDiv) == dblDiv) ? Node(intDiv) : Node(dblDiv);
     }

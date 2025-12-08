@@ -103,7 +103,7 @@ uint64_t llvm_dsp_factory_aux::loadOptimize(const string& function, bool strict)
         return fun;
     } else if (strict) {
         stringstream error;
-        error << "ERROR : loadOptimize failed for '" << function << "'\n";
+        error << "ERROR/LLVM : loadOptimize failed for '" << function << "'\n";
         throw faustexception(error.str());
     } else {
         return 0;
@@ -195,7 +195,7 @@ llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
 
 void llvm_dsp_factory_aux::LLVMFatalErrorHandler(const char* reason)
 {
-    throw faustexception("ERROR : " + string(reason));
+    throw faustexception("ERROR/LLVM : " + string(reason));
 }
 
 void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)

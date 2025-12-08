@@ -6,25 +6,25 @@
  it under the terms of the GNU Lesser General Public License as published by
  the Free Software Foundation; either version 2.1 of the License, or
  (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  GNU Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- 
+
  EXCEPTION : As a special exception, you may create a larger work
  that contains this FAUST architecture section and distribute
  that work under terms of your choice, so long as this FAUST
  architecture section is not modified.
  ***************************************************************************/
 
+#include <ostream>
 #include <string>
 #include <vector>
-#include <ostream>
 
 #ifndef LIBFAUSTCOMMON_H
 #define LIBFAUSTCOMMON_H
@@ -39,7 +39,7 @@
 /**
  * Opaque types.
  */
-class LIBFAUST_API CTree;
+class LIBFAUST_API          CTree;
 typedef std::vector<CTree*> tvec;
 
 typedef CTree* Signal;
@@ -65,7 +65,7 @@ LIBFAUST_API const char* prim5name(prim5);
  *
  * @param  s - the signal
  * @return the name
-*/
+ */
 LIBFAUST_API const char* ffname(Signal s);
 
 /**
@@ -82,15 +82,32 @@ typedef std::vector<SType> svec;
 
 typedef std::vector<std::string> nvec;
 
-enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
+enum SOperator {
+    kAdd,
+    kSub,
+    kMul,
+    kDiv,
+    kRem,
+    kLsh,
+    kARsh,
+    kLRsh,
+    kGT,
+    kLT,
+    kGE,
+    kLE,
+    kEQ,
+    kNE,
+    kAND,
+    kOR,
+    kXOR
+};
 
 /**
  * Base class for factories.
  */
 struct LIBFAUST_API dsp_factory_base {
-    
     virtual ~dsp_factory_base() {}
-    
+
     virtual void write(std::ostream* /*out*/, bool /*binary*/ = false, bool /*compact*/ = false) {}
 };
 
@@ -99,7 +116,8 @@ struct LIBFAUST_API dsp_factory_base {
  *
  * @param box - the box to be printed
  * @param shared - whether the identical sub boxes are printed as identifiers
- * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
+ * @param max_size - the maximum number of characters to be printed (possibly needed for big
+ * expressions in non shared mode)
  *
  * @return the printed box as a string
  */
@@ -110,7 +128,8 @@ LIBFAUST_API std::string printBox(Box box, bool shared, int max_size);
  *
  * @param sig - the signal to be printed
  * @param shared - whether the identical sub signals are printed as identifiers
- * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
+ * @param max_size - the maximum number of characters to be printed (possibly needed for big
+ * expressions in non shared mode)
  *
  * @return the printed signal as a string
  */
@@ -217,10 +236,10 @@ LIBFAUST_API Box boxReal(double n);
 LIBFAUST_API Box boxWire();
 
 /**
-* The cut box, to "stop"/terminate a signal.
-*
-* @return the cut box.
-*/
+ * The cut box, to "stop"/terminate a signal.
+ *
+ * @return the cut box.
+ */
 LIBFAUST_API Box boxCut();
 
 /**
@@ -258,7 +277,8 @@ LIBFAUST_API Box boxSplit(Box x, Box y);
 /**
  * The merge composition (e.g., A:>B) is the dual of the split composition.
  *
- * The number of outputs of A must be a multiple of the number of inputs of B: outputs(A)=k.inputs(B)
+ * The number of outputs of A must be a multiple of the number of inputs of B:
+ * outputs(A)=k.inputs(B)
  *
  * @return the merge box.
  */
@@ -267,7 +287,8 @@ LIBFAUST_API Box boxMerge(Box x, Box y);
 /**
  * The recursive composition (e.g., A~B) is used to create cycles in the block-diagram
  * in order to express recursive computations.
- * It is the most complex operation in terms of connections: outputs(A)≥inputs(B) and inputs(A)≥outputs(B)
+ * It is the most complex operation in terms of connections: outputs(A)≥inputs(B) and
+ * inputs(A)≥outputs(B)
  *
  * @return the rec box.
  */
@@ -296,7 +317,8 @@ LIBFAUST_API Box boxDelay();
  * Create a delayed box.
  *
  * @param s - the box to be delayed
- * @param del - the delay box that doesn't have to be fixed but must be bounded and cannot be negative
+ * @param del - the delay box that doesn't have to be fixed but must be bounded and cannot be
+ negative
 
  * @return the delayed box.
  */
@@ -328,7 +350,8 @@ LIBFAUST_API Box boxFloatCast();
 /**
  * Create a casted box.
  *
- * @param s - the signal to be casted as float/double value (depends of -single or -double compilation parameter)
+ * @param s - the signal to be casted as float/double value (depends of -single or -double
+ * compilation parameter)
  *
  * @return the casted box.
  */
@@ -396,7 +419,8 @@ LIBFAUST_API Box boxSoundfile(const std::string& label, Box chan);
  *
  * @param label - of form "label[url:{'path1';'path2';'path3'}]" to describe a list of soundfiles
  * @param chan - the number of outputs channels, a constant numerical expression (see [1])
- * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
+ * @param part - in the [0..255] range to select a given sound number, a constant numerical
+ * expression (see [1])
  * @param ridx - the read index (an integer between 0 and the selected sound length)
  *
  * @return the soundfile box.
@@ -431,7 +455,8 @@ LIBFAUST_API Box boxSelect3();
 /**
  * Create a selector between three boxes.
  *
- * @param selector - when 0 at time t returns s1[t], when 1 at time t returns s2[t], otherwise returns s3[t]
+ * @param selector - when 0 at time t returns s1[t], when 1 at time t returns s2[t], otherwise
+ * returns s3[t]
  * @param s1 - first box to be selected
  * @param s2 - second box to be selected
  * @param s3 - third box to be selected
@@ -444,14 +469,15 @@ LIBFAUST_API Box boxSelect3(Box selector, Box b1, Box b2, Box b3);
  * Create a foreign function box.
  *
  * @param rtype - the foreign function return type of SType
- * @param names - the list of function names for single, double, quad, fixed-point 
+ * @param names - the list of function names for single, double, quad, fixed-point
  * @param atypes - the list of arguments types
  * @param incfile - the include file where the foreign function is defined
  * @param libfile - the library file where the foreign function is defined
  *
  * @return the foreign function box.
  */
-LIBFAUST_API Box boxFFun(SType rtype, nvec names, svec atypes, const std::string& incfile, const std::string& libfile);
+LIBFAUST_API Box boxFFun(SType rtype, nvec names, svec atypes, const std::string& incfile,
+                         const std::string& libfile);
 
 /**
  * Create a foreign constant box.
@@ -835,7 +861,8 @@ LIBFAUST_API bool isBoxWithLocalDef(Box t, Box& body, Box& ldef);
  *
  * @return a flattened box on success, otherwise a null pointer.
  */
-LIBFAUST_API Box DSPToBoxes(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], int* inputs, int* outputs, std::string& error_msg);
+LIBFAUST_API Box DSPToBoxes(const std::string& name_app, const std::string& dsp_content, int argc,
+                            const char* argv[], int* inputs, int* outputs, std::string& error_msg);
 
 /**
  * Return the number of inputs and outputs of a box
@@ -860,6 +887,16 @@ LIBFAUST_API bool getBoxType(Box box, int* inputs, int* outputs);
 LIBFAUST_API tvec boxesToSignals(Box box, std::string& error_msg);
 
 /**
+ * Compile a box expression in a list of signals in symbolic form (only using 'deBruijn2Sym' pass)
+ *
+ * @param box - the box expression
+ * @param error_msg - the error string to be filled
+ *
+ * @return a list of signals in normal form on success, otherwise an empty list.
+ */
+LIBFAUST_API tvec boxesToSignals2(Box box, std::string& error_msg);
+
+/**
  * Create source code in a target language from a box expression.
  *
  * @param name_app - the name of the Faust program
@@ -875,15 +912,13 @@ LIBFAUST_API tvec boxesToSignals(Box box, std::string& error_msg);
  * @return a string of source code on success, setting error_msg on error.
  */
 LIBFAUST_API std::string createSourceFromBoxes(const std::string& name_app, Box box,
-                                               const std::string& lang,
-                                               int argc, const char* argv[],
-                                               std::string& error_msg);
-
-
+                                               const std::string& lang, int argc,
+                                               const char* argv[], std::string& error_msg);
 
 /*
- [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions
- [2] Label definition : https://faustdoc.grame.fr/manual/syntax/#variable-parts-of-a-label
+ [1] Constant numerical expression : see
+ https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions [2] Label definition :
+ https://faustdoc.grame.fr/manual/syntax/#variable-parts-of-a-label
  */
 
 /*!

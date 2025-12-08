@@ -87,6 +87,10 @@ struct Typed : public Printable {
         kObj_ptr,
         kSound,
         kSound_ptr,
+        kUI,
+        kUI_ptr,
+        kMeta,
+        kMeta_ptr,
         kUint_ptr,
         kNoType
     };
@@ -140,6 +144,10 @@ struct Typed : public Printable {
                 return kObj_ptr;
             case kSound:
                 return kSound_ptr;
+            case kUI:
+                return kUI_ptr;
+            case kMeta:
+                return kMeta_ptr;
             default:
                 // Not supposed to happen
                 std::cerr << "ASSERT : getPtrFromType " << type << std::endl;
@@ -218,6 +226,10 @@ struct Typed : public Printable {
                 return kObj;
             case kSound_ptr:
                 return kSound;
+            case kUI_ptr:
+                return kUI;
+            case kMeta_ptr:
+                return kMeta;
             default:
                 // Not supposed to happen
                 std::cerr << "ASSERT : getTypeFromPtr " << Typed::gTypeString[type] << std::endl;

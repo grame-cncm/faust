@@ -211,8 +211,6 @@ void Klass::printIncludeFile(ostream& fout)
  * Print additional functions required by the generated code
  */
 
-
-
 void Klass::printAdditionalCode(ostream& fout)
 {
     fout << "static inline int max_i(int a, int b) { return (a > b) ? a : b; }" << endl;
@@ -223,7 +221,7 @@ void Klass::printAdditionalCode(ostream& fout)
         fout << "#ifndef FAUSTPOWER" << endl;
         fout << "#define FAUSTPOWER" << endl;
         fout << "#include <cmath>" << endl;
-     
+
         fout << "template <int N> inline int faustpower(int x)              { return "
                 "faustpower<N/2>(x) * "
                 "faustpower<N-N/2>(x); } "

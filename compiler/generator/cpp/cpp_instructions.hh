@@ -46,8 +46,8 @@ class CPPInstVisitor : public TextInstVisitor {
    public:
     using TextInstVisitor::visit;
 
-    CPPInstVisitor(std::ostream* out, int tab = 0)
-        : TextInstVisitor(out, "->", new CStringTypeManager(xfloat(), "*"), tab)
+    CPPInstVisitor(std::ostream* out, const std::string& struct_name, int tab = 0)
+        : TextInstVisitor(out, "->", new CStringTypeManager(xfloat(), "*", struct_name), tab)
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
@@ -363,6 +363,8 @@ class CPPInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
+    virtual void visit(NewDSPInst* inst) { *fOut << "new " << inst->fName << "()"; }
+
     virtual void visit(DeclareVarInst* inst)
     {
         if (inst->getAccess() & Address::kConst) {
@@ -514,12 +516,56 @@ class CPPInstVisitor : public TextInstVisitor {
         TextInstVisitor::visit(inst);
     }
 
+    virtual void visit(ModuleInst* inst)
+    {
+        // Print header
+        tab(fTab, *fOut);
+        *fOut << "#ifndef FAUSTCLASS " << std::endl;
+        *fOut << "#define FAUSTCLASS " << inst->fName << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(fTab, *fOut);
+
+        *fOut << "#ifdef __APPLE__ " << std::endl;
+        *fOut << "#define exp10f __exp10f" << std::endl;
+        *fOut << "#define exp10 __exp10" << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(fTab, *fOut);
+
+        *fOut << "#if defined(_WIN32)" << std::endl;
+        *fOut << "#define RESTRICT __restrict" << std::endl;
+        *fOut << "#else" << std::endl;
+        *fOut << "#define RESTRICT __restrict__" << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(fTab, *fOut);
+
+        // Print C++ class
+        *fOut << "class " << inst->fName << " : public dsp {";
+        fTab++;
+        tab(fTab, *fOut);
+        tab(fTab, *fOut);
+        inst->fDSPStruct->accept(this);
+        tab(fTab, *fOut);
+        inst->fGlobals->accept(this);
+        for (const auto& it : inst->fFunctions) {
+            tab(fTab, *fOut);
+            it->accept(this);
+        }
+        fTab--;
+        back(1, *fOut);
+        tab(fTab, *fOut);
+        *fOut << "};";
+        tab(fTab, *fOut);
+    }
+
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
 class CPPVecInstVisitor : public CPPInstVisitor {
    public:
-    CPPVecInstVisitor(std::ostream* out, int tab = 0) : CPPInstVisitor(out, tab) {}
+    CPPVecInstVisitor(std::ostream* out, const std::string& struct_name, int tab = 0)
+        : CPPInstVisitor(out, struct_name, tab)
+    {
+    }
 };
 
 #endif

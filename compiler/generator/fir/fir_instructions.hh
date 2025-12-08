@@ -508,9 +508,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << '}';
     }
 
-    virtual void visit(MinusInst* inst)
+    virtual void visit(NegInst* inst)
     {
-        *fOut << "MinusInst(";
+        *fOut << "NegInst(";
         inst->fInst->accept(this);
         *fOut << ")";
     }
@@ -696,6 +696,28 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             tab(fTab, *fOut);
         }
         *fOut << "EndBlockInst";
+        tab(fTab, *fOut);
+    }
+
+    virtual void visit(ModuleInst* inst)
+    {
+        *fOut << "ModuleInst ";
+        *fOut << inst->fName;
+        tab(fTab, *fOut);
+        tab(fTab, *fOut);
+        inst->fDSPStruct->accept(this);
+        tab(fTab, *fOut);
+        inst->fGlobals->accept(this);
+        if (inst->fFunctions.size() > 0) {
+            tab(fTab, *fOut);
+            for (const auto& it : inst->fFunctions) {
+                it->accept(this);
+            }
+            back(1, *fOut);
+        } else {
+            tab(fTab, *fOut);
+        }
+        *fOut << "EndModuleInst";
         tab(fTab, *fOut);
     }
 
