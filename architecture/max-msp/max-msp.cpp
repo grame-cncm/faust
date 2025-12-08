@@ -183,6 +183,10 @@ void faust_allocate(t_faust* x, int nvoices)
     // Delete old
     delete x->m_dsp;
     delete x->m_dspUI;
+    // Preserve and restore saved UI state across reallocations
+    if (x->m_savedUI) {
+        x->m_savedUI->save();
+    }
     x->m_dspUI = new mspUI();
     
     if (nvoices > 0) {
@@ -205,6 +209,14 @@ void faust_allocate(t_faust* x, int nvoices)
 #ifdef MIDICTRL
     x->m_dsp->buildUserInterface(x->m_midiUI);
 #endif
+    // Restore saved UI to new DSP mapping
+    if (x->m_savedUI) {
+        x->m_dsp->buildUserInterface(x->m_savedUI);
+        x->m_savedUI->load();
+    }
+    // Cache current IO counts
+    x->m_Inputs = x->m_dsp->getNumInputs();
+    x->m_Outputs = x->m_dsp->getNumOutputs();
 }
 
 /*--------------------------------------------------------------------------*/
@@ -221,9 +233,11 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         obj->m_dspUI->setValue(name, off);
         obj->m_dspUI->setValue(name, on);
         
-        av[0].a_type = A_FLOAT;
-        av[0].a_w.w_float = off;
-        faust_anything(obj, s, 1, av);
+        // Safe toggle using a local atom (ac can be 0, so av may be nullptr)
+        t_atom toggle_atom[1];
+        toggle_atom[0].a_type = A_FLOAT;
+        toggle_atom[0].a_w.w_float = off;
+        faust_anything(obj, s, 1, toggle_atom);
         
     } else if (mspUI::checkDigit(name)) { // List of values
         
@@ -280,10 +294,14 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
         
     } else {
         // Standard parameter name
-        FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : FAUSTFLOAT(av[0].a_w.w_float);
-        res = obj->m_dspUI->setValue(name, value);
-        if (!res) {
-            post("Unknown parameter : %s", (s)->s_name);
+        if (ac > 0) {
+            FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : FAUSTFLOAT(av[0].a_w.w_float);
+            res = obj->m_dspUI->setValue(name, value);
+            if (!res) {
+                post("Unknown parameter : %s", (s)->s_name);
+            }
+        } else {
+            post("No value provided for parameter : %s", (s)->s_name);
         }
     }
 }
@@ -291,6 +309,10 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 /*--------------------------------------------------------------------------*/
 void faust_polyphony(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
+    if (ac < 1 || atom_gettype(&av[0]) != A_LONG) {
+        post("polyphony requires a long argument (voices)");
+        return;
+    }
     if (systhread_mutex_lock(x->m_mutex) == MAX_ERR_NONE) {
         faust_allocate(x, av[0].a_w.w_long);
         systhread_mutex_unlock(x->m_mutex);
@@ -421,6 +443,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
         num_input = x->m_dsp->getNumInputs();
     }
     
+    free(x->m_args);
     x->m_args = (void**)calloc((num_input + x->m_dsp->getNumOutputs()) + 2, sizeof(void*));
     
     /* Multi in */
@@ -449,6 +472,14 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 void faust_osc(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
     if (ac == 5) {
+        if (atom_gettype(&av[0]) != A_SYM
+            || atom_gettype(&av[1]) != A_LONG
+            || atom_gettype(&av[2]) != A_LONG
+            || atom_gettype(&av[3]) != A_LONG
+            || atom_gettype(&av[4]) != A_LONG) {
+            post("Should be : osc 'IP inport outport xmit(0|1|2) bundle(0|1)'");
+            return;
+        }
         if (systhread_mutex_lock(x->m_mutex) == MAX_ERR_NONE) {
             
             delete x->m_oscInterface;
@@ -602,22 +633,22 @@ void faust_mute(t_faust* obj, t_symbol* s, short ac, t_atom* at)
 void faust_free(t_faust* x)
 {
     dsp_free((t_pxobject*)x);
-    delete x->m_dsp;
-    delete x->m_dspUI;
-    delete x->m_savedUI;
-    if (x->m_args) free(x->m_args);
-    if (x->m_json) free(x->m_json);
-    systhread_mutex_free(x->m_mutex);
+    delete x->m_dsp;      x->m_dsp = nullptr;
+    delete x->m_dspUI;    x->m_dspUI = nullptr;
+    delete x->m_savedUI;  x->m_savedUI = nullptr;
+    if (x->m_args) { free(x->m_args); x->m_args = nullptr; }
+    if (x->m_json) { free(x->m_json); x->m_json = nullptr; }
+    systhread_mutex_free(x->m_mutex); x->m_mutex = nullptr;
 #ifdef MIDICTRL
     // m_midiUI *must* be deleted before m_midiHandler
-    delete x->m_midiUI;
-    delete x->m_midiHandler;
+    delete x->m_midiUI;    x->m_midiUI = nullptr;
+    delete x->m_midiHandler; x->m_midiHandler = nullptr;
 #endif
 #ifdef SOUNDFILE
-    delete x->m_soundInterface;
+    delete x->m_soundInterface; x->m_soundInterface = nullptr;
 #endif
 #ifdef OSCCTRL
-    delete x->m_oscInterface;
+    delete x->m_oscInterface; x->m_oscInterface = nullptr;
 #endif
 }
 

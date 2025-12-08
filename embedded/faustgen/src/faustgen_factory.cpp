@@ -32,6 +32,7 @@
 #include "faustgen_factory.h"
 #include "faustgen~.h"
 
+#include <cctype>
 #include <faust/dsp/libfaust.h>
 #include <faust/dsp/poly-dsp.h>
 
@@ -114,6 +115,7 @@ static string getSerialNumber()
             CFStringGetCString((CFStringRef)serialNumberAsCFString, serial_name, 256, kCFStringEncodingMacRoman);
             string res = string(serial_name) + string(getCodeSize());
             CFRelease(serialNumberAsCFString);
+            IOObjectRelease(platformExpert);
             return res;
         }
         IOObjectRelease(platformExpert);
@@ -168,6 +170,18 @@ static string getFolderFromPath(const string& full_path)
     return (first != string::npos) ? full_path.substr(first, full_path.size() - first) : "";
 }
 
+static bool isSafePathSegment(const std::string& value)
+{
+    // Allow common filesystem characters while rejecting anything that could be
+    // interpreted by the shell even when wrapped in double quotes.
+    static const std::string forbidden = "\"`$|&;<>%\n\r";
+    for (unsigned char c : value) {
+        if (c < 0x20 || c == 0x7F) return false;   // reject control chars
+        if (forbidden.find(static_cast<char>(c)) != string::npos) return false;
+    }
+    return true;
+}
+
 faustgen_factory::faustgen_factory(const string& name)
 {
     m_siginlets = 0;
@@ -179,7 +193,7 @@ faustgen_factory::faustgen_factory(const string& name)
     fBitCodeSize = 0;
     fBitCode = nullptr;
     fSourceCodeSize = 0;
-    fSourceCode = nullptr;
+    fSourceCode = sysmem_newhandleclear(1); // keep a valid empty handle
     gFaustCounter++;
     fFaustNumber = gFaustCounter;
     fOptLevel = LLVM_OPTIMIZATION;
@@ -248,9 +262,9 @@ void faustgen_factory::free_sourcecode()
 {
     if (fSourceCode) {
         sysmem_freehandle(fSourceCode);
-        fSourceCodeSize = 0;
-        fSourceCode = nullptr;
     }
+    fSourceCodeSize = 0;
+    fSourceCode = nullptr;
 }
 
 void faustgen_factory::free_bitcode()
@@ -657,6 +671,10 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
 
 bool faustgen_factory::try_open_svg()
 {
+    if (!isSafePathSegment(fDrawPath)) {
+        post("Unsafe draw path, cannot open SVG");
+        return false;
+    }
     // Open the svg diagram file inside a web browser
     char command[512];
 #ifdef WIN32
@@ -669,6 +687,10 @@ bool faustgen_factory::try_open_svg()
 
 void faustgen_factory::open_svg()
 {
+    if (!isSafePathSegment(fDrawPath)) {
+        post("Unsafe draw path, refusing to open SVG");
+        return;
+    }
     // Open the svg diagram file inside a web browser
     char command[512];
 #ifdef WIN32
@@ -681,6 +703,10 @@ void faustgen_factory::open_svg()
 
 void faustgen_factory::remove_svg()
 {
+    if (!isSafePathSegment(fDrawPath)) {
+        post("Unsafe draw path, refusing to remove SVG");
+        return;
+    }
     // Possibly done by "compileoptions" or display_svg
     char command[512];
 #ifdef WIN32
@@ -715,6 +741,10 @@ bool faustgen_factory::open_file(const char* file)
 {
     char command[512];
     for (const auto& it : fLibraryPath) {
+        if (!isSafePathSegment(it)) {
+            post("Unsafe library path skipped: %s", it.c_str());
+            continue;
+        }
     #ifdef WIN32
         snprintf(command, 512, "start \"\" \"%s%s\"", it.c_str(), file);
     #else
@@ -729,6 +759,10 @@ bool faustgen_factory::open_file(const char* appl, const char* file)
 {
     char command[512];
     for (const auto& it : fLibraryPath) {
+        if (!isSafePathSegment(it)) {
+            post("Unsafe library path skipped: %s", it.c_str());
+            continue;
+        }
     #ifdef WIN32
         snprintf(command, 512, "start \"\" %s \"%s%s\"", appl, it.c_str(), file);
     #else
@@ -816,7 +850,7 @@ void faustgen_factory::display_libraries()
 void faustgen_factory::update_sourcecode(int size, char* source_code)
 {
     // Recompile only if text has been changed
-    if (strcmp(source_code, *fSourceCode) != 0) {
+    if (!fSourceCode || strcmp(source_code, *fSourceCode) != 0) {
         
         // Delete the existing Faust module
         free_dsp_factory();
@@ -896,6 +930,9 @@ void faustgen_factory::compile_file(t_filehandle file_handle, short path, char* 
     free_bitcode();
     
     // Always works here since 'is_new' returned true
+    if (!fSourceCode) {
+        fSourceCode = sysmem_newhandleclear(1);
+    }
     sysfile_readtextfile(file_handle, fSourceCode, 0, (t_sysfile_text_flags)(TEXT_LB_UNIX | TEXT_NULL_TERMINATE));
     sysfile_setpos(file_handle, SYSFILE_FROMSTART, 0);
     
