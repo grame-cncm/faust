@@ -57,6 +57,63 @@
 using namespace daisysp;
 using namespace std;
 
+#ifdef USE_SDRAM
+
+#include"faust2daisy_sdram.h"
+
+struct faustdaisy_dsp_memory_manager : public dsp_memory_manager
+{
+    struct mem_info_t
+    {
+        const char *name;
+        MemType *type;
+        size_t size;
+        size_t size_bytes; 
+        size_t reads;
+        size_t writes;
+        void *ptr = nullptr; // pointeur to location in memory
+    };
+
+    void begin(size_t count) 
+    {
+        infos.resize(count);
+        info_cnt = 0;
+        offset = 0;
+    } 
+
+    void info(const char * name, MemType type, 
+        size_t size, size_t size_bytes, size_t reads, size_t writes) 
+    {
+        void *ptr = static_cast<void *>(&faust_sdram_mem[offset]);
+        infos[inco_cnt] = {name, type, size, size_bytes, reads, writes, ptr}
+        ++info_cnt;
+        offset+= size_bytes;
+    }
+
+    void end() 
+    {
+        offset = 0;
+        info_cnt = 0;
+    }
+   
+    void *allocate(size_t /*size_bytes*/) {
+        void *ptr = infos[info_cnt].ptr;
+        ++info_cnt;
+        return ptr;
+    }
+
+    void destroy(void *ptr) 
+    {
+        ptr = nullptr; 
+    }
+
+    std::vector<mem_info_t> infos;
+    size_t offset;
+    size_t info_cnt;
+};
+
+#endif  // SDRAM
+
 /******************************************************************************
  *******************************************************************************
  
@@ -123,6 +180,10 @@ int main(void)
     DSP = new mydsp_poly(DSP, nvoices, true, true);
 #else
     DSP = new mydsp();
+#endif
+
+#ifdef USE_SDRAM 
+    mydsp::fManager = new faustdaisy_dsp_memory_manager();
 #endif
     
     // set buffer-size
