@@ -86,7 +86,10 @@ struct MemoryLayoutItem {
     int size_bytes;
     int read;
     int write;
+    
+    static std::map<std::string, std::string> gStringType;
 };
+
 typedef std::vector<MemoryLayoutItem> MemoryLayoutType;
 typedef std::map<std::string, int> PathTableType;
 

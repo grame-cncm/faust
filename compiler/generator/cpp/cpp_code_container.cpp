@@ -780,8 +780,9 @@ void CPPCodeContainer::produceClass()
             if (do_gen) {
                 *fOut << "// " << item.name;
                 tab(n + 2, *fOut);
-                *fOut << "fManager->info(" << item.size_bytes << ", " << item.read << ", "
-                      << item.write << ");";
+                *fOut << "fManager->info(\"" << item.name << "\", "
+                      << MemoryLayoutItem::gStringType[item.type] << ", " << item.size << ", "
+                      << item.size_bytes << ", " << item.read << ", " << item.write << ");";
                 tab(n + 2, *fOut);
             }
         }

@@ -35,6 +35,28 @@
 
 using namespace std;
 
+map<string, string> MemoryLayoutItem::gStringType = {
+    {"kInt32", "dsp_memory_manager::kInt32"},
+    {"kInt32_ptr", "dsp_memory_manager::kInt32_ptr"},
+
+    {"kFloat", "dsp_memory_manager::kFloat"},
+    {"kFloat_ptr", "dsp_memory_manager::kFloat_ptr"},
+
+    {"kDouble", "dsp_memory_manager::kDouble"},
+    {"kDouble_ptr", "dsp_memory_manager::kDouble_ptr"},
+
+    {"kQuad", "dsp_memory_manager::kQuad"},
+    {"kQuad_ptr", "dsp_memory_manager::kQuad_ptr"},
+
+    {"kFixedPoint", "dsp_memory_manager::kFixedPoint"},
+    {"kFixedPoint_ptr", "dsp_memory_manager::kFixedPoint_ptr"},
+
+    {"kObj", "dsp_memory_manager::kObj"},
+    {"kObj_ptr", "dsp_memory_manager::kObj_ptr"},
+
+    {"kSound", "dsp_memory_manager::kSound"},
+    {"kSound_ptr", "dsp_memory_manager::kSound_ptr"}};
+
 void CodeContainer::initialize(int numInputs, int numOutputs)
 {
     fNumInputs  = numInputs;
@@ -93,8 +115,10 @@ CodeContainer::CodeContainer()
     if (gGlobal->gMemoryManager >= 1 && !gGlobal->gIntZone && !gGlobal->gRealZone) {
         // Allocation done once to be shared by all containers
         ZoneArray::gInternalMemorySize = gGlobal->gFPGAMemory;
-        gGlobal->gIntZone              = new ZoneArray("iZone", access, Typed::kInt32, 4);
-        gGlobal->gRealZone             = new ZoneArray("fZone", access, itfloat(), 4);
+        gGlobal->gIntZone =
+            new ZoneArray("iZone", access, Typed::kInt32, gGlobal->gFPGAMemoryThreshold);
+        gGlobal->gRealZone =
+            new ZoneArray("fZone", access, itfloat(), gGlobal->gFPGAMemoryThreshold);
     }
 }
 

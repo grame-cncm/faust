@@ -166,7 +166,11 @@ class faustgen_factory {
     
         void librarypath(long inlet, t_symbol* s);
         
-        char* get_sourcecode() { return *fSourceCode; }
+        char* get_sourcecode()
+        {
+            static char empty = 0;
+            return (fSourceCode) ? *fSourceCode : &empty;
+        }
         
         const char* get_json() { return fJSON.c_str(); }
         
@@ -194,6 +198,8 @@ class faustgen_factory {
                 delete this;
             }
         }
+        // WARNING: remove_instance may delete the factory when the last client goes away.
+        // Callers must not dereference the factory pointer after invoking it.
     
         // Mutex between the audio thread and the DSP creation thread
         bool try_lock_audio() { return fAudioMutex.try_lock(); }

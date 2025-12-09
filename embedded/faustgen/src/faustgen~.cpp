@@ -129,17 +129,21 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
 // Called upon deleting the object inside the patcher
 faustgen::~faustgen()
 {
+    // Stop audio work before removing the instance
     fDSPfactory->lock_audio();
     free_dsp();
+    fDSPfactory->unlock_audio();
     
     if (fEditor) {
         object_free(fEditor);
         fEditor = nullptr;
     }
     
-    fDSPfactory->remove_instance(this);    
     fMidiHandler.stopMidi();
-    fDSPfactory->unlock_audio();
+    
+    // remove_instance may delete the factory, so do not touch fDSPfactory after this call
+    fDSPfactory->remove_instance(this);
+    fDSPfactory = nullptr;
 }
 
 void faustgen::assist(void* b, long msg, long a, char* dst)
@@ -249,9 +253,11 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
             fDSPUI->setValue(name, off);
             fDSPUI->setValue(name, on);
             
-            av[0].a_type = A_FLOAT;
-            av[0].a_w.w_float = off;
-            anything(inlet, s, 1, av);
+            // Safe toggle using a local atom (ac can be 0, so av may be nullptr)
+            t_atom toggle_atom[1];
+            toggle_atom[0].a_type = A_FLOAT;
+            toggle_atom[0].a_w.w_float = off;
+            anything(inlet, s, 1, toggle_atom);
             
             goto unlock;
             
@@ -308,13 +314,15 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
                 }
             }
             
-        } else {
+        } else if (ac > 0) {
             // Standard parameter name
             FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : FAUSTFLOAT(av[0].a_w.w_float);
             res = fDSPUI->setValue(name, value);
             if (!res) {
                 post("Unknown parameter : %s", (s)->s_name);
             }
+        } else {
+            post("No value provided for parameter : %s", (s)->s_name);
         }
     }
         
@@ -339,27 +347,32 @@ void faustgen::write(long inlet, t_symbol* s)
 
 void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
 {
-    fDSPfactory->lock_audio();
-    fDSPfactory->lock_ui();
-    {
-        free_dsp();
-        fDSP = fDSPfactory->create_dsp_instance(av[0].a_w.w_long);
-        assert(fDSP);
+    if (ac < 1) {
+        post("polyphony requires a long argument (voices)");
+    } else {
         
-        // Init all controller (UI, MIDI, Soundfile)
-        init_controllers();
-        
-        // Prepare JSON
-        fDSPfactory->make_json(fDSP);
-        
-        // Send JSON to JS script
-        create_jsui();
-        
-        // Initialize at the system's sampling rate
-        fDSP->init(sys_getsr());
+        fDSPfactory->lock_audio();
+        fDSPfactory->lock_ui();
+        {
+            free_dsp();
+            fDSP = fDSPfactory->create_dsp_instance(av[0].a_w.w_long);
+            assert(fDSP);
+            
+            // Init all controller (UI, MIDI, Soundfile)
+            init_controllers();
+            
+            // Prepare JSON
+            fDSPfactory->make_json(fDSP);
+            
+            // Send JSON to JS script
+            create_jsui();
+            
+            // Initialize at the system's sampling rate
+            fDSP->init(sys_getsr());
+        }
+        fDSPfactory->unlock_ui();
+        fDSPfactory->unlock_audio();
     }
-    fDSPfactory->unlock_ui();
-    fDSPfactory->unlock_audio();
 }
 
 // Reset controllers to init values and send [path, init, min, max]
@@ -424,6 +437,17 @@ void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
 void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     if (ac == 5) {
+        
+        // Validate argument types: host is symbol, others are longs
+        if (atom_gettype(&av[0]) != A_SYM
+            || atom_gettype(&av[1]) != A_LONG
+            || atom_gettype(&av[2]) != A_LONG
+            || atom_gettype(&av[3]) != A_LONG
+            || atom_gettype(&av[4]) != A_LONG) {
+            post("Should be : osc 'IP inport outport xmit(0|1|2) bundle(0|1)'");
+            return;
+        }
+        
         fDSPfactory->lock_audio();
         fDSPfactory->lock_ui();
         {
@@ -589,6 +613,8 @@ void faustgen::update_sourcecode(const std::string& codebox)
     
     // Loop through objects in the main patcher.
     if (fRNBOAttr && codebox != "") {
+        bool subpatch_missing_reported = false;
+        bool codebox_missing_reported = false;
         for (box = jpatcher_get_firstobject(patcher); box; box = jbox_get_nextobject(box)) {
             obj = jbox_get_object(box);
             if (obj && (object_classname(obj) == gensym("rnbo~"))) {
@@ -606,11 +632,17 @@ void faustgen::update_sourcecode(const std::string& codebox)
                             object_method(sub_obj, gensym("setcode"), code);
                             object_free(code);
                         } else {
-                            post("rnbo~ does not have codebox~ inside.");
+                            if (!codebox_missing_reported) {
+                                post("rnbo~ does not have codebox~ inside");
+                                codebox_missing_reported = true;
+                            }
                         }
                     }
                 } else {
-                    post("rnbo~ does not have an accessible subpatcher.");
+                    if (!subpatch_missing_reported) {
+                        post("rnbo~ does not have an accessible subpatcher");
+                        subpatch_missing_reported = true;
+                    }
                 }
             }
         }
@@ -712,21 +744,18 @@ void faustgen::hilight_error(const string& error)
 void faustgen::init_controllers()
 {
     // Initialize User Interface (here connnection with controls)
-    if (!fDSPUI) {
-        fDSPUI = new mspUI();
-        fDSP->buildUserInterface(fDSPUI);
-    }
+    delete fDSPUI;
+    fDSPUI = new mspUI();
+    fDSP->buildUserInterface(fDSPUI);
     
     // MIDI handling
-    if (!fMidiUI) {
-        fMidiUI = new MidiUI(&fMidiHandler);
-        fDSP->buildUserInterface(fMidiUI);
-    }
+    delete fMidiUI;
+    fMidiUI = new MidiUI(&fMidiHandler);
+    fDSP->buildUserInterface(fMidiUI);
     
     // State handling
-    if (!fSavedUI) {
-        fSavedUI = new SaveLabelUI();
-    }
+    delete fSavedUI;
+    fSavedUI = new SaveLabelUI();
     
     // Soundfile handling
     if (fDSPfactory->fSoundUI) {
@@ -936,4 +965,3 @@ extern "C" void ext_main(void* r)
     REGISTER_METHOD_EDCLOSE(faustgen, edclose);
     REGISTER_METHOD_JSAVE(faustgen, appendtodictionary);
 }
-
