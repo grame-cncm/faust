@@ -71,29 +71,29 @@ using namespace std;
 
 struct malloc_memory_manager : public dsp_memory_manager {
     
-    virtual void begin(size_t count)
+    virtual void begin(size_t count) override
     {
         cout << "malloc_memory_manager::begin count = " << count << endl;
     }
     
-    virtual void info(size_t size, size_t reads, size_t writes)
+    virtual void info(const char* name, MemType type, size_t size, size_t size_bytes, size_t reads, size_t writes) override
     {
         cout << "malloc_memory_manager::info size = " << size << " reads = " << reads << " writes = " << writes << endl;
     }
     
-    virtual void end()
+    virtual void end() override
     {
         cout << "malloc_memory_manager::end" << endl;
     }
     
-    virtual void* allocate(size_t size)
+    virtual void* allocate(size_t size) override
     {
         void* res = malloc(size);
         cout << "malloc_manager::allocate " << size << endl;
         return res;
     }
     
-    virtual void destroy(void* ptr)
+    virtual void destroy(void* ptr) override
     {
         cout << "malloc_memory_manager::destroy" << endl;
         free(ptr);
