@@ -228,13 +228,13 @@ class OwlUI : public UI
  */
 struct OwlMemoryManager : public dsp_memory_manager {
     
-    void* allocate(size_t size)
+    void* allocate(size_t size) override
     {
         void* res = new uint8_t[size];
         return res;
     }
     
-    virtual void destroy(void* ptr)
+    virtual void destroy(void* ptr) override
     {
         delete (uint8_t*)ptr;
     }
