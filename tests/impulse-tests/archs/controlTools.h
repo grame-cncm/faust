@@ -192,8 +192,16 @@ struct malloc_memory_manager_check : public dsp_memory_manager {
 
 struct malloc_memory_manager_check_dsp : public malloc_memory_manager {
     
+    struct Info {
+        std::string fName;
+        MemType fType;
+        size_t fSize;
+        size_t fSizeBytes;
+        size_t fReads;
+        size_t fWrites;
+    };
     int fDSPSize = 0;
-    std::vector<int> fZones;
+    std::vector<Info> fInfos;
     
     malloc_memory_manager_check_dsp(int dsp_size):fDSPSize(dsp_size)
     {}
@@ -203,15 +211,19 @@ struct malloc_memory_manager_check_dsp : public malloc_memory_manager {
     
     virtual void info(const char* name, MemType type, size_t size, size_t size_bytes, size_t reads, size_t writes) override
     {
-        fZones.push_back(size_bytes);
+        fInfos.push_back(Info{name, type, size, size_bytes, reads, writes});
     }
     
     virtual void end() override
     {
-        std::cerr << "DSP size info " << fZones[0]  << std::endl;
-        std::cerr << "DSP Size " << fDSPSize << std::endl;
-        if (fZones[1] != fDSPSize + 8 + 8) {
-            std::cerr << "ERROR : wrong size" << std::endl;
+        for(const auto& it : fInfos) {
+            if (it.fName == "mydsp") {
+                std::cerr << "DSP size info = " << it.fSizeBytes << std::endl;
+                std::cerr << "DSP Size = " << fDSPSize << std::endl;
+                if (it.fSizeBytes != fDSPSize + 8 + 8) {
+                    std::cerr << "ERROR : wrong size" << std::endl;
+                }
+            }
         }
     }
 };

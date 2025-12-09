@@ -678,11 +678,17 @@ void CodeContainer::createMemoryLayout()
 
         // DSP size estimation
         {
-            // Array fields are transformed in pointers
-            ArrayToPointer      array_pointer;
             VariableSizeCounter struct_size(Address::kStruct);
-            array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
-
+            if (gGlobal->gMemoryManager == 0) {
+                // Array fields are transformed in pointers
+                ArrayToPointer array_pointer;
+                array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
+            } else {
+                // Only "iControl/fControl", "iZone/fZone" are rewritten as pointers
+                ArrayToPointer1 array_pointer;
+                array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
+            }
+     
             // TODO: rework DSP site computations with local arrays
 
             fMemoryLayout.push_back(
