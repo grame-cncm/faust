@@ -524,16 +524,16 @@ void ScalVecDispatcherVisitor::Dispatch2Visitor(ValueInst* inst)
 DeclareVarInst* IB::genDecStructVar(const string& vname, Typed* type, ValueInst* exp)
 {
     if (gGlobal->gMemoryManager >= 1) {
-        if ((startWith(vname, "iRec") || startWith(vname, "iVec") || startWith(vname, "iYec") ||
-             startWith(vname, "iZec") || startWith(vname, "itbl")) &&
-            dynamic_cast<ArrayTyped*>(type)) {
+        if (dynamic_cast<ArrayTyped*>(type) &&
+            (startWith(vname, "iRec") || startWith(vname, "iVec") || startWith(vname, "iYec") ||
+             startWith(vname, "iZec") || startWith(vname, "itbl"))) {
             // The "iRec/iVec..." array has a base index in the iZone array, to be added to the
             // actual index
             return gGlobal->gIntZone->declare(vname, type, exp);
-        } else if ((startWith(vname, "fRec") || startWith(vname, "fVec") ||
+        } else if (dynamic_cast<ArrayTyped*>(type) &&
+                   (startWith(vname, "fRec") || startWith(vname, "fVec") ||
                     startWith(vname, "fYec") || startWith(vname, "fZec") ||
-                    startWith(vname, "ftbl")) &&
-                   dynamic_cast<ArrayTyped*>(type)) {
+                    startWith(vname, "ftbl"))) {
             // The "fRec/fVec..." array has a base index in the fZone array, to be added to the
             // actual index
             return gGlobal->gRealZone->declare(vname, type, exp);
