@@ -1,6 +1,6 @@
 OK 1 - Corriger les bugs relatifs à l'évolution de la librairie Daisy
 
-2 - Reprendre le modèle d'allocation mémoire en faisant appel à cette fonctionnalité du compileur Faust (pour dispatcher ce qui est sur la mémoire flash ou la sdram)
+ENCOURS 2 - Reprendre le modèle d'allocation mémoire en faisant appel à cette fonctionnalité du compileur Faust (pour dispatcher ce qui est sur la mémoire flash ou la sdram)
 3 - Ajouter des possibilités de cibler les cartes (seed, seed2 & patch submodule) directement, en mappant les contrôles (sliders/button/sortie CV ou autre) à des métadata directement. ça permettra d'accéder à toutes les pins des cartes plutôt qu'à des implémentations haut niveau comme le pod par exemple. Ça pourrait donner quelque chose comme "knob1 = hslider("knob1[pin:24]", ...)" ou "knob1 = hslider("knob1[adc:1]" ...)". ça permettra d'attaquer toutes les implémentations plus haut niveau qu'on veut, et facilement fabriquer nos trucs DIY avec du Faust dedans. À voir si on fait ça avec des métadata ou autre (quelque chose comme un sous-langage like eurorack-blocks).
 3bis - Pouvoir utiliser du MIDI sur des pins en fonction de metadata
 4 - Nettoyer et factoriser les parties du code qui ont été faites un peu trop vite
@@ -8,10 +8,14 @@ OK 1 - Corriger les bugs relatifs à l'évolution de la librairie Daisy
 OK 5 -  Mettre une option pour choisir si on écrit le programme sur la mémoire flash (128KB), sur la SRAM (480KB), ou sur le QSPI (8MB) tout en gardant l'option pour mettre certains buffers sur la SDRAM (64MB) (cf point 2) ... Fiouuu, toutes ces zones mémoire, l'embarras du choix ! @
 
 6 - MIDI Test (prendre Erae)
+7 - Poly test 
 
 
 
 -- TODO 
 
 - Make sure allocator is not called for objects 
+Problem : when calling allocate : can't make the "new" if we don't know what to build (in case of object for ex) 
+> Solution : template this method ? 
+
 - test sdram allocator

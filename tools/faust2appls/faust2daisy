@@ -42,7 +42,7 @@ echoHelp ()
     option -pod "to compile for 2 ins/outs Pod (knob[1,3])"
     option -patchsm "to compile for the patch.Init() eurorack module"
     option -sdram "to compile using SDRAM for long delay lines/tables etc."
-    option "-mem-thresh <num>" "Memory threshold above which data is stored on SDRAM, requires -sdram"
+    option "-mem-thresh <num>" "Memory threshold in bytes above which data is stored on SDRAM, requires -sdram"
     options -midi
     option "-nvoices <num>"
     option "-sr <num>"
@@ -129,13 +129,16 @@ for p in $FILE; do
     rm -rf "$SRCDIR/$dspName"
     mkdir "$SRCDIR/$dspName"
 
+    MEM_THRESH_UNIT=$(($MEM_THRESH/4))
     # compile faust to c++
     cp -r "$FAUSTARCH/daisy/Makefile" "$SRCDIR/$dspName/"
     if [ $USE_SDRAM == true ]; then 
-        faust -mem1 -fpga-mem 0 -it -json "$f" || exit 
-        python3 "$FAUSTARCH/daisy/faust_daisy_mem.py" "$SRCDIR/$dspName" $MEM_THRESH
+        faust -i -a "$ARCHFILE" $OPTIONS "$f" -json -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+        #(faust -mem1 -fpga-mem-th $MEM_THRESH_UNIT -it -json "$f") || exit 
+        python3 "$FAUSTARCH/daisy/faust_daisy_mem.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES
+    else 
+        faust -i -a "$ARCHFILE" $OPTIONS "$f" -json -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     fi
-    faust -i -a "$ARCHFILE" $OPTIONS "$f" -mem1 -it -fpga-mem 0 -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
 
     # for PATCH support
     if [ $PATCH == true ]; then
@@ -184,7 +187,7 @@ for p in $FILE; do
         cd "$SRCDIR/$dspName"
         pwd
         echo "Building Faust program"
-        (export $APP_TYPE && make) || exit 
+        (make APP_TYPE=$APP_TYPE) || exit 
 
         if [ $APP_TYPE == BOOT_NONE ]; then 
             read -p "Press ENTER when Daisy is in DFU mode"
@@ -200,7 +203,7 @@ for p in $FILE; do
                 *)
             esac
             read -p "Press Daisy RESET button, then press ENTER (approximately 1 sec after RESET)" 
-            (export $APP_TYPE && make program-dfu)  || true 
+            (make program-dfu APP_TYPE=$APP_TYPE)  || true 
         fi
 
         cd ..
