@@ -177,6 +177,9 @@ fx1:
 cpp1:
 	$(MAKE) -f Make.gcc outdir=cpp1/double/mem0  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -mem"
 	$(MAKE) -f Make.gcc outdir=cpp1/double/mem1  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -it -mem1"
+	$(MAKE) -f Make.gcc outdir=cpp1/double/mem1fpgamemth0  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -it -mem1 -fpga-mem-th 0"
+	$(MAKE) -f Make.gcc outdir=cpp1/double/mem1fpgamemth2  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -it -mem1 -fpga-mem-th 2"
+	$(MAKE) -f Make.gcc outdir=cpp1/double/mem1fpgamemth8  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -it -mem1 -fpga-mem-th 8"
 
 cpp2:
 	$(MAKE) -f Make.gcc outdir=cpp2/double/ec  lang=cpp arch=impulsearch7.cpp FAUSTOPTIONS="-I dsp -double -ec"
