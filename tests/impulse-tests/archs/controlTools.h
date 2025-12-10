@@ -175,9 +175,7 @@ struct malloc_memory_manager_check : public dsp_memory_manager {
     }
     
     virtual void end() override
-    {
-        std::cerr << "malloc_memory_manager_check size: " << fMaxSize << std::endl;
-    }
+    {}
     
     virtual void* allocate(size_t size) override
     {

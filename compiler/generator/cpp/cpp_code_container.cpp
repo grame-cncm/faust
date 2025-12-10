@@ -817,7 +817,7 @@ void CPPCodeContainer::produceClass()
             if (gGlobal->gMemoryManager == 0) {
                 // In -mem mode all DSP struct pointers are allocated in memoryCreate()
                 // DSP size and static tables size are set to 0 for now, to distinguish them from
-                // local tables and regular pointers
+                // local tables and regular pointers which are externally allocated
                 do_gen = isPtr(item.type) && (item.size > 0);
             } else {
                 // Otherwise only DSP struct iControl/fControl and iZone/fZone are created in
@@ -850,7 +850,7 @@ void CPPCodeContainer::produceClass()
             if (gGlobal->gMemoryManager == 0) {
                 // In -mem mode all DSP struct pointers are deallocated in memoryDestroy()
                 // DSP size and static tables size are set to 0 for now, to distinguish them from
-                // local tables and regular pointers
+                // local tables and regular pointers which are externally deallocated
                 do_gen = isPtr(item.type) && (item.size > 0);
             } else {
                 // Otherwise only DSP struct iControl/fControl and iZone/fZone are deallocated in
