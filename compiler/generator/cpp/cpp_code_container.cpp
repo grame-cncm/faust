@@ -360,7 +360,7 @@ void CPPCodeContainer::produceClass()
         ArrayToPointer array_pointer;
         array_pointer.getCode(fDeclarationInstructions)->accept(fCodeProducer);
     } else if (gGlobal->gMemoryManager >= 1) {
-        // Only "iControl", "fControl", "iZone", "fZone" are rewritten as pointers
+        // Only "iControl/fControl", "iZone/fZone" are rewritten as pointers
         ArrayToPointer1 array_pointer;
         array_pointer.getCode(fDeclarationInstructions)->accept(fCodeProducer);
     } else {
@@ -749,7 +749,7 @@ void CPPCodeContainer::produceClass()
         generateCompute(n);
     }
 
-    // Interaction with the MemoryManager
+    // Interactions with the MemoryManager
     if (gGlobal->gMemoryManager == 0 || gGlobal->gMemoryManager == 1) {
         // 'memoryInfo' method generation
         tab(n + 1, *fOut);
@@ -760,9 +760,16 @@ void CPPCodeContainer::produceClass()
         // Count arrays
         int ptr_count = 0;
         for (const auto& it : fMemoryLayout) {
-            bool do_count = (gGlobal->gMemoryManager == 0)
-                                ? isPtr(it.type)
-                                : (isPtr(it.type) || isControlOrZone(it.name));
+            bool do_count;
+            if (gGlobal->gMemoryManager == 0) {
+                // In -mem mode the DSP object, DSP struct pointers and static tables are externally
+                // allocated
+                do_count = isPtr(it.type);
+            } else {
+                // Otherwise DSP object, DSP struct iControl/fControl and iZone/fZone are externally
+                // allocated
+                do_count = (it.type == "kObj_ptr") || isControlOrZone(it.name);
+            }
             if (do_count) {
                 ptr_count++;
             }
@@ -770,13 +777,19 @@ void CPPCodeContainer::produceClass()
 
         *fOut << "fManager->begin(" << ptr_count << ");";
         tab(n + 2, *fOut);
-
         for (size_t i = 0; i < fMemoryLayout.size(); i++) {
             // DSP or field name, type, size, size-in-bytes, reads, write
-            MemoryLayoutItem item   = fMemoryLayout[i];
-            bool             do_gen = (gGlobal->gMemoryManager == 0)
-                                          ? isPtr(item.type)
-                                          : (isPtr(item.type) || isControlOrZone(item.name));
+            MemoryLayoutItem item = fMemoryLayout[i];
+            bool             do_gen;
+            if (gGlobal->gMemoryManager == 0) {
+                // In -mem mode the DSP object, DSP struct pointers and static tables are externally
+                // allocated
+                do_gen = isPtr(item.type);
+            } else {
+                // Otherwise DSP object, DSP struct iControl/fControl and iZone/fZone are externally
+                // allocated
+                do_gen = (item.type == "kObj_ptr") || isControlOrZone(item.name);
+            }
             if (do_gen) {
                 *fOut << "// " << item.name;
                 tab(n + 2, *fOut);
@@ -786,7 +799,6 @@ void CPPCodeContainer::produceClass()
                 tab(n + 2, *fOut);
             }
         }
-
         *fOut << "fManager->end();";
         tab(n + 2, *fOut);
         back(1, *fOut);
@@ -800,8 +812,18 @@ void CPPCodeContainer::produceClass()
         for (size_t i = 0; i < fMemoryLayout.size(); i++) {
             // DSP or field name, type, size, sizeBytes, reads, writes
             MemoryLayoutItem item = fMemoryLayout[i];
-            bool do_gen = (gGlobal->gMemoryManager == 0) ? (isPtr(item.type) && item.size > 0)
-                                                         : isControlOrZone(item.name);
+            bool             do_gen;
+            // DSP itself is created in create()
+            if (gGlobal->gMemoryManager == 0) {
+                // In -mem mode all DSP struct pointers are allocated in memoryCreate()
+                // DSP size and static tables size are set to 0 for now, to distinguish them from
+                // local tables and regular pointers which are externally allocated
+                do_gen = isPtr(item.type) && (item.size > 0);
+            } else {
+                // Otherwise only DSP struct iControl/fControl and iZone/fZone are created in
+                // memoryCreate()
+                do_gen = isControlOrZone(item.name);
+            }
             if (do_gen) {
                 if (item.type == "kInt32_ptr") {
                     *fOut << item.name << " = static_cast<int*>(fManager->allocate("
@@ -824,8 +846,17 @@ void CPPCodeContainer::produceClass()
         for (size_t i = 0; i < fMemoryLayout.size(); i++) {
             // DSP or field name, type, size, sizeBytes, reads, writes
             MemoryLayoutItem item = fMemoryLayout[i];
-            bool do_gen = (gGlobal->gMemoryManager == 0) ? (isPtr(item.type) && item.size > 0)
-                                                         : isControlOrZone(item.name);
+            bool             do_gen;
+            if (gGlobal->gMemoryManager == 0) {
+                // In -mem mode all DSP struct pointers are deallocated in memoryDestroy()
+                // DSP size and static tables size are set to 0 for now, to distinguish them from
+                // local tables and regular pointers which are externally deallocated
+                do_gen = isPtr(item.type) && (item.size > 0);
+            } else {
+                // Otherwise only DSP struct iControl/fControl and iZone/fZone are deallocated in
+                // memoryDestroy()
+                do_gen = isControlOrZone(item.name);
+            }
             if (do_gen) {
                 *fOut << "fManager->destroy(" << item.name << ");";
                 tab(n + 2, *fOut);
@@ -839,9 +870,11 @@ void CPPCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "static " << fKlassName << "* create() {";
         tab(n + 2, *fOut);
+        // DSP is allocated with placement new
         *fOut << fKlassName << "* dsp = new (fManager->allocate(sizeof(" << fKlassName << "))) "
               << fKlassName << "();";
         tab(n + 2, *fOut);
+        // Then all pointers are allocated
         *fOut << "dsp->memoryCreate();";
         tab(n + 2, *fOut);
         *fOut << "return dsp;";
@@ -853,10 +886,13 @@ void CPPCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "static void destroy(dsp* dsp) {";
         tab(n + 2, *fOut);
+        // All pointers are deallocated
         *fOut << "static_cast<" << fKlassName << "*>(dsp)->memoryDestroy();";
         tab(n + 2, *fOut);
+        // Then the DSP destructor is called
         *fOut << "static_cast<" << fKlassName << "*>(dsp)->~" << fKlassName << "();";
         tab(n + 2, *fOut);
+        // Then the DSP is deallocated
         *fOut << "fManager->destroy(dsp);";
         tab(n + 1, *fOut);
         *fOut << "}";

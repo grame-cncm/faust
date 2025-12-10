@@ -3665,7 +3665,7 @@ struct ZoneArray : public virtual Garbageable {
     int                 fCurIndex    = 0;
     int                 fDLThreshold = 0;
 
-    // Associate a variable (scalar or array) with the correspondinf index in iZone/fZone
+    // Associate a variable (scalar or array) with the corresponding index in iZone/fZone
     std::map<std::string, int> fMap;
 
     // Shared between iZone and fZone, and progressively decremented when allocating in DSP

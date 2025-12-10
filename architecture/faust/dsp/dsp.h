@@ -52,7 +52,7 @@ struct FAUST_API dsp_memory_manager {
      * Inform the Memory Manager with the number of expected memory zones.
      * @param count - the number of expected memory zones
      */
-    virtual void begin(size_t /*count*/) {}
+    virtual void begin(size_t count) {}
     
     /**
      * Give the Memory Manager information on a given memory zone.

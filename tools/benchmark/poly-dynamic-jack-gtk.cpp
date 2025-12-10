@@ -56,13 +56,13 @@ ztimedmap GUI::gTimedZoneMap;
 
 struct malloc_memory_manager : public dsp_memory_manager {
     
-    void* allocate(size_t size)
+    void* allocate(size_t size) override
     {
         void* res = malloc(size);
         cout << "malloc_manager : " << size << " " << res << endl;
         return res;
     }
-    virtual void destroy(void* ptr)
+    virtual void destroy(void* ptr) override
     {
         cout << "free_manager : " << ptr << endl;
         free(ptr);

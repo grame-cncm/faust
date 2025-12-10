@@ -112,6 +112,7 @@ CodeContainer::CodeContainer()
     }
 
     // Memory handling with gMemoryManager
+    // Arrays will be moved from the DSP struct in iZone/fZone
     if (gGlobal->gMemoryManager >= 1 && !gGlobal->gIntZone && !gGlobal->gRealZone) {
         // Allocation done once to be shared by all containers
         ZoneArray::gInternalMemorySize = gGlobal->gFPGAMemory;
@@ -603,6 +604,7 @@ void CodeContainer::mergeSubContainers()
 
 /*
  Create memory layout, to be used in C++ backend and JSON generation.
+ Here the DSP struct takes account of iControl/fControl and iZone/fZone related layout.
  The description order follows what will be done at allocation time.
  Subcontainers are ignored when gGlobal->gInlineTable == true.
 
@@ -674,13 +676,20 @@ void CodeContainer::createMemoryLayout()
             }
         }
 
+        // DSP size estimation
         {
-            // Array fields are transformed in pointers
-            ArrayToPointer      array_pointer;
             VariableSizeCounter struct_size(Address::kStruct);
-            array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
-
-            // TODO: rework DSP site comptations with local arrays
+            if (gGlobal->gMemoryManager == 0) {
+                // Array fields are transformed in pointers
+                ArrayToPointer array_pointer;
+                array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
+            } else {
+                // Only "iControl/fControl", "iZone/fZone" are rewritten as pointers
+                ArrayToPointer1 array_pointer;
+                array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
+            }
+     
+            // TODO: rework DSP site computations with local arrays
 
             fMemoryLayout.push_back(
                 MemoryLayoutItem{fKlassName, "kObj_ptr", 0,

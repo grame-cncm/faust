@@ -135,21 +135,21 @@ struct CheckControlUI : public GenericUI {
 
 struct malloc_memory_manager : public dsp_memory_manager {
     
-    virtual void begin(size_t count) {}
+    virtual void begin(size_t count) override {}
     
-    virtual void info(size_t size, size_t reads, size_t writes)
+    virtual void info(const char* name, MemType type, size_t size, size_t size_bytes, size_t reads, size_t writes) override
     {
         // TODO: use 'size', 'reads' and 'writes' to prepare memory layout for allocation
     }
     
-    virtual void end() {}
+    virtual void end() override {}
     
-    virtual void* allocate(size_t size)
+    virtual void* allocate(size_t size) override
     {
         return calloc(1, size);
     }
  
-    virtual void destroy(void* ptr)
+    virtual void destroy(void* ptr) override
     {
         free(ptr);
     }
@@ -161,30 +161,28 @@ struct malloc_memory_manager_check : public dsp_memory_manager {
     int fZoneCount = 0;
     int fMaxSize = 0;
     
-    virtual void begin(size_t count)
+    virtual void begin(size_t count) override
     {
         fZoneCount = count;
     }
     
-    virtual void info(size_t size, size_t reads, size_t writes)
+    virtual void info(const char* name, MemType type, size_t size, size_t size_bytes, size_t reads, size_t writes) override
     {
         if (--fZoneCount < 0) {
             throw std::runtime_error("malloc_memory_manager_check::info : " + std::to_string(size));
         }
-        fMaxSize += size;
+        fMaxSize += size_bytes;
     }
     
-    virtual void end() {}
+    virtual void end() override
+    {}
     
-    virtual void* allocate(size_t size)
+    virtual void* allocate(size_t size) override
     {
-        if (--fMaxSize < 0) {
-            throw std::runtime_error("malloc_memory_manager_check::allocate : " + std::to_string(size));
-        }
         return calloc(1, size);
     }
     
-    virtual void destroy(void* ptr)
+    virtual void destroy(void* ptr) override
     {
         free(ptr);
     }
@@ -192,26 +190,38 @@ struct malloc_memory_manager_check : public dsp_memory_manager {
 
 struct malloc_memory_manager_check_dsp : public malloc_memory_manager {
     
+    struct Info {
+        std::string fName;
+        MemType fType;
+        size_t fSize;
+        size_t fSizeBytes;
+        size_t fReads;
+        size_t fWrites;
+    };
     int fDSPSize = 0;
-    std::vector<int> fZones;
+    std::vector<Info> fInfos;
     
     malloc_memory_manager_check_dsp(int dsp_size):fDSPSize(dsp_size)
     {}
     
-    virtual void begin(size_t count)
+    virtual void begin(size_t count) override
     {}
     
-    virtual void info(size_t size, size_t reads, size_t writes)
+    virtual void info(const char* name, MemType type, size_t size, size_t size_bytes, size_t reads, size_t writes) override
     {
-        fZones.push_back(size);
+        fInfos.push_back(Info{name, type, size, size_bytes, reads, writes});
     }
     
-    virtual void end()
+    virtual void end() override
     {
-        std::cerr << "DSP size info " << fZones[0]  << std::endl;
-        std::cerr << "DSP Size " << fDSPSize << std::endl;
-        if (fZones[1] != fDSPSize + 8 + 8) {
-            std::cerr << "ERROR : wrong size" << std::endl;
+        for(const auto& it : fInfos) {
+            if (it.fName == "mydsp") {
+                std::cerr << "DSP size info = " << it.fSizeBytes << std::endl;
+                std::cerr << "DSP Size = " << fDSPSize << std::endl;
+                if (it.fSizeBytes != fDSPSize + 8 + 8) {
+                    std::cerr << "ERROR : wrong size" << std::endl;
+                }
+            }
         }
     }
 };
