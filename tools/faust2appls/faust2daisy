@@ -12,6 +12,7 @@
 . usage.sh
 
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+C_INCLUDES="-I $FAUSTINC"
 ARCHFILE=$FAUSTARCH/daisy/ex_faust.cpp
 
 # exit if a command fails
@@ -33,7 +34,7 @@ MEM_THRESH=64
 
 echoHelp ()
 {
-    echo "faust2daisy [-patch] [-midi] [-nvoices <num>] [-sr <num>] [-bs <num>] [-source] [Faust options (-vec -vs 8...)] <file.dsp>"
+    echo "faust2daisy [-patch] [-sram] [-qspi] [-sdram] [-mem-thresh] [-midi] [-nvoices <num>] [-sr <num>] [-bs <num>] [-source] [Faust options (-vec -vs 8...)] <file.dsp>"
     echo "Compiles Faust programs to Daisy boards (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/daisy)"
     option
     option -sram "flashing to sram (medium sized programs), requires daisy bootloader"
@@ -134,10 +135,10 @@ for p in $FILE; do
     cp -r "$FAUSTARCH/daisy/Makefile" "$SRCDIR/$dspName/"
     if [ $USE_SDRAM == true ]; then 
         faust -i -a "$ARCHFILE" $OPTIONS "$f" -json -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
-        #(faust -mem1 -fpga-mem-th $MEM_THRESH_UNIT -it -json "$f") || exit 
-        python3 "$FAUSTARCH/daisy/faust_daisy_mem.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES
+        NVOICES=$(python3 "$FAUSTARCH/daisy/faust_daisy_mem.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1)
     else 
-        faust -i -a "$ARCHFILE" $OPTIONS "$f" -json -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+        faust -i  -a "$ARCHFILE" $OPTIONS "$f" -json -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+        NVOICES=$(python3 "$FAUSTARCH/daisy/faust_daisy_mem.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0)
     fi
 
     # for PATCH support
@@ -151,6 +152,14 @@ for p in $FILE; do
     # for PODSM support
     if [ $PATCHSM == true ]; then
         echo "#define PATCHSM" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
+
+    # for POLY
+    if [ "$NVOICES" > 0 ]; then
+        MIDI=true
+        echo "Setting Nvoices $NVOICES"
+        echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+        echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
 
     # for MIDI
@@ -171,11 +180,6 @@ for p in $FILE; do
     # for DAISY_NO_RTTI preprocessor flag (to avoid dynamic casts since libdaisy is compiled with -fno-rtti flag)
     echo "#define DAISY_NO_RTTI" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
 
-    # for POLY
-    if [ "$NVOICES" -gt "0" ]; then
-        echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
-        echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
-    fi
 
     #if [ $USE_SDRAM == true ]; then
         #python3 "$FAUSTARCH/daisy/faust_sdram_converter.py" "$SRCDIR/$dspName/ex_faust.cpp"
@@ -198,7 +202,7 @@ for p in $FILE; do
                 [yY])
                     read -p "Press ENTER when Daisy is in DFU mode to flash bootloader"
                     (make program-boot) || true 
-                    sleep 2s # Make sure bootloader is operational
+                    sleep 1s # Make sure bootloader is operational
                 ;;
                 *)
             esac

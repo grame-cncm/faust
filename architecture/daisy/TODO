@@ -19,3 +19,16 @@ Problem : when calling allocate : can't make the "new" if we don't know what to 
 > Solution : template this method ? 
 
 - test sdram allocator
+
+
+MIDI : 
+- Mono : 
+    - QSPI OK (with or without SDRAM)
+    - Flash NOTOK : too heavy 
+    - SRAM working 
+
+
+# Maybe consider removing the SDRAM automatic option when using SRAM
+
+
+At the end : remove all prints !
