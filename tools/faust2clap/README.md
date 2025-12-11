@@ -12,6 +12,7 @@ In addition to this static mode, a dynamic implementation has been added. In thi
 
 ## Features
 - ✅ Generate CLAP plugins directly from Faust (.dsp file) code  
+- ✅ Modern CLI tool with global install support  
 - ✅ Hot-reloading of DSP: update `.dsp` files without restarting the host or closing the plugin
 - ✅ Parameter discovery and synchronisation with host  
 - ✅ MIDI and polyphonic support via Faust’s `mydsp_poly`  
@@ -22,51 +23,55 @@ In addition to this static mode, a dynamic implementation has been added. In thi
 
 ## 💻 Usage
 
-### 🛠️ Static build 
-Generate and build a static CLAP plugin from your DSP file
 
-```python
-python tools/faust2clap/faust2clap.py your_file.dsp
+### 🌍 Global Installation
+
+Install `faust2clap` globally (CLI + dependencies):
+
+```bash
+cd tools/faust2clap
+chmod +x install-faust2clap.sh
+sudo ./install-faust2clap.sh
 ```
+
+### 🛠️ Static Plugin Generation
+Generate and build a static CLAP plugin from your DSP file's directory
+
+```bash
+faust2clap your_file.dsp
+```
+
 ```shell
-optional flags:
-  -mono        generate monophonic plugin
-  -poly        generate polyphonic plugin (default)
-  -nvoices N   set number of polyphonic voices (default: 16)
+optional arguments:
+  --mono              generate monophonic plugin
+  --poly              generate polyphonic plugin (default)
+  -nvoices N          number of polyphonic voices (default: 16)
+  --dry-run           simulate build without compiling
 ```
 
-The plugin will be automatically built and installed to:
-```shell
-~/Library/Audio/Plug-Ins/CLAP/your_file.clap
+```bash
+faust2clap myplugin.dsp
+faust2clap --dynamic --install
 ```
 
-###  Dynamic (Interpreter) mode
+###  Dynamic Plugin (Hot Reload)
 Build the dynamic hot-reload plugin
 ```bash
-cd architecture/clap
-make -f Makefile.simple
+faust2clap --dynamic --install
 ```
+
 Install to system plugin directories
 
-```bash
-make -f Makefile.simple install
-```
 The dynamic plugin (FaustDynamic.clap) will be installed to:
 ```bash
 ~/Library/Audio/Plug-Ins/CLAP/
 ~/.clap/plugins/
 ```
 
-Clean build artifacts
-```bash
-make -f Makefile.simple clean
-```
-
 Once installed, use the GUI to load DSP files for hot-reloading:
 Run the hot-reload GUI controller
 ```bash
-cd architecture/clap
-python faust-hot-reload.py
+faust2clap --gui
 ```
 The GUI allows you to:
 - Browse and load .dsp files
