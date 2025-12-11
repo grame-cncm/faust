@@ -76,6 +76,7 @@ struct MidiMeta : public Meta {
                       (json.find("timestamp") != std::string::npos)));
     
     #if defined(NVOICES) && NVOICES!=NUM_VOICES
+        // Compile-time override
         nvoices = NVOICES;
     #else
         MidiMeta meta;
