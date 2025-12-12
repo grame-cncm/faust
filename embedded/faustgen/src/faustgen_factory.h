@@ -153,6 +153,15 @@ class faustgen_factory {
         
         // Compile a Faust file located at the given Max path
         void compile_file(t_filehandle file_handle, short path, char* file_name);
+    
+        // Load library paths in the dictionary
+        void load_library_paths(t_dictionary* d);
+    
+        // Load source code
+        void load_source_code(t_dictionary* d);
+    
+        // Setup default Faust DSP code
+        void default_source_code();
         
     public:
         

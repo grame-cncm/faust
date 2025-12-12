@@ -565,6 +565,62 @@ void faustgen_factory::default_compile_options()
      */
 }
 
+void faustgen_factory::load_library_paths(t_dictionary* d)
+{
+    // Load fLibraryPath
+    int i = 0;
+    const char* read_library_path;
+    char library_path[32];
+
+    while (true) {
+        snprintf(library_path, 32, "library_path%d", i++);
+        t_max_err err = dictionary_getstring(d, gensym(library_path), &read_library_path);
+        if (err == MAX_ERR_NONE) {
+            fLibraryPath.insert(read_library_path);
+        } else {
+            break;
+        }
+    }
+}
+
+void faustgen_factory::default_source_code()
+{
+    // Otherwise tries to create from default source code
+    fSourceCodeSize = strlen(DEFAULT_SOURCE_CODE);
+    fSourceCode = sysmem_newhandleclear(fSourceCodeSize + 1);
+    sysmem_copyptr(DEFAULT_SOURCE_CODE, *fSourceCode, fSourceCodeSize);
+}
+
+void faustgen_factory::load_source_code(t_dictionary* d)
+{
+    // Load all library paths
+    load_library_paths(d);
+    
+    // Read sourcecode size key
+    t_max_err err = dictionary_getlong(d, gensym("sourcecode_size"), (t_atom_long*)&fSourceCodeSize);
+    if (err != MAX_ERR_NONE) {
+        default_source_code();
+        return;
+    }
+    
+    // If OK read sourcecode
+    fSourceCode = sysmem_newhandleclear(fSourceCodeSize + 1);           // We need to use a size larger by one for the null terminator
+    const char* sourcecode;
+    err = dictionary_getstring(d, gensym("sourcecode"), &sourcecode);   // The retrieved pointer references the string in the dictionary, it is not a copy.
+    if (err == MAX_ERR_NONE) {
+        sysmem_copyptr(sourcecode, *fSourceCode, fSourceCodeSize);
+        return;
+    }
+
+    // Cleanup the failed allocation before
+    sysmem_freehandle(fSourceCode);
+    fSourceCode = nullptr;
+    fSourceCodeSize = 0;
+    
+    // Falling back to default source
+    default_source_code();
+}
+
 // Load factory settings from a saved Max dictionary
 void faustgen_factory::getfromdictionary(t_dictionary* d)
 {
@@ -580,15 +636,18 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     const char* faustgen_version;
     err = dictionary_getstring(d, gensym("version"), &faustgen_version);
     
-    // Read fSampleFormat version
-    err = dictionary_getlong(d, gensym("sample_format"), (t_atom_long*)&fSampleFormat);
-    
     if (err != MAX_ERR_NONE) {
         post("Cannot read \"version\" key, so ignore bitcode, force recompilation and use default compileoptions");
         goto read_sourcecode;
     } else if (strcmp(faustgen_version, FAUSTGEN_VERSION) != 0) {
         post("Older version of faustgen~/mc.faustgen~ (%s versus %s), so ignore bitcode, force recompilation and use default compileoptions", FAUSTGEN_VERSION, faustgen_version);
         goto read_sourcecode;
+    }
+    
+    // Read fSampleFormat version
+    err = dictionary_getlong(d, gensym("sample_format"), (t_atom_long*)&fSampleFormat);
+    if (err != MAX_ERR_NONE) {
+        fSampleFormat = kNone;
     }
     
     // Read bitcode size key
@@ -602,45 +661,18 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     fBitCode = sysmem_newhandleclear(fBitCodeSize + 1);             // We need to use a size larger by one for the null terminator
     const char* bitcode;
     err = dictionary_getstring(d, gensym("machinecode"), &bitcode); // The retrieved pointer references the string in the dictionary, it is not a copy.
-    sysmem_copyptr(bitcode, *fBitCode, fBitCodeSize);
-    if (err != MAX_ERR_NONE) {
-        fBitCodeSize = 0;
-    }
-    
-read_sourcecode:
-    // Load fLibraryPath
-    int i = 0;
-    const char* read_library_path;
-    char library_path[32];
-    
-loop:
-    snprintf(library_path, 32, "library_path%d", i++);
-    err = dictionary_getstring(d, gensym(library_path), &read_library_path);
     if (err == MAX_ERR_NONE) {
-        fLibraryPath.insert(read_library_path);
-        goto loop;
-    }
-    
-    // Read sourcecode size key
-    err = dictionary_getlong(d, gensym("sourcecode_size"), (t_atom_long*)&fSourceCodeSize);
-    if (err != MAX_ERR_NONE) {
-        goto default_sourcecode;
-    }
-    
-    // If OK read sourcecode
-    fSourceCode = sysmem_newhandleclear(fSourceCodeSize + 1);           // We need to use a size larger by one for the null terminator
-    const char* sourcecode;
-    err = dictionary_getstring(d, gensym("sourcecode"), &sourcecode);   // The retrieved pointer references the string in the dictionary, it is not a copy.
-    sysmem_copyptr(sourcecode, *fSourceCode, fSourceCodeSize);
-    if (err == MAX_ERR_NONE) {
+        sysmem_copyptr(bitcode, *fBitCode, fBitCodeSize);
         return;
     }
+
+    // Cleanup the failed allocation before falling back
+    sysmem_freehandle(fBitCode);
+    fBitCode = nullptr;
+    fBitCodeSize = 0;
     
-default_sourcecode:
-    // Otherwise tries to create from default source code
-    fSourceCodeSize = strlen(DEFAULT_SOURCE_CODE);
-    fSourceCode = sysmem_newhandleclear(fSourceCodeSize + 1);
-    sysmem_copyptr(DEFAULT_SOURCE_CODE, *fSourceCode, fSourceCodeSize);
+read_sourcecode:
+    load_source_code(d);
 }
 
 // Called when saving the Max patcher
