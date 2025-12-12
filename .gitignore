@@ -45,3 +45,6 @@ tests/impulse-tests/ir
 .python-version
 tcode/
 tbin/
+bench-results/
+yo-tests/
+examples/*.cpp
