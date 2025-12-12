@@ -127,67 +127,127 @@ class faustgen_factory {
         int m_siginlets;
         int m_sigoutlets;
         
+        // Open a resource from the default path list
         bool open_file(const char* file);
+        
+        // Open a resource relative to a given application bundle
         bool open_file(const char* appl, const char* file);
         
+        // Add a new search path for Faust libraries
         void add_library_path(const std::string& library_path);
+        
+        // Add a named Faust compiler option
         void add_compile_option(const std::string& key, const std::string& value);
+        
+        // Add a standalone Faust compiler option
         void add_compile_option(const std::string& value);
+        
+        // Recursively print the content of a Faust library folder
         void display_libraries_aux(const char* lib);
+        
+        // Build the JSON UI description from a compiled DSP
         void make_json(::dsp* dsp);
     
+        // Check whether a file has changed since last compilation
         bool is_new(t_filehandle file_handle, char* file_name);
+        
+        // Compile a Faust file located at the given Max path
         void compile_file(t_filehandle file_handle, short path, char* file_name);
         
     public:
         
+        // Create a factory bound to a named DSP group
         faustgen_factory(const std::string& name);
+        
+        // Destroy the factory and release its resources
         ~faustgen_factory();
         
+        // Build an LLVM factory from stored bitcode
         dsp_factory* create_factory_from_bitcode();
+        
+        // Build an LLVM factory from stored source code
         dsp_factory* create_factory_from_sourcecode();
+        
+        // Create a DSP instance without applying multi-channel adapters
         ::dsp* create_dsp_aux();
         
+        // Free the underlying LLVM factory
         void free_dsp_factory();
+        
+        // Release the stored source code buffer
         void free_sourcecode();
+        
+        // Release the stored bitcode buffer
         void free_bitcode();
     
+        // Populate default Faust compiler options
         void default_compile_options();
+        
+        // Post current compile options to the Max console
         void print_compile_options();
         
+        // Restore factory state from a Max dictionary
         void getfromdictionary(t_dictionary* d);
+        
+        // Save factory state into a Max dictionary
         void appendtodictionary(t_dictionary* d);
         
+        // Return the instance number of this factory
         int get_number() { return fFaustNumber; }
+        
+        // Return the registered name of the DSP group
         std::string get_name() { return fName; }
     
+        // Load source code from disk
         void read(long inlet, t_symbol* s);
+        
+        // Save source code to disk
         void write(long inlet, t_symbol* s);
     
+        // Add a library path from a Max message
         void librarypath(long inlet, t_symbol* s);
         
+        // Return the currently loaded source code (or an empty string)
         char* get_sourcecode()
         {
             static char empty = 0;
             return (fSourceCode) ? *fSourceCode : &empty;
         }
         
+        // Return the cached JSON UI description
         const char* get_json() { return fJSON.c_str(); }
         
+        // Replace the stored source code buffer
         void update_sourcecode(int size, char* source_code);
         
+        // Update compile options received from Max
         void compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv);
         
-        // Compile DSP with -svg option and display the SVG files
+        // Attempt to open an existing SVG rendering of the DSP
         bool try_open_svg();
+        
+        // Generate SVG files for the current DSP
         void open_svg();
+        
+        // Remove generated SVG files
         void remove_svg();
+        
+        // Compile DSP with -svg option and display the SVG files
         void display_svg();
+        
+        // Display the bundled Faust documentation
         void display_documentation();
+        
+        // List available Faust libraries
         void display_libraries();
         
+        // Create a DSP instance, optionally polyphonic
         ::dsp* create_dsp_instance(int nvoices = 0);
+        
+        // Track a new faustgen instance using this factory
         void add_instance(faustgen* dsp) { fInstances.insert(dsp); }
+        
+        // Remove a faustgen instance and delete the factory if last one
         void remove_instance(faustgen* dsp)
         {
             fInstances.erase(dsp);
@@ -202,12 +262,20 @@ class faustgen_factory {
         // Callers must not dereference the factory pointer after invoking it.
     
         // Mutex between the audio thread and the DSP creation thread
+        // Attempt to grab the audio mutex without blocking
         bool try_lock_audio() { return fAudioMutex.try_lock(); }
+        
+        // Block until the audio mutex is acquired
         void lock_audio() { fAudioMutex.lock(); }
+        
+        // Release the audio mutex
         void unlock_audio() { fAudioMutex.unlock(); }
     
         // Mutex between the UI thread and the DSP creation thread
+        // Block until the UI mutex is acquired
         void lock_ui() { fUIMutex.lock(); }
+        
+        // Release the UI mutex
         void unlock_ui() { fUIMutex.unlock(); }
     
         static int gFaustCounter; // Global variable to count the number of faustgen objects inside the patcher
@@ -215,6 +283,7 @@ class faustgen_factory {
         static std::map<std::string, faustgen_factory*> gFactoryMap;
 };
 
+// Report whether the build targets 32 or 64 bit pointers
 inline const char* getCodeSize()
 {
     int tmp;
