@@ -1,4 +1,4 @@
-% man(1) Version 2.82.7 (06-December-2025) | Faust man page
+% man(1) Version 2.83.0 (13-December-2025) | Faust man page
 
 NAME
 ====
@@ -160,7 +160,9 @@ Code generation options:
 
   **-vhdl**-components \<file> **--vhdl-components** \<file>    path to a file describing custom components for the VHDL backend.
 
-  **-fpga**-mem \<n>  **--fpga-mem** \<n>           FPGA block ram max size, used in -mem1/-mem2 mode.
+  **-fpga**-mem \<n>     **--fpga-mem** \<n>        FPGA block ram max size, used in -mem1/-mem2 mode.
+
+  **-fpga**-mem-th \<n>  **--fpga-mem-th** \<n>     FPGA array size threshold (in unit of the memory type), used in -mem1/-mem2 mode.
 
   **-wi** \<n>     **--widening-iterations** \<n>   number of iterations before widening in signal bounding.
 
