@@ -1,6 +1,6 @@
 # faust2daisy
 
-The **faust2daisy** tool compiles a Faust DSP program in a folder containing the C++ source code and a Makefile to compile it.  
+The **faust2daisy** tool compiles a Faust DSP program for Electrosmith Daisy boards. It will generate appropriate code for inputs, outputs, and controls, build it and flash it on the daisy board. 
 
 `faust2daisy [-patch] [-pod] [-sdram] [-midi] [-nvoices <num>] [-sr <num>] [-bs <num>] [-source] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
@@ -10,6 +10,7 @@ Here are the available options:
 - `-pod`: to compile for 2 ins/outs [Pod](https://www.electro-smith.com/daisy/pod)
 - `-patchsm`: to compile for Patch Submodule and [patch.Init()](https://electro-smith.com/products/patch-init)
 - `-sdram`: to compile using SDRAM for long delay lines/tables etc.
+- `-mem-thresh <num>`: with sdram option, will define the size threshold above which data is stored on SDRAM.
 - `-midi`: to activate MIDI control
 - `-nvoices <num>`: to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI
 - `-sr <num>`: to specify sample rate (default 44100)
@@ -17,17 +18,19 @@ Here are the available options:
 - `-source`: to only create the source folder
 
 Flash mode options: 
-Flash mode defaults to FLASH (it will use native STM32 bootloader), for program whose binary can be up to 128KB.
+Flash mode defaults to FLASH (the Faust DSP will be stored and executed from Flash memory), for program whose binary can be up to 128KB.
 One of the following options can be used for larger programs (it will propose to install Daisy bootloader first on FLASH first) : 
 - `-sram`: to flash program on SRAM - for binary up to 512KB. It will enable `-sdram` option since SRAM won't be usable for RAM anymore. 
-- `-qspi`: to flash program on QSPIFLASH - for binary up do 8MB. 
+- `-qspi`: to flash program on QSPIFLASH - for binary up do 8MB : this may slow down execution. 
 
-It is recommended to put your Faust DSP files inside a directory [DaisyExamples](https://github.com/electro-smith/DaisyExamples/)`/DaisySP/faust_examples`. Then execute `faust2daisy code.dsp` with your chosen options. To use `faust2daisy` in an arbitrary directory, you should specify environment variables. For example, on macOS/Linux:
+The `faust2daisy` script requires the following environment variables : 
+
 ```bash
 export LIBDAISY_DIR=~/GitHub/DaisyExamples/libdaisy
 export DAISYSP_DIR=~/GitHub/DaisyExamples/DaisySP
 ```
-If on macOS, consider putting the above text in `~/.zshrc` so that it's always set in Terminal.
+
+If on macOS, consider putting the above text in `~/.zshrc` so that it's always set in Terminal. On Linux `~/.bashrc`. 
 
 The default optimization is for file size: `OPT=-Os`. You can optimize for speed by setting `OPT=-O2` or the even more aggressive setting `OPT=-O3`.
 
@@ -42,7 +45,7 @@ Other metadata:
 
 - `[scale:lin|log|exp]` metadata is implemented for knobs.
 
-## Daisy Patch
+## Daisy Patch.Init()
 
 The **faust2daisy** tool can be used to program the [patch.Init()](https://electro-smith.com/products/patch-init).
 
@@ -52,7 +55,7 @@ Setup the board to utilize the manufacturer's bootloader, ensuring that the gene
 
 ## Memory Limits (SDRAM)
 
-If you're using a Daisy with significant amount of SDRAM such as the Pod or patch.Init, then you may want to use the `-sdram` flag when compiling code involving long delay lines/tables etc. Enabling this will execute a Python script inside `faust2daisy` that modifies the generated C++ code to put large float buffers (e.g., delay lines) in SDRAM. For this to work, you must have `python3` available on the command line.
+If you're using a Daisy with significant amount of SDRAM such as the Pod or patch.Init, then you may want to use the `-sdram` flag when compiling code involving long delay lines/tables etc. Enabling this will execute a Python script inside `faust2daisy` that modifies the generated C++ code to put large float buffers (e.g., delay lines) in SDRAM. For this to work, you must have `python3` available on the command line. The `-mem-thresh` option allows you to define a size threshold, above which data will be stored on SDRAM. 
 
 ## DSP Examples
 
@@ -77,3 +80,16 @@ Specific architecture files have been developed:
 
 - [faust/gui/DaisyControlUI.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/gui/DaisyControlUI.h): to be used with the DSP `buildUserInterface` method to implement `button`, `checkbox`, `hslider`, `vslider` controllers, and interpret the specific metadata previously described
 - [faust/midi/daisy-midi.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/daisy-midi.h): implements a [midi_handler](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/midi.h) subclass to decode incoming MIDI events.
+
+# Limitations 
+
+Currently, MIDI polyphonic DSP's will likely cause crash, and should not be considered as an option. 
+Tests involved Daisy POD and Daisy SEED. No tests involved Daisy Patch interface and Patch SM board.
+
+## Refactoring 
+
+The `faust2daisy` utility is currently being refactored. The following features may appear in the future : 
+- More direct access to boards (seed and patch_sm) providing all ADC's and DAC's
+- More compact code (lighter binaries)
+- Static memory for data : removing most dynamic memory allocation to predict accurately binary size
+- MIDI Polyphonic support 
