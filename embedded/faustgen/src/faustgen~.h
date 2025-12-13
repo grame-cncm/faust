@@ -70,9 +70,9 @@ class faustgen : public MspCpp5<faustgen> {
     private:
         
         faustgen_factory* fDSPfactory;
-        std::map<std::string, std::vector<t_object*> > fOutputTable;  // Output UI items (like bargraph) in the patcher to be notified
+        std::map<std::string, std::vector<t_object*>> fOutputTable;  // Output UI items (like bargraph) in the patcher to be notified
     
-        max_midi  fMidiHandler;         // Generic MIDI handler
+        max_midi fMidiHandler;          // Generic MIDI handler
         mspUI* fDSPUI;                  // Control UI
         MidiUI* fMidiUI;                // Midi UI
         OSCUI* fOSCUI;                  // OSC UI
@@ -80,90 +80,128 @@ class faustgen : public MspCpp5<faustgen> {
     
         ::dsp* fDSP;                    // JIT compiled Faust dsp
         int fNumOutputs = 0;            // Cached getNumOutputs value
-        ::dsp* fMCDSP;                  // Multi-channels adapted
+        ::dsp* fMCDSP;                  // Multi-channels adapter
         t_object* fEditor;              // Text editor object
         bool fRNBOAttr;                 // RNBO attribute
         bool fMute;                     // DSP mute state
         static t_jrgba gDefaultColor;   // Color of the object to be used when restoring default color
         
-        // Display DSP text source
+        // Display the full DSP source text in a Max window
         void display_dsp_source();
         
-        // Display the Faust module's parameters along with their standard values
+        // Display the module parameters alongside their default values
         void display_dsp_params();
         
-        // Compile DSP with -svg option and display the SVG files
+        // Compile the DSP with -svg and show the rendered control layout
         void display_svg();
+        
+        // Show the bundled PDF documentation inside Max
         void display_documentation();
+        
+        // List available Faust libraries in the Max window
         void display_libraries();
         
-        // Create the Faust LLVM based DSP
+        // Create the Faust DSP instance (optionally initializing controllers)
         void create_dsp(bool init);
         
+        // Release the current DSP and its adapters
         void free_dsp();
         
+        // Mark the UI object as dirty so Max persists state
         void set_dirty();
         
+        // Post a DSP status message to the Max console
         void dsp_status(const char* mess);
+        
+        // Ensure the audio chain is connected to the DAC before processing
         t_pxobject* check_dac();
+        
+        // Create the JSUI companion used for UI rendering
         void create_jsui();
         
+        // Get or create the factory matching the requested DSP name
         bool allocate_factory(const std::string& effect_name);
         
+        // Initialize controller values in the DSP UI
         void init_controllers();
         
+        // Parse JSON text into a Max dictionary
         t_dictionary* json_reader(const char* jsontext);
     
     public:
         
+        // Default constructor used when the class is instantiated internally
         faustgen()
         {
             faustgen(gensym("faustgen~"), NULL, NULL);
         }
         
+        // Construct a faustgen~ object from a Max patcher instantiation
         faustgen(t_symbol* sym, long ac, t_atom* av);
-        
-        void update_sourcecode(const std::string& codebox = "");
-    
-        void hilight_error(const std::string& error);
         
         // Called upon deleting the object inside the patcher
         ~faustgen();
+    
+        // Replace the current Faust source code and trigger recompilation
+        void update_sourcecode(const std::string& codebox = "");
+    
+        // Highlight compiler errors in the embedded editor
+        void hilight_error(const std::string& error);
         
         // Called upon sending the object a message inside the max patcher
         // Allows to set a value to the Faust module's parameter
         void anything(long inlet, t_symbol* s, long ac, t_atom* av);
         
+        // Update Faust compiler options from Max messages
         void compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv);
         
+        // Read Faust source from disk
         void read(long inlet, t_symbol* s);
+        
+        // Write the current Faust source to disk
         void write(long inlet, t_symbol* s);
         
+        // Switch polyphony on or off with the requested number of voices
         void polyphony(long inlet, t_symbol* s, long argc, t_atom* argv);
+        
+        // Initialize the DSP from a Max message
         void init(long inlet, t_symbol* s, long argc, t_atom* argv);
+        
+        // Dump DSP metadata to the Max console
         void dump(long inlet, t_symbol* s, long argc, t_atom* argv);
     
+        // Forward incoming MIDI messages to the Faust MIDI UI
         void midievent(long inlet, t_symbol* s, long argc, t_atom* argv);
+        
+        // Configure or query OSC support
         void osc(long inlet, t_symbol* s, long argc, t_atom* argv);
     
+        // Print input parameter names/types
         void dump_inputs();
+        
+        // Print output parameter names/types
         void dump_outputs();
         
+        // Add a new library lookup path
         void librarypath(long inlet, t_symbol* s);
         
+        // Mute or unmute DSP processing
         void mute(long inlet, long mute);
     
+        // Return the number of channels exposed on a given outlet
         long multichanneloutputs(long outletindex);
         
         // Called when saving the Max patcher, this function saves the necessary
         // data inside the json file (faust sourcecode)
         void appendtodictionary(t_dictionary* d);
         
+        // Restore saved source code and settings from a Max dictionary
         void getfromdictionary(t_dictionary* d);
         
         // Called when the user double-clicks on the faustgen object inside the Max patcher
         void dblclick(long inlet);
     
+        // Display inlet/outlet help text in Max
         void assist(void* b, long msg, long a, char* dst);
         
         // Called when closing the text editor, calls for the creation of a new Faust module with the updated sourcecode
@@ -172,7 +210,7 @@ class faustgen : public MspCpp5<faustgen> {
         // Process the signal data with the Faust module
         void perform(int vs, t_sample** inputs, long numins, t_sample** outputs, long numouts);
     
-        // Callback given to setupIO
+        // Callback given to setupIO to set the sampling rate
         void init(double samplerate);
     
 };

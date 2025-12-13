@@ -162,7 +162,7 @@ jobs:
             HOST: aarch64-apple-darwin
             ENABLE_MPEG: OFF
           - name: x64
-            os: macos-13
+            os: macos-15-intel
             ARCHS: "-arch x86_64"
             CMAKE_OSX_ARCHITECTURES: x86_64
             HOST: x86_64-apple-darwin
@@ -249,7 +249,11 @@ jobs:
     - name: Build libsndfile
       # Note that can't use the libsndfile from brew because it lacks libsndfile.a, the static lib.
       run: |
-        brew uninstall --ignore-dependencies libsndfile || true
+        # Only uninstall if it's actually installed, to avoid "No such keg" failures
+        if brew list --versions libsndfile >/dev/null 2>&1; then
+          brew uninstall --ignore-dependencies libsndfile >/dev/null 2>&1
+        fi
+        
         cd libsndfile
         LIBSNDFILE_INSTALL_PREFIX="$PWD/install"
         mkdir CMakeBuild && cd CMakeBuild

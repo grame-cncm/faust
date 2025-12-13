@@ -46,6 +46,7 @@ ztimedmap GUI::gTimedZoneMap;
 // Faust DSP Instance
 //====================
 
+// Allocate or reuse a factory for the named DSP group and track this instance
 bool faustgen::allocate_factory(const string& effect_name)
 {
     bool res = false;
@@ -62,6 +63,7 @@ bool faustgen::allocate_factory(const string& effect_name)
     return res;
 }
 
+// Construct a faustgen~ object from a Max instantiation
 faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
 {
     m_siginlets = 0;
@@ -146,6 +148,7 @@ faustgen::~faustgen()
     fDSPfactory = nullptr;
 }
 
+// Fill the Max assist strings for inlets/outlets
 void faustgen::assist(void* b, long msg, long a, char* dst)
 {
     fDSPfactory->lock_audio();
@@ -189,6 +192,7 @@ void faustgen::assist(void* b, long msg, long a, char* dst)
     fDSPfactory->unlock_audio();
 }
 
+// Release DSP, UI, MIDI, and OSC resources
 void faustgen::free_dsp()
 {
     // Save controller state
@@ -214,6 +218,7 @@ void faustgen::free_dsp()
     fMCDSP = nullptr;
 }
 
+// Parse a JSON string into a Max dictionary object
 t_dictionary* faustgen::json_reader(const char* jsontext)
 {
     t_dictionary* d = nullptr;
@@ -330,21 +335,25 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
         fDSPfactory->unlock_ui();
 }
 
+// Forward compile options to the factory
 void faustgen::compileoptions(long inlet, t_symbol* s, long argc, t_atom* argv)
 {
     fDSPfactory->compileoptions(inlet, s, argc, argv);
 }
 
+// Load Faust source code from disk
 void faustgen::read(long inlet, t_symbol* s)
 {
     fDSPfactory->read(inlet, s);
 }
 
+// Save Faust source code to disk
 void faustgen::write(long inlet, t_symbol* s)
 {
     fDSPfactory->write(inlet, s);
 }
 
+// Recreate the DSP with a requested number of voices
 void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     if (ac < 1) {
@@ -401,6 +410,7 @@ void faustgen::init(long inlet, t_symbol* s, long ac, t_atom* av)
     }
 }
 
+// Emit current values for all input controls
 void faustgen::dump_inputs()
 {
     // Input controllers
@@ -413,6 +423,7 @@ void faustgen::dump_inputs()
         outlet_list(m_control_outlet, 0, 4, myList);
     }
 }
+// Emit current values for all output controls
 void faustgen::dump_outputs()
 {
     // Output controllers
@@ -433,7 +444,7 @@ void faustgen::dump(long inlet, t_symbol* s, long ac, t_atom* av)
     dump_outputs();
 }
 
-// osc 'IP inport outport xmit bundle'
+// Configure OSC destinations using 'IP inport outport xmit bundle'
 void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     if (ac == 5) {
@@ -494,6 +505,7 @@ void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
     }
 }
 
+// Route raw MIDI bytes into the Faust MIDI handler
 void faustgen::midievent(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     if (ac > 0) {
@@ -509,6 +521,7 @@ void faustgen::midievent(long inlet, t_symbol* s, long ac, t_atom* av)
     }
 }
 
+// Add an extra Faust library path from a Max message
 void faustgen::librarypath(long inlet, t_symbol* s)
 {
     fDSPfactory->librarypath(inlet, s);
@@ -520,6 +533,7 @@ void faustgen::appendtodictionary(t_dictionary* d)
     fDSPfactory->appendtodictionary(d);
 }
 
+// Restore state from a saved dictionary entry
 void faustgen::getfromdictionary(t_dictionary* d)
 {
     fDSPfactory->getfromdictionary(d);
@@ -596,6 +610,7 @@ void faustgen::edclose(long inlet, char** source_code, long size)
     }
 }
 
+// Replace source code from RNBO codebox and rebuild DSP
 void faustgen::update_sourcecode(const std::string& codebox)
 {
     // Create a new DSP instance
@@ -647,7 +662,7 @@ void faustgen::update_sourcecode(const std::string& codebox)
             }
         }
     }
-    
+
 }
 
 // Process the signal data with the Faust module
@@ -682,6 +697,7 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
     }
 }
 
+// Initialize DSP at host sample rate while preserving saved state
 inline void faustgen::init(double samplerate)
 {
     std::cout << "faustgen::init\n";
@@ -715,32 +731,37 @@ void faustgen::display_dsp_source()
     }
 }
 
-// Display the Faust module's parameters along with their standard values
+// Display the Faust dsp parameters along with their standard values
 void faustgen::display_dsp_params()
 {
     fDSPUI->displayControls();
 }
 
+// Display the Faust dsp SVG
 void faustgen::display_svg()
 {
     fDSPfactory->display_svg();
 }
 
+// Display the Faust documentation
 void faustgen::display_documentation()
 {
     fDSPfactory->display_documentation();
 }
 
+// Display the Faust libraries
 void faustgen::display_libraries()
 {
     fDSPfactory->display_libraries();
 }
 
+// Report a compilation error in Max
 void faustgen::hilight_error(const string& error)
 {
     object_error_obtrusive((t_object*)&m_ob, (char*)error.c_str());
 }
 
+// Build control, MIDI, soundfile, and state UIs for the DSP
 void faustgen::init_controllers()
 {
     // Initialize User Interface (here connnection with controls)
@@ -763,6 +784,7 @@ void faustgen::init_controllers()
     }
 }
 
+// Create and initialize a new DSP instance, wiring up audio and UI
 void faustgen::create_dsp(bool init)
 {
     fDSPfactory->lock_audio();
@@ -808,6 +830,7 @@ void faustgen::create_dsp(bool init)
     fDSPfactory->unlock_audio();
 }
 
+// Mark the patcher dirty so Max saves updated state
 void faustgen::set_dirty()
 {
     t_object* mypatcher;
@@ -815,9 +838,7 @@ void faustgen::set_dirty()
     jpatcher_set_dirty(mypatcher, 1);
 }
 
-/**
- * Search the adc/dac object in the patcher.
- */
+// Search the adc/dac object in the patcher.
 t_pxobject* faustgen::check_dac()
 {
     t_object *patcher, *box, *obj;
@@ -842,6 +863,7 @@ t_pxobject* faustgen::check_dac()
     return nullptr;
 }
 
+// Notify any js objects in the patcher with the current JSON UI
 void faustgen::create_jsui()
 {
     t_object *patcher, *box, *obj;
@@ -877,6 +899,7 @@ void faustgen::dsp_status(const char* mess)
 }
 */
 
+// Start or stop the global DSP chain in Max
 void faustgen::dsp_status(const char* mess)
 {
     object_method(gensym("dsp")->s_thing, gensym(mess));
@@ -908,6 +931,7 @@ long faustgen::multichanneloutputs(long outletindex)
     }
 }
 
+// Max entry point registering the faustgen classes and methods
 extern "C" void ext_main(void* r)
 {
 #ifdef WIN32
