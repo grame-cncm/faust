@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
+
 
     <application
         android:allowBackup="true"
@@ -15,7 +17,8 @@
         <!--android:largeHeap="true"
         android:hardwareAccelerated="false"-->
         <activity android:name=".MainActivity"
-                  android:screenOrientation="landscape">
+                  android:screenOrientation="landscape"
+                  android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
