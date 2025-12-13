@@ -73,10 +73,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 // For audio input request permission
-import android.support.v4.app.ActivityCompat;
+import androidx.core.app.ActivityCompat;
 import android.Manifest;
 import android.widget.Toast;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.content.pm.PackageManager;
 
 public class FaustActivity extends Activity
@@ -346,58 +346,57 @@ implements ActivityCompat.OnRequestPermissionsResultCallback {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items
-        switch (item.getItemId()) {
-        	case R.id.action_keyboard:
-        		if(ui.hasKeyboard && !ui.hasMulti){
-        			Intent pianoIntent = new Intent(this, PianoActivity.class);
-        			startActivity(pianoIntent);
-        		}
-        		else if(ui.hasMulti && !ui.hasKeyboard){
-        			SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-        		    parametersInfo.saveParameters(settings);
-        			Intent multiIntent = new Intent(this, MultiActivity.class);
-        			startActivity(multiIntent);
-        		}
-        		else if(ui.hasMulti && ui.hasKeyboard){
-        			SharedPreferences settings = getSharedPreferences("savedParameters", 0);
-        		    parametersInfo.saveParameters(settings);
-        			Intent multiIntent = new Intent(this, MultiKeyboardActivity.class);
-        			startActivity(multiIntent);
-        		}
-        		return true;
-            case R.id.action_zoomin:
-            	parametersInfo.zoom++;
-                recreate();
-                return true;
-            case R.id.action_zoomout:
-            	if (parametersInfo.zoom > 0) {
-            		parametersInfo.zoom--;
-            		recreate();
-            	}
-                return true;
-            case R.id.action_reset:
-                parametersInfo.saved = 0;
-                recreate();
-                ui.settingWindow.initOSC(parametersInfo);
-                return true;
-            case R.id.action_lock:
-            	if (parametersInfo.locked) {
-            		item.setIcon(R.drawable.ic_lockiconopen);
-            		parametersInfo.locked = false;
-            		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-            	} else {
-            		item.setIcon(R.drawable.ic_lockiconclose);
-            		parametersInfo.locked = true;
-            		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
-            	}
-                return true;
-            case R.id.action_settings:
-                Log.d("FaustJava", "OSC setting");
-                ui.settingWindow.showWindow(parametersInfo);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        int id = item.getItemId();
+        if (id == R.id.action_keyboard) {
+        	if(ui.hasKeyboard && !ui.hasMulti){
+        		Intent pianoIntent = new Intent(this, PianoActivity.class);
+        		startActivity(pianoIntent);
+        	}
+        	else if(ui.hasMulti && !ui.hasKeyboard){
+        		SharedPreferences settings = getSharedPreferences("savedParameters", 0);
+        	    parametersInfo.saveParameters(settings);
+        		Intent multiIntent = new Intent(this, MultiActivity.class);
+        		startActivity(multiIntent);
+        	}
+        	else if(ui.hasMulti && ui.hasKeyboard){
+        		SharedPreferences settings = getSharedPreferences("savedParameters", 0);
+        	    parametersInfo.saveParameters(settings);
+        		Intent multiIntent = new Intent(this, MultiKeyboardActivity.class);
+        		startActivity(multiIntent);
+        	}
+        	return true;
+        } else if (id == R.id.action_zoomin) {
+        	parametersInfo.zoom++;
+            recreate();
+            return true;
+        } else if (id == R.id.action_zoomout) {
+        	if (parametersInfo.zoom > 0) {
+        		parametersInfo.zoom--;
+        		recreate();
+        	}
+            return true;
+        } else if (id == R.id.action_reset) {
+            parametersInfo.saved = 0;
+            recreate();
+            ui.settingWindow.initOSC(parametersInfo);
+            return true;
+        } else if (id == R.id.action_lock) {
+        	if (parametersInfo.locked) {
+        		item.setIcon(R.drawable.ic_lockiconopen);
+        		parametersInfo.locked = false;
+        		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+        	} else {
+        		item.setIcon(R.drawable.ic_lockiconclose);
+        		parametersInfo.locked = true;
+        		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LOCKED);
+        	}
+            return true;
+        } else if (id == R.id.action_settings) {
+            Log.d("FaustJava", "OSC setting");
+            ui.settingWindow.showWindow(parametersInfo);
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
