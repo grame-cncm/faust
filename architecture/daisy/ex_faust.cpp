@@ -59,29 +59,6 @@ daisy::DaisySeed* seedptr = nullptr;
 using namespace daisysp;
 using namespace std;
 
-size_t total_alloc;
-void * operator new(std::size_t n) throw(std::bad_alloc)
-{
-    total_alloc += n;
-    return std::malloc(n);
-}
-void operator delete(void * p) throw()
-{
-    std::free(p);
-}
-
-void *operator new[](std::size_t s) throw(std::bad_alloc)
-{
-    total_alloc += s;
-    return std::malloc(s);
-}
-void operator delete[](void *p) throw()
-{
-    std::free(p);
-}
-
-
-
 #ifdef USE_SDRAM
     #include"faust2daisy_sdram.h"
     #if FAUST_SDRAM_SIZE_BYTES == 0
