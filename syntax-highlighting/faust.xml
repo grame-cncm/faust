@@ -327,6 +327,11 @@
       <item> exciter </item>
       <item> vocoder_demo </item>
       <item> colored_noise_demo </item>
+      <item> shock_trigger_demo </item>
+      <item> projected_gravity_demo </item>
+      <item> total_accel_demo </item>
+      <item> orientation6_demo </item>
+      <item> motion_wrapper_demo </item>
     </list>
     <list name="dx_suffixes">
       <item> fdbkscalef </item>
@@ -672,6 +677,30 @@
       <item> nlBow </item>
       <item> collision </item>
       <item> nlCollisionClipped </item>
+    </list>
+    <list name="mo_suffixes">
+      <item> shockTrigger </item>
+      <item> inclinometer </item>
+      <item> inclineBalance </item>
+      <item> inclineSymmetric </item>
+      <item> projectedGravity </item>
+      <item> motionEnvelope </item>
+      <item> envelopeAbs </item>
+      <item> envelopePos </item>
+      <item> envelopeNeg </item>
+      <item> pita3 </item>
+      <item> totalEnvelope </item>
+      <item> accelEnvelopeAbs </item>
+      <item> accelEnvelopePos </item>
+      <item> accelEnvelopeNeg </item>
+      <item> totalAccel </item>
+      <item> gyroEnvelopeAbs </item>
+      <item> gyroEnvelopePos </item>
+      <item> gyroEnvelopeNeg </item>
+      <item> totalGyro </item>
+      <item> orientationWeight </item>
+      <item> orientation6 </item>
+      <item> scale </item>
     </list>
     <list name="no_suffixes">
       <item> noise </item>
@@ -1144,6 +1173,7 @@
         <StringDetect attribute="LibraryPrefix" context="la_function_context" String="la." wordOnly="true"/>
         <StringDetect attribute="LibraryPrefix" context="ma_function_context" String="ma." wordOnly="true"/>
         <StringDetect attribute="LibraryPrefix" context="mi_function_context" String="mi." wordOnly="true"/>
+        <StringDetect attribute="LibraryPrefix" context="mo_function_context" String="mo." wordOnly="true"/>
         <StringDetect attribute="LibraryPrefix" context="no_function_context" String="no." wordOnly="true"/>
         <StringDetect attribute="LibraryPrefix" context="os_function_context" String="os." wordOnly="true"/>
         <StringDetect attribute="LibraryPrefix" context="pf_function_context" String="pf." wordOnly="true"/>
@@ -1324,6 +1354,11 @@
       <context name="mi_function_context" lineEndContext="#pop" fallbackContext="#pop">
         <DetectChar attribute="Symbol" context="#stay" char="."/>
         <keyword attribute="LibraryFunction" context="#pop" String="mi_suffixes"/>
+        <DetectIdentifier attribute="Normal Text" context="#pop"/>
+        <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
+      </context>
+      <context name="mo_function_context" lineEndContext="#pop" fallbackContext="#pop">
+        <keyword attribute="LibraryFunction" context="#pop" String="mo_suffixes"/>
         <DetectIdentifier attribute="Normal Text" context="#pop"/>
         <AnyChar attribute="Normal Text" context="#pop" String=":!%&amp;()+,-/.*&lt;=&gt;?[]{|}~^; "/>
       </context>

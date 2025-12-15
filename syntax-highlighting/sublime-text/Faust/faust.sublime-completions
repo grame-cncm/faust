@@ -1275,6 +1275,41 @@
             "trigger": "dm.vocoder_demo"
         },
         {
+            "annotation": "demos.lib",
+            "contents": "dm.shock_trigger_demo",
+            "details": "<code>shock_trigger_demo : _</code> - <a href='https://faustlibraries.grame.fr/libs/demos/#dmshock_trigger_demo'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "dm.shock_trigger_demo"
+        },
+        {
+            "annotation": "demos.lib",
+            "contents": "dm.projected_gravity_demo",
+            "details": "<code>projected_gravity_demo : _</code> - <a href='https://faustlibraries.grame.fr/libs/demos/#dmprojected_gravity_demo'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "dm.projected_gravity_demo"
+        },
+        {
+            "annotation": "demos.lib",
+            "contents": "dm.total_accel_demo",
+            "details": "<code>total_accel_demo : _</code> - <a href='https://faustlibraries.grame.fr/libs/demos/#dmtotal_accel_demo'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "dm.total_accel_demo"
+        },
+        {
+            "annotation": "demos.lib",
+            "contents": "dm.orientation6_demo",
+            "details": "<code>orientation6_demo : _</code> - <a href='https://faustlibraries.grame.fr/libs/demos/#dmorientation6_demo'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "dm.orientation6_demo"
+        },
+        {
+            "annotation": "demos.lib",
+            "contents": "dm.motion_wrapper_demo",
+            "details": "<code>motion_wrapper_demo : _</code> - <a href='https://faustlibraries.grame.fr/libs/demos/#dmmotion_wrapper_demo'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "dm.motion_wrapper_demo"
+        },
+        {
             "annotation": "dx7.lib",
             "contents": "dx.dx7_ampf",
             "details": "<code>dx7AmpPreset : dx7_ampf_bpf : _</code> - <a href='https://faustlibraries.grame.fr/libs/dx7/#dxdx7_ampf'>Docs</a>",
@@ -2694,6 +2729,160 @@
             "details": "<code>_ : transpose(w, x, s) : _</code> - <a href='https://faustlibraries.grame.fr/libs/misceffects/#eftranspose'>Docs</a>",
             "kind": "ambiguous",
             "trigger": "ef.transpose"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.shockTrigger",
+            "details": "<code>mo.shockTrigger</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moshocktrigger'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.shockTrigger"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.inclinometer",
+            "details": "<code>mo.inclinometer</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moinclinometer'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.inclinometer"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.inclineBalance",
+            "details": "<code>mo.inclineBalance</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moinclinebalance'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.inclineBalance"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.inclineSymmetric",
+            "details": "<code>mo.inclineSymmetric</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moinclinesymmetric'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.inclineSymmetric"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.projectedGravity",
+            "details": "<code>mo.projectedGravity</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moprojectedgravity'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.projectedGravity"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.motionEnvelope",
+            "details": "<code>mo.motionEnvelope</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#momotionenvelope'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.motionEnvelope"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.envelopeAbs",
+            "details": "<code>mo.envelopeAbs</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moenvelopeabs'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.envelopeAbs"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.envelopePos",
+            "details": "<code>mo.envelopePos</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moenvelopepos'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.envelopePos"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.envelopeNeg",
+            "details": "<code>mo.envelopeNeg</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moenvelopeneg'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.envelopeNeg"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.pita3",
+            "details": "<code>mo.pita3</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#mopita3'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.pita3"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.totalEnvelope",
+            "details": "<code>mo.totalEnvelope</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#mototalenvelope'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.totalEnvelope"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.accelEnvelopeAbs",
+            "details": "<code>mo.accelEnvelopeAbs</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moaccelenvelopeabs'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.accelEnvelopeAbs"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.accelEnvelopePos",
+            "details": "<code>mo.accelEnvelopePos</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moaccelenvelopepos'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.accelEnvelopePos"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.accelEnvelopeNeg",
+            "details": "<code>mo.accelEnvelopeNeg</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moaccelenvelopeneg'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.accelEnvelopeNeg"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.totalAccel",
+            "details": "<code>mo.totalAccel</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#mototalaccel'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.totalAccel"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.gyroEnvelopeAbs",
+            "details": "<code>mo.gyroEnvelopeAbs</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#mogyroenvelopeabs'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.gyroEnvelopeAbs"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.gyroEnvelopePos",
+            "details": "<code>mo.gyroEnvelopePos</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#mogyroenvelopepos'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.gyroEnvelopePos"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.gyroEnvelopeNeg",
+            "details": "<code>mo.gyroEnvelopeNeg</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#mogyroenvelopeneg'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.gyroEnvelopeNeg"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.totalGyro",
+            "details": "<code>mo.totalGyro</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#mototalgyro'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.totalGyro"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.orientationWeight",
+            "details": "<code>mo.orientationWeight</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moorientationweight'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.orientationWeight"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.orientation6",
+            "details": "<code>mo.orientation6</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moorientation6'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.orientation6"
+        },
+        {
+            "annotation": "motion.lib",
+            "contents": "mo.scale",
+            "details": "<code>mo.scale</code> - <a href='https://faustlibraries.grame.fr/libs/motion/#moscale'>Docs</a>",
+            "kind": "ambiguous",
+            "trigger": "mo.scale"
         },
         {
             "annotation": "oscillators.lib",

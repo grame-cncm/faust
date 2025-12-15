@@ -245,6 +245,21 @@
 	'virtual_analog_oscillator_demo':
 		'prefix': 'virtual_analog_oscillator_demo'
 		'body': 'dm.virtual_analog_oscillator_demo'
+	'shock_trigger_demo':
+		'prefix': 'shock_trigger_demo'
+		'body': 'dm.shock_trigger_demo'
+	'projected_gravity_demo':
+		'prefix': 'projected_gravity_demo'
+		'body': 'dm.projected_gravity_demo'
+	'total_accel_demo':
+		'prefix': 'total_accel_demo'
+		'body': 'dm.total_accel_demo'
+	'orientation6_demo':
+		'prefix': 'orientation6_demo'
+		'body': 'dm.orientation6_demo'
+	'motion_wrapper_demo':
+		'prefix': 'motion_wrapper_demo'
+		'body': 'dm.motion_wrapper_demo'
 	'smoothEnvelope':
 		'prefix': 'smoothEnvelope'
 		'body': 'en.smoothEnvelope'
@@ -619,6 +634,72 @@
 	'mesh_square':
 		'prefix': 'mesh_square'
 		'body': 'ef.mesh_square'
+	'shockTrigger':
+		'prefix': 'shockTrigger'
+		'body': 'mo.shockTrigger'
+	'inclinometer':
+		'prefix': 'inclinometer'
+		'body': 'mo.inclinometer'
+	'inclineBalance':
+		'prefix': 'inclineBalance'
+		'body': 'mo.inclineBalance'
+	'inclineSymmetric':
+		'prefix': 'inclineSymmetric'
+		'body': 'mo.inclineSymmetric'
+	'projectedGravity':
+		'prefix': 'projectedGravity'
+		'body': 'mo.projectedGravity'
+	'motionEnvelope':
+		'prefix': 'motionEnvelope'
+		'body': 'mo.motionEnvelope'
+	'envelopeAbs':
+		'prefix': 'envelopeAbs'
+		'body': 'mo.envelopeAbs'
+	'envelopePos':
+		'prefix': 'envelopePos'
+		'body': 'mo.envelopePos'
+	'envelopeNeg':
+		'prefix': 'envelopeNeg'
+		'body': 'mo.envelopeNeg'
+	'pita3':
+		'prefix': 'pita3'
+		'body': 'mo.pita3'
+	'totalEnvelope':
+		'prefix': 'totalEnvelope'
+		'body': 'mo.totalEnvelope'
+	'accelEnvelopeAbs':
+		'prefix': 'accelEnvelopeAbs'
+		'body': 'mo.accelEnvelopeAbs'
+	'accelEnvelopePos':
+		'prefix': 'accelEnvelopePos'
+		'body': 'mo.accelEnvelopePos'
+	'accelEnvelopeNeg':
+		'prefix': 'accelEnvelopeNeg'
+		'body': 'mo.accelEnvelopeNeg'
+	'totalAccel':
+		'prefix': 'totalAccel'
+		'body': 'mo.totalAccel'
+	'gyroEnvelopeAbs':
+		'prefix': 'gyroEnvelopeAbs'
+		'body': 'mo.gyroEnvelopeAbs'
+	'gyroEnvelopePos':
+		'prefix': 'gyroEnvelopePos'
+		'body': 'mo.gyroEnvelopePos'
+	'gyroEnvelopeNeg':
+		'prefix': 'gyroEnvelopeNeg'
+		'body': 'mo.gyroEnvelopeNeg'
+	'totalGyro':
+		'prefix': 'totalGyro'
+		'body': 'mo.totalGyro'
+	'orientationWeight':
+		'prefix': 'orientationWeight'
+		'body': 'mo.orientationWeight'
+	'orientation6':
+		'prefix': 'orientation6'
+		'body': 'mo.orientation6'
+	'scale':
+		'prefix': 'scale'
+		'body': 'mo.scale'
 	'noise':
 		'prefix': 'noise'
 		'body': 'no.noise'

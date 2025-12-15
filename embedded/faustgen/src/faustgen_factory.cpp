@@ -881,6 +881,7 @@ void faustgen_factory::display_libraries()
     OPEN_FILE("maxmsp.lib");
     OPEN_FILE("mi.lib");
     OPEN_FILE("misceffects.lib");
+    OPEN_FILE("motion.lib");
     OPEN_FILE("noises.lib");
     OPEN_FILE("oscillators.lib");
     OPEN_FILE("phaflangers.lib");

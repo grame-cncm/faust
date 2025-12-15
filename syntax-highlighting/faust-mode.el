@@ -89,7 +89,7 @@
   '("delay" "fdelay" "sdelay" "fdelaylti" "fdelayltv" "fdelay[n]" "fdelay[n]a"))
 
 (defconst faust-keywords-lib-demo
-  '("Analyzers" "mth_octave_spectral_level_demo" "Filters" "parametric_eq_demo" "spectral_tilt_demo" "mth_octave_filterbank_demo" "filterbank_demo" "Effects" "cubicnl_demo" "gate_demo" "compressor_demo" "exciter" "moog_vcf_demo" "wah4_demo" "crybaby_demo" "vocoder_demo" "flanger_demo" "phaser2_demo" "freeverb_demo" "stereo_reverb_tester" "fdnrev0_demo" "zita_rev_fdn_demo" "zita_rev1" "Generators" "sawtooth_demo" "virtual_analog_oscillator_demo" "oscrs_demo"))
+  '("Analyzers" "mth_octave_spectral_level_demo" "Filters" "parametric_eq_demo" "spectral_tilt_demo" "mth_octave_filterbank_demo" "filterbank_demo" "Effects" "cubicnl_demo" "gate_demo" "compressor_demo" "exciter" "moog_vcf_demo" "wah4_demo" "crybaby_demo" "vocoder_demo" "flanger_demo" "phaser2_demo" "freeverb_demo" "stereo_reverb_tester" "fdnrev0_demo" "zita_rev_fdn_demo" "zita_rev1" "Generators" "sawtooth_demo" "virtual_analog_oscillator_demo" "oscrs_demo" "shock_trigger_demo" "projected_gravity_demo" "total_accel_demo" "orientation6_demo" "motion_wrapper_demo"))
 
 (defconst faust-keywords-lib-envelope
   '("smoothEnvelope" "ar" "asr" "adsr"))
@@ -105,6 +105,9 @@
 
 (defconst faust-keywords-lib-misceffect
   '("Dynamic" "cubicnl" "gate_mono" "gate_stereo" "Filtering" "speakerbp" "piano_dispersion_filter" "stereo_width" "echo" "transpose" "Meshes" "mesh_square"))
+
+(defconst faust-keywords-lib-motion
+  '("shockTrigger" "inclinometer" "inclineBalance" "inclineSymmetric" "projectedGravity" "motionEnvelope" "envelopeAbs" "envelopePos" "envelopeNeg" "pita3" "totalEnvelope" "accelEnvelopeAbs" "accelEnvelopePos" "accelEnvelopeNeg" "totalAccel" "gyroEnvelopeAbs" "gyroEnvelopePos" "gyroEnvelopeNeg" "totalGyro" "orientationWeight" "orientation6" "scale"))
 
 (defconst faust-keywords-lib-miscoscillator
   '("sinwaveform" "coswaveform" "phasor" "oscsin" "osc" "oscos" "oscp" "osci" "lf_imptrain" "lf_pulsetrainpos" "lf_squarewavepos" "lf_squarewave" "lf_trianglepos" "lf_rawsaw" "lf_sawpos" "lf_sawpos_phase" "sawN(N,freq)" "sawNp" "saw2dpw(freq)" "saw2(freq)" "saw3(freq)" "saw4(freq)" "saw5(freq)" "saw6(freq)" "sawtooth(freq)" "saw2f2(freq)" "saw2f4(freq)" "pulsetrainN" "pulsetrain" "squareN" "square" "imptrain" "imptrainN" "triangle" "triangleN" "oscb" "oscr" "oscrs" "oscs" "oscs" "oscw" "oscwq" "oscwc" "oscws"))
@@ -148,6 +151,7 @@
    faust-keywords-lib-hoa
    faust-keywords-lib-math
    faust-keywords-lib-misceffect
+   faust-keywords-lib-motion
    faust-keywords-lib-miscoscillator
    faust-keywords-lib-noise
    faust-keywords-lib-phafla
