@@ -51,6 +51,13 @@ import getopt
 import os
 import json
 
+
+def usage(prog):
+    print("usage: %s [-h|--help] [-s] [-t tabsize] file ..." % (prog,))
+    print("  -h, --help    Show this help and exit")
+    print("  -s            Simplified output (prefix+body only)")
+    print("  -t tabsize    Set tab size when expanding tabs in comments")
+
 # Outdent a comment line by n characters in
 # order to remove the prefix "//   "
 def outdent(line, n):
@@ -132,16 +139,21 @@ libprefix = "xx"  #
 
 # Analyze command line arguments
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "st:cf")
-    if not args:
-        raise getopt.error("At least one file argument required")
+    opts, args = getopt.getopt(sys.argv[1:], "hst:cf", ["help"])
 except getopt.error as e:
     print(e.msg)
-    print("usage: %s [-s][-t tabsize] file ..." % (sys.argv[0],))
+    usage(sys.argv[0])
+    sys.exit(1)
+help_requested = any(optname in ('-h', '--help') for optname, _ in opts)
+if not args and not help_requested:
+    usage(sys.argv[0])
     sys.exit(1)
 for optname, optvalue in opts:
     if optname == '-t':
         tabsize = int(optvalue)
+    if optname in ('-h', '--help'):
+        usage(sys.argv[0])
+        sys.exit(0)
 
 # Process all the files and print the documentation on the standard output
 

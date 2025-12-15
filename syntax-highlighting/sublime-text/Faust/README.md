@@ -15,3 +15,13 @@ The provided `faust.sublime-completions` file here has been generated on Dec. 6 
 `./faust2sublimecompletions aanl.lib all.lib analyzers.lib basics.lib compressors.lib delays.lib demos.lib dx7.lib envelopes.lib fds.lib filters.lib hoa.lib interpolators.lib maths.lib mi.lib misceffects.lib oscillators.lib noises.lib phaflangers.lib platform.lib physmodels.lib quantizers.lib reducemaps.lib reverbs.lib routes.lib spats.lib signals.lib soundfiles.lib synths.lib vaeffects.lib version.lib webaudio.lib wdmodels.lib > faust.sublime-completions`
 
 The libraries included above being these included in `stdfaust.lib`.
+
+## Regenerating completions
+
+Use the helper shipped with Faust, `faust2sublimecompletions`, to rebuild the completion file:
+
+```
+faust2sublimecompletions <lib1.lib> <lib2.lib> ... > faust.sublime-completions
+```
+
+Pass the list of libraries you want completions for (typically the ones exported by `stdfaust.lib`). The tool reads the library APIs and emits the JSON consumed by Sublime; redirect it to `faust.sublime-completions` inside this folder. Run `faust2sublimecompletions -h` (or `--help`) to see available options on your installation.

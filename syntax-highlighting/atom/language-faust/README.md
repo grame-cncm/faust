@@ -19,3 +19,19 @@ pressing `ctrl-alt-cmd-d` brings up the documentation of the function
 
 You can open the svg block-diagram by pressing `ctrl-alt-cmd-g` and
 the C++ code by pressing `ctrl-alt-cmd-c`.
+
+## Regenerating snippets
+
+If you update the standard libraries, rebuild the Atom snippets with the Faust helper `faust2atomsnippets`:
+
+```
+faust2atomsnippets <lib1.lib> <lib2.lib> ... > atom/language-faust/snippets/faust-library.cson
+```
+
+Provide the list of libraries you want snippets for (for example the set included in `stdfaust.lib`). Redirect the output to `snippets/faust-library.cson` in this package.
+
+For help, run:
+
+```
+faust2atomsnippets -h
+```
