@@ -182,6 +182,7 @@ impl<T> UI<T> for PrintUI<T> {
 }
 
 
+#[cfg_attr(feature = "default-boxed", derive(default_boxed::DefaultBoxed))]
 <<includeIntrinsic>>
 <<includeclass>>
 
