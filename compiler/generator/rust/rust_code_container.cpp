@@ -264,7 +264,6 @@ void RustCodeContainer::produceClass()
     fCodeProducer.setVarsRequiringGuards(toUnorderedSet(fStaticVarNames));
 
     int n = 0;
-    *fOut << "#[cfg_attr(feature = \"default-boxed\", derive(default_boxed::DefaultBoxed))]";
     if (gGlobal->gReprC) {
         tab(n, *fOut);
         *fOut << "#[repr(C)]";
