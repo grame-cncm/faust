@@ -191,12 +191,21 @@ class juce_midi : public juce_midi_handler, public juce::MidiInputCallback {
         
         bool startMidi()
         {
-            if ((fMidiIn = juce::MidiInput::openDevice(juce::MidiInput::getDefaultDevice().name, this)) == nullptr) {
+            auto defaultIn = juce::MidiInput::getDefaultDevice();
+            auto defaultOut = juce::MidiOutput::getDefaultDevice();
+
+            if (defaultIn.identifier.isEmpty()
+                || (fMidiIn = juce::MidiInput::openDevice(defaultIn.identifier, this)) == nullptr)
+            {
                 return false;
             }
-            if ((fMidiOut = juce::MidiOutput::openDevice(juce::MidiInput::getDefaultDevice().name)) == nullptr) {
+
+            if (defaultOut.identifier.isEmpty()
+                || (fMidiOut = juce::MidiOutput::openDevice(defaultOut.identifier)) == nullptr)
+            {
                 return false;
             }
+
             fMidiIn->start();
             return true;
         }
