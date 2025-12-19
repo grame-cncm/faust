@@ -146,6 +146,19 @@ class MetaDataUI {
             }
             return ss;
         }
+    
+        std::vector<std::pair<std::string, double> > parseOptionList(const std::string& desc) const
+        {
+            const char* mdescr = desc.c_str();
+            std::vector<std::string> names;
+            std::vector<double> values;
+            parseMenuList(mdescr, names, values);
+            std::vector<std::pair<std::string, double> > opts;
+            for (size_t i = 0; i < names.size(); i++) {
+                opts.push_back({names[i], values[i]});
+            }
+            return opts;
+        }
         
     public:
         
@@ -193,6 +206,42 @@ class MetaDataUI {
         bool isHidden(FAUSTFLOAT* zone)
         {
             return fHiddenSet.count(zone) > 0;
+        }
+
+        std::string getTooltip(FAUSTFLOAT* zone) const
+        {
+            auto it = fTooltip.find(zone);
+            if (it != fTooltip.end()) {
+                return it->second;
+            }
+            return fGroupTooltip;
+        }
+
+        std::string getUnit(FAUSTFLOAT* zone) const
+        {
+            auto it = fUnit.find(zone);
+            if (it != fUnit.end()) {
+                return it->second;
+            }
+            return "";
+        }
+
+        std::vector<std::pair<std::string, double> > getRadioDescription(FAUSTFLOAT* zone) const
+        {
+            auto it = fRadioDescription.find(zone);
+            if (it == fRadioDescription.end()) {
+                return {};
+            }
+            return parseOptionList(it->second);
+        }
+
+        std::vector<std::pair<std::string, double> > getMenuDescription(FAUSTFLOAT* zone) const
+        {
+            auto it = fMenuDescription.find(zone);
+            if (it == fMenuDescription.end()) {
+                return {};
+            }
+            return parseOptionList(it->second);
         }
         
         /**

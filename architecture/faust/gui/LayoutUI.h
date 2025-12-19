@@ -1,6 +1,6 @@
 /************************** BEGIN LayoutUI.h **************************
  FAUST Architecture File
- Copyright (C) 2003-2022 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2025 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,7 @@
 #include <stack>
 #include <iostream>
 #include <ostream>
+#include <cassert>
 
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/PathBuilder.h"
@@ -128,11 +129,13 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         
         float fPosX = 0.f;
         float fPosY = 0.f;
+        FAUSTFLOAT* fZone = nullptr;
         
         UIItem(const std::string& label,
-                    float width = 0.0f,
-                    float height = 0.0f)
-            :BaseUIItem(label), fWidth(width), fHeight(height) {}
+               float width = 0.0f,
+               float height = 0.0f,
+               FAUSTFLOAT* zone = nullptr)
+            :BaseUIItem(label), fWidth(width), fHeight(height), fZone(zone) {}
        
         float getPosX() override { return fPosX; };
         float getPosY() override { return fPosY; };
@@ -142,6 +145,8 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         
         float getWidth() override { return fWidth; }
         float getHeight() override { return fHeight; }
+
+        FAUSTFLOAT* getZone() { return fZone; }
         
         // Adapt all leave sizes
         void setSize(float width, float height) override
@@ -186,6 +191,10 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         {
             float real_width = getWidth() - getBorderX();
             float real_height = getHeight() - getBorderY();
+
+            if (real_width <= 0.f || real_height <= 0.f) {
+                return;
+            }
             
             float w_ratio = width / real_width;
             float h_ratio = height / real_height;
@@ -239,6 +248,10 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         {
             float real_width = getWidth() - getBorderX();
             float real_height = getHeight() - getBorderY();
+
+            if (real_width <= 0.f || real_height <= 0.f) {
+                return;
+            }
             
             float w_ratio = width / real_width;
             float h_ratio = height / real_height;
@@ -293,6 +306,10 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         {
             float real_width = getWidth() - getBorderX();
             float real_height = getHeight() - getBorderY();
+
+            if (real_width <= 0.f || real_height <= 0.f) {
+                return;
+            }
             
             float w_ratio = width / real_width;
             float h_ratio = height / real_height;
@@ -304,11 +321,65 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         }
         
     };
+
+    /**
+     For a tab group:
+        - width is the max of all item width
+        - height is the max of all item height
+        - all items share the same origin (stacked content)
+     */
+    struct TGroup : Group {
+
+        TGroup(const std::string& label):Group(label)
+        {}
+
+        float getWidth() override
+        {
+            float res = 0.f;
+            for (const auto& it : fItems) {
+                res = std::max(res, it->getWidth());
+            }
+            return res;
+        }
+
+        float getHeight() override
+        {
+            float res = 0.f;
+            for (const auto& it : fItems) {
+                res = std::max(res, it->getHeight());
+            }
+            return res;
+        }
+
+        void setPos(float top_x, float top_y) override
+        {
+            for (const auto& it : fItems) {
+                it->setPos(top_x, top_y);
+            }
+        }
+
+        void setSize(float width, float height) override
+        {
+            float real_width = getWidth() - getBorderX();
+            float real_height = getHeight() - getBorderY();
+
+            if (real_width <= 0.f || real_height <= 0.f) {
+                return;
+            }
+
+            float w_ratio = width / real_width;
+            float h_ratio = height / real_height;
+
+            for (const auto& it : fItems) {
+                it->setSize(it->getWidth() * w_ratio, it->getHeight() * h_ratio);
+            }
+        }
+    };
     
     // Terminal item classes representing various UI elements
     struct Button : UIItem {
         
-        Button(const std::string& label):UIItem(label, gItemSize.kButtonWidth, gItemSize.kButtonHeight) {}
+        Button(const std::string& label, FAUSTFLOAT* zone):UIItem(label, gItemSize.kButtonWidth, gItemSize.kButtonHeight, zone) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -319,7 +390,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     struct CheckButton : UIItem {
         
-        CheckButton(const std::string& label):UIItem(label, gItemSize.kCheckButtonWidth, gItemSize.kCheckButtonHeight) {}
+        CheckButton(const std::string& label, FAUSTFLOAT* zone):UIItem(label, gItemSize.kCheckButtonWidth, gItemSize.kCheckButtonHeight, zone) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -330,7 +401,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     struct HSlider : UIItem {
         
-        HSlider(const std::string& label):UIItem(label, gItemSize.kHSliderWidth, gItemSize.kHSliderHeight) {}
+        HSlider(const std::string& label, FAUSTFLOAT* zone):UIItem(label, gItemSize.kHSliderWidth, gItemSize.kHSliderHeight, zone) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -341,7 +412,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     struct VSlider : UIItem {
         
-        VSlider(const std::string& label):UIItem(label, gItemSize.kVSliderWidth, gItemSize.kVSliderHeight) {}
+        VSlider(const std::string& label, FAUSTFLOAT* zone):UIItem(label, gItemSize.kVSliderWidth, gItemSize.kVSliderHeight, zone) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -352,7 +423,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     struct NumEntry : UIItem {
         
-        NumEntry(const std::string& label):UIItem(label, gItemSize.kNumEntryWidth, gItemSize.kNumEntryHeight) {}
+        NumEntry(const std::string& label, FAUSTFLOAT* zone):UIItem(label, gItemSize.kNumEntryWidth, gItemSize.kNumEntryHeight, zone) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -363,7 +434,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     struct HBargraph : UIItem {
         
-        HBargraph(const std::string& label):UIItem(label, gItemSize.kHBargraphWidth, gItemSize.kHBargraphHeight) {}
+        HBargraph(const std::string& label, FAUSTFLOAT* zone):UIItem(label, gItemSize.kHBargraphWidth, gItemSize.kHBargraphHeight, zone) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -374,7 +445,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     
     struct VBargraph : UIItem {
         
-        VBargraph(const std::string& label):UIItem(label, gItemSize.kVBargraphWidth, gItemSize.kVBargraphHeight) {}
+        VBargraph(const std::string& label, FAUSTFLOAT* zone):UIItem(label, gItemSize.kVBargraphWidth, gItemSize.kVBargraphHeight, zone) {}
         
         std::ostream& print(std::ostream& file) override
         {
@@ -384,6 +455,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     };
     
     // Attributes for managing groups and UI elements
+    Group::shared_group fRoot = nullptr;
     Group::shared_group fCurrentGroup = nullptr;
     std::stack<Group::shared_group> fGroupStack;
     std::map<std::string, UIItem::shared_item> fPathItemMap;
@@ -405,40 +477,50 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         fCurrentGroup = group;
     }
 
-    LayoutUI() {}
+    LayoutUI()
+    {
+        // Create a deterministic root group to avoid null dereferences
+        fRoot = std::make_shared<VGroup>("root");
+        fCurrentGroup = fRoot;
+    }
     virtual ~LayoutUI() {}
+    
+    Group::shared_group getRootGroup()
+    {
+        return fRoot;
+    }
     
     float getWidth()
     {
-        return fCurrentGroup->getWidth();
+        return fRoot->getWidth();
     }
     
     float getHeight()
     {
-        return fCurrentGroup->getHeight();
+        return fRoot->getHeight();
     }
     
     void setSize(float width, float height)
     {
-        fCurrentGroup->setSize(width, height);
+        fRoot->setSize(width, height);
     }
     
     void setPos(float x_pos, float y_pos)
     {
-        fCurrentGroup->setPos(x_pos, y_pos);
+        fRoot->setPos(x_pos, y_pos);
     }
     
     void setPosAndSize(float x_pos, float y_pos, float width, float height)
     {
-        fCurrentGroup->setSize(width, height);
-        fCurrentGroup->setPos(x_pos, y_pos);
+        fRoot->setSize(width, height);
+        fRoot->setPos(x_pos, y_pos);
     }
 
     // -- widget's layouts
 
     virtual void openTabBox(const char* label) override
     {
-        pushLabel(label);
+        addGroup(label, std::make_shared<TGroup>(label));
     }
 
     virtual void openHorizontalBox(const char* label) override
@@ -454,46 +536,46 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
     virtual void closeBox() override
     {
         popLabel();
+        assert(!fGroupStack.empty());
         if (fGroupStack.empty()) {
-            // Nothing for now
-        } else {
-            fCurrentGroup = fGroupStack.top();
-            fGroupStack.pop();
+            return;
         }
+        fCurrentGroup = fGroupStack.top();
+        fGroupStack.pop();
     }
 
     // -- active widgets
 
     virtual void addButton(const char* label, FAUSTFLOAT* zone) override
     {
-        addItem(label, std::make_shared<Button>(label));
+        addItem(label, std::make_shared<Button>(label, zone));
     }
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) override
     {
-        addItem(label, std::make_shared<CheckButton>(label));
+        addItem(label, std::make_shared<CheckButton>(label, zone));
     }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
     {
-        addItem(label, std::make_shared<VSlider>(label));
+        addItem(label, std::make_shared<VSlider>(label, zone));
     }
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
     {
-        addItem(label, std::make_shared<HSlider>(label));
+        addItem(label, std::make_shared<HSlider>(label, zone));
     }
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
     {
-        addItem(label, std::make_shared<NumEntry>(label));
+        addItem(label, std::make_shared<NumEntry>(label, zone));
     }
 
     // -- passive widgets
 
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
     {
-        addItem(label, std::make_shared<HBargraph>(label));
+        addItem(label, std::make_shared<HBargraph>(label, zone));
     }
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
     {
-        addItem(label, std::make_shared<VBargraph>(label));
+        addItem(label, std::make_shared<VBargraph>(label, zone));
     }
 
     // -- metadata declarations
@@ -509,6 +591,150 @@ template <typename T>
 inline std::ostream& operator<<(std::ostream& file, std::shared_ptr<T> item)
 {
     return item->print(file);
+}
+
+enum class RenderNodeType {
+    kRootGroup,
+    kHGroup,
+    kVGroup,
+    kTGroup,
+    kButton,
+    kCheckButton,
+    kHSlider,
+    kVSlider,
+    kNumEntry,
+    kHBargraph,
+    kVBargraph,
+    kUnknown
+};
+
+struct RenderNode {
+    RenderNodeType          fType = RenderNodeType::kUnknown;
+    std::string             fLabel;
+    std::string             fPath;      // full control path
+    std::string             fUnit;
+    std::string             fTooltip;
+    std::string             fStyle;     // knob/led/numerical/radio/menu
+    MetaDataUI::Scale       fScale = MetaDataUI::kLin;
+    bool                    fHidden = false;
+    std::vector<std::pair<std::string, double> > fOptions; // radio/menu options (label,value)
+    float                   fX = 0.f;
+    float                   fY = 0.f;
+    float                   fWidth = 0.f;
+    float                   fHeight = 0.f;
+    std::vector<RenderNode> fChildren;  // H/V groups and TGroup content
+    std::vector<RenderNode> fTabs;      // Only used for TGroup: one entry per tab
+};
+
+inline RenderNodeType renderNodeType(const LayoutUI::UIItem::shared_item& item)
+{
+    if (std::dynamic_pointer_cast<LayoutUI::TGroup>(item)) return RenderNodeType::kTGroup;
+    if (std::dynamic_pointer_cast<LayoutUI::HGroup>(item)) return RenderNodeType::kHGroup;
+    if (std::dynamic_pointer_cast<LayoutUI::VGroup>(item)) return RenderNodeType::kVGroup;
+    if (std::dynamic_pointer_cast<LayoutUI::Button>(item)) return RenderNodeType::kButton;
+    if (std::dynamic_pointer_cast<LayoutUI::CheckButton>(item)) return RenderNodeType::kCheckButton;
+    if (std::dynamic_pointer_cast<LayoutUI::HSlider>(item)) return RenderNodeType::kHSlider;
+    if (std::dynamic_pointer_cast<LayoutUI::VSlider>(item)) return RenderNodeType::kVSlider;
+    if (std::dynamic_pointer_cast<LayoutUI::NumEntry>(item)) return RenderNodeType::kNumEntry;
+    if (std::dynamic_pointer_cast<LayoutUI::HBargraph>(item)) return RenderNodeType::kHBargraph;
+    if (std::dynamic_pointer_cast<LayoutUI::VBargraph>(item)) return RenderNodeType::kVBargraph;
+    return RenderNodeType::kUnknown;
+}
+
+inline RenderNode buildRenderNode(LayoutUI& ui,
+                                  const LayoutUI::UIItem::shared_item& item)
+{
+    RenderNode node;
+    node.fType = renderNodeType(item);
+    node.fLabel = item->fLabel;
+    node.fPath = ui.buildPath(item->fLabel);
+    FAUSTFLOAT* zone = nullptr;
+    if (auto ui_item = std::dynamic_pointer_cast<LayoutUI::UIItem>(item)) {
+        zone = ui_item->getZone();
+    }
+    node.fUnit = ui.getUnit(zone);
+    node.fTooltip = ui.getTooltip(zone);
+    node.fHidden = ui.isHidden(zone);
+    node.fScale = ui.getScale(zone);
+    if (ui.isKnob(zone)) node.fStyle = "knob";
+    else if (ui.isLed(zone)) node.fStyle = "led";
+    else if (ui.isNumerical(zone)) node.fStyle = "numerical";
+    else if (ui.isRadio(zone)) node.fStyle = "radio";
+    else if (ui.isMenu(zone)) node.fStyle = "menu";
+    
+    if (node.fStyle == "radio") {
+        node.fOptions = ui.getRadioDescription(zone);
+    } else if (node.fStyle == "menu") {
+        node.fOptions = ui.getMenuDescription(zone);
+    }
+    node.fX = item->getPosX();
+    node.fY = item->getPosY();
+    node.fWidth = item->getWidth();
+    node.fHeight = item->getHeight();
+    
+    if (auto group = std::dynamic_pointer_cast<LayoutUI::Group>(item)) {
+        // Prepare traversal into child labels
+        ui.pushLabel(item->fLabel);
+        
+        if (std::dynamic_pointer_cast<LayoutUI::TGroup>(item)) {
+            // In a tab group, each child is a tab content
+            for (const auto& child : group->fItems) {
+                node.fTabs.push_back(buildRenderNode(ui, child));
+            }
+        } else {
+            for (const auto& child : group->fItems) {
+                node.fChildren.push_back(buildRenderNode(ui, child));
+            }
+        }
+        
+        ui.popLabel();
+    }
+    
+    return node;
+}
+
+inline RenderNode buildRenderTree(LayoutUI& ui)
+{
+    // Build from the root group with an initial "root" path
+    return buildRenderNode(ui, ui.getRootGroup());
+}
+
+/**
+ * ResolvedLayout holds a LayoutUI populated by buildUserInterface along with
+ * its intrinsic (pre-scaling) dimensions.
+ */
+struct ResolvedLayout {
+    LayoutUI fUI;
+    float fIntrinsicWidth = 0.f;
+    float fIntrinsicHeight = 0.f;
+};
+
+/**
+ * Build a LayoutUI for the given DSP and resolve it to a target size/position.
+ * Passing a non-positive target width/height will keep the intrinsic size.
+ */
+template <typename DSP>
+inline ResolvedLayout buildResolvedLayout(DSP* dsp,
+                                          float target_width = -1.f,
+                                          float target_height = -1.f,
+                                          float x_pos = 0.f,
+                                          float y_pos = 0.f)
+{
+    ResolvedLayout res;
+    dsp->buildUserInterface(&res.fUI);
+    
+    res.fIntrinsicWidth = res.fUI.getWidth();
+    res.fIntrinsicHeight = res.fUI.getHeight();
+    
+    float final_width = (target_width > 0.f) ? target_width : res.fIntrinsicWidth;
+    float final_height = (target_height > 0.f) ? target_height : res.fIntrinsicHeight;
+    
+    if (final_width > 0.f && final_height > 0.f) {
+        res.fUI.setSize(final_width, final_height);
+        res.fUI.setPos(x_pos, y_pos);
+    }
+    
+    return res;
 }
 
 #endif // FAUST_LAYOUTUI_H
