@@ -148,11 +148,14 @@ class proxy_dsp : public ::dsp {
  *
  * - Smoothing configuration: callers pass a duration in seconds; the class converts it to a
  *   sample count on instanceConstants(), then uses that count for ramp scheduling.
+ *   Callers can also choose the smoothing step size (in samples) to control how often controller
+ *   values are updated (default 1 sample).
  *
  * - Triggering: the ramp setup occurs at the beginning of each compute() (both variants). If no
  *   control has changed since the previous compute, no new ramp is created and processing runs at
- *   full block size. When a ramp is active, processing falls back to sample-by-sample computation
- *   until the ramp ends, then resumes block processing for the remaining frames.
+ *   full block size. When a ramp is active, processing uses blocks of `smoothingStep` samples
+ *   (default 1, max step is clamped to the current audio block size in `compute`) until the ramp ends,
+ *   then resumes block processing for the remaining frames.
  *
  * - State/ownership: the class owns its JSONUIDecoder; the wrapped dsp is owned by decorator_dsp.
  *   clone() deep-clones both the decoder JSON and the wrapped dsp and preserves the smoothing
@@ -205,11 +208,11 @@ struct LinearSmoother : public Smoother {
     
     // Advance one sample worth of linear interpolation and write zones.
     template <typename ControlContainer>
-    void step(ControlContainer& controls)
+    void step(ControlContainer& controls, int stepSamples)
     {
         size_t count = controls.size();
         for (size_t i = 0; i < count; ++i) {
-            controls[i].fCurrent += controls[i].fStep;
+            controls[i].fCurrent += controls[i].fStep * FAUSTFLOAT(stepSamples);
             *controls[i].fDspZone = controls[i].fCurrent;
         }
     }
@@ -246,11 +249,13 @@ struct ExpSmoother : public Smoother {
     
     // Apply exponential decay for one sample and write zones.
     template <typename ControlContainer>
-    void step(ControlContainer& controls)
+    void step(ControlContainer& controls, int stepSamples)
     {
         size_t count = controls.size();
+        double alpha = std::pow(fAlpha, stepSamples);
         for (size_t i = 0; i < count; ++i) {
-            controls[i].fCurrent = controls[i].fTarget + (controls[i].fCurrent - controls[i].fTarget) * FAUSTFLOAT(fAlpha);
+            controls[i].fCurrent = controls[i].fTarget
+                                    + (controls[i].fCurrent - controls[i].fTarget) * FAUSTFLOAT(alpha);
             *controls[i].fDspZone = controls[i].fCurrent;
         }
     }
@@ -265,6 +270,7 @@ class smoothing_dsp : public decorator_dsp {
         JSONUIDecoder* fDecoder;
         double fSmoothingSec;    // Smoothing duration in seconds (construction-time parameter)
         int fSmoothingSamples;   // Smoothing duration in samples (derived from samplerate)
+        int fSmoothingStep;      // Number of samples between smoothing updates
         int fRemaining;          // Remaining samples in current smoothing ramp
         using zone_param = JSONUIDecoderReal<FAUSTFLOAT>::ZoneParam;
 
@@ -421,7 +427,7 @@ class smoothing_dsp : public decorator_dsp {
         }
         
         // Initialize decoder and smoothing state using an existing dsp instance.
-        void init(const std::string& json, ::dsp* dsp, double smoothing_sec)
+        void init(const std::string& json, ::dsp* dsp, double smoothing_sec, int smoothing_step)
         {
             fDecoder = new JSONUIDecoder(json);
             collectControlZones(dsp);
@@ -429,6 +435,7 @@ class smoothing_dsp : public decorator_dsp {
             fInputPtrs.assign(getNumInputs(), nullptr);
             fOutputPtrs.assign(getNumOutputs(), nullptr);
             fSmoothingSec = smoothing_sec;
+            fSmoothingStep = std::max(1, smoothing_step);
             fSmoothingSamples = 0;
             fRemaining = 0;
             resetSmoothingState();
@@ -453,24 +460,45 @@ class smoothing_dsp : public decorator_dsp {
         
     public:
     
+        /**
+         * Wrap an existing dsp and smooth its input controls.
+         *
+         * smoothing_sec : duration in seconds for non-toggle controls; <= 0 disables smoothing (controls jump).
+         * smoothing_step: number of samples between smoothing updates (minimum 1). Use values > 1 to reduce control update cost
+         *                 when audio blocks are large; max step is clamped to the current audio block size in compute().
+         *
+         * The constructor rebuilds the JSON UI from `dsp` so callers do not need to provide one explicitly.
+         */
         // Build from a concrete dsp, selecting smoothing duration (seconds).
-        smoothing_dsp(::dsp* dsp, double smoothing_sec = 0)
-        : decorator_dsp(dsp), fDecoder(nullptr), fSmoothingSec(smoothing_sec), fSmoothingSamples(0), fRemaining(0),
+        smoothing_dsp(::dsp* dsp, double smoothing_sec = 0, int smoothing_step = 1)
+        : decorator_dsp(dsp), fDecoder(nullptr), fSmoothingSec(smoothing_sec), fSmoothingSamples(0),
+          fSmoothingStep(std::max(1, smoothing_step)), fRemaining(0),
           fSmoother()
         {
             // Build JSON description from the wrapped dsp and initialize smoothing
             JSONUI builder(dsp->getNumInputs(), dsp->getNumOutputs());
             dsp->metadata(&builder);
             dsp->buildUserInterface(&builder);
-            init(builder.JSON(), dsp, smoothing_sec);
+            init(builder.JSON(), dsp, smoothing_sec, smoothing_step);
         }
         
+        /**
+         * Wrap an existing dsp using a precomputed JSON UI description.
+         *
+         * Use this form when the JSON UI must match an external/remote representation exactly (for example, when proxying a DSP
+         * hosted elsewhere). The smoothing parameters behave the same as the other constructor.
+         *
+         * smoothing_sec : duration in seconds for non-toggle controls; <= 0 disables smoothing (controls jump).
+         * smoothing_step: number of samples between smoothing updates (minimum 1). Use values > 1 to reduce control update cost
+         *                 when audio blocks are large; max step is clamped to the current audio block size in compute().
+         */
         // Build from explicit JSON and a concrete dsp, with smoothing settings.
-        smoothing_dsp(const std::string& json, ::dsp* dsp, double smoothing_sec = 0)
-        : decorator_dsp(dsp), fDecoder(nullptr), fSmoothingSec(smoothing_sec), fSmoothingSamples(0), fRemaining(0),
+        smoothing_dsp(const std::string& json, ::dsp* dsp, double smoothing_sec = 0, int smoothing_step = 1)
+        : decorator_dsp(dsp), fDecoder(nullptr), fSmoothingSec(smoothing_sec), fSmoothingSamples(0),
+          fSmoothingStep(std::max(1, smoothing_step)), fRemaining(0),
           fSmoother()
         {
-            init(json, dsp, smoothing_sec);
+            init(json, dsp, smoothing_sec, smoothing_step);
         }
     
         // Release decoder (wrapped dsp is owned by decorator_dsp).
@@ -518,16 +546,16 @@ class smoothing_dsp : public decorator_dsp {
         // Clone decoder JSON, wrapped dsp, and smoothing strategy
         virtual smoothing_dsp* clone()
         {
-            return new smoothing_dsp(fDecoder->fJSON, fDSP->clone(), fSmoothingSec);
+            return new smoothing_dsp(fDecoder->fJSON, fDSP->clone(), fSmoothingSec, fSmoothingStep);
         }
         // Forward metadata from decoder
         virtual void metadata(Meta* m) { fDecoder->metadata(m); }
     
-        // Top-level audio processing: apply pending control ramps sample-by-sample, then finish the block.
+        // Top-level audio processing: apply pending control ramps using the configured smoothing step, then finish the block.
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             // Run control smoothing then process audio.
-            // If a ramp is active, we switch to per-sample processing to update controls each sample.
+            // If a ramp is active, we interleave control updates with audio in blocks of `fSmoothingStep` samples.
             // Once smoothing completes, remaining frames (if any) are processed in a single block.
             
             setupSmoothing();
@@ -540,16 +568,18 @@ class smoothing_dsp : public decorator_dsp {
                 // Smoothing
                 int offset = 0;
                 while (offset < count && fRemaining > 0) {
-                    // Update controls for this sample and advance the ramp
-                    fSmoother.step(fControls);
-                    if (--fRemaining == 0) {
+                    // Update controls for this smoothing step and advance the ramp
+                    int stepSize = std::min({fSmoothingStep, fRemaining, count - offset});
+                    fSmoother.step(fControls, stepSize);
+                    fRemaining -= stepSize;
+                    if (fRemaining == 0) {
                         // Ensure exact target values when ramp ends
                         fSmoother.finish(fControls);
                     }
-                    // Compute one sample with updated controls
+                    // Compute this block with updated controls
                     setIO(fInputPtrs, fOutputPtrs, inputs, outputs, offset);
-                    decorator_dsp::compute(1, fInputPtrs.data(), fOutputPtrs.data());
-                    offset++;
+                    decorator_dsp::compute(stepSize, fInputPtrs.data(), fOutputPtrs.data());
+                    offset += stepSize;
                 }
                 
                 // No active ramp: process remaining frames in one call

@@ -150,18 +150,23 @@ struct DynamicDSP {
         bool is_smoothing_exp = isopt(argv, "-smooth-exp");
         bool is_smoothing = is_smoothing_linear || is_smoothing_exp;
         double smoothing_sec = 0.02; // default 20ms if enabled
+        int smoothing_step = 1;      // smoothing update period in samples (clamped to the audio block size at runtime)
         if (is_smoothing_linear) {
             smoothing_sec = dopt(argv, "-smooth-lin", smoothing_sec);
         }
         if (is_smoothing_exp) {
             smoothing_sec = dopt(argv, "-smooth-exp", smoothing_sec);
         }
+        smoothing_step = lopt(argv, "-smooth-step", smoothing_step);
+        if (smoothing_step < 1) {
+            smoothing_step = 1;
+        }
         
         if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
         #ifdef JACK
-            cout << "dynamic-jack-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [-smooth-lin <sec>] [-smooth-exp <sec>] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+            cout << "dynamic-jack-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [-smooth-lin <sec>] [-smooth-exp <sec>] [-smooth-step <samples>] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
         #else
-            cout << "dynamic-coreaudio-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [-smooth-lin <sec>] [-smooth-exp <sec>] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+            cout << "dynamic-coreaudio-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [-smooth-lin <sec>] [-smooth-exp <sec>] [-smooth-step <samples>] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
         #endif
             cout << "Use '-llvm' to use LLVM backend, using either .dsp, .ll, .bc or .mc files\n";
             cout << "Use '-interp' to use Interpreter backend, using either .dsp or .fbc (Faust Byte Code) files\n";
@@ -175,6 +180,7 @@ struct DynamicDSP {
             cout << "Use '-resample' to resample soundfiles to the audio driver sample rate\n";
             cout << "Use '-smooth-lin <sec>' to enable linear smoothing of controls over the given seconds\n";
             cout << "Use '-smooth-exp <sec>' to enable exponential smoothing of controls over the given seconds\n";
+            cout << "Use '-smooth-step <samples>' to set how often control smoothing is applied (default 1 sample, clamped to the current audio block size inside compute())\n";
             exit(EXIT_FAILURE);
         }
         
@@ -198,6 +204,7 @@ struct DynamicDSP {
             } else if ((string(argv[i]) == "-nvoices")
                        || (string(argv[i]) == "-smooth-lin")
                        || (string(argv[i]) == "-smooth-exp")
+                       || (string(argv[i]) == "-smooth-step")
                        || (string(argv[i]) == "-port")
                        || (string(argv[i]) == "-outport")
                        || (string(argv[i]) == "-errport")
@@ -301,10 +308,11 @@ struct DynamicDSP {
         
         if (is_smoothing && smoothing_sec > 0) {
             cout << "Enabling smoothing (" << (is_smoothing_exp ? "exponential" : "linear")
-                 << ") over " << smoothing_sec << " seconds" << endl;
+                 << ") over " << smoothing_sec << " seconds with step "
+                 << smoothing_step << " samples" << endl;
             fDSP = is_smoothing_exp
-                ? static_cast<::dsp*>(new smoothing_dsp_exp(fDSP, smoothing_sec))
-                : static_cast<::dsp*>(new smoothing_dsp_linear(fDSP, smoothing_sec));
+                ? static_cast<::dsp*>(new smoothing_dsp_exp(fDSP, smoothing_sec, smoothing_step))
+                : static_cast<::dsp*>(new smoothing_dsp_linear(fDSP, smoothing_sec, smoothing_step));
         }
         
         fInterface = new GTKUI(filename, &argc, &argv);
