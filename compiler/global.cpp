@@ -652,6 +652,7 @@ void global::init()
     gSymbolicBoxProperty   = new property<Tree>();
     gSimplifiedBoxProperty = new property<Tree>();
     gSymListProp           = new property<Tree>();
+    gClkEnvProperty        = new property<Tree>();
 
     // Essential predefined types
     gMemoizedTypes          = new property<AudioType*>();
@@ -695,6 +696,7 @@ void global::init()
     NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
     BCOMPLEXITY      = tree("BCOMPLEXITY");
     LETRECBODY       = boxIdent("RECURSIVEBODY");
+    CLKENVPROPERTY   = tree(symbol("CLKENVPROPERTY"));
 
     PROPAGATEPROPERTY = symbol("PropagateProperty");
 
@@ -2441,7 +2443,8 @@ string global::printHelp()
             "delay <n> and a "
             "select based ring buffers above (default INT_MAX samples)."
          << endl;
-    sstr << tab << "-ss <n>     --scheduling-strategy <n>   0=depth-first, 1=breadth-first, 2=special, "
+    sstr << tab
+         << "-ss <n>     --scheduling-strategy <n>   0=depth-first, 1=breadth-first, 2=special, "
             "3+=reverse breadth-first (default: 0)"
          << endl;
 #endif

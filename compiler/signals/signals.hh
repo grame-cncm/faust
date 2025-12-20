@@ -442,13 +442,17 @@ siglist treeConvert(Tree t);
 float computeDensity(const tvec& coefs);
 
 // Operations to create and access clock environments (HE)
-// HE ::= nil | (HE, box, sig1, sig2, ...)
+// HE ::= nil | (HE, slotenv, path, box, sig1, sig2, ...)
 // Box is encoded as a prim0
+// slotenv is the slot environment
+// path is the UI group path
 // sig1, sig2, ... are the input signals of the box
 // sig1 is typically the clock signal
 
-Tree makeClockEnv(Tree clkenv, Tree box, const siglist& lsig);
+Tree makeClockEnv(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglist& lsig);
 Tree getClockenvClock(Tree clkenv);
+Tree getClockenvSlotenv(Tree clkenv);
+Tree getClockenvPath(Tree clkenv);
 bool isODClockenv(Tree clkenv);
 bool isUSClockenv(Tree clkenv);
 bool isDSClockenv(Tree clkenv);

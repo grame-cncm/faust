@@ -22,6 +22,7 @@
 #include "propagate.hh"
 #include "Text.hh"
 #include "aterm.hh"
+#include "clkEnvInference.hh"
 #include "exception.hh"
 #include "floats.hh"
 #include "global.hh"
@@ -79,22 +80,22 @@ static siglist split(const siglist& inputs, int nbus)
     return outputs;
 }
 
-//! build a list of n projections of a recursive group
-static siglist makeSigProjList(Tree t, int n)
-{
-    siglist l(n);
-    for (int i = 0; i < n; i++) {
-        l[i] = sigDelay0(sigProj(i, t));
-    }
-    return l;
-}
+// //! build a list of n projections of a recursive group
+// static siglist makeSigProjList(Tree t, int n)
+// {
+//     siglist l(n);
+//     for (int i = 0; i < n; i++) {
+//         l[i] = sigDelay0(sigProj(i, t));
+//     }
+//     return l;
+// }
 
 //! build a list of n mem projections of a recursive group
 static siglist makeMemSigProjList(Tree clockenv, Tree t, int n)
 {
     siglist l(n);
     for (int i = 0; i < n; i++) {
-        l[i] = sigClocked(clockenv, sigDelay1(sigProj(i, t)));  // To be verified
+        l[i] = sigDelay1(sigClocked(clockenv, sigProj(i, t)));  // To be verified
         // l[i] = sigDelay1(sigProj(i, t));  // To be verified
     }
     return l;
@@ -338,10 +339,14 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             sig = sigInput(++gGlobal->gDummyInput);
         }
         if (Tree ce, x; isSigClocked(sig, ce, x) && (clockenv != ce)) {
-            std::cerr << "WARNING: slot " << boxpp(box) << " is associated with external signal "
-                      << ppsig(sig) << " but used in clockenv " << clockenv << std::endl;
+            // DEBUG: std::cerr << "WARNING: slot " << boxpp(box) << " is associated with external signal "
+            //           << sig << "--" << ppsig(sig) << " but used in clockenv " << clockenv
+            //           << std::endl;
             // we wrap the signal correctly
+            faustassert(isAncestorClkEnv(ce, clockenv));
             sig = recTempVar(clockenv, ce, sig);  // keep sig with its clockenv
+            // DEBUG: std::cerr << "Here is the wrapped signal: " << sig << "--" << ppsig(sig) <<
+            //           std::endl;
         }
         return makeList(sig);
     }
@@ -584,7 +589,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         for (const auto& exp : l2) {
             if (exp->aperture() > 0) {
                 // it is a regular recursive expression branch
-                ol[p] = sigDelay0(sigProj(p, g));
+                ol[p] = sigClocked(clockenv, sigProj(p, g));
             } else {
                 // this expression is a closed term,
                 // it doesn't need to be inside this recursion group.
@@ -642,7 +647,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // 1/ The first signal is the clock signal
         Tree H = lsig[0];
 
-        // 2/ Check trivial case: never our always called
+        // 2/ Check trivial case: never or always called
         bool h0 = false;  // clock signal is zero constant
         bool h1 = false;  // clock signal is non-zero constant
 
@@ -675,7 +680,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // 3) check normal cases
         // 3a) We compute the clock environment inside the ondemand by combining the current clock
         // environment, the circuit and its input signals
-        Tree clockenv2 = makeClockEnv(clockenv, box, lsig);
+        Tree clockenv2 = makeClockEnv(clockenv, slotenv, path, box, lsig);
 
         // 3b) We compute X1 the inputs of the ondemand using temporary variables
         siglist X1;
@@ -760,7 +765,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // char buffer[64];
         // snprintf(buffer, sizeof(buffer), "Upsampling_%p", box);
         // Tree clockenv2 = cons(H, cons(tree(buffer), clockenv));
-        Tree clockenv2 = makeClockEnv(clockenv, box, lsig);
+        Tree clockenv2 = makeClockEnv(clockenv, slotenv, path, box, lsig);
 
         // 4/ We compute X1 the inputs of the upsampling using temporary variables
         siglist X1;
@@ -842,7 +847,7 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
         // the address of the circuit, and the current clock environment char buffer[64];
         // snprintf(buffer, sizeof(buffer), "Downsampling_%p", box);
         // Tree clockenv2 = cons(H, cons(tree(buffer), clockenv));
-        Tree clockenv2 = makeClockEnv(clockenv, box, lsig);
+        Tree clockenv2 = makeClockEnv(clockenv, slotenv, path, box, lsig);
 
         // 4/ We compute X1 the inputs of the downsampling using temporary variables
         siglist X1;
