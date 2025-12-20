@@ -42,7 +42,7 @@ ostream& ppsig::printinfix(ostream& fout, const string& opname, int priority, Tr
     if (fPriority > priority) {
         fout << "(";
     }
-    fout << ppsig(x, fEnv, priority, fMaxSize) << opname << ppsig(y, fEnv, priority, fMaxSize);
+    fout << ppsig(x, fEnv, priority, fMaxSize - 1) << opname << ppsig(y, fEnv, priority, fMaxSize - 1);
     if (fPriority > priority) {
         fout << ")";
     }
@@ -53,34 +53,34 @@ ostream& ppsig::printinfix(ostream& fout, const string& opname, int priority, Tr
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize - 1) << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ','
-                << ppsig(y, fEnv, 0, fMaxSize) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize - 1) << ','
+                << ppsig(y, fEnv, 0, fMaxSize - 1) << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ','
-                << ppsig(y, fEnv, 0, fMaxSize) << ',' << ppsig(z, fEnv, 0, fMaxSize) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize - 1) << ','
+                << ppsig(y, fEnv, 0, fMaxSize - 1) << ',' << ppsig(z, fEnv, 0, fMaxSize - 1) << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ','
-                << ppsig(y, fEnv, 0, fMaxSize) << ',' << ppsig(z, fEnv, 0, fMaxSize) << ','
-                << ppsig(zz, fEnv, 0, fMaxSize) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize - 1) << ','
+                << ppsig(y, fEnv, 0, fMaxSize - 1) << ',' << ppsig(z, fEnv, 0, fMaxSize - 1) << ','
+                << ppsig(zz, fEnv, 0, fMaxSize - 1) << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2,
                          Tree z3) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ','
-                << ppsig(y, fEnv, 0, fMaxSize) << ',' << ppsig(z, fEnv, 0, fMaxSize) << ','
-                << ppsig(z2, fEnv, 0, fMaxSize) << ',' << ppsig(z3, fEnv, 0, fMaxSize) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize - 1) << ','
+                << ppsig(y, fEnv, 0, fMaxSize - 1) << ',' << ppsig(z, fEnv, 0, fMaxSize - 1) << ','
+                << ppsig(z2, fEnv, 0, fMaxSize - 1) << ',' << ppsig(z3, fEnv, 0, fMaxSize - 1) << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, const tvec& args) const
@@ -88,7 +88,7 @@ ostream& ppsig::printfun(ostream& fout, const string& funame, const tvec& args) 
     fout << funame;
     char sep = '(';
     for (auto arg : args) {
-        fout << sep << ppsig(arg, fEnv, 0, fMaxSize);
+        fout << sep << ppsig(arg, fEnv, 0, fMaxSize - 1);
         sep = ',';
     }
     return fout << ")";
@@ -105,7 +105,7 @@ ostream& ppsig::printfir(ostream& fout, const tvec& args) const
         if (isProj(arg, &p, g) && isRec(g, vaaar, le)) {
             fout << sep << ' ' << *vaaar << '_' << p;
         } else {
-            fout << sep << ppsig(arg, fEnv, 0, fMaxSize);
+            fout << sep << ppsig(arg, fEnv, 0, fMaxSize - 1);
         }
         sep = "; ";
     }
@@ -124,7 +124,7 @@ ostream& ppsig::printiir(ostream& fout, const tvec& args) const
         } else if (isNil(arg)) {
             fout << sep << "VOID";
         } else {
-            fout << sep << ppsig(arg, fEnv, 0, fMaxSize);
+            fout << sep << ppsig(arg, fEnv, 0, fMaxSize - 1);
         }
         sep = "; ";
     }
@@ -143,8 +143,8 @@ ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree lo
 {
     fout << funame << '(';
     printlabel(fout, label);
-    return fout << ',' << ppsig(lo, fEnv, 0, fMaxSize) << ',' << ppsig(hi, fEnv, 0, fMaxSize) << ','
-                << ppsig(step, fEnv, 0, fMaxSize) << ')';
+    return fout << ',' << ppsig(lo, fEnv, 0, fMaxSize - 1) << ',' << ppsig(hi, fEnv, 0, fMaxSize - 1) << ','
+                << ppsig(step, fEnv, 0, fMaxSize - 1) << ')';
 }
 
 ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi,
@@ -152,8 +152,8 @@ ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree cu
 {
     fout << funame << '(';
     printlabel(fout, label);
-    return fout << ',' << ppsig(cur, fEnv, 0, fMaxSize) << ',' << ppsig(lo, fEnv, 0, fMaxSize)
-                << ',' << ppsig(hi, fEnv, 0, fMaxSize) << ',' << ppsig(step, fEnv, 0, fMaxSize)
+    return fout << ',' << ppsig(cur, fEnv, 0, fMaxSize - 1) << ',' << ppsig(lo, fEnv, 0, fMaxSize - 1)
+                << ',' << ppsig(hi, fEnv, 0, fMaxSize - 1) << ',' << ppsig(step, fEnv, 0, fMaxSize - 1)
                 << ')';
 }
 
@@ -162,7 +162,7 @@ ostream& ppsig::printout(ostream& fout, int i, Tree x) const
     if (fPriority > 0) {
         fout << "(";
     }
-    fout << "OUT" << i << " = " << ppsig(x, fEnv, 0, fMaxSize);
+    fout << "OUT" << i << " = " << ppsig(x, fEnv, 0, fMaxSize - 1);
     if (fPriority > 0) {
         fout << ")";
     }
@@ -186,7 +186,7 @@ ostream& ppsig::printlist(ostream& fout, Tree largs) const
     string sep = "";
     fout << '(';
     while (!isNil(largs)) {
-        fout << sep << ppsig(hd(largs), fEnv, 0, fMaxSize);
+        fout << sep << ppsig(hd(largs), fEnv, 0, fMaxSize - 1);
         sep   = ", ";
         largs = tl(largs);
     }
@@ -206,7 +206,7 @@ ostream& ppsig::printDelay(ostream& fout, Tree exp, Tree delay) const
     // int d;
 
     // if (isSigInt(delay, &d) && (d == 1)) {
-    //     fout << ppsig(exp, fEnv, 8, fMaxSize) << "'";
+    //     fout << ppsig(exp, fEnv, 8, fMaxSize - 1) << "'";
     // } else {
     //     printinfix(fout, "@", 8, exp, delay);
     // }
@@ -222,7 +222,7 @@ ostream& ppsig::printrec(ostream& fout, Tree var, Tree lexp, bool hide) const
         fout << *var;
     } else {
         stringstream str_rec;
-        str_rec << ppsig(lexp, addElement(var, fEnv), 0, fMaxSize);
+        str_rec << ppsig(lexp, addElement(var, fEnv), 0, fMaxSize - 1);
         if (str_rec.tellp() == 0) {
             fout << "letrec(" << *var << " = ...)";
         } else {
@@ -235,7 +235,7 @@ ostream& ppsig::printrec(ostream& fout, Tree var, Tree lexp, bool hide) const
 ostream& ppsig::printrec(ostream& fout, Tree lexp, bool hide) const
 {
     stringstream str_rec;
-    str_rec << ppsig(lexp, fEnv, 0, fMaxSize);
+    str_rec << ppsig(lexp, fEnv, 0, fMaxSize - 1);
     if (str_rec.tellp() == 0) {
         fout << "debruijn(...)";
     } else {
@@ -251,7 +251,7 @@ ostream& ppsig::printextended(ostream& fout, Tree sig1) const
 
     fout << p->name() << '(';
     for (int i = 0; i < sig1->arity(); i++) {
-        fout << sep << ppsig(sig1->branch(i), fEnv, 0, fMaxSize);
+        fout << sep << ppsig(sig1->branch(i), fEnv, 0, fMaxSize - 1);
         sep = ", ";
     }
     fout << ')';
@@ -260,9 +260,10 @@ ostream& ppsig::printextended(ostream& fout, Tree sig1) const
 
 ostream& ppsig::print(ostream& fout) const
 {
-    // Stops printing at fMaxSize characters
-    if (fout.tellp() > fMaxSize) {
-        fout << "...";
+    // Stops printing when maximum depth is reached
+    // fMaxSize now represents recursion depth, not character count
+    if (fMaxSize <= 0) {
+        fout << fSig;  // Print signal address
         return fout;
     }
 
@@ -273,7 +274,7 @@ ostream& ppsig::print(ostream& fout) const
     if (isList(fSig)) {
         printlist(fout, fSig);
     } else if (isProj(fSig, &i, x)) {
-        fout << "proj" << i << '(' << ppsig(x, fEnv, 0, fMaxSize) << ')';
+        fout << "proj" << i << '(' << ppsig(x, fEnv, 0, fMaxSize - 1) << ')';
     } else if (isRec(fSig, var, le)) {
         printrec(fout, var, le, fHideRecursion /*&& (getRecursiveness(sig)==0)*/);
     }
@@ -321,15 +322,15 @@ ostream& ppsig::print(ostream& fout) const
             printfun(fout, "WRTbl2p", w, x);
         } else {
             // rwtable
-            fout << "sigWRTbl4p(" << ppsig(w, fEnv, 0, fMaxSize);
-            fout << "; " << ppsig(x, fEnv, 0, fMaxSize);
-            fout << "; " << ppsig(y, fEnv, 0, fMaxSize);
-            fout << "; " << ppsig(z, fEnv, 0, fMaxSize) << " )";
+            fout << "sigWRTbl4p(" << ppsig(w, fEnv, 0, fMaxSize - 1);
+            fout << "; " << ppsig(x, fEnv, 0, fMaxSize - 1);
+            fout << "; " << ppsig(y, fEnv, 0, fMaxSize - 1);
+            fout << "; " << ppsig(z, fEnv, 0, fMaxSize - 1) << " )";
         }
     } else if (isSigRDTbl(fSig, x, y)) {
         printfun(fout, "sigRDTbl", x, y);
     } else if (isSigGen(fSig, x)) {
-        fout << "sigGen(" << ppsig(x, fEnv, fPriority, fMaxSize) << ")";
+        fout << "sigGen(" << ppsig(x, fEnv, fPriority, fMaxSize - 1) << ")";
     }
 
     else if (isSigDocConstantTbl(fSig, x, y)) {
@@ -402,7 +403,7 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "downsampling", fSig->branches());
     } else if (isSigClocked(fSig, x, y)) {
         // printfun(fout, "clocked", y);
-        return fout << "clocked" << '(' << x << ", " << ppsig(y, fEnv, 0, fMaxSize) << ')';
+        return fout << "clocked" << '(' << x << ", " << ppsig(y, fEnv, 0, fMaxSize - 1) << ')';
     }
 
     else if (isSigAttach(fSig, x, y)) {
@@ -766,4 +767,113 @@ void ppsigShared::printIDs(ostream& fout, bool sort)
     for (const auto& it : gGlobal->gSignalTrace) {
         fout << it;
     }
+}
+
+//-------------------------------------------------------------------------
+// ppclkenv: Pretty-print clock environment
+//-------------------------------------------------------------------------
+
+/**
+ * @brief Print indentation spaces
+ */
+static void printIndent(int indent, ostream& out)
+{
+    for (int i = 0; i < indent; i++) {
+        out << "  ";
+    }
+}
+
+/**
+ * @brief Helper to print clkEnv with indentation for nested structure
+ */
+static void ppclkenv_indent(Tree clkenv, int depth, int indent, ostream& out)
+{
+    // Base case: nil
+    if (isNil(clkenv)) {
+        out << "nil";
+        return;
+    }
+
+    // ClkEnv structure: cons(parent_clkenv, cons(box_address, input_signals_list))
+    Tree parent = getClockenvEnv(clkenv);
+    Tree box    = getClockenvBox(clkenv);
+    Tree clock  = getClockenvClock(clkenv);
+
+    out << "ClkEnv {" << endl;
+
+    // Print parent environment (recursively)
+    printIndent(indent + 1, out);
+    out << "parent: ";
+    if (isNil(parent)) {
+        out << "nil" << endl;
+    } else {
+        out << endl;
+        printIndent(indent + 1, out);
+        ppclkenv_indent(parent, depth, indent + 1, out);
+        out << endl;
+    }
+
+    // Print box type
+    printIndent(indent + 1, out);
+    out << "box: ";
+    if (isNil(box)) {
+        out << "nil";
+    } else if (isBoxOndemand(box, clock)) {
+        out << "OnDemand";
+    } else if (isBoxUpsampling(box, clock)) {
+        out << "Upsample";
+    } else if (isBoxDownsampling(box, clock)) {
+        out << "Downsample";
+    } else {
+        out << box;
+    }
+    out << " @ " << box << endl;
+
+    // Print input signals list
+    printIndent(indent + 1, out);
+    out << "signals: ";
+
+    // Structure: cons(parent, cons(box, signals))
+    // So: tl(clkenv) = cons(box, signals)
+    //     tl(tl(clkenv)) = signals
+    Tree boxAndSignals = tl(clkenv);
+    if (isNil(boxAndSignals)) {
+        out << "[] (boxAndSignals is nil)" << endl;
+    } else {
+        Tree signalsList = tl(boxAndSignals);
+        if (isNil(signalsList)) {
+            out << "[] (signalsList is nil)" << endl;
+        } else {
+            out << "[" << endl;
+            int sigCount = 0;
+            for (Tree l = signalsList; isList(l); l = tl(l)) {
+                Tree sig = hd(l);
+                printIndent(indent + 2, out);
+                out << "[" << sigCount << "] ";
+
+                // Use ppsig with the specified depth
+                ostringstream sigStr;
+                sigStr << ppsig(sig, depth);
+                out << sigStr.str();
+
+                out << endl;
+                sigCount++;
+            }
+            printIndent(indent + 1, out);
+            out << "]" << endl;
+        }
+    }
+
+    printIndent(indent, out);
+    out << "}";
+}
+
+/**
+ * @brief Pretty-print a clock environment (clkEnv) structure
+ */
+void ppclkenv(Tree clkenv, int depth, ostream& out)
+{
+    out << "=== ClkEnv at " << clkenv << " ===" << endl;
+    ppclkenv_indent(clkenv, depth, 0, out);
+    out << endl;
 }

@@ -1,4 +1,5 @@
 #include "DependenciesUtils.hh"
+#include "clkEnvInference.hh"
 #include "ppsig.hh"
 
 /**
@@ -28,22 +29,39 @@ bool needSubGraph(Tree sig, Tree& clk)
  * @param sig The signal to check.
  * @return True if the signal is external, false otherwise.
  */
-bool isExternal(Tree clkenv, Tree sig)
+bool isExternal(Tree clkEnv, Tree sig)
 {
+#if 0
     // Tempvar can be external
     if (Tree content; isSigTempVar(sig, content)) {
         Tree clk2, sig2;
         faustassert(isSigClocked(content, clk2, sig2));
-        return clk2 != clkenv;
+        return clk2 != clkEnv;
     }
 
     // Clocked signals can be external
     if (Tree clk2, sig2; isSigClocked(sig, clk2, sig2)) {
-        return clk2 != clkenv;
+        return clk2 != clkEnv;
     }
 
     // Otherwise it's an internal signal
     return false;
+#else
+    Tree clkEnv2 = ClkEnvInference::getClkEnv(sig);
+    if (clkEnv == clkEnv2) {
+        // std::cerr << "clkEnv: " << clkEnv << " has internal sig -> " << sig << "\n";
+        return false;  // not external by definition
+    }
+    if (isAncestorClkEnv(clkEnv2, clkEnv)) {
+        // std::cerr << "clkEnv: " << clkEnv << " has external sig -> " << sig
+        //           << " belonging to clkEnv " << clkEnv2 << "\n";
+        return true;  // external, by definition
+    }
+
+    // Incomparable: error
+    throw faustexception("ERROR: Incomparable clock environments");
+    return false;
+#endif
 }
 
 /**
