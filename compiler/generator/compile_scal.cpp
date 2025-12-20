@@ -36,6 +36,7 @@
 #include "DependenciesPrinting.hh"
 #include "Schedule.hh"
 #include "Text.hh"
+#include "clkEnvInference.hh"
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
@@ -49,8 +50,6 @@
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "revealSum.hh"
-#include "sigTypeChecker.hh"
-
 #include "sigDegenerateRecursionElimination.hh"
 #include "sigDependenciesGraph.hh"
 #include "sigNewConstantPropagation.hh"
@@ -59,11 +58,14 @@
 #include "sigRetiming.hh"
 #include "sigSelect2Simplification.hh"
 #include "sigToGraph.hh"
+#include "sigTypeChecker.hh"
 #include "signalValidator.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "timing.hh"
 #include "xtended.hh"
+
+void computeClkEnv(Tree sigList, std::map<Tree, Tree>& clkEnvs);
 
 #undef TRACE
 
@@ -587,6 +589,15 @@ void ScalarCompiler::compileMultiSignal(Tree L)
             break;
     }
 
+    // std::cerr << "Start computing the clkenvs\n";
+    // std::map<Tree, Tree> clkEnvs;
+    // computeClkEnv(L, clkEnvs);
+    // std::cerr << "End computing the clkenvs\n";
+    ClkEnvInference clkEnvInference;
+    clkEnvInference.annotate(L);
+
+    // std::cerr << "press enter to continue...";
+    // std::cin.get();
     validateSignalList(L);  // validate the signal list
 
     // Compute and draw the recursion graph if requested (-rpg option)

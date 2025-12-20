@@ -137,8 +137,7 @@ void printSigWithStepRefs(std::ostream& os, Tree sig, const std::map<Tree, int>&
 
     // Special case: input signal (e.g., Input(0))
     if (int i; isSigInput(sig, &i)) {
-        os << "Input(" << i << ")"
-           << "\t// " << *ty;
+        os << "Input(" << i << ")" << "\t// " << *ty;
         return;
     }
 
@@ -295,9 +294,8 @@ int recNumbering(const std::map<Tree, schedule<Tree>>& sigSchedules,
             step = recNumbering(sigSchedules, stepNumbers, sigSchedules.at(sig), step);
         }
         if (stepNumbers.find(sig) != stepNumbers.end()) {
-            std::cerr << "WARNING: signal " << ppsig(sig) << " as already number "
-                      << stepNumbers.at(sig) << " while we want to assign number " << step
-                      << std::endl;
+            std::cerr << "WARNING: signal " << sig << " as already number " << stepNumbers.at(sig)
+                      << " while we want to assign number " << step << std::endl;
             // faustassert(false);  // we dont want to continue !
         }
         // Assign the current step number to the signal
@@ -399,8 +397,7 @@ void recDOTPrinting(std::ostream& os, const std::map<Tree, schedule<Tree>>& sigS
 void printSigDOTNode(std::ostream& os, Tree sig, const std::map<Tree, int>& stepNumbers)
 {
     int stepNum = stepNumbers.at(sig);
-    os << "    node" << stepNum << " [label=<"
-       << "<font color=\"gray\">" << stepNum << ":</font> ";
+    os << "    node" << stepNum << " [label=<" << "<font color=\"gray\">" << stepNum << ":</font> ";
 
     // Get signal description without step references
     Tree W, var, body;
