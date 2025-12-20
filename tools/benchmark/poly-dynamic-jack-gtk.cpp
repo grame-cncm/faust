@@ -26,6 +26,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <unordered_set>
 
 /*
  #ifndef FAUSTFLOAT
@@ -120,23 +121,25 @@ int main(int argc, char* argv[])
     const char* argv1[64];
     
     cout << "Compiled with additional options : ";
-    for (int i = 1; i < argc-1; i++) {
-        if ((string(argv[i]) == "-llvm")
-            || (string(argv[i]) == "-interp")
-            || (string(argv[i]) == "-midi")
-            || (string(argv[i]) == "-osc")
-            || (string(argv[i]) == "-httpd")
-            || (string(argv[i]) == "-resample")) {
-            continue;
-        } else if ((string(argv[i]) == "-nvoices")
-                   || (string(argv[i]) == "-port")
-                   || (string(argv[i]) == "-outport")
-                   || (string(argv[i]) == "-errport")
-                   || (string(argv[i]) == "-desthost")
-                   || (string(argv[i]) == "-xmit")) {
-            i++;
+    
+    static const unordered_set<string> flags_no_arg = {
+        "-llvm", "-interp", "-midi", "-osc", "-httpd", "-resample"
+    };
+    static const unordered_set<string> flags_with_arg = {
+        "-nvoices", "-port", "-outport", "-errport", "-desthost", "-xmit"
+    };
+    
+    for (int i = 1; i < argc - 1; ++i) {
+        string arg = argv[i];
+        
+        if (flags_no_arg.count(arg)) {
             continue;
         }
+        if (flags_with_arg.count(arg)) {
+            ++i; // skip parameter
+            continue;
+        }
+        
         argv1[argc1++] = argv[i];
         cout << argv[i] << " ";
     }

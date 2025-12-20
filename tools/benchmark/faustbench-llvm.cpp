@@ -24,6 +24,7 @@
  ************************************************************************/
 
 #include <iostream>
+#include <unordered_set>
 
 #include "faust/dsp/dsp-optimizer.h"
 #include "faust/misc.h"
@@ -112,23 +113,29 @@ int main(int argc, char* argv[])
     if (is_trace) cout << "Running with 'compute' called with " << buffer_size << " samples" << endl;
     
     if (is_trace) cout << "Compiled with additional options : ";
-    for (int i = 1; i < argc-1; i++) {
-        if (string(argv[i]) == "-single"
-            || string(argv[i]) == "-generic"
-            || string(argv[i]) == "-control") {
-            continue;
-        } else if (string(argv[i]) == "-run"
-                   || string(argv[i]) == "-opt"
-                   || string(argv[i]) == "-bs"
-                   || string(argv[i]) == "-ds"
-                   || string(argv[i]) == "-us"
-                   || string(argv[i]) == "-filter") {
-            i++;
+    
+    static const unordered_set<string> flags_no_arg = {
+        "-single", "-generic", "-control"
+    };
+    static const unordered_set<string> flags_with_arg = {
+        "-run", "-opt", "-bs", "-ds", "-us", "-filter"
+    };
+    
+    for (int i = 1; i < argc - 1; ++i) {
+        string arg = argv[i];
+        
+        if (flags_no_arg.count(arg)) {
             continue;
         }
+        if (flags_with_arg.count(arg)) {
+            ++i; // skip parameter
+            continue;
+        }
+        
         argv1[argc1++] = argv[i];
         if (is_trace) cout << argv[i] << " ";
     }
+    
     if (is_trace) cout << endl;
     
     // Add library

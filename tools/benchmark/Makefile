@@ -110,7 +110,7 @@ box-tester-c: box-tester.c $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT1) $(ARCHS) box-tester.c $(LIB_FLAGS) $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o box-tester-c
 
 layout-ui: layout-ui.cpp
-	$(CXX) $(COMPILEOPT) $(ARCHS) layout-ui.cpp -I $(INC) $(LIBS) $(LLVM) -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) layout-ui.cpp -I $(INC) $(LIB_FLAGS) $(LIBS) $(LLVM) -o $@
 
 fastmath: $(FASTMATH)
 	clang++ -Ofast -emit-llvm -S $(FASTMATH) -o fastmath.ll
