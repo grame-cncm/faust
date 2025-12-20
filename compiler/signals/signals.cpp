@@ -28,6 +28,7 @@
 #include <float.h>
 #include <vector>
 
+#include "clkEnvInference.hh"
 #include "global.hh"
 #include "ppsig.hh"
 #include "signals.hh"
@@ -1342,21 +1343,39 @@ float computeDensity(const tvec& coefs)
 // Operations to create and access clock environments (HE)
 // HE ::= nil | (HE, box, sig1, sig2, ...)
 // Box is encoded as a prim0
+// slotEnv the slot environment
 // sig1, sig2, ... are the input signals of the box
 // sig1 is typically the clock signal
 
-Tree makeClockEnv(Tree clkenv, Tree box, const siglist& lsig)
+Tree makeClockEnv(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
     Tree L    = listConvert(lsig);
-    Tree addr = boxPrim0((prim0)box);
-    return cons(clkenv, cons(addr, L));
+    Tree abox = boxPrim0((prim0)box);
+    return cons(clockenv, cons(slotenv, cons(path, cons(abox, L))));
 }
+
 Tree getClockenvClock(Tree clkenv)
 {
     if (isNil(clkenv)) {
         return gGlobal->nil;
     }
-    return nth(clkenv, 2);
+    return nth(clkenv, 4);  // First signal in lsig (the clock signal)
+}
+
+Tree getClockenvSlotenv(Tree clkenv)
+{
+    if (isNil(clkenv)) {
+        return gGlobal->nil;
+    }
+    return nth(clkenv, 1);  // The slot environment
+}
+
+Tree getClockenvPath(Tree clkenv)
+{
+    if (isNil(clkenv)) {
+        return gGlobal->nil;
+    }
+    return nth(clkenv, 2);  // The UI group path
 }
 
 Tree getClockenvBox(Tree clkenv)
@@ -1364,7 +1383,7 @@ Tree getClockenvBox(Tree clkenv)
     if (isNil(clkenv)) {
         return gGlobal->nil;
     }
-    Tree addr = nth(clkenv, 1);
+    Tree addr = nth(clkenv, 3);  // The box encoded as prim0
     if (prim0 p0; isBoxPrim0(addr, &p0)) {
         return (Tree)p0;
     }
@@ -1398,12 +1417,11 @@ bool isDSClockenv(Tree clkenv)
 
 Tree recTempVar(Tree clkenv1, Tree clkenv2, Tree sig)
 {
+    faustassert(isAncestorClkEnv(clkenv2, clkenv1));
     if (clkenv1 == clkenv2) {
         return sig;
     }
-    faustassert(clkenv1 != gGlobal->nil);
-    return sigClocked(clkenv1,
-                      sigClocked(hd(clkenv1), sigTempVar(recTempVar(hd(clkenv1), clkenv2, sig))));
+    return sigClocked(clkenv1, sigTempVar(recTempVar(hd(clkenv1), clkenv2, sig)));
 }
 
 //------------------------------------------------------------------------------
