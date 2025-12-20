@@ -22,6 +22,7 @@
 #include <string>
 
 #include "Text.hh"
+#include "clkEnvInference.hh"
 #include "factorizeFIRIIRs.hh"
 #include "fir_to_fir.hh"
 #include "floats.hh"
@@ -595,6 +596,10 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     }
 
     validateSignalList(L);  // validate the signal list
+
+    // Annotate signals with their clock environments
+    ClkEnvInference clkEnvInference;
+    clkEnvInference.annotate(L);
 
     // Compute the hierarchical scheduling of L applying the chosen strategy
     fHschedule = scheduleSigList(L, mySchedFun);

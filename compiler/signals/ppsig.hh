@@ -48,6 +48,9 @@ class ppsig : public virtual Garbageable {
         : fSig(s), fEnv(env), fPriority(priority), fHideRecursion(false), fMaxSize(max_size)
     {
     }
+
+    // Note: fMaxSize now represents maximum recursion depth, not character count
+    // When depth reaches 0, the signal address is printed instead of recursing further
     virtual std::ostream& print(std::ostream& fout) const;
 
    protected:
@@ -137,5 +140,17 @@ class ppsigShared final : public ppsig {
 
     static void printIDs(std::ostream& fout, bool sort);
 };
+
+/**
+ * @brief Pretty-print a clock environment (clkEnv) structure
+ *
+ * A clkEnv has the structure: cons(parent_clkenv, cons(box_address, input_signals_list))
+ * This function prints it in a human-readable nested format.
+ *
+ * @param clkenv The clock environment to print
+ * @param depth Maximum depth for printing signals (passed to ppsig)
+ * @param out Output stream (default: std::cerr)
+ */
+void ppclkenv(Tree clkenv, int depth = 6, std::ostream& out = std::cerr);
 
 #endif
