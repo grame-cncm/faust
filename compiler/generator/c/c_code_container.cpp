@@ -258,8 +258,11 @@ void CCodeContainer::produceClass()
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
 
-    *fOut << "static inline int max_i(int a, int b) { return (a > b) ? a : b; }" << endl;
-    *fOut << "static inline int min_i(int a, int b) { return (a < b) ? a : b; }" << endl;
+    *fOut << "#ifndef FAUSTMAXI" << endl;
+    *fOut << "#define FAUSTMAXI" << endl;
+    *fOut << "inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }" << endl;
+    *fOut << "inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
+    *fOut << "#endif" << endl;
 
     tab(n, *fOut);
     *fOut << "typedef struct {";
@@ -653,8 +656,11 @@ void CScalarCodeContainer1::produceClass()
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
 
-    *fOut << "static inline int max_i(int a, int b) { return (a > b) ? a : b; }" << endl;
-    *fOut << "static inline int min_i(int a, int b) { return (a < b) ? a : b; }" << endl;
+    *fOut << "#ifndef FAUSTMAXI" << endl;
+    *fOut << "#define FAUSTMAXI" << endl;
+    *fOut << "inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }" << endl;
+    *fOut << "inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
+    *fOut << "#endif" << endl;
 
     // Generate user interface macros if needed
     printMacros(*fOut, n);

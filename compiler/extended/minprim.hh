@@ -84,6 +84,7 @@ class MinPrim : public xtended {
         }
     }
 
+    // min_i => generated name renaming is done in the backend
     virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
                                     ConstTypes types) override
     {
@@ -113,6 +114,7 @@ class MinPrim : public xtended {
         return generateFun(container, fun_name, args, result, types);
     }
 
+    // min_i => generated name renaming is done here
     virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
                                      ConstTypes types) override
     {
@@ -141,21 +143,21 @@ class MinPrim : public xtended {
             if (b0 == kNum) {
                 if (b1 == kNum) {
                     // both are integers, no need to cast
-                    return subst("min_i($0, $1)", args[0], args[1]);
+                    return subst("faustmini($0, $1)", args[0], args[1]);
                 } else {
                     faustassert(b1 == kBool);  // second is boolean, cast to int
-                    return subst("min_i($0, int($1))", args[0], args[1]);
+                    return subst("faustmini($0, int($1))", args[0], args[1]);
                 }
             } else if (b1 == kNum) {
                 faustassert(b0 == kBool);  // first is boolean, cast to int
-                return subst("min_i(int($0), $1)", args[0], args[1], icast());
+                return subst("faustmini(int($0), $1)", args[0], args[1], icast());
             } else {
                 // both are booleans, theoretically no need to cast, but we still do it to be sure
                 // 'true' is actually '1' and 'false' is actually '0' (which is not the case if
                 // compiled in SSE mode)
                 faustassert(b0 == kBool);
                 faustassert(b1 == kBool);
-                return subst("min_i(int($0), int($1))", args[0], args[1]);
+                return subst("faustmini(int($0), int($1))", args[0], args[1]);
             }
         }
     }
