@@ -303,14 +303,9 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(NegInst* inst)
     {
-        if (inst->fInst->isSimpleValue()) {
-            *fOut << "-";
-            inst->fInst->accept(this);
-        } else {
-            *fOut << "-(";
-            inst->fInst->accept(this);
-            *fOut << ")";
-        }
+        *fOut << "-(";
+        inst->fInst->accept(this);
+        *fOut << ")";
     }
 
     virtual void visit(BinopInst* inst)
