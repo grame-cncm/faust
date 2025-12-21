@@ -21,6 +21,7 @@
 
 #include <string>
 
+#include "DependenciesPrinting.hh"
 #include "Text.hh"
 #include "clkEnvInference.hh"
 #include "factorizeFIRIIRs.hh"
@@ -37,10 +38,12 @@
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "revealSum.hh"
+#include "sigDegenerateRecursionElimination.hh"
 #include "sigDependenciesGraph.hh"
 #include "sigNewConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigRetiming.hh"
+#include "sigSelect2Simplification.hh"
 #include "sigToGraph.hh"
 #include "signal2Elementary.hh"
 #include "signalFIRCompiler.hh"
@@ -143,6 +146,20 @@ Tree InstructionsCompiler::prepare(Tree LS)
 
     Tree L2 = L2a;
 
+    // eliminate degenerate recursive projections if required (-edr option)
+    if (gGlobal->gEliminateDegenerateRecursions) {
+        startTiming("Degenerate recursion eliminator");
+        L2a = inlineDegenerateRecursions(L2a, false);
+        // Try to find a fix point
+
+        // for (int iteration = 1; iteration <= 4; iteration++) {
+        //     // std::cerr << " iteration " << iteration << " L2a " << L2a << '\n';
+        //     L2a = inlineDegenerateRecursions(L2a, false);
+        // }
+
+        endTiming("Degenerate recursion eliminator");
+    }
+
     // detect FIRs and IIRs if required
     if (gGlobal->gReconstructFIRIIRs) {
         startTiming("FIR revealer");
@@ -179,6 +196,34 @@ Tree InstructionsCompiler::prepare(Tree LS)
     startTiming("L2 typeAnnotation");
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");
+
+    // Simplify select2 signals based on type/interval analysis
+    if (gGlobal->gSimplifySelect2) {
+        startTiming("Simplify Select2");
+        L2 = simplifySelect2(L2, false);
+        endTiming("Simplify Select2");
+    }
+
+    // TRY TO REDO ALL THE ANNOTATIONS
+
+    startTiming("conditionAnnotation");
+    conditionAnnotation(L2);
+    endTiming("conditionAnnotation");
+
+    // Clear old recursiveness annotations before re-computing
+    startTiming("clearRecursivenessAnnotations");
+    clearRecursivenessAnnotations(L2);
+    endTiming("clearRecursivenessAnnotations");
+
+    startTiming("recursivenessAnnotation");
+    recursivenessAnnotation(L2);  // Annotate L2 with recursiveness information
+    endTiming("recursivenessAnnotation");
+
+    startTiming("L2 typeAnnotation");
+    typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
+    endTiming("L2 typeAnnotation");
+
+    // END
 
     startTiming("occurrences analysis");
     delete fOccMarkup;
@@ -595,14 +640,35 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             break;
     }
 
-    validateSignalList(L);  // validate the signal list
-
     // Annotate signals with their clock environments
     ClkEnvInference clkEnvInference;
     clkEnvInference.annotate(L);
+    
+    validateSignalList(L);  // validate the signal list
+    
+    // Compute and draw the recursion graph if requested (-rpg option)
+    if (gGlobal->gDrawRecProjGraph) {
+        digraph<Tree> recursionG = recursionGraph(L);
+        printRecursionGraphDot(recursionG, subst("$0-recsig.dot", gGlobal->makeDrawPath()));
+    }
 
     // Compute the hierarchical scheduling of L applying the chosen strategy
-    fHschedule = scheduleSigList(L, mySchedFun);
+    fHschedule     = scheduleSigList(L, mySchedFun);
+    fScheduleOrder = numberSchedule(fHschedule);
+    
+    // print hierarchical schedule if requested (-phs option)
+    if (gGlobal->gPrintHSchedule) {
+        printHschedWithDelays(fHschedule, fOccMarkup);
+        
+        // Also generate DOT graph with same option
+        std::string   dotfilename = gGlobal->gMasterName + "-phs.dot";
+        std::ofstream dotfile(dotfilename);
+        if (dotfile.is_open()) {
+            printHschedDOT(fHschedule, dotfile);
+            dotfile.close();
+            std::cerr << "Hierarchical schedule DOT graph written to: " << dotfilename << std::endl;
+        }
+    }
 
     // Then first compile the control or constant signals (i.e. non sample rate signals)
     for (Tree s : fHschedule.controls.elements()) {
