@@ -169,7 +169,9 @@ Soundfile* defaultsound = nullptr;
 #elif defined(SINGLE_TESTS)
 
 #include "dsp_scal.h"
-
+#if defined(__APPLE__)
+#include "dsp_scal_clang.h"
+#endif
 #endif
 
 using namespace std;
