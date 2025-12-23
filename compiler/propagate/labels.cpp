@@ -25,6 +25,8 @@
 #include "description.hh"
 #include "global.hh"
 
+#include <vector>
+
 using namespace std;
 
 //=========================== PATHNAME ===============================
@@ -286,5 +288,113 @@ bool matchGroup(Tree gpath, Tree lpath, Tree& rpath)
         }
     } else {
         return false;
+    }
+}
+
+/**
+ * @brief Normalize a group label with type prefix against current path.
+ * This function properly handles relative path components (.., .) in group labels.
+ * 
+ * @param groupType 0=vertical, 1=horizontal, 2=tab
+ * @param label The group label (may contain relative path components like "../name")
+ * @param currentPath The current path context (bottom-up list)
+ * @return The normalized path to use for contents of this group
+ */
+Tree normalizeGroupPath(int groupType, Tree label, Tree currentPath)
+{
+    // Safety check
+    if (!label) {
+        return cons(cons(tree(groupType), tree("")), currentPath);
+    }
+    
+    // Convert the label tree to a string
+    Sym s;
+    if (!isSym(label->node(), &s)) {
+        // If it's not a symbol, treat it as pre-parsed
+        return cons(cons(tree(groupType), label), currentPath);
+    }
+    
+    // Get the label string
+    const char* labelStr = name(s);
+    if (!labelStr || labelStr[0] == 0) {
+        // Empty label
+        return cons(cons(tree(groupType), tree("")), currentPath);
+    }
+    
+    // Parse the label to extract path components
+    Tree parsedPath = label2path(labelStr);
+    
+    if (!parsedPath || isNil(parsedPath)) {
+        // Empty parsed path, shouldn't happen but be safe
+        return cons(cons(tree(groupType), label), currentPath);
+    }
+    
+    // If the parsed path is just a single name (no / separators), 
+    // encode it with the group type and add to current path
+    if (isNil(tl(parsedPath))) {
+        Tree name = hd(parsedPath);
+        // Check if it's a special path component
+        if (isPathRoot(name) || isPathParent(name) || isPathCurrent(name)) {
+            // Just apply the path operation
+            return concatPath(parsedPath, currentPath);
+        } else {
+            // It's a simple name, encode it with group type
+            return cons(cons(tree(groupType), name), currentPath);
+        }
+    }
+    
+    // The parsed path has multiple components: [elem1, elem2, ..., finalName]
+    // We need to split off the final name and apply the rest (prefix) to currentPath.
+    // Strategy: Build a list of all elements except the last, then process them.
+    
+    // Collect all elements except the last into a vector for easier processing
+    std::vector<Tree> elements;
+    Tree temp = parsedPath;
+    while (!isNil(temp)) {
+        elements.push_back(hd(temp));
+        temp = tl(temp);
+    }
+    
+    if (elements.empty()) {
+        // Should not happen, but be safe
+        return cons(cons(tree(groupType), label), currentPath);
+    }
+    
+    // The last element is the final name
+    Tree finalName = elements.back();
+    
+    // Build the prefix path (all elements except the last) in correct order
+    Tree pathPrefix = gGlobal->nil;
+    for (size_t i = 0; i + 1 < elements.size(); i++) {
+        pathPrefix = cons(elements[i], pathPrefix);
+    }
+    
+    // Reverse pathPrefix to get correct top-down order
+    Tree reversedPrefix = gGlobal->nil;
+    while (!isNil(pathPrefix)) {
+        reversedPrefix = cons(hd(pathPrefix), reversedPrefix);
+        pathPrefix = tl(pathPrefix);
+    }
+    
+    // Apply the prefix to current path (this handles .. and .)
+    // concatPath resolves relative path elements (.., .) against the current path
+    Tree adjustedPath = concatPath(reversedPrefix, currentPath);
+    
+    // Check if adjustedPath is a bare path marker (not a list)
+    // This happens when ".." tries to go beyond the root of an empty path.
+    // In this case, concatPath returns a single pathParent marker.
+    // We wrap it in a list to maintain the path structure invariant.
+    if (adjustedPath && !isNil(adjustedPath) && !isList(adjustedPath)) {
+        // adjustedPath is a single marker (like pathParent), wrap it in a list
+        adjustedPath = cons(adjustedPath, gGlobal->nil);
+    }
+    
+    // Now add the final name with group type encoding
+    if (isPathRoot(finalName) || isPathParent(finalName) || isPathCurrent(finalName)) {
+        // This shouldn't normally happen (path ending in .. or .), but handle it
+        return concatPath(cons(finalName, gGlobal->nil), adjustedPath);
+    } else {
+        // Encode the final name with the group type
+        return cons(cons(tree(groupType), finalName), adjustedPath);
     }
 }
