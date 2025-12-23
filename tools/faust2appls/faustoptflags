@@ -14,23 +14,23 @@
 # Default compilation flags for gcc and icc :
 #
 if [ "$(uname -m)" = armv6l ]; then        # for Raspberry PI
-    MYGCCFLAGS="-std=c++14 -O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
+    MYGCCFLAGS="-std=c++17 -O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
 elif [ "$(uname -s)" = Darwin ]; then      # for macOS
     if [[ $(sysctl -n machdep.cpu.brand_string) =~ "Apple" ]]; then
         # Silicon MX
-        MYGCCFLAGS="-std=c++14 -Ofast"
+        MYGCCFLAGS="-std=c++17 -Ofast"
     else
         # Intel
-        MYGCCFLAGS="-std=c++14 -Ofast -march=native"
+        MYGCCFLAGS="-std=c++17 -Ofast -march=native"
     fi
-    MYGCCFLAGSGENERIC="-std=c++14 -Ofast"
+    MYGCCFLAGSGENERIC="-std=c++17 -Ofast"
 else                                        # for Linux (Intel)
-    MYGCCFLAGS="-std=c++14 -Ofast -march=native"
-    MYGCCFLAGSGENERIC="-std=c++14 -Ofast"
+    MYGCCFLAGS="-std=c++17 -Ofast -march=native"
+    MYGCCFLAGSGENERIC="-std=c++17 -Ofast"
 fi
 
 # For Linux (intel) with icc
-MYICCFLAGS="-std=c++14 -O3 -xHost -ftz -fno-alias -fp-model fast=2"
+MYICCFLAGS="-std=c++17 -O3 -xHost -ftz -fno-alias -fp-model fast=2"
 
 # Default compilers
 
