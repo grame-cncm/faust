@@ -533,16 +533,16 @@ string ScalarCompiler::CS(Tree sig)
 #ifdef TRACE
         int step = gGlobal->gSTEP;
         cerr << "\n"
-             << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
-             << "\t: generateCode( " << ppsig(sig, 10) << " )" << endl;
+             << step << " [order: " << fScheduleOrder[sig] << "] "
+             << "::" << sig << "\t: generateCode( " << ppsig(sig, 10) << " )" << endl;
 #endif
         code = generateCode(sig);
         setCompiledExpression(sig, code);
 
 #ifdef TRACE
         cerr << "\n"
-             << step << " [order: " << fScheduleOrder[sig] << "] " << "::" << sig
-             << "\t: ============> " << code << endl;
+             << step << " [order: " << fScheduleOrder[sig] << "] "
+             << "::" << sig << "\t: ============> " << code << endl;
 #endif
     }
     return code;
@@ -1832,11 +1832,18 @@ string ScalarCompiler::declareRetrieveDSName(Tree clock)
  */
 string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, string delayidx)
 {
+    DelayType dt = analyzeDelayType(exp);
+
+    // Simplify degenerated delayed of type x@0 that were not simplified before
+    if (dt == DelayType::kZeroDelay) {
+        return generateCacheCode(sig, CS(exp));
+    }
+
     string ctype, pname;
     getTypedNames(getCertifiedSigType(sig), "Vec", ctype, pname);
-    string    vecname = ensureVectorNameProperty(pname, exp);
-    int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
-    DelayType dt      = analyzeDelayType(exp);
+    string vecname = ensureVectorNameProperty(pname, exp);
+    int    mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
+
 #ifdef TRACE
     cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step "
          << fScheduleOrder[exp] << " -exp- " << exp << " :: " << ppsig(exp, 10) << '\n'
