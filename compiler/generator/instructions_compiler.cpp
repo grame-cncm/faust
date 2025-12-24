@@ -2557,12 +2557,18 @@ string InstructionsCompiler::declareRetrieveDSName(Tree clock)
 
 ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, ValueInst* delayidx)
 {
+    DelayType dt = analyzeDelayType(exp);
+    
+    // Simplify degenerated delayed of type x@0 that were not simplified before
+    if (dt == DelayType::kZeroDelay) {
+        return generateCacheCode(sig, CS(exp));
+    }
+    
     Typed::VarType ctype;
     string         pname;
     getTypedNames(getCertifiedSigType(sig), "Vec", ctype, pname);
     string    vecname = ensureVectorNameProperty(pname, exp);
     int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
-    DelayType dt      = analyzeDelayType(exp);
 #ifdef TRACE
     std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step "
               << fScheduleOrder[exp] << " -exp- " << exp << " :: " << ppsig(exp, 10) << '\n'
