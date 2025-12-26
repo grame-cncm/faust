@@ -688,7 +688,7 @@ void CodeContainer::createMemoryLayout()
                 ArrayToPointer1 array_pointer;
                 array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
             }
-     
+
             // TODO: rework DSP site computations with local arrays
 
             fMemoryLayout.push_back(

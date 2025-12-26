@@ -557,8 +557,10 @@ struct global {
     // FIR
     std::map<Typed::VarType, BasicTyped*>
         gTypeTable;  // To share a unique BasicTyped* object for a given type
+
     std::map<std::string, Typed*> gVarTypeTable;  // Types of variables or functions
-    std::map<Typed::VarType, int> gTypeSizeMap;   // Size of types in bytes
+
+    std::map<Typed::VarType, int> gTypeSizeMap;  // Size of types in bytes
     std::map<std::string, std::pair<std::string, int>>
         gTablesSize;  // Global tables size in bytes: class name, <table name, size>
 
@@ -665,10 +667,14 @@ struct global {
         }
     }
 
-    bool hasVarType(const std::string& name)
+    bool hasVarType(const std::string& name) const
     {
         return gVarTypeTable.find(name) != gVarTypeTable.end();
     }
+
+    void   clearVarTypeTable();
+    Typed* findVarType(const std::string& name) const;
+    void   registerVarType(const std::string& name, Typed* type);
 
     BasicTyped* genBasicTyped(Typed::VarType type);
 

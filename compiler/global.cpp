@@ -989,14 +989,32 @@ BasicTyped* global::genBasicTyped(Typed::VarType type)
     return gTypeTable[new_type];
 }
 
+void global::clearVarTypeTable()
+{
+    gVarTypeTable.clear();
+}
+
+Typed* global::findVarType(const string& name) const
+{
+    auto it = gVarTypeTable.find(name);
+    return (it != gVarTypeTable.end()) ? it->second : nullptr;
+}
+
+void global::registerVarType(const string& name, Typed* type)
+{
+    gVarTypeTable[name] = type;
+}
+
 void global::setVarType(const string& name, Typed::VarType type)
 {
-    gVarTypeTable[name] = genBasicTyped(type);
+    registerVarType(name, genBasicTyped(type));
 }
 
 Typed::VarType global::getVarType(const string& name)
 {
-    return gVarTypeTable[name]->getType();
+    Typed* var_type = findVarType(name);
+    faustassert(var_type);
+    return var_type->getType();
 }
 
 global::~global()

@@ -62,8 +62,7 @@ bool Typed::isVectorTyped()
 
 DeclareStructTypeInst* isStructType(const string& name)
 {
-    if (gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end()) {
-        Typed*         type     = gGlobal->gVarTypeTable[name];
+    if (Typed* type = gGlobal->findVarType(name)) {
         Typed::VarType ext_type = Typed::getTypeFromPtr(type->getType());
         // If type is an external Structured type
         if (gGlobal->gExternalStructTypes.find(ext_type) != gGlobal->gExternalStructTypes.end()) {
@@ -181,26 +180,26 @@ void BasicTyped::cleanup()
 }
 void DeclareVarInst::cleanup()
 {
-    gGlobal->gVarTypeTable.clear();
+    gGlobal->clearVarTypeTable();
 }
 
 // Variable types are kept in the global name <===> type table
 DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
     : fAddress(address), fType(type), fValue(value)
 {
-    if (gGlobal->gVarTypeTable.find(fAddress->getName()) == gGlobal->gVarTypeTable.end()) {
-        gGlobal->gVarTypeTable[fAddress->getName()] = type;
-    } else if (gGlobal->gVarTypeTable[fAddress->getName()] != type) {
+    const string name     = fAddress->getName();
+    Typed*       var_type = gGlobal->findVarType(name);
+    if (!var_type) {
+        gGlobal->registerVarType(name, type);
+    } else if (var_type != type) {
         // If named type, check their name and internal type
-        NamedTyped* name_t1 =
-            dynamic_cast<NamedTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
+        NamedTyped* name_t1 = dynamic_cast<NamedTyped*>(var_type);
         NamedTyped* name_t2 = dynamic_cast<NamedTyped*>(type);
         if (name_t1 && name_t2) {
             faustassert(name_t1->fName == name_t2->fName && name_t1->fType == name_t2->fType);
         } else {
             // If array type, check their size and internal type
-            ArrayTyped* array_t1 =
-                dynamic_cast<ArrayTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
+            ArrayTyped* array_t1 = dynamic_cast<ArrayTyped*>(var_type);
             ArrayTyped* array_t2 = dynamic_cast<ArrayTyped*>(type);
             if (array_t1 && array_t2) {
                 // Arrays have the same string representation
@@ -211,9 +210,8 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
                                        (array_t1->fSize == 0 || array_t2->fSize == 0);
                 faustassert(same_type || compatible_type);
                 // If fixed-point, check the string representations
-            } else if (dynamic_cast<FixedTyped*>(gGlobal->gVarTypeTable[fAddress->getName()])) {
-                faustassert(gGlobal->gVarTypeTable[fAddress->getName()]->toString() ==
-                            type->toString());
+            } else if (dynamic_cast<FixedTyped*>(var_type)) {
+                faustassert(var_type->toString() == type->toString());
             } else {
                 dump2FIR(address);
                 dump2FIR(type);
@@ -236,11 +234,11 @@ DeclareBufferIterators::DeclareBufferIterators(const string& name1, const string
 {
     for (int i = 0; i < channels; i++) {
         string chan_name = name1 + std::to_string(i);
-        auto   contains  = gGlobal->gVarTypeTable.find(chan_name);
-        if (contains == gGlobal->gVarTypeTable.end()) {
-            gGlobal->gVarTypeTable[chan_name] = type;
+        Typed* var_type  = gGlobal->findVarType(chan_name);
+        if (!var_type) {
+            gGlobal->registerVarType(chan_name, type);
         } else {
-            faustassert(contains->second == type);
+            faustassert(var_type == type);
         }
     }
 }
@@ -282,10 +280,11 @@ int ArrayTyped::getSizeBytes() const
 DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* code)
     : fName(name), fType(type), fCode(code)
 {
-    if (gGlobal->gVarTypeTable.find(name) == gGlobal->gVarTypeTable.end()) {
-        gGlobal->gVarTypeTable[name] = type;
+    Typed* var_type = gGlobal->findVarType(name);
+    if (!var_type) {
+        gGlobal->registerVarType(name, type);
     } else {
-        FunTyped* fun_type = static_cast<FunTyped*>(gGlobal->gVarTypeTable[name]);
+        FunTyped* fun_type = static_cast<FunTyped*>(var_type);
         // If same result type
         if (fun_type->getTyped() == type->getTyped()) {
             if ((gGlobal->gOutputLang == "llvm") && (fun_type->toString() != type->toString())) {
@@ -310,10 +309,8 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
 // Function argument variable types are kept in the global num <===> type table
 NamedTyped* IB::genNamedTyped(const string& name, Typed* type)
 {
-    if (gGlobal->gVarTypeTable.find(name) == gGlobal->gVarTypeTable.end()) {
-        // cout << "genNamedTyped " << name << " " <<
-        // Typed::gTypeString[type->getType()] << endl;
-        gGlobal->gVarTypeTable[name] = type;
+    if (!gGlobal->findVarType(name)) {
+        gGlobal->registerVarType(name, type);
     }
     return new NamedTyped(name, type);
 }

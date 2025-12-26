@@ -102,13 +102,12 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                         // Be sure variable is defined
                         // cerr << "createParameter kStack " << name << endl;
-                        faustassert(gGlobal->gVarTypeTable.find(name) !=
-                                    gGlobal->gVarTypeTable.end());
+                        Typed* var_type = gGlobal->findVarType(name);
+                        faustassert(var_type);
 
                         // Local in the enclosing context, becomes a fun parameter
                         BasicCloneVisitor cloner;
-                        fArgsTypeList.push_back(
-                            IB::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
+                        fArgsTypeList.push_back(IB::genNamedTyped(name, var_type->clone(&cloner)));
 
                         // It becomes a value in the fun-call argument list
                         fArgsValueList.push_back(IB::genLoadStackVar(name));
@@ -130,12 +129,12 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                     // Be sure variable is defined
                     // cerr << "createParameter kFunArgs " << name << endl;
-                    faustassert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
+                    Typed* var_type = gGlobal->findVarType(name);
+                    faustassert(var_type);
 
                     // Parameter in the enclosing function, becomes a fun parameter
                     BasicCloneVisitor cloner;
-                    fArgsTypeList.push_back(
-                        IB::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
+                    fArgsTypeList.push_back(IB::genNamedTyped(name, var_type->clone(&cloner)));
 
                     // It becomes a value in the fun-call argument list : keep it's kFunArgs status
                     fArgsValueList.push_back(IB::genLoadFunArgsVar(name));
