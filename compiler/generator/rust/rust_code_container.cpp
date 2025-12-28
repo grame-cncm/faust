@@ -295,6 +295,8 @@ void RustCodeContainer::produceClass()
     // Missing math functions
     // See: https://users.rust-lang.org/t/analog-of-c-std-remainder/59670
     if (gGlobal->gFloatSize == 1 && !gGlobal->gRustNoLibm) {
+        *fOut << "#[cfg(not(target_arch = \"wasm32\"))] // Compile ffi bindings only on non-wasm targets";
+        tab(n, *fOut);
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
         *fOut << "use std::os::raw::c_float;";
@@ -315,13 +317,25 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "fn remainder_f32(from: f32, to: f32) -> f32 {";
         tab(n + 1, *fOut);
+        *fOut << "#[cfg(not(target_arch = \"wasm32\"))] // non-wasm targets use ffi bindings";
+        tab(n + 1, *fOut);
         *fOut << "unsafe { ffi::remainderf(from, to) }";
+        tab(n + 1, *fOut);
+        *fOut << "#[cfg(target_arch = \"wasm32\")] // wasm relies on libm";
+        tab(n + 1, *fOut);
+        *fOut << "libm::remainderf(from, to)";
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
         *fOut << "fn rint_f32(val: f32) -> f32 {";
         tab(n + 1, *fOut);
+        *fOut << "#[cfg(not(target_arch = \"wasm32\"))] // non-wasm targets use ffi bindings";
+        tab(n + 1, *fOut);
         *fOut << "unsafe { ffi::rintf(val) }";
+        tab(n + 1, *fOut);
+        *fOut << "#[cfg(target_arch = \"wasm32\")] // wasm relies on libm";
+        tab(n + 1, *fOut);
+        *fOut << "libm::rintf(val)";
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
@@ -332,6 +346,8 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         */
     } else if (gGlobal->gFloatSize == 2 && !gGlobal->gRustNoLibm) {
+        *fOut << "#[cfg(not(target_arch = \"wasm32\"))] // Compile ffi bindings only on non-wasm targets";
+        tab(n + 1, *fOut);
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
         *fOut << "use std::os::raw::c_double;";
@@ -352,13 +368,25 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "fn remainder_f64(from: f64, to: f64) -> f64 {";
         tab(n + 1, *fOut);
+        *fOut << "#[cfg(not(target_arch = \"wasm32\"))] // non-wasm targets use ffi bindings";
+        tab(n + 1, *fOut);
         *fOut << "unsafe { ffi::remainder(from, to) }";
+        tab(n + 1, *fOut);
+        *fOut << "#[cfg(target_arch = \"wasm32\")] // wasm relies on libm";
+        tab(n + 1, *fOut);
+        *fOut << "libm::remainder(from, to)";
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
         *fOut << "fn rint_f64(val: f64) -> f64 {";
         tab(n + 1, *fOut);
+        *fOut << "#[cfg(not(target_arch = \"wasm32\"))] // non-wasm targets use ffi bindings";
+        tab(n + 1, *fOut);
         *fOut << "unsafe { ffi::rint(val) }";
+        tab(n + 1, *fOut);
+        *fOut << "#[cfg(target_arch = \"wasm32\")] // wasm relies on libm";
+        tab(n + 1, *fOut);
+        *fOut << "libm::rint(val)";
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
