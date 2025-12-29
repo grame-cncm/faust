@@ -10,6 +10,9 @@ else
  FAUST ?= ../../build/bin/faust
 endif
 MAKE ?= make
+FAUSTBENCH ?= faustbench
+BENCH_OPTIONS ?=
+BENCH_WARN_MIN ?= 5
 
 # Source locations and includes shared across targets
 SAMPLESROOT := ../..
@@ -19,7 +22,7 @@ FAUSTLIBS2 ?= ../../libraries/old
 FAUSTINC  ?= ../../architecture/faust
 
 # Lists of DSPs used by the JSON targets (examples + codegen-tests, minus exclusions)
-DSP_EXAMPLES := $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v "TODO\|old\|faust-stk\|SAM")
+DSP_EXAMPLES := $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v "TODO\|old\|faust-stk\|SAM\|autodiff")
 DSP_REGRESSION := $(shell find $(REGRESSION)/codegen-tests -name "*.dsp" | grep -v BUG)
 
 # Capture current Faust version to segregate outputs
@@ -36,6 +39,45 @@ GCC ?= gcc
 CPP_OPTIONS := -std=c++14 -Wno-unused-command-line-argument -I$(FAUSTINC)
 
 C_OPTIONS := -Wno-unused-command-line-argument -I$(FAUSTINC)
+
+BENCH_REF_VERSION ?= $(version)
+BENCH_REF_DIR := $(BENCH_REF_VERSION)/bench-reference
+BENCH_CSV ?=
+
+# Common helpers for faustbench runs in this Makefile.
+# Tools: faustbench, grep, sed, awk, mktemp.
+define BENCH_SETUP
+@set -e; \
+bench_value() { \
+  : Run faustbench and echo the parsed MBytes/sec value.; \
+  file="$$1"; \
+  tmp=$$(mktemp); \
+  if $(FAUSTBENCH) $(BENCH_OPTIONS) -single -I $(FAUSTLIBS1) -I $(FAUSTLIBS2) "$$file" > "$$tmp" 2>&1; then \
+    line="$$(grep -m1 'MBytes/sec' "$$tmp" || true)"; \
+    if [ -n "$$line" ]; then \
+      val="$$(printf '%s\n' "$$line" | sed -nE 's/.*: ([0-9.]+) MBytes\/sec.*/\1/p')"; \
+      rm -f "$$tmp"; \
+      if [ -n "$$val" ]; then \
+        printf '%s' "$$val"; \
+        return 0; \
+      fi; \
+    fi; \
+  fi; \
+  rm -f "$$tmp"; \
+  return 1; \
+}; \
+rel_path() { \
+  : Map an absolute example path to a samples-root-relative path.; \
+  case "$$1" in \
+    $(SAMPLESROOT)/*) printf '%s' "$${1#$(SAMPLESROOT)/}";; \
+  esac; \
+}; \
+bench_ref_path() { \
+  : Compute the reference file path for a given DSP file.; \
+  rel=$$(rel_path "$$1"); \
+  printf '%s/%s/%s.bench' "$(BENCH_REF_DIR)" "$$(dirname -- "$$rel")" "$$(basename "$$1")"; \
+};
+endef
 
 # Default: run all backends plus native C/C++ compilation checks
 all:
@@ -102,25 +144,25 @@ llvm:  # LLVM backend (scalar + vector)
 julia:  # Julia backend
 	$(MAKE) -f Make.lang outdir=julia lang=julia ext=julia FAUSTOPTIONS=""
 	
-rust:   # Rust backend
+rust:  # Rust backend
 	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rust FAUSTOPTIONS=""
 	
 trace:  # Interpreter tracer demo
 	$(MAKE) -f Make.lang interp-tracer 
 	
-jtrace: # Julia tracer demo
+jtrace:  # Julia tracer demo
 	$(MAKE) -f Make.lang julia-tracer 
 
 cmajor: # faust2cmajor wrapper
 	$(MAKE) -f Make.lang cmajor 
 
-rnbo:   # faust2rnbo wrapper
+rnbo:  # faust2rnbo wrapper
 	$(MAKE) -f Make.lang rnbo 
 	
-doc:    # Markdown/SVG documentation generation
+doc:  # Markdown/SVG documentation generation
 	$(MAKE) -f Make.lang doc 
 
-me:     # C++ backend with -me option
+me:  # C++ backend with -me option
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -me -a ./min.cpp"
 
 #########################################################################
@@ -129,6 +171,88 @@ me:     # C++ backend with -me option
 interp:
 	$(MAKE) -f Make.lang outdir=interp lang=interp ext=fbc FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=interp/vec lang=interp ext=fbc FAUSTOPTIONS=" -vec -lv 1"
+
+bench-reference:  # Create benchmark reference for example DSPs using faustbench
+	$(BENCH_SETUP) \
+	for file in $(DSP_EXAMPLES); do \
+		printf '[bench-reference] %s\n' "$$file"; \
+		ref=$$(bench_ref_path "$$file"); \
+		if [ -f "$$ref" ]; then \
+			printf '[bench-reference] skip existing %s\n' "$$ref"; \
+			continue; \
+		fi; \
+		mkdir -p "$$(dirname -- "$$ref")"; \
+		if val="$$(bench_value "$$file")"; then \
+			printf '%s\n' "$$val" > "$$ref"; \
+		else \
+			printf '[warn] could not parse bench output for %s\n' "$$file" >&2; \
+		fi; \
+	done
+
+bench-check:  # Check current benchmarks against reference for example DSPs
+	$(BENCH_SETUP) \
+	refdir=$(BENCH_REF_DIR); \
+	if [ ! -d "$$refdir" ]; then \
+		echo "Reference benchmark directory '$$refdir' not found; run 'make bench-reference' first."; \
+		exit 1; \
+	fi; \
+	if [ -n "$(BENCH_CSV)" ]; then \
+		mkdir -p "$$(dirname -- "$(BENCH_CSV)")"; \
+		printf 'file,ref,cur,diff_pct\n' > "$(BENCH_CSV)"; \
+	fi; \
+	total=0; better=0; worse=0; \
+	for file in $(DSP_EXAMPLES); do \
+		printf '[bench-check] %s\n' "$$file"; \
+		ref=$$(bench_ref_path "$$file"); \
+		if [ ! -f "$$ref" ]; then \
+			printf '[skip] missing reference for %s\n' "$$file" >&2; \
+			continue; \
+		fi; \
+		if cur="$$(bench_value "$$file")"; then \
+			refval="$$(cat "$$ref")"; \
+			if [ -n "$$cur" ] && [ -n "$$refval" ]; then \
+				printf '[bench-check] ref %s cur %s for %s\n' "$$refval" "$$cur" "$$file"; \
+				total=$$((total + 1)); \
+				diff="$$(LC_ALL=C awk -v cur="$$cur" -v ref="$$refval" 'BEGIN { if (ref == 0) { print "inf"; } else { d=(cur-ref)/ref*100; if (d < 0) d=-d; printf "%.2f", d; } }')"; \
+				delta="$$(LC_ALL=C awk -v cur="$$cur" -v ref="$$refval" 'BEGIN { if (ref == 0) { print "inf"; } else { d=(cur-ref)/ref*100; printf "%.2f", d; } }')"; \
+				if [ -n "$(BENCH_CSV)" ]; then \
+					printf '%s,%s,%s,%s\n' "$$(basename "$$file")" "$$refval" "$$cur" "$$delta" >> "$(BENCH_CSV)"; \
+				fi; \
+				if [ "$$diff" = "inf" ]; then \
+					printf '[warn] zero reference for %s (ref %s)\n' "$$file" "$$refval" >&2; \
+				else \
+					is_warn=0; \
+					if LC_ALL=C awk -v d="$$diff" -v min="$(BENCH_WARN_MIN)" 'BEGIN { exit !(d >= min) }'; then \
+						is_warn=1; \
+					fi; \
+					if LC_ALL=C awk -v d="$$delta" 'BEGIN { exit !(d > 0) }'; then \
+						better=$$((better + 1)); \
+						printf '\033[32m[better]\033[0m %s +%s%% (ref %s, cur %s)\n' "$$file" "$$diff" "$$refval" "$$cur" >&2; \
+					elif LC_ALL=C awk -v d="$$delta" 'BEGIN { exit !(d < 0) }'; then \
+						worse=$$((worse + 1)); \
+						printf '\033[31m[worse]\033[0m %s -%s%% (ref %s, cur %s)\n' "$$file" "$$diff" "$$refval" "$$cur" >&2; \
+					else \
+						printf '[same] %s 0.00%% (ref %s, cur %s)\n' "$$file" "$$refval" "$$cur" >&2; \
+					fi; \
+					if [ "$$is_warn" -eq 1 ]; then \
+						printf '[warn] %s exceeds %s%% threshold\n' "$$file" "$(BENCH_WARN_MIN)" >&2; \
+					fi; \
+				fi; \
+			else \
+				printf '[warn] could not parse bench output for %s\n' "$$file" >&2; \
+			fi; \
+		else \
+			printf '[warn] could not parse bench output for %s\n' "$$file" >&2; \
+		fi; \
+	done; \
+	if [ "$$total" -gt 0 ]; then \
+		better_pct="$$(LC_ALL=C awk -v b="$$better" -v t="$$total" 'BEGIN { printf "%.1f", (b / t) * 100 }')"; \
+		worse_pct="$$(LC_ALL=C awk -v w="$$worse" -v t="$$total" 'BEGIN { printf "%.1f", (w / t) * 100 }')"; \
+	else \
+		better_pct="0.0"; \
+		worse_pct="0.0"; \
+	fi; \
+	printf '[bench-check] total: %s, better: %s (%s%%), worse: %s (%s%%)\n' "$$total" "$$better" "$$better_pct" "$$worse" "$$worse_pct"
 
 help:
 	@echo "-------- FAUST compilation tests --------"
@@ -156,6 +280,17 @@ help:
 	@echo " 'json-compare': regenerates JSON (-json) and diffs against existing $(version)/json"
 	@echo " 'me'         : compiles using the C++ backend with -me option"
 	@echo " 'check'      : compiles using the C++ backend and FAUST_DEBUG=FIR_VAR_CHECKER"
+	@echo " 'bench-reference' : creates faustbench references for example DSPs"
+	@echo "                    Use BENCH_OPTIONS to add additional compiler options"
+	@echo "                    Example: make bench-reference BENCH_OPTIONS=\"-lang ocpp\""
+	@echo " 'bench-check'     : compares current faustbench results to references"
+	@echo "                    Example: make bench-check BENCH_OPTIONS=\"-lang ocpp\""
+	@echo "                    Use BENCH_REF_VERSION to compare against another compiler's refs"
+	@echo "                    Example: make bench-check BENCH_REF_VERSION=2.81.0"
+	@echo "                    Use BENCH_WARN_MIN for percent warning threshold (default: 5)"
+	@echo "                    Example: make bench-check BENCH_WARN_MIN=10"
+	@echo "                    Use BENCH_CSV to write CSV output (file,ref,cur,diff_pct)"
+	@echo "                    Example: make bench-check BENCH_CSV=bench-check.csv"
 	@echo " 'doc'        : test the -mdoc, -svg options"
 
 	@echo " 'clean'      : to remove the folder named using faust version"
