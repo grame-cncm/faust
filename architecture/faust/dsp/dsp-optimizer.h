@@ -129,6 +129,31 @@ class dsp_optimizer_real {
                 t0.push_back("-mcd");
                 t0.push_back("0");
                 fScalOptionsTable.push_back(t0);
+
+                // Delay-line strategy variants: ring buffer with mask vs if-based wrapping.
+                std::vector <std::string> t0_dlt0;
+                t0_dlt0.push_back("-scal");
+                t0_dlt0.push_back("-mcd");
+                t0_dlt0.push_back("0");
+                t0_dlt0.push_back("-dlt");
+                t0_dlt0.push_back("0");
+                fScalOptionsTable.push_back(t0_dlt0);
+
+                std::vector <std::string> t0_dlt8;
+                t0_dlt8.push_back("-scal");
+                t0_dlt8.push_back("-mcd");
+                t0_dlt8.push_back("0");
+                t0_dlt8.push_back("-dlt");
+                t0_dlt8.push_back("8");
+                fScalOptionsTable.push_back(t0_dlt8);
+
+                std::vector <std::string> t_mix_dlt7;
+                t_mix_dlt7.push_back("-scal");
+                t_mix_dlt7.push_back("-mcd");
+                t_mix_dlt7.push_back("4");
+                t_mix_dlt7.push_back("-dlt");
+                t_mix_dlt7.push_back("7");
+                fScalOptionsTable.push_back(t_mix_dlt7);
                 
                 // Scalar mode with different -mcd
                 for (int size = 2; size <= fBufferSize; size *= 2) {
@@ -491,6 +516,34 @@ class dsp_optimizer_real {
                 }
                 return findOptimizedParametersAux(options_table);
             }
+        }
+
+        /**
+         * Returns the best compilations parameters in scalar mode only.
+         *
+         * @return the best result (in Megabytes/seconds), DSP CPU (in 0..1), and compilation parameters in a vector.
+         */
+        std::tuple<double, double, double, TOption> findOptimizedScalarParameters()
+        {
+            if (fTrace) fprintf(stdout, "Discover best scalar parameters option\n");
+            std::tuple<double, double, double, TOption> best_scal = findOptimizedParametersAux(fScalOptionsTable);
+
+            // Current best
+            TOptionTable options_table;
+            {
+                TOption best = std::get<3>(best_scal);
+                options_table.push_back(best);
+            }
+
+            if (fTrace) fprintf(stdout, "Check with -ct 0\n");
+            // Add -ct 0
+            {
+                TOption best = std::get<3>(best_scal);
+                best.push_back("-ct");
+                best.push_back("0");
+                options_table.push_back(best);
+            }
+            return findOptimizedParametersAux(options_table);
         }
     
         /**

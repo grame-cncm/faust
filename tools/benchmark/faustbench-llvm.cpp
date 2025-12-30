@@ -32,9 +32,11 @@
 using namespace std;
 
 template <typename REAL>
-static void bench(dsp_optimizer_real<REAL> optimizer, const string& in_filename, bool is_trace)
+static void bench(dsp_optimizer_real<REAL> optimizer, const string& in_filename, bool is_trace, bool is_scalar)
 {
-    tuple<double, double, double, TOption> res = optimizer.findOptimizedParameters();
+    tuple<double, double, double, TOption> res = is_scalar
+                                                 ? optimizer.findOptimizedScalarParameters()
+                                                 : optimizer.findOptimizedParameters();
     if (is_trace) cout << "Best value for '" << in_filename << "' is : " << get<0>(res) << " MBytes/sec, SD : " << get<1>(res) << "% (DSP CPU : " << (get<2>(res) * 100) << "% at 44100 Hz) with ";
     for (size_t i = 0; i < get<3>(res).size(); i++) {
         cout << get<3>(res)[i] << " ";
@@ -68,11 +70,12 @@ static void splitTarget(const string& target, string& triple, string& cpu)
 int main(int argc, char* argv[])
 {
     if (argc == 1 || isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "faustbench-llvm [-notrace] [-control] [-generic] [-single] [-run <num>] [-bs <frames>] [-opt <level (0..4|-1)>] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "faustbench-llvm [-notrace] [-control] [-generic] [-single] [-scalar] [-run <num>] [-bs <frames>] [-opt <level (0..4|-1)>] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-notrace' to only generate the best compilation parameters\n";
         cout << "Use '-control' to update all controllers with random values at each cycle\n";
         cout << "Use '-generic' to compile for a generic processor, otherwise the native CPU will be used\n";
         cout << "Use '-single' to execute only one test (scalar by default)\n";
+        cout << "Use '-scalar' to only execute scalar tests\n";
         cout << "Use '-run <num>' to execute each test <num> times\n";
         cout << "Use '-bs <frames>' to set the buffer-size in frames\n";
         cout << "Use '-opt <level (0..4|-1)>' to pass an optimisation level to LLVM, between 0 and 4 (-1 means 'maximal level' if range changes in the future)\n";
@@ -86,9 +89,10 @@ int main(int argc, char* argv[])
     bool is_trace = !isopt(argv, "-notrace");
     bool is_control = isopt(argv, "-control");
     bool is_single = isopt(argv, "-single");
+    bool is_scalar = isopt(argv, "-scalar");
     bool is_generic = isopt(argv, "-generic");
     int run = lopt(argv, "-run", 1);
-    int buffer_size = lopt(argv, "-bs", 512);
+    int buffer_size = lopt(argv, "-bs", 128);
     int opt = lopt(argv, "-opt", -1);
     int ds = lopt(argv, "-ds", 0);
     int us = lopt(argv, "-us", 0);
@@ -115,7 +119,7 @@ int main(int argc, char* argv[])
     if (is_trace) cout << "Compiled with additional options : ";
     
     static const unordered_set<string> flags_no_arg = {
-        "-single", "-generic", "-control"
+        "-single", "-scalar", "-generic", "-control"
     };
     static const unordered_set<string> flags_with_arg = {
         "-run", "-opt", "-bs", "-ds", "-us", "-filter"
@@ -180,7 +184,8 @@ int main(int argc, char* argv[])
                                                 is_control,
                                                 ds, us, filter),
                                                 in_filename,
-                                                is_trace);
+                                                is_trace,
+                                                is_scalar);
             } else {
                 bench(dsp_optimizer_real<float>(in_filename,
                                                argc1, argv1,
@@ -190,7 +195,8 @@ int main(int argc, char* argv[])
                                                is_control,
                                                ds, us, filter),
                                                in_filename,
-                                               is_trace);
+                                               is_trace,
+                                               is_scalar);
             }
         }
     } catch (...) {
