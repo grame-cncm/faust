@@ -10,7 +10,7 @@ else
  FAUST ?= ../../build/bin/faust
 endif
 MAKE ?= make
-FAUSTBENCH ?= faustbench
+FAUSTBENCH ?= faustbench -single
 BENCH_OPTIONS ?=
 BENCH_WARN_MIN ?= 5
 
@@ -52,7 +52,7 @@ bench_value() { \
   : Run faustbench and echo the parsed MBytes/sec value.; \
   file="$$1"; \
   tmp=$$(mktemp); \
-  if $(FAUSTBENCH) $(BENCH_OPTIONS) -single -I $(FAUSTLIBS1) -I $(FAUSTLIBS2) "$$file" > "$$tmp" 2>&1; then \
+  if $(FAUSTBENCH) $(BENCH_OPTIONS) -I $(FAUSTLIBS1) -I $(FAUSTLIBS2) "$$file" > "$$tmp" 2>&1; then \
     line="$$(grep -m1 'MBytes/sec' "$$tmp" || true)"; \
     if [ -n "$$line" ]; then \
       val="$$(printf '%s\n' "$$line" | sed -nE 's/.*: ([0-9.]+) MBytes\/sec.*/\1/p')"; \
@@ -281,9 +281,12 @@ help:
 	@echo " 'me'         : compiles using the C++ backend with -me option"
 	@echo " 'check'      : compiles using the C++ backend and FAUST_DEBUG=FIR_VAR_CHECKER"
 	@echo " 'bench-reference' : creates faustbench references for example DSPs"
+	@echo "                    Use FAUSTBENCH to setup the benchmark tool (default to 'faustbench -single')"
+	@echo "                    Example: make bench-reference FAUSTBENCH=\"faustbench-llvm -scalar\""
 	@echo "                    Use BENCH_OPTIONS to add additional compiler options"
 	@echo "                    Example: make bench-reference BENCH_OPTIONS=\"-lang ocpp\""
 	@echo " 'bench-check'     : compares current faustbench results to references"
+	@echo "                    Use BENCH_OPTIONS to add additional compiler options"
 	@echo "                    Example: make bench-check BENCH_OPTIONS=\"-lang ocpp\""
 	@echo "                    Use BENCH_REF_VERSION to compare against another compiler's refs"
 	@echo "                    Example: make bench-check BENCH_REF_VERSION=2.81.0"
