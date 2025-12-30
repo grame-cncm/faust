@@ -166,7 +166,8 @@ void recSchema::collectTraits(collector& c)
 
     // draw the feedback connections to each fSchema2 input
     for (unsigned int i = 0; i < fSchema2->inputs(); i++) {
-        collectFeedback(c, fSchema1->outputPoint(i), fSchema2->inputPoint(i), i * dWire,
+        double offset = (i + 1) * dWire;
+        collectFeedback(c, fSchema1->outputPoint(i), fSchema2->inputPoint(i), -offset,
                         outputPoint(i));
     }
 
@@ -187,7 +188,8 @@ void recSchema::collectTraits(collector& c)
 
     // draw the feedfront connections from each fSchema2 output
     for (unsigned int i = 0; i < fSchema2->outputs(); i++) {
-        collectFeedfront(c, fSchema2->outputPoint(i), fSchema1->inputPoint(i), i * dWire);
+        double offset = (i + 1) * dWire;
+        collectFeedfront(c, fSchema2->outputPoint(i), fSchema1->inputPoint(i), offset);
     }
 }
 
@@ -204,6 +206,9 @@ void recSchema::collectFeedback(collector& c, const point& src, const point& dst
     point up(ox, src.y - ct);
     point br(ox + ct / 2.0, src.y);
 
+    c.addOutput(src);
+    c.addInput(dst);
+    c.addOutput(point(ox, dst.y));
     c.addOutput(up);
     c.addOutput(br);
     c.addInput(br);
@@ -222,6 +227,10 @@ void recSchema::collectFeedfront(collector& c, const point& src, const point& ds
 {
     double ox = src.x + ((orientation() == kLeftRight) ? -dx : dx);
 
+    c.addOutput(src);
+    c.addInput(dst);
+    c.addOutput(point(ox, src.y));
+    c.addInput(point(ox, dst.y));
     c.addTrait(trait(point(src.x, src.y), point(ox, src.y)));
     c.addTrait(trait(point(ox, src.y), point(ox, dst.y)));
     c.addTrait(trait(point(ox, dst.y), point(dst.x, dst.y)));
