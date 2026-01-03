@@ -47,19 +47,14 @@
  */
 static void addDependencies(const Tree& curClkEnv, std::set<Tree>& visited,
                             std::map<Tree, digraph<Tree>>& subgraphs, std::set<Tree>& externals,
-                            std::set<Tree>& controls, digraph<Tree>& graph, const Tree& curSig)
+                            digraph<Tree>& graph, const Tree& curSig)
 {
     // Skip signals that have already been visited
     if (visited.find(curSig) != visited.end()) {
         return;
     }
 
-    // Handle signals that are external to the current clock environment
-    if (isControl(curSig)) {
-        controls.insert(curSig);
-        return;
-    }
-
+    // Postpone signals that are external to the current clock environment
     if (isExternal(curClkEnv, curSig)) {
         externals.insert(curSig);
         return;
@@ -87,19 +82,17 @@ static void addDependencies(const Tree& curClkEnv, std::set<Tree>& visited,
         digraph<Tree>& G = subgraphs[curSig];
         for (Tree s : immediate) {
             if (s != clockedClk) {  // the clock does not belong to the subgraph
-                addDependencies(subClkEnv, visited, subgraphs, X, controls, G, s);
+                addDependencies(subClkEnv, visited, subgraphs, X, G, s);
             }
         }
 
         for (Tree s : X) {
             if (isExternal(curClkEnv, s)) {
                 externals.insert(s);
-            } else if (isControl(s)) {
-                controls.insert(s);
             } else {
                 // DEBUG: trackSignalInsertion(curSig, graph);
                 graph.add(curSig, s);
-                addDependencies(curClkEnv, visited, subgraphs, externals, controls, graph, s);
+                addDependencies(curClkEnv, visited, subgraphs, externals, graph, s);
             }
         }
         return;
@@ -111,20 +104,16 @@ static void addDependencies(const Tree& curClkEnv, std::set<Tree>& visited,
     for (Tree ids : immediate) {
         if (isExternal(curClkEnv, ids)) {
             externals.insert(ids);
-        } else if (isControl(ids)) {
-            controls.insert(ids);
         } else {
             graph.add(curSig, ids);
-            addDependencies(curClkEnv, visited, subgraphs, externals, controls, graph, ids);
+            addDependencies(curClkEnv, visited, subgraphs, externals, graph, ids);
         }
     }
     for (Tree dds : delayed) {
         if (isExternal(curClkEnv, dds)) {
             externals.insert(dds);
-        } else if (isControl(dds)) {
-            controls.insert(dds);
         } else {
-            addDependencies(curClkEnv, visited, subgraphs, externals, controls, graph, dds);
+            addDependencies(curClkEnv, visited, subgraphs, externals, graph, dds);
         }
     }
 }
@@ -174,18 +163,15 @@ Hgraph dependenciesGraphs(Tree signalList)
     std::map<Tree, digraph<Tree>> sigToGraph;
 
     // Traverse the list of output signals
-    std::set<Tree> externals;
-    std::set<Tree> controls;
+    std::set<Tree> externals;  // the remaining externals should be < kSamp signals
     for (Tree sl = signalList; isList(sl); sl = tl(sl)) {
-        addDependencies(gGlobal->nil, visited, sigToGraph, externals, controls,
-                        sigToGraph[signalList], hd(sl));
+        addDependencies(gGlobal->nil, visited, sigToGraph, externals, sigToGraph[signalList],
+                        hd(sl));
     }
-    // we are not supposed to have external signals left
-    faustassert(externals.size() == 0);
 
     digraph<Tree> ctrlGraph;
 
-    for (Tree s : controls) {
+    for (Tree s : externals) {
         simpleAddDependencies(ctrlGraph, s);
     }
 
