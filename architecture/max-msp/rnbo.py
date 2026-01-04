@@ -1,24 +1,24 @@
 """
- FAUST Architecture File
- Copyright (C) 2023-2025 GRAME, Centre National de Creation Musicale
- ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either version 3
- of the License, or (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Lesser General Public License for more details.
- 
- You should have received a copy of the GNU Lesser General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
- EXCEPTION : As a special exception, you may create a larger work
- that contains this FAUST architecture section and distribute
- that work under terms of your choice, so long as this FAUST
- architecture section is not modified.
+FAUST Architecture File
+Copyright (C) 2023-2026 GRAME, Centre National de Creation Musicale
+---------------------------------------------------------------------
+This Architecture section is free software; you can redistribute it
+and/or modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either version 3
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+EXCEPTION : As a special exception, you may create a larger work
+that contains this FAUST architecture section and distribute
+that work under terms of your choice, so long as this FAUST
+architecture section is not modified.
 """
 
 """
@@ -1230,7 +1230,7 @@ def create_rnbo_patch_flat(
 
     # Faust generated patch comment
     patcher.add_comment(
-        "Faust generated RNBO patch, Copyright (c) 2023-2025 Grame",
+        "Faust generated RNBO patch, Copyright (c) 2023-2026 Grame",
         patching_rect=[50.0, 10.0, 350.0, 100.0],
         fontsize=16,
     )
@@ -1363,7 +1363,7 @@ def create_rnbo_patch(
 
     # Faust generated patch comment
     patcher.add_comment(
-        "Faust generated RNBO patch, Copyright (c) 2023-2025 Grame",
+        "Faust generated RNBO patch, Copyright (c) 2023-2026 Grame",
         patching_rect=[50.0, 10.0, 350.0, 100.0],
         fontsize=16,
     )
