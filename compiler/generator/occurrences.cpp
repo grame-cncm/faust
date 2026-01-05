@@ -210,6 +210,11 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
                            V[0]);  // increment the delayed occurences of the signal}
                 }
             }
+            if (!getOcc(V[0])) {
+                // Fix degenerated case FIR[X,0,0,...] where X would not be marked
+                // TODO: ideally a pass should replace such degenerated FIR by 0
+                incOcc(env, kSamp, r0, 0, c0, V[0]);
+            }
 
         } else if (isSigIIR(t, V)) {
             // an IIR is computed at kSamp
