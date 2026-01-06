@@ -1,4 +1,4 @@
-% man(1) Version 2.83.4 (28-December-2025) | Faust man page
+% man(1) Version 2.83.5 (06-January-2026) | Faust man page
 
 NAME
 ====
@@ -285,6 +285,6 @@ Please report bugs to: **<https://github.com/grame-cncm/faust/issues>**
 AUTHOR
 ======
 
-Copyright (C) 2002-2025, GRAME - Centre National de Creation Musicale.
+Copyright (C) 2002-2026, GRAME - Centre National de Creation Musicale.
 All rights reserved.
 
