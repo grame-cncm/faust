@@ -467,7 +467,7 @@ ir/mute:
 #########################################################################
 # building reference files
 reference:
-	$(MAKE) -f Make.ref
+	$(MAKE) -f Make.ref reference-od
 
 reference-box:
 	cd reference && rm -f *.box
