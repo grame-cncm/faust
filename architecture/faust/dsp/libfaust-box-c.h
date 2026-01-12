@@ -462,9 +462,9 @@ LIBFAUST_API Box CboxFVar(enum SType type, const char* name, const char* incfile
  *
  * @return the result box of op(x,y).
  */
-LIBFAUST_API Box CboxBinOp(SOperator op);
+LIBFAUST_API Box CboxBinOp(enum SOperator op);
 
-LIBFAUST_API Box CboxBinOpAux(SOperator op, Box b1, Box b2);
+LIBFAUST_API Box CboxBinOpAux(enum SOperator op, Box b1, Box b2);
 
 /**
  * Specific binary mathematical functions.
