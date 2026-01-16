@@ -1,7 +1,7 @@
 
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2025 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2025-2026 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -26,6 +26,9 @@
 // (https://github.com/bytecodealliance/wasmtime)
 
 #define JACK 1
+
+#include <libgen.h>
+#include "faust/gui/GTKUI.h"
 
 #if JACK
 #include "faust/audio/jack-dsp.h"
@@ -62,6 +65,9 @@ int main(int argc, char* argv[])
     string error_msg;
     cout << "Libfaust version : " << getCLibFaustVersion() << endl;
     
+    char filename[256];
+    snprintf(filename, 255, "%s", basename(argv[argc-1]));
+    
     std::string file = argv[1];
     wasm_dsp_factory* factory = nullptr;
     if (endsWith(file, ".dsp")) {
@@ -80,6 +86,9 @@ int main(int argc, char* argv[])
         cerr << "Cannot create instance " << endl;
         exit(EXIT_FAILURE);
     }
+    
+    GTKUI ui_interface(filename, &argc, &argv);;
+    DSP->buildUserInterface(&ui_interface);
 
 #if JACK
     jackaudio audio;
@@ -90,18 +99,19 @@ int main(int argc, char* argv[])
         return 0;
     }
 
-    httpdUI httpdinterface(argv[1], DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
-    DSP->buildUserInterface(&httpdinterface);
+    httpdUI httpd_interface(argv[1], DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    DSP->buildUserInterface(&httpd_interface);
 
+    // Start audio rendering
     audio.start();
 
-    httpdinterface.run();
+    // Start HTTPD controler
+    httpd_interface.run();
+    
+    // Start GTK UI
+    ui_interface.run();
 
-    char c;
-    while ((c = getchar()) != 'q') {
-        usleep(1000000);
-    }
-
+    // Stop audio rendering
     audio.stop();
     
     delete DSP;
