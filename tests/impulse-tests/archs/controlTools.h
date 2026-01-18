@@ -255,6 +255,8 @@ static SoundUI* sound_ui = new SoundUI("", -1, memory_reader, (sizeof(FAUSTFLOAT
 // To be used in static context
 static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4)
 {
+    // Initialize the instance before cloning in mydsp_poly to avoid copying uninitialized state.
+    dsp->init(44100);
     mydsp_poly* DSP = new mydsp_poly(dsp, num_voices, true, false);
 
     // Soundfile setting

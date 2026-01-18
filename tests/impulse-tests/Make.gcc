@@ -20,6 +20,11 @@ ext  ?= cpp
 arch ?= impulsearch.cpp
 precision ?=		# filesCompare precision (empty by default)
 FAUSTOPTIONS := -double
+SAN ?=
+SANFLAGS :=
+ifeq ($(SAN),asan)
+ SANFLAGS := -fsanitize=address -fno-omit-frame-pointer
+endif
 ifeq ($(lang), c)
 #	CXX = gcc
 	ext = c
@@ -144,7 +149,7 @@ ir/$(outdir)/%.ir: ir/$(outdir)/% reference/%.ir
 	$(COMPARE) $@ reference/$(notdir $@) $(precision)
 	
 ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
-	$(CXX) $(GCCOPTIONS) $< -o $@
+	$(CXX) $(GCCOPTIONS) $(SANFLAGS) $< -o $@
 
 # Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
 ir/$(outdir)/control.cpp : dsp/control.dsp

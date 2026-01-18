@@ -749,6 +749,7 @@ class CodeContainer : public virtual Garbageable {
     void generateSubContainers()
     {
         for (const auto& it : fSubContainers) {
+            it->generateSR();
             it->produceInternal();
         }
     }

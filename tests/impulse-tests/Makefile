@@ -19,11 +19,19 @@ GCCOPTIONS := -O3 -I../../architecture -I/usr/local/include/ap_fixed -Iarchs -pt
 outdir ?= float
 arch ?= ./archs/impulsearch.cpp
 FAUSTOPTIONS := -lang cpp -double -i -a $(arch)
+CLANG_TIDY ?= clang-tidy
+CLANG_TIDY_OUTDIR ?= cpp/double
+CLANG_TIDY_CHECKS ?= clang-analyzer-*,-clang-analyzer-cplusplus.NewDeleteLeaks
+CLANG_TIDY_ARGS ?=
+CLANG_TIDY_CXXFLAGS ?= -std=c++11 -I../../architecture -I/usr/local/include/ap_fixed -Iarchs -pthread
+CLANG_TIDY_FAUSTOPTIONS ?= -I dsp -double
+CLANG_TIDY_ARCH ?= impulsearch.cpp
 
-.PHONY: test reference
+.PHONY: test reference clang-tidy clang-tidy-cpp asan-cpp
 
 dspfiles := $(wildcard dsp/*.dsp)
 mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir)
+CLANG_TIDY_CPP_FILES := $(dspfiles:dsp/%.dsp=ir/$(CLANG_TIDY_OUTDIR)/%.cpp)
 
 TOOLSOPTIONS := -std=c++14 -O3 -I../../architecture
 LIB ?= ../../build/lib/libfaust.a
@@ -97,6 +105,8 @@ help:
 	@echo " 'test-type'              : test signal typing intermediate step"
 	@echo " 'test-fir'               : test FIR intermediate step"
 	@echo " 'test-cpp'               : test C++ generation step"
+	@echo " 'clang-tidy'             : run clang-tidy (clang-analyzer checks like uninit/UB/null deref; static-only) on generated C++ in ir/$(CLANG_TIDY_OUTDIR)"
+	@echo " 'asan-cpp'               : build+run generated C++ with AddressSanitizer (runtime checks for heap/stack/UAF/OOB)"
 	@echo " 'bench'                  : benchmark using faustbench-llvm and faustbench"
 	@echo " 'interp-tracer'          : test using the interp-tracer tool"
 	@echo " 'tools'                  : builds binary tools used by the tests"
@@ -483,6 +493,22 @@ test-fir:
 
 test-cpp:
 	cd dsp && ./cpp-script *.dsp
+
+#########################################################################
+# Static analysis on generated C++ code
+
+clang-tidy: clang-tidy-cpp
+	@find ir/$(CLANG_TIDY_OUTDIR) -name '*.cpp' -type f -print -quit | grep -q . || (echo "No generated C++ in ir/$(CLANG_TIDY_OUTDIR)."; exit 1)
+	@find ir/$(CLANG_TIDY_OUTDIR) -name '*.cpp' -type f -exec $(CLANG_TIDY) $(CLANG_TIDY_ARGS) -checks="$(CLANG_TIDY_CHECKS)" {} -- $(CLANG_TIDY_CXXFLAGS) \;
+
+clang-tidy-cpp:
+	$(MAKE) -f Make.gcc outdir=$(CLANG_TIDY_OUTDIR) lang=cpp arch=$(CLANG_TIDY_ARCH) FAUSTOPTIONS="$(CLANG_TIDY_FAUSTOPTIONS)" ir/$(CLANG_TIDY_OUTDIR) $(CLANG_TIDY_CPP_FILES)
+
+#########################################################################
+# Runtime sanitizer on generated C++ code
+
+asan-cpp:
+	$(MAKE) -f Make.gcc outdir=cpp/asan/double lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double" SAN=asan
 
 #########################################################################
 # Benchmark using faustbench-llvm and faustbench
