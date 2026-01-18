@@ -104,7 +104,6 @@ void CmajorCodeContainer::produceInternal()
     *fOut << "{";
     tab(n + 2, *fOut);
     struct_visitor.Tab(n + 2);
-    generateSR();
     generateInit(&struct_visitor);
     generateResetUserInterface(&struct_visitor);
     generateClear(&struct_visitor);

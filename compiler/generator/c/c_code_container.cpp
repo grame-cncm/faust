@@ -185,7 +185,6 @@ void CCodeContainer::produceInternal()
           << "* dsp, int sample_rate) {";
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
-    generateSR();
     generateInit(fCodeProducer);
     generateResetUserInterface(fCodeProducer);
     generateClear(fCodeProducer);

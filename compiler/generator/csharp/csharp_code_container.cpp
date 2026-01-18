@@ -119,7 +119,6 @@ void CSharpCodeContainer::produceInternal()
     *fOut << "public void instanceInit" << fKlassName << "(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
-    generateSR();
     generateInit(&fCodeProducer);
     generateResetUserInterface(&fCodeProducer);
     generateClear(&fCodeProducer);

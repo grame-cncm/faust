@@ -203,7 +203,6 @@ void DLangCodeContainer::produceInternal()
     *fOut << "void instanceInit" << fKlassName << "(int sample_rate) nothrow @nogc {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
-    generateSR();
     generateInit(&fCodeProducer);
     generateResetUserInterface(&fCodeProducer);
     generateClear(&fCodeProducer);
