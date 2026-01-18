@@ -14,6 +14,7 @@
 #pragma once
 #include <algorithm>  // for std::find
 #include <cassert>
+#include <cstdint>
 #include <functional>
 #include <iostream>
 #include <list>
