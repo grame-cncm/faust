@@ -62,7 +62,7 @@ static inline bool isCons(Tree x, Tree& h, Tree& t)
 
 /* Deconstruct a (BDA) op pattern (YO). */
 
-static inline bool isBoxPatternOp(Tree box, Node& n, Tree& t1, Tree& t2)
+static inline bool isBoxPatternOpBinary(Tree box, Node& n, Tree& t1, Tree& t2)
 {
     if (isBoxPar(box, t1, t2) || isBoxSeq(box, t1, t2) || isBoxSplit(box, t1, t2) ||
         isBoxMerge(box, t1, t2) || isBoxHGroup(box, t1, t2) || isBoxVGroup(box, t1, t2) ||
@@ -84,8 +84,6 @@ static inline bool isBoxPatternOpTernary(Tree box, Node& n, Tree& t1, Tree& t2, 
     return false;
 }
 
-
-
 /* TA data structures. */
 
 /* subterm paths */
@@ -106,7 +104,7 @@ static Tree subtree(Tree X, int i, const Path& p)
             case 1: return subtree(x1, i + 1, p);
             default: return subtree(x2, i + 1, p);
         }
-    } else if (i < n && isBoxPatternOp(X, op, x0, x1)) {
+    } else if (i < n && isBoxPatternOpBinary(X, op, x0, x1)) {
         return subtree((p[i] == 0) ? x0 : x1, i + 1, p);
     } else {
         return X;
@@ -398,8 +396,8 @@ static State* make_state(State* state, int r, Tree x, Path& p)
         next = make_state(next, r, x2, p);
         p.pop_back();
         return next;
-    } else if (isBoxPatternOp(x, op, x0, x1)) {
-        /* composite pattern */
+    } else if (isBoxPatternOpBinary(x, op, x0, x1)) {
+        /* binary composite pattern */
         Rule rule(r, nullptr);
         state->rules.push_back(rule);
         Trans trans(op, 2);
@@ -741,7 +739,7 @@ static int apply_pattern_matcher_internal(Automaton* A, int s, Tree X, vector<Su
                     }
                     return s;
                 }
-                if (isBoxPatternOp(X, op1, x0, x1) && op == op1) {
+                if (isBoxPatternOpBinary(X, op1, x0, x1) && op == op1) {
                     /* transition on operation symbol */
 #ifdef DEBUG
                     cerr << "state " << s << ", " << op << ": goto state " << t->state->s << endl;

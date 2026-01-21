@@ -772,7 +772,7 @@ static inline bool isBoxPatternOpTernary(Tree box, Node& n, Tree& t1, Tree& t2, 
 }
 
 /* Deconstruct a (BDA) op pattern */
-static inline bool isBoxPatternOp(Tree box, Node& n, Tree& t1, Tree& t2)
+static inline bool isBoxPatternOpBinary(Tree box, Node& n, Tree& t1, Tree& t2)
 {
     if (isBoxPar(box, t1, t2) || isBoxSeq(box, t1, t2) || isBoxSplit(box, t1, t2) ||
         isBoxMerge(box, t1, t2) || isBoxRec(box, t1, t2)) {
@@ -833,7 +833,7 @@ static Tree patternSimplification(Tree pattern)
         return v;
     } else if (isBoxPatternOpTernary(pattern, n, t1, t2, t3)) {
         return tree(n, patternSimplification(t1), patternSimplification(t2), patternSimplification(t3));
-    } else if (isBoxPatternOp(pattern, n, t1, t2)) {
+    } else if (isBoxPatternOpBinary(pattern, n, t1, t2)) {
         return tree(n, patternSimplification(t1), patternSimplification(t2));
     } else {
         return pattern;
