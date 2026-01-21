@@ -1021,6 +1021,8 @@ static Tree preparePattern(Tree box)
         return boxPar(preparePattern(t1), preparePattern(t2));
     } else if (isBoxRec(box, t1, t2)) {
         return boxRec(preparePattern(t1), preparePattern(t2));
+    } else if (isBoxRoute(box, t1, t2, t3)) {
+        return boxRoute(preparePattern(t1), preparePattern(t2), preparePattern(t3));
     }
 
     // Iterative block diagram construction

@@ -658,10 +658,24 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
                 }
                 return boxRoute(boxInt(w1[0]), boxInt(w2[0]), b);
             } else {
+                Tree p;
+                // Allow pattern variables and wildcards in route patterns
+                if (isBoxPatternVar(v1, p) || isBoxPatternVar(v2, p) || isBoxPatternVar(vr, p) ||
+                    isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) ||
+                    isBoxSlot(v1) || isBoxSlot(v2) || isBoxSlot(vr)) {
+                    return boxRoute(v1, v2, vr);
+                }
                 evalerror(getDefFileProp(exp), getDefLineProp(exp),
                           "invalid route expression, parameters should be numbers", exp);
             }
         } else {
+            Tree p;
+            // Allow pattern variables and wildcards in route patterns
+            if (isBoxPatternVar(v1, p) || isBoxPatternVar(v2, p) || isBoxPatternVar(vr, p) ||
+                isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) ||
+                isBoxSlot(v1) || isBoxSlot(v2) || isBoxSlot(vr)) {
+                return boxRoute(v1, v2, vr);
+            }
             evalerror(getDefFileProp(exp), getDefLineProp(exp),
                       "invalid route expression, first two parameters should be blocks producing a "
                       "value, third "
@@ -745,6 +759,16 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     return nullptr;
 }
 
+/* Deconstruct a ternary op pattern (route). */
+static inline bool isBoxPatternOpTernary(Tree box, Node& n, Tree& t1, Tree& t2, Tree& t3)
+{
+    if (isBoxRoute(box, t1, t2, t3)) {
+        n = box->node();
+        return true;
+    }
+    return false;
+}
+
 /* Deconstruct a (BDA) op pattern */
 static inline bool isBoxPatternOp(Tree box, Node& n, Tree& t1, Tree& t2)
 {
@@ -801,10 +825,12 @@ static bool isBoxNumeric(Tree in, Tree& out)
 static Tree patternSimplification(Tree pattern)
 {
     Node n(0);
-    Tree v, t1, t2;
+    Tree v, t1, t2, t3;
 
     if (isBoxNumeric(pattern, v)) {
         return v;
+    } else if (isBoxPatternOpTernary(pattern, n, t1, t2, t3)) {
+        return tree(n, patternSimplification(t1), patternSimplification(t2), patternSimplification(t3));
     } else if (isBoxPatternOp(pattern, n, t1, t2)) {
         return tree(n, patternSimplification(t1), patternSimplification(t2));
     } else {
