@@ -88,6 +88,8 @@ static Tree boxSimplification(Tree box);
 
 static void setNumericProperty(Tree t, Tree num);
 static bool getNumericProperty(Tree t, Tree& num);
+static void flattenRouteList(Tree routes, vector<Tree>& items);
+static Tree normalizeRouteList(Tree routes);
 
 //------------------
 // Public Interface
@@ -663,7 +665,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
                 if (isBoxPatternVar(v1, p) || isBoxPatternVar(v2, p) || isBoxPatternVar(vr, p) ||
                     isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) ||
                     isBoxSlot(v1) || isBoxSlot(v2) || isBoxSlot(vr)) {
-                    return boxRoute(v1, v2, vr);
+                    return boxRoute(v1, v2, normalizeRouteList(vr));
                 }
                 evalerror(getDefFileProp(exp), getDefLineProp(exp),
                           "invalid route expression, parameters should be numbers", exp);
@@ -674,7 +676,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
             if (isBoxPatternVar(v1, p) || isBoxPatternVar(v2, p) || isBoxPatternVar(vr, p) ||
                 isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) ||
                 isBoxSlot(v1) || isBoxSlot(v2) || isBoxSlot(vr)) {
-                return boxRoute(v1, v2, vr);
+                return boxRoute(v1, v2, normalizeRouteList(vr));
             }
             evalerror(getDefFileProp(exp), getDefLineProp(exp),
                       "invalid route expression, first two parameters should be blocks producing a "
@@ -1529,6 +1531,28 @@ static Tree vec2list(const vector<Tree>& v)
         l = cons(v[n], l);
     }
     return l;
+}
+
+static void flattenRouteList(Tree routes, vector<Tree>& items)
+{
+    Tree t1, t2;
+    if (isBoxPar(routes, t1, t2)) {
+        flattenRouteList(t1, items);
+        flattenRouteList(t2, items);
+    } else {
+        items.push_back(routes);
+    }
+}
+
+static Tree normalizeRouteList(Tree routes)
+{
+    vector<Tree> items;
+    flattenRouteList(routes, items);
+    Tree list = items.back();
+    for (int i = (int)items.size() - 2; i >= 0; --i) {
+        list = boxPar(items[i], list);
+    }
+    return list;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
