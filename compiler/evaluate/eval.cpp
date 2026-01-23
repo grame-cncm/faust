@@ -85,9 +85,11 @@ static Tree normalizeRoutePattern(Tree routes)
 {
     vector<Tree> elements;
     collectParElements(routes, elements);
-    
-    if (elements.empty()) return routes;
-    
+
+    if (elements.empty()) {
+        return routes;
+    }
+
     // Rebuild as right-associative list (a, (b, (c, ...)))
     Tree res = elements.back();
     for (int i = elements.size() - 2; i >= 0; i--) {
@@ -688,11 +690,10 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
                 Tree p;
                 // Allow pattern variables and wildcards in route patterns
                 if (isBoxPatternVar(v1, p) || isBoxPatternVar(v2, p) || isBoxPatternVar(vr, p) ||
-                    isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) ||
-                    isBoxSlot(v1) || isBoxSlot(v2) || isBoxSlot(vr)) {
+                    isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) || isBoxSlot(v1) ||
+                    isBoxSlot(v2) || isBoxSlot(vr)) {
                     return boxRoute(v1, v2, normalizeRoutePattern(vr));
                 }
-
 
                 evalerror(getDefFileProp(exp), getDefLineProp(exp),
                           "invalid route expression, parameters should be numbers", exp);
@@ -701,11 +702,10 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
             Tree p;
             // Allow pattern variables and wildcards in route patterns
             if (isBoxPatternVar(v1, p) || isBoxPatternVar(v2, p) || isBoxPatternVar(vr, p) ||
-                isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) ||
-                isBoxSlot(v1) || isBoxSlot(v2) || isBoxSlot(vr)) {
+                isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) || isBoxSlot(v1) || isBoxSlot(v2) ||
+                isBoxSlot(vr)) {
                 return boxRoute(v1, v2, normalizeRoutePattern(vr));
             }
-
 
             evalerror(getDefFileProp(exp), getDefLineProp(exp),
                       "invalid route expression, first two parameters should be blocks producing a "
@@ -861,7 +861,8 @@ static Tree patternSimplification(Tree pattern)
     if (isBoxNumeric(pattern, v)) {
         return v;
     } else if (isBoxPatternOpTernary(pattern, n, t1, t2, t3)) {
-        return tree(n, patternSimplification(t1), patternSimplification(t2), patternSimplification(t3));
+        return tree(n, patternSimplification(t1), patternSimplification(t2),
+                    patternSimplification(t3));
     } else if (isBoxPatternOp(pattern, n, t1, t2)) {
         return tree(n, patternSimplification(t1), patternSimplification(t2));
     } else {

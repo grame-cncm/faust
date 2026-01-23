@@ -84,8 +84,6 @@ static inline bool isBoxPatternOpTernary(Tree box, Node& n, Tree& t1, Tree& t2, 
     return false;
 }
 
-
-
 /* TA data structures. */
 
 /* subterm paths */
@@ -102,9 +100,12 @@ static Tree subtree(Tree X, int i, const Path& p)
     if (i < n && isBoxPatternOpTernary(X, op, x0, x1, x2)) {
         /* ternary operator */
         switch (p[i]) {
-            case 0: return subtree(x0, i + 1, p);
-            case 1: return subtree(x1, i + 1, p);
-            default: return subtree(x2, i + 1, p);
+            case 0:
+                return subtree(x0, i + 1, p);
+            case 1:
+                return subtree(x1, i + 1, p);
+            default:
+                return subtree(x2, i + 1, p);
         }
     } else if (i < n && isBoxPatternOp(X, op, x0, x1)) {
         return subtree((p[i] == 0) ? x0 : x1, i + 1, p);
