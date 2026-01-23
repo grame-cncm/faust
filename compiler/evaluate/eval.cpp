@@ -69,6 +69,33 @@ static int    eval2int(Tree exp, Tree visited, Tree localValEnv);
 static double eval2double(Tree exp, Tree visited, Tree localValEnv);
 static string evalLabel(const char* l, Tree visited, Tree localValEnv);
 
+// Helper to normalize route pattern (flatten Par structure)
+static void collectParElements(Tree box, vector<Tree>& elements)
+{
+    Tree l, r;
+    if (isBoxPar(box, l, r)) {
+        collectParElements(l, elements);
+        collectParElements(r, elements);
+    } else {
+        elements.push_back(box);
+    }
+}
+
+static Tree normalizeRoutePattern(Tree routes)
+{
+    vector<Tree> elements;
+    collectParElements(routes, elements);
+    
+    if (elements.empty()) return routes;
+    
+    // Rebuild as right-associative list (a, (b, (c, ...)))
+    Tree res = elements.back();
+    for (int i = elements.size() - 2; i >= 0; i--) {
+        res = boxPar(elements[i], res);
+    }
+    return res;
+}
+
 static Tree evalIdDef(Tree id, Tree visited, Tree env);
 
 static Tree evalCase(Tree rules, Tree env);
@@ -663,8 +690,10 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
                 if (isBoxPatternVar(v1, p) || isBoxPatternVar(v2, p) || isBoxPatternVar(vr, p) ||
                     isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) ||
                     isBoxSlot(v1) || isBoxSlot(v2) || isBoxSlot(vr)) {
-                    return boxRoute(v1, v2, vr);
+                    return boxRoute(v1, v2, normalizeRoutePattern(vr));
                 }
+
+
                 evalerror(getDefFileProp(exp), getDefLineProp(exp),
                           "invalid route expression, parameters should be numbers", exp);
             }
@@ -674,8 +703,10 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
             if (isBoxPatternVar(v1, p) || isBoxPatternVar(v2, p) || isBoxPatternVar(vr, p) ||
                 isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) ||
                 isBoxSlot(v1) || isBoxSlot(v2) || isBoxSlot(vr)) {
-                return boxRoute(v1, v2, vr);
+                return boxRoute(v1, v2, normalizeRoutePattern(vr));
             }
+
+
             evalerror(getDefFileProp(exp), getDefLineProp(exp),
                       "invalid route expression, first two parameters should be blocks producing a "
                       "value, third "
