@@ -162,11 +162,11 @@ void RustCodeContainer::produceInternal()
     if (fSubContainerType == kInt) {
         tab(n + 1, *fOut);
         *fOut << "pub fn fill" << fKlassName
-              << subst("(&mut self, $0: i32, table: &mut[i32]) {", counter);
+              << "(&mut self, " << counter << ": i32, table: &mut[i32]) {";
     } else {
         tab(n + 1, *fOut);
         *fOut << "pub fn fill" << fKlassName
-              << subst("(&mut self, $0: i32, table: &mut[FaustFloat]) {", counter);
+              << "(&mut self, " << counter << ": i32, table: &mut["<<ifloat()<<"]) {";
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
