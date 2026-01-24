@@ -39,6 +39,7 @@ use std::io::Write;
 
 type F32 = f32;
 type F64 = f64;
+type FaustFloat = f64;
 
 /*
 type F32 = Fast<f32>;
