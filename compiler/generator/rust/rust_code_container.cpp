@@ -281,9 +281,6 @@ void RustCodeContainer::produceClass()
     *fOut << "}";
     tab(n, *fOut);
 
-    tab(n, *fOut);
-    *fOut << "pub type FaustFloat = " << ifloat() << ";";
-
     // Generate gub containers
     generateSubContainers();
 
