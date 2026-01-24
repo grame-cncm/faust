@@ -64,25 +64,25 @@ void initFaustFloat()
         numsuffix[3] = "";
         numsuffix[4] = "";
 
-        floatname[0] = FLOATMACRO;
+        floatname[0] = "FaustFloat";
         floatname[1] = "F32";
         floatname[2] = "F64";
         floatname[3] = "dummy";
         floatname[4] = "dummy";
 
-        floatptrname[0] = FLOATMACROPTR;
+        floatptrname[0] = "FaustFloat*";
         floatptrname[1] = "F32*";
         floatptrname[2] = "F64*";
         floatptrname[3] = "dummy*";
         floatptrname[4] = "dummy*";
 
-        floatptrptrname[0] = FLOATMACROPTRPTR;
+        floatptrptrname[0] = "FaustFloat**";
         floatptrptrname[1] = "F32**";
         floatptrptrname[2] = "F64**";
         floatptrptrname[3] = "dummy**";
         floatptrptrname[4] = "dummy**";
 
-        castname[0] = FLOATCASTER;
+        castname[0] = "as FaustFloat";
         castname[1] = "as F32";
         castname[2] = "as F64";
         castname[3] = "(dummy)";
