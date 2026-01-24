@@ -553,8 +553,6 @@ static void compileOCPP(Tree signals, int numInputs, int numOutputs)
 static void compileRust(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef RUST_BUILD
-    // FIR is generated with internal real instead of FAUSTFLOAT (see IB::genBasicTyped)
-    gGlobal->gFAUSTFLOAT2Internal = true;
     gContainer =
         RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
 
