@@ -1801,6 +1801,21 @@ static unsigned steps(float min, float max, float step)
   return n;
 }
 
+static string ttl_escape(const string &s)
+{
+  string t;
+  for (char c : s) {
+    switch (c) {
+    case '\\': t += "\\\\"; break;
+    case '\t': t += "\\t"; break;
+    case '\n': t += "\\n"; break;
+    case '\r': t += "\\r"; break;
+    default:   t += c; break;
+    }
+  }
+  return t;
+}
+
 #if FAUST_META
 static bool is_xmlstring(const char *s)
 {
@@ -1849,21 +1864,21 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
        lv2:optionalFeature epp:supportsStrictBounds ;\n\
        lv2:optionalFeature lv2:hardRTCapable ;\n", PLUGIN_URI,
 	  is_instr?", lv2:InstrumentPlugin":"",
-	  plugin_name, DLLEXT);
+	  ttl_escape(plugin_name).c_str(), DLLEXT);
   if (plugin_author && *plugin_author)
     fprintf(fp, "\
-       doap:maintainer [ foaf:name \"%s\" ] ;\n", plugin_author);
+       doap:maintainer [ foaf:name \"%s\" ] ;\n", ttl_escape(plugin_author).c_str());
   // doap:description just seems to be ignored by all LV2 hosts anyway, so we
   // rather use rdfs:comment now which works with Ardour at least.
   if (plugin_descr && *plugin_descr)
     fprintf(fp, "\
-       rdfs:comment \"%s\" ;\n", plugin_descr);
+       rdfs:comment \"%s\" ;\n", ttl_escape(plugin_descr).c_str());
   if (plugin_version && *plugin_version)
     fprintf(fp, "\
-       doap:revision \"%s\" ;\n", plugin_version);
+       doap:revision \"%s\" ;\n", ttl_escape(plugin_version).c_str());
   if (plugin_license && *plugin_license)
     fprintf(fp, "\
-       doap:license \"%s\" ;\n", plugin_license);
+       doap:license \"%s\" ;\n", ttl_escape(plugin_license).c_str());
 #if FAUST_UI
     fprintf(fp, "\
        ui:ui <%sui> ;\n", PLUGIN_URI);
