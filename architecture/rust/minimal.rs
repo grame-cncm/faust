@@ -43,6 +43,7 @@ use num_traits::{cast::FromPrimitive, float::Float};
 
 type F32 = f32;
 type F64 = f64;
+type FaustFloat = F32;
 
 #[derive(Copy, Clone)]
 pub struct ParamIndex(pub i32);
