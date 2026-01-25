@@ -67,6 +67,11 @@ ValueInst* InstructionsCompiler::genCastedOutput(int type, ValueInst* value)
     return (need_cast) ? IB::genCastFloatMacroInst(value) : value;
 }
 
+ValueInst* InstructionsCompiler::genCastedOutput(ValueInst* value)
+{
+    return (gGlobal->gFAUSTFLOAT2Internal) ? value : IB::genCastFloatMacroInst(value);
+}
+
 ValueInst* InstructionsCompiler::genCastedInput(ValueInst* value)
 {
     return (gGlobal->gFAUSTFLOAT2Internal) ? value : IB::genCastInst(value, IB::genItFloatTyped());
@@ -1318,8 +1323,7 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, ValueI
     ::Type t = getCertifiedSigType(sig);
 
     // Cast to external float
-    ValueInst*    val = (gGlobal->gFAUSTFLOAT2Internal) ? exp : IB::genCastFloatMacroInst(exp);
-    StoreVarInst* res = IB::genStoreStructVar(varname, val);
+    StoreVarInst* res = IB::genStoreStructVar(varname, genCastedOutput(exp));
 
     switch (t->variability()) {
         case kKonst:
@@ -1340,7 +1344,7 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, ValueI
             break;
     }
 
-    return generateCacheCode(sig, IB::genLoadStructVar(varname));
+    return generateCacheCode(sig, genCastedInput(IB::genLoadStructVar(varname)));
 }
 
 ValueInst* InstructionsCompiler::generateVBargraph(Tree sig, Tree path, ValueInst* exp)

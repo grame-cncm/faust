@@ -204,6 +204,7 @@ class InstructionsCompiler : public virtual Garbageable {
     // Casting for inputs/ousputs
     virtual ValueInst* genCastedInput(ValueInst* value);
     ValueInst*         genCastedOutput(int type, ValueInst* value);
+    ValueInst*         genCastedOutput(ValueInst* value);
 
     virtual BasicTyped* genFloatType(::Type type);
 
