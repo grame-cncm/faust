@@ -134,7 +134,7 @@ travis:
 # automatic github action test
 github_action:
 	$(MAKE) -f Make.rust outdir=rust/inpl CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -inpl -rnt -a archs/rust/architecture_inpl.rs"
-	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -a archs/rust/architecture_trait.rs"
+	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -a archs/rust/architecture_trait_ff64.rs"
 	$(MAKE) -f Make.gcc outdir=cpp/double lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I ../../libraries/ -I dsp -double"
 
 #########################################################################
