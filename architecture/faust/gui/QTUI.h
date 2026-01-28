@@ -877,7 +877,9 @@ public:
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
+        const bool blocked = fSlider->blockSignals(true);
         fSlider->setValue(int(0.5+fConverter->faust2ui(v)));
+        fSlider->blockSignals(blocked);
     }
     
     public slots :
@@ -1148,7 +1150,9 @@ public:
     {
         FAUSTFLOAT v = *fZone;
         fCache = v;
+        const bool blocked = fNumEntry->blockSignals(true);
         fNumEntry->setValue(v);
+        fNumEntry->blockSignals(blocked);
     }
     
     public slots :
