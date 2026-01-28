@@ -492,10 +492,14 @@ void Faust_next_clear(Faust* unit, int inNumSamples)
 
 void Faust_Ctor(Faust* unit)  // module constructor
 {
+    // init such that we can use generic end goto
+    unit->mDSP = nullptr;
+    unit->mInBufCopy = nullptr;
+    unit->mInBufValue = nullptr;
+
     // Allocate DSP
     void* mem = RTAlloc(unit->mWorld, sizeof(FAUSTCLASS));
     if(mem == nullptr) {
-        Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
         goto end;
     }
     unit->mDSP = new(mem) FAUSTCLASS();
@@ -552,7 +556,6 @@ void Faust_Ctor(Faust* unit)  // module constructor
         } else {
             unit->mInBufCopy = (float**)RTAlloc(unit->mWorld, unit->mDSP->getNumInputs()*sizeof(float*));
             if (!unit->mInBufCopy) {
-                Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
                 goto end;
             }
             // Allocate memory for input buffer copies (numInputs * bufLength)
@@ -560,13 +563,11 @@ void Faust_Ctor(Faust* unit)  // module constructor
             // = numInputs * (bufLength + 1)
             unit->mInBufValue = (float*)RTAlloc(unit->mWorld, unit->mDSP->getNumInputs()*sizeof(float));
             if (!unit->mInBufValue) {
-                Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
                 goto end;
             }
             // Aquire memory for interpolator state.
             float* mem = (float*)RTAlloc(unit->mWorld, unit->mDSP->getNumInputs()*BUFLENGTH*sizeof(float));
             if (mem) {
-                Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
                 goto end;
             }
             for (int i = 0; i < unit->mDSP->getNumInputs(); ++i) {
@@ -599,6 +600,10 @@ void Faust_Ctor(Faust* unit)  // module constructor
     }
     
 end:
+    Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
+    RTFree(unit->mWorld, unit->mDSP);
+    RTFree(unit->mWorld, unit->mInBufCopy);
+    RTFree(unit->mWorld, unit->mInBufValue);
     // Fix for https://github.com/grame-cncm/faust/issues/13
     ClearUnitOutputs(unit, 1);
 }
