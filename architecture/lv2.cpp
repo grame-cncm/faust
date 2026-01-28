@@ -1801,16 +1801,32 @@ static unsigned steps(float min, float max, float step)
   return n;
 }
 
+// Escape a C++ string for inclusion in a Turtle quoted string literal.
+// Turtle syntax is defined by RDF 1.1 Turtle (https://www.w3.org/TR/turtle/).
+// Handles backslash and quotes, common control escapes, and encodes remaining
+// ASCII control bytes (including DEL) as \u00XX to keep TTL valid.
+// Non-ASCII bytes are left as-is (assumed UTF-8).
 static string ttl_escape(const string &s)
 {
   string t;
-  for (char c : s) {
+  for (unsigned char c : s) {
     switch (c) {
     case '\\': t += "\\\\"; break;
+    case '\"': t += "\\\""; break;
+    case '\b': t += "\\b"; break;
+    case '\f': t += "\\f"; break;
     case '\t': t += "\\t"; break;
     case '\n': t += "\\n"; break;
     case '\r': t += "\\r"; break;
-    default:   t += c; break;
+    default:
+      if (c < 0x20 || c == 0x7f) {
+        char buf[7];
+        snprintf(buf, sizeof(buf), "\\u%04X", static_cast<unsigned int>(c));
+        t += buf;
+      } else {
+        t += static_cast<char>(c);
+      }
+      break;
     }
   }
   return t;
