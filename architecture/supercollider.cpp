@@ -493,11 +493,12 @@ void Faust_next_clear(Faust* unit, int inNumSamples)
 void Faust_Ctor(Faust* unit)  // module constructor
 {
     // Allocate DSP
-    unit->mDSP = new(RTAlloc(unit->mWorld, sizeof(FAUSTCLASS))) FAUSTCLASS();
-    if (!unit->mDSP) {
+    void* mem = RTAlloc(unit->mWorld, sizeof(FAUSTCLASS));
+    if(mem == nullptr) {
         Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
         goto end;
     }
+    unit->mDSP = new(mem) FAUSTCLASS();
     {
     // Possibly call classInit again
     if (SAMPLERATE != g_sampleRate) {
