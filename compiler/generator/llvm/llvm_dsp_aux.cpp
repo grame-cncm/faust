@@ -733,6 +733,16 @@ LIBFAUST_API char* getCDSPCode(llvm_dsp_factory* factory)
     }
 }
 
+LIBFAUST_API char* getCDSPFactoryJSON(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        string json = factory->getJSON();
+        return strdup(json.c_str());
+    } else {
+        return nullptr;
+    }
+}
+
 LIBFAUST_API char* getCDSPMachineTarget()
 {
     string dspmachinetarget = getDSPMachineTarget();

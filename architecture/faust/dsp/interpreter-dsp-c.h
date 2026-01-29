@@ -163,6 +163,15 @@ extern "C"
     LIBFAUST_API const char** getCInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory);
 
     /**
+     * Get the JSON description of the DSP (UI + metadata).
+     *
+     * @param factory - the DSP factory.
+     *
+     * @return the JSON string (to be deleted by the caller using freeCMemory).
+     */
+    LIBFAUST_API char* getCInterpreterDSPFactoryJSON(interpreter_dsp_factory* factory);
+
+    /**
      * Delete all Faust DSP factories kept in the library cache. Beware: all kept factory and DSP pointers (in local variables...) thus become invalid.
      */
     LIBFAUST_API void deleteAllCInterpreterDSPFactories();

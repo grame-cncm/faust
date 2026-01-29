@@ -60,6 +60,20 @@ class LIBFAUST_API wasm_dsp_factory_imp : public dsp_factory {
         std::vector<std::string> getLibraryList() { return fDecoder->getLibraryList(); }
     
         std::vector<std::string> getIncludePathnames() { return fDecoder->getIncludePathnames(); }
+
+        std::string getJSON()
+        {
+            if (!fDecoder) {
+                return "";
+            }
+            if (auto* decoder = dynamic_cast<JSONUIDecoderReal<float>*>(fDecoder)) {
+                return decoder->fJSON;
+            }
+            if (auto* decoder = dynamic_cast<JSONUIDecoderReal<double>*>(fDecoder)) {
+                return decoder->fJSON;
+            }
+            return "";
+        }
     
         virtual ::dsp* createDSPInstance() { return nullptr; }
     

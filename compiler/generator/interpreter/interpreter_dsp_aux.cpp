@@ -23,6 +23,7 @@
 #include "interpreter_dsp.hh"
 #include "libfaust.h"
 #include "lock_api.hh"
+#include "faust/gui/JSONUI.h"
 
 using namespace std;
 
@@ -219,6 +220,20 @@ LIBFAUST_API bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factor
     }
 }
 
+LIBFAUST_API std::string interpreter_dsp_factory::getJSON()
+{
+    interpreter_dsp* dsp = createDSPInstance();
+    if (!dsp) {
+        return "";
+    }
+    JSONUI json(getName(), "", dsp->getNumInputs(), dsp->getNumOutputs());
+    dsp->buildUserInterface(&json);
+    dsp->metadata(&json);
+    std::string res = json.JSON(true);
+    delete dsp;
+    return res;
+}
+
 LIBFAUST_API void interpreter_dsp::metadata(Meta* meta)
 {
     fDSP->metadata(meta);
@@ -324,6 +339,16 @@ LIBFAUST_API const char** getCInterpreterDSPFactoryLibraryList(interpreter_dsp_f
         // Last element is NULL
         library_list2[i] = nullptr;
         return library_list2;
+    } else {
+        return nullptr;
+    }
+}
+
+LIBFAUST_API char* getCInterpreterDSPFactoryJSON(interpreter_dsp_factory* factory)
+{
+    if (factory) {
+        string json = factory->getJSON();
+        return strdup(json.c_str());
     } else {
         return nullptr;
     }

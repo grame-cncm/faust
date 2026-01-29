@@ -75,6 +75,9 @@ int main(int argc, const char** argv)
             printf("Cannot create DSP\n");
             exit(EXIT_FAILURE);
         } else {
+            char* json = getCDSPFactoryJSON(factory);
+            printf("getJSON %s\n", json);
+            freeCMemory(json);
             printf("getNumInputs : %d\n", getNumInputsCDSPInstance(dsp));
             printf("getNumOutputs : %d\n", getNumOutputsCDSPInstance(dsp));
             

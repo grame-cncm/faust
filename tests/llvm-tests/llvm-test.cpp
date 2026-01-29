@@ -115,6 +115,9 @@ static void Test(const char* dspFileAux)
         
         cout << "getName " << factory->getName() << endl;
         cout << "getSHAKey " << factory->getSHAKey() << endl;
+    
+        string json = factory->getJSON();
+        cout << "getJSON " << json << endl;
         
         cout << "Print UI parameters" << endl;
         PrintUI print_ui;
@@ -463,4 +466,3 @@ int main(int argc, char* argv[])
     
     return 0;
 }
-

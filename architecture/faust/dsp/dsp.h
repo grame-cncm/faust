@@ -155,6 +155,7 @@ class FAUST_API dsp {
          * @param m - the Meta* meta user
          */
         virtual void metadata(Meta* m) = 0;
+
     
         /**
          * Read all controllers (buttons, sliders, etc.), and update the DSP state to be used by 'frame' or 'compute'.
@@ -272,6 +273,9 @@ class FAUST_API dsp_factory {
     
         /* Get warning messages list for a given compilation */
         virtual std::vector<std::string> getWarningMessages() = 0;
+
+        /* Return JSON description of the DSP (UI + metadata) */
+        virtual std::string getJSON() = 0;
     
         /* Create a new DSP instance, to be deleted with C++ 'delete' */
         virtual ::dsp* createDSPInstance() = 0;

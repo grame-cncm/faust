@@ -69,6 +69,9 @@ int main(int argc, const char** argv)
         
         cout << "getName " << factory->getName() << endl;
         cout << "getSHAKey " << factory->getSHAKey() << endl;
+    
+        string json = factory->getJSON();
+        cout << "getJSON " << json << endl;
         
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
@@ -208,4 +211,3 @@ int main(int argc, const char** argv)
 
     return 0;
 }
-

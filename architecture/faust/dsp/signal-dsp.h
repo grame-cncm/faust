@@ -29,6 +29,7 @@ architecture section is not modified.
 #include <vector>
 
 #include "faust/dsp/dsp.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/gui/meta.h"
 
 /*!
@@ -154,6 +155,9 @@ class LIBFAUST_API signal_dsp_factory : public dsp_factory {
         
         /* Return factory expanded DSP code */
         std::string getDSPCode();
+        
+        /* Return JSON description of the DSP (UI + metadata) */
+        std::string getJSON();
         
         /* Return factory compile options */
         std::string getCompileOptions();

@@ -36,6 +36,7 @@
 #endif
 
 #include "faust/dsp/dsp.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/gui/UI.h"
 
 #include "Text.hh"
@@ -875,6 +876,9 @@ struct signal_dsp_factory : public dsp_factory {
 
     /* Return factory expanded DSP code */
     virtual std::string getDSPCode() { return ""; };
+
+    /* Return JSON description of the DSP (UI + metadata) */
+    virtual std::string getJSON() { return ""; };
 
     /* Return factory compile options */
     virtual std::string getCompileOptions() { return fCompileOptions; };

@@ -39,6 +39,7 @@ architecture section is not modified.
 #include "faust/dsp/dsp.h"
 #include "faust/misc.h"
 #include "faust/midi/midi.h"
+#include "faust/gui/JSONUI.h"
 #include "faust/gui/UI.h"
 
 class cmajor_dsp_factory;
@@ -243,6 +244,8 @@ class cmajor_dsp_factory : public dsp_factory {
         }
         virtual std::string getSHAKey() { return ""; }
         virtual std::string getDSPCode() { return ""; }
+        virtual std::string getJSON() { return ""; }
+        
         virtual std::string getCompileOptions() { return ""; }
         virtual std::vector<std::string> getLibraryList() { return {}; }
         virtual std::vector<std::string> getIncludePathnames() { return {}; }

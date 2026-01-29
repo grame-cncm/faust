@@ -1015,6 +1015,7 @@ struct dsp_poly_factory : public dsp_factory {
     std::vector<std::string> getLibraryList() { return fProcessFactory->getLibraryList(); }
     std::vector<std::string> getIncludePathnames() { return fProcessFactory->getIncludePathnames(); }
     std::vector<std::string> getWarningMessages() { return fProcessFactory->getWarningMessages(); }
+    std::string getJSON() { return fProcessFactory->getJSON(); }
    
     std::string getEffectCode(const std::string& dsp_content)
     {

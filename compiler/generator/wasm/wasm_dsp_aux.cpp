@@ -328,6 +328,20 @@ LIBFAUST_API vector<string> wasm_dsp_factory::getIncludePathnames()
     return fDecoder->getIncludePathnames();
 }
 
+LIBFAUST_API string wasm_dsp_factory::getJSON()
+{
+    if (!fDecoder) {
+        return "";
+    }
+    if (auto* decoder = dynamic_cast<JSONUIDecoderReal<float>*>(fDecoder)) {
+        return decoder->fJSON;
+    }
+    if (auto* decoder = dynamic_cast<JSONUIDecoderReal<double>*>(fDecoder)) {
+        return decoder->fJSON;
+    }
+    return "";
+}
+
 wasm_dsp* wasm_dsp_factory::createDSPInstance()
 {
     wasmtime_store_t* store = wasmtime_store_new(fEngine, nullptr, nullptr);
@@ -570,6 +584,20 @@ LIBFAUST_API vector<string> wasm_dsp_factory::getLibraryList()
 LIBFAUST_API vector<string> wasm_dsp_factory::getIncludePathnames()
 {
     return fDecoder->getIncludePathnames();
+}
+
+LIBFAUST_API string wasm_dsp_factory::getJSON()
+{
+    if (!fDecoder) {
+        return "";
+    }
+    if (auto* decoder = dynamic_cast<JSONUIDecoderReal<float>*>(fDecoder)) {
+        return decoder->fJSON;
+    }
+    if (auto* decoder = dynamic_cast<JSONUIDecoderReal<double>*>(fDecoder)) {
+        return decoder->fJSON;
+    }
+    return "";
 }
 
 LIBFAUST_API vector<string> wasm_dsp_factory::getWarningMessages()

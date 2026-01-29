@@ -121,6 +121,8 @@ class LIBFAUST_API wasm_dsp_factory : public wasm_dsp_factory_imp, public faust_
     std::vector<std::string> getLibraryList() override;
     std::vector<std::string> getIncludePathnames() override;
 
+    std::string getJSON() override;
+
     wasm_dsp* createDSPInstance() override;
 
     /** Register the math functions that the FAUST‑generated WASM expects. */
@@ -201,6 +203,8 @@ class LIBFAUST_API wasm_dsp_factory : public dsp_factory, public faust_smartable
     std::vector<std::string> getIncludePathnames();
 
     std::vector<std::string> getWarningMessages();
+
+    std::string getJSON();
 
     JSONUIDecoderBase* getDecoder() { return fDecoder; }
 

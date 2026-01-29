@@ -158,6 +158,9 @@ class LIBFAUST_API interpreter_dsp_factory : public dsp_factory {
   
         /* Return factory expanded DSP code */
         std::string getDSPCode();
+        
+        /* Return JSON description of the DSP (UI + metadata) */
+        std::string getJSON();
     
         /* Return factory compile options */
         std::string getCompileOptions();

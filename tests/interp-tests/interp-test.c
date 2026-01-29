@@ -28,6 +28,7 @@
 //#define FAUSTFLOAT double
 
 #include "faust/dsp/interpreter-dsp-c.h"
+#include "faust/dsp/libfaust-c.h"
 #include "faust/gui/PrintCUI.h"
 
 static bool isopt(char* argv[], const char* name)
@@ -67,6 +68,9 @@ int main(int argc, const char** argv)
             printf("Cannot create DSP\n");
             exit(EXIT_FAILURE);
         } else {
+            char* json = getCInterpreterDSPFactoryJSON(factory);
+            printf("getJSON %s\n", json);
+            freeCMemory(json);
             printf("getNumInputs : %d\n", getNumInputsCInterpreterDSPInstance(dsp));
             printf("getNumOutputs : %d\n", getNumOutputsCInterpreterDSPInstance(dsp));
             
@@ -83,4 +87,3 @@ int main(int argc, const char** argv)
 
     return 0;
 }
-

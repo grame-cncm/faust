@@ -915,6 +915,8 @@ class LIBFAUST_API interpreter_dsp_factory : public dsp_factory, public faust_sm
 
     std::string getCompileOptions() { return fFactory->getCompileOptions(); }
 
+    std::string getJSON();
+
     std::vector<std::string> getWarningMessages() { return fFactory->getWarningMessages(); }
 
     interpreter_dsp* createDSPInstance();

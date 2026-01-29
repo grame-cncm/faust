@@ -214,6 +214,15 @@ extern "C"
      * @return the expanded DSP code string (to be deleted by the caller using freeCMemory).
      */
     LIBFAUST_API char* getCDSPCode(llvm_dsp_factory* factory);
+
+    /**
+     * Get the JSON description of the DSP (UI + metadata).
+     *
+     * @param factory - the DSP factory.
+     *
+     * @return the JSON string (to be deleted by the caller using freeCMemory).
+     */
+    LIBFAUST_API char* getCDSPFactoryJSON(llvm_dsp_factory* factory);
     
     /**
      * Get the compile options of the Faust DSP factory.
