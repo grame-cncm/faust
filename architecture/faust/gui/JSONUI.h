@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <limits>
 #include <iterator>
+#include <cstring>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/PathBuilder.h"
