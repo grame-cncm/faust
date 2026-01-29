@@ -392,7 +392,7 @@ interp1:
 rust:
 	$(MAKE) -f Make.rust outdir=rust/3232 precision=1.4 CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -single -a archs/rust/architecture_trait_ff32.rs"
 	$(MAKE) -f Make.rust outdir=rust/3264 precision=1 CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -a archs/rust/architecture_trait_ff32.rs"
-	$(MAKE) -f Make.rust outdir=rust/6432 precision=1.4 CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -single -a archs/rust/architecture_trait_ff64.rs"
+	$(MAKE) -f Make.rust outdir=rust/6432 precision=24 CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -single -a archs/rust/architecture_trait_ff64.rs"
 	$(MAKE) -f Make.rust outdir=rust/6464 CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -a archs/rust/architecture_trait_ff64.rs"
 	$(MAKE) -f Make.rust outdir=rust/inpl CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -inpl -rnt -a archs/rust/architecture_inpl.rs"
 	$(MAKE) -f Make.rust outdir=rust/osec CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -os -ec -rnt -a archs/rust/architecture_osecrnt.rs"
