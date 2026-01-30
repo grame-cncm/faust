@@ -37,9 +37,12 @@ double LookupTable::getValue(double x)
 	// Note: Assumes points are monotonically increasing in X!
 	
 	int i=0;
-	while (x>m_Points[i*2] && i<m_nPoints)
+	while (x>m_Points[i*2]){
 		i++;
-	
+		if (i>=m_nPoints)
+			return m_Points[(m_nPoints-1)*2+1];
+	}
+
 	if (i==0)
 		return m_Points[1];
 	
