@@ -492,16 +492,16 @@ void Faust_next_clear(Faust* unit, int inNumSamples)
 
 void Faust_Ctor(Faust* unit)  // module constructor
 {
-    // init such that we can use generic end goto
+    // init such that those values can be freed if any alloc fails
     unit->mDSP = nullptr;
     unit->mInBufCopy = nullptr;
     unit->mInBufValue = nullptr;
+    unit->mControlInputs = nullptr;
+    unit->mControlOutputs = nullptr;
 
     // Allocate DSP
     void* mem = RTAlloc(unit->mWorld, sizeof(FAUSTCLASS));
-    if(mem == nullptr) {
-        goto end;
-    }
+    ClearUnitIfMemFailed(mem);
     unit->mDSP = new(mem) FAUSTCLASS();
     {
     // Possibly call classInit again
@@ -518,8 +518,6 @@ void Faust_Ctor(Faust* unit)  // module constructor
     
     ControlAllocator ca(unit->mControls);
     unit->mDSP->buildUserInterface(&ca);
-    unit->mInBufCopy  = nullptr;
-    unit->mInBufValue = nullptr;
 
 #ifdef SOUNDFILE
     // Access soundfiles
@@ -534,7 +532,9 @@ void Faust_Ctor(Faust* unit)  // module constructor
     
     // Build mControlInputs and mControlOutputs so that getInputControl/getOutputControl have O[1] cost
     unit->mControlInputs = (Control**)RTAlloc(unit->mWorld, unit->mNumControlInput*sizeof(Control*));
+    ClearUnitIfMemFailed(unit->mControlInputs);
     unit->mControlOutputs = (Control**)RTAlloc(unit->mWorld, unit->mNumControlOutput*sizeof(Control*));
+    ClearUnitIfMemFailed(unit->mControlOutputs);
     
     for (int i = 0; i < unit->mNumControlInput; ++i) {
         unit->mControlInputs[i] = unit->getInputControlAux(i);
@@ -555,21 +555,15 @@ void Faust_Ctor(Faust* unit)  // module constructor
             SETCALC(Faust_next);
         } else {
             unit->mInBufCopy = (float**)RTAlloc(unit->mWorld, unit->mDSP->getNumInputs()*sizeof(float*));
-            if (!unit->mInBufCopy) {
-                goto end;
-            }
+            ClearUnitIfMemFailed(unit->mInBufCopy);
             // Allocate memory for input buffer copies (numInputs * bufLength)
             // and linear interpolation state (numInputs)
             // = numInputs * (bufLength + 1)
             unit->mInBufValue = (float*)RTAlloc(unit->mWorld, unit->mDSP->getNumInputs()*sizeof(float));
-            if (!unit->mInBufValue) {
-                goto end;
-            }
+            ClearUnitIfMemFailed(unit->mInBufValue);
             // Aquire memory for interpolator state.
             float* mem = (float*)RTAlloc(unit->mWorld, unit->mDSP->getNumInputs()*BUFLENGTH*sizeof(float));
-            if (mem) {
-                goto end;
-            }
+            ClearUnitIfMemFailed(mem);
             for (int i = 0; i < unit->mDSP->getNumInputs(); ++i) {
                 // Initialize interpolator.
                 unit->mInBufValue[i] = IN0(i);
@@ -599,11 +593,6 @@ void Faust_Ctor(Faust* unit)  // module constructor
         }
     }
     
-end:
-    Print("Faust[%s]: RT memory allocation failed, try increasing the real-time memory size in the server options\n", g_unitName);
-    RTFree(unit->mWorld, unit->mDSP);
-    RTFree(unit->mWorld, unit->mInBufCopy);
-    RTFree(unit->mWorld, unit->mInBufValue);
     // Fix for https://github.com/grame-cncm/faust/issues/13
     ClearUnitOutputs(unit, 1);
 }
@@ -621,7 +610,9 @@ void Faust_Dtor(Faust* unit)  // Module destructor
     }
     
     // delete dsp
-    unit->mDSP->~FAUSTCLASS();
+    if (unit->mDSP != nullptr) {
+        unit->mDSP->~FAUSTCLASS();
+    }
     RTFree(unit->mWorld, unit->mDSP);
     
     RTFree(unit->mWorld, unit->mControlInputs);
