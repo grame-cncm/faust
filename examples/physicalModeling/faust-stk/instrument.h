@@ -46,9 +46,6 @@ double LookupTable::getValue(double x)
 	if (i==0)
 		return m_Points[1];
 	
-	if (i>=m_nPoints)
-		return m_Points[(m_nPoints-1)*2+1];
-	
 	double ratio =
 	(x - m_Points[(i-1)*2])
 	/ (m_Points[i*2] - m_Points[(i-1)*2]);
