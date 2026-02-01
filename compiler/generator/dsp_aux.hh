@@ -23,6 +23,7 @@
 #define DSP_AUX_H
 
 #include <string.h>
+#include <atomic>
 #include <cassert>
 #include <list>
 #include <map>
@@ -47,21 +48,21 @@
  */
 class faust_smartable {
    private:
-    unsigned refCount;
+    std::atomic<unsigned> refCount;
 
    public:
     //! gives the reference count of the object
-    unsigned refs() const { return refCount; }
+    unsigned refs() const { return refCount.load(std::memory_order_relaxed); }
     //! addReference increments the ref count and checks for refCount overflow
     void addReference()
     {
-        refCount++;
-        faustassert(refCount != 0);
+        unsigned prev = refCount.fetch_add(1, std::memory_order_relaxed);
+        faustassert(prev + 1 != 0);
     }
     //! removeReference delete the object when refCount is zero
     void removeReference()
     {
-        if (--refCount == 0) {
+        if (refCount.fetch_sub(1, std::memory_order_acq_rel) == 1) {
             delete this;
         }
     }
