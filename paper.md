@@ -39,7 +39,7 @@ a modern, open plug-in standard.
 
 # Statement of Need
 
-The audio plug-in development ecosystem has traditionally required developers to navigate complex APIs and manage significant boilerplate code when creating plug-ins for digital audio workstations (DAWs). While Faust provides an elegant functional programming language for DSP algorithm design [@letz2018overview], and CLAP offers a modern, open-source plug-in standard [@clap2022], there has been no direct path between these two technologies. 
+The audio plug-in development ecosystem has traditionally required developers to navigate complex APIs and manage significant boilerplate code when creating plug-ins for digital audio workstations (DAWs). While Faust provides an elegant functional programming language for DSP algorithm design [@orlarey2009faust; @letz2018overview], and CLAP offers a modern, open-source plug-in standard [@clap2022], there has been no direct path between these two technologies. 
 
 `faust2clap` addresses this gap by providing researchers, audio developers, and educators with a streamlined workflow for plugin development. The tool is particularly valuable for:
 
@@ -51,9 +51,11 @@ The hot-reload capability is especially significant for iterative development, a
 
 # State of the Field
 
-Several tools exist for generating audio plugins from Faust code, including `faust2vst`, `faust2au`, and `faust2lv2`, which target the VST, Audio Unit, and LV2 plugin standards respectively [@faust_architectures]. However, these tools generate only statically compiled plugins and lack support for the modern CLAP standard, which offers advantages including better parameter automation, more flexible audio port configurations, and an open-source license without patent encumbrances.
+Several tools exist for generating audio plug-ins from Faust code, including `faust2vst`, `faust2au`, and `faust2lv2`, which target the VST, Audio Unit, and LV2 plug-in standards respectively [@faust_architectures]. However, these tools generate only statically compiled plug-ins and lack support for the modern CLAP standard, which offers advantages including a stable C ABI, host-managed multithreading, per-voice control, fast and safe plug-in scanning, and an open-source license without patent encumbrances.
 
-The CLAP standard itself, developed by Bitwig and u-he [@clap2022], introduces improvements over earlier standards in plugin architecture design, but adoption has been limited by the lack of high-level development tools. While the clap-helpers library provides C++ utilities for CLAP development, it still requires substantial manual implementation work.
+The CLAP standard itself, developed by Bitwig and u-he [@clap2022], introduces improvements over earlier standards in plug-in architecture design, but adoption has been limited by the lack of high-level development tools. While the clap-helpers library provides C++ utilities for CLAP development, it still requires substantial manual implementation work.
+
+Related toolchains for generating plug-ins from high-level DSLs or patches include the Heavy Compiler Collection (hvcc) [@hvcc_wasted], which converts Pure Data patches to C++ wrappers. Other established export-oriented environments include Cycling '74 RNBO for Max/MSP patches [@rnbo_export]. Adjacent deployment strategies, such as Camomile [@guillot2018camomile], permit hosting patches within a plug-in environment rather than standalone compilation, which is more akin to the dynamic mode of `faust2clap`.
 
 `faust2clap` extends the ecosystem through four contributions:
 
@@ -74,7 +76,7 @@ Both modes share infrastructure for audio buffer handling and MIDI event process
 
 # Usage and Adoption
 
-`faust2clap` has recently been merged into the main Faust repository, where it is now distributed as part of the standard toolchain. Although still a new addition, its inclusion makes the functionality available to the wider Faust user community. The tool demonstrates how high-level DSP specifications in Faust can be compiled to a modern plug-in standard, and provides a reference point for future work on CLAP-based development tools.
+`faust2clap` has recently been merged into the main Faust repository, where it is now distributed as part of the standard toolchain. Although still a new addition, its inclusion makes the functionality available to the wider Faust user community. The tool has been utilised in experimental settings to explore artificial reverberation algorithms in real-time DAW environments, demonstrating its utility for iterative DSP research. Furthermore, developer interest indicates strong potential for live coding workflows, which remain a subject for future investigation. `faust2clap` provides a reference point for subsequent development of CLAP-based tools and demonstrates the viability of high-level DSP specifications for modern plug-in standards.
 
 # Acknowledgements
 

@@ -29,6 +29,7 @@ In addition to this static mode, a dynamic implementation has been added. In thi
 Install `faust2clap` globally (CLI + dependencies):
 
 ```bash
+git submodule update --init --recursive
 cd tools/faust2clap
 chmod +x install-faust2clap.sh
 sudo ./install-faust2clap.sh
@@ -73,6 +74,12 @@ Run the hot-reload GUI controller
 ```bash
 faust2clap --gui
 ```
+
+> **note:** the gui requires tkinter (tk). if you get an import error:
+> - recommended: `uv run faust-hot-reload.py`
+> - macos homebrew: `brew install python-tk@3.x`
+> - debian/ubuntu: `sudo apt-get install python3-tk`
+> - fedora: `sudo dnf install python3-tkinter`
 The GUI allows you to:
 - Browse and load .dsp files
 - View currently loaded DSP

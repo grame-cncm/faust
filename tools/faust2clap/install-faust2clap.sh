@@ -11,7 +11,14 @@ set -euo pipefail
 INSTALL_ROOT="/usr/local/share/faust2clap"
 BIN_LINK="/usr/local/bin/faust2clap"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"  
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# check submodules are initialised
+if [ ! -f "$REPO_ROOT/external/efsw/include/efsw/efsw.h" ]; then
+  echo "❌ git submodules not initialised. run this first (without sudo):"
+  echo "   git submodule update --init --recursive"
+  exit 1
+fi
 
 # create install location
 sudo mkdir -p "$INSTALL_ROOT"

@@ -102,13 +102,12 @@ foreach(FAUST_CPP ${FAUST_SOURCES})
 
   if (APPLE AND COPY_AFTER_BUILD)
     message(STATUS "Will copy plugin '${PLUGIN_NAME}' after build")
-    set(products_folder ${CMAKE_BINARY_DIR})
     add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E echo "Installing ${products_folder}/${PLUGIN_NAME}.clap to ~/Library/Audio/Plug-Ins/CLAP/"
+      COMMAND ${CMAKE_COMMAND} -E echo "Installing ${PLUGIN_NAME}.clap to ~/Library/Audio/Plug-Ins/CLAP/"
       COMMAND ${CMAKE_COMMAND} -E make_directory "$ENV{HOME}/Library/Audio/Plug-Ins/CLAP"
       COMMAND ${CMAKE_COMMAND} -E rm -rf "$ENV{HOME}/Library/Audio/Plug-Ins/CLAP/${PLUGIN_NAME}.clap"
       COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${products_folder}/${PLUGIN_NAME}.clap"
+        "$<TARGET_BUNDLE_DIR:${PLUGIN_NAME}>"
         "$ENV{HOME}/Library/Audio/Plug-Ins/CLAP/${PLUGIN_NAME}.clap"
     )
   endif()

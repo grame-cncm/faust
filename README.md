@@ -30,6 +30,10 @@ Before using faust2clap, make sure you have:
 
 - **Faust** (version 2.54.0 or later) - See [official installation guide](https://faust.grame.fr/downloads/)
 - **Python 3.7+** for the build script
+- **Tkinter** (required for the hot-reload GUI)
+  - macOS: `brew install python-tk`
+  - Linux: `sudo apt-get install python3-tk`
+- **uv** (recommended for dependency management)
 - **C++ compiler** with C++17 support (Clang/GCC/MSVC)
 - **CMake 3.16+** for building plugins
 - **libfaust** with interpreter support (required for dynamic mode only)
@@ -59,9 +63,10 @@ python tools/faust2clap/faust2clap.py your_file.dsp
 ```
 ```shell
 optional flags:
-  -mono        generate monophonic plugin
-  -poly        generate polyphonic plugin (default)
-  -nvoices N   set number of polyphonic voices (default: 16)
+  -mono          generate monophonic plugin
+  -poly          generate polyphonic plugin (default)
+  -nvoices N     set number of polyphonic voices (default: 16)
+  -o, --output   specify output build directory (default: ./build/<plugin_name>)
 ```
 
 The plugin will be automatically built and installed to:
@@ -70,14 +75,12 @@ The plugin will be automatically built and installed to:
 ```
 
 ###  Dynamic (Interpreter) mode
-Build the dynamic hot-reload plugin
-```bash
-cd architecture/clap
-make -f Makefile.simple
-```
-Install to system plugin directories
+Build the dynamic hot-reload plugin:
 
 ```bash
+git submodule update --init external/efsw
+cd architecture/clap
+make -f Makefile.simple
 make -f Makefile.simple install
 ```
 The dynamic plugin (FaustDynamic.clap) will be installed to:

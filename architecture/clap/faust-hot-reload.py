@@ -1,12 +1,33 @@
 #!/usr/bin/env python3
 #created by Facundo Franchino
+# /// script
+# requires-python = ">=3.8"
+# dependencies = []
+# ///
+# requires tkinter (tk). if you get an import error:
+#   - recommended: uv run faust-hot-reload.py
+#   - macos homebrew: brew install python-tk@3.x
+#   - debian/ubuntu: sudo apt-get install python3-tk
+#   - fedora: sudo dnf install python3-tkinter
 """
 Faust Hot Reload GUI
 A friendly interface for the Faust Dynamic CLAP plugin hot reload system.
 """
 
-import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+try:
+    import tkinter as tk
+    from tkinter import ttk, filedialog, messagebox
+except ImportError:
+    import sys
+    import platform
+    print("\033[91m[!] Error: 'tkinter' is missing. This is required for the GUI.\033[0m")
+    if platform.system() == "Darwin": # macOS
+        print("\033[93m[i] Try installing it via Homebrew: brew install python-tk\033[0m")
+        print("    Or use 'uv run' if you have it installed: uv run python3 faust-hot-reload.py")
+    elif platform.system() == "Linux":
+        print("\033[93m[i] Try: sudo apt-get install python3-tk\033[0m")
+    sys.exit(1)
+
 import json
 import os
 from pathlib import Path
