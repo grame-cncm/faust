@@ -161,12 +161,12 @@ void RustCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n + 1, *fOut);
-        *fOut << "pub fn fill" << fKlassName
-              << "(&mut self, " << counter << ": i32, table: &mut[i32]) {";
+        *fOut << "pub fn fill" << fKlassName << "(&mut self, " << counter
+              << ": i32, table: &mut[i32]) {";
     } else {
         tab(n + 1, *fOut);
-        *fOut << "pub fn fill" << fKlassName
-              << "(&mut self, " << counter << ": i32, table: &mut["<<ifloat()<<"]) {";
+        *fOut << "pub fn fill" << fKlassName << "(&mut self, " << counter << ": i32, table: &mut["
+              << ifloat() << "]) {";
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
@@ -292,7 +292,8 @@ void RustCodeContainer::produceClass()
     // Missing math functions
     // See: https://users.rust-lang.org/t/analog-of-c-std-remainder/59670
     if (gGlobal->gFloatSize == 1 && !gGlobal->gRustNoLibm) {
-        *fOut << "#[cfg(not(target_arch = \"wasm32\"))] // Compile ffi bindings only on non-wasm targets";
+        *fOut << "#[cfg(not(target_arch = \"wasm32\"))] // Compile ffi bindings only on non-wasm "
+                 "targets";
         tab(n, *fOut);
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
@@ -343,7 +344,8 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         */
     } else if (gGlobal->gFloatSize == 2 && !gGlobal->gRustNoLibm) {
-        *fOut << "#[cfg(not(target_arch = \"wasm32\"))] // Compile ffi bindings only on non-wasm targets";
+        *fOut << "#[cfg(not(target_arch = \"wasm32\"))] // Compile ffi bindings only on non-wasm "
+                 "targets";
         tab(n + 1, *fOut);
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);

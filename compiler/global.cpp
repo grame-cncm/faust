@@ -531,6 +531,10 @@ void global::reset()
     gCountInferences = 0;
     gCountMaximal    = 0;
 
+#ifdef FIR_BUILD
+    gStats.reset();  // Reset compiler statistics
+#endif
+
     gDummyInput = 10000;
 
     gBoxSlotNumber = 0;
@@ -1705,7 +1709,6 @@ bool global::processCmdline(int argc, const char* argv[])
     if (gRustNoLibm && gOutputLang != "rust") {
         throw faustexception("ERROR : '-rnlm' option can only be used with 'rust' backend\n");
     }
-
     if (!gRustNoTraitSwitch && gInPlace && gOutputLang == "rust") {
         throw faustexception(
             "ERROR : for 'rust' the '-inpl' flag must be combined with '-rnt' flag\n");
@@ -2649,6 +2652,106 @@ void global::clear()
     gSignalTable.clear();
     gSignalTrace.clear();
 }
+
+#ifdef FIR_BUILD
+
+void statsTreeCreated()
+{
+    gGlobal->gStats.fTreesCreated++;
+}
+
+void statsTreeReused()
+{
+    gGlobal->gStats.fTreesReused++;
+}
+
+void statsPropertySet()
+{
+    gGlobal->gStats.fPropertySets++;
+}
+
+void statsPropertyGet()
+{
+    gGlobal->gStats.fPropertyGets++;
+}
+
+// Print compiler statistics for performance analysis
+void CompilerStats::print(std::ostream& out) const
+{
+    out << "\n========== COMPILER STATISTICS ==========\n";
+
+    out << "\n--- Phase 1: Parsing ---\n";
+    out << "  (not instrumented)\n";
+
+    out << "\n--- Phase 2: Box Evaluation ---\n";
+    out << "  eval() calls:            " << fEvalCalls << "\n";
+    out << "  eval() cache hits:       " << fEvalCacheHits;
+    if (fEvalCalls > 0) {
+        out << " (" << (100.0 * fEvalCacheHits / fEvalCalls) << "%)";
+    }
+    out << "\n";
+    out << "  eval() cache misses:     " << fEvalCacheMisses << "\n";
+    out << "  Loop detector calls:     " << fLoopDetectorCalls << "\n";
+    out << "  Stack detector calls:    " << fStackDetectorCalls << "\n";
+
+    out << "\n--- Phase 3: Propagation ---\n";
+    out << "  propagate() calls:       " << fPropagateCalls << "\n";
+    out << "  propagate() cache hits:  " << fPropagateCacheHits;
+    if (fPropagateCalls > 0) {
+        out << " (" << (100.0 * fPropagateCacheHits / fPropagateCalls) << "%)";
+    }
+    out << "\n";
+    out << "  propagate() cache misses:" << fPropagateCacheMisses << "\n";
+
+    out << "\n--- Box Type Computation ---\n";
+    out << "  getBoxType() calls:      " << fGetBoxTypeCalls << "\n";
+    out << "  getBoxType() cache hits: " << fGetBoxTypeCacheHits;
+    if (fGetBoxTypeCalls > 0) {
+        out << " (" << (100.0 * fGetBoxTypeCacheHits / fGetBoxTypeCalls) << "%)";
+    }
+    out << "\n";
+    out << "  getBoxType() computed:   " << fGetBoxTypeComputed << "\n";
+
+    out << "\n--- Environment Operations ---\n";
+    out << "  Environment lookups:     " << fEnvLookups << "\n";
+    if (fEnvLookups > 0) {
+        out << "  Average lookup depth:    " << (1.0 * fEnvLookupTotalDepth / fEnvLookups) << "\n";
+    }
+    out << "  Env layers pushed:       " << fEnvLayersPushed << "\n";
+
+    out << "\n--- Pattern Matching ---\n";
+    out << "  build automaton calls:        " << fPatternMatcherBuildCalls << "\n";
+    out << "  build total time (ms):        " << fPatternMatcherBuildTimeMs << "\n";
+    if (fPatternMatcherBuildCalls > 0) {
+        out << "  build avg time (ms):          "
+            << (fPatternMatcherBuildTimeMs / fPatternMatcherBuildCalls) << "\n";
+    }
+    out << "  apply calls:                  " << fPatternMatcherApplyCalls << "\n";
+    out << "  apply total time (ms):        " << fPatternMatcherApplyTimeMs << "\n";
+    if (fPatternMatcherApplyCalls > 0) {
+        out << "  apply avg time (ms):          "
+            << (fPatternMatcherApplyTimeMs / fPatternMatcherApplyCalls) << "\n";
+    }
+
+    out << "\n--- Tree Operations ---\n";
+    out << "  Trees created:           " << fTreesCreated << "\n";
+    out << "  Trees reused (hash):     " << fTreesReused;
+    if (fTreesCreated + fTreesReused > 0) {
+        out << " (" << (100.0 * fTreesReused / (fTreesCreated + fTreesReused)) << "% reuse rate)";
+    }
+    out << "\n";
+    out << "  Property set ops:        " << fPropertySets << "\n";
+    out << "  Property get ops:        " << fPropertyGets << "\n";
+
+    out << "\n--- Iteration Constructs ---\n";
+    out << "  par() iterations:        " << fParIterations << "\n";
+    out << "  seq() iterations:        " << fSeqIterations << "\n";
+    out << "  sum() iterations:        " << fSumIterations << "\n";
+    out << "  prod() iterations:       " << fProdIterations << "\n";
+
+    out << "\n==========================================\n";
+}
+#endif
 
 // Memory management
 

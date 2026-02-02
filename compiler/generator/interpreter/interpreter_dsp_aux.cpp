@@ -20,10 +20,10 @@
  ************************************************************************/
 
 #include "compatibility.hh"
+#include "faust/gui/JSONUI.h"
 #include "interpreter_dsp.hh"
 #include "libfaust.h"
 #include "lock_api.hh"
-#include "faust/gui/JSONUI.h"
 
 using namespace std;
 

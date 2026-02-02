@@ -301,10 +301,7 @@ class LIBFAUST_API llvm_dsp_factory : public dsp_factory, public faust_smartable
 
     std::string getCompileOptions() { return fFactory->getCompileOptions(); }
 
-    std::string getJSON()
-    {
-        return (fFactory->fGetJSON) ? std::string(fFactory->fGetJSON()) : "";
-    }
+    std::string getJSON() { return (fFactory->fGetJSON) ? std::string(fFactory->fGetJSON()) : ""; }
 
     std::vector<std::string> getLibraryList() { return fFactory->getLibraryList(); }
     std::vector<std::string> getIncludePathnames() { return fFactory->getIncludePathnames(); }

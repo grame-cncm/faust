@@ -581,11 +581,16 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
 siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
+    FAUST_STATS_DO(gGlobal->gStats.fPropagateCalls++);
+
     Tree    args = tree(gGlobal->PROPAGATEPROPERTY, slotenv, path, box, listConvert(lsig));
     siglist result;
     if (!getPropagateProperty(args, result)) {
+        FAUST_STATS_DO(gGlobal->gStats.fPropagateCacheMisses++);
         result = realPropagate(slotenv, path, box, lsig);
         setPropagateProperty(args, result);
+    } else {
+        FAUST_STATS_DO(gGlobal->gStats.fPropagateCacheHits++);
     }
     // cerr << "propagate in " << boxpp(box) << endl;
     // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) <<

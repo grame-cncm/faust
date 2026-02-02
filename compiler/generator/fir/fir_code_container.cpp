@@ -316,6 +316,9 @@ void FIRCodeContainer::produceClass()
     dumpPostCompute(firvisitor, fOut);
     dumpFlatten(fOut);
     dumpMemory(fOut);
+
+    // Print compiler statistics
+    gGlobal->gStats.print(*fOut);
 }
 
 void FIRCodeContainer::dumpPostCompute(FIRInstVisitor& firvisitor, ostream* dst)

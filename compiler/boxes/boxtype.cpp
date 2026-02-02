@@ -59,8 +59,11 @@ static bool inferBoxType(Tree box, int* inum, int* onum);
 
 LIBFAUST_API bool getBoxType(Tree box, int* inum, int* onum)
 {
+    FAUST_STATS_DO(gGlobal->gStats.fGetBoxTypeCalls++);
+
     Tree t;
     if (getProperty(box, gGlobal->BOXTYPEPROP, t)) {
+        FAUST_STATS_DO(gGlobal->gStats.fGetBoxTypeCacheHits++);
         if (isNil(t)) {
             return false;
         } else {
@@ -70,6 +73,7 @@ LIBFAUST_API bool getBoxType(Tree box, int* inum, int* onum)
         }
 
     } else {
+        FAUST_STATS_DO(gGlobal->gStats.fGetBoxTypeComputed++);
         if (inferBoxType(box, inum, onum)) {
             setProperty(box, gGlobal->BOXTYPEPROP, cons(tree(*inum), tree(*onum)));
             return true;

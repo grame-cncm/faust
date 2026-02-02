@@ -47,6 +47,7 @@ using namespace std;
  */
 static Tree pushNewLayer(Tree lenv)
 {
+    FAUST_STATS_DO(gGlobal->gStats.fEnvLayersPushed++);
     return tree(unique("ENV_LAYER"), lenv);
 }
 
@@ -152,13 +153,17 @@ Tree pushMultiClosureDefs(Tree ldefs, Tree visited, Tree lenv)
  */
 bool searchIdDef(Tree id, Tree& def, Tree lenv)
 {
+    FAUST_STATS_DO(gGlobal->gStats.fEnvLookups++);
+
     // search the environment until a definition is found
     // or a barrier (or nil) is reached
-
+    size_t depth = 0;
     while (!isEnvBarrier(lenv) && !getProperty(lenv, id, def)) {
         faustassert(lenv->arity() > 0);
         lenv = lenv->branch(0);
+        FAUST_STATS_DO(depth++);
     }
+    FAUST_STATS_DO(gGlobal->gStats.fEnvLookupTotalDepth += depth);
     return !isEnvBarrier(lenv);
 }
 

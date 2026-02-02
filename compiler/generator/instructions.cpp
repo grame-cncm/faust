@@ -100,7 +100,9 @@ ValueInst* IB::genRealNumInst(Typed::VarType ctype, double num)
         return new FloatNumInst(float(num));
     } else if (ctype == Typed::kFloatMacro) {
         ValueInst* val = genRealNumInst(itfloat(), num);
-        return (gGlobal->gFAUSTFLOAT2Internal) ? val : genCastInst(val, genBasicTyped(Typed::kFloatMacro));
+        return (gGlobal->gFAUSTFLOAT2Internal)
+                   ? val
+                   : genCastInst(val, genBasicTyped(Typed::kFloatMacro));
     } else if (ctype == Typed::kDouble) {
         return new DoubleNumInst(num);
     } else if (ctype == Typed::kQuad) {

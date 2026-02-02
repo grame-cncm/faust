@@ -100,9 +100,12 @@ static Tree subtree(Tree X, int i, const Path& p)
     if (i < n && isBoxPatternOpTernary(X, op, x0, x1, x2)) {
         /* ternary operator */
         switch (p[i]) {
-            case 0: return subtree(x0, i + 1, p);
-            case 1: return subtree(x1, i + 1, p);
-            default: return subtree(x2, i + 1, p);
+            case 0:
+                return subtree(x0, i + 1, p);
+            case 1:
+                return subtree(x1, i + 1, p);
+            default:
+                return subtree(x2, i + 1, p);
         }
     } else if (i < n && isBoxPatternOpBinary(X, op, x0, x1)) {
         return subtree((p[i] == 0) ? x0 : x1, i + 1, p);
@@ -585,6 +588,7 @@ Automaton* make_pattern_matcher(Tree R)
    NOTE: The lists of rules and patterns are actually delivered in reverse
    order by the parser, so we have to reverse them on the fly. */
 {
+    FAUST_STATS_BUILD_TIMER();
     Automaton*            A = new Automaton;
     int                   n = len(R), r = n;
     State*                start = new State;
@@ -787,6 +791,7 @@ int apply_pattern_matcher(Automaton*    A,  // automaton
                           Tree&         C,  // output closure (if any)
                           vector<Tree>& E)  // modified output environments
 {
+    FAUST_STATS_APPLY_TIMER();
     int           n = A->n_rules();
     vector<Subst> subst(n, Subst());
     /* perform matching, record variable substitutions */

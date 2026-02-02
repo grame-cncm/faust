@@ -24,6 +24,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <chrono>
 #include <list>
 #include <map>
 #include <memory>
@@ -88,6 +89,105 @@ typedef std::map<Tree, std::set<Tree>>           FunMDSet;  // foo -> {(file/foo
 // Global outside of the global context
 extern std::vector<std::string> gWarningMessages;
 extern bool                     gAllWarning;
+
+#ifdef FIR_BUILD
+#define FAUST_STATS_DO(stmt)                            \
+    do {                                                \
+        if (gGlobal && gGlobal->gOutputLang == "fir") { \
+            stmt;                                       \
+        }                                               \
+    } while (0)
+
+// Compiler statistics for performance analysis (FIR backend only)
+struct CompilerStats {
+    // Evaluation phase
+    size_t fEvalCalls;           // Total calls to eval()
+    size_t fEvalCacheHits;       // Cache hits in eval()
+    size_t fEvalCacheMisses;     // Cache misses (actual evaluations)
+    size_t fLoopDetectorCalls;   // Calls to loop detector
+    size_t fStackDetectorCalls;  // Calls to stack overflow detector
+
+    // Propagation phase
+    size_t fPropagateCalls;        // Total calls to propagate()
+    size_t fPropagateCacheHits;    // Cache hits in propagate()
+    size_t fPropagateCacheMisses;  // Cache misses (actual propagations)
+
+    // Box type computation
+    size_t fGetBoxTypeCalls;      // Total calls to getBoxType()
+    size_t fGetBoxTypeCacheHits;  // Cache hits in getBoxType()
+    size_t fGetBoxTypeComputed;   // Types actually computed (cache misses)
+
+    // Environment operations
+    size_t fEnvLookups;           // Total environment lookups
+    size_t fEnvLookupTotalDepth;  // Sum of lookup depths (for average)
+    size_t fEnvLayersPushed;      // New environment layers created
+
+    // Tree operations
+    size_t fTreesCreated;  // New Tree nodes created
+    size_t fTreesReused;   // Trees found via hash-consing
+    size_t fPropertySets;  // Property set operations
+    size_t fPropertyGets;  // Property get operations
+
+    // Iteration constructs
+    size_t fParIterations;   // Total par() iterations
+    size_t fSeqIterations;   // Total seq() iterations
+    size_t fSumIterations;   // Total sum() iterations
+    size_t fProdIterations;  // Total prod() iterations
+
+    // Pattern matching
+    size_t fPatternMatcherBuildCalls;
+    double fPatternMatcherBuildTimeMs;
+    size_t fPatternMatcherApplyCalls;
+    double fPatternMatcherApplyTimeMs;
+
+    CompilerStats() { reset(); }
+
+    void reset()
+    {
+        fEvalCalls = fEvalCacheHits = fEvalCacheMisses = 0;
+        fLoopDetectorCalls = fStackDetectorCalls = 0;
+        fPropagateCalls = fPropagateCacheHits = fPropagateCacheMisses = 0;
+        fGetBoxTypeCalls = fGetBoxTypeCacheHits = fGetBoxTypeComputed = 0;
+        fEnvLookups = fEnvLookupTotalDepth = fEnvLayersPushed = 0;
+        fTreesCreated = fTreesReused = fPropertySets = fPropertyGets = 0;
+        fParIterations = fSeqIterations = fSumIterations = fProdIterations = 0;
+        fPatternMatcherBuildCalls = fPatternMatcherApplyCalls = 0;
+        fPatternMatcherBuildTimeMs = fPatternMatcherApplyTimeMs = 0.0;
+    }
+
+    void print(std::ostream& out) const;
+};
+
+struct StatsTimer {
+    using clock = std::chrono::steady_clock;
+    clock::time_point fStart;
+    size_t*           fCalls;
+    double*           fTotalMs;
+
+    StatsTimer(size_t* calls, double* total_ms)
+        : fStart(clock::now()), fCalls(calls), fTotalMs(total_ms)
+    {
+    }
+
+    ~StatsTimer()
+    {
+        (*fCalls)++;
+        *fTotalMs += std::chrono::duration<double, std::milli>(clock::now() - fStart).count();
+    }
+};
+
+#define FAUST_STATS_BUILD_TIMER()                                \
+    StatsTimer timer(&gGlobal->gStats.fPatternMatcherBuildCalls, \
+                     &gGlobal->gStats.fPatternMatcherBuildTimeMs)
+#define FAUST_STATS_APPLY_TIMER()                                \
+    StatsTimer timer(&gGlobal->gStats.fPatternMatcherApplyCalls, \
+                     &gGlobal->gStats.fPatternMatcherApplyTimeMs)
+
+#else
+#define FAUST_STATS_DO(stmt)
+#define FAUST_STATS_BUILD_TIMER()
+#define FAUST_STATS_APPLY_TIMER()
+#endif
 
 // Global singleton like compiler state
 struct global {
@@ -312,6 +412,11 @@ struct global {
     int gCountInferences;
     int gCountMaximal;
     int gAllocationCount;  // Internal signal types counter
+
+    // Compiler statistics for performance analysis (FIR backend only)
+#ifdef FIR_BUILD
+    CompilerStats gStats;  // Accumulated statistics
+#endif
 
     // Used in propagation
     int gDummyInput;

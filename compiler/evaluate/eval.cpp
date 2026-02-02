@@ -301,7 +301,14 @@ static Tree eval(Tree exp, Tree visited, Tree localValEnv)
 
     // cerr << "eval : " << boxpp(exp) << " in env " << envpp(localValEnv) << endl;
 
+    FAUST_STATS_DO(gGlobal->gStats.fEvalCalls++);
+
     if (!getEvalProperty(exp, localValEnv, result)) {
+        FAUST_STATS_DO({
+            gGlobal->gStats.fEvalCacheMisses++;
+            gGlobal->gStats.fLoopDetectorCalls++;
+            gGlobal->gStats.fStackDetectorCalls++;
+        });
         gGlobal->gLoopDetector.detect(cons(exp, localValEnv));
         gGlobal->gStackOverflowDetector.detect();
         result = realeval(exp, visited, localValEnv);
@@ -309,6 +316,8 @@ static Tree eval(Tree exp, Tree visited, Tree localValEnv)
         if (getDefNameProperty(exp, id)) {
             setDefNameProperty(result, id);  // propagate definition name property
         }
+    } else {
+        FAUST_STATS_DO(gGlobal->gStats.fEvalCacheHits++);
     }
     return result;
 }
@@ -663,8 +672,8 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
                 Tree p;
                 // Allow pattern variables and wildcards in route patterns
                 if (isBoxPatternVar(v1, p) || isBoxPatternVar(v2, p) || isBoxPatternVar(vr, p) ||
-                    isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) ||
-                    isBoxSlot(v1) || isBoxSlot(v2) || isBoxSlot(vr)) {
+                    isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) || isBoxSlot(v1) ||
+                    isBoxSlot(v2) || isBoxSlot(vr)) {
                     return boxRoute(v1, v2, normalizeRouteList(vr));
                 }
                 evalerror(getDefFileProp(exp), getDefLineProp(exp),
@@ -674,8 +683,8 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
             Tree p;
             // Allow pattern variables and wildcards in route patterns
             if (isBoxPatternVar(v1, p) || isBoxPatternVar(v2, p) || isBoxPatternVar(vr, p) ||
-                isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) ||
-                isBoxSlot(v1) || isBoxSlot(v2) || isBoxSlot(vr)) {
+                isBoxWire(v1) || isBoxWire(v2) || isBoxWire(vr) || isBoxSlot(v1) || isBoxSlot(v2) ||
+                isBoxSlot(vr)) {
                 return boxRoute(v1, v2, normalizeRouteList(vr));
             }
             evalerror(getDefFileProp(exp), getDefLineProp(exp),
@@ -832,7 +841,8 @@ static Tree patternSimplification(Tree pattern)
     if (isBoxNumeric(pattern, v)) {
         return v;
     } else if (isBoxPatternOpTernary(pattern, n, t1, t2, t3)) {
-        return tree(n, patternSimplification(t1), patternSimplification(t2), patternSimplification(t3));
+        return tree(n, patternSimplification(t1), patternSimplification(t2),
+                    patternSimplification(t3));
     } else if (isBoxPatternOpBinary(pattern, n, t1, t2)) {
         return tree(n, patternSimplification(t1), patternSimplification(t2));
     } else {
@@ -1017,6 +1027,8 @@ static string evalLabel(const char* src, Tree visited, Tree localValEnv)
  */
 static Tree iteratePar(Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
+    FAUST_STATS_DO(gGlobal->gStats.fParIterations += num);
+
     if (num == 0) {
         // zero iteration: return neutral circuit (0->0) for parallel composition
         return boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0), boxInt(0)));
@@ -1078,6 +1090,8 @@ static Tree neutralExpSeq(Tree id, Tree body, Tree visited, Tree localValEnv)
  */
 static Tree iterateSeq(Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
+    FAUST_STATS_DO(gGlobal->gStats.fSeqIterations += num);
+
     if (num == 0) {
         Tree neutral = neutralExpSeq(id, body, visited, localValEnv);
         return neutral;
@@ -1104,6 +1118,8 @@ static Tree iterateSeq(Tree id, int num, Tree body, Tree visited, Tree localValE
  */
 static Tree iterateSum(Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
+    FAUST_STATS_DO(gGlobal->gStats.fSumIterations += num);
+
     if (num == 0) {
         return boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0), boxInt(0)));
     } else {
@@ -1130,6 +1146,8 @@ static Tree iterateSum(Tree id, int num, Tree body, Tree visited, Tree localValE
  */
 static Tree iterateProd(Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
+    FAUST_STATS_DO(gGlobal->gStats.fProdIterations += num);
+
     if (num == 0) {
         return boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0), boxInt(0)));
     } else {

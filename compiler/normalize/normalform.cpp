@@ -147,11 +147,13 @@ static Tree simplifyToNormalFormAux(Tree LS)
 LIBFAUST_API Tree simplifyToNormalForm(Tree sig)
 {
     if (isList(sig)) {
+        startTiming("simplifyToNormalForm");
         Tree t2 = sig->getProperty(gGlobal->NORMALFORM);
         if (!t2) {
             t2 = simplifyToNormalFormAux(sig);
             sig->setProperty(gGlobal->NORMALFORM, t2);
         }
+        endTiming("simplifyToNormalForm");
         return t2;
     } else {
         return simplifyToNormalForm(cons(sig, gGlobal->nil));

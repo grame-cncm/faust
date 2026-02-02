@@ -160,8 +160,10 @@ Tree CTree::make(const Node& n, const tvec& br)
     }
 
     if (t) {
+        statsTreeReused();
         return t;
     } else {
+        statsTreeCreated();
         return new CTree(hk, n, br);
     }
 }

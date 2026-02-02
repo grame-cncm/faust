@@ -59,8 +59,8 @@ endif()
 
 ####################################
 # source and headers files
-file (GLOB SRC ${SRCDIR}/*.cpp ${SRCDIR}/*/*.cpp ${SRCDIR}/draw/*/*.cpp ${SRCDIR}/generator/fir/*.cpp)
-file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh  ${SRCDIR}/generator/fir/*.hh)
+file (GLOB SRC ${SRCDIR}/*.cpp ${SRCDIR}/*/*.cpp ${SRCDIR}/draw/*/*.cpp)
+file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh)
 
 ####################################
 # include directories

@@ -77,6 +77,27 @@
 #include "node.hh"
 #include "symbol.hh"
 
+// Stats hooks are no-ops unless FIR_BUILD is enabled.
+#ifdef FIR_BUILD
+void statsTreeCreated();
+void statsTreeReused();
+void statsPropertySet();
+void statsPropertyGet();
+#else
+inline void statsTreeCreated()
+{
+}
+inline void statsTreeReused()
+{
+}
+inline void statsPropertySet()
+{
+}
+inline void statsPropertyGet()
+{
+}
+#endif
+
 //---------------------------------API---------------------------------------
 
 class CTree;
@@ -190,7 +211,11 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     void        setVisited() { fVisitTime = gVisitTime; }
 
     // Property list of a tree
-    void setProperty(Tree key, Tree value) { fProperties[key] = value; }
+    void setProperty(Tree key, Tree value)
+    {
+        statsPropertySet();
+        fProperties[key] = value;
+    }
     void clearProperty(Tree key) { fProperties.erase(key); }
     void clearProperties() { fProperties = plist(); }
 
@@ -198,6 +223,7 @@ class LIBFAUST_API CTree : public virtual Garbageable {
 
     Tree getProperty(Tree key)
     {
+        statsPropertyGet();
         plist::iterator i = fProperties.find(key);
         return (i == fProperties.end()) ? nullptr : i->second;
     }
