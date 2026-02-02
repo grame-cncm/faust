@@ -435,7 +435,7 @@ class smoothing_dsp : public decorator_dsp {
             fInputPtrs.assign(getNumInputs(), nullptr);
             fOutputPtrs.assign(getNumOutputs(), nullptr);
             fSmoothingSec = smoothing_sec;
-            fSmoothingStep = std::max(1, smoothing_step);
+            fSmoothingStep = std::max<int>(1, smoothing_step);
             fSmoothingSamples = 0;
             fRemaining = 0;
             resetSmoothingState();
@@ -472,7 +472,7 @@ class smoothing_dsp : public decorator_dsp {
         // Build from a concrete dsp, selecting smoothing duration (seconds).
         smoothing_dsp(::dsp* dsp, double smoothing_sec = 0, int smoothing_step = 1)
         : decorator_dsp(dsp), fDecoder(nullptr), fSmoothingSec(smoothing_sec), fSmoothingSamples(0),
-          fSmoothingStep(std::max(1, smoothing_step)), fRemaining(0),
+          fSmoothingStep(std::max<int>(1, smoothing_step)), fRemaining(0),
           fSmoother()
         {
             // Build JSON description from the wrapped dsp and initialize smoothing
@@ -495,7 +495,7 @@ class smoothing_dsp : public decorator_dsp {
         // Build from explicit JSON and a concrete dsp, with smoothing settings.
         smoothing_dsp(const std::string& json, ::dsp* dsp, double smoothing_sec = 0, int smoothing_step = 1)
         : decorator_dsp(dsp), fDecoder(nullptr), fSmoothingSec(smoothing_sec), fSmoothingSamples(0),
-          fSmoothingStep(std::max(1, smoothing_step)), fRemaining(0),
+          fSmoothingStep(std::max<int>(1, smoothing_step)), fRemaining(0),
           fSmoother()
         {
             init(json, dsp, smoothing_sec, smoothing_step);
@@ -569,7 +569,7 @@ class smoothing_dsp : public decorator_dsp {
                 int offset = 0;
                 while (offset < count && fRemaining > 0) {
                     // Update controls for this smoothing step and advance the ramp
-                    int stepSize = std::min({fSmoothingStep, fRemaining, count - offset});
+                    int stepSize = std::min<int>({fSmoothingStep, fRemaining, count - offset});
                     fSmoother.step(fControls, stepSize);
                     fRemaining -= stepSize;
                     if (fRemaining == 0) {
