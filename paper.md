@@ -10,7 +10,7 @@ tags:
   - hot-reload
 authors:
   - name: Facundo Franchino
-    orcid: 0009-0008-6654-0401  
+    orcid: 0009-0008-6654-0401
     affiliation: 1
   - name: Stéphane Letz
     orcid: 0000-0003-0256-2675
