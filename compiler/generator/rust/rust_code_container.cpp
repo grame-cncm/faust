@@ -297,7 +297,7 @@ void RustCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
-        *fOut << "use std::os::raw::c_float;";
+        *fOut << "use core::ffi::c_float;";
         tab(n + 1, *fOut);
         *fOut << "// Conditionally compile the link attribute only on non-Windows platforms";
         tab(n + 1, *fOut);
