@@ -947,18 +947,8 @@ void CPPScalarCodeContainer::generateCompute(int n)
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(fCodeProducer);
-
-    // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    loop->accept(fCodeProducer);
-
-    /*
-     // TODO : atomic switch
-     // Currently for soundfile management
-     */
-    generatePostComputeBlock(fCodeProducer);
+    BlockInst* block = generateComputeBlockLoop();
+    block->accept(fCodeProducer);
 
     back(1, *fOut);
     *fOut << "}";

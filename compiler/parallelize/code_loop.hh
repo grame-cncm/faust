@@ -238,6 +238,7 @@ class CodeLoop : public virtual Garbageable {
     }
 
     ForLoopInst* generateScalarLoop(const std::string& counter, bool loop_var_in_bytes = false);
+    ForLoopInst* generateScalarLoop(ValueInst* count, bool loop_var_in_bytes = false);
 
     // For SYFALA : loop with a fixed size (known at compile time)
     ForLoopInst* generateFixedScalarLoop();

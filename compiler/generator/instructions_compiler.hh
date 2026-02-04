@@ -22,6 +22,7 @@
 #ifndef _INSTRUCTION_COMPILER_H
 #define _INSTRUCTION_COMPILER_H
 
+#include <array>
 #include <list>
 #include <map>
 #include <set>
@@ -216,6 +217,7 @@ class InstructionsCompiler : public virtual Garbageable {
     ValueInst* getConditionCode(Tree sig);
 
     virtual DelayType analyzeDelayType(Tree sig);
+    virtual DelayType backendDelayType(DelayType dl_type);
 
     // Casting for inputs/ousputs
     virtual ValueInst* genCastedInput(ValueInst* value);
@@ -345,7 +347,14 @@ class InstructionsCompiler : public virtual Garbageable {
 
     Tree prepare(Tree LS);
     Tree prepare2(Tree L0);
+    
+    using BackendsDelay = std::map<std::string, std::array<DelayType, 8>>;
+    static BackendsDelay backendType;
+
 };
+
+
+//std::map<std::string, std::array<DelayType, 8>> backendType;
 
 // =========================================
 // Special version for -fx mode compilation
