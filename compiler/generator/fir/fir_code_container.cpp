@@ -156,6 +156,9 @@ static void dumpCost(StatementInst* inst, ostream* dst)
 
 void FIRCodeContainer::dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst)
 {
+    if (getComputeByBlock()) {
+        return;
+    }
     if (fComputeBlockInstructions->fCode.size() > 0) {
         *dst << "======= Compute control begin ==========" << endl << endl;
         // Complexity estimation
@@ -323,6 +326,9 @@ void FIRCodeContainer::produceClass()
 
 void FIRCodeContainer::dumpPostCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
+    if (getComputeByBlock()) {
+        return;
+    }
     *dst << "======= Post compute DSP begin ==========" << endl << endl;
     fPostComputeBlockInstructions->accept(&firvisitor);
     *dst << endl << "======= Post compute DSP end ==========" << endl << endl;

@@ -71,6 +71,8 @@ CodeContainer::CodeContainer()
       fNumPassives(0),
       fSubContainerType(kInt),
       fGeneratedSR(false),
+      fComputeByBlock(false),
+      fComputeBlockIndex(""),
       fExtGlobalDeclarationInstructions(IB::genBlockInst()),
       fGlobalDeclarationInstructions(IB::genBlockInst()),
       fDeclarationInstructions(IB::genBlockInst()),
@@ -121,6 +123,80 @@ CodeContainer::CodeContainer()
         gGlobal->gRealZone =
             new ZoneArray("fZone", access, itfloat(), gGlobal->gFPGAMemoryThreshold);
     }
+}
+
+void CodeContainer::setComputeByBlock(bool b)
+{
+    fComputeByBlock = b;
+    if (b && fComputeBlockIndex.empty()) {
+        fComputeBlockIndex = gGlobal->getFreshID("index");
+    }
+}
+
+BlockInst* CodeContainer::generateComputeBlockLoop(bool loop_var_in_bytes)
+{
+    BlockInst* block = IB::genBlockInst();
+
+    if (!fComputeByBlock) {
+        block->merge(fComputeBlockInstructions);
+        block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, loop_var_in_bytes));
+        block->merge(fPostComputeBlockInstructions);
+        return block;
+    }
+
+    ValueInst* fullcount_value = IB::genLoadFunArgsVar(fFullCount);
+    ValueInst* vec_size        = IB::genInt32NumInst(gGlobal->gVecSize);
+
+    ValueInst* byte_size = nullptr;
+    ValueInst* step      = nullptr;
+
+    // int fullcount = count;
+    DeclareVarInst* fullcount = nullptr;
+    if (loop_var_in_bytes) {
+        int byte_size_int = 1 << (gGlobal->gFloatSize + 1);
+        byte_size         = IB::genInt32NumInst(byte_size_int);
+        fullcount = IB::genDecStackVar("fullcount", IB::genInt32Typed(),
+                                       IB::genMul(byte_size, fullcount_value));
+        step = IB::genInt32NumInst(gGlobal->gVecSize * byte_size_int);
+    } else {
+        fullcount = IB::genDecStackVar("fullcount", IB::genInt32Typed(), fullcount_value);
+        step      = vec_size;
+    }
+    block->pushBackInst(fullcount);
+
+    // for (int index = 0; index < fullcount; index += gVecSize)
+    if (fComputeBlockIndex.empty()) {
+        fComputeBlockIndex = gGlobal->getFreshID("index");
+    }
+    DeclareVarInst* index_decl =
+        IB::genDecLoopVar(fComputeBlockIndex, IB::genInt32Typed(), IB::genInt32NumInst(0));
+
+    BlockInst* loop_code = IB::genBlockInst();
+
+    // int count = min(gVecSize, fullcount - index);
+    ValueInst* remaining = IB::genSub(fullcount->load(), index_decl->load());
+    ValueInst* count_base = remaining;
+    if (loop_var_in_bytes) {
+        count_base = IB::genDiv(remaining, byte_size);
+    }
+    Values     min_fun_args;
+    min_fun_args.push_back(vec_size);
+    min_fun_args.push_back(count_base);
+    ValueInst* count_val = IB::genFunCallInst("min_i", min_fun_args);
+    DeclareVarInst* count_decl = IB::genDecStackVar("count", IB::genInt32Typed(), count_val);
+    loop_code->pushBackInst(count_decl);
+
+    loop_code->merge(fComputeBlockInstructions);
+    loop_code->pushBackInst(
+        fCurLoop->generateScalarLoop(count_decl->load(), loop_var_in_bytes));
+    loop_code->merge(fPostComputeBlockInstructions);
+
+    ValueInst*  loop_end = IB::genLessThan(index_decl->load(), fullcount->load());
+    StoreVarInst* loop_inc = index_decl->store(IB::genAdd(index_decl->load(), step));
+    ForLoopInst* loop = IB::genForLoopInst(index_decl, loop_end, loop_inc, loop_code, false);
+    block->pushBackInst(loop);
+
+    return block;
 }
 
 int ZoneArray::gInternalMemorySize = 0;

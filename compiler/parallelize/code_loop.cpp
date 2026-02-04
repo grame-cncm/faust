@@ -58,6 +58,32 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
     return static_cast<ForLoopInst*>(loop->clone(&cloner));
 }
 
+ForLoopInst* CodeLoop::generateScalarLoop(ValueInst* count, bool loop_var_in_bytes)
+{
+    DeclareVarInst* loop_decl =
+        IB::genDecLoopVar(fLoopIndex, IB::genInt32Typed(), IB::genInt32NumInst(0));
+    ValueInst*    loop_end;
+    StoreVarInst* loop_increment;
+
+    if (loop_var_in_bytes) {
+        ValueInst* scaled =
+            IB::genMul(IB::genInt32NumInst((int)pow(2, gGlobal->gFloatSize + 1)), count);
+        loop_end = IB::genLessThan(loop_decl->load(), scaled);
+        loop_increment =
+            loop_decl->store(IB::genAdd(loop_decl->load(), (int)pow(2, gGlobal->gFloatSize + 1)));
+    } else {
+        loop_end       = IB::genLessThan(loop_decl->load(), count);
+        loop_increment = loop_decl->store(IB::genAdd(loop_decl->load(), 1));
+    }
+
+    BlockInst*   block = generateOneSample();
+    ForLoopInst* loop =
+        IB::genForLoopInst(loop_decl, loop_end, loop_increment, block, fIsRecursive);
+
+    BasicCloneVisitor cloner;
+    return static_cast<ForLoopInst*>(loop->clone(&cloner));
+}
+
 ForLoopInst* CodeLoop::generateFixedScalarLoop()
 {
     DeclareVarInst* loop_decl =

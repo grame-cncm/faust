@@ -807,18 +807,8 @@ void CScalarCodeContainer::generateComputeAux(int n)
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
 
-    // Generates local variables declaration and setup
-    generateComputeBlock(fCodeProducer);
-
-    // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    loop->accept(fCodeProducer);
-
-    /*
-     // TODO : atomic switch
-     // Currently for soundfile management
-     */
-    generatePostComputeBlock(fCodeProducer);
+    BlockInst* block = generateComputeBlockLoop();
+    block->accept(fCodeProducer);
 
     back(1, *fOut);
     *fOut << "}" << endl;

@@ -715,6 +715,10 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) {  // HACK
 
+        bool      compute_by_block = fContainer->getComputeByBlock();
+        ValueInst* block_index =
+            compute_by_block ? IB::genLoadLoopVar(fContainer->getComputeBlockIndex()) : nullptr;
+
         // Input declarations
         if (gGlobal->gOutputLang == "rust" && !gGlobal->gInPlace) {
             // special handling for Rust backend
@@ -738,9 +742,18 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             } else {
                 for (int index = 0; index < fContainer->inputs(); index++) {
                     string name = subst("input$0", T(index));
-                    pushComputeBlockMethod(IB::genDecStackVar(
-                        name, ptr_type,
-                        IB::genLoadArrayFunArgsVar("inputs", IB::genInt32NumInst(index))));
+                    if (compute_by_block) {
+                        string base = subst("input$0_ptr", T(index));
+                        pushComputeBlockMethod(IB::genDecStackVar(
+                            base, ptr_type,
+                            IB::genLoadArrayFunArgsVar("inputs", IB::genInt32NumInst(index))));
+                        pushComputeBlockMethod(IB::genDecStackVar(
+                            name, ptr_type, IB::genLoadArrayStackVarAddress(base, block_index)));
+                    } else {
+                        pushComputeBlockMethod(IB::genDecStackVar(
+                            name, ptr_type,
+                            IB::genLoadArrayFunArgsVar("inputs", IB::genInt32NumInst(index))));
+                    }
                 }
             }
         }
@@ -770,9 +783,18 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             } else {
                 for (int index = 0; index < fContainer->outputs(); index++) {
                     string name = subst("output$0", T(index));
-                    pushComputeBlockMethod(IB::genDecStackVar(
-                        name, ptr_type,
-                        IB::genLoadArrayFunArgsVar("outputs", IB::genInt32NumInst(index))));
+                    if (compute_by_block) {
+                        string base = subst("output$0_ptr", T(index));
+                        pushComputeBlockMethod(IB::genDecStackVar(
+                            base, ptr_type,
+                            IB::genLoadArrayFunArgsVar("outputs", IB::genInt32NumInst(index))));
+                        pushComputeBlockMethod(IB::genDecStackVar(
+                            name, ptr_type, IB::genLoadArrayStackVarAddress(base, block_index)));
+                    } else {
+                        pushComputeBlockMethod(IB::genDecStackVar(
+                            name, ptr_type,
+                            IB::genLoadArrayFunArgsVar("outputs", IB::genInt32NumInst(index))));
+                    }
                 }
             }
         }
@@ -2308,6 +2330,47 @@ DelayType InstructionsCompiler::analyzeDelayType(Tree sig)
     return DelayType::kSelectRingDelay;
 }
 
+// All the diffrent type of delays
+static const InstructionsCompiler::DelayPack kAllDelayPack = {
+    DelayType::kNotADelay, DelayType::kZeroDelay,  DelayType::kMonoDelay,
+    DelayType::kSingleDelay, DelayType::kCopyDelay, DelayType::kDenseDelay,
+    DelayType::kMaskRingDelay, DelayType::kSelectRingDelay};
+
+// Some delay types not implement. So using kMaskRingDelay.
+static const InstructionsCompiler::DelayPack kSparseDelayPack = {
+    DelayType::kNotADelay, DelayType::kZeroDelay,  DelayType::kMonoDelay,
+    DelayType::kMaskRingDelay, DelayType::kMaskRingDelay, DelayType::kMaskRingDelay,
+    DelayType::kMaskRingDelay, DelayType::kMaskRingDelay};
+
+InstructionsCompiler::BackendsDelay InstructionsCompiler::backendType = {
+    {"c", kAllDelayPack},
+    {"cpp", kAllDelayPack},
+    {"llvm", kAllDelayPack},
+    {"interp", kSparseDelayPack},
+    {"fir", kAllDelayPack},
+    {"codebox", kSparseDelayPack},
+    {"rust", kSparseDelayPack},
+    {"java", kSparseDelayPack},
+    {"jax", kSparseDelayPack},
+    {"julia", kSparseDelayPack},
+    {"jsfx", kSparseDelayPack},
+    {"csharp", kSparseDelayPack},
+    {"cmajor", kSparseDelayPack},
+    {"wast", kSparseDelayPack},
+    {"wasm", kSparseDelayPack},
+    {"wasm-i", kSparseDelayPack},
+    {"wasm-e", kSparseDelayPack},
+    {"wasm-ib", kSparseDelayPack},
+    {"wasm-eb", kSparseDelayPack},
+    {"dlang", kSparseDelayPack}
+};
+
+DelayType InstructionsCompiler::backendDelayType(DelayType dl_type)
+{
+    faustassert(backendType.find(gGlobal->gOutputLang) != backendType.end());
+    return backendType[gGlobal->gOutputLang][static_cast<size_t>(dl_type)];
+}
+
 /**
  * Generate code for a group of mutually recursive definitions
  */
@@ -2570,7 +2633,7 @@ string InstructionsCompiler::declareRetrieveDSName(Tree clock)
 
 ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, ValueInst* delayidx)
 {
-    DelayType dt = analyzeDelayType(exp);
+    DelayType dt = backendDelayType(analyzeDelayType(exp));
     
     // Simplify degenerated delayed of type x@0 that were not simplified before
     if (dt == DelayType::kZeroDelay) {
@@ -2605,96 +2668,37 @@ ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, ValueIn
             result = IB::genLoadStackVar(vecname);
             break;
 
-            /*
-             case DelayType::kSingleDelay:
-             case DelayType::kCopyDelay:
-             case DelayType::kDenseDelay:   // Moved in last model for now
-             result = IB::genLoadArrayStackVar(vecname, delayidx);
-             break;
-             */
-
-        // 3 cases moved here
         case DelayType::kSingleDelay:
+            result = IB::genLoadArrayStackVar(vecname, delayidx);
+            break;
+
         case DelayType::kCopyDelay:
+            if (mxd > gGlobal->gMaxCacheDelay) {
+                result = IB::genLoadArrayStructVar(vecname, delayidx);
+            } else {
+                result = IB::genLoadArrayStackVar(vecname, delayidx);
+            }
+            break;
+
         case DelayType::kDenseDelay:
+            result = IB::genLoadArrayStackVar(vecname, delayidx);
+            break;
 
         case DelayType::kMaskRingDelay:
-        case DelayType::kSelectRingDelay:
+        case DelayType::kSelectRingDelay: {
             int  N = pow2limit(mxd + 1);
             Tree clock;
             faustassert(hasClock(exp, clock));
             string iotaname = declareRetrieveIotaName(clock);
 
-            // result = subst("$0[($1-$2)&$3]", vecname, iotaname, delayidx,
-            //          T(N - 1));  // idx can't be cashed as it depends of loop variable ii
-            // TODO : gGlobal->gMaskDelayLineThreshold handling
-
             FIRIndex index =
                 (FIRIndex(IB::genLoadStructVar(iotaname)) - delayidx) & FIRIndex(N - 1);
             result = IB::genLoadArrayStructVar(vecname, index);
             break;
+        }
     }
     return result;
 }
-
-/*
-ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
-{
-    // ValueInst* code = CS(exp);  // Ensure exp is compiled to have a vector name
-    // int        mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
-    // string     vname;
-
-    Typed::VarType ctype;
-    string pname;
-    getTypedNames(getCertifiedSigType(sig), "Vec", ctype, pname);
-    string    vname = ensureVectorNameProperty(pname, exp);
-    int       mxd   = fOccMarkup->retrieve(exp)->getMaxDelay();
-
-    // if (!getVectorNameProperty(exp, vname)) {
-    //     if (mxd == 0) {
-    // cerr << "it is a pure zero delay : " << code << endl;
-    //           return code;
-    //     } else {
-    //         cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
-    //         faustassert(false);
-    //     }
-    // }
-
-    if (mxd == 0) {
-        // not a real vector name but a scalar name
-        return IB::genLoadStackVar(vname);
-
-    } else if (mxd < gGlobal->gMaxCopyDelay) {
-        int d;
-        if (isSigInt(delay, &d)) {
-            return IB::genLoadArrayStructVar(vname, CS(delay));
-        } else {
-            return generateCacheCode(sig, IB::genLoadArrayStructVar(vname, CS(delay)));
-        }
-    } else {
-        if (mxd < gGlobal->gMaskDelayLineThreshold) {
-            int N = pow2limit(mxd + 1);
-            ensureIotaCode();
-
-            FIRIndex value2 =
-            (FIRIndex(IB::genLoadStructVar(fCurrentIOTA)) - CS(delay)) & FIRIndex(N - 1);
-            return generateCacheCode(sig, IB::genLoadArrayStructVar(vname, value2));
-        } else {
-            string ridx_name = gGlobal->getFreshID(vname + "_ridx_tmp");
-
-            // int ridx = widx - delay;
-            FIRIndex widx1 = FIRIndex(IB::genLoadStructVar(vname + "_widx"));
-            pushComputeDSPMethod(IB::genDecStackVar(ridx_name, Typed::kInt32, widx1 - CS(delay)));
-
-            // dline[((ridx < 0) ? ridx + delay : ridx)];
-            FIRIndex ridx1 = FIRIndex(IB::genLoadStackVar(ridx_name));
-            FIRIndex ridx2 =
-            FIRIndex(IB::genSelect2Inst(ridx1 < 0, ridx1 + FIRIndex(mxd + 1), ridx1));
-            return generateCacheCode(sig, IB::genLoadArrayStructVar(vname, ridx2));
-        }
-    }
-}
-*/
 
 /**
  * Generate code for the delay mechanism. The generated code depends of the
@@ -2766,14 +2770,14 @@ StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int
 {
     if (gGlobal->gUseMemmove) {
         /*
-            // Generate prototype
+         // Generate prototype
             Names fun_args;
             fun_args.push_back(IB::genNamedTyped("dst", Typed::kVoid_ptr));
             fun_args.push_back(IB::genNamedTyped("src", Typed::kVoid_ptr));
             fun_args.push_back(IB::genNamedTyped("size", Typed::kInt32));
 
             FunTyped* fun_type = IB::genFunTyped(fun_args,
-           IB::genBasicTyped(Typed::kVoid_ptr), FunTyped::kDefault);
+            IB::genBasicTyped(Typed::kVoid_ptr), FunTyped::kDefault);
             pushGlobalDeclare(IB::genDeclareFunInst("memmove", fun_type));
         */
 
@@ -2872,7 +2876,8 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype, 
                                                    int mxd, int count, bool mono, ValueInst* exp,
                                                    ValueInst* ccs)
 {
-    DelayType dt = analyzeDelayType(sig);
+    DelayType dt = backendDelayType(analyzeDelayType(sig));
+    
     switch (dt) {
         case DelayType::kNotADelay:
             throw faustexception(
@@ -2902,135 +2907,120 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype, 
                 IB::genStoreStackVar(vname_perm, IB::genLoadStackVar(vname)));
             return IB::genLoadStackVar(vname);
         }
+        case DelayType::kSingleDelay: {
+            string vname_perm = vname + "State";
+            pushDeclare(IB::genLabelInst("// Single Delay"));
+            pushDeclare(IB::genDecStructVar(vname_perm, ctype));
+            pushClearMethod(IB::genStoreStructVar(vname_perm, IB::genTypedZero(ctype)));
+            pushComputeBlockMethod(IB::genDecArrayStackVar(vname, ctype, mxd + 1));
+            pushComputeBlockMethod(IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
+                                                             IB::genLoadStructVar(vname_perm)));
+            pushComputeDSPMethod(IB::genControlInst(
+                ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
+            pushPostComputeDSPMethod(
+                IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
+                                          IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0))));
+            pushPostComputeBlockMethod(IB::genStoreStructVar(
+                vname_perm, IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(1))));
+            return IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
+        }
 
-            /*
-            case DelayType::kSingleDelay: {
-                string vname_perm = vname + "State";
-                pushDeclare(IB::genLabelInst("// Single Delay"));
-                pushDeclare(IB::genDecStructVar(vname_perm, ctype));
-                pushClearMethod(IB::genStoreStructVar(vname_perm, IB::genTypedZero(ctype)));
-                pushComputeBlockMethod(IB::genDecArrayStackVar(vname, ctype, mxd + 1));
-                pushComputeBlockMethod(IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
-                                                                 IB::genLoadStructVar(vname_perm)));
+        case DelayType::kCopyDelay: {
+            string vname_perm = vname + "State";
+
+            if (mxd > gGlobal->gMaxCacheDelay) {
+                pushDeclare(IB::genLabelInst("// NoCache Copy Delay"));
+
+                // Generates table init
+                pushClearMethod(generateInitArray(vname, ctype, mxd + 1));
+
+                // Generate table use
+                pushComputeDSPMethod(IB::genControlInst(
+                    ccs, IB::genStoreArrayStructVar(vname, IB::genInt32NumInst(0), exp)));
+
+                // Generates post processing copy code to update delay values
+                pushPostComputeDSPMethod(generateShiftArray(vname, mxd, Address::kStruct));
+
+                return IB::genLoadArrayStructVar(vname, IB::genInt32NumInst(0));
+            }
+
+            pushDeclare(IB::genLabelInst("// Copy Delay"));
+
+            // Generates table init
+            pushClearMethod(generateInitArray(vname_perm, ctype, mxd));
+
+            // Declare local array
+            pushComputeBlockMethod(IB::genDecArrayStackVar(vname, ctype, mxd + 1));
+
+            if (mxd < gGlobal->gMinCopyLoop) {
+                // Unroll sample copy loops
+                for (int j = 0; j < mxd; j++) {
+                    pushComputeBlockMethod(IB::genStoreArrayStackVar(
+                        vname, IB::genInt32NumInst(j + 1),
+                        IB::genLoadArrayStructVar(vname_perm, IB::genInt32NumInst(j))));
+                }
                 pushComputeDSPMethod(IB::genControlInst(
                     ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
-                pushPostComputeDSPMethod(
-                    IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(1),
-                                              IB::genLoadArrayStackVar(vname,
-            IB::genInt32NumInst(0)))); pushPostComputeBlockMethod(IB::genStoreStructVar( vname_perm,
-            IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(1)))); return
-            IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
+                for (int j = mxd - 1; j >= 0; j--) {
+                    // warning ; line stacked in reverse order !!!
+                    pushPostComputeDSPMethod(IB::genStoreArrayStackVar(
+                        vname, IB::genInt32NumInst(j + 1),
+                        IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(j))));
+                }
+                for (int j = 0; j < mxd; j++) {
+                    pushPostComputeBlockMethod(IB::genStoreArrayStructVar(
+                        vname_perm, IB::genInt32NumInst(j),
+                        IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(j + 1))));
+                }
+            } else {
+                // Use sample copy loops
+                pushComputeBlockMethod(generateMove1Array(vname, vname_perm, mxd));
+                pushComputeDSPMethod(IB::genControlInst(
+                    ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
+                pushPostComputeDSPMethod(generateShiftArray(vname, mxd, Address::kStack));
+                pushPostComputeBlockMethod(generateMove2Array(vname_perm, vname, mxd));
             }
-            */
 
-            /*
-             case DelayType::kCopyDelay: {
-             string vname_perm = vname + "State";
-             pushDeclare(IB::genLabelInst("// Copy Delay"));
+            return IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
+        }
 
-             // Generates table init
-             pushClearMethod(generateInitArray(vname_perm, ctype, mxd));
+        case DelayType::kDenseDelay: {
+            fContainer->setComputeByBlock(true);
 
-             // Declare local array
-             pushComputeBlockMethod(IB::genDecArrayStackVar(vname, ctype, mxd + 1));
+            string vname_perm  = vname + "State";
+            string vname_cache = vname + "Cache";
 
-             if (mxd < gGlobal->gMinCopyLoop) {
-             // Unroll sample copy loops
-             for (int j = 0; j < mxd; j++) {
-             pushComputeBlockMethod(IB::genStoreArrayStackVar(
-             vname, IB::genInt32NumInst(j + 1),
-             IB::genLoadArrayStructVar(vname_perm, IB::genInt32NumInst(j))));
-             }
-             pushComputeDSPMethod(IB::genControlInst(
-             ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
-             pushPostComputeDSPMethod(IB::genLabelInst("// post processing"));
-             for (int j = mxd-1; j >= 0; j--) {
-             // warning ; line stacked in reverse order !!!
-             pushPostComputeDSPMethod(IB::genStoreArrayStackVar(
-             vname, IB::genInt32NumInst(j + 1), IB::genLoadArrayStackVar(vname,
-             IB::genInt32NumInst(j))));
-             }
+            pushDeclare(IB::genLabelInst("// Dense Delay"));
 
-             for (int j = 0; j < mxd; j++) {
-             pushPostComputeBlockMethod(IB::genStoreArrayStructVar(
-             vname_perm, IB::genInt32NumInst(j),
-             IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(j + 1))));
-             }
+            // Generates table init
+            pushClearMethod(generateInitArray(vname_perm, ctype, mxd));
 
-             } else {
-             // Use sample copy loops
-             pushComputeBlockMethod(generateMove1Array(vname, vname_perm, mxd));
-             pushComputeDSPMethod(IB::genControlInst(
-             ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
-             pushPostComputeDSPMethod(generateShiftArray(vname, mxd, Address::kStack));
-             pushPostComputeBlockMethod(generateMove2Array(vname_perm, vname, mxd));
-             }
+            // Declare and init the delay cache
+            pushComputeBlockMethod(
+                IB::genDecArrayStackVar(vname_cache, ctype, gGlobal->gVecSize + mxd));
+            pushComputeBlockMethod(IB::genDecStackVar(
+                vname, IB::genArrayTyped(ctype, 0),
+                FIRIndex(IB::genLoadStackVar(vname_cache)) + (gGlobal->gVecSize - 1)));
 
-             return IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
-             }
-             */
+            // Copy state in cache
+            pushComputeBlockMethod(generateMove1Array(vname, vname_perm, mxd));
 
-            /*
-             case DelayType::kDenseDelay: {  // Moved in last model for now
+            // Compute new samples
+            pushComputeDSPMethod(IB::genControlInst(
+                ccs, IB::genStoreArrayStackVar(vname, IB::genInt32NumInst(0), exp)));
 
-             #if 1
-             // version normale
-             string vname_perm = vname + "State";
-             string vname_local = vname + "Cache";
-             pushDeclare(IB::genLabelInst("// Dense Delay"));
+            // Decrement cache pointer after each sample
+            pushPostComputeDSPMethod(IB::genStoreStackVar(
+                vname, IB::genSub(IB::genLoadStackVar(vname), IB::genInt32NumInst(1))));
 
-             // Generates table init
-             pushClearMethod(generateInitArray(vname_perm, ctype, mxd));
-             pushComputeBlockMethod(IB::genDecArrayStackVar(vname, ctype, gGlobal->gVecSize + mxd));
-             pushComputeBlockMethod(IB::genDecStackVar(vname, IB::genArrayTyped(ctype, 0),
-             FIRIndex(IB::genLoadStackVar(vname_local)) + (gGlobal->gVecSize - 1)));
-             // Use sample copy loops
-             pushComputeBlockMethod(generateMove1Array(vname, vname_perm, mxd));
-             pushComputeDSPMethod(IB::genControlInst(ccs, IB::genStoreArrayStackVar(vname,
-             IB::genInt32NumInst(0), exp)));
+            // Copy back to state after block
+            pushPostComputeBlockMethod(generateMove2Array(vname_perm, vname, mxd));
 
-             // TODO
-
-             pushPostComputeBlockMethod(generateMove2Array(vname, vname_perm, mxd));
-             return IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
-             }
-             #else
-
-             // version optimisée par rebouclage directe dans le vecteur (environ 1% de gain)
-             fClass->addDeclCode(subst("$0 \t$1State[$2]; // Dense Delay", ctype, vname, T(mxd)));
-             fClass->addClearCode(
-             subst("for (int j = 0; j < $0; j++) { $1State[j] = 0; }", T(mxd),
-             vname)); fClass->addZone2( subst("$0 \t$1Cache[$2+$3];", ctype, vname,
-             T(gGlobal->gVecSize), T(mxd))); fClass->addZone2(subst("for (int j = 0; j < $0; j++)
-             {$1Cache[j + $2] = $1State[j];}", T(mxd), vname, T(gGlobal->gVecSize)));
-             fClass->addZone3(
-             subst("$0* \t$1 = $1Cache + $2 - 1;", ctype, vname,
-             T(gGlobal->gVecSize))); fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname,
-             exp))); fClass->addPostCode(Statement("", subst("--$0;", vname))); if (mxd <
-             gGlobal->gMinCopyLoop) { for (int j = mxd - 1; j >= 0; j--) { fClass->addZone3Post(
-             subst("$0Cache[$1] = $0Cache[$2];", vname, T(j +
-             gGlobal->gVecSize), T(j)));
-             }
-             } else {
-             fClass->addZone3Post(
-             subst("for (int j = $0-1; j >= 0; j--) { $1Cache[j+$2] =
-             $1Cache[j]; }", T(mxd), vname, T(gGlobal->gVecSize)));
-             }
-             fClass->addZone4(subst("for (int j = 0; j < $0; j++) { $1State[j] = $1Cache[j+$2]; }",
-             T(mxd), vname, T(gGlobal->gVecSize)));
-
-             return subst("$0[0]", vname);
-
-             #endif
-             */
-
-        // 3 cases moved here
-        case DelayType::kSingleDelay:
-        case DelayType::kCopyDelay:
-        case DelayType::kDenseDelay:
+            return IB::genLoadArrayStackVar(vname, IB::genInt32NumInst(0));
+        }
 
         case DelayType::kMaskRingDelay:
-        case DelayType::kSelectRingDelay:
+        case DelayType::kSelectRingDelay: {
             Tree clock;
             faustassert(hasClock(sig, clock));
             string iotaname = declareRetrieveIotaName(clock);
@@ -3043,12 +3033,6 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype, 
             pushDeclare(IB::genLabelInst("// Ring Delay"));
             pushClearMethod(generateInitArray(vname, ctype, N));
 
-            /*
-            pushDeclare(IB::genLabelInst("// detect unintialized"));
-            pushClearMethod(
-                IB::genStoreArrayStructVar(vname, FIRIndex(0), IB::genInt32NumInst(-1)));
-            */
-
             // execute
             pushComputeDSPMethod(IB::genControlInst(
                 ccs, IB::genStoreArrayStructVar(
@@ -3056,110 +3040,11 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype, 
 
             return IB::genLoadArrayStructVar(
                 vname, FIRIndex(IB::genLoadStructVar(iotaname)) & FIRIndex(N - 1));
+        }
     }
+    
     faustassertaux(false, __FILE__, __LINE__);
     return IB::genNullValueInst();
-
-    /*
-     if (mxd == 0) {
-     // Generate scalar use
-     if (dynamic_cast<NullValueInst*>(ccs)) {
-     pushComputeDSPMethod(IB::genDecStackVar(vname, ctype, exp));
-     } else {
-     pushPreComputeDSPMethod(IB::genDecStackVar(vname, ctype, IB::genTypedZero(ctype)));
-     pushComputeDSPMethod(IB::genControlInst(ccs, IB::genStoreStackVar(vname, exp)));
-     }
-
-     } else if (mxd < gGlobal->gMaxCopyDelay) {
-     // Generates table init
-     pushClearMethod(generateInitArray(vname, ctype, mxd + 1));
-
-     // Generate table use
-     pushComputeDSPMethod(IB::genControlInst(
-     ccs, IB::genStoreArrayStructVar(vname, IB::genInt32NumInst(0), exp)));
-
-     // Generates post processing copy code to update delay values
-     if (mxd == 1) {
-     pushPostComputeDSPMethod(IB::genControlInst(ccs, generateCopyArray(vname, 0, 1)));
-     } else if (mxd == 2) {
-     pushPostComputeDSPMethod(IB::genControlInst(ccs, generateCopyArray(vname, 1, 2)));
-     pushPostComputeDSPMethod(IB::genControlInst(ccs, generateCopyArray(vname, 0, 1)));
-     } else {
-     pushPostComputeDSPMethod(IB::genControlInst(ccs, generateShiftArray(vname, mxd)));
-     }
-
-     } else {
-     if (mxd < gGlobal->gMaskDelayLineThreshold) {
-     int N = pow2limit(mxd + 1);
-     ensureIotaCode();
-
-     // Generates table init
-     pushClearMethod(generateInitArray(vname, ctype, N));
-
-     // Generate table use
-     if (gGlobal->gComputeIOTA) {  // Ensure IOTA base fixed delays are computed once
-     if (fIOTATable.find(N) == fIOTATable.end()) {
-     string   iota_name = subst("i$0", gGlobal->getFreshID(fCurrentIOTA + "_temp"));
-     FIRIndex value2 =
-     FIRIndex(IB::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
-
-     pushPreComputeDSPMethod(
-     IB::genDecStackVar(iota_name, Typed::kInt32, IB::genInt32NumInst(0)));
-     pushComputeDSPMethod(
-     IB::genControlInst(ccs, IB::genStoreStackVar(iota_name, value2)));
-
-     fIOTATable[N] = iota_name;
-     }
-
-     pushComputeDSPMethod(IB::genControlInst(
-     ccs,
-     IB::genStoreArrayStructVar(vname, IB::genLoadStackVar(fIOTATable[N]), exp)));
-
-     } else {
-     FIRIndex value2 = FIRIndex(IB::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
-     pushComputeDSPMethod(
-     IB::genControlInst(ccs, IB::genStoreArrayStructVar(vname, value2, exp)));
-     }
-     } else {
-     // 'select' based delay
-     string widx_tmp_name = vname + "_widx_tmp";
-     string widx_name     = vname + "_widx";
-
-     // Generates table write index
-     pushDeclare(IB::genDecStructVar(widx_name, IB::genInt32Typed()));
-     pushInitMethod(IB::genStoreStructVar(widx_name, IB::genInt32NumInst(0)));
-
-     // Generates table init
-     pushClearMethod(generateInitArray(vname, ctype, mxd + 1));
-
-     // int w = widx;
-     pushComputeDSPMethod(IB::genControlInst(
-     ccs,
-     IB::genDecStackVar(widx_tmp_name, Typed::kInt32, IB::genLoadStructVar(widx_name))));
-
-     // dline[w] = v;
-     pushComputeDSPMethod(IB::genControlInst(
-     ccs, IB::genStoreArrayStructVar(vname, IB::genLoadStackVar(widx_tmp_name), exp)));
-
-     // w = w + 1;
-     FIRIndex widx_tmp1 = FIRIndex(IB::genLoadStackVar(widx_tmp_name));
-     pushPostComputeDSPMethod(
-     IB::genControlInst(ccs, IB::genStoreStackVar(widx_tmp_name, widx_tmp1 + 1)));
-
-     // w = ((w == delay) ? 0 : w);
-     FIRIndex widx_tmp2 = FIRIndex(IB::genLoadStackVar(widx_tmp_name));
-     pushPostComputeDSPMethod(IB::genControlInst(
-     ccs, IB::genStoreStackVar(widx_tmp_name,
-     IB::genSelect2Inst(widx_tmp2 == FIRIndex(mxd + 1),
-     FIRIndex(0), widx_tmp2))));
-     // *widx = w
-     pushPostComputeDSPMethod(IB::genControlInst(
-     ccs, IB::genStoreStructVar(widx_name, IB::genLoadStackVar(widx_tmp_name))));
-     }
-     }
-
-     return exp;
-     */
 }
 
 /**

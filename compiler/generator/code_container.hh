@@ -76,6 +76,8 @@ class CodeContainer : public virtual Garbageable {
 
     int  fSubContainerType;
     bool fGeneratedSR;
+    bool fComputeByBlock{false};  ///< true if a compute method by block is needed
+    std::string fComputeBlockIndex;  ///< loop index name for block-based compute
 
     MemoryLayoutType fMemoryLayout;
     std::string      fKlassName;
@@ -337,6 +339,12 @@ class CodeContainer : public virtual Garbageable {
 
     virtual DeclareFunInst* generateComputeFun(const std::string& name, const std::string& obj,
                                                bool ismethod, bool isvirtual);
+
+    void setComputeByBlock(bool b);
+    bool getComputeByBlock() const { return fComputeByBlock; }
+    const std::string& getComputeBlockIndex() const { return fComputeBlockIndex; }
+
+    BlockInst* generateComputeBlockLoop(bool loop_var_in_bytes = false);
 
     virtual BlockInst* generateComputeAux()
     {
