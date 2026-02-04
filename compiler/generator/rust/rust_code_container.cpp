@@ -349,7 +349,7 @@ void RustCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
-        *fOut << "use std::os::raw::c_double;";
+        *fOut << "use core::ffi::c_double;";
         tab(n + 1, *fOut);
         *fOut << "// Conditionally compile the link attribute only on non-Windows platforms";
         tab(n + 1, *fOut);
