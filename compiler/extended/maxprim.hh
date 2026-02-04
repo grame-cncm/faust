@@ -28,7 +28,7 @@
 
 class MaxPrim : public xtended {
    public:
-    MaxPrim() : xtended("std::max") {}
+    MaxPrim() : xtended("max") {}
 
     virtual unsigned int arity() override { return 2; }
 
