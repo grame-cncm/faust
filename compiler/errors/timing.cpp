@@ -59,23 +59,19 @@ double mysecond()
 void startTiming(const char* msg)
 {
     // timing
-    if (gTimingSwitch) {
-        gTimingLog = (getenv("FAUST_TIMING")) ? new ofstream("FAUST_TIMING_LOG", ios::app) : NULL;
-        if (gTimingLog) {
-            *gTimingLog << endl;
-        }
+    gTimingLog = (getenv("FAUST_TIMING")) ? new ofstream("FAUST_TIMING_LOG", ios::app) : NULL;
+    if (gTimingLog) {
+        *gTimingLog << endl;
     }
-
-    if (gTimingSwitch || (gGlobal->gOutputLang == "fir")) {
+    
+    if (gTimingSwitch) {
         faustassert(gTimingIndex < 1023);
-        if (gTimingSwitch) {
-            if (gTimingLog) {
-                tab(gTimingIndex, *gTimingLog);
-                *gTimingLog << "start " << msg << endl;
-            } else {
-                tab(gTimingIndex, cerr);
-                cerr << "start " << msg << endl;
-            }
+        if (gTimingLog) {
+            tab(gTimingIndex, *gTimingLog);
+            *gTimingLog << "start " << msg << endl;
+        } else {
+            tab(gTimingIndex, cerr);
+            cerr << "start " << msg << endl;
         }
         gStartTime[gTimingIndex++] = mysecond();
     }
@@ -83,38 +79,16 @@ void startTiming(const char* msg)
 
 void endTiming(const char* msg)
 {
-    if (gTimingSwitch || (gGlobal->gOutputLang == "fir")) {
+    if (gTimingSwitch) {
         faustassert(gTimingIndex > 0);
         gEndTime[--gTimingIndex] = mysecond();
-        double duration          = gEndTime[gTimingIndex] - gStartTime[gTimingIndex];
-        if (gTimingSwitch) {
-            if (gTimingLog) {
-                *gTimingLog << msg << "\t" << duration << endl;
-                gTimingLog->flush();
-            } else {
-                tab(gTimingIndex, cerr);
-                cerr << "end " << msg << " (duration : " << duration << ")\n";
-            }
+        if (gTimingLog) {
+            *gTimingLog << msg << "\t" << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << endl;
+            gTimingLog->flush();
+        } else {
+            tab(gTimingIndex, cerr);
+            cerr << "end " << msg
+            << " (duration : " << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << ")\n";
         }
-#ifdef FIR_BUILD
-        if ((gGlobal->gOutputLang == "fir")) {
-            if (strcmp(msg, "simplifyToNormalForm") == 0) {
-                gGlobal->gStats.fNormalizeCalls++;
-                gGlobal->gStats.fNormalizeTimeMs += (duration * 1000.0);
-            } else if ((strcmp(msg, "prepare") == 0) || (strcmp(msg, "prepare2") == 0)) {
-                gGlobal->gStats.fPrepareCalls++;
-                gGlobal->gStats.fPrepareTimeMs += (duration * 1000.0);
-            } else if (strcmp(msg, "compileMultiSignal") == 0) {
-                gGlobal->gStats.fCodegenCalls++;
-                gGlobal->gStats.fCodegenTimeMs += (duration * 1000.0);
-            } else if (strcmp(msg, "patternMatcherBuild") == 0) {
-                gGlobal->gStats.fPatternMatcherBuildCalls++;
-                gGlobal->gStats.fPatternMatcherBuildTimeMs += (duration * 1000.0);
-            } else if (strcmp(msg, "patternMatcherApply") == 0) {
-                gGlobal->gStats.fPatternMatcherApplyCalls++;
-                gGlobal->gStats.fPatternMatcherApplyTimeMs += (duration * 1000.0);
-            }
-        }
-#endif
     }
 }
