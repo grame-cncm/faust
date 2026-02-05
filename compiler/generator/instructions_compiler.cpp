@@ -648,9 +648,9 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     // Annotate signals with their clock environments
     ClkEnvInference clkEnvInference;
     clkEnvInference.annotate(L);
-    
+
     validateSignalList(L);  // validate the signal list
-    
+
     // Compute and draw the recursion graph if requested (-rpg option)
     if (gGlobal->gDrawRecProjGraph) {
         digraph<Tree> recursionG = recursionGraph(L);
@@ -660,11 +660,11 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     // Compute the hierarchical scheduling of L applying the chosen strategy
     fHschedule     = scheduleSigList(L, mySchedFun);
     fScheduleOrder = numberSchedule(fHschedule);
-    
+
     // print hierarchical schedule if requested (-phs option)
     if (gGlobal->gPrintHSchedule) {
         printHschedWithDelays(fHschedule, fOccMarkup);
-        
+
         // Also generate DOT graph with same option
         std::string   dotfilename = gGlobal->gMasterName + "-phs.dot";
         std::ofstream dotfile(dotfilename);
@@ -714,7 +714,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) {  // HACK
 
-        bool      compute_by_block = fContainer->getComputeByBlock();
+        bool       compute_by_block = fContainer->getComputeByBlock();
         ValueInst* block_index =
             compute_by_block ? IB::genLoadLoopVar(fContainer->getComputeBlockIndex()) : nullptr;
 
@@ -2323,38 +2323,24 @@ DelayType InstructionsCompiler::analyzeDelayType(Tree sig)
 
 // All the diffrent type of delays
 static const InstructionsCompiler::DelayPack kAllDelayPack = {
-    DelayType::kNotADelay, DelayType::kZeroDelay,  DelayType::kMonoDelay,
-    DelayType::kSingleDelay, DelayType::kCopyDelay, DelayType::kDenseDelay,
+    DelayType::kNotADelay,     DelayType::kZeroDelay,      DelayType::kMonoDelay,
+    DelayType::kSingleDelay,   DelayType::kCopyDelay,      DelayType::kDenseDelay,
     DelayType::kMaskRingDelay, DelayType::kSelectRingDelay};
 
 // Some delay types not implement. So using kMaskRingDelay.
 static const InstructionsCompiler::DelayPack kSparseDelayPack = {
-    DelayType::kNotADelay, DelayType::kZeroDelay,  DelayType::kMonoDelay,
+    DelayType::kNotADelay,     DelayType::kZeroDelay,     DelayType::kMonoDelay,
     DelayType::kMaskRingDelay, DelayType::kMaskRingDelay, DelayType::kMaskRingDelay,
     DelayType::kMaskRingDelay, DelayType::kMaskRingDelay};
 
 InstructionsCompiler::BackendsDelay InstructionsCompiler::backendType = {
-    {"c", kAllDelayPack},
-    {"cpp", kAllDelayPack},
-    {"llvm", kAllDelayPack},
-    {"interp", kSparseDelayPack},
-    {"fir", kAllDelayPack},
-    {"codebox", kSparseDelayPack},
-    {"rust", kSparseDelayPack},
-    {"java", kSparseDelayPack},
-    {"jax", kSparseDelayPack},
-    {"julia", kSparseDelayPack},
-    {"jsfx", kSparseDelayPack},
-    {"csharp", kSparseDelayPack},
-    {"cmajor", kSparseDelayPack},
-    {"wast", kSparseDelayPack},
-    {"wasm", kSparseDelayPack},
-    {"wasm-i", kSparseDelayPack},
-    {"wasm-e", kSparseDelayPack},
-    {"wasm-ib", kSparseDelayPack},
-    {"wasm-eb", kSparseDelayPack},
-    {"dlang", kSparseDelayPack}
-};
+    {"c", kAllDelayPack},          {"cpp", kAllDelayPack},       {"llvm", kAllDelayPack},
+    {"interp", kSparseDelayPack},  {"fir", kAllDelayPack},       {"codebox", kSparseDelayPack},
+    {"rust", kSparseDelayPack},    {"java", kSparseDelayPack},   {"jax", kSparseDelayPack},
+    {"julia", kSparseDelayPack},   {"jsfx", kSparseDelayPack},   {"csharp", kSparseDelayPack},
+    {"cmajor", kSparseDelayPack},  {"wast", kSparseDelayPack},   {"wasm", kSparseDelayPack},
+    {"wasm-i", kSparseDelayPack},  {"wasm-e", kSparseDelayPack}, {"wasm-ib", kSparseDelayPack},
+    {"wasm-eb", kSparseDelayPack}, {"dlang", kSparseDelayPack}};
 
 DelayType InstructionsCompiler::backendDelayType(DelayType dl_type)
 {
@@ -2625,17 +2611,17 @@ string InstructionsCompiler::declareRetrieveDSName(Tree clock)
 ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, ValueInst* delayidx)
 {
     DelayType dt = backendDelayType(analyzeDelayType(exp));
-    
+
     // Simplify degenerated delayed of type x@0 that were not simplified before
     if (dt == DelayType::kZeroDelay) {
         return generateCacheCode(sig, CS(exp));
     }
-    
+
     Typed::VarType ctype;
     string         pname;
     getTypedNames(getCertifiedSigType(sig), "Vec", ctype, pname);
-    string    vecname = ensureVectorNameProperty(pname, exp);
-    int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
+    string vecname = ensureVectorNameProperty(pname, exp);
+    int    mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
 #ifdef TRACE
     std::cerr << "\nDELAYED: We expect this delayed signal to be compiled elsewhere at step "
               << fScheduleOrder[exp] << " -exp- " << exp << " :: " << ppsig(exp, 10) << '\n'
@@ -2868,7 +2854,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype, 
                                                    ValueInst* ccs)
 {
     DelayType dt = backendDelayType(analyzeDelayType(sig));
-    
+
     switch (dt) {
         case DelayType::kNotADelay:
             throw faustexception(
@@ -3033,7 +3019,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(Tree sig, BasicTyped* ctype, 
                 vname, FIRIndex(IB::genLoadStructVar(iotaname)) & FIRIndex(N - 1));
         }
     }
-    
+
     faustassertaux(false, __FILE__, __LINE__);
     return IB::genNullValueInst();
 }

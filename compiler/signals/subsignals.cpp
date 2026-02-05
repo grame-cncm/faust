@@ -336,17 +336,17 @@ Tree setSubSignals(Tree sig, const tvec& vsigs, bool visitgen)
         }
         return tree(sig->node(), newBranches);
     } else if (isSigInt(sig, &i)) {
-        return sig; // No subsignals
+        return sig;  // No subsignals
     } else if (isSigInt64(sig, &i64)) {
-        return sig; // No subsignals
+        return sig;  // No subsignals
     } else if (isSigReal(sig, &r)) {
-        return sig; // No subsignals
+        return sig;  // No subsignals
     } else if (isSigWaveform(sig)) {
         return tree(sig->node(), vsigs);
     }
 
     else if (isSigInput(sig, &i)) {
-        return sig; // No subsignals
+        return sig;  // No subsignals
     } else if (isSigOutput(sig, &i, x)) {
         faustassert(vsigs.size() == 1);
         return sigOutput(i, vsigs[0]);
@@ -373,9 +373,9 @@ Tree setSubSignals(Tree sig, const tvec& vsigs, bool visitgen)
         }
         return sigFFun(ff, newArgs);
     } else if (isSigFConst(sig, type, name, file)) {
-        return sig; // No subsignals
+        return sig;  // No subsignals
     } else if (isSigFVar(sig, type, name, file)) {
-        return sig; // No subsignals
+        return sig;  // No subsignals
     }
 
     else if (isSigWRTbl(sig, size, gen, wi, ws)) {
@@ -414,7 +414,7 @@ Tree setSubSignals(Tree sig, const tvec& vsigs, bool visitgen)
             faustassert(vsigs.size() == 1);
             return sigGen(vsigs[0]);
         } else {
-            return sig; // No subsignals visited
+            return sig;  // No subsignals visited
         }
     }
 
@@ -438,9 +438,9 @@ Tree setSubSignals(Tree sig, const tvec& vsigs, bool visitgen)
     }
 
     else if (isSigButton(sig, label)) {
-        return sig; // No subsignals
+        return sig;  // No subsignals
     } else if (isSigCheckbox(sig, label)) {
-        return sig; // No subsignals
+        return sig;  // No subsignals
     } else if (isSigVSlider(sig, label, c, x, y, z)) {
         faustassert(vsigs.size() == 4);
         return sigVSlider(label, vsigs[0], vsigs[1], vsigs[2], vsigs[3]);
@@ -461,7 +461,7 @@ Tree setSubSignals(Tree sig, const tvec& vsigs, bool visitgen)
     }
 
     else if (isSigSoundfile(sig, label)) {
-        return sig; // No subsignals
+        return sig;  // No subsignals
     } else if (isSigSoundfileLength(sig, sf, x)) {
         faustassert(vsigs.size() == 2);
         return sigSoundfileLength(vsigs[0], vsigs[1]);
@@ -510,7 +510,7 @@ Tree setSubSignals(Tree sig, const tvec& vsigs, bool visitgen)
         return tree(sig->node(), vsigs);
     } else if (isSigClocked(sig, x, y)) {
         faustassert(vsigs.size() == 1);
-        return sigClocked(x, vsigs[0]); // x is the clock context, vsigs[0] is the signal
+        return sigClocked(x, vsigs[0]);  // x is the clock context, vsigs[0] is the signal
     } else if (isSigAttach(sig, x, y)) {
         faustassert(vsigs.size() == 2);
         return sigAttach(vsigs[0], vsigs[1]);
@@ -524,7 +524,7 @@ Tree setSubSignals(Tree sig, const tvec& vsigs, bool visitgen)
         faustassert(vsigs.size() == 2);
         return cons(vsigs[0], vsigs[1]);
     } else if (isNil(sig)) {
-        return sig; // No subsignals
+        return sig;  // No subsignals
 
     } else if (isSigRegister(sig, &i, x)) {
         faustassert(vsigs.size() == 1);
@@ -535,5 +535,5 @@ Tree setSubSignals(Tree sig, const tvec& vsigs, bool visitgen)
         cerr << "ASSERT : setSubSignals unrecognized signal : " << *sig << endl;
         faustassert(false);
     }
-    return sig; // Fallback
+    return sig;  // Fallback
 }
