@@ -509,7 +509,7 @@ Tree tmap(Tree key, tfun f, Tree t)
     Tree p;
 
     if (getProperty(t, key, p)) {
-        return (isNil(p)) ? t : p;  // truc pour eviter les boucles
+        return (isNil(p)) ? t : p;  // trick to avoid loops
 
     } else {
         tvec br;

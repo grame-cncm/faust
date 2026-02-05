@@ -183,7 +183,7 @@ ValueInst* DAGInstructionsCompiler::CS(Tree sig)
             } else if (getCertifiedSigType(sig)->variability() < kSamp) {
                 // cerr << "SLOW EXPRESSION " << endl;
             } else {
-                // cerr << "Expression absorbée" << *sig << endl;
+                // cerr << "Absorbed expression" << *sig << endl;
             }
         }
     }

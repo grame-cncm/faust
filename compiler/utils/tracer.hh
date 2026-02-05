@@ -4,11 +4,11 @@
 
 class NullTracer {
    public:
-    // Conserve la même signature de constructeur,
-    // mais ignore complètement les arguments.
+    // Keeps the same constructor signature,
+    // but completely ignores the arguments.
     explicit NullTracer(bool /*enabled*/ = true, std::ostream& /*out*/ = std::cerr) {}
 
-    // Le “stream” factice : tous les << sont des no-ops
+    // Dummy stream: all << are no-ops.
     struct Stream {
         template <typename T>
         Stream& operator<<(const T&)
@@ -18,7 +18,7 @@ class NullTracer {
         Stream& operator<<(std::ostream& (*)(std::ostream&)) { return *this; }
     };
 
-    // Méthodes de l’API
+    // API methods
     Stream enter() { return Stream(); }
     Stream log() { return Stream(); }
     Stream exit() { return Stream(); }
@@ -28,7 +28,7 @@ class Tracer {
    public:
     explicit Tracer(std::ostream& out = std::cerr) : out_(out), indent_level_(0) {}
 
-    // --- base générique sans virtuel, gère used_/flushed_
+    // --- generic base without virtuals, manages used_/flushed_
     template <typename Derived>
     class StreamBase {
        public:
@@ -134,7 +134,7 @@ class Tracer {
         }
     };
 
-    // Accès aux wrappers
+    // Wrapper accessors
     StreamEnter enter() { return StreamEnter(*this); }
     StreamLog   log() { return StreamLog(*this); }
     StreamExit  exit() { return StreamExit(*this); }
