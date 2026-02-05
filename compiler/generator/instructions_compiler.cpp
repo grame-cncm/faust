@@ -2330,20 +2330,26 @@ DelayType InstructionsCompiler::analyzeDelayType(Tree sig)
     return DelayType::kSelectRingDelay;
 }
 
-// All the diffrent type of delays
+// All the different type of delays
 static const InstructionsCompiler::DelayPack kAllDelayPack = {
     DelayType::kNotADelay,     DelayType::kZeroDelay,      DelayType::kMonoDelay,
     DelayType::kSingleDelay,   DelayType::kCopyDelay,      DelayType::kDenseDelay,
     DelayType::kMaskRingDelay, DelayType::kSelectRingDelay};
 
-// Some delay types not implement. So using kMaskRingDelay.
+// Special case for LLVM backend
+static const InstructionsCompiler::DelayPack kLLVMDelayPack = {
+    DelayType::kNotADelay,     DelayType::kZeroDelay,      DelayType::kMonoDelay,
+    DelayType::kSingleDelay,   DelayType::kCopyDelay,      DelayType::kMaskRingDelay,
+    DelayType::kMaskRingDelay, DelayType::kSelectRingDelay};
+
+// Some delay types not implemented. So using kMaskRingDelay.
 static const InstructionsCompiler::DelayPack kSparseDelayPack = {
-    DelayType::kNotADelay,     DelayType::kZeroDelay,     DelayType::kMonoDelay,
-    DelayType::kMaskRingDelay, DelayType::kMaskRingDelay, DelayType::kMaskRingDelay,
-    DelayType::kMaskRingDelay, DelayType::kMaskRingDelay};
+    DelayType::kNotADelay,     DelayType::kZeroDelay,      DelayType::kMonoDelay,
+    DelayType::kMaskRingDelay,   DelayType::kMaskRingDelay,  DelayType::kMaskRingDelay,
+    DelayType::kMaskRingDelay, DelayType::kSelectRingDelay};
 
 InstructionsCompiler::BackendsDelay InstructionsCompiler::backendType = {
-    {"c", kAllDelayPack},          {"cpp", kAllDelayPack},       {"llvm", kAllDelayPack},
+    {"c", kAllDelayPack},          {"cpp", kAllDelayPack},       {"llvm", kLLVMDelayPack},
     {"interp", kSparseDelayPack},  {"fir", kAllDelayPack},       {"codebox", kSparseDelayPack},
     {"rust", kSparseDelayPack},    {"java", kSparseDelayPack},   {"jax", kSparseDelayPack},
     {"julia", kSparseDelayPack},   {"jsfx", kSparseDelayPack},   {"csharp", kSparseDelayPack},
