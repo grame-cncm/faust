@@ -631,7 +631,7 @@ void global::reset()
     gDspDirSwitch        = false;
     gPathListSwitch      = false;
     gGraphSwitch         = false;
-    gTopoSwitch        = false;
+    gTopoSwitch          = false;
     gDrawPSSwitch        = false;
     gDrawSVGSwitch       = false;
     gVHDLTrace           = false;

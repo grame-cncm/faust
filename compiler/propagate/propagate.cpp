@@ -339,7 +339,8 @@ static siglist realPropagate(Tree clockenv, Tree slotenv, Tree path, Tree box, c
             sig = sigInput(++gGlobal->gDummyInput);
         }
         if (Tree ce, x; isSigClocked(sig, ce, x) && (clockenv != ce)) {
-            // DEBUG: std::cerr << "WARNING: slot " << boxpp(box) << " is associated with external signal "
+            // DEBUG: std::cerr << "WARNING: slot " << boxpp(box) << " is associated with external
+            // signal "
             //           << sig << "--" << ppsig(sig) << " but used in clockenv " << clockenv
             //           << std::endl;
             // we wrap the signal correctly
@@ -932,7 +933,7 @@ siglist propagate(Tree clockenv, Tree slotenv, Tree path, Tree box, const siglis
         //     cerr << " -> result " << i << " : " << *(result[i]) << endl;
         // }
         // cerr << endl;
-    }else {
+    } else {
         FAUST_STATS_DO(gGlobal->gStats.fPropagateCacheHits++);
     }
     // cerr << "propagate in " << boxpp(box) << endl;

@@ -23,11 +23,11 @@
 #define __REWRITERULE__
 
 #include <functional>
-#include <optional>
-#include <vector>
-#include <memory>
 #include <iostream>
+#include <memory>
+#include <optional>
 #include <string>
+#include <vector>
 #include "global.hh"
 #include "property.hh"
 #include "smartpointer.hh"
@@ -38,17 +38,17 @@ using namespace std;
 // Forward declarations for type system
 class AudioType;
 typedef P<AudioType> Type;
-Type getSigType(Tree sig);
-void setSigType(Tree sig, Type t);
+Type                 getSigType(Tree sig);
+void                 setSigType(Tree sig, Type t);
 
 //------------------------------------------------------------------------------
 // Debug levels for rule tracing
 //------------------------------------------------------------------------------
 enum class DebugLevel {
-    NONE = 0,      // No debug output
-    BASIC = 1,     // Basic rule application info
+    NONE     = 0,  // No debug output
+    BASIC    = 1,  // Basic rule application info
     DETAILED = 2,  // Detailed transformation info
-    VERBOSE = 3    // Full trace with signal details
+    VERBOSE  = 3   // Full trace with signal details
 };
 
 //------------------------------------------------------------------------------
@@ -65,25 +65,25 @@ enum class DebugLevel {
 
 /**
  * @brief Base class for signal rewrite rules
- * 
+ *
  * A rewrite rule is a callable object that can transform a signal.
  * It returns nullopt if the rule doesn't apply, or the transformed signal.
  * Each rule manages its own cache for performance.
  */
 class RewriteRule {
-protected:
+   protected:
     property<optional<Tree>> fCache;
 
-public:
+   public:
     virtual ~RewriteRule() = default;
-    
+
     /**
      * @brief Get the name of this rule for debugging purposes
-     * 
+     *
      * @return string The rule name (should be overridden by subclasses)
      */
     virtual string getRuleName() const { return "UnnamedRule"; }
-    
+
     /**
      * @brief Apply the rewrite rule to a signal
      *
@@ -93,7 +93,8 @@ public:
      * @param signal The input signal to potentially transform
      * @return nullopt if rule doesn't apply, transformed signal otherwise
      */
-    virtual optional<Tree> operator()(Tree signal) {
+    virtual optional<Tree> operator()(Tree signal)
+    {
         // Try to apply the transformation
         if (auto result = applyRule(signal)) {
             // If the result doesn't have a type yet, copy it from the original signal
@@ -120,7 +121,6 @@ public:
      * @return nullopt if rule doesn't apply, transformed signal otherwise
      */
     virtual optional<Tree> applyRule(Tree signal) = 0;
-
 };
 
 //------------------------------------------------------------------------------
@@ -138,57 +138,58 @@ public:
 
 /**
  * @brief Signal normalizer using a set of rewrite rules
- * 
+ *
  * Applies rewrite rules repeatedly until no more transformations are possible.
  * The result is a signal in "normal form".
  */
 class Normalize {
-private:
+   private:
     vector<unique_ptr<RewriteRule>> fRules;
-    property<Tree> fCache;
-    DebugLevel fDebugLevel;
-    ostream* fDebugOutput;
+    property<Tree>                  fCache;
+    DebugLevel                      fDebugLevel;
+    ostream*                        fDebugOutput;
 
-public:
+   public:
     /**
      * @brief Constructor with rule instances - convenient syntax
-     * 
+     *
      * Usage: Normalize normalize(R1(), R2(), R3());
-     * 
+     *
      * @param rules Rule instances (automatically wrapped in unique_ptr)
      */
-    template<typename... Rules>
-    Normalize(Rules&&... rules) : fRules(), fDebugLevel(DebugLevel::NONE), fDebugOutput(&std::cerr) {
+    template <typename... Rules>
+    Normalize(Rules&&... rules) : fRules(), fDebugLevel(DebugLevel::NONE), fDebugOutput(&std::cerr)
+    {
         (fRules.push_back(make_unique<Rules>(std::forward<Rules>(rules))), ...);
     }
-    
+
     /**
      * @brief Constructor with rewrite rules vector
-     * 
+     *
      * @param rules Vector of rewrite rules (takes ownership)
      */
     Normalize(vector<unique_ptr<RewriteRule>> rules);
-    
+
     /**
      * @brief Normalize a signal to its normal form
-     * 
+     *
      * Applies all rewrite rules repeatedly until no more changes occur.
-     * 
+     *
      * @param signal The input signal to normalize
      * @return Tree The normalized signal in normal form
      */
     Tree operator()(Tree signal);
-    
+
     /**
      * @brief Set debug level for tracing rule applications
-     * 
+     *
      * @param level The debug level to use
      */
     void setDebugLevel(DebugLevel level);
-    
+
     /**
      * @brief Set debug output stream
-     * 
+     *
      * @param output The output stream for debug messages
      */
     void setDebugOutput(ostream& output);

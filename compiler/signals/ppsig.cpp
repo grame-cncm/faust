@@ -80,7 +80,8 @@ ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tr
 {
     return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize - 1) << ','
                 << ppsig(y, fEnv, 0, fMaxSize - 1) << ',' << ppsig(z, fEnv, 0, fMaxSize - 1) << ','
-                << ppsig(z2, fEnv, 0, fMaxSize - 1) << ',' << ppsig(z3, fEnv, 0, fMaxSize - 1) << ')';
+                << ppsig(z2, fEnv, 0, fMaxSize - 1) << ',' << ppsig(z3, fEnv, 0, fMaxSize - 1)
+                << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, const tvec& args) const
@@ -143,8 +144,9 @@ ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree lo
 {
     fout << funame << '(';
     printlabel(fout, label);
-    return fout << ',' << ppsig(lo, fEnv, 0, fMaxSize - 1) << ',' << ppsig(hi, fEnv, 0, fMaxSize - 1) << ','
-                << ppsig(step, fEnv, 0, fMaxSize - 1) << ')';
+    return fout << ',' << ppsig(lo, fEnv, 0, fMaxSize - 1) << ','
+                << ppsig(hi, fEnv, 0, fMaxSize - 1) << ',' << ppsig(step, fEnv, 0, fMaxSize - 1)
+                << ')';
 }
 
 ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi,
@@ -152,9 +154,9 @@ ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree cu
 {
     fout << funame << '(';
     printlabel(fout, label);
-    return fout << ',' << ppsig(cur, fEnv, 0, fMaxSize - 1) << ',' << ppsig(lo, fEnv, 0, fMaxSize - 1)
-                << ',' << ppsig(hi, fEnv, 0, fMaxSize - 1) << ',' << ppsig(step, fEnv, 0, fMaxSize - 1)
-                << ')';
+    return fout << ',' << ppsig(cur, fEnv, 0, fMaxSize - 1) << ','
+                << ppsig(lo, fEnv, 0, fMaxSize - 1) << ',' << ppsig(hi, fEnv, 0, fMaxSize - 1)
+                << ',' << ppsig(step, fEnv, 0, fMaxSize - 1) << ')';
 }
 
 ostream& ppsig::printout(ostream& fout, int i, Tree x) const

@@ -19,12 +19,12 @@
  ************************************************************************
  ************************************************************************/
 
+#include "sigRecursivenessChecker.hh"
 #include <iostream>
 #include "global.hh"
 #include "ppsig.hh"
 #include "property.hh"
 #include "recursiveness.hh"
-#include "sigRecursivenessChecker.hh"
 #include "sigTransform.hh"
 #include "signals.hh"
 

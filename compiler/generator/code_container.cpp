@@ -155,9 +155,9 @@ BlockInst* CodeContainer::generateComputeBlockLoop(bool loop_var_in_bytes)
     if (loop_var_in_bytes) {
         int byte_size_int = 1 << (gGlobal->gFloatSize + 1);
         byte_size         = IB::genInt32NumInst(byte_size_int);
-        fullcount = IB::genDecStackVar("fullcount", IB::genInt32Typed(),
-                                       IB::genMul(byte_size, fullcount_value));
-        step = IB::genInt32NumInst(gGlobal->gVecSize * byte_size_int);
+        fullcount         = IB::genDecStackVar("fullcount", IB::genInt32Typed(),
+                                               IB::genMul(byte_size, fullcount_value));
+        step              = IB::genInt32NumInst(gGlobal->gVecSize * byte_size_int);
     } else {
         fullcount = IB::genDecStackVar("fullcount", IB::genInt32Typed(), fullcount_value);
         step      = vec_size;
@@ -174,26 +174,25 @@ BlockInst* CodeContainer::generateComputeBlockLoop(bool loop_var_in_bytes)
     BlockInst* loop_code = IB::genBlockInst();
 
     // int count = min(gVecSize, fullcount - index);
-    ValueInst* remaining = IB::genSub(fullcount->load(), index_decl->load());
+    ValueInst* remaining  = IB::genSub(fullcount->load(), index_decl->load());
     ValueInst* count_base = remaining;
     if (loop_var_in_bytes) {
         count_base = IB::genDiv(remaining, byte_size);
     }
-    Values     min_fun_args;
+    Values min_fun_args;
     min_fun_args.push_back(vec_size);
     min_fun_args.push_back(count_base);
-    ValueInst* count_val = IB::genFunCallInst("min_i", min_fun_args);
+    ValueInst*      count_val  = IB::genFunCallInst("min_i", min_fun_args);
     DeclareVarInst* count_decl = IB::genDecStackVar("count", IB::genInt32Typed(), count_val);
     loop_code->pushBackInst(count_decl);
 
     loop_code->merge(fComputeBlockInstructions);
-    loop_code->pushBackInst(
-        fCurLoop->generateScalarLoop(count_decl->load(), loop_var_in_bytes));
+    loop_code->pushBackInst(fCurLoop->generateScalarLoop(count_decl->load(), loop_var_in_bytes));
     loop_code->merge(fPostComputeBlockInstructions);
 
-    ValueInst*  loop_end = IB::genLessThan(index_decl->load(), fullcount->load());
+    ValueInst*    loop_end = IB::genLessThan(index_decl->load(), fullcount->load());
     StoreVarInst* loop_inc = index_decl->store(IB::genAdd(index_decl->load(), step));
-    ForLoopInst* loop = IB::genForLoopInst(index_decl, loop_end, loop_inc, loop_code, false);
+    ForLoopInst*  loop     = IB::genForLoopInst(index_decl, loop_end, loop_inc, loop_code, false);
     block->pushBackInst(loop);
 
     return block;

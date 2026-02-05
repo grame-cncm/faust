@@ -61,7 +61,8 @@ void recPrintingWithDelays(std::ostream& os, const std::map<Tree, schedule<Tree>
  * @param stepNumbers A map of signals to their step numbers.
  * @param OM Occurrence markup object for delay information (can be nullptr).
  */
-void printSigWithStepRefs(std::ostream& os, Tree sig, const std::map<Tree, int>& stepNumbers, OccMarkup* OM);
+void printSigWithStepRefs(std::ostream& os, Tree sig, const std::map<Tree, int>& stepNumbers,
+                          OccMarkup* OM);
 
 /**
  * @brief Prints a step reference to the output stream.

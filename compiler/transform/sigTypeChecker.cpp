@@ -20,11 +20,11 @@
  ************************************************************************/
 
 #include "sigTypeChecker.hh"
-#include "sigTransform.hh"
-#include "sigtyperules.hh"
-#include "signals.hh"
-#include "ppsig.hh"
 #include <iostream>
+#include "ppsig.hh"
+#include "sigTransform.hh"
+#include "signals.hh"
+#include "sigtyperules.hh"
 
 using namespace std;
 
@@ -35,10 +35,11 @@ using namespace std;
  * but verifies that every signal visited has a valid type annotation.
  */
 class TypeChecker : public RewriteRule {
-public:
+   public:
     string getRuleName() const override { return "TypeChecker"; }
 
-    optional<Tree> applyRule(Tree signal) override {
+    optional<Tree> applyRule(Tree signal) override
+    {
         // Check if signal has a type
         Type ty = getSigType(signal);
         if (!ty) {
@@ -47,7 +48,7 @@ public:
             cerr << "  Signal: " << ppsig(signal, 200) << endl;
 
             // Try to identify the signal type
-            int i;
+            int  i;
             Tree x, y, z;
 
             if (isProj(signal, &i, x)) {
