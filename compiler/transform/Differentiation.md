@@ -12,7 +12,7 @@
 
 - the `signalAutoDifferentiate` pass is activated using the `-diff` compiler options.   
 
-- since `SignalAutoDifferentiate`is a subclass of `SignalIdentity`, itself a subclass of `TreeTransform`, the differentiation itself takes profit of the memoïsation system already in place in the `TreeTransform` base class. Thus equal sub-expressions will be derivated once and shared in the transformation.
+- since `SignalAutoDifferentiate`is a subclass of `SignalIdentity`, itself a subclass of `TreeTransform`, the differentiation itself takes profit of the memoization system already in place in the `TreeTransform` base class. Thus equal sub-expressions will be derivated once and shared in the transformation.
 
 ## Examples of generated code
 

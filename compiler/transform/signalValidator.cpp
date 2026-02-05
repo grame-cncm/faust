@@ -74,7 +74,7 @@ void SignalValidator::visit(Tree sig)
         printsignal(std::cerr, visited, 1, sig);
         std::cerr << "\n";
 
-        // Afficher jusqu'à 5 niveaux d'ascendants avec leurs types
+        // Display up to 5 ancestor levels with their types
         int levels = std::min(5, (int)fStack.size());
         for (int i = 0; i < levels; i++) {
             Tree ancestor     = fStack[fStack.size() - 1 - i];

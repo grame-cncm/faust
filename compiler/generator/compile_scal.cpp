@@ -247,9 +247,9 @@ Tree ScalarCompiler::prepare(Tree LS)
     }
 
     // // experimental
-    // Tree L3 = revealFIR(L2);  // pas de problème d'annotation
+    // Tree L3 = revealFIR(L2);  // no annotation issue
     // // cerr << "FIR Revealer  of " << ppsig(L2) << " ==> " << ppsig(L3) << endl;
-    // Tree L4 = revealIIR(L3);  // pas de problème d'annotation
+    // Tree L4 = revealIIR(L3);  // no annotation issue
     // // cerr << "IIR Revealer  of " << ppsig(L3) << " ==> " << ppsig(L4) << endl;
 
     return L2;
@@ -2030,7 +2030,7 @@ string ScalarCompiler::generateDelayLine(Tree sig, const string& ctype, const st
                 subst("for (int j = 0; j < $0; j++) { $1State[j] = $1[j+1]; }", T(mxd), vname));
             return subst("$0[0]", vname);
 #else
-            // version optimisée par rebouclage directe dans le vecteur (environ 1% de gain)
+            // optimized version with direct loop-back in the vector (~1% gain)
             fClass->addDeclCode(subst("$0 \t$1State[$2]; // Dense Delay", ctype, vname, T(mxd)));
             fClass->addClearCode(
                 subst("for (int j = 0; j < $0; j++) { $1State[j] = 0; }", T(mxd), vname));

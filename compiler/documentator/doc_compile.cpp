@@ -1105,8 +1105,8 @@ bool DocCompiler::getVectorNameProperty(Tree sig, string& vecname)
  * Generate code for accessing a delayed signal. The generated code depend of
  * the maximum delay attached to exp and the gGlobal->gLessTempSwitch.
  *
- * @todo Priorités à revoir pour le parenthésage (associativité de - et /),
- * avec gBinOpLateqTable dans binop.cpp.
+ * @todo Revisit precedence for parenthesization (associativity of - and /),
+ * with gBinOpLateqTable in binop.cpp.
  */
 string DocCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay, int priority)
 {

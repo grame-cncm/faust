@@ -41,7 +41,7 @@ static void printlines(int n, list<Statement>& lines, ostream& fout)
             tab(n, fout);
             fout << s->code();
         } else if (ccond == "") {
-            // debut d'une condition
+            // start of a condition
             ccond = s->condition();
             tab(n, fout);
             fout << "if (" << ccond << ") {";
@@ -49,11 +49,11 @@ static void printlines(int n, list<Statement>& lines, ostream& fout)
             tab(n, fout);
             fout << s->code();
         } else {
-            // fin précédente condition
+            // end of previous condition
             n--;
             tab(n, fout);
             fout << "}";
-            // nouvelle condition courante
+            // new current condition
             ccond = s->condition();
             if (ccond != "") {
                 tab(n, fout);

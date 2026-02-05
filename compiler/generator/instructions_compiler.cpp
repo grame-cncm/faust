@@ -3277,11 +3277,11 @@ ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& coefs)
 
         return generateCacheCode(sig, fir_res);
     } else {
-        // tous les coefs sont connus à la compilation et on peut declarer un tableau de
-        // constantes statiques certains coefs sont connus à l'initialisation et on peut
-        // declarer un tableau remplis dans la méthode init certains coefficients sont des
-        // controles et on peut déclarer un tableau en début de compute certains coefficients
-        // sont des signaux et on doit déclarer le tableau dans la boucle d'échantillons
+        // All coefficients are known at compile time, so we can declare a static constants table.
+        // Some coefficients are known at initialization time, so we can declare and fill a table
+        // in the init method. Some coefficients are controls, so we can declare a table at the
+        // start of compute. Some coefficients are signals, so we must declare the table inside
+        // the sample loop.
 
         // 1) THE COEFFICIENT TABLE
 
