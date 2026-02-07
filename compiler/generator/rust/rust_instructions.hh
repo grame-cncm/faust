@@ -127,8 +127,8 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["powf"]   = "F32::powf";
 
         // Add 2 missing math functions
-        fMathLibTable["remainderf"] = "remainder_f32";
-        fMathLibTable["rintf"]      = "rint_f32";
+        fMathLibTable["remainderf"] = "remainderf";
+        fMathLibTable["rintf"]      = "rintf";
 
         fMathLibTable["roundf"] = "F32::round";
         fMathLibTable["sinf"]   = "F32::sin";
@@ -165,8 +165,8 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["pow"]   = "F64::powf";
 
         // Add 2 missing math functions
-        fMathLibTable["remainder"] = "remainder_f64";
-        fMathLibTable["rint"]      = "rint_f64";
+        fMathLibTable["remainder"] = "remainder";
+        fMathLibTable["rint"]      = "rint";
 
         fMathLibTable["round"] = "F64::round";
         fMathLibTable["sin"]   = "F64::sin";

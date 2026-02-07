@@ -40,6 +40,10 @@ use std::env;
 use std::marker::PhantomData;
 
 use num_traits::{cast::FromPrimitive, float::Float};
+use libm::remainder;
+use libm::rint;
+use libm::remainderf;
+use libm::rintf;
 
 type F32 = f32;
 type F64 = f64;
