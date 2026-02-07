@@ -23,11 +23,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #![allow(unused_variables)]
 #![allow(unused_mut)]
 #![allow(non_upper_case_globals)]
+#![allow(unused_imports)]
 #![recursion_limit = "256"]
-
-extern crate libm;
-extern crate num_traits;
-/* extern crate fastfloat; */
 
 use default_boxed::DefaultBoxed;
 use num_traits::cast::FromPrimitive;
@@ -35,15 +32,14 @@ use num_traits::float::Float;
 use std::env;
 use std::fs::File;
 use std::io::Write;
+use libm::remainderf;
+use libm::rintf;
+use libm::remainder;
+use libm::rint;
 
 type F32 = f32;
 type F64 = f64;
 type FaustFloat = f64;
-
-/*
-type F32 = Fast<f32>;
-type F64 = Fast<f64>;
-*/
 
 #[derive(Copy, Clone)]
 pub struct ParamIndex(i32);

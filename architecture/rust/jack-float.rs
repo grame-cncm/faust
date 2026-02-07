@@ -36,6 +36,10 @@ extern crate jack;
 use jack::prelude as j;
 use std::io;
 extern crate libm;
+use libm::remainder;
+use libm::rint;
+use libm::remainderf;
+use libm::rintf;
 
 type F32 = f32;
 type F64 = f64;

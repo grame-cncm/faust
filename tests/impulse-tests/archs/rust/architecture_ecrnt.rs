@@ -25,11 +25,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #![allow(unused_variables)]
 #![allow(unused_mut)]
 #![allow(non_upper_case_globals)]
+#![allow(unused_imports)]
 #![recursion_limit = "256"]
-
-extern crate libm;
-extern crate num_traits;
-/* extern crate fastfloat; */
 
 use default_boxed::DefaultBoxed;
 use num_traits::cast::FromPrimitive;
@@ -38,14 +35,47 @@ use std::env;
 use std::fs::File;
 use std::io::Write;
 
+// example of architecture file that
+// makes use of c version of libm if possible
+#[cfg(not(target_arch = "wasm32"))]
+mod ffi {
+    use core::ffi::c_float;
+    use core::ffi::c_double;
+    // Conditionally compile the link attribute only on non-Windows platforms
+    #[cfg_attr(not(target_os = "windows"), link(name = "m"))]
+    unsafe extern "C" {
+        pub fn remainderf(from: c_float, to: c_float) -> c_float;
+        pub fn rintf(val: c_float) -> c_float;
+        pub fn remainder(from: c_double, to: c_double) -> c_double;
+        pub fn rint(val: c_double) -> c_double;
+	}
+}
+fn remainderf(from: f32, to: f32) -> f32 {
+    #[cfg(not(target_arch = "wasm32"))]  // non-wasm targets use ffi bindings
+    unsafe { ffi::remainderf(from, to) }
+    #[cfg(target_arch = "wasm32")] // wasm relies on libm
+    libm::remainderf(from, to)
+}
+fn rintf(val: f32) -> f32 {
+    #[cfg(not(target_arch = "wasm32"))] unsafe { ffi::rintf(val) }
+    #[cfg(target_arch = "wasm32")] libm::rintf(val)
+}
+fn remainder(from: f64, to: f64) -> f64 {
+	#[cfg(not(target_arch = "wasm32"))] // non-wasm targets use ffi bindings
+	unsafe { ffi::remainder(from, to) }
+	#[cfg(target_arch = "wasm32")] // wasm relies on libm
+	libm::remainder(from, to)
+}
+fn rint(val: f64) -> f64 {
+	#[cfg(not(target_arch = "wasm32"))] // non-wasm targets use ffi bindings
+	unsafe { ffi::rint(val) }
+	#[cfg(target_arch = "wasm32")] // wasm relies on libm
+	libm::rint(val)
+}
+
 type F32 = f32;
 type F64 = f64;
 type FaustFloat = f64;
-
-/*
-type F32 = Fast<f32>;
-type F64 = Fast<f64>;
-*/
 
 #[derive(Copy, Clone)]
 pub struct ParamIndex(i32);
