@@ -156,6 +156,17 @@ class TextInstVisitor : public InstVisitor {
         EndLine();
     }
 
+    virtual void visit(ValueArrayInst* inst)
+    {
+        char sep = '{';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep;
+            inst->fNumTable[i]->accept(this);
+            sep = ',';
+        }
+        *fOut << '}';
+    }
+
     virtual void visit(FloatNumInst* inst) { *fOut << checkFloat(inst->fNum); }
 
     virtual void visit(FloatArrayNumInst* inst)

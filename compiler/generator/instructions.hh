@@ -70,9 +70,10 @@ struct TeeVarInst;
 
 // Base class for array of numbers
 template <class TYPE>
-struct ArrayNumInst;
+struct ArrayInst;
 
 // Numbers and array of numbers
+struct ValueArrayInst;
 struct FloatNumInst;
 struct FloatArrayNumInst;
 struct Int32NumInst;
@@ -301,6 +302,9 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(StoreVarInst* inst) {}
     virtual void visit(ShiftArrayVarInst* inst) {}
 
+    // Values
+    virtual void visit(ValueArrayInst* inst) {}
+
     // Numbers
     virtual void visit(FloatNumInst* inst) {}
     virtual void visit(FloatArrayNumInst* inst) {}
@@ -387,6 +391,9 @@ struct CloneVisitor : public virtual Garbageable {
     virtual ValueInst*     visit(TeeVarInst* inst)         = 0;
     virtual StatementInst* visit(StoreVarInst* inst)       = 0;
     virtual StatementInst* visit(ShiftArrayVarInst* inst)  = 0;
+
+    // Values
+    virtual ValueInst* visit(ValueArrayInst* inst) = 0;
 
     // Numbers
     virtual ValueInst* visit(Int32NumInst* inst)           = 0;
@@ -1298,18 +1305,32 @@ struct DropInst : public StatementInst {
 // ========
 
 template <class TYPE>
-struct ArrayNumInst : public ValueInst {
+struct ArrayInst : public ValueInst {
     std::vector<TYPE> fNumTable;
 
-    ArrayNumInst(const std::vector<TYPE>& nums) : ValueInst(), fNumTable(nums) {}
-
-    ArrayNumInst(int size) : ValueInst() { fNumTable.resize(size); }
+    ArrayInst(const std::vector<TYPE>& nums) : ValueInst(), fNumTable(nums) {}
+    ArrayInst(int size) : ValueInst() { fNumTable.resize(size); }
 
     void setValue(int index, TYPE num) { fNumTable[index] = num; }
     TYPE getValue(int index) { return fNumTable[index]; }
     void addValue(TYPE num) { fNumTable.push_back(num); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    virtual bool isSimpleValue() const { return true; }
+};
+
+struct ValueArrayInst : public ArrayInst<ValueInst*> {
+    ValueArrayInst(const std::vector<ValueInst*>& nums) : ArrayInst<ValueInst*>(nums) {}
+    ValueArrayInst(int size) : ArrayInst<ValueInst*>(size) {}
+
+    void       setValue(int index, ValueInst* val) { fNumTable[index] = val; }
+    ValueInst* getValue(int index) { return fNumTable[index]; }
+    void       addValue(ValueInst* num) { fNumTable.push_back(num); }
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
     virtual bool isSimpleValue() const { return true; }
 };
@@ -1326,9 +1347,9 @@ struct FloatNumInst : public ValueInst, public NumValueInst {
     virtual bool isSimpleValue() const { return true; }
 };
 
-struct FloatArrayNumInst : public ArrayNumInst<float> {
-    FloatArrayNumInst(const std::vector<float>& nums) : ArrayNumInst<float>(nums) {}
-    FloatArrayNumInst(int size) : ArrayNumInst<float>(size) {}
+struct FloatArrayNumInst : public ArrayInst<float> {
+    FloatArrayNumInst(const std::vector<float>& nums) : ArrayInst<float>(nums) {}
+    FloatArrayNumInst(int size) : ArrayInst<float>(size) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1347,9 +1368,9 @@ struct DoubleNumInst : public ValueInst, public NumValueInst {
     virtual bool isSimpleValue() const { return true; }
 };
 
-struct DoubleArrayNumInst : public ArrayNumInst<double> {
-    DoubleArrayNumInst(const std::vector<double>& nums) : ArrayNumInst<double>(nums) {}
-    DoubleArrayNumInst(int size) : ArrayNumInst<double>(size) {}
+struct DoubleArrayNumInst : public ArrayInst<double> {
+    DoubleArrayNumInst(const std::vector<double>& nums) : ArrayInst<double>(nums) {}
+    DoubleArrayNumInst(int size) : ArrayInst<double>(size) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1368,9 +1389,9 @@ struct QuadNumInst : public ValueInst, public NumValueInst {
     virtual bool isSimpleValue() const { return true; }
 };
 
-struct QuadArrayNumInst : public ArrayNumInst<long double> {
-    QuadArrayNumInst(const std::vector<long double>& nums) : ArrayNumInst<long double>(nums) {}
-    QuadArrayNumInst(int size) : ArrayNumInst<long double>(size) {}
+struct QuadArrayNumInst : public ArrayInst<long double> {
+    QuadArrayNumInst(const std::vector<long double>& nums) : ArrayInst<long double>(nums) {}
+    QuadArrayNumInst(int size) : ArrayInst<long double>(size) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1389,13 +1410,13 @@ struct FixedPointNumInst : public ValueInst, public NumValueInst {
     virtual bool isSimpleValue() const { return true; }
 };
 
-struct FixedPointArrayNumInst : public ArrayNumInst<double> {
+struct FixedPointArrayNumInst : public ArrayInst<double> {
     FixedTyped* fType;
     FixedPointArrayNumInst(const std::vector<double>& nums, FixedTyped* type)
-        : ArrayNumInst<double>(nums), fType(type)
+        : ArrayInst<double>(nums), fType(type)
     {
     }
-    FixedPointArrayNumInst(int size, FixedTyped* type) : ArrayNumInst<double>(size), fType(type) {}
+    FixedPointArrayNumInst(int size, FixedTyped* type) : ArrayInst<double>(size), fType(type) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1414,9 +1435,9 @@ struct Int32NumInst : public ValueInst, public NumValueInst {
     virtual bool isSimpleValue() const { return true; }
 };
 
-struct Int32ArrayNumInst : public ArrayNumInst<int> {
-    Int32ArrayNumInst(const std::vector<int>& nums) : ArrayNumInst<int>(nums) {}
-    Int32ArrayNumInst(int size) : ArrayNumInst<int>(size) {}
+struct Int32ArrayNumInst : public ArrayInst<int> {
+    Int32ArrayNumInst(const std::vector<int>& nums) : ArrayInst<int>(nums) {}
+    Int32ArrayNumInst(int size) : ArrayInst<int>(size) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1847,6 +1868,16 @@ class BasicCloneVisitor : public CloneVisitor {
             indices.push_back(static_cast<ValueInst*>(it->clone(this)));
         }
         return new IndexedAddress(address->fAddress->clone(this), indices);
+    }
+
+    // Values
+    virtual ValueInst* visit(ValueArrayInst* inst)
+    {
+        std::vector<ValueInst*> values;
+        for (const auto& it : inst->fNumTable) {
+            values.push_back(static_cast<ValueInst*>(it->clone(this)));
+        }
+        return new ValueArrayInst(values);
     }
 
     // Numbers
@@ -2332,6 +2363,8 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
 
     virtual void visit(ShiftArrayVarInst* inst) { fScalarVisitor->visit(inst); }
 
+    virtual void visit(ValueArrayInst* inst) { Dispatch2Visitor(inst); }
+
     virtual void visit(FloatNumInst* inst) { Dispatch2Visitor(inst); }
 
     virtual void visit(FloatArrayNumInst* inst) { Dispatch2Visitor(inst); }
@@ -2520,6 +2553,13 @@ struct IB {
     static ShiftArrayVarInst* genShiftArrayVarInst(Address* address, int delay)
     {
         return new ShiftArrayVarInst(address, delay);
+    }
+
+    // Values
+    static ValueArrayInst* genValueArrayInst(int size = 0) { return new ValueArrayInst(size); }
+    static ValueArrayInst* genValueArrayInst(const std::vector<ValueInst*>& nums)
+    {
+        return new ValueArrayInst(nums);
     }
 
     // Numbers

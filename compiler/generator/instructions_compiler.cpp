@@ -2336,7 +2336,7 @@ static const InstructionsCompiler::DelayPack kLLVMDelayPack = {
 // Some delay types not implemented. So using kMaskRingDelay.
 static const InstructionsCompiler::DelayPack kSparseDelayPack = {
     DelayType::kNotADelay,     DelayType::kZeroDelay,      DelayType::kMonoDelay,
-    DelayType::kMaskRingDelay,   DelayType::kMaskRingDelay,  DelayType::kMaskRingDelay,
+    DelayType::kMaskRingDelay, DelayType::kMaskRingDelay,  DelayType::kMaskRingDelay,
     DelayType::kMaskRingDelay, DelayType::kSelectRingDelay};
 
 InstructionsCompiler::BackendsDelay InstructionsCompiler::backendType = {
@@ -3309,73 +3309,43 @@ ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& coefs)
             }
         }
 
-        // 2) Build an array of coefficient values
-        ValueInst* coef_array = nullptr;
-        if (tc->nature() == kInt) {
-            vector<int> coef_values;
-            for (unsigned int c = 1; c < coefs.size(); c++) {
-                // We assume coefs are all real
-                int i;
-                isSigInt(coefs[c], &i);
-                coef_values.push_back(i);
-            }
-            coef_array = IB::genInt32ArrayNumInst(coef_values);
-        } else if (itfloat() == Typed::kFloat) {
-            vector<float> coef_values;
-            for (unsigned int c = 1; c < coefs.size(); c++) {
-                // We assume coefs are all real
-                double r;
-                isSigReal(coefs[c], &r);
-                coef_values.push_back(r);
-            }
-            coef_array = IB::genFloatArrayNumInst(coef_values);
-        } else if (itfloat() == Typed::kDouble) {
-            vector<double> coef_values;
-            for (unsigned int c = 1; c < coefs.size(); c++) {
-                // We assume coefs are all real
-                double r;
-                isSigReal(coefs[c], &r);
-                coef_values.push_back(r);
-            }
-            coef_array = IB::genDoubleArrayNumInst(coef_values);
-        } else {
-            faustassert(false);
+        ValueArrayInst* coef_array = IB::genValueArrayInst();
+        for (unsigned int i = 1; i < coefs.size(); i++) {
+            coef_array->addValue(CS(coefs[i]));
         }
 
-        // string csize      = T(int(coefs.size() - 1));
-        // string ctabledecl = subst("const $0 \t$1[$2] = $3;", ctype, ctable, csize,
-        // coefInit);
-
-        // Defined as a global static
-        pushGlobalDeclare(IB::genDecConstStaticStructVar(
-            ctable, IB::genArrayTyped(ctype, coefs.size() - 1), coef_array));
-
-        /*
         switch (tc->variability()) {
             case kKonst:
                 if (tc->computability() == kComp) {
-                    pushGlobalDeclare(IB::genDecConstStaticStructVar(ctable, ctype, coef_array));
+                    pushGlobalDeclare(IB::genDecConstStaticStructVar(
+                        ctable, IB::genArrayTyped(ctype, coefs.size() - 1), coef_array));
                 } else {
                     // special case for constant coefficients that can only be computed at init
                     // time
-                    pushGlobalDeclare(IB::genDecConstStaticStructVar(ctable, ctype, coef_array));
-                    fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, ctable, csize));
-                    fClass->addInitCode(
-                        subst("const $0 \t$1tmp[$2] = $3;", ctype, ctable, csize, coefInit));
-                    fClass->addInitCode(
-                        subst("for (int i = 0; i < $0; i++) { $1[i] = $1tmp[i]; }", csize, ctable));
+                    pushDeclare(
+                        IB::genDecStructVar(ctable, IB::genArrayTyped(ctype, coefs.size() - 1)));
+                    pushInitMethod(IB::genDecStackVar(
+                        ctable + "tmp", IB::genArrayTyped(ctype, coefs.size() - 1), coef_array));
+                    // TODO
+                    // fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, ctable, csize));
+                    // fClass->addInitCode(
+                    //     subst("const $0 \t$1tmp[$2] = $3;", ctype, ctable, csize, coefInit));
+                    // fClass->addInitCode(
+                    //     subst("for (int i = 0; i < $0; i++) { $1[i] = $1tmp[i]; }", csize,
+                    //     ctable));
                 }
                 break;
             case kBlock:
-                fClass->addZone2(ctabledecl);
+                pushComputeBlockMethod(IB::genDecStackVar(
+                    ctable, IB::genArrayTyped(ctype, coefs.size() - 1), coef_array));
                 break;
             case kSamp:
-                fClass->addExecCode(Statement("", ctabledecl));
+                pushComputeDSPMethod(IB::genDecStackVar(
+                    ctable, IB::genArrayTyped(ctype, coefs.size() - 1), coef_array));
                 break;
             default:
                 faustassert(false);
         }
-        */
 
         // 2) THE FIR ACCUMULATION
 
@@ -3415,10 +3385,28 @@ ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& coefs)
         ForLoopInst* for_loop = IB::genForLoopInst(loop_var, loop_cond, loop_inc);
         BlockInst*   block    = IB::genBlockInst();
         if (gGlobal->gHLSUnrollFactor > 0) {
+            // TODO
             block->pushBackInst(IB::genLabelInst(
                 subst("\t#pragma HLS unroll factor=$0", T(gGlobal->gHLSUnrollFactor))));
         }
-        ValueInst*     coef_val  = IB::genLoadArrayStructVar(ctable, loop_var->load());
+
+        ValueInst* coef_val = nullptr;
+        switch (tc->variability()) {
+            case kKonst:
+                if (tc->computability() == kComp) {
+                    coef_val = IB::genLoadArrayStaticStructVar(ctable, loop_var->load());
+                } else {
+                    coef_val = IB::genLoadArrayStructVar(ctable, loop_var->load());
+                }
+                break;
+            case kBlock:
+            case kSamp:
+                coef_val = IB::genLoadArrayStackVar(ctable, loop_var->load());
+                break;
+            default:
+                faustassert(false);
+        }
+
         ValueInst*     prod_inst = IB::genMul(coef_val, idxaccess);
         ValueInst*     new_acc   = IB::genAdd(IB::genLoadStackVar(facc), prod_inst);
         StatementInst* store_acc = IB::genStoreStackVar(facc, new_acc);
