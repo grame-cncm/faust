@@ -66,6 +66,12 @@ int main(int argc, char* argv[])
         cout << "or: nam-jack-gtk [-double] <model.nam>" << endl;
         return EXIT_FAILURE;
     }
+    
+    nam_status_t status = nam_enable_fast_tanh();
+    if (status != NAM_STATUS_OK) {
+        std::fprintf(stderr, "nam_enable_fast_tanh failed: %s\n", nam_get_last_error());
+        return 1;
+    }
 
     char filename[256];
     snprintf(filename, 255, "%s", basename(const_cast<char*>(model_path.c_str())));
