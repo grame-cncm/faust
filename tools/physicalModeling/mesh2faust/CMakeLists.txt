@@ -14,7 +14,7 @@ set(VegaDir ${CMAKE_CURRENT_SOURCE_DIR}/vega/libraries)
 set(LIBRARY_NAME ${PROJECT_NAME})
 
 if(APPLE)
-  set(EIGEN_INCLUDE_DIR /opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3)
+  set(EIGEN_INCLUDE_DIR /opt/homebrew/include/eigen3)
 else()
   set(EIGEN_INCLUDE_DIR /usr/include/eigen3)
 endif()
