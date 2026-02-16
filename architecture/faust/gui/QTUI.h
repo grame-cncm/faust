@@ -1605,7 +1605,9 @@ public:
 //        w->setAttribute(Qt::WA_MacNoClickThrough); // obsolete at least since Qt 5.11
         uiButton* c = new uiButton(this, zone, w);
         
-        insert(label, w);
+        if (!isHidden(zone)) {
+            insert(label, w);
+        }
         QObject::connect(w, SIGNAL(pressed()), c, SLOT(pressed()));
         QObject::connect(w, SIGNAL(released()), c, SLOT(released()));
         checkForTooltip(zone, w);
@@ -1620,7 +1622,9 @@ public:
         QCheckBox* w = new QCheckBox(label);
         uiCheckButton* c = new uiCheckButton(this, zone, w);
         
-        insert(label, w);
+        if (!isHidden(zone)) {
+            insert(label, w);
+        }
         QObject::connect(w, SIGNAL(stateChanged(int)), c, SLOT(setState(int)));
         checkForTooltip(zone, w);
         clearMetadata();
@@ -1634,6 +1638,10 @@ public:
     
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        if (isHidden(zone)) {
+            clearMetadata();
+            return;
+        }
         if (isKnob(zone)) {
             addVerticalKnob(label, zone, init, min, max, step);
             return;
@@ -1692,6 +1700,10 @@ public:
     
     virtual void addVerticalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        if (isHidden(zone)) {
+            clearMetadata();
+            return;
+        }
         openVerticalBox(label);
         QDial* w = new QDial(); //qsynthKnob();
         uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
@@ -1715,6 +1727,10 @@ public:
     
     virtual void addHorizontalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        if (isHidden(zone)) {
+            clearMetadata();
+            return;
+        }
         openHorizontalBox(label);
         QDial* w = new QDial(); //new qsynthKnob();
         uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
@@ -1737,6 +1753,10 @@ public:
     
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        if (isHidden(zone)) {
+            clearMetadata();
+            return;
+        }
         if (isKnob(zone)) {
             addVerticalKnob(label, zone, init, min, max, step);
             return;
@@ -1763,6 +1783,10 @@ public:
     
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        if (isHidden(zone)) {
+            clearMetadata();
+            return;
+        }
         if (isKnob(zone)) {
             addHorizontalKnob(label, zone, init, min, max, step);
             return;
@@ -1796,6 +1820,10 @@ public:
     virtual void addVerticalRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
                                          FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
+        if (isHidden(zone)) {
+            clearMetadata();
+            return;
+        }
         uiRadioButtons* w = new uiRadioButtons(this, zone, label, init, min, max, step, true, mdescr, 0);
         insert(label, w);
         checkForTooltip(zone, w);
@@ -1805,6 +1833,10 @@ public:
     virtual void addHorizontalRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
                                            FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
+        if (isHidden(zone)) {
+            clearMetadata();
+            return;
+        }
         uiRadioButtons* w = new uiRadioButtons(this, zone, label, init, min, max, step, false, mdescr, 0);
         insert(label, w);
         checkForTooltip(zone, w);
@@ -1814,6 +1846,10 @@ public:
     virtual void addMenu(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
                          FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
+        if (isHidden(zone)) {
+            clearMetadata();
+            return;
+        }
         if (label && label[0]) openVerticalBox(label);
         uiMenu* w = new uiMenu(this, zone, label, init, min, max, step, mdescr, 0);
         insert(label, w);
@@ -1830,6 +1866,10 @@ public:
     
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
+        if (isHidden(zone)) {
+            clearMetadata();
+            return;
+        }
         openVerticalBox(label);
         if (isNumerical(zone)) {
             addNumDisplay(0, zone, min, min, max, (max-min)/pow(10, FLT_DIG));
@@ -1860,6 +1900,10 @@ public:
     
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
+        if (isHidden(zone)) {
+            clearMetadata();
+            return;
+        }
         openVerticalBox(label);
         if (isNumerical(zone)) {
             addNumDisplay(0, zone, min, min, max, (max-min)/pow(10, FLT_DIG));
