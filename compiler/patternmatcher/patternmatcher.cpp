@@ -700,12 +700,37 @@ static void add_subst(vector<Subst>& subst, Automaton* A, int s)
 
 static int apply_pattern_matcher_internal(Automaton* A, int s, Tree X, vector<Subst>& subst)
 {
-    /* FIXME: rewrite this non-recursively? */
-    if (s >= 0) {
+    // Rewrote to use explicit stack instead of recursion
+    struct StackFrame {
+        int state;
+        Tree tree;
+        vector<Tree> remaining;  // children left to process after this one
+        
+        StackFrame(int s, Tree t) : state(s), tree(t) {}
+        StackFrame(int s, Tree t, const vector<Tree>& rem) : state(s), tree(t), remaining(rem) {}
+    };
+    
+    vector<StackFrame> stack;
+    stack.push_back(StackFrame(s, X));
+    
+    while (!stack.empty()) {
+        StackFrame frame = stack.back();
+        stack.pop_back();
+        
+        s = frame.state;
+        X = frame.tree;
+        
+        if (s < 0) {
+            continue;  // failed state
+        }
+        
         list<Trans>::const_iterator t;
         if (A->state[s]->match_num) { /* simplify possible numeric argument on the fly */
             X = simplifyPattern(X);
         }
+        
+        bool matched = false;
+        
         /* first check for applicable non-variable transitions */
         for (t = A->trans(s).begin(); t != A->trans(s).end(); t++) {
             Tree x;
@@ -720,7 +745,8 @@ static int apply_pattern_matcher_internal(Automaton* A, int s, Tree X, vector<Su
 #endif
                     add_subst(subst, A, s);
                     s = t->state->s;
-                    return s;
+                    matched = true;
+                    break;
                 }
             } else if (t->is_op_trans(op)) {
                 Tree x0, x1, x2;
@@ -733,15 +759,14 @@ static int apply_pattern_matcher_internal(Automaton* A, int s, Tree X, vector<Su
                     add_subst(subst, A, s);
                     s = t->state->s;
                     if (s >= 0) {
-                        s = apply_pattern_matcher_internal(A, s, x0, subst);
+                        // need to process x0, x1, x2 in order
+                        vector<Tree> rem;
+                        rem.push_back(x1);
+                        rem.push_back(x2);
+                        stack.push_back(StackFrame(s, x0, rem));
                     }
-                    if (s >= 0) {
-                        s = apply_pattern_matcher_internal(A, s, x1, subst);
-                    }
-                    if (s >= 0) {
-                        s = apply_pattern_matcher_internal(A, s, x2, subst);
-                    }
-                    return s;
+                    matched = true;
+                    break;
                 }
                 if (isBoxPatternOpBinary(X, op1, x0, x1) && op == op1) {
                     /* transition on operation symbol */
@@ -751,15 +776,30 @@ static int apply_pattern_matcher_internal(Automaton* A, int s, Tree X, vector<Su
                     add_subst(subst, A, s);
                     s = t->state->s;
                     if (s >= 0) {
-                        s = apply_pattern_matcher_internal(A, s, x0, subst);
+                        vector<Tree> rem;
+                        rem.push_back(x1);
+                        stack.push_back(StackFrame(s, x0, rem));
                     }
-                    if (s >= 0) {
-                        s = apply_pattern_matcher_internal(A, s, x1, subst);
-                    }
-                    return s;
+                    matched = true;
+                    break;
                 }
             }
         }
+        
+        if (matched) {
+            // if there are more children to process, do the next one
+            if (s >= 0 && !frame.remaining.empty()) {
+                Tree next = frame.remaining.back();
+                frame.remaining.pop_back();
+                if (!frame.remaining.empty()) {
+                    stack.push_back(StackFrame(s, next, frame.remaining));
+                } else {
+                    stack.push_back(StackFrame(s, next));
+                }
+            }
+            continue;
+        }
+        
         /* check for variable transition (is always first in the list of
            transitions) */
         t = A->trans(s).begin();
@@ -775,7 +815,24 @@ static int apply_pattern_matcher_internal(Automaton* A, int s, Tree X, vector<Su
 #endif
             s = -1;
         }
+        
+        // process next child if we have any left
+        if (s >= 0 && !frame.remaining.empty()) {
+            Tree next = frame.remaining.back();
+            frame.remaining.pop_back();
+            if (!frame.remaining.empty()) {
+                stack.push_back(StackFrame(s, next, frame.remaining));
+            } else {
+                stack.push_back(StackFrame(s, next));
+            }
+            continue;
+        }
+        
+        if (!frame.remaining.empty() && s < 0) {
+            continue;  // failed with children left, propagate failure
+        }
     }
+    
     return s;
 }
 
