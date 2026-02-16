@@ -1601,6 +1601,7 @@ public:
     
     virtual void addButton(const char* label, FAUSTFLOAT* zone)
     {
+        if (MetaDataUI::isHidden(zone)) return;
         QAbstractButton* w = new QPushButton(label);
 //        w->setAttribute(Qt::WA_MacNoClickThrough); // obsolete at least since Qt 5.11
         uiButton* c = new uiButton(this, zone, w);
@@ -1617,6 +1618,7 @@ public:
     
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
     {
+        if (MetaDataUI::isHidden(zone)) return;
         QCheckBox* w = new QCheckBox(label);
         uiCheckButton* c = new uiCheckButton(this, zone, w);
         
@@ -1634,6 +1636,7 @@ public:
     
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        if (MetaDataUI::isHidden(zone)) return;
         if (isKnob(zone)) {
             addVerticalKnob(label, zone, init, min, max, step);
             return;
@@ -1692,6 +1695,7 @@ public:
     
     virtual void addVerticalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        if (MetaDataUI::isHidden(zone)) return;
         openVerticalBox(label);
         QDial* w = new QDial(); //qsynthKnob();
         uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
@@ -1715,6 +1719,7 @@ public:
     
     virtual void addHorizontalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        if (MetaDataUI::isHidden(zone)) return;
         openHorizontalBox(label);
         QDial* w = new QDial(); //new qsynthKnob();
         uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
@@ -1737,6 +1742,7 @@ public:
     
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        if (MetaDataUI::isHidden(zone)) return;
         if (isKnob(zone)) {
             addVerticalKnob(label, zone, init, min, max, step);
             return;
@@ -1763,6 +1769,7 @@ public:
     
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        if (MetaDataUI::isHidden(zone)) return;
         if (isKnob(zone)) {
             addHorizontalKnob(label, zone, init, min, max, step);
             return;
@@ -1796,6 +1803,7 @@ public:
     virtual void addVerticalRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
                                          FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
+        if (MetaDataUI::isHidden(zone)) return;
         uiRadioButtons* w = new uiRadioButtons(this, zone, label, init, min, max, step, true, mdescr, 0);
         insert(label, w);
         checkForTooltip(zone, w);
@@ -1805,6 +1813,7 @@ public:
     virtual void addHorizontalRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
                                            FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
+        if (MetaDataUI::isHidden(zone)) return;
         uiRadioButtons* w = new uiRadioButtons(this, zone, label, init, min, max, step, false, mdescr, 0);
         insert(label, w);
         checkForTooltip(zone, w);
@@ -1814,6 +1823,7 @@ public:
     virtual void addMenu(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
                          FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
     {
+        if (MetaDataUI::isHidden(zone)) return;
         if (label && label[0]) openVerticalBox(label);
         uiMenu* w = new uiMenu(this, zone, label, init, min, max, step, mdescr, 0);
         insert(label, w);
@@ -1830,6 +1840,7 @@ public:
     
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
+        if (MetaDataUI::isHidden(zone)) return;
         openVerticalBox(label);
         if (isNumerical(zone)) {
             addNumDisplay(0, zone, min, min, max, (max-min)/pow(10, FLT_DIG));
@@ -1860,6 +1871,7 @@ public:
     
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
     {
+        if (MetaDataUI::isHidden(zone)) return;
         openVerticalBox(label);
         if (isNumerical(zone)) {
             addNumDisplay(0, zone, min, min, max, (max-min)/pow(10, FLT_DIG));

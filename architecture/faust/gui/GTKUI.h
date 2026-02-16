@@ -889,6 +889,7 @@ struct uiButton : public uiItem {
 
 void GTKUI::addButton(const char* label, FAUSTFLOAT* zone)
 {
+    if (MetaDataUI::isHidden(zone)) return;
     *zone             = 0.0;
     GtkWidget* button = gtk_button_new_with_label(label);
     addWidget(label, button);
@@ -924,6 +925,7 @@ struct uiToggleButton : public uiItem {
 
 void GTKUI::addToggleButton(const char* label, FAUSTFLOAT* zone)
 {
+    if (MetaDataUI::isHidden(zone)) return;
     *zone             = 0.0;
     GtkWidget* button = gtk_toggle_button_new_with_label(label);
     addWidget(label, button);
@@ -1002,6 +1004,7 @@ struct uiCheckButton : public uiItem {
 
 void GTKUI::addCheckButton(const char* label, FAUSTFLOAT* zone)
 {
+    if (MetaDataUI::isHidden(zone)) return;
     *zone             = 0.0;
     GtkWidget* button = gtk_check_button_new_with_label(label);
     addWidget(label, button);
@@ -1072,6 +1075,7 @@ struct uiValueDisplay : public uiItem {
 void GTKUI::addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max,
                     FAUSTFLOAT step)
 {
+    if (MetaDataUI::isHidden(zone)) return;
     *zone          = init;
     GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10 * step, 0);
 
@@ -1115,6 +1119,7 @@ void GTKUI::addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTF
 void GTKUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max,
                               FAUSTFLOAT step)
 {
+    if (MetaDataUI::isHidden(zone)) return;
     if (isKnob(zone)) {
         addKnob(label, zone, init, min, max, step);
         return;
@@ -1151,6 +1156,7 @@ void GTKUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT in
 void GTKUI::addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max,
                                 FAUSTFLOAT step)
 {
+    if (MetaDataUI::isHidden(zone)) return;
     if (isKnob(zone)) {
         addKnob(label, zone, init, min, max, step);
         return;
@@ -1187,6 +1193,7 @@ void GTKUI::addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT 
 void GTKUI::addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max,
                         FAUSTFLOAT step)
 {
+    if (MetaDataUI::isHidden(zone)) return;
     if (isKnob(zone)) {
         addKnob(label, zone, init, min, max, step);
         return;
@@ -1237,6 +1244,7 @@ struct uiBargraph : public uiItem {
 
 void GTKUI::addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
 {
+    if (MetaDataUI::isHidden(zone)) return;
     GtkWidget* pb = gtk_progress_bar_new();
     gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(pb), GTK_PROGRESS_BOTTOM_TO_TOP);
     gtk_widget_set_size_request(pb, 8, -1);
@@ -1256,6 +1264,7 @@ void GTKUI::addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT 
 
 void GTKUI::addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
 {
+    if (MetaDataUI::isHidden(zone)) return;
     GtkWidget* pb = gtk_progress_bar_new();
     gtk_progress_bar_set_orientation(GTK_PROGRESS_BAR(pb), GTK_PROGRESS_LEFT_TO_RIGHT);
     gtk_widget_set_size_request(pb, -1, 8);
