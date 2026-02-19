@@ -34,17 +34,205 @@
 
 #include "daisysp.h"
 
-#ifdef PATCH
-#include "daisy_patch.h"
-#elif defined POD
-#include "daisy_pod.h"
+#ifdef SEED 
+#include "daisy_seed.h"
+using namespace daisy::seed;
+static daisy::DaisySeed hw;
 #elif defined PATCHSM
 #include "daisy_patch_sm.h"
-#else
-#include "daisy_seed.h"
+static daisy::DaisyPatchSM hw;
 #endif
 
-daisy::DaisySeed* seedptr = nullptr;
+#ifdef MIDICTRL
+#include<unordered_map>
+#endif
+#include <functional>
+#include <array>
+
+inline static float normalize(float v, float min, float max)
+{
+    return (v - min) / (max - min);    
+}
+
+inline static float snap_to_step(float v, float step) 
+{ 
+    return std::round(v / step) * step; 
+}
+
+inline static float scale_from_norm(float v, float min, float max)
+{
+    return (max - min) * v  + min; 
+}
+
+#ifdef MIDICTRL
+
+struct midi_t
+{
+    enum type_t 
+    {
+        keyon, keyoff, key, cc
+    };
+    type_t type;
+    // Channel 0 means all 
+    uint8_t index, channel, value;
+
+    midi_t() = default;
+    midi_t(type_t t, uint8_t id, uint8_t chan)
+        : type(t)
+        , index(id)
+        , channel(chan)
+    {}
+};
+
+#endif
+
+struct control 
+{
+    enum scale_t {
+        lin, log, exp
+    };
+    control::scale_t scale; // To implement in update methods
+    const char *label; // Might be useless‘
+
+    control() {}
+
+    virtual void setup();
+    virtual void update();
+    virtual void set_value_ptr(float *zone);
+};
+
+#ifdef SEED
+    constexpr static const daisy::Pin DEFAULT_PIN = daisy::seed::A1;
+#elif defined PATCHSM 
+    constexpr static const daisy::Pin DEFAULT_PIN = daisy::patch_sm::A1;
+#endif
+
+struct adc : public control
+{
+    enum type_t {
+        slider, 
+        button, 
+        checkbox, 
+    };
+
+    adc::type_t type;
+    float init, min, max, step, previous_state;  // Init might be useless
+
+    daisy::Pin pin;
+    uint8_t channel; // index in used ADC list 
+    float *value_ptr;
+
+    
+    adc(adc::type_t t, float init_, float min_, float max_, float step_, daisy::Pin pin_ = DEFAULT_PIN)
+        : type(t)
+        , init(init_)
+        , min(min_)
+        , max(max_)
+        , step(step_)
+        , previous_state(init_)
+        , pin(pin_)
+    {}
+
+    /*
+        ADC control methods    
+    */
+
+    using adc_method = std::function<void(float, float *)>;
+    adc_method slider_method = [&](float value, float *fZone)
+    {
+        *fZone = snap_to_step(scale_from_norm(value, min, max), step);
+    };
+
+    /*
+        For Buttons and checkboxes 0.05f we need a threshold to eliminate potential DC or noise 
+    */
+    constexpr static float noise_threshold = 0.05f;
+    adc_method button_method = [&](float value, float *fZone)
+    {
+        *fZone = (value > noise_threshold) ? 1.0f : 0.0f; 
+    };
+    
+    adc_method checkbox_method = [&](float value, float *fZone)
+    {
+        if(value > noise_threshold && value > previous_state && (value - previous_state) > noise_threshold)
+        {
+            *fZone = 1.0f - (*fZone);
+        }
+        previous_state = value;
+    };
+
+    adc_method update_method;
+
+    void set_value_ptr(float *zone) override 
+    {
+        value_ptr = zone;
+    }
+
+    void setup() override 
+    {
+        switch(type)
+        {
+        case type_t::slider:
+            update_method = slider_method;
+            break;
+        case type_t::button:
+            update_method = button_method;
+            break;
+        case type_t::checkbox:
+            update_method = checkbox_method;
+            break;
+        default:
+            break;
+        }
+    }
+
+    void update() override
+    {
+        update_method(hw.adc.GetFloat(channel), value_ptr);
+    }
+};
+
+#ifdef MIDICTRL
+
+// Not really an ADC, but shared logic 
+struct midi_input : public adc
+{
+    midi_t *m;
+    midi_input(adc::type_t t, float init_, float min_, float max_, float step_, midi_t *midiptr)
+        : adc::adc(t, init_, min_, max_, step_)
+        , m(midiptr)
+    {}
+
+    void update() override 
+    {
+        update_method(float(m->value) / 128.0, value_ptr);
+    }
+};
+
+#endif
+
+struct dac : public control
+{
+    float min, max; 
+    const char *label;
+
+    daisy::DacHandle::Channel channel; // index in used ADC list 
+    float *value_ptr;
+
+    dac(daisy::DacHandle::Channel chn, float min_, float max_)
+        : min(min_)
+        , max(max_)
+        , channel(chn)
+    {}
+
+    void update() override
+    {
+        hw.dac.WriteValue(channel, uint16_t(normalize(*value_ptr, min, max) * 4095.0f));
+    }
+};
+
+// Do not remove following tag, as it is used by python to inline code
+/*<UI CONTROL TAG>*/
 
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
@@ -53,86 +241,62 @@ daisy::DaisySeed* seedptr = nullptr;
 
 #ifdef MIDICTRL
 #include "faust/midi/daisy-midi.h"
-#include "faust/gui/MidiUI.h"
 #endif
 
 using namespace daisysp;
-using namespace std;
+using namespace std;                    
 
 #ifdef USE_SDRAM
-    #include"faust2daisy_sdram.h"
+    // Do not remove following tag as it is used by python to inline code
+    /*<SDRAM TAG>*/
     #if FAUST_SDRAM_SIZE_BYTES == 0
         #undef USE_SDRAM
+    #else 
+        uint8_t DSY_SDRAM_BSS faust_sdram_mem[ FAUST_SDRAM_SIZE_BYTES ];
+        struct faustdaisy_dsp_memory_manager : public dsp_memory_manager
+        {
+            struct mem_info_t
+            {
+                const char *name;
+                MemType type;
+                size_t size;
+                size_t size_bytes; 
+                size_t reads;
+                size_t writes;
+                void *ptr = nullptr; // pointeur to location in memory
+            };
+
+            faustdaisy_dsp_memory_manager() {
+                std::fill(faust_sdram_mem, faust_sdram_mem + FAUST_SDRAM_SIZE_BYTES, 0);
+                offset = 0;
+            }
+
+            void begin(size_t count) {}
+            
+
+            void info(const char * name, MemType type, 
+                size_t size, size_t size_bytes, size_t reads, size_t writes) {}
+
+            void end() {}
+        
+            void *allocate(size_t size_bytes) 
+            {
+                void *ptr = faust_sdram_mem + offset; 
+                offset += size_bytes;
+                return ptr;
+            }
+
+            void destroy(void *ptr) { ptr = nullptr; }
+
+            size_t offset;
+        };
     #endif
 #endif
 
-#ifdef USE_SDRAM
+#include <string>
+#include <type_traits>
+#include <utility>
 
-
-uint8_t DSY_SDRAM_BSS faust_sdram_mem[ FAUST_SDRAM_SIZE_BYTES ];
-struct faustdaisy_dsp_memory_manager : public dsp_memory_manager
-{
-    struct mem_info_t
-    {
-        const char *name;
-        MemType type;
-        size_t size;
-        size_t size_bytes; 
-        size_t reads;
-        size_t writes;
-        void *ptr = nullptr; // pointeur to location in memory
-    };
-
-    void begin(size_t count) 
-    {
-        std::fill(faust_sdram_mem, faust_sdram_mem + FAUST_SDRAM_SIZE_BYTES, 0);
-        infos.resize(count);
-        info_cnt = 0;
-        offset = 0;
-    } 
-
-    void info(const char * name, MemType type, 
-        size_t size, size_t size_bytes, size_t reads, size_t writes) 
-    {
-        void * ptr = nullptr; 
-        bool is_sdram = (std::strcmp(name, "fZone") == 0) || (std::strcmp(name, "iZone") == 0); 
-        if(is_sdram)
-            ptr = static_cast<void *>(faust_sdram_mem + offset);
-        infos[info_cnt] = {name, type, size, size_bytes, reads, writes, ptr};
-        ++info_cnt;
-        if(is_sdram)
-            offset+= size_bytes;
-    }
-
-    void end() 
-    {
-        offset = 0;
-        info_cnt = 0;
-    }
-   
-    void *allocate(size_t size_bytes) 
-    {
-        if(infos[info_cnt].type == MemType::kObj_ptr)
-        {
-            ++info_cnt;
-            return std::malloc(size_bytes);
-        }
-        void *ptr = infos[info_cnt].ptr;
-        ++info_cnt;
-        return ptr;
-    }
-
-    void destroy(void *ptr) 
-    {
-        ptr = nullptr; 
-    }
-
-    std::vector<mem_info_t> infos;
-    size_t offset;
-    size_t info_cnt;
-};
-
-#endif  // SDRAM
 
 /******************************************************************************
  *******************************************************************************
@@ -155,124 +319,82 @@ struct faustdaisy_dsp_memory_manager : public dsp_memory_manager
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 #ifdef POLY
-#include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/daisy-poly.h"
 #endif
 
-#ifdef PATCH
-static daisy::DaisyPatch hw;
-#elif defined POD
-static daisy::DaisyPod hw; 
-#elif defined PATCHSM
-static daisy::patch_sm::DaisyPatchSM hw; 
-#else
-static daisy::DaisySeed hw;
+static DaisyControlUI control_UI;
+
+#ifdef POLY
+    static mydsp_poly<NVOICES> DSP;
+#else 
+    static mydsp DSP;
 #endif
 
-static DaisyControlUI* control_UI = nullptr;
-static dsp* DSP = nullptr;
-
-#ifdef MIDICTRL
-list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
+#ifdef USE_SDRAM 
+    static faustdaisy_dsp_memory_manager memory_manager; 
 #endif
 
 static void AudioCallback(daisy::AudioHandle::InputBuffer in, daisy::AudioHandle::OutputBuffer out, size_t count)
 {
+    #ifdef MIDICTRL 
+        //midi_handler.processMidi();
+    #endif 
     // Update controllers
-    control_UI->update();
+    control_UI.update_adcs();
     
     // DSP processing
-    DSP->compute(count, const_cast<float**>(in), out);
-}
+    DSP.compute(count, const_cast<float**>(in), out);
 
-void createDSP() 
-{
-
-#ifdef USE_SDRAM 
-    #ifdef POLY 
-        mydsp::classInit(MY_SAMPLE_RATE);
-        DSP = mydsp::create();
-        DSP = new mydsp_poly(DSP, NVOICES, true, true);
-    #else 
-        mydsp::classInit(MY_SAMPLE_RATE);
-        DSP = mydsp::create();
-    #endif
-#else 
-    #ifdef POLY 
-        DSP = new mydsp();
-        DSP = new mydsp_poly(DSP, NVOICES, true, true);
-    #else 
-        DSP = new mydsp();
-    #endif
-#endif
-}
-
-void initDSP()
-{
-#ifdef USE_SDRAM 
-    #ifdef POLY
-    #else 
-        DSP->instanceInit(MY_SAMPLE_RATE);
-    #endif
-#else 
-    DSP->init(MY_SAMPLE_RATE);
-#endif
+    control_UI.update_dacs();
 }
 
 int main(void)
 {
-    // (init)ialize seed hardware and daisysp modules
+
+    // Initialize Daisy 
     hw.Init();
+    hw.SetAudioBlockSize(MY_BUFFER_SIZE);
+
+#ifdef MIDICTRL
+    daisy_midi midi_handler;
+#endif
+
+    // For debug only
+    //hw.StartLog();
+    daisy::System::Delay(500);
 /*
     Memory Manager Creation 
 */
 #ifdef USE_SDRAM 
-    mydsp::fManager = new faustdaisy_dsp_memory_manager();
-    mydsp::memoryInfo();
+    mydsp::fManager = &memory_manager;
+    mydsp::classInit(MY_SAMPLE_RATE);
 #endif
+    
 
-/*
-    DSP Creation 
-*/
-    DSP = createDSP();
-
-    // set buffer-size
-    hw.SetAudioBlockSize(MY_BUFFER_SIZE);
 /*
     DSP Initialization
 */
-    initDSP();
+#ifdef USE_SDRAM 
+    DSP::classInit(MY_SAMPLE_RATE);
+    DSP.instanceInit(MY_SAMPLE_RATE);
+#else 
+    DSP.init(MY_SAMPLE_RATE);
+#endif
+
 /*
     Controllers setup 
 */
-#if (defined PATCH) || (defined POD)
-    control_UI = new DaisyControlUI(&hw.seed, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
-    DSP->buildUserInterface(control_UI);
-    hw.StartAdc();
-#elif defined (PATCHSM)
-    control_UI = new DaisyControlUI(&hw, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
-    DSP->buildUserInterface(control_UI);
-#else
-    //initialize UI for seed
-    control_UI = new DaisyControlUI(&hw, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
-    DSP->buildUserInterface(control_UI);
-    // start ADC
+    DSP.buildUserInterface(&control_UI);
+    control_UI.setup_controls();
+
     hw.adc.Start();
-#endif
-    // define and start callback
     hw.StartAudio(AudioCallback);
-#ifdef MIDICTRL
-    daisy_midi midi_handler;
-    MidiUI midi_interface(&midi_handler);
-    DSP->buildUserInterface(&midi_interface);
-    midi_handler.startMidi();
-#endif
-    
+
     // MIDI handling loop
     while(1) {
-    #ifdef MIDICTRL
-        midi_handler.processMidi();
-    #endif
+        #ifdef MIDICTRL
+            midi_handler.processMidi();
+        #endif
     }
 }
 
