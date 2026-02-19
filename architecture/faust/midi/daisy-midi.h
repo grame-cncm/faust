@@ -27,21 +27,35 @@ architecture section is not modified.
 
 #include <cstdlib>
 
-#include "daisysp.h"
-#include "faust/midi/midi.h"
-#include "faust/gui/GUI.h"
+/*
+    TODO : 
+        - Replace Faust MIDIUI with simpler implementation
+*/ 
 
-class daisy_midi : public midi_handler {
+class daisy_midi {
     
     private:
-    
-        daisy::MidiHandler<daisy::MidiUartTransport> fMidi;
-        daisy::MidiHandler<daisy::MidiUartTransport>::Config fConfig;
-
+        #ifdef MIDI_UART 
+            // For MIDI through Jacks for example (see Pod pinout)
+            daisy::MidiUartHandler midi_handler;
+            daisy::MidiUartHandler::Config handler_config; 
+        #else // MIDI USB Default 
+            // Three options (two is enough) : internal USB, or pin USB (external) or Host
+            daisy::MidiUsbHandler midi_handler;
+            daisy::MidiUsbHandler::Config handler_config; 
+        #endif 
     public:
-    
-        daisy_midi():midi_handler("daisy")
-        {}
+
+        daisy_midi()
+        {
+            #ifdef MIDI_UART 
+            #else // MIDI USB Default 
+
+
+                handler_config.transport_config.periph = daisy::MidiUsbTransport::Config::INTERNAL;
+                midi_handler.Init(handler_config);
+            #endif 
+        }
     
         virtual ~daisy_midi()
         {
@@ -50,32 +64,80 @@ class daisy_midi : public midi_handler {
 
         bool startMidi()
         {
-            fMidi.Init(fConfig);
             return true;
         }
 
         void stopMidi()
         {}
+
+        void handle_note(int chan, uint8_t note, uint8_t velocity)
+        {
+            //hw.PrintLine("Note : %d %d %d", chan, note, velocity);
+            if(midi_key.find(note) != midi_key.end()) {
+                if(midi_key[note].channel == 0 || midi_key[note].channel == uint8_t(chan) )
+                {
+                    midi_key[note].value = velocity;
+                }
+            }
+        }
+
+        void handle_note_off(int chan, uint8_t note, uint8_t velocity)
+        {
+            //hw.PrintLine("NoteOff : %d %d %d", chan, note, velocity);
+            if(midi_keyoff.find(note) != midi_keyoff.end()) {
+                if(midi_keyoff[note].channel == 0 || midi_keyoff[note].channel == uint8_t(chan) )
+                {
+                    midi_keyoff[note].value = velocity;
+                }
+            }
+            handle_note(chan, note, velocity);
+        }
+
+        void handle_note_on(int chan, uint8_t note, uint8_t velocity)
+        {
+            //hw.PrintLine("NoteOn : %d %d %d", chan, note, velocity);
+            if(midi_keyon.find(note) != midi_keyon.end()) {
+                if(midi_keyon[note].channel == 0 || midi_keyon[note].channel == uint8_t(chan) )
+                {
+                    midi_keyon[note].value = velocity;
+                }
+            }
+            handle_note(chan, note, velocity);
+        }
+
+        void handle_cc(int chan, uint8_t index, uint8_t value)
+        {
+            if(midi_cc.find(index) != midi_cc.end()) {
+                if(midi_cc[index].channel == 0 || midi_cc[index].channel == uint8_t(chan) )
+                {
+                    midi_cc[index].value = value;
+                }
+
+            }
+        }
     
         void processMidi()
         {
-            fMidi.Listen();
-            while (fMidi.HasEvents()) {
+            midi_handler.Listen();
+            while (midi_handler.HasEvents()) {
                 
                 double time = 0.;
-                daisy::MidiEvent m = fMidi.PopEvent();
+                daisy::MidiEvent m = midi_handler.PopEvent();
                 switch(m.type) {
                         
                     case daisy::MidiMessageType::NoteOff: {
-                        // TODO
-                        //NoteOff p = m.AsNoteOff();
-                        //handleKeyOff(time, p.channel, p.note, p.velocity);
+                        daisy::NoteOffEvent p = m.AsNoteOff();
+                        handle_note_off(p.channel + 1, p.note, p.velocity);
                         break;
                     }
                         
                     case daisy::MidiMessageType::NoteOn: {
                         daisy::NoteOnEvent p = m.AsNoteOn();
-                        handleKeyOn(time, p.channel, p.note, p.velocity);
+                        if(p.velocity == 0) {
+                            handle_note_off(p.channel + 1, p.note, p.velocity);
+                        } else {
+                            handle_note_on(p.channel + 1, p.note, p.velocity);
+                        }
                         break;
                     }
                         
@@ -87,7 +149,7 @@ class daisy_midi : public midi_handler {
                         
                     case daisy::MidiMessageType::ControlChange: {
                         daisy::ControlChangeEvent p = m.AsControlChange();
-                        handleCtrlChange(time, p.channel, p.control_number, p.value);
+                        handle_cc(p.channel + 1, p.control_number, p.value);
                         break;
                     }
                         
@@ -108,7 +170,7 @@ class daisy_midi : public midi_handler {
                 }
             }
             // Synchronize all GUI controllers
-            GUI::updateAllGuis();
+            //GUI::updateAllGuis();
         }
    
 };
