@@ -1,15 +1,19 @@
 # faust2daisy
 
 The **faust2daisy** tool compiles a Faust DSP program in a folder containing the C++ source code and a Makefile to compile it.  
+<<<<<<< HEAD
 This new version is a partial refactor of the previous tool, aiming to : 
 - improve memory footprint
 - provide compile time memory footprint
 - target Daisy boards (while still providing a way to target platforms)
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 
 `faust2daisy [-faust2daisy_options...] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
 Here are the available options:
 
+<<<<<<< HEAD
 - `-seed`: target Daisy seed chip
 - `-patchsm`: target Daisy patchsm chip
 - `-pod`: use Pod configuration file 
@@ -37,11 +41,33 @@ To use `faust2daisy`, you need the daisy toolchain installed.
 
 You will also need [libDaisy](https://github.com/electro-smith/libDaisy) to be built. Latest tool was designed to target version 8.1.0. 
 You should specify environment variables. For example, on macOS/Linux:
+=======
+- `-patch`: to compile for 4 ins/outs [Patch](https://electro-smith.com/products/patch)
+- `-pod`: to compile for 2 ins/outs [Pod](https://www.electro-smith.com/daisy/pod)
+- `-patchsm`: to compile for Patch Submodule and [patch.Init()](https://electro-smith.com/products/patch-init)
+- `-sdram`: to compile using SDRAM for long delay lines/tables etc.
+- `-midi`: to activate MIDI control
+- `-nvoices <num>`: to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI
+- `-sr <num>`: to specify sample rate (default 44100)
+- `-bs <num>`: to specify buffer size (default 16)
+- `-source`: to only create the source folder
+
+Flash mode options: 
+Flash mode defaults to FLASH (it will use native STM32 bootloader), for program whose binary can be up to 128KB.
+One of the following options can be used for larger programs (it will propose to install Daisy bootloader first on FLASH first) : 
+- `-sram`: to flash program on SRAM - for binary up to 512KB. It will enable `-sdram` option since SRAM won't be usable for RAM anymore. 
+- `-qspi`: to flash program on QSPIFLASH - for binary up do 8MB. 
+
+It is recommended to put your Faust DSP files inside a directory [DaisyExamples](https://github.com/electro-smith/DaisyExamples/)`/DaisySP/faust_examples`. Then execute `faust2daisy code.dsp` with your chosen options. To use `faust2daisy` in an arbitrary directory, you should specify environment variables. For example, on macOS/Linux:
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 ```bash
 export LIBDAISY_DIR=~/GitHub/DaisyExamples/libdaisy
 export DAISYSP_DIR=~/GitHub/DaisyExamples/DaisySP
 ```
+<<<<<<< HEAD
 
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 If on macOS, consider putting the above text in `~/.zshrc` so that it's always set in Terminal.
 
 The default optimization is for file size: `OPT=-Os`. You can optimize for speed by setting `OPT=-O2` or the even more aggressive setting `OPT=-O3`. This can be set in the Makefile in "faust/architecture/daisy".
@@ -58,8 +84,32 @@ The idea is to provide access to all of the Pins that can be useful in an audio 
 - Control DACs (12 bits)
 - GPIO (in either on/off mode, or as software PWM for output)
 
+<<<<<<< HEAD
 Example : 
 ``` faust
+=======
+Other metadata:
+
+- `[scale:lin|log|exp]` metadata is implemented for knobs.
+
+## Daisy Patch
+
+The **faust2daisy** tool can be used to program the [patch.Init()](https://electro-smith.com/products/patch-init).
+
+## Bootloader Configuration:
+
+Setup the board to utilize the manufacturer's bootloader, ensuring that the generated code fits within the board's memory. For detailed instructions on flashing the bootloader, please refer to: [Daisy Bootloader Getting Started Guide](https://electro-smith.github.io/libDaisy/md_doc_2md_2__a7___getting-_started-_daisy-_bootloader.html).
+
+## Memory Limits (SDRAM)
+
+If you're using a Daisy with significant amount of SDRAM such as the Pod or patch.Init, then you may want to use the `-sdram` flag when compiling code involving long delay lines/tables etc. Enabling this will execute a Python script inside `faust2daisy` that modifies the generated C++ code to put large float buffers (e.g., delay lines) in SDRAM. For this to work, you must have `python3` available on the command line.
+
+## DSP Examples
+
+Here is a simple example showing how oscillators can be controlled by physical items and MIDI messages:
+
+```
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 import("stdfaust.lib");
 
 freq = hslider("freq[adc::A0]", 50, 50, 1000, 0.1) : si.smoo;
@@ -130,6 +180,7 @@ QSPIFLASH is slower than Flash and SRAM.
 
 Specific architecture files have been developed:
 
+<<<<<<< HEAD
 - [faust/gui/DaisyControlUI.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/gui/DaisyControlUI.h): to be used with the DSP `buildUserInterface` method to implement `button`, `checkbox`, `hslider`, `vslider`, `hbargraph`, `vbargraph` controllers, and interpret the specific metadata previously described
 - [faust/midi/daisy-midi.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/daisy-midi.h): implements a [midi_handler](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/midi.h) subclass to decode incoming MIDI events.
 - [faust/midi/daisy-poly.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/dsp/daisy-poly.h): implements a lightweight polyphonic DSP encapsulation
@@ -166,3 +217,7 @@ This new development allows the following new features :
 - DMA for DACs / ADCs : Could provide extended audio inputs & outputs (16 bit for ADC, 12 bits for DAC) or higher time precision for controls 
 - Multiplexer for ADCs / DACs (to use with 4051's for example)
 - I2C communication (audio and/or control)
+=======
+- [faust/gui/DaisyControlUI.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/gui/DaisyControlUI.h): to be used with the DSP `buildUserInterface` method to implement `button`, `checkbox`, `hslider`, `vslider` controllers, and interpret the specific metadata previously described
+- [faust/midi/daisy-midi.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/daisy-midi.h): implements a [midi_handler](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/midi.h) subclass to decode incoming MIDI events.
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)

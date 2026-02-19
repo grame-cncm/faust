@@ -141,6 +141,13 @@ class DaisyControlUI : public GenericUI
         
     public:
         
+<<<<<<< HEAD
+=======
+        #if defined PATCHSM
+        #else
+        #endif
+    
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         // -- widget's layouts
         void openTabBox(const char* label) {  }
         void openHorizontalBox(const char* label) {  }
@@ -234,8 +241,13 @@ class DaisyControlUI : public GenericUI
 
         void addDACEntry(const char *label, FAUSTFLOAT *zone)
         {
+<<<<<<< HEAD
             output_list[dac_counter]->set_value_ptr( zone );
             dac_counter = (dac_counter + 1) % output_list.size();
+=======
+            dac_list[dac_counter].value_ptr = zone;
+            dac_counter++;
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         }
 
         // -- metadata declarations
@@ -246,6 +258,7 @@ class DaisyControlUI : public GenericUI
         void update_adcs()
         {
             for(auto & it : input_list) 
+<<<<<<< HEAD
             {
                 it->update();
             }
@@ -278,6 +291,38 @@ class DaisyControlUI : public GenericUI
                 hw.dac.Init(cfg); 
             }
 
+=======
+                it->update();
+        }
+
+        void update_dacs()
+        {
+            for(auto & it : dac_list)
+                it.update();
+        }
+
+        void setup_controls()
+        {
+            #ifdef SEED
+            for(size_t i = 0; i < adc_list.size(); ++i)
+            {
+                adc_config_list[i].InitSingle(adc_list[i].pin);
+                adc_list[i].channel = i;
+            }
+
+            hw.adc.Init(adc_config_list.data(), adc_config_list.size());
+
+            if(dacs_used)
+            {
+                daisy::DacHandle::Config cfg; 
+                cfg.chn = dac_chnls;
+                cfg.mode = daisy::DacHandle::Mode::POLLING;
+                cfg.bitdepth = daisy::DacHandle::BitDepth::BITS_12;
+                cfg.buff_state = daisy::DacHandle::BufferState::ENABLED; 
+                hw.dac.Init(cfg); 
+            }
+
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
             #elif defined PATCHSM
             #endif
         }

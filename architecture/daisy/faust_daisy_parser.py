@@ -10,24 +10,33 @@ ireg = re.compile("(iZone)")
 voicereg = re.compile("nvoices:([0-9]+)")
 optreg = re.compile("(options)")
 itemreg = re.compile(".?(slider|button|checkbox|bargraph|nentry)")
+<<<<<<< HEAD
 polyreg = re.compile("(freq|key|gain|vel|velocity|gate)")
 midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
 configparse_reg = re.compile("([a-zA-Z_]*):([AD][0-9]+)")
 dac_index_reg = re.compile("[AD]([0-9]+)")
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 
 project_dir = sys.argv[1]
 mem_threshold = int(sys.argv[2]) 
 nvoices = int(sys.argv[3])
 use_sdram = int(sys.argv[4])
 archfile = sys.argv[5]
+<<<<<<< HEAD
 config_file = sys.argv[6]
 
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 
 arch = ""
 with open(archfile, 'r') as file:
     arch = file.read()
 
+<<<<<<< HEAD
 # Used for inlining in architecture file  
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 control_tag = "/*<UI CONTROL TAG>*/"
 sdram_tag = "/*<SDRAM TAG>*/" 
 
@@ -42,6 +51,7 @@ json_str = f.read()
 dsp_layout = json.loads(json_str)
 meta = dsp_layout["meta"]
 
+<<<<<<< HEAD
 ## If configuration file is provided 
 config_layout = None
 config_ui = None
@@ -85,6 +95,8 @@ if(config_file.isdigit() == False):
     
     if("ui" in config_layout):
         config_ui = config_layout["ui"]
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 
 def iscontrol(item):
     return itemreg.match(item)
@@ -93,9 +105,13 @@ def get_control_type(item):
     res = itemreg.search(item).group(1)
     return res
 
+<<<<<<< HEAD
 def is_poly(label):
     return polyreg.match(label)
 
+=======
+midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 
 class adc:
     def __init__(self):
@@ -106,6 +122,7 @@ class adc:
         self.step = 0
         self.pin_index = 0
         self.label = ""
+<<<<<<< HEAD
         self.scale = "lin"
     
 class digi_in:
@@ -130,12 +147,18 @@ class digi_out:
         self.pwm = False
         self.pwm_mode = "inv"
 
+=======
+    
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 class dac:
     def __init__(self):
         self.type = ""
         self.label = ""
         self.channel = 0
+<<<<<<< HEAD
         self.scale = "lin"
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 
 class midi:
     def __init__(self):
@@ -147,13 +170,17 @@ class midi:
         self.max = 0
         self.step = 0
         self.init = 0
+<<<<<<< HEAD
         self.scale = "lin"
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 
 class input: 
     def __init__(self):
         self.type = "adc"
         self.index = 0
 
+<<<<<<< HEAD
 class output: 
     def __init__(self):
         self.type = "dac"
@@ -191,6 +218,8 @@ if(nvoices > 1):
 
 
 
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 class ui_scanner:
     def __init__(self):
         self.uicount = 0
@@ -198,14 +227,18 @@ class ui_scanner:
         self.meta_str = ""
         self.adc_count = 0
         self.midi_count = 0
+<<<<<<< HEAD
         self.poly_count = 0
         self.digi_in_count = 0
         self.digi_out_count = 0
         self.dac_count = 0
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         self.dac = [False, False]
         self.adcs = []
         self.dacs = []
         self.midis = []
+<<<<<<< HEAD
         self.polys = []
         self.digis_in = []
         self.digis_out = []
@@ -236,10 +269,18 @@ class ui_scanner:
 
     def check_meta(self, node, config_ui): 
         count = 0
+=======
+        self.inputs = []
+
+    def check_meta(self, node): 
+        count = 0
+        l_meta = ""
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         label = node["label"]
         # For ADC DAC : type, index, label
         # For MIDI : type, miditype, key, channel, label  
         reslist = [] 
+<<<<<<< HEAD
         self.scale = "lin"
         self.pwm = "off"
         if("meta" in node):
@@ -268,11 +309,29 @@ class ui_scanner:
                     elif(key == "gpio"):
                         reslist.append("gpio")
                         reslist.append(value)
+=======
+        if("meta" in node):
+            for meta in node["meta"]:
+                for key in meta.keys():
+                    if(key == "adc"):
+                        reslist.append("adc")
+                        reslist.append(int(meta[key]))
+                        l_meta += f"\tui_meta( ui_meta::type_t::adc, {int(meta[key])} ), \n"
+                    elif(key == "dac"):
+                        reslist.append("dac")
+                        reslist.append(int(meta[key]))
+                        self.dac[int(meta[key])] = True;
+                        l_meta += f"\tui_meta( ui_meta::type_t::dac, {int(meta[key])} ), \n"
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
                     elif(key == "midi"):
                         reslist.append("midi")
                         res = midiparse_reg.search(meta[key])
                         if(res == None):
+<<<<<<< HEAD
                             eprint("Midi failed to parse")
+=======
+                            eprint("No res, midi failed to parse")
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
                             exit()
                         miditype = ""
                         key = 0
@@ -287,6 +346,7 @@ class ui_scanner:
                             reslist.append(miditype)
                             reslist.append(key)
                             reslist.append(chan)
+<<<<<<< HEAD
                     # Missing scales, and custom
                     elif(key == "scale"):
                         self.scale = meta[key]
@@ -299,12 +359,32 @@ class ui_scanner:
         return None
             
     def recursive_lookup(self, node, config_ui):
+=======
+                        #l_meta += f"\tui_meta( midi_meta::midi_type_t::{miditype}, {key}, {chan} ), \n"
+                    # Missing scales, and custom
+                    elif(key == "scale"):
+                        l_meta += f"\tui_meta(ui_meta::scale_t::{meta[key]}), \n"
+                    else:
+                        val = f"\"{meta[key]}\""
+                        l_meta += f"\tui_meta(ui_meta::type_t::custom, \"{key}\", {val}), \n"
+                    count += 1
+            metaname = f"{label}_metadata"
+            reslist.append(metaname)
+            self.meta_str += f"static const std::array<ui_meta, {count}> {metaname} = {{\n";
+            self.meta_str += l_meta;
+            self.meta_str += "}; \n"
+            return reslist
+        return None
+            
+    def recursive_lookup(self, node):
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         if("items" in node):
             for elem in node["items"]:
                 ## Parse
                 if("type" in elem and iscontrol(elem["type"])):
                     #item_type = elem["type"] #get_control_tpe(elem["type"])
                     item_type = get_control_type(elem["type"])
+<<<<<<< HEAD
                     item_label = elem["label"]
                     metares = self.check_meta(elem, config_ui)
 
@@ -346,6 +426,9 @@ class ui_scanner:
                         continue
                     if(metares == None):
                         continue
+=======
+                    metares = self.check_meta(elem)
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
                     if(metares[0] == "adc"):
                         self.adcs.append(adc())
                         self.adcs[-1].pin_index = metares[1]
@@ -361,7 +444,10 @@ class ui_scanner:
                             self.adcs[-1].max = elem["max"]
                             self.adcs[-1].step = elem["step"]
                             self.adcs[-1].init = elem["init"]
+<<<<<<< HEAD
                             self.adcs[-1].scale = self.scale
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
                         self.inputs.append(input())
                         self.inputs[-1].type = "adc"
                         self.inputs[-1].index = self.adc_count
@@ -374,6 +460,7 @@ class ui_scanner:
                         if(item_type == "bargraph"):
                             self.dacs[-1].min = elem["min"]
                             self.dacs[-1].max = elem["max"]
+<<<<<<< HEAD
                             self.dacs[-1].scale = self.scale
                         self.outputs.append(output())
                         self.outputs[-1].type = "dac"
@@ -410,6 +497,8 @@ class ui_scanner:
                             self.outputs[-1].index = self.digi_out_count
                             self.digi_out_count += 1
 
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
                     elif(metares[0] == "midi"):
                         self.midis.append(midi())
                         self.midis[-1].type = metares[1]
@@ -433,6 +522,7 @@ class ui_scanner:
                             self.midis[-1].max = elem["max"]
                             self.midis[-1].step = elem["step"]
                             self.midis[-1].init = elem["init"]
+<<<<<<< HEAD
                             self.midis[-1].scale = self.scale
 
                 if("items" in elem):
@@ -594,6 +684,73 @@ class ui_scanner:
             polystr += "}; \n\n"
             polymidival += "}; \n\n"
         
+=======
+
+
+
+
+
+                    if(item_type == "button" or item_type == "checkbox"):
+                        label = f"\"{elem["label"]}\""
+                        metares = self.check_meta(elem)
+                        if(metares == None):
+                            metares = " span(nullptr, 0) "
+                        else:
+                            metares = f" span<ui_meta>({metares}.data(), {metares}.size()) "
+                        
+                        self.uistr += f"\tui_item{{ ui_item::type_t::{item_type}, 0, 0, 1, 1, 0.0f, {label}, {metares} }},\n"
+                        self.uicount += 1
+                    elif(item_type == "slider" or item_type == "nentry"):
+                        item_type = "slider"
+                        label = f"\"{elem["label"]}\""
+                        metares = self.check_meta(elem)
+                        if(metares == None):
+                            metares = " span(nullptr, 0) "
+                        else:
+                            metares = f" span<ui_meta>({metares}.data(), {metares}.size()) "
+                        i_init = elem["init"]
+                        i_min = elem["min"]
+                        i_max = elem["max"]
+                        i_step = elem["step"]
+                        self.uistr += f"\tui_item{{ ui_item::type_t::{item_type}, {i_init}, {i_min}, {i_max}, {i_step}, {i_init}, {label}, {metares} }},\n"
+                        self.uicount += 1
+                    elif(item_type == "bargraph"):
+                        label = f"\"{elem["label"]}\""
+                        metares = self.check_meta(elem)
+                        if(metares == None):
+                            metares = " span(nullptr, 0) "
+                        else:
+                            metares = f" span<ui_meta>({metares}.data(), {metares}.size()) "
+                        i_min = elem["min"]
+                        i_max = elem["max"]
+                        self.uistr += f"\tui_item{{ ui_item::type_t::{item_type}, {i_min}, {i_min}, {i_max}, 0.0f, {i_min}, {label}, {metares} }},\n"
+                        self.uicount += 1
+                if("items" in elem):
+                    self.recursive_lookup(elem) 
+    
+    def write(self, arch):
+        controlstr = "" 
+        midistr = f"static std::array<midi_input, {len(self.midis)}> midi_list = {{ \n"
+        ccs = "static std::unordered_map<uint8_t, midi_t> midi_cc = { \n"
+        keys = "static std::unordered_map<uint8_t, midi_t> midi_key = { \n"
+        keyons = "static std::unordered_map<uint8_t, midi_t> midi_keyon = { \n"
+        keyoffs = "static std::unordered_map<uint8_t, midi_t> midi_keyoff = { \n"
+        if(len(self.midis) > 0):
+            for elem in self.midis:
+                if(elem.type == "ctrl"):
+                    ccs += f"\t{{ {elem.key}, midi_t{{ midi_t::type_t::cc, {elem.key}, {elem.chan} }} }}, \n"
+                    midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, &(midi_cc[{elem.key}])), \n"
+                elif(elem.type == "key"):
+                    keys += f"\t{{ {elem.key}, midi_t{{ midi_t::type_t::{elem.type}, {elem.key}, {elem.chan} }} }}, \n"
+                    midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, &(midi_key[{elem.key}])), \n"
+                elif(elem.type == "keyon"):
+                    keyons += f"\t{{ {elem.key}, midi_t{{ midi_t::type_t::{elem.type}, {elem.key}, {elem.chan} }} }}, \n"
+                    midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, &(midi_keyon[{elem.key}])), \n"
+                elif(elem.type == "keyoff"):
+                    keyoffs += f"\t{{ {elem.key}, midi_t{{ midi_t::type_t::{elem.type}, {elem.key}, {elem.chan} }} }}, \n"
+                    midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, &(midi_keyoffs[{elem.key}])), \n"
+
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         ccs += "}; \n"
         keys += "}; \n"
         keyons += "}; \n"
@@ -605,6 +762,7 @@ class ui_scanner:
         controlstr += keyons
         controlstr += keyoffs
         controlstr += midistr
+<<<<<<< HEAD
 
         if(len(self.polys) > 0):
             controlstr += polystruct
@@ -672,11 +830,32 @@ class ui_scanner:
                     inputstr += f"\t&adc_list[{elem.index}], \n"
                 elif(elem.type == "digi_in"):
                     inputstr += f"\t&digi_input_list[{elem.index}], \n"
+=======
+        controlstr += "#endif \n\n"
+
+        controlstr += f"static std::array<adc, {len(self.adcs)}> adc_list = {{ \n"
+        if(len(self.adcs) > 0):
+            for elem in self.adcs:
+                controlstr += f"\tadc(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, A{elem.pin_index}), \n"
+        controlstr += "}; \n"
+        controlstr += f"std::array<daisy::AdcChannelConfig, {len(self.adcs)}> adc_config_list; \n"
+
+        input_len = len(self.adcs) + len(self.midis)
+        inputstr = f"static std::array<control *, {input_len}> input_list = {{ \n"
+        for elem in self.inputs:
+            if(elem.type == "midi"):
+                inputstr += f"\t&midi_list[{elem.index}], \n"
+            elif(elem.type == "adc"):
+                inputstr += f"\t&adc_list[{elem.index}], \n"
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         
         inputstr += "}; \n\n"
         controlstr += inputstr
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         last_chn = None
         if(len(self.dacs) > 0):
             controlstr += "constexpr bool dacs_used = true; \n"
@@ -684,20 +863,28 @@ class ui_scanner:
             controlstr += "constexpr bool dacs_used = false; \n"
             controlstr += "static const daisy::DacHandle::Channel dac_chnls = daisy::DacHandle::Channel::BOTH; // dummy \n"
 
+<<<<<<< HEAD
         if(nvoices < 2):
             controlstr += f"static std::array<dac, {len(self.dacs)}> dac_list = {{ \n"
         else:
             controlstr += f"static std::array<shared_dac<{nvoices}>, {len(self.dacs)}> dac_list = {{ \n"
+=======
+        controlstr += f"static std::array<dac, {len(self.dacs)}> dac_list = {{ \n"
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         if(len(self.dacs) > 0):
             for elem in self.dacs:
                 if(elem.channel == 1):
                     last_chn = "daisy::DacHandle::Channel::ONE"
                 elif(elem.channel == 2):
                     last_chn = "daisy::DacHandle::Channel::TWO"
+<<<<<<< HEAD
                 if(nvoices < 2):
                     controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
                 else:
                     controlstr += f"\tshared_dac<{nvoices}>({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
+=======
+                controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max} ), \n"
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 
         controlstr += "}; \n"
         if(len(self.dacs) > 0):
@@ -706,6 +893,7 @@ class ui_scanner:
             else:
                 controlstr += f"daisy::DacHandle::Channel dac_chnls = {last_chn}; \n"
             
+<<<<<<< HEAD
         
 
         if(nvoices < 2):
@@ -729,14 +917,36 @@ class ui_scanner:
         outputstr += "}; \n\n"
 
         controlstr += outputstr 
+=======
+
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         return arch.replace(control_tag, controlstr)
 
 if("ui" in dsp_layout):
     scan = ui_scanner()
+<<<<<<< HEAD
     scan.recursive_lookup(dsp_layout["ui"][0], config_ui)
     arch = scan.write(arch, dsp_layout, nvoices, config_midi)
     
 
+=======
+    scan.recursive_lookup(dsp_layout["ui"][0])
+    arch = scan.write(arch)
+    
+
+options = None
+for elem in meta:
+    if("options" in elem):
+        options = elem["options"]
+
+if(options != None and nvoices < 1):
+    nvdict = voicereg.search(options)
+    if(nvdict):
+        nv = int(nvdict.group(1))
+        if(nv > 1):
+            nvoices = nv
+
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 fmem = 0
 imem = 0 
 
@@ -753,7 +963,11 @@ if(use_sdram):
     if(nvoices > 1):
         total_bytes *= nvoices
     
+<<<<<<< HEAD
     sdram_content = "#define FAUST_SDRAM_SIZE_BYTES " + str(total_bytes) + "\n";
+=======
+    sdram_content = "#define FAUST_SDRAM_SIZE_BYTES" + str(total_bytes) + "\n";
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
     arch = arch.replace(sdram_tag, sdram_content);
 
 
@@ -761,8 +975,12 @@ arch_dest = project_dir + "/daisy_arch.cpp"
 with open(arch_dest, "w") as file:
     file.write(arch)
 
+<<<<<<< HEAD
 print(f"NVOICES={nvoices}")
 #print(nvoices) # To store output in bash NVOICES
+=======
+print(nvoices) # To store output in bash NVOICES
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 sys.exit(0)
 
 

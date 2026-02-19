@@ -27,6 +27,14 @@ architecture section is not modified.
 
 #include <cstdlib>
 
+<<<<<<< HEAD
+=======
+/*
+    TODO : 
+        - Replace Faust MIDIUI with simpler implementation
+*/ 
+
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 class daisy_midi {
     
     private:
@@ -44,6 +52,7 @@ class daisy_midi {
         daisy_midi()
         {
             #ifdef MIDI_UART 
+<<<<<<< HEAD
                 #ifdef RX_PIN 
                 handler_config.transport_config.rx = RX_PIN;
                 #endif
@@ -62,6 +71,14 @@ class daisy_midi {
                 for(auto & it : locked)
                     it = false;
             #endif
+=======
+            #else // MIDI USB Default 
+
+
+                handler_config.transport_config.periph = daisy::MidiUsbTransport::Config::INTERNAL;
+                midi_handler.Init(handler_config);
+            #endif 
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         }
     
         virtual ~daisy_midi()
@@ -77,6 +94,7 @@ class daisy_midi {
         void stopMidi()
         {}
 
+<<<<<<< HEAD
 #ifdef POLY
         uint8_t voice_counter = 0; 
         std::array<bool, NVOICES> locked;
@@ -211,12 +229,22 @@ class daisy_midi {
                         key->value = 0;
                     else 
                         key->value = velocity;
+=======
+        void handle_note(int chan, uint8_t note, uint8_t velocity)
+        {
+            //hw.PrintLine("Note : %d %d %d", chan, note, velocity);
+            if(midi_key.find(note) != midi_key.end()) {
+                if(midi_key[note].channel == 0 || midi_key[note].channel == uint8_t(chan) )
+                {
+                    midi_key[note].value = velocity;
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
                 }
             }
         }
 
         void handle_note_off(int chan, uint8_t note, uint8_t velocity)
         {
+<<<<<<< HEAD
             midi_t *keyoff = midi_find(midi_keyoff, note);
             if(keyoff) 
             {
@@ -226,10 +254,21 @@ class daisy_midi {
                 }
             }
             handle_note(chan, note, velocity, false);
+=======
+            //hw.PrintLine("NoteOff : %d %d %d", chan, note, velocity);
+            if(midi_keyoff.find(note) != midi_keyoff.end()) {
+                if(midi_keyoff[note].channel == 0 || midi_keyoff[note].channel == uint8_t(chan) )
+                {
+                    midi_keyoff[note].value = velocity;
+                }
+            }
+            handle_note(chan, note, velocity);
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         }
 
         void handle_note_on(int chan, uint8_t note, uint8_t velocity)
         {
+<<<<<<< HEAD
             midi_t *keyon = midi_find(midi_keyon, note);
             if(keyon) 
             {
@@ -240,16 +279,33 @@ class daisy_midi {
 
             }
             handle_note(chan, note, velocity, true);
+=======
+            //hw.PrintLine("NoteOn : %d %d %d", chan, note, velocity);
+            if(midi_keyon.find(note) != midi_keyon.end()) {
+                if(midi_keyon[note].channel == 0 || midi_keyon[note].channel == uint8_t(chan) )
+                {
+                    midi_keyon[note].value = velocity;
+                }
+            }
+            handle_note(chan, note, velocity);
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         }
 
         void handle_cc(int chan, uint8_t index, uint8_t value)
         {
+<<<<<<< HEAD
             midi_t *cc = midi_find(midi_cc, index);
             if(cc) 
             {
                 if(cc->channel == 0 || cc->channel == uint8_t(chan) )
                 {
                     cc->value = value;
+=======
+            if(midi_cc.find(index) != midi_cc.end()) {
+                if(midi_cc[index].channel == 0 || midi_cc[index].channel == uint8_t(chan) )
+                {
+                    midi_cc[index].value = value;
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
                 }
 
             }
@@ -257,7 +313,10 @@ class daisy_midi {
     
         void processMidi()
         {
+<<<<<<< HEAD
 
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
             midi_handler.Listen();
             while (midi_handler.HasEvents()) {
                 
@@ -267,18 +326,24 @@ class daisy_midi {
                         
                     case daisy::MidiMessageType::NoteOff: {
                         daisy::NoteOffEvent p = m.AsNoteOff();
+<<<<<<< HEAD
                         #ifdef POLY 
                         handle_poly_key(p.channel + 1, p.note, p.velocity, false);
                         #endif
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
                         handle_note_off(p.channel + 1, p.note, p.velocity);
                         break;
                     }
                         
                     case daisy::MidiMessageType::NoteOn: {
                         daisy::NoteOnEvent p = m.AsNoteOn();
+<<<<<<< HEAD
                         #ifdef POLY 
                         handle_poly_key(p.channel + 1, p.note, p.velocity, p.velocity > 0);
                         #endif
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
                         if(p.velocity == 0) {
                             handle_note_off(p.channel + 1, p.note, p.velocity);
                         } else {

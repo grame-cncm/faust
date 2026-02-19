@@ -43,24 +43,43 @@ static daisy::DaisySeed hw;
 static daisy::DaisyPatchSM hw;
 #endif
 
+<<<<<<< HEAD
 #include <functional>
 #include <array>
 
 static float normalize(float v, float min, float max)
+=======
+#ifdef MIDICTRL
+#include<unordered_map>
+#endif
+#include <functional>
+#include <array>
+
+inline static float normalize(float v, float min, float max)
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 {
     return (v - min) / (max - min);    
 }
 
+<<<<<<< HEAD
 static float snap_to_step(float v, float step) 
+=======
+inline static float snap_to_step(float v, float step) 
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 { 
     return std::round(v / step) * step; 
 }
 
+<<<<<<< HEAD
 static float scale_from_norm(float v, float min, float max)
+=======
+inline static float scale_from_norm(float v, float min, float max)
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 {
     return (max - min) * v  + min; 
 }
 
+<<<<<<< HEAD
 static float limit(float v, float min, float max)
 {
     if(v > max) return max;
@@ -122,6 +141,8 @@ struct scale
     }
 };
 
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 #ifdef MIDICTRL
 
 struct midi_t
@@ -142,6 +163,7 @@ struct midi_t
     {}
 };
 
+<<<<<<< HEAD
 template<size_t N>
 midi_t* midi_find(std::array<midi_t, N>& arr, uint8_t index)
 {
@@ -153,6 +175,8 @@ midi_t* midi_find(std::array<midi_t, N>& arr, uint8_t index)
     return nullptr;
 }
 
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 #endif
 
 struct control 
@@ -163,6 +187,7 @@ struct control
     control::scale_t scale; // To implement in update methods
     const char *label; // Might be useless‘
 
+<<<<<<< HEAD
     float *value_ptr;
 
     scale::scale_t scale_type = scale::scale_t::lin;
@@ -182,6 +207,13 @@ struct control
     virtual void setup() {}
     virtual void update() {}
     virtual void set_value_ptr(float *zone) {value_ptr = zone;}
+=======
+    control() {}
+
+    virtual void setup();
+    virtual void update();
+    virtual void set_value_ptr(float *zone);
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 };
 
 #ifdef SEED
@@ -190,9 +222,12 @@ struct control
     constexpr static const daisy::Pin DEFAULT_PIN = daisy::patch_sm::A1;
 #endif
 
+<<<<<<< HEAD
 /*
     A bit misnamed : it is used as ADC class & base class for other inputs (digital, MIDI)
 */
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 struct adc : public control
 {
     enum type_t {
@@ -206,6 +241,7 @@ struct adc : public control
 
     daisy::Pin pin;
     uint8_t channel; // index in used ADC list 
+<<<<<<< HEAD
 
     
     adc() = default;
@@ -213,6 +249,13 @@ struct adc : public control
         scale::scale_t scale_ = scale::scale_t::lin, daisy::Pin pin_ = DEFAULT_PIN)
         : control::control(scale_)
         , type(t)
+=======
+    float *value_ptr;
+
+    
+    adc(adc::type_t t, float init_, float min_, float max_, float step_, daisy::Pin pin_ = DEFAULT_PIN)
+        : type(t)
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         , init(init_)
         , min(min_)
         , max(max_)
@@ -221,10 +264,23 @@ struct adc : public control
         , pin(pin_)
     {}
 
+<<<<<<< HEAD
+=======
+    /*
+        ADC control methods    
+    */
+
+    using adc_method = std::function<void(float, float *)>;
+    adc_method slider_method = [&](float value, float *fZone)
+    {
+        *fZone = snap_to_step(scale_from_norm(value, min, max), step);
+    };
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 
     /*
         For Buttons and checkboxes 0.05f we need a threshold to eliminate potential DC or noise 
     */
+<<<<<<< HEAD
 
     static void slider_method(float value, float *fZone, 
         float min, float max, float step, float &prev, scale::scale_t scale_type)
@@ -247,11 +303,36 @@ struct adc : public control
             *fZone = 1.0f - (*fZone);
         }
         prev = value;
+=======
+    constexpr static float noise_threshold = 0.05f;
+    adc_method button_method = [&](float value, float *fZone)
+    {
+        *fZone = (value > noise_threshold) ? 1.0f : 0.0f; 
+    };
+    
+    adc_method checkbox_method = [&](float value, float *fZone)
+    {
+        if(value > noise_threshold && value > previous_state && (value - previous_state) > noise_threshold)
+        {
+            *fZone = 1.0f - (*fZone);
+        }
+        previous_state = value;
+    };
+
+    adc_method update_method;
+
+    void set_value_ptr(float *zone) override 
+    {
+        value_ptr = zone;
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
     }
 
     void setup() override 
     {
+<<<<<<< HEAD
         //float _min = min, _max = max, _step = step;
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         switch(type)
         {
         case type_t::slider:
@@ -270,6 +351,7 @@ struct adc : public control
 
     void update() override
     {
+<<<<<<< HEAD
         update_method(hw.adc.GetFloat(channel), value_ptr, 
             min, max, step, previous_state, scale_type);
     }
@@ -399,21 +481,33 @@ struct shared_digi_input : public digi_input
 };
 #endif
 
+=======
+        update_method(hw.adc.GetFloat(channel), value_ptr);
+    }
+};
+
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 #ifdef MIDICTRL
 
 // Not really an ADC, but shared logic 
 struct midi_input : public adc
 {
     midi_t *m;
+<<<<<<< HEAD
     midi_input() = default;
     midi_input(adc::type_t t, float init_, float min_, float max_, float step_, 
             scale::scale_t scale_ = scale::scale_t::lin, midi_t *midiptr = nullptr)
         : adc::adc(t, init_, min_, max_, step_, scale_)
+=======
+    midi_input(adc::type_t t, float init_, float min_, float max_, float step_, midi_t *midiptr)
+        : adc::adc(t, init_, min_, max_, step_)
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         , m(midiptr)
     {}
 
     void update() override 
     {
+<<<<<<< HEAD
         update_method(float(m->value) / 127.0f, value_ptr, 
             min, max, step, previous_state, scale_type);
     }
@@ -520,6 +614,12 @@ struct poly_control_base
 
 #endif
 
+=======
+        update_method(float(m->value) / 128.0, value_ptr);
+    }
+};
+
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 #endif
 
 struct dac : public control
@@ -528,17 +628,25 @@ struct dac : public control
     const char *label;
 
     daisy::DacHandle::Channel channel; // index in used ADC list 
+<<<<<<< HEAD
 
     dac(daisy::DacHandle::Channel chn, float min_, float max_, 
             scale::scale_t scale_ = scale::scale_t::lin)
         : control::control(scale_)
         , min(min_)
+=======
+    float *value_ptr;
+
+    dac(daisy::DacHandle::Channel chn, float min_, float max_)
+        : min(min_)
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         , max(max_)
         , channel(chn)
     {}
 
     void update() override
     {
+<<<<<<< HEAD
         hw.dac.WriteValue(channel, uint16_t(scale::process(scale_type, 
             normalize(*value_ptr, min, max)) * 4095.0f));
     }
@@ -660,6 +768,12 @@ struct shared_digi_output : public digi_output
 #endif
 
 
+=======
+        hw.dac.WriteValue(channel, uint16_t(normalize(*value_ptr, min, max) * 4095.0f));
+    }
+};
+
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 // Do not remove following tag, as it is used by python to inline code
 /*<UI CONTROL TAG>*/
 
@@ -672,7 +786,11 @@ struct shared_digi_output : public digi_output
 #include "faust/midi/daisy-midi.h"
 #endif
 
+<<<<<<< HEAD
 //using namespace daisysp;
+=======
+using namespace daisysp;
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 using namespace std;                    
 
 #ifdef USE_SDRAM
@@ -696,9 +814,12 @@ using namespace std;
             };
 
             faustdaisy_dsp_memory_manager() {
+<<<<<<< HEAD
             }
 
             void init() {
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
                 std::fill(faust_sdram_mem, faust_sdram_mem + FAUST_SDRAM_SIZE_BYTES, 0);
                 offset = 0;
             }
@@ -769,13 +890,23 @@ static DaisyControlUI control_UI;
 static void AudioCallback(daisy::AudioHandle::InputBuffer in, 
     daisy::AudioHandle::OutputBuffer out, size_t count)
 {
+<<<<<<< HEAD
     // Update control inputs
+=======
+    #ifdef MIDICTRL 
+        //midi_handler.processMidi();
+    #endif 
+    // Update controllers
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
     control_UI.update_adcs();
     
     // DSP processing
     DSP.compute(count, const_cast<float**>(in), out);
 
+<<<<<<< HEAD
     // Update control outputs 
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
     control_UI.update_dacs();
 }
 
@@ -785,25 +916,50 @@ int main(void)
     // Initialize Daisy 
     hw.Init();
     hw.SetAudioBlockSize(MY_BUFFER_SIZE);
+<<<<<<< HEAD
     hw.SetAudioSampleRate(DAISY_SAMPLE_RATE);
+
+#ifdef MIDICTRL
+    daisy_midi midi_handler;
+=======
 
 #ifdef MIDICTRL
     daisy_midi midi_handler;
 #endif
 
     // For debug only
+    //hw.StartLog();
+    daisy::System::Delay(500);
+/*
+    Memory Manager Creation 
+*/
+#ifdef USE_SDRAM 
+    mydsp::fManager = &memory_manager;
+    mydsp::classInit(MY_SAMPLE_RATE);
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+#endif
+    
+
+<<<<<<< HEAD
+    // For debug only
     //daisy::System::Delay(500);
     //hw.StartLog();
     daisy::System::Delay(500);
     
+=======
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 /*
     DSP Initialization
 */
 #ifdef USE_SDRAM 
+<<<<<<< HEAD
     memory_manager.init();
     mydsp::fManager = &memory_manager;
     DSP.memoryCreate();
     mydsp::classInit(MY_SAMPLE_RATE);
+=======
+    DSP::classInit(MY_SAMPLE_RATE);
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
     DSP.instanceInit(MY_SAMPLE_RATE);
 #else 
     DSP.init(MY_SAMPLE_RATE);
@@ -815,8 +971,12 @@ int main(void)
     DSP.buildUserInterface(&control_UI);
     control_UI.setup_controls();
 
+<<<<<<< HEAD
     if(adc_list.size() > 0)
         hw.adc.Start();
+=======
+    hw.adc.Start();
+>>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
     hw.StartAudio(AudioCallback);
 
     // MIDI handling loop
