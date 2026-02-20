@@ -2,7 +2,7 @@
 
 #####################################################################
 #                                                                   #
-#                    faust2daisy generator                          #
+#                    faust2daisysram generator                          #
 #                       (c) Grame, 2020                             #
 #                                                                   #
 #####################################################################
@@ -24,6 +24,7 @@ MIDI=false
 POLY=""
 PATCH=false
 POD=false
+SEED=false
 PATCHSM=false
 USE_SDRAM=false
 SR=44100
@@ -39,9 +40,10 @@ echoHelp ()
     option
     option -sram "flashing to sram (medium sized programs), requires daisy bootloader"
     option -qspi "flashing to qspi memory (biggest programs), requires daisy bootloader"
+    option -seed "Using Daisy seed"
+    option -patchsm "Using Daisy Patch submodule"
     option -patch "to compile for 4 ins/outs Patch (knob[1,2,3,4])"
     option -pod "to compile for 2 ins/outs Pod (knob[1,3])"
-    option -patchsm "to compile for the patch.Init() eurorack module"
     option -sdram "to compile using SDRAM for long delay lines/tables etc."
     option "-mem-thresh <num>" "Memory threshold in bytes above which data is stored on SDRAM, requires -sdram"
     options -midi
@@ -87,6 +89,8 @@ do
         PATCH=true
     elif [ $p = "-pod" ]; then
         POD=true
+    elif [ $p = "-seed" ]; then 
+        SEED=true
     elif [ $p = "-patchsm" ]; then
         PATCHSM=true
     # -sdram
@@ -120,6 +124,8 @@ done
 # Compile the *.dsp files
 ###########################
 
+echo "About to compile DSP"
+echo "$FILE"
 for p in $FILE; do
     CUR=$(pwd)
     f=$(basename "$p")
@@ -130,16 +136,25 @@ for p in $FILE; do
     rm -rf "$SRCDIR/$dspName"
     mkdir "$SRCDIR/$dspName"
 
+    GENERATED_ARCH="$SRCDIR/$dspName/daisy_arch.cpp"
+    
     MEM_THRESH_UNIT=$(($MEM_THRESH/4))
     # compile faust to c++
+    echo "Compile Faust to C++":
+
     cp -r "$FAUSTARCH/daisy/Makefile" "$SRCDIR/$dspName/"
     if [ $USE_SDRAM == true ]; then 
+        # Have to compile it twice to provide json to python, before inlining generated code 
         faust -i -a "$ARCHFILE" $OPTIONS "$f" -json -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
-        NVOICES=$(python3 "$FAUSTARCH/daisy/faust_daisy_mem.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1)
+        NVOICES=$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE)
+        faust -A "$SRCDIR/$dspName" -i -a "$GENERATED_ARCH" $OPTIONS "$f" -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     else 
-        faust -i  -a "$ARCHFILE" $OPTIONS "$f" -json -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
-        NVOICES=$(python3 "$FAUSTARCH/daisy/faust_daisy_mem.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0)
+        # Have to compile it twice to provide json to python, before inlining generated code 
+        faust -i  -a "$ARCHFILE" $OPTIONS "$f" -json  -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+        NVOICES=$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE)
+        faust -A "$SRCDIR/$dspName" -i  -a "$GENERATED_ARCH" $OPTIONS "$f" -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     fi
+
 
     # for PATCH support
     if [ $PATCH == true ]; then
@@ -149,15 +164,19 @@ for p in $FILE; do
     if [ $POD == true ]; then
         echo "#define POD" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
+    # for SEED SUPPORT
+    if [ $SEED == true ]; then
+        echo "#define SEED" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
     # for PODSM support
     if [ $PATCHSM == true ]; then
         echo "#define PATCHSM" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
 
     # for POLY
-    if [ "$NVOICES" > 0 ]; then
+    if [ "$NVOICES" -gt 0 ]; then
         MIDI=true
-        echo "Setting Nvoices $NVOICES"
+        echo "Polyphonic DSP : setting nvoices $NVOICES"
         echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
         echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
