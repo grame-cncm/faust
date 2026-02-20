@@ -253,6 +253,7 @@ struct adc : public control
     float *value_ptr;
 
     
+    adc() = default;
     adc(adc::type_t t, float init_, float min_, float max_, float step_, daisy::Pin pin_ = DEFAULT_PIN)
         : type(t)
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
@@ -494,12 +495,17 @@ struct midi_input : public adc
 {
     midi_t *m;
 <<<<<<< HEAD
+<<<<<<< HEAD
     midi_input() = default;
     midi_input(adc::type_t t, float init_, float min_, float max_, float step_, 
             scale::scale_t scale_ = scale::scale_t::lin, midi_t *midiptr = nullptr)
         : adc::adc(t, init_, min_, max_, step_, scale_)
 =======
     midi_input(adc::type_t t, float init_, float min_, float max_, float step_, midi_t *midiptr)
+=======
+    midi_input() = default;
+    midi_input(adc::type_t t, float init_, float min_, float max_, float step_, midi_t *midiptr = nullptr)
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         : adc::adc(t, init_, min_, max_, step_)
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         , m(midiptr)
@@ -815,11 +821,17 @@ using namespace std;
 
             faustdaisy_dsp_memory_manager() {
 <<<<<<< HEAD
+<<<<<<< HEAD
             }
 
             void init() {
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+            }
+
+            void init() {
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
                 std::fill(faust_sdram_mem, faust_sdram_mem + FAUST_SDRAM_SIZE_BYTES, 0);
                 offset = 0;
             }
@@ -891,11 +903,14 @@ static void AudioCallback(daisy::AudioHandle::InputBuffer in,
     daisy::AudioHandle::OutputBuffer out, size_t count)
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Update control inputs
 =======
     #ifdef MIDICTRL 
         //midi_handler.processMidi();
     #endif 
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
     // Update controllers
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
     control_UI.update_adcs();
@@ -930,6 +945,7 @@ int main(void)
     // For debug only
     //hw.StartLog();
     daisy::System::Delay(500);
+<<<<<<< HEAD
 /*
     Memory Manager Creation 
 */
@@ -948,18 +964,27 @@ int main(void)
     
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+    
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 /*
     DSP Initialization
 */
 #ifdef USE_SDRAM 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
     memory_manager.init();
     mydsp::fManager = &memory_manager;
     DSP.memoryCreate();
     mydsp::classInit(MY_SAMPLE_RATE);
+<<<<<<< HEAD
 =======
     DSP::classInit(MY_SAMPLE_RATE);
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
     DSP.instanceInit(MY_SAMPLE_RATE);
 #else 
     DSP.init(MY_SAMPLE_RATE);

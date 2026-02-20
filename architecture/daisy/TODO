@@ -42,11 +42,14 @@ Change logic : Polyphonic can be without MIDI.
 - Later :
     - DMA for DAC / ADC (extended audio inputs outputs) - either as audio signals or as an option (maybe an option for both)
     - multiplexer
-    - I2C for Audio ? 
+    - I2C for Audio ? : Patch etc 
     - PatchSM : Gate etc 
-
-
 
   - MIDI : 
     - Un contrôleur peut contrôler plusieurs sliders
     - Donc optim à faire dans python pour remarquer les duplicats de midi_t (cc et key) & quand même mapper les inputs si duplicat
+    - Poly
+    - UART tests
+
+  IMPORTANT : 
+    - SAMPLE RATE 

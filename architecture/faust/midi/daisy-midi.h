@@ -53,6 +53,7 @@ class daisy_midi {
         {
             #ifdef MIDI_UART 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 #ifdef RX_PIN 
                 handler_config.transport_config.rx = RX_PIN;
                 #endif
@@ -72,13 +73,22 @@ class daisy_midi {
                     it = false;
             #endif
 =======
+=======
+                handler_config.transport_config.periph = daisy::MidiUartTransport::Config::
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
             #else // MIDI USB Default 
-
-
                 handler_config.transport_config.periph = daisy::MidiUsbTransport::Config::INTERNAL;
                 midi_handler.Init(handler_config);
             #endif 
+<<<<<<< HEAD
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+            
+            #ifdef POLY
+                for(auto & it : locked)
+                    it = false;
+            #endif
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         }
     
         virtual ~daisy_midi()
@@ -95,23 +105,40 @@ class daisy_midi {
         {}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 #ifdef POLY
         uint8_t voice_counter = 0; 
         std::array<bool, NVOICES> locked;
         std::array<uint8_t, NVOICES> generations = {}; 
         std::array<uint8_t, NVOICES> current_notes = {}; 
+=======
+#ifdef POLY
+        uint8_t voice_counter = 0; 
+        std::array<bool, NVOICES> locked;
+        std::array<uint8_t, NVOICES> generations; 
+        std::array<uint8_t, NVOICES> current_notes; 
+
+        enum class poly_mode_t {blocking, stealing};
+        const poly_mode_t poly_mode = poly_mode_t::blocking;
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 
         int8_t free_voice()
         {
             for(int8_t i = 0; i < NVOICES; ++i)
+<<<<<<< HEAD
             {
                 if(!locked[i])
                     return i;
             }
+=======
+                if(!locked[i])
+                    return i;
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 
             return -1;
         }
 
+<<<<<<< HEAD
         uint8_t oldest_voice()
         {
             uint8_t oldest = 0;
@@ -147,10 +174,21 @@ class daisy_midi {
                 poly_inputs[idx].get_gate()->m->value = 127; 
             #endif
 
+=======
+        void set_voice(uint8_t idx, int chan, uint8_t note, uint8_t velocity)
+        {
+            if(poly_inputs[idx].find("freq") != poly_inputs[idx].end())
+                poly_inputs[idx]["freq"].m->value = note; 
+            if(poly_inputs[idx].find("gain") != poly_inputs[idx].end())
+                poly_inputs[idx]["gain"].m->value = velocity; 
+            if(poly_inputs[idx].find("gate") != poly_inputs[idx].end())
+                poly_inputs[idx]["gate"].m->value = 127; 
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
             current_notes[idx] = note;
             locked[idx] = true;
         }
 
+<<<<<<< HEAD
         void unset_voice(uint8_t idx, int chan)
         {
             #ifdef POLY_GATE
@@ -180,6 +218,17 @@ class daisy_midi {
                     generations[i] += 1;
             }
             generations[free] = 0;
+=======
+        void voice_stealing()
+        {
+            int8_t free = free_voice(); 
+            if(free >= 0)
+            {
+                
+            } else {
+                
+            }
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         }
 
 
@@ -197,6 +246,7 @@ class daisy_midi {
 
         void handle_poly_key(int chan, uint8_t note, uint8_t velocity, bool on = true)
         {
+<<<<<<< HEAD
             if(on && velocity > 0) 
             {
                 #ifdef VOICE_BLOCKING 
@@ -205,13 +255,35 @@ class daisy_midi {
                 #elif defined VOICE_STEALING 
                     voice_stealing(chan, note, velocity);
                 #endif
+=======
+            if(on) 
+            {
+                if(poly_mode == poly_mode_t::blocking) 
+                {
+                    voice_blocking(chan, note, velocity);
+                } 
+                else if(poly_mode == poly_mode_t::stealing) 
+                {
+
+                }
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 
             } else 
             {   
                 for(uint8_t i = 0; i < NVOICES; ++i)
                 {
                     if(locked[i] && current_notes[i] == note) {
+<<<<<<< HEAD
                         unset_voice(i, chan);
+=======
+                        if(poly_inputs[i].find("gate") != poly_inputs[i].end())
+                        {
+                            poly_inputs[i]["gate"].m->value = 0;
+                            locked[i] = false;
+                            current_notes[i] = 0;
+                            break;
+                        }
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
                     }
                 }
             }
@@ -219,6 +291,7 @@ class daisy_midi {
 #endif
 
         void handle_note(int chan, uint8_t note, uint8_t velocity, bool on = true)
+<<<<<<< HEAD
         {
             midi_t* key = midi_find(midi_key, note);
             if(key)
@@ -231,13 +304,22 @@ class daisy_midi {
                         key->value = velocity;
 =======
         void handle_note(int chan, uint8_t note, uint8_t velocity)
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         {
             //hw.PrintLine("Note : %d %d %d", chan, note, velocity);
             if(midi_key.find(note) != midi_key.end()) {
                 if(midi_key[note].channel == 0 || midi_key[note].channel == uint8_t(chan) )
                 {
+<<<<<<< HEAD
                     midi_key[note].value = velocity;
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+                    if(!on)
+                        midi_key[note].value = 0;
+                    else 
+                        midi_key[note].value = velocity;
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
                 }
             }
         }
@@ -262,8 +344,12 @@ class daisy_midi {
                     midi_keyoff[note].value = velocity;
                 }
             }
+<<<<<<< HEAD
             handle_note(chan, note, velocity);
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+            handle_note(chan, note, velocity, false);
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         }
 
         void handle_note_on(int chan, uint8_t note, uint8_t velocity)
@@ -287,8 +373,12 @@ class daisy_midi {
                     midi_keyon[note].value = velocity;
                 }
             }
+<<<<<<< HEAD
             handle_note(chan, note, velocity);
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+            handle_note(chan, note, velocity, true);
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         }
 
         void handle_cc(int chan, uint8_t index, uint8_t value)
@@ -307,7 +397,6 @@ class daisy_midi {
                     midi_cc[index].value = value;
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
                 }
-
             }
         }
     
@@ -327,11 +416,17 @@ class daisy_midi {
                     case daisy::MidiMessageType::NoteOff: {
                         daisy::NoteOffEvent p = m.AsNoteOff();
 <<<<<<< HEAD
+<<<<<<< HEAD
                         #ifdef POLY 
                         handle_poly_key(p.channel + 1, p.note, p.velocity, false);
                         #endif
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+                        #ifdef POLY 
+                        handle_poly_key(p.channel + 1, p.note, p.velocity, false);
+                        #endif
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
                         handle_note_off(p.channel + 1, p.note, p.velocity);
                         break;
                     }
@@ -339,11 +434,17 @@ class daisy_midi {
                     case daisy::MidiMessageType::NoteOn: {
                         daisy::NoteOnEvent p = m.AsNoteOn();
 <<<<<<< HEAD
+<<<<<<< HEAD
                         #ifdef POLY 
                         handle_poly_key(p.channel + 1, p.note, p.velocity, p.velocity > 0);
                         #endif
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+                        #ifdef POLY 
+                        handle_poly_key(p.channel + 1, p.note, p.velocity, true);
+                        #endif
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
                         if(p.velocity == 0) {
                             handle_note_off(p.channel + 1, p.note, p.velocity);
                         } else {

@@ -8,7 +8,11 @@ public:
     void init(size_t sample_rate)
     {
         for(uint8_t i = 0; i < N_OUTPUTS; ++i)
+<<<<<<< HEAD
             voices_outputs[i] = voices_data[i];
+=======
+            voices_outputs[i] = {voices_data[i]};
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         for(size_t i = 0; i < N; ++i)
             voices[i].init(sample_rate);
     }
@@ -44,6 +48,10 @@ public:
                 outputs[ch][i] += voices_outputs[ch][i];
         }
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
     void compute(int count, FAUSTFLOAT ** RESTRICT inputs, FAUSTFLOAT ** RESTRICT outputs)
     {
         voices[0].compute(count, inputs, voices_outputs);
@@ -53,7 +61,10 @@ public:
             voices[i].compute(count, inputs, voices_outputs);
             mix(count, outputs);
         }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
     }
 
     void buildUserInterface(UI * ui_interface)

@@ -123,9 +123,12 @@ do
     elif [ $p = "-pod" ]; then
         JSON_CONFIG="$FAUSTARCH/daisy/pod.json"
         POD=true
+<<<<<<< HEAD
         SEED=true
         #UART=true
         JSON_CONFIG="$FAUSTARCH/daisy/pod.json"
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
     elif [ $p = "-seed" ]; then 
         SEED=true
     elif [ $p = "-patchsm" ]; then
@@ -212,14 +215,23 @@ for p in $FILE; do
     if [ $USE_SDRAM == true ]; then 
         # Have to compile it twice to provide json to python, before inlining generated code 
         faust -i -a "$ARCHFILE" $OPTIONS "$f" -json -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+<<<<<<< HEAD
         eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE $JSON_CONFIG)"
+=======
+        NVOICES=$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE)
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         faust -A "$SRCDIR/$dspName" -i -a "$GENERATED_ARCH" $OPTIONS "$f" -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     else 
         # Have to compile it twice to provide json to python, before inlining generated code 
         faust -i  -a "$ARCHFILE" $OPTIONS "$f" -json  -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+<<<<<<< HEAD
         eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE $JSON_CONFIG)"
+=======
+        NVOICES=$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE)
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         faust -A "$SRCDIR/$dspName" -i  -a "$GENERATED_ARCH" $OPTIONS "$f" -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     fi
+
 
     # for PATCH support
     if [ $PATCH == true ]; then
@@ -242,7 +254,10 @@ for p in $FILE; do
     if [ "$NVOICES" -gt 0 ]; then
         MIDI=true
         echo "Polyphonic DSP : setting nvoices $NVOICES"
+<<<<<<< HEAD
         echo "#define $POLY_MODE" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
         echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi

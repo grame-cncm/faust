@@ -11,12 +11,17 @@ voicereg = re.compile("nvoices:([0-9]+)")
 optreg = re.compile("(options)")
 itemreg = re.compile(".?(slider|button|checkbox|bargraph|nentry)")
 <<<<<<< HEAD
+<<<<<<< HEAD
 polyreg = re.compile("(freq|key|gain|vel|velocity|gate)")
 midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
 configparse_reg = re.compile("([a-zA-Z_]*):([AD][0-9]+)")
 dac_index_reg = re.compile("[AD]([0-9]+)")
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+polyreg = re.compile("(freq|key|gain|vel|velocity|gate)")
+midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 
 project_dir = sys.argv[1]
 mem_threshold = int(sys.argv[2]) 
@@ -34,9 +39,13 @@ with open(archfile, 'r') as file:
     arch = file.read()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Used for inlining in architecture file  
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+# Used for inlining in architecture file  
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 control_tag = "/*<UI CONTROL TAG>*/"
 sdram_tag = "/*<SDRAM TAG>*/" 
 
@@ -51,6 +60,7 @@ json_str = f.read()
 dsp_layout = json.loads(json_str)
 meta = dsp_layout["meta"]
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 ## If configuration file is provided 
 config_layout = None
@@ -98,6 +108,8 @@ if(config_file.isdigit() == False):
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 def iscontrol(item):
     return itemreg.match(item)
 
@@ -106,12 +118,18 @@ def get_control_type(item):
     return res
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def is_poly(label):
     return polyreg.match(label)
 
 =======
 midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+def is_poly(label):
+    return polyreg.match(label)
+
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 
 class adc:
     def __init__(self):
@@ -181,11 +199,14 @@ class input:
         self.index = 0
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 class output: 
     def __init__(self):
         self.type = "dac"
         self.index = 0
 
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 class polyctrl:
     def __init__(self):
         self.label = ""
@@ -194,7 +215,10 @@ class polyctrl:
         self.min = 0
         self.max = 0
         self.step = 0
+<<<<<<< HEAD
         self.scale = "lin"
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 
 options = None
 for elem in meta:
@@ -218,8 +242,11 @@ if(nvoices > 1):
 
 
 
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 class ui_scanner:
     def __init__(self):
         self.uicount = 0
@@ -228,12 +255,16 @@ class ui_scanner:
         self.adc_count = 0
         self.midi_count = 0
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.poly_count = 0
         self.digi_in_count = 0
         self.digi_out_count = 0
         self.dac_count = 0
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+        self.poly_count = 0
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         self.dac = [False, False]
         self.adcs = []
         self.dacs = []
@@ -271,6 +302,7 @@ class ui_scanner:
         count = 0
 =======
         self.inputs = []
+        self.polys = []
 
     def check_meta(self, node): 
         count = 0
@@ -316,13 +348,15 @@ class ui_scanner:
                     if(key == "adc"):
                         reslist.append("adc")
                         reslist.append(int(meta[key]))
-                        l_meta += f"\tui_meta( ui_meta::type_t::adc, {int(meta[key])} ), \n"
                     elif(key == "dac"):
                         reslist.append("dac")
                         reslist.append(int(meta[key]))
                         self.dac[int(meta[key])] = True;
+<<<<<<< HEAD
                         l_meta += f"\tui_meta( ui_meta::type_t::dac, {int(meta[key])} ), \n"
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
                     elif(key == "midi"):
                         reslist.append("midi")
                         res = midiparse_reg.search(meta[key])
@@ -370,9 +404,6 @@ class ui_scanner:
                     count += 1
             metaname = f"{label}_metadata"
             reslist.append(metaname)
-            self.meta_str += f"static const std::array<ui_meta, {count}> {metaname} = {{\n";
-            self.meta_str += l_meta;
-            self.meta_str += "}; \n"
             return reslist
         return None
             
@@ -384,6 +415,7 @@ class ui_scanner:
                 if("type" in elem and iscontrol(elem["type"])):
                     #item_type = elem["type"] #get_control_tpe(elem["type"])
                     item_type = get_control_type(elem["type"])
+<<<<<<< HEAD
 <<<<<<< HEAD
                     item_label = elem["label"]
                     metares = self.check_meta(elem, config_ui)
@@ -429,6 +461,38 @@ class ui_scanner:
 =======
                     metares = self.check_meta(elem)
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+                    item_label = elem["label"]
+                    metares = self.check_meta(elem)
+
+                    if(poly == True and is_poly(item_label)):
+                        eprint("Poly :" )
+                        eprint(item_label)
+                        self.polys.append(polyctrl())
+                        if(item_label == "key"):
+                            item_label = "freq"
+                        elif(item_label == "vel" or item_label == "velocity"):
+                            item_label = "gain"
+                        self.polys[-1].label = item_label
+                        self.polys[-1].control_type = item_type
+                        self.inputs.append(input())
+                        self.inputs[-1].type = "poly"
+                        self.inputs[-1].index = self.poly_count 
+                        self.poly_count += 1
+                        if(item_type == "button" or item_type == "checkbox"):
+                            self.polys[-1].min = 0
+                            self.polys[-1].max = 1
+                            self.polys[-1].step = 1
+                            self.polys[-1].init = 0
+                        elif(item_type == "slider" or item_type == "nentry"):
+                            self.polys[-1].min = elem["min"]
+                            self.polys[-1].max = elem["max"]
+                            self.polys[-1].step = elem["step"]
+                            self.polys[-1].init = elem["init"]
+                        continue
+                    if(metares == None):
+                        continue
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
                     if(metares[0] == "adc"):
                         self.adcs.append(adc())
                         self.adcs[-1].pin_index = metares[1]
@@ -686,50 +750,21 @@ class ui_scanner:
         
 =======
 
-
-
-
-
-                    if(item_type == "button" or item_type == "checkbox"):
-                        label = f"\"{elem["label"]}\""
-                        metares = self.check_meta(elem)
-                        if(metares == None):
-                            metares = " span(nullptr, 0) "
-                        else:
-                            metares = f" span<ui_meta>({metares}.data(), {metares}.size()) "
-                        
-                        self.uistr += f"\tui_item{{ ui_item::type_t::{item_type}, 0, 0, 1, 1, 0.0f, {label}, {metares} }},\n"
-                        self.uicount += 1
-                    elif(item_type == "slider" or item_type == "nentry"):
-                        item_type = "slider"
-                        label = f"\"{elem["label"]}\""
-                        metares = self.check_meta(elem)
-                        if(metares == None):
-                            metares = " span(nullptr, 0) "
-                        else:
-                            metares = f" span<ui_meta>({metares}.data(), {metares}.size()) "
-                        i_init = elem["init"]
-                        i_min = elem["min"]
-                        i_max = elem["max"]
-                        i_step = elem["step"]
-                        self.uistr += f"\tui_item{{ ui_item::type_t::{item_type}, {i_init}, {i_min}, {i_max}, {i_step}, {i_init}, {label}, {metares} }},\n"
-                        self.uicount += 1
-                    elif(item_type == "bargraph"):
-                        label = f"\"{elem["label"]}\""
-                        metares = self.check_meta(elem)
-                        if(metares == None):
-                            metares = " span(nullptr, 0) "
-                        else:
-                            metares = f" span<ui_meta>({metares}.data(), {metares}.size()) "
-                        i_min = elem["min"]
-                        i_max = elem["max"]
-                        self.uistr += f"\tui_item{{ ui_item::type_t::{item_type}, {i_min}, {i_min}, {i_max}, 0.0f, {i_min}, {label}, {metares} }},\n"
-                        self.uicount += 1
                 if("items" in elem):
                     self.recursive_lookup(elem) 
     
-    def write(self, arch):
-        controlstr = "" 
+    def write(self, arch, layout):
+        n_inputs = layout["inputs"]
+        n_outputs = layout["outputs"]
+        eprint("IO IO IO")
+        eprint(n_inputs)
+        eprint(n_outputs)
+        controlstr = f"#define N_INPUTS {n_inputs} \n"
+        controlstr += f"#define N_OUTPUTS {n_outputs} \n\n"
+
+        polymidival = ""
+        polystr = ""
+        polylist = ""
         midistr = f"static std::array<midi_input, {len(self.midis)}> midi_list = {{ \n"
         ccs = "static std::unordered_map<uint8_t, midi_t> midi_cc = { \n"
         keys = "static std::unordered_map<uint8_t, midi_t> midi_key = { \n"
@@ -750,7 +785,31 @@ class ui_scanner:
                     keyoffs += f"\t{{ {elem.key}, midi_t{{ midi_t::type_t::{elem.type}, {elem.key}, {elem.chan} }} }}, \n"
                     midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, &(midi_keyoffs[{elem.key}])), \n"
 
+<<<<<<< HEAD
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+
+        if(len(self.polys) > 0):
+            polymidival = f"static std::array<midi_t, {nvoices * len(self.polys)}> poly_midi_values = {{ \n";
+            polystr += "using poly_control = std::unordered_map<std::string, midi_input>; \n"
+            polystr += f"static std::array< poly_control, {nvoices}> poly_inputs {{ \n"
+            polylist = f"static std::array<midi_input*, {nvoices * len(self.polys)}> poly_list {{ \n"
+            t = 0
+            for v in range(0, nvoices):
+                polystr += f"\tpoly_control{{ \n"
+                c = 0
+                for elem in self.polys: 
+                    polymidival += f"\tmidi_t{{midi_t::type_t::key, 0, 0}}, \n"
+                    polystr += f"\t\t{{ \"{elem.label}\",  midi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, &(poly_midi_values[{t}] ) )}}, \n"
+                    polylist += f"\t&(poly_inputs[{v}][\"{elem.label}\"]), \n"
+                    c += 1
+                    t += 1
+                polystr += "\t}, \n"
+            polystr += "}; \n\n"
+            polylist += "}; \n\n"
+            polymidival += "}; \n\n"
+        
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         ccs += "}; \n"
         keys += "}; \n"
         keyons += "}; \n"
@@ -762,6 +821,7 @@ class ui_scanner:
         controlstr += keyons
         controlstr += keyoffs
         controlstr += midistr
+<<<<<<< HEAD
 <<<<<<< HEAD
 
         if(len(self.polys) > 0):
@@ -831,6 +891,14 @@ class ui_scanner:
                 elif(elem.type == "digi_in"):
                     inputstr += f"\t&digi_input_list[{elem.index}], \n"
 =======
+=======
+
+        if(len(self.polys) > 0):
+            controlstr += polymidival
+            controlstr += polystr
+            controlstr += polylist 
+
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         controlstr += "#endif \n\n"
 
         controlstr += f"static std::array<adc, {len(self.adcs)}> adc_list = {{ \n"
@@ -838,16 +906,41 @@ class ui_scanner:
             for elem in self.adcs:
                 controlstr += f"\tadc(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, A{elem.pin_index}), \n"
         controlstr += "}; \n"
-        controlstr += f"std::array<daisy::AdcChannelConfig, {len(self.adcs)}> adc_config_list; \n"
+        controlstr += f"std::array<daisy::AdcChannelConfig, {len(self.adcs)}> adc_config_list; \n\n"
 
-        input_len = len(self.adcs) + len(self.midis)
+        input_len = (len(self.adcs) + len(self.midis)) 
+        if(poly):
+            input_len = (input_len + len(self.polys)) * nvoices
         inputstr = f"static std::array<control *, {input_len}> input_list = {{ \n"
+<<<<<<< HEAD
         for elem in self.inputs:
             if(elem.type == "midi"):
                 inputstr += f"\t&midi_list[{elem.index}], \n"
             elif(elem.type == "adc"):
                 inputstr += f"\t&adc_list[{elem.index}], \n"
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+        if(poly):
+            voice_counter = 0
+            for i in range(0, input_len):
+                n = i % len(self.inputs)
+                elem = self.inputs[n]
+                if(elem.type == "midi"):
+                    inputstr += f"\t&midi_list[{elem.index}], \n"
+                elif(elem.type == "adc"):
+                    inputstr += f"\t&adc_list[{elem.index}], \n"
+                elif(elem.type == "poly"):
+                    inputstr += f"\tpoly_list[{elem.index + (voice_counter * len(self.polys))}], \n"
+                if(n == (len(self.inputs ) - 1)):
+                    voice_counter += 1
+
+        else:
+            for elem in self.inputs:
+                if(elem.type == "midi"):
+                    inputstr += f"\t&midi_list[{elem.index}], \n"
+                elif(elem.type == "adc"):
+                    inputstr += f"\t&adc_list[{elem.index}], \n"
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         
         inputstr += "}; \n\n"
         controlstr += inputstr
@@ -931,9 +1024,10 @@ if("ui" in dsp_layout):
 
 =======
     scan.recursive_lookup(dsp_layout["ui"][0])
-    arch = scan.write(arch)
+    arch = scan.write(arch, dsp_layout)
     
 
+<<<<<<< HEAD
 options = None
 for elem in meta:
     if("options" in elem):
@@ -947,6 +1041,8 @@ if(options != None and nvoices < 1):
             nvoices = nv
 
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 fmem = 0
 imem = 0 
 
@@ -964,10 +1060,14 @@ if(use_sdram):
         total_bytes *= nvoices
     
 <<<<<<< HEAD
+<<<<<<< HEAD
     sdram_content = "#define FAUST_SDRAM_SIZE_BYTES " + str(total_bytes) + "\n";
 =======
     sdram_content = "#define FAUST_SDRAM_SIZE_BYTES" + str(total_bytes) + "\n";
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+    sdram_content = "#define FAUST_SDRAM_SIZE_BYTES " + str(total_bytes) + "\n";
+>>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
     arch = arch.replace(sdram_tag, sdram_content);
 
 
