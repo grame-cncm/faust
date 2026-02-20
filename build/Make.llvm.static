@@ -36,7 +36,13 @@ AR = ar
 ARFLAGS = rcs
 endif
 
-FOLDERS := $(INPUT:%.a=$(TMP)/%.dir) $(TMP)/libfaust.dir $(TMP)/libncurses.dir
+ifneq ($(strip $(LIBNCURSES_PATH)),)
+NCURSES_FOLDER := $(TMP)/libncurses.dir
+else
+NCURSES_FOLDER :=
+endif
+
+FOLDERS := $(INPUT:%.a=$(TMP)/%.dir) $(TMP)/libfaust.dir $(NCURSES_FOLDER)
 CONFIG  := ../tools/faust-config
 
 MAKEFILE := $(lastword $(MAKEFILE_LIST))
@@ -74,7 +80,9 @@ $(TMP)/libfaust.dir: lib/libfaust.a
 	@-[ -d $@ ] && rm -rf $@ 
 	mkdir -p $@ && cd $@ && ar -x ../../$<
 
-# Add a new rule for extracting libncurses.a
+ifneq ($(strip $(LIBNCURSES_PATH)),)
+# Add a new rule for extracting libncurses.a when available.
 $(TMP)/libncurses.dir: $(LIBNCURSES_PATH)
 	@-[ -d $@ ] && rm -rf $@
 	mkdir -p $@ && cd $@ && ar -x $(LIBNCURSES_PATH)
+endif
