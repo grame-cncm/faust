@@ -49,12 +49,16 @@ class daisy_midi {
         daisy_midi()
         {
             #ifdef MIDI_UART 
+                handler_config.transport_config.periph = daisy::MidiUartTransport::Config::
             #else // MIDI USB Default 
-
-
                 handler_config.transport_config.periph = daisy::MidiUsbTransport::Config::INTERNAL;
                 midi_handler.Init(handler_config);
             #endif 
+            
+            #ifdef POLY
+                for(auto & it : locked)
+                    it = false;
+            #endif
         }
     
         virtual ~daisy_midi()
@@ -70,13 +74,101 @@ class daisy_midi {
         void stopMidi()
         {}
 
-        void handle_note(int chan, uint8_t note, uint8_t velocity)
+#ifdef POLY
+        uint8_t voice_counter = 0; 
+        std::array<bool, NVOICES> locked;
+        std::array<uint8_t, NVOICES> generations; 
+        std::array<uint8_t, NVOICES> current_notes; 
+
+        enum class poly_mode_t {blocking, stealing};
+        const poly_mode_t poly_mode = poly_mode_t::blocking;
+
+        int8_t free_voice()
+        {
+            for(int8_t i = 0; i < NVOICES; ++i)
+                if(!locked[i])
+                    return i;
+
+            return -1;
+        }
+
+        void set_voice(uint8_t idx, int chan, uint8_t note, uint8_t velocity)
+        {
+            if(poly_inputs[idx].find("freq") != poly_inputs[idx].end())
+                poly_inputs[idx]["freq"].m->value = note; 
+            if(poly_inputs[idx].find("gain") != poly_inputs[idx].end())
+                poly_inputs[idx]["gain"].m->value = velocity; 
+            if(poly_inputs[idx].find("gate") != poly_inputs[idx].end())
+                poly_inputs[idx]["gate"].m->value = 127; 
+            current_notes[idx] = note;
+            locked[idx] = true;
+        }
+
+        void voice_stealing()
+        {
+            int8_t free = free_voice(); 
+            if(free >= 0)
+            {
+                
+            } else {
+                
+            }
+        }
+
+
+        void voice_blocking(int chan, uint8_t note, uint8_t velocity)
+        {
+            int8_t free = free_voice(); 
+            if(free >= 0)
+            {
+                set_voice(free, chan, note, velocity);
+            } else {
+                return;
+            }
+
+        }
+
+        void handle_poly_key(int chan, uint8_t note, uint8_t velocity, bool on = true)
+        {
+            if(on) 
+            {
+                if(poly_mode == poly_mode_t::blocking) 
+                {
+                    voice_blocking(chan, note, velocity);
+                } 
+                else if(poly_mode == poly_mode_t::stealing) 
+                {
+
+                }
+
+            } else 
+            {   
+                for(uint8_t i = 0; i < NVOICES; ++i)
+                {
+                    if(locked[i] && current_notes[i] == note) {
+                        if(poly_inputs[i].find("gate") != poly_inputs[i].end())
+                        {
+                            poly_inputs[i]["gate"].m->value = 0;
+                            locked[i] = false;
+                            current_notes[i] = 0;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+#endif
+
+        void handle_note(int chan, uint8_t note, uint8_t velocity, bool on = true)
         {
             //hw.PrintLine("Note : %d %d %d", chan, note, velocity);
             if(midi_key.find(note) != midi_key.end()) {
                 if(midi_key[note].channel == 0 || midi_key[note].channel == uint8_t(chan) )
                 {
-                    midi_key[note].value = velocity;
+                    if(!on)
+                        midi_key[note].value = 0;
+                    else 
+                        midi_key[note].value = velocity;
                 }
             }
         }
@@ -90,7 +182,7 @@ class daisy_midi {
                     midi_keyoff[note].value = velocity;
                 }
             }
-            handle_note(chan, note, velocity);
+            handle_note(chan, note, velocity, false);
         }
 
         void handle_note_on(int chan, uint8_t note, uint8_t velocity)
@@ -102,7 +194,7 @@ class daisy_midi {
                     midi_keyon[note].value = velocity;
                 }
             }
-            handle_note(chan, note, velocity);
+            handle_note(chan, note, velocity, true);
         }
 
         void handle_cc(int chan, uint8_t index, uint8_t value)
@@ -112,7 +204,6 @@ class daisy_midi {
                 {
                     midi_cc[index].value = value;
                 }
-
             }
         }
     
@@ -127,12 +218,18 @@ class daisy_midi {
                         
                     case daisy::MidiMessageType::NoteOff: {
                         daisy::NoteOffEvent p = m.AsNoteOff();
+                        #ifdef POLY 
+                        handle_poly_key(p.channel + 1, p.note, p.velocity, false);
+                        #endif
                         handle_note_off(p.channel + 1, p.note, p.velocity);
                         break;
                     }
                         
                     case daisy::MidiMessageType::NoteOn: {
                         daisy::NoteOnEvent p = m.AsNoteOn();
+                        #ifdef POLY 
+                        handle_poly_key(p.channel + 1, p.note, p.velocity, true);
+                        #endif
                         if(p.velocity == 0) {
                             handle_note_off(p.channel + 1, p.note, p.velocity);
                         } else {

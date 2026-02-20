@@ -123,6 +123,7 @@ struct adc : public control
     float *value_ptr;
 
     
+    adc() = default;
     adc(adc::type_t t, float init_, float min_, float max_, float step_, daisy::Pin pin_ = DEFAULT_PIN)
         : type(t)
         , init(init_)
@@ -198,7 +199,8 @@ struct adc : public control
 struct midi_input : public adc
 {
     midi_t *m;
-    midi_input(adc::type_t t, float init_, float min_, float max_, float step_, midi_t *midiptr)
+    midi_input() = default;
+    midi_input(adc::type_t t, float init_, float min_, float max_, float step_, midi_t *midiptr = nullptr)
         : adc::adc(t, init_, min_, max_, step_)
         , m(midiptr)
     {}
@@ -267,6 +269,9 @@ using namespace std;
             };
 
             faustdaisy_dsp_memory_manager() {
+            }
+
+            void init() {
                 std::fill(faust_sdram_mem, faust_sdram_mem + FAUST_SDRAM_SIZE_BYTES, 0);
                 offset = 0;
             }
@@ -336,9 +341,6 @@ static DaisyControlUI control_UI;
 
 static void AudioCallback(daisy::AudioHandle::InputBuffer in, daisy::AudioHandle::OutputBuffer out, size_t count)
 {
-    #ifdef MIDICTRL 
-        //midi_handler.processMidi();
-    #endif 
     // Update controllers
     control_UI.update_adcs();
     
@@ -362,20 +364,15 @@ int main(void)
     // For debug only
     //hw.StartLog();
     daisy::System::Delay(500);
-/*
-    Memory Manager Creation 
-*/
-#ifdef USE_SDRAM 
-    mydsp::fManager = &memory_manager;
-    mydsp::classInit(MY_SAMPLE_RATE);
-#endif
     
-
 /*
     DSP Initialization
 */
 #ifdef USE_SDRAM 
-    DSP::classInit(MY_SAMPLE_RATE);
+    memory_manager.init();
+    mydsp::fManager = &memory_manager;
+    DSP.memoryCreate();
+    mydsp::classInit(MY_SAMPLE_RATE);
     DSP.instanceInit(MY_SAMPLE_RATE);
 #else 
     DSP.init(MY_SAMPLE_RATE);
