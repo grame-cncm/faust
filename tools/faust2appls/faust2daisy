@@ -32,12 +32,18 @@ SRSTR="SAI_48KHZ"
 BS=16
 SOURCE=false
 APP_TYPE=BOOT_NONE
+<<<<<<< HEAD
 MEM_THRESH=1024
 JSON_CONFIG=0
 UART=false
 RX_PIN=0
 TX_PIN=0
 POLY_MODE="VOICE_STEALING"
+=======
+MEM_THRESH=64
+JSON_SPEC=0
+UART=false
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
 echoHelp ()
 {
@@ -51,12 +57,19 @@ echoHelp ()
     option -patch "to compile for 4 ins/outs Patch (knob[1,2,3,4])"
     option -pod "to compile for 2 ins/outs Pod (knob[1,3])"
     option -sdram "to compile using SDRAM for long delay lines/tables etc."
+<<<<<<< HEAD
     option "-config-file <filename>" "JSON file to specify mapping of a platform (like pod, patch) to the chip, like pod_spec.json in Faust architecture files for Daisy" 
     option "-mem-thresh <num>" "Memory threshold in bytes above which data is stored on SDRAM, requires -sdram"
     option -midi "Enables MIDI (USB, with default Daisy USB)"
     option -midi-uart "Enables MIDI through UART pins (for Pod for example)"
     option -rx-pin "RX Pin for MIDI UART"
     option -tx-pin "TX Pin for MIDI UART"
+=======
+    option "-spec-file <file>" "JSON file to map different metadata to pins, like pod_spec.json in Faust architecture files for Daisy" 
+    option "-mem-thresh <num>" "Memory threshold in bytes above which data is stored on SDRAM, requires -sdram"
+    options -midi "Enables MIDI (USB, with default Daisy USB)"
+    option -midi-uart "Enables MIDI through UART pins (for Pod for example)"
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     option "-nvoices <num>"
     option "-poly-mode <mode>" "Mode for polyphony, options : <stealing> or <blocking> (defaults to stealing)"
     option "-sr <num>"
@@ -107,28 +120,42 @@ do
     elif [ $p = "-midi-uart" ]; then 
         MIDI=true
         UART=true
+<<<<<<< HEAD
     elif [ $p = "-rx-pin" ]; then 
         shift 
         RX_PIN=$1
     elif [ $p = "-tx-pin" ]; then 
         shift 
         TX_PIN=$1
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     #patch
     elif [ $p = "-patch" ]; then
         JSON_CONFIG="$FAUSTARCH/daisy/patch.json"
         PATCH=true
         SEED=true
+<<<<<<< HEAD
         #UART=true
         JSON_CONFIG="$FAUSTARCH/daisy/patch.json"
+=======
+        UART=true
+        JSON_SPEC="$FAUSTARCH/daisy/patch_spec.json"
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     elif [ $p = "-pod" ]; then
         JSON_CONFIG="$FAUSTARCH/daisy/pod.json"
         POD=true
+<<<<<<< HEAD
 <<<<<<< HEAD
         SEED=true
         #UART=true
         JSON_CONFIG="$FAUSTARCH/daisy/pod.json"
 =======
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+        SEED=true
+        UART=true
+        JSON_SPEC="$FAUSTARCH/daisy/pod_spec.json"
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     elif [ $p = "-seed" ]; then 
         SEED=true
     elif [ $p = "-patchsm" ]; then
@@ -276,6 +303,10 @@ for p in $FILE; do
     fi
 
     # for Sample Rate
+<<<<<<< HEAD
+=======
+    #echo "constexpr daisy::SaiHandle::Config::SampleRate DAISY_SAMPLE_RATE = daisy::SaiHandle::Config::SampleRate::$SRSTR;" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     echo "#define DAISY_SAMPLE_RATE daisy::SaiHandle::Config::SampleRate::$SRSTR" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     echo "#define MY_SAMPLE_RATE $SR" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
 
@@ -287,6 +318,12 @@ for p in $FILE; do
 
 
     echo "#include \"per/sai.h\"" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+<<<<<<< HEAD
+=======
+    #if [ $USE_SDRAM == true ]; then
+        #python3 "$FAUSTARCH/daisy/faust_sdram_converter.py" "$SRCDIR/$dspName/ex_faust.cpp"
+    #fi
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
     # compile and install plugin or keep the source folder
     if [ $SOURCE == false ]; then

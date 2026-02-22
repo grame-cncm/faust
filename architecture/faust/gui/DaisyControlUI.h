@@ -142,12 +142,15 @@ class DaisyControlUI : public GenericUI
     public:
         
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         #if defined PATCHSM
         #else
         #endif
     
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         // -- widget's layouts
         void openTabBox(const char* label) {  }
         void openHorizontalBox(const char* label) {  }
@@ -242,10 +245,14 @@ class DaisyControlUI : public GenericUI
         void addDACEntry(const char *label, FAUSTFLOAT *zone)
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
             output_list[dac_counter]->set_value_ptr( zone );
             dac_counter = (dac_counter + 1) % output_list.size();
 =======
             dac_list[dac_counter].value_ptr = zone;
+=======
+            output_list[dac_counter]->set_value_ptr( zone );
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
             dac_counter++;
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
         }
@@ -297,8 +304,8 @@ class DaisyControlUI : public GenericUI
 
         void update_dacs()
         {
-            for(auto & it : dac_list)
-                it.update();
+            for(auto & it : output_list) 
+                it->update();
         }
 
         void setup_controls()

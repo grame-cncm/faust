@@ -54,12 +54,15 @@ class daisy_midi {
             #ifdef MIDI_UART 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 #ifdef RX_PIN 
                 handler_config.transport_config.rx = RX_PIN;
                 #endif
                 #ifdef TX_PIN 
                 handler_config.transport_config.tx = TX_PIN;
                 #endif
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                 midi_handler.Init(handler_config);
             #else // MIDI USB Default 
                 #ifdef MIDI_USB_PERIPH
@@ -115,29 +118,40 @@ class daisy_midi {
 #ifdef POLY
         uint8_t voice_counter = 0; 
         std::array<bool, NVOICES> locked;
-        std::array<uint8_t, NVOICES> generations; 
-        std::array<uint8_t, NVOICES> current_notes; 
+        std::array<uint8_t, NVOICES> generations = {}; 
+        std::array<uint8_t, NVOICES> current_notes = {}; 
 
         enum class poly_mode_t {blocking, stealing};
+<<<<<<< HEAD
         const poly_mode_t poly_mode = poly_mode_t::blocking;
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+        const poly_mode_t poly_mode = poly_mode_t::stealing;
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
         int8_t free_voice()
         {
             for(int8_t i = 0; i < NVOICES; ++i)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
             {
                 if(!locked[i])
                     return i;
             }
+<<<<<<< HEAD
 =======
                 if(!locked[i])
                     return i;
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
             return -1;
         }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         uint8_t oldest_voice()
         {
@@ -220,15 +234,58 @@ class daisy_midi {
             generations[free] = 0;
 =======
         void voice_stealing()
+=======
+        uint8_t oldest_voice()
+        {
+            uint8_t oldest = 0;
+            uint8_t index = 0;
+            for(uint8_t i = 0; i < NVOICES; ++i)
+            {
+                if(generations[i] > oldest)
+                {
+                    oldest = generations[i];
+                    index = i;
+                }
+            }
+            return index;
+        }
+
+        void set_voice(uint8_t idx, int chan, uint8_t note, uint8_t velocity)
+        {
+            //hw.PrintLine("set_voice: idx=%d note=%d vel=%d", idx, note, velocity);
+            if(poly_inputs[idx].has_key())
+                poly_inputs[idx].get_key()->m->value = note; 
+            if(poly_inputs[idx].has_vel())
+                poly_inputs[idx].get_vel()->m->value = velocity; 
+            if(poly_inputs[idx].has_gate())
+                poly_inputs[idx].get_gate()->m->value = 127; 
+            current_notes[idx] = note;
+            locked[idx] = true;
+            //hw.PrintLine("midi_val[%d]=%d", idx*3, poly_midi_values[idx*3].value);
+        }
+
+        void voice_stealing(int chan, uint8_t note, uint8_t velocity)
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         {
             int8_t free = free_voice(); 
-            if(free >= 0)
+            if(free < 0)
             {
-                
-            } else {
-                
+                free = oldest_voice(); 
             }
+<<<<<<< HEAD
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+
+            set_voice(free, chan, note, velocity);
+
+            // Everybody gets older 
+            for(uint8_t i = 0; i < NVOICES; ++i)
+            {
+                if(i != free)
+                    generations[i] += 1;
+            }
+            generations[free] = 0;
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         }
 
 
@@ -247,6 +304,7 @@ class daisy_midi {
         void handle_poly_key(int chan, uint8_t note, uint8_t velocity, bool on = true)
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
             if(on && velocity > 0) 
             {
                 #ifdef VOICE_BLOCKING 
@@ -257,6 +315,10 @@ class daisy_midi {
                 #endif
 =======
             if(on) 
+=======
+            //hw.PrintLine("poly_key: note=%d vel=%d on=%d", note, velocity, on);
+            if(on && velocity > 0) 
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
             {
                 if(poly_mode == poly_mode_t::blocking) 
                 {
@@ -264,7 +326,7 @@ class daisy_midi {
                 } 
                 else if(poly_mode == poly_mode_t::stealing) 
                 {
-
+                    voice_stealing(chan, note, velocity);
                 }
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 
@@ -274,16 +336,27 @@ class daisy_midi {
                 {
                     if(locked[i] && current_notes[i] == note) {
 <<<<<<< HEAD
+<<<<<<< HEAD
                         unset_voice(i, chan);
 =======
                         if(poly_inputs[i].find("gate") != poly_inputs[i].end())
+=======
+                        if(poly_inputs[i].has_gate())
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                         {
-                            poly_inputs[i]["gate"].m->value = 0;
-                            locked[i] = false;
-                            current_notes[i] = 0;
-                            break;
+                            poly_inputs[i].get_gate()->m->value = 0;
                         }
+<<<<<<< HEAD
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+                        if(poly_inputs[i].has_vel())
+                        {
+                            poly_inputs[i].get_vel()->m->value = 0;
+                        }
+                        locked[i] = false;
+                        current_notes[i] = 0;
+                        generations[i] = 0;
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                     }
                 }
             }
@@ -308,18 +381,24 @@ class daisy_midi {
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         {
             //hw.PrintLine("Note : %d %d %d", chan, note, velocity);
-            if(midi_key.find(note) != midi_key.end()) {
-                if(midi_key[note].channel == 0 || midi_key[note].channel == uint8_t(chan) )
+            midi_t* key = midi_find(midi_key, note);
+            if(key)
+            {
+                if(key->channel == 0 || key->channel == uint8_t(chan) )
                 {
 <<<<<<< HEAD
                     midi_key[note].value = velocity;
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
                     if(!on)
-                        midi_key[note].value = 0;
+                        key->value = 0;
                     else 
+<<<<<<< HEAD
                         midi_key[note].value = velocity;
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+                        key->value = velocity;
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                 }
             }
         }
@@ -338,10 +417,12 @@ class daisy_midi {
             handle_note(chan, note, velocity, false);
 =======
             //hw.PrintLine("NoteOff : %d %d %d", chan, note, velocity);
-            if(midi_keyoff.find(note) != midi_keyoff.end()) {
-                if(midi_keyoff[note].channel == 0 || midi_keyoff[note].channel == uint8_t(chan) )
+            midi_t *keyoff = midi_find(midi_keyoff, note);
+            if(keyoff) 
+            {
+                if(keyoff->channel == 0 || keyoff->channel == uint8_t(chan) )
                 {
-                    midi_keyoff[note].value = velocity;
+                    keyoff->value = velocity;
                 }
             }
 <<<<<<< HEAD
@@ -367,11 +448,14 @@ class daisy_midi {
             handle_note(chan, note, velocity, true);
 =======
             //hw.PrintLine("NoteOn : %d %d %d", chan, note, velocity);
-            if(midi_keyon.find(note) != midi_keyon.end()) {
-                if(midi_keyon[note].channel == 0 || midi_keyon[note].channel == uint8_t(chan) )
+            midi_t *keyon = midi_find(midi_keyon, note);
+            if(keyon) 
+            {
+                if(keyon->channel == 0 || keyon->channel == uint8_t(chan) )
                 {
-                    midi_keyon[note].value = velocity;
+                    keyon->value = velocity;
                 }
+
             }
 <<<<<<< HEAD
             handle_note(chan, note, velocity);
@@ -384,10 +468,14 @@ class daisy_midi {
         void handle_cc(int chan, uint8_t index, uint8_t value)
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
             midi_t *cc = midi_find(midi_cc, index);
             if(cc) 
             {
                 if(cc->channel == 0 || cc->channel == uint8_t(chan) )
+<<<<<<< HEAD
                 {
                     cc->value = value;
 =======
@@ -396,16 +484,25 @@ class daisy_midi {
                 {
                     midi_cc[index].value = value;
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+                {
+                    cc->value = value;
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                 }
+
             }
         }
     
         void processMidi()
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
             midi_handler.Listen();
             while (midi_handler.HasEvents()) {
                 
@@ -442,7 +539,7 @@ class daisy_midi {
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
                         #ifdef POLY 
-                        handle_poly_key(p.channel + 1, p.note, p.velocity, true);
+                        handle_poly_key(p.channel + 1, p.note, p.velocity, p.velocity > 0);
                         #endif
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
                         if(p.velocity == 0) {

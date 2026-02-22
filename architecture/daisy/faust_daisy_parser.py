@@ -141,6 +141,9 @@ class adc:
         self.pin_index = 0
         self.label = ""
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         self.scale = "lin"
     
 class digi_in:
@@ -162,21 +165,29 @@ class digi_out:
         self.step = 0
         self.pin_index = 0
         self.label = ""
+<<<<<<< HEAD
         self.pwm = False
         self.pwm_mode = "inv"
 
 =======
     
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 class dac:
     def __init__(self):
         self.type = ""
         self.label = ""
         self.channel = 0
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.scale = "lin"
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+        self.scale = "lin"
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
 class midi:
     def __init__(self):
@@ -189,9 +200,13 @@ class midi:
         self.step = 0
         self.init = 0
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.scale = "lin"
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+        self.scale = "lin"
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
 class input: 
     def __init__(self):
@@ -200,13 +215,19 @@ class input:
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 class output: 
     def __init__(self):
         self.type = "dac"
         self.index = 0
 
+<<<<<<< HEAD
 =======
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 class polyctrl:
     def __init__(self):
         self.label = ""
@@ -216,9 +237,13 @@ class polyctrl:
         self.max = 0
         self.step = 0
 <<<<<<< HEAD
+<<<<<<< HEAD
         self.scale = "lin"
 =======
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+        self.scale = "lin"
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
 options = None
 for elem in meta:
@@ -260,15 +285,19 @@ class ui_scanner:
         self.digi_in_count = 0
         self.digi_out_count = 0
         self.dac_count = 0
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
         self.poly_count = 0
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         self.dac = [False, False]
         self.adcs = []
         self.dacs = []
         self.midis = []
+<<<<<<< HEAD
 <<<<<<< HEAD
         self.polys = []
         self.digis_in = []
@@ -302,7 +331,14 @@ class ui_scanner:
         count = 0
 =======
         self.inputs = []
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         self.polys = []
+        self.digis_in = []
+        self.digis_out = []
+        self.inputs = []
+        self.outputs = []
+        self.scale = "lin"
 
     def check_meta(self, node): 
         count = 0
@@ -312,6 +348,7 @@ class ui_scanner:
         # For ADC DAC : type, index, label
         # For MIDI : type, miditype, key, channel, label  
         reslist = [] 
+<<<<<<< HEAD
 <<<<<<< HEAD
         self.scale = "lin"
         self.pwm = "off"
@@ -342,6 +379,9 @@ class ui_scanner:
                         reslist.append("gpio")
                         reslist.append(value)
 =======
+=======
+        self.scale = "lin"
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         if("meta" in node):
             for meta in node["meta"]:
                 for key in meta.keys():
@@ -353,10 +393,16 @@ class ui_scanner:
                         reslist.append(int(meta[key]))
                         self.dac[int(meta[key])] = True;
 <<<<<<< HEAD
+<<<<<<< HEAD
                         l_meta += f"\tui_meta( ui_meta::type_t::dac, {int(meta[key])} ), \n"
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+                    elif(key == "digi"):
+                        reslist.append("digi")
+                        reslist.append(int(meta[key]))
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                     elif(key == "midi"):
                         reslist.append("midi")
                         res = midiparse_reg.search(meta[key])
@@ -381,6 +427,7 @@ class ui_scanner:
                             reslist.append(key)
                             reslist.append(chan)
 <<<<<<< HEAD
+<<<<<<< HEAD
                     # Missing scales, and custom
                     elif(key == "scale"):
                         self.scale = meta[key]
@@ -395,10 +442,16 @@ class ui_scanner:
     def recursive_lookup(self, node, config_ui):
 =======
                         #l_meta += f"\tui_meta( midi_meta::midi_type_t::{miditype}, {key}, {chan} ), \n"
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                     # Missing scales, and custom
                     elif(key == "scale"):
+                        eprint(key)
+                        eprint(meta[key])
                         l_meta += f"\tui_meta(ui_meta::scale_t::{meta[key]}), \n"
+                        self.scale = meta[key]
                     else:
+                        # Custom meta : likely something from json config file : try to find it
                         val = f"\"{meta[key]}\""
                         l_meta += f"\tui_meta(ui_meta::type_t::custom, \"{key}\", {val}), \n"
                     count += 1
@@ -466,13 +519,11 @@ class ui_scanner:
                     metares = self.check_meta(elem)
 
                     if(poly == True and is_poly(item_label)):
-                        eprint("Poly :" )
-                        eprint(item_label)
                         self.polys.append(polyctrl())
-                        if(item_label == "key"):
-                            item_label = "freq"
-                        elif(item_label == "vel" or item_label == "velocity"):
-                            item_label = "gain"
+                        if(item_label == "freq"):
+                            item_label = "key"
+                        elif(item_label == "gain" or item_label == "velocity"):
+                            item_label = "vel"
                         self.polys[-1].label = item_label
                         self.polys[-1].control_type = item_type
                         self.inputs.append(input())
@@ -489,6 +540,7 @@ class ui_scanner:
                             self.polys[-1].max = elem["max"]
                             self.polys[-1].step = elem["step"]
                             self.polys[-1].init = elem["init"]
+                            self.polys[-1].scale = self.scale
                         continue
                     if(metares == None):
                         continue
@@ -509,9 +561,13 @@ class ui_scanner:
                             self.adcs[-1].step = elem["step"]
                             self.adcs[-1].init = elem["init"]
 <<<<<<< HEAD
+<<<<<<< HEAD
                             self.adcs[-1].scale = self.scale
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+                            self.adcs[-1].scale = self.scale
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                         self.inputs.append(input())
                         self.inputs[-1].type = "adc"
                         self.inputs[-1].index = self.adc_count
@@ -525,11 +581,18 @@ class ui_scanner:
                             self.dacs[-1].min = elem["min"]
                             self.dacs[-1].max = elem["max"]
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                             self.dacs[-1].scale = self.scale
                         self.outputs.append(output())
                         self.outputs[-1].type = "dac"
                         self.outputs[-1].index = self.dac_count
+<<<<<<< HEAD
                     elif(metares[0] == "gpio"):
+=======
+                    elif(metares[0] == "digi"):
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                         if(item_type == "button" or item_type == "checkbox"):
                             self.digis_in.append(digi_in())
                             self.digis_in[-1].type = item_type
@@ -544,7 +607,14 @@ class ui_scanner:
                             self.inputs[-1].type = "digi_in"
                             self.inputs[-1].index = self.digi_in_count
                             self.digi_in_count += 1
+<<<<<<< HEAD
                         elif(item_type == "bargraph"): # Then it is digital output 
+=======
+                        # Not qure slider or nentry is relevant
+                        #elif(item_type == "slider" or item_type == "nentry"):
+                        #    self.digis_in.append(digi_in())
+                        elif(item_type == "bargraph"):
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                             self.digis_out.append(digi_out())
 
                             self.digis_out[-1].type = item_type
@@ -554,15 +624,21 @@ class ui_scanner:
                             self.digis_out[-1].max = 1
                             self.digis_out[-1].step = 1
                             self.digis_out[-1].init = 0
+<<<<<<< HEAD
                             self.digis_out[-1].pwm = self.pwm
 
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                             self.outputs.append(output())
                             self.outputs[-1].type = "digi_out"
                             self.outputs[-1].index = self.digi_out_count
                             self.digi_out_count += 1
 
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                     elif(metares[0] == "midi"):
                         self.midis.append(midi())
                         self.midis[-1].type = metares[1]
@@ -586,6 +662,7 @@ class ui_scanner:
                             self.midis[-1].max = elem["max"]
                             self.midis[-1].step = elem["step"]
                             self.midis[-1].init = elem["init"]
+<<<<<<< HEAD
 <<<<<<< HEAD
                             self.midis[-1].scale = self.scale
 
@@ -749,64 +826,145 @@ class ui_scanner:
             polymidival += "}; \n\n"
         
 =======
+=======
+                            self.midis[-1].scale = self.scale
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
                 if("items" in elem):
                     self.recursive_lookup(elem) 
     
-    def write(self, arch, layout):
+
+    def exists_or_add(self, keys, index, cnt):
+        if(index in keys):
+            return keys[index]
+        keys[index] = cnt
+        return -1
+
+    def write(self, arch, layout, nvoices):
+        eprint(len(self.midis))
+        ccs_cnt = 0
+        keys_cnt = 0
+        keyons_cnt = 0
+        keyoffs_cnt = 0
+        for elem in self.midis:
+            if(elem.type == "ctrl"):
+                ccs_cnt += 1
+            if(elem.type == "key"):
+                keys_cnt += 1
+            if(elem.type == "keyon"):
+                keyons_cnt += 1
+            if(elem.type == "keyoff"):
+                keyoffs_cnt += 1
+
+
+        cc_used = {}
+        key_used = {}
+        keyon_used = {}
+        keyoff_used = {}
+
         n_inputs = layout["inputs"]
         n_outputs = layout["outputs"]
-        eprint("IO IO IO")
-        eprint(n_inputs)
-        eprint(n_outputs)
         controlstr = f"#define N_INPUTS {n_inputs} \n"
         controlstr += f"#define N_OUTPUTS {n_outputs} \n\n"
 
         polymidival = ""
         polystr = ""
-        polylist = ""
-        midistr = f"static std::array<midi_input, {len(self.midis)}> midi_list = {{ \n"
-        ccs = "static std::unordered_map<uint8_t, midi_t> midi_cc = { \n"
-        keys = "static std::unordered_map<uint8_t, midi_t> midi_key = { \n"
-        keyons = "static std::unordered_map<uint8_t, midi_t> midi_keyon = { \n"
-        keyoffs = "static std::unordered_map<uint8_t, midi_t> midi_keyoff = { \n"
+        if(nvoices == 0):
+            nvoices = 1
+        midistr = f"static std::array<midi_input, {len(self.midis) * nvoices}> midi_list = {{ \n"
+        ccs = f"static std::array<midi_t, {ccs_cnt}> midi_cc = {{ \n"
+        keys = f"static std::array<midi_t, {keys_cnt}> midi_key = {{ \n"
+        keyons = f"static std::array<midi_t, {keyons_cnt}> midi_keyon = {{ \n"
+        keyoffs = f"static std::array<midi_t, {keyoffs_cnt}> midi_keyoff = {{ \n"
         if(len(self.midis) > 0):
+            midicnt = 0
             for elem in self.midis:
+                res = -1
                 if(elem.type == "ctrl"):
-                    ccs += f"\t{{ {elem.key}, midi_t{{ midi_t::type_t::cc, {elem.key}, {elem.chan} }} }}, \n"
-                    midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, &(midi_cc[{elem.key}])), \n"
+                    res = self.exists_or_add(cc_used, elem.key, midicnt)
+                    if(res == -1):
+                        ccs += f"\tmidi_t{{ midi_t::type_t::cc, {elem.key}, {elem.chan}  }}, \n"
                 elif(elem.type == "key"):
-                    keys += f"\t{{ {elem.key}, midi_t{{ midi_t::type_t::{elem.type}, {elem.key}, {elem.chan} }} }}, \n"
-                    midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, &(midi_key[{elem.key}])), \n"
+                    res = self.exists_or_add(key_used, elem.key, midicnt)
+                    if(res == -1):
+                        keys += f"\tmidi_t{{ midi_t::type_t::{elem.type}, {elem.key}, {elem.chan}  }}, \n"
                 elif(elem.type == "keyon"):
-                    keyons += f"\t{{ {elem.key}, midi_t{{ midi_t::type_t::{elem.type}, {elem.key}, {elem.chan} }} }}, \n"
-                    midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, &(midi_keyon[{elem.key}])), \n"
+                    res = self.exists_or_add(keyon_used, elem.key, midicnt)
+                    if(res == -1):
+                        keyons += f"\tmidi_t{{ midi_t::type_t::{elem.type}, {elem.key}, {elem.chan}  }}, \n"
                 elif(elem.type == "keyoff"):
-                    keyoffs += f"\t{{ {elem.key}, midi_t{{ midi_t::type_t::{elem.type}, {elem.key}, {elem.chan} }} }}, \n"
-                    midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, &(midi_keyoffs[{elem.key}])), \n"
+                    res = self.exists_or_add(keyoff_used, elem.key, midicnt)
+                    if(res == -1):
+                        keyoffs += f"\tmidi_t{{ midi_t::type_t::{elem.type}, {elem.key}, {elem.chan}  }}, \n"
+                for i in range(0, nvoices):
+                    if(elem.type == "ctrl"):
+                        ref_idx = self.exists_or_add(cc_used, elem.key, midicnt)
+                        midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, &(midi_cc[{ref_idx}])), \n"
+                    elif(elem.type == "key"):
+                        ref_idx = self.exists_or_add(key_used, elem.key, midicnt)
+                        midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, &(midi_key[{ref_idx}])), \n"
+                    elif(elem.type == "keyon"):
+                        ref_idx = self.exists_or_add(keyon_used, elem.key, midicnt)
+                        midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, &(midi_keyon[{ref_idx}])), \n"
+                    elif(elem.type == "keyoff"):
+                        ref_idx = self.exists_or_add(keyoff_used, elem.key, midicnt)
+                        midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, &(midi_keyoffs[{ref_idx}])), \n"
+                if(res == -1):
+                    midicnt += 1
 
 <<<<<<< HEAD
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
 
+        polystruct = ""
         if(len(self.polys) > 0):
+
+            polyconstr = "\tpoly_control("
+            polyinit = ""
+            polystruct = "struct poly_control : public poly_control_base {\n"
+            polymethods = ""
+            first = True
+            for i, elem in enumerate(self.polys): 
+                polyconstr += f"midi_input {elem.label}_ "
+                if(i < (len(self.polys) - 1) ):
+                    polyconstr += ", "
+                if(first):
+                    polyinit += f"\t\t: {elem.label}({elem.label}_)\n"
+                else:
+                    polyinit += f"\t\t, {elem.label}({elem.label}_)\n"
+
+                first = False
+                polystruct += f"\tmidi_input {elem.label}; \n"
+                polymethods += f"\tbool has_{elem.label}() override {{return true;}} \n"
+                polymethods += f"\tmidi_input* get_{elem.label}() override {{return &{elem.label};}} \n"
+
+            polyconstr += ") \n"
+            polyconstr += polyinit
+            polyconstr += "\t{} \n"
+            polystruct += polyconstr
+            polystruct += polymethods
+            polystruct += "}; \n\n"
+
             polymidival = f"static std::array<midi_t, {nvoices * len(self.polys)}> poly_midi_values = {{ \n";
-            polystr += "using poly_control = std::unordered_map<std::string, midi_input>; \n"
             polystr += f"static std::array< poly_control, {nvoices}> poly_inputs {{ \n"
-            polylist = f"static std::array<midi_input*, {nvoices * len(self.polys)}> poly_list {{ \n"
             t = 0
             for v in range(0, nvoices):
-                polystr += f"\tpoly_control{{ \n"
+                polystr += f"\tpoly_control( \n"
                 c = 0
-                for elem in self.polys: 
+                last = False
+                for i, elem in enumerate(self.polys): 
+                    last = i == (len(self.polys) - 1)
+
                     polymidival += f"\tmidi_t{{midi_t::type_t::key, 0, 0}}, \n"
-                    polystr += f"\t\t{{ \"{elem.label}\",  midi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, &(poly_midi_values[{t}] ) )}}, \n"
-                    polylist += f"\t&(poly_inputs[{v}][\"{elem.label}\"]), \n"
+                    polystr += f"\t\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, &(poly_midi_values[{t}] ) ) "
+                    if(not last):
+                        polystr += ", "
+                    polystr += "\n"
+
                     c += 1
                     t += 1
-                polystr += "\t}, \n"
+                polystr += "\t), \n"
             polystr += "}; \n\n"
-            polylist += "}; \n\n"
             polymidival += "}; \n\n"
         
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
@@ -894,21 +1052,33 @@ class ui_scanner:
 =======
 
         if(len(self.polys) > 0):
+            controlstr += polystruct
             controlstr += polymidival
             controlstr += polystr
-            controlstr += polylist 
 
+<<<<<<< HEAD
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         controlstr += "#endif \n\n"
+=======
+        controlstr += "#endif // MIDICTRL \n\n" 
+
+
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
         controlstr += f"static std::array<adc, {len(self.adcs)}> adc_list = {{ \n"
         if(len(self.adcs) > 0):
             for elem in self.adcs:
-                controlstr += f"\tadc(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, A{elem.pin_index}), \n"
+                controlstr += f"\tadc(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, A{elem.pin_index}), \n"
         controlstr += "}; \n"
         controlstr += f"std::array<daisy::AdcChannelConfig, {len(self.adcs)}> adc_config_list; \n\n"
 
-        input_len = (len(self.adcs) + len(self.midis)) 
+        controlstr += f"static std::array<digi_input, {len(self.digis_in)}> digi_input_list {{\n"
+        if(len(self.digis_in) > 0):
+            for elem in self.digis_in:
+                controlstr += f"\tdigi_input(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, D{elem.pin_index}), \n"
+        controlstr += "}; \n\n"
+
+        input_len = (len(self.adcs) + len(self.midis) + len(self.digis_in)) 
         if(poly):
             input_len = (input_len + len(self.polys)) * nvoices
         inputstr = f"static std::array<control *, {input_len}> input_list = {{ \n"
@@ -922,33 +1092,47 @@ class ui_scanner:
 =======
         if(poly):
             voice_counter = 0
+            poly_index = 0
             for i in range(0, input_len):
                 n = i % len(self.inputs)
                 elem = self.inputs[n]
                 if(elem.type == "midi"):
                     inputstr += f"\t&midi_list[{elem.index}], \n"
+                    elem.index += 1
                 elif(elem.type == "adc"):
                     inputstr += f"\t&adc_list[{elem.index}], \n"
+                elif(elem.type == "digi_in"):
+                    inputstr += f"\t&digi_input_list[{elem.index}], \n"
                 elif(elem.type == "poly"):
-                    inputstr += f"\tpoly_list[{elem.index + (voice_counter * len(self.polys))}], \n"
+                    inputstr += f"\tpoly_inputs[{voice_counter}].get_{self.polys[poly_index].label}(), \n"
+                    poly_index = (poly_index + 1) % len(self.polys)
+                    #inputstr += f"\tpoly_list[{elem.index + (voice_counter * len(self.polys))}], \n"
                 if(n == (len(self.inputs ) - 1)):
                     voice_counter += 1
-
         else:
             for elem in self.inputs:
                 if(elem.type == "midi"):
                     inputstr += f"\t&midi_list[{elem.index}], \n"
                 elif(elem.type == "adc"):
                     inputstr += f"\t&adc_list[{elem.index}], \n"
+<<<<<<< HEAD
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+                elif(elem.type == "digi_in"):
+                    inputstr += f"\t&digi_input_list[{elem.index}], \n"
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         
         inputstr += "}; \n\n"
         controlstr += inputstr
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         last_chn = None
         if(len(self.dacs) > 0):
             controlstr += "constexpr bool dacs_used = true; \n"
@@ -971,6 +1155,7 @@ class ui_scanner:
                 elif(elem.channel == 2):
                     last_chn = "daisy::DacHandle::Channel::TWO"
 <<<<<<< HEAD
+<<<<<<< HEAD
                 if(nvoices < 2):
                     controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
                 else:
@@ -978,6 +1163,9 @@ class ui_scanner:
 =======
                 controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max} ), \n"
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+                controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
         controlstr += "}; \n"
         if(len(self.dacs) > 0):
@@ -986,6 +1174,7 @@ class ui_scanner:
             else:
                 controlstr += f"daisy::DacHandle::Channel dac_chnls = {last_chn}; \n"
             
+<<<<<<< HEAD
 <<<<<<< HEAD
         
 
@@ -998,6 +1187,13 @@ class ui_scanner:
                 controlstr += f"\tdigi_output({elem.pin_index}, digi_output::pwm_t::{elem.pwm}), \n"
             else:
                 controlstr += f"\tshared_digi_output<{nvoices}>({elem.pin_index}, digi_output::pwm_t::{pwm}), \n"
+=======
+        
+
+        controlstr += f"static std::array<digi_output, {len(self.digis_out)}> digi_output_list = {{ \n"
+        for elem in self.digis_out:
+            controlstr += f"\tdigi_output(D{elem.pin_index}), \n"
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         controlstr += "}; \n\n"
             
 
@@ -1010,9 +1206,12 @@ class ui_scanner:
         outputstr += "}; \n\n"
 
         controlstr += outputstr 
+<<<<<<< HEAD
 =======
 
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         return arch.replace(control_tag, controlstr)
 
 if("ui" in dsp_layout):
@@ -1024,7 +1223,7 @@ if("ui" in dsp_layout):
 
 =======
     scan.recursive_lookup(dsp_layout["ui"][0])
-    arch = scan.write(arch, dsp_layout)
+    arch = scan.write(arch, dsp_layout, nvoices)
     
 
 <<<<<<< HEAD

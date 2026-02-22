@@ -80,6 +80,7 @@ inline static float scale_from_norm(float v, float min, float max)
 }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 static float limit(float v, float min, float max)
 {
     if(v > max) return max;
@@ -87,11 +88,17 @@ static float limit(float v, float min, float max)
     return v;
 }
 
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 struct scale 
 {
     enum scale_t {lin, log, exp};
     // Schraudolph's approximation - very fast, ~1% error
+<<<<<<< HEAD
     static float fast_exp_norm(float t)
+=======
+    static inline float fast_exp_norm(float t)
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     {
         // (e^t - 1) / (e - 1), approximated
         union { float f; int32_t i; } u;
@@ -100,14 +107,22 @@ struct scale
     }
 
     // Polynomial approximation - good balance
+<<<<<<< HEAD
     static float exp_norm(float t)
+=======
+    static inline float exp_norm(float t)
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     {
         // e^(t*1) approximated, then normalized
         float x = 1.0f + t + t*t*0.5f + t*t*t*0.1667f;
         return (x - 1.0f) / (M_E - 1.0f);
     }
     // Bit trick approximation
+<<<<<<< HEAD
     static float fast_log_norm(float t)
+=======
+    static inline float fast_log_norm(float t)
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     {
         union { float f; uint32_t i; } u;
         u.f = t + 1.0f;
@@ -116,7 +131,11 @@ struct scale
     }
 
     // Polynomial - more accurate
+<<<<<<< HEAD
     static float log_norm(float t)
+=======
+    static inline float log_norm(float t)
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     {
         // log(1 + t*(e-1)) / 1, polynomial approximation
         float x = t * (M_E - 1.0f); // remap to [0, e-1]
@@ -141,8 +160,11 @@ struct scale
     }
 };
 
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 #ifdef MIDICTRL
 
 struct midi_t
@@ -164,6 +186,9 @@ struct midi_t
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 template<size_t N>
 midi_t* midi_find(std::array<midi_t, N>& arr, uint8_t index)
 {
@@ -175,8 +200,11 @@ midi_t* midi_find(std::array<midi_t, N>& arr, uint8_t index)
     return nullptr;
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 #endif
 
 struct control 
@@ -187,6 +215,7 @@ struct control
     control::scale_t scale; // To implement in update methods
     const char *label; // Might be useless‘
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     float *value_ptr;
 
@@ -214,6 +243,20 @@ struct control
     virtual void update();
     virtual void set_value_ptr(float *zone);
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+    float *value_ptr;
+
+    scale::scale_t scale_type = scale::scale_t::lin;
+
+    control() {}
+    control(scale::scale_t scale_)
+        : scale_type(scale_)
+    {}
+
+    virtual void setup() {}
+    virtual void update() {}
+    void set_value_ptr(float *zone) {value_ptr = zone;}
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 };
 
 #ifdef SEED
@@ -223,11 +266,17 @@ struct control
 #endif
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 /*
     A bit misnamed : it is used as ADC class & base class for other inputs (digital, MIDI)
 */
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+/*
+    A bit misnamed : it is used as ADC class & base class for other inputs (digital, MIDI)
+*/
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 struct adc : public control
 {
     enum type_t {
@@ -241,6 +290,7 @@ struct adc : public control
 
     daisy::Pin pin;
     uint8_t channel; // index in used ADC list 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     
@@ -257,6 +307,14 @@ struct adc : public control
     adc(adc::type_t t, float init_, float min_, float max_, float step_, daisy::Pin pin_ = DEFAULT_PIN)
         : type(t)
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+
+    
+    adc() = default;
+    adc(adc::type_t t, float init_, float min_, float max_, float step_, scale::scale_t scale_ = scale::scale_t::lin, daisy::Pin pin_ = DEFAULT_PIN)
+        : control::control(scale_)
+        , type(t)
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         , init(init_)
         , min(min_)
         , max(max_)
@@ -271,16 +329,22 @@ struct adc : public control
         ADC control methods    
     */
 
+<<<<<<< HEAD
     using adc_method = std::function<void(float, float *)>;
     adc_method slider_method = [&](float value, float *fZone)
     {
         *fZone = snap_to_step(scale_from_norm(value, min, max), step);
     };
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+    using adc_method = void(*)(float, float*, float, float, float, float&, scale::scale_t);
+    adc_method update_method = nullptr;
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
     /*
         For Buttons and checkboxes 0.05f we need a threshold to eliminate potential DC or noise 
     */
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     static void slider_method(float value, float *fZone, 
@@ -307,16 +371,27 @@ struct adc : public control
 =======
     constexpr static float noise_threshold = 0.05f;
     adc_method button_method = [&](float value, float *fZone)
+=======
+
+    static void slider_method(float value, float *fZone, float min, float max, float step, float &prev, scale::scale_t scale_type)
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     {
-        *fZone = (value > noise_threshold) ? 1.0f : 0.0f; 
-    };
+        *fZone = snap_to_step(scale_from_norm(scale::process(scale_type, value), min, max), step);
+    }
     
-    adc_method checkbox_method = [&](float value, float *fZone)
+    constexpr static float noise_threshold = 0.05f;
+    static void button_method(float value, float *fZone, float min, float max, float step, float &prev, scale::scale_t scale_type)
     {
-        if(value > noise_threshold && value > previous_state && (value - previous_state) > noise_threshold)
+        *fZone = (value > noise_threshold) ? 1.0f : 0.0f;
+    }
+
+    static void checkbox_method(float value, float *fZone, float min, float max, float step, float &prev, scale::scale_t scale_type)
+    {
+        if(value > noise_threshold && value > prev && (value - prev) > noise_threshold)
         {
             *fZone = 1.0f - (*fZone);
         }
+<<<<<<< HEAD
         previous_state = value;
     };
 
@@ -326,14 +401,21 @@ struct adc : public control
     {
         value_ptr = zone;
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+        prev = value;
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     }
 
     void setup() override 
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
         //float _min = min, _max = max, _step = step;
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+        float _min = min, _max = max, _step = step;
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         switch(type)
         {
         case type_t::slider:
@@ -352,6 +434,7 @@ struct adc : public control
 
     void update() override
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
         update_method(hw.adc.GetFloat(channel), value_ptr, 
             min, max, step, previous_state, scale_type);
@@ -398,13 +481,23 @@ struct shared_adc : public adc
 };
 #endif
 
+=======
+        update_method(hw.adc.GetFloat(channel), value_ptr, min, max, step, previous_state, scale_type);
+    }
+};
+
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 struct digi_input : public adc
 {
     daisy::GPIO gpio;
 
     digi_input() = default;
+<<<<<<< HEAD
     digi_input(adc::type_t t, float init_, float min_, float max_, float step_, 
         daisy::Pin pin_ = DEFAULT_PIN)
+=======
+    digi_input(adc::type_t t, float init_, float min_, float max_, float step_, daisy::Pin pin_ = DEFAULT_PIN)
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         : adc::adc(t, init_, min_, max_, step_, scale::scale_t::lin, pin_)
     {}
 
@@ -414,8 +507,12 @@ struct digi_input : public adc
     void setup() override 
     {
         adc::setup();
+<<<<<<< HEAD
         gpio.Init(pin, daisy::GPIO::Mode::INPUT, daisy::GPIO::Pull::PULLUP, 
             daisy::GPIO::Speed::VERY_HIGH);
+=======
+        gpio.Init(pin, daisy::GPIO::Mode::INPUT, daisy::GPIO::Pull::PULLUP, daisy::GPIO::Speed::VERY_HIGH);
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         passed_samples =  0; 
         *value_ptr = init;
     }
@@ -424,12 +521,17 @@ struct digi_input : public adc
     {
         if(passed_samples == 0)
         {
+<<<<<<< HEAD
             update_method(!gpio.Read(), value_ptr, min, max, step, previous_state, scale_type);
+=======
+            update_method(gpio.Read(), value_ptr, min, max, step, previous_state, scale_type);
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         }
         passed_samples += MY_BUFFER_SIZE;
         if(passed_samples >= time_threshold)
             passed_samples = 0;
 
+<<<<<<< HEAD
     }
 };
 
@@ -484,6 +586,8 @@ struct shared_digi_input : public digi_input
 
 =======
         update_method(hw.adc.GetFloat(channel), value_ptr);
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     }
 };
 
@@ -504,15 +608,21 @@ struct midi_input : public adc
     midi_input(adc::type_t t, float init_, float min_, float max_, float step_, midi_t *midiptr)
 =======
     midi_input() = default;
+<<<<<<< HEAD
     midi_input(adc::type_t t, float init_, float min_, float max_, float step_, midi_t *midiptr = nullptr)
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
         : adc::adc(t, init_, min_, max_, step_)
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+    midi_input(adc::type_t t, float init_, float min_, float max_, float step_, scale::scale_t scale_ = scale::scale_t::lin, midi_t *midiptr = nullptr)
+        : adc::adc(t, init_, min_, max_, step_, scale_)
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         , m(midiptr)
     {}
 
     void update() override 
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
         update_method(float(m->value) / 127.0f, value_ptr, 
             min, max, step, previous_state, scale_type);
@@ -626,6 +736,25 @@ struct poly_control_base
 };
 
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+        update_method(float(m->value) / 127.0, value_ptr, min, max, step, previous_state, scale_type);
+    }
+};
+
+#ifdef POLY 
+struct poly_control_base
+{
+    virtual bool has_key() {return false;}
+    virtual bool has_vel() {return false;}
+    virtual bool has_gate() {return false;}
+
+    virtual midi_input* get_key() {return nullptr;}
+    virtual midi_input* get_vel() {return nullptr;}
+    virtual midi_input* get_gate() {return nullptr;}
+};
+#endif
+
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 #endif
 
 struct dac : public control
@@ -634,6 +763,7 @@ struct dac : public control
     const char *label;
 
     daisy::DacHandle::Channel channel; // index in used ADC list 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
     dac(daisy::DacHandle::Channel chn, float min_, float max_, 
@@ -646,12 +776,19 @@ struct dac : public control
     dac(daisy::DacHandle::Channel chn, float min_, float max_)
         : min(min_)
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+
+    dac(daisy::DacHandle::Channel chn, float min_, float max_, scale::scale_t scale_ = scale::scale_t::lin)
+        : control::control(scale_)
+        , min(min_)
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         , max(max_)
         , channel(chn)
     {}
 
     void update() override
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
         hw.dac.WriteValue(channel, uint16_t(scale::process(scale_type, 
             normalize(*value_ptr, min, max)) * 4095.0f));
@@ -719,10 +856,25 @@ struct digi_output : public control
 
     digi_output() = default;
     digi_output(daisy::Pin pin_, pwm_t pwm, float min_ = 0.0f, float max_ = 1.0f)
+=======
+        hw.dac.WriteValue(channel, uint16_t(scale::process(scale_type, normalize(*value_ptr, min, max)) * 4095.0f));
+    }
+};
+
+struct digi_output : public control 
+{
+    daisy::Pin pin;
+    daisy::GPIO gpio;
+    float min, max;
+
+    digi_output() = default;
+    digi_output(daisy::Pin pin_, float min_ = 0.0f, float max_ = 1.0f)
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         : pin(pin_)
         , min(min_)
         , max(max_)
     {
+<<<<<<< HEAD
         if(pwm != pwm_t::off) 
         {
             led.Init(pin, pwm == pwm_t::inv, 1000.0f /*MY_SAMPLE_RATE / MY_BUFFER_SIZE*/ );
@@ -776,6 +928,15 @@ struct shared_digi_output : public digi_output
 
 =======
         hw.dac.WriteValue(channel, uint16_t(normalize(*value_ptr, min, max) * 4095.0f));
+=======
+        gpio.Init(pin, daisy::GPIO::Mode::OUTPUT);
+        *value_ptr = min;
+    }
+
+    void update() override 
+    {
+        gpio.Write( (*value_ptr) > adc::noise_threshold );
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     }
 };
 
@@ -923,6 +1084,17 @@ static void AudioCallback(daisy::AudioHandle::InputBuffer in,
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
     control_UI.update_dacs();
+
+    /*
+    static int n = 0;
+    if(++n > 1000) {
+        n = 0;
+        float *ptr = input_list[0]->value_ptr;
+        hw.PrintLine("ptr=%p val=%.2f midi_raw=%d", ptr, *ptr, (int)poly_midi_values[0].value);
+    }
+    */
+    
+
 }
 
 int main(void)
@@ -932,11 +1104,15 @@ int main(void)
     hw.Init();
     hw.SetAudioBlockSize(MY_BUFFER_SIZE);
 <<<<<<< HEAD
+<<<<<<< HEAD
     hw.SetAudioSampleRate(DAISY_SAMPLE_RATE);
 
 #ifdef MIDICTRL
     daisy_midi midi_handler;
 =======
+=======
+    hw.SetAudioSampleRate(DAISY_SAMPLE_RATE);
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
 #ifdef MIDICTRL
     daisy_midi midi_handler;
@@ -997,11 +1173,16 @@ int main(void)
     control_UI.setup_controls();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     if(adc_list.size() > 0)
         hw.adc.Start();
 =======
     hw.adc.Start();
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+    if(adc_list.size() > 0)
+        hw.adc.Start();
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     hw.StartAudio(AudioCallback);
 
     // MIDI handling loop

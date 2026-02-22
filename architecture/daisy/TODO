@@ -48,8 +48,20 @@ Change logic : Polyphonic can be without MIDI.
   - MIDI : 
     - Un contrôleur peut contrôler plusieurs sliders
     - Donc optim à faire dans python pour remarquer les duplicats de midi_t (cc et key) & quand même mapper les inputs si duplicat
-    - Poly
-    - UART tests
+    - DONE Poly : voice stealing
+    - DONE (for pod, check with patch) UART tests
+    - DONE POly context of mono sliders : now mono ui (midi:ctrl for example) are duplicated in polyphonic context, all pointing to the same midi value, thus writing to different voices
+    - Issue : poly notes stay stucked sometimes
+    - Optimization : use perfect hash for midi mono controls : O(1) and no allocation. Or at least linear search, instead of unordered_map (dynamically allocates)
+    - Issue : Mono midi broken ?
 
   IMPORTANT : 
-    - SAMPLE RATE 
+    - DONE SAMPLE RATE 
+    - DONE Scale Log Exp 
+
+  SPEC JSON : 
+    - DONE Feature : Digital input & outputs (switches, binary)
+      - Sometimes input is inverted (1 instead of 0) // Not clear
+    - DONE Feature : (Pod) Leds outputs (3 signals)
+    - To check : Feature : (Pod) Encoder 
+    - Feature (Patch ) : audio outs 

@@ -9,10 +9,14 @@ public:
     {
         for(uint8_t i = 0; i < N_OUTPUTS; ++i)
 <<<<<<< HEAD
+<<<<<<< HEAD
             voices_outputs[i] = voices_data[i];
 =======
             voices_outputs[i] = {voices_data[i]};
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+            voices_outputs[i] = voices_data[i];
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         for(size_t i = 0; i < N; ++i)
             voices[i].init(sample_rate);
     }
@@ -49,9 +53,12 @@ public:
         }
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     void compute(int count, FAUSTFLOAT ** RESTRICT inputs, FAUSTFLOAT ** RESTRICT outputs)
     {
         voices[0].compute(count, inputs, voices_outputs);
@@ -62,9 +69,13 @@ public:
             mix(count, outputs);
         }
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+
+>>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     }
 
     void buildUserInterface(UI * ui_interface)
