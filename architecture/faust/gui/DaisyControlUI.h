@@ -31,7 +31,7 @@ architecture section is not modified.
 #include <string.h>
 
 #include "faust/gui/DecoratorUI.h"
-#include "faust/gui/ValueConverter.h"
+//#include "faust/gui/ValueConverter.h"
 
 /*******************************************************************************
  * DaisyControlUI : Faust User Interface
@@ -141,10 +141,6 @@ class DaisyControlUI : public GenericUI
         
     public:
         
-        #if defined PATCHSM
-        #else
-        #endif
-    
         // -- widget's layouts
         void openTabBox(const char* label) {  }
         void openHorizontalBox(const char* label) {  }
@@ -238,7 +234,7 @@ class DaisyControlUI : public GenericUI
 
         void addDACEntry(const char *label, FAUSTFLOAT *zone)
         {
-            dac_list[dac_counter].value_ptr = zone;
+            output_list[dac_counter]->set_value_ptr( zone );
             dac_counter++;
         }
 
@@ -255,8 +251,8 @@ class DaisyControlUI : public GenericUI
 
         void update_dacs()
         {
-            for(auto & it : dac_list)
-                it.update();
+            for(auto & it : output_list) 
+                it->update();
         }
 
         void setup_controls()

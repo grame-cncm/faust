@@ -64,6 +64,60 @@ inline static float scale_from_norm(float v, float min, float max)
     return (max - min) * v  + min; 
 }
 
+struct scale 
+{
+    enum scale_t {lin, log, exp};
+    // Schraudolph's approximation - very fast, ~1% error
+    static inline float fast_exp_norm(float t)
+    {
+        // (e^t - 1) / (e - 1), approximated
+        union { float f; int32_t i; } u;
+        u.i = (int32_t)(t * 8388608.0f) + 1065353216;
+        return (u.f - 1.0f) * 0.58198f; // scale to [0,1]
+    }
+
+    // Polynomial approximation - good balance
+    static inline float exp_norm(float t)
+    {
+        // e^(t*1) approximated, then normalized
+        float x = 1.0f + t + t*t*0.5f + t*t*t*0.1667f;
+        return (x - 1.0f) / (M_E - 1.0f);
+    }
+    // Bit trick approximation
+    static inline float fast_log_norm(float t)
+    {
+        union { float f; uint32_t i; } u;
+        u.f = t + 1.0f;
+        float approx = (float)(u.i - 1065353216) * 1.1920929e-7f;
+        return approx / 1.0f; // already ~[0,1] for input [0,1]
+    }
+
+    // Polynomial - more accurate
+    static inline float log_norm(float t)
+    {
+        // log(1 + t*(e-1)) / 1, polynomial approximation
+        float x = t * (M_E - 1.0f); // remap to [0, e-1]
+        // log(1+x) ≈ x - x²/2 + x³/3 for small x
+        return (x - x*x*0.5f + x*x*x*0.333f) / 1.0f;
+    }
+
+    static float process(scale_t s, float val)
+    {
+        switch(s)
+        {
+            case scale_t::lin:
+                return val;
+            case scale_t::log:
+                return log_norm(val);
+            case scale_t::exp:
+                return exp_norm(val);
+            default: 
+                return val;
+        }
+        return val;
+    }
+};
+
 #ifdef MIDICTRL
 
 struct midi_t
@@ -84,6 +138,17 @@ struct midi_t
     {}
 };
 
+template<size_t N>
+midi_t* midi_find(std::array<midi_t, N>& arr, uint8_t index)
+{
+    for(auto & it : arr) 
+    {
+        if(it.index == index)
+            return &it; 
+    }
+    return nullptr;
+}
+
 #endif
 
 struct control 
@@ -94,11 +159,18 @@ struct control
     control::scale_t scale; // To implement in update methods
     const char *label; // Might be useless‘
 
-    control() {}
+    float *value_ptr;
 
-    virtual void setup();
-    virtual void update();
-    virtual void set_value_ptr(float *zone);
+    scale::scale_t scale_type = scale::scale_t::lin;
+
+    control() {}
+    control(scale::scale_t scale_)
+        : scale_type(scale_)
+    {}
+
+    virtual void setup() {}
+    virtual void update() {}
+    void set_value_ptr(float *zone) {value_ptr = zone;}
 };
 
 #ifdef SEED
@@ -107,6 +179,9 @@ struct control
     constexpr static const daisy::Pin DEFAULT_PIN = daisy::patch_sm::A1;
 #endif
 
+/*
+    A bit misnamed : it is used as ADC class & base class for other inputs (digital, MIDI)
+*/
 struct adc : public control
 {
     enum type_t {
@@ -120,12 +195,12 @@ struct adc : public control
 
     daisy::Pin pin;
     uint8_t channel; // index in used ADC list 
-    float *value_ptr;
 
     
     adc() = default;
-    adc(adc::type_t t, float init_, float min_, float max_, float step_, daisy::Pin pin_ = DEFAULT_PIN)
-        : type(t)
+    adc(adc::type_t t, float init_, float min_, float max_, float step_, scale::scale_t scale_ = scale::scale_t::lin, daisy::Pin pin_ = DEFAULT_PIN)
+        : control::control(scale_)
+        , type(t)
         , init(init_)
         , min(min_)
         , max(max_)
@@ -138,39 +213,36 @@ struct adc : public control
         ADC control methods    
     */
 
-    using adc_method = std::function<void(float, float *)>;
-    adc_method slider_method = [&](float value, float *fZone)
-    {
-        *fZone = snap_to_step(scale_from_norm(value, min, max), step);
-    };
+    using adc_method = void(*)(float, float*, float, float, float, float&, scale::scale_t);
+    adc_method update_method = nullptr;
 
     /*
         For Buttons and checkboxes 0.05f we need a threshold to eliminate potential DC or noise 
     */
-    constexpr static float noise_threshold = 0.05f;
-    adc_method button_method = [&](float value, float *fZone)
+
+    static void slider_method(float value, float *fZone, float min, float max, float step, float &prev, scale::scale_t scale_type)
     {
-        *fZone = (value > noise_threshold) ? 1.0f : 0.0f; 
-    };
+        *fZone = snap_to_step(scale_from_norm(scale::process(scale_type, value), min, max), step);
+    }
     
-    adc_method checkbox_method = [&](float value, float *fZone)
+    constexpr static float noise_threshold = 0.05f;
+    static void button_method(float value, float *fZone, float min, float max, float step, float &prev, scale::scale_t scale_type)
     {
-        if(value > noise_threshold && value > previous_state && (value - previous_state) > noise_threshold)
+        *fZone = (value > noise_threshold) ? 1.0f : 0.0f;
+    }
+
+    static void checkbox_method(float value, float *fZone, float min, float max, float step, float &prev, scale::scale_t scale_type)
+    {
+        if(value > noise_threshold && value > prev && (value - prev) > noise_threshold)
         {
             *fZone = 1.0f - (*fZone);
         }
-        previous_state = value;
-    };
-
-    adc_method update_method;
-
-    void set_value_ptr(float *zone) override 
-    {
-        value_ptr = zone;
+        prev = value;
     }
 
     void setup() override 
     {
+        float _min = min, _max = max, _step = step;
         switch(type)
         {
         case type_t::slider:
@@ -189,7 +261,40 @@ struct adc : public control
 
     void update() override
     {
-        update_method(hw.adc.GetFloat(channel), value_ptr);
+        update_method(hw.adc.GetFloat(channel), value_ptr, min, max, step, previous_state, scale_type);
+    }
+};
+
+struct digi_input : public adc
+{
+    daisy::GPIO gpio;
+
+    digi_input() = default;
+    digi_input(adc::type_t t, float init_, float min_, float max_, float step_, daisy::Pin pin_ = DEFAULT_PIN)
+        : adc::adc(t, init_, min_, max_, step_, scale::scale_t::lin, pin_)
+    {}
+
+    uint32_t passed_samples; 
+    constexpr static const uint32_t time_threshold = MY_SAMPLE_RATE / 100;
+
+    void setup() override 
+    {
+        adc::setup();
+        gpio.Init(pin, daisy::GPIO::Mode::INPUT, daisy::GPIO::Pull::PULLUP, daisy::GPIO::Speed::VERY_HIGH);
+        passed_samples =  0; 
+        *value_ptr = init;
+    }
+
+    void update() override 
+    {
+        if(passed_samples == 0)
+        {
+            update_method(gpio.Read(), value_ptr, min, max, step, previous_state, scale_type);
+        }
+        passed_samples += MY_BUFFER_SIZE;
+        if(passed_samples >= time_threshold)
+            passed_samples = 0;
+
     }
 };
 
@@ -200,16 +305,29 @@ struct midi_input : public adc
 {
     midi_t *m;
     midi_input() = default;
-    midi_input(adc::type_t t, float init_, float min_, float max_, float step_, midi_t *midiptr = nullptr)
-        : adc::adc(t, init_, min_, max_, step_)
+    midi_input(adc::type_t t, float init_, float min_, float max_, float step_, scale::scale_t scale_ = scale::scale_t::lin, midi_t *midiptr = nullptr)
+        : adc::adc(t, init_, min_, max_, step_, scale_)
         , m(midiptr)
     {}
 
     void update() override 
     {
-        update_method(float(m->value) / 128.0, value_ptr);
+        update_method(float(m->value) / 127.0, value_ptr, min, max, step, previous_state, scale_type);
     }
 };
+
+#ifdef POLY 
+struct poly_control_base
+{
+    virtual bool has_key() {return false;}
+    virtual bool has_vel() {return false;}
+    virtual bool has_gate() {return false;}
+
+    virtual midi_input* get_key() {return nullptr;}
+    virtual midi_input* get_vel() {return nullptr;}
+    virtual midi_input* get_gate() {return nullptr;}
+};
+#endif
 
 #endif
 
@@ -219,17 +337,39 @@ struct dac : public control
     const char *label;
 
     daisy::DacHandle::Channel channel; // index in used ADC list 
-    float *value_ptr;
 
-    dac(daisy::DacHandle::Channel chn, float min_, float max_)
-        : min(min_)
+    dac(daisy::DacHandle::Channel chn, float min_, float max_, scale::scale_t scale_ = scale::scale_t::lin)
+        : control::control(scale_)
+        , min(min_)
         , max(max_)
         , channel(chn)
     {}
 
     void update() override
     {
-        hw.dac.WriteValue(channel, uint16_t(normalize(*value_ptr, min, max) * 4095.0f));
+        hw.dac.WriteValue(channel, uint16_t(scale::process(scale_type, normalize(*value_ptr, min, max)) * 4095.0f));
+    }
+};
+
+struct digi_output : public control 
+{
+    daisy::Pin pin;
+    daisy::GPIO gpio;
+    float min, max;
+
+    digi_output() = default;
+    digi_output(daisy::Pin pin_, float min_ = 0.0f, float max_ = 1.0f)
+        : pin(pin_)
+        , min(min_)
+        , max(max_)
+    {
+        gpio.Init(pin, daisy::GPIO::Mode::OUTPUT);
+        *value_ptr = min;
+    }
+
+    void update() override 
+    {
+        gpio.Write( (*value_ptr) > adc::noise_threshold );
     }
 };
 
@@ -348,6 +488,17 @@ static void AudioCallback(daisy::AudioHandle::InputBuffer in, daisy::AudioHandle
     DSP.compute(count, const_cast<float**>(in), out);
 
     control_UI.update_dacs();
+
+    /*
+    static int n = 0;
+    if(++n > 1000) {
+        n = 0;
+        float *ptr = input_list[0]->value_ptr;
+        hw.PrintLine("ptr=%p val=%.2f midi_raw=%d", ptr, *ptr, (int)poly_midi_values[0].value);
+    }
+    */
+    
+
 }
 
 int main(void)
@@ -356,6 +507,7 @@ int main(void)
     // Initialize Daisy 
     hw.Init();
     hw.SetAudioBlockSize(MY_BUFFER_SIZE);
+    hw.SetAudioSampleRate(DAISY_SAMPLE_RATE);
 
 #ifdef MIDICTRL
     daisy_midi midi_handler;
@@ -384,7 +536,8 @@ int main(void)
     DSP.buildUserInterface(&control_UI);
     control_UI.setup_controls();
 
-    hw.adc.Start();
+    if(adc_list.size() > 0)
+        hw.adc.Start();
     hw.StartAudio(AudioCallback);
 
     // MIDI handling loop
