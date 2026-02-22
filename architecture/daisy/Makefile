@@ -8,6 +8,9 @@ CPP_SOURCES = ex_faust.cpp
 LIBDAISY_DIR ?= ../../../libdaisy
 DAISYSP_DIR ?= ../../../DaisySP
 
+# Debug purposes, to remove
+#LDFLAGS = -u _printf_float
+
 # Linker Settings
 APP_TYPE ?= BOOT_NONE
 
