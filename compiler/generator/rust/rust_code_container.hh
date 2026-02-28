@@ -64,6 +64,7 @@ class RustCodeContainer : public virtual CodeContainer {
     virtual void              generateCompute(int tab) = 0;
     virtual void              generateComputeIO(int tab) {};
     void                      produceInternal();
+    void                      produceLibMBlob();
     void                      produceFaustDspBlob();
     virtual dsp_factory_base* produceFactory();
     virtual void              produceInfoFunctions(int tabs, const std::string& classname,

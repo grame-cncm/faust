@@ -34,10 +34,6 @@ use num_traits::float::Float;
 use std::env;
 use std::fs::File;
 use std::io::Write;
-use libm::remainder;
-use libm::rint;
-use libm::remainderf;
-use libm::rintf;
 
 type F32 = f32;
 type F64 = f64;
