@@ -249,6 +249,50 @@ LIBFAUST_API Box CboxMerge(Box x, Box y);
 LIBFAUST_API Box CboxRec(Box x, Box y);
 
 /**
+ * Create an iterative par box.
+ *
+ * @param x - the iterator variable
+ * @param y - the number of iterations
+ * @param z - the body expression
+ *
+ * @return the iterative par box.
+ */
+LIBFAUST_API Box CboxIPar(Box x, Box y, Box z);
+
+/**
+ * Create an iterative seq box.
+ *
+ * @param x - the iterator variable
+ * @param y - the number of iterations
+ * @param z - the body expression
+ *
+ * @return the iterative seq box.
+ */
+LIBFAUST_API Box CboxISeq(Box x, Box y, Box z);
+
+/**
+ * Create an iterative sum box.
+ *
+ * @param x - the iterator variable
+ * @param y - the number of iterations
+ * @param z - the body expression
+ *
+ * @return the iterative sum box.
+ */
+LIBFAUST_API Box CboxISum(Box x, Box y, Box z);
+
+/**
+ * Create an iterative prod box.
+ *
+ * @param x - the iterator variable
+ * @param y - the number of iterations
+ * @param z - the body expression
+ *
+ * @return the iterative prod box.
+ */
+LIBFAUST_API Box CboxIProd(Box x, Box y, Box z);
+
+/**
  * The route primitive facilitates the routing of signals in Faust.
  * It has the following syntax: route(A,B,a,b,c,d,...) or route(A,B,(a,b),(c,d),...)
  *
@@ -277,6 +321,20 @@ LIBFAUST_API Box CboxDelay();
  * @return the delayed box.
  */
 LIBFAUST_API Box CboxDelayAux(Box b, Box del);
+
+/**
+ * Create a one-sample delay box.
+ *
+ * @return the one-sample delay box.
+ */
+LIBFAUST_API Box CboxDelay1();
+
+/**
+ * Create a prefix box.
+ *
+ * @return the prefix box.
+ */
+LIBFAUST_API Box CboxPrefix();
 
 /**
  * Create a casted box.
@@ -715,6 +773,94 @@ LIBFAUST_API Box CboxAttach();
  * @return the attach box.
  */
 LIBFAUST_API Box CboxAttachAux(Box b1, Box b2);
+
+/**
+ * Create an enable box.
+ *
+ * @return the enable box.
+ */
+LIBFAUST_API Box CboxEnable();
+
+/**
+ * Create a control box.
+ *
+ * @return the control box.
+ */
+LIBFAUST_API Box CboxControl();
+
+/**
+ * Create an assertbounds box.
+ *
+ * @return the assertbounds box.
+ */
+LIBFAUST_API Box CboxAssertBound();
+
+/**
+ * Create a lowest box.
+ *
+ * @return the lowest box.
+ */
+LIBFAUST_API Box CboxLowest();
+
+/**
+ * Create a highest box.
+ *
+ * @return the highest box.
+ */
+LIBFAUST_API Box CboxHighest();
+
+/**
+ * Create a box for the number of inputs of a box.
+ *
+ * @param x - the box
+ *
+ * @return the inputs box.
+ */
+LIBFAUST_API Box CboxInputs(Box x);
+
+/**
+ * Create a box for the number of outputs of a box.
+ *
+ * @param x - the box
+ *
+ * @return the outputs box.
+ */
+LIBFAUST_API Box CboxOutputs(Box x);
+
+/**
+ * Create an empty environment box.
+ *
+ * @return the environment box.
+ */
+LIBFAUST_API Box CboxEnvironment();
+
+/**
+ * Create a component box.
+ *
+ * @param filename - the file to be loaded
+ *
+ * @return the component box.
+ */
+LIBFAUST_API Box CboxComponent(const char* filename);
+
+/**
+ * Create a library box.
+ *
+ * @param filename - the file to be loaded
+ *
+ * @return the library box.
+ */
+LIBFAUST_API Box CboxLibrary(const char* filename);
+
+/**
+ * Create a metadata box.
+ *
+ * @param exp - the expression
+ * @param mdlist - the metadata list
+ *
+ * @return the metadata box.
+ */
+LIBFAUST_API Box CboxMetadata(Box exp, Box mdlist);
 
 LIBFAUST_API bool CisBoxAbstr(Box t, Box* x, Box* y);
 LIBFAUST_API bool CisBoxAccess(Box t, Box* exp, Box* id);

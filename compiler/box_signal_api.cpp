@@ -1587,6 +1587,18 @@ LIBFAUST_API Tree boxControl()
     return boxPrim2(sigControl);
 }
 
+// Module system
+
+LIBFAUST_API Tree boxComponent(const string& filename)
+{
+    return boxComponent(tree(filename));
+}
+
+LIBFAUST_API Tree boxLibrary(const string& filename)
+{
+    return boxLibrary(tree(filename));
+}
+
 // Helpers
 
 LIBFAUST_API Tree boxPar3(Tree x, Tree y, Tree z)
@@ -2284,6 +2296,91 @@ LIBFAUST_API Tree CboxTGroup(const char* label, Tree group)
 LIBFAUST_API Tree CboxAttach()
 {
     return boxAttach();
+}
+
+LIBFAUST_API Tree CboxIPar(Tree x, Tree y, Tree z)
+{
+    return boxIPar(x, y, z);
+}
+
+LIBFAUST_API Tree CboxISeq(Tree x, Tree y, Tree z)
+{
+    return boxISeq(x, y, z);
+}
+
+LIBFAUST_API Tree CboxISum(Tree x, Tree y, Tree z)
+{
+    return boxISum(x, y, z);
+}
+
+LIBFAUST_API Tree CboxIProd(Tree x, Tree y, Tree z)
+{
+    return boxIProd(x, y, z);
+}
+
+LIBFAUST_API Tree CboxInputs(Tree x)
+{
+    return boxInputs(x);
+}
+
+LIBFAUST_API Tree CboxOutputs(Tree x)
+{
+    return boxOutputs(x);
+}
+
+LIBFAUST_API Tree CboxEnvironment()
+{
+    return boxEnvironment();
+}
+
+LIBFAUST_API Tree CboxComponent(const char* filename)
+{
+    return boxComponent(tree(filename));
+}
+
+LIBFAUST_API Tree CboxLibrary(const char* filename)
+{
+    return boxLibrary(tree(filename));
+}
+
+LIBFAUST_API Tree CboxMetadata(Tree exp, Tree mdlist)
+{
+    return boxMetadata(exp, mdlist);
+}
+
+LIBFAUST_API Tree CboxDelay1()
+{
+    return boxDelay1();
+}
+
+LIBFAUST_API Tree CboxPrefix()
+{
+    return boxPrefix();
+}
+
+LIBFAUST_API Tree CboxEnable()
+{
+    return boxEnable();
+}
+
+LIBFAUST_API Tree CboxControl()
+{
+    return boxControl();
+}
+
+LIBFAUST_API Tree CboxAssertBound()
+{
+    return boxAssertBound();
+}
+
+LIBFAUST_API Tree CboxLowest()
+{
+    return boxLowest();
+}
+
+LIBFAUST_API Tree CboxHighest()
+{
+    return boxHighest();
 }
 
 // Box test API

@@ -136,10 +136,10 @@ LIBFAUST_API bool isBoxMerge(Tree t, Tree& x, Tree& y);
                         Algorithmic Composition of Boxes
 *****************************************************************************/
 
-Tree boxIPar(Tree x, Tree y, Tree z);
-Tree boxISeq(Tree x, Tree y, Tree z);
-Tree boxISum(Tree x, Tree y, Tree z);
-Tree boxIProd(Tree x, Tree y, Tree z);
+LIBFAUST_API Tree boxIPar(Tree x, Tree y, Tree z);
+LIBFAUST_API Tree boxISeq(Tree x, Tree y, Tree z);
+LIBFAUST_API Tree boxISum(Tree x, Tree y, Tree z);
+LIBFAUST_API Tree boxIProd(Tree x, Tree y, Tree z);
 
 LIBFAUST_API bool isBoxIPar(Tree t, Tree& x, Tree& y, Tree& z);
 LIBFAUST_API bool isBoxISeq(Tree t, Tree& x, Tree& y, Tree& z);
@@ -150,8 +150,8 @@ LIBFAUST_API bool isBoxIProd(Tree t, Tree& x, Tree& y, Tree& z);
                         Static information on Boxes
 *****************************************************************************/
 
-Tree boxInputs(Tree x);
-Tree boxOutputs(Tree x);
+LIBFAUST_API Tree boxInputs(Tree x);
+LIBFAUST_API Tree boxOutputs(Tree x);
 
 LIBFAUST_API bool isBoxInputs(Tree t, Tree& x);
 LIBFAUST_API bool isBoxOutputs(Tree t, Tree& x);
@@ -318,13 +318,13 @@ LIBFAUST_API bool isBoxFVar(Tree s, Tree& type, Tree& name, Tree& file);
                              Modules
 *****************************************************************************/
 
-Tree              boxEnvironment();
+LIBFAUST_API Tree boxEnvironment();
 LIBFAUST_API bool isBoxEnvironment(Tree s);
 
-Tree              boxComponent(Tree filename);
+LIBFAUST_API Tree boxComponent(Tree filename);
 LIBFAUST_API bool isBoxComponent(Tree s, Tree& filename);
 
-Tree              boxLibrary(Tree filename);
+LIBFAUST_API Tree boxLibrary(Tree filename);
 LIBFAUST_API bool isBoxLibrary(Tree s, Tree& filename);
 
 Tree importFile(Tree filename);
@@ -404,7 +404,7 @@ bool isBoxPatternVar(Tree s, Tree& id);
 /*****************************************************************************
                              Metadata (pattern matching)
 *****************************************************************************/
-Tree              boxMetadata(Tree exp, Tree mdlist);
+LIBFAUST_API Tree boxMetadata(Tree exp, Tree mdlist);
 LIBFAUST_API bool isBoxMetadata(Tree s, Tree& exp, Tree& mdlist);
 
 /*****************************************************************************
