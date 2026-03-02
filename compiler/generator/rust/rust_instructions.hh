@@ -106,8 +106,8 @@ class RustInstVisitor : public TextInstVisitor {
 
         // Integer version
         fMathLibTable["abs"]   = "i32::abs";
-        fMathLibTable["min_i"] = "std::cmp::min";
-        fMathLibTable["max_i"] = "std::cmp::max";
+        fMathLibTable["min_i"] = "core::cmp::min";
+        fMathLibTable["max_i"] = "core::cmp::max";
 
         // Float version
         fMathLibTable["fabsf"]  = "F32::abs";
