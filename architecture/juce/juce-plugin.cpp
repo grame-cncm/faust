@@ -707,11 +707,11 @@ void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, j
             if (isUsingDoublePrecision()) {
                 // Nothing to do
             } else {
-                fDSP = std::make_unique<dsp_sample_adapter<double, float>>(fDSP.release());
+                fDSP = std::make_unique<dsp_sample_adapter<double, float, 16384>>(fDSP.release());
             }
         } else {
             if (isUsingDoublePrecision()) {
-                fDSP = std::make_unique<dsp_sample_adapter<float, double>>(fDSP.release());
+                fDSP = std::make_unique<dsp_sample_adapter<float, double, 16384>>(fDSP.release());
             } else {
                 // Nothing to do
             }
@@ -719,7 +719,7 @@ void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, j
         
         // Possibly adapt DSP inputs/outputs number
         if (fDSP->getNumInputs() > getTotalNumInputChannels() || fDSP->getNumOutputs() > getTotalNumOutputChannels()) {
-            fDSP = std::make_unique<dsp_adapter>(fDSP.release(), getTotalNumInputChannels(), getTotalNumOutputChannels(), 4096);
+            fDSP = std::make_unique<dsp_adapter>(fDSP.release(), getTotalNumInputChannels(), getTotalNumOutputChannels(), 16384);
         }
     }
     
