@@ -123,7 +123,7 @@ class dsp_adapter : public decorator_dsp {
 };
 
 // Adapts a DSP for a different sample size
-template <typename REAL_INT, typename REAL_EXT>
+template <typename REAL_INT, typename REAL_EXT, int SIZE=4096>
 class dsp_sample_adapter : public decorator_dsp {
     
     private:
@@ -155,12 +155,12 @@ class dsp_sample_adapter : public decorator_dsp {
         {
             fAdaptedInputs = new REAL_INT*[dsp->getNumInputs()];
             for (int i = 0; i < dsp->getNumInputs(); i++) {
-                fAdaptedInputs[i] = new REAL_INT[4096];
+                fAdaptedInputs[i] = new REAL_INT[SIZE];
             }
             
             fAdaptedOutputs = new REAL_INT*[dsp->getNumOutputs()];
             for (int i = 0; i < dsp->getNumOutputs(); i++) {
-                fAdaptedOutputs[i] = new REAL_INT[4096];
+                fAdaptedOutputs[i] = new REAL_INT[SIZE];
             }
         }
     
@@ -181,7 +181,7 @@ class dsp_sample_adapter : public decorator_dsp {
     
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            assert(count <= 4096);
+            assert(count <= SIZE);
             adaptInputBuffers(count, inputs);
             // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses REAL_INT
             fDSP->compute(count, reinterpret_cast<FAUSTFLOAT**>(fAdaptedInputs), reinterpret_cast<FAUSTFLOAT**>(fAdaptedOutputs));
@@ -190,7 +190,7 @@ class dsp_sample_adapter : public decorator_dsp {
     
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            assert(count <= 4096);
+            assert(count <= SIZE);
             adaptInputBuffers(count, inputs);
             // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses REAL_INT
             fDSP->compute(date_usec, count, reinterpret_cast<FAUSTFLOAT**>(fAdaptedInputs), reinterpret_cast<FAUSTFLOAT**>(fAdaptedOutputs));
