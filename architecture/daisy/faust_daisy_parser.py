@@ -16,12 +16,15 @@ polyreg = re.compile("(freq|key|gain|vel|velocity|gate)")
 midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
 configparse_reg = re.compile("([a-zA-Z_]*):([AD][0-9]+)")
 dac_index_reg = re.compile("[AD]([0-9]+)")
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
 polyreg = re.compile("(freq|key|gain|vel|velocity|gate)")
 midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
 
 project_dir = sys.argv[1]
 mem_threshold = int(sys.argv[2]) 
@@ -29,10 +32,14 @@ nvoices = int(sys.argv[3])
 use_sdram = int(sys.argv[4])
 archfile = sys.argv[5]
 <<<<<<< HEAD
+<<<<<<< HEAD
 config_file = sys.argv[6]
 
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+config_file = sys.argv[6]
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
 
 arch = ""
 with open(archfile, 'r') as file:
@@ -62,6 +69,9 @@ meta = dsp_layout["meta"]
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
 ## If configuration file is provided 
 config_layout = None
 config_ui = None
@@ -105,11 +115,15 @@ if(config_file.isdigit() == False):
     
     if("ui" in config_layout):
         config_ui = config_layout["ui"]
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 
 =======
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
 def iscontrol(item):
     return itemreg.match(item)
 
@@ -339,8 +353,32 @@ class ui_scanner:
         self.inputs = []
         self.outputs = []
         self.scale = "lin"
+        self.poly_keys = {
+            "key": False,
+            "freq": False,
+            "vel": False,
+            "gain": False,
+            "gate": False
+        }
 
-    def check_meta(self, node): 
+    ## To check if config file maps this meta (knob for example) to any ADC, DAC or GPIO
+    def config_compare_exchange(self, orig_key, meta, config_ui):
+        to_replace = f"{orig_key}:{meta[orig_key]}"
+        eprint(to_replace)
+        for elem in config_ui:
+            for key, value in elem.items():
+                # parse to separate name from index 
+                eprint(key, value)
+                if(to_replace == key):
+                    rep = configparse_reg.search(value)
+                    eprint(rep)
+                    if(rep != None and rep.group(1) != None and rep.group(2) != None):
+                        eprint(rep.group(1), rep.group(2))
+                        return [rep.group(1), rep.group(2)]
+        
+        return None 
+
+    def check_meta(self, node, config_ui): 
         count = 0
         l_meta = ""
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
@@ -384,12 +422,23 @@ class ui_scanner:
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         if("meta" in node):
             for meta in node["meta"]:
-                for key in meta.keys():
+                for k, v in meta.items():
+
+                    key = k 
+                    value = v 
+                    ## Check if we find something in config_ui
+                    if(config_ui != None):
+                        config_res = self.config_compare_exchange(key, meta, config_ui)
+                        if(config_res != None):
+                            key = config_res[0]
+                            value = config_res[1]
+                    # Then create the meta to write
                     if(key == "adc"):
                         reslist.append("adc")
-                        reslist.append(int(meta[key]))
+                        reslist.append(value)
                     elif(key == "dac"):
                         reslist.append("dac")
+<<<<<<< HEAD
                         reslist.append(int(meta[key]))
                         self.dac[int(meta[key])] = True;
 <<<<<<< HEAD
@@ -403,15 +452,28 @@ class ui_scanner:
                         reslist.append("digi")
                         reslist.append(int(meta[key]))
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+                        reslist.append(value)
+                        #dac_index_reg = re.compile("[AD]([0-9]+)")
+                        dac_index_res = dac_index_reg.search(value)
+                        self.dac[dac_index_res.group(1)] = True;
+                    elif(key == "gpio"):
+                        reslist.append("gpio")
+                        reslist.append(value)
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
                     elif(key == "midi"):
                         reslist.append("midi")
                         res = midiparse_reg.search(meta[key])
                         if(res == None):
 <<<<<<< HEAD
+<<<<<<< HEAD
                             eprint("Midi failed to parse")
 =======
                             eprint("No res, midi failed to parse")
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+                            eprint("Midi failed to parse")
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
                             exit()
                         miditype = ""
                         key = 0
@@ -446,22 +508,20 @@ class ui_scanner:
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                     # Missing scales, and custom
                     elif(key == "scale"):
-                        eprint(key)
-                        eprint(meta[key])
                         l_meta += f"\tui_meta(ui_meta::scale_t::{meta[key]}), \n"
                         self.scale = meta[key]
-                    else:
-                        # Custom meta : likely something from json config file : try to find it
-                        val = f"\"{meta[key]}\""
-                        l_meta += f"\tui_meta(ui_meta::type_t::custom, \"{key}\", {val}), \n"
                     count += 1
             metaname = f"{label}_metadata"
             reslist.append(metaname)
             return reslist
         return None
             
+<<<<<<< HEAD
     def recursive_lookup(self, node):
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+    def recursive_lookup(self, node, config_ui):
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
         if("items" in node):
             for elem in node["items"]:
                 ## Parse
@@ -516,14 +576,26 @@ class ui_scanner:
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
                     item_label = elem["label"]
-                    metares = self.check_meta(elem)
+                    metares = self.check_meta(elem, config_ui)
 
                     if(poly == True and is_poly(item_label)):
                         self.polys.append(polyctrl())
-                        if(item_label == "freq"):
-                            item_label = "key"
-                        elif(item_label == "gain" or item_label == "velocity"):
+                        #if(item_label == "freq"):
+                        #    item_label = "key"
+                        #elif(item_label == "gain" or item_label == "velocity"):
+                        #    item_label = "vel"
+                        if(item_label == "vel" or item_label == "velocity"):
                             item_label = "vel"
+                            self.poly_keys["vel"] = True
+                        elif(item_label == "gain"):
+                            self.poly_keys["gain"] = True
+                        elif(item_label == "freq"):
+                            self.poly_keys["freq"] = True
+                        elif(item_label == "key"):
+                            self.poly_keys["key"] = True
+                        elif(item_label == "gate"): 
+                            self.poly_keys["gate"] = True
+                        
                         self.polys[-1].label = item_label
                         self.polys[-1].control_type = item_type
                         self.inputs.append(input())
@@ -589,10 +661,14 @@ class ui_scanner:
                         self.outputs[-1].type = "dac"
                         self.outputs[-1].index = self.dac_count
 <<<<<<< HEAD
+<<<<<<< HEAD
                     elif(metares[0] == "gpio"):
 =======
                     elif(metares[0] == "digi"):
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+                    elif(metares[0] == "gpio"):
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
                         if(item_type == "button" or item_type == "checkbox"):
                             self.digis_in.append(digi_in())
                             self.digis_in[-1].type = item_type
@@ -677,6 +753,7 @@ class ui_scanner:
         return -1
 
     def write(self, arch, layout, nvoices, config_midi):
+<<<<<<< HEAD
         ccs_cnt = 0
         keys_cnt = 0
         keyons_cnt = 0
@@ -842,10 +919,14 @@ class ui_scanner:
 
     def write(self, arch, layout, nvoices):
         eprint(len(self.midis))
+=======
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
         ccs_cnt = 0
         keys_cnt = 0
         keyons_cnt = 0
         keyoffs_cnt = 0
+
+        ## Count midi element
         for elem in self.midis:
             if(elem.type == "ctrl"):
                 ccs_cnt += 1
@@ -866,11 +947,18 @@ class ui_scanner:
         n_outputs = layout["outputs"]
         controlstr = f"#define N_INPUTS {n_inputs} \n"
         controlstr += f"#define N_OUTPUTS {n_outputs} \n\n"
+        
+        if("rx_pin" in config_midi):
+            controlstr += f"#define RX_PIN {config_midi["rx_pin"]} \n"
+        if("tx_pin" in config_midi):
+            controlstr += f"#define TX_PIN {config_midi["tx_pin"]} \n"
 
         polymidival = ""
         polystr = ""
         if(nvoices == 0):
             nvoices = 1
+
+        ## Generate MIDI structures
         midistr = f"static std::array<midi_input, {len(self.midis) * nvoices}> midi_list = {{ \n"
         ccs = f"static std::array<midi_t, {ccs_cnt}> midi_cc = {{ \n"
         keys = f"static std::array<midi_t, {keys_cnt}> midi_key = {{ \n"
@@ -916,8 +1004,19 @@ class ui_scanner:
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
 
+        ## Generate polyphonic structs 
         polystruct = ""
         if(len(self.polys) > 0):
+            if(self.poly_keys["key"] == True):
+                controlstr += "#define POLY_KEY \n"
+            if(self.poly_keys["freq"] == True):
+                controlstr += "#define POLY_FREQ \n"
+            if(self.poly_keys["vel"] == True):
+                controlstr += "#define POLY_VEL \n"
+            if(self.poly_keys["gain"] == True):
+                controlstr += "#define POLY_GAIN \n"
+            if(self.poly_keys["gate"] == True):
+                controlstr += "#define POLY_GATE \n"
 
             polyconstr = "\tpoly_control("
             polyinit = ""
@@ -925,7 +1024,7 @@ class ui_scanner:
             polymethods = ""
             first = True
             for i, elem in enumerate(self.polys): 
-                polyconstr += f"midi_input {elem.label}_ "
+                polyconstr += f"poly_input {elem.label}_ "
                 if(i < (len(self.polys) - 1) ):
                     polyconstr += ", "
                 if(first):
@@ -934,9 +1033,8 @@ class ui_scanner:
                     polyinit += f"\t\t, {elem.label}({elem.label}_)\n"
 
                 first = False
-                polystruct += f"\tmidi_input {elem.label}; \n"
-                polymethods += f"\tbool has_{elem.label}() override {{return true;}} \n"
-                polymethods += f"\tmidi_input* get_{elem.label}() override {{return &{elem.label};}} \n"
+                polystruct += f"\tpoly_input {elem.label}; \n"
+                polymethods += f"\tpoly_input* get_{elem.label}() override {{return &{elem.label};}} \n"
 
             polyconstr += ") \n"
             polyconstr += polyinit
@@ -956,7 +1054,7 @@ class ui_scanner:
                     last = i == (len(self.polys) - 1)
 
                     polymidival += f"\tmidi_t{{midi_t::type_t::key, 0, 0}}, \n"
-                    polystr += f"\t\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, &(poly_midi_values[{t}] ) ) "
+                    polystr += f"\t\tpoly_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, &(poly_midi_values[{t}] ), poly_input::type_t::{elem.label} ) "
                     if(not last):
                         polystr += ", "
                     polystr += "\n"
@@ -1141,13 +1239,19 @@ class ui_scanner:
             controlstr += "static const daisy::DacHandle::Channel dac_chnls = daisy::DacHandle::Channel::BOTH; // dummy \n"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
         if(nvoices < 2):
             controlstr += f"static std::array<dac, {len(self.dacs)}> dac_list = {{ \n"
         else:
             controlstr += f"static std::array<shared_dac<{nvoices}>, {len(self.dacs)}> dac_list = {{ \n"
+<<<<<<< HEAD
 =======
         controlstr += f"static std::array<dac, {len(self.dacs)}> dac_list = {{ \n"
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
         if(len(self.dacs) > 0):
             for elem in self.dacs:
                 if(elem.channel == 1):
@@ -1156,16 +1260,22 @@ class ui_scanner:
                     last_chn = "daisy::DacHandle::Channel::TWO"
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
                 if(nvoices < 2):
                     controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
                 else:
                     controlstr += f"\tshared_dac<{nvoices}>({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
+<<<<<<< HEAD
 =======
                 controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max} ), \n"
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
                 controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
 
         controlstr += "}; \n"
         if(len(self.dacs) > 0):
@@ -1190,10 +1300,20 @@ class ui_scanner:
 =======
         
 
-        controlstr += f"static std::array<digi_output, {len(self.digis_out)}> digi_output_list = {{ \n"
+        if(nvoices < 2):
+            controlstr += f"static std::array<digi_output, {len(self.digis_out)}> digi_output_list = {{ \n"
+        else:
+            controlstr += f"static std::array<shared_digi_output<{nvoices}>, {len(self.digis_out)}> digi_output_list = {{ \n"
         for elem in self.digis_out:
+<<<<<<< HEAD
             controlstr += f"\tdigi_output(D{elem.pin_index}), \n"
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+            if(nvoices < 2):
+                controlstr += f"\tdigi_output({elem.pin_index}), \n"
+            else:
+                controlstr += f"\tshared_digi_output<{nvoices}>({elem.pin_index}), \n"
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
         controlstr += "}; \n\n"
             
 
@@ -1217,6 +1337,7 @@ class ui_scanner:
 if("ui" in dsp_layout):
     scan = ui_scanner()
 <<<<<<< HEAD
+<<<<<<< HEAD
     scan.recursive_lookup(dsp_layout["ui"][0], config_ui)
     arch = scan.write(arch, dsp_layout, nvoices, config_midi)
     
@@ -1224,6 +1345,10 @@ if("ui" in dsp_layout):
 =======
     scan.recursive_lookup(dsp_layout["ui"][0])
     arch = scan.write(arch, dsp_layout, nvoices)
+=======
+    scan.recursive_lookup(dsp_layout["ui"][0], config_ui)
+    arch = scan.write(arch, dsp_layout, nvoices, config_midi)
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
     
 
 <<<<<<< HEAD
@@ -1275,11 +1400,16 @@ with open(arch_dest, "w") as file:
     file.write(arch)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 print(f"NVOICES={nvoices}")
 #print(nvoices) # To store output in bash NVOICES
 =======
 print(nvoices) # To store output in bash NVOICES
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+print(f"NVOICES={nvoices}")
+#print(nvoices) # To store output in bash NVOICES
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
 sys.exit(0)
 
 

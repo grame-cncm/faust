@@ -92,6 +92,30 @@ Other metadata:
 
 - `[scale:lin|log|exp]` metadata is implemented for knobs.
 
+
+Encoder can be used as a real rotary encoder from Faust with this simple utility functions : 
+``` faust
+a = button("enc_a[encoder:a]");
+b = button("enc_b[encoder:b]");
+    
+// This functions returns +1 when turning clockwise, -1 when turning anti clockwise, 0 otherwise
+encoder_increment(a, b) = inc
+with {
+    // Rising edge of A: was 0, now 1
+    a_rise = (a > a');
+    // At rising edge of A: if B is low = CW (+1), if B is high = CCW (-1)                                                                                                                                                                   
+    inc = a_rise * (1 - 2 * int(b));
+};  
+
+// This function accumulates increment, with a user defined step    
+encoder(inc, step) = _~+(inc * step);
+
+// Usage, (b & a are reversed on pod)
+inc = encoder_increment(b, a);
+encoder_val = encoder(inc, 1); 
+
+```
+
 ## Daisy Patch
 
 The **faust2daisy** tool can be used to program the [patch.Init()](https://electro-smith.com/products/patch-init).

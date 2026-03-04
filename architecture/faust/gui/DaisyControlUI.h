@@ -248,6 +248,7 @@ class DaisyControlUI : public GenericUI
 <<<<<<< HEAD
             output_list[dac_counter]->set_value_ptr( zone );
             dac_counter = (dac_counter + 1) % output_list.size();
+<<<<<<< HEAD
 =======
             dac_list[dac_counter].value_ptr = zone;
 =======
@@ -255,6 +256,8 @@ class DaisyControlUI : public GenericUI
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
             dac_counter++;
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
         }
 
         // -- metadata declarations
@@ -265,6 +268,7 @@ class DaisyControlUI : public GenericUI
         void update_adcs()
         {
             for(auto & it : input_list) 
+<<<<<<< HEAD
 <<<<<<< HEAD
             {
                 it->update();
@@ -299,7 +303,16 @@ class DaisyControlUI : public GenericUI
             }
 
 =======
+=======
+            {
+                /*if(it->value_ptr == nullptr) {
+                    hw.PrintLine("NULL value_ptr!");
+                    continue;
+                }
+                */
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
                 it->update();
+            }
         }
 
         void update_dacs()

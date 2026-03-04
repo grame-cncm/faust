@@ -28,6 +28,7 @@ architecture section is not modified.
 #include <cstdlib>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 /*
     TODO : 
@@ -35,6 +36,8 @@ architecture section is not modified.
 */ 
 
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
 class daisy_midi {
     
     private:
@@ -55,14 +58,20 @@ class daisy_midi {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
                 #ifdef RX_PIN 
                 handler_config.transport_config.rx = RX_PIN;
                 #endif
                 #ifdef TX_PIN 
                 handler_config.transport_config.tx = TX_PIN;
                 #endif
+<<<<<<< HEAD
 =======
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
                 midi_handler.Init(handler_config);
             #else // MIDI USB Default 
                 #ifdef MIDI_USB_PERIPH
@@ -253,16 +262,40 @@ class daisy_midi {
         void set_voice(uint8_t idx, int chan, uint8_t note, uint8_t velocity)
         {
             //hw.PrintLine("set_voice: idx=%d note=%d vel=%d", idx, note, velocity);
-            if(poly_inputs[idx].has_key())
+            #ifdef POLY_KEY 
                 poly_inputs[idx].get_key()->m->value = note; 
-            if(poly_inputs[idx].has_vel())
+            #endif
+            #ifdef POLY_FREQ
+                // TODO Midi to freq, normalized
+                poly_inputs[idx].get_freq()->m->value = note; 
+            #endif
+            #ifdef POLY_VEL
                 poly_inputs[idx].get_vel()->m->value = velocity; 
-            if(poly_inputs[idx].has_gate())
+            #endif
+            #ifdef POLY_GAIN 
+                poly_inputs[idx].get_gain()->m->value = velocity; 
+
+            #endif
+            #ifdef POLY_GATE
                 poly_inputs[idx].get_gate()->m->value = 127; 
+            #endif
+
             current_notes[idx] = note;
             locked[idx] = true;
             //hw.PrintLine("midi_val[%d]=%d", idx*3, poly_midi_values[idx*3].value);
         }
+
+        void unset_voice(uint8_t idx, int chan)
+        {
+            //hw.PrintLine("midi_val[%d]=%d", idx*3, poly_midi_values[idx*3].value);
+            #ifdef POLY_GATE
+                poly_inputs[idx].get_gate()->m->value = 0; 
+            #endif
+            current_notes[idx] = 0;
+            locked[idx] = false;
+            generations[idx] = 0;
+        }
+        
 
         void voice_stealing(int chan, uint8_t note, uint8_t velocity)
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
@@ -271,6 +304,7 @@ class daisy_midi {
             if(free < 0)
             {
                 free = oldest_voice(); 
+                unset_voice(free, chan);
             }
 <<<<<<< HEAD
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
@@ -337,6 +371,7 @@ class daisy_midi {
                     if(locked[i] && current_notes[i] == note) {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                         unset_voice(i, chan);
 =======
                         if(poly_inputs[i].find("gate") != poly_inputs[i].end())
@@ -357,6 +392,9 @@ class daisy_midi {
                         current_notes[i] = 0;
                         generations[i] = 0;
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+                        unset_voice(i, chan);
+>>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
                     }
                 }
             }
