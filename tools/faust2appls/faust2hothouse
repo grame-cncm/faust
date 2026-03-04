@@ -127,7 +127,7 @@ for p in $FILE; do
         echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
 
-    python3 "$FAUSTARCH/daisy/faust_sdram_converter.py" "$SRCDIR/$dspName/ex_faust.cpp"
+    python3 "$FAUSTARCH/hothouse/faust_sdram_converter.py" "$SRCDIR/$dspName/ex_faust.cpp"
 
     # compile and install plugin or keep the source folder
     if [ $SOURCE == false ]; then

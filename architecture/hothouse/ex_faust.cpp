@@ -40,7 +40,7 @@
 #include "faust/dsp/dsp.h"
 
 #ifdef MIDICTRL
-#include "faust/midi/daisy-midi.h"
+#include "faust/midi/hothouse-midi.h"
 #include "faust/gui/MidiUI.h"
 #endif
 
@@ -138,7 +138,7 @@ int main(void)
     hw.StartAudio(AudioCallback);
 
 #ifdef MIDICTRL
-    daisy_midi midi_handler;
+    hothouse_midi midi_handler;
     MidiUI midi_interface(&midi_handler);
     DSP->buildUserInterface(&midi_interface);
     midi_handler.startMidi();

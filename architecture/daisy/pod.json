@@ -1,0 +1,27 @@
+{
+    "name": "pod",
+    "chip": "seed",
+    "midi": [
+        {
+            "type": "uart",
+            "rx_pin": "D14"
+        }
+    ],
+    "ui": [
+        {
+        "knob:1": "adc:A6",
+        "knob:2": "adc:A0",
+        "switch:1": "gpio:D27",
+        "switch:2": "gpio:D28",
+        "led1:r": "gpio:D20",
+        "led1:g": "gpio:D19",
+        "led1:b": "gpio:D18",
+        "led2:r": "gpio:D17",
+        "led2:g": "gpio:D24",
+        "led2:b": "gpio:D23",
+        "encoder:a": "gpio:D26",
+        "encoder:b": "gpio:D25",
+        "encoder:click": "gpio:D13"
+        }
+    ]
+}
