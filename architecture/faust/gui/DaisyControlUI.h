@@ -235,7 +235,7 @@ class DaisyControlUI : public GenericUI
         void addDACEntry(const char *label, FAUSTFLOAT *zone)
         {
             output_list[dac_counter]->set_value_ptr( zone );
-            dac_counter++;
+            dac_counter = (dac_counter + 1) % output_list.size();
         }
 
         // -- metadata declarations
@@ -246,7 +246,14 @@ class DaisyControlUI : public GenericUI
         void update_adcs()
         {
             for(auto & it : input_list) 
+            {
+                /*if(it->value_ptr == nullptr) {
+                    hw.PrintLine("NULL value_ptr!");
+                    continue;
+                }
+                */
                 it->update();
+            }
         }
 
         void update_dacs()

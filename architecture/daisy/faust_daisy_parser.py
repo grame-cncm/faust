@@ -12,12 +12,15 @@ optreg = re.compile("(options)")
 itemreg = re.compile(".?(slider|button|checkbox|bargraph|nentry)")
 polyreg = re.compile("(freq|key|gain|vel|velocity|gate)")
 midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
+configparse_reg = re.compile("([a-zA-Z_]*):([AD][0-9]+)")
+dac_index_reg = re.compile("[AD]([0-9]+)")
 
 project_dir = sys.argv[1]
 mem_threshold = int(sys.argv[2]) 
 nvoices = int(sys.argv[3])
 use_sdram = int(sys.argv[4])
 archfile = sys.argv[5]
+config_file = sys.argv[6]
 
 arch = ""
 with open(archfile, 'r') as file:
@@ -37,6 +40,50 @@ f = open(json_path)
 json_str = f.read()
 dsp_layout = json.loads(json_str)
 meta = dsp_layout["meta"]
+
+## If configuration file is provided 
+config_layout = None
+config_ui = None
+config_midi = None
+midi_pins = {}
+if(config_file.isdigit() == False):
+    f = open(config_file)
+    conf_str = f.read()
+    config_layout = json.loads(conf_str)
+    chip = config_layout["chip"]
+    if(chip == "seed"):
+        print("SEED=true")
+        print("PATCHSM=false")
+    elif(chip == "patchsm"):
+        print("PATCHSM=true")
+        print("SEED=false")
+
+    if("name" in config_layout):
+        name = config_layout["name"]
+        if(name == "pod"):
+            print("POD=true")
+            print("PATCH=false")
+        elif(name == "patch"):
+            print("PATCH=true")
+            print("POD=false")
+    
+    if("midi" in config_layout):
+        config_midi_list = config_layout["midi"]
+        config_midi = {}
+        for elem  in config_midi_list:
+            for key, value in elem.items():
+                config_midi[key] = value
+
+        if(config_midi["type"] == "uart"):
+            print("UART=true")
+        elif(config_midi["type"] == "usb"):
+            if("peripheral" in config_midi and config_midi["peripheral"] == "external"):
+                print("MIDI_PERIPHERAL=EXERNAL")
+            else:
+                print("MIDI_PERIPHERAL=INTERNAL")
+    
+    if("ui" in config_layout):
+        config_ui = config_layout["ui"]
 
 def iscontrol(item):
     return itemreg.match(item)
@@ -162,8 +209,32 @@ class ui_scanner:
         self.inputs = []
         self.outputs = []
         self.scale = "lin"
+        self.poly_keys = {
+            "key": False,
+            "freq": False,
+            "vel": False,
+            "gain": False,
+            "gate": False
+        }
 
-    def check_meta(self, node): 
+    ## To check if config file maps this meta (knob for example) to any ADC, DAC or GPIO
+    def config_compare_exchange(self, orig_key, meta, config_ui):
+        to_replace = f"{orig_key}:{meta[orig_key]}"
+        eprint(to_replace)
+        for elem in config_ui:
+            for key, value in elem.items():
+                # parse to separate name from index 
+                eprint(key, value)
+                if(to_replace == key):
+                    rep = configparse_reg.search(value)
+                    eprint(rep)
+                    if(rep != None and rep.group(1) != None and rep.group(2) != None):
+                        eprint(rep.group(1), rep.group(2))
+                        return [rep.group(1), rep.group(2)]
+        
+        return None 
+
+    def check_meta(self, node, config_ui): 
         count = 0
         l_meta = ""
         label = node["label"]
@@ -173,22 +244,34 @@ class ui_scanner:
         self.scale = "lin"
         if("meta" in node):
             for meta in node["meta"]:
-                for key in meta.keys():
+                for k, v in meta.items():
+
+                    key = k 
+                    value = v 
+                    ## Check if we find something in config_ui
+                    if(config_ui != None):
+                        config_res = self.config_compare_exchange(key, meta, config_ui)
+                        if(config_res != None):
+                            key = config_res[0]
+                            value = config_res[1]
+                    # Then create the meta to write
                     if(key == "adc"):
                         reslist.append("adc")
-                        reslist.append(int(meta[key]))
+                        reslist.append(value)
                     elif(key == "dac"):
                         reslist.append("dac")
-                        reslist.append(int(meta[key]))
-                        self.dac[int(meta[key])] = True;
-                    elif(key == "digi"):
-                        reslist.append("digi")
-                        reslist.append(int(meta[key]))
+                        reslist.append(value)
+                        #dac_index_reg = re.compile("[AD]([0-9]+)")
+                        dac_index_res = dac_index_reg.search(value)
+                        self.dac[dac_index_res.group(1)] = True;
+                    elif(key == "gpio"):
+                        reslist.append("gpio")
+                        reslist.append(value)
                     elif(key == "midi"):
                         reslist.append("midi")
                         res = midiparse_reg.search(meta[key])
                         if(res == None):
-                            eprint("No res, midi failed to parse")
+                            eprint("Midi failed to parse")
                             exit()
                         miditype = ""
                         key = 0
@@ -205,21 +288,15 @@ class ui_scanner:
                             reslist.append(chan)
                     # Missing scales, and custom
                     elif(key == "scale"):
-                        eprint(key)
-                        eprint(meta[key])
                         l_meta += f"\tui_meta(ui_meta::scale_t::{meta[key]}), \n"
                         self.scale = meta[key]
-                    else:
-                        # Custom meta : likely something from json config file : try to find it
-                        val = f"\"{meta[key]}\""
-                        l_meta += f"\tui_meta(ui_meta::type_t::custom, \"{key}\", {val}), \n"
                     count += 1
             metaname = f"{label}_metadata"
             reslist.append(metaname)
             return reslist
         return None
             
-    def recursive_lookup(self, node):
+    def recursive_lookup(self, node, config_ui):
         if("items" in node):
             for elem in node["items"]:
                 ## Parse
@@ -227,14 +304,26 @@ class ui_scanner:
                     #item_type = elem["type"] #get_control_tpe(elem["type"])
                     item_type = get_control_type(elem["type"])
                     item_label = elem["label"]
-                    metares = self.check_meta(elem)
+                    metares = self.check_meta(elem, config_ui)
 
                     if(poly == True and is_poly(item_label)):
                         self.polys.append(polyctrl())
-                        if(item_label == "freq"):
-                            item_label = "key"
-                        elif(item_label == "gain" or item_label == "velocity"):
+                        #if(item_label == "freq"):
+                        #    item_label = "key"
+                        #elif(item_label == "gain" or item_label == "velocity"):
+                        #    item_label = "vel"
+                        if(item_label == "vel" or item_label == "velocity"):
                             item_label = "vel"
+                            self.poly_keys["vel"] = True
+                        elif(item_label == "gain"):
+                            self.poly_keys["gain"] = True
+                        elif(item_label == "freq"):
+                            self.poly_keys["freq"] = True
+                        elif(item_label == "key"):
+                            self.poly_keys["key"] = True
+                        elif(item_label == "gate"): 
+                            self.poly_keys["gate"] = True
+                        
                         self.polys[-1].label = item_label
                         self.polys[-1].control_type = item_type
                         self.inputs.append(input())
@@ -287,7 +376,7 @@ class ui_scanner:
                         self.outputs.append(output())
                         self.outputs[-1].type = "dac"
                         self.outputs[-1].index = self.dac_count
-                    elif(metares[0] == "digi"):
+                    elif(metares[0] == "gpio"):
                         if(item_type == "button" or item_type == "checkbox"):
                             self.digis_in.append(digi_in())
                             self.digis_in[-1].type = item_type
@@ -355,12 +444,13 @@ class ui_scanner:
         keys[index] = cnt
         return -1
 
-    def write(self, arch, layout, nvoices):
-        eprint(len(self.midis))
+    def write(self, arch, layout, nvoices, config_midi):
         ccs_cnt = 0
         keys_cnt = 0
         keyons_cnt = 0
         keyoffs_cnt = 0
+
+        ## Count midi element
         for elem in self.midis:
             if(elem.type == "ctrl"):
                 ccs_cnt += 1
@@ -381,11 +471,18 @@ class ui_scanner:
         n_outputs = layout["outputs"]
         controlstr = f"#define N_INPUTS {n_inputs} \n"
         controlstr += f"#define N_OUTPUTS {n_outputs} \n\n"
+        
+        if("rx_pin" in config_midi):
+            controlstr += f"#define RX_PIN {config_midi["rx_pin"]} \n"
+        if("tx_pin" in config_midi):
+            controlstr += f"#define TX_PIN {config_midi["tx_pin"]} \n"
 
         polymidival = ""
         polystr = ""
         if(nvoices == 0):
             nvoices = 1
+
+        ## Generate MIDI structures
         midistr = f"static std::array<midi_input, {len(self.midis) * nvoices}> midi_list = {{ \n"
         ccs = f"static std::array<midi_t, {ccs_cnt}> midi_cc = {{ \n"
         keys = f"static std::array<midi_t, {keys_cnt}> midi_key = {{ \n"
@@ -428,8 +525,19 @@ class ui_scanner:
                     midicnt += 1
 
 
+        ## Generate polyphonic structs 
         polystruct = ""
         if(len(self.polys) > 0):
+            if(self.poly_keys["key"] == True):
+                controlstr += "#define POLY_KEY \n"
+            if(self.poly_keys["freq"] == True):
+                controlstr += "#define POLY_FREQ \n"
+            if(self.poly_keys["vel"] == True):
+                controlstr += "#define POLY_VEL \n"
+            if(self.poly_keys["gain"] == True):
+                controlstr += "#define POLY_GAIN \n"
+            if(self.poly_keys["gate"] == True):
+                controlstr += "#define POLY_GATE \n"
 
             polyconstr = "\tpoly_control("
             polyinit = ""
@@ -437,7 +545,7 @@ class ui_scanner:
             polymethods = ""
             first = True
             for i, elem in enumerate(self.polys): 
-                polyconstr += f"midi_input {elem.label}_ "
+                polyconstr += f"poly_input {elem.label}_ "
                 if(i < (len(self.polys) - 1) ):
                     polyconstr += ", "
                 if(first):
@@ -446,9 +554,8 @@ class ui_scanner:
                     polyinit += f"\t\t, {elem.label}({elem.label}_)\n"
 
                 first = False
-                polystruct += f"\tmidi_input {elem.label}; \n"
-                polymethods += f"\tbool has_{elem.label}() override {{return true;}} \n"
-                polymethods += f"\tmidi_input* get_{elem.label}() override {{return &{elem.label};}} \n"
+                polystruct += f"\tpoly_input {elem.label}; \n"
+                polymethods += f"\tpoly_input* get_{elem.label}() override {{return &{elem.label};}} \n"
 
             polyconstr += ") \n"
             polyconstr += polyinit
@@ -468,7 +575,7 @@ class ui_scanner:
                     last = i == (len(self.polys) - 1)
 
                     polymidival += f"\tmidi_t{{midi_t::type_t::key, 0, 0}}, \n"
-                    polystr += f"\t\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, &(poly_midi_values[{t}] ) ) "
+                    polystr += f"\t\tpoly_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, &(poly_midi_values[{t}] ), poly_input::type_t::{elem.label} ) "
                     if(not last):
                         polystr += ", "
                     polystr += "\n"
@@ -499,18 +606,31 @@ class ui_scanner:
         controlstr += "#endif // MIDICTRL \n\n" 
 
 
-
-        controlstr += f"static std::array<adc, {len(self.adcs)}> adc_list = {{ \n"
+        ## Generate ADCs 
+            
+        if(nvoices < 2):
+            controlstr += f"static std::array<adc, {len(self.adcs)}> adc_list = {{ \n"
+        else:
+            controlstr += f"static std::array<shared_adc<{nvoices}>, {len(self.adcs)}> adc_list = {{ \n"
         if(len(self.adcs) > 0):
             for elem in self.adcs:
-                controlstr += f"\tadc(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, A{elem.pin_index}), \n"
+                if(nvoices < 2):
+                    controlstr += f"\tadc(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {elem.pin_index}), \n"
+                else: 
+                    controlstr += f"\tshared_adc<{nvoices}>(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {elem.pin_index}), \n"
         controlstr += "}; \n"
         controlstr += f"std::array<daisy::AdcChannelConfig, {len(self.adcs)}> adc_config_list; \n\n"
 
-        controlstr += f"static std::array<digi_input, {len(self.digis_in)}> digi_input_list {{\n"
+        if(nvoices < 2):
+            controlstr += f"static std::array<digi_input, {len(self.digis_in)}> digi_input_list {{\n"
+        else: 
+            controlstr += f"static std::array<shared_digi_input<{nvoices}>, {len(self.digis_in)}> digi_input_list {{\n"
         if(len(self.digis_in) > 0):
             for elem in self.digis_in:
-                controlstr += f"\tdigi_input(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, D{elem.pin_index}), \n"
+                if(nvoices < 2):
+                    controlstr += f"\tdigi_input(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, {elem.pin_index}), \n"
+                else:
+                    controlstr += f"\tshared_digi_input<{nvoices}>(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, {elem.pin_index}), \n"
         controlstr += "}; \n\n"
 
         input_len = (len(self.adcs) + len(self.midis) + len(self.digis_in)) 
@@ -556,14 +676,20 @@ class ui_scanner:
             controlstr += "constexpr bool dacs_used = false; \n"
             controlstr += "static const daisy::DacHandle::Channel dac_chnls = daisy::DacHandle::Channel::BOTH; // dummy \n"
 
-        controlstr += f"static std::array<dac, {len(self.dacs)}> dac_list = {{ \n"
+        if(nvoices < 2):
+            controlstr += f"static std::array<dac, {len(self.dacs)}> dac_list = {{ \n"
+        else:
+            controlstr += f"static std::array<shared_dac<{nvoices}>, {len(self.dacs)}> dac_list = {{ \n"
         if(len(self.dacs) > 0):
             for elem in self.dacs:
                 if(elem.channel == 1):
                     last_chn = "daisy::DacHandle::Channel::ONE"
                 elif(elem.channel == 2):
                     last_chn = "daisy::DacHandle::Channel::TWO"
-                controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
+                if(nvoices < 2):
+                    controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
+                else:
+                    controlstr += f"\tshared_dac<{nvoices}>({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
 
         controlstr += "}; \n"
         if(len(self.dacs) > 0):
@@ -574,9 +700,15 @@ class ui_scanner:
             
         
 
-        controlstr += f"static std::array<digi_output, {len(self.digis_out)}> digi_output_list = {{ \n"
+        if(nvoices < 2):
+            controlstr += f"static std::array<digi_output, {len(self.digis_out)}> digi_output_list = {{ \n"
+        else:
+            controlstr += f"static std::array<shared_digi_output<{nvoices}>, {len(self.digis_out)}> digi_output_list = {{ \n"
         for elem in self.digis_out:
-            controlstr += f"\tdigi_output(D{elem.pin_index}), \n"
+            if(nvoices < 2):
+                controlstr += f"\tdigi_output({elem.pin_index}), \n"
+            else:
+                controlstr += f"\tshared_digi_output<{nvoices}>({elem.pin_index}), \n"
         controlstr += "}; \n\n"
             
 
@@ -593,8 +725,8 @@ class ui_scanner:
 
 if("ui" in dsp_layout):
     scan = ui_scanner()
-    scan.recursive_lookup(dsp_layout["ui"][0])
-    arch = scan.write(arch, dsp_layout, nvoices)
+    scan.recursive_lookup(dsp_layout["ui"][0], config_ui)
+    arch = scan.write(arch, dsp_layout, nvoices, config_midi)
     
 
 fmem = 0
@@ -621,7 +753,8 @@ arch_dest = project_dir + "/daisy_arch.cpp"
 with open(arch_dest, "w") as file:
     file.write(arch)
 
-print(nvoices) # To store output in bash NVOICES
+print(f"NVOICES={nvoices}")
+#print(nvoices) # To store output in bash NVOICES
 sys.exit(0)
 
 

@@ -36,24 +36,25 @@ Change logic : Polyphonic can be without MIDI.
 # Session 2 : 
 
 - OK ! Generic DAC / ADC access (first) 
-- MIDI 
-- SAMPLE RATE MATCH  & Bloc size control 
+- OK MIDI 
+- OK SAMPLE RATE MATCH  & Bloc size control 
 
 - Later :
     - DMA for DAC / ADC (extended audio inputs outputs) - either as audio signals or as an option (maybe an option for both)
     - multiplexer
-    - I2C for Audio ? : Patch etc 
-    - PatchSM : Gate etc 
+    - I2C for Audio ?  
+    - PatchSM : Gate & CV ? etc 
 
   - MIDI : 
-    - Un contrôleur peut contrôler plusieurs sliders
-    - Donc optim à faire dans python pour remarquer les duplicats de midi_t (cc et key) & quand même mapper les inputs si duplicat
+    - DONE Un contrôleur peut contrôler plusieurs sliders
     - DONE Poly : voice stealing
     - DONE (for pod, check with patch) UART tests
     - DONE POly context of mono sliders : now mono ui (midi:ctrl for example) are duplicated in polyphonic context, all pointing to the same midi value, thus writing to different voices
-    - Issue : poly notes stay stucked sometimes
+    - DONE Issue : poly notes stay stucked sometimes
     - Optimization : use perfect hash for midi mono controls : O(1) and no allocation. Or at least linear search, instead of unordered_map (dynamically allocates)
-    - Issue : Mono midi broken ?
+    - DONE Issue : Mono midi broken ?
+    - DONE Implement Freq / key differently (mtof in the architecture, then snap and clamp)
+    - DONE Same for gain or vel (vel is 0-127 clamped, gain is / 127)
 
   IMPORTANT : 
     - DONE SAMPLE RATE 
@@ -63,5 +64,7 @@ Change logic : Polyphonic can be without MIDI.
     - DONE Feature : Digital input & outputs (switches, binary)
       - Sometimes input is inverted (1 instead of 0) // Not clear
     - DONE Feature : (Pod) Leds outputs (3 signals)
-    - To check : Feature : (Pod) Encoder 
+    - DONE To check : Feature : (Pod) Encoder 
+
     - Feature (Patch ) : audio outs 
+    - DONE Spec file implemented

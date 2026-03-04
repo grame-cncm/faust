@@ -27,11 +27,6 @@ architecture section is not modified.
 
 #include <cstdlib>
 
-/*
-    TODO : 
-        - Replace Faust MIDIUI with simpler implementation
-*/ 
-
 class daisy_midi {
     
     private:
@@ -49,6 +44,12 @@ class daisy_midi {
         daisy_midi()
         {
             #ifdef MIDI_UART 
+                #ifdef RX_PIN 
+                handler_config.transport_config.rx = RX_PIN;
+                #endif
+                #ifdef TX_PIN 
+                handler_config.transport_config.tx = TX_PIN;
+                #endif
                 midi_handler.Init(handler_config);
             #else // MIDI USB Default 
                 handler_config.transport_config.periph = daisy::MidiUsbTransport::Config::INTERNAL;
@@ -112,16 +113,40 @@ class daisy_midi {
         void set_voice(uint8_t idx, int chan, uint8_t note, uint8_t velocity)
         {
             //hw.PrintLine("set_voice: idx=%d note=%d vel=%d", idx, note, velocity);
-            if(poly_inputs[idx].has_key())
+            #ifdef POLY_KEY 
                 poly_inputs[idx].get_key()->m->value = note; 
-            if(poly_inputs[idx].has_vel())
+            #endif
+            #ifdef POLY_FREQ
+                // TODO Midi to freq, normalized
+                poly_inputs[idx].get_freq()->m->value = note; 
+            #endif
+            #ifdef POLY_VEL
                 poly_inputs[idx].get_vel()->m->value = velocity; 
-            if(poly_inputs[idx].has_gate())
+            #endif
+            #ifdef POLY_GAIN 
+                poly_inputs[idx].get_gain()->m->value = velocity; 
+
+            #endif
+            #ifdef POLY_GATE
                 poly_inputs[idx].get_gate()->m->value = 127; 
+            #endif
+
             current_notes[idx] = note;
             locked[idx] = true;
             //hw.PrintLine("midi_val[%d]=%d", idx*3, poly_midi_values[idx*3].value);
         }
+
+        void unset_voice(uint8_t idx, int chan)
+        {
+            //hw.PrintLine("midi_val[%d]=%d", idx*3, poly_midi_values[idx*3].value);
+            #ifdef POLY_GATE
+                poly_inputs[idx].get_gate()->m->value = 0; 
+            #endif
+            current_notes[idx] = 0;
+            locked[idx] = false;
+            generations[idx] = 0;
+        }
+        
 
         void voice_stealing(int chan, uint8_t note, uint8_t velocity)
         {
@@ -129,6 +154,7 @@ class daisy_midi {
             if(free < 0)
             {
                 free = oldest_voice(); 
+                unset_voice(free, chan);
             }
 
             set_voice(free, chan, note, velocity);
@@ -174,17 +200,7 @@ class daisy_midi {
                 for(uint8_t i = 0; i < NVOICES; ++i)
                 {
                     if(locked[i] && current_notes[i] == note) {
-                        if(poly_inputs[i].has_gate())
-                        {
-                            poly_inputs[i].get_gate()->m->value = 0;
-                        }
-                        if(poly_inputs[i].has_vel())
-                        {
-                            poly_inputs[i].get_vel()->m->value = 0;
-                        }
-                        locked[i] = false;
-                        current_notes[i] = 0;
-                        generations[i] = 0;
+                        unset_voice(i, chan);
                     }
                 }
             }

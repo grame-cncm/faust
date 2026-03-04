@@ -33,7 +33,7 @@ BS=16
 SOURCE=false
 APP_TYPE=BOOT_NONE
 MEM_THRESH=64
-JSON_SPEC=0
+JSON_CONFIG=0
 UART=false
 
 echoHelp ()
@@ -48,7 +48,7 @@ echoHelp ()
     option -patch "to compile for 4 ins/outs Patch (knob[1,2,3,4])"
     option -pod "to compile for 2 ins/outs Pod (knob[1,3])"
     option -sdram "to compile using SDRAM for long delay lines/tables etc."
-    option "-spec-file <file>" "JSON file to map different metadata to pins, like pod_spec.json in Faust architecture files for Daisy" 
+    option "-config-file <file>" "JSON file to specify mapping of a platform (like pod, patch) to the chip, like pod_spec.json in Faust architecture files for Daisy" 
     option "-mem-thresh <num>" "Memory threshold in bytes above which data is stored on SDRAM, requires -sdram"
     options -midi "Enables MIDI (USB, with default Daisy USB)"
     option -midi-uart "Enables MIDI through UART pins (for Pod for example)"
@@ -86,6 +86,7 @@ do
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
+        MIDI=true
     # -midi
     elif [ $p = "-midi" ]; then
         MIDI=true
@@ -94,15 +95,17 @@ do
         UART=true
     #patch
     elif [ $p = "-patch" ]; then
+        JSON_CONFIG="$FAUSTARCH/daisy/patch.json"
         PATCH=true
         SEED=true
-        UART=true
-        JSON_SPEC="$FAUSTARCH/daisy/patch_spec.json"
+        #UART=true
+        JSON_SPEC="$FAUSTARCH/daisy/patch.json"
     elif [ $p = "-pod" ]; then
+        JSON_CONFIG="$FAUSTARCH/daisy/pod.json"
         POD=true
         SEED=true
-        UART=true
-        JSON_SPEC="$FAUSTARCH/daisy/pod_spec.json"
+        #UART=true
+        JSON_SPEC="$FAUSTARCH/daisy/pod.json"
     elif [ $p = "-seed" ]; then 
         SEED=true
     elif [ $p = "-patchsm" ]; then
@@ -157,6 +160,7 @@ do
 shift
 done
 
+
 ###########################
 # Compile the *.dsp files
 ###########################
@@ -183,15 +187,14 @@ for p in $FILE; do
     if [ $USE_SDRAM == true ]; then 
         # Have to compile it twice to provide json to python, before inlining generated code 
         faust -i -a "$ARCHFILE" $OPTIONS "$f" -json -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
-        NVOICES=$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE)
+        eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE $JSON_SPEC)"
         faust -A "$SRCDIR/$dspName" -i -a "$GENERATED_ARCH" $OPTIONS "$f" -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     else 
         # Have to compile it twice to provide json to python, before inlining generated code 
         faust -i  -a "$ARCHFILE" $OPTIONS "$f" -json  -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
-        NVOICES=$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE)
+        eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE $JSON_SPEC)"
         faust -A "$SRCDIR/$dspName" -i  -a "$GENERATED_ARCH" $OPTIONS "$f" -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     fi
-
 
     # for PATCH support
     if [ $PATCH == true ]; then
