@@ -2443,7 +2443,7 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-rnt        --rust-no-faustdsp-trait    (Rust only) Don't generate FaustDsp trait "
-            "implmentation."
+            "implementation."
          << endl;
     sstr << tab
          << "-rnlm       --rust-no-libm              (Rust only) Don't generate FFI calls to libm."

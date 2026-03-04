@@ -244,7 +244,6 @@ void RustCodeContainer::produceLibMBlob()
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-
         /*
         tab(n, *fOut);
         *fOut << "fn remainderf(a: f32, b: f32) -> f32 { let n = (a/b).round(); a - b*n }";
@@ -296,14 +295,13 @@ void RustCodeContainer::produceLibMBlob()
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-
         /*
         tab(n, *fOut);
         *fOut << "fn remainder_f64(a: f64, b: f64) -> f64 { let n = (a/b).round(); a - b*n }";
         tab(n, *fOut);
         */
     }
-
+    tab(n, *fOut);
 }
 
 void RustCodeContainer::produceFaustDspBlob()
@@ -402,7 +400,6 @@ void RustCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    tab(n, *fOut);
     *fOut << "pub const FAUST_INPUTS: usize = " << fNumInputs << ";";
     tab(n, *fOut);
     *fOut << "pub const FAUST_OUTPUTS: usize = " << fNumOutputs << ";";
@@ -410,8 +407,6 @@ void RustCodeContainer::produceClass()
     *fOut << "pub const FAUST_ACTIVES: usize = " << fNumActives << ";";
     tab(n, *fOut);
     *fOut << "pub const FAUST_PASSIVES: usize = " << fNumPassives << ";";
-    tab(n, *fOut);
-
     tab(n, *fOut);
 
     tab(n, *fOut);
