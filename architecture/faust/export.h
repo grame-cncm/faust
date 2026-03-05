@@ -26,12 +26,12 @@
 #define __export__
 
 // Version as a global string
-#define FAUSTVERSION "2.84.5"
+#define FAUSTVERSION "2.85.0"
 
 // Version as separated [major,minor,patch] values
 #define FAUSTMAJORVERSION 2
-#define FAUSTMINORVERSION 84
-#define FAUSTPATCHVERSION 5
+#define FAUSTMINORVERSION 85
+#define FAUSTPATCHVERSION 0
 
 // Use FAUST_API for code that is part of the external API but is also compiled in faust and libfaust
 // Use LIBFAUST_API for code that is compiled in faust and libfaust

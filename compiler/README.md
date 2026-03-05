@@ -1,9 +1,9 @@
-% man(1) Version 2.84.5 (16-February-2026) | Faust man page
+% man(1) Version 2.85.0 (05-March-2026) | Faust man page
 
 NAME
 ====
 
-Faust - DSP to AssemblyScript, C/C++, CMajor, Codebox, CSharp, DLang, Interpreter, Java, LLVM IR, Julia, JSFX, Rust and WebAssembly (wast/wasm)
+Faust - DSP to C/C++, CMajor, Codebox, CSharp, DLang, Interpreter, Java, LLVM IR, Julia, JSFX, Rust and WebAssembly (wast/wasm)
 
 SYNOPSIS
 ========
@@ -287,3 +287,4 @@ AUTHOR
 
 Copyright (C) 2002-2026, GRAME - Centre National de Creation Musicale.
 All rights reserved.
+
