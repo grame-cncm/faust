@@ -112,6 +112,10 @@
 #include "jax_code_container.hh"
 #endif
 
+#ifdef ASSEMBLYSCRIPT_BUILD
+#include "assemblyscript_code_container.hh"
+#endif
+
 #ifdef TEMPLATE_BUILD
 #include "template_code_container.hh"
 #endif
@@ -576,6 +580,10 @@ void global::reset()
     gJAXVisitor = nullptr;  // Will be (possibly) allocated in JAX backend
 #endif
 
+#ifdef ASSEMBLYSCRIPT_BUILD
+    gAssemblyScriptVisitor = nullptr;  // Will be (possibly) allocated in AssemblyScript backend
+#endif
+
 #ifdef TEMPLATE_BUILD
     gTemplateVisitor = nullptr;  // Will be (possibly) allocated in Template backend
 #endif
@@ -973,7 +981,8 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
          startWith(gOutputLang, "wasm") || (gOutputLang == "interp") ||
          startWith(gOutputLang, "cmajor") || startWith(gOutputLang, "codebox") ||
          (gOutputLang == "dlang") || (gOutputLang == "csharp") || (gOutputLang == "rust") ||
-         (gOutputLang == "julia") || startWith(gOutputLang, "jsfx") || (gOutputLang == "jax"));
+         (gOutputLang == "julia") || startWith(gOutputLang, "jsfx") || (gOutputLang == "jax") ||
+         (gOutputLang == "asc"));
 
     return (internal_math_ff &&
             (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) ||
@@ -1059,6 +1068,9 @@ global::~global()
 #endif
 #ifdef JAX_BUILD
     JAXInstVisitor::cleanup();
+#endif
+#ifdef ASSEMBLYSCRIPT_BUILD
+    AssemblyScriptInstVisitor::cleanup();
 #endif
 #ifdef TEMPLATE_BUILD
     TemplateInstVisitor::cleanup();
@@ -1855,7 +1867,8 @@ bool global::processCmdline(int argc, const char* argv[])
         ((gOutputLang == "wast") || (gOutputLang == "wasm") || (gOutputLang == "interp") ||
          (gOutputLang == "llvm") || (gOutputLang == "fir"))) {
         throw faustexception(
-            "ERROR : -a can only be used with 'c', 'cpp', 'ocpp', 'rust' and 'cmajor' backends\n");
+            "ERROR : -a can only be used with 'asc', 'c', 'cpp', 'ocpp', 'rust' and 'cmajor' "
+            "backends\n");
     }
 
     if (gClassName == "") {
@@ -2096,6 +2109,10 @@ static void enumBackends(ostream& out)
     out << dspto << "SDF3" << endl;
 #endif
 
+#ifdef ASSEMBLYSCRIPT_BUILD
+    out << dspto << "AssemblyScript" << endl;
+#endif
+
 #ifdef TEMPLATE_BUILD
     out << dspto << "Template" << endl;
 #endif
@@ -2181,7 +2198,7 @@ string global::printHelp()
 #ifndef EMCC
     sstr << tab << "-lang <lang> --language                 select output language," << endl;
     sstr << tab
-         << "                                        'lang' should be c, cpp (default), cmajor, "
+         << "                                        'lang' should be asc, c, cpp (default), cmajor, "
             "codebox, csharp, "
             "dlang, fir, interp, java, jax, jsfx, julia, llvm, "
             "ocpp, rust, sdf3, vhdl or wast/wasm."

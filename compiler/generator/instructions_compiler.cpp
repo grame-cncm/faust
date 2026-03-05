@@ -446,7 +446,8 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
 
     CodeContainer* container = fContainer->createScalarContainer(name, t->nature());
 
-    if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
+    if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia" ||
+        gGlobal->gOutputLang == "asc") {
         InstructionsCompiler1 C(container);
         C.compileSingleSignal(sig);
     } else if (gGlobal->gOutputLang == "jax") {
@@ -1535,8 +1536,9 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
     pushInitMethod(IB::genDecStackVar(
         signame, IB::genNamedTyped(cname, IB::genBasicTyped(Typed::kObj_ptr)), obj));
 
-    // HACK for Rust and Julia backends
-    if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
+    // HACK for Rust, Julia and AssemblyScript backends
+    if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia" &&
+        gGlobal->gOutputLang != "asc") {
         // Delete object
         Values args3;
         args3.push_back(IB::genLoadStackVar(signame));
@@ -1569,8 +1571,9 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
     pushStaticInitMethod(IB::genDecStackVar(
         signame, IB::genNamedTyped(cname, IB::genBasicTyped(Typed::kObj_ptr)), obj));
 
-    // HACK for Rust and Julia backends
-    if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
+    // HACK for Rust, Julia and AssemblyScript backends
+    if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia" &&
+        gGlobal->gOutputLang != "asc") {
         // Delete object
         Values args3;
         args3.push_back(IB::genLoadStackVar(signame));
@@ -1619,8 +1622,9 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
             kvnames.second, IB::genNamedTyped(kvnames.first, IB::genBasicTyped(Typed::kObj_ptr)),
             obj));
 
-        // HACK for Rust and Julia backends
-        if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
+        // HACK for Rust, Julia and AssemblyScript backends
+        if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia" &&
+            gGlobal->gOutputLang != "asc") {
             // Delete object
             Values args3;
             args3.push_back(signame);
@@ -1690,8 +1694,9 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
                 kvnames.second,
                 IB::genNamedTyped(kvnames.first, IB::genBasicTyped(Typed::kObj_ptr)), obj));
 
-            // HACK for Rust and Julia backends
-            if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
+            // HACK for Rust, Julia and AssemblyScript backends
+            if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia" &&
+                gGlobal->gOutputLang != "asc") {
                 // Delete object
                 Values args3;
                 args3.push_back(signame);

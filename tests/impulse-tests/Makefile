@@ -27,7 +27,7 @@ CLANG_TIDY_CXXFLAGS ?= -std=c++11 -I../../architecture -I/usr/local/include/ap_f
 CLANG_TIDY_FAUSTOPTIONS ?= -I dsp -double
 CLANG_TIDY_ARCH ?= impulsearch.cpp
 
-.PHONY: test reference clang-tidy clang-tidy-cpp asan-cpp
+.PHONY: test reference clang-tidy clang-tidy-cpp asan-cpp asc
 
 dspfiles := $(wildcard dsp/*.dsp)
 mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir)
@@ -85,6 +85,8 @@ help:
 	@echo " 'jax'    : check double output with JAX backend and various options"
 	@echo " 'julia'  : check double output with Julia backend and various options"
 	@echo " 'jsfx'   : check double output with JSFX backend and various options"
+	@echo " 'assemblyscript' : smoke-test output generation with AssemblyScript backend"
+	@echo " 'asc'    : AssemblyScript impulse tests with reference comparison (compare=1)"
 	@echo " 'signal' : check double output with signal interpreter"
 	@echo " 'me'     : check double outputs with the cpp backend in scalar with activated math exceptions"
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
@@ -119,6 +121,11 @@ help:
 	@echo "NOTE2: an experimental FIR checker can be activated for all backends testing using 'export FAUST_DEBUG=FIR_CHECKER'."
 	@echo "NOTE3: on macOS ARM, 'make universal' can be used to build a x86_64/arm64 target. Then 'arch -x86_64 /bin/bash' allows to launch targets in x86_64 mode."
 	@echo
+
+#########################################################################
+# AssemblyScript backend shortcut
+asc:
+	$(MAKE) -f Make.assemblyscript assemblyscript compare=1
 
 #########################################################################
 # automatic travis test
@@ -436,6 +443,11 @@ julia:
 # JSFX backend
 jsfx:
 	$(MAKE) -f Make.jsfx outdir=jsfx/double   FAUSTOPTIONS="-I dsp -double"
+
+#########################################################################
+# AssemblyScript backend (experimental smoke test)
+assemblyscript:
+	$(MAKE) -f Make.assemblyscript outdir=assemblyscript/double FAUSTOPTIONS="-I dsp -double"
 
 #########################################################################
 # output directories

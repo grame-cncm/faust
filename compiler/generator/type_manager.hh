@@ -819,4 +819,102 @@ class TemplateStringTypeManager : public StringTypeManager {
     }
 };
 
+// StringTypeManager for AssemblyScript backend
+
+class AssemblyScriptStringTypeManager : public StringTypeManager {
+   public:
+    AssemblyScriptStringTypeManager(const std::string& float_macro_name,
+                                    const std::string& ptr_ref,
+                                    const std::string& struct_name = "")
+        : StringTypeManager(float_macro_name, ptr_ref)
+    {
+        fPtrRef = ptr_ref;
+
+        fTypeDirectTable[Typed::kInt32]     = "i32";
+        fTypeDirectTable[Typed::kInt32_ptr] = "i32[]";
+        fTypeDirectTable[Typed::kInt32_vec] = "i32[]";
+
+        fTypeDirectTable[Typed::kInt64]     = "i64";
+        fTypeDirectTable[Typed::kInt64_ptr] = "i64[]";
+        fTypeDirectTable[Typed::kInt64_vec] = "i64[]";
+
+        fTypeDirectTable[Typed::kFloat]         = "f32";
+        fTypeDirectTable[Typed::kFloat_ptr]     = "f32[]";
+        fTypeDirectTable[Typed::kFloat_ptr_ptr] = "f32[][]";
+        fTypeDirectTable[Typed::kFloat_vec]     = "f32[]";
+
+        fTypeDirectTable[Typed::kDouble]         = "f64";
+        fTypeDirectTable[Typed::kDouble_ptr]     = "f64[]";
+        fTypeDirectTable[Typed::kDouble_ptr_ptr] = "f64[][]";
+        fTypeDirectTable[Typed::kDouble_vec]     = "f64[]";
+
+        fTypeDirectTable[Typed::kQuad]         = "f64";
+        fTypeDirectTable[Typed::kQuad_ptr]     = "f64[]";
+        fTypeDirectTable[Typed::kQuad_ptr_ptr] = "f64[][]";
+        fTypeDirectTable[Typed::kQuad_vec]     = "f64[]";
+
+        fTypeDirectTable[Typed::kFixedPoint]         = "f64";
+        fTypeDirectTable[Typed::kFixedPoint_ptr]     = "f64[]";
+        fTypeDirectTable[Typed::kFixedPoint_ptr_ptr] = "f64[][]";
+        fTypeDirectTable[Typed::kFixedPoint_vec]     = "f64[]";
+
+        fTypeDirectTable[Typed::kBool]     = "bool";
+        fTypeDirectTable[Typed::kBool_ptr] = "bool[]";
+        fTypeDirectTable[Typed::kBool_vec] = "bool[]";
+
+        fTypeDirectTable[Typed::kVoid]     = "void";
+        fTypeDirectTable[Typed::kVoid_ptr] = "usize";
+
+        fTypeDirectTable[Typed::kSound]     = "Soundfile";
+        fTypeDirectTable[Typed::kSound_ptr] = "Soundfile";
+
+        fTypeDirectTable[Typed::kUI]     = "UI";
+        fTypeDirectTable[Typed::kUI_ptr] = "UI";
+
+        fTypeDirectTable[Typed::kMeta]     = "Meta";
+        fTypeDirectTable[Typed::kMeta_ptr] = "Meta";
+
+        fTypeDirectTable[Typed::kObj]     = struct_name;
+        fTypeDirectTable[Typed::kObj_ptr] = struct_name;
+
+        fTypeDirectTable[Typed::kUint_ptr] = "usize";
+    }
+
+    virtual std::string generateType(Typed* type, NamedTyped::Attribute attr = NamedTyped::kDefault)
+    {
+        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
+        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+
+        if (basic_typed) {
+            return fTypeDirectTable[basic_typed->fType];
+        } else if (named_typed) {
+            return generateType(named_typed->fType) + " " + named_typed->fName;
+        } else if (array_typed) {
+            return generateType(array_typed->fType) + "[]";
+        } else {
+            faustassert(false);
+            return "";
+        }
+    }
+
+    virtual std::string generateType(Typed* type, const std::string& name)
+    {
+        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
+        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+
+        if (basic_typed) {
+            return name + ": " + fTypeDirectTable[basic_typed->fType];
+        } else if (named_typed) {
+            return name + ": " + generateType(named_typed->fType);
+        } else if (array_typed) {
+            return name + ": " + generateType(array_typed->fType) + "[]";
+        } else {
+            faustassert(false);
+            return "";
+        }
+    }
+};
+
 #endif

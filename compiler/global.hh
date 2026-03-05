@@ -66,6 +66,7 @@ class WASMInstVisitor;
 class JAXInstVisitor;
 class JuliaInstVisitor;
 class JSFXInstVisitor;
+class AssemblyScriptInstVisitor;
 class TemplateInstVisitor;
 class CodeboxInstVisitor;
 struct TableSizeVisitor;
@@ -707,6 +708,10 @@ struct global {
 
 #ifdef JAX_BUILD
     JAXInstVisitor* gJAXVisitor;
+#endif
+
+#ifdef ASSEMBLYSCRIPT_BUILD
+    AssemblyScriptInstVisitor* gAssemblyScriptVisitor;
 #endif
 
 #ifdef TEMPLATE_BUILD

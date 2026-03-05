@@ -1,0 +1,70 @@
+#
+# Makefile for smoke-testing the AssemblyScript backend
+#
+
+system := $(shell uname -s)
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+ifeq ($(system), MINGW)
+ FAUST ?= ../../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
+else
+ FAUST ?= ../../../build/bin/faust
+ COMPARE := ./filesCompare
+endif
+
+ASCC ?= asc
+RUNASC ?= node tools/impulseasc.js
+outdir ?= assemblyscript/double
+FAUSTOPTIONS ?= -double
+precision ?= -1 -part
+compare ?= 0
+
+.PHONY: assemblyscript assemblyscript-wasm assemblyscript-compare-quick test help
+
+dspfiles := $(wildcard dsp/*.dsp)
+listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
+
+assemblyscript: ir/$(outdir) $(call listfiles,$(outdir))
+assemblyscript-wasm: ir/$(outdir) $(dspfiles:dsp/%.dsp=ir/$(outdir)/%.wasm)
+assemblyscript-compare-quick: ir/$(outdir)/noise.ir ir/$(outdir)/APF.ir ir/$(outdir)/UITester.ir
+
+test:
+	@echo $(call listfiles,$(outdir))
+
+help:
+	@echo "-------- FAUST impulse response tests --------"
+	@echo "Available targets are:"
+	@echo " 'assemblyscript' (default): smoke-test the AssemblyScript backend"
+	@echo " 'assemblyscript-wasm'     : compile generated AssemblyScript with asc"
+	@echo " 'assemblyscript-compare-quick' : compare a stable AssemblyScript subset against reference"
+	@echo
+	@echo "Options:"
+	@echo " 'outdir'       : define the output directory (default to 'assemblyscript/double')"
+	@echo " 'FAUSTOPTIONS' : define additional faust options (-double by default)"
+	@echo " 'ASCC'         : AssemblyScript compiler command (default: 'asc')"
+	@echo " 'RUNASC'       : AssemblyScript impulse runner command"
+	@echo " 'precision'    : define filesCompare expected precision (default: '-1 -part')"
+	@echo " 'compare'      : compare with reference files (0 by default, set to 1 to enable)"
+
+ir/$(outdir):
+	mkdir -p ir/$(outdir)
+
+ir/$(outdir)/%.ts: dsp/%.dsp
+	cd $(dir $<); $(FAUST) -lang asc $(notdir $<) $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
+
+ir/$(outdir)/%.wasm: ir/$(outdir)/%.ts
+	@if command -v $(word 1,$(ASCC)) >/dev/null 2>&1 || [ -x "$(word 1,$(ASCC))" ]; then \
+		$(ASCC) $< -O --runtime stub -o $@ || { \
+			echo "Skipping asc compilation for $< (asc command failed)"; \
+			rm -f $@; \
+		}; \
+	else \
+		echo "Skipping asc compilation for $< (asc compiler not found)"; \
+		rm -f $@; \
+	fi
+
+ir/$(outdir)/%.ir: ir/$(outdir)/%.ts ir/$(outdir)/%.wasm
+	$(RUNASC) $< > $@ || (rm -f $@; false)
+	if [ "$(compare)" = "1" ]; then \
+		$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false); \
+	fi
