@@ -35,11 +35,14 @@ archfile = sys.argv[5]
 <<<<<<< HEAD
 config_file = sys.argv[6]
 
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
 config_file = sys.argv[6]
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 
 arch = ""
 with open(archfile, 'r') as file:
@@ -180,6 +183,9 @@ class digi_out:
         self.pin_index = 0
         self.label = ""
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         self.pwm = False
         self.pwm_mode = "inv"
 
@@ -353,6 +359,7 @@ class ui_scanner:
         self.inputs = []
         self.outputs = []
         self.scale = "lin"
+        self.pwm = "off"
         self.poly_keys = {
             "key": False,
             "freq": False,
@@ -364,24 +371,23 @@ class ui_scanner:
     ## To check if config file maps this meta (knob for example) to any ADC, DAC or GPIO
     def config_compare_exchange(self, orig_key, meta, config_ui):
         to_replace = f"{orig_key}:{meta[orig_key]}"
-        eprint(to_replace)
         for elem in config_ui:
             for key, value in elem.items():
                 # parse to separate name from index 
-                eprint(key, value)
                 if(to_replace == key):
                     rep = configparse_reg.search(value)
-                    eprint(rep)
                     if(rep != None and rep.group(1) != None and rep.group(2) != None):
-                        eprint(rep.group(1), rep.group(2))
                         return [rep.group(1), rep.group(2)]
         
         return None 
 
     def check_meta(self, node, config_ui): 
         count = 0
+<<<<<<< HEAD
         l_meta = ""
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         label = node["label"]
         # For ADC DAC : type, index, label
         # For MIDI : type, miditype, key, channel, label  
@@ -390,6 +396,7 @@ class ui_scanner:
 <<<<<<< HEAD
         self.scale = "lin"
         self.pwm = "off"
+<<<<<<< HEAD
         if("meta" in node):
             for meta in node["meta"]:
                 for k, v in meta.items():
@@ -420,6 +427,8 @@ class ui_scanner:
 =======
         self.scale = "lin"
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         if("meta" in node):
             for meta in node["meta"]:
                 for k, v in meta.items():
@@ -432,6 +441,7 @@ class ui_scanner:
                         if(config_res != None):
                             key = config_res[0]
                             value = config_res[1]
+
                     # Then create the meta to write
                     if(key == "adc"):
                         reslist.append("adc")
@@ -508,8 +518,9 @@ class ui_scanner:
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
                     # Missing scales, and custom
                     elif(key == "scale"):
-                        l_meta += f"\tui_meta(ui_meta::scale_t::{meta[key]}), \n"
                         self.scale = meta[key]
+                    elif(key == "pwm"):
+                        self.pwm = meta[key]
                     count += 1
             metaname = f"{label}_metadata"
             reslist.append(metaname)
@@ -684,6 +695,7 @@ class ui_scanner:
                             self.inputs[-1].index = self.digi_in_count
                             self.digi_in_count += 1
 <<<<<<< HEAD
+<<<<<<< HEAD
                         elif(item_type == "bargraph"): # Then it is digital output 
 =======
                         # Not qure slider or nentry is relevant
@@ -691,6 +703,9 @@ class ui_scanner:
                         #    self.digis_in.append(digi_in())
                         elif(item_type == "bargraph"):
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+                        elif(item_type == "bargraph"): # Then it is digital output 
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
                             self.digis_out.append(digi_out())
 
                             self.digis_out[-1].type = item_type
@@ -701,10 +716,15 @@ class ui_scanner:
                             self.digis_out[-1].step = 1
                             self.digis_out[-1].init = 0
 <<<<<<< HEAD
+<<<<<<< HEAD
                             self.digis_out[-1].pwm = self.pwm
 
 =======
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+                            self.digis_out[-1].pwm = self.pwm
+
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
                             self.outputs.append(output())
                             self.outputs[-1].type = "digi_out"
                             self.outputs[-1].index = self.digi_out_count
@@ -1295,6 +1315,7 @@ class ui_scanner:
         for elem in self.digis_out:
             if(nvoices < 2):
                 controlstr += f"\tdigi_output({elem.pin_index}, digi_output::pwm_t::{elem.pwm}), \n"
+<<<<<<< HEAD
             else:
                 controlstr += f"\tshared_digi_output<{nvoices}>({elem.pin_index}, digi_output::pwm_t::{pwm}), \n"
 =======
@@ -1314,6 +1335,10 @@ class ui_scanner:
             else:
                 controlstr += f"\tshared_digi_output<{nvoices}>({elem.pin_index}), \n"
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+            else:
+                controlstr += f"\tshared_digi_output<{nvoices}>({elem.pin_index}, digi_output::pwm_t::{pwm}), \n"
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         controlstr += "}; \n\n"
             
 

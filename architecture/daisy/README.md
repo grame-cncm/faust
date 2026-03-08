@@ -2,18 +2,27 @@
 
 The **faust2daisy** tool compiles a Faust DSP program in a folder containing the C++ source code and a Makefile to compile it.  
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 This new version is a partial refactor of the previous tool, aiming to : 
 - improve memory footprint
 - provide compile time memory footprint
 - target Daisy boards (while still providing a way to target platforms)
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 
 `faust2daisy [-faust2daisy_options...] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
 Here are the available options:
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 - `-seed`: target Daisy seed chip
 - `-patchsm`: target Daisy patchsm chip
 - `-pod`: use Pod configuration file 
@@ -32,6 +41,7 @@ Here are the available options:
 - `sr <num>`: sample rate of DSP : only 8000, 16000, 32000, 48000, 96000 are allowed
 - `bs <num>`: buffer size
 - Any other option will be passed to Faust compiler
+<<<<<<< HEAD
 
 ## Setup 
 
@@ -51,23 +61,34 @@ You should specify environment variables. For example, on macOS/Linux:
 - `-sr <num>`: to specify sample rate (default 44100)
 - `-bs <num>`: to specify buffer size (default 16)
 - `-source`: to only create the source folder
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 
-Flash mode options: 
-Flash mode defaults to FLASH (it will use native STM32 bootloader), for program whose binary can be up to 128KB.
-One of the following options can be used for larger programs (it will propose to install Daisy bootloader first on FLASH first) : 
-- `-sram`: to flash program on SRAM - for binary up to 512KB. It will enable `-sdram` option since SRAM won't be usable for RAM anymore. 
-- `-qspi`: to flash program on QSPIFLASH - for binary up do 8MB. 
+## Setup 
 
+<<<<<<< HEAD
 It is recommended to put your Faust DSP files inside a directory [DaisyExamples](https://github.com/electro-smith/DaisyExamples/)`/DaisySP/faust_examples`. Then execute `faust2daisy code.dsp` with your chosen options. To use `faust2daisy` in an arbitrary directory, you should specify environment variables. For example, on macOS/Linux:
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+To use `faust2daisy`, you need the daisy toolchain installed. 
+- [Linux](https://daisy.audio/tutorials/toolchain-linux/)
+- [Mac](https://daisy.audio/tutorials/toolchain-mac/)
+
+You will also need [libDaisy](https://github.com/electro-smith/libDaisy) to be built. Latest tool was designed to target version 8.1.0. 
+You should specify environment variables. For example, on macOS/Linux:
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 ```bash
 export LIBDAISY_DIR=~/GitHub/DaisyExamples/libdaisy
 export DAISYSP_DIR=~/GitHub/DaisyExamples/DaisySP
 ```
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 If on macOS, consider putting the above text in `~/.zshrc` so that it's always set in Terminal.
 
 The default optimization is for file size: `OPT=-Os`. You can optimize for speed by setting `OPT=-O2` or the even more aggressive setting `OPT=-O3`. This can be set in the Makefile in "faust/architecture/daisy".
@@ -84,6 +105,7 @@ The idea is to provide access to all of the Pins that can be useful in an audio 
 - Control DACs (12 bits)
 - GPIO (in either on/off mode, or as software PWM for output)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 Example : 
 ``` faust
@@ -134,6 +156,10 @@ Here is a simple example showing how oscillators can be controlled by physical i
 
 ```
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+Example : 
+``` faust
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 import("stdfaust.lib");
 
 freq = hslider("freq[adc::A0]", 50, 50, 1000, 0.1) : si.smoo;
@@ -205,6 +231,9 @@ QSPIFLASH is slower than Flash and SRAM.
 Specific architecture files have been developed:
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 - [faust/gui/DaisyControlUI.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/gui/DaisyControlUI.h): to be used with the DSP `buildUserInterface` method to implement `button`, `checkbox`, `hslider`, `vslider`, `hbargraph`, `vbargraph` controllers, and interpret the specific metadata previously described
 - [faust/midi/daisy-midi.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/daisy-midi.h): implements a [midi_handler](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/midi.h) subclass to decode incoming MIDI events.
 - [faust/midi/daisy-poly.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/dsp/daisy-poly.h): implements a lightweight polyphonic DSP encapsulation
@@ -240,8 +269,12 @@ This new development allows the following new features :
 - OLED screens (Patch, custom platforms)
 - DMA for DACs / ADCs : Could provide extended audio inputs & outputs (16 bit for ADC, 12 bits for DAC) or higher time precision for controls 
 - Multiplexer for ADCs / DACs (to use with 4051's for example)
+<<<<<<< HEAD
 - I2C communication (audio and/or control)
 =======
 - [faust/gui/DaisyControlUI.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/gui/DaisyControlUI.h): to be used with the DSP `buildUserInterface` method to implement `button`, `checkbox`, `hslider`, `vslider` controllers, and interpret the specific metadata previously described
 - [faust/midi/daisy-midi.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/daisy-midi.h): implements a [midi_handler](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/midi.h) subclass to decode incoming MIDI events.
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+- I2C communication (audio and/or control)
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))

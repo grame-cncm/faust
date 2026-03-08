@@ -685,9 +685,12 @@ struct shared_digi_input : public digi_input
     void setup() override 
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         hw.PrintLine("shared_digi setup counter=%d upd=%p", 
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         counter, update_method);
         if(counter == 0)
         {
@@ -786,6 +789,7 @@ struct poly_input : public midi_input
     {
         
         *fZone = snap_to_step(limit(mtof(value), min, max), step);
+<<<<<<< HEAD
     }
 
     // Used for vel as well.
@@ -907,6 +911,8 @@ struct poly_input : public midi_input
             fcnt = 0;
             hw.PrintLine("Freq value : %d", int(*fZone));
         }*/
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     }
 
     // Used for vel as well.
@@ -915,12 +921,6 @@ struct poly_input : public midi_input
         float min, float max, float step, float &prev, scale::scale_t scale_type)
     {
         *fZone = snap_to_step(limit(value, min, max), int(step) );
-        /*static int kcnt = 0;
-        if(++kcnt > 1000) {
-            kcnt = 0;
-            hw.PrintLine("Key value : %d", int(*fZone));
-        }*/
-
     }
 
     
@@ -930,7 +930,6 @@ struct poly_input : public midi_input
     {
         *fZone = snap_to_step(scale_from_norm(
             scale::process(scale_type, value / 127.0f), min, max), step);
-        //hw.PrintLine("Gain value : %.2f", *fZone);
     }
 
     
@@ -1077,6 +1076,7 @@ struct digi_output : public control
         inv 
     };
 
+<<<<<<< HEAD
     daisy::Pin pin;
     float min, max;
     daisy::GPIO gpio;
@@ -1140,18 +1140,42 @@ struct shared_dac : public dac
 
 struct digi_output : public control 
 {
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     daisy::Pin pin;
-    daisy::GPIO gpio;
     float min, max;
+    daisy::GPIO gpio;
+    daisy::Led led;
+
+    using digi_out_method_t = void(*)(float*, daisy::GPIO* gpio, daisy::Led* led);
+    digi_out_method_t digi_out_method = nullptr;
+
+    static void gpio_method(float *val, daisy::GPIO* gpio, daisy::Led* led)
+    {
+        gpio->Write( (*val) < adc::noise_threshold );
+    }
+
+    static void led_method(float *val, daisy::GPIO* gpio, daisy::Led* led)
+    {
+        led->Set(*val);
+        led->Update();
+    }
 
     digi_output() = default;
+<<<<<<< HEAD
     digi_output(daisy::Pin pin_, float min_ = 0.0f, float max_ = 1.0f)
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+    digi_output(daisy::Pin pin_, pwm_t pwm, float min_ = 0.0f, float max_ = 1.0f)
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         : pin(pin_)
         , min(min_)
         , max(max_)
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         if(pwm != pwm_t::off) 
         {
             led.Init(pin, pwm == pwm_t::inv, 1000.0f /*MY_SAMPLE_RATE / MY_BUFFER_SIZE*/ );
@@ -1162,6 +1186,7 @@ struct digi_output : public control
             gpio.Init(pin, daisy::GPIO::Mode::OUTPUT);
             digi_out_method = led_method;
         }
+<<<<<<< HEAD
         *value_ptr = min;
     }
 
@@ -1207,11 +1232,15 @@ struct shared_digi_output : public digi_output
         hw.dac.WriteValue(channel, uint16_t(normalize(*value_ptr, min, max) * 4095.0f));
 =======
         gpio.Init(pin, daisy::GPIO::Mode::OUTPUT);
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         *value_ptr = min;
     }
 
+
     void update() override 
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
         gpio.Write( (*value_ptr) > adc::noise_threshold );
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
@@ -1221,6 +1250,9 @@ struct shared_digi_output : public digi_output
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
         gpio.Write( (*value_ptr) < adc::noise_threshold );
+=======
+        digi_out_method(value_ptr, &gpio, &led);
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     }
 };
 
@@ -1384,6 +1416,7 @@ static void AudioCallback(daisy::AudioHandle::InputBuffer in,
 {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Update control inputs
 =======
     #ifdef MIDICTRL 
@@ -1393,27 +1426,23 @@ static void AudioCallback(daisy::AudioHandle::InputBuffer in,
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
     // Update controllers
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+    // Update control inputs
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     control_UI.update_adcs();
     
     // DSP processing
     DSP.compute(count, const_cast<float**>(in), out);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Update control outputs 
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
+=======
+    // Update control outputs 
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     control_UI.update_dacs();
-
-    /*
-    static int n = 0;
-    if(++n > 1000) {
-        n = 0;
-        float *ptr = input_list[0]->value_ptr;
-        hw.PrintLine("ptr=%p val=%.2f midi_raw=%d", ptr, *ptr, (int)poly_midi_values[0].value);
-    }
-    */
-    
-
 }
 
 int main(void)
@@ -1495,6 +1524,7 @@ int main(void)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     /*for(size_t i = 0; i < input_list.size(); i++) {
         hw.PrintLine("input[%d] vptr=%p mptr=%p upd=%p", 
@@ -1507,6 +1537,8 @@ int main(void)
     */
 
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     if(adc_list.size() > 0)
         hw.adc.Start();
 =======

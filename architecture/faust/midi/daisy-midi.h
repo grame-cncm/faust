@@ -130,6 +130,7 @@ class daisy_midi {
         std::array<uint8_t, NVOICES> generations = {}; 
         std::array<uint8_t, NVOICES> current_notes = {}; 
 
+<<<<<<< HEAD
         enum class poly_mode_t {blocking, stealing};
 <<<<<<< HEAD
         const poly_mode_t poly_mode = poly_mode_t::blocking;
@@ -138,6 +139,8 @@ class daisy_midi {
         const poly_mode_t poly_mode = poly_mode_t::stealing;
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         int8_t free_voice()
         {
             for(int8_t i = 0; i < NVOICES; ++i)
@@ -261,7 +264,6 @@ class daisy_midi {
 
         void set_voice(uint8_t idx, int chan, uint8_t note, uint8_t velocity)
         {
-            //hw.PrintLine("set_voice: idx=%d note=%d vel=%d", idx, note, velocity);
             #ifdef POLY_KEY 
                 poly_inputs[idx].get_key()->m->value = note; 
             #endif
@@ -282,12 +284,10 @@ class daisy_midi {
 
             current_notes[idx] = note;
             locked[idx] = true;
-            //hw.PrintLine("midi_val[%d]=%d", idx*3, poly_midi_values[idx*3].value);
         }
 
         void unset_voice(uint8_t idx, int chan)
         {
-            //hw.PrintLine("midi_val[%d]=%d", idx*3, poly_midi_values[idx*3].value);
             #ifdef POLY_GATE
                 poly_inputs[idx].get_gate()->m->value = 0; 
             #endif
@@ -339,6 +339,7 @@ class daisy_midi {
         {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
             if(on && velocity > 0) 
             {
                 #ifdef VOICE_BLOCKING 
@@ -351,18 +352,22 @@ class daisy_midi {
             if(on) 
 =======
             //hw.PrintLine("poly_key: note=%d vel=%d on=%d", note, velocity, on);
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
             if(on && velocity > 0) 
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
             {
-                if(poly_mode == poly_mode_t::blocking) 
-                {
+                #ifdef VOICE_BLOCKING 
                     voice_blocking(chan, note, velocity);
-                } 
-                else if(poly_mode == poly_mode_t::stealing) 
-                {
+
+                #elif defined VOICE_STEALING 
                     voice_stealing(chan, note, velocity);
+<<<<<<< HEAD
                 }
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+                #endif
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 
             } else 
             {   
@@ -444,6 +449,9 @@ class daisy_midi {
         void handle_note_off(int chan, uint8_t note, uint8_t velocity)
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
             midi_t *keyoff = midi_find(midi_keyoff, note);
             if(keyoff) 
             {
@@ -474,6 +482,9 @@ class daisy_midi {
         void handle_note_on(int chan, uint8_t note, uint8_t velocity)
         {
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
             midi_t *keyon = midi_find(midi_keyon, note);
             if(keyon) 
             {

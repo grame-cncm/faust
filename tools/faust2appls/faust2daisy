@@ -33,6 +33,7 @@ BS=16
 SOURCE=false
 APP_TYPE=BOOT_NONE
 <<<<<<< HEAD
+<<<<<<< HEAD
 MEM_THRESH=1024
 JSON_CONFIG=0
 UART=false
@@ -44,6 +45,14 @@ MEM_THRESH=64
 JSON_CONFIG=0
 UART=false
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+MEM_THRESH=1024
+JSON_CONFIG=0
+UART=false
+RX_PIN=0
+TX_PIN=0
+POLY_MODE="VOICE_STEALING"
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 
 echoHelp ()
 {
@@ -59,6 +68,7 @@ echoHelp ()
     option -sdram "to compile using SDRAM for long delay lines/tables etc."
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     option "-config-file <filename>" "JSON file to specify mapping of a platform (like pod, patch) to the chip, like pod_spec.json in Faust architecture files for Daisy" 
     option "-mem-thresh <num>" "Memory threshold in bytes above which data is stored on SDRAM, requires -sdram"
     option -midi "Enables MIDI (USB, with default Daisy USB)"
@@ -70,10 +80,18 @@ echoHelp ()
 =======
     option "-config-file <file>" "JSON file to specify mapping of a platform (like pod, patch) to the chip, like pod_spec.json in Faust architecture files for Daisy" 
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+    option "-config-file <filename>" "JSON file to specify mapping of a platform (like pod, patch) to the chip, like pod_spec.json in Faust architecture files for Daisy" 
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     option "-mem-thresh <num>" "Memory threshold in bytes above which data is stored on SDRAM, requires -sdram"
-    options -midi "Enables MIDI (USB, with default Daisy USB)"
+    option -midi "Enables MIDI (USB, with default Daisy USB)"
     option -midi-uart "Enables MIDI through UART pins (for Pod for example)"
+<<<<<<< HEAD
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+    option -rx-pin "RX Pin for MIDI UART"
+    option -tx-pin "TX Pin for MIDI UART"
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     option "-nvoices <num>"
     option "-poly-mode <mode>" "Mode for polyphony, options : <stealing> or <blocking> (defaults to stealing)"
     option "-sr <num>"
@@ -114,13 +132,19 @@ do
         NVOICES=$1
         MIDI=true
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     elif [ $p = "-poly-mode" ]; then 
         shift 
         if [ "$1" == "blocking" ]; then 
             POLY_MODE="VOICE_BLOCKING"
         fi
+<<<<<<< HEAD
 =======
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     # -midi
     elif [ $p = "-midi" ]; then
         MIDI=true
@@ -128,14 +152,20 @@ do
         MIDI=true
         UART=true
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     elif [ $p = "-rx-pin" ]; then 
         shift 
         RX_PIN=$1
     elif [ $p = "-tx-pin" ]; then 
         shift 
         TX_PIN=$1
+<<<<<<< HEAD
 =======
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     #patch
     elif [ $p = "-patch" ]; then
         JSON_CONFIG="$FAUSTARCH/daisy/patch.json"
@@ -151,8 +181,12 @@ do
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 =======
         #UART=true
+<<<<<<< HEAD
         JSON_SPEC="$FAUSTARCH/daisy/patch.json"
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+        JSON_CONFIG="$FAUSTARCH/daisy/patch.json"
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     elif [ $p = "-pod" ]; then
         JSON_CONFIG="$FAUSTARCH/daisy/pod.json"
         POD=true
@@ -161,6 +195,7 @@ do
         SEED=true
         #UART=true
         JSON_CONFIG="$FAUSTARCH/daisy/pod.json"
+<<<<<<< HEAD
 =======
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 =======
@@ -173,6 +208,8 @@ do
         #UART=true
         JSON_SPEC="$FAUSTARCH/daisy/pod.json"
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     elif [ $p = "-seed" ]; then 
         SEED=true
     elif [ $p = "-patchsm" ]; then
@@ -261,6 +298,7 @@ for p in $FILE; do
         faust -i -a "$ARCHFILE" $OPTIONS "$f" -json -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE $JSON_CONFIG)"
 =======
         NVOICES=$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE)
@@ -268,10 +306,14 @@ for p in $FILE; do
 =======
         eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE $JSON_SPEC)"
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+        eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE $JSON_CONFIG)"
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         faust -A "$SRCDIR/$dspName" -i -a "$GENERATED_ARCH" $OPTIONS "$f" -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     else 
         # Have to compile it twice to provide json to python, before inlining generated code 
         faust -i  -a "$ARCHFILE" $OPTIONS "$f" -json  -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE $JSON_CONFIG)"
@@ -281,6 +323,9 @@ for p in $FILE; do
 =======
         eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE $JSON_SPEC)"
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+        eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE $JSON_CONFIG)"
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         faust -A "$SRCDIR/$dspName" -i  -a "$GENERATED_ARCH" $OPTIONS "$f" -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     fi
 
@@ -306,9 +351,13 @@ for p in $FILE; do
         MIDI=true
         echo "Polyphonic DSP : setting nvoices $NVOICES"
 <<<<<<< HEAD
+<<<<<<< HEAD
         echo "#define $POLY_MODE" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
 =======
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+        echo "#define $POLY_MODE" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
         echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
@@ -328,9 +377,12 @@ for p in $FILE; do
 
     # for Sample Rate
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     #echo "constexpr daisy::SaiHandle::Config::SampleRate DAISY_SAMPLE_RATE = daisy::SaiHandle::Config::SampleRate::$SRSTR;" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     echo "#define DAISY_SAMPLE_RATE daisy::SaiHandle::Config::SampleRate::$SRSTR" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     echo "#define MY_SAMPLE_RATE $SR" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
 
@@ -343,11 +395,14 @@ for p in $FILE; do
 
     echo "#include \"per/sai.h\"" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     #if [ $USE_SDRAM == true ]; then
         #python3 "$FAUSTARCH/daisy/faust_sdram_converter.py" "$SRCDIR/$dspName/ex_faust.cpp"
     #fi
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+>>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 
     # compile and install plugin or keep the source folder
     if [ $SOURCE == false ]; then
