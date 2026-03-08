@@ -51,6 +51,12 @@ COMPILEOPT1 := -O3 -Wall -no-pie
 COMMLIBS	:= $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lpthread $(shell pkg-config --libs libmicrohttpd)
 MACOSLIBS	:= -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation
 
+NAM_PREFIX ?= /usr/local
+NAM_INC ?= $(NAM_PREFIX)/include
+NAM_LIB ?= $(NAM_PREFIX)/lib/libnam.a
+NAM_HEADER ?= $(NAM_INC)/NAM/nam_c_api.h
+NAM_READY := $(and $(wildcard $(NAM_LIB)),$(wildcard $(NAM_HEADER)))
+
 DESTDIR ?=
 PREFIX ?= /usr/local
 
@@ -60,6 +66,12 @@ TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-inter
 ifeq ($(system), Darwin)
 	STRIP = -dead_strip
 	TARGETS := $(TARGETS) dynamic-coreaudio-gtk poly-dynamic-jack-gtk 
+endif
+
+ifeq ($(NAM_READY),)
+$(info NAM not found: set NAM_LIB and NAM_HEADER/NAM_INC to enable nam-jack-gtk)
+else
+TARGETS := $(TARGETS) nam-jack-gtk
 endif
 
 all: $(TARGETS)
@@ -81,6 +93,18 @@ dynamic-faust: dynamic-faust.cpp $(LIB)/libfaust.a
 
 dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
 	$(CXX) -DJACK $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp $(LIB_FLAGS) $(SNDFILE_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-2.0` `pkg-config --cflags sndfile` $(STRIP) $(COMMLIBS) -o $@
+
+check-nam:
+	@if [ ! -f "$(NAM_LIB)" ] || [ ! -f "$(NAM_HEADER)" ]; then \
+		echo "Error: NAM is not properly installed."; \
+		echo "Expected library: $(NAM_LIB)"; \
+		echo "Expected header:  $(NAM_HEADER)"; \
+		echo "Override with NAM_LIB=... and NAM_INC=... (or NAM_HEADER=...)"; \
+		exit 1; \
+	fi
+
+nam-jack-gtk: check-nam nam-jack-gtk.cpp $(LIB)/libfaust.a
+	$(CXX) $(COMPILEOPT) $(ARCHS) nam-jack-gtk.cpp $(LIB_FLAGS) $(LIBS) $(NAM_LIB) -I $(INC) -I $(NAM_INC) -I $(NAM_INC)/NAM $(LLVM) `pkg-config --cflags --libs jack gtk+-2.0` $(STRIP) -lz -lncurses -lpthread -o $@
 
 dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
 	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-machine-jack-gtk.cpp $(LIB_FLAGS) $(SNDFILE_LIBS) $(LIB)/libfaustmachine.a -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-2.0` `pkg-config --cflags sndfile` $(STRIP) $(COMMLIBS) -o $@

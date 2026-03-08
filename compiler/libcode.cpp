@@ -125,6 +125,10 @@
 #include "rust_code_container.hh"
 #endif
 
+#ifdef ASSEMBLYSCRIPT_BUILD
+#include "assemblyscript_code_container.hh"
+#endif
+
 #ifdef TEMPLATE_BUILD
 #include "template_code_container.hh"
 #endif
@@ -695,6 +699,32 @@ static void compileTemplate(Tree signals, int numInputs, int numOutputs, ostream
 #endif
 }
 
+static void compileAssemblyScript(Tree signals, int numInputs, int numOutputs, ostream* out)
+{
+#ifdef ASSEMBLYSCRIPT_BUILD
+    gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    gGlobal->gNeedManualPow =
+        false;  // Standard pow function will be used in pow(x,y) when y in an integer
+    gGlobal->gFAUSTFLOAT2Internal = true;
+    gContainer = AssemblyScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs,
+                                                              numOutputs, out);
+
+    if (gGlobal->gVectorSwitch) {
+        gNewComp = new DAGInstructionsCompiler(gContainer);
+    } else {
+        gNewComp = new InstructionsCompiler(gContainer);
+    }
+
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) {
+        gNewComp->setDescription(new Description());
+    }
+    gNewComp->compileMultiSignal(signals);
+#else
+    throw faustexception(
+        "ERROR : -lang asc not supported since AssemblyScript backend is not built\n");
+#endif
+}
+
 static void compileCSharp(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef CSHARP_BUILD
@@ -1087,6 +1117,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileJAX(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "temp") {
         compileTemplate(signals, numInputs, numOutputs, gDst.get());
+    } else if (gGlobal->gOutputLang == "asc") {
+        compileAssemblyScript(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "julia") {
         compileJulia(signals, numInputs, numOutputs, gDst.get());
     } else if (startWith(gGlobal->gOutputLang, "jsfx")) {

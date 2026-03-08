@@ -1,4 +1,4 @@
-% man(1) Version 2.84.3 (01-February-2026) | Faust man page
+% man(1) Version 2.85.0 (05-March-2026) | Faust man page
 
 NAME
 ====
@@ -52,7 +52,7 @@ Code generation options:
 ---------------------------------------
 
   **-lang** \<lang> **--language**                 select output language,
-                                          'lang' should be c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, ocpp, rust, sdf3, vhdl or wast/wasm.
+                                          'lang' should be asc, c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jax, jsfx, julia, llvm, ocpp, rust, sdf3, vhdl or wast/wasm.
 
   **-single**     **--single-precision-floats**   use single precision floats for internal computations (default).
 

@@ -461,7 +461,7 @@ static std::string gFBCInstructionTable[] = {
     // Standard math (value OP heap) : non commutative operations
     "kSubRealValueInvert", "kSubIntValueInvert", "kDivRealValueInvert", "kDivIntValueInvert",
     "kRemRealValueInvert", "kRemIntValueInvert", "kLshIntValueInvert", "kARshIntValueInvert",
-    "kLRshIntValueInvert", "kGTIntValueInvert", "kLTIntValueInvert", "kLTIntValueInvert",
+    "kLRshIntValueInvert", "kGTIntValueInvert", "kLTIntValueInvert", "kGEIntValueInvert",
     "kLEIntValueInvert", "kGTRealValueInvert", "kLTRealValueInvert", "kGERealValueInvert",
     "kLERealValueInvert",
 
@@ -487,7 +487,7 @@ static std::string gFBCInstructionTable[] = {
     "kMinfStack",
 
     // Extended binary math (Stack/Value version)
-    "kAtan2fStackValue", "kFmodfStackValue", "kPowfStackValue", "kMaxStackValue", "kMaxStackfValue",
+    "kAtan2fStackValue", "kFmodfStackValue", "kPowfStackValue", "kMaxStackValue", "kMaxfStackValue",
     "kMinStackValue", "kMinfStackValue",
 
     // Extended binary math (Value version)
@@ -505,7 +505,7 @@ static std::string gFBCInstructionTable[] = {
 
     // User Interface
     "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox", "kAddButton",
-    "kAddChecButton", "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", "kAddSoundfile",
+    "kAddCheckButton", "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", "kAddSoundfile",
     "kAddHorizontalBargraph", "kAddVerticalBargraph", "kDeclare",
 
     "kNop"};

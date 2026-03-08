@@ -232,6 +232,50 @@ void initFaustFloat()
         floatmax[3] = 0x7FF0000000000000;
         floatmax[4] = 0x7F800000;
 
+        // Specific for AssemblyScript backend
+    } else if (gGlobal->gOutputLang == "asc") {
+        numsuffix[0] = "";
+        numsuffix[1] = "";
+        numsuffix[2] = "";
+        numsuffix[3] = "";
+        numsuffix[4] = "";
+
+        floatname[0] = FLOATMACRO;
+        floatname[1] = "f32";
+        floatname[2] = "f64";
+        floatname[3] = "dummy";
+        floatname[4] = "dummy";
+
+        floatptrname[0] = FLOATMACROPTR;
+        floatptrname[1] = "f32[]";
+        floatptrname[2] = "f64[]";
+        floatptrname[3] = "dummy";
+        floatptrname[4] = "dummy";
+
+        floatptrptrname[0] = FLOATMACROPTRPTR;
+        floatptrptrname[1] = "f32[][]";
+        floatptrptrname[2] = "f64[][]";
+        floatptrptrname[3] = "dummy";
+        floatptrptrname[4] = "dummy";
+
+        castname[0] = FLOATCASTER;
+        castname[1] = "<f32>";
+        castname[2] = "<f64>";
+        castname[3] = "(dummy)";
+        castname[4] = "(dummy)";
+
+        floatmin[0] = 0;
+        floatmin[1] = FLT_MIN;
+        floatmin[2] = DBL_MIN;
+        floatmin[3] = LDBL_MIN;
+        floatmin[4] = FLT_MIN;
+
+        floatmax[0] = 0;
+        floatmax[1] = 0x7F800000;
+        floatmax[2] = 0x7FF0000000000000;
+        floatmax[3] = 0x7FF0000000000000;
+        floatmax[4] = 0x7F800000;
+
         // Specific for C/C++ backends
     } else {
         numsuffix[0] = "";

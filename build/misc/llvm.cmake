@@ -12,6 +12,10 @@ endfunction()
 
 ####################################
 function (scan_backends TARGET FLAG)
+    string (FIND "${AS_BACKEND}" ${FLAG} POS)
+    if (${POS} GREATER -1)
+        backend (ASSEMBLYSCRIPT assemblyscript ${TARGET})
+    endif()
     string (FIND "${C_BACKEND}" ${FLAG} POS)
     if (${POS} GREATER -1)
         backend (C c ${TARGET})

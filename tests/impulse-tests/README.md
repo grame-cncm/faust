@@ -25,6 +25,21 @@ Type `make help` for details about the available targets.
 
 There is no target `clean`: simply delete the `ir` folder or one of its subfolders to regenerate the impulse responses.
 
+##### AssemblyScript shortcut
+
+From `tests/impulse-tests`, you can run AssemblyScript impulse tests with:
+
+`make asc`
+
+This is a shortcut for `make -f Make.assemblyscript assemblyscript`.
+From the repository root, the equivalent command is:
+
+`make -C tests/impulse-tests asc`
+
+To run the quick reference subset check:
+
+`make -f Make.assemblyscript assemblyscript-compare-quick compare=1`
+
 ### Testing the Box, Signal, Type and FIR intermediate steps
 
 - the Box tree (created by the `-e`option) can be generated as a textual file. A set of references files can be created using `make reference-box`, then tested using `make test-box`.

@@ -19,6 +19,7 @@ set ( FIR_BACKEND                        OFF      CACHE STRING  "Include FIR bac
 set ( INTERP_BACKEND                     OFF      CACHE STRING  "Include Interpreter backend" FORCE )
 set ( JAVA_BACKEND   COMPILER STATIC DYNAMIC      CACHE STRING  "Include JAVA backend" FORCE )
 set ( JAX_BACKEND    COMPILER STATIC DYNAMIC      CACHE STRING  "Include JAX backend"  FORCE )
+set ( AS_BACKEND     COMPILER STATIC DYNAMIC      CACHE STRING  "Include AssemblyScript backend" FORCE )
 set ( JULIA_BACKEND  COMPILER STATIC DYNAMIC      CACHE STRING  "Include Julia backend" FORCE )
 set ( JSFX_BACKEND  COMPILER STATIC DYNAMIC CACHE STRING  "Include JSFX backend" FORCE )
 set ( LLVM_BACKEND                       OFF      CACHE STRING  "Include LLVM backend" FORCE )

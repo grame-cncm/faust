@@ -309,7 +309,9 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     if (!gGlobal->isOpt("FAUST_LLVM_NO_FM")) {
         // -fastmath is activated at IR level, and has to be setup at JIT level also
         targetOptions.AllowFPOpFusion       = FPOpFusion::Fast;
+#if LLVM_VERSION_MAJOR < 22
         targetOptions.UnsafeFPMath          = true;
+#endif
         targetOptions.NoInfsFPMath          = true;
         targetOptions.NoNaNsFPMath          = true;
         targetOptions.GuaranteedTailCallOpt = true;
@@ -320,9 +322,9 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     targetOptions.NoSignedZerosFPMath = true;
 #endif
 
-#if LLVM_VERSION_MAJOR >= 11
+#if LLVM_VERSION_MAJOR >= 11 && LLVM_VERSION_MAJOR < 22
     targetOptions.setFPDenormalMode(DenormalMode::getIEEE());
-#else
+#elif LLVM_VERSION_MAJOR < 11
     targetOptions.FPDenormalMode = FPDenormal::IEEE;
 #endif
 
@@ -516,7 +518,11 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(
 #else
     auto RM = Optional<Reloc::Model>();
 #endif
+#if LLVM_VERSION_MAJOR >= 22
+    auto TheTargetMachine = Target->createTargetMachine(Triple(TargetTriple), CPU, Features, opt, RM);
+#else
     auto TheTargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
+#endif
     fModule->setDataLayout(TheTargetMachine->createDataLayout());
 
     error_code     EC;
