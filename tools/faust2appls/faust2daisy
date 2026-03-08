@@ -32,9 +32,12 @@ SRSTR="SAI_48KHZ"
 BS=16
 SOURCE=false
 APP_TYPE=BOOT_NONE
-MEM_THRESH=64
+MEM_THRESH=1024
 JSON_CONFIG=0
 UART=false
+RX_PIN=0
+TX_PIN=0
+POLY_MODE="VOICE_STEALING"
 
 echoHelp ()
 {
@@ -48,11 +51,14 @@ echoHelp ()
     option -patch "to compile for 4 ins/outs Patch (knob[1,2,3,4])"
     option -pod "to compile for 2 ins/outs Pod (knob[1,3])"
     option -sdram "to compile using SDRAM for long delay lines/tables etc."
-    option "-config-file <file>" "JSON file to specify mapping of a platform (like pod, patch) to the chip, like pod_spec.json in Faust architecture files for Daisy" 
+    option "-config-file <filename>" "JSON file to specify mapping of a platform (like pod, patch) to the chip, like pod_spec.json in Faust architecture files for Daisy" 
     option "-mem-thresh <num>" "Memory threshold in bytes above which data is stored on SDRAM, requires -sdram"
-    options -midi "Enables MIDI (USB, with default Daisy USB)"
+    option -midi "Enables MIDI (USB, with default Daisy USB)"
     option -midi-uart "Enables MIDI through UART pins (for Pod for example)"
+    option -rx-pin "RX Pin for MIDI UART"
+    option -tx-pin "TX Pin for MIDI UART"
     option "-nvoices <num>"
+    option "-poly-mode <mode>" "Mode for polyphony, options : <stealing> or <blocking> (defaults to stealing)"
     option "-sr <num>"
     option "-bs <num>"
     option -source
@@ -78,6 +84,9 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
     # -nvoices:
+    elif [ $p = "-config-file" ]; then 
+        shift
+        JSON_CONFIG=$1
     elif [ $p = "-sram" ]; then 
         APP_TYPE=BOOT_SRAM
         USE_SDRAM=true # Because SRAM is used, SDRAM is necessary for data 
@@ -87,25 +96,36 @@ do
         shift
         NVOICES=$1
         MIDI=true
+    elif [ $p = "-poly-mode" ]; then 
+        shift 
+        if [ "$1" == "blocking" ]; then 
+            POLY_MODE="VOICE_BLOCKING"
+        fi
     # -midi
     elif [ $p = "-midi" ]; then
         MIDI=true
     elif [ $p = "-midi-uart" ]; then 
         MIDI=true
         UART=true
+    elif [ $p = "-rx-pin" ]; then 
+        shift 
+        RX_PIN=$1
+    elif [ $p = "-tx-pin" ]; then 
+        shift 
+        TX_PIN=$1
     #patch
     elif [ $p = "-patch" ]; then
         JSON_CONFIG="$FAUSTARCH/daisy/patch.json"
         PATCH=true
         SEED=true
         #UART=true
-        JSON_SPEC="$FAUSTARCH/daisy/patch.json"
+        JSON_CONFIG="$FAUSTARCH/daisy/patch.json"
     elif [ $p = "-pod" ]; then
         JSON_CONFIG="$FAUSTARCH/daisy/pod.json"
         POD=true
         SEED=true
         #UART=true
-        JSON_SPEC="$FAUSTARCH/daisy/pod.json"
+        JSON_CONFIG="$FAUSTARCH/daisy/pod.json"
     elif [ $p = "-seed" ]; then 
         SEED=true
     elif [ $p = "-patchsm" ]; then
@@ -180,6 +200,11 @@ for p in $FILE; do
     GENERATED_ARCH="$SRCDIR/$dspName/daisy_arch.cpp"
     
     MEM_THRESH_UNIT=$(($MEM_THRESH/4))
+
+    if [ "$JSON_CONFIG" = "0" ]; then 
+        eval "$(python3 "$FAUSTARCH/daisy/generate_config.py" "$SRCDIR/$dspName" $PATCHSM $UART $RX_PIN $TX_PIN)"
+    fi
+
     # compile faust to c++
     echo "Compile Faust to C++":
 
@@ -187,12 +212,12 @@ for p in $FILE; do
     if [ $USE_SDRAM == true ]; then 
         # Have to compile it twice to provide json to python, before inlining generated code 
         faust -i -a "$ARCHFILE" $OPTIONS "$f" -json -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
-        eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE $JSON_SPEC)"
+        eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE $JSON_CONFIG)"
         faust -A "$SRCDIR/$dspName" -i -a "$GENERATED_ARCH" $OPTIONS "$f" -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     else 
         # Have to compile it twice to provide json to python, before inlining generated code 
         faust -i  -a "$ARCHFILE" $OPTIONS "$f" -json  -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
-        eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE $JSON_SPEC)"
+        eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE $JSON_CONFIG)"
         faust -A "$SRCDIR/$dspName" -i  -a "$GENERATED_ARCH" $OPTIONS "$f" -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     fi
 
@@ -217,6 +242,7 @@ for p in $FILE; do
     if [ "$NVOICES" -gt 0 ]; then
         MIDI=true
         echo "Polyphonic DSP : setting nvoices $NVOICES"
+        echo "#define $POLY_MODE" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
         echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
         echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
@@ -235,7 +261,6 @@ for p in $FILE; do
     fi
 
     # for Sample Rate
-    #echo "constexpr daisy::SaiHandle::Config::SampleRate DAISY_SAMPLE_RATE = daisy::SaiHandle::Config::SampleRate::$SRSTR;" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     echo "#define DAISY_SAMPLE_RATE daisy::SaiHandle::Config::SampleRate::$SRSTR" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     echo "#define MY_SAMPLE_RATE $SR" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
 
@@ -247,9 +272,6 @@ for p in $FILE; do
 
 
     echo "#include \"per/sai.h\"" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
-    #if [ $USE_SDRAM == true ]; then
-        #python3 "$FAUSTARCH/daisy/faust_sdram_converter.py" "$SRCDIR/$dspName/ex_faust.cpp"
-    #fi
 
     # compile and install plugin or keep the source folder
     if [ $SOURCE == false ]; then

@@ -247,11 +247,6 @@ class DaisyControlUI : public GenericUI
         {
             for(auto & it : input_list) 
             {
-                /*if(it->value_ptr == nullptr) {
-                    hw.PrintLine("NULL value_ptr!");
-                    continue;
-                }
-                */
                 it->update();
             }
         }
