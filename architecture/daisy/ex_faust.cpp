@@ -374,7 +374,6 @@ struct shared_digi_input : public digi_input
 
     void setup() override 
     {
-        hw.PrintLine("shared_digi setup counter=%d upd=%p", 
         counter, update_method);
         if(counter == 0)
         {
@@ -441,11 +440,6 @@ struct poly_input : public midi_input
     {
         
         *fZone = snap_to_step(limit(mtof(value), min, max), step);
-        /*static int fcnt = 0;
-        if(++fcnt > 1000) {
-            fcnt = 0;
-            hw.PrintLine("Freq value : %d", int(*fZone));
-        }*/
     }
 
     // Used for vel as well.
@@ -454,12 +448,6 @@ struct poly_input : public midi_input
         float min, float max, float step, float &prev, scale::scale_t scale_type)
     {
         *fZone = snap_to_step(limit(value, min, max), int(step) );
-        /*static int kcnt = 0;
-        if(++kcnt > 1000) {
-            kcnt = 0;
-            hw.PrintLine("Key value : %d", int(*fZone));
-        }*/
-
     }
 
     
@@ -469,7 +457,6 @@ struct poly_input : public midi_input
     {
         *fZone = snap_to_step(scale_from_norm(
             scale::process(scale_type, value / 127.0f), min, max), step);
-        //hw.PrintLine("Gain value : %.2f", *fZone);
     }
 
     
@@ -590,23 +577,55 @@ struct shared_dac : public dac
 
 struct digi_output : public control 
 {
+    enum pwm_t 
+    {
+        off, 
+        on,
+        inv 
+    };
+
     daisy::Pin pin;
-    daisy::GPIO gpio;
     float min, max;
+    daisy::GPIO gpio;
+    daisy::Led led;
+
+    using digi_out_method_t = void(*)(float*, daisy::GPIO* gpio, daisy::Led* led);
+    digi_out_method_t digi_out_method = nullptr;
+
+    static void gpio_method(float *val, daisy::GPIO* gpio, daisy::Led* led)
+    {
+        gpio->Write( (*val) < adc::noise_threshold );
+    }
+
+    static void led_method(float *val, daisy::GPIO* gpio, daisy::Led* led)
+    {
+        led->Set(*val);
+        led->Update();
+    }
 
     digi_output() = default;
-    digi_output(daisy::Pin pin_, float min_ = 0.0f, float max_ = 1.0f)
+    digi_output(daisy::Pin pin_, pwm_t pwm, float min_ = 0.0f, float max_ = 1.0f)
         : pin(pin_)
         , min(min_)
         , max(max_)
     {
-        gpio.Init(pin, daisy::GPIO::Mode::OUTPUT);
+        if(pwm != pwm_t::off) 
+        {
+            led.Init(pin, pwm == pwm_t::inv, 1000.0f /*MY_SAMPLE_RATE / MY_BUFFER_SIZE*/ );
+            digi_out_method = led_method;
+
+        } else 
+        {
+            gpio.Init(pin, daisy::GPIO::Mode::OUTPUT);
+            digi_out_method = led_method;
+        }
         *value_ptr = min;
     }
 
+
     void update() override 
     {
-        gpio.Write( (*value_ptr) < adc::noise_threshold );
+        digi_out_method(value_ptr, &gpio, &led);
     }
 };
 
@@ -750,24 +769,14 @@ static DaisyControlUI control_UI;
 static void AudioCallback(daisy::AudioHandle::InputBuffer in, 
     daisy::AudioHandle::OutputBuffer out, size_t count)
 {
-    // Update controllers
+    // Update control inputs
     control_UI.update_adcs();
     
     // DSP processing
     DSP.compute(count, const_cast<float**>(in), out);
 
+    // Update control outputs 
     control_UI.update_dacs();
-
-    /*
-    static int n = 0;
-    if(++n > 1000) {
-        n = 0;
-        float *ptr = input_list[0]->value_ptr;
-        hw.PrintLine("ptr=%p val=%.2f midi_raw=%d", ptr, *ptr, (int)poly_midi_values[0].value);
-    }
-    */
-    
-
 }
 
 int main(void)
@@ -805,16 +814,6 @@ int main(void)
 */
     DSP.buildUserInterface(&control_UI);
     control_UI.setup_controls();
-
-    /*for(size_t i = 0; i < input_list.size(); i++) {
-        hw.PrintLine("input[%d] vptr=%p mptr=%p upd=%p", 
-            i,
-            input_list[i]->value_ptr,
-            ((poly_input*)input_list[i])->m,
-            input_list[i]->update_method);
-    }
-    daisy::System::Delay(5000);
-    */
 
     if(adc_list.size() > 0)
         hw.adc.Start();

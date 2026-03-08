@@ -22,6 +22,7 @@ use_sdram = int(sys.argv[4])
 archfile = sys.argv[5]
 config_file = sys.argv[6]
 
+
 arch = ""
 with open(archfile, 'r') as file:
     arch = file.read()
@@ -126,6 +127,8 @@ class digi_out:
         self.step = 0
         self.pin_index = 0
         self.label = ""
+        self.pwm = False
+        self.pwm_mode = "inv"
 
 class dac:
     def __init__(self):
@@ -209,6 +212,7 @@ class ui_scanner:
         self.inputs = []
         self.outputs = []
         self.scale = "lin"
+        self.pwm = "off"
         self.poly_keys = {
             "key": False,
             "freq": False,
@@ -220,28 +224,24 @@ class ui_scanner:
     ## To check if config file maps this meta (knob for example) to any ADC, DAC or GPIO
     def config_compare_exchange(self, orig_key, meta, config_ui):
         to_replace = f"{orig_key}:{meta[orig_key]}"
-        eprint(to_replace)
         for elem in config_ui:
             for key, value in elem.items():
                 # parse to separate name from index 
-                eprint(key, value)
                 if(to_replace == key):
                     rep = configparse_reg.search(value)
-                    eprint(rep)
                     if(rep != None and rep.group(1) != None and rep.group(2) != None):
-                        eprint(rep.group(1), rep.group(2))
                         return [rep.group(1), rep.group(2)]
         
         return None 
 
     def check_meta(self, node, config_ui): 
         count = 0
-        l_meta = ""
         label = node["label"]
         # For ADC DAC : type, index, label
         # For MIDI : type, miditype, key, channel, label  
         reslist = [] 
         self.scale = "lin"
+        self.pwm = "off"
         if("meta" in node):
             for meta in node["meta"]:
                 for k, v in meta.items():
@@ -254,6 +254,7 @@ class ui_scanner:
                         if(config_res != None):
                             key = config_res[0]
                             value = config_res[1]
+
                     # Then create the meta to write
                     if(key == "adc"):
                         reslist.append("adc")
@@ -288,8 +289,9 @@ class ui_scanner:
                             reslist.append(chan)
                     # Missing scales, and custom
                     elif(key == "scale"):
-                        l_meta += f"\tui_meta(ui_meta::scale_t::{meta[key]}), \n"
                         self.scale = meta[key]
+                    elif(key == "pwm"):
+                        self.pwm = meta[key]
                     count += 1
             metaname = f"{label}_metadata"
             reslist.append(metaname)
@@ -391,10 +393,7 @@ class ui_scanner:
                             self.inputs[-1].type = "digi_in"
                             self.inputs[-1].index = self.digi_in_count
                             self.digi_in_count += 1
-                        # Not qure slider or nentry is relevant
-                        #elif(item_type == "slider" or item_type == "nentry"):
-                        #    self.digis_in.append(digi_in())
-                        elif(item_type == "bargraph"):
+                        elif(item_type == "bargraph"): # Then it is digital output 
                             self.digis_out.append(digi_out())
 
                             self.digis_out[-1].type = item_type
@@ -404,6 +403,8 @@ class ui_scanner:
                             self.digis_out[-1].max = 1
                             self.digis_out[-1].step = 1
                             self.digis_out[-1].init = 0
+                            self.digis_out[-1].pwm = self.pwm
+
                             self.outputs.append(output())
                             self.outputs[-1].type = "digi_out"
                             self.outputs[-1].index = self.digi_out_count
@@ -472,10 +473,17 @@ class ui_scanner:
         controlstr = f"#define N_INPUTS {n_inputs} \n"
         controlstr += f"#define N_OUTPUTS {n_outputs} \n\n"
         
-        if("rx_pin" in config_midi):
-            controlstr += f"#define RX_PIN {config_midi["rx_pin"]} \n"
-        if("tx_pin" in config_midi):
-            controlstr += f"#define TX_PIN {config_midi["tx_pin"]} \n"
+        if(config_midi["type"] == "uart"):
+            if("rx_pin" in config_midi):
+                controlstr += f"#define RX_PIN {config_midi["rx_pin"]} \n"
+            if("tx_pin" in config_midi):
+                controlstr += f"#define TX_PIN {config_midi["tx_pin"]} \n"
+        elif(config_midi["type"] == "usb"):
+            if("peripheral" in config_midi and config_midi["peripheral"] == "external"):
+                controlstr += "#define MIDI_USB_PERIPH daisy::MidiUsbTransport::Config::Periph::EXTERNAL \n"
+            else:
+                controlstr += "#define MIDI_USB_PERIPH daisy::MidiUsbTransport::Config::Periph::INTERNAL \n"
+
 
         polymidival = ""
         polystr = ""
@@ -706,9 +714,9 @@ class ui_scanner:
             controlstr += f"static std::array<shared_digi_output<{nvoices}>, {len(self.digis_out)}> digi_output_list = {{ \n"
         for elem in self.digis_out:
             if(nvoices < 2):
-                controlstr += f"\tdigi_output({elem.pin_index}), \n"
+                controlstr += f"\tdigi_output({elem.pin_index}, digi_output::pwm_t::{elem.pwm}), \n"
             else:
-                controlstr += f"\tshared_digi_output<{nvoices}>({elem.pin_index}), \n"
+                controlstr += f"\tshared_digi_output<{nvoices}>({elem.pin_index}, digi_output::pwm_t::{pwm}), \n"
         controlstr += "}; \n\n"
             
 

@@ -2,22 +2,26 @@
     "name": "patch",
     "chip": "seed",
     "midi": [
-        {"type": "uart"},
-        {"rx_pin": "D14"},
-        {"tx_pin": "D13"}
+        {
+        "type": "uart",
+        "rx_pin": "D14",
+        "tx_pin": "D13"
+        }
     ],
     "ui": [
-        {"CV_in:1": "adc:A0"},
-        {"CV_in:2": "adc:A1"},
-        {"CV_in:3": "adc:A6"},
-        {"CV_int:4": "adc:A3"},
-        {"CV_out:1": "dac:A8"},
-        {"CV_out:2": "dac:A7"},
-        {"gate_in:1": "gpio:D20"},
-        {"gate_in:2": "gpio:D19"},
-        {"gate_out:1": "gpio:D17"},
-        {"encoder:a": "gpio:D12"},
-        {"encoder:b": "gpio:D11"},
-        {"encoder:click": "gpio:D0"}
+        {
+        "CV_in:1": "adc:A0",
+        "CV_in:2": "adc:A1",
+        "CV_in:3": "adc:A6",
+        "CV_int:4": "adc:A3",
+        "CV_out:1": "dac:A8",
+        "CV_out:2": "dac:A7",
+        "gate_in:1": "gpio:D20",
+        "gate_in:2": "gpio:D19",
+        "gate_out:1": "gpio:D17",
+        "encoder:a": "gpio:D12",
+        "encoder:b": "gpio:D11",
+        "encoder:click": "gpio:D0"
+        }
     ]
 }
