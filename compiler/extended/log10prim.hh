@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include <math.h>
+#include <limits>
 
 #include "Text.hh"
 #include "floats.hh"
@@ -109,5 +110,15 @@ class Log10Prim : public xtended {
         return sigDiv(sigReal(1.0), sigMul(args[0], sigLog(sigReal(10.0))));
     }
 
-    double compute(const std::vector<Node>& args) override { return log10(args[0].getDouble()); }
+   double compute(const std::vector<Node>& args) override
+{
+    double x = args[0].getDouble();
+
+    // Prevent log10(0) or log10(negative)
+    if (x <= 0.0) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    return log10(x);
+}
 };
