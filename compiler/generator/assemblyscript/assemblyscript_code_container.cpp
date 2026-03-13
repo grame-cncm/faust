@@ -28,7 +28,7 @@
 
 using namespace std;
 
-map<string, bool> AssemblyScriptInstVisitor::gFunctionSymbolTable;
+map<string, bool>   AssemblyScriptInstVisitor::gFunctionSymbolTable;
 map<string, string> AssemblyScriptInstVisitor::gMathLibTable;
 
 dsp_factory_base* AssemblyScriptCodeContainer::produceFactory()
@@ -39,8 +39,8 @@ dsp_factory_base* AssemblyScriptCodeContainer::produceFactory()
         "");
 }
 
-AssemblyScriptCodeContainer::AssemblyScriptCodeContainer(const std::string& name, int numInputs, int numOutputs,
-                                             std::ostream* out)
+AssemblyScriptCodeContainer::AssemblyScriptCodeContainer(const std::string& name, int numInputs,
+                                                         int numOutputs, std::ostream* out)
 {
     // Mandatory
     initialize(numInputs, numOutputs);
@@ -54,7 +54,7 @@ AssemblyScriptCodeContainer::AssemblyScriptCodeContainer(const std::string& name
 }
 
 CodeContainer* AssemblyScriptCodeContainer::createScalarContainer(const string& name,
-                                                            int           sub_container_type)
+                                                                  int           sub_container_type)
 {
     return new AssemblyScriptScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
 }
@@ -66,7 +66,7 @@ CodeContainer* AssemblyScriptCodeContainer::createScalarContainer(const string& 
     and activated.
 */
 CodeContainer* AssemblyScriptCodeContainer::createContainer(const string& name, int numInputs,
-                                                      int numOutputs, ostream* dst)
+                                                            int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
@@ -98,7 +98,7 @@ CodeContainer* AssemblyScriptCodeContainer::createContainer(const string& name, 
 // Used for subcontainers if 'inlining sub containers' model is not used
 void AssemblyScriptCodeContainer::produceInternal()
 {
-    int n = 0;
+    int                       n = 0;
     AssemblyScriptInstVisitor visitor(fOut, fKlassName);
     const string              root_class = gGlobal->gClassName;
 
@@ -173,8 +173,7 @@ void AssemblyScriptCodeContainer::produceInternal()
     *fOut << "function instanceInit" << fKlassName << "(dsp: " << root_class
           << ", sample_rate: i32): void {";
     tab(n + 1, *fOut);
-    *fOut << "changetype<" << fKlassName << ">(dsp).instanceInit" << fKlassName
-          << "(sample_rate);";
+    *fOut << "changetype<" << fKlassName << ">(dsp).instanceInit" << fKlassName << "(sample_rate);";
     tab(n, *fOut);
     *fOut << "}";
     tab(n, *fOut);
@@ -188,8 +187,8 @@ void AssemblyScriptCodeContainer::produceInternal()
               << ": i32, " << fTableName << ": " << ifloat() << "[]): void {";
     }
     tab(n + 1, *fOut);
-    *fOut << "changetype<" << fKlassName << ">(dsp).fill" << fKlassName << "(" << counter
-          << ", " << fTableName << ");";
+    *fOut << "changetype<" << fKlassName << ">(dsp).fill" << fKlassName << "(" << counter << ", "
+          << fTableName << ");";
     tab(n, *fOut);
     *fOut << "}";
     tab(n, *fOut);
@@ -369,9 +368,10 @@ void AssemblyScriptCodeContainer::produceMetadata(int tabs)
 }
 
 // Scalar
-AssemblyScriptScalarCodeContainer::AssemblyScriptScalarCodeContainer(const string& name, int numInputs,
-                                                         int numOutputs, std::ostream* out,
-                                                         int sub_container_type)
+AssemblyScriptScalarCodeContainer::AssemblyScriptScalarCodeContainer(const string& name,
+                                                                     int numInputs, int numOutputs,
+                                                                     std::ostream* out,
+                                                                     int sub_container_type)
     : AssemblyScriptCodeContainer(name, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;

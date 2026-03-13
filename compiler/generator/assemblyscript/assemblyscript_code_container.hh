@@ -22,9 +22,9 @@
 #ifndef _ASSEMBLYSCRIPT_CODE_CONTAINER_H
 #define _ASSEMBLYSCRIPT_CODE_CONTAINER_H
 
+#include "assemblyscript_instructions.hh"
 #include "code_container.hh"
 #include "dsp_factory.hh"
-#include "assemblyscript_instructions.hh"
 #include "vec_code_container.hh"
 
 #ifdef WIN32
@@ -39,7 +39,7 @@
 // - relies on explicit init methods (classInit/init/instanceInit) instead of constructor emission
 class AssemblyScriptCodeContainer : public virtual CodeContainer {
    protected:
-    std::ostream*               fOut;
+    std::ostream* fOut;
 
     virtual void produceClass();
 
@@ -50,7 +50,7 @@ class AssemblyScriptCodeContainer : public virtual CodeContainer {
    public:
     AssemblyScriptCodeContainer() {}
     AssemblyScriptCodeContainer(const std::string& name, int numInputs, int numOutputs,
-                          std::ostream* out);
+                                std::ostream* out);
 
     virtual ~AssemblyScriptCodeContainer()
     {
@@ -73,7 +73,7 @@ class AssemblyScriptScalarCodeContainer : public AssemblyScriptCodeContainer {
    public:
     AssemblyScriptScalarCodeContainer() {}
     AssemblyScriptScalarCodeContainer(const std::string& name, int numInputs, int numOutputs,
-                                std::ostream* out, int sub_container_type);
+                                      std::ostream* out, int sub_container_type);
     virtual ~AssemblyScriptScalarCodeContainer() {}
 
     void generateCompute(int n);

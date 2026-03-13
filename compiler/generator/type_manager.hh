@@ -823,8 +823,7 @@ class TemplateStringTypeManager : public StringTypeManager {
 
 class AssemblyScriptStringTypeManager : public StringTypeManager {
    public:
-    AssemblyScriptStringTypeManager(const std::string& float_macro_name,
-                                    const std::string& ptr_ref,
+    AssemblyScriptStringTypeManager(const std::string& float_macro_name, const std::string& ptr_ref,
                                     const std::string& struct_name = "")
         : StringTypeManager(float_macro_name, ptr_ref)
     {

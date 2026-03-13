@@ -505,8 +505,8 @@ static std::string gFBCInstructionTable[] = {
 
     // User Interface
     "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox", "kAddButton",
-    "kAddCheckButton", "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", "kAddSoundfile",
-    "kAddHorizontalBargraph", "kAddVerticalBargraph", "kDeclare",
+    "kAddCheckButton", "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry",
+    "kAddSoundfile", "kAddHorizontalBargraph", "kAddVerticalBargraph", "kDeclare",
 
     "kNop"};
 

@@ -53,7 +53,6 @@ struct AssemblyScriptInitFieldsVisitor : public DispatchVisitor {
     // Field zero-init is handled by the backend through explicit initializers and generated init
     // methods; keep this visitor hook as a no-op for now.
     static void ZeroInitializer(std::ostream* fOut, Typed* typed) {}
-
 };
 
 /*
@@ -68,19 +67,19 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static std::map<std::string, bool>        gFunctionSymbolTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
     // Maps FIR/stdlib names to AssemblyScript intrinsics or Math/Mathf helpers.
     // This keeps emission local and avoids sprinkling backend-specific function names.
     static std::map<std::string, std::string> gMathLibTable;
     // True while emitting inside a class declaration (fields + methods). Used to avoid
     // emitting top-level qualifiers such as `export function` for class methods.
-    bool                                      fInClassScope;
+    bool fInClassScope;
     // True only while emitting the class field section. Needed in addition to
     // fInClassScope because variable declarations are emitted differently in fields
     // (typed members, optional static) versus method/function bodies (`let ...` locals).
-    bool                                      fInClassFields;
-    std::string                               fStructName;
-    std::set<std::string>                     fStaticFieldNames;
+    bool                  fInClassFields;
+    std::string           fStructName;
+    std::set<std::string> fStaticFieldNames;
 
     std::string mapMathFunction(const std::string& name) const
     {
@@ -220,7 +219,29 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
         *fOut << ']';
     }
 
-    virtual void visit(BinopInst* inst) { TextInstVisitor::visit(inst); }
+    void emitBinopOperand(ValueInst* inst, bool cast_bool)
+    {
+        if (cast_bool && isBoolType(TypingVisitor::getType(inst))) {
+            *fOut << "<i32>(";
+            inst->accept(this);
+            *fOut << ")";
+        } else {
+            inst->accept(this);
+        }
+    }
+
+    virtual void visit(BinopInst* inst)
+    {
+        if (!isBoolOpcode(inst->fOpcode)) {
+            *fOut << "(";
+            emitBinopOperand(inst->fInst1, true);
+            *fOut << " " << gBinOpTable[inst->fOpcode]->fName << " ";
+            emitBinopOperand(inst->fInst2, true);
+            *fOut << ")";
+        } else {
+            TextInstVisitor::visit(inst);
+        }
+    }
 
     virtual void visit(DeclareVarInst* inst)
     {

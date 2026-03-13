@@ -308,9 +308,9 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
     if (!gGlobal->isOpt("FAUST_LLVM_NO_FM")) {
         // -fastmath is activated at IR level, and has to be setup at JIT level also
-        targetOptions.AllowFPOpFusion       = FPOpFusion::Fast;
+        targetOptions.AllowFPOpFusion = FPOpFusion::Fast;
 #if LLVM_VERSION_MAJOR < 22
-        targetOptions.UnsafeFPMath          = true;
+        targetOptions.UnsafeFPMath = true;
 #endif
         targetOptions.NoInfsFPMath          = true;
         targetOptions.NoNaNsFPMath          = true;
@@ -519,7 +519,8 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(
     auto RM = Optional<Reloc::Model>();
 #endif
 #if LLVM_VERSION_MAJOR >= 22
-    auto TheTargetMachine = Target->createTargetMachine(Triple(TargetTriple), CPU, Features, opt, RM);
+    auto TheTargetMachine =
+        Target->createTargetMachine(Triple(TargetTriple), CPU, Features, opt, RM);
 #else
     auto TheTargetMachine = Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM);
 #endif
