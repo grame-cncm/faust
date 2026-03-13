@@ -1,4 +1,4 @@
-% man(1) Version 2.85.1 (08-March-2026) | Faust man page
+% man(1) Version 2.85.2 (13-March-2026) | Faust man page
 
 NAME
 ====
@@ -168,7 +168,7 @@ Code generation options:
 
   **-ni** \<n>     **--narrowing-iterations** \<n>  number of iterations before stopping narrowing in signal bounding.
 
-  **-rnt**        **--rust-no-faustdsp-trait**    (Rust only) Don't generate FaustDsp trait implmentation.
+  **-rnt**        **--rust-no-faustdsp-trait**    (Rust only) Don't generate FaustDsp trait implementation.
 
   **-rnlm**       **--rust-no-libm**              (Rust only) Don't generate FFI calls to libm.
 

@@ -2198,7 +2198,8 @@ string global::printHelp()
 #ifndef EMCC
     sstr << tab << "-lang <lang> --language                 select output language," << endl;
     sstr << tab
-         << "                                        'lang' should be asc, c, cpp (default), cmajor, "
+         << "                                        'lang' should be asc, c, cpp (default), "
+            "cmajor, "
             "codebox, csharp, "
             "dlang, fir, interp, java, jax, jsfx, julia, llvm, "
             "ocpp, rust, sdf3, vhdl or wast/wasm."
