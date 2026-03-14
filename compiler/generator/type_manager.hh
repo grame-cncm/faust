@@ -52,10 +52,8 @@ struct StringTypeManager {
 
     virtual std::string generateType(Typed*                type,
                                      NamedTyped::Attribute attr = NamedTyped::kDefault) = 0;
-    virtual std::string generateType(Typed* type, const std::string& name, bool is_static = false)
-    {
-        return "";
-    }
+    virtual std::string generateType(Typed* type, const std::string& name,
+                                     bool is_static = false)                            = 0;
 };
 
 // StringTypeManager for C/C++, Java and FIR backends
@@ -196,7 +194,7 @@ class CStringTypeManager : public StringTypeManager {
         }
     }
 
-    virtual std::string generateType(Typed* type, const std::string& name)
+    virtual std::string generateType(Typed* type, const std::string& name, bool is_static = false)
     {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
@@ -317,7 +315,7 @@ class RustStringTypeManager : public StringTypeManager {
         }
     }
 
-    virtual std::string generateType(Typed* type, const std::string& name)
+    virtual std::string generateType(Typed* type, const std::string& name, bool is_static = false)
     {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
@@ -407,7 +405,7 @@ class CmajorStringTypeManager : public StringTypeManager {
         }
     }
 
-    virtual std::string generateType(Typed* type, const std::string& name)
+    virtual std::string generateType(Typed* type, const std::string& name, bool is_static = false)
     {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
@@ -499,7 +497,7 @@ class JuliaStringTypeManager : public StringTypeManager {
         }
     }
 
-    virtual std::string generateType(Typed* type, const std::string& name)
+    virtual std::string generateType(Typed* type, const std::string& name, bool is_static = false)
     {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
@@ -591,7 +589,7 @@ class JSFXStringTypeManager : public StringTypeManager {
         }
     }
 
-    virtual std::string generateType(Typed* type, const std::string& name)
+    virtual std::string generateType(Typed* type, const std::string& name, bool is_static = false)
     {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
@@ -682,7 +680,7 @@ class CodeboxStringTypeManager : public StringTypeManager {
         }
     }
 
-    virtual std::string generateType(Typed* type, const std::string& name)
+    virtual std::string generateType(Typed* type, const std::string& name, bool is_static = false)
     {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
@@ -778,7 +776,7 @@ class JAXStringTypeManager : public StringTypeManager {
         }
     }
 
-    virtual std::string generateType(Typed* type, const std::string& name)
+    virtual std::string generateType(Typed* type, const std::string& name, bool is_static = false)
     {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
@@ -815,7 +813,7 @@ class TemplateStringTypeManager : public StringTypeManager {
         return "";
     }
 
-    virtual std::string generateType(Typed* type, const std::string& name)
+    virtual std::string generateType(Typed* type, const std::string& name, bool is_static = false)
     {
         // TODO
         return "";
