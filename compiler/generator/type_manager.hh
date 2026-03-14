@@ -52,7 +52,10 @@ struct StringTypeManager {
 
     virtual std::string generateType(Typed*                type,
                                      NamedTyped::Attribute attr = NamedTyped::kDefault) = 0;
-    virtual std::string generateType(Typed* type, const std::string& name)              = 0;
+    virtual std::string generateType(Typed* type, const std::string& name, bool is_static = false)
+    {
+        return "";
+    }
 };
 
 // StringTypeManager for C/C++, Java and FIR backends
@@ -830,36 +833,36 @@ class AssemblyScriptStringTypeManager : public StringTypeManager {
         fPtrRef = ptr_ref;
 
         fTypeDirectTable[Typed::kInt32]     = "i32";
-        fTypeDirectTable[Typed::kInt32_ptr] = "i32[]";
-        fTypeDirectTable[Typed::kInt32_vec] = "i32[]";
+        fTypeDirectTable[Typed::kInt32_ptr] = "StaticArray<i32>";
+        fTypeDirectTable[Typed::kInt32_vec] = "StaticArray<i32>";
 
         fTypeDirectTable[Typed::kInt64]     = "i64";
-        fTypeDirectTable[Typed::kInt64_ptr] = "i64[]";
-        fTypeDirectTable[Typed::kInt64_vec] = "i64[]";
+        fTypeDirectTable[Typed::kInt64_ptr] = "StaticArray<i64>";
+        fTypeDirectTable[Typed::kInt64_vec] = "StaticArray<i64>";
 
         fTypeDirectTable[Typed::kFloat]         = "f32";
-        fTypeDirectTable[Typed::kFloat_ptr]     = "f32[]";
-        fTypeDirectTable[Typed::kFloat_ptr_ptr] = "f32[][]";
-        fTypeDirectTable[Typed::kFloat_vec]     = "f32[]";
+        fTypeDirectTable[Typed::kFloat_ptr]     = "StaticArray<f32>";
+        fTypeDirectTable[Typed::kFloat_ptr_ptr] = "StaticArray<f32><f32>";
+        fTypeDirectTable[Typed::kFloat_vec]     = "StaticArray<f32>";
 
         fTypeDirectTable[Typed::kDouble]         = "f64";
-        fTypeDirectTable[Typed::kDouble_ptr]     = "f64[]";
-        fTypeDirectTable[Typed::kDouble_ptr_ptr] = "f64[][]";
-        fTypeDirectTable[Typed::kDouble_vec]     = "f64[]";
+        fTypeDirectTable[Typed::kDouble_ptr]     = "StaticArray<f64>";
+        fTypeDirectTable[Typed::kDouble_ptr_ptr] = "StaticArray<f64><f64>";
+        fTypeDirectTable[Typed::kDouble_vec]     = "StaticArray<f64>";
 
         fTypeDirectTable[Typed::kQuad]         = "f64";
-        fTypeDirectTable[Typed::kQuad_ptr]     = "f64[]";
-        fTypeDirectTable[Typed::kQuad_ptr_ptr] = "f64[][]";
-        fTypeDirectTable[Typed::kQuad_vec]     = "f64[]";
+        fTypeDirectTable[Typed::kQuad_ptr]     = "StaticArray<f64>";
+        fTypeDirectTable[Typed::kQuad_ptr_ptr] = "StaticArray<f64><f64>";
+        fTypeDirectTable[Typed::kQuad_vec]     = "StaticArray<f64>";
 
         fTypeDirectTable[Typed::kFixedPoint]         = "f64";
-        fTypeDirectTable[Typed::kFixedPoint_ptr]     = "f64[]";
-        fTypeDirectTable[Typed::kFixedPoint_ptr_ptr] = "f64[][]";
-        fTypeDirectTable[Typed::kFixedPoint_vec]     = "f64[]";
+        fTypeDirectTable[Typed::kFixedPoint_ptr]     = "StaticArray<f64>";
+        fTypeDirectTable[Typed::kFixedPoint_ptr_ptr] = "StaticArray<f64><f64>";
+        fTypeDirectTable[Typed::kFixedPoint_vec]     = "StaticArray<f64>";
 
         fTypeDirectTable[Typed::kBool]     = "bool";
-        fTypeDirectTable[Typed::kBool_ptr] = "bool[]";
-        fTypeDirectTable[Typed::kBool_vec] = "bool[]";
+        fTypeDirectTable[Typed::kBool_ptr] = "StaticArray<bool>";
+        fTypeDirectTable[Typed::kBool_vec] = "StaticArray<bool>";
 
         fTypeDirectTable[Typed::kVoid]     = "void";
         fTypeDirectTable[Typed::kVoid_ptr] = "usize";
@@ -890,14 +893,14 @@ class AssemblyScriptStringTypeManager : public StringTypeManager {
         } else if (named_typed) {
             return generateType(named_typed->fType) + " " + named_typed->fName;
         } else if (array_typed) {
-            return generateType(array_typed->fType) + "[]";
+            return "<" + generateType(array_typed->fType) + ">";
         } else {
             faustassert(false);
             return "";
         }
     }
 
-    virtual std::string generateType(Typed* type, const std::string& name)
+    virtual std::string generateType(Typed* type, const std::string& name, bool is_static = false)
     {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
@@ -908,7 +911,11 @@ class AssemblyScriptStringTypeManager : public StringTypeManager {
         } else if (named_typed) {
             return name + ": " + generateType(named_typed->fType);
         } else if (array_typed) {
-            return name + ": " + generateType(array_typed->fType) + "[]";
+            if (is_static) {
+                return name + ": StaticArray<" + generateType(array_typed->fType) + ">";
+            } else {
+                return name + ": " + generateType(array_typed->fType) + "[]";
+            }
         } else {
             faustassert(false);
             return "";

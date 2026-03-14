@@ -135,10 +135,10 @@ void AssemblyScriptCodeContainer::produceInternal()
     tab(n + 1, *fOut);
     if (fSubContainerType == kInt) {
         *fOut << "fill" << fKlassName << "(" << counter << ": i32, " << fTableName
-              << ": i32[]): void {";
+              << ": StaticArray<i32>): void {";
     } else {
         *fOut << "fill" << fKlassName << "(" << counter << ": i32, " << fTableName << ": "
-              << ifloat() << "[]): void {";
+              << "StaticArray<" << ifloat() << ">): void {";
     }
     tab(n + 2, *fOut);
     visitor.Tab(n + 2);
@@ -181,10 +181,10 @@ void AssemblyScriptCodeContainer::produceInternal()
     tab(n, *fOut);
     if (fSubContainerType == kInt) {
         *fOut << "function fill" << fKlassName << "(dsp: " << root_class << ", " << counter
-              << ": i32, " << fTableName << ": i32[]): void {";
+              << ": i32, " << fTableName << ": StaticArray<i32>): void {";
     } else {
         *fOut << "function fill" << fKlassName << "(dsp: " << root_class << ", " << counter
-              << ": i32, " << fTableName << ": " << ifloat() << "[]): void {";
+              << ": i32, " << fTableName << ": " << "StaticArray<" << ifloat() << ">): void {";
     }
     tab(n + 1, *fOut);
     *fOut << "changetype<" << fKlassName << ">(dsp).fill" << fKlassName << "(" << counter << ", "

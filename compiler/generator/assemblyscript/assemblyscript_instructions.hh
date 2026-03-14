@@ -169,39 +169,59 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
         *fOut << "// ui soundfile unsupported in AssemblyScript backend";
     }
 
-    virtual void visit(Int32NumInst* inst) { TextInstVisitor::visit(inst); }
+    virtual void visit(Int32NumInst* inst)
+    {
+        *fOut << "<i32>(";
+        *fOut << inst->fNum;
+        *fOut << ")";
+    }
 
     virtual void visit(Int32ArrayNumInst* inst)
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << inst->fNumTable[i];
+            *fOut << sep << "<i32>(" << inst->fNumTable[i] << ")";
             sep = ',';
         }
         *fOut << ']';
     }
 
-    virtual void visit(Int64NumInst* inst) { TextInstVisitor::visit(inst); }
+    virtual void visit(Int64NumInst* inst)
+    {
+        *fOut << "<i64>(";
+        *fOut << inst->fNum;
+        *fOut << ")";
+    }
 
-    virtual void visit(FloatNumInst* inst) { TextInstVisitor::visit(inst); }
+    virtual void visit(FloatNumInst* inst)
+    {
+        *fOut << "<f32>(";
+        *fOut << checkFloat(inst->fNum);
+        *fOut << ")";
+    }
 
     virtual void visit(FloatArrayNumInst* inst)
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            *fOut << sep << "<f32>(" << checkFloat(inst->fNumTable[i]) << ")";
             sep = ',';
         }
         *fOut << ']';
     }
 
-    virtual void visit(DoubleNumInst* inst) { TextInstVisitor::visit(inst); }
+    virtual void visit(DoubleNumInst* inst)
+    {
+        *fOut << "<f64>(";
+        *fOut << checkDouble(inst->fNum);
+        *fOut << ")";
+    }
 
     virtual void visit(DoubleArrayNumInst* inst)
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            *fOut << sep << "<f64>(" << checkDouble(inst->fNumTable[i]) << ")";
             sep = ',';
         }
         *fOut << ']';
@@ -219,9 +239,9 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
         *fOut << ']';
     }
 
-    void emitBinopOperand(ValueInst* inst, bool cast_bool)
+    void emitBinopOperand(ValueInst* inst)
     {
-        if (cast_bool && isBoolType(TypingVisitor::getType(inst))) {
+        if (isBoolType(TypingVisitor::getType(inst))) {
             *fOut << "<i32>(";
             inst->accept(this);
             *fOut << ")";
@@ -234,9 +254,9 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
     {
         if (!isBoolOpcode(inst->fOpcode)) {
             *fOut << "(";
-            emitBinopOperand(inst->fInst1, true);
+            emitBinopOperand(inst->fInst1);
             *fOut << " " << gBinOpTable[inst->fOpcode]->fName << " ";
-            emitBinopOperand(inst->fInst2, true);
+            emitBinopOperand(inst->fInst2);
             *fOut << ")";
         } else {
             TextInstVisitor::visit(inst);
@@ -253,14 +273,14 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
                 fStaticFieldNames.insert(inst->getName());
                 *fOut << "static ";
             }
-            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
+            *fOut << fTypeManager->generateType(inst->fType, inst->getName(), true);
             if (inst->fValue) {
                 *fOut << " = ";
                 inst->fValue->accept(this);
             } else {
                 ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
                 if (array_type && array_type->fSize > 0) {
-                    *fOut << " = new Array<" << fTypeManager->generateType(array_type->fType)
+                    *fOut << " = new StaticArray<" << fTypeManager->generateType(array_type->fType)
                           << ">(" << array_type->fSize << ")";
                 }
             }
