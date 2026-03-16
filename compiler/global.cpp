@@ -461,6 +461,7 @@ void global::reset()
     gFTZMode  = 0;
     gRangeUI  = false;
     gFreezeUI = false;
+    gNumericStabilityAnalysis = false;
 
     gFloatSize      = 1;             // -single by default
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
@@ -514,6 +515,7 @@ void global::reset()
     gNamespace            = "";
     gFullParentheses      = false;
     gCheckIntRange        = false;
+    gNumericStabilityAnalysis = false;
     gReprC                = true;
 
     gNarrowingLimit = 0;
@@ -835,6 +837,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gCheckIntRange) {
         dst << "-cir ";
+    }
+    if (gNumericStabilityAnalysis) {
+        dst << "-nsa ";
     }
     if (gExtControl) {
         dst << "-ec ";
@@ -1581,6 +1586,10 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-cir", "--check-integer-range")) {
             gCheckIntRange = true;
             i += 1;
+        } else if (isCmd(argv[i], "-nsa", "--numeric-stability-analysis")) {
+            gNumericStabilityAnalysis = true;
+            gAllWarning = true;
+            i += 1;
         } else if (isCmd(argv[i], "-noreprc", "--no-reprc")) {
             gReprC = false;
             i += 1;
@@ -2251,6 +2260,10 @@ string global::printHelp()
     sstr << tab
          << "-cir        --check-integer-range       check float to integer range conversion."
          << endl;
+        sstr << tab
+                 << "-nsa        --numeric-stability-analysis run static analysis for numerical "
+                        "instability and enable automatic precision compensation."
+                 << endl;
     sstr
         << tab
         << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)."

@@ -300,6 +300,7 @@ struct global {
     bool gFullParentheses;  // -fp option, generate less parenthesis in some textual backends:
                             // C/C++, Cmajor, Dlang, Rust
     bool gCheckIntRange;    // -cir option, check float to integer range conversion
+    bool gNumericStabilityAnalysis;  // -nsa option, run static analysis and automatic precision compensation
     bool gReprC;            // (Rust) Force dsp struct layout to follow C ABI
 
     std::string gClassName;       // -cn option, name of the generated dsp class, by default 'mydsp'

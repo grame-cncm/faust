@@ -26,6 +26,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
+#include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -1351,6 +1352,82 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
 
 static void* createFactoryAux1(void* arg)
 {
+    struct NumericStabilityAnalyzer : public SignalVisitor {
+        int  fDelayCount     = 0;
+        int  fRecCount       = 0;
+        int  fDivCount       = 0;
+        int  fNearUnityCount = 0;
+        bool fRisky          = false;
+
+        static bool isNearUnity(Tree x)
+        {
+            double coeff;
+            if (!isSigReal(x, &coeff)) {
+                return false;
+            }
+            double magnitude = std::fabs(coeff);
+            return (magnitude >= 0.95 && magnitude < 1.0);
+        }
+
+        explicit NumericStabilityAnalyzer(Tree root)
+        {
+            visitRoot(root);
+            // Heuristic risk gate: recursion plus either division, a deep delay cascade,
+            // or feedback gains close to the unit circle.
+            fRisky = (fRecCount > 0) && ((fDivCount > 0) || (fDelayCount >= 4) || (fNearUnityCount > 0));
+        }
+
+        void visit(Tree sig)
+        {
+            int  op;
+            Tree x;
+            Tree y;
+            Tree t0;
+            Tree t1;
+            Tree var;
+            Tree le;
+
+            if (isSigDelay1(sig, t0)) {
+                fDelayCount++;
+            } else if (isSigDelay(sig, t0, t1)) {
+                fDelayCount++;
+            } else if (isRec(sig, var, le)) {
+                fRecCount++;
+            } else if (isSigBinOp(sig, &op, x, y)) {
+                if (op == kDiv) {
+                    fDivCount++;
+                } else if ((op == kMul) && (isNearUnity(x) || isNearUnity(y))) {
+                    fNearUnityCount++;
+                }
+            }
+            SignalVisitor::visit(sig);
+        }
+    };
+
+    auto runNumericStabilityAnalysis = [](Tree signals) {
+        NumericStabilityAnalyzer analyzer(signals);
+        if (!analyzer.fRisky) {
+            return;
+        }
+
+        {
+            stringstream warning;
+            warning << "WARNING : numeric stability analysis detected a recursive structure with "
+                    << analyzer.fDelayCount << " delays, " << analyzer.fDivCount
+                    << " divisions and " << analyzer.fNearUnityCount
+                    << " near-unity gains. Consider a more stable filter form.\n";
+            gWarningMessages.push_back(warning.str());
+        }
+
+        // Automatic compensation: promote internal precision when currently in single precision.
+        if (gGlobal->gFloatSize == 1) {
+            gGlobal->gFloatSize = 2;
+            gWarningMessages.push_back(
+                "WARNING : numeric stability analysis promoted internal precision from single to "
+                "double.\n");
+        }
+    };
+
     try {
         CallContext* context     = static_cast<CallContext*>(arg);
         string       name_app    = context->fNameApp;
@@ -1424,6 +1501,10 @@ static void* createFactoryAux1(void* arg)
             cout << "\n\n";
         }
 
+        if (gGlobal->gNumericStabilityAnalysis) {
+            runNumericStabilityAnalysis(lsignals);
+        }
+
         endTiming("propagation");
 
         /*************************************************************************
@@ -1446,6 +1527,79 @@ static void* createFactoryAux1(void* arg)
 
 static void* createFactoryAux2(void* arg)
 {
+    struct NumericStabilityAnalyzer : public SignalVisitor {
+        int  fDelayCount     = 0;
+        int  fRecCount       = 0;
+        int  fDivCount       = 0;
+        int  fNearUnityCount = 0;
+        bool fRisky          = false;
+
+        static bool isNearUnity(Tree x)
+        {
+            double coeff;
+            if (!isSigReal(x, &coeff)) {
+                return false;
+            }
+            double magnitude = std::fabs(coeff);
+            return (magnitude >= 0.95 && magnitude < 1.0);
+        }
+
+        explicit NumericStabilityAnalyzer(Tree root)
+        {
+            visitRoot(root);
+            fRisky = (fRecCount > 0) && ((fDivCount > 0) || (fDelayCount >= 4) || (fNearUnityCount > 0));
+        }
+
+        void visit(Tree sig)
+        {
+            int  op;
+            Tree x;
+            Tree y;
+            Tree t0;
+            Tree t1;
+            Tree var;
+            Tree le;
+
+            if (isSigDelay1(sig, t0)) {
+                fDelayCount++;
+            } else if (isSigDelay(sig, t0, t1)) {
+                fDelayCount++;
+            } else if (isRec(sig, var, le)) {
+                fRecCount++;
+            } else if (isSigBinOp(sig, &op, x, y)) {
+                if (op == kDiv) {
+                    fDivCount++;
+                } else if ((op == kMul) && (isNearUnity(x) || isNearUnity(y))) {
+                    fNearUnityCount++;
+                }
+            }
+            SignalVisitor::visit(sig);
+        }
+    };
+
+    auto runNumericStabilityAnalysis = [](Tree signals) {
+        NumericStabilityAnalyzer analyzer(signals);
+        if (!analyzer.fRisky) {
+            return;
+        }
+
+        {
+            stringstream warning;
+            warning << "WARNING : numeric stability analysis detected a recursive structure with "
+                    << analyzer.fDelayCount << " delays, " << analyzer.fDivCount
+                    << " divisions and " << analyzer.fNearUnityCount
+                    << " near-unity gains. Consider a more stable filter form.\n";
+            gWarningMessages.push_back(warning.str());
+        }
+
+        if (gGlobal->gFloatSize == 1) {
+            gGlobal->gFloatSize = 2;
+            gWarningMessages.push_back(
+                "WARNING : numeric stability analysis promoted internal precision from single to "
+                "double.\n");
+        }
+    };
+
     // Keep the maximum index of inputs signals
     struct MaxInputsCounter : public SignalVisitor {
         int fMaxInputs = 0;
@@ -1488,6 +1642,10 @@ static void* createFactoryAux2(void* arg)
         gGlobal->processCmdline(argc, argv);
 
         gGlobal->initDocumentNames();
+
+        if (gGlobal->gNumericStabilityAnalysis) {
+            runNumericStabilityAnalysis(signals2);
+        }
 
         // Open output file
         openOutfile();
