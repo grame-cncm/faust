@@ -2045,6 +2045,11 @@ void global::parseSourceFiles()
 static void enumBackends(ostream& out)
 {
     const char* dspto = "   DSP to ";
+    
+#ifdef ASSEMBLYSCRIPT_BUILD
+    out << dspto << "AssemblyScript" << endl;
+#endif
+    
 #ifdef C_BUILD
     out << dspto << "C" << endl;
 #endif
@@ -2107,10 +2112,6 @@ static void enumBackends(ostream& out)
 
 #ifdef SDF3_BUILD
     out << dspto << "SDF3" << endl;
-#endif
-
-#ifdef ASSEMBLYSCRIPT_BUILD
-    out << dspto << "AssemblyScript" << endl;
 #endif
 
 #ifdef TEMPLATE_BUILD
