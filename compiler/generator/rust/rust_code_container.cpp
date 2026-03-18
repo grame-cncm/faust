@@ -368,11 +368,17 @@ void RustCodeContainer::produceFaustDspBlob()
 
 void RustCodeContainer::produceClass()
 {
-    // Initialize fStaticVarNames by collecting static vars from global declarations.
-    CollectStaticVarsVisitor collectStaticVarsVisitor{};
-    generateGlobalDeclarations(&collectStaticVarsVisitor);
-    fStaticVarNames = collectStaticVarsVisitor.getStaticVarNames();
-    fCodeProducer.setVarsRequiringGuards(toUnorderedSet(fStaticVarNames));
+    if (gGlobal->gInlineTable) {
+        // merge the subcontainers before we generate 
+        // the dsp struct
+        mergeSubContainers();
+    } else {
+        // Initialize fStaticVarNames by collecting static vars from global declarations.
+        CollectStaticVarsVisitor collectStaticVarsVisitor{};
+        generateGlobalDeclarations(&collectStaticVarsVisitor);
+        fStaticVarNames = collectStaticVarsVisitor.getStaticVarNames();
+        fCodeProducer.setVarsRequiringGuards(toUnorderedSet(fStaticVarNames));
+    }
 
     int n = 0;
     if (gGlobal->gReprC) {
@@ -392,9 +398,12 @@ void RustCodeContainer::produceClass()
     *fOut << "}";
     tab(n, *fOut);
 
-    // Generate gub containers
-    generateSubContainers();
-
+    tab(n, *fOut);
+    if (!gGlobal->gInlineTable) {
+        // because we want to be able to add derive macros to the dsp struct via architecture file
+        // we need to keep the code for sub containers after the struct.
+        generateSubContainers();
+    } 
     // Functions
     tab(n, *fOut);
     fCodeProducer.Tab(n);
@@ -467,19 +476,36 @@ void RustCodeContainer::produceClass()
     // generateStaticInitFun("classInit" + fKlassName, false)->accept(&codeproducer1);
     // generateInstanceInitFun("instanceInit" + fKlassName, false, false)->accept(&codeproducer2);
 
-    tab(n + 1, *fOut);
-    *fOut << "pub fn class_init(sample_rate: i32) {";
-    {
-        tab(n + 2, *fOut);
-        // Local visitor here to avoid DSP object type wrong generation
-        RustInstVisitor codeproducer(fOut, "");
-        codeproducer.setVarsRequiringGuards(toUnorderedSet(fStaticVarNames));
-        codeproducer.Tab(n + 2);
-        generateLockGuards(n + 2, false);
-        generateStaticInit(&codeproducer);
+    if (gGlobal->gInlineTable) {
+        // Empty classInit
+        *fOut << "pub fn class_init(sample_rate: i32) {}";
+        tab(n + 1, *fOut);
+        // To be used in instanceInit
+        tab(n + 1, *fOut);
+        *fOut << "pub fn static_init(&mut self,sample_rate: i32) {";
+        {
+            tab(n + 2, *fOut);
+            RustInstVisitor codeproducer(fOut, "");
+            codeproducer.Tab(n + 2);
+            fStaticInitInstructions->accept(&codeproducer);
+        }
+        back(1, *fOut);
+        *fOut << "}";
+    } else {
+        tab(n + 1, *fOut);
+        *fOut << "pub fn class_init(sample_rate: i32) {";
+        {
+            tab(n + 2, *fOut);
+            // Local visitor here to avoid DSP object type wrong generation
+            RustInstVisitor codeproducer(fOut, "");
+            codeproducer.setVarsRequiringGuards(toUnorderedSet(fStaticVarNames));
+            codeproducer.Tab(n + 2);
+            generateLockGuards(n + 2, false);
+            generateStaticInit(&codeproducer);
+        }
+        back(1, *fOut);
+        *fOut << "}";
     }
-    back(1, *fOut);
-    *fOut << "}";
 
     tab(n + 1, *fOut);
     *fOut << "pub fn instance_reset_params(&mut self) {";
@@ -521,6 +547,10 @@ void RustCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     *fOut << "pub fn instance_init(&mut self, sample_rate: i32) {";
+    if (gGlobal->gInlineTable) {
+        tab(n + 2, *fOut);
+        *fOut << "self.static_init(sample_rate);";
+    }
     tab(n + 2, *fOut);
     *fOut << "self.instance_constants(sample_rate);";
     tab(n + 2, *fOut);
@@ -532,8 +562,10 @@ void RustCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     *fOut << "pub fn init(&mut self, sample_rate: i32) {";
-    tab(n + 2, *fOut);
-    *fOut << fKlassName << "::class_init(sample_rate);";
+    if (!gGlobal->gInlineTable) {
+        tab(n + 2, *fOut);
+        *fOut << fKlassName << "::class_init(sample_rate);";
+    }
     tab(n + 2, *fOut);
     *fOut << "self.instance_init(sample_rate);";
     tab(n + 1, *fOut);
