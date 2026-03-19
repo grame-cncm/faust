@@ -4,7 +4,7 @@ USE_DAISYSP_LGPL=1
 
 # Library Locations
 HOTHOUSE_DIR ?= ../../HothouseExamples
-LIBDAISY_DIR ?= $(HOTHOUSE_DIR)/libdaisy
+LIBDAISY_DIR ?= $(HOTHOUSE_DIR)/libDaisy
 DAISYSP_DIR ?= $(HOTHOUSE_DIR)/DaisySP
 
 # Sources
