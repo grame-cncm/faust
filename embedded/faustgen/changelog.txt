@@ -4,7 +4,12 @@
 GRAME - Centre national de creation musicale
 http://www.grame.fr
 ====================================================
-Copyright GRAME (c) 2012-2025
+Copyright GRAME (c) 2012-2026
+
+----------------------------------------------------
+Version 1.80 - 20/03/2025
+
+- distribution with Faust 2.85.5.
 
 ----------------------------------------------------
 Version 1.80 - 15/12/2025

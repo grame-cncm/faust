@@ -40,7 +40,7 @@
 // FAUSTFLOAT is mandatory defined as double 
 #define FAUSTFLOAT double
 
-#define FAUSTGEN_VERSION "1.80"
+#define FAUSTGEN_VERSION "1.81"
 
 // Possibly compile with Interp backend
 // #define INTERP_BACKEND
