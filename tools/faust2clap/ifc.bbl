@@ -1,0 +1,36 @@
+\begin{thebibliography}{1}
+
+\bibitem{Orlarey2009}
+Yann Orlarey, St{\'e}phane Letz, and Dominique Fober,
+\newblock ``{FAUST}: an efficient functional approach to {DSP} programming,''
+\newblock in {\em New Computational Paradigms for Computer Music}. Delatour, Paris, France, 2009.
+
+\bibitem{CLAP2022}
+{Free Audio Community},
+\newblock ``{CLAP}: {CL}ever {A}udio {P}lug-in {API},'' \url{https://github.com/free-audio/clap}, 2022,
+\newblock Version 1.0.0 released June 2022.
+
+\bibitem{FaustArch}
+St{\'e}phane Letz, Yann Orlarey, and Dominique Fober,
+\newblock ``Faust architecture files,'' \url{https://faustdoc.grame.fr/manual/architectures/}, 2024,
+\newblock Accessed: 2025-01-01.
+
+\bibitem{HVCC}
+{Wasted Audio},
+\newblock ``Heavy compiler collection (hvcc),'' \url{https://wasted-audio.github.io/hvcc/}, 2021.
+
+\bibitem{RNBO}
+{Cycling '74},
+\newblock ``{RNBO} audio plugin export,'' \url{https://rnbo.cycling74.com/}, 2023.
+
+\bibitem{Guillot2018}
+Pierre Guillot,
+\newblock ``Camomile: Creating audio plugins with {Pure Data},''
+\newblock in {\em Proceedings of the Linux Audio Conference (LAC-18)}, Berlin, Germany, 2018.
+
+\bibitem{Bencina2011}
+Ross Bencina,
+\newblock ``Real-time audio programming 101: Time waits for nothing,'' \url{http://www.rossbencina.com/code/real-time-audio-programming-101-time-waits-for-nothing}, 2011,
+\newblock Accessed: 2025.
+
+\end{thebibliography}
