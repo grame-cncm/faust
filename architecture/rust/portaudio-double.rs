@@ -153,49 +153,49 @@ fn run() -> Result<(), pa::Error> {
 
     //settings.flags = pa::stream_flags::CLIP_OFF;
 
+    // Allocate adaptation buffers
+    let mut in0_f64 = vec![0.0f64; FRAMES_PER_BUFFER as usize];
+    let mut in1_f64 = vec![0.0f64; FRAMES_PER_BUFFER as usize];
+    let mut out0_f64 = vec![0.0f64; FRAMES_PER_BUFFER as usize];
+    let mut out1_f64 = vec![0.0f64; FRAMES_PER_BUFFER as usize];
+ 
     // This routine will be called by the PortAudio engine when audio is needed. It may called at
     // interrupt level on some machines so don't do anything that could mess up the system like
     // dynamic resource allocation or IO.
     let callback = move |pa::DuplexStreamCallbackArgs { in_buffer, out_buffer, frames, time, .. } : pa::DuplexStreamCallbackArgs<f32, f32>| {
         let out_buffr: &mut [*mut f32];
         let in_buffr: & [*const f32];
+        
         // rust-portaudio does not support non-interleaved audio out of the box (but portaudio does)
         unsafe {
+            let in_ptr = in_buffer.as_ptr() as *const *const f32;
+            in_buffr = std::slice::from_raw_parts(in_ptr, CHANNELS as usize);
 
-            let in_buffer: *const *const f32 = ::std::mem::transmute(in_buffer.get_unchecked(0));
-            in_buffr = ::std::slice::from_raw_parts(in_buffer, CHANNELS as usize);
-            let input0 = ::std::slice::from_raw_parts(in_buffr[0], frames);
-            let input1 = ::std::slice::from_raw_parts(in_buffr[1], frames);
+            let input0 = std::slice::from_raw_parts(in_buffr[0], frames);
+            let input1 = std::slice::from_raw_parts(in_buffr[1], frames);
 
-            let input0_f64: Vec<f64> = input0.iter().map(|&sample| sample as f64).collect();
-            let input1_f64: Vec<f64> = input1.iter().map(|&sample| sample as f64).collect();    
-         
-            let inputs_f64: [&[f64]; 2] = [&input0_f64[..], &input1_f64[..]];
-            let inputs_ref: &[&[f64]] = &inputs_f64;
-
-            // Prepare f64 outputs
-            let mut output0_f64: Vec<f64> = vec![0.0; frames];
-            let mut output1_f64: Vec<f64> = vec![0.0; frames];
-    
-            let mut outputs_f64: [&mut [f64]; 2] = [&mut output0_f64[..], &mut output1_f64[..]];
-            let outputs_ref: &mut [&mut [f64]] = &mut outputs_f64;
-    
-            // Compute using f64 inputs and outputs
-            dsp.compute(frames as usize, inputs_ref, outputs_ref);
-    
-            let out_buffer: *mut *mut f32 = ::std::mem::transmute(out_buffer.get_unchecked_mut(0));
-            out_buffr = ::std::slice::from_raw_parts_mut(out_buffer, CHANNELS as usize);
-            let output0 = ::std::slice::from_raw_parts_mut(out_buffr[0], frames);
-            let output1 = ::std::slice::from_raw_parts_mut(out_buffr[1], frames);
-  
-            // Copy and convert outputs_ref[0] (f64) to output0 (f32)
-            for (dest, &src) in output0.iter_mut().zip(outputs_ref[0].iter()) {
-                *dest = src as f32;
+            for i in 0..frames {
+                in0_f64[i] = input0[i] as f64;
+                in1_f64[i] = input1[i] as f64;
             }
-             for (dest, &src) in output1.iter_mut().zip(outputs_ref[1].iter()) {
-                *dest = src as f32;
+
+            let inputs = &[&in0_f64[..frames], &in1_f64[..frames]];
+            let outputs = &mut [&mut out0_f64[..frames], &mut out1_f64[..frames]];
+
+            dsp.compute(frames as usize, inputs, outputs);
+
+            let out_ptr = out_buffer.as_mut_ptr() as *mut *mut f32;
+            out_buffr = std::slice::from_raw_parts_mut(out_ptr, CHANNELS as usize);
+
+            let output0 = std::slice::from_raw_parts_mut(out_buffr[0], frames);
+            let output1 = std::slice::from_raw_parts_mut(out_buffr[1], frames);
+
+            for i in 0..frames {
+                output0[i] = out0_f64[i] as f32;
+                output1[i] = out1_f64[i] as f32;
             }
         }
+    
         pa::Continue
     };
 

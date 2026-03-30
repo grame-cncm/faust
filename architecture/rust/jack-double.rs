@@ -104,6 +104,8 @@ pub trait UI<T> {
 <<includeIntrinsic>>
 <<includeclass>>
 
+const FRAMES_PER_BUFFER: u32 = 4096;
+
 fn main() {
 
     // Create JACK client
@@ -139,6 +141,12 @@ fn main() {
     let mut out_a = client.register_port("out1", j::AudioOutSpec::default()).unwrap();
     let mut out_b = client.register_port("out2", j::AudioOutSpec::default()).unwrap();
 
+   // Allocate float/double adaptation buffers
+    let mut in0_f64 = vec![0.0f64; FRAMES_PER_BUFFER as usize];
+    let mut in1_f64 = vec![0.0f64; FRAMES_PER_BUFFER as usize];
+    let mut out0_f64 = vec![0.0f64; FRAMES_PER_BUFFER as usize];
+    let mut out1_f64 = vec![0.0f64; FRAMES_PER_BUFFER as usize];
+ 
     let process_callback = move |_: &j::Client, ps: &j::ProcessScope| -> j::JackControl {
         let mut out_a_p = j::AudioOutPort::new(&mut out_a, ps);
         let mut out_b_p = j::AudioOutPort::new(&mut out_b, ps);
@@ -146,36 +154,28 @@ fn main() {
         let in_a_p = j::AudioInPort::new(&in_a, ps);
         let in_b_p = j::AudioInPort::new(&in_b, ps);
 
-        // Adapt f32 inputs in f64 inputs
+        // Convert f32 inputs to f64 inputs
         let input0: &[f32] = &in_a_p;
         let input1: &[f32] = &in_b_p;
-
-        let input0_f64: Vec<f64> = input0.iter().map(|&sample| sample as f64).collect();
-        let input1_f64: Vec<f64> = input1.iter().map(|&sample| sample as f64).collect();    
-     
-        let inputs_f64: [&[f64]; 2] = [&input0_f64[..], &input1_f64[..]];
-        let inputs_ref: &[&[f64]] = &inputs_f64;
-
-        // Prepare f64 outputs
-        let mut output0_f64: Vec<f64> = vec![0.0; out_a_p.len()];
-        let mut output1_f64: Vec<f64> = vec![0.0; out_b_p.len()];
-
-        let mut outputs_f64: [&mut [f64]; 2] = [&mut output0_f64[..], &mut output1_f64[..]];
-        let outputs_ref: &mut [&mut [f64]] = &mut outputs_f64;
+        
+        for i in 0..in_a_p.len() {
+            in0_f64[i] = input0[i] as f64;
+            in1_f64[i] = input1[i] as f64;
+        }
+            
+        let inputs = &[&in0_f64[..in_a_p.len()], &in1_f64[..in_a_p.len()]];
+        let outputs = &mut [&mut out0_f64[..in_a_p.len()], &mut out1_f64[..in_a_p.len()]];
 
         // Compute using f64 inputs and outputs
-        dsp.compute(in_a_p.len() as usize, inputs_ref, outputs_ref);
+        dsp.compute(in_a_p.len() as usize, inputs, outputs);
 
         // Convert f64 outputs to f32 outputs
         let output0: &mut[f32] = &mut out_a_p;
         let output1: &mut[f32] = &mut out_b_p;
-       
-        // Copy and convert outputs_ref[0] (f64) to output0 (f32)
-        for (dest, &src) in output0.iter_mut().zip(outputs_ref[0].iter()) {
-            *dest = src as f32;
-        }
-         for (dest, &src) in output1.iter_mut().zip(outputs_ref[1].iter()) {
-            *dest = src as f32;
+          
+        for i in 0..in_a_p.len() {
+            output0[i] = out0_f64[i] as f32;
+            output1[i] = out1_f64[i] as f32;
         }
 
         j::JackControl::Continue
