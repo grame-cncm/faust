@@ -105,17 +105,6 @@ typedef CTree* Tree;
 
 typedef std::vector<Tree> tvec;
 
-namespace std {
-
-// The std::less <CTree*>comparison function is redefined to provide an unique and stable ordering
-// for all CTree instances and so maintain determinism.
-template <>
-struct less<CTree*> {
-    bool operator()(const CTree* lhs, const CTree* rhs) const;
-};
-
-}  // namespace std
-
 /**
  * A CTree = (Node x [CTree]) is the association of a content Node and a list of subtrees
  * called branches. In order to maximize the sharing of trees, hashconsing techniques are used.
@@ -228,15 +217,6 @@ class LIBFAUST_API CTree : public virtual Garbageable {
         return (i == fProperties.end()) ? nullptr : i->second;
     }
 };
-
-// The comparison function relies on lhs->serial() which provides an unique and stable ordering
-// for all CTree instances and so maintain determinism.
-namespace std {
-inline bool less<CTree*>::operator()(const CTree* lhs, const CTree* rhs) const
-{
-    return lhs->serial() < rhs->serial();
-}
-};  // namespace std
 
 //---------------------------------API---------------------------------------
 // To build trees
