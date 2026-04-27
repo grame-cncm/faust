@@ -1,0 +1,9 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# personal
+*cache*
+*tmp*
+*demo*
+test/*.bin
