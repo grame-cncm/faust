@@ -60,6 +60,7 @@ class AudioType;
 
 class Garbageable;
 
+
 struct DispatchVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
@@ -67,6 +68,7 @@ class NNXInstVisitor;
 class LinenInstVisitor;
 class JuliaInstVisitor;
 class JSFXInstVisitor;
+namespace mojo { class MojoInstVisitor; }
 class AssemblyScriptInstVisitor;
 class TemplateInstVisitor;
 class CodeboxInstVisitor;
@@ -757,6 +759,10 @@ struct global {
 
 #ifdef NNX_BUILD
     NNXInstVisitor* gNNXVisitor;
+#endif
+
+#ifdef MOJO_BUILD
+    mojo::MojoInstVisitor* gMojoVisitor;
 #endif
 
 #ifdef ASSEMBLYSCRIPT_BUILD

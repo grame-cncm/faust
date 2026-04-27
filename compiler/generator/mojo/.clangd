@@ -1,0 +1,4 @@
+CompileFlags:
+  Add: [
+    -DMOJO_BUILD=1
+  ]

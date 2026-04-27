@@ -283,4 +283,124 @@ struct Typed : public Printable {
     virtual std::string toString() = 0;
 };
 
+/* XXX:(manu) Possible refactor: enum reordered, added is.. methods -> offset approach
+
+    struct Typed : public Printable {
+        enum VarType {
+            kInt32,
+            kInt64,
+            kBool,
+            kFloat,
+            kDouble,
+            kQuad,
+            kFixedPoint,
+            kFloatMacro,
+            kVoid,
+            kObj,
+            kMeta,
+            kSound,
+            kUI,
+            kUint,
+
+            kInt32_ptr,
+            kInt64_ptr,
+            kBool_ptr,
+            kFloat_ptr,
+            kDouble_ptr,
+            kQuad_ptr,
+            kFixedPoint_ptr,
+            kFloatMacro_ptr,
+            kVoid_ptr,
+            kObj_ptr,
+            kMeta_ptr,
+            kSound_ptr,
+            kUI_ptr,
+            kUint_ptr,
+
+            kInt32_vec,
+            kInt64_vec,
+            kBool_vec,
+            kFloat_vec,
+            kDouble_vec,
+            kQuad_vec,
+            kFixedPoint_vec,
+
+            kFloat_ptr_ptr,
+            kDouble_ptr_ptr,
+            kQuad_ptr_ptr,
+            kFixedPoint_ptr_ptr,
+            kFloatMacro_ptr_ptr,
+
+            kInt32_vec_ptr,
+            kInt64_vec_ptr,
+            kBool_vec_ptr,
+            kFloat_vec_ptr,
+            kDouble_vec_ptr,
+            kQuad_vec_ptr,
+            kFixedPoint_vec_ptr,
+
+            kNoType,
+        };
+
+        Typed() {}
+        virtual ~Typed() {}
+
+        static bool isPlainType(VarType type)
+        {
+            return kInt32 <= type && type <= kUint;
+        }
+
+        static bool isPlainReal(VarType type)
+        {
+            return kFloat <= type && type <= kFloatMacro;
+        }
+
+        static bool isPtrType(VarType type)
+        {
+            return kInt32_ptr <= type && type <= kUint_ptr;
+        }
+
+        static bool isPtrReal(VarType type)
+        {
+            return kFloat_ptr <= type && type <= kFloatMacro_ptr;
+        }
+
+        static bool isVecType(VarType type)
+        {
+            return kInt32_vec <= type && type <= kFixedPoint_vec;
+        }
+
+        static bool isVecPtrType(VarType type)
+        {
+            return kInt32_vec_ptr <= type && type <= kFixedPoint_vec_ptr;
+        }
+
+        // Returns the pointer type version of a primitive type
+        static VarType getPtrFromType(VarType type)
+        {
+            if (isPlainType(type)) {
+                return VarType(type + (kInt32_ptr - kInt32));
+            }
+            if (isPtrReal(type)) {
+                return VarType(type + (kFloat_ptr_ptr - kFloat_ptr));
+            }
+            if (isVecType(type)) {
+                return VarType(type + (kInt32_vec_ptr - kInt32_vec));
+            }
+            std::cerr << "ASSERT : getPtrFromType " << type << std::endl;
+            faustassert(false);
+            return kNoType;
+        }
+
+        // Returns the vector type version of a primitive type
+        static VarType getVecFromType(VarType type)
+        {
+            if (isPlainType(type)) {
+                return VarType(type + (kInt32_vec - kInt32));
+            }
+            std::cerr << "ASSERT : getVecFromType " << type << std::endl;
+            faustassert(false);
+            return kNoType;
+        }
+ */
 #endif
