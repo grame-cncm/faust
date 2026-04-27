@@ -145,6 +145,9 @@ llvm:  # LLVM backend (scalar + vector)
 julia:  # Julia backend
 	$(MAKE) -f Make.lang outdir=julia lang=julia ext=julia FAUSTOPTIONS=""
 	
+mojo:   # Mojo backend
+	$(MAKE) -f Make.lang outdir=mojo lang=mojo ext=mojo FAUSTOPTIONS=""
+
 rust:  # Rust backend
 	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rust FAUSTOPTIONS=""
 	

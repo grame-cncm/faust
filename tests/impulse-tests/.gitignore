@@ -6,4 +6,6 @@ impulsellvm
 tmp*
 output
 __pycache__
-*.pyc
+*.pyc# pixi environments
+.pixi/*
+!.pixi/config.toml

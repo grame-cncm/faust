@@ -49,6 +49,7 @@ all:
 	$(MAKE) ocpp
 	$(MAKE) c
 	$(MAKE) c1
+	$(MAKE) mojo
 	$(MAKE) mute
 	$(MAKE) wasm
 	$(MAKE) wast
@@ -84,6 +85,7 @@ help:
 	@echo " 'llvm1'  : check double output with llvm backend in object code mode (using 'dynamic-faust') and various options"
 	@echo " 'interp' : check double output with interpreter backend and various options"
 	@echo " 'interp1' : check double output with interpreter/(llvm or MIR) backend and various options"
+	@echo " 'mojo'   : check double output with mojo backend and various options"
 	@echo " 'rust'   : check double output with rust backend and various options"
 	@echo " 'cmajor' : check double output with cmajor backend and various options"
 	@echo " 'rnbo'   : check double output with rnbo backend and various options"
@@ -563,6 +565,12 @@ interp1:
 	$(MAKE) -f Make.interp1 outdir=interp1/double/vec/g        FAUSTOPTIONS="-I dsp -vec -lv 1 -g"
 	$(MAKE) -f Make.interp1 outdir=interp1/double/inpl         FAUSTOPTIONS="-I dsp -inpl"
 	$(MAKE) -f Make.interp1 outdir=interp1/double/ftz          FAUSTOPTIONS="-I dsp -ftz 1"
+
+#########################################################################
+# Mojo backend
+mojo:
+	# $(MAKE) -f Make.mojo outdir=mojo/float  lang=mojo arch=impulsemojo.mojo FAUSTOPTIONS="-I dsp -single"
+	$(MAKE) -f Make.mojo outdir=mojo/double lang=mojo arch=impulsemojo.mojo FAUSTOPTIONS="-I dsp -double"
 
 #########################################################################
 # Rust backend
