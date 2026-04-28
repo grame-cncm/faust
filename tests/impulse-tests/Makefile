@@ -62,6 +62,7 @@ all:
 	$(MAKE) nnx
 	$(MAKE) linen
 	$(MAKE) julia
+	$(MAKE) mojo
 
 help:
 	@echo "-------- FAUST impulse response tests --------"
@@ -85,7 +86,6 @@ help:
 	@echo " 'llvm1'  : check double output with llvm backend in object code mode (using 'dynamic-faust') and various options"
 	@echo " 'interp' : check double output with interpreter backend and various options"
 	@echo " 'interp1' : check double output with interpreter/(llvm or MIR) backend and various options"
-	@echo " 'mojo'   : check double output with mojo backend and various options"
 	@echo " 'rust'   : check double output with rust backend and various options"
 	@echo " 'cmajor' : check double output with cmajor backend and various options"
 	@echo " 'rnbo'   : check double output with rnbo backend and various options"
@@ -94,6 +94,7 @@ help:
 	@echo " 'linen'  : check double output with Linen backend and various options"
 	@echo " 'julia'  : check double output with Julia backend and various options"
 	@echo " 'jsfx'   : check double output with JSFX backend and various options"
+	@echo " 'mojo'   : check double output with mojo backend and various options"
 	@echo " 'assemblyscript' : smoke-test output generation with AssemblyScript backend"
 	@echo " 'asc'    : AssemblyScript impulse tests with reference comparison (compare=1)"
 	@echo " 'signal' : check double output with signal interpreter"

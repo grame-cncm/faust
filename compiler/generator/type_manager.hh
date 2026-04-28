@@ -28,6 +28,10 @@
 #include <sstream>
 #include <string>
 
+// FIX:(manu) to be removed
+#include "dsp_factory.hh"
+#include "global.hh"
+
 #include "exception.hh"
 #include "instructions.hh"
 
@@ -40,6 +44,8 @@
 struct StringTypeManager {
     std::map<Typed::VarType, std::string> fTypeDirectTable;
     std::string                           fPtrRef;
+
+    StringTypeManager() = default;
 
     StringTypeManager(const std::string& float_macro_name, const std::string& ptr_ref)
     {
@@ -295,6 +301,7 @@ class RustStringTypeManager : public StringTypeManager {
 
     virtual std::string generateType(Typed* type, NamedTyped::Attribute attr = NamedTyped::kDefault)
     {
+        (void)attr;
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
@@ -334,7 +341,6 @@ class RustStringTypeManager : public StringTypeManager {
         }
     }
 };
-
 // StringTypeManager for CMajor backend
 
 class CmajorStringTypeManager : public StringTypeManager {
@@ -346,11 +352,11 @@ class CmajorStringTypeManager : public StringTypeManager {
 
         fTypeDirectTable[Typed::kInt32]     = "int32";
         fTypeDirectTable[Typed::kInt32_ptr] = "int32" + fPtrRef;
-        fTypeDirectTable[Typed::kInt32_vec] = "vector<i32>";
+        fTypeDirectTable[Typed::kInt32_vec] = "vector<S32>";
 
         fTypeDirectTable[Typed::kInt64]     = "int64";
         fTypeDirectTable[Typed::kInt64_ptr] = "int64" + fPtrRef;
-        fTypeDirectTable[Typed::kInt64_vec] = "vector<i64>";
+        fTypeDirectTable[Typed::kInt64_vec] = "vector<S64>";
 
         fTypeDirectTable[Typed::kFloat]         = "float32";
         fTypeDirectTable[Typed::kFloat_ptr]     = "float32" + fPtrRef;
@@ -387,6 +393,7 @@ class CmajorStringTypeManager : public StringTypeManager {
 
     virtual std::string generateType(Typed* type, NamedTyped::Attribute attr = NamedTyped::kDefault)
     {
+        (void)attr;
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
@@ -434,13 +441,13 @@ class JuliaStringTypeManager : public StringTypeManager {
     {
         fPtrRef = ptr_ref;
 
-        fTypeDirectTable[Typed::kInt32]     = "Int32";
-        fTypeDirectTable[Typed::kInt32_ptr] = "Int32";
-        fTypeDirectTable[Typed::kInt32_vec] = "vector<Int32>";
+        fTypeDirectTable[Typed::kInt32]     = "S32";
+        fTypeDirectTable[Typed::kInt32_ptr] = "S32";
+        fTypeDirectTable[Typed::kInt32_vec] = "vector<S32>";
 
-        fTypeDirectTable[Typed::kInt64]     = "Int64";
-        fTypeDirectTable[Typed::kInt64_ptr] = "Int64";
-        fTypeDirectTable[Typed::kInt64_vec] = "vector<Int64>";
+        fTypeDirectTable[Typed::kInt64]     = "S64";
+        fTypeDirectTable[Typed::kInt64_ptr] = "S64";
+        fTypeDirectTable[Typed::kInt64_vec] = "vector<S64>";
 
         fTypeDirectTable[Typed::kFloat]         = "T";
         fTypeDirectTable[Typed::kFloat_ptr]     = "T";
@@ -479,6 +486,7 @@ class JuliaStringTypeManager : public StringTypeManager {
 
     virtual std::string generateType(Typed* type, NamedTyped::Attribute attr = NamedTyped::kDefault)
     {
+        (void)attr;
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
@@ -527,13 +535,13 @@ class JSFXStringTypeManager : public StringTypeManager {
     {
         fPtrRef = ptr_ref;
 
-        fTypeDirectTable[Typed::kInt32]     = "Int32";
-        fTypeDirectTable[Typed::kInt32_ptr] = "Int32";
-        fTypeDirectTable[Typed::kInt32_vec] = "vector<Int32>";
+        fTypeDirectTable[Typed::kInt32]     = "S32";
+        fTypeDirectTable[Typed::kInt32_ptr] = "S32";
+        fTypeDirectTable[Typed::kInt32_vec] = "vector<S32>";
 
-        fTypeDirectTable[Typed::kInt64]     = "Int64";
-        fTypeDirectTable[Typed::kInt64_ptr] = "Int64";
-        fTypeDirectTable[Typed::kInt64_vec] = "vector<Int64>";
+        fTypeDirectTable[Typed::kInt64]     = "S64";
+        fTypeDirectTable[Typed::kInt64_ptr] = "S64";
+        fTypeDirectTable[Typed::kInt64_vec] = "vector<S64>";
 
         fTypeDirectTable[Typed::kFloat]         = "T";
         fTypeDirectTable[Typed::kFloat_ptr]     = "T";
@@ -572,6 +580,7 @@ class JSFXStringTypeManager : public StringTypeManager {
 
     virtual std::string generateType(Typed* type, NamedTyped::Attribute attr = NamedTyped::kDefault)
     {
+        (void)attr;
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
@@ -622,9 +631,9 @@ class CodeboxStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kInt32_ptr] = "FixedIntArray";
         fTypeDirectTable[Typed::kInt32_vec] = "vector<Int>";
 
-        fTypeDirectTable[Typed::kInt64]     = "Int64";
-        fTypeDirectTable[Typed::kInt64_ptr] = "Int64";
-        fTypeDirectTable[Typed::kInt64_vec] = "vector<Int64>";
+        fTypeDirectTable[Typed::kInt64]     = "S64";
+        fTypeDirectTable[Typed::kInt64_ptr] = "S64";
+        fTypeDirectTable[Typed::kInt64_vec] = "vector<S64>";
 
         fTypeDirectTable[Typed::kFloat]         = "number";
         fTypeDirectTable[Typed::kFloat_ptr]     = "FixedFloatArray";
@@ -709,15 +718,16 @@ class JAXStringTypeManager : public StringTypeManager {
                          const std::string& struct_name = "")
         : StringTypeManager(float_macro_name, ptr_ref)
     {
+        (void)struct_name;
         fPtrRef = ptr_ref;
 
         fTypeDirectTable[Typed::kInt32]     = "jnp.int32";
         fTypeDirectTable[Typed::kInt32_ptr] = "jnp.int32";
-        fTypeDirectTable[Typed::kInt32_vec] = "vector<Int32>";  // todo:
+        fTypeDirectTable[Typed::kInt32_vec] = "vector<S32>";  // todo:
 
         fTypeDirectTable[Typed::kInt64]     = "jnp.int64";
         fTypeDirectTable[Typed::kInt64_ptr] = "jnp.int64";
-        fTypeDirectTable[Typed::kInt64_vec] = "vector<Int64>";  // todo:
+        fTypeDirectTable[Typed::kInt64_vec] = "vector<S64>";  // todo:
 
         fTypeDirectTable[Typed::kFloat]         = "";
         fTypeDirectTable[Typed::kFloat_ptr]     = "";
@@ -756,6 +766,7 @@ class JAXStringTypeManager : public StringTypeManager {
 
     virtual std::string generateType(Typed* type, NamedTyped::Attribute attr = NamedTyped::kDefault)
     {
+        (void)attr;
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
@@ -796,6 +807,113 @@ class JAXStringTypeManager : public StringTypeManager {
     }
 };
 
+// StringTypeManager for Mojo backend
+
+// fPtrRef is empty because fo the Mojo syntax is `var ptr: UnsafePointer[T, …]`
+struct MojoStringTypeManager : public StringTypeManager {
+
+    using DirectTypeTable = std::map<Typed::VarType, std::string>;
+
+    MojoStringTypeManager(
+        std::string const&    floatMacroName,
+        std::string const&    structName = "",
+        std::string const&    ptrRef = ""
+    ) {
+        fPtrRef = ptrRef;
+        fTypeDirectTable = createDirectTypeTable(floatMacroName, structName);
+    }
+
+    std::string generateType(Typed*type, NamedTyped::Attribute attr = NamedTyped::kDefault)
+    {
+        (void)attr;
+        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
+        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+
+        if (basic_typed) {
+            return fTypeDirectTable[basic_typed->fType];
+        }
+        if (named_typed) {
+            std::string tname_str = generateType(named_typed->fType);
+            return named_typed->fName + (tname_str != "" ? ": " + tname_str : "");
+        }
+        if (array_typed) {
+            if (array_typed->fSize == 0) {
+                return "Ptr[" + generateType(array_typed->fType) + fPtrRef + "]";
+            }
+            return "Arr[" + generateType(array_typed->fType) + ", " +
+                   std::to_string(array_typed->fSize) + "]";
+        }
+        faustassert(false);
+        return "";
+    }
+
+    virtual std::string
+    generateType(Typed* type, std::string const& name, bool isStatic = false)
+    {
+        (void)isStatic; // unused
+        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
+        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+
+        if (basic_typed) {
+            return name + ": " + fTypeDirectTable[basic_typed->fType];
+
+        } else if (named_typed) {
+            std::string tname_str = named_typed->fName + generateType(named_typed->fType);
+            return name + (tname_str != "" ? ": " + tname_str : "");
+
+        } else if (array_typed) {
+            return name + ": " + generateType(type);
+
+        } else {
+            faustassert(false);
+            return "";
+        }
+    }
+
+private:
+
+    static DirectTypeTable createDirectTypeTable(std::string const& floatMacroName, std::string const& structName) {
+        return DirectTypeTable{
+            {Typed::kFloatMacro,         floatMacroName},
+            {Typed::kFloatMacro_ptr,     "Ptr[" + floatMacroName + "]"},
+            {Typed::kFloatMacro_ptr_ptr, "Ptr[Ptr[" + floatMacroName + "]]"},
+
+            {Typed::kInt32,     "S32"},
+            {Typed::kInt32_ptr, "Ptr[S32"},
+            {Typed::kInt32_vec, "List[S32]"},
+            
+            {Typed::kInt64,     "S64"},
+            {Typed::kInt64_ptr, "Ptr[S64]"},
+            {Typed::kInt64_vec, "List[S64]"},
+
+            {Typed::kFloat,         "F32"},
+            {Typed::kFloat_ptr,     "Ptr[F32]"},
+            {Typed::kFloat_ptr_ptr, "Ptr[Ptr[F32]]"},
+            {Typed::kFloat_vec,     "List[F32]"},
+
+            {Typed::kDouble,         "F64"},
+            {Typed::kDouble_ptr,     "Ptr[F64]"},
+            {Typed::kDouble_ptr_ptr, "Ptr[Ptr[F64]]"},
+            {Typed::kDouble_vec,     "List[F64]"},
+
+            {Typed::kBool,     "Bool"},
+            {Typed::kBool_ptr, "Ptr[Bool]"},
+            {Typed::kBool_vec, "List[Bool]"},
+
+            {Typed::kVoid,     "NoneType"},
+            {Typed::kVoid_ptr, "AnyPtr"},
+        
+            {Typed::kSound,     "Soundfile"},
+            {Typed::kSound_ptr, "Ptr[Soundfile]"},
+
+            {Typed::kObj,     structName},
+            {Typed::kObj_ptr, "Ptr[" + structName + "]"},
+        };
+    }
+};
+
 // StringTypeManager for Template backend
 
 class TemplateStringTypeManager : public StringTypeManager {
@@ -805,17 +923,20 @@ class TemplateStringTypeManager : public StringTypeManager {
         : StringTypeManager(float_macro_name, ptr_ref)
     {
         // TODO
+        (void)struct_name;
     }
 
     virtual std::string generateType(Typed* type, NamedTyped::Attribute attr = NamedTyped::kDefault)
     {
         // TODO
+        (void)type; (void)attr;
         return "";
     }
 
     virtual std::string generateType(Typed* type, const std::string& name, bool is_static = false)
     {
         // TODO
+        (void)type; (void)name;
         return "";
     }
 };
@@ -882,6 +1003,7 @@ class AssemblyScriptStringTypeManager : public StringTypeManager {
 
     virtual std::string generateType(Typed* type, NamedTyped::Attribute attr = NamedTyped::kDefault)
     {
+        (void)attr;
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
@@ -920,5 +1042,4 @@ class AssemblyScriptStringTypeManager : public StringTypeManager {
         }
     }
 };
-
 #endif

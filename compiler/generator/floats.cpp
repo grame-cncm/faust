@@ -236,6 +236,51 @@ void initFaustFloat()
         floatmax[3] = 0x7FF0000000000000;
         floatmax[4] = 0x7F800000;
 
+    } else if (gGlobal->gOutputLang == "mojo") {
+        numsuffix[0] = "";
+        // NOTE(manu) this one in case we need a placeholder
+        // numsuffix[1] = "%";
+        numsuffix[1] = "";
+        numsuffix[2] = "";
+        numsuffix[3] = "";
+        numsuffix[4] = "";
+
+        floatname[0] = "FaustFloat";
+        floatname[1] = "F32";
+        floatname[2] = "F64";
+        floatname[3] = "dummy";
+        floatname[4] = "dummy";
+
+        floatptrname[0] = "Ptr[FaustFloat]";
+        floatptrname[1] = "Ptr[F32]";
+        floatptrname[2] = "Ptr[F64]";
+        floatptrname[3] = "Ptr[dummy]";
+        floatptrname[4] = "Ptr[dummy]";
+
+        floatptrptrname[0] = "FaustFloat";
+        floatptrptrname[1] = "Ptr[Ptr[F32]]";
+        floatptrptrname[2] = "Ptr[Ptr[F64]]";
+        floatptrptrname[3] = "Ptr[Ptr[dummy]]";
+        floatptrptrname[4] = "Ptr[Ptr[dummy]]";
+
+        castname[0] = "FaustFloat()";
+        castname[1] = "F32()";
+        castname[2] = "F64()";
+        castname[3] = "(dummy)";
+        castname[4] = "(dummy)";
+
+        floatmin[0] = 0;
+        floatmin[1] = 1.17549435e-38F;
+        floatmin[2] = 2.2250738585072014e-308;
+        floatmin[3] = 2.2250738585072014e-308L;
+        floatmin[4] = 1.17549435e-38F;
+
+        floatmax[0] = 0;
+        floatmax[1] = 0x7F800000;
+        floatmax[2] = 0x7FF0000000000000;
+        floatmax[3] = 0x7FF0000000000000;
+        floatmax[4] = 0x7F800000;
+
         // Specific for AssemblyScript backend
     } else if (gGlobal->gOutputLang == "asc") {
         numsuffix[0] = "";
@@ -449,7 +494,6 @@ Typed::VarType itfloatptrptr()
             return Typed::kNoType;
     }
 }
-
 void printfloatdef(std::ostream& fout)
 {
     fout << "#ifndef " << FLOATMACRO << std::endl;

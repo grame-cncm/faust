@@ -294,7 +294,7 @@ void MojoCodeContainer::writeMetadataFunc(int n)
             }
             continue;
         }
-        *fOut << wtab(n + 1) << "meta.declare(" << wlit(format(i.first)) << ", "
+        *fOut << wtab(n + 1) << "meta.declare(" << wlit(format(*i.first)) << ", "
               << **(i.second.begin()) << ")\n";
     }
 }
