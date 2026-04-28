@@ -2,4 +2,4 @@
 
 
 from .ffi import *
-from .portaudio import PortAudio, FaustFloat, FAUST_DTYPE
+from .portaudio import PortAudio, FaustFloat, dfaust

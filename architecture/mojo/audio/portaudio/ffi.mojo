@@ -1,15 +1,13 @@
-#-- audio/portaudio/ffi.mojo
-
+# audio/portaudio/ffi.mojo
 
 from std.ffi import *
 
 
-# +----------------------------------------------------------+
-# | API                                                      |
-# +----------------------------------------------------------+
+# ------------------------------------------------------------ #
+# API                                                          #
+# ------------------------------------------------------------ #
 
-
-#-- Query
+# Query
 
 @always_inline
 def pa_get_default_input_device() -> Int32:
@@ -65,7 +63,7 @@ def pa_is_format_supported(
             )
     )
 
-#-- Lifecycle
+# Lifecycle
 
 @always_inline
 def pa_initialize() -> Int32:
@@ -79,7 +77,7 @@ def pa_terminate() -> Int32:
             external_call["Pa_Terminate", PaError]()
     )
 
-#-- Stream creation
+# Stream creation
 
 @always_inline
 def pa_open_default_stream(
@@ -151,7 +149,7 @@ def pa_open_stream(
             )
     )
 
-#-- Stream control
+# Stream control
 
 @always_inline
 def pa_start_stream(stream: PaStream[MutExternalOrigin]) -> Int32:
@@ -236,7 +234,7 @@ def pa_write_stream(
             )
     )
 
-#-- Utility
+# Utilities
 
 @always_inline
 def pa_sleep(msec: Int32) -> None:
@@ -247,29 +245,23 @@ def pa_sleep(msec: Int32) -> None:
         ](c_long(msec))
 
 
-# +----------------------------------------------------------+
-# | Bindings for portaudio types and enums                   |
-# +----------------------------------------------------------+
+# ------------------------------------------------------------ #
+# Bindings for portaudio types and enums                       #
+# ------------------------------------------------------------ #
 
-
-#-- Portaudio C native types
-
+# Portaudio C native types
 comptime PaInt    = c_int
 comptime PaULong  = c_ulong
 comptime PaDouble = c_double
 comptime PaSLong  = c_long
 comptime PaString = CStringSlice[ImmutExternalOrigin]
 
-
-#-- PaStream
+# PaStream
 # Portaudio C header defines `PaStream = void`, so `PaStream* = void*`.
 # In this module `PaStream = void*`.
-
 comptime PaStream = OpaquePointer
 
-
-#-- PaError
-
+# PaError
 comptime PaError                                    = PaInt
 comptime PA_NO_ERROR                                = PaError(0)
 comptime PA_NOT_INITIALIZED                         = PaError(-10000)
@@ -302,9 +294,7 @@ comptime PA_CAN_NOT_WRITE_TO_AN_INPUT_ONLY_STREAM   = PaError(-9974)
 comptime PA_INCOMPATIBLE_STREAM_HOST_API            = PaError(-9973)
 comptime PA_BAD_BUFFER_PTR                          = PaError(-9972)
 
-
-#-- PaHostApiTypeId
-
+# PaHostApiTypeId
 comptime PaHostApiTypeId    = PaInt
 comptime PA_IN_DEVELOPMENT  = PaHostApiTypeId(0)
 comptime PA_DIRECT_SOUND    = PaHostApiTypeId(1)
@@ -322,9 +312,7 @@ comptime PA_WASAPI          = PaHostApiTypeId(12)
 comptime PA_AUDIOTRACK      = PaHostApiTypeId(13)
 comptime PA_OSS4            = PaHostApiTypeId(14)
 
-
-#-- PaSampleFormat
-
+# PaSampleFormat
 comptime PaSampleFormat     = PaULong
 comptime PA_FLOAT32         = PaULong(0x00000001)
 comptime PA_INT32           = PaULong(0x00000002)
@@ -335,16 +323,12 @@ comptime PA_UINT8           = PaULong(0x00000020)
 comptime PA_CUSTOM_FORMAT   = PaULong(0x00010000)
 comptime PA_NON_INTERLEAVED = PaULong(0x80000000)
 
-
-#-- PaDeviceIndex
-
+# PaDeviceIndex
 comptime PaDeviceIndex                                 = PaInt
 comptime PA_NO_DEVICE                                  = PaDeviceIndex(-1)
 comptime PA_USE_HOST_API_SPECIFIC_DEVICE_SPECIFICATION = PaDeviceIndex(-2)
 
-
-#-- PaStreamFlags
-
+# PaStreamFlags
 comptime PaStreamFlags                                 = PaULong
 comptime PA_NO_FLAG                                    = PaULong(0)
 comptime PA_CLIP_OFF                                   = PaULong(0x00000001)
@@ -353,17 +337,13 @@ comptime PA_NEVER_DROP_INPUT                           = PaULong(0x00000004)
 comptime PA_PRIME_OUTPUT_BUFFERS_USING_STREAM_CALLBACK = PaULong(0x00000008)
 comptime PA_PLATFORM_SPECIFIC_FLAGS                    = PaULong(0xFFFF0000)
 
-
-#-- PaStreamCallbackResult
-
+# PaStreamCallbackResult
 comptime PaStreamCallbackResult = PaInt
 comptime PA_CONTINUE            = PaStreamCallbackResult(0)
 comptime PA_COMPLETE            = PaStreamCallbackResult(1)
 comptime PA_ABORT               = PaStreamCallbackResult(2)
 
-
-#-- PaStreamCallbackFlags
-
+# PaStreamCallbackFlags
 comptime PaStreamCallbackFlags = PaULong
 comptime PA_INPUT_UNDERFLOW    = PaStreamCallbackFlags(0x00000001)
 comptime PA_INPUT_OVERFLOW     = PaStreamCallbackFlags(0x00000002)
@@ -371,27 +351,22 @@ comptime PA_OUTPUT_UNDERFLOW   = PaStreamCallbackFlags(0x00000004)
 comptime PA_OUTPUT_OVERFLOW    = PaStreamCallbackFlags(0x00000008)
 comptime PA_PRIMING_OUTPUT     = PaStreamCallbackFlags(0x00000010)
 
-
-#-- Misc
-
+# Misc
 comptime PaHostApiIndex                   = PaInt
 comptime PA_FORMAT_IS_SUPPORTED           = PaError(0)
 comptime PA_FRAMES_PER_BUFFER_UNSPECIFIED = PaULong(0)
 
-
-#-- PaStreamCallbackTimeInfo
-
+# PaTime
 comptime PaTime = PaDouble
 
+# PaStreamCallbackTimeInfo
 @fieldwise_init
 struct PaStreamCallbackTimeInfo:
     var current_time:              PaTime
     var input_buffer_adc_time:     PaTime
     var output_buffer_dac_time:    PaTime
 
-
-#-- PaDeviceInfo
-
+# PaDeviceInfo
 @fieldwise_init
 struct PaDeviceInfo:
     var struct_version:                 PaInt
@@ -405,9 +380,7 @@ struct PaDeviceInfo:
     var default_high_output_latency:    PaTime
     var default_sample_rate:            PaDouble
 
-
-#-- PaStreamParameters
-
+# PaStreamParameters
 @fieldwise_init
 struct PaStreamParameters(Movable):
     var device:                           PaDeviceIndex
@@ -416,9 +389,7 @@ struct PaStreamParameters(Movable):
     var suggested_latency:                PaTime
     var host_api_specific_stream_info:    OpaquePointer[MutExternalOrigin]
 
-
-#-- PaStreamInfo
-
+# PaStreamInfo
 @fieldwise_init
 struct PaStreamInfo:
     var struct_version:    PaInt
@@ -426,9 +397,7 @@ struct PaStreamInfo:
     var output_latency:    PaTime
     var sample_rate:       PaDouble
 
-
-#-- PaStreamCallback
-
+# PaStreamCallback
 comptime PaStreamCallback = def(
     input:           OpaquePointer[ImmutExternalOrigin],
     output:          OpaquePointer[MutExternalOrigin],

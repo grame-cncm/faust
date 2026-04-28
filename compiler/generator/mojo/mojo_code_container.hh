@@ -71,11 +71,11 @@ protected:
     void writeGetSampleRate(int n);
     void writeGetInputs(int n);
     void writeGetOutputs(int n);
-    void writeInitClass(int n);
-    void writeSetInstanceConstants(int n);
-    void writeResetInstanceUI(int n);
-    void writeClearInstance(int n);
-    void writeInitInstance(int n);
+    void writeClassInit(int n);
+    void writeInstanceConstants(int n);
+    void writeInstanceResetUserInterface(int n);
+    void writeInstanceClear(int n);
+    void writeInstanceInit(int n);
     void writeInit(int n);
     void writeInitFunctions(int n);
     void writeGetJson(int n);

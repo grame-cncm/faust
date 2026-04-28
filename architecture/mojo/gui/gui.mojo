@@ -1,94 +1,110 @@
-#-- gui/gui.mojo
+# gui/gui.mojo
 
 
 from conf.prelude import *
 
 
+# ------------------------------------------------------------ #
+# FaustGui interface                                           #
+# General interface for the GUI architectures.                 #
+# Nota: each method as a default nop implementation, so the    #
+#       compiler does not check for missing definitions.       #
+# ------------------------------------------------------------ #
+
 trait FaustGui:
 
-    # Main loop
+    # main loop
 
     @always_inline
     def run(mut ui) -> S32: ...
 
     # widget's layout
-    
-    # def open_tab_box(mut ui, var label: String) -> None: ...
-
-    # def open_hori_box(mut ui, var label: String) -> None: ...
 
     @always_inline
-    def open_vert_box(mut ui, label: String) -> None: ...
+    def open_tab_box(mut ui, var label: String) -> None: pass
 
     @always_inline
-    def close_box(mut ui) -> None: ...
+    def open_horizontal_box(mut ui, var label: String) -> None: pass
+
+    @always_inline
+    def open_vertical_box(mut ui, label: String) -> None: pass
+
+    @always_inline
+    def close_box(mut ui) -> None: pass
 
     # active widgets
 
-    # def add_button[dtype: DType](
-    #     mut ui, var label: String, mut zone: SIMD[dtype, 1]
-    # ) -> None: ...
-
-    # def add_check_button[dtype: DType](
-    #     mut ui, var label: String, mut zone: SIMD[dtype, 1]
-    # ) -> None: ...
-
-    # XXX: var or read?
-
-    # def add_vert_slider[dtype: DType](
-    #     mut ui,
-    #     var label:    String,
-    #     mut zone:     SIMD[dtype, 1],
-    #     var init:     SIMD[dtype, 1],
-    #     var min:      SIMD[dtype, 1],
-    #     var max:      SIMD[dtype, 1],
-    #     var step:     SIMD[dtype, 1]
-    # ) -> None: ...
+    @always_inline
+    def add_button[dreal: DType](
+        mut ui, var label: String, mut zone: SIMD[dreal, 1]
+    ) -> None: pass
 
     @always_inline
-    def add_hori_slider[dtype: DType](
+    def add_check_button[dreal: DType](
+        mut ui, var label: String, mut zone: SIMD[dreal, 1]
+    ) -> None: pass
+
+    @always_inline
+    def add_vertical_slider[dreal: DType](
         mut ui,
         var label:    String,
-        mut zone:     SIMD[dtype, 1],
-        var init:     SIMD[dtype, 1],
-        var min:      SIMD[dtype, 1],
-        var max:      SIMD[dtype, 1],
-        var step:     SIMD[dtype, 1]
-    ) -> None: ...
+        mut zone:     SIMD[dreal, 1],
+        var init:     SIMD[dreal, 1],
+        var min:      SIMD[dreal, 1],
+        var max:      SIMD[dreal, 1],
+        var step:     SIMD[dreal, 1]
+    ) -> None: pass
 
-    # def add_num_entry[dtype: DType](
-    #     mut ui,
-    #     var label:    String,
-    #     mut zone:     SIMD[dtype, 1],
-    #     var init:     SIMD[dtype, 1],
-    #     var min:      SIMD[dtype, 1],
-    #     var max:      SIMD[dtype, 1],
-    #     var step:     SIMD[dtype, 1]
-    # ) -> None: ...
+    @always_inline
+    def add_horizontal_slider[dreal: DType](
+        mut ui,
+        var label:    String,
+        mut zone:     SIMD[dreal, 1],
+        var init:     SIMD[dreal, 1],
+        var min:      SIMD[dreal, 1],
+        var max:      SIMD[dreal, 1],
+        var step:     SIMD[dreal, 1]
+    ) -> None: pass
+
+    @always_inline
+    def add_num_entry[dreal: DType](
+        mut ui,
+        var label:    String,
+        mut zone:     SIMD[dreal, 1],
+        var init:     SIMD[dreal, 1],
+        var min:      SIMD[dreal, 1],
+        var max:      SIMD[dreal, 1],
+        var step:     SIMD[dreal, 1]
+    ) -> None: pass
 
     # passive widgets
 
-    # def add_vert_bargraph[dtype: DType](
-    #     mut ui, 
-    #     var label:    String,
-    #     mut zone:     SIMD[dtype, 1],
-    #     var min:      SIMD[dtype, 1],
-    #     var max:      SIMD[dtype, 1]
-    # ) -> None: ...
+    @always_inline
+    def add_vertical_bargraph[dreal: DType](
+        mut ui, 
+        var label:    String,
+        mut zone:     SIMD[dreal, 1],
+        var min:      SIMD[dreal, 1],
+        var max:      SIMD[dreal, 1]
+    ) -> None: pass
 
-    # def add_hori_bargraph[dtype: DType](
-    #     mut ui,
-    #     var label:    String,
-    #     mut zone:     SIMD[dtype, 1],
-    #     var min:      SIMD[dtype, 1],
-    #     var max:      SIMD[dtype, 1]
-    # ) -> None: ...
+    @always_inline
+    def add_horizontal_bargraph[dreal: DType](
+        mut ui,
+        var label:    String,
+        mut zone:     SIMD[dreal, 1],
+        var min:      SIMD[dreal, 1],
+        var max:      SIMD[dreal, 1]
+    ) -> None: pass
 
     # metadata declarations
 
-    # def declare[dtype: DType](
-    #     mut ui,
-    #     mut zone:     SIMD[dtype, 1],
-    #     var key:      String,
-    #     var val:      String
-    # ) -> None: ...
+    @always_inline
+    def declare[dreal: DType](
+        mut ui,
+        mut zone:     SIMD[dreal, 1],
+        var key:      String,
+        var val:      String
+    ) -> None: pass
+
+

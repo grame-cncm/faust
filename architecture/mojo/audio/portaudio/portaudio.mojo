@@ -1,17 +1,15 @@
 # audio/portaudio.mojo
 
-
 from conf.prelude import *
 from dsp import *
 
 
-# --------------------------------------------------------------
-# Portaudio interface implementation
-# --------------------------------------------------------------
-
+# ------------------------------------------------------------ #
+# Portaudio interface implementation                           #
+# ------------------------------------------------------------ #
 
 comptime FaustFloat = SIMD[DType.float32, 1]
-
+comptime dfaust = FaustFloat.dtype 
 
 struct PortAudio(FaustAudio):
     var alive:  Bool
@@ -84,10 +82,9 @@ struct PortAudio(FaustAudio):
         return PA_NO_ERROR
 
 
-# --------------------------------------------------------------
-# Portaudio comptimes and helpers
-# --------------------------------------------------------------
-
+# ------------------------------------------------------------ #
+# Portaudio comptimes and helpers                              #
+# ------------------------------------------------------------ #
 
 # Faust constants
 
@@ -99,7 +96,6 @@ comptime FAUST_NO_DEFAULT_IN_DEVICE  = PaError(-6999)
 comptime FAUST_NO_DEFAULT_OUT_DEVICE = PaError(-6998)
 comptime FAUST_STOPPED_NOT_ALIVE     = PaError(-3999)
 comptime FAUST_ALREADY_ALIVE         = PaError(-3998)
-
 
 # Faust callback
 
@@ -119,7 +115,6 @@ def faust_callback[Dsp: FaustDsp](
     return PA_CONTINUE
 
 comptime FaustCallbackFunc[Dsp: FaustDsp] = type_of(faust_callback[Dsp])
-
 
 # Faust open stream
 
@@ -148,7 +143,6 @@ def faust_open_stream[Dsp: FaustDsp](
         Ptr(to=dsp).bitcast[NoneType]().unsafe_origin_cast[MUTA_EXT](),
     )
     return stream, err
-
 
 # Make faust stream parameters
 

@@ -1,4 +1,3 @@
-#-- conf/__init__.mojo
-
+# conf/__init__.mojo
 
 from .prelude import *

@@ -57,5 +57,7 @@ tests/jax-tests/*.output.log
 # dynamic CLAP plugin build output
 architecture/clap/FaustDynamic.clap/
 architecture/clap/*.o
-### Nvim clangd cache
+# clangd
+compile_commands.json
 .cache/
+.clangd

@@ -198,10 +198,10 @@ void MojoInstVisitor::visit(AddSliderInst* inst)
     std::string name;
     switch (inst->fType) {
         case AddSliderInst::kHorizontal:
-            name = "add_hori_slider";
+            name = "add_horizontal_slider";
             break;
         case AddSliderInst::kVertical:
-            name = "add_vert_slider";
+            name = "add_vertical_slider";
             break;
         case AddSliderInst::kNumEntry:
             name = "add_num_entry";
@@ -224,10 +224,10 @@ void MojoInstVisitor::visit(AddBargraphInst* inst)
     std::string name;
     switch (inst->fType) {
         case AddBargraphInst::kHorizontal:
-            name = "add_hori_bargraph";
+            name = "add_horizontal_bargraph";
             break;
         case AddBargraphInst::kVertical:
-            name = "add_vert_bargraph";
+            name = "add_vertical_bargraph";
             break;
     }
     *fOut << "ui." << name << "(" << wlit(inst->fLabel) << ", "
@@ -437,10 +437,10 @@ void MojoInstVisitor::visit(OpenboxInst* inst)
     std::string name;
     switch (inst->fOrient) {
         case OpenboxInst::kVerticalBox:
-            name = "open_vert_box";
+            name = "open_vertical_box";
             break;
         case OpenboxInst::kHorizontalBox:
-            name = "open_hori_box";
+            name = "open_horizontal_box";
             break;
         case OpenboxInst::kTabBox:
             name = "open_tab_box";

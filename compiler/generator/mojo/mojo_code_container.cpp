@@ -64,8 +64,8 @@ void MojoCodeContainer::writeFaustHeader()
     }
     *fOut << "# Code generated with Faust " << FAUSTVERSION
           << " (https://faust.grame.fr)\n";
-    *fOut << "# Compilation options: " << "\n" << formatCompilerOptions(4, "# ");
-    *fOut << "\n" << wbanner() << "\n\n";
+    *fOut << "# Compilation options: " << "\n" << formatCompilerOptions(2, "# ");
+    *fOut << "\n" << wbanner();
 }
 
 void MojoCodeContainer::writeMissingMathFunctions()
@@ -150,10 +150,10 @@ void MojoCodeContainer::writeGetOutputs(int n)
     *fOut << wtab(n + 1) << "return " << fNumOutputs << "\n";
 }
 
-void MojoCodeContainer::writeInitClass(int n)
+void MojoCodeContainer::writeClassInit(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def init_class(mut dsp, sample_rate: S32) -> None:\n";
+    *fOut << wtab(n) << "def class_init(mut dsp, sample_rate: S32) -> None:\n";
     *fOut << wtab(n + 1);
     if (fStaticInitInstructions->fCode.size() == 0) {
         *fOut << "pass" << "\n";
@@ -169,19 +169,19 @@ void MojoCodeContainer::writeInitClass(int n)
     *fOut << wrewind(fOut, n + 1);
 }
 
-void MojoCodeContainer::writeSetInstanceConstants(int n)
+void MojoCodeContainer::writeInstanceConstants(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def set_instance_constants(mut dsp, sample_rate: S32) -> None:\n";
+    *fOut << wtab(n) << "def instance_constants(mut dsp, sample_rate: S32) -> None:\n";
     *fOut << wtab(n + 1);
     inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
     *fOut << wrewind(fOut, n + 1);
 }
 
-void MojoCodeContainer::writeResetInstanceUI(int n)
+void MojoCodeContainer::writeInstanceResetUserInterface(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def reset_instance_ui(mut dsp) -> None:\n";
+    *fOut << wtab(n) << "def instance_reset_user_interface(mut dsp) -> None:\n";
     if (fResetUserInterfaceInstructions->fCode.size() == 0) {
         *fOut << wtab(n + 1) << "pass" << "\n";
         return;
@@ -217,10 +217,10 @@ void MojoCodeContainer::writeResetInstanceUI(int n)
     }
 }
 
-void MojoCodeContainer::writeClearInstance(int n)
+void MojoCodeContainer::writeInstanceClear(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def clear_instance(mut dsp) -> None:\n";
+    *fOut << wtab(n) << "def instance_clear(mut dsp) -> None:\n";
     *fOut << wtab(n + 1);
     if (fClearInstructions->fCode.size() == 0) {
         *fOut << "pass" << "\n";
@@ -230,35 +230,35 @@ void MojoCodeContainer::writeClearInstance(int n)
     *fOut << wrewind(fOut, n + 1);
 }
 
-void MojoCodeContainer::writeInitInstance(int n)
+void MojoCodeContainer::writeInstanceInit(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def init_instance(mut dsp, sample_rate: S32) -> None:\n";
-    *fOut << wtab(n + 1) << "dsp.set_instance_constants(sample_rate)\n";
-    *fOut << wtab(n + 1) << "dsp.reset_instance_ui()\n";
-    *fOut << wtab(n + 1) << "dsp.clear_instance()\n";
+    *fOut << wtab(n) << "def instance_init(mut dsp, sample_rate: S32) -> None:\n";
+    *fOut << wtab(n + 1) << "dsp.instance_constants(sample_rate)\n";
+    *fOut << wtab(n + 1) << "dsp.instance_reset_user_interface()\n";
+    *fOut << wtab(n + 1) << "dsp.instance_clear()\n";
 }
 
 void MojoCodeContainer::writeInit(int n)
 {
     *fOut << wtab(n) << "@always_inline" << "\n";
     *fOut << wtab(n) << "def init(mut dsp, sample_rate: S32) -> None:\n";
-    *fOut << wtab(n + 1) << "dsp.init_class(sample_rate)\n";
-    *fOut << wtab(n + 1) << "dsp.init_instance(sample_rate)\n";
+    *fOut << wtab(n + 1) << "dsp.class_init(sample_rate)\n";
+    *fOut << wtab(n + 1) << "dsp.instance_init(sample_rate)\n";
 }
 
 void MojoCodeContainer::writeInitFunctions(int n)
 {
     fCodeProducer->Tab(n + 1);
-    writeInitClass(n);
+    writeClassInit(n);
     *fOut << wblank();
-    writeSetInstanceConstants(n);
+    writeInstanceConstants(n);
     *fOut << wblank();
-    writeResetInstanceUI(n);
+    writeInstanceResetUserInterface(n);
     *fOut << wblank();
-    writeClearInstance(n);
+    writeInstanceClear(n);
     *fOut << wblank();
-    writeInitInstance(n);
+    writeInstanceInit(n);
     *fOut << wblank();
     writeInit(n);
     fCodeProducer->Tab(n);
@@ -335,8 +335,6 @@ void MojoCodeContainer::produceClass()
 {
     int n = 0;
     writeFaustHeader();
-    *fOut << wblank();
-    writeMissingMathFunctions();
     *fOut << wblank();
     mergeSubContainers();
     n += 1;

@@ -6,4 +6,5 @@
 *cache*
 *tmp*
 *demo*
-test/*.bin
+*bin*
+*test*

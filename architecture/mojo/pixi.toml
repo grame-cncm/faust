@@ -1,12 +1,12 @@
 [workspace]
 authors = ["Manuel Farzini <manuel.farzini@gmail.com>"]
 channels = ["https://conda.modular.com/max-nightly", "conda-forge"]
-name = "mojo_3"
+name = "mojo"
 platforms = ["osx-arm64"]
 version = "0.1.0"
 
 [tasks]
 
 [dependencies]
-modular = ">=26.3.0.dev2026041405,<27"
-mojo = ">=0.26.3.0.dev2026041405,<0.27"
+modular = ">=26.3.0.dev2026042717,<27"
+mojo = ">=1.0.0b1.dev2026042717,<2"

@@ -1,15 +1,18 @@
-from conf.prelude import *
+from conf import *
+from help import *
 from dsp import FaustDsp
-from audio.portaudio import PortAudio, FaustFloat
 from gui import FaustGui
+from meta import FaustMeta
+from audio.portaudio import PortAudio, FaustFloat, dfaust
 from gui.terminal import TerminalGui
 
 
 def main() -> None:
-    var dsp = alloc[mydspDsp](1)
+    var dsp = alloc[mydsp](1)
+    dsp[] = mydsp()
     dsp[].init(48_000)
 
-    var gui = TerminalGui[FaustFloat.dtype]()
+    var gui = TerminalGui[dfaust]()
     dsp[].build_ui(gui)
 
     var driver = PortAudio()
@@ -39,5 +42,6 @@ def main() -> None:
         return
 
     dsp.free()
+    print("done")
 
 
