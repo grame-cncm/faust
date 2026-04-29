@@ -23,3 +23,8 @@ comptime ReadStreams[dtype: DType] = Ptr[Ptr[SIMD[dtype, 1], READ_EXT], READ_EXT
 comptime MutaStreams[dtype: DType] = Ptr[Ptr[SIMD[dtype, 1], MUTA_EXT], MUTA_EXT]
 
 comptime is_real[dtype: DType]: Bool = dtype.is_floating_point()
+
+comptime NULL_PTR[T: AnyType, ori: Origin] = Ptr[T, ori](unsafe_from_address=0)
+
+# def Null[T: AnyType, ori: Origin]() -> Ptr[T, ori]:
+#     return Ptr[T, ori](unsafe_from_address=0)

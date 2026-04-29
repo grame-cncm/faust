@@ -62,8 +62,7 @@ public:
 
 protected:
     void writeFaustHeader();
-    void writeMissingMathFunctions();
-    void writeGlobalFunctions(int n);
+    // void writeGlobalFunctions(int n);
     void writeClassHeaderAndFields(int n);
     void writeGlobalVariablesInlined(int n);
     void writeDefaultConstructor(int n);
@@ -79,8 +78,9 @@ protected:
     void writeInit(int n);
     void writeInitFunctions(int n);
     void writeGetJson(int n);
-    void writeBuildUI(int n);
     void writeMetadataFunc(int n);
+    void writeBuildUserInterface(int n);
+    void writeFaustFooter();
 
     virtual void writeCompute(int n) = 0;
 };

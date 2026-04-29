@@ -3,22 +3,22 @@
 from conf.prelude import *
 from dsp import *
 
-
-# ------------------------------------------------------------ #
-# Portaudio interface implementation                           #
-# ------------------------------------------------------------ #
+# --------------------------------------------------------------
+# PortAudio architecture implementation.
+# --------------------------------------------------------------
 
 comptime FaustFloat = SIMD[DType.float32, 1]
 comptime dfaust = FaustFloat.dtype 
+comptime NULL_STREAM = PaStream(unsafe_from_address=0)
 
 struct PortAudio(FaustAudio):
     var alive:  Bool
-    var stream: PaStream[MUTA_EXT]
+    var stream: PaStream
 
     @always_inline
     def __init__(out driver):
         driver.alive = False
-        driver.stream = {}
+        driver.stream = NULL_STREAM
         pass
 
     @always_inline
@@ -53,14 +53,16 @@ struct PortAudio(FaustAudio):
         if (out_device < 0):
             return FAUST_NO_DEFAULT_OUT_DEVICE
 
+        var in_device_info: OptPtr[PaDeviceInfo, READ_EXT]
         in_device_info = pa_get_device_info(in_device)
         if not in_device_info:
             return PA_INVALID_DEVICE
-        in_latency = in_device_info[].default_low_input_latency
+        in_latency = in_device_info.unsafe_value()[].default_low_input_latency
+        var out_device_info: OptPtr[PaDeviceInfo, READ_EXT]
         out_device_info = pa_get_device_info(out_device)
         if not out_device_info:
             return PA_INVALID_DEVICE
-        out_latency = out_device_info[].default_low_output_latency
+        out_latency = out_device_info.unsafe_value()[].default_low_output_latency
 
         var n_ins = dsp.get_num_inputs()
         var m_outs = dsp.get_num_outputs()
@@ -81,10 +83,9 @@ struct PortAudio(FaustAudio):
 
         return PA_NO_ERROR
 
-
-# ------------------------------------------------------------ #
-# Portaudio comptimes and helpers                              #
-# ------------------------------------------------------------ #
+# --------------------------------------------------------------
+# Free helpers and comptime constants definitions
+# --------------------------------------------------------------
 
 # Faust constants
 
@@ -124,10 +125,10 @@ def faust_open_stream[Dsp: FaustDsp](
     var out_param:    PaStreamParameters,
     var buff_size:    S32,
     mut dsp:          Dsp
-) -> Tuple[PaStream[MUTA_EXT], S32]:
-    var stream = PaStream[MUTA_EXT]()
-    ptr_in = Ptr[PaStreamParameters, READ_EXT]()
-    ptr_out = Ptr[PaStreamParameters, READ_EXT]()
+) -> Tuple[PaStream, S32]:
+    var stream = NULL_STREAM
+    var ptr_in = NULL_PTR[PaStreamParameters, READ_EXT]
+    var ptr_out = NULL_PTR[PaStreamParameters, READ_EXT]
     if in_param.channel_count != 0:
         ptr_in = Ptr(to=in_param).unsafe_mut_cast[False]().unsafe_origin_cast[READ_EXT]()
     if out_param.channel_count != 0:
@@ -144,8 +145,6 @@ def faust_open_stream[Dsp: FaustDsp](
     )
     return stream, err
 
-# Make faust stream parameters
-
 @always_inline
 def faust_stream_param(
     device:     PaDeviceIndex,
@@ -157,5 +156,5 @@ def faust_stream_param(
         n_chans,
         FAUST_FORMAT,
         latency,
-        {},
+        NULL_PTR[NoneType, MUTA_EXT],
     )

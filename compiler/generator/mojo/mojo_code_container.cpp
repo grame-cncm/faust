@@ -51,6 +51,8 @@ void MojoCodeContainer::writeFaustHeader()
     selected_keys.insert(tree("license"));
     selected_keys.insert(tree("version"));
     *fOut << wbanner() << "\n";
+    *fOut << "# Code generated with Faust " << FAUSTVERSION
+          << " (https://faust.grame.fr)\n";
     for (auto const& i : gGlobal->gMetaDataSet) {
         if (selected_keys.count(i.first)) {
             *fOut << "# " << *(i.first);
@@ -62,30 +64,8 @@ void MojoCodeContainer::writeFaustHeader()
             *fOut << "\n";
         }
     }
-    *fOut << "# Code generated with Faust " << FAUSTVERSION
-          << " (https://faust.grame.fr)\n";
     *fOut << "# Compilation options: " << "\n" << formatCompilerOptions(2, "# ");
     *fOut << "\n" << wbanner();
-}
-
-void MojoCodeContainer::writeMissingMathFunctions()
-{
-    *fOut << 
-R"(@always_inline
-def mod[dtype: DType](num: SIMD[dtype, 1], den: SIMD[dtype, 1]) -> SIMD[dtype, 1]:
-    return num % den
-
-
-@always_inline
-def rint(var x: SIMD[F64.dtype, 1]) -> SIMD[F64.dtype, 1]:
-    return external_call["rint", c_double, c_double](c_double(x))
-
-
-@always_inline
-def rint(var x: SIMD[F32.dtype, 1]) -> SIMD[F32.dtype, 1]:
-    return external_call["rint", c_float, c_float](c_float(x))
-
-)";
 }
 
 void MojoCodeContainer::writeGlobalVariablesInlined(int n)
@@ -275,7 +255,7 @@ void MojoCodeContainer::writeGetJson(int n)
 void MojoCodeContainer::writeMetadataFunc(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def metadata(dsp, mut meta: Some[FaustMeta]) -> None:\n";
+    *fOut << wtab(n) << "def metadata(read dsp, mut meta: Some[FaustMeta]) -> None:\n";
     for (auto const& i : gGlobal->gMetaDataSet) {
         if (i.first == tree("compile_options")) {
             *fOut << wtab(n + 1) << "meta.declare(" << wlit("compile_options") << ", "
@@ -299,10 +279,10 @@ void MojoCodeContainer::writeMetadataFunc(int n)
     }
 }
 
-void MojoCodeContainer::writeBuildUI(int n)
+void MojoCodeContainer::writeBuildUserInterface(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def build_ui(mut dsp, mut ui: Some[FaustGui]) -> None:\n";
+    *fOut << wtab(n) << "def build_user_interface(mut dsp, mut ui: Some[FaustGui]) -> None:\n";
     *fOut << wtab(n + 1);
     if (fUserInterfaceInstructions->fCode.size() == 0) {
         *fOut << "pass" << "\n";
@@ -328,7 +308,14 @@ void MojoScalarCodeContainer::writeCompute(int n)
     loop->accept(fCodeProducer);
     generatePostComputeBlock(fCodeProducer);
     fCodeProducer->Tab(n);
-    *fOut << wrewind(fOut, n + 1) << "\n";
+    *fOut << wrewind(fOut, n + 1);
+}
+
+void MojoCodeContainer::writeFaustFooter()
+{
+    *fOut << wbanner() << "\n"
+          << "# Faust generated DSP code ends here.\n"
+          << wbanner() << "\n";
 }
 
 void MojoCodeContainer::produceClass()
@@ -357,11 +344,13 @@ void MojoCodeContainer::produceClass()
     *fOut << wblank();
     writeMetadataFunc(n);
     *fOut << wblank();
-    writeBuildUI(n);
+    writeBuildUserInterface(n);
     *fOut << wblank();
     writeCompute(n);
+    *fOut << wblank();
     n -= 1;
     fCodeProducer->Tab(n);
+    writeFaustFooter();
 }
 
 void MojoCodeContainer::produceInternal()

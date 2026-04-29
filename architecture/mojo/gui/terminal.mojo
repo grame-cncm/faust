@@ -1,12 +1,11 @@
-#-- gui/control.mojo
-
+# gui/terminal.mojo
 
 from conf.prelude import *
 
-
-# ------------------------------------------------------------ #
-# TerminalGui architecture implementation                      #
-# ------------------------------------------------------------ #
+# --------------------------------------------------------------
+# TerminalGui architecture implementation.
+# Terminal-based GUI listening for user input for demo purposes.
+# --------------------------------------------------------------
 
 struct TerminalGui[dtype: DType](FaustGui):
     comptime Real = SIMD[Self.dtype, 1]
@@ -29,7 +28,7 @@ struct TerminalGui[dtype: DType](FaustGui):
             WIDGET_ROOT,
             String("root"),
             0,
-            None,
+            NULL_PTR[Self.Real, MUTA_EXT],
             0.0,
             0.0,
             0.0,
@@ -50,7 +49,7 @@ struct TerminalGui[dtype: DType](FaustGui):
             WIDGET_VBOX,
             label,
             parent,
-            {},
+            NULL_PTR[Self.Real, MUTA_EXT],
             SIMD[Self.dtype, 1](0.0),
             SIMD[Self.dtype, 1](0.0),
             SIMD[Self.dtype, 1](0.0),
@@ -71,19 +70,17 @@ struct TerminalGui[dtype: DType](FaustGui):
     @always_inline
     def add_horizontal_slider[dreal: DType](
         mut ui,
-        var label: String,
-        mut zone: SIMD[dreal, 1],
-        var init: SIMD[dreal, 1],
-        var min: SIMD [dreal, 1],
-        var max: SIMD [dreal, 1],
-        var step: SIMD[dreal, 1]
+        var label:    String,
+        mut zone:     SIMD[dreal, 1],
+        var init:     SIMD[dreal, 1],
+        var min:      SIMD [dreal, 1],
+        var max:      SIMD [dreal, 1],
+        var step:     SIMD[dreal, 1]
     ) -> None:
         comptime assert dreal == Self.dtype
         var parent = ui.stack[ui.top]
         var idx = ui.widgets_len 
-
         zone = init
-
         ui.widgets[idx] = Widget[Self.dtype](
             WIDGET_HSLIDER,
             label,
@@ -100,17 +97,13 @@ struct TerminalGui[dtype: DType](FaustGui):
     def set_hslider_value(mut ui, index: S32, mut value: SIMD[Self.dtype, 1]) -> None:
         if index < 0 or index >= ui.widgets_len:
             return
-
         if ui.widgets[index].kind != WIDGET_HSLIDER:
             return
-
         if value < ui.widgets[index].min:
             value = ui.widgets[index].min
         elif value > ui.widgets[index].max:
             value = ui.widgets[index].max
-
-        var zone = ui.widgets[index].zone.unsafe_value()
-        zone[] = value
+        ui.widgets[index].zone[] = value
 
     @always_inline
     def find_first_hslider(mut ui) -> S32:
@@ -125,17 +118,13 @@ struct TerminalGui[dtype: DType](FaustGui):
             var slider = ui.find_first_hslider()
             if slider < 0:
                 return 0
-
             while True:
                 var line = input()
                 var s = String(line)
-
                 if s == "q":
                     return 0
-
                 var value = SIMD[Self.dtype, 1](atof(s))
                 ui.set_hslider_value(slider, value)
-
         except Error:
             return 1
      
@@ -157,7 +146,7 @@ struct Widget[dtype: DType](ImplicitlyCopyable, Movable):
 
     # Slider payload.
     # Meaningful only when kind == WIDGET_HSLIDER.
-    var zone: OptPtr[SIMD[Self.dtype, 1], MUTA_EXT]
+    var zone: Ptr[SIMD[Self.dtype, 1], MUTA_EXT]
     var init: SIMD[Self.dtype, 1]
     var min: SIMD[Self.dtype, 1]
     var max: SIMD[Self.dtype, 1]

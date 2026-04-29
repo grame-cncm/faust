@@ -1,4 +1,3 @@
-#-- audio/__init__.mojo
-
+# audio/__init__.mojo
 
 from .audio import FaustAudio

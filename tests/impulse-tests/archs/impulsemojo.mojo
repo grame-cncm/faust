@@ -2,6 +2,9 @@ from std.math import *
 from std.memory import *
 from std.ffi import external_call, c_int, CStringSlice, c_double, c_float
 
+# --------------------------------------------------------------
+# Main operations to integrate the impulse tests.
+# --------------------------------------------------------------
 
 def main() raises -> None:
     nbsamples = 60_000
@@ -9,7 +12,7 @@ def main() raises -> None:
     dsp[] = mydsp()
     ctrl_ui = ControlGui()
     dsp[].init(44_100)
-    dsp[].build_ui(ctrl_ui)
+    dsp[].build_user_interface(ctrl_ui)
     print_header(dsp[], nbsamples)
     run_dsp(dsp[], ctrl_ui, nbsamples//4)
     dsp.free()
@@ -59,10 +62,10 @@ def run_dsp(
     free_streams(in_base, inputs)
     free_streams(out_base, outputs)
 
+# --------------------------------------------------------------
+# ControlGui architecture implementation.
+# --------------------------------------------------------------
 
-# -------------------------------------------------------------
-# ControlGui architecture
-# -------------------------------------------------------------
 struct ControlGui(FaustGui):
     var buttons: List[Ptr[FaustFloat, MUTA_EXT]]
     def __init__(out ui):
@@ -77,10 +80,9 @@ struct ControlGui(FaustGui):
         for button in ui.buttons:
             button[] = FaustFloat(state)
 
-
-# -------------------------------------------------------------
-# Free helpers
-# -------------------------------------------------------------
+# --------------------------------------------------------------
+# Free helpers to allocate streams, 
+# --------------------------------------------------------------
 
 def alloc_streams(
     var chans:     SInt,
@@ -116,7 +118,6 @@ def impulse[ori: MutOrigin](
         input[0] = FaustFloat(1.0)
 
 def print_header(dsp: mydsp, nbsamples: SInt) -> None:
-    # print("number_of_inputs  :  ", dsp.get_num_inputs())
     print("number_of_inputs  :", String(dsp.get_num_inputs()).ascii_rjust(3))
     print("number_of_outputs :", String(dsp.get_num_outputs()).ascii_rjust(3))
     print("number_of_frames  :", String(nbsamples).ascii_rjust(6))
@@ -155,10 +156,9 @@ def normalize(real: FaustFloat) raises -> FaustFloat:
         print("Error: is inf")
     return FaustFloat(0.0) if abs(real) < FaustFloat(0.000001) else real
 
-
-# -------------------------------------------------------------
-# Comptime definitions
-# -------------------------------------------------------------
+# --------------------------------------------------------------
+# Comptime types, constants and predicates definitions.
+# --------------------------------------------------------------
 comptime FaustFloat = Float64
 comptime FRAMES = 64
 comptime U32 = UInt32
@@ -177,17 +177,16 @@ comptime ReadStreams[dtype: DType] = Ptr[Ptr[SIMD[dtype, 1], READ_EXT], READ_EXT
 comptime MutaStreams[dtype: DType] = Ptr[Ptr[SIMD[dtype, 1], MUTA_EXT], MUTA_EXT]
 comptime is_real[dtype: DType]: Bool = dtype.is_floating_point()
 
-
-# -------------------------------------------------------------
-# Faust interfaces
-# -------------------------------------------------------------
+# --------------------------------------------------------------
+# Adapted Faust interfaces to be enough for the impulse tests.
+# --------------------------------------------------------------
 # FaustDsp
 trait FaustDsp:
     def get_num_inputs(dsp) -> S32: ...
     def get_num_outputs(dsp) -> S32: ...
     def get_sample_rate(dsp) -> S32: ...
     def init(mut dsp, sample_rate: S32) -> None: ...
-    def build_ui(mut dsp, mut ui: Some[FaustGui]) -> None: pass 
+    def build_user_interface(mut dsp, mut ui: Some[FaustGui]) -> None: pass 
     def compute[dtype: DType where is_real[dtype]](
         mut dsp,
         var count: S32, var inputs: ReadStreams[dtype], var outputs: MutaStreams[dtype]
@@ -195,8 +194,8 @@ trait FaustDsp:
 # FaustGui
 trait FaustGui:
     def open_tab_box(mut ui, var label: String) -> None: pass
-    def open_hori_box(mut ui, var label: String) -> None: pass
-    def open_vert_box(mut ui, var label: String) -> None: pass
+    def open_horizontal_box(mut ui, var label: String) -> None: pass
+    def open_vertical_box(mut ui, var label: String) -> None: pass
     def close_box(mut ui) -> None: pass
     def add_button[dtype: DType](
         mut ui, var label: String, mut zone: SIMD[dtype, 1]
@@ -204,12 +203,12 @@ trait FaustGui:
     def add_check_button[dtype: DType](
         mut ui, var label: String, mut zone: SIMD[dtype, 1]
     ) -> None: pass
-    def add_vert_slider[dtype: DType](
+    def add_vertical_slider[dtype: DType](
         mut ui,
         var label: String,          mut zone: SIMD[dtype, 1],  var init: SIMD[dtype, 1],
         var min:   SIMD[dtype, 1],  var max:  SIMD[dtype, 1],  var step: SIMD[dtype, 1],
     ) -> None: pass
-    def add_hori_slider[dtype: DType](
+    def add_horizontal_slider[dtype: DType](
         mut ui,
         var label: String,          mut zone: SIMD[dtype, 1],  var init: SIMD[dtype, 1],
         var min:   SIMD[dtype, 1],  var max:  SIMD[dtype, 1],  var step: SIMD[dtype, 1],
@@ -219,12 +218,12 @@ trait FaustGui:
         var label: String,          mut zone: SIMD[dtype, 1],  var init: SIMD[dtype, 1],
         var min:   SIMD[dtype, 1],  var max:  SIMD[dtype, 1],  var step: SIMD[dtype, 1],
     ) -> None: pass
-    def add_hori_bargraph[dtype: DType](
+    def add_horizontal_bargraph[dtype: DType](
         mut ui,
         var label: String,          mut zone: SIMD[dtype, 1],
         var min: SIMD[dtype, 1],    var max: SIMD[dtype, 1]
     ) -> None: pass
-    def add_vert_bargraph[dtype: DType](
+    def add_vertical_bargraph[dtype: DType](
         mut ui,
         var label: String,          mut zone: SIMD[dtype, 1],
         var min: SIMD[dtype, 1],    var max: SIMD[dtype, 1]
@@ -235,5 +234,4 @@ trait FaustGui:
 # FaustMeta
 trait FaustMeta:
     def declare(mut meta, var key: String, var val: String) -> None: pass
-
 
