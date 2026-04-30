@@ -30,8 +30,8 @@ def run_dsp(
 
     var n_ins =  SInt(dsp.get_num_inputs())
     var m_outs = SInt(dsp.get_num_outputs())
-    var in_base, inputs = alloc_streams(n_ins, FRAMES)
-    var out_base, outputs = alloc_streams(m_outs, FRAMES)
+    var in_base, inputs = alloc_streams(n_ins, COUNT)
+    var out_base, outputs = alloc_streams(m_outs, COUNT)
 
     try:
         while nbsamples > 0:
@@ -39,9 +39,9 @@ def run_dsp(
                 impulse(n_ins, Span(ptr=inputs, length=n_ins))
                 ctrl_ui.set_buttons(True)
             if run >= 1:
-                zero_streams(n_ins, inputs, FRAMES)
+                zero_streams(n_ins, inputs, COUNT)
                 ctrl_ui.set_buttons(False)
-            var count = min(FRAMES, nbsamples)
+            var count = min(COUNT, nbsamples)
             dsp.compute(
                 S32(count),
                 inputs.bitcast[Ptr[FaustFloat, READ_EXT]](),
@@ -70,8 +70,8 @@ struct ControlGui(FaustGui):
     var buttons: List[Ptr[FaustFloat, MUTA_EXT]]
     def __init__(out ui):
         ui.buttons = List[Ptr[FaustFloat, MUTA_EXT]]()
-    def add_button[dtype: DType](
-        mut ui, var label: String, mut zone: SIMD[dtype, 1]
+    def add_button[dreal: DType](
+        mut ui, var label: String, mut zone: SIMD[dreal, 1]
     ) -> None:
         ui.buttons.append(
             Ptr(to=zone).bitcast[FaustFloat]().unsafe_origin_cast[MUTA_EXT]()
@@ -85,14 +85,14 @@ struct ControlGui(FaustGui):
 # --------------------------------------------------------------
 
 def alloc_streams(
-    var chans:     SInt,
-    var frames:    SInt,
-) -> Tuple[Ptr[FaustFloat, MUTA_EXT], MutaStreams[FaustFloat.dtype]]:
-    var owner = alloc[FaustFloat](chans * frames)
-    memset_zero(owner, chans * frames)
+    var chans:    SInt,
+    var count:    SInt,
+) -> Tuple[Ptr[FaustFloat, MUTA_EXT], MutaStreams[dfaust]]:
+    var owner = alloc[FaustFloat](chans * count)
+    memset_zero(owner, chans * count)
     var streams = alloc[Ptr[FaustFloat, MUTA_EXT]](chans)
     for i in range(chans):
-        streams[i] = owner + i * frames
+        streams[i] = owner + i * count
     return owner, streams
 
 def free_streams(
@@ -105,10 +105,10 @@ def free_streams(
 def zero_streams(
     var chans:      SInt,
     var streams:    Ptr[Ptr[FaustFloat, MUTA_EXT], MUTA_EXT],
-    var frames:     SInt,
+    var count:     SInt,
 ) -> None:
     for i in range(chans):
-        memset_zero(streams[i], frames)
+        memset_zero(streams[i], count)
 
 def impulse[ori: MutOrigin](
     nins:     SInt,
@@ -152,7 +152,7 @@ def format_real(real: Float64) -> String:
 def normalize(real: FaustFloat) raises -> FaustFloat:
     if not real == real:
         print("Error: isnan")
-    elif real == inf[FaustFloat.dtype]() or real == -inf[FaustFloat.dtype]():
+    elif real == inf[dfaust]() or real == -inf[dfaust]():
         print("Error: is inf")
     return FaustFloat(0.0) if abs(real) < FaustFloat(0.000001) else real
 
@@ -160,7 +160,8 @@ def normalize(real: FaustFloat) raises -> FaustFloat:
 # Comptime types, constants and predicates definitions.
 # --------------------------------------------------------------
 comptime FaustFloat = Float64
-comptime FRAMES = 64
+comptime dfaust = Float64.dtype
+comptime COUNT = 64
 comptime U32 = UInt32
 comptime U64 = UInt64
 comptime S32 = Int32
@@ -173,9 +174,9 @@ comptime AnyPtr = OpaquePointer
 comptime Arr = InlineArray
 comptime READ_EXT = ImmutExternalOrigin
 comptime MUTA_EXT = MutExternalOrigin
-comptime ReadStreams[dtype: DType] = Ptr[Ptr[SIMD[dtype, 1], READ_EXT], READ_EXT]
-comptime MutaStreams[dtype: DType] = Ptr[Ptr[SIMD[dtype, 1], MUTA_EXT], MUTA_EXT]
-comptime is_real[dtype: DType]: Bool = dtype.is_floating_point()
+comptime ReadStreams[dreal: DType] = Ptr[Ptr[SIMD[dreal, 1], READ_EXT], READ_EXT]
+comptime MutaStreams[dreal: DType] = Ptr[Ptr[SIMD[dreal, 1], MUTA_EXT], MUTA_EXT]
+comptime is_real[dreal: DType]: Bool = dreal.is_floating_point()
 
 # --------------------------------------------------------------
 # Adapted Faust interfaces to be enough for the impulse tests.
@@ -187,9 +188,9 @@ trait FaustDsp:
     def get_sample_rate(dsp) -> S32: ...
     def init(mut dsp, sample_rate: S32) -> None: ...
     def build_user_interface(mut dsp, mut ui: Some[FaustGui]) -> None: pass 
-    def compute[dtype: DType where is_real[dtype]](
+    def compute[dreal: DType where is_real[dreal]](
         mut dsp,
-        var count: S32, var inputs: ReadStreams[dtype], var outputs: MutaStreams[dtype]
+        var count: S32, var inputs: ReadStreams[dreal], var outputs: MutaStreams[dreal]
     ) -> None: ...
 # FaustGui
 trait FaustGui:
@@ -197,39 +198,39 @@ trait FaustGui:
     def open_horizontal_box(mut ui, var label: String) -> None: pass
     def open_vertical_box(mut ui, var label: String) -> None: pass
     def close_box(mut ui) -> None: pass
-    def add_button[dtype: DType](
-        mut ui, var label: String, mut zone: SIMD[dtype, 1]
+    def add_button[dreal: DType](
+        mut ui, var label: String, mut zone: SIMD[dreal, 1]
     ) -> None: pass
-    def add_check_button[dtype: DType](
-        mut ui, var label: String, mut zone: SIMD[dtype, 1]
+    def add_check_button[dreal: DType](
+        mut ui, var label: String, mut zone: SIMD[dreal, 1]
     ) -> None: pass
-    def add_vertical_slider[dtype: DType](
+    def add_vertical_slider[dreal: DType](
         mut ui,
-        var label: String,          mut zone: SIMD[dtype, 1],  var init: SIMD[dtype, 1],
-        var min:   SIMD[dtype, 1],  var max:  SIMD[dtype, 1],  var step: SIMD[dtype, 1],
+        var label: String,          mut zone: SIMD[dreal, 1],  var init: SIMD[dreal, 1],
+        var min:   SIMD[dreal, 1],  var max:  SIMD[dreal, 1],  var step: SIMD[dreal, 1],
     ) -> None: pass
-    def add_horizontal_slider[dtype: DType](
+    def add_horizontal_slider[dreal: DType](
         mut ui,
-        var label: String,          mut zone: SIMD[dtype, 1],  var init: SIMD[dtype, 1],
-        var min:   SIMD[dtype, 1],  var max:  SIMD[dtype, 1],  var step: SIMD[dtype, 1],
+        var label: String,          mut zone: SIMD[dreal, 1],  var init: SIMD[dreal, 1],
+        var min:   SIMD[dreal, 1],  var max:  SIMD[dreal, 1],  var step: SIMD[dreal, 1],
     ) -> None: pass
-    def add_num_entry[dtype: DType](
+    def add_num_entry[dreal: DType](
         mut ui,
-        var label: String,          mut zone: SIMD[dtype, 1],  var init: SIMD[dtype, 1],
-        var min:   SIMD[dtype, 1],  var max:  SIMD[dtype, 1],  var step: SIMD[dtype, 1],
+        var label: String,          mut zone: SIMD[dreal, 1],  var init: SIMD[dreal, 1],
+        var min:   SIMD[dreal, 1],  var max:  SIMD[dreal, 1],  var step: SIMD[dreal, 1],
     ) -> None: pass
-    def add_horizontal_bargraph[dtype: DType](
+    def add_horizontal_bargraph[dreal: DType](
         mut ui,
-        var label: String,          mut zone: SIMD[dtype, 1],
-        var min: SIMD[dtype, 1],    var max: SIMD[dtype, 1]
+        var label: String,          mut zone: SIMD[dreal, 1],
+        var min: SIMD[dreal, 1],    var max: SIMD[dreal, 1]
     ) -> None: pass
-    def add_vertical_bargraph[dtype: DType](
+    def add_vertical_bargraph[dreal: DType](
         mut ui,
-        var label: String,          mut zone: SIMD[dtype, 1],
-        var min: SIMD[dtype, 1],    var max: SIMD[dtype, 1]
+        var label: String,          mut zone: SIMD[dreal, 1],
+        var min: SIMD[dreal, 1],    var max: SIMD[dreal, 1]
     ) -> None: pass
-    def declare[dtype: DType](
-        mut ui, mut zone: SIMD[dtype, 1], var key: String, var val: String
+    def declare[dreal: DType](
+        mut ui, mut zone: SIMD[dreal, 1], var key: String, var val: String
     ) -> None: pass
 # FaustMeta
 trait FaustMeta:
