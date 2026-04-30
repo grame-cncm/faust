@@ -1,0 +1,17 @@
+ 2719  clang++ -std=gnu++17 -DFAUST_TEST -Wall -Wextra -pedantic -O3 -o faustbench_test.bin faustbench_test.cc
+ 2722  clang++ -std=gnu++23 -DFAUST_TEST -Wall -Wextra -pedantic -O3 -o faustbench_test.bin faustbench_test.cc
+ 2724  ./benchcpp
+ 2726  clang++ -std=gnu++23 -DFAUST_TEST -Wall -Wextra -pedantic -O3 -o benchcpp.bin benchcpp.cc
+ 2732  clang++ -std=gnu++23 -DFAUST_TEST -Wall -Wextra -pedantic -O0 -o benchcpp.bin benchcpp.cc
+ 2734  clang++ -std=gnu++23 -DFAUST_TEST -Wall -Wextra -pedantic -O3 -o benchcpp_bin benchcpp.cc && ./benccpp_bin
+ 2736  ./benchcpp.bin
+ 2737  clang++ -std=gnu++23 -DFAUST_TEST -Wall -Wextra -pedantic -O3 -o benchcpp_bin benchcpp.cc && ./benchcpp_bin
+ 2739  ls
+ 2740  ll
+ 2741  clang++ -std=gnu++23 -DFAUST_TEST -Wall -Wextra -pedantic -O3 -o benchcpp_bin benchcpp_test.cc && ./benchcpp_bin
+ 2749* vc
+ 2752* y
+ 2754  clear
+ 2760  nvim .
+ 2761  histry 20
+ 2762  history -20

@@ -1,0 +1,78 @@
+### .clangd
+
+CompileFlags:
+  Compiler: /Library/Developer/CommandLineTools/usr/bin/clang++
+  BuiltinHeaders: QueryDriver
+  CompilationDatabase: Ancestors
+  Remove: [-W*]
+
+  Add: [
+      -std=gnu++2c,
+      -Wall,
+      -Wextra,
+      -Wshadow,
+      -Werror,
+      -pedantic,
+      -Iinclude,
+      -I/opt/homebrew/include,
+      -I/opt/homebrew/opt/llvm/include,
+      -I/usr/local/include,
+      -I/Users/manuelfarzini/Personal/dev/include,
+      ### faust repo
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler,
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/FaustAlgebra,
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/boxes,
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/errors,
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/evaluate,
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/generator,
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/generator/fir,
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/generator/interpreter,
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/parallelize,
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/parser,
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/signals,
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/tlib,
+    ]
+
+Diagnostics:
+  Suppress: [
+      missing-braces
+      overloaded-virtual,
+      unused-includes,
+      unused-local-typedef,
+  ]
+
+Completion:
+  ArgumentLists: Delimiters # OpenDelimiter, None
+
+  UnusedIncludes: None
+  MissingIncludes: None
+
+  ClangTidy:
+    Add: [
+        performance-unnecessary-value-param,
+        performance-faster-string-find,
+        performance-inefficient-algorithm,
+        performance-inefficient-vector-operation,
+        performance-move-const-arg,
+        performance-no-automatic-move,
+        performance-noexcept-move-constructor,
+        performance-type-promotion-in-math-fn,
+        performance-enum-size,
+        performance-implicit-conversion-in-loop,
+        performance-unnecessary-copy-initialization,
+        performance-for-range-copy,
+        bugprone-branch-clone,
+        bugprone-use-after-move,
+        clang-analyzer-core.uninitialized.*,
+        clang-analyzer-core.NullDereference,
+    ]
+    FastCheckFilter: Strict
+
+InlayHints:
+  Enabled: false
+
+Hover:
+  ShowAKA: false
+
+Documentation:
+  CommentFormat: Markdown
