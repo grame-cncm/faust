@@ -22,6 +22,7 @@ The Faust2Wwise conversion process is applied with the following steps:
         Remove temporary files
 """
 
+import cmd
 import os
 import sys
 import shutil
@@ -87,7 +88,7 @@ class Faust2WwiseOrchestrator:
         if self.patch_version not in self.supportedWwiseVersions:
             sys.stderr.write(f"Unsupported Wwise version : {self.patch_version}. \
                 Available Wwise (major) versions: {self.supportedWwiseVersions}")
-            sys.exit(cfg.ERR_ENVIRONMENT)
+            sys.exit(self.ERR_ENVIRONMENT)
 
         parsed_args = utils.parse_arguments(self.cfg, args)
 
@@ -188,6 +189,9 @@ class Faust2WwiseOrchestrator:
             "--description", self.description,
             "--no-prompt"
         ]
+
+        if self.patch_version == "2025":
+            cmd.extend(["--with", self.wwise_with_test_project])
 
         if self.wwise_plugin_interface == "out-of-place":
             cmd.extend(["--out-of-place"])

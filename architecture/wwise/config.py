@@ -68,7 +68,7 @@ class Config:
         self.wp_script = os.path.join(self.wwiseroot, 'Scripts', 'Build', 'Plugins', 'wp.py')
         self.patch_version = str(wwiseroot).split("Wwise")[1][:4] # Derived from wwise version and used for defining the wwise_template_dir
         self.wwise_template_dir = None              # Directory where the template files are stored
-        self.supportedWwiseVersions = ["2024"]      # TODO Expand this on future development that enable support for previous/later Wwise versions 
+        self.supportedWwiseVersions = ["2024", "2025"]      # TODO Expand this on future development that enable support for previous/later Wwise versions 
 
         # temp path
         self.temp_dir = "_temp_"                    # Temp dir to store temp data ( i.e. jsonfile )
@@ -84,6 +84,7 @@ class Config:
         self.wwise_platform = None
         self.wwise_plugin_interface = None          
         self.wwise_toolset = None
+        self.wwise_with_test_project = "none"        # avail in Wwise 2025
         self.wwise_debugger = False
         self.wwise_disable_codesign = False
         self.wwise_configuration = "Release"        # default
@@ -150,6 +151,8 @@ class Config:
         print(f"platform {self.wwise_platform}")
         if self.wwise_toolset:
             print(f"toolset {self.wwise_toolset}")
+        if self.patch_version == "2025":
+            print(f"with_test_project {self.wwise_with_test_project}")
         if self.wwise_debugger:
             print(f"debugger {self.wwise_debugger}")
         if self.wwise_disable_codesign:
@@ -262,6 +265,7 @@ class Config:
                 "Wwise": {
                     "platform": self.wwise_platform,
                     "toolset": self.wwise_toolset,
+                    "with_test_project": self.wwise_with_test_project,
                     "debugger": self.wwise_debugger,
                     "disable_codesign": self.wwise_disable_codesign,
                     "configuration": self.wwise_configuration,

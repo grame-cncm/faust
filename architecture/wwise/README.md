@@ -54,7 +54,7 @@ The way this work is orchestrated follows a multi-step process, where each phase
 `faust2wwise` comes with the following requirements: 
 - **FAUST**
   - The `Faust` compiler must be available in your system **PATH**.
-- **Wwise SDK (>=2024.1.0)**
+- **Wwise SDK (Versions >=2024 and <=2025)**
   - `WWISEROOT` must also be exposed system-wide.
 - **Python (>=3.9)**
 - **Console access with admin rights**

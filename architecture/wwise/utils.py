@@ -53,6 +53,9 @@ def print_wwise_help() -> None:
     print("  --out-of-place                  Use out-of-place processing. Requires separate input and output buffers; needed for effects like time-stretching that alter data flow")
     print("  --wwise-help                    show this help message and exit")
     print("")
+    print("New:")
+    print("  --with-test-project             configure with test-project : a preconfigured unit test project (Wwise 2025 only)")
+    print("")
     print("Premake:")
     print("  --toolset <toolset>             toolset used to build on Windows platforms (vc160, vc170).")
     print("  --debugger                      Enable lua debugger for premake scripts")
@@ -165,6 +168,12 @@ def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
     else:
         cfg.wwise_arch = detect_arch(cfg)
 
+    if parsed_args.with_test_project:
+        if (cfg.patch_version != "2025"):
+            print(f"WARNING: --with option is only supported for Wwise 2025 and above. Ignoring it.\n")
+        else:
+            cfg.wwise_with_test_project = "test-project"
+
     if parsed_args.build_hooks_file:
         cfg.wwise_build_hooks_file = parsed_args.build_hooks_file
 
@@ -205,6 +214,8 @@ def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> argparse.N
     plugin_interface_group.add_argument('--in-place', dest='plugin_interface', action='store_const', const='in-place', help='Uses the same audio buffer for input and output; suitable for most effects without data flow changes.')
     plugin_interface_group.add_argument('--out-of-place', dest='plugin_interface', action='store_const', const='out-of-place', help='Use out-of-place processing. Requires separate input and output buffers; needed for effects like time-stretching that alter data flow.')
     parser.set_defaults(plugin_interface='in-place')
+    # wwise new options
+    parser.add_argument('--with-test-project', action='store_true', help='test-project : a preconfigured unit test project.')
     # wwise premake options
     parser.add_argument('--toolset', help='toolset used to build on Windows platforms (vc160, vc170).')
     parser.add_argument('--debugger', action='store_true', help='Enable lua debugger for premake scripts')
