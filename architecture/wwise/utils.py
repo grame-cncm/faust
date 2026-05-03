@@ -25,20 +25,29 @@ def print_usage() -> None:
     Prints general usage information for the faust2wwise command-line tool.
     """
     print("Usage:")
-    print("faust2wwise [options] file.dsp")
-    print("Converts Faust DSP files to Wwise plugins")
+    print("faust2wwise [options] file.dsp : Converts Faust DSP files to Wwise plugins")
+    print("faust2wwise test --testdir <dir> [test options] :  Run faust2wwise on all .dsp files in a directory for testing purposes")
     print("")
     print("Platform: Windows/MSYS2/macOS with Wwise SDK")
     print("")
     print("Requirements: Wwise SDK, Faust compiler, Python")
     print("")
     print("Options:")
-    print("  -h, --help     Show this help message")
-    print("  -o <dir>       Output directory (default: current directory)")
+    print("  -h, --help                     Show this help message")
+    print("  -wh,--wwise-help               Show Wwise-specific help message")
+    print("  -o <dir>                       Output directory (default: current directory)")
     print("")
-    print("Example:")
+    print("Test subcommand options:")
+    print("  --testdir <dir>                Directory containing .dsp files to test")
+    print("  --limit <N>                    Limit to N randomly selected .dsp files")
+    print("  --clean                        Remove plugins installed via testing subcommand (not supported on macOS)")
+    print("")
+    print("Examples:")
     print("  faust2wwise sine.dsp")
-
+    print("  faust2wwise --help")
+    print("  faust2wwise --wwise-help")
+    print("  faust2wwise test --testdir /path/to/dsp/files --limit 10")
+    
 def print_wwise_help() -> None:
     """
     Prints Wwise-specific command-line options and examples.
@@ -51,7 +60,6 @@ def print_wwise_help() -> None:
     print("  --platform <platform>           platform to premake (Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC)")
     print("  --in-place                      Use in-place processing (default). Uses the same audio buffer for input and output; suitable for most effects without data flow changes")
     print("  --out-of-place                  Use out-of-place processing. Requires separate input and output buffers; needed for effects like time-stretching that alter data flow")
-    print("  --wwise-help                    show this help message and exit")
     print("")
     print("New:")
     print("  --with-test-project             configure with test-project : a preconfigured unit test project (Wwise 2025 only)")
@@ -69,8 +77,10 @@ def print_wwise_help() -> None:
     print("  --toolchain-env-script <path>   Path to a \'GetToolchainEnv\' script, which, when executed with a version provided by the toolchain-vers file, returns a comma separated list of environment variables to apply for build step.")
     print("  --spkcfg <in_uChannelMask>      Specify an explicit speaker configuration using one of the standard channel mask macros defined in AkSpeakerConfig.h")
     print("")
-    print("Example:")
+    print("Examples:")
     print("  faust2wwise myfaustfile.dsp -double -o myWwisePlugin --platform Authoring_Windows --toolset vc170 --configuration Release --arch x64")
+    print("  faust2wwise myfaustfilter.dsp --out-of-place --configuration Release")
+    print("  faust2wwise myfaustGenerator.dsp --spkcfg AK_SPEAKER_SETUP_5POINT1")
     print("")
 
 def detect_arch(cfg) -> str:
@@ -208,6 +218,7 @@ def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> argparse.N
     parser.add_argument('faust_options', nargs='*', help='Additional Faust options')
     
     # Wwise options
+    parser.add_argument('-wh', '--wwise-help', action='store_true', help='Show help message for wwise options')
     parser.add_argument('--platform', help='Target platform for Wwise plugin (Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC)')
     # mutually exclussive in-place and out-of-place effect plugin options. in-place is the default choice.
     plugin_interface_group = parser.add_mutually_exclusive_group()
@@ -235,6 +246,9 @@ def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> argparse.N
     
     if parsed_args.help:
         print_usage()
+        print_wwise_help()
+        sys.exit(cfg.SUCCESS_EXIT_CODE)
+    elif parsed_args.wwise_help:
         print_wwise_help()
         sys.exit(cfg.SUCCESS_EXIT_CODE)
 
