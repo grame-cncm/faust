@@ -28,7 +28,7 @@ def print_usage() -> None:
     print("faust2wwise [options] file.dsp")
     print("Converts Faust DSP files to Wwise plugins")
     print("")
-    print("Platform: Windows/macOS/Linux with Wwise SDK")
+    print("Platform: Windows/MSYS2/macOS with Wwise SDK")
     print("")
     print("Requirements: Wwise SDK, Faust compiler, Python")
     print("")
