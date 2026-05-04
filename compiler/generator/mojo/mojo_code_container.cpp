@@ -282,7 +282,7 @@ void MojoCodeContainer::writeMetadataFunc(int n)
 void MojoCodeContainer::writeBuildUserInterface(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def build_user_interface(mut dsp, mut ui: Some[FaustGui]) -> None:\n";
+    *fOut << wtab(n) << "def build_user_interface(read dsp, mut ui: Some[FaustGui]) -> None:\n";
     *fOut << wtab(n + 1);
     if (fUserInterfaceInstructions->fCode.size() == 0) {
         *fOut << "pass" << "\n";

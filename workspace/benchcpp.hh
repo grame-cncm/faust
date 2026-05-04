@@ -9,10 +9,8 @@
 #include <cstring>
 #include <tuple>
 
-#include "dsp.hh"
-
 /*                                         *
-* Prelude                                  *
+* Compile options                          *
 *                                         */
 
 #ifndef FAUSTFLOAT
@@ -20,19 +18,32 @@
 #endif
 
 #ifndef WARMUP_ITERS
-#define WARMUP_ITERS 10'000
+#define WARMUP_ITERS 1'000
 #endif
 
-#ifndef RUN_ITERS
-#define RUN_ITERS 100'000
+#ifndef COMPUTE_ITERS
+#define COMPUTE_ITERS 1'000'000
 #endif
+
+#ifndef FILL_INPUTS
+#define FILL_INPUTS 0
+#endif
+
+#ifndef SAMP_RATE
+#define SAMP_RATE s32(44'100)
+#endif
+
+#ifndef BUFF_SIZE
+#define BUFF_SIZE s32(1024)
+#endif
+
+/*                                         *
+* Prelude                                  *
+*                                         */
 
 #ifndef fn
-#define fn auto
+#define fn inline auto
 #endif
-
-template<typename... Ts>
-using Res = std::tuple<Ts...>;
 
 using u8  = uint8_t;
 using s32 = int32_t;
@@ -40,20 +51,29 @@ using r32 = float;
 using r64 = double;
 using usize = size_t;
 using ssize = ptrdiff_t;
+using Real = FAUSTFLOAT;
 
-inline constexpr ssize PTR_SIZE = sizeof(void*);
-inline constexpr ssize PTR_ALIGN = alignof(void*); 
-inline constexpr ssize STD_ALIGN = sizeof(max_align_t);
+template<typename... Ts>
+using Res = std::tuple<Ts...>;
 
-inline constexpr s32 SAMP_RATE = 44'100;
-inline constexpr s32 BUFF_SIZE = 1024;
+template<typename Tp>
+inline constexpr ssize align_of = alignof(Tp); 
 
-inline constexpr fn align_up(ssize num, ssize aln) -> ssize
+template<typename Tp>
+inline constexpr ssize size_of = sizeof(Tp);
+
+inline constexpr ssize PTR_SIZE = size_of<void*>;
+inline constexpr ssize PTR_ALIGN = align_of<void*>; 
+inline constexpr ssize STD_ALIGN = size_of<max_align_t>;
+
+inline constexpr std::string const PRECISIONS[] = {"single", "double"};
+
+constexpr fn align_up(ssize num, ssize aln) -> ssize
 {
     return (num + aln - 1) & ~(aln - 1);
 }
 
-inline constexpr fn align_up(void* ptr, ssize aln) -> void*
+constexpr fn align_up(void* ptr, ssize aln) -> void*
 {
     return (void*) align_up(ssize(ptr), aln);
 }
@@ -66,57 +86,54 @@ inline namespace bench {
 
 using AllocErr = s32;
 inline constexpr s32 AllocErr_None = 0;
-inline constexpr s32 AllocErr_BadAlloc = 1;
+inline constexpr s32 AllocErr_Exhausted = 1;
 inline constexpr s32 AllocErr_IllegalArg = 2;
 
 struct BenchReport {
-    s32 samp_rate = 0;
-    s32 buff_size = 0;
-    s32 n_ins = 0;
-    s32 n_outs = 0;
-    s32 warmup_iters = 0;
-    s32 run_iters = 0;
-    r64 elapsed_sec = 0.0;
-    r64 ns_per_compute = 0.0;
-    r64 ns_per_frame = 0.0;
-    r64 ns_per_output_sample = 0.0;
-    r64 frames_per_sec = 0.0;
-    r64 output_samples_per_sec = 0.0;
-    r64 checksum = 0.0;
+    std::string precis          = PRECISIONS[size_of<FAUSTFLOAT>/4 - 1];
+    s32 samp_rate               = SAMP_RATE;
+    s32 buff_size               = BUFF_SIZE;
+    s32 n_ins                   = 0;
+    s32 n_outs                  = 0;
+    s32 warmup_iters            = WARMUP_ITERS;
+    s32 run_iters               = COMPUTE_ITERS;
+    r64 elapsed_sec             = 0.0;
+    r64 ns_per_compute          = 0.0;
+    r64 ns_per_frame            = 0.0;
+    r64 ns_per_output_sample    = 0.0;
+    r64 frames_per_sec          = 0.0;
+    r64 output_samples_per_sec  = 0.0;
+    r64 checksum                = 0.0;
 };
 
-template<typename Real>
-fn alloc_buffers(
-    s32 const buff_size, s32 const n_ins, s32 const n_outs
-) -> Res<void*, AllocErr> {
+fn alloc_buffers(s32 const n_ins, s32 const n_outs) -> Res<void*, AllocErr>
+{
     if (n_ins < 0 || n_outs < 0) {
         return {nullptr, AllocErr_IllegalArg};
     }
 
-    constexpr ssize REAL_SIZE = sizeof(Real);
-    constexpr ssize REAL_ALIGN = alignof(Real);
+    constexpr ssize REAL_SIZE = size_of<Real>;
+    constexpr ssize REAL_ALIGN = align_of<Real>;
     constexpr ssize ALIGN = STD_ALIGN > REAL_ALIGN ? STD_ALIGN : REAL_ALIGN;
 
     s32 header_size = align_up(PTR_SIZE * (n_ins + n_outs), REAL_ALIGN);
-    s32 block_size = REAL_SIZE * buff_size * (n_ins + n_outs);
+    s32 block_size = REAL_SIZE * BUFF_SIZE * (n_ins + n_outs);
     s32 tot_size = header_size + block_size;
     // aligned alloc requries size to be a multiple of alignment
     s32 alloc_size = align_up(tot_size, ALIGN);
 
     void* base = aligned_alloc(ALIGN, alloc_size);
     if (!base) {
-        return {nullptr, AllocErr_BadAlloc};
+        return {nullptr, AllocErr_Exhausted};
     }
     
     return {base, AllocErr_None};
 }
 
-template<typename Real>
-fn init_buffers(
-    void* base, s32 const buff_size, s32 const n_ins, s32 const n_outs
-) -> void {
-    constexpr ssize REAL_ALIGN = alignof(Real);
-    constexpr ssize REAL_SIZE = sizeof(Real);
+fn init_buffers(void* base, s32 const n_ins, s32 const n_outs) -> void
+{
+    constexpr ssize REAL_ALIGN = align_of<Real>;
+    constexpr ssize REAL_SIZE = size_of<Real>;
 
     s32 n_chans =  n_ins + n_outs;
     ssize header_size = align_up(n_chans * PTR_SIZE, REAL_ALIGN);
@@ -126,87 +143,75 @@ fn init_buffers(
     Real* data_beg = (Real*) (raw + header_size);
 
     for (ssize i = 0; i < n_ins + n_outs; i++) {
-        header_beg[i] = data_beg + i * buff_size;
+        header_beg[i] = data_beg + i * BUFF_SIZE;
     }
-    memset(data_beg, 0, REAL_SIZE * buff_size * n_chans);
+    memset(data_beg, 0, REAL_SIZE * BUFF_SIZE * n_chans);
 }
 
-template<typename Real>
-fn make_buffers(s32 const buff_size, s32 const n_ins, s32 const n_outs) -> Res<void*, AllocErr>
+fn make_buffers(s32 const n_ins, s32 const n_outs) -> Res<void*, AllocErr>
 {
-    auto [base, err] = alloc_buffers<Real>(buff_size, n_ins, n_outs);
+    auto [base, err] = alloc_buffers(n_ins, n_outs);
     if (err) {
         return {nullptr, err};
     }
-    init_buffers<Real>(base, buff_size, n_ins, n_outs);
+    init_buffers(base, n_ins, n_outs);
     return {base, AllocErr_None};
 }
 
-inline fn free_buffers(void* base) -> void
+fn free_buffers(void* base) -> void
 {
     free(base);
 }
 
-template<typename Real>
-inline fn fill_inputs(s32 const buff_size, Real** inputs, s32 const n_ins) -> void
+fn fill_inputs(Real** inputs, s32 const n_ins) -> void
 {
     for (s32 chan = 0; chan < n_ins; chan++) {
-        for (s32 frame = 0; frame < buff_size; frame++) {
+        for (s32 frame = 0; frame < BUFF_SIZE; frame++) {
             inputs[chan][frame] = 0.001 * (frame + 1) + chan;
         }
     }
 }
 
-template<typename Real>
-inline fn checksum_outputs(
-    Real** outputs, s32 const buff_size, s32 const n_outs
-) -> r64 {
+fn checksum_outputs(Real** outputs, s32 const n_outs) -> r64
+{
     r64 sum = 0.0;
     for (s32 chan = 0; chan < n_outs; chan++) {
-        for (s32 frame = 0; frame < buff_size; frame++) {
+        for (s32 frame = 0; frame < BUFF_SIZE; frame++) {
             sum += r64(outputs[chan][frame]);
         }
     }
     return sum;
 }
 
-template<typename Real>
-inline fn warmup(mydsp& dsp, s32 buff_size, Real** inputs, Real** outputs) -> void
+fn warmup(auto& dsp, Real** inputs, Real** outputs) -> void
 {
     for (int i = 0; i < WARMUP_ITERS; i++) {
-        dsp.compute(buff_size, inputs, outputs);
+        dsp.compute(BUFF_SIZE, inputs, outputs);
     }
 }
 
-template<typename Real>
-inline fn measure(
-    mydsp& dsp, s32 buff_size, Real** inputs, Real** outputs
-) -> BenchReport {
+fn measure(auto& dsp, Real** inputs, Real** outputs) -> BenchReport
+{
     using Clock = std::chrono::steady_clock;
 
     auto beg = Clock::now();
 
-    for (s32 i = 0; i < RUN_ITERS; i++) {
-        dsp.compute(buff_size, inputs, outputs);
+    for (s32 i = 0; i < COMPUTE_ITERS; i++) {
+        dsp.compute(BUFF_SIZE, inputs, outputs);
     }
 
     auto end = Clock::now();
 
-    s32 n_ins = dsp.get_num_inputs();
-    s32 n_outs = dsp.get_num_outputs();
+    s32 n_ins = dsp.getNumInputs();
+    s32 n_outs = dsp.getNumOutputs();
     r64 elapsed_sec = std::chrono::duration<r64>(end - beg).count();
-    r64 total_computes = r64(RUN_ITERS);
-    r64 total_frames = r64(RUN_ITERS) * r64(buff_size);
+    r64 total_computes = r64(COMPUTE_ITERS);
+    r64 total_frames = r64(COMPUTE_ITERS) * r64(BUFF_SIZE);
     r64 total_output_samples = total_frames * r64(n_outs);
 
-    BenchReport report;
-    report.samp_rate = SAMP_RATE;
-    report.buff_size = buff_size;
+    BenchReport report{};
     report.n_ins = n_ins;
     report.n_outs = n_outs;
-    report.warmup_iters = WARMUP_ITERS;
-    report.run_iters = RUN_ITERS;
-
     report.elapsed_sec = elapsed_sec;
     report.ns_per_compute = elapsed_sec * 1.0e9 / total_computes;
     report.ns_per_frame = elapsed_sec * 1.0e9 / total_frames;
@@ -214,28 +219,29 @@ inline fn measure(
     report.frames_per_sec = total_frames / elapsed_sec;
     report.output_samples_per_sec = total_output_samples / elapsed_sec;
 
-    report.checksum = checksum_outputs(outputs, buff_size, n_outs);
+    report.checksum = checksum_outputs(outputs, n_outs);
 
     return report;
 }
 
-inline fn print_report(BenchReport const& report) -> void
+fn print_report(BenchReport const& report) -> void
 {
     printf("Faust compute benchmark\n");
-    printf("sample rate:        %d\n", report.samp_rate);
-    printf("buffer size:        %d\n", report.buff_size);
-    printf("inputs:             %d\n", report.n_ins);
-    printf("outputs:            %d\n", report.n_outs);
-    printf("warm-up iterations: %d\n", report.warmup_iters);
-    printf("run iterations:     %d\n", report.run_iters);
-    printf("\n");
-    printf("elapsed:            %.9f s\n", report.elapsed_sec);
-    printf("ns / compute:       %.3f\n", report.ns_per_compute);
-    printf("ns / frame:         %.3f\n", report.ns_per_frame);
-    printf("ns / output sample: %.3f\n", report.ns_per_output_sample);
-    printf("frames / sec:       %.3f\n", report.frames_per_sec);
-    printf("output samples/sec: %.3f\n", report.output_samples_per_sec);
-    printf("checksum:           %.17g\n", report.checksum);
+    printf("precision:      %s\n", report.precis.data());
+    printf("sample rate:    %d\n", report.samp_rate);
+    printf("buffer size:    %d\n", report.buff_size);
+    printf("inputs:         %d\n", report.n_ins);
+    printf("outputs:        %d\n", report.n_outs);
+    printf("warm-up iters:  %d\n", report.warmup_iters);
+    printf("run iters:      %d\n", report.run_iters);
+    puts("------------------------------------");
+    printf("elapsed:        %.9f s\n", report.elapsed_sec);
+    printf("ns/compute:     %.3f\n", report.ns_per_compute);
+    printf("ns/frame:       %.3f\n", report.ns_per_frame);
+    printf("ns/out_sample:  %.3f\n", report.ns_per_output_sample);
+    printf("frames/s:       %.3f\n", report.frames_per_sec);
+    printf("out_samples/s:  %.3f\n", report.output_samples_per_sec);
+    printf("checksum:       %.17g\n", report.checksum);
 }
 
 }      // namespace bench
@@ -248,30 +254,28 @@ inline fn print_report(BenchReport const& report) -> void
 // #define FAUST_TEST 1
 #if FAUST_TEST
 
-inline fn bench__test_allocation_and_basic_usage() -> s32
+fn test_bench__allocation_and_basic_usage() -> s32
 {
     mydsp dsp;
     dsp.init(SAMP_RATE);
     
-    s32 n_ins = dsp.get_num_inputs();
-    s32 n_outs = dsp.get_num_outputs();
-    auto [base, err] = bench::make_buffers<FAUSTFLOAT>(
-        BUFF_SIZE, n_ins, n_outs
-    );
+    s32 n_ins = dsp.getNumInputs();
+    s32 n_outs = dsp.getNumOutputs();
+    auto [base, err] = bench::make_buffers(n_ins, n_outs);
     if (err) {
-        printf("Critical alloc error: %d\n", err);
+        printf("Critical allocation error: %d\n", err);
         exit(err);
     }
 
-    FAUSTFLOAT** inputs = (FAUSTFLOAT**)base;
-    FAUSTFLOAT** outputs = inputs + n_ins;
+    Real** inputs = (Real**)base;
+    Real** outputs = inputs + n_ins;
 
-#ifdef FILL_INPUTS
-    fill_inputs(BUFF_SIZE, inputs, dsp.get_num_inputs());
+#if FILL_INPUTS
+    fill_inputs(inputs, dsp.getNumInputs());
 #endif
 
-    bench::warmup(dsp, BUFF_SIZE, inputs, outputs);
-    BenchReport report = bench::measure(dsp, BUFF_SIZE, inputs, outputs);
+    bench::warmup(dsp, inputs, outputs);
+    BenchReport report = bench::measure(dsp, inputs, outputs);
     bench::print_report(report); // the output will be redirected manually
 
     bench::free_buffers(inputs);
