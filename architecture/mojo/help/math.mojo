@@ -2,7 +2,6 @@
 
 from std.ffi import c_double, c_float, external_call
 
-
 @always_inline
 def mod[dtype: DType](num: SIMD[dtype, 1], den: SIMD[dtype, 1]) -> SIMD[dtype, 1]:
     return num % den

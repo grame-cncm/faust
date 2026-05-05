@@ -1,6 +1,6 @@
 # gui/terminal.mojo
 
-from conf.prelude import *
+from conf import *
 
 # --------------------------------------------------------------
 # TerminalGui architecture implementation.

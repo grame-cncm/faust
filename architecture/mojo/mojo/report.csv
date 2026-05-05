@@ -1,0 +1,2 @@
+language,precision,opt,sample_rate,buffer_size,inputs,outputs,warmup_iters,run_iters,elapsed_sec,ns_per_compute,ns_per_frame,ns_per_output_sample,frames_per_sec,out_samples_per_sec,checksum
+CSV,mojo,double,O3,96000,128,0,1,1000,1000000,0.120026,725.250157103495,0.0,0.937703125,1066435605.6187826,1066435605.6187826,-40.791556107390214

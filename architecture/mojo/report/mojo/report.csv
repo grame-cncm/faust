@@ -1,0 +1,2 @@
+language,precision,opt,samp_rate,buff_size,inputs,outputs,warmup_iters,run_iters,elapsed_s,ns_per_compute,ns_per_frame,ns_per_out_samp,frames_per_s,out_samp_per_s,checksum
+mojo,double,O3,96000,128,0,1,1000,165534,0.120119,725.6454867278021,5.669105365060954,5.669105365060954,176394675.280347,176394675.280347,-58.40696234138908

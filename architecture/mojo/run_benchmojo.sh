@@ -1,22 +1,38 @@
-MOJO_SRC="${MOJO_SRC:-test_benchmojo.mojo}"
+#!/bin/bash
+
+if [[ $# -lt 1 ]]; then
+  echo "usage: $0 <mojo-source> [extra-mojo-flags...]"
+  exit 1
+fi
+
+MOJO_SRC="$1"
+shift
+
+COMMON_FLAGS=("$@")
 MOJO_BIN="report/mojo/bench_bin"
 
+rm -f report/mojo/*report*
+mkdir -p report/mojo/
+
 run_case() {
-  local dtype_label="$1"
-  local dtype_define="$2"
+  local precision="$1"
+  local dtype="$2"
   local opt="$3"
   local report="$4"
   local opt_level="${opt#O}"
+  shift 4
 
   echo
-  echo ">>>>>>>>>>>>>>>>>>>>>>> running benchmojo(${dtype_label}, ${opt})"
+  echo ">>>>>>>>>>>>>>>>>>>>>>> running benchmojo(${precision}, ${opt})"
   (
     pixi run mojo build -O "${opt_level}" \
-      -D FILL_INPUTS=True \
-      -D FAUST_DTYPE="${dtype_define}" \
+      "${COMMON_FLAGS[@]}" \
+      "$@" \
+      -D FAUST_DTYPE="${dtype}" \
       -o "${MOJO_BIN}" "${MOJO_SRC}" \
       && "./${MOJO_BIN}"
   ) &> "${report}"
+
   cat "${report}"
   echo "------------------------------------"
   echo

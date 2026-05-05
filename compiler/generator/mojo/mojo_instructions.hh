@@ -257,7 +257,7 @@ void MojoInstVisitor::visit(CastInst* inst)
     void* real_val = dycast(FloatNumInst*, inst->fInst);
     real_val = real_val ? real_val : dycast(DoubleNumInst*, inst->fInst);
     if (inst->fType->getType() == Typed::kFloatMacro) {
-        *fOut << "SIMD[dtype, 1](";
+        *fOut << "SIMD[dreal, 1](";
         inst->fInst->accept(this);
         goto End_Inst;
     }

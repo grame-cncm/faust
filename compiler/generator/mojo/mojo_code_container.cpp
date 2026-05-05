@@ -282,7 +282,7 @@ void MojoCodeContainer::writeMetadataFunc(int n)
 void MojoCodeContainer::writeBuildUserInterface(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def build_user_interface(read dsp, mut ui: Some[FaustGui]) -> None:\n";
+    *fOut << wtab(n) << "def build_user_interface(mut dsp, mut ui: Some[FaustGui]) -> None:\n";
     *fOut << wtab(n + 1);
     if (fUserInterfaceInstructions->fCode.size() == 0) {
         *fOut << "pass" << "\n";
@@ -296,11 +296,11 @@ void MojoCodeContainer::writeBuildUserInterface(int n)
 void MojoScalarCodeContainer::writeCompute(int n)
 {
     *fOut << wtab(n)   << "@always_inline\n"
-          << wtab(n)   << "def compute[dtype: DType](\n"
+          << wtab(n)   << "def compute[dreal: DType](\n"
           << wtab(n+1) <<     "mut dsp,\n"
           << wtab(n+1) <<     "var count:      S32,\n"
-          << wtab(n+1) <<     "var inputs:     ReadStreams[dtype],\n"
-          << wtab(n+1) <<     "var outputs:    MutaStreams[dtype]\n"
+          << wtab(n+1) <<     "var inputs:     ReadStreams[dreal],\n"
+          << wtab(n+1) <<     "var outputs:    MutaStreams[dreal]\n"
           << wtab(n)   << ") -> None:\n" << wtab(n+1);
     fCodeProducer->Tab(n + 1);
     generateComputeBlock(fCodeProducer);
@@ -309,13 +309,6 @@ void MojoScalarCodeContainer::writeCompute(int n)
     generatePostComputeBlock(fCodeProducer);
     fCodeProducer->Tab(n);
     *fOut << wrewind(fOut, n + 1);
-}
-
-void MojoCodeContainer::writeFaustFooter()
-{
-    *fOut << wbanner() << "\n"
-          << "# Faust generated DSP code ends here.\n"
-          << wbanner() << "\n";
 }
 
 void MojoCodeContainer::produceClass()
@@ -350,7 +343,6 @@ void MojoCodeContainer::produceClass()
     *fOut << wblank();
     n -= 1;
     fCodeProducer->Tab(n);
-    writeFaustFooter();
 }
 
 void MojoCodeContainer::produceInternal()
@@ -428,11 +420,11 @@ void MojoVectorCodeContainer::writeCompute(int n)
 {
     generateComputeFunctions(fCodeProducer);
     *fOut << "\n" << wtab(n) << "@always_inline\n"
-          << wtab(n)   << "def compute[dtype: DType](\n"
+          << wtab(n)   << "def compute[dreal: DType](\n"
           << wtab(n+1) <<     "mut dsp,\n"
           << wtab(n+1) <<     "var count:      S32,\n"
-          << wtab(n+1) <<     "var inputs:     ReadStreams[dtype],\n"
-          << wtab(n+1) <<     "var outputs:    MutaStreams[dtype]\n"
+          << wtab(n+1) <<     "var inputs:     ReadStreams[dreal],\n"
+          << wtab(n+1) <<     "var outputs:    MutaStreams[dreal]\n"
           << wtab(n)   << ") -> None:\n" << wtab(n+1);
     fCodeProducer->Tab(n + 1);
     generateComputeBlock(fCodeProducer);

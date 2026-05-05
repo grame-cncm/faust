@@ -1,13 +1,16 @@
 # audio/portaudio.mojo
 
-from conf.prelude import *
+from conf import *
 from dsp import *
+from .ffi import *
+
+comptime OptPtr[T: AnyType, origin: Origin] = Optional[Ptr[T, origin]]
 
 # --------------------------------------------------------------
 # PortAudio architecture implementation.
 # --------------------------------------------------------------
 
-comptime FaustFloat = SIMD[DType.float32, 1]
+comptime FaustFloat = SIMD[F32.dtype, 1]
 comptime dfaust = FaustFloat.dtype 
 comptime NULL_STREAM = PaStream(unsafe_from_address=0)
 

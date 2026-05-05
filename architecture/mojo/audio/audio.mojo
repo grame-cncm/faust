@@ -1,6 +1,6 @@
 # audio/audio.mojo
 
-from conf.prelude import *
+from conf import *
 from dsp import FaustDsp
 
 # --------------------------------------------------------------

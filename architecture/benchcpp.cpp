@@ -1,12 +1,9 @@
-#include "benchcpp.hh"
+#include "faust/bench/benchcpp.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
 
-using namespace std;
-
 <<includeIntrinsic>>
-
 <<includeclass>>
 
 int main() {
@@ -25,12 +22,15 @@ int main() {
     Real** outputs = inputs + n_ins;
 
 #if FILL_INPUTS
-    fill_inputs(inputs, dsp->getNumInputs());
+    bench::fill_inputs(inputs, dsp->getNumInputs());
 #endif
 
     bench::warmup(*dsp, inputs, outputs);
     BenchReport report = bench::measure(*dsp, inputs, outputs);
-    bench::print_report(report); // the output will be redirected manually
+    report.checksum = bench::checksum_outputs(outputs, n_outs);
+    // the output will be redirected manually
+    bench::print_report(report);
+    bench::print_csv(report);
 
     bench::free_buffers(inputs);
     return 0;

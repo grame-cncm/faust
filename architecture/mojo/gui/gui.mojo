@@ -1,6 +1,6 @@
 # gui/gui.mojo
 
-from conf.prelude import *
+from conf import *
 
 # --------------------------------------------------------------
 # FaustGui interface declaration.

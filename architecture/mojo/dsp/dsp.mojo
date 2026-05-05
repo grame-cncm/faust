@@ -1,6 +1,6 @@
 # dsp/dsp.mojo
 
-from conf.prelude import *
+from conf import *
 from gui import FaustGui
 from meta import FaustMeta
 
@@ -33,11 +33,11 @@ trait FaustDsp:
     @always_inline
     def metadata(read dsp, mut meta: Some[FaustMeta]) -> None: ...
     @always_inline
-    def build_user_interface(read dsp, mut ui: Some[FaustGui]) -> None: ...
+    def build_user_interface(mut dsp, mut ui: Some[FaustGui]) -> None: ...
     @always_inline
-    def compute[dreal: DType where is_real[dreal]](
+    def compute[dreal: DType](
         mut dsp,
         var count:      S32,
         var inputs:     ReadStreams[dreal],
         var outputs:    MutaStreams[dreal]
-    ) -> None: ...
+    )  -> None: ...

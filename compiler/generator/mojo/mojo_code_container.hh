@@ -80,7 +80,6 @@ protected:
     void writeGetJson(int n);
     void writeMetadataFunc(int n);
     void writeBuildUserInterface(int n);
-    void writeFaustFooter();
 
     virtual void writeCompute(int n) = 0;
 };
