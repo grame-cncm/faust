@@ -1,7 +1,7 @@
 [workspace]
 authors = ["Manuel Farzini <manuel.farzini@gmail.com>"]
 channels = ["https://conda.modular.com/max-nightly", "conda-forge"]
-name = "mojo"
+name = "bench"
 platforms = ["osx-arm64"]
 version = "0.1.0"
 

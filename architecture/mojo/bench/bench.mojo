@@ -11,12 +11,13 @@ from dsp import FaustDsp
 # Faust benchmark architecture implementation.
 # --------------------------------------------------------------
 
-# Compile time flags.
+# Compiler options.
 
 comptime BENCH_LANG = get_defined_string["BENCH_LANG", "mojo"]()
+comptime BENCH_CASE = get_defined_string["BENCH_CASE", "default"]()
 comptime BENCH_OPTIM = get_defined_string["BENCH_OPTIM", "O3"]()
-comptime WARMUP_ITERS = get_defined_int["WARMUP_ITERS", 1_000]()
-comptime COMPUTE_ITERS = get_defined_int["COMPUTE_ITERS", 1_000_000]()
+comptime WARMUP_ITERS = get_defined_int["WARMUP_ITERS", 100]()
+comptime COMPUTE_ITERS = get_defined_int["COMPUTE_ITERS", 100_000]()
 comptime FILL_INPUTS = get_defined_bool["FILL_INPUTS", False]()
 comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96_000]())
 comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 128]())
@@ -33,9 +34,9 @@ comptime MAX_RUNTIME_SECS: F64 = 60.0
 
 comptime PRECISION_STRINGS: InlineArray[String, 2] = ["single", "double"]
 comptime PRECISION = PRECISION_STRINGS[size_of[FaustFloat]() // 4 - 1]
-comptime CSV_HEADER = "language,precision,opt,samp_rate,buff_size,inputs,outputs,"
+comptime CSV_HEADER = "language,bench_case,precision,opt,samp_rate,buff_size,inputs,outputs,"
                       "warmup_iters,run_iters,elapsed_s,ns_per_compute,ns_per_frame,"
-                      "ns_per_out_samp,frames_per_s,out_samp_per_s,checksum\n"
+                      "ns_per_out_sample,frames_per_s,out_samp_per_s,checksum\n"
 
 # Faust benchmark API.
 
@@ -50,9 +51,9 @@ struct FaustReport(ImplicitlyCopyable):
     var elapsed_s: F64
     var ns_per_compute: F64
     var ns_per_frame: F64
-    var ns_per_out_samp: F64
+    var ns_per_out_sample: F64
     var frames_per_s: F64
-    var output_samples_per_sec: F64
+    var output_samples_per_s: F64
     var checksum: F64
     def __init__(out report):
         report.precision = PRECISION
@@ -65,9 +66,9 @@ struct FaustReport(ImplicitlyCopyable):
         report.elapsed_s = 0.0
         report.ns_per_compute = 0.0
         report.ns_per_frame = 0.0
-        report.ns_per_out_samp = 0.0
+        report.ns_per_out_sample = 0.0
         report.frames_per_s = 0.0
-        report.output_samples_per_sec = 0.0
+        report.output_samples_per_s = 0.0
         report.checksum = 0.0
 
 def fill_inputs[dreal: DType](inputs: MutaStreams[dreal], n_ins: S32) -> None:
@@ -77,8 +78,8 @@ def fill_inputs[dreal: DType](inputs: MutaStreams[dreal], n_ins: S32) -> None:
             var value = 0.001 * F64(frame + 1) + F64(chan)
             inputs[chan][frame] = Real(value)
 
-def warmup[dreal: DType](
-    mut dsp: Some[FaustDsp], inputs: MutaStreams[dreal], outputs: MutaStreams[dreal]
+def warmup[dreal: DType, Dsp: FaustDsp](
+    mut dsp: Dsp, inputs: MutaStreams[dreal], outputs: MutaStreams[dreal]
 ) -> None: pass
 
 def measure[dreal: DType, Dsp: FaustDsp](
@@ -109,11 +110,11 @@ def measure[dreal: DType, Dsp: FaustDsp](
     report.ns_per_frame = report.ns_per_compute / F64(BUFF_SIZE)
 
     if n_outs > 0:
-        report.ns_per_out_samp = report.ns_per_frame / F64(n_outs)
-        report.output_samples_per_sec = total_output_samples / report.elapsed_s
+        report.ns_per_out_sample = report.ns_per_frame / F64(n_outs)
+        report.output_samples_per_s = total_output_samples / report.elapsed_s
     else:
-        report.ns_per_out_samp = 0.0
-        report.output_samples_per_sec = 0.0
+        report.ns_per_out_sample = 0.0
+        report.output_samples_per_s = 0.0
 
     report.frames_per_s = total_frames / report.elapsed_s
     return report
@@ -139,29 +140,27 @@ def print_report(report: FaustReport) -> None:
     print("elapsed:        ", report.elapsed_s, " s")
     print("ns/compute:     ", report.ns_per_compute)
     print("ns/frame:       ", report.ns_per_frame)
-    print("ns/out_sample:  ", report.ns_per_out_samp)
+    print("ns/out_sample:  ", report.ns_per_out_sample)
     print("frames/s:       ", report.frames_per_s)
-    print("out_samples/s:  ", report.output_samples_per_sec)
+    print("out_samples/s:  ", report.output_samples_per_s)
     print("checksum:       ", report.checksum)
 
 def write_csv(report: FaustReport) raises -> None:
+    # XXX: could be optimized
+    var csv = String(
+        BENCH_LANG + "," + BENCH_CASE + "," + report.precision + "," + BENCH_OPTIM   + ","
+        + String(report.samp_rate)      + "," + String(report.buff_size)             + ","
+        + String(report.n_ins)          + "," + String(report.n_outs)                + ","
+        + String(report.warmup_iters)   + "," + String(report.compute_iters)         + ","
+        + String(report.elapsed_s)      + "," + String(report.ns_per_compute)        + ","
+        + String(report.ns_per_frame)   + "," + String(report.ns_per_out_sample)     + ","
+        + String(report.frames_per_s)   + "," + String(report.output_samples_per_s)  + ","
+        + String(report.checksum) + "\n"
+    )
     var path = Path(CSV_PATH)
-    var csv = get_csv(report)
     if path.exists():
         var content = path.read_text()
         path.write_text(content + csv)
     else:
         path.write_text(CSV_HEADER + csv)
-
-def get_csv(report: FaustReport) -> String:
-    csv: String
-        = BENCH_LANG + "," + String(PRECISION) + "," + BENCH_OPTIM                    + ","
-        + String(report.samp_rate)      + "," + String(report.buff_size)              + ","
-        + String(report.n_ins)          + "," + String(report.n_outs)                 + ","
-        + String(report.warmup_iters)   + "," + String(report.compute_iters)          + ","
-        + String(report.elapsed_s)      + "," + String(report.ns_per_compute)         + ","
-        + String(report.ns_per_frame)   + "," + String(report.ns_per_out_samp)   + ","
-        + String(report.frames_per_s) + "," + String(report.output_samples_per_sec) + ","
-        + String(report.checksum) + "\n"
-    return csv
 

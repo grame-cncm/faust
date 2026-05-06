@@ -1,0 +1,164 @@
+# tool/benchplot.py
+
+import argparse
+from pathlib import Path
+
+import pandas as pd
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Generate SVG plots from Faust benchmark CSV reports."
+    )
+    parser.add_argument("csv", help="Input CSV file.")
+    parser.add_argument(
+        "--case",
+        default=None,
+        help="Optional bench_case filter.",
+    )
+    parser.add_argument(
+        "--x",
+        default="buff_size",
+        help="Column to use as x axis.",
+    )
+    parser.add_argument(
+        "--y",
+        default="ns_per_frame",
+        help="Column to use as y axis.",
+    )
+    parser.add_argument(
+        "--series",
+        default="language,precision,opt",
+        help="Comma-separated columns used to split series.",
+    )
+    parser.add_argument(
+        "--out",
+        default="report/plots/benchplot.svg",
+        help="Output SVG path.",
+    )
+    parser.add_argument(
+        "--title",
+        default="Faust benchmark",
+        help="Plot title.",
+    )
+
+    args = parser.parse_args()
+
+    mpl.rcParams["svg.fonttype"] = "none"
+
+    csv_path = Path(args.csv)
+    out_path = Path(args.out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    df = pd.read_csv(csv_path)
+    if args.case is not None:
+        if "bench_case" not in df.columns:
+            raise SystemExit("missing CSV column: bench_case")
+        df = df[df["bench_case"] == args.case]
+        if df.empty:
+            raise SystemExit(f"no rows found for bench_case={args.case}")
+
+    series_cols = [col.strip() for col in args.series.split(",") if col.strip()]
+
+    required_cols = [args.x, args.y] + series_cols
+    missing = [col for col in required_cols if col not in df.columns]
+    if missing:
+        raise SystemExit(f"missing CSV columns: {missing}")
+
+    df = df.sort_values(series_cols + [args.x])
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+
+    style_map = {
+        ("mojo", "single", "O0"): {
+            "color": "orange",
+            "linestyle": "-",
+            "linewidth": 1.4,
+            "alpha": 0.85,
+        },
+        ("mojo", "double", "O0"): {
+            "color": "lightskyblue",
+            "linestyle": "-",
+            "linewidth": 1.4,
+            "alpha": 0.85,
+        },
+        ("mojo", "single", "O3"): {
+            "color": "red",
+            "linestyle": "--",
+            "linewidth": 2.2,
+            "alpha": 1.0,
+        },
+        ("mojo", "double", "O3"): {
+            "color": "blue",
+            "linestyle": "--",
+            "linewidth": 2.2,
+            "alpha": 1.0,
+        },
+        ("cpp", "single", "O0"): {
+            "color": "goldenrod",
+            "linestyle": "-",
+            "linewidth": 1.4,
+            "alpha": 0.85,
+        },
+        ("cpp", "double", "O0"): {
+            "color": "deepskyblue",
+            "linestyle": "-",
+            "linewidth": 1.4,
+            "alpha": 0.85,
+        },
+        ("cpp", "single", "O3"): {
+            "color": "darkred",
+            "linestyle": "--",
+            "linewidth": 2.2,
+            "alpha": 1.0,
+        },
+        ("cpp", "double", "O3"): {
+            "color": "navy",
+            "linestyle": "--",
+            "linewidth": 2.2,
+            "alpha": 1.0,
+        },
+    }
+
+    for key, group in df.groupby(series_cols):
+        if not isinstance(key, tuple):
+            key = (key,)
+
+        label = " / ".join(str(x) for x in key)
+        style = style_map.get(tuple(key), {})
+
+        ax.plot(
+            group[args.x],
+            group[args.y],
+            marker="o",
+            label=label,
+            **style,
+        )
+
+    y_min = df[args.y].min()
+    y_max = df[args.y].max()
+    y_pad = (y_max - y_min) * 0.08
+
+    if y_pad == 0:
+        y_pad = max(abs(y_min) * 0.05, 1e-9)
+
+    ax.set_ylim(y_min - y_pad, y_max + y_pad)
+
+    ax.set_title(args.title)
+    ax.set_xlabel(args.x)
+    ax.set_ylabel(args.y)
+    if args.x == "buff_size":
+        ax.set_xscale("log", base=2)
+    ax.grid(True, linewidth=0.4)
+    ax.legend()
+
+    fig.tight_layout()
+    fig.savefig(out_path, format="svg", bbox_inches="tight")
+
+    print(f"wrote {out_path}")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,16 @@
+Faust compute benchmark
+precision:      single
+sample rate:    96000
+buffer size:    512
+inputs:         0
+outputs:        1
+warm-up iters:  100
+compute iters:  100000
+------------------------------------
+elapsed:        0.204638000 s
+ns/compute:     2046.380
+ns/frame:       3.997
+ns/out_sample:  3.997
+frames/s:       250197910.457
+out_samples/s:  250197910.457
+checksum:       -61.361486532259732
