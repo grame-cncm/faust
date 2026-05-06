@@ -4,15 +4,19 @@ from conf import *
 from dsp import *
 from .ffi import *
 
-comptime OptPtr[T: AnyType, origin: Origin] = Optional[Ptr[T, origin]]
-
 # --------------------------------------------------------------
 # PortAudio architecture implementation.
+# Provides the FaustAudio API for PortAudio mainly through
+# direct FFI calls. Defines additional helpers using the `faust`
+# prefix, with proper casing, for Faust-domain operations.
 # --------------------------------------------------------------
+
+# Faust PortAudio core type definitions.
 
 comptime FaustFloat = SIMD[F32.dtype, 1]
 comptime dfaust = FaustFloat.dtype 
-comptime NULL_STREAM = PaStream(unsafe_from_address=0)
+
+# Faust Portaudio API.
 
 struct PortAudio(FaustAudio):
     var alive:  Bool
@@ -56,16 +60,14 @@ struct PortAudio(FaustAudio):
         if (out_device < 0):
             return FAUST_NO_DEFAULT_OUT_DEVICE
 
-        var in_device_info: OptPtr[PaDeviceInfo, READ_EXT]
-        in_device_info = pa_get_device_info(in_device)
-        if not in_device_info:
+        var in_device_info = pa_get_device_info(in_device)
+        if in_device_info == NULL_PTR[PaDeviceInfo, READ_EXT]:
             return PA_INVALID_DEVICE
-        in_latency = in_device_info.unsafe_value()[].default_low_input_latency
-        var out_device_info: OptPtr[PaDeviceInfo, READ_EXT]
+        in_latency = in_device_info[].default_low_input_latency
         out_device_info = pa_get_device_info(out_device)
-        if not out_device_info:
+        if out_device_info == NULL_PTR[PaDeviceInfo, READ_EXT]:
             return PA_INVALID_DEVICE
-        out_latency = out_device_info.unsafe_value()[].default_low_output_latency
+        out_latency = out_device_info[].default_low_output_latency
 
         var n_ins = dsp.get_num_inputs()
         var m_outs = dsp.get_num_outputs()
@@ -86,11 +88,9 @@ struct PortAudio(FaustAudio):
 
         return PA_NO_ERROR
 
-# --------------------------------------------------------------
-# Free helpers and comptime constants definitions
-# --------------------------------------------------------------
+# Faust PortAudio constant definitions.
 
-# Faust constants
+comptime NULL_STREAM = PaStream(unsafe_from_address=0)
 
 comptime BUFF_SIZE    = 256
 comptime FAUST_FORMAT = PA_FLOAT32 | PA_NON_INTERLEAVED
@@ -101,7 +101,7 @@ comptime FAUST_NO_DEFAULT_OUT_DEVICE = PaError(-6998)
 comptime FAUST_STOPPED_NOT_ALIVE     = PaError(-3999)
 comptime FAUST_ALREADY_ALIVE         = PaError(-3998)
 
-# Faust callback
+# Faust PortAudio callback wrapper.
 
 @always_inline
 def faust_callback[Dsp: FaustDsp](
@@ -120,7 +120,7 @@ def faust_callback[Dsp: FaustDsp](
 
 comptime FaustCallbackFunc[Dsp: FaustDsp] = type_of(faust_callback[Dsp])
 
-# Faust open stream
+# Faust PortAudio open stream helper.
 
 @always_inline
 def faust_open_stream[Dsp: FaustDsp](
@@ -150,9 +150,7 @@ def faust_open_stream[Dsp: FaustDsp](
 
 @always_inline
 def faust_stream_param(
-    device:     PaDeviceIndex,
-    n_chans:    PaInt,
-    latency:    PaTime,
+    device: PaDeviceIndex, n_chans: PaInt, latency: PaTime
 ) -> PaStreamParameters:
     return PaStreamParameters(
         device,
