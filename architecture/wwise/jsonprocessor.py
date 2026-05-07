@@ -7,7 +7,7 @@ import sys
 import os
 import shutil
 import json
-from utils import ensure_valid_plugin_name
+from utils import ensure_valid_plugin_name, get_installation_location
 
 def process_json_configuration(cfg) -> None :
     """
@@ -23,6 +23,8 @@ def process_json_configuration(cfg) -> None :
         - author
         - description
         - wwise template directory
+        - build location
+        - installation location
 
     Args:
         cfg (Config): The configuration object to update.
@@ -97,7 +99,10 @@ def process_json_configuration(cfg) -> None :
             if isinstance(item, dict) and 'description' in item:
                 cfg.description = item['description']
                 break
-                    
+        
+        cfg.build_location = os.path.join(cfg.output_dir, cfg.plugin_name)
+        cfg.install_location = get_installation_location(cfg)
+    
     except json.JSONDecodeError as e:
         print(f"Error {cfg.ERR_JSON_PARSE}: Failed to parse JSON: {e}")
         sys.exit(cfg.ERR_JSON_PARSE)

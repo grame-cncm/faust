@@ -57,7 +57,7 @@ def print_wwise_help() -> None:
     print("Wwise Plugin Options:")
     print("")
     print("Common options for both Premake and Build:")
-    print("  --platform <platform>           platform to premake (Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC)")
+    print("  --platform <platform>           platform to premake (Android, Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC)")
     print("  --in-place                      Use in-place processing (default). Uses the same audio buffer for input and output; suitable for most effects without data flow changes")
     print("  --out-of-place                  Use out-of-place processing. Requires separate input and output buffers; needed for effects like time-stretching that alter data flow")
     print("")
@@ -109,9 +109,40 @@ def detect_arch(cfg) -> str:
         )
         sys.exit(cfg.ERR_ENVIRONMENT)
 
-def platform_dependent_setup(cfg, parsed_args:argparse.Namespace) -> None:
+def check_cross_compilation_enabled(cfg, parsed_args:argparse.Namespace, cursys: str) -> bool:
     """
-    Applies platform-specific configuration to the given config object.
+    Checks if cross compilation is enabled based on the explicit selection of platform in the command line arguments. 
+    Cross compilation is enabled if either of the following conditions are met:
+    1) If the explicitly selected platform is among the supported cross-compilation platforms.
+    2) If the user has explicitly specified a target platform that is different from the current system platform (i.e. compile for Mac on Windows).
+
+    Args:
+        cfg (Config): The configuration object to modify.
+        parsed_args (argparse.Namespace): Parsed arguments from argparse.
+        cursys (str): The current system platform as returned by platform.system().
+    
+    Returns:
+        bool: True if cross compilation is enabled, False otherwise.
+    """
+    
+    if parsed_args.platform:
+
+        if parsed_args.platform in cfg.crossCompilationSupportedPlatforms:
+            cfg.crossCompilationEnabled = True
+            return True
+    
+        if cursys == "Windows" and parsed_args.platform == "Mac":
+            cfg.crossCompilationEnabled = True
+            return True
+        
+        # .. can t compile for Windows on an Apple machine. 
+           
+    return False
+
+def os_dependent_setup(cfg, parsed_args:argparse.Namespace) -> None:
+    """
+    Checks if cross compilation is selected. In not, then:
+    Applies os-specific configuration to the given config object.
     Sets the default Wwise platform and toolset based on the current operating system 
     and the parsed command-line arguments.
 
@@ -133,6 +164,10 @@ def platform_dependent_setup(cfg, parsed_args:argparse.Namespace) -> None:
 
     # Premake-specific options - toolset
     cursys = platform.system()
+    
+    if (check_cross_compilation_enabled(cfg, parsed_args, cursys)):
+        return
+    
     if parsed_args.toolset:
         if cursys != "Windows":
             raise ValueError (f"{cursys} detected. Wwise does not support toolset options for this platform. This option is only for windows environments.")
@@ -175,7 +210,7 @@ def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
 
     if parsed_args.arch:
         cfg.wwise_arch = parsed_args.arch
-    else:
+    elif not cfg.crossCompilationEnabled:
         cfg.wwise_arch = detect_arch(cfg)
 
     if parsed_args.with_test_project:
@@ -219,7 +254,7 @@ def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> argparse.N
     
     # Wwise options
     parser.add_argument('-wh', '--wwise-help', action='store_true', help='Show help message for wwise options')
-    parser.add_argument('--platform', help='Target platform for Wwise plugin (Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC)')
+    parser.add_argument('--platform', help='Target platform for Wwise plugin (Android, Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC)')
     # mutually exclussive in-place and out-of-place effect plugin options. in-place is the default choice.
     plugin_interface_group = parser.add_mutually_exclusive_group()
     plugin_interface_group.add_argument('--in-place', dest='plugin_interface', action='store_const', const='in-place', help='Uses the same audio buffer for input and output; suitable for most effects without data flow changes.')
@@ -306,7 +341,7 @@ def check_wwise_required_arguments(cfg) -> List[str]:
         missing.append("platform (--platform)")
     if not cfg.wwise_configuration:
         missing.append("configuration (--configuration)")
-    if not cfg.wwise_arch:
+    if not cfg.wwise_arch and cfg.wwise_platform not in cfg.crossCompilationSupportedPlatforms:
         missing.append("arch (--arch)")
 
     windows_platforms = {"Authoring_Windows", "Windows_vc160", "Windows_vc170", "WinGC"}
@@ -330,8 +365,12 @@ def wwise_platform_and_toolset_compatible(cfg) -> bool:
     Returns:
         bool: True if compatible, False if an invalid combination is detected.
     """
-        
-    if (platform.system() == "Windows"):
+    if cfg.crossCompilationEnabled:
+        system = cfg.wwise_platform 
+    else: 
+        system = platform.system()
+
+    if (system == "Windows"):
         default_toolset = "vc170"
 
         # Strict compatibility
@@ -449,3 +488,49 @@ def run_system_command(cmd : List[str], error_code:Optional[int]=None) -> subpro
             print(e.stderr.strip())
         print(f"Exiting with error code {error_code or e.returncode}")
         sys.exit(error_code or e.returncode)
+
+def get_installation_location(cfg) -> str:
+    """
+    Determines the installation location for the generated plugin.
+
+    Returns:
+        str: The installation path for the plugin.  
+    """
+    if cfg.crossCompilationEnabled:
+        if cfg.wwise_platform == "Android":
+
+            wwise_arch = "<armeabi-v7a, x86, arm64-v8a, x86_64>" if (cfg.wwise_arch is None) else cfg.wwise_arch
+
+            if platform.system() == "Windows":
+                return os.path.join(
+                    cfg.wwiseroot,
+                    'SDK\Android_' + wwise_arch,
+                    cfg.wwise_configuration,
+                    'bin',
+                    "lib" + cfg.plugin_name + ".so"
+                )    
+            else:
+                return cfg.build_location
+        else:
+            return cfg.build_location
+    
+    if cfg.wwise_platform in ["Authoring", "Authoring_Windows", "Windows_vc160", "Windows_vc170"]:
+        return os.path.join(
+            cfg.wwiseroot,
+            'Authoring',
+            cfg.wwise_arch,
+            cfg.wwise_configuration,
+            'bin',
+            'Plugins',
+            cfg.plugin_name
+        ) + ".(ext)"
+
+    if cfg.wwise_platform == "Mac":
+        return os.path.join(
+            cfg.wwiseroot,
+            "SDK",
+            "Mac_Xcode<Xcode_version>",
+            cfg.wwise_configuration,
+            "bin",
+            "lib" + cfg.plugin_name + ".dylib"
+        )

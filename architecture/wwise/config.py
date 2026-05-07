@@ -68,7 +68,13 @@ class Config:
         self.wp_script = os.path.join(self.wwiseroot, 'Scripts', 'Build', 'Plugins', 'wp.py')
         self.patch_version = str(wwiseroot).split("Wwise")[1][:4] # Derived from wwise version and used for defining the wwise_template_dir
         self.wwise_template_dir = None              # Directory where the template files are stored
+        # Project paths
+        self.build_location = None
+        self.install_location = None
+        # Wwise versioning and cross compilation support
         self.supportedWwiseVersions = ["2024", "2025"]      # TODO Expand this on future development that enable support for previous/later Wwise versions 
+        self.crossCompilationSupportedPlatforms = ["Android"] # TODO Expand this on future development to enable support for other platforms (Sony, Nintendo, Mac on Windows etc.)
+        self.crossCompilationEnabled = False
 
         # temp path
         self.temp_dir = "_temp_"                    # Temp dir to store temp data ( i.e. jsonfile )
@@ -148,6 +154,7 @@ class Config:
         print(f"output_dir {self.output_dir}")
         print(f"faust_options {self.faust_options}")
         print("Wwise params:")
+        print(f"cross_compilation_enabled {self.crossCompilationEnabled}")
         print(f"platform {self.wwise_platform}")
         if self.wwise_toolset:
             print(f"toolset {self.wwise_toolset}")
@@ -207,9 +214,9 @@ class Config:
         print(f"Generated plugin: {self.plugin_name}")
         print(f"Plugin type: {self.plugin_type}" + (" (in-place)" if self.plugin_type == "effect" and self.wwise_plugin_interface=="in-place" else " (out-of-place)" if self.plugin_type == "effect" else ""))
         print(f"IO: num inputs({self.num_inputs}), num outputs({self.num_outputs})")
-        print(f"Build Location: {os.path.join(self.output_dir, self.plugin_name)}")
+        print(f"Build location: {self.build_location}")
         print(f"Configuration file: {self.cfg_json_path}")
-        print(f"Installation: {os.path.join(self.wwiseroot, 'Authoring', self.wwise_arch, self.wwise_configuration, 'bin', 'Plugins', self.plugin_name)}.(ext)")
+        print(f"Install location: {self.install_location}")
         print("=====================================")
         print("")
 
@@ -236,6 +243,8 @@ class Config:
     def to_json(self) -> None:
         """Stores the configuration into a JSON file within ${self.output_dir} directory.
         """
+
+        wwise_arch = "[armeabi-v7a, x86, arm64-v8a, x86_64]" if (self.wwise_platform == "Android" and self.wwise_arch is None) else self.wwise_arch
 
         config_dict = {
             "Paths": {
@@ -269,7 +278,7 @@ class Config:
                     "debugger": self.wwise_debugger,
                     "disable_codesign": self.wwise_disable_codesign,
                     "configuration": self.wwise_configuration,
-                    "arch": self.wwise_arch,
+                    "arch": wwise_arch,
                     "build_hooks_file": self.wwise_build_hooks_file,
                     "toolchain_vers": self.wwise_toolchain_vers,
                     "toolchain_env_script": self.wwise_toolchain_env_script,
@@ -309,16 +318,8 @@ class Config:
                     "num_inputs": self.num_inputs,
                     "num_outputs": self.num_outputs
                 },
-                "location": os.path.join(self.output_dir, self.plugin_name),
-                "installation": os.path.join(
-                    self.wwiseroot,
-                    'Authoring',
-                    self.wwise_arch,
-                    self.wwise_configuration,
-                    'bin',
-                    'Plugins',
-                    self.plugin_name
-                ) + ".(ext)"
+                "Build location": self.build_location,
+                "Install location": self.install_location
             }
         }
 

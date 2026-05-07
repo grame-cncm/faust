@@ -97,6 +97,39 @@ faust2wwise myfilter.dsp -double --out-of-place
 
 *Type `faust2wwise --help` to view all the available command-line options.*
 
+### Specifying platform and architecture targets (and toolsets) 
+
+Building Wwise projects through `faust2wwise` is automatically configured for **Windows** and **MacOS** using predefined default settings based on the host operating system. This behaviour is implemented for convenience, allowing rapid conversions in a non cross-compilation setting. 
+
+However, passing explicit arguments is recommended, especially for custom builds, or when targeting a specific compiler toolset, architecture, or platform.
+
+For example, the following commands all build an **Authoring** plugin on Windows:
+
+```
+# using default settings
+faust2wwise myFaustEffect.dsp
+# using explicit arguments for Visual Studio 2022 (default on Windows)
+faust2wwise myFaustEffect.dsp Authoring --toolset vc170 --arch x64
+# using explicit arguments for Visual Studio 2019
+faust2wwise myFaustEffect.dsp Authoring --toolset vc160 --arch x64
+```
+
+Similarly, building for Android without specifying an architecture:
+
+```
+faust2wwise myFaustEffect.dsp --platform Android
+```
+
+... builds the Wwise project for all supported Android target architectures (armeabi-v7a, x86, arm64-v8a, x86_64).
+
+To build only for a specific Android architecture (i.e. for arm64-v8a):
+
+```
+faust2wwise myFaustEffect.dsp --platform Android --arch arm64-v8a
+```
+
+*Type `faust2wwise --help` to view all the available command-line options.*
+
 ### Plugin Naming
 
 By default, the plugin name is derived from the file name of the dsp file. If the filename begins with a number, the prefix `Dsp_` is automatically added.

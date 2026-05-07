@@ -94,8 +94,8 @@ class Faust2WwiseOrchestrator:
 
         print("------------------------------------------Preliminary Step : setup and validate environment")
 
-        # conditionally edit variables across different platforms (windows/macOs) 
-        utils.platform_dependent_setup(self.cfg, parsed_args) 
+        # conditionally edit variables across different operating systems (windows/macOs) 
+        utils.os_dependent_setup(self.cfg, parsed_args) 
 
         # Wwise-related options
         utils.create_wwise_config(self.cfg, parsed_args)
@@ -271,9 +271,12 @@ class Faust2WwiseOrchestrator:
         
         cmd = [
             "python", self.wp_script, "build",
+            self.wwise_platform,
             "-c", self.wwise_configuration,
-            "-x", self.wwise_arch
         ]
+
+        if self.wwise_arch:
+            cmd.extend(["-x", self.wwise_arch])
 
         if self.wwise_toolset:
             cmd.extend(["--toolset", self.wwise_toolset])
@@ -286,8 +289,6 @@ class Faust2WwiseOrchestrator:
 
         if self.wwise_toolchain_env_script:
             cmd.extend(["--toolchain-env-script", self.wwise_toolchain_env_script])
-        
-        cmd.extend([self.wwise_platform])
         
         utils.run_system_command(cmd, self.ERR_BUILD)
         os.chdir(original_dir)
