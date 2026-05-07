@@ -1,11 +1,15 @@
+# bin
 filesCompare
 impulseinterp
 impulsellvm
 
-# jax-related:
-tmp*
-output
+# jax
 __pycache__
-*.pyc# pixi environments
+*.pyc
+
+# temporaries
+*tmp*
+
+# pixi environments
 .pixi/*
 !.pixi/config.toml

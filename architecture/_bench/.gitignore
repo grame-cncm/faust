@@ -1,3 +1,22 @@
+# bin
+bin/
+
+# jax
+__pycache__
+*.pyc
+
+# temporaries
+*tmp*
+
+# report
+report/
+
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+# clangd
+.cache/
+
+# mojo architecture packages
+./arch/mojo/pkg/
