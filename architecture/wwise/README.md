@@ -205,6 +205,7 @@ The following features are currently limited or under development:
 - macOS support for Wwise Authoring plug-ins is indirect because the Authoring application runs as a Windows binary through an adaptation layer, and therefore requires plug-ins to be built as Windows DLLs. To achieve this on macOS, you must build the Authoring plug-in on a Windows machine or VM with Visual Studio, while the Sound Engine plug-in can be built natively on macOS. (For more details, see the official documentation on [macOS Plug-in Considerations](https://www.audiokinetic.com/en/public-library/2024.1.7_8863/?source=SDK&id=authoringplugin_macos.html))
 - `faust2wwise test` currently does not support the `--clean` option on macOS, as the plugin installation directory cannot be reliably determined.
 - `soundfile` primitive is currently not supported.
+- Misalignment between amount of input and output requested channels by the Faust program for effect plugins is currently unsupported (i.e. for [examples/SAM/chorus/chorus.dsp](../../examples/SAM/chorus/chorus.dsp))
 
 If you'd like to help improve any of these, contributions are welcome!
 Please follow the [official contribution guideline](https://faustdoc.grame.fr/manual/community/).
@@ -223,14 +224,6 @@ This is a common error and it typically means that the DSP file has already been
 <summary>fatal error: <code>faust/dsp/dsp.h</code> file not found</summary>
 <br>
 This error is observed on <strong>macOS</strong> platform and usually occurs when the Faust include path is misconfigured—most often, the leading <code>/</code> is missing  (e.g., <code>usr/local/include</code> instead of <code>/usr/local/include</code>), causing the compiler to fail. To fix this, open the project in Xcode, go to <strong>Build Settings -> Search Paths -> Header Search Paths</strong>, and manually correct the path by ensuring it begins with a <code>/</code>. Then continue building the plugin using Xcode.
-</details>
-
-<br>
-
-<details>
-<summary>Cannot use throw with exceptions disabled</summary>
-<br>
-This error occurs on <strong>macOS</strong> when building with Xcode and using <code>throw</code> in the code, while C++ exceptions are disabled. To fix this, open the project in Xcode, navigate to <strong>Build Settings -> Apple Clang -> Language - C++ -> Enable C++ Exceptions</strong>, and set to <strong>Yes</strong>. Then continue building the plugin using Xcode.
 </details>
 
 <br>

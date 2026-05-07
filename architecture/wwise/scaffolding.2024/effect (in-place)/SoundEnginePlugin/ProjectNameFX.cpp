@@ -27,7 +27,6 @@ the specific language governing permissions and limitations under the License.
 #include "../${name}Config.h"
 
 #include <AK/AkWwiseSDKVersion.h>
-#include <stdexcept>
 
 AK::IAkPlugin* Create${name}FX(AK::IAkPluginMemAlloc* in_pAllocator)
 {
@@ -65,10 +64,11 @@ AKRESULT ${name}FX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPlug
     if (numInputs != numOutputs){
         char errorMsg[256];
         snprintf(errorMsg, sizeof(errorMsg),
-            "[ERROR]: Wwise FX plugins require the same amount of input/output channels. In this case {} != {}", 
+            "[ERROR]: Misalignment between amount of input and output requested channels by the Faust program is currently unsupported."
+            "Wwise FX plugins require the same amount of input/output channels. In this case {} != {}",
                 numInputs, numOutputs);
         AKPLATFORM::OutputDebugMsg(errorMsg);
-        throw std::runtime_error(errorMsg);
+        return AK_NotImplemented;
     }
     numChannels = numInputs;
 
