@@ -1,6 +1,12 @@
-# `faust2wwise` static compilation tool
+# `faust2wwise` static compilation tool and dynamic compilation plugin 
+
+#### Static command-line tool
 
 `faust2wwise` is a command-line tool that generates AudioKinetic Wwise plugins from Faust DSP code. It bridges the gap between the FAUST functional DSP programming language and Wwise’s audio middleware, supporting both **Source** and **Effect** (in-place and out-of-place) plugins. 
+
+#### Dynamic compilation plugin 
+
+Additionally, `faust2wwise` ships with the `Faust Interpreter Wwise Plugin`, a Wwise Authoring plugin that provides an integrated dynamic compilation tool that wraps the faust interpreter and provides a code editor to convert Faust DSP code into Wwise plugins, directly throughout the Wwise enviroment. For more details, refer to the [Faust Interpreter Wwise Plugin](Faust_Interpreter_Wwise_Plugin\README.md) page.
 
 ## Description
 

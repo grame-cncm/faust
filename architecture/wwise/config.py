@@ -35,6 +35,7 @@ class Config:
     wwiseroot: Final[str]
     wp_script: Final[str]
     cfgJsonFileName: Final[str]
+    SUCCESS_EXIT_CODE: Final[int]
     ERR_INVALID_INPUT: Final[int]
     ERR_ENVIRONMENT: Final[int]
     ERR_FAUST_COMPILE: Final[int]

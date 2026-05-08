@@ -1,0 +1,79 @@
+// See https://www.audiokinetic.com/library/edge/?source=SDK&id=plugin__packaging.html#plugin_packaging_bundle_metadata
+// for the documentation about the bundle_template.json format
+{
+    // Unique identifier of this bundle. Id must be unique across all existing plugins and versions.
+    "id": "Paschalis Melissas.Faust_Interpreter_Wwise_Plugin.${year}_${major}_${minor}_${build}",
+
+    // Name displayed in the Wwise Launcher for this bundle
+    "name": "Faust_Interpreter_Wwise_Plugin",
+    
+    // Tag uniquely identifying the plug-in (format [0-9A-z_]+, 50 characters maximum)
+    "tag": "Faust_Interpreter_Wwise_Plugin",
+
+    // Description displayed in the Wwise Launcher for this bundle
+    "description": "Embedded Faust Interpreter as a Wwise Source Plugin ",
+
+    // Vendor name displayed in the Wwise Launcher for this bundle
+    "vendor": "Paschalis Melissas",
+
+    // Base64 representation of an image to be displayed in the Wwise Launcher for this bundle (PNG, JPEG or GIF)
+    "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+
+    // Type of this bundle, must be "plugin"
+    "type": "plugin",
+
+    // Data that is specific to this bundle type
+    "productDependentData": {
+        "targetWwiseVersion": {
+            "year": ${year},
+            "major": ${major}
+        }
+    },
+
+    // Version of this bundle
+    "version": {
+        "year": ${year},
+        "major": ${major},
+        "minor": ${minor},
+        "build": ${build}
+    },
+
+    // List of EULAs associated with this bundle
+    "eulas": [
+        // {
+        //     "displayName": string, // Name displayed in the Wwise Launcher for this EULA
+        //     "displayContent": string, // Text displayed in the Wwise Launcher for this EULA
+        //     "id": string // Unique identifier of this EULA
+        // },
+        // ...
+    ],
+
+    // Labels displayed next to this bundle
+    "labels": [
+        // {
+        //     "class": string, // Style class applied to this label (default, primary, success, info, warning, danger)
+        //     "displayName": string // Name displayed in the Wwise Launcher for this label
+        // },
+        // ...
+    ],
+
+    // Online documentation links for this bundle
+    "links": [
+        // {
+        //     "displayName": string, // Name displayed in the Wwise Launcher for this link
+        //     "id": string, // Unique identifier of this link
+        //     "url": string // Target URL of this link
+        // },
+        // ...
+    ],
+
+    // Local documentation files for this bundle
+    "documentation": [
+        // {
+        //     "displayName": string, // Name displayed in the Wwise Launcher for this documentation file
+        //     "filePath": string, // Path to the documentation file
+        //     "language": "en" | "ja" | "zh" // Language of the documentation file
+        // },
+        // ...
+    ]
+}
