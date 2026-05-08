@@ -69,8 +69,8 @@ def _parameter_to_property_xml(param) -> ET.Element:
     if param.is_slider():
         ET.SubElement(property_elem, "UserInterface", {
             "Step": str(param.step),
-            "Fine": "0.1",
-            "Decimals": "1",
+            "Fine": str(param.step),
+            "Decimals": str(param.num_decimals),
             "UIMax": str(param.max or 1000)
         })
 
