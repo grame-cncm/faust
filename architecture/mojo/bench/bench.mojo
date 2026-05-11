@@ -23,6 +23,7 @@ comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96_000]())
 comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 128]())
 comptime FAUST_DTYPE = get_defined_dtype["FAUST_DTYPE", F64.dtype]()
 comptime CSV_PATH = get_defined_string["CSV_PATH", "report/mojo/report.csv"]()
+comptime WRITE_CSV = get_defined_bool["WRITE_CSV", False]()
 
 # Comptime constants and type definitions.
 
@@ -34,9 +35,6 @@ comptime MAX_RUNTIME_SECS: F64 = 60.0
 
 comptime PRECISION_STRINGS: InlineArray[String, 2] = ["single", "double"]
 comptime PRECISION = PRECISION_STRINGS[size_of[FaustFloat]() // 4 - 1]
-comptime CSV_HEADER = "language,bench_case,precision,opt,samp_rate,buff_size,inputs,outputs,"
-                      "warmup_iters,run_iters,elapsed_s,ns_per_compute,ns_per_frame,"
-                      "ns_per_out_sample,frames_per_s,out_samp_per_s,checksum\n"
 
 # Faust benchmark API.
 
@@ -146,15 +144,18 @@ def print_report(report: FaustReport) -> None:
     print("checksum:       ", report.checksum)
 
 def write_csv(report: FaustReport) raises -> None:
-    # XXX: could be optimized
+    # Appends one headerless benchmark row to CSV_PATH.
+    # Assumes CSV_PATH and its parent directory are provided by the build system.
+    # Does not write headers or manage existing CSV data.
+    # Called only for structured runs when WRITE_CSV is enabled.
     var csv = String(
-        BENCH_LANG + "," + BENCH_CASE + "," + report.precision + "," + BENCH_OPTIM   + ","
-        + String(report.samp_rate)      + "," + String(report.buff_size)             + ","
-        + String(report.n_ins)          + "," + String(report.n_outs)                + ","
-        + String(report.warmup_iters)   + "," + String(report.compute_iters)         + ","
-        + String(report.elapsed_s)      + "," + String(report.ns_per_compute)        + ","
-        + String(report.ns_per_frame)   + "," + String(report.ns_per_out_sample)     + ","
-        + String(report.frames_per_s)   + "," + String(report.output_samples_per_s)  + ","
+        BENCH_LANG + "," + BENCH_CASE + "," + report.precision + "," + BENCH_OPTIM + ","
+        + String(report.samp_rate) + "," + String(report.buff_size) + ","
+        + String(report.n_ins) + "," + String(report.n_outs) + ","
+        + String(report.warmup_iters) + "," + String(report.compute_iters) + ","
+        + String(report.elapsed_s) + "," + String(report.ns_per_compute) + ","
+        + String(report.ns_per_frame) + "," + String(report.ns_per_out_sample) + ","
+        + String(report.frames_per_s) + "," + String(report.output_samples_per_s) + ","
         + String(report.checksum) + "\n"
     )
     var path = Path(CSV_PATH)
@@ -162,5 +163,4 @@ def write_csv(report: FaustReport) raises -> None:
         var content = path.read_text()
         path.write_text(content + csv)
     else:
-        path.write_text(CSV_HEADER + csv)
-
+        path.write_text(csv)

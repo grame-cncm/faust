@@ -36,7 +36,9 @@ def main() raises -> None:
     var report = measure[dreal](dsp[], inputs, outputs)
     report.checksum = checksum_outputs[dreal](outputs, n_outs)
     print_report(report) # the output will be redirected via script
-    write_csv(report)
+
+    comptime if WRITE_CSV:
+        write_csv(report)
 
     free_buffers[dreal](base)
     dsp.free()

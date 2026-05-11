@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Standard benchmark plot.
+# Standard benchmark plots.
 #
 # This file may be executed directly or sourced through script/source.sh.
 # It assumes the benchmark workspace layout initialized by source.sh.
@@ -11,11 +11,19 @@ bench_plot() {
   mkdir -p "${BENCH_PLOT_DIR}"
 
   pixi run python "${BENCH_SCRIPT_DIR}/plot.py" "${csv_src}" \
-    --case full \
-    --x combo \
+    --case buffer_sweep \
+    --x buff_size \
     --y output_samples_per_s \
-    --series language,precision \
-    --out "${BENCH_PLOT_DIR}/tput_full.svg" \
+    --series language,precision,opt \
+    --out "${BENCH_PLOT_DIR}/tput_bs.svg" \
+    --title "Faust Benchmark"
+
+  pixi run python "${BENCH_SCRIPT_DIR}/plot.py" "${csv_src}" \
+    --case sample_rate_sweep \
+    --x samp_rate \
+    --y output_samples_per_s \
+    --series language,precision,opt \
+    --out "${BENCH_PLOT_DIR}/tput_sr.svg" \
     --title "Faust Benchmark"
 }
 

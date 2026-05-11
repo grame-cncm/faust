@@ -148,12 +148,6 @@ void MojoCodeContainer::writeInstanceConstants(int n)
     *fOut << wtab(n) << "@always_inline\n";
     *fOut << wtab(n) << "def instance_constants(mut dsp, sample_rate: S32) -> None:\n";
     *fOut << wtab(n + 1);
-
-    // TEST:
-    auto block = inlineSubcontainersFunCalls(fInitInstructions);
-    mj_debug_fir(block, "");
-    // TEST:
-
     inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
     *fOut << wrewind(fOut, n + 1);
 }
