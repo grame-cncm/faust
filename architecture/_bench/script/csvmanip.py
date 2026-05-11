@@ -6,10 +6,30 @@ from pathlib import Path
 import pandas as pd
 
 
-CSV_COLUMNS = [
+TMP_COLUMNS = [
     "language",
     "bench_case",
+    "precision",
+    "opt",
+    "samp_rate",
+    "buff_size",
+    "n_ins",
+    "n_outs",
+    "warmup_iters",
+    "compute_iters",
+    "elapsed_s",
+    "ns_per_compute",
+    "ns_per_frame",
+    "ns_per_output_sample",
+    "frames_per_s",
+    "output_samples_per_s",
+    "checksum",
+]
+
+CSV_COLUMNS = [
+    "language",
     "dsp",
+    "bench_case",
     "precision",
     "opt",
     "samp_rate",
@@ -41,24 +61,26 @@ def read_main_csv(path: Path) -> pd.DataFrame:
     return df[CSV_COLUMNS]
 
 
-def read_tmp_csv(path: Path) -> pd.DataFrame:
+def read_tmp_csv(path: Path, dsp: str) -> pd.DataFrame:
     if not path.exists():
         raise SystemExit(f"temporary CSV does not exist: {path}")
 
     if path.stat().st_size == 0:
         raise SystemExit(f"temporary CSV is empty: {path}")
 
-    df = pd.read_csv(path, header=None, names=CSV_COLUMNS)
+    df = pd.read_csv(path, header=None, names=TMP_COLUMNS)
 
     if df.empty:
         raise SystemExit(f"temporary CSV has no rows: {path}")
 
-    return df
+    df.insert(1, "dsp", dsp)
+
+    return df[CSV_COLUMNS]
 
 
 def merge_csv(main_path: Path, tmp_path: Path, language: str, dsp: str, bench_case: str) -> None:
     main_df = read_main_csv(main_path)
-    tmp_df = read_tmp_csv(tmp_path)
+    tmp_df = read_tmp_csv(tmp_path, dsp)
 
     expected = {
         "language": language,

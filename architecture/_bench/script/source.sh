@@ -225,7 +225,7 @@ bench_source_optional() {
 }
 
 bench_load_scripts() {
-  bench_source_optional "${BENCH_SCRIPT_DIR}/csv.sh"
+  bench_source_optional "${BENCH_SCRIPT_DIR}/csvmanip.sh"
   bench_source_optional "${BENCH_SCRIPT_DIR}/bench.sh"
   bench_source_optional "${BENCH_SCRIPT_DIR}/plot.sh"
   bench_source_optional "${BENCH_SCRIPT_DIR}/clean.sh"

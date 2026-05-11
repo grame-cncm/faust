@@ -8,8 +8,5 @@ version = "0.1.0"
 [tasks]
 
 [dependencies]
-modular = ">=26.4.0.dev2026050706,<27"
-mojo = ">=1.0.0b2.dev2026050706,<2"
-python = ">=3.14.4,<3.15"
-pandas = ">=3.0.2,<4"
-matplotlib = ">=3.10.9,<4"
+modular = ">=26.4.0.dev2026051106,<27"
+mojo = ">=1.0.0b2.dev2026051106,<2"

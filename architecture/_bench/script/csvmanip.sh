@@ -21,7 +21,7 @@ bench_csv_merge() {
     return 1
   fi
 
-  pixi run python "${BENCH_SCRIPT_DIR}/csv.py" merge \
+  pixi run python "${BENCH_SCRIPT_DIR}/csvmanip.py" merge \
     --main "${BENCH_CSV}" \
     --tmp "${tmp_csv}" \
     --language "${lang}" \

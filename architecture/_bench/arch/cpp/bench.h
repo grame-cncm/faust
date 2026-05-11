@@ -281,8 +281,8 @@ fn write_csv(FaustReport const& report) -> void
 
     fprintf(
         fp,
-        "%s,%s,%s,%d,%d,%d,%d,%d,%d,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g\n",
-        BENCH_CASE, report.precision.data(),
+        "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g\n",
+        BENCH_LANG, BENCH_CASE, report.precision.data(),
         BENCH_OPTIM, report.samp_rate,
         report.buff_size, report.n_ins,
         report.n_outs, report.warmup_iters,

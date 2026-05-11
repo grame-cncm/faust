@@ -333,7 +333,7 @@ bench_sr_sweep() {
       "$@"
   done
 
-  bench_merge_sweep_csv "${lang}" "${dsp}" "${bench_case}"
+  bench_commit_sweep_csv "${lang}" "${dsp}" "${bench_case}"
 }
 
 bench_all() {
