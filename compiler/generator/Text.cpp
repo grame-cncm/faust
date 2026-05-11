@@ -166,49 +166,58 @@ string T(int64_t n)
  * the textual representation of a floating point number
  * to avoid confusions with an int.
  */
-static string ensureFloat(const string& c)
+static string ensureFloat(const string& num)
 {
     bool isInt = true;
-    for (size_t i = 0; i < c.size(); i++) {
-        if ((c[i] == '.') || (c[i] == 'e')) {
+    for (size_t i = 0; i < num.size(); i++) {
+        if ((num[i] == '.') || (num[i] == 'e')) {
             isInt = false;
             break;
         }
     }
-    return (isInt) ? (c + ".0") : c;
+    return (isInt) ? (num + ".0") : num;
 }
 
 /**
  * Special encoding for Julia float numbers, see:
  * https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/#Floating-Point-Numbers
  */
-static string encodeJuliaFloat(const string& c, bool& need_suffix)
+static string encodeJuliaFloat(const string& num, bool& need_suffix)
 {
     bool   isInt = true;
     string res;
-    for (size_t i = 0; i < c.size(); i++) {
-        if ((c[i] == '.') || (c[i] == 'e')) {
+    for (size_t i = 0; i < num.size(); i++) {
+        if ((num[i] == '.') || (num[i] == 'e')) {
             isInt = false;
         }
-        if (c[i] == 'e') {
+        if (num[i] == 'e') {
             res += 'f';
             need_suffix = false;
         } else {
-            res += c[i];
+            res += num[i];
         }
     }
     return (isInt) ? (res + ".0") : res;
 }
 
-static string addSuffix(const string& num)
+static string encodeFloat(const string& num)
 {
     if (gGlobal->gOutputLang == "julia") {
         bool   need_suffix = true;
         string res         = encodeJuliaFloat(num, need_suffix);
         return (need_suffix) ? (res + inumix()) : res;
-    } else {
-        return ensureFloat(num) + inumix();
     }
+    if (gGlobal->gOutputLang == "mojo") {
+        // NOTE:(manu) Mandatory explicit cast in mojo.
+        if (gGlobal->gFloatSize == 1) {
+            return "F32(" + ensureFloat(num) + ")";
+        } else if (gGlobal->gFloatSize == 2) {
+            return "F64(" + ensureFloat(num) + ")";
+        } else {
+            faustassert(false);
+        }
+    }
+    return ensureFloat(num) + inumix();
 }
 
 /**
@@ -219,23 +228,23 @@ const int MAX_PRECISION = 32;
 
 string TAux(float n)
 {
-    char c[512];
+    char num[512];
     int  p = 1;
 
     do {
-        snprintf(c, 512, "%.*g", p++, n);
+        snprintf(num, 512, "%.*g", p++, n);
         if (p > MAX_PRECISION) {
             break;
         }
-    } while (strtof(c, 0) != n);
+    } while (strtof(num, 0) != n);
 
-    ensureFloat(c);
-    return string(c);
+    ensureFloat(num);
+    return string(num);
 }
 
 string T(float n)
 {
-    return addSuffix(TAux(n));
+    return encodeFloat(TAux(n));
 }
 
 /**
@@ -293,7 +302,7 @@ string TAux(double n)
 
 string T(double n)
 {
-    return addSuffix(TAux(n));
+    return encodeFloat(TAux(n));
 }
 
 /**
@@ -351,7 +360,7 @@ string TAux(long double n)
 
 string T(long double n)
 {
-    return addSuffix(TAux(n));
+    return encodeFloat(TAux(n));
 }
 
 /**
