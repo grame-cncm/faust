@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
+MAX_COLUMNS_PER_ROW = 40
+
+
 def format_rate(value) -> str:
     value = int(value)
     if value % 1000 == 0:
@@ -16,7 +19,7 @@ def format_rate(value) -> str:
 
 
 def make_combo_column(df: pd.DataFrame) -> pd.DataFrame:
-    required = ["samp_rate", "buff_size"]
+    required = ["dsp", "samp_rate", "buff_size"]
     missing = [col for col in required if col not in df.columns]
     if missing:
         raise SystemExit(f"cannot build combo x axis, missing CSV columns: {missing}")
@@ -26,6 +29,14 @@ def make_combo_column(df: pd.DataFrame) -> pd.DataFrame:
         f"{format_rate(sr)} / {int(bs)}"
         for sr, bs in zip(df["samp_rate"], df["buff_size"])
     ]
+    return df
+
+
+def add_normalized_y_column(df: pd.DataFrame, x_col: str, y_col: str) -> pd.DataFrame:
+    df = df.copy()
+    group_cols = ["dsp", x_col]
+    max_values = df.groupby(group_cols, observed=True)[y_col].transform("max")
+    df["plot_y"] = df[y_col] / max_values * 100.0
     return df
 
 
@@ -39,9 +50,198 @@ def format_x_label(col: str, value) -> str:
     return str(value)
 
 
-def format_y_value(value: float) -> str:
-    # Use millions but keep enough precision to make small differences visible.
-    return f"{value / 1_000_000:.2f}M"
+def format_rel_value(value: float) -> str:
+    return f"{value:.1f}%"
+
+
+def format_tput_value(value: float) -> str:
+    return f"{value / 1_000_000:.1f}M"
+
+
+def split_dsp_rows(df: pd.DataFrame, x_col: str, max_cases_per_row: int) -> list[list[str]]:
+    rows = []
+    row = []
+    row_cases = 0
+
+    for dsp_name, dsp_df in df.groupby("dsp", sort=False):
+        dsp_cases = len(pd.unique(dsp_df[x_col]))
+
+        if dsp_cases > max_cases_per_row:
+            raise SystemExit(
+                f"DSP '{dsp_name}' has {dsp_cases} cases, "
+                f"but the maximum per row is {max_cases_per_row}"
+            )
+
+        if row and row_cases + dsp_cases > max_cases_per_row:
+            rows.append(row)
+            row = []
+            row_cases = 0
+
+        row.append(dsp_name)
+        row_cases += dsp_cases
+
+    if row:
+        rows.append(row)
+
+    return rows
+
+
+def build_axis_data(row_df: pd.DataFrame, x_col: str):
+    x_values = []
+    x_labels = []
+    x_positions = []
+    dsp_centers = []
+    dsp_labels = []
+
+    dsp_gap = 0.15
+    pos = 0.0
+
+    for dsp_name, dsp_df in row_df.groupby("dsp", sort=False, observed=True):
+        local_values = list(pd.unique(dsp_df[x_col]))
+        start_pos = pos
+
+        for value in local_values:
+            x_values.append((dsp_name, value))
+            x_labels.append(format_x_label(x_col, value))
+            x_positions.append(pos)
+            pos += 1.0
+
+        end_pos = pos - 1.0
+        dsp_centers.append((start_pos + end_pos) / 2)
+        dsp_labels.append(dsp_name)
+
+        pos += dsp_gap
+
+    return x_values, x_labels, x_positions, dsp_centers, dsp_labels
+
+
+def draw_row(
+    ax,
+    row_df: pd.DataFrame,
+    x_col: str,
+    y_col: str,
+    raw_y_col: str,
+    series_cols: list[str],
+    y_min: float,
+    y_max: float,
+    y_pad: float,
+    show_legend: bool,
+) -> int:
+    style_map = {
+        ("mojo", "single"): {"color": "darkorange", "alpha": 1.0},
+        ("mojo", "double"): {"color": "darkred", "alpha": 1.0},
+        ("cpp", "single"): {"color": "green", "alpha": 1.0},
+        ("cpp", "double"): {"color": "navy", "alpha": 1.0},
+    }
+
+    x_values, x_labels, x_positions, dsp_centers, dsp_labels = build_axis_data(
+        row_df, x_col
+    )
+
+    series_groups = list(row_df.groupby(series_cols, sort=False, observed=True))
+    n_series = len(series_groups)
+
+    if n_series == 0:
+        raise SystemExit("no series found")
+
+    total_width = 0.98
+    bar_width = total_width / n_series
+    first_offset = -total_width / 2 + bar_width / 2
+
+    all_bars = []
+
+    for index, (key, group) in enumerate(series_groups):
+        if not isinstance(key, tuple):
+            key = (key,)
+
+        label = " / ".join(str(x) for x in key)
+        style = style_map.get(tuple(key), {})
+
+        if not style:
+            print(f"warning: no style for series {key}")
+
+        values_by_x = {
+            (row["dsp"], row[x_col]): row[y_col]
+            for _, row in group.iterrows()
+        }
+
+        raw_values_by_x = {
+            (row["dsp"], row[x_col]): row[raw_y_col]
+            for _, row in group.iterrows()
+        }
+
+        y_values = [values_by_x.get(value, float("nan")) for value in x_values]
+        raw_values = [raw_values_by_x.get(value, float("nan")) for value in x_values]
+
+        bar_positions = [
+            pos + first_offset + index * bar_width
+            for pos in x_positions
+        ]
+
+        bars = ax.bar(
+            bar_positions,
+            y_values,
+            width=bar_width,
+            label=label,
+            **style,
+        )
+
+        for bar, raw_value in zip(bars, raw_values):
+            bar.raw_value = raw_value
+
+        all_bars.extend(bars)
+
+    ax.set_ylim(y_min - y_pad * 0.20, y_max + y_pad)
+
+    if x_positions:
+        left_edge = min(x_positions) - total_width / 2
+        right_edge = max(x_positions) + total_width / 2
+        ax.set_xlim(left_edge - 0.12, right_edge + 0.12)
+
+    for bar in all_bars:
+        height = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            height + y_pad * 0.08,
+            format_tput_value(bar.raw_value),
+            ha="center",
+            va="bottom",
+            rotation=0,
+            fontsize=5.5,
+        )
+
+    ax.set_xlabel("")
+    ax.set_ylabel("rel_tput (%)", fontweight="bold")
+
+    ax.set_xticks(x_positions)
+    ax.set_xticklabels(x_labels, fontsize=8)
+
+    ax.tick_params(axis="y", labelsize=7)
+    ax.yaxis.label.set_size(8)
+
+    for center, label in zip(dsp_centers, dsp_labels):
+        ax.text(
+            center,
+            -0.05,
+            label,
+            ha="center",
+            va="top",
+            transform=ax.get_xaxis_transform(),
+            fontsize=8,
+            fontweight="bold",
+            clip_on=False,
+        )
+
+    ax.yaxis.set_major_formatter(
+        mpl.ticker.FuncFormatter(lambda value, _: format_rel_value(value))
+    )
+
+    ax.grid(True, axis="y", linewidth=0.25)
+
+    if show_legend:
+        ax.legend(loc="upper left", fontsize=8, framealpha=0.7)
+
+    return len(x_values)
 
 
 def main() -> None:
@@ -97,109 +297,85 @@ def main() -> None:
 
     series_cols = [col.strip() for col in args.series.split(",") if col.strip()]
 
-    required_cols = [args.x, args.y] + series_cols
+    required_cols = ["dsp", args.x, args.y] + series_cols
     missing = [col for col in required_cols if col not in df.columns]
     if missing:
         raise SystemExit(f"missing CSV columns: {missing}")
 
+    df["language"] = pd.Categorical(
+        df["language"],
+        categories=["cpp", "mojo"],
+        ordered=True,
+    )
+
+    df["precision"] = pd.Categorical(
+        df["precision"],
+        categories=["single", "double"],
+        ordered=True,
+    )
+
+    df = add_normalized_y_column(df, args.x, args.y)
+
     if args.x == "combo":
-        df = df.sort_values(["samp_rate", "buff_size"] + series_cols)
+        df = df.sort_values(["dsp", "samp_rate", "buff_size"] + series_cols)
     else:
-        df = df.sort_values([args.x] + series_cols)
+        df = df.sort_values(["dsp", args.x] + series_cols)
 
-    fig, ax = plt.subplots(figsize=(13, 7.5))
-
-    style_map = {
-        ("mojo", "single"): {"color": "red", "alpha": 1.0},
-        ("mojo", "double"): {"color": "blue", "alpha": 1.0},
-        ("cpp", "single"): {"color": "darkred", "alpha": 1.0},
-        ("cpp", "double"): {"color": "navy", "alpha": 1.0},
-    }
-
-    x_values = list(pd.unique(df[args.x]))
-    x_labels = [format_x_label(args.x, value) for value in x_values]
-    x_positions = list(range(len(x_values)))
-
-    series_groups = list(df.groupby(series_cols))
-    n_series = len(series_groups)
-
+    n_series = len(list(df.groupby(series_cols, sort=False, observed=True)))
     if n_series == 0:
         raise SystemExit("no series found")
 
-    total_width = 0.82
-    bar_width = total_width / n_series
-    first_offset = -total_width / 2 + bar_width / 2
+    max_cases_per_row = max(1, MAX_COLUMNS_PER_ROW // n_series)
+    row_dsps = split_dsp_rows(df, args.x, max_cases_per_row)
+    n_rows = len(row_dsps)
 
-    all_bars = []
-
-    for index, (key, group) in enumerate(series_groups):
-        if not isinstance(key, tuple):
-            key = (key,)
-
-        label = " / ".join(str(x) for x in key)
-        style = style_map.get(tuple(key), {})
-
-        if not style:
-            print(f"warning: no style for series {key}")
-
-        values_by_x = {
-            row[args.x]: row[args.y]
-            for _, row in group.iterrows()
-        }
-
-        y_values = [values_by_x.get(value, float("nan")) for value in x_values]
-        bar_positions = [
-            pos + first_offset + index * bar_width
-            for pos in x_positions
-        ]
-
-        bars = ax.bar(
-            bar_positions,
-            y_values,
-            width=bar_width,
-            label=label,
-            **style,
-        )
-        all_bars.extend(bars)
-
-    y_min = df[args.y].min()
-    y_max = df[args.y].max()
-    y_pad = (y_max - y_min) * 0.22
+    y_min = df["plot_y"].min()
+    y_max = df["plot_y"].max()
+    y_pad = (y_max - y_min) * 0.32
 
     if y_pad == 0:
         y_pad = max(abs(y_min) * 0.05, 1e-9)
 
-    ax.set_ylim(y_min - y_pad, y_max + y_pad)
-
-    for bar in all_bars:
-        height = bar.get_height()
-        ax.text(
-            bar.get_x() + bar.get_width() / 2,
-            height + y_pad * 0.08,
-            format_y_value(height),
-            ha="center",
-            va="bottom",
-            rotation=90,
-            fontsize=8,
+    max_row_cases = 0
+    for dsps in row_dsps:
+        row_df = df[df["dsp"].isin(dsps)]
+        row_cases = sum(
+            len(pd.unique(dsp_df[args.x]))
+            for _, dsp_df in row_df.groupby("dsp", sort=False, observed=True)
         )
+        max_row_cases = max(max_row_cases, row_cases)
 
-    ax.set_title(args.title)
-    ax.set_xlabel(args.x)
-    ax.set_ylabel("out_samp/s")
+    fig_width = max(18, max_row_cases * 2.1)
+    fig_height = 7 * n_rows
 
-    ax.set_xticks(x_positions)
-    ax.set_xticklabels(x_labels)
-
-    ax.yaxis.set_major_formatter(
-        mpl.ticker.FuncFormatter(lambda value, _: format_y_value(value))
+    fig, axes = plt.subplots(
+        n_rows,
+        1,
+        figsize=(fig_width, fig_height),
+        squeeze=False,
     )
 
-    ax.grid(True, axis="y", linewidth=0.4)
-    ax.legend()
+    fig.suptitle(args.title, fontsize=12)
 
-    fig.subplots_adjust(left=0.12)
-    fig.tight_layout()
-    fig.savefig(out_path, format="svg", bbox_inches="tight")
+    for row_index, dsps in enumerate(row_dsps):
+        ax = axes[row_index][0]
+        row_df = df[df["dsp"].isin(dsps)]
+
+        draw_row(
+            ax=ax,
+            row_df=row_df,
+            x_col=args.x,
+            y_col="plot_y",
+            raw_y_col=args.y,
+            series_cols=series_cols,
+            y_min=y_min,
+            y_max=y_max,
+            y_pad=y_pad,
+            show_legend=(row_index == 0),
+        )
+
+    fig.subplots_adjust(left=0.16, bottom=0.18, top=0.94, hspace=0.2)
+    fig.savefig(out_path, format="svg", bbox_inches="tight", pad_inches=0.4)
 
     print(f"wrote {out_path}")
 

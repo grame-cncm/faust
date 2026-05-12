@@ -1,3 +1,5 @@
+// architecture/bench/arch/cpp/bench.cpp
+
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"

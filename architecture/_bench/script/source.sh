@@ -41,7 +41,6 @@ BENCH_CPP_ARCH_DIR="${BENCH_ARCH_DIR}/cpp"
 BENCH_CPP_REPORT_DIR="${BENCH_REPORT_DIR}/cpp"
 
 BENCH_CSV="${BENCH_REPORT_DIR}/report.csv"
-
 BENCH_KEEP_TMP="${BENCH_KEEP_TMP:-0}"
 
 # -----------------------------------------------------------------------------
@@ -73,12 +72,12 @@ BENCH_PRECISIONS=(
 
 BENCH_CPP_OPT=(
   -O3
-  -march=native
-  -mtune=native
-  -flto
-  -ffast-math
-  -fno-math-errno
-  -fstrict-aliasing
+  # -march=native
+  # -mtune=native
+  # -flto
+  # -ffast-math
+  # -fno-math-errno
+  # -fstrict-aliasing
 )
 
 BENCH_MOJO_OPT=(
@@ -233,7 +232,6 @@ bench_load_scripts() {
   bench_source_optional "${BENCH_SCRIPT_DIR}/csvmanip.sh"
   bench_source_optional "${BENCH_SCRIPT_DIR}/bench.sh"
   bench_source_optional "${BENCH_SCRIPT_DIR}/plot.sh"
-  bench_source_optional "${BENCH_SCRIPT_DIR}/clean.sh"
 }
 
 bench_init || return 1
@@ -244,20 +242,24 @@ echo "Faust benchmark framework initialized."
 echo
 echo "Main commands:"
 echo
-echo "  bench_full all hello_sine"
-echo "      Run the full benchmark suite for all backends."
+echo "  bench_case all 48000 64 src/*.dsp"
+echo "      Fresh run at one fixed sample rate and buffer size."
+echo "      Runs C++ and Mojo, single and double precision, for all passed DSPs."
 echo
-echo "  bench_full cpp hello_sine"
-echo "      Run the full benchmark suite only for C++."
+echo "  bench_case cpp 48000 64 bells echo"
+echo "      Fresh fixed-case run for C++ only."
 echo
-echo "  bench_full mojo hello_sine"
-echo "      Run the full benchmark suite only for Mojo."
+echo "  bench_full all src/*.dsp"
+echo "      Fresh full run using BENCH_SAMPLE_RATES x BENCH_BUFFER_SIZES."
+echo "      Runs C++ and Mojo, single and double precision, for all passed DSPs."
 echo
 echo "  bench_plot"
 echo "      Regenerate plots from report/report.csv."
 echo
-echo "Environment:"
+echo "Useful overrides:"
 echo
+echo "  BENCH_SAMPLE_RATES=(48000)"
+echo "  BENCH_BUFFER_SIZES=(64)"
 echo "  BENCH_KEEP_TMP=1"
 echo "      Keep generated temporary sources and binaries."
 echo

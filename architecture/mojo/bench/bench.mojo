@@ -30,7 +30,7 @@ comptime WRITE_CSV = get_defined_bool["WRITE_CSV", False]()
 comptime dfaust = FAUST_DTYPE
 comptime FaustFloat = SIMD[dfaust, 1]
 
-comptime MIN_RUNTIME_SECS: F64 = 0.1
+comptime MIN_RUNTIME_SECS: F64 = 1.0
 comptime MAX_RUNTIME_SECS: F64 = 60.0
 
 comptime PRECISION_STRINGS: InlineArray[String, 2] = ["single", "double"]
@@ -53,6 +53,9 @@ struct FaustReport(ImplicitlyCopyable):
     var frames_per_s: F64
     var output_samples_per_s: F64
     var checksum: F64
+    var batches: S32
+    var fast_ns_per_compute: F64
+    var slow_ns_per_compute: F64
     def __init__(out report):
         report.precision = PRECISION
         report.samp_rate = SAMP_RATE
@@ -68,6 +71,9 @@ struct FaustReport(ImplicitlyCopyable):
         report.frames_per_s = 0.0
         report.output_samples_per_s = 0.0
         report.checksum = 0.0
+        report.batches = S32(0)
+        report.fast_ns_per_compute = 0.0
+        report.slow_ns_per_compute = 0.0
 
 def fill_inputs[dreal: DType](inputs: MutaStreams[dreal], n_ins: S32) -> None:
     comptime Real = SIMD[dreal, 1]
@@ -88,10 +94,10 @@ def measure[dreal: DType, Dsp: FaustDsp](
     def bench_compute() capturing:
         var read_inputs = inputs.bitcast[Ptr[Real, READ_EXT]]().as_immutable()
         dsp.compute[dreal](BUFF_SIZE, read_inputs, outputs)
+        clobber_memory()
     var raw_report = run[func4=bench_compute](
         WARMUP_ITERS, COMPUTE_ITERS, MIN_RUNTIME_SECS, MAX_RUNTIME_SECS
     )
-    clobber_memory()
 
     var n_ins = dsp.get_num_inputs()
     var n_outs = dsp.get_num_outputs()
@@ -115,6 +121,12 @@ def measure[dreal: DType, Dsp: FaustDsp](
         report.output_samples_per_s = 0.0
 
     report.frames_per_s = total_frames / report.elapsed_s
+    report.checksum = checksum_outputs[dreal](outputs, n_outs)
+    report.fast_ns_per_compute = raw_report.min(Unit.ns)
+    report.slow_ns_per_compute = raw_report.max(Unit.ns)
+    # FIXME:
+    report.batches = 0
+
     return report
 
 def checksum_outputs[dreal: DType](outputs: MutaStreams[dreal], n_outs: S32) -> F64:
@@ -156,7 +168,8 @@ def write_csv(report: FaustReport) raises -> None:
         + String(report.elapsed_s) + "," + String(report.ns_per_compute) + ","
         + String(report.ns_per_frame) + "," + String(report.ns_per_out_sample) + ","
         + String(report.frames_per_s) + "," + String(report.output_samples_per_s) + ","
-        + String(report.checksum) + "\n"
+        + String(report.checksum) + "," + String(report.batches) + ","
+        + String(report.fast_ns_per_compute) + "," + String(report.slow_ns_per_compute) + "\n"
     )
     var path = Path(CSV_PATH)
     if path.exists():

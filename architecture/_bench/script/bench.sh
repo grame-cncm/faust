@@ -5,18 +5,14 @@
 # This file is meant to be sourced by script/source.sh.
 # It assumes that source.sh has already initialized BENCH_* paths and defaults.
 #
-# Current default benchmark model:
+# Public entrypoints:
 #
-#   bench_full <lang> <dsp>
+#   bench_case <lang> <sample_rate> <buffer_size> <dsp...>
+#   bench_full <lang> <dsp...>
 #
-# runs one compact benchmark grid:
-#
-#   precision:  f32, f64
-#   sample rate: 48000, 192000
-#   buffer size: 64, 512
-#
-# The backend still writes raw temporary CSV rows. The CSV layer later commits
-# the temporary fragment into report/report.csv.
+# Both entrypoints are fresh runs: they clean the report, run the benchmark,
+# regenerate the plot, and remove temporary generated files unless
+# BENCH_KEEP_TMP=1.
 
 # -----------------------------------------------------------------------------
 # Generic validation/helpers
@@ -52,6 +48,15 @@ bench_require_precision() {
   esac
 }
 
+bench_require_dsp_count() {
+  local count="$1"
+
+  if (( count == 0 )); then
+    echo "error: missing DSP input"
+    return 1
+  fi
+}
+
 bench_case_banner() {
   local lang="$1"
   local dsp="$2"
@@ -68,6 +73,10 @@ bench_case_banner() {
   echo ">>>>>>>>>>>>>>>>>>>>>>> running ${lang}:${bench_case}(${name}, ${precision}, sr=${samp_rate}, bs=${buff_size}, csv=${write_csv})"
 }
 
+# -----------------------------------------------------------------------------
+# Cleanup
+# -----------------------------------------------------------------------------
+
 bench_clean_tabs() {
   local lang="$1"
 
@@ -79,7 +88,29 @@ bench_clean_tabs() {
     return 0
   fi
 
-  rm -f "${BENCH_REPORT_DIR}/${lang}"/*.tab
+  find "${BENCH_REPORT_DIR}/${lang}" \
+    -maxdepth 1 \
+    -type f \
+    -name "*.tab" \
+    -delete 2>/dev/null || true
+}
+
+bench_clean_report() {
+  rm -f "${BENCH_CSV}"
+
+  find "${BENCH_TMP_DIR}" \
+    -maxdepth 1 \
+    -type f \
+    -name "*.csv" \
+    -delete 2>/dev/null || true
+
+  bench_clean_tabs all
+
+  find "${BENCH_PLOT_DIR}" \
+    -maxdepth 1 \
+    -type f \
+    -name "*.svg" \
+    -delete 2>/dev/null || true
 }
 
 # -----------------------------------------------------------------------------
@@ -102,7 +133,7 @@ bench_generate() {
     all)
       local one_lang
       for one_lang in "${BENCH_LANGS[@]}"; do
-        bench_generate "${one_lang}" "${dsp}"
+        bench_generate "${one_lang}" "${dsp}" || return 1
       done
       ;;
   esac
@@ -142,7 +173,7 @@ bench_generate_cpp() {
     -o "${cpp_src}"
 }
 
-_bench_case_cpp() {
+_bench_one_cpp() {
   local dsp="$1"
   local bench_case="$2"
   local precision="$3"
@@ -236,7 +267,7 @@ bench_generate_mojo() {
     -o "${mojo_src}"
 }
 
-_bench_case_mojo() {
+_bench_one_mojo() {
   local dsp="$1"
   local bench_case="$2"
   local precision="$3"
@@ -299,10 +330,10 @@ _bench_case_mojo() {
 # -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
-# Single-case dispatch
+# Atomic single-precision dispatch
 # -----------------------------------------------------------------------------
 
-bench_case() {
+bench_one() {
   local lang="$1"
   local dsp="$2"
   local bench_case="$3"
@@ -316,78 +347,25 @@ bench_case() {
 
   case "${lang}" in
     cpp)
-      _bench_case_cpp "${dsp}" "${bench_case}" "${precision}" "${samp_rate}" "${buff_size}" "${write_csv}" "$@"
+      _bench_one_cpp "${dsp}" "${bench_case}" "${precision}" "${samp_rate}" "${buff_size}" "${write_csv}" "$@"
       ;;
     mojo)
-      _bench_case_mojo "${dsp}" "${bench_case}" "${precision}" "${samp_rate}" "${buff_size}" "${write_csv}" "$@"
+      _bench_one_mojo "${dsp}" "${bench_case}" "${precision}" "${samp_rate}" "${buff_size}" "${write_csv}" "$@"
       ;;
     all)
       local one_lang
       for one_lang in "${BENCH_LANGS[@]}"; do
-        bench_case "${one_lang}" "${dsp}" "${bench_case}" "${precision}" "${samp_rate}" "${buff_size}" "${write_csv}" "$@"
+        bench_one "${one_lang}" "${dsp}" "${bench_case}" "${precision}" "${samp_rate}" "${buff_size}" "${write_csv}" "$@" || return 1
       done
       ;;
   esac
 }
 
 # -----------------------------------------------------------------------------
-# Compact full-grid benchmark
+# Internal run helpers
 # -----------------------------------------------------------------------------
 
-bench_grid() {
-  local lang="$1"
-  local dsp="$2"
-  local bench_case="${3:-full}"
-  shift 3 || true
-
-  bench_require_lang "${lang}" || return 1
-
-  bench_prepare_grid_csv "${lang}" "${dsp}" "${bench_case}"
-
-  local samp_rate
-  local buff_size
-  local precision
-
-  for samp_rate in "${BENCH_SAMPLE_RATES[@]}"; do
-    for buff_size in "${BENCH_BUFFER_SIZES[@]}"; do
-      for precision in "${BENCH_PRECISIONS[@]}"; do
-        bench_case \
-          "${lang}" \
-          "${dsp}" \
-          "${bench_case}" \
-          "${precision}" \
-          "${samp_rate}" \
-          "${buff_size}" \
-          1 \
-          "$@"
-      done
-    done
-  done
-
-  bench_commit_grid_csv "${lang}" "${dsp}" "${bench_case}"
-}
-
-bench_full() {
-  local lang="$1"
-  local dsp="$2"
-  shift 2 || true
-
-  bench_require_lang "${lang}" || return 1
-
-  bench_clean_tabs "${lang}"
-  bench_generate "${lang}" "${dsp}"
-
-  bench_grid "${lang}" "${dsp}" "full" "$@"
-
-  bench_plot "${BENCH_CSV}"
-  bench_clean_tmp_files "${dsp}"
-}
-
-# -----------------------------------------------------------------------------
-# CSV orchestration hooks
-# -----------------------------------------------------------------------------
-
-bench_prepare_grid_csv() {
+_bench_prepare_csv() {
   local lang="$1"
   local dsp="$2"
   local bench_case="$3"
@@ -395,7 +373,7 @@ bench_prepare_grid_csv() {
   if [[ "${lang}" == "all" ]]; then
     local one_lang
     for one_lang in "${BENCH_LANGS[@]}"; do
-      bench_prepare_grid_csv "${one_lang}" "${dsp}" "${bench_case}"
+      _bench_prepare_csv "${one_lang}" "${dsp}" "${bench_case}" || return 1
     done
     return 0
   fi
@@ -407,7 +385,7 @@ bench_prepare_grid_csv() {
   rm -f "${csv_path}"
 }
 
-bench_commit_grid_csv() {
+_bench_commit_csv() {
   local lang="$1"
   local dsp="$2"
   local bench_case="$3"
@@ -415,10 +393,119 @@ bench_commit_grid_csv() {
   if [[ "${lang}" == "all" ]]; then
     local one_lang
     for one_lang in "${BENCH_LANGS[@]}"; do
-      bench_commit_grid_csv "${one_lang}" "${dsp}" "${bench_case}"
+      _bench_commit_csv "${one_lang}" "${dsp}" "${bench_case}" || return 1
     done
     return 0
   fi
 
   bench_csv_merge "${lang}" "${dsp}" "${bench_case}"
+}
+
+_bench_fixed_for_dsp() {
+  local lang="$1"
+  local dsp="$2"
+  local bench_case="$3"
+  local samp_rate="$4"
+  local buff_size="$5"
+  shift 5 || true
+
+  bench_require_lang "${lang}" || return 1
+
+  _bench_prepare_csv "${lang}" "${dsp}" "${bench_case}" || return 1
+
+  local precision
+  for precision in "${BENCH_PRECISIONS[@]}"; do
+    bench_one \
+      "${lang}" \
+      "${dsp}" \
+      "${bench_case}" \
+      "${precision}" \
+      "${samp_rate}" \
+      "${buff_size}" \
+      1 \
+      "$@" || return 1
+  done
+
+  _bench_commit_csv "${lang}" "${dsp}" "${bench_case}"
+}
+
+_bench_grid_for_dsp() {
+  local lang="$1"
+  local dsp="$2"
+  local bench_case="$3"
+  shift 3 || true
+
+  bench_require_lang "${lang}" || return 1
+
+  _bench_prepare_csv "${lang}" "${dsp}" "${bench_case}" || return 1
+
+  local samp_rate
+  local buff_size
+  local precision
+
+  for samp_rate in "${BENCH_SAMPLE_RATES[@]}"; do
+    for buff_size in "${BENCH_BUFFER_SIZES[@]}"; do
+      for precision in "${BENCH_PRECISIONS[@]}"; do
+        bench_one \
+          "${lang}" \
+          "${dsp}" \
+          "${bench_case}" \
+          "${precision}" \
+          "${samp_rate}" \
+          "${buff_size}" \
+          1 \
+          "$@" || return 1
+      done
+    done
+  done
+
+  _bench_commit_csv "${lang}" "${dsp}" "${bench_case}"
+}
+
+# -----------------------------------------------------------------------------
+# Public fresh entrypoints
+# -----------------------------------------------------------------------------
+
+bench_case() {
+  local lang="$1"
+  local samp_rate="$2"
+  local buff_size="$3"
+  shift 3 || true
+
+  bench_require_lang "${lang}" || return 1
+  bench_require_dsp_count "$#" || return 1
+
+  local bench_case="full"
+
+  bench_clean_report
+
+  local dsp
+  for dsp in "$@"; do
+    bench_generate "${lang}" "${dsp}" || return 1
+    _bench_fixed_for_dsp "${lang}" "${dsp}" "${bench_case}" "${samp_rate}" "${buff_size}" || return 1
+    bench_clean_tmp_files "${dsp}"
+  done
+
+  bench_plot "${BENCH_CSV}"
+}
+
+bench_full() {
+  local lang="$1"
+  shift || true
+
+  bench_require_lang "${lang}" || return 1
+  bench_require_dsp_count "$#" || return 1
+
+  local bench_case="full"
+
+  bench_clean_report
+
+  local dsp
+  for dsp in "$@"; do
+    bench_generate "${lang}" "${dsp}" || return 1
+    _bench_grid_for_dsp "${lang}" "${dsp}" "${bench_case}" || return 1
+    bench_clean_tmp_files "${dsp}"
+  done
+
+  bench_plot "${BENCH_CSV}"
 }

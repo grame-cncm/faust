@@ -1,5 +1,8 @@
+// architecture/bench/arch/cpp/bench.h
+
 #ifndef FAUSTBENCH_HH
 #define FAUSTBENCH_HH
+
 #include <cassert>
 #include <chrono>
 #include <cstddef>
@@ -10,9 +13,9 @@
 #include <tuple>
 #include <filesystem>
 
-//==========================================
+// =========================================
 // Prelude
-//==========================================
+// =========================================
 
 // Macro definitions.
 
@@ -71,8 +74,26 @@ constexpr fn align_up(void* ptr, ssize aln) -> void*
 #ifndef BENCH_OPTIM
 #define BENCH_OPTIM "O3"
 #endif
+#ifndef MIN_RUNTIME_SECS
+#define MIN_RUNTIME_SECS 0.1
+#endif
+#ifndef MAX_RUNTIME_SECS
+#define MAX_RUNTIME_SECS 60.0
+#endif
+#ifndef TARGET_BATCH_SECS
+#define TARGET_BATCH_SECS 0.005
+#endif
+#ifndef MAX_BATCH_SIZE
+#define MAX_BATCH_SIZE 1'000'000
+#endif
+#ifndef MAX_BATCHES
+#define MAX_BATCHES 128
+#endif
+#ifndef BENCH_BARRIERS
+#define BENCH_BARRIERS 1
+#endif
 #ifndef WARMUP_ITERS
-#define WARMUP_ITERS 100
+#define WARMUP_ITERS 50
 #endif
 #ifndef COMPUTE_ITERS
 #define COMPUTE_ITERS 100'000
@@ -160,19 +181,181 @@ fn free_buffers(void* base) -> void
     free(base);
 }
 
+// Faust benchmark optimizer prevention.
+
+static fn _do_not_optimize(FAUSTFLOAT** value) noexcept -> void
+{
+    #if defined(__clang__) || defined(__GNUC__)
+        asm volatile("" : :  "g"(value) : "memory");
+    #elif defined(_MSC_VER)
+        (void) value;
+        _ReadWriteBarrier();
+    #else
+        (void) value;
+    #endif
+}
+
+static fn _clobber_memory() noexcept -> void
+{
+    #if defined (__clang__) || defined(__GNUC__)
+        asm volatile("" : : : "memory");
+    #elif defined(_MSC_VER)
+        _ReadWriteBarrier();
+    #endif
+}
+
+#if BENCH_BARRIERS
+    #define _bench_do_not_optimize(x) _do_not_optimize(x)
+    #define _bench_clobber_memory() _clobber_memory()
+#else
+    #define _bench_do_not_optimize(x)
+    #define _bench_clobber_memory()
+#endif
+
 // Faust Benchmark helpers.
 
 inline constexpr VString PRECISION_STRINGS[] = {"single", "double", "quad"};
 inline constexpr VString PRECISION = PRECISION_STRINGS[sizeof(FAUSTFLOAT)/4 - 1];
 inline constexpr VString CSV_HEADER = 
     "language,bench_case,precision,opt,samp_rate,buff_size,inputs,outputs,"
-    "warmup_iters,run_iters,elapsed_s,ns_per_compute,ns_per_frame,"
-    "ns_per_out_samp,frames_per_s,out_samp_per_s,checksum\n";
+    "warmup_iters,run_iters,batches,elapsed_s,ns_per_compute,fast_ns_per_compute,"
+    "slow_ns_per_compute,ns_per_frame,ns_per_out_samp,frames_per_s,"
+    "out_samp_per_s,checksum\n";
+
+struct BenchBatch {
+    s32 iterations     = 0;
+    r64 elapsed_s      = 0.0;
+    r64 ns_per_compute = 0.0;
+};
+
+struct BenchRun {
+    s32 batches                = 0;
+    s32 iterations             = 0;
+    r64 elapsed_s              = 0.0;
+    r64 ns_per_compute         = 0.0;
+    r64 fast_ns_per_compute = 0.0;
+    r64 slow_ns_per_compute = 0.0;
+};
+
+template<typename Func>
+fn measure_adaptive(Func&& func) -> BenchRun
+{
+    using Clock = std::chrono::steady_clock;
+
+    BenchBatch batches[MAX_BATCHES]{};
+
+    s32 batch_count = 0;
+    s32 total_iters = 0;
+    r64 total_elapsed_s = 0.0;
+
+    s32 batch_iters = 1;
+
+    while (true) {
+        if (batch_count >= MAX_BATCHES) {
+            break;
+        }
+
+        if (total_iters >= COMPUTE_ITERS && total_elapsed_s >= r64(MIN_RUNTIME_SECS)) {
+            break;
+        }
+
+        if (total_elapsed_s >= r64(MAX_RUNTIME_SECS)) {
+            break;
+        }
+
+        if (batch_iters < 1) {
+            batch_iters = 1;
+        }
+
+        if (batch_iters > MAX_BATCH_SIZE) {
+            batch_iters = MAX_BATCH_SIZE;
+        }
+
+        s32 remaining_iters = COMPUTE_ITERS - total_iters;
+        if (remaining_iters > 0 && batch_iters > remaining_iters) {
+            batch_iters = remaining_iters;
+        }
+
+        auto beg = Clock::now();
+
+        for (s32 i = 0; i < batch_iters; i++) {
+            func();
+        }
+
+        auto end = Clock::now();
+
+        r64 elapsed_s = std::chrono::duration<r64>(end - beg).count();
+        r64 ns_per_compute = elapsed_s * 1.0e9 / r64(batch_iters);
+
+        batches[batch_count].iterations = batch_iters;
+        batches[batch_count].elapsed_s = elapsed_s;
+        batches[batch_count].ns_per_compute = ns_per_compute;
+
+        batch_count++;
+        total_iters += batch_iters;
+        total_elapsed_s += elapsed_s;
+
+        if (elapsed_s > 0.0) {
+            r64 scale = r64(TARGET_BATCH_SECS) / elapsed_s;
+            s32 next_batch_iters = s32(r64(batch_iters) * scale);
+
+            if (next_batch_iters <= batch_iters) {
+                next_batch_iters = batch_iters + 1;
+            }
+
+            if (next_batch_iters > batch_iters * 10) {
+                next_batch_iters = batch_iters * 10;
+            }
+
+            if (next_batch_iters > MAX_BATCH_SIZE) {
+                next_batch_iters = MAX_BATCH_SIZE;
+            }
+
+            batch_iters = next_batch_iters;
+        } else {
+            batch_iters *= 10;
+
+            if (batch_iters > MAX_BATCH_SIZE) {
+                batch_iters = MAX_BATCH_SIZE;
+            }
+        }
+    }
+
+    if (batch_count == 0 || total_iters == 0) {
+        return {};
+    }
+
+    r64 weighted_ns_sum = 0.0;
+    r64 fastest_ns = batches[0].ns_per_compute;
+    r64 slowest_ns = batches[0].ns_per_compute;
+
+    for (s32 i = 0; i < batch_count; i++) {
+        weighted_ns_sum += batches[i].ns_per_compute * r64(batches[i].iterations);
+
+        if (batches[i].ns_per_compute < fastest_ns) {
+            fastest_ns = batches[i].ns_per_compute;
+        }
+
+        if (batches[i].ns_per_compute > slowest_ns) {
+            slowest_ns = batches[i].ns_per_compute;
+        }
+    }
+
+    BenchRun run{};
+    run.batches = batch_count;
+    run.iterations = total_iters;
+    run.elapsed_s = total_elapsed_s;
+    run.ns_per_compute = weighted_ns_sum / r64(total_iters);
+    run.fast_ns_per_compute = fastest_ns;
+    run.slow_ns_per_compute = slowest_ns;
+
+    return run;
+}
 
 // Faust Benchmark API.
 
 struct FaustReport {
-    VString precision             = PRECISION;
+    VString precision         = PRECISION;
     s32 samp_rate             = SAMP_RATE;
     s32 buff_size             = BUFF_SIZE;
     s32 n_ins                 = 0;
@@ -186,6 +369,9 @@ struct FaustReport {
     r64 frames_per_s          = 0.0;
     r64 output_samples_per_s  = 0.0;
     r64 checksum              = 0.0;
+    s32 batches               = 0;
+    r64 fast_ns_per_compute   = 0.0;
+    r64 slow_ns_per_compute   = 0.0;
 };
 
 fn fill_inputs(Real** inputs, s32 const n_ins) -> void
@@ -200,38 +386,49 @@ fn fill_inputs(Real** inputs, s32 const n_ins) -> void
 fn warmup(auto& dsp, Real** inputs, Real** outputs) -> void
 {
     for (int i = 0; i < WARMUP_ITERS; i++) {
+        _bench_do_not_optimize(inputs);
+        _bench_do_not_optimize(outputs);
         dsp.compute(BUFF_SIZE, inputs, outputs);
+        _bench_clobber_memory();
     }
 }
 
 fn measure(auto& dsp, Real** inputs, Real** outputs) -> FaustReport
 {
-    using Clock = std::chrono::steady_clock;
-
-    auto beg = Clock::now();
-
-    for (s32 i = 0; i < COMPUTE_ITERS; i++) {
+    BenchRun run = measure_adaptive([&]() {
+        _bench_do_not_optimize(inputs);
+        _bench_do_not_optimize(outputs);
         dsp.compute(BUFF_SIZE, inputs, outputs);
-    }
-
-    auto end = Clock::now();
+        _bench_clobber_memory();
+    });
 
     s32 n_ins = dsp.getNumInputs();
     s32 n_outs = dsp.getNumOutputs();
-    r64 elapsed_s = std::chrono::duration<r64>(end - beg).count();
-    r64 total_computes = r64(COMPUTE_ITERS);
-    r64 total_frames = r64(COMPUTE_ITERS) * r64(BUFF_SIZE);
+
+    r64 total_computes = r64(run.iterations);
+    r64 total_frames = total_computes * r64(BUFF_SIZE);
     r64 total_output_samples = total_frames * r64(n_outs);
 
     FaustReport report{};
     report.n_ins = n_ins;
     report.n_outs = n_outs;
-    report.elapsed_s = elapsed_s;
-    report.ns_per_compute = elapsed_s * 1.0e9 / total_computes;
-    report.ns_per_frame = elapsed_s * 1.0e9 / total_frames;
-    report.ns_per_output_sample = elapsed_s * 1.0e9 / total_output_samples;
-    report.frames_per_s = total_frames / elapsed_s;
-    report.output_samples_per_s = total_output_samples / elapsed_s;
+    report.compute_iters = run.iterations;
+    report.elapsed_s = run.elapsed_s;
+    report.ns_per_compute = run.ns_per_compute;
+    report.ns_per_frame = report.ns_per_compute / r64(BUFF_SIZE);
+
+    if (n_outs > 0) {
+        report.ns_per_output_sample = report.ns_per_frame / r64(n_outs);
+        report.output_samples_per_s = total_output_samples / report.elapsed_s;
+    } else {
+        report.ns_per_output_sample = 0.0;
+        report.output_samples_per_s = 0.0;
+    }
+
+    report.frames_per_s = total_frames / report.elapsed_s;
+    report.batches = run.batches;
+    report.fast_ns_per_compute = run.fast_ns_per_compute;
+    report.slow_ns_per_compute = run.slow_ns_per_compute;
 
     return report;
 }
@@ -250,27 +447,30 @@ fn checksum_outputs(Real** outputs, s32 const n_outs) -> r64
 fn print_report(FaustReport const& report) -> void
 {
     printf("Faust compute benchmark\n");
-    printf("precision:      %s\n", report.precision.data());
-    printf("sample rate:    %d\n", report.samp_rate);
-    printf("buffer size:    %d\n", report.buff_size);
-    printf("inputs:         %d\n", report.n_ins);
-    printf("outputs:        %d\n", report.n_outs);
-    printf("warm-up iters:  %d\n", report.warmup_iters);
-    printf("compute iters:  %d\n", report.compute_iters);
+    printf("precision:      %s\n",     report.precision.data());
+    printf("sample rate:    %d\n",     report.samp_rate);
+    printf("buffer size:    %d\n",     report.buff_size);
+    printf("inputs:         %d\n",     report.n_ins);
+    printf("outputs:        %d\n",     report.n_outs);
+    printf("warm-up iters:  %d\n",     report.warmup_iters);
+    printf("compute iters:  %d\n",     report.compute_iters);
     puts("------------------------------------");
     printf("elapsed:        %.9f s\n", report.elapsed_s);
-    printf("ns/compute:     %.3f\n", report.ns_per_compute);
-    printf("ns/frame:       %.3f\n", report.ns_per_frame);
-    printf("ns/out_sample:  %.3f\n", report.ns_per_output_sample);
-    printf("frames/s:       %.3f\n", report.frames_per_s);
-    printf("out_samples/s:  %.3f\n", report.output_samples_per_s);
-    printf("checksum:       %.17g\n", report.checksum);
+    printf("ns/compute:     %.3f\n",   report.ns_per_compute);
+    printf("ns/frame:       %.3f\n",   report.ns_per_frame);
+    printf("ns/out_sample:  %.3f\n",   report.ns_per_output_sample);
+    printf("frames/s:       %.3f\n",   report.frames_per_s);
+    printf("out_samples/s:  %.3f\n",   report.output_samples_per_s);
+    printf("checksum:       %.17g\n",  report.checksum);
+    printf("fast ns/cmp:    %.3f\n",   report.fast_ns_per_compute);
+    printf("slow ns/cmp:    %.3f\n",   report.slow_ns_per_compute);
+    printf("batches:        %d\n",     report.batches);
 }
 
-/// Appends one headerless benchmark row to CSV_PATH.
-/// Assumes CSV_PATH and its parent directory are provided by the build system.
-/// Does not write headers or manage existing CSV data.
-/// Called only for structured runs when WRITE_CSV is enabled.
+// Appends one headerless benchmark row to CSV_PATH.
+// Assumes CSV_PATH and its parent directory are provided by the build system.
+// Does not write headers or manage existing CSV data.
+// Called only for structured runs when WRITE_CSV is enabled.
 fn write_csv(FaustReport const& report) -> void
 {
     FILE* fp = fopen(CSV_PATH, "a");
@@ -281,15 +481,18 @@ fn write_csv(FaustReport const& report) -> void
 
     fprintf(
         fp,
-        "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g\n",
+        "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%d,"
+        "%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g\n",
         BENCH_LANG, BENCH_CASE, report.precision.data(),
         BENCH_OPTIM, report.samp_rate,
         report.buff_size, report.n_ins,
         report.n_outs, report.warmup_iters,
-        report.compute_iters, report.elapsed_s,
-        report.ns_per_compute, report.ns_per_frame,
-        report.ns_per_output_sample, report.frames_per_s,
-        report.output_samples_per_s, report.checksum
+        report.compute_iters, report.batches,
+        report.elapsed_s, report.ns_per_compute,
+        report.fast_ns_per_compute, report.slow_ns_per_compute,
+        report.ns_per_frame, report.ns_per_output_sample,
+        report.frames_per_s, report.output_samples_per_s,
+        report.checksum
     );
 
     fclose(fp);
