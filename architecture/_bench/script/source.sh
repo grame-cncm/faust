@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
+# Benchmark framework initialization.
+#
 # This file is meant to be sourced from the benchmark root:
 #
 #   source script/source.sh
 #
-# It initializes paths, benchmark defaults, required directories, and helper
-# functions. It does not run benchmarks and does not modify report data.
+# It initializes paths, defaults, directories, and loads the benchmark API.
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
   echo "source this file instead of executing it:"
@@ -13,9 +14,9 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
   exit 1
 fi
 
-# -----------------------------------------------------------------------------
+# ------------------------------------------
 # Root paths
-# -----------------------------------------------------------------------------
+# ------------------------------------------
 
 if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
   BENCH_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -43,22 +44,9 @@ BENCH_CPP_REPORT_DIR="${BENCH_REPORT_DIR}/cpp"
 BENCH_CSV="${BENCH_REPORT_DIR}/report.csv"
 BENCH_KEEP_TMP="${BENCH_KEEP_TMP:-0}"
 
-# -----------------------------------------------------------------------------
+# ------------------------------------------
 # Benchmark defaults
-# -----------------------------------------------------------------------------
-
-BENCH_WARMUP_ITERS="${BENCH_WARMUP_ITERS:-100}"
-BENCH_COMPUTE_ITERS="${BENCH_COMPUTE_ITERS:-100000}"
-
-BENCH_BUFFER_SIZES=(
-  64
-  512
-)
-
-BENCH_SAMPLE_RATES=(
-  48000
-  192000
-)
+# ------------------------------------------
 
 BENCH_LANGS=(
   cpp
@@ -69,6 +57,30 @@ BENCH_PRECISIONS=(
   f32
   f64
 )
+
+BENCH_SAMPLE_RATES=(
+  48000
+  192000
+)
+
+BENCH_BUFFER_SIZES=(
+  64
+  512
+)
+
+BENCH_WARMUP_ITERS="${BENCH_WARMUP_ITERS:-50}"
+BENCH_COMPUTE_ITERS="${BENCH_COMPUTE_ITERS:-100000}"
+
+BENCH_MIN_RUNTIME_SECS="${BENCH_MIN_RUNTIME_SECS:-1}"
+BENCH_MAX_RUNTIME_SECS="${BENCH_MAX_RUNTIME_SECS:-60}"
+BENCH_MAX_BATCH_SIZE="${BENCH_MAX_BATCH_SIZE:-10000}"
+
+BENCH_RUN_NAME="${BENCH_RUN_NAME:-run}"
+BENCH_OPTIM="${BENCH_OPTIM:-O3}"
+
+# ------------------------------------------
+# Compiler options
+# ------------------------------------------
 
 BENCH_CPP_OPT=(
   -O3
@@ -85,9 +97,16 @@ BENCH_MOJO_OPT=(
   # --target-cpu apple-m4
 )
 
-# -----------------------------------------------------------------------------
-# Initialization
-# -----------------------------------------------------------------------------
+# ------------------------------------------
+# LLVM defaults
+# ------------------------------------------
+
+BENCH_LLVM_SAMPLE_RATE="${BENCH_LLVM_SAMPLE_RATE:-48000}"
+BENCH_LLVM_BUFFER_SIZE="${BENCH_LLVM_BUFFER_SIZE:-64}"
+
+# ------------------------------------------
+# Initialization helpers
+# ------------------------------------------
 
 bench_require_pixi() {
   if [[ -z "${PIXI_ENVIRONMENT_NAME:-}" ]]; then
@@ -105,7 +124,12 @@ bench_make_dirs() {
     "${BENCH_CPP_REPORT_DIR}" \
     "${BENCH_MOJO_REPORT_DIR}" \
     "${BENCH_PLOT_DIR}" \
-    "${BENCH_TMP_DIR}"
+    "${BENCH_TMP_DIR}" \
+    "${BENCH_REPORT_DIR}/snapshots" \
+    "${BENCH_REPORT_DIR}/llvm/cpp" \
+    "${BENCH_REPORT_DIR}/llvm/mojo" \
+    "${BENCH_REPORT_DIR}/asm/cpp" \
+    "${BENCH_REPORT_DIR}/asm/mojo"
 }
 
 bench_ensure_mojo_link() {
@@ -131,137 +155,72 @@ bench_ensure_mojo_link() {
   ln -s "${expected_target}" "${BENCH_MOJO_ARCH_DIR}"
 }
 
+bench_load_api() {
+  # shellcheck source=/dev/null
+  source "${BENCH_SCRIPT_DIR}/bench.sh"
+}
+
 bench_init() {
   bench_require_pixi || return 1
   bench_make_dirs
   bench_ensure_mojo_link || return 1
+  bench_load_api
 }
 
-# -----------------------------------------------------------------------------
-# Path helpers
-# -----------------------------------------------------------------------------
-
-bench_dsp_name() {
-  local input="$1"
-  local base
-  base="$(basename "${input}")"
-  echo "${base%.dsp}"
-}
-
-bench_dsp_path() {
-  local name
-  name="$(bench_dsp_name "$1")"
-  echo "${BENCH_SRC_DIR}/${name}.dsp"
-}
-
-bench_cpp_src() {
-  local name
-  name="$(bench_dsp_name "$1")"
-  echo "${BENCH_CPP_ARCH_DIR}/${name}.cpp"
-}
-
-bench_cpp_bin() {
-  local name
-  name="$(bench_dsp_name "$1")"
-  echo "${BENCH_CPP_ARCH_DIR}/${name}_cpp"
-}
-
-bench_mojo_src() {
-  local name
-  name="$(bench_dsp_name "$1")"
-  echo "${BENCH_MOJO_ARCH_DIR}/${name}.mojo"
-}
-
-bench_mojo_bin() {
-  local name
-  name="$(bench_dsp_name "$1")"
-  echo "${BENCH_MOJO_ARCH_DIR}/${name}_mojo"
-}
-
-bench_clean_tmp_files() {
-  if [[ "${BENCH_KEEP_TMP}" == "1" ]]; then
-    return 0
-  fi
-  local name
-  name="$(bench_dsp_name "$1")"
-  rm -f "${BENCH_CPP_ARCH_DIR}/${name}.cpp"
-  rm -f "${BENCH_CPP_ARCH_DIR}/${name}_cpp"
-  rm -f "${BENCH_MOJO_ARCH_DIR}/${name}.mojo"
-  rm -f "${BENCH_MOJO_ARCH_DIR}/${name}_mojo"
-}
-
-bench_tab_path() {
-  local lang="$1"
-  local dsp="$2"
-  local bench_case="$3"
-  local precision="$4"
-  local samp_rate="$5"
-  local buff_size="$6"
-
-  local sr_khz
-  sr_khz="$((samp_rate / 1000))"
-
-  echo "${BENCH_REPORT_DIR}/${lang}/${lang}_${bench_case}_${sr_khz}_${buff_size}_${precision}.tab"
-}
-
-bench_tmp_csv_path() {
-  local lang="$1"
-  local dsp="$2"
-  local bench_case="$3"
-
-  local name
-  name="$(bench_dsp_name "${dsp}")"
-
-  echo "${BENCH_TMP_DIR}/${lang}_${name}_${bench_case}.csv"
-}
-
-# -----------------------------------------------------------------------------
-# Script loading
-# -----------------------------------------------------------------------------
-
-bench_source_optional() {
-  local file="$1"
-
-  if [[ -f "${file}" ]]; then
-    # shellcheck source=/dev/null
-    source "${file}"
-  fi
-}
-
-bench_load_scripts() {
-  bench_source_optional "${BENCH_SCRIPT_DIR}/csvmanip.sh"
-  bench_source_optional "${BENCH_SCRIPT_DIR}/bench.sh"
-  bench_source_optional "${BENCH_SCRIPT_DIR}/plot.sh"
-}
+# ------------------------------------------
+# Initialize
+# ------------------------------------------
 
 bench_init || return 1
-bench_load_scripts
 
 echo
 echo "Faust benchmark framework initialized."
 echo
 echo "Main commands:"
 echo
-echo "  bench_case all 48000 64 src/*.dsp"
-echo "      Fresh run at one fixed sample rate and buffer size."
-echo "      Runs C++ and Mojo, single and double precision, for all passed DSPs."
+echo "  bench_run all all all all"
+echo "      Fresh run over all configured languages, sample rates, buffer sizes, and DSP sources."
+echo "      Precision is always both single and double."
 echo
-echo "  bench_case cpp 48000 64 bells echo"
-echo "      Fresh fixed-case run for C++ only."
+echo "  bench_run all 48 64 all"
+echo "      Fresh run for all languages at 48 kHz / buffer size 64."
 echo
-echo "  bench_full all src/*.dsp"
-echo "      Fresh full run using BENCH_SAMPLE_RATES x BENCH_BUFFER_SIZES."
-echo "      Runs C++ and Mojo, single and double precision, for all passed DSPs."
+echo "  bench_run mojo 48 64 bells"
+echo "      Fresh run for Mojo only on one DSP."
 echo
-echo "  bench_plot"
-echo "      Regenerate plots from report/report.csv."
+echo "  bench_plot tput_48k_64"
+echo "      Generate report/plots/tput_48k_64.svg from report/report.csv."
+echo
+echo "  bench_snapshot after_changes"
+echo "      Save the current report state under report/snapshots/."
+echo
+echo "  bench_llvm_gen cpp all"
+echo "      Generate LLVM IR for supported LLVM-based languages."
+echo
+echo "  bench_asm_gen all carre_volterra"
+echo "      Generate target assembly for all supported languages."
+echo
+echo "Argument notes:"
+echo
+echo "  languages:"
+echo "      all or comma-separated entries from BENCH_LANGS."
+echo
+echo "  sample rates:"
+echo "      passed in kHz; 48 means 48000 Hz, 192 means 192000 Hz."
+echo "      use all for BENCH_SAMPLE_RATES."
+echo
+echo "  buffer sizes:"
+echo "      integer values, comma-separated values, or all."
+echo
+echo "  sources:"
+echo "      all, DSP names, DSP paths, or shell-expanded globs."
 echo
 echo "Useful overrides:"
 echo
-echo "  BENCH_SAMPLE_RATES=(48000)"
-echo "  BENCH_BUFFER_SIZES=(64)"
+echo "  BENCH_RUN_NAME=my_run"
 echo "  BENCH_KEEP_TMP=1"
-echo "      Keep generated temporary sources and binaries."
-echo
-echo "See spec.md for the full framework specification."
-echo
+echo "  BENCH_SAMPLE_RATES=(48000 192000)"
+echo "  BENCH_BUFFER_SIZES=(64 512)"
+echo "  BENCH_WARMUP_ITERS=50"
+echo "  BENCH_COMPUTE_ITERS=100000"
+echo "  BENCH_MAX_BATCH_SIZE=10000"

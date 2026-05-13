@@ -32,11 +32,23 @@ def make_combo_column(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def add_normalized_y_column(df: pd.DataFrame, x_col: str, y_col: str) -> pd.DataFrame:
+def add_plot_y_columns(df: pd.DataFrame, x_col: str, y_col: str) -> pd.DataFrame:
+    fast_col = f"fast_{y_col}"
+    slow_col = f"slow_{y_col}"
+
+    required = ["dsp", x_col, y_col, fast_col, slow_col]
+    missing = [col for col in required if col not in df.columns]
+    if missing:
+        raise SystemExit(f"cannot build plot y columns, missing CSV columns: {missing}")
+
     df = df.copy()
     group_cols = ["dsp", x_col]
     max_values = df.groupby(group_cols, observed=True)[y_col].transform("max")
+
     df["plot_y"] = df[y_col] / max_values * 100.0
+    df["plot_y_fast"] = df[fast_col] / max_values * 100.0
+    df["plot_y_slow"] = df[slow_col] / max_values * 100.0
+
     return df
 
 
@@ -115,6 +127,29 @@ def build_axis_data(row_df: pd.DataFrame, x_col: str):
     return x_values, x_labels, x_positions, dsp_centers, dsp_labels
 
 
+def draw_whiskers(ax, x_positions, y_slow_values, y_fast_values, cap_width):
+    for x_pos, y_slow, y_fast in zip(x_positions, y_slow_values, y_fast_values):
+        if pd.isna(y_slow) or pd.isna(y_fast):
+            continue
+
+        ax.vlines(
+            x_pos,
+            y_slow,
+            y_fast,
+            linewidth=0.6,
+            color="black",
+            zorder=4,
+        )
+        ax.hlines(
+            [y_slow, y_fast],
+            x_pos - cap_width / 2,
+            x_pos + cap_width / 2,
+            linewidth=0.6,
+            color="black",
+            zorder=4,
+        )
+
+
 def draw_row(
     ax,
     row_df: pd.DataFrame,
@@ -131,7 +166,7 @@ def draw_row(
         ("mojo", "single"): {"color": "darkorange", "alpha": 1.0},
         ("mojo", "double"): {"color": "darkred", "alpha": 1.0},
         ("cpp", "single"): {"color": "green", "alpha": 1.0},
-        ("cpp", "double"): {"color": "navy", "alpha": 1.0},
+        ("cpp", "double"): {"color": "cornflowerblue", "alpha": 1.0},
     }
 
     x_values, x_labels, x_positions, dsp_centers, dsp_labels = build_axis_data(
@@ -165,12 +200,24 @@ def draw_row(
             for _, row in group.iterrows()
         }
 
+        fast_values_by_x = {
+            (row["dsp"], row[x_col]): row["plot_y_fast"]
+            for _, row in group.iterrows()
+        }
+
+        slow_values_by_x = {
+            (row["dsp"], row[x_col]): row["plot_y_slow"]
+            for _, row in group.iterrows()
+        }
+
         raw_values_by_x = {
             (row["dsp"], row[x_col]): row[raw_y_col]
             for _, row in group.iterrows()
         }
 
         y_values = [values_by_x.get(value, float("nan")) for value in x_values]
+        y_fast_values = [fast_values_by_x.get(value, float("nan")) for value in x_values]
+        y_slow_values = [slow_values_by_x.get(value, float("nan")) for value in x_values]
         raw_values = [raw_values_by_x.get(value, float("nan")) for value in x_values]
 
         bar_positions = [
@@ -186,12 +233,20 @@ def draw_row(
             **style,
         )
 
+        draw_whiskers(
+            ax,
+            bar_positions,
+            y_slow_values,
+            y_fast_values,
+            cap_width=bar_width * 0.55,
+        )
+
         for bar, raw_value in zip(bars, raw_values):
             bar.raw_value = raw_value
 
         all_bars.extend(bars)
 
-    ax.set_ylim(y_min - y_pad * 0.20, y_max + y_pad)
+    ax.set_ylim(max(0.0, y_min - y_pad * 0.20), y_max + y_pad)
 
     if x_positions:
         left_edge = min(x_positions) - total_width / 2
@@ -254,7 +309,7 @@ def main() -> None:
     parser.add_argument("--x", default="combo", help="Column to use as x axis.")
     parser.add_argument(
         "--y",
-        default="output_samples_per_s",
+        default="out_samp_per_s",
         help="Column to use as y axis.",
     )
     parser.add_argument(
@@ -314,7 +369,7 @@ def main() -> None:
         ordered=True,
     )
 
-    df = add_normalized_y_column(df, args.x, args.y)
+    df = add_plot_y_columns(df, args.x, args.y)
 
     if args.x == "combo":
         df = df.sort_values(["dsp", "samp_rate", "buff_size"] + series_cols)
@@ -329,8 +384,8 @@ def main() -> None:
     row_dsps = split_dsp_rows(df, args.x, max_cases_per_row)
     n_rows = len(row_dsps)
 
-    y_min = df["plot_y"].min()
-    y_max = df["plot_y"].max()
+    y_min = df["plot_y_slow"].min()
+    y_max = df["plot_y_fast"].max()
     y_pad = (y_max - y_min) * 0.32
 
     if y_pad == 0:
