@@ -34,7 +34,7 @@ comptime MutaStreams[dtype: DType] = Ptr[Ptr[SIMD[dtype, 1], MUTA_EXT], MUTA_EXT
 comptime PTR_SIZE = size_of[AnyPtr[MUTA_EXT]]()
 comptime PTR_ALIGN = align_of[AnyPtr[MUTA_EXT]]()
 comptime STD_ALIGN = 2 * PTR_ALIGN
-comptime NULL_PTR[T: AnyType, ori: Origin] = Ptr[T, ori](unsafe_from_address=0)
+comptime NULL_PTR[T: AnyType, ori: Origin = MUTA_EXT] = Ptr[T, ori](unsafe_from_address=0)
 
 # Origin values' aliases.
 

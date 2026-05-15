@@ -69,11 +69,15 @@ BENCH_BUFFER_SIZES=(
 )
 
 BENCH_WARMUP_ITERS="${BENCH_WARMUP_ITERS:-50}"
-BENCH_COMPUTE_ITERS="${BENCH_COMPUTE_ITERS:-1000000}"
+BENCH_COMPUTE_ITERS="${BENCH_COMPUTE_ITERS:-100000}"
 
 BENCH_MIN_RUNTIME_SECS="${BENCH_MIN_RUNTIME_SECS:-1}"
 BENCH_MAX_RUNTIME_SECS="${BENCH_MAX_RUNTIME_SECS:-60}"
 BENCH_MAX_BATCH_SIZE="${BENCH_MAX_BATCH_SIZE:-10000}"
+
+# XXX: Questo che diavolo e'? se possibile rimuovere
+BENCH_RUN_NAME="${BENCH_RUN_NAME:-run}"
+BENCH_OPTIM="${BENCH_OPTIM:-O3}"
 
 # ------------------------------------------
 # Compiler options
@@ -93,6 +97,14 @@ BENCH_MOJO_OPT=(
   -O 3
   # --target-cpu apple-m4
 )
+
+# ------------------------------------------
+# LLVM defaults
+# ------------------------------------------
+
+ # XXX: se possibile rimuovere
+BENCH_LLVM_SAMPLE_RATE="${BENCH_LLVM_SAMPLE_RATE:-48000}"
+BENCH_LLVM_BUFFER_SIZE="${BENCH_LLVM_BUFFER_SIZE:-64}"
 
 # ------------------------------------------
 # Initialization helpers
@@ -124,19 +136,24 @@ bench_make_dirs() {
 
 bench_ensure_mojo_link() {
   local expected_target="../../mojo"
+
   if [[ -L "${BENCH_MOJO_ARCH_DIR}" ]]; then
     local actual_target
     actual_target="$(readlink "${BENCH_MOJO_ARCH_DIR}")"
+
     if [[ "${actual_target}" != "${expected_target}" ]]; then
       echo "error: ${BENCH_MOJO_ARCH_DIR} points to ${actual_target}, expected ${expected_target}"
       return 1
     fi
+
     return 0
   fi
+
   if [[ -e "${BENCH_MOJO_ARCH_DIR}" ]]; then
     echo "error: ${BENCH_MOJO_ARCH_DIR} exists but is not a symlink"
     return 1
   fi
+
   ln -s "${expected_target}" "${BENCH_MOJO_ARCH_DIR}"
 }
 
@@ -179,11 +196,11 @@ echo
 echo "  bench_snapshot after_changes"
 echo "      Save the current report state under report/snapshots/."
 echo
-echo "  inspect_llvm_gen all carre_volterra"
-echo "      Generate LLVM IR using the inspect architecture."
+echo "  inspect_llvm_gen cpp all"
+echo "      Generate LLVM IR for supported LLVM-based languages."
 echo
 echo "  inspect_asm_gen all carre_volterra"
-echo "      Generate target assembly using the inspect architecture."
+echo "      Generate target assembly for all supported languages."
 echo
 echo "Argument notes:"
 echo
@@ -202,10 +219,10 @@ echo "      all, DSP names, DSP paths, or shell-expanded globs."
 echo
 echo "Useful overrides:"
 echo
+echo "  BENCH_RUN_NAME=my_run"
 echo "  BENCH_KEEP_TMP=1"
 echo "  BENCH_SAMPLE_RATES=(48000 192000)"
 echo "  BENCH_BUFFER_SIZES=(64 512)"
 echo "  BENCH_WARMUP_ITERS=50"
-echo "  BENCH_COMPUTE_ITERS=1000000"
+echo "  BENCH_COMPUTE_ITERS=100000"
 echo "  BENCH_MAX_BATCH_SIZE=10000"
-echo "  BENCH_INSPECT_COMPUTE_ITERS=1"

@@ -34,24 +34,26 @@ namespace mojo {
 using MathLibTable = std::unordered_map<std::string, std::string>;
 using FuncSymTable = std::unordered_map<std::string, bool>;
 
-/*                                                             *
-* Mojo visitors declaration                                    *
-*                                                             */
+// =============================================================
+// Mojo visitors declaration
+// =============================================================
 
-/// A `MojoInstVisitor` is a `TextInstVisitor` for the mojo backend.
-///
-/// @para Informations
-/// - Produces and writes the translation from Faust IR to Mojo code using
-///   the visit operation(s).
-/// - An instance is created with an `output` stream, the `class name`
-///   of the DSP generated class and a `tab` number for indentation.
-///
-/// @para Globals
-/// - Maintains a `function symbols table` to keep track of the already
-///   generated functions and allows to clear it as `cleanup`.
-/// - Maintains a `math library table` to map Faust math functions to
-///   Mojo standard ones.
-/// - Allows to generate a textual cast expression `to FaustFloat` type.
+/**
+    A `MojoInstVisitor` is a `TextInstVisitor` for the mojo backend.
+   
+    @para Informations
+    - Produces and writes the translation from Faust IR to Mojo code using
+      the visit operation(s).
+    - An instance is created with an `output` stream, the `class name`
+      of the DSP generated class and a `tab` number for indentation.
+   
+    @para Globals
+    - Maintains a `function symbols table` to keep track of the already
+      generated functions and allows to clear it as `cleanup`.
+    - Maintains a `math library table` to map Faust math functions to
+      Mojo standard ones.
+    - Allows to generate a textual cast expression `to FaustFloat` type.
+**/
 class MojoInstVisitor : public TextInstVisitor {
 public:
     inline MojoInstVisitor(
@@ -156,9 +158,9 @@ public:
     );
 };
 
-/*                                                             *
-* Mojo visitors implementations                                *
-*                                                             */
+// =============================================================
+// Mojo visitors implementation
+// =============================================================
 
 MojoInstVisitor::MojoInstVisitor(
     std::ostream* out, std::string const& structName, i32 tab
@@ -368,6 +370,7 @@ void MojoInstVisitor::visit(ForLoopInst* inst)
 
 void MojoInstVisitor::visit(FunCallInst* inst)
 {
+    // TODO:(manu) If pow `a^n` unroll to `a × a ... × a`
     std::string name = (gMathLibTable.find(inst->fName) != gMathLibTable.end())
                          ? gMathLibTable[inst->fName]
                          : inst->fName;
@@ -769,9 +772,9 @@ MathLibTable MojoInstVisitor::gCreateMathLibTable()
 }       // namespace mojo
 #endif  // MOJO_INSTRUCTIONS_HH
 
-/*                                                             *
-* Unused                                                       *
-*                                                             */
+// =============================================================
+// Unused
+// =============================================================
 
 // XXX: possible version if `Typed` will be refactored
 //

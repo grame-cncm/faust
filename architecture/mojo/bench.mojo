@@ -22,7 +22,7 @@ def main() raises -> None:
 
     var base, err = make_buffers[dreal](BUFF_SIZE, n_ins, n_outs)
     if err:
-        print("Critical allocation error: ", err)
+        print("Panic in main - Critical allocation error: ", err)
         dsp.free()
         return
 

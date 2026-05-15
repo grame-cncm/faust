@@ -2,23 +2,23 @@
 
 from conf import *
 
-comptime AllocErr            = S32
-comptime AllocErr_None       = AllocErr(0)
-comptime AllocErr_IllegalArg = AllocErr(1)
-comptime AllocErr_Exhausted  = AllocErr(2)
+comptime AllocError            = S32
+comptime AllocError_None       = AllocError(0)
+comptime AllocError_IllegalArg = AllocError(1)
+comptime AllocError_Exhausted  = AllocError(2)
 
 def align_up(num: SInt, aln: SInt) -> SInt:
     return (num + aln - 1) & ~(aln - 1)
 
 def alloc_buffers[dreal: DType](
     buff_size: S32, n_ins: S32, n_outs: S32,
-) -> Res[Ptr[SIMD[dreal, 1], MUTA_EXT], AllocErr]:
+) -> Res[Ptr[SIMD[dreal, 1], MUTA_EXT], AllocError]:
     comptime Real = SIMD[dreal, 1]
     if buff_size <= 0 or n_ins < 0 or n_outs < 0:
-        return NULL_PTR[Real, MUTA_EXT], AllocErr_IllegalArg,
+        return NULL_PTR[Real], AllocError_IllegalArg,
     var n_chans = n_ins + n_outs
     if n_chans <= 0:
-        return NULL_PTR[Real, MUTA_EXT], AllocErr_IllegalArg,
+        return NULL_PTR[Real], AllocError_IllegalArg,
 
     comptime REAL_SIZE = size_of[Real]()
     comptime REAL_ALIGN = align_of[Real]()
@@ -30,10 +30,10 @@ def alloc_buffers[dreal: DType](
     var alloc_size = align_up(tot_size, ALIGN)
 
     var base = alloc[U8](alloc_size, alignment=ALIGN)
-    if base == NULL_PTR[U8, MUTA_EXT]:
-        return NULL_PTR[Real, MUTA_EXT], AllocErr_Exhausted
+    if base == NULL_PTR[U8]:
+        return NULL_PTR[Real], AllocError_Exhausted
 
-    return base.bitcast[Real](), AllocErr_None,
+    return base.bitcast[Real](), AllocError_None,
    
 def init_buffers[dreal: DType](
     base: Ptr[SIMD[dreal, 1], MUTA_EXT], buff_size: S32, n_ins: S32, n_outs: S32,
@@ -57,16 +57,16 @@ def init_buffers[dreal: DType](
 
 def make_buffers[dreal: DType](
     buff_size: S32, n_ins: S32, n_outs: S32
-) -> Res[Ptr[SIMD[dreal, 1], MUTA_EXT], AllocErr]:
+) -> Res[Ptr[SIMD[dreal, 1], MUTA_EXT], AllocError]:
     var base, err = alloc_buffers[dreal](buff_size, n_ins, n_outs)
-    if err != AllocErr_None:
-        return NULL_PTR[SIMD[dreal, 1], MUTA_EXT], err
+    if err != AllocError_None:
+        return NULL_PTR[SIMD[dreal, 1]], err
     init_buffers[dreal](base, buff_size, n_ins, n_outs)
-    return base, AllocErr_None,
+    return base, AllocError_None,
 
 def free_buffers[dreal: DType](base: Ptr[SIMD[dreal, 1], MUTA_EXT]):
     comptime Real = SIMD[dreal, 1]
-    if base == NULL_PTR[Real, MUTA_EXT]:
+    if base == NULL_PTR[Real]:
         return
     base.free()
 

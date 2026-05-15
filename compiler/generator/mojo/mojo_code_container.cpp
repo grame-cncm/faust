@@ -297,9 +297,20 @@ void MojoScalarCodeContainer::writeCompute(int n)
           << wtab(n+1) <<     "var outputs:    MutaStreams[dreal]\n"
           << wtab(n)   << ") -> None:\n" << wtab(n+1);
     fCodeProducer->Tab(n + 1);
+
+    // TODO:(manu) 
+    // Extract local variables from the loop and move them before.
+    // Currently the Mojo compiler is not able to do that automatically
+    // and it generates a lot of memory loads and stores.
+    // - Start with `rec[i]`
+    // - Then go with `iota`
+    // - Then with the promotable `vec`
+    // Proceed with different degrees since too much pression on registers
+    // can involve stack stores on the other hand.
     generateComputeBlock(fCodeProducer);
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop("count");
     loop->accept(fCodeProducer);
+
     generatePostComputeBlock(fCodeProducer);
     fCodeProducer->Tab(n);
     *fOut << wrewind(fOut, n + 1);
