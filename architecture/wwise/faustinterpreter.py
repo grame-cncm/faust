@@ -60,7 +60,7 @@ class PluginInstaller:
         print("Options:")
         print("  -h, --help                      Show this help message")
         print("  --toolset <toolset>             toolset used to build on Windows platforms (vc160, vc170).")
-        print("  --configuration <config>        configuration to build (Debug, Release, Profile,...).")
+        # print("  --configuration <config>        configuration to build (Debug, Release, Profile,...).")  # TODO
         print("  --arch <arch>                   architecture to build (x32, x64, ...).")
         sys.exit(self.cfg.SUCCESS_EXIT_CODE)
 
