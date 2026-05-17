@@ -216,6 +216,8 @@ class Config:
         print(f"Plugin type: {self.plugin_type}" + (" (in-place)" if self.plugin_type == "effect" and self.wwise_plugin_interface=="in-place" else " (out-of-place)" if self.plugin_type == "effect" else ""))
         print(f"IO: num inputs({self.num_inputs}), num outputs({self.num_outputs})")
         print(f"Build location: {self.build_location}")
+        if self.wwise_with_test_project:
+            print(f"Test project location: {os.path.join(self.build_location, 'SoundEnginePluginTest')}")
         print(f"Configuration file: {self.cfg_json_path}")
         print(f"Install location: {self.install_location}")
         print("=====================================")
@@ -323,6 +325,11 @@ class Config:
                 "Install location": self.install_location
             }
         }
+
+        if self.wwise_with_test_project:
+            config_dict["Summary"].update({
+                "Test project location": os.path.join(self.build_location, 'SoundEnginePluginTest')
+            })
 
         with open(self.cfg_json_path, 'w', encoding='utf-8') as f:
             json.dump(config_dict, f, indent=4)
