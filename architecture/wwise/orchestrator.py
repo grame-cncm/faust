@@ -154,6 +154,10 @@ class Faust2WwiseOrchestrator:
         
         jsonprocessor.process_json_configuration(self.cfg)
 
+        self.cfg.plugin_print() # print finalized configuration, after having parsed the faust't output json file
+        self.cfg.lock()         # lock config to deprive any further modifications of its internal state, making it immutable
+        self.cfg.to_json()      # save the config into a file immediately after locking
+
         if (self.wwise_speaker_cfg_channel_mask and \
             self.num_outputs!=speaker_config_options[self.wwise_speaker_cfg_channel_mask]):
                 print("Speaker configuration provided does not match with number of outputs supported by the Faust program.")
@@ -161,9 +165,10 @@ class Faust2WwiseOrchestrator:
                 print(f"Channel config mask provided : {self.wwise_speaker_cfg_channel_mask} --> {speaker_config_options[self.wwise_speaker_cfg_channel_mask]} num channels")
                 sys.exit(self.ERR_INVALID_INPUT)
 
-        self.cfg.plugin_print() # print finalized configuration, after having parsed the faust't output json file
-        self.cfg.lock()         # lock config to deprive any further modifications of its internal state, making it immutable
-        self.cfg.to_json()      # save the config into a file immediately after locking
+        if (self.plugin_type == "effect" and self.num_inputs!=self.num_outputs):
+            print("[ERROR]: Misalignment between amount of input and output requested channels by the Faust program is currently unsupported.")
+            print(f"Wwise FX plugins require the same amount of input/output channels. In this case {self.num_inputs} != {self.num_outputs}")
+            sys.exit(self.ERR_INVALID_INPUT)
 
         print("OK : DSP compiling step was completed successfully!") 
 
