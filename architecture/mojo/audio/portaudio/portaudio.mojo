@@ -12,10 +12,14 @@ from .ffi import *
 # prefix, with proper casing, for Faust-domain operations.
 # --------------------------------------------------------------
 
-# Faust PortAudio core type definitions.
+# Faust PortAudio dfaust and FaustFloat definitions.
 
-comptime FaustFloat = SIMD[F32.dtype, 1]
-comptime dfaust = FaustFloat.dtype 
+comptime dfaust     = get_defined_dtype["FAUST_DTYPE", F32.dtype]()
+comptime FaustFloat = SIMD[dfaust, 1]
+
+def assert_dfaust() -> None:
+    comptime assert dfaust == F32.dtype, "FAUST_DTYPE must be DType.float32."
+comptime _ = assert_dfaust();
 
 # Faust Portaudio API.
 
@@ -27,7 +31,6 @@ struct PortAudio(FaustAudio):
     def __init__(out driver):
         driver.alive = False
         driver.stream = NULL_STREAM
-        pass
 
     @always_inline
     def init(mut driver) -> S32:
@@ -64,6 +67,7 @@ struct PortAudio(FaustAudio):
         var in_device_info = pa_get_device_info(in_device)
         if in_device_info == NULL_PTR[PaDeviceInfo, READ_EXT]:
             return PA_INVALID_DEVICE
+
         in_latency = in_device_info[].default_low_input_latency
         out_device_info = pa_get_device_info(out_device)
         if out_device_info == NULL_PTR[PaDeviceInfo, READ_EXT]:
@@ -91,9 +95,11 @@ struct PortAudio(FaustAudio):
 
 # Faust PortAudio constant definitions.
 
+comptime BUFF_SIZE    = S32(get_defined_int["BUFF_SIZE", 256]())
+comptime SAMP_RATE    = S32(get_defined_int["SAMP_RATE", 96]()) * 1000
+
 comptime NULL_STREAM = PaStream(unsafe_from_address=0)
 
-comptime BUFF_SIZE    = 256
 comptime FAUST_FORMAT = PA_FLOAT32 | PA_NON_INTERLEAVED
 comptime FAUST_NOFLAG = 0
 

@@ -1,6 +1,4 @@
-#
-# Makefile for generating ir using Mojo
-#
+# Makefile to generate impulse responses `.ir` using Mojo
 
 system := $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
@@ -47,7 +45,7 @@ help:
 	@echo " 'MOJOBUILDOPTIONS' : additional options passed to 'mojo build'"
 	@echo " 'precision'        : define filesCompare expected precision (empty by default)"
 
-#########################################################################
+################################################################
 # output directories
 ir/$(outdir):
 	mkdir -p ir/$(outdir)
@@ -55,7 +53,7 @@ ir/$(outdir):
 filesCompare:
 	$(MAKE) -f Makefile filesCompare
 
-#########################################################################
+################################################################
 # rules
 ir/$(outdir)/%.ir: ir/$(outdir)/%$(EXEEXT) reference/%.ir | ir/$(outdir)
 	$< -n 60000 > $@

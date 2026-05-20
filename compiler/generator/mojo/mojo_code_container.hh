@@ -39,6 +39,7 @@ class MojoCodeContainer : public virtual CodeContainer {
 protected:
     std::ostream*                  fOut;
     static inline MojoInstVisitor* fCodeProducer;
+    MojoCodeContainer() = default;
 
 public:
     MojoCodeContainer(

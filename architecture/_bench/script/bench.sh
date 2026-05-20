@@ -247,37 +247,37 @@ _bench_dsp_path() {
 _bench_cpp_out() {
   local name
   name="$(_bench_dsp_name "$1")"
-  echo "${BENCH_CPP_ARCH_DIR}/${name}.cpp"
+  echo "${BENCH_CPP_ARCH_DIR}/${name}_out.cpp"
 }
 
 _bench_cpp_bin() {
   local name
   name="$(_bench_dsp_name "$1")"
-  echo "${BENCH_CPP_ARCH_DIR}/${name}_cpp"
+  echo "${BENCH_CPP_ARCH_DIR}/${name}_bin_cpp"
 }
 
 _bench_mojo_out() {
   local name
   name="$(_bench_dsp_name "$1")"
-  echo "${BENCH_MOJO_ARCH_DIR}/${name}.mojo"
+  echo "${BENCH_MOJO_ARCH_DIR}/${name}_out.mojo"
 }
 
 _bench_mojo_bin() {
   local name
   name="$(_bench_dsp_name "$1")"
-  echo "${BENCH_MOJO_ARCH_DIR}/${name}_mojo"
+  echo "${BENCH_MOJO_ARCH_DIR}/${name}_bin_mojo"
 }
 
 _inspect_cpp_out() {
   local name
   name="$(_bench_dsp_name "$1")"
-  echo "${BENCH_CPP_ARCH_DIR}/${name}_inspect.cpp"
+  echo "${BENCH_CPP_ARCH_DIR}/${name}_insp.cpp"
 }
 
 _inspect_mojo_out() {
   local name
   name="$(_bench_dsp_name "$1")"
-  echo "${BENCH_MOJO_ARCH_DIR}/${name}_inspect.mojo"
+  echo "${BENCH_MOJO_ARCH_DIR}/${name}_insp.mojo"
 }
 
 _inspect_cpp_llvm() {

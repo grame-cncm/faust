@@ -1,0 +1,45 @@
+{
+	"name": "phasor_sine",
+	"filename": "phasor_sine.dsp",
+	"version": "2.84.5",
+	"compile_options": "-a /usr/local/share/faust/pa-qt.cpp -lang cpp -i -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0",
+	"library_list": ["/usr/local/share/faust/stdfaust.lib","/usr/local/share/faust/maths.lib","/usr/local/share/faust/platform.lib"],
+	"include_pathnames": ["/usr/local/share/faust","/usr/local/share/faust","/usr/share/faust","../_bench/src","/Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/../_bench/src"],
+	"size": 20,
+	"inputs": 0,
+	"outputs": 1,
+	"meta": [ 
+		{ "compile_options": "-a /usr/local/share/faust/pa-qt.cpp -lang cpp -i -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0" },
+		{ "filename": "phasor_sine.dsp" },
+		{ "maths.lib/author": "GRAME" },
+		{ "maths.lib/copyright": "GRAME" },
+		{ "maths.lib/license": "LGPL with exception" },
+		{ "maths.lib/name": "Faust Math Library" },
+		{ "maths.lib/version": "2.9.0" },
+		{ "name": "phasor_sine" },
+		{ "platform.lib/name": "Generic Platform Library" },
+		{ "platform.lib/version": "1.3.0" }
+	],
+	"ui": [ 
+		{
+			"type": "vgroup",
+			"label": "phasor_sine",
+			"items": [ 
+				{
+					"type": "hslider",
+					"label": "freq",
+					"varname": "fHslider0",
+					"shortname": "freq",
+					"address": "/phasor_sine/freq",
+					"meta": [
+						{ "unit": "Hz" }
+					],
+					"init": 440,
+					"min": 20,
+					"max": 20000,
+					"step": 1
+				}
+			]
+		}
+	]
+}

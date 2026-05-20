@@ -36,7 +36,7 @@
     #define mj_debug_fir(inst, msg) \
         mj_debug_msg(msg);          \
         dump2FIR(inst, *fOut);      \
-        *fOut << wbanner() << "\n"
+        *fOut << wbanner() << "\n\n"
 #endif
 
 #ifndef mj_unused

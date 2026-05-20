@@ -39,6 +39,7 @@ Diagnostics:
       overloaded-virtual,
       unused-includes,
       unused-local-typedef,
+      unused-parameter,
   ]
 
 Completion:

@@ -92,7 +92,7 @@ public:
     inline void visit(LabelInst* inst) override
     {
         mj_unused(inst);
-        *fOut << "\n" << wtab(fTab);
+        // *fOut << "\n" << wtab(fTab);
         // XXX: The following works only on single line labels
         // std::string label = std::string(inst->fLabel.begin() + 2, inst->fLabel.end()- 3);
         // *fOut << "#" << label << "\n" << wtab(fTab);
@@ -101,7 +101,6 @@ public:
 
     inline void visit(LoadVarAddressInst* inst) override
     {
-        // *fOut << "&";
         // TEST: trying to rely on value semantics (l-value ref)
         inst->fAddress->accept(this);
     }
@@ -151,10 +150,10 @@ public:
 /// A `MojoVecInstVisitor` is a `MojoInstVisitor` for the mojo backend.
 class MojoVecInstVisitor : public MojoInstVisitor {
 public:
-    inline MojoVecInstVisitor(
-        std::ostream* out,
-        const std::string& struct_name,
-        int tab = 0
+    using MojoInstVisitor::visit;
+
+    MojoVecInstVisitor(
+        std::ostream* out, std::string const& structName, int tab = 0
     );
 };
 
@@ -370,7 +369,6 @@ void MojoInstVisitor::visit(ForLoopInst* inst)
 
 void MojoInstVisitor::visit(FunCallInst* inst)
 {
-    // TODO:(manu) If pow `a^n` unroll to `a × a ... × a`
     std::string name = (gMathLibTable.find(inst->fName) != gMathLibTable.end())
                          ? gMathLibTable[inst->fName]
                          : inst->fName;
@@ -385,7 +383,6 @@ void MojoInstVisitor::visit(IfInst* inst)
     inst->fCond->accept(this);
     fTab += 1;
     *fOut << " != 0):\n" << wtab(fTab);
-    // *fOut << wtab(fTab += 1) << "\n" << wtab(fTab);
     inst->fThen->accept(this);
     *fOut << wrewind(fOut); 
     if (inst->fElse->fCode.size() > 0)
@@ -661,7 +658,7 @@ void MojoInitFieldsVisitor::gZeroInitializer(std::ostream* out, Typed* typed) {
 
 // MojoVecInstVisitor
 
-MojoVecInstVisitor::MojoVecInstVisitor(
+inline MojoVecInstVisitor::MojoVecInstVisitor(
     std::ostream* out, const std::string& structName, int tab
 )
     : MojoInstVisitor(out, structName, tab)

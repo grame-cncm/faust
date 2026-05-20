@@ -30,7 +30,7 @@ from audio.portaudio import PortAudio, FaustFloat
 def main() -> None:
     var dsp = alloc[mydsp](1)
     dsp[] = mydsp()
-    dsp[].init(48_000)
+    dsp[].init(SAMP_RATE)
 
     var driver = PortAudio()
 

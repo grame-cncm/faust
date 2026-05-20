@@ -33,7 +33,7 @@ from gui.terminal import TerminalGui
 def main() -> None:
     var dsp = alloc[mydsp](1)
     dsp[] = mydsp()
-    dsp[].init(48_000)
+    dsp[].init(SAMP_RATE)
 
     var gui = TerminalGui[dfaust]()
     dsp[].build_user_interface(gui)

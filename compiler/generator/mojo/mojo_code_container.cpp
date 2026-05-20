@@ -24,9 +24,9 @@
 
 namespace mojo {
 
-/*                                                             *
-* Mojo code container base interface                           *
-*                                                             */
+// =============================================================
+// Mojo code container base interface
+// =============================================================
 
 MojoCodeContainer::~MojoCodeContainer() {}
 
@@ -394,9 +394,9 @@ CodeContainer* MojoCodeContainer::createContainer(
     return (CodeContainer*) new MojoScalarCodeContainer(name, numInputs, numOutputs, out, kInt);
 }
 
-/*                                                             *
-* Mojo scalar code container                                   *
-*                                                             */
+// =============================================================
+// Mojo scalar code container
+// =============================================================
 
 MojoScalarCodeContainer::~MojoScalarCodeContainer() {}
 
@@ -408,9 +408,9 @@ MojoScalarCodeContainer::MojoScalarCodeContainer(
     fSubContainerType = subContKind;
 }
 
-/*                                                             *
-* Mojo vector code container                                   *
-*                                                             */
+// =============================================================
+// Mojo vector code container
+// =============================================================
 
 MojoVectorCodeContainer::~MojoVectorCodeContainer() {}
 
@@ -418,8 +418,14 @@ MojoVectorCodeContainer::MojoVectorCodeContainer(
     const std::string& name, int numInputs, int numOutputs, std::ostream* out
 )
     : VectorCodeContainer(numInputs, numOutputs)
-    , MojoCodeContainer(name, numInputs, numOutputs, out)
-{}
+{
+    fKlassName = name;
+    fOut = out;
+    if (!gGlobal->gMojoVisitor) {
+        gGlobal->gMojoVisitor = new MojoVecInstVisitor(out, name);
+    }
+    fCodeProducer = gGlobal->gMojoVisitor;
+}
 
 void MojoVectorCodeContainer::writeCompute(int n)
 {
@@ -432,19 +438,19 @@ void MojoVectorCodeContainer::writeCompute(int n)
           << wtab(n+1) <<     "var outputs:    MutaStreams[dreal]\n"
           << wtab(n)   << ") -> None:\n" << wtab(n+1);
     fCodeProducer->Tab(n + 1);
+    LoopVariableRenamer loop_renamer;
+    BlockInst* loop = loop_renamer.getCode(fDAGBlock);
+    mj_debug_fir(fComputeBlockInstructions, "Pre Compute Block");
     generateComputeBlock(fCodeProducer);
-    fDAGBlock->accept(fCodeProducer);
+    loop->accept(fCodeProducer);
     *fOut << wrewind(fOut, n) << "\n";
 }
 
-//     back(1, *fOut);
-//     *fOut << "end";
-
 }  // namespace mojo
 
-/*                                                             *
-* Unused                                                       *
-*                                                             */
+// =============================================================
+// Unused
+// =============================================================
 
 // XXX: Is this useless after merging the sub containers? All tests pass
 //

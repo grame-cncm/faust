@@ -31,9 +31,9 @@
 
 namespace mojo {
 
-/*                                                             *
-* Writing helpers for `MojoVisitor`s and `MojoCodeContainer`s  *
-*                                                             */
+//==============================================================
+// Writing helpers for `MojoVisitor`s and `MojoCodeContainer`s 
+// =============================================================
 
 inline std::string wbanner()                   { return "# ------------------------------------------------------------------------------"; }
 inline std::string wblank (isize n = 1)        { return std::string(n, '\n'); }
@@ -74,10 +74,10 @@ inline std::string wmultilit(std::string&& s)
     return out.str();
 }
 
-/*                                                             *
-* String manip helpers for `Visitor`s and `CodeContainer`s     *
-*                                                             */
-
+// =============================================================
+// String manip helpers for `Visitor`s and `CodeContainer`s
+// =============================================================
+ 
 inline std::string toStringTrim(f64 x)
 {
     auto res = std::to_string(x);

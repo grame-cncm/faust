@@ -458,7 +458,7 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
     CodeContainer* container = fContainer->createScalarContainer(name, t->nature());
 
     if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia" ||
-        gGlobal->gOutputLang == "asc") {
+        gGlobal->gOutputLang == "asc" || gGlobal->gOutputLang == "mojo") {
         InstructionsCompiler1 C(container);
         C.compileSingleSignal(sig);
     } else if (gGlobal->isPythonBackend()) {
