@@ -829,7 +829,6 @@ struct MojoStringTypeManager : public StringTypeManager {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
-
         if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType];
         }
@@ -848,28 +847,22 @@ struct MojoStringTypeManager : public StringTypeManager {
         return "";
     }
 
-    virtual std::string
-    generateType(Typed* type, std::string const& name, bool isStatic = false)
-    {
-        (void)isStatic; // unused
+    virtual std::string generateType(Typed* type, std::string const& name, bool /**/) {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
-
         if (basic_typed) {
             return name + ": " + fTypeDirectTable[basic_typed->fType];
-
-        } else if (named_typed) {
-            std::string tname_str = named_typed->fName + generateType(named_typed->fType);
-            return name + (tname_str != "" ? ": " + tname_str : "");
-
-        } else if (array_typed) {
-            return name + ": " + generateType(type);
-
-        } else {
-            faustassert(false);
-            return "";
+        } 
+       if (named_typed) {
+            std::string name_str = named_typed->fName + generateType(named_typed->fType);
+            return name + (name_str != "" ? ": " + name_str : "");
         }
+        if (array_typed) {
+            return name + ": " + generateType(type);
+        }
+        faustassert(false);
+        return "";
     }
 
 private:

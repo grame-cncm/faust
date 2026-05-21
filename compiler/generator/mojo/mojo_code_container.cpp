@@ -437,13 +437,20 @@ void MojoVectorCodeContainer::writeCompute(int n)
           << wtab(n+1) <<     "var inputs:     ReadStreams[dreal],\n"
           << wtab(n+1) <<     "var outputs:    MutaStreams[dreal]\n"
           << wtab(n)   << ") -> None:\n" << wtab(n+1);
-    fCodeProducer->Tab(n + 1);
+    n += 1;
+    fCodeProducer->Tab(n);
     LoopVariableRenamer loop_renamer;
     BlockInst* loop = loop_renamer.getCode(fDAGBlock);
-    mj_debug_fir(fComputeBlockInstructions, "Pre Compute Block");
+
+    // NOTE:(manu)
+    // Pop the vindex declaration since the Mojo visitor will generate
+    // that within the while loop (`ForLoopInst` overload).
+    loop->fCode.pop_front();
     generateComputeBlock(fCodeProducer);
     loop->accept(fCodeProducer);
-    *fOut << wrewind(fOut, n) << "\n";
+    *fOut << wrewind(fOut, n*2);
+    n -= 1;
+    fCodeProducer->Tab(n);
 }
 
 }  // namespace mojo

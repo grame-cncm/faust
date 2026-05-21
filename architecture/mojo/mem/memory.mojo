@@ -70,4 +70,8 @@ def free_buffers[dreal: DType](base: Ptr[SIMD[dreal, 1], MUTA_EXT]):
         return
     base.free()
 
+# XXX: Does not work as expected
+def addr_of[Type: AnyType](ref x: Type) -> Int:
+    var y = Ptr(to=x)
+    return y.__int__()
 

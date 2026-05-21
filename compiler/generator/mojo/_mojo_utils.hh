@@ -35,18 +35,20 @@ namespace mojo {
 // Writing helpers for `MojoVisitor`s and `MojoCodeContainer`s 
 // =============================================================
 
-inline std::string wbanner()                   { return "# ------------------------------------------------------------------------------"; }
-inline std::string wblank (isize n = 1)        { return std::string(n, '\n'); }
-inline std::string windent(isize n = 4)        { return std::string(n, ' '); }
-inline std::string wlit   (std::string s)      { return "\"" + s + "\""; }
-inline std::string wendl  (b32 b, isize n = 1) { return b ? '\n' + windent(4*n) : ""; }
-inline std::string wptr   (std::string s)      { return "Ptr["+s+"]"; }
-inline std::string wtab   (isize n = 1)        { return std::string(4*n, ' '); }
+inline constexpr isize TAB_SIZE = 4;
+
+inline std::string wbanner()                 { return "# =============================================================================="; }
+inline std::string wblank (isize n=1)        { return std::string(n, '\n'); }
+inline std::string windent(isize n=TAB_SIZE) { return std::string(n, ' '); }
+inline std::string wlit   (std::string s)    { return "\"" + s + "\""; }
+inline std::string wendl  (b32 b, isize n=1) { return b ? '\n' + windent(TAB_SIZE*n) : ""; }
+inline std::string wptr   (std::string s)    { return "Ptr["+s+"]"; }
+inline std::string wtab   (isize n=1)        { return std::string(TAB_SIZE*n, ' '); }
 
 inline std::string wrewind(std::ostream* out, isize n = 1)
 {
     isize pos = out->tellp();
-    out->seekp(pos - n * 4);
+    out->seekp(pos - n * TAB_SIZE);
     return "";
 }
 

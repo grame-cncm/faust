@@ -21,7 +21,7 @@ def assert_dfaust() -> None:
     comptime assert dfaust == F32.dtype, "FAUST_DTYPE must be DType.float32."
 comptime _ = assert_dfaust();
 
-# Faust Portaudio API.
+# Faust Portaudio public API.
 
 struct PortAudio(FaustAudio):
     var alive:  Bool
@@ -53,7 +53,7 @@ struct PortAudio(FaustAudio):
         return pa_terminate()
 
     @always_inline
-    def start[Dsp: FaustDsp](mut driver, mut dsp: Dsp) -> S32:
+    def start[Dsp: FaustDsp](mut driver, var dsp: Ptr[Dsp]) -> S32:
         if not driver.alive:
             return PA_NOT_INITIALIZED
 
@@ -74,8 +74,8 @@ struct PortAudio(FaustAudio):
             return PA_INVALID_DEVICE
         out_latency = out_device_info[].default_low_output_latency
 
-        var n_ins = dsp.get_num_inputs()
-        var m_outs = dsp.get_num_outputs()
+        var n_ins = dsp[].get_num_inputs()
+        var m_outs = dsp[].get_num_outputs()
 
         driver.stream, err = faust_open_stream[Dsp](
             faust_stream_param(in_device, n_ins, in_latency),
@@ -127,14 +127,14 @@ def faust_callback[Dsp: FaustDsp](
 
 comptime FaustCallbackFunc[Dsp: FaustDsp] = type_of(faust_callback[Dsp])
 
-# Faust PortAudio open stream helper.
+# Faust PortAudio stream helpers.
 
 @always_inline
 def faust_open_stream[Dsp: FaustDsp](
     var in_param:     PaStreamParameters,
     var out_param:    PaStreamParameters,
     var buff_size:    S32,
-    mut dsp:          Dsp
+    var dsp:          Ptr[Dsp]
 ) -> Tuple[PaStream, S32]:
     var stream = NULL_STREAM
     var ptr_in = NULL_PTR[PaStreamParameters, READ_EXT]
@@ -147,11 +147,11 @@ def faust_open_stream[Dsp: FaustDsp](
         Ptr(to=stream).unsafe_origin_cast[MUTA_EXT](),
         ptr_in,
         ptr_out,
-        F64(dsp.get_sample_rate()),
+        F64(dsp[].get_sample_rate()),
         buff_size,
         FAUST_NOFLAG,
         faust_callback[Dsp],
-        Ptr(to=dsp).bitcast[NoneType]().unsafe_origin_cast[MUTA_EXT](),
+        dsp.bitcast[NoneType]()
     )
     return stream, err
 

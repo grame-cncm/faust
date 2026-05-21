@@ -294,18 +294,33 @@ void MojoInstVisitor::visit(DeclareStructTypeInst* inst)
 void MojoInstVisitor::visit(DeclareVarInst* inst)
 {
     std::string name = snakeCase(inst->getName());
-
     *fOut << "var ";
-    if (!inst->fValue ||
-        inst->fAddress->isStruct() || inst->fAddress->isStaticStruct()
-    ) {
+    if (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct()) {
         *fOut << fTypeManager->generateType(inst->fType, name);
-        *fOut << wendl(fFinishLine, fTab);
-        return;
+        goto End_Inst;
     }
-
+    if (!inst->fValue) {
+        if (dycast(ArrayTyped*, inst->fType)) {
+            *fOut << name << " = ";
+            *fOut << fTypeManager->generateType(inst->fType);
+            *fOut << "(uninitialized=True)";
+            goto End_Inst;
+        }
+        *fOut << fTypeManager->generateType(inst->fType);
+        goto End_Inst;
+    }
     *fOut << name << " = ";
+    // TEST:
+    if (dycast(LoadVarAddressInst*, inst->fValue)) {
+        *fOut << "Ptr(to=";
+        inst->fValue->accept(this);
+        *fOut << ")";
+        goto End_Inst;
+    }
+    // TEST:
+
     inst->fValue->accept(this);
+End_Inst:
     *fOut << wendl(fFinishLine, fTab);
 }
 
@@ -615,6 +630,7 @@ void MojoInitFieldsVisitor::visit(DoubleArrayNumInst* inst)
     *fOut << ']';
 }
 
+// Need a gDefaultInitializer to?
 void MojoInitFieldsVisitor::gZeroInitializer(std::ostream* out, Typed* typed) {
     ArrayTyped* array_type = dycast(ArrayTyped*, typed);
     Typed::VarType type = typed->getType();

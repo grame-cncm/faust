@@ -22,12 +22,12 @@ comptime Res = Tuple
 
 # Pointer types' aliases.
 
-comptime Ptr    = UnsafePointer
+comptime Ptr[Type: AnyType, ori: Origin = MUTA_EXT] = UnsafePointer[Type, ori]
 comptime AnyPtr = OpaquePointer
 comptime Arr    = InlineArray
 
-comptime ReadStreams[dtype: DType] = Ptr[Ptr[SIMD[dtype, 1], READ_EXT], READ_EXT]
-comptime MutaStreams[dtype: DType] = Ptr[Ptr[SIMD[dtype, 1], MUTA_EXT], MUTA_EXT]
+comptime ReadStreams[dtype: DType, ori: Origin = READ_EXT] = Ptr[Ptr[SIMD[dtype, 1], ori], ori]
+comptime MutaStreams[dtype: DType, ori: Origin = MUTA_EXT] = Ptr[Ptr[SIMD[dtype, 1], ori], ori]
 
 # Memory constants definitions.
 

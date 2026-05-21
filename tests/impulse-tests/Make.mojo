@@ -18,7 +18,8 @@ MOJO ?= pixi run mojo
 outdir ?= mojo/double
 lang ?= mojo
 ext ?= mojo
-arch ?= mojo/impulsemojo.mojo
+arch ?= mojo/impulse.mojo
+genout ?= archs/mojo
 precision ?=
 FAUSTOPTIONS ?= -I dsp -double
 MOJOBUILDOPTIONS ?= -O3
@@ -59,10 +60,11 @@ ir/$(outdir)/%.ir: ir/$(outdir)/%$(EXEEXT) reference/%.ir | ir/$(outdir)
 	$< -n 60000 > $@
 	$(COMPARE) $@ reference/$(notdir $@) $(precision)
 
-ir/$(outdir)/%$(EXEEXT): ir/$(outdir)/%.$(ext) | ir/$(outdir)
+ir/$(outdir)/%$(EXEEXT): $(genout)/%.$(ext) | ir/$(outdir)
 	$(MOJO) build $< -o $@ $(MOJOBUILDOPTIONS)
+	rm -f $<
 
-ir/$(outdir)/%.$(ext): dsp/%.dsp | ir/$(outdir)
+$(genout)/%.$(ext): dsp/%.dsp
 	$(FAUST) -lang $(lang) $(FAUSTOPTIONS) -i -A ../../architecture -a archs/$(arch) $< -o $@
 
 clean:

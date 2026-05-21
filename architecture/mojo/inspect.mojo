@@ -1,3 +1,12 @@
+# ==============================================================================
+# Faust-to-Mojo inspect architecture for the benchmark framework.
+# Provides the minimal definitions and entry point needed to generate
+# low-level code with clear symbols for inspecting the generated compute code.
+# ==============================================================================
+# First section of architecture provided code start.
+# Imports the modules and the definitions of the architecture code.
+# ==============================================================================
+
 from std.benchmark import keep, clobber_memory
 
 from conf import *
@@ -14,8 +23,18 @@ comptime COMPUTE_ITERS = S32(get_defined_int["COMPUTE_ITERS", 100]())
 comptime dfaust = get_defined_dtype["FAUST_DTYPE", F64.dtype]()
 comptime FaustFloat = SIMD[dfaust, 1]
 
+# ==============================================================================
+# First section of architecture provided code end.
 <<includeIntrinsic>>
 <<includeclass>>
+# ==============================================================================
+# Faust generated DSP code end.
+# ==============================================================================
+# Second section of architecture provided code start.
+# Defines the main entry point of the application.
+# Initializes the dsp object, allocates and intializes the audio buffers and
+# calls the inspect function to run the dsp code.
+# ==============================================================================
 
 def main() -> None:
     comptime Real = SIMD[dfaust, 1]
@@ -42,3 +61,7 @@ def inspect_compute(mut dsp: mydsp, inputs: ReadStreams[dfaust], outputs: MutaSt
         keep(outputs)
         dsp.compute[dfaust](BUFF_SIZE, inputs, outputs)
         clobber_memory()
+
+# ==============================================================================
+# Second section of architecture provided code end.
+# ==============================================================================

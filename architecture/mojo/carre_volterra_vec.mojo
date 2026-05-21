@@ -1,3 +1,12 @@
+# ==============================================================================
+# Faust-to-Mojo inspect architecture for the benchmark framework.
+# Provides the minimal definitions and entry point needed to generate
+# low-level code with clear symbols for inspecting the generated compute code.
+# ==============================================================================
+# First section of architecture provided code start.
+# Imports the modules and the definitions of the architecture code.
+# ==============================================================================
+
 from std.benchmark import keep, clobber_memory
 
 from conf import *
@@ -14,13 +23,15 @@ comptime COMPUTE_ITERS = S32(get_defined_int["COMPUTE_ITERS", 100]())
 comptime dfaust = get_defined_dtype["FAUST_DTYPE", F64.dtype]()
 comptime FaustFloat = SIMD[dfaust, 1]
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# First section of architecture provided code end.
+# ==============================================================================
 # Code generated with Faust 2.85.5 (https://faust.grame.fr)
 # name: "carre_volterra"
 # Compilation options: 
 #   -a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
 #   -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32
-# ------------------------------------------------------------------------------
+# ==============================================================================
 
 @fieldwise_init
 struct mydsp(FaustDsp):
@@ -266,107 +277,34 @@ struct mydsp(FaustDsp):
         var inputs:     ReadStreams[dreal],
         var outputs:    MutaStreams[dreal]
     ) -> None:
-        
-
--------- DEBUG: Pre Compute Block --------
-
-========== dump2FIR 0xa53024360 statement begin ========== 
-BlockInst 
-	DeclareVarInst("FaustFloat*", output0_ptr, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
-	DeclareVarInst("double", fSlow0, kStack, CastInst("double", LoadVarInst(Address(fHslider0, kStruct))))
-	DeclareVarInst("double", fSlow1, kStack, FunCallInst("max_", LoadVarInst(Address(fSlow0, kStack)), Double(F64(23.44894968246214))))
-	DeclareVarInst("double", fSlow2, kStack, FunCallInst("max_", Double(F64(2e+01)), FunCallInst("fabs", LoadVarInst(Address(fSlow1, kStack)))))
-	DeclareVarInst("double", fSlow3, kStack, BinopInst("*", LoadVarInst(Address(fConst1, kStruct)), LoadVarInst(Address(fSlow2, kStack))))
-	DeclareVarInst("double", fRec4_tmp[36], kStack)
-	DeclareVarInst("double*", fRec4, kStack, LoadVarAddressInst(Address(fRec4_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fSlow4, kStack, FunCallInst("max_", BinopInst("+", LoadVarInst(Address(fSlow0, kStack)), CastInst("double", LoadVarInst(Address(fHslider1, kStruct)))), Double(F64(23.44894968246214))))
-	DeclareVarInst("double", fSlow5, kStack, FunCallInst("max_", Double(F64(2e+01)), FunCallInst("fabs", LoadVarInst(Address(fSlow4, kStack)))))
-	DeclareVarInst("double", fSlow6, kStack, BinopInst("*", LoadVarInst(Address(fConst1, kStruct)), LoadVarInst(Address(fSlow5, kStack))))
-	DeclareVarInst("double", fRec5_tmp[36], kStack)
-	DeclareVarInst("double*", fRec5, kStack, LoadVarAddressInst(Address(fRec5_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fSlow7, kStack, CastInst("double", LoadVarInst(Address(fHslider2, kStruct))))
-	DeclareVarInst("double", fSlow8, kStack, BinopInst("*", LoadVarInst(Address(fConst2, kStruct)), LoadVarInst(Address(fSlow7, kStack))))
-	DeclareVarInst("double", fSlow9, kStack, BinopInst("/", Double(F64(1.0)), BinopInst("+", LoadVarInst(Address(fSlow8, kStack)), Double(F64(1.0)))))
-	DeclareVarInst("double", fSlow10, kStack, CastInst("double", LoadVarInst(Address(fHslider3, kStruct))))
-	DeclareVarInst("double", fSlow11, kStack, BinopInst("*", LoadVarInst(Address(fConst2, kStruct)), BinopInst("*", LoadVarInst(Address(fSlow10, kStack)), LoadVarInst(Address(fSlow7, kStack)))))
-	DeclareVarInst("int", iVec0_tmp[36], kStack)
-	DeclareVarInst("int*", iVec0, kStack, LoadVarAddressInst(Address(iVec0_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fZec0[32], kStack)
-	DeclareVarInst("double", fSlow12, kStack, BinopInst("/", Double(F64(1.0)), LoadVarInst(Address(fSlow2, kStack))))
-	DeclareVarInst("double", fYec0_tmp[36], kStack)
-	DeclareVarInst("double*", fYec0, kStack, LoadVarAddressInst(Address(fYec0_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fZec1[32], kStack)
-	DeclareVarInst("double", fSlow13, kStack, BinopInst("/", Double(F64(1.0)), LoadVarInst(Address(fSlow5, kStack))))
-	DeclareVarInst("double", fYec1_tmp[36], kStack)
-	DeclareVarInst("double*", fYec1, kStack, LoadVarAddressInst(Address(fYec1_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fZec2[32], kStack)
-	DeclareVarInst("double", fSlow14, kStack, FunCallInst("max_", Double(F64(0.0)), FunCallInst("min_", Double(F64(2047.0)), BinopInst("/", LoadVarInst(Address(fConst4, kStruct)), LoadVarInst(Address(fSlow4, kStack))))))
-	DeclareVarInst("int", iSlow15, kStack, CastInst("int", LoadVarInst(Address(fSlow14, kStack))))
-	DeclareVarInst("double", fSlow16, kStack, CastInst("double", LoadVarInst(Address(iSlow15, kStack))))
-	DeclareVarInst("double", fSlow17, kStack, BinopInst("-", LoadVarInst(Address(fSlow14, kStack)), LoadVarInst(Address(fSlow16, kStack))))
-	DeclareVarInst("double", fSlow18, kStack, BinopInst("/", LoadVarInst(Address(fConst3, kStruct)), LoadVarInst(Address(fSlow5, kStack))))
-	DeclareVarInst("int", iSlow19, kStack, BinopInst("+", LoadVarInst(Address(iSlow15, kStack)), Int32(1)))
-	DeclareVarInst("double", fSlow20, kStack, FunCallInst("max_", Double(F64(0.0)), FunCallInst("min_", Double(F64(2047.0)), BinopInst("/", LoadVarInst(Address(fConst4, kStruct)), LoadVarInst(Address(fSlow1, kStack))))))
-	DeclareVarInst("int", iSlow21, kStack, CastInst("int", LoadVarInst(Address(fSlow20, kStack))))
-	DeclareVarInst("double", fSlow22, kStack, CastInst("double", LoadVarInst(Address(iSlow21, kStack))))
-	DeclareVarInst("double", fSlow23, kStack, BinopInst("+", LoadVarInst(Address(fSlow22, kStack)), BinopInst("-", Double(F64(1.0)), LoadVarInst(Address(fSlow20, kStack)))))
-	DeclareVarInst("double", fSlow24, kStack, BinopInst("/", LoadVarInst(Address(fConst3, kStruct)), LoadVarInst(Address(fSlow2, kStack))))
-	DeclareVarInst("double", fSlow25, kStack, BinopInst("-", LoadVarInst(Address(fSlow20, kStack)), LoadVarInst(Address(fSlow22, kStack))))
-	DeclareVarInst("int", iSlow26, kStack, BinopInst("+", LoadVarInst(Address(iSlow21, kStack)), Int32(1)))
-	DeclareVarInst("double", fSlow27, kStack, BinopInst("+", LoadVarInst(Address(fSlow16, kStack)), BinopInst("-", Double(F64(1.0)), LoadVarInst(Address(fSlow14, kStack)))))
-	DeclareVarInst("double", fZec3[32], kStack)
-	DeclareVarInst("double", fRec3_tmp[36], kStack)
-	DeclareVarInst("double*", fRec3, kStack, LoadVarAddressInst(Address(fRec3_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fRec2_tmp[36], kStack)
-	DeclareVarInst("double*", fRec2, kStack, LoadVarAddressInst(Address(fRec2_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fRec1_tmp[36], kStack)
-	DeclareVarInst("double*", fRec1, kStack, LoadVarAddressInst(Address(fRec1_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fRec0_tmp[36], kStack)
-	DeclareVarInst("double*", fRec0, kStack, LoadVarAddressInst(Address(fRec0_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fZec4[32], kStack)
-	DeclareVarInst("double", fRec9_tmp[36], kStack)
-	DeclareVarInst("double*", fRec9, kStack, LoadVarAddressInst(Address(fRec9_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fZec5[32], kStack)
-	DeclareVarInst("double", fRec8_tmp[36], kStack)
-	DeclareVarInst("double*", fRec8, kStack, LoadVarAddressInst(Address(fRec8_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fZec6[32], kStack)
-	DeclareVarInst("double", fRec7_tmp[36], kStack)
-	DeclareVarInst("double*", fRec7, kStack, LoadVarAddressInst(Address(fRec7_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fRec6_tmp[36], kStack)
-	DeclareVarInst("double*", fRec6, kStack, LoadVarAddressInst(Address(fRec6_tmp, kStack)[Int32(4)]))
-	DeclareVarInst("double", fSlow28, kStack, BinopInst("*", Double(F64(0.3333333333333333)), CastInst("double", LoadVarInst(Address(fCheckbox0, kStruct)))))
-EndBlockInst
-========== dump2FIR statement end ==========
-# ------------------------------------------------------------------------------
-
-var output0_ptr = outputs[S32(0)]
+        var output0_ptr = outputs[S32(0)]
         var slow0 = F64(dsp.hslider0)
         var slow1 = max(slow0, F64(23.44894968246214))
         var slow2 = max(F64(2e+01), abs(slow1))
         var slow3 = (dsp.const1) * (slow2)
-        var rec4_tmp: Arr[F64, 36]
-        var rec4 = rec4_tmp[S32(4)]
+        var rec4_tmp = Arr[F64, 36](uninitialized=True)
+        var rec4 = Ptr(to=rec4_tmp[S32(4)])
         var slow4 = max((slow0) + (F64(dsp.hslider1)), F64(23.44894968246214))
         var slow5 = max(F64(2e+01), abs(slow4))
         var slow6 = (dsp.const1) * (slow5)
-        var rec5_tmp: Arr[F64, 36]
-        var rec5 = rec5_tmp[S32(4)]
+        var rec5_tmp = Arr[F64, 36](uninitialized=True)
+        var rec5 = Ptr(to=rec5_tmp[S32(4)])
         var slow7 = F64(dsp.hslider2)
         var slow8 = (dsp.const2) * (slow7)
         var slow9 = (F64(1.0)) / ((slow8) + (F64(1.0)))
         var slow10 = F64(dsp.hslider3)
         var slow11 = (dsp.const2) * ((slow10) * (slow7))
-        var i_vec0_tmp: Arr[S32, 36]
-        var i_vec0 = i_vec0_tmp[S32(4)]
-        var zec0: Arr[F64, 32]
+        var i_vec0_tmp = Arr[S32, 36](uninitialized=True)
+        var i_vec0 = Ptr(to=i_vec0_tmp[S32(4)])
+        var zec0 = Arr[F64, 32](uninitialized=True)
         var slow12 = (F64(1.0)) / (slow2)
-        var yec0_tmp: Arr[F64, 36]
-        var yec0 = yec0_tmp[S32(4)]
-        var zec1: Arr[F64, 32]
+        var yec0_tmp = Arr[F64, 36](uninitialized=True)
+        var yec0 = Ptr(to=yec0_tmp[S32(4)])
+        var zec1 = Arr[F64, 32](uninitialized=True)
         var slow13 = (F64(1.0)) / (slow5)
-        var yec1_tmp: Arr[F64, 36]
-        var yec1 = yec1_tmp[S32(4)]
-        var zec2: Arr[F64, 32]
+        var yec1_tmp = Arr[F64, 36](uninitialized=True)
+        var yec1 = Ptr(to=yec1_tmp[S32(4)])
+        var zec2 = Arr[F64, 32](uninitialized=True)
         var slow14 = max(F64(0.0), min(F64(2047.0), (dsp.const4) / (slow4)))
         var i_slow15 = S32(slow14)
         var slow16 = F64(i_slow15)
@@ -381,31 +319,30 @@ var output0_ptr = outputs[S32(0)]
         var slow25 = (slow20) - (slow22)
         var i_slow26 = (i_slow21) + (S32(1))
         var slow27 = (slow16) + ((F64(1.0)) - (slow14))
-        var zec3: Arr[F64, 32]
-        var rec3_tmp: Arr[F64, 36]
-        var rec3 = rec3_tmp[S32(4)]
-        var rec2_tmp: Arr[F64, 36]
-        var rec2 = rec2_tmp[S32(4)]
-        var rec1_tmp: Arr[F64, 36]
-        var rec1 = rec1_tmp[S32(4)]
-        var rec0_tmp: Arr[F64, 36]
-        var rec0 = rec0_tmp[S32(4)]
-        var zec4: Arr[F64, 32]
-        var rec9_tmp: Arr[F64, 36]
-        var rec9 = rec9_tmp[S32(4)]
-        var zec5: Arr[F64, 32]
-        var rec8_tmp: Arr[F64, 36]
-        var rec8 = rec8_tmp[S32(4)]
-        var zec6: Arr[F64, 32]
-        var rec7_tmp: Arr[F64, 36]
-        var rec7 = rec7_tmp[S32(4)]
-        var rec6_tmp: Arr[F64, 36]
-        var rec6 = rec6_tmp[S32(4)]
+        var zec3 = Arr[F64, 32](uninitialized=True)
+        var rec3_tmp = Arr[F64, 36](uninitialized=True)
+        var rec3 = Ptr(to=rec3_tmp[S32(4)])
+        var rec2_tmp = Arr[F64, 36](uninitialized=True)
+        var rec2 = Ptr(to=rec2_tmp[S32(4)])
+        var rec1_tmp = Arr[F64, 36](uninitialized=True)
+        var rec1 = Ptr(to=rec1_tmp[S32(4)])
+        var rec0_tmp = Arr[F64, 36](uninitialized=True)
+        var rec0 = Ptr(to=rec0_tmp[S32(4)])
+        var zec4 = Arr[F64, 32](uninitialized=True)
+        var rec9_tmp = Arr[F64, 36](uninitialized=True)
+        var rec9 = Ptr(to=rec9_tmp[S32(4)])
+        var zec5 = Arr[F64, 32](uninitialized=True)
+        var rec8_tmp = Arr[F64, 36](uninitialized=True)
+        var rec8 = Ptr(to=rec8_tmp[S32(4)])
+        var zec6 = Arr[F64, 32](uninitialized=True)
+        var rec7_tmp = Arr[F64, 36](uninitialized=True)
+        var rec7 = Ptr(to=rec7_tmp[S32(4)])
+        var rec6_tmp = Arr[F64, 36](uninitialized=True)
+        var rec6 = Ptr(to=rec6_tmp[S32(4)])
         var slow28 = (F64(0.3333333333333333)) * (F64(dsp.checkbox0))
-        var vindex_re0 = S32(0)
         vindex_re0 = S32(0)
         while ((vindex_re0) <= ((count) - (S32(32)))): 
-            var output0 = output0_ptr[vindex_re0]
+            var output0 = Ptr(to=output0_ptr[vindex_re0])
             var vsize_re0 = S32(32)
             var j0_re0 = S32(0)
             while ((j0_re0) < (S32(4))): 
@@ -609,7 +546,7 @@ var output0_ptr = outputs[S32(0)]
                 i_re22 = (i_re22) + (S32(1))
             vindex_re0 = (vindex_re0) + (S32(32))
         if ((vindex_re0) < (count) != 0):
-            var output0 = output0_ptr[vindex_re0]
+            var output0 = Ptr(to=output0_ptr[vindex_re0])
             var vsize_re1 = (count) - (vindex_re0)
             var j0_re1 = S32(0)
             while ((j0_re1) < (S32(4))): 
@@ -811,9 +748,15 @@ var output0_ptr = outputs[S32(0)]
             while ((i_re45) < (vsize_re1)): 
                 output0[i_re45] = SIMD[dreal, 1]((rec0[i_re45]) - ((slow28) * (rec6[i_re45])))
                 i_re45 = (i_re45) + (S32(1))
-        
-    
-
+ 
+# ==============================================================================
+# Faust generated DSP code end.
+# ==============================================================================
+# Second section of architecture provided code start.
+# Defines the main entry point of the application.
+# Initializes the dsp object, allocates and intializes the audio buffers and
+# calls the inspect function to run the dsp code.
+# ==============================================================================
 
 def main() -> None:
     comptime Real = SIMD[dfaust, 1]
@@ -840,3 +783,7 @@ def inspect_compute(mut dsp: mydsp, inputs: ReadStreams[dfaust], outputs: MutaSt
         keep(outputs)
         dsp.compute[dfaust](BUFF_SIZE, inputs, outputs)
         clobber_memory()
+
+# ==============================================================================
+# Second section of architecture provided code end.
+# ==============================================================================
