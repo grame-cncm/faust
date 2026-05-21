@@ -18,7 +18,7 @@ CompileFlags:
       -I/opt/homebrew/opt/llvm/include,
       -I/usr/local/include,
       -I/Users/manuelfarzini/Personal/dev/include,
-      ### faust repo
+      # NOTE:(manu) personal faust fork location
       -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler,
       -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/FaustAlgebra,
       -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/boxes,

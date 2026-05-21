@@ -15,14 +15,22 @@
 #define fn inline auto
 #endif
 
-#ifndef no_inline
+#ifndef bench_no_inline
 #if defined(_MSC_VER)
-    #define no_inline __declspec(noinline)
+    #define bench_no_inline __declspec(noinline)
 #elif defined(__clang__) || defined(__GNUC__)
-    #define no_inline __attribute__((noinline))
+    #define bench_no_inline __attribute__((noinline))
 #else
-    #define no_inline
+    #define bench_no_inline
 #endif
+#endif
+
+#if defined(_WIN32)
+    #define bench_export __declspec(dllexport)
+#elif defined(__clang__) || defined(__GNUC__)
+    #define bench_export __attribute__((visibility("default"), used))
+#else
+    #define bench_export
 #endif
 
 // Common benchmark compiler options.
@@ -62,6 +70,9 @@ inline namespace bench {
 inline constexpr ssize PTR_SIZE = sizeof(void*);
 inline constexpr ssize PTR_ALIGN = alignof(void*); 
 inline constexpr ssize STD_ALIGN = alignof(max_align_t);
+inline constexpr ssize REAL_ALIGN = alignof(Real);
+inline constexpr ssize REAL_SIZE = sizeof(Real);
+inline constexpr ssize ALIGN = STD_ALIGN > REAL_ALIGN ? STD_ALIGN : REAL_ALIGN;
 
 using AllocError = s32;
 inline constexpr s32 AllocError_None       = 0;
@@ -84,10 +95,6 @@ fn alloc_buffers(s32 const n_ins, s32 const n_outs) -> Res<void*, AllocError>
         return {nullptr, AllocError_IllegalArg};
     }
 
-    constexpr ssize REAL_SIZE = sizeof(Real);
-    constexpr ssize REAL_ALIGN = alignof(Real);
-    constexpr ssize ALIGN = STD_ALIGN > REAL_ALIGN ? STD_ALIGN : REAL_ALIGN;
-
     s32 header_size = align_up(PTR_SIZE * (n_ins + n_outs), REAL_ALIGN);
     s32 block_size = REAL_SIZE * BUFF_SIZE * (n_ins + n_outs);
     s32 tot_size = header_size + block_size;
@@ -104,9 +111,6 @@ fn alloc_buffers(s32 const n_ins, s32 const n_outs) -> Res<void*, AllocError>
 
 fn init_buffers(void* base, s32 const n_ins, s32 const n_outs) -> void
 {
-    constexpr ssize REAL_ALIGN = alignof(Real);
-    constexpr ssize REAL_SIZE = sizeof(Real);
-
     s32 n_chans =  n_ins + n_outs;
     ssize header_size = align_up(n_chans * PTR_SIZE, REAL_ALIGN);
 

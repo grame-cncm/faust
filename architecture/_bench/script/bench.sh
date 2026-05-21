@@ -511,6 +511,7 @@ _bench_generate_cpp() {
   mkdir -p "$(dirname "${cpp_out}")"
   "${BENCH_FAUST_BIN}" \
     -lang cpp \
+    "${BENCH_FAUST_OPT[@]}" \
     -a "${BENCH_CPP_ARCH_DIR}/bench.cpp" \
     "${dsp_path}" \
     -o "${cpp_out}"
@@ -526,6 +527,7 @@ _bench_generate_mojo() {
   mkdir -p "$(dirname "${mojo_out}")"
   "${BENCH_FAUST_BIN}" \
     -lang mojo \
+    "${BENCH_FAUST_OPT[@]}" \
     -a "${BENCH_MOJO_ARCH_DIR}/bench.mojo" \
     "${dsp_path}" \
     -o "${mojo_out}"
@@ -558,6 +560,7 @@ _inspect_generate_cpp() {
   mkdir -p "$(dirname "${cpp_out}")"
   "${BENCH_FAUST_BIN}" \
     -lang cpp \
+    "${BENCH_FAUST_OPT[@]}" \
     -a "${BENCH_CPP_ARCH_DIR}/inspect.cpp" \
     "${dsp_path}" \
     -o "${cpp_out}"
@@ -573,6 +576,7 @@ _inspect_generate_mojo() {
   mkdir -p "$(dirname "${mojo_out}")"
   "${BENCH_FAUST_BIN}" \
     -lang mojo \
+    "${BENCH_FAUST_OPT[@]}" \
     -a "${BENCH_MOJO_ARCH_DIR}/inspect.mojo" \
     "${dsp_path}" \
     -o "${mojo_out}"

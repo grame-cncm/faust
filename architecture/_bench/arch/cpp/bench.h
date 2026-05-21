@@ -78,12 +78,12 @@ struct BenchRun {
     s32 iterations          = 0;
     f64 elapsed_s           = 0.0;
     f64 ns_per_compute      = 0.0;
-    f64 max_ns_per_compute = 0.0;
-    f64 min_ns_per_compute = 0.0;
+    f64 slow_ns_per_compute = 0.0;
+    f64 fast_ns_per_compute = 0.0;
 };
 
 template<typename Func>
-fn _measure_adaptive(Func&& func) -> BenchRun
+fn _measure_adaptive(Func&& function) -> BenchRun
 {
     using Clock = std::chrono::steady_clock;
 
@@ -119,7 +119,7 @@ fn _measure_adaptive(Func&& func) -> BenchRun
         auto beg = Clock::now();
 
         for (s32 i = 0; i < batch_iters; i++) {
-            func();
+            function();
         }
 
         auto end = Clock::now();
@@ -195,8 +195,8 @@ fn _measure_adaptive(Func&& func) -> BenchRun
     run.iterations = significant_iters;
     run.elapsed_s = significant_elapsed_s;
     run.ns_per_compute = weighted_ns_sum / f64(significant_iters);
-    run.max_ns_per_compute = fastest_ns;
-    run.min_ns_per_compute = slowest_ns;
+    run.fast_ns_per_compute = fastest_ns;
+    run.slow_ns_per_compute = slowest_ns;
     return run;
 }
 
@@ -271,8 +271,8 @@ fn measure(auto& dsp, Real** inputs, Real** outputs) -> FaustReport
     report.batches = run.batches;
     report.elapsed_s = run.elapsed_s;
     report.ns_per_compute = run.ns_per_compute;
-    report.fast_ns_per_compute = run.max_ns_per_compute;
-    report.slow_ns_per_compute = run.min_ns_per_compute;
+    report.fast_ns_per_compute = run.slow_ns_per_compute;
+    report.slow_ns_per_compute = run.fast_ns_per_compute;
     report.spread_ns_per_compute = report.slow_ns_per_compute - report.fast_ns_per_compute;
 
     if (report.ns_per_compute > 0.0) {
@@ -321,41 +321,41 @@ fn print_report(FaustReport const& report) -> void
 {
     printf("Faust compute benchmark\n");
     puts("------------------------------------");
-    printf("identity:\n");
-    printf("  language:       %s\n", report.language.data());
-    printf("  dsp:            %s\n", report.dsp.data());
-    printf("  bench case:     %s\n", report.bench_case.data());
-    printf("  precision:      %s\n", report.precision.data());
-    printf("  optimization:   %s\n", report.opt.data());
+    printf("Identity\n");
+    printf("  language:       %s\n",     report.language.data());
+    printf("  dsp:            %s\n",     report.dsp.data());
+    printf("  bench case:     %s\n",     report.bench_case.data());
+    printf("  precision:      %s\n",     report.precision.data());
+    printf("  optimization:   %s\n",     report.opt.data());
     puts("------------------------------------");
-    printf("configuration:\n");
-    printf("  sample rate:    %d\n", report.samp_rate);
-    printf("  buffer size:    %d\n", report.buff_size);
-    printf("  inputs:         %d\n", report.inputs);
-    printf("  outputs:        %d\n", report.outputs);
-    printf("  warm-up iters:  %d\n", report.warmup_iters);
-    printf("  run iters:      %d\n", report.run_iters);
-    printf("  batches:        %d\n", report.batches);
+    printf("Configuration\n");
+    printf("  sample rate:    %d\n",     report.samp_rate);
+    printf("  buffer size:    %d\n",     report.buff_size);
+    printf("  inputs:         %d\n",     report.inputs);
+    printf("  outputs:        %d\n",     report.outputs);
+    printf("  warm-up iters:  %d\n",     report.warmup_iters);
+    printf("  run iters:      %d\n",     report.run_iters);
+    printf("  batches:        %d\n",     report.batches);
     puts("------------------------------------");
-    printf("timing:\n");
+    printf("Timing\n");
     printf("  elapsed:        %.9f s\n", report.elapsed_s);
-    printf("  ns/compute:     %.3f\n", report.ns_per_compute);
-    printf("  fast ns/cmp:    %.3f\n", report.fast_ns_per_compute);
-    printf("  slow ns/cmp:    %.3f\n", report.slow_ns_per_compute);
-    printf("  spread ns/cmp:  %.3f\n", report.spread_ns_per_compute);
-    printf("  spread %%:       %.3f\n", report.spread_percent);
-    printf("  ns/frame:       %.3f\n", report.ns_per_frame);
-    printf("  ns/out_samp:    %.3f\n", report.ns_per_out_samp);
+    printf("  ns/compute:     %.3f\n",   report.ns_per_compute);
+    printf("  fast ns/cmp:    %.3f\n",   report.fast_ns_per_compute);
+    printf("  slow ns/cmp:    %.3f\n",   report.slow_ns_per_compute);
+    printf("  spread ns/cmp:  %.3f\n",   report.spread_ns_per_compute);
+    printf("  spread %%:       %.3f\n",  report.spread_percent);
+    printf("  ns/frame:       %.3f\n",   report.ns_per_frame);
+    printf("  ns/out_samp:    %.3f\n",   report.ns_per_out_samp);
     puts("------------------------------------");
-    printf("throughput:\n");
-    printf("  frames/s:       %.3f\n", report.frames_per_s);
-    printf("  fast frames/s:  %.3f\n", report.fast_frames_per_s);
-    printf("  slow frames/s:  %.3f\n", report.slow_frames_per_s);
-    printf("  out_samp/s:     %.3f\n", report.out_samp_per_s);
-    printf("  fast out_samp/s:%.3f\n", report.fast_out_samp_per_s);
-    printf("  slow out_samp/s:%.3f\n", report.slow_out_samp_per_s);
+    printf("Throughput\n");
+    printf("  frames/s:       %.3f\n",   report.frames_per_s);
+    printf("  fast frames/s:  %.3f\n",   report.fast_frames_per_s);
+    printf("  slow frames/s:  %.3f\n",   report.slow_frames_per_s);
+    printf("  out_samp/s: %.3f\n",   report.out_samp_per_s);
+    printf("  fast out_samp/s: %.3f\n",   report.fast_out_samp_per_s);
+    printf("  slow out_samp/s: %.3f\n",   report.slow_out_samp_per_s);
     puts("------------------------------------");
-    printf("validation:\n");
+    printf("Validation\n");
     printf("  checksum:       %.17g\n", report.checksum);
 }
 

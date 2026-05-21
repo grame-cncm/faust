@@ -5,7 +5,7 @@
 <<includeIntrinsic>>
 <<includeclass>>
 
-no_inline void inspect_compute(mydsp& dsp, Real** inputs, Real** outputs);
+bench_no_inline void inspect_compute(mydsp& dsp, Real** inputs, Real** outputs);
 
 int main() {
     mydsp* dsp = new mydsp();
@@ -28,7 +28,8 @@ int main() {
     return 0;
 }
 
-no_inline void inspect_compute(mydsp& dsp, Real** inputs, Real** outputs)
+bench_no_inline bench_export
+void inspect_compute(mydsp& dsp, Real** inputs, Real** outputs)
 {
     for (int i = 0; i < COMPUTE_ITERS; i++) {
         _do_not_optimize(inputs);

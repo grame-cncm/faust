@@ -1,7 +1,8 @@
 # bench/bench.mojo
 
 from std.pathlib import Path
-from std.benchmark import Report, Unit, run, keep, clobber_memory
+from std.time import perf_counter
+from std.benchmark import keep, clobber_memory
 
 from conf import *
 from mem import *
@@ -22,7 +23,9 @@ comptime WARMUP_ITERS = get_defined_int["WARMUP_ITERS", 50]()
 comptime COMPUTE_ITERS = get_defined_int["COMPUTE_ITERS", 1_000_000]()
 comptime MIN_RUNTIME_SECS = F64(get_defined_int["MIN_RUNTIME_SECS", 1]())
 comptime MAX_RUNTIME_SECS = F64(get_defined_int["MAX_RUNTIME_SECS", 60]())
+comptime TARGET_BATCH_SECS = 0.005
 comptime MAX_BATCH_SIZE = get_defined_int["MAX_BATCH_SIZE", 10_000]()
+comptime MAX_BATCHES = get_defined_int["MAX_BATCHES", 1_000]()
 comptime FILL_INPUTS = get_defined_bool["FILL_INPUTS", False]()
 comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96_000]())
 comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 128]())
@@ -35,10 +38,34 @@ comptime WRITE_CSV = get_defined_bool["WRITE_CSV", False]()
 comptime dfaust = FAUST_DTYPE
 comptime FaustFloat = SIMD[dfaust, 1]
 
-comptime PRECISION_STRINGS: InlineArray[String, 2] = ["single", "double"]
+comptime PRECISION_STRINGS: Arr[String, 2] = ["single", "double"]
 comptime PRECISION = PRECISION_STRINGS[size_of[FaustFloat]() // 4 - 1]
 
 # Faust benchmark API.
+
+struct BenchBatch(ImplicitlyCopyable):
+    var iterations: S32
+    var elapsed_s: F64
+    var ns_per_compute: F64
+    def __init__(out batch):
+        batch.iterations = 0
+        batch.elapsed_s = 0.0
+        batch.ns_per_compute = 0.0
+
+struct BenchRun(ImplicitlyCopyable):
+    var batches: S32
+    var iterations: S32
+    var elapsed_s: F64
+    var ns_per_compute: F64
+    var fast_ns_per_compute: F64
+    var slow_ns_per_compute: F64
+    def __init__(out run):
+        run.batches = 0
+        run.iterations = 0
+        run.elapsed_s = 0.0
+        run.ns_per_compute = 0.0
+        run.fast_ns_per_compute = 0.0
+        run.slow_ns_per_compute = 0.0
 
 struct FaustReport(ImplicitlyCopyable):
     var language: String
@@ -106,51 +133,151 @@ def fill_inputs[dreal: DType](inputs: MutaStreams[dreal], n_ins: S32) -> None:
 
 def warmup[dreal: DType, Dsp: FaustDsp](
     mut dsp: Dsp, inputs: MutaStreams[dreal], outputs: MutaStreams[dreal]
-) -> None: pass
+) -> None:
+    comptime Real = SIMD[dreal, 1]
+    var read_inputs = inputs.bitcast[Ptr[Real, READ_EXT]]().as_immutable()
+    for _ in range(S32(WARMUP_ITERS)):
+        dsp.compute[dreal](BUFF_SIZE, read_inputs, outputs)
+
+def _measure_adaptive[dreal: DType, Dsp: FaustDsp](
+    mut dsp: Dsp, inputs: MutaStreams[dreal], outputs: MutaStreams[dreal]
+) -> BenchRun:
+    comptime Real = SIMD[dreal, 1]
+    var read_inputs = inputs.bitcast[Ptr[Real, READ_EXT]]().as_immutable()
+
+    var batches = Arr[BenchBatch, MAX_BATCHES](fill=BenchBatch())
+
+    var batch_count = S32(0)
+    var total_iters = S32(0)
+    var total_elapsed_s = 0.0
+
+    var batch_iters = S32(1)
+
+    while True:
+        if batch_count >= S32(MAX_BATCHES):
+            break
+        if total_iters >= S32(COMPUTE_ITERS) and total_elapsed_s >= MIN_RUNTIME_SECS:
+            break
+        if total_elapsed_s >= MAX_RUNTIME_SECS:
+            break
+        if batch_iters < 1:
+            batch_iters = 1
+        if batch_iters > S32(MAX_BATCH_SIZE):
+            batch_iters = S32(MAX_BATCH_SIZE)
+        var remaining_iters = S32(COMPUTE_ITERS) - total_iters
+        if remaining_iters > 0 and batch_iters > remaining_iters:
+            batch_iters = remaining_iters
+
+        var beg = perf_counter()
+
+        for _ in range(batch_iters):
+            comptime if BENCH_BARRIERS:
+                keep(read_inputs) 
+                keep(outputs)
+            dsp.compute[dreal](BUFF_SIZE, read_inputs, outputs)
+            comptime if BENCH_BARRIERS:
+                clobber_memory()
+
+        var end = perf_counter()
+
+        var elapsed_s = end - beg
+        var ns_per_compute = elapsed_s * 1.0e9 / F64(batch_iters)
+
+        batches[Int(batch_count)].iterations = batch_iters
+        batches[Int(batch_count)].elapsed_s = elapsed_s
+        batches[Int(batch_count)].ns_per_compute = ns_per_compute
+
+        batch_count += 1
+        total_iters += batch_iters
+        total_elapsed_s += elapsed_s
+
+        if elapsed_s > 0.0:
+            var scale = TARGET_BATCH_SECS / elapsed_s
+            var next_batch_iters = S32(F64(batch_iters) * scale)
+
+            if next_batch_iters <= batch_iters:
+                next_batch_iters = batch_iters + 1
+            if next_batch_iters > batch_iters * 10:
+                next_batch_iters = batch_iters * 10
+            if next_batch_iters > S32(MAX_BATCH_SIZE):
+                next_batch_iters = S32(MAX_BATCH_SIZE)
+
+            batch_iters = next_batch_iters
+        else:
+            batch_iters *= 10
+
+            if batch_iters > S32(MAX_BATCH_SIZE):
+                batch_iters = S32(MAX_BATCH_SIZE)
+
+    if batch_count == 0 or total_iters == 0:
+        return BenchRun()
+
+    var significant_count = batch_count // 10
+    if significant_count < 1:
+        significant_count = 1
+    var significant_start = batch_count - significant_count
+    var significant_iters = S32(0)
+    var significant_elapsed_s = 0.0
+    var weighted_ns_sum = 0.0
+    var fastest_ns = batches[Int(significant_start)].ns_per_compute
+    var slowest_ns = batches[Int(significant_start)].ns_per_compute
+
+    for i in range(significant_start, batch_count):
+        var batch = batches[Int(i)]
+
+        significant_iters += batch.iterations
+        significant_elapsed_s += batch.elapsed_s
+        weighted_ns_sum += batch.ns_per_compute * F64(batch.iterations)
+
+        if batch.ns_per_compute < fastest_ns:
+            fastest_ns = batch.ns_per_compute
+        if batch.ns_per_compute > slowest_ns:
+            slowest_ns = batch.ns_per_compute
+
+    if significant_iters == 0:
+        return BenchRun()
+
+    var run = BenchRun()
+    run.batches = batch_count
+    run.iterations = significant_iters
+    run.elapsed_s = significant_elapsed_s
+    run.ns_per_compute = weighted_ns_sum / F64(significant_iters)
+    run.fast_ns_per_compute = fastest_ns
+    run.slow_ns_per_compute = slowest_ns
+    return run
 
 def measure[dreal: DType, Dsp: FaustDsp](
     mut dsp: Dsp, inputs: MutaStreams[dreal], outputs: MutaStreams[dreal]
 ) raises -> FaustReport:
-    comptime Real = SIMD[dreal, 1]
-    @parameter
-    def bench_compute() capturing:
-        comptime if BENCH_BARRIERS == 1:
-            keep(inputs)
-            keep(outputs)
-        var read_inputs = inputs.bitcast[Ptr[Real, READ_EXT]]().as_immutable()
-        dsp.compute[dreal](BUFF_SIZE, read_inputs, outputs)
-        comptime if BENCH_BARRIERS == 1:
-            clobber_memory()
-    var raw_report = run[func4=bench_compute](
-        WARMUP_ITERS, COMPUTE_ITERS, MIN_RUNTIME_SECS, MAX_RUNTIME_SECS, MAX_BATCH_SIZE
-    )
+    var raw_report = _measure_adaptive[dreal, Dsp](dsp, inputs, outputs)
     var dsp_inputs = dsp.get_num_inputs()
     var dsp_outputs = dsp.get_num_outputs()
-    var run_iters = raw_report.iters()
+    var run_iters = raw_report.iterations
     var total_frames = F64(run_iters) * F64(BUFF_SIZE)
     var total_output_samples = total_frames * F64(dsp_outputs)
     var report = FaustReport()
     report.inputs = dsp_inputs
     report.outputs = dsp_outputs
     report.run_iters = S32(run_iters)
-    report.batches = S32(len(raw_report.runs))
-    report.elapsed_s = raw_report.duration(Unit.s)
-    report.ns_per_compute = raw_report.mean(Unit.ns)
-    report.fast_ns_per_compute = raw_report.min(Unit.ns)
-    report.slow_ns_per_compute = raw_report.max(Unit.ns)
+    report.batches = raw_report.batches
+    report.elapsed_s = raw_report.elapsed_s
+    report.ns_per_compute = raw_report.ns_per_compute
+    report.fast_ns_per_compute = raw_report.fast_ns_per_compute
+    report.slow_ns_per_compute = raw_report.slow_ns_per_compute
     report.spread_ns_per_compute = report.slow_ns_per_compute - report.fast_ns_per_compute
     if report.ns_per_compute > 0.0:
         report.spread_percent = report.spread_ns_per_compute / report.ns_per_compute * 100.0
     else:
         report.spread_percent = 0.0
     report.ns_per_frame = report.ns_per_compute / F64(BUFF_SIZE)
-    if dsp_outputs > 0:
+    if dsp_outputs > 0 and report.elapsed_s > 0.0:
         report.ns_per_out_samp = report.ns_per_frame / F64(dsp_outputs)
         report.out_samp_per_s = total_output_samples / report.elapsed_s
     else:
         report.ns_per_out_samp = 0.0
         report.out_samp_per_s = 0.0
-    report.frames_per_s = total_frames / report.elapsed_s
+    if report.elapsed_s > 0.0:
+        report.frames_per_s = total_frames / report.elapsed_s
     if report.fast_ns_per_compute > 0.0:
         report.fast_frames_per_s = 1.0e9 / report.fast_ns_per_compute * F64(BUFF_SIZE)
         report.fast_out_samp_per_s = report.fast_frames_per_s * F64(dsp_outputs)

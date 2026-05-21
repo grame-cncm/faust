@@ -24,6 +24,10 @@ else
   BENCH_SCRIPT_DIR="$(cd "$(dirname "${(%):-%x}")" && pwd)"
 fi
 
+if ! declare -p BENCH_FAUST_OPT >/dev/null 2>&1; then
+  BENCH_FAUST_OPT=()
+fi
+
 BENCH_ROOT="$(cd "${BENCH_SCRIPT_DIR}/.." && pwd)"
 BENCH_FAUST_ROOT="$(cd "${BENCH_ROOT}/../.." && pwd)"
 BENCH_FAUST_BIN="${BENCH_FAUST_BIN:-${BENCH_FAUST_ROOT}/build/bin/faust}"

@@ -1,7 +1,7 @@
 /* ------------------------------------------------------------
 name: "carre_volterra"
 Code generated with Faust 2.85.5 (https://faust.grame.fr)
-Compilation options: -a _bench/arch/cpp/inspect.cpp -lang cpp -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32
+Compilation options: -a arch/cpp/inspect.cpp -lang cpp -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32
 ------------------------------------------------------------ */
 
 #ifndef  __mydsp_H__
@@ -88,7 +88,7 @@ class mydsp : public dsp {
 	mydsp& operator=(const mydsp&) = default;
 	
 	void metadata(Meta* m) { 
-		m->declare("compile_options", "-a _bench/arch/cpp/inspect.cpp -lang cpp -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32");
+		m->declare("compile_options", "-a arch/cpp/inspect.cpp -lang cpp -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32");
 		m->declare("effect.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
 		m->declare("effect.lib/copyright", "Julius O. Smith III");
 		m->declare("effect.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
@@ -771,7 +771,7 @@ class mydsp : public dsp {
 
 };
 
-no_inline void inspect_compute(mydsp& dsp, Real** inputs, Real** outputs);
+bench_no_inline void inspect_compute(mydsp& dsp, Real** inputs, Real** outputs);
 
 int main() {
     mydsp* dsp = new mydsp();
@@ -794,7 +794,8 @@ int main() {
     return 0;
 }
 
-no_inline void inspect_compute(mydsp& dsp, Real** inputs, Real** outputs)
+bench_no_inline bench_export
+void inspect_compute(mydsp& dsp, Real** inputs, Real** outputs)
 {
     for (int i = 0; i < COMPUTE_ITERS; i++) {
         _do_not_optimize(inputs);

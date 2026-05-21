@@ -1,5 +1,5 @@
 # ==============================================================================
-# Faust-to-Mojo inspect architecture for the benchmark framework.
+# Faust to Mojo inspect architecture for the benchmark framework.
 # Provides the minimal definitions and entry point needed to generate
 # low-level code with clear symbols for inspecting the generated compute code.
 # ==============================================================================
@@ -43,7 +43,7 @@ def main() -> None:
     dsp[].init(SAMP_RATE)
     var n_ins = dsp[].get_num_inputs()
     var n_outs = dsp[].get_num_outputs()
-    var base, err = make_buffers[dfaust](BUFF_SIZE, n_ins, n_outs)
+    var base, err = make_streams[dfaust](BUFF_SIZE, n_ins, n_outs)
     if err:
         dsp.free()
         return
