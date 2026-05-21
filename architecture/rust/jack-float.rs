@@ -124,38 +124,52 @@ fn main() {
 
     println!("Faust Rust code running with JACK: sample-rate = {} buffer-size = {}", client.sample_rate(), client.buffer_size());
 
-    println!("get_num_inputs: {}", dsp.get_num_inputs());
-    println!("get_num_outputs: {}", dsp.get_num_outputs());
+    let num_inputs = dsp.get_num_inputs() as usize;
+    let num_outputs = dsp.get_num_outputs() as usize;
+    println!("get_num_inputs: {}", num_inputs);
+    println!("get_num_outputs: {}", num_outputs);
 
     // Init DSP with a given SR
     dsp.init(client.sample_rate() as i32);
 
-    // Register ports. They will be used in a callback that will be
-    // called when new data is available.
+    // Register N input and M output ports based on the DSP's declared
+    // channel counts. The previous version of this arch file hard-coded
+    // 2x2, which made any other channel layout panic with "wrong number
+    // of input/output buffers" inside dsp.compute().
+    let in_ports: Vec<j::Port<j::AudioInSpec>> = (0..num_inputs)
+        .map(|i| client.register_port(&format!("in{}", i + 1), j::AudioInSpec::default()).unwrap())
+        .collect();
 
-    let in_a = client.register_port("in1", j::AudioInSpec::default()).unwrap();
-    let in_b = client.register_port("in2", j::AudioInSpec::default()).unwrap();
-
-    let mut out_a = client.register_port("out1", j::AudioOutSpec::default()).unwrap();
-    let mut out_b = client.register_port("out2", j::AudioOutSpec::default()).unwrap();
+    let mut out_ports: Vec<j::Port<j::AudioOutSpec>> = (0..num_outputs)
+        .map(|i| client.register_port(&format!("out{}", i + 1), j::AudioOutSpec::default()).unwrap())
+        .collect();
 
     let process_callback = move |_: &j::Client, ps: &j::ProcessScope| -> j::JackControl {
-        let mut out_a_p = j::AudioOutPort::new(&mut out_a, ps);
-        let mut out_b_p = j::AudioOutPort::new(&mut out_b, ps);
+        // Build the AudioIn/OutPort views into this ProcessScope.
+        let in_views: Vec<j::AudioInPort> =
+            in_ports.iter().map(|p| j::AudioInPort::new(p, ps)).collect();
+        let mut out_views: Vec<j::AudioOutPort> =
+            out_ports.iter_mut().map(|p| j::AudioOutPort::new(p, ps)).collect();
 
-        let in_a_p = j::AudioInPort::new(&in_a, ps);
-        let in_b_p = j::AudioInPort::new(&in_b, ps);
+        // Collect the &[f32] / &mut[f32] handles dsp.compute wants.
+        let inputs: Vec<&[f32]> = in_views.iter().map(|v| &**v).collect();
+        let mut outputs: Vec<&mut [f32]> =
+            out_views.iter_mut().map(|v| &mut **v).collect();
 
-        let input0: &[f32] = &in_a_p;
-        let input1: &[f32] = &in_b_p;
+        // Determine the frame count: outputs first (always present if M>0),
+        // then inputs, then fall back to the scope's reported buffer size
+        // (covers the 0-in 0-out generator-style edge case). Faust-generated
+        // mydsp.compute takes a `usize`, not the `i32` the FaustDsp trait
+        // declares above — the trait is essentially documentation.
+        let n_frames: usize = if let Some(o) = outputs.first() {
+            o.len()
+        } else if let Some(i) = inputs.first() {
+            i.len()
+        } else {
+            ps.n_frames() as usize
+        };
 
-        let output0: &mut[f32] = &mut out_a_p;
-        let output1: &mut[f32] = &mut out_b_p;
-
-        let inputs = &[input0, input1];
-        let outputs = &mut[output0, output1];
-
-        dsp.compute(in_a_p.len() as usize, inputs, outputs);
+        dsp.compute(n_frames, &inputs, &mut outputs);
 
         j::JackControl::Continue
     };
