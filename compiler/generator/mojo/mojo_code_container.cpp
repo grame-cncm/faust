@@ -22,11 +22,10 @@
 // mojo
 #include "mojo_code_container.hh"
 
-namespace mojo {
+inline namespace mojo {
 
-// =============================================================
-// Mojo code container base interface
-// =============================================================
+///////////////////////////////////////////////////////////////
+// Mojo code container core interface implementation.
 
 MojoCodeContainer::~MojoCodeContainer() {}
 
@@ -154,6 +153,13 @@ void MojoCodeContainer::writeInstanceConstants(int n)
 
 void MojoCodeContainer::writeInstanceResetUserInterface(int n)
 {
+    // NOTE:(manu)
+    // Currently I am not using `fResetUserInterfaceInstructions->accept(fCodeProducer)`
+    // because it would generate a cast to `SIMD[dtype, _]`. Then that value should be
+    // cast back to FaustFloat or it will lead to compiler error.
+    // This workaround is based on the assumption that `FAUST` compiler generates a cast
+    // expression for every field to be initialized.
+
     *fOut << wtab(n) << "@always_inline\n";
     *fOut << wtab(n) << "def instance_reset_user_interface(mut dsp) -> None:\n";
     if (fResetUserInterfaceInstructions->fCode.size() == 0) {
@@ -181,12 +187,6 @@ void MojoCodeContainer::writeInstanceResetUserInterface(int n)
             }
             faustassert(false);
         }
-
-        // XXX:(manu)
-        // I am not using fResetUserInterfaceInstructions->accept(fCodeProducer)
-        // because I need to avoid the cast to SIMD[dtype..] since it is not needed
-        // and leads to compiler errors. The following can be wrong if the faust
-        // compiler does not generate a cast expression for some field.
         cast_inst->accept(fCodeProducer);
     }
 }
@@ -207,7 +207,7 @@ void MojoCodeContainer::writeInstanceClear(int n)
 void MojoCodeContainer::writeInstanceInit(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def instance_init(mut dsp, sample_rate: S32) -> None:\n";
+    *fOut << wtab(n) << "def instance_init(mut dsp, read sample_rate: S32) -> None:\n";
     *fOut << wtab(n + 1) << "dsp.instance_constants(sample_rate)\n";
     *fOut << wtab(n + 1) << "dsp.instance_reset_user_interface()\n";
     *fOut << wtab(n + 1) << "dsp.instance_clear()\n";
@@ -216,7 +216,7 @@ void MojoCodeContainer::writeInstanceInit(int n)
 void MojoCodeContainer::writeInit(int n)
 {
     *fOut << wtab(n) << "@always_inline" << "\n";
-    *fOut << wtab(n) << "def init(mut dsp, sample_rate: S32) -> None:\n";
+    *fOut << wtab(n) << "def init(mut dsp, read sample_rate: S32) -> None:\n";
     *fOut << wtab(n + 1) << "dsp.class_init(sample_rate)\n";
     *fOut << wtab(n + 1) << "dsp.instance_init(sample_rate)\n";
 }
@@ -297,20 +297,9 @@ void MojoScalarCodeContainer::writeCompute(int n)
           << wtab(n+1) <<     "var outputs:    MutaStreams[dreal]\n"
           << wtab(n)   << ") -> None:\n" << wtab(n+1);
     fCodeProducer->Tab(n + 1);
-
-    // TODO:(manu) 
-    // Extract local variables from the loop and move them before.
-    // Currently the Mojo compiler is not able to do that automatically
-    // and it generates a lot of memory loads and stores.
-    // - Start with `rec[i]`
-    // - Then go with `iota`
-    // - Then with the promotable `vec`
-    // Proceed with different degrees since too much pression on registers
-    // can involve stack stores on the other hand.
     generateComputeBlock(fCodeProducer);
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop("count");
     loop->accept(fCodeProducer);
-
     generatePostComputeBlock(fCodeProducer);
     fCodeProducer->Tab(n);
     *fOut << wrewind(fOut, n + 1);
@@ -394,9 +383,8 @@ CodeContainer* MojoCodeContainer::createContainer(
     return (CodeContainer*) new MojoScalarCodeContainer(name, numInputs, numOutputs, out, kInt);
 }
 
-// =============================================================
-// Mojo scalar code container
-// =============================================================
+///////////////////////////////////////////////////////////////
+// Mojo scalar code container implementation.
 
 MojoScalarCodeContainer::~MojoScalarCodeContainer() {}
 
@@ -408,9 +396,8 @@ MojoScalarCodeContainer::MojoScalarCodeContainer(
     fSubContainerType = subContKind;
 }
 
-// =============================================================
-// Mojo vector code container
-// =============================================================
+////////////////////////////////////////////////////////////////
+// Mojo vector code container implementation.
 
 MojoVectorCodeContainer::~MojoVectorCodeContainer() {}
 
@@ -442,9 +429,6 @@ void MojoVectorCodeContainer::writeCompute(int n)
     LoopVariableRenamer loop_renamer;
     BlockInst* loop = loop_renamer.getCode(fDAGBlock);
 
-    // NOTE:(manu)
-    // Pop the vindex declaration since the Mojo visitor will generate
-    // that within the while loop (`ForLoopInst` overload).
     loop->fCode.pop_front();
     generateComputeBlock(fCodeProducer);
     loop->accept(fCodeProducer);
@@ -454,24 +438,3 @@ void MojoVectorCodeContainer::writeCompute(int n)
 }
 
 }  // namespace mojo
-
-// =============================================================
-// Unused
-// =============================================================
-
-// XXX: Is this useless after merging the sub containers? All tests pass
-//
-// void MojoCodeContainer::writeGlobalFunctions(int n)
-// {
-//     mj_unused(n);
-//     isize t = 0;
-//     for (auto const& inst : fGlobalDeclarationInstructions->fCode) {
-//         if (dycast(DeclareFunInst*, inst)) {
-//             inst->accept(fCodeProducer);
-//             t++;
-//         }
-//     }
-//     if (t != 0) {
-//         fOut->seekp(isize(fOut->tellp()) - 1);
-//     }
-// }

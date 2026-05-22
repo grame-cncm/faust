@@ -1144,7 +1144,7 @@ global::~global()
     LinenInstVisitor::cleanup();
 #endif
 #ifdef MOJO_BUILD
-    mojo::MojoInstVisitor::cleanup();
+    MojoInstVisitor::cleanup();
 #endif
 #ifdef ASSEMBLYSCRIPT_BUILD
     AssemblyScriptInstVisitor::cleanup();

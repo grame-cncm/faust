@@ -640,7 +640,7 @@ static void compileMojo(Tree signals, int numInputs, int numOutputs, ostream* ou
     // gGlobal->gAllowForeignFunction = false;
     gGlobal->gNeedManualPow = false;
     gGlobal->gBool2Int = true;
-    gContainer = mojo::MojoCodeContainer::createContainer(
+    gContainer = MojoCodeContainer::createContainer(
         gGlobal->gClassName, numInputs, numOutputs, out
     );
 

@@ -238,8 +238,6 @@ void initFaustFloat()
 
     } else if (gGlobal->gOutputLang == "mojo") {
         numsuffix[0] = "";
-        // NOTE(manu) this one in case we need a placeholder
-        // numsuffix[1] = "%";
         numsuffix[1] = "";
         numsuffix[2] = "";
         numsuffix[3] = "";

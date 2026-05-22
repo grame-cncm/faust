@@ -29,14 +29,13 @@
 // mojo
 #include "_mojo_utils.hh"
 
-namespace mojo {
+inline namespace mojo {
 
 using MathLibTable = std::unordered_map<std::string, std::string>;
 using FuncSymTable = std::unordered_map<std::string, bool>;
 
-// =============================================================
+//////////////////////////////////////////////////////////////
 // Mojo visitors declaration
-// =============================================================
 
 /**
     A `MojoInstVisitor` is a `TextInstVisitor` for the mojo backend.
@@ -92,16 +91,11 @@ public:
     inline void visit(LabelInst* inst) override
     {
         mj_unused(inst);
-        // *fOut << "\n" << wtab(fTab);
-        // XXX: The following works only on single line labels
-        // std::string label = std::string(inst->fLabel.begin() + 2, inst->fLabel.end()- 3);
-        // *fOut << "#" << label << "\n" << wtab(fTab);
-        // *fOut << inst->fLabel;
     }
 
     inline void visit(LoadVarAddressInst* inst) override
     {
-        // TEST: trying to rely on value semantics (l-value ref)
+        // NOTE:(manu) Actually using value semantics (l-value ref)
         inst->fAddress->accept(this);
     }
 
@@ -125,10 +119,12 @@ protected:
     inline static FuncSymTable gFuncSymTable;
 };
 
-/// A `MojoInitFieldsVisitor` is a `DispatchVisitor` for the mojo backend.
-///
-/// It is used to generate the fields initialization code in the default
-/// constructor `__init__(out dsp)` of the generated class.
+/**
+    A `MojoInitFieldsVisitor` is a `DispatchVisitor` for the mojo backend.
+ 
+    It is used to generate the fields initialization code in the default
+    constructor `__init__(out dsp)` of the generated class.
+**/
 class MojoInitFieldsVisitor : public DispatchVisitor {
 public:
     std::ostream*    fOut;
@@ -147,7 +143,10 @@ public:
     static inline void gZeroInitializer(std::ostream* out, Typed* typed);
 };
 
-/// A `MojoVecInstVisitor` is a `MojoInstVisitor` for the mojo backend.
+/**
+    A `MojoVecInstVisitor` is a `MojoInstVisitor` for the mojo backend
+    when the -vec flag is enabled
+**/
 class MojoVecInstVisitor : public MojoInstVisitor {
 public:
     using MojoInstVisitor::visit;
@@ -157,9 +156,8 @@ public:
     );
 };
 
-// =============================================================
+//////////////////////////////////////////////////////////////
 // Mojo visitors implementation
-// =============================================================
 
 MojoInstVisitor::MojoInstVisitor(
     std::ostream* out, std::string const& structName, i32 tab
@@ -300,7 +298,8 @@ void MojoInstVisitor::visit(DeclareVarInst* inst)
         goto End_Inst;
     }
     if (!inst->fValue) {
-        if (dycast(ArrayTyped*, inst->fType)) {
+        b32 is_arr_typed = dycast(ArrayTyped*, inst->fType) != nullptr;
+        if (is_arr_typed) {
             *fOut << name << " = ";
             *fOut << fTypeManager->generateType(inst->fType);
             *fOut << "(uninitialized=True)";
@@ -310,15 +309,12 @@ void MojoInstVisitor::visit(DeclareVarInst* inst)
         goto End_Inst;
     }
     *fOut << name << " = ";
-    // TEST:
     if (dycast(LoadVarAddressInst*, inst->fValue)) {
         *fOut << "Ptr(to=";
         inst->fValue->accept(this);
         *fOut << ")";
         goto End_Inst;
     }
-    // TEST:
-
     inst->fValue->accept(this);
 End_Inst:
     *fOut << wendl(fFinishLine, fTab);
@@ -630,7 +626,6 @@ void MojoInitFieldsVisitor::visit(DoubleArrayNumInst* inst)
     *fOut << ']';
 }
 
-// Need a gDefaultInitializer to?
 void MojoInitFieldsVisitor::gZeroInitializer(std::ostream* out, Typed* typed) {
     ArrayTyped* array_type = dycast(ArrayTyped*, typed);
     Typed::VarType type = typed->getType();
@@ -666,7 +661,8 @@ void MojoInitFieldsVisitor::gZeroInitializer(std::ostream* out, Typed* typed) {
         *out << "0.0";
         break;
     default:
-        *out << "Critical error: unexpected `VarType` " << Typed::gTypeString[type] << "\n";
+        *out << "Panic - MojoInitFieldsVisitor::gZeroInitializer(...) - `typed` has "
+                "unexpected `VarType` " << Typed::gTypeString[type] << "\n";
         faustassert(0);
     }
     *out << "\n";
@@ -784,33 +780,3 @@ MathLibTable MojoInstVisitor::gCreateMathLibTable()
 
 }       // namespace mojo
 #endif  // MOJO_INSTRUCTIONS_HH
-
-// =============================================================
-// Unused
-// =============================================================
-
-// XXX: possible version if `Typed` will be refactored
-//
-//  void MojoInitFieldsVisitor::visit(DeclareVarInst* inst)
-//  {
-//      std::string name = to_snake_case(inst->getName());
-//      *fOut << wtab(fTab) << "dsp." << name << " = ";
-//  
-//      Typed::VarType type = inst->fType->getType();
-//  
-//      if (Typed::isPtrReal(type)) {
-//          *fOut << "type_of(dsp." << name << ")(fill=0.0)\n";
-//      }
-//  
-//      if (type == Typed::kInt32_ptr || type == Typed::kInt64_ptr) {
-//          *fOut << "type_of(dsp." << name << ")(fill=0)\n";
-//      }
-//  
-//      if (Typed::isPlainReal(type)) {
-//          *fOut << "0.0\n";
-//      }
-//  
-//      if (type == Typed::kInt32 || type == Typed::kInt64) {
-//          *fOut << "0\n";
-//      }
-//  }

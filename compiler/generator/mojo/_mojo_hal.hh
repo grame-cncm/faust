@@ -19,14 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _MOJO_HAL_HH
+#if !defined(_MOJO_HAL_HH)
 #define _MOJO_HAL_HH
 
-/*                                                             *
-* Operating system                                             *
-*                                                             */
+////////////////////////////////////////////////////////////////
+// Operating System
 
-#ifndef MJ_SYSTEM
+#if !defined(MJ_SYSTEM)
     #define MJ_SYSTEM 0
     #define MJ_SYSTEM_WIN 0
     #define MJ_SYSTEM_OSX 0
@@ -51,12 +50,11 @@
     #error "This operating system is not supported."
 #endif
 
-/*                                                             *
-* Compiler                                                     *
-* Supported: MSVC, GCC, clang                                  *
-*                                                             */
+////////////////////////////////////////////////////////////////
+// Compiler
+// Supported: MSVC, GCC, clang
 
-#ifndef MJ_COMPILER
+#if !defined(MJ_COMPILER)
     #define MJ_COMPILER 0
     #define MJ_COMPILER_MSVC 0
     #define MJ_COMPILER_CLANG 0
@@ -80,11 +78,10 @@
     #error "This compiler is not supported."
 #endif
 
-/*                                         *
-* Endianness                               *
-*                                         */
+////////////////////////////////////////////////////////////////
+// Endianness
 
-#ifndef MJ_IS_BIG_ENDIAN
+#if !defined(MJ_IS_BIG_ENDIAN)
     #if MJ_COMPILER_MSVC
         #define MJ_IS_BIG_ENDIAN 0
     #elif defined(__BYTE_ORDER__)
@@ -94,11 +91,10 @@
     #endif
 #endif
 
-/*                                                             *
-* CPU, CACHE, SIMD                                             *
-*                                                             */
+////////////////////////////////////////////////////////////////
+// CPU, CACHE, SIMD
 
-#ifndef MJ_CPU
+#if !defined(MJ_CPU)
     #define MJ_CPU 1
     #define MJ_CPU_X86 0
     #define MJ_CPU_ARM 0
@@ -137,13 +133,10 @@
     #error "Unknown CPU"
 #endif
 
-/*----------------------------------------------------------------------------*/
+////////////////////////////////////////////////////////////////
+// Primitive types
 
-/*                                                             *
-* Primitive types                                              *
-*                                                             */
-
-namespace mojo {
+inline namespace mojo {
 
 #if MJ_COMPILER_MSVC
     using u8  = unsigned __int8;
@@ -190,11 +183,10 @@ using b8 = i8 ;
 using b16 = i16;
 using b32 = i32;
 
-/*                                                             *
-* Limits                                                       *
-*                                                             */
+////////////////////////////////////////////////////////////////
+// Limits
 
-#ifndef MJ_LIMIT
+#if !defined(MJ_LIMIT)
     #define MJ_LIMIT 1
 
     inline constexpr u8 U8_MIN = 0u;
@@ -222,19 +214,17 @@ using b32 = i32;
     inline constexpr isize ISZ_MIN = (-0x7fffffffffffffffll - 1);
     inline constexpr isize ISZ_MAX = 0x7fffffffffffffffll;
 #endif
-
+ 
 }  // namespace mojo
 
-
-/*                                                             *
-* Miscellaneous                                                *
-*                                                             */
+////////////////////////////////////////////////////////////////
+// Attributes and decroators
 
 #if MJ_COMPILER_MSVC
-    #ifndef mj_restrict
+    #if !defined(mj_restrict)
         #define mj_restrict __restrict
     #endif
-#else  // MJ_COMPILER_GCC || MJ_COMPILER_CLANG
+#else
     #define mj_restrict __restrict__
 #endif
 

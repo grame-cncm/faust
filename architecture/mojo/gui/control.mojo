@@ -1,3 +1,5 @@
+# gui/control.mojo
+
 from conf import *
 
 comptime dfaust = get_defined_dtype["dfaust", F64.dtype]()

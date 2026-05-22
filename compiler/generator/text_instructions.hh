@@ -238,7 +238,7 @@ class TextInstVisitor : public InstVisitor {
      *
      * @param inst the top binary operation
      * @param arg the left expression
-     * @return true if parentheses are needed, falter otherwise
+     * @return true if parentheses are needed, false otherwise
      */
     virtual bool leftArgNeedsParentheses(BinopInst* inst, ValueInst* arg)
     {

@@ -30,7 +30,7 @@
 // mojo
 #include "mojo_instructions.hh"
 
-namespace mojo {
+inline namespace mojo {
 
 using DspFactory = dsp_factory_base;
 using TextDspFactory = text_dsp_factory_aux;
@@ -63,7 +63,6 @@ public:
 
 protected:
     void writeFaustHeader();
-    // void writeGlobalFunctions(int n);
     void writeClassHeaderAndFields(int n);
     void writeGlobalVariablesInlined(int n);
     void writeDefaultConstructor(int n);

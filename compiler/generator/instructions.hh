@@ -2645,7 +2645,6 @@ struct IB {
     static NewDSPInst* genNewDSPInst(const std::string& name) { return new NewDSPInst(name); }
 
     // Loop
-    // TODO:(manu): increasing index ad each call
     static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end,
                                        StatementInst* increment, BlockInst* code = new BlockInst(),
                                        bool is_recursive = false)

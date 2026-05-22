@@ -271,8 +271,8 @@ fn measure(auto& dsp, Real** inputs, Real** outputs) -> FaustReport
     report.batches = run.batches;
     report.elapsed_s = run.elapsed_s;
     report.ns_per_compute = run.ns_per_compute;
-    report.fast_ns_per_compute = run.slow_ns_per_compute;
-    report.slow_ns_per_compute = run.fast_ns_per_compute;
+    report.slow_ns_per_compute = run.slow_ns_per_compute;
+    report.fast_ns_per_compute = run.fast_ns_per_compute;
     report.spread_ns_per_compute = report.slow_ns_per_compute - report.fast_ns_per_compute;
 
     if (report.ns_per_compute > 0.0) {

@@ -29,7 +29,7 @@
 #include "_mojo_hal.hh"
 #include "_mojo_macro.hh"
 
-namespace mojo {
+inline namespace mojo {
 
 //==============================================================
 // Writing helpers for `MojoVisitor`s and `MojoCodeContainer`s 

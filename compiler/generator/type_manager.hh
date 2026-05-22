@@ -28,10 +28,6 @@
 #include <sstream>
 #include <string>
 
-// FIX:(manu) to be removed
-#include "dsp_factory.hh"
-#include "global.hh"
-
 #include "exception.hh"
 #include "instructions.hh"
 

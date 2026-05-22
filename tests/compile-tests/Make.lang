@@ -67,16 +67,6 @@ julia-tracer:
 		julia test.jl ; \
 		rm test.jl ; \
 	done
-
-# TODO:(manu)
-#  we must create a pixi environment for mojo and run through it or
-#  gnerate the test.mojo somewhere like compile-tests/mojo/test.mojo
-#  where there is an already set up pixi environment
-#  mojo:
-#      for file in $(dspfiles) ; do \
-#          faust -lang mojo -a mojo/minimal.mojo $$file -o test.mojo ; \
-
-
 		
 help:
 	@echo "-------- FAUST compilation tests --------"

@@ -208,7 +208,7 @@ static string encodeFloat(const string& num)
         return (need_suffix) ? (res + inumix()) : res;
     }
     if (gGlobal->gOutputLang == "mojo") {
-        // NOTE:(manu) Mandatory explicit cast in mojo.
+        // NOTE:(manu) Mandatory explicit cast in Mojo.
         if (gGlobal->gFloatSize == 1) {
             return "F32(" + ensureFloat(num) + ")";
         } else if (gGlobal->gFloatSize == 2) {
