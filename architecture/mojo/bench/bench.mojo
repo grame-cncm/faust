@@ -17,6 +17,7 @@ from dsp import FaustDsp
 comptime BENCH_LANG = get_defined_string["BENCH_LANG", "mojo"]()
 comptime BENCH_DSP = get_defined_string["BENCH_DSP", "unknown"]()
 comptime BENCH_CASE = get_defined_string["BENCH_CASE", "default"]()
+comptime BENCH_MODE = get_defined_string["BENCH_MODE", "scalar"]()
 comptime BENCH_OPTIM = get_defined_string["BENCH_OPTIM", "O3"]()
 comptime BENCH_BARRIERS = get_defined_int["BENCH_BARRIERS", 1]()
 comptime WARMUP_ITERS = get_defined_int["WARMUP_ITERS", 50]()
@@ -71,6 +72,7 @@ struct FaustReport(ImplicitlyCopyable):
     var language: String
     var dsp: String
     var bench_case: String
+    var mode: String
     var precision: String
     var opt: String
     var samp_rate: S32
@@ -100,6 +102,7 @@ struct FaustReport(ImplicitlyCopyable):
         report.dsp = BENCH_DSP
         report.bench_case = BENCH_CASE
         report.precision = PRECISION
+        report.mode = BENCH_MODE
         report.opt = BENCH_OPTIM
         report.samp_rate = SAMP_RATE
         report.buff_size = BUFF_SIZE
@@ -302,6 +305,7 @@ def print_report(report: FaustReport) -> None:
     print("  language:       ", report.language)
     print("  dsp:            ", report.dsp)
     print("  bench case:     ", report.bench_case)
+    print("  mode:           ", report.mode)
     print("  precision:      ", report.precision)
     print("  optimization:   ", report.opt)
     print("------------------------------------")
@@ -341,7 +345,8 @@ def write_csv(report: FaustReport) raises -> None:
     # Does not write headers or manage existing CSV data.
     # Called only for structured runs when WRITE_CSV is enabled.
     var csv = String(
-        report.language + "," + report.bench_case + "," + report.precision + "," + report.opt + ","
+        report.language + "," + report.bench_case + "," + report.mode + ","
+        + report.precision + "," + report.opt + ","
         + String(report.samp_rate) + "," + String(report.buff_size) + ","
         + String(report.inputs) + "," + String(report.outputs) + ","
         + String(report.warmup_iters) + "," + String(report.run_iters) + ","

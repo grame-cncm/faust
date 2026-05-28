@@ -9,7 +9,7 @@ __pycache__
 *tmp*
 
 # report
-report/
+report/*
 
 # pixi environments
 .pixi/*

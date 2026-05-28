@@ -296,6 +296,7 @@ void MojoScalarCodeContainer::writeCompute(int n)
           << wtab(n+1) <<     "var inputs:     ReadStreams[dreal],\n"
           << wtab(n+1) <<     "var outputs:    MutaStreams[dreal]\n"
           << wtab(n)   << ") -> None:\n" << wtab(n+1);
+    *fOut << "comptime assert dreal == dfaust" << "\n" << wtab(n+1);
     fCodeProducer->Tab(n + 1);
     generateComputeBlock(fCodeProducer);
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop("count");

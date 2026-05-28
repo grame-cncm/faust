@@ -57,6 +57,11 @@ BENCH_LANGS=(
   mojo
 )
 
+BENCH_MODES=(
+  scalar
+  vec
+)
+
 BENCH_PRECISIONS=(
   f32
   f64
@@ -167,29 +172,39 @@ echo "Faust benchmark framework initialized."
 echo
 echo "Main commands:"
 echo
-echo "  bench_run all all all all"
-echo "      Fresh run over all configured languages, sample rates, buffer sizes, and DSP sources."
-echo "      Precision is always both single and double."
+echo "  bench_clean"
+echo "      Remove current CSV, temporary CSV fragments, tab reports, and plots."
+echo "      Use this explicitly when you want a fresh benchmark report state."
 echo
-echo "  bench_run all 48 64 all"
-echo "      Fresh run for all languages at 48 kHz / buffer size 64."
+echo "  bench_run vec all all all all"
+echo "      Incremental run over all configured languages, sample rates, buffer sizes, and DSP sources in vec mode."
+echo "      Existing CSV rows are preserved unless the same benchmark identity is run again."
 echo
-echo "  bench_run mojo 48 64 bells"
-echo "      Fresh run for Mojo only on one DSP."
+echo "  bench_run scalar all 48 64 all"
+echo "      Incremental run for all languages at 48 kHz / buffer size 64 in scalar mode."
 echo
-echo "  bench_plot tput_48k_64"
-echo "      Generate report/plots/tput_48k_64.svg from report/report.csv."
+echo "  bench_run vec mojo 48 64 bells"
+echo "      Incremental run for Mojo only on one DSP in vec mode."
+echo
+echo "  bench_run scalar cpp,mojo 48,192 64,512 carre_volterra"
+echo "      Incremental run for selected languages, sample rates, buffer sizes, and one DSP in scalar mode."
+echo
+echo "  bench_plot compare_modes"
+echo "      Generate report/plots/compare_modes.svg from report/report.csv."
 echo
 echo "  bench_snapshot after_changes"
 echo "      Save the current report state under report/snapshots/."
 echo
-echo "  inspect_llvm_gen all carre_volterra"
-echo "      Generate LLVM IR using the inspect architecture."
+echo "  inspect_llvm_gen scalar all carre_volterra"
+echo "      Generate LLVM IR using the inspect architecture in scalar mode."
 echo
-echo "  inspect_asm_gen all carre_volterra"
-echo "      Generate target assembly using the inspect architecture."
+echo "  inspect_asm_gen vec all carre_volterra"
+echo "      Generate target assembly using the inspect architecture in vec mode."
 echo
 echo "Argument notes:"
+echo
+echo "  modes:"
+echo "      scalar or vec."
 echo
 echo "  languages:"
 echo "      all or comma-separated entries from BENCH_LANGS."
@@ -204,6 +219,10 @@ echo
 echo "  sources:"
 echo "      all, DSP names, DSP paths, or shell-expanded globs."
 echo
+echo "  precisions:"
+echo "      precision is not a command argument."
+echo "      each benchmark run always executes all configured precisions."
+echo
 echo "Useful overrides:"
 echo
 echo "  BENCH_KEEP_TMP=1"
@@ -211,5 +230,8 @@ echo "  BENCH_SAMPLE_RATES=(48000 192000)"
 echo "  BENCH_BUFFER_SIZES=(64 512)"
 echo "  BENCH_WARMUP_ITERS=50"
 echo "  BENCH_COMPUTE_ITERS=1000000"
+echo "  BENCH_MIN_RUNTIME_SECS=1"
+echo "  BENCH_MAX_RUNTIME_SECS=60"
 echo "  BENCH_MAX_BATCH_SIZE=10000"
-echo "  BENCH_INSPECT_COMPUTE_ITERS=1"
+echo "  BENCH_FAUST_SCALAR_OPT=(...)"
+echo "  BENCH_FAUST_VEC_OPT=(...)"

@@ -31,22 +31,20 @@
 
 inline namespace mojo {
 
-using MathLibTable = std::unordered_map<std::string, std::string>;
-using FuncSymTable = std::unordered_map<std::string, bool>;
+using MathLibTable = std::unordered_map<String, String>;
+using FuncSymTable = std::unordered_map<String, bool>;
 
 //////////////////////////////////////////////////////////////
 // Mojo visitors declaration
 
 /**
     A `MojoInstVisitor` is a `TextInstVisitor` for the mojo backend.
-   
-    @para Informations
+    @desc
     - Produces and writes the translation from Faust IR to Mojo code using
-      the visit operation(s).
+      the visit operations.
     - An instance is created with an `output` stream, the `class name`
       of the DSP generated class and a `tab` number for indentation.
-   
-    @para Globals
+    @glob
     - Maintains a `function symbols table` to keep track of the already
       generated functions and allows to clear it as `cleanup`.
     - Maintains a `math library table` to map Faust math functions to
@@ -55,9 +53,7 @@ using FuncSymTable = std::unordered_map<std::string, bool>;
 **/
 class MojoInstVisitor : public TextInstVisitor {
 public:
-    inline MojoInstVisitor(
-        std::ostream* out, std::string const& structName, i32 tab = 0
-    );
+    inline MojoInstVisitor(OStream* out, String const& structName, i32 tab = 0);
     inline virtual ~MojoInstVisitor();
 
     using TextInstVisitor::visit;
@@ -82,22 +78,13 @@ public:
     inline void visit(IndexedAddress* indexed)     override;
     inline void visit(Int32NumInst* inst)          override;
     inline void visit(Int64NumInst* inst)          override;
+    inline void visit(LabelInst* inst)             override;
+    inline void visit(LoadVarAddressInst* inst)    override;
     inline void visit(NamedAddress* named)         override;
     inline void visit(OpenboxInst* inst)           override;
     inline void visit(Select2Inst* inst)           override;
     inline void visit(SimpleForLoopInst* inst)     override;
     inline void visit(StoreVarInst* inst)          override;
-
-    inline void visit(LabelInst* inst) override
-    {
-        mj_unused(inst);
-    }
-
-    inline void visit(LoadVarAddressInst* inst) override
-    {
-        // NOTE:(manu) Actually using value semantics (l-value ref)
-        inst->fAddress->accept(this);
-    }
 
     inline static void cleanup();
 
@@ -111,7 +98,7 @@ protected:
     inline void writeFunDefHeader(DeclareFunInst* inst);
 
     // Global operations
-    inline static std::string gToFaustFloat(std::string const& str);
+    inline static String gToFaustFloat(String const& str);
     inline static MathLibTable gCreateMathLibTable();
         
     // Global state
@@ -121,47 +108,53 @@ protected:
 
 /**
     A `MojoInitFieldsVisitor` is a `DispatchVisitor` for the mojo backend.
- 
-    It is used to generate the fields initialization code in the default
-    constructor `__init__(out dsp)` of the generated class.
+    @desc
+    - It is used to generate the fields initialization code in the default
+      constructor `__init__(out dsp)` of the generated class.
+    - Produces and writes the translation from Faust IR to Mojo code using
+      the visit operations.
+    - An instance is created with an `output` stream and a `tab` number
+      for indentation.
+    @rep
+    - Maintains an `out` stream to write to.
+    - Maintains a `tab` number for indentation.
+    @glob
+    - Allows to generate a `zero initializer` for a given `typed` value.
 **/
 class MojoInitFieldsVisitor : public DispatchVisitor {
 public:
-    std::ostream*    fOut;
-    i32              fTab;
-
     using DispatchVisitor::visit;
+    OStream* fOut;
+    i32      fTab;
 
-    inline MojoInitFieldsVisitor(std::ostream* out, i32 tab = 0);
+    inline MojoInitFieldsVisitor(OStream* out, i32 tab = 0);
 
-    inline void visit(DeclareVarInst* inst) override;
-    inline void visit(NamedAddress* named) override;
-    inline void visit(Int32ArrayNumInst* inst) override;
-    inline void visit(FloatArrayNumInst* inst) override;
+    inline void visit(DeclareVarInst* inst)     override;
+    inline void visit(NamedAddress* named)      override;
+    inline void visit(Int32ArrayNumInst* inst)  override;
+    inline void visit(FloatArrayNumInst* inst)  override;
     inline void visit(DoubleArrayNumInst* inst) override;
 
-    static inline void gZeroInitializer(std::ostream* out, Typed* typed);
+    static inline void gZeroInitializer(OStream* out, Typed* typed);
 };
 
 /**
     A `MojoVecInstVisitor` is a `MojoInstVisitor` for the mojo backend
     when the -vec flag is enabled
+    @nota
+    - Currently dos not add any logic to `MojoInstVisitor`.
 **/
 class MojoVecInstVisitor : public MojoInstVisitor {
 public:
     using MojoInstVisitor::visit;
 
-    MojoVecInstVisitor(
-        std::ostream* out, std::string const& structName, int tab = 0
-    );
+    MojoVecInstVisitor(OStream* out, String const& structName, int tab = 0);
 };
 
 //////////////////////////////////////////////////////////////
-// Mojo visitors implementation
+// MojoInstVisitor implementation
 
-MojoInstVisitor::MojoInstVisitor(
-    std::ostream* out, std::string const& structName, i32 tab
-)
+MojoInstVisitor::MojoInstVisitor(OStream* out, String const& structName, i32 tab)
     : TextInstVisitor(out, ".", new MojoStringTypeManager(xfloat(), structName, ""), tab)
 {
     gMathLibTable = gCreateMathLibTable();
@@ -169,11 +162,9 @@ MojoInstVisitor::MojoInstVisitor(
 
 MojoInstVisitor::~MojoInstVisitor() {}
 
-// MojoInstVisitor helpers
-
 void MojoInstVisitor::visit(AddMetaDeclareInst* inst)
 {
-    std::string zone = (inst->fZone == "0") ? "null_val" : snakeCase(inst->fZone);
+    String zone = (inst->fZone == "0") ? "null_val" : snakeCase(inst->fZone);
     *fOut << "ui.declare(";
     *fOut << "dsp." << zone << ", " << wlit(inst->fKey) << ", " << wlit(inst->fValue);
     *fOut << ")" << wendl(fFinishLine, fTab);
@@ -181,8 +172,8 @@ void MojoInstVisitor::visit(AddMetaDeclareInst* inst)
 
 void MojoInstVisitor::visit(AddButtonInst* inst)
 {
-    std::string name;
-    std::string zone = snakeCase(inst->fZone);
+    String name;
+    String zone = snakeCase(inst->fZone);
     if (inst->fType == AddButtonInst::kDefaultButton) {
         name = "add_button";
     } else {
@@ -194,7 +185,7 @@ void MojoInstVisitor::visit(AddButtonInst* inst)
 
 void MojoInstVisitor::visit(AddSliderInst* inst)
 {
-    std::string name;
+    String name;
     switch (inst->fType) {
         case AddSliderInst::kHorizontal:
             name = "add_horizontal_slider";
@@ -220,7 +211,7 @@ void MojoInstVisitor::visit(AddSliderInst* inst)
 
 void MojoInstVisitor::visit(AddBargraphInst* inst)
 {
-    std::string name;
+    String name;
     switch (inst->fType) {
         case AddBargraphInst::kHorizontal:
             name = "add_horizontal_bargraph";
@@ -253,18 +244,22 @@ void MojoInstVisitor::visit(BinopInst* inst)
 
 void MojoInstVisitor::visit(CastInst* inst)
 {
-    void* real_val = dycast(FloatNumInst*, inst->fInst);
-    real_val = real_val ? real_val : dycast(DoubleNumInst*, inst->fInst);
     if (inst->fType->getType() == Typed::kFloatMacro) {
         *fOut << "SIMD[dreal, 1](";
         inst->fInst->accept(this);
         goto End_Inst;
     }
+
     *fOut << fTypeManager->generateType(inst->fType) << "(";
-    if (real_val) {
-        *fOut << ensureReal(*recast(f64*,real_val));
+    if (auto* float_inst = dycast(FloatNumInst*, inst->fInst)) {
+        *fOut << ensureReal(float_inst->fNum);
         goto End_Inst;
     }
+    if (auto* double_inst = dycast(DoubleNumInst*, inst->fInst)) {
+        *fOut << ensureReal(double_inst->fNum);
+        goto End_Inst;
+    }
+
     inst->fInst->accept(this);
 End_Inst:
     *fOut << ")";
@@ -291,7 +286,7 @@ void MojoInstVisitor::visit(DeclareStructTypeInst* inst)
 
 void MojoInstVisitor::visit(DeclareVarInst* inst)
 {
-    std::string name = snakeCase(inst->getName());
+    String name = snakeCase(inst->getName());
     *fOut << "var ";
     if (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct()) {
         *fOut << fTypeManager->generateType(inst->fType, name);
@@ -380,11 +375,37 @@ void MojoInstVisitor::visit(ForLoopInst* inst)
 
 void MojoInstVisitor::visit(FunCallInst* inst)
 {
-    std::string name = (gMathLibTable.find(inst->fName) != gMathLibTable.end())
-                         ? gMathLibTable[inst->fName]
-                         : inst->fName;
+    VString name = (gMathLibTable.find(inst->fName) != gMathLibTable.end())
+                            ? gMathLibTable[inst->fName] : inst->fName;
+
+    if (name == "pow") {
+        ValueInst* inst_base = inst->fArgs.front();
+        ValueInst* inst_exp = inst->fArgs.back();
+        double e = 0.0;
+
+        if (!inst_exp->isSimpleValue()) {
+            goto MathLib_Call;
+        }
+        if (auto* float_inst = dycast(FloatNumInst*, inst_exp)) {
+            e = float_inst->fNum;
+        }
+        if (auto* double_inst = dycast(DoubleNumInst*, inst_exp)) {
+            e = double_inst->fNum;
+        }
+        if (e <= 0 || not isWhole(e)) {
+            goto MathLib_Call;
+        }
+
+        String e_str = toStringTruncNullFraction(e);
+        *fOut << "pow_unrolled[" << e_str << "](";
+        inst_base->accept(this);
+        goto End_Inst;
+    }
+
+MathLib_Call:
     *fOut << name << "(";
     generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+End_Inst:
     *fOut << ")";
 }
 
@@ -414,7 +435,7 @@ void MojoInstVisitor::visit(IndexedAddress* indexed)
     if (struct_type) {
         Int32NumInst* idx = dycast(Int32NumInst*, indexed->getIndex());
         faustassert(idx);
-        std::string name = snakeCase(struct_type->fType->getName(idx->fNum));
+        String name = snakeCase(struct_type->fType->getName(idx->fNum));
         *fOut << "." << name;
         return;
     }  
@@ -433,19 +454,28 @@ inline void MojoInstVisitor::visit(Int64NumInst* inst)
     *fOut << "S64(" << inst->fNum << ")";
 }
 
+void MojoInstVisitor::visit(LabelInst* inst)
+{
+    mj_unused(inst);  // do not print any comment
+}
+
+void MojoInstVisitor::visit(LoadVarAddressInst* inst)
+{
+    inst->fAddress->accept(this);  // NOTE:(manu) value semantics (l-value ref)
+}
+
 void MojoInstVisitor::visit(NamedAddress* named)
 {
     if (named->isStruct() || named->isStaticStruct()) {
         *fOut << "dsp.";
     }
-    std::string name = snakeCase(named->fName);
+    String name = snakeCase(named->fName);
     *fOut << name;
 }
 
-
 void MojoInstVisitor::visit(OpenboxInst* inst)
 {
-    std::string name;
+    String name;
     switch (inst->fOrient) {
         case OpenboxInst::kVerticalBox:
             name = "open_vertical_box";
@@ -535,8 +565,6 @@ void MojoInstVisitor::visitAux(RetInst* inst, bool genEmpty)
     }
 }
 
-// MojoInstVisitor helpers
-
 void MojoInstVisitor::writeFunDefArgs(DeclareFunInst* inst)
 {   
     usize size = inst->fType->fArgsTypes.size();
@@ -569,9 +597,10 @@ void MojoInstVisitor::writeFunDefBody(DeclareFunInst* inst)
     fTab -= 1;
 }
 
-// MojoInitFieldsVisitor
+//////////////////////////////////////////////////////////////
+// MojoInitFieldsVisitor implementation
 
-MojoInitFieldsVisitor::MojoInitFieldsVisitor(std::ostream* out, i32 tab)
+MojoInitFieldsVisitor::MojoInitFieldsVisitor(OStream* out, i32 tab)
     : fOut(out), fTab(tab)
 {}
 
@@ -626,7 +655,7 @@ void MojoInitFieldsVisitor::visit(DoubleArrayNumInst* inst)
     *fOut << ']';
 }
 
-void MojoInitFieldsVisitor::gZeroInitializer(std::ostream* out, Typed* typed) {
+void MojoInitFieldsVisitor::gZeroInitializer(OStream* out, Typed* typed) {
     ArrayTyped* array_type = dycast(ArrayTyped*, typed);
     Typed::VarType type = typed->getType();
     switch (type) {
@@ -668,17 +697,16 @@ void MojoInitFieldsVisitor::gZeroInitializer(std::ostream* out, Typed* typed) {
     *out << "\n";
 }
 
-// MojoVecInstVisitor
+//////////////////////////////////////////////////////////////
+// MojoVecInstVisitor implementation
 
 inline MojoVecInstVisitor::MojoVecInstVisitor(
-    std::ostream* out, const std::string& structName, int tab
+    OStream* out, const String& structName, int tab
 )
     : MojoInstVisitor(out, structName, tab)
 {}
 
-// MojoInstVisitor globals
-
-std::string MojoInstVisitor::gToFaustFloat(std::string const& str)
+String MojoInstVisitor::gToFaustFloat(String const& str)
 {
     return "FaustFloat(" + str + ")";
 }
@@ -690,7 +718,6 @@ void MojoInstVisitor::cleanup()
 
 MathLibTable MojoInstVisitor::gCreateMathLibTable()
 {
-    // returns table by value, copy elision avoids extra copy.
     return MathLibTable{
         { "abs",        "abs"       },
         { "fabs",       "abs"       },

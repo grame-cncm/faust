@@ -212,8 +212,9 @@ static string encodeFloat(const string& num)
         if (gGlobal->gFloatSize == 1) {
             return "F32(" + ensureFloat(num) + ")";
         } else if (gGlobal->gFloatSize == 2) {
-            return "F64(" + ensureFloat(num) + ")";
+            return ensureFloat(num);
         } else {
+            puts("Panic in encodeFloat(const string&) - Unsupported real size");
             faustassert(false);
         }
     }

@@ -9,6 +9,7 @@ import pandas as pd
 TMP_COLUMNS = [
     "language",
     "bench_case",
+    "mode",
     "precision",
     "opt",
     "samp_rate",
@@ -39,6 +40,7 @@ CSV_COLUMNS = [
     "language",
     "dsp",
     "bench_case",
+    "mode",
     "precision",
     "opt",
     "samp_rate",
@@ -63,6 +65,17 @@ CSV_COLUMNS = [
     "fast_out_samp_per_s",
     "slow_out_samp_per_s",
     "checksum",
+]
+
+IDENTITY_COLUMNS = [
+    "language",
+    "dsp",
+    "bench_case",
+    "mode",
+    "precision",
+    "opt",
+    "samp_rate",
+    "buff_size",
 ]
 
 
@@ -96,28 +109,57 @@ def read_tmp_csv(path: Path, dsp: str) -> pd.DataFrame:
     return df[CSV_COLUMNS]
 
 
-def merge_csv(main_path: Path, tmp_path: Path, language: str, dsp: str, bench_case: str) -> None:
+def require_single_value(df: pd.DataFrame, col: str, value: str) -> None:
+    values = set(str(x) for x in df[col].unique())
+    if values != {value}:
+        raise SystemExit(
+            f"temporary CSV does not match expected {col}={value}: found {sorted(values)}"
+        )
+
+
+def identity_tuples(df: pd.DataFrame) -> list[tuple[str, ...]]:
+    key_df = df[IDENTITY_COLUMNS].astype(str)
+    return list(key_df.itertuples(index=False, name=None))
+
+
+def require_unique_identities(df: pd.DataFrame, what: str) -> None:
+    duplicated = df.duplicated(subset=IDENTITY_COLUMNS, keep=False)
+    if duplicated.any():
+        duplicates = df.loc[duplicated, IDENTITY_COLUMNS].drop_duplicates()
+        raise SystemExit(
+            f"{what} contains duplicate benchmark identities:\n"
+            f"{duplicates.to_string(index=False)}"
+        )
+
+
+def merge_csv(
+    main_path: Path,
+    tmp_path: Path,
+    language: str,
+    dsp: str,
+    bench_case: str,
+    mode: str,
+) -> None:
     main_df = read_main_csv(main_path)
     tmp_df = read_tmp_csv(tmp_path, dsp)
 
-    expected = {
-        "language": language,
-        "dsp": dsp,
-        "bench_case": bench_case,
-    }
+    require_single_value(tmp_df, "language", language)
+    require_single_value(tmp_df, "dsp", dsp)
+    require_single_value(tmp_df, "bench_case", bench_case)
+    require_single_value(tmp_df, "mode", mode)
 
-    for col, value in expected.items():
-        values = set(str(x) for x in tmp_df[col].unique())
-        if values != {value}:
-            raise SystemExit(
-                f"temporary CSV does not match expected {col}={value}: found {sorted(values)}"
-            )
+    require_unique_identities(tmp_df, "temporary CSV")
 
-    keep_mask = ~(
-        (main_df["language"].astype(str) == language)
-        & (main_df["dsp"].astype(str) == dsp)
-        & (main_df["bench_case"].astype(str) == bench_case)
-    )
+    tmp_keys = set(identity_tuples(tmp_df))
+
+    if main_df.empty:
+        keep_mask = pd.Series([], dtype=bool)
+    else:
+        main_keys = identity_tuples(main_df)
+        keep_mask = pd.Series(
+            [key not in tmp_keys for key in main_keys],
+            index=main_df.index,
+        )
 
     out_df = pd.concat(
         [
@@ -127,10 +169,13 @@ def merge_csv(main_path: Path, tmp_path: Path, language: str, dsp: str, bench_ca
         ignore_index=True,
     )
 
+    require_unique_identities(out_df, "merged CSV")
+
     sort_cols = [
         "dsp",
         "language",
         "bench_case",
+        "mode",
         "precision",
         "opt",
         "samp_rate",
@@ -143,7 +188,7 @@ def merge_csv(main_path: Path, tmp_path: Path, language: str, dsp: str, bench_ca
 
     print(
         f"merged {tmp_path} into {main_path} "
-        f"for language={language}, dsp={dsp}, bench_case={bench_case}"
+        f"for language={language}, dsp={dsp}, bench_case={bench_case}, mode={mode}"
     )
 
 
@@ -156,13 +201,14 @@ def main() -> None:
 
     merge = sub.add_parser(
         "merge",
-        help="Replace one sweep in the global CSV with rows from a temporary CSV fragment.",
+        help="Replace matching benchmark identities in the global CSV with rows from a temporary CSV fragment.",
     )
     merge.add_argument("--main", required=True, help="Global benchmark CSV path.")
     merge.add_argument("--tmp", required=True, help="Temporary headerless CSV fragment.")
     merge.add_argument("--language", required=True, help="Benchmark language.")
     merge.add_argument("--dsp", required=True, help="DSP benchmark name.")
     merge.add_argument("--case", required=True, help="Benchmark case.")
+    merge.add_argument("--mode", required=True, help="Benchmark mode.")
 
     args = parser.parse_args()
 
@@ -173,6 +219,7 @@ def main() -> None:
             language=args.language,
             dsp=args.dsp,
             bench_case=args.case,
+            mode=args.mode,
         )
 
 

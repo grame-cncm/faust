@@ -31,30 +31,38 @@
 
 inline namespace mojo {
 
-//==============================================================
+////////////////////////////////////////////////////////////////
+// Namespaced type aliases for syntactic sugar
+
+using std::vector;
+using String = std::string;
+using VString = std::string_view;
+using OString = std::ostringstream;
+using OStream = std::ostream;
+
+////////////////////////////////////////////////////////////////
 // Writing helpers for `MojoVisitor`s and `MojoCodeContainer`s 
-// =============================================================
 
 inline constexpr isize TAB_SIZE = 4;
 
-inline std::string wbanner()                 { return "# =============================================================================="; }
-inline std::string wblank (isize n=1)        { return std::string(n, '\n'); }
-inline std::string windent(isize n=TAB_SIZE) { return std::string(n, ' '); }
-inline std::string wlit   (std::string s)    { return "\"" + s + "\""; }
-inline std::string wendl  (b32 b, isize n=1) { return b ? '\n' + windent(TAB_SIZE*n) : ""; }
-inline std::string wptr   (std::string s)    { return "Ptr["+s+"]"; }
-inline std::string wtab   (isize n=1)        { return std::string(TAB_SIZE*n, ' '); }
+inline String wbanner()                 { return "# =============================================================================="; }
+inline String wblank (isize n=1)        { return String(n, '\n'); }
+inline String windent(isize n=TAB_SIZE) { return String(n, ' '); }
+inline String wlit   (String s)    { return "\"" + s + "\""; }
+inline String wendl  (b32 b, isize n=1) { return b ? '\n' + windent(TAB_SIZE*n) : ""; }
+inline String wptr   (String s)    { return "Ptr["+s+"]"; }
+inline String wtab   (isize n=1)        { return String(TAB_SIZE*n, ' '); }
 
-inline std::string wrewind(std::ostream* out, isize n = 1)
+inline String wrewind(std::ostream* out, isize n = 1)
 {
     isize pos = out->tellp();
     out->seekp(pos - n * TAB_SIZE);
     return "";
 }
 
-inline std::string wmultilit(std::string&& s)
+inline String wmultilit(String&& s)
 {
-    std::ostringstream out;
+    OString out;
     out << "\"";
     b32 prev_endl = false;
     for (auto i = s.begin(); i != s.end(); i++) {
@@ -76,22 +84,35 @@ inline std::string wmultilit(std::string&& s)
     return out.str();
 }
 
-// =============================================================
+////////////////////////////////////////////////////////////////
 // String manip helpers for `Visitor`s and `CodeContainer`s
-// =============================================================
  
-inline std::string toStringTrim(f64 x)
+inline String toStringTrim(f64 x)
 {
-    auto res = std::to_string(x);
-    res.erase(res.find_last_not_of('0') + 1, std::string::npos);
-    res.erase(res.find_last_not_of('.') + 1, std::string::npos);
+    String res = std::to_string(x);
+    res.erase(res.find_last_not_of('0') + 1, String::npos);
+    res.erase(res.find_last_not_of('.') + 1, String::npos);
     return res;
 }
 
-inline std::string ensureReal(std::string&& str)
+inline b32 isWhole(double n) { return n == trunc(n); }
+
+/**
+    @req
+    - `x` is finite and has null fractional part.
+**/
+inline String toStringTruncNullFraction(f64 x)
+{
+    faustassert(isWhole(x));
+    auto res = std::to_string(x);
+    res.erase(res.find_first_of('.'), String::npos);
+    return res;
+}
+
+inline String ensureReal(String&& str)
 {
     b32 is_int = true;
-    std::ostringstream res;
+    OString res;
     for (char const& c : str) {
         res << c;
         if (c == '.') {
@@ -104,16 +125,16 @@ inline std::string ensureReal(std::string&& str)
     return res.str();
 }
 
-inline std::string ensureReal(f64 x)
+inline String ensureReal(f64 x)
 {
     return ensureReal(toStringTrim(x));
 }
 
-inline std::vector<std::string_view> split(std::string_view src, char sep)
+inline vector<VString> split(VString src, char sep)
 {
     isize i = 0;
     isize size = src.size();
-    std::vector<std::string_view> res;
+    vector<VString> res;
 
     while (i < size) {
         while (i < size && src[i] == sep) {
@@ -133,14 +154,14 @@ inline std::vector<std::string_view> split(std::string_view src, char sep)
     return res;
 }
 
-inline std::string snakeCase(std::string const& src)
+inline String snakeCase(String const& src)
 {
     isize const len = src.size();
     if (len == 0) {
         return {};
     }
 
-    std::string res;
+    String res;
     res.reserve(len * 2 > 16 ? len * 2 : 16);
 
     for (isize i = 0; i < len; i++) {
@@ -184,9 +205,9 @@ inline std::string snakeCase(std::string const& src)
     return res;
 }
 
-inline std::string appendSnake(std::string const& prefx, std::string const& className)
+inline String appendSnake(String const& prefx, String const& className)
 {
-    std::ostringstream res("");
+    OString res("");
     res << prefx;
     if (!className.empty()) {
         res << "_" << snakeCase(className);
@@ -195,17 +216,17 @@ inline std::string appendSnake(std::string const& prefx, std::string const& clas
 
 }
 
-inline std::string formatCompilerOptions(usize indent, std::string const& begln = "")
+inline String formatCompilerOptions(isize indent, String const& begln = "")
 {
-    constexpr usize MAX_WIDTH = 81;
-    std::ostringstream build;
-    std::string options = gGlobal->printCompilationOptions1();
-    std::vector<std::string_view> opts = split(options, ' ');
-    std::vector<std::string> units;
+    constexpr isize MAX_WIDTH = 81;
+    OString build;
+    String options = gGlobal->printCompilationOptions1();
+    vector<VString> opts = split(options, ' ');
+    vector<String> units;
     units.reserve(opts.size());
 
     for (usize i = 0; i < opts.size(); i++) {
-        std::string_view op = opts[i];
+        VString op = opts[i];
         if (op.empty()) {
             continue;
         }
@@ -215,20 +236,20 @@ inline std::string formatCompilerOptions(usize indent, std::string const& begln 
             && !opts[i + 1].empty()
             && opts[i + 1][0] != '-'
         ) {
-            units.emplace_back(std::string(op) + " " + std::string(opts[i + 1]));
+            units.emplace_back(String(op) + " " + String(opts[i + 1]));
             i++;
         } else {
             units.emplace_back(op);
         }
     }
 
-    std::string prefx = begln + windent(indent);
-    usize count = prefx.size();
+    String prefx = begln + windent(indent);
+    isize count = prefx.size();
 
     build << prefx;
     for (auto ut = units.begin(); ut != units.end(); ut++) {
-        std::string const& uni = *ut;
-        usize needed = 1 + uni.size();
+        String const& uni = *ut;
+        isize needed = 1 + uni.size();
 
         if (count + needed > MAX_WIDTH) {
             build << "\n" << prefx;
@@ -238,52 +259,12 @@ inline std::string formatCompilerOptions(usize indent, std::string const& begln 
         build << uni << " ";
         count += needed;
     }
-    std::string res = build.str();
+    String res = build.str();
     if (!res.empty() && res.back() == ' ') {
         res.pop_back();
     }
     return res;
 }
-
-// inline std::string formatCopts(isize indent, std::string const& begln = "")
-// {
-//     constexpr isize MAX_WIDTH = 79;
-//     std::ostringstream build;
-//     std::string options = gGlobal->printCompilationOptions1();
-//     std::vector<std::string_view> opts = split(options, ' ');
-//     isize count = 0;
-//     b32 newl = 0;
-//     for (auto it = opts.begin(); it != opts.end(); it++) {
-//         newl = 0;
-//         std::string_view opt = *it;
-//         auto jt = it + 1;
-//
-//         if (!opt.empty() && opt[0] == '-') {
-//             count += opt.size();
-//
-//             if (jt != opts.end() && (*jt)[0] != '-') {
-//                 count += (it + 1)->size();
-//             }
-//         }
-//
-//         if (indent + count + sz > 79) {
-//             count = 0;
-//             newl = 1;
-//         }
-//
-//         if (jt != opts.end()) {
-//             build << " ";
-//             count++;
-//         }
-//
-//         if (newl) {
-//             build << "\n" << begln << windent(indent);
-//         }
-//
-//         build << *it;
-//     }
-//     return build.str();
-// }
 
 }       // namespace mojo
 #endif  // _MOJO_UTILS_HH

@@ -6,19 +6,44 @@
 # It assumes that source.sh has already initialized BENCH_* paths and defaults.
 
 # ------------------------------------------
+# Mode defaults
+# ------------------------------------------
+
+if ! declare -p BENCH_MODES >/dev/null 2>&1; then
+  BENCH_MODES=(
+    scalar
+    vec
+  )
+fi
+
+if ! declare -p BENCH_FAUST_SCALAR_OPT >/dev/null 2>&1; then
+  BENCH_FAUST_SCALAR_OPT=()
+fi
+
+if ! declare -p BENCH_FAUST_VEC_OPT >/dev/null 2>&1; then
+  BENCH_FAUST_VEC_OPT=(
+    -vec
+  )
+fi
+
+# ------------------------------------------
 # Public API
 # ------------------------------------------
 
 bench_run() {
-  if (( $# < 4 )); then
-    echo "usage: bench_run <langs> <sample_rates_khz> <buffer_sizes> <sources...>"
+  if (( $# < 5 )); then
+    echo "usage: bench_run <which,modes> <which,langs> <sample,rates,khz> <buffer,sizes> <dsp,sources>"
     return 1
   fi
   BENCH_RUN_NAME="${BENCH_RUN_NAME:-run}"
   BENCH_LAST_COMMAND="bench_run $*"
   _bench_resolve_args "$@" || return 1
-  _bench_clean_report || return 1
   _bench_run_resolved
+}
+
+bench_clean() {
+  _bench_clean_report || return 1
+  echo "cleaned current benchmark reports."
 }
 
 bench_plot() {
@@ -37,24 +62,28 @@ bench_snapshot() {
 }
 
 inspect_llvm_gen() {
-  if (( $# < 2 )); then
-    echo "usage: inspect_llvm_gen <langs> <sources...>"
+  if (( $# < 3 )); then
+    echo "usage: inspect_llvm_gen <which,modes> <which,langs> <dsp,sources>"
     return 1
   fi
-  local langs="$1"
-  shift
+  local modes="$1"
+  local langs="$2"
+  shift 2
+  _bench_resolve_modes "${modes}" || return 1
   _bench_resolve_langs "${langs}" || return 1
   _bench_resolve_sources "$@" || return 1
   _inspect_llvm_gen
 }
 
 inspect_asm_gen() {
-  if (( $# < 2 )); then
-    echo "usage: inspect_asm_gen <langs> <sources...>"
+  if (( $# < 3 )); then
+    echo "usage: inspect_asm_gen <which,modes> <which,langs> <dsp,sources>"
     return 1
   fi
-  local langs="$1"
-  shift
+  local modes="$1"
+  local langs="$2"
+  shift 2
+  _bench_resolve_modes "${modes}" || return 1
   _bench_resolve_langs "${langs}" || return 1
   _bench_resolve_sources "$@" || return 1
   _inspect_asm_gen
@@ -63,6 +92,19 @@ inspect_asm_gen() {
 # ------------------------------------------
 # Validation helpers
 # ------------------------------------------
+
+_bench_require_mode() {
+  local mode="$1"
+  local supported
+  for supported in "${BENCH_MODES[@]}"; do
+    if [[ "${mode}" == "${supported}" ]]; then
+      return 0
+    fi
+  done
+  echo "error: unsupported benchmark mode: ${mode}"
+  echo "supported modes: ${BENCH_MODES[*]}"
+  return 1
+}
 
 _bench_require_lang() {
   local lang="$1"
@@ -120,30 +162,56 @@ _bench_require_command() {
 # ------------------------------------------
 
 _bench_resolve_args() {
-  local langs="$1"
-  local sample_rates="$2"
-  local buffer_sizes="$3"
-  shift 3
+  local modes="$1"
+  local langs="$2"
+  local sample_rates="$3"
+  local buffer_sizes="$4"
+  shift 4
+
+  _bench_resolve_modes "${modes}" || return 1
   _bench_resolve_langs "${langs}" || return 1
   _bench_resolve_sample_rates "${sample_rates}" || return 1
   _bench_resolve_buffer_sizes "${buffer_sizes}" || return 1
   _bench_resolve_sources "$@" || return 1
 }
 
+_bench_resolve_modes() {
+  local spec="$1"
+  local item
+  BENCH_RUN_MODES=()
+
+  if [[ "${spec}" == "all" ]]; then
+    for item in "${BENCH_MODES[@]}"; do
+      BENCH_RUN_MODES+=("${item}")
+    done
+    return 0
+  fi
+
+  for item in $(printf "%s" "${spec}" | tr ',' ' '); do
+    _bench_require_mode "${item}" || return 1
+    BENCH_RUN_MODES+=("${item}")
+  done
+
+  _bench_require_non_empty "${BENCH_RUN_MODES[*]}" "resolved modes"
+}
+
 _bench_resolve_langs() {
   local spec="$1"
   local item
   BENCH_RUN_LANGS=()
+
   if [[ "${spec}" == "all" ]]; then
     for item in "${BENCH_LANGS[@]}"; do
       BENCH_RUN_LANGS+=("${item}")
     done
     return 0
   fi
+
   for item in $(printf "%s" "${spec}" | tr ',' ' '); do
     _bench_require_lang "${item}" || return 1
     BENCH_RUN_LANGS+=("${item}")
   done
+
   _bench_require_non_empty "${BENCH_RUN_LANGS[*]}" "resolved languages"
 }
 
@@ -244,68 +312,92 @@ _bench_dsp_path() {
   echo "${BENCH_SRC_DIR}/${name}.dsp"
 }
 
+_bench_current_mode() {
+  echo "${BENCH_RUN_MODE:-scalar}"
+}
+
 _bench_cpp_out() {
   local name
+  local mode
   name="$(_bench_dsp_name "$1")"
-  echo "${BENCH_CPP_ARCH_DIR}/${name}_out.cpp"
+  mode="$(_bench_current_mode)"
+  echo "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_out.cpp"
 }
 
 _bench_cpp_bin() {
   local name
+  local mode
   name="$(_bench_dsp_name "$1")"
-  echo "${BENCH_CPP_ARCH_DIR}/${name}_bin_cpp"
+  mode="$(_bench_current_mode)"
+  echo "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_bin_cpp"
 }
 
 _bench_mojo_out() {
   local name
+  local mode
   name="$(_bench_dsp_name "$1")"
-  echo "${BENCH_MOJO_ARCH_DIR}/${name}_out.mojo"
+  mode="$(_bench_current_mode)"
+  echo "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_out.mojo"
 }
 
 _bench_mojo_bin() {
   local name
+  local mode
   name="$(_bench_dsp_name "$1")"
-  echo "${BENCH_MOJO_ARCH_DIR}/${name}_bin_mojo"
+  mode="$(_bench_current_mode)"
+  echo "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_bin_mojo"
 }
 
 _inspect_cpp_out() {
   local name
+  local mode
   name="$(_bench_dsp_name "$1")"
-  echo "${BENCH_CPP_ARCH_DIR}/${name}_insp.cpp"
+  mode="$(_bench_current_mode)"
+  echo "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_insp.cpp"
 }
 
 _inspect_mojo_out() {
   local name
+  local mode
   name="$(_bench_dsp_name "$1")"
-  echo "${BENCH_MOJO_ARCH_DIR}/${name}_insp.mojo"
+  mode="$(_bench_current_mode)"
+  echo "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_insp.mojo"
 }
 
 _inspect_cpp_llvm() {
   local name="$1"
   local precision="$2"
+  local mode
   name="$(_bench_dsp_name "${name}")"
-  echo "${BENCH_REPORT_DIR}/llvm/cpp/${name}_${precision}.ll"
+  mode="$(_bench_current_mode)"
+  echo "${BENCH_REPORT_DIR}/llvm/cpp/${name}_${mode}_${precision}.ll"
 }
 
 _inspect_mojo_llvm() {
   local name="$1"
   local precision="$2"
+  local mode
   name="$(_bench_dsp_name "${name}")"
-  echo "${BENCH_REPORT_DIR}/llvm/mojo/${name}_${precision}.ll"
+  mode="$(_bench_current_mode)"
+  echo "${BENCH_REPORT_DIR}/llvm/mojo/${name}_${mode}_${precision}.ll"
 }
 
 _inspect_cpp_asm() {
   local name="$1"
   local precision="$2"
+  local mode
   name="$(_bench_dsp_name "${name}")"
-  echo "${BENCH_REPORT_DIR}/asm/cpp/${name}_${precision}.s"
+  mode="$(_bench_current_mode)"
+  echo "${BENCH_REPORT_DIR}/asm/cpp/${name}_${mode}_${precision}.s"
 }
 
 _inspect_mojo_asm() {
   local name="$1"
   local precision="$2"
+  local mode
   name="$(_bench_dsp_name "${name}")"
-  echo "${BENCH_REPORT_DIR}/asm/mojo/${name}_${precision}.s"
+  mode="$(_bench_current_mode)"
+  echo "${BENCH_REPORT_DIR}/asm/mojo/${name}_${mode}_${precision}.s"
 }
 
 _bench_tab_path() {
@@ -315,18 +407,22 @@ _bench_tab_path() {
   local samp_rate="$4"
   local buff_size="$5"
   local name
+  local mode
   local sr_khz
   name="$(_bench_dsp_name "${dsp}")"
+  mode="$(_bench_current_mode)"
   sr_khz="$((samp_rate / 1000))"
-  echo "${BENCH_REPORT_DIR}/${lang}/${lang}_${name}_${BENCH_RUN_NAME}_${sr_khz}_${buff_size}_${precision}.tab"
+  echo "${BENCH_REPORT_DIR}/${lang}/${lang}_${name}_${BENCH_RUN_NAME}_${mode}_${sr_khz}_${buff_size}_${precision}.tab"
 }
 
 _bench_tmp_csv_path() {
   local lang="$1"
   local dsp="$2"
   local name
+  local mode
   name="$(_bench_dsp_name "${dsp}")"
-  echo "${BENCH_TMP_DIR}/${lang}_${name}_${BENCH_RUN_NAME}.csv"
+  mode="$(_bench_current_mode)"
+  echo "${BENCH_TMP_DIR}/${lang}_${name}_${BENCH_RUN_NAME}_${mode}.csv"
 }
 
 _bench_plot_path() {
@@ -477,7 +573,29 @@ _bench_csv_merge_fragment() {
     --tmp "${tmp_csv}" \
     --language "${lang}" \
     --dsp "${name}" \
-    --case "${BENCH_RUN_NAME}"
+    --case "${BENCH_RUN_NAME}" \
+    --mode "$(_bench_current_mode)"
+}
+
+# ------------------------------------------
+# Faust mode helpers
+# ------------------------------------------
+
+_bench_set_faust_mode_opt() {
+  local mode="$1"
+  BENCH_FAUST_MODE_OPT=()
+  case "${mode}" in
+    scalar)
+      BENCH_FAUST_MODE_OPT+=("${BENCH_FAUST_SCALAR_OPT[@]}")
+      ;;
+    vec)
+      BENCH_FAUST_MODE_OPT+=("${BENCH_FAUST_VEC_OPT[@]}")
+      ;;
+    *)
+      echo "error: no Faust options for benchmark mode: ${mode}"
+      return 1
+      ;;
+  esac
 }
 
 # ------------------------------------------
@@ -508,10 +626,12 @@ _bench_generate_cpp() {
   dsp_path="$(_bench_dsp_path "${source}")"
   cpp_out="$(_bench_cpp_out "${source}")"
   _bench_require_file "${dsp_path}" || return 1
+  _bench_set_faust_mode_opt "$(_bench_current_mode)" || return 1
   mkdir -p "$(dirname "${cpp_out}")"
   "${BENCH_FAUST_BIN}" \
     -lang cpp \
     "${BENCH_FAUST_OPT[@]}" \
+    "${BENCH_FAUST_MODE_OPT[@]}" \
     -a "${BENCH_CPP_ARCH_DIR}/bench.cpp" \
     "${dsp_path}" \
     -o "${cpp_out}"
@@ -524,10 +644,12 @@ _bench_generate_mojo() {
   dsp_path="$(_bench_dsp_path "${source}")"
   mojo_out="$(_bench_mojo_out "${source}")"
   _bench_require_file "${dsp_path}" || return 1
+  _bench_set_faust_mode_opt "$(_bench_current_mode)" || return 1
   mkdir -p "$(dirname "${mojo_out}")"
   "${BENCH_FAUST_BIN}" \
     -lang mojo \
     "${BENCH_FAUST_OPT[@]}" \
+    "${BENCH_FAUST_MODE_OPT[@]}" \
     -a "${BENCH_MOJO_ARCH_DIR}/bench.mojo" \
     "${dsp_path}" \
     -o "${mojo_out}"
@@ -557,10 +679,12 @@ _inspect_generate_cpp() {
   dsp_path="$(_bench_dsp_path "${source}")"
   cpp_out="$(_inspect_cpp_out "${source}")"
   _bench_require_file "${dsp_path}" || return 1
+  _bench_set_faust_mode_opt "$(_bench_current_mode)" || return 1
   mkdir -p "$(dirname "${cpp_out}")"
   "${BENCH_FAUST_BIN}" \
     -lang cpp \
     "${BENCH_FAUST_OPT[@]}" \
+    "${BENCH_FAUST_MODE_OPT[@]}" \
     -a "${BENCH_CPP_ARCH_DIR}/inspect.cpp" \
     "${dsp_path}" \
     -o "${cpp_out}"
@@ -573,10 +697,12 @@ _inspect_generate_mojo() {
   dsp_path="$(_bench_dsp_path "${source}")"
   mojo_out="$(_inspect_mojo_out "${source}")"
   _bench_require_file "${dsp_path}" || return 1
+  _bench_set_faust_mode_opt "$(_bench_current_mode)" || return 1
   mkdir -p "$(dirname "${mojo_out}")"
   "${BENCH_FAUST_BIN}" \
     -lang mojo \
     "${BENCH_FAUST_OPT[@]}" \
+    "${BENCH_FAUST_MODE_OPT[@]}" \
     -a "${BENCH_MOJO_ARCH_DIR}/inspect.mojo" \
     "${dsp_path}" \
     -o "${mojo_out}"
@@ -589,9 +715,13 @@ _inspect_generate_mojo() {
 _bench_run_resolved() {
   local source
   local lang
+  local mode
+
   for source in "${BENCH_RUN_SOURCES[@]}"; do
     for lang in "${BENCH_RUN_LANGS[@]}"; do
-      _bench_run_source_lang "${source}" "${lang}" || return 1
+      for mode in "${BENCH_RUN_MODES[@]}"; do
+        _bench_run_source_lang "${source}" "${lang}" "${mode}" || return 1
+      done
     done
   done
 }
@@ -599,9 +729,12 @@ _bench_run_resolved() {
 _bench_run_source_lang() {
   local source="$1"
   local lang="$2"
+  local mode="$3"
   local sample_rate
   local buffer_size
   local precision
+
+  BENCH_RUN_MODE="${mode}"
   _bench_generate_source "${lang}" "${source}" || return 1
   _bench_csv_prepare_fragment "${lang}" "${source}" || return 1
   for sample_rate in "${BENCH_RUN_SAMPLE_RATES[@]}"; do
@@ -661,7 +794,7 @@ _bench_run_case_cpp() {
   _bench_require_file "${cpp_out}" || return 1
   mkdir -p "$(dirname "${report}")" "$(dirname "${cpp_bin}")" "$(dirname "${csv_path}")"
   echo
-  echo ">>>>>>>>>>>>>>>>>>>>>>> running cpp:${BENCH_RUN_NAME}(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size}, csv=1)"
+  echo ">>>>>>>>>>>>>>>>>>>>>>> running cpp:${BENCH_RUN_NAME}/$(_bench_current_mode)(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size}, csv=1)"
   (
     clang++ -std=gnu++23 \
       -I"${BENCH_CPP_ARCH_DIR}" \
@@ -669,6 +802,7 @@ _bench_run_case_cpp() {
       -DBENCH_LANG=\"cpp\" \
       -DBENCH_DSP=\"${name}\" \
       -DBENCH_CASE=\"${BENCH_RUN_NAME}\" \
+      -DBENCH_MODE=\"$(_bench_current_mode)\" \
       -DBENCH_OPTIM=\"${BENCH_OPTIM:-O3}\" \
       -DFAUSTFLOAT="${faust_float}" \
       -DWRITE_CSV=1 \
@@ -713,13 +847,14 @@ _bench_run_case_mojo() {
   _bench_require_file "${mojo_out}" || return 1
   mkdir -p "$(dirname "${report}")" "$(dirname "${mojo_bin}")" "$(dirname "${csv_path}")"
   echo
-  echo ">>>>>>>>>>>>>>>>>>>>>>> running mojo:${BENCH_RUN_NAME}(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size}, csv=1)"
+  echo ">>>>>>>>>>>>>>>>>>>>>>> running mojo:${BENCH_RUN_NAME}/$(_bench_current_mode)(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size}, csv=1)"
   (
     pixi run mojo build \
       "${BENCH_MOJO_OPT[@]}" \
       -D BENCH_LANG=mojo \
       -D BENCH_DSP="${name}" \
       -D BENCH_CASE="${BENCH_RUN_NAME}" \
+      -D BENCH_MODE="$(_bench_current_mode)" \
       -D BENCH_OPTIM="${BENCH_OPTIM:-O3}" \
       -D FAUST_DTYPE="${dtype}" \
       -D WRITE_CSV=True \
@@ -763,7 +898,7 @@ _bench_plot_from_csv() {
     --case "${BENCH_RUN_NAME:-run}" \
     --x combo \
     --y out_samp_per_s \
-    --series language,precision \
+    --series "${BENCH_PLOT_SERIES:-language,mode,precision}" \
     --out "${plot_out}" \
     --title "Faust Benchmark"
 }
@@ -809,15 +944,20 @@ _bench_snapshot_write_meta() {
     echo "created: $(date "+%Y-%m-%d %H:%M:%S")"
     echo "command: ${BENCH_LAST_COMMAND:-unknown}"
     echo "run_name: ${BENCH_RUN_NAME:-run}"
+    echo "resolved_modes: ${BENCH_RUN_MODES[*]:-unknown}"
+    echo "current_mode: ${BENCH_RUN_MODE:-unknown}"
     echo "workspace: ${BENCH_ROOT}"
     echo "git_branch: $(git -C "${BENCH_FAUST_ROOT}" branch --show-current 2>/dev/null || echo unknown)"
     echo "git_commit: $(git -C "${BENCH_FAUST_ROOT}" rev-parse --short HEAD 2>/dev/null || echo unknown)"
     echo "languages: ${BENCH_LANGS[*]}"
+    echo "modes: ${BENCH_MODES[*]}"
     echo "sample_rates_hz: ${BENCH_SAMPLE_RATES[*]}"
     echo "buffer_sizes: ${BENCH_BUFFER_SIZES[*]}"
     echo "precisions: ${BENCH_PRECISIONS[*]}"
     echo "cpp_opt: ${BENCH_CPP_OPT[*]}"
     echo "mojo_opt: ${BENCH_MOJO_OPT[*]}"
+    echo "faust_scalar_opt: ${BENCH_FAUST_SCALAR_OPT[*]}"
+    echo "faust_vec_opt: ${BENCH_FAUST_VEC_OPT[*]}"
     echo "warmup_iters: ${BENCH_WARMUP_ITERS:-50}"
     echo "compute_iters: ${BENCH_COMPUTE_ITERS:-1000000}"
     echo "min_runtime_secs: ${BENCH_MIN_RUNTIME_SECS:-1}"
@@ -871,6 +1011,7 @@ _inspect_compile_common_cpp_args() {
   echo -I"${BENCH_CPP_ARCH_DIR}"
   echo "${BENCH_CPP_OPT[@]}"
   echo -DFAUSTFLOAT="${faust_float}"
+  echo -DBENCH_MODE="$(_bench_current_mode)"
   echo -DSAMP_RATE="$(_inspect_sample_rate)"
   echo -DBUFF_SIZE="$(_inspect_buffer_size)"
   echo -DCOMPUTE_ITERS="$(_inspect_compute_iters)"
@@ -880,6 +1021,7 @@ _inspect_compile_common_mojo_args() {
   local dtype="$1"
   echo "${BENCH_MOJO_OPT[@]}"
   echo -D FAUST_DTYPE="${dtype}"
+  echo -D BENCH_MODE="$(_bench_current_mode)"
   echo -D SAMP_RATE="$(_inspect_sample_rate)"
   echo -D BUFF_SIZE="$(_inspect_buffer_size)"
   echo -D COMPUTE_ITERS="$(_inspect_compute_iters)"
@@ -892,20 +1034,27 @@ _inspect_compile_common_mojo_args() {
 _inspect_llvm_gen() {
   local source
   local lang
+  local mode
+
   for source in "${BENCH_RUN_SOURCES[@]}"; do
     for lang in "${BENCH_RUN_LANGS[@]}"; do
-      if ! _inspect_supports_lang "${lang}"; then
-        echo "skipped: language '${lang}' does not support LLVM IR generation in this framework"
-        continue
-      fi
-      case "${lang}" in
-        cpp)
-          _inspect_llvm_gen_cpp "${source}" || return 1
-          ;;
-        mojo)
-          _inspect_llvm_gen_mojo "${source}" || return 1
-          ;;
-      esac
+      for mode in "${BENCH_RUN_MODES[@]}"; do
+        BENCH_RUN_MODE="${mode}"
+
+        if ! _inspect_supports_lang "${lang}"; then
+          echo "skipped: language '${lang}' does not support LLVM IR generation in this framework"
+          continue
+        fi
+
+        case "${lang}" in
+          cpp)
+            _inspect_llvm_gen_cpp "${source}" || return 1
+            ;;
+          mojo)
+            _inspect_llvm_gen_mojo "${source}" || return 1
+            ;;
+        esac
+      done
     done
   done
 }
@@ -960,20 +1109,27 @@ _inspect_llvm_gen_mojo() {
 _inspect_asm_gen() {
   local source
   local lang
+  local mode
+
   for source in "${BENCH_RUN_SOURCES[@]}"; do
     for lang in "${BENCH_RUN_LANGS[@]}"; do
-      if ! _inspect_supports_lang "${lang}"; then
-        echo "skipped: language '${lang}' does not support assembly generation in this framework"
-        continue
-      fi
-      case "${lang}" in
-        cpp)
-          _inspect_asm_gen_cpp "${source}" || return 1
-          ;;
-        mojo)
-          _inspect_asm_gen_mojo "${source}" || return 1
-          ;;
-      esac
+      for mode in "${BENCH_RUN_MODES[@]}"; do
+        BENCH_RUN_MODE="${mode}"
+
+        if ! _inspect_supports_lang "${lang}"; then
+          echo "skipped: language '${lang}' does not support assembly generation in this framework"
+          continue
+        fi
+
+        case "${lang}" in
+          cpp)
+            _inspect_asm_gen_cpp "${source}" || return 1
+            ;;
+          mojo)
+            _inspect_asm_gen_mojo "${source}" || return 1
+            ;;
+        esac
+      done
     done
   done
 }

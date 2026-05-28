@@ -72,14 +72,8 @@
 #ifndef dycast
     #define dycast(T, x) dynamic_cast<T>(x)
 #endif
-#ifndef stcast
-    #define stcast(T, x) static_cast<T>(x)
-#endif
 #ifndef recast
     #define recast(T, x) reinterpret_cast<T>(x)
-#endif
-#ifndef cast
-    #define cast(T, x) ((T) (x))
 #endif
 
 #endif  // _MOJO_MACRO_HH

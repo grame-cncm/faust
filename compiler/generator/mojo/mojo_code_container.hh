@@ -24,8 +24,8 @@
 
 // faust
 #include "code_container.hh"
-#include "vec_code_container.hh"
 #include "dsp_factory.hh"
+#include "vec_code_container.hh"
 
 // mojo
 #include "mojo_instructions.hh"
@@ -35,33 +35,47 @@ inline namespace mojo {
 using DspFactory = dsp_factory_base;
 using TextDspFactory = text_dsp_factory_aux;
 
+/**
+    A `MojoCodeContainer` is an abstract code container for the mojo backend.
+    @desc
+    - Provides the common code generation structure for mojo DSP classes.
+    - An instance is created with a DSP class name, input/output count and
+      an `output` stream.
+    - Allows to produce a DSP factory, the generated class and the internal
+      declarations required by the backend.
+    - Allows to create scalar mojo code containers from an existing container.
+    - Allows to produce the fundamental `compute` method of the generated DSP.
+    @rep
+    - Maintains an `out` stream to write the generated mojo code to.
+    @glob
+    - Maintains a `code producer` visitor used to translate Faust IR
+      instructions into mojo code.
+    - Allows to create a mojo code container from the DSP name, input/output
+      count and output stream.
+**/
 class MojoCodeContainer : public virtual CodeContainer {
 protected:
-    std::ostream*                  fOut;
+    OStream*                       fOut;
     static inline MojoInstVisitor* fCodeProducer;
+
     MojoCodeContainer() = default;
 
 public:
-    MojoCodeContainer(
-        std::string const& name, int numInputs, int numOutputs, std::ostream* out
-    );
+    MojoCodeContainer(String const& name, int numInputs, int numOutputs, OStream* out);
     virtual ~MojoCodeContainer();
 
-    // Public Producers
+    // Public producers
     DspFactory* produceFactory()  override;
     void        produceClass()    override;
     void        produceInternal() override;
 
     // Factories
-    CodeContainer* createScalarContainer(
-        std::string const& name, int subContKind
-    ) override;
+    CodeContainer*        createScalarContainer(String const& name, int subContKind) override;
     static CodeContainer* createContainer(
-        std::string const& name, int numInputs, int numOutputs,
-        std::ostream* out = new std::stringstream()
-    );
+        String const& name, int numInputs, int numOutputs, OStream* out = new OString());
 
 protected:
+    // Writers
     void writeFaustHeader();
     void writeClassHeaderAndFields(int n);
     void writeGlobalVariablesInlined(int n);
@@ -84,22 +98,38 @@ protected:
     virtual void writeCompute(int n) = 0;
 };
 
+/**
+    A `MojoScalarCodeContainer` is a `MojoCodeContainer` for scalar mojo code
+    generation.
+    @desc
+    - Provides the scalar code generation path for mojo DSP classes.
+    - An instance is created with a DSP class name, input/output count,
+      an `output` stream and a scalar sub-container kind.
+    - Allows to produce the scalar version of the generated Faust DSP class.
+    - Allows to produce the scalar `compute` method of the generated DSP.
+**/
 class MojoScalarCodeContainer : public MojoCodeContainer {
 public:
     MojoScalarCodeContainer(
-        std::string const& name, int numInputs, int numOutputs, std::ostream* out,
-        int subContKind
-    );
+        String const& name, int numInputs, int numOutputs, OStream* out, int subContKind);
     virtual ~MojoScalarCodeContainer();
 protected:
     void writeCompute(int n) override;
 };
 
+/**
+    A `MojoVectorCodeContainer` is both a `VectorCodeContainer` and a
+    `MojoCodeContainer` for the mojo backend when the `-vec` option is enabled.
+    @desc
+    - Provides the vector code generation path for mojo DSP classes.
+    - An instance is created with a DSP class name, input/output count and
+      an `output` stream.
+    - Allows to produce the vectorized version of the generated Faust DSP class.
+    - Allows to produce the vector `compute` method of the generated DSP.
+**/
 class MojoVectorCodeContainer : public VectorCodeContainer, public MojoCodeContainer {
 public:
-    MojoVectorCodeContainer(
-        const std::string& name, int numInputs, int numOutputs, std::ostream* out
-    );
+    MojoVectorCodeContainer(const String& name, int numInputs, int numOutputs, OStream* out);
     virtual ~MojoVectorCodeContainer();
 protected:
     void writeCompute(int tab) override;

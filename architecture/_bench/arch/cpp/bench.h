@@ -18,6 +18,9 @@
 #ifndef BENCH_CASE
 #define BENCH_CASE "default"
 #endif
+#ifndef BENCH_MODE
+#define BENCH_MODE "scalar"
+#endif
 #ifndef BENCH_OPTIM
 #define BENCH_OPTIM "O3"
 #endif
@@ -206,6 +209,7 @@ struct FaustReport {
     vstring language          = BENCH_LANG;
     vstring dsp               = BENCH_DSP;
     vstring bench_case        = BENCH_CASE;
+    vstring mode              = BENCH_MODE;
     vstring precision         = PRECISION;
     vstring opt               = BENCH_OPTIM;
     s32 samp_rate             = SAMP_RATE;
@@ -325,6 +329,7 @@ fn print_report(FaustReport const& report) -> void
     printf("  language:       %s\n",     report.language.data());
     printf("  dsp:            %s\n",     report.dsp.data());
     printf("  bench case:     %s\n",     report.bench_case.data());
+    printf("  mode:           %s\n",     report.mode.data());
     printf("  precision:      %s\n",     report.precision.data());
     printf("  optimization:   %s\n",     report.opt.data());
     puts("------------------------------------");
@@ -373,9 +378,9 @@ fn write_csv(FaustReport const& report) -> void
 
     fprintf(
         fp,
-        "%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%d,%.17g,%.17g,%.17g,%.17g,%.17g,"
+        "%s,%s,%s,%s,%s,%d,%d,%d,%d,%d,%d,%d,%.17g,%.17g,%.17g,%.17g,%.17g,"
         "%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g,%.17g\n",
-        report.language.data(), report.bench_case.data(),
+        report.language.data(), report.bench_case.data(), report.mode.data(),
         report.precision.data(), report.opt.data(),
         report.samp_rate, report.buff_size,
         report.inputs, report.outputs,
