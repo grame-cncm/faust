@@ -132,7 +132,7 @@ void MojoCodeContainer::writeGetOutputs(int n)
 void MojoCodeContainer::writeClassInit(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def class_init(mut dsp, sample_rate: S32) -> None:\n";
+    *fOut << wtab(n) << "def class_init(mut dsp, read sample_rate: S32) -> None:\n";
     *fOut << wtab(n + 1);
     if (fStaticInitInstructions->fCode.size() == 0) {
         *fOut << "pass" << "\n";
@@ -145,7 +145,7 @@ void MojoCodeContainer::writeClassInit(int n)
 void MojoCodeContainer::writeInstanceConstants(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def instance_constants(mut dsp, sample_rate: S32) -> None:\n";
+    *fOut << wtab(n) << "def instance_constants(mut dsp, read sample_rate: S32) -> None:\n";
     *fOut << wtab(n + 1);
     inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
     *fOut << wrewind(fOut, n + 1);
