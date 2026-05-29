@@ -260,8 +260,8 @@ void CCodeContainer::produceClass()
 
     *fOut << "#ifndef FAUSTMAXI" << endl;
     *fOut << "#define FAUSTMAXI" << endl;
-    *fOut << "inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }" << endl;
-    *fOut << "inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
+    *fOut << "static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }" << endl;
+    *fOut << "static inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
     *fOut << "#endif" << endl;
 
     tab(n, *fOut);
@@ -658,8 +658,8 @@ void CScalarCodeContainer1::produceClass()
 
     *fOut << "#ifndef FAUSTMAXI" << endl;
     *fOut << "#define FAUSTMAXI" << endl;
-    *fOut << "inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }" << endl;
-    *fOut << "inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
+    *fOut << "static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }" << endl;
+    *fOut << "static inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
     *fOut << "#endif" << endl;
 
     // Generate user interface macros if needed

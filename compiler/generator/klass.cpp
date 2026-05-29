@@ -215,8 +215,8 @@ void Klass::printAdditionalCode(ostream& fout)
 {
     fout << "#ifndef FAUSTMAXI" << endl;
     fout << "#define FAUSTMAXI" << endl;
-    fout << "inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }" << endl;
-    fout << "inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
+    fout << "static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }" << endl;
+    fout << "static inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
     fout << "#endif" << endl;
 
     if (fNeedPowerDef) {
