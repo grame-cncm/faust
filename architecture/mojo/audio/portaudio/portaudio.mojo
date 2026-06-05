@@ -2,15 +2,14 @@
 
 from conf import *
 from dsp import *
-
 from .ffi import *
 
-# --------------------------------------------------------------
+# ==============================================================
 # PortAudio architecture implementation.
 # Provides the FaustAudio API for PortAudio mainly through
 # direct FFI calls. Defines additional helpers using the `faust`
 # prefix, with proper casing, for Faust-domain operations.
-# --------------------------------------------------------------
+# ==============================================================
 
 # Faust PortAudio dfaust and FaustFloat definitions.
 
