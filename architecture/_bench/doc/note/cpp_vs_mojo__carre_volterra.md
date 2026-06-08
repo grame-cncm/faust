@@ -1,20 +1,81 @@
-# Report: Mojo vs C++ low-level optimization gap
+# C++ vs Mojo — Carre Volterra scalar state-promotion comparison
 
-## Context
+## Scope
 
-During the low-level inspection of `carre_volterra`, we compared the assembly generated from the C++ backend and the Mojo backend.
+This note compares the generated low-level code for `carre_volterra`, focusing on the scalar C++ and scalar
+Mojo benchmark paths.
 
-The goal was not to compare the whole benchmark framework, but to isolate the generated DSP `compute` code using the `inspect` architectures.
+The benchmark result is the starting point: C++ scalar is the fastest version, while both C++ vec and Mojo vec
+slow down. This means that the main question is not why vec mode fails. For this DSP, vec mode is already a
+poor fit for both backends.
 
-The main finding is that C++ automatically applies an optimization that Mojo currently does not reliably perform: it promotes small loop-carried DSP state fields to local temporaries/registers, uses them inside the hot loop, and writes them back to the DSP object only after the loop.
+The relevant question is narrower:
 
-This transformation significantly reduces repeated memory loads and stores inside the per-sample loop.
+```
+If vec mode is bad for both backends, why is Mojo scalar still slower than C++ scalar?
+```
 
-## Main finding
+The low-level inspection points to one main difference: C++ promotes small recursive DSP state to local
+register-carried values inside the hot loop, while the original Mojo output keeps accessing DSP fields
+directly from memory.
 
-The original Mojo generated code keeps accessing DSP fields directly inside the hot loop:
+## Benchmark result to explain
 
-```mojo
+For `carre_volterra`, the fastest observed configuration is C++ scalar.
+
+Both backends slow down in vec mode. That strongly suggests that this DSP is not a good case for the Faust
+vec-mode transformation. The program is recurrence-heavy and state-heavy, so splitting the computation into
+block loops does not give a useful vectorization path.
+
+Therefore, the direct comparison should be:
+
+```
+C++ scalar vs Mojo scalar
+```
+
+The remaining gap is about scalar code quality, not about missing vectorization. The question is why the Mojo
+scalar path is still around 1.2x slower than the C++ scalar path.
+
+## Why vec mode is not the main question
+
+Vec mode is useful only when the generated block structure can be converted into efficient packed single
+instruction, multiple data (SIMD) arithmetic.
+
+For `carre_volterra`, both C++ and Mojo get slower in vec mode. This is different from `cubic_distortion`,
+where C++ benefits from vec mode and Mojo does not.
+
+Here, the shared slowdown means that the DSP shape itself is not favorable to the vec-mode transformation. The
+recurrence structure makes consecutive samples dependent on previous state, so the optimizer has fewer
+independent operations to pack together.
+
+This report therefore focuses on the scalar path.
+
+## Scalar comparison focus
+
+The scalar gap comes from how the two backends handle small loop-carried DSP state.
+
+C++ scalar effectively treats state arrays such as `rec0`, `rec1`, `rec2`, and `rec3` as local values inside
+the hot loop. The loop updates registers, then writes the final state back to the DSP object after the loop.
+
+The original Mojo scalar output does not do this reliably. It keeps using expressions such as:
+
+```
+dsp.rec3[S32(0)]
+dsp.rec3[S32(1)]
+dsp.rec2[S32(0)]
+dsp.rec2[S32(1)]
+```
+
+inside the hot loop.
+
+This creates repeated loads and stores to memory-backed DSP fields. The computation is correct, but the
+generated code puts more pressure on the stack and memory system than the C++ output.
+
+## Mojo scalar state-access pattern
+
+The original Mojo generated code updates DSP fields directly inside the hot loop:
+
+```
 for var i0 in range(S32(0), count):
     dsp.rec3[S32(0)] = (slow2) * ((dsp.rec3[S32(1)]) + ((slow4) * (temp7)))
     dsp.rec2[S32(0)] = (slow2) * ((dsp.rec2[S32(1)]) + ((slow1) * (dsp.rec3[S32(0)])))
@@ -27,9 +88,10 @@ for var i0 in range(S32(0), count):
     dsp.rec0[S32(1)] = dsp.rec0[S32(0)]
 ```
 
-This produces assembly with repeated memory traffic inside the hot loop:
+This source shape encourages the compiler to keep materializing field updates as memory operations. The
+assembly shows repeated writes and reloads inside the hot loop:
 
-```asm
+```
 str d29, [x9, #168]
 ldr d25, [x9, #168]
 str d25, [x9, #176]
@@ -39,18 +101,17 @@ ldr d25, [x9, #184]
 str d25, [x9, #192]
 ```
 
-The issue is not that the computation is wrong. The issue is that the generated code repeatedly writes and reloads small DSP state fields from memory even though they could remain in registers during the whole frame loop.
+The important point is the pattern: Mojo writes a state value to the DSP object, reads it back shortly after,
+then writes the shifted state slot. These values are small and statically indexed, so they are good candidates
+for register-backed local variables.
 
-## What C++ does automatically
+## C++ scalar assembly pattern
 
-The C++ compiler recognizes that small recursive state arrays such as `rec0`, `rec1`, `rec2`, etc. can be represented as local loop-carried values.
+The C++ compiler performs this promotion automatically.
 
-Instead of writing every intermediate state update to memory inside the loop, C++ keeps those values in registers and flushes them back to the DSP object after the loop.
+Inside the hot loop, the recursive state is carried through registers:
 
-The C++ assembly shows this pattern clearly:
-
-```asm
-; inside the hot loop
+```
 fmadd s4, s6, s3, s31
 fmul  s31, s1, s4
 
@@ -61,39 +122,28 @@ fmadd s4, s0, s30, s29
 fmul  s29, s1, s4
 ```
 
-Then, after the loop:
+The DSP object is updated after the loop:
 
-```asm
+```
 stp s31, s31, [x8, #120]
 stp s30, s30, [x8, #128]
 stp s29, s29, [x8, #136]
 stp s28, s28, [x8, #144]
 ```
 
-This means that C++ effectively transforms memory-backed DSP state into register-backed temporaries during the hot loop.
+This is the key difference. C++ does not repeatedly store and reload the small recursive state fields inside
+the loop. It keeps them live as local loop-carried values and flushes them at the end.
 
-## Manual Mojo transformation
+That directly reduces load/store traffic in the hot path.
 
-To test the hypothesis, we manually rewrote the Mojo code by promoting selected DSP state fields to local variables before the loop.
+## Manual Mojo promotion check
 
-### Before
+To test the diagnosis, the Mojo source was manually rewritten by loading selected DSP state fields into local
+variables before the loop.
 
-```mojo
-for var i0 in range(S32(0), count):
-    dsp.rec3[S32(0)] = (slow2) * ((dsp.rec3[S32(1)]) + ((slow4) * (temp7)))
-    dsp.rec2[S32(0)] = (slow2) * ((dsp.rec2[S32(1)]) + ((slow1) * (dsp.rec3[S32(0)])))
-    dsp.rec1[S32(0)] = (slow2) * ((dsp.rec1[S32(1)]) + ((slow1) * (dsp.rec2[S32(0)])))
-    dsp.rec0[S32(0)] = (slow2) * ((dsp.rec0[S32(1)]) + ((slow1) * (dsp.rec1[S32(0)])))
-    ...
-    dsp.rec3[S32(1)] = dsp.rec3[S32(0)]
-    dsp.rec2[S32(1)] = dsp.rec2[S32(0)]
-    dsp.rec1[S32(1)] = dsp.rec1[S32(0)]
-    dsp.rec0[S32(1)] = dsp.rec0[S32(0)]
+Before the loop:
+
 ```
-
-### After
-
-```mojo
 var rec3_0 = dsp.rec3[S32(0)]
 var rec3_1 = dsp.rec3[S32(1)]
 var rec2_0 = dsp.rec2[S32(0)]
@@ -102,7 +152,11 @@ var rec1_0 = dsp.rec1[S32(0)]
 var rec1_1 = dsp.rec1[S32(1)]
 var rec0_0 = dsp.rec0[S32(0)]
 var rec0_1 = dsp.rec0[S32(1)]
+```
 
+Inside the loop:
+
+```
 for var i0 in range(S32(0), count):
     rec3_0 = (slow2) * ((rec3_1) + ((slow4) * (temp7)))
     rec2_0 = (slow2) * ((rec2_1) + ((slow1) * (rec3_0)))
@@ -113,7 +167,11 @@ for var i0 in range(S32(0), count):
     rec2_1 = rec2_0
     rec1_1 = rec1_0
     rec0_1 = rec0_0
+```
 
+After the loop:
+
+```
 dsp.rec3[S32(0)] = rec3_0
 dsp.rec3[S32(1)] = rec3_1
 dsp.rec2[S32(0)] = rec2_0
@@ -124,10 +182,10 @@ dsp.rec0[S32(0)] = rec0_0
 dsp.rec0[S32(1)] = rec0_1
 ```
 
-After this rewrite, the Mojo assembly changed in the desired direction. The small state fields were kept in registers inside the loop, then written back at the end:
+After this rewrite, the Mojo assembly changed in the expected direction. The state updates became
+register-carried inside the hot loop:
 
-```asm
-; inside the hot loop, state is kept in registers
+```
 fmadd d4, d3, d2, d29
 fmul  d29, d1, d4
 
@@ -138,139 +196,38 @@ fmadd d2, d0, d28, d26
 fmul  d26, d1, d2
 ```
 
-Then, after the loop:
+Then the final state was written back after the loop:
 
-```asm
+```
 stp d29, d29, [x8, #168]
 stp d28, d28, [x8, #184]
 stp d26, d26, [x8, #200]
 stp d5,  d5,  [x8, #216]
 ```
 
-This confirms that the main issue is not the Mojo arithmetic itself, but the shape of the generated state updates.
+This confirms the diagnosis: the main scalar gap is not the arithmetic expression itself, but the generated
+state-access shape.
 
-## Why `noalias` was not enough
+## Why noalias is not the main issue
 
-We also tested `as_noalias_ptr()` on input/output stream pointers.
+The `as_noalias_ptr()` test on input and output stream pointers did not trigger the same improvement.
 
-This did not trigger the desired scalar replacement by itself. With `noalias` alone, the assembly still contained repeated loads and stores to DSP state fields inside the hot loop.
+With noalias alone, the assembly still contained repeated loads and stores to DSP state fields inside the hot
+loop. That means the main problem is not input/output aliasing.
 
-Therefore, the current issue is not primarily input/output aliasing. It is more likely related to the way Mojo lowers mutable DSP field accesses such as:
+The relevant issue is the mutable DSP field-access pattern itself. Mojo does not currently promote these small
+statically indexed state fields as aggressively as Clang does for the equivalent C++ code.
 
-```mojo
-dsp.rec3[S32(0)]
-dsp.rec3[S32(1)]
-```
+## Final comparison
 
-The compiler does not currently promote this pattern as aggressively as Clang does for the equivalent C++ code.
+The `carre_volterra` benchmark should be read as a scalar state-promotion problem.
 
-`noalias` can still be useful as future hardening, especially for non-in-place architectures, but it is not the main fix for this case.
+Vec mode is not the main explanation, because both C++ and Mojo slow down in vec mode. This indicates that the
+DSP shape is not suitable for this transformation.
 
-## Secondary finding: `pow`
+The meaningful gap is scalar C++ versus scalar Mojo. C++ keeps small recursive state in registers during the
+hot loop and writes it back after the loop. The original Mojo output keeps touching memory-backed DSP fields
+inside the loop, producing extra load/store traffic and higher pressure on the stack and memory system.
 
-Another difference remains around small integer powers.
-
-C++ lowers expressions such as:
-
-```cpp
-pow(x, 2.0)
-pow(x, 3.0)
-```
-
-to direct multiplications:
-
-```asm
-fmul s9, s31, s31
-fmul s9, s31, s9
-```
-
-Mojo currently lowers the same kind of operation to a small generic exponentiation loop:
-
-```asm
-mov w2, #3
-fmov d13, #1.00000000
-
-LBB0_6:
-    fmul d19, d13, d4
-    tst w2, #0x1
-    fcsel d13, d13, d19, eq
-    fmul d4, d4, d4
-    lsr w2, w2, #1
-    cbnz w2, LBB0_6
-```
-
-This is another optimization gap, but it appears secondary compared to the repeated memory traffic caused by unpromoted DSP state fields.
-
-## Proposed backend-side optimization
-
-The first generator-side optimization should be local state promotion for loop-carried DSP fields.
-
-A conservative first pass can target:
-
-```text
-rec*
-iota*
-```
-
-Later, it can be extended to selected `vec*` fields if they are small and statically indexed.
-
-The transformation should:
-
-1. Scan the hot loop.
-2. Detect promotable DSP fields.
-3. Emit local loads at the end of the pre-hot-loop block.
-4. Rewrite accesses inside the hot loop.
-5. Emit final stores at the beginning of the post-hot-loop block.
-
-The basic transformation is:
-
-```text
-dsp.recN[i] -> recN_i
-```
-
-with:
-
-```mojo
-var recN_i = dsp.recN[S32(i)]
-```
-
-before the loop, and:
-
-```mojo
-dsp.recN[S32(i)] = recN_i
-```
-
-after the loop.
-
-## Important constraint
-
-This should be done gradually.
-
-Promoting too many fields can increase register pressure. If register pressure becomes too high, the compiler may start spilling values to the stack, partially undoing the benefit.
-
-Suggested order:
-
-```text
-1. Promote rec* fields.
-2. Promote iota* counters.
-3. Promote vec* fields only when all accesses are statically indexed and the number of slots is small.
-```
-
-Dynamic ring buffers such as:
-
-```mojo
-dsp.vec3[(iota0 - i_slow19) & S32(4095)]
-dsp.vec4[iota0 & S32(4095)]
-```
-
-should not be promoted.
-
-## Conclusion
-
-The main optimization gap observed in `carre_volterra` is local state promotion.
-
-C++ automatically transforms small recursive DSP state arrays into register-backed temporaries inside the hot loop. Mojo currently does not do this reliably from the generated field-access form.
-
-Manual promotion in the Mojo source significantly improves the generated assembly and makes it closer to the C++ output.
-
-The next step is to implement this transformation in the Faust→Mojo backend, initially for `rec*` and `iota*`, then later for safely promotable `vec*` fields.
+Manual promotion in the Mojo source makes the assembly move toward the C++ pattern. This makes local state
+promotion the central explanation for the observed scalar gap.

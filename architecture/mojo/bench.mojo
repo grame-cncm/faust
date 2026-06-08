@@ -44,7 +44,7 @@ def main() raises -> None:
         dsp.free()
         return
 
-    var inputs = base.bitcast[Ptr[Real, MUTA_EXT]]()
+    var inputs = base.unsafe_value().bitcast[Ptr[Real, MUTA_EXT]]()
     var outputs = inputs + n_ins
 
     comptime if FILL_INPUTS:
