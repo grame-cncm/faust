@@ -2,56 +2,49 @@
 
 from std.ffi import *
 
-# --------------------------------------------------------------
+# ==========================================
 # Public API
-# --------------------------------------------------------------
+# ==========================================
 
 # Queries
 
 @always_inline
 def pa_get_default_input_device() -> Int32:
-    return
-            external_call["Pa_GetDefaultInputDevice", PaDeviceIndex]()
+    return  external_call["Pa_GetDefaultInputDevice", PaDeviceIndex]()
     
-
 @always_inline
 def pa_get_default_output_device() -> Int32:
-    return
-            external_call["Pa_GetDefaultOutputDevice", PaDeviceIndex]()
+    return  external_call["Pa_GetDefaultOutputDevice", PaDeviceIndex]()
     
-
 @always_inline
-def pa_get_device_info(device: Int32) -> UnsafePointer[PaDeviceInfo, ImmutExternalOrigin]: 
-    return
-            external_call[
-                "Pa_GetDeviceInfo",
-                UnsafePointer[PaDeviceInfo, ImmutExternalOrigin],
+def pa_get_device_info(
+    device: Int32
+) -> Optional[UnsafePointer[PaDeviceInfo, ImmutExternalOrigin]]:
+    return  external_call["Pa_GetDeviceInfo",
+                Optional[UnsafePointer[PaDeviceInfo, ImmutExternalOrigin]],
                 PaDeviceIndex,
             ](PaDeviceIndex(device))
 
-
 @always_inline
-def pa_get_stream_info(stream: PaStream) -> UnsafePointer[PaStreamInfo, ImmutExternalOrigin]:
-    return
-            external_call[
-                "Pa_GetStreamInfo",
-                UnsafePointer[PaStreamInfo, ImmutExternalOrigin],
+def pa_get_stream_info(
+    stream: PaStream
+) -> Optional[UnsafePointer[PaStreamInfo, ImmutExternalOrigin]]:
+    return  external_call["Pa_GetStreamInfo",
+                Optional[UnsafePointer[PaStreamInfo, ImmutExternalOrigin]],
                 PaStream,
             ](stream)
 
 
 @always_inline
 def pa_is_format_supported(
-    input_parameters:     UnsafePointer[PaStreamParameters, ImmutExternalOrigin],
-    output_parameters:    UnsafePointer[PaStreamParameters, ImmutExternalOrigin],
+    input_parameters:     Optional[UnsafePointer[PaStreamParameters, ImmutExternalOrigin]],
+    output_parameters:    Optional[UnsafePointer[PaStreamParameters, ImmutExternalOrigin]],
     sample_rate:          Float64,
 ) -> Int32:
-    return
-            external_call[
-                "Pa_IsFormatSupported",
+    return  external_call["Pa_IsFormatSupported",
                 PaError,
-                UnsafePointer[PaStreamParameters, ImmutExternalOrigin],
-                UnsafePointer[PaStreamParameters, ImmutExternalOrigin],
+                Optional[UnsafePointer[PaStreamParameters, ImmutExternalOrigin]],
+                Optional[UnsafePointer[PaStreamParameters, ImmutExternalOrigin]],
                 PaDouble,
             ](input_parameters, output_parameters, PaDouble(sample_rate))
 
@@ -59,13 +52,11 @@ def pa_is_format_supported(
 
 @always_inline
 def pa_initialize() -> Int32:
-    return
-            external_call["Pa_Initialize", PaError]()
+    return  external_call["Pa_Initialize", PaError]()
 
 @always_inline
 def pa_terminate() -> Int32:
-    return
-            external_call["Pa_Terminate", PaError]()
+    return  external_call["Pa_Terminate", PaError]()
 
 # Stream creation
 
@@ -78,11 +69,9 @@ def pa_open_default_stream(
     sample_rate:          Int32,
     frames_per_buffer:    Int32,
     stream_callback:      PaStreamCallback,
-    user_data:            OpaquePointer[MutExternalOrigin]
+    user_data:            Optional[OpaquePointer[MutExternalOrigin]]
 ) -> Int32:
-    return Int32(
-            external_call[
-                "Pa_OpenDefaultStream",
+    return  external_call["Pa_OpenDefaultStream",
                 PaError,
                 UnsafePointer[PaStream, MutExternalOrigin],
                 PaInt,
@@ -91,7 +80,7 @@ def pa_open_default_stream(
                 PaDouble,
                 PaULong,
                 PaStreamCallback,
-                OpaquePointer[MutExternalOrigin],
+                Optional[OpaquePointer[MutExternalOrigin]],
             ](
                 stream,
                 PaInt(num_inputs),
@@ -102,31 +91,28 @@ def pa_open_default_stream(
                 stream_callback,
                 user_data
             )
-    )
 
 @always_inline
 def pa_open_stream(
     stream:               UnsafePointer[PaStream, MutExternalOrigin],
-    input_parameters:     UnsafePointer[PaStreamParameters, ImmutExternalOrigin],
-    output_parameters:    UnsafePointer[PaStreamParameters, ImmutExternalOrigin],
+    input_parameters:     Optional[UnsafePointer[PaStreamParameters, ImmutExternalOrigin]],
+    output_parameters:    Optional[UnsafePointer[PaStreamParameters, ImmutExternalOrigin]],
     sample_rate:          Float64,
     frames_per_buffer:    Int32,
     stream_flags:         UInt64,
     stream_callback:      PaStreamCallback,
-    user_data:            OpaquePointer[MutExternalOrigin],
+    user_data:            Optional[OpaquePointer[MutExternalOrigin]],
 ) -> Int32:
-    return
-            external_call[
-                "Pa_OpenStream",
+    return  external_call["Pa_OpenStream",
                 PaError,
                 UnsafePointer[PaStream, MutExternalOrigin],
-                UnsafePointer[PaStreamParameters, ImmutExternalOrigin],
-                UnsafePointer[PaStreamParameters, ImmutExternalOrigin],
+                Optional[UnsafePointer[PaStreamParameters, ImmutExternalOrigin]],
+                Optional[UnsafePointer[PaStreamParameters, ImmutExternalOrigin]],
                 PaDouble,
                 PaULong,
                 PaStreamFlags,
                 PaStreamCallback,
-                OpaquePointer[MutExternalOrigin],
+                Optional[OpaquePointer[MutExternalOrigin]],
             ](
                 stream,
                 input_parameters,
@@ -142,53 +128,46 @@ def pa_open_stream(
 
 @always_inline
 def pa_start_stream(stream: PaStream) -> Int32:
-    return
-            external_call["Pa_StartStream", PaError, PaStream](stream)
+    return  external_call["Pa_StartStream", PaError, PaStream](stream)
 
 @always_inline
 def pa_stop_stream(stream: PaStream) -> Int32:
-    return
-            external_call["Pa_StopStream", PaError, PaStream](stream)
+    return  external_call["Pa_StopStream", PaError, PaStream](stream)
 
 @always_inline
 def pa_close_stream(stream: PaStream) -> Int32:
-    return
-            external_call["Pa_CloseStream", PaError, PaStream](stream)
+    return  external_call["Pa_CloseStream", PaError, PaStream](stream)
 
 @always_inline
 def pa_is_stream_active(stream: PaStream) -> Int32:
-    return
-            external_call["Pa_IsStreamActive", PaError, PaStream](stream)
+    return  external_call["Pa_IsStreamActive", PaError, PaStream](stream)
 
 # Blocking I/O
 
 @always_inline
 def pa_read_stream(
     stream:    PaStream,
-    buffer:    OpaquePointer[MutExternalOrigin],
+    buffer:    Optional[OpaquePointer[MutExternalOrigin]],
     frames:    Int32,
 ) -> Int32:
-    return
-            external_call[
-                "Pa_ReadStream",
+    return  external_call["Pa_ReadStream",
                 PaError,
                 PaStream,
-                OpaquePointer[MutExternalOrigin],
+                Optional[OpaquePointer[MutExternalOrigin]],
                 PaULong
             ](stream, buffer, PaULong(UInt64(frames)))
 
 @always_inline
 def pa_write_stream(
     stream:    PaStream,
-    buffer:    OpaquePointer[ImmutExternalOrigin],
+    buffer:    Optional[OpaquePointer[ImmutExternalOrigin]],
     frames:    Int32,
 ) -> Int32:
-    return
-            external_call[
+    return  external_call[
                 "Pa_WriteStream",
                 PaInt,
                 PaStream,
-                OpaquePointer[ImmutExternalOrigin],
+                Optional[OpaquePointer[ImmutExternalOrigin]],
                 PaULong
             ](stream, buffer, PaULong(UInt64(frames)))
 
@@ -198,9 +177,9 @@ def pa_write_stream(
 def pa_sleep(msec: Int32) -> None:
             external_call["Pa_Sleep", NoneType, c_long](c_long(msec))
 
-# --------------------------------------------------------------
+# ==========================================
 # Bindings for portaudio types and enums
-# --------------------------------------------------------------
+# ==========================================
 
 # Portaudio C native types
 comptime PaInt    = c_int
@@ -212,7 +191,7 @@ comptime PaString = CStringSlice[ImmutExternalOrigin]
 # PaStream
 # Portaudio C header defines `PaStream = void`, so `PaStream* = void*`.
 # In this module `PaStream = void*`.
-comptime PaStream = OpaquePointer[MutExternalOrigin]
+comptime PaStream = Optional[OpaquePointer[MutExternalOrigin]]
 
 # PaError
 comptime PaError                                    = PaInt
@@ -335,12 +314,12 @@ struct PaDeviceInfo:
 
 # PaStreamParameters
 @fieldwise_init
-struct PaStreamParameters(Movable):
+struct PaStreamParameters:
     var device:                           PaDeviceIndex
     var channel_count:                    PaInt
     var sample_format:                    PaSampleFormat
     var suggested_latency:                PaTime
-    var host_api_specific_stream_info:    OpaquePointer[MutExternalOrigin]
+    var host_api_specific_stream_info:    Optional[OpaquePointer[MutExternalOrigin]]
 
 # PaStreamInfo
 @fieldwise_init
@@ -352,12 +331,11 @@ struct PaStreamInfo:
 
 # PaStreamCallback
 comptime PaStreamCallback = def(
-    input:           OpaquePointer[ImmutExternalOrigin],
-    output:          OpaquePointer[MutExternalOrigin],
+    input:           Optional[OpaquePointer[ImmutExternalOrigin]],
+    output:          Optional[OpaquePointer[MutExternalOrigin]],
     frame_count:     PaULong,
-    time_info:       UnsafePointer[PaStreamCallbackTimeInfo, ImmutExternalOrigin],
+    time_info:       Optional[UnsafePointer[PaStreamCallbackTimeInfo, ImmutExternalOrigin]],
     status_flags:    PaStreamCallbackFlags,
-    user_data:       OpaquePointer[MutExternalOrigin],
+    user_data:       Optional[OpaquePointer[MutExternalOrigin]],
 ) thin -> PaStreamCallbackResult
-
 

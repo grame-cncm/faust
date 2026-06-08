@@ -43,12 +43,19 @@ struct PortAudio(FaustAudio):
     def stop(mut driver) -> S32:
         if not driver.alive:
             return FAUST_STOPPED_NOT_ALIVE
+        if driver.stream == None:
+            return FAUST_STOPPED_NOT_ALIVE
+
         err = pa_stop_stream(driver.stream)
         if err:
             return err
         err = pa_close_stream(driver.stream)
         if err:
             return err
+
+        driver.stream = NULL_STREAM
+        driver.alive = False
+
         return pa_terminate()
 
     @always_inline
@@ -63,15 +70,15 @@ struct PortAudio(FaustAudio):
         if (out_device < 0):
             return FAUST_NO_DEFAULT_OUT_DEVICE
 
-        var in_device_info = pa_get_device_info(in_device)
-        if in_device_info == NULL_PTR[PaDeviceInfo, READ_EXT]:
-            return PA_INVALID_DEVICE
+        in_device_info, err = faust_get_device_info(in_device)
+        if err:
+            return err
+        in_latency = in_device_info.unsafe_value()[].default_low_input_latency
 
-        in_latency = in_device_info[].default_low_input_latency
-        out_device_info = pa_get_device_info(out_device)
-        if out_device_info == NULL_PTR[PaDeviceInfo, READ_EXT]:
-            return PA_INVALID_DEVICE
-        out_latency = out_device_info[].default_low_output_latency
+        out_device_info, err = faust_get_device_info(out_device)
+        if err:
+            return err
+        out_latency = out_device_info.unsafe_value()[].default_low_output_latency
 
         var n_ins = dsp[].get_num_inputs()
         var m_outs = dsp[].get_num_outputs()
@@ -85,6 +92,8 @@ struct PortAudio(FaustAudio):
 
         if err:
             return err
+        if driver.stream == None:
+            return PA_BAD_STREAM_PTR
 
         err = pa_start_stream(driver.stream)
         if err:
@@ -97,7 +106,7 @@ struct PortAudio(FaustAudio):
 comptime BUFF_SIZE    = S32(get_defined_int["BUFF_SIZE", 256]())
 comptime SAMP_RATE    = S32(get_defined_int["SAMP_RATE", 96]()) * 1000
 
-comptime NULL_STREAM = PaStream(unsafe_from_address=0)
+comptime NULL_STREAM: PaStream = None
 
 comptime FAUST_FORMAT = PA_FLOAT32 | PA_NON_INTERLEAVED
 comptime FAUST_NOFLAG = 0
@@ -111,22 +120,39 @@ comptime FAUST_ALREADY_ALIVE         = PaError(-3998)
 
 @always_inline
 def faust_callback[Dsp: FaustDsp](
-    input:     AnyPtr[READ_EXT],
-    output:    AnyPtr[MUTA_EXT],
+    input:     OptPtr[Void, READ_EXT],
+    output:    OptPtr[Void, MUTA_EXT],
     count:     PaULong,
-    time:      Ptr[PaStreamCallbackTimeInfo, READ_EXT],
+    time:      OptPtr[PaStreamCallbackTimeInfo, READ_EXT],
     flags:     PaStreamCallbackFlags,
-    data:      AnyPtr[MUTA_EXT],
+    data:      OptPtr[Void, MUTA_EXT],
 ) -> S32:
-    var inputs = input.bitcast[Ptr[FaustFloat, READ_EXT]]()
-    var outputs = output.bitcast[Ptr[FaustFloat, MUTA_EXT]]()
-    var dsp = data.bitcast[Dsp]()
+    if data == None:
+        return PA_ABORT
+
+    var input_ptr = input.unsafe_value()
+    var output_ptr = output.unsafe_value()
+
+    var inputs = input_ptr.bitcast[Ptr[FaustFloat, READ_EXT]]()
+    var outputs = output_ptr.bitcast[Ptr[FaustFloat, MUTA_EXT]]()
+    var dsp = data.unsafe_value().bitcast[Dsp]()
+
     dsp[].compute(S32(count), inputs, outputs)
+
     return PA_CONTINUE
 
 comptime FaustCallbackFunc[Dsp: FaustDsp] = type_of(faust_callback[Dsp])
 
 # Faust PortAudio stream helpers.
+
+@always_inline
+def faust_get_device_info(
+    device: PaDeviceIndex
+) -> Tuple[OptPtr[PaDeviceInfo, READ_EXT], PaError]:
+    var info: OptPtr[PaDeviceInfo, READ_EXT] = pa_get_device_info(device)
+    if info == None:
+        return None, PA_INVALID_DEVICE
+    return info, PA_NO_ERROR
 
 @always_inline
 def faust_open_stream[Dsp: FaustDsp](
@@ -138,10 +164,13 @@ def faust_open_stream[Dsp: FaustDsp](
     var stream = NULL_STREAM
     var ptr_in = NULL_PTR[PaStreamParameters, READ_EXT]
     var ptr_out = NULL_PTR[PaStreamParameters, READ_EXT]
+    var data: OptPtr[Void, MUTA_EXT] = dsp.bitcast[NoneType]()
+
     if in_param.channel_count != 0:
         ptr_in = Ptr(to=in_param).unsafe_mut_cast[False]().unsafe_origin_cast[READ_EXT]()
     if out_param.channel_count != 0:
         ptr_out = Ptr(to=out_param).unsafe_mut_cast[False]().unsafe_origin_cast[READ_EXT]()
+
     err = pa_open_stream(
         Ptr(to=stream).unsafe_origin_cast[MUTA_EXT](),
         ptr_in,
@@ -150,8 +179,9 @@ def faust_open_stream[Dsp: FaustDsp](
         buff_size,
         FAUST_NOFLAG,
         faust_callback[Dsp],
-        dsp.bitcast[NoneType]()
+        data,
     )
+
     return stream, err
 
 @always_inline
@@ -163,5 +193,5 @@ def faust_stream_param(
         n_chans,
         FAUST_FORMAT,
         latency,
-        NULL_PTR[NoneType, MUTA_EXT],
+        NULL_PTR[Void, MUTA_EXT],
     )

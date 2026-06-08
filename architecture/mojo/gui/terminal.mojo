@@ -103,7 +103,7 @@ struct TerminalGui[dtype: DType](FaustGui):
             value = ui.widgets[index].min
         elif value > ui.widgets[index].max:
             value = ui.widgets[index].max
-        ui.widgets[index].zone[] = value
+        ui.widgets[index].zone.unsafe_value()[] = value
 
     @always_inline
     def find_first_hslider(mut ui) -> S32:
@@ -146,7 +146,7 @@ struct Widget[dtype: DType](ImplicitlyCopyable, Movable):
 
     # Slider payload.
     # Meaningful only when kind == WIDGET_HSLIDER.
-    var zone: Ptr[SIMD[Self.dtype, 1], MUTA_EXT]
+    var zone: OptPtr[SIMD[Self.dtype, 1], MUTA_EXT]
     var init: SIMD[Self.dtype, 1]
     var min: SIMD[Self.dtype, 1]
     var max: SIMD[Self.dtype, 1]

@@ -24,11 +24,10 @@ comptime Arr = InlineArray
 
 # Pointer types aliases.
 
-comptime Ptr[
-    T: AnyType = Void, ori: Origin = MUTA_EXT
-] = UnsafePointer[T, ori]
+comptime Ptr[T: AnyType = Void, ori: Origin = MUTA_EXT] = UnsafePointer[T, ori]
 
 comptime AnyPtr[ori: Origin = MUTA_EXT] = Ptr[Void, ori]
+comptime OptPtr[T: AnyType = Void, ori: Origin = MUTA_EXT] = Optional[Ptr[T, ori]]
 
 comptime ReadStreams[dreal: DType, ori: Origin = READ_EXT] = Ptr[Ptr[SIMD[dreal, 1], ori], ori]
 comptime MutaStreams[dreal: DType, ori: Origin = MUTA_EXT] = Ptr[Ptr[SIMD[dreal, 1], ori], ori]
@@ -38,7 +37,7 @@ comptime MutaStreams[dreal: DType, ori: Origin = MUTA_EXT] = Ptr[Ptr[SIMD[dreal,
 comptime PTR_SIZE = size_of[AnyPtr[MUTA_EXT]]()
 comptime PTR_ALIGN = align_of[AnyPtr[MUTA_EXT]]()
 comptime STD_ALIGN = 2 * PTR_ALIGN
-comptime NULL_PTR[T: AnyType = Void, ori: Origin = MUTA_EXT] = Ptr[T, ori](unsafe_from_address=0)
+comptime NULL_PTR[T: AnyType = Void, ori: Origin = MUTA_EXT]: OptPtr[T, ori] = None
 
 # Origin values aliases.
 
