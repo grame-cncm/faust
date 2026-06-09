@@ -67,9 +67,6 @@ inline namespace bench {
 
 // Faust Benchmark helpers.
 
-inline constexpr vstring PRECISION_STRINGS[] = {"single", "double", "quad"};
-inline constexpr vstring PRECISION = PRECISION_STRINGS[sizeof(FAUSTFLOAT)/4 - 1];
-
 struct BenchBatch {
     s32 iterations     = 0;
     f64 elapsed_s      = 0.0;

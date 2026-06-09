@@ -27,6 +27,19 @@ if ! declare -p BENCH_FAUST_VEC_OPT >/dev/null 2>&1; then
 fi
 
 # ------------------------------------------
+# Layout defaults
+# ------------------------------------------
+
+# The layout is intentionally fixed here so this file can be used as a
+# drop-in replacement even if an older source.sh still initializes the old
+# report/plots or report/snapshots paths.
+BENCH_TAB_DIR="${BENCH_REPORT_DIR}/tab"
+BENCH_BIN_DIR="${BENCH_REPORT_DIR}/bin"
+BENCH_PLOT_DIR="${BENCH_REPORT_DIR}/plot"
+BENCH_SNAP_DIR="${BENCH_REPORT_DIR}/snap"
+BENCH_JOBS="${BENCH_JOBS:-10}"
+
+# ------------------------------------------
 # Public API
 # ------------------------------------------
 
@@ -316,52 +329,91 @@ _bench_current_mode() {
   echo "${BENCH_RUN_MODE:-scalar}"
 }
 
+_bench_case_stem() {
+  local lang="$1"
+  local dsp="$2"
+  local precision="$3"
+  local samp_rate="$4"
+  local buff_size="$5"
+  local name
+  local mode
+  local sr_khz
+  name="$(_bench_dsp_name "${dsp}")"
+  mode="$(_bench_current_mode)"
+  sr_khz="$((samp_rate / 1000))"
+  echo "${lang}_${name}_${BENCH_RUN_NAME}_${mode}_${sr_khz}_${buff_size}_${precision}"
+}
+
+_bench_case_bin() {
+  local lang="$1"
+  local dsp="$2"
+  local precision="$3"
+  local samp_rate="$4"
+  local buff_size="$5"
+  local stem
+  stem="$(_bench_case_stem "${lang}" "${dsp}" "${precision}" "${samp_rate}" "${buff_size}")"
+
+  case "${lang}" in
+    cpp)
+      echo "${BENCH_BIN_DIR}/${stem}_bin_cpp"
+      ;;
+    mojo)
+      # Keep Mojo binaries in the symlinked architecture directory. Moving the
+      # executable outside arch/mojo can break Mojo package/import resolution.
+      echo "${BENCH_MOJO_ARCH_DIR}/${stem}_bin_mojo"
+      ;;
+    *)
+      echo "error: unsupported binary language: ${lang}" >&2
+      return 1
+      ;;
+  esac
+}
+
+_bench_case_build_log() {
+  local lang="$1"
+  local dsp="$2"
+  local precision="$3"
+  local samp_rate="$4"
+  local buff_size="$5"
+  local stem
+  stem="$(_bench_case_stem "${lang}" "${dsp}" "${precision}" "${samp_rate}" "${buff_size}")"
+  echo "${BENCH_TMP_DIR}/${stem}.build.log"
+}
+
 _bench_cpp_out() {
   local name
   local mode
+  local precision="$2"
   name="$(_bench_dsp_name "$1")"
   mode="$(_bench_current_mode)"
-  echo "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_out.cpp"
-}
-
-_bench_cpp_bin() {
-  local name
-  local mode
-  name="$(_bench_dsp_name "$1")"
-  mode="$(_bench_current_mode)"
-  echo "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_bin_cpp"
+  echo "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_${precision}_out.cpp"
 }
 
 _bench_mojo_out() {
   local name
   local mode
+  local precision="$2"
   name="$(_bench_dsp_name "$1")"
   mode="$(_bench_current_mode)"
-  echo "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_out.mojo"
-}
-
-_bench_mojo_bin() {
-  local name
-  local mode
-  name="$(_bench_dsp_name "$1")"
-  mode="$(_bench_current_mode)"
-  echo "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_bin_mojo"
+  echo "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_${precision}_out.mojo"
 }
 
 _inspect_cpp_out() {
   local name
   local mode
+  local precision="$2"
   name="$(_bench_dsp_name "$1")"
   mode="$(_bench_current_mode)"
-  echo "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_insp.cpp"
+  echo "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_${precision}_insp.cpp"
 }
 
 _inspect_mojo_out() {
   local name
   local mode
+  local precision="$2"
   name="$(_bench_dsp_name "$1")"
   mode="$(_bench_current_mode)"
-  echo "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_insp.mojo"
+  echo "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_${precision}_insp.mojo"
 }
 
 _inspect_cpp_llvm() {
@@ -412,7 +464,7 @@ _bench_tab_path() {
   name="$(_bench_dsp_name "${dsp}")"
   mode="$(_bench_current_mode)"
   sr_khz="$((samp_rate / 1000))"
-  echo "${BENCH_REPORT_DIR}/${lang}/${lang}_${name}_${BENCH_RUN_NAME}_${mode}_${sr_khz}_${buff_size}_${precision}.tab"
+  echo "${BENCH_TAB_DIR}/${lang}/${lang}_${name}_${BENCH_RUN_NAME}_${mode}_${sr_khz}_${buff_size}_${precision}.tab"
 }
 
 _bench_tmp_csv_path() {
@@ -437,7 +489,7 @@ _bench_snapshot_path() {
   local safe_name
   stamp="$(date "+%Y-%m-%d_%H%M")"
   safe_name="$(_bench_snapshot_name "${name}")"
-  echo "${BENCH_REPORT_DIR}/snapshots/${stamp}_${safe_name}"
+  echo "${BENCH_SNAP_DIR}/${stamp}_${safe_name}"
 }
 
 # ------------------------------------------
@@ -448,7 +500,10 @@ _bench_clean_report() {
   rm -f "${BENCH_CSV}"
   _bench_clean_tmp_csv
   _bench_clean_tabs all
+  _bench_clean_bins
   _bench_clean_plots
+  _bench_clean_inspect_artifacts
+  _bench_clean_all_out_files
 }
 
 _bench_clean_tmp_csv() {
@@ -456,6 +511,11 @@ _bench_clean_tmp_csv() {
     -maxdepth 1 \
     -type f \
     -name "*.csv" \
+    -delete 2>/dev/null || true
+  find "${BENCH_TMP_DIR}" \
+    -maxdepth 1 \
+    -type f \
+    -name "*.build.log" \
     -delete 2>/dev/null || true
 }
 
@@ -468,10 +528,23 @@ _bench_clean_tabs() {
     done
     return 0
   fi
-  find "${BENCH_REPORT_DIR}/${lang}" \
+  find "${BENCH_TAB_DIR}/${lang}" \
     -maxdepth 1 \
     -type f \
     -name "*.tab" \
+    -delete 2>/dev/null || true
+}
+
+_bench_clean_bins() {
+  find "${BENCH_BIN_DIR}" \
+    -maxdepth 1 \
+    -type f \
+    -name "*_bin_cpp" \
+    -delete 2>/dev/null || true
+  find "${BENCH_MOJO_ARCH_DIR}" \
+    -maxdepth 1 \
+    -type f \
+    -name "*_bin_mojo" \
     -delete 2>/dev/null || true
 }
 
@@ -480,6 +553,40 @@ _bench_clean_plots() {
     -maxdepth 1 \
     -type f \
     -name "*.svg" \
+    -delete 2>/dev/null || true
+}
+
+_bench_clean_snapshots() {
+  find "${BENCH_SNAP_DIR}" \
+    -mindepth 1 \
+    -maxdepth 1 \
+    -exec rm -rf {} + 2>/dev/null || true
+}
+
+_bench_clean_inspect_artifacts() {
+  find "${BENCH_REPORT_DIR}/llvm" \
+    -mindepth 2 \
+    -type f \
+    -delete 2>/dev/null || true
+  find "${BENCH_REPORT_DIR}/asm" \
+    -mindepth 2 \
+    -type f \
+    -delete 2>/dev/null || true
+}
+
+_bench_clean_all_out_files() {
+  if [[ "${BENCH_KEEP_TMP}" == "1" ]]; then
+    return 0
+  fi
+  find "${BENCH_CPP_ARCH_DIR}" \
+    -maxdepth 1 \
+    -type f \
+    \( -name "*_out.cpp" -o -name "*_insp.cpp" \) \
+    -delete 2>/dev/null || true
+  find "${BENCH_MOJO_ARCH_DIR}" \
+    -maxdepth 1 \
+    -type f \
+    \( -name "*_out.mojo" -o -name "*_insp.mojo" \) \
     -delete 2>/dev/null || true
 }
 
@@ -493,15 +600,19 @@ _bench_clean_tmp_files() {
 _bench_clean_generated_source() {
   local lang="$1"
   local source="$2"
+  local name
+  local mode
   if [[ "${BENCH_KEEP_TMP}" == "1" ]]; then
     return 0
   fi
+  name="$(_bench_dsp_name "${source}")"
+  mode="$(_bench_current_mode)"
   case "${lang}" in
     cpp)
-      rm -f "$(_bench_cpp_out "${source}")"
+      rm -f "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_"*_out.cpp
       ;;
     mojo)
-      rm -f "$(_bench_mojo_out "${source}")"
+      rm -f "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_"*_out.mojo
       ;;
   esac
 }
@@ -509,15 +620,28 @@ _bench_clean_generated_source() {
 _bench_clean_generated_binary() {
   local lang="$1"
   local source="$2"
+  local name
+  local mode
   if [[ "${BENCH_KEEP_TMP}" == "1" ]]; then
     return 0
   fi
+  name="$(_bench_dsp_name "${source}")"
+  mode="$(_bench_current_mode)"
+
   case "${lang}" in
     cpp)
-      rm -f "$(_bench_cpp_bin "${source}")"
+      find "${BENCH_BIN_DIR}" \
+        -maxdepth 1 \
+        -type f \
+        -name "cpp_${name}_${BENCH_RUN_NAME}_${mode}_*_bin_cpp" \
+        -delete 2>/dev/null || true
       ;;
     mojo)
-      rm -f "$(_bench_mojo_bin "${source}")"
+      find "${BENCH_MOJO_ARCH_DIR}" \
+        -maxdepth 1 \
+        -type f \
+        -name "mojo_${name}_${BENCH_RUN_NAME}_${mode}_*_bin_mojo" \
+        -delete 2>/dev/null || true
       ;;
   esac
 }
@@ -525,15 +649,19 @@ _bench_clean_generated_binary() {
 _inspect_clean_generated_source() {
   local lang="$1"
   local source="$2"
+  local name
+  local mode
   if [[ "${BENCH_KEEP_TMP}" == "1" ]]; then
     return 0
   fi
+  name="$(_bench_dsp_name "${source}")"
+  mode="$(_bench_current_mode)"
   case "${lang}" in
     cpp)
-      rm -f "$(_inspect_cpp_out "${source}")"
+      rm -f "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_"*_insp.cpp
       ;;
     mojo)
-      rm -f "$(_inspect_mojo_out "${source}")"
+      rm -f "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_"*_insp.mojo
       ;;
   esac
 }
@@ -599,18 +727,35 @@ _bench_set_faust_mode_opt() {
 }
 
 # ------------------------------------------
-# Source generation
+# Faust precision helpers
+# ------------------------------------------
+
+_bench_precision_faust_opt() {
+  local precision="$1"
+  case "${precision}" in
+    single) echo "-single" ;;
+    double) echo "-double" ;;
+    *)
+      echo "error: unsupported Faust precision: ${precision}" >&2
+      return 1
+      ;;
+  esac
+}
+
+# ------------------------------------------
+# OUT generation
 # ------------------------------------------
 
 _bench_generate_source() {
   local lang="$1"
   local source="$2"
+  local precision="$3"
   case "${lang}" in
     cpp)
-      _bench_generate_cpp "${source}"
+      _bench_generate_cpp "${source}" "${precision}"
       ;;
     mojo)
-      _bench_generate_mojo "${source}"
+      _bench_generate_mojo "${source}" "${precision}"
       ;;
     *)
       echo "error: no source generator for language: ${lang}"
@@ -621,15 +766,20 @@ _bench_generate_source() {
 
 _bench_generate_cpp() {
   local source="$1"
+  local precision="$2"
   local dsp_path
   local cpp_out
+  local faust_precision_opt
+  _bench_require_precision "${precision}" || return 1
+  faust_precision_opt="$(_bench_precision_faust_opt "${precision}")" || return 1
   dsp_path="$(_bench_dsp_path "${source}")"
-  cpp_out="$(_bench_cpp_out "${source}")"
+  cpp_out="$(_bench_cpp_out "${source}" "${precision}")"
   _bench_require_file "${dsp_path}" || return 1
   _bench_set_faust_mode_opt "$(_bench_current_mode)" || return 1
   mkdir -p "$(dirname "${cpp_out}")"
   "${BENCH_FAUST_BIN}" \
     -lang cpp \
+    "${faust_precision_opt}" \
     "${BENCH_FAUST_OPT[@]}" \
     "${BENCH_FAUST_MODE_OPT[@]}" \
     -a "${BENCH_CPP_ARCH_DIR}/bench.cpp" \
@@ -639,15 +789,20 @@ _bench_generate_cpp() {
 
 _bench_generate_mojo() {
   local source="$1"
+  local precision="$2"
   local dsp_path
   local mojo_out
+  local faust_precision_opt
+  _bench_require_precision "${precision}" || return 1
+  faust_precision_opt="$(_bench_precision_faust_opt "${precision}")" || return 1
   dsp_path="$(_bench_dsp_path "${source}")"
-  mojo_out="$(_bench_mojo_out "${source}")"
+  mojo_out="$(_bench_mojo_out "${source}" "${precision}")"
   _bench_require_file "${dsp_path}" || return 1
   _bench_set_faust_mode_opt "$(_bench_current_mode)" || return 1
   mkdir -p "$(dirname "${mojo_out}")"
   "${BENCH_FAUST_BIN}" \
     -lang mojo \
+    "${faust_precision_opt}" \
     "${BENCH_FAUST_OPT[@]}" \
     "${BENCH_FAUST_MODE_OPT[@]}" \
     -a "${BENCH_MOJO_ARCH_DIR}/bench.mojo" \
@@ -658,12 +813,13 @@ _bench_generate_mojo() {
 _inspect_generate_source() {
   local lang="$1"
   local source="$2"
+  local precision="$3"
   case "${lang}" in
     cpp)
-      _inspect_generate_cpp "${source}"
+      _inspect_generate_cpp "${source}" "${precision}"
       ;;
     mojo)
-      _inspect_generate_mojo "${source}"
+      _inspect_generate_mojo "${source}" "${precision}"
       ;;
     *)
       echo "error: no inspect generator for language: ${lang}"
@@ -674,15 +830,20 @@ _inspect_generate_source() {
 
 _inspect_generate_cpp() {
   local source="$1"
+  local precision="$2"
   local dsp_path
   local cpp_out
+  local faust_precision_opt
+  _bench_require_precision "${precision}" || return 1
+  faust_precision_opt="$(_bench_precision_faust_opt "${precision}")" || return 1
   dsp_path="$(_bench_dsp_path "${source}")"
-  cpp_out="$(_inspect_cpp_out "${source}")"
+  cpp_out="$(_inspect_cpp_out "${source}" "${precision}")"
   _bench_require_file "${dsp_path}" || return 1
   _bench_set_faust_mode_opt "$(_bench_current_mode)" || return 1
   mkdir -p "$(dirname "${cpp_out}")"
   "${BENCH_FAUST_BIN}" \
     -lang cpp \
+    "${faust_precision_opt}" \
     "${BENCH_FAUST_OPT[@]}" \
     "${BENCH_FAUST_MODE_OPT[@]}" \
     -a "${BENCH_CPP_ARCH_DIR}/inspect.cpp" \
@@ -692,15 +853,20 @@ _inspect_generate_cpp() {
 
 _inspect_generate_mojo() {
   local source="$1"
+  local precision="$2"
   local dsp_path
   local mojo_out
+  local faust_precision_opt
+  _bench_require_precision "${precision}" || return 1
+  faust_precision_opt="$(_bench_precision_faust_opt "${precision}")" || return 1
   dsp_path="$(_bench_dsp_path "${source}")"
-  mojo_out="$(_inspect_mojo_out "${source}")"
+  mojo_out="$(_inspect_mojo_out "${source}" "${precision}")"
   _bench_require_file "${dsp_path}" || return 1
   _bench_set_faust_mode_opt "$(_bench_current_mode)" || return 1
   mkdir -p "$(dirname "${mojo_out}")"
   "${BENCH_FAUST_BIN}" \
     -lang mojo \
+    "${faust_precision_opt}" \
     "${BENCH_FAUST_OPT[@]}" \
     "${BENCH_FAUST_MODE_OPT[@]}" \
     -a "${BENCH_MOJO_ARCH_DIR}/inspect.mojo" \
@@ -713,6 +879,92 @@ _inspect_generate_mojo() {
 # ------------------------------------------
 
 _bench_run_resolved() {
+  echo
+  echo ">>>>>>>>>>>>>>>>>>>>>>> benchmark machinery started"
+
+  _bench_generate_all_outs_parallel || return 1
+  _bench_prepare_all_csv_fragments || return 1
+  _bench_build_all_cases_parallel || return 1
+  _bench_exec_all_cases_serial || return 1
+  _bench_commit_all_csv_fragments || return 1
+  _bench_clean_all_tmp_files
+}
+
+_bench_disable_job_control_noise() {
+  # Avoid interactive zsh job-control noise such as "[1] 12345" while still
+  # running this file as a sourced shell API.
+  if [[ -n "${ZSH_VERSION:-}" ]]; then
+    setopt local_options no_monitor
+  else
+    set +m 2>/dev/null || true
+  fi
+}
+
+_bench_normalized_jobs() {
+  local jobs="${BENCH_JOBS:-10}"
+  if ! [[ "${jobs}" =~ ^[0-9]+$ ]] || (( jobs < 1 )); then
+    jobs=1
+  fi
+  echo "${jobs}"
+}
+
+_bench_wait_parallel_batch() {
+  local wait_status=0
+  local pid
+  for pid in "$@"; do
+    if ! wait "${pid}"; then
+      wait_status=1
+    fi
+  done
+  return "${wait_status}"
+}
+
+_bench_generate_all_outs_parallel() {
+  local source
+  local lang
+  local mode
+  local precision
+  local jobs
+  local pids=()
+
+  jobs="$(_bench_normalized_jobs)"
+  _bench_disable_job_control_noise
+
+  for source in "${BENCH_RUN_SOURCES[@]}"; do
+    for lang in "${BENCH_RUN_LANGS[@]}"; do
+      for mode in "${BENCH_RUN_MODES[@]}"; do
+        for precision in "${BENCH_PRECISIONS[@]}"; do
+          _bench_generate_out_with_mode \
+            "${source}" \
+            "${lang}" \
+            "${mode}" \
+            "${precision}" &
+          pids+=("$!")
+
+          if (( ${#pids[@]} >= jobs )); then
+            _bench_wait_parallel_batch "${pids[@]}" || return 1
+            pids=()
+          fi
+        done
+      done
+    done
+  done
+
+  if (( ${#pids[@]} > 0 )); then
+    _bench_wait_parallel_batch "${pids[@]}" || return 1
+  fi
+}
+
+_bench_generate_out_with_mode() {
+  local source="$1"
+  local lang="$2"
+  local mode="$3"
+  local precision="$4"
+  BENCH_RUN_MODE="${mode}"
+  _bench_generate_source "${lang}" "${source}" "${precision}"
+}
+
+_bench_prepare_all_csv_fragments() {
   local source
   local lang
   local mode
@@ -720,37 +972,136 @@ _bench_run_resolved() {
   for source in "${BENCH_RUN_SOURCES[@]}"; do
     for lang in "${BENCH_RUN_LANGS[@]}"; do
       for mode in "${BENCH_RUN_MODES[@]}"; do
-        _bench_run_source_lang "${source}" "${lang}" "${mode}" || return 1
+        BENCH_RUN_MODE="${mode}"
+        _bench_csv_prepare_fragment "${lang}" "${source}" || return 1
       done
     done
   done
 }
 
-_bench_run_source_lang() {
-  local source="$1"
-  local lang="$2"
-  local mode="$3"
+_bench_commit_all_csv_fragments() {
+  local source
+  local lang
+  local mode
+
+  for source in "${BENCH_RUN_SOURCES[@]}"; do
+    for lang in "${BENCH_RUN_LANGS[@]}"; do
+      for mode in "${BENCH_RUN_MODES[@]}"; do
+        BENCH_RUN_MODE="${mode}"
+        _bench_csv_commit_fragment "${lang}" "${source}" || return 1
+      done
+    done
+  done
+}
+
+_bench_clean_all_tmp_files() {
+  local source
+  local lang
+  local mode
+
+  for source in "${BENCH_RUN_SOURCES[@]}"; do
+    for lang in "${BENCH_RUN_LANGS[@]}"; do
+      for mode in "${BENCH_RUN_MODES[@]}"; do
+        BENCH_RUN_MODE="${mode}"
+        _bench_clean_tmp_files "${lang}" "${source}"
+      done
+    done
+  done
+}
+
+_bench_build_all_cases_parallel() {
+  local source
+  local lang
+  local mode
+  local sample_rate
+  local buffer_size
+  local precision
+  local jobs
+  local pids=()
+
+  jobs="$(_bench_normalized_jobs)"
+  _bench_disable_job_control_noise
+
+  for source in "${BENCH_RUN_SOURCES[@]}"; do
+    for lang in "${BENCH_RUN_LANGS[@]}"; do
+      for mode in "${BENCH_RUN_MODES[@]}"; do
+        for sample_rate in "${BENCH_RUN_SAMPLE_RATES[@]}"; do
+          for buffer_size in "${BENCH_RUN_BUFFER_SIZES[@]}"; do
+            for precision in "${BENCH_PRECISIONS[@]}"; do
+              _bench_build_case_with_mode \
+                "${source}" \
+                "${lang}" \
+                "${mode}" \
+                "${precision}" \
+                "${sample_rate}" \
+                "${buffer_size}" &
+              pids+=("$!")
+
+              if (( ${#pids[@]} >= jobs )); then
+                _bench_wait_parallel_batch "${pids[@]}" || return 1
+                pids=()
+              fi
+            done
+          done
+        done
+      done
+    done
+  done
+
+  if (( ${#pids[@]} > 0 )); then
+    _bench_wait_parallel_batch "${pids[@]}" || return 1
+  fi
+}
+
+_bench_exec_all_cases_serial() {
+  local source
+  local lang
+  local mode
   local sample_rate
   local buffer_size
   local precision
 
-  BENCH_RUN_MODE="${mode}"
-  _bench_generate_source "${lang}" "${source}" || return 1
-  _bench_csv_prepare_fragment "${lang}" "${source}" || return 1
-  for sample_rate in "${BENCH_RUN_SAMPLE_RATES[@]}"; do
-    for buffer_size in "${BENCH_RUN_BUFFER_SIZES[@]}"; do
-      for precision in "${BENCH_PRECISIONS[@]}"; do
-        _bench_run_case \
-          "${source}" \
-          "${lang}" \
-          "${precision}" \
-          "${sample_rate}" \
-          "${buffer_size}" || return 1
+  for source in "${BENCH_RUN_SOURCES[@]}"; do
+    for lang in "${BENCH_RUN_LANGS[@]}"; do
+      for mode in "${BENCH_RUN_MODES[@]}"; do
+        for sample_rate in "${BENCH_RUN_SAMPLE_RATES[@]}"; do
+          for buffer_size in "${BENCH_RUN_BUFFER_SIZES[@]}"; do
+            for precision in "${BENCH_PRECISIONS[@]}"; do
+              _bench_exec_case_with_mode \
+                "${source}" \
+                "${lang}" \
+                "${mode}" \
+                "${precision}" \
+                "${sample_rate}" \
+                "${buffer_size}" || return 1
+            done
+          done
+        done
       done
     done
   done
-  _bench_csv_commit_fragment "${lang}" "${source}" || return 1
-  _bench_clean_tmp_files "${lang}" "${source}"
+}
+
+_bench_build_case_with_mode() {
+  local source="$1"
+  local lang="$2"
+  local mode="$3"
+  local precision="$4"
+  local sample_rate="$5"
+  local buffer_size="$6"
+  BENCH_RUN_MODE="${mode}"
+  _bench_build_case "${source}" "${lang}" "${precision}" "${sample_rate}" "${buffer_size}"
+}
+
+_bench_exec_case_with_mode() {
+  local source="$1"
+  local lang="$2"
+  local mode="$3"
+  local precision="$4"
+  local sample_rate="$5"
+  local buffer_size="$6"
+  BENCH_RUN_MODE="${mode}"
+  _bench_exec_case "${source}" "${lang}" "${precision}" "${sample_rate}" "${buffer_size}"
 }
 
 _bench_run_case() {
@@ -759,21 +1110,51 @@ _bench_run_case() {
   local precision="$3"
   local sample_rate="$4"
   local buffer_size="$5"
+  _bench_build_case "${source}" "${lang}" "${precision}" "${sample_rate}" "${buffer_size}" || return 1
+  _bench_exec_case "${source}" "${lang}" "${precision}" "${sample_rate}" "${buffer_size}"
+}
+
+_bench_build_case() {
+  local source="$1"
+  local lang="$2"
+  local precision="$3"
+  local sample_rate="$4"
+  local buffer_size="$5"
   case "${lang}" in
     cpp)
-      _bench_run_case_cpp "${source}" "${precision}" "${sample_rate}" "${buffer_size}"
+      _bench_build_case_cpp "${source}" "${precision}" "${sample_rate}" "${buffer_size}"
       ;;
     mojo)
-      _bench_run_case_mojo "${source}" "${precision}" "${sample_rate}" "${buffer_size}"
+      _bench_build_case_mojo "${source}" "${precision}" "${sample_rate}" "${buffer_size}"
       ;;
     *)
-      echo "error: no run case implementation for language: ${lang}"
+      echo "error: no build case implementation for language: ${lang}"
       return 1
       ;;
   esac
 }
 
-_bench_run_case_cpp() {
+_bench_exec_case() {
+  local source="$1"
+  local lang="$2"
+  local precision="$3"
+  local sample_rate="$4"
+  local buffer_size="$5"
+  case "${lang}" in
+    cpp)
+      _bench_exec_case_cpp "${source}" "${precision}" "${sample_rate}" "${buffer_size}"
+      ;;
+    mojo)
+      _bench_exec_case_mojo "${source}" "${precision}" "${sample_rate}" "${buffer_size}"
+      ;;
+    *)
+      echo "error: no exec case implementation for language: ${lang}"
+      return 1
+      ;;
+  esac
+}
+
+_bench_build_case_cpp() {
   local source="$1"
   local precision="$2"
   local sample_rate="$3"
@@ -781,52 +1162,47 @@ _bench_run_case_cpp() {
   _bench_require_precision "${precision}" || return 1
   local cpp_out
   local cpp_bin
-  local report
   local csv_path
-  local faust_float
+  local build_log
   local name
-  cpp_out="$(_bench_cpp_out "${source}")"
-  cpp_bin="$(_bench_cpp_bin "${source}")"
-  report="$(_bench_tab_path cpp "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
+  cpp_out="$(_bench_cpp_out "${source}" "${precision}")"
+  cpp_bin="$(_bench_case_bin cpp "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
   csv_path="$(_bench_tmp_csv_path cpp "${source}")"
-  faust_float="$(_bench_precision_cpp_macro "${precision}")"
+  build_log="$(_bench_case_build_log cpp "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
   name="$(_bench_dsp_name "${source}")"
   _bench_require_file "${cpp_out}" || return 1
-  mkdir -p "$(dirname "${report}")" "$(dirname "${cpp_bin}")" "$(dirname "${csv_path}")"
-  echo
-  echo ">>>>>>>>>>>>>>>>>>>>>>> running cpp:${BENCH_RUN_NAME}/$(_bench_current_mode)(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size}, csv=1)"
-  (
-    clang++ -std=gnu++23 \
-      -I"${BENCH_CPP_ARCH_DIR}" \
-      "${BENCH_CPP_OPT[@]}" \
-      -DBENCH_LANG=\"cpp\" \
-      -DBENCH_DSP=\"${name}\" \
-      -DBENCH_CASE=\"${BENCH_RUN_NAME}\" \
-      -DBENCH_MODE=\"$(_bench_current_mode)\" \
-      -DBENCH_OPTIM=\"${BENCH_OPTIM:-O3}\" \
-      -DFAUSTFLOAT="${faust_float}" \
-      -DWRITE_CSV=1 \
-      -DCSV_PATH=\"${csv_path}\" \
-      -DFILL_INPUTS=1 \
-      -DSAMP_RATE="s32(${sample_rate})" \
-      -DBUFF_SIZE="s32(${buffer_size})" \
-      -DWARMUP_ITERS="${BENCH_WARMUP_ITERS:-50}" \
-      -DCOMPUTE_ITERS="${BENCH_COMPUTE_ITERS:-1000000}" \
-      -DMIN_RUNTIME_SECS="${BENCH_MIN_RUNTIME_SECS:-1}" \
-      -DMAX_RUNTIME_SECS="${BENCH_MAX_RUNTIME_SECS:-60}" \
-      -DMAX_BATCH_SIZE="${BENCH_MAX_BATCH_SIZE:-10000}" \
-      -Wall -Wextra -Wno-unused-parameter -pedantic \
-      -o "${cpp_bin}" "${cpp_out}" \
-      && "${cpp_bin}"
-  ) &> "${report}"
-  local case_status=$?
-  cat "${report}"
-  echo "------------------------------------"
-  echo
-  return "${case_status}"
+  mkdir -p "$(dirname "${cpp_bin}")" "$(dirname "${csv_path}")" "$(dirname "${build_log}")"
+  echo "building cpp:${BENCH_RUN_NAME}/$(_bench_current_mode)(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size})"
+  if ! clang++ -std=gnu++23 \
+    -I"${BENCH_CPP_ARCH_DIR}" \
+    "${BENCH_CPP_OPT[@]}" \
+    -DBENCH_LANG=\"cpp\" \
+    -DBENCH_DSP=\"${name}\" \
+    -DBENCH_CASE=\"${BENCH_RUN_NAME}\" \
+    -DBENCH_MODE=\"$(_bench_current_mode)\" \
+    -DBENCH_OPTIM=\"${BENCH_OPTIM:-O3}\" \
+    -DFAUSTFLOAT=float \
+    -DPRECISION=\"${precision}\" \
+    -DWRITE_CSV=1 \
+    -DCSV_PATH=\"${csv_path}\" \
+    -DFILL_INPUTS=1 \
+    -DSAMP_RATE="s32(${sample_rate})" \
+    -DBUFF_SIZE="s32(${buffer_size})" \
+    -DWARMUP_ITERS="${BENCH_WARMUP_ITERS:-50}" \
+    -DCOMPUTE_ITERS="${BENCH_COMPUTE_ITERS:-1000000}" \
+    -DMIN_RUNTIME_SECS="${BENCH_MIN_RUNTIME_SECS:-1}" \
+    -DMAX_RUNTIME_SECS="${BENCH_MAX_RUNTIME_SECS:-60}" \
+    -DMAX_BATCH_SIZE="${BENCH_MAX_BATCH_SIZE:-10000}" \
+    -Wall -Wextra -Wno-unused-parameter -pedantic \
+    -o "${cpp_bin}" "${cpp_out}" \
+    >"${build_log}" 2>&1; then
+    cat "${build_log}"
+    return 1
+  fi
+  rm -f "${build_log}"
 }
 
-_bench_run_case_mojo() {
+_bench_build_case_mojo() {
   local source="$1"
   local precision="$2"
   local sample_rate="$3"
@@ -834,42 +1210,85 @@ _bench_run_case_mojo() {
   _bench_require_precision "${precision}" || return 1
   local mojo_out
   local mojo_bin
-  local report
   local csv_path
-  local dtype
+  local build_log
   local name
-  mojo_out="$(_bench_mojo_out "${source}")"
-  mojo_bin="$(_bench_mojo_bin "${source}")"
-  report="$(_bench_tab_path mojo "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
+  mojo_out="$(_bench_mojo_out "${source}" "${precision}")"
+  mojo_bin="$(_bench_case_bin mojo "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
   csv_path="$(_bench_tmp_csv_path mojo "${source}")"
-  dtype="$(_bench_precision_mojo_dtype "${precision}")"
+  build_log="$(_bench_case_build_log mojo "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
   name="$(_bench_dsp_name "${source}")"
   _bench_require_file "${mojo_out}" || return 1
-  mkdir -p "$(dirname "${report}")" "$(dirname "${mojo_bin}")" "$(dirname "${csv_path}")"
+  mkdir -p "$(dirname "${mojo_bin}")" "$(dirname "${csv_path}")" "$(dirname "${build_log}")"
+  echo "building mojo:${BENCH_RUN_NAME}/$(_bench_current_mode)(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size})"
+  if ! pixi run mojo build \
+    "${BENCH_MOJO_OPT[@]}" \
+    -D BENCH_LANG=mojo \
+    -D BENCH_DSP="${name}" \
+    -D BENCH_CASE="${BENCH_RUN_NAME}" \
+    -D BENCH_MODE="$(_bench_current_mode)" \
+    -D BENCH_OPTIM="${BENCH_OPTIM:-O3}" \
+    -D FAUST_DTYPE=DType.float32 \
+    -D PRECISION="${precision}" \
+    -D WRITE_CSV=True \
+    -D CSV_PATH="${csv_path}" \
+    -D FILL_INPUTS=True \
+    -D SAMP_RATE="${sample_rate}" \
+    -D BUFF_SIZE="${buffer_size}" \
+    -D WARMUP_ITERS="${BENCH_WARMUP_ITERS:-50}" \
+    -D COMPUTE_ITERS="${BENCH_COMPUTE_ITERS:-1000000}" \
+    -D MIN_RUNTIME_SECS="${BENCH_MIN_RUNTIME_SECS:-1}" \
+    -D MAX_RUNTIME_SECS="${BENCH_MAX_RUNTIME_SECS:-60}" \
+    -D MAX_BATCH_SIZE="${BENCH_MAX_BATCH_SIZE:-10000}" \
+    -o "${mojo_bin}" "${mojo_out}" \
+    >"${build_log}" 2>&1; then
+    cat "${build_log}"
+    return 1
+  fi
+  rm -f "${build_log}"
+}
+
+_bench_exec_case_cpp() {
+  local source="$1"
+  local precision="$2"
+  local sample_rate="$3"
+  local buffer_size="$4"
+  _bench_require_precision "${precision}" || return 1
+  local cpp_bin
+  local report
+  local name
+  cpp_bin="$(_bench_case_bin cpp "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
+  report="$(_bench_tab_path cpp "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
+  name="$(_bench_dsp_name "${source}")"
+  _bench_require_file "${cpp_bin}" || return 1
+  mkdir -p "$(dirname "${report}")"
+  echo
+  echo ">>>>>>>>>>>>>>>>>>>>>>> running cpp:${BENCH_RUN_NAME}/$(_bench_current_mode)(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size}, csv=1)"
+  ( "${cpp_bin}" ) &> "${report}"
+  local case_status=$?
+  cat "${report}"
+  echo "------------------------------------"
+  echo
+  return "${case_status}"
+}
+
+_bench_exec_case_mojo() {
+  local source="$1"
+  local precision="$2"
+  local sample_rate="$3"
+  local buffer_size="$4"
+  _bench_require_precision "${precision}" || return 1
+  local mojo_bin
+  local report
+  local name
+  mojo_bin="$(_bench_case_bin mojo "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
+  report="$(_bench_tab_path mojo "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
+  name="$(_bench_dsp_name "${source}")"
+  _bench_require_file "${mojo_bin}" || return 1
+  mkdir -p "$(dirname "${report}")"
   echo
   echo ">>>>>>>>>>>>>>>>>>>>>>> running mojo:${BENCH_RUN_NAME}/$(_bench_current_mode)(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size}, csv=1)"
-  (
-    pixi run mojo build \
-      "${BENCH_MOJO_OPT[@]}" \
-      -D BENCH_LANG=mojo \
-      -D BENCH_DSP="${name}" \
-      -D BENCH_CASE="${BENCH_RUN_NAME}" \
-      -D BENCH_MODE="$(_bench_current_mode)" \
-      -D BENCH_OPTIM="${BENCH_OPTIM:-O3}" \
-      -D FAUST_DTYPE="${dtype}" \
-      -D WRITE_CSV=True \
-      -D CSV_PATH="${csv_path}" \
-      -D FILL_INPUTS=True \
-      -D SAMP_RATE="${sample_rate}" \
-      -D BUFF_SIZE="${buffer_size}" \
-      -D WARMUP_ITERS="${BENCH_WARMUP_ITERS:-50}" \
-      -D COMPUTE_ITERS="${BENCH_COMPUTE_ITERS:-1000000}" \
-      -D MIN_RUNTIME_SECS="${BENCH_MIN_RUNTIME_SECS:-1}" \
-      -D MAX_RUNTIME_SECS="${BENCH_MAX_RUNTIME_SECS:-60}" \
-      -D MAX_BATCH_SIZE="${BENCH_MAX_BATCH_SIZE:-10000}" \
-      -o "${mojo_bin}" "${mojo_out}" \
-      && "${mojo_bin}"
-  ) &> "${report}"
+  ( "${mojo_bin}" ) &> "${report}"
   local case_status=$?
   cat "${report}"
   echo "------------------------------------"
@@ -920,17 +1339,13 @@ _bench_snapshot_copy_report() {
   if [[ -f "${BENCH_CSV}" ]]; then
     cp "${BENCH_CSV}" "${snapshot_path}/report.csv"
   fi
-  if [[ -d "${BENCH_REPORT_DIR}/cpp" ]]; then
-    mkdir -p "${snapshot_path}/cpp"
-    cp "${BENCH_REPORT_DIR}/cpp"/*.tab "${snapshot_path}/cpp/" 2>/dev/null || true
-  fi
-  if [[ -d "${BENCH_REPORT_DIR}/mojo" ]]; then
-    mkdir -p "${snapshot_path}/mojo"
-    cp "${BENCH_REPORT_DIR}/mojo"/*.tab "${snapshot_path}/mojo/" 2>/dev/null || true
+  if [[ -d "${BENCH_TAB_DIR}" ]]; then
+    mkdir -p "${snapshot_path}/tab"
+    cp -R "${BENCH_TAB_DIR}"/. "${snapshot_path}/tab/" 2>/dev/null || true
   fi
   if [[ -d "${BENCH_PLOT_DIR}" ]]; then
-    mkdir -p "${snapshot_path}/plots"
-    cp "${BENCH_PLOT_DIR}"/*.svg "${snapshot_path}/plots/" 2>/dev/null || true
+    mkdir -p "${snapshot_path}/plot"
+    cp "${BENCH_PLOT_DIR}"/*.svg "${snapshot_path}/plot/" 2>/dev/null || true
   fi
   echo "saved snapshot: ${snapshot_path}"
 }
@@ -1006,11 +1421,11 @@ _inspect_supports_lang() {
 }
 
 _inspect_compile_common_cpp_args() {
-  local name="$1"
-  local faust_float="$2"
+  local precision="$1"
   echo -I"${BENCH_CPP_ARCH_DIR}"
   echo "${BENCH_CPP_OPT[@]}"
-  echo -DFAUSTFLOAT="${faust_float}"
+  echo -DFAUSTFLOAT=float
+  echo -DPRECISION=\"${precision}\"
   echo -DBENCH_MODE="$(_bench_current_mode)"
   echo -DSAMP_RATE="$(_inspect_sample_rate)"
   echo -DBUFF_SIZE="$(_inspect_buffer_size)"
@@ -1018,9 +1433,10 @@ _inspect_compile_common_cpp_args() {
 }
 
 _inspect_compile_common_mojo_args() {
-  local dtype="$1"
+  local precision="$1"
   echo "${BENCH_MOJO_OPT[@]}"
-  echo -D FAUST_DTYPE="${dtype}"
+  echo -D FAUST_DTYPE=DType.float32
+  echo -D PRECISION="${precision}"
   echo -D BENCH_MODE="$(_bench_current_mode)"
   echo -D SAMP_RATE="$(_inspect_sample_rate)"
   echo -D BUFF_SIZE="$(_inspect_buffer_size)"
@@ -1064,16 +1480,14 @@ _inspect_llvm_gen_cpp() {
   local precision
   local cpp_out
   local ir_path
-  local faust_float
-  _inspect_generate_cpp "${source}" || return 1
-  cpp_out="$(_inspect_cpp_out "${source}")"
   for precision in "${BENCH_PRECISIONS[@]}"; do
-    faust_float="$(_bench_precision_cpp_macro "${precision}")"
+    _inspect_generate_cpp "${source}" "${precision}" || return 1
+    cpp_out="$(_inspect_cpp_out "${source}" "${precision}")"
     ir_path="$(_inspect_cpp_llvm "${source}" "${precision}")"
     mkdir -p "$(dirname "${ir_path}")"
     clang++ -std=gnu++23 \
       -S -emit-llvm \
-      $(_inspect_compile_common_cpp_args "$(_bench_dsp_name "${source}")" "${faust_float}") \
+      $(_inspect_compile_common_cpp_args "${precision}") \
       -Wall -Wextra -Wno-unused-parameter -pedantic \
       -o "${ir_path}" "${cpp_out}" || return 1
     echo "wrote ${ir_path}"
@@ -1086,15 +1500,13 @@ _inspect_llvm_gen_mojo() {
   local precision
   local mojo_out
   local ir_path
-  local dtype
-  _inspect_generate_mojo "${source}" || return 1
-  mojo_out="$(_inspect_mojo_out "${source}")"
   for precision in "${BENCH_PRECISIONS[@]}"; do
-    dtype="$(_bench_precision_mojo_dtype "${precision}")"
+    _inspect_generate_mojo "${source}" "${precision}" || return 1
+    mojo_out="$(_inspect_mojo_out "${source}" "${precision}")"
     ir_path="$(_inspect_mojo_llvm "${source}" "${precision}")"
     mkdir -p "$(dirname "${ir_path}")"
     pixi run mojo build \
-      $(_inspect_compile_common_mojo_args "${dtype}") \
+      $(_inspect_compile_common_mojo_args "${precision}") \
       --emit llvm \
       -o "${ir_path}" "${mojo_out}" || return 1
     echo "wrote ${ir_path}"
@@ -1139,16 +1551,14 @@ _inspect_asm_gen_cpp() {
   local precision
   local cpp_out
   local asm_path
-  local faust_float
-  _inspect_generate_cpp "${source}" || return 1
-  cpp_out="$(_inspect_cpp_out "${source}")"
   for precision in "${BENCH_PRECISIONS[@]}"; do
-    faust_float="$(_bench_precision_cpp_macro "${precision}")"
+    _inspect_generate_cpp "${source}" "${precision}" || return 1
+    cpp_out="$(_inspect_cpp_out "${source}" "${precision}")"
     asm_path="$(_inspect_cpp_asm "${source}" "${precision}")"
     mkdir -p "$(dirname "${asm_path}")"
     clang++ -std=gnu++23 \
       -S \
-      $(_inspect_compile_common_cpp_args "$(_bench_dsp_name "${source}")" "${faust_float}") \
+      $(_inspect_compile_common_cpp_args "${precision}") \
       -Wall -Wextra -Wno-unused-parameter -pedantic \
       -o "${asm_path}" "${cpp_out}" || return 1
     echo "wrote ${asm_path}"
@@ -1161,15 +1571,13 @@ _inspect_asm_gen_mojo() {
   local precision
   local mojo_out
   local asm_path
-  local dtype
-  _inspect_generate_mojo "${source}" || return 1
-  mojo_out="$(_inspect_mojo_out "${source}")"
   for precision in "${BENCH_PRECISIONS[@]}"; do
-    dtype="$(_bench_precision_mojo_dtype "${precision}")"
+    _inspect_generate_mojo "${source}" "${precision}" || return 1
+    mojo_out="$(_inspect_mojo_out "${source}" "${precision}")"
     asm_path="$(_inspect_mojo_asm "${source}" "${precision}")"
     mkdir -p "$(dirname "${asm_path}")"
     pixi run mojo build \
-      $(_inspect_compile_common_mojo_args "${dtype}") \
+      $(_inspect_compile_common_mojo_args "${precision}") \
       --emit asm \
       -o "${asm_path}" "${mojo_out}" || return 1
     echo "wrote ${asm_path}"
@@ -1177,30 +1585,3 @@ _inspect_asm_gen_mojo() {
   _inspect_clean_generated_source mojo "${source}"
 }
 
-# ------------------------------------------
-# Type helpers
-# ------------------------------------------
-
-_bench_precision_cpp_macro() {
-  local precision="$1"
-  case "${precision}" in
-    f32) echo "float" ;;
-    f64) echo "double" ;;
-    *)
-      echo "error: unsupported C++ precision: ${precision}" >&2
-      return 1
-      ;;
-  esac
-}
-
-_bench_precision_mojo_dtype() {
-  local precision="$1"
-  case "${precision}" in
-    f32) echo "DType.float32" ;;
-    f64) echo "DType.float64" ;;
-    *)
-      echo "error: unsupported Mojo precision: ${precision}" >&2
-      return 1
-      ;;
-  esac
-}

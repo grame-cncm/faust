@@ -45,8 +45,13 @@
 #define COMPUTE_ITERS 1'000'000
 #endif
 #ifndef FAUSTFLOAT
-#define FAUSTFLOAT double
+#define FAUSTFLOAT float
 #endif
+#ifndef PRECISION
+#define PRECISION "single"
+#endif
+
+static_assert(sizeof(FAUSTFLOAT) == sizeof(float));
 
 // Common benchmark type aliases.
 
@@ -56,7 +61,6 @@ using f32 = float;
 using f64 = double;
 using usize = size_t;
 using ssize = ptrdiff_t;
-using string = std::string;
 using vstring = std::string_view;
 
 template<typename... Ts> using Res = std::tuple<Ts...>;

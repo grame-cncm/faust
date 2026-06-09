@@ -30,17 +30,17 @@ comptime MAX_BATCHES = get_defined_int["MAX_BATCHES", 1_000]()
 comptime FILL_INPUTS = get_defined_bool["FILL_INPUTS", False]()
 comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96_000]())
 comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 128]())
-comptime FAUST_DTYPE = get_defined_dtype["FAUST_DTYPE", F64.dtype]()
+comptime PRECISION = get_defined_string["PRECISION", "single"]()
 comptime CSV_PATH = get_defined_string["CSV_PATH", "report/mojo/report.csv"]()
 comptime WRITE_CSV = get_defined_bool["WRITE_CSV", False]()
 
 # Comptime constants and type definitions.
 
-comptime dfaust = FAUST_DTYPE
+comptime dfaust = get_defined_dtype["FAUST_DTYPE", F32.dtype]()
 comptime FaustFloat = SIMD[dfaust, 1]
 
-comptime PRECISION_STRINGS: Arr[String, 2] = ["single", "double"]
-comptime PRECISION = PRECISION_STRINGS[size_of[FaustFloat]() // 4 - 1]
+def assert_dfaust() -> None: comptime assert dfaust == F32.dtype
+comptime _ = assert_dfaust()
 
 # Faust benchmark API.
 

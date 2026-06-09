@@ -20,8 +20,11 @@ comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96_000]())
 comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 512]())
 comptime COMPUTE_ITERS = S32(get_defined_int["COMPUTE_ITERS", 100]())
 
-comptime dfaust = get_defined_dtype["FAUST_DTYPE", F64.dtype]()
+comptime dfaust = get_defined_dtype["FAUST_DTYPE", F32.dtype]()
 comptime FaustFloat = SIMD[dfaust, 1]
+
+def assert_dfaust() -> None: comptime assert dfaust == F32.dtype
+comptime _ = assert_dfaust()
 
 # ==============================================================================
 # First section of architecture provided code end.
@@ -47,10 +50,11 @@ def main() -> None:
     if err:
         dsp.free()
         return
-    var inputs = base.bitcast[Ptr[Real, READ_EXT]]().as_immutable()
-    var outputs = (base + n_ins).bitcast[Ptr[Real, MUTA_EXT]]()
+    var ptr = base.unsafe_value()
+    var inputs = ptr.bitcast[Ptr[Real, READ_EXT]]().as_immutable()
+    var outputs = (ptr + n_ins).bitcast[Ptr[Real, MUTA_EXT]]()
     inspect_compute(dsp[], inputs, outputs)
-    base.free()
+    ptr.free()
     dsp.free()
 
 @export("inspect_compute")

@@ -14,9 +14,9 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
   exit 1
 fi
 
-# ------------------------------------------
+# ==========================================
 # Root paths
-# ------------------------------------------
+# ==========================================
 
 if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
   BENCH_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -36,21 +36,25 @@ BENCH_SRC_DIR="${BENCH_ROOT}/src"
 BENCH_ARCH_DIR="${BENCH_ROOT}/arch"
 
 BENCH_REPORT_DIR="${BENCH_ROOT}/report"
-BENCH_PLOT_DIR="${BENCH_REPORT_DIR}/plots"
+BENCH_BIN_DIR="${BENCH_REPORT_DIR}/bin"
+BENCH_TAB_DIR="${BENCH_REPORT_DIR}/tab"
+BENCH_PLOT_DIR="${BENCH_REPORT_DIR}/plot"
+BENCH_SNAP_DIR="${BENCH_REPORT_DIR}/snap"
 BENCH_TMP_DIR="${BENCH_REPORT_DIR}/tmp"
 
 BENCH_MOJO_ARCH_DIR="${BENCH_ARCH_DIR}/mojo"
-BENCH_MOJO_REPORT_DIR="${BENCH_REPORT_DIR}/mojo"
+BENCH_MOJO_REPORT_DIR="${BENCH_TAB_DIR}/mojo"
 
 BENCH_CPP_ARCH_DIR="${BENCH_ARCH_DIR}/cpp"
-BENCH_CPP_REPORT_DIR="${BENCH_REPORT_DIR}/cpp"
+BENCH_CPP_REPORT_DIR="${BENCH_TAB_DIR}/cpp"
 
 BENCH_CSV="${BENCH_REPORT_DIR}/report.csv"
 BENCH_KEEP_TMP="${BENCH_KEEP_TMP:-0}"
+BENCH_JOBS="${BENCH_JOBS:-10}"
 
-# ------------------------------------------
+# ==========================================
 # Benchmark defaults
-# ------------------------------------------
+# ==========================================
 
 BENCH_LANGS=(
   cpp
@@ -63,8 +67,8 @@ BENCH_MODES=(
 )
 
 BENCH_PRECISIONS=(
-  f32
-  f64
+  single
+  double
 )
 
 BENCH_SAMPLE_RATES=(
@@ -84,9 +88,9 @@ BENCH_MIN_RUNTIME_SECS="${BENCH_MIN_RUNTIME_SECS:-1}"
 BENCH_MAX_RUNTIME_SECS="${BENCH_MAX_RUNTIME_SECS:-60}"
 BENCH_MAX_BATCH_SIZE="${BENCH_MAX_BATCH_SIZE:-10000}"
 
-# ------------------------------------------
+# ==========================================
 # Compiler options
-# ------------------------------------------
+# ==========================================
 
 BENCH_CPP_OPT=(
   -O3
@@ -103,9 +107,9 @@ BENCH_MOJO_OPT=(
   # --target-cpu apple-m4
 )
 
-# ------------------------------------------
+# ==========================================
 # Initialization helpers
-# ------------------------------------------
+# ==========================================
 
 bench_require_pixi() {
   if [[ -z "${PIXI_ENVIRONMENT_NAME:-}" ]]; then
@@ -120,11 +124,13 @@ bench_make_dirs() {
   mkdir -p \
     "${BENCH_SRC_DIR}" \
     "${BENCH_REPORT_DIR}" \
+    "${BENCH_BIN_DIR}" \
+    "${BENCH_TAB_DIR}" \
     "${BENCH_CPP_REPORT_DIR}" \
     "${BENCH_MOJO_REPORT_DIR}" \
     "${BENCH_PLOT_DIR}" \
+    "${BENCH_SNAP_DIR}" \
     "${BENCH_TMP_DIR}" \
-    "${BENCH_REPORT_DIR}/snapshots" \
     "${BENCH_REPORT_DIR}/llvm/cpp" \
     "${BENCH_REPORT_DIR}/llvm/mojo" \
     "${BENCH_REPORT_DIR}/asm/cpp" \
@@ -161,9 +167,9 @@ bench_init() {
   bench_load_api
 }
 
-# ------------------------------------------
+# ==========================================
 # Initialize
-# ------------------------------------------
+# ==========================================
 
 bench_init || return 1
 
@@ -173,7 +179,7 @@ echo
 echo "Main commands:"
 echo
 echo "  bench_clean"
-echo "      Remove current CSV, temporary CSV fragments, tab reports, and plots."
+echo "      Remove current CSV, temporary CSV fragments, tab reports, binaries, and plots."
 echo "      Use this explicitly when you want a fresh benchmark report state."
 echo
 echo "  bench_run vec all all all all"
@@ -190,10 +196,10 @@ echo "  bench_run scalar cpp,mojo 48,192 64,512 carre_volterra"
 echo "      Incremental run for selected languages, sample rates, buffer sizes, and one DSP in scalar mode."
 echo
 echo "  bench_plot compare_modes"
-echo "      Generate report/plots/compare_modes.svg from report/report.csv."
+echo "      Generate report/plot/compare_modes.svg from report/report.csv."
 echo
 echo "  bench_snapshot after_changes"
-echo "      Save the current report state under report/snapshots/."
+echo "      Save the current report state under report/snap/."
 echo
 echo "  inspect_llvm_gen scalar all carre_volterra"
 echo "      Generate LLVM IR using the inspect architecture in scalar mode."
@@ -226,6 +232,7 @@ echo
 echo "Useful overrides:"
 echo
 echo "  BENCH_KEEP_TMP=1"
+echo "  BENCH_JOBS=10"
 echo "  BENCH_SAMPLE_RATES=(48000 192000)"
 echo "  BENCH_BUFFER_SIZES=(64 512)"
 echo "  BENCH_WARMUP_ITERS=50"
