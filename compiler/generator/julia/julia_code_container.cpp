@@ -297,9 +297,7 @@ void JuliaCodeContainer::produceMetadata(int tabs)
                     *fOut << "declare!(m, \"" << *(i.first) << "\", " << **j << ");";
                 } else {
                     tab(tabs + 1, *fOut);
-                    *fOut << "declare!(m, \""
-                          << "contributor"
-                          << "\", " << **j << ");";
+                    *fOut << "declare!(m, \"" << "contributor" << "\", " << **j << ");";
                 }
             }
         }
@@ -323,7 +321,8 @@ void JuliaScalarCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n, *fOut);
     *fOut << "@inbounds function compute!(dsp::" << fKlassName << "{T}, " << fFullCount
-          << subst("::Int32, inputs::Matrix{$0}, outputs::Matrix{$0}) where {T}", xfloat());
+          << subst("::Int32, inputs::AbstractMatrix{$0}, outputs::AbstractMatrix{$0}) where {T}",
+                   xfloat());
     tab(n + 1, *fOut);
     gGlobal->gJuliaVisitor->Tab(n + 1);
 
@@ -362,7 +361,8 @@ void JuliaVectorCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n + 1, *fOut);
     *fOut << "@inbounds function compute!(dsp::" << fKlassName << "{T}, " << fFullCount
-          << subst("::Int32, inputs::Matrix{$0}, outputs::Matrix{$0}) where {T}", xfloat());
+          << subst("::Int32, inputs::AbstractMatrix{$0}, outputs::AbstractMatrix{$0}) where {T}",
+                   xfloat());
     tab(n + 2, *fOut);
     gGlobal->gJuliaVisitor->Tab(n + 2);
 
