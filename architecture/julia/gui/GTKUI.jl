@@ -27,6 +27,7 @@ mutable struct GTKUI <: UI
         gtk_ui.dsp = dsp
         gtk_ui.box = GtkBox(:v)
         gtk_ui.window = GtkWindow("Faust Program", 400, 200)
+	gtk_ui.window[] = gtk_ui.box      # <-- the missing line
         gtk_ui
     end
     dsp::dsp
@@ -36,20 +37,25 @@ end
 
 function run!(ui_interface::GTKUI)
     show(ui_interface.window)
-    #= 
+    
+    # In an interactive session Gtk4.jl already starts the GLib main loop, so
+    # `show` is sufficient and we return immediately. In a script there is no
+    # running loop, so start one and block until the user closes the window.
     if !isinteractive()
-        @async Gtk.gtk_main()
-        Gtk.waitforsignal(ui_interface.window, :destroy)
-    end =#
-
-    if !isinteractive()
-        c = Condition()
-        signal_connect(ui_interface.window, :destroy) do widget
-            notify(c)
+        started = false
+        if !Gtk4.GLib.is_loop_running()
+            Gtk4.GLib.start_main_loop()   # spawns a Julia task that runs the loop
+            started = true
         end
-        @async Gtk.gtk_main()
-        wait(c)
+
+        # Blocks this task until the window's close button is pressed.
+        # `waitforsignal` yields to the scheduler, so the loop task keeps the
+        # UI responsive while we wait.
+        Gtk4.GLib.waitforsignal(ui_interface.window, "close-request")
+
+        started && Gtk4.GLib.stop_main_loop()
     end
+    return nothing
 end
 
 # -- active widgets
@@ -73,7 +79,9 @@ function addCheckButton!(ui_interface::GTKUI, label::String, param::Symbol)
 end
 
 function addHorizontalSlider!(ui_interface::GTKUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT)
-    slider = GtkObservables.slider(min:max, value=init, orientation="horizontal")
+    slider = GtkObservables.slider(min:step:max, value=init, orientation="horizontal")
+    slider.widget.hexpand = true
+    slider.widget.width_request = 160
     label_str = GtkObservables.label(label)
     obs_func = on(observable(slider)) do val
         setproperty!(ui_interface.dsp, param, val)
@@ -85,8 +93,9 @@ function addHorizontalSlider!(ui_interface::GTKUI, label::String, param::Symbol,
 end
 
 function addVerticalSlider!(ui_interface::GTKUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT)
-    slider = GtkObservables.slider(min:max, value=init, orientation="vertical")
-    set_gtk_property!(slider, :expand, true)
+    slider = GtkObservables.slider(min:step:max, value=init, orientation="vertical")
+    slider.widget.vexpand = true
+    slider.widget.height_request = 160   # Room to move
     label_str = GtkObservables.label(label)
     obs_func = on(observable(slider)) do val
         setproperty!(ui_interface.dsp, param, val)
