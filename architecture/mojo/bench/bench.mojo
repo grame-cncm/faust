@@ -8,9 +8,9 @@ from conf import *
 from mem import *
 from dsp import FaustDsp
 
-# --------------------------------------------------------------
+# ==============================================================
 # Faust benchmark architecture implementation.
-# --------------------------------------------------------------
+# ==============================================================
 
 # Compiler options.
 
@@ -34,11 +34,7 @@ comptime PRECISION = get_defined_string["PRECISION", "single"]()
 comptime CSV_PATH = get_defined_string["CSV_PATH", "report/mojo/report.csv"]()
 comptime WRITE_CSV = get_defined_bool["WRITE_CSV", False]()
 
-# Comptime constants and type definitions.
-
-comptime dfaust = get_defined_dtype["FAUST_DTYPE", F32.dtype]()
-comptime FaustFloat = SIMD[dfaust, 1]
-
+# Comptime dfaust assertion.
 def assert_dfaust() -> None: comptime assert dfaust == F32.dtype
 comptime _ = assert_dfaust()
 
@@ -127,26 +123,23 @@ struct FaustReport(ImplicitlyCopyable):
         report.slow_out_samp_per_s = 0.0
         report.checksum = 0.0
 
-def fill_inputs[dreal: DType](inputs: MutaStreams[dreal], n_ins: S32) -> None:
-    comptime Real = SIMD[dreal, 1]
+def fill_inputs(inputs: MutaStreams[dfaust], n_ins: S32) -> None:
     for chan in range(n_ins):
         for frame in range(BUFF_SIZE):
             var value = 0.001 * F64(frame + 1) + F64(chan)
-            inputs[chan][frame] = Real(value)
+            inputs[chan][frame] = FaustFloat(value)
 
-def warmup[dreal: DType, Dsp: FaustDsp](
-    mut dsp: Dsp, inputs: MutaStreams[dreal], outputs: MutaStreams[dreal]
+def warmup(
+    mut dsp: Some[FaustDsp], inputs: MutaStreams[dfaust], outputs: MutaStreams[dfaust]
 ) -> None:
-    comptime Real = SIMD[dreal, 1]
-    var read_inputs = inputs.bitcast[Ptr[Real, READ_EXT]]().as_immutable()
+    var read_inputs = inputs.bitcast[Ptr[FaustFloat, READ_EXT]]().as_immutable()
     for _ in range(S32(WARMUP_ITERS)):
-        dsp.compute[dreal](BUFF_SIZE, read_inputs, outputs)
+        dsp.compute(BUFF_SIZE, read_inputs, outputs)
 
-def _measure_adaptive[dreal: DType, Dsp: FaustDsp](
-    mut dsp: Dsp, inputs: MutaStreams[dreal], outputs: MutaStreams[dreal]
+def _measure_adaptive(
+    mut dsp: Some[FaustDsp], inputs: MutaStreams[dfaust], outputs: MutaStreams[dfaust]
 ) -> BenchRun:
-    comptime Real = SIMD[dreal, 1]
-    var read_inputs = inputs.bitcast[Ptr[Real, READ_EXT]]().as_immutable()
+    var read_inputs = inputs.bitcast[Ptr[FaustFloat, READ_EXT]]().as_immutable()
 
     var batches = Arr[BenchBatch, MAX_BATCHES](fill=BenchBatch())
 
@@ -177,7 +170,7 @@ def _measure_adaptive[dreal: DType, Dsp: FaustDsp](
             comptime if BENCH_BARRIERS:
                 keep(read_inputs) 
                 keep(outputs)
-            dsp.compute[dreal](BUFF_SIZE, read_inputs, outputs)
+            dsp.compute(BUFF_SIZE, read_inputs, outputs)
             comptime if BENCH_BARRIERS:
                 clobber_memory()
 
@@ -226,7 +219,7 @@ def _measure_adaptive[dreal: DType, Dsp: FaustDsp](
     var slowest_ns = batches[Int(significant_start)].ns_per_compute
 
     for i in range(significant_start, batch_count):
-        var batch = batches[Int(i)]
+        var batch = batches[i]
 
         significant_iters += batch.iterations
         significant_elapsed_s += batch.elapsed_s
@@ -249,10 +242,10 @@ def _measure_adaptive[dreal: DType, Dsp: FaustDsp](
     run.slow_ns_per_compute = slowest_ns
     return run
 
-def measure[dreal: DType, Dsp: FaustDsp](
-    mut dsp: Dsp, inputs: MutaStreams[dreal], outputs: MutaStreams[dreal]
+def measure(
+    mut dsp: Some[FaustDsp], inputs: MutaStreams[dfaust], outputs: MutaStreams[dfaust]
 ) raises -> FaustReport:
-    var raw_report = _measure_adaptive[dreal, Dsp](dsp, inputs, outputs)
+    var raw_report = _measure_adaptive(dsp, inputs, outputs)
     var dsp_inputs = dsp.get_num_inputs()
     var dsp_outputs = dsp.get_num_outputs()
     var run_iters = raw_report.iterations
@@ -287,11 +280,10 @@ def measure[dreal: DType, Dsp: FaustDsp](
     if report.slow_ns_per_compute > 0.0:
         report.slow_frames_per_s = 1.0e9 / report.slow_ns_per_compute * F64(BUFF_SIZE)
         report.slow_out_samp_per_s = report.slow_frames_per_s * F64(dsp_outputs)
-    report.checksum = checksum_outputs[dreal](outputs, dsp_outputs)
+    report.checksum = checksum_outputs(outputs, dsp_outputs)
     return report
 
-def checksum_outputs[dreal: DType](outputs: MutaStreams[dreal], n_outs: S32) -> F64:
-    comptime Real = SIMD[dreal, 1]
+def checksum_outputs(outputs: MutaStreams[dfaust], n_outs: S32) -> F64:
     var sum = 0.0
     for chan in range(n_outs):
         for frame in range(BUFF_SIZE):

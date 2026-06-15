@@ -28,9 +28,6 @@ from meta import *
 # ==============================================================================
 
 def main() raises -> None:
-    comptime dreal = dfaust
-    comptime Real = SIMD[dreal, 1]
-
     var dsp = alloc[mydsp](1)
     dsp[] = mydsp()
     dsp[].init(SAMP_RATE)
@@ -38,27 +35,27 @@ def main() raises -> None:
     var n_ins = dsp[].get_num_inputs()
     var n_outs = dsp[].get_num_outputs()
 
-    var base, err = make_streams[dreal](BUFF_SIZE, n_ins, n_outs)
+    var base, err = make_streams[dfaust](BUFF_SIZE, n_ins, n_outs)
     if err:
         print("Panic in main - Critical allocation error: ", err)
         dsp.free()
         return
 
-    var inputs = base.unsafe_value().bitcast[Ptr[Real, MUTA_EXT]]()
+    var inputs = base.unsafe_value().bitcast[Ptr[FaustFloat, MUTA_EXT]]()
     var outputs = inputs + n_ins
 
     comptime if FILL_INPUTS:
-        fill_inputs[dreal](inputs, n_ins)
+        fill_inputs(inputs, n_ins)
 
-    warmup[dreal](dsp[], inputs, outputs)
-    var report = measure[dreal](dsp[], inputs, outputs)
-    report.checksum = checksum_outputs[dreal](outputs, n_outs)
+    warmup(dsp[], inputs, outputs)
+    var report = measure(dsp[], inputs, outputs)
+    report.checksum = checksum_outputs(outputs, n_outs)
     print_report(report) # the output will be redirected via script
 
     comptime if WRITE_CSV:
         write_csv(report)
 
-    free_streams[dreal](base)
+    free_streams[dfaust](base)
     dsp.free()
 
 # ==============================================================================

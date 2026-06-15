@@ -20,9 +20,6 @@ comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96_000]())
 comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 512]())
 comptime COMPUTE_ITERS = S32(get_defined_int["COMPUTE_ITERS", 100]())
 
-comptime dfaust = get_defined_dtype["FAUST_DTYPE", F32.dtype]()
-comptime FaustFloat = SIMD[dfaust, 1]
-
 def assert_dfaust() -> None: comptime assert dfaust == F32.dtype
 comptime _ = assert_dfaust()
 

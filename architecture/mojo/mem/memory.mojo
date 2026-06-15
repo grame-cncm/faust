@@ -47,7 +47,7 @@ def alloc_streams[dreal: DType](
     return base.unsafe_value().bitcast[Real](), Error_None,
    
 # initialize the streams
-def init_streams[dreal: DType, size: SInt](
+def init_streams[dreal: DType, size: SInt = 1](
     base: OptPtr[SIMD[dreal, size]], buff_size: S32, n_ins: S32, m_outs: S32,
 ) -> ErrorCode:
     if base == NULL_PTR[SIMD[dreal, size]]:

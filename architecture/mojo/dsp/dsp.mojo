@@ -35,9 +35,9 @@ trait FaustDsp:
     @always_inline
     def build_user_interface(mut dsp, mut ui: Some[FaustGui]) -> None: ...
     @always_inline
-    def compute[dreal: DType](
+    def compute(
         mut dsp,
         var count:      S32,
-        var inputs:     ReadStreams[dreal],
-        var outputs:    MutaStreams[dreal]
+        var inputs:     ReadStreams[dfaust],
+        var outputs:    MutaStreams[dfaust]
     )  -> None: ...

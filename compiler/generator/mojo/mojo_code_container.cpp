@@ -290,13 +290,9 @@ void MojoCodeContainer::writeBuildUserInterface(int n)
 void MojoScalarCodeContainer::writeCompute(int n)
 {
     *fOut << wtab(n)   << "@always_inline\n"
-          << wtab(n)   << "def compute[dreal: DType](\n"
-          << wtab(n+1) <<     "mut dsp,\n"
-          << wtab(n+1) <<     "var count:      S32,\n"
-          << wtab(n+1) <<     "var inputs:     ReadStreams[dreal],\n"
-          << wtab(n+1) <<     "var outputs:    MutaStreams[dreal]\n"
+          << wtab(n)   << "def compute(\n"
+          << wtab(n+1) <<      "mut dsp, var count: S32, var inputs: ReadStreams[dfaust], var outputs: MutaStreams[dfaust]\n"
           << wtab(n)   << ") -> None:\n" << wtab(n+1);
-    *fOut << "comptime assert dreal == dfaust" << "\n" << wtab(n+1);
     fCodeProducer->Tab(n + 1);
     generateComputeBlock(fCodeProducer);
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop("count");

@@ -5,9 +5,9 @@
 # This file is meant to be sourced by script/source.sh.
 # It assumes that source.sh has already initialized BENCH_* paths and defaults.
 
-# ------------------------------------------
+# ==========================================
 # Mode defaults
-# ------------------------------------------
+# ==========================================
 
 if ! declare -p BENCH_MODES >/dev/null 2>&1; then
   BENCH_MODES=(
@@ -26,9 +26,9 @@ if ! declare -p BENCH_FAUST_VEC_OPT >/dev/null 2>&1; then
   )
 fi
 
-# ------------------------------------------
+# ==========================================
 # Layout defaults
-# ------------------------------------------
+# ==========================================
 
 # The layout is intentionally fixed here so this file can be used as a
 # drop-in replacement even if an older source.sh still initializes the old
@@ -39,19 +39,67 @@ BENCH_PLOT_DIR="${BENCH_REPORT_DIR}/plot"
 BENCH_SNAP_DIR="${BENCH_REPORT_DIR}/snap"
 BENCH_JOBS="${BENCH_JOBS:-10}"
 
-# ------------------------------------------
+# ==========================================
 # Public API
-# ------------------------------------------
+# ==========================================
 
 bench_run() {
   if (( $# < 5 )); then
     echo "usage: bench_run <which,modes> <which,langs> <sample,rates,khz> <buffer,sizes> <dsp,sources>"
     return 1
   fi
-  BENCH_RUN_NAME="${BENCH_RUN_NAME:-run}"
+
+  if [[ "${BENCH_RUN_IS_TRANSPILED:-0}" == "1" ]]; then
+    BENCH_RUN_NAME="run"
+  else
+    BENCH_RUN_NAME="${BENCH_RUN_NAME:-run}"
+  fi
+
+  BENCH_RUN_IS_TRANSPILED=0
+  unset BENCH_TRANSPILED_NAME
+  unset BENCH_TRANSPILED_DSP
+  unset BENCH_TRANSPILED_CASE
+  unset BENCH_TRANSPILED_PATH
+  unset BENCH_TRANSPILED_ORIGINAL_PATH
+
   BENCH_LAST_COMMAND="bench_run $*"
   _bench_resolve_args "$@" || return 1
   _bench_run_resolved
+}
+
+bench_run_transpiled() {
+  if (( $# < 6 )); then
+    echo "usage: bench_run_transpiled <mode> <precision> <lang> <sample-rate> <buffer-size> <transpiled-path>"
+    return 1
+  fi
+
+  _bench_resolve_transpiled_args "$@" || return 1
+
+  BENCH_RUN_IS_TRANSPILED=1
+  BENCH_RUN_NAME="${BENCH_TRANSPILED_NAME}"
+  BENCH_RUN_MODE="${BENCH_TRANSPILED_MODE}"
+  BENCH_RUN_MODES=("${BENCH_TRANSPILED_MODE}")
+  BENCH_RUN_LANGS=("${BENCH_TRANSPILED_LANG}")
+  BENCH_RUN_SAMPLE_RATES=("${BENCH_TRANSPILED_SAMPLE_RATE}")
+  BENCH_RUN_BUFFER_SIZES=("${BENCH_TRANSPILED_BUFFER_SIZE}")
+  BENCH_RUN_SOURCES=("${BENCH_TRANSPILED_NAME}")
+  BENCH_LAST_COMMAND="bench_run_transpiled $*"
+
+  _bench_csv_prepare_fragment "${BENCH_TRANSPILED_LANG}" "${BENCH_TRANSPILED_DSP}" || return 1
+  _bench_build_transpiled_case \
+    "${BENCH_TRANSPILED_LANG}" \
+    "${BENCH_TRANSPILED_PATH}" \
+    "${BENCH_TRANSPILED_DSP}" \
+    "${BENCH_TRANSPILED_PRECISION}" \
+    "${BENCH_TRANSPILED_SAMPLE_RATE}" \
+    "${BENCH_TRANSPILED_BUFFER_SIZE}" || return 1
+  _bench_exec_case \
+    "${BENCH_TRANSPILED_DSP}" \
+    "${BENCH_TRANSPILED_LANG}" \
+    "${BENCH_TRANSPILED_PRECISION}" \
+    "${BENCH_TRANSPILED_SAMPLE_RATE}" \
+    "${BENCH_TRANSPILED_BUFFER_SIZE}" || return 1
+  _bench_csv_commit_fragment "${BENCH_TRANSPILED_LANG}" "${BENCH_TRANSPILED_DSP}" || return 1
 }
 
 bench_clean() {
@@ -61,8 +109,9 @@ bench_clean() {
 
 bench_plot() {
   local plot_name="$1"
+  local case_name="${2:-all}"
   _bench_plot_require_name "${plot_name}" || return 1
-  _bench_plot_from_csv "${BENCH_CSV}" "$(_bench_plot_path "${plot_name}")"
+  _bench_plot_from_csv "${BENCH_CSV}" "$(_bench_plot_path "${plot_name}")" "${case_name}"
 }
 
 bench_snapshot() {
@@ -74,11 +123,12 @@ bench_snapshot() {
   _bench_snapshot_write_meta "${snapshot_path}" "${snapshot_name}"
 }
 
-inspect_llvm_gen() {
+inspect_llvm() {
   if (( $# < 3 )); then
-    echo "usage: inspect_llvm_gen <which,modes> <which,langs> <dsp,sources>"
+    echo "usage: inspect_llvm <which,modes> <which,langs> <dsp,sources>"
     return 1
   fi
+  BENCH_RUN_IS_TRANSPILED=0
   local modes="$1"
   local langs="$2"
   shift 2
@@ -88,11 +138,20 @@ inspect_llvm_gen() {
   _inspect_llvm_gen
 }
 
-inspect_asm_gen() {
-  if (( $# < 3 )); then
-    echo "usage: inspect_asm_gen <which,modes> <which,langs> <dsp,sources>"
+inspect_llvm_transpiled() {
+  if (( $# < 6 )); then
+    echo "usage: inspect_llvm_transpiled <mode> <precision> <lang> <sample-rate> <buffer-size> <transpiled-path>"
     return 1
   fi
+  _inspect_transpiled_emit llvm "$@"
+}
+
+inspect_asm() {
+  if (( $# < 3 )); then
+    echo "usage: inspect_asm <which,modes> <which,langs> <dsp,sources>"
+    return 1
+  fi
+  BENCH_RUN_IS_TRANSPILED=0
   local modes="$1"
   local langs="$2"
   shift 2
@@ -102,9 +161,17 @@ inspect_asm_gen() {
   _inspect_asm_gen
 }
 
-# ------------------------------------------
+inspect_asm_transpiled() {
+  if (( $# < 6 )); then
+    echo "usage: inspect_asm_transpiled <mode> <precision> <lang> <sample-rate> <buffer-size> <transpiled-path>"
+    return 1
+  fi
+  _inspect_transpiled_emit asm "$@"
+}
+
+# ==========================================
 # Validation helpers
-# ------------------------------------------
+# ==========================================
 
 _bench_require_mode() {
   local mode="$1"
@@ -170,9 +237,24 @@ _bench_require_command() {
   fi
 }
 
-# ------------------------------------------
+_bench_normalize_sample_rate() {
+  local item="$1"
+  local value
+  if ! [[ "${item}" =~ ^[0-9]+$ ]]; then
+    echo "error: invalid sample rate: ${item}" >&2
+    return 1
+  fi
+  if (( item < 1000 )); then
+    value=$((item * 1000))
+  else
+    value="${item}"
+  fi
+  echo "${value}"
+}
+
+# ==========================================
 # Argument resolution
-# ------------------------------------------
+# ==========================================
 
 _bench_resolve_args() {
   local modes="$1"
@@ -240,16 +322,7 @@ _bench_resolve_sample_rates() {
     return 0
   fi
   for item in $(printf "%s" "${spec}" | tr ',' ' '); do
-    if ! [[ "${item}" =~ ^[0-9]+$ ]]; then
-      echo "error: invalid sample rate: ${item}"
-      echo "sample rates are passed in kHz, for example: 48,192"
-      return 1
-    fi
-    if (( item < 1000 )); then
-      value=$((item * 1000))
-    else
-      value="${item}"
-    fi
+    value="$(_bench_normalize_sample_rate "${item}")" || return 1
     BENCH_RUN_SAMPLE_RATES+=("${value}")
   done
   _bench_require_non_empty "${BENCH_RUN_SAMPLE_RATES[*]}" "resolved sample rates"
@@ -303,9 +376,9 @@ _bench_resolve_sources() {
   _bench_require_non_empty "${BENCH_RUN_SOURCES[*]}" "resolved sources"
 }
 
-# ------------------------------------------
+# ==========================================
 # Path helpers
-# ------------------------------------------
+# ==========================================
 
 _bench_dsp_name() {
   local input="$1"
@@ -338,6 +411,12 @@ _bench_case_stem() {
   local name
   local mode
   local sr_khz
+
+  if [[ "${BENCH_RUN_IS_TRANSPILED:-0}" == "1" ]]; then
+    echo "${BENCH_TRANSPILED_NAME}"
+    return 0
+  fi
+
   name="$(_bench_dsp_name "${dsp}")"
   mode="$(_bench_current_mode)"
   sr_khz="$((samp_rate / 1000))"
@@ -355,12 +434,10 @@ _bench_case_bin() {
 
   case "${lang}" in
     cpp)
-      echo "${BENCH_BIN_DIR}/${stem}_bin_cpp"
+      echo "${BENCH_BIN_DIR}/cpp/${stem}_bin_cpp"
       ;;
     mojo)
-      # Keep Mojo binaries in the symlinked architecture directory. Moving the
-      # executable outside arch/mojo can break Mojo package/import resolution.
-      echo "${BENCH_MOJO_ARCH_DIR}/${stem}_bin_mojo"
+      echo "${BENCH_BIN_DIR}/mojo/${stem}_bin_mojo"
       ;;
     *)
       echo "error: unsupported binary language: ${lang}" >&2
@@ -386,7 +463,7 @@ _bench_cpp_out() {
   local precision="$2"
   name="$(_bench_dsp_name "$1")"
   mode="$(_bench_current_mode)"
-  echo "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_${precision}_out.cpp"
+  echo "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_${precision}_transpiled.cpp"
 }
 
 _bench_mojo_out() {
@@ -395,7 +472,7 @@ _bench_mojo_out() {
   local precision="$2"
   name="$(_bench_dsp_name "$1")"
   mode="$(_bench_current_mode)"
-  echo "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_${precision}_out.mojo"
+  echo "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_${precision}_transpiled.mojo"
 }
 
 _inspect_cpp_out() {
@@ -461,6 +538,12 @@ _bench_tab_path() {
   local name
   local mode
   local sr_khz
+
+  if [[ "${BENCH_RUN_IS_TRANSPILED:-0}" == "1" ]]; then
+    echo "${BENCH_TAB_DIR}/${lang}/${BENCH_TRANSPILED_NAME}.tab"
+    return 0
+  fi
+
   name="$(_bench_dsp_name "${dsp}")"
   mode="$(_bench_current_mode)"
   sr_khz="$((samp_rate / 1000))"
@@ -472,6 +555,12 @@ _bench_tmp_csv_path() {
   local dsp="$2"
   local name
   local mode
+
+  if [[ "${BENCH_RUN_IS_TRANSPILED:-0}" == "1" ]]; then
+    echo "${BENCH_TMP_DIR}/${BENCH_TRANSPILED_NAME}.csv"
+    return 0
+  fi
+
   name="$(_bench_dsp_name "${dsp}")"
   mode="$(_bench_current_mode)"
   echo "${BENCH_TMP_DIR}/${lang}_${name}_${BENCH_RUN_NAME}_${mode}.csv"
@@ -492,9 +581,9 @@ _bench_snapshot_path() {
   echo "${BENCH_SNAP_DIR}/${stamp}_${safe_name}"
 }
 
-# ------------------------------------------
+# ==========================================
 # Cleanup
-# ------------------------------------------
+# ==========================================
 
 _bench_clean_report() {
   rm -f "${BENCH_CSV}"
@@ -537,9 +626,9 @@ _bench_clean_tabs() {
 
 _bench_clean_bins() {
   find "${BENCH_BIN_DIR}" \
-    -maxdepth 1 \
+    -mindepth 1 \
     -type f \
-    -name "*_bin_cpp" \
+    \( -name "*_bin_cpp" -o -name "*_bin_mojo" \) \
     -delete 2>/dev/null || true
   find "${BENCH_MOJO_ARCH_DIR}" \
     -maxdepth 1 \
@@ -581,12 +670,12 @@ _bench_clean_all_out_files() {
   find "${BENCH_CPP_ARCH_DIR}" \
     -maxdepth 1 \
     -type f \
-    \( -name "*_out.cpp" -o -name "*_insp.cpp" \) \
+    \( -name "*_transpiled.cpp" -o -name "*_out.cpp" -o -name "*_insp.cpp" \) \
     -delete 2>/dev/null || true
   find "${BENCH_MOJO_ARCH_DIR}" \
     -maxdepth 1 \
     -type f \
-    \( -name "*_out.mojo" -o -name "*_insp.mojo" \) \
+    \( -name "*_transpiled.mojo" -o -name "*_out.mojo" -o -name "*_insp.mojo" \) \
     -delete 2>/dev/null || true
 }
 
@@ -594,7 +683,6 @@ _bench_clean_tmp_files() {
   local lang="$1"
   local source="$2"
   _bench_clean_generated_source "${lang}" "${source}"
-  _bench_clean_generated_binary "${lang}" "${source}"
 }
 
 _bench_clean_generated_source() {
@@ -609,10 +697,10 @@ _bench_clean_generated_source() {
   mode="$(_bench_current_mode)"
   case "${lang}" in
     cpp)
-      rm -f "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_"*_out.cpp
+      find "${BENCH_CPP_ARCH_DIR}"         -maxdepth 1         -type f         \( -name "${name}_${mode}_*_transpiled.cpp" -o -name "${name}_${mode}_*_out.cpp" \)         -delete 2>/dev/null || true
       ;;
     mojo)
-      rm -f "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_"*_out.mojo
+      find "${BENCH_MOJO_ARCH_DIR}"         -maxdepth 1         -type f         \( -name "${name}_${mode}_*_transpiled.mojo" -o -name "${name}_${mode}_*_out.mojo" \)         -delete 2>/dev/null || true
       ;;
   esac
 }
@@ -630,14 +718,14 @@ _bench_clean_generated_binary() {
 
   case "${lang}" in
     cpp)
-      find "${BENCH_BIN_DIR}" \
+      find "${BENCH_BIN_DIR}/cpp" \
         -maxdepth 1 \
         -type f \
         -name "cpp_${name}_${BENCH_RUN_NAME}_${mode}_*_bin_cpp" \
         -delete 2>/dev/null || true
       ;;
     mojo)
-      find "${BENCH_MOJO_ARCH_DIR}" \
+      find "${BENCH_BIN_DIR}/mojo" \
         -maxdepth 1 \
         -type f \
         -name "mojo_${name}_${BENCH_RUN_NAME}_${mode}_*_bin_mojo" \
@@ -658,17 +746,17 @@ _inspect_clean_generated_source() {
   mode="$(_bench_current_mode)"
   case "${lang}" in
     cpp)
-      rm -f "${BENCH_CPP_ARCH_DIR}/${name}_${mode}_"*_insp.cpp
+      find "${BENCH_CPP_ARCH_DIR}"         -maxdepth 1         -type f         -name "${name}_${mode}_*_insp.cpp"         -delete 2>/dev/null || true
       ;;
     mojo)
-      rm -f "${BENCH_MOJO_ARCH_DIR}/${name}_${mode}_"*_insp.mojo
+      find "${BENCH_MOJO_ARCH_DIR}"         -maxdepth 1         -type f         -name "${name}_${mode}_*_insp.mojo"         -delete 2>/dev/null || true
       ;;
   esac
 }
 
-# ------------------------------------------
+# ==========================================
 # CSV helpers
-# ------------------------------------------
+# ==========================================
 
 _bench_csv_prepare_fragment() {
   local lang="$1"
@@ -694,6 +782,10 @@ _bench_csv_merge_fragment() {
   name="$(_bench_dsp_name "${source}")"
   if [[ ! -f "${tmp_csv}" ]]; then
     echo "error: missing temporary CSV fragment: ${tmp_csv}"
+    if [[ "${BENCH_RUN_IS_TRANSPILED:-0}" == "1" ]]; then
+      echo "note: bench_run_transpiled expects the transpiled file to use the benchmark architecture and write CSV_PATH when WRITE_CSV=True."
+      echo "note: use inspect_asm_transpiled or inspect_llvm_transpiled for inspect-only transpiled files."
+    fi
     return 1
   fi
   pixi run python "${BENCH_SCRIPT_DIR}/csvmanip.py" merge \
@@ -705,9 +797,9 @@ _bench_csv_merge_fragment() {
     --mode "$(_bench_current_mode)"
 }
 
-# ------------------------------------------
+# ==========================================
 # Faust mode helpers
-# ------------------------------------------
+# ==========================================
 
 _bench_set_faust_mode_opt() {
   local mode="$1"
@@ -726,9 +818,9 @@ _bench_set_faust_mode_opt() {
   esac
 }
 
-# ------------------------------------------
+# ==========================================
 # Faust precision helpers
-# ------------------------------------------
+# ==========================================
 
 _bench_precision_faust_opt() {
   local precision="$1"
@@ -742,9 +834,9 @@ _bench_precision_faust_opt() {
   esac
 }
 
-# ------------------------------------------
-# OUT generation
-# ------------------------------------------
+# ==========================================
+# Transpiled generation
+# ==========================================
 
 _bench_generate_source() {
   local lang="$1"
@@ -874,15 +966,295 @@ _inspect_generate_mojo() {
     -o "${mojo_out}"
 }
 
-# ------------------------------------------
+# ==========================================
+# Transpiled file helpers
+# ==========================================
+
+_bench_resolve_transpiled_args() {
+  local mode="$1"
+  local precision="$2"
+  local lang="$3"
+  local sample_rate="$4"
+  local buffer_size="$5"
+  local transpiled_path="$6"
+  local norm_sample_rate
+
+  _bench_require_mode "${mode}" || return 1
+  _bench_require_precision "${precision}" || return 1
+  _bench_require_lang "${lang}" || return 1
+  _bench_require_file "${transpiled_path}" || return 1
+
+  norm_sample_rate="$(_bench_normalize_sample_rate "${sample_rate}")" || return 1
+
+  if ! [[ "${buffer_size}" =~ ^[0-9]+$ ]]; then
+    echo "error: invalid buffer size: ${buffer_size}"
+    return 1
+  fi
+
+  BENCH_TRANSPILED_MODE="${mode}"
+  BENCH_TRANSPILED_PRECISION="${precision}"
+  BENCH_TRANSPILED_LANG="${lang}"
+  BENCH_TRANSPILED_SAMPLE_RATE="${norm_sample_rate}"
+  BENCH_TRANSPILED_BUFFER_SIZE="${buffer_size}"
+  BENCH_TRANSPILED_ORIGINAL_PATH="${transpiled_path}"
+
+  _bench_split_transpiled_name "${transpiled_path}" "${mode}" "${precision}" || return 1
+  BENCH_TRANSPILED_PATH="$(_bench_stage_transpiled_file "${lang}" "${transpiled_path}")" || return 1
+}
+
+_bench_split_transpiled_name() {
+  local transpiled_path="$1"
+  local base
+  local stem
+
+  base="${transpiled_path##*/}"
+  stem="${base%.*}"
+
+  BENCH_TRANSPILED_NAME="${stem}"
+  BENCH_TRANSPILED_DSP="${stem}"
+  BENCH_TRANSPILED_CASE="${stem}"
+
+  _bench_require_non_empty "${BENCH_TRANSPILED_NAME}" "transpiled file name" || return 1
+}
+
+_bench_stage_transpiled_file() {
+  local lang="$1"
+  local transpiled_path="$2"
+  local base
+  local dest
+  local arch_real
+  local path_dir
+  local path_dir_real
+
+  case "${lang}" in
+    mojo)
+      base="${transpiled_path##*/}"
+      dest="${BENCH_MOJO_ARCH_DIR}/${base}"
+      path_dir="${transpiled_path%/*}"
+
+      if [[ "${path_dir}" == "${transpiled_path}" ]]; then
+        path_dir="."
+      fi
+
+      arch_real="$(cd "${BENCH_MOJO_ARCH_DIR}" && pwd -P)" || return 1
+      path_dir_real="$(cd "${path_dir}" && pwd -P)" || return 1
+
+      if [[ "${path_dir_real}" == "${arch_real}" ]]; then
+        echo "${dest}"
+        return 0
+      fi
+
+      mkdir -p "${BENCH_MOJO_ARCH_DIR}"
+      cp "${transpiled_path}" "${dest}" || return 1
+      echo "${dest}"
+      ;;
+    cpp)
+      echo "${transpiled_path}"
+      ;;
+    *)
+      echo "error: unsupported transpiled language: ${lang}" >&2
+      return 1
+      ;;
+  esac
+}
+
+_bench_build_required() {
+  local transpiled_path="$1"
+  local bin_path="$2"
+
+  if [[ "${BENCH_FORCE_BUILD:-0}" == "1" ]]; then
+    return 0
+  fi
+
+  if [[ ! -f "${bin_path}" ]]; then
+    return 0
+  fi
+
+  if [[ "${transpiled_path}" -nt "${bin_path}" ]]; then
+    return 0
+  fi
+
+  return 1
+}
+
+# ==========================================
+# Transpiled inspect helpers
+# ==========================================
+
+_inspect_transpiled_emit() {
+  local emit_kind="$1"
+  shift
+
+  _bench_resolve_transpiled_args "$@" || return 1
+
+  BENCH_RUN_IS_TRANSPILED=1
+  BENCH_RUN_NAME="${BENCH_TRANSPILED_NAME}"
+  BENCH_RUN_MODE="${BENCH_TRANSPILED_MODE}"
+
+  case "${BENCH_TRANSPILED_LANG}" in
+    cpp)
+      _inspect_transpiled_emit_cpp \
+        "${emit_kind}" \
+        "${BENCH_TRANSPILED_PATH}" \
+        "${BENCH_TRANSPILED_DSP}" \
+        "${BENCH_TRANSPILED_CASE}" \
+        "${BENCH_TRANSPILED_PRECISION}" \
+        "${BENCH_TRANSPILED_SAMPLE_RATE}" \
+        "${BENCH_TRANSPILED_BUFFER_SIZE}"
+      ;;
+    mojo)
+      _inspect_transpiled_emit_mojo \
+        "${emit_kind}" \
+        "${BENCH_TRANSPILED_PATH}" \
+        "${BENCH_TRANSPILED_DSP}" \
+        "${BENCH_TRANSPILED_CASE}" \
+        "${BENCH_TRANSPILED_PRECISION}" \
+        "${BENCH_TRANSPILED_SAMPLE_RATE}" \
+        "${BENCH_TRANSPILED_BUFFER_SIZE}"
+      ;;
+    *)
+      echo "error: no transpiled inspect implementation for language: ${BENCH_TRANSPILED_LANG}"
+      return 1
+      ;;
+  esac
+}
+
+_inspect_transpiled_path() {
+  local emit_kind="$1"
+  local lang="$2"
+  local dsp="$3"
+  local case_name="$4"
+  local precision="$5"
+  local sample_rate="$6"
+  local buffer_size="$7"
+  local sr_khz
+  local ext
+  sr_khz="$((sample_rate / 1000))"
+
+  case "${emit_kind}" in
+    asm) ext="s" ;;
+    llvm) ext="ll" ;;
+    *)
+      echo "error: unsupported inspect emit kind: ${emit_kind}" >&2
+      return 1
+      ;;
+  esac
+
+  if [[ "${BENCH_RUN_IS_TRANSPILED:-0}" == "1" ]]; then
+    echo "${BENCH_REPORT_DIR}/${emit_kind}/${lang}/${BENCH_TRANSPILED_NAME}.${ext}"
+    return 0
+  fi
+
+  echo "${BENCH_REPORT_DIR}/${emit_kind}/${lang}/${dsp}__${case_name}_${BENCH_RUN_MODE}_${precision}_${sr_khz}_${buffer_size}.${ext}"
+}
+
+_inspect_transpiled_emit_cpp() {
+  local emit_kind="$1"
+  local cpp_path="$2"
+  local dsp="$3"
+  local case_name="$4"
+  local precision="$5"
+  local sample_rate="$6"
+  local buffer_size="$7"
+  local out_path
+  local name
+  local emit_args=()
+
+  name="$(_bench_dsp_name "${dsp}")"
+  out_path="$(_inspect_transpiled_path "${emit_kind}" cpp "${name}" "${case_name}" "${precision}" "${sample_rate}" "${buffer_size}")" || return 1
+  mkdir -p "$(dirname "${out_path}")"
+
+  case "${emit_kind}" in
+    asm)
+      emit_args=(-S)
+      ;;
+    llvm)
+      emit_args=(-S -emit-llvm)
+      ;;
+  esac
+
+  clang++ -std=gnu++23 \
+    "${emit_args[@]}" \
+    -I"${BENCH_CPP_ARCH_DIR}" \
+    "${BENCH_CPP_OPT[@]}" \
+    -DBENCH_LANG=\"cpp\" \
+    -DBENCH_DSP=\"${name}\" \
+    -DBENCH_CASE=\"${case_name}\" \
+    -DBENCH_MODE=\"$(_bench_current_mode)\" \
+    -DBENCH_OPTIM=\"${BENCH_OPTIM:-O3}\" \
+    -DFAUSTFLOAT=float \
+    -DPRECISION=\"${precision}\" \
+    -DWRITE_CSV=0 \
+    -DCSV_PATH=\"${BENCH_TMP_DIR}/${name}_${case_name}.csv\" \
+    -DFILL_INPUTS=1 \
+    -DSAMP_RATE="s32(${sample_rate})" \
+    -DBUFF_SIZE="s32(${buffer_size})" \
+    -DWARMUP_ITERS="${BENCH_WARMUP_ITERS:-50}" \
+    -DCOMPUTE_ITERS="${BENCH_COMPUTE_ITERS:-1000000}" \
+    -DMIN_RUNTIME_SECS="${BENCH_MIN_RUNTIME_SECS:-1}" \
+    -DMAX_RUNTIME_SECS="${BENCH_MAX_RUNTIME_SECS:-60}" \
+    -DMAX_BATCH_SIZE="${BENCH_MAX_BATCH_SIZE:-10000}" \
+    -Wall -Wextra -Wno-unused-parameter -pedantic \
+    -o "${out_path}" "${cpp_path}" || return 1
+
+  echo "wrote ${out_path}"
+}
+
+_inspect_transpiled_emit_mojo() {
+  local emit_kind="$1"
+  local mojo_path="$2"
+  local dsp="$3"
+  local case_name="$4"
+  local precision="$5"
+  local sample_rate="$6"
+  local buffer_size="$7"
+  local out_path
+  local name
+  local emit_arg
+
+  name="$(_bench_dsp_name "${dsp}")"
+  out_path="$(_inspect_transpiled_path "${emit_kind}" mojo "${name}" "${case_name}" "${precision}" "${sample_rate}" "${buffer_size}")" || return 1
+  mkdir -p "$(dirname "${out_path}")"
+
+  case "${emit_kind}" in
+    asm) emit_arg="asm" ;;
+    llvm) emit_arg="llvm" ;;
+  esac
+
+  pixi run mojo build \
+    "${BENCH_MOJO_OPT[@]}" \
+    -D BENCH_LANG=mojo \
+    -D BENCH_DSP="${name}" \
+    -D BENCH_CASE="${case_name}" \
+    -D BENCH_MODE="$(_bench_current_mode)" \
+    -D BENCH_OPTIM="${BENCH_OPTIM:-O3}" \
+    -D FAUST_DTYPE=DType.float32 \
+    -D PRECISION="${precision}" \
+    -D WRITE_CSV=False \
+    -D CSV_PATH="${BENCH_TMP_DIR}/${name}_${case_name}.csv" \
+    -D FILL_INPUTS=True \
+    -D SAMP_RATE="${sample_rate}" \
+    -D BUFF_SIZE="${buffer_size}" \
+    -D WARMUP_ITERS="${BENCH_WARMUP_ITERS:-50}" \
+    -D COMPUTE_ITERS="${BENCH_COMPUTE_ITERS:-1000000}" \
+    -D MIN_RUNTIME_SECS="${BENCH_MIN_RUNTIME_SECS:-1}" \
+    -D MAX_RUNTIME_SECS="${BENCH_MAX_RUNTIME_SECS:-60}" \
+    -D MAX_BATCH_SIZE="${BENCH_MAX_BATCH_SIZE:-10000}" \
+    --emit "${emit_arg}" \
+    -o "${out_path}" "${mojo_path}" || return 1
+
+  echo "wrote ${out_path}"
+}
+
+# ==========================================
 # Run engine
-# ------------------------------------------
+# ==========================================
 
 _bench_run_resolved() {
   echo
   echo ">>>>>>>>>>>>>>>>>>>>>>> benchmark machinery started"
 
-  _bench_generate_all_outs_parallel || return 1
+  _bench_generate_all_transpiled_parallel || return 1
   _bench_prepare_all_csv_fragments || return 1
   _bench_build_all_cases_parallel || return 1
   _bench_exec_all_cases_serial || return 1
@@ -894,7 +1266,7 @@ _bench_disable_job_control_noise() {
   # Avoid interactive zsh job-control noise such as "[1] 12345" while still
   # running this file as a sourced shell API.
   if [[ -n "${ZSH_VERSION:-}" ]]; then
-    setopt local_options no_monitor
+    unsetopt monitor 2>/dev/null || true
   else
     set +m 2>/dev/null || true
   fi
@@ -919,7 +1291,7 @@ _bench_wait_parallel_batch() {
   return "${wait_status}"
 }
 
-_bench_generate_all_outs_parallel() {
+_bench_generate_all_transpiled_parallel() {
   local source
   local lang
   local mode
@@ -934,7 +1306,7 @@ _bench_generate_all_outs_parallel() {
     for lang in "${BENCH_RUN_LANGS[@]}"; do
       for mode in "${BENCH_RUN_MODES[@]}"; do
         for precision in "${BENCH_PRECISIONS[@]}"; do
-          _bench_generate_out_with_mode \
+          _bench_generate_transpiled_with_mode \
             "${source}" \
             "${lang}" \
             "${mode}" \
@@ -955,7 +1327,7 @@ _bench_generate_all_outs_parallel() {
   fi
 }
 
-_bench_generate_out_with_mode() {
+_bench_generate_transpiled_with_mode() {
   local source="$1"
   local lang="$2"
   local mode="$3"
@@ -1134,6 +1506,27 @@ _bench_build_case() {
   esac
 }
 
+_bench_build_transpiled_case() {
+  local lang="$1"
+  local transpiled_path="$2"
+  local source="$3"
+  local precision="$4"
+  local sample_rate="$5"
+  local buffer_size="$6"
+  case "${lang}" in
+    cpp)
+      _bench_build_transpiled_case_cpp "${transpiled_path}" "${source}" "${precision}" "${sample_rate}" "${buffer_size}"
+      ;;
+    mojo)
+      _bench_build_transpiled_case_mojo "${transpiled_path}" "${source}" "${precision}" "${sample_rate}" "${buffer_size}"
+      ;;
+    *)
+      echo "error: no build transpiled implementation for language: ${lang}"
+      return 1
+      ;;
+  esac
+}
+
 _bench_exec_case() {
   local source="$1"
   local lang="$2"
@@ -1159,19 +1552,34 @@ _bench_build_case_cpp() {
   local precision="$2"
   local sample_rate="$3"
   local buffer_size="$4"
-  _bench_require_precision "${precision}" || return 1
   local cpp_out
+  cpp_out="$(_bench_cpp_out "${source}" "${precision}")"
+  _bench_build_transpiled_case_cpp "${cpp_out}" "${source}" "${precision}" "${sample_rate}" "${buffer_size}"
+}
+
+_bench_build_transpiled_case_cpp() {
+  local cpp_out="$1"
+  local source="$2"
+  local precision="$3"
+  local sample_rate="$4"
+  local buffer_size="$5"
+  _bench_require_precision "${precision}" || return 1
   local cpp_bin
   local csv_path
   local build_log
   local name
-  cpp_out="$(_bench_cpp_out "${source}" "${precision}")"
   cpp_bin="$(_bench_case_bin cpp "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
   csv_path="$(_bench_tmp_csv_path cpp "${source}")"
   build_log="$(_bench_case_build_log cpp "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
   name="$(_bench_dsp_name "${source}")"
   _bench_require_file "${cpp_out}" || return 1
   mkdir -p "$(dirname "${cpp_bin}")" "$(dirname "${csv_path}")" "$(dirname "${build_log}")"
+
+  if ! _bench_build_required "${cpp_out}" "${cpp_bin}"; then
+    echo "reusing cpp:${BENCH_RUN_NAME}/$(_bench_current_mode)(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size})"
+    return 0
+  fi
+
   echo "building cpp:${BENCH_RUN_NAME}/$(_bench_current_mode)(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size})"
   if ! clang++ -std=gnu++23 \
     -I"${BENCH_CPP_ARCH_DIR}" \
@@ -1207,19 +1615,35 @@ _bench_build_case_mojo() {
   local precision="$2"
   local sample_rate="$3"
   local buffer_size="$4"
-  _bench_require_precision "${precision}" || return 1
   local mojo_out
+  mojo_out="$(_bench_mojo_out "${source}" "${precision}")"
+  _bench_build_transpiled_case_mojo "${mojo_out}" "${source}" "${precision}" "${sample_rate}" "${buffer_size}"
+}
+
+_bench_build_transpiled_case_mojo() {
+  local mojo_out="$1"
+  local source="$2"
+  local precision="$3"
+  local sample_rate="$4"
+  local buffer_size="$5"
+  _bench_require_precision "${precision}" || return 1
   local mojo_bin
   local csv_path
   local build_log
   local name
-  mojo_out="$(_bench_mojo_out "${source}" "${precision}")"
+  mojo_out="$(_bench_stage_transpiled_file mojo "${mojo_out}")" || return 1
   mojo_bin="$(_bench_case_bin mojo "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
   csv_path="$(_bench_tmp_csv_path mojo "${source}")"
   build_log="$(_bench_case_build_log mojo "${source}" "${precision}" "${sample_rate}" "${buffer_size}")"
   name="$(_bench_dsp_name "${source}")"
   _bench_require_file "${mojo_out}" || return 1
   mkdir -p "$(dirname "${mojo_bin}")" "$(dirname "${csv_path}")" "$(dirname "${build_log}")"
+
+  if ! _bench_build_required "${mojo_out}" "${mojo_bin}"; then
+    echo "reusing mojo:${BENCH_RUN_NAME}/$(_bench_current_mode)(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size})"
+    return 0
+  fi
+
   echo "building mojo:${BENCH_RUN_NAME}/$(_bench_current_mode)(${name}, ${precision}, sr=${sample_rate}, bs=${buffer_size})"
   if ! pixi run mojo build \
     "${BENCH_MOJO_OPT[@]}" \
@@ -1296,9 +1720,9 @@ _bench_exec_case_mojo() {
   return "${case_status}"
 }
 
-# ------------------------------------------
+# ==========================================
 # Plot helpers
-# ------------------------------------------
+# ==========================================
 
 _bench_plot_require_name() {
   local plot_name="$1"
@@ -1311,10 +1735,17 @@ _bench_plot_require_name() {
 _bench_plot_from_csv() {
   local csv_out="$1"
   local plot_out="$2"
+  local case_name="${3:-all}"
+  local case_args=()
+
+  if [[ "${case_name}" != "all" ]]; then
+    case_args=(--case "${case_name}")
+  fi
+
   _bench_require_file "${csv_out}" || return 1
   mkdir -p "$(dirname "${plot_out}")"
   pixi run python "${BENCH_SCRIPT_DIR}/plot.py" "${csv_out}" \
-    --case "${BENCH_RUN_NAME:-run}" \
+    "${case_args[@]}" \
     --x combo \
     --y out_samp_per_s \
     --series "${BENCH_PLOT_SERIES:-language,mode,precision}" \
@@ -1322,9 +1753,9 @@ _bench_plot_from_csv() {
     --title "Faust Benchmark"
 }
 
-# ------------------------------------------
+# ==========================================
 # Snapshot helpers
-# ------------------------------------------
+# ==========================================
 
 _bench_snapshot_name() {
   local name="$1"
@@ -1384,9 +1815,9 @@ _bench_snapshot_write_meta() {
   } > "${meta_path}"
 }
 
-# ------------------------------------------
+# ==========================================
 # Inspect helpers
-# ------------------------------------------
+# ==========================================
 
 _inspect_sample_rate() {
   local value
@@ -1443,9 +1874,9 @@ _inspect_compile_common_mojo_args() {
   echo -D COMPUTE_ITERS="$(_inspect_compute_iters)"
 }
 
-# ------------------------------------------
+# ==========================================
 # LLVM helpers
-# ------------------------------------------
+# ==========================================
 
 _inspect_llvm_gen() {
   local source
@@ -1514,9 +1945,9 @@ _inspect_llvm_gen_mojo() {
   _inspect_clean_generated_source mojo "${source}"
 }
 
-# ------------------------------------------
+# ==========================================
 # Assembly helpers
-# ------------------------------------------
+# ==========================================
 
 _inspect_asm_gen() {
   local source

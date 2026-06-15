@@ -244,11 +244,11 @@ void MojoInstVisitor::visit(BinopInst* inst)
 
 void MojoInstVisitor::visit(CastInst* inst)
 {
-    if (inst->fType->getType() == Typed::kFloatMacro) {
-        *fOut << "SIMD[dreal, 1](";
-        inst->fInst->accept(this);
-        goto End_Inst;
-    }
+    // if (inst->fType->getType() == Typed::kFloatMacro) {
+    //     *fOut << "SIMD[dreal, 1](";
+    //     inst->fInst->accept(this);
+    //     goto End_Inst;
+    // }
 
     *fOut << fTypeManager->generateType(inst->fType) << "(";
     if (auto* float_inst = dycast(FloatNumInst*, inst->fInst)) {

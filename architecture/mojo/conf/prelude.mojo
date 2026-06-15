@@ -41,8 +41,13 @@ comptime NULL_PTR[T: AnyType = Void, ori: Origin = MUTA_EXT]: OptPtr[T, ori] = N
 
 # Origin values aliases.
 
-comptime READ_EXT = ImmutExternalOrigin
-comptime MUTA_EXT = MutExternalOrigin
+comptime READ_EXT = ImmutUntrackedOrigin 
+comptime MUTA_EXT = MutUntrackedOrigin
+
+# FaustFloat architecture precison alias.
+
+comptime dfaust = get_defined_dtype["dfaust", DType.float32]()
+comptime FaustFloat = SIMD[dfaust, 1]
 
 # Helpers and utilities.
 
