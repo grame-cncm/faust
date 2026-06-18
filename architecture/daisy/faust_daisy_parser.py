@@ -1,6 +1,11 @@
 import json
-import sys 
+import os
+import sys
 import re
+
+# Allow importing sibling modules regardless of the invocation cwd.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import daisy_soundfile_gen
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -419,7 +424,11 @@ class ui_scanner:
                         reslist.append(value)
                         #dac_index_reg = re.compile("[AD]([0-9]+)")
                         dac_index_res = dac_index_reg.search(value)
-                        self.dac[dac_index_res.group(1)] = True;
+                        if(dac_index_res.group(1) == "7"):
+                            self.dac[0] = True
+                        elif(dac_index_res.group(1) == "8"):
+                            self.dac[1] = True
+                        
                     elif(key == "gpio"):
                         reslist.append("gpio")
                         reslist.append(value)
@@ -673,6 +682,10 @@ class ui_scanner:
                         self.outputs[-1].index = self.dac_count
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+                        self.dac_count += 1
+>>>>>>> 3028c82cc (implemented QSPI soundfile, fixed issues (midi input initialization, DAC's broken, CC with checkbox or button)
                     elif(metares[0] == "gpio"):
 =======
                     elif(metares[0] == "digi"):
@@ -763,7 +776,7 @@ class ui_scanner:
                             self.midis[-1].scale = self.scale
 
                 if("items" in elem):
-                    self.recursive_lookup(elem) 
+                    self.recursive_lookup(elem, config_ui) 
     
 
     def exists_or_add(self, keys, index, cnt):
@@ -801,7 +814,9 @@ class ui_scanner:
         controlstr = f"#define N_INPUTS {n_inputs} \n"
         controlstr += f"#define N_OUTPUTS {n_outputs} \n\n"
         
-        if(config_midi["type"] == "uart"):
+        if(config_midi is None):
+            pass
+        elif(config_midi["type"] == "uart"):
             if("rx_pin" in config_midi):
                 controlstr += f"#define RX_PIN {config_midi["rx_pin"]} \n"
             if("tx_pin" in config_midi):
@@ -1274,9 +1289,9 @@ class ui_scanner:
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
         if(len(self.dacs) > 0):
             for elem in self.dacs:
-                if(elem.channel == 1):
+                if(elem.channel == "A7"):
                     last_chn = "daisy::DacHandle::Channel::ONE"
-                elif(elem.channel == 2):
+                elif(elem.channel == "A8"):
                     last_chn = "daisy::DacHandle::Channel::TWO"
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1418,6 +1433,20 @@ if(use_sdram):
     sdram_content = "#define FAUST_SDRAM_SIZE_BYTES " + str(total_bytes) + "\n";
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
     arch = arch.replace(sdram_tag, sdram_content);
+
+
+### Soundfile primitive support
+# Look for "soundfile" widgets in the UI. If any, parse the referenced WAV
+# files and inline them into daisy_soundfile.hpp, then tell the bash script
+# (via USE_SOUNDFILE) to add the matching #define.
+soundfiles = daisy_soundfile_gen.scan_soundfiles(dsp_layout)
+if len(soundfiles) > 0:
+    # WAV files are resolved relative to the DSP source directory and the cwd.
+    search_dirs = list(dict.fromkeys(
+        [os.path.dirname(os.path.abspath(project_dir)), os.getcwd()]))
+    header_path = project_dir + "/daisy_soundfile.hpp"
+    if daisy_soundfile_gen.generate_header(soundfiles, search_dirs, header_path):
+        print("USE_SOUNDFILE=true")
 
 
 arch_dest = project_dir + "/daisy_arch.cpp"

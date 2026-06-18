@@ -165,7 +165,7 @@ import("stdfaust.lib");
 freq = hslider("freq[adc::A0]", 50, 50, 1000, 0.1) : si.smoo;
 
 // Controls accept scale parameter : either lin (default), log or exp 
-amp = hslider("freq[adc:A1][scale:exp]", 0, 0, 1, 0.01) : si.smoo;
+amp = hslider("amp[adc:A1][scale:exp]", 0, 0, 1, 0.01) : si.smoo;
 
 // Digital GPIO (1 or 0 only)
 gate = button("gate[gpio:D27]); 
@@ -261,6 +261,31 @@ This new development allows the following new features :
 - Large buffers can be placed on SDRAM with `-sdram`. 
 - `-mem-thresh` determines size threshold in bytes above which data is stored on SDRAM  
 
+## Soundfiles
+
+The Faust `soundfile` primitive is supported. WAV files referenced by the DSP are
+parsed **at build time** and inlined into a generated `daisy_soundfile.hpp`, so
+there is no runtime file system and no dynamic allocation. Supported formats are
+WAV PCM 16/24/32 bit and IEEE float 32 bit; all data is decoded to `float`.
+
+```faust
+import("stdfaust.lib");
+// 'kick.wav' must sit next to the .dsp file
+sample = soundfile("kick[url:{'kick.wav'}]", 2);
+process = 0,0 : sample : !,_,_;
+```
+
+Multi-part lists are supported too: `soundfile("s[url:{'a.wav';'b.wav'}]", 2)`.
+If a referenced file cannot be found, the build stops with an error.
+
+The samples are inlined as `const` data. **Build with `-qspi`** so they are placed
+in QSPI flash and read memory-mapped (never copied to RAM); the program and the
+samples are flashed together as a single image, exactly like any other `-qspi`
+program. This is required because audio data does not fit in the 128 KB internal
+flash, and QSPI can only be programmed through the Daisy bootloader (which `-qspi`
+already uses). A very small soundfile may still fit when built in the default
+FLASH mode, but anything sizeable needs `-qspi`.
+
 ## Possible future developments 
 
 - Daisy Patch full support (external Audio codec)
@@ -270,6 +295,7 @@ This new development allows the following new features :
 - DMA for DACs / ADCs : Could provide extended audio inputs & outputs (16 bit for ADC, 12 bits for DAC) or higher time precision for controls 
 - Multiplexer for ADCs / DACs (to use with 4051's for example)
 <<<<<<< HEAD
+<<<<<<< HEAD
 - I2C communication (audio and/or control)
 =======
 - [faust/gui/DaisyControlUI.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/gui/DaisyControlUI.h): to be used with the DSP `buildUserInterface` method to implement `button`, `checkbox`, `hslider`, `vslider` controllers, and interpret the specific metadata previously described
@@ -278,3 +304,25 @@ This new development allows the following new features :
 =======
 - I2C communication (audio and/or control)
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
+=======
+- I2C communication (audio and/or control)
+- Serial communication for control 
+- Soundfile loading from SD card at runtime
+
+## Changelog 
+
+### Features
+
+18/06
+- Soundfile primitive support: WAV files (PCM 16/24/32 bit, float 32 bit) are parsed
+  at build time and inlined into QSPI flash, with no runtime file I/O or dynamic
+  allocation.
+
+### Fixes 
+
+18/06
+- Midi input was not initialized 
+- Python parser script was not working well with DAC's 
+- MIDI CC was not working properly for checkboxes and buttons. Now it is working as Faust documentation says : returns 1 if CC is 127, returns 0 if CC is 0
+- Python parser crashed on a DSP with UI controls when no configuration file was provided
+>>>>>>> 3028c82cc (implemented QSPI soundfile, fixed issues (midi input initialization, DAC's broken, CC with checkbox or button)

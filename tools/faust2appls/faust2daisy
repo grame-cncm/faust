@@ -27,6 +27,7 @@ POD=false
 SEED=false
 PATCHSM=false
 USE_SDRAM=false
+USE_SOUNDFILE=false
 SR=48000
 SRSTR="SAI_48KHZ"
 BS=16
@@ -375,6 +376,11 @@ for p in $FILE; do
         echo "#define USE_SDRAM" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
 
+    # for Soundfile (set by faust_daisy_parser.py when the DSP uses soundfiles)
+    if [ $USE_SOUNDFILE == true ]; then
+        echo "#define USE_SOUNDFILE" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
+
     # for Sample Rate
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -404,29 +410,39 @@ for p in $FILE; do
 =======
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 
+    # Soundfiles inline their samples as QSPI-resident const data, which only
+    # fits when the program runs from QSPI. Warn if -qspi was not requested
+    # (small soundfiles may still fit in internal flash; large ones will
+    # overflow the FLASH region at link time).
+    if [ $USE_SOUNDFILE == true ] && [ $APP_TYPE != BOOT_QSPI ]; then
+        echo "WARNING: this DSP uses soundfiles. Audio data lives in QSPI flash;"
+        echo "         build with -qspi unless the sound is small enough for the"
+        echo "         128 KB internal flash."
+    fi
+
     # compile and install plugin or keep the source folder
     if [ $SOURCE == false ]; then
         export $APP_TYPE
         cd "$SRCDIR/$dspName"
         pwd
         echo "Building Faust program"
-        (make APP_TYPE=$APP_TYPE) || exit 
+        (make APP_TYPE=$APP_TYPE) || exit
 
-        if [ $APP_TYPE == BOOT_NONE ]; then 
+        if [ $APP_TYPE == BOOT_NONE ]; then
             read -p "Press ENTER when Daisy is in DFU mode"
             (make program-dfu)  || true
-        else 
+        else
             read -r -p "Do you want to flash Daisy bootloader ? [y/n] : " response
-            case "$response" in 
+            case "$response" in
                 [yY])
                     read -p "Press ENTER when Daisy is in DFU mode to flash bootloader"
-                    (make program-boot) || true 
+                    (make program-boot) || true
                     sleep 1s # Make sure bootloader is operational
                 ;;
                 *)
             esac
-            read -p "Press Daisy RESET button, then press ENTER (approximately 1 sec after RESET)" 
-            (make program-dfu APP_TYPE=$APP_TYPE)  || true 
+            read -p "Press Daisy RESET button, then press ENTER (approximately 1 sec after RESET)"
+            (make program-dfu APP_TYPE=$APP_TYPE)  || true
         fi
 
         cd ..

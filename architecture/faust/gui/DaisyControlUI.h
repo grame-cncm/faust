@@ -33,6 +33,14 @@ architecture section is not modified.
 #include "faust/gui/DecoratorUI.h"
 //#include "faust/gui/ValueConverter.h"
 
+#ifdef USE_SOUNDFILE
+// Defined in the generated daisy_soundfile.hpp (all soundfile data is inlined
+// at build time by faust2daisy). Declared here so DaisyControlUI::addSoundfile
+// can resolve the prebuilt Soundfile without including the generated header.
+struct Soundfile;
+extern Soundfile* daisy_lookup_soundfile(const char* url);
+#endif
+
 /*******************************************************************************
  * DaisyControlUI : Faust User Interface
  ******************************************************************************/
@@ -156,7 +164,15 @@ class DaisyControlUI : public GenericUI
         void openHorizontalBox(const char* label) {  }
         void openVerticalBox(const char* label) {  }
         void closeBox(){}
-    
+
+#ifdef USE_SOUNDFILE
+        // -- soundfiles : resolve to a Soundfile inlined at build time.
+        void addSoundfile(const char* label, const char* url, Soundfile** sf_zone) override
+        {
+            *sf_zone = daisy_lookup_soundfile(url);
+        }
+#endif
+
         // -- active widgets
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
