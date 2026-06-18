@@ -5,7 +5,8 @@
 <<includeIntrinsic>>
 <<includeclass>>
 
-bench_no_inline void inspect_compute(mydsp& dsp, Real** inputs, Real** outputs);
+bench_no_inline bench_export
+void inspect_compute(mydsp& dsp, Real** inputs, Real** outputs);
 
 int main() {
     mydsp* dsp = new mydsp();

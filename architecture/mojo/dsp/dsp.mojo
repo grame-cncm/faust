@@ -38,6 +38,6 @@ trait FaustDsp:
     def compute(
         mut dsp,
         var count:      S32,
-        var inputs:     ReadStreams[dfaust],
-        var outputs:    MutaStreams[dfaust]
+        var inputs:     ReadStreams,
+        var outputs:    MutaStreams
     )  -> None: ...

@@ -37,7 +37,6 @@ comptime _ = assert_dfaust()
 # ==============================================================================
 
 def main() -> None:
-    comptime Real = SIMD[dfaust, 1]
     var dsp = alloc[mydsp](1)
     dsp[] = mydsp()
     dsp[].init(SAMP_RATE)
@@ -48,19 +47,21 @@ def main() -> None:
         dsp.free()
         return
     var ptr = base.unsafe_value()
-    var inputs = ptr.bitcast[Ptr[Real, READ_EXT]]().as_immutable()
-    var outputs = (ptr + n_ins).bitcast[Ptr[Real, MUTA_EXT]]()
+    var inputs = ptr.bitcast[Ptr[FaustFloat, READ_NOTRK]]().as_immutable()
+    var outputs = (ptr + n_ins).bitcast[Ptr[FaustFloat, MUTA_NOTRK]]()
     inspect_compute(dsp[], inputs, outputs)
     ptr.free()
     dsp.free()
 
-@export("inspect_compute")
 @no_inline
-def inspect_compute(mut dsp: mydsp, inputs: ReadStreams[dfaust], outputs: MutaStreams[dfaust]) -> None:
+@export("inspect_compute")
+def inspect_compute(
+    mut dsp: mydsp, inputs: ReadStreams, outputs: MutaStreams
+) abi("Mojo") -> None:
     for _ in range(COMPUTE_ITERS):
         keep(inputs)
         keep(outputs)
-        dsp.compute[dfaust](BUFF_SIZE, inputs, outputs)
+        dsp.compute(BUFF_SIZE, inputs, outputs)
         clobber_memory()
 
 # ==============================================================================

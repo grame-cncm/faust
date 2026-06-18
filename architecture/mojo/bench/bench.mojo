@@ -123,23 +123,23 @@ struct FaustReport(ImplicitlyCopyable):
         report.slow_out_samp_per_s = 0.0
         report.checksum = 0.0
 
-def fill_inputs(inputs: MutaStreams[dfaust], n_ins: S32) -> None:
+def fill_inputs(inputs: MutaStreams, n_ins: S32) -> None:
     for chan in range(n_ins):
         for frame in range(BUFF_SIZE):
             var value = 0.001 * F64(frame + 1) + F64(chan)
             inputs[chan][frame] = FaustFloat(value)
 
 def warmup(
-    mut dsp: Some[FaustDsp], inputs: MutaStreams[dfaust], outputs: MutaStreams[dfaust]
+    mut dsp: Some[FaustDsp], inputs: MutaStreams, outputs: MutaStreams
 ) -> None:
-    var read_inputs = inputs.bitcast[Ptr[FaustFloat, READ_EXT]]().as_immutable()
+    var read_inputs = inputs.bitcast[Ptr[FaustFloat, READ_NOTRK]]().as_immutable()
     for _ in range(S32(WARMUP_ITERS)):
         dsp.compute(BUFF_SIZE, read_inputs, outputs)
 
 def _measure_adaptive(
-    mut dsp: Some[FaustDsp], inputs: MutaStreams[dfaust], outputs: MutaStreams[dfaust]
+    mut dsp: Some[FaustDsp], inputs: MutaStreams, outputs: MutaStreams
 ) -> BenchRun:
-    var read_inputs = inputs.bitcast[Ptr[FaustFloat, READ_EXT]]().as_immutable()
+    var read_inputs = inputs.bitcast[Ptr[FaustFloat, READ_NOTRK]]().as_immutable()
 
     var batches = Arr[BenchBatch, MAX_BATCHES](fill=BenchBatch())
 
@@ -243,7 +243,7 @@ def _measure_adaptive(
     return run
 
 def measure(
-    mut dsp: Some[FaustDsp], inputs: MutaStreams[dfaust], outputs: MutaStreams[dfaust]
+    mut dsp: Some[FaustDsp], inputs: MutaStreams, outputs: MutaStreams
 ) raises -> FaustReport:
     var raw_report = _measure_adaptive(dsp, inputs, outputs)
     var dsp_inputs = dsp.get_num_inputs()
@@ -283,7 +283,7 @@ def measure(
     report.checksum = checksum_outputs(outputs, dsp_outputs)
     return report
 
-def checksum_outputs(outputs: MutaStreams[dfaust], n_outs: S32) -> F64:
+def checksum_outputs(outputs: MutaStreams, n_outs: S32) -> F64:
     var sum = 0.0
     for chan in range(n_outs):
         for frame in range(BUFF_SIZE):

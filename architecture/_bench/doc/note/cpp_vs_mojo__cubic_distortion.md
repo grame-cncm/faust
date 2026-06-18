@@ -1,259 +1,195 @@
-# C++ vs Mojo — Cubic distortion vec-mode comparison
+# C++ vs Mojo - Cubic Distortion vector lowering
 
 ## Scope
 
-This note compares the generated low-level code for `cubic_distortion` in Faust vec mode, focusing on the
-64-bit benchmark path.
+This note compares the generated low-level code for `cubic_distortion`, focusing on the vec-mode C++ and
+vec-mode Mojo benchmark paths.
 
-The benchmark result is the starting point: in vec mode, C++ improves its throughput, while Mojo reduces it.
-The goal is to explain this difference from the generated source shape and the resulting AArch64 assembly.
+The scalar results are close enough to rule out a broad scalar-codegen issue. The performance gap appears in
+vec mode: C++ gains throughput from the vector architecture, while Mojo vec mode remains below its own scalar
+baseline. The low-level inspection points to one main difference: C++ lowers the vec-mode structure into dense
+packed f64x2 SIMD kernels, while Mojo emits mostly scalar f64 operations with only sparse packed SIMD.
 
-The point is not to evaluate the DSP algorithm itself. The point is to understand why the same Faust vec-mode
-transformation is profitable for C++, but becomes a cost for Mojo.
+## Benchmark result
 
-## Benchmark result to explain
+Observed throughput:
 
-For `cubic_distortion`, the measured C++ vec-mode throughput is higher than the C++ scalar throughput. The
-block-oriented Faust transformation is therefore profitable for the C++ backend.
-
-Mojo shows the opposite pattern. The measured Mojo vec-mode throughput is lower than the Mojo scalar
-throughput. In this case, vec mode adds block structure and memory traffic, but does not recover enough
-performance through vector execution.
-
-The central question is:
-
-```
-Why does Faust vec mode help C++, but hurt Mojo?
-```
-
-The assembly points to a backend-level difference: Clang extracts substantial packed arithmetic from the
-vec-mode shape, while Mojo mostly preserves the structure as scalar work.
-
-## Faust vec-mode context
-
-Faust vec mode rewrites the DSP into block-oriented code. For this report, the relevant point is only that the
-generated program is split into loops over temporary buffers, instead of being one direct scalar sample loop.
-
-A simplified scalar shape is:
-
-```
-for (int i = 0; i < count; i++) {
-    float x = input[i];
-    float y = x - drive * x * x * x;
-    output[i] = y;
-}
+```text
+configuration                 throughput
+------------------------------------------------
+C++  scalar single              13.2 Mframes/s
+C++  scalar double              12.1 Mframes/s
+C++  vec    single              18.0 Mframes/s
+C++  vec    double              16.7 Mframes/s
+Mojo scalar single              13.3 Mframes/s
+Mojo scalar double              12.3 Mframes/s
+Mojo vec    single               9.8 Mframes/s
+Mojo vec    double               9.7 Mframes/s
 ```
 
-A simplified vec-mode shape is:
+The scalar double comparison is close:
 
-```
-for (int i = 0; i < count; i++) {
-    tmp0[i] = input[i] * gain;
-}
-
-for (int i = 0; i < count; i++) {
-    tmp1[i] = tmp0[i] * tmp0[i];
-}
-
-for (int i = 0; i < count; i++) {
-    output[i] = tmp0[i] - drive * tmp1[i] * tmp0[i];
-}
+```text
+Mojo scalar double / C++ scalar double = 12.3 / 12.1 = 101.7%
 ```
 
-This transformation is useful only if the target compiler turns enough of these block loops into packed single
-instruction, multiple data (SIMD) arithmetic.
+The vec double comparison is the large gap:
 
-## C++ generated shape
-
-The C++ backend emits regular C-like loops over contiguous arrays.
-
-A representative shape is:
-
-```
-for (int i = 0; i < vsize; i++) {
-    fTemp0[i] = fConst0 * input0[i];
-}
+```text
+Mojo vec double / C++ vec double = 9.7 / 16.7 = 58.1%
+C++ vec double is about 1.72x faster than Mojo vec double
 ```
 
-This is a familiar pattern for Clang's loop optimizer. If the compiler proves that iterations are independent
-enough, it can pack multiple scalar iterations into one NEON (Advanced SIMD) instruction.
+The important point is that vec mode improves C++ throughput but reduces Mojo throughput:
 
-C++ still pays the cost of Faust vec mode, but much of that cost is recovered by vector execution.
-
-## Mojo generated shape
-
-The Mojo backend receives the same general vec-mode structure: block loops, temporary buffers, and staged
-computation.
-
-The problem is that the generated Mojo code is not auto-vectorized with the same effectiveness. The assembly
-suggests that Mojo mostly executes the written block loops literally, with repeated scalar loads, scalar
-arithmetic, and scalar stores over temporary buffers.
-
-So the cost is not just "more loops". The cost is continuous memory traffic across the vec-mode temporaries,
-with strong pressure on the stack and memory system, but without enough packed arithmetic to compensate.
-
-## Assembly evidence
-
-The assembly is the main evidence because it shows whether the generated vec-mode code actually became
-hardware SIMD.
-
-On Apple Silicon AArch64, normal NEON SIMD uses 128-bit vector registers. For packed single precision, the
-expected pattern is four 32-bit floats per vector:
-
-```
-fmul.4s v0, v1, v2
-fmla.4s v0, v1, v2
-fadd.4s v0, v1, v2
-fsub.4s v0, v1, v2
+```text
+C++  vec double / C++  scalar double = 16.7 / 12.1 = 1.38x
+Mojo vec double / Mojo scalar double =  9.7 / 12.3 = 0.79x
 ```
 
-For packed double precision, the expected pattern is two 64-bit floats per vector:
+## Vector-lowering model
 
-```
-fmul.2d v0, v1, v2
-fmla.2d v0, v1, v2
-fadd.2d v0, v1, v2
-fsub.2d v0, v1, v2
-fmls.2d v0, v1, v2
-```
+The desired vec-mode lowering is not only a matter of generating a larger function or more loops. The relevant
+property is that repeated block operations must become packed SIMD arithmetic.
 
-Scalar floating-point code instead uses scalar `s` or `d` registers:
+Scalarized shape:
 
-```
-fmul  s0, s1, s2
-fmadd s0, s1, s2, s3
-fmsub s0, s1, s2, s3
-
-fmul  d0, d1, d2
-fmadd d0, d1, d2, d3
-fmsub d0, d1, d2, d3
+```text
+for i in block:
+    a0 = load tmp0[i]
+    a1 = load tmp1[i]
+    b0 = c0 * a0 + c1 * a1
+    store tmp2[i], b0
 ```
 
-The relevant question is not only whether Faust vec mode was enabled. The relevant question is whether the
-final assembly contains sustained packed arithmetic in the hot loops.
+Packed shape:
 
-## Grep checks and instruction counts
-
-The quick inspection used searches for packed arithmetic forms. The most useful checks were:
-
-```
-grep -Eo '\b(fmul|fmla|fadd|fsub|fmls)\.(4s|2d)\b' cpp.asm | sort | uniq -c
-grep -Eo '\b(fmul|fmla|fadd|fsub|fmls)\.(4s|2d)\b' mojo.asm | sort | uniq -c
+```text
+for i in block step 2:
+    a0 = load_f64x2 tmp0[i:i+2]
+    a1 = load_f64x2 tmp1[i:i+2]
+    b0 = c0 * a0 + c1 * a1
+    store_f64x2 tmp2[i:i+2], b0
 ```
 
-The rough count over the inspected assembly sections was:
+For this DSP, C++ emits many packed f64x2 kernels of the second form. Mojo mostly emits scalar f64 loops of the
+first form, plus significant temporary-buffer traffic.
 
-```
-C++ section:
-  fmul.4s: 390
-  fmla.4s: 351
-  fmul.2d:   0
-  fmla.2d:   0
+## Instruction counts
 
-Mojo section:
-  fmul.4s:   0
-  fmla.4s:   3
-  fmul.2s:  13
-  fmul.2d:   0
-  fmla.2d:   0
+Static counts over the inspected double vec sections:
+
+```text
+case              fmul.2d   fmla.2d   packed f64 total   scalar f64 fma/mul/sub
+--------------------------------------------------------------------------------
+Mojo double vec       13         6              19                  666
+C++  double vec      600       540            1140                 4006
 ```
 
-The exact counts should not be treated as a complete performance model. They are useful because the difference
-is large enough to expose the main pattern: C++ contains dense packed SIMD arithmetic, while Mojo does not
-show a comparable packed SIMD presence in the same vec-mode case.
+Memory traffic in the same inspected sections:
 
-## C++ assembly pattern
-
-The C++ section contains many packed single-precision NEON instructions, especially forms like:
-
-```
-fmul.4s v..., v..., v...
-fmla.4s v..., v..., v...
+```text
+case              ldr d   str d   ldr q   str q
+------------------------------------------------
+Mojo double vec    1108     348      28      47
+C++  double vec    3078    1838     763     953
 ```
 
-This means that Clang is vectorizing many block loops generated by Faust vec mode.
+C++ is much larger and has more total memory traffic, but that traffic supports many packed kernels. The
+decisive difference is SIMD density:
 
-Even in the 64-bit benchmark path, the generated computation contains many `f32`-shaped internal operations.
-That is why the most visible packed SIMD pattern is `f32x4`, not `f64x2`.
-
-The important point is not that the C++ output is clean double-precision SIMD. It is not. The important point
-is that C++ extracts substantial packed arithmetic from the vec-mode program, enough to make vec mode faster
-than scalar in this benchmark.
-
-## Mojo assembly pattern
-
-The Mojo section does not show the same packed SIMD density.
-
-The dominant pattern is scalar arithmetic and scalar memory traffic:
-
-```
-ldr   s...
-fmul  s...
-fmadd s...
-fmsub s...
-str   s...
+```text
+Mojo packed f64 arithmetic ops:    19
+C++  packed f64 arithmetic ops:  1140
 ```
 
-There are some vector instructions, but not enough to characterize the hot code as meaningfully vectorized in
-the same way as C++.
+C++ is faster here because it reaches high SIMD density, not because the generated shape is minimal. The
+large function body, large stack frame, nested block/tail loops, and substantial temporary-buffer traffic
+suggest remaining optimization headroom.
 
-The missing pattern is sustained packed arithmetic over the vec-mode loops:
+## C++ vec double
 
+The C++ vec double section contains many nested block loops and tail paths. The function is large, but the
+important loops contain packed f64 arithmetic:
+
+```asm
+ext.16b  v0, v2, v4, #8
+fmul.2d  v16, v0, v3[0]
+fmla.2d  v16, v4, v1[0]
+fmla.2d  v16, v2, v1[0]
+dup.2d   v2, v4[1]
+zip1.2d  v2, v2, v5
+fmul.2d  v15, v2, v3[0]
+fmla.2d  v15, v5, v1[0]
 ```
-fmul.4s v..., v..., v...
-fmla.4s v..., v..., v...
+
+This is the desirable vec-mode shape. The backend materializes temporary block data, but enough of the block
+work is performed as f64x2 arithmetic to make the vector architecture profitable.
+
+The C++ function also contains scalar loops, setup code, conversion code, and tails. Those do not negate the
+main observation: the generated code includes a large number of packed f64 operations in the vec-mode body.
+
+## Mojo vec double
+
+The Mojo vec double section is much more scalarized. A representative loop operates on one f64 lane at a time:
+
+```asm
+ldr   d2, [x9]
+ldur  q3, [x9, #-16]
+fmul.2d v3, v1, v3
+mov   d4, v3[1]
+fmadd d2, d1, d2, d4
+fadd  d2, d2, d3
+fmul  d2, d0, d2
+str   d2, [x10, x8, lsl #3]
 ```
 
-The Mojo output also does not show a meaningful packed double-precision pattern:
+Even where a packed instruction appears, the loop quickly extracts a scalar lane and continues with scalar
+operations. The section does contain a few packed f64 operations, especially around grouped output conversion:
 
+```asm
+fmla.2d v1, v2, v3
+fmla.2d v2, v0, v3
+fcvtn   v0.2s, v2.2d
+fcvtn2  v0.4s, v1.2d
 ```
-fmul.2d v..., v..., v...
-fmla.2d v..., v..., v...
+
+However, these are sparse relative to the total amount of scalar f64 work. Mojo is paying for vec-mode
+temporary storage and block scheduling, but it does not recover enough throughput through packed f64x2
+arithmetic.
+
+## Direct comparison
+
+The vec double gap is mainly a vector-lowering difference.
+
+```text
+C++ vec double:
+  large generated function
+  many block and tail loops
+  1140 packed f64 arithmetic instructions
+  16.7 Mframes/s
+
+Mojo vec double:
+  smaller generated function
+  mostly scalar f64 block processing
+  19 packed f64 arithmetic instructions
+  9.7 Mframes/s
 ```
 
-The result is that Mojo largely keeps the vec-mode program as scalar block code: many loops, temporary
-buffers, and repeated memory accesses, but too little SIMD throughput.
+The scalar benchmark shows that Mojo can match C++ on this DSP when vec-mode lowering is not involved. The vec
+benchmark shows that Mojo does not currently expose or preserve the block operations in a form that leads to
+dense f64x2 SIMD code.
 
-## Direct interpretation
+The main backend target is therefore not scalar arithmetic selection, but vector lowering:
 
-C++ gets faster because Clang successfully optimizes the kind of loops produced by Faust vec mode. The
-generated program still has temporary buffers and multiple passes over block data, but many of those passes
-become packed NEON work.
+```text
+preserve vec-mode block operations as contiguous f64 arrays
+expose aligned/stride-regular loads and stores where possible
+avoid scalar lane extraction inside block loops
+generate or enable f64x2 fused multiply-add kernels
+keep temporary-buffer traffic proportional to useful packed work
+```
 
-Mojo gets slower because the vec-mode structure is not converted into packed arithmetic with the same
-effectiveness. The code mostly follows the generated block structure literally, causing high stack and memory
-pressure from continuous reads and writes across temporary buffers.
-
-In C++, the vec-mode cost is compensated by auto-vectorization. In Mojo, the compensation is too small because
-most of the work remains scalar.
-
-## Comparison with multibandfilter
-
-The `multibandfilter` case and the `cubic_distortion` case should be kept separate.
-
-In `multibandfilter`, vec mode was already structurally suspicious because the DSP is recurrence-heavy.
-Vectorizing across consecutive samples is difficult when later samples depend on earlier state.
-
-`cubic_distortion` is different. It is more favorable to block/vector processing, and the C++ result confirms
-that Faust vec mode exposes useful vectorization opportunities in this case.
-
-This makes the Mojo result more informative: Mojo is not only losing on a DSP where vec mode is structurally
-bad. It is losing on a case where C++ proves that the vec-mode shape can be profitable.
-
-## Final comparison
-
-The `cubic_distortion` benchmark shows a clear backend-level difference.
-
-C++ benefits from Faust vec mode because Clang turns many generated block loops into packed NEON arithmetic.
-The assembly contains a substantial amount of packed `f32x4` work, so the vec-mode transformation produces
-real throughput gains.
-
-Mojo does not benefit in the same way. Its vec-mode output keeps the block-oriented structure, but the
-assembly remains much more scalar. Therefore Mojo pays the cost of vec mode without recovering enough
-performance through SIMD.
-
-The final interpretation is that C++ vec is faster because Clang successfully vectorizes the Faust vec-mode
-shape, while Mojo vec is slower because the Mojo toolchain does not vectorize that shape enough.
-
-This does not mean that Faust vec mode is useless. It means that its benefit depends heavily on the target
-compiler. In this benchmark, Clang can exploit it; Mojo mostly cannot.
+For `cubic_distortion`, C++ demonstrates the profitable shape: a larger vec-mode body can be faster when the
+extra code represents specialized packed kernels. Mojo currently emits a lighter but more scalarized body, so
+the vec architecture adds overhead without delivering comparable SIMD throughput.

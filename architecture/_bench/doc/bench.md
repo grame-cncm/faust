@@ -1,3 +1,5 @@
+<!-- NOTE: This documentation can be outdated -->
+
 # Faust benchmark framework
 
 ## Overview

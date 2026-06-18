@@ -1,0 +1,44 @@
+snapshot: cpp_vs_mojo__notables
+created: 2026-06-15 17:10:37
+command: bench_run all all 48 64 cubic_distortion carre_volterra multibandfilter
+run_name: cubic_distortion_vec_double
+resolved_modes: scalar vec
+current_mode: vec
+workspace: /Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench
+git_branch: master-dev-workspace
+git_commit: 4c20e8976
+languages: cpp mojo
+modes: scalar vec
+sample_rates_hz: 48000 192000
+buffer_sizes: 64 512
+precisions: single double
+cpp_opt: -O3
+mojo_opt: -O 3
+faust_scalar_opt: 
+faust_vec_opt: -vec
+warmup_iters: 50
+compute_iters: 1000000
+min_runtime_secs: 1
+max_runtime_secs: 60
+max_batch_size: 10000
+faust: FAUST Version 2.85.5
+Embedded backends: 
+   DSP to C
+   DSP to C++
+   DSP to Cmajor
+   DSP to Codebox
+   DSP to CSharp
+   DSP to DLang
+   DSP to Java
+   DSP to JAX
+   DSP to Julia
+   DSP to JSFX
+   DSP to old C++
+   DSP to Rust
+   DSP to SDF3
+   DSP to Mojo
+   DSP to VHDL
+   DSP to WebAssembly (wast/wasm)
+Copyright (C) 2002-2026, GRAME - Centre National de Creation Musicale. All rights reserved. 
+clang: Apple clang version 17.0.0 (clang-1700.3.19.1)
+mojo: Mojo 1.0.0b3.dev2026061407 (b97e0cbf)

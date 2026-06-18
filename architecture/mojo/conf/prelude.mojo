@@ -22,34 +22,28 @@ comptime Void = NoneType
 comptime Res = Tuple
 comptime Arr = InlineArray
 
-# Pointer types aliases.
-
-comptime Ptr[T: AnyType = Void, ori: Origin = MUTA_EXT] = UnsafePointer[T, ori]
-
-comptime AnyPtr[ori: Origin = MUTA_EXT] = Ptr[Void, ori]
-comptime OptPtr[T: AnyType = Void, ori: Origin = MUTA_EXT] = Optional[Ptr[T, ori]]
-
-comptime ReadStreams[dreal: DType, ori: Origin = READ_EXT] = Ptr[Ptr[SIMD[dreal, 1], ori], ori]
-comptime MutaStreams[dreal: DType, ori: Origin = MUTA_EXT] = Ptr[Ptr[SIMD[dreal, 1], ori], ori]
-
-# Memory constants definitions.
-
-comptime PTR_SIZE = size_of[AnyPtr[MUTA_EXT]]()
-comptime PTR_ALIGN = align_of[AnyPtr[MUTA_EXT]]()
-comptime STD_ALIGN = 2 * PTR_ALIGN
-comptime NULL_PTR[T: AnyType = Void, ori: Origin = MUTA_EXT]: OptPtr[T, ori] = None
-
-# Origin values aliases.
-
-comptime READ_EXT = ImmutUntrackedOrigin 
-comptime MUTA_EXT = MutUntrackedOrigin
-
 # FaustFloat architecture precison alias.
 
 comptime dfaust = get_defined_dtype["dfaust", DType.float32]()
 comptime FaustFloat = SIMD[dfaust, 1]
 
-# Helpers and utilities.
+# Pointer types aliases.
 
-comptime is_real[dreal: DType]: Bool = dreal.is_floating_point()
+comptime Ptr[T: AnyType = Void, ori: Origin = MUTA_NOTRK]    = UnsafePointer[T, ori]
+comptime AnyPtr[ori: Origin = MUTA_NOTRK]                    = Ptr[Void, ori]
+comptime OptPtr[T: AnyType = Void, ori: Origin = MUTA_NOTRK] = Optional[Ptr[T, ori]]
 
+comptime ReadStreams = Ptr[Ptr[FaustFloat, READ_NOTRK], READ_NOTRK]
+comptime MutaStreams = Ptr[Ptr[FaustFloat, MUTA_NOTRK], MUTA_NOTRK]
+
+# Memory constants definitions.
+
+comptime PTR_SIZE = size_of[AnyPtr[MUTA_NOTRK]]()
+comptime PTR_ALIGN = align_of[AnyPtr[MUTA_NOTRK]]()
+comptime STD_ALIGN = 2 * PTR_ALIGN
+comptime NULL_PTR[T: AnyType = Void, ori: Origin = MUTA_NOTRK]: OptPtr[T, ori] = None
+
+# Origin values aliases.
+
+comptime READ_NOTRK = ImmutUntrackedOrigin 
+comptime MUTA_NOTRK = MutUntrackedOrigin

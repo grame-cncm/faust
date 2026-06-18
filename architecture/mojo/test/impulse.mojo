@@ -24,7 +24,7 @@ def run_dsp[Dsp: FaustDsp](
         print("Panic in main - Critical allocation error: ", err)
         return
 
-    var inputs = base.unsafe_value().bitcast[Ptr[FaustFloat, MUTA_EXT]]()
+    var inputs = base.unsafe_value().bitcast[Ptr[FaustFloat, MUTA_NOTRK]]()
     var outputs = inputs + n_ins
 
     try:
@@ -37,7 +37,7 @@ def run_dsp[Dsp: FaustDsp](
                 ctrl_ui.set_buttons(False)
             var count = min(BUFF_SIZE, nbsamples)
             dsp[].compute(
-                S32(count), inputs.bitcast[Ptr[FaustFloat, READ_EXT]](), outputs
+                S32(count), inputs.bitcast[Ptr[FaustFloat, READ_NOTRK]](), outputs
             )
             run += 1
             for i in range(count):
@@ -53,7 +53,7 @@ def run_dsp[Dsp: FaustDsp](
 
     free_streams(base)
 
-def impulse(n_ins: S32, inputs: MutaStreams[dfaust]) -> None:
+def impulse(n_ins: S32, inputs: MutaStreams) -> None:
     for var i in range(n_ins):
         inputs[i][0] = FaustFloat(1.0)
 
@@ -100,7 +100,5 @@ def format_real(real: F64) -> String:
 
 # Impulse architecture constants and compile flags.
 
-comptime FaustFloat = F64 
-comptime dfaust     = FaustFloat.dtype
 comptime BUFF_SIZE  = S32(get_defined_int["BUFF_SIZE", 64]())
 comptime SAMP_RATE  = S32(get_defined_int["SAMP_RATE", 44_100]())
