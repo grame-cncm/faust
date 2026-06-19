@@ -102,3 +102,6 @@ def format_real(real: F64) -> String:
 
 comptime BUFF_SIZE  = S32(get_defined_int["BUFF_SIZE", 64]())
 comptime SAMP_RATE  = S32(get_defined_int["SAMP_RATE", 44_100]())
+
+def assert_dfaust() -> None: comptime assert dfaust == F64.dtype
+comptime _ = assert_dfaust()

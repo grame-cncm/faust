@@ -375,7 +375,7 @@ CodeContainer* MojoCodeContainer::createContainer(
         throw faustexception("ERROR : Scheduler not supported for Mojo\n");
     } 
     if (gGlobal->gVectorSwitch) {
-        return (CodeContainer*) new MojoVectorCodeContainer(name, numInputs, numOutputs, out);
+        return (CodeContainer*) new MojoVecCodeContainer(name, numInputs, numOutputs, out);
     }
     return (CodeContainer*) new MojoScalarCodeContainer(name, numInputs, numOutputs, out, kInt);
 }
@@ -396,9 +396,9 @@ MojoScalarCodeContainer::MojoScalarCodeContainer(
 ////////////////////////////////////////////////////////////////
 // Mojo vector code container implementation.
 
-MojoVectorCodeContainer::~MojoVectorCodeContainer() {}
+MojoVecCodeContainer::~MojoVecCodeContainer() {}
 
-MojoVectorCodeContainer::MojoVectorCodeContainer(
+MojoVecCodeContainer::MojoVecCodeContainer(
     const std::string& name, int numInputs, int numOutputs, std::ostream* out
 )
     : VectorCodeContainer(numInputs, numOutputs)
@@ -411,7 +411,7 @@ MojoVectorCodeContainer::MojoVectorCodeContainer(
     fCodeProducer = gGlobal->gMojoVisitor;
 }
 
-void MojoVectorCodeContainer::writeCompute(int n)
+void MojoVecCodeContainer::writeCompute(int n)
 {
     generateComputeFunctions(fCodeProducer);
     *fOut << wtab(n)   << "@always_inline\n"
@@ -425,7 +425,7 @@ void MojoVectorCodeContainer::writeCompute(int n)
     loop->fCode.pop_front();
     generateComputeBlock(fCodeProducer);
     loop->accept(fCodeProducer);
-    *fOut << wrewind(fOut, n*2);
+    fOut->seekp(isize(fOut->tellp()) - 2*n*TAB_SIZE - 1);
     n -= 1;
     fCodeProducer->Tab(n);
 }

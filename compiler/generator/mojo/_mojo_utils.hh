@@ -34,29 +34,28 @@ inline namespace mojo {
 ////////////////////////////////////////////////////////////////
 // Namespaced type aliases for syntactic sugar
 
-using std::vector;
 using String = std::string;
 using VString = std::string_view;
 using OString = std::ostringstream;
 using OStream = std::ostream;
+template<typename T> using Vector = std::vector<T>;
 
 ////////////////////////////////////////////////////////////////
 // Writing helpers for `MojoVisitor`s and `MojoCodeContainer`s 
 
 inline constexpr isize TAB_SIZE = 4;
 
-inline String wbanner()                 { return "# =============================================================================="; }
-inline String wblank (isize n=1)        { return String(n, '\n'); }
-inline String windent(isize n=TAB_SIZE) { return String(n, ' '); }
-inline String wlit   (String s)    { return "\"" + s + "\""; }
-inline String wendl  (b32 b, isize n=1) { return b ? '\n' + windent(TAB_SIZE*n) : ""; }
-inline String wptr   (String s)    { return "Ptr["+s+"]"; }
-inline String wtab   (isize n=1)        { return String(TAB_SIZE*n, ' '); }
+inline String wbanner()                 {   return "# ==============================================================================";   }
+inline String wblank (isize n=1)        {   return String(n, '\n');                                                                      }
+inline String windent(isize n=TAB_SIZE) {   return String(n, ' ');                                                                       }
+inline String wlit   (String s)         {   return "\"" + s + "\"";                                                                      }
+inline String wnextl (isize n=1)        {   return '\n' + windent(TAB_SIZE*n);                                                           }
+inline String wptr   (String s)         {   return "Ptr["+s+"]";                                                                         }
+inline String wtab   (isize n=1)        {   return String(TAB_SIZE*n, ' ');                                                              }
 
 inline String wrewind(std::ostream* out, isize n = 1)
 {
-    isize pos = out->tellp();
-    out->seekp(pos - n * TAB_SIZE);
+    out->seekp(isize(out->tellp()) - n * TAB_SIZE);
     return "";
 }
 
@@ -130,11 +129,11 @@ inline String ensureReal(f64 x)
     return ensureReal(toStringTrim(x));
 }
 
-inline vector<VString> split(VString src, char sep)
+inline Vector<VString> split(VString src, char sep)
 {
     isize i = 0;
     isize size = src.size();
-    vector<VString> res;
+    Vector<VString> res;
 
     while (i < size) {
         while (i < size && src[i] == sep) {
@@ -221,8 +220,8 @@ inline String formatCompilerOptions(isize indent, String const& begln = "")
     constexpr isize MAX_WIDTH = 81;
     OString build;
     String options = gGlobal->printCompilationOptions1();
-    vector<VString> opts = split(options, ' ');
-    vector<String> units;
+    Vector<VString> opts = split(options, ' ');
+    Vector<String> units;
     units.reserve(opts.size());
 
     for (usize i = 0; i < opts.size(); i++) {

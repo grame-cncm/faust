@@ -24,7 +24,7 @@ comptime Arr = InlineArray
 
 # FaustFloat architecture precison alias.
 
-comptime dfaust = get_defined_dtype["dfaust", DType.float32]()
+comptime dfaust = get_defined_dtype["DFAUST", DType.float32]()
 comptime FaustFloat = SIMD[dfaust, 1]
 
 # Pointer types aliases.

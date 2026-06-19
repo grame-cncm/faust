@@ -23,6 +23,7 @@
 #define MOJO_INSTRUCTIONS_HH
 
 // faust
+#include <memory_resource>
 #include "struct_manager.hh"
 #include "text_instructions.hh"
 
@@ -138,9 +139,19 @@ public:
     static inline void gZeroInitializer(OStream* out, Typed* typed);
 };
 
+// XXX:
+//  class MojoStringBuilderInstVisitor : public MojoInstVisitor {
+//  public:
+//      inline MojoStringBuilderInstVisitor(OString* out, String const& structName, i32 tab = 0);
+//      inline ~MojoStringBuilderInstVisitor() override;
+//  };
+//  MojoStringBuilderInstVisitor::~MojoStringBuilderInstVisitor() {}
+//  MojoStringBuilderInstVisitor::MojoStringBuilderInstVisitor(OString* out, String const& structName, i32 tab)
+//      : MojoInstVisitor(out, structName, tab) {}
+
 /**
-    A `MojoVecInstVisitor` is a `MojoInstVisitor` for the mojo backend
-    when the -vec flag is enabled
+    A `MojoVecInstVisitor` is a `MojoInstVisitor` for the vec mode.
+    XXX:
     @nota
     - Currently dos not add any logic to `MojoInstVisitor`.
 **/
@@ -148,7 +159,10 @@ class MojoVecInstVisitor : public MojoInstVisitor {
 public:
     using MojoInstVisitor::visit;
 
-    MojoVecInstVisitor(OStream* out, String const& structName, int tab = 0);
+    inline MojoVecInstVisitor(OStream* out, String const& structName, int tab = 0);
+
+    inline void visit(ForLoopInst* inst) override;
+    inline void visit(LabelInst* inst) override;
 };
 
 //////////////////////////////////////////////////////////////
@@ -156,9 +170,7 @@ public:
 
 MojoInstVisitor::MojoInstVisitor(OStream* out, String const& structName, i32 tab)
     : TextInstVisitor(out, ".", new MojoStringTypeManager(xfloat(), structName, ""), tab)
-{
-    gMathLibTable = gCreateMathLibTable();
-}
+{   gMathLibTable = gCreateMathLibTable();   }
 
 MojoInstVisitor::~MojoInstVisitor() {}
 
@@ -167,7 +179,7 @@ void MojoInstVisitor::visit(AddMetaDeclareInst* inst)
     String zone = (inst->fZone == "0") ? "null_val" : snakeCase(inst->fZone);
     *fOut << "ui.declare(";
     *fOut << "dsp." << zone << ", " << wlit(inst->fKey) << ", " << wlit(inst->fValue);
-    *fOut << ")" << wendl(fFinishLine, fTab);
+    *fOut << ")" << wnextl(fTab);
 }
 
 void MojoInstVisitor::visit(AddButtonInst* inst)
@@ -180,7 +192,7 @@ void MojoInstVisitor::visit(AddButtonInst* inst)
         name = "add_check_button";
     }
     *fOut << "ui." << name << "(" << wlit(inst->fLabel) << ", dsp." << zone << ")";
-    *fOut << wendl(fFinishLine, fTab);
+    *fOut << wnextl(fTab);
 }
 
 void MojoInstVisitor::visit(AddSliderInst* inst)
@@ -206,7 +218,7 @@ void MojoInstVisitor::visit(AddSliderInst* inst)
           << gToFaustFloat(ensureReal(inst->fMax))  << ", "
           << gToFaustFloat(ensureReal(inst->fStep))
     << ")";
-    *fOut << wendl(fFinishLine, fTab);
+    *fOut << wnextl(fTab);
 }
 
 void MojoInstVisitor::visit(AddBargraphInst* inst)
@@ -224,7 +236,7 @@ void MojoInstVisitor::visit(AddBargraphInst* inst)
           << "dsp." << snakeCase(inst->fZone) << ", "
           << gToFaustFloat(ensureReal(inst->fMin)) << ", "
           << gToFaustFloat(ensureReal(inst->fMax)) << ")";
-    *fOut << wendl(fFinishLine, fTab);
+    *fOut << wnextl(fTab);
 }
 
 void MojoInstVisitor::visit(AddSoundfileInst* inst)
@@ -269,7 +281,7 @@ void MojoInstVisitor::visit(CloseboxInst* inst)
 {
     mj_unused(inst);
     *fOut << "ui.close_box()";
-    *fOut << wendl(fFinishLine, fTab);
+    *fOut << wnextl(fTab);
 }
 
 void MojoInstVisitor::visit(DeclareStructTypeInst* inst)
@@ -312,7 +324,7 @@ void MojoInstVisitor::visit(DeclareVarInst* inst)
     }
     inst->fValue->accept(this);
 End_Inst:
-    *fOut << wendl(fFinishLine, fTab);
+    *fOut << wnextl(fTab);
 }
 
 void MojoInstVisitor::visit(DoubleArrayNumInst* inst)
@@ -343,7 +355,7 @@ void MojoInstVisitor::visit(DropInst* inst)
 {
     if (inst->fResult) {
         inst->fResult->accept(this);
-        *fOut << wendl(fFinishLine, fTab);
+        *fOut << wnextl(fTab);
     }
 }
 
@@ -363,10 +375,10 @@ void MojoInstVisitor::visit(ForLoopInst* inst)
         return;
     }
     inst->fInit->accept(this);
-    *fOut << "while (";
+    *fOut << "while ";
     inst->fEnd->accept(this);
     fTab += 1;
-    *fOut << "): " << "\n" << wtab(fTab);
+    *fOut << ": " << "\n" << wtab(fTab);
     inst->fCode->accept(this);
     inst->fIncrement->accept(this);
     fTab -= 1;
@@ -456,7 +468,7 @@ inline void MojoInstVisitor::visit(Int64NumInst* inst)
 
 void MojoInstVisitor::visit(LabelInst* inst)
 {
-    mj_unused(inst);  // do not print any comment
+    mj_unused(inst);
 }
 
 void MojoInstVisitor::visit(LoadVarAddressInst* inst)
@@ -488,7 +500,7 @@ void MojoInstVisitor::visit(OpenboxInst* inst)
             break;
     }
     *fOut << "ui." << name << "(" << wlit(inst->fName) << ")";
-    *fOut << wendl(fFinishLine, fTab);
+    *fOut << wnextl(fTab);
 }
 
 inline void MojoInstVisitor::visit(Select2Inst* inst)
@@ -545,11 +557,11 @@ void MojoInstVisitor::visit(StoreVarInst* inst)
     {
         *fOut << "FaustFloat(";
         cast_inst->fInst->accept(this);
-        *fOut << ")" << wendl(fFinishLine, fTab);
+        *fOut << ")" << wnextl(fTab);
         return;
     }
     inst->fValue->accept(this);
-    *fOut << wendl(fFinishLine, fTab);
+    *fOut << wnextl(fTab);
 }
 
 void MojoInstVisitor::visitAux(RetInst* inst, bool genEmpty)
@@ -558,10 +570,10 @@ void MojoInstVisitor::visitAux(RetInst* inst, bool genEmpty)
     if (inst->fResult) {
         *fOut << "return ";
         inst->fResult->accept(this);
-        *fOut << wendl(fFinishLine, fTab - 1);
+        *fOut << wnextl(fTab - 1);
     } else if (genEmpty) {
         *fOut << "return";
-        *fOut << wendl(fFinishLine, fTab - 1);
+        *fOut << wnextl(fTab - 1);
     }
 }
 
@@ -698,13 +710,73 @@ void MojoInitFieldsVisitor::gZeroInitializer(OStream* out, Typed* typed) {
 }
 
 //////////////////////////////////////////////////////////////
-// MojoVecInstVisitor implementation
+// MojoVectorInstVisitor implementation
 
-inline MojoVecInstVisitor::MojoVecInstVisitor(
-    OStream* out, const String& structName, int tab
-)
+MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, const String& structName, int tab)
     : MojoInstVisitor(out, structName, tab)
 {}
+
+void MojoVecInstVisitor::visit(LabelInst* inst)
+{
+    auto label = String(inst->fLabel.begin() + 1, inst->fLabel.end() - 2);
+    label[0] = '#';
+    *fOut << label << wnextl(fTab);
+}
+
+void MojoVecInstVisitor::visit(ForLoopInst* inst)
+{
+    if (inst->fCode->size() == 0) {
+        return;
+    }
+    if (inst->getName().find("vindex") != String::npos) {
+        MojoInstVisitor::visit(inst);
+        return;
+    }
+
+    auto* ini_inst = dycast(DeclareVarInst*, inst->fInit);
+    faustassert(ini_inst);
+    String idx_name = ini_inst->fAddress->getName();
+    auto* ini_val = ini_inst->fValue;
+    faustassert(ini_val);
+    auto* end_inst = dycast(BinopInst*, inst->fEnd);
+    faustassert(end_inst);
+    auto end_val = end_inst->fInst2;
+    faustassert(end_val);
+
+    *fOut << "for var " << idx_name << " in range(";
+    ini_val->accept(this);
+    *fOut << ", ";
+    end_val->accept(this);
+    fTab += 1;
+    *fOut << "): " << wnextl(fTab);
+    inst->fCode->accept(this);
+    fTab -= 1;
+    *fOut << wrewind(fOut);
+
+    // OString buf;
+    // MojoStringBuilderInstVisitor builder(&buf, fObjectAccess, fTab);   
+    //
+    // inst->fInit->accept(&builder);
+    // String ini = buf.str();
+    // Vector<VString> ini_toks = split(ini.c_str(), ' ');
+    // VString ini_left = ini_toks[1];
+    // VString ini_right = ini_toks.back().substr(0, ini_toks.back().size() - 1);
+    //
+    // builder.cleanup();
+    // inst->fEnd->accept(&builder);
+    // String end = buf.str();
+    // Vector<VString> end_toks = split(end.c_str(), ' ');
+    // VString end_right = end_toks.back().substr(0, end_toks.back().size() - 1);
+    //
+    // fTab += 1;
+    // *fOut << "for var " << ini_left << " in range(" << ini_right << ", " << end_right << ")): " << wnextl(fTab);
+    // inst->fCode->accept(this);
+    // fTab -= 1;
+    // *fOut << wrewind(fOut);
+}
+
+//////////////////////////////////////////////////////////////
+// Global
 
 String MojoInstVisitor::gToFaustFloat(String const& str)
 {

@@ -118,7 +118,7 @@ protected:
 };
 
 /**
-    A `MojoVectorCodeContainer` is both a `VectorCodeContainer` and a
+    A `MojoVecCodeContainer` is both a `VectorCodeContainer` and a
     `MojoCodeContainer` for the mojo backend when the `-vec` option is enabled.
     @desc
     - Provides the vector code generation path for mojo DSP classes.
@@ -127,10 +127,10 @@ protected:
     - Allows to produce the vectorized version of the generated Faust DSP class.
     - Allows to produce the vector `compute` method of the generated DSP.
 **/
-class MojoVectorCodeContainer : public VectorCodeContainer, public MojoCodeContainer {
+class MojoVecCodeContainer : public VectorCodeContainer, public MojoCodeContainer {
 public:
-    MojoVectorCodeContainer(const String& name, int numInputs, int numOutputs, OStream* out);
-    virtual ~MojoVectorCodeContainer();
+    MojoVecCodeContainer(const String& name, int numInputs, int numOutputs, OStream* out);
+    virtual ~MojoVecCodeContainer();
 protected:
     void writeCompute(int tab) override;
 };

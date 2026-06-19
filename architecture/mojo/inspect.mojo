@@ -7,14 +7,14 @@
 # Imports the modules and the definitions of the architecture code.
 # ==============================================================================
 
-from std.benchmark import keep, clobber_memory
-
 from conf import *
 from help import *
 from mem import *
 from dsp import *
 from gui import *
 from meta import *
+
+from std.benchmark import keep, clobber_memory
 
 comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96_000]())
 comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 512]())
