@@ -1135,7 +1135,7 @@ public:
     uiNumEntry(GUI* ui, FAUSTFLOAT* zone, QDoubleSpinBox* numEntry, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
     : uiItem(ui, zone), fNumEntry(numEntry), fCur(cur), fMin(lo), fMax(hi), fStep(step)
     {
-        int decimals = (fStep >= 1.0) ? 0 : int(0.5+log10(1.0/fStep));
+        int decimals = (fStep >= 1.0 || fStep <= 0.0) ? 0 : int(0.5+log10(1.0/fStep));
         fNumEntry->setMinimum(fMin);
         fNumEntry->setMaximum(fMax);
         fNumEntry->setSingleStep(fStep);
