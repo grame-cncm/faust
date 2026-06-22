@@ -278,6 +278,10 @@ process = 0,0 : sample : !,_,_;
 Multi-part lists are supported too: `soundfile("s[url:{'a.wav';'b.wav'}]", 2)`.
 If a referenced file cannot be found, the build stops with an error.
 
+There are two ways to provide the samples, selected by a CLI option:
+
+### QSPI inlining (default)
+
 The samples are inlined as `const` data. **Build with `-qspi`** so they are placed
 in QSPI flash and read memory-mapped (never copied to RAM); the program and the
 samples are flashed together as a single image, exactly like any other `-qspi`
@@ -285,6 +289,37 @@ program. This is required because audio data does not fit in the 128 KB internal
 flash, and QSPI can only be programmed through the Daisy bootloader (which `-qspi`
 already uses). A very small soundfile may still fit when built in the default
 FLASH mode, but anything sizeable needs `-qspi`.
+
+### SD card at runtime (`-sd`)
+
+With `-sd`, the samples are **not** inlined: the DSP loads `/soundfiles/*.wav`
+from the SD card into SDRAM at startup. This keeps the program small (it can run
+from internal flash) and supports large/long sounds, but requires an SD card
+(see *SD card pins*: only boards exposing the Seed SDMMC pins, e.g. Patch). The
+SDRAM arena defaults to 32 MB (override with `-DFAUST_SD_SOUNDFILE_BYTES`).
+
+> The card **must be formatted FAT32** — libDaisy's FatFS has exFAT disabled, so
+> exFAT cards (the default for ≥ 32 GB cards) will fail to mount. The uploader
+> reports the FatFS error code on failure, e.g. `ERR nomount=13` means
+> `FR_NO_FILESYSTEM` (wrong format), `=3` means `FR_NOT_READY` (card not detected).
+
+Upload the WAV files referenced by a DSP to the card with:
+
+```
+faust2daisy -upload-sd my.dsp
+```
+
+This temporarily flashes a small uploader firmware, then streams the files over
+USB-serial into a `/soundfiles` folder (clearing that folder first; nothing else
+on the card is touched). Then build and flash the DSP itself with `-sd`:
+
+```
+faust2daisy -sd my.dsp
+```
+
+> Note: the architecture files and tools must be **installed** (so faust2daisy
+> picks them up) — building from the repo alone is not enough, faust2daisy reads
+> the installed copies under `faust --archdir`.
 
 ## Possible future developments 
 
@@ -306,17 +341,18 @@ FLASH mode, but anything sizeable needs `-qspi`.
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 =======
 - I2C communication (audio and/or control)
-- Serial communication for control 
-- Soundfile loading from SD card at runtime
+- Serial communication for control
 
 ## Changelog 
 
 ### Features
 
 18/06
-- Soundfile primitive support: WAV files (PCM 16/24/32 bit, float 32 bit) are parsed
-  at build time and inlined into QSPI flash, with no runtime file I/O or dynamic
-  allocation.
+- Soundfile primitive support: WAV files (PCM 16/24/32 bit, float 32 bit). Two modes:
+  - default (`-qspi`): parsed at build time and inlined into QSPI flash, no runtime
+    file I/O or dynamic allocation.
+  - `-sd`: loaded from the SD card (`/soundfiles`) into SDRAM at startup. Files are
+    uploaded with `faust2daisy -upload-sd` (temporary CDC uploader firmware).
 
 ### Fixes 
 
@@ -325,4 +361,22 @@ FLASH mode, but anything sizeable needs `-qspi`.
 - Python parser script was not working well with DAC's 
 - MIDI CC was not working properly for checkboxes and buttons. Now it is working as Faust documentation says : returns 1 if CC is 127, returns 0 if CC is 0
 - Python parser crashed on a DSP with UI controls when no configuration file was provided
+<<<<<<< HEAD
 >>>>>>> 3028c82cc (implemented QSPI soundfile, fixed issues (midi input initialization, DAC's broken, CC with checkbox or button)
+=======
+
+
+### Ongoing 
+
+- sndfile on SD card : glitches 
+- Patch : display is not right (not showing correct input), and need to test inputs/outputs (all) 
+
+
+- Test qspi soundfile : ok, no glitch. 
+- No SD in Patch : not working 
+
+
+- PatchSM : CV out : even with block size to 1, it is downsampled
+
+
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)

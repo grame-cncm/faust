@@ -28,6 +28,10 @@ SEED=false
 PATCHSM=false
 USE_SDRAM=false
 USE_SOUNDFILE=false
+USE_SD_SOUNDFILE=false
+UPLOAD_SD=false
+SOUNDFILE_MODE=qspi
+SD_DEBUG=false
 SR=48000
 SRSTR="SAI_48KHZ"
 BS=16
@@ -215,6 +219,16 @@ do
         SEED=true
     elif [ $p = "-patchsm" ]; then
         PATCHSM=true
+    # -upload-sd
+    elif [ $p = "-upload-sd" ]; then
+        UPLOAD_SD=true
+    # -sd : load soundfiles from the SD card at runtime instead of inlining to QSPI
+    elif [ $p = "-sd" ]; then
+        SOUNDFILE_MODE=sd
+    # -sd-debug : print loaded soundfile info over USB serial at startup
+    elif [ $p = "-sd-debug" ]; then
+        SOUNDFILE_MODE=sd
+        SD_DEBUG=true
     # -sdram
     elif [ $p = "-sdram" ]; then
         USE_SDRAM=true
@@ -282,6 +296,40 @@ for p in $FILE; do
     rm -rf "$SRCDIR/$dspName"
     mkdir "$SRCDIR/$dspName"
 
+    # SD card upload mode : flash a temporary uploader firmware, then stream the
+    # WAV files referenced by the DSP into the /soundfiles folder on the card.
+    # Does not build/flash the DSP itself.
+    if [ $UPLOAD_SD == true ]; then
+        echo "SD upload mode : building soundfile uploader firmware"
+        faust "$p" -json -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+        UPDIR="$SRCDIR/$dspName/_sd_uploader"
+        mkdir -p "$UPDIR"
+        cp "$FAUSTARCH/daisy/sd_uploader.cpp" "$UPDIR/"
+        cp "$FAUSTARCH/daisy/Makefile.sd_uploader" "$UPDIR/Makefile"
+        (cd "$UPDIR" && make) || exit
+        # Flash the uploader, retrying until DFU succeeds. Proceeding with a
+        # stale uploader still on the board (DFU not entered) is the common trap,
+        # so do not continue to the upload until this actually flashes.
+        echo "To flash the uploader, put the Daisy in DFU mode: hold BOOT, tap RESET, release BOOT."
+        while true; do
+            read -p "Press ENTER when the Daisy is in DFU mode (or type 's' to skip flashing): " resp
+            if [ "$resp" = "s" ]; then
+                echo "Skipping flash; using whatever firmware is already on the board."
+                break
+            fi
+            if (cd "$UPDIR" && make program-dfu); then
+                echo "Uploader flashed."
+                break
+            fi
+            echo "Flash failed (Daisy not in DFU mode?). Try again."
+        done
+        echo "Waiting for Daisy to re-enumerate as USB serial..."
+        sleep 3
+        python3 "$FAUSTARCH/daisy/sd_upload.py" "$SRCDIR/$dspName.dsp.json" "$SRCDIR" || exit
+        echo "Soundfiles uploaded to /soundfiles. Flash your DSP separately."
+        continue
+    fi
+
     GENERATED_ARCH="$SRCDIR/$dspName/daisy_arch.cpp"
     
     MEM_THRESH_UNIT=$(($MEM_THRESH/4))
@@ -300,6 +348,7 @@ for p in $FILE; do
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE $JSON_CONFIG)"
 =======
         NVOICES=$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE)
@@ -310,10 +359,14 @@ for p in $FILE; do
 =======
         eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE $JSON_CONFIG)"
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
+=======
+        eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE $JSON_CONFIG $SOUNDFILE_MODE)"
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
         faust -A "$SRCDIR/$dspName" -i -a "$GENERATED_ARCH" $OPTIONS "$f" -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
-    else 
-        # Have to compile it twice to provide json to python, before inlining generated code 
+    else
+        # Have to compile it twice to provide json to python, before inlining generated code
         faust -i  -a "$ARCHFILE" $OPTIONS "$f" -json  -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -327,6 +380,9 @@ for p in $FILE; do
 =======
         eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE $JSON_CONFIG)"
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
+=======
+        eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE $JSON_CONFIG $SOUNDFILE_MODE)"
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
         faust -A "$SRCDIR/$dspName" -i  -a "$GENERATED_ARCH" $OPTIONS "$f" -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     fi
 
@@ -381,6 +437,20 @@ for p in $FILE; do
         echo "#define USE_SOUNDFILE" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
 
+    # for SD-card soundfiles (set by faust_daisy_parser.py in -sd mode)
+    if [ $USE_SD_SOUNDFILE == true ]; then
+        echo "#define USE_SD_SOUNDFILE" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+        # Size the SDRAM arena to the referenced WAVs when the parser could
+        # measure them (otherwise the architecture default of 32 MB is used).
+        if [ -n "$SD_SOUNDFILE_BYTES" ]; then
+            echo "#define FAUST_SD_SOUNDFILE_BYTES $SD_SOUNDFILE_BYTES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+        fi
+        # -sd-debug : enable the USB-serial dump of the loaded soundfile.
+        if [ $SD_DEBUG == true ]; then
+            echo "#define SD_SOUNDFILE_DEBUG" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+        fi
+    fi
+
     # for Sample Rate
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -420,17 +490,27 @@ for p in $FILE; do
         echo "         128 KB internal flash."
     fi
 
+    # SD-card soundfile mode needs the FatFS middleware linked into the DSP and
+    # the runtime loader header copied next to the generated sources.
+    SF_MAKE=""
+    if [ $USE_SD_SOUNDFILE == true ]; then
+        SF_MAKE="USE_FATFS=1"
+        cp "$FAUSTARCH/daisy/daisy_sd_soundfile.hpp" "$SRCDIR/$dspName/"
+        echo "SD soundfile mode : the DSP loads /soundfiles/*.wav at startup."
+        echo "                    Upload them first with 'faust2daisy -upload-sd $f'."
+    fi
+
     # compile and install plugin or keep the source folder
     if [ $SOURCE == false ]; then
         export $APP_TYPE
         cd "$SRCDIR/$dspName"
         pwd
         echo "Building Faust program"
-        (make APP_TYPE=$APP_TYPE) || exit
+        (make APP_TYPE=$APP_TYPE $SF_MAKE) || exit
 
         if [ $APP_TYPE == BOOT_NONE ]; then
             read -p "Press ENTER when Daisy is in DFU mode"
-            (make program-dfu)  || true
+            (make program-dfu $SF_MAKE)  || true
         else
             read -r -p "Do you want to flash Daisy bootloader ? [y/n] : " response
             case "$response" in
@@ -442,7 +522,7 @@ for p in $FILE; do
                 *)
             esac
             read -p "Press Daisy RESET button, then press ENTER (approximately 1 sec after RESET)"
-            (make program-dfu APP_TYPE=$APP_TYPE)  || true
+            (make program-dfu APP_TYPE=$APP_TYPE $SF_MAKE)  || true
         fi
 
         cd ..

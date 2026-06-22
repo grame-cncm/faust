@@ -190,12 +190,78 @@ def scan_soundfiles(dsp_layout):
 
 def parse_url(url):
     """Extract the list of file names from a Faust soundfile URL.
-    Handles "{'a.wav';'b.wav'}" lists as well as a bare file name."""
+    Handles "{'a.wav';'b.wav'}" lists as well as a bare file name. The list
+    separator is ';' (semicolon)."""
     names = re.findall(r"'([^']*)'", url)
     if names:
         return names
     cleaned = url.strip().strip('{}').strip()
-    return [cleaned] if cleaned else []
+    if not cleaned:
+        return []
+    return [part.strip() for part in cleaned.split(';') if part.strip()]
+
+
+def read_wav_info(path):
+    """Lightweight header-only parse: return (channels, frames) or None.
+    Does not decode the audio data (used to size the SD-mode SDRAM arena)."""
+    try:
+        with open(path, 'rb') as f:
+            hdr = f.read(12)
+            if len(hdr) < 12 or hdr[0:4] != b'RIFF' or hdr[8:12] != b'WAVE':
+                return None
+            channels = bits = frames = None
+            while True:
+                ch = f.read(8)
+                if len(ch) < 8:
+                    break
+                cid = ch[0:4]
+                csize = struct.unpack('<I', ch[4:8])[0]
+                if cid == b'fmt ':
+                    fmt_data = f.read(min(csize, 40))
+                    if csize > len(fmt_data):
+                        f.seek(csize - len(fmt_data), 1)
+                    channels = struct.unpack_from('<H', fmt_data, 2)[0]
+                    bits = struct.unpack_from('<H', fmt_data, 14)[0]
+                elif cid == b'data':
+                    if channels and bits:
+                        frames = csize // (channels * (bits // 8))
+                    break
+                else:
+                    f.seek(csize + (csize & 1), 1)
+            if channels and frames is not None:
+                return (channels, frames)
+    except Exception:
+        return None
+    return None
+
+
+def compute_sd_arena_bytes(soundfiles, search_dirs):
+    """Total SDRAM bytes needed to hold all soundfiles in -sd mode, or None if
+    a referenced WAV cannot be found/parsed at build time (then the runtime
+    default is used)."""
+    total = 0
+    for label, url in soundfiles:
+        cur_chan = 1
+        frames_sum = 0
+        for name in parse_url(url):
+            resolved = resolve_file(name, search_dirs)
+            if resolved is None:
+                return None
+            info = read_wav_info(resolved)
+            if info is None:
+                return None
+            cur_chan = max(cur_chan, info[0])
+            frames_sum += info[1]
+        if cur_chan > MAX_CHAN:
+            cur_chan = MAX_CHAN
+        total_frames = frames_sum + BUFFER_SIZE             # + trailing silent block
+        per = cur_chan * total_frames * 4                   # float channel buffers
+        per += MAX_CHAN * 4                                 # fBuffers pointer array
+        per += 3 * MAX_SOUNDFILE_PARTS * 4                  # length/sr/offset
+        per += 64                                           # Soundfile struct + slack
+        total += per
+    total = int(total * 1.10) + 8192                        # margin + base
+    return (total + 3) & ~3
 
 
 def resolve_file(name, search_dirs):

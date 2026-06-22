@@ -33,12 +33,17 @@ architecture section is not modified.
 #include "faust/gui/DecoratorUI.h"
 //#include "faust/gui/ValueConverter.h"
 
-#ifdef USE_SOUNDFILE
-// Defined in the generated daisy_soundfile.hpp (all soundfile data is inlined
-// at build time by faust2daisy). Declared here so DaisyControlUI::addSoundfile
-// can resolve the prebuilt Soundfile without including the generated header.
+#if defined(USE_SOUNDFILE) || defined(USE_SD_SOUNDFILE)
+// Soundfile resolver, declared here so DaisyControlUI::addSoundfile can use it
+// without including the (generated / SD) header that defines it.
+//  - USE_SOUNDFILE    : daisy_soundfile.hpp, samples inlined at build time.
+//  - USE_SD_SOUNDFILE : daisy_sd_soundfile.hpp, samples loaded from SD at boot.
 struct Soundfile;
+#ifdef USE_SOUNDFILE
 extern Soundfile* daisy_lookup_soundfile(const char* url);
+#else
+extern Soundfile* sd_load_soundfile(const char* url);
+#endif
 #endif
 
 /*******************************************************************************
@@ -165,11 +170,15 @@ class DaisyControlUI : public GenericUI
         void openVerticalBox(const char* label) {  }
         void closeBox(){}
 
-#ifdef USE_SOUNDFILE
-        // -- soundfiles : resolve to a Soundfile inlined at build time.
+#if defined(USE_SOUNDFILE) || defined(USE_SD_SOUNDFILE)
+        // -- soundfiles : resolve to an inlined (QSPI) or SD-loaded Soundfile.
         void addSoundfile(const char* label, const char* url, Soundfile** sf_zone) override
         {
+#ifdef USE_SOUNDFILE
             *sf_zone = daisy_lookup_soundfile(url);
+#else
+            *sf_zone = sd_load_soundfile(url);
+#endif
         }
 #endif
 

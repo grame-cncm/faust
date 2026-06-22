@@ -3,6 +3,21 @@ import os
 import sys
 import re
 
+patchsm_pin_map = {
+    "C5": 0,
+    "C4": 1,
+    "C3": 2,
+    "C2": 3,
+    "C6": 4,
+    "C7": 5,
+    "C8": 6,
+    "C9": 7, 
+    "A2": 8,
+    "A3": 9, 
+    "D9": 10, 
+    "D8": 11,
+}    
+
 # Allow importing sibling modules regardless of the invocation cwd.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import daisy_soundfile_gen
@@ -22,6 +37,7 @@ midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
 configparse_reg = re.compile("([a-zA-Z_]*):([AD][0-9]+)")
 dac_index_reg = re.compile("[AD]([0-9]+)")
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
@@ -30,6 +46,9 @@ midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 =======
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+cvout_index_reg = re.compile("[C]([0-9]+)")
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
 
 project_dir = sys.argv[1]
 mem_threshold = int(sys.argv[2]) 
@@ -39,6 +58,9 @@ archfile = sys.argv[5]
 <<<<<<< HEAD
 <<<<<<< HEAD
 config_file = sys.argv[6]
+# Soundfile mode : "qspi" (inline samples in QSPI, default) or "sd" (load from
+# the SD card /soundfiles folder at runtime).
+soundfile_mode = sys.argv[7] if len(sys.argv) > 7 else "qspi"
 
 <<<<<<< HEAD
 =======
@@ -416,19 +438,27 @@ class ui_scanner:
                             value = config_res[1]
 
                     # Then create the meta to write
-                    if(key == "adc"):
+                    if(key == "adc" or key == "cv_in"):
                         reslist.append("adc")
                         reslist.append(value)
                     elif(key == "dac"):
                         reslist.append("dac")
                         reslist.append(value)
-                        #dac_index_reg = re.compile("[AD]([0-9]+)")
                         dac_index_res = dac_index_reg.search(value)
                         if(dac_index_res.group(1) == "7"):
                             self.dac[0] = True
                         elif(dac_index_res.group(1) == "8"):
                             self.dac[1] = True
                         
+                    elif(key == "cv_out"): 
+                        reslist.append("dac")
+                        reslist.append(value) 
+                        cvout_index_res = cvout_index_reg.search(value)
+                        if(cvout_index_res.group(1) == "1"):
+                            self.dac[0] = True
+                        elif(cvout_index_res.group(1) == "10"):
+                            self.dac[1] = True
+
                     elif(key == "gpio"):
                         reslist.append("gpio")
                         reslist.append(value)
@@ -685,7 +715,11 @@ class ui_scanner:
 <<<<<<< HEAD
 =======
                         self.dac_count += 1
+<<<<<<< HEAD
 >>>>>>> 3028c82cc (implemented QSPI soundfile, fixed issues (midi input initialization, DAC's broken, CC with checkbox or button)
+=======
+
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
                     elif(metares[0] == "gpio"):
 =======
                     elif(metares[0] == "digi"):
@@ -1130,11 +1164,18 @@ class ui_scanner:
         else:
             controlstr += f"static std::array<shared_adc<{nvoices}>, {len(self.adcs)}> adc_list = {{ \n"
         if(len(self.adcs) > 0):
+            prefix = ""
             for elem in self.adcs:
                 if(nvoices < 2):
-                    controlstr += f"\tadc(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {elem.pin_index}), \n"
+                    if(chip == "seed"):
+                        controlstr += f"\tadc(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {elem.pin_index}), \n"
+                    elif(chip == "patchsm"):
+                        controlstr += f"\tadc(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {patchsm_pin_map[elem.pin_index]}), \n"
                 else: 
-                    controlstr += f"\tshared_adc<{nvoices}>(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {elem.pin_index}), \n"
+                    if(chip == "seed"): 
+                        controlstr += f"\tshared_adc<{nvoices}>(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {elem.pin_index}), \n"
+                    elif(chip == "patchsm"):
+                        controlstr += f"\tshared_adc<{nvoices}>(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {patchsm_pin_map[elem.pin_index]}), \n"
         controlstr += "}; \n"
         controlstr += f"std::array<daisy::AdcChannelConfig, {len(self.adcs)}> adc_config_list; \n\n"
 
@@ -1271,7 +1312,10 @@ class ui_scanner:
             controlstr += "constexpr bool dacs_used = true; \n"
         else:
             controlstr += "constexpr bool dacs_used = false; \n"
-            controlstr += "static const daisy::DacHandle::Channel dac_chnls = daisy::DacHandle::Channel::BOTH; // dummy \n"
+            if(chip == "seed"):
+                controlstr +=  "static const daisy::DacHandle::Channel dac_chnls = daisy::DacHandle::Channel::BOTH; // dummy \n" 
+            else: 
+                controlstr += "static constexpr uint8_t dac_chnls = daisy::patch_sm::CV_OUT_BOTH; // dummy \n"
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1289,6 +1333,7 @@ class ui_scanner:
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
         if(len(self.dacs) > 0):
             for elem in self.dacs:
+<<<<<<< HEAD
                 if(elem.channel == "A7"):
                     last_chn = "daisy::DacHandle::Channel::ONE"
                 elif(elem.channel == "A8"):
@@ -1311,13 +1356,39 @@ class ui_scanner:
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 =======
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+                if(chip == "seed"): 
+                    if(elem.channel == "A7"):
+                        last_chn = "daisy::DacHandle::Channel::ONE" 
+                    elif(elem.channel == "A8"):
+                        last_chn = "daisy::DacHandle::Channel::TWO" 
+                    if(nvoices < 2):
+                        controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
+                    else:
+                        controlstr += f"\tshared_dac<{nvoices}>({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
+                elif(chip == "patchsm"):
+                    if(elem.channel == "C1"): 
+                        last_chn = "daisy::patch_sm::CV_OUT_1"
+                    elif(elem.channel == "C10"):
+                        last_chn = "daisy::patch_sm::CV_OUT_2"
+                    if(nvoices < 2):
+                        controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
+                    else:
+                        controlstr += f"\tshared_dac<{nvoices}>({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
 
         controlstr += "}; \n"
         if(len(self.dacs) > 0):
             if(len(self.dacs) == 2):
-                controlstr += "daisy::DacHandle::Channel dac_chnls = daisy::DacHandle::Channel::BOTH; \n"
+                if(chip == "seed"): 
+                    controlstr += "static constexpr daisy::DacHandle::Channel dac_chnls = daisy::DacHandle::Channel::BOTH; \n" 
+                elif(chip == "patchsm"):
+                    controlstr += "static constexpr uint8_t dac_chnls = daisy::patch_sm::CV_OUT_BOTH; // dummy \n"
             else:
-                controlstr += f"daisy::DacHandle::Channel dac_chnls = {last_chn}; \n"
+                if(chip == "seed"):
+                    controlstr += f"static constexpr daisy::DacHandle::Channel dac_chnls = {last_chn}; \n"
+                elif(chip == "patchsm"):
+                    controlstr += f"static constexpr uint8_t dac_chnls = {last_chn}; \n"
             
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -1441,12 +1512,24 @@ if(use_sdram):
 # (via USE_SOUNDFILE) to add the matching #define.
 soundfiles = daisy_soundfile_gen.scan_soundfiles(dsp_layout)
 if len(soundfiles) > 0:
-    # WAV files are resolved relative to the DSP source directory and the cwd.
-    search_dirs = list(dict.fromkeys(
-        [os.path.dirname(os.path.abspath(project_dir)), os.getcwd()]))
-    header_path = project_dir + "/daisy_soundfile.hpp"
-    if daisy_soundfile_gen.generate_header(soundfiles, search_dirs, header_path):
-        print("USE_SOUNDFILE=true")
+    if soundfile_mode == "sd":
+        # Samples are loaded from the SD card at runtime: nothing to inline,
+        # just enable the SD reader in the architecture.
+        print("USE_SD_SOUNDFILE=true")
+        # Size the SDRAM arena to the referenced WAVs (if available at build
+        # time); otherwise the architecture default is used.
+        search_dirs = list(dict.fromkeys(
+            [os.path.dirname(os.path.abspath(project_dir)), os.getcwd()]))
+        arena = daisy_soundfile_gen.compute_sd_arena_bytes(soundfiles, search_dirs)
+        if arena is not None:
+            print("SD_SOUNDFILE_BYTES=%d" % arena)
+    else:
+        # WAV files are resolved relative to the DSP source directory and the cwd.
+        search_dirs = list(dict.fromkeys(
+            [os.path.dirname(os.path.abspath(project_dir)), os.getcwd()]))
+        header_path = project_dir + "/daisy_soundfile.hpp"
+        if daisy_soundfile_gen.generate_header(soundfiles, search_dirs, header_path):
+            print("USE_SOUNDFILE=true")
 
 
 arch_dest = project_dir + "/daisy_arch.cpp"

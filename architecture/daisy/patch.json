@@ -18,7 +18,7 @@
         "CV_in:1": "adc:A0",
         "CV_in:2": "adc:A1",
         "CV_in:3": "adc:A6",
-        "CV_int:4": "adc:A3",
+        "CV_in:4": "adc:A3",
         "CV_out:1": "dac:A8",
         "CV_out:2": "dac:A7",
         "gate_in:1": "gpio:D20",

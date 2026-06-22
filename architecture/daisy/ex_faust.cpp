@@ -34,13 +34,51 @@
 
 //#include "daisysp.h"
 
-#ifdef SEED 
+#ifdef PATCH 
+#include "daisy_patch.h"
+using namespace daisy::seed;
+
+struct FaustDaisyPatch : public daisy::DaisyPatch
+{
+
+    static constexpr daisy::Pin PIN_CTRL_1 = daisy::seed::D18; 
+    static constexpr daisy::Pin PIN_CTRL_2 = daisy::seed::D16;
+    static constexpr daisy::Pin PIN_CTRL_3 = daisy::seed::D21;
+    static constexpr daisy::Pin PIN_CTRL_4 = daisy::seed::D15;
+    void InitControls() 
+    {
+        daisy::AdcChannelConfig cfg[CTRL_LAST];
+
+        // Init ADC channels with Pins
+        cfg[CTRL_1].InitSingle(PIN_CTRL_1);
+        cfg[CTRL_2].InitSingle(PIN_CTRL_2);
+        cfg[CTRL_3].InitSingle(PIN_CTRL_3);
+        cfg[CTRL_4].InitSingle(PIN_CTRL_4);
+
+        // Initialize ADC
+        //seed.adc.Init(cfg, CTRL_LAST);
+
+        // Initialize AnalogControls, with flip set to true
+        for(size_t i = 0; i < CTRL_LAST; i++)
+        {
+            controls[i].Init(seed.adc.GetPtr(i), AudioCallbackRate(), true);
+        }
+    }
+    
+};
+
+
+//static daisy::DaisyPatch platform;
+static FaustDaisyPatch platform;
+static daisy::DaisySeed& hw = platform.seed; 
+#elif defined SEED 
 #include "daisy_seed.h"
 using namespace daisy::seed;
 static daisy::DaisySeed hw;
 #elif defined PATCHSM
 #include "daisy_patch_sm.h"
-static daisy::DaisyPatchSM hw;
+using namespace daisy::patch_sm;
+static daisy::patch_sm::DaisyPatchSM hw;
 #endif
 
 <<<<<<< HEAD
@@ -310,7 +348,7 @@ struct control
 #ifdef SEED
     constexpr static const daisy::Pin DEFAULT_PIN = daisy::seed::A1;
 #elif defined PATCHSM 
-    constexpr static const daisy::Pin DEFAULT_PIN = daisy::patch_sm::A1;
+    constexpr static const daisy::Pin DEFAULT_PIN = daisy::patch_sm::DaisyPatchSM::C2;
 #endif
 
 <<<<<<< HEAD
@@ -392,6 +430,18 @@ struct adc : public control
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 =======
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+
+    adc(adc::type_t t, float init_, float min_, float max_, float step_, 
+        scale::scale_t scale_ = scale::scale_t::lin, uint8_t chn = 0)
+        : control::control(scale_)
+        , type(t)
+        , init(init_)
+        , min(min_)
+        , max(max_)
+        , step(step_)
+        , previous_state(init_)
+        , channel(chn)
+    {}
 
     /*
         For Buttons and checkboxes 0.05f we need a threshold to eliminate potential DC or noise 
@@ -500,7 +550,20 @@ struct adc : public control
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         update_method(hw.adc.GetFloat(channel), value_ptr, 
+=======
+        #ifdef SEED
+            float val = hw.adc.GetFloat(channel);
+        #elif defined PATCHSM 
+            float val = hw.GetAdcValue(channel);
+        #endif 
+
+        #ifdef PATCH 
+            val = 1.0f - val; // Invert for Daisy Patch
+        #endif 
+        update_method(val, value_ptr, 
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
             min, max, step, previous_state, scale_type);
     }
 };
@@ -1022,10 +1085,14 @@ struct dac : public control
     float min, max; 
     const char *label;
 
+    #ifdef SEED 
     daisy::DacHandle::Channel channel; // index in used ADC list 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
     dac(daisy::DacHandle::Channel chn, float min_, float max_, 
             scale::scale_t scale_ = scale::scale_t::lin)
         : control::control(scale_)
@@ -1046,16 +1113,35 @@ struct dac : public control
         , max(max_)
         , channel(chn)
     {}
+    #elif defined PATCHSM
+    uint8_t channel;  // 0 for both, 1 for first, 2 for second channel
+    dac(uint8_t chn, float min_, float max_, 
+            scale::scale_t scale_ = scale::scale_t::lin)
+        : control::control(scale_)
+        , min(min_)
+        , max(max_)
+        , channel(chn)
+    {}
+    #endif
+
 
     void update() override
     {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        #ifdef SEED 
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
         hw.dac.WriteValue(channel, uint16_t(scale::process(scale_type, 
             normalize(*value_ptr, min, max)) * 4095.0f));
+        #elif defined PATCHSM
+            hw.WriteCvOut(channel, scale::process(scale_type, normalize(*value_ptr, min, max)) * 5.0f);
+        #endif
     }
 };
+
 
 #ifdef POLY
 template<uint8_t N> 
@@ -1064,10 +1150,17 @@ struct shared_dac : public dac
     uint8_t counter = 0;
 
     shared_dac() = default; 
+    #ifdef SEED
     shared_dac(daisy::DacHandle::Channel chn, float min_, float max_, 
             scale::scale_t scale_ = scale::scale_t::lin)
         : dac::dac(chn, min_, max_, scale_)
     {}
+    #elif defined PATCHSM
+    shared_dac(uint8_t chn, float min_, float max_, 
+            scale::scale_t scale_ = scale::scale_t::lin)
+        : dac::dac(chn, min_, max_, scale_)
+    {}
+    #endif
 
     void set_value_ptr(float *zone)
     {
@@ -1324,6 +1417,13 @@ struct shared_digi_output : public digi_output
 #include "daisy_soundfile.hpp"
 #endif
 
+#ifdef USE_SD_SOUNDFILE
+// Runtime SD card soundfile loader (faust2daisy -sd) : defines the Soundfile
+// struct, 'defaultsound' and the FatFS loader. Must be included before the
+// DSP class (which references Soundfile and defaultsound).
+#include "daisy_sd_soundfile.hpp"
+#endif
+
 #ifdef MIDICTRL
 #include "faust/midi/daisy-midi.h"
 #endif
@@ -1445,6 +1545,12 @@ static void AudioCallback(daisy::AudioHandle::InputBuffer in,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    #ifdef PATCHSM 
+        hw.ProcessAllControls();
+    #endif 
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
     // Update control inputs
 =======
     #ifdef MIDICTRL 
@@ -1471,17 +1577,30 @@ static void AudioCallback(daisy::AudioHandle::InputBuffer in,
     // Update control outputs 
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     control_UI.update_dacs();
+
 }
 
 int main(void)
 {
 
     // Initialize Daisy 
+<<<<<<< HEAD
     hw.Init();
     hw.SetAudioBlockSize(MY_BUFFER_SIZE);
 <<<<<<< HEAD
 <<<<<<< HEAD
     hw.SetAudioSampleRate(DAISY_SAMPLE_RATE);
+=======
+    #ifdef PATCH 
+        platform.Init();
+        platform.SetAudioBlockSize(MY_BUFFER_SIZE);
+        platform.SetAudioSampleRate(DAISY_SAMPLE_RATE);
+    #else
+        hw.Init();
+        hw.SetAudioBlockSize(MY_BUFFER_SIZE);
+        hw.SetAudioSampleRate(DAISY_SAMPLE_RATE);
+    #endif
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
 
 #ifdef MIDICTRL
     daisy_midi midi_handler;
@@ -1498,6 +1617,7 @@ int main(void)
     //daisy::System::Delay(500);
     //hw.StartLog();
     daisy::System::Delay(500);
+<<<<<<< HEAD
 <<<<<<< HEAD
 /*
     Memory Manager Creation 
@@ -1528,6 +1648,26 @@ int main(void)
 <<<<<<< HEAD
 =======
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+
+#ifdef USE_SD_SOUNDFILE
+    // Load the soundfiles with the D-cache OFF. The SDMMC DMA fills an AXI-SRAM
+    // buffer whose cache is managed by libDaisy's sd_diskio.c using clean/
+    // invalidate rounded to 32 bytes; because the WAV data is not sector-aligned
+    // (chunks before 'data'), the read buffer is handed to DMA at unaligned
+    // offsets, leaving stale cache lines -> corrupted samples in SDRAM. Running
+    // the whole load uncached avoids any SDMMC-DMA cache coherency issue.
+    // Re-enabled after buildUserInterface (before audio starts).
+    SCB_DisableDCache();
+    // Mount the SD card and prepare 'defaultsound' before the DSP is built.
+    sd_soundfile_init();
+#endif
+
+/*
+    DSP Initialization
+*/
+#ifdef USE_SDRAM
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
     memory_manager.init();
     mydsp::fManager = &memory_manager;
     DSP.memoryCreate();
@@ -1553,6 +1693,7 @@ int main(void)
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     /*for(size_t i = 0; i < input_list.size(); i++) {
         hw.PrintLine("input[%d] vptr=%p mptr=%p upd=%p", 
@@ -1567,8 +1708,67 @@ int main(void)
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
 =======
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
+=======
+#ifdef USE_SD_SOUNDFILE
+    // Soundfiles are now loaded; re-enable the D-cache for normal audio
+    // operation (the SDRAM arena is read-only from here on, so cached reads are
+    // coherent). Invalidate first so the audio callback sees SDRAM, not stale
+    // lines from the uncached load phase.
+    SCB_EnableDCache();
+
+#ifdef SD_SOUNDFILE_DEBUG
+    // Optional diagnostic: print the loaded soundfile's metadata and first
+    // samples over USB-serial, so they can be compared against the host file.
+    // Built with `faust2daisy -sd -sd-debug`. Open a terminal on /dev/ttyACM*.
+    hw.StartLog(false);
+    for (int t = 0; t < 50; t++) { // ~5 s so a terminal can attach after reset
+        if (sd_debug_last) {
+            Soundfile* s = sd_debug_last;
+            float** b = static_cast<float**>(s->fBuffers);
+            hw.PrintLine("SF mounted=%d ch=%d parts=%d len=%d sr=%d",
+                         (int)faust_sd_mounted, s->fChannels, s->fParts,
+                         s->fLength[0], s->fSR[0]);
+            hw.PrintLine("ch0 (x1e6): %d %d %d %d %d %d %d %d",
+                         (int)(b[0][0]*1e6f),(int)(b[0][1]*1e6f),(int)(b[0][2]*1e6f),(int)(b[0][3]*1e6f),
+                         (int)(b[0][4]*1e6f),(int)(b[0][5]*1e6f),(int)(b[0][6]*1e6f),(int)(b[0][7]*1e6f));
+            hw.PrintLine("ch1 (x1e6): %d %d %d %d %d %d %d %d",
+                         (int)(b[1][0]*1e6f),(int)(b[1][1]*1e6f),(int)(b[1][2]*1e6f),(int)(b[1][3]*1e6f),
+                         (int)(b[1][4]*1e6f),(int)(b[1][5]*1e6f),(int)(b[1][6]*1e6f),(int)(b[1][7]*1e6f));
+            // Full-buffer checksum (sum of all samples as int16) to verify the
+            // SDRAM data matches the host file regardless of the cache flush.
+            int32_t sum = 0;
+            for (int c = 0; c < s->fChannels; c++)
+                for (int i = 0; i < s->fLength[0]; i++)
+                    sum += (int32_t)(b[c][i] * 32768.0f);
+            hw.PrintLine("checksum(sum i16)=%d", (int)sum);
+        } else {
+            hw.PrintLine("SF not loaded (defaultsound), mounted=%d", (int)faust_sd_mounted);
+        }
+        daisy::System::Delay(100);
+    }
+#endif
+
+    // Startup SD status on the onboard LED (repeated 3x):
+    //   1 blink  = SD card did not mount (format FAT32? card inserted?)
+    //   2 blinks = mounted but no soundfile loaded (file missing/unsupported)
+    //   3 blinks = soundfile(s) loaded OK
+    {
+        int sd_code = !faust_sd_mounted ? 1 : (sd_total_frames == 0 ? 2 : 3);
+        for (int rep = 0; rep < 3; rep++) {
+            for (int b = 0; b < sd_code; b++) {
+                hw.SetLed(true);  daisy::System::Delay(150);
+                hw.SetLed(false); daisy::System::Delay(150);
+            }
+            daisy::System::Delay(500);
+        }
+    }
+#endif
+
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
     if(adc_list.size() > 0)
+    {
         hw.adc.Start();
+<<<<<<< HEAD
 =======
     hw.adc.Start();
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
@@ -1577,11 +1777,25 @@ int main(void)
         hw.adc.Start();
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
     hw.StartAudio(AudioCallback);
+=======
+    }
+
+    #ifdef PATCH 
+        platform.StartAudio(AudioCallback);
+    #else 
+        hw.StartAudio(AudioCallback);
+    #endif
+>>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
 
     // MIDI handling loop
     while(1) {
         #ifdef MIDICTRL
             midi_handler.processMidi();
+        #endif
+        daisy::System::Delay(5);
+        #ifdef PATCH 
+            platform.ProcessAllControls();
+            platform.DisplayControls(false);
         #endif
     }
 }
