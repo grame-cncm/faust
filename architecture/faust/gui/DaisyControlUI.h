@@ -309,10 +309,22 @@ class DaisyControlUI : public GenericUI
         void setup_controls()
         {
             #ifdef SEED
+            // Assign DMA channels using the platform channel map: channel
+            // adc_platform_channel[i] holds ADC i. On a platform (e.g. Patch)
+            // this orders the hardware channels by physical control number so
+            // that reading channel k (libDaisy DisplayControls, platform
+            // controls...) gives control k; on Seed it is the identity order.
+            // Pre-fill every slot first so a sparse mapping leaves no
+            // unconfigured (invalid) channel.
+            for(size_t k = 0; k < adc_config_list.size(); ++k)
+            {
+                adc_config_list[k].InitSingle(adc_list[0].pin);
+            }
             for(size_t i = 0; i < adc_list.size(); ++i)
             {
-                adc_config_list[i].InitSingle(adc_list[i].pin);
-                adc_list[i].channel = i;
+                uint8_t ch = adc_platform_channel[i];
+                adc_config_list[ch].InitSingle(adc_list[i].pin);
+                adc_list[i].channel = ch;
             }
 
             hw.adc.Init(adc_config_list.data(), adc_config_list.size());

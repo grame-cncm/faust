@@ -353,6 +353,8 @@ faust2daisy -sd my.dsp
     file I/O or dynamic allocation.
   - `-sd`: loaded from the SD card (`/soundfiles`) into SDRAM at startup. Files are
     uploaded with `faust2daisy -upload-sd` (temporary CDC uploader firmware).
+  - Daisy Patch supported 
+  - Daisy PatchSM support in progress : metadata are the same for adc and dac 
 
 ### Fixes 
 
@@ -362,21 +364,29 @@ faust2daisy -sd my.dsp
 - MIDI CC was not working properly for checkboxes and buttons. Now it is working as Faust documentation says : returns 1 if CC is 127, returns 0 if CC is 0
 - Python parser crashed on a DSP with UI controls when no configuration file was provided
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 3028c82cc (implemented QSPI soundfile, fixed issues (midi input initialization, DAC's broken, CC with checkbox or button)
 =======
+=======
+23/06
+- Fixed Patch screen bar ordering 
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
 
 
 ### Ongoing 
 
-- sndfile on SD card : glitches 
-- Patch : display is not right (not showing correct input), and need to test inputs/outputs (all) 
-
-
-- Test qspi soundfile : ok, no glitch. 
-- No SD in Patch : not working 
-
-
 - PatchSM : CV out : even with block size to 1, it is downsampled
 
+# TODO 
 
+<<<<<<< HEAD
 >>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
+=======
+- Test all PatchSM features 
+- Check polyphony and shared controls and outputs
+
+
+- Test : polyphonic (shared input, output,), digi inp outp, shared digi in, shared digi outp
+- Tester polyphonie sur le PATCH
+- Digi input : le sens n'est pas clair (haut bas) : essayer avec un vrai bouton 
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))

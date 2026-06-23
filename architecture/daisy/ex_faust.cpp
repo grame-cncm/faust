@@ -35,38 +35,18 @@
 //#include "daisysp.h"
 
 #ifdef PATCH 
-#include "daisy_patch.h"
-using namespace daisy::seed;
 
+#include "daisy_patch.h"
 struct FaustDaisyPatch : public daisy::DaisyPatch
 {
 
-    static constexpr daisy::Pin PIN_CTRL_1 = daisy::seed::D18; 
-    static constexpr daisy::Pin PIN_CTRL_2 = daisy::seed::D16;
-    static constexpr daisy::Pin PIN_CTRL_3 = daisy::seed::D21;
-    static constexpr daisy::Pin PIN_CTRL_4 = daisy::seed::D15;
-    void InitControls() 
-    {
-        daisy::AdcChannelConfig cfg[CTRL_LAST];
-
-        // Init ADC channels with Pins
-        cfg[CTRL_1].InitSingle(PIN_CTRL_1);
-        cfg[CTRL_2].InitSingle(PIN_CTRL_2);
-        cfg[CTRL_3].InitSingle(PIN_CTRL_3);
-        cfg[CTRL_4].InitSingle(PIN_CTRL_4);
-
-        // Initialize ADC
-        //seed.adc.Init(cfg, CTRL_LAST);
-
-        // Initialize AnalogControls, with flip set to true
-        for(size_t i = 0; i < CTRL_LAST; i++)
-        {
-            controls[i].Init(seed.adc.GetPtr(i), AudioCallbackRate(), true);
-        }
-    }
-    
+    void screen_display(bool invert = false);
+    size_t screen_update_period = 34; 
+    size_t screen_update_last = 0;
 };
 
+
+using namespace daisy::seed;
 
 //static daisy::DaisyPatch platform;
 static FaustDaisyPatch platform;
@@ -431,6 +411,7 @@ struct adc : public control
 =======
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
 
+    // Constructor for Patch SM which doesn't access adc directly, but uses the Analog Control interface 
     adc(adc::type_t t, float init_, float min_, float max_, float step_, 
         scale::scale_t scale_ = scale::scale_t::lin, uint8_t chn = 0)
         : control::control(scale_)
@@ -562,6 +543,7 @@ struct adc : public control
         #ifdef PATCH 
             val = 1.0f - val; // Invert for Daisy Patch
         #endif 
+
         update_method(val, value_ptr, 
 >>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
             min, max, step, previous_state, scale_type);
@@ -582,6 +564,12 @@ struct shared_adc : public adc
         : adc(t, init_, min_, max_, step_, scale_, pin_)
         , val(init)
     {}
+    
+    shared_adc(adc::type_t t, float init_, float min_, float max_, float step_,
+        scale::scale_t scale_ = scale::scale_t::lin, uint8_t chn)
+        : adc(t, init_, min_, max_, step_, scale_, chn)
+        , val(init)
+    {}
     // Called once per voice during buildUserInterface
     void set_value_ptr(float *zone) override 
     {
@@ -600,8 +588,17 @@ struct shared_adc : public adc
     }
 
     void update() override {
-        if(counter == 0)
-            val = hw.adc.GetFloat(channel);
+        if(counter == 0) {
+        #ifdef SEED
+            float val = hw.adc.GetFloat(channel);
+        #elif defined PATCHSM 
+            float val = hw.GetAdcValue(channel);
+        #endif 
+
+        #ifdef PATCH 
+            val = 1.0f - val; // Invert for Daisy Patch
+        #endif 
+        }
         update_method(val, targets[counter], min, max, step, prev_states[counter], scale_type);
         counter = (counter + 1) % N;
     }
@@ -698,13 +695,14 @@ struct digi_input : public adc
             daisy::GPIO::Speed::VERY_HIGH);
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
         passed_samples =  0; 
-        *value_ptr = init;
+        //*value_ptr = init;
     }
 
     void update() override 
     {
         if(passed_samples == 0)
         {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
             update_method(!gpio.Read(), value_ptr, min, max, step, previous_state, scale_type);
@@ -714,6 +712,9 @@ struct digi_input : public adc
 =======
             update_method(!gpio.Read(), value_ptr, min, max, step, previous_state, scale_type);
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+            update_method(gpio.Read(), value_ptr, min, max, step, previous_state, scale_type);
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
         }
         passed_samples += MY_BUFFER_SIZE;
         if(passed_samples >= time_threshold)
@@ -742,11 +743,14 @@ struct shared_digi_input : public digi_input
     void set_value_ptr(float * zone) override
     {
         if(counter < N)
+        {
             targets[counter] = zone;
+        }
     }
 
     void setup() override 
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 =======
@@ -755,6 +759,9 @@ struct shared_digi_input : public digi_input
 =======
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         counter, update_method);
+=======
+        // Initialize the shared digital input
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
         if(counter == 0)
         {
             adc::setup();
@@ -769,13 +776,13 @@ struct shared_digi_input : public digi_input
     void update() override 
     {
         if(counter == 0)
+        {
             val = !gpio.Read();
+        }
 
         update_method(val, targets[counter], min, max, step, prev_states[counter], scale_type);
         counter = (counter + 1) % N;
     }
-
-
 };
 #endif
 
@@ -802,6 +809,7 @@ struct midi_input : public adc
     midi_input(adc::type_t t, float init_, float min_, float max_, float step_, 
             scale::scale_t scale_ = scale::scale_t::lin, midi_t *midiptr = nullptr)
 <<<<<<< HEAD
+<<<<<<< HEAD
         : adc::adc(t, init_, min_, max_, step_, scale_)
 =======
     midi_input(adc::type_t t, float init_, float min_, float max_, float step_, midi_t *midiptr)
@@ -818,6 +826,9 @@ struct midi_input : public adc
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
         : adc::adc(t, init_, min_, max_, step_, scale_)
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+        : adc::adc(t, init_, min_, max_, step_, scale_, DEFAULT_PIN)
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
         , m(midiptr)
     {
         m->value = uint8_t(init);
@@ -826,7 +837,7 @@ struct midi_input : public adc
     static void midi_checkbox_method(float value, float *fzone, 
         float min, float max, float step, float &prev, scale::scale_t scale_type)
     {
-        if(value == 1.0f) {
+        if(value == 127) {
             *fzone = 1.0f;
         } else if (value == 0.0f) {
             *fzone = 0.0f;
@@ -1201,7 +1212,7 @@ struct digi_output : public control
 
     static void gpio_method(float *val, daisy::GPIO* gpio, daisy::Led* led)
     {
-        gpio->Write( (*val) < adc::noise_threshold );
+        gpio->Write( (*val) > adc::noise_threshold );
     }
 
     static void led_method(float *val, daisy::GPIO* gpio, daisy::Led* led)
@@ -1298,10 +1309,14 @@ struct digi_output : public control
         } else 
         {
             gpio.Init(pin, daisy::GPIO::Mode::OUTPUT);
-            digi_out_method = led_method;
+            digi_out_method = gpio_method; 
         }
 <<<<<<< HEAD
+<<<<<<< HEAD
         *value_ptr = min;
+=======
+        //*value_ptr = min; //null write 
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
     }
 
 
@@ -1498,6 +1513,44 @@ using namespace std;
     #endif
 #endif
 
+#ifdef PATCH 
+        void FaustDaisyPatch::screen_display(bool invert)
+        {
+            bool on, off;
+            on  = invert ? false : true;
+            off = invert ? true : false;
+            if(hw.system.GetNow() - screen_update_last > screen_update_period)
+            {
+                // Graph Knobs
+                size_t barwidth, barspacing;
+                size_t curx, cury;
+                screen_update_last = hw.system.GetNow();
+                barwidth            = 15;
+                barspacing          = 20;
+                platform.display.Fill(off);
+                // Bars for all four knobs.
+                for(size_t i = 0; i < adc_list.size(); ++i)
+                {
+                    float  v;
+                    size_t dest;
+                    curx = (barspacing * i + 1) + (barwidth * i);
+                    cury = platform.display.Height();
+                    v    = *adc_list[i].value_ptr; //GetKnobValue(static_cast<DaisyPatch::Ctrl>(i));
+                    dest = (v * platform.display.Height());
+                    for(size_t j = dest; j > 0; j--)
+                    {
+                        for(size_t k = 0; k < barwidth; k++)
+                        {
+                            platform.display.DrawPixel(curx + k, cury - j, on);
+                        }
+                    }
+                }
+                platform.display.Update();
+            }
+        }
+
+#endif 
+
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -1546,9 +1599,15 @@ static void AudioCallback(daisy::AudioHandle::InputBuffer in,
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     #ifdef PATCHSM 
+=======
+    #if defined PATCHSM 
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
         hw.ProcessAllControls();
+    #elif defined PATCH 
+        platform.ProcessAllControls();
     #endif 
 >>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
     // Update control inputs
@@ -1582,8 +1641,8 @@ static void AudioCallback(daisy::AudioHandle::InputBuffer in,
 
 int main(void)
 {
-
     // Initialize Daisy 
+<<<<<<< HEAD
 <<<<<<< HEAD
     hw.Init();
     hw.SetAudioBlockSize(MY_BUFFER_SIZE);
@@ -1608,6 +1667,17 @@ int main(void)
 =======
     hw.SetAudioSampleRate(DAISY_SAMPLE_RATE);
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+#ifdef PATCH 
+    platform.Init();
+    platform.SetAudioBlockSize(MY_BUFFER_SIZE);
+    platform.SetAudioSampleRate(DAISY_SAMPLE_RATE);
+#else
+    hw.Init();
+    hw.SetAudioBlockSize(MY_BUFFER_SIZE);
+    hw.SetAudioSampleRate(DAISY_SAMPLE_RATE);
+#endif
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
 
 #ifdef MIDICTRL
     daisy_midi midi_handler;
@@ -1792,9 +1862,8 @@ int main(void)
         #ifdef MIDICTRL
             midi_handler.processMidi();
         #endif
-        daisy::System::Delay(5);
+        //daisy::System::Delay(5);
         #ifdef PATCH 
-            platform.ProcessAllControls();
             platform.DisplayControls(false);
         #endif
     }

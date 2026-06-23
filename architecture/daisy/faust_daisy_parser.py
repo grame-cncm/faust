@@ -25,6 +25,7 @@ import daisy_soundfile_gen
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
+# Regex definitions for parsing the Faust DSP JSON layout and configuration files
 freg = re.compile("(fZone)")
 ireg = re.compile("(iZone)")
 voicereg = re.compile("nvoices:([0-9]+)")
@@ -35,6 +36,7 @@ itemreg = re.compile(".?(slider|button|checkbox|bargraph|nentry)")
 polyreg = re.compile("(freq|key|gain|vel|velocity|gate)")
 midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
 configparse_reg = re.compile("([a-zA-Z_]*):([AD][0-9]+)")
+<<<<<<< HEAD
 dac_index_reg = re.compile("[AD]([0-9]+)")
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -49,7 +51,11 @@ midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
 =======
 cvout_index_reg = re.compile("[C]([0-9]+)")
 >>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
+=======
+dac_index_reg = re.compile("[ACD]([0-9]+)")
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
 
+# Argument parsing
 project_dir = sys.argv[1]
 mem_threshold = int(sys.argv[2]) 
 nvoices = int(sys.argv[3])
@@ -58,10 +64,12 @@ archfile = sys.argv[5]
 <<<<<<< HEAD
 <<<<<<< HEAD
 config_file = sys.argv[6]
+
 # Soundfile mode : "qspi" (inline samples in QSPI, default) or "sd" (load from
 # the SD card /soundfiles folder at runtime).
 soundfile_mode = sys.argv[7] if len(sys.argv) > 7 else "qspi"
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
@@ -71,6 +79,8 @@ config_file = sys.argv[6]
 =======
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 
+=======
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
 arch = ""
 with open(archfile, 'r') as file:
     arch = file.read()
@@ -166,6 +176,7 @@ def get_control_type(item):
 def is_poly(label):
     return polyreg.match(label)
 
+<<<<<<< HEAD
 =======
 midiparse_reg = re.compile("(keyon|keyoff|key|ctrl)\\s+([0-9]+)\\s*([0-9]+)?")
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
@@ -175,6 +186,8 @@ def is_poly(label):
 
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 
+=======
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
 class adc:
     def __init__(self):
         self.type = ""
@@ -311,6 +324,7 @@ poly = False
 if(nvoices > 1):
     poly = True
 
+<<<<<<< HEAD
 
 
 
@@ -319,6 +333,8 @@ if(nvoices > 1):
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
 class ui_scanner:
     def __init__(self):
         self.uicount = 0
@@ -438,27 +454,23 @@ class ui_scanner:
                             value = config_res[1]
 
                     # Then create the meta to write
-                    if(key == "adc" or key == "cv_in"):
+                    if(key == "adc"):
                         reslist.append("adc")
                         reslist.append(value)
                     elif(key == "dac"):
                         reslist.append("dac")
                         reslist.append(value)
                         dac_index_res = dac_index_reg.search(value)
-                        if(dac_index_res.group(1) == "7"):
-                            self.dac[0] = True
-                        elif(dac_index_res.group(1) == "8"):
-                            self.dac[1] = True
-                        
-                    elif(key == "cv_out"): 
-                        reslist.append("dac")
-                        reslist.append(value) 
-                        cvout_index_res = cvout_index_reg.search(value)
-                        if(cvout_index_res.group(1) == "1"):
-                            self.dac[0] = True
-                        elif(cvout_index_res.group(1) == "10"):
-                            self.dac[1] = True
-
+                        if(chip == "seed"):
+                            if(dac_index_res.group(1) == "7"):
+                                self.dac[0] = True
+                            elif(dac_index_res.group(1) == "8"):
+                                self.dac[1] = True
+                        elif(chip == "patchsm"):
+                            if(dac_index_res.group(1) == "1"):
+                                self.dac[0] = True
+                            elif(dac_index_res.group(1) == "10"):
+                                self.dac[1] = True
                     elif(key == "gpio"):
                         reslist.append("gpio")
                         reslist.append(value)
@@ -585,10 +597,6 @@ class ui_scanner:
 
                     if(poly == True and is_poly(item_label)):
                         self.polys.append(polyctrl())
-                        #if(item_label == "freq"):
-                        #    item_label = "key"
-                        #elif(item_label == "gain" or item_label == "velocity"):
-                        #    item_label = "vel"
                         if(item_label == "vel" or item_label == "velocity"):
                             item_label = "vel"
                             self.poly_keys["vel"] = True
@@ -1177,18 +1185,53 @@ class ui_scanner:
                     elif(chip == "patchsm"):
                         controlstr += f"\tshared_adc<{nvoices}>(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {patchsm_pin_map[elem.pin_index]}), \n"
         controlstr += "}; \n"
-        controlstr += f"std::array<daisy::AdcChannelConfig, {len(self.adcs)}> adc_config_list; \n\n"
+
+        # Assign each ADC to a hardware DMA channel. With a platform config (e.g.
+        # Daisy Patch), order the channels by the platform control number
+        # (CV_in:N / knob:N) so that DMA channel i corresponds to physical knob
+        # i+1. This matches the platform's own control order (libDaisy
+        # DisplayControls, platform.controls[]...), which reads by channel index.
+        # Without a config we keep the Faust emission order (identity mapping).
+        def _platform_channel(pin):
+            if config_ui is None:
+                return None
+            target = "adc:" + str(pin)
+            for elem in config_ui:
+                for k, v in elem.items():
+                    if v == target:
+                        m = re.search(r":([0-9]+)$", k)
+                        if m:
+                            return int(m.group(1)) - 1
+            return None
+
+        platform_channels = []
+        if config_ui is not None and chip == "seed":
+            platform_channels = [_platform_channel(e.pin_index) for e in self.adcs]
+        # Use the platform order only if it is a clean 1:1 mapping (every ADC
+        # resolved and no duplicates); otherwise fall back to emission order so
+        # we never create gaps/collisions in the channel list.
+        if (len(platform_channels) != len(self.adcs)
+                or any(pc is None for pc in platform_channels)
+                or len(set(platform_channels)) != len(platform_channels)):
+            platform_channels = list(range(len(self.adcs)))
+        n_channels = (max(platform_channels) + 1) if len(platform_channels) > 0 else 0
+
+        controlstr += f"static std::array<uint8_t, {len(self.adcs)}> adc_platform_channel = {{ {', '.join(str(pc) for pc in platform_channels)} }}; \n"
+        controlstr += f"std::array<daisy::AdcChannelConfig, {n_channels}> adc_config_list; \n\n"
 
         if(nvoices < 2):
             controlstr += f"static std::array<digi_input, {len(self.digis_in)}> digi_input_list {{\n"
         else: 
             controlstr += f"static std::array<shared_digi_input<{nvoices}>, {len(self.digis_in)}> digi_input_list {{\n"
         if(len(self.digis_in) > 0):
+            prefix = ""
+            if(chip == "patchsm"): 
+                prefix = "daisy::patch_sm::DaisyPatchSM::"
             for elem in self.digis_in:
                 if(nvoices < 2):
-                    controlstr += f"\tdigi_input(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, {elem.pin_index}), \n"
+                    controlstr += f"\tdigi_input(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, {prefix}{elem.pin_index}), \n"
                 else:
-                    controlstr += f"\tshared_digi_input<{nvoices}>(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, {elem.pin_index}), \n"
+                    controlstr += f"\tshared_digi_input<{nvoices}>(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, {prefix}{elem.pin_index}), \n"
         controlstr += "}; \n\n"
 
         input_len = (len(self.adcs) + len(self.midis) + len(self.digis_in)) 
@@ -1398,8 +1441,12 @@ class ui_scanner:
             controlstr += f"static std::array<digi_output, {len(self.digis_out)}> digi_output_list = {{ \n"
         else:
             controlstr += f"static std::array<shared_digi_output<{nvoices}>, {len(self.digis_out)}> digi_output_list = {{ \n"
+        prefix = ""
+        if(chip == "patchsm"): 
+            prefix = "daisy::patch_sm::DaisyPatchSM::"
         for elem in self.digis_out:
             if(nvoices < 2):
+<<<<<<< HEAD
                 controlstr += f"\tdigi_output({elem.pin_index}, digi_output::pwm_t::{elem.pwm}), \n"
 <<<<<<< HEAD
             else:
@@ -1425,6 +1472,11 @@ class ui_scanner:
             else:
                 controlstr += f"\tshared_digi_output<{nvoices}>({elem.pin_index}, digi_output::pwm_t::{pwm}), \n"
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
+=======
+                controlstr += f"\tdigi_output({prefix}{elem.pin_index}, digi_output::pwm_t::{elem.pwm}), \n"
+            else:
+                controlstr += f"\tshared_digi_output<{nvoices}>({prefix}{elem.pin_index}, digi_output::pwm_t::{pwm}), \n"
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
         controlstr += "}; \n\n"
             
 

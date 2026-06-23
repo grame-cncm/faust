@@ -84,6 +84,7 @@ class daisy_midi {
                 for(auto & it : locked)
                     it = false;
             #endif
+<<<<<<< HEAD
 =======
 =======
                 handler_config.transport_config.periph = daisy::MidiUartTransport::Config::
@@ -101,6 +102,9 @@ class daisy_midi {
                     it = false;
             #endif
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
+=======
+
+>>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
         }
     
         virtual ~daisy_midi()
@@ -295,8 +299,7 @@ class daisy_midi {
             locked[idx] = false;
             generations[idx] = 0;
         }
-        
-
+        bool ledstate = false;        
         void voice_stealing(int chan, uint8_t note, uint8_t velocity)
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         {
@@ -310,6 +313,12 @@ class daisy_midi {
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 =======
 
+            if(free == 0) 
+            {
+                ledstate = !ledstate;
+                hw.SetLed(ledstate);
+            }
+
             set_voice(free, chan, note, velocity);
 
             // Everybody gets older 
@@ -321,7 +330,6 @@ class daisy_midi {
             generations[free] = 0;
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         }
-
 
         void voice_blocking(int chan, uint8_t note, uint8_t velocity)
         {
