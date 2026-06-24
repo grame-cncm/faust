@@ -34,7 +34,7 @@ trait FaustDsp:
     def metadata(read dsp, mut meta: Some[FaustMeta]) -> None: ...
     @always_inline
     def build_user_interface(mut dsp, mut ui: Some[FaustGui]) -> None: ...
-    @always_inline
+
     def compute(
         mut dsp,
         var count:      S32,

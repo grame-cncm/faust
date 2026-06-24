@@ -163,6 +163,8 @@ public:
 
     inline void visit(ForLoopInst* inst) override;
     inline void visit(LabelInst* inst) override;
+
+    inline static String getDTypeValue(ValueInst* rhs);
 };
 
 //////////////////////////////////////////////////////////////
@@ -728,51 +730,97 @@ void MojoVecInstVisitor::visit(ForLoopInst* inst)
     if (inst->fCode->size() == 0) {
         return;
     }
-    if (inst->getName().find("vindex") != String::npos) {
+    if (inst->fIsRecursive) {
         MojoInstVisitor::visit(inst);
         return;
     }
-
+ 
     auto* ini_inst = dycast(DeclareVarInst*, inst->fInit);
     faustassert(ini_inst);
-    String idx_name = ini_inst->fAddress->getName();
-    auto* ini_val = ini_inst->fValue;
-    faustassert(ini_val);
+
     auto* end_inst = dycast(BinopInst*, inst->fEnd);
     faustassert(end_inst);
-    auto end_val = end_inst->fInst2;
-    faustassert(end_val);
+    ValueInst* end_val  = end_inst->fInst2;
+    String     idx_name = ini_inst->fAddress->getName();
 
-    *fOut << "for var " << idx_name << " in range(";
-    ini_val->accept(this);
-    *fOut << ", ";
-    end_val->accept(this);
-    fTab += 1;
-    *fOut << "): " << wnextl(fTab);
-    inst->fCode->accept(this);
-    fTab -= 1;
-    *fOut << wrewind(fOut);
+    auto* store = dycast(StoreVarInst*, inst->fCode->fCode.front());
+    faustassert(store);
+    inst->fCode->fCode.pop_front();
+    Address*   lhs  = store->fAddress;
+    ValueInst* rhs  = store->fValue;
+    String     name = snakeCase(lhs->getName());
 
-    // OString buf;
-    // MojoStringBuilderInstVisitor builder(&buf, fObjectAccess, fTab);   
-    //
-    // inst->fInit->accept(&builder);
-    // String ini = buf.str();
-    // Vector<VString> ini_toks = split(ini.c_str(), ' ');
-    // VString ini_left = ini_toks[1];
-    // VString ini_right = ini_toks.back().substr(0, ini_toks.back().size() - 1);
-    //
-    // builder.cleanup();
-    // inst->fEnd->accept(&builder);
-    // String end = buf.str();
-    // Vector<VString> end_toks = split(end.c_str(), ' ');
-    // VString end_right = end_toks.back().substr(0, end_toks.back().size() - 1);
-    //
+    if (lhs->isStruct() || lhs->isStaticStruct()) {
+        name = "dsp." + name;
+    }
+
+    String dtype_value = getDTypeValue(rhs);
+    String dtype_name  = gGlobal->getFreshID("dtype");
+    String width_name  = gGlobal->getFreshID("width");
+
+    // TODO:(manu) Categorize non-recursive vec loops and emit SIMD accordingly.
+    //  Current assumptions:
+    //  - recursive loops fall back to scalar;
+    //  - most non-recursive vec loop bodies are single stores;
+    //  - most store LHS forms are unit-stride (`A[i]`, `A[j]`);
+    //  - masked/ring-buffer LHS forms require fallback or a dedicated path.
+    //  Categories:
+    //  - loop-invariant RHS:
+    //      emit SIMD broadcast + `simd_store`;
+    //  - direct indexed copy, e.g. `A[i] = B[i + k]`:
+    //      emit `simd_load` + `simd_store`;
+    //  - supported indexed expression, e.g. `A[i] = expr(B[i+k], scalars...)`:
+    //      emit SIMD expression with lane-wise loads;
+    //  - masked/ring-buffer access, e.g. `A[(i + idx) & mask]`:
+    //      fall back for now, dedicated code later;
+    //  - UI/output multi-store, e.g. bargraph + output:
+    //      handle as a special case;
+    //  - unsupported form:
+    //      fall back to the scalar Mojo visitor.
+
+    // inst->fInit->accept(this);
+    // *fOut << "comptime " << dtype_name << " = " << dtype_value << "\n";
+    // *fOut << wtab(fTab) << "comptime " << width_name << " = S32(simd_width_of[" << dtype_name << "]())" << "\n";
+    // *fOut << wtab(fTab) << "while " << idx_name << " <= ";
+    // end_val->accept(this);
+    // *fOut << " - " << width_name << ":\n";
     // fTab += 1;
-    // *fOut << "for var " << ini_left << " in range(" << ini_right << ", " << end_right << ")): " << wnextl(fTab);
-    // inst->fCode->accept(this);
+    // *fOut << wtab(fTab) << "var values = SIMD[" << dtype_name << ", Int(" << width_name << ")](";
+    // rhs->accept(this);
+    // *fOut << ")\n";
+    // *fOut << wtab(fTab) << "simd_store(" << name << ", " << idx_name << ", values)\n";
+    // *fOut << wtab(fTab) << idx_name << " = " << idx_name << " + " << width_name << "\n"; 
     // fTab -= 1;
-    // *fOut << wrewind(fOut);
+    // *fOut << wtab(fTab);
+}
+
+String MojoVecInstVisitor::getDTypeValue(ValueInst* rhs) {
+    Typed::VarType type = TypingVisitor::getType(rhs);
+    if (Typed::isPtrType(type)) {
+        type = Typed::getTypeFromPtr(type);
+    }
+    if (Typed::isVecType(type)) {
+        type = Typed::getTypeFromVec(type);
+    }
+    String dtype_value;
+    switch (type) {
+    case Typed::kInt32:
+        dtype_value = "s32";
+        break;
+    case Typed::kFloat:
+        dtype_value = "f32";
+        break;
+    case Typed::kDouble:
+        dtype_value = "f64";
+        break;
+    case Typed::kFloatMacro:
+        dtype_value = "dfaust";
+        break;
+    default:
+        std::cerr << "Panic in MojoVecInstVisitor::visit(ForLoopInst*) - Unexpected type  " << type << std::endl;
+        faustassert(false);
+    }
+    return dtype_value;
 }
 
 //////////////////////////////////////////////////////////////

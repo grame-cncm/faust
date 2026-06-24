@@ -35,6 +35,9 @@ inline namespace mojo {
 using DspFactory = dsp_factory_base;
 using TextDspFactory = text_dsp_factory_aux;
 
+static inline MojoInstVisitor* gScalarProducer;
+static inline MojoVecInstVisitor* gVectorProducer;
+
 /**
     A `MojoCodeContainer` is an abstract code container for the mojo backend.
     @desc
@@ -56,7 +59,6 @@ using TextDspFactory = text_dsp_factory_aux;
 class MojoCodeContainer : public virtual CodeContainer {
 protected:
     OStream*                       fOut;
-    static inline MojoInstVisitor* fCodeProducer;
 
     MojoCodeContainer() = default;
 
@@ -77,6 +79,7 @@ public:
 protected:
     // Writers
     void writeFaustHeader();
+    void writeFaustDReal();
     void writeClassHeaderAndFields(int n);
     void writeGlobalVariablesInlined(int n);
     void writeDefaultConstructor(int n);

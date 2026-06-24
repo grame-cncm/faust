@@ -1,0 +1,213 @@
+/* ------------------------------------------------------------
+author: "Grame"
+copyright: "(c)GRAME 2006"
+license: "BSD"
+name: "bandfilter"
+version: "1.0"
+Code generated with Faust 2.85.5 (https://faust.grame.fr)
+Compilation options: -lang cpp -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <math.h>
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+#if defined(_WIN32)
+#define RESTRICT __restrict
+#else
+#define RESTRICT __restrict__
+#endif
+
+static double mydsp_faustpower2_f(double value) {
+	return value * value;
+}
+
+class mydsp : public dsp {
+	
+ private:
+	
+	int fSampleRate;
+	double fConst0;
+	FAUSTFLOAT fEntry0;
+	FAUSTFLOAT fVslider0;
+	FAUSTFLOAT fEntry1;
+	double fRec0_perm[4];
+	
+ public:
+	mydsp() {
+	}
+	
+	mydsp(const mydsp&) = default;
+	
+	virtual ~mydsp() = default;
+	
+	mydsp& operator=(const mydsp&) = default;
+	
+	void metadata(Meta* m) { 
+		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang cpp -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32");
+		m->declare("copyright", "(c)GRAME 2006");
+		m->declare("filename", "bandfilter.dsp");
+		m->declare("license", "BSD");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "bandfilter");
+		m->declare("version", "1.0");
+	}
+
+	virtual int getNumInputs() {
+		return 1;
+	}
+	virtual int getNumOutputs() {
+		return 1;
+	}
+	
+	static void classInit(int sample_rate) {
+	}
+	
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = 3.141592653589793 / std::min<double>(1.92e+05, std::max<double>(1.0, static_cast<double>(fSampleRate)));
+	}
+	
+	virtual void instanceResetUserInterface() {
+		fEntry0 = static_cast<FAUSTFLOAT>(1e+03);
+		fVslider0 = static_cast<FAUSTFLOAT>(0.0);
+		fEntry1 = static_cast<FAUSTFLOAT>(5e+01);
+	}
+	
+	virtual void instanceClear() {
+		for (int l0 = 0; l0 < 4; l0 = l0 + 1) {
+			fRec0_perm[l0] = 0.0;
+		}
+	}
+	
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	virtual mydsp* clone() {
+		return new mydsp(*this);
+	}
+	
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("Bandfilter");
+		ui_interface->declare(&fEntry1, "style", "knob");
+		ui_interface->addNumEntry("Q factor", &fEntry1, FAUSTFLOAT(5e+01), FAUSTFLOAT(0.1), FAUSTFLOAT(1e+02), FAUSTFLOAT(0.1));
+		ui_interface->declare(&fEntry0, "style", "knob");
+		ui_interface->declare(&fEntry0, "unit", "Hz");
+		ui_interface->addNumEntry("freq", &fEntry0, FAUSTFLOAT(1e+03), FAUSTFLOAT(2e+01), FAUSTFLOAT(2e+04), FAUSTFLOAT(1.0));
+		ui_interface->declare(&fVslider0, "unit", "dB");
+		ui_interface->addVerticalSlider("gain", &fVslider0, FAUSTFLOAT(0.0), FAUSTFLOAT(-5e+01), FAUSTFLOAT(5e+01), FAUSTFLOAT(0.1));
+		ui_interface->closeBox();
+	}
+	
+	virtual void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs) {
+		FAUSTFLOAT* input0_ptr = inputs[0];
+		FAUSTFLOAT* output0_ptr = outputs[0];
+		double fSlow0 = std::tan(fConst0 * static_cast<double>(fEntry0));
+		double fSlow1 = static_cast<double>(fEntry1);
+		double fSlow2 = std::pow(1e+01, -(0.05 * static_cast<double>(fVslider0))) / fSlow1;
+		double fSlow3 = 1.0 / (fSlow0 * (fSlow0 + fSlow2) + 1.0);
+		double fSlow4 = fSlow0 * (fSlow0 - fSlow2) + 1.0;
+		double fSlow5 = 2.0 * (mydsp_faustpower2_f(fSlow0) + -1.0);
+		double fZec0[32];
+		double fRec0_tmp[36];
+		double* fRec0 = &fRec0_tmp[4];
+		double fSlow6 = 1.0 / fSlow1;
+		double fSlow7 = fSlow0 * (fSlow0 + fSlow6) + 1.0;
+		double fSlow8 = 1.0 - fSlow0 * (fSlow6 - fSlow0);
+		int vindex = 0;
+		/* Main loop */
+		for (vindex = 0; vindex <= (count - 32); vindex = vindex + 32) {
+			FAUSTFLOAT* input0 = &input0_ptr[vindex];
+			FAUSTFLOAT* output0 = &output0_ptr[vindex];
+			int vsize = 32;
+			/* Recursive loop 0 */
+			/* Pre code */
+			for (int j0 = 0; j0 < 4; j0 = j0 + 1) {
+				fRec0_tmp[j0] = fRec0_perm[j0];
+			}
+			/* Compute code */
+			for (int i = 0; i < vsize; i = i + 1) {
+				fZec0[i] = fSlow5 * fRec0[i - 1];
+				fRec0[i] = static_cast<double>(input0[i]) - fSlow3 * (fSlow4 * fRec0[i - 2] + fZec0[i]);
+			}
+			/* Post code */
+			for (int j1 = 0; j1 < 4; j1 = j1 + 1) {
+				fRec0_perm[j1] = fRec0_tmp[vsize + j1];
+			}
+			/* Vectorizable loop 1 */
+			/* Compute code */
+			for (int i = 0; i < vsize; i = i + 1) {
+				output0[i] = static_cast<FAUSTFLOAT>(fSlow3 * (fZec0[i] + fSlow7 * fRec0[i] + fSlow8 * fRec0[i - 2]));
+			}
+		}
+		/* Remaining frames */
+		if (vindex < count) {
+			FAUSTFLOAT* input0 = &input0_ptr[vindex];
+			FAUSTFLOAT* output0 = &output0_ptr[vindex];
+			int vsize = count - vindex;
+			/* Recursive loop 0 */
+			/* Pre code */
+			for (int j0 = 0; j0 < 4; j0 = j0 + 1) {
+				fRec0_tmp[j0] = fRec0_perm[j0];
+			}
+			/* Compute code */
+			for (int i = 0; i < vsize; i = i + 1) {
+				fZec0[i] = fSlow5 * fRec0[i - 1];
+				fRec0[i] = static_cast<double>(input0[i]) - fSlow3 * (fSlow4 * fRec0[i - 2] + fZec0[i]);
+			}
+			/* Post code */
+			for (int j1 = 0; j1 < 4; j1 = j1 + 1) {
+				fRec0_perm[j1] = fRec0_tmp[vsize + j1];
+			}
+			/* Vectorizable loop 1 */
+			/* Compute code */
+			for (int i = 0; i < vsize; i = i + 1) {
+				output0[i] = static_cast<FAUSTFLOAT>(fSlow3 * (fZec0[i] + fSlow7 * fRec0[i] + fSlow8 * fRec0[i - 2]));
+			}
+		}
+	}
+
+};
+
+#endif
