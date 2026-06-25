@@ -994,6 +994,8 @@ struct LabelInst : public StatementInst {
 // ====================
 
 struct BlockInst : public StatementInst {
+    using Iterator = std::list<StatementInst*>::iterator;
+
     std::list<StatementInst*> fCode;
     bool                      fIndent;
 
@@ -1043,7 +1045,12 @@ struct BlockInst : public StatementInst {
         fCode.insert(it, inst);
     }
 
-    int size() const { return int(fCode.size()); }
+    // std::list member `fCode` interface
+    int            size() const { return int(fCode.size()); }
+    StatementInst* front() { return fCode.front(); }
+    void           pop_front() { fCode.pop_front(); }
+    Iterator       begin() { return fCode.begin(); }
+    Iterator       end() { return fCode.end(); }
 
     bool       hasReturn() const;
     ValueInst* getReturnValue();

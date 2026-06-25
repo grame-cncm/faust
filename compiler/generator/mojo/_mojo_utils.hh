@@ -38,6 +38,7 @@ using String = std::string;
 using VString = std::string_view;
 using OString = std::ostringstream;
 using OStream = std::ostream;
+template<typename... Ts> using Tuple = std::tuple<Ts...>;
 template<typename T> using Vector = std::vector<T>;
 
 ////////////////////////////////////////////////////////////////
