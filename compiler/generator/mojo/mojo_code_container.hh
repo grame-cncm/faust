@@ -35,8 +35,8 @@ inline namespace mojo {
 using DspFactory = dsp_factory_base;
 using TextDspFactory = text_dsp_factory_aux;
 
-static inline MojoInstVisitor* gScalarProducer;
-static inline MojoVecInstVisitor* gVectorProducer;
+inline MojoInstVisitor* gScalarProducer;
+inline MojoVecInstVisitor* gVectorProducer;
 
 /**
     A `MojoCodeContainer` is an abstract code container for the mojo backend.
@@ -58,8 +58,7 @@ static inline MojoVecInstVisitor* gVectorProducer;
 **/
 class MojoCodeContainer : public virtual CodeContainer {
 protected:
-    OStream*                       fOut;
-
+    OStream* fOut;
     MojoCodeContainer() = default;
 
 public:
@@ -73,8 +72,8 @@ public:
 
     // Factories
     CodeContainer*        createScalarContainer(String const& name, int subContKind) override;
-    static CodeContainer* createContainer(
-        String const& name, int numInputs, int numOutputs, OStream* out = new OString());
+    static CodeContainer* createContainer(String const& name, int numInputs, int numOutputs,
+                                          OStream* out = new OString());
 
 protected:
     // Writers
@@ -113,8 +112,8 @@ protected:
 **/
 class MojoScalarCodeContainer : public MojoCodeContainer {
 public:
-    MojoScalarCodeContainer(
-        String const& name, int numInputs, int numOutputs, OStream* out, int subContKind);
+    MojoScalarCodeContainer(String const& name, int numInputs, int numOutputs,
+                            OStream* out, int subContKind);
     virtual ~MojoScalarCodeContainer();
 protected:
     void writeCompute(int n) override;

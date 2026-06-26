@@ -103,21 +103,27 @@ protected:
     static MathLibTable gCreateMathLibTable();
         
     // Global state
-    static MathLibTable gMathLibTable;
-    static FuncSymTable gFuncSymTable;
+    inline static MathLibTable gMathLibTable;
+    inline static FuncSymTable gFuncSymTable;
 };
 
 /** A `MojoVecInstVisitor` is a `MojoInstVisitor` for the vec mode. **/
 class MojoVecInstVisitor : public MojoInstVisitor {
+protected:
+    b32 fEmitSIMD;
 public:
     using MojoInstVisitor::visit;
 
     MojoVecInstVisitor(OStream* out, String const& structName, int tab = 0);
 
-    void visit(ForLoopInst* inst) override;
-    void visit(LabelInst* inst)   override;
+    void visit(CastInst* inst)          override;
+    void visit(ForLoopInst* inst)       override;
+    void visit(LabelInst* inst)         override;
+    // void visit(LoadVarInst* inst)       override;
+    void visit(IndexedAddress* indexed) override;
+    void visit(NamedAddress* named)     override;
 
-protected:
+   protected:
 
     // `ForLoopInst` help writers.
     void writeBargraphUpdate(ForLoopInst* inst, String const& idx_name, ValueInst* end_val);
@@ -128,9 +134,11 @@ protected:
     void writeSIMDIndexedComputationStore(String const& lhs_name, ValueInst* rhs, String const& dtype_name,
                                           String const& width_name, String const& idx_name);
 
+    void toggleSIMD() { fEmitSIMD = !fEmitSIMD; }
+
     // `ForLoopInst` helpers to write SIMD loops.
     void writeSIMDLoopHeader(ForLoopInst*  inst, String const& dtype_name, String const& dtype_value,
-                             String const& width_name, String const& idx_name, ValueInst* end_val);
+                                    String const& width_name, String const& idx_name, ValueInst* end_val);
     void writeSIMDIndexInc(String const& idx_name, String const& width_name);
     // Detect loops that contain a bargraph update in addition to the normal store.
     static b32 hasBargraphUpdate(ForLoopInst* inst);

@@ -69,16 +69,15 @@ void MojoCodeContainer::writeFaustHeader()
 
 void MojoCodeContainer::writeFaustDReal()
 {
-    *fOut << "comptime dreal: DType = ";
     if (gGlobal->gFloatSize == 1) {
-       *fOut << "F32.dtype";
+        *fOut << "comptime dreal = f32\n";
     } else if (gGlobal->gFloatSize == 2) {
-        *fOut << "F64.dtype";
+        *fOut << "comptime dreal = f64\n";
     } else {
         *fOut << "Panic - Unsupported float size: " << gGlobal->gFloatSize << "\n";
         faustassert(false);
     }
-    *fOut << "\n";
+    *fOut << "comptime dreal_width = S32(simd_width_of[dreal]())\n";
 }
 
 void MojoCodeContainer::writeGlobalVariablesInlined(int n)

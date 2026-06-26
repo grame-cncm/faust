@@ -22,7 +22,7 @@ fi
 
 if ! declare -p BENCH_FAUST_VEC_OPT >/dev/null 2>&1; then
   BENCH_FAUST_VEC_OPT=(
-    -vec
+    -vec -vs 4 -dfs
   )
 fi
 

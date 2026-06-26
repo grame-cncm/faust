@@ -35,6 +35,7 @@ comptime Arr = InlineArray
 
 comptime dfaust = get_defined_dtype["DFAUST", DType.float32]()
 comptime FaustFloat = SIMD[dfaust, 1]
+comptime dfaust_width = simd_width_of[dfaust]()
 
 # Pointer types aliases.
 
