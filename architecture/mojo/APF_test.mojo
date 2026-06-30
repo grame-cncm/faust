@@ -30,10 +30,11 @@ comptime _ = assert_dfaust()
 # name: "APF"
 # Compilation options: 
 #   -a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
-#   -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32
+#   -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs
 # ==============================================================================
 
-comptime dreal: DType = F64.dtype
+comptime dreal = f64
+comptime dreal_width = S32(simd_width_of[dreal]())
 
 @fieldwise_init
 struct mydsp(FaustDsp):
@@ -99,11 +100,11 @@ struct mydsp(FaustDsp):
 
     @always_inline
     def get_json(read dsp) -> String:
-        return "{\"name\": \"APF\",\"filename\": \"APF.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32\",\"library_list\": [\"/usr/local/share/faust/maxmsp.lib\",\"/usr/local/share/faust/maths.lib\",\"/usr/local/share/faust/platform.lib\"],\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"../../tests/impulse-tests/dsp\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/../../tests/impulse-tests/dsp\"],\"size\": 60,\"inputs\": 1,\"outputs\": 1,\"meta\": [ { \"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32\" },{ \"filename\": \"APF.dsp\" },{ \"maths.lib/author\": \"GRAME\" },{ \"maths.lib/copyright\": \"GRAME\" },{ \"maths.lib/license\": \"LGPL with exception\" },{ \"maths.lib/name\": \"Faust Math Library\" },{ \"maths.lib/version\": \"2.9.0\" },{ \"maxmsp.lib/author\": \"GRAME\" },{ \"maxmsp.lib/copyright\": \"GRAME\" },{ \"maxmsp.lib/license\": \"LGPL with exception\" },{ \"maxmsp.lib/name\": \"MaxMSP compatibility Library\" },{ \"maxmsp.lib/version\": \"1.1.0\" },{ \"name\": \"APF\" },{ \"platform.lib/name\": \"Generic Platform Library\" },{ \"platform.lib/version\": \"1.3.0\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"APF\",\"items\": [ {\"type\": \"hslider\",\"label\": \"Freq\",\"varname\": \"fHslider0\",\"shortname\": \"Freq\",\"address\": \"/APF/Freq\",\"init\": 1000,\"min\": 100,\"max\": 10000,\"step\": 1},{\"type\": \"hslider\",\"label\": \"Q\",\"varname\": \"fHslider1\",\"shortname\": \"Q\",\"address\": \"/APF/Q\",\"init\": 1,\"min\": 0.01,\"max\": 100,\"step\": 0.01}]}]}"
+        return "{\"name\": \"APF\",\"filename\": \"APF.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"library_list\": [\"/usr/local/share/faust/maxmsp.lib\",\"/usr/local/share/faust/maths.lib\",\"/usr/local/share/faust/platform.lib\"],\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\"],\"size\": 60,\"inputs\": 1,\"outputs\": 1,\"meta\": [ { \"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"APF.dsp\" },{ \"maths.lib/author\": \"GRAME\" },{ \"maths.lib/copyright\": \"GRAME\" },{ \"maths.lib/license\": \"LGPL with exception\" },{ \"maths.lib/name\": \"Faust Math Library\" },{ \"maths.lib/version\": \"2.9.0\" },{ \"maxmsp.lib/author\": \"GRAME\" },{ \"maxmsp.lib/copyright\": \"GRAME\" },{ \"maxmsp.lib/license\": \"LGPL with exception\" },{ \"maxmsp.lib/name\": \"MaxMSP compatibility Library\" },{ \"maxmsp.lib/version\": \"1.1.0\" },{ \"name\": \"APF\" },{ \"platform.lib/name\": \"Generic Platform Library\" },{ \"platform.lib/version\": \"1.3.0\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"APF\",\"items\": [ {\"type\": \"hslider\",\"label\": \"Freq\",\"varname\": \"fHslider0\",\"shortname\": \"Freq\",\"address\": \"/APF/Freq\",\"init\": 1000,\"min\": 100,\"max\": 10000,\"step\": 1},{\"type\": \"hslider\",\"label\": \"Q\",\"varname\": \"fHslider1\",\"shortname\": \"Q\",\"address\": \"/APF/Q\",\"init\": 1,\"min\": 0.01,\"max\": 100,\"step\": 0.01}]}]}"
 
     @always_inline
     def metadata(read dsp, mut meta: Some[FaustMeta]) -> None:
-        meta.declare("compile_options", "-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32")
+        meta.declare("compile_options", "-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
         meta.declare("filename", "APF.dsp")
         meta.declare("maths.lib/author", "GRAME")
         meta.declare("maths.lib/copyright", "GRAME")
@@ -137,21 +138,24 @@ struct mydsp(FaustDsp):
         var slow2 = (1.0) / ((slow1) + (1.0))
         var slow3 = (1.0) - (slow1)
         var slow4 = (2.0) * (cos(slow0))
-        var zec0 = Arr[F64, 32](uninitialized=True)
-        var rec0_tmp = Arr[F64, 36](uninitialized=True)
+        var zec0 = Arr[F64, 4](uninitialized=True)
+        var rec0_tmp = Arr[F64, 8](uninitialized=True)
         var rec0 = Ptr(to=rec0_tmp[S32(4)])
         # Main loop 
         vindex_re0 = S32(0)
-        while (vindex_re0) <= ((count) - (S32(32))): 
+        while (vindex_re0) <= ((count) - (S32(4))): 
             var input0 = Ptr(to=input0_ptr[vindex_re0])
             var output0 = Ptr(to=output0_ptr[vindex_re0])
-            var vsize_re0 = S32(32)
+            var vsize_re0 = S32(4)
             # Recursive loop 0 
             # Pre code 
             var j0_re0 = S32(0)
-            while (j0_re0) < (S32(4)): 
-                rec0_tmp[j0_re0] = dsp.rec0_perm[j0_re0]
-                j0_re0 = (j0_re0) + (S32(1))
+            comptime dtype0 = f64
+            comptime width0 = S32(simd_width_of[dtype0]())
+            while j0_re0 <= S32(4) - width0:
+                var values = simd_load(dsp.rec0_perm, j0_re0)
+                simd_store(rec0_tmp, j0_re0, values)
+                j0_re0 = j0_re0 + S32(width0)
             # Compute code 
             var i_re0 = S32(0)
             while (i_re0) < (vsize_re0): 
@@ -163,13 +167,27 @@ struct mydsp(FaustDsp):
             while (j1_re0) < (S32(4)): 
                 dsp.rec0_perm[j1_re0] = rec0_tmp[(vsize_re0) + (j1_re0)]
                 j1_re0 = (j1_re0) + (S32(1))
+
             # Vectorizable loop 1 
             # Compute code 
             var i_re1 = S32(0)
-            while (i_re1) < (vsize_re0): 
-                output0[i_re1] = FaustFloat((rec0[(i_re1) - (S32(2))]) + ((slow2) * (((slow3) * (rec0[i_re1])) - (zec0[i_re1]))))
-                i_re1 = (i_re1) + (S32(1))
-            vindex_re0 = (vindex_re0) + (S32(32))
+            comptime dtype1 = dfaust
+            comptime width1 = S32(simd_width_of[dtype1]())
+            while i_re1 <= vsize_re0 - width1:
+                var lo = (
+                    (simd_load(rec0, S32(2)))
+                    + ((slow2) * (((slow3) * (simd_load(rec0, i_re1))) - (simd_load(zec0, i_re1))))
+                ).cast[dfaust]()
+                var hi = (
+                    (simd_load(rec0, S32(2)))
+                    + ((slow2) * (((slow3) * (simd_load(rec0, i_re1 + dreal_width))) - (simd_load(zec0, i_re1 + dreal_width))))
+                ).cast[dfaust]()
+                var values = lo.join(hi)
+                simd_store(output0, i_re1, values)
+                i_re1 = i_re1 + S32(width1)
+
+            vindex_re0 = (vindex_re0) + (S32(4))
+
         # Remaining frames 
         if ((vindex_re0) < (count) != 0):
             var input0 = Ptr(to=input0_ptr[vindex_re0])
@@ -178,9 +196,12 @@ struct mydsp(FaustDsp):
             # Recursive loop 0 
             # Pre code 
             var j0_re1 = S32(0)
-            while (j0_re1) < (S32(4)): 
-                rec0_tmp[j0_re1] = dsp.rec0_perm[j0_re1]
-                j0_re1 = (j0_re1) + (S32(1))
+            comptime dtype2 = f64
+            comptime width2 = S32(simd_width_of[dtype2]())
+            while j0_re1 <= S32(4) - width2:
+                var values = simd_load(dsp.rec0_perm, j0_re1)
+                simd_store(rec0_tmp, j0_re1, values)
+                j0_re1 = j0_re1 + S32(width2)
             # Compute code 
             var i_re2 = S32(0)
             while (i_re2) < (vsize_re1): 
@@ -195,9 +216,12 @@ struct mydsp(FaustDsp):
             # Vectorizable loop 1 
             # Compute code 
             var i_re3 = S32(0)
-            while (i_re3) < (vsize_re1): 
-                output0[i_re3] = FaustFloat((rec0[(i_re3) - (S32(2))]) + ((slow2) * (((slow3) * (rec0[i_re3])) - (zec0[i_re3]))))
-                i_re3 = (i_re3) + (S32(1))
+            comptime dtype3 = dfaust
+            comptime width3 = S32(simd_width_of[dtype3]())
+            while i_re3 <= vsize_re1 - width3:
+                var values = ((simd_load(rec0, S32(2))) + ((slow2) * (((slow3) * (simd_load(rec0, i_re3))) - (simd_load(zec0, i_re3))))).cast[dfaust]()
+                simd_store(output0, i_re3, values)
+                i_re3 = i_re3 + S32(width3)
 
 # ==============================================================================
 # Faust generated DSP code end.

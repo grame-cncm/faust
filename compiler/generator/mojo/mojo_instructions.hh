@@ -76,12 +76,12 @@ public:
     void visit(ForLoopInst* inst)           override;
     void visit(FunCallInst* inst)           override;
     void visit(IfInst* inst)                override;
-    void visit(IndexedAddress* indexed)     override;
+    void visit(IndexedAddress* inst)        override;
     void visit(Int32NumInst* inst)          override;
     void visit(Int64NumInst* inst)          override;
     void visit(LabelInst* inst)             override;
     void visit(LoadVarAddressInst* inst)    override;
-    void visit(NamedAddress* named)         override;
+    void visit(NamedAddress* inst)          override;
     void visit(OpenboxInst* inst)           override;
     void visit(Select2Inst* inst)           override;
     void visit(SimpleForLoopInst* inst)     override;
@@ -110,53 +110,52 @@ protected:
 /** A `MojoVecInstVisitor` is a `MojoInstVisitor` for the vec mode. **/
 class MojoVecInstVisitor : public MojoInstVisitor {
 protected:
-    b32 fEmitSIMD;
+    static inline b32 gEmitSIMD;
+    static inline b32 gEmitJoin;
 public:
     using MojoInstVisitor::visit;
 
     MojoVecInstVisitor(OStream* out, String const& structName, int tab = 0);
 
-    void visit(CastInst* inst)          override;
-    void visit(ForLoopInst* inst)       override;
-    void visit(LabelInst* inst)         override;
-    // void visit(LoadVarInst* inst)       override;
-    void visit(IndexedAddress* indexed) override;
-    void visit(NamedAddress* named)     override;
+    void visit(CastInst* inst)       override;
+    void visit(ForLoopInst* inst)    override;
+    void visit(LabelInst* inst)      override;
+    void visit(IndexedAddress* inst) override;
+    void visit(NamedAddress* inst)   override;
 
-   protected:
-
+protected:
     // `ForLoopInst` help writers.
-    void writeBargraphUpdate(ForLoopInst* inst, String const& idx_name, ValueInst* end_val);
-    void writeSIMDBroadcastStore(String const& lhs_name, ValueInst* rhs, String const& dtype_name,
-                                 String const& width_name, String const& idx_name);
-    void writeSIMDIndexedLoadStore(String const& lhs_name, ValueInst* rhs, String const& dtype_name,
-                                   String const& width_name, String const& idx_name);
-    void writeSIMDIndexedComputationStore(String const& lhs_name, ValueInst* rhs, String const& dtype_name,
-                                          String const& width_name, String const& idx_name);
+    void writeMultiBargraph(ForLoopInst* inst, String& dname, String& dvalue, String& dwidth)
+    {
+        writeSIMDLoopHeader(inst, dname, dvalue, dwidth);
+        fTab += 1;
+        *fOut << wtab(fTab);
+        mj_emit_simd_set(true);
+        for (auto* line : *inst->fCode) {
+            line->accept(this);
+        }
+        mj_emit_simd_restore();
+        writeSIMDLoopIncrement(getIndexName(inst), dwidth);
+        fTab -= 1;
+        *fOut << wtab(fTab);
+    }
 
-    void toggleSIMD() { fEmitSIMD = !fEmitSIMD; }
+    void writeBargraphUpdate(ForLoopInst* inst, String& dname, String& dvalue, String& dwidth);
 
     // `ForLoopInst` helpers to write SIMD loops.
-    void writeSIMDLoopHeader(ForLoopInst*  inst, String const& dtype_name, String const& dtype_value,
-                                    String const& width_name, String const& idx_name, ValueInst* end_val);
-    void writeSIMDIndexInc(String const& idx_name, String const& width_name);
-    // Detect loops that contain a bargraph update in addition to the normal store.
-    static b32 hasBargraphUpdate(ForLoopInst* inst);
+    void writeSIMDLoopHeader(ForLoopInst* inst, String& dtype, String& dvalue, String& dwidth);
+    void writeSIMDLoopIncrement(String const& idx_name, String const& width_name);
+
     // Detect wrapped or non-contiguous indices that need a dedicated SIMD path.
     static b32 hasWrappedIndex(Address* addr);
     static b32 hasWrappedIndex(ValueInst* value);
+
     // Detect plain contiguous stores handled by the simple SIMD store path.
-    static b32 isUnitStrideStore(Address* addr, String const& idx_name);
-    // Detect scalar RHS values that can be expanded to all SIMD lanes.
-    static b32 isBroadcastValue(ValueInst* value, String const& idx_name);
-    // Detect indexed loads optionally wrapped in casts.
-    static b32 isIndexedLoad(ValueInst* value, String const& idx_name);
-    // Detect indexed RHS computations handled by the SIMD expression path.
-    static b32 isIndexedComputation(ValueInst* value, String const& idx_name);
+    static b32 isUnitStrideStore(Address* addr);
 
     static String getDTypeValue(ValueInst* rhs);
     static Tuple<String, String, String> getDTypeProperties(ValueInst* rhs);
-    static Tuple<StoreVarInst*, Address*, ValueInst*, String> parseSingleStore(BlockInst* rhs);
+    static Tuple<Address*, ValueInst*, String> parseSingleStore(BlockInst* rhs);
 
     static String getIndexName(ForLoopInst* inst);
     static ValueInst* getEndValue(ForLoopInst* inst);
@@ -172,8 +171,8 @@ public:
     - An instance is created with an `output` stream and a `tab` number
       for indentation.
     @rep
-    - Maintains an `out` stream to write to.
-    - Maintains a `tab` number for indentation.
+    - `out`: the stream to write to.
+    - `tab`: the number of tabs for indentation.
     @glob
     - Allows to generate a `zero initializer` for a given `typed` value.
 **/
@@ -186,7 +185,7 @@ public:
     MojoInitFieldsVisitor(OStream* out, i32 tab = 0);
 
     void visit(DeclareVarInst* inst)     override;
-    void visit(NamedAddress* named)      override;
+    void visit(NamedAddress* inst)      override;
     void visit(Int32ArrayNumInst* inst)  override;
     void visit(FloatArrayNumInst* inst)  override;
     void visit(DoubleArrayNumInst* inst) override;

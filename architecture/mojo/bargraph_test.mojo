@@ -1,7 +1,7 @@
 # ==============================================================================
-# Faust to Mojo architecture file for the benchmark framework integration.
-# Provides the definitons and the main entry point to run the dsp code in
-# several batches and print the write the report to `.tab` and `.csv` files 
+# Faust to Mojo inspect architecture for the benchmark framework.
+# Provides the minimal definitions and entry point needed to generate
+# low-level code with clear symbols for inspecting the generated compute code.
 # ==============================================================================
 # First section of architecture provided code start.
 # Imports the modules and the definitions of the architecture code.
@@ -10,10 +10,18 @@
 from conf import *
 from help import *
 from mem import *
-from bench import *
 from dsp import *
 from gui import *
 from meta import *
+
+from std.benchmark import keep, clobber_memory
+
+comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96_000]())
+comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 512]())
+comptime COMPUTE_ITERS = S32(get_defined_int["COMPUTE_ITERS", 100]())
+
+def assert_dfaust() -> None: comptime assert dfaust == F32.dtype
+comptime _ = assert_dfaust()
 
 # ==============================================================================
 # First section of architecture provided code end.
@@ -21,7 +29,7 @@ from meta import *
 # Code generated with Faust 2.85.5 (https://faust.grame.fr)
 # name: "bargraph"
 # Compilation options: 
-#   -a bench.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
+#   -a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
 #   -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs
 # ==============================================================================
 
@@ -101,11 +109,11 @@ struct mydsp(FaustDsp):
 
     @always_inline
     def get_json(read dsp) -> String:
-        return "{\"name\": \"bargraph\",\"filename\": \"bargraph.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a bench.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\".\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo\"],\"size\": 76,\"inputs\": 1,\"outputs\": 8,\"meta\": [ { \"compile_options\": \"-a bench.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"bargraph.dsp\" },{ \"name\": \"bargraph\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"bargraph\",\"items\": [ {\"type\": \"hslider\",\"label\": \"controls/gain_h\",\"varname\": \"fHslider0\",\"shortname\": \"controls_gain_h\",\"address\": \"/bargraph/controls_gain_h\",\"meta\": [{ \"0\": \"\" }],\"init\": 0.5,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"hbargraph\",\"label\": \"meters/b0_hbar\",\"varname\": \"fHbargraph0\",\"shortname\": \"meters_b0_hbar\",\"address\": \"/bargraph/meters_b0_hbar\",\"meta\": [{ \"10\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b1_vbar\",\"varname\": \"fVbargraph0\",\"shortname\": \"meters_b1_vbar\",\"address\": \"/bargraph/meters_b1_vbar\",\"meta\": [{ \"11\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"hbargraph\",\"label\": \"meters/b2_hbar\",\"varname\": \"fHbargraph1\",\"shortname\": \"meters_b2_hbar\",\"address\": \"/bargraph/meters_b2_hbar\",\"meta\": [{ \"12\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b3_vbar\",\"varname\": \"fVbargraph1\",\"shortname\": \"meters_b3_vbar\",\"address\": \"/bargraph/meters_b3_vbar\",\"meta\": [{ \"13\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vslider\",\"label\": \"controls/gain_v\",\"varname\": \"fVslider0\",\"shortname\": \"controls_gain_v\",\"address\": \"/bargraph/controls_gain_v\",\"meta\": [{ \"1\": \"\" }],\"init\": 0.25,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"nentry\",\"label\": \"controls/bias_n\",\"varname\": \"fEntry0\",\"shortname\": \"controls_bias_n\",\"address\": \"/bargraph/controls_bias_n\",\"meta\": [{ \"2\": \"\" }],\"init\": 0,\"min\": -1,\"max\": 1,\"step\": 0.001},{\"type\": \"checkbox\",\"label\": \"controls/gate_c\",\"varname\": \"fCheckbox0\",\"shortname\": \"controls_gate_c\",\"address\": \"/bargraph/controls_gate_c\",\"meta\": [{ \"3\": \"\" }]},{\"type\": \"button\",\"label\": \"controls/trig_b\",\"varname\": \"fButton0\",\"shortname\": \"controls_trig_b\",\"address\": \"/bargraph/controls_trig_b\",\"meta\": [{ \"4\": \"\" }]}]}]}"
+        return "{\"name\": \"bargraph\",\"filename\": \"bargraph.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\".\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo\"],\"size\": 76,\"inputs\": 1,\"outputs\": 8,\"meta\": [ { \"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"bargraph.dsp\" },{ \"name\": \"bargraph\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"bargraph\",\"items\": [ {\"type\": \"hslider\",\"label\": \"controls/gain_h\",\"varname\": \"fHslider0\",\"shortname\": \"controls_gain_h\",\"address\": \"/bargraph/controls_gain_h\",\"meta\": [{ \"0\": \"\" }],\"init\": 0.5,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"hbargraph\",\"label\": \"meters/b0_hbar\",\"varname\": \"fHbargraph0\",\"shortname\": \"meters_b0_hbar\",\"address\": \"/bargraph/meters_b0_hbar\",\"meta\": [{ \"10\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b1_vbar\",\"varname\": \"fVbargraph0\",\"shortname\": \"meters_b1_vbar\",\"address\": \"/bargraph/meters_b1_vbar\",\"meta\": [{ \"11\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"hbargraph\",\"label\": \"meters/b2_hbar\",\"varname\": \"fHbargraph1\",\"shortname\": \"meters_b2_hbar\",\"address\": \"/bargraph/meters_b2_hbar\",\"meta\": [{ \"12\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b3_vbar\",\"varname\": \"fVbargraph1\",\"shortname\": \"meters_b3_vbar\",\"address\": \"/bargraph/meters_b3_vbar\",\"meta\": [{ \"13\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vslider\",\"label\": \"controls/gain_v\",\"varname\": \"fVslider0\",\"shortname\": \"controls_gain_v\",\"address\": \"/bargraph/controls_gain_v\",\"meta\": [{ \"1\": \"\" }],\"init\": 0.25,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"nentry\",\"label\": \"controls/bias_n\",\"varname\": \"fEntry0\",\"shortname\": \"controls_bias_n\",\"address\": \"/bargraph/controls_bias_n\",\"meta\": [{ \"2\": \"\" }],\"init\": 0,\"min\": -1,\"max\": 1,\"step\": 0.001},{\"type\": \"checkbox\",\"label\": \"controls/gate_c\",\"varname\": \"fCheckbox0\",\"shortname\": \"controls_gate_c\",\"address\": \"/bargraph/controls_gate_c\",\"meta\": [{ \"3\": \"\" }]},{\"type\": \"button\",\"label\": \"controls/trig_b\",\"varname\": \"fButton0\",\"shortname\": \"controls_trig_b\",\"address\": \"/bargraph/controls_trig_b\",\"meta\": [{ \"4\": \"\" }]}]}]}"
 
     @always_inline
     def metadata(read dsp, mut meta: Some[FaustMeta]) -> None:
-        meta.declare("compile_options", "-a bench.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
+        meta.declare("compile_options", "-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
         meta.declare("filename", "bargraph.dsp")
         meta.declare("name", "bargraph")
 
@@ -169,6 +177,7 @@ struct mydsp(FaustDsp):
             var output6 = Ptr(to=output6_ptr[vindex_re0])
             var output7 = Ptr(to=output7_ptr[vindex_re0])
             var vsize_re0 = S32(4)
+
             # Vectorizable loop 0 
             # Compute code 
             var i_re0 = S32(0)
@@ -201,31 +210,53 @@ struct mydsp(FaustDsp):
                 dsp.vbargraph1 = values[Int(dfaust_width) - 1]
                 simd_store(output3, i_re3, values)
                 i_re3 = i_re3 + S32(dfaust_width)
+
             # Vectorizable loop 4 
             # Compute code 
             var i_re4 = S32(0)
-            while (i_re4) < (vsize_re0): 
-                output4[i_re4] = FaustFloat((slow7) * ((slow0) + (F64(input0[i_re4]))))
-                i_re4 = (i_re4) + (S32(1))
+            comptime dtype0 = dfaust
+            comptime width0 = S32(simd_width_of[dtype0]())
+            while i_re4 <= vsize_re0 - width0:
+                var lo = ((slow7) * ((slow0) + ((simd_load(input0, i_re4)).cast[dreal]()))).cast[dfaust]()
+                var hi = ((slow7) * ((slow0) + ((simd_load(input0, i_re4 + S32(dfaust_width))).cast[dreal]()))).cast[dfaust]()
+                var values = lo.join(hi)
+                simd_store(output4, i_re4, values)
+                i_re4 = i_re4 + S32(width0)
             # Vectorizable loop 5 
             # Compute code 
             var i_re5 = S32(0)
-            while (i_re5) < (vsize_re0): 
-                output5[i_re5] = FaustFloat((slow8) * ((F64(input0[i_re5])) - (slow0)))
-                i_re5 = (i_re5) + (S32(1))
+            comptime dtype1 = dfaust
+            comptime width1 = S32(simd_width_of[dtype1]())
+            while i_re5 <= vsize_re0 - width1:
+                var lo = ((slow8) * (((simd_load(input0, i_re5)).cast[dreal]()) - (slow0))).cast[dfaust]()
+                var hi = ((slow8) * (((simd_load(input0, i_re5 + S32(dfaust_width))).cast[dreal]()) - (slow0))).cast[dfaust]()
+                var values = lo.join(hi)
+                simd_store(output5, i_re5, values)
+                i_re5 = i_re5 + S32(width1)
             # Vectorizable loop 6 
             # Compute code 
             var i_re6 = S32(0)
-            while (i_re6) < (vsize_re0): 
-                output6[i_re6] = FaustFloat((slow9) * (F64(input0[i_re6])))
-                i_re6 = (i_re6) + (S32(1))
+            comptime dtype2 = dfaust
+            comptime width2 = S32(simd_width_of[dtype2]())
+            while i_re6 <= vsize_re0 - width2:
+                var lo = ((slow9) * ((simd_load(input0, i_re6)).cast[dreal]())).cast[dfaust]()
+                var hi = ((slow9) * ((simd_load(input0, i_re6 + S32(dfaust_width))).cast[dreal]())).cast[dfaust]()
+                var values = lo.join(hi)
+                simd_store(output6, i_re6, values)
+                i_re6 = i_re6 + S32(width2)
             # Vectorizable loop 7 
             # Compute code 
             var i_re7 = S32(0)
-            while (i_re7) < (vsize_re0): 
-                output7[i_re7] = FaustFloat((slow10) * (F64(input0[i_re7])))
-                i_re7 = (i_re7) + (S32(1))
+            comptime dtype3 = dfaust
+            comptime width3 = S32(simd_width_of[dtype3]())
+            while i_re7 <= vsize_re0 - width3:
+                var lo = ((slow10) * ((simd_load(input0, i_re7)).cast[dreal]())).cast[dfaust]()
+                var hi = ((slow10) * ((simd_load(input0, i_re7 + S32(dfaust_width))).cast[dreal]())).cast[dfaust]()
+                var values = lo.join(hi)
+                simd_store(output7, i_re7, values)
+                i_re7 = i_re7 + S32(width3)
             vindex_re0 = (vindex_re0) + (S32(4))
+
         # Remaining frames 
         if ((vindex_re0) < (count) != 0):
             var input0 = Ptr(to=input0_ptr[vindex_re0])
@@ -270,69 +301,88 @@ struct mydsp(FaustDsp):
                 dsp.vbargraph1 = values[Int(dfaust_width) - 1]
                 simd_store(output3, i_re11, values)
                 i_re11 = i_re11 + S32(dfaust_width)
+
             # Vectorizable loop 4 
             # Compute code 
             var i_re12 = S32(0)
-            while (i_re12) < (vsize_re1): 
-                output4[i_re12] = FaustFloat((slow7) * ((slow0) + (F64(input0[i_re12]))))
-                i_re12 = (i_re12) + (S32(1))
+            comptime dtype4 = dfaust
+            comptime width4 = S32(simd_width_of[dtype4]())
+            while i_re12 <= vsize_re1 - width4:
+                var lo = ((slow7) * ((slow0) + ((simd_load(input0, i_re12)).cast[dreal]()))).cast[dfaust]()
+                var hi = ((slow7) * ((slow0) + ((simd_load(input0, i_re12 + S32(dfaust_width))).cast[dreal]()))).cast[dfaust]()
+                var values = lo.join(hi)
+                simd_store(output4, i_re12, values)
+                i_re12 = i_re12 + S32(width4)
             # Vectorizable loop 5 
             # Compute code 
             var i_re13 = S32(0)
-            while (i_re13) < (vsize_re1): 
-                output5[i_re13] = FaustFloat((slow8) * ((F64(input0[i_re13])) - (slow0)))
-                i_re13 = (i_re13) + (S32(1))
+            comptime dtype5 = dfaust
+            comptime width5 = S32(simd_width_of[dtype5]())
+            while i_re13 <= vsize_re1 - width5:
+                var lo = ((slow8) * (((simd_load(input0, i_re13)).cast[dreal]()) - (slow0))).cast[dfaust]()
+                var hi = ((slow8) * (((simd_load(input0, i_re13 + S32(dfaust_width))).cast[dreal]()) - (slow0))).cast[dfaust]()
+                var values = lo.join(hi)
+                simd_store(output5, i_re13, values)
+                i_re13 = i_re13 + S32(width5)
             # Vectorizable loop 6 
             # Compute code 
             var i_re14 = S32(0)
-            while (i_re14) < (vsize_re1): 
-                output6[i_re14] = FaustFloat((slow9) * (F64(input0[i_re14])))
-                i_re14 = (i_re14) + (S32(1))
+            comptime dtype6 = dfaust
+            comptime width6 = S32(simd_width_of[dtype6]())
+            while i_re14 <= vsize_re1 - width6:
+                var lo = ((slow9) * ((simd_load(input0, i_re14)).cast[dreal]())).cast[dfaust]()
+                var hi = ((slow9) * ((simd_load(input0, i_re14 + S32(dfaust_width))).cast[dreal]())).cast[dfaust]()
+                var values = lo.join(hi)
+                simd_store(output6, i_re14, values)
+                i_re14 = i_re14 + S32(width6)
             # Vectorizable loop 7 
             # Compute code 
             var i_re15 = S32(0)
-            while (i_re15) < (vsize_re1): 
-                output7[i_re15] = FaustFloat((slow10) * (F64(input0[i_re15])))
-                i_re15 = (i_re15) + (S32(1))
+            comptime dtype7 = dfaust
+            comptime width7 = S32(simd_width_of[dtype7]())
+            while i_re15 <= vsize_re1 - width7:
+                var lo = ((slow10) * ((simd_load(input0, i_re15)).cast[dreal]())).cast[dfaust]()
+                var hi = ((slow10) * ((simd_load(input0, i_re15 + S32(dfaust_width))).cast[dreal]())).cast[dfaust]()
+                var values = lo.join(hi)
+                simd_store(output7, i_re15, values)
+                i_re15 = i_re15 + S32(width7)
 
 # ==============================================================================
 # Faust generated DSP code end.
 # ==============================================================================
 # Second section of architecture provided code start.
-# Defines the main entry point of the application, initializes the dsp object
-# and the user interface, allocates the buffers and runs the benchmark.
+# Defines the main entry point of the application.
+# Initializes the dsp object, allocates and intializes the audio buffers and
+# calls the inspect function to run the dsp code.
 # ==============================================================================
 
-def main() raises -> None:
+def main() -> None:
     var dsp = alloc[mydsp](1)
     dsp[] = mydsp()
     dsp[].init(SAMP_RATE)
-
     var n_ins = dsp[].get_num_inputs()
     var n_outs = dsp[].get_num_outputs()
-
     var base, err = make_streams[dfaust](BUFF_SIZE, n_ins, n_outs)
     if err:
-        print("Panic in main - Critical allocation error: ", err)
         dsp.free()
         return
-
-    var inputs = base.unsafe_value().bitcast[Ptr[FaustFloat, MUTA_NOTRK]]()
-    var outputs = inputs + n_ins
-
-    comptime if FILL_INPUTS:
-        fill_inputs(inputs, n_ins)
-
-    warmup(dsp[], inputs, outputs)
-    var report = measure(dsp[], inputs, outputs)
-    report.checksum = checksum_outputs(outputs, n_outs)
-    print_report(report) # the output will be redirected via script
-
-    comptime if WRITE_CSV:
-        write_csv(report)
-
-    free_streams[dfaust](base)
+    var ptr = base.unsafe_value()
+    var inputs = ptr.bitcast[Ptr[FaustFloat, READ_NOTRK]]().as_immutable()
+    var outputs = (ptr + n_ins).bitcast[Ptr[FaustFloat, MUTA_NOTRK]]()
+    inspect_compute(dsp[], inputs, outputs)
+    ptr.free()
     dsp.free()
+
+@no_inline
+@export("inspect_compute")
+def inspect_compute(
+    mut dsp: mydsp, inputs: ReadStreams, outputs: MutaStreams
+) abi("Mojo") -> None:
+    for _ in range(COMPUTE_ITERS):
+        keep(inputs)
+        keep(outputs)
+        dsp.compute(BUFF_SIZE, inputs, outputs)
+        clobber_memory()
 
 # ==============================================================================
 # Second section of architecture provided code end.

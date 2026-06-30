@@ -13,14 +13,13 @@ def simd_store[
     ptr.store[width=simd_width_of[dtype]()](idx, value)
 
 @always_inline
-def simd_store[
-    dtype: DType, size: Int, //
-](
-    mut  arr:    Arr[Scalar[dtype], size],
-    read idx:    S32,
-    read value:  SIMD[dtype, simd_width_of[dtype]()],
+def simd_store[width: Int, size: Int](
+    mut  arr:    Arr[F64, size],
+    var  idx:    S32,
+    read value:  SIMD[f64, width],
 ) -> None:
-    Ptr(to=arr[S32(0)]).store[width=simd_width_of[dtype]()](idx, value)
+    Ptr(to=arr[S32(0)]).store[width=width](idx, value)
+
 
 # @always_inline
 # def simd_store[width: Int, size: Int](

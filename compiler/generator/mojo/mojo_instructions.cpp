@@ -309,12 +309,12 @@ void MojoInstVisitor::visit(LoadVarAddressInst* inst)
     inst->fAddress->accept(this);  // NOTE:(manu) value semantics (l-value ref)
 }
 
-void MojoInstVisitor::visit(NamedAddress* named)
+void MojoInstVisitor::visit(NamedAddress* inst)
 {
-    if (named->isStruct() || named->isStaticStruct()) {
+    if (inst->isStruct() || inst->isStaticStruct()) {
         *fOut << "dsp.";
     }
-    String name = snakeCase(named->fName);
+    String name = snakeCase(inst->fName);
     *fOut << name;
 }
 
@@ -446,15 +446,15 @@ void MojoInstVisitor::writeFunDefBody(DeclareFunInst* inst)
 // MojoVecInstVisitor implementation
 
 MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, const String& structName, int tab)
-    : MojoInstVisitor(out, structName, tab), fEmitSIMD(false)
-{
+    : MojoInstVisitor(out, structName, tab)
+{   
+    gEmitSIMD = false;   
+    gEmitJoin = false;
 }
 
 void MojoVecInstVisitor::visit(CastInst* inst)
 {
-    if (not fEmitSIMD) {
-        return MojoInstVisitor::visit(inst);
-    }
+    mj_emit_simd_check();
 
     Typed::VarType type = inst->fType->getType();
     *fOut << "(";
@@ -471,34 +471,52 @@ void MojoVecInstVisitor::visit(CastInst* inst)
         *fOut << ").cast[s32]()";
         break;
     default:
-        mj_error_msg(std::cerr, "MojoVecInstVisitor:visit(CastInst*) - Unexpected type " << type);
-        faustassert(false);
+        mj_panic(false, "`inst` has unexpected type " << Typed::gTypeString[type]);
     }
 }
 
-void MojoVecInstVisitor::visit(IndexedAddress* indexed)
+void MojoVecInstVisitor::visit(IndexedAddress* inst)
 {
-    if (not fEmitSIMD) {
-        return MojoInstVisitor::visit(indexed);
+    // mj_debug_fir(std::cerr, inst, "visit(IndexedAddress*)");
+
+    mj_emit_simd_check();
+    Address* addr = inst->fAddress;
+    String src_name = snakeCase(addr->getName());
+    src_name = addr->isStruct() ? "dsp." + src_name : src_name;
+
+    // XXX:(manu) assumings a shape like A[i] or A[i + off]
+    // at this point should be already checked.
+    if (auto* idx = dycast(BinopInst*, inst->fIndices[0]); idx) {
+        auto* idx_lhs = dycast(LoadVarInst*, idx->fInst1);
+        auto* idx_rhs = dycast(ValueInst*, idx->fInst2);
+        if (idx_lhs && idx_rhs && idx_rhs->isSimpleValue()) {
+            String idx_name = idx_lhs->getName() + (gEmitJoin ? " + S32(dreal_width)" : "");
+            *fOut << "simd_load(" << src_name << ", " << idx_name << " " << gBinOpTable[idx->fOpcode]->fName << " ";
+            idx_rhs->accept(this);
+            *fOut << ")";        
+            return;
+        }
     }
-    Address* addr = indexed->fAddress;
-    auto* idx = dycast(LoadVarInst*, indexed->fIndices[0]);
-    puts("here");
-    faustassert(idx);
-    if (addr->isStack() && idx->fAddress->isLoop()) {
-        *fOut << "simd_load(" << addr->getName() << ", " << idx->fAddress->getName() << ")";
-    }
+
+    // mj_panic(idx, "visit(IndexedAddress*) - dycast(LoadVarInst*, indexed->fIndices[0])");
+    // if (addr->isStack() && idx->fAddress->isLoop()) {
+
+    auto* idx = dycast(LoadVarInst*, inst->fIndices[0]);
+    String idx_name = snakeCase(idx->getName()) + (gEmitJoin ? " + S32(dreal_width)" : "");
+    *fOut << "simd_load(" << src_name << ", " << idx_name << ")";
+
+    // fallback?
 }
-void MojoVecInstVisitor::visit(NamedAddress* named)
+
+void MojoVecInstVisitor::visit(NamedAddress* inst)
 {
-    if (named->isLoop()) {
-        b32 old_emit_simd = fEmitSIMD;
-        fEmitSIMD = false;
-        MojoInstVisitor::visit(named);
-        fEmitSIMD = old_emit_simd;
+    if (inst->isLoop()) {
+        mj_emit_simd_set(false);
+        MojoInstVisitor::visit(inst);
+        mj_emit_simd_restore();
         return;
     }
-    MojoInstVisitor::visit(named);
+    MojoInstVisitor::visit(inst);
 }
 
 void MojoVecInstVisitor::visit(LabelInst* inst)
@@ -508,84 +526,78 @@ void MojoVecInstVisitor::visit(LabelInst* inst)
     *fOut << label << wnextl(fTab);
 }
 
-// TODO:(manu) Categorize non-recursive vec loops and emit SIMD accordingly.
-//  Verified assumptions from inspected C++ vec code:
-//  - recursive loops fall back to scalar;
-//  - most non-recursive vec loops are single-store;
-//  - multi-instruction non-recursive vec loops are UI/bargraph special cases;
-//  - most store LHS forms are unit-stride;
-//  - masked/ring-buffer accesses can appear in non-recursive vec loops;
-//    they need fallback or a dedicated path.
-//
-//  Categories:
-//  - loop-invariant RHS:
-//      emit SIMD broadcast + `simd_store`;
-//  - direct indexed copy/cast, e.g. `A[i] = B[i + k]`:
-//      emit `simd_load` + `simd_store`;
-//  - supported indexed expression:
-//      emit SIMD expression with lane-wise loads;
-//  - UI/bargraph multi-store:
-//      scalarize UI updates and SIMD-store the normal output/store when supported;
-//  - masked/ring-buffer LHS/RHS:
-//      fall back for now;
-//  - unsupported form:
-//      fall back to the scalar Mojo visitor.
-
 void MojoVecInstVisitor::visit(ForLoopInst* inst)
 {
     if (inst->fCode->size() == 0) {
         return;
     }
     if (inst->fIsRecursive) {
-        MojoInstVisitor::visit(inst);
-        return;
+        return MojoInstVisitor::visit(inst);
     }
 
-    faustassert(inst->fCode->size() == 1 || inst->fCode->size() == 2);
+    auto [lhs, rhs, lhs_name]    = parseSingleStore(inst->fCode);  // Address*, ValueInst*, String
+    auto [dvalue, dname, dwidth] = getDTypeProperties(rhs);   // String, String, String
 
-    String idx_name    = getIndexName(inst);
-    ValueInst* end_val = getEndValue(inst);
+    if (inst->fCode->size() > 2) {
+        return writeMultiBargraph(inst, dname, dvalue, dwidth);
+    }
+
+    // mj_panic(inst->fCode->size() == 1 || inst->fCode->size() == 2, "Unexpected `ForLoopInst` size");
 
     if (inst->fCode->size() == 2) {
-        writeBargraphUpdate(inst, idx_name, end_val);
-        return;
+        return writeBargraphUpdate(inst, dname, dvalue, dwidth);
     }
 
-    auto [store, lhs, rhs, lhs_name] = parseSingleStore(inst->fCode);
-    auto [dtype_value, dtype_name, width_name] = getDTypeProperties(rhs);
-
-    if (hasWrappedIndex(lhs) || hasWrappedIndex(rhs)) {
-        MojoInstVisitor::visit(inst);
-        return;
-    }
-    if (!isUnitStrideStore(lhs, idx_name)) {
-        MojoInstVisitor::visit(inst);
-        return;
+    if (!isUnitStrideStore(lhs) || hasWrappedIndex(rhs)) {
+        return MojoInstVisitor::visit(inst);
     }
 
-    writeSIMDLoopHeader(inst, dtype_name, dtype_value, width_name, idx_name, end_val);
+
+    writeSIMDLoopHeader(inst, dname, dvalue, dwidth);
     fTab += 1;
 
-    if (isBroadcastValue(rhs, idx_name)) {
-        writeSIMDBroadcastStore(lhs_name, rhs, dtype_name, width_name, idx_name);
+    mj_emit_simd_set(true);
+
+    auto rhs_type = Typed::kNoType;
+    auto lhs_type = Typed::kNoType;
+    mj_debug_fir(std::cerr, rhs, "rhs");
+    // the casted expression defines the type of the lhs
+    if (auto* cast_inst = dycast(CastInst*, rhs)) {
+        lhs_type = TypingVisitor::getType(cast_inst);
+        mj_debug_msg(std::cerr, "lhs_type: " << Typed::gTypeString[lhs_type]);
+        // we want the temporary type of the rhs internal computation too
+        if (auto* binop_inst = dycast(BinopInst*, cast_inst->fInst)) {
+            rhs_type = TypingVisitor::getType(binop_inst);
+            mj_debug_msg(std::cerr, "rhs_type: " << Typed::gTypeString[rhs_type]);
+        }
+    }
+
+    // XXX:
+    puts(Typed::gTypeString[lhs_type].c_str());
+    puts(Typed::gTypeString[rhs_type].c_str());
+
+    b32 lhs_small_width = (lhs_type == Typed::kDouble)
+                        || (lhs_type == Typed::kFloatMacro && std::is_same_v<FAUSTFLOAT, float>);
+    if (lhs_small_width && rhs_type == Typed::kDouble) {
+        *fOut << wtab(fTab) << "var lo = ";
+        rhs->accept(this);
+        *fOut << wnextl(fTab) << "var hi = ";
+        b32 old_emit_join = gEmitJoin;
+        gEmitJoin = true;
+        rhs->accept(this);
+        gEmitJoin = old_emit_join;
+        *fOut << wnextl(fTab) << "var values = lo.join(hi)";
         goto End_Loop;
     }
 
-    if (isIndexedLoad(rhs, idx_name)) {
-        writeSIMDIndexedLoadStore(lhs_name, rhs, dtype_name, width_name, idx_name);
-        goto End_Loop;
-    }
-
-    if (isIndexedComputation(rhs, idx_name)) {
-        writeSIMDIndexedComputationStore(lhs_name, rhs, dtype_name, width_name, idx_name);
-        goto End_Loop;
-    }
-
-    std::cerr << "Panic in MojoVecInstVisitor::visit(ForLoopInst*) - Unsupported loop form\n";
-    faustassert(false);
+    *fOut << wtab(fTab) << "var values = ";
+    rhs->accept(this);
 
 End_Loop:
-    writeSIMDIndexInc(idx_name, width_name);
+    mj_emit_simd_restore();
+    String idx_name = getIndexName(inst);
+    *fOut << wnextl(fTab) << "simd_store(" << lhs_name << ", " << idx_name << ", values)\n";
+    writeSIMDLoopIncrement(idx_name, dwidth);
     fTab -= 1;
     *fOut << wtab(fTab);
 }
@@ -593,43 +605,44 @@ End_Loop:
 String MojoVecInstVisitor::getIndexName(ForLoopInst* inst)
 {
     auto* ini_inst = dycast(DeclareVarInst*, inst->fInit);
-    faustassert(ini_inst);
+    mj_panic(ini_inst, "Expected `inst` to be `DeclareVarInst`");
     return ini_inst->fAddress->getName();
 }
 
 ValueInst* MojoVecInstVisitor::getEndValue(ForLoopInst* inst)
 {
     auto* end_inst = dycast(BinopInst*, inst->fEnd);
-    faustassert(end_inst);
+    mj_panic(end_inst, "Expected `inst` to be `BinopInst`");
     return end_inst->fInst2;
 }
 
-Tuple<StoreVarInst*, Address*, ValueInst*, String> MojoVecInstVisitor::parseSingleStore(BlockInst* block)
+Tuple<Address*, ValueInst*, String> MojoVecInstVisitor::parseSingleStore(BlockInst* inst)
 {
-    auto* store = dycast(StoreVarInst*, block->front());
-    faustassert(store);
+    auto* store = dycast(StoreVarInst*, inst->front());
+    mj_panic(store, "The first instruction of the block is expected to be a `StoreVarInst`");
     Address*   lhs      = store->fAddress;
     ValueInst* rhs      = store->fValue;
     String     lhs_name = snakeCase(lhs->getName());
     if (lhs->isStruct() || lhs->isStaticStruct()) {
         lhs_name = "dsp." + lhs_name;
     }
-    return {store, lhs, rhs, lhs_name};
+    return {lhs, rhs, lhs_name};
 }
 
-void MojoVecInstVisitor::writeSIMDLoopHeader(
-    ForLoopInst* inst,        String const& dtype_name, String const& dtype_value,
-    String const& width_name, String const& idx_name,   ValueInst* end_val
+void MojoVecInstVisitor::writeSIMDLoopHeader( 
+    ForLoopInst* inst, String& dname, String& dvalue, String& dwidth
 ) {
+    auto idx_name = getIndexName(inst);
+    auto end_val  = getEndValue(inst);
     inst->fInit->accept(this);
-    *fOut << "comptime " << dtype_name << " = " << dtype_value << wnextl(fTab);
-    *fOut << "comptime " << width_name << " = S32(simd_width_of[" << dtype_name << "]())" << wnextl(fTab);
+    *fOut << "comptime " << dname << " = " << dvalue << wnextl(fTab);
+    *fOut << "comptime " << dwidth << " = S32(simd_width_of[" << dname << "]())" << wnextl(fTab);
     *fOut << "while " << idx_name << " <= ";
     end_val->accept(this);
-    *fOut << " - " << width_name << ":\n";
+    *fOut << " - " << dwidth << ":\n";
 }
 
-void MojoVecInstVisitor::writeSIMDIndexInc(String const& idx_name, String const& width_name)
+void MojoVecInstVisitor::writeSIMDLoopIncrement(String const& idx_name, String const& width_name)
 {
     *fOut << wtab(fTab) << idx_name << " = " << idx_name << " + S32(" << width_name << ")\n";
 }
@@ -651,36 +664,42 @@ b32 MojoVecInstVisitor::hasWrappedIndex(ValueInst* value)
     return false;
 }
 
-b32 MojoVecInstVisitor::isUnitStrideStore(Address* addr, String const& idx_name)
+b32 MojoVecInstVisitor::isUnitStrideStore(Address* addr)
 {
-    mj_noimpl2(std::cerr, "isUnitStrideStore()", addr, idx_name);
-    return false;
-}
 
-b32 MojoVecInstVisitor::isBroadcastValue(ValueInst* value, String const& idx_name)
-{
-    mj_noimpl2(std::cerr, "isBroadcastValue()", value, idx_name);
-    return false;
-}
+    if (not addr->isStack()) {
+        return false;
+    }
 
-b32 MojoVecInstVisitor::isIndexedLoad(ValueInst* value, String const& idx_name)
-{
-    mj_noimpl2(std::cerr, "isIndexedLoad()", value, idx_name);
-    return false;
-}
+    IndexedAddress* indexed = dycast(IndexedAddress*, addr);
+    if (not (indexed && indexed->fIndices.size() == 1)) {
+       return false; 
+    }
 
-b32 MojoVecInstVisitor::isIndexedComputation(ValueInst* value, String const& idx_name)
-{
-    mj_noimpl2(std::cerr, "isIndexedComputation()", value, idx_name);
-    return false;
+    auto* idx = dycast(LoadVarInst*, indexed->fIndices[0]);
+    if (not (idx && idx->isSimpleValue())) {
+       return false; 
+    }
+
+    auto* idx_addr = dycast(Address*, idx->fAddress);
+    if (not (idx_addr && idx_addr->isLoop())) {
+        return false;
+    }
+
+    // XXX: may remove this line and refactor the function to not take idx_name
+    // mj_panic(idx_addr->getName() == idx_name, "Loop index name does not match the given `idx_name`");
+
+    return true;
 }
 
 void MojoVecInstVisitor::writeBargraphUpdate(
-    ForLoopInst* inst, String const& idx_name, ValueInst* end_val
+    ForLoopInst* inst, String& dname, String& dvalue, String& dwidth
 ) {
-    auto [store_1, lhs_1, rhs_1, lhs_name_1] = parseSingleStore(inst->fCode);
+    String idx_name = getIndexName(inst);
+    ValueInst* end_val = getEndValue(inst);
+    auto [lhs_1, rhs_1, lhs_name_1] = parseSingleStore(inst->fCode);
     inst->fCode->pop_front();
-    auto [store_2, lhs_2, rhs_2, lhs_name_2] = parseSingleStore(inst->fCode);
+    auto [lhs_2, rhs_2, lhs_name_2] = parseSingleStore(inst->fCode);
 
     inst->fInit->accept(this);
     *fOut << "while " << idx_name << " <= ";
@@ -688,8 +707,7 @@ void MojoVecInstVisitor::writeBargraphUpdate(
     *fOut << " - S32(dfaust_width):\n";
     fTab += 1;
 
-    b32 old_emit_simd = fEmitSIMD;
-    fEmitSIMD = true;
+    mj_emit_simd_set(true);
 
     *fOut << wtab(fTab) << "var values = ";
     rhs_1->accept(this);
@@ -698,32 +716,11 @@ void MojoVecInstVisitor::writeBargraphUpdate(
     *fOut << wtab(fTab) << lhs_name_1 << " = values[Int(dfaust_width) - 1]\n";
     *fOut << wtab(fTab) << "simd_store(" << lhs_name_2 << ", " << idx_name << ", values)\n";
 
-    writeSIMDIndexInc(idx_name, "dfaust_width");
+    writeSIMDLoopIncrement(idx_name, "dfaust_width");
     fTab -= 1;
     *fOut << wtab(fTab);
 
-    fEmitSIMD = old_emit_simd;
-}
-
-void MojoVecInstVisitor::writeSIMDBroadcastStore(
-    String const& lhs_name,   ValueInst* rhs,        String const& dtype_name,
-    String const& width_name, String const& idx_name
-) {
-    mj_noimpl5(std::cerr, "writeSIMDBroadcastStore()", lhs_name, rhs, dtype_name, width_name, idx_name);
-}
-
-void MojoVecInstVisitor::writeSIMDIndexedLoadStore(
-    String const& lhs_name,   ValueInst* rhs,        String const& dtype_name,
-    String const& width_name, String const& idx_name
-) {
-    mj_noimpl5(std::cerr, "writeSIMDIndexedLoadStore()", lhs_name, rhs, dtype_name, width_name, idx_name);
-}
-
-void MojoVecInstVisitor::writeSIMDIndexedComputationStore(
-    String const& lhs_name,    ValueInst* rhs,            String const& dtype_name,
-    String const& width_name,  String const& idx_name
-) {
-    mj_noimpl5(std::cerr, "writeSIMDIndexedComputationStore()", lhs_name, rhs, dtype_name, width_name, idx_name);
+    mj_emit_simd_restore();
 }
 
 String MojoVecInstVisitor::getDTypeValue(ValueInst* rhs) {
@@ -749,8 +746,7 @@ String MojoVecInstVisitor::getDTypeValue(ValueInst* rhs) {
         dtype_value = "dfaust";
         break;
     default:
-        std::cerr << "Panic in MojoVecInstVisitor::visit(ForLoopInst*) - Unexpected type  " << type << std::endl;
-        faustassert(false);
+        mj_panic(false, "Unexpected `rhs` type " << Typed::gTypeString[type]);
     }
     return dtype_value;
 }
@@ -775,12 +771,12 @@ void MojoInitFieldsVisitor::visit(DeclareVarInst* inst)
     }
 }
 
-void MojoInitFieldsVisitor::visit(NamedAddress* named)
+void MojoInitFieldsVisitor::visit(NamedAddress* inst)
 {
-    if (named->isStruct() || named->isStaticStruct()) {
+    if (inst->isStruct() || inst->isStaticStruct()) {
         *fOut << "dsp.";
     }
-    *fOut << snakeCase(named->fName);
+    *fOut << snakeCase(inst->fName);
 }
 
 void MojoInitFieldsVisitor::visit(Int32ArrayNumInst* inst)
@@ -848,9 +844,7 @@ void MojoInitFieldsVisitor::gZeroInitializer(OStream* out, Typed* typed) {
         *out << "0.0";
         break;
     default:
-        *out << "Panic - MojoInitFieldsVisitor::gZeroInitializer(...) - `typed` has "
-                "unexpected `VarType` " << Typed::gTypeString[type] << "\n";
-        faustassert(false);
+        mj_panic(false, "`typed` has unexpected type " << Typed::gTypeString[type]);
     }
     *out << "\n";
 }
@@ -958,3 +952,26 @@ MathLibTable MojoInstVisitor::gCreateMathLibTable()
 }
 
 }  // namespace mojo
+
+// TODO:(manu) Categorize non-recursive vec loops and emit SIMD accordingly.
+//  Verified assumptions from inspected C++ vec code:
+//  - recursive loops fall back to scalar;
+//  - most non-recursive vec loops are single-store;
+//  - multi-instruction non-recursive vec loops are UI/bargraph special cases;
+//  - most store LHS forms are unit-stride;
+//  - masked/ring-buffer accesses can appear in non-recursive vec loops;
+//    they need fallback or a dedicated path.
+//
+//  Categories:
+//  - loop-invariant RHS:
+//      emit SIMD broadcast + `simd_store`;
+//  - direct indexed copy/cast, e.g. `A[i] = B[i + k]`:
+//      emit `simd_load` + `simd_store`;
+//  - supported indexed expression:
+//      emit SIMD expression with lane-wise loads;
+//  - UI/bargraph multi-store:
+//      scalarize UI updates and SIMD-store the normal output/store when supported;
+//  - masked/ring-buffer LHS/RHS:
+//      fall back for now;
+//  - unsupported form:
+//      fall back to the scalar Mojo visitor.

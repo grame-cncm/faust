@@ -41,6 +41,19 @@
         out << "\n"
 #endif
 
+#ifndef mj_panic_msg
+    #define mj_panic_msg(out, msg) \
+        out << "\n======== PANIC - " << msg << " =========\n"
+#endif
+
+#ifndef mj_panic
+    #define mj_panic(cond, msg)           \
+        if (!(cond)) {                    \
+            mj_panic_msg(std::cerr, msg); \
+        }                                 \
+        faustassert(cond)
+#endif
+
 #ifndef mj_unused
     #define mj_unused(x) ((void)(x))
 #endif
@@ -85,6 +98,21 @@
 #endif
 #ifndef recast
     #define recast(T, x) reinterpret_cast<T>(x)
+#endif
+
+#ifndef mj_emit_simd_check
+    #define mj_emit_simd_check()                 \
+        if (not gEmitSIMD) {                     \
+            return MojoInstVisitor::visit(inst); \
+        }
+#endif
+#ifndef mj_emit_simd_set
+    #define mj_emit_simd_set(b)        \
+        b32 old_emit_simd = gEmitSIMD; \
+        gEmitSIMD         = b
+#endif
+#ifndef mj_emit_simd_restore
+    #define mj_emit_simd_restore() gEmitSIMD = old_emit_simd;
 #endif
 
 #endif  // _MOJO_MACRO_HH
