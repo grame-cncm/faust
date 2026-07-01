@@ -4,64 +4,32 @@ from conf import *
 
 @always_inline
 def simd_store[
-    dtype: DType, ori: Origin[mut=True], //
+    dtype: DType, width: Int
 ](
-    ptr:    Ptr[Scalar[dtype], ori],
-    idx:    S32,
-    value:  SIMD[dtype, simd_width_of[dtype]()]
+    var  ptr:    Ptr[Scalar[dtype], _],
+    read idx:    S32,
+    read value:  SIMD[dtype, width]
 ) -> None:
-    ptr.store[width=simd_width_of[dtype]()](idx, value)
+    ptr.unsafe_mut_cast[True]().store(idx, value)
 
 @always_inline
 def simd_store[
-    dtype: DType, size: Int, //
+    dtype: DType, width: Int
 ](
-    mut  arr:    Arr[Scalar[dtype], size],
+    mut  arr:    Arr[Scalar[dtype], _],
     read idx:    S32,
-    read value:  SIMD[dtype, simd_width_of[dtype]()],
+    read value:  SIMD[dtype, width]
 ) -> None:
-    Ptr(to=arr[S32(0)]).store[width=simd_width_of[dtype]()](idx, value)
-
-# @always_inline
-# def simd_store[width: Int, size: Int](
-#     mut  arr:    Arr[F64, size],
-#     var  idx:    S32,
-#     read value:  SIMD[f64, width],
-# ) -> None:
-#     Ptr(to=arr[S32(0)]).store[width=width](idx, value)
-
-# @always_inline
-# def simd_store[width: Int, size: Int](
-#     mut  arr:    Arr[F32, size],
-#     var  idx:    S32,
-#     read value:  SIMD[f32, width],
-# ) -> None:
-#     Ptr(to=arr[S32(0)]).store[width=width](idx, value)
-
-# @always_inline
-# def simd_store[width: Int, size: Int](
-#     mut  arr:    Arr[S32, size],
-#     var  idx:    S32,
-#     read value:  SIMD[s32, width],
-# ) -> None:
-#     Ptr(to=arr[S32(0)]).store[width=width](idx, value)
-
-# @always_inline
-# def simd_store[width: Int, size: Int](
-#     mut  arr:    Arr[FaustFloat, size],
-#     var  idx:    S32,
-#     read value:  SIMD[dfaust, width],
-# ) -> None:
-#     Ptr(to=arr[S32(0)]).store[width=width](idx, value)
+    Ptr(to=arr[S32(0)]).store(idx, value)
 
 @always_inline
 def simd_load[
-    dtype: DType, //
-](ptr: Ptr[Scalar[dtype], _], idx: S32) -> SIMD[dtype, simd_width_of[dtype]()]:
-    return ptr.load[width=simd_width_of[dtype]()](idx)
+    dtype: DType, width: Int = simd_width_of[dtype]()
+](ptr: Ptr[Scalar[dtype], _], idx: S32) -> SIMD[dtype, width]:
+    return ptr.load(idx)
 
 @always_inline
 def simd_load[
-    dtype: DType, size: Int, //
-](arr: Arr[Scalar[dtype], size], idx: S32) -> SIMD[dtype, simd_width_of[dtype]()]:
-    return Ptr(to=arr[0]).load[width=simd_width_of[dtype]()](idx)
+    dtype: DType, width: Int = simd_width_of[dtype]()
+](arr: Arr[Scalar[dtype], _], idx: S32) -> SIMD[dtype, width]:
+    return Ptr(to=arr[0]).load(idx)
