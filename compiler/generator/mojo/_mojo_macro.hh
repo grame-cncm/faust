@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-// compiler/generator/mojo/_mojo_macro.hh
+/** @file compiler/generator/mojo/_mojo_macro.hh **/
 
 #ifndef _MOJO_MACRO_HH
 #define _MOJO_MACRO_HH

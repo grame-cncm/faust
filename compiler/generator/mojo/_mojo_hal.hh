@@ -19,7 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
-#if !defined(_MOJO_HAL_HH)
+/** @file compiler/generator/mojo/_mojo_hal.hh **/
+
+#ifndef _MOJO_HAL_HH
 #define _MOJO_HAL_HH
 
 ////////////////////////////////////////////////////////////////
@@ -50,6 +52,7 @@
     #error "This operating system is not supported."
 #endif
 
+
 ////////////////////////////////////////////////////////////////
 // Compiler
 // Supported: MSVC, GCC, clang
@@ -78,6 +81,7 @@
     #error "This compiler is not supported."
 #endif
 
+
 ////////////////////////////////////////////////////////////////
 // Endianness
 
@@ -90,6 +94,7 @@
         #error "Cannot determine endianness at compile time."
     #endif
 #endif
+
 
 ////////////////////////////////////////////////////////////////
 // CPU, CACHE, SIMD
@@ -132,6 +137,7 @@
 #else
     #error "Unknown CPU"
 #endif
+
 
 ////////////////////////////////////////////////////////////////
 // Primitive types
@@ -183,6 +189,7 @@ using b8 = i8 ;
 using b16 = i16;
 using b32 = i32;
 
+
 ////////////////////////////////////////////////////////////////
 // Limits
 
@@ -216,6 +223,7 @@ using b32 = i32;
 #endif
  
 }  // namespace mojo
+
 
 ////////////////////////////////////////////////////////////////
 // Attributes and decroators

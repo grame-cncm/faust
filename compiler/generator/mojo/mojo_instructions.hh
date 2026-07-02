@@ -19,11 +19,14 @@
  ************************************************************************
  ************************************************************************/
 
+/** @file compiler/generator/mojo/mojo_instructions.cpp */
+
 #ifndef MOJO_INSTRUCTIONS_HH
 #define MOJO_INSTRUCTIONS_HH
 
 // faust
 #include <memory_resource>
+#include "mojo/_mojo_hal.hh"
 #include "struct_manager.hh"
 #include "text_instructions.hh"
 
@@ -34,9 +37,6 @@ inline namespace mojo {
 
 using MathLibTable = std::unordered_map<String, String>;
 using FuncSymTable = std::unordered_map<String, bool>;
-
-//////////////////////////////////////////////////////////////
-// Mojo visitors declaration
 
 /**
     A `MojoInstVisitor` is a `TextInstVisitor` for the mojo backend.
@@ -107,60 +107,6 @@ protected:
     inline static FuncSymTable gFuncSymTable;
 };
 
-/** A `MojoVecInstVisitor` is a `MojoInstVisitor` for the vec mode. **/
-class MojoVecInstVisitor : public MojoInstVisitor {
-protected:
-    static inline b32 gEmitSIMD;
-    static inline b32 gEmitJoin;
-public:
-    using MojoInstVisitor::visit;
-
-    MojoVecInstVisitor(OStream* out, String const& structName, int tab = 0);
-
-    void visit(CastInst* inst)       override;
-    void visit(ForLoopInst* inst)    override;
-    void visit(LabelInst* inst)      override;
-    void visit(IndexedAddress* inst) override;
-    void visit(NamedAddress* inst)   override;
-
-protected:
-    // `ForLoopInst` help writers.
-    void writeMultiBargraph(ForLoopInst* inst, String& dname, String& dvalue, String& dwidth)
-    {
-        writeSIMDLoopHeader(inst, dname, dvalue, dwidth);
-        fTab += 1;
-        *fOut << wtab(fTab);
-        mj_emit_simd_set(true);
-        for (auto* line : *inst->fCode) {
-            line->accept(this);
-        }
-        mj_emit_simd_restore();
-        writeSIMDLoopIncrement(getIndexName(inst), dwidth);
-        fTab -= 1;
-        *fOut << wtab(fTab);
-    }
-
-    void writeBargraphUpdate(ForLoopInst* inst, String& dname, String& dvalue, String& dwidth);
-
-    // `ForLoopInst` helpers to write SIMD loops.
-    void writeSIMDLoopHeader(ForLoopInst* inst, String& dtype, String& dvalue, String& dwidth);
-    void writeSIMDLoopIncrement(String const& idx_name, String const& width_name);
-
-    // Detect wrapped or non-contiguous indices that need a dedicated SIMD path.
-    static b32 hasWrappedIndex(Address* addr);
-    static b32 hasWrappedIndex(ValueInst* value);
-
-    // Detect plain contiguous stores handled by the simple SIMD store path.
-    static b32 isUnitStrideStore(Address* addr);
-
-    static String getDTypeValue(ValueInst* rhs);
-    static Tuple<String, String, String> getDTypeProperties(ValueInst* rhs);
-    static Tuple<Address*, ValueInst*, String> parseSingleStore(BlockInst* rhs);
-
-    static String getIndexName(ForLoopInst* inst);
-    static ValueInst* getEndValue(ForLoopInst* inst);
-};
-
 /**
     A `MojoInitFieldsVisitor` is a `DispatchVisitor` for the mojo backend.
     @desc
@@ -185,12 +131,53 @@ public:
     MojoInitFieldsVisitor(OStream* out, i32 tab = 0);
 
     void visit(DeclareVarInst* inst)     override;
-    void visit(NamedAddress* inst)      override;
+    void visit(NamedAddress* inst)       override;
     void visit(Int32ArrayNumInst* inst)  override;
     void visit(FloatArrayNumInst* inst)  override;
     void visit(DoubleArrayNumInst* inst) override;
 
     static void gZeroInitializer(OStream* out, Typed* typed);
+};
+
+/** A `MojoVecInstVisitor` is a `MojoInstVisitor` for the vec mode. **/
+class MojoVecInstVisitor : public MojoInstVisitor {
+protected:
+    static inline b32 gEmitSIMD;
+    static inline b32 gEmitJoin;
+public:
+    using MojoInstVisitor::visit;
+
+    MojoVecInstVisitor(OStream* out, String const& structName, int tab = 0);
+
+    void visit(CastInst* inst)       override;
+    void visit(ForLoopInst* inst)    override;
+    void visit(LabelInst* inst)      override;
+    void visit(IndexedAddress* inst) override;
+    void visit(NamedAddress* inst)   override;
+    void visit(StoreVarInst* inst)   override;
+
+   protected:
+    // `ForLoopInst` help writers.
+    void writeMultiBargraph(ForLoopInst* inst);
+
+    void writeBargraphUpdate(ForLoopInst* inst, String& dname, String& dvalue, String& dwidth);
+
+    // `ForLoopInst` helpers to write SIMD loops.
+    void writeSIMDLoopHeader(ForLoopInst* inst, String& dtype, String& dvalue, String& dwidth);
+    void writeSIMDLoopIncrement(String const& idx_name, String const& width_name);
+
+    // Detect wrapped or non-contiguous indices that need a dedicated SIMD path.
+    static b32 hasWrappedIndex(ValueInst* inst);
+    static b32 hasWrappedIndex(Address* addr);
+
+    // Detect plain contiguous stores handled by the simple SIMD store path.
+    static b32 isUnitStride(Address* addr);
+
+    static String getDTypeValue(ValueInst* rhs);
+    // static Res<Address*, ValueInst*, String> parseSingleStore(StoreVarInst* rhs);
+
+    static String     getIndexName(ForLoopInst* inst);
+    static ValueInst* getEndValue(ForLoopInst* inst);
 };
 
 }       // namespace mojo

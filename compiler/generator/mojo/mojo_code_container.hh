@@ -19,6 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
+/** @file compiler/generator/mojo/mojo_code_container.hh **/
+
 #ifndef MOJO_CODE_CONTAINER_HH
 #define MOJO_CODE_CONTAINER_HH
 

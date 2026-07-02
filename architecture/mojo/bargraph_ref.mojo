@@ -180,54 +180,42 @@ struct mydsp(FaustDsp):
             # Vectorizable loop 0 
             # Compute code 
             var i_re0 = S32(0)
-            comptime dtype0 = dfaust
-            comptime width0 = S32(simd_width_of[dtype0]())
-            while i_re0 <= vsize_re0 - width0:
-                            var lo = ((slow0) + ((slow1) * ((simd_load(input0, i_re0)).cast[dreal]()))).cast[dfaust]()
-                var hi = ((slow0) + ((slow1) * ((simd_load(input0, i_re0 + S32(dreal_width))).cast[dreal]()))).cast[dfaust]()
-                var values = lo.join(hi)
-                simd_store(dsp.hbargraph0, i_re0, values)
-                i_re0 = i_re0 + S32(width0)
+            while i_re0 <= vsize_re0 - S32(dfaust_width):
+                var values = ((slow0) + ((slow1) * ((simd_load(input0, i_re0)).cast[dreal]()))).cast[dfaust]()
+                dsp.hbargraph0 = values[Int(dfaust_width) - 1]
+                simd_store(output0, i_re0, values)
+                i_re0 = i_re0 + S32(dfaust_width)
             # Vectorizable loop 1 
             # Compute code 
             var i_re1 = S32(0)
-            comptime dtype1 = dfaust
-            comptime width1 = S32(simd_width_of[dtype1]())
-            while i_re1 <= vsize_re0 - width1:
-                            var lo = (((slow2) * ((simd_load(input0, i_re1)).cast[dreal]())) - (slow0)).cast[dfaust]()
-                var hi = (((slow2) * ((simd_load(input0, i_re1 + S32(dreal_width))).cast[dreal]())) - (slow0)).cast[dfaust]()
-                var values = lo.join(hi)
-                simd_store(dsp.vbargraph0, i_re1, values)
-                i_re1 = i_re1 + S32(width1)
+            while i_re1 <= vsize_re0 - S32(dfaust_width):
+                var values = (((slow2) * ((simd_load(input0, i_re1)).cast[dreal]())) - (slow0)).cast[dfaust]()
+                dsp.vbargraph0 = values[Int(dfaust_width) - 1]
+                simd_store(output1, i_re1, values)
+                i_re1 = i_re1 + S32(dfaust_width)
             # Vectorizable loop 2 
             # Compute code 
             var i_re2 = S32(0)
-            comptime dtype2 = dfaust
-            comptime width2 = S32(simd_width_of[dtype2]())
-            while i_re2 <= vsize_re0 - width2:
-                            var lo = ((slow3) * ((simd_load(input0, i_re2)).cast[dreal]())).cast[dfaust]()
-                var hi = ((slow3) * ((simd_load(input0, i_re2 + S32(dreal_width))).cast[dreal]())).cast[dfaust]()
-                var values = lo.join(hi)
-                simd_store(dsp.hbargraph1, i_re2, values)
-                i_re2 = i_re2 + S32(width2)
+            while i_re2 <= vsize_re0 - S32(dfaust_width):
+                var values = ((slow3) * ((simd_load(input0, i_re2)).cast[dreal]())).cast[dfaust]()
+                dsp.hbargraph1 = values[Int(dfaust_width) - 1]
+                simd_store(output2, i_re2, values)
+                i_re2 = i_re2 + S32(dfaust_width)
             # Vectorizable loop 3 
             # Compute code 
             var i_re3 = S32(0)
-            comptime dtype3 = dfaust
-            comptime width3 = S32(simd_width_of[dtype3]())
-            while i_re3 <= vsize_re0 - width3:
-                            var lo = ((slow6) * ((simd_load(input0, i_re3)).cast[dreal]())).cast[dfaust]()
-                var hi = ((slow6) * ((simd_load(input0, i_re3 + S32(dreal_width))).cast[dreal]())).cast[dfaust]()
-                var values = lo.join(hi)
-                simd_store(dsp.vbargraph1, i_re3, values)
-                i_re3 = i_re3 + S32(width3)
+            while i_re3 <= vsize_re0 - S32(dfaust_width):
+                var values = ((slow6) * ((simd_load(input0, i_re3)).cast[dreal]())).cast[dfaust]()
+                dsp.vbargraph1 = values[Int(dfaust_width) - 1]
+                simd_store(output3, i_re3, values)
+                i_re3 = i_re3 + S32(dfaust_width)
             # Vectorizable loop 4 
             # Compute code 
             var i_re4 = S32(0)
             comptime dtype4 = dfaust
             comptime width4 = S32(simd_width_of[dtype4]())
             while i_re4 <= vsize_re0 - width4:
-                            var lo = ((slow7) * ((slow0) + ((simd_load(input0, i_re4)).cast[dreal]()))).cast[dfaust]()
+                var lo = ((slow7) * ((slow0) + ((simd_load(input0, i_re4)).cast[dreal]()))).cast[dfaust]()
                 var hi = ((slow7) * ((slow0) + ((simd_load(input0, i_re4 + S32(dreal_width))).cast[dreal]()))).cast[dfaust]()
                 var values = lo.join(hi)
                 simd_store(output4, i_re4, values)
@@ -238,7 +226,7 @@ struct mydsp(FaustDsp):
             comptime dtype5 = dfaust
             comptime width5 = S32(simd_width_of[dtype5]())
             while i_re5 <= vsize_re0 - width5:
-                            var lo = ((slow8) * (((simd_load(input0, i_re5)).cast[dreal]()) - (slow0))).cast[dfaust]()
+                var lo = ((slow8) * (((simd_load(input0, i_re5)).cast[dreal]()) - (slow0))).cast[dfaust]()
                 var hi = ((slow8) * (((simd_load(input0, i_re5 + S32(dreal_width))).cast[dreal]()) - (slow0))).cast[dfaust]()
                 var values = lo.join(hi)
                 simd_store(output5, i_re5, values)
@@ -249,7 +237,7 @@ struct mydsp(FaustDsp):
             comptime dtype6 = dfaust
             comptime width6 = S32(simd_width_of[dtype6]())
             while i_re6 <= vsize_re0 - width6:
-                            var lo = ((slow9) * ((simd_load(input0, i_re6)).cast[dreal]())).cast[dfaust]()
+                var lo = ((slow9) * ((simd_load(input0, i_re6)).cast[dreal]())).cast[dfaust]()
                 var hi = ((slow9) * ((simd_load(input0, i_re6 + S32(dreal_width))).cast[dreal]())).cast[dfaust]()
                 var values = lo.join(hi)
                 simd_store(output6, i_re6, values)
@@ -260,76 +248,63 @@ struct mydsp(FaustDsp):
             comptime dtype7 = dfaust
             comptime width7 = S32(simd_width_of[dtype7]())
             while i_re7 <= vsize_re0 - width7:
-                            var lo = ((slow10) * ((simd_load(input0, i_re7)).cast[dreal]())).cast[dfaust]()
+                var lo = ((slow10) * ((simd_load(input0, i_re7)).cast[dreal]())).cast[dfaust]()
                 var hi = ((slow10) * ((simd_load(input0, i_re7 + S32(dreal_width))).cast[dreal]())).cast[dfaust]()
                 var values = lo.join(hi)
                 simd_store(output7, i_re7, values)
                 i_re7 = i_re7 + S32(width7)
             vindex_re0 = (vindex_re0) + (S32(4))
-            vindex_re0 = (vindex_re0) + (S32(4))
         # Remaining frames 
         if ((vindex_re0) < (count) != 0):
-            var input0 = Ptr(to=simd_load(input0_ptr, vindex_re0))
-            var output0 = Ptr(to=simd_load(output0_ptr, vindex_re0))
-            var output1 = Ptr(to=simd_load(output1_ptr, vindex_re0))
-            var output2 = Ptr(to=simd_load(output2_ptr, vindex_re0))
-            var output3 = Ptr(to=simd_load(output3_ptr, vindex_re0))
-            var output4 = Ptr(to=simd_load(output4_ptr, vindex_re0))
-            var output5 = Ptr(to=simd_load(output5_ptr, vindex_re0))
-            var output6 = Ptr(to=simd_load(output6_ptr, vindex_re0))
-            var output7 = Ptr(to=simd_load(output7_ptr, vindex_re0))
+            var input0 = Ptr(to=input0_ptr[vindex_re0])
+            var output0 = Ptr(to=output0_ptr[vindex_re0])
+            var output1 = Ptr(to=output1_ptr[vindex_re0])
+            var output2 = Ptr(to=output2_ptr[vindex_re0])
+            var output3 = Ptr(to=output3_ptr[vindex_re0])
+            var output4 = Ptr(to=output4_ptr[vindex_re0])
+            var output5 = Ptr(to=output5_ptr[vindex_re0])
+            var output6 = Ptr(to=output6_ptr[vindex_re0])
+            var output7 = Ptr(to=output7_ptr[vindex_re0])
             var vsize_re1 = (count) - (vindex_re0)
             # Vectorizable loop 0 
             # Compute code 
             var i_re8 = S32(0)
-            comptime dtype8 = dfaust
-            comptime width8 = S32(simd_width_of[dtype8]())
-            while i_re8 <= vsize_re1 - width8:
-                            var lo = ((slow0) + ((slow1) * ((simd_load(input0, i_re8)).cast[dreal]()))).cast[dfaust]()
-                var hi = ((slow0) + ((slow1) * ((simd_load(input0, i_re8 + S32(dreal_width))).cast[dreal]()))).cast[dfaust]()
-                var values = lo.join(hi)
-                simd_store(dsp.hbargraph0, i_re8, values)
-                i_re8 = i_re8 + S32(width8)
+            while i_re8 <= vsize_re1 - S32(dfaust_width):
+                var values = ((slow0) + ((slow1) * ((simd_load(input0, i_re8)).cast[dreal]()))).cast[dfaust]()
+                dsp.hbargraph0 = values[Int(dfaust_width) - 1]
+                simd_store(output0, i_re8, values)
+                i_re8 = i_re8 + S32(dfaust_width)
             # Vectorizable loop 1 
             # Compute code 
             var i_re9 = S32(0)
-            comptime dtype9 = dfaust
-            comptime width9 = S32(simd_width_of[dtype9]())
-            while i_re9 <= vsize_re1 - width9:
-                            var lo = (((slow2) * ((simd_load(input0, i_re9)).cast[dreal]())) - (slow0)).cast[dfaust]()
-                var hi = (((slow2) * ((simd_load(input0, i_re9 + S32(dreal_width))).cast[dreal]())) - (slow0)).cast[dfaust]()
-                var values = lo.join(hi)
-                simd_store(dsp.vbargraph0, i_re9, values)
-                i_re9 = i_re9 + S32(width9)
+            while i_re9 <= vsize_re1 - S32(dfaust_width):
+                var values = (((slow2) * ((simd_load(input0, i_re9)).cast[dreal]())) - (slow0)).cast[dfaust]()
+                dsp.vbargraph0 = values[Int(dfaust_width) - 1]
+                simd_store(output1, i_re9, values)
+                i_re9 = i_re9 + S32(dfaust_width)
             # Vectorizable loop 2 
             # Compute code 
             var i_re10 = S32(0)
-            comptime dtype10 = dfaust
-            comptime width10 = S32(simd_width_of[dtype10]())
-            while i_re10 <= vsize_re1 - width10:
-                            var lo = ((slow3) * ((simd_load(input0, i_re10)).cast[dreal]())).cast[dfaust]()
-                var hi = ((slow3) * ((simd_load(input0, i_re10 + S32(dreal_width))).cast[dreal]())).cast[dfaust]()
-                var values = lo.join(hi)
-                simd_store(dsp.hbargraph1, i_re10, values)
-                i_re10 = i_re10 + S32(width10)
+            while i_re10 <= vsize_re1 - S32(dfaust_width):
+                var values = ((slow3) * ((simd_load(input0, i_re10)).cast[dreal]())).cast[dfaust]()
+                dsp.hbargraph1 = values[Int(dfaust_width) - 1]
+                simd_store(output2, i_re10, values)
+                i_re10 = i_re10 + S32(dfaust_width)
             # Vectorizable loop 3 
             # Compute code 
             var i_re11 = S32(0)
-            comptime dtype11 = dfaust
-            comptime width11 = S32(simd_width_of[dtype11]())
-            while i_re11 <= vsize_re1 - width11:
-                            var lo = ((slow6) * ((simd_load(input0, i_re11)).cast[dreal]())).cast[dfaust]()
-                var hi = ((slow6) * ((simd_load(input0, i_re11 + S32(dreal_width))).cast[dreal]())).cast[dfaust]()
-                var values = lo.join(hi)
-                simd_store(dsp.vbargraph1, i_re11, values)
-                i_re11 = i_re11 + S32(width11)
+            while i_re11 <= vsize_re1 - S32(dfaust_width):
+                var values = ((slow6) * ((simd_load(input0, i_re11)).cast[dreal]())).cast[dfaust]()
+                dsp.vbargraph1 = values[Int(dfaust_width) - 1]
+                simd_store(output3, i_re11, values)
+                i_re11 = i_re11 + S32(dfaust_width)
             # Vectorizable loop 4 
             # Compute code 
             var i_re12 = S32(0)
             comptime dtype12 = dfaust
             comptime width12 = S32(simd_width_of[dtype12]())
             while i_re12 <= vsize_re1 - width12:
-                            var lo = ((slow7) * ((slow0) + ((simd_load(input0, i_re12)).cast[dreal]()))).cast[dfaust]()
+                var lo = ((slow7) * ((slow0) + ((simd_load(input0, i_re12)).cast[dreal]()))).cast[dfaust]()
                 var hi = ((slow7) * ((slow0) + ((simd_load(input0, i_re12 + S32(dreal_width))).cast[dreal]()))).cast[dfaust]()
                 var values = lo.join(hi)
                 simd_store(output4, i_re12, values)
@@ -340,7 +315,7 @@ struct mydsp(FaustDsp):
             comptime dtype13 = dfaust
             comptime width13 = S32(simd_width_of[dtype13]())
             while i_re13 <= vsize_re1 - width13:
-                            var lo = ((slow8) * (((simd_load(input0, i_re13)).cast[dreal]()) - (slow0))).cast[dfaust]()
+                var lo = ((slow8) * (((simd_load(input0, i_re13)).cast[dreal]()) - (slow0))).cast[dfaust]()
                 var hi = ((slow8) * (((simd_load(input0, i_re13 + S32(dreal_width))).cast[dreal]()) - (slow0))).cast[dfaust]()
                 var values = lo.join(hi)
                 simd_store(output5, i_re13, values)
@@ -351,7 +326,7 @@ struct mydsp(FaustDsp):
             comptime dtype14 = dfaust
             comptime width14 = S32(simd_width_of[dtype14]())
             while i_re14 <= vsize_re1 - width14:
-                            var lo = ((slow9) * ((simd_load(input0, i_re14)).cast[dreal]())).cast[dfaust]()
+                var lo = ((slow9) * ((simd_load(input0, i_re14)).cast[dreal]())).cast[dfaust]()
                 var hi = ((slow9) * ((simd_load(input0, i_re14 + S32(dreal_width))).cast[dreal]())).cast[dfaust]()
                 var values = lo.join(hi)
                 simd_store(output6, i_re14, values)
@@ -362,7 +337,7 @@ struct mydsp(FaustDsp):
             comptime dtype15 = dfaust
             comptime width15 = S32(simd_width_of[dtype15]())
             while i_re15 <= vsize_re1 - width15:
-                            var lo = ((slow10) * ((simd_load(input0, i_re15)).cast[dreal]())).cast[dfaust]()
+                var lo = ((slow10) * ((simd_load(input0, i_re15)).cast[dreal]())).cast[dfaust]()
                 var hi = ((slow10) * ((simd_load(input0, i_re15 + S32(dreal_width))).cast[dreal]())).cast[dfaust]()
                 var values = lo.join(hi)
                 simd_store(output7, i_re15, values)

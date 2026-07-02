@@ -19,6 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
+/** @file compiler/generator/mojo/_mojo_utils.hh **/
+
 #ifndef _MOJO_UTILS_HH
 #define _MOJO_UTILS_HH
 
@@ -38,8 +40,9 @@ using String = std::string;
 using VString = std::string_view;
 using OString = std::ostringstream;
 using OStream = std::ostream;
-template<typename... Ts> using Tuple = std::tuple<Ts...>;
-template<typename T> using Vector = std::vector<T>;
+template<typename... Ts> using Res = std::tuple<Ts...>;
+template<typename T> using Arr = std::vector<T>;
+
 
 ////////////////////////////////////////////////////////////////
 // Writing helpers for `MojoVisitor`s and `MojoCodeContainer`s 
@@ -83,6 +86,7 @@ inline String wmultilit(String&& s)
     out << "\"";
     return out.str();
 }
+
 
 ////////////////////////////////////////////////////////////////
 // String manip helpers for `Visitor`s and `CodeContainer`s
@@ -130,11 +134,11 @@ inline String ensureReal(f64 x)
     return ensureReal(toStringTrim(x));
 }
 
-inline Vector<VString> split(VString src, char sep)
+inline Arr<VString> split(VString src, char sep)
 {
     isize i = 0;
     isize size = src.size();
-    Vector<VString> res;
+    Arr<VString> res;
 
     while (i < size) {
         while (i < size && src[i] == sep) {
@@ -221,8 +225,8 @@ inline String formatCompilerOptions(isize indent, String const& begln = "")
     constexpr isize MAX_WIDTH = 81;
     OString build;
     String options = gGlobal->printCompilationOptions1();
-    Vector<VString> opts = split(options, ' ');
-    Vector<String> units;
+    Arr<VString> opts = split(options, ' ');
+    Arr<String> units;
     units.reserve(opts.size());
 
     for (usize i = 0; i < opts.size(); i++) {

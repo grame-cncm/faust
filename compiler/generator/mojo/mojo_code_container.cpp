@@ -19,12 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
+/** @file compiler/generator/mojo/mojo_code_container.cpp **/
+
 // mojo
 #include "mojo_code_container.hh"
 
 inline namespace mojo {
 
-///////////////////////////////////////////////////////////////
 // Mojo code container core interface implementation.
 
 MojoCodeContainer::~MojoCodeContainer() {}
@@ -394,7 +395,8 @@ CodeContainer* MojoCodeContainer::createContainer(
     return (CodeContainer*) new MojoScalarCodeContainer(name, numInputs, numOutputs, out, kInt);
 }
 
-///////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////
 // Mojo scalar code container implementation.
 
 MojoScalarCodeContainer::~MojoScalarCodeContainer() {}
@@ -405,6 +407,7 @@ MojoScalarCodeContainer::MojoScalarCodeContainer(
 {
     fSubContainerType = subContKind;
 }
+
 
 ////////////////////////////////////////////////////////////////
 // Mojo vector code container implementation.
