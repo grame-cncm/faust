@@ -299,7 +299,7 @@ class daisy_midi {
             locked[idx] = false;
             generations[idx] = 0;
         }
-        bool ledstate = false;        
+
         void voice_stealing(int chan, uint8_t note, uint8_t velocity)
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
         {
@@ -312,12 +312,6 @@ class daisy_midi {
 <<<<<<< HEAD
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 =======
-
-            if(free == 0) 
-            {
-                ledstate = !ledstate;
-                hw.SetLed(ledstate);
-            }
 
             set_voice(free, chan, note, velocity);
 

@@ -3,6 +3,9 @@ import os
 import sys
 import re
 
+## ADC's of Patch SM. 
+## This is necessary since the PatchSM class of libdaisy is more abstracted to fit CV requirementts
+# So we don't directly read ADC's, but read CV from PatchSM object, with those indexes.
 patchsm_pin_map = {
     "C5": 0,
     "C4": 1,
@@ -21,6 +24,9 @@ patchsm_pin_map = {
 # Allow importing sibling modules regardless of the invocation cwd.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import daisy_soundfile_gen
+import daisy_uart_pins
+import daisy_pwm_pin
+import daisy_pins
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
@@ -117,6 +123,15 @@ config_layout = None
 config_ui = None
 config_midi = None
 midi_pins = {}
+# Default chip so 'chip' is always defined, even when no config file is passed
+# (config_file == "0"); the config below overrides it when present.
+chip = "seed"
+
+# Serial (UART) control link. Per-control pins come from [rx:Dx] / [tx:Dx]
+# metadata and are resolved by daisy_uart_pins; only the baud rate is global
+# (one bus speed for all channels).
+serial_baud = 115200
+
 if(config_file.isdigit() == False):
     f = open(config_file)
     conf_str = f.read()
@@ -137,6 +152,15 @@ if(config_file.isdigit() == False):
         elif(name == "patch"):
             print("PATCH=true")
             print("POD=false")
+    
+    if("serial" in config_layout):
+        config_serial_list = config_layout["serial"]
+        config_serial = {}
+        for elem in config_serial_list:
+            for key, value in elem.items():
+                config_serial[key] = value
+        if("baud" in config_serial):
+            serial_baud = int(config_serial["baud"])
     
     if("midi" in config_layout):
         config_midi_list = config_layout["midi"]
@@ -224,10 +248,24 @@ class digi_out:
         self.label = ""
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         self.pwm = False
         self.pwm_mode = "inv"
+=======
+        self.softpwm = False  # [mode:softpwm] -> software PWM, else on/off
+
+class pwm_out:
+    def __init__(self):
+        self.label = ""
+        self.pin = ""
+        self.min = 0
+        self.max = 1
+        self.timer = ""      # "TIM_3" | "TIM_4" | "TIM_5"
+        self.channel = 0     # 1..4
+        self.index = 0
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
 
 =======
     
@@ -305,6 +343,22 @@ class polyctrl:
         self.scale = "lin"
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 
+class serial:
+    def __init__(self):
+        self.type = "serial"
+        self.label = ""
+        self.control_type = "slider"
+        self.init = 0
+        self.min = 0
+        self.max = 0
+        self.step = 0
+        self.scale = "lin"
+        self.pin = ""        # Daisy pin label, e.g. "D14"
+        self.direction = "rx"  # "rx" (receive) or "tx" (transmit)
+        self.index = 0         # index within serials_in / serials_out
+        self.channel = 0       # DaisyUartListener channel this control belongs to
+
+
 options = None
 for elem in meta:
     if("options" in elem):
@@ -349,6 +403,7 @@ class ui_scanner:
         self.digi_out_count = 0
         self.dac_count = 0
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
@@ -356,6 +411,10 @@ class ui_scanner:
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 =======
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+        self.serial_in_count = 0
+        self.serial_out_count = 0
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
         self.dac = [False, False]
         self.adcs = []
         self.dacs = []
@@ -365,10 +424,19 @@ class ui_scanner:
         self.polys = []
         self.digis_in = []
         self.digis_out = []
+        
+        self.serials_in = []
+        self.serials_out = []
+        self.serials_out_used = {} #
+        self.serials_in_used = {}
+
+        self.pwm_out_count = 0
+        self.pwms_out = []
+
         self.inputs = []
         self.outputs = []
         self.scale = "lin"
-        self.pwm = "off"
+        self.mode = ""  # gpio output rendering mode ("softpwm" or "")
         self.poly_keys = {
             "key": False,
             "freq": False,
@@ -434,12 +502,18 @@ class ui_scanner:
         label = node["label"]
         # For ADC DAC : type, index, label
         # For MIDI : type, miditype, key, channel, label  
+<<<<<<< HEAD
         reslist = [] 
 <<<<<<< HEAD
 <<<<<<< HEAD
         self.scale = "lin"
         self.pwm = "off"
 <<<<<<< HEAD
+=======
+        reslist = []
+        self.scale = "lin"
+        self.mode = ""
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
         if("meta" in node):
             for meta in node["meta"]:
                 for k, v in meta.items():
@@ -452,11 +526,11 @@ class ui_scanner:
                         if(config_res != None):
                             key = config_res[0]
                             value = config_res[1]
-
                     # Then create the meta to write
                     if(key == "adc"):
                         reslist.append("adc")
                         reslist.append(value)
+                        reslist.append(label)
                     elif(key == "dac"):
                         reslist.append("dac")
                         reslist.append(value)
@@ -474,6 +548,7 @@ class ui_scanner:
                     elif(key == "gpio"):
                         reslist.append("gpio")
                         reslist.append(value)
+<<<<<<< HEAD
 =======
 =======
         self.scale = "lin"
@@ -522,6 +597,16 @@ class ui_scanner:
                         reslist.append("gpio")
                         reslist.append(value)
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
+=======
+                    elif(key == "rx" or key == "tx"):
+                        # Serial (UART) control: [rx:Dx] receives into an input
+                        # control, [tx:Dx] transmits an output control. 'value'
+                        # is the Daisy pin label.
+                        reslist.append("serial")
+                        reslist.append(key)    # direction: "rx" or "tx"
+                        reslist.append(value)  # pin label, e.g. "D14"
+                        reslist.append(label)  # control name
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
                     elif(key == "midi"):
                         reslist.append("midi")
                         res = midiparse_reg.search(meta[key])
@@ -554,8 +639,15 @@ class ui_scanner:
                     # Missing scales, and custom
                     elif(key == "scale"):
                         self.scale = meta[key]
+                    elif(key == "mode"):
+                        # Output rendering modifier on a [gpio:] output
+                        # (currently: "softpwm").
+                        self.mode = meta[key]
                     elif(key == "pwm"):
-                        self.pwm = meta[key]
+                        # Hardware PWM primary key: [pwm:PIN].
+                        reslist.append("pwm")
+                        reslist.append(value)
+
                     count += 1
             metaname = f"{label}_metadata"
             reslist.append(metaname)
@@ -772,7 +864,11 @@ class ui_scanner:
                             self.digis_out[-1].init = 0
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                             self.digis_out[-1].pwm = self.pwm
+=======
+                            self.digis_out[-1].softpwm = (self.mode == "softpwm")
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
 
 =======
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
@@ -786,10 +882,78 @@ class ui_scanner:
                             self.digi_out_count += 1
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+                    elif(metares[0] == "pwm"):
+                        # Hardware PWM output ([pwm:PIN] on a bargraph).
+                        if(item_type != "bargraph"):
+                            eprint("faust2daisy: [pwm:] is only valid on a bargraph (got %s)" % item_type)
+                            sys.exit(1)
+                        try:
+                            info = daisy_pwm_pin.resolve_pwm(chip, metares[1])
+                        except ValueError as e:
+                            eprint("faust2daisy pwm error: %s" % e)
+                            sys.exit(1)
+                        po = pwm_out()
+                        po.pin     = metares[1]
+                        po.label   = item_label
+                        po.min     = elem["min"]
+                        po.max     = elem["max"]
+                        po.timer   = info["timer"]
+                        po.channel = info["channel"]
+                        po.index   = self.pwm_out_count
+                        self.pwms_out.append(po)
+                        self.outputs.append(output())
+                        self.outputs[-1].type = "pwm"
+                        self.outputs[-1].index = self.pwm_out_count
+                        self.pwm_out_count += 1
+
+                    elif(metares[0] == "serial"):
+                        direction = metares[1]  # "rx" or "tx"
+                        pin       = metares[2]
+                        label     = metares[3]
+                        if(direction == "rx"):
+                            # Receive into an input control (slider/button/...).
+                            s = serial()
+                            s.label     = label
+                            s.pin       = pin
+                            s.direction = "rx"
+                            if(item_type == "button" or item_type == "checkbox"):
+                                s.control_type = item_type
+                                s.min = 0; s.max = 1; s.step = 1; s.init = 0
+                            else: # slider / nentry
+                                s.control_type = "slider"
+                                s.min = elem["min"]; s.max = elem["max"]
+                                s.step = elem["step"]; s.init = elem["init"]
+                            s.scale = self.scale
+                            s.index = self.serial_in_count
+                            self.serials_in.append(s)
+                            self.inputs.append(input())
+                            self.inputs[-1].type = "serial"
+                            self.inputs[-1].index = self.serial_in_count
+                            self.serial_in_count += 1
+                        else: # "tx" : transmit a bargraph value out. Lives in
+                              # output_list (so DaisyControlUI assigns its zone);
+                              # serial_tx_poll() sends it (throttled, on change).
+                            s = serial()
+                            s.label     = label
+                            s.pin       = pin
+                            s.direction = "tx"
+                            s.control_type = item_type
+                            s.min = elem["min"]; s.max = elem["max"]
+                            s.scale = self.scale
+                            s.index = self.serial_out_count
+                            self.serials_out.append(s)
+                            self.outputs.append(output())
+                            self.outputs[-1].type = "serial"
+                            self.outputs[-1].index = self.serial_out_count
+                            self.serial_out_count += 1
+
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
                     elif(metares[0] == "midi"):
                         self.midis.append(midi())
                         self.midis[-1].type = metares[1]
@@ -808,6 +972,7 @@ class ui_scanner:
                             self.midis[-1].max = 1
                             self.midis[-1].step = 1
                             self.midis[-1].init = 0
+                            self.adc_count += 1
                         elif(item_type == "slider" or item_type == "nentry"):
                             self.midis[-1].min = elem["min"]
                             self.midis[-1].max = elem["max"]
@@ -816,6 +981,8 @@ class ui_scanner:
 <<<<<<< HEAD
 <<<<<<< HEAD
                             self.midis[-1].scale = self.scale
+                            self.adc_count += 1
+
 
                 if("items" in elem):
                     self.recursive_lookup(elem, config_ui) 
@@ -826,6 +993,43 @@ class ui_scanner:
             return keys[index]
         keys[index] = cnt
         return -1
+
+    def check_pin_conflicts(self):
+        # Each physical pin must be claimed by at most one control, EXCEPT
+        # serial (UART) pins: several [rx:PIN] controls share one RX pin, and
+        # several [tx:PIN] controls share one TX pin, so serial may repeat a
+        # pin. Any pin shared with a non-serial feature is a conflict.
+        # Pins are resolved to their physical MCU pin (daisy_pins) so aliases
+        # collide too (Seed A0 == D15, dac A7 == adc D22, ...); an unknown label
+        # falls back to comparing the label itself.
+        usage = {}  # physical pin -> list of (label, feature)
+
+        def add(pin, feature):
+            if pin is None or pin == "":
+                return
+            label = str(pin)
+            key = daisy_pins.physical(chip, label) or ("?" + label)
+            usage.setdefault(key, []).append((label, feature))
+
+        for a in self.adcs:        add(a.pin_index, "adc/cv-in")
+        for d in self.digis_in:    add(d.pin_index, "gpio-in")
+        for d in self.digis_out:   add(d.pin_index, "gpio-out")
+        for d in self.dacs:        add(d.channel,   "dac/cv-out")
+        for p in self.pwms_out:    add(p.pin,       "pwm")
+        for s in self.serials_in:  add(s.pin,       "serial")
+        for s in self.serials_out: add(s.pin,       "serial")
+
+        for key in sorted(usage):
+            claims = usage[key]
+            has_non_serial = any(f != "serial" for (_, f) in claims)
+            if len(claims) >= 2 and has_non_serial:
+                phys = key if not key.startswith("?") else "(unresolved)"
+                parts = ", ".join("%s [%s]" % (lbl, f) for (lbl, f) in claims)
+                eprint("faust2daisy pin conflict: physical pin %s is claimed by "
+                       "%d controls -- %s. Each pin may be used once; only "
+                       "serial rx/tx pins may be shared."
+                       % (phys, len(claims), parts))
+                sys.exit(1)
 
     def write(self, arch, layout, nvoices, config_midi):
 <<<<<<< HEAD
@@ -860,9 +1064,9 @@ class ui_scanner:
             pass
         elif(config_midi["type"] == "uart"):
             if("rx_pin" in config_midi):
-                controlstr += f"#define RX_PIN {config_midi["rx_pin"]} \n"
+                controlstr += f"#define RX_PIN {config_midi['rx_pin']} \n"
             if("tx_pin" in config_midi):
-                controlstr += f"#define TX_PIN {config_midi["tx_pin"]} \n"
+                controlstr += f"#define TX_PIN {config_midi['tx_pin']} \n"
         elif(config_midi["type"] == "usb"):
             if("peripheral" in config_midi and config_midi["peripheral"] == "external"):
                 controlstr += "#define MIDI_USB_PERIPH daisy::MidiUsbTransport::Config::Periph::EXTERNAL \n"
@@ -913,7 +1117,7 @@ class ui_scanner:
                         midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, &(midi_keyon[{ref_idx}])), \n"
                     elif(elem.type == "keyoff"):
                         ref_idx = self.exists_or_add(keyoff_used, elem.key, midicnt)
-                        midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, &(midi_keyoffs[{ref_idx}])), \n"
+                        midistr += f"\tmidi_input(adc::type_t::{elem.control_type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, &(midi_keyoff[{ref_idx}])), \n"
                 if(res == -1):
                     midicnt += 1
 
@@ -1165,7 +1369,87 @@ class ui_scanner:
         controlstr += "#endif // MIDICTRL \n\n" 
 
 
-        ## Generate ADCs 
+        ## Serial (UART) controls : group by USART peripheral into channels.
+        if(len(self.serials_in) > 0 or len(self.serials_out) > 0):
+            print("SERIAL=true")
+            print(f"SERIAL_RX_INPUTS={len(self.serials_in)}")
+
+            # instance -> {"rx": entry, "tx": entry, "idx": channel index}
+            channels = {}
+            channel_order = []
+
+            def _serial_channel(direction, pin):
+                try:
+                    entry = daisy_uart_pins.resolve_uart(chip, pin, direction)
+                except ValueError as e:
+                    eprint(f"faust2daisy serial error: {e}")
+                    sys.exit(1)
+                inst = entry["instance"]
+                if inst not in channels:
+                    channels[inst] = {"rx": None, "tx": None,
+                                      "idx": len(channel_order)}
+                    channel_order.append(inst)
+                channels[inst][direction] = entry
+                return channels[inst]["idx"]
+
+            for s in self.serials_in:
+                s.channel = _serial_channel("rx", s.pin)
+            for s in self.serials_out:
+                s.channel = _serial_channel("tx", s.pin)
+
+            # serial_in control objects + label routing table
+            if(len(self.serials_in) > 0):
+                # Shared (poly) variant fans one received value out to all voices.
+                serial_in_t = "serial_in" if nvoices < 2 else f"shared_serial_in<{nvoices}>"
+                controlstr += f"static std::array<{serial_in_t}, {len(self.serials_in)}> serial_input_list = {{\n"
+                labels = "void init_serial_input_labels()\n{\n"
+                count = 0
+                for s in self.serials_in:
+                    controlstr += f"\t{serial_in_t}(adc::type_t::{s.control_type}, {s.init}, {s.min}, {s.max}, {s.step}, scale::scale_t::{s.scale}, {count} ),\n"
+                    labels += f"\tserial_input_labels[{count}] = string_view{{\"{s.label}\", {len(s.label)} }};\n"
+                    count += 1
+                controlstr += "};\n\n"
+                labels += "}\n\n"
+                controlstr += labels
+            else:
+                controlstr += "void init_serial_input_labels() {}\n\n"
+
+            # serial_setup_channels(): one UART channel per peripheral, RX and/or
+            # TX, each RX channel with its own DMA ring + line assembler.
+            setup = "void serial_setup_channels()\n{\n"
+            for inst in channel_order:
+                ch  = channels[inst]
+                idx = ch["idx"]
+                rx  = ch["rx"]
+                tx  = ch["tx"]
+                if rx is not None:
+                    setup += f"\tstatic uint8_t DMA_BUFFER_MEM_SECTION serial_ring_{idx}[SERIAL_RING_SIZE];\n"
+                    setup += f"\tstatic serial_line_assembler serial_asm_{idx};\n"
+                setup += "\t{\n"
+                setup += "\t\tDaisyUartListener::ChannelConfig c = {};\n"
+                setup += f"\t\tc.instance = {inst}; c.baud = {serial_baud};\n"
+                if rx is not None:
+                    setup += f"\t\tc.dmaRxRequest = {rx['dma_req']};\n"
+                    setup += f"\t\tc.rxPort = {rx['port']}; c.rxPin = {rx['pin']}; c.rxAltFunc = {rx['af']};\n"
+                    setup += f"\t\tc.ring = serial_ring_{idx}; c.ringSize = sizeof(serial_ring_{idx});\n"
+                    setup += f"\t\tc.onReceive = serial_on_bytes; c.context = &serial_asm_{idx};\n"
+                if tx is not None:
+                    setup += f"\t\tc.txPort = {tx['port']}; c.txPin = {tx['pin']}; c.txAltFunc = {tx['af']};\n"
+                setup += "\t\tserial_listener.addChannel(c);\n"
+                setup += "\t}\n"
+            setup += "}\n\n"
+            controlstr += setup
+
+            # tx controls: init_serial_outputs() fills the template-defined
+            # serial_output_list[] (label + channel) for serial_tx_poll().
+            print(f"SERIAL_TX_OUTPUTS={len(self.serials_out)}")
+            outs = "void init_serial_outputs()\n{\n"
+            for s in self.serials_out:
+                outs += f"\tserial_output_list[{s.index}].label = \"{s.label}\"; serial_output_list[{s.index}].channel = {s.channel};\n"
+            outs += "}\n\n"
+            controlstr += outs
+
+        ## Generate ADCs
             
         if(nvoices < 2):
             controlstr += f"static std::array<adc, {len(self.adcs)}> adc_list = {{ \n"
@@ -1178,12 +1462,20 @@ class ui_scanner:
                     if(chip == "seed"):
                         controlstr += f"\tadc(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {elem.pin_index}), \n"
                     elif(chip == "patchsm"):
-                        controlstr += f"\tadc(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {patchsm_pin_map[elem.pin_index]}), \n"
+                        pin = patchsm_pin_map.get(elem.pin_index)
+                        if(pin == None): 
+                            eprint(f"Error : the analog pin {elem.pin_index} does not exist in PatchSM")
+                            sys.exit(1)
+                        controlstr += f"\tadc(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {pin}), \n"
                 else: 
                     if(chip == "seed"): 
                         controlstr += f"\tshared_adc<{nvoices}>(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {elem.pin_index}), \n"
                     elif(chip == "patchsm"):
-                        controlstr += f"\tshared_adc<{nvoices}>(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {patchsm_pin_map[elem.pin_index]}), \n"
+                        pin = patchsm_pin_map.get(elem.pin_index)
+                        if(pin == None): 
+                            eprint(f"Error : the analog pin {elem.pin_index} does not exist in PatchSM")
+                            sys.exit(1)
+                        controlstr += f"\tshared_adc<{nvoices}>(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, scale::scale_t::{elem.scale}, {pin}), \n"
         controlstr += "}; \n"
 
         # Assign each ADC to a hardware DMA channel. With a platform config (e.g.
@@ -1225,6 +1517,7 @@ class ui_scanner:
             controlstr += f"static std::array<shared_digi_input<{nvoices}>, {len(self.digis_in)}> digi_input_list {{\n"
         if(len(self.digis_in) > 0):
             prefix = ""
+            eprint("CHIP = ", chip)
             if(chip == "patchsm"): 
                 prefix = "daisy::patch_sm::DaisyPatchSM::"
             for elem in self.digis_in:
@@ -1234,7 +1527,7 @@ class ui_scanner:
                     controlstr += f"\tshared_digi_input<{nvoices}>(adc::type_t::{elem.type}, {elem.init}, {elem.min}, {elem.max}, {elem.step}, {prefix}{elem.pin_index}), \n"
         controlstr += "}; \n\n"
 
-        input_len = (len(self.adcs) + len(self.midis) + len(self.digis_in)) 
+        input_len = (len(self.adcs) + len(self.midis) + len(self.digis_in) + len(self.serials_in))
         if(poly):
             input_len = (input_len + len(self.polys)) * nvoices
         inputstr = f"static std::array<control *, {input_len}> input_list = {{ \n"
@@ -1251,6 +1544,8 @@ class ui_scanner:
                     inputstr += f"\t&adc_list[{elem.index}], \n"
                 elif(elem.type == "digi_in"):
                     inputstr += f"\t&digi_input_list[{elem.index}], \n"
+                elif(elem.type == "serial"):
+                    inputstr += f"\t&serial_input_list[{elem.index}], \n"
                 elif(elem.type == "poly"):
                     inputstr += f"\tpoly_inputs[{voice_counter}].get_{self.polys[poly_index].label}(), \n"
                     poly_index = (poly_index + 1) % len(self.polys)
@@ -1265,6 +1560,7 @@ class ui_scanner:
                     inputstr += f"\t&adc_list[{elem.index}], \n"
                 elif(elem.type == "digi_in"):
                     inputstr += f"\t&digi_input_list[{elem.index}], \n"
+<<<<<<< HEAD
 =======
 =======
 
@@ -1338,6 +1634,10 @@ class ui_scanner:
                 elif(elem.type == "digi_in"):
                     inputstr += f"\t&digi_input_list[{elem.index}], \n"
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+                elif(elem.type == "serial"):
+                    inputstr += f"\t&serial_input_list[{elem.index}], \n"
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
         
         inputstr += "}; \n\n"
         controlstr += inputstr
@@ -1405,6 +1705,9 @@ class ui_scanner:
                         last_chn = "daisy::DacHandle::Channel::ONE" 
                     elif(elem.channel == "A8"):
                         last_chn = "daisy::DacHandle::Channel::TWO" 
+                    else: 
+                        eprint("DACs channels for Daisy Seed must be A7 or A8")
+                        sys.exit(1)
                     if(nvoices < 2):
                         controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
                     else:
@@ -1414,6 +1717,9 @@ class ui_scanner:
                         last_chn = "daisy::patch_sm::CV_OUT_1"
                     elif(elem.channel == "C10"):
                         last_chn = "daisy::patch_sm::CV_OUT_2"
+                    else:
+                        eprint("DACs channels for Daisy PatchSM must be C1 or C10")
+                        sys.exit(1)
                     if(nvoices < 2):
                         controlstr += f"\tdac({last_chn}, {elem.min}, {elem.max}, scale::scale_t::{elem.scale} ), \n"
                     else:
@@ -1435,8 +1741,11 @@ class ui_scanner:
             
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         
 
+=======
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
         if(nvoices < 2):
             controlstr += f"static std::array<digi_output, {len(self.digis_out)}> digi_output_list = {{ \n"
         else:
@@ -1445,7 +1754,9 @@ class ui_scanner:
         if(chip == "patchsm"): 
             prefix = "daisy::patch_sm::DaisyPatchSM::"
         for elem in self.digis_out:
+            softpwm = "true" if elem.softpwm else "false"
             if(nvoices < 2):
+<<<<<<< HEAD
 <<<<<<< HEAD
                 controlstr += f"\tdigi_output({elem.pin_index}, digi_output::pwm_t::{elem.pwm}), \n"
 <<<<<<< HEAD
@@ -1477,8 +1788,44 @@ class ui_scanner:
             else:
                 controlstr += f"\tshared_digi_output<{nvoices}>({prefix}{elem.pin_index}, digi_output::pwm_t::{pwm}), \n"
 >>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
+=======
+                controlstr += f"\tdigi_output({prefix}{elem.pin_index}, {softpwm}), \n"
+            else:
+                controlstr += f"\tshared_digi_output<{nvoices}>({prefix}{elem.pin_index}, {softpwm}), \n"
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
         controlstr += "}; \n\n"
-            
+
+        ## Hardware PWM outputs : group [pwm:PIN] controls by timer, one
+        ## PWMHandle per timer, and wire each channel to pwm_output_list.
+        if(len(self.pwms_out) > 0):
+            print("PWM=true")
+            print(f"PWM_OUTPUTS={len(self.pwms_out)}")
+            pwm_prefix = "daisy::patch_sm::DaisyPatchSM::" if chip == "patchsm" else ""
+            pwm_timers = []
+            for po in self.pwms_out:
+                if po.timer not in pwm_timers:
+                    pwm_timers.append(po.timer)
+            for t in pwm_timers:
+                controlstr += f"static daisy::PWMHandle pwm_handle_{t.lower()};\n"
+            controlstr += "\nvoid pwm_setup()\n{\n"
+            for t in pwm_timers:
+                controlstr += "\t{\n"
+                controlstr += "\t\tdaisy::PWMHandle::Config cfg;\n"
+                controlstr += f"\t\tcfg.periph = daisy::PWMHandle::Config::Peripheral::{t};\n"
+                controlstr += "\t\tcfg.prescaler = 0; cfg.period = 8192;\n"
+                controlstr += f"\t\tpwm_handle_{t.lower()}.Init(cfg);\n"
+                controlstr += "\t}\n"
+            for po in self.pwms_out:
+                h = f"pwm_handle_{po.timer.lower()}"
+                controlstr += "\t{\n"
+                controlstr += "\t\tdaisy::PWMHandle::Channel::Config chcfg;\n"
+                controlstr += f"\t\tchcfg.pin = {pwm_prefix}{po.pin};\n"
+                controlstr += f"\t\t{h}.Channel{po.channel}().Init(chcfg);\n"
+                controlstr += f"\t\tpwm_output_list[{po.index}].channel = &{h}.Channel{po.channel}();\n"
+                controlstr += f"\t\tpwm_output_list[{po.index}].min = {po.min};\n"
+                controlstr += f"\t\tpwm_output_list[{po.index}].max = {po.max};\n"
+                controlstr += "\t}\n"
+            controlstr += "}\n\n"
 
         outputstr = f"static std::array<control *, {len(self.outputs)}> output_list = {{ \n"
         for elem in self.outputs:
@@ -1486,8 +1833,13 @@ class ui_scanner:
                 outputstr += f"\t&(dac_list[{elem.index}]), \n"
             elif(elem.type == "digi_out"):
                 outputstr += f"\t&(digi_output_list[{elem.index}]), \n"
+            elif(elem.type == "serial"):
+                outputstr += f"\t&(serial_output_list[{elem.index}]), \n"
+            elif(elem.type == "pwm"):
+                outputstr += f"\t&(pwm_output_list[{elem.index}]), \n"
         outputstr += "}; \n\n"
 
+<<<<<<< HEAD
         controlstr += outputstr 
 <<<<<<< HEAD
 =======
@@ -1495,13 +1847,23 @@ class ui_scanner:
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
+=======
+        controlstr += outputstr
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
         return arch.replace(control_tag, controlstr)
 
 if("ui" in dsp_layout):
     scan = ui_scanner()
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     scan.recursive_lookup(dsp_layout["ui"][0], config_ui)
+=======
+    for elem in dsp_layout["ui"]:
+        scan.recursive_lookup(elem, config_ui)
+        #scan.recursive_lookup(dsp_layout["ui"][0], config_ui)
+    scan.check_pin_conflicts()
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
     arch = scan.write(arch, dsp_layout, nvoices, config_midi)
     
 

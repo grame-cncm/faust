@@ -1,5 +1,6 @@
 # faust2daisy
 
+<<<<<<< HEAD
 The **faust2daisy** tool compiles a Faust DSP program in a folder containing the C++ source code and a Makefile to compile it.  
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -14,6 +15,10 @@ This new version is a partial refactor of the previous tool, aiming to :
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
+=======
+The **faust2daisy** tool compiles a Faust DSP program into a C++ program targetting Electrosmith Daisy boards.
+It can target both Daisy Seed and Daisy Patch Submodule, as well as used defined platforms built upon (such as Pod, Patch, Patch.Init() etc). 
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
 
 `faust2daisy [-faust2daisy_options...] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
@@ -26,7 +31,7 @@ Here are the available options:
 - `-seed`: target Daisy seed chip
 - `-patchsm`: target Daisy patchsm chip
 - `-pod`: use Pod configuration file 
-- `-patch`: use Patch configuration file (not full feature yet) 
+- `-patch`: use Patch configuration file, as well as Patch audio codec & OLED display
 - `-sram`: program will stand on SRAM (512kB)
 - `-qspi`: program will stand on QSPIFLASH (8MB)
 - `-sdram`: enable SDRAM for large buffers (slow, but big)
@@ -38,10 +43,31 @@ Here are the available options:
 - `-tx-pin <Pin>`: TX Pin for MIDI UART
 - `-nvoices <num>`: number of voices, enables polyphony 
 - `-poly-mode`: mode for voice management in polyphonic context. Options <stealing> or <blocking> (defaults to stealing)
-- `sr <num>`: sample rate of DSP : only 8000, 16000, 32000, 48000, 96000 are allowed
-- `bs <num>`: buffer size
+- `-sr <num>`: sample rate of DSP : only 8000, 16000, 32000, 48000, 96000 are allowed
+- `-bs <num>`: buffer size
+- `-sd` to load soundfiles from the SD card at runtime instead of inlining to QSPI
+- `-sd-debug` to print loaded soundfile info over USB serial at startup
+-  `-upload-sd` to upload soundfiles to the SD card (does not build the DSP, just the uploader)
 - Any other option will be passed to Faust compiler
 <<<<<<< HEAD
+
+
+## Features 
+
+This tool tries to provide the most exhaustive control one can give over Daisy boards with Faust DSP programs. 
+
+It features : 
+- Audio : High quality, low latency, 2 inputs, 2 outputs
+- Audio : Soundfile, either stored in QSPI flash (small files) or in SD card (bigger files)  
+- Control : ADC's (up to 12 inputs, 16 bits each) and DAC's (up to 2, 12 bits outputs). 
+- Control : MIDI input, either through USB or serial UART
+- Control : Digital GPIOs (a large set of on/off switches, or software PWM at ~500/1000Hz)
+- Control : Serial communication with other boards 
+- Control : hardware PWM output (~29KHz by default)
+- Memory : Almost constant, compile-time awareness of memory footprint 
+- Memory : control location where program is stored and executed (Flash, SRAM, QSPI flash)
+- Memory : control threshold above which memory blocks (delay for example) are stored in SDRAM (64MB) 
+- Development : configuration file system, allowing to rename some pins (for example : `knob:1 == adc:A0`)
 
 ## Setup 
 
@@ -97,13 +123,16 @@ The default optimization is for file size: `OPT=-Os`. You can optimize for speed
 
 This tool is intended to target Daisy boards : 
 - Seed 
-- PatchSM - currently unimplemented 
+- PatchSM 
 
 The idea is to provide access to all of the Pins that can be useful in an audio context : 
 - Audio inputs & outputs (24 bits)
 - Control ADCs (16 bits)
 - Control DACs (12 bits)
 - GPIO (in either on/off mode, or as software PWM for output)
+- Serial UART
+- MIDI UART 
+- PWM 
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -193,7 +222,7 @@ process = os.osc(100) * duty * 0.3;
 ### MIDI 
 
 Midi is implemented for both monophonic controls (control change, keyon, keyoff, key) & polyphonic controls (freq, key, gain, vel, gate). 
-Of course, you need to set "nvoices" either as a command line option, or in your DSP metadata. 
+Of course, you need to set "nvoices" either as a command line option, or in your DSP global metadata. 
 
 MIDI can be passed through the power supply/flash USB interface. This is the MIDI USB mode (default when setting `-midi`) or through serial ports (UART) with `midi-uart` option. In this case, you need to specify which pins are used.
 
@@ -226,6 +255,7 @@ You can then choose a more appropriate location (SRAM, QSPI), or put large buffe
 Flash and SRAM are fast, though SRAM option forces you to put buffers to SDRAM (which is slower).
 QSPIFLASH is slower than Flash and SRAM. 
 
+<<<<<<< HEAD
 ## Architecture files
 
 Specific architecture files have been developed:
@@ -238,10 +268,11 @@ Specific architecture files have been developed:
 - [faust/midi/daisy-midi.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/daisy-midi.h): implements a [midi_handler](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/midi.h) subclass to decode incoming MIDI events.
 - [faust/midi/daisy-poly.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/dsp/daisy-poly.h): implements a lightweight polyphonic DSP encapsulation
 
+=======
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
 ## Python parsing 
 
-This tool uses a combination of interactions between the bash script and two python scripts (generate_config.py & faust_daisy_parser.py). 
-The latter is the most important, and will parse JSON representation of you Faust DSP to generate some C++ code to map all UI and metadata informations from Daisy to Faust C++ DSP. 
+This tool uses a combination of interactions between the bash script and a set of python scripts, designed to parse and interpret metadata of your Faust DSP program. 
 
 ## New features (08/03/2026)
 
@@ -321,14 +352,27 @@ faust2daisy -sd my.dsp
 > picks them up) — building from the repo alone is not enough, faust2daisy reads
 > the installed copies under `faust --archdir`.
 
+## PWM 
+
+This tool allows to output bargraph values to hardware PWM outputs. 
+To do so, simply add the metadata `vbargraph("outvalue[pwm:D1]", 0, 1)`. All PWM available pins are referenced inside **daisy_pwm_pin.py**, inside Faust daisy architecture folder.
+The PWM output is clocked around 29Khz. 
+
+## Serial 
+
+Serial communication is available in the same way as other controls. It can be used to receive or to transmit control data. 
+- Receive : `hslider("freq[rx:D1], 100, 20, 1000, 0.1)`  
+- Transmit : `vbargraph("outvalue[tx:D2], 0, 1)`
+
+Messages are formatted like this : `freq <value>` where **<value>** is a 4 bytes float, passed as binary representation. 
+
 ## Possible future developments 
 
-- Daisy Patch full support (external Audio codec)
-- Daisy Patch SM support 
-- MIDI external USB peripheral support (Seed)
+- MIDI custom USB peripheral support (Seed)
 - OLED screens (Patch, custom platforms)
 - DMA for DACs / ADCs : Could provide extended audio inputs & outputs (16 bit for ADC, 12 bits for DAC) or higher time precision for controls 
 - Multiplexer for ADCs / DACs (to use with 4051's for example)
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 - I2C communication (audio and/or control)
@@ -341,20 +385,24 @@ faust2daisy -sd my.dsp
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 =======
 - I2C communication (audio and/or control)
+=======
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
 - Serial communication for control
 
 ## Changelog 
 
 ### Features
 
-18/06
+02/07/2026
 - Soundfile primitive support: WAV files (PCM 16/24/32 bit, float 32 bit). Two modes:
   - default (`-qspi`): parsed at build time and inlined into QSPI flash, no runtime
     file I/O or dynamic allocation.
   - `-sd`: loaded from the SD card (`/soundfiles`) into SDRAM at startup. Files are
     uploaded with `faust2daisy -upload-sd` (temporary CDC uploader firmware).
   - Daisy Patch supported 
-  - Daisy PatchSM support in progress : metadata are the same for adc and dac 
+  - Daisy PatchSM supported 
+ - Serial control through UART pins (both RX and TX are implemented), passing messages in the format "amp 0.72551" 
+ - Hardware PWM output (defaults to 29Khz) wiht `pwm:D1`. 
 
 ### Fixes 
 
@@ -372,13 +420,9 @@ faust2daisy -sd my.dsp
 - Fixed Patch screen bar ordering 
 >>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
 
-
-### Ongoing 
-
-- PatchSM : CV out : even with block size to 1, it is downsampled
-
 # TODO 
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
 =======
@@ -390,3 +434,7 @@ faust2daisy -sd my.dsp
 - Tester polyphonie sur le PATCH
 - Digi input : le sens n'est pas clair (haut bas) : essayer avec un vrai bouton 
 >>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
+=======
+- Solve conflict between metadata, global metadata, CLI options, and config file 
+- Get more relevant error messages from parser 
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)

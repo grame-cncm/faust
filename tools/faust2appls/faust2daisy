@@ -59,6 +59,16 @@ TX_PIN=0
 POLY_MODE="VOICE_STEALING"
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 
+# Serial (UART) control link, set by faust_daisy_parser.py when the DSP uses
+# [rx:Dx] / [tx:Dx] control metadata.
+SERIAL=false
+SERIAL_RX_INPUTS=0
+SERIAL_TX_OUTPUTS=0
+
+# Hardware PWM outputs, set by faust_daisy_parser.py when the DSP uses [pwm:PIN].
+PWM=false
+PWM_OUTPUTS=0
+
 echoHelp ()
 {
     echo "faust2daisy [-patch] [-sram] [-qspi] [-sdram] [-mem-thresh] [-midi] [-nvoices <num>] [-sr <num>] [-bs <num>] [-source] [Faust options (-vec -vs 8...)] <file.dsp>"
@@ -102,6 +112,9 @@ echoHelp ()
     option "-sr <num>"
     option "-bs <num>"
     option -source
+    option -sd "to load soundfiles from the SD card at runtime instead of inlining to QSPI"
+    option -sd-debug "to print loaded soundfile info over USB serial at startup"
+    option -upload-sd "to upload soundfiles to the SD card (does not build the DSP, just the uploader)"
     option "Faust options"
     echo ""
     exit
@@ -167,15 +180,19 @@ do
         shift 
         TX_PIN=$1
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> fb8a200e6 (Polyphony working, digital pins (in out) implemented, UART MIDI ok for Pod, several controls on same MIDI input working, samplerate specification, scale implementation)
 =======
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     #patch
+=======
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
     elif [ $p = "-patch" ]; then
         JSON_CONFIG="$FAUSTARCH/daisy/patch.json"
         PATCH=true
         SEED=true
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         #UART=true
@@ -192,12 +209,15 @@ do
 =======
         JSON_CONFIG="$FAUSTARCH/daisy/patch.json"
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
+=======
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
     elif [ $p = "-pod" ]; then
         JSON_CONFIG="$FAUSTARCH/daisy/pod.json"
         POD=true
 <<<<<<< HEAD
 <<<<<<< HEAD
         SEED=true
+<<<<<<< HEAD
         #UART=true
         JSON_CONFIG="$FAUSTARCH/daisy/pod.json"
 <<<<<<< HEAD
@@ -215,6 +235,8 @@ do
 >>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
 =======
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
+=======
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
     elif [ $p = "-seed" ]; then 
         SEED=true
     elif [ $p = "-patchsm" ]; then
@@ -335,16 +357,19 @@ for p in $FILE; do
     MEM_THRESH_UNIT=$(($MEM_THRESH/4))
 
     if [ "$JSON_CONFIG" = "0" ]; then 
-        eval "$(python3 "$FAUSTARCH/daisy/generate_config.py" "$SRCDIR/$dspName" $PATCHSM $UART $RX_PIN $TX_PIN)"
+        #eval "$(python3 "$FAUSTARCH/daisy/generate_config.py" "$SRCDIR/$dspName" $PATCHSM $UART $RX_PIN $TX_PIN)"
+        out="$(python3 "$FAUSTARCH/daisy/generate_config.py" "$SRCDIR/$dspName" $PATCHSM $UART $RX_PIN $TX_PIN)" || {
+            echo "generate_config.py failed" >&2; exit 1; }
+        eval "$out"
     fi
 
-    # compile faust to c++
     echo "Compile Faust to C++":
 
     cp -r "$FAUSTARCH/daisy/Makefile" "$SRCDIR/$dspName/"
     if [ $USE_SDRAM == true ]; then 
-        # Have to compile it twice to provide json to python, before inlining generated code 
+        # We have to compile it twice to provide json to python, before inlining generated code 
         faust -i -a "$ARCHFILE" $OPTIONS "$f" -json -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -362,10 +387,16 @@ for p in $FILE; do
 =======
         eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE $JSON_CONFIG $SOUNDFILE_MODE)"
 >>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
+=======
+        out="$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 1 $ARCHFILE $JSON_CONFIG $SOUNDFILE_MODE)" || {
+            echo "faust_daisy_parser.py failed" >&2; exit 1; }
+        eval "$out"
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
         faust -A "$SRCDIR/$dspName" -i -a "$GENERATED_ARCH" $OPTIONS "$f" -mem1 -it -fpga-mem-th $MEM_THRESH_UNIT -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     else
-        # Have to compile it twice to provide json to python, before inlining generated code
+        # We have to compile it twice to provide json to python, before inlining generated code
         faust -i  -a "$ARCHFILE" $OPTIONS "$f" -json  -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -383,6 +414,11 @@ for p in $FILE; do
 =======
         eval "$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE $JSON_CONFIG $SOUNDFILE_MODE)"
 >>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
+=======
+        out="$(python3 "$FAUSTARCH/daisy/faust_daisy_parser.py" "$SRCDIR/$dspName" $MEM_THRESH $NVOICES 0 $ARCHFILE $JSON_CONFIG $SOUNDFILE_MODE)" || {
+            echo "faust_daisy_parser.py failed" >&2; exit 1; }
+        eval "$out"
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
         faust -A "$SRCDIR/$dspName" -i  -a "$GENERATED_ARCH" $OPTIONS "$f" -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
     fi
 
@@ -435,6 +471,21 @@ for p in $FILE; do
     # for Soundfile (set by faust_daisy_parser.py when the DSP uses soundfiles)
     if [ $USE_SOUNDFILE == true ]; then
         echo "#define USE_SOUNDFILE" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
+
+    # Serial (UART) control link (set by faust_daisy_parser.py via SERIAL=true /
+    # SERIAL_RX_INPUTS=N when the DSP uses [rx:Dx] / [tx:Dx] metadata).
+    if [ $SERIAL == true ]; then
+        echo "#define SERIAL" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+        echo "#define SERIAL_RX_INPUTS $SERIAL_RX_INPUTS" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+        echo "#define SERIAL_TX_OUTPUTS $SERIAL_TX_OUTPUTS" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
+
+    # Hardware PWM (set by faust_daisy_parser.py via PWM=true / PWM_OUTPUTS=N
+    # when the DSP uses [pwm:PIN] metadata).
+    if [ $PWM == true ]; then
+        echo "#define PWM" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+        echo "#define PWM_OUTPUTS $PWM_OUTPUTS" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
 
     # for SD-card soundfiles (set by faust_daisy_parser.py in -sd mode)
@@ -498,6 +549,12 @@ for p in $FILE; do
         cp "$FAUSTARCH/daisy/daisy_sd_soundfile.hpp" "$SRCDIR/$dspName/"
         echo "SD soundfile mode : the DSP loads /soundfiles/*.wav at startup."
         echo "                    Upload them first with 'faust2daisy -upload-sd $f'."
+    fi
+
+    # Serial (UART) control link : copy the listener header next to the
+    # generated sources (ex_faust.cpp #include "daisy_uart_listener.hpp").
+    if [ $SERIAL == true ]; then
+        cp "$FAUSTARCH/daisy/daisy_uart_listener.hpp" "$SRCDIR/$dspName/"
     fi
 
     # compile and install plugin or keep the source folder

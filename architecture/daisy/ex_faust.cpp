@@ -37,19 +37,11 @@
 #ifdef PATCH 
 
 #include "daisy_patch.h"
-struct FaustDaisyPatch : public daisy::DaisyPatch
-{
-
-    void screen_display(bool invert = false);
-    size_t screen_update_period = 34; 
-    size_t screen_update_last = 0;
-};
-
 
 using namespace daisy::seed;
 
 //static daisy::DaisyPatch platform;
-static FaustDaisyPatch platform;
+static daisy::DaisyPatch platform;
 static daisy::DaisySeed& hw = platform.seed; 
 #elif defined SEED 
 #include "daisy_seed.h"
@@ -272,7 +264,11 @@ struct control
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     float *value_ptr;
+=======
+    float *value_ptr = nullptr;
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
 
     scale::scale_t scale_type = scale::scale_t::lin;
     /*                           
@@ -524,6 +520,7 @@ struct adc : public control
         default:
             break;
         }
+        *value_ptr = init;
     }
 
     void update() override
@@ -1192,8 +1189,9 @@ struct shared_dac : public dac
 };
 #endif
 
-struct digi_output : public control 
+struct digi_output : public control
 {
+<<<<<<< HEAD
     enum pwm_t 
     {
         off, 
@@ -1202,6 +1200,8 @@ struct digi_output : public control
     };
 
 <<<<<<< HEAD
+=======
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
     daisy::Pin pin;
     float min, max;
     daisy::GPIO gpio;
@@ -1212,16 +1212,19 @@ struct digi_output : public control
 
     static void gpio_method(float *val, daisy::GPIO* gpio, daisy::Led* led)
     {
+        (void*)led;
         gpio->Write( (*val) > adc::noise_threshold );
     }
 
     static void led_method(float *val, daisy::GPIO* gpio, daisy::Led* led)
     {
+        (void*)gpio;
         led->Set(*val);
         led->Update();
     }
 
     digi_output() = default;
+<<<<<<< HEAD
     digi_output(daisy::Pin pin_, pwm_t pwm, float min_ = 0.0f, float max_ = 1.0f)
 =======
         hw.dac.WriteValue(channel, uint16_t(scale::process(scale_type, normalize(*value_ptr, min, max)) * 4095.0f));
@@ -1293,48 +1296,60 @@ struct digi_output : public control
 =======
     digi_output(daisy::Pin pin_, pwm_t pwm, float min_ = 0.0f, float max_ = 1.0f)
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
+=======
+    // softpwm == true -> software PWM brightness (daisy::Led), selected by
+    // [mode:softpwm]; otherwise a plain digital on/off output.
+    digi_output(daisy::Pin pin_, bool softpwm, float min_ = 0.0f, float max_ = 1.0f)
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
         : pin(pin_)
         , min(min_)
         , max(max_)
     {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         if(pwm != pwm_t::off) 
+=======
+        if(softpwm)
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
         {
-            led.Init(pin, pwm == pwm_t::inv, 1000.0f /*MY_SAMPLE_RATE / MY_BUFFER_SIZE*/ );
+            led.Init(pin, false /* no invert */, 1000.0f /*MY_SAMPLE_RATE / MY_BUFFER_SIZE*/ );
             digi_out_method = led_method;
-
-        } else 
+        }
+        else
         {
             gpio.Init(pin, daisy::GPIO::Mode::OUTPUT);
-            digi_out_method = gpio_method; 
+            digi_out_method = gpio_method;
         }
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
         *value_ptr = min;
 =======
         //*value_ptr = min; //null write 
 >>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
+=======
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
     }
 
 
-    void update() override 
+    void update() override
     {
         digi_out_method(value_ptr, &gpio, &led);
     }
 };
 
 #ifdef POLY
-template<uint8_t N> 
+template<uint8_t N>
 struct shared_digi_output : public digi_output
 {
     uint8_t counter = 0;
 
-    shared_digi_output() = default; 
-    shared_digi_output(daisy::Pin pin_, float min_ = 0.0f, float max_ = 1.0f)
-        : digi_output::digi_output(pin_, min_, max_)
+    shared_digi_output() = default;
+    shared_digi_output(daisy::Pin pin_, bool softpwm, float min_ = 0.0f, float max_ = 1.0f)
+        : digi_output::digi_output(pin_, softpwm, min_, max_)
     {}
     
     void set_value_ptr(float *zone)
@@ -1351,10 +1366,303 @@ struct shared_digi_output : public digi_output
             digi_output::update();
         }
         counter = (counter + 1) % N;
-        
+
     }
 };
 #endif
+
+#ifdef PWM
+#include "per/pwm.h"
+
+#ifndef PWM_OUTPUTS
+#define PWM_OUTPUTS 0
+#endif
+
+// Hardware-PWM output control ([pwm:PIN] on a bargraph). One channel of a
+// TIM3/4/5 PWM peripheral; the DSP value is normalized to a 0..1 duty cycle.
+// update() is a single register write (Channel::Set), so it is safe in the
+// audio callback. The PWMHandle instances, channel Init and the 'channel'
+// pointer below are set up by pwm_setup() (parser-emitted).
+struct pwm_out : public control
+{
+    daisy::PWMHandle::Channel* channel = nullptr;
+    float                      min = 0.0f;
+    float                      max = 1.0f;
+
+    pwm_out() = default;
+    void update() override
+    {
+        if(channel && value_ptr)
+            channel->Set(normalize(*value_ptr, min, max));
+    }
+};
+
+#ifdef POLY
+// Polyphonic variant: drive the pin once from voice 0 (mirrors shared_dac).
+template <uint8_t N>
+struct shared_pwm_out : public pwm_out
+{
+    uint8_t counter = 0;
+    shared_pwm_out() = default;
+    void set_value_ptr(float* zone) override
+    {
+        if(counter == 0) value_ptr = zone;
+        counter = (counter + 1) % N;
+    }
+    void update() override
+    {
+        if(counter == 0) pwm_out::update();
+        counter = (counter + 1) % N;
+    }
+};
+using pwm_out_t = shared_pwm_out<NVOICES>;
+#else
+using pwm_out_t = pwm_out;
+#endif
+
+// Filled by pwm_setup() (parser-emitted): per-control [min,max] and channel.
+std::array<pwm_out_t, PWM_OUTPUTS> pwm_output_list;
+void pwm_setup(); // Init the PWM timers + channels, wire up pwm_output_list.
+#endif // PWM
+
+#ifdef SERIAL
+#include "daisy_uart_listener.hpp"
+#include <cstdlib> // atof / strtof
+#include <cstdio>  // snprintf
+#include <cstring> // memcmp
+#include <cmath>   // fabsf
+
+// faust2daisy defines these via the build; defaults keep the template
+// compilable and let a hand-written channel be tested before the parser is
+// wired (see the manual-test note in the README / discussion).
+#ifndef SERIAL_RX_INPUTS
+#define SERIAL_RX_INPUTS 1
+#endif
+#ifndef SERIAL_TX_OUTPUTS
+#define SERIAL_TX_OUTPUTS 0
+#endif
+#ifndef SERIAL_LINE_MAX
+#define SERIAL_LINE_MAX 32 // longest "label value" message, bytes
+#endif
+#ifndef SERIAL_RING_SIZE
+#define SERIAL_RING_SIZE 256 // per-channel circular-DMA ring (DMA memory)
+#endif
+#ifndef SERIAL_TX_INTERVAL_MS
+#define SERIAL_TX_INTERVAL_MS 20 // <= 50 Hz max outgoing rate per control
+#endif
+#ifndef SERIAL_TX_EPSILON
+#define SERIAL_TX_EPSILON 0.001f // send-on-change threshold
+#endif
+
+struct string_view
+{
+    const char* str;
+    uint8_t     size;
+};
+
+// Label -> value routing table. Filled by init_serial_input_labels() (emitted
+// by the parser, or hand-written for a manual test).
+void                                      init_serial_input_labels();
+std::array<string_view, SERIAL_RX_INPUTS> serial_input_labels;
+std::array<float, SERIAL_RX_INPUTS>       serial_input_values;
+
+// The single multi-channel listener (UART DMA RX + blocking TX). See
+// daisy_uart_listener.hpp.
+static DaisyUartListener serial_listener;
+
+// Parse one received text line "label<space>value" and route the value (ASCII
+// float) to the matching control. Text framing -- not binary -- is used so a
+// byte stream resyncs cleanly on the newline delimiter and no value byte can
+// ever be mistaken for the delimiter. (Faust control labels contain no space,
+// so the first space is the separator.)
+void serial_parse_line(const char* line, uint8_t len)
+{
+    uint8_t sp = 0;
+    while(sp < len && line[sp] != ' ') ++sp;
+    if(sp == 0 || sp >= len) return; // no label or no separator
+    for(uint8_t i = 0; i < serial_input_labels.size(); ++i)
+    {
+        if(serial_input_labels[i].size == sp
+           && std::memcmp(line, serial_input_labels[i].str, sp) == 0)
+        {
+            serial_input_values[i] = (float)atof(line + sp + 1);
+            return;
+        }
+    }
+}
+
+// Per-channel byte reassembler: accumulates a line, flushes it on \n / \r.
+// Runs in main-loop context (called from serial_listener.poll()), so atof here
+// is fine. One instance per channel; passed as the channel's callback context.
+struct serial_line_assembler
+{
+    char    buf[SERIAL_LINE_MAX];
+    uint8_t len = 0;
+};
+
+void serial_on_bytes(void* ctx, const uint8_t* data, size_t n)
+{
+    serial_line_assembler* a = (serial_line_assembler*)ctx;
+    for(size_t i = 0; i < n; ++i)
+    {
+        char c = (char)data[i];
+        if(c == '\n' || c == '\r')
+        {
+            if(a->len > 0)
+            {
+                serial_parse_line(a->buf, a->len);
+                a->len = 0;
+            }
+        }
+        else if(a->len < sizeof(a->buf))
+            a->buf[a->len++] = c;
+        else
+            a->len = 0; // overflow -> drop and resync at the next delimiter
+    }
+}
+
+// Control object (mirrors the ADC/MIDI control model): a received serial value
+// drives the Faust zone via the shared update_method.
+struct serial_in : public adc
+{
+    uint8_t index = 0;
+    serial_in() = default;
+    serial_in(adc::type_t  t,
+              float         init_,
+              float         min_,
+              float         max_,
+              float         step_,
+              scale::scale_t scale_ = scale::scale_t::lin,
+              uint8_t        index_ = 0)
+        : adc::adc(t, init_, min_, max_, step_, scale_, 0), index(index_)
+    {}
+
+    void update() override
+    {
+        update_method(serial_input_values[index], value_ptr, min, max, step,
+                      previous_state, scale_type);
+        //hw.PrintLine("value at %d == %d", index, int((*value_ptr) * 1000)  );
+    }
+};
+
+#if defined(POLY)
+// Polyphonic variant: read the received value once and fan it out to all N
+// voices' zones (mirrors shared_digi_input / shared_adc). set_value_ptr() and
+// setup() are paired by DaisyControlUI::addADCEntry, so the counter walks the N
+// targets at registration; update() reads serial_input_values[index] once
+// (counter == 0) and distributes the shared value -- no per-voice re-read.
+template <size_t N>
+struct shared_serial_in : public serial_in
+{
+    std::array<float*, N> targets;
+    std::array<float, N>  prev_states = {};
+    uint8_t               counter = 0;
+    float                 val = 0.0f;
+
+    shared_serial_in() = default;
+    shared_serial_in(adc::type_t t, float init_, float min_, float max_, float step_,
+                     scale::scale_t scale_ = scale::scale_t::lin, uint8_t index_ = 0)
+        : serial_in(t, init_, min_, max_, step_, scale_, index_), val(init_)
+    {}
+
+    void set_value_ptr(float* zone) override
+    {
+        if(counter < N) targets[counter] = zone;
+    }
+    void setup() override
+    {
+        *targets[counter] = init;
+        counter = (counter + 1) % N;
+    }
+    void update() override
+    {
+        if(counter == 0) val = serial_input_values[index];
+        update_method(val, targets[counter], min, max, step, prev_states[counter],
+                      scale_type);
+        counter = (counter + 1) % N;
+    }
+};
+#endif
+
+// Send a control value out as one text line "label value\n" (blocking,
+// fire-and-forget). 'channel' is the DaisyUartListener channel the control's TX
+// pin resolved to.
+inline void serial_send(uint8_t channel, const char* label, float value)
+{
+    char line[SERIAL_LINE_MAX];
+    int  n = snprintf(line, sizeof(line), "%s %f\n", label, value);
+    if(n > 0)
+        serial_listener.transmit(channel, (const uint8_t*)line, (size_t)n);
+}
+
+// Output control (a bargraph tagged [tx:Dx]). Lives in output_list so
+// DaisyControlUI's bargraph handler assigns its zone via set_value_ptr(); the
+// value is actually transmitted (throttled, send-on-change) by serial_tx_poll()
+// from the main loop -- never from the audio callback, where a blocking UART
+// write would overrun the block.
+struct serial_out : public control
+{
+    const char* label     = nullptr;
+    uint8_t     channel    = 0;
+    float       last_sent  = 0.0f;
+    bool        sent_once  = false;
+
+    serial_out() = default;
+    void update() override {} // no-op: sending happens in serial_tx_poll()
+};
+
+#if defined(POLY)
+// Polyphonic variant: keep voice 0's zone and transmit it once (mirrors
+// shared_dac). update() stays a no-op; serial_tx_poll() does the sending.
+template <size_t N>
+struct shared_serial_out : public serial_out
+{
+    uint8_t counter = 0;
+    shared_serial_out() = default;
+    void set_value_ptr(float* zone) override
+    {
+        if(counter == 0) value_ptr = zone;
+        counter = (counter + 1) % N;
+    }
+};
+using serial_out_t = shared_serial_out<NVOICES>;
+#else
+using serial_out_t = serial_out;
+#endif
+
+// Filled by init_serial_outputs() (parser-emitted): per-control label + channel.
+// serial_tx_poll() iterates this; it works on either element type because both
+// expose the serial_out base fields.
+std::array<serial_out_t, SERIAL_TX_OUTPUTS> serial_output_list;
+void init_serial_outputs();
+
+// Transmit changed output values from the MAIN LOOP, capped at
+// SERIAL_TX_INTERVAL_MS (<= 50 Hz) and only when a value moved past
+// SERIAL_TX_EPSILON. Keeps the bus and the loop idle when nothing changes.
+inline void serial_tx_poll()
+{
+    static uint32_t last_ms = 0;
+    uint32_t        now     = daisy::System::GetNow();
+    if(now - last_ms < SERIAL_TX_INTERVAL_MS) return;
+    last_ms = now;
+    for(auto& o : serial_output_list)
+    {
+        if(o.value_ptr == nullptr) continue;
+        float v = *o.value_ptr;
+        if(!o.sent_once || fabsf(v - o.last_sent) > SERIAL_TX_EPSILON)
+        {
+            serial_send(o.channel, o.label, v);
+            o.last_sent = v;
+            o.sent_once = true;
+        }
+    }
+}
+
+// Create the ring buffers + assemblers and call serial_listener.addChannel()
+// for each UART used. Emitted by the parser (or hand-written for a manual test)
+// and inlined at the UI CONTROL TAG below.
+void serial_setup_channels();
+#endif // SERIAL
 
 
 =======
@@ -1513,43 +1821,6 @@ using namespace std;
     #endif
 #endif
 
-#ifdef PATCH 
-        void FaustDaisyPatch::screen_display(bool invert)
-        {
-            bool on, off;
-            on  = invert ? false : true;
-            off = invert ? true : false;
-            if(hw.system.GetNow() - screen_update_last > screen_update_period)
-            {
-                // Graph Knobs
-                size_t barwidth, barspacing;
-                size_t curx, cury;
-                screen_update_last = hw.system.GetNow();
-                barwidth            = 15;
-                barspacing          = 20;
-                platform.display.Fill(off);
-                // Bars for all four knobs.
-                for(size_t i = 0; i < adc_list.size(); ++i)
-                {
-                    float  v;
-                    size_t dest;
-                    curx = (barspacing * i + 1) + (barwidth * i);
-                    cury = platform.display.Height();
-                    v    = *adc_list[i].value_ptr; //GetKnobValue(static_cast<DaisyPatch::Ctrl>(i));
-                    dest = (v * platform.display.Height());
-                    for(size_t j = dest; j > 0; j--)
-                    {
-                        for(size_t k = 0; k < barwidth; k++)
-                        {
-                            platform.display.DrawPixel(curx + k, cury - j, on);
-                        }
-                    }
-                }
-                platform.display.Update();
-            }
-        }
-
-#endif 
 
 #include <string>
 #include <type_traits>
@@ -1679,10 +1950,27 @@ int main(void)
 #endif
 >>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
 
+    // For debug only
+    daisy::System::Delay(500);
+    hw.StartLog();
+    daisy::System::Delay(500);
+
+
+#ifdef SERIAL
+    init_serial_input_labels(); // fill the label -> value routing table
+    init_serial_outputs();      // fill the tx control label/channel table
+    serial_setup_channels();    // configure UARTs + start circular-DMA listening
+#endif
+
+#ifdef PWM
+    pwm_setup(); // init PWM timers + channels, wire up pwm_output_list
+#endif
+
 #ifdef MIDICTRL
     daisy_midi midi_handler;
 #endif
 
+<<<<<<< HEAD
     // For debug only
     //daisy::System::Delay(500);
     //hw.StartLog();
@@ -1720,6 +2008,8 @@ int main(void)
 >>>>>>> 23c140053 (polyphony still not fully operational, mono MIDI & ADC & DAC working on Seed with Flash, SRAM or QSPIFLASH)
 =======
 
+=======
+>>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
 #ifdef USE_SD_SOUNDFILE
     // Load the soundfiles with the D-cache OFF. The SDMMC DMA fills an AXI-SRAM
     // buffer whose cache is managed by libDaisy's sd_diskio.c using clean/
@@ -1865,6 +2155,11 @@ int main(void)
         //daisy::System::Delay(5);
         #ifdef PATCH 
             platform.DisplayControls(false);
+        #endif
+
+        #ifdef SERIAL
+            serial_listener.poll(); // drain RX channels -> reassemble -> route
+            serial_tx_poll();       // transmit changed outputs (<=50Hz, on change)
         #endif
     }
 }
