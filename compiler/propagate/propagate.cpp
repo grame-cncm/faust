@@ -33,6 +33,12 @@
 #include "simplify.hh"
 #include "xtended.hh"
 
+#include <chrono>
+#include <cstdlib>
+#include <functional>
+#include <unordered_map>
+#include <utility>
+
 ////////////////////////////////////////////////////////////////////////
 /**
  * propagate : box listOfSignal-> listOfSignal'
@@ -43,6 +49,249 @@
 ///////////////////////////////////////////////////////////////////////
 
 using namespace std;
+
+extern bool gTimingSwitch;
+
+// Why: the old propagation memoization used a hashconsed Tree key
+// tree(PROPAGATEPROPERTY, slotenv, path, box, listConvert(lsig)). That is correct, but on large
+// parallel structures (FFT512 measured avg_in ~= 684 for boxPar calls) the lookup itself builds a
+// huge temporary cons-list for every call, including cache hits. The remaining propagation time was
+// therefore dominated by key construction rather than by realPropagate().
+//
+// How: keep the same logical key, but store it as plain C++ data. Tree is CTree*, and Faust trees
+// are hash-consed, so pointer identity is the canonical equality we want. The hash only distributes
+// entries in the unordered_map; correctness still comes from PropagateMemoKey::operator== comparing
+// every field and every input signal exactly.
+struct PropagateMemoKey {
+    Tree    fSlotEnv;
+    Tree    fPath;
+    Tree    fBox;
+    siglist fInputs;
+
+    bool operator==(const PropagateMemoKey& other) const
+    {
+        return fSlotEnv == other.fSlotEnv && fPath == other.fPath && fBox == other.fBox &&
+               fInputs == other.fInputs;
+    }
+};
+
+struct PropagateMemoKeyHash {
+    static void combine(size_t& seed, size_t value)
+    {
+        seed ^= value + size_t(0x9e3779b97f4a7c15ULL) + (seed << 6) + (seed >> 2);
+    }
+
+    size_t operator()(const PropagateMemoKey& key) const
+    {
+        size_t seed = 0;
+        combine(seed, std::hash<Tree>{}(key.fSlotEnv));
+        combine(seed, std::hash<Tree>{}(key.fPath));
+        combine(seed, std::hash<Tree>{}(key.fBox));
+        combine(seed, std::hash<size_t>{}(key.fInputs.size()));
+        for (Tree input : key.fInputs) {
+            combine(seed, std::hash<Tree>{}(input));
+        }
+        return seed;
+    }
+};
+
+class PropagateMemo {
+    using Map = std::unordered_map<PropagateMemoKey, siglist, PropagateMemoKeyHash>;
+
+    Map fMap;
+
+   public:
+    bool get(const PropagateMemoKey& key, siglist& result)
+    {
+        auto it = fMap.find(key);
+        if (it == fMap.end()) {
+            return false;
+        }
+        result = it->second;
+        return true;
+    }
+
+    void set(PropagateMemoKey&& key, const siglist& result)
+    {
+        fMap.emplace(std::move(key), result);
+    }
+
+    void clear()
+    {
+        // Why: unordered_map::clear() destroys entries but may retain a large bucket array after a
+        // huge compilation. That would recreate the libfaust lifetime problem we explicitly want
+        // to avoid. How: swap with a fresh map at the outer scope boundary to release buckets too.
+        Map().swap(fMap);
+    }
+};
+
+static PropagateMemo gPropagateMemo;
+
+class PropagateMemoScope {
+    static int gDepth;
+
+   public:
+    PropagateMemoScope()
+    {
+        // Why: propagation memo entries are tied to the current compiler tree population and must
+        // not survive into another libfaust compilation. Also, boxPropagateSig can be used outside
+        // the main top-level propagation during evaluation. How: clear on the outermost scope
+        // boundary only, so nested uses do not destroy the enclosing call's cache.
+        if (gDepth++ == 0) {
+            gPropagateMemo.clear();
+        }
+    }
+
+    ~PropagateMemoScope()
+    {
+        if (--gDepth == 0) {
+            gPropagateMemo.clear();
+        }
+    }
+};
+
+int PropagateMemoScope::gDepth = 0;
+
+// Why: -time showed the whole propagation phase, but not whether time was spent in useful
+// propagation rules or in memoization overhead. This distinction matters for FFT-like programs
+// where large boxPar inputs can make key construction dominate. How: when both -time and the
+// FAUST_PROPAGATE_PROFILE environment variable are enabled, accumulate per-box-kind call counts,
+// cache hits/misses, inclusive wrapper time, inclusive realPropagate time, and average input arity.
+// The profile is diagnostic only and is completely off on normal compiler runs.
+struct PropagateProfileEntry {
+    size_t calls        = 0;
+    size_t hits         = 0;
+    size_t misses       = 0;
+    size_t inputSignals = 0;
+    double totalTime    = 0;
+    double realTime     = 0;
+};
+
+enum PropagateProfileKind {
+    kPropAtom,
+    kPropWireCutSlot,
+    kPropPrim,
+    kPropUI,
+    kPropGroup,
+    kPropSeq,
+    kPropPar,
+    kPropSplit,
+    kPropMerge,
+    kPropRec,
+    kPropRoute,
+    kPropSymbolic,
+    kPropExtended,
+    kPropOther,
+    kPropCount
+};
+
+static PropagateProfileEntry gPropagateProfile[kPropCount];
+
+static bool propagateProfileSwitch()
+{
+    static bool enabled = getenv("FAUST_PROPAGATE_PROFILE") != nullptr;
+    return enabled;
+}
+
+static const char* propagateProfileName(int kind)
+{
+    static const char* names[kPropCount] = {"atom",  "wire/cut/slot", "prim",  "ui",
+                                            "group", "seq",           "par",   "split",
+                                            "merge", "rec",           "route", "symbolic",
+                                            "xtended", "other"};
+    return names[kind];
+}
+
+static double profileSecond()
+{
+    using clock = std::chrono::steady_clock;
+    return std::chrono::duration<double>(clock::now().time_since_epoch()).count();
+}
+
+static int classifyPropagateBox(Tree box)
+{
+    int     i;
+    double  r;
+    prim0   p0;
+    prim1   p1;
+    prim2   p2;
+    prim3   p3;
+    prim4   p4;
+    prim5   p5;
+    Tree    t1, t2, t3, ff, label, cur, min, max, step, type, name, file, slot, body, chan;
+
+    if (getUserData(box)) {
+        return kPropExtended;
+    } else if (isBoxInt(box, &i) || isBoxReal(box, &r) || isBoxWaveform(box) ||
+               isBoxFConst(box, type, name, file) || isBoxFVar(box, type, name, file) ||
+               isBoxEnvironment(box)) {
+        return kPropAtom;
+    } else if (isBoxCut(box) || isBoxWire(box) || isBoxSlot(box)) {
+        return kPropWireCutSlot;
+    } else if (isBoxPrim0(box, &p0) || isBoxPrim1(box, &p1) || isBoxPrim2(box, &p2) ||
+               isBoxPrim3(box, &p3) || isBoxPrim4(box, &p4) || isBoxPrim5(box, &p5) ||
+               isBoxFFun(box, ff)) {
+        return kPropPrim;
+    } else if (isBoxButton(box, label) || isBoxCheckbox(box, label) ||
+               isBoxVSlider(box, label, cur, min, max, step) ||
+               isBoxHSlider(box, label, cur, min, max, step) ||
+               isBoxNumEntry(box, label, cur, min, max, step) ||
+               isBoxVBargraph(box, label, min, max) || isBoxHBargraph(box, label, min, max) ||
+               isBoxSoundfile(box, label, chan)) {
+        return kPropUI;
+    } else if (isBoxVGroup(box, label, t1) || isBoxHGroup(box, label, t1) ||
+               isBoxTGroup(box, label, t1)) {
+        return kPropGroup;
+    } else if (isBoxSeq(box, t1, t2)) {
+        return kPropSeq;
+    } else if (isBoxPar(box, t1, t2)) {
+        return kPropPar;
+    } else if (isBoxSplit(box, t1, t2)) {
+        return kPropSplit;
+    } else if (isBoxMerge(box, t1, t2)) {
+        return kPropMerge;
+    } else if (isBoxRec(box, t1, t2)) {
+        return kPropRec;
+    } else if (isBoxRoute(box, t1, t2, t3)) {
+        return kPropRoute;
+    } else if (isBoxSymbolic(box, slot, body)) {
+        return kPropSymbolic;
+    } else {
+        return kPropOther;
+    }
+}
+
+static void resetPropagateProfile()
+{
+    for (auto& entry : gPropagateProfile) {
+        entry = PropagateProfileEntry();
+    }
+}
+
+static void printPropagateProfile()
+{
+    size_t totalCalls = 0;
+    for (const auto& entry : gPropagateProfile) {
+        totalCalls += entry.calls;
+    }
+    if (totalCalls < 1000) {
+        return;
+    }
+
+    cerr << "\npropagation profile by box kind\n";
+    cerr << "kind\tcalls\thits\tmisses\ttotal_s\treal_s\toverhead_s\tavg_in\n";
+    for (int i = 0; i < kPropCount; ++i) {
+        const auto& entry = gPropagateProfile[i];
+        if (entry.calls == 0) {
+            continue;
+        }
+        double avgIn    = double(entry.inputSignals) / double(entry.calls);
+        double overhead = entry.totalTime - entry.realTime;
+        cerr << propagateProfileName(i) << '\t' << entry.calls << '\t' << entry.hits << '\t'
+             << entry.misses << '\t' << entry.totalTime << '\t' << entry.realTime << '\t'
+             << overhead << '\t' << avgIn << '\n';
+    }
+}
 
 // Private Implementation
 //------------------------
@@ -128,18 +377,6 @@ static siglist listConcat(const siglist& a, const siglist& b)
     return r;
 }
 
-/**
- * Convert a tree list of signals into an stl vector of signals
- */
-static void treelist2siglist(Tree l, siglist& r)
-{
-    r.clear();
-    while (!isNil(l)) {
-        r.push_back(hd(l));
-        l = tl(l);
-    }
-}
-
 static siglist listLift(const siglist& l)
 {
     int     n = (int)l.size();
@@ -149,35 +386,6 @@ static siglist listLift(const siglist& l)
         r[i] = lift(l[i]);
     }
     return r;
-}
-
-/**
- * Store the propagation result as a property of the arguments tuplet.
- *
- * @param args propagation arguments
- * @param value propagation result
- */
-static void setPropagateProperty(Tree args, const siglist& lsig)
-{
-    setProperty(args, tree(gGlobal->PROPAGATEPROPERTY), listConvert(lsig));
-}
-
-/**
- * Retreive the propagation result as a property of the arguments tuplet.
- *
- * @param args propagation arguments
- * @param lsig the propagation result if any
- * @return true if a propagation result was stored
- */
-static bool getPropagateProperty(Tree args, siglist& lsig)
-{
-    Tree value;
-    if (getProperty(args, tree(gGlobal->PROPAGATEPROPERTY), value)) {
-        treelist2siglist(value, lsig);
-        return true;
-    } else {
-        return false;
-    }
 }
 
 /**
@@ -583,14 +791,34 @@ siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
     FAUST_STATS_DO(gGlobal->gStats.fPropagateCalls++);
 
-    Tree    args = tree(gGlobal->PROPAGATEPROPERTY, slotenv, path, box, listConvert(lsig));
-    siglist result;
-    if (!getPropagateProperty(args, result)) {
+    int    profileKind  = kPropOther;
+    double profileStart = 0;
+    if (gTimingSwitch && propagateProfileSwitch()) {
+        profileKind  = classifyPropagateBox(box);
+        profileStart = profileSecond();
+        gPropagateProfile[profileKind].calls++;
+        gPropagateProfile[profileKind].inputSignals += lsig.size();
+    }
+
+    PropagateMemoKey key{slotenv, path, box, lsig};
+    siglist          result;
+    if (!gPropagateMemo.get(key, result)) {
         FAUST_STATS_DO(gGlobal->gStats.fPropagateCacheMisses++);
+        double realStart = (gTimingSwitch && propagateProfileSwitch()) ? profileSecond() : 0;
         result = realPropagate(slotenv, path, box, lsig);
-        setPropagateProperty(args, result);
+        if (gTimingSwitch && propagateProfileSwitch()) {
+            gPropagateProfile[profileKind].misses++;
+            gPropagateProfile[profileKind].realTime += profileSecond() - realStart;
+        }
+        gPropagateMemo.set(std::move(key), result);
     } else {
         FAUST_STATS_DO(gGlobal->gStats.fPropagateCacheHits++);
+        if (gTimingSwitch && propagateProfileSwitch()) {
+            gPropagateProfile[profileKind].hits++;
+        }
+    }
+    if (gTimingSwitch && propagateProfileSwitch()) {
+        gPropagateProfile[profileKind].totalTime += profileSecond() - profileStart;
     }
     // cerr << "propagate in " << boxpp(box) << endl;
     // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) <<
@@ -618,5 +846,13 @@ siglist makeSigInputList(int n)
 
 Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig)
 {
-    return listConvert(propagate(gGlobal->nil, path, box, lsig));
+    PropagateMemoScope memoScope;
+    if (gTimingSwitch && propagateProfileSwitch()) {
+        resetPropagateProfile();
+    }
+    Tree result = listConvert(propagate(gGlobal->nil, path, box, lsig));
+    if (gTimingSwitch && propagateProfileSwitch()) {
+        printPropagateProfile();
+    }
+    return result;
 }

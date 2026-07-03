@@ -189,6 +189,8 @@ void CTree::growHashTableIfNeeded()
 CTree::CTree(size_t hk, const Node& n, const tvec& br)
     : fNode(n),
       fType(0),
+      fFastProperty(nullptr),
+      fProperties(nullptr),
       fHashKey(hk),
       fSerial(++gSerialCounter),
       fAperture(calcTreeAperture(n, br)),
@@ -210,6 +212,7 @@ CTree::~CTree()
      since all pointers are either managed using the Garbageable model
      or with CDTree "successive pointers" allocation model.
      */
+    delete fProperties;
 }
 
 // equivalence
@@ -458,7 +461,10 @@ LIBFAUST_API void* getUserData(Tree t)
  */
 void CTree::exportProperties(vector<Tree>& keys, vector<Tree>& values)
 {
-    for (const auto& it : fProperties) {
+    if (!fProperties) {
+        return;
+    }
+    for (const auto& it : *fProperties) {
         keys.push_back(it.first);
         values.push_back(it.second);
     }

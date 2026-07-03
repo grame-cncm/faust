@@ -153,21 +153,38 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     ///< Should be incremented for each new visit to keep track of visited tree
     static unsigned int gVisitTime;
 
+    // Property list type. Measured on the examples/*.dsp corpus, ~72% of CTree never get a
+    // single property, so the map is allocated lazily (nullptr = none) instead of being an
+    // always-present inline member. A plain linear-scan buffer was tried first, but at least one
+    // real file has a single node carrying tens of thousands of properties (apparently from a
+    // memoization keyed by a fresh Tree per call, e.g. substitute()/liftn()) : with a flat buffer
+    // that node's O(n) lookup made the whole compile quadratic. std::map keeps every node bounded
+    // at O(log n) regardless of how many properties it accumulates. See TLIB.md for the numbers.
     typedef std::map<Tree, Tree> plist;
 
    protected:
     // fields
-    Tree         fNext;        ///< next tree in the same hashtable entry
-    Node         fNode;        ///< the node content of the tree
-    void*        fType;        ///< the type of a tree
-    plist        fProperties;  ///< the properties list attached to the tree
-    size_t       fHashKey;     ///< the hashtable key
-    size_t       fSerial;      ///< the increasing serial number
-    int          fAperture;    ///< how "open" is a tree (synthesized field)
-    unsigned int fVisitTime;   ///< keep track of visits
-    tvec         fBranch;      ///< the subtrees
+    Tree         fNext;         ///< next tree in the same hashtable entry
+    Node         fNode;         ///< the node content of the tree
+    void*        fType;         ///< the type of a tree
+    Tree         fFastProperty; ///< generic single-slot fast path for one caller-chosen "hot"
+                                 ///< property, bypassing fProperties entirely (see setFastProperty)
+    plist*       fProperties;   ///< lazily allocated; nullptr means no property set
+    size_t       fHashKey;      ///< the hashtable key
+    size_t       fSerial;       ///< the increasing serial number
+    int          fAperture;     ///< how "open" is a tree (synthesized field)
+    unsigned int fVisitTime;    ///< keep track of visits
+    tvec         fBranch;       ///< the subtrees
 
-    CTree() : fNext(nullptr), fType(nullptr), fHashKey(0), fSerial(0), fAperture(0), fVisitTime(0)
+    CTree()
+        : fNext(nullptr),
+          fType(nullptr),
+          fFastProperty(nullptr),
+          fProperties(nullptr),
+          fHashKey(0),
+          fSerial(0),
+          fAperture(0),
+          fVisitTime(0)
     {
     }
     ///< construction is private, uses tree::make instead
@@ -216,6 +233,14 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     void  setType(void* t) { fType = t; }
     void* getType() { return fType; }
 
+    // Generic fast-path slot for one caller-chosen property : one dedicated field instead of a
+    // map entry, for a property so widely used that the map overhead isn't worth paying. Only one
+    // caller should claim this (currently compiler/propagate/propagate.cpp's PropagateProperty,
+    // ~20% of all property traffic measured on examples/*.dsp) : it is not namespaced by key like
+    // setProperty/getProperty, so two unrelated callers using it on the same trees would collide.
+    void setFastProperty(Tree value) { fFastProperty = value; }
+    Tree getFastProperty() { return fFastProperty; }
+
     // Keep track of visited trees (WARNING : non reentrant)
     static void startNewVisit() { ++gVisitTime; }
     bool        isAlreadyVisited() { return fVisitTime == gVisitTime; }
@@ -225,18 +250,33 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     void setProperty(Tree key, Tree value)
     {
         statsPropertySet();
-        fProperties[key] = value;
+        if (!fProperties) {
+            fProperties = new plist();
+        }
+        (*fProperties)[key] = value;
     }
-    void clearProperty(Tree key) { fProperties.erase(key); }
-    void clearProperties() { fProperties = plist(); }
+    void clearProperty(Tree key)
+    {
+        if (fProperties) {
+            fProperties->erase(key);
+        }
+    }
+    void clearProperties()
+    {
+        delete fProperties;
+        fProperties = nullptr;
+    }
 
     void exportProperties(std::vector<Tree>& keys, std::vector<Tree>& values);
 
     Tree getProperty(Tree key)
     {
         statsPropertyGet();
-        plist::iterator i = fProperties.find(key);
-        return (i == fProperties.end()) ? nullptr : i->second;
+        if (!fProperties) {
+            return nullptr;
+        }
+        plist::iterator i = fProperties->find(key);
+        return (i == fProperties->end()) ? nullptr : i->second;
     }
 };
 
