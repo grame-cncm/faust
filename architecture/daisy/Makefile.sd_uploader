@@ -1,0 +1,22 @@
+# Makefile for the faust2daisy SD card soundfile uploader firmware.
+# Built and flashed temporarily by `faust2daisy -upload-sd`.
+
+TARGET = sd_uploader
+
+CPP_SOURCES = sd_uploader.cpp
+
+# Required to link the FatFS middleware (adds ff.c + the codepage source that
+# provides ff_convert / ff_wtoupper for long filename support).
+USE_FATFS = 1
+
+# Library Locations (overridden by the LIBDAISY_DIR / DAISYSP_DIR env vars)
+LIBDAISY_DIR ?= ../../../libdaisy
+DAISYSP_DIR ?= ../../../DaisySP
+
+# Runs from internal flash: small firmware, no bootloader required.
+APP_TYPE ?= BOOT_NONE
+
+OPT ?= -Os
+
+SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
+include $(SYSTEM_FILES_DIR)/Makefile

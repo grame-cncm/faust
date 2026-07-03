@@ -62,6 +62,7 @@ class daisy_midi {
                 for(auto & it : locked)
                     it = false;
             #endif
+
         }
     
         virtual ~daisy_midi()
@@ -142,7 +143,6 @@ class daisy_midi {
             locked[idx] = false;
             generations[idx] = 0;
         }
-        
 
         void voice_stealing(int chan, uint8_t note, uint8_t velocity)
         {
@@ -163,7 +163,6 @@ class daisy_midi {
             }
             generations[free] = 0;
         }
-
 
         void voice_blocking(int chan, uint8_t note, uint8_t velocity)
         {
