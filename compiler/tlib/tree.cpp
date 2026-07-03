@@ -97,10 +97,93 @@ using namespace std;
         throw faustexception(error.str()); \
     }
 
-Tree         CTree::gHashTable[kHashTableSize];
-bool         CTree::gDetails       = false;
-unsigned int CTree::gVisitTime     = 0;
-size_t       CTree::gSerialCounter = 0;
+Tree*        CTree::gHashTable      = nullptr;
+size_t       CTree::gHashTableSize  = 0;
+size_t       CTree::gHashTableCount = 0;
+bool         CTree::gDetails        = false;
+unsigned int CTree::gVisitTime      = 0;
+size_t       CTree::gSerialCounter  = 0;
+
+// Smallest prime >= n (trial division; only called on the rare rehash path)
+static size_t nextPrimeAtLeast(size_t n)
+{
+    if (n <= 2) return 2;
+    size_t candidate = (n % 2 == 0) ? n + 1 : n;
+    for (;;) {
+        bool   isPrime = true;
+        size_t d       = 3;
+        while (d * d <= candidate) {
+            if (candidate % d == 0) {
+                isPrime = false;
+                break;
+            }
+            d += 2;
+        }
+        if (isPrime) return candidate;
+        candidate += 2;
+    }
+}
+
+// Lazily allocates the table on first use : unlike the previous fixed-size C array (whose static
+// storage duration guaranteed a valid zero-initialized table before any code ran), a
+// dynamically-allocated table needs an explicit first allocation. This makes CTree::make() safe
+// to call even if something creates a Tree before CTree::init() has run (e.g. from another
+// translation unit's static initializer, whose relative order versus init() is unspecified).
+// Cheap after the first call (one non-null pointer check), so it's fine to call unconditionally
+// on every make(), including lookups that turn out to be cache hits.
+void CTree::ensureHashTableAllocated()
+{
+    if (gHashTable != nullptr) return;
+    gHashTableSize = kInitialHashTableSize;
+    gHashTable     = new Tree[gHashTableSize];
+    memset(gHashTable, 0, sizeof(Tree) * gHashTableSize);
+}
+
+// Rehash into a larger table once the load factor (average chain length) would exceed 0.7.
+// Existing CTree instances keep their address : only their fNext chaining is rewired, so every
+// Tree pointer already held elsewhere in the compiler remains valid across the resize.
+//
+// Only called right before an insert (see CTree::make), not on every lookup : whether the table
+// needs to grow can only change when an entry is actually added, so cache-hit calls to make() --
+// the majority, in a compiler that constantly re-references already-built subexpressions -- have
+// no reason to pay for this check at all.
+//
+// Triggers below load factor 1.0 : a growing file otherwise spends much of its compilation with
+// the table between 0.5 and 1.0 full, i.e. real average chain length approaching 1 on every
+// lookup (hit or miss), not just on insert -- the fixed 400009-bucket table this replaced kept
+// load factor near 0 for all but the largest files, so this is a real cost the old table never
+// had. 0.7 (the default, see global::gHashLoadFactor) was chosen empirically (tools/tlib-bench,
+// examples/*.dsp) : lower wins more on time but costs real aggregate memory (table memory is
+// cheap per bucket, but doubling how many buckets sit unused adds up across a large CTree
+// population) ; 0.7 keeps nearly all of the time win at roughly neutral memory. Exposed as
+// -hlf/--hash-load-factor purely to let that trade-off be explored from the command line ; it
+// never changes generated code (see TLIB.md for the comparison across values).
+void CTree::growHashTableIfNeeded()
+{
+    // gGlobal can still be null here in the same rare static-initialization-order case documented
+    // on ensureHashTableAllocated() above ; fall back to the default rather than crash.
+    double loadFactor = gGlobal ? gGlobal->gHashLoadFactor : 0.7;
+    if (double(gHashTableCount) < double(gHashTableSize) * loadFactor) return;
+
+    size_t newSize  = nextPrimeAtLeast(gHashTableSize * 2);
+    Tree*  newTable = new Tree[newSize];
+    memset(newTable, 0, sizeof(Tree) * newSize);
+
+    for (size_t i = 0; i < gHashTableSize; i++) {
+        Tree t = gHashTable[i];
+        while (t) {
+            Tree   next = t->fNext;
+            size_t j    = t->fHashKey % newSize;
+            t->fNext    = newTable[j];
+            newTable[j] = t;
+            t           = next;
+        }
+    }
+
+    delete[] gHashTable;
+    gHashTable     = newTable;
+    gHashTableSize = newSize;
+}
 
 // Constructor : add the tree to the hash table
 CTree::CTree(size_t hk, const Node& n, const tvec& br)
@@ -112,10 +195,11 @@ CTree::CTree(size_t hk, const Node& n, const tvec& br)
       fVisitTime(0),
       fBranch(br)
 {
-    // link in the hash table
-    int j         = hk % kHashTableSize;
+    // link in the hash table (CTree::make already called growHashTableIfNeeded)
+    size_t j      = hk % gHashTableSize;
     fNext         = gHashTable[j];
     gHashTable[j] = this;
+    gHashTableCount++;
 }
 
 // Destructor
@@ -152,8 +236,11 @@ Tree CTree::make(const Node& n, int ar, Tree tbl[])
 
 Tree CTree::make(const Node& n, const tvec& br)
 {
-    size_t hk = calcTreeHash(n, br);
-    Tree   t  = gHashTable[hk % kHashTableSize];
+    ensureHashTableAllocated();
+
+    size_t hk       = calcTreeHash(n, br);
+    Tree   t        = gHashTable[hk % gHashTableSize];
+    bool   collided = (t != nullptr);  // bucket already occupied, known for free from the lookup
 
     while (t && !t->equiv(n, br)) {
         t = t->fNext;
@@ -164,6 +251,11 @@ Tree CTree::make(const Node& n, const tvec& br)
         return t;
     } else {
         statsTreeCreated();
+        // Only even consider growing when this insert lands on an already-occupied bucket ; most
+        // inserts don't (see TLIB.md), so this skips the load-factor check entirely for them.
+        if (collided) {
+            growHashTableIfNeeded();
+        }
         return new CTree(hk, n, br);
     }
 }
@@ -192,10 +284,10 @@ ostream& CTree::print(ostream& fout) const
 void CTree::control()
 {
     printf("\ngHashTable Content :\n\n");
-    for (int i = 0; i < kHashTableSize; i++) {
+    for (size_t i = 0; i < gHashTableSize; i++) {
         Tree t = gHashTable[i];
         if (t) {
-            printf("%4d = ", i);
+            printf("%4zu = ", i);
             while (t) {
                 /*t->print();*/
                 printf(" => ");
@@ -209,10 +301,14 @@ void CTree::control()
 
 void CTree::init()
 {
-    gSerialCounter = 0;
-    gVisitTime     = 0;
-    gDetails       = false;
-    memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
+    gSerialCounter  = 0;
+    gVisitTime      = 0;
+    gDetails        = false;
+    gHashTableCount = 0;
+    delete[] gHashTable;
+    gHashTableSize = kInitialHashTableSize;
+    gHashTable     = new Tree[gHashTableSize];
+    memset(gHashTable, 0, sizeof(Tree) * gHashTableSize);
 }
 
 // if t has a node of type int, return it, or float, return casted to int, otherwise error

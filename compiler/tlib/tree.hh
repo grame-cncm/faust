@@ -133,9 +133,20 @@ struct less<CTree*> {
 
 class LIBFAUST_API CTree : public virtual Garbageable {
    protected:
-    static const int kHashTableSize = 400009;     ///< size of the hash table (prime number)
-    static size_t    gSerialCounter;              ///< the serial number counter
-    static Tree      gHashTable[kHashTableSize];  ///< hash table used for "hash consing"
+    static const size_t kInitialHashTableSize = 1009;  ///< initial size of the hash table (prime);
+                                                        ///< grows as needed, see growHashTableIfNeeded
+    static size_t        gSerialCounter;   ///< the serial number counter
+    static size_t        gHashTableSize;   ///< current size of the hash table (grows as needed)
+    static size_t        gHashTableCount;  ///< number of trees currently stored in the table
+    static Tree*         gHashTable;       ///< hash table used for "hash consing" (grows by rehashing)
+
+    ///< cheap check, called on every make() : lazily allocates the table on first use (needed
+    ///< even for a lookup, not just an insert -- see the comment on the definition)
+    static void ensureHashTableAllocated();
+    ///< called only right before inserting a new tree ; rehash into a larger table once the load
+    ///< factor is too high. Not called on a lookup that finds an existing tree, so the many
+    ///< cache-hit calls to make() don't pay for a load-factor check that can't change outcome.
+    static void growHashTableIfNeeded();
 
    public:
     static bool gDetails;  ///< CTree::print() print with more details when true

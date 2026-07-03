@@ -457,10 +457,11 @@ void global::reset()
     gRustNoTraitSwitch = false;
     gRustNoLibm        = false;
 
-    gDumpNorm = -1;
-    gFTZMode  = 0;
-    gRangeUI  = false;
-    gFreezeUI = false;
+    gDumpNorm       = -1;
+    gFTZMode        = 0;
+    gHashLoadFactor = 0.7;
+    gRangeUI        = false;
+    gFreezeUI       = false;
 
     gFloatSize      = 1;             // -single by default
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
@@ -1554,6 +1555,15 @@ bool global::processCmdline(int argc, const char* argv[])
             }
             i += 2;
 
+        } else if (isCmd(argv[i], "-hlf", "--hash-load-factor") && (i + 1 < argc)) {
+            gHashLoadFactor = std::atof(argv[i + 1]);
+            if ((gHashLoadFactor <= 0.0) || (gHashLoadFactor > 10.0)) {
+                stringstream error;
+                error << "ERROR : invalid -hlf option: " << gHashLoadFactor << endl;
+                throw faustexception(error.str());
+            }
+            i += 2;
+
         } else if (isCmd(argv[i], "-rui", "--range-ui")) {
             gRangeUI = true;
             i += 1;
@@ -2329,6 +2339,11 @@ string global::printHelp()
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no "
             "(default), 1:fabs based, "
             "2:mask based (fastest)]."
+         << endl;
+    sstr << tab
+         << "-hlf <n>    --hash-load-factor <n>      load factor that triggers tlib hash table "
+            "growth (0.7 by default) ; internal compiler tuning knob, never changes generated "
+            "code, see TLIB.md."
          << endl;
 #ifndef EMCC
     sstr << tab

@@ -53,10 +53,17 @@ typedef Symbol* Sym;
  */
 class Symbol : public virtual Garbageable {
    private:
-    static const int kHashTableSize =
-        511;  ///< Size of the hash table (a prime number is recommended)
-    static Symbol* gSymbolTable[kHashTableSize];  ///< Hash table used to store the symbols
+    static const size_t kInitialHashTableSize = 511;  ///< initial size of the hash table (prime)
+    static size_t        gHashTableSize;   ///< current size of the hash table (grows as needed)
+    static size_t        gHashTableCount;  ///< number of symbols currently stored in the table
+    static Symbol**       gSymbolTable;     ///< hash table used to store the symbols (grows by rehashing)
     static std::map<std::string, size_t> gPrefixCounters;
+
+    ///< cheap check, called on every get()/isnew() : lazily allocates the table on first use
+    static void ensureHashTableAllocated();
+    ///< called only right before inserting a new symbol ; rehash into a larger table once the
+    ///< load factor is too high. Not called on a lookup that finds an existing symbol.
+    static void growHashTableIfNeeded();
 
     // Fields
     std::string fName;  ///< Name of the symbol

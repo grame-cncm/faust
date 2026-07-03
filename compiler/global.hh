@@ -288,6 +288,9 @@ struct global {
     bool gFreezeUI;  // -fui option, whether to freeze vslider/hslider/nentry to a given value (init
                      // value by default)
     int  gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
+    double gHashLoadFactor;  // -hlf option, tlib CTree/Symbol hash table growth threshold
+                              // (0.7 by default, see TLIB.md §1) : purely an internal
+                              // compiler performance knob, never affects generated code
     bool gInPlace;   // -inpl option, add cache to input for correct in-place computations
     bool gStrictSelect;  // -sts option, generate strict code for 'selectX' even for stateless
                          // branches (both are computed)

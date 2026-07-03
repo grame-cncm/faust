@@ -27,6 +27,7 @@
 
 #include "compatibility.hh"
 #include "exception.hh"
+#include "global.hh"
 #include "symbol.hh"
 
 using namespace std;
@@ -35,9 +36,79 @@ using namespace std;
  * Hash table used to store the symbols.
  */
 
-Sym Symbol::gSymbolTable[kHashTableSize];
+Symbol** Symbol::gSymbolTable    = nullptr;
+size_t   Symbol::gHashTableSize  = 0;
+size_t   Symbol::gHashTableCount = 0;
 
 map<string, size_t> Symbol::gPrefixCounters;
+
+// Smallest prime >= n (trial division; only called on the rare rehash path)
+static size_t nextPrimeAtLeast(size_t n)
+{
+    if (n <= 2) return 2;
+    size_t candidate = (n % 2 == 0) ? n + 1 : n;
+    for (;;) {
+        bool   isPrime = true;
+        size_t d       = 3;
+        while (d * d <= candidate) {
+            if (candidate % d == 0) {
+                isPrime = false;
+                break;
+            }
+            d += 2;
+        }
+        if (isPrime) return candidate;
+        candidate += 2;
+    }
+}
+
+// Lazily allocates the table on first use : unlike the previous fixed-size C array (whose static
+// storage duration guaranteed a valid zero-initialized table before any code ran), a
+// dynamically-allocated table needs an explicit first allocation. This makes Symbol::get()/isnew()
+// safe to call even if something creates a symbol before Symbol::init() has run (e.g. from another
+// translation unit's static initializer, whose relative order versus init() is unspecified).
+// Cheap after the first call (one non-null pointer check).
+void Symbol::ensureHashTableAllocated()
+{
+    if (gSymbolTable != nullptr) return;
+    gHashTableSize = kInitialHashTableSize;
+    gSymbolTable   = new Symbol*[gHashTableSize];
+    memset(gSymbolTable, 0, sizeof(Symbol*) * gHashTableSize);
+}
+
+// Rehash into a larger table once the load factor (average chain length) would exceed
+// gGlobal->gHashLoadFactor (0.7 by default, see -hlf/--hash-load-factor) -- see the longer
+// comment on CTree::growHashTableIfNeeded (tree.cpp) for why not 1.0.
+// Existing Symbol instances keep their address : only their fNext chaining is rewired, so every
+// Sym pointer already held elsewhere in the compiler remains valid across the resize.
+//
+// Only called right before an insert (see Symbol::get), not on every lookup.
+void Symbol::growHashTableIfNeeded()
+{
+    // gGlobal can still be null here in the same rare static-initialization-order case documented
+    // on ensureHashTableAllocated() above ; fall back to the default rather than crash.
+    double loadFactor = gGlobal ? gGlobal->gHashLoadFactor : 0.7;
+    if (double(gHashTableCount) < double(gHashTableSize) * loadFactor) return;
+
+    size_t   newSize  = nextPrimeAtLeast(gHashTableSize * 2);
+    Symbol** newTable = new Symbol*[newSize];
+    memset(newTable, 0, sizeof(Symbol*) * newSize);
+
+    for (size_t i = 0; i < gHashTableSize; i++) {
+        Sym s = gSymbolTable[i];
+        while (s) {
+            Sym    next = s->fNext;
+            size_t j    = s->fHash % newSize;
+            s->fNext    = newTable[j];
+            newTable[j] = s;
+            s           = next;
+        }
+    }
+
+    delete[] gSymbolTable;
+    gSymbolTable   = newTable;
+    gHashTableSize = newSize;
+}
 
 /**
  * Search the hash table for the symbol of name \p str or returns a new one.
@@ -47,21 +118,34 @@ map<string, size_t> Symbol::gPrefixCounters;
 
 Sym Symbol::get(const string& rawstr)
 {
+    ensureHashTableAllocated();
+
     // ---replaces control characters with white spaces---
     string str = rawstr;
     for (size_t i = 0; i < str.size(); i++) {
         char c = rawstr[i];
         str[i] = (c >= 0 && c < 32) ? 32 : c;
     }
-    size_t hsh  = calcHashKey(str);
-    int    bckt = hsh % kHashTableSize;
-    Sym    item = gSymbolTable[bckt];
+    size_t hsh      = calcHashKey(str);
+    size_t bckt     = hsh % gHashTableSize;
+    Sym    item     = gSymbolTable[bckt];
+    bool   collided = (item != nullptr);  // bucket already occupied, known for free from the lookup
 
     while (item && !item->equiv(hsh, str)) {
         item = item->fNext;
     }
-    Sym r = item ? item : (gSymbolTable[bckt] = new Symbol(str, hsh, gSymbolTable[bckt]));
+    if (item) {
+        return item;
+    }
 
+    // Only even consider growing when this insert lands on an already-occupied bucket.
+    if (collided) {
+        growHashTableIfNeeded();
+        bckt = hsh % gHashTableSize;
+    }
+    Sym r              = new Symbol(str, hsh, gSymbolTable[bckt]);
+    gSymbolTable[bckt] = r;
+    gHashTableCount++;
     return r;
 }
 
@@ -73,8 +157,10 @@ Sym Symbol::get(const string& rawstr)
 
 bool Symbol::isnew(const string& str)
 {
+    ensureHashTableAllocated();
+
     size_t hsh  = calcHashKey(str);
-    int    bckt = hsh % kHashTableSize;
+    size_t bckt = hsh % gHashTableSize;
     Sym    item = gSymbolTable[bckt];
 
     while (item && !item->equiv(hsh, str)) {
@@ -161,5 +247,9 @@ ostream& Symbol::print(ostream& fout) const  ///< print a symbol on a stream
 void Symbol::init()
 {
     gPrefixCounters.clear();
-    memset(gSymbolTable, 0, sizeof(Sym) * kHashTableSize);
+    gHashTableCount = 0;
+    delete[] gSymbolTable;
+    gHashTableSize = kInitialHashTableSize;
+    gSymbolTable   = new Symbol*[gHashTableSize];
+    memset(gSymbolTable, 0, sizeof(Sym) * gHashTableSize);
 }
