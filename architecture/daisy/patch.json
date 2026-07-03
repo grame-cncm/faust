@@ -2,16 +2,11 @@
     "name": "patch",
     "chip": "seed",
     "midi": [
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
         {
         "type": "uart",
         "rx_pin": "D14",
         "tx_pin": "D13"
         }
-<<<<<<< HEAD
     ],
     "ui": [
         {
@@ -28,7 +23,6 @@
         "encoder:b": "gpio:D11",
         "encoder:click": "gpio:D0"
         }
-=======
         {"type": "uart"},
         {"rx_pin": "D14"},
         {"tx_pin": "D13"}
@@ -46,8 +40,6 @@
         {"encoder:a": "gpio:D12"},
         {"encoder:b": "gpio:D11"},
         {"encoder:click": "gpio:D0"}
->>>>>>> e0acbeb33 (almost full feature for daisy seed, added configuration files for platforms (pod, patch) and proper mapping of these, cut dependency between hothouse & daisy, fixed polyphony in daisy, digital gpio available)
-=======
     ],
     "ui": [
         {
@@ -64,6 +56,5 @@
         "encoder:b": "gpio:D11",
         "encoder:click": "gpio:D0"
         }
->>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
     ]
 }
