@@ -1470,11 +1470,11 @@ std::array<float, SERIAL_RX_INPUTS>       serial_input_values;
 // daisy_uart_listener.hpp.
 static DaisyUartListener serial_listener;
 
-// Parse one received text line "label<space>value" and route the value (ASCII
-// float) to the matching control. Text framing -- not binary -- is used so a
-// byte stream resyncs cleanly on the newline delimiter and no value byte can
-// ever be mistaken for the delimiter. (Faust control labels contain no space,
-// so the first space is the separator.)
+// Parse one received frame body "label<space>value" (the bytes between the
+// framing brackets) and route the value (ASCII float) to the matching control.
+// Text framing -- not binary -- is used so a byte stream resyncs cleanly on the
+// '[' start marker and no value byte can ever be mistaken for a delimiter.
+// (Faust control labels contain no space, so the first space is the separator.)
 void serial_parse_line(const char* line, uint8_t len)
 {
     uint8_t sp = 0;
@@ -1491,13 +1491,16 @@ void serial_parse_line(const char* line, uint8_t len)
     }
 }
 
-// Per-channel byte reassembler: accumulates a line, flushes it on \n / \r.
-// Runs in main-loop context (called from serial_listener.poll()), so atof here
-// is fine. One instance per channel; passed as the channel's callback context.
+// Per-channel byte reassembler. Frames are bracketed: "[label value]". The '['
+// is a hard start marker (gives a clean resync point) and ']' ends+parses;
+// bytes outside brackets (noise, a trailing '\n', ...) are ignored. Runs in
+// main-loop context (from serial_listener.poll()), so atof is fine here. One
+// instance per channel; passed as the channel's callback context.
 struct serial_line_assembler
 {
     char    buf[SERIAL_LINE_MAX];
-    uint8_t len = 0;
+    uint8_t len    = 0;
+    bool    active = false; // currently inside a [...] frame
 };
 
 void serial_on_bytes(void* ctx, const uint8_t* data, size_t n)
@@ -1506,18 +1509,26 @@ void serial_on_bytes(void* ctx, const uint8_t* data, size_t n)
     for(size_t i = 0; i < n; ++i)
     {
         char c = (char)data[i];
-        if(c == '\n' || c == '\r')
+        if(c == '[') // start of frame (also recovers from a dropped ']')
         {
-            if(a->len > 0)
-            {
-                serial_parse_line(a->buf, a->len);
-                a->len = 0;
-            }
+            a->active = true;
+            a->len    = 0;
         }
-        else if(a->len < sizeof(a->buf))
-            a->buf[a->len++] = c;
-        else
-            a->len = 0; // overflow -> drop and resync at the next delimiter
+        else if(c == ']')
+        {
+            if(a->active && a->len > 0)
+                serial_parse_line(a->buf, a->len);
+            a->active = false;
+            a->len    = 0;
+        }
+        else if(a->active)
+        {
+            if(a->len < sizeof(a->buf))
+                a->buf[a->len++] = c;
+            else
+                a->active = false; // overflow -> drop, resync at next '['
+        }
+        // bytes outside a frame are ignored
     }
 }
 
@@ -1584,13 +1595,14 @@ struct shared_serial_in : public serial_in
 };
 #endif
 
-// Send a control value out as one text line "label value\n" (blocking,
-// fire-and-forget). 'channel' is the DaisyUartListener channel the control's TX
-// pin resolved to.
+// Send a control value out as one bracketed frame "[label value]" (blocking,
+// fire-and-forget). The brackets frame the message for the receiver's
+// reassembler. 'channel' is the DaisyUartListener channel the control's TX pin
+// resolved to.
 inline void serial_send(uint8_t channel, const char* label, float value)
 {
     char line[SERIAL_LINE_MAX];
-    int  n = snprintf(line, sizeof(line), "%s %f\n", label, value);
+    int  n = snprintf(line, sizeof(line), "[%s %f]", label, value);
     if(n > 0)
         serial_listener.transmit(channel, (const uint8_t*)line, (size_t)n);
 }

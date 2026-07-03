@@ -1049,6 +1049,8 @@ class ui_scanner:
             if(elem.type == "keyoff"):
                 keyoffs_cnt += 1
 
+        if(self.midis > 0):
+            print("MIDI=true")
 
         cc_used = {}
         key_used = {}

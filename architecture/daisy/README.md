@@ -57,17 +57,26 @@ Here are the available options:
 This tool tries to provide the most exhaustive control one can give over Daisy boards with Faust DSP programs. 
 
 It features : 
-- Audio : High quality, low latency, 2 inputs, 2 outputs
+- Audio : High quality, up to 96KHz sample rate, low latency, 2 inputs, 2 outputs
 - Audio : Soundfile, either stored in QSPI flash (small files) or in SD card (bigger files)  
 - Control : ADC's (up to 12 inputs, 16 bits each) and DAC's (up to 2, 12 bits outputs). 
-- Control : MIDI input, either through USB or serial UART
-- Control : Digital GPIOs (a large set of on/off switches, or software PWM at ~500/1000Hz)
-- Control : Serial communication with other boards 
+  - ADC example : `hslider("amp[adc:A0]", 0, 0, 1, 0.001)`
+  - DAC example : `vbargraph("ampout[DAC:A7]", 0, 1)`
+- Control : MIDI input, either through default USB or serial UART
+  - MIDI example : `hslider("freq[midi:ctrl 14]", 50, 20, 1000, 0.1)`
+  - Polyphonic example with `-nvoices` option : `hslider("gain", 0, 0, 1, 0.001)`
+- Control : Digital GPIOs (a large set of on/off switches, or software PWM at ~1000Hz)
+  - GPIO option : `button("gate[gpio:D8])`
+  - Software PWM mode (output only) : `vbargraph("led_control[gpio:D8][mode:softpwm]", 0, 1)`
+- Control : Serial communication through UART pins
+  - Input example : `hslider("freq[rx:D1]", 50, 20, 1000, 0.01)`
+  - Output example : `vbargraph("outctrl[tx:D2]", 0, 1)`
 - Control : hardware PWM output (~29KHz by default)
+  - Example : `vbargraph("dim[pwm:D3], 0, 1)` 
 - Memory : Almost constant, compile-time awareness of memory footprint 
 - Memory : control location where program is stored and executed (Flash, SRAM, QSPI flash)
-- Memory : control threshold above which memory blocks (delay for example) are stored in SDRAM (64MB) 
-- Development : configuration file system, allowing to rename some pins (for example : `knob:1 == adc:A0`)
+- Memory : control threshold above which memory blocks (delay lines for example) are stored in SDRAM (64MB) 
+- Development : configuration file system, allowing to rename some pins (for example : `knob:1 = adc:A0`)
 
 ## Setup 
 
@@ -110,14 +119,18 @@ export DAISYSP_DIR=~/GitHub/DaisyExamples/DaisySP
 <<<<<<< HEAD
 <<<<<<< HEAD
 
+<<<<<<< HEAD
 =======
 >>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
 =======
 
 >>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 If on macOS, consider putting the above text in `~/.zshrc` so that it's always set in Terminal.
+=======
+If on macOS, consider putting the above text in `~/.zshrc` so that it's always set in Terminal. On linux, put it to `~/.bashrc`. 
+>>>>>>> aa4db5e9a (documentation)
 
-The default optimization is for file size: `OPT=-Os`. You can optimize for speed by setting `OPT=-O2` or the even more aggressive setting `OPT=-O3`. This can be set in the Makefile in "faust/architecture/daisy".
+The default optimization is for file size: `OPT=-Os`. You can optimize for speed by setting `OPT=-O2` or the even more aggressive setting `OPT=-O3`. The drawback is that more aggressive optimization will result in larger binary. This can be set in the Makefile in "faust/architecture/daisy".
 
 ## Targetting boards 
 
@@ -125,14 +138,14 @@ This tool is intended to target Daisy boards :
 - Seed 
 - PatchSM 
 
-The idea is to provide access to all of the Pins that can be useful in an audio context : 
+ It provide access to all of the Pins and features that can be useful in an audio context : 
 - Audio inputs & outputs (24 bits)
-- Control ADCs (16 bits)
-- Control DACs (12 bits)
-- GPIO (in either on/off mode, or as software PWM for output)
-- Serial UART
-- MIDI UART 
-- PWM 
+- Control ADCs (CV in for Patch SM) (16 bits) 
+- Control DACs (CV out for Patch SM) (12 bits)
+- GPIO & Gates (either on/off mode, or software PWM for output)
+- Serial through UART pins
+- MIDI via USB or UART 
+- Hardware PWM 
 
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -207,7 +220,7 @@ process = os.sawtooth(freq) * amp * 0.5 * env <: _,_;
 
 Then compile with `faust2daisy -seed my.dsp`. 
 
-In order to embrace more fully the potential of Daisy boards, there gpio outputs can be configured as PWM controls, providing more high frequency outputs
+In order to embrace more fully the potential of Daisy boards, there gpio outputs can be configured as PWM controls, running at ~1000Hz.
 
 ``` faust
 import("stdfaust.lib");
@@ -222,9 +235,124 @@ process = os.osc(100) * duty * 0.3;
 ### MIDI 
 
 Midi is implemented for both monophonic controls (control change, keyon, keyoff, key) & polyphonic controls (freq, key, gain, vel, gate). 
-Of course, you need to set "nvoices" either as a command line option, or in your DSP global metadata. 
+For monophonic midi, parser will automatically detect that there are some MIDI controls in your DSP. You might specify (command line option, or config file) the MIDI mode : UART pin, or USB (default). 
+For polyphonic MIDI, you need to set "nvoices" either as a command line option, or in your DSP global metadata. 
 
-MIDI can be passed through the power supply/flash USB interface. This is the MIDI USB mode (default when setting `-midi`) or through serial ports (UART) with `midi-uart` option. In this case, you need to specify which pins are used.
+MIDI can be passed through the power supply/flash USB interface. This is the MIDI USB mode (default when setting `-midi`) or through serial ports (UART) with `-midi-uart` option. In this case, you need to specify which pins are used (or use a configuration file). 
+
+## Pin reference
+
+These tables list every pin faust2daisy can address on each board, and which
+metadata each one accepts. They are generated from the tool's own resolution
+tables (`daisy_pins.py`, `daisy_uart_pins.py`, `daisy_pwm_pin.py`) cross-checked
+against libDaisy (`daisy_seed.h`, `daisy_patch_sm.h`), so they match exactly what
+the parser will accept.
+
+**Legend**
+
+| Column | Metadata | Meaning |
+|--------|----------|---------|
+| ADC  | `[adc:PIN]`               | Analog input (16-bit). |
+| DAC  | `[dac:PIN]`               | Analog output (12-bit). |
+| GPIO | `[gpio:PIN]` (+ optional `[mode:softpwm]`) | Digital in (`button`/`checkbox`) or out; `in`/`out` noted where the board wires it one way. |
+| PWM  | `[pwm:PIN]`               | Hardware PWM output. The cell shows `timer·channel` — **pins on the same timer share one frequency**, and one `timer·channel` drives only one pin. |
+| UART | `[rx:PIN]` / `[tx:PIN]`   | Serial. `Rx`/`Tx` shown with the USART peripheral; an `Rx` and a `Tx` on the **same peripheral** form one bidirectional link. |
+
+Every physical pin may be claimed by **one** feature only (the conflict guard
+rejects re-use) — the exception is serial, where a pin may appear on several
+controls. Aliases resolve to the same silicon (Seed `A0` == `D15`), so they
+conflict too. `Shared` names the pin's other on-board function; reusing it there
+(SPI/I²C/SDMMC/USB/CV) is your responsibility.
+
+### Daisy Seed
+
+Seed exposes `D0`–`D32`; the analog pins also carry an `A`-alias. **Every pin is
+usable as digital GPIO.** The 12 documented ADC inputs are `A0`–`A11`; `A12`/`A13`
+(`D31`/`D32`) are ADC-capable underside pads. `A7`/`A8` (`D22`/`D23`) double as
+the two DAC outputs — used as a DAC, that pin is no longer free for ADC.
+
+| Pin | MCU | ADC | DAC | GPIO | PWM | UART | Shared |
+|-----|-----|:---:|:---:|:----:|:---:|------|--------|
+| D0        | PB12 |   |   | ✓ |      |             | |
+| D1        | PC11 |   |   | ✓ |      | Rx · USART3 | |
+| D2        | PC10 |   |   | ✓ |      | Tx · USART3 | |
+| D3        | PC9  |   |   | ✓ | T3·4 |             | |
+| D4        | PC8  |   |   | ✓ | T3·3 |             | |
+| D5        | PD2  |   |   | ✓ |      | Rx · UART5  | |
+| D6        | PC12 |   |   | ✓ |      | Tx · UART5  | |
+| D7        | PG10 |   |   | ✓ |      |             | |
+| D8        | PG11 |   |   | ✓ |      |             | |
+| D9        | PB4  |   |   | ✓ | T3·1 |             | SPI1 MISO |
+| D10       | PB5  |   |   | ✓ | T3·2 |             | SPI1 MOSI |
+| D11       | PB8  |   |   | ✓ | T4·3 | Rx · UART4  | I²C1 SCL |
+| D12       | PB9  |   |   | ✓ | T4·4 | Tx · UART4  | I²C1 SDA |
+| D13       | PB6  |   |   | ✓ | T4·1 | Tx · USART1 | default UART Tx |
+| D14       | PB7  |   |   | ✓ | T4·2 | Rx · USART1 | default UART Rx |
+| D15 · A0  | PC0  | ✓ |   | ✓ |      |             | |
+| D16 · A1  | PA3  | ✓ |   | ✓ | T5·4 | Rx · USART2 | |
+| D17 · A2  | PB1  | ✓ |   | ✓ | T3·4 |             | |
+| D18 · A3  | PA7  | ✓ |   | ✓ | T3·2 |             | SPI1 MOSI |
+| D19 · A4  | PA6  | ✓ |   | ✓ | T3·1 |             | SPI1 MISO |
+| D20 · A5  | PC1  | ✓ |   | ✓ |      |             | |
+| D21 · A6  | PC4  | ✓ |   | ✓ |      |             | |
+| D22 · A7  | PA5  | ✓ | ✓ | ✓ |      |             | DAC out 2 |
+| D23 · A8  | PA4  | ✓ | ✓ | ✓ |      |             | DAC out 1 |
+| D24 · A9  | PA1  | ✓ |   | ✓ | T5·2 |             | underside pad |
+| D25 · A10 | PA0  | ✓ |   | ✓ | T5·1 |             | underside pad |
+| D26       | PD11 |   |   | ✓ |      |             | |
+| D27       | PG9  |   |   | ✓ |      |             | |
+| D28 · A11 | PA2  | ✓ |   | ✓ | T5·3 |             | underside pad |
+| D29       | PB14 |   |   | ✓ |      | Tx · USART1 | USB D− (AF4) |
+| D30       | PB15 |   |   | ✓ |      | Rx · USART1 | USB D+ (AF4) |
+| D31 · A12 | PC2  | ✓ |   | ✓ |      |             | underside pad |
+| D32 · A13 | PC3  | ✓ |   | ✓ |      |             | underside pad |
+
+**UART pairs (Seed):** USART1 `Rx D14 / Tx D13` (or `Rx D30 / Tx D29` on the USB
+pins) · USART3 `Rx D1 / Tx D2` · UART4 `Rx D11 / Tx D12` · UART5 `Rx D5 / Tx D6`
+· USART2 `Rx D16` (no documented Tx).
+
+### Daisy Patch SM
+
+Patch SM routes most pins through on-board analog circuitry, so their role is
+fixed: `CV In n` are ADC inputs, `CV Out n` are DAC outputs, and the gates are
+one-directional GPIO. Power/audio pins (`A1`, `A4`–`A7`, `A10`, `B1`–`B4`) and the
+USB pins (`A8`/`A9`) are not addressable and are omitted. The `D2`–`D7` pins are
+the SDMMC bus — do not reuse them when building with `-sd`.
+
+| Pin | MCU | ADC | DAC | GPIO | PWM | UART | Function / shared |
+|-----|-----|:---:|:---:|:----:|:---:|------|-------------------|
+| A2  | PA1  | ✓ |   |         | T5·2 | Rx · UART4  | default UART Rx |
+| A3  | PA0  | ✓ |   |         | T5·1 | Tx · UART4  | default UART Tx |
+| B5  | PC14 |   |   | ✓ (out) |      |             | Gate Out 1 |
+| B6  | PC13 |   |   | ✓ (out) |      |             | Gate Out 2 |
+| B7  | PB8  |   |   | ✓       | T4·3 | Rx · UART4  | I²C1 SCL |
+| B8  | PB9  |   |   | ✓       | T4·4 | Tx · UART4  | I²C1 SDA |
+| B9  | PG14 |   |   | ✓ (in)  |      |             | Gate In 2 |
+| B10 | PG13 |   |   | ✓ (in)  |      |             | Gate In 1 |
+| C1  | PA5  |   | ✓ |         |      |             | CV Out 2 |
+| C2  | PA7  | ✓ |   |         | T3·2 |             | CV In 4 |
+| C3  | PA2  | ✓ |   |         | T5·3 |             | CV In 3 |
+| C4  | PA6  | ✓ |   |         | T3·1 |             | CV In 2 |
+| C5  | PA3  | ✓ |   |         | T5·4 |             | CV In 1 |
+| C6  | PB1  | ✓ |   |         | T3·4 |             | CV In 5 |
+| C7  | PC4  | ✓ |   |         |      |             | CV In 6 |
+| C8  | PC0  | ✓ |   |         |      |             | CV In 7 |
+| C9  | PC1  | ✓ |   |         |      |             | CV In 8 |
+| C10 | PA4  |   | ✓ |         |      |             | CV Out 1 |
+| D1  | PB4  |   |   | ✓       | T3·1 |             | SPI2 CS |
+| D2  | PC11 |   |   | ✓       |      | Rx · USART3 | SDMMC D3 |
+| D3  | PC10 |   |   | ✓       |      | Tx · USART3 | SDMMC D2 |
+| D4  | PC9  |   |   | ✓       | T3·4 |             | SDMMC D1 |
+| D5  | PC8  |   |   | ✓       | T3·3 |             | SDMMC D0 |
+| D6  | PC12 |   |   | ✓       |      | Tx · UART5  | SDMMC CK |
+| D7  | PD2  |   |   | ✓       |      | Rx · UART5  | SDMMC CMD |
+| D8  | PC2  | ✓ |   | ✓       |      |             | SPI2 MISO |
+| D9  | PC3  | ✓ |   | ✓       |      |             | SPI2 MOSI |
+| D10 | PD3  |   |   | ✓       |      |             | SPI2 SCK |
+
+The 12 ADC channels are the eight `CV In` pins plus `A2`/`A3` and `D8`/`D9`; the
+two DACs are `C1` / `C10`. **UART pairs (Patch SM):** UART4 `Rx A2 / Tx A3` (or
+`Rx B7 / Tx B8`) · USART3 `Rx D2 / Tx D3` · UART5 `Rx D7 / Tx D6`.
 
 ## Targetting platforms 
 
@@ -273,24 +401,8 @@ Specific architecture files have been developed:
 ## Python parsing 
 
 This tool uses a combination of interactions between the bash script and a set of python scripts, designed to parse and interpret metadata of your Faust DSP program. 
-
-## New features (08/03/2026)
-
-Daisy support is being refactored to provide a more efficient and memory deterministic support. The idea is to stick as close as possible to Daisy SDK.
-It was developed with libDaisy version 8.1.0.
-This new development allows the following new features : 
-- Near constant memory footprint (almost no dynamic allocation) 
-- Chip support (Seed, PatchSM) instead of platforms (Pod, Patch, Patch.Init)
-- JSON Configuration files for platforms support (see architecture/daisy/pod.json for example)
-- Access to all analog ADCs and DACs of chips (for controls like knobs, sliders, CV etc)
-- Access to all GPIO for digital control (useful for buttons, leds) 
-- GPIO outputs can be configured with software PWM (dimming led, or additional DAC's)
-- MIDI can be passed through internal chip USB, or through UART pins (pod for example).
-- MIDI monophonic support for CC, Keyon, Keyoff, Key
-- MIDI polyphonic support (algorithms for voice stealing and voice blocking)
-- Program can stand on Flash memory (128kB), SRAM (512kB) or QSPIFLASH (8MB)
-- Large buffers can be placed on SDRAM with `-sdram`. 
-- `-mem-thresh` determines size threshold in bytes above which data is stored on SDRAM  
+The scripts are used to interpret your metadata, set some preprocessor macros to the generated C++ code (in order to enable or disable some parts of the codebase), 
+and generate some code to instanciate controls as static objects (no dynamic allocation). 
 
 ## Soundfiles
 
@@ -355,8 +467,8 @@ faust2daisy -sd my.dsp
 ## PWM 
 
 This tool allows to output bargraph values to hardware PWM outputs. 
-To do so, simply add the metadata `vbargraph("outvalue[pwm:D1]", 0, 1)`. All PWM available pins are referenced inside **daisy_pwm_pin.py**, inside Faust daisy architecture folder.
-The PWM output is clocked around 29Khz. 
+To do so, simply add the metadata `vbargraph("outvalue[pwm:D1]", 0, 1)`. All PWM available pins are referenced inside *daisy_pwm_pin.py*, inside Faust daisy architecture folder.
+The PWM output is clocked around 29Khz, with a resolution of 13 bits (8192 steps). This is a compromise between the exigence to stay above audible frequencies (prevent mechanical noise in some specific hardware) and keep a high precision.
 
 ## Serial 
 
@@ -364,7 +476,8 @@ Serial communication is available in the same way as other controls. It can be u
 - Receive : `hslider("freq[rx:D1], 100, 20, 1000, 0.1)`  
 - Transmit : `vbargraph("outvalue[tx:D2], 0, 1)`
 
-Messages are formatted like this : `freq <value>` where **<value>** is a 4 bytes float, passed as binary representation. 
+Messages are formatted like this : `[freq <value>]` where *<value>* is a 4 bytes float, passed as binary representation. 
+Squared brackets are used to indicate start and end of a control message. 
 
 ## Possible future developments 
 
@@ -388,6 +501,7 @@ Messages are formatted like this : `freq <value>` where **<value>** is a 4 bytes
 =======
 >>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
 - Serial communication for control
+<<<<<<< HEAD
 
 ## Changelog 
 
@@ -438,3 +552,5 @@ Messages are formatted like this : `freq <value>` where **<value>** is a 4 bytes
 - Solve conflict between metadata, global metadata, CLI options, and config file 
 - Get more relevant error messages from parser 
 >>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
+=======
+>>>>>>> aa4db5e9a (documentation)
