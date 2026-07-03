@@ -1,33 +1,12 @@
 # faust2daisy
 
-<<<<<<< HEAD
-The **faust2daisy** tool compiles a Faust DSP program in a folder containing the C++ source code and a Makefile to compile it.  
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
-This new version is a partial refactor of the previous tool, aiming to : 
-- improve memory footprint
-- provide compile time memory footprint
-- target Daisy boards (while still providing a way to target platforms)
-<<<<<<< HEAD
-=======
->>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
-=======
->>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
-=======
 The **faust2daisy** tool compiles a Faust DSP program into a C++ program targetting Electrosmith Daisy boards.
 It can target both Daisy Seed and Daisy Patch Submodule, as well as used defined platforms built upon (such as Pod, Patch, Patch.Init() etc). 
->>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
 
 `faust2daisy [-faust2daisy_options...] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
 Here are the available options:
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 - `-seed`: target Daisy seed chip
 - `-patchsm`: target Daisy patchsm chip
 - `-pod`: use Pod configuration file 
@@ -49,7 +28,6 @@ Here are the available options:
 - `-sd-debug` to print loaded soundfile info over USB serial at startup
 -  `-upload-sd` to upload soundfiles to the SD card (does not build the DSP, just the uploader)
 - Any other option will be passed to Faust compiler
-<<<<<<< HEAD
 
 
 ## Features 
@@ -86,49 +64,12 @@ To use `faust2daisy`, you need the daisy toolchain installed.
 
 You will also need [libDaisy](https://github.com/electro-smith/libDaisy) to be built. Latest tool was designed to target version 8.1.0. 
 You should specify environment variables. For example, on macOS/Linux:
-=======
-- `-patch`: to compile for 4 ins/outs [Patch](https://electro-smith.com/products/patch)
-- `-pod`: to compile for 2 ins/outs [Pod](https://www.electro-smith.com/daisy/pod)
-- `-patchsm`: to compile for Patch Submodule and [patch.Init()](https://electro-smith.com/products/patch-init)
-- `-sdram`: to compile using SDRAM for long delay lines/tables etc.
-- `-midi`: to activate MIDI control
-- `-nvoices <num>`: to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI
-- `-sr <num>`: to specify sample rate (default 44100)
-- `-bs <num>`: to specify buffer size (default 16)
-- `-source`: to only create the source folder
-=======
->>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
-
-## Setup 
-
-<<<<<<< HEAD
-It is recommended to put your Faust DSP files inside a directory [DaisyExamples](https://github.com/electro-smith/DaisyExamples/)`/DaisySP/faust_examples`. Then execute `faust2daisy code.dsp` with your chosen options. To use `faust2daisy` in an arbitrary directory, you should specify environment variables. For example, on macOS/Linux:
->>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
-=======
-To use `faust2daisy`, you need the daisy toolchain installed. 
-- [Linux](https://daisy.audio/tutorials/toolchain-linux/)
-- [Mac](https://daisy.audio/tutorials/toolchain-mac/)
-
-You will also need [libDaisy](https://github.com/electro-smith/libDaisy) to be built. Latest tool was designed to target version 8.1.0. 
-You should specify environment variables. For example, on macOS/Linux:
->>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 ```bash
 export LIBDAISY_DIR=~/GitHub/DaisyExamples/libdaisy
 export DAISYSP_DIR=~/GitHub/DaisyExamples/DaisySP
 ```
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-<<<<<<< HEAD
-=======
->>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
-=======
-
->>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
-If on macOS, consider putting the above text in `~/.zshrc` so that it's always set in Terminal.
-=======
 If on macOS, consider putting the above text in `~/.zshrc` so that it's always set in Terminal. On linux, put it to `~/.bashrc`. 
->>>>>>> aa4db5e9a (documentation)
 
 The default optimization is for file size: `OPT=-Os`. You can optimize for speed by setting `OPT=-O2` or the even more aggressive setting `OPT=-O3`. The drawback is that more aggressive optimization will result in larger binary. This can be set in the Makefile in "faust/architecture/daisy".
 
@@ -147,61 +88,8 @@ This tool is intended to target Daisy boards :
 - MIDI via USB or UART 
 - Hardware PWM 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 Example : 
 ``` faust
-=======
-Other metadata:
-
-- `[scale:lin|log|exp]` metadata is implemented for knobs.
-
-
-Encoder can be used as a real rotary encoder from Faust with this simple utility functions : 
-``` faust
-a = button("enc_a[encoder:a]");
-b = button("enc_b[encoder:b]");
-    
-// This functions returns +1 when turning clockwise, -1 when turning anti clockwise, 0 otherwise
-encoder_increment(a, b) = inc
-with {
-    // Rising edge of A: was 0, now 1
-    a_rise = (a > a');
-    // At rising edge of A: if B is low = CW (+1), if B is high = CCW (-1)                                                                                                                                                                   
-    inc = a_rise * (1 - 2 * int(b));
-};  
-
-// This function accumulates increment, with a user defined step    
-encoder(inc, step) = _~+(inc * step);
-
-// Usage, (b & a are reversed on pod)
-inc = encoder_increment(b, a);
-encoder_val = encoder(inc, 1); 
-
-```
-
-## Daisy Patch
-
-The **faust2daisy** tool can be used to program the [patch.Init()](https://electro-smith.com/products/patch-init).
-
-## Bootloader Configuration:
-
-Setup the board to utilize the manufacturer's bootloader, ensuring that the generated code fits within the board's memory. For detailed instructions on flashing the bootloader, please refer to: [Daisy Bootloader Getting Started Guide](https://electro-smith.github.io/libDaisy/md_doc_2md_2__a7___getting-_started-_daisy-_bootloader.html).
-
-## Memory Limits (SDRAM)
-
-If you're using a Daisy with significant amount of SDRAM such as the Pod or patch.Init, then you may want to use the `-sdram` flag when compiling code involving long delay lines/tables etc. Enabling this will execute a Python script inside `faust2daisy` that modifies the generated C++ code to put large float buffers (e.g., delay lines) in SDRAM. For this to work, you must have `python3` available on the command line.
-
-## DSP Examples
-
-Here is a simple example showing how oscillators can be controlled by physical items and MIDI messages:
-
-```
->>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
-=======
-Example : 
-``` faust
->>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
 import("stdfaust.lib");
 
 freq = hslider("freq[adc::A0]", 50, 50, 1000, 0.1) : si.smoo;
@@ -383,21 +271,6 @@ You can then choose a more appropriate location (SRAM, QSPI), or put large buffe
 Flash and SRAM are fast, though SRAM option forces you to put buffers to SDRAM (which is slower).
 QSPIFLASH is slower than Flash and SRAM. 
 
-<<<<<<< HEAD
-## Architecture files
-
-Specific architecture files have been developed:
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
-- [faust/gui/DaisyControlUI.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/gui/DaisyControlUI.h): to be used with the DSP `buildUserInterface` method to implement `button`, `checkbox`, `hslider`, `vslider`, `hbargraph`, `vbargraph` controllers, and interpret the specific metadata previously described
-- [faust/midi/daisy-midi.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/daisy-midi.h): implements a [midi_handler](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/midi.h) subclass to decode incoming MIDI events.
-- [faust/midi/daisy-poly.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/dsp/daisy-poly.h): implements a lightweight polyphonic DSP encapsulation
-
-=======
->>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
 ## Python parsing 
 
 This tool uses a combination of interactions between the bash script and a set of python scripts, designed to parse and interpret metadata of your Faust DSP program. 
@@ -485,72 +358,4 @@ Squared brackets are used to indicate start and end of a control message.
 - OLED screens (Patch, custom platforms)
 - DMA for DACs / ADCs : Could provide extended audio inputs & outputs (16 bit for ADC, 12 bits for DAC) or higher time precision for controls 
 - Multiplexer for ADCs / DACs (to use with 4051's for example)
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-- I2C communication (audio and/or control)
-=======
-- [faust/gui/DaisyControlUI.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/gui/DaisyControlUI.h): to be used with the DSP `buildUserInterface` method to implement `button`, `checkbox`, `hslider`, `vslider` controllers, and interpret the specific metadata previously described
-- [faust/midi/daisy-midi.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/daisy-midi.h): implements a [midi_handler](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/midi.h) subclass to decode incoming MIDI events.
->>>>>>> 499e9e8f7 (fixed memory (seed), mono midi)
-=======
-- I2C communication (audio and/or control)
->>>>>>> b375e26ef (daisy seed is almost full featured, added PWM support for digital outputs, added options to commmand line (rx pin, tx pin))
-=======
-- I2C communication (audio and/or control)
-=======
->>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
 - Serial communication for control
-<<<<<<< HEAD
-
-## Changelog 
-
-### Features
-
-02/07/2026
-- Soundfile primitive support: WAV files (PCM 16/24/32 bit, float 32 bit). Two modes:
-  - default (`-qspi`): parsed at build time and inlined into QSPI flash, no runtime
-    file I/O or dynamic allocation.
-  - `-sd`: loaded from the SD card (`/soundfiles`) into SDRAM at startup. Files are
-    uploaded with `faust2daisy -upload-sd` (temporary CDC uploader firmware).
-  - Daisy Patch supported 
-  - Daisy PatchSM supported 
- - Serial control through UART pins (both RX and TX are implemented), passing messages in the format "amp 0.72551" 
- - Hardware PWM output (defaults to 29Khz) wiht `pwm:D1`. 
-
-### Fixes 
-
-18/06
-- Midi input was not initialized 
-- Python parser script was not working well with DAC's 
-- MIDI CC was not working properly for checkboxes and buttons. Now it is working as Faust documentation says : returns 1 if CC is 127, returns 0 if CC is 0
-- Python parser crashed on a DSP with UI controls when no configuration file was provided
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 3028c82cc (implemented QSPI soundfile, fixed issues (midi input initialization, DAC's broken, CC with checkbox or button)
-=======
-=======
-23/06
-- Fixed Patch screen bar ordering 
->>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
-
-# TODO 
-
-<<<<<<< HEAD
-<<<<<<< HEAD
->>>>>>> 652359c9f (fixed soundfile on SD card, patchsm started with working outputs and DACS/ADCs)
-=======
-- Test all PatchSM features 
-- Check polyphony and shared controls and outputs
-
-
-- Test : polyphonic (shared input, output,), digi inp outp, shared digi in, shared digi outp
-- Tester polyphonie sur le PATCH
-- Digi input : le sens n'est pas clair (haut bas) : essayer avec un vrai bouton 
->>>>>>> 6482c2631 (fixed bugs (digi output), patch screen is working properly, patchsm is tested for GPIO, CV, audio out, and MIDI (poly and monophonic))
-=======
-- Solve conflict between metadata, global metadata, CLI options, and config file 
-- Get more relevant error messages from parser 
->>>>>>> f59ca645a (serial communication & hardware PWM implemented, pin conflict guard implemented)
-=======
->>>>>>> aa4db5e9a (documentation)
