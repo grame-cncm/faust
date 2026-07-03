@@ -260,6 +260,18 @@ static Tree real_a2sb(Tree exp)
     }
 }
 
+// Why: eval(box, env) is memoized on 'box', but the same 'box' is routinely evaluated under many
+// distinct 'env' (e.g. par(i,N,...) grids), and env is the argument that actually varies here.
+// Using property<Tree> directly would fold 'env' into a fresh hashconsed key tree on every call,
+// piling all of them onto the same box's property list (a real case reached 56000+ entries on one
+// node). property2 nests a small map on 'box' instead, so a given box carries a single property
+// entry no matter how many env it has been evaluated under, and no compound key tree is minted.
+//
+// How: the binary cache is owned by global, so it has the same lifetime as one compiler session.
+// Keeping it as a function-local static would leave raw Tree keys from a previous compilation in
+// libfaust multi-compilation processes after global::destroy() has deleted the corresponding
+// CTree objects.
+
 /**
  * Set the value of box in the environment env.
  *
@@ -269,7 +281,7 @@ static Tree real_a2sb(Tree exp)
  */
 static void setEvalProperty(Tree box, Tree env, Tree value)
 {
-    setProperty(box, tree(gGlobal->EVALPROPERTY, env), value);
+    gGlobal->gEvalMemo->set(box, env, value);
 }
 
 /**
@@ -282,7 +294,7 @@ static void setEvalProperty(Tree box, Tree env, Tree value)
  */
 static bool getEvalProperty(Tree box, Tree env, Tree& value)
 {
-    return getProperty(box, tree(gGlobal->EVALPROPERTY, env), value);
+    return gGlobal->gEvalMemo->get(box, env, value);
 }
 
 /**
@@ -1458,16 +1470,20 @@ static Tree listn(int n, Tree e)
 
 /**
  * A property to store the pattern matcher corresponding to a set of rules
- * in a specific environement
+ * in a specific environment.
+ *
+ * Keep this as a binary cache for the same reason as EvalProperty above: the
+ * same rules tree may be evaluated under several environments, and folding
+ * env into a freshly hashconsed property key piles entries onto rules.
  */
 static void setPMProperty(Tree t, Tree env, Tree pm)
 {
-    setProperty(t, tree(gGlobal->PMPROPERTYNODE, env), pm);
+    gGlobal->gPMMemo->set(t, env, pm);
 }
 
 static bool getPMProperty(Tree t, Tree env, Tree& pm)
 {
-    return getProperty(t, tree(gGlobal->PMPROPERTYNODE, env), pm);
+    return gGlobal->gPMMemo->get(t, env, pm);
 }
 
 /**

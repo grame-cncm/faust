@@ -632,6 +632,8 @@ void global::init()
 
     gPureRoutingProperty   = new property<bool>();
     gSymbolicBoxProperty   = new property<Tree>();
+    gEvalMemo              = new property2<Tree>();
+    gPMMemo                = new property2<Tree>();
     gSimplifiedBoxProperty = new property<Tree>();
     gSymListProp           = new property<Tree>();
 

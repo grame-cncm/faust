@@ -541,6 +541,8 @@ struct global {
 
     property<bool>* gPureRoutingProperty;
     property<Tree>* gSymbolicBoxProperty;
+    property2<Tree>* gEvalMemo;
+    property2<Tree>* gPMMemo;
 
     Node EVALPROPERTY;
     Node PMPROPERTYNODE;
