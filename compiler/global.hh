@@ -444,8 +444,6 @@ struct global {
     Tree ORDERPROP;
     Tree RECURSIVNESS;
     Tree NULLTYPEENV;
-    Tree RECDEF;
-    Tree DEBRUIJN2SYM;
     Tree NORMALFORM;
     Tree DEFNAMEPROPERTY;
     Tree NICKNAMEPROPERTY;
@@ -627,14 +625,6 @@ struct global {
 
     Sym PROCESS;
 
-    Sym DEBRUIJN;
-    Sym DEBRUIJNREF;
-    Sym SUBSTITUTE;
-
-    Sym SYMREC;
-    Sym SYMRECREF;
-    Sym SYMLIFTN;
-
     // Evaluation overflow
     loopDetector          gLoopDetector;
     stackOverflowDetector gStackOverflowDetector;
@@ -739,11 +729,6 @@ struct global {
     std::string gInjectFile;
 
     int gTimeout;  // Time out to abort compiler (in seconds)
-
-    // Garbage collection
-    static std::list<Garbageable*> gRawObjectTable;
-    static std::list<Garbageable*> gArrayObjectTable;
-    static bool                    gHeapCleanup;
 
     ZoneArray* gIntZone;   // array of 'int32' intermediate zone values
     ZoneArray* gRealZone;  // array of 'real' intermediate zone values

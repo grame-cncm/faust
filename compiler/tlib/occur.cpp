@@ -26,7 +26,7 @@
 // Construction of graphic representations
 
 #include "occur.hh"
-#include "compatibility.hh"
+#include <cstdio>
 
 /**
  * Count the number of occurrences of each subtree of root

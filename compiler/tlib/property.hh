@@ -28,7 +28,7 @@
 #include "tree.hh"
 
 template <class P>
-class property : public virtual Garbageable {
+class property : public Garbageable {
     Tree fKey;
 
     P* access(Tree t)
@@ -71,7 +71,7 @@ class property : public virtual Garbageable {
 };
 
 template <>
-class property<Tree> : public virtual Garbageable {
+class property<Tree> : public Garbageable {
     Tree fKey;
 
    public:
@@ -95,7 +95,7 @@ class property<Tree> : public virtual Garbageable {
 };
 
 template <>
-class property<int> : public virtual Garbageable {
+class property<int> : public Garbageable {
     Tree fKey;
 
    public:
@@ -119,7 +119,7 @@ class property<int> : public virtual Garbageable {
 };
 
 template <>
-class property<double> : public virtual Garbageable {
+class property<double> : public Garbageable {
     Tree fKey;
 
    public:
@@ -155,7 +155,7 @@ class property<double> : public virtual Garbageable {
 // up for the same 'a' -- see the property2<Tree> specialization below for why the inline Slot
 // still isn't cheap enough when P = Tree, which is the actually-used case (box evaluator memo).
 template <class P>
-class property2 : public virtual Garbageable {
+class property2 : public Garbageable {
     Tree fOuterKey;
     typedef std::map<Tree, P> Inner;
 
@@ -249,7 +249,7 @@ class property2 : public virtual Garbageable {
 // this). Determinism note : this map is only ever point-queried by (a, b), never iterated, so its
 // unordered iteration order (which depends on pointer values) cannot leak into generated code.
 template <>
-class property2<Tree> : public virtual Garbageable {
+class property2<Tree> : public Garbageable {
     struct Entry {
         Tree              fB;             // the single 'b' seen so far ; unused once fInner set
         Tree              fValue;         // its value ; unused once fInner set

@@ -65,6 +65,7 @@ set( INCLUDE
 	${SRCDIR}/nodes
 	${ARCHDIR}
 	${ROOT}/compiler/tlib
+	${ROOT}/compiler/utils
 	)
 
 #######################################

@@ -104,6 +104,7 @@ This file contains several extensions to the tree library :
 #define __LIST__
 
 #include <stdio.h>
+#include "export.hh"
 #include "symbol.hh"
 #include "tree.hh"
 
@@ -112,6 +113,9 @@ This file contains several extensions to the tree library :
 typedef Tree (*tfun)(Tree);
 
 void print(Tree t, FILE* out = stdout);
+
+// the empty list (owned by the library, stable between tlib::init()/cleanup())
+TLIB_API Tree nil();
 
 // to create new lists
 Tree        cons(Tree a, Tree b);
@@ -144,7 +148,7 @@ inline Tree tl(Tree l)
 }
 
 // predicates
-LIBFAUST_API bool isNil(Tree l);
+TLIB_API bool     isNil(Tree l);
 bool              isList(Tree l);
 
 // predicates
@@ -186,8 +190,7 @@ inline Tree right(Tree t)
     return t->branch(1);
 }
 
-// Environment : stack of pairs key value)
-// Tree pushEnv(Tree key, Tree val, Tree env=gGlobal->nil);
+// Environment : stack of pairs (key x value)
 Tree pushEnv(Tree key, Tree val, Tree env);
 bool searchEnv(Tree key, Tree& v, Tree env);
 

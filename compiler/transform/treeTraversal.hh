@@ -25,6 +25,7 @@
 #include <string>
 #include "property.hh"
 #include "tree.hh"
+#include "exception.hh"
 
 //------------------------------------------------------------------------------
 // TreeTraversal: Recursive transformation of a Tree with memoization

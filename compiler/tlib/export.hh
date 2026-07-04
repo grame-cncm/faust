@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    TLIB : tree library
+    Copyright (C) 2003-2026 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -19,28 +19,20 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __OCCUR__
-#define __OCCUR__
+#ifndef __TLIB_EXPORT__
+#define __TLIB_EXPORT__
 
-#include "garbageable.hh"
-#include "tlib.hh"
-
-/**
- * Count subtree occurrences
- * Count the number of occurrences of each subtree of a root tree.
- */
-
-class Occur : public Garbageable {
-    Tree fKey;  // specific property key
-
-   public:
-    Occur(Tree root);      // count the occurrences of each subtree of root
-    int getCount(Tree t);  // return the number of occurrences of t in root
-
-   private:
-    Tree specificKey(Tree root);    // specific key for occurrences counting in root
-    void countOccurrences(Tree t);  // increment the occurrences of t and its subtrees
-    void setCount(Tree t, int c);   // set the number of occurrences of t
-};
+// Symbol visibility macro. Empty for a static library (the default build).
+// A host application that embeds tlib in a shared library can redefine it
+// from its build system, e.g. :
+//     -DTLIB_EXPORT_HEADER='<faust/export.h>' -DTLIB_API=LIBFAUST_API
+// TLIB_EXPORT_HEADER is included first so the macro TLIB_API expands to can
+// be defined (dllexport/dllimport on Windows, visibility("default") elsewhere).
+#ifdef TLIB_EXPORT_HEADER
+#include TLIB_EXPORT_HEADER
+#endif
+#ifndef TLIB_API
+#define TLIB_API
+#endif
 
 #endif

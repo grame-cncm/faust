@@ -28,8 +28,6 @@ Tlib is a simple tree library inspired by the ATerm library. It is made of
 five elements : symbols, nodes, smartpointers, trees and lists :
 
      +------------------------+
-     |       shlysis          |
-     +------------------------+
      |         rec            |
      |------------------------|
      |         list           |
@@ -138,20 +136,12 @@ five elements : symbols, nodes, smartpointers, trees and lists :
     shmax(t)            = maximize the sharing of recursive subtrees
 
 
-    6) Sharing Analysis :
-    ---------------------
-
-    shprkey(t) -> k       = unique sharing property key of t
-    shcount(k,t') -> n    = returns the number of occurences of t' in t (where k = shprkey(t))
-    shlysis(t)    -> k    = annotated the subtrees of t with prop (key sharing-count)
-                          (0 if t' is not a subtree of t)
-
 
  History :
  ---------
     2002-02-08 : First version
     2002-02-20 : New description of the API
-    2002-04-07 : Added Sharing Analysis 'shlysis.h'
+    2026-07-04 : Standalone library detached from the Faust compiler
 
 ******************************************************************************
 *****************************************************************************/
@@ -161,9 +151,32 @@ five elements : symbols, nodes, smartpointers, trees and lists :
 
 #include "list.hh"
 #include "node.hh"
-#include "num.hh"
-#include "shlysis.hh"
+#include "property.hh"
 #include "symbol.hh"
+#include "tlib-error.hh"
 #include "tree.hh"
+
+//-----------------------------------------------------------------------------
+// Library lifecycle
+//-----------------------------------------------------------------------------
+
+namespace tlib {
+
+/// (Re)initialize the library : fresh hash tables, fresh internal symbols.
+/// Optional before the first use (everything is lazily initialized), required
+/// after cleanup() only if you want to be explicit -- cleanup() already leaves
+/// the library ready for a new session.
+TLIB_API void init();
+
+/// End a session : delete every Garbageable object created so far (all trees,
+/// symbols, property tables...). Every Tree/Sym pointer obtained before this
+/// call becomes invalid. The library is immediately ready for a new session.
+TLIB_API void cleanup();
+
+/// Load factor triggering CTree/Symbol hash table growth (default 0.7).
+/// A pure performance knob : it never changes the trees created.
+TLIB_API void setHashLoadFactor(double f);
+
+}  // namespace tlib
 
 #endif

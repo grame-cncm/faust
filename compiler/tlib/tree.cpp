@@ -79,9 +79,9 @@ storage of trees.
 #include <string.h>
 #include <cstdlib>
 #include <fstream>
+#include <sstream>
 
-#include "exception.hh"
-#include "global.hh"
+#include "tlib-error.hh"
 #include "tree.hh"
 
 using namespace std;
@@ -90,16 +90,17 @@ using namespace std;
 #pragma warning(disable : 4800)
 #endif
 
-#define ERROR(s, t)                        \
-    {                                      \
-        stringstream error;                \
-        error << s << *t << endl;          \
-        throw faustexception(error.str()); \
+#define ERROR(s, t)               \
+    {                             \
+        stringstream error;       \
+        error << s << *t << endl; \
+        tlib::error(error.str()); \
     }
 
-Tree*        CTree::gHashTable      = nullptr;
-size_t       CTree::gHashTableSize  = 0;
-size_t       CTree::gHashTableCount = 0;
+Tree*        CTree::gHashTable       = nullptr;
+size_t       CTree::gHashTableSize   = 0;
+size_t       CTree::gHashTableCount  = 0;
+double       CTree::gHashLoadFactor  = 0.7;
 bool         CTree::gDetails        = false;
 unsigned int CTree::gVisitTime      = 0;
 size_t       CTree::gSerialCounter  = 0;
@@ -152,18 +153,14 @@ void CTree::ensureHashTableAllocated()
 // the table between 0.5 and 1.0 full, i.e. real average chain length approaching 1 on every
 // lookup (hit or miss), not just on insert -- the fixed 400009-bucket table this replaced kept
 // load factor near 0 for all but the largest files, so this is a real cost the old table never
-// had. 0.7 (the default, see global::gHashLoadFactor) was chosen empirically (tools/tlib-bench,
-// examples/*.dsp) : lower wins more on time but costs real aggregate memory (table memory is
-// cheap per bucket, but doubling how many buckets sit unused adds up across a large CTree
-// population) ; 0.7 keeps nearly all of the time win at roughly neutral memory. Exposed as
-// -hlf/--hash-load-factor purely to let that trade-off be explored from the command line ; it
-// never changes generated code (see TLIB.md for the comparison across values).
+// had. 0.7 (the default) was chosen empirically on the Faust compiler examples corpus :
+// lower wins more on time but costs real aggregate memory (table memory is cheap per bucket,
+// but doubling how many buckets sit unused adds up across a large CTree population) ; 0.7
+// keeps nearly all of the time win at roughly neutral memory. Exposed as setHashLoadFactor
+// purely to let that trade-off be explored ; it never changes the trees created.
 void CTree::growHashTableIfNeeded()
 {
-    // gGlobal can still be null here in the same rare static-initialization-order case documented
-    // on ensureHashTableAllocated() above ; fall back to the default rather than crash.
-    double loadFactor = gGlobal ? gGlobal->gHashLoadFactor : 0.7;
-    if (double(gHashTableCount) < double(gHashTableSize) * loadFactor) return;
+    if (double(gHashTableCount) < double(gHashTableSize) * gHashLoadFactor) return;
 
     size_t newSize  = nextPrimeAtLeast(gHashTableSize * 2);
     Tree*  newTable = new Tree[newSize];
@@ -187,16 +184,26 @@ void CTree::growHashTableIfNeeded()
 
 // Constructor : add the tree to the hash table
 CTree::CTree(size_t hk, const Node& n, const tvec& br)
+    : CTree(hk, n, int(br.size()), br.empty() ? nullptr : br.data())
+{
+}
+
+// Constructor : add the tree to the hash table
+CTree::CTree(size_t hk, const Node& n, int ar, const Tree br[])
     : fNode(n),
       fType(0),
       fFastProperty(nullptr),
       fProperties(nullptr),
       fHashKey(hk),
       fSerial(++gSerialCounter),
-      fAperture(calcTreeAperture(n, br)),
+      fAperture(calcTreeAperture(n, ar, br)),
       fVisitTime(0),
-      fBranch(br)
+      fBranch()
 {
+    if (ar > 0) {
+        fBranch.assign(br, br + ar);
+    }
+
     // link in the hash table (CTree::make already called growHashTableIfNeeded)
     size_t j      = hk % gHashTableSize;
     fNext         = gHashTable[j];
@@ -221,31 +228,44 @@ bool CTree::equiv(const Node& n, const tvec& br) const
     return (fNode == n) && (fBranch == br);
 }
 
+bool CTree::equiv(const Node& n, int ar, const Tree br[]) const
+{
+    if (fNode != n || fBranch.size() != size_t(ar)) {
+        return false;
+    }
+    for (int i = 0; i < ar; ++i) {
+        if (fBranch[i] != br[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 size_t CTree::calcTreeHash(const Node& n, const tvec& br)
 {
+    return calcTreeHash(n, int(br.size()), br.empty() ? nullptr : br.data());
+}
+
+size_t CTree::calcTreeHash(const Node& n, int ar, const Tree br[])
+{
     size_t hk = std::hash<void*>()(n.getPointer());
-    for (const auto& ptr : br) {
+    for (int i = 0; i < ar; ++i) {
         // Taken from by boost::hash_combine
-        hk = hk ^ (ptr->fHashKey + 0x9e3779b9 + (hk << 6) + (hk >> 2));
+        Tree ptr = br[i];
+        hk       = hk ^ (ptr->fHashKey + 0x9e3779b9 + (hk << 6) + (hk >> 2));
     }
     return hk;
 }
 
-Tree CTree::make(const Node& n, int ar, Tree tbl[])
-{
-    vector<Tree> br(tbl, tbl + ar);
-    return CTree::make(n, br);
-}
-
-Tree CTree::make(const Node& n, const tvec& br)
+Tree CTree::make(const Node& n, int ar, const Tree tbl[])
 {
     ensureHashTableAllocated();
 
-    size_t hk       = calcTreeHash(n, br);
+    size_t hk       = calcTreeHash(n, ar, tbl);
     Tree   t        = gHashTable[hk % gHashTableSize];
     bool   collided = (t != nullptr);  // bucket already occupied, known for free from the lookup
 
-    while (t && !t->equiv(n, br)) {
+    while (t && !t->equiv(n, ar, tbl)) {
         t = t->fNext;
     }
 
@@ -259,8 +279,13 @@ Tree CTree::make(const Node& n, const tvec& br)
         if (collided) {
             growHashTableIfNeeded();
         }
-        return new CTree(hk, n, br);
+        return new CTree(hk, n, ar, tbl);
     }
+}
+
+Tree CTree::make(const Node& n, const tvec& br)
+{
+    return CTree::make(n, int(br.size()), br.empty() ? nullptr : br.data());
 }
 
 ostream& CTree::print(ostream& fout) const
@@ -315,7 +340,7 @@ void CTree::init()
 }
 
 // if t has a node of type int, return it, or float, return casted to int, otherwise error
-LIBFAUST_API int tree2int(Tree t)
+TLIB_API int tree2int(Tree t)
 {
     double x;
     int    i;
@@ -331,7 +356,7 @@ LIBFAUST_API int tree2int(Tree t)
 }
 
 // if t has a node of type int, return casted to double, or double, return it, otherwise error
-LIBFAUST_API double tree2double(Tree t)
+TLIB_API double tree2double(Tree t)
 {
     double x;
     int    i;
@@ -347,7 +372,7 @@ LIBFAUST_API double tree2double(Tree t)
 }
 
 // if t has a node of type symbol, return its name otherwise error
-LIBFAUST_API const char* tree2str(Tree t)
+TLIB_API const char* tree2str(Tree t)
 {
     Sym s;
     if (!isSym(t->node(), &s)) {
@@ -445,7 +470,7 @@ bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tr
 }
 
 // Support for symbol user data
-LIBFAUST_API void* getUserData(Tree t)
+TLIB_API void* getUserData(Tree t)
 {
     Sym s;
     if (isSym(t->node(), &s)) {

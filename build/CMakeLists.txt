@@ -207,6 +207,15 @@ if (MSVC)
     set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVisualStudio)
 else()
     set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLIBDIR="${LIBSDIR}")
+endif()
+
+# tlib is a standalone library (see compiler/tlib); its TLIB_API visibility
+# macro is mapped onto faust's LIBFAUST_API so the tlib symbols that belong to
+# the public libfaust API (isNil, tree2str, CTree...) keep being exported.
+set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DTLIB_EXPORT_HEADER=<faust/export.h> -DTLIB_API=LIBFAUST_API)
+
+if (MSVC)
+else()
     #set(CMAKE_CXX_FLAGS_DEBUG "-g -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
     set(CMAKE_CXX_FLAGS_DEBUG "${EXTRA_CXX_FLAGS} -g -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
     set(CMAKE_CXX_FLAGS_RELEASE "${EXTRA_CXX_FLAGS} -O3 -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual")

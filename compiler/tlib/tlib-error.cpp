@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    TLIB : tree library
+    Copyright (C) 2003-2026 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -19,41 +19,40 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __FAUST_GARBAGE__
-#define __FAUST_GARBAGE__
+#include "tlib-error.hh"
 
-#include <stdio.h>
-#include <new>
+#include <cstdlib>
+#include <sstream>
+#include <stdexcept>
 
-#include "exception.hh"
-#include "faust/export.h"
+namespace tlib {
 
-// To be inherited by all garbageable classes
+static void defaultErrorHandler(const std::string& msg)
+{
+    throw std::runtime_error(msg);
+}
 
-class LIBFAUST_API Garbageable {
-   public:
-    Garbageable() {}
-    virtual ~Garbageable() {}
+static ErrorHandler gErrorHandler = defaultErrorHandler;
 
-    static void* operator new(size_t size);
-    static void* operator new[](size_t size);
-    static void  operator delete(void* ptr);
-    static void  operator delete[](void* ptr);
+ErrorHandler setErrorHandler(ErrorHandler h)
+{
+    ErrorHandler previous = gErrorHandler;
+    gErrorHandler         = h ? h : defaultErrorHandler;
+    return previous;
+}
 
-    static void cleanup();
-};
+void error(const std::string& msg)
+{
+    gErrorHandler(msg);
+    // The handler's contract is to never return; enforce it.
+    std::abort();
+}
 
-template <class P>
-class GarbageablePtr : public virtual Garbageable {
-   private:
-    P* fPtr;
+void assertFailed(const char* file, int line)
+{
+    std::stringstream msg;
+    msg << "ASSERT : failed assertion at " << file << ":" << line << "\n";
+    error(msg.str());
+}
 
-   public:
-    GarbageablePtr(const P& data) { fPtr = new P(data); }
-
-    virtual ~GarbageablePtr() { delete (fPtr); }
-
-    P* getPointer() { return fPtr; }
-};
-
-#endif
+}  // namespace tlib

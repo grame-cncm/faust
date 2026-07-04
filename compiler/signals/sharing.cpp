@@ -35,6 +35,7 @@
 
 #include "sharing.hh"
 #include "sigtyperules.hh"
+#include "shlysis.hh"
 
 using namespace std;
 

@@ -55,8 +55,11 @@
 #include <cmath>
 #include <iostream>
 
+#include <sstream>
+
 #include "garbageable.hh"
 #include "symbol.hh"
+#include "tlib-error.hh"
 
 /**
  * Tags used to define the type of a Node
@@ -67,7 +70,7 @@ enum NodeType { kIntNode, kInt64Node, kDoubleNode, kSymNode, kPointerNode };
  * Class Node = (type x (int + double + Sym + void*))
  */
 
-class Node : public virtual Garbageable {
+class Node : public Garbageable {
     int fType;
     union {
         int     i;
@@ -301,7 +304,7 @@ inline const Node divExtendedNode(const Node& x, const Node& y)
     if (isZero(y)) {
         std::stringstream error;
         error << "ERROR : division by 0 in " << x << " / " << y << std::endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     } else if (isDouble(x) || isDouble(y)) {
         return Node(double(x) / double(y));
     } else {
@@ -318,7 +321,7 @@ inline const Node remNode(const Node& x, const Node& y)
     if (isZero(y)) {
         std::stringstream error;
         error << "ERROR : % by 0 in " << x << " % " << y << std::endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     } else if (isInt(x) && isInt(y)) {
         return Node(int(x) % int(y));
     } else {

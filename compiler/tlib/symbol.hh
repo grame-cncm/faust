@@ -38,9 +38,11 @@
 #ifndef __SYMBOL__
 #define __SYMBOL__
 
+#include <cstddef>
 #include <map>
 #include <string>
 
+#include "export.hh"
 #include "garbageable.hh"
 
 //--------------------------------SYMBOL-------------------------------------
@@ -51,13 +53,15 @@ typedef Symbol* Sym;
 /**
  * Symbols are unique objects with a name stored in a hash table.
  */
-class Symbol : public virtual Garbageable {
+class Symbol : public Garbageable {
    private:
-    static const size_t kInitialHashTableSize = 511;  ///< initial size of the hash table (prime)
-    static size_t        gHashTableSize;   ///< current size of the hash table (grows as needed)
-    static size_t        gHashTableCount;  ///< number of symbols currently stored in the table
+    static const std::size_t kInitialHashTableSize = 511;  ///< initial size of the hash table (prime)
+    static std::size_t        gHashTableSize;   ///< current size of the hash table (grows as needed)
+    static std::size_t        gHashTableCount;  ///< number of symbols currently stored in the table
     static Symbol**       gSymbolTable;     ///< hash table used to store the symbols (grows by rehashing)
-    static std::map<std::string, size_t> gPrefixCounters;
+    static std::map<std::string, std::size_t> gPrefixCounters;
+
+    static double gHashLoadFactor;  ///< load factor triggering table growth (see setHashLoadFactor)
 
     ///< cheap check, called on every get()/isnew() : lazily allocates the table on first use
     static void ensureHashTableAllocated();
@@ -67,19 +71,19 @@ class Symbol : public virtual Garbageable {
 
     // Fields
     std::string fName;  ///< Name of the symbol
-    size_t fHash;  ///< Hash key computed from the name and used to determine the hash table entry
-    Sym    fNext;  ///< Next symbol in the hash table entry
-    void*  fData;  ///< Field to user disposal to store additional data
+    std::size_t fHash;  ///< Hash key computed from the name and used to determine the hash table entry
+    Sym         fNext;  ///< Next symbol in the hash table entry
+    void*       fData;  ///< Field to user disposal to store additional data
 
     // Constructors & destructors
-    Symbol(const std::string&, size_t hsh,
+    Symbol(const std::string&, std::size_t hsh,
            Sym nxt);  ///< Constructs a new symbol ready to be placed in the hash table
     ~Symbol();        ///< The destructor is never used
 
     // Others
-    bool equiv(size_t hash, const std::string& str)
+    bool equiv(std::size_t hash, const std::string& str)
         const;  ///< Check if the name of the symbol is equal to string \p str
-    static size_t calcHashKey(
+    static std::size_t calcHashKey(
         const std::string& str);  ///< Compute the 32-bits hash key of string \p str
 
     // Static methods
@@ -100,6 +104,10 @@ class Symbol : public virtual Garbageable {
     friend void  setUserData(Sym sym, void* d);
 
     static void init();
+
+    ///< Set the load factor that triggers hash table growth (default 0.7).
+    ///< A pure performance knob : it never changes the symbols created.
+    static void setHashLoadFactor(double f) { gHashLoadFactor = f; }
 };
 
 inline Sym symbol(const char* str)

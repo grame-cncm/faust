@@ -69,13 +69,15 @@
 #ifndef __TREE__
 #define __TREE__
 
+#include <cstddef>
 #include <map>
 #include <vector>
 
-#include "exception.hh"
+#include "export.hh"
 #include "garbageable.hh"
 #include "node.hh"
 #include "symbol.hh"
+#include "tlib-error.hh"
 
 // Stats hooks are no-ops unless FIR_BUILD is enabled.
 #ifdef FIR_BUILD
@@ -131,13 +133,14 @@ struct less<CTree*> {
  *
  **/
 
-class LIBFAUST_API CTree : public virtual Garbageable {
+class TLIB_API CTree : public Garbageable {
    protected:
-    static const size_t kInitialHashTableSize = 1009;  ///< initial size of the hash table (prime);
-                                                        ///< grows as needed, see growHashTableIfNeeded
-    static size_t        gSerialCounter;   ///< the serial number counter
-    static size_t        gHashTableSize;   ///< current size of the hash table (grows as needed)
-    static size_t        gHashTableCount;  ///< number of trees currently stored in the table
+    static const std::size_t kInitialHashTableSize = 1009;  ///< initial size of the hash table (prime);
+                                                             ///< grows as needed, see growHashTableIfNeeded
+    static std::size_t   gSerialCounter;   ///< the serial number counter
+    static double        gHashLoadFactor; ///< load factor triggering table growth
+    static std::size_t   gHashTableSize;   ///< current size of the hash table (grows as needed)
+    static std::size_t   gHashTableCount;  ///< number of trees currently stored in the table
     static Tree*         gHashTable;       ///< hash table used for "hash consing" (grows by rehashing)
 
     ///< cheap check, called on every make() : lazily allocates the table on first use (needed
@@ -170,8 +173,8 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     Tree         fFastProperty; ///< generic single-slot fast path for one caller-chosen "hot"
                                  ///< property, bypassing fProperties entirely (see setFastProperty)
     plist*       fProperties;   ///< lazily allocated; nullptr means no property set
-    size_t       fHashKey;      ///< the hashtable key
-    size_t       fSerial;       ///< the increasing serial number
+    std::size_t  fHashKey;      ///< the hashtable key
+    std::size_t  fSerial;       ///< the increasing serial number
     int          fAperture;     ///< how "open" is a tree (synthesized field)
     unsigned int fVisitTime;    ///< keep track of visits
     tvec         fBranch;       ///< the subtrees
@@ -188,21 +191,25 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     {
     }
     ///< construction is private, uses tree::make instead
-    CTree(size_t hk, const Node& n, const tvec& br);
+    CTree(std::size_t hk, const Node& n, const tvec& br);
+    CTree(std::size_t hk, const Node& n, int ar, const Tree br[]);
 
     ///< used to check if an equivalent tree already exists
     bool equiv(const Node& n, const tvec& br) const;
+    bool equiv(const Node& n, int ar, const Tree br[]) const;
 
-    static size_t calcTreeHash(
+    static std::size_t calcTreeHash(
         const Node& n,
         const tvec& br);  ///< compute the hash key of a tree according to its node and branches
+    static std::size_t calcTreeHash(const Node& n, int ar, const Tree br[]);
     static int calcTreeAperture(const Node& n, const tvec& br);  ///< compute how open is a tree
+    static int calcTreeAperture(const Node& n, int ar, const Tree br[]);
 
    public:
     virtual ~CTree();
 
     static Tree make(const Node& n, int ar,
-                     Tree br[]);  ///< return a new tree or an existing equivalent one
+                     const Tree br[]);  ///< return a new tree or an existing equivalent one
     static Tree make(const Node& n,
                      const tvec& br);  ///< return a new tree or an existing equivalent one
 
@@ -214,8 +221,8 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     }  ///< return the number of branches (subtrees) of a tree
     Tree branch(int i) const { return fBranch[i]; }   ///< return the ith branch (subtree) of a tree
     const tvec& branches() const { return fBranch; }  ///< return all branches (subtrees) of a tree
-    size_t      hashkey() const { return fHashKey; }  ///< return the hashkey of the tree
-    size_t      serial() const { return fSerial; }    ///< return the serial of the tree
+    std::size_t hashkey() const { return fHashKey; }  ///< return the hashkey of the tree
+    std::size_t serial() const { return fSerial; }    ///< return the serial of the tree
     int         aperture() const
     {
         return fAperture;
@@ -228,6 +235,10 @@ class LIBFAUST_API CTree : public virtual Garbageable {
     static void control();          ///< print the hash table content (for debug purpose)
 
     static void init();
+
+    ///< Set the load factor that triggers hash table growth (default 0.7).
+    ///< A pure performance knob : it never changes the trees created.
+    static void setHashLoadFactor(double f) { gHashLoadFactor = f; }
 
     // type information
     void  setType(void* t) { fType = t; }
@@ -299,28 +310,33 @@ inline Tree tree(const Node& n)
 
 inline Tree tree(const Node& n, const Tree& a)
 {
-    return CTree::make(n, {a});
+    Tree br[] = {a};
+    return CTree::make(n, 1, br);
 }
 
 inline Tree tree(const Node& n, const Tree& a, const Tree& b)
 {
-    return CTree::make(n, {a, b});
+    Tree br[] = {a, b};
+    return CTree::make(n, 2, br);
 }
 
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c)
 {
-    return CTree::make(n, {a, b, c});
+    Tree br[] = {a, b, c};
+    return CTree::make(n, 3, br);
 }
 
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d)
 {
-    return CTree::make(n, {a, b, c, d});
+    Tree br[] = {a, b, c, d};
+    return CTree::make(n, 4, br);
 }
 
 inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d,
                  const Tree& e)
 {
-    return CTree::make(n, {a, b, c, d, e});
+    Tree br[] = {a, b, c, d, e};
+    return CTree::make(n, 5, br);
 }
 
 inline Tree tree(const Node& n, const tvec& br)
@@ -329,14 +345,14 @@ inline Tree tree(const Node& n, const tvec& br)
 }
 
 // Useful conversions
-LIBFAUST_API int    tree2int(Tree t);  ///< if t has a node of type int, return it otherwise error
-LIBFAUST_API double tree2double(
+TLIB_API int    tree2int(Tree t);  ///< if t has a node of type int, return it otherwise error
+TLIB_API double tree2double(
     Tree t);  ///< if t has a node of type double, return it otherwise error
-LIBFAUST_API const char* tree2str(
+TLIB_API const char* tree2str(
     Tree t);  ///< if t has a node of type symbol, return its name otherwise error
 std::string        tree2quotedstr(Tree t);
 void*              tree2ptr(Tree t);  ///< if t has a node of type ptr, return it otherwise error
-LIBFAUST_API void* getUserData(
+TLIB_API void* getUserData(
     Tree t);  ///< if t has a node of type symbol, return the associated user data
 
 // Pattern matching
@@ -363,7 +379,7 @@ Tree rec(Tree body);           ///< create a de Bruijn recursive tree
 Tree rec(Tree id, Tree body);  ///< create a symbolic recursive tree
 
 bool              isRec(Tree t, Tree& body);            ///< is t a de Bruijn recursive tree
-LIBFAUST_API bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursive tree
+TLIB_API bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursive tree
 
 // Creation of recursive references
 
@@ -406,7 +422,7 @@ class Tabber {
     }
     Tabber& operator--()
     {
-        faustassert(fIndent > 0);
+        TLIB_ASSERT(fIndent > 0);
         fIndent--;
         return *this;
     }

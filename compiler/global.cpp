@@ -53,6 +53,7 @@
 #include "sqrtprim.hh"
 #include "tanprim.hh"
 #include "timing.hh"
+#include "tlib.hh"
 #include "tree.hh"
 
 #ifdef WIN32
@@ -130,20 +131,20 @@ using namespace std;
 extern FILE*       FAUSTin;
 extern const char* FAUSTfilename;
 
-// Garbageable globals
-list<Garbageable*> global::gRawObjectTable;
-list<Garbageable*> global::gArrayObjectTable;
-bool               global::gHeapCleanup = false;
-
-// Just after gRawObjectTable/gArrayObjectTable initialisation for FaustAlgebra constructor to
-// correctly work
 itv::interval_algebra gAlgebra;
+
+// tlib reports its internal errors through this hook : the compiler keeps
+// receiving faustexception exactly as before tlib became a standalone library.
+[[noreturn]] static void tlibErrorHandler(const std::string& msg)
+{
+    throw faustexception(msg);
+}
 
 global::global()
     : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
-    CTree::init();
-    Symbol::init();
+    tlib::setErrorHandler(tlibErrorHandler);
+    tlib::init();
 
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     reset();
@@ -384,15 +385,6 @@ global::global()
     TABLETYPE          = symbol("TableType");
     TUPLETTYPE         = symbol("TupletType");
 
-    // recursive trees
-    DEBRUIJN    = symbol("DEBRUIJN");
-    DEBRUIJNREF = symbol("DEBRUIJNREF");
-    SUBSTITUTE  = symbol("SUBSTITUTE");
-
-    SYMREC    = symbol("SYMREC");
-    SYMRECREF = symbol("SYMRECREF");
-    SYMLIFTN  = symbol("LIFTN");
-
     gMachineFloatSize      = sizeof(float);
     gMachineInt32Size      = sizeof(int);
     gMachineInt64Size      = sizeof(long int);
@@ -460,6 +452,7 @@ void global::reset()
     gDumpNorm       = -1;
     gFTZMode        = 0;
     gHashLoadFactor = 0.7;
+    tlib::setHashLoadFactor(gHashLoadFactor);
     gRangeUI        = false;
     gFreezeUI       = false;
 
@@ -672,8 +665,6 @@ void global::init()
     ORDERPROP        = tree(symbol("OrderProp"));
     RECURSIVNESS     = tree(symbol("RecursivnessProp"));
     NULLTYPEENV      = tree(symbol("NullTypeEnv"));
-    RECDEF           = tree(symbol("RECDEF"));
-    DEBRUIJN2SYM     = tree(symbol("deBruijn2Sym"));
     NORMALFORM       = tree(symbol("NormalForm"));
     DEFNAMEPROPERTY  = tree(symbol("DEFNAMEPROPERTY"));
     NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
@@ -1033,7 +1024,7 @@ Typed::VarType global::getVarType(const string& name)
 
 global::~global()
 {
-    Garbageable::cleanup();
+    tlib::cleanup();
     BasicTyped::cleanup();
     DeclareVarInst::cleanup();
     setlocale(LC_ALL, gCurrentLocal);
@@ -1562,6 +1553,7 @@ bool global::processCmdline(int argc, const char* argv[])
                 error << "ERROR : invalid -hlf option: " << gHashLoadFactor << endl;
                 throw faustexception(error.str());
             }
+            tlib::setHashLoadFactor(gHashLoadFactor);
             i += 2;
 
         } else if (isCmd(argv[i], "-rui", "--range-ui")) {
@@ -2787,115 +2779,6 @@ void CompilerStats::print(std::ostream& out) const
 }
 #endif
 
-// Memory management
-
-#ifdef _WIN32
-void Garbageable::cleanup()
-{
-    list<Garbageable*>::iterator it;
-
-    // Here removing the deleted pointer from the list is pointless
-    // and takes time, thus we don't do it.
-    global::gHeapCleanup = true;
-    for (it = global::gRawObjectTable.begin(); it != global::gRawObjectTable.end(); it++) {
-        // Hack : "this" and actual pointer are not the same: destructor cannot be called...
-        Garbageable::operator delete(*it);
-    }
-
-    // Reset to default state
-    global::gRawObjectTable.clear();
-    global::gHeapCleanup = false;
-}
-
-void* Garbageable::operator new(size_t size)
-{
-    // HACK : add 16 bytes to avoid unsolved memory smashing bug...
-    Garbageable* res = (Garbageable*)malloc(size + 16);
-    global::gRawObjectTable.push_front(res);
-    return res;
-}
-
-void Garbageable::operator delete(void* ptr)
-{
-    // We may have cases when a pointer will be deleted during
-    // a compilation, thus the pointer has to be removed from the list.
-    if (!global::gHeapCleanup) {
-        global::gRawObjectTable.remove(static_cast<Garbageable*>(ptr));
-    }
-    free(ptr);
-}
-
-void* Garbageable::operator new[](size_t size)
-{
-    // HACK : add 16 bytes to avoid unsolved memory smashing bug...
-    Garbageable* res = (Garbageable*)malloc(size + 16);
-    global::gRawObjectTable.push_front(res);
-    return res;
-}
-
-void Garbageable::operator delete[](void* ptr)
-{
-    // We may have cases when a pointer will be deleted during
-    // a compilation, thus the pointer has to be removed from the list.
-    if (!global::gHeapCleanup) {
-        global::gRawObjectTable.remove(static_cast<Garbageable*>(ptr));
-    }
-    free(ptr);
-}
-
-#else
-
-void Garbageable::cleanup()
-{
-    // Here removing the deleted pointer from the list is pointless
-    // and takes time, thus we don't do it.
-    global::gHeapCleanup = true;
-
-    for (Garbageable* obj : global::gRawObjectTable) {
-        delete obj;
-    }
-    global::gRawObjectTable.clear();
-
-    for (Garbageable* obj : global::gArrayObjectTable) {
-        delete[] obj;
-    }
-    global::gArrayObjectTable.clear();
-
-    // Reset to default state
-    global::gHeapCleanup = false;
-}
-
-void* Garbageable::operator new(size_t size)
-{
-    Garbageable* res = static_cast<Garbageable*>(::operator new(size));
-    global::gRawObjectTable.push_front(res);
-    return res;
-}
-
-void Garbageable::operator delete(void* ptr)
-{
-    if (!global::gHeapCleanup) {
-        global::gRawObjectTable.remove(static_cast<Garbageable*>(ptr));
-    }
-    ::operator delete(ptr);
-}
-
-void* Garbageable::operator new[](size_t size)
-{
-    Garbageable* res = static_cast<Garbageable*>(::operator new[](size));
-    global::gArrayObjectTable.push_front(res);
-    return res;
-}
-
-void Garbageable::operator delete[](void* ptr)
-{
-    if (!global::gHeapCleanup) {
-        global::gArrayObjectTable.remove(static_cast<Garbageable*>(ptr));
-    }
-    ::operator delete[](ptr);
-}
-
-#endif
 
 /*
     Threaded calls API: the compilation code is executed in a separate

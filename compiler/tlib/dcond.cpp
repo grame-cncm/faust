@@ -23,8 +23,6 @@
 #include <vector>
 
 #include "dcond.hh"
-#include "global.hh"
-#include "ppsig.hh"
 
 /*
  * Dcond are conditions, boolean expressions in disjunctive normal form implemented
@@ -89,7 +87,7 @@ Tree cnfOr(Tree c1, Tree c2)
                 }
             }
         }
-        Tree c3 = gGlobal->nil;
+        Tree c3 = nil();
         for (auto t1 : A) { c3 = addElement(t1,c3); }
         return c3;
     }
@@ -128,7 +126,7 @@ Tree cnfOr(Tree c1, Tree c2)
             }
         }
 
-        Tree c3 = gGlobal->nil;
+        Tree c3 = nil();
         for (auto t1 : A) {
             c3 = addElement(t1, c3);
         }
@@ -174,7 +172,7 @@ Tree cnfAnd(Tree c1, Tree c2)
         }
 
         // compute the resulting expression
-        Tree c3 = gGlobal->nil;
+        Tree c3 = nil();
         for (int i = 0; i < n; i++) {
             c3 = addElement(A[i], c3);
         }
@@ -225,7 +223,7 @@ Tree TRACE_dnfAnd(Tree c1, Tree c2)
         }
 
         // compute the resulting expression
-        Tree c3 = gGlobal->nil;
+        Tree c3 = nil();
         for (int i = 0; i < n; i++) {
             c3 = addElement(A[i], c3);
         }
@@ -235,10 +233,7 @@ Tree TRACE_dnfAnd(Tree c1, Tree c2)
 
 Tree dnfAnd(Tree c1, Tree c2)
 {
-    // std::cout <<  ppsig(c1) << " .AND. " << ppsig(c2) << " = ";
-    Tree r = TRACE_dnfAnd(c1, c2);
-    // std::cout << ppsig(r) << std::endl;
-    return r;
+    return TRACE_dnfAnd(c1, c2);
 }
 
 // Or operation between two boolean expressions in DNF
@@ -277,7 +272,7 @@ Tree TRACE_dnfOr(Tree c1, Tree c2)
             }
         }
         // compute the resulting expression
-        Tree c3 = gGlobal->nil;
+        Tree c3 = nil();
         for (int i = 0; i < n; i++) {
             c3 = addElement(A[i], c3);
         }
@@ -290,10 +285,7 @@ Tree TRACE_dnfOr(Tree c1, Tree c2)
 
 Tree dnfOr(Tree c1, Tree c2)
 {
-    // std::cout <<  ppsig(c1) << " .OR. " << ppsig(c2) << " = ";
-    Tree r = TRACE_dnfOr(c1, c2);
-    // std::cout << ppsig(r) << std::endl;
-    return r;
+    return TRACE_dnfOr(c1, c2);
 }
 
 // True c1 is less specific (i.e. more general) than c2

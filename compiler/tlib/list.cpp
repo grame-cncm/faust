@@ -102,30 +102,63 @@ This file contains several extensions to the tree library :
 
 #include "list.hh"
 #include <stdlib.h>
+#include <cstdio>
 #include <cstdlib>
 #include <map>
-#include "compatibility.hh"
-#include "global.hh"
 #include "property.hh"
+#include "tlib-error.hh"
+
+// The list symbols and the nil tree are owned by the library. They are
+// interned lazily on first use, and reset by tlib::init()/cleanup() (all
+// trees and symbols die with the session, see garbageable.hh).
+static Sym  gConsSym = nullptr;
+static Sym  gNilSym  = nullptr;
+static Tree gNilTree = nullptr;
+
+static inline void ensureListSymbols()
+{
+    if (gNilTree == nullptr) {
+        gConsSym = symbol("cons");
+        gNilSym  = symbol("nil");
+        gNilTree = tree(gNilSym);
+    }
+}
+
+// Internal hook used by tlib::init()/cleanup() (see tlib.cpp)
+void tlibResetListInternals()
+{
+    gConsSym = nullptr;
+    gNilSym  = nullptr;
+    gNilTree = nullptr;
+}
+
+Tree nil()
+{
+    ensureListSymbols();
+    return gNilTree;
+}
 
 using namespace std;
 
 Tree cons(Tree a, Tree b)
 {
-    return tree(gGlobal->CONS, a, b);
+    ensureListSymbols();
+    return tree(gConsSym, a, b);
 }
 Tree list0()
 {
-    return gGlobal->nil;
+    return nil();
 }
 
-LIBFAUST_API bool isNil(Tree l)
+TLIB_API bool isNil(Tree l)
 {
-    return (l->node() == Node(gGlobal->NIL)) && (l->arity() == 0);
+    ensureListSymbols();
+    return (l->node() == Node(gNilSym)) && (l->arity() == 0);
 }
 bool isList(Tree l)
 {
-    return (l->node() == Node(gGlobal->CONS)) && (l->arity() == 2);
+    ensureListSymbols();
+    return (l->node() == Node(gConsSym)) && (l->arity() == 2);
 }
 
 //------------------------------------------------------------------------------
@@ -208,7 +241,7 @@ Tree nth(Tree l, int i)
         l = tl(l);
         i--;
     }
-    return gGlobal->nil;
+    return nil();
 }
 
 Tree replace(Tree l, int i, Tree e)
@@ -246,7 +279,7 @@ Tree concat(Tree l, Tree q)
 
 Tree lrange(Tree l, int i, int j)
 {
-    Tree r = gGlobal->nil;
+    Tree r = nil();
     int  c = j;
     while (c > i) {
         r = cons(nth(l, --c), r);
@@ -260,7 +293,7 @@ Tree lrange(Tree l, int i, int j)
 
 static Tree rmap(tfun f, Tree l)
 {
-    Tree r = gGlobal->nil;
+    Tree r = nil();
     while (isList(l)) {
         r = cons(f(hd(l)), r);
         l = tl(l);
@@ -270,7 +303,7 @@ static Tree rmap(tfun f, Tree l)
 
 Tree reverse(Tree l)
 {
-    Tree r = gGlobal->nil;
+    Tree r = nil();
     while (isList(l)) {
         r = cons(hd(l), r);
         l = tl(l);
@@ -317,7 +350,7 @@ Tree addElement(Tree e, Tree l)
             return cons(hd(l), addElement(e, tl(l)));
         }
     } else {
-        return cons(e, gGlobal->nil);
+        return cons(e, nil());
     }
 }
 
@@ -332,7 +365,7 @@ Tree remElement(Tree e, Tree l)
             return cons(hd(l), remElement(e, tl(l)));
         }
     } else {
-        return gGlobal->nil;
+        return nil();
     }
 }
 
@@ -343,7 +376,7 @@ Tree singleton(Tree e)
 
 Tree list2set(Tree l)
 {
-    Tree s = gGlobal->nil;
+    Tree s = nil();
     while (isList(l)) {
         s = addElement(hd(l), s);
         l = tl(l);
@@ -439,14 +472,14 @@ static bool findKey (Tree pl, Tree key, Tree& val)
 
 static Tree updateKey (Tree pl, Tree key, Tree val)
 {
-    if (isNil(pl))                return cons(cons(key,val), gGlobal->nil);
+    if (isNil(pl))                return cons(cons(key,val), nil());
     if (left(hd(pl)) == key)      return cons(cons(key,val), tl(pl));
     /*  left(hd(pl)) != key    */ return cons(hd(pl), updateKey(tl(pl), key, val));
 }
 
 static Tree removeKey(Tree pl, Tree key)
 {
-    if (isNil(pl))                return gGlobal->nil;
+    if (isNil(pl))                return nil();
     if (left(hd(pl)) == key)      return tl(pl);
     /*  left(hd(pl)) != key    */ return cons(hd(pl), removeKey(tl(pl), key));
 }
@@ -458,7 +491,7 @@ void setProperty(Tree t, Tree key, Tree val)
 {
     Tree pl = t->attribut();
     if (pl) t->attribut(updateKey(pl, key, val));
-    else t->attribut(updateKey(gGlobal->nil, key, val));
+    else t->attribut(updateKey(nil(), key, val));
 }
 
 void remProperty(Tree t, Tree key)
@@ -492,10 +525,9 @@ bool getProperty(Tree t, Tree key, Tree& val)
     }
 }
 
-void remProperty(Tree t, Tree key)
+void remProperty(Tree /*t*/, Tree /*key*/)
 {
-    cerr << "ASSERT : remProperty not implemented\n";
-    faustassert(false);
+    tlib::error("ASSERT : remProperty not implemented\n");
 }
 #endif
 
@@ -522,7 +554,7 @@ Tree tmap(Tree key, tfun f, Tree t)
 
         Tree r2 = f(r1);
         if (r2 == t) {
-            setProperty(t, key, gGlobal->nil);
+            setProperty(t, key, nil());
         } else {
             setProperty(t, key, r2);
         }
@@ -565,7 +597,7 @@ static Tree subst(Tree t, Tree propkey, Tree id, Tree val)
         Tree r = tree(t->node(), br);
 
         if (r == t) {
-            setProperty(t, propkey, gGlobal->nil);
+            setProperty(t, propkey, nil());
         } else {
             setProperty(t, propkey, r);
         }

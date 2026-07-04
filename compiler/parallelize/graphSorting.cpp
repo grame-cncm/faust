@@ -22,6 +22,7 @@
 #include <set>
 
 #include "graphSorting.hh"
+#include "exception.hh"
 
 using namespace std;
 

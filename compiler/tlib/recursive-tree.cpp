@@ -23,12 +23,65 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "exception.hh"
-#include "faust/export.h"
-#include "global.hh"
+#include "export.hh"
+#include "tlib-error.hh"
 #include "tlib.hh"
 
 using namespace std;
+
+// The recursion symbols and property keys are owned by the library. The two
+// symbols needed by calcTreeAperture (called on EVERY tree construction) are
+// interned lazily and only ever create symbols, never trees -- interning a
+// tree from inside calcTreeAperture would recurse into tree construction.
+// The property-key TREES (recdefKey, debruijn2symKey) are created lazily too,
+// but only from the rec/deBruijn2Sym entry points, never during construction.
+// All are reset by tlib::init()/cleanup() (see tlib.cpp).
+static Sym  gDebruijnSym     = nullptr;
+static Sym  gDebruijnRefSym  = nullptr;
+static Sym  gSymRecSym       = nullptr;
+static Sym  gSubstituteSym   = nullptr;
+static Sym  gSymLiftnSym     = nullptr;
+static Tree gRecDefKey       = nullptr;
+static Tree gDeBruijn2SymKey = nullptr;
+
+static inline void ensureRecSymbols()
+{
+    if (gDebruijnSym == nullptr) {
+        gDebruijnSym    = symbol("DEBRUIJN");
+        gDebruijnRefSym = symbol("DEBRUIJNREF");
+        gSymRecSym      = symbol("SYMREC");
+        gSubstituteSym  = symbol("SUBSTITUTE");
+        gSymLiftnSym    = symbol("LIFTN");
+    }
+}
+
+static inline Tree recdefKey()
+{
+    if (gRecDefKey == nullptr) {
+        gRecDefKey = tree(symbol("RECDEF"));
+    }
+    return gRecDefKey;
+}
+
+static inline Tree debruijn2symKey()
+{
+    if (gDeBruijn2SymKey == nullptr) {
+        gDeBruijn2SymKey = tree(symbol("deBruijn2Sym"));
+    }
+    return gDeBruijn2SymKey;
+}
+
+// Internal hook used by tlib::init()/cleanup() (see tlib.cpp)
+void tlibResetRecInternals()
+{
+    gDebruijnSym     = nullptr;
+    gDebruijnRefSym  = nullptr;
+    gSymRecSym       = nullptr;
+    gSubstituteSym   = nullptr;
+    gSymLiftnSym     = nullptr;
+    gRecDefKey       = nullptr;
+    gDeBruijn2SymKey = nullptr;
+}
 
 // Declaration of implementation
 static Tree calcDeBruijn2Sym(Tree t);
@@ -46,18 +99,21 @@ static Tree calcliftn(Tree t, int threshold);
 // de Bruijn declaration of a recursive tree
 Tree rec(Tree body)
 {
-    return tree(gGlobal->DEBRUIJN, body);
+    ensureRecSymbols();
+    return tree(gDebruijnSym, body);
 }
 
 bool isRec(Tree t, Tree& body)
 {
-    return isTree(t, gGlobal->DEBRUIJN, body);
+    ensureRecSymbols();
+    return isTree(t, gDebruijnSym, body);
 }
 
 Tree ref(int level)
 {
-    faustassert(level > 0);
-    return tree(gGlobal->DEBRUIJNREF,
+    ensureRecSymbols();
+    TLIB_ASSERT(level > 0);
+    return tree(gDebruijnRefSym,
                 tree(level));  // reference to enclosing recursive tree starting from 1
 }
 
@@ -65,7 +121,8 @@ bool isRef(Tree t, int& level)
 {
     Tree u;
 
-    if (isTree(t, gGlobal->DEBRUIJNREF, u)) {
+    ensureRecSymbols();
+    if (isTree(t, gDebruijnRefSym, u)) {
         return isInt(u->node(), &level);
     } else {
         return false;
@@ -79,15 +136,17 @@ bool isRef(Tree t, int& level)
 // declaration of a recursive tree using a symbolic variable
 Tree rec(Tree var, Tree body)
 {
-    Tree t = tree(gGlobal->SYMREC, var);
-    t->setProperty(gGlobal->RECDEF, body);
+    ensureRecSymbols();
+    Tree t = tree(gSymRecSym, var);
+    t->setProperty(recdefKey(), body);
     return t;
 }
 
-bool LIBFAUST_API isRec(Tree t, Tree& var, Tree& body)
+bool TLIB_API isRec(Tree t, Tree& var, Tree& body)
 {
-    if (isTree(t, gGlobal->SYMREC, var)) {
-        body = t->getProperty(gGlobal->RECDEF);
+    ensureRecSymbols();
+    if (isTree(t, gSymRecSym, var)) {
+        body = t->getProperty(recdefKey());
         return true;
     } else {
         return false;
@@ -96,12 +155,14 @@ bool LIBFAUST_API isRec(Tree t, Tree& var, Tree& body)
 
 Tree ref(Tree id)
 {
-    return tree(gGlobal->SYMREC, id);  // reference to a symbolic id
+    ensureRecSymbols();
+    return tree(gSymRecSym, id);  // reference to a symbolic id
 }
 
 bool isRef(Tree t, Tree& v)
 {
-    return isTree(t, gGlobal->SYMREC, v);
+    ensureRecSymbols();
+    return isTree(t, gSymRecSym, v);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -111,29 +172,32 @@ bool isRef(Tree t, Tree& v)
 
 int CTree::calcTreeAperture(const Node& n, const tvec& br)
 {
+    return calcTreeAperture(n, int(br.size()), br.empty() ? nullptr : br.data());
+}
+
+int CTree::calcTreeAperture(const Node& n, int ar, const Tree br[])
+{
     int x;
-    if (n == gGlobal->DEBRUIJNREF) {
-        faustassert(br[0]);
+    ensureRecSymbols();
+    if (n == gDebruijnRefSym) {
+        TLIB_ASSERT(br[0]);
         if (isInt(br[0]->node(), &x)) {
             return x;
         } else {
             return 0;
         }
 
-    } else if (n == gGlobal->DEBRUIJN) {
-        faustassert(br[0]);
+    } else if (n == gDebruijnSym) {
+        TLIB_ASSERT(br[0]);
         return br[0]->fAperture - 1;
 
     } else {
         // return max aperture of branches
-        int                  rc = 0;
-        tvec::const_iterator b  = br.begin();
-        tvec::const_iterator z  = br.end();
-        while (b != z) {
-            if ((*b)->aperture() > rc) {
-                rc = (*b)->aperture();
+        int rc = 0;
+        for (int i = 0; i < ar; ++i) {
+            if (br[i]->aperture() > rc) {
+                rc = br[i]->aperture();
             }
-            ++b;
         }
         return rc;
     }
@@ -144,26 +208,12 @@ Tree lift(Tree t)
     return liftn(t, 1);
 }
 
-void printSignal(Tree sig, FILE* out, int prec = 0);
-
 // lift(t) : increase free references by 1
 
-#if 0
-static Tree _liftn(Tree t, int threshold);
-
 Tree liftn(Tree t, int threshold)
 {
-	fprintf(stderr, "call of liftn("); printSignal(t, stderr); fprintf(stderr, ", %d)\n", threshold);
-	Tree r = _liftn(t, threshold);
-	fprintf(stderr, "return of liftn("); printSignal(t, stderr); fprintf(stderr, ", %d) -> ", threshold);
-	printSignal(r, stderr); fprintf(stderr, "\n");
-	return r;
-}
-#endif
-
-Tree liftn(Tree t, int threshold)
-{
-    Tree L  = tree(Node(gGlobal->SYMLIFTN), tree(Node(threshold)));
+    ensureRecSymbols();
+    Tree L  = tree(Node(gSymLiftnSym), tree(Node(threshold)));
     Tree t2 = t->getProperty(L);
 
     if (!t2) {
@@ -209,12 +259,12 @@ static Tree calcliftn(Tree t, int threshold)
 
 Tree deBruijn2Sym(Tree t)
 {
-    faustassert(isClosed(t));
-    Tree t2 = t->getProperty(gGlobal->DEBRUIJN2SYM);
+    TLIB_ASSERT(isClosed(t));
+    Tree t2 = t->getProperty(debruijn2symKey());
 
     if (!t2) {
         t2 = calcDeBruijn2Sym(t);
-        t->setProperty(gGlobal->DEBRUIJN2SYM, t2);
+        t->setProperty(debruijn2symKey(), t2);
     }
     return t2;
 }
@@ -232,8 +282,7 @@ static Tree calcDeBruijn2Sym(Tree t)
         return t;
 
     } else if (isRef(t, i)) {
-        cerr << "ASSERT : one Bruijn reference found\n";
-        faustassert(false);
+        tlib::error("ASSERT : free de Bruijn reference found in deBruijn2Sym\n");
         return t;
 
     } else {
@@ -248,7 +297,8 @@ static Tree calcDeBruijn2Sym(Tree t)
 
 static Tree substitute(Tree t, int level, Tree id)
 {
-    Tree S  = tree(Node(gGlobal->SUBSTITUTE), tree(Node(level)), id);
+    ensureRecSymbols();
+    Tree S  = tree(Node(gSubstituteSym), tree(Node(level)), id);
     Tree t2 = t->getProperty(S);
 
     if (!t2) {

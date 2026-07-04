@@ -25,10 +25,8 @@
 #include <cstring>
 #include <iostream>
 
-#include "compatibility.hh"
-#include "exception.hh"
-#include "global.hh"
 #include "symbol.hh"
+#include "tlib-error.hh"
 
 using namespace std;
 
@@ -36,9 +34,10 @@ using namespace std;
  * Hash table used to store the symbols.
  */
 
-Symbol** Symbol::gSymbolTable    = nullptr;
-size_t   Symbol::gHashTableSize  = 0;
-size_t   Symbol::gHashTableCount = 0;
+Symbol** Symbol::gSymbolTable     = nullptr;
+size_t   Symbol::gHashTableSize   = 0;
+size_t   Symbol::gHashTableCount  = 0;
+double   Symbol::gHashLoadFactor  = 0.7;
 
 map<string, size_t> Symbol::gPrefixCounters;
 
@@ -77,7 +76,7 @@ void Symbol::ensureHashTableAllocated()
 }
 
 // Rehash into a larger table once the load factor (average chain length) would exceed
-// gGlobal->gHashLoadFactor (0.7 by default, see -hlf/--hash-load-factor) -- see the longer
+// gHashLoadFactor (0.7 by default, see setHashLoadFactor) -- see the longer
 // comment on CTree::growHashTableIfNeeded (tree.cpp) for why not 1.0.
 // Existing Symbol instances keep their address : only their fNext chaining is rewired, so every
 // Sym pointer already held elsewhere in the compiler remains valid across the resize.
@@ -85,10 +84,7 @@ void Symbol::ensureHashTableAllocated()
 // Only called right before an insert (see Symbol::get), not on every lookup.
 void Symbol::growHashTableIfNeeded()
 {
-    // gGlobal can still be null here in the same rare static-initialization-order case documented
-    // on ensureHashTableAllocated() above ; fall back to the default rather than crash.
-    double loadFactor = gGlobal ? gGlobal->gHashLoadFactor : 0.7;
-    if (double(gHashTableCount) < double(gHashTableSize) * loadFactor) return;
+    if (double(gHashTableCount) < double(gHashTableSize) * gHashLoadFactor) return;
 
     size_t   newSize  = nextPrimeAtLeast(gHashTableSize * 2);
     Symbol** newTable = new Symbol*[newSize];
@@ -184,7 +180,7 @@ Sym Symbol::prefix(const string& str)
             return get(name);
         }
     }
-    faustassert(false);
+    TLIB_ASSERT(false);
     return get("UNIQUEOVERFLOW");
 }
 

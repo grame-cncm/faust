@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    TLIB : tree library
+    Copyright (C) 2003-2026 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -19,28 +19,45 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __OCCUR__
-#define __OCCUR__
-
-#include "garbageable.hh"
 #include "tlib.hh"
 
-/**
- * Count subtree occurrences
- * Count the number of occurrences of each subtree of a root tree.
- */
+#include "garbageable.hh"
 
-class Occur : public Garbageable {
-    Tree fKey;  // specific property key
+// Internal reset hooks : the library owns a few lazily interned symbols and
+// key trees (the list cons/nil, the recursion symbols). They die with the
+// session like every other tree, so the lazily-filled caches that hold them
+// must be reset whenever the tree population is reset.
+void tlibResetListInternals();  // defined in list.cpp
+void tlibResetRecInternals();   // defined in recursive-tree.cpp
 
-   public:
-    Occur(Tree root);      // count the occurrences of each subtree of root
-    int getCount(Tree t);  // return the number of occurrences of t in root
+namespace tlib {
 
-   private:
-    Tree specificKey(Tree root);    // specific key for occurrences counting in root
-    void countOccurrences(Tree t);  // increment the occurrences of t and its subtrees
-    void setCount(Tree t, int c);   // set the number of occurrences of t
-};
+static void resetInternals()
+{
+    CTree::init();
+    Symbol::init();
+    tlibResetListInternals();
+    tlibResetRecInternals();
+}
 
-#endif
+void init()
+{
+    resetInternals();
+}
+
+void cleanup()
+{
+    // Delete every Garbageable created so far (trees, symbols, property
+    // tables...), then reset the tables and internal caches so the library is
+    // immediately ready for a new session.
+    Garbageable::cleanup();
+    resetInternals();
+}
+
+void setHashLoadFactor(double f)
+{
+    CTree::setHashLoadFactor(f);
+    Symbol::setHashLoadFactor(f);
+}
+
+}  // namespace tlib

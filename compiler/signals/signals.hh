@@ -29,6 +29,7 @@
 #include "binop.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "num.hh"
 #include "tlib.hh"
 
 #if defined(WIN32) && !defined(__GNUC__)

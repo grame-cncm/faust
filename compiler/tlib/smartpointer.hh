@@ -24,8 +24,9 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 
-#include "exception.hh"
+#include "tlib-error.hh"
 
 template <class T>
 class P {
@@ -49,7 +50,7 @@ class P {
     {
         if (p == nullptr) {
             std::cerr << "ASSERT : null dereference in P<?>::operator*() const \n";
-            faustassert(false);
+            TLIB_ASSERT(false);
         }
         return *p;
     }
@@ -57,7 +58,7 @@ class P {
     {
         if (p == nullptr) {
             std::cerr << "ASSERT : null dereference in P<?>::operator->() const \n";
-            faustassert(false);
+            TLIB_ASSERT(false);
         }
         return p;
     }
