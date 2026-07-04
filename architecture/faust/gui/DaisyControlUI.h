@@ -33,6 +33,19 @@ architecture section is not modified.
 #include "faust/gui/DecoratorUI.h"
 //#include "faust/gui/ValueConverter.h"
 
+#if defined(USE_SOUNDFILE) || defined(USE_SD_SOUNDFILE)
+// Soundfile resolver, declared here so DaisyControlUI::addSoundfile can use it
+// without including the (generated / SD) header that defines it.
+//  - USE_SOUNDFILE    : daisy_soundfile.hpp, samples inlined at build time.
+//  - USE_SD_SOUNDFILE : daisy_sd_soundfile.hpp, samples loaded from SD at boot.
+struct Soundfile;
+#ifdef USE_SOUNDFILE
+extern Soundfile* daisy_lookup_soundfile(const char* url);
+#else
+extern Soundfile* sd_load_soundfile(const char* url);
+#endif
+#endif
+
 /*******************************************************************************
  * DaisyControlUI : Faust User Interface
  ******************************************************************************/
@@ -146,7 +159,19 @@ class DaisyControlUI : public GenericUI
         void openHorizontalBox(const char* label) {  }
         void openVerticalBox(const char* label) {  }
         void closeBox(){}
-    
+
+#if defined(USE_SOUNDFILE) || defined(USE_SD_SOUNDFILE)
+        // -- soundfiles : resolve to an inlined (QSPI) or SD-loaded Soundfile.
+        void addSoundfile(const char* label, const char* url, Soundfile** sf_zone) override
+        {
+#ifdef USE_SOUNDFILE
+            *sf_zone = daisy_lookup_soundfile(url);
+#else
+            *sf_zone = sd_load_soundfile(url);
+#endif
+        }
+#endif
+
         // -- active widgets
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
@@ -260,10 +285,22 @@ class DaisyControlUI : public GenericUI
         void setup_controls()
         {
             #ifdef SEED
+            // Assign DMA channels using the platform channel map: channel
+            // adc_platform_channel[i] holds ADC i. On a platform (e.g. Patch)
+            // this orders the hardware channels by physical control number so
+            // that reading channel k (libDaisy DisplayControls, platform
+            // controls...) gives control k; on Seed it is the identity order.
+            // Pre-fill every slot first so a sparse mapping leaves no
+            // unconfigured (invalid) channel.
+            for(size_t k = 0; k < adc_config_list.size(); ++k)
+            {
+                adc_config_list[k].InitSingle(adc_list[0].pin);
+            }
             for(size_t i = 0; i < adc_list.size(); ++i)
             {
-                adc_config_list[i].InitSingle(adc_list[i].pin);
-                adc_list[i].channel = i;
+                uint8_t ch = adc_platform_channel[i];
+                adc_config_list[ch].InitSingle(adc_list[i].pin);
+                adc_list[i].channel = ch;
             }
 
             hw.adc.Init(adc_config_list.data(), adc_config_list.size());
