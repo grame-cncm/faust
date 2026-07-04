@@ -32,15 +32,12 @@
  ************************************************************************
  ************************************************************************/
 
-//#include "daisysp.h"
-
-#ifdef PATCH 
+#ifdef PATCH
 
 #include "daisy_patch.h"
 
 using namespace daisy::seed;
 
-//static daisy::DaisyPatch platform;
 static daisy::DaisyPatch platform;
 static daisy::DaisySeed& hw = platform.seed; 
 #elif defined SEED 
@@ -171,7 +168,7 @@ struct control
         lin, log, exp
     };
     control::scale_t scale; // To implement in update methods
-    const char *label; // Might be useless‘
+    const char *label;      // Might be useless‘
 
     float *value_ptr = nullptr;
 

@@ -7,15 +7,15 @@ It can target both Daisy Seed and Daisy Patch Submodule, as well as used defined
 
 Here are the available options:
 
-- `-seed`: target Daisy seed chip
-- `-patchsm`: target Daisy patchsm chip
-- `-pod`: use Pod configuration file 
-- `-patch`: use Patch configuration file, as well as Patch audio codec & OLED display
 - `-sram`: program will stand on SRAM (512kB)
 - `-qspi`: program will stand on QSPIFLASH (8MB)
+- `-seed`: target Daisy seed chip
+- `-patchsm`: target Daisy patchsm chip
+- `-patch`: use Patch configuration file, as well as Patch audio codec & OLED display
+- `-pod`: use Pod configuration file 
 - `-sdram`: enable SDRAM for large buffers (slow, but big)
-- `-mem-thresh <num>`: specify size threshold (in bytes) above which data is stored on SDRAM (default 1024 bytes)
 - `-config-file <filepath>`: specify a JSON configuration file made in the same way as "faust/architecture/daisy/pod.json"
+- `-mem-thresh <num>`: specify size threshold (in bytes) above which data is stored on SDRAM (default 1024 bytes)
 - `-midi`: enables MIDI (defaults to USB internal MIDI of chip)
 - `-midi-uart`: enables MIDI UART 
 - `-rx-pin <Pin>`: RX Pin for MIDI UART
@@ -26,7 +26,7 @@ Here are the available options:
 - `-bs <num>`: buffer size
 - `-sd` to load soundfiles from the SD card at runtime instead of inlining to QSPI
 - `-sd-debug` to print loaded soundfile info over USB serial at startup
--  `-upload-sd` to upload soundfiles to the SD card (does not build the DSP, just the uploader)
+- `-upload-sd` to upload soundfiles to the SD card (does not build the DSP, just the uploader)
 - Any other option will be passed to Faust compiler
 
 
