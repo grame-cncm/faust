@@ -21,6 +21,7 @@
 
 #include "garbageable.hh"
 
+#include <cstdlib>
 #include <list>
 
 // The allocation registries. In the Faust compiler these lived in the
@@ -51,6 +52,16 @@ void Garbageable::cleanup()
 {
     gHeapCleanup = true;
 
+#ifdef _WIN32
+    for (Garbageable* obj : rawObjectTable()) {
+        // Keep the historical Windows behavior: objects using virtual
+        // Garbageable inheritance may not have the same complete-object pointer
+        // as the Garbageable pointer stored here, so their destructor cannot be
+        // called reliably through this pointer on MSVC.
+        Garbageable::operator delete(obj);
+    }
+    rawObjectTable().clear();
+#else
     for (Garbageable* obj : rawObjectTable()) {
         delete obj;
     }
@@ -60,13 +71,18 @@ void Garbageable::cleanup()
         delete[] obj;
     }
     arrayObjectTable().clear();
+#endif
 
     gHeapCleanup = false;
 }
 
 void* Garbageable::operator new(std::size_t size)
 {
+#ifdef _WIN32
+    Garbageable* res = static_cast<Garbageable*>(std::malloc(size + 16));
+#else
     Garbageable* res = static_cast<Garbageable*>(::operator new(size));
+#endif
     rawObjectTable().push_front(res);
     return res;
 }
@@ -78,20 +94,36 @@ void Garbageable::operator delete(void* ptr)
     if (!gHeapCleanup) {
         rawObjectTable().remove(static_cast<Garbageable*>(ptr));
     }
+#ifdef _WIN32
+    std::free(ptr);
+#else
     ::operator delete(ptr);
+#endif
 }
 
 void* Garbageable::operator new[](std::size_t size)
 {
+#ifdef _WIN32
+    Garbageable* res = static_cast<Garbageable*>(std::malloc(size + 16));
+    rawObjectTable().push_front(res);
+#else
     Garbageable* res = static_cast<Garbageable*>(::operator new[](size));
     arrayObjectTable().push_front(res);
+#endif
     return res;
 }
 
 void Garbageable::operator delete[](void* ptr)
 {
+#ifdef _WIN32
+    if (!gHeapCleanup) {
+        rawObjectTable().remove(static_cast<Garbageable*>(ptr));
+    }
+    std::free(ptr);
+#else
     if (!gHeapCleanup) {
         arrayObjectTable().remove(static_cast<Garbageable*>(ptr));
     }
     ::operator delete[](ptr);
+#endif
 }
