@@ -163,9 +163,8 @@ five elements : symbols, nodes, smartpointers, trees and lists :
 namespace tlib {
 
 /// (Re)initialize the library : fresh hash tables, fresh internal symbols.
-/// Optional before the first use (everything is lazily initialized), required
-/// after cleanup() only if you want to be explicit -- cleanup() already leaves
-/// the library ready for a new session.
+/// Call before first use to start a session. cleanup() already leaves the
+/// library ready for a new session.
 TLIB_API void init();
 
 /// End a session : delete every Garbageable object created so far (all trees,

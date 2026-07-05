@@ -22,6 +22,9 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sstream>
+#include <unordered_map>
+#include <vector>
 
 #include "export.hh"
 #include "tlib-error.hh"
@@ -29,30 +32,28 @@
 
 using namespace std;
 
-// The recursion symbols and property keys are owned by the library. The two
-// symbols needed by calcTreeAperture (called on EVERY tree construction) are
-// interned lazily and only ever create symbols, never trees -- interning a
-// tree from inside calcTreeAperture would recurse into tree construction.
-// The property-key TREES (recdefKey, debruijn2symKey) are created lazily too,
-// but only from the rec/deBruijn2Sym entry points, never during construction.
-// All are reset by tlib::init()/cleanup() (see tlib.cpp).
+// The recursion symbols and property keys are owned by the library. The symbols are interned at
+// tlib::init()/cleanup() reset time so calcTreeAperture(), called on every tree construction, does
+// not have to run a lazy initialization path for ordinary trees.
+// The property-key TREES (recdefKey, debruijn2symKey) are still created lazily, but only from the
+// rec/deBruijn2SymCached/sym2deBruijn entry points, never during construction.
 static Sym  gDebruijnSym     = nullptr;
 static Sym  gDebruijnRefSym  = nullptr;
 static Sym  gSymRecSym       = nullptr;
 static Sym  gSubstituteSym   = nullptr;
 static Sym  gSymLiftnSym     = nullptr;
+static Sym  gSym2DebruijnSym = nullptr;
 static Tree gRecDefKey       = nullptr;
 static Tree gDeBruijn2SymKey = nullptr;
 
-static inline void ensureRecSymbols()
+static inline void initRecSymbols()
 {
-    if (gDebruijnSym == nullptr) {
-        gDebruijnSym    = symbol("DEBRUIJN");
-        gDebruijnRefSym = symbol("DEBRUIJNREF");
-        gSymRecSym      = symbol("SYMREC");
-        gSubstituteSym  = symbol("SUBSTITUTE");
-        gSymLiftnSym    = symbol("LIFTN");
-    }
+    gDebruijnSym    = symbol("DEBRUIJN");
+    gDebruijnRefSym = symbol("DEBRUIJNREF");
+    gSymRecSym      = symbol("SYMREC");
+    gSubstituteSym  = symbol("SUBSTITUTE");
+    gSymLiftnSym    = symbol("LIFTN");
+    gSym2DebruijnSym = symbol("SYM2DEBRUIJN");
 }
 
 static inline Tree recdefKey()
@@ -79,16 +80,50 @@ void tlibResetRecInternals()
     gSymRecSym       = nullptr;
     gSubstituteSym   = nullptr;
     gSymLiftnSym     = nullptr;
+    gSym2DebruijnSym = nullptr;
     gRecDefKey       = nullptr;
     gDeBruijn2SymKey = nullptr;
+    initRecSymbols();
 }
 
 // Declaration of implementation
-static Tree calcDeBruijn2Sym(Tree t);
-static Tree substitute(Tree t, int n, Tree id);
-static Tree calcsubstitute(Tree t, int level, Tree id);
+static Tree deBruijn2SymCachedReady(Tree t);
+static Tree calcDeBruijn2SymCachedReady(Tree t);
+static Tree deBruijn2SymRec(Tree t, std::unordered_map<Tree, Tree>& memo);
+static Tree sym2deBruijnReady(Tree t, Tree env);
+static Tree calcSym2deBruijnReady(Tree t, Tree env);
+static Tree alphaNormalize(Tree t);
+static std::ostream& printDeBruijnRec(std::ostream& out, Tree t);
+static std::ostream& printTreeExpr(std::ostream& out, Tree t);
+static Tree substituteReady(Tree t, int n, Tree id);
+static Tree calcsubstituteReady(Tree t, int level, Tree id);
 Tree        liftn(Tree t, int threshold);
-static Tree calcliftn(Tree t, int threshold);
+static Tree liftnReady(Tree t, int threshold);
+static Tree calcliftnReady(Tree t, int threshold);
+
+static inline bool isDebruijnRec(Tree t, Tree& body)
+{
+    return isTree(t, gDebruijnSym, body);
+}
+
+static inline bool isDebruijnRef(Tree t, int& level)
+{
+    Tree u;
+    if (!isTree(t, gDebruijnRefSym, u)) return false;
+    return isInt(u->node(), &level);
+}
+
+static inline bool isSymbolicRec(Tree t, Tree& var, Tree& body)
+{
+    if (!isTree(t, gSymRecSym, var)) return false;
+    body = t->getProperty(recdefKey());
+    return true;
+}
+
+static inline bool isSymbolicRef(Tree t, Tree& var)
+{
+    return isTree(t, gSymRecSym, var);
+}
 
 // Tree	NOVAR = tree("NOVAR");
 
@@ -99,19 +134,16 @@ static Tree calcliftn(Tree t, int threshold);
 // de Bruijn declaration of a recursive tree
 Tree rec(Tree body)
 {
-    ensureRecSymbols();
     return tree(gDebruijnSym, body);
 }
 
 bool isRec(Tree t, Tree& body)
 {
-    ensureRecSymbols();
-    return isTree(t, gDebruijnSym, body);
+    return isDebruijnRec(t, body);
 }
 
 Tree ref(int level)
 {
-    ensureRecSymbols();
     TLIB_ASSERT(level > 0);
     return tree(gDebruijnRefSym,
                 tree(level));  // reference to enclosing recursive tree starting from 1
@@ -119,14 +151,7 @@ Tree ref(int level)
 
 bool isRef(Tree t, int& level)
 {
-    Tree u;
-
-    ensureRecSymbols();
-    if (isTree(t, gDebruijnRefSym, u)) {
-        return isInt(u->node(), &level);
-    } else {
-        return false;
-    }
+    return isDebruijnRef(t, level);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -136,7 +161,6 @@ bool isRef(Tree t, int& level)
 // declaration of a recursive tree using a symbolic variable
 Tree rec(Tree var, Tree body)
 {
-    ensureRecSymbols();
     Tree t = tree(gSymRecSym, var);
     t->setProperty(recdefKey(), body);
     return t;
@@ -144,25 +168,17 @@ Tree rec(Tree var, Tree body)
 
 bool TLIB_API isRec(Tree t, Tree& var, Tree& body)
 {
-    ensureRecSymbols();
-    if (isTree(t, gSymRecSym, var)) {
-        body = t->getProperty(recdefKey());
-        return true;
-    } else {
-        return false;
-    }
+    return isSymbolicRec(t, var, body);
 }
 
 Tree ref(Tree id)
 {
-    ensureRecSymbols();
     return tree(gSymRecSym, id);  // reference to a symbolic id
 }
 
 bool isRef(Tree t, Tree& v)
 {
-    ensureRecSymbols();
-    return isTree(t, gSymRecSym, v);
+    return isSymbolicRef(t, v);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -178,7 +194,6 @@ int CTree::calcTreeAperture(const Node& n, const tvec& br)
 int CTree::calcTreeAperture(const Node& n, int ar, const Tree br[])
 {
     int x;
-    ensureRecSymbols();
     if (n == gDebruijnRefSym) {
         TLIB_ASSERT(br[0]);
         if (isInt(br[0]->node(), &x)) {
@@ -212,18 +227,22 @@ Tree lift(Tree t)
 
 Tree liftn(Tree t, int threshold)
 {
-    ensureRecSymbols();
+    return liftnReady(t, threshold);
+}
+
+static Tree liftnReady(Tree t, int threshold)
+{
     Tree L  = tree(Node(gSymLiftnSym), tree(Node(threshold)));
     Tree t2 = t->getProperty(L);
 
     if (!t2) {
-        t2 = calcliftn(t, threshold);
+        t2 = calcliftnReady(t, threshold);
         t->setProperty(L, t2);
     }
     return t2;
 }
 
-static Tree calcliftn(Tree t, int threshold)
+static Tree calcliftnReady(Tree t, int threshold)
 {
     int  n;
     Tree u;
@@ -231,7 +250,7 @@ static Tree calcliftn(Tree t, int threshold)
     if (isClosed(t)) {
         return t;
 
-    } else if (isRef(t, n)) {
+    } else if (isDebruijnRef(t, n)) {
         if (n < threshold) {
             // it is a bounded reference
             return t;
@@ -240,14 +259,14 @@ static Tree calcliftn(Tree t, int threshold)
             return ref(n + 1);
         }
 
-    } else if (isRec(t, u)) {
-        return rec(liftn(u, threshold + 1));
+    } else if (isDebruijnRec(t, u)) {
+        return rec(liftnReady(u, threshold + 1));
 
     } else {
         int  n1 = t->arity();
         tvec br(n1);
         for (int i = 0; i < n1; i++) {
-            br[i] = liftn(t->branch(i), threshold);
+            br[i] = liftnReady(t->branch(i), threshold);
         }
         return tree(t->node(), br);
     }
@@ -260,28 +279,75 @@ static Tree calcliftn(Tree t, int threshold)
 Tree deBruijn2Sym(Tree t)
 {
     TLIB_ASSERT(isClosed(t));
+    std::unordered_map<Tree, Tree> memo;
+    return deBruijn2SymRec(t, memo);
+}
+
+Tree deBruijn2SymCached(Tree t)
+{
+    TLIB_ASSERT(isClosed(t));
+    return deBruijn2SymCachedReady(t);
+}
+
+static Tree deBruijn2SymCachedReady(Tree t)
+{
     Tree t2 = t->getProperty(debruijn2symKey());
 
     if (!t2) {
-        t2 = calcDeBruijn2Sym(t);
+        t2 = calcDeBruijn2SymCachedReady(t);
         t->setProperty(debruijn2symKey(), t2);
     }
     return t2;
 }
 
-static Tree calcDeBruijn2Sym(Tree t)
+static Tree deBruijn2SymRec(Tree t, std::unordered_map<Tree, Tree>& memo)
+{
+    auto it = memo.find(t);
+    if (it != memo.end()) {
+        return it->second;
+    }
+
+    Tree body, var;
+    int  i;
+    Tree result;
+
+    if (isDebruijnRec(t, body)) {
+        var    = tree(unique("W"));
+        result = rec(var, deBruijn2SymRec(substituteReady(body, 1, ref(var)), memo));
+
+    } else if (isSymbolicRef(t, var)) {
+        result = t;
+
+    } else if (isDebruijnRef(t, i)) {
+        tlib::error("ASSERT : free de Bruijn reference found in deBruijn2Sym\n");
+        result = t;
+
+    } else {
+        int  a = t->arity();
+        tvec br(a);
+        for (int i1 = 0; i1 < a; i1++) {
+            br[i1] = deBruijn2SymRec(t->branch(i1), memo);
+        }
+        result = tree(t->node(), br);
+    }
+
+    memo[t] = result;
+    return result;
+}
+
+static Tree calcDeBruijn2SymCachedReady(Tree t)
 {
     Tree body, var;
     int  i;
 
-    if (isRec(t, body)) {
+    if (isDebruijnRec(t, body)) {
         var = tree(unique("W"));
-        return rec(var, deBruijn2Sym(substitute(body, 1, ref(var))));
+        return rec(var, deBruijn2SymCachedReady(substituteReady(body, 1, ref(var))));
 
-    } else if (isRef(t, var)) {
+    } else if (isSymbolicRef(t, var)) {
         return t;
 
-    } else if (isRef(t, i)) {
+    } else if (isDebruijnRef(t, i)) {
         tlib::error("ASSERT : free de Bruijn reference found in deBruijn2Sym\n");
         return t;
 
@@ -289,26 +355,239 @@ static Tree calcDeBruijn2Sym(Tree t)
         int  a = t->arity();
         tvec br(a);
         for (int i1 = 0; i1 < a; i1++) {
-            br[i1] = deBruijn2Sym(t->branch(i1));
+            br[i1] = deBruijn2SymCachedReady(t->branch(i1));
         }
         return tree(t->node(), br);
     }
 }
 
-static Tree substitute(Tree t, int level, Tree id)
+//-----------------------------------------------------------
+// Transform a tree from symbolic to deBruijn representation
+//-----------------------------------------------------------
+
+Tree sym2deBruijn(Tree t)
 {
-    ensureRecSymbols();
-    Tree S  = tree(Node(gSubstituteSym), tree(Node(level)), id);
+    return sym2deBruijnReady(t, nil());
+}
+
+static int symbolicLevel(Tree var, Tree env)
+{
+    int level = 1;
+    for (Tree l = env; isList(l); l = tl(l), ++level) {
+        if (hd(l) == var) {
+            return level;
+        }
+    }
+    return 0;
+}
+
+static Tree sym2deBruijnReady(Tree t, Tree env)
+{
+    Tree S  = tree(Node(gSym2DebruijnSym), env);
     Tree t2 = t->getProperty(S);
 
     if (!t2) {
-        t2 = calcsubstitute(t, level, id);
+        t2 = calcSym2deBruijnReady(t, env);
         t->setProperty(S, t2);
     }
     return t2;
 }
 
-static Tree calcsubstitute(Tree t, int level, Tree id)
+static Tree calcSym2deBruijnReady(Tree t, Tree env)
+{
+    Tree body, var;
+
+    if (isSymbolicRef(t, var)) {
+        int level = symbolicLevel(var, env);
+        if (level > 0) {
+            return ref(level);
+        }
+        if (isSymbolicRec(t, var, body) && body) {
+            return rec(sym2deBruijnReady(body, cons(var, env)));
+        }
+        tlib::error("ASSERT : free symbolic reference found in sym2deBruijn\n");
+        return t;
+    }
+
+    int  ar = t->arity();
+    tvec br(ar);
+    for (int i = 0; i < ar; i++) {
+        br[i] = sym2deBruijnReady(t->branch(i), env);
+    }
+    return tree(t->node(), br);
+}
+
+//-----------------------------------------------------------
+// Alpha-equivalence
+//-----------------------------------------------------------
+
+bool areEquiv(Tree a, Tree b)
+{
+    return (a == b) || (alphaNormalize(a) == alphaNormalize(b));
+}
+
+static Tree alphaNormalize(Tree t)
+{
+    return sym2deBruijn(t);
+}
+
+//-----------------------------------------------------------
+// Pretty printers for recursive trees
+//-----------------------------------------------------------
+
+std::ostream& printDeBruijn(std::ostream& out, Tree t)
+{
+    return printDeBruijnRec(out, t);
+}
+
+std::string toDeBruijnString(Tree t)
+{
+    std::ostringstream out;
+    printDeBruijn(out, t);
+    return out.str();
+}
+
+static std::ostream& printTreeExpr(std::ostream& out, Tree t)
+{
+    out << t->node();
+    int ar = t->arity();
+    if (ar > 0) {
+        out << "(";
+        for (int i = 0; i < ar; ++i) {
+            if (i > 0) {
+                out << ", ";
+            }
+            printTreeExpr(out, t->branch(i));
+        }
+        out << ")";
+    }
+    return out;
+}
+
+static std::ostream& printDeBruijnRec(std::ostream& out, Tree t)
+{
+    Tree body;
+    int  level;
+
+    if (isDebruijnRec(t, body)) {
+        out << "rec(";
+        printDeBruijnRec(out, body);
+        return out << ")";
+    }
+    if (isDebruijnRef(t, level)) {
+        return out << "ref(" << level << ")";
+    }
+
+    out << t->node();
+    int ar = t->arity();
+    if (ar > 0) {
+        out << "(";
+        for (int i = 0; i < ar; ++i) {
+            if (i > 0) {
+                out << ", ";
+            }
+            printDeBruijnRec(out, t->branch(i));
+        }
+        out << ")";
+    }
+    return out;
+}
+
+struct SymbolicPrintDef {
+    Tree fVar;
+    Tree fBody;
+};
+
+struct SymbolicPrintState {
+    std::vector<SymbolicPrintDef> fDefs;
+
+    bool seen(Tree var) const
+    {
+        for (const SymbolicPrintDef& def : fDefs) {
+            if (def.fVar == var) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void collect(Tree var, Tree body)
+    {
+        if (body && !seen(var)) {
+            fDefs.push_back(SymbolicPrintDef{var, body});
+        }
+    }
+};
+
+static std::ostream& printSymbolicVar(std::ostream& out, Tree var)
+{
+    return printTreeExpr(out, var);
+}
+
+static std::ostream& printSymbolicRec(std::ostream& out, Tree t, SymbolicPrintState& state)
+{
+    Tree body, var;
+
+    if (isSymbolicRec(t, var, body)) {
+        state.collect(var, body);
+        printSymbolicVar(out, var);
+        return out;
+    }
+
+    out << t->node();
+    int ar = t->arity();
+    if (ar > 0) {
+        out << "(";
+        for (int i = 0; i < ar; ++i) {
+            if (i > 0) {
+                out << ", ";
+            }
+            printSymbolicRec(out, t->branch(i), state);
+        }
+        out << ")";
+    }
+    return out;
+}
+
+std::ostream& printSymbolic(std::ostream& out, Tree t)
+{
+    SymbolicPrintState state;
+    printSymbolicRec(out, t, state);
+
+    if (!state.fDefs.empty()) {
+        out << "\nwith {\n";
+        for (std::size_t i = 0; i < state.fDefs.size(); ++i) {
+            out << "  ";
+            printSymbolicVar(out, state.fDefs[i].fVar);
+            out << " := ";
+            printSymbolicRec(out, state.fDefs[i].fBody, state);
+            out << "\n";
+        }
+        out << "}";
+    }
+    return out;
+}
+
+std::string toSymbolicString(Tree t)
+{
+    std::ostringstream out;
+    printSymbolic(out, t);
+    return out.str();
+}
+
+static Tree substituteReady(Tree t, int level, Tree id)
+{
+    Tree S  = tree(Node(gSubstituteSym), tree(Node(level)), id);
+    Tree t2 = t->getProperty(S);
+
+    if (!t2) {
+        t2 = calcsubstituteReady(t, level, id);
+        t->setProperty(S, t2);
+    }
+    return t2;
+}
+
+static Tree calcsubstituteReady(Tree t, int level, Tree id)
 {
     int  l;
     Tree body;
@@ -317,17 +596,17 @@ static Tree calcsubstitute(Tree t, int level, Tree id)
         // fprintf(stderr, "aperture %d < level %d !!\n", t->aperture(), level);
         return t;
     }
-    if (isRef(t, l)) {
+    if (isDebruijnRef(t, l)) {
         return (l == level) ? id : t;
     }
-    if (isRec(t, body)) {
-        return rec(substitute(body, level + 1, id));
+    if (isDebruijnRec(t, body)) {
+        return rec(substituteReady(body, level + 1, id));
     }
 
     int  ar = t->arity();
     tvec br(ar);
     for (int i = 0; i < ar; i++) {
-        br[i] = substitute(t->branch(i), level, id);
+        br[i] = substituteReady(t->branch(i), level, id);
     }
     return tree(t->node(), br);
 }
