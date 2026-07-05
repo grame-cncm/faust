@@ -84,10 +84,14 @@ cd ../embedded/faustgen
 IF NOT exist build ( mkdir build)
 cd build
 cmake -DFAUST="%BUILD%/faust/bin/faust.exe" -DUSE_LLVM_CONFIG=ON -DLLVM_CONFIG="%LLVM_CONFIG%" -DMAXSDK="%MAXSDK%" -DLIBSNDFILE="%LIBSNDFILE%" -DVS_REDIST="%VS_REDIST%" -Ax64 ..
+IF ERRORLEVEL 1 EXIT /B %ERRORLEVEL%
 cmake --build . --config Release --  /maxcpucount:4
+IF ERRORLEVEL 1 EXIT /B %ERRORLEVEL%
 cmake --build . --config Release --target install
+IF ERRORLEVEL 1 EXIT /B %ERRORLEVEL%
 cd ../package
 "C:\Program Files\7-Zip\7z.exe" a -r faustgen-%FAUSTGENVERSION%-win64.zip -w faustgen-%FAUSTGENVERSION%-win64 -mem=AES256
+IF ERRORLEVEL 1 EXIT /B %ERRORLEVEL%
 cd ../../../build
 
 echo "####################### Creating release folder #######################"
@@ -100,6 +104,8 @@ mkdir %DEST%
 
 :NEXT
 COPY Faust-%VERSION%-win64.exe %DEST%
+IF ERRORLEVEL 1 EXIT /B %ERRORLEVEL%
 COPY ..\embedded\faustgen\package\faustgen-%FAUSTGENVERSION%-win64.zip %DEST%
+IF ERRORLEVEL 1 EXIT /B %ERRORLEVEL%
 
 echo DONE VERSION %VERSION%
