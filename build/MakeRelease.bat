@@ -76,6 +76,20 @@ CALL ../MakePkg.bat
 cmake -DCMAKE_INSTALL_PREFIX=faust -DPACK=off ..
 REM Install faust locally - to be used to build faustgen and faustlive
 cmake --build . --config Release --target install
+
+echo "###################### Diagnosing installed faust ######################"
+echo "Installed Faust path: %BUILD%/faust/bin/faust.exe"
+IF NOT EXIST "%BUILD%/faust/bin/faust.exe" EXIT /B 1
+"%BUILD%/faust/bin/faust.exe" --version 2>&1
+echo "faust --version ERRORLEVEL %ERRORLEVEL%"
+"%BUILD%/faust/bin/faust.exe" --includedir 2>&1
+echo "faust --includedir ERRORLEVEL %ERRORLEVEL%"
+"%BUILD%/faust/bin/faust.exe" --libdir 2>&1
+echo "faust --libdir ERRORLEVEL %ERRORLEVEL%"
+"%BUILD%/faust/bin/faust.exe" --archdir 2>&1
+echo "faust --archdir ERRORLEVEL %ERRORLEVEL%"
+"%BUILD%/faust/bin/faust.exe" --dspdir 2>&1
+echo "faust --dspdir ERRORLEVEL %ERRORLEVEL%"
 cd ..
 
 :FAUSTGEN

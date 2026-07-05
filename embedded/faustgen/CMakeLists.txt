@@ -41,10 +41,24 @@ if (NOT DEFINED FAUST)
 endif()
 
 message (STATUS "Using Faust as ${FAUST}")
-execute_process (COMMAND ${FAUST} --includedir OUTPUT_VARIABLE FINC)
+execute_process (
+    COMMAND ${FAUST} --includedir
+    OUTPUT_VARIABLE FINC
+    ERROR_VARIABLE FINC_ERR
+    RESULT_VARIABLE FINC_RESULT)
+message (STATUS "Faust --includedir result: ${FINC_RESULT}")
+message (STATUS "Faust --includedir stdout: [${FINC}]")
+message (STATUS "Faust --includedir stderr: [${FINC_ERR}]")
 string ( STRIP "${FINC}" FAUSTINC )
 message (STATUS "Using Faust include from ${FAUSTINC}")
-execute_process (COMMAND ${FAUST} --libdir OUTPUT_VARIABLE FLIB)
+execute_process (
+    COMMAND ${FAUST} --libdir
+    OUTPUT_VARIABLE FLIB
+    ERROR_VARIABLE FLIB_ERR
+    RESULT_VARIABLE FLIB_RESULT)
+message (STATUS "Faust --libdir result: ${FLIB_RESULT}")
+message (STATUS "Faust --libdir stdout: [${FLIB}]")
+message (STATUS "Faust --libdir stderr: [${FLIB_ERR}]")
 string ( STRIP "${FLIB}" FAUSTLIB )
 message (STATUS "Using Faust libraries from ${FAUSTLIB}")
 
@@ -218,4 +232,3 @@ install (
     CODE  "execute_process (COMMAND hdiutil create ${PACKDIR}/${DST}-macosx.dmg -fs HFS+ -srcfolder ${PACKDIR}/${DST} -format UDBZ -ov)"
 )
 endif()
-
