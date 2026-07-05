@@ -1468,7 +1468,7 @@ LIBFAUST_API Tree boxLog10()
 }
 LIBFAUST_API Tree boxFmod()
 {
-    return gGlobal->gAbsPrim->box();
+    return gGlobal->gFmodPrim->box();
 }
 LIBFAUST_API Tree boxFloor()
 {
@@ -1484,7 +1484,7 @@ LIBFAUST_API Tree boxExp10()
 }
 LIBFAUST_API Tree boxCos()
 {
-    return gGlobal->gAbsPrim->box();
+    return gGlobal->gCosPrim->box();
 }
 LIBFAUST_API Tree boxCeil()
 {
