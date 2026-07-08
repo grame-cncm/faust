@@ -47,6 +47,41 @@ architecture section is not modified.
 #endif
 
 /**
+ * Note-allocation policy for the polyphonic engine.
+ *
+ * Selects the "flavour" of note-stealing, mirroring hardware synthesizers:
+ *
+ *  - note_priority: which held notes sound when more keys are down than voices may
+ *    sound. 'last' = most recently pressed (Prophet, ARP Odyssey, most modern),
+ *    'low' = lowest pitch (vintage Moog, SH-101, bass), 'high' = highest pitch
+ *    (Korg MS-20, Yamaha CS, lead-over-bass).
+ *  - trigger: whether the envelope restarts when a note changes while other keys
+ *    are held. 'multi' = re-strike on every new note; 'single' = legato, re-strike
+ *    only when coming from silence (Minimoog "legato").
+ *  - steal: on true polyphonic overflow, which sounding voice is reused.
+ *    'oldest' (historical Faust default), 'quietest' (lowest envelope level),
+ *    'low'/'high' pitch.
+ *  - voicing: 'mono' (1 sounding note), 'duo' (2), 'poly' (all voices). 'mono'/'duo'
+ *    cap the number of simultaneously-sounding notes while keeping the physical
+ *    voice pool (nvoices) intact so the legato crossfade still has a spare instance.
+ *
+ * All defaults reproduce the historical Faust behavior, so existing patches that
+ * do not declare these options are unaffected. Declared via 'declare options',
+ * e.g. declare options "[nvoices:8][voicing:mono][note_priority:last][trigger:single]";
+ */
+enum class NotePriority { Last, Low, High };
+enum class TriggerMode { Multi, Single };
+enum class StealMode { Oldest, Quietest, Lowest, Highest };
+enum class Voicing { Poly, Mono, Duo };
+
+struct PolyPolicy {
+    NotePriority priority = NotePriority::Last;
+    TriggerMode  trigger  = TriggerMode::Multi;
+    StealMode    steal    = StealMode::Oldest;
+    Voicing      voicing  = Voicing::Poly;
+};
+
+/**
  * Helper code for MIDI meta and polyphonic 'nvoices' parsing.
  */
 struct MidiMeta : public Meta {
@@ -111,7 +146,70 @@ struct MidiMeta : public Meta {
         }
     #endif
     }
-    
+
+    // Parse the note-allocation policy tokens from an already-extracted options map.
+    static void parsePolicy(std::map<std::string, std::string>& md, PolyPolicy& policy)
+    {
+        auto it = md.find("voicing");
+        if (it != md.end()) {
+            if (it->second == "mono") {
+                policy.voicing = Voicing::Mono;
+            } else if (it->second == "duo") {
+                policy.voicing = Voicing::Duo;
+            } else if (it->second == "poly") {
+                policy.voicing = Voicing::Poly;
+            }
+        }
+        it = md.find("note_priority");
+        if (it != md.end()) {
+            if (it->second == "last") {
+                policy.priority = NotePriority::Last;
+            } else if (it->second == "low") {
+                policy.priority = NotePriority::Low;
+            } else if (it->second == "high") {
+                policy.priority = NotePriority::High;
+            }
+        }
+        it = md.find("trigger");
+        if (it != md.end()) {
+            if (it->second == "multi") {
+                policy.trigger = TriggerMode::Multi;
+            } else if (it->second == "single" || it->second == "legato") {
+                policy.trigger = TriggerMode::Single;
+            }
+        }
+        it = md.find("steal");
+        if (it != md.end()) {
+            if (it->second == "oldest") {
+                policy.steal = StealMode::Oldest;
+            } else if (it->second == "quietest") {
+                policy.steal = StealMode::Quietest;
+            } else if (it->second == "low" || it->second == "lowest") {
+                policy.steal = StealMode::Lowest;
+            } else if (it->second == "high" || it->second == "highest") {
+                policy.steal = StealMode::Highest;
+            }
+        }
+    }
+
+    // Extended analysis that also fills the note-allocation policy from 'declare options'.
+    // Kept separate from the 4-argument overload so existing callers are unchanged.
+    static void analyse(dsp* mono_dsp, bool& midi, bool& midi_sync, int& nvoices,
+                        PolyPolicy& policy)
+    {
+        analyse(mono_dsp, midi, midi_sync, nvoices);
+
+        MidiMeta meta;
+        mono_dsp->metadata(&meta);
+        std::string options = meta.get("options", "");
+        if (options != "") {
+            std::map<std::string, std::string> metadata;
+            std::string                        res;
+            MetaDataUI::extractMetadata(options, res, metadata);
+            parsePolicy(metadata, policy);
+        }
+    }
+
     static bool checkPolyphony(dsp* mono_dsp)
     {
         MapUI map_ui;
