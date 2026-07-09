@@ -7,8 +7,7 @@ from std.sys.defines import (
     is_defined, get_defined_int, get_defined_bool, get_defined_string, get_defined_dtype
 )
 
-# Base types aliases.
-
+# Base arithmetic types aliases
 comptime U8 = UInt8
 comptime U32 = UInt32
 comptime U64 = UInt64
@@ -17,43 +16,54 @@ comptime S64 = Int64
 comptime SInt = Int
 comptime F32 = Float32
 comptime F64 = Float64
-comptime Void = NoneType
 
+# Base arithmetic dtype constants
 comptime u8 = U8.dtype
 comptime u32 = U32.dtype
 comptime u64 = U64.dtype
 comptime s32 = S32.dtype
 comptime s64 = S64.dtype
 comptime sint = SInt.dtype
+comptime uint = UInt.dtype
 comptime f32 = F32.dtype
 comptime f64 = F64.dtype
 
+# SIMD width constants
+comptime w32 = S32(simd_width_of[f32]())
+comptime w64 = S32(simd_width_of[f64]())
+
+# Builtin types aliases
 comptime Res = Tuple
 comptime Arr = InlineArray
+comptime Void = NoneType
 
-# FaustFloat architecture precison alias.
+# SIMD types aliases
+comptime Vec[dtype: DType] = SIMD[dtype, simd_width_of[dtype]()]
+comptime S32Vec = Vec[s32]
+comptime F32Vec = Vec[f32]
+comptime F64Vec = Vec[f64]
 
+# FaustFloat architecture constants and type aliases
 comptime dfaust = get_defined_dtype["DFAUST", DType.float32]()
-comptime FaustFloat = SIMD[dfaust, 1]
-comptime dfaust_width = simd_width_of[dfaust]()
+comptime wfaust = S32(simd_width_of[dfaust]())
+comptime FaustFloat = Scalar[dfaust]
+comptime FVec = Vec[dfaust]
 
-# Pointer types aliases.
+# Origin values constants
+comptime READ_NOTRK = ImmutUntrackedOrigin 
+comptime MUTA_NOTRK = MutUntrackedOrigin
 
+# Pointer types aliases
 comptime Ptr[T: AnyType = Void, ori: Origin = MUTA_NOTRK]    = UnsafePointer[T, ori]
 comptime AnyPtr[ori: Origin = MUTA_NOTRK]                    = Ptr[Void, ori]
 comptime OptPtr[T: AnyType = Void, ori: Origin = MUTA_NOTRK] = Optional[Ptr[T, ori]]
 
+# FaustFloat streams
 comptime ReadStreams = Ptr[Ptr[FaustFloat, READ_NOTRK], READ_NOTRK]
 comptime MutaStreams = Ptr[Ptr[FaustFloat, MUTA_NOTRK], MUTA_NOTRK]
 
-# Memory constants definitions.
-
+# Memory constants definitions
 comptime PTR_SIZE = size_of[AnyPtr[MUTA_NOTRK]]()
 comptime PTR_ALIGN = align_of[AnyPtr[MUTA_NOTRK]]()
 comptime STD_ALIGN = 2 * PTR_ALIGN
 comptime NULL_PTR[T: AnyType = Void, ori: Origin = MUTA_NOTRK]: OptPtr[T, ori] = None
-
-# Origin values aliases.
-
-comptime READ_NOTRK = ImmutUntrackedOrigin 
-comptime MUTA_NOTRK = MutUntrackedOrigin

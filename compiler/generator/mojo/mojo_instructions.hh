@@ -54,7 +54,7 @@ using FuncSymTable = std::unordered_map<String, bool>;
 **/
 class MojoInstVisitor : public TextInstVisitor {
 public:
-    MojoInstVisitor(OStream* out, String const& structName, i32 tab = 0);
+    MojoInstVisitor(OStream* out, String const& structName, s32 tab = 0);
     virtual ~MojoInstVisitor();
 
     using TextInstVisitor::visit;
@@ -126,9 +126,9 @@ class MojoInitFieldsVisitor : public DispatchVisitor {
 public:
     using DispatchVisitor::visit;
     OStream* fOut;
-    i32      fTab;
+    s32      fTab;
 
-    MojoInitFieldsVisitor(OStream* out, i32 tab = 0);
+    MojoInitFieldsVisitor(OStream* out, s32 tab = 0);
 
     void visit(DeclareVarInst* inst)     override;
     void visit(NamedAddress* inst)       override;
@@ -139,32 +139,55 @@ public:
     static void gZeroInitializer(OStream* out, Typed* typed);
 };
 
-/** A `MojoVecInstVisitor` is a `MojoInstVisitor` for the vec mode. **/
+// Mapping to mojo DType
+using DType = s32;
+inline constexpr DType DType_s32 = 0;
+inline constexpr DType DType_f32 = 1;
+inline constexpr DType DType_f64 = 2;
+inline constexpr DType DType_dfaust = 3;
+static String dtype_values[4] = {"s32", "f32", "f64", "dfaust"};
+static String dtype_widths[4] = {"w32", "w32", "w64", "wfaust"};
+
+/**
+    A `MojoVecInstVisitor` is a `MojoInstVisitor` when the `-vec` mode is enabled.
+    @desc
+    - Produces and writes explicit SIMD expressions.
+    - An instance is created with an `output` stream, a `tab` number, 
+      and a `struct name`.
+    - XXX:
+ **/
 class MojoVecInstVisitor : public MojoInstVisitor {
-protected:
-    static inline b32 gEmitSIMD;
-    static inline b32 gEmitJoin;
+    // In the context of the project this class is only used in
+    // `MojoVecCodeContainer::writeCompute` while generating the
+    // `FaustDsp.compute(...)` method.
 public:
     using MojoInstVisitor::visit;
 
     MojoVecInstVisitor(OStream* out, String const& structName, int tab = 0);
 
     void visit(CastInst* inst)       override;
+    void visit(DoubleNumInst* inst)  override;
+    void visit(FloatNumInst* inst)   override;
     void visit(ForLoopInst* inst)    override;
-    void visit(LabelInst* inst)      override;
     void visit(IndexedAddress* inst) override;
+    void visit(Int32NumInst* inst)   override;
+    // void visit(LabelInst* inst)      override;
     void visit(NamedAddress* inst)   override;
     void visit(StoreVarInst* inst)   override;
+    void visit(IfInst* inst)         override;
 
-   protected:
-    // `ForLoopInst` help writers.
-    void writeMultiBargraph(ForLoopInst* inst);
+protected:
 
-    void writeBargraphUpdate(ForLoopInst* inst, String& dname, String& dvalue, String& dwidth);
+    // Global state
+    static inline b32    gEmitSIMD;
+    static inline b32    gEmitJoin;
+    // static inline 
+    static inline DType  gDRealVal;
+    static inline String gLastValueID;
 
-    // `ForLoopInst` helpers to write SIMD loops.
-    void writeSIMDLoopHeader(ForLoopInst* inst, String& dtype, String& dvalue, String& dwidth);
-    void writeSIMDLoopIncrement(String const& idx_name, String const& width_name);
+    void writeBargraphUpdate(ForLoopInst* inst, String& idx, String& dwidth);
+
+    void visitStore(StoreVarInst* inst, String& idx);
 
     // Detect wrapped or non-contiguous indices that need a dedicated SIMD path.
     static b32 hasWrappedIndex(ValueInst* inst);
@@ -173,11 +196,12 @@ public:
     // Detect plain contiguous stores handled by the simple SIMD store path.
     static b32 isUnitStride(Address* addr);
 
-    static String getDTypeValue(ValueInst* rhs);
-    // static Res<Address*, ValueInst*, String> parseSingleStore(StoreVarInst* rhs);
+    // Get the dtype of a value.
+    // static String getDTypeValue(ValueInst* inst);
+    static DType getDType(ValueInst* value);
 
-    static String     getIndexName(ForLoopInst* inst);
-    static ValueInst* getEndValue(ForLoopInst* inst);
+    static b32 mustEmitJoin(StoreVarInst* inst);
+
 };
 
 }       // namespace mojo

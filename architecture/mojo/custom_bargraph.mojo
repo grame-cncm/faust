@@ -27,7 +27,7 @@ comptime _ = assert_dfaust()
 # First section of architecture provided code end.
 # ==============================================================================
 # Code generated with Faust 2.85.5 (https://faust.grame.fr)
-# name: "bargraph"
+# name: "custom_bargraph"
 # Compilation options: 
 #   -a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
 #   -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs
@@ -41,31 +41,29 @@ comptime RVec = Vec[dreal]
 @fieldwise_init
 struct mydsp(FaustDsp):
     var null_val: FaustFloat
+    var entry0: FaustFloat
+    var hslider0: FaustFloat
+    var hbargraph0: FaustFloat
+    var vslider0: FaustFloat
     var vbargraph0: FaustFloat
+    var hbargraph1: FaustFloat
+    var checkbox0: FaustFloat
+    var button0: FaustFloat
     var vbargraph1: FaustFloat
-    var vbargraph2: FaustFloat
-    var vbargraph3: FaustFloat
-    var vbargraph4: FaustFloat
-    var vbargraph5: FaustFloat
-    var vbargraph6: FaustFloat
-    var vbargraph7: FaustFloat
-    var vbargraph8: FaustFloat
-    var vbargraph9: FaustFloat
     var sample_rate: S32
 
     @always_inline
     def __init__(out dsp):
         dsp.null_val = FaustFloat(0.0)
+        dsp.entry0 = 0.0
+        dsp.hslider0 = 0.0
+        dsp.hbargraph0 = 0.0
+        dsp.vslider0 = 0.0
         dsp.vbargraph0 = 0.0
+        dsp.hbargraph1 = 0.0
+        dsp.checkbox0 = 0.0
+        dsp.button0 = 0.0
         dsp.vbargraph1 = 0.0
-        dsp.vbargraph2 = 0.0
-        dsp.vbargraph3 = 0.0
-        dsp.vbargraph4 = 0.0
-        dsp.vbargraph5 = 0.0
-        dsp.vbargraph6 = 0.0
-        dsp.vbargraph7 = 0.0
-        dsp.vbargraph8 = 0.0
-        dsp.vbargraph9 = 0.0
         dsp.sample_rate = 0
 
     @always_inline
@@ -74,11 +72,11 @@ struct mydsp(FaustDsp):
 
     @always_inline
     def get_num_outputs(read dsp) -> S32:
-        return 10
+        return 8
 
     @always_inline
     def get_num_inputs(read dsp) -> S32:
-        return 0
+        return 1
 
     @always_inline
     def class_init(mut dsp, read sample_rate: S32) -> None:
@@ -90,7 +88,11 @@ struct mydsp(FaustDsp):
 
     @always_inline
     def instance_reset_user_interface(mut dsp) -> None:
-        pass
+        dsp.entry0 = 0.0
+        dsp.hslider0 = 0.5
+        dsp.vslider0 = 0.25
+        dsp.checkbox0 = 0.0
+        dsp.button0 = 0.0
 
     @always_inline
     def instance_clear(mut dsp) -> None:
@@ -109,33 +111,42 @@ struct mydsp(FaustDsp):
 
     @always_inline
     def get_json(read dsp) -> String:
-        return "{\"name\": \"bargraph\",\"filename\": \"bargraph.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\"],\"size\": 84,\"inputs\": 0,\"outputs\": 10,\"meta\": [ { \"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"bargraph.dsp\" },{ \"name\": \"bargraph\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"bargraph\",\"items\": [ {\"type\": \"vbargraph\",\"label\": \"bar0\",\"varname\": \"fVbargraph5\",\"shortname\": \"bar0\",\"address\": \"/bargraph/bar0\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"bar1\",\"varname\": \"fVbargraph6\",\"shortname\": \"bar1\",\"address\": \"/bargraph/bar1\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"bar2\",\"varname\": \"fVbargraph7\",\"shortname\": \"bar2\",\"address\": \"/bargraph/bar2\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"bar3\",\"varname\": \"fVbargraph8\",\"shortname\": \"bar3\",\"address\": \"/bargraph/bar3\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"bar4\",\"varname\": \"fVbargraph9\",\"shortname\": \"bar4\",\"address\": \"/bargraph/bar4\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo0\",\"varname\": \"fVbargraph0\",\"shortname\": \"foo0\",\"address\": \"/bargraph/foo0\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo1\",\"varname\": \"fVbargraph1\",\"shortname\": \"foo1\",\"address\": \"/bargraph/foo1\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo2\",\"varname\": \"fVbargraph2\",\"shortname\": \"foo2\",\"address\": \"/bargraph/foo2\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo3\",\"varname\": \"fVbargraph3\",\"shortname\": \"foo3\",\"address\": \"/bargraph/foo3\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo4\",\"varname\": \"fVbargraph4\",\"shortname\": \"foo4\",\"address\": \"/bargraph/foo4\",\"min\": 0,\"max\": 10}]}]}"
+        return "{\"name\": \"custom_bargraph\",\"filename\": \"custom_bargraph.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench/src\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench/src\"],\"size\": 76,\"inputs\": 1,\"outputs\": 8,\"meta\": [ { \"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"custom_bargraph.dsp\" },{ \"name\": \"custom_bargraph\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"custom_bargraph\",\"items\": [ {\"type\": \"hslider\",\"label\": \"controls/gain_h\",\"varname\": \"fHslider0\",\"shortname\": \"controls_gain_h\",\"address\": \"/custom_bargraph/controls_gain_h\",\"meta\": [{ \"0\": \"\" }],\"init\": 0.5,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"hbargraph\",\"label\": \"meters/b0_hbar\",\"varname\": \"fHbargraph0\",\"shortname\": \"meters_b0_hbar\",\"address\": \"/custom_bargraph/meters_b0_hbar\",\"meta\": [{ \"10\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b1_vbar\",\"varname\": \"fVbargraph0\",\"shortname\": \"meters_b1_vbar\",\"address\": \"/custom_bargraph/meters_b1_vbar\",\"meta\": [{ \"11\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"hbargraph\",\"label\": \"meters/b2_hbar\",\"varname\": \"fHbargraph1\",\"shortname\": \"meters_b2_hbar\",\"address\": \"/custom_bargraph/meters_b2_hbar\",\"meta\": [{ \"12\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b3_vbar\",\"varname\": \"fVbargraph1\",\"shortname\": \"meters_b3_vbar\",\"address\": \"/custom_bargraph/meters_b3_vbar\",\"meta\": [{ \"13\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vslider\",\"label\": \"controls/gain_v\",\"varname\": \"fVslider0\",\"shortname\": \"controls_gain_v\",\"address\": \"/custom_bargraph/controls_gain_v\",\"meta\": [{ \"1\": \"\" }],\"init\": 0.25,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"nentry\",\"label\": \"controls/bias_n\",\"varname\": \"fEntry0\",\"shortname\": \"controls_bias_n\",\"address\": \"/custom_bargraph/controls_bias_n\",\"meta\": [{ \"2\": \"\" }],\"init\": 0,\"min\": -1,\"max\": 1,\"step\": 0.001},{\"type\": \"checkbox\",\"label\": \"controls/gate_c\",\"varname\": \"fCheckbox0\",\"shortname\": \"controls_gate_c\",\"address\": \"/custom_bargraph/controls_gate_c\",\"meta\": [{ \"3\": \"\" }]},{\"type\": \"button\",\"label\": \"controls/trig_b\",\"varname\": \"fButton0\",\"shortname\": \"controls_trig_b\",\"address\": \"/custom_bargraph/controls_trig_b\",\"meta\": [{ \"4\": \"\" }]}]}]}"
 
     @always_inline
     def metadata(read dsp, mut meta: Some[FaustMeta]) -> None:
         meta.declare("compile_options", "-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
-        meta.declare("filename", "bargraph.dsp")
-        meta.declare("name", "bargraph")
+        meta.declare("filename", "custom_bargraph.dsp")
+        meta.declare("name", "custom_bargraph")
 
     @always_inline
     def build_user_interface(mut dsp, mut ui: Some[FaustGui]) -> None:
-        ui.open_vertical_box("bargraph")
-        ui.add_vertical_bargraph("bar0", dsp.vbargraph5, FaustFloat(0.0), FaustFloat(10.0))
-        ui.add_vertical_bargraph("bar1", dsp.vbargraph6, FaustFloat(0.0), FaustFloat(10.0))
-        ui.add_vertical_bargraph("bar2", dsp.vbargraph7, FaustFloat(0.0), FaustFloat(10.0))
-        ui.add_vertical_bargraph("bar3", dsp.vbargraph8, FaustFloat(0.0), FaustFloat(10.0))
-        ui.add_vertical_bargraph("bar4", dsp.vbargraph9, FaustFloat(0.0), FaustFloat(10.0))
-        ui.add_vertical_bargraph("foo0", dsp.vbargraph0, FaustFloat(0.0), FaustFloat(10.0))
-        ui.add_vertical_bargraph("foo1", dsp.vbargraph1, FaustFloat(0.0), FaustFloat(10.0))
-        ui.add_vertical_bargraph("foo2", dsp.vbargraph2, FaustFloat(0.0), FaustFloat(10.0))
-        ui.add_vertical_bargraph("foo3", dsp.vbargraph3, FaustFloat(0.0), FaustFloat(10.0))
-        ui.add_vertical_bargraph("foo4", dsp.vbargraph4, FaustFloat(0.0), FaustFloat(10.0))
+        ui.open_vertical_box("custom_bargraph")
+        ui.declare(dsp.hslider0, "0", "")
+        ui.add_horizontal_slider("controls/gain_h", dsp.hslider0, FaustFloat(0.5), FaustFloat(0.0), FaustFloat(1.0), FaustFloat(0.01))
+        ui.declare(dsp.hbargraph0, "10", "")
+        ui.add_horizontal_bargraph("meters/b0_hbar", dsp.hbargraph0, FaustFloat(-2.0), FaustFloat(2.0))
+        ui.declare(dsp.vbargraph0, "11", "")
+        ui.add_vertical_bargraph("meters/b1_vbar", dsp.vbargraph0, FaustFloat(-2.0), FaustFloat(2.0))
+        ui.declare(dsp.hbargraph1, "12", "")
+        ui.add_horizontal_bargraph("meters/b2_hbar", dsp.hbargraph1, FaustFloat(-2.0), FaustFloat(2.0))
+        ui.declare(dsp.vbargraph1, "13", "")
+        ui.add_vertical_bargraph("meters/b3_vbar", dsp.vbargraph1, FaustFloat(-2.0), FaustFloat(2.0))
+        ui.declare(dsp.vslider0, "1", "")
+        ui.add_vertical_slider("controls/gain_v", dsp.vslider0, FaustFloat(0.25), FaustFloat(0.0), FaustFloat(1.0), FaustFloat(0.01))
+        ui.declare(dsp.entry0, "2", "")
+        ui.add_num_entry("controls/bias_n", dsp.entry0, FaustFloat(0.0), FaustFloat(-1.0), FaustFloat(1.0), FaustFloat(0.001))
+        ui.declare(dsp.checkbox0, "3", "")
+        ui.add_check_button("controls/gate_c", dsp.checkbox0)
+        ui.declare(dsp.button0, "4", "")
+        ui.add_button("controls/trig_b", dsp.button0)
         ui.close_box()
 
     @always_inline
     def compute(
         mut dsp, var count: S32, var inputs: ReadStreams, var outputs: MutaStreams
     ) -> None:
+        var input0_ptr = inputs[S32(0)]
         var output0_ptr = outputs[S32(0)]
         var output1_ptr = outputs[S32(1)]
         var output2_ptr = outputs[S32(2)]
@@ -144,30 +155,20 @@ struct mydsp(FaustDsp):
         var output5_ptr = outputs[S32(5)]
         var output6_ptr = outputs[S32(6)]
         var output7_ptr = outputs[S32(7)]
-        var output8_ptr = outputs[S32(8)]
-        var output9_ptr = outputs[S32(9)]
-        dsp.vbargraph0 = FaustFloat(0.0)
-        var slow0 = F64(dsp.vbargraph0)
-        dsp.vbargraph1 = FaustFloat(10.0)
-        var slow1 = F64(dsp.vbargraph1)
-        dsp.vbargraph2 = FaustFloat(20.0)
-        var slow2 = F64(dsp.vbargraph2)
-        dsp.vbargraph3 = FaustFloat(30.0)
-        var slow3 = F64(dsp.vbargraph3)
-        dsp.vbargraph4 = FaustFloat(40.0)
-        var slow4 = F64(dsp.vbargraph4)
-        dsp.vbargraph5 = FaustFloat(0.0)
-        var slow5 = F64(dsp.vbargraph5)
-        dsp.vbargraph6 = FaustFloat(10.5)
-        var slow6 = F64(dsp.vbargraph6)
-        dsp.vbargraph7 = FaustFloat(21.0)
-        var slow7 = F64(dsp.vbargraph7)
-        dsp.vbargraph8 = FaustFloat(31.5)
-        var slow8 = F64(dsp.vbargraph8)
-        dsp.vbargraph9 = FaustFloat(42.0)
-        var slow9 = F64(dsp.vbargraph9)
+        var slow0 = F64(dsp.entry0)
+        var slow1 = F64(dsp.hslider0)
+        var slow2 = F64(dsp.vslider0)
+        var slow3 = (slow1) + (slow2)
+        var slow4 = F64(dsp.checkbox0)
+        var slow5 = F64(dsp.button0)
+        var slow6 = (slow4) + (slow5)
+        var slow7 = (slow1) * (slow2)
+        var slow8 = (slow4) + (1.0)
+        var slow9 = (slow5) + (0.25)
+        var slow10 = (slow5) + ((slow3) + (slow4))
         vindex_re0 = S32(0)
         while (vindex_re0) <= ((count) - (S32(4))): 
+            var input0 = Ptr(to=input0_ptr[vindex_re0])
             var output0 = Ptr(to=output0_ptr[vindex_re0])
             var output1 = Ptr(to=output1_ptr[vindex_re0])
             var output2 = Ptr(to=output2_ptr[vindex_re0])
@@ -176,79 +177,59 @@ struct mydsp(FaustDsp):
             var output5 = Ptr(to=output5_ptr[vindex_re0])
             var output6 = Ptr(to=output6_ptr[vindex_re0])
             var output7 = Ptr(to=output7_ptr[vindex_re0])
-            var output8 = Ptr(to=output8_ptr[vindex_re0])
-            var output9 = Ptr(to=output9_ptr[vindex_re0])
             var vsize_re0 = S32(4)
             var i_re0 = S32(0)
             while i_re0 <= vsize_re0 - wfaust:
-                var lo = (slow0).cast[dfaust]()
-                var hi = (slow0).cast[dfaust]()
-                var values0  = lo.join(hi)
+                var values0 = ((slow0) + ((slow1) * ((simd_load(input0, i_re0)).cast[f64]()))).cast[dfaust]()
+                dsp.hbargraph0 = values0[SInt(wfaust) - 1]
                 simd_store(output0, i_re0, values0)
                 i_re0 = i_re0 + wfaust
             var i_re1 = S32(0)
             while i_re1 <= vsize_re0 - wfaust:
-                var lo = (slow1).cast[dfaust]()
-                var hi = (slow1).cast[dfaust]()
-                var values1  = lo.join(hi)
+                var values1 = (((slow2) * ((simd_load(input0, i_re1)).cast[f64]())) - (slow0)).cast[dfaust]()
+                dsp.vbargraph0 = values1[SInt(wfaust) - 1]
                 simd_store(output1, i_re1, values1)
                 i_re1 = i_re1 + wfaust
             var i_re2 = S32(0)
             while i_re2 <= vsize_re0 - wfaust:
-                var lo = (slow2).cast[dfaust]()
-                var hi = (slow2).cast[dfaust]()
-                var values2  = lo.join(hi)
+                var values2 = ((slow3) * ((simd_load(input0, i_re2)).cast[f64]())).cast[dfaust]()
+                dsp.hbargraph1 = values2[SInt(wfaust) - 1]
                 simd_store(output2, i_re2, values2)
                 i_re2 = i_re2 + wfaust
             var i_re3 = S32(0)
             while i_re3 <= vsize_re0 - wfaust:
-                var lo = (slow3).cast[dfaust]()
-                var hi = (slow3).cast[dfaust]()
-                var values3  = lo.join(hi)
+                var values3 = ((slow6) * ((simd_load(input0, i_re3)).cast[f64]())).cast[dfaust]()
+                dsp.vbargraph1 = values3[SInt(wfaust) - 1]
                 simd_store(output3, i_re3, values3)
                 i_re3 = i_re3 + wfaust
             var i_re4 = S32(0)
             while i_re4 <= vsize_re0 - wfaust:
-                var lo = (slow4).cast[dfaust]()
-                var hi = (slow4).cast[dfaust]()
+                var lo = ((slow7) * ((slow0) + ((simd_load(input0, i_re4)).cast[f64]()))).cast[dfaust]()
+                var hi = ((slow7) * ((slow0) + ((simd_load(input0, i_re4 + S32(wreal))).cast[f64]()))).cast[dfaust]()
                 var values4  = lo.join(hi)
                 simd_store(output4, i_re4, values4)
                 i_re4 = i_re4 + wfaust
             var i_re5 = S32(0)
             while i_re5 <= vsize_re0 - wfaust:
-                var lo = (slow5).cast[dfaust]()
-                var hi = (slow5).cast[dfaust]()
+                var lo = ((slow8) * (((simd_load(input0, i_re5)).cast[f64]()) - (slow0))).cast[dfaust]()
+                var hi = ((slow8) * (((simd_load(input0, i_re5 + S32(wreal))).cast[f64]()) - (slow0))).cast[dfaust]()
                 var values5  = lo.join(hi)
                 simd_store(output5, i_re5, values5)
                 i_re5 = i_re5 + wfaust
             var i_re6 = S32(0)
             while i_re6 <= vsize_re0 - wfaust:
-                var lo = (slow6).cast[dfaust]()
-                var hi = (slow6).cast[dfaust]()
+                var lo = ((slow9) * ((simd_load(input0, i_re6)).cast[f64]())).cast[dfaust]()
+                var hi = ((slow9) * ((simd_load(input0, i_re6 + S32(wreal))).cast[f64]())).cast[dfaust]()
                 var values6  = lo.join(hi)
                 simd_store(output6, i_re6, values6)
                 i_re6 = i_re6 + wfaust
             var i_re7 = S32(0)
             while i_re7 <= vsize_re0 - wfaust:
-                var lo = (slow7).cast[dfaust]()
-                var hi = (slow7).cast[dfaust]()
+                var lo = ((slow10) * ((simd_load(input0, i_re7)).cast[f64]())).cast[dfaust]()
+                var hi = ((slow10) * ((simd_load(input0, i_re7 + S32(wreal))).cast[f64]())).cast[dfaust]()
                 var values7  = lo.join(hi)
                 simd_store(output7, i_re7, values7)
                 i_re7 = i_re7 + wfaust
-            var i_re8 = S32(0)
-            while i_re8 <= vsize_re0 - wfaust:
-                var lo = (slow8).cast[dfaust]()
-                var hi = (slow8).cast[dfaust]()
-                var values8  = lo.join(hi)
-                simd_store(output8, i_re8, values8)
-                i_re8 = i_re8 + wfaust
-            var i_re9 = S32(0)
-            while i_re9 <= vsize_re0 - wfaust:
-                var lo = (slow9).cast[dfaust]()
-                var hi = (slow9).cast[dfaust]()
-                var values9  = lo.join(hi)
-                simd_store(output9, i_re9, values9)
-                i_re9 = i_re9 + wfaust
             vindex_re0 = (vindex_re0) + (S32(4))
 
 # ==============================================================================

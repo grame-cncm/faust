@@ -1048,7 +1048,9 @@ struct BlockInst : public StatementInst {
     // std::list member `fCode` interface
     int            size() const { return int(fCode.size()); }
     StatementInst* front() { return fCode.front(); }
+    StatementInst* back() { return fCode.back(); }
     void           pop_front() { fCode.pop_front(); }
+    void           pop_back() { fCode.pop_back(); }
     Iterator       begin() { return fCode.begin(); }
     Iterator       end() { return fCode.end(); }
 

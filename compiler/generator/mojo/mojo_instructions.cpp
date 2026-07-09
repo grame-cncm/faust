@@ -28,7 +28,7 @@ inline namespace mojo {
 
 // Base mojo instruction visitor implementation.
 
-MojoInstVisitor::MojoInstVisitor(OStream* out, String const& structName, i32 tab)
+MojoInstVisitor::MojoInstVisitor(OStream* out, String const& structName, s32 tab)
     : TextInstVisitor(out, ".", new MojoStringTypeManager(xfloat(), structName, ""), tab)
 {   gMathLibTable = gCreateMathLibTable();   }
 
@@ -241,8 +241,8 @@ void MojoInstVisitor::visit(ForLoopInst* inst)
 
 void MojoInstVisitor::visit(FunCallInst* inst)
 {
-    VString name = (gMathLibTable.find(inst->fName) != gMathLibTable.end())
-                            ? gMathLibTable[inst->fName] : inst->fName;
+    VString name = (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? 
+                   gMathLibTable[inst->fName] : inst->fName;
 
     if (name == "pow") {
         ValueInst* inst_base = inst->fArgs.front();
@@ -280,18 +280,16 @@ void MojoInstVisitor::visit(IfInst* inst)
     *fOut << "if (";
     inst->fCond->accept(this);
     fTab += 1;
-    *fOut << " != 0):\n" << wtab(fTab);
+    *fOut << " != 0):" << wnextl(fTab);
     inst->fThen->accept(this);
     *fOut << wrewind(fOut); 
-    if (inst->fElse->fCode.size() > 0)
-    {
-        *fOut << "elif";
-        *fOut << wtab(fTab + 1) << "\n";
+    if (inst->fElse->fCode.size() > 0) {
+        *fOut << wnextl(fTab - 1) << "else:" << wnextl(fTab);
         inst->fElse->accept(this);
         *fOut << wrewind(fOut);
     }
     fTab -= 1;
-    *fOut << "\n" << wtab(fTab);
+    *fOut << wnextl(fTab);
 }
 
 void MojoInstVisitor::visit(IndexedAddress* indexed)
@@ -322,12 +320,15 @@ void MojoInstVisitor::visit(Int64NumInst* inst)
 
 void MojoInstVisitor::visit(LabelInst* inst)
 {
-    mj_unused(inst);
+    mj_unused(inst);  // do nothing
+    // auto label = String(inst->fLabel.begin() + 1, inst->fLabel.end() - 2);
+    // label[0] = '#';
+    // *fOut << label << wnextl(fTab);
 }
 
 void MojoInstVisitor::visit(LoadVarAddressInst* inst)
 {
-    inst->fAddress->accept(this);  // NOTE:(manu) value semantics (l-value ref)
+    inst->fAddress->accept(this);
 }
 
 void MojoInstVisitor::visit(NamedAddress* inst)
@@ -404,16 +405,16 @@ void MojoInstVisitor::visit(StoreVarInst* inst)
 {
     inst->fAddress->accept(this);
     *fOut << " = ";
-    // Is the lhs a field of the dsp and the rhs a cast to FaustFloat? XXX: ? this special case should be removed
-    if (auto* cast_inst = dycast(CastInst*, inst->fValue); cast_inst
-        && (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct())
-        && (cast_inst->fType->getType() == Typed::VarType::kFloatMacro))
-    {
-        *fOut << "FaustFloat(";
-        cast_inst->fInst->accept(this);
-        *fOut << ")" << wnextl(fTab);
-        return;
-    }
+    // TODO:(manu) Is the lhs a field of the dsp and the rhs a cast to FaustFloat ? should this special case be removed?
+    // if (auto* cast_inst = dycast(CastInst*, inst->fValue); cast_inst
+    //     && (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct())
+    //     && (cast_inst->fType->getType() == Typed::VarType::kFloatMacro))
+    // {
+    //     *fOut << "FaustFloat(";
+    //     cast_inst->fInst->accept(this);
+    //     *fOut << ")" << wnextl(fTab);
+    //     return;
+    // }
     inst->fValue->accept(this);
     *fOut << wnextl(fTab);
 }
@@ -433,8 +434,8 @@ void MojoInstVisitor::visitAux(RetInst* inst, bool genEmpty)
 
 void MojoInstVisitor::writeFunDefArgs(DeclareFunInst* inst)
 {   
-    usize size = inst->fType->fArgsTypes.size();
-    usize i = 0;
+    ssize size = inst->fType->fArgsTypes.size();
+    ssize i = 0;
     for (auto const& arg : inst->fType->fArgsTypes) {
         *fOut << fTypeManager->generateType(arg);
         if (i < size - 1) {
@@ -466,7 +467,7 @@ void MojoInstVisitor::writeFunDefBody(DeclareFunInst* inst)
 
 // Mojo fields zero initializer implementation.
 
-MojoInitFieldsVisitor::MojoInitFieldsVisitor(OStream* out, i32 tab)
+MojoInitFieldsVisitor::MojoInitFieldsVisitor(OStream* out, s32 tab)
     : fOut(out), fTab(tab)
 {}
 

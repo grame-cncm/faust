@@ -80,7 +80,7 @@ public:
 protected:
     // Writers
     void writeFaustHeader();
-    void writeFaustDReal();
+    void writeDRealDefinitions();
     void writeClassHeaderAndFields(int n);
     void writeGlobalVariablesInlined(int n);
     void writeDefaultConstructor(int n);

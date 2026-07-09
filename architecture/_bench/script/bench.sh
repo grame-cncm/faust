@@ -630,7 +630,7 @@ _bench_clean_bins() {
     -type f \
     \( -name "*_bin_cpp" -o -name "*_bin_mojo" \) \
     -delete 2>/dev/null || true
-  find "${BENCH_MOJO_ARCH_DIR}" \
+  find -H "${BENCH_MOJO_ARCH_DIR}" \
     -maxdepth 1 \
     -type f \
     -name "*_bin_mojo" \
@@ -672,7 +672,7 @@ _bench_clean_all_out_files() {
     -type f \
     \( -name "*_transpiled.cpp" -o -name "*_out.cpp" -o -name "*_insp.cpp" \) \
     -delete 2>/dev/null || true
-  find "${BENCH_MOJO_ARCH_DIR}" \
+  find -H "${BENCH_MOJO_ARCH_DIR}" \
     -maxdepth 1 \
     -type f \
     \( -name "*_transpiled.mojo" -o -name "*_out.mojo" -o -name "*_insp.mojo" \) \
@@ -690,17 +690,28 @@ _bench_clean_generated_source() {
   local source="$2"
   local name
   local mode
+
   if [[ "${BENCH_KEEP_TMP}" == "1" ]]; then
     return 0
   fi
+
   name="$(_bench_dsp_name "${source}")"
   mode="$(_bench_current_mode)"
+
   case "${lang}" in
     cpp)
-      find "${BENCH_CPP_ARCH_DIR}"         -maxdepth 1         -type f         \( -name "${name}_${mode}_*_transpiled.cpp" -o -name "${name}_${mode}_*_out.cpp" \)         -delete 2>/dev/null || true
+      find "${BENCH_CPP_ARCH_DIR}" \
+        -maxdepth 1 \
+        -type f \
+        \( -name "${name}_${mode}_*_transpiled.cpp" -o -name "${name}_${mode}_*_out.cpp" \) \
+        -delete 2>/dev/null || true
       ;;
     mojo)
-      find "${BENCH_MOJO_ARCH_DIR}"         -maxdepth 1         -type f         \( -name "${name}_${mode}_*_transpiled.mojo" -o -name "${name}_${mode}_*_out.mojo" \)         -delete 2>/dev/null || true
+      find -H "${BENCH_MOJO_ARCH_DIR}" \
+        -maxdepth 1 \
+        -type f \
+        \( -name "${name}_${mode}_*_transpiled.mojo" -o -name "${name}_${mode}_*_out.mojo" \) \
+        -delete 2>/dev/null || true
       ;;
   esac
 }
@@ -739,17 +750,28 @@ _inspect_clean_generated_source() {
   local source="$2"
   local name
   local mode
+
   if [[ "${BENCH_KEEP_TMP}" == "1" ]]; then
     return 0
   fi
+
   name="$(_bench_dsp_name "${source}")"
   mode="$(_bench_current_mode)"
+
   case "${lang}" in
     cpp)
-      find "${BENCH_CPP_ARCH_DIR}"         -maxdepth 1         -type f         -name "${name}_${mode}_*_insp.cpp"         -delete 2>/dev/null || true
+      find "${BENCH_CPP_ARCH_DIR}" \
+        -maxdepth 1 \
+        -type f \
+        -name "${name}_${mode}_*_insp.cpp" \
+        -delete 2>/dev/null || true
       ;;
     mojo)
-      find "${BENCH_MOJO_ARCH_DIR}"         -maxdepth 1         -type f         -name "${name}_${mode}_*_insp.mojo"         -delete 2>/dev/null || true
+      find -H "${BENCH_MOJO_ARCH_DIR}" \
+        -maxdepth 1 \
+        -type f \
+        -name "${name}_${mode}_*_insp.mojo" \
+        -delete 2>/dev/null || true
       ;;
   esac
 }

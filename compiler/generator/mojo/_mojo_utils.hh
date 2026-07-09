@@ -47,19 +47,19 @@ template<typename T> using Arr = std::vector<T>;
 ////////////////////////////////////////////////////////////////
 // Writing helpers for `MojoVisitor`s and `MojoCodeContainer`s 
 
-inline constexpr isize TAB_SIZE = 4;
+inline constexpr ssize TAB_SIZE = 4;
 
 inline String wbanner()                 {   return "# ==============================================================================";   }
-inline String wblank (isize n=1)        {   return String(n, '\n');                                                                      }
-inline String windent(isize n=TAB_SIZE) {   return String(n, ' ');                                                                       }
+inline String wblank (ssize n=1)        {   return String(n, '\n');                                                                      }
+inline String windent(ssize n=TAB_SIZE) {   return String(n, ' ');                                                                       }
 inline String wlit   (String s)         {   return "\"" + s + "\"";                                                                      }
-inline String wnextl (isize n=1)        {   return '\n' + windent(TAB_SIZE*n);                                                           }
+inline String wnextl (ssize n=1)        {   return '\n' + windent(TAB_SIZE*n);                                                           }
 inline String wptr   (String s)         {   return "Ptr["+s+"]";                                                                         }
-inline String wtab   (isize n=1)        {   return String(TAB_SIZE*n, ' ');                                                              }
+inline String wtab   (ssize n=1)        {   return String(TAB_SIZE*n, ' ');                                                              }
 
-inline String wrewind(std::ostream* out, isize n = 1)
+inline String wrewind(std::ostream* out, ssize n = 1, ssize off = 0)
 {
-    out->seekp(isize(out->tellp()) - n * TAB_SIZE);
+    out->seekp(ssize(out->tellp()) - n * TAB_SIZE - off);
     return "";
 }
 
@@ -136,8 +136,8 @@ inline String ensureReal(f64 x)
 
 inline Arr<VString> split(VString src, char sep)
 {
-    isize i = 0;
-    isize size = src.size();
+    ssize i = 0;
+    ssize size = src.size();
     Arr<VString> res;
 
     while (i < size) {
@@ -145,7 +145,7 @@ inline Arr<VString> split(VString src, char sep)
             i++;
         }
 
-        isize j = i;
+        ssize j = i;
         while (i < size && src[i] != sep) {
             i++;
         }
@@ -160,7 +160,7 @@ inline Arr<VString> split(VString src, char sep)
 
 inline String snakeCase(String const& src)
 {
-    isize const len = src.size();
+    ssize const len = src.size();
     if (len == 0) {
         return {};
     }
@@ -168,7 +168,7 @@ inline String snakeCase(String const& src)
     String res;
     res.reserve(len * 2 > 16 ? len * 2 : 16);
 
-    for (isize i = 0; i < len; i++) {
+    for (ssize i = 0; i < len; i++) {
         char const c = src[i];
 
         b32 const is_upper = ('A' <= c && c <= 'Z');
@@ -220,9 +220,9 @@ inline String appendSnake(String const& prefx, String const& className)
 
 }
 
-inline String formatCompilerOptions(isize indent, String const& begln = "")
+inline String formatCompilerOptions(ssize indent, String const& begln = "")
 {
-    constexpr isize MAX_WIDTH = 81;
+    constexpr ssize MAX_WIDTH = 81;
     OString build;
     String options = gGlobal->printCompilationOptions1();
     Arr<VString> opts = split(options, ' ');
@@ -248,12 +248,12 @@ inline String formatCompilerOptions(isize indent, String const& begln = "")
     }
 
     String prefx = begln + windent(indent);
-    isize count = prefx.size();
+    ssize count = prefx.size();
 
     build << prefx;
     for (auto ut = units.begin(); ut != units.end(); ut++) {
         String const& uni = *ut;
-        isize needed = 1 + uni.size();
+        ssize needed = 1 + uni.size();
 
         if (count + needed > MAX_WIDTH) {
             build << "\n" << prefx;

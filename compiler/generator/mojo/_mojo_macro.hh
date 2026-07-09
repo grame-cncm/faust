@@ -50,8 +50,9 @@
     #define mj_panic(cond, msg)           \
         if (!(cond)) {                    \
             mj_panic_msg(std::cerr, msg); \
-        }                                 \
-        faustassert(cond)
+            faustassert(cond);            \
+            mj_unreachable();             \
+        }
 #endif
 
 #ifndef mj_unused
@@ -112,7 +113,15 @@
         gEmitSIMD         = b
 #endif
 #ifndef mj_emit_simd_restore
-    #define mj_emit_simd_restore() gEmitSIMD = old_emit_simd;
+    #define mj_emit_simd_restore() gEmitSIMD = old_emit_simd
 #endif
+
+#ifndef mj_emit_scalar
+    #define mj_emit_scalar(_inst_)      \
+        mj_emit_simd_set(false);        \
+        MojoInstVisitor::visit(_inst_); \
+        mj_emit_simd_restore()
+#endif
+
 
 #endif  // _MOJO_MACRO_HH

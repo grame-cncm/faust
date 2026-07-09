@@ -148,34 +148,34 @@ inline namespace mojo {
     using u8  = unsigned __int8;
     using u16 = unsigned __int16;
     using u32 = unsigned __int32;
-    using i8  = signed __int8;
-    using i16 = signed __int16;
-    using i32 = signed __int32;
     using u64 = unsigned __int64;
-    using i64 = signed __int64;
+    using s8  = signed __int8;
+    using s16 = signed __int16;
+    using s32 = signed __int32;
+    using s64 = signed __int64;
 #else
     #include <stdint.h>
     using u8  = uint8_t;
     using u16 = uint16_t;
     using u32 = uint32_t;
     using u64 = uint64_t;
-    using i8  = int8_t;
-    using i16 = int16_t;
-    using i32 = int32_t;
-    using i64 = int64_t;
+    using s8  = int8_t;
+    using s16 = int16_t;
+    using s32 = int32_t;
+    using s64 = int64_t;
     using u128 = unsigned __int128;
-    using i128 = __int128;
+    using s128 = __int128;
 #endif
 
 using usize = size_t;
-using isize = ptrdiff_t;
+using ssize = ptrdiff_t;
 
 #if MJ_SYSTEM_WIN
-    using iptr = signed __int64;
+    using sptr = signed __int64;
     using uptr = unsigned __int64;
 #else
     using uptr = uintptr_t;
-    using iptr = intptr_t;
+    using sptr = intptr_t;
 #endif
 
 using anyptr  = void*;
@@ -185,9 +185,9 @@ using f64 = double;
 using f32_ptr = f32*;
 using f64_ptr = f64*;
 
-using b8 = i8 ;
-using b16 = i16;
-using b32 = i32;
+using b8 = s8 ;
+using b16 = s16;
+using b32 = s32;
 
 
 ////////////////////////////////////////////////////////////////
@@ -198,32 +198,61 @@ using b32 = i32;
 
     inline constexpr u8 U8_MIN = 0u;
     inline constexpr u8 U8_MAX = 0xffu;
-    inline constexpr i8 I8_MIN = (-0x7f - 1);
-    inline constexpr i8 I8_MAX = 0x7f;
+    inline constexpr s8 I8_MIN = (-0x7f - 1);
+    inline constexpr s8 I8_MAX = 0x7f;
     
     inline constexpr u16 U16_MIN = 0u;
     inline constexpr u16 U16_MAX = 0xffffu;
-    inline constexpr i16 I16_MIN = (-0x7fff - 1);
-    inline constexpr i16 I16_MAX = 0x7fff;
+    inline constexpr s16 I16_MIN = (-0x7fff - 1);
+    inline constexpr s16 I16_MAX = 0x7fff;
     
     inline constexpr u32 U32_MIN = 0u;
     inline constexpr u32 U32_MAX = 0xffffffffu;
-    inline constexpr i32 I32_MIN = (-0x7fffffff - 1);
-    inline constexpr i32 I32_MAX = 0x7fffffff;
+    inline constexpr s32 I32_MIN = (-0x7fffffff - 1);
+    inline constexpr s32 I32_MAX = 0x7fffffff;
 
     inline constexpr u64 U64_MIN = 0ull;
     inline constexpr u64 U64_MAX = 0xffffffffffffffffull;
-    inline constexpr i64 I64_MIN = (-0x7fffffffffffffffll - 1);
-    inline constexpr i64 I64_MAX = 0x7fffffffffffffffll;
+    inline constexpr s64 I64_MIN = (-0x7fffffffffffffffll - 1);
+    inline constexpr s64 I64_MAX = 0x7fffffffffffffffll;
     
     inline constexpr usize USZ_MIN = 0ull;
     inline constexpr usize USZ_MAX = 0xffffffffffffffffull;
-    inline constexpr isize ISZ_MIN = (-0x7fffffffffffffffll - 1);
-    inline constexpr isize ISZ_MAX = 0x7fffffffffffffffll;
+    inline constexpr ssize ISZ_MIN = (-0x7fffffffffffffffll - 1);
+    inline constexpr ssize ISZ_MAX = 0x7fffffffffffffffll;
 #endif
  
 }  // namespace mojo
 
+#ifndef mj_debug_trap
+    #if MJ_COMPILER_MSVC
+        #if _MSC_VER < 1300
+            #define mj_debug_trap() __asm int 3
+        #else
+            #define mj_debug_trap() __debugbreak()
+        #endif
+    #elif MJ_COMPILER_CLANG
+        #define mj_debug_trap() __builtin_debugtrap()
+    #elif MJ_COMPILER_GCC
+        #define mj_debug_trap() __builtin_trap()
+    #endif
+#endif
+ 
+#ifndef mj_unreachable
+    #if MJ_COMPILER_MSVC
+        #define mj_unreachable()     \
+            do {                     \
+                mj_debug_trap();     \
+                __assume(0);         \
+            } while (0)
+    #else
+        #define mj_unreachable()         \
+            do {                         \
+                mj_debug_trap();         \
+                __builtin_unreachable(); \
+            } while (0)
+    #endif
+#endif
 
 ////////////////////////////////////////////////////////////////
 // Attributes and decroators

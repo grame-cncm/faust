@@ -68,17 +68,18 @@ void MojoCodeContainer::writeFaustHeader()
     *fOut << "\n" << wbanner();
 }
 
-void MojoCodeContainer::writeFaustDReal()
+void MojoCodeContainer::writeDRealDefinitions()
 {
     if (gGlobal->gFloatSize == 1) {
         *fOut << "comptime dreal = f32\n";
     } else if (gGlobal->gFloatSize == 2) {
         *fOut << "comptime dreal = f64\n";
     } else {
-        *fOut << "Panic - Unsupported float size: " << gGlobal->gFloatSize << "\n";
-        faustassert(false);
+        mj_panic(false, "Unsupported float size: " << gGlobal->gFloatSize);
     }
-    *fOut << "comptime dreal_width = S32(simd_width_of[dreal]())\n";
+    *fOut << "comptime wreal = S32(simd_width_of[dreal]())\n";
+    *fOut << "comptime Real = Scalar[dreal]\n";
+    *fOut << "comptime RVec = Vec[dreal]\n";
 }
 
 void MojoCodeContainer::writeGlobalVariablesInlined(int n)
@@ -325,7 +326,7 @@ void MojoCodeContainer::produceClass()
     n += 1;
     gScalarProducer->Tab(n);
     *fOut << wblank();
-    writeFaustDReal();
+    writeDRealDefinitions();
     *fOut << wblank();
     writeClassHeaderAndFields(n);
     *fOut << wblank();
@@ -435,16 +436,15 @@ void MojoVecCodeContainer::writeCompute(int n)
           << wtab(n+1) <<      "mut dsp, var count: S32, var inputs: ReadStreams, var outputs: MutaStreams\n"
           << wtab(n)   << ") -> None:\n" << wtab(n+1);
     n += 1;
-    // *fOut << "comptime width = S32(simd_width_of[dreal]())" << wnextl(n);
     gVectorProducer->Tab(n);
     LoopVariableRenamer loop_renamer;
     BlockInst* loop = loop_renamer.getCode(fDAGBlock);
     loop->fCode.pop_front();  // main index initalized visiting the instruction
     generateComputeBlock(gVectorProducer);
     loop->accept(gVectorProducer);
-    fOut->seekp(isize(fOut->tellp()) - 2*n*TAB_SIZE - 1);
     n -= 1;
     gVectorProducer->Tab(n);
+    *fOut << wrewind(fOut, n*2, +1) << "\n";
 }
 
 }  // namespace mojo
