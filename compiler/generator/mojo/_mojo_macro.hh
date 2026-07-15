@@ -101,26 +101,42 @@
     #define recast(T, x) reinterpret_cast<T>(x)
 #endif
 
-#ifndef mj_emit_simd_check
-    #define mj_emit_simd_check()                 \
-        if (not gEmitSIMD) {                     \
+#ifndef mj_simd_emit_check
+    #define mj_simd_emit_check()                 \
+        if (not gSIMDEmit) {                     \
             return MojoInstVisitor::visit(inst); \
         }
 #endif
-#ifndef mj_emit_simd_set
-    #define mj_emit_simd_set(b)        \
-        b32 old_emit_simd = gEmitSIMD; \
-        gEmitSIMD         = b
+#ifndef mj_simd_emit_set
+    #define mj_simd_emit_set(b)        \
+        b32 old_emit_simd = gSIMDEmit; \
+        gSIMDEmit = b
 #endif
-#ifndef mj_emit_simd_restore
-    #define mj_emit_simd_restore() gEmitSIMD = old_emit_simd
+#ifndef mj_simd_emit_restore
+    #define mj_simd_emit_restore() gSIMDEmit = old_emit_simd
 #endif
 
-#ifndef mj_emit_scalar
-    #define mj_emit_scalar(_inst_)      \
-        mj_emit_simd_set(false);        \
+#ifndef mj_simd_join_set
+    #define mj_simd_join_set(b)        \
+        b32 old_join_simd = gSIMDJoin; \
+        gSIMDJoin = b
+#endif
+#ifndef mj_simd_join_restore
+    #define mj_simd_join_restore() gSIMDJoin = old_join_simd
+#endif
+
+#ifndef mj_scalar_visit
+    #define mj_scalar_visit(_inst_)     \
+        mj_simd_emit_set(false);        \
         MojoInstVisitor::visit(_inst_); \
-        mj_emit_simd_restore()
+        mj_simd_emit_restore()
+#endif
+
+#ifndef mj_scalar_accept
+    #define mj_scalar_accept(_inst_) \
+        mj_simd_emit_set(false);     \
+        _inst_->accept(this);        \
+        mj_simd_emit_restore()
 #endif
 
 

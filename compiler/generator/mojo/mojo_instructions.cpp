@@ -320,10 +320,10 @@ void MojoInstVisitor::visit(Int64NumInst* inst)
 
 void MojoInstVisitor::visit(LabelInst* inst)
 {
-    mj_unused(inst);  // do nothing
-    // auto label = String(inst->fLabel.begin() + 1, inst->fLabel.end() - 2);
-    // label[0] = '#';
-    // *fOut << label << wnextl(fTab);
+    // mj_unused(inst);  // do nothing
+    auto label = String(inst->fLabel.begin() + 1, inst->fLabel.end() - 2);
+    label[0] = '#';
+    *fOut << label << wnextl(fTab);
 }
 
 void MojoInstVisitor::visit(LoadVarAddressInst* inst)

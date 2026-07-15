@@ -62,7 +62,7 @@ def init_streams[dreal: DType, size: SInt = 1](
     var header_beg = raw.bitcast[Ptr[Real]]()
     var data_beg = (raw + header_size).bitcast[Real]()
     for i in range(n_chans):
-        (header_beg + i).init_pointee_copy(data_beg + i * buff_size)
+        (header_beg + i).unsafe_write(data_beg + i * buff_size)
     memset_zero(data_beg.bitcast[U8](), block_size)
     return Error_None
 

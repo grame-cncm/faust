@@ -1,27 +1,21 @@
 # ==============================================================================
-# Faust to Mojo inspect architecture for the benchmark framework.
-# Provides the minimal definitions and entry point needed to generate
-# low-level code with clear symbols for inspecting the generated compute code.
+# Faust to Mojo impulse architecture for the impulse-tests integration.
+# Provides the definitions and the main entry point to run the dsp, and print
+# the samples to stdout. The impulse-tests framework will generate the impulse
+# responses redirecting the output to the `.ir` files.
 # ==============================================================================
 # First section of architecture provided code start.
 # Imports the modules and the definitions of the architecture code.
 # ==============================================================================
 
 from conf import *
-from help import *
 from mem import *
 from dsp import *
 from gui import *
 from meta import *
-
-from std.benchmark import keep, clobber_memory
-
-comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96_000]())
-comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 512]())
-comptime COMPUTE_ITERS = S32(get_defined_int["COMPUTE_ITERS", 100]())
-
-def assert_dfaust() -> None: comptime assert dfaust == F32.dtype
-comptime _ = assert_dfaust()
+from help import *
+from test.impulse import *
+from gui.control import ControlGui
 
 # ==============================================================================
 # First section of architecture provided code end.
@@ -29,8 +23,10 @@ comptime _ = assert_dfaust()
 # Code generated with Faust 2.85.5 (https://faust.grame.fr)
 # name: "cubic_distortion"
 # Compilation options: 
-#   -a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
-#   -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs
+#   
+#   -a /Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/impulse.mojo 
+#   -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double 
+#   -ftz 0 -vec -lv 0 -vs 4 -dfs
 # ==============================================================================
 
 comptime dreal = f64
@@ -2397,26 +2393,27 @@ struct mydsp(FaustDsp):
 
     @always_inline
     def get_json(read dsp) -> String:
-        return "{\"name\": \"cubic_distortion\",\"filename\": \"cubic_distortion.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"library_list\": [\"/usr/local/share/faust/oscillator.lib\",\"/usr/local/share/faust/music.lib\",\"/usr/local/share/faust/math.lib\",\"/usr/local/share/faust/filter.lib\",\"/usr/local/share/faust/effect.lib\"],\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\"],\"size\": 7916,\"inputs\": 0,\"outputs\": 2,\"meta\": [ { \"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"effect.lib/author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"effect.lib/copyright\": \"Julius O. Smith III\" },{ \"effect.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"effect.lib/exciter_author\": \"Priyanka Shekar (pshekar@ccrma.stanford.edu)\" },{ \"effect.lib/exciter_copyright\": \"Copyright (c) 2013 Priyanka Shekar\" },{ \"effect.lib/exciter_license\": \"MIT License (MIT)\" },{ \"effect.lib/exciter_name\": \"Harmonic Exciter\" },{ \"effect.lib/exciter_version\": \"1.0\" },{ \"effect.lib/license\": \"STK-4.3\" },{ \"effect.lib/name\": \"Faust Audio Effect Library\" },{ \"effect.lib/version\": \"1.33\" },{ \"filename\": \"cubic_distortion.dsp\" },{ \"filter.lib/author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"filter.lib/copyright\": \"Julius O. Smith III\" },{ \"filter.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"filter.lib/license\": \"STK-4.3\" },{ \"filter.lib/name\": \"Faust Filter Library\" },{ \"filter.lib/reference\": \"https://ccrma.stanford.edu/~jos/filters/\" },{ \"filter.lib/version\": \"1.29\" },{ \"math.lib/author\": \"GRAME\" },{ \"math.lib/copyright\": \"GRAME\" },{ \"math.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"math.lib/license\": \"LGPL with exception\" },{ \"math.lib/name\": \"Math Library\" },{ \"math.lib/version\": \"1.0\" },{ \"music.lib/author\": \"GRAME\" },{ \"music.lib/copyright\": \"GRAME\" },{ \"music.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"music.lib/license\": \"LGPL with exception\" },{ \"music.lib/name\": \"Music Library\" },{ \"music.lib/version\": \"1.0\" },{ \"name\": \"cubic_distortion\" },{ \"oscillator.lib/author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"oscillator.lib/copyright\": \"Julius O. Smith III\" },{ \"oscillator.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"oscillator.lib/license\": \"STK-4.3\" },{ \"oscillator.lib/name\": \"Faust Oscillator Library\" },{ \"oscillator.lib/version\": \"1.11\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"cubic_distortion\",\"items\": [ {\"type\": \"vgroup\",\"label\": \"0x00\",\"meta\": [{ \"1\": \"\" }],\"items\": [ {\"type\": \"vgroup\",\"label\": \"SINE WAVE OSCILLATOR oscrs\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"Sine oscillator based on 2D vector rotation\" }],\"items\": [ {\"type\": \"hslider\",\"label\": \"Amplitude\",\"varname\": \"fHslider1\",\"shortname\": \"Amplitude\",\"address\": \"/cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Amplitude\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Sawtooth waveform amplitude\" },{ \"unit\": \"dB\" }],\"init\": -20,\"min\": -120,\"max\": 10,\"step\": 0.1},{\"type\": \"hslider\",\"label\": \"Frequency\",\"varname\": \"fHslider3\",\"shortname\": \"Frequency\",\"address\": \"/cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Frequency\",\"meta\": [{ \"2\": \"\" },{ \"tooltip\": \"Sine wave frequency as a Piano Key (PK) number (A440 = 49 PK)\" },{ \"unit\": \"PK\" }],\"init\": 49,\"min\": 1,\"max\": 88,\"step\": 0.01},{\"type\": \"hslider\",\"label\": \"Portamento\",\"varname\": \"fHslider2\",\"shortname\": \"Portamento\",\"address\": \"/cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Portamento\",\"meta\": [{ \"3\": \"\" },{ \"scale\": \"log\" },{ \"tooltip\": \"Portamento (frequency-glide) time-constant in seconds\" },{ \"unit\": \"sec\" }],\"init\": 0.1,\"min\": 0.001,\"max\": 10,\"step\": 0.001}]}]},{\"type\": \"vgroup\",\"label\": \"0x00\",\"meta\": [{ \"2\": \"\" }],\"items\": [ {\"type\": \"vgroup\",\"label\": \"CUBIC NONLINEARITY cubicnl\",\"meta\": [{ \"tooltip\": \"Reference:          https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html\" }],\"items\": [ {\"type\": \"checkbox\",\"label\": \"Bypass\",\"varname\": \"fCheckbox0\",\"shortname\": \"Bypass\",\"address\": \"/cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Bypass\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"When this is checked, the nonlinearity has no effect\" }]},{\"type\": \"hslider\",\"label\": \"Drive\",\"varname\": \"fHslider4\",\"shortname\": \"Drive\",\"address\": \"/cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Drive\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Amount of distortion\" }],\"init\": 0,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"hslider\",\"label\": \"Offset\",\"varname\": \"fHslider0\",\"shortname\": \"Offset\",\"address\": \"/cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Offset\",\"meta\": [{ \"2\": \"\" },{ \"tooltip\": \"Brings in even harmonics\" }],\"init\": 0,\"min\": 0,\"max\": 1,\"step\": 0.01}]}]},{\"type\": \"vgroup\",\"label\": \"0x00\",\"meta\": [{ \"3\": \"\" }],\"items\": [ {\"type\": \"hgroup\",\"label\": \"CONSTANT-Q SPECTRUM ANALYZER (6E), 15 bands spanning LP, 9 octaves below 16000 Hz, HP\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"See Faust\'s filter.lib for documentation and references\" }],\"items\": [ {\"type\": \"vbargraph\",\"label\": \"vbargraph0\",\"varname\": \"fVbargraph14\",\"shortname\": \"vbargraph0\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph0\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph1\",\"varname\": \"fVbargraph13\",\"shortname\": \"vbargraph1\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph1\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph2\",\"varname\": \"fVbargraph12\",\"shortname\": \"vbargraph2\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph2\",\"meta\": [{ \"2\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph3\",\"varname\": \"fVbargraph11\",\"shortname\": \"vbargraph3\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph3\",\"meta\": [{ \"3\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph4\",\"varname\": \"fVbargraph10\",\"shortname\": \"vbargraph4\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph4\",\"meta\": [{ \"4\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph5\",\"varname\": \"fVbargraph9\",\"shortname\": \"vbargraph5\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph5\",\"meta\": [{ \"5\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph6\",\"varname\": \"fVbargraph8\",\"shortname\": \"vbargraph6\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph6\",\"meta\": [{ \"6\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph7\",\"varname\": \"fVbargraph7\",\"shortname\": \"vbargraph7\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph7\",\"meta\": [{ \"7\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph8\",\"varname\": \"fVbargraph6\",\"shortname\": \"vbargraph8\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph8\",\"meta\": [{ \"8\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph9\",\"varname\": \"fVbargraph5\",\"shortname\": \"vbargraph9\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph9\",\"meta\": [{ \"9\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph10\",\"varname\": \"fVbargraph4\",\"shortname\": \"vbargraph10\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph10\",\"meta\": [{ \"10\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph11\",\"varname\": \"fVbargraph3\",\"shortname\": \"vbargraph11\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph11\",\"meta\": [{ \"11\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph12\",\"varname\": \"fVbargraph2\",\"shortname\": \"vbargraph12\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph12\",\"meta\": [{ \"12\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph13\",\"varname\": \"fVbargraph1\",\"shortname\": \"vbargraph13\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph13\",\"meta\": [{ \"13\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph14\",\"varname\": \"fVbargraph0\",\"shortname\": \"vbargraph14\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph14\",\"meta\": [{ \"14\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10}]},{\"type\": \"hgroup\",\"label\": \"SPECTRUM ANALYZER CONTROLS\",\"meta\": [{ \"1\": \"\" }],\"items\": [ {\"type\": \"hslider\",\"label\": \"Level Averaging Time\",\"varname\": \"fHslider5\",\"shortname\": \"Level_Averaging_Time\",\"address\": \"/cubic_distortion/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_Averaging_Time\",\"meta\": [{ \"0\": \"\" },{ \"scale\": \"log\" },{ \"tooltip\": \"band-level averaging time in milliseconds\" },{ \"unit\": \"ms\" }],\"init\": 100,\"min\": 1,\"max\": 10000,\"step\": 1},{\"type\": \"hslider\",\"label\": \"Level dB Offset\",\"varname\": \"fHslider6\",\"shortname\": \"Level_dB_Offset\",\"address\": \"/cubic_distortion/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_dB_Offset\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Level offset in decibels\" },{ \"unit\": \"dB\" }],\"init\": 50,\"min\": 0,\"max\": 100,\"step\": 1}]}]}]}]}"
+        return "{\"name\": \"cubic_distortion\",\"filename\": \"cubic_distortion.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a /Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"library_list\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp/oscillator.lib\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp/music.lib\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp/math.lib\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp/filter.lib\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp/effect.lib\"],\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\",\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\"],\"size\": 7916,\"inputs\": 0,\"outputs\": 2,\"meta\": [ { \"compile_options\": \"-a /Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"effect.lib/bypass1:author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"effect.lib/bypass1:copyright\": \"Julius O. Smith III\" },{ \"effect.lib/bypass1:license\": \"STK-4.3\" },{ \"effect.lib/cubicnl:author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"effect.lib/cubicnl:copyright\": \"Julius O. Smith III\" },{ \"effect.lib/cubicnl:license\": \"STK-4.3\" },{ \"effect.lib/cubicnl_demo:author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"effect.lib/cubicnl_demo:copyright\": \"Julius O. Smith III\" },{ \"effect.lib/cubicnl_demo:license\": \"STK-4.3\" },{ \"effect.lib/cubicnl_nodc:author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"effect.lib/cubicnl_nodc:copyright\": \"Julius O. Smith III\" },{ \"effect.lib/cubicnl_nodc:license\": \"STK-4.3\" },{ \"effect.lib/name\": \"Faust Audio Effect Library\" },{ \"filename\": \"cubic_distortion.dsp\" },{ \"filter.lib/author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"filter.lib/copyright\": \"Julius O. Smith III\" },{ \"filter.lib/license\": \"STK-4.3\" },{ \"filter.lib/name\": \"Faust Filter Library\" },{ \"filter.lib/reference\": \"https://ccrma.stanford.edu/~jos/filters/\" },{ \"filter.lib/version\": \"1.29\" },{ \"math.lib/author\": \"GRAME\" },{ \"math.lib/copyright\": \"GRAME\" },{ \"math.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"math.lib/license\": \"LGPL with exception\" },{ \"math.lib/name\": \"Math Library\" },{ \"math.lib/version\": \"1.0\" },{ \"music.lib/author\": \"GRAME\" },{ \"music.lib/copyright\": \"GRAME\" },{ \"music.lib/license\": \"LGPL with exception\" },{ \"music.lib/name\": \"Music Library\" },{ \"music.lib/version\": \"1.0\" },{ \"name\": \"cubic_distortion\" },{ \"oscillator.lib/author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"oscillator.lib/copyright\": \"Julius O. Smith III\" },{ \"oscillator.lib/license\": \"STK-4.3\" },{ \"oscillator.lib/name\": \"Faust Oscillator Library\" },{ \"oscillator.lib/version\": \"1.11\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"cubic_distortion\",\"items\": [ {\"type\": \"vgroup\",\"label\": \"0x00\",\"meta\": [{ \"1\": \"\" }],\"items\": [ {\"type\": \"vgroup\",\"label\": \"SINE WAVE OSCILLATOR oscrs\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"Sine oscillator based on 2D vector rotation\" }],\"items\": [ {\"type\": \"hslider\",\"label\": \"Amplitude\",\"varname\": \"fHslider1\",\"shortname\": \"Amplitude\",\"address\": \"/cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Amplitude\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Sawtooth waveform amplitude\" },{ \"unit\": \"dB\" }],\"init\": -20,\"min\": -120,\"max\": 10,\"step\": 0.1},{\"type\": \"hslider\",\"label\": \"Frequency\",\"varname\": \"fHslider3\",\"shortname\": \"Frequency\",\"address\": \"/cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Frequency\",\"meta\": [{ \"2\": \"\" },{ \"tooltip\": \"Sine wave frequency as a Piano Key (PK) number (A440 = 49 PK)\" },{ \"unit\": \"PK\" }],\"init\": 49,\"min\": 1,\"max\": 88,\"step\": 0.01},{\"type\": \"hslider\",\"label\": \"Portamento\",\"varname\": \"fHslider2\",\"shortname\": \"Portamento\",\"address\": \"/cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Portamento\",\"meta\": [{ \"3\": \"\" },{ \"scale\": \"log\" },{ \"tooltip\": \"Portamento (frequency-glide) time-constant in seconds\" },{ \"unit\": \"sec\" }],\"init\": 0.1,\"min\": 0.001,\"max\": 10,\"step\": 0.001}]}]},{\"type\": \"vgroup\",\"label\": \"0x00\",\"meta\": [{ \"2\": \"\" }],\"items\": [ {\"type\": \"vgroup\",\"label\": \"CUBIC NONLINEARITY cubicnl\",\"meta\": [{ \"tooltip\": \"Reference:          https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html\" }],\"items\": [ {\"type\": \"checkbox\",\"label\": \"Bypass\",\"varname\": \"fCheckbox0\",\"shortname\": \"Bypass\",\"address\": \"/cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Bypass\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"When this is checked, the nonlinearity has no effect\" }]},{\"type\": \"hslider\",\"label\": \"Drive\",\"varname\": \"fHslider4\",\"shortname\": \"Drive\",\"address\": \"/cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Drive\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Amount of distortion\" }],\"init\": 0,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"hslider\",\"label\": \"Offset\",\"varname\": \"fHslider0\",\"shortname\": \"Offset\",\"address\": \"/cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Offset\",\"meta\": [{ \"2\": \"\" },{ \"tooltip\": \"Brings in even harmonics\" }],\"init\": 0,\"min\": 0,\"max\": 1,\"step\": 0.01}]}]},{\"type\": \"vgroup\",\"label\": \"0x00\",\"meta\": [{ \"3\": \"\" }],\"items\": [ {\"type\": \"hgroup\",\"label\": \"CONSTANT-Q SPECTRUM ANALYZER (6E), 15 bands spanning LP, 9 octaves below 16000 Hz, HP\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"See Faust\'s filter.lib for documentation and references\" }],\"items\": [ {\"type\": \"vbargraph\",\"label\": \"vbargraph0\",\"varname\": \"fVbargraph14\",\"shortname\": \"vbargraph0\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph0\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph1\",\"varname\": \"fVbargraph13\",\"shortname\": \"vbargraph1\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph1\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph2\",\"varname\": \"fVbargraph12\",\"shortname\": \"vbargraph2\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph2\",\"meta\": [{ \"2\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph3\",\"varname\": \"fVbargraph11\",\"shortname\": \"vbargraph3\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph3\",\"meta\": [{ \"3\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph4\",\"varname\": \"fVbargraph10\",\"shortname\": \"vbargraph4\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph4\",\"meta\": [{ \"4\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph5\",\"varname\": \"fVbargraph9\",\"shortname\": \"vbargraph5\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph5\",\"meta\": [{ \"5\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph6\",\"varname\": \"fVbargraph8\",\"shortname\": \"vbargraph6\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph6\",\"meta\": [{ \"6\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph7\",\"varname\": \"fVbargraph7\",\"shortname\": \"vbargraph7\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph7\",\"meta\": [{ \"7\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph8\",\"varname\": \"fVbargraph6\",\"shortname\": \"vbargraph8\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph8\",\"meta\": [{ \"8\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph9\",\"varname\": \"fVbargraph5\",\"shortname\": \"vbargraph9\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph9\",\"meta\": [{ \"9\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph10\",\"varname\": \"fVbargraph4\",\"shortname\": \"vbargraph10\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph10\",\"meta\": [{ \"10\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph11\",\"varname\": \"fVbargraph3\",\"shortname\": \"vbargraph11\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph11\",\"meta\": [{ \"11\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph12\",\"varname\": \"fVbargraph2\",\"shortname\": \"vbargraph12\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph12\",\"meta\": [{ \"12\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph13\",\"varname\": \"fVbargraph1\",\"shortname\": \"vbargraph13\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph13\",\"meta\": [{ \"13\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph14\",\"varname\": \"fVbargraph0\",\"shortname\": \"vbargraph14\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph14\",\"meta\": [{ \"14\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10}]},{\"type\": \"hgroup\",\"label\": \"SPECTRUM ANALYZER CONTROLS\",\"meta\": [{ \"1\": \"\" }],\"items\": [ {\"type\": \"hslider\",\"label\": \"Level Averaging Time\",\"varname\": \"fHslider5\",\"shortname\": \"Level_Averaging_Time\",\"address\": \"/cubic_distortion/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_Averaging_Time\",\"meta\": [{ \"0\": \"\" },{ \"scale\": \"log\" },{ \"tooltip\": \"band-level averaging time in milliseconds\" },{ \"unit\": \"ms\" }],\"init\": 100,\"min\": 1,\"max\": 10000,\"step\": 1},{\"type\": \"hslider\",\"label\": \"Level dB Offset\",\"varname\": \"fHslider6\",\"shortname\": \"Level_dB_Offset\",\"address\": \"/cubic_distortion/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_dB_Offset\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Level offset in decibels\" },{ \"unit\": \"dB\" }],\"init\": 50,\"min\": 0,\"max\": 100,\"step\": 1}]}]}]}]}"
 
     @always_inline
     def metadata(read dsp, mut meta: Some[FaustMeta]) -> None:
-        meta.declare("compile_options", "-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
-        meta.declare("effect.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)")
-        meta.declare("effect.lib/copyright", "Julius O. Smith III")
-        meta.declare("effect.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.")
-        meta.declare("effect.lib/exciter_author", "Priyanka Shekar (pshekar@ccrma.stanford.edu)")
-        meta.declare("effect.lib/exciter_copyright", "Copyright (c) 2013 Priyanka Shekar")
-        meta.declare("effect.lib/exciter_license", "MIT License (MIT)")
-        meta.declare("effect.lib/exciter_name", "Harmonic Exciter")
-        meta.declare("effect.lib/exciter_version", "1.0")
-        meta.declare("effect.lib/license", "STK-4.3")
+        meta.declare("compile_options", "-a /Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
+        meta.declare("effect.lib/bypass1:author", "Julius O. Smith (jos at ccrma.stanford.edu)")
+        meta.declare("effect.lib/bypass1:copyright", "Julius O. Smith III")
+        meta.declare("effect.lib/bypass1:license", "STK-4.3")
+        meta.declare("effect.lib/cubicnl:author", "Julius O. Smith (jos at ccrma.stanford.edu)")
+        meta.declare("effect.lib/cubicnl:copyright", "Julius O. Smith III")
+        meta.declare("effect.lib/cubicnl:license", "STK-4.3")
+        meta.declare("effect.lib/cubicnl_demo:author", "Julius O. Smith (jos at ccrma.stanford.edu)")
+        meta.declare("effect.lib/cubicnl_demo:copyright", "Julius O. Smith III")
+        meta.declare("effect.lib/cubicnl_demo:license", "STK-4.3")
+        meta.declare("effect.lib/cubicnl_nodc:author", "Julius O. Smith (jos at ccrma.stanford.edu)")
+        meta.declare("effect.lib/cubicnl_nodc:copyright", "Julius O. Smith III")
+        meta.declare("effect.lib/cubicnl_nodc:license", "STK-4.3")
         meta.declare("effect.lib/name", "Faust Audio Effect Library")
-        meta.declare("effect.lib/version", "1.33")
         meta.declare("filename", "cubic_distortion.dsp")
         meta.declare("filter.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)")
         meta.declare("filter.lib/copyright", "Julius O. Smith III")
-        meta.declare("filter.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.")
         meta.declare("filter.lib/license", "STK-4.3")
         meta.declare("filter.lib/name", "Faust Filter Library")
         meta.declare("filter.lib/reference", "https://ccrma.stanford.edu/~jos/filters/")
@@ -2429,14 +2426,12 @@ struct mydsp(FaustDsp):
         meta.declare("math.lib/version", "1.0")
         meta.declare("music.lib/author", "GRAME")
         meta.declare("music.lib/copyright", "GRAME")
-        meta.declare("music.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.")
         meta.declare("music.lib/license", "LGPL with exception")
         meta.declare("music.lib/name", "Music Library")
         meta.declare("music.lib/version", "1.0")
         meta.declare("name", "cubic_distortion")
         meta.declare("oscillator.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)")
         meta.declare("oscillator.lib/copyright", "Julius O. Smith III")
-        meta.declare("oscillator.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.")
         meta.declare("oscillator.lib/license", "STK-4.3")
         meta.declare("oscillator.lib/name", "Faust Oscillator Library")
         meta.declare("oscillator.lib/version", "1.11")
@@ -2813,83 +2808,108 @@ struct mydsp(FaustDsp):
         var rec102 = Ptr(to=rec102_tmp[S32(4)])
         var slow10 = F64(dsp.hslider6)
         var zec19 = Arr[F64, 4](uninitialized=True)
+        # Main loop 
         vindex_re0 = S32(0)
         while (vindex_re0) <= ((count) - (S32(4))): 
             var output0 = Ptr(to=output0_ptr[vindex_re0])
             var output1 = Ptr(to=output1_ptr[vindex_re0])
             var vsize_re0 = S32(4)
+            # Recursive loop 0 
+            # Pre code 
             var j0_re0 = S32(0)
             while j0_re0 <= S32(4) - w64:
                 var values0 = simd_load(dsp.rec1_perm, j0_re0)
                 simd_store(rec1_tmp, j0_re0, values0)
                 j0_re0 = j0_re0 + w64
+            # Compute code 
             var i_re0 = S32(0)
             while (i_re0) < (vsize_re0): 
                 rec1[i_re0] = (slow0) + ((0.999) * (rec1[(i_re0) - (S32(1))]))
                 i_re0 = (i_re0) + (S32(1))
+            # Post code 
             var j1_re0 = S32(0)
             while j1_re0 <= S32(4) - w64:
                 var values1 = simd_load(rec1_tmp, vsize_re0 + j1_re0)
                 simd_store(dsp.rec1_perm, j1_re0, values1)
                 j1_re0 = j1_re0 + w64
+            # Recursive loop 1 
+            # Pre code 
             var j2_re0 = S32(0)
             while j2_re0 <= S32(4) - w64:
                 var values2 = simd_load(dsp.rec2_perm, j2_re0)
                 simd_store(rec2_tmp, j2_re0, values2)
                 j2_re0 = j2_re0 + w64
+            # Compute code 
             var i_re1 = S32(0)
             while (i_re1) < (vsize_re0): 
                 rec2[i_re1] = (slow1) + ((0.999) * (rec2[(i_re1) - (S32(1))]))
                 i_re1 = (i_re1) + (S32(1))
+            # Post code 
             var j3_re0 = S32(0)
             while j3_re0 <= S32(4) - w64:
                 var values3 = simd_load(rec2_tmp, vsize_re0 + j3_re0)
                 simd_store(dsp.rec2_perm, j3_re0, values3)
                 j3_re0 = j3_re0 + w64
+            # Recursive loop 2 
+            # Pre code 
             var j4_re0 = S32(0)
             while j4_re0 <= S32(4) - w64:
                 var values4 = simd_load(dsp.rec5_perm, j4_re0)
                 simd_store(rec5_tmp, j4_re0, values4)
                 j4_re0 = j4_re0 + w64
+            # Compute code 
             var i_re2 = S32(0)
             while (i_re2) < (vsize_re0): 
                 rec5[i_re2] = ((rec5[(i_re2) - (S32(1))]) * (slow3)) + (slow4)
                 i_re2 = (i_re2) + (S32(1))
+            # Post code 
             var j5_re0 = S32(0)
             while j5_re0 <= S32(4) - w64:
                 var values5 = simd_load(rec5_tmp, vsize_re0 + j5_re0)
                 simd_store(dsp.rec5_perm, j5_re0, values5)
                 j5_re0 = j5_re0 + w64
+            # Vectorizable loop 3 
+            # Compute code 
             var i_re3 = S32(0)
             while i_re3 <= vsize_re0 - w64:
                 var values6 = (dsp.const2) * (simd_load(rec5, i_re3))
                 simd_store(zec0, i_re3, values6)
                 i_re3 = i_re3 + w64
+            # Vectorizable loop 4 
+            # Compute code 
             var i_re4 = S32(0)
             while i_re4 <= vsize_re0 - w64:
                 var values7 = sin(simd_load(zec0, i_re4))
                 simd_store(zec1, i_re4, values7)
                 i_re4 = i_re4 + w64
+            # Vectorizable loop 5 
+            # Compute code 
             var i_re5 = S32(0)
             while i_re5 <= vsize_re0 - w64:
                 var values8 = cos(simd_load(zec0, i_re5))
                 simd_store(zec2, i_re5, values8)
                 i_re5 = i_re5 + w64
+            # Vectorizable loop 6 
+            # Pre code 
             var j8_re0 = S32(0)
             while j8_re0 <= S32(4) - w32:
                 var values9 = simd_load(dsp.i_vec0_perm, j8_re0)
                 simd_store(i_vec0_tmp, j8_re0, values9)
                 j8_re0 = j8_re0 + w32
+            # Compute code 
             var i_re6 = S32(0)
             while i_re6 <= vsize_re0 - w32:
                 var values10 = S32Vec(1)
                 simd_store(i_vec0, i_re6, values10)
                 i_re6 = i_re6 + w32
+            # Post code 
             var j9_re0 = S32(0)
             while j9_re0 <= S32(4) - w32:
                 var values11 = simd_load(i_vec0_tmp, vsize_re0 + j9_re0)
                 simd_store(dsp.i_vec0_perm, j9_re0, values11)
                 j9_re0 = j9_re0 + w32
+            # Recursive loop 7 
+            # Pre code 
             var j6_re0 = S32(0)
             while j6_re0 <= S32(4) - w64:
                 var values12 = simd_load(dsp.rec3_perm, j6_re0)
@@ -2900,11 +2920,13 @@ struct mydsp(FaustDsp):
                 var values13 = simd_load(dsp.rec4_perm, j10_re0)
                 simd_store(rec4_tmp, j10_re0, values13)
                 j10_re0 = j10_re0 + w64
+            # Compute code 
             var i_re7 = S32(0)
             while (i_re7) < (vsize_re0): 
                 rec3[i_re7] = ((rec4[(i_re7) - (S32(1))]) * (zec1[i_re7])) + ((rec3[(i_re7) - (S32(1))]) * (zec2[i_re7]))
                 rec4[i_re7] = ((F64((S32(1)) - (i_vec0[(i_re7) - (S32(1))]))) + ((rec4[(i_re7) - (S32(1))]) * (zec2[i_re7]))) - ((zec1[i_re7]) * (rec3[(i_re7) - (S32(1))]))
                 i_re7 = (i_re7) + (S32(1))
+            # Post code 
             var j7_re0 = S32(0)
             while j7_re0 <= S32(4) - w64:
                 var values14 = simd_load(rec3_tmp, vsize_re0 + j7_re0)
@@ -2915,1515 +2937,1957 @@ struct mydsp(FaustDsp):
                 var values15 = simd_load(rec4_tmp, vsize_re0 + j11_re0)
                 simd_store(dsp.rec4_perm, j11_re0, values15)
                 j11_re0 = j11_re0 + w64
+            # Recursive loop 8 
+            # Pre code 
             var j12_re0 = S32(0)
             while j12_re0 <= S32(4) - w64:
                 var values16 = simd_load(dsp.rec6_perm, j12_re0)
                 simd_store(rec6_tmp, j12_re0, values16)
                 j12_re0 = j12_re0 + w64
+            # Compute code 
             var i_re8 = S32(0)
             while (i_re8) < (vsize_re0): 
                 rec6[i_re8] = (slow5) + ((0.999) * (rec6[(i_re8) - (S32(1))]))
                 i_re8 = (i_re8) + (S32(1))
+            # Post code 
             var j13_re0 = S32(0)
             while j13_re0 <= S32(4) - w64:
                 var values17 = simd_load(rec6_tmp, vsize_re0 + j13_re0)
                 simd_store(dsp.rec6_perm, j13_re0, values17)
                 j13_re0 = j13_re0 + w64
+            # Vectorizable loop 9 
+            # Compute code 
             var i_re9 = S32(0)
             while i_re9 <= vsize_re0 - w64:
                 var values18 = (simd_load(rec2, i_re9)) * (simd_load(rec3, i_re9))
                 simd_store(zec3, i_re9, values18)
                 i_re9 = i_re9 + w64
+            # Vectorizable loop 10 
+            # Compute code 
             var i_re10 = S32(0)
             while i_re10 <= vsize_re0 - w64:
                 var values19 = max(F64Vec(-1.0), min(F64Vec(1.0), (simd_load(rec1, i_re10)) + ((F64Vec(0.0) if i_slow6 else simd_load(zec3, i_re10)) * (pow(F64Vec(1e+01), (F64Vec(2.0)) * (simd_load(rec6, i_re10)))))))
                 simd_store(zec4, i_re10, values19)
                 i_re10 = i_re10 + w64
+            # Vectorizable loop 11 
+            # Pre code 
             var j14_re0 = S32(0)
             while j14_re0 <= S32(4) - w64:
                 var values20 = simd_load(dsp.yec0_perm, j14_re0)
                 simd_store(yec0_tmp, j14_re0, values20)
                 j14_re0 = j14_re0 + w64
+            # Compute code 
             var i_re11 = S32(0)
             while i_re11 <= vsize_re0 - w64:
                 var values21 = (simd_load(zec4, i_re11)) * ((F64Vec(1.0)) - ((F64Vec(0.3333333333333333)) * (pow_unrolled[2](simd_load(zec4, i_re11)))))
                 simd_store(yec0, i_re11, values21)
                 i_re11 = i_re11 + w64
+            # Post code 
             var j15_re0 = S32(0)
             while j15_re0 <= S32(4) - w64:
                 var values22 = simd_load(yec0_tmp, vsize_re0 + j15_re0)
                 simd_store(dsp.yec0_perm, j15_re0, values22)
                 j15_re0 = j15_re0 + w64
+            # Recursive loop 12 
+            # Pre code 
             var j16_re0 = S32(0)
             while j16_re0 <= S32(4) - w64:
                 var values23 = simd_load(dsp.rec0_perm, j16_re0)
                 simd_store(rec0_tmp, j16_re0, values23)
                 j16_re0 = j16_re0 + w64
+            # Compute code 
             var i_re12 = S32(0)
             while (i_re12) < (vsize_re0): 
                 rec0[i_re12] = (((0.995) * (rec0[(i_re12) - (S32(1))])) + (yec0[i_re12])) - (yec0[(i_re12) - (S32(1))])
                 i_re12 = (i_re12) + (S32(1))
+            # Post code 
             var j17_re0 = S32(0)
             while j17_re0 <= S32(4) - w64:
                 var values24 = simd_load(rec0_tmp, vsize_re0 + j17_re0)
                 simd_store(dsp.rec0_perm, j17_re0, values24)
                 j17_re0 = j17_re0 + w64
+            # Vectorizable loop 13 
+            # Compute code 
             var i_re13 = S32(0)
             while i_re13 <= vsize_re0 - w64:
                 var values25 = simd_load(zec3, i_re13) if i_slow6 else simd_load(rec0, i_re13)
                 simd_store(zec5, i_re13, values25)
                 i_re13 = i_re13 + w64
-            var j26_re0 = S32(0)
-            while j26_re0 <= S32(4) - w64:
-                var values26 = simd_load(dsp.rec17_perm, j26_re0)
-                simd_store(rec17_tmp, j26_re0, values26)
-                j26_re0 = j26_re0 + w64
-            var i_re14 = S32(0)
-            while (i_re14) < (vsize_re0): 
-                rec17[i_re14] = (zec5[i_re14]) - ((dsp.const26) * (((dsp.const27) * (rec17[(i_re14) - (S32(2))])) + ((dsp.const28) * (rec17[(i_re14) - (S32(1))]))))
-                i_re14 = (i_re14) + (S32(1))
-            var j27_re0 = S32(0)
-            while j27_re0 <= S32(4) - w64:
-                var values27 = simd_load(rec17_tmp, vsize_re0 + j27_re0)
-                simd_store(dsp.rec17_perm, j27_re0, values27)
-                j27_re0 = j27_re0 + w64
-            var j28_re0 = S32(0)
-            while j28_re0 <= S32(4) - w64:
-                var values28 = simd_load(dsp.rec16_perm, j28_re0)
-                simd_store(rec16_tmp, j28_re0, values28)
-                j28_re0 = j28_re0 + w64
-            var i_re15 = S32(0)
-            while (i_re15) < (vsize_re0): 
-                rec16[i_re15] = ((dsp.const26) * ((((dsp.const30) * (rec17[i_re15])) + ((dsp.const31) * (rec17[(i_re15) - (S32(1))]))) + ((dsp.const30) * (rec17[(i_re15) - (S32(2))])))) - ((dsp.const32) * (((dsp.const33) * (rec16[(i_re15) - (S32(2))])) + ((dsp.const34) * (rec16[(i_re15) - (S32(1))]))))
-                i_re15 = (i_re15) + (S32(1))
-            var j29_re0 = S32(0)
-            while j29_re0 <= S32(4) - w64:
-                var values29 = simd_load(rec16_tmp, vsize_re0 + j29_re0)
-                simd_store(dsp.rec16_perm, j29_re0, values29)
-                j29_re0 = j29_re0 + w64
-            var j30_re0 = S32(0)
-            while j30_re0 <= S32(4) - w64:
-                var values30 = simd_load(dsp.rec15_perm, j30_re0)
-                simd_store(rec15_tmp, j30_re0, values30)
-                j30_re0 = j30_re0 + w64
-            var i_re16 = S32(0)
-            while (i_re16) < (vsize_re0): 
-                rec15[i_re16] = ((dsp.const32) * ((((dsp.const35) * (rec16[i_re16])) + ((dsp.const36) * (rec16[(i_re16) - (S32(1))]))) + ((dsp.const35) * (rec16[(i_re16) - (S32(2))])))) - ((dsp.const37) * (((dsp.const38) * (rec15[(i_re16) - (S32(2))])) + ((dsp.const39) * (rec15[(i_re16) - (S32(1))]))))
-                i_re16 = (i_re16) + (S32(1))
-            var j31_re0 = S32(0)
-            while j31_re0 <= S32(4) - w64:
-                var values31 = simd_load(rec15_tmp, vsize_re0 + j31_re0)
-                simd_store(dsp.rec15_perm, j31_re0, values31)
-                j31_re0 = j31_re0 + w64
-            var i_re17 = S32(0)
-            while i_re17 <= vsize_re0 - w64:
-                var values32 = (dsp.const37) * ((((dsp.const40) * (simd_load(rec15, i_re17))) + ((dsp.const41) * (simd_load(rec15, i_re17 - S32(1))))) + ((dsp.const40) * (simd_load(rec15, i_re17 - S32(2)))))
-                simd_store(zec6, i_re17, values32)
-                i_re17 = i_re17 + w64
-            var j40_re0 = S32(0)
-            while j40_re0 <= S32(4) - w64:
-                var values33 = simd_load(dsp.rec24_perm, j40_re0)
-                simd_store(rec24_tmp, j40_re0, values33)
-                j40_re0 = j40_re0 + w64
-            var i_re18 = S32(0)
-            while (i_re18) < (vsize_re0): 
-                rec24[i_re18] = (zec6[i_re18]) - ((dsp.const64) * (((dsp.const65) * (rec24[(i_re18) - (S32(2))])) + ((dsp.const66) * (rec24[(i_re18) - (S32(1))]))))
-                i_re18 = (i_re18) + (S32(1))
-            var j41_re0 = S32(0)
-            while j41_re0 <= S32(4) - w64:
-                var values34 = simd_load(rec24_tmp, vsize_re0 + j41_re0)
-                simd_store(dsp.rec24_perm, j41_re0, values34)
-                j41_re0 = j41_re0 + w64
-            var j42_re0 = S32(0)
-            while j42_re0 <= S32(4) - w64:
-                var values35 = simd_load(dsp.rec23_perm, j42_re0)
-                simd_store(rec23_tmp, j42_re0, values35)
-                j42_re0 = j42_re0 + w64
-            var i_re19 = S32(0)
-            while (i_re19) < (vsize_re0): 
-                rec23[i_re19] = ((dsp.const64) * ((((dsp.const68) * (rec24[i_re19])) + ((dsp.const69) * (rec24[(i_re19) - (S32(1))]))) + ((dsp.const68) * (rec24[(i_re19) - (S32(2))])))) - ((dsp.const70) * (((dsp.const71) * (rec23[(i_re19) - (S32(2))])) + ((dsp.const72) * (rec23[(i_re19) - (S32(1))]))))
-                i_re19 = (i_re19) + (S32(1))
-            var j43_re0 = S32(0)
-            while j43_re0 <= S32(4) - w64:
-                var values36 = simd_load(rec23_tmp, vsize_re0 + j43_re0)
-                simd_store(dsp.rec23_perm, j43_re0, values36)
-                j43_re0 = j43_re0 + w64
-            var j44_re0 = S32(0)
-            while j44_re0 <= S32(4) - w64:
-                var values37 = simd_load(dsp.rec22_perm, j44_re0)
-                simd_store(rec22_tmp, j44_re0, values37)
-                j44_re0 = j44_re0 + w64
-            var i_re20 = S32(0)
-            while (i_re20) < (vsize_re0): 
-                rec22[i_re20] = ((dsp.const70) * ((((dsp.const73) * (rec23[i_re20])) + ((dsp.const74) * (rec23[(i_re20) - (S32(1))]))) + ((dsp.const73) * (rec23[(i_re20) - (S32(2))])))) - ((dsp.const75) * (((dsp.const76) * (rec22[(i_re20) - (S32(2))])) + ((dsp.const77) * (rec22[(i_re20) - (S32(1))]))))
-                i_re20 = (i_re20) + (S32(1))
-            var j45_re0 = S32(0)
-            while j45_re0 <= S32(4) - w64:
-                var values38 = simd_load(rec22_tmp, vsize_re0 + j45_re0)
-                simd_store(dsp.rec22_perm, j45_re0, values38)
-                j45_re0 = j45_re0 + w64
-            var i_re21 = S32(0)
-            while i_re21 <= vsize_re0 - w64:
-                var values39 = (dsp.const75) * ((((dsp.const78) * (simd_load(rec22, i_re21))) + ((dsp.const79) * (simd_load(rec22, i_re21 - S32(1))))) + ((dsp.const78) * (simd_load(rec22, i_re21 - S32(2)))))
-                simd_store(zec7, i_re21, values39)
-                i_re21 = i_re21 + w64
-            var j54_re0 = S32(0)
-            while j54_re0 <= S32(4) - w64:
-                var values40 = simd_load(dsp.rec31_perm, j54_re0)
-                simd_store(rec31_tmp, j54_re0, values40)
-                j54_re0 = j54_re0 + w64
-            var i_re22 = S32(0)
-            while (i_re22) < (vsize_re0): 
-                rec31[i_re22] = (zec7[i_re22]) - ((dsp.const102) * (((dsp.const103) * (rec31[(i_re22) - (S32(2))])) + ((dsp.const104) * (rec31[(i_re22) - (S32(1))]))))
-                i_re22 = (i_re22) + (S32(1))
-            var j55_re0 = S32(0)
-            while j55_re0 <= S32(4) - w64:
-                var values41 = simd_load(rec31_tmp, vsize_re0 + j55_re0)
-                simd_store(dsp.rec31_perm, j55_re0, values41)
-                j55_re0 = j55_re0 + w64
-            var j56_re0 = S32(0)
-            while j56_re0 <= S32(4) - w64:
-                var values42 = simd_load(dsp.rec30_perm, j56_re0)
-                simd_store(rec30_tmp, j56_re0, values42)
-                j56_re0 = j56_re0 + w64
-            var i_re23 = S32(0)
-            while (i_re23) < (vsize_re0): 
-                rec30[i_re23] = ((dsp.const102) * ((((dsp.const106) * (rec31[i_re23])) + ((dsp.const107) * (rec31[(i_re23) - (S32(1))]))) + ((dsp.const106) * (rec31[(i_re23) - (S32(2))])))) - ((dsp.const108) * (((dsp.const109) * (rec30[(i_re23) - (S32(2))])) + ((dsp.const110) * (rec30[(i_re23) - (S32(1))]))))
-                i_re23 = (i_re23) + (S32(1))
-            var j57_re0 = S32(0)
-            while j57_re0 <= S32(4) - w64:
-                var values43 = simd_load(rec30_tmp, vsize_re0 + j57_re0)
-                simd_store(dsp.rec30_perm, j57_re0, values43)
-                j57_re0 = j57_re0 + w64
-            var j58_re0 = S32(0)
-            while j58_re0 <= S32(4) - w64:
-                var values44 = simd_load(dsp.rec29_perm, j58_re0)
-                simd_store(rec29_tmp, j58_re0, values44)
-                j58_re0 = j58_re0 + w64
-            var i_re24 = S32(0)
-            while (i_re24) < (vsize_re0): 
-                rec29[i_re24] = ((dsp.const108) * ((((dsp.const111) * (rec30[i_re24])) + ((dsp.const112) * (rec30[(i_re24) - (S32(1))]))) + ((dsp.const111) * (rec30[(i_re24) - (S32(2))])))) - ((dsp.const113) * (((dsp.const114) * (rec29[(i_re24) - (S32(2))])) + ((dsp.const115) * (rec29[(i_re24) - (S32(1))]))))
-                i_re24 = (i_re24) + (S32(1))
-            var j59_re0 = S32(0)
-            while j59_re0 <= S32(4) - w64:
-                var values45 = simd_load(rec29_tmp, vsize_re0 + j59_re0)
-                simd_store(dsp.rec29_perm, j59_re0, values45)
-                j59_re0 = j59_re0 + w64
-            var i_re25 = S32(0)
-            while i_re25 <= vsize_re0 - w64:
-                var values46 = (dsp.const113) * ((((dsp.const116) * (simd_load(rec29, i_re25))) + ((dsp.const117) * (simd_load(rec29, i_re25 - S32(1))))) + ((dsp.const116) * (simd_load(rec29, i_re25 - S32(2)))))
-                simd_store(zec8, i_re25, values46)
-                i_re25 = i_re25 + w64
-            var j68_re0 = S32(0)
-            while j68_re0 <= S32(4) - w64:
-                var values47 = simd_load(dsp.rec38_perm, j68_re0)
-                simd_store(rec38_tmp, j68_re0, values47)
-                j68_re0 = j68_re0 + w64
-            var i_re26 = S32(0)
-            while (i_re26) < (vsize_re0): 
-                rec38[i_re26] = (zec8[i_re26]) - ((dsp.const140) * (((dsp.const141) * (rec38[(i_re26) - (S32(2))])) + ((dsp.const142) * (rec38[(i_re26) - (S32(1))]))))
-                i_re26 = (i_re26) + (S32(1))
-            var j69_re0 = S32(0)
-            while j69_re0 <= S32(4) - w64:
-                var values48 = simd_load(rec38_tmp, vsize_re0 + j69_re0)
-                simd_store(dsp.rec38_perm, j69_re0, values48)
-                j69_re0 = j69_re0 + w64
-            var j70_re0 = S32(0)
-            while j70_re0 <= S32(4) - w64:
-                var values49 = simd_load(dsp.rec37_perm, j70_re0)
-                simd_store(rec37_tmp, j70_re0, values49)
-                j70_re0 = j70_re0 + w64
-            var i_re27 = S32(0)
-            while (i_re27) < (vsize_re0): 
-                rec37[i_re27] = ((dsp.const140) * ((((dsp.const144) * (rec38[i_re27])) + ((dsp.const145) * (rec38[(i_re27) - (S32(1))]))) + ((dsp.const144) * (rec38[(i_re27) - (S32(2))])))) - ((dsp.const146) * (((dsp.const147) * (rec37[(i_re27) - (S32(2))])) + ((dsp.const148) * (rec37[(i_re27) - (S32(1))]))))
-                i_re27 = (i_re27) + (S32(1))
-            var j71_re0 = S32(0)
-            while j71_re0 <= S32(4) - w64:
-                var values50 = simd_load(rec37_tmp, vsize_re0 + j71_re0)
-                simd_store(dsp.rec37_perm, j71_re0, values50)
-                j71_re0 = j71_re0 + w64
-            var j72_re0 = S32(0)
-            while j72_re0 <= S32(4) - w64:
-                var values51 = simd_load(dsp.rec36_perm, j72_re0)
-                simd_store(rec36_tmp, j72_re0, values51)
-                j72_re0 = j72_re0 + w64
-            var i_re28 = S32(0)
-            while (i_re28) < (vsize_re0): 
-                rec36[i_re28] = ((dsp.const146) * ((((dsp.const149) * (rec37[i_re28])) + ((dsp.const150) * (rec37[(i_re28) - (S32(1))]))) + ((dsp.const149) * (rec37[(i_re28) - (S32(2))])))) - ((dsp.const151) * (((dsp.const152) * (rec36[(i_re28) - (S32(2))])) + ((dsp.const153) * (rec36[(i_re28) - (S32(1))]))))
-                i_re28 = (i_re28) + (S32(1))
-            var j73_re0 = S32(0)
-            while j73_re0 <= S32(4) - w64:
-                var values52 = simd_load(rec36_tmp, vsize_re0 + j73_re0)
-                simd_store(dsp.rec36_perm, j73_re0, values52)
-                j73_re0 = j73_re0 + w64
-            var i_re29 = S32(0)
-            while i_re29 <= vsize_re0 - w64:
-                var values53 = (dsp.const151) * ((((dsp.const154) * (simd_load(rec36, i_re29))) + ((dsp.const155) * (simd_load(rec36, i_re29 - S32(1))))) + ((dsp.const154) * (simd_load(rec36, i_re29 - S32(2)))))
-                simd_store(zec9, i_re29, values53)
-                i_re29 = i_re29 + w64
-            var j82_re0 = S32(0)
-            while j82_re0 <= S32(4) - w64:
-                var values54 = simd_load(dsp.rec45_perm, j82_re0)
-                simd_store(rec45_tmp, j82_re0, values54)
-                j82_re0 = j82_re0 + w64
-            var i_re30 = S32(0)
-            while (i_re30) < (vsize_re0): 
-                rec45[i_re30] = (zec9[i_re30]) - ((dsp.const178) * (((dsp.const179) * (rec45[(i_re30) - (S32(2))])) + ((dsp.const180) * (rec45[(i_re30) - (S32(1))]))))
-                i_re30 = (i_re30) + (S32(1))
-            var j83_re0 = S32(0)
-            while j83_re0 <= S32(4) - w64:
-                var values55 = simd_load(rec45_tmp, vsize_re0 + j83_re0)
-                simd_store(dsp.rec45_perm, j83_re0, values55)
-                j83_re0 = j83_re0 + w64
-            var j84_re0 = S32(0)
-            while j84_re0 <= S32(4) - w64:
-                var values56 = simd_load(dsp.rec44_perm, j84_re0)
-                simd_store(rec44_tmp, j84_re0, values56)
-                j84_re0 = j84_re0 + w64
-            var i_re31 = S32(0)
-            while (i_re31) < (vsize_re0): 
-                rec44[i_re31] = ((dsp.const178) * ((((dsp.const182) * (rec45[i_re31])) + ((dsp.const183) * (rec45[(i_re31) - (S32(1))]))) + ((dsp.const182) * (rec45[(i_re31) - (S32(2))])))) - ((dsp.const184) * (((dsp.const185) * (rec44[(i_re31) - (S32(2))])) + ((dsp.const186) * (rec44[(i_re31) - (S32(1))]))))
-                i_re31 = (i_re31) + (S32(1))
-            var j85_re0 = S32(0)
-            while j85_re0 <= S32(4) - w64:
-                var values57 = simd_load(rec44_tmp, vsize_re0 + j85_re0)
-                simd_store(dsp.rec44_perm, j85_re0, values57)
-                j85_re0 = j85_re0 + w64
-            var j86_re0 = S32(0)
-            while j86_re0 <= S32(4) - w64:
-                var values58 = simd_load(dsp.rec43_perm, j86_re0)
-                simd_store(rec43_tmp, j86_re0, values58)
-                j86_re0 = j86_re0 + w64
-            var i_re32 = S32(0)
-            while (i_re32) < (vsize_re0): 
-                rec43[i_re32] = ((dsp.const184) * ((((dsp.const187) * (rec44[i_re32])) + ((dsp.const188) * (rec44[(i_re32) - (S32(1))]))) + ((dsp.const187) * (rec44[(i_re32) - (S32(2))])))) - ((dsp.const189) * (((dsp.const190) * (rec43[(i_re32) - (S32(2))])) + ((dsp.const191) * (rec43[(i_re32) - (S32(1))]))))
-                i_re32 = (i_re32) + (S32(1))
-            var j87_re0 = S32(0)
-            while j87_re0 <= S32(4) - w64:
-                var values59 = simd_load(rec43_tmp, vsize_re0 + j87_re0)
-                simd_store(dsp.rec43_perm, j87_re0, values59)
-                j87_re0 = j87_re0 + w64
-            var i_re33 = S32(0)
-            while i_re33 <= vsize_re0 - w64:
-                var values60 = (dsp.const189) * ((((dsp.const192) * (simd_load(rec43, i_re33))) + ((dsp.const193) * (simd_load(rec43, i_re33 - S32(1))))) + ((dsp.const192) * (simd_load(rec43, i_re33 - S32(2)))))
-                simd_store(zec10, i_re33, values60)
-                i_re33 = i_re33 + w64
-            var j96_re0 = S32(0)
-            while j96_re0 <= S32(4) - w64:
-                var values61 = simd_load(dsp.rec52_perm, j96_re0)
-                simd_store(rec52_tmp, j96_re0, values61)
-                j96_re0 = j96_re0 + w64
-            var i_re34 = S32(0)
-            while (i_re34) < (vsize_re0): 
-                rec52[i_re34] = (zec10[i_re34]) - ((dsp.const216) * (((dsp.const217) * (rec52[(i_re34) - (S32(2))])) + ((dsp.const218) * (rec52[(i_re34) - (S32(1))]))))
-                i_re34 = (i_re34) + (S32(1))
-            var j97_re0 = S32(0)
-            while j97_re0 <= S32(4) - w64:
-                var values62 = simd_load(rec52_tmp, vsize_re0 + j97_re0)
-                simd_store(dsp.rec52_perm, j97_re0, values62)
-                j97_re0 = j97_re0 + w64
-            var j98_re0 = S32(0)
-            while j98_re0 <= S32(4) - w64:
-                var values63 = simd_load(dsp.rec51_perm, j98_re0)
-                simd_store(rec51_tmp, j98_re0, values63)
-                j98_re0 = j98_re0 + w64
-            var i_re35 = S32(0)
-            while (i_re35) < (vsize_re0): 
-                rec51[i_re35] = ((dsp.const216) * ((((dsp.const220) * (rec52[i_re35])) + ((dsp.const221) * (rec52[(i_re35) - (S32(1))]))) + ((dsp.const220) * (rec52[(i_re35) - (S32(2))])))) - ((dsp.const222) * (((dsp.const223) * (rec51[(i_re35) - (S32(2))])) + ((dsp.const224) * (rec51[(i_re35) - (S32(1))]))))
-                i_re35 = (i_re35) + (S32(1))
-            var j99_re0 = S32(0)
-            while j99_re0 <= S32(4) - w64:
-                var values64 = simd_load(rec51_tmp, vsize_re0 + j99_re0)
-                simd_store(dsp.rec51_perm, j99_re0, values64)
-                j99_re0 = j99_re0 + w64
-            var j100_re0 = S32(0)
-            while j100_re0 <= S32(4) - w64:
-                var values65 = simd_load(dsp.rec50_perm, j100_re0)
-                simd_store(rec50_tmp, j100_re0, values65)
-                j100_re0 = j100_re0 + w64
-            var i_re36 = S32(0)
-            while (i_re36) < (vsize_re0): 
-                rec50[i_re36] = ((dsp.const222) * ((((dsp.const225) * (rec51[i_re36])) + ((dsp.const226) * (rec51[(i_re36) - (S32(1))]))) + ((dsp.const225) * (rec51[(i_re36) - (S32(2))])))) - ((dsp.const227) * (((dsp.const228) * (rec50[(i_re36) - (S32(2))])) + ((dsp.const229) * (rec50[(i_re36) - (S32(1))]))))
-                i_re36 = (i_re36) + (S32(1))
-            var j101_re0 = S32(0)
-            while j101_re0 <= S32(4) - w64:
-                var values66 = simd_load(rec50_tmp, vsize_re0 + j101_re0)
-                simd_store(dsp.rec50_perm, j101_re0, values66)
-                j101_re0 = j101_re0 + w64
-            var i_re37 = S32(0)
-            while i_re37 <= vsize_re0 - w64:
-                var values67 = (dsp.const227) * ((((dsp.const230) * (simd_load(rec50, i_re37))) + ((dsp.const231) * (simd_load(rec50, i_re37 - S32(1))))) + ((dsp.const230) * (simd_load(rec50, i_re37 - S32(2)))))
-                simd_store(zec11, i_re37, values67)
-                i_re37 = i_re37 + w64
-            var j110_re0 = S32(0)
-            while j110_re0 <= S32(4) - w64:
-                var values68 = simd_load(dsp.rec59_perm, j110_re0)
-                simd_store(rec59_tmp, j110_re0, values68)
-                j110_re0 = j110_re0 + w64
-            var i_re38 = S32(0)
-            while (i_re38) < (vsize_re0): 
-                rec59[i_re38] = (zec11[i_re38]) - ((dsp.const254) * (((dsp.const255) * (rec59[(i_re38) - (S32(2))])) + ((dsp.const256) * (rec59[(i_re38) - (S32(1))]))))
-                i_re38 = (i_re38) + (S32(1))
-            var j111_re0 = S32(0)
-            while j111_re0 <= S32(4) - w64:
-                var values69 = simd_load(rec59_tmp, vsize_re0 + j111_re0)
-                simd_store(dsp.rec59_perm, j111_re0, values69)
-                j111_re0 = j111_re0 + w64
-            var j112_re0 = S32(0)
-            while j112_re0 <= S32(4) - w64:
-                var values70 = simd_load(dsp.rec58_perm, j112_re0)
-                simd_store(rec58_tmp, j112_re0, values70)
-                j112_re0 = j112_re0 + w64
-            var i_re39 = S32(0)
-            while (i_re39) < (vsize_re0): 
-                rec58[i_re39] = ((dsp.const254) * ((((dsp.const258) * (rec59[i_re39])) + ((dsp.const259) * (rec59[(i_re39) - (S32(1))]))) + ((dsp.const258) * (rec59[(i_re39) - (S32(2))])))) - ((dsp.const260) * (((dsp.const261) * (rec58[(i_re39) - (S32(2))])) + ((dsp.const262) * (rec58[(i_re39) - (S32(1))]))))
-                i_re39 = (i_re39) + (S32(1))
-            var j113_re0 = S32(0)
-            while j113_re0 <= S32(4) - w64:
-                var values71 = simd_load(rec58_tmp, vsize_re0 + j113_re0)
-                simd_store(dsp.rec58_perm, j113_re0, values71)
-                j113_re0 = j113_re0 + w64
-            var j114_re0 = S32(0)
-            while j114_re0 <= S32(4) - w64:
-                var values72 = simd_load(dsp.rec57_perm, j114_re0)
-                simd_store(rec57_tmp, j114_re0, values72)
-                j114_re0 = j114_re0 + w64
-            var i_re40 = S32(0)
-            while (i_re40) < (vsize_re0): 
-                rec57[i_re40] = ((dsp.const260) * ((((dsp.const263) * (rec58[i_re40])) + ((dsp.const264) * (rec58[(i_re40) - (S32(1))]))) + ((dsp.const263) * (rec58[(i_re40) - (S32(2))])))) - ((dsp.const265) * (((dsp.const266) * (rec57[(i_re40) - (S32(2))])) + ((dsp.const267) * (rec57[(i_re40) - (S32(1))]))))
-                i_re40 = (i_re40) + (S32(1))
-            var j115_re0 = S32(0)
-            while j115_re0 <= S32(4) - w64:
-                var values73 = simd_load(rec57_tmp, vsize_re0 + j115_re0)
-                simd_store(dsp.rec57_perm, j115_re0, values73)
-                j115_re0 = j115_re0 + w64
-            var i_re41 = S32(0)
-            while i_re41 <= vsize_re0 - w64:
-                var values74 = (dsp.const265) * ((((dsp.const268) * (simd_load(rec57, i_re41))) + ((dsp.const269) * (simd_load(rec57, i_re41 - S32(1))))) + ((dsp.const268) * (simd_load(rec57, i_re41 - S32(2)))))
-                simd_store(zec12, i_re41, values74)
-                i_re41 = i_re41 + w64
-            var j124_re0 = S32(0)
-            while j124_re0 <= S32(4) - w64:
-                var values75 = simd_load(dsp.rec66_perm, j124_re0)
-                simd_store(rec66_tmp, j124_re0, values75)
-                j124_re0 = j124_re0 + w64
-            var i_re42 = S32(0)
-            while (i_re42) < (vsize_re0): 
-                rec66[i_re42] = (zec12[i_re42]) - ((dsp.const292) * (((dsp.const293) * (rec66[(i_re42) - (S32(2))])) + ((dsp.const294) * (rec66[(i_re42) - (S32(1))]))))
-                i_re42 = (i_re42) + (S32(1))
-            var j125_re0 = S32(0)
-            while j125_re0 <= S32(4) - w64:
-                var values76 = simd_load(rec66_tmp, vsize_re0 + j125_re0)
-                simd_store(dsp.rec66_perm, j125_re0, values76)
-                j125_re0 = j125_re0 + w64
-            var j126_re0 = S32(0)
-            while j126_re0 <= S32(4) - w64:
-                var values77 = simd_load(dsp.rec65_perm, j126_re0)
-                simd_store(rec65_tmp, j126_re0, values77)
-                j126_re0 = j126_re0 + w64
-            var i_re43 = S32(0)
-            while (i_re43) < (vsize_re0): 
-                rec65[i_re43] = ((dsp.const292) * ((((dsp.const296) * (rec66[i_re43])) + ((dsp.const297) * (rec66[(i_re43) - (S32(1))]))) + ((dsp.const296) * (rec66[(i_re43) - (S32(2))])))) - ((dsp.const298) * (((dsp.const299) * (rec65[(i_re43) - (S32(2))])) + ((dsp.const300) * (rec65[(i_re43) - (S32(1))]))))
-                i_re43 = (i_re43) + (S32(1))
-            var j127_re0 = S32(0)
-            while j127_re0 <= S32(4) - w64:
-                var values78 = simd_load(rec65_tmp, vsize_re0 + j127_re0)
-                simd_store(dsp.rec65_perm, j127_re0, values78)
-                j127_re0 = j127_re0 + w64
-            var j128_re0 = S32(0)
-            while j128_re0 <= S32(4) - w64:
-                var values79 = simd_load(dsp.rec64_perm, j128_re0)
-                simd_store(rec64_tmp, j128_re0, values79)
-                j128_re0 = j128_re0 + w64
-            var i_re44 = S32(0)
-            while (i_re44) < (vsize_re0): 
-                rec64[i_re44] = ((dsp.const298) * ((((dsp.const301) * (rec65[i_re44])) + ((dsp.const302) * (rec65[(i_re44) - (S32(1))]))) + ((dsp.const301) * (rec65[(i_re44) - (S32(2))])))) - ((dsp.const303) * (((dsp.const304) * (rec64[(i_re44) - (S32(2))])) + ((dsp.const305) * (rec64[(i_re44) - (S32(1))]))))
-                i_re44 = (i_re44) + (S32(1))
-            var j129_re0 = S32(0)
-            while j129_re0 <= S32(4) - w64:
-                var values80 = simd_load(rec64_tmp, vsize_re0 + j129_re0)
-                simd_store(dsp.rec64_perm, j129_re0, values80)
-                j129_re0 = j129_re0 + w64
-            var i_re45 = S32(0)
-            while i_re45 <= vsize_re0 - w64:
-                var values81 = (dsp.const303) * ((((dsp.const306) * (simd_load(rec64, i_re45))) + ((dsp.const307) * (simd_load(rec64, i_re45 - S32(1))))) + ((dsp.const306) * (simd_load(rec64, i_re45 - S32(2)))))
-                simd_store(zec13, i_re45, values81)
-                i_re45 = i_re45 + w64
-            var j130_re0 = S32(0)
-            while j130_re0 <= S32(4) - w64:
-                var values82 = simd_load(dsp.rec63_perm, j130_re0)
-                simd_store(rec63_tmp, j130_re0, values82)
-                j130_re0 = j130_re0 + w64
-            var i_re46 = S32(0)
-            while (i_re46) < (vsize_re0): 
-                rec63[i_re46] = (zec13[i_re46]) - ((dsp.const310) * (((dsp.const311) * (rec63[(i_re46) - (S32(2))])) + ((dsp.const314) * (rec63[(i_re46) - (S32(1))]))))
-                i_re46 = (i_re46) + (S32(1))
-            var j131_re0 = S32(0)
-            while j131_re0 <= S32(4) - w64:
-                var values83 = simd_load(rec63_tmp, vsize_re0 + j131_re0)
-                simd_store(dsp.rec63_perm, j131_re0, values83)
-                j131_re0 = j131_re0 + w64
-            var j132_re0 = S32(0)
-            while j132_re0 <= S32(4) - w64:
-                var values84 = simd_load(dsp.rec62_perm, j132_re0)
-                simd_store(rec62_tmp, j132_re0, values84)
-                j132_re0 = j132_re0 + w64
-            var i_re47 = S32(0)
-            while (i_re47) < (vsize_re0): 
-                rec62[i_re47] = ((dsp.const310) * ((((dsp.const316) * (rec63[i_re47])) + ((dsp.const317) * (rec63[(i_re47) - (S32(1))]))) + ((dsp.const316) * (rec63[(i_re47) - (S32(2))])))) - ((dsp.const318) * (((dsp.const319) * (rec62[(i_re47) - (S32(2))])) + ((dsp.const320) * (rec62[(i_re47) - (S32(1))]))))
-                i_re47 = (i_re47) + (S32(1))
-            var j133_re0 = S32(0)
-            while j133_re0 <= S32(4) - w64:
-                var values85 = simd_load(rec62_tmp, vsize_re0 + j133_re0)
-                simd_store(dsp.rec62_perm, j133_re0, values85)
-                j133_re0 = j133_re0 + w64
-            var j134_re0 = S32(0)
-            while j134_re0 <= S32(4) - w64:
-                var values86 = simd_load(dsp.rec61_perm, j134_re0)
-                simd_store(rec61_tmp, j134_re0, values86)
-                j134_re0 = j134_re0 + w64
-            var i_re48 = S32(0)
-            while (i_re48) < (vsize_re0): 
-                rec61[i_re48] = ((dsp.const318) * ((((dsp.const322) * (rec62[i_re48])) + ((dsp.const323) * (rec62[(i_re48) - (S32(1))]))) + ((dsp.const322) * (rec62[(i_re48) - (S32(2))])))) - ((dsp.const324) * (((dsp.const325) * (rec61[(i_re48) - (S32(2))])) + ((dsp.const326) * (rec61[(i_re48) - (S32(1))]))))
-                i_re48 = (i_re48) + (S32(1))
-            var j135_re0 = S32(0)
-            while j135_re0 <= S32(4) - w64:
-                var values87 = simd_load(rec61_tmp, vsize_re0 + j135_re0)
-                simd_store(dsp.rec61_perm, j135_re0, values87)
-                j135_re0 = j135_re0 + w64
-            var j136_re0 = S32(0)
-            while j136_re0 <= S32(4) - w64:
-                var values88 = simd_load(dsp.rec60_perm, j136_re0)
-                simd_store(rec60_tmp, j136_re0, values88)
-                j136_re0 = j136_re0 + w64
-            var i_re49 = S32(0)
-            while (i_re49) < (vsize_re0): 
-                rec60[i_re49] = ((slow8) * (rec60[(i_re49) - (S32(1))])) + ((slow9) * (abs((dsp.const324) * ((((dsp.const328) * (rec61[i_re49])) + ((dsp.const329) * (rec61[(i_re49) - (S32(1))]))) + ((dsp.const328) * (rec61[(i_re49) - (S32(2))]))))))
-                i_re49 = (i_re49) + (S32(1))
-            var j137_re0 = S32(0)
-            while j137_re0 <= S32(4) - w64:
-                var values89 = simd_load(rec60_tmp, vsize_re0 + j137_re0)
-                simd_store(dsp.rec60_perm, j137_re0, values89)
-                j137_re0 = j137_re0 + w64
-            var j138_re0 = S32(0)
-            while j138_re0 <= S32(4) - w64:
-                var values90 = simd_load(dsp.rec73_perm, j138_re0)
-                simd_store(rec73_tmp, j138_re0, values90)
-                j138_re0 = j138_re0 + w64
-            var i_re50 = S32(0)
-            while (i_re50) < (vsize_re0): 
-                rec73[i_re50] = (zec13[i_re50]) - ((dsp.const330) * (((dsp.const331) * (rec73[(i_re50) - (S32(2))])) + ((dsp.const332) * (rec73[(i_re50) - (S32(1))]))))
-                i_re50 = (i_re50) + (S32(1))
-            var j139_re0 = S32(0)
-            while j139_re0 <= S32(4) - w64:
-                var values91 = simd_load(rec73_tmp, vsize_re0 + j139_re0)
-                simd_store(dsp.rec73_perm, j139_re0, values91)
-                j139_re0 = j139_re0 + w64
-            var j140_re0 = S32(0)
-            while j140_re0 <= S32(4) - w64:
-                var values92 = simd_load(dsp.rec72_perm, j140_re0)
-                simd_store(rec72_tmp, j140_re0, values92)
-                j140_re0 = j140_re0 + w64
-            var i_re51 = S32(0)
-            while (i_re51) < (vsize_re0): 
-                rec72[i_re51] = ((dsp.const330) * ((((dsp.const334) * (rec73[i_re51])) + ((dsp.const335) * (rec73[(i_re51) - (S32(1))]))) + ((dsp.const334) * (rec73[(i_re51) - (S32(2))])))) - ((dsp.const336) * (((dsp.const337) * (rec72[(i_re51) - (S32(2))])) + ((dsp.const338) * (rec72[(i_re51) - (S32(1))]))))
-                i_re51 = (i_re51) + (S32(1))
-            var j141_re0 = S32(0)
-            while j141_re0 <= S32(4) - w64:
-                var values93 = simd_load(rec72_tmp, vsize_re0 + j141_re0)
-                simd_store(dsp.rec72_perm, j141_re0, values93)
-                j141_re0 = j141_re0 + w64
-            var j142_re0 = S32(0)
-            while j142_re0 <= S32(4) - w64:
-                var values94 = simd_load(dsp.rec71_perm, j142_re0)
-                simd_store(rec71_tmp, j142_re0, values94)
-                j142_re0 = j142_re0 + w64
-            var i_re52 = S32(0)
-            while (i_re52) < (vsize_re0): 
-                rec71[i_re52] = ((dsp.const336) * ((((dsp.const339) * (rec72[i_re52])) + ((dsp.const340) * (rec72[(i_re52) - (S32(1))]))) + ((dsp.const339) * (rec72[(i_re52) - (S32(2))])))) - ((dsp.const341) * (((dsp.const342) * (rec71[(i_re52) - (S32(2))])) + ((dsp.const343) * (rec71[(i_re52) - (S32(1))]))))
-                i_re52 = (i_re52) + (S32(1))
-            var j143_re0 = S32(0)
-            while j143_re0 <= S32(4) - w64:
-                var values95 = simd_load(rec71_tmp, vsize_re0 + j143_re0)
-                simd_store(dsp.rec71_perm, j143_re0, values95)
-                j143_re0 = j143_re0 + w64
-            var i_re53 = S32(0)
-            while i_re53 <= vsize_re0 - w64:
-                var values96 = (dsp.const341) * ((((dsp.const344) * (simd_load(rec71, i_re53))) + ((dsp.const345) * (simd_load(rec71, i_re53 - S32(1))))) + ((dsp.const344) * (simd_load(rec71, i_re53 - S32(2)))))
-                simd_store(zec14, i_re53, values96)
-                i_re53 = i_re53 + w64
-            var j144_re0 = S32(0)
-            while j144_re0 <= S32(4) - w64:
-                var values97 = simd_load(dsp.rec70_perm, j144_re0)
-                simd_store(rec70_tmp, j144_re0, values97)
-                j144_re0 = j144_re0 + w64
-            var i_re54 = S32(0)
-            while (i_re54) < (vsize_re0): 
-                rec70[i_re54] = (zec14[i_re54]) - ((dsp.const348) * (((dsp.const349) * (rec70[(i_re54) - (S32(2))])) + ((dsp.const352) * (rec70[(i_re54) - (S32(1))]))))
-                i_re54 = (i_re54) + (S32(1))
-            var j145_re0 = S32(0)
-            while j145_re0 <= S32(4) - w64:
-                var values98 = simd_load(rec70_tmp, vsize_re0 + j145_re0)
-                simd_store(dsp.rec70_perm, j145_re0, values98)
-                j145_re0 = j145_re0 + w64
-            var j146_re0 = S32(0)
-            while j146_re0 <= S32(4) - w64:
-                var values99 = simd_load(dsp.rec69_perm, j146_re0)
-                simd_store(rec69_tmp, j146_re0, values99)
-                j146_re0 = j146_re0 + w64
-            var i_re55 = S32(0)
-            while (i_re55) < (vsize_re0): 
-                rec69[i_re55] = ((dsp.const348) * ((((dsp.const354) * (rec70[i_re55])) + ((dsp.const355) * (rec70[(i_re55) - (S32(1))]))) + ((dsp.const354) * (rec70[(i_re55) - (S32(2))])))) - ((dsp.const356) * (((dsp.const357) * (rec69[(i_re55) - (S32(2))])) + ((dsp.const358) * (rec69[(i_re55) - (S32(1))]))))
-                i_re55 = (i_re55) + (S32(1))
-            var j147_re0 = S32(0)
-            while j147_re0 <= S32(4) - w64:
-                var values100 = simd_load(rec69_tmp, vsize_re0 + j147_re0)
-                simd_store(dsp.rec69_perm, j147_re0, values100)
-                j147_re0 = j147_re0 + w64
-            var j148_re0 = S32(0)
-            while j148_re0 <= S32(4) - w64:
-                var values101 = simd_load(dsp.rec68_perm, j148_re0)
-                simd_store(rec68_tmp, j148_re0, values101)
-                j148_re0 = j148_re0 + w64
-            var i_re56 = S32(0)
-            while (i_re56) < (vsize_re0): 
-                rec68[i_re56] = ((dsp.const356) * ((((dsp.const360) * (rec69[i_re56])) + ((dsp.const361) * (rec69[(i_re56) - (S32(1))]))) + ((dsp.const360) * (rec69[(i_re56) - (S32(2))])))) - ((dsp.const362) * (((dsp.const363) * (rec68[(i_re56) - (S32(2))])) + ((dsp.const364) * (rec68[(i_re56) - (S32(1))]))))
-                i_re56 = (i_re56) + (S32(1))
-            var j149_re0 = S32(0)
-            while j149_re0 <= S32(4) - w64:
-                var values102 = simd_load(rec68_tmp, vsize_re0 + j149_re0)
-                simd_store(dsp.rec68_perm, j149_re0, values102)
-                j149_re0 = j149_re0 + w64
-            var j150_re0 = S32(0)
-            while j150_re0 <= S32(4) - w64:
-                var values103 = simd_load(dsp.rec67_perm, j150_re0)
-                simd_store(rec67_tmp, j150_re0, values103)
-                j150_re0 = j150_re0 + w64
-            var i_re57 = S32(0)
-            while (i_re57) < (vsize_re0): 
-                rec67[i_re57] = ((slow8) * (rec67[(i_re57) - (S32(1))])) + ((slow9) * (abs((dsp.const362) * ((((dsp.const366) * (rec68[i_re57])) + ((dsp.const367) * (rec68[(i_re57) - (S32(1))]))) + ((dsp.const366) * (rec68[(i_re57) - (S32(2))]))))))
-                i_re57 = (i_re57) + (S32(1))
-            var j151_re0 = S32(0)
-            while j151_re0 <= S32(4) - w64:
-                var values104 = simd_load(rec67_tmp, vsize_re0 + j151_re0)
-                simd_store(dsp.rec67_perm, j151_re0, values104)
-                j151_re0 = j151_re0 + w64
-            var j152_re0 = S32(0)
-            while j152_re0 <= S32(4) - w64:
-                var values105 = simd_load(dsp.rec80_perm, j152_re0)
-                simd_store(rec80_tmp, j152_re0, values105)
-                j152_re0 = j152_re0 + w64
-            var i_re58 = S32(0)
-            while (i_re58) < (vsize_re0): 
-                rec80[i_re58] = (zec14[i_re58]) - ((dsp.const368) * (((dsp.const369) * (rec80[(i_re58) - (S32(2))])) + ((dsp.const370) * (rec80[(i_re58) - (S32(1))]))))
-                i_re58 = (i_re58) + (S32(1))
-            var j153_re0 = S32(0)
-            while j153_re0 <= S32(4) - w64:
-                var values106 = simd_load(rec80_tmp, vsize_re0 + j153_re0)
-                simd_store(dsp.rec80_perm, j153_re0, values106)
-                j153_re0 = j153_re0 + w64
-            var j154_re0 = S32(0)
-            while j154_re0 <= S32(4) - w64:
-                var values107 = simd_load(dsp.rec79_perm, j154_re0)
-                simd_store(rec79_tmp, j154_re0, values107)
-                j154_re0 = j154_re0 + w64
-            var i_re59 = S32(0)
-            while (i_re59) < (vsize_re0): 
-                rec79[i_re59] = ((dsp.const368) * ((((dsp.const372) * (rec80[i_re59])) + ((dsp.const373) * (rec80[(i_re59) - (S32(1))]))) + ((dsp.const372) * (rec80[(i_re59) - (S32(2))])))) - ((dsp.const374) * (((dsp.const375) * (rec79[(i_re59) - (S32(2))])) + ((dsp.const376) * (rec79[(i_re59) - (S32(1))]))))
-                i_re59 = (i_re59) + (S32(1))
-            var j155_re0 = S32(0)
-            while j155_re0 <= S32(4) - w64:
-                var values108 = simd_load(rec79_tmp, vsize_re0 + j155_re0)
-                simd_store(dsp.rec79_perm, j155_re0, values108)
-                j155_re0 = j155_re0 + w64
-            var j156_re0 = S32(0)
-            while j156_re0 <= S32(4) - w64:
-                var values109 = simd_load(dsp.rec78_perm, j156_re0)
-                simd_store(rec78_tmp, j156_re0, values109)
-                j156_re0 = j156_re0 + w64
-            var i_re60 = S32(0)
-            while (i_re60) < (vsize_re0): 
-                rec78[i_re60] = ((dsp.const374) * ((((dsp.const377) * (rec79[i_re60])) + ((dsp.const378) * (rec79[(i_re60) - (S32(1))]))) + ((dsp.const377) * (rec79[(i_re60) - (S32(2))])))) - ((dsp.const379) * (((dsp.const380) * (rec78[(i_re60) - (S32(2))])) + ((dsp.const381) * (rec78[(i_re60) - (S32(1))]))))
-                i_re60 = (i_re60) + (S32(1))
-            var j157_re0 = S32(0)
-            while j157_re0 <= S32(4) - w64:
-                var values110 = simd_load(rec78_tmp, vsize_re0 + j157_re0)
-                simd_store(dsp.rec78_perm, j157_re0, values110)
-                j157_re0 = j157_re0 + w64
-            var i_re61 = S32(0)
-            while i_re61 <= vsize_re0 - w64:
-                var values111 = (dsp.const379) * ((((dsp.const382) * (simd_load(rec78, i_re61))) + ((dsp.const383) * (simd_load(rec78, i_re61 - S32(1))))) + ((dsp.const382) * (simd_load(rec78, i_re61 - S32(2)))))
-                simd_store(zec15, i_re61, values111)
-                i_re61 = i_re61 + w64
-            var j158_re0 = S32(0)
-            while j158_re0 <= S32(4) - w64:
-                var values112 = simd_load(dsp.rec77_perm, j158_re0)
-                simd_store(rec77_tmp, j158_re0, values112)
-                j158_re0 = j158_re0 + w64
-            var i_re62 = S32(0)
-            while (i_re62) < (vsize_re0): 
-                rec77[i_re62] = (zec15[i_re62]) - ((dsp.const386) * (((dsp.const387) * (rec77[(i_re62) - (S32(2))])) + ((dsp.const390) * (rec77[(i_re62) - (S32(1))]))))
-                i_re62 = (i_re62) + (S32(1))
-            var j159_re0 = S32(0)
-            while j159_re0 <= S32(4) - w64:
-                var values113 = simd_load(rec77_tmp, vsize_re0 + j159_re0)
-                simd_store(dsp.rec77_perm, j159_re0, values113)
-                j159_re0 = j159_re0 + w64
-            var j160_re0 = S32(0)
-            while j160_re0 <= S32(4) - w64:
-                var values114 = simd_load(dsp.rec76_perm, j160_re0)
-                simd_store(rec76_tmp, j160_re0, values114)
-                j160_re0 = j160_re0 + w64
-            var i_re63 = S32(0)
-            while (i_re63) < (vsize_re0): 
-                rec76[i_re63] = ((dsp.const386) * ((((dsp.const392) * (rec77[i_re63])) + ((dsp.const393) * (rec77[(i_re63) - (S32(1))]))) + ((dsp.const392) * (rec77[(i_re63) - (S32(2))])))) - ((dsp.const394) * (((dsp.const395) * (rec76[(i_re63) - (S32(2))])) + ((dsp.const396) * (rec76[(i_re63) - (S32(1))]))))
-                i_re63 = (i_re63) + (S32(1))
-            var j161_re0 = S32(0)
-            while j161_re0 <= S32(4) - w64:
-                var values115 = simd_load(rec76_tmp, vsize_re0 + j161_re0)
-                simd_store(dsp.rec76_perm, j161_re0, values115)
-                j161_re0 = j161_re0 + w64
-            var j162_re0 = S32(0)
-            while j162_re0 <= S32(4) - w64:
-                var values116 = simd_load(dsp.rec75_perm, j162_re0)
-                simd_store(rec75_tmp, j162_re0, values116)
-                j162_re0 = j162_re0 + w64
-            var i_re64 = S32(0)
-            while (i_re64) < (vsize_re0): 
-                rec75[i_re64] = ((dsp.const394) * ((((dsp.const398) * (rec76[i_re64])) + ((dsp.const399) * (rec76[(i_re64) - (S32(1))]))) + ((dsp.const398) * (rec76[(i_re64) - (S32(2))])))) - ((dsp.const400) * (((dsp.const401) * (rec75[(i_re64) - (S32(2))])) + ((dsp.const402) * (rec75[(i_re64) - (S32(1))]))))
-                i_re64 = (i_re64) + (S32(1))
-            var j163_re0 = S32(0)
-            while j163_re0 <= S32(4) - w64:
-                var values117 = simd_load(rec75_tmp, vsize_re0 + j163_re0)
-                simd_store(dsp.rec75_perm, j163_re0, values117)
-                j163_re0 = j163_re0 + w64
-            var j164_re0 = S32(0)
-            while j164_re0 <= S32(4) - w64:
-                var values118 = simd_load(dsp.rec74_perm, j164_re0)
-                simd_store(rec74_tmp, j164_re0, values118)
-                j164_re0 = j164_re0 + w64
-            var i_re65 = S32(0)
-            while (i_re65) < (vsize_re0): 
-                rec74[i_re65] = ((slow8) * (rec74[(i_re65) - (S32(1))])) + ((slow9) * (abs((dsp.const400) * ((((dsp.const404) * (rec75[i_re65])) + ((dsp.const405) * (rec75[(i_re65) - (S32(1))]))) + ((dsp.const404) * (rec75[(i_re65) - (S32(2))]))))))
-                i_re65 = (i_re65) + (S32(1))
-            var j165_re0 = S32(0)
-            while j165_re0 <= S32(4) - w64:
-                var values119 = simd_load(rec74_tmp, vsize_re0 + j165_re0)
-                simd_store(dsp.rec74_perm, j165_re0, values119)
-                j165_re0 = j165_re0 + w64
-            var j166_re0 = S32(0)
-            while j166_re0 <= S32(4) - w64:
-                var values120 = simd_load(dsp.rec87_perm, j166_re0)
-                simd_store(rec87_tmp, j166_re0, values120)
-                j166_re0 = j166_re0 + w64
-            var i_re66 = S32(0)
-            while (i_re66) < (vsize_re0): 
-                rec87[i_re66] = (zec15[i_re66]) - ((dsp.const406) * (((dsp.const407) * (rec87[(i_re66) - (S32(2))])) + ((dsp.const408) * (rec87[(i_re66) - (S32(1))]))))
-                i_re66 = (i_re66) + (S32(1))
-            var j167_re0 = S32(0)
-            while j167_re0 <= S32(4) - w64:
-                var values121 = simd_load(rec87_tmp, vsize_re0 + j167_re0)
-                simd_store(dsp.rec87_perm, j167_re0, values121)
-                j167_re0 = j167_re0 + w64
-            var j168_re0 = S32(0)
-            while j168_re0 <= S32(4) - w64:
-                var values122 = simd_load(dsp.rec86_perm, j168_re0)
-                simd_store(rec86_tmp, j168_re0, values122)
-                j168_re0 = j168_re0 + w64
-            var i_re67 = S32(0)
-            while (i_re67) < (vsize_re0): 
-                rec86[i_re67] = ((dsp.const406) * ((((dsp.const410) * (rec87[i_re67])) + ((dsp.const411) * (rec87[(i_re67) - (S32(1))]))) + ((dsp.const410) * (rec87[(i_re67) - (S32(2))])))) - ((dsp.const412) * (((dsp.const413) * (rec86[(i_re67) - (S32(2))])) + ((dsp.const414) * (rec86[(i_re67) - (S32(1))]))))
-                i_re67 = (i_re67) + (S32(1))
-            var j169_re0 = S32(0)
-            while j169_re0 <= S32(4) - w64:
-                var values123 = simd_load(rec86_tmp, vsize_re0 + j169_re0)
-                simd_store(dsp.rec86_perm, j169_re0, values123)
-                j169_re0 = j169_re0 + w64
-            var j170_re0 = S32(0)
-            while j170_re0 <= S32(4) - w64:
-                var values124 = simd_load(dsp.rec85_perm, j170_re0)
-                simd_store(rec85_tmp, j170_re0, values124)
-                j170_re0 = j170_re0 + w64
-            var i_re68 = S32(0)
-            while (i_re68) < (vsize_re0): 
-                rec85[i_re68] = ((dsp.const412) * ((((dsp.const415) * (rec86[i_re68])) + ((dsp.const416) * (rec86[(i_re68) - (S32(1))]))) + ((dsp.const415) * (rec86[(i_re68) - (S32(2))])))) - ((dsp.const417) * (((dsp.const418) * (rec85[(i_re68) - (S32(2))])) + ((dsp.const419) * (rec85[(i_re68) - (S32(1))]))))
-                i_re68 = (i_re68) + (S32(1))
-            var j171_re0 = S32(0)
-            while j171_re0 <= S32(4) - w64:
-                var values125 = simd_load(rec85_tmp, vsize_re0 + j171_re0)
-                simd_store(dsp.rec85_perm, j171_re0, values125)
-                j171_re0 = j171_re0 + w64
-            var i_re69 = S32(0)
-            while i_re69 <= vsize_re0 - w64:
-                var values126 = (dsp.const417) * ((((dsp.const420) * (simd_load(rec85, i_re69))) + ((dsp.const421) * (simd_load(rec85, i_re69 - S32(1))))) + ((dsp.const420) * (simd_load(rec85, i_re69 - S32(2)))))
-                simd_store(zec16, i_re69, values126)
-                i_re69 = i_re69 + w64
-            var j172_re0 = S32(0)
-            while j172_re0 <= S32(4) - w64:
-                var values127 = simd_load(dsp.rec84_perm, j172_re0)
-                simd_store(rec84_tmp, j172_re0, values127)
-                j172_re0 = j172_re0 + w64
-            var i_re70 = S32(0)
-            while (i_re70) < (vsize_re0): 
-                rec84[i_re70] = (zec16[i_re70]) - ((dsp.const424) * (((dsp.const425) * (rec84[(i_re70) - (S32(2))])) + ((dsp.const428) * (rec84[(i_re70) - (S32(1))]))))
-                i_re70 = (i_re70) + (S32(1))
-            var j173_re0 = S32(0)
-            while j173_re0 <= S32(4) - w64:
-                var values128 = simd_load(rec84_tmp, vsize_re0 + j173_re0)
-                simd_store(dsp.rec84_perm, j173_re0, values128)
-                j173_re0 = j173_re0 + w64
-            var j174_re0 = S32(0)
-            while j174_re0 <= S32(4) - w64:
-                var values129 = simd_load(dsp.rec83_perm, j174_re0)
-                simd_store(rec83_tmp, j174_re0, values129)
-                j174_re0 = j174_re0 + w64
-            var i_re71 = S32(0)
-            while (i_re71) < (vsize_re0): 
-                rec83[i_re71] = ((dsp.const424) * ((((dsp.const430) * (rec84[i_re71])) + ((dsp.const431) * (rec84[(i_re71) - (S32(1))]))) + ((dsp.const430) * (rec84[(i_re71) - (S32(2))])))) - ((dsp.const432) * (((dsp.const433) * (rec83[(i_re71) - (S32(2))])) + ((dsp.const434) * (rec83[(i_re71) - (S32(1))]))))
-                i_re71 = (i_re71) + (S32(1))
-            var j175_re0 = S32(0)
-            while j175_re0 <= S32(4) - w64:
-                var values130 = simd_load(rec83_tmp, vsize_re0 + j175_re0)
-                simd_store(dsp.rec83_perm, j175_re0, values130)
-                j175_re0 = j175_re0 + w64
-            var j176_re0 = S32(0)
-            while j176_re0 <= S32(4) - w64:
-                var values131 = simd_load(dsp.rec82_perm, j176_re0)
-                simd_store(rec82_tmp, j176_re0, values131)
-                j176_re0 = j176_re0 + w64
-            var i_re72 = S32(0)
-            while (i_re72) < (vsize_re0): 
-                rec82[i_re72] = ((dsp.const432) * ((((dsp.const436) * (rec83[i_re72])) + ((dsp.const437) * (rec83[(i_re72) - (S32(1))]))) + ((dsp.const436) * (rec83[(i_re72) - (S32(2))])))) - ((dsp.const438) * (((dsp.const439) * (rec82[(i_re72) - (S32(2))])) + ((dsp.const440) * (rec82[(i_re72) - (S32(1))]))))
-                i_re72 = (i_re72) + (S32(1))
-            var j177_re0 = S32(0)
-            while j177_re0 <= S32(4) - w64:
-                var values132 = simd_load(rec82_tmp, vsize_re0 + j177_re0)
-                simd_store(dsp.rec82_perm, j177_re0, values132)
-                j177_re0 = j177_re0 + w64
-            var j178_re0 = S32(0)
-            while j178_re0 <= S32(4) - w64:
-                var values133 = simd_load(dsp.rec81_perm, j178_re0)
-                simd_store(rec81_tmp, j178_re0, values133)
-                j178_re0 = j178_re0 + w64
-            var i_re73 = S32(0)
-            while (i_re73) < (vsize_re0): 
-                rec81[i_re73] = ((slow8) * (rec81[(i_re73) - (S32(1))])) + ((slow9) * (abs((dsp.const438) * ((((dsp.const442) * (rec82[i_re73])) + ((dsp.const443) * (rec82[(i_re73) - (S32(1))]))) + ((dsp.const442) * (rec82[(i_re73) - (S32(2))]))))))
-                i_re73 = (i_re73) + (S32(1))
-            var j179_re0 = S32(0)
-            while j179_re0 <= S32(4) - w64:
-                var values134 = simd_load(rec81_tmp, vsize_re0 + j179_re0)
-                simd_store(dsp.rec81_perm, j179_re0, values134)
-                j179_re0 = j179_re0 + w64
-            var j180_re0 = S32(0)
-            while j180_re0 <= S32(4) - w64:
-                var values135 = simd_load(dsp.rec94_perm, j180_re0)
-                simd_store(rec94_tmp, j180_re0, values135)
-                j180_re0 = j180_re0 + w64
-            var i_re74 = S32(0)
-            while (i_re74) < (vsize_re0): 
-                rec94[i_re74] = (zec16[i_re74]) - ((dsp.const444) * (((dsp.const445) * (rec94[(i_re74) - (S32(2))])) + ((dsp.const446) * (rec94[(i_re74) - (S32(1))]))))
-                i_re74 = (i_re74) + (S32(1))
-            var j181_re0 = S32(0)
-            while j181_re0 <= S32(4) - w64:
-                var values136 = simd_load(rec94_tmp, vsize_re0 + j181_re0)
-                simd_store(dsp.rec94_perm, j181_re0, values136)
-                j181_re0 = j181_re0 + w64
-            var j182_re0 = S32(0)
-            while j182_re0 <= S32(4) - w64:
-                var values137 = simd_load(dsp.rec93_perm, j182_re0)
-                simd_store(rec93_tmp, j182_re0, values137)
-                j182_re0 = j182_re0 + w64
-            var i_re75 = S32(0)
-            while (i_re75) < (vsize_re0): 
-                rec93[i_re75] = ((dsp.const444) * ((((dsp.const448) * (rec94[i_re75])) + ((dsp.const449) * (rec94[(i_re75) - (S32(1))]))) + ((dsp.const448) * (rec94[(i_re75) - (S32(2))])))) - ((dsp.const450) * (((dsp.const451) * (rec93[(i_re75) - (S32(2))])) + ((dsp.const452) * (rec93[(i_re75) - (S32(1))]))))
-                i_re75 = (i_re75) + (S32(1))
-            var j183_re0 = S32(0)
-            while j183_re0 <= S32(4) - w64:
-                var values138 = simd_load(rec93_tmp, vsize_re0 + j183_re0)
-                simd_store(dsp.rec93_perm, j183_re0, values138)
-                j183_re0 = j183_re0 + w64
-            var j184_re0 = S32(0)
-            while j184_re0 <= S32(4) - w64:
-                var values139 = simd_load(dsp.rec92_perm, j184_re0)
-                simd_store(rec92_tmp, j184_re0, values139)
-                j184_re0 = j184_re0 + w64
-            var i_re76 = S32(0)
-            while (i_re76) < (vsize_re0): 
-                rec92[i_re76] = ((dsp.const450) * ((((dsp.const453) * (rec93[i_re76])) + ((dsp.const454) * (rec93[(i_re76) - (S32(1))]))) + ((dsp.const453) * (rec93[(i_re76) - (S32(2))])))) - ((dsp.const455) * (((dsp.const456) * (rec92[(i_re76) - (S32(2))])) + ((dsp.const457) * (rec92[(i_re76) - (S32(1))]))))
-                i_re76 = (i_re76) + (S32(1))
-            var j185_re0 = S32(0)
-            while j185_re0 <= S32(4) - w64:
-                var values140 = simd_load(rec92_tmp, vsize_re0 + j185_re0)
-                simd_store(dsp.rec92_perm, j185_re0, values140)
-                j185_re0 = j185_re0 + w64
-            var i_re77 = S32(0)
-            while i_re77 <= vsize_re0 - w64:
-                var values141 = (dsp.const455) * ((((dsp.const458) * (simd_load(rec92, i_re77))) + ((dsp.const459) * (simd_load(rec92, i_re77 - S32(1))))) + ((dsp.const458) * (simd_load(rec92, i_re77 - S32(2)))))
-                simd_store(zec17, i_re77, values141)
-                i_re77 = i_re77 + w64
-            var j186_re0 = S32(0)
-            while j186_re0 <= S32(4) - w64:
-                var values142 = simd_load(dsp.rec91_perm, j186_re0)
-                simd_store(rec91_tmp, j186_re0, values142)
-                j186_re0 = j186_re0 + w64
-            var i_re78 = S32(0)
-            while (i_re78) < (vsize_re0): 
-                rec91[i_re78] = (zec17[i_re78]) - ((dsp.const462) * (((dsp.const463) * (rec91[(i_re78) - (S32(2))])) + ((dsp.const466) * (rec91[(i_re78) - (S32(1))]))))
-                i_re78 = (i_re78) + (S32(1))
-            var j187_re0 = S32(0)
-            while j187_re0 <= S32(4) - w64:
-                var values143 = simd_load(rec91_tmp, vsize_re0 + j187_re0)
-                simd_store(dsp.rec91_perm, j187_re0, values143)
-                j187_re0 = j187_re0 + w64
-            var j188_re0 = S32(0)
-            while j188_re0 <= S32(4) - w64:
-                var values144 = simd_load(dsp.rec90_perm, j188_re0)
-                simd_store(rec90_tmp, j188_re0, values144)
-                j188_re0 = j188_re0 + w64
-            var i_re79 = S32(0)
-            while (i_re79) < (vsize_re0): 
-                rec90[i_re79] = ((dsp.const462) * ((((dsp.const468) * (rec91[i_re79])) + ((dsp.const469) * (rec91[(i_re79) - (S32(1))]))) + ((dsp.const468) * (rec91[(i_re79) - (S32(2))])))) - ((dsp.const470) * (((dsp.const471) * (rec90[(i_re79) - (S32(2))])) + ((dsp.const472) * (rec90[(i_re79) - (S32(1))]))))
-                i_re79 = (i_re79) + (S32(1))
-            var j189_re0 = S32(0)
-            while j189_re0 <= S32(4) - w64:
-                var values145 = simd_load(rec90_tmp, vsize_re0 + j189_re0)
-                simd_store(dsp.rec90_perm, j189_re0, values145)
-                j189_re0 = j189_re0 + w64
-            var j190_re0 = S32(0)
-            while j190_re0 <= S32(4) - w64:
-                var values146 = simd_load(dsp.rec89_perm, j190_re0)
-                simd_store(rec89_tmp, j190_re0, values146)
-                j190_re0 = j190_re0 + w64
-            var i_re80 = S32(0)
-            while (i_re80) < (vsize_re0): 
-                rec89[i_re80] = ((dsp.const470) * ((((dsp.const474) * (rec90[i_re80])) + ((dsp.const475) * (rec90[(i_re80) - (S32(1))]))) + ((dsp.const474) * (rec90[(i_re80) - (S32(2))])))) - ((dsp.const476) * (((dsp.const477) * (rec89[(i_re80) - (S32(2))])) + ((dsp.const478) * (rec89[(i_re80) - (S32(1))]))))
-                i_re80 = (i_re80) + (S32(1))
-            var j191_re0 = S32(0)
-            while j191_re0 <= S32(4) - w64:
-                var values147 = simd_load(rec89_tmp, vsize_re0 + j191_re0)
-                simd_store(dsp.rec89_perm, j191_re0, values147)
-                j191_re0 = j191_re0 + w64
-            var j192_re0 = S32(0)
-            while j192_re0 <= S32(4) - w64:
-                var values148 = simd_load(dsp.rec88_perm, j192_re0)
-                simd_store(rec88_tmp, j192_re0, values148)
-                j192_re0 = j192_re0 + w64
-            var i_re81 = S32(0)
-            while (i_re81) < (vsize_re0): 
-                rec88[i_re81] = ((slow8) * (rec88[(i_re81) - (S32(1))])) + ((slow9) * (abs((dsp.const476) * ((((dsp.const480) * (rec89[i_re81])) + ((dsp.const481) * (rec89[(i_re81) - (S32(1))]))) + ((dsp.const480) * (rec89[(i_re81) - (S32(2))]))))))
-                i_re81 = (i_re81) + (S32(1))
-            var j193_re0 = S32(0)
-            while j193_re0 <= S32(4) - w64:
-                var values149 = simd_load(rec88_tmp, vsize_re0 + j193_re0)
-                simd_store(dsp.rec88_perm, j193_re0, values149)
-                j193_re0 = j193_re0 + w64
-            var j194_re0 = S32(0)
-            while j194_re0 <= S32(4) - w64:
-                var values150 = simd_load(dsp.rec101_perm, j194_re0)
-                simd_store(rec101_tmp, j194_re0, values150)
-                j194_re0 = j194_re0 + w64
-            var i_re82 = S32(0)
-            while (i_re82) < (vsize_re0): 
-                rec101[i_re82] = (zec17[i_re82]) - ((dsp.const482) * (((dsp.const483) * (rec101[(i_re82) - (S32(2))])) + ((dsp.const484) * (rec101[(i_re82) - (S32(1))]))))
-                i_re82 = (i_re82) + (S32(1))
-            var j195_re0 = S32(0)
-            while j195_re0 <= S32(4) - w64:
-                var values151 = simd_load(rec101_tmp, vsize_re0 + j195_re0)
-                simd_store(dsp.rec101_perm, j195_re0, values151)
-                j195_re0 = j195_re0 + w64
-            var j196_re0 = S32(0)
-            while j196_re0 <= S32(4) - w64:
-                var values152 = simd_load(dsp.rec100_perm, j196_re0)
-                simd_store(rec100_tmp, j196_re0, values152)
-                j196_re0 = j196_re0 + w64
-            var i_re83 = S32(0)
-            while (i_re83) < (vsize_re0): 
-                rec100[i_re83] = ((dsp.const482) * ((((dsp.const486) * (rec101[i_re83])) + ((dsp.const487) * (rec101[(i_re83) - (S32(1))]))) + ((dsp.const486) * (rec101[(i_re83) - (S32(2))])))) - ((dsp.const488) * (((dsp.const489) * (rec100[(i_re83) - (S32(2))])) + ((dsp.const490) * (rec100[(i_re83) - (S32(1))]))))
-                i_re83 = (i_re83) + (S32(1))
-            var j197_re0 = S32(0)
-            while j197_re0 <= S32(4) - w64:
-                var values153 = simd_load(rec100_tmp, vsize_re0 + j197_re0)
-                simd_store(dsp.rec100_perm, j197_re0, values153)
-                j197_re0 = j197_re0 + w64
-            var j198_re0 = S32(0)
-            while j198_re0 <= S32(4) - w64:
-                var values154 = simd_load(dsp.rec99_perm, j198_re0)
-                simd_store(rec99_tmp, j198_re0, values154)
-                j198_re0 = j198_re0 + w64
-            var i_re84 = S32(0)
-            while (i_re84) < (vsize_re0): 
-                rec99[i_re84] = ((dsp.const488) * ((((dsp.const491) * (rec100[i_re84])) + ((dsp.const492) * (rec100[(i_re84) - (S32(1))]))) + ((dsp.const491) * (rec100[(i_re84) - (S32(2))])))) - ((dsp.const493) * (((dsp.const494) * (rec99[(i_re84) - (S32(2))])) + ((dsp.const495) * (rec99[(i_re84) - (S32(1))]))))
-                i_re84 = (i_re84) + (S32(1))
-            var j199_re0 = S32(0)
-            while j199_re0 <= S32(4) - w64:
-                var values155 = simd_load(rec99_tmp, vsize_re0 + j199_re0)
-                simd_store(dsp.rec99_perm, j199_re0, values155)
-                j199_re0 = j199_re0 + w64
-            var i_re85 = S32(0)
-            while i_re85 <= vsize_re0 - w64:
-                var values156 = (dsp.const493) * ((((dsp.const496) * (simd_load(rec99, i_re85))) + ((dsp.const497) * (simd_load(rec99, i_re85 - S32(1))))) + ((dsp.const496) * (simd_load(rec99, i_re85 - S32(2)))))
-                simd_store(zec18, i_re85, values156)
-                i_re85 = i_re85 + w64
-            var j200_re0 = S32(0)
-            while j200_re0 <= S32(4) - w64:
-                var values157 = simd_load(dsp.rec98_perm, j200_re0)
-                simd_store(rec98_tmp, j200_re0, values157)
-                j200_re0 = j200_re0 + w64
-            var i_re86 = S32(0)
-            while (i_re86) < (vsize_re0): 
-                rec98[i_re86] = (zec18[i_re86]) - ((dsp.const500) * (((dsp.const501) * (rec98[(i_re86) - (S32(2))])) + ((dsp.const504) * (rec98[(i_re86) - (S32(1))]))))
-                i_re86 = (i_re86) + (S32(1))
-            var j201_re0 = S32(0)
-            while j201_re0 <= S32(4) - w64:
-                var values158 = simd_load(rec98_tmp, vsize_re0 + j201_re0)
-                simd_store(dsp.rec98_perm, j201_re0, values158)
-                j201_re0 = j201_re0 + w64
-            var j202_re0 = S32(0)
-            while j202_re0 <= S32(4) - w64:
-                var values159 = simd_load(dsp.rec97_perm, j202_re0)
-                simd_store(rec97_tmp, j202_re0, values159)
-                j202_re0 = j202_re0 + w64
-            var i_re87 = S32(0)
-            while (i_re87) < (vsize_re0): 
-                rec97[i_re87] = ((dsp.const500) * ((((dsp.const506) * (rec98[i_re87])) + ((dsp.const507) * (rec98[(i_re87) - (S32(1))]))) + ((dsp.const506) * (rec98[(i_re87) - (S32(2))])))) - ((dsp.const508) * (((dsp.const509) * (rec97[(i_re87) - (S32(2))])) + ((dsp.const510) * (rec97[(i_re87) - (S32(1))]))))
-                i_re87 = (i_re87) + (S32(1))
-            var j203_re0 = S32(0)
-            while j203_re0 <= S32(4) - w64:
-                var values160 = simd_load(rec97_tmp, vsize_re0 + j203_re0)
-                simd_store(dsp.rec97_perm, j203_re0, values160)
-                j203_re0 = j203_re0 + w64
-            var j204_re0 = S32(0)
-            while j204_re0 <= S32(4) - w64:
-                var values161 = simd_load(dsp.rec96_perm, j204_re0)
-                simd_store(rec96_tmp, j204_re0, values161)
-                j204_re0 = j204_re0 + w64
-            var i_re88 = S32(0)
-            while (i_re88) < (vsize_re0): 
-                rec96[i_re88] = ((dsp.const508) * ((((dsp.const512) * (rec97[i_re88])) + ((dsp.const513) * (rec97[(i_re88) - (S32(1))]))) + ((dsp.const512) * (rec97[(i_re88) - (S32(2))])))) - ((dsp.const514) * (((dsp.const515) * (rec96[(i_re88) - (S32(2))])) + ((dsp.const516) * (rec96[(i_re88) - (S32(1))]))))
-                i_re88 = (i_re88) + (S32(1))
-            var j205_re0 = S32(0)
-            while j205_re0 <= S32(4) - w64:
-                var values162 = simd_load(rec96_tmp, vsize_re0 + j205_re0)
-                simd_store(dsp.rec96_perm, j205_re0, values162)
-                j205_re0 = j205_re0 + w64
-            var j206_re0 = S32(0)
-            while j206_re0 <= S32(4) - w64:
-                var values163 = simd_load(dsp.rec95_perm, j206_re0)
-                simd_store(rec95_tmp, j206_re0, values163)
-                j206_re0 = j206_re0 + w64
-            var i_re89 = S32(0)
-            while (i_re89) < (vsize_re0): 
-                rec95[i_re89] = ((slow8) * (rec95[(i_re89) - (S32(1))])) + ((slow9) * (abs((dsp.const514) * ((((dsp.const518) * (rec96[i_re89])) + ((dsp.const519) * (rec96[(i_re89) - (S32(1))]))) + ((dsp.const518) * (rec96[(i_re89) - (S32(2))]))))))
-                i_re89 = (i_re89) + (S32(1))
-            var j207_re0 = S32(0)
-            while j207_re0 <= S32(4) - w64:
-                var values164 = simd_load(rec95_tmp, vsize_re0 + j207_re0)
-                simd_store(dsp.rec95_perm, j207_re0, values164)
-                j207_re0 = j207_re0 + w64
-            var j208_re0 = S32(0)
-            while j208_re0 <= S32(4) - w64:
-                var values165 = simd_load(dsp.rec105_perm, j208_re0)
-                simd_store(rec105_tmp, j208_re0, values165)
-                j208_re0 = j208_re0 + w64
-            var i_re90 = S32(0)
-            while (i_re90) < (vsize_re0): 
-                rec105[i_re90] = (zec18[i_re90]) - ((dsp.const520) * (((dsp.const521) * (rec105[(i_re90) - (S32(2))])) + ((dsp.const522) * (rec105[(i_re90) - (S32(1))]))))
-                i_re90 = (i_re90) + (S32(1))
-            var j209_re0 = S32(0)
-            while j209_re0 <= S32(4) - w64:
-                var values166 = simd_load(rec105_tmp, vsize_re0 + j209_re0)
-                simd_store(dsp.rec105_perm, j209_re0, values166)
-                j209_re0 = j209_re0 + w64
-            var j210_re0 = S32(0)
-            while j210_re0 <= S32(4) - w64:
-                var values167 = simd_load(dsp.rec104_perm, j210_re0)
-                simd_store(rec104_tmp, j210_re0, values167)
-                j210_re0 = j210_re0 + w64
-            var i_re91 = S32(0)
-            while (i_re91) < (vsize_re0): 
-                rec104[i_re91] = ((dsp.const520) * ((((dsp.const524) * (rec105[i_re91])) + ((dsp.const525) * (rec105[(i_re91) - (S32(1))]))) + ((dsp.const524) * (rec105[(i_re91) - (S32(2))])))) - ((dsp.const526) * (((dsp.const527) * (rec104[(i_re91) - (S32(2))])) + ((dsp.const528) * (rec104[(i_re91) - (S32(1))]))))
-                i_re91 = (i_re91) + (S32(1))
-            var j211_re0 = S32(0)
-            while j211_re0 <= S32(4) - w64:
-                var values168 = simd_load(rec104_tmp, vsize_re0 + j211_re0)
-                simd_store(dsp.rec104_perm, j211_re0, values168)
-                j211_re0 = j211_re0 + w64
-            var j212_re0 = S32(0)
-            while j212_re0 <= S32(4) - w64:
-                var values169 = simd_load(dsp.rec103_perm, j212_re0)
-                simd_store(rec103_tmp, j212_re0, values169)
-                j212_re0 = j212_re0 + w64
-            var i_re92 = S32(0)
-            while (i_re92) < (vsize_re0): 
-                rec103[i_re92] = ((dsp.const526) * ((((dsp.const529) * (rec104[i_re92])) + ((dsp.const530) * (rec104[(i_re92) - (S32(1))]))) + ((dsp.const529) * (rec104[(i_re92) - (S32(2))])))) - ((dsp.const531) * (((dsp.const532) * (rec103[(i_re92) - (S32(2))])) + ((dsp.const533) * (rec103[(i_re92) - (S32(1))]))))
-                i_re92 = (i_re92) + (S32(1))
-            var j213_re0 = S32(0)
-            while j213_re0 <= S32(4) - w64:
-                var values170 = simd_load(rec103_tmp, vsize_re0 + j213_re0)
-                simd_store(dsp.rec103_perm, j213_re0, values170)
-                j213_re0 = j213_re0 + w64
-            var j214_re0 = S32(0)
-            while j214_re0 <= S32(4) - w64:
-                var values171 = simd_load(dsp.rec102_perm, j214_re0)
-                simd_store(rec102_tmp, j214_re0, values171)
-                j214_re0 = j214_re0 + w64
-            var i_re93 = S32(0)
-            while (i_re93) < (vsize_re0): 
-                rec102[i_re93] = ((slow8) * (rec102[(i_re93) - (S32(1))])) + ((slow9) * (abs((dsp.const531) * ((((dsp.const534) * (rec103[i_re93])) + ((dsp.const535) * (rec103[(i_re93) - (S32(1))]))) + ((dsp.const534) * (rec103[(i_re93) - (S32(2))]))))))
-                i_re93 = (i_re93) + (S32(1))
-            var j215_re0 = S32(0)
-            while j215_re0 <= S32(4) - w64:
-                var values172 = simd_load(rec102_tmp, vsize_re0 + j215_re0)
-                simd_store(dsp.rec102_perm, j215_re0, values172)
-                j215_re0 = j215_re0 + w64
+            # Recursive loop 14 
+            # Pre code 
             var j18_re0 = S32(0)
             while j18_re0 <= S32(4) - w64:
-                var values173 = simd_load(dsp.rec10_perm, j18_re0)
-                simd_store(rec10_tmp, j18_re0, values173)
+                var values26 = simd_load(dsp.rec10_perm, j18_re0)
+                simd_store(rec10_tmp, j18_re0, values26)
                 j18_re0 = j18_re0 + w64
-            var i_re94 = S32(0)
-            while (i_re94) < (vsize_re0): 
-                rec10[i_re94] = (zec5[i_re94]) - ((dsp.const5) * (((dsp.const6) * (rec10[(i_re94) - (S32(2))])) + ((dsp.const9) * (rec10[(i_re94) - (S32(1))]))))
-                i_re94 = (i_re94) + (S32(1))
+            # Compute code 
+            var i_re14 = S32(0)
+            while (i_re14) < (vsize_re0): 
+                rec10[i_re14] = (zec5[i_re14]) - ((dsp.const5) * (((dsp.const6) * (rec10[(i_re14) - (S32(2))])) + ((dsp.const9) * (rec10[(i_re14) - (S32(1))]))))
+                i_re14 = (i_re14) + (S32(1))
+            # Post code 
             var j19_re0 = S32(0)
             while j19_re0 <= S32(4) - w64:
-                var values174 = simd_load(rec10_tmp, vsize_re0 + j19_re0)
-                simd_store(dsp.rec10_perm, j19_re0, values174)
+                var values27 = simd_load(rec10_tmp, vsize_re0 + j19_re0)
+                simd_store(dsp.rec10_perm, j19_re0, values27)
                 j19_re0 = j19_re0 + w64
+            # Recursive loop 15 
+            # Pre code 
             var j20_re0 = S32(0)
             while j20_re0 <= S32(4) - w64:
-                var values175 = simd_load(dsp.rec9_perm, j20_re0)
-                simd_store(rec9_tmp, j20_re0, values175)
+                var values28 = simd_load(dsp.rec9_perm, j20_re0)
+                simd_store(rec9_tmp, j20_re0, values28)
                 j20_re0 = j20_re0 + w64
-            var i_re95 = S32(0)
-            while (i_re95) < (vsize_re0): 
-                rec9[i_re95] = ((dsp.const5) * ((((dsp.const11) * (rec10[i_re95])) + ((dsp.const12) * (rec10[(i_re95) - (S32(1))]))) + ((dsp.const11) * (rec10[(i_re95) - (S32(2))])))) - ((dsp.const13) * (((dsp.const14) * (rec9[(i_re95) - (S32(2))])) + ((dsp.const15) * (rec9[(i_re95) - (S32(1))]))))
-                i_re95 = (i_re95) + (S32(1))
+            # Compute code 
+            var i_re15 = S32(0)
+            while (i_re15) < (vsize_re0): 
+                rec9[i_re15] = ((dsp.const5) * ((((dsp.const11) * (rec10[i_re15])) + ((dsp.const12) * (rec10[(i_re15) - (S32(1))]))) + ((dsp.const11) * (rec10[(i_re15) - (S32(2))])))) - ((dsp.const13) * (((dsp.const14) * (rec9[(i_re15) - (S32(2))])) + ((dsp.const15) * (rec9[(i_re15) - (S32(1))]))))
+                i_re15 = (i_re15) + (S32(1))
+            # Post code 
             var j21_re0 = S32(0)
             while j21_re0 <= S32(4) - w64:
-                var values176 = simd_load(rec9_tmp, vsize_re0 + j21_re0)
-                simd_store(dsp.rec9_perm, j21_re0, values176)
+                var values29 = simd_load(rec9_tmp, vsize_re0 + j21_re0)
+                simd_store(dsp.rec9_perm, j21_re0, values29)
                 j21_re0 = j21_re0 + w64
+            # Recursive loop 16 
+            # Pre code 
             var j22_re0 = S32(0)
             while j22_re0 <= S32(4) - w64:
-                var values177 = simd_load(dsp.rec8_perm, j22_re0)
-                simd_store(rec8_tmp, j22_re0, values177)
+                var values30 = simd_load(dsp.rec8_perm, j22_re0)
+                simd_store(rec8_tmp, j22_re0, values30)
                 j22_re0 = j22_re0 + w64
-            var i_re96 = S32(0)
-            while (i_re96) < (vsize_re0): 
-                rec8[i_re96] = ((dsp.const13) * ((((dsp.const17) * (rec9[i_re96])) + ((dsp.const18) * (rec9[(i_re96) - (S32(1))]))) + ((dsp.const17) * (rec9[(i_re96) - (S32(2))])))) - ((dsp.const19) * (((dsp.const20) * (rec8[(i_re96) - (S32(2))])) + ((dsp.const21) * (rec8[(i_re96) - (S32(1))]))))
-                i_re96 = (i_re96) + (S32(1))
+            # Compute code 
+            var i_re16 = S32(0)
+            while (i_re16) < (vsize_re0): 
+                rec8[i_re16] = ((dsp.const13) * ((((dsp.const17) * (rec9[i_re16])) + ((dsp.const18) * (rec9[(i_re16) - (S32(1))]))) + ((dsp.const17) * (rec9[(i_re16) - (S32(2))])))) - ((dsp.const19) * (((dsp.const20) * (rec8[(i_re16) - (S32(2))])) + ((dsp.const21) * (rec8[(i_re16) - (S32(1))]))))
+                i_re16 = (i_re16) + (S32(1))
+            # Post code 
             var j23_re0 = S32(0)
             while j23_re0 <= S32(4) - w64:
-                var values178 = simd_load(rec8_tmp, vsize_re0 + j23_re0)
-                simd_store(dsp.rec8_perm, j23_re0, values178)
+                var values31 = simd_load(rec8_tmp, vsize_re0 + j23_re0)
+                simd_store(dsp.rec8_perm, j23_re0, values31)
                 j23_re0 = j23_re0 + w64
+            # Recursive loop 17 
+            # Pre code 
             var j24_re0 = S32(0)
             while j24_re0 <= S32(4) - w64:
-                var values179 = simd_load(dsp.rec7_perm, j24_re0)
-                simd_store(rec7_tmp, j24_re0, values179)
+                var values32 = simd_load(dsp.rec7_perm, j24_re0)
+                simd_store(rec7_tmp, j24_re0, values32)
                 j24_re0 = j24_re0 + w64
-            var i_re97 = S32(0)
-            while (i_re97) < (vsize_re0): 
-                rec7[i_re97] = ((rec7[(i_re97) - (S32(1))]) * (slow8)) + ((abs((dsp.const19) * ((((dsp.const24) * (rec8[i_re97])) + ((dsp.const25) * (rec8[(i_re97) - (S32(1))]))) + ((dsp.const24) * (rec8[(i_re97) - (S32(2))]))))) * (slow9))
-                i_re97 = (i_re97) + (S32(1))
+            # Compute code 
+            var i_re17 = S32(0)
+            while (i_re17) < (vsize_re0): 
+                rec7[i_re17] = ((rec7[(i_re17) - (S32(1))]) * (slow8)) + ((abs((dsp.const19) * ((((dsp.const24) * (rec8[i_re17])) + ((dsp.const25) * (rec8[(i_re17) - (S32(1))]))) + ((dsp.const24) * (rec8[(i_re17) - (S32(2))]))))) * (slow9))
+                i_re17 = (i_re17) + (S32(1))
+            # Post code 
             var j25_re0 = S32(0)
             while j25_re0 <= S32(4) - w64:
-                var values180 = simd_load(rec7_tmp, vsize_re0 + j25_re0)
-                simd_store(dsp.rec7_perm, j25_re0, values180)
+                var values33 = simd_load(rec7_tmp, vsize_re0 + j25_re0)
+                simd_store(dsp.rec7_perm, j25_re0, values33)
                 j25_re0 = j25_re0 + w64
+            # Recursive loop 18 
+            # Pre code 
+            var j26_re0 = S32(0)
+            while j26_re0 <= S32(4) - w64:
+                var values34 = simd_load(dsp.rec17_perm, j26_re0)
+                simd_store(rec17_tmp, j26_re0, values34)
+                j26_re0 = j26_re0 + w64
+            # Compute code 
+            var i_re18 = S32(0)
+            while (i_re18) < (vsize_re0): 
+                rec17[i_re18] = (zec5[i_re18]) - ((dsp.const26) * (((dsp.const27) * (rec17[(i_re18) - (S32(2))])) + ((dsp.const28) * (rec17[(i_re18) - (S32(1))]))))
+                i_re18 = (i_re18) + (S32(1))
+            # Post code 
+            var j27_re0 = S32(0)
+            while j27_re0 <= S32(4) - w64:
+                var values35 = simd_load(rec17_tmp, vsize_re0 + j27_re0)
+                simd_store(dsp.rec17_perm, j27_re0, values35)
+                j27_re0 = j27_re0 + w64
+            # Recursive loop 19 
+            # Pre code 
+            var j28_re0 = S32(0)
+            while j28_re0 <= S32(4) - w64:
+                var values36 = simd_load(dsp.rec16_perm, j28_re0)
+                simd_store(rec16_tmp, j28_re0, values36)
+                j28_re0 = j28_re0 + w64
+            # Compute code 
+            var i_re19 = S32(0)
+            while (i_re19) < (vsize_re0): 
+                rec16[i_re19] = ((dsp.const26) * ((((dsp.const30) * (rec17[i_re19])) + ((dsp.const31) * (rec17[(i_re19) - (S32(1))]))) + ((dsp.const30) * (rec17[(i_re19) - (S32(2))])))) - ((dsp.const32) * (((dsp.const33) * (rec16[(i_re19) - (S32(2))])) + ((dsp.const34) * (rec16[(i_re19) - (S32(1))]))))
+                i_re19 = (i_re19) + (S32(1))
+            # Post code 
+            var j29_re0 = S32(0)
+            while j29_re0 <= S32(4) - w64:
+                var values37 = simd_load(rec16_tmp, vsize_re0 + j29_re0)
+                simd_store(dsp.rec16_perm, j29_re0, values37)
+                j29_re0 = j29_re0 + w64
+            # Recursive loop 20 
+            # Pre code 
+            var j30_re0 = S32(0)
+            while j30_re0 <= S32(4) - w64:
+                var values38 = simd_load(dsp.rec15_perm, j30_re0)
+                simd_store(rec15_tmp, j30_re0, values38)
+                j30_re0 = j30_re0 + w64
+            # Compute code 
+            var i_re20 = S32(0)
+            while (i_re20) < (vsize_re0): 
+                rec15[i_re20] = ((dsp.const32) * ((((dsp.const35) * (rec16[i_re20])) + ((dsp.const36) * (rec16[(i_re20) - (S32(1))]))) + ((dsp.const35) * (rec16[(i_re20) - (S32(2))])))) - ((dsp.const37) * (((dsp.const38) * (rec15[(i_re20) - (S32(2))])) + ((dsp.const39) * (rec15[(i_re20) - (S32(1))]))))
+                i_re20 = (i_re20) + (S32(1))
+            # Post code 
+            var j31_re0 = S32(0)
+            while j31_re0 <= S32(4) - w64:
+                var values39 = simd_load(rec15_tmp, vsize_re0 + j31_re0)
+                simd_store(dsp.rec15_perm, j31_re0, values39)
+                j31_re0 = j31_re0 + w64
+            # Vectorizable loop 21 
+            # Compute code 
+            var i_re21 = S32(0)
+            while i_re21 <= vsize_re0 - w64:
+                var values40 = (dsp.const37) * ((((dsp.const40) * (simd_load(rec15, i_re21))) + ((dsp.const41) * (simd_load(rec15, i_re21 - S32(1))))) + ((dsp.const40) * (simd_load(rec15, i_re21 - S32(2)))))
+                simd_store(zec6, i_re21, values40)
+                i_re21 = i_re21 + w64
+            # Recursive loop 22 
+            # Pre code 
             var j32_re0 = S32(0)
             while j32_re0 <= S32(4) - w64:
-                var values181 = simd_load(dsp.rec14_perm, j32_re0)
-                simd_store(rec14_tmp, j32_re0, values181)
+                var values41 = simd_load(dsp.rec14_perm, j32_re0)
+                simd_store(rec14_tmp, j32_re0, values41)
                 j32_re0 = j32_re0 + w64
-            var i_re98 = S32(0)
-            while (i_re98) < (vsize_re0): 
-                rec14[i_re98] = (zec6[i_re98]) - ((dsp.const44) * (((dsp.const45) * (rec14[(i_re98) - (S32(2))])) + ((dsp.const48) * (rec14[(i_re98) - (S32(1))]))))
-                i_re98 = (i_re98) + (S32(1))
+            # Compute code 
+            var i_re22 = S32(0)
+            while (i_re22) < (vsize_re0): 
+                rec14[i_re22] = (zec6[i_re22]) - ((dsp.const44) * (((dsp.const45) * (rec14[(i_re22) - (S32(2))])) + ((dsp.const48) * (rec14[(i_re22) - (S32(1))]))))
+                i_re22 = (i_re22) + (S32(1))
+            # Post code 
             var j33_re0 = S32(0)
             while j33_re0 <= S32(4) - w64:
-                var values182 = simd_load(rec14_tmp, vsize_re0 + j33_re0)
-                simd_store(dsp.rec14_perm, j33_re0, values182)
+                var values42 = simd_load(rec14_tmp, vsize_re0 + j33_re0)
+                simd_store(dsp.rec14_perm, j33_re0, values42)
                 j33_re0 = j33_re0 + w64
+            # Recursive loop 23 
+            # Pre code 
             var j34_re0 = S32(0)
             while j34_re0 <= S32(4) - w64:
-                var values183 = simd_load(dsp.rec13_perm, j34_re0)
-                simd_store(rec13_tmp, j34_re0, values183)
+                var values43 = simd_load(dsp.rec13_perm, j34_re0)
+                simd_store(rec13_tmp, j34_re0, values43)
                 j34_re0 = j34_re0 + w64
-            var i_re99 = S32(0)
-            while (i_re99) < (vsize_re0): 
-                rec13[i_re99] = ((dsp.const44) * ((((dsp.const50) * (rec14[i_re99])) + ((dsp.const51) * (rec14[(i_re99) - (S32(1))]))) + ((dsp.const50) * (rec14[(i_re99) - (S32(2))])))) - ((dsp.const52) * (((dsp.const53) * (rec13[(i_re99) - (S32(2))])) + ((dsp.const54) * (rec13[(i_re99) - (S32(1))]))))
-                i_re99 = (i_re99) + (S32(1))
+            # Compute code 
+            var i_re23 = S32(0)
+            while (i_re23) < (vsize_re0): 
+                rec13[i_re23] = ((dsp.const44) * ((((dsp.const50) * (rec14[i_re23])) + ((dsp.const51) * (rec14[(i_re23) - (S32(1))]))) + ((dsp.const50) * (rec14[(i_re23) - (S32(2))])))) - ((dsp.const52) * (((dsp.const53) * (rec13[(i_re23) - (S32(2))])) + ((dsp.const54) * (rec13[(i_re23) - (S32(1))]))))
+                i_re23 = (i_re23) + (S32(1))
+            # Post code 
             var j35_re0 = S32(0)
             while j35_re0 <= S32(4) - w64:
-                var values184 = simd_load(rec13_tmp, vsize_re0 + j35_re0)
-                simd_store(dsp.rec13_perm, j35_re0, values184)
+                var values44 = simd_load(rec13_tmp, vsize_re0 + j35_re0)
+                simd_store(dsp.rec13_perm, j35_re0, values44)
                 j35_re0 = j35_re0 + w64
+            # Recursive loop 24 
+            # Pre code 
             var j36_re0 = S32(0)
             while j36_re0 <= S32(4) - w64:
-                var values185 = simd_load(dsp.rec12_perm, j36_re0)
-                simd_store(rec12_tmp, j36_re0, values185)
+                var values45 = simd_load(dsp.rec12_perm, j36_re0)
+                simd_store(rec12_tmp, j36_re0, values45)
                 j36_re0 = j36_re0 + w64
-            var i_re100 = S32(0)
-            while (i_re100) < (vsize_re0): 
-                rec12[i_re100] = ((dsp.const52) * ((((dsp.const56) * (rec13[i_re100])) + ((dsp.const57) * (rec13[(i_re100) - (S32(1))]))) + ((dsp.const56) * (rec13[(i_re100) - (S32(2))])))) - ((dsp.const58) * (((dsp.const59) * (rec12[(i_re100) - (S32(2))])) + ((dsp.const60) * (rec12[(i_re100) - (S32(1))]))))
-                i_re100 = (i_re100) + (S32(1))
+            # Compute code 
+            var i_re24 = S32(0)
+            while (i_re24) < (vsize_re0): 
+                rec12[i_re24] = ((dsp.const52) * ((((dsp.const56) * (rec13[i_re24])) + ((dsp.const57) * (rec13[(i_re24) - (S32(1))]))) + ((dsp.const56) * (rec13[(i_re24) - (S32(2))])))) - ((dsp.const58) * (((dsp.const59) * (rec12[(i_re24) - (S32(2))])) + ((dsp.const60) * (rec12[(i_re24) - (S32(1))]))))
+                i_re24 = (i_re24) + (S32(1))
+            # Post code 
             var j37_re0 = S32(0)
             while j37_re0 <= S32(4) - w64:
-                var values186 = simd_load(rec12_tmp, vsize_re0 + j37_re0)
-                simd_store(dsp.rec12_perm, j37_re0, values186)
+                var values46 = simd_load(rec12_tmp, vsize_re0 + j37_re0)
+                simd_store(dsp.rec12_perm, j37_re0, values46)
                 j37_re0 = j37_re0 + w64
+            # Recursive loop 25 
+            # Pre code 
             var j38_re0 = S32(0)
             while j38_re0 <= S32(4) - w64:
-                var values187 = simd_load(dsp.rec11_perm, j38_re0)
-                simd_store(rec11_tmp, j38_re0, values187)
+                var values47 = simd_load(dsp.rec11_perm, j38_re0)
+                simd_store(rec11_tmp, j38_re0, values47)
                 j38_re0 = j38_re0 + w64
-            var i_re101 = S32(0)
-            while (i_re101) < (vsize_re0): 
-                rec11[i_re101] = ((slow8) * (rec11[(i_re101) - (S32(1))])) + ((slow9) * (abs((dsp.const58) * ((((dsp.const62) * (rec12[i_re101])) + ((dsp.const63) * (rec12[(i_re101) - (S32(1))]))) + ((dsp.const62) * (rec12[(i_re101) - (S32(2))]))))))
-                i_re101 = (i_re101) + (S32(1))
+            # Compute code 
+            var i_re25 = S32(0)
+            while (i_re25) < (vsize_re0): 
+                rec11[i_re25] = ((slow8) * (rec11[(i_re25) - (S32(1))])) + ((slow9) * (abs((dsp.const58) * ((((dsp.const62) * (rec12[i_re25])) + ((dsp.const63) * (rec12[(i_re25) - (S32(1))]))) + ((dsp.const62) * (rec12[(i_re25) - (S32(2))]))))))
+                i_re25 = (i_re25) + (S32(1))
+            # Post code 
             var j39_re0 = S32(0)
             while j39_re0 <= S32(4) - w64:
-                var values188 = simd_load(rec11_tmp, vsize_re0 + j39_re0)
-                simd_store(dsp.rec11_perm, j39_re0, values188)
+                var values48 = simd_load(rec11_tmp, vsize_re0 + j39_re0)
+                simd_store(dsp.rec11_perm, j39_re0, values48)
                 j39_re0 = j39_re0 + w64
+            # Recursive loop 26 
+            # Pre code 
+            var j40_re0 = S32(0)
+            while j40_re0 <= S32(4) - w64:
+                var values49 = simd_load(dsp.rec24_perm, j40_re0)
+                simd_store(rec24_tmp, j40_re0, values49)
+                j40_re0 = j40_re0 + w64
+            # Compute code 
+            var i_re26 = S32(0)
+            while (i_re26) < (vsize_re0): 
+                rec24[i_re26] = (zec6[i_re26]) - ((dsp.const64) * (((dsp.const65) * (rec24[(i_re26) - (S32(2))])) + ((dsp.const66) * (rec24[(i_re26) - (S32(1))]))))
+                i_re26 = (i_re26) + (S32(1))
+            # Post code 
+            var j41_re0 = S32(0)
+            while j41_re0 <= S32(4) - w64:
+                var values50 = simd_load(rec24_tmp, vsize_re0 + j41_re0)
+                simd_store(dsp.rec24_perm, j41_re0, values50)
+                j41_re0 = j41_re0 + w64
+            # Recursive loop 27 
+            # Pre code 
+            var j42_re0 = S32(0)
+            while j42_re0 <= S32(4) - w64:
+                var values51 = simd_load(dsp.rec23_perm, j42_re0)
+                simd_store(rec23_tmp, j42_re0, values51)
+                j42_re0 = j42_re0 + w64
+            # Compute code 
+            var i_re27 = S32(0)
+            while (i_re27) < (vsize_re0): 
+                rec23[i_re27] = ((dsp.const64) * ((((dsp.const68) * (rec24[i_re27])) + ((dsp.const69) * (rec24[(i_re27) - (S32(1))]))) + ((dsp.const68) * (rec24[(i_re27) - (S32(2))])))) - ((dsp.const70) * (((dsp.const71) * (rec23[(i_re27) - (S32(2))])) + ((dsp.const72) * (rec23[(i_re27) - (S32(1))]))))
+                i_re27 = (i_re27) + (S32(1))
+            # Post code 
+            var j43_re0 = S32(0)
+            while j43_re0 <= S32(4) - w64:
+                var values52 = simd_load(rec23_tmp, vsize_re0 + j43_re0)
+                simd_store(dsp.rec23_perm, j43_re0, values52)
+                j43_re0 = j43_re0 + w64
+            # Recursive loop 28 
+            # Pre code 
+            var j44_re0 = S32(0)
+            while j44_re0 <= S32(4) - w64:
+                var values53 = simd_load(dsp.rec22_perm, j44_re0)
+                simd_store(rec22_tmp, j44_re0, values53)
+                j44_re0 = j44_re0 + w64
+            # Compute code 
+            var i_re28 = S32(0)
+            while (i_re28) < (vsize_re0): 
+                rec22[i_re28] = ((dsp.const70) * ((((dsp.const73) * (rec23[i_re28])) + ((dsp.const74) * (rec23[(i_re28) - (S32(1))]))) + ((dsp.const73) * (rec23[(i_re28) - (S32(2))])))) - ((dsp.const75) * (((dsp.const76) * (rec22[(i_re28) - (S32(2))])) + ((dsp.const77) * (rec22[(i_re28) - (S32(1))]))))
+                i_re28 = (i_re28) + (S32(1))
+            # Post code 
+            var j45_re0 = S32(0)
+            while j45_re0 <= S32(4) - w64:
+                var values54 = simd_load(rec22_tmp, vsize_re0 + j45_re0)
+                simd_store(dsp.rec22_perm, j45_re0, values54)
+                j45_re0 = j45_re0 + w64
+            # Vectorizable loop 29 
+            # Compute code 
+            var i_re29 = S32(0)
+            while i_re29 <= vsize_re0 - w64:
+                var values55 = (dsp.const75) * ((((dsp.const78) * (simd_load(rec22, i_re29))) + ((dsp.const79) * (simd_load(rec22, i_re29 - S32(1))))) + ((dsp.const78) * (simd_load(rec22, i_re29 - S32(2)))))
+                simd_store(zec7, i_re29, values55)
+                i_re29 = i_re29 + w64
+            # Recursive loop 30 
+            # Pre code 
             var j46_re0 = S32(0)
             while j46_re0 <= S32(4) - w64:
-                var values189 = simd_load(dsp.rec21_perm, j46_re0)
-                simd_store(rec21_tmp, j46_re0, values189)
+                var values56 = simd_load(dsp.rec21_perm, j46_re0)
+                simd_store(rec21_tmp, j46_re0, values56)
                 j46_re0 = j46_re0 + w64
-            var i_re102 = S32(0)
-            while (i_re102) < (vsize_re0): 
-                rec21[i_re102] = (zec7[i_re102]) - ((dsp.const82) * (((dsp.const83) * (rec21[(i_re102) - (S32(2))])) + ((dsp.const86) * (rec21[(i_re102) - (S32(1))]))))
-                i_re102 = (i_re102) + (S32(1))
+            # Compute code 
+            var i_re30 = S32(0)
+            while (i_re30) < (vsize_re0): 
+                rec21[i_re30] = (zec7[i_re30]) - ((dsp.const82) * (((dsp.const83) * (rec21[(i_re30) - (S32(2))])) + ((dsp.const86) * (rec21[(i_re30) - (S32(1))]))))
+                i_re30 = (i_re30) + (S32(1))
+            # Post code 
             var j47_re0 = S32(0)
             while j47_re0 <= S32(4) - w64:
-                var values190 = simd_load(rec21_tmp, vsize_re0 + j47_re0)
-                simd_store(dsp.rec21_perm, j47_re0, values190)
+                var values57 = simd_load(rec21_tmp, vsize_re0 + j47_re0)
+                simd_store(dsp.rec21_perm, j47_re0, values57)
                 j47_re0 = j47_re0 + w64
+            # Recursive loop 31 
+            # Pre code 
             var j48_re0 = S32(0)
             while j48_re0 <= S32(4) - w64:
-                var values191 = simd_load(dsp.rec20_perm, j48_re0)
-                simd_store(rec20_tmp, j48_re0, values191)
+                var values58 = simd_load(dsp.rec20_perm, j48_re0)
+                simd_store(rec20_tmp, j48_re0, values58)
                 j48_re0 = j48_re0 + w64
-            var i_re103 = S32(0)
-            while (i_re103) < (vsize_re0): 
-                rec20[i_re103] = ((dsp.const82) * ((((dsp.const88) * (rec21[i_re103])) + ((dsp.const89) * (rec21[(i_re103) - (S32(1))]))) + ((dsp.const88) * (rec21[(i_re103) - (S32(2))])))) - ((dsp.const90) * (((dsp.const91) * (rec20[(i_re103) - (S32(2))])) + ((dsp.const92) * (rec20[(i_re103) - (S32(1))]))))
-                i_re103 = (i_re103) + (S32(1))
+            # Compute code 
+            var i_re31 = S32(0)
+            while (i_re31) < (vsize_re0): 
+                rec20[i_re31] = ((dsp.const82) * ((((dsp.const88) * (rec21[i_re31])) + ((dsp.const89) * (rec21[(i_re31) - (S32(1))]))) + ((dsp.const88) * (rec21[(i_re31) - (S32(2))])))) - ((dsp.const90) * (((dsp.const91) * (rec20[(i_re31) - (S32(2))])) + ((dsp.const92) * (rec20[(i_re31) - (S32(1))]))))
+                i_re31 = (i_re31) + (S32(1))
+            # Post code 
             var j49_re0 = S32(0)
             while j49_re0 <= S32(4) - w64:
-                var values192 = simd_load(rec20_tmp, vsize_re0 + j49_re0)
-                simd_store(dsp.rec20_perm, j49_re0, values192)
+                var values59 = simd_load(rec20_tmp, vsize_re0 + j49_re0)
+                simd_store(dsp.rec20_perm, j49_re0, values59)
                 j49_re0 = j49_re0 + w64
+            # Recursive loop 32 
+            # Pre code 
             var j50_re0 = S32(0)
             while j50_re0 <= S32(4) - w64:
-                var values193 = simd_load(dsp.rec19_perm, j50_re0)
-                simd_store(rec19_tmp, j50_re0, values193)
+                var values60 = simd_load(dsp.rec19_perm, j50_re0)
+                simd_store(rec19_tmp, j50_re0, values60)
                 j50_re0 = j50_re0 + w64
-            var i_re104 = S32(0)
-            while (i_re104) < (vsize_re0): 
-                rec19[i_re104] = ((dsp.const90) * ((((dsp.const94) * (rec20[i_re104])) + ((dsp.const95) * (rec20[(i_re104) - (S32(1))]))) + ((dsp.const94) * (rec20[(i_re104) - (S32(2))])))) - ((dsp.const96) * (((dsp.const97) * (rec19[(i_re104) - (S32(2))])) + ((dsp.const98) * (rec19[(i_re104) - (S32(1))]))))
-                i_re104 = (i_re104) + (S32(1))
+            # Compute code 
+            var i_re32 = S32(0)
+            while (i_re32) < (vsize_re0): 
+                rec19[i_re32] = ((dsp.const90) * ((((dsp.const94) * (rec20[i_re32])) + ((dsp.const95) * (rec20[(i_re32) - (S32(1))]))) + ((dsp.const94) * (rec20[(i_re32) - (S32(2))])))) - ((dsp.const96) * (((dsp.const97) * (rec19[(i_re32) - (S32(2))])) + ((dsp.const98) * (rec19[(i_re32) - (S32(1))]))))
+                i_re32 = (i_re32) + (S32(1))
+            # Post code 
             var j51_re0 = S32(0)
             while j51_re0 <= S32(4) - w64:
-                var values194 = simd_load(rec19_tmp, vsize_re0 + j51_re0)
-                simd_store(dsp.rec19_perm, j51_re0, values194)
+                var values61 = simd_load(rec19_tmp, vsize_re0 + j51_re0)
+                simd_store(dsp.rec19_perm, j51_re0, values61)
                 j51_re0 = j51_re0 + w64
+            # Recursive loop 33 
+            # Pre code 
             var j52_re0 = S32(0)
             while j52_re0 <= S32(4) - w64:
-                var values195 = simd_load(dsp.rec18_perm, j52_re0)
-                simd_store(rec18_tmp, j52_re0, values195)
+                var values62 = simd_load(dsp.rec18_perm, j52_re0)
+                simd_store(rec18_tmp, j52_re0, values62)
                 j52_re0 = j52_re0 + w64
-            var i_re105 = S32(0)
-            while (i_re105) < (vsize_re0): 
-                rec18[i_re105] = ((slow8) * (rec18[(i_re105) - (S32(1))])) + ((slow9) * (abs((dsp.const96) * ((((dsp.const100) * (rec19[i_re105])) + ((dsp.const101) * (rec19[(i_re105) - (S32(1))]))) + ((dsp.const100) * (rec19[(i_re105) - (S32(2))]))))))
-                i_re105 = (i_re105) + (S32(1))
+            # Compute code 
+            var i_re33 = S32(0)
+            while (i_re33) < (vsize_re0): 
+                rec18[i_re33] = ((slow8) * (rec18[(i_re33) - (S32(1))])) + ((slow9) * (abs((dsp.const96) * ((((dsp.const100) * (rec19[i_re33])) + ((dsp.const101) * (rec19[(i_re33) - (S32(1))]))) + ((dsp.const100) * (rec19[(i_re33) - (S32(2))]))))))
+                i_re33 = (i_re33) + (S32(1))
+            # Post code 
             var j53_re0 = S32(0)
             while j53_re0 <= S32(4) - w64:
-                var values196 = simd_load(rec18_tmp, vsize_re0 + j53_re0)
-                simd_store(dsp.rec18_perm, j53_re0, values196)
+                var values63 = simd_load(rec18_tmp, vsize_re0 + j53_re0)
+                simd_store(dsp.rec18_perm, j53_re0, values63)
                 j53_re0 = j53_re0 + w64
+            # Recursive loop 34 
+            # Pre code 
+            var j54_re0 = S32(0)
+            while j54_re0 <= S32(4) - w64:
+                var values64 = simd_load(dsp.rec31_perm, j54_re0)
+                simd_store(rec31_tmp, j54_re0, values64)
+                j54_re0 = j54_re0 + w64
+            # Compute code 
+            var i_re34 = S32(0)
+            while (i_re34) < (vsize_re0): 
+                rec31[i_re34] = (zec7[i_re34]) - ((dsp.const102) * (((dsp.const103) * (rec31[(i_re34) - (S32(2))])) + ((dsp.const104) * (rec31[(i_re34) - (S32(1))]))))
+                i_re34 = (i_re34) + (S32(1))
+            # Post code 
+            var j55_re0 = S32(0)
+            while j55_re0 <= S32(4) - w64:
+                var values65 = simd_load(rec31_tmp, vsize_re0 + j55_re0)
+                simd_store(dsp.rec31_perm, j55_re0, values65)
+                j55_re0 = j55_re0 + w64
+            # Recursive loop 35 
+            # Pre code 
+            var j56_re0 = S32(0)
+            while j56_re0 <= S32(4) - w64:
+                var values66 = simd_load(dsp.rec30_perm, j56_re0)
+                simd_store(rec30_tmp, j56_re0, values66)
+                j56_re0 = j56_re0 + w64
+            # Compute code 
+            var i_re35 = S32(0)
+            while (i_re35) < (vsize_re0): 
+                rec30[i_re35] = ((dsp.const102) * ((((dsp.const106) * (rec31[i_re35])) + ((dsp.const107) * (rec31[(i_re35) - (S32(1))]))) + ((dsp.const106) * (rec31[(i_re35) - (S32(2))])))) - ((dsp.const108) * (((dsp.const109) * (rec30[(i_re35) - (S32(2))])) + ((dsp.const110) * (rec30[(i_re35) - (S32(1))]))))
+                i_re35 = (i_re35) + (S32(1))
+            # Post code 
+            var j57_re0 = S32(0)
+            while j57_re0 <= S32(4) - w64:
+                var values67 = simd_load(rec30_tmp, vsize_re0 + j57_re0)
+                simd_store(dsp.rec30_perm, j57_re0, values67)
+                j57_re0 = j57_re0 + w64
+            # Recursive loop 36 
+            # Pre code 
+            var j58_re0 = S32(0)
+            while j58_re0 <= S32(4) - w64:
+                var values68 = simd_load(dsp.rec29_perm, j58_re0)
+                simd_store(rec29_tmp, j58_re0, values68)
+                j58_re0 = j58_re0 + w64
+            # Compute code 
+            var i_re36 = S32(0)
+            while (i_re36) < (vsize_re0): 
+                rec29[i_re36] = ((dsp.const108) * ((((dsp.const111) * (rec30[i_re36])) + ((dsp.const112) * (rec30[(i_re36) - (S32(1))]))) + ((dsp.const111) * (rec30[(i_re36) - (S32(2))])))) - ((dsp.const113) * (((dsp.const114) * (rec29[(i_re36) - (S32(2))])) + ((dsp.const115) * (rec29[(i_re36) - (S32(1))]))))
+                i_re36 = (i_re36) + (S32(1))
+            # Post code 
+            var j59_re0 = S32(0)
+            while j59_re0 <= S32(4) - w64:
+                var values69 = simd_load(rec29_tmp, vsize_re0 + j59_re0)
+                simd_store(dsp.rec29_perm, j59_re0, values69)
+                j59_re0 = j59_re0 + w64
+            # Vectorizable loop 37 
+            # Compute code 
+            var i_re37 = S32(0)
+            while i_re37 <= vsize_re0 - w64:
+                var values70 = (dsp.const113) * ((((dsp.const116) * (simd_load(rec29, i_re37))) + ((dsp.const117) * (simd_load(rec29, i_re37 - S32(1))))) + ((dsp.const116) * (simd_load(rec29, i_re37 - S32(2)))))
+                simd_store(zec8, i_re37, values70)
+                i_re37 = i_re37 + w64
+            # Recursive loop 38 
+            # Pre code 
             var j60_re0 = S32(0)
             while j60_re0 <= S32(4) - w64:
-                var values197 = simd_load(dsp.rec28_perm, j60_re0)
-                simd_store(rec28_tmp, j60_re0, values197)
+                var values71 = simd_load(dsp.rec28_perm, j60_re0)
+                simd_store(rec28_tmp, j60_re0, values71)
                 j60_re0 = j60_re0 + w64
-            var i_re106 = S32(0)
-            while (i_re106) < (vsize_re0): 
-                rec28[i_re106] = (zec8[i_re106]) - ((dsp.const120) * (((dsp.const121) * (rec28[(i_re106) - (S32(2))])) + ((dsp.const124) * (rec28[(i_re106) - (S32(1))]))))
-                i_re106 = (i_re106) + (S32(1))
+            # Compute code 
+            var i_re38 = S32(0)
+            while (i_re38) < (vsize_re0): 
+                rec28[i_re38] = (zec8[i_re38]) - ((dsp.const120) * (((dsp.const121) * (rec28[(i_re38) - (S32(2))])) + ((dsp.const124) * (rec28[(i_re38) - (S32(1))]))))
+                i_re38 = (i_re38) + (S32(1))
+            # Post code 
             var j61_re0 = S32(0)
             while j61_re0 <= S32(4) - w64:
-                var values198 = simd_load(rec28_tmp, vsize_re0 + j61_re0)
-                simd_store(dsp.rec28_perm, j61_re0, values198)
+                var values72 = simd_load(rec28_tmp, vsize_re0 + j61_re0)
+                simd_store(dsp.rec28_perm, j61_re0, values72)
                 j61_re0 = j61_re0 + w64
+            # Recursive loop 39 
+            # Pre code 
             var j62_re0 = S32(0)
             while j62_re0 <= S32(4) - w64:
-                var values199 = simd_load(dsp.rec27_perm, j62_re0)
-                simd_store(rec27_tmp, j62_re0, values199)
+                var values73 = simd_load(dsp.rec27_perm, j62_re0)
+                simd_store(rec27_tmp, j62_re0, values73)
                 j62_re0 = j62_re0 + w64
-            var i_re107 = S32(0)
-            while (i_re107) < (vsize_re0): 
-                rec27[i_re107] = ((dsp.const120) * ((((dsp.const126) * (rec28[i_re107])) + ((dsp.const127) * (rec28[(i_re107) - (S32(1))]))) + ((dsp.const126) * (rec28[(i_re107) - (S32(2))])))) - ((dsp.const128) * (((dsp.const129) * (rec27[(i_re107) - (S32(2))])) + ((dsp.const130) * (rec27[(i_re107) - (S32(1))]))))
-                i_re107 = (i_re107) + (S32(1))
+            # Compute code 
+            var i_re39 = S32(0)
+            while (i_re39) < (vsize_re0): 
+                rec27[i_re39] = ((dsp.const120) * ((((dsp.const126) * (rec28[i_re39])) + ((dsp.const127) * (rec28[(i_re39) - (S32(1))]))) + ((dsp.const126) * (rec28[(i_re39) - (S32(2))])))) - ((dsp.const128) * (((dsp.const129) * (rec27[(i_re39) - (S32(2))])) + ((dsp.const130) * (rec27[(i_re39) - (S32(1))]))))
+                i_re39 = (i_re39) + (S32(1))
+            # Post code 
             var j63_re0 = S32(0)
             while j63_re0 <= S32(4) - w64:
-                var values200 = simd_load(rec27_tmp, vsize_re0 + j63_re0)
-                simd_store(dsp.rec27_perm, j63_re0, values200)
+                var values74 = simd_load(rec27_tmp, vsize_re0 + j63_re0)
+                simd_store(dsp.rec27_perm, j63_re0, values74)
                 j63_re0 = j63_re0 + w64
+            # Recursive loop 40 
+            # Pre code 
             var j64_re0 = S32(0)
             while j64_re0 <= S32(4) - w64:
-                var values201 = simd_load(dsp.rec26_perm, j64_re0)
-                simd_store(rec26_tmp, j64_re0, values201)
+                var values75 = simd_load(dsp.rec26_perm, j64_re0)
+                simd_store(rec26_tmp, j64_re0, values75)
                 j64_re0 = j64_re0 + w64
-            var i_re108 = S32(0)
-            while (i_re108) < (vsize_re0): 
-                rec26[i_re108] = ((dsp.const128) * ((((dsp.const132) * (rec27[i_re108])) + ((dsp.const133) * (rec27[(i_re108) - (S32(1))]))) + ((dsp.const132) * (rec27[(i_re108) - (S32(2))])))) - ((dsp.const134) * (((dsp.const135) * (rec26[(i_re108) - (S32(2))])) + ((dsp.const136) * (rec26[(i_re108) - (S32(1))]))))
-                i_re108 = (i_re108) + (S32(1))
+            # Compute code 
+            var i_re40 = S32(0)
+            while (i_re40) < (vsize_re0): 
+                rec26[i_re40] = ((dsp.const128) * ((((dsp.const132) * (rec27[i_re40])) + ((dsp.const133) * (rec27[(i_re40) - (S32(1))]))) + ((dsp.const132) * (rec27[(i_re40) - (S32(2))])))) - ((dsp.const134) * (((dsp.const135) * (rec26[(i_re40) - (S32(2))])) + ((dsp.const136) * (rec26[(i_re40) - (S32(1))]))))
+                i_re40 = (i_re40) + (S32(1))
+            # Post code 
             var j65_re0 = S32(0)
             while j65_re0 <= S32(4) - w64:
-                var values202 = simd_load(rec26_tmp, vsize_re0 + j65_re0)
-                simd_store(dsp.rec26_perm, j65_re0, values202)
+                var values76 = simd_load(rec26_tmp, vsize_re0 + j65_re0)
+                simd_store(dsp.rec26_perm, j65_re0, values76)
                 j65_re0 = j65_re0 + w64
+            # Recursive loop 41 
+            # Pre code 
             var j66_re0 = S32(0)
             while j66_re0 <= S32(4) - w64:
-                var values203 = simd_load(dsp.rec25_perm, j66_re0)
-                simd_store(rec25_tmp, j66_re0, values203)
+                var values77 = simd_load(dsp.rec25_perm, j66_re0)
+                simd_store(rec25_tmp, j66_re0, values77)
                 j66_re0 = j66_re0 + w64
-            var i_re109 = S32(0)
-            while (i_re109) < (vsize_re0): 
-                rec25[i_re109] = ((slow8) * (rec25[(i_re109) - (S32(1))])) + ((slow9) * (abs((dsp.const134) * ((((dsp.const138) * (rec26[i_re109])) + ((dsp.const139) * (rec26[(i_re109) - (S32(1))]))) + ((dsp.const138) * (rec26[(i_re109) - (S32(2))]))))))
-                i_re109 = (i_re109) + (S32(1))
+            # Compute code 
+            var i_re41 = S32(0)
+            while (i_re41) < (vsize_re0): 
+                rec25[i_re41] = ((slow8) * (rec25[(i_re41) - (S32(1))])) + ((slow9) * (abs((dsp.const134) * ((((dsp.const138) * (rec26[i_re41])) + ((dsp.const139) * (rec26[(i_re41) - (S32(1))]))) + ((dsp.const138) * (rec26[(i_re41) - (S32(2))]))))))
+                i_re41 = (i_re41) + (S32(1))
+            # Post code 
             var j67_re0 = S32(0)
             while j67_re0 <= S32(4) - w64:
-                var values204 = simd_load(rec25_tmp, vsize_re0 + j67_re0)
-                simd_store(dsp.rec25_perm, j67_re0, values204)
+                var values78 = simd_load(rec25_tmp, vsize_re0 + j67_re0)
+                simd_store(dsp.rec25_perm, j67_re0, values78)
                 j67_re0 = j67_re0 + w64
+            # Recursive loop 42 
+            # Pre code 
+            var j68_re0 = S32(0)
+            while j68_re0 <= S32(4) - w64:
+                var values79 = simd_load(dsp.rec38_perm, j68_re0)
+                simd_store(rec38_tmp, j68_re0, values79)
+                j68_re0 = j68_re0 + w64
+            # Compute code 
+            var i_re42 = S32(0)
+            while (i_re42) < (vsize_re0): 
+                rec38[i_re42] = (zec8[i_re42]) - ((dsp.const140) * (((dsp.const141) * (rec38[(i_re42) - (S32(2))])) + ((dsp.const142) * (rec38[(i_re42) - (S32(1))]))))
+                i_re42 = (i_re42) + (S32(1))
+            # Post code 
+            var j69_re0 = S32(0)
+            while j69_re0 <= S32(4) - w64:
+                var values80 = simd_load(rec38_tmp, vsize_re0 + j69_re0)
+                simd_store(dsp.rec38_perm, j69_re0, values80)
+                j69_re0 = j69_re0 + w64
+            # Recursive loop 43 
+            # Pre code 
+            var j70_re0 = S32(0)
+            while j70_re0 <= S32(4) - w64:
+                var values81 = simd_load(dsp.rec37_perm, j70_re0)
+                simd_store(rec37_tmp, j70_re0, values81)
+                j70_re0 = j70_re0 + w64
+            # Compute code 
+            var i_re43 = S32(0)
+            while (i_re43) < (vsize_re0): 
+                rec37[i_re43] = ((dsp.const140) * ((((dsp.const144) * (rec38[i_re43])) + ((dsp.const145) * (rec38[(i_re43) - (S32(1))]))) + ((dsp.const144) * (rec38[(i_re43) - (S32(2))])))) - ((dsp.const146) * (((dsp.const147) * (rec37[(i_re43) - (S32(2))])) + ((dsp.const148) * (rec37[(i_re43) - (S32(1))]))))
+                i_re43 = (i_re43) + (S32(1))
+            # Post code 
+            var j71_re0 = S32(0)
+            while j71_re0 <= S32(4) - w64:
+                var values82 = simd_load(rec37_tmp, vsize_re0 + j71_re0)
+                simd_store(dsp.rec37_perm, j71_re0, values82)
+                j71_re0 = j71_re0 + w64
+            # Recursive loop 44 
+            # Pre code 
+            var j72_re0 = S32(0)
+            while j72_re0 <= S32(4) - w64:
+                var values83 = simd_load(dsp.rec36_perm, j72_re0)
+                simd_store(rec36_tmp, j72_re0, values83)
+                j72_re0 = j72_re0 + w64
+            # Compute code 
+            var i_re44 = S32(0)
+            while (i_re44) < (vsize_re0): 
+                rec36[i_re44] = ((dsp.const146) * ((((dsp.const149) * (rec37[i_re44])) + ((dsp.const150) * (rec37[(i_re44) - (S32(1))]))) + ((dsp.const149) * (rec37[(i_re44) - (S32(2))])))) - ((dsp.const151) * (((dsp.const152) * (rec36[(i_re44) - (S32(2))])) + ((dsp.const153) * (rec36[(i_re44) - (S32(1))]))))
+                i_re44 = (i_re44) + (S32(1))
+            # Post code 
+            var j73_re0 = S32(0)
+            while j73_re0 <= S32(4) - w64:
+                var values84 = simd_load(rec36_tmp, vsize_re0 + j73_re0)
+                simd_store(dsp.rec36_perm, j73_re0, values84)
+                j73_re0 = j73_re0 + w64
+            # Vectorizable loop 45 
+            # Compute code 
+            var i_re45 = S32(0)
+            while i_re45 <= vsize_re0 - w64:
+                var values85 = (dsp.const151) * ((((dsp.const154) * (simd_load(rec36, i_re45))) + ((dsp.const155) * (simd_load(rec36, i_re45 - S32(1))))) + ((dsp.const154) * (simd_load(rec36, i_re45 - S32(2)))))
+                simd_store(zec9, i_re45, values85)
+                i_re45 = i_re45 + w64
+            # Recursive loop 46 
+            # Pre code 
             var j74_re0 = S32(0)
             while j74_re0 <= S32(4) - w64:
-                var values205 = simd_load(dsp.rec35_perm, j74_re0)
-                simd_store(rec35_tmp, j74_re0, values205)
+                var values86 = simd_load(dsp.rec35_perm, j74_re0)
+                simd_store(rec35_tmp, j74_re0, values86)
                 j74_re0 = j74_re0 + w64
-            var i_re110 = S32(0)
-            while (i_re110) < (vsize_re0): 
-                rec35[i_re110] = (zec9[i_re110]) - ((dsp.const158) * (((dsp.const159) * (rec35[(i_re110) - (S32(2))])) + ((dsp.const162) * (rec35[(i_re110) - (S32(1))]))))
-                i_re110 = (i_re110) + (S32(1))
+            # Compute code 
+            var i_re46 = S32(0)
+            while (i_re46) < (vsize_re0): 
+                rec35[i_re46] = (zec9[i_re46]) - ((dsp.const158) * (((dsp.const159) * (rec35[(i_re46) - (S32(2))])) + ((dsp.const162) * (rec35[(i_re46) - (S32(1))]))))
+                i_re46 = (i_re46) + (S32(1))
+            # Post code 
             var j75_re0 = S32(0)
             while j75_re0 <= S32(4) - w64:
-                var values206 = simd_load(rec35_tmp, vsize_re0 + j75_re0)
-                simd_store(dsp.rec35_perm, j75_re0, values206)
+                var values87 = simd_load(rec35_tmp, vsize_re0 + j75_re0)
+                simd_store(dsp.rec35_perm, j75_re0, values87)
                 j75_re0 = j75_re0 + w64
+            # Recursive loop 47 
+            # Pre code 
             var j76_re0 = S32(0)
             while j76_re0 <= S32(4) - w64:
-                var values207 = simd_load(dsp.rec34_perm, j76_re0)
-                simd_store(rec34_tmp, j76_re0, values207)
+                var values88 = simd_load(dsp.rec34_perm, j76_re0)
+                simd_store(rec34_tmp, j76_re0, values88)
                 j76_re0 = j76_re0 + w64
-            var i_re111 = S32(0)
-            while (i_re111) < (vsize_re0): 
-                rec34[i_re111] = ((dsp.const158) * ((((dsp.const164) * (rec35[i_re111])) + ((dsp.const165) * (rec35[(i_re111) - (S32(1))]))) + ((dsp.const164) * (rec35[(i_re111) - (S32(2))])))) - ((dsp.const166) * (((dsp.const167) * (rec34[(i_re111) - (S32(2))])) + ((dsp.const168) * (rec34[(i_re111) - (S32(1))]))))
-                i_re111 = (i_re111) + (S32(1))
+            # Compute code 
+            var i_re47 = S32(0)
+            while (i_re47) < (vsize_re0): 
+                rec34[i_re47] = ((dsp.const158) * ((((dsp.const164) * (rec35[i_re47])) + ((dsp.const165) * (rec35[(i_re47) - (S32(1))]))) + ((dsp.const164) * (rec35[(i_re47) - (S32(2))])))) - ((dsp.const166) * (((dsp.const167) * (rec34[(i_re47) - (S32(2))])) + ((dsp.const168) * (rec34[(i_re47) - (S32(1))]))))
+                i_re47 = (i_re47) + (S32(1))
+            # Post code 
             var j77_re0 = S32(0)
             while j77_re0 <= S32(4) - w64:
-                var values208 = simd_load(rec34_tmp, vsize_re0 + j77_re0)
-                simd_store(dsp.rec34_perm, j77_re0, values208)
+                var values89 = simd_load(rec34_tmp, vsize_re0 + j77_re0)
+                simd_store(dsp.rec34_perm, j77_re0, values89)
                 j77_re0 = j77_re0 + w64
+            # Recursive loop 48 
+            # Pre code 
             var j78_re0 = S32(0)
             while j78_re0 <= S32(4) - w64:
-                var values209 = simd_load(dsp.rec33_perm, j78_re0)
-                simd_store(rec33_tmp, j78_re0, values209)
+                var values90 = simd_load(dsp.rec33_perm, j78_re0)
+                simd_store(rec33_tmp, j78_re0, values90)
                 j78_re0 = j78_re0 + w64
-            var i_re112 = S32(0)
-            while (i_re112) < (vsize_re0): 
-                rec33[i_re112] = ((dsp.const166) * ((((dsp.const170) * (rec34[i_re112])) + ((dsp.const171) * (rec34[(i_re112) - (S32(1))]))) + ((dsp.const170) * (rec34[(i_re112) - (S32(2))])))) - ((dsp.const172) * (((dsp.const173) * (rec33[(i_re112) - (S32(2))])) + ((dsp.const174) * (rec33[(i_re112) - (S32(1))]))))
-                i_re112 = (i_re112) + (S32(1))
+            # Compute code 
+            var i_re48 = S32(0)
+            while (i_re48) < (vsize_re0): 
+                rec33[i_re48] = ((dsp.const166) * ((((dsp.const170) * (rec34[i_re48])) + ((dsp.const171) * (rec34[(i_re48) - (S32(1))]))) + ((dsp.const170) * (rec34[(i_re48) - (S32(2))])))) - ((dsp.const172) * (((dsp.const173) * (rec33[(i_re48) - (S32(2))])) + ((dsp.const174) * (rec33[(i_re48) - (S32(1))]))))
+                i_re48 = (i_re48) + (S32(1))
+            # Post code 
             var j79_re0 = S32(0)
             while j79_re0 <= S32(4) - w64:
-                var values210 = simd_load(rec33_tmp, vsize_re0 + j79_re0)
-                simd_store(dsp.rec33_perm, j79_re0, values210)
+                var values91 = simd_load(rec33_tmp, vsize_re0 + j79_re0)
+                simd_store(dsp.rec33_perm, j79_re0, values91)
                 j79_re0 = j79_re0 + w64
+            # Recursive loop 49 
+            # Pre code 
             var j80_re0 = S32(0)
             while j80_re0 <= S32(4) - w64:
-                var values211 = simd_load(dsp.rec32_perm, j80_re0)
-                simd_store(rec32_tmp, j80_re0, values211)
+                var values92 = simd_load(dsp.rec32_perm, j80_re0)
+                simd_store(rec32_tmp, j80_re0, values92)
                 j80_re0 = j80_re0 + w64
-            var i_re113 = S32(0)
-            while (i_re113) < (vsize_re0): 
-                rec32[i_re113] = ((slow8) * (rec32[(i_re113) - (S32(1))])) + ((slow9) * (abs((dsp.const172) * ((((dsp.const176) * (rec33[i_re113])) + ((dsp.const177) * (rec33[(i_re113) - (S32(1))]))) + ((dsp.const176) * (rec33[(i_re113) - (S32(2))]))))))
-                i_re113 = (i_re113) + (S32(1))
+            # Compute code 
+            var i_re49 = S32(0)
+            while (i_re49) < (vsize_re0): 
+                rec32[i_re49] = ((slow8) * (rec32[(i_re49) - (S32(1))])) + ((slow9) * (abs((dsp.const172) * ((((dsp.const176) * (rec33[i_re49])) + ((dsp.const177) * (rec33[(i_re49) - (S32(1))]))) + ((dsp.const176) * (rec33[(i_re49) - (S32(2))]))))))
+                i_re49 = (i_re49) + (S32(1))
+            # Post code 
             var j81_re0 = S32(0)
             while j81_re0 <= S32(4) - w64:
-                var values212 = simd_load(rec32_tmp, vsize_re0 + j81_re0)
-                simd_store(dsp.rec32_perm, j81_re0, values212)
+                var values93 = simd_load(rec32_tmp, vsize_re0 + j81_re0)
+                simd_store(dsp.rec32_perm, j81_re0, values93)
                 j81_re0 = j81_re0 + w64
+            # Recursive loop 50 
+            # Pre code 
+            var j82_re0 = S32(0)
+            while j82_re0 <= S32(4) - w64:
+                var values94 = simd_load(dsp.rec45_perm, j82_re0)
+                simd_store(rec45_tmp, j82_re0, values94)
+                j82_re0 = j82_re0 + w64
+            # Compute code 
+            var i_re50 = S32(0)
+            while (i_re50) < (vsize_re0): 
+                rec45[i_re50] = (zec9[i_re50]) - ((dsp.const178) * (((dsp.const179) * (rec45[(i_re50) - (S32(2))])) + ((dsp.const180) * (rec45[(i_re50) - (S32(1))]))))
+                i_re50 = (i_re50) + (S32(1))
+            # Post code 
+            var j83_re0 = S32(0)
+            while j83_re0 <= S32(4) - w64:
+                var values95 = simd_load(rec45_tmp, vsize_re0 + j83_re0)
+                simd_store(dsp.rec45_perm, j83_re0, values95)
+                j83_re0 = j83_re0 + w64
+            # Recursive loop 51 
+            # Pre code 
+            var j84_re0 = S32(0)
+            while j84_re0 <= S32(4) - w64:
+                var values96 = simd_load(dsp.rec44_perm, j84_re0)
+                simd_store(rec44_tmp, j84_re0, values96)
+                j84_re0 = j84_re0 + w64
+            # Compute code 
+            var i_re51 = S32(0)
+            while (i_re51) < (vsize_re0): 
+                rec44[i_re51] = ((dsp.const178) * ((((dsp.const182) * (rec45[i_re51])) + ((dsp.const183) * (rec45[(i_re51) - (S32(1))]))) + ((dsp.const182) * (rec45[(i_re51) - (S32(2))])))) - ((dsp.const184) * (((dsp.const185) * (rec44[(i_re51) - (S32(2))])) + ((dsp.const186) * (rec44[(i_re51) - (S32(1))]))))
+                i_re51 = (i_re51) + (S32(1))
+            # Post code 
+            var j85_re0 = S32(0)
+            while j85_re0 <= S32(4) - w64:
+                var values97 = simd_load(rec44_tmp, vsize_re0 + j85_re0)
+                simd_store(dsp.rec44_perm, j85_re0, values97)
+                j85_re0 = j85_re0 + w64
+            # Recursive loop 52 
+            # Pre code 
+            var j86_re0 = S32(0)
+            while j86_re0 <= S32(4) - w64:
+                var values98 = simd_load(dsp.rec43_perm, j86_re0)
+                simd_store(rec43_tmp, j86_re0, values98)
+                j86_re0 = j86_re0 + w64
+            # Compute code 
+            var i_re52 = S32(0)
+            while (i_re52) < (vsize_re0): 
+                rec43[i_re52] = ((dsp.const184) * ((((dsp.const187) * (rec44[i_re52])) + ((dsp.const188) * (rec44[(i_re52) - (S32(1))]))) + ((dsp.const187) * (rec44[(i_re52) - (S32(2))])))) - ((dsp.const189) * (((dsp.const190) * (rec43[(i_re52) - (S32(2))])) + ((dsp.const191) * (rec43[(i_re52) - (S32(1))]))))
+                i_re52 = (i_re52) + (S32(1))
+            # Post code 
+            var j87_re0 = S32(0)
+            while j87_re0 <= S32(4) - w64:
+                var values99 = simd_load(rec43_tmp, vsize_re0 + j87_re0)
+                simd_store(dsp.rec43_perm, j87_re0, values99)
+                j87_re0 = j87_re0 + w64
+            # Vectorizable loop 53 
+            # Compute code 
+            var i_re53 = S32(0)
+            while i_re53 <= vsize_re0 - w64:
+                var values100 = (dsp.const189) * ((((dsp.const192) * (simd_load(rec43, i_re53))) + ((dsp.const193) * (simd_load(rec43, i_re53 - S32(1))))) + ((dsp.const192) * (simd_load(rec43, i_re53 - S32(2)))))
+                simd_store(zec10, i_re53, values100)
+                i_re53 = i_re53 + w64
+            # Recursive loop 54 
+            # Pre code 
             var j88_re0 = S32(0)
             while j88_re0 <= S32(4) - w64:
-                var values213 = simd_load(dsp.rec42_perm, j88_re0)
-                simd_store(rec42_tmp, j88_re0, values213)
+                var values101 = simd_load(dsp.rec42_perm, j88_re0)
+                simd_store(rec42_tmp, j88_re0, values101)
                 j88_re0 = j88_re0 + w64
-            var i_re114 = S32(0)
-            while (i_re114) < (vsize_re0): 
-                rec42[i_re114] = (zec10[i_re114]) - ((dsp.const196) * (((dsp.const197) * (rec42[(i_re114) - (S32(2))])) + ((dsp.const200) * (rec42[(i_re114) - (S32(1))]))))
-                i_re114 = (i_re114) + (S32(1))
+            # Compute code 
+            var i_re54 = S32(0)
+            while (i_re54) < (vsize_re0): 
+                rec42[i_re54] = (zec10[i_re54]) - ((dsp.const196) * (((dsp.const197) * (rec42[(i_re54) - (S32(2))])) + ((dsp.const200) * (rec42[(i_re54) - (S32(1))]))))
+                i_re54 = (i_re54) + (S32(1))
+            # Post code 
             var j89_re0 = S32(0)
             while j89_re0 <= S32(4) - w64:
-                var values214 = simd_load(rec42_tmp, vsize_re0 + j89_re0)
-                simd_store(dsp.rec42_perm, j89_re0, values214)
+                var values102 = simd_load(rec42_tmp, vsize_re0 + j89_re0)
+                simd_store(dsp.rec42_perm, j89_re0, values102)
                 j89_re0 = j89_re0 + w64
+            # Recursive loop 55 
+            # Pre code 
             var j90_re0 = S32(0)
             while j90_re0 <= S32(4) - w64:
-                var values215 = simd_load(dsp.rec41_perm, j90_re0)
-                simd_store(rec41_tmp, j90_re0, values215)
+                var values103 = simd_load(dsp.rec41_perm, j90_re0)
+                simd_store(rec41_tmp, j90_re0, values103)
                 j90_re0 = j90_re0 + w64
-            var i_re115 = S32(0)
-            while (i_re115) < (vsize_re0): 
-                rec41[i_re115] = ((dsp.const196) * ((((dsp.const202) * (rec42[i_re115])) + ((dsp.const203) * (rec42[(i_re115) - (S32(1))]))) + ((dsp.const202) * (rec42[(i_re115) - (S32(2))])))) - ((dsp.const204) * (((dsp.const205) * (rec41[(i_re115) - (S32(2))])) + ((dsp.const206) * (rec41[(i_re115) - (S32(1))]))))
-                i_re115 = (i_re115) + (S32(1))
+            # Compute code 
+            var i_re55 = S32(0)
+            while (i_re55) < (vsize_re0): 
+                rec41[i_re55] = ((dsp.const196) * ((((dsp.const202) * (rec42[i_re55])) + ((dsp.const203) * (rec42[(i_re55) - (S32(1))]))) + ((dsp.const202) * (rec42[(i_re55) - (S32(2))])))) - ((dsp.const204) * (((dsp.const205) * (rec41[(i_re55) - (S32(2))])) + ((dsp.const206) * (rec41[(i_re55) - (S32(1))]))))
+                i_re55 = (i_re55) + (S32(1))
+            # Post code 
             var j91_re0 = S32(0)
             while j91_re0 <= S32(4) - w64:
-                var values216 = simd_load(rec41_tmp, vsize_re0 + j91_re0)
-                simd_store(dsp.rec41_perm, j91_re0, values216)
+                var values104 = simd_load(rec41_tmp, vsize_re0 + j91_re0)
+                simd_store(dsp.rec41_perm, j91_re0, values104)
                 j91_re0 = j91_re0 + w64
+            # Recursive loop 56 
+            # Pre code 
             var j92_re0 = S32(0)
             while j92_re0 <= S32(4) - w64:
-                var values217 = simd_load(dsp.rec40_perm, j92_re0)
-                simd_store(rec40_tmp, j92_re0, values217)
+                var values105 = simd_load(dsp.rec40_perm, j92_re0)
+                simd_store(rec40_tmp, j92_re0, values105)
                 j92_re0 = j92_re0 + w64
-            var i_re116 = S32(0)
-            while (i_re116) < (vsize_re0): 
-                rec40[i_re116] = ((dsp.const204) * ((((dsp.const208) * (rec41[i_re116])) + ((dsp.const209) * (rec41[(i_re116) - (S32(1))]))) + ((dsp.const208) * (rec41[(i_re116) - (S32(2))])))) - ((dsp.const210) * (((dsp.const211) * (rec40[(i_re116) - (S32(2))])) + ((dsp.const212) * (rec40[(i_re116) - (S32(1))]))))
-                i_re116 = (i_re116) + (S32(1))
+            # Compute code 
+            var i_re56 = S32(0)
+            while (i_re56) < (vsize_re0): 
+                rec40[i_re56] = ((dsp.const204) * ((((dsp.const208) * (rec41[i_re56])) + ((dsp.const209) * (rec41[(i_re56) - (S32(1))]))) + ((dsp.const208) * (rec41[(i_re56) - (S32(2))])))) - ((dsp.const210) * (((dsp.const211) * (rec40[(i_re56) - (S32(2))])) + ((dsp.const212) * (rec40[(i_re56) - (S32(1))]))))
+                i_re56 = (i_re56) + (S32(1))
+            # Post code 
             var j93_re0 = S32(0)
             while j93_re0 <= S32(4) - w64:
-                var values218 = simd_load(rec40_tmp, vsize_re0 + j93_re0)
-                simd_store(dsp.rec40_perm, j93_re0, values218)
+                var values106 = simd_load(rec40_tmp, vsize_re0 + j93_re0)
+                simd_store(dsp.rec40_perm, j93_re0, values106)
                 j93_re0 = j93_re0 + w64
+            # Recursive loop 57 
+            # Pre code 
             var j94_re0 = S32(0)
             while j94_re0 <= S32(4) - w64:
-                var values219 = simd_load(dsp.rec39_perm, j94_re0)
-                simd_store(rec39_tmp, j94_re0, values219)
+                var values107 = simd_load(dsp.rec39_perm, j94_re0)
+                simd_store(rec39_tmp, j94_re0, values107)
                 j94_re0 = j94_re0 + w64
-            var i_re117 = S32(0)
-            while (i_re117) < (vsize_re0): 
-                rec39[i_re117] = ((slow8) * (rec39[(i_re117) - (S32(1))])) + ((slow9) * (abs((dsp.const210) * ((((dsp.const214) * (rec40[i_re117])) + ((dsp.const215) * (rec40[(i_re117) - (S32(1))]))) + ((dsp.const214) * (rec40[(i_re117) - (S32(2))]))))))
-                i_re117 = (i_re117) + (S32(1))
+            # Compute code 
+            var i_re57 = S32(0)
+            while (i_re57) < (vsize_re0): 
+                rec39[i_re57] = ((slow8) * (rec39[(i_re57) - (S32(1))])) + ((slow9) * (abs((dsp.const210) * ((((dsp.const214) * (rec40[i_re57])) + ((dsp.const215) * (rec40[(i_re57) - (S32(1))]))) + ((dsp.const214) * (rec40[(i_re57) - (S32(2))]))))))
+                i_re57 = (i_re57) + (S32(1))
+            # Post code 
             var j95_re0 = S32(0)
             while j95_re0 <= S32(4) - w64:
-                var values220 = simd_load(rec39_tmp, vsize_re0 + j95_re0)
-                simd_store(dsp.rec39_perm, j95_re0, values220)
+                var values108 = simd_load(rec39_tmp, vsize_re0 + j95_re0)
+                simd_store(dsp.rec39_perm, j95_re0, values108)
                 j95_re0 = j95_re0 + w64
+            # Recursive loop 58 
+            # Pre code 
+            var j96_re0 = S32(0)
+            while j96_re0 <= S32(4) - w64:
+                var values109 = simd_load(dsp.rec52_perm, j96_re0)
+                simd_store(rec52_tmp, j96_re0, values109)
+                j96_re0 = j96_re0 + w64
+            # Compute code 
+            var i_re58 = S32(0)
+            while (i_re58) < (vsize_re0): 
+                rec52[i_re58] = (zec10[i_re58]) - ((dsp.const216) * (((dsp.const217) * (rec52[(i_re58) - (S32(2))])) + ((dsp.const218) * (rec52[(i_re58) - (S32(1))]))))
+                i_re58 = (i_re58) + (S32(1))
+            # Post code 
+            var j97_re0 = S32(0)
+            while j97_re0 <= S32(4) - w64:
+                var values110 = simd_load(rec52_tmp, vsize_re0 + j97_re0)
+                simd_store(dsp.rec52_perm, j97_re0, values110)
+                j97_re0 = j97_re0 + w64
+            # Recursive loop 59 
+            # Pre code 
+            var j98_re0 = S32(0)
+            while j98_re0 <= S32(4) - w64:
+                var values111 = simd_load(dsp.rec51_perm, j98_re0)
+                simd_store(rec51_tmp, j98_re0, values111)
+                j98_re0 = j98_re0 + w64
+            # Compute code 
+            var i_re59 = S32(0)
+            while (i_re59) < (vsize_re0): 
+                rec51[i_re59] = ((dsp.const216) * ((((dsp.const220) * (rec52[i_re59])) + ((dsp.const221) * (rec52[(i_re59) - (S32(1))]))) + ((dsp.const220) * (rec52[(i_re59) - (S32(2))])))) - ((dsp.const222) * (((dsp.const223) * (rec51[(i_re59) - (S32(2))])) + ((dsp.const224) * (rec51[(i_re59) - (S32(1))]))))
+                i_re59 = (i_re59) + (S32(1))
+            # Post code 
+            var j99_re0 = S32(0)
+            while j99_re0 <= S32(4) - w64:
+                var values112 = simd_load(rec51_tmp, vsize_re0 + j99_re0)
+                simd_store(dsp.rec51_perm, j99_re0, values112)
+                j99_re0 = j99_re0 + w64
+            # Recursive loop 60 
+            # Pre code 
+            var j100_re0 = S32(0)
+            while j100_re0 <= S32(4) - w64:
+                var values113 = simd_load(dsp.rec50_perm, j100_re0)
+                simd_store(rec50_tmp, j100_re0, values113)
+                j100_re0 = j100_re0 + w64
+            # Compute code 
+            var i_re60 = S32(0)
+            while (i_re60) < (vsize_re0): 
+                rec50[i_re60] = ((dsp.const222) * ((((dsp.const225) * (rec51[i_re60])) + ((dsp.const226) * (rec51[(i_re60) - (S32(1))]))) + ((dsp.const225) * (rec51[(i_re60) - (S32(2))])))) - ((dsp.const227) * (((dsp.const228) * (rec50[(i_re60) - (S32(2))])) + ((dsp.const229) * (rec50[(i_re60) - (S32(1))]))))
+                i_re60 = (i_re60) + (S32(1))
+            # Post code 
+            var j101_re0 = S32(0)
+            while j101_re0 <= S32(4) - w64:
+                var values114 = simd_load(rec50_tmp, vsize_re0 + j101_re0)
+                simd_store(dsp.rec50_perm, j101_re0, values114)
+                j101_re0 = j101_re0 + w64
+            # Vectorizable loop 61 
+            # Compute code 
+            var i_re61 = S32(0)
+            while i_re61 <= vsize_re0 - w64:
+                var values115 = (dsp.const227) * ((((dsp.const230) * (simd_load(rec50, i_re61))) + ((dsp.const231) * (simd_load(rec50, i_re61 - S32(1))))) + ((dsp.const230) * (simd_load(rec50, i_re61 - S32(2)))))
+                simd_store(zec11, i_re61, values115)
+                i_re61 = i_re61 + w64
+            # Recursive loop 62 
+            # Pre code 
             var j102_re0 = S32(0)
             while j102_re0 <= S32(4) - w64:
-                var values221 = simd_load(dsp.rec49_perm, j102_re0)
-                simd_store(rec49_tmp, j102_re0, values221)
+                var values116 = simd_load(dsp.rec49_perm, j102_re0)
+                simd_store(rec49_tmp, j102_re0, values116)
                 j102_re0 = j102_re0 + w64
-            var i_re118 = S32(0)
-            while (i_re118) < (vsize_re0): 
-                rec49[i_re118] = (zec11[i_re118]) - ((dsp.const234) * (((dsp.const235) * (rec49[(i_re118) - (S32(2))])) + ((dsp.const238) * (rec49[(i_re118) - (S32(1))]))))
-                i_re118 = (i_re118) + (S32(1))
+            # Compute code 
+            var i_re62 = S32(0)
+            while (i_re62) < (vsize_re0): 
+                rec49[i_re62] = (zec11[i_re62]) - ((dsp.const234) * (((dsp.const235) * (rec49[(i_re62) - (S32(2))])) + ((dsp.const238) * (rec49[(i_re62) - (S32(1))]))))
+                i_re62 = (i_re62) + (S32(1))
+            # Post code 
             var j103_re0 = S32(0)
             while j103_re0 <= S32(4) - w64:
-                var values222 = simd_load(rec49_tmp, vsize_re0 + j103_re0)
-                simd_store(dsp.rec49_perm, j103_re0, values222)
+                var values117 = simd_load(rec49_tmp, vsize_re0 + j103_re0)
+                simd_store(dsp.rec49_perm, j103_re0, values117)
                 j103_re0 = j103_re0 + w64
+            # Recursive loop 63 
+            # Pre code 
             var j104_re0 = S32(0)
             while j104_re0 <= S32(4) - w64:
-                var values223 = simd_load(dsp.rec48_perm, j104_re0)
-                simd_store(rec48_tmp, j104_re0, values223)
+                var values118 = simd_load(dsp.rec48_perm, j104_re0)
+                simd_store(rec48_tmp, j104_re0, values118)
                 j104_re0 = j104_re0 + w64
-            var i_re119 = S32(0)
-            while (i_re119) < (vsize_re0): 
-                rec48[i_re119] = ((dsp.const234) * ((((dsp.const240) * (rec49[i_re119])) + ((dsp.const241) * (rec49[(i_re119) - (S32(1))]))) + ((dsp.const240) * (rec49[(i_re119) - (S32(2))])))) - ((dsp.const242) * (((dsp.const243) * (rec48[(i_re119) - (S32(2))])) + ((dsp.const244) * (rec48[(i_re119) - (S32(1))]))))
-                i_re119 = (i_re119) + (S32(1))
+            # Compute code 
+            var i_re63 = S32(0)
+            while (i_re63) < (vsize_re0): 
+                rec48[i_re63] = ((dsp.const234) * ((((dsp.const240) * (rec49[i_re63])) + ((dsp.const241) * (rec49[(i_re63) - (S32(1))]))) + ((dsp.const240) * (rec49[(i_re63) - (S32(2))])))) - ((dsp.const242) * (((dsp.const243) * (rec48[(i_re63) - (S32(2))])) + ((dsp.const244) * (rec48[(i_re63) - (S32(1))]))))
+                i_re63 = (i_re63) + (S32(1))
+            # Post code 
             var j105_re0 = S32(0)
             while j105_re0 <= S32(4) - w64:
-                var values224 = simd_load(rec48_tmp, vsize_re0 + j105_re0)
-                simd_store(dsp.rec48_perm, j105_re0, values224)
+                var values119 = simd_load(rec48_tmp, vsize_re0 + j105_re0)
+                simd_store(dsp.rec48_perm, j105_re0, values119)
                 j105_re0 = j105_re0 + w64
+            # Recursive loop 64 
+            # Pre code 
             var j106_re0 = S32(0)
             while j106_re0 <= S32(4) - w64:
-                var values225 = simd_load(dsp.rec47_perm, j106_re0)
-                simd_store(rec47_tmp, j106_re0, values225)
+                var values120 = simd_load(dsp.rec47_perm, j106_re0)
+                simd_store(rec47_tmp, j106_re0, values120)
                 j106_re0 = j106_re0 + w64
-            var i_re120 = S32(0)
-            while (i_re120) < (vsize_re0): 
-                rec47[i_re120] = ((dsp.const242) * ((((dsp.const246) * (rec48[i_re120])) + ((dsp.const247) * (rec48[(i_re120) - (S32(1))]))) + ((dsp.const246) * (rec48[(i_re120) - (S32(2))])))) - ((dsp.const248) * (((dsp.const249) * (rec47[(i_re120) - (S32(2))])) + ((dsp.const250) * (rec47[(i_re120) - (S32(1))]))))
-                i_re120 = (i_re120) + (S32(1))
+            # Compute code 
+            var i_re64 = S32(0)
+            while (i_re64) < (vsize_re0): 
+                rec47[i_re64] = ((dsp.const242) * ((((dsp.const246) * (rec48[i_re64])) + ((dsp.const247) * (rec48[(i_re64) - (S32(1))]))) + ((dsp.const246) * (rec48[(i_re64) - (S32(2))])))) - ((dsp.const248) * (((dsp.const249) * (rec47[(i_re64) - (S32(2))])) + ((dsp.const250) * (rec47[(i_re64) - (S32(1))]))))
+                i_re64 = (i_re64) + (S32(1))
+            # Post code 
             var j107_re0 = S32(0)
             while j107_re0 <= S32(4) - w64:
-                var values226 = simd_load(rec47_tmp, vsize_re0 + j107_re0)
-                simd_store(dsp.rec47_perm, j107_re0, values226)
+                var values121 = simd_load(rec47_tmp, vsize_re0 + j107_re0)
+                simd_store(dsp.rec47_perm, j107_re0, values121)
                 j107_re0 = j107_re0 + w64
+            # Recursive loop 65 
+            # Pre code 
             var j108_re0 = S32(0)
             while j108_re0 <= S32(4) - w64:
-                var values227 = simd_load(dsp.rec46_perm, j108_re0)
-                simd_store(rec46_tmp, j108_re0, values227)
+                var values122 = simd_load(dsp.rec46_perm, j108_re0)
+                simd_store(rec46_tmp, j108_re0, values122)
                 j108_re0 = j108_re0 + w64
-            var i_re121 = S32(0)
-            while (i_re121) < (vsize_re0): 
-                rec46[i_re121] = ((slow8) * (rec46[(i_re121) - (S32(1))])) + ((slow9) * (abs((dsp.const248) * ((((dsp.const252) * (rec47[i_re121])) + ((dsp.const253) * (rec47[(i_re121) - (S32(1))]))) + ((dsp.const252) * (rec47[(i_re121) - (S32(2))]))))))
-                i_re121 = (i_re121) + (S32(1))
+            # Compute code 
+            var i_re65 = S32(0)
+            while (i_re65) < (vsize_re0): 
+                rec46[i_re65] = ((slow8) * (rec46[(i_re65) - (S32(1))])) + ((slow9) * (abs((dsp.const248) * ((((dsp.const252) * (rec47[i_re65])) + ((dsp.const253) * (rec47[(i_re65) - (S32(1))]))) + ((dsp.const252) * (rec47[(i_re65) - (S32(2))]))))))
+                i_re65 = (i_re65) + (S32(1))
+            # Post code 
             var j109_re0 = S32(0)
             while j109_re0 <= S32(4) - w64:
-                var values228 = simd_load(rec46_tmp, vsize_re0 + j109_re0)
-                simd_store(dsp.rec46_perm, j109_re0, values228)
+                var values123 = simd_load(rec46_tmp, vsize_re0 + j109_re0)
+                simd_store(dsp.rec46_perm, j109_re0, values123)
                 j109_re0 = j109_re0 + w64
+            # Recursive loop 66 
+            # Pre code 
+            var j110_re0 = S32(0)
+            while j110_re0 <= S32(4) - w64:
+                var values124 = simd_load(dsp.rec59_perm, j110_re0)
+                simd_store(rec59_tmp, j110_re0, values124)
+                j110_re0 = j110_re0 + w64
+            # Compute code 
+            var i_re66 = S32(0)
+            while (i_re66) < (vsize_re0): 
+                rec59[i_re66] = (zec11[i_re66]) - ((dsp.const254) * (((dsp.const255) * (rec59[(i_re66) - (S32(2))])) + ((dsp.const256) * (rec59[(i_re66) - (S32(1))]))))
+                i_re66 = (i_re66) + (S32(1))
+            # Post code 
+            var j111_re0 = S32(0)
+            while j111_re0 <= S32(4) - w64:
+                var values125 = simd_load(rec59_tmp, vsize_re0 + j111_re0)
+                simd_store(dsp.rec59_perm, j111_re0, values125)
+                j111_re0 = j111_re0 + w64
+            # Recursive loop 67 
+            # Pre code 
+            var j112_re0 = S32(0)
+            while j112_re0 <= S32(4) - w64:
+                var values126 = simd_load(dsp.rec58_perm, j112_re0)
+                simd_store(rec58_tmp, j112_re0, values126)
+                j112_re0 = j112_re0 + w64
+            # Compute code 
+            var i_re67 = S32(0)
+            while (i_re67) < (vsize_re0): 
+                rec58[i_re67] = ((dsp.const254) * ((((dsp.const258) * (rec59[i_re67])) + ((dsp.const259) * (rec59[(i_re67) - (S32(1))]))) + ((dsp.const258) * (rec59[(i_re67) - (S32(2))])))) - ((dsp.const260) * (((dsp.const261) * (rec58[(i_re67) - (S32(2))])) + ((dsp.const262) * (rec58[(i_re67) - (S32(1))]))))
+                i_re67 = (i_re67) + (S32(1))
+            # Post code 
+            var j113_re0 = S32(0)
+            while j113_re0 <= S32(4) - w64:
+                var values127 = simd_load(rec58_tmp, vsize_re0 + j113_re0)
+                simd_store(dsp.rec58_perm, j113_re0, values127)
+                j113_re0 = j113_re0 + w64
+            # Recursive loop 68 
+            # Pre code 
+            var j114_re0 = S32(0)
+            while j114_re0 <= S32(4) - w64:
+                var values128 = simd_load(dsp.rec57_perm, j114_re0)
+                simd_store(rec57_tmp, j114_re0, values128)
+                j114_re0 = j114_re0 + w64
+            # Compute code 
+            var i_re68 = S32(0)
+            while (i_re68) < (vsize_re0): 
+                rec57[i_re68] = ((dsp.const260) * ((((dsp.const263) * (rec58[i_re68])) + ((dsp.const264) * (rec58[(i_re68) - (S32(1))]))) + ((dsp.const263) * (rec58[(i_re68) - (S32(2))])))) - ((dsp.const265) * (((dsp.const266) * (rec57[(i_re68) - (S32(2))])) + ((dsp.const267) * (rec57[(i_re68) - (S32(1))]))))
+                i_re68 = (i_re68) + (S32(1))
+            # Post code 
+            var j115_re0 = S32(0)
+            while j115_re0 <= S32(4) - w64:
+                var values129 = simd_load(rec57_tmp, vsize_re0 + j115_re0)
+                simd_store(dsp.rec57_perm, j115_re0, values129)
+                j115_re0 = j115_re0 + w64
+            # Vectorizable loop 69 
+            # Compute code 
+            var i_re69 = S32(0)
+            while i_re69 <= vsize_re0 - w64:
+                var values130 = (dsp.const265) * ((((dsp.const268) * (simd_load(rec57, i_re69))) + ((dsp.const269) * (simd_load(rec57, i_re69 - S32(1))))) + ((dsp.const268) * (simd_load(rec57, i_re69 - S32(2)))))
+                simd_store(zec12, i_re69, values130)
+                i_re69 = i_re69 + w64
+            # Recursive loop 70 
+            # Pre code 
             var j116_re0 = S32(0)
             while j116_re0 <= S32(4) - w64:
-                var values229 = simd_load(dsp.rec56_perm, j116_re0)
-                simd_store(rec56_tmp, j116_re0, values229)
+                var values131 = simd_load(dsp.rec56_perm, j116_re0)
+                simd_store(rec56_tmp, j116_re0, values131)
                 j116_re0 = j116_re0 + w64
-            var i_re122 = S32(0)
-            while (i_re122) < (vsize_re0): 
-                rec56[i_re122] = (zec12[i_re122]) - ((dsp.const272) * (((dsp.const273) * (rec56[(i_re122) - (S32(2))])) + ((dsp.const276) * (rec56[(i_re122) - (S32(1))]))))
-                i_re122 = (i_re122) + (S32(1))
+            # Compute code 
+            var i_re70 = S32(0)
+            while (i_re70) < (vsize_re0): 
+                rec56[i_re70] = (zec12[i_re70]) - ((dsp.const272) * (((dsp.const273) * (rec56[(i_re70) - (S32(2))])) + ((dsp.const276) * (rec56[(i_re70) - (S32(1))]))))
+                i_re70 = (i_re70) + (S32(1))
+            # Post code 
             var j117_re0 = S32(0)
             while j117_re0 <= S32(4) - w64:
-                var values230 = simd_load(rec56_tmp, vsize_re0 + j117_re0)
-                simd_store(dsp.rec56_perm, j117_re0, values230)
+                var values132 = simd_load(rec56_tmp, vsize_re0 + j117_re0)
+                simd_store(dsp.rec56_perm, j117_re0, values132)
                 j117_re0 = j117_re0 + w64
+            # Recursive loop 71 
+            # Pre code 
             var j118_re0 = S32(0)
             while j118_re0 <= S32(4) - w64:
-                var values231 = simd_load(dsp.rec55_perm, j118_re0)
-                simd_store(rec55_tmp, j118_re0, values231)
+                var values133 = simd_load(dsp.rec55_perm, j118_re0)
+                simd_store(rec55_tmp, j118_re0, values133)
                 j118_re0 = j118_re0 + w64
-            var i_re123 = S32(0)
-            while (i_re123) < (vsize_re0): 
-                rec55[i_re123] = ((dsp.const272) * ((((dsp.const278) * (rec56[i_re123])) + ((dsp.const279) * (rec56[(i_re123) - (S32(1))]))) + ((dsp.const278) * (rec56[(i_re123) - (S32(2))])))) - ((dsp.const280) * (((dsp.const281) * (rec55[(i_re123) - (S32(2))])) + ((dsp.const282) * (rec55[(i_re123) - (S32(1))]))))
-                i_re123 = (i_re123) + (S32(1))
+            # Compute code 
+            var i_re71 = S32(0)
+            while (i_re71) < (vsize_re0): 
+                rec55[i_re71] = ((dsp.const272) * ((((dsp.const278) * (rec56[i_re71])) + ((dsp.const279) * (rec56[(i_re71) - (S32(1))]))) + ((dsp.const278) * (rec56[(i_re71) - (S32(2))])))) - ((dsp.const280) * (((dsp.const281) * (rec55[(i_re71) - (S32(2))])) + ((dsp.const282) * (rec55[(i_re71) - (S32(1))]))))
+                i_re71 = (i_re71) + (S32(1))
+            # Post code 
             var j119_re0 = S32(0)
             while j119_re0 <= S32(4) - w64:
-                var values232 = simd_load(rec55_tmp, vsize_re0 + j119_re0)
-                simd_store(dsp.rec55_perm, j119_re0, values232)
+                var values134 = simd_load(rec55_tmp, vsize_re0 + j119_re0)
+                simd_store(dsp.rec55_perm, j119_re0, values134)
                 j119_re0 = j119_re0 + w64
+            # Recursive loop 72 
+            # Pre code 
             var j120_re0 = S32(0)
             while j120_re0 <= S32(4) - w64:
-                var values233 = simd_load(dsp.rec54_perm, j120_re0)
-                simd_store(rec54_tmp, j120_re0, values233)
+                var values135 = simd_load(dsp.rec54_perm, j120_re0)
+                simd_store(rec54_tmp, j120_re0, values135)
                 j120_re0 = j120_re0 + w64
-            var i_re124 = S32(0)
-            while (i_re124) < (vsize_re0): 
-                rec54[i_re124] = ((dsp.const280) * ((((dsp.const284) * (rec55[i_re124])) + ((dsp.const285) * (rec55[(i_re124) - (S32(1))]))) + ((dsp.const284) * (rec55[(i_re124) - (S32(2))])))) - ((dsp.const286) * (((dsp.const287) * (rec54[(i_re124) - (S32(2))])) + ((dsp.const288) * (rec54[(i_re124) - (S32(1))]))))
-                i_re124 = (i_re124) + (S32(1))
+            # Compute code 
+            var i_re72 = S32(0)
+            while (i_re72) < (vsize_re0): 
+                rec54[i_re72] = ((dsp.const280) * ((((dsp.const284) * (rec55[i_re72])) + ((dsp.const285) * (rec55[(i_re72) - (S32(1))]))) + ((dsp.const284) * (rec55[(i_re72) - (S32(2))])))) - ((dsp.const286) * (((dsp.const287) * (rec54[(i_re72) - (S32(2))])) + ((dsp.const288) * (rec54[(i_re72) - (S32(1))]))))
+                i_re72 = (i_re72) + (S32(1))
+            # Post code 
             var j121_re0 = S32(0)
             while j121_re0 <= S32(4) - w64:
-                var values234 = simd_load(rec54_tmp, vsize_re0 + j121_re0)
-                simd_store(dsp.rec54_perm, j121_re0, values234)
+                var values136 = simd_load(rec54_tmp, vsize_re0 + j121_re0)
+                simd_store(dsp.rec54_perm, j121_re0, values136)
                 j121_re0 = j121_re0 + w64
+            # Recursive loop 73 
+            # Pre code 
             var j122_re0 = S32(0)
             while j122_re0 <= S32(4) - w64:
-                var values235 = simd_load(dsp.rec53_perm, j122_re0)
-                simd_store(rec53_tmp, j122_re0, values235)
+                var values137 = simd_load(dsp.rec53_perm, j122_re0)
+                simd_store(rec53_tmp, j122_re0, values137)
                 j122_re0 = j122_re0 + w64
-            var i_re125 = S32(0)
-            while (i_re125) < (vsize_re0): 
-                rec53[i_re125] = ((slow8) * (rec53[(i_re125) - (S32(1))])) + ((slow9) * (abs((dsp.const286) * ((((dsp.const290) * (rec54[i_re125])) + ((dsp.const291) * (rec54[(i_re125) - (S32(1))]))) + ((dsp.const290) * (rec54[(i_re125) - (S32(2))]))))))
-                i_re125 = (i_re125) + (S32(1))
+            # Compute code 
+            var i_re73 = S32(0)
+            while (i_re73) < (vsize_re0): 
+                rec53[i_re73] = ((slow8) * (rec53[(i_re73) - (S32(1))])) + ((slow9) * (abs((dsp.const286) * ((((dsp.const290) * (rec54[i_re73])) + ((dsp.const291) * (rec54[(i_re73) - (S32(1))]))) + ((dsp.const290) * (rec54[(i_re73) - (S32(2))]))))))
+                i_re73 = (i_re73) + (S32(1))
+            # Post code 
             var j123_re0 = S32(0)
             while j123_re0 <= S32(4) - w64:
-                var values236 = simd_load(rec53_tmp, vsize_re0 + j123_re0)
-                simd_store(dsp.rec53_perm, j123_re0, values236)
+                var values138 = simd_load(rec53_tmp, vsize_re0 + j123_re0)
+                simd_store(dsp.rec53_perm, j123_re0, values138)
                 j123_re0 = j123_re0 + w64
+            # Recursive loop 74 
+            # Pre code 
+            var j124_re0 = S32(0)
+            while j124_re0 <= S32(4) - w64:
+                var values139 = simd_load(dsp.rec66_perm, j124_re0)
+                simd_store(rec66_tmp, j124_re0, values139)
+                j124_re0 = j124_re0 + w64
+            # Compute code 
+            var i_re74 = S32(0)
+            while (i_re74) < (vsize_re0): 
+                rec66[i_re74] = (zec12[i_re74]) - ((dsp.const292) * (((dsp.const293) * (rec66[(i_re74) - (S32(2))])) + ((dsp.const294) * (rec66[(i_re74) - (S32(1))]))))
+                i_re74 = (i_re74) + (S32(1))
+            # Post code 
+            var j125_re0 = S32(0)
+            while j125_re0 <= S32(4) - w64:
+                var values140 = simd_load(rec66_tmp, vsize_re0 + j125_re0)
+                simd_store(dsp.rec66_perm, j125_re0, values140)
+                j125_re0 = j125_re0 + w64
+            # Recursive loop 75 
+            # Pre code 
+            var j126_re0 = S32(0)
+            while j126_re0 <= S32(4) - w64:
+                var values141 = simd_load(dsp.rec65_perm, j126_re0)
+                simd_store(rec65_tmp, j126_re0, values141)
+                j126_re0 = j126_re0 + w64
+            # Compute code 
+            var i_re75 = S32(0)
+            while (i_re75) < (vsize_re0): 
+                rec65[i_re75] = ((dsp.const292) * ((((dsp.const296) * (rec66[i_re75])) + ((dsp.const297) * (rec66[(i_re75) - (S32(1))]))) + ((dsp.const296) * (rec66[(i_re75) - (S32(2))])))) - ((dsp.const298) * (((dsp.const299) * (rec65[(i_re75) - (S32(2))])) + ((dsp.const300) * (rec65[(i_re75) - (S32(1))]))))
+                i_re75 = (i_re75) + (S32(1))
+            # Post code 
+            var j127_re0 = S32(0)
+            while j127_re0 <= S32(4) - w64:
+                var values142 = simd_load(rec65_tmp, vsize_re0 + j127_re0)
+                simd_store(dsp.rec65_perm, j127_re0, values142)
+                j127_re0 = j127_re0 + w64
+            # Recursive loop 76 
+            # Pre code 
+            var j128_re0 = S32(0)
+            while j128_re0 <= S32(4) - w64:
+                var values143 = simd_load(dsp.rec64_perm, j128_re0)
+                simd_store(rec64_tmp, j128_re0, values143)
+                j128_re0 = j128_re0 + w64
+            # Compute code 
+            var i_re76 = S32(0)
+            while (i_re76) < (vsize_re0): 
+                rec64[i_re76] = ((dsp.const298) * ((((dsp.const301) * (rec65[i_re76])) + ((dsp.const302) * (rec65[(i_re76) - (S32(1))]))) + ((dsp.const301) * (rec65[(i_re76) - (S32(2))])))) - ((dsp.const303) * (((dsp.const304) * (rec64[(i_re76) - (S32(2))])) + ((dsp.const305) * (rec64[(i_re76) - (S32(1))]))))
+                i_re76 = (i_re76) + (S32(1))
+            # Post code 
+            var j129_re0 = S32(0)
+            while j129_re0 <= S32(4) - w64:
+                var values144 = simd_load(rec64_tmp, vsize_re0 + j129_re0)
+                simd_store(dsp.rec64_perm, j129_re0, values144)
+                j129_re0 = j129_re0 + w64
+            # Vectorizable loop 77 
+            # Compute code 
+            var i_re77 = S32(0)
+            while i_re77 <= vsize_re0 - w64:
+                var values145 = (dsp.const303) * ((((dsp.const306) * (simd_load(rec64, i_re77))) + ((dsp.const307) * (simd_load(rec64, i_re77 - S32(1))))) + ((dsp.const306) * (simd_load(rec64, i_re77 - S32(2)))))
+                simd_store(zec13, i_re77, values145)
+                i_re77 = i_re77 + w64
+            # Recursive loop 78 
+            # Pre code 
+            var j130_re0 = S32(0)
+            while j130_re0 <= S32(4) - w64:
+                var values146 = simd_load(dsp.rec63_perm, j130_re0)
+                simd_store(rec63_tmp, j130_re0, values146)
+                j130_re0 = j130_re0 + w64
+            # Compute code 
+            var i_re78 = S32(0)
+            while (i_re78) < (vsize_re0): 
+                rec63[i_re78] = (zec13[i_re78]) - ((dsp.const310) * (((dsp.const311) * (rec63[(i_re78) - (S32(2))])) + ((dsp.const314) * (rec63[(i_re78) - (S32(1))]))))
+                i_re78 = (i_re78) + (S32(1))
+            # Post code 
+            var j131_re0 = S32(0)
+            while j131_re0 <= S32(4) - w64:
+                var values147 = simd_load(rec63_tmp, vsize_re0 + j131_re0)
+                simd_store(dsp.rec63_perm, j131_re0, values147)
+                j131_re0 = j131_re0 + w64
+            # Recursive loop 79 
+            # Pre code 
+            var j132_re0 = S32(0)
+            while j132_re0 <= S32(4) - w64:
+                var values148 = simd_load(dsp.rec62_perm, j132_re0)
+                simd_store(rec62_tmp, j132_re0, values148)
+                j132_re0 = j132_re0 + w64
+            # Compute code 
+            var i_re79 = S32(0)
+            while (i_re79) < (vsize_re0): 
+                rec62[i_re79] = ((dsp.const310) * ((((dsp.const316) * (rec63[i_re79])) + ((dsp.const317) * (rec63[(i_re79) - (S32(1))]))) + ((dsp.const316) * (rec63[(i_re79) - (S32(2))])))) - ((dsp.const318) * (((dsp.const319) * (rec62[(i_re79) - (S32(2))])) + ((dsp.const320) * (rec62[(i_re79) - (S32(1))]))))
+                i_re79 = (i_re79) + (S32(1))
+            # Post code 
+            var j133_re0 = S32(0)
+            while j133_re0 <= S32(4) - w64:
+                var values149 = simd_load(rec62_tmp, vsize_re0 + j133_re0)
+                simd_store(dsp.rec62_perm, j133_re0, values149)
+                j133_re0 = j133_re0 + w64
+            # Recursive loop 80 
+            # Pre code 
+            var j134_re0 = S32(0)
+            while j134_re0 <= S32(4) - w64:
+                var values150 = simd_load(dsp.rec61_perm, j134_re0)
+                simd_store(rec61_tmp, j134_re0, values150)
+                j134_re0 = j134_re0 + w64
+            # Compute code 
+            var i_re80 = S32(0)
+            while (i_re80) < (vsize_re0): 
+                rec61[i_re80] = ((dsp.const318) * ((((dsp.const322) * (rec62[i_re80])) + ((dsp.const323) * (rec62[(i_re80) - (S32(1))]))) + ((dsp.const322) * (rec62[(i_re80) - (S32(2))])))) - ((dsp.const324) * (((dsp.const325) * (rec61[(i_re80) - (S32(2))])) + ((dsp.const326) * (rec61[(i_re80) - (S32(1))]))))
+                i_re80 = (i_re80) + (S32(1))
+            # Post code 
+            var j135_re0 = S32(0)
+            while j135_re0 <= S32(4) - w64:
+                var values151 = simd_load(rec61_tmp, vsize_re0 + j135_re0)
+                simd_store(dsp.rec61_perm, j135_re0, values151)
+                j135_re0 = j135_re0 + w64
+            # Recursive loop 81 
+            # Pre code 
+            var j136_re0 = S32(0)
+            while j136_re0 <= S32(4) - w64:
+                var values152 = simd_load(dsp.rec60_perm, j136_re0)
+                simd_store(rec60_tmp, j136_re0, values152)
+                j136_re0 = j136_re0 + w64
+            # Compute code 
+            var i_re81 = S32(0)
+            while (i_re81) < (vsize_re0): 
+                rec60[i_re81] = ((slow8) * (rec60[(i_re81) - (S32(1))])) + ((slow9) * (abs((dsp.const324) * ((((dsp.const328) * (rec61[i_re81])) + ((dsp.const329) * (rec61[(i_re81) - (S32(1))]))) + ((dsp.const328) * (rec61[(i_re81) - (S32(2))]))))))
+                i_re81 = (i_re81) + (S32(1))
+            # Post code 
+            var j137_re0 = S32(0)
+            while j137_re0 <= S32(4) - w64:
+                var values153 = simd_load(rec60_tmp, vsize_re0 + j137_re0)
+                simd_store(dsp.rec60_perm, j137_re0, values153)
+                j137_re0 = j137_re0 + w64
+            # Recursive loop 82 
+            # Pre code 
+            var j138_re0 = S32(0)
+            while j138_re0 <= S32(4) - w64:
+                var values154 = simd_load(dsp.rec73_perm, j138_re0)
+                simd_store(rec73_tmp, j138_re0, values154)
+                j138_re0 = j138_re0 + w64
+            # Compute code 
+            var i_re82 = S32(0)
+            while (i_re82) < (vsize_re0): 
+                rec73[i_re82] = (zec13[i_re82]) - ((dsp.const330) * (((dsp.const331) * (rec73[(i_re82) - (S32(2))])) + ((dsp.const332) * (rec73[(i_re82) - (S32(1))]))))
+                i_re82 = (i_re82) + (S32(1))
+            # Post code 
+            var j139_re0 = S32(0)
+            while j139_re0 <= S32(4) - w64:
+                var values155 = simd_load(rec73_tmp, vsize_re0 + j139_re0)
+                simd_store(dsp.rec73_perm, j139_re0, values155)
+                j139_re0 = j139_re0 + w64
+            # Recursive loop 83 
+            # Pre code 
+            var j140_re0 = S32(0)
+            while j140_re0 <= S32(4) - w64:
+                var values156 = simd_load(dsp.rec72_perm, j140_re0)
+                simd_store(rec72_tmp, j140_re0, values156)
+                j140_re0 = j140_re0 + w64
+            # Compute code 
+            var i_re83 = S32(0)
+            while (i_re83) < (vsize_re0): 
+                rec72[i_re83] = ((dsp.const330) * ((((dsp.const334) * (rec73[i_re83])) + ((dsp.const335) * (rec73[(i_re83) - (S32(1))]))) + ((dsp.const334) * (rec73[(i_re83) - (S32(2))])))) - ((dsp.const336) * (((dsp.const337) * (rec72[(i_re83) - (S32(2))])) + ((dsp.const338) * (rec72[(i_re83) - (S32(1))]))))
+                i_re83 = (i_re83) + (S32(1))
+            # Post code 
+            var j141_re0 = S32(0)
+            while j141_re0 <= S32(4) - w64:
+                var values157 = simd_load(rec72_tmp, vsize_re0 + j141_re0)
+                simd_store(dsp.rec72_perm, j141_re0, values157)
+                j141_re0 = j141_re0 + w64
+            # Recursive loop 84 
+            # Pre code 
+            var j142_re0 = S32(0)
+            while j142_re0 <= S32(4) - w64:
+                var values158 = simd_load(dsp.rec71_perm, j142_re0)
+                simd_store(rec71_tmp, j142_re0, values158)
+                j142_re0 = j142_re0 + w64
+            # Compute code 
+            var i_re84 = S32(0)
+            while (i_re84) < (vsize_re0): 
+                rec71[i_re84] = ((dsp.const336) * ((((dsp.const339) * (rec72[i_re84])) + ((dsp.const340) * (rec72[(i_re84) - (S32(1))]))) + ((dsp.const339) * (rec72[(i_re84) - (S32(2))])))) - ((dsp.const341) * (((dsp.const342) * (rec71[(i_re84) - (S32(2))])) + ((dsp.const343) * (rec71[(i_re84) - (S32(1))]))))
+                i_re84 = (i_re84) + (S32(1))
+            # Post code 
+            var j143_re0 = S32(0)
+            while j143_re0 <= S32(4) - w64:
+                var values159 = simd_load(rec71_tmp, vsize_re0 + j143_re0)
+                simd_store(dsp.rec71_perm, j143_re0, values159)
+                j143_re0 = j143_re0 + w64
+            # Vectorizable loop 85 
+            # Compute code 
+            var i_re85 = S32(0)
+            while i_re85 <= vsize_re0 - w64:
+                var values160 = (dsp.const341) * ((((dsp.const344) * (simd_load(rec71, i_re85))) + ((dsp.const345) * (simd_load(rec71, i_re85 - S32(1))))) + ((dsp.const344) * (simd_load(rec71, i_re85 - S32(2)))))
+                simd_store(zec14, i_re85, values160)
+                i_re85 = i_re85 + w64
+            # Recursive loop 86 
+            # Pre code 
+            var j144_re0 = S32(0)
+            while j144_re0 <= S32(4) - w64:
+                var values161 = simd_load(dsp.rec70_perm, j144_re0)
+                simd_store(rec70_tmp, j144_re0, values161)
+                j144_re0 = j144_re0 + w64
+            # Compute code 
+            var i_re86 = S32(0)
+            while (i_re86) < (vsize_re0): 
+                rec70[i_re86] = (zec14[i_re86]) - ((dsp.const348) * (((dsp.const349) * (rec70[(i_re86) - (S32(2))])) + ((dsp.const352) * (rec70[(i_re86) - (S32(1))]))))
+                i_re86 = (i_re86) + (S32(1))
+            # Post code 
+            var j145_re0 = S32(0)
+            while j145_re0 <= S32(4) - w64:
+                var values162 = simd_load(rec70_tmp, vsize_re0 + j145_re0)
+                simd_store(dsp.rec70_perm, j145_re0, values162)
+                j145_re0 = j145_re0 + w64
+            # Recursive loop 87 
+            # Pre code 
+            var j146_re0 = S32(0)
+            while j146_re0 <= S32(4) - w64:
+                var values163 = simd_load(dsp.rec69_perm, j146_re0)
+                simd_store(rec69_tmp, j146_re0, values163)
+                j146_re0 = j146_re0 + w64
+            # Compute code 
+            var i_re87 = S32(0)
+            while (i_re87) < (vsize_re0): 
+                rec69[i_re87] = ((dsp.const348) * ((((dsp.const354) * (rec70[i_re87])) + ((dsp.const355) * (rec70[(i_re87) - (S32(1))]))) + ((dsp.const354) * (rec70[(i_re87) - (S32(2))])))) - ((dsp.const356) * (((dsp.const357) * (rec69[(i_re87) - (S32(2))])) + ((dsp.const358) * (rec69[(i_re87) - (S32(1))]))))
+                i_re87 = (i_re87) + (S32(1))
+            # Post code 
+            var j147_re0 = S32(0)
+            while j147_re0 <= S32(4) - w64:
+                var values164 = simd_load(rec69_tmp, vsize_re0 + j147_re0)
+                simd_store(dsp.rec69_perm, j147_re0, values164)
+                j147_re0 = j147_re0 + w64
+            # Recursive loop 88 
+            # Pre code 
+            var j148_re0 = S32(0)
+            while j148_re0 <= S32(4) - w64:
+                var values165 = simd_load(dsp.rec68_perm, j148_re0)
+                simd_store(rec68_tmp, j148_re0, values165)
+                j148_re0 = j148_re0 + w64
+            # Compute code 
+            var i_re88 = S32(0)
+            while (i_re88) < (vsize_re0): 
+                rec68[i_re88] = ((dsp.const356) * ((((dsp.const360) * (rec69[i_re88])) + ((dsp.const361) * (rec69[(i_re88) - (S32(1))]))) + ((dsp.const360) * (rec69[(i_re88) - (S32(2))])))) - ((dsp.const362) * (((dsp.const363) * (rec68[(i_re88) - (S32(2))])) + ((dsp.const364) * (rec68[(i_re88) - (S32(1))]))))
+                i_re88 = (i_re88) + (S32(1))
+            # Post code 
+            var j149_re0 = S32(0)
+            while j149_re0 <= S32(4) - w64:
+                var values166 = simd_load(rec68_tmp, vsize_re0 + j149_re0)
+                simd_store(dsp.rec68_perm, j149_re0, values166)
+                j149_re0 = j149_re0 + w64
+            # Recursive loop 89 
+            # Pre code 
+            var j150_re0 = S32(0)
+            while j150_re0 <= S32(4) - w64:
+                var values167 = simd_load(dsp.rec67_perm, j150_re0)
+                simd_store(rec67_tmp, j150_re0, values167)
+                j150_re0 = j150_re0 + w64
+            # Compute code 
+            var i_re89 = S32(0)
+            while (i_re89) < (vsize_re0): 
+                rec67[i_re89] = ((slow8) * (rec67[(i_re89) - (S32(1))])) + ((slow9) * (abs((dsp.const362) * ((((dsp.const366) * (rec68[i_re89])) + ((dsp.const367) * (rec68[(i_re89) - (S32(1))]))) + ((dsp.const366) * (rec68[(i_re89) - (S32(2))]))))))
+                i_re89 = (i_re89) + (S32(1))
+            # Post code 
+            var j151_re0 = S32(0)
+            while j151_re0 <= S32(4) - w64:
+                var values168 = simd_load(rec67_tmp, vsize_re0 + j151_re0)
+                simd_store(dsp.rec67_perm, j151_re0, values168)
+                j151_re0 = j151_re0 + w64
+            # Recursive loop 90 
+            # Pre code 
+            var j152_re0 = S32(0)
+            while j152_re0 <= S32(4) - w64:
+                var values169 = simd_load(dsp.rec80_perm, j152_re0)
+                simd_store(rec80_tmp, j152_re0, values169)
+                j152_re0 = j152_re0 + w64
+            # Compute code 
+            var i_re90 = S32(0)
+            while (i_re90) < (vsize_re0): 
+                rec80[i_re90] = (zec14[i_re90]) - ((dsp.const368) * (((dsp.const369) * (rec80[(i_re90) - (S32(2))])) + ((dsp.const370) * (rec80[(i_re90) - (S32(1))]))))
+                i_re90 = (i_re90) + (S32(1))
+            # Post code 
+            var j153_re0 = S32(0)
+            while j153_re0 <= S32(4) - w64:
+                var values170 = simd_load(rec80_tmp, vsize_re0 + j153_re0)
+                simd_store(dsp.rec80_perm, j153_re0, values170)
+                j153_re0 = j153_re0 + w64
+            # Recursive loop 91 
+            # Pre code 
+            var j154_re0 = S32(0)
+            while j154_re0 <= S32(4) - w64:
+                var values171 = simd_load(dsp.rec79_perm, j154_re0)
+                simd_store(rec79_tmp, j154_re0, values171)
+                j154_re0 = j154_re0 + w64
+            # Compute code 
+            var i_re91 = S32(0)
+            while (i_re91) < (vsize_re0): 
+                rec79[i_re91] = ((dsp.const368) * ((((dsp.const372) * (rec80[i_re91])) + ((dsp.const373) * (rec80[(i_re91) - (S32(1))]))) + ((dsp.const372) * (rec80[(i_re91) - (S32(2))])))) - ((dsp.const374) * (((dsp.const375) * (rec79[(i_re91) - (S32(2))])) + ((dsp.const376) * (rec79[(i_re91) - (S32(1))]))))
+                i_re91 = (i_re91) + (S32(1))
+            # Post code 
+            var j155_re0 = S32(0)
+            while j155_re0 <= S32(4) - w64:
+                var values172 = simd_load(rec79_tmp, vsize_re0 + j155_re0)
+                simd_store(dsp.rec79_perm, j155_re0, values172)
+                j155_re0 = j155_re0 + w64
+            # Recursive loop 92 
+            # Pre code 
+            var j156_re0 = S32(0)
+            while j156_re0 <= S32(4) - w64:
+                var values173 = simd_load(dsp.rec78_perm, j156_re0)
+                simd_store(rec78_tmp, j156_re0, values173)
+                j156_re0 = j156_re0 + w64
+            # Compute code 
+            var i_re92 = S32(0)
+            while (i_re92) < (vsize_re0): 
+                rec78[i_re92] = ((dsp.const374) * ((((dsp.const377) * (rec79[i_re92])) + ((dsp.const378) * (rec79[(i_re92) - (S32(1))]))) + ((dsp.const377) * (rec79[(i_re92) - (S32(2))])))) - ((dsp.const379) * (((dsp.const380) * (rec78[(i_re92) - (S32(2))])) + ((dsp.const381) * (rec78[(i_re92) - (S32(1))]))))
+                i_re92 = (i_re92) + (S32(1))
+            # Post code 
+            var j157_re0 = S32(0)
+            while j157_re0 <= S32(4) - w64:
+                var values174 = simd_load(rec78_tmp, vsize_re0 + j157_re0)
+                simd_store(dsp.rec78_perm, j157_re0, values174)
+                j157_re0 = j157_re0 + w64
+            # Vectorizable loop 93 
+            # Compute code 
+            var i_re93 = S32(0)
+            while i_re93 <= vsize_re0 - w64:
+                var values175 = (dsp.const379) * ((((dsp.const382) * (simd_load(rec78, i_re93))) + ((dsp.const383) * (simd_load(rec78, i_re93 - S32(1))))) + ((dsp.const382) * (simd_load(rec78, i_re93 - S32(2)))))
+                simd_store(zec15, i_re93, values175)
+                i_re93 = i_re93 + w64
+            # Recursive loop 94 
+            # Pre code 
+            var j158_re0 = S32(0)
+            while j158_re0 <= S32(4) - w64:
+                var values176 = simd_load(dsp.rec77_perm, j158_re0)
+                simd_store(rec77_tmp, j158_re0, values176)
+                j158_re0 = j158_re0 + w64
+            # Compute code 
+            var i_re94 = S32(0)
+            while (i_re94) < (vsize_re0): 
+                rec77[i_re94] = (zec15[i_re94]) - ((dsp.const386) * (((dsp.const387) * (rec77[(i_re94) - (S32(2))])) + ((dsp.const390) * (rec77[(i_re94) - (S32(1))]))))
+                i_re94 = (i_re94) + (S32(1))
+            # Post code 
+            var j159_re0 = S32(0)
+            while j159_re0 <= S32(4) - w64:
+                var values177 = simd_load(rec77_tmp, vsize_re0 + j159_re0)
+                simd_store(dsp.rec77_perm, j159_re0, values177)
+                j159_re0 = j159_re0 + w64
+            # Recursive loop 95 
+            # Pre code 
+            var j160_re0 = S32(0)
+            while j160_re0 <= S32(4) - w64:
+                var values178 = simd_load(dsp.rec76_perm, j160_re0)
+                simd_store(rec76_tmp, j160_re0, values178)
+                j160_re0 = j160_re0 + w64
+            # Compute code 
+            var i_re95 = S32(0)
+            while (i_re95) < (vsize_re0): 
+                rec76[i_re95] = ((dsp.const386) * ((((dsp.const392) * (rec77[i_re95])) + ((dsp.const393) * (rec77[(i_re95) - (S32(1))]))) + ((dsp.const392) * (rec77[(i_re95) - (S32(2))])))) - ((dsp.const394) * (((dsp.const395) * (rec76[(i_re95) - (S32(2))])) + ((dsp.const396) * (rec76[(i_re95) - (S32(1))]))))
+                i_re95 = (i_re95) + (S32(1))
+            # Post code 
+            var j161_re0 = S32(0)
+            while j161_re0 <= S32(4) - w64:
+                var values179 = simd_load(rec76_tmp, vsize_re0 + j161_re0)
+                simd_store(dsp.rec76_perm, j161_re0, values179)
+                j161_re0 = j161_re0 + w64
+            # Recursive loop 96 
+            # Pre code 
+            var j162_re0 = S32(0)
+            while j162_re0 <= S32(4) - w64:
+                var values180 = simd_load(dsp.rec75_perm, j162_re0)
+                simd_store(rec75_tmp, j162_re0, values180)
+                j162_re0 = j162_re0 + w64
+            # Compute code 
+            var i_re96 = S32(0)
+            while (i_re96) < (vsize_re0): 
+                rec75[i_re96] = ((dsp.const394) * ((((dsp.const398) * (rec76[i_re96])) + ((dsp.const399) * (rec76[(i_re96) - (S32(1))]))) + ((dsp.const398) * (rec76[(i_re96) - (S32(2))])))) - ((dsp.const400) * (((dsp.const401) * (rec75[(i_re96) - (S32(2))])) + ((dsp.const402) * (rec75[(i_re96) - (S32(1))]))))
+                i_re96 = (i_re96) + (S32(1))
+            # Post code 
+            var j163_re0 = S32(0)
+            while j163_re0 <= S32(4) - w64:
+                var values181 = simd_load(rec75_tmp, vsize_re0 + j163_re0)
+                simd_store(dsp.rec75_perm, j163_re0, values181)
+                j163_re0 = j163_re0 + w64
+            # Recursive loop 97 
+            # Pre code 
+            var j164_re0 = S32(0)
+            while j164_re0 <= S32(4) - w64:
+                var values182 = simd_load(dsp.rec74_perm, j164_re0)
+                simd_store(rec74_tmp, j164_re0, values182)
+                j164_re0 = j164_re0 + w64
+            # Compute code 
+            var i_re97 = S32(0)
+            while (i_re97) < (vsize_re0): 
+                rec74[i_re97] = ((slow8) * (rec74[(i_re97) - (S32(1))])) + ((slow9) * (abs((dsp.const400) * ((((dsp.const404) * (rec75[i_re97])) + ((dsp.const405) * (rec75[(i_re97) - (S32(1))]))) + ((dsp.const404) * (rec75[(i_re97) - (S32(2))]))))))
+                i_re97 = (i_re97) + (S32(1))
+            # Post code 
+            var j165_re0 = S32(0)
+            while j165_re0 <= S32(4) - w64:
+                var values183 = simd_load(rec74_tmp, vsize_re0 + j165_re0)
+                simd_store(dsp.rec74_perm, j165_re0, values183)
+                j165_re0 = j165_re0 + w64
+            # Recursive loop 98 
+            # Pre code 
+            var j166_re0 = S32(0)
+            while j166_re0 <= S32(4) - w64:
+                var values184 = simd_load(dsp.rec87_perm, j166_re0)
+                simd_store(rec87_tmp, j166_re0, values184)
+                j166_re0 = j166_re0 + w64
+            # Compute code 
+            var i_re98 = S32(0)
+            while (i_re98) < (vsize_re0): 
+                rec87[i_re98] = (zec15[i_re98]) - ((dsp.const406) * (((dsp.const407) * (rec87[(i_re98) - (S32(2))])) + ((dsp.const408) * (rec87[(i_re98) - (S32(1))]))))
+                i_re98 = (i_re98) + (S32(1))
+            # Post code 
+            var j167_re0 = S32(0)
+            while j167_re0 <= S32(4) - w64:
+                var values185 = simd_load(rec87_tmp, vsize_re0 + j167_re0)
+                simd_store(dsp.rec87_perm, j167_re0, values185)
+                j167_re0 = j167_re0 + w64
+            # Recursive loop 99 
+            # Pre code 
+            var j168_re0 = S32(0)
+            while j168_re0 <= S32(4) - w64:
+                var values186 = simd_load(dsp.rec86_perm, j168_re0)
+                simd_store(rec86_tmp, j168_re0, values186)
+                j168_re0 = j168_re0 + w64
+            # Compute code 
+            var i_re99 = S32(0)
+            while (i_re99) < (vsize_re0): 
+                rec86[i_re99] = ((dsp.const406) * ((((dsp.const410) * (rec87[i_re99])) + ((dsp.const411) * (rec87[(i_re99) - (S32(1))]))) + ((dsp.const410) * (rec87[(i_re99) - (S32(2))])))) - ((dsp.const412) * (((dsp.const413) * (rec86[(i_re99) - (S32(2))])) + ((dsp.const414) * (rec86[(i_re99) - (S32(1))]))))
+                i_re99 = (i_re99) + (S32(1))
+            # Post code 
+            var j169_re0 = S32(0)
+            while j169_re0 <= S32(4) - w64:
+                var values187 = simd_load(rec86_tmp, vsize_re0 + j169_re0)
+                simd_store(dsp.rec86_perm, j169_re0, values187)
+                j169_re0 = j169_re0 + w64
+            # Recursive loop 100 
+            # Pre code 
+            var j170_re0 = S32(0)
+            while j170_re0 <= S32(4) - w64:
+                var values188 = simd_load(dsp.rec85_perm, j170_re0)
+                simd_store(rec85_tmp, j170_re0, values188)
+                j170_re0 = j170_re0 + w64
+            # Compute code 
+            var i_re100 = S32(0)
+            while (i_re100) < (vsize_re0): 
+                rec85[i_re100] = ((dsp.const412) * ((((dsp.const415) * (rec86[i_re100])) + ((dsp.const416) * (rec86[(i_re100) - (S32(1))]))) + ((dsp.const415) * (rec86[(i_re100) - (S32(2))])))) - ((dsp.const417) * (((dsp.const418) * (rec85[(i_re100) - (S32(2))])) + ((dsp.const419) * (rec85[(i_re100) - (S32(1))]))))
+                i_re100 = (i_re100) + (S32(1))
+            # Post code 
+            var j171_re0 = S32(0)
+            while j171_re0 <= S32(4) - w64:
+                var values189 = simd_load(rec85_tmp, vsize_re0 + j171_re0)
+                simd_store(dsp.rec85_perm, j171_re0, values189)
+                j171_re0 = j171_re0 + w64
+            # Vectorizable loop 101 
+            # Compute code 
+            var i_re101 = S32(0)
+            while i_re101 <= vsize_re0 - w64:
+                var values190 = (dsp.const417) * ((((dsp.const420) * (simd_load(rec85, i_re101))) + ((dsp.const421) * (simd_load(rec85, i_re101 - S32(1))))) + ((dsp.const420) * (simd_load(rec85, i_re101 - S32(2)))))
+                simd_store(zec16, i_re101, values190)
+                i_re101 = i_re101 + w64
+            # Recursive loop 102 
+            # Pre code 
+            var j172_re0 = S32(0)
+            while j172_re0 <= S32(4) - w64:
+                var values191 = simd_load(dsp.rec84_perm, j172_re0)
+                simd_store(rec84_tmp, j172_re0, values191)
+                j172_re0 = j172_re0 + w64
+            # Compute code 
+            var i_re102 = S32(0)
+            while (i_re102) < (vsize_re0): 
+                rec84[i_re102] = (zec16[i_re102]) - ((dsp.const424) * (((dsp.const425) * (rec84[(i_re102) - (S32(2))])) + ((dsp.const428) * (rec84[(i_re102) - (S32(1))]))))
+                i_re102 = (i_re102) + (S32(1))
+            # Post code 
+            var j173_re0 = S32(0)
+            while j173_re0 <= S32(4) - w64:
+                var values192 = simd_load(rec84_tmp, vsize_re0 + j173_re0)
+                simd_store(dsp.rec84_perm, j173_re0, values192)
+                j173_re0 = j173_re0 + w64
+            # Recursive loop 103 
+            # Pre code 
+            var j174_re0 = S32(0)
+            while j174_re0 <= S32(4) - w64:
+                var values193 = simd_load(dsp.rec83_perm, j174_re0)
+                simd_store(rec83_tmp, j174_re0, values193)
+                j174_re0 = j174_re0 + w64
+            # Compute code 
+            var i_re103 = S32(0)
+            while (i_re103) < (vsize_re0): 
+                rec83[i_re103] = ((dsp.const424) * ((((dsp.const430) * (rec84[i_re103])) + ((dsp.const431) * (rec84[(i_re103) - (S32(1))]))) + ((dsp.const430) * (rec84[(i_re103) - (S32(2))])))) - ((dsp.const432) * (((dsp.const433) * (rec83[(i_re103) - (S32(2))])) + ((dsp.const434) * (rec83[(i_re103) - (S32(1))]))))
+                i_re103 = (i_re103) + (S32(1))
+            # Post code 
+            var j175_re0 = S32(0)
+            while j175_re0 <= S32(4) - w64:
+                var values194 = simd_load(rec83_tmp, vsize_re0 + j175_re0)
+                simd_store(dsp.rec83_perm, j175_re0, values194)
+                j175_re0 = j175_re0 + w64
+            # Recursive loop 104 
+            # Pre code 
+            var j176_re0 = S32(0)
+            while j176_re0 <= S32(4) - w64:
+                var values195 = simd_load(dsp.rec82_perm, j176_re0)
+                simd_store(rec82_tmp, j176_re0, values195)
+                j176_re0 = j176_re0 + w64
+            # Compute code 
+            var i_re104 = S32(0)
+            while (i_re104) < (vsize_re0): 
+                rec82[i_re104] = ((dsp.const432) * ((((dsp.const436) * (rec83[i_re104])) + ((dsp.const437) * (rec83[(i_re104) - (S32(1))]))) + ((dsp.const436) * (rec83[(i_re104) - (S32(2))])))) - ((dsp.const438) * (((dsp.const439) * (rec82[(i_re104) - (S32(2))])) + ((dsp.const440) * (rec82[(i_re104) - (S32(1))]))))
+                i_re104 = (i_re104) + (S32(1))
+            # Post code 
+            var j177_re0 = S32(0)
+            while j177_re0 <= S32(4) - w64:
+                var values196 = simd_load(rec82_tmp, vsize_re0 + j177_re0)
+                simd_store(dsp.rec82_perm, j177_re0, values196)
+                j177_re0 = j177_re0 + w64
+            # Recursive loop 105 
+            # Pre code 
+            var j178_re0 = S32(0)
+            while j178_re0 <= S32(4) - w64:
+                var values197 = simd_load(dsp.rec81_perm, j178_re0)
+                simd_store(rec81_tmp, j178_re0, values197)
+                j178_re0 = j178_re0 + w64
+            # Compute code 
+            var i_re105 = S32(0)
+            while (i_re105) < (vsize_re0): 
+                rec81[i_re105] = ((slow8) * (rec81[(i_re105) - (S32(1))])) + ((slow9) * (abs((dsp.const438) * ((((dsp.const442) * (rec82[i_re105])) + ((dsp.const443) * (rec82[(i_re105) - (S32(1))]))) + ((dsp.const442) * (rec82[(i_re105) - (S32(2))]))))))
+                i_re105 = (i_re105) + (S32(1))
+            # Post code 
+            var j179_re0 = S32(0)
+            while j179_re0 <= S32(4) - w64:
+                var values198 = simd_load(rec81_tmp, vsize_re0 + j179_re0)
+                simd_store(dsp.rec81_perm, j179_re0, values198)
+                j179_re0 = j179_re0 + w64
+            # Recursive loop 106 
+            # Pre code 
+            var j180_re0 = S32(0)
+            while j180_re0 <= S32(4) - w64:
+                var values199 = simd_load(dsp.rec94_perm, j180_re0)
+                simd_store(rec94_tmp, j180_re0, values199)
+                j180_re0 = j180_re0 + w64
+            # Compute code 
+            var i_re106 = S32(0)
+            while (i_re106) < (vsize_re0): 
+                rec94[i_re106] = (zec16[i_re106]) - ((dsp.const444) * (((dsp.const445) * (rec94[(i_re106) - (S32(2))])) + ((dsp.const446) * (rec94[(i_re106) - (S32(1))]))))
+                i_re106 = (i_re106) + (S32(1))
+            # Post code 
+            var j181_re0 = S32(0)
+            while j181_re0 <= S32(4) - w64:
+                var values200 = simd_load(rec94_tmp, vsize_re0 + j181_re0)
+                simd_store(dsp.rec94_perm, j181_re0, values200)
+                j181_re0 = j181_re0 + w64
+            # Recursive loop 107 
+            # Pre code 
+            var j182_re0 = S32(0)
+            while j182_re0 <= S32(4) - w64:
+                var values201 = simd_load(dsp.rec93_perm, j182_re0)
+                simd_store(rec93_tmp, j182_re0, values201)
+                j182_re0 = j182_re0 + w64
+            # Compute code 
+            var i_re107 = S32(0)
+            while (i_re107) < (vsize_re0): 
+                rec93[i_re107] = ((dsp.const444) * ((((dsp.const448) * (rec94[i_re107])) + ((dsp.const449) * (rec94[(i_re107) - (S32(1))]))) + ((dsp.const448) * (rec94[(i_re107) - (S32(2))])))) - ((dsp.const450) * (((dsp.const451) * (rec93[(i_re107) - (S32(2))])) + ((dsp.const452) * (rec93[(i_re107) - (S32(1))]))))
+                i_re107 = (i_re107) + (S32(1))
+            # Post code 
+            var j183_re0 = S32(0)
+            while j183_re0 <= S32(4) - w64:
+                var values202 = simd_load(rec93_tmp, vsize_re0 + j183_re0)
+                simd_store(dsp.rec93_perm, j183_re0, values202)
+                j183_re0 = j183_re0 + w64
+            # Recursive loop 108 
+            # Pre code 
+            var j184_re0 = S32(0)
+            while j184_re0 <= S32(4) - w64:
+                var values203 = simd_load(dsp.rec92_perm, j184_re0)
+                simd_store(rec92_tmp, j184_re0, values203)
+                j184_re0 = j184_re0 + w64
+            # Compute code 
+            var i_re108 = S32(0)
+            while (i_re108) < (vsize_re0): 
+                rec92[i_re108] = ((dsp.const450) * ((((dsp.const453) * (rec93[i_re108])) + ((dsp.const454) * (rec93[(i_re108) - (S32(1))]))) + ((dsp.const453) * (rec93[(i_re108) - (S32(2))])))) - ((dsp.const455) * (((dsp.const456) * (rec92[(i_re108) - (S32(2))])) + ((dsp.const457) * (rec92[(i_re108) - (S32(1))]))))
+                i_re108 = (i_re108) + (S32(1))
+            # Post code 
+            var j185_re0 = S32(0)
+            while j185_re0 <= S32(4) - w64:
+                var values204 = simd_load(rec92_tmp, vsize_re0 + j185_re0)
+                simd_store(dsp.rec92_perm, j185_re0, values204)
+                j185_re0 = j185_re0 + w64
+            # Vectorizable loop 109 
+            # Compute code 
+            var i_re109 = S32(0)
+            while i_re109 <= vsize_re0 - w64:
+                var values205 = (dsp.const455) * ((((dsp.const458) * (simd_load(rec92, i_re109))) + ((dsp.const459) * (simd_load(rec92, i_re109 - S32(1))))) + ((dsp.const458) * (simd_load(rec92, i_re109 - S32(2)))))
+                simd_store(zec17, i_re109, values205)
+                i_re109 = i_re109 + w64
+            # Recursive loop 110 
+            # Pre code 
+            var j186_re0 = S32(0)
+            while j186_re0 <= S32(4) - w64:
+                var values206 = simd_load(dsp.rec91_perm, j186_re0)
+                simd_store(rec91_tmp, j186_re0, values206)
+                j186_re0 = j186_re0 + w64
+            # Compute code 
+            var i_re110 = S32(0)
+            while (i_re110) < (vsize_re0): 
+                rec91[i_re110] = (zec17[i_re110]) - ((dsp.const462) * (((dsp.const463) * (rec91[(i_re110) - (S32(2))])) + ((dsp.const466) * (rec91[(i_re110) - (S32(1))]))))
+                i_re110 = (i_re110) + (S32(1))
+            # Post code 
+            var j187_re0 = S32(0)
+            while j187_re0 <= S32(4) - w64:
+                var values207 = simd_load(rec91_tmp, vsize_re0 + j187_re0)
+                simd_store(dsp.rec91_perm, j187_re0, values207)
+                j187_re0 = j187_re0 + w64
+            # Recursive loop 111 
+            # Pre code 
+            var j188_re0 = S32(0)
+            while j188_re0 <= S32(4) - w64:
+                var values208 = simd_load(dsp.rec90_perm, j188_re0)
+                simd_store(rec90_tmp, j188_re0, values208)
+                j188_re0 = j188_re0 + w64
+            # Compute code 
+            var i_re111 = S32(0)
+            while (i_re111) < (vsize_re0): 
+                rec90[i_re111] = ((dsp.const462) * ((((dsp.const468) * (rec91[i_re111])) + ((dsp.const469) * (rec91[(i_re111) - (S32(1))]))) + ((dsp.const468) * (rec91[(i_re111) - (S32(2))])))) - ((dsp.const470) * (((dsp.const471) * (rec90[(i_re111) - (S32(2))])) + ((dsp.const472) * (rec90[(i_re111) - (S32(1))]))))
+                i_re111 = (i_re111) + (S32(1))
+            # Post code 
+            var j189_re0 = S32(0)
+            while j189_re0 <= S32(4) - w64:
+                var values209 = simd_load(rec90_tmp, vsize_re0 + j189_re0)
+                simd_store(dsp.rec90_perm, j189_re0, values209)
+                j189_re0 = j189_re0 + w64
+            # Recursive loop 112 
+            # Pre code 
+            var j190_re0 = S32(0)
+            while j190_re0 <= S32(4) - w64:
+                var values210 = simd_load(dsp.rec89_perm, j190_re0)
+                simd_store(rec89_tmp, j190_re0, values210)
+                j190_re0 = j190_re0 + w64
+            # Compute code 
+            var i_re112 = S32(0)
+            while (i_re112) < (vsize_re0): 
+                rec89[i_re112] = ((dsp.const470) * ((((dsp.const474) * (rec90[i_re112])) + ((dsp.const475) * (rec90[(i_re112) - (S32(1))]))) + ((dsp.const474) * (rec90[(i_re112) - (S32(2))])))) - ((dsp.const476) * (((dsp.const477) * (rec89[(i_re112) - (S32(2))])) + ((dsp.const478) * (rec89[(i_re112) - (S32(1))]))))
+                i_re112 = (i_re112) + (S32(1))
+            # Post code 
+            var j191_re0 = S32(0)
+            while j191_re0 <= S32(4) - w64:
+                var values211 = simd_load(rec89_tmp, vsize_re0 + j191_re0)
+                simd_store(dsp.rec89_perm, j191_re0, values211)
+                j191_re0 = j191_re0 + w64
+            # Recursive loop 113 
+            # Pre code 
+            var j192_re0 = S32(0)
+            while j192_re0 <= S32(4) - w64:
+                var values212 = simd_load(dsp.rec88_perm, j192_re0)
+                simd_store(rec88_tmp, j192_re0, values212)
+                j192_re0 = j192_re0 + w64
+            # Compute code 
+            var i_re113 = S32(0)
+            while (i_re113) < (vsize_re0): 
+                rec88[i_re113] = ((slow8) * (rec88[(i_re113) - (S32(1))])) + ((slow9) * (abs((dsp.const476) * ((((dsp.const480) * (rec89[i_re113])) + ((dsp.const481) * (rec89[(i_re113) - (S32(1))]))) + ((dsp.const480) * (rec89[(i_re113) - (S32(2))]))))))
+                i_re113 = (i_re113) + (S32(1))
+            # Post code 
+            var j193_re0 = S32(0)
+            while j193_re0 <= S32(4) - w64:
+                var values213 = simd_load(rec88_tmp, vsize_re0 + j193_re0)
+                simd_store(dsp.rec88_perm, j193_re0, values213)
+                j193_re0 = j193_re0 + w64
+            # Recursive loop 114 
+            # Pre code 
+            var j194_re0 = S32(0)
+            while j194_re0 <= S32(4) - w64:
+                var values214 = simd_load(dsp.rec101_perm, j194_re0)
+                simd_store(rec101_tmp, j194_re0, values214)
+                j194_re0 = j194_re0 + w64
+            # Compute code 
+            var i_re114 = S32(0)
+            while (i_re114) < (vsize_re0): 
+                rec101[i_re114] = (zec17[i_re114]) - ((dsp.const482) * (((dsp.const483) * (rec101[(i_re114) - (S32(2))])) + ((dsp.const484) * (rec101[(i_re114) - (S32(1))]))))
+                i_re114 = (i_re114) + (S32(1))
+            # Post code 
+            var j195_re0 = S32(0)
+            while j195_re0 <= S32(4) - w64:
+                var values215 = simd_load(rec101_tmp, vsize_re0 + j195_re0)
+                simd_store(dsp.rec101_perm, j195_re0, values215)
+                j195_re0 = j195_re0 + w64
+            # Recursive loop 115 
+            # Pre code 
+            var j196_re0 = S32(0)
+            while j196_re0 <= S32(4) - w64:
+                var values216 = simd_load(dsp.rec100_perm, j196_re0)
+                simd_store(rec100_tmp, j196_re0, values216)
+                j196_re0 = j196_re0 + w64
+            # Compute code 
+            var i_re115 = S32(0)
+            while (i_re115) < (vsize_re0): 
+                rec100[i_re115] = ((dsp.const482) * ((((dsp.const486) * (rec101[i_re115])) + ((dsp.const487) * (rec101[(i_re115) - (S32(1))]))) + ((dsp.const486) * (rec101[(i_re115) - (S32(2))])))) - ((dsp.const488) * (((dsp.const489) * (rec100[(i_re115) - (S32(2))])) + ((dsp.const490) * (rec100[(i_re115) - (S32(1))]))))
+                i_re115 = (i_re115) + (S32(1))
+            # Post code 
+            var j197_re0 = S32(0)
+            while j197_re0 <= S32(4) - w64:
+                var values217 = simd_load(rec100_tmp, vsize_re0 + j197_re0)
+                simd_store(dsp.rec100_perm, j197_re0, values217)
+                j197_re0 = j197_re0 + w64
+            # Recursive loop 116 
+            # Pre code 
+            var j198_re0 = S32(0)
+            while j198_re0 <= S32(4) - w64:
+                var values218 = simd_load(dsp.rec99_perm, j198_re0)
+                simd_store(rec99_tmp, j198_re0, values218)
+                j198_re0 = j198_re0 + w64
+            # Compute code 
+            var i_re116 = S32(0)
+            while (i_re116) < (vsize_re0): 
+                rec99[i_re116] = ((dsp.const488) * ((((dsp.const491) * (rec100[i_re116])) + ((dsp.const492) * (rec100[(i_re116) - (S32(1))]))) + ((dsp.const491) * (rec100[(i_re116) - (S32(2))])))) - ((dsp.const493) * (((dsp.const494) * (rec99[(i_re116) - (S32(2))])) + ((dsp.const495) * (rec99[(i_re116) - (S32(1))]))))
+                i_re116 = (i_re116) + (S32(1))
+            # Post code 
+            var j199_re0 = S32(0)
+            while j199_re0 <= S32(4) - w64:
+                var values219 = simd_load(rec99_tmp, vsize_re0 + j199_re0)
+                simd_store(dsp.rec99_perm, j199_re0, values219)
+                j199_re0 = j199_re0 + w64
+            # Vectorizable loop 117 
+            # Compute code 
+            var i_re117 = S32(0)
+            while i_re117 <= vsize_re0 - w64:
+                var values220 = (dsp.const493) * ((((dsp.const496) * (simd_load(rec99, i_re117))) + ((dsp.const497) * (simd_load(rec99, i_re117 - S32(1))))) + ((dsp.const496) * (simd_load(rec99, i_re117 - S32(2)))))
+                simd_store(zec18, i_re117, values220)
+                i_re117 = i_re117 + w64
+            # Recursive loop 118 
+            # Pre code 
+            var j200_re0 = S32(0)
+            while j200_re0 <= S32(4) - w64:
+                var values221 = simd_load(dsp.rec98_perm, j200_re0)
+                simd_store(rec98_tmp, j200_re0, values221)
+                j200_re0 = j200_re0 + w64
+            # Compute code 
+            var i_re118 = S32(0)
+            while (i_re118) < (vsize_re0): 
+                rec98[i_re118] = (zec18[i_re118]) - ((dsp.const500) * (((dsp.const501) * (rec98[(i_re118) - (S32(2))])) + ((dsp.const504) * (rec98[(i_re118) - (S32(1))]))))
+                i_re118 = (i_re118) + (S32(1))
+            # Post code 
+            var j201_re0 = S32(0)
+            while j201_re0 <= S32(4) - w64:
+                var values222 = simd_load(rec98_tmp, vsize_re0 + j201_re0)
+                simd_store(dsp.rec98_perm, j201_re0, values222)
+                j201_re0 = j201_re0 + w64
+            # Recursive loop 119 
+            # Pre code 
+            var j202_re0 = S32(0)
+            while j202_re0 <= S32(4) - w64:
+                var values223 = simd_load(dsp.rec97_perm, j202_re0)
+                simd_store(rec97_tmp, j202_re0, values223)
+                j202_re0 = j202_re0 + w64
+            # Compute code 
+            var i_re119 = S32(0)
+            while (i_re119) < (vsize_re0): 
+                rec97[i_re119] = ((dsp.const500) * ((((dsp.const506) * (rec98[i_re119])) + ((dsp.const507) * (rec98[(i_re119) - (S32(1))]))) + ((dsp.const506) * (rec98[(i_re119) - (S32(2))])))) - ((dsp.const508) * (((dsp.const509) * (rec97[(i_re119) - (S32(2))])) + ((dsp.const510) * (rec97[(i_re119) - (S32(1))]))))
+                i_re119 = (i_re119) + (S32(1))
+            # Post code 
+            var j203_re0 = S32(0)
+            while j203_re0 <= S32(4) - w64:
+                var values224 = simd_load(rec97_tmp, vsize_re0 + j203_re0)
+                simd_store(dsp.rec97_perm, j203_re0, values224)
+                j203_re0 = j203_re0 + w64
+            # Recursive loop 120 
+            # Pre code 
+            var j204_re0 = S32(0)
+            while j204_re0 <= S32(4) - w64:
+                var values225 = simd_load(dsp.rec96_perm, j204_re0)
+                simd_store(rec96_tmp, j204_re0, values225)
+                j204_re0 = j204_re0 + w64
+            # Compute code 
+            var i_re120 = S32(0)
+            while (i_re120) < (vsize_re0): 
+                rec96[i_re120] = ((dsp.const508) * ((((dsp.const512) * (rec97[i_re120])) + ((dsp.const513) * (rec97[(i_re120) - (S32(1))]))) + ((dsp.const512) * (rec97[(i_re120) - (S32(2))])))) - ((dsp.const514) * (((dsp.const515) * (rec96[(i_re120) - (S32(2))])) + ((dsp.const516) * (rec96[(i_re120) - (S32(1))]))))
+                i_re120 = (i_re120) + (S32(1))
+            # Post code 
+            var j205_re0 = S32(0)
+            while j205_re0 <= S32(4) - w64:
+                var values226 = simd_load(rec96_tmp, vsize_re0 + j205_re0)
+                simd_store(dsp.rec96_perm, j205_re0, values226)
+                j205_re0 = j205_re0 + w64
+            # Recursive loop 121 
+            # Pre code 
+            var j206_re0 = S32(0)
+            while j206_re0 <= S32(4) - w64:
+                var values227 = simd_load(dsp.rec95_perm, j206_re0)
+                simd_store(rec95_tmp, j206_re0, values227)
+                j206_re0 = j206_re0 + w64
+            # Compute code 
+            var i_re121 = S32(0)
+            while (i_re121) < (vsize_re0): 
+                rec95[i_re121] = ((slow8) * (rec95[(i_re121) - (S32(1))])) + ((slow9) * (abs((dsp.const514) * ((((dsp.const518) * (rec96[i_re121])) + ((dsp.const519) * (rec96[(i_re121) - (S32(1))]))) + ((dsp.const518) * (rec96[(i_re121) - (S32(2))]))))))
+                i_re121 = (i_re121) + (S32(1))
+            # Post code 
+            var j207_re0 = S32(0)
+            while j207_re0 <= S32(4) - w64:
+                var values228 = simd_load(rec95_tmp, vsize_re0 + j207_re0)
+                simd_store(dsp.rec95_perm, j207_re0, values228)
+                j207_re0 = j207_re0 + w64
+            # Recursive loop 122 
+            # Pre code 
+            var j208_re0 = S32(0)
+            while j208_re0 <= S32(4) - w64:
+                var values229 = simd_load(dsp.rec105_perm, j208_re0)
+                simd_store(rec105_tmp, j208_re0, values229)
+                j208_re0 = j208_re0 + w64
+            # Compute code 
+            var i_re122 = S32(0)
+            while (i_re122) < (vsize_re0): 
+                rec105[i_re122] = (zec18[i_re122]) - ((dsp.const520) * (((dsp.const521) * (rec105[(i_re122) - (S32(2))])) + ((dsp.const522) * (rec105[(i_re122) - (S32(1))]))))
+                i_re122 = (i_re122) + (S32(1))
+            # Post code 
+            var j209_re0 = S32(0)
+            while j209_re0 <= S32(4) - w64:
+                var values230 = simd_load(rec105_tmp, vsize_re0 + j209_re0)
+                simd_store(dsp.rec105_perm, j209_re0, values230)
+                j209_re0 = j209_re0 + w64
+            # Recursive loop 123 
+            # Pre code 
+            var j210_re0 = S32(0)
+            while j210_re0 <= S32(4) - w64:
+                var values231 = simd_load(dsp.rec104_perm, j210_re0)
+                simd_store(rec104_tmp, j210_re0, values231)
+                j210_re0 = j210_re0 + w64
+            # Compute code 
+            var i_re123 = S32(0)
+            while (i_re123) < (vsize_re0): 
+                rec104[i_re123] = ((dsp.const520) * ((((dsp.const524) * (rec105[i_re123])) + ((dsp.const525) * (rec105[(i_re123) - (S32(1))]))) + ((dsp.const524) * (rec105[(i_re123) - (S32(2))])))) - ((dsp.const526) * (((dsp.const527) * (rec104[(i_re123) - (S32(2))])) + ((dsp.const528) * (rec104[(i_re123) - (S32(1))]))))
+                i_re123 = (i_re123) + (S32(1))
+            # Post code 
+            var j211_re0 = S32(0)
+            while j211_re0 <= S32(4) - w64:
+                var values232 = simd_load(rec104_tmp, vsize_re0 + j211_re0)
+                simd_store(dsp.rec104_perm, j211_re0, values232)
+                j211_re0 = j211_re0 + w64
+            # Recursive loop 124 
+            # Pre code 
+            var j212_re0 = S32(0)
+            while j212_re0 <= S32(4) - w64:
+                var values233 = simd_load(dsp.rec103_perm, j212_re0)
+                simd_store(rec103_tmp, j212_re0, values233)
+                j212_re0 = j212_re0 + w64
+            # Compute code 
+            var i_re124 = S32(0)
+            while (i_re124) < (vsize_re0): 
+                rec103[i_re124] = ((dsp.const526) * ((((dsp.const529) * (rec104[i_re124])) + ((dsp.const530) * (rec104[(i_re124) - (S32(1))]))) + ((dsp.const529) * (rec104[(i_re124) - (S32(2))])))) - ((dsp.const531) * (((dsp.const532) * (rec103[(i_re124) - (S32(2))])) + ((dsp.const533) * (rec103[(i_re124) - (S32(1))]))))
+                i_re124 = (i_re124) + (S32(1))
+            # Post code 
+            var j213_re0 = S32(0)
+            while j213_re0 <= S32(4) - w64:
+                var values234 = simd_load(rec103_tmp, vsize_re0 + j213_re0)
+                simd_store(dsp.rec103_perm, j213_re0, values234)
+                j213_re0 = j213_re0 + w64
+            # Recursive loop 125 
+            # Pre code 
+            var j214_re0 = S32(0)
+            while j214_re0 <= S32(4) - w64:
+                var values235 = simd_load(dsp.rec102_perm, j214_re0)
+                simd_store(rec102_tmp, j214_re0, values235)
+                j214_re0 = j214_re0 + w64
+            # Compute code 
+            var i_re125 = S32(0)
+            while (i_re125) < (vsize_re0): 
+                rec102[i_re125] = ((slow8) * (rec102[(i_re125) - (S32(1))])) + ((slow9) * (abs((dsp.const531) * ((((dsp.const534) * (rec103[i_re125])) + ((dsp.const535) * (rec103[(i_re125) - (S32(1))]))) + ((dsp.const534) * (rec103[(i_re125) - (S32(2))]))))))
+                i_re125 = (i_re125) + (S32(1))
+            # Post code 
+            var j215_re0 = S32(0)
+            while j215_re0 <= S32(4) - w64:
+                var values236 = simd_load(rec102_tmp, vsize_re0 + j215_re0)
+                simd_store(dsp.rec102_perm, j215_re0, values236)
+                j215_re0 = j215_re0 + w64
+            # Vectorizable loop 126 
+            # Compute code 
             var i_re126 = S32(0)
             while i_re126 <= vsize_re0 - wfaust:
                 dsp.vbargraph0 = FaustFloat((slow10) + ((2e+01) * (log10(rec7[i_re126]))))
@@ -4441,61 +4905,48 @@ struct mydsp(FaustDsp):
                 dsp.vbargraph12 = FaustFloat((slow10) + ((2e+01) * (log10(rec88[i_re126]))))
                 dsp.vbargraph13 = FaustFloat((slow10) + ((2e+01) * (log10(rec95[i_re126]))))
                 dsp.vbargraph14 = FaustFloat((slow10) + ((2e+01) * (log10(rec102[i_re126]))))
-                var values237 = simd_load(zec5, i_re126)
-                simd_store(zec19, i_re126, values237)
+                var values252 = simd_load(zec5, i_re126)
+                simd_store(zec19, i_re126, values252)
                 i_re126 = i_re126 + wfaust
+            # Vectorizable loop 127 
+            # Compute code 
             var i_re127 = S32(0)
             while i_re127 <= vsize_re0 - wfaust:
                 var lo = (simd_load(zec19, i_re127)).cast[dfaust]()
                 var hi = (simd_load(zec19, i_re127 + S32(wreal))).cast[dfaust]()
-                var values238  = lo.join(hi)
-                simd_store(output0, i_re127, values238)
+                var values253  = lo.join(hi)
+                simd_store(output0, i_re127, values253)
                 i_re127 = i_re127 + wfaust
+            # Vectorizable loop 128 
+            # Compute code 
             var i_re128 = S32(0)
             while i_re128 <= vsize_re0 - wfaust:
                 var lo = (simd_load(zec19, i_re128)).cast[dfaust]()
                 var hi = (simd_load(zec19, i_re128 + S32(wreal))).cast[dfaust]()
-                var values239  = lo.join(hi)
-                simd_store(output1, i_re128, values239)
+                var values254  = lo.join(hi)
+                simd_store(output1, i_re128, values254)
                 i_re128 = i_re128 + wfaust
             vindex_re0 = (vindex_re0) + (S32(4))
+        # Remaining frames 
 
 # ==============================================================================
 # Faust generated DSP code end.
 # ==============================================================================
 # Second section of architecture provided code start.
-# Defines the main entry point of the application.
-# Initializes the dsp object, allocates and intializes the audio buffers and
-# calls the inspect function to run the dsp code.
+# Defines the main entry point of the application, initializes the dsp object,
+# initializes the user interface and calls the dsp runner.
 # ==============================================================================
 
-def main() -> None:
-    var dsp = alloc[mydsp](1)
+def main() raises -> None:
+    nbsamples = S32(60_000)
+    dsp = alloc[mydsp](1)
     dsp[] = mydsp()
+    ctrl_gui = ControlGui()
     dsp[].init(SAMP_RATE)
-    var n_ins = dsp[].get_num_inputs()
-    var n_outs = dsp[].get_num_outputs()
-    var base, err = make_streams[dfaust](BUFF_SIZE, n_ins, n_outs)
-    if err:
-        dsp.free()
-        return
-    var ptr = base.unsafe_value()
-    var inputs = ptr.bitcast[Ptr[FaustFloat, READ_NOTRK]]().as_immutable()
-    var outputs = (ptr + n_ins).bitcast[Ptr[FaustFloat, MUTA_NOTRK]]()
-    inspect_compute(dsp[], inputs, outputs)
-    ptr.free()
+    dsp[].build_user_interface(ctrl_gui)
+    print_header(dsp[], nbsamples)
+    run_dsp(dsp, ctrl_gui, nbsamples//4)
     dsp.free()
-
-@no_inline
-@export("inspect_compute")
-def inspect_compute(
-    mut dsp: mydsp, inputs: ReadStreams, outputs: MutaStreams
-) abi("Mojo") -> None:
-    for _ in range(COMPUTE_ITERS):
-        keep(inputs)
-        keep(outputs)
-        dsp.compute(BUFF_SIZE, inputs, outputs)
-        clobber_memory()
 
 # ==============================================================================
 # Second section of architecture provided code end.

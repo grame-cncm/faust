@@ -28,16 +28,46 @@
 
 inline namespace mojo {
 
+using DType = MojoVecInstVisitor::DType;
+
 MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, const String& structName, int tab)
     : MojoInstVisitor(out, structName, tab)
-{   
-    gEmitSIMD = false;   
-    gEmitJoin = false;
+{
+    gSIMDEmit = false;
+    gSIMDJoin = false;
+}
+
+void MojoVecInstVisitor::visit(IfInst* inst)
+{
+    // do not generate remaining frames
+}
+
+void MojoVecInstVisitor::visit(Int32NumInst* inst)
+{
+    mj_simd_emit_check(); *fOut << "S32Vec(" << inst->fNum << ")";
+}
+
+void MojoVecInstVisitor::visit(DoubleNumInst* inst)
+{
+    mj_simd_emit_check(); *fOut << "F64Vec(" << checkDouble(inst->fNum) << ")";
+}
+
+void MojoVecInstVisitor::visit(FloatNumInst* inst)
+{
+    mj_simd_emit_check(); *fOut << "F32Vec(" << checkFloat(inst->fNum) << ")";
+}
+
+void MojoVecInstVisitor::visit(NamedAddress* inst)
+{
+    if (inst->isLoop()) {
+        mj_scalar_visit(inst); return; // NOTE:(manu) #1 Here using `visit(inst)`
+    }
+    MojoInstVisitor::visit(inst);
 }
 
 void MojoVecInstVisitor::visit(CastInst* inst)
 {
-    mj_emit_simd_check();
+    mj_simd_emit_check();
 
     Typed::VarType type = inst->fType->getType();
     *fOut << "(";
@@ -51,137 +81,108 @@ void MojoVecInstVisitor::visit(CastInst* inst)
             mj_panic(false, "`inst` has unexpected type " << Typed::gTypeString[type]);
     }
 }
-void MojoVecInstVisitor::visit(DoubleNumInst* inst)
-{
-    mj_emit_simd_check();
-    *fOut << "F64Vec(" << checkDouble(inst->fNum) << ")";
-}
-void MojoVecInstVisitor::visit(FloatNumInst* inst)
-{
-    mj_emit_simd_check();
-    *fOut << "F32Vec(" << checkFloat(inst->fNum) << ")";
-}
 
 void MojoVecInstVisitor::visit(IndexedAddress* inst)
 {
-    mj_emit_simd_check();
+    mj_simd_emit_check();
 
     Address* addr = inst->fAddress;
-    String src_name = snakeCase(addr->getName());
-    src_name = addr->isStruct() ? "dsp." + src_name : src_name;
+    String name = snakeCase(addr->getName());
+    name = addr->isStruct() ? "dsp." + name : name;
 
-    // XXX:(manu) 
-    // - Should the index shape be already checked here?
-    //   > I am assuming it is.
-    if (auto* idx = dycast(BinopInst*, inst->fIndices[0]); idx) {
-        auto* idx_lhs = dycast(LoadVarInst*, idx->fInst1);
-        auto* idx_rhs = dycast(ValueInst*, idx->fInst2);
+    if (auto* idx_bin = dycast(BinopInst*, inst->fIndices[0]); idx_bin) {
+        auto* idx_lhs = dycast(LoadVarInst*, idx_bin->fInst1);
+        auto* idx_rhs = dycast(ValueInst*, idx_bin->fInst2);
         if (idx_lhs && idx_rhs && idx_rhs->isSimpleValue()) {
-            String idx_name = idx_lhs->getName() + (gEmitJoin ? " + S32(wreal)" : "");
-            *fOut << "simd_load(" << src_name << ", " << idx_name << " " << gBinOpTable[idx->fOpcode]->fName << " ";
-            mj_emit_simd_set(false);
-            idx_rhs->accept(this);
-            mj_emit_simd_restore();
+            String opc = gBinOpTable[idx_bin->fOpcode]->fName;
+            String idx = snakeCase(idx_lhs->getName()) + (gSIMDJoin ? " + S32(wreal)" : "");
+            *fOut << "simd_load(" << name << ", " << idx << " " << opc << " ";
+            mj_scalar_accept(idx_rhs);
             *fOut << ")";
             return;
         }
     }
 
-    auto* idx = dycast(LoadVarInst*, inst->fIndices[0]);
-    String idx_name = snakeCase(idx->getName()) + (gEmitJoin ? " + S32(wreal)" : "");
-    *fOut << "simd_load(" << src_name << ", " << idx_name << ")";
-
-    // XXX:(manu) Do I need a fallback?
+    auto* idx_lv = dycast(LoadVarInst*, inst->fIndices[0]);
+    String idx = snakeCase(idx_lv->getName()) + (gSIMDJoin ? " + S32(wreal)" : "");
+    *fOut << "simd_load(" << name << ", " << idx << ")";
 }
 
-void MojoVecInstVisitor::visit(Int32NumInst* inst)
-{
-    mj_emit_simd_check();
-    *fOut << "S32Vec(" << inst->fNum << ")";
-}
+// void MojoVecInstVisitor::visit(StoreVarInst* inst)
+// {
+//     mj_simd_emit_check();
+//     String values = gGlobal->getFreshID("values");
+//
+//     mj_debug_fir(std::cerr, inst, "store");
+//
+//     if (isJoineable(inst)) {
+//         *fOut << "var lo = ";
+//         inst->fValue->accept(this);
+//         *fOut << wnextl(fTab) << "var hi = ";
+//         mj_simd_join_set(true);
+//         inst->fValue->accept(this);
+//         mj_simd_join_restore();
+//         *fOut << wnextl(fTab) << "var " << values << "  = lo.join(hi)";
+//         gCurrentID = values;
+//         return; 
+//     }
+//
+//     *fOut << "var " << values << " = ";
+//     gCurrentID = values;
+//     inst->fValue->accept(this);
+// }
 
-void MojoVecInstVisitor::visit(NamedAddress* inst)
+void MojoVecInstVisitor::visitStore(StoreVarInst* inst, VString idx)
 {
-    if (inst->isLoop()) {
-        mj_emit_simd_set(false);
-        MojoInstVisitor::visit(inst);
-        mj_emit_simd_restore();
-        return;
-    }
-    MojoInstVisitor::visit(inst);
-}
+    Address* lhs = inst->fAddress;
+    ValueInst* rhs = inst->fValue;
 
-b32 MojoVecInstVisitor::mustEmitJoin(StoreVarInst* inst)
-{
-    // auto rhs_type = Typed::kNoType;
-    // auto lhs_type = Typed::kNoType;
-    // if (auto* cast_inst = dycast(CastInst*, inst->fValue)) {
-    //     lhs_type = TypingVisitor::getType(cast_inst);
-    //     if (auto* binop_inst = dycast(BinopInst*, cast_inst->fInst)) {
-    //         rhs_type = TypingVisitor::getType(binop_inst);
-    //     }
-    // }
+    String dst = snakeCase(lhs->getName());
+    dst = inst->fAddress->isStruct() ? "dsp." + dst : dst;
 
-    auto lhs_type = TypingVisitor::getType(inst->fValue);
-    auto rhs_type = Typed::kNoType;
-    if (auto* cast_inst = dycast(CastInst*, inst->fValue)) {
-        rhs_type = TypingVisitor::getType(cast_inst->fInst);
-    }
-    b32 lhs_small_width = (lhs_type == Typed::kDouble) ||
-                          (lhs_type == Typed::kFloatMacro && std::is_same_v<FAUSTFLOAT, float>);
-    if (lhs_small_width && rhs_type == Typed::kDouble) {
-        return true;
-    }
-    printf("%d\n", lhs_type);
-    printf("%d\n", rhs_type);
-    return false;
-}
-
-void MojoVecInstVisitor::visit(StoreVarInst* inst)
-{
-    mj_emit_simd_check();
     String values = gGlobal->getFreshID("values");
 
-    // mj_debug_fir(std::cerr, inst->fAddress, "StoreVarInst");
-    // mj_debug_fir(std::cerr, inst->fValue, "StoreVarInst");
-
-    if (mustEmitJoin(inst)) {
-        *fOut << "var lo = ";
-        inst->fValue->accept(this);
-        gEmitJoin = true;
-        *fOut << wnextl(fTab) << "var hi = ";
-        inst->fValue->accept(this);
-        *fOut << wnextl(fTab) << "var " << values << "  = lo.join(hi)";
-        gLastValueID = values;
-        gEmitJoin = false;
-        return; 
-    }
-
-    *fOut << "var " << values << " = ";
-    gLastValueID = values;
-    inst->fValue->accept(this);
-}
-
-void MojoVecInstVisitor::visit(IfInst* inst)
-{
-    // stop generation of remaining frames
-}
-
-void MojoVecInstVisitor::visitStore(StoreVarInst* inst, String& idx_name)
-{
-    if (not isUnitStride(inst->fAddress) || hasWrappedIndex(inst->fValue)) {
-        mj_emit_scalar(inst);
+    if (not isVectorizable(lhs)) {
+        mj_scalar_visit(inst);
         *fOut << wrewind(fOut, fTab, +1);
         return;
     }
-    inst->accept(this);
-    String dst_name = snakeCase(inst->fAddress->getName());
-    dst_name = inst->fAddress->isStruct() ? "dsp." + dst_name : dst_name;
-    *fOut << wnextl(fTab) << "simd_store(" << dst_name << ", "
-          << idx_name << ", " << gLastValueID << ")";
+
+    if (isScalarValue(rhs)) { // broadcast
+        *fOut << "var " << values << " = ";
+        gCurrentID = values;
+        inst->fValue->accept(this);
+        *fOut << wnextl(fTab) << "simd_store[SInt(wfaust)](" << dst << ", " << idx << ", " << gCurrentID << ")";
+        return;
+    }
+
+    if (not isVectorizable(rhs)) {
+        mj_scalar_visit(inst);
+        *fOut << wrewind(fOut, fTab, +1);
+        return;
+    }
+
+    if (isJoineable(inst)) {
+        *fOut << "var lo = ";
+        inst->fValue->accept(this);
+        *fOut << wnextl(fTab) << "var hi = ";
+        mj_simd_join_set(true);
+        inst->fValue->accept(this);
+        mj_simd_join_restore();
+        *fOut << wnextl(fTab) << "var " << values << "  = lo.join(hi)";
+        gCurrentID = values;
+        goto End_Inst;
+    }
+
+    *fOut << "var " << values << " = ";
+    gCurrentID = values;
+    inst->fValue->accept(this);
+
+End_Inst:
+    *fOut << wnextl(fTab) << "simd_store(" << dst << ", " << idx << ", " << gCurrentID << ")";
 }
 
-void MojoVecInstVisitor::writeBargraphUpdate(ForLoopInst* inst, String& idx_name, String& dwidth)
+void MojoVecInstVisitor::visitBargraphUpdate(ForLoopInst* inst, VString idx, VString dwidth)
 {
     mj_panic(inst->fCode->size() == 2, "Expected `inst->fCode` to be a 2 instructions block");
 
@@ -197,8 +198,8 @@ void MojoVecInstVisitor::writeBargraphUpdate(ForLoopInst* inst, String& idx_name
     *fOut << wnextl(fTab) << "dsp." << bargraph_name << " = "
           << values << "[SInt(" << dwidth << ") - 1]";
 
-    String output_name = snakeCase(store_2->fAddress->getName());
-    *fOut << wnextl(fTab) << "simd_store(" << output_name << ", " << idx_name << ", " << values << ")";
+    String out = snakeCase(store_2->fAddress->getName());
+    *fOut << wnextl(fTab) << "simd_store(" << out << ", " << idx << ", " << values << ")";
 }
 
 void MojoVecInstVisitor::visit(ForLoopInst* inst)
@@ -207,7 +208,7 @@ void MojoVecInstVisitor::visit(ForLoopInst* inst)
         return;
     }
     if (inst->fIsRecursive) {
-        mj_emit_scalar(inst);
+        mj_scalar_visit(inst);
         return;
     }
 
@@ -215,8 +216,8 @@ void MojoVecInstVisitor::visit(ForLoopInst* inst)
     mj_panic(peek, "Each line of the loop is expected to be a `StoreVarInst`");
 
     // setup
-    auto dtype = getDType(peek->fValue);
-    auto dwidth = dtype_widths[dtype];
+    DType dtype = getDType(peek->fValue);
+    VString dwidth = dtype_widths[dtype];
 
     // setup
     auto* ini_inst = dycast(DeclareVarInst*, inst->fInit);
@@ -232,13 +233,13 @@ void MojoVecInstVisitor::visit(ForLoopInst* inst)
     end_val->accept(this);
     *fOut << " - " << dwidth << ":";
 
-    mj_emit_simd_set(true);
+    mj_simd_emit_set(true);
 
     // body
     fTab += 1;
 
     if (inst->fCode->size() == 2) {
-        writeBargraphUpdate(inst, idx_name, dwidth);
+        visitBargraphUpdate(inst, idx_name, dwidth);
         goto End_Loop;
     }
 
@@ -254,43 +255,57 @@ End_Loop:
     *fOut << wnextl(fTab) << idx_name << " = " << idx_name << " + " << dwidth;
 
     // end
-    mj_emit_simd_restore();
+    mj_simd_emit_restore();
     fTab -= 1;
     *fOut << wnextl(fTab);
+}
+
+b32 MojoVecInstVisitor::isScalarAddress(Address* addr)
+{ 
+    return not dycast(IndexedAddress*, addr);
+}
+
+b32 MojoVecInstVisitor::isScalarValue(ValueInst* inst)
+{
+    ValueInst* value = inst;
+    if (auto* cast_inst = dycast(CastInst*, value)) {
+        value = cast_inst->fInst;
+    }
+    auto* lv_inst = dycast(LoadVarInst*, value);
+    return lv_inst && lv_inst->isSimpleValue();
 }
 
 b32 MojoVecInstVisitor::hasWrappedIndex(Address* addr)
 {
     auto* indexed = dycast(IndexedAddress*, addr);
-    if (not (indexed)) {
-        // return true; // TODO:
-        return false;   // What should I do for scalars?
-    }
+    mj_panic(indexed, "Expected `addr` to be `IndexedAddress`");
 
-    Arr<ValueInst*>& indices = indexed->fIndices;
-    if (indices.size() != 1) {
+    if (indexed->fIndices.size() != 1) {
         return true;
     }
+    return isWrappedIndexExpr(indexed->fIndices[0]);
+}
 
-    auto* idx = dycast(LoadVarInst*, indices[0]);
-    if (idx && not idx->isSimpleValue()) {
-        return true;
+b32 MojoVecInstVisitor::isWrappedIndexExpr(ValueInst* inst)
+{
+    if (auto* cast_inst = dycast(CastInst*, inst)) {
+        return isWrappedIndexExpr(cast_inst->fInst);
     }
-
-    auto* cast_inst = dycast(BinopInst*, indices[0]);
-    if (cast_inst) {
-        s32 opcode = cast_inst->fOpcode;
+    if (auto* lv_inst = dycast(LoadVarInst*, inst)) {
+        return not lv_inst->isSimpleValue();
+    }
+    if (auto* binop_inst = dycast(BinopInst*, inst)) {
+        s32 opcode = binop_inst->fOpcode;
         if (not (opcode == kAdd || opcode == kSub)) {
-            return true; 
+            return true;
         }
-        return hasWrappedIndex(cast_inst->fInst1) || hasWrappedIndex(cast_inst->fInst2);
+        return isWrappedIndexExpr(binop_inst->fInst1) || isWrappedIndexExpr(binop_inst->fInst2);
     }
-
     return false;
 }
 
 b32 MojoVecInstVisitor::hasWrappedIndex(ValueInst* inst)
-{ 
+{
     if (auto* cast_inst = dycast(CastInst*, inst)) {
         return hasWrappedIndex(cast_inst->fInst);
     }
@@ -298,54 +313,55 @@ b32 MojoVecInstVisitor::hasWrappedIndex(ValueInst* inst)
         return hasWrappedIndex(binop_inst->fInst1) || hasWrappedIndex(binop_inst->fInst2);
     }
     if (auto* load_inst = dycast(LoadVarInst*, inst)) {
-        // XXX:(manu) should I handle LoadVarAddressInst?
+        if (isScalarAddress(load_inst->fAddress)) {
+            return false;
+        }
         return hasWrappedIndex(load_inst->fAddress);
     }
     return false;
 }
 
-// actual shape only works with expected lhs of store
-b32 MojoVecInstVisitor::isUnitStride(Address* addr)
+b32 MojoVecInstVisitor::isVectorizable(Address* addr)
 {
-    // TODO:(manu)
-    // ! should accept also `A[i + off]`
-    // ? probably I am matching the lhs shape too strictly
+    if (isScalarAddress(addr)) {
+        return false;
+    }
+    return not hasWrappedIndex(addr);
+}
 
-    IndexedAddress* indexed = dycast(IndexedAddress*, addr);
-    if (not(indexed && indexed->fIndices.size() == 1)) {
-        return false;
-    }
-    auto* idx = dycast(LoadVarInst*, indexed->fIndices[0]);
-    if (not(idx && idx->isSimpleValue())) {
-        return false;
-    }
-    auto* idx_addr = dycast(Address*, idx->fAddress);
-    if (not(idx_addr && idx_addr->isLoop())) {
-        return false;
-    }
-    return true;
-} 
-
-DType MojoVecInstVisitor::getDType(ValueInst* inst)
+b32 MojoVecInstVisitor::isVectorizable(ValueInst* inst)
 {
-    ValueInst* value = inst;
-    mj_debug_fir(std::cerr, inst, "getDType");
-    // if (auto* cast_inst = dycast(CastInst*, inst)) {
-    //     value = cast_inst->fInst;
-    // }
+    return not hasWrappedIndex(inst);
+}
 
-    Typed::VarType type = TypingVisitor::getType(value);
+b32 MojoVecInstVisitor::isJoineable(StoreVarInst* inst)
+{
+    auto lhs_type = TypingVisitor::getType(inst->fValue);
+    auto rhs_type = Typed::kNoType;
+    if (auto* cast_inst = dycast(CastInst*, inst->fValue)) {
+        rhs_type = TypingVisitor::getType(cast_inst->fInst);
+    }
+    b32 lhs_small_width = (lhs_type == Typed::kDouble)
+                        || (lhs_type == Typed::kFloatMacro && std::is_same_v<FAUSTFLOAT, float>);
+    if (lhs_small_width && rhs_type == Typed::kDouble) {
+        return true;
+    }
+    return false;
+}
+
+MojoVecInstVisitor::DType MojoVecInstVisitor::getDType(ValueInst* inst)
+{
+    Typed::VarType type = TypingVisitor::getType(inst);
     if (Typed::isPtrType(type)) {
         type = Typed::getTypeFromPtr(type);
     }
     if (Typed::isVecType(type)) {
         type = Typed::getTypeFromVec(type);
     }
-    String dtype_value;
     switch (type) {
-        case Typed::kInt32:      return DType_s32;
-        case Typed::kFloat:      return DType_f32;
-        case Typed::kDouble:     return DType_f64;
+        case Typed::kInt32:      return DType_S32;
+        case Typed::kFloat:      return DType_S32;
+        case Typed::kDouble:     return DType_F64;
         case Typed::kFloatMacro: return DType_dfaust;
         default:
             mj_panic(false, "Unexpected `rhs` type " << Typed::gTypeString[type]);
@@ -355,15 +371,3 @@ DType MojoVecInstVisitor::getDType(ValueInst* inst)
 } // namespace mojo
 
 
-////////////////////////////////////////////
-// Unused
-
-// void MojoVecInstVisitor::writeMultiBargraph(
-//     ForLoopInst* inst
-// ) {
-//     mj_emit_simd_set(true);
-//     for (auto* line : *inst->fCode) {
-//         line->accept(this);
-//     }
-//     mj_emit_simd_restore();
-// }

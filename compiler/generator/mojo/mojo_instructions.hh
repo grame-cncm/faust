@@ -139,15 +139,6 @@ public:
     static void gZeroInitializer(OStream* out, Typed* typed);
 };
 
-// Mapping to mojo DType
-using DType = s32;
-inline constexpr DType DType_s32 = 0;
-inline constexpr DType DType_f32 = 1;
-inline constexpr DType DType_f64 = 2;
-inline constexpr DType DType_dfaust = 3;
-static String dtype_values[4] = {"s32", "f32", "f64", "dfaust"};
-static String dtype_widths[4] = {"w32", "w32", "w64", "wfaust"};
-
 /**
     A `MojoVecInstVisitor` is a `MojoInstVisitor` when the `-vec` mode is enabled.
     @desc
@@ -157,10 +148,21 @@ static String dtype_widths[4] = {"w32", "w32", "w64", "wfaust"};
     - XXX:
  **/
 class MojoVecInstVisitor : public MojoInstVisitor {
-    // In the context of the project this class is only used in
-    // `MojoVecCodeContainer::writeCompute` while generating the
-    // `FaustDsp.compute(...)` method.
+// In the context of the project this class is only used in
+// `MojoVecCodeContainer::writeCompute` while generating the
+// `FaustDsp.compute(...)` method.
+
 public:
+    // Mapping to mojo DType
+    using DType = s32;
+    static inline constexpr DType DType_S32 = 0;
+    static inline constexpr DType DType_F32 = 1;
+    static inline constexpr DType DType_F64 = 2;
+    static inline constexpr DType DType_dfaust = 3;
+    static inline constexpr VString dtype_values[4] = { "s32", "f32", "f64", "dfaust" };
+    static inline constexpr VString dtype_widths[4] = { "w32", "w32", "w64", "wfaust" };
+
+    // Enable base class operations
     using MojoInstVisitor::visit;
 
     MojoVecInstVisitor(OStream* out, String const& structName, int tab = 0);
@@ -171,36 +173,32 @@ public:
     void visit(ForLoopInst* inst)    override;
     void visit(IndexedAddress* inst) override;
     void visit(Int32NumInst* inst)   override;
-    // void visit(LabelInst* inst)      override;
     void visit(NamedAddress* inst)   override;
-    void visit(StoreVarInst* inst)   override;
+    // void visit(StoreVarInst* inst)   override;
     void visit(IfInst* inst)         override;
 
 protected:
 
+    // Visitor wrappers
+    void visitBargraphUpdate(ForLoopInst* inst, VString idx, VString dwidth);
+    void visitStore(StoreVarInst* inst, VString idx);
+
     // Global state
-    static inline b32    gEmitSIMD;
-    static inline b32    gEmitJoin;
-    // static inline 
-    static inline DType  gDRealVal;
-    static inline String gLastValueID;
+    static inline b32    gSIMDEmit;
+    static inline b32    gSIMDJoin;
+    static inline String gCurrentID;
 
-    void writeBargraphUpdate(ForLoopInst* inst, String& idx, String& dwidth);
-
-    void visitStore(StoreVarInst* inst, String& idx);
-
-    // Detect wrapped or non-contiguous indices that need a dedicated SIMD path.
-    static b32 hasWrappedIndex(ValueInst* inst);
+    // Helpers
     static b32 hasWrappedIndex(Address* addr);
+    static b32 hasWrappedIndex(ValueInst* inst);
+    static b32 isWrappedIndexExpr(ValueInst* inst);
+    static b32 isScalarAddress(Address* addr);
+    static b32 isScalarValue(ValueInst* inst);
+    static b32 isVectorizable(Address* addr);
+    static b32 isVectorizable(ValueInst* inst);
+    static b32 isJoineable(StoreVarInst* inst);
 
-    // Detect plain contiguous stores handled by the simple SIMD store path.
-    static b32 isUnitStride(Address* addr);
-
-    // Get the dtype of a value.
-    // static String getDTypeValue(ValueInst* inst);
     static DType getDType(ValueInst* value);
-
-    static b32 mustEmitJoin(StoreVarInst* inst);
 
 };
 

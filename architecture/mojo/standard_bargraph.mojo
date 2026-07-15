@@ -1,21 +1,27 @@
 # ==============================================================================
-# Faust to Mojo impulse architecture for the impulse-tests integration.
-# Provides the definitions and the main entry point to run the dsp, and print
-# the samples to stdout. The impulse-tests framework will generate the impulse
-# responses redirecting the output to the `.ir` files.
+# Faust to Mojo inspect architecture for the benchmark framework.
+# Provides the minimal definitions and entry point needed to generate
+# low-level code with clear symbols for inspecting the generated compute code.
 # ==============================================================================
 # First section of architecture provided code start.
 # Imports the modules and the definitions of the architecture code.
 # ==============================================================================
 
 from conf import *
+from help import *
 from mem import *
 from dsp import *
 from gui import *
 from meta import *
-from help import *
-from test.impulse import *
-from gui.control import ControlGui
+
+from std.benchmark import keep, clobber_memory
+
+comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96_000]())
+comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 512]())
+comptime COMPUTE_ITERS = S32(get_defined_int["COMPUTE_ITERS", 100]())
+
+def assert_dfaust() -> None: comptime assert dfaust == F32.dtype
+comptime _ = assert_dfaust()
 
 # ==============================================================================
 # First section of architecture provided code end.
@@ -23,10 +29,8 @@ from gui.control import ControlGui
 # Code generated with Faust 2.85.5 (https://faust.grame.fr)
 # name: "bargraph"
 # Compilation options: 
-#   
-#   -a /Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/impulse.mojo 
-#   -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double 
-#   -ftz 0 -vec -lv 0 -vs 4 -dfs
+#   -a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
+#   -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs
 # ==============================================================================
 
 comptime dreal = f64
@@ -105,11 +109,11 @@ struct mydsp(FaustDsp):
 
     @always_inline
     def get_json(read dsp) -> String:
-        return "{\"name\": \"bargraph\",\"filename\": \"bargraph.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a /Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\",\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\"],\"size\": 84,\"inputs\": 0,\"outputs\": 10,\"meta\": [ { \"compile_options\": \"-a /Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"bargraph.dsp\" },{ \"name\": \"bargraph\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"bargraph\",\"items\": [ {\"type\": \"vbargraph\",\"label\": \"bar0\",\"varname\": \"fVbargraph5\",\"shortname\": \"bar0\",\"address\": \"/bargraph/bar0\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"bar1\",\"varname\": \"fVbargraph6\",\"shortname\": \"bar1\",\"address\": \"/bargraph/bar1\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"bar2\",\"varname\": \"fVbargraph7\",\"shortname\": \"bar2\",\"address\": \"/bargraph/bar2\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"bar3\",\"varname\": \"fVbargraph8\",\"shortname\": \"bar3\",\"address\": \"/bargraph/bar3\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"bar4\",\"varname\": \"fVbargraph9\",\"shortname\": \"bar4\",\"address\": \"/bargraph/bar4\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo0\",\"varname\": \"fVbargraph0\",\"shortname\": \"foo0\",\"address\": \"/bargraph/foo0\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo1\",\"varname\": \"fVbargraph1\",\"shortname\": \"foo1\",\"address\": \"/bargraph/foo1\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo2\",\"varname\": \"fVbargraph2\",\"shortname\": \"foo2\",\"address\": \"/bargraph/foo2\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo3\",\"varname\": \"fVbargraph3\",\"shortname\": \"foo3\",\"address\": \"/bargraph/foo3\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo4\",\"varname\": \"fVbargraph4\",\"shortname\": \"foo4\",\"address\": \"/bargraph/foo4\",\"min\": 0,\"max\": 10}]}]}"
+        return "{\"name\": \"bargraph\",\"filename\": \"bargraph.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\"],\"size\": 84,\"inputs\": 0,\"outputs\": 10,\"meta\": [ { \"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"bargraph.dsp\" },{ \"name\": \"bargraph\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"bargraph\",\"items\": [ {\"type\": \"vbargraph\",\"label\": \"bar0\",\"varname\": \"fVbargraph5\",\"shortname\": \"bar0\",\"address\": \"/bargraph/bar0\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"bar1\",\"varname\": \"fVbargraph6\",\"shortname\": \"bar1\",\"address\": \"/bargraph/bar1\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"bar2\",\"varname\": \"fVbargraph7\",\"shortname\": \"bar2\",\"address\": \"/bargraph/bar2\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"bar3\",\"varname\": \"fVbargraph8\",\"shortname\": \"bar3\",\"address\": \"/bargraph/bar3\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"bar4\",\"varname\": \"fVbargraph9\",\"shortname\": \"bar4\",\"address\": \"/bargraph/bar4\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo0\",\"varname\": \"fVbargraph0\",\"shortname\": \"foo0\",\"address\": \"/bargraph/foo0\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo1\",\"varname\": \"fVbargraph1\",\"shortname\": \"foo1\",\"address\": \"/bargraph/foo1\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo2\",\"varname\": \"fVbargraph2\",\"shortname\": \"foo2\",\"address\": \"/bargraph/foo2\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo3\",\"varname\": \"fVbargraph3\",\"shortname\": \"foo3\",\"address\": \"/bargraph/foo3\",\"min\": 0,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"foo4\",\"varname\": \"fVbargraph4\",\"shortname\": \"foo4\",\"address\": \"/bargraph/foo4\",\"min\": 0,\"max\": 10}]}]}"
 
     @always_inline
     def metadata(read dsp, mut meta: Some[FaustMeta]) -> None:
-        meta.declare("compile_options", "-a /Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
+        meta.declare("compile_options", "-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
         meta.declare("filename", "bargraph.dsp")
         meta.declare("name", "bargraph")
 
@@ -231,20 +235,38 @@ struct mydsp(FaustDsp):
 # Faust generated DSP code end.
 # ==============================================================================
 # Second section of architecture provided code start.
-# Defines the main entry point of the application, initializes the dsp object,
-# initializes the user interface and calls the dsp runner.
+# Defines the main entry point of the application.
+# Initializes the dsp object, allocates and intializes the audio buffers and
+# calls the inspect function to run the dsp code.
 # ==============================================================================
 
-def main() raises -> None:
-    nbsamples = S32(60_000)
-    dsp = alloc[mydsp](1)
+def main() -> None:
+    var dsp = alloc[mydsp](1)
     dsp[] = mydsp()
-    ctrl_gui = ControlGui()
     dsp[].init(SAMP_RATE)
-    dsp[].build_user_interface(ctrl_gui)
-    print_header(dsp[], nbsamples)
-    run_dsp(dsp, ctrl_gui, nbsamples//4)
+    var n_ins = dsp[].get_num_inputs()
+    var n_outs = dsp[].get_num_outputs()
+    var base, err = make_streams[dfaust](BUFF_SIZE, n_ins, n_outs)
+    if err:
+        dsp.free()
+        return
+    var ptr = base.unsafe_value()
+    var inputs = ptr.bitcast[Ptr[FaustFloat, READ_NOTRK]]().as_immutable()
+    var outputs = (ptr + n_ins).bitcast[Ptr[FaustFloat, MUTA_NOTRK]]()
+    inspect_compute(dsp[], inputs, outputs)
+    ptr.free()
     dsp.free()
+
+@no_inline
+@export("inspect_compute")
+def inspect_compute(
+    mut dsp: mydsp, inputs: ReadStreams, outputs: MutaStreams
+) abi("Mojo") -> None:
+    for _ in range(COMPUTE_ITERS):
+        keep(inputs)
+        keep(outputs)
+        dsp.compute(BUFF_SIZE, inputs, outputs)
+        clobber_memory()
 
 # ==============================================================================
 # Second section of architecture provided code end.
