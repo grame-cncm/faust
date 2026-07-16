@@ -62,14 +62,11 @@ void MojoInstVisitor::visit(AddSliderInst* inst)
     String name;
     switch (inst->fType) {
         case AddSliderInst::kHorizontal:
-            name = "add_horizontal_slider";
-            break;
+            name = "add_horizontal_slider"; break;
         case AddSliderInst::kVertical:
-            name = "add_vertical_slider";
-            break;
+            name = "add_vertical_slider"; break;
         case AddSliderInst::kNumEntry:
-            name = "add_num_entry";
-            break;
+            name = "add_num_entry"; break;
     }
 
     *fOut << "ui." << name << "("
@@ -88,11 +85,9 @@ void MojoInstVisitor::visit(AddBargraphInst* inst)
     String name;
     switch (inst->fType) {
         case AddBargraphInst::kHorizontal:
-            name = "add_horizontal_bargraph";
-            break;
+            name = "add_horizontal_bargraph"; break;
         case AddBargraphInst::kVertical:
-            name = "add_vertical_bargraph";
-            break;
+            name = "add_vertical_bargraph"; break;
     }
     *fOut << "ui." << name << "(" << wlit(inst->fLabel) << ", "
           << "dsp." << snakeCase(inst->fZone) << ", "
@@ -322,8 +317,10 @@ void MojoInstVisitor::visit(Int64NumInst* inst)
 
 void MojoInstVisitor::visit(LabelInst* inst)
 {
-    // mj_unused(inst);  // do nothing
     auto label = String(inst->fLabel.begin() + 1, inst->fLabel.end() - 2);
+    if (label.find("Remaining") != String::npos) {
+        return;
+    }
     label[0] = '#';
     *fOut << label << wnextl(fTab);
 }
@@ -378,7 +375,7 @@ void MojoInstVisitor::visit(SimpleForLoopInst* inst)
     Int32NumInst* lo = dycast(Int32NumInst*, inst->fLowerBound);
     Int32NumInst* up = dycast(Int32NumInst*, inst->fUpperBound);
     if (inst->fReverse) {
-        faustassert(up);
+        mj_panic(up, "Expected upper bound to be an Int32NumInst");
         if (!lo) {
             *fOut << "S32(" <<up->fNum << "), ";
             inst->fLowerBound->accept(this);
@@ -388,7 +385,7 @@ void MojoInstVisitor::visit(SimpleForLoopInst* inst)
         }
         goto Loop_Body;
     }
-    faustassert(lo);
+    mj_panic(lo, "Expected lower bound to be an Int32NumInst");
     if (!up) {
         *fOut << "S32(" << lo->fNum << "), ";
         inst->fUpperBound->accept(this);
@@ -407,16 +404,6 @@ void MojoInstVisitor::visit(StoreVarInst* inst)
 {
     inst->fAddress->accept(this);
     *fOut << " = ";
-    // TODO:(manu) Is the lhs a field of the dsp and the rhs a cast to FaustFloat ? should this special case be removed?
-    // if (auto* cast_inst = dycast(CastInst*, inst->fValue); cast_inst
-    //     && (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct())
-    //     && (cast_inst->fType->getType() == Typed::VarType::kFloatMacro))
-    // {
-    //     *fOut << "FaustFloat(";
-    //     cast_inst->fInst->accept(this);
-    //     *fOut << ")" << wnextl(fTab);
-    //     return;
-    // }
     inst->fValue->accept(this);
     *fOut << wnextl(fTab);
 }

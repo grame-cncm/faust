@@ -153,14 +153,14 @@ class MojoVecInstVisitor : public MojoInstVisitor {
 public:
     // Mapping to mojo DType
     using DType = s32;
-    static inline constexpr DType DType_S32 = 0;
-    static inline constexpr DType DType_F32 = 1;
-    static inline constexpr DType DType_F64 = 2;
+    static inline constexpr DType DType_s32    = 0;
+    static inline constexpr DType DType_f32    = 1;
+    static inline constexpr DType DType_f64    = 2;
     static inline constexpr DType DType_dfaust = 3;
-    static inline constexpr VString dtype_values[4] = { "s32", "f32", "f64", "dfaust" };
-    static inline constexpr VString dtype_widths[4] = { "w32", "w32", "w64", "wfaust" };
 
-    static DType getDType(ValueInst* value);
+    static inline constexpr VString dtype_widths[] = { "w32", "w32", "w64", "wfaust" };
+
+    static DType getMojoDType(ValueInst* value);
 
     // Enable base class operations
     using MojoInstVisitor::visit;
@@ -175,13 +175,12 @@ public:
     void visit(IndexedAddress* inst) override;
     void visit(Int32NumInst* inst)   override;
     void visit(NamedAddress* inst)   override;
-    // void visit(StoreVarInst* inst)   override;
     void visit(IfInst* inst)         override;
 
 protected:
 
     // Visitor wrappers
-    void visitBargraphUpdate(ForLoopInst* inst, VString idx, VString dwidth);
+    void writeBargraphUpdate(ForLoopInst* inst, VString idx, VString dwidth);
     void visitStore(StoreVarInst* inst, VString idx);
 
     // Global state
@@ -202,3 +201,23 @@ protected:
 
 }       // namespace mojo
 #endif  // MOJO_INSTRUCTIONS_HH
+
+//  lhs rhs   #inst  width  unroll  join
+//  
+//  f32 f32      1     4       1      0
+//  f64 f64      2     2       2      0
+//  
+//  f32 f64      1     4       1      1
+//  f64 f32      2     2       2      0
+//  
+//      lhs == f64
+//         /  \
+//       Y/    \N
+//      /        \
+//     /          \
+//    u2      rhs == f64
+//                /  \
+//              Y/    \N
+//             /        \
+//            j         u1
+//               

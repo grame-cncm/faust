@@ -366,18 +366,14 @@ Factory* MojoCodeContainer::produceFactory()
     );
 }
 
-CodeContainer* MojoCodeContainer::createScalarContainer(
-    std::string const& name, int subContKind
-) {
+CodeContainer* MojoCodeContainer::createScalarContainer(std::string const& name, int subContKind)
+{
     return new MojoScalarCodeContainer(name, 0, 1, fOut, subContKind);
 }
 
 CodeContainer* MojoCodeContainer::createContainer(
     std::string const& name, int numInputs, int numOutputs, std::ostream* out
 ) {
-    if (gGlobal->gFloatSize == 3) {
-        throw faustexception("ERROR : -quad format not supported for Mojo\n");
-    }
     if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for Mojo\n");
     }
@@ -390,8 +386,14 @@ CodeContainer* MojoCodeContainer::createContainer(
     if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler not supported for Mojo\n");
     } 
+    if (not(gGlobal->gFloatSize == 1 || gGlobal->gFloatSize == 2)) {
+        throw faustexception("ERROR : Unsupported internal precision format\n");
+    }
     if (gGlobal->gVectorSwitch) {
-        return (CodeContainer*) new MojoVecCodeContainer(name, numInputs, numOutputs, out);
+        if (gGlobal->gFloatSize == 2) {
+            return (CodeContainer*) new MojoVecCodeContainer(name, numInputs, numOutputs, out);
+        }
+        throw faustexception("ERROR : Internal precision must be 64 bits in -vec mode\n");
     }
     return (CodeContainer*) new MojoScalarCodeContainer(name, numInputs, numOutputs, out, kInt);
 }
@@ -417,8 +419,7 @@ MojoVecCodeContainer::~MojoVecCodeContainer() {}
 
 MojoVecCodeContainer::MojoVecCodeContainer(
     const std::string& name, int numInputs, int numOutputs, std::ostream* out
-) : VectorCodeContainer(numInputs, numOutputs)
-{
+) : VectorCodeContainer(numInputs, numOutputs) {
     fKlassName = name;
     fOut = out;
     if (!gGlobal->gMojoVisitor) {
@@ -434,9 +435,11 @@ void MojoVecCodeContainer::writeCompute(int n)
     *fOut << wtab(n)   << "@always_inline\n"
           << wtab(n)   << "def compute(\n"
           << wtab(n+1) <<      "mut dsp, var count: S32, var inputs: ReadStreams, var outputs: MutaStreams\n"
-          << wtab(n)   << ") -> None:\n" << wtab(n+1);
+          << wtab(n)   << ") -> None:" << wnextl(n+1);
     n += 1;
     gVectorProducer->Tab(n);
+    *fOut << R"(comptime assert dfaust == DType.float32, "Expected 32 bit float driver precision.")";
+    *fOut << wnextl(n);
     LoopVariableRenamer loop_renamer;
     BlockInst* loop = loop_renamer.getCode(fDAGBlock);
     loop->fCode.pop_front();  // main index initalized visiting the instruction

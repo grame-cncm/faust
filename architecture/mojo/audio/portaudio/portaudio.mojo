@@ -12,12 +12,6 @@ from .ffi import *
 # prefix, with proper casing, for Faust-domain operations.
 # ==============================================================
 
-# Faust PortAudio dfaust and FaustFloat definitions.
-
-def assert_dfaust() -> None:
-    comptime assert dfaust == F32.dtype, "FAUST_DTYPE must be DType.float32."
-comptime _ = assert_dfaust();
-
 # Faust Portaudio public API.
 
 struct PortAudio(FaustAudio):

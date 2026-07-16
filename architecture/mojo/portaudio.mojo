@@ -28,6 +28,8 @@ from audio.portaudio import *
 # ==============================================================================
 
 def main() -> None:
+    comptime assert dfaust == F32.dtype, "Expected 32 bit float driver precision."
+
     var dsp = alloc[mydsp](1)
     dsp[] = mydsp()
     dsp[].init(SAMP_RATE)

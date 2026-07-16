@@ -69,8 +69,8 @@ public:
 
     // Public producers
     Factory* produceFactory()  override;
-    void        produceClass()    override;
-    void        produceInternal() override;
+    void     produceClass()    override;
+    void     produceInternal() override;
 
     // Factories
     CodeContainer*        createScalarContainer(String const& name, int subContKind) override;
