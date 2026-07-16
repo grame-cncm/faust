@@ -28,44 +28,52 @@
 
 inline namespace mojo {
 
-using DType = MojoVecInstVisitor::DType;
+using VecVisitor = MojoVecInstVisitor;
+using Visitor    = MojoInstVisitor;
+using DType      = VecVisitor::DType;
 
-MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, const String& structName, int tab)
+MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, String const& structName, int tab)
     : MojoInstVisitor(out, structName, tab)
 {
-    gSIMDEmit = false;
-    gSIMDJoin = false;
+    gSIMDEmit  = false;
+    gSIMDJoin  = false;
+    gValuesID = "";
 }
 
-void MojoVecInstVisitor::visit(IfInst* inst)
+MojoVecInstVisitor::~MojoVecInstVisitor() {}
+
+void VecVisitor::visit(IfInst* inst)
 {
     // do not generate remaining frames
 }
 
-void MojoVecInstVisitor::visit(Int32NumInst* inst)
+void VecVisitor::visit(Int32NumInst* inst)
 {
-    mj_simd_emit_check(); *fOut << "S32Vec(" << inst->fNum << ")";
+    mj_simd_emit_check();
+    *fOut << "S32Vec(" << inst->fNum << ")";
 }
 
-void MojoVecInstVisitor::visit(DoubleNumInst* inst)
+void VecVisitor::visit(DoubleNumInst* inst)
 {
-    mj_simd_emit_check(); *fOut << "F64Vec(" << checkDouble(inst->fNum) << ")";
+    mj_simd_emit_check();
+    *fOut << "F64Vec(" << checkDouble(inst->fNum) << ")";
 }
 
-void MojoVecInstVisitor::visit(FloatNumInst* inst)
+void VecVisitor::visit(FloatNumInst* inst)
 {
-    mj_simd_emit_check(); *fOut << "F32Vec(" << checkFloat(inst->fNum) << ")";
+    mj_simd_emit_check();
+    *fOut << "F32Vec(" << checkFloat(inst->fNum) << ")";
 }
 
-void MojoVecInstVisitor::visit(NamedAddress* inst)
+void VecVisitor::visit(NamedAddress* inst)
 {
     if (inst->isLoop()) {
         mj_scalar_visit(inst); return; // NOTE:(manu) #1 Here using `visit(inst)`
     }
-    MojoInstVisitor::visit(inst);
+    Visitor::visit(inst);
 }
 
-void MojoVecInstVisitor::visit(CastInst* inst)
+void VecVisitor::visit(CastInst* inst)
 {
     mj_simd_emit_check();
 
@@ -82,7 +90,7 @@ void MojoVecInstVisitor::visit(CastInst* inst)
     }
 }
 
-void MojoVecInstVisitor::visit(IndexedAddress* inst)
+void VecVisitor::visit(IndexedAddress* inst)
 {
     mj_simd_emit_check();
 
@@ -90,7 +98,7 @@ void MojoVecInstVisitor::visit(IndexedAddress* inst)
     String name = snakeCase(addr->getName());
     name = addr->isStruct() ? "dsp." + name : name;
 
-    if (auto* idx_bin = dycast(BinopInst*, inst->fIndices[0]); idx_bin) {
+    if (auto* idx_bin = dycast(BinopInst*, inst->getIndex()); idx_bin) {
         auto* idx_lhs = dycast(LoadVarInst*, idx_bin->fInst1);
         auto* idx_rhs = dycast(ValueInst*, idx_bin->fInst2);
         if (idx_lhs && idx_rhs && idx_rhs->isSimpleValue()) {
@@ -103,36 +111,12 @@ void MojoVecInstVisitor::visit(IndexedAddress* inst)
         }
     }
 
-    auto* idx_lv = dycast(LoadVarInst*, inst->fIndices[0]);
+    auto* idx_lv = dycast(LoadVarInst*, inst->getIndex());
     String idx = snakeCase(idx_lv->getName()) + (gSIMDJoin ? " + S32(wreal)" : "");
     *fOut << "simd_load(" << name << ", " << idx << ")";
 }
 
-// void MojoVecInstVisitor::visit(StoreVarInst* inst)
-// {
-//     mj_simd_emit_check();
-//     String values = gGlobal->getFreshID("values");
-//
-//     mj_debug_fir(std::cerr, inst, "store");
-//
-//     if (isJoineable(inst)) {
-//         *fOut << "var lo = ";
-//         inst->fValue->accept(this);
-//         *fOut << wnextl(fTab) << "var hi = ";
-//         mj_simd_join_set(true);
-//         inst->fValue->accept(this);
-//         mj_simd_join_restore();
-//         *fOut << wnextl(fTab) << "var " << values << "  = lo.join(hi)";
-//         gCurrentID = values;
-//         return; 
-//     }
-//
-//     *fOut << "var " << values << " = ";
-//     gCurrentID = values;
-//     inst->fValue->accept(this);
-// }
-
-void MojoVecInstVisitor::visitStore(StoreVarInst* inst, VString idx)
+void VecVisitor::visitStore(StoreVarInst* inst, VString idx)
 {
     Address* lhs = inst->fAddress;
     ValueInst* rhs = inst->fValue;
@@ -150,9 +134,9 @@ void MojoVecInstVisitor::visitStore(StoreVarInst* inst, VString idx)
 
     if (isScalarValue(rhs)) { // broadcast
         *fOut << "var " << values << " = ";
-        gCurrentID = values;
+        gValuesID = values;
         inst->fValue->accept(this);
-        *fOut << wnextl(fTab) << "simd_store[SInt(wfaust)](" << dst << ", " << idx << ", " << gCurrentID << ")";
+        *fOut << wnextl(fTab) << "simd_store[wfaust](" << dst << ", " << idx << ", " << gValuesID << ")";
         return;
     }
 
@@ -167,22 +151,23 @@ void MojoVecInstVisitor::visitStore(StoreVarInst* inst, VString idx)
         inst->fValue->accept(this);
         *fOut << wnextl(fTab) << "var hi = ";
         mj_simd_join_set(true);
+        mj_debug_fir(std::cerr, inst->fValue, "store");
         inst->fValue->accept(this);
         mj_simd_join_restore();
         *fOut << wnextl(fTab) << "var " << values << "  = lo.join(hi)";
-        gCurrentID = values;
+        gValuesID = values;
         goto End_Inst;
     }
 
     *fOut << "var " << values << " = ";
-    gCurrentID = values;
+    gValuesID = values;
     inst->fValue->accept(this);
 
 End_Inst:
-    *fOut << wnextl(fTab) << "simd_store(" << dst << ", " << idx << ", " << gCurrentID << ")";
+    *fOut << wnextl(fTab) << "simd_store(" << dst << ", " << idx << ", " << gValuesID << ")";
 }
 
-void MojoVecInstVisitor::visitBargraphUpdate(ForLoopInst* inst, VString idx, VString dwidth)
+void VecVisitor::visitBargraphUpdate(ForLoopInst* inst, VString idx, VString dwidth)
 {
     mj_panic(inst->fCode->size() == 2, "Expected `inst->fCode` to be a 2 instructions block");
 
@@ -196,13 +181,13 @@ void MojoVecInstVisitor::visitBargraphUpdate(ForLoopInst* inst, VString idx, VSt
 
     String bargraph_name = snakeCase(store_1->fAddress->getName());
     *fOut << wnextl(fTab) << "dsp." << bargraph_name << " = "
-          << values << "[SInt(" << dwidth << ") - 1]";
+          << values << "[" << dwidth << " - 1]";
 
     String out = snakeCase(store_2->fAddress->getName());
     *fOut << wnextl(fTab) << "simd_store(" << out << ", " << idx << ", " << values << ")";
 }
 
-void MojoVecInstVisitor::visit(ForLoopInst* inst)
+void VecVisitor::visit(ForLoopInst* inst)
 {
     if (inst->fCode->size() == 0) {
         return;
@@ -231,7 +216,7 @@ void MojoVecInstVisitor::visit(ForLoopInst* inst)
     inst->fInit->accept(this);
     *fOut << "while " << idx_name << " <= ";
     end_val->accept(this);
-    *fOut << " - " << dwidth << ":";
+    *fOut << " - " << "S32(" << dwidth << ")" << ":";
 
     mj_simd_emit_set(true);
 
@@ -252,7 +237,7 @@ void MojoVecInstVisitor::visit(ForLoopInst* inst)
 
 End_Loop:
     // increment
-    *fOut << wnextl(fTab) << idx_name << " = " << idx_name << " + " << dwidth;
+    *fOut << wnextl(fTab) << idx_name << " = " << idx_name << " + S32(" << dwidth << ")";
 
     // end
     mj_simd_emit_restore();
@@ -260,12 +245,12 @@ End_Loop:
     *fOut << wnextl(fTab);
 }
 
-b32 MojoVecInstVisitor::isScalarAddress(Address* addr)
+b32 VecVisitor::isScalarAddress(Address* addr)
 { 
     return not dycast(IndexedAddress*, addr);
 }
 
-b32 MojoVecInstVisitor::isScalarValue(ValueInst* inst)
+b32 VecVisitor::isScalarValue(ValueInst* inst)
 {
     ValueInst* value = inst;
     if (auto* cast_inst = dycast(CastInst*, value)) {
@@ -275,7 +260,7 @@ b32 MojoVecInstVisitor::isScalarValue(ValueInst* inst)
     return lv_inst && lv_inst->isSimpleValue();
 }
 
-b32 MojoVecInstVisitor::hasWrappedIndex(Address* addr)
+b32 VecVisitor::hasWrappedIndex(Address* addr)
 {
     auto* indexed = dycast(IndexedAddress*, addr);
     mj_panic(indexed, "Expected `addr` to be `IndexedAddress`");
@@ -283,10 +268,10 @@ b32 MojoVecInstVisitor::hasWrappedIndex(Address* addr)
     if (indexed->fIndices.size() != 1) {
         return true;
     }
-    return isWrappedIndexExpr(indexed->fIndices[0]);
+    return isWrappedIndexExpr(indexed->getIndex());
 }
 
-b32 MojoVecInstVisitor::isWrappedIndexExpr(ValueInst* inst)
+b32 VecVisitor::isWrappedIndexExpr(ValueInst* inst)
 {
     if (auto* cast_inst = dycast(CastInst*, inst)) {
         return isWrappedIndexExpr(cast_inst->fInst);
@@ -304,7 +289,7 @@ b32 MojoVecInstVisitor::isWrappedIndexExpr(ValueInst* inst)
     return false;
 }
 
-b32 MojoVecInstVisitor::hasWrappedIndex(ValueInst* inst)
+b32 VecVisitor::hasWrappedIndex(ValueInst* inst)
 {
     if (auto* cast_inst = dycast(CastInst*, inst)) {
         return hasWrappedIndex(cast_inst->fInst);
@@ -321,7 +306,7 @@ b32 MojoVecInstVisitor::hasWrappedIndex(ValueInst* inst)
     return false;
 }
 
-b32 MojoVecInstVisitor::isVectorizable(Address* addr)
+b32 VecVisitor::isVectorizable(Address* addr)
 {
     if (isScalarAddress(addr)) {
         return false;
@@ -329,12 +314,12 @@ b32 MojoVecInstVisitor::isVectorizable(Address* addr)
     return not hasWrappedIndex(addr);
 }
 
-b32 MojoVecInstVisitor::isVectorizable(ValueInst* inst)
+b32 VecVisitor::isVectorizable(ValueInst* inst)
 {
     return not hasWrappedIndex(inst);
 }
 
-b32 MojoVecInstVisitor::isJoineable(StoreVarInst* inst)
+b32 VecVisitor::isJoineable(StoreVarInst* inst)
 {
     auto lhs_type = TypingVisitor::getType(inst->fValue);
     auto rhs_type = Typed::kNoType;
@@ -349,7 +334,7 @@ b32 MojoVecInstVisitor::isJoineable(StoreVarInst* inst)
     return false;
 }
 
-MojoVecInstVisitor::DType MojoVecInstVisitor::getDType(ValueInst* inst)
+VecVisitor::DType VecVisitor::getDType(ValueInst* inst)
 {
     Typed::VarType type = TypingVisitor::getType(inst);
     if (Typed::isPtrType(type)) {
@@ -371,3 +356,29 @@ MojoVecInstVisitor::DType MojoVecInstVisitor::getDType(ValueInst* inst)
 } // namespace mojo
 
 
+////////////////////////////////////////////////////////////////
+// Unused
+
+// void MojoVisitor::visit(StoreVarInst* inst)
+// {
+//     mj_simd_emit_check();
+//     String values = gGlobal->getFreshID("values");
+//
+//     mj_debug_fir(std::cerr, inst, "store");
+//
+//     if (isJoineable(inst)) {
+//         *fOut << "var lo = ";
+//         inst->fValue->accept(this);
+//         *fOut << wnextl(fTab) << "var hi = ";
+//         mj_simd_join_set(true);
+//         inst->fValue->accept(this);
+//         mj_simd_join_restore();
+//         *fOut << wnextl(fTab) << "var " << values << "  = lo.join(hi)";
+//         gCurrentID = values;
+//         return; 
+//     }
+//
+//     *fOut << "var " << values << " = ";
+//     gCurrentID = values;
+//     inst->fValue->accept(this);
+// }

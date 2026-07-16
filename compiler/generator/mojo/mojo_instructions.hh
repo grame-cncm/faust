@@ -25,8 +25,6 @@
 #define MOJO_INSTRUCTIONS_HH
 
 // faust
-#include <memory_resource>
-#include "mojo/_mojo_hal.hh"
 #include "struct_manager.hh"
 #include "text_instructions.hh"
 
@@ -103,8 +101,8 @@ protected:
     static MathLibTable gCreateMathLibTable();
         
     // Global state
-    inline static MathLibTable gMathLibTable;
-    inline static FuncSymTable gFuncSymTable;
+    static inline MathLibTable gMathLibTable;
+    static inline FuncSymTable gFuncSymTable;
 };
 
 /**
@@ -162,10 +160,13 @@ public:
     static inline constexpr VString dtype_values[4] = { "s32", "f32", "f64", "dfaust" };
     static inline constexpr VString dtype_widths[4] = { "w32", "w32", "w64", "wfaust" };
 
+    static DType getDType(ValueInst* value);
+
     // Enable base class operations
     using MojoInstVisitor::visit;
 
     MojoVecInstVisitor(OStream* out, String const& structName, int tab = 0);
+    virtual ~MojoVecInstVisitor();
 
     void visit(CastInst* inst)       override;
     void visit(DoubleNumInst* inst)  override;
@@ -186,7 +187,7 @@ protected:
     // Global state
     static inline b32    gSIMDEmit;
     static inline b32    gSIMDJoin;
-    static inline String gCurrentID;
+    static inline String gValuesID;
 
     // Helpers
     static b32 hasWrappedIndex(Address* addr);
@@ -197,9 +198,6 @@ protected:
     static b32 isVectorizable(Address* addr);
     static b32 isVectorizable(ValueInst* inst);
     static b32 isJoineable(StoreVarInst* inst);
-
-    static DType getDType(ValueInst* value);
-
 };
 
 }       // namespace mojo

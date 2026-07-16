@@ -2,6 +2,7 @@
 
 from conf import *
 from dsp import *
+from audio import FaustAudio
 from .ffi import *
 
 # ==============================================================
@@ -12,9 +13,6 @@ from .ffi import *
 # ==============================================================
 
 # Faust PortAudio dfaust and FaustFloat definitions.
-
-comptime dfaust     = get_defined_dtype["FAUST_DTYPE", F32.dtype]()
-comptime FaustFloat = SIMD[dfaust, 1]
 
 def assert_dfaust() -> None:
     comptime assert dfaust == F32.dtype, "FAUST_DTYPE must be DType.float32."

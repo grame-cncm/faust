@@ -34,8 +34,8 @@
 
 inline namespace mojo {
 
-using DspFactory = dsp_factory_base;
-using TextDspFactory = text_dsp_factory_aux;
+using Factory     = dsp_factory_base;
+using TextFactory = text_dsp_factory_aux;
 
 inline MojoInstVisitor* gScalarProducer;
 inline MojoVecInstVisitor* gVectorProducer;
@@ -68,7 +68,7 @@ public:
     virtual ~MojoCodeContainer();
 
     // Public producers
-    DspFactory* produceFactory()  override;
+    Factory* produceFactory()  override;
     void        produceClass()    override;
     void        produceInternal() override;
 

@@ -1,6 +1,7 @@
 # gui/control.mojo
 
 from conf import *
+from .gui import FaustGui
 
 # ControlGui architecture implementation.
 

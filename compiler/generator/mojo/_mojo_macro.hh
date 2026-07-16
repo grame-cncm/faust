@@ -139,5 +139,4 @@
         mj_simd_emit_restore()
 #endif
 
-
 #endif  // _MOJO_MACRO_HH

@@ -26,6 +26,8 @@
 
 inline namespace mojo {
 
+using Visitor = MojoInstVisitor;
+
 // Base mojo instruction visitor implementation.
 
 MojoInstVisitor::MojoInstVisitor(OStream* out, String const& structName, s32 tab)
@@ -298,7 +300,7 @@ void MojoInstVisitor::visit(IndexedAddress* indexed)
     DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
     if (struct_type) {
         Int32NumInst* idx = dycast(Int32NumInst*, indexed->getIndex());
-        faustassert(idx);
+        mj_panic(idx, "Expected index to be an Int32NumInst");
         String name = snakeCase(struct_type->fType->getName(idx->fNum));
         *fOut << "." << name;
         return;

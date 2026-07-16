@@ -152,10 +152,10 @@ struct mydsp(FaustDsp):
             # Recursive loop 0 
             # Pre code 
             var j0_re0 = S32(0)
-            while j0_re0 <= S32(4) - w64:
+            while j0_re0 <= S32(4) - S32(w64):
                 var values0 = simd_load(dsp.rec0_perm, j0_re0)
                 simd_store(rec0_tmp, j0_re0, values0)
-                j0_re0 = j0_re0 + w64
+                j0_re0 = j0_re0 + S32(w64)
             # Compute code 
             var i_re0 = S32(0)
             while (i_re0) < (vsize_re0): 
@@ -164,19 +164,19 @@ struct mydsp(FaustDsp):
                 i_re0 = (i_re0) + (S32(1))
             # Post code 
             var j1_re0 = S32(0)
-            while j1_re0 <= S32(4) - w64:
+            while j1_re0 <= S32(4) - S32(w64):
                 var values1 = simd_load(rec0_tmp, vsize_re0 + j1_re0)
                 simd_store(dsp.rec0_perm, j1_re0, values1)
-                j1_re0 = j1_re0 + w64
+                j1_re0 = j1_re0 + S32(w64)
             # Vectorizable loop 1 
             # Compute code 
             var i_re1 = S32(0)
-            while i_re1 <= vsize_re0 - wfaust:
+            while i_re1 <= vsize_re0 - S32(wfaust):
                 var lo = ((simd_load(rec0, i_re1 - S32(2))) + ((slow2) * (((slow3) * (simd_load(rec0, i_re1))) - (simd_load(zec0, i_re1))))).cast[dfaust]()
                 var hi = ((simd_load(rec0, i_re1 + S32(wreal) - S32(2))) + ((slow2) * (((slow3) * (simd_load(rec0, i_re1 + S32(wreal)))) - (simd_load(zec0, i_re1 + S32(wreal)))))).cast[dfaust]()
                 var values2  = lo.join(hi)
                 simd_store(output0, i_re1, values2)
-                i_re1 = i_re1 + wfaust
+                i_re1 = i_re1 + S32(wfaust)
             vindex_re0 = (vindex_re0) + (S32(4))
         # Remaining frames 
 

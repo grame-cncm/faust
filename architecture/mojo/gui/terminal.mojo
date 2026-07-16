@@ -1,6 +1,7 @@
 # gui/terminal.mojo
 
 from conf import *
+from .gui import FaustGui
 
 # ==============================================================
 # TerminalGui architecture implementation.

@@ -357,9 +357,9 @@ void MojoCodeContainer::produceInternal()
     faustassert(false);
 }
 
-DspFactory* MojoCodeContainer::produceFactory()
+Factory* MojoCodeContainer::produceFactory()
 {
-    return new TextDspFactory(
+    return new TextFactory(
         fKlassName, "", "",
         dycast(std::ostringstream*, fOut) ? dycast(std::ostringstream*, fOut)->str() : "",
         ""
