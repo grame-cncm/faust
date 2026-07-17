@@ -38,6 +38,12 @@
 
 namespace sigs {
 
+/// Interns the signal constructors AND registers them in the Signal
+/// signature (sigOpcode.hh), so each carries a dense opcode. The Faust
+/// compiler calls this from global.cpp instead of interning the SIG*
+/// symbols by hand; it fills the sigs::g.SIG* members.
+SIGS_API void initSignalSymbols();
+
 /// Formats a real number when pretty-printing signals (ppsig).
 using RealPrinter = std::string (*)(double);
 

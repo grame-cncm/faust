@@ -360,47 +360,10 @@ global::global()
     PATHCURRENT = symbol(".");
     FFUN        = symbol("ForeignFunction");
 
-    SIGINPUT           = symbol("SigInput");
-    SIGOUTPUT          = symbol("SigOutput");
-    SIGDELAY1          = symbol("SigDelay1");
-    SIGDELAY           = symbol("SigDelay");
-    SIGPREFIX          = symbol("SigPrefix");
-    SIGRDTBL           = symbol("SigRDTbl");
-    SIGWRTBL           = symbol("SigWRTbl");
-    SIGGEN             = symbol("SigGen");
-    SIGDOCONSTANTTBL   = symbol("SigDocConstantTbl");
-    SIGDOCWRITETBL     = symbol("SigDocWriteTbl");
-    SIGDOCACCESSTBL    = symbol("SigDocAccessTbl");
-    SIGSELECT2         = symbol("SigSelect2");
-    SIGASSERTBOUNDS    = symbol("sigAssertBounds");
-    SIGHIGHEST         = symbol("sigHighest");
-    SIGLOWEST          = symbol("sigLowest");
-    SIGBINOP           = symbol("SigBinOp");
-    SIGFFUN            = symbol("SigFFun");
-    SIGFCONST          = symbol("SigFConst");
-    SIGFVAR            = symbol("SigFVar");
-    SIGPROJ            = symbol("SigProj");
-    SIGINTCAST         = symbol("SigIntCast");
-    SIGBITCAST         = symbol("SigBitCast");
-    SIGFLOATCAST       = symbol("SigFloatCast");
-    SIGBUTTON          = symbol("SigButton");
-    SIGCHECKBOX        = symbol("SigCheckbox");
-    SIGWAVEFORM        = symbol("SigWaveform");
-    SIGHSLIDER         = symbol("SigHSlider");
-    SIGVSLIDER         = symbol("SigVSlider");
-    SIGNUMENTRY        = symbol("SigNumEntry");
-    SIGHBARGRAPH       = symbol("SigHBargraph");
-    SIGVBARGRAPH       = symbol("SigVBargraph");
-    SIGATTACH          = symbol("SigAttach");
-    SIGENABLE          = symbol("SigEnable");
-    SIGCONTROL         = symbol("SigControl");
-    SIGSOUNDFILE       = symbol("SigSoundfile");
-    SIGSOUNDFILELENGTH = symbol("SigSoundfileLength");
-    SIGSOUNDFILERATE   = symbol("SigSoundfileRate");
-    SIGSOUNDFILEBUFFER = symbol("SigSoundfileBuffer");
-    SIGREGISTER        = symbol("SigRegister");  // for FPGA Retiming
-    SIGTUPLE           = symbol("SigTuple");
-    SIGTUPLEACCESS     = symbol("SigTupleAccess");
+    // The SIG* constructors are interned AND registered in the Signal
+    // signature by the library, so they carry the dense opcodes signal
+    // dispatch can use. The members below are references to sigs::g.
+    sigs::initSignalSymbols();
     SIMPLETYPE         = symbol("SimpleType");
     TABLETYPE          = symbol("TableType");
     TUPLETTYPE         = symbol("TupletType");
