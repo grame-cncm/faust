@@ -21,12 +21,15 @@
 
 #include "sigs-config.hh"
 
+#include "interval.hh"
 #include "sigOpcode.hh"
+#include "sigtype.hh"
 #include "sigs-state.hh"
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cmath>
 
 namespace sigs {
 
@@ -78,6 +81,78 @@ void initSignalSymbols()
     g.SIGREGISTER        = signal_signature.add("SigRegister");
     g.SIGTUPLE           = signal_signature.add("SigTuple");
     g.SIGTUPLEACCESS     = signal_signature.add("SigTupleAccess");
+}
+
+/**
+ * Standalone initialization of the signal library state: signal symbols,
+ * property keys, type singletons, session state and option defaults. NOT
+ * called by the Faust compiler, which performs the same writes itself in
+ * global.cpp (in its own, order-sensitive sequence); intended for standalone
+ * hosts and tests. Requires tlib::init() first, and can be called again
+ * between two sessions.
+ */
+void init()
+{
+    // Signal constructors (interned and registered in the Signal signature)
+    initSignalSymbols();
+
+    // Foreign function head and type constructors (ordinary symbols)
+    g.FFUN       = symbol("ForeignFunction");
+    g.SIMPLETYPE = symbol("SimpleType");
+    g.TABLETYPE  = symbol("TableType");
+    g.TUPLETTYPE = symbol("TupletType");
+
+    // Property keys
+    g.ORDERPROP    = tree(symbol("OrderProp"));
+    g.RECURSIVNESS = tree(symbol("RecursivnessProp"));
+    g.NULLTYPEENV  = tree(symbol("NullTypeEnv"));
+
+    // Session state
+    g.TABBER = Tabber(1);
+    g.gSignalTable.clear();
+    g.gSignalTrace.clear();
+    g.gSignalCounter   = 0;
+    g.gCountInferences = 0;
+    g.gCountMaximal    = 0;
+    g.gAllocationCount = 0;
+    g.gSymListProp     = new property<Tree>();
+    g.gMemoizedTypes   = new property<AudioType*>();
+
+    // Option defaults (same values as global.cpp)
+    g.gCausality      = false;
+    g.gWideningLimit  = 0;
+    g.gNarrowingLimit = 0;
+    g.gFloatSize      = 1;
+
+    // Extended primitive registry: empty in standalone mode (the concrete
+    // primitives carry code generation and live in the compiler)
+    g.gAbsPrim        = nullptr;
+    g.gAcosPrim       = nullptr;
+    g.gAsinPrim       = nullptr;
+    g.gAtan2Prim      = nullptr;
+    g.gAtanPrim       = nullptr;
+    g.gCeilPrim       = nullptr;
+    g.gCosPrim        = nullptr;
+    g.gExp10Prim      = nullptr;
+    g.gExpPrim        = nullptr;
+    g.gFloorPrim      = nullptr;
+    g.gFmodPrim       = nullptr;
+    g.gLog10Prim      = nullptr;
+    g.gLogPrim        = nullptr;
+    g.gMaxPrim        = nullptr;
+    g.gMinPrim        = nullptr;
+    g.gPowPrim        = nullptr;
+    g.gRemainderPrim  = nullptr;
+    g.gRintPrim       = nullptr;
+    g.gSinPrim        = nullptr;
+    g.gSqrtPrim       = nullptr;
+    g.gTanPrim        = nullptr;
+
+    // Type singletons (require the interval algebra and gMemoizedTypes above)
+    g.TINPUT  = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
+    g.TGUI    = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval());
+    g.TREC    = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0, 0));
+    g.TRECMAX = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(-HUGE_VAL, HUGE_VAL));
 }
 
 /**

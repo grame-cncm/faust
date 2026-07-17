@@ -44,6 +44,13 @@ namespace sigs {
 /// symbols by hand; it fills the sigs::g.SIG* members.
 SIGS_API void initSignalSymbols();
 
+/// Standalone initialization of the whole signal library state (symbols,
+/// property keys, type singletons, session state, option defaults). The
+/// Faust compiler does NOT call it (global.cpp performs the same writes in
+/// its own order); standalone hosts call it after tlib::init(), once per
+/// session.
+SIGS_API void init();
+
 /// Formats a real number when pretty-printing signals (ppsig).
 using RealPrinter = std::string (*)(double);
 
