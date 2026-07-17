@@ -136,7 +136,6 @@ using namespace std;
 extern FILE*       FAUSTin;
 extern const char* FAUSTfilename;
 
-itv::interval_algebra gAlgebra;
 
 // tlib reports its internal errors through this hook : the compiler keeps
 // receiving faustexception exactly as before tlib became a standalone library.

@@ -24,6 +24,10 @@
 #include "interval.hh"
 #include "sigOpcode.hh"
 #include "sigtype.hh"
+
+// The interval algebra used by the signal type system (declared in
+// signals/interval.hh)
+itv::interval_algebra gAlgebra;
 #include "sigs-state.hh"
 
 #include <cstdio>
