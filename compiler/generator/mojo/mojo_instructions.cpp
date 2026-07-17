@@ -26,7 +26,7 @@
 
 inline namespace mojo {
 
-using Visitor = MojoInstVisitor;
+using ScalarVisitor = MojoInstVisitor;
 
 // Base mojo instruction visitor implementation.
 
@@ -98,8 +98,7 @@ void MojoInstVisitor::visit(AddBargraphInst* inst)
 
 void MojoInstVisitor::visit(AddSoundfileInst* inst)
 {
-    mj_noimpl1(*fOut, "AddSoundfileInst", inst);
-    faustassert(false);
+    mj_panic(false, "visit(AddSoundfileInst) is not implemented.");
 }
 
 void MojoInstVisitor::visit(BinopInst* inst)

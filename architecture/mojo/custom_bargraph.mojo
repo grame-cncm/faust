@@ -1,24 +1,21 @@
 # ==============================================================================
-# Faust to Mojo inspect architecture for the benchmark framework.
-# Provides the minimal definitions and entry point needed to generate
-# low-level code with clear symbols for inspecting the generated compute code.
+# Faust to Mojo impulse architecture for the impulse-tests integration.
+# Provides the definitions and the main entry point to run the dsp, and print
+# the samples to stdout. The impulse-tests framework will generate the impulse
+# responses redirecting the output to the `.ir` files.
 # ==============================================================================
 # First section of architecture provided code start.
 # Imports the modules and the definitions of the architecture code.
 # ==============================================================================
 
 from conf import *
-from help import *
 from mem import *
 from dsp import *
 from gui import *
 from meta import *
-
-from std.benchmark import keep, clobber_memory
-
-comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96_000]())
-comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 512]())
-comptime COMPUTE_ITERS = S32(get_defined_int["COMPUTE_ITERS", 100]())
+from help import *
+from test.impulse import *
+from gui.control import ControlGui
 
 # ==============================================================================
 # First section of architecture provided code end.
@@ -26,7 +23,7 @@ comptime COMPUTE_ITERS = S32(get_defined_int["COMPUTE_ITERS", 100]())
 # Code generated with Faust 2.85.5 (https://faust.grame.fr)
 # name: "custom_bargraph"
 # Compilation options: 
-#   -a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
+#   -a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
 #   -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs
 # ==============================================================================
 
@@ -108,11 +105,11 @@ struct mydsp(FaustDsp):
 
     @always_inline
     def get_json(read dsp) -> String:
-        return "{\"name\": \"custom_bargraph\",\"filename\": \"custom_bargraph.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench/src\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench/src\"],\"size\": 76,\"inputs\": 1,\"outputs\": 8,\"meta\": [ { \"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"custom_bargraph.dsp\" },{ \"name\": \"custom_bargraph\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"custom_bargraph\",\"items\": [ {\"type\": \"hslider\",\"label\": \"controls/gain_h\",\"varname\": \"fHslider0\",\"shortname\": \"controls_gain_h\",\"address\": \"/custom_bargraph/controls_gain_h\",\"meta\": [{ \"0\": \"\" }],\"init\": 0.5,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"hbargraph\",\"label\": \"meters/b0_hbar\",\"varname\": \"fHbargraph0\",\"shortname\": \"meters_b0_hbar\",\"address\": \"/custom_bargraph/meters_b0_hbar\",\"meta\": [{ \"10\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b1_vbar\",\"varname\": \"fVbargraph0\",\"shortname\": \"meters_b1_vbar\",\"address\": \"/custom_bargraph/meters_b1_vbar\",\"meta\": [{ \"11\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"hbargraph\",\"label\": \"meters/b2_hbar\",\"varname\": \"fHbargraph1\",\"shortname\": \"meters_b2_hbar\",\"address\": \"/custom_bargraph/meters_b2_hbar\",\"meta\": [{ \"12\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b3_vbar\",\"varname\": \"fVbargraph1\",\"shortname\": \"meters_b3_vbar\",\"address\": \"/custom_bargraph/meters_b3_vbar\",\"meta\": [{ \"13\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vslider\",\"label\": \"controls/gain_v\",\"varname\": \"fVslider0\",\"shortname\": \"controls_gain_v\",\"address\": \"/custom_bargraph/controls_gain_v\",\"meta\": [{ \"1\": \"\" }],\"init\": 0.25,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"nentry\",\"label\": \"controls/bias_n\",\"varname\": \"fEntry0\",\"shortname\": \"controls_bias_n\",\"address\": \"/custom_bargraph/controls_bias_n\",\"meta\": [{ \"2\": \"\" }],\"init\": 0,\"min\": -1,\"max\": 1,\"step\": 0.001},{\"type\": \"checkbox\",\"label\": \"controls/gate_c\",\"varname\": \"fCheckbox0\",\"shortname\": \"controls_gate_c\",\"address\": \"/custom_bargraph/controls_gate_c\",\"meta\": [{ \"3\": \"\" }]},{\"type\": \"button\",\"label\": \"controls/trig_b\",\"varname\": \"fButton0\",\"shortname\": \"controls_trig_b\",\"address\": \"/custom_bargraph/controls_trig_b\",\"meta\": [{ \"4\": \"\" }]}]}]}"
+        return "{\"name\": \"custom_bargraph\",\"filename\": \"custom_bargraph.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench/src\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench/src\"],\"size\": 76,\"inputs\": 1,\"outputs\": 8,\"meta\": [ { \"compile_options\": \"-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"custom_bargraph.dsp\" },{ \"name\": \"custom_bargraph\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"custom_bargraph\",\"items\": [ {\"type\": \"hslider\",\"label\": \"controls/gain_h\",\"varname\": \"fHslider0\",\"shortname\": \"controls_gain_h\",\"address\": \"/custom_bargraph/controls_gain_h\",\"meta\": [{ \"0\": \"\" }],\"init\": 0.5,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"hbargraph\",\"label\": \"meters/b0_hbar\",\"varname\": \"fHbargraph0\",\"shortname\": \"meters_b0_hbar\",\"address\": \"/custom_bargraph/meters_b0_hbar\",\"meta\": [{ \"10\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b1_vbar\",\"varname\": \"fVbargraph0\",\"shortname\": \"meters_b1_vbar\",\"address\": \"/custom_bargraph/meters_b1_vbar\",\"meta\": [{ \"11\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"hbargraph\",\"label\": \"meters/b2_hbar\",\"varname\": \"fHbargraph1\",\"shortname\": \"meters_b2_hbar\",\"address\": \"/custom_bargraph/meters_b2_hbar\",\"meta\": [{ \"12\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b3_vbar\",\"varname\": \"fVbargraph1\",\"shortname\": \"meters_b3_vbar\",\"address\": \"/custom_bargraph/meters_b3_vbar\",\"meta\": [{ \"13\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vslider\",\"label\": \"controls/gain_v\",\"varname\": \"fVslider0\",\"shortname\": \"controls_gain_v\",\"address\": \"/custom_bargraph/controls_gain_v\",\"meta\": [{ \"1\": \"\" }],\"init\": 0.25,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"nentry\",\"label\": \"controls/bias_n\",\"varname\": \"fEntry0\",\"shortname\": \"controls_bias_n\",\"address\": \"/custom_bargraph/controls_bias_n\",\"meta\": [{ \"2\": \"\" }],\"init\": 0,\"min\": -1,\"max\": 1,\"step\": 0.001},{\"type\": \"checkbox\",\"label\": \"controls/gate_c\",\"varname\": \"fCheckbox0\",\"shortname\": \"controls_gate_c\",\"address\": \"/custom_bargraph/controls_gate_c\",\"meta\": [{ \"3\": \"\" }]},{\"type\": \"button\",\"label\": \"controls/trig_b\",\"varname\": \"fButton0\",\"shortname\": \"controls_trig_b\",\"address\": \"/custom_bargraph/controls_trig_b\",\"meta\": [{ \"4\": \"\" }]}]}]}"
 
     @always_inline
     def metadata(read dsp, mut meta: Some[FaustMeta]) -> None:
-        meta.declare("compile_options", "-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
+        meta.declare("compile_options", "-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
         meta.declare("filename", "custom_bargraph.dsp")
         meta.declare("name", "custom_bargraph")
 
@@ -166,6 +163,7 @@ struct mydsp(FaustDsp):
         var slow10 = (slow5) + ((slow3) + (slow4))
         # Main loop 
         vindex_re0 = S32(0)
+
         while (vindex_re0) <= ((count) - (S32(4))): 
             var input0 = Ptr(to=input0_ptr[vindex_re0])
             var output0 = Ptr(to=output0_ptr[vindex_re0])
@@ -235,38 +233,20 @@ struct mydsp(FaustDsp):
 # Faust generated DSP code end.
 # ==============================================================================
 # Second section of architecture provided code start.
-# Defines the main entry point of the application.
-# Initializes the dsp object, allocates and intializes the audio buffers and
-# calls the inspect function to run the dsp code.
+# Defines the main entry point of the application, initializes the dsp object,
+# initializes the user interface and calls the dsp runner.
 # ==============================================================================
 
-def main() -> None:
-    var dsp = alloc[mydsp](1)
+def main() raises -> None:
+    nbsamples = S32(60_000)
+    dsp = alloc[mydsp](1)
     dsp[] = mydsp()
+    ctrl_gui = ControlGui()
     dsp[].init(SAMP_RATE)
-    var n_ins = dsp[].get_num_inputs()
-    var n_outs = dsp[].get_num_outputs()
-    var base, err = make_streams[dfaust](BUFF_SIZE, n_ins, n_outs)
-    if err:
-        dsp.free()
-        return
-    var ptr = base.unsafe_value()
-    var inputs = ptr.bitcast[Ptr[FaustFloat, READ_NOTRK]]().as_immutable()
-    var outputs = (ptr + n_ins).bitcast[Ptr[FaustFloat, MUTA_NOTRK]]()
-    inspect_compute(dsp[], inputs, outputs)
-    ptr.free()
+    dsp[].build_user_interface(ctrl_gui)
+    print_header(dsp[], nbsamples)
+    run_dsp(dsp, ctrl_gui, nbsamples//4)
     dsp.free()
-
-@no_inline
-@export("inspect_compute")
-def inspect_compute(
-    mut dsp: mydsp, inputs: ReadStreams, outputs: MutaStreams
-) abi("Mojo") -> None:
-    for _ in range(COMPUTE_ITERS):
-        keep(inputs)
-        keep(outputs)
-        dsp.compute(BUFF_SIZE, inputs, outputs)
-        clobber_memory()
 
 # ==============================================================================
 # Second section of architecture provided code end.

@@ -28,9 +28,9 @@
 
 inline namespace mojo {
 
-using VecVisitor = MojoVecInstVisitor;
-using Visitor    = MojoInstVisitor;
-using DType      = VecVisitor::DType;
+using VecVisitor  = MojoVecInstVisitor;
+using BaseVisitor = MojoInstVisitor;
+using DType       = VecVisitor::DType;
 
 MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, String const& structName, int tab)
     : MojoInstVisitor(out, structName, tab)
@@ -39,9 +39,7 @@ MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, String const& structName, i
 MojoVecInstVisitor::~MojoVecInstVisitor() {}
 
 void VecVisitor::visit(IfInst* inst)
-{
-    // do not generate remaining frames
-}
+{   /* do not generate remaining frames */   }
 
 void VecVisitor::visit(Int32NumInst* inst)
 {
@@ -63,7 +61,7 @@ void VecVisitor::visit(NamedAddress* inst)
     if (inst->isLoop()) {
         mj_scalar_visit(inst); return; // NOTE:(manu) #1 Here using `visit(inst)`
     }
-    Visitor::visit(inst);
+    BaseVisitor::visit(inst);
 }
 
 void VecVisitor::visit(CastInst* inst)
@@ -129,7 +127,7 @@ void VecVisitor::visitStore(StoreVarInst* inst, VString idx)
         *fOut << "var " << values << " = ";
         gValuesID = values;
         inst->fValue->accept(this);
-        *fOut << wnextl(fTab) << "simd_store[wfaust](" << dst << ", " << idx << ", " << gValuesID << ")";
+        *fOut << wnextl(fTab) << "simd_store[SInt(wfaust)](" << dst << ", " << idx << ", " << gValuesID << ")";
         return;
     }
 
