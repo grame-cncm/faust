@@ -30,6 +30,7 @@
 #include "simplify.hh"
 #include "timing.hh"
 #include "tree.hh"
+#include "sigScalarize.hh"
 
 using namespace std;
 
@@ -38,8 +39,13 @@ static Tree simplifyToNormalFormAux(Tree LS)
 {
     // Convert deBruijn recursion into symbolic recursion
     startTiming("deBruijn2Sym");
-    Tree L1 = deBruijn2Sym(LS);
+    Tree L0 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
+
+    // Convert deBruijn recursion into symbolic recursion
+    startTiming("scalarize");
+    Tree L1 = sigScalarize(L0);
+    endTiming("scalarize");
 
     // Annotate L1 with type information
     startTiming("L1 typeAnnotation");
