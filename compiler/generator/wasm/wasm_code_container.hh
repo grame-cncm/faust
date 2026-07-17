@@ -29,6 +29,7 @@
 #include "rn_base64.h"
 #include "vec_code_container.hh"
 #include "wasm_instructions.hh"
+#include "global.hh"
 
 class WASMCodeContainer : public virtual CodeContainer {
    protected:

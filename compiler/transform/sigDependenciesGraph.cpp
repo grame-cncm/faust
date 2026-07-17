@@ -2,6 +2,7 @@
 #include "ppsig.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
+#include "exception.hh"
 
 #undef TRACE
 /**

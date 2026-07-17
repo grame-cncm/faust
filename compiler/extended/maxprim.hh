@@ -24,11 +24,12 @@
 #include "Text.hh"
 #include "floats.hh"
 #include "sigtyperules.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class MaxPrim : public xtended {
+class MaxPrim : public xtendedCodegen {
    public:
-    MaxPrim() : xtended("max") {}
+    MaxPrim() : xtendedCodegen("max") {}
 
     virtual unsigned int arity() override { return 2; }
 

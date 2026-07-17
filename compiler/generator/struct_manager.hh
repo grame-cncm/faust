@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "instructions.hh"
+#include "exception.hh"
 
 /*
  Describe a field memory location in the DSP structure

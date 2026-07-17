@@ -23,11 +23,12 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class ExpPrim : public xtended {
+class ExpPrim : public xtendedCodegen {
    public:
-    ExpPrim() : xtended("exp") {}
+    ExpPrim() : xtendedCodegen("exp") {}
 
     virtual unsigned int arity() override { return 1; }
 

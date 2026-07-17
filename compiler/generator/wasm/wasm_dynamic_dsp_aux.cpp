@@ -27,6 +27,7 @@
 #include "Text.hh"
 #include "compatibility.hh"
 #include "lock_api.hh"
+#include "exception.hh"
 
 using namespace std;
 

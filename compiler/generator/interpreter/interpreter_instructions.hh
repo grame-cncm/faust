@@ -29,6 +29,7 @@
 #include "instructions.hh"
 #include "struct_manager.hh"
 #include "typing_instructions.hh"
+#include "global.hh"
 
 template <class REAL>
 struct InterpreterInstVisitor : public DispatchVisitor {

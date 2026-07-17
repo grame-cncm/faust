@@ -24,6 +24,7 @@
 #include "sigtyperules.hh"
 #include "vhdl_producer.hh"
 #include "xtended.hh"
+#include "global.hh"
 
 std::ostream& operator<<(std::ostream& out, const VhdlCodeBlock& block)
 {

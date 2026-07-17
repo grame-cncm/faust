@@ -23,11 +23,12 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class CeilPrim : public xtended {
+class CeilPrim : public xtendedCodegen {
    public:
-    CeilPrim() : xtended("ceil") {}
+    CeilPrim() : xtendedCodegen("ceil") {}
 
     virtual unsigned int arity() override { return 1; }
 

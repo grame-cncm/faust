@@ -27,6 +27,7 @@
 
 #include "Text.hh"
 #include "text_instructions.hh"
+#include "global.hh"
 
 inline std::string makeNameSingular(const std::string& name)
 {

@@ -26,6 +26,7 @@
 
 #include "struct_manager.hh"
 #include "text_instructions.hh"
+#include "global.hh"
 
 /**
  * Implement C FIR visitor.

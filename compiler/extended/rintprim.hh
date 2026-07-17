@@ -24,11 +24,12 @@
 #include "Text.hh"
 #include "compatibility.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class RintPrim : public xtended {
+class RintPrim : public xtendedCodegen {
    public:
-    RintPrim() : xtended("rint") {}
+    RintPrim() : xtendedCodegen("rint") {}
 
     virtual unsigned int arity() override { return 1; }
 

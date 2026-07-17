@@ -25,6 +25,7 @@
 #include "interpreter_comp_dsp_aux.hh"
 #ifndef MACHINE
 #include "interpreter_optimizer.hh"
+#include "exception.hh"
 #endif
 
 // Factory reader

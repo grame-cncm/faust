@@ -31,6 +31,7 @@
 #include "Text.hh"
 #include "fbc_interpreter.hh"
 #include "interpreter_bytecode.hh"
+#include "exception.hh"
 
 static void tab(int n, ostream& fout)
 {

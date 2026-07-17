@@ -30,6 +30,7 @@
 
 #include "faust/gui/PathBuilder.h"
 #include "text_instructions.hh"
+#include "global.hh"
 
 inline std::string buildLabel(const std::string& label)
 {

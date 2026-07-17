@@ -21,6 +21,7 @@
 
 #include "cpp_gpu_code_container.hh"
 #include "fir_to_fir.hh"
+#include "global.hh"
 
 using namespace std;
 

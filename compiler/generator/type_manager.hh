@@ -30,6 +30,7 @@
 
 #include "exception.hh"
 #include "instructions.hh"
+#include "global.hh"
 
 #ifndef AP_INT_MAX_W
 #define AP_INT_MAX_W 1024

@@ -140,4 +140,9 @@ SIGS_API extern State g;
 
 }  // namespace sigs
 
+// Limits of the signal library, shared with the host compiler (global.hh
+// carries the same definitions; identical redefinition is legal)
+#define MAX_SOUNDFILE_PARTS 256
+#define MAX_ERROR_SIZE 192
+
 #endif

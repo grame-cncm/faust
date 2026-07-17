@@ -25,6 +25,7 @@
 
 #include "signals.hh"
 #include "xtended.hh"
+#include "global.hh"
 
 using namespace std;
 

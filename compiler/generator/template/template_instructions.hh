@@ -26,6 +26,7 @@
 
 #include "struct_manager.hh"
 #include "text_instructions.hh"
+#include "exception.hh"
 
 // Visitor used to initialize array fields into the DSP structure
 struct TemplateInitFieldsVisitor : public DispatchVisitor {

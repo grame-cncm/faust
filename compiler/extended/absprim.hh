@@ -25,11 +25,12 @@
 #include "code_container.hh"
 #include "floats.hh"
 #include "sigtyperules.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class AbsPrim : public xtended {
+class AbsPrim : public xtendedCodegen {
    public:
-    AbsPrim() : xtended("abs") {}
+    AbsPrim() : xtendedCodegen("abs") {}
 
     virtual unsigned int arity() override { return 1; }
 

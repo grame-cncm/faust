@@ -23,11 +23,12 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class Atan2Prim : public xtended {
+class Atan2Prim : public xtendedCodegen {
    public:
-    Atan2Prim() : xtended("atan2") {}
+    Atan2Prim() : xtendedCodegen("atan2") {}
 
     virtual unsigned int arity() override { return 2; }
 

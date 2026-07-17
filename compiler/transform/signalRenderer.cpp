@@ -26,6 +26,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "global.hh"
 
 using namespace std;
 

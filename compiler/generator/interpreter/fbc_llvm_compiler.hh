@@ -35,6 +35,7 @@
 
 #include "fbc_executor.hh"
 #include "interpreter_bytecode.hh"
+#include "exception.hh"
 
 // FBC LLVM compiler
 template <class REAL>

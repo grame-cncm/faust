@@ -37,6 +37,7 @@
 #include "sigtype.hh"
 #include "struct_manager.hh"
 #include "tlib.hh"
+#include "global.hh"
 
 #ifdef WIN32
 #pragma warning(disable : 4250)

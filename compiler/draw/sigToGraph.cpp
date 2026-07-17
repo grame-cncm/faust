@@ -35,6 +35,7 @@
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
+#include "global.hh"
 
 using namespace std;
 

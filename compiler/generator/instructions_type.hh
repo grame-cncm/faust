@@ -25,6 +25,7 @@
 #include <string>
 
 #include "garbageable.hh"
+#include "exception.hh"
 
 // ============================
 // Base class for instructions

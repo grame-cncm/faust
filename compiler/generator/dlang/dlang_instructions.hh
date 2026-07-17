@@ -24,6 +24,7 @@
 
 #include "text_instructions.hh"
 #include "type_manager.hh"
+#include "global.hh"
 
 class DLangInstVisitor : public TextInstVisitor {
    private:

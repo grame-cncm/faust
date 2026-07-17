@@ -22,6 +22,7 @@
 #include "aterm.hh"
 #include "ppsig.hh"
 #include "sigtype.hh"
+#include "exception.hh"
 
 using namespace std;
 

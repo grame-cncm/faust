@@ -23,11 +23,12 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class SqrtPrim : public xtended {
+class SqrtPrim : public xtendedCodegen {
    public:
-    SqrtPrim() : xtended("sqrt") {}
+    SqrtPrim() : xtendedCodegen("sqrt") {}
 
     virtual unsigned int arity() override { return 1; }
 

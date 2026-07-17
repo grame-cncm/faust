@@ -32,6 +32,7 @@
 #include "garbageable.hh"
 #include "list.hh"
 #include "tree.hh"
+#include "global.hh"
 
 // Loop internal code
 

@@ -33,6 +33,7 @@
 #include "fir_to_fir.hh"
 #include "instructions.hh"
 #include "type_manager.hh"
+#include "global.hh"
 
 // Base class to textual visitor: C, C++, Cmajor, Codebox, CSharp, Dlang, Julia, Linen, NNX, Rust, wast
 

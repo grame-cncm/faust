@@ -25,6 +25,7 @@
 #include <ostream>
 
 #include "was_instructions.hh"
+#include "global.hh"
 
 #define realStr ((gGlobal->gFloatSize == 1) ? "f32" : ((gGlobal->gFloatSize == 2) ? "f64" : ""))
 

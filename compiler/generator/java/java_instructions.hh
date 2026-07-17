@@ -26,6 +26,7 @@
 
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
+#include "exception.hh"
 
 class JAVAInstVisitor : public TextInstVisitor {
    private:

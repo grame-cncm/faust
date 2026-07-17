@@ -28,6 +28,7 @@
 #include "struct_manager.hh"
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
+#include "global.hh"
 
 #define offStrNum ((gGlobal->gFloatSize == 1) ? 2 : ((gGlobal->gFloatSize == 2) ? 3 : 0))
 #define audioPtrSize gGlobal->audioSampleSize()

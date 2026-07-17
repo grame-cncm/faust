@@ -24,11 +24,12 @@
 
 #include "floats.hh"
 #include "sigtyperules.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class FloorPrim : public xtended {
+class FloorPrim : public xtendedCodegen {
    public:
-    FloorPrim() : xtended("floor") {}
+    FloorPrim() : xtendedCodegen("floor") {}
 
     virtual unsigned int arity() override { return 1; }
 

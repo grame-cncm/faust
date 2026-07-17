@@ -47,6 +47,7 @@
 #include "llvm_dsp_aux.hh"
 #include "lock_api.hh"
 #include "rn_base64.h"
+#include "exception.hh"
 
 using namespace llvm;
 using namespace std;

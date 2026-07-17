@@ -28,6 +28,7 @@
 #include "omp_code_container.hh"
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
+#include "global.hh"
 
 #ifdef WIN32
 #pragma warning(disable : 4250)

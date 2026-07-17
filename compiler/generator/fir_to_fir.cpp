@@ -22,6 +22,7 @@
 #include <algorithm>
 
 #include "fir_to_fir.hh"
+#include "global.hh"
 
 using namespace std;
 

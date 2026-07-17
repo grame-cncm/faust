@@ -23,11 +23,12 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class CosPrim : public xtended {
+class CosPrim : public xtendedCodegen {
    public:
-    CosPrim() : xtended("cos") {}
+    CosPrim() : xtendedCodegen("cos") {}
 
     virtual unsigned int arity() override { return 1; }
 

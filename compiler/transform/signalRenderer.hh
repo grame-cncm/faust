@@ -46,6 +46,7 @@
 #include "sigIdentity.hh"
 #include "signalVisitor.hh"
 #include "sigtyperules.hh"
+#include "exception.hh"
 
 /**
  * @brief Class to interpret and render signals sample-by-sample.

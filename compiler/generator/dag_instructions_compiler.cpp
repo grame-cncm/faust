@@ -27,6 +27,7 @@
 #include "sharing.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
+#include "global.hh"
 
 using namespace std;
 

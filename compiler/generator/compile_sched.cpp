@@ -21,6 +21,7 @@
 
 #include "compile_sched.hh"
 #include "floats.hh"
+#include "global.hh"
 
 using namespace std;
 

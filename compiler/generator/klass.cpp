@@ -44,6 +44,7 @@
 #include "recursivness.hh"
 #include "signals.hh"
 #include "uitree.hh"
+#include "global.hh"
 
 using namespace std;
 

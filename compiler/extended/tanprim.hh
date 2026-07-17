@@ -23,15 +23,16 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
-class TanPrim : public xtended {
+class TanPrim : public xtendedCodegen {
    public:
-    TanPrim() : xtended("tan") {}
+    TanPrim() : xtendedCodegen("tan") {}
 
     virtual unsigned int arity() override { return 1; }
 

@@ -23,11 +23,12 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class SinPrim : public xtended {
+class SinPrim : public xtendedCodegen {
    public:
-    SinPrim() : xtended("sin") {}
+    SinPrim() : xtendedCodegen("sin") {}
 
     virtual unsigned int arity() override { return 1; }
 

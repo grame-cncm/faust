@@ -23,6 +23,7 @@
 #include "fir_to_fir.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
+#include "global.hh"
 
 using std::string;
 

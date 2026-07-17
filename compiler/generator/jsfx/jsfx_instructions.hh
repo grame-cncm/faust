@@ -28,6 +28,7 @@
 
 #include "struct_manager.hh"
 #include "text_instructions.hh"
+#include "global.hh"
 
 inline std::string inlineInt32(double fnum)
 {

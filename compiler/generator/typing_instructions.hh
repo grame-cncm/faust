@@ -23,6 +23,7 @@
 #define _TYPING_INSTRUCTIONS_H
 
 #include "instructions.hh"
+#include "global.hh"
 
 /*
  Typing visitor: to be used when knowing the exact type of the currenty compiled value is needed.

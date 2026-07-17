@@ -29,6 +29,7 @@
 #include "interpreter_dynamic_dsp_aux.hh"
 #include "libfaust.h"
 #include "lock_api.hh"
+#include "exception.hh"
 
 using namespace std;
 

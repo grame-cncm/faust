@@ -61,6 +61,7 @@ using namespace clang;
 using namespace clang::driver;
 
 #include "CInterface_exp.h"
+#include "global.hh"
 // #include "scheduler_exp.h"
 
 // Helper functions

@@ -34,6 +34,7 @@
 #include "dsp_factory.hh"
 #include "instructions.hh"
 #include "type_manager.hh"
+#include "exception.hh"
 
 class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
    private:

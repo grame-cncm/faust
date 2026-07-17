@@ -40,6 +40,7 @@
 
 #include "Text.hh"
 #include "description.hh"
+class xtendedCodegen;
 #include "fir_to_fir.hh"
 #include "global.hh"
 #include "instructions.hh"
@@ -1018,7 +1019,7 @@ struct SignalFIRCompiler : public SignalVisitor {
     virtual void compileSigAttach(Tree sig, Tree x_tree, Tree y_tree);
     virtual void compileSigEnable(Tree sig, Tree x_tree, Tree y_tree);
     virtual void compileSigControl(Tree sig, Tree x_tree, Tree y_tree);
-    virtual void compileXtended(Tree sig, xtended* xt);
+    virtual void compileXtended(Tree sig, xtendedCodegen* xt);
 
     /**
      * @brief Generates a FIR DSP module instance.

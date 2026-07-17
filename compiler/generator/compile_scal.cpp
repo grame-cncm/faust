@@ -52,7 +52,8 @@
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "timing.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
 #undef TRACE
 
@@ -1542,7 +1543,7 @@ string ScalarCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
 
 string ScalarCompiler::generateXtended(Tree sig)
 {
-    xtended*       p = (xtended*)getUserData(sig);
+    xtendedCodegen* p = static_cast<xtendedCodegen*>((xtended*)getUserData(sig));
     vector<string> args;
     vector<Type>   types;
 

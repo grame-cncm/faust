@@ -28,6 +28,7 @@
 #include "json_instructions.hh"
 #include "vec_code_container.hh"
 #include "wast_instructions.hh"
+#include "global.hh"
 
 class WASTCodeContainer : public virtual CodeContainer {
    protected:

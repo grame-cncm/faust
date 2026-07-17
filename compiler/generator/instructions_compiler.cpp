@@ -43,10 +43,11 @@
 #include "sigprint.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
 
 #include "c_instructions.hh"
 #include "cpp_instructions.hh"
+#include "global.hh"
 
 using namespace std;
 
@@ -2035,7 +2036,7 @@ ValueInst* InstructionsCompiler::generateSelect2Aux(Tree sig, Tree s1, Tree s2, 
 
 ValueInst* InstructionsCompiler::generateXtended(Tree sig)
 {
-    xtended*       p = (xtended*)getUserData(sig);
+    xtendedCodegen* p = static_cast<xtendedCodegen*>((xtended*)getUserData(sig));
     Values         args;
     vector<::Type> types;
 

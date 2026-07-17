@@ -29,6 +29,7 @@
 #include "fir_to_fir.hh"
 #include "was_instructions.hh"
 #include "wasm_binary.hh"
+#include "global.hh"
 
 //
 // We mostly stream into a buffer as we create the binary format, however,

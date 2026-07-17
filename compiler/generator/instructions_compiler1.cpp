@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include "instructions_compiler1.hh"
+#include "global.hh"
 
 using namespace std;
 

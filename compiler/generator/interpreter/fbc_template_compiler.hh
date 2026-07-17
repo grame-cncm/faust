@@ -28,6 +28,7 @@
 
 #include "fbc_executor.hh"
 #include "interpreter_bytecode.hh"
+#include "exception.hh"
 
 /*
  * FBC template compiler, where REAL will be either 'float' or 'double'

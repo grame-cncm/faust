@@ -27,6 +27,7 @@
 #include "floats.hh"
 #include "ppsig.hh"
 #include "sharing.hh"
+#include "global.hh"
 
 using namespace std;
 

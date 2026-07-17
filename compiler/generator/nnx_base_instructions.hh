@@ -31,6 +31,7 @@
 
 #include "struct_manager.hh"
 #include "text_instructions.hh"
+#include "exception.hh"
 
 // Foreign functions dispatched to the architecture's RNG helpers. An explicit
 // set, not a name-prefix match: the architectures implement exactly these.

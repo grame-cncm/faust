@@ -19,13 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
 #include "code_container.hh"
 #include "floats.hh"
 
 using namespace std;
 
-ValueInst* xtended::generateFun(CodeContainer* container, const string& fun_name,
+ValueInst* xtendedCodegen::generateFun(CodeContainer* container, const string& fun_name,
                                 const Values& args, ::Type result, ConstTypes types)
 {
     Typed::VarType         rtype = convert2FIRType(result->nature());

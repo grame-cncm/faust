@@ -36,6 +36,7 @@
 #include "dsp_factory.hh"
 #include "fbc_interpreter.hh"
 #include "interpreter_bytecode.hh"
+#include "exception.hh"
 
 static inline void checkToken(const std::string& token, const std::string& expected)
 {

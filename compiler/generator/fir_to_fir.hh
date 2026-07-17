@@ -28,6 +28,7 @@
 #include "fir_instructions.hh"
 #include "instructions.hh"
 #include "typing_instructions.hh"
+#include "global.hh"
 
 // Tools to dump FIR
 inline void dump2FIR(StatementInst* inst, std::ostream& out = std::cerr, bool complete = true)

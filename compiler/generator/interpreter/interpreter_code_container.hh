@@ -28,6 +28,7 @@
 #include "interpreter_dsp.hh"
 #include "interpreter_instructions.hh"
 #include "vec_code_container.hh"
+#include "global.hh"
 
 template <class REAL>
 class InterpreterCodeContainer : public virtual CodeContainer {

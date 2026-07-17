@@ -24,7 +24,7 @@
 #include "Text.hh"
 #include "floats.hh"
 #include "global.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
 
 /*
  When argument is kInt and exponent is kInt (or kReal without decimal part),
@@ -34,9 +34,9 @@
  Otherwise pow[f||l](argument,exponent) is generated.
  */
 
-class PowPrim : public xtended {
+class PowPrim : public xtendedCodegen {
    public:
-    PowPrim() : xtended("pow") {}
+    PowPrim() : xtendedCodegen("pow") {}
 
     virtual unsigned int arity() override { return 2; }
 

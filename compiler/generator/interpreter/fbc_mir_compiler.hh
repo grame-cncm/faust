@@ -34,6 +34,7 @@ extern "C" {
 
 #include <mir-gen.h>
 #include <mir.h>
+#include "exception.hh"
 
 #ifdef __cplusplus
 }

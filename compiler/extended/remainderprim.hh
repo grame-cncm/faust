@@ -24,11 +24,12 @@
 #include "Text.hh"
 #include "compatibility.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class RemainderPrim : public xtended {
+class RemainderPrim : public xtendedCodegen {
    public:
-    RemainderPrim() : xtended("remainder") {}
+    RemainderPrim() : xtendedCodegen("remainder") {}
 
     virtual unsigned int arity() override { return 2; }
 

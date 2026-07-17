@@ -27,6 +27,7 @@
 #include "json_instructions.hh"
 #include "struct_manager.hh"
 #include "text_instructions.hh"
+#include "global.hh"
 
 // Variable identifier cannot end by a number, so add a suffix
 inline std::string codeboxVarName(const std::string& name)

@@ -28,6 +28,7 @@
 #include "struct_manager.hh"
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
+#include "global.hh"
 
 #define LLVMType llvm::Type*
 

@@ -24,11 +24,12 @@
 #include "Text.hh"
 #include "compatibility.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class RoundPrim : public xtended {
+class RoundPrim : public xtendedCodegen {
    public:
-    RoundPrim() : xtended("round") {}
+    RoundPrim() : xtendedCodegen("round") {}
 
     virtual unsigned int arity() override { return 1; }
 

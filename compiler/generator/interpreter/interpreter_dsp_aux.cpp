@@ -29,6 +29,7 @@ using namespace std;
 
 #ifdef MACHINE
 #include "sha_key.hh"
+#include "exception.hh"
 void faustassertaux(bool cond, const string& file, int line)
 {
     if (!cond) {

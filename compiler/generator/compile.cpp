@@ -43,6 +43,7 @@ Compile a list of FAUST signals into a C++ class.
 #include "sigtyperules.hh"
 #include "simplify.hh"
 #include "timing.hh"
+#include "global.hh"
 
 using namespace std;
 
