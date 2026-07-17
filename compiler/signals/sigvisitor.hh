@@ -22,7 +22,7 @@
 #ifndef __SIGVISITOR__
 #define __SIGVISITOR__
 
-#include "global.hh"
+#include "sigs-state.hh"
 #include "signals.hh"
 
 struct sigvisitor {
@@ -163,7 +163,7 @@ struct fullvisitor : sigvisitor {
     {
         visit(s1);
         visit(s2);
-        if (s3 != gGlobal->nil) {
+        if (s3 != ::nil()) {
             // rwtable
             visit(s3);
             visit(s4);

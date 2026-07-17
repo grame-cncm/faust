@@ -24,7 +24,7 @@
 #include "sigs-config.hh"
 #include "binop.hh"
 #include "tlib-error.hh"
-#include "global.hh"
+#include "sigs-state.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
 #include "xtended.hh"
@@ -32,7 +32,7 @@
 using namespace std;
 
 ppsig::ppsig(Tree s, int max_size)
-    : fSig(s), fEnv(gGlobal->nil), fPriority(0), fHideRecursion(false), fMaxSize(max_size)
+    : fSig(s), fEnv(::nil()), fPriority(0), fHideRecursion(false), fMaxSize(max_size)
 {
 }
 
@@ -268,7 +268,7 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     if (isSigWRTbl(fSig, w, x, y, z)) {
-        if (y == gGlobal->nil) {
+        if (y == ::nil()) {
             // rtable
             printfun(fout, "WRTbl2p", w, x);
         } else {
@@ -349,15 +349,15 @@ ostream& ppsig::print(ostream& fout) const
 }
 
 #define SIG_INSERT_ID(exp)                                                                        \
-    if (gGlobal->gSignalTable.find(fSig) == gGlobal->gSignalTable.end()) {                        \
+    if (sigs::g.gSignalTable.find(fSig) == sigs::g.gSignalTable.end()) {                        \
         stringstream s;                                                                           \
         (exp);                                                                                    \
-        gGlobal->gSignalTable[fSig] = make_pair(gGlobal->gSignalCounter, s.str());                \
-        gGlobal->gSignalTrace.push_back("ID_" + std::to_string(gGlobal->gSignalCounter) + " = " + \
+        sigs::g.gSignalTable[fSig] = make_pair(sigs::g.gSignalCounter, s.str());                \
+        sigs::g.gSignalTrace.push_back("ID_" + std::to_string(sigs::g.gSignalCounter) + " = " + \
                                         s.str() + ";\n");                                         \
-        gGlobal->gSignalCounter++;                                                                \
+        sigs::g.gSignalCounter++;                                                                \
     }                                                                                             \
-    fout << "ID_" << gGlobal->gSignalTable[fSig].first;
+    fout << "ID_" << sigs::g.gSignalTable[fSig].first;
 
 ostream& ppsigShared::printinfix(ostream& fout, const string& opname, int priority, Tree x,
                                  Tree y) const
@@ -556,7 +556,7 @@ ostream& ppsigShared::print(ostream& fout) const
     }
 
     if (isSigWRTbl(fSig, w, x, y, z)) {
-        if (y == gGlobal->nil) {
+        if (y == ::nil()) {
             // rdtable
             SIG_INSERT_ID(printfun(s, "WRTbl2p", w, x));
         } else {
@@ -641,10 +641,10 @@ void ppsigShared::printIDs(ostream& fout, bool sort)
      To be removed if the tree shape becomes deterministic.
      */
     if (sort) {
-        std::sort(gGlobal->gSignalTrace.begin(), gGlobal->gSignalTrace.end());
+        std::sort(sigs::g.gSignalTrace.begin(), sigs::g.gSignalTrace.end());
     }
-    fout << "// Size = " << gGlobal->gSignalTrace.size() << endl;
-    for (const auto& it : gGlobal->gSignalTrace) {
+    fout << "// Size = " << sigs::g.gSignalTrace.size() << endl;
+    for (const auto& it : sigs::g.gSignalTrace) {
         fout << it;
     }
 }

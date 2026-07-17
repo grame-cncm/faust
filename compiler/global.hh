@@ -42,6 +42,7 @@
 #include "loopDetector.hh"
 #include "property.hh"
 #include "smartpointer.hh"
+#include "sigs-state.hh"
 #include "sourcereader.hh"
 
 class Occur;
@@ -274,7 +275,7 @@ struct global {
     int  gMaxCopyDelay;       // -mcd threshold
     int  gMaxDenseDelay;      // -mdd threshold
     int  gMinDensity;         // -mdy threshold
-    int  gFloatSize;  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad',
+    int& gFloatSize = sigs::g.gFloatSize;  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad',
                       // 4 for 'fixed-point')
     int  gFixedPointSize;          // -fx-size (-1 by default = not used)
     int  gFixedPointMSB;           // max value of MSB in -fx mode
@@ -354,8 +355,8 @@ struct global {
     std::string
         gVHDLComponentsFile;  // -vhdl-operators, a config file to replace specific operators
 
-    int gWideningLimit;   // Max number of iterations before interval widening
-    int gNarrowingLimit;  // Max number of iterations to compute interval widener
+    int& gWideningLimit = sigs::g.gWideningLimit;   // Max number of iterations before interval widening
+    int& gNarrowingLimit = sigs::g.gNarrowingLimit;  // Max number of iterations to compute interval widener
 
     std::map<std::string, std::string> gFastMathLibTable;  // Mapping table for fastmath functions
     std::map<std::string, bool>        gMathForeignFunctions;  // Map of math foreign functions
@@ -394,7 +395,7 @@ struct global {
     // Error handling
     int         gErrorCount;
     std::string gErrorMessage;
-    Tabber      TABBER;
+    Tabber& TABBER = sigs::g.TABBER;
 
     // ------------
     // boxppShared
@@ -412,15 +413,15 @@ struct global {
     // ------------
     // Tree is used to identify the same nodes during Signal tree traversal,
     // but gSignalCounter is then used to generate unique IDs
-    std::map<Tree, std::pair<int, std::string>> gSignalTable;
-    int                                         gSignalCounter;
+    std::map<Tree, std::pair<int, std::string>>& gSignalTable = sigs::g.gSignalTable;
+    int& gSignalCounter = sigs::g.gSignalCounter;
     // To keep the signal tree traversing trace
-    std::vector<std::string> gSignalTrace;
+    std::vector<std::string>& gSignalTrace = sigs::g.gSignalTrace;
 
     // Typing
-    int gCountInferences;
-    int gCountMaximal;
-    int gAllocationCount;  // Internal signal types counter
+    int& gCountInferences = sigs::g.gCountInferences;
+    int& gCountMaximal = sigs::g.gCountMaximal;
+    int& gAllocationCount = sigs::g.gAllocationCount;  // Internal signal types counter
 
     // Compiler statistics for performance analysis (FIR backend only)
 #ifdef FIR_BUILD
@@ -433,7 +434,7 @@ struct global {
     // Used in eval
     int gBoxSlotNumber;  // counter for unique slot number
 
-    bool gCausality;  // FIXME: global used as a parameter of typeAnnotation when true trigs
+    bool& gCausality = sigs::g.gCausality;  // FIXME: global used as a parameter of typeAnnotation when true trigs
                       // causality errors (negative delay)
     int gSTEP;        // counter for unique compilation step number
 
@@ -446,37 +447,37 @@ struct global {
     Tree DOCTABLES;
     Tree NULLENV;
     Tree COLORPROPERTY;
-    Tree ORDERPROP;
-    Tree RECURSIVNESS;
-    Tree NULLTYPEENV;
+    Tree& ORDERPROP = sigs::g.ORDERPROP;
+    Tree& RECURSIVNESS = sigs::g.RECURSIVNESS;
+    Tree& NULLTYPEENV = sigs::g.NULLTYPEENV;
     Tree NORMALFORM;
     Tree DEFNAMEPROPERTY;
     Tree NICKNAMEPROPERTY;
     Tree BCOMPLEXITY;  // Node used for memoization purposes
     Tree LETRECBODY;
     // Extended math
-    xtended* gAbsPrim;
-    xtended* gAcosPrim;
-    xtended* gTanPrim;
-    xtended* gSqrtPrim;
-    xtended* gSinPrim;
-    xtended* gRintPrim;
+    xtended*& gAbsPrim = sigs::g.gAbsPrim;
+    xtended*& gAcosPrim = sigs::g.gAcosPrim;
+    xtended*& gTanPrim = sigs::g.gTanPrim;
+    xtended*& gSqrtPrim = sigs::g.gSqrtPrim;
+    xtended*& gSinPrim = sigs::g.gSinPrim;
+    xtended*& gRintPrim = sigs::g.gRintPrim;
     xtended* gRoundPrim;
-    xtended* gRemainderPrim;
-    xtended* gPowPrim;
-    xtended* gMinPrim;
-    xtended* gMaxPrim;
-    xtended* gLogPrim;
-    xtended* gLog10Prim;
-    xtended* gFmodPrim;
-    xtended* gFloorPrim;
-    xtended* gExpPrim;
-    xtended* gExp10Prim;
-    xtended* gCosPrim;
-    xtended* gCeilPrim;
-    xtended* gAtanPrim;
-    xtended* gAtan2Prim;
-    xtended* gAsinPrim;
+    xtended*& gRemainderPrim = sigs::g.gRemainderPrim;
+    xtended*& gPowPrim = sigs::g.gPowPrim;
+    xtended*& gMinPrim = sigs::g.gMinPrim;
+    xtended*& gMaxPrim = sigs::g.gMaxPrim;
+    xtended*& gLogPrim = sigs::g.gLogPrim;
+    xtended*& gLog10Prim = sigs::g.gLog10Prim;
+    xtended*& gFmodPrim = sigs::g.gFmodPrim;
+    xtended*& gFloorPrim = sigs::g.gFloorPrim;
+    xtended*& gExpPrim = sigs::g.gExpPrim;
+    xtended*& gExp10Prim = sigs::g.gExp10Prim;
+    xtended*& gCosPrim = sigs::g.gCosPrim;
+    xtended*& gCeilPrim = sigs::g.gCeilPrim;
+    xtended*& gAtanPrim = sigs::g.gAtanPrim;
+    xtended*& gAtan2Prim = sigs::g.gAtan2Prim;
+    xtended*& gAsinPrim = sigs::g.gAsinPrim;
 
     // Signals
     Sym BOXIDENT;
@@ -553,10 +554,10 @@ struct global {
     property<Tree>* gSimplifiedBoxProperty;
 
     // The property used to memoize the results
-    property<Tree>* gSymListProp;
+    property<Tree>*& gSymListProp = sigs::g.gSymListProp;
 
     // Memoized type contruction
-    property<AudioType*>* gMemoizedTypes;
+    property<AudioType*>*& gMemoizedTypes = sigs::g.gMemoizedTypes;
 
     // Symbols
     Sym UIFOLDER;
@@ -564,64 +565,64 @@ struct global {
     Sym PATHROOT;
     Sym PATHPARENT;
     Sym PATHCURRENT;
-    Sym FFUN;
-    Sym SIGINPUT;
-    Sym SIGOUTPUT;
-    Sym SIGDELAY1;
-    Sym SIGDELAY;
-    Sym SIGPREFIX;
-    Sym SIGRDTBL;
-    Sym SIGWRTBL;
-    Sym SIGGEN;
-    Sym SIGDOCONSTANTTBL;
-    Sym SIGDOCWRITETBL;
-    Sym SIGDOCACCESSTBL;
-    Sym SIGSELECT2;
-    Sym SIGASSERTBOUNDS;
-    Sym SIGHIGHEST;
-    Sym SIGLOWEST;
-    Sym SIGBINOP;
-    Sym SIGFFUN;
-    Sym SIGFCONST;
-    Sym SIGFVAR;
-    Sym SIGPROJ;
-    Sym SIGINTCAST;
-    Sym SIGBITCAST;
-    Sym SIGFLOATCAST;
-    Sym SIGBUTTON;
-    Sym SIGCHECKBOX;
-    Sym SIGWAVEFORM;
-    Sym SIGHSLIDER;
-    Sym SIGVSLIDER;
-    Sym SIGNUMENTRY;
-    Sym SIGHBARGRAPH;
-    Sym SIGVBARGRAPH;
-    Sym SIGATTACH;
-    Sym SIGENABLE;
-    Sym SIGCONTROL;
-    Sym SIGSOUNDFILE;
-    Sym SIGSOUNDFILELENGTH;
-    Sym SIGSOUNDFILERATE;
-    Sym SIGSOUNDFILEBUFFER;
-    Sym SIGREGISTER;  // for FPGA Retiming
-    Sym SIGTUPLE;
-    Sym SIGTUPLEACCESS;
+    Sym& FFUN = sigs::g.FFUN;
+    Sym& SIGINPUT = sigs::g.SIGINPUT;
+    Sym& SIGOUTPUT = sigs::g.SIGOUTPUT;
+    Sym& SIGDELAY1 = sigs::g.SIGDELAY1;
+    Sym& SIGDELAY = sigs::g.SIGDELAY;
+    Sym& SIGPREFIX = sigs::g.SIGPREFIX;
+    Sym& SIGRDTBL = sigs::g.SIGRDTBL;
+    Sym& SIGWRTBL = sigs::g.SIGWRTBL;
+    Sym& SIGGEN = sigs::g.SIGGEN;
+    Sym& SIGDOCONSTANTTBL = sigs::g.SIGDOCONSTANTTBL;
+    Sym& SIGDOCWRITETBL = sigs::g.SIGDOCWRITETBL;
+    Sym& SIGDOCACCESSTBL = sigs::g.SIGDOCACCESSTBL;
+    Sym& SIGSELECT2 = sigs::g.SIGSELECT2;
+    Sym& SIGASSERTBOUNDS = sigs::g.SIGASSERTBOUNDS;
+    Sym& SIGHIGHEST = sigs::g.SIGHIGHEST;
+    Sym& SIGLOWEST = sigs::g.SIGLOWEST;
+    Sym& SIGBINOP = sigs::g.SIGBINOP;
+    Sym& SIGFFUN = sigs::g.SIGFFUN;
+    Sym& SIGFCONST = sigs::g.SIGFCONST;
+    Sym& SIGFVAR = sigs::g.SIGFVAR;
+    Sym& SIGPROJ = sigs::g.SIGPROJ;
+    Sym& SIGINTCAST = sigs::g.SIGINTCAST;
+    Sym& SIGBITCAST = sigs::g.SIGBITCAST;
+    Sym& SIGFLOATCAST = sigs::g.SIGFLOATCAST;
+    Sym& SIGBUTTON = sigs::g.SIGBUTTON;
+    Sym& SIGCHECKBOX = sigs::g.SIGCHECKBOX;
+    Sym& SIGWAVEFORM = sigs::g.SIGWAVEFORM;
+    Sym& SIGHSLIDER = sigs::g.SIGHSLIDER;
+    Sym& SIGVSLIDER = sigs::g.SIGVSLIDER;
+    Sym& SIGNUMENTRY = sigs::g.SIGNUMENTRY;
+    Sym& SIGHBARGRAPH = sigs::g.SIGHBARGRAPH;
+    Sym& SIGVBARGRAPH = sigs::g.SIGVBARGRAPH;
+    Sym& SIGATTACH = sigs::g.SIGATTACH;
+    Sym& SIGENABLE = sigs::g.SIGENABLE;
+    Sym& SIGCONTROL = sigs::g.SIGCONTROL;
+    Sym& SIGSOUNDFILE = sigs::g.SIGSOUNDFILE;
+    Sym& SIGSOUNDFILELENGTH = sigs::g.SIGSOUNDFILELENGTH;
+    Sym& SIGSOUNDFILERATE = sigs::g.SIGSOUNDFILERATE;
+    Sym& SIGSOUNDFILEBUFFER = sigs::g.SIGSOUNDFILEBUFFER;
+    Sym& SIGREGISTER = sigs::g.SIGREGISTER;  // for FPGA Retiming
+    Sym& SIGTUPLE = sigs::g.SIGTUPLE;
+    Sym& SIGTUPLEACCESS = sigs::g.SIGTUPLEACCESS;
 
     // Types
-    Sym SIMPLETYPE;
-    Sym TABLETYPE;
-    Sym TUPLETTYPE;
+    Sym& SIMPLETYPE = sigs::g.SIMPLETYPE;
+    Sym& TABLETYPE = sigs::g.TABLETYPE;
+    Sym& TUPLETTYPE = sigs::g.TUPLETTYPE;
 
     // The map of types and associated Structured types
     std::map<Typed::VarType, DeclareStructTypeInst*> gExternalStructTypes;
 
     // Essential predefined types
-    Type TINPUT;
-    Type TGUI;
+    Type& TINPUT = sigs::g.TINPUT;
+    Type& TGUI = sigs::g.TGUI;
 
     // Trying to accelerate type convergence
-    Type TREC;  // kVect ou kScal ?
-    Type TRECMAX;
+    Type& TREC = sigs::g.TREC;  // kVect ou kScal ?
+    Type& TRECMAX = sigs::g.TRECMAX;
 
     // Predefined symbols CONS and NIL
     Sym  CONS;

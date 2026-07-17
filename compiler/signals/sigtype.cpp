@@ -24,7 +24,7 @@
 #include <sstream>
 
 #include "tlib-error.hh"
-#include "global.hh"
+#include "sigs-state.hh"
 #include "property.hh"
 #include "sigtype.hh"
 #include "tree.hh"
@@ -49,7 +49,7 @@ AudioType::AudioType(int n, int v, int c, int vec, int b, interval i, res r)
       fRes(r),
       fCode(nullptr)
 {
-    TRACE(cerr << gGlobal->TABBER << "Building audioType : n="
+    TRACE(cerr << sigs::g.TABBER << "Building audioType : n="
                << "NR"[n] << ", v="
                << "KB?S"[v] << ", c="
                << "CI?E"[c] << ", vec="
@@ -409,7 +409,7 @@ static Tree codeSimpleType(SimpleType* st)
 
     elems.push_back(tree(st->getRes().valid));
     elems.push_back(tree(st->getRes().index));
-    return tree(gGlobal->SIMPLETYPE, elems);
+    return tree(sigs::g.SIMPLETYPE, elems);
 }
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i)
@@ -423,12 +423,12 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
     Tree       code = codeAudioType(&prototype);
 
     AudioType* t;
-    if (gGlobal->gMemoizedTypes->get(code, t)) {
+    if (sigs::g.gMemoizedTypes->get(code, t)) {
         return t;
     } else {
-        gGlobal->gAllocationCount++;
+        sigs::g.gAllocationCount++;
         t = new SimpleType(n, v, c, vec, b, i, lsb);
-        gGlobal->gMemoizedTypes->set(code, t);
+        sigs::g.gMemoizedTypes->set(code, t);
         t->setCode(code);
         return t;
     }
@@ -453,7 +453,7 @@ static Tree codeTableType(TableType* tt)
     elems.push_back(tree(tt->getRes().valid));
     elems.push_back(tree(tt->getRes().index));
 
-    return CTree::make(gGlobal->TABLETYPE, elems);
+    return CTree::make(sigs::g.TABLETYPE, elems);
 }
 
 AudioType* makeTableType(const Type& ct)
@@ -462,12 +462,12 @@ AudioType* makeTableType(const Type& ct)
     Tree      code = codeAudioType(&prototype);
 
     AudioType* tt;
-    if (gGlobal->gMemoizedTypes->get(code, tt)) {
+    if (sigs::g.gMemoizedTypes->get(code, tt)) {
         return tt;
     } else {
-        gGlobal->gAllocationCount++;
+        sigs::g.gAllocationCount++;
         tt = new TableType(prototype);
-        gGlobal->gMemoizedTypes->set(code, tt);
+        sigs::g.gMemoizedTypes->set(code, tt);
         tt->setCode(code);
         return tt;
     }
@@ -479,12 +479,12 @@ AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, co
     Tree      code = codeAudioType(&prototype);
 
     AudioType* tt;
-    if (gGlobal->gMemoizedTypes->get(code, tt)) {
+    if (sigs::g.gMemoizedTypes->get(code, tt)) {
         return tt;
     } else {
-        gGlobal->gAllocationCount++;
+        sigs::g.gAllocationCount++;
         tt = new TableType(ct, n, v, c, vec, b, i);
-        gGlobal->gMemoizedTypes->set(code, tt);
+        sigs::g.gMemoizedTypes->set(code, tt);
         tt->setCode(code);
         return tt;
     }
@@ -499,7 +499,7 @@ static Tree codeTupletType(TupletType* nt)
     for (int i = 0; i < nt->arity(); i++) {
         elems.push_back(codeAudioType((*nt)[i]));
     }
-    return CTree::make(gGlobal->TUPLETTYPE, elems);
+    return CTree::make(sigs::g.TUPLETTYPE, elems);
 }
 
 AudioType* makeTupletType(ConstTypes vt)
@@ -508,12 +508,12 @@ AudioType* makeTupletType(ConstTypes vt)
     Tree       code = codeAudioType(&prototype);
 
     AudioType* t;
-    if (gGlobal->gMemoizedTypes->get(code, t)) {
+    if (sigs::g.gMemoizedTypes->get(code, t)) {
         return t;
     } else {
-        gGlobal->gAllocationCount++;
+        sigs::g.gAllocationCount++;
         t = new TupletType(vt);
-        gGlobal->gMemoizedTypes->set(code, t);
+        sigs::g.gMemoizedTypes->set(code, t);
         t->setCode(code);
         return t;
     }
@@ -525,12 +525,12 @@ AudioType* makeTupletType(ConstTypes vt, int n, int v, int c, int vec, int b, co
     Tree       code = codeAudioType(&prototype);
 
     AudioType* t;
-    if (gGlobal->gMemoizedTypes->get(code, t)) {
+    if (sigs::g.gMemoizedTypes->get(code, t)) {
         return t;
     } else {
-        gGlobal->gAllocationCount++;
+        sigs::g.gAllocationCount++;
         t = new TupletType(vt, n, v, c, vec, b, i);
-        gGlobal->gMemoizedTypes->set(code, t);
+        sigs::g.gMemoizedTypes->set(code, t);
         t->setCode(code);
         return t;
     }

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    FAUST signal library
+    Copyright (C) 2003-2026 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -19,53 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
-#include <stdlib.h>
-
 #include "sigs-state.hh"
-#include "prim2.hh"
 
-Tree ffunction(Tree signature, Tree incfile, Tree libfile)
-{
-    return tree(sigs::g.FFUN, signature, incfile, libfile);
-}
+namespace sigs {
 
-bool isffunction(Tree t)
-{
-    return t->node() == Node(sigs::g.FFUN);
-}
+State g;
 
-Tree ffsignature(Tree ff)
-{
-    return ff->branch(0);
-}
-
-const char* ffincfile(Tree ff)
-{
-    return tree2str(ff->branch(1));
-}
-
-const char* fflibfile(Tree ff)
-{
-    return tree2str(ff->branch(2));
-}
-
-int ffrestype(Tree t)
-{
-    return tree2int(hd(ffsignature(t)));
-}
-
-const char* ffname(Tree t)
-{
-    Tree namelist = nth(ffsignature(t), 1);
-    return tree2str(nth(namelist, sigs::g.gFloatSize - 1));
-}
-
-int ffarity(Tree t)
-{
-    return len(ffsignature(t)) - 2;
-}
-
-int ffargtype(Tree t, int i)
-{
-    return tree2int(nth(ffsignature(t), i + 2));
-}
+}  // namespace sigs

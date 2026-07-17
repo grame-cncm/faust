@@ -153,11 +153,18 @@ static std::string sigsRealPrinter(double n)
 }
 
 global::global()
-    : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
+    : gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
     tlib::setErrorHandler(tlibErrorHandler);
     tlib::init();
     sigs::setRealPrinter(sigsRealPrinter);
+
+    // The members of the signal library state (sigs::g) referenced by this
+    // class live across sessions: reset here what a fresh 'global' used to
+    // reset by construction.
+    TABBER = Tabber(1);
+    gSignalTable.clear();
+    gSignalTrace.clear();
 
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     reset();
@@ -1041,6 +1048,16 @@ Typed::VarType global::getVarType(const string& name)
 
 global::~global()
 {
+    // Release the type singletons of the signal library state while the
+    // AudioType objects are still alive (destroyed by tlib::cleanup below);
+    // the static sigs::g must not keep stale pointers.
+    TINPUT         = nullptr;
+    TGUI           = nullptr;
+    TREC           = nullptr;
+    TRECMAX        = nullptr;
+    gMemoizedTypes = nullptr;
+    gSymListProp   = nullptr;
+
     tlib::cleanup();
     BasicTyped::cleanup();
     DeclareVarInst::cleanup();

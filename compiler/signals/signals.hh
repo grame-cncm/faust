@@ -28,7 +28,7 @@
 
 #include "binop.hh"
 #include "tlib-error.hh"
-#include "global.hh"
+#include "sigs-state.hh"
 #include "num.hh"
 #include "tlib.hh"
 
@@ -92,8 +92,8 @@ SIGS_API bool isSigFloatCast(Tree t, Tree& x);
 
 // Tables
 Tree sigRDTbl(Tree tbl, Tree ri);
-// for rwtable and rdtable (with wi and ws = gGlobal->nil)
-Tree sigWRTbl(Tree size, Tree gen, Tree wi = gGlobal->nil, Tree ws = gGlobal->nil);
+// for rwtable and rdtable (with wi and ws = ::nil())
+Tree sigWRTbl(Tree size, Tree gen, Tree wi = ::nil(), Tree ws = ::nil());
 Tree sigGen(Tree content);
 
 SIGS_API bool isSigRDTbl(Tree s, Tree& tbl, Tree& ri);

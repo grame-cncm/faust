@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 
-#include "global.hh"
+#include "sigs-state.hh"
 #include "signals.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -158,7 +158,7 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputc(',', out);
         printSignal(gen, out, 0);
         fputc(')', out);
-        if (wi != gGlobal->nil) {
+        if (wi != ::nil()) {
             // rwtable
             fputc('[', out);
             printSignal(wi, out, 0);

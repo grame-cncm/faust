@@ -39,7 +39,7 @@
 #include "sigorderrules.hh"
 #include <stdio.h>
 #include "tlib-error.hh"
-#include "global.hh"
+#include "sigs-state.hh"
 #include "prim2.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
@@ -63,11 +63,11 @@ static int inferSigOrder(Tree sig);
 int getSigOrder(Tree sig)
 {
     Tree tt;
-    if (getProperty(sig, gGlobal->ORDERPROP, tt)) {
+    if (getProperty(sig, sigs::g.ORDERPROP, tt)) {
         return tree2int(tt);
     } else {
         int order = inferSigOrder(sig);
-        setProperty(sig, gGlobal->ORDERPROP, tree(order));
+        setProperty(sig, sigs::g.ORDERPROP, tree(order));
         return order;
     }
 }

@@ -24,7 +24,7 @@
 #include <sstream>
 
 #include "tlib-error.hh"
-#include "global.hh"
+#include "sigs-state.hh"
 
 using namespace std;
 
@@ -102,7 +102,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     else if (isSigWRTbl(sig, size, gen, wi, ws)) {
         vsigs.push_back(size);
         vsigs.push_back(gen);
-        if (wi == gGlobal->nil) {
+        if (wi == ::nil()) {
             // rdtable
             return 2;
         } else {

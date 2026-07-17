@@ -25,7 +25,7 @@
 #include <set>
 
 #include "tlib-error.hh"
-#include "global.hh"
+#include "sigs-state.hh"
 #include "ppsig.hh"
 #include "property.hh"
 #include "recursivness.hh"
@@ -57,7 +57,7 @@ static int position(Tree env, Tree t, int p = 1);
  */
 void recursivnessAnnotation(Tree sig)
 {
-    annotate(gGlobal->nil, sig);
+    annotate(::nil(), sig);
 }
 
 /**
@@ -70,7 +70,7 @@ void recursivnessAnnotation(Tree sig)
 int getRecursivness(Tree sig)
 {
     Tree tr;
-    if (!getProperty(sig, gGlobal->RECURSIVNESS, tr)) {
+    if (!getProperty(sig, sigs::g.RECURSIVNESS, tr)) {
         cerr << "ASSERT : getRecursivness of " << *sig << endl;
         TLIB_ASSERT(false);
     }
@@ -88,7 +88,7 @@ static int annotate(Tree env, Tree sig)
 {
     Tree tr, var, body;
 
-    if (getProperty(sig, gGlobal->RECURSIVNESS, tr)) {
+    if (getProperty(sig, sigs::g.RECURSIVNESS, tr)) {
         return tree2int(tr);  // already annotated
     } else if (isRec(sig, var, body)) {
         int p = position(env, sig);
@@ -99,7 +99,7 @@ static int annotate(Tree env, Tree sig)
             if (r < 0) {
                 r = 0;
             }
-            setProperty(sig, gGlobal->RECURSIVNESS, tree(r));
+            setProperty(sig, sigs::g.RECURSIVNESS, tree(r));
             return r;
         }
     } else {
@@ -112,7 +112,7 @@ static int annotate(Tree env, Tree sig)
                 rmax = r;
             }
         }
-        setProperty(sig, gGlobal->RECURSIVNESS, tree(rmax));
+        setProperty(sig, sigs::g.RECURSIVNESS, tree(rmax));
         return rmax;
     }
 }
@@ -145,10 +145,10 @@ static Tree symlistVisit(Tree sig, set<Tree>& visited)
 {
     Tree S;
 
-    if (gGlobal->gSymListProp->get(sig, S)) {
+    if (sigs::g.gSymListProp->get(sig, S)) {
         return S;
     } else if (visited.count(sig) > 0) {
-        return gGlobal->nil;
+        return ::nil();
     } else {
         visited.insert(sig);
         Tree id, body;
@@ -161,7 +161,7 @@ static Tree symlistVisit(Tree sig, set<Tree>& visited)
         } else {
             tvec subsigs;
             int  n = getSubSignals(sig, subsigs, true);  // tables have to be visited also
-            Tree U = gGlobal->nil;
+            Tree U = ::nil();
             for (int i = 0; i < n; i++) {
                 U = setUnion(U, symlistVisit(subsigs[i], visited));
             }
@@ -179,10 +179,10 @@ Tree symlist(Tree sig)
 {
     Tree S;
 
-    if (!gGlobal->gSymListProp->get(sig, S)) {
+    if (!sigs::g.gSymListProp->get(sig, S)) {
         set<Tree> visited;
         S = symlistVisit(sig, visited);
-        gGlobal->gSymListProp->set(sig, S);
+        sigs::g.gSymListProp->set(sig, S);
     }
     // cerr << "SYMLIST " << *S << " OF " << ppsig(sig) << endl;
     return S;

@@ -26,7 +26,7 @@
 #include <iostream>
 
 #include "tlib-error.hh"
-#include "global.hh"
+#include "sigs-state.hh"
 #include "interval_def.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
@@ -204,7 +204,7 @@ static void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef,
 
     // cerr << "compute recursive types" << endl;
     for (int i = 0; i < n; i++) {
-        newType = T(vdef[i], gGlobal->NULLTYPEENV);
+        newType = T(vdef[i], sigs::g.NULLTYPEENV);
         newTuplet.clear();
         oldRecType = derefRecCert(getSigType(vrec[i]));
         newRecType = derefRecCert(newType);
@@ -228,7 +228,7 @@ static void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef,
  */
 void typeAnnotation(Tree sig, bool causality)
 {
-    gGlobal->gCausality = causality;
+    sigs::g.gCausality = causality;
     Tree sl             = symlist(sig);
     int  n              = len(sl);
 
@@ -281,7 +281,7 @@ void typeAnnotation(Tree sig, bool causality)
     TLIB_ASSERT((int)vAgeMax.size() == n);
 
     // cerr << "compute upper bounds for recursive types" << endl;
-    for (int k = 0; k < gGlobal->gNarrowingLimit; k++) {
+    for (int k = 0; k < sigs::g.gNarrowingLimit; k++) {
         updateRecTypes(vrec, vdef, vdefSizes, vtypeUp, true);
     }
 
@@ -308,12 +308,12 @@ void typeAnnotation(Tree sig, bool causality)
                     newI = newRecType[j]->getInterval();
                     oldI = oldRecType[j]->getInterval();
 
-                    TRACE(cerr << gGlobal->TABBER << "inspecting " << newTuplet[j] << endl;)
+                    TRACE(cerr << sigs::g.TABBER << "inspecting " << newTuplet[j] << endl;)
                     if (newI.lo() != oldI.lo()) {
                         TLIB_ASSERT(newI.lo() < oldI.lo());
                         vAgeMin[i][j]++;
-                        if (vAgeMin[i][j] > gGlobal->gWideningLimit) {
-                            TRACE(cerr << gGlobal->TABBER << "low widening of " << newTuplet[j]
+                        if (vAgeMin[i][j] > sigs::g.gWideningLimit) {
+                            TRACE(cerr << sigs::g.TABBER << "low widening of " << newTuplet[j]
                                        << endl;)
                             newI = {vUp[i][j]->getInterval().lo(), newI.hi()};
                         }
@@ -322,22 +322,22 @@ void typeAnnotation(Tree sig, bool causality)
                     if (newI.hi() != oldI.hi()) {
                         TLIB_ASSERT(newI.hi() > oldI.hi());
                         vAgeMax[i][j]++;
-                        if (vAgeMax[i][j] > gGlobal->gWideningLimit) {
-                            TRACE(cerr << gGlobal->TABBER << "up widening of " << newTuplet[j]
+                        if (vAgeMax[i][j] > sigs::g.gWideningLimit) {
+                            TRACE(cerr << sigs::g.TABBER << "up widening of " << newTuplet[j]
                                        << endl;)
                             newI = {newI.lo(), vUp[i][j]->getInterval().hi()};
                         }
                     }
 
                     newTuplet[j] = newTuplet[j]->promoteInterval(newI);
-                    TRACE(cerr << gGlobal->TABBER << "widening ended : " << newTuplet[j] << endl;)
+                    TRACE(cerr << sigs::g.TABBER << "widening ended : " << newTuplet[j] << endl;)
                 }
                 vtype[i] = new TupletType(newTuplet);
             }
         }
     }
     // type full term
-    T(sig, gGlobal->NULLTYPEENV);
+    T(sig, sigs::g.NULLTYPEENV);
     TRACE(cerr << "type success : " << endl << "BYE" << endl;)
 }
 
@@ -346,10 +346,10 @@ void typeAnnotation(Tree sig, bool causality)
  */
 static void annotationStatistics()
 {
-    cerr << gGlobal->TABBER << "COUNT INFERENCE  " << gGlobal->gCountInferences << " AT TIME "
+    cerr << sigs::g.TABBER << "COUNT INFERENCE  " << sigs::g.gCountInferences << " AT TIME "
          << clock() / CLOCKS_PER_SEC << 's' << endl;
-    cerr << gGlobal->TABBER << "COUNT ALLOCATION " << gGlobal->gAllocationCount << endl;
-    cerr << gGlobal->TABBER << "COUNT MAXIMAL " << gGlobal->gCountMaximal << endl;
+    cerr << sigs::g.TABBER << "COUNT ALLOCATION " << sigs::g.gAllocationCount << endl;
+    cerr << sigs::g.TABBER << "COUNT MAXIMAL " << sigs::g.gCountMaximal << endl;
 }
 
 /**
@@ -378,7 +378,7 @@ static void annotationStatistics()
  */
 void setSigType(Tree sig, Type t)
 {
-    TRACE(cerr << gGlobal->TABBER << "SET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE) << " TO TYPE "
+    TRACE(cerr << sigs::g.TABBER << "SET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE) << " TO TYPE "
                << *t << endl;)
     sig->setType(t);
 }
@@ -391,10 +391,10 @@ Type getSigType(Tree sig)
 {
     AudioType* ty = (AudioType*)sig->getType();
     if (ty == nullptr) {
-        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE)
+        TRACE(cerr << sigs::g.TABBER << "GET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE)
                    << " HAS NO TYPE YET" << endl;)
     } else {
-        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE)
+        TRACE(cerr << sigs::g.TABBER << "GET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE)
                    << " IS TYPE " << *ty << endl;)
     }
     return ty;
@@ -422,11 +422,11 @@ Type getSigType(Tree sig)
  */
 static Type T(Tree term, Tree ignoreenv)
 {
-    TRACE(cerr << ++gGlobal->TABBER << "ENTER T() " << ppsig(term, MAX_ERROR_SIZE) << endl;)
+    TRACE(cerr << ++sigs::g.TABBER << "ENTER T() " << ppsig(term, MAX_ERROR_SIZE) << endl;)
 
     if (term->isAlreadyVisited()) {
         Type ty = getSigType(term);
-        TRACE(cerr << --gGlobal->TABBER << "EXIT 1 T() " << ppsig(term, MAX_ERROR_SIZE)
+        TRACE(cerr << --sigs::g.TABBER << "EXIT 1 T() " << ppsig(term, MAX_ERROR_SIZE)
                    << " AS TYPE " << *ty << endl);
         return ty;
 
@@ -434,7 +434,7 @@ static Type T(Tree term, Tree ignoreenv)
         Type ty = inferSigType(term, ignoreenv);
         setSigType(term, ty);
         term->setVisited();
-        TRACE(cerr << --gGlobal->TABBER << "EXIT 2 T() " << ppsig(term, MAX_ERROR_SIZE)
+        TRACE(cerr << --sigs::g.TABBER << "EXIT 2 T() " << ppsig(term, MAX_ERROR_SIZE)
                    << " AS TYPE " << *ty << endl);
         return ty;
     }
@@ -466,7 +466,7 @@ static Type inferSigType(Tree sig, Tree env)
     Tree    sel, s1, s2, s3, s4, ff, ls, l, x, y, z, part, u, var, body, type, name, file, sf;
     Tree    label, cur, min, max, step;
 
-    gGlobal->gCountInferences++;
+    sigs::g.gCountInferences++;
 
     if (getUserData(sig)) {
         return inferXType(sig, env);
@@ -492,7 +492,7 @@ static Type inferSigType(Tree sig, Tree env)
     }
 
     else if (isSigInput(sig, &i)) {
-        return gGlobal->TINPUT;
+        return sigs::g.TINPUT;
     }
 
     else if (isSigOutput(sig, &i, s1)) {
@@ -519,7 +519,7 @@ static Type inferSigType(Tree sig, Tree env)
         // cerr << "for sig fix delay : s1 = "
         //      << t1 << ':' << ppsig(s1) << ", s2 = "
         //      << t2 << ':' << ppsig(s2) << endl;
-        if (gGlobal->gCausality) {
+        if (sigs::g.gCausality) {
             if (!(i1.isValid()) || !(i1.isBounded())) {
                 stringstream error, st1, st2;
                 // Prepare two separated streams for MAX_ERROR_SIZE model to work properly
@@ -585,12 +585,12 @@ static Type inferSigType(Tree sig, Tree env)
     }
 
     else if (isSigButton(sig)) {
-        return castInterval(gGlobal->TGUI,
+        return castInterval(sigs::g.TGUI,
                             gAlgebra.Button(interval(0, 0)));  // TODO: replace the name
     }
 
     else if (isSigCheckbox(sig)) {
-        return castInterval(gGlobal->TGUI,
+        return castInterval(sigs::g.TGUI,
                             gAlgebra.Checkbox(interval(0, 0)));  // TODO: replace the name
     }
 
@@ -600,7 +600,7 @@ static Type inferSigType(Tree sig, Tree env)
         Type t3 = T(max, env);
         Type t4 = T(step, env);
         return castInterval(
-            gGlobal->TGUI, gAlgebra.VSlider(interval(0, 0),  // TODO: replace the name
+            sigs::g.TGUI, gAlgebra.VSlider(interval(0, 0),  // TODO: replace the name
                                             t1->getInterval(), t2->getInterval(), t3->getInterval(),
                                             t4->getInterval()));
     }
@@ -611,7 +611,7 @@ static Type inferSigType(Tree sig, Tree env)
         Type t3 = T(max, env);
         Type t4 = T(step, env);
         return castInterval(
-            gGlobal->TGUI, gAlgebra.HSlider(interval(0, 0),  // TODO: replace the name
+            sigs::g.TGUI, gAlgebra.HSlider(interval(0, 0),  // TODO: replace the name
                                             t1->getInterval(), t2->getInterval(), t3->getInterval(),
                                             t4->getInterval()));
     }
@@ -621,7 +621,7 @@ static Type inferSigType(Tree sig, Tree env)
         Type t2 = T(min, env);
         Type t3 = T(max, env);
         Type t4 = T(step, env);
-        return castInterval(gGlobal->TGUI,
+        return castInterval(sigs::g.TGUI,
                             gAlgebra.NumEntry(interval(0, 0),  // TODO: replace the name
                                               t1->getInterval(), t2->getInterval(),
                                               t3->getInterval(), t4->getInterval()));
@@ -700,7 +700,7 @@ static Type inferSigType(Tree sig, Tree env)
     }
 
     else if (isSigWRTbl(sig, s1, s2, s3, s4)) {
-        if (s3 == gGlobal->nil) {
+        if (s3 == ::nil()) {
             // rdtable
             return inferTableType(s1, s2, env);
         } else {
@@ -714,7 +714,7 @@ static Type inferSigType(Tree sig, Tree env)
     }
 
     else if (isSigGen(sig, s1)) {
-        return T(s1, gGlobal->NULLTYPEENV);
+        return T(s1, sigs::g.NULLTYPEENV);
     }
 
     else if (isSigDocConstantTbl(sig, x, y)) {
@@ -835,8 +835,8 @@ static Type inferWriteTableType(Type tbl, Type wi, Type ws)
         error << "ERROR : inferring write table type, wrong write index type : " << wi << endl;
         tlib::error(error.str());
     }
-    TRACE(cerr << gGlobal->TABBER << "inferring write table type : wi type = " << wi << endl);
-    TRACE(cerr << gGlobal->TABBER << "inferring write table type : wd type = " << ws << endl);
+    TRACE(cerr << sigs::g.TABBER << "inferring write table type : wi type = " << wi << endl);
+    TRACE(cerr << sigs::g.TABBER << "inferring write table type : wd type = " << ws << endl);
 
     int n   = ws->nature();
     int b   = ws->boolean();
@@ -845,14 +845,14 @@ static Type inferWriteTableType(Type tbl, Type wi, Type ws)
     int vec = wi->vectorability() | ws->vectorability();
     // Interval is the reunion of tbl (and its init signal) and ws
     interval i = itv::reunion(tbl->getInterval(), ws->getInterval());
-    TRACE(cerr << gGlobal->TABBER << "infering write table type : n="
+    TRACE(cerr << sigs::g.TABBER << "infering write table type : n="
                << "NR"[n] << ", v="
                << "KB?S"[v] << ", c="
                << "CI?E"[c] << ", vec="
                << "VS?TS"[vec] << ", b="
                << "N?B"[b] << ", i=" << i << endl);
     Type tbltype = makeTableType(tt->content(), n, v, c, vec, b, i);
-    TRACE(cerr << gGlobal->TABBER << "infering write table type : result = " << tbltype << endl);
+    TRACE(cerr << sigs::g.TABBER << "infering write table type : result = " << tbltype << endl);
     return tbltype;
 }
 
@@ -915,7 +915,7 @@ static Type inferDocAccessTblType(Type tbl, Type ridx)
 static TupletType* initialRecType(Tree t)
 {
     TLIB_ASSERT(isList(t));
-    return new TupletType(vector<Type>(len(t), gGlobal->TREC));
+    return new TupletType(vector<Type>(len(t), sigs::g.TREC));
 }
 
 /**
@@ -926,7 +926,7 @@ static TupletType* initialRecType(Tree t)
 static TupletType* maximalRecType(Tree t)
 {
     TLIB_ASSERT(isList(t));
-    return new TupletType(vector<Type>(len(t), gGlobal->TRECMAX));
+    return new TupletType(vector<Type>(len(t), sigs::g.TRECMAX));
 }
 
 /**
