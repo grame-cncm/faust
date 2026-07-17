@@ -152,6 +152,8 @@ five elements : symbols, nodes, smartpointers, trees and lists :
 #include "list.hh"
 #include "node.hh"
 #include "property.hh"
+#include "recursive-print.hh"
+#include "rewrite.hh"
 #include "symbol.hh"
 #include "tlib-error.hh"
 #include "tree.hh"

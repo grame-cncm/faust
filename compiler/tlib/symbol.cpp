@@ -24,6 +24,7 @@
 #include <string.h>
 #include <cstring>
 #include <iostream>
+#include <limits>
 
 #include "symbol.hh"
 #include "tlib-error.hh"
@@ -40,6 +41,20 @@ size_t   Symbol::gHashTableCount  = 0;
 double   Symbol::gHashLoadFactor  = 0.7;
 
 map<string, size_t> Symbol::gPrefixCounters;
+
+namespace {
+
+// A signature owns its base and the next dense local opcode. The registry is
+// session-local, just like the symbol table whose Sym pointers are its keys.
+struct SignatureState {
+    SymbolOpcode base;
+    std::uint16_t nextLocalOpcode;
+};
+
+map<Sym, SignatureState> gSignatureTable;
+std::uint64_t            gNextSignatureBase = 0;
+
+}  // namespace
 
 // Smallest prime >= n (trial division; only called on the rare rehash path)
 static size_t nextPrimeAtLeast(size_t n)
@@ -225,10 +240,12 @@ std::size_t Symbol::calcHashKey(const std::string& str)
 
 Symbol::Symbol(const string& str, size_t hsh, Sym nxt)
 {
-    fName = str;
-    fHash = hsh;
-    fNext = nxt;
-    fData = 0;
+    fName      = str;
+    fHash      = hsh;
+    fNext      = nxt;
+    fData      = nullptr;
+    fSignature = nullptr;
+    fOpcode    = 0;
 }
 
 Symbol::~Symbol()
@@ -243,9 +260,90 @@ ostream& Symbol::print(ostream& fout) const  ///< print a symbol on a stream
 void Symbol::init()
 {
     gPrefixCounters.clear();
+    gSignatureTable.clear();
+    gNextSignatureBase = 0;
     gHashTableCount = 0;
     delete[] gSymbolTable;
     gHashTableSize = kInitialHashTableSize;
     gSymbolTable   = new Symbol*[gHashTableSize];
     memset(gSymbolTable, 0, sizeof(Sym) * gHashTableSize);
+}
+
+//--------------------------------------------------------------------------
+// Public API: symbol signatures
+//--------------------------------------------------------------------------
+
+/**
+ * Return the interned signature named \p name.
+ *
+ * The first call reserves a fresh, aligned range of 256 global opcodes.
+ * Repeating the call returns a handle to the same range and allocation state.
+ */
+Signature signature(const std::string& signatureName)
+{
+    const std::uint64_t lastBase = std::numeric_limits<SymbolOpcode>::max() -
+                                   (kOpcodesPerSignature - 1);
+
+    // Avoid creating even the identity symbol when no new range can be
+    // reserved; an existing signature remains retrievable at exhaustion.
+    if (Symbol::isnew(signatureName) && gNextSignatureBase > lastBase) {
+        tlib::error("signature: global opcode space exhausted");
+    }
+
+    Sym identity = Symbol::get(signatureName);
+    if (gSignatureTable.find(identity) == gSignatureTable.end()) {
+        if (gNextSignatureBase > lastBase) {
+            tlib::error("signature: global opcode space exhausted");
+        }
+        gSignatureTable.emplace(
+            identity, SignatureState {static_cast<SymbolOpcode>(gNextSignatureBase), 0});
+        gNextSignatureBase += kOpcodesPerSignature;
+    }
+    return Signature(identity);
+}
+
+/**
+ * Add the interned symbol named \p name to this signature.
+ *
+ * First additions receive dense local opcodes from 0 to 255. Repeating an
+ * addition returns the same symbol without consuming an opcode. Adding a
+ * 257th distinct constructor or a symbol owned by another signature is
+ * reported through the TLIB error handler without changing existing tags.
+ */
+Sym Signature::add(const std::string& symbolName) const
+{
+    auto stateIt = gSignatureTable.find(fIdentity);
+    if (stateIt == gSignatureTable.end()) {
+        tlib::error("Signature::add: invalid signature handle");
+    }
+
+    SignatureState& state = stateIt->second;
+
+    // Check capacity before interning a new name so a rejected 257th
+    // constructor leaves neither the signature nor the symbol table changed.
+    if (state.nextLocalOpcode == kOpcodesPerSignature && Symbol::isnew(symbolName)) {
+        tlib::error("Signature::add: signature " + string(name(fIdentity)) +
+                    " already contains 256 constructors");
+    }
+
+    Sym constructor = Symbol::get(symbolName);
+
+    if (constructor->fSignature) {
+        if (constructor->fSignature == fIdentity) {
+            return constructor;
+        }
+        tlib::error("Signature::add: symbol " + string(name(constructor)) +
+                    " already belongs to signature " + string(name(constructor->fSignature)));
+    }
+
+    if (state.nextLocalOpcode == kOpcodesPerSignature) {
+        tlib::error("Signature::add: signature " + string(name(fIdentity)) +
+                    " already contains 256 constructors");
+    }
+
+    // Commit both immutable fields only after every validation succeeds.
+    constructor->fSignature = fIdentity;
+    constructor->fOpcode    = state.base + state.nextLocalOpcode;
+    ++state.nextLocalOpcode;
+    return constructor;
 }

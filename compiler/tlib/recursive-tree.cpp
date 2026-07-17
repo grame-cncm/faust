@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <sstream>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "export.hh"
@@ -36,13 +37,12 @@ using namespace std;
 // tlib::init()/cleanup() reset time so calcTreeAperture(), called on every tree construction, does
 // not have to run a lazy initialization path for ordinary trees.
 // The property-key TREES (recdefKey, debruijn2symKey) are still created lazily, but only from the
-// rec/deBruijn2SymCached/sym2deBruijn entry points, never during construction.
+// rec/deBruijn2SymCached entry points, never during construction.
 static Sym  gDebruijnSym     = nullptr;
 static Sym  gDebruijnRefSym  = nullptr;
 static Sym  gSymRecSym       = nullptr;
 static Sym  gSubstituteSym   = nullptr;
 static Sym  gSymLiftnSym     = nullptr;
-static Sym  gSym2DebruijnSym = nullptr;
 static Tree gRecDefKey       = nullptr;
 static Tree gDeBruijn2SymKey = nullptr;
 
@@ -53,7 +53,6 @@ static inline void initRecSymbols()
     gSymRecSym      = symbol("SYMREC");
     gSubstituteSym  = symbol("SUBSTITUTE");
     gSymLiftnSym    = symbol("LIFTN");
-    gSym2DebruijnSym = symbol("SYM2DEBRUIJN");
 }
 
 static inline Tree recdefKey()
@@ -80,25 +79,47 @@ void tlibResetRecInternals()
     gSymRecSym       = nullptr;
     gSubstituteSym   = nullptr;
     gSymLiftnSym     = nullptr;
-    gSym2DebruijnSym = nullptr;
     gRecDefKey       = nullptr;
     gDeBruijn2SymKey = nullptr;
     initRecSymbols();
 }
 
+// Local memos for the conversions : the memo lives for one conversion call
+// and dies with it, so the conversion leaves no property attached to the
+// trees (see REWRITE-SPEC.md, "Memo local par appel"). The property-cached
+// variants (deBruijn2SymCached, substituteReady) are kept for callers that
+// explicitly want a persistent cache.
+//
+// The substitution memo is keyed by (tree, level) : 'id' is fixed for one
+// substitution call, and 'level' grows when the traversal crosses a rec
+// binder. The sym2deBruijn memo is keyed by (tree, env) : the same subtree
+// can convert differently under different binder environments.
+struct TreeIntPairHash {
+    std::size_t operator()(const std::pair<Tree, int>& k) const
+    {
+        return std::hash<const void*>()(k.first) * 31u + std::size_t(k.second);
+    }
+};
+using SubstMemo = std::unordered_map<std::pair<Tree, int>, Tree, TreeIntPairHash>;
+
+struct TreePairHash {
+    std::size_t operator()(const std::pair<Tree, Tree>& k) const
+    {
+        return std::hash<const void*>()(k.first) * 31u + std::hash<const void*>()(k.second);
+    }
+};
+using Sym2DebMemo = std::unordered_map<std::pair<Tree, Tree>, Tree, TreePairHash>;
+
 // Declaration of implementation
 static Tree deBruijn2SymCachedReady(Tree t);
 static Tree calcDeBruijn2SymCachedReady(Tree t);
-static Tree deBruijn2SymRec(Tree t, std::unordered_map<Tree, Tree>& memo);
-static Tree sym2deBruijnReady(Tree t, Tree env);
-static Tree calcSym2deBruijnReady(Tree t, Tree env);
-static Tree alphaNormalize(Tree t);
-static std::ostream& printDeBruijnRec(std::ostream& out, Tree t);
+static Tree deBruijn2SymMemo(Tree t, std::unordered_map<Tree, Tree>& memo);
+static Tree substituteMemo(Tree t, int level, Tree id, SubstMemo& memo);
+static Tree sym2deBruijnMemo(Tree t, Tree env, Sym2DebMemo& memo);
 static std::ostream& printTreeExpr(std::ostream& out, Tree t);
 static Tree substituteReady(Tree t, int n, Tree id);
 static Tree calcsubstituteReady(Tree t, int level, Tree id);
 Tree        liftn(Tree t, int threshold);
-static Tree liftnReady(Tree t, int threshold);
 static Tree calcliftnReady(Tree t, int threshold);
 
 static inline bool isDebruijnRec(Tree t, Tree& body)
@@ -218,19 +239,14 @@ int CTree::calcTreeAperture(const Node& n, int ar, const Tree br[])
     }
 }
 
+// lift(t) : increase free references by 1
+
 Tree lift(Tree t)
 {
     return liftn(t, 1);
 }
 
-// lift(t) : increase free references by 1
-
 Tree liftn(Tree t, int threshold)
-{
-    return liftnReady(t, threshold);
-}
-
-static Tree liftnReady(Tree t, int threshold)
 {
     Tree L  = tree(Node(gSymLiftnSym), tree(Node(threshold)));
     Tree t2 = t->getProperty(L);
@@ -260,13 +276,13 @@ static Tree calcliftnReady(Tree t, int threshold)
         }
 
     } else if (isDebruijnRec(t, u)) {
-        return rec(liftnReady(u, threshold + 1));
+        return rec(liftn(u, threshold + 1));
 
     } else {
         int  n1 = t->arity();
         tvec br(n1);
         for (int i = 0; i < n1; i++) {
-            br[i] = liftnReady(t->branch(i), threshold);
+            br[i] = liftn(t->branch(i), threshold);
         }
         return tree(t->node(), br);
     }
@@ -280,7 +296,7 @@ Tree deBruijn2Sym(Tree t)
 {
     TLIB_ASSERT(isClosed(t));
     std::unordered_map<Tree, Tree> memo;
-    return deBruijn2SymRec(t, memo);
+    return deBruijn2SymMemo(t, memo);
 }
 
 Tree deBruijn2SymCached(Tree t)
@@ -300,7 +316,7 @@ static Tree deBruijn2SymCachedReady(Tree t)
     return t2;
 }
 
-static Tree deBruijn2SymRec(Tree t, std::unordered_map<Tree, Tree>& memo)
+static Tree deBruijn2SymMemo(Tree t, std::unordered_map<Tree, Tree>& memo)
 {
     auto it = memo.find(t);
     if (it != memo.end()) {
@@ -312,8 +328,9 @@ static Tree deBruijn2SymRec(Tree t, std::unordered_map<Tree, Tree>& memo)
     Tree result;
 
     if (isDebruijnRec(t, body)) {
-        var    = tree(unique("W"));
-        result = rec(var, deBruijn2SymRec(substituteReady(body, 1, ref(var)), memo));
+        var = tree(unique("W"));
+        SubstMemo smemo;
+        result = rec(var, deBruijn2SymMemo(substituteMemo(body, 1, ref(var), smemo), memo));
 
     } else if (isSymbolicRef(t, var)) {
         result = t;
@@ -326,7 +343,7 @@ static Tree deBruijn2SymRec(Tree t, std::unordered_map<Tree, Tree>& memo)
         int  a = t->arity();
         tvec br(a);
         for (int i1 = 0; i1 < a; i1++) {
-            br[i1] = deBruijn2SymRec(t->branch(i1), memo);
+            br[i1] = deBruijn2SymMemo(t->branch(i1), memo);
         }
         result = tree(t->node(), br);
     }
@@ -367,7 +384,8 @@ static Tree calcDeBruijn2SymCachedReady(Tree t)
 
 Tree sym2deBruijn(Tree t)
 {
-    return sym2deBruijnReady(t, nil());
+    Sym2DebMemo memo;
+    return sym2deBruijnMemo(t, nil(), memo);
 }
 
 static int symbolicLevel(Tree var, Tree env)
@@ -381,64 +399,56 @@ static int symbolicLevel(Tree var, Tree env)
     return 0;
 }
 
-static Tree sym2deBruijnReady(Tree t, Tree env)
+static Tree sym2deBruijnMemo(Tree t, Tree env, Sym2DebMemo& memo)
 {
-    Tree S  = tree(Node(gSym2DebruijnSym), env);
-    Tree t2 = t->getProperty(S);
+    const std::pair<Tree, Tree> key(t, env);
 
-    if (!t2) {
-        t2 = calcSym2deBruijnReady(t, env);
-        t->setProperty(S, t2);
+    auto it = memo.find(key);
+    if (it != memo.end()) {
+        return it->second;
     }
-    return t2;
-}
 
-static Tree calcSym2deBruijnReady(Tree t, Tree env)
-{
     Tree body, var;
+    Tree result;
 
     if (isSymbolicRef(t, var)) {
         int level = symbolicLevel(var, env);
         if (level > 0) {
-            return ref(level);
+            result = ref(level);
+        } else if (isSymbolicRec(t, var, body) && body) {
+            result = rec(sym2deBruijnMemo(body, cons(var, env), memo));
+        } else {
+            tlib::error("ASSERT : free symbolic reference found in sym2deBruijn\n");
+            result = t;
         }
-        if (isSymbolicRec(t, var, body) && body) {
-            return rec(sym2deBruijnReady(body, cons(var, env)));
+    } else {
+        int  ar = t->arity();
+        tvec br(ar);
+        for (int i = 0; i < ar; i++) {
+            br[i] = sym2deBruijnMemo(t->branch(i), env, memo);
         }
-        tlib::error("ASSERT : free symbolic reference found in sym2deBruijn\n");
-        return t;
+        result = tree(t->node(), br);
     }
 
-    int  ar = t->arity();
-    tvec br(ar);
-    for (int i = 0; i < ar; i++) {
-        br[i] = sym2deBruijnReady(t->branch(i), env);
-    }
-    return tree(t->node(), br);
+    memo[key] = result;
+    return result;
 }
 
 //-----------------------------------------------------------
 // Alpha-equivalence
 //-----------------------------------------------------------
 
+// The de Bruijn form is canonical w.r.t. alpha-equivalence : two recursive
+// trees are equivalent iff their de Bruijn conversions are the same
+// hash-consed tree.
 bool areEquiv(Tree a, Tree b)
 {
-    return (a == b) || (alphaNormalize(a) == alphaNormalize(b));
-}
-
-static Tree alphaNormalize(Tree t)
-{
-    return sym2deBruijn(t);
+    return (a == b) || (sym2deBruijn(a) == sym2deBruijn(b));
 }
 
 //-----------------------------------------------------------
 // Pretty printers for recursive trees
 //-----------------------------------------------------------
-
-std::ostream& printDeBruijn(std::ostream& out, Tree t)
-{
-    return printDeBruijnRec(out, t);
-}
 
 std::string toDeBruijnString(Tree t)
 {
@@ -464,14 +474,14 @@ static std::ostream& printTreeExpr(std::ostream& out, Tree t)
     return out;
 }
 
-static std::ostream& printDeBruijnRec(std::ostream& out, Tree t)
+std::ostream& printDeBruijn(std::ostream& out, Tree t)
 {
     Tree body;
     int  level;
 
     if (isDebruijnRec(t, body)) {
         out << "rec(";
-        printDeBruijnRec(out, body);
+        printDeBruijn(out, body);
         return out << ")";
     }
     if (isDebruijnRef(t, level)) {
@@ -486,7 +496,7 @@ static std::ostream& printDeBruijnRec(std::ostream& out, Tree t)
             if (i > 0) {
                 out << ", ";
             }
-            printDeBruijnRec(out, t->branch(i));
+            printDeBruijn(out, t->branch(i));
         }
         out << ")";
     }
@@ -573,6 +583,46 @@ std::string toSymbolicString(Tree t)
     std::ostringstream out;
     printSymbolic(out, t);
     return out.str();
+}
+
+// Local-memo variant used by deBruijn2Sym : same traversal as
+// substituteReady/calcsubstituteReady below, but the memo dies with the call
+// instead of staying attached to the trees as properties.
+static Tree substituteMemo(Tree t, int level, Tree id, SubstMemo& memo)
+{
+    if (t->aperture() < level) {
+        // no free reference at this depth in this subtree : nothing to do
+        return t;
+    }
+
+    int l;
+    if (isDebruijnRef(t, l)) {
+        return (l == level) ? id : t;
+    }
+
+    const std::pair<Tree, int> key(t, level);
+
+    auto it = memo.find(key);
+    if (it != memo.end()) {
+        return it->second;
+    }
+
+    Tree body;
+    Tree result;
+
+    if (isDebruijnRec(t, body)) {
+        result = rec(substituteMemo(body, level + 1, id, memo));
+    } else {
+        int  ar = t->arity();
+        tvec br(ar);
+        for (int i = 0; i < ar; i++) {
+            br[i] = substituteMemo(t->branch(i), level, id, memo);
+        }
+        result = tree(t->node(), br);
+    }
+
+    memo[key] = result;
+    return result;
 }
 
 static Tree substituteReady(Tree t, int level, Tree id)

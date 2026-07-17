@@ -39,16 +39,48 @@
 #define __SYMBOL__
 
 #include <cstddef>
+#include <cstdint>
 #include <map>
 #include <string>
 
 #include "export.hh"
 #include "garbageable.hh"
+#include "tlib-error.hh"
 
 //--------------------------------SYMBOL-------------------------------------
 
 class Symbol;
 typedef Symbol* Sym;
+class Signature;
+
+using SymbolOpcode = std::uint32_t;
+
+/** Number of consecutive global opcodes reserved by every signature. */
+inline constexpr SymbolOpcode kOpcodesPerSignature = 256;
+
+/**
+ * Optional signature membership attached to an interned symbol.
+ *
+ * The signature identifies a constructor language and the global opcode
+ * identifies one constructor in its disjoint 256-opcode range. A null
+ * signature represents an ordinary, unregistered symbol.
+ */
+struct SymbolTag {
+    Sym          signature = nullptr;
+    SymbolOpcode opcode    = 0;
+
+    /**
+     * Return the dense opcode within this tag's signature.
+     *
+     * Valid tags need no registry lookup: aligned 256-opcode ranges make the
+     * low byte of the global opcode its local position. The caller must first
+     * establish that signature is non-null, normally through getSymbolTag().
+     */
+    constexpr std::uint8_t localOpcode() const noexcept
+    {
+        return static_cast<std::uint8_t>(opcode % kOpcodesPerSignature);
+    }
+};
 
 /**
  * Symbols are unique objects with a name stored in a hash table.
@@ -74,6 +106,8 @@ class Symbol : public Garbageable {
     std::size_t fHash;  ///< Hash key computed from the name and used to determine the hash table entry
     Sym         fNext;  ///< Next symbol in the hash table entry
     void*       fData;  ///< Field to user disposal to store additional data
+    Sym          fSignature;  ///< Owning signature, null while the symbol is ordinary
+    SymbolOpcode fOpcode;     ///< Global constructor identity; meaningful only when signed
 
     // Constructors & destructors
     Symbol(const std::string&, std::size_t hsh,
@@ -102,12 +136,44 @@ class Symbol : public Garbageable {
 
     friend void* getUserData(Sym sym);
     friend void  setUserData(Sym sym, void* d);
+    friend bool  getSymbolTag(Sym sym, SymbolTag& tag);
+    friend Signature signature(const std::string& name);
+    friend class Signature;
 
     static void init();
 
     ///< Set the load factor that triggers hash table growth (default 0.7).
     ///< A pure performance knob : it never changes the symbols created.
     static void setHashLoadFactor(double f) { gHashLoadFactor = f; }
+};
+
+/**
+ * Copyable handle to an interned constructor signature.
+ *
+ * Each signature owns one disjoint range of 256 global opcodes. Handles and
+ * their identity Sym belong to the current TLIB session and become invalid at
+ * cleanup(), like every other symbol pointer.
+ */
+class Signature {
+   private:
+    Sym fIdentity;
+
+    explicit Signature(Sym identity) : fIdentity(identity) {}
+    friend Signature signature(const std::string& name);
+
+   public:
+    /**
+     * Add the interned symbol named \p name to this signature.
+     *
+     * First additions receive dense local opcodes from 0 to 255. Repeating an
+     * addition returns the same symbol without consuming an opcode. Adding a
+     * 257th distinct constructor or a symbol owned by another signature is
+     * reported through the TLIB error handler without changing existing tags.
+     */
+    TLIB_API Sym add(const std::string& name) const;
+
+    /** Return the interned symbol that identifies this signature. */
+    Sym identity() const { return fIdentity; }
 };
 
 inline Sym symbol(const char* str)
@@ -135,6 +201,38 @@ inline void setUserData(Sym sym, void* d)
 {
     sym->fData = d;
 }  ///< Set user data
+
+//--------------------------------------------------------------------------
+// Public API: symbol signatures
+//--------------------------------------------------------------------------
+
+/**
+ * Return the interned signature named \p name.
+ *
+ * The first call reserves a fresh, aligned range of 256 global opcodes.
+ * Repeating the call returns a handle to the same range and allocation state.
+ */
+TLIB_API Signature signature(const std::string& name);
+
+/**
+ * Read the immutable signature tag of \p sym.
+ *
+ * Return true and copy the complete tag to \p tag when one is present.
+ * Return false without modifying \p tag when the symbol is ordinary. A null
+ * symbol is invalid and is reported through the TLIB error handler. This hot
+ * fold accessor is inline so successful lookups compile to two field reads.
+ */
+inline bool getSymbolTag(Sym sym, SymbolTag& tag)
+{
+    if (!sym) {
+        tlib::error("getSymbolTag: null symbol");
+    }
+    if (!sym->fSignature) {
+        return false;
+    }
+    tag = {sym->fSignature, sym->fOpcode};
+    return true;
+}
 
 inline std::ostream& operator<<(std::ostream& s, const Symbol& n)
 {
