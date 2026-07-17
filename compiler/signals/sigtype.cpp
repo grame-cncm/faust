@@ -23,7 +23,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "exception.hh"
+#include "tlib-error.hh"
 #include "global.hh"
 #include "property.hh"
 #include "sigtype.hh"
@@ -185,7 +185,7 @@ Type operator|(const Type& t1, const Type& t2)
     } else {
         stringstream error;
         error << "ERROR : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
 }
 
@@ -285,7 +285,7 @@ Type checkInt(Type t)
     if (st == nullptr || st->nature() > kInt) {
         stringstream error;
         error << "ERROR : checkInt failed for type " << t << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     return t;
 }
@@ -296,7 +296,7 @@ Type checkKonst(Type t)
     if (t->variability() > kKonst) {
         stringstream error;
         error << "ERROR : checkKonst failed for type " << t << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     return t;
 }
@@ -307,7 +307,7 @@ Type checkInit(Type t)
     if (t->computability() > kInit) {
         stringstream error;
         error << "ERROR : checkInit failed for type " << t << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     return t;
 }
@@ -324,7 +324,7 @@ Type checkWRTbl(Type tbl, Type wr)
         stringstream error;
         error << "ERROR : checkWRTbl failed, the content of " << tbl << " is incompatible with "
               << wr << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     return tbl;
 }
@@ -342,7 +342,7 @@ int checkDelayInterval(Type t)
         stringstream error;
         error << "ERROR : invalid delay parameter range: " << i
               << ". The range must be between 0 and INT_MAX" << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
 }
 
@@ -384,7 +384,7 @@ Tree codeAudioType(AudioType* t)
     } else {
         stringstream error;
         error << "ERROR : codeAudioType(), invalid pointer " << t << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
 
     r->setType(t);

@@ -23,7 +23,7 @@
 #include <signals.hh>
 #include <sstream>
 
-#include "exception.hh"
+#include "tlib-error.hh"
 #include "global.hh"
 
 using namespace std;
@@ -242,7 +242,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
 
     else {
         cerr << "ASSERT : getSubSignals unrecognized signal : " << *sig << endl;
-        faustassert(false);
+        TLIB_ASSERT(false);
     }
     return 0;
 }

@@ -54,6 +54,7 @@
 #include "tanprim.hh"
 #include "timing.hh"
 #include "tlib.hh"
+#include "sigs-config.hh"
 #include "tree.hh"
 
 #ifdef WIN32
@@ -144,11 +145,19 @@ itv::interval_algebra gAlgebra;
     throw faustexception(msg);
 }
 
+// The signal library prints real numbers through this hook: ppsig keeps
+// following the -single/-double/-quad and target language conventions.
+static std::string sigsRealPrinter(double n)
+{
+    return T(n);
+}
+
 global::global()
     : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
     tlib::setErrorHandler(tlibErrorHandler);
     tlib::init();
+    sigs::setRealPrinter(sigsRealPrinter);
 
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     reset();

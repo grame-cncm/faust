@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    FAUST signal library
+    Copyright (C) 2003-2026 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -19,40 +19,36 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _Prim2_
-#define _Prim2_
+/** \file sigs-config.hh
+ * Host configuration hooks of the signal library.
+ *
+ * The library delegates to the host application the few services whose exact
+ * behaviour depends on the host (here the textual formatting of real numbers,
+ * which in the Faust compiler follows the -single/-double/-quad and target
+ * language options). Every hook has an autonomous default so a standalone
+ * user gets a working library with no setup.
+ */
+
+#ifndef __SIGS_CONFIG__
+#define __SIGS_CONFIG__
+
+#include <string>
 
 #include "sigs-export.hh"
-#include "sigtype.hh"
-#include "tlib.hh"
 
-// Foreign functions management functions (ffun) (external C functions)
+namespace sigs {
 
-Tree ffunction(Tree signature, Tree incfile, Tree libfile);
+/// Formats a real number when pretty-printing signals (ppsig).
+using RealPrinter = std::string (*)(double);
 
-bool isffunction(Tree t);
+/// Install a custom real printer; nullptr restores the default (shortest
+/// round-trip "%g" form, with a trailing ".0" when needed). Returns the
+/// previously installed printer.
+SIGS_API RealPrinter setRealPrinter(RealPrinter p);
 
-Tree ffsignature(Tree t);
+/// Format a real number through the installed printer.
+SIGS_API std::string printReal(double n);
 
-/**
- *  Return the name parameter of a foreign function.
- *
- * @param  t - the signal
- * @return the name
- */
-SIGS_API const char* ffname(Tree t);
-
-/**
- *  Return the arity of a foreign function
- *
- * @param  s - the signal
- * @return the name
- */
-SIGS_API int ffarity(Tree t);
-
-int         ffrestype(Tree t);
-int         ffargtype(Tree t, int i);
-const char* ffincfile(Tree t);
-const char* fflibfile(Tree t);
+}  // namespace sigs
 
 #endif

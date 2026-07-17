@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    FAUST signal library
+    Copyright (C) 2003-2026 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -19,40 +19,20 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _Prim2_
-#define _Prim2_
+#ifndef __SIGS_EXPORT__
+#define __SIGS_EXPORT__
 
-#include "sigs-export.hh"
-#include "sigtype.hh"
-#include "tlib.hh"
-
-// Foreign functions management functions (ffun) (external C functions)
-
-Tree ffunction(Tree signature, Tree incfile, Tree libfile);
-
-bool isffunction(Tree t);
-
-Tree ffsignature(Tree t);
-
-/**
- *  Return the name parameter of a foreign function.
- *
- * @param  t - the signal
- * @return the name
- */
-SIGS_API const char* ffname(Tree t);
-
-/**
- *  Return the arity of a foreign function
- *
- * @param  s - the signal
- * @return the name
- */
-SIGS_API int ffarity(Tree t);
-
-int         ffrestype(Tree t);
-int         ffargtype(Tree t, int i);
-const char* ffincfile(Tree t);
-const char* fflibfile(Tree t);
+// Symbol visibility macro. Empty for a static library (the default build).
+// A host application that embeds the signal library in a shared library can
+// redefine it from its build system, e.g. :
+//     -DSIGS_EXPORT_HEADER='"faust/export.h"' -DSIGS_API=LIBFAUST_API
+// SIGS_EXPORT_HEADER is included first so the macro SIGS_API expands to can
+// be defined (dllexport/dllimport on Windows, visibility("default") elsewhere).
+#ifdef SIGS_EXPORT_HEADER
+#include SIGS_EXPORT_HEADER
+#endif
+#ifndef SIGS_API
+#define SIGS_API
+#endif
 
 #endif

@@ -34,7 +34,7 @@
 
 using namespace std;
 
-LIBFAUST_API Tree sigWriteReadTable(Tree size, Tree init, Tree widx, Tree wsig, Tree ridx)
+SIGS_API Tree sigWriteReadTable(Tree size, Tree init, Tree widx, Tree wsig, Tree ridx)
 {
     /*
      rwtable are parsed as boxPrim5, so do not have a special treatment in eval/propagate. So we do
@@ -46,7 +46,7 @@ LIBFAUST_API Tree sigWriteReadTable(Tree size, Tree init, Tree widx, Tree wsig, 
     return sigRDTbl(sigWRTbl(size, sigGen(init), widx, wsig), ridx);
 }
 
-LIBFAUST_API Tree sigReadOnlyTable(Tree size, Tree init, Tree ridx)
+SIGS_API Tree sigReadOnlyTable(Tree size, Tree init, Tree ridx)
 {
     /*
      rtable are parsed as boxPrim3, so do not have a special treatment in eval/propagate. So we do
@@ -64,22 +64,22 @@ LIBFAUST_API Tree sigReadOnlyTable(Tree size, Tree init, Tree ridx)
  */
 ///////////////////////////////////////////////////////////////////////
 
-LIBFAUST_API Tree sigRem(Tree x, Tree y)
+SIGS_API Tree sigRem(Tree x, Tree y)
 {
     if (isZero(y)) {
         stringstream error;
         error << "ERROR : % by 0 in " << ppsig(x, MAX_ERROR_SIZE) << " % "
               << ppsig(y, MAX_ERROR_SIZE) << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     return sigBinOp(kRem, x, y);
 }
 
-LIBFAUST_API Tree sigInt(int i)
+SIGS_API Tree sigInt(int i)
 {
     return tree(i);
 }
-LIBFAUST_API bool isSigInt(Tree t, int* i)
+SIGS_API bool isSigInt(Tree t, int* i)
 {
     return isInt(t->node(), i);
 }
@@ -93,21 +93,21 @@ bool isSigInt64(Tree t, int64_t* i)
     return isInt64(t->node(), i);
 }
 
-LIBFAUST_API Tree sigReal(double r)
+SIGS_API Tree sigReal(double r)
 {
     return tree(r);
 }
-LIBFAUST_API bool isSigReal(Tree t, double* r)
+SIGS_API bool isSigReal(Tree t, double* r)
 {
     return isDouble(t->node(), r);
 }
 
-LIBFAUST_API Tree sigInput(int i)
+SIGS_API Tree sigInput(int i)
 {
     return tree(gGlobal->SIGINPUT, tree(i));
 }
 
-LIBFAUST_API bool isSigInput(Tree t, int* i)
+SIGS_API bool isSigInput(Tree t, int* i)
 {
     Tree x;
     return isTree(t, gGlobal->SIGINPUT, x) && isInt(x->node(), i);
@@ -117,7 +117,7 @@ Tree sigOutput(int i, Tree t0)
 {
     return tree(gGlobal->SIGOUTPUT, tree(i), t0);
 }
-LIBFAUST_API bool isSigOutput(Tree t, int* i, Tree& t0)
+SIGS_API bool isSigOutput(Tree t, int* i, Tree& t0)
 {
     Tree x;
     return isTree(t, gGlobal->SIGOUTPUT, x, t0) && isInt(x->node(), i);
@@ -128,20 +128,20 @@ Tree sigDelay0(Tree t0)
     return sigDelay(t0, sigInt(0));
 }
 
-LIBFAUST_API Tree sigDelay1(Tree t0)
+SIGS_API Tree sigDelay1(Tree t0)
 {
     return tree(gGlobal->SIGDELAY1, t0);
 }
-LIBFAUST_API bool isSigDelay1(Tree t, Tree& t0)
+SIGS_API bool isSigDelay1(Tree t, Tree& t0)
 {
     return isTree(t, gGlobal->SIGDELAY1, t0);
 }
 
-LIBFAUST_API Tree sigDelay(Tree t0, Tree t1)
+SIGS_API Tree sigDelay(Tree t0, Tree t1)
 {
     return tree(gGlobal->SIGDELAY, t0, t1);
 }
-LIBFAUST_API bool isSigDelay(Tree t, Tree& t0, Tree& t1)
+SIGS_API bool isSigDelay(Tree t, Tree& t0, Tree& t1)
 {
     return isTree(t, gGlobal->SIGDELAY, t0, t1);
 }
@@ -150,7 +150,7 @@ Tree sigPrefix(Tree t0, Tree t1)
 {
     return tree(gGlobal->SIGPREFIX, t0, t1);
 }
-LIBFAUST_API bool isSigPrefix(Tree t, Tree& t0, Tree& t1)
+SIGS_API bool isSigPrefix(Tree t, Tree& t0, Tree& t1)
 {
     return isTree(t, gGlobal->SIGPREFIX, t0, t1);
 }
@@ -161,7 +161,7 @@ Tree sigRDTbl(Tree tbl, Tree ri)
 {
     return tree(gGlobal->SIGRDTBL, tbl, ri);
 }
-LIBFAUST_API bool isSigRDTbl(Tree s, Tree& tbl, Tree& ri)
+SIGS_API bool isSigRDTbl(Tree s, Tree& tbl, Tree& ri)
 {
     return isTree(s, gGlobal->SIGRDTBL, tbl, ri);
 }
@@ -170,12 +170,12 @@ Tree sigWRTbl(Tree size, Tree gen, Tree wi, Tree ws)
 {
     return tree(gGlobal->SIGWRTBL, size, gen, wi, ws);
 }
-LIBFAUST_API bool isSigWRTbl(Tree u, Tree& size, Tree& gen, Tree& wi, Tree& ws)
+SIGS_API bool isSigWRTbl(Tree u, Tree& size, Tree& gen, Tree& wi, Tree& ws)
 {
     return isTree(u, gGlobal->SIGWRTBL, size, gen, wi, ws);
 }
 
-LIBFAUST_API bool isSigWRTbl(Tree u, Tree& size, Tree& gen)
+SIGS_API bool isSigWRTbl(Tree u, Tree& size, Tree& gen)
 {
     Tree wi, ws;
     return isTree(u, gGlobal->SIGWRTBL, size, gen, wi, ws) && (wi == gGlobal->nil);
@@ -187,7 +187,7 @@ Tree sigGen(Tree s)
 {
     return tree(gGlobal->SIGGEN, s);
 }
-LIBFAUST_API bool isSigGen(Tree t, Tree& x)
+SIGS_API bool isSigGen(Tree t, Tree& x)
 {
     return isTree(t, gGlobal->SIGGEN, x);
 }
@@ -202,7 +202,7 @@ Tree sigDocConstantTbl(Tree n, Tree sig)
 {
     return tree(gGlobal->SIGDOCONSTANTTBL, n, sig);
 }
-LIBFAUST_API bool isSigDocConstantTbl(Tree t, Tree& n, Tree& sig)
+SIGS_API bool isSigDocConstantTbl(Tree t, Tree& n, Tree& sig)
 {
     return isTree(t, gGlobal->SIGDOCONSTANTTBL, n, sig);
 }
@@ -211,7 +211,7 @@ Tree sigDocWriteTbl(Tree n, Tree sig, Tree widx, Tree wsig)
 {
     return tree(gGlobal->SIGDOCWRITETBL, n, sig, widx, wsig);
 }
-LIBFAUST_API bool isSigDocWriteTbl(Tree t, Tree& n, Tree& sig, Tree& widx, Tree& wsig)
+SIGS_API bool isSigDocWriteTbl(Tree t, Tree& n, Tree& sig, Tree& widx, Tree& wsig)
 {
     return isTree(t, gGlobal->SIGDOCWRITETBL, n, sig, widx, wsig);
 }
@@ -220,24 +220,24 @@ Tree sigDocAccessTbl(Tree tbl, Tree ridx)
 {
     return tree(gGlobal->SIGDOCACCESSTBL, tbl, ridx);
 }
-LIBFAUST_API bool isSigDocAccessTbl(Tree t, Tree& tbl, Tree& ridx)
+SIGS_API bool isSigDocAccessTbl(Tree t, Tree& tbl, Tree& ridx)
 {
     return isTree(t, gGlobal->SIGDOCACCESSTBL, tbl, ridx);
 }
 
 // Select on signal among severals
 
-LIBFAUST_API Tree sigSelect2(Tree selector, Tree s1, Tree s2)
+SIGS_API Tree sigSelect2(Tree selector, Tree s1, Tree s2)
 {
     return tree(gGlobal->SIGSELECT2, selector, s1, s2);
 }
-LIBFAUST_API bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
+SIGS_API bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
 {
     return isTree(t, gGlobal->SIGSELECT2, selector, s1, s2);
 }
 
 // "select3" expressed with "select2"
-LIBFAUST_API Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
+SIGS_API Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
     return sigSelect2(sigBinOp(kEQ, selector, sigInt(0)),
                       sigSelect2(sigBinOp(kEQ, selector, sigInt(1)), s3, s2), s1);
@@ -248,7 +248,7 @@ Tree sigAssertBounds(Tree s1, Tree s2, Tree s3)
     return tree(gGlobal->SIGASSERTBOUNDS, s1, s2, s3);
 }
 
-LIBFAUST_API bool isSigAssertBounds(Tree t, Tree& s1, Tree& s2, Tree& s3)
+SIGS_API bool isSigAssertBounds(Tree t, Tree& s1, Tree& s2, Tree& s3)
 {
     return isTree(t, gGlobal->SIGASSERTBOUNDS, s1, s2, s3);
 }
@@ -258,7 +258,7 @@ Tree sigHighest(Tree s)
     return tree(gGlobal->SIGHIGHEST, s);
 }
 
-LIBFAUST_API bool isSigHighest(Tree t, Tree& s)
+SIGS_API bool isSigHighest(Tree t, Tree& s)
 {
     return isTree(t, gGlobal->SIGHIGHEST, s);
 }
@@ -268,24 +268,24 @@ Tree sigLowest(Tree s)
     return tree(gGlobal->SIGLOWEST, s);
 }
 
-LIBFAUST_API bool isSigLowest(Tree t, Tree& s)
+SIGS_API bool isSigLowest(Tree t, Tree& s)
 {
     return isTree(t, gGlobal->SIGLOWEST, s);
 }
 
 // Arithmetical operations
 
-LIBFAUST_API Tree sigBinOp(SOperator op, Tree x, Tree y)
+SIGS_API Tree sigBinOp(SOperator op, Tree x, Tree y)
 {
     return sigBinOp(int(op), x, y);
 }
 
-LIBFAUST_API Tree sigBinOp(int op, Tree x, Tree y)
+SIGS_API Tree sigBinOp(int op, Tree x, Tree y)
 {
     return tree(gGlobal->SIGBINOP, tree(op), x, y);
 }
 
-LIBFAUST_API bool isSigBinOp(Tree s, int* op, Tree& x, Tree& y)
+SIGS_API bool isSigBinOp(Tree s, int* op, Tree& x, Tree& y)
 {
     Tree t;
     return isTree(s, gGlobal->SIGBINOP, t, x, y) && isInt(t->node(), op);
@@ -297,12 +297,12 @@ Tree sigFFun(Tree ff, Tree largs)
 {
     return tree(gGlobal->SIGFFUN, ff, largs);
 }
-LIBFAUST_API bool isSigFFun(Tree s, Tree& ff, Tree& largs)
+SIGS_API bool isSigFFun(Tree s, Tree& ff, Tree& largs)
 {
     return isTree(s, gGlobal->SIGFFUN, ff, largs);
 }
 
-LIBFAUST_API Tree sigFConst(Tree type, Tree name, Tree file)
+SIGS_API Tree sigFConst(Tree type, Tree name, Tree file)
 {
     return tree(gGlobal->SIGFCONST, type, name, file);
 }
@@ -311,12 +311,12 @@ bool isSigFConst(Tree s)
     Tree t, n, f;
     return isTree(s, gGlobal->SIGFCONST, t, n, f);
 }
-LIBFAUST_API bool isSigFConst(Tree s, Tree& type, Tree& name, Tree& file)
+SIGS_API bool isSigFConst(Tree s, Tree& type, Tree& name, Tree& file)
 {
     return isTree(s, gGlobal->SIGFCONST, type, name, file);
 }
 
-LIBFAUST_API Tree sigFVar(Tree type, Tree name, Tree file)
+SIGS_API Tree sigFVar(Tree type, Tree name, Tree file)
 {
     return tree(gGlobal->SIGFVAR, type, name, file);
 }
@@ -325,7 +325,7 @@ bool isSigFVar(Tree s)
     Tree t, n, f;
     return isTree(s, gGlobal->SIGFVAR, t, n, f);
 }
-LIBFAUST_API bool isSigFVar(Tree s, Tree& type, Tree& name, Tree& file)
+SIGS_API bool isSigFVar(Tree s, Tree& type, Tree& name, Tree& file)
 {
     return isTree(s, gGlobal->SIGFVAR, type, name, file);
 }
@@ -336,7 +336,7 @@ Tree sigProj(int i, Tree rgroup)
 {
     return tree(gGlobal->SIGPROJ, tree(i), rgroup);
 }
-LIBFAUST_API bool isProj(Tree t, int* i, Tree& rgroup)
+SIGS_API bool isProj(Tree t, int* i, Tree& rgroup)
 {
     Tree x;
     return isTree(t, gGlobal->SIGPROJ, x, rgroup) && isInt(x->node(), i);
@@ -344,7 +344,7 @@ LIBFAUST_API bool isProj(Tree t, int* i, Tree& rgroup)
 
 // Int, Bitcast and Float casting
 
-LIBFAUST_API Tree sigIntCast(Tree t)
+SIGS_API Tree sigIntCast(Tree t)
 {
     Node   n = t->node();
     int    i;
@@ -365,7 +365,7 @@ Tree sigBitCast(Tree t)
     return tree(gGlobal->SIGBITCAST, t);
 }
 
-LIBFAUST_API Tree sigFloatCast(Tree t)
+SIGS_API Tree sigFloatCast(Tree t)
 {
     Node   n = t->node();
     int    i;
@@ -386,7 +386,7 @@ bool isSigIntCast(Tree t)
     Tree x;
     return isTree(t, gGlobal->SIGINTCAST, x);
 }
-LIBFAUST_API bool isSigIntCast(Tree t, Tree& x)
+SIGS_API bool isSigIntCast(Tree t, Tree& x)
 {
     return isTree(t, gGlobal->SIGINTCAST, x);
 }
@@ -406,77 +406,77 @@ bool isSigFloatCast(Tree t)
     Tree x;
     return isTree(t, gGlobal->SIGFLOATCAST, x);
 }
-LIBFAUST_API bool isSigFloatCast(Tree t, Tree& x)
+SIGS_API bool isSigFloatCast(Tree t, Tree& x)
 {
     return isTree(t, gGlobal->SIGFLOATCAST, x);
 }
 
 // Emulation of all fonctions
 
-LIBFAUST_API Tree sigAdd(Tree x, Tree y)
+SIGS_API Tree sigAdd(Tree x, Tree y)
 {
     return sigBinOp(kAdd, x, y);
 }
-LIBFAUST_API Tree sigSub(Tree x, Tree y)
+SIGS_API Tree sigSub(Tree x, Tree y)
 {
     return sigBinOp(kSub, x, y);
 }
-LIBFAUST_API Tree sigMul(Tree x, Tree y)
+SIGS_API Tree sigMul(Tree x, Tree y)
 {
     return sigBinOp(kMul, x, y);
 }
-LIBFAUST_API Tree sigDiv(Tree x, Tree y)
+SIGS_API Tree sigDiv(Tree x, Tree y)
 {
     return sigBinOp(kDiv, x, y);
 }
 
-LIBFAUST_API Tree sigAND(Tree x, Tree y)
+SIGS_API Tree sigAND(Tree x, Tree y)
 {
     return sigBinOp(kAND, x, y);
 }
-LIBFAUST_API Tree sigOR(Tree x, Tree y)
+SIGS_API Tree sigOR(Tree x, Tree y)
 {
     return sigBinOp(kOR, x, y);
 }
-LIBFAUST_API Tree sigXOR(Tree x, Tree y)
+SIGS_API Tree sigXOR(Tree x, Tree y)
 {
     return sigBinOp(kXOR, x, y);
 }
 
-LIBFAUST_API Tree sigLeftShift(Tree x, Tree y)
+SIGS_API Tree sigLeftShift(Tree x, Tree y)
 {
     return sigBinOp(kLsh, x, y);
 }
-LIBFAUST_API Tree sigARightShift(Tree x, Tree y)
+SIGS_API Tree sigARightShift(Tree x, Tree y)
 {
     return sigBinOp(kARsh, x, y);
 }
-LIBFAUST_API Tree sigLRightShift(Tree x, Tree y)
+SIGS_API Tree sigLRightShift(Tree x, Tree y)
 {
     return sigBinOp(kLRsh, x, y);
 }
 
-LIBFAUST_API Tree sigGT(Tree x, Tree y)
+SIGS_API Tree sigGT(Tree x, Tree y)
 {
     return sigBinOp(kGT, x, y);
 }
-LIBFAUST_API Tree sigLT(Tree x, Tree y)
+SIGS_API Tree sigLT(Tree x, Tree y)
 {
     return sigBinOp(kLT, x, y);
 }
-LIBFAUST_API Tree sigGE(Tree x, Tree y)
+SIGS_API Tree sigGE(Tree x, Tree y)
 {
     return sigBinOp(kGE, x, y);
 }
-LIBFAUST_API Tree sigLE(Tree x, Tree y)
+SIGS_API Tree sigLE(Tree x, Tree y)
 {
     return sigBinOp(kLE, x, y);
 }
-LIBFAUST_API Tree sigEQ(Tree x, Tree y)
+SIGS_API Tree sigEQ(Tree x, Tree y)
 {
     return sigBinOp(kEQ, x, y);
 }
-LIBFAUST_API Tree sigNE(Tree x, Tree y)
+SIGS_API Tree sigNE(Tree x, Tree y)
 {
     return sigBinOp(kNE, x, y);
 }
@@ -485,7 +485,7 @@ LIBFAUST_API Tree sigNE(Tree x, Tree y)
                              User Interface Elements
 *****************************************************************************/
 
-LIBFAUST_API Tree sigButton(Tree lbl)
+SIGS_API Tree sigButton(Tree lbl)
 {
     return tree(gGlobal->SIGBUTTON, lbl);
 }
@@ -494,12 +494,12 @@ bool isSigButton(Tree s)
     Tree lbl;
     return isTree(s, gGlobal->SIGBUTTON, lbl);
 }
-LIBFAUST_API bool isSigButton(Tree s, Tree& lbl)
+SIGS_API bool isSigButton(Tree s, Tree& lbl)
 {
     return isTree(s, gGlobal->SIGBUTTON, lbl);
 }
 
-LIBFAUST_API Tree sigCheckbox(Tree lbl)
+SIGS_API Tree sigCheckbox(Tree lbl)
 {
     return tree(gGlobal->SIGCHECKBOX, lbl);
 }
@@ -508,21 +508,21 @@ bool isSigCheckbox(Tree s)
     Tree lbl;
     return isTree(s, gGlobal->SIGCHECKBOX, lbl);
 }
-LIBFAUST_API bool isSigCheckbox(Tree s, Tree& lbl)
+SIGS_API bool isSigCheckbox(Tree s, Tree& lbl)
 {
     return isTree(s, gGlobal->SIGCHECKBOX, lbl);
 }
 
-LIBFAUST_API Tree sigWaveform(const tvec& wf)
+SIGS_API Tree sigWaveform(const tvec& wf)
 {
     return tree(gGlobal->SIGWAVEFORM, wf);
 }
-LIBFAUST_API bool isSigWaveform(Tree s)
+SIGS_API bool isSigWaveform(Tree s)
 {
     return isTree(s, gGlobal->SIGWAVEFORM);
 }
 
-LIBFAUST_API Tree sigHSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
+SIGS_API Tree sigHSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->SIGHSLIDER, lbl, list4(init, min, max, step));
 }
@@ -532,7 +532,7 @@ bool isSigHSlider(Tree s)
     return isTree(s, gGlobal->SIGHSLIDER, lbl, params);
 }
 
-LIBFAUST_API bool isSigHSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& step)
+SIGS_API bool isSigHSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& step)
 {
     Tree params;
     if (isTree(s, gGlobal->SIGHSLIDER, lbl, params)) {
@@ -546,7 +546,7 @@ LIBFAUST_API bool isSigHSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& m
     }
 }
 
-LIBFAUST_API Tree sigVSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
+SIGS_API Tree sigVSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->SIGVSLIDER, lbl, list4(init, min, max, step));
 }
@@ -556,7 +556,7 @@ bool isSigVSlider(Tree s)
     return isTree(s, gGlobal->SIGVSLIDER, lbl, params);
 }
 
-LIBFAUST_API bool isSigVSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& step)
+SIGS_API bool isSigVSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& step)
 {
     Tree params;
     if (isTree(s, gGlobal->SIGVSLIDER, lbl, params)) {
@@ -570,7 +570,7 @@ LIBFAUST_API bool isSigVSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& m
     }
 }
 
-LIBFAUST_API Tree sigNumEntry(Tree lbl, Tree init, Tree min, Tree max, Tree step)
+SIGS_API Tree sigNumEntry(Tree lbl, Tree init, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->SIGNUMENTRY, lbl, list4(init, min, max, step));
 }
@@ -580,7 +580,7 @@ bool isSigNumEntry(Tree s)
     return isTree(s, gGlobal->SIGNUMENTRY, lbl, params);
 }
 
-LIBFAUST_API bool isSigNumEntry(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& step)
+SIGS_API bool isSigNumEntry(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& step)
 {
     Tree params;
     if (isTree(s, gGlobal->SIGNUMENTRY, lbl, params)) {
@@ -596,7 +596,7 @@ LIBFAUST_API bool isSigNumEntry(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& 
 
 // Output elements
 
-LIBFAUST_API Tree sigHBargraph(Tree lbl, Tree min, Tree max, Tree x)
+SIGS_API Tree sigHBargraph(Tree lbl, Tree min, Tree max, Tree x)
 {
     return tree(gGlobal->SIGHBARGRAPH, lbl, min, max, x);
 }
@@ -605,12 +605,12 @@ bool isSigHBargraph(Tree s)
     Tree lbl, min, max, x;
     return isTree(s, gGlobal->SIGHBARGRAPH, lbl, min, max, x);
 }
-LIBFAUST_API bool isSigHBargraph(Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)
+SIGS_API bool isSigHBargraph(Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)
 {
     return isTree(s, gGlobal->SIGHBARGRAPH, lbl, min, max, x);
 }
 
-LIBFAUST_API Tree sigVBargraph(Tree lbl, Tree min, Tree max, Tree x)
+SIGS_API Tree sigVBargraph(Tree lbl, Tree min, Tree max, Tree x)
 {
     return tree(gGlobal->SIGVBARGRAPH, lbl, min, max, x);
 }
@@ -619,7 +619,7 @@ bool isSigVBargraph(Tree s)
     Tree lbl, min, max, x;
     return isTree(s, gGlobal->SIGVBARGRAPH, lbl, min, max, x);
 }
-LIBFAUST_API bool isSigVBargraph(Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)
+SIGS_API bool isSigVBargraph(Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)
 {
     return isTree(s, gGlobal->SIGVBARGRAPH, lbl, min, max, x);
 }
@@ -664,7 +664,7 @@ Tree sigAttach(Tree t0, Tree t1)
 {
     return tree(gGlobal->SIGATTACH, t0, t1);
 }
-LIBFAUST_API bool isSigAttach(Tree t, Tree& t0, Tree& t1)
+SIGS_API bool isSigAttach(Tree t, Tree& t0, Tree& t1)
 {
     return isTree(t, gGlobal->SIGATTACH, t0, t1);
 }
@@ -673,7 +673,7 @@ Tree sigEnable(Tree t0, Tree t1)
 {
     return tree(gGlobal->SIGENABLE, t0, t1);
 }
-LIBFAUST_API bool isSigEnable(Tree t, Tree& t0, Tree& t1)
+SIGS_API bool isSigEnable(Tree t, Tree& t0, Tree& t1)
 {
     return isTree(t, gGlobal->SIGENABLE, t0, t1);
 }
@@ -682,7 +682,7 @@ Tree sigControl(Tree t0, Tree t1)
 {
     return tree(gGlobal->SIGCONTROL, t0, t1);
 }
-LIBFAUST_API bool isSigControl(Tree t, Tree& t0, Tree& t1)
+SIGS_API bool isSigControl(Tree t, Tree& t0, Tree& t1)
 {
     return isTree(t, gGlobal->SIGCONTROL, t0, t1);
 }
@@ -704,107 +704,107 @@ static Tree sigExtended2(Tree sig, Tree x, Tree y)
     return ((xtended*)getUserData(sig))->computeSigOutput(args);
 }
 
-LIBFAUST_API Tree sigAbs(Tree x)
+SIGS_API Tree sigAbs(Tree x)
 {
     return sigExtended1(gGlobal->gAbsPrim->box(), x);
 }
 
-LIBFAUST_API Tree sigAcos(Tree x)
+SIGS_API Tree sigAcos(Tree x)
 {
     return sigExtended1(gGlobal->gAcosPrim->box(), x);
 }
 
-LIBFAUST_API Tree sigTan(Tree x)
+SIGS_API Tree sigTan(Tree x)
 {
     return sigExtended1(gGlobal->gTanPrim->box(), x);
 }
 
-LIBFAUST_API Tree sigSqrt(Tree x)
+SIGS_API Tree sigSqrt(Tree x)
 {
     return sigExtended1(gGlobal->gSqrtPrim->box(), x);
 }
 
-LIBFAUST_API Tree sigSin(Tree x)
+SIGS_API Tree sigSin(Tree x)
 {
     return sigExtended1(gGlobal->gSinPrim->box(), x);
 }
 
-LIBFAUST_API Tree sigRint(Tree x)
+SIGS_API Tree sigRint(Tree x)
 {
     return sigExtended1(gGlobal->gRintPrim->box(), x);
 }
 
-LIBFAUST_API Tree sigRemainder(Tree x, Tree y)
+SIGS_API Tree sigRemainder(Tree x, Tree y)
 {
     return sigExtended2(gGlobal->gRemainderPrim->box(), x, y);
 }
 
-LIBFAUST_API Tree sigPow(Tree x, Tree y)
+SIGS_API Tree sigPow(Tree x, Tree y)
 {
     return sigExtended2(gGlobal->gPowPrim->box(), x, y);
 }
 
-LIBFAUST_API Tree sigMin(Tree x, Tree y)
+SIGS_API Tree sigMin(Tree x, Tree y)
 {
     return sigExtended2(gGlobal->gMinPrim->box(), x, y);
 }
 
-LIBFAUST_API Tree sigMax(Tree x, Tree y)
+SIGS_API Tree sigMax(Tree x, Tree y)
 {
     return sigExtended2(gGlobal->gMaxPrim->box(), x, y);
 }
 
-LIBFAUST_API Tree sigLog(Tree x)
+SIGS_API Tree sigLog(Tree x)
 {
     return sigExtended1(gGlobal->gLogPrim->box(), x);
 }
 
-LIBFAUST_API Tree sigLog10(Tree x)
+SIGS_API Tree sigLog10(Tree x)
 {
     return sigExtended1(gGlobal->gLog10Prim->box(), x);
 }
 
-LIBFAUST_API Tree sigFmod(Tree x, Tree y)
+SIGS_API Tree sigFmod(Tree x, Tree y)
 {
     return sigExtended2(gGlobal->gFmodPrim->box(), x, y);
 }
 
-LIBFAUST_API Tree sigFloor(Tree x)
+SIGS_API Tree sigFloor(Tree x)
 {
     return sigExtended1(gGlobal->gFloorPrim->box(), x);
 }
 
-LIBFAUST_API Tree sigExp(Tree x)
+SIGS_API Tree sigExp(Tree x)
 {
     return sigExtended1(gGlobal->gExpPrim->box(), x);
 }
 
-LIBFAUST_API Tree sigExp10(Tree x)
+SIGS_API Tree sigExp10(Tree x)
 {
     return sigExtended1(gGlobal->gExp10Prim->box(), x);
 }
 
-LIBFAUST_API Tree sigCos(Tree x)
+SIGS_API Tree sigCos(Tree x)
 {
     return sigExtended1(gGlobal->gCosPrim->box(), x);
 }
 
-LIBFAUST_API Tree sigCeil(Tree x)
+SIGS_API Tree sigCeil(Tree x)
 {
     return sigExtended1(gGlobal->gCeilPrim->box(), x);
 }
 
-LIBFAUST_API Tree sigAtan(Tree x)
+SIGS_API Tree sigAtan(Tree x)
 {
     return sigExtended1(gGlobal->gAtanPrim->box(), x);
 }
 
-LIBFAUST_API Tree sigAtan2(Tree x, Tree y)
+SIGS_API Tree sigAtan2(Tree x, Tree y)
 {
     return sigExtended2(gGlobal->gAtan2Prim->box(), x, y);
 }
 
-LIBFAUST_API Tree sigAsin(Tree x)
+SIGS_API Tree sigAsin(Tree x)
 {
     return sigExtended1(gGlobal->gAsinPrim->box(), x);
 }
@@ -898,48 +898,48 @@ bool isSigDiv(Tree a, Tree& x, Tree& y)
  1   sigSoundfileRate(label, part): the sampling rate encoded in the file (NK)
  2   sigSoundfileBuffer(label, c, part, ridx): the cth channel content (RK or RS)
 */
-LIBFAUST_API Tree sigSoundfile(Tree label)
+SIGS_API Tree sigSoundfile(Tree label)
 {
     return tree(gGlobal->SIGSOUNDFILE, label);
 }
-LIBFAUST_API Tree sigSoundfileLength(Tree sf, Tree part)
+SIGS_API Tree sigSoundfileLength(Tree sf, Tree part)
 {
     return tree(gGlobal->SIGSOUNDFILELENGTH, sf, part);
 }
-LIBFAUST_API Tree sigSoundfileRate(Tree sf, Tree part)
+SIGS_API Tree sigSoundfileRate(Tree sf, Tree part)
 {
     return tree(gGlobal->SIGSOUNDFILERATE, sf, part);
 }
-LIBFAUST_API Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree part, Tree ridx)
+SIGS_API Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree part, Tree ridx)
 {
     return tree(gGlobal->SIGSOUNDFILEBUFFER, sf, chan, part, ridx);
 }
 
-LIBFAUST_API bool isSigSoundfile(Tree s, Tree& label)
+SIGS_API bool isSigSoundfile(Tree s, Tree& label)
 {
     return isTree(s, gGlobal->SIGSOUNDFILE, label);
 }
-LIBFAUST_API bool isSigSoundfileLength(Tree s, Tree& sf, Tree& part)
+SIGS_API bool isSigSoundfileLength(Tree s, Tree& sf, Tree& part)
 {
     return isTree(s, gGlobal->SIGSOUNDFILELENGTH, sf, part);
 }
-LIBFAUST_API bool isSigSoundfileRate(Tree s, Tree& sf, Tree& part)
+SIGS_API bool isSigSoundfileRate(Tree s, Tree& sf, Tree& part)
 {
     return isTree(s, gGlobal->SIGSOUNDFILERATE, sf, part);
 }
-LIBFAUST_API bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part, Tree& ridx)
+SIGS_API bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part, Tree& ridx)
 {
     return isTree(s, gGlobal->SIGSOUNDFILEBUFFER, sf, chan, part, ridx);
 }
 
 // for FPGA Retiming
 
-LIBFAUST_API Tree sigRegister(int n, Tree s)
+SIGS_API Tree sigRegister(int n, Tree s)
 {
     return tree(gGlobal->SIGREGISTER, tree(n), s);
 }
 
-LIBFAUST_API bool isSigRegister(Tree s, int* n, Tree& x)
+SIGS_API bool isSigRegister(Tree s, int* n, Tree& x)
 {
     Tree y;
     return isTree(s, gGlobal->SIGREGISTER, y, x) && isInt(y->node(), n);

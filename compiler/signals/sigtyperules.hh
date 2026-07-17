@@ -52,7 +52,7 @@ void typeAnnotation(Tree sig, bool causality);
 
 /**
  *  Return the type of a previously annotated signal term,
- *  fails with faustassert if the term is not typed.
+ *  fails with TLIB_ASSERT if the term is not typed.
  *  @param sig the signal we want to know the type
  */
 ::Type getCertifiedSigType(Tree term);

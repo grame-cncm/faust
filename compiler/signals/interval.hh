@@ -25,7 +25,7 @@
 #include <cmath>
 #include <iostream>
 
-#include "exception.hh"
+#include "tlib-error.hh"
 #include "garbageable.hh"
 #include "interval/interval_algebra.hh"
 #include "interval/interval_def.hh"

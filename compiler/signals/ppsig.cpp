@@ -21,9 +21,9 @@
 
 #include "ppsig.hh"
 #include <vector>
-#include "Text.hh"
+#include "sigs-config.hh"
 #include "binop.hh"
-#include "exception.hh"
+#include "tlib-error.hh"
 #include "global.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
@@ -242,7 +242,7 @@ ostream& ppsig::print(ostream& fout) const
     } else if (isSigInt(fSig, &i)) {
         fout << i;
     } else if (isSigReal(fSig, &r)) {
-        fout << T(r);
+        fout << sigs::printReal(r);
     } else if (isSigWaveform(fSig)) {
         fout << "waveform{...}";
     } else if (isSigInput(fSig, &i)) {
@@ -530,7 +530,7 @@ ostream& ppsigShared::print(ostream& fout) const
     } else if (isSigInt(fSig, &i)) {
         fout << i;
     } else if (isSigReal(fSig, &r)) {
-        fout << T(r);
+        fout << sigs::printReal(r);
     } else if (isSigWaveform(fSig)) {
         fout << "waveform{...}";
     } else if (isSigInput(fSig, &i)) {

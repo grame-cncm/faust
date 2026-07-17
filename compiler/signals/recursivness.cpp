@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <set>
 
-#include "exception.hh"
+#include "tlib-error.hh"
 #include "global.hh"
 #include "ppsig.hh"
 #include "property.hh"
@@ -72,7 +72,7 @@ int getRecursivness(Tree sig)
     Tree tr;
     if (!getProperty(sig, gGlobal->RECURSIVNESS, tr)) {
         cerr << "ASSERT : getRecursivness of " << *sig << endl;
-        faustassert(false);
+        TLIB_ASSERT(false);
     }
     return tree2int(tr);
 }

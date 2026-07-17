@@ -25,7 +25,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "exception.hh"
+#include "tlib-error.hh"
 #include "global.hh"
 #include "interval_def.hh"
 #include "ppsig.hh"
@@ -81,11 +81,11 @@ static double constSig2double(Tree sig)
 {
     Type ty = getSigType(sig);
     if (ty->variability() != kKonst) {
-        throw faustexception("ERROR : constSig2double, must a constant numerical expression\n");
+        tlib::error("ERROR : constSig2double, must a constant numerical expression\n");
     }
     interval bds = ty->getInterval();
     if (bds.lo() != bds.hi()) {
-        throw faustexception(
+        tlib::error(
             "ERROR : constSig2double, constant value with non-singleton interval, don't know what"
             " to do, please report");
     }
@@ -102,7 +102,7 @@ static double constSig2double(Tree sig)
 static ::TupletType derefRecCert(Type t)
 {
     TupletType* p = isTupletType(t);
-    faustassert(p);
+    TLIB_ASSERT(p);
     return *p;
 }
 
@@ -151,7 +151,7 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
             return x ^ y;
         default:
             cerr << "ASSERT : unrecognized opcode : " << opcode << endl;
-            faustassert(false);
+            TLIB_ASSERT(false);
             return itv::empty();
     }
 
@@ -255,7 +255,7 @@ void typeAnnotation(Tree sig, bool causality)
     // cerr << "Symlist " << *sl << endl;
     for (Tree l = sl; isList(l); l = tl(l)) {
         Tree id, body;
-        faustassert(isRec(hd(l), id, body));
+        TLIB_ASSERT(isRec(hd(l), id, body));
         if (!isRec(hd(l), id, body)) {
             continue;
         }
@@ -274,11 +274,11 @@ void typeAnnotation(Tree sig, bool causality)
         vtype.push_back(initialRecType(vdef[i]));
     }
 
-    faustassert(int(vrec.size()) == n);
-    faustassert(int(vdef.size()) == n);
-    faustassert(int(vtype.size()) == n);
-    faustassert((int)vAgeMin.size() == n);
-    faustassert((int)vAgeMax.size() == n);
+    TLIB_ASSERT(int(vrec.size()) == n);
+    TLIB_ASSERT(int(vdef.size()) == n);
+    TLIB_ASSERT(int(vtype.size()) == n);
+    TLIB_ASSERT((int)vAgeMin.size() == n);
+    TLIB_ASSERT((int)vAgeMax.size() == n);
 
     // cerr << "compute upper bounds for recursive types" << endl;
     for (int k = 0; k < gGlobal->gNarrowingLimit; k++) {
@@ -310,7 +310,7 @@ void typeAnnotation(Tree sig, bool causality)
 
                     TRACE(cerr << gGlobal->TABBER << "inspecting " << newTuplet[j] << endl;)
                     if (newI.lo() != oldI.lo()) {
-                        faustassert(newI.lo() < oldI.lo());
+                        TLIB_ASSERT(newI.lo() < oldI.lo());
                         vAgeMin[i][j]++;
                         if (vAgeMin[i][j] > gGlobal->gWideningLimit) {
                             TRACE(cerr << gGlobal->TABBER << "low widening of " << newTuplet[j]
@@ -320,7 +320,7 @@ void typeAnnotation(Tree sig, bool causality)
                     }
 
                     if (newI.hi() != oldI.hi()) {
-                        faustassert(newI.hi() > oldI.hi());
+                        TLIB_ASSERT(newI.hi() > oldI.hi());
                         vAgeMax[i][j]++;
                         if (vAgeMax[i][j] > gGlobal->gWideningLimit) {
                             TRACE(cerr << gGlobal->TABBER << "up widening of " << newTuplet[j]
@@ -361,7 +361,7 @@ static void annotationStatistics()
 ::Type getCertifiedSigType(Tree sig)
 {
     Type ty = getSigType(sig);
-    faustassert(ty);
+    TLIB_ASSERT(ty);
     return ty;
 }
 
@@ -448,7 +448,7 @@ static void checkPartInterval(Tree s, Type t)
         error << "ERROR : out of range soundfile part number (" << i << " instead of interval(0,"
               << MAX_SOUNDFILE_PARTS - 1 << ")) in expression : " << ppsig(s, MAX_ERROR_SIZE)
               << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
 }
 
@@ -528,7 +528,7 @@ static Type inferSigType(Tree sig, Tree env)
                 error << "ERROR : can't compute the min and max values of : " << st2.str() << endl
                       << "        used in delay expression : " << st1.str() << endl
                       << "        (probably a recursive signal)" << endl;
-                throw faustexception(error.str());
+                tlib::error(error.str());
             } else if (i1.lo() < 0) {
                 stringstream error, st1, st2;
                 // Prepare two separated streams for MAX_ERROR_SIZE model to work properly
@@ -537,7 +537,7 @@ static Type inferSigType(Tree sig, Tree env)
                 error << "ERROR : possible negative values of : " << st2.str() << endl
                       << "        used in delay expression : " << st1.str() << endl
                       << "        " << i1 << endl;
-                throw faustexception(error.str());
+                tlib::error(error.str());
             }
         }
 
@@ -783,7 +783,7 @@ static Type inferSigType(Tree sig, Tree env)
 
     // unrecognized signal here
     cerr << "ASSERT : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
-    faustassert(false);
+    TLIB_ASSERT(false);
     return nullptr;
 }
 
@@ -796,7 +796,7 @@ static Type inferProjType(Type t, int i, int vec)
     if (tt == nullptr) {
         stringstream error;
         error << "ERROR : inferring projection type, not a tuplet type : " << t << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     Type temp = (*tt)[i]
                     ->promoteVariability(t->variability())
@@ -827,13 +827,13 @@ static Type inferWriteTableType(Type tbl, Type wi, Type ws)
     if (tt == nullptr) {
         stringstream error;
         error << "ERROR : inferring write table type, wrong table type : " << tbl << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     SimpleType* st = isSimpleType(wi);
     if (st == nullptr) {
         stringstream error;
         error << "ERROR : inferring write table type, wrong write index type : " << wi << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     TRACE(cerr << gGlobal->TABBER << "inferring write table type : wi type = " << wi << endl);
     TRACE(cerr << gGlobal->TABBER << "inferring write table type : wd type = " << ws << endl);
@@ -865,13 +865,13 @@ static Type inferReadTableType(Type tbl, Type ri)
     if (tt == nullptr) {
         stringstream error;
         error << "ERROR : inferring read table type, no table type : " << tbl << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     SimpleType* st = isSimpleType(ri);
     if (st == nullptr) {
         stringstream error;
         error << "ERROR : inferring read table type, no read index type : " << ri << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
 
     Type temp = makeSimpleType(tbl->nature(), tbl->variability() | ri->variability(),
@@ -914,7 +914,7 @@ static Type inferDocAccessTblType(Type tbl, Type ridx)
  */
 static TupletType* initialRecType(Tree t)
 {
-    faustassert(isList(t));
+    TLIB_ASSERT(isList(t));
     return new TupletType(vector<Type>(len(t), gGlobal->TREC));
 }
 
@@ -925,7 +925,7 @@ static TupletType* initialRecType(Tree t)
  */
 static TupletType* maximalRecType(Tree t)
 {
-    faustassert(isList(t));
+    TLIB_ASSERT(isList(t));
     return new TupletType(vector<Type>(len(t), gGlobal->TRECMAX));
 }
 
@@ -935,7 +935,7 @@ static TupletType* maximalRecType(Tree t)
  */
 static Type inferRecType(Tree var, Tree body, Tree env)
 {
-    faustassert(false);  // we should not come here
+    TLIB_ASSERT(false);  // we should not come here
     return nullptr;
 }
 

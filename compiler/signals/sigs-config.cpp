@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    FAUST signal library
+    Copyright (C) 2003-2026 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -19,40 +19,45 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _Prim2_
-#define _Prim2_
+#include "sigs-config.hh"
 
-#include "sigs-export.hh"
-#include "sigtype.hh"
-#include "tlib.hh"
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
-// Foreign functions management functions (ffun) (external C functions)
-
-Tree ffunction(Tree signature, Tree incfile, Tree libfile);
-
-bool isffunction(Tree t);
-
-Tree ffsignature(Tree t);
+namespace sigs {
 
 /**
- *  Return the name parameter of a foreign function.
- *
- * @param  t - the signal
- * @return the name
+ * Default real printer: shortest "%g" form that round-trips to the same
+ * double, with a trailing ".0" added when the result would read as an int.
  */
-SIGS_API const char* ffname(Tree t);
+static std::string defaultRealPrinter(double n)
+{
+    char c[64];
+    for (int p = 1; p <= 32; p++) {
+        snprintf(c, sizeof(c), "%.*g", p, n);
+        if (strtod(c, nullptr) == n) {
+            break;
+        }
+    }
+    if (strcspn(c, ".e") == strlen(c)) {
+        strncat(c, ".0", sizeof(c) - strlen(c) - 1);
+    }
+    return std::string(c);
+}
 
-/**
- *  Return the arity of a foreign function
- *
- * @param  s - the signal
- * @return the name
- */
-SIGS_API int ffarity(Tree t);
+static RealPrinter gRealPrinter = defaultRealPrinter;
 
-int         ffrestype(Tree t);
-int         ffargtype(Tree t, int i);
-const char* ffincfile(Tree t);
-const char* fflibfile(Tree t);
+RealPrinter setRealPrinter(RealPrinter p)
+{
+    RealPrinter old = gRealPrinter;
+    gRealPrinter    = (p != nullptr) ? p : defaultRealPrinter;
+    return old;
+}
 
-#endif
+std::string printReal(double n)
+{
+    return gRealPrinter(n);
+}
+
+}  // namespace sigs

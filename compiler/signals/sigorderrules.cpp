@@ -38,7 +38,7 @@
 
 #include "sigorderrules.hh"
 #include <stdio.h>
-#include "exception.hh"
+#include "tlib-error.hh"
 #include "global.hh"
 #include "prim2.hh"
 #include "sigprint.hh"
@@ -203,7 +203,7 @@ static int inferSigOrder(Tree sig)
 
     else if (isSigSoundfile(sig, l)) {
         cerr << "ASSERT : inferring signal order : isSigSoundfile\n";  // not supposed to happen
-        faustassert(false);
+        TLIB_ASSERT(false);
         return -1;
 
     } else if (isSigSoundfileLength(sig, sf, x)) {
@@ -224,12 +224,12 @@ static int inferSigOrder(Tree sig)
 
     else if (isRec(sig, var, body)) {
         cerr << "ASSERT : inferring signal order : isRec\n";  // not supposed to happen
-        faustassert(false);
+        TLIB_ASSERT(false);
         return -1;
 
     } else if (isRef(sig, var)) {
         cerr << "ASSERT : inferring signal order : isRef\n";  // not supposed to happen.
-        faustassert(false);
+        TLIB_ASSERT(false);
         return -1;
 
     } else if (isProj(sig, &i, s1)) {
@@ -279,6 +279,6 @@ static int inferSigOrder(Tree sig)
 
     // Unrecognized signal here
     cerr << "ASSERT : inferring signal order : unrecognized signal\n";
-    faustassert(false);
+    TLIB_ASSERT(false);
     return -1;
 }

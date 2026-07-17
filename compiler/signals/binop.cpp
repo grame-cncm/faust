@@ -24,7 +24,6 @@
 #endif
 
 #include "binop.hh"
-#include "compatibility.hh"
 #include "signals.hh"
 
 bool falsePredicate(Node const& a)
@@ -301,6 +300,6 @@ const char* BinOp::getString(int op)
                                   "kARsh", "kLRsh", "kGT",  "kLT",  "kGE",  "kLE",
                                   "kEQ",   "kNE",   "kAND", "kOR",  "kXOR"};
 
-    faustassert(op >= kAdd && op <= kXOR);
+    TLIB_ASSERT(op >= kAdd && op <= kXOR);
     return table[op];
 }
