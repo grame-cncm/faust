@@ -6,7 +6,7 @@
 
 #### Dynamic compilation plugin 
 
-Additionally, `faust2wwise` ships with the `Faust Interpreter Wwise Plugin`, a Wwise Authoring plugin that provides an integrated dynamic compilation tool that wraps the faust interpreter and provides a code editor to convert Faust DSP code into Wwise plugins, directly throughout the Wwise enviroment. For more details, refer to the [Faust Interpreter Wwise Plugin](Faust_Interpreter_Wwise_Plugin\README.md) page.
+Additionally, `faust2wwise` ships with the `Faust Interpreter Wwise Plugin`, a Wwise Authoring plugin that provides an integrated dynamic compilation tool that wraps the faust interpreter and provides a code editor to convert Faust DSP code into Wwise plugins, directly throughout the Wwise enviroment. For more details, refer to the [Faust Interpreter Wwise Plugin](Faust_Interpreter_Wwise_Plugin/README.md) page.
 
 ## Description
 
