@@ -146,8 +146,8 @@ github_action:
 	$(MAKE) -f Make.rust outdir=rust/inpl CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -inpl -rnt -rnlm -a archs/rust/architecture_inpl.rs"
 	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -a archs/rust/architecture_trait_ff64.rs"
 	$(MAKE) -f Make.gcc outdir=cpp/double lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I ../../libraries/ -I dsp -double"
-	$(MAKE) -f Make.nnx outdir=nnx/double FAUSTOPTIONS="-I ../../libraries/ -double"
-	$(MAKE) -f Make.linen outdir=linen/double FAUSTOPTIONS="-I ../../libraries/ -double"
+	# NNX/Linen impulse tests need jax/flax, which the platform CI images do not
+	# install; they are covered by the dedicated jax-tests workflow instead.
 
 #########################################################################
 # c++ and c backends
