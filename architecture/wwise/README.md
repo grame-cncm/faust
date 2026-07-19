@@ -61,6 +61,7 @@ The way this work is orchestrated follows a multi-step process, where each phase
 - **FAUST**
   - The `Faust` compiler must be available in your system **PATH**.
 - **Wwise SDK (Versions >=2024 and <=2025)**
+  - make sure Wwise dependencies are installed (see [Windows-Specific Information](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=windows_specificinfo.html) and [Mac-Specific Information](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=mac_specificinfo.html), as enlisted in **Release Notes**, under **{Platform} {Wwise-Version}** page. For instance, for the Wwise `2024.1.12` version, see [Windows Release Notes --> Windows 2024.1.12](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=windows_releasenotes_2024_1_12.html).
   - `WWISEROOT` must also be exposed system-wide.
 - **Python (>=3.9)**
 - **Console access with admin rights**
