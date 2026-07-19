@@ -546,7 +546,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             // special handling Julia backend
             pushComputeBlockMethod(IB::genDeclareBufferIterators(
                 "input", "inputs", fContainer->inputs(), ptr_type, false));
-        } else if (gGlobal->gOutputLang != "nnx" && gGlobal->gOutputLang != "linen") {
+        } else if (!gGlobal->isPythonBackend()) {
             // "input" and "inputs" used as a name convention
             if (gGlobal->gOneSampleIO) {
                 for (int index = 0; index < fContainer->inputs(); index++) {
@@ -578,7 +578,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             // special handling for Julia backend
             pushComputeBlockMethod(IB::genDeclareBufferIterators(
                 "output", "outputs", fContainer->outputs(), ptr_type, true));
-        } else if (gGlobal->gOutputLang != "nnx" && gGlobal->gOutputLang != "linen") {
+        } else if (!gGlobal->isPythonBackend()) {
             // "output" and "outputs" used as a name convention
             if (gGlobal->gOneSampleIO) {
                 for (int index = 0; index < fContainer->outputs(); index++) {
