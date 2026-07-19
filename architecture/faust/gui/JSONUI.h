@@ -501,10 +501,13 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             fUI.str("");
         
             tab(fTab, fUI); fUI << "\"url\": \"" << url << "\"" << ",";
-            tab(fTab, fUI); fUI << "\"address\": \"" << path << "\"" << ((fPathTable.size() > 0) ? "," : "");
             if (fPathTable.size() > 0) {
-                tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path);
+                tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
+                tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ((fMetaAux.size() > 0) ? "," : "");
+            } else {
+                tab(fTab, fUI); fUI << "\"address\": \"" << path << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             }
+            addMeta(fTab, false);
             fTab -= 1;
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = ',';

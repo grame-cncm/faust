@@ -701,7 +701,7 @@ class CodeboxStringTypeManager : public StringTypeManager {
     }
 };
 
-// StringTypeManager for JAX backend
+// StringTypeManager for the NNX/Linen backends
 
 class JAXStringTypeManager : public StringTypeManager {
    public:

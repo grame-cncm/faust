@@ -47,3 +47,8 @@ tests/impulse-tests/ir
 .gradle/
 ### CMake
 CMakeFiles/
+
+# JAX test artifacts
+tests/jax-tests/generated/
+tests/jax-tests/*.test
+tests/jax-tests/*.output.log

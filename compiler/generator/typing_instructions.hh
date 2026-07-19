@@ -111,6 +111,12 @@ struct TypingVisitor : public InstVisitor {
                     fCurType = Typed::kInt64;
                 } else if (isBoolType(type1) && isBoolType(type2)) {
                     fCurType = Typed::kInt32;
+                } else if (isRealPtrType(type1) || isRealPtrType(type2)) {
+                    // Whole-array operands: backends with array value semantics
+                    // (like NNX) keep unindexed input channels as FIR pointer
+                    // loads; the binop result has the pointed-to sample type.
+                    fCurType =
+                        Typed::getTypeFromPtr(isRealPtrType(type1) ? type1 : type2);
                 } else {
                     // Should never happen...
                     std::cerr << "ASSERT : TypingVisitor : BinopInst a1 = ";

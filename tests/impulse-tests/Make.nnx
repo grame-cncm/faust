@@ -1,0 +1,116 @@
+#
+# Makefile for generating ir using NNX
+#
+
+system := $(shell uname -s)
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+ifeq ($(system), MINGW)
+ FAUST ?= ../../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
+else
+ FAUST ?= ../../../build/bin/faust
+ COMPARE := ./filesCompare
+endif
+MAKE ?= make
+
+GCCOPTIONS := -Ofast -I../../architecture -Iarchs -pthread -std=c++17
+outdir ?= nnx/double
+lang ?= cpp
+ext  ?= o
+arch ?= impulse_nnx.py
+precision ?=       # filesCompare precision (empty by default)
+FAUSTOPTIONS ?= -double
+
+.PHONY: test 
+
+dspfiles := $(wildcard dsp/*.dsp)
+
+# todo: don't ignore bs.dsp and osc_enable.dsp
+dspfiles := $(filter-out dsp/bs.dsp,$(dspfiles))
+dspfiles := $(filter-out dsp/osc_enable.dsp,$(dspfiles))
+
+# todo: don't ignore bells.dsp (perceptually it sounds the same but is off due to precision issues)
+dspfiles := $(filter-out dsp/bells.dsp,$(dspfiles))
+
+# ignore noise files because we use jax.random.PRNG instead of a linear congruential generator (LCG) method
+dspfiles := $(filter-out $(wildcard dsp/noise*.dsp),$(dspfiles))
+
+# todo: also ignore files which use various noise functions.
+dspfiles := $(filter-out dsp/karplus.dsp,$(dspfiles))
+dspfiles := $(filter-out dsp/karplus32.dsp,$(dspfiles))
+dspfiles := $(filter-out dsp/grain3.dsp,$(dspfiles))
+dspfiles := $(filter-out dsp/harpe.dsp,$(dspfiles))
+dspfiles := $(filter-out dsp/echo_bug.dsp,$(dspfiles))
+dspfiles := $(filter-out dsp/comb_bug_exp.dsp,$(dspfiles))
+# table.dsp / tester*.dsp / reverb_designer.dsp exercise tables and merged
+# subcontainers; kept enabled so the _initialize_carry init ordering stays covered.
+
+listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) 
+
+SRCDIR := tools
+
+#########################################################################
+nnx: ir/$(outdir) $(call listfiles,$(outdir))
+
+# New target that just runs the Python files without comparison
+ifeq ($(DSPS),)
+nnx-run: ir/$(outdir) $(dspfiles:dsp/%.dsp=ir/$(outdir)/%.run)
+else
+nnx-run: ir/$(outdir) $(DSPS:%.dsp=ir/$(outdir)/%.run)
+endif
+
+# New target that runs the Python files with verbose output
+ifeq ($(DSPS),)
+nnx-run-verbose: ir/$(outdir) $(dspfiles:dsp/%.dsp=ir/$(outdir)/%.run-verbose)
+else
+nnx-run-verbose: ir/$(outdir) $(DSPS:%.dsp=ir/$(outdir)/%.run-verbose)
+endif
+
+test:
+	@echo $(call listfiles,$(outdir))
+
+help:
+	@echo "-------- FAUST impulse response tests --------"
+	@echo "Available targets are:"
+	@echo " 'nnx' (default)    : check the double output using the NNX backend"
+	@echo " 'nnx-run'          : run the NNX backend tests without fileCompare"
+	@echo " 'nnx-run-verbose'  : run the NNX backend tests with verbose output"
+	@echo
+	@echo "Options:"
+	@echo " 'outdir'       : define the output directory (default to 'nnx/double')"
+	@echo " 'FAUSTOPTIONS' : define additional faust options (-double by default)"
+	@echo " 'precision'    : define filesCompare expected precision (empty by default)"
+	@echo " 'DSPS'         : run specific DSP files (e.g., DSPS=bargraph.dsp)"
+
+#########################################################################
+# output directories
+ir/$(outdir):
+	mkdir -p ir/$(outdir)
+
+#########################################################################
+# tools
+filesCompare: $(SRCDIR)/filesCompare.cpp
+	$(MAKE) filesCompare
+
+#########################################################################
+# precision issues
+
+#########################################################################
+# rules for NNX
+
+ir/$(outdir)/nnx_%.py: dsp/%.dsp 
+	cd $(dir $<); $(FAUST) -lang nnx $(notdir $<) -a ../archs/$(arch) $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
+
+ir/$(outdir)/%.ir: ir/$(outdir)/nnx_%.py reference/%.ir
+	python3  $< > $@
+	$(COMPARE) $@ reference/$(notdir $@) $(precision)
+
+# Run target without comparison
+ir/$(outdir)/%.run: ir/$(outdir)/nnx_%.py
+	@echo "Running $(notdir $<)..."
+	@python3 $< > /dev/null 2>&1 && echo "✅ $(notdir $<) succeeded" || echo "❌ $(notdir $<) failed"
+
+# Run target with verbose output
+ir/$(outdir)/%.run-verbose: ir/$(outdir)/nnx_%.py
+	@echo "=== Running $(notdir $<) ==="
+	python3 $<

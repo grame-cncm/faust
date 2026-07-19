@@ -56,7 +56,14 @@ ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, BasicTyped
             ccs, IB::genStoreArrayStructVar(vname, IB::genInt32NumInst(0), exp)));
 
         // Generates post processing copy code to update delay values
-        pushPostComputeDSPMethod(IB::genControlInst(ccs, generateShiftArray(vname, mxd)));
+        if (mxd == 1) {
+            pushPostComputeDSPMethod(IB::genControlInst(ccs, generateCopyArray(vname, 0, 1)));
+        } else if (mxd == 2) {
+            pushPostComputeDSPMethod(IB::genControlInst(ccs, generateCopyArray(vname, 1, 2)));
+            pushPostComputeDSPMethod(IB::genControlInst(ccs, generateCopyArray(vname, 0, 1)));
+        } else {
+            pushPostComputeDSPMethod(IB::genControlInst(ccs, generateShiftArray(vname, mxd)));
+        }
 
     } else {
         int N = pow2limit(mxd + 1);

@@ -63,7 +63,8 @@ class Garbageable;
 struct DispatchVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
-class JAXInstVisitor;
+class NNXInstVisitor;
+class LinenInstVisitor;
 class JuliaInstVisitor;
 class JSFXInstVisitor;
 class AssemblyScriptInstVisitor;
@@ -317,6 +318,10 @@ struct global {
 
     // Backend configuration
     std::string gOutputLang;            // Chosen backend
+
+    // The NNX and Linen backends share the Python/JAX code generators
+    bool isPythonBackend() const { return (gOutputLang == "nnx") || (gOutputLang == "linen"); }
+
     bool        gAllowForeignFunction;  // Can use foreign functions
     bool        gAllowForeignConstant;  // Can use foreign constant
     bool        gAllowForeignVar;       // Can use foreign variable
@@ -699,12 +704,16 @@ struct global {
     TableSizeVisitor* gTableSizeVisitor;
 #endif
 
-#ifdef JAX_BUILD
-    JAXInstVisitor* gJAXVisitor;
+#ifdef NNX_BUILD
+    NNXInstVisitor* gNNXVisitor;
 #endif
 
 #ifdef ASSEMBLYSCRIPT_BUILD
     AssemblyScriptInstVisitor* gAssemblyScriptVisitor;
+#endif
+
+#ifdef LINEN_BUILD
+    LinenInstVisitor* gLinenVisitor;
 #endif
 
 #ifdef TEMPLATE_BUILD

@@ -73,13 +73,45 @@ The generated impulse responses are not preserved by the shell scripts. Intermed
 
 You should run `make tools` before first run of `tests.sh`.
 
-### JAX tests
+### NNX and Linen tests
 
 #### Prerequisites
 
-- `faust` must be available from the `../../build/bin` folder. It must be compiled with the JAX backend
+- `faust` must be available from the `../../build/bin` folder. It must be compiled with the NNX and Linen backends
 - install the python requirements: `pip install -r requirements.txt`
-- install [JAX](https://jax.readthedocs.io/en/latest/) and [Flax](https://flax.readthedocs.io/en/latest/). These are harder to install, so they're left out of `requirements.txt`
+- install [JAX](https://jax.readthedocs.io/en/latest/) and [Flax](https://flax.readthedocs.io/en/latest/):
+  - For new environments: `pip install jax-ai-stack` (includes JAX, Flax, and other useful libraries with pinned versions)
+  - For CI/existing environments: `pip install --upgrade jax jaxlib flax` (installs latest versions)
+
+#### Debugging a single failing NNX test
+
+Instead of re-running the full suite, generate, run, and compare one DSP at a time:
+
+```bash
+FAUST=$PWD/../../build/bin/faust
+mkdir -p ir/nnx/double
+
+# Generate the Python code for a specific file
+$FAUST -lang nnx dsp/table2.dsp -a archs/impulse_nnx.py -double > ir/nnx/double/nnx_table2.py
+
+# Run it to produce the impulse response
+python3 ir/nnx/double/nnx_table2.py > ir/nnx/double/table2.ir
+
+# Compare against the reference
+./filesCompare ir/nnx/double/table2.ir reference/table2.ir
+```
+
+When the output differs, two comparisons help locate the problem:
+
+```bash
+# Inspect the compiler's intermediate representation
+$FAUST -lang nnx dsp/table2.dsp -d > /tmp/table2_debug.txt
+
+# Generate the C++ version of the same DSP to see the expected structure
+$FAUST -lang cpp dsp/table2.dsp -o /tmp/table2.cpp
+```
+
+The same workflow applies to the Linen backend with `-lang linen` and `archs/impulse_linen.py`.
 
 ### TODO
 

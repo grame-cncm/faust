@@ -29,6 +29,7 @@
 #include "instructions_compiler1.hh"
 #include "instructions_compiler_jax.hh"
 #include "interpreter_code_container.hh"
+#include "nnx_base_instructions.hh"
 #include "normalform.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
@@ -450,7 +451,7 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
         gGlobal->gOutputLang == "asc") {
         InstructionsCompiler1 C(container);
         C.compileSingleSignal(sig);
-    } else if (gGlobal->gOutputLang == "jax") {
+    } else if (gGlobal->isPythonBackend()) {
         InstructionsCompilerJAX C(container);
         C.compileSingleSignal(sig);
     } else if (gGlobal->gOutputLang == "interp") {
@@ -545,7 +546,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             // special handling Julia backend
             pushComputeBlockMethod(IB::genDeclareBufferIterators(
                 "input", "inputs", fContainer->inputs(), ptr_type, false));
-        } else if (gGlobal->gOutputLang != "jax") {
+        } else if (gGlobal->gOutputLang != "nnx" && gGlobal->gOutputLang != "linen") {
             // "input" and "inputs" used as a name convention
             if (gGlobal->gOneSampleIO) {
                 for (int index = 0; index < fContainer->inputs(); index++) {
@@ -577,7 +578,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             // special handling for Julia backend
             pushComputeBlockMethod(IB::genDeclareBufferIterators(
                 "output", "outputs", fContainer->outputs(), ptr_type, true));
-        } else if (gGlobal->gOutputLang != "jax") {
+        } else if (gGlobal->gOutputLang != "nnx" && gGlobal->gOutputLang != "linen") {
             // "output" and "outputs" used as a name convention
             if (gGlobal->gOneSampleIO) {
                 for (int index = 0; index < fContainer->outputs(); index++) {
@@ -597,7 +598,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         }
     }
 
-    // These two vars are only used for JAX
+    // These two vars are only used for NNX/Linen
     string return_string = "state, jnp.stack([";
     string sep           = "";
 
@@ -623,8 +624,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                 pushComputeDSPMethod(IB::genStoreStackVar(name, res));
             }
 
-        } else if (gGlobal->gOutputLang == "jax") {
-            res               = CS(sig);
+        } else if (gGlobal->isPythonBackend()) {
             string result_var = "_result" + to_string(index);
             return_string     = return_string + sep + result_var;
             sep               = ",";
@@ -660,7 +660,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         }
     }
 
-    if (gGlobal->gOutputLang == "jax") {
+    if (gGlobal->isPythonBackend()) {
         return_string = return_string + "])";
         pushPostComputeDSPMethod(IB::genRetInst(IB::genLoadStackVar(return_string)));
     }
@@ -963,7 +963,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
         res = IB::genLoadStackVar(subst("*input$0", T(idx)));
     } else if (gGlobal->gOutputLang == "rust" && gGlobal->gInPlace) {
         res = IB::genLoadStackVar(subst("*io$0", T(idx)));
-    } else if (gGlobal->gOutputLang == "jax") {
+    } else if (gGlobal->isPythonBackend()) {
         res = IB::genLoadArrayStackVar("inputs", IB::genInt32NumInst(idx));
     } else if (gGlobal->gOneSampleIO) {
         res = IB::genLoadStructVar(subst("input$0", T(idx)));
@@ -1024,7 +1024,18 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
         // Add function declaration
         FunTyped* fun_type = IB::genFunTyped(args_types, genBasicFIRTyped(ffrestype(ff)));
         pushExtGlobalDeclare(IB::genDeclareFunInst(funname, fun_type));
-        return generateCacheCode(sig, IB::genFunCallInst(funname, args_value));
+
+        // For the NNX/Linen backends, skip caching for random_* functions to ensure independent streams
+        // Each call should generate fresh random values, not reuse cached results
+        bool is_random_ffun = gGlobal->isPythonBackend() && isNNXRandomFunction(funname);
+
+        if (is_random_ffun) {
+            // Don't cache - each call should be independent
+            return IB::genFunCallInst(funname, args_value);
+        } else {
+            // Normal caching behavior for other functions
+            return generateCacheCode(sig, IB::genFunCallInst(funname, args_value));
+        }
     } else {
         stringstream error;
         error << "ERROR : calling foreign function '" << funname << "'"
@@ -2552,6 +2563,12 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
             for (const auto& j : values) {
                 if (key == "url") {
                     url = prepareURL(j);
+                } else if (gGlobal->isPythonBackend()) {
+                    // The NNX/Linen backends forward widget metadata (e.g.
+                    // [param:1]) to the generated add_soundfile call; other
+                    // backends drop non-url soundfile metadata.
+                    pushUserInterfaceMethod(IB::genAddMetaDeclareInst(
+                        tree2str(varname), rmWhiteSpaces(key), rmWhiteSpaces(j)));
                 }
             }
         }

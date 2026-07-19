@@ -1038,7 +1038,7 @@ DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string&
     BlockInst* block = IB::genBlockInst();
     block->pushBackInst(fComputeBlockInstructions);
     // Hack for Julia
-    if (gGlobal->gOutputLang == "julia" || gGlobal->gOutputLang == "jax") {
+    if (gGlobal->gOutputLang == "julia" || gGlobal->isPythonBackend()) {
         block->pushBackInst(fCurLoop->generateSimpleScalarLoop("count"));
     } else {
         block->pushBackInst(fCurLoop->generateScalarLoop("count"));

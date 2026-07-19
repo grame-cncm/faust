@@ -2,3 +2,7 @@ librosa
 pytest
 scipy
 numpy
+tqdm
+jax
+jaxlib
+flax

@@ -1,0 +1,278 @@
+name: JAX Tests
+
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches: [ master-dev ]
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref (this workflow fires on every branch push).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-faust:
+    # Build Faust once and share with other jobs.
+    if: >-
+      github.repository_owner == 'grame-cncm'
+      || github.event_name == 'pull_request'
+      || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y build-essential cmake pkg-config libmicrohttpd-dev
+
+    - name: Build Faust
+      run: make
+
+    - name: Upload Faust build artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: faust-build
+        path: |
+          build/bin/
+          build/lib/
+          architecture/
+          libraries/
+        retention-days: 1
+
+  test-jax-impulse:
+    # Run JAX impulse tests against the dependency set resolved from pyproject.toml.
+    if: >-
+      github.repository_owner == 'grame-cncm'
+      || github.event_name == 'pull_request'
+      || github.event_name == 'workflow_dispatch'
+    needs: build-faust
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v8.3.2
+      with:
+        enable-cache: true
+        cache-dependency-glob: tests/jax-tests/pyproject.toml
+
+    - name: Download Faust build artifacts
+      uses: actions/download-artifact@v8
+      with:
+        name: faust-build
+
+    - name: Make binaries executable
+      run: chmod +x build/bin/*
+
+    - name: Run JAX impulse tests
+      run: |
+        uv sync --project tests/jax-tests
+        source tests/jax-tests/.venv/bin/activate
+        cd tests/impulse-tests
+        make filesCompare
+        make nnx
+
+  test-linen-impulse:
+    # Run Linen impulse tests against the dependency set resolved from pyproject.toml.
+    if: >-
+      github.repository_owner == 'grame-cncm'
+      || github.event_name == 'pull_request'
+      || github.event_name == 'workflow_dispatch'
+    needs: build-faust
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v8.3.2
+      with:
+        enable-cache: true
+        cache-dependency-glob: tests/jax-tests/pyproject.toml
+
+    - name: Download Faust build artifacts
+      uses: actions/download-artifact@v8
+      with:
+        name: faust-build
+
+    - name: Make binaries executable
+      run: chmod +x build/bin/*
+
+    - name: Run Linen impulse tests
+      run: |
+        uv sync --project tests/jax-tests
+        source tests/jax-tests/.venv/bin/activate
+        cd tests/impulse-tests
+        make filesCompare
+        make linen
+
+  test-jax-minimal:
+    # Test JAX compilation with the minimal.py architecture.
+    if: >-
+      github.repository_owner == 'grame-cncm'
+      || github.event_name == 'pull_request'
+      || github.event_name == 'workflow_dispatch'
+    needs: build-faust
+    runs-on: ubuntu-latest
+    env:
+      JAX_PLATFORMS: cpu
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v8.3.2
+      with:
+        enable-cache: true
+        cache-dependency-glob: tests/jax-tests/pyproject.toml
+
+    - name: Download Faust build artifacts
+      uses: actions/download-artifact@v8
+      with:
+        name: faust-build
+
+    - name: Make binaries executable
+      run: chmod +x build/bin/*
+
+    - name: Install Python dependencies
+      run: uv sync --project tests/jax-tests
+
+    - name: Run JAX minimal architecture tests
+      run: |
+        source tests/jax-tests/.venv/bin/activate
+        cd tests/jax-tests
+        make
+
+    - name: Run CI validation tests
+      run: |
+        source tests/jax-tests/.venv/bin/activate
+        cd tests/jax-tests
+        echo "Running CI validation tests..."
+        python test_ci_validation.py
+
+    - name: Run random_uniform tests
+      run: |
+        source tests/jax-tests/.venv/bin/activate
+        cd tests/jax-tests
+        echo "Testing random generation with JAX PRNG..."
+        make test-random_test test-random_uniform test-random_stereo
+
+    - name: Run delay line benchmarks
+      run: |
+        source tests/jax-tests/.venv/bin/activate
+        cd tests/jax-tests
+        echo "Running delay line optimization benchmarks..."
+        python benchmark_delays.py
+
+    - name: Upload benchmark results
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: jax-benchmark-results
+        path: tests/jax-tests/delay_benchmark_results.json
+        retention-days: 7
+
+    - name: Display benchmark summary
+      if: always()
+      run: |
+        source tests/jax-tests/.venv/bin/activate
+        cd tests/jax-tests
+        python display_benchmark_summary.py
+
+  test-jax-pytest:
+    # Run the pytest unit/integration suite.
+    if: >-
+      github.repository_owner == 'grame-cncm'
+      || github.event_name == 'pull_request'
+      || github.event_name == 'workflow_dispatch'
+    needs: build-faust
+    runs-on: ubuntu-latest
+    env:
+      JAX_PLATFORMS: cpu
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v8.3.2
+      with:
+        enable-cache: true
+        cache-dependency-glob: tests/jax-tests/pyproject.toml
+
+    - name: Download Faust build artifacts
+      uses: actions/download-artifact@v8
+      with:
+        name: faust-build
+
+    - name: Make binaries executable
+      run: chmod +x build/bin/*
+
+    - name: Install Python dependencies
+      run: uv sync --project tests/jax-tests
+
+    - name: Run pytest suite
+      run: |
+        source tests/jax-tests/.venv/bin/activate
+        cd tests/jax-tests
+        python -m pytest -q
+
+  test-jax-latest:
+    # On-demand (workflow_dispatch): run the pytest suite + minimal arch tests against
+    # the LATEST unpinned jax/flax releases to catch upstream regressions early.
+    if: github.event_name == 'workflow_dispatch'
+    needs: build-faust
+    runs-on: ubuntu-latest
+    env:
+      JAX_PLATFORMS: cpu
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Checkout submodules
+      run: git submodule update --init --recursive
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v8.3.2
+      with:
+        enable-cache: false
+
+    - name: Download Faust build artifacts
+      uses: actions/download-artifact@v8
+      with:
+        name: faust-build
+
+    - name: Make binaries executable
+      run: chmod +x build/bin/*
+
+    - name: Install latest dependencies
+      run: |
+        uv venv tests/jax-tests/.venv --python 3.11
+        source tests/jax-tests/.venv/bin/activate
+        uv pip install --upgrade jax jaxlib flax numpy scipy librosa tqdm optax pytest
+
+    - name: Run minimal architecture tests (latest deps)
+      run: |
+        source tests/jax-tests/.venv/bin/activate
+        cd tests/jax-tests
+        make
+
+    - name: Run pytest suite (latest deps)
+      run: |
+        source tests/jax-tests/.venv/bin/activate
+        cd tests/jax-tests
+        python -m pytest -q

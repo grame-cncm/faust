@@ -1,0 +1,25 @@
+[project]
+name = "faust-jax-tests"
+version = "0.0.0"
+description = "Dependency set for the Faust JAX/Flax backend test suites (jax-tests and impulse-tests)."
+requires-python = ">=3.11"
+
+# Runtime + test dependencies. No lockfile is committed: `uv sync` resolves the
+# latest compatible releases at install time.
+dependencies = [
+    "jax",
+    "jaxlib",
+    "flax",
+    "numpy",
+    "scipy",
+    "librosa",
+    "tqdm",
+    "optax",
+    "safetensors",
+    "pytest",
+]
+
+[tool.uv]
+# This project is a dependency aggregator for the test suites, not an installable
+# package, so don't try to build/install it during `uv sync`.
+package = false

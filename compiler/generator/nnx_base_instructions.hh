@@ -19,25 +19,150 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _JAX_INSTRUCTIONS_H
-#define _JAX_INSTRUCTIONS_H
+#ifndef _NNX_BASE_INSTRUCTIONS_H
+#define _NNX_BASE_INSTRUCTIONS_H
 
+#include <cstdio>
+#include <initializer_list>
+#include <map>
+#include <set>
 #include <string>
+#include <vector>
 
 #include "struct_manager.hh"
 #include "text_instructions.hh"
 
-// Visitor used to initialize array fields into the DSP structure
-struct JAXInitFieldsVisitor : public DispatchVisitor {
+// Foreign functions dispatched to the architecture's RNG helpers. An explicit
+// set, not a name-prefix match: the architectures implement exactly these.
+inline bool isNNXRandomFunction(const std::string& name)
+{
+    return name == "random_uniform" || name == "random_normal" ||
+           name == "random_exponential" || name == "random_bernoulli" || name == "random_beta";
+}
+
+/**
+ * Analysis pass that finds small struct arrays accessed only through constant
+ * indices — Faust's copy-delay pattern (the z^-1/z^-2 states of recursive
+ * filters). In the generated Python these arrays live in the scan carry and
+ * every per-sample update compiles to a `.at[k].set(...)` dynamic-update-slice;
+ * a handful of such arrays in the scan body makes XLA's while-loop fall off its
+ * in-place-update path (measured ~1000x slower per step on CPU). Arrays
+ * identified here are emitted as individual scalar carry entries
+ * ("fRec0_0", "fRec0_1", ...) with plain assignments instead.
+ *
+ * An array qualifies when it is a struct-level ArrayTyped declaration of size
+ * <= kMaxSize with no initializer, and every access anywhere in the emitted
+ * code is a single constant index. Any bare (whole-array) reference — e.g. the
+ * jnp.roll shift strategy or an IOTA-indexed circular buffer — disqualifies it.
+ */
+struct NNXScalarizeAnalysis : public DispatchVisitor {
+    static const int kMaxSize = 4;
+
+    std::map<std::string, int> fCandidates;  // array name -> size
+    std::set<std::string>      fExcluded;
+
+    using DispatchVisitor::visit;
+
+    void visit(DeclareVarInst* inst) override
+    {
+        ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
+        if (array_type && (inst->fAddress->isStruct() || inst->fAddress->isStaticStruct())) {
+            if (!inst->fValue && array_type->fSize > 0 && int(array_type->fSize) <= kMaxSize) {
+                fCandidates[inst->fAddress->getName()] = int(array_type->fSize);
+            } else {
+                fExcluded.insert(inst->fAddress->getName());
+            }
+            // The declaration itself is not an access: skip the address, but
+            // still analyse the initializer value if present.
+            if (inst->fValue) {
+                inst->fValue->accept(this);
+            }
+            return;
+        }
+        DispatchVisitor::visit(inst);
+    }
+
+    void visit(IndexedAddress* indexed) override
+    {
+        NamedAddress* named = dynamic_cast<NamedAddress*>(indexed->fAddress);
+        if (named) {
+            bool constant_single_index = (indexed->fIndices.size() == 1) &&
+                                         dynamic_cast<Int32NumInst*>(indexed->getIndex());
+            if (!constant_single_index) {
+                fExcluded.insert(named->fName);
+            }
+        } else {
+            // Multi-dimensional or otherwise nested addressing
+            indexed->fAddress->accept(this);
+        }
+        for (const auto& it : indexed->fIndices) {
+            it->accept(this);
+        }
+    }
+
+    // A bare (non-indexed) reference to a name: whole-array access
+    void visit(NamedAddress* named) override { fExcluded.insert(named->fName); }
+
+    std::map<std::string, int> scalarized() const
+    {
+        std::map<std::string, int> result;
+        for (const auto& it : fCandidates) {
+            if (fExcluded.find(it.first) == fExcluded.end()) {
+                result.insert(it);
+            }
+        }
+        return result;
+    }
+};
+
+/**
+ * Run NNXScalarizeAnalysis over every code block that will be emitted.
+ */
+inline std::map<std::string, int> nnxComputeScalarizedArrays(
+    std::initializer_list<BlockInst*> blocks)
+{
+    NNXScalarizeAnalysis analysis;
+    for (BlockInst* block : blocks) {
+        if (block) {
+            block->accept(&analysis);
+        }
+    }
+    return analysis.scalarized();
+}
+
+/**
+ * Base visitor for initializing array fields into the DSP structure during _initialize_carry().
+ * Subclasses (NNX and Linen) override visit(NamedAddress*) for params/state routing.
+ */
+struct NNXBaseInitFieldsVisitor : public DispatchVisitor {
     std::ostream* fOut;
     int           fTab;
 
-    JAXInitFieldsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
+    // Small copy-delay arrays emitted as scalar carry entries (name -> size)
+    std::map<std::string, int> fScalarizedArrays;
+
+    NNXBaseInitFieldsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
+
+    void setScalarizedArrays(const std::map<std::string, int>& arrays)
+    {
+        fScalarizedArrays = arrays;
+    }
 
     virtual void visit(DeclareVarInst* inst)
     {
         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_type) {
+            auto scalarized = fScalarizedArrays.find(inst->fAddress->getName());
+            if (scalarized != fScalarizedArrays.end()) {
+                // Emitted as one scalar state entry per element (never a UI
+                // param, so "state" routing is correct for NNX and Linen)
+                for (int i = 0; i < scalarized->second; i++) {
+                    tab(fTab, *fOut);
+                    *fOut << "state[\"" << scalarized->first << "_" << i << "\"] = ";
+                    ScalarZeroInitializer(fOut, inst->fType);
+                }
+                return;
+            }
             tab(fTab, *fOut);
             inst->fAddress->accept(this);
             *fOut << " = ";
@@ -49,28 +174,31 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
         }
     }
 
-    virtual void visit(NamedAddress* named)
-    {
-        // kStaticStruct are actually merged in the main DSP
-        if (named->isStruct() || named->isStaticStruct()) {
-            *fOut << "state[\"";
-        }
-        *fOut << named->fName;
-        if (named->isStruct() || named->isStaticStruct()) {
-            *fOut << "\"]";
-        }
-    }
+    // Pure virtual: subclasses route to params/state differently
+    virtual void visit(NamedAddress* named) = 0;
 
+    // Real-typed buffers follow the runtime `faust_float` constructor argument
+    // (this code is emitted inside _initialize_carry, where `self` is in scope),
+    // so passing faust_float=jnp.float64 yields a coherent float64 carry.
     static void ZeroInitializer(std::ostream* fOut, Typed* typed)
     {
         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(typed);
         faustassert(array_type);
         if (isIntPtrType(typed->getType())) {
             *fOut << "np.zeros((" << array_type->fSize << ",), dtype=np.int32)";
-        } else if (isFloatType(typed->getType())) {
-            *fOut << "np.zeros((" << array_type->fSize << ",), dtype=np.float32)";
         } else {
-            *fOut << "np.zeros((" << array_type->fSize << ",), dtype=np.float64)";
+            *fOut << "np.zeros((" << array_type->fSize << ",), dtype=self.faust_float)";
+        }
+    }
+
+    // 0-dim variant with the same dtype rules as ZeroInitializer, so a
+    // scalarized array element gets exactly the dtype its array would have had
+    static void ScalarZeroInitializer(std::ostream* fOut, Typed* typed)
+    {
+        if (isIntPtrType(typed->getType())) {
+            *fOut << "np.zeros((), dtype=np.int32)";
+        } else {
+            *fOut << "np.zeros((), dtype=self.faust_float)";
         }
     }
 
@@ -94,7 +222,7 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
             *fOut << sep << checkFloat(inst->fNumTable[i]);
             sep = ',';
         }
-        *fOut << "], dtype=np.float32)";
+        *fOut << "], dtype=self.faust_float)";
     }
 
     virtual void visit(DoubleArrayNumInst* inst)
@@ -105,50 +233,257 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
             *fOut << sep << checkDouble(inst->fNumTable[i]);
             sep = ',';
         }
-        *fOut << "], dtype=np.float64)";
+        *fOut << "], dtype=self.faust_float)";
     }
 };
 
-class JAXInstVisitor : public TextInstVisitor {
-   private:
+/**
+ * Collects a human-readable summary of the UI widgets (path, type, range,
+ * default, scale) from the user-interface instructions. Used by the NNX and
+ * Linen containers to emit the generated class docstring.
+ */
+struct NNXUIDocVisitor : public DispatchVisitor {
+    std::vector<std::string> fParams;      // input widgets (sliders, nentries, buttons, ...)
+    std::vector<std::string> fBargraphs;   // output-only widgets
+    std::vector<std::string> fSoundfiles;
+    std::vector<std::string> fPath;
+    std::set<std::string>    fLogSet;
+    std::set<std::string>    fExpSet;
+
+    // Strip "[key:value]" metadata and a leading "[N] " ordering prefix from a label.
+    static std::string cleanLabel(const std::string& label)
+    {
+        std::string out;
+        size_t      i = 0;
+        while (i < label.size()) {
+            if (label[i] == '[') {
+                size_t close = label.find(']', i);
+                if (close != std::string::npos) {
+                    i = close + 1;
+                    continue;
+                }
+            }
+            out += label[i++];
+        }
+        // Trim surrounding whitespace left over from removed brackets
+        size_t begin = out.find_first_not_of(" \t");
+        size_t end   = out.find_last_not_of(" \t");
+        return (begin == std::string::npos) ? "" : out.substr(begin, end - begin + 1);
+    }
+
+    static std::string num(double v)
+    {
+        char buf[32];
+        snprintf(buf, sizeof(buf), "%g", v);
+        return buf;
+    }
+
+    std::string fullLabel(const std::string& label)
+    {
+        std::string out;
+        for (const auto& part : fPath) {
+            out += part + "/";
+        }
+        return out + cleanLabel(label);
+    }
+
+    void visit(AddMetaDeclareInst* inst) override
+    {
+        if (inst->fKey == "scale") {
+            if (inst->fValue == "exp") {
+                fExpSet.emplace(inst->fZone);
+            } else if (inst->fValue == "log") {
+                fLogSet.emplace(inst->fZone);
+            }
+        }
+    }
+
+    void visit(OpenboxInst* inst) override { fPath.push_back(cleanLabel(inst->fName)); }
+
+    void visit(CloseboxInst* inst) override { fPath.pop_back(); }
+
+    void visit(AddButtonInst* inst) override
+    {
+        const char* type = (inst->fType == AddButtonInst::kCheckButton) ? "checkbox" : "button";
+        fParams.push_back(fullLabel(inst->fLabel) + " (" + type + ")");
+    }
+
+    void visit(AddSliderInst* inst) override
+    {
+        std::string type;
+        switch (inst->fType) {
+            case AddSliderInst::kHorizontal: type = "hslider"; break;
+            case AddSliderInst::kVertical:   type = "vslider"; break;
+            case AddSliderInst::kNumEntry:   type = "nentry"; break;
+        }
+        std::string scale =
+            fExpSet.count(inst->fZone) ? ", exp scale" : fLogSet.count(inst->fZone) ? ", log scale" : "";
+        fParams.push_back(fullLabel(inst->fLabel) + " (" + type + " in [" + num(inst->fMin) +
+                          ", " + num(inst->fMax) + "], default " + num(inst->fInit) + scale + ")");
+    }
+
+    void visit(AddBargraphInst* inst) override
+    {
+        const char* type = (inst->fType == AddBargraphInst::kVertical) ? "vbargraph" : "hbargraph";
+        fBargraphs.push_back(fullLabel(inst->fLabel) + " (" + type + " in [" + num(inst->fMin) +
+                             ", " + num(inst->fMax) + "])");
+    }
+
+    void visit(AddSoundfileInst* inst) override { fSoundfiles.push_back(fullLabel(inst->fLabel)); }
+};
+
+/**
+ * Emit the generated class docstring: DSP identity, audio I/O, and the UI
+ * parameter table collected by NNXUIDocVisitor. Shared by the NNX and Linen
+ * containers (`flavor` names the target module system).
+ */
+inline void nnxEmitClassDocstring(std::ostream* fOut, int n, const std::string& klass,
+                                  const char* flavor, int numInputs, int numOutputs,
+                                  const NNXUIDocVisitor& doc)
+{
+    tab(n + 1, *fOut);
+    *fOut << "\"\"\"" << klass << ": Faust DSP compiled to a " << flavor << " module.";
+    tab(n + 1, *fOut);
+    tab(n + 1, *fOut);
+    *fOut << "Audio I/O: " << numInputs << " in, " << numOutputs << " out.";
+    tab(n + 1, *fOut);
+    if (doc.fParams.empty()) {
+        tab(n + 1, *fOut);
+        *fOut << "This DSP has no input UI parameters.";
+        tab(n + 1, *fOut);
+    } else {
+        tab(n + 1, *fOut);
+        *fOut << "UI parameters (parameter dicts accept these full label paths, their";
+        tab(n + 1, *fOut);
+        *fOut << "Faust shortnames, or the internal zone names as keys):";
+        for (const auto& line : doc.fParams) {
+            tab(n + 1, *fOut);
+            *fOut << "- " << line;
+        }
+        tab(n + 1, *fOut);
+    }
+    if (!doc.fBargraphs.empty()) {
+        tab(n + 1, *fOut);
+        *fOut << "Output-only bargraphs:";
+        for (const auto& line : doc.fBargraphs) {
+            tab(n + 1, *fOut);
+            *fOut << "- " << line;
+        }
+        tab(n + 1, *fOut);
+    }
+    if (!doc.fSoundfiles.empty()) {
+        tab(n + 1, *fOut);
+        *fOut << "Soundfiles:";
+        for (const auto& line : doc.fSoundfiles) {
+            tab(n + 1, *fOut);
+            *fOut << "- " << line;
+        }
+        tab(n + 1, *fOut);
+    }
+    *fOut << "\"\"\"";
+    tab(n + 1, *fOut);
+}
+
+/**
+ * Base instruction visitor for NNX/Linen code generation.
+ *
+ * Contains all shared visit methods for both NNX and Linen backends.
+ * Subclasses override only visit(NamedAddress*) for different routing.
+ */
+class NNXBaseInstVisitor : public TextInstVisitor {
+   protected:
     /*
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static std::map<std::string, bool> gFunctionSymbolTable;
+    inline static std::map<std::string, bool> gFunctionSymbolTable;
 
     // Polymorphic math functions
     std::map<std::string, std::string> gPolyMathLibTable;
 
     // bool for "is storing left-hand-side".
-    // Suppose the output code will be `state['foo'] = bar`.
-    // This boolean indicates that we are starting this line but haven't yet reached the equals
-    // sign.
     bool fIsStoringLhs = false;
 
-    // bool for "will set array".
-    // jax has a special syntax for setting items of arrays:
-    // https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.ndarray.at.html
-    // This bool helps us know that we're going to use the .at[X] operator followed by the set(Y)
-    // operator. This bool is used in tandem with fIsStoringLhs.
+    // bool for "will set array" (JAX .at[X].set(Y) pattern).
     bool fWillSetArray = false;
 
-    // This bool is not related to fIsStoringLhs or fWillSetArray.
-    // It is used so that we don't cast to integers in the condition of a while (cond) loop.
+    // bool for "the current store targets a scalarized array element", so the
+    // value must be cast to the carry entry's dtype (see visit(StoreVarInst*)).
+    bool fIsScalarizedStore = false;
+
+    // Used so that we don't cast to integers in the condition of a while (cond) loop.
     bool fIsDoingWhile = false;
 
     std::set<std::string> fLogSet;  // set of widget zone having a log UI scale
     std::set<std::string> fExpSet;  // set of widget zone having an exp UI scale
 
+    // All [key:value] widget metadata declared per zone, forwarded to the
+    // generated add_nentry/add_soundfile calls as a Python dict. Labels stay
+    // clean (metadata-free) so the shared JSON/user-interface instructions are
+    // unaffected.
+    std::map<std::string, std::vector<std::pair<std::string, std::string>>> fMetaMap;
+
+   public:
+    // Set when a random_* foreign function call is emitted; the containers use it
+    // to emit the class-level `is_stochastic` flag, which lets the architecture
+    // skip per-sample RNG key threading for deterministic DSPs.
+    bool fUsesRandom = false;
+
+   protected:
+    // Emit a Python double-quoted string literal with proper escaping. Faust UI
+    // labels/URLs (and their embedded metadata, e.g. "[style:menu{...}]") may
+    // contain characters that are special inside a Python string ("\\", '"', ...);
+    // plain quote() would produce broken source, so escape them here.
+    static std::string pyStr(const std::string& s)
+    {
+        std::string out = "\"";
+        for (char c : s) {
+            switch (c) {
+                case '\\': out += "\\\\"; break;
+                case '"':  out += "\\\""; break;
+                case '\n': out += "\\n"; break;
+                case '\r': out += "\\r"; break;
+                case '\t': out += "\\t"; break;
+                default:   out += c; break;
+            }
+        }
+        out += "\"";
+        return out;
+    }
+
+    // Emit `, metadata={...}` for the zone's declared [key:value] metadata, or
+    // nothing when the zone has none.
+    void emitMetadataArg(const std::string& zone)
+    {
+        auto it = fMetaMap.find(zone);
+        if (it == fMetaMap.end() || it->second.empty()) {
+            return;
+        }
+        *fOut << ", metadata={";
+        const char* sep = "";
+        for (const auto& kv : it->second) {
+            *fOut << sep << pyStr(kv.first) << ": " << pyStr(kv.second);
+            sep = ", ";
+        }
+        *fOut << "}";
+    }
+
    public:
     using TextInstVisitor::visit;
 
-    // This bool indicates that we should use the numpy functions, so the prefix "np."
-    // If false, use jax.numpy "jnp."
-    // We want to use numpy when initializing arrays and sound files because it's faster than JAX.
+    // Use numpy functions (prefix "np.") when true, jax.numpy "jnp." when false.
     bool fUseNumpy = true;
 
-    JAXInstVisitor(std::ostream* out, const std::string& struct_name, int tab = 0)
+    // Small copy-delay arrays emitted as scalar carry entries (name -> size),
+    // computed by NNXScalarizeAnalysis over all emitted blocks.
+    std::map<std::string, int> fScalarizedArrays;
+
+    void setScalarizedArrays(const std::map<std::string, int>& arrays)
+    {
+        fScalarizedArrays = arrays;
+    }
+
+    NNXBaseInstVisitor(std::ostream* out, const std::string& struct_name, int tab = 0)
         : TextInstVisitor(out, ".", new JAXStringTypeManager(xfloat(), "*", struct_name), tab)
     {
         // Mark all math.h functions as generated...
@@ -276,14 +611,18 @@ class JAXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["exp2f"]  = "jnp.exp2";
         gPolyMathLibTable["exp10f"] = "jnp.exp10f";
         gPolyMathLibTable["floorf"] = "jnp.floor";
-        gPolyMathLibTable["fmodf"]  = "jnp.mod";
+        // jnp.fmod follows C fmodf (sign of the dividend); jnp.mod is Python's
+        // floored modulo and diverges for negative operands.
+        gPolyMathLibTable["fmodf"]  = "jnp.fmod";
         gPolyMathLibTable["logf"]   = "jnp.log";
         gPolyMathLibTable["log2f"]  = "jnp.log2";
         gPolyMathLibTable["log10f"] = "jnp.log10";
         gPolyMathLibTable["powf"]   = "jnp.power";
-        gPolyMathLibTable["remainderf"] =
-            "remainder";  // todo: we currently rely on a custom remainder implementation in the
-                          // architecture file.
+        // Do NOT change to jnp.remainder: that is floored modulo (sign of the
+        // divisor, same as jnp.mod / Python %). C's remainder() rounds the
+        // quotient to nearest (ties to even), so the code container emits a
+        // custom remainder(x, y) = x - round(x/y)*y that matches the reference.
+        gPolyMathLibTable["remainderf"] = "remainder";
         gPolyMathLibTable["rintf"]  = "jnp.rint";
         gPolyMathLibTable["roundf"] = "jnp.round";
         gPolyMathLibTable["sinf"]   = "jnp.sin";
@@ -317,14 +656,14 @@ class JAXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["exp2"]  = "jnp.exp2";
         gPolyMathLibTable["exp10"] = "jnp.exp10";
         gPolyMathLibTable["floor"] = "jnp.floor";
-        gPolyMathLibTable["fmod"]  = "jnp.mod";
+        // jnp.fmod follows C fmod (sign of the dividend); see the float version above.
+        gPolyMathLibTable["fmod"]  = "jnp.fmod";
         gPolyMathLibTable["log"]   = "jnp.log";
         gPolyMathLibTable["log2"]  = "jnp.log2";
         gPolyMathLibTable["log10"] = "jnp.log10";
         gPolyMathLibTable["pow"]   = "jnp.power";
-        gPolyMathLibTable["remainder"] =
-            "remainder";  // todo: we currently rely on a custom remainder implementation in the
-                          // architecture file.
+        // Do NOT change to jnp.remainder: see the remainderf note above.
+        gPolyMathLibTable["remainder"] = "remainder";
         gPolyMathLibTable["rint"]  = "jnp.rint";
         gPolyMathLibTable["round"] = "jnp.round";
         gPolyMathLibTable["sin"]   = "jnp.sin";
@@ -344,10 +683,11 @@ class JAXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["copysign"] = "jnp.copysign";
     }
 
-    virtual ~JAXInstVisitor() {}
+    virtual ~NNXBaseInstVisitor() {}
 
     virtual void visit(AddMetaDeclareInst* inst)
     {
+        fMetaMap[inst->fZone].push_back({inst->fKey, inst->fValue});
         if (inst->fKey == "scale") {
             if (inst->fValue == "exp") {
                 fExpSet.emplace(inst->fZone);
@@ -361,7 +701,7 @@ class JAXInstVisitor : public TextInstVisitor {
 
     virtual void visit(OpenboxInst* inst)
     {
-        *fOut << "ui_path.append(" << quote(inst->fName) << ")";
+        *fOut << "ui_path.append(" << pyStr(inst->fName) << ")";
         EndLine(' ');
     }
 
@@ -373,8 +713,10 @@ class JAXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddButtonInst* inst)
     {
-        *fOut << "self.add_button(state, " << quote(inst->fZone) << ", ui_path,"
-              << quote(inst->fLabel) << ")";
+        const char* method =
+            (inst->fType == AddButtonInst::kCheckButton) ? "add_checkbox" : "add_button";
+        *fOut << "self." << method << "(" << quote(inst->fZone) << ", ui_path, "
+              << pyStr(inst->fLabel) << ", unnorm_funcs)";
         EndLine(' ');
     }
 
@@ -391,42 +733,64 @@ class JAXInstVisitor : public TextInstVisitor {
 
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-            case AddSliderInst::kVertical:
                 // clang-format off
-                *fOut << "self.add_slider(state, " 
+                *fOut << "self.add_hslider("
                     << quote(inst->fZone) << ", ui_path, "
-                    << quote(inst->fLabel) << ", "
+                    << pyStr(inst->fLabel) << ", "
                     << checkReal(inst->fInit) << ", "
                     << checkReal(inst->fMin) << ", "
                     << checkReal(inst->fMax) << ", "
+                    << checkReal(inst->fStep) << ", unnorm_funcs, "
+                    << scaleMode << ")";
+                break;
+                // clang-format on
+            case AddSliderInst::kVertical:
+                // clang-format off
+                *fOut << "self.add_vslider("
+                    << quote(inst->fZone) << ", ui_path, "
+                    << pyStr(inst->fLabel) << ", "
+                    << checkReal(inst->fInit) << ", "
+                    << checkReal(inst->fMin) << ", "
+                    << checkReal(inst->fMax) << ", "
+                    << checkReal(inst->fStep) << ", unnorm_funcs, "
                     << scaleMode << ")";
                 break;
                 // clang-format on
             case AddSliderInst::kNumEntry:
                 // clang-format off
-                *fOut << "self.add_nentry(state, " 
+                *fOut << "self.add_nentry("
                     << quote(inst->fZone) << ", ui_path, "
-                    << quote(inst->fLabel) << ", "
+                    << pyStr(inst->fLabel) << ", "
                     << checkReal(inst->fInit) << ", "
                     << checkReal(inst->fMin) << ", "
                     << checkReal(inst->fMax) << ", "
-                    << checkReal(inst->fStep) << ")";
-                break;
+                    << checkReal(inst->fStep) << ", unnorm_funcs, "
+                    << scaleMode;
                 // clang-format on
+                emitMetadataArg(inst->fZone);
+                *fOut << ")";
+                break;
         }
         EndLine(' ');
     }
 
     virtual void visit(AddBargraphInst* inst)
     {
-        *fOut << "state[" + quote(inst->fZone) + "] = 0.";
+        const char* method =
+            (inst->fType == AddBargraphInst::kVertical) ? "add_vbargraph" : "add_hbargraph";
+        *fOut << "self." << method << "(" << quote(inst->fZone) << ", ui_path, "
+              << pyStr(inst->fLabel) << ", "
+              << checkReal(inst->fMin) << ", "
+              << checkReal(inst->fMax) << ", unnorm_funcs)";
         EndLine(' ');
     }
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        *fOut << "self.add_soundfile(state, " << quote(inst->fSFZone) << ", ui_path, "
-              << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", x)";
+        *fOut << "self.add_soundfile(" << quote(inst->fSFZone) << ", ui_path, "
+              << pyStr(inst->fLabel) << ", " << pyStr(inst->fURL) << ", unnorm_funcs";
+        emitMetadataArg(inst->fSFZone);
+        *fOut << ")";
         EndLine(' ');
     }
 
@@ -445,6 +809,9 @@ class JAXInstVisitor : public TextInstVisitor {
         *fOut << "], dtype=jnp.int32)";
     }
 
+    // Real-typed array literals follow the runtime `faust_float` constructor
+    // argument (emitted inside methods where `self` is in scope), matching the
+    // state buffers created in _initialize_carry.
     virtual void visit(FloatArrayNumInst* inst)
     {
         *fOut << "jnp.array(";
@@ -453,7 +820,7 @@ class JAXInstVisitor : public TextInstVisitor {
             *fOut << sep << checkFloat(inst->fNumTable[i]);
             sep = ',';
         }
-        *fOut << "], dtype=jnp.float32)";
+        *fOut << "], dtype=self.faust_float)";
     }
 
     virtual void visit(DoubleArrayNumInst* inst)
@@ -464,7 +831,7 @@ class JAXInstVisitor : public TextInstVisitor {
             *fOut << sep << checkDouble(inst->fNumTable[i]);
             sep = ',';
         }
-        *fOut << "], dtype=jnp.float64)";
+        *fOut << "], dtype=self.faust_float)";
     }
 
     virtual void visit(BinopInst* inst)
@@ -475,9 +842,15 @@ class JAXInstVisitor : public TextInstVisitor {
             *fOut << " ^ ";
             inst->fInst2->accept(this);
             *fOut << ")";
+        } else if (inst->fOpcode == kRem) {
+            // Python's % is floored modulo; C's integer % truncates toward zero
+            // (sign of the dividend). fmod implements the C semantics.
+            *fOut << (fUseNumpy ? "np" : "jnp") << ".fmod(";
+            inst->fInst1->accept(this);
+            *fOut << ", ";
+            inst->fInst2->accept(this);
+            *fOut << ")";
         } else {
-            // Operator prededence is not like C/C++, so for simplicity, we keep the fully
-            // parenthezid version
             *fOut << "(";
             inst->fInst1->accept(this);
             *fOut << " ";
@@ -488,8 +861,6 @@ class JAXInstVisitor : public TextInstVisitor {
 
             bool opCodeIsBoolean = inst->fOpcode >= kGT && inst->fOpcode <= kXOR;
             if (opCodeIsBoolean && !fIsDoingWhile) {
-                // these opcodes (>,>=,<,<= etc.) result in bools which should be re-cast to
-                // integers
                 *fOut << ".astype(jnp.int32)";
             }
         }
@@ -499,7 +870,7 @@ class JAXInstVisitor : public TextInstVisitor {
     {
         if (inst->fAddress->isStaticStruct()) {
             *fOut << fTypeManager->generateType(inst->fType, inst->getName());
-            // Allocation is actually done in JAXInitFieldsVisitor
+            // Allocation is actually done in NNXBaseInitFieldsVisitor
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->getName());
             if (inst->fValue) {
@@ -580,23 +951,31 @@ class JAXInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(NamedAddress* named)
-    {
-        // kStaticStruct are actually merged in the main DSP
-        if (named->isStruct() || named->isStaticStruct()) {
-            *fOut << "state[\"";
-        }
-        *fOut << named->fName;
-        if (named->isStruct() || named->isStaticStruct()) {
-            *fOut << "\"]";
-        }
-    }
+    // Pure virtual: subclasses route to params/state differently
+    virtual void visit(NamedAddress* named) = 0;
 
     /*
     Indexed address can actually be values in an array or fields in a struct type
     */
     virtual void visit(IndexedAddress* indexed)
     {
+        // Scalarized copy-delay array: access element i as the scalar state
+        // entry "name_i" with a plain assignment (no .at[].set()). The
+        // analysis guarantees every access uses a single constant index.
+        {
+            NamedAddress* named = dynamic_cast<NamedAddress*>(indexed->fAddress);
+            if (named && fScalarizedArrays.find(named->fName) != fScalarizedArrays.end()) {
+                Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->getIndex());
+                faustassert(field_index);
+                *fOut << "state[\"" << named->fName << "_" << field_index->fNum << "\"]";
+                fWillSetArray = false;
+                if (fIsStoringLhs) {
+                    fIsScalarizedStore = true;
+                }
+                return;
+            }
+        }
+
         if (fUseNumpy) {
             indexed->fAddress->accept(this);
             DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
@@ -647,18 +1026,44 @@ class JAXInstVisitor : public TextInstVisitor {
 
     virtual void visit(StoreVarInst* inst)
     {
-        fIsStoringLhs = true;
-        inst->fAddress->accept(this);
-        fIsStoringLhs = false;
-        *fOut << " = ";
+        // Check if this is a cache variable assignment (ends with "ca")
+        NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
+        bool isCacheVar = false;
+        if (named) {
+            std::string name = named->fName;
+            isCacheVar = (name.length() > 2 && name.substr(name.length() - 2) == "ca");
+        }
 
-        if (fWillSetArray) {
-            inst->fAddress->accept(this);
-            *fOut << ".set(";
+        if (isCacheVar) {
+            // For cache variables, create a local variable instead of storing to state
+            *fOut << named->fName << " = ";
             inst->fValue->accept(this);
-            *fOut << ")";
         } else {
-            inst->fValue->accept(this);
+            fIsStoringLhs = true;
+            inst->fAddress->accept(this);
+            fIsStoringLhs = false;
+            *fOut << " = ";
+
+            if (fWillSetArray) {
+                inst->fAddress->accept(this);
+                *fOut << ".set(";
+                inst->fValue->accept(this);
+                *fOut << ")";
+            } else if (fIsScalarizedStore) {
+                // Match .at[].set() semantics: coerce the value to the carry
+                // entry's dtype (e.g. a bare Python int literal would
+                // otherwise become int64 under jax_enable_x64 and change the
+                // carry pytree between scan iterations). A same-dtype astype
+                // is elided by XLA, so this costs nothing once compiled.
+                fIsScalarizedStore = false;
+                *fOut << (fUseNumpy ? "np" : "jnp") << ".asarray(";
+                inst->fValue->accept(this);
+                *fOut << ").astype(";
+                inst->fAddress->accept(this);
+                *fOut << ".dtype)";
+            } else {
+                inst->fValue->accept(this);
+            }
         }
 
         EndLine(' ');
@@ -667,11 +1072,21 @@ class JAXInstVisitor : public TextInstVisitor {
     virtual void visit(::CastInst* inst)
     {
         if (isIntType(inst->fType->getType())) {
-            *fOut << "jnp.int32(";
+            *fOut << (fUseNumpy ? "np.int32(" : "jnp.int32(");
             inst->fInst->accept(this);
             *fOut << ")";
         } else {
-            *fOut << fTypeManager->generateType(inst->fType) << "(";
+            // JAXStringTypeManager maps real types to "", so the cast must be
+            // spelled out here. In tick (jnp mode) follow the runtime
+            // `faust_float` dtype like the carry buffers do; in the numpy init
+            // code use the compiled precision directly, since a per-element
+            // self.faust_float() call inside a table-fill loop would create a
+            // JAX array on every iteration.
+            if (fUseNumpy) {
+                *fOut << ((itfloat() == Typed::kDouble) ? "np.float64(" : "np.float32(");
+            } else {
+                *fOut << "self.faust_float(";
+            }
             inst->fInst->accept(this);
             *fOut << ")";
         }
@@ -700,6 +1115,21 @@ class JAXInstVisitor : public TextInstVisitor {
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
     {
+        // Random foreign functions are dispatched to self.<name>() helpers with an
+        // RNG key injected as the first argument. Forward ALL DSP-provided arguments
+        // unchanged (rate, p, a/b, ...) rather than dropping them on unexpected arity:
+        // a wrong arity then fails loudly at runtime instead of silently using defaults.
+        if (isNNXRandomFunction(inst->fName)) {
+            fUsesRandom = true;
+            *fOut << "self." << inst->fName << "(rngs()";
+            if (inst->fArgs.size() > 0) {
+                *fOut << ", ";
+                generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+            }
+            *fOut << ")";
+            return;
+        }
+
         std::string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end())
                                ? gPolyMathLibTable[inst->fName]
                                : inst->fName;
@@ -778,9 +1208,6 @@ class JAXInstVisitor : public TextInstVisitor {
             *fOut << lower_bound->fNum << ":";
             Int32NumInst* upper_bound = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
             if (upper_bound) {
-                // If an Int32NumInst, we just generate it without any type information
-                // (see visit(Int32NumInst* inst) which adds type information that we don't want
-                // here)
                 *fOut << upper_bound->fNum;
             } else {
                 inst->fUpperBound->accept(this);

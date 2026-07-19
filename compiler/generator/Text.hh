@@ -253,6 +253,28 @@ inline std::string flattenJSON(const std::string& src)
     return dst;
 }
 
+// To be used for Python (NNX, Linen backends). The result is embedded in a
+// triple-quoted Python string passed to json.loads, so escape for the Python
+// string layer only: json.loads then receives the JSON exactly as generated.
+inline std::string flattenJSONforPython(const std::string& src)
+{
+    std::string dst;
+    for (size_t i = 0; i < src.size(); i++) {
+        switch (src[i]) {
+            case '"':
+                dst += "\\\"";
+                break;
+            case '\\':
+                dst += "\\\\";
+                break;
+            default:
+                dst += src[i];
+                break;
+        }
+    }
+    return dst;
+}
+
 // To be used for JavaScript
 inline std::string flattenJSON1(const std::string& src)
 {

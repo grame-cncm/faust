@@ -144,8 +144,8 @@ void initFaustFloat()
         floatmax[3] = 0x7FF0000000000000;
         floatmax[4] = 0x7F800000;
 
-        // Specific for JAX backend
-    } else if (gGlobal->gOutputLang == "jax") {
+        // Specific for NNX/Linen backends
+    } else if (gGlobal->isPythonBackend()) {
         numsuffix[0] = "";
         numsuffix[1] = "";
         numsuffix[2] = "";

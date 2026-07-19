@@ -24,7 +24,7 @@
 
 #include "instructions_compiler.hh"
 
-// To be used with JAX backend
+// To be used with the NNX and Linen backends
 
 class InstructionsCompilerJAX : public InstructionsCompiler {
    public:

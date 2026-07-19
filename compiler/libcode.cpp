@@ -97,8 +97,12 @@
 #include "java_code_container.hh"
 #endif
 
-#ifdef JAX_BUILD
-#include "jax_code_container.hh"
+#ifdef NNX_BUILD
+#include "nnx_code_container.hh"
+#endif
+
+#ifdef LINEN_BUILD
+#include "linen_code_container.hh"
 #endif
 
 #ifdef JULIA_BUILD
@@ -650,13 +654,13 @@ static void compileJSFX(Tree signals, int numInputs, int numOutputs, ostream* ou
 
 static void compileJAX(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
-#ifdef JAX_BUILD
+#ifdef NNX_BUILD
     gGlobal->gAllowForeignFunction =
         true;  // foreign functions are supported (we use jax.random.PRNG for example)
     gGlobal->gNeedManualPow =
         false;  // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gFAUSTFLOAT2Internal = true;
-    gContainer = JAXCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    gContainer = NNXCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
 
     if (gGlobal->gVectorSwitch) {
         gNewComp = new DAGInstructionsCompiler(gContainer);
@@ -669,7 +673,33 @@ static void compileJAX(Tree signals, int numInputs, int numOutputs, ostream* out
     }
     gNewComp->compileMultiSignal(signals);
 #else
-    throw faustexception("ERROR : -lang jax not supported since JAX backend is not built\n");
+    throw faustexception("ERROR : -lang nnx not supported since NNX backend is not built\n");
+#endif
+}
+
+static void compileLinen(Tree signals, int numInputs, int numOutputs, ostream* out)
+{
+#ifdef LINEN_BUILD
+    gGlobal->gAllowForeignFunction =
+        true;  // foreign functions are supported (we use jax.random.PRNG for example)
+    gGlobal->gNeedManualPow =
+        false;  // Standard pow function will be used in pow(x,y) when y in an integer
+    gGlobal->gFAUSTFLOAT2Internal = true;
+    gContainer =
+        LinenCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+
+    if (gGlobal->gVectorSwitch) {
+        gNewComp = new DAGInstructionsCompiler(gContainer);
+    } else {
+        gNewComp = new InstructionsCompilerJAX(gContainer);
+    }
+
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) {
+        gNewComp->setDescription(new Description());
+    }
+    gNewComp->compileMultiSignal(signals);
+#else
+    throw faustexception("ERROR : -lang linen not supported since Linen backend is not built\n");
 #endif
 }
 
@@ -1113,8 +1143,10 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileRust(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "java") {
         compileJava(signals, numInputs, numOutputs, gDst.get());
-    } else if (gGlobal->gOutputLang == "jax") {
+    } else if (gGlobal->gOutputLang == "nnx") {
         compileJAX(signals, numInputs, numOutputs, gDst.get());
+    } else if (gGlobal->gOutputLang == "linen") {
+        compileLinen(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "temp") {
         compileTemplate(signals, numInputs, numOutputs, gDst.get());
     } else if (gGlobal->gOutputLang == "asc") {
