@@ -1,4 +1,4 @@
-% man(1) Version 2.86.1 (15-July-2026) | Faust man page
+% man(1) Version 2.86.2 (19-July-2026) | Faust man page
 
 NAME
 ====
@@ -113,6 +113,8 @@ Code generation options:
   **-mem3**       **--memory-manager3**           use iControl/fControl, iZone/fZone model and no explicit memory manager with access as function parameters.
 
   **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
+
+  **-hlf** \<n>    **--hash-load-factor** \<n>      load factor that triggers tlib hash table growth (0.7 by default) ; internal compiler tuning knob, never changes generated code, see TLIB.md.
 
   **-rui**        **--range-ui**                  whether to generate code to constraint vslider/hslider/nentry values in [min..max] range.
 
