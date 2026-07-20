@@ -28,7 +28,8 @@ def print_usage() -> None:
     print("Usage:")
     print("faust2wwise file.dsp [options] [wwise options]")
     print("")
-    print("Platform: Windows/MSYS2/macOS with Wwise SDK")
+    print("Host-Platforms: Windows/MSYS2/macOS with Wwise SDK")
+    print("Target-Platforms: Android, Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC, Mac")
     print("")
     print("Requirements: Wwise SDK, Faust compiler, Python")
     print("")
@@ -55,7 +56,7 @@ def print_wwise_help() -> None:
     print("Wwise Plugin Options:")
     print("")
     print(" Common options for both Premake and Build:")
-    print("  --platform <platform>           platform to premake (Android, Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC)")
+    print("  --platform <platform>           platform to premake (Android, Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC, Mac)")
     print("  --in-place                      Use in-place processing (default). Uses the same audio buffer for input and output; suitable for most effects without data flow changes")
     print("  --out-of-place                  Use out-of-place processing. Requires separate input and output buffers; needed for effects like time-stretching that alter data flow")
     print("")
@@ -103,21 +104,21 @@ def detect_arch(cfg) -> str:
     else:
         sys.stderr.write(
             f"[Error] Unknown or unsupported architecture: '{arch}'.\n"
-            "Please verify if Wwise supports this platform and if yes, update the detect_arch() function to handle this platform .\n"
+            "Please verify if Wwise supports this architecture and if yes, update the detect_arch() function to handle this target architecture.\n"
         )
         sys.exit(cfg.ERR_ENVIRONMENT)
 
 def check_cross_compilation_enabled(cfg, parsed_args:argparse.Namespace, cursys: str) -> bool:
     """
-    Checks if cross compilation is enabled based on the explicit selection of platform in the command line arguments. 
+    Checks if cross compilation is enabled based on the explicit selection of target platform in the command line arguments. 
     Cross compilation is enabled if either of the following conditions are met:
     1) If the explicitly selected platform is among the supported cross-compilation platforms.
-    2) If the user has explicitly specified a target platform that is different from the current system platform (i.e. compile for Mac on Windows).
+    2) If the user has explicitly specified a target platform that is different from the current system host platform (i.e. compile for Mac on Windows).
 
     Args:
         cfg (Config): The configuration object to modify.
         parsed_args (argparse.Namespace): Parsed arguments from argparse.
-        cursys (str): The current system platform as returned by platform.system().
+        cursys (str): The current host platform as returned by platform.system().
     
     Returns:
         bool: True if cross compilation is enabled, False otherwise.
@@ -141,16 +142,16 @@ def os_dependent_setup(cfg, parsed_args:argparse.Namespace) -> None:
     """
     Checks if cross compilation is selected. In not, then:
     Applies os-specific configuration to the given config object.
-    Sets the default Wwise platform and toolset based on the current operating system 
+    Sets the default Wwise target platform and toolset based on the current operating system (host platform)
     and the parsed command-line arguments.
 
     - On Windows:
         - Uses the specified toolset if provided.
-        - Otherwise, selects a default based on the Wwise platform.
+        - Otherwise, selects a default based on the Wwise target platform.
         - Sets the default Wwise platform to "Authoring".
     - On macOS:
         - Disables toolset usage.
-        - Sets the default Wwise platform to "Mac".
+        - Sets the default Wwise target platform to "Mac".
         
     Args:
         cfg (Config): The configuration object to modify.
@@ -177,7 +178,7 @@ def os_dependent_setup(cfg, parsed_args:argparse.Namespace) -> None:
             cfg.wwise_toolset = "vc170"
         print(f"[WARNING] Using default toolset '{cfg.wwise_toolset}' — it would be better to override it with --toolset command line option.")
     
-    # set default platform
+    # set default target platform
     if cursys == "Darwin":
         cfg.wwise_platform = "Mac"  # default platform for MacOs
     elif cursys == "Windows":
@@ -193,7 +194,7 @@ def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
         parsed_args (argparse.Namespace): Parsed arguments from argparse.
     """
     
-    # Overwrite any platform specific defaults in case explicit platform is passed as an argument
+    # Overwrite any target platform specific defaults in case explicit platform is passed as an argument
     if parsed_args.platform:
         cfg.wwise_platform = parsed_args.platform
 
@@ -352,9 +353,9 @@ def wwise_platform_and_toolset_compatible(cfg) -> bool:
 
     """
     Ensures that platform and toolset are compatible (on Windows only):
-    - If no toolset is provided, a default is assigned based on the platform.
+    - If no toolset is provided, a default is assigned based on the host platform.
     - If an invalid combination is detected, the function returns False.
-    - On non-Windows platforms, the toolset (if specified) is ignored with a warning.
+    - On non-Windows host platforms, the toolset (if specified) is ignored with a warning.
 
     Args:
         cfg (Config): The configuration object.

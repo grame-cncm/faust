@@ -12,7 +12,8 @@ Additionally, `faust2wwise` ships with the `Faust Interpreter Wwise Plugin`, a W
 
 Following the `faust2xxx` model, Faust-compiled code is integrated into Wwise using the `wp` script and template files provided by the Wwise SDK, along with a patch-based Python method for plugin generation.
 
-Supported platforms include Windows, MSYS2, and macOS (via implicit support for the Sound Engine portion only).
+Supported **host platforms** include Windows, MSYS2, and macOS (via implicit support for the Sound Engine portion only).
+Supported **target platforms** include Windows, macOS and Android.These are the platforms for which Wwise plugins can be generated.
 
 ## Supported Features
 
@@ -61,7 +62,7 @@ The way this work is orchestrated follows a multi-step process, where each phase
 - **FAUST**
   - The `Faust` compiler must be available in your system **PATH**.
 - **Wwise SDK (Versions >=2024 and <=2025)**
-  - make sure Wwise dependencies are installed (see [Windows-Specific Information](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=windows_specificinfo.html) and [Mac-Specific Information](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=mac_specificinfo.html), as enlisted in **Release Notes**, under **{Platform} {Wwise-Version}** page. For instance, for the Wwise `2024.1.12` version, see [Windows Release Notes --> Windows 2024.1.12](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=windows_releasenotes_2024_1_12.html).
+  - make sure Wwise dependencies are installed (see [Windows-Specific Information](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=windows_specificinfo.html), [Mac-Specific Information](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=mac_specificinfo.html) or [Android-Specific Information](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=android_specificinfo.html), as enlisted in **Release Notes**, under **{Platform} {Wwise-Version}** page. For instance, for the Wwise `2024.1.12` version, see [Windows Release Notes --> Windows 2024.1.12](https://www.audiokinetic.com/en/public-library/2025.1.9_9197/?source=SDK&id=windows_releasenotes_2024_1_12.html).
   - `WWISEROOT` must also be exposed system-wide.
 - **Python (>=3.9)**
 - **Console access with admin rights**
@@ -104,9 +105,9 @@ faust2wwise myfilter.dsp -double --out-of-place
 
 *Type `faust2wwise --help` to view all the available command-line options.*
 
-### Specifying platform and architecture targets (and toolsets) 
+### Specifying target platform and architecture targets (and toolsets) 
 
-Building Wwise projects through `faust2wwise` is automatically configured for **Windows** and **MacOS** using predefined default settings based on the host operating system. This behaviour is implemented for convenience, allowing rapid conversions in a non cross-compilation setting. 
+Building Wwise projects through `faust2wwise` is automatically configured for **Windows** and **MacOS** using predefined default settings based on the host operating system. This behaviour is implemented for convenience, when the host platform is the same with the target platform, allowing rapid conversions in a non cross-compilation setting. 
 
 However, passing explicit arguments is recommended, especially for custom builds, or when targeting a specific compiler toolset, architecture, or platform.
 
@@ -210,7 +211,7 @@ Test results are stored in the current working directory under the `myF2Wtests/`
 
 > Important: Because `faust2wwise test` make system calls that attempt to access environmental variables that require admin rights and also installs or uninstalls plugins in system-level Wwise directories, it must be run from a console with **administrative rights**.
 
-> Note: Testing on **macOS** is possible but not supported out-of-the-box due to Wwise Authoring plug-in constraints. Running `faust2wwise` requires building parts of the plug-in on Windows and manually copying files between platforms. Additionally, the`--clean` option is currently not supported on **macOS**, as the installation directory cannot be reliably determined. For more details, refer to the [Limitations](#limitations) section on macOS support.
+> Note: Testing on **macOS** is possible but not supported out-of-the-box due to Wwise Authoring plug-in constraints. Running `faust2wwise` requires building parts of the plug-in on Windows and manually copying files between host platforms. Additionally, the`--clean` option is currently not supported on **macOS**, as the installation directory cannot be reliably determined. For more details, refer to the [Limitations](#limitations) section on macOS support.
 
 **Compiling Faust examples from the official Faust repo**
 
@@ -263,7 +264,7 @@ This is a common error and it typically means that the DSP file has already been
 <details>
 <summary>fatal error: <code>faust/dsp/dsp.h</code> file not found</summary>
 <br>
-This error is observed on <strong>macOS</strong> platform and usually occurs when the Faust include path is misconfigured—most often, the leading <code>/</code> is missing  (e.g., <code>usr/local/include</code> instead of <code>/usr/local/include</code>), causing the compiler to fail. To fix this, open the project in Xcode, go to <strong>Build Settings -> Search Paths -> Header Search Paths</strong>, and manually correct the path by ensuring it begins with a <code>/</code>. Then continue building the plugin using Xcode.
+This error is observed on <strong>macOS</strong> host platform and usually occurs when the Faust include path is misconfigured—most often, the leading <code>/</code> is missing  (e.g., <code>usr/local/include</code> instead of <code>/usr/local/include</code>), causing the compiler to fail. To fix this, open the project in Xcode, go to <strong>Build Settings -> Search Paths -> Header Search Paths</strong>, and manually correct the path by ensuring it begins with a <code>/</code>. Then continue building the plugin using Xcode.
 </details>
 
 <br>

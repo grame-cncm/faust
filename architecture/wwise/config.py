@@ -74,7 +74,7 @@ class Config:
         self.install_location = None
         # Wwise versioning and cross compilation support
         self.supportedWwiseVersions = ["2024", "2025"]      # TODO Expand this on future development that enable support for previous/later Wwise versions 
-        self.crossCompilationSupportedPlatforms = ["Android"] # TODO Expand this on future development to enable support for other platforms (Sony, Nintendo, Mac on Windows etc.)
+        self.crossCompilationSupportedPlatforms = ["Android"] # TODO Expand this on future development to enable support for other target platforms (Sony, Nintendo, Mac on Windows etc.)
         self.crossCompilationEnabled = False
 
         # temp path
