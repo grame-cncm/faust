@@ -729,8 +729,16 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const string& name_app
                 llvm_dynamic_dsp_factory_aux* factory_aux =
                     static_cast<llvm_dynamic_dsp_factory_aux*>(createFactory(
                         name_app, dsp_content, argv1.size() - 1, argv1.data(), error_msg, true));
-                if (factory_aux && factory_aux->initJIT(error_msg)) {
+                // setTarget() must precede initJIT(): initJIT() reads fTarget to
+                // pick the triple and mcpu, and an empty fTarget makes it fall
+                // back to sys::getHostCPUName(). Setting it afterwards left the
+                // JIT host-tuned whatever target the caller asked for. The
+                // bitcode/IR entry points already pass the target through the
+                // factory constructor, i.e. before initJIT().
+                if (factory_aux) {
                     factory_aux->setTarget(target);
+                }
+                if (factory_aux && factory_aux->initJIT(error_msg)) {
                     factory_aux->setOptlevel(opt_level);
                     factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
                     factory_aux->setName(name_app);
@@ -766,8 +774,11 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const string& name_ap
 
         llvm_dynamic_dsp_factory_aux* factory_aux = static_cast<llvm_dynamic_dsp_factory_aux*>(
             createFactory(name_app, signals, argv1.size() - 1, argv1.data(), error_msg));
-        if (factory_aux && factory_aux->initJIT(error_msg)) {
+        // See the note above: setTarget() must precede initJIT().
+        if (factory_aux) {
             factory_aux->setTarget(target);
+        }
+        if (factory_aux && factory_aux->initJIT(error_msg)) {
             factory_aux->setOptlevel(opt_level);
             factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
             factory_aux->setName(name_app);
