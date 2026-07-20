@@ -61,7 +61,7 @@ def print_wwise_help() -> None:
     print("  --out-of-place                  Use out-of-place processing. Requires separate input and output buffers; needed for effects like time-stretching that alter data flow")
     print("")
     print(" New:")
-    print("  --with-test-project             configure with test-project : a preconfigured unit test project (Wwise 2025 only)")
+    print("  --with-test-project             configure with test-project : a preconfigured unit test project (Wwise 2025 and 2026 only)")
     print("")
     print(" Premake:")
     print("  --toolset <toolset>             toolset used to build on Windows platforms (vc160, vc170).")
@@ -213,7 +213,7 @@ def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
         cfg.wwise_arch = detect_arch(cfg)
 
     if parsed_args.with_test_project:
-        if (cfg.patch_version != "2025"):
+        if (cfg.patch_version not in ["2025", "2026"]):
             print(f"WARNING: --with option is only supported for Wwise 2025 and above. Ignoring it.\n")
         else:
             cfg.wwise_with_test_project = "test-project"

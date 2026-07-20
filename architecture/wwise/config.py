@@ -67,13 +67,14 @@ class Config:
         # Wwise paths
         self.wwiseroot = wwiseroot                  # Root dir of the Wwise installation
         self.wp_script = os.path.join(self.wwiseroot, 'Scripts', 'Build', 'Plugins', 'wp.py')
-        self.patch_version = str(wwiseroot).split("Wwise")[1][:4] # Derived from wwise version and used for defining the wwise_template_dir
+        # self.patch_version = str(wwiseroot).split("Wwise")[1][:4] # Derived from wwise version and used for defining the wwise_template_dir
+        self.patch_version = str(wwiseroot).split("Wwise")[1].lstrip("_")[:4] # .lstrip("_") only for testing releases marked as "NOT FOR PRODUCTION", where the WWISEROOT dir is named with an intermediate underscore( _ ), i.e. Wwise_2026.1.2.9249
         self.wwise_template_dir = None              # Directory where the template files are stored
         # Project paths
         self.build_location = None
         self.install_location = None
         # Wwise versioning and cross compilation support
-        self.supportedWwiseVersions = ["2024", "2025"]      # TODO Expand this on future development that enable support for previous/later Wwise versions 
+        self.supportedWwiseVersions = ["2024", "2025", "2026"]      # TODO Expand this on future development that enable support for previous/later Wwise versions 
         self.crossCompilationSupportedPlatforms = ["Android"] # TODO Expand this on future development to enable support for other target platforms (Sony, Nintendo, Mac on Windows etc.)
         self.crossCompilationEnabled = False
 
@@ -91,7 +92,7 @@ class Config:
         self.wwise_platform = None
         self.wwise_plugin_interface = None          
         self.wwise_toolset = None
-        self.wwise_with_test_project = "none"        # avail in Wwise 2025
+        self.wwise_with_test_project = "none"        # avail in Wwise >= 2025
         self.wwise_debugger = False
         self.wwise_disable_codesign = False
         self.wwise_configuration = "Release"        # default
@@ -159,7 +160,7 @@ class Config:
         print(f"platform {self.wwise_platform}")
         if self.wwise_toolset:
             print(f"toolset {self.wwise_toolset}")
-        if self.patch_version == "2025":
+        if self.patch_version in ["2025", "2026"]:
             print(f"with_test_project {self.wwise_with_test_project}")
         if self.wwise_debugger:
             print(f"debugger {self.wwise_debugger}")

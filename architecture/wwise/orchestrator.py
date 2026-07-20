@@ -195,7 +195,7 @@ class Faust2WwiseOrchestrator:
             "--no-prompt"
         ]
 
-        if self.patch_version == "2025":
+        if self.patch_version in ["2025", "2026"]:
             cmd.extend(["--with", self.wwise_with_test_project])
 
         if self.wwise_plugin_interface == "out-of-place":
