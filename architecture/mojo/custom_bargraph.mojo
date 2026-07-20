@@ -28,7 +28,7 @@ from gui.control import ControlGui
 # ==============================================================================
 
 comptime dreal = f64
-comptime wreal = S32(simd_width_of[dreal]())
+comptime wreal = simd_width_of[dreal]()
 comptime Real = Scalar[dreal]
 comptime RVec = Vec[dreal]
 
@@ -105,7 +105,7 @@ struct mydsp(FaustDsp):
 
     @always_inline
     def get_json(read dsp) -> String:
-        return "{\"name\": \"custom_bargraph\",\"filename\": \"custom_bargraph.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench/src\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench/src\"],\"size\": 76,\"inputs\": 1,\"outputs\": 8,\"meta\": [ { \"compile_options\": \"-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"custom_bargraph.dsp\" },{ \"name\": \"custom_bargraph\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"custom_bargraph\",\"items\": [ {\"type\": \"hslider\",\"label\": \"controls/gain_h\",\"varname\": \"fHslider0\",\"shortname\": \"controls_gain_h\",\"address\": \"/custom_bargraph/controls_gain_h\",\"meta\": [{ \"0\": \"\" }],\"init\": 0.5,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"hbargraph\",\"label\": \"meters/b0_hbar\",\"varname\": \"fHbargraph0\",\"shortname\": \"meters_b0_hbar\",\"address\": \"/custom_bargraph/meters_b0_hbar\",\"meta\": [{ \"10\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b1_vbar\",\"varname\": \"fVbargraph0\",\"shortname\": \"meters_b1_vbar\",\"address\": \"/custom_bargraph/meters_b1_vbar\",\"meta\": [{ \"11\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"hbargraph\",\"label\": \"meters/b2_hbar\",\"varname\": \"fHbargraph1\",\"shortname\": \"meters_b2_hbar\",\"address\": \"/custom_bargraph/meters_b2_hbar\",\"meta\": [{ \"12\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b3_vbar\",\"varname\": \"fVbargraph1\",\"shortname\": \"meters_b3_vbar\",\"address\": \"/custom_bargraph/meters_b3_vbar\",\"meta\": [{ \"13\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vslider\",\"label\": \"controls/gain_v\",\"varname\": \"fVslider0\",\"shortname\": \"controls_gain_v\",\"address\": \"/custom_bargraph/controls_gain_v\",\"meta\": [{ \"1\": \"\" }],\"init\": 0.25,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"nentry\",\"label\": \"controls/bias_n\",\"varname\": \"fEntry0\",\"shortname\": \"controls_bias_n\",\"address\": \"/custom_bargraph/controls_bias_n\",\"meta\": [{ \"2\": \"\" }],\"init\": 0,\"min\": -1,\"max\": 1,\"step\": 0.001},{\"type\": \"checkbox\",\"label\": \"controls/gate_c\",\"varname\": \"fCheckbox0\",\"shortname\": \"controls_gate_c\",\"address\": \"/custom_bargraph/controls_gate_c\",\"meta\": [{ \"3\": \"\" }]},{\"type\": \"button\",\"label\": \"controls/trig_b\",\"varname\": \"fButton0\",\"shortname\": \"controls_trig_b\",\"address\": \"/custom_bargraph/controls_trig_b\",\"meta\": [{ \"4\": \"\" }]}]}]}"
+        return "{\"name\": \"custom_bargraph\",\"filename\": \"custom_bargraph.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"src\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/src\"],\"size\": 76,\"inputs\": 1,\"outputs\": 8,\"meta\": [ { \"compile_options\": \"-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"custom_bargraph.dsp\" },{ \"name\": \"custom_bargraph\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"custom_bargraph\",\"items\": [ {\"type\": \"hslider\",\"label\": \"controls/gain_h\",\"varname\": \"fHslider0\",\"shortname\": \"controls_gain_h\",\"address\": \"/custom_bargraph/controls_gain_h\",\"meta\": [{ \"0\": \"\" }],\"init\": 0.5,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"hbargraph\",\"label\": \"meters/b0_hbar\",\"varname\": \"fHbargraph0\",\"shortname\": \"meters_b0_hbar\",\"address\": \"/custom_bargraph/meters_b0_hbar\",\"meta\": [{ \"10\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b1_vbar\",\"varname\": \"fVbargraph0\",\"shortname\": \"meters_b1_vbar\",\"address\": \"/custom_bargraph/meters_b1_vbar\",\"meta\": [{ \"11\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"hbargraph\",\"label\": \"meters/b2_hbar\",\"varname\": \"fHbargraph1\",\"shortname\": \"meters_b2_hbar\",\"address\": \"/custom_bargraph/meters_b2_hbar\",\"meta\": [{ \"12\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vbargraph\",\"label\": \"meters/b3_vbar\",\"varname\": \"fVbargraph1\",\"shortname\": \"meters_b3_vbar\",\"address\": \"/custom_bargraph/meters_b3_vbar\",\"meta\": [{ \"13\": \"\" }],\"min\": -2,\"max\": 2},{\"type\": \"vslider\",\"label\": \"controls/gain_v\",\"varname\": \"fVslider0\",\"shortname\": \"controls_gain_v\",\"address\": \"/custom_bargraph/controls_gain_v\",\"meta\": [{ \"1\": \"\" }],\"init\": 0.25,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"nentry\",\"label\": \"controls/bias_n\",\"varname\": \"fEntry0\",\"shortname\": \"controls_bias_n\",\"address\": \"/custom_bargraph/controls_bias_n\",\"meta\": [{ \"2\": \"\" }],\"init\": 0,\"min\": -1,\"max\": 1,\"step\": 0.001},{\"type\": \"checkbox\",\"label\": \"controls/gate_c\",\"varname\": \"fCheckbox0\",\"shortname\": \"controls_gate_c\",\"address\": \"/custom_bargraph/controls_gate_c\",\"meta\": [{ \"3\": \"\" }]},{\"type\": \"button\",\"label\": \"controls/trig_b\",\"varname\": \"fButton0\",\"shortname\": \"controls_trig_b\",\"address\": \"/custom_bargraph/controls_trig_b\",\"meta\": [{ \"4\": \"\" }]}]}]}"
 
     @always_inline
     def metadata(read dsp, mut meta: Some[FaustMeta]) -> None:
@@ -141,7 +141,9 @@ struct mydsp(FaustDsp):
         mut dsp, var count: S32, var inputs: ReadStreams, var outputs: MutaStreams
     ) -> None:
         comptime assert dfaust == DType.float32, "Expected 32 bit float driver precision."
-        var input0_ptr = inputs[S32(0)]
+        var lo: SIMD[dfaust, simd_width_of[f64]()]
+        var hi: SIMD[dfaust, simd_width_of[f64]()]
+        var var input0_ptr = inputs[S32(0)]
         var output0_ptr = outputs[S32(0)]
         var output1_ptr = outputs[S32(1)]
         var output2_ptr = outputs[S32(2)]
@@ -163,7 +165,6 @@ struct mydsp(FaustDsp):
         var slow10 = (slow5) + ((slow3) + (slow4))
         # Main loop 
         vindex_re0 = S32(0)
-
         while (vindex_re0) <= ((count) - (S32(4))): 
             var input0 = Ptr(to=input0_ptr[vindex_re0])
             var output0 = Ptr(to=output0_ptr[vindex_re0])
@@ -174,59 +175,59 @@ struct mydsp(FaustDsp):
             var output5 = Ptr(to=output5_ptr[vindex_re0])
             var output6 = Ptr(to=output6_ptr[vindex_re0])
             var output7 = Ptr(to=output7_ptr[vindex_re0])
-            var vsize_re0 = S32(4)
+            comptime vsize_re0 = S32(4)
             # Vectorizable loop 0 
             # Compute code 
             var i_re0 = S32(0)
-            var values0 = ((slow0) + ((slow1) * ((simd_load(input0, i_re0)).cast[f64]()))).cast[dfaust]()
-            dsp.hbargraph0 = values0[SInt(wfaust) - 1]
-            simd_store(output0, i_re0, values0)
+            var value0 = ((slow0) + ((slow1) * ((vload(input0)).cast[f64]()))).cast[dfaust]()
+            dsp.hbargraph0 = value0[wfaust - 1]
+            vstore(output0, i_re0, value0)
             # Vectorizable loop 1 
             # Compute code 
             var i_re1 = S32(0)
-            var values1 = (((slow2) * ((simd_load(input0, i_re1)).cast[f64]())) - (slow0)).cast[dfaust]()
-            dsp.vbargraph0 = values1[SInt(wfaust) - 1]
-            simd_store(output1, i_re1, values1)
+            var value1 = (((slow2) * ((vload(input0)).cast[f64]())) - (slow0)).cast[dfaust]()
+            dsp.vbargraph0 = value1[wfaust - 1]
+            vstore(output1, i_re1, value1)
             # Vectorizable loop 2 
             # Compute code 
             var i_re2 = S32(0)
-            var values2 = ((slow3) * ((simd_load(input0, i_re2)).cast[f64]())).cast[dfaust]()
-            dsp.hbargraph1 = values2[SInt(wfaust) - 1]
-            simd_store(output2, i_re2, values2)
+            var value2 = ((slow3) * ((vload(input0)).cast[f64]())).cast[dfaust]()
+            dsp.hbargraph1 = value2[wfaust - 1]
+            vstore(output2, i_re2, value2)
             # Vectorizable loop 3 
             # Compute code 
             var i_re3 = S32(0)
-            var values3 = ((slow6) * ((simd_load(input0, i_re3)).cast[f64]())).cast[dfaust]()
-            dsp.vbargraph1 = values3[SInt(wfaust) - 1]
-            simd_store(output3, i_re3, values3)
+            var value3 = ((slow6) * ((vload(input0)).cast[f64]())).cast[dfaust]()
+            dsp.vbargraph1 = value3[wfaust - 1]
+            vstore(output3, i_re3, value3)
             # Vectorizable loop 4 
             # Compute code 
             var i_re4 = S32(0)
-            var lo0 = ((slow7) * ((slow0) + ((simd_load(input0, i_re4)).cast[f64]()))).cast[dfaust]()
-            var hi0 = ((slow7) * ((slow0) + ((simd_load(input0, i_re4 + S32(wreal))).cast[f64]()))).cast[dfaust]()
-            var values4  = lo0.join(hi0)
-            simd_store(output4, i_re4, values4)
+            lo = ((slow7) * ((slow0) + ((vload[w64](input0)).cast[f64]()))).cast[dfaust]()
+            hi = ((slow7) * ((slow0) + ((vload[w64](input0, S32(w64))).cast[f64]()))).cast[dfaust]()
+            var value4 = lo.join(hi)
+            vstore(output4, S32(0), value4)
             # Vectorizable loop 5 
             # Compute code 
             var i_re5 = S32(0)
-            var lo1 = ((slow8) * (((simd_load(input0, i_re5)).cast[f64]()) - (slow0))).cast[dfaust]()
-            var hi1 = ((slow8) * (((simd_load(input0, i_re5 + S32(wreal))).cast[f64]()) - (slow0))).cast[dfaust]()
-            var values5  = lo1.join(hi1)
-            simd_store(output5, i_re5, values5)
+            lo = ((slow8) * (((vload[w64](input0)).cast[f64]()) - (slow0))).cast[dfaust]()
+            hi = ((slow8) * (((vload[w64](input0, S32(w64))).cast[f64]()) - (slow0))).cast[dfaust]()
+            var value5 = lo.join(hi)
+            vstore(output5, S32(0), value5)
             # Vectorizable loop 6 
             # Compute code 
             var i_re6 = S32(0)
-            var lo2 = ((slow9) * ((simd_load(input0, i_re6)).cast[f64]())).cast[dfaust]()
-            var hi2 = ((slow9) * ((simd_load(input0, i_re6 + S32(wreal))).cast[f64]())).cast[dfaust]()
-            var values6  = lo2.join(hi2)
-            simd_store(output6, i_re6, values6)
+            lo = ((slow9) * ((vload[w64](input0)).cast[f64]())).cast[dfaust]()
+            hi = ((slow9) * ((vload[w64](input0, S32(w64))).cast[f64]())).cast[dfaust]()
+            var value6 = lo.join(hi)
+            vstore(output6, S32(0), value6)
             # Vectorizable loop 7 
             # Compute code 
             var i_re7 = S32(0)
-            var lo3 = ((slow10) * ((simd_load(input0, i_re7)).cast[f64]())).cast[dfaust]()
-            var hi3 = ((slow10) * ((simd_load(input0, i_re7 + S32(wreal))).cast[f64]())).cast[dfaust]()
-            var values7  = lo3.join(hi3)
-            simd_store(output7, i_re7, values7)
+            lo = ((slow10) * ((vload[w64](input0)).cast[f64]())).cast[dfaust]()
+            hi = ((slow10) * ((vload[w64](input0, S32(w64))).cast[f64]())).cast[dfaust]()
+            var value7 = lo.join(hi)
+            vstore(output7, S32(0), value7)
             vindex_re0 = (vindex_re0) + (S32(4))
 
 # ==============================================================================

@@ -170,23 +170,41 @@ public:
 
     void visit(CastInst* inst)       override;
     void visit(DoubleNumInst* inst)  override;
+    void visit(DeclareVarInst* inst) override;
     void visit(FloatNumInst* inst)   override;
     void visit(ForLoopInst* inst)    override;
     void visit(IndexedAddress* inst) override;
     void visit(Int32NumInst* inst)   override;
     void visit(NamedAddress* inst)   override;
     void visit(IfInst* inst)         override;
+    void visit(StoreVarInst* inst)   override;
 
 protected:
 
     // Visitor wrappers
-    void writeBargraphUpdate(ForLoopInst* inst, VString idx, VString dwidth);
-    void visitStore(StoreVarInst* inst, VString idx);
+    void visitBroadcast(StoreVarInst* inst)
+    {
+        mj_simd_emit_set(true);
+        *fOut << "var " << gCurValue << " = ";
+        inst->fValue->accept(this);
+        *fOut << wnextl(fTab) << "vstore[wfaust](" << gCurAddrs << ", " << gCurIndex << ", " << gCurValue << ")";
+        mj_simd_emit_restore();
+        return;
+    }
+    void visitBargraphUpdate(ForLoopInst* inst);
+    void visitBargraphMulti(ForLoopInst* inst);
+    void visitJoin(StoreVarInst* inst);
+    void visitStore(StoreVarInst* inst);
+    void visitLoop(ForLoopInst* inst);
 
     // Global state
     static inline b32    gSIMDEmit;
     static inline b32    gSIMDJoin;
-    static inline String gValuesID;
+    static inline s32    gSIMDSize;
+    static inline String gCurValue;
+    static inline String gCurWidth;
+    static inline String gCurIndex;
+    static inline String gCurAddrs;
 
     // Helpers
     static b32 hasWrappedIndex(Address* addr);
@@ -196,7 +214,7 @@ protected:
     static b32 isScalarValue(ValueInst* inst);
     static b32 isVectorizable(Address* addr);
     static b32 isVectorizable(ValueInst* inst);
-    static b32 isJoineable(StoreVarInst* inst);
+    static b32 isJoinable(StoreVarInst* inst);
 };
 
 }       // namespace mojo

@@ -554,14 +554,10 @@ void MojoInitFieldsVisitor::gZeroInitializer(OStream* out, Typed* typed) {
 // Global
 
 String MojoInstVisitor::gToFaustFloat(String const& str)
-{
-    return "FaustFloat(" + str + ")";
-}
+{   return "FaustFloat(" + str + ")";   }
 
 void MojoInstVisitor::cleanup()
-{
-    gFuncSymTable.clear();
-}
+{   gFuncSymTable.clear();   }
 
 MathLibTable MojoInstVisitor::gCreateMathLibTable()
 {
@@ -653,3 +649,4 @@ MathLibTable MojoInstVisitor::gCreateMathLibTable()
 }
 
 } // namespace mojo
+

@@ -142,9 +142,11 @@ struct mydsp(FaustDsp):
         while vindex_re0 <= count - S32(4):
             var input0 = Ptr(to=input0_ptr[vindex_re0])
             var output0 = Ptr(to=output0_ptr[vindex_re0])
+
             comptime for i in range(S32(0), S32(4), w64):
                 var values0 = simd_load(dsp.rec0_perm, S32(i))
                 simd_store(rec0_tmp, S32(i), values0)
+
             comptime for i in range(S32(4)):
                 zec0[i] = slow4 * rec0[i - S32(1)]
                 rec0[i] = F64(input0[i]) - (slow2 * ((slow3 * rec0[i - S32(2)]) - zec0[i]))

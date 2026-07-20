@@ -29,8 +29,8 @@ comptime f32 = F32.dtype
 comptime f64 = F64.dtype
 
 # SIMD width constants
-comptime w32 = S32(simd_width_of[f32]())
-comptime w64 = S32(simd_width_of[f64]())
+comptime w32 = simd_width_of[f32]()
+comptime w64 = simd_width_of[f64]()
 
 # Builtin types aliases
 comptime Res = Tuple
@@ -45,7 +45,7 @@ comptime F64Vec = Vec[f64]
 
 # FaustFloat architecture constants and type aliases
 comptime dfaust = get_defined_dtype["DFAUST", DType.float32]()
-comptime wfaust = S32(simd_width_of[dfaust]())
+comptime wfaust = simd_width_of[dfaust]()
 comptime FaustFloat = Scalar[dfaust]
 comptime FVec = Vec[dfaust]
 

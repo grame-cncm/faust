@@ -77,7 +77,7 @@ void MojoCodeContainer::writeDRealDefinitions()
     } else {
         mj_panic(false, "Unsupported float size: " << gGlobal->gFloatSize);
     }
-    *fOut << "comptime wreal = S32(simd_width_of[dreal]())\n";
+    *fOut << "comptime wreal = simd_width_of[dreal]()\n";
     *fOut << "comptime Real = Scalar[dreal]\n";
     *fOut << "comptime RVec = Vec[dreal]\n";
 }
@@ -439,7 +439,9 @@ void MojoVecCodeContainer::writeCompute(int n)
     n += 1;
     gVectorProducer->Tab(n);
     *fOut << R"(comptime assert dfaust == DType.float32, "Expected 32 bit float driver precision.")";
-    *fOut << wnextl(n);
+    *fOut << wnextl(n) << "var lo: SIMD[dfaust, simd_width_of[f64]()]";
+    *fOut << wnextl(n) << "var hi: SIMD[dfaust, simd_width_of[f64]()]";
+    *fOut << wnextl(n) << "var ";
     LoopVariableRenamer loop_renamer;
     BlockInst* loop = loop_renamer.getCode(fDAGBlock);
     loop->fCode.pop_front();  // main index initalized visiting the instruction
