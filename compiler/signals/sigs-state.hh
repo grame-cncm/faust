@@ -55,6 +55,14 @@ struct State {
     int                                         gSignalCounter{};
     std::vector<std::string>                    gSignalTrace{};
     int                                         gCountInferences{};
+    // Instrumentation for the planned kContainsRec optimization : count the inferences run
+    // on a rec-free node that ALREADY carried a type. Those are exactly the ones the
+    // optimization would skip, since nothing below such a node can move during a fixpoint
+    // iteration. gCountRecFreeChanged counts how many of them nevertheless produced a
+    // DIFFERENT type -- it must stay at 0, otherwise the hypothesis is wrong.
+    int                                         gCountRecFreeRedundant{};
+    int                                         gCountRecFreeChanged{};
+    bool                                        gTypeStatistics{};  // print them after typeAnnotation
     int                                         gCountMaximal{};
     int                                         gAllocationCount{};  // Internal signal types counter
     bool                                        gCausality{};  // FIXME: global used as a parameter of typeAnnotation when true trigs

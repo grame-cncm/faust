@@ -57,6 +57,7 @@ static TupletType* maximalRecType(Tree t);
 static Type T(Tree term, Tree env);
 
 static Type inferSigType(Tree sig, Tree env);
+static void annotationStatistics();
 static Type inferFFType(Tree ff, Tree ls, Tree env);
 static Type inferFConstType(Tree type);
 static Type inferFVarType(Tree type);
@@ -339,6 +340,10 @@ void typeAnnotation(Tree sig, bool causality)
     // type full term
     T(sig, sigs::g.NULLTYPEENV);
     TRACE(cerr << "type success : " << endl << "BYE" << endl;)
+
+    if (sigs::g.gTypeStatistics) {
+        annotationStatistics();
+    }
 }
 
 /**
@@ -350,6 +355,15 @@ static void annotationStatistics()
          << clock() / CLOCKS_PER_SEC << 's' << endl;
     cerr << sigs::g.TABBER << "COUNT ALLOCATION " << sigs::g.gAllocationCount << endl;
     cerr << sigs::g.TABBER << "COUNT MAXIMAL " << sigs::g.gCountMaximal << endl;
+    // Redundant = inferences run on a rec-free node that already had a type : what the
+    // kContainsRec optimization would save. Changed must stay 0.
+    cerr << sigs::g.TABBER << "COUNT RECFREE-REDUNDANT " << sigs::g.gCountRecFreeRedundant
+         << " (" << (sigs::g.gCountInferences ? (100 * sigs::g.gCountRecFreeRedundant)
+                                                    / sigs::g.gCountInferences
+                                              : 0)
+         << "% of inferences)" << endl;
+    cerr << sigs::g.TABBER << "COUNT RECFREE-CHANGED   " << sigs::g.gCountRecFreeChanged
+         << (sigs::g.gCountRecFreeChanged ? "  <-- HYPOTHESIS BROKEN" : "  (as expected)") << endl;
 }
 
 /**
@@ -431,7 +445,22 @@ static Type T(Tree term, Tree ignoreenv)
         return ty;
 
     } else {
+        // Instrumentation (measure only, behaviour unchanged) : a rec-free node that
+        // already carries a type is one the planned optimization would return directly,
+        // because no recursive node below it can move during a fixpoint iteration. Record
+        // how many such re-inferences happen, and verify the type really is unchanged
+        // rather than assuming it.
+        Type previous = term->isRecFree() ? getSigType(term) : nullptr;
+
         Type ty = inferSigType(term, ignoreenv);
+
+        if (previous) {
+            sigs::g.gCountRecFreeRedundant++;
+            if (previous != ty) {
+                sigs::g.gCountRecFreeChanged++;
+            }
+        }
+
         setSigType(term, ty);
         term->setVisited();
         TRACE(cerr << --sigs::g.TABBER << "EXIT 2 T() " << ppsig(term, MAX_ERROR_SIZE)

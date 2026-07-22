@@ -522,6 +522,11 @@ void global::reset()
 
     gLocalCausalityCheck = false;
     gCausality           = false;
+    // Temporary probe for the kContainsRec work : gated by an env var rather than a CLI
+    // option, because -d prints the whole signal expression and is unusable on big files.
+    sigs::g.gTypeStatistics = (getenv("FAUST_TYPE_STATS") != nullptr);
+    sigs::g.gCountRecFreeRedundant = 0;
+    sigs::g.gCountRecFreeChanged   = 0;
 
     gOccurrences = nullptr;
     gFoldingFlag = false;
