@@ -29,6 +29,7 @@
 #include <utility>
 #include <vector>
 
+#include "DirectedGraphAlgorythm.hh"
 #include "export.hh"
 #include "tlib-error.hh"
 #include "tlib.hh"
