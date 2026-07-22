@@ -2350,6 +2350,14 @@ string global::printHelp()
             "2:mask based (fastest)]."
          << endl;
     sstr << tab
+         << "             mode 2 bitcasts float/double values and tests their IEEE-754 "
+            "exponent; zero/subnormal values become +0.0."
+         << endl;
+    sstr << tab
+         << "             exponent masks: binary32 0x7F800000 (2139095040), binary64 "
+            "0x7FF0000000000000 (9218868437227405312)."
+         << endl;
+    sstr << tab
          << "-hlf <n>    --hash-load-factor <n>      load factor that triggers tlib hash table "
             "growth (0.7 by default) ; internal compiler tuning knob, never changes generated "
             "code, see TLIB.md."

@@ -720,6 +720,12 @@ Tree SignalFTZPromotion::selfRec(Tree l)
         if (gGlobal->gFTZMode == 1) {
             return sigSelect2(sigGT(sigAbs(l), sigReal(inummin())), sigReal(0.0), l);
         } else if (gGlobal->gFTZMode == 2) {
+            // Bitcast the recursive value and test only its IEEE-754 exponent field.
+            // An all-zero exponent denotes zero or a subnormal, which is replaced by +0.0;
+            // normal values, infinities, and NaNs have a nonzero exponent and are preserved.
+            // The generated integer literals are printed in decimal:
+            //   binary32: 0x7F800000         = 2139095040
+            //   binary64: 0x7FF0000000000000 = 9218868437227405312
             if (gGlobal->gFloatSize == 1) {
                 return sigSelect2(sigAND(sigBitCast(l), sigInt(inummax())), sigReal(0.0), l);
             } else if (gGlobal->gFloatSize == 2) {
