@@ -176,22 +176,20 @@ class TLIB_API CTree : public Garbageable {
     plist*       fProperties;   ///< lazily allocated; nullptr means no property set
     std::size_t  fHashKey;      ///< the hashtable key
     std::size_t  fSerial;       ///< the increasing serial number
-    int          fAperture;     ///< how "open" is a tree (synthesized field)
-    unsigned int fVisitTime;    ///< keep track of visits
-    tvec         fBranch;       ///< the subtrees
+    // fAperture and fContains share one 32-bit word : a deBruijn depth never comes close to
+    // 24 bits, which buys 8 synthesized flag bits for free (sizeof(CTree) stays 112).
+    // fAperture stays SIGNED : calcTreeAperture returns br[0]->fAperture - 1 on a rec node,
+    // which can be negative.
+    int          fAperture : 24;  ///< how "open" is a tree (synthesized field)
+    unsigned int fContains : 8;   ///< kinds of constructs occurring here or below (synthesized)
+    unsigned int fVisitTime;      ///< keep track of visits
+    tvec         fBranch;         ///< the subtrees
 
-    CTree()
-        : fNext(nullptr),
-          fType(nullptr),
-          fFastProperty(nullptr),
-          fProperties(nullptr),
-          fHashKey(0),
-          fSerial(0),
-          fAperture(0),
-          fVisitTime(0)
-    {
-    }
-    ///< construction is private, uses tree::make instead
+    ///< construction is private, uses tree::make instead.
+    ///< There is deliberately NO default constructor : every CTree must go through a
+    ///< constructor that computes fContains. A zero-initialized fContains would read as
+    ///< "contains nothing", i.e. the optimistic value, and a fold would then wrongly skip
+    ///< fixpoint iteration on a recursive subtree.
     CTree(std::size_t hk, const Node& n, const tvec& br);
     CTree(std::size_t hk, const Node& n, int ar, const Tree br[]);
 
@@ -205,9 +203,33 @@ class TLIB_API CTree : public Garbageable {
     static std::size_t calcTreeHash(const Node& n, int ar, const Tree br[]);
     static int calcTreeAperture(const Node& n, const tvec& br);  ///< compute how open is a tree
     static int calcTreeAperture(const Node& n, int ar, const Tree br[]);
+    ///< compute the kinds occurring in a tree. Defined in recursive-tree.cpp, next to
+    ///< calcTreeAperture, because that is where the recursive node symbols live.
+    static unsigned int calcTreeContains(const Node& n, const tvec& br);
+    static unsigned int calcTreeContains(const Node& n, int ar, const Tree br[]);
 
    public:
     virtual ~CTree();
+
+    // Synthesized set of construct kinds occurring in a tree (itself included).
+    //
+    // CONVENTION : each bit means "this kind occurs here or below", and bits combine by
+    // UNION over the branches :
+    //
+    //     kinds(t) = {kind(t)} U (U_i kinds(branch_i))
+    //
+    // so a single word-wide |= folds every present and future bit at once, a leaf is
+    // naturally 0 (contains nothing), and adding a bit costs no change to the combining
+    // loop -- only a new rule in calcTreeContains. Do NOT mix in a bit with the opposite
+    // ("free of X") polarity : the uniform rule is worth more than per-bit optimality.
+    // Accessors may of course read either way (see isRecFree below).
+    //
+    // These 8 bits are tlib-level : a bit's rule must be decidable from the node alone,
+    // inside recursive-tree.cpp. A consumer-level notion (a Faust table, a clock node...)
+    // would need a registered hook, which does not exist today.
+    enum : unsigned int {
+        kContainsRec = 1u << 0,  ///< a recursive node (SYMREC, DEBRUIJN or DEBRUIJNREF) occurs
+    };
 
     static Tree make(const Node& n, int ar,
                      const Tree br[]);  ///< return a new tree or an existing equivalent one
@@ -230,10 +252,26 @@ class TLIB_API CTree : public Garbageable {
     }  ///< return how "open" is a tree in terms of free variables
     void setAperture(int a) { fAperture = a; }  ///< modify the aperture of a tree
 
+    unsigned int contains() const { return fContains; }  ///< the raw set of kinds
+
+    ///< true iff a recursive node occurs in this tree
+    bool containsRec() const { return (fContains & kContainsRec) != 0; }
+
+    ///< true iff NO recursive node occurs in this tree, in either notation (symbolic or
+    ///< deBruijn). Such a tree is its own sym2deBruijn image, and -- the reason this is
+    ///< worth a synthesized bit -- a bottom-up fold over it reaches its final value in one
+    ///< pass : it can never change during a fixpoint iteration.
+    bool isRecFree() const { return (fContains & kContainsRec) == 0; }
+
     // Print a tree and the hash table (for debugging purposes)
     std::ostream& print(
         std::ostream& fout) const;  ///< print recursively the content of a tree on a stream
     static void control();          ///< print the hash table content (for debug purpose)
+
+    ///< Test/debug : recompute the synthesized kind bits of EVERY live tree by an
+    ///< independent traversal and compare them with the value stored at construction.
+    ///< Returns the number of mismatches (0 when the synthesized attribute is sound).
+    static std::size_t checkContainsInvariant();
 
     static void init();
 
@@ -409,9 +447,10 @@ Tree lift(Tree t);  ////< add 1 to the free de bruijn references of t
 Tree deBruijn2Sym(Tree t);  ////< transform a tree from deBruijn to symbolic representation
 Tree deBruijn2SymCached(Tree t);  ////< deBruijn2Sym with a persistent tree-property cache
 Tree sym2deBruijn(Tree t);  ////< transform a tree from symbolic to deBruijn representation
-bool isSym2deBruijnInvariant(Tree t);  ////< true iff sym2deBruijn(t) == t (no symbolic
-                                       ////< recursive node reachable through branches);
-                                       ////< environment-independent, memoized per node
+bool isSym2deBruijnInvariant(Tree t);  ////< true iff sym2deBruijn(t) == t. Now a corollary
+                                       ////< of the synthesized kContainsRec bit : see
+                                       ////< CTree::isRecFree(), which is what to call in
+                                       ////< new code -- this name only records the theorem
 bool areEquiv(Tree a, Tree b);  ////< alpha-equivalence of recursive trees
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);

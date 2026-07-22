@@ -197,6 +197,7 @@ CTree::CTree(size_t hk, const Node& n, int ar, const Tree br[])
       fHashKey(hk),
       fSerial(++gSerialCounter),
       fAperture(calcTreeAperture(n, ar, br)),
+      fContains(calcTreeContains(n, ar, br)),
       fVisitTime(0),
       fBranch()
 {

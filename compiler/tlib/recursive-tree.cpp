@@ -47,7 +47,6 @@ static Sym  gSubstituteSym   = nullptr;
 static Sym  gSymLiftnSym     = nullptr;
 static Tree gRecDefKey       = nullptr;
 static Tree gDeBruijn2SymKey = nullptr;
-static Tree gSym2DebInvKey   = nullptr;
 
 static inline void initRecSymbols()
 {
@@ -74,14 +73,6 @@ static inline Tree debruijn2symKey()
     return gDeBruijn2SymKey;
 }
 
-static inline Tree sym2debInvariantKey()
-{
-    if (gSym2DebInvKey == nullptr) {
-        gSym2DebInvKey = tree(symbol("sym2deBruijnInvariant"));
-    }
-    return gSym2DebInvKey;
-}
-
 // Internal hook used by tlib::init()/cleanup() (see tlib.cpp)
 void tlibResetRecInternals()
 {
@@ -92,7 +83,6 @@ void tlibResetRecInternals()
     gSymLiftnSym     = nullptr;
     gRecDefKey       = nullptr;
     gDeBruijn2SymKey = nullptr;
-    gSym2DebInvKey   = nullptr;
     initRecSymbols();
 }
 
@@ -248,6 +238,81 @@ int CTree::calcTreeAperture(const Node& n, int ar, const Tree br[])
         }
         return rc;
     }
+}
+
+//-----------------------------------------------------------------------------------------
+// The kinds occurring in a tree : a synthesized set, unioned over the branches (see the
+// CONVENTION note on CTree::kContainsRec in tree.hh).
+//
+// Defined here rather than in tree.cpp because this is where the recursive node symbols
+// live -- the same arrangement calcTreeAperture already uses.
+//
+// SOUNDNESS DURING INITIALIZATION : the three symbols are nullptr until initRecSymbols()
+// runs, so a tree built before that compares equal to none of them and gets kContainsRec
+// clear. That is correct, not a race : building a recursive node requires passing the
+// symbol to tree(), so a pre-init tree provably is not one, and cannot contain one.
+// calcTreeAperture already relies on exactly this argument.
+//
+// SOUNDNESS UNDER MUTATION : a symbolic rec node carries its body as a PROPERTY, attached
+// after construction. The rule below never reads properties -- only the node and the
+// branches, both fixed at construction -- so the bit cannot go stale. A rec node is caught
+// by its own symbol, whether it occurs as a definition or as a reference (in symbolic form
+// the two are the same node), so "no recursive node below" really does mean the subtree is
+// a finite, recursion-free DAG.
+
+unsigned int CTree::calcTreeContains(const Node& n, const tvec& br)
+{
+    return calcTreeContains(n, int(br.size()), br.empty() ? nullptr : br.data());
+}
+
+unsigned int CTree::calcTreeContains(const Node& n, int ar, const Tree br[])
+{
+    // Union, never replacement : the node's own kind is added to what the branches carry,
+    // so a rule for one bit can never discard another bit's information.
+    unsigned int c =
+        (n == gSymRecSym || n == gDebruijnSym || n == gDebruijnRefSym) ? kContainsRec : 0;
+    for (int i = 0; i < ar; ++i) {
+        c |= br[i]->contains();
+    }
+    return c;
+}
+
+// Test/debug : recompute the kind bits of every live tree by an independent traversal and
+// compare with what the constructor stored. This is the real safety net for a synthesized
+// attribute -- it validates the bits on every tree the test suite ever built, not just on
+// the handful a hand-written test remembers to check.
+static unsigned int recomputeContains(Tree t, std::unordered_map<Tree, unsigned int>& memo)
+{
+    auto it = memo.find(t);
+    if (it != memo.end()) {
+        return it->second;
+    }
+    const Node&  n = t->node();
+    unsigned int c =
+        (n == gSymRecSym || n == gDebruijnSym || n == gDebruijnRefSym) ? CTree::kContainsRec : 0;
+    // Insert before descending : a shared subtree may be reached again, and the branch DAG
+    // is acyclic (a symbolic rec keeps its body in a property, not in a branch).
+    memo[t]         = c;
+    const int ar    = t->arity();
+    for (int i = 0; i < ar; ++i) {
+        c |= recomputeContains(t->branch(i), memo);
+    }
+    memo[t] = c;
+    return c;
+}
+
+std::size_t CTree::checkContainsInvariant()
+{
+    std::unordered_map<Tree, unsigned int> memo;
+    std::size_t                            mismatches = 0;
+    for (std::size_t i = 0; i < gHashTableSize; i++) {
+        for (Tree t = gHashTable[i]; t; t = t->fNext) {
+            if (recomputeContains(t, memo) != t->contains()) {
+                mismatches++;
+            }
+        }
+    }
+    return mismatches;
 }
 
 // lift(t) : increase free references by 1
@@ -416,36 +481,20 @@ static int symbolicLevel(Tree var, Tree env)
     return 0;
 }
 
-// A tree is INVARIANT by sym2deBruijn (sym2deBruijn(t) == t) iff no symbolic
-// recursive node is reachable through its branches : every other node then
-// reconstructs to itself by hash-consing. The attribute is synthesized
-// (structural, environment-independent, fixed at construction) and memoized
-// as a persistent tree property. It could eventually become a bit
-// synthesized at construction time, like fAperture.
+// A tree is INVARIANT by sym2deBruijn (sym2deBruijn(t) == t) when no symbolic recursive
+// node is reachable through its branches : every other node reconstructs to itself by
+// hash-consing.
+//
+// This used to be a lazily memoized tree property. It is now a corollary of the
+// synthesized kContainsRec bit : isRecFree() is slightly stronger (it also excludes
+// deBruijn recursive nodes), so using it here is sound. It would only be less precise on
+// a MIXED tree -- symbolic and deBruijn recursive nodes in the same term -- which the
+// conversion never sees : sym2deBruijnAux only ever descends into symbolic subterms.
+// Even then the cost would be a lost shortcut, never a wrong result : the generic branch
+// rebuilds the node and hash-consing hands back the very same tree.
 bool isSym2deBruijnInvariant(Tree t)
 {
-    Tree var;
-    if (isSymbolicRef(t, var)) {
-        return false;
-    }
-    const int ar = t->arity();
-    if (ar == 0) {
-        return true;
-    }
-    Tree key    = sym2debInvariantKey();
-    Tree cached = t->getProperty(key);
-    if (cached) {
-        return tree2int(cached) != 0;
-    }
-    bool inv = true;
-    for (int i = 0; i < ar; i++) {
-        if (!isSym2deBruijnInvariant(t->branch(i))) {
-            inv = false;
-            break;
-        }
-    }
-    t->setProperty(key, tree(inv ? 1 : 0));
-    return inv;
+    return t->isRecFree();
 }
 
 struct Sym2DebState {
