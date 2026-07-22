@@ -490,7 +490,12 @@ class RustInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(BitcastInst* inst) { faustassert(false); }
+    virtual void visit(BitcastInst* inst) {
+        std::string type = fTypeManager->generateType(inst->fType);
+        *fOut << "(";
+        inst->fInst->accept(this);
+        *fOut << ".to_bits().cast_signed())";
+    }
 
     virtual void visit(FunCallInst* inst)
     {
