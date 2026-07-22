@@ -97,10 +97,10 @@ using namespace std;
         tlib::error(error.str()); \
     }
 
-Tree*        CTree::gHashTable       = nullptr;
-size_t       CTree::gHashTableSize   = 0;
-size_t       CTree::gHashTableCount  = 0;
-double       CTree::gHashLoadFactor  = 0.7;
+Tree*        CTree::gHashTable      = nullptr;
+size_t       CTree::gHashTableSize  = 0;
+size_t       CTree::gHashTableCount = 0;
+double       CTree::gHashLoadFactor = 0.7;
 bool         CTree::gDetails        = false;
 unsigned int CTree::gVisitTime      = 0;
 size_t       CTree::gSerialCounter  = 0;
@@ -108,7 +108,9 @@ size_t       CTree::gSerialCounter  = 0;
 // Smallest prime >= n (trial division; only called on the rare rehash path)
 static size_t nextPrimeAtLeast(size_t n)
 {
-    if (n <= 2) return 2;
+    if (n <= 2) {
+        return 2;
+    }
     size_t candidate = (n % 2 == 0) ? n + 1 : n;
     for (;;) {
         bool   isPrime = true;
@@ -120,7 +122,9 @@ static size_t nextPrimeAtLeast(size_t n)
             }
             d += 2;
         }
-        if (isPrime) return candidate;
+        if (isPrime) {
+            return candidate;
+        }
         candidate += 2;
     }
 }
@@ -134,7 +138,9 @@ static size_t nextPrimeAtLeast(size_t n)
 // on every make(), including lookups that turn out to be cache hits.
 void CTree::ensureHashTableAllocated()
 {
-    if (gHashTable != nullptr) return;
+    if (gHashTable != nullptr) {
+        return;
+    }
     gHashTableSize = kInitialHashTableSize;
     gHashTable     = new Tree[gHashTableSize];
     memset(gHashTable, 0, sizeof(Tree) * gHashTableSize);
@@ -160,7 +166,9 @@ void CTree::ensureHashTableAllocated()
 // purely to let that trade-off be explored ; it never changes the trees created.
 void CTree::growHashTableIfNeeded()
 {
-    if (double(gHashTableCount) < double(gHashTableSize) * gHashLoadFactor) return;
+    if (double(gHashTableCount) < double(gHashTableSize) * gHashLoadFactor) {
+        return;
+    }
 
     size_t newSize  = nextPrimeAtLeast(gHashTableSize * 2);
     Tree*  newTable = new Tree[newSize];

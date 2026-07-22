@@ -30,13 +30,10 @@
 inline void nnxEmitNamedAddress(std::ostream* out, NamedAddress* named)
 {
     if (named->isStruct() || named->isStaticStruct()) {
-        const std::string& name      = named->fName;
-        bool               isUIParam = (name.find("fButton") == 0) ||
-                         (name.find("fCheckbox") == 0) ||
-                         (name.find("fVslider") == 0) ||
-                         (name.find("fHslider") == 0) ||
-                         (name.find("fEntry") == 0) ||
-                         (name.find("fVbargraph") == 0) ||
+        const std::string& name = named->fName;
+        bool isUIParam          = (name.find("fButton") == 0) || (name.find("fCheckbox") == 0) ||
+                         (name.find("fVslider") == 0) || (name.find("fHslider") == 0) ||
+                         (name.find("fEntry") == 0) || (name.find("fVbargraph") == 0) ||
                          (name.find("fHbargraph") == 0);
         *out << (isUIParam ? "params[\"" : "state[\"") << name << "\"]";
     } else {

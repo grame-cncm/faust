@@ -457,8 +457,8 @@ void global::reset()
     gFTZMode        = 0;
     gHashLoadFactor = 0.7;
     tlib::setHashLoadFactor(gHashLoadFactor);
-    gRangeUI        = false;
-    gFreezeUI       = false;
+    gRangeUI  = false;
+    gFreezeUI = false;
 
     gFloatSize      = 1;             // -single by default
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
@@ -1809,8 +1809,10 @@ bool global::processCmdline(int argc, const char* argv[])
     }
 
     // gInlinetable check
-    if (gInlineTable && (gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "llvm" && gOutputLang != "rust")) {
-        throw faustexception("ERROR : -it can only be used with 'cpp', 'c', 'llvm' and 'rust' backends\n");
+    if (gInlineTable && (gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "llvm" &&
+                         gOutputLang != "rust")) {
+        throw faustexception(
+            "ERROR : -it can only be used with 'cpp', 'c', 'llvm' and 'rust' backends\n");
     }
 
     // gMemoryManager check
@@ -2060,11 +2062,11 @@ void global::parseSourceFiles()
 static void enumBackends(ostream& out)
 {
     const char* dspto = "   DSP to ";
-    
+
 #ifdef ASSEMBLYSCRIPT_BUILD
     out << dspto << "AssemblyScript" << endl;
 #endif
-    
+
 #ifdef C_BUILD
     out << dspto << "C" << endl;
 #endif
@@ -2803,7 +2805,6 @@ void CompilerStats::print(std::ostream& out) const
     out << "\n==========================================\n";
 }
 #endif
-
 
 /*
     Threaded calls API: the compilation code is executed in a separate

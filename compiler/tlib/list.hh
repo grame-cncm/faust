@@ -148,8 +148,8 @@ inline Tree tl(Tree l)
 }
 
 // predicates
-TLIB_API bool     isNil(Tree l);
-bool              isList(Tree l);
+TLIB_API bool isNil(Tree l);
+bool          isList(Tree l);
 
 // predicates
 Tree nth(Tree l, int i);

@@ -48,11 +48,11 @@ static Tree gDeBruijn2SymKey = nullptr;
 
 static inline void initRecSymbols()
 {
-    gDebruijnSym    = symbol("DEBRUIJN");
-    gDebruijnRefSym = symbol("DEBRUIJNREF");
-    gSymRecSym      = symbol("SYMREC");
-    gSubstituteSym  = symbol("SUBSTITUTE");
-    gSymLiftnSym    = symbol("LIFTN");
+    gDebruijnSym     = symbol("DEBRUIJN");
+    gDebruijnRefSym  = symbol("DEBRUIJNREF");
+    gSymRecSym       = symbol("SYMREC");
+    gSubstituteSym   = symbol("SUBSTITUTE");
+    gSymLiftnSym     = symbol("LIFTN");
     gSym2DebruijnSym = symbol("SYM2DEBRUIJN");
 }
 
@@ -87,19 +87,19 @@ void tlibResetRecInternals()
 }
 
 // Declaration of implementation
-static Tree deBruijn2SymCachedReady(Tree t);
-static Tree calcDeBruijn2SymCachedReady(Tree t);
-static Tree deBruijn2SymRec(Tree t, std::unordered_map<Tree, Tree>& memo);
-static Tree sym2deBruijnReady(Tree t, Tree env);
-static Tree calcSym2deBruijnReady(Tree t, Tree env);
-static Tree alphaNormalize(Tree t);
+static Tree          deBruijn2SymCachedReady(Tree t);
+static Tree          calcDeBruijn2SymCachedReady(Tree t);
+static Tree          deBruijn2SymRec(Tree t, std::unordered_map<Tree, Tree>& memo);
+static Tree          sym2deBruijnReady(Tree t, Tree env);
+static Tree          calcSym2deBruijnReady(Tree t, Tree env);
+static Tree          alphaNormalize(Tree t);
 static std::ostream& printDeBruijnRec(std::ostream& out, Tree t);
 static std::ostream& printTreeExpr(std::ostream& out, Tree t);
-static Tree substituteReady(Tree t, int n, Tree id);
-static Tree calcsubstituteReady(Tree t, int level, Tree id);
-Tree        liftn(Tree t, int threshold);
-static Tree liftnReady(Tree t, int threshold);
-static Tree calcliftnReady(Tree t, int threshold);
+static Tree          substituteReady(Tree t, int n, Tree id);
+static Tree          calcsubstituteReady(Tree t, int level, Tree id);
+Tree                 liftn(Tree t, int threshold);
+static Tree          liftnReady(Tree t, int threshold);
+static Tree          calcliftnReady(Tree t, int threshold);
 
 static inline bool isDebruijnRec(Tree t, Tree& body)
 {
@@ -109,13 +109,17 @@ static inline bool isDebruijnRec(Tree t, Tree& body)
 static inline bool isDebruijnRef(Tree t, int& level)
 {
     Tree u;
-    if (!isTree(t, gDebruijnRefSym, u)) return false;
+    if (!isTree(t, gDebruijnRefSym, u)) {
+        return false;
+    }
     return isInt(u->node(), &level);
 }
 
 static inline bool isSymbolicRec(Tree t, Tree& var, Tree& body)
 {
-    if (!isTree(t, gSymRecSym, var)) return false;
+    if (!isTree(t, gSymRecSym, var)) {
+        return false;
+    }
     body = t->getProperty(recdefKey());
     return true;
 }

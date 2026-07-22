@@ -136,13 +136,14 @@ struct less<CTree*> {
 
 class TLIB_API CTree : public Garbageable {
    protected:
-    static const std::size_t kInitialHashTableSize = 1009;  ///< initial size of the hash table (prime);
-                                                             ///< grows as needed, see growHashTableIfNeeded
-    static std::size_t   gSerialCounter;   ///< the serial number counter
-    static double        gHashLoadFactor; ///< load factor triggering table growth
-    static std::size_t   gHashTableSize;   ///< current size of the hash table (grows as needed)
-    static std::size_t   gHashTableCount;  ///< number of trees currently stored in the table
-    static Tree*         gHashTable;       ///< hash table used for "hash consing" (grows by rehashing)
+    static const std::size_t kInitialHashTableSize =
+        1009;                            ///< initial size of the hash table (prime);
+                                         ///< grows as needed, see growHashTableIfNeeded
+    static std::size_t gSerialCounter;   ///< the serial number counter
+    static double      gHashLoadFactor;  ///< load factor triggering table growth
+    static std::size_t gHashTableSize;   ///< current size of the hash table (grows as needed)
+    static std::size_t gHashTableCount;  ///< number of trees currently stored in the table
+    static Tree*       gHashTable;  ///< hash table used for "hash consing" (grows by rehashing)
 
     ///< cheap check, called on every make() : lazily allocates the table on first use (needed
     ///< even for a lookup, not just an insert -- see the comment on the definition)
@@ -168,17 +169,17 @@ class TLIB_API CTree : public Garbageable {
 
    protected:
     // fields
-    Tree         fNext;         ///< next tree in the same hashtable entry
-    Node         fNode;         ///< the node content of the tree
-    void*        fType;         ///< the type of a tree
-    Tree         fFastProperty; ///< generic single-slot fast path for one caller-chosen "hot"
-                                 ///< property, bypassing fProperties entirely (see setFastProperty)
-    plist*       fProperties;   ///< lazily allocated; nullptr means no property set
-    std::size_t  fHashKey;      ///< the hashtable key
-    std::size_t  fSerial;       ///< the increasing serial number
-    int          fAperture;     ///< how "open" is a tree (synthesized field)
-    unsigned int fVisitTime;    ///< keep track of visits
-    tvec         fBranch;       ///< the subtrees
+    Tree  fNext;               ///< next tree in the same hashtable entry
+    Node  fNode;               ///< the node content of the tree
+    void* fType;               ///< the type of a tree
+    Tree  fFastProperty;       ///< generic single-slot fast path for one caller-chosen "hot"
+                               ///< property, bypassing fProperties entirely (see setFastProperty)
+    plist*       fProperties;  ///< lazily allocated; nullptr means no property set
+    std::size_t  fHashKey;     ///< the hashtable key
+    std::size_t  fSerial;      ///< the increasing serial number
+    int          fAperture;    ///< how "open" is a tree (synthesized field)
+    unsigned int fVisitTime;   ///< keep track of visits
+    tvec         fBranch;      ///< the subtrees
 
     CTree()
         : fNext(nullptr),
@@ -346,13 +347,12 @@ inline Tree tree(const Node& n, const tvec& br)
 }
 
 // Useful conversions
-TLIB_API int    tree2int(Tree t);  ///< if t has a node of type int, return it otherwise error
-TLIB_API double tree2double(
-    Tree t);  ///< if t has a node of type double, return it otherwise error
+TLIB_API int    tree2int(Tree t);     ///< if t has a node of type int, return it otherwise error
+TLIB_API double tree2double(Tree t);  ///< if t has a node of type double, return it otherwise error
 TLIB_API const char* tree2str(
     Tree t);  ///< if t has a node of type symbol, return its name otherwise error
-std::string        tree2quotedstr(Tree t);
-void*              tree2ptr(Tree t);  ///< if t has a node of type ptr, return it otherwise error
+std::string    tree2quotedstr(Tree t);
+void*          tree2ptr(Tree t);  ///< if t has a node of type ptr, return it otherwise error
 TLIB_API void* getUserData(
     Tree t);  ///< if t has a node of type symbol, return the associated user data
 
@@ -379,7 +379,7 @@ inline std::ostream& operator<<(std::ostream& s, const CTree& t)
 Tree rec(Tree body);           ///< create a de Bruijn recursive tree
 Tree rec(Tree id, Tree body);  ///< create a symbolic recursive tree
 
-bool              isRec(Tree t, Tree& body);            ///< is t a de Bruijn recursive tree
+bool          isRec(Tree t, Tree& body);            ///< is t a de Bruijn recursive tree
 TLIB_API bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursive tree
 
 // Creation of recursive references
@@ -406,10 +406,10 @@ inline bool isClosed(Tree t)
 
 Tree lift(Tree t);  ////< add 1 to the free de bruijn references of t
 
-Tree deBruijn2Sym(Tree t);  ////< transform a tree from deBruijn to symbolic representation
-Tree deBruijn2SymCached(Tree t);  ////< deBruijn2Sym with a persistent tree-property cache
-Tree sym2deBruijn(Tree t);  ////< transform a tree from symbolic to deBruijn representation
-bool areEquiv(Tree a, Tree b);  ////< alpha-equivalence of recursive trees
+Tree          deBruijn2Sym(Tree t);  ////< transform a tree from deBruijn to symbolic representation
+Tree          deBruijn2SymCached(Tree t);  ////< deBruijn2Sym with a persistent tree-property cache
+Tree          sym2deBruijn(Tree t);  ////< transform a tree from symbolic to deBruijn representation
+bool          areEquiv(Tree a, Tree b);  ////< alpha-equivalence of recursive trees
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);
 std::string   toDeBruijnString(Tree t);

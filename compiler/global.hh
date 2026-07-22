@@ -288,13 +288,13 @@ struct global {
                      // in [min..max] range
     bool gFreezeUI;  // -fui option, whether to freeze vslider/hslider/nentry to a given value (init
                      // value by default)
-    int  gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
+    int    gFTZMode;  // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
     double gHashLoadFactor;  // -hlf option, tlib CTree/Symbol hash table growth threshold
-                              // (0.7 by default, see TLIB.md §1) : purely an internal
-                              // compiler performance knob, never affects generated code
-    bool gInPlace;   // -inpl option, add cache to input for correct in-place computations
-    bool gStrictSelect;  // -sts option, generate strict code for 'selectX' even for stateless
-                         // branches (both are computed)
+                             // (0.7 by default, see TLIB.md §1) : purely an internal
+                             // compiler performance knob, never affects generated code
+    bool gInPlace;           // -inpl option, add cache to input for correct in-place computations
+    bool gStrictSelect;      // -sts option, generate strict code for 'selectX' even for stateless
+                             // branches (both are computed)
 
     bool gDSPStruct;  // to control method generation in -fun mode
     bool gLightMode;  // -light option, do not generate the entire DSP API (to be used with
@@ -317,17 +317,17 @@ struct global {
                        // (0/1: 1 by default)
 
     // Backend configuration
-    std::string gOutputLang;            // Chosen backend
+    std::string gOutputLang;  // Chosen backend
 
     // The NNX and Linen backends share the Python/JAX code generators
     bool isPythonBackend() const { return (gOutputLang == "nnx") || (gOutputLang == "linen"); }
 
-    bool        gAllowForeignFunction;  // Can use foreign functions
-    bool        gAllowForeignConstant;  // Can use foreign constant
-    bool        gAllowForeignVar;       // Can use foreign variable
-    bool        gComputeIOTA;           // Cache some computation done with IOTA variable
-    bool        gFAUSTFLOAT2Internal;   // FAUSTFLOAT type (= kFloatMacro) forced to internal real
-    bool        gHasExp10;              // -exp10, if the 'exp10' math function is available
+    bool gAllowForeignFunction;  // Can use foreign functions
+    bool gAllowForeignConstant;  // Can use foreign constant
+    bool gAllowForeignVar;       // Can use foreign variable
+    bool gComputeIOTA;           // Cache some computation done with IOTA variable
+    bool gFAUSTFLOAT2Internal;   // FAUSTFLOAT type (= kFloatMacro) forced to internal real
+    bool gHasExp10;              // -exp10, if the 'exp10' math function is available
     bool gLoopVarInBytes;  // If the 'i' variable used in the scalar loop moves by bytes instead of
                            // frames
     bool gUseMemmove;      // Use 'memmove' function to shift arrays
@@ -542,8 +542,8 @@ struct global {
     // Used in environment layering
     Sym BARRIER;
 
-    property<bool>* gPureRoutingProperty;
-    property<Tree>* gSymbolicBoxProperty;
+    property<bool>*  gPureRoutingProperty;
+    property<Tree>*  gSymbolicBoxProperty;
     property2<Tree>* gEvalMemo;
     property2<Tree>* gPMMemo;
 

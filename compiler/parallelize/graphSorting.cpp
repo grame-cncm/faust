@@ -21,8 +21,8 @@
 
 #include <set>
 
-#include "graphSorting.hh"
 #include "exception.hh"
+#include "graphSorting.hh"
 
 using namespace std;
 

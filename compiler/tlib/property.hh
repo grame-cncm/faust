@@ -156,7 +156,7 @@ class property<double> : public Garbageable {
 // still isn't cheap enough when P = Tree, which is the actually-used case (box evaluator memo).
 template <class P>
 class property2 : public Garbageable {
-    Tree fOuterKey;
+    Tree                      fOuterKey;
     typedef std::map<Tree, P> Inner;
 
     struct Slot {
@@ -183,10 +183,10 @@ class property2 : public Garbageable {
             // First (a, b) pair seen for this 'a' : keep it inline, no map allocated yet. Later
             // sets for the same 'a' reuse this same Slot in place, so 'a' never accumulates more
             // than one property entry for this property2.
-            s          = new Slot();
-            s->fB      = b;
-            s->fValue  = value;
-            s->fInner  = nullptr;
+            s         = new Slot();
+            s->fB     = b;
+            s->fValue = value;
+            s->fInner = nullptr;
             a->setProperty(fOuterKey, tree(Node((void*)s)));
         } else if (s->fInner) {
             (*s->fInner)[b] = value;
@@ -194,19 +194,23 @@ class property2 : public Garbageable {
             s->fValue = value;
         } else {
             // Second distinct 'b' for this 'a' : promote the inline pair into a real map.
-            s->fInner              = new Inner();
-            (*s->fInner)[s->fB]    = s->fValue;
-            (*s->fInner)[b]        = value;
+            s->fInner           = new Inner();
+            (*s->fInner)[s->fB] = s->fValue;
+            (*s->fInner)[b]     = value;
         }
     }
 
     bool get(Tree a, Tree b, P& value)
     {
         Slot* s = access(a);
-        if (!s) return false;
+        if (!s) {
+            return false;
+        }
         if (s->fInner) {
             typename Inner::iterator it = s->fInner->find(b);
-            if (it == s->fInner->end()) return false;
+            if (it == s->fInner->end()) {
+                return false;
+            }
             value = it->second;
             return true;
         }
@@ -251,8 +255,8 @@ class property2 : public Garbageable {
 template <>
 class property2<Tree> : public Garbageable {
     struct Entry {
-        Tree              fB;             // the single 'b' seen so far ; unused once fInner set
-        Tree              fValue;         // its value ; unused once fInner set
+        Tree                  fB;      // the single 'b' seen so far ; unused once fInner set
+        Tree                  fValue;  // its value ; unused once fInner set
         std::map<Tree, Tree>* fInner = nullptr;  // non-null once a 2nd distinct 'b' is seen
     };
     std::unordered_map<Tree, Entry> fOuter;
@@ -276,7 +280,7 @@ class property2<Tree> : public Garbageable {
             e.fValue = value;
         } else {
             // Second distinct 'b' for this 'a' : only now pay for a small nested map.
-            e.fInner        = new std::map<Tree, Tree>();
+            e.fInner          = new std::map<Tree, Tree>();
             (*e.fInner)[e.fB] = e.fValue;
             (*e.fInner)[b]    = value;
         }
@@ -285,11 +289,15 @@ class property2<Tree> : public Garbageable {
     bool get(Tree a, Tree b, Tree& value)
     {
         auto it = fOuter.find(a);
-        if (it == fOuter.end()) return false;
+        if (it == fOuter.end()) {
+            return false;
+        }
         Entry& e = it->second;
         if (e.fInner) {
             auto j = e.fInner->find(b);
-            if (j == e.fInner->end()) return false;
+            if (j == e.fInner->end()) {
+                return false;
+            }
             value = j->second;
             return true;
         }
@@ -303,7 +311,9 @@ class property2<Tree> : public Garbageable {
     void clear(Tree a)
     {
         auto it = fOuter.find(a);
-        if (it == fOuter.end()) return;
+        if (it == fOuter.end()) {
+            return;
+        }
         delete it->second.fInner;
         fOuter.erase(it);
     }

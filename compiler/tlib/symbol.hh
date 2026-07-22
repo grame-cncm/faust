@@ -55,10 +55,11 @@ typedef Symbol* Sym;
  */
 class Symbol : public Garbageable {
    private:
-    static const std::size_t kInitialHashTableSize = 511;  ///< initial size of the hash table (prime)
-    static std::size_t        gHashTableSize;   ///< current size of the hash table (grows as needed)
-    static std::size_t        gHashTableCount;  ///< number of symbols currently stored in the table
-    static Symbol**       gSymbolTable;     ///< hash table used to store the symbols (grows by rehashing)
+    static const std::size_t kInitialHashTableSize =
+        511;                             ///< initial size of the hash table (prime)
+    static std::size_t gHashTableSize;   ///< current size of the hash table (grows as needed)
+    static std::size_t gHashTableCount;  ///< number of symbols currently stored in the table
+    static Symbol**    gSymbolTable;  ///< hash table used to store the symbols (grows by rehashing)
     static std::map<std::string, std::size_t> gPrefixCounters;
 
     static double gHashLoadFactor;  ///< load factor triggering table growth (see setHashLoadFactor)
@@ -71,9 +72,10 @@ class Symbol : public Garbageable {
 
     // Fields
     std::string fName;  ///< Name of the symbol
-    std::size_t fHash;  ///< Hash key computed from the name and used to determine the hash table entry
-    Sym         fNext;  ///< Next symbol in the hash table entry
-    void*       fData;  ///< Field to user disposal to store additional data
+    std::size_t
+          fHash;  ///< Hash key computed from the name and used to determine the hash table entry
+    Sym   fNext;  ///< Next symbol in the hash table entry
+    void* fData;  ///< Field to user disposal to store additional data
 
     // Constructors & destructors
     Symbol(const std::string&, std::size_t hsh,

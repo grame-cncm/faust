@@ -34,17 +34,19 @@ using namespace std;
  * Hash table used to store the symbols.
  */
 
-Symbol** Symbol::gSymbolTable     = nullptr;
-size_t   Symbol::gHashTableSize   = 0;
-size_t   Symbol::gHashTableCount  = 0;
-double   Symbol::gHashLoadFactor  = 0.7;
+Symbol** Symbol::gSymbolTable    = nullptr;
+size_t   Symbol::gHashTableSize  = 0;
+size_t   Symbol::gHashTableCount = 0;
+double   Symbol::gHashLoadFactor = 0.7;
 
 map<string, size_t> Symbol::gPrefixCounters;
 
 // Smallest prime >= n (trial division; only called on the rare rehash path)
 static size_t nextPrimeAtLeast(size_t n)
 {
-    if (n <= 2) return 2;
+    if (n <= 2) {
+        return 2;
+    }
     size_t candidate = (n % 2 == 0) ? n + 1 : n;
     for (;;) {
         bool   isPrime = true;
@@ -56,7 +58,9 @@ static size_t nextPrimeAtLeast(size_t n)
             }
             d += 2;
         }
-        if (isPrime) return candidate;
+        if (isPrime) {
+            return candidate;
+        }
         candidate += 2;
     }
 }
@@ -69,7 +73,9 @@ static size_t nextPrimeAtLeast(size_t n)
 // Cheap after the first call (one non-null pointer check).
 void Symbol::ensureHashTableAllocated()
 {
-    if (gSymbolTable != nullptr) return;
+    if (gSymbolTable != nullptr) {
+        return;
+    }
     gHashTableSize = kInitialHashTableSize;
     gSymbolTable   = new Symbol*[gHashTableSize];
     memset(gSymbolTable, 0, sizeof(Symbol*) * gHashTableSize);
@@ -84,7 +90,9 @@ void Symbol::ensureHashTableAllocated()
 // Only called right before an insert (see Symbol::get), not on every lookup.
 void Symbol::growHashTableIfNeeded()
 {
-    if (double(gHashTableCount) < double(gHashTableSize) * gHashLoadFactor) return;
+    if (double(gHashTableCount) < double(gHashTableSize) * gHashLoadFactor) {
+        return;
+    }
 
     size_t   newSize  = nextPrimeAtLeast(gHashTableSize * 2);
     Symbol** newTable = new Symbol*[newSize];
