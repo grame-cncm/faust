@@ -23,7 +23,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sstream>
+#include <algorithm>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -45,6 +47,7 @@ static Sym  gSubstituteSym   = nullptr;
 static Sym  gSymLiftnSym     = nullptr;
 static Tree gRecDefKey       = nullptr;
 static Tree gDeBruijn2SymKey = nullptr;
+static Tree gSym2DebInvKey   = nullptr;
 
 static inline void initRecSymbols()
 {
@@ -71,6 +74,14 @@ static inline Tree debruijn2symKey()
     return gDeBruijn2SymKey;
 }
 
+static inline Tree sym2debInvariantKey()
+{
+    if (gSym2DebInvKey == nullptr) {
+        gSym2DebInvKey = tree(symbol("sym2deBruijnInvariant"));
+    }
+    return gSym2DebInvKey;
+}
+
 // Internal hook used by tlib::init()/cleanup() (see tlib.cpp)
 void tlibResetRecInternals()
 {
@@ -81,6 +92,7 @@ void tlibResetRecInternals()
     gSymLiftnSym     = nullptr;
     gRecDefKey       = nullptr;
     gDeBruijn2SymKey = nullptr;
+    gSym2DebInvKey   = nullptr;
     initRecSymbols();
 }
 
@@ -115,7 +127,6 @@ static Tree deBruijn2SymCachedReady(Tree t);
 static Tree calcDeBruijn2SymCachedReady(Tree t);
 static Tree deBruijn2SymMemo(Tree t, std::unordered_map<Tree, Tree>& memo);
 static Tree substituteMemo(Tree t, int level, Tree id, SubstMemo& memo);
-static Tree sym2deBruijnMemo(Tree t, Tree env, Sym2DebMemo& memo);
 static std::ostream& printTreeExpr(std::ostream& out, Tree t);
 static Tree substituteReady(Tree t, int n, Tree id);
 static Tree calcsubstituteReady(Tree t, int level, Tree id);
@@ -380,13 +391,19 @@ static Tree calcDeBruijn2SymCachedReady(Tree t)
 
 //-----------------------------------------------------------
 // Transform a tree from symbolic to deBruijn representation
+//
+// The conversion is organized around the DAG of mutually recursive groups
+// (the strongly connected components of the dependency graph between
+// recursive variables). A recursive node of the component currently being
+// converted is inlined by extending the environment (mutual recursion needs
+// the single-binder de Bruijn inlining); a recursive node of any OTHER
+// component is converted separately, under an empty environment, into a
+// CLOSED de Bruijn term reused from a closed memo. Every subterm whose
+// converted form is closed (aperture 0, an O(1) test) is memoized by term
+// only; the open skeleton uses the (term, environment) memo. Environments
+// therefore stay small (the variables of one component) and shared closed
+// sub-DAGs are converted exactly once.
 //-----------------------------------------------------------
-
-Tree sym2deBruijn(Tree t)
-{
-    Sym2DebMemo memo;
-    return sym2deBruijnMemo(t, nil(), memo);
-}
 
 static int symbolicLevel(Tree var, Tree env)
 {
@@ -399,13 +416,205 @@ static int symbolicLevel(Tree var, Tree env)
     return 0;
 }
 
-static Tree sym2deBruijnMemo(Tree t, Tree env, Sym2DebMemo& memo)
+// A tree is INVARIANT by sym2deBruijn (sym2deBruijn(t) == t) iff no symbolic
+// recursive node is reachable through its branches : every other node then
+// reconstructs to itself by hash-consing. The attribute is synthesized
+// (structural, environment-independent, fixed at construction) and memoized
+// as a persistent tree property. It could eventually become a bit
+// synthesized at construction time, like fAperture.
+bool isSym2deBruijnInvariant(Tree t)
 {
-    const std::pair<Tree, Tree> key(t, env);
+    Tree var;
+    if (isSymbolicRef(t, var)) {
+        return false;
+    }
+    const int ar = t->arity();
+    if (ar == 0) {
+        return true;
+    }
+    Tree key    = sym2debInvariantKey();
+    Tree cached = t->getProperty(key);
+    if (cached) {
+        return tree2int(cached) != 0;
+    }
+    bool inv = true;
+    for (int i = 0; i < ar; i++) {
+        if (!isSym2deBruijnInvariant(t->branch(i))) {
+            inv = false;
+            break;
+        }
+    }
+    t->setProperty(key, tree(inv ? 1 : 0));
+    return inv;
+}
 
-    auto it = memo.find(key);
-    if (it != memo.end()) {
+struct Sym2DebState {
+    std::unordered_map<Tree, Tree> closedMemo;       ///< closed results, keyed by term
+    Sym2DebMemo                    envMemo;          ///< open results, keyed by (term, env)
+    std::unordered_map<Tree, int>  sccOf;            ///< recursive node -> component id
+    int                            currentSCC = -1;  ///< component being converted
+};
+
+// Collect every symbolic recursive node occurring in t WITHOUT crossing
+// recursive definitions (bodies are attached as properties, not branches).
+static void scanForRecs(Tree t, std::unordered_set<Tree>& visited, std::vector<Tree>& found)
+{
+    if (isSym2deBruijnInvariant(t)) {
+        return;  // no symbolic recursive node below : nothing to collect
+    }
+    if (!visited.insert(t).second) {
+        return;
+    }
+    Tree var;
+    if (isSymbolicRef(t, var)) {
+        found.push_back(t);  // rec and ref are the same node in symbolic form
+        return;
+    }
+    for (int i = 0; i < t->arity(); i++) {
+        scanForRecs(t->branch(i), visited, found);
+    }
+}
+
+// Tarjan's strongly connected components over the recursive nodes.
+struct Sym2DebTarjan {
+    const std::unordered_map<Tree, std::vector<Tree>>& fSucc;
+    std::unordered_map<Tree, int>&                     fSccOf;
+    std::unordered_map<Tree, int>                      fIndex;
+    std::unordered_map<Tree, int>                      fLow;
+    std::vector<Tree>                                  fStack;
+    std::unordered_set<Tree>                           fOnStack;
+    int                                                fNextIndex = 0;
+    int                                                fNextScc   = 0;
+
+    Sym2DebTarjan(const std::unordered_map<Tree, std::vector<Tree>>& succ,
+                  std::unordered_map<Tree, int>&                     sccOf)
+        : fSucc(succ), fSccOf(sccOf)
+    {
+    }
+
+    void visit(Tree v)
+    {
+        fIndex[v] = fLow[v] = fNextIndex++;
+        fStack.push_back(v);
+        fOnStack.insert(v);
+        auto it = fSucc.find(v);
+        if (it != fSucc.end()) {
+            for (Tree w : it->second) {
+                if (fIndex.find(w) == fIndex.end()) {
+                    visit(w);
+                    fLow[v] = std::min(fLow[v], fLow[w]);
+                } else if (fOnStack.count(w) > 0) {
+                    fLow[v] = std::min(fLow[v], fIndex[w]);
+                }
+            }
+        }
+        if (fLow[v] == fIndex[v]) {
+            for (;;) {
+                Tree w = fStack.back();
+                fStack.pop_back();
+                fOnStack.erase(w);
+                fSccOf[w] = fNextScc;
+                if (w == v) {
+                    break;
+                }
+            }
+            ++fNextScc;
+        }
+    }
+};
+
+// Register every recursive node reachable from root (crossing recursive
+// definitions through a worklist) and compute their components.
+static void sym2deBruijnComponents(Tree root, Sym2DebState& state)
+{
+    std::vector<Tree>                           work;
+    std::unordered_set<Tree>                    known;
+    std::unordered_map<Tree, std::vector<Tree>> successors;
+
+    {
+        std::unordered_set<Tree> visited;
+        std::vector<Tree>        found;
+        scanForRecs(root, visited, found);
+        for (Tree r : found) {
+            if (known.insert(r).second) {
+                work.push_back(r);
+            }
+        }
+    }
+    while (!work.empty()) {
+        Tree r = work.back();
+        work.pop_back();
+        Tree var, body;
+        if (!(isSymbolicRec(r, var, body) && body)) {
+            continue;  // free reference: reported by the conversion itself
+        }
+        std::unordered_set<Tree> visited;
+        std::vector<Tree>        found;
+        scanForRecs(body, visited, found);
+        std::vector<Tree>&       succ = successors[r];
+        std::unordered_set<Tree> dedup;
+        for (Tree s2 : found) {
+            if (dedup.insert(s2).second) {
+                succ.push_back(s2);
+            }
+            if (known.insert(s2).second) {
+                work.push_back(s2);
+            }
+        }
+    }
+
+    Sym2DebTarjan tarjan(successors, state.sccOf);
+    for (Tree r : known) {
+        if (tarjan.fIndex.find(r) == tarjan.fIndex.end()) {
+            tarjan.visit(r);
+        }
+    }
+}
+
+static Tree sym2deBruijnAux(Tree t, Tree env, Sym2DebState& state);
+
+// Convert a recursive node of another (lower) component, standalone: the
+// result is closed and ends up in the closed memo.
+static Tree sym2deBruijnRec(Tree recNode, Sym2DebState& state)
+{
+    auto it = state.closedMemo.find(recNode);
+    if (it != state.closedMemo.end()) {
         return it->second;
+    }
+
+    auto scc = state.sccOf.find(recNode);
+    if (scc == state.sccOf.end()) {
+        tlib::error("ASSERT : unregistered recursive node in sym2deBruijn\n");
+    }
+
+    const int saved  = state.currentSCC;
+    state.currentSCC = scc->second;
+    Tree result      = sym2deBruijnAux(recNode, nil(), state);
+    state.currentSCC = saved;
+
+    if (!isClosed(result)) {
+        tlib::error("ASSERT : component conversion is not closed in sym2deBruijn\n");
+    }
+    return result;
+}
+
+static Tree sym2deBruijnAux(Tree t, Tree env, Sym2DebState& state)
+{
+    // Invariant subtrees convert to themselves : no traversal, no memo entry
+    if (isSym2deBruijnInvariant(t)) {
+        return t;
+    }
+
+    // A closed result does not depend on the environment
+    auto cIt = state.closedMemo.find(t);
+    if (cIt != state.closedMemo.end()) {
+        return cIt->second;
+    }
+
+    const std::pair<Tree, Tree> key(t, env);
+    auto                        oIt = state.envMemo.find(key);
+    if (oIt != state.envMemo.end()) {
+        return oIt->second;
     }
 
     Tree body, var;
@@ -416,7 +625,14 @@ static Tree sym2deBruijnMemo(Tree t, Tree env, Sym2DebMemo& memo)
         if (level > 0) {
             result = ref(level);
         } else if (isSymbolicRec(t, var, body) && body) {
-            result = rec(sym2deBruijnMemo(body, cons(var, env), memo));
+            auto scc = state.sccOf.find(t);
+            if (scc != state.sccOf.end() && scc->second == state.currentSCC) {
+                // Mutual recursion inside the current component: inline
+                result = rec(sym2deBruijnAux(body, cons(var, env), state));
+            } else {
+                // Another component: splice its closed conversion
+                result = sym2deBruijnRec(t, state);
+            }
         } else {
             tlib::error("ASSERT : free symbolic reference found in sym2deBruijn\n");
             result = t;
@@ -425,13 +641,24 @@ static Tree sym2deBruijnMemo(Tree t, Tree env, Sym2DebMemo& memo)
         int  ar = t->arity();
         tvec br(ar);
         for (int i = 0; i < ar; i++) {
-            br[i] = sym2deBruijnMemo(t->branch(i), env, memo);
+            br[i] = sym2deBruijnAux(t->branch(i), env, state);
         }
         result = tree(t->node(), br);
     }
 
-    memo[key] = result;
+    if (isClosed(result)) {
+        state.closedMemo[t] = result;
+    } else {
+        state.envMemo[key] = result;
+    }
     return result;
+}
+
+Tree sym2deBruijn(Tree t)
+{
+    Sym2DebState state;
+    sym2deBruijnComponents(t, state);
+    return sym2deBruijnAux(t, nil(), state);
 }
 
 //-----------------------------------------------------------

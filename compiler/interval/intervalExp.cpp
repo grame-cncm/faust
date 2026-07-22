@@ -47,6 +47,13 @@ interval interval_algebra::Exp(const interval& x)
     return {exp(x.lo()), exp(x.hi()), precision};
 }
 
+interval interval_algebra::Exp10(const interval& x)
+{
+    // Reuse the general power transfer so base-10 exponentiation follows the
+    // same domain and precision policy as Pow.
+    return Pow(interval(10), x);
+}
+
 void interval_algebra::testExp()
 {
     analyzeUnaryMethod(10, 100000, "exp", interval(-100, 10, 0), std::exp, &interval_algebra::Exp);

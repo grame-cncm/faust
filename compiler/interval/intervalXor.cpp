@@ -76,8 +76,7 @@ interval interval_algebra::Xor(const interval& x, const interval& y)
 
 void interval_algebra::testXor()
 {
-    std::random_device            R;
-    std::default_random_engine    generator(R());
+    std::default_random_engine    generator(0x49545605u);
     std::uniform_int_distribution lx(0, 10);
     std::uniform_int_distribution ly(0, 10);
 

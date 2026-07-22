@@ -30,7 +30,6 @@
 #include "simplify.hh"
 #include "timing.hh"
 #include "tree.hh"
-#include "sigScalarize.hh"
 
 using namespace std;
 
@@ -39,14 +38,23 @@ static Tree simplifyToNormalFormAux(Tree LS)
 {
     // Convert deBruijn recursion into symbolic recursion
     startTiming("deBruijn2Sym");
-    Tree L0 = deBruijn2Sym(LS);
+    Tree L1 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
+/*
+    // PROBE: cost of the symbolic -> deBruijn -> symbolic round-trip on the
+    // recursive-group representation (scalarization abandoned: n-ary groups
+    // are the right canonical form for dense mutual recursion, see
+    // SCALARIZE-CARTOGRAPHY.md). The round-trip is the identity on the
+    // already-canonical L0; it measures the benefit of the invariance
+    // predicate on real programs.
+    startTiming("sharing-roundtrip-1/2 sym2deBruijn");
+    Tree LD = sym2deBruijn(L0);
+    endTiming("sharing-roundtrip-1/2 sym2deBruijn");
 
-    // Convert deBruijn recursion into symbolic recursion
-    startTiming("scalarize");
-    Tree L1 = sigScalarize(L0);
-    endTiming("scalarize");
-
+    startTiming("sharing-roundtrip-2/2 deBruijn2Sym");
+    Tree L1 = deBruijn2Sym(LD);
+    endTiming("sharing-roundtrip-2/2 deBruijn2Sym");
+*/
     // Annotate L1 with type information
     startTiming("L1 typeAnnotation");
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck);

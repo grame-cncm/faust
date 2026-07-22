@@ -32,17 +32,40 @@ interval interval_algebra::Checkbox(const interval& name)
     return interval(0);
 }
 */
-interval interval_algebra::HBargraph(const interval& name, const interval& lo, const interval& hi)
+// Bargraphs observe a signal without changing its possible values; their UI
+// bounds constrain display only and therefore do not intersect the range.
+interval interval_algebra::HBargraph(const interval& name, const interval& lo, const interval& hi,
+                                     const interval& signal)
 {
-    return interval(0);
+    return signal;
 }
-interval interval_algebra::VBargraph(const interval& name, const interval& lo, const interval& hi)
+interval interval_algebra::VBargraph(const interval& name, const interval& lo, const interval& hi,
+                                     const interval& signal)
 {
-    return interval(0);
+    return signal;
 }
+// Effect and control operands influence scheduling but not the values produced
+// by the first operand, so all three wrappers preserve its range.
 interval interval_algebra::Attach(const interval& x, const interval& y)
 {
-    return interval(0);
+    return x;
+}
+interval interval_algebra::Enable(const interval& x, const interval& control)
+{
+    return x;
+}
+interval interval_algebra::Control(const interval& x, const interval& control)
+{
+    return x;
+}
+interval interval_algebra::AssertBounds(const interval& lo, const interval& hi, const interval& x)
+{
+    if (lo.isEmpty() || hi.isEmpty() || x.isEmpty()) {
+        return empty();
+    }
+    // Every admissible bound lies inside [lo.lo(), hi.hi()], so intersecting
+    // that envelope with the candidate range remains a sound refinement.
+    return intersection(x, interval(lo.lo(), hi.hi(), std::min(lo.lsb(), hi.lsb())));
 }
 interval interval_algebra::Highest(const interval& x)
 {

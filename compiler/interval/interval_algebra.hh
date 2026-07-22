@@ -22,10 +22,15 @@ class interval_algebra : public FaustAlgebra<interval> {
     interval FixPointUpdate(const interval& x, const interval& y) override;
     interval Input(const interval& c) override;
     interval Output(const interval& c, const interval& y) override;
-    interval HBargraph(const interval& name, const interval& lo, const interval& hi) override;
-    interval VBargraph(const interval& name, const interval& lo, const interval& hi) override;
+    interval HBargraph(const interval& name, const interval& lo, const interval& hi,
+                       const interval& signal) override;
+    interval VBargraph(const interval& name, const interval& lo, const interval& hi,
+                       const interval& signal) override;
     interval Gen(const interval& x) override;
     interval Attach(const interval& x, const interval& y) override;
+    interval Enable(const interval& x, const interval& control) override;
+    interval Control(const interval& x, const interval& control) override;
+    interval AssertBounds(const interval& lo, const interval& hi, const interval& x) override;
     interval Highest(const interval& x) override;
     interval Lowest(const interval& x) override;
     interval BitCast(const interval& x) override;
@@ -119,6 +124,7 @@ class interval_algebra : public FaustAlgebra<interval> {
     void     testEq();
     interval Exp(const interval& x) override;
     void     testExp();
+    interval Exp10(const interval& x) override;
     interval FloatCast(const interval& x) override;
     void     testFloatCast();
     interval Floor(const interval& x) override;
@@ -153,13 +159,14 @@ class interval_algebra : public FaustAlgebra<interval> {
     void     testOr();
     interval Pow(const interval& x, const interval& y) override;  // for all cases
     void     testPow();
-    interval Remainder(const interval& x) override;
+    interval Remainder(const interval& x, const interval& y) override;
     void     testRemainder();
     interval Rint(const interval& x) override;
     void     testRint();
     interval Round(const interval& x) override;
     void     testRound();
-    interval Rsh(const interval& x, const interval& y) override;
+    interval ARsh(const interval& x, const interval& y) override;
+    interval LRsh(const interval& x, const interval& y) override;
     void     testRsh();
     interval Sin(const interval& x) override;
     void     testSin();

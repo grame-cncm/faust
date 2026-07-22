@@ -109,7 +109,7 @@ inline interval operator<<(const interval& x, const interval& y)
 
 inline interval operator>>(const interval& x, const interval& y)
 {
-    return gAlgebra.Rsh(x, y);
+    return gAlgebra.ARsh(x, y);
 }
 
 // ---------------------comparaisons------------------------------

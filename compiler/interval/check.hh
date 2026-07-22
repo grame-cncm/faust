@@ -15,7 +15,12 @@ void check(const std::string& testname, const itv::interval& exp);
 
 void check(const std::string& testname, const itv::interval& exp, const itv::interval& res);
 
+void checkExact(const std::string& testname, const itv::interval& actual,
+                const itv::interval& expected);
+
 void check(const std::string& testname, bool exp, bool res);
+
+int reportCheckResults();
 
 using ufun = double (*)(double);
 using bfun = double (*)(double, double);

@@ -49,7 +49,7 @@ class RemainderPrim : public xtendedCodegen {
         }
 
         return castInterval(floatCast(args[0] | args[1]),
-                            gAlgebra.Remainder(i));  // temporary rule !!!
+                            gAlgebra.Remainder(i,j));  // temporary rule !!!
     }
 
     virtual int inferSigOrder(const std::vector<int>& args) override

@@ -22,8 +22,9 @@
 
 namespace itv {
 //------------------------------------------------------------------------------------------
-// Interval Rsh
-// interval Rsh(const interval& x, const interval& y);
+// Interval arithmetic and logical right shifts
+// interval ARsh(const interval& x, const interval& y);
+// interval LRsh(const interval& x, const interval& y);
 // void testRsh();
 
 static double rsh(double x, double k)
@@ -31,7 +32,7 @@ static double rsh(double x, double k)
     return x * std::pow(2, -k);
 }
 
-interval interval_algebra::Rsh(const interval& x, const interval& k)
+interval interval_algebra::ARsh(const interval& x, const interval& k)
 {
     if (x.isEmpty() || k.isEmpty()) {
         return empty();
@@ -45,20 +46,34 @@ interval interval_algebra::Rsh(const interval& x, const interval& k)
         x.lsb() - (int)k.hi()};  // rshifts add some precision to the numbers, at most y.hi() bits
 }
 
+interval interval_algebra::LRsh(const interval& x, const interval& k)
+{
+    if (x.isEmpty() || k.isEmpty()) {
+        return empty();
+    }
+    if (x.lo() >= 0) {
+        return ARsh(x, k);
+    }
+    // Logical shifting depends on the target integer width. Until that width
+    // becomes algebra metadata, a nonnegative unbounded result is the safe
+    // enclosure for intervals containing negative operands.
+    return {0, HUGE_VAL, 0};
+}
+
 void interval_algebra::testRsh()
 {
-    // check("test algebra Rsh", Rsh(interval(8, 16), interval(4)), interval(0.5, 1));
+    // check("test algebra Rsh", ARsh(interval(8, 16), interval(4)), interval(0.5, 1));
     analyzeBinaryMethod(10, 1000, "rshift", interval(0, 32, 0), interval(8, 8, 1), rsh,
-                        &interval_algebra::Rsh);
+                        &interval_algebra::ARsh);
     analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 0), interval(-10, 10, 0), rsh,
-                        &interval_algebra::Rsh);
+                        &interval_algebra::ARsh);
     analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 2), interval(-10, 10, 0), rsh,
-                        &interval_algebra::Rsh);
+                        &interval_algebra::ARsh);
     analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 0), interval(-10, 10, 1), rsh,
-                        &interval_algebra::Rsh);
+                        &interval_algebra::ARsh);
     analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 2), interval(-10, 10, 1), rsh,
-                        &interval_algebra::Rsh);
+                        &interval_algebra::ARsh);
     // analyzeBinaryMethod(10, 1000, "rshift", interval(0, 32, 0), interval(-3, 0, 0), rsh,
-    // &interval_algebra::Rsh);
+    // &interval_algebra::ARsh);
 }
 }  // namespace itv

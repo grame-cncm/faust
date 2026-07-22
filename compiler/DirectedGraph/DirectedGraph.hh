@@ -1,11 +1,12 @@
+/*
+ * Copyright (c) 2023-2025, Yann Orlarey
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 /*******************************************************************************
-********************************************************************************
+    DirectedGraph.hh
 
-    digraph : directed graph
-
-    Copyright © 2023 Yann Orlarey. All rights reserved.
-
- *******************************************************************************
+    A directed graph class
  ******************************************************************************/
 
 #pragma once
@@ -192,9 +193,12 @@ class digraph {
     // add a whole graph g
     digraph& add(const digraph& g)
     {
-        for (auto& n : g.nodes()) {
+        for (const auto& n : g.nodes()) {
             add(n);
-            for (auto& c : g.destinations(n)) {
+        }
+
+        for (const auto& n : g.nodes()) {
+            for (const auto& c : g.destinations(n)) {
                 add(n, c.first, c.second);
             }
         }

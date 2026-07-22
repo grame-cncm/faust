@@ -409,6 +409,9 @@ Tree lift(Tree t);  ////< add 1 to the free de bruijn references of t
 Tree deBruijn2Sym(Tree t);  ////< transform a tree from deBruijn to symbolic representation
 Tree deBruijn2SymCached(Tree t);  ////< deBruijn2Sym with a persistent tree-property cache
 Tree sym2deBruijn(Tree t);  ////< transform a tree from symbolic to deBruijn representation
+bool isSym2deBruijnInvariant(Tree t);  ////< true iff sym2deBruijn(t) == t (no symbolic
+                                       ////< recursive node reachable through branches);
+                                       ////< environment-independent, memoized per node
 bool areEquiv(Tree a, Tree b);  ////< alpha-equivalence of recursive trees
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);
