@@ -330,16 +330,18 @@ SIGS_API bool isSigFVar(Tree s, Tree& type, Tree& name, Tree& file)
     return isTree(s, sigs::g.SIGFVAR, type, name, file);
 }
 
-// New version using rec and ref
+// Projection is now a tlib primitive (proj/isProj, see tree.hh) : it is intrinsic to
+// n-ary recursion and belongs with rec/ref. These keep the signal-facing names and the
+// int* signature so the dozens of call sites are untouched ; they just forward to tlib.
+// (The int& overload picked below is tlib's -- the int* one is this very function.)
 
 Tree sigProj(int i, Tree rgroup)
 {
-    return tree(sigs::g.SIGPROJ, tree(i), rgroup);
+    return proj(i, rgroup);
 }
 SIGS_API bool isProj(Tree t, int* i, Tree& rgroup)
 {
-    Tree x;
-    return isTree(t, sigs::g.SIGPROJ, x, rgroup) && isInt(x->node(), i);
+    return isProj(t, *i, rgroup);
 }
 
 // Int, Bitcast and Float casting

@@ -63,7 +63,8 @@ void initSignalSymbols()
     g.SIGFFUN            = signal_signature.add("SigFFun");
     g.SIGFCONST          = signal_signature.add("SigFConst");
     g.SIGFVAR            = signal_signature.add("SigFVar");
-    g.SIGPROJ            = signal_signature.add("SigProj");
+    // Projection moved to tlib (proj/isProj) : no longer a signal-signature member,
+    // like rec/ref. The SignalOpcode enum drops Projection in step with this.
     g.SIGINTCAST         = signal_signature.add("SigIntCast");
     g.SIGBITCAST         = signal_signature.add("SigBitCast");
     g.SIGFLOATCAST       = signal_signature.add("SigFloatCast");

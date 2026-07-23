@@ -429,6 +429,15 @@ Tree ref(Tree id);    ///< create a symbolic recursive reference
 bool isRef(Tree t, int& level);  ///< is t a de Bruijn recursive reference
 bool isRef(Tree t, Tree& id);    ///< is t a symbolic recursive reference
 
+// Projection out of an n-ary recursive group. A recursive binder holds a LIST of k
+// mutually recursive definitions ; proj(i, group) names its i-th component. Projection
+// is intrinsic to n-ary recursion, so it belongs with rec/ref in tlib rather than in a
+// consumer -- this is what lets a generic fixpoint bridge a group's vector of values
+// back to a single value without knowing anything about signals.
+
+TLIB_API Tree proj(int i, Tree group);         ///< the i-th component of a recursive group
+TLIB_API bool isProj(Tree t, int& i, Tree& group);  ///< is t such a projection
+
 // Open vs Closed regarding de Bruijn references
 
 inline bool isOpen(Tree t)

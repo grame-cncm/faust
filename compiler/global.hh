@@ -585,7 +585,7 @@ struct global {
     Sym& SIGFFUN = sigs::g.SIGFFUN;
     Sym& SIGFCONST = sigs::g.SIGFCONST;
     Sym& SIGFVAR = sigs::g.SIGFVAR;
-    Sym& SIGPROJ = sigs::g.SIGPROJ;
+    // SIGPROJ removed : projection is now a tlib primitive (proj/isProj).
     Sym& SIGINTCAST = sigs::g.SIGINTCAST;
     Sym& SIGBITCAST = sigs::g.SIGBITCAST;
     Sym& SIGFLOATCAST = sigs::g.SIGFLOATCAST;

@@ -112,7 +112,6 @@ struct State {
     Sym                                         SIGFFUN{};
     Sym                                         SIGFCONST{};
     Sym                                         SIGFVAR{};
-    Sym                                         SIGPROJ{};
     Sym                                         SIGINTCAST{};
     Sym                                         SIGBITCAST{};
     Sym                                         SIGFLOATCAST{};

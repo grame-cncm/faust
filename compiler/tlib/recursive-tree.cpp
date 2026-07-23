@@ -44,6 +44,7 @@ using namespace std;
 static Sym  gDebruijnSym     = nullptr;
 static Sym  gDebruijnRefSym  = nullptr;
 static Sym  gSymRecSym       = nullptr;
+static Sym  gProjSym         = nullptr;
 static Sym  gSubstituteSym   = nullptr;
 static Sym  gSymLiftnSym     = nullptr;
 static Tree gRecDefKey       = nullptr;
@@ -54,6 +55,7 @@ static inline void initRecSymbols()
     gDebruijnSym    = symbol("DEBRUIJN");
     gDebruijnRefSym = symbol("DEBRUIJNREF");
     gSymRecSym      = symbol("SYMREC");
+    gProjSym        = symbol("PROJ");
     gSubstituteSym  = symbol("SUBSTITUTE");
     gSymLiftnSym    = symbol("LIFTN");
 }
@@ -80,6 +82,7 @@ void tlibResetRecInternals()
     gDebruijnSym     = nullptr;
     gDebruijnRefSym  = nullptr;
     gSymRecSym       = nullptr;
+    gProjSym         = nullptr;
     gSubstituteSym   = nullptr;
     gSymLiftnSym     = nullptr;
     gRecDefKey       = nullptr;
@@ -202,6 +205,23 @@ Tree ref(Tree id)
 bool isRef(Tree t, Tree& v)
 {
     return isSymbolicRef(t, v);
+}
+
+//-----------------------------------------------------------------------------------------
+// Projection out of an n-ary recursive group (see tree.hh). Same node shape the signal
+// layer used before it moved here : head PROJ, branch 0 the integer index, branch 1 the
+// group. Kept identical so every consumer that reads the branches keeps working.
+//-----------------------------------------------------------------------------------------
+
+Tree proj(int i, Tree group)
+{
+    return tree(gProjSym, tree(i), group);
+}
+
+bool isProj(Tree t, int& i, Tree& group)
+{
+    Tree x;
+    return isTree(t, gProjSym, x, group) && isInt(x->node(), &i);
 }
 
 //-----------------------------------------------------------------------------------------

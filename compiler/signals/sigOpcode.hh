@@ -50,7 +50,7 @@ enum class SignalOpcode : std::uint8_t {
     ForeignFunction,
     ForeignConstant,
     ForeignVariable,
-    Projection,
+    // Projection moved to tlib (proj/isProj), out of the signal signature.
     IntCast,
     BitCast,
     FloatCast,
