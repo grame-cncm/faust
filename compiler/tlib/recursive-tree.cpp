@@ -525,61 +525,23 @@ static void scanForRecs(Tree t, std::unordered_set<Tree>& visited, std::vector<T
     }
 }
 
-// Tarjan's strongly connected components over the recursive nodes.
-struct Sym2DebTarjan {
-    const std::unordered_map<Tree, std::vector<Tree>>& fSucc;
-    std::unordered_map<Tree, int>&                     fSccOf;
-    std::unordered_map<Tree, int>                      fIndex;
-    std::unordered_map<Tree, int>                      fLow;
-    std::vector<Tree>                                  fStack;
-    std::unordered_set<Tree>                           fOnStack;
-    int                                                fNextIndex = 0;
-    int                                                fNextScc   = 0;
-
-    Sym2DebTarjan(const std::unordered_map<Tree, std::vector<Tree>>& succ,
-                  std::unordered_map<Tree, int>&                     sccOf)
-        : fSucc(succ), fSccOf(sccOf)
-    {
-    }
-
-    void visit(Tree v)
-    {
-        fIndex[v] = fLow[v] = fNextIndex++;
-        fStack.push_back(v);
-        fOnStack.insert(v);
-        auto it = fSucc.find(v);
-        if (it != fSucc.end()) {
-            for (Tree w : it->second) {
-                if (fIndex.find(w) == fIndex.end()) {
-                    visit(w);
-                    fLow[v] = std::min(fLow[v], fLow[w]);
-                } else if (fOnStack.count(w) > 0) {
-                    fLow[v] = std::min(fLow[v], fIndex[w]);
-                }
-            }
-        }
-        if (fLow[v] == fIndex[v]) {
-            for (;;) {
-                Tree w = fStack.back();
-                fStack.pop_back();
-                fOnStack.erase(w);
-                fSccOf[w] = fNextScc;
-                if (w == v) {
-                    break;
-                }
-            }
-            ++fNextScc;
-        }
-    }
-};
-
 // Register every recursive node reachable from root (crossing recursive
-// definitions through a worklist) and compute their components.
+// definitions through a worklist), build the dependency digraph, and label
+// each node with its strongly connected component.
+//
+// The components come from DirectedGraph's Tarjan rather than a hand-written
+// one : recursive-node components are exactly what graph2dag/partition were
+// written for. Only the PARTITION matters here -- sccOf is consumed solely by
+// the "same component ?" test in sym2deBruijnAux -- so any numbering of the
+// components is correct. A node with no outgoing recursive edge is added on
+// its own so it still gets a singleton component ; a direct self-reference
+// becomes a self-loop, hence again a singleton, which is the intended
+// behaviour for x = f(x).
 static void sym2deBruijnComponents(Tree root, Sym2DebState& state)
 {
-    std::vector<Tree>                           work;
-    std::unordered_set<Tree>                    known;
-    std::unordered_map<Tree, std::vector<Tree>> successors;
+    std::vector<Tree>        work;
+    std::unordered_set<Tree> known;
+    digraph<Tree>            graph;
 
     {
         std::unordered_set<Tree> visited;
@@ -594,6 +556,7 @@ static void sym2deBruijnComponents(Tree root, Sym2DebState& state)
     while (!work.empty()) {
         Tree r = work.back();
         work.pop_back();
+        graph.add(r);  // ensure r is a node even if its body holds no recursion
         Tree var, body;
         if (!(isSymbolicRec(r, var, body) && body)) {
             continue;  // free reference: reported by the conversion itself
@@ -601,11 +564,10 @@ static void sym2deBruijnComponents(Tree root, Sym2DebState& state)
         std::unordered_set<Tree> visited;
         std::vector<Tree>        found;
         scanForRecs(body, visited, found);
-        std::vector<Tree>&       succ = successors[r];
         std::unordered_set<Tree> dedup;
         for (Tree s2 : found) {
             if (dedup.insert(s2).second) {
-                succ.push_back(s2);
+                graph.add(r, s2);
             }
             if (known.insert(s2).second) {
                 work.push_back(s2);
@@ -613,11 +575,15 @@ static void sym2deBruijnComponents(Tree root, Sym2DebState& state)
         }
     }
 
-    Sym2DebTarjan tarjan(successors, state.sccOf);
-    for (Tree r : known) {
-        if (tarjan.fIndex.find(r) == tarjan.fIndex.end()) {
-            tarjan.visit(r);
+    // Name the Tarjan : partition() returns a reference INTO it, so a temporary
+    // would dangle across the loop.
+    Tarjan<Tree> tarjan(graph);
+    int          scc = 0;
+    for (const auto& component : tarjan.partition()) {
+        for (Tree r : component) {
+            state.sccOf[r] = scc;
         }
+        ++scc;
     }
 }
 
