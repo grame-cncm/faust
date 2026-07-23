@@ -72,6 +72,7 @@
 #include <cstddef>
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "export.hh"
@@ -452,6 +453,26 @@ bool isSym2deBruijnInvariant(Tree t);  ////< true iff sym2deBruijn(t) == t. Now 
                                        ////< CTree::isRecFree(), which is what to call in
                                        ////< new code -- this name only records the theorem
 bool areEquiv(Tree a, Tree b);  ////< alpha-equivalence of recursive trees
+
+// The recursion structure of a symbolic term : every symbolic recursive node reachable
+// from a root, partitioned into strongly connected components (the mutual-recursion
+// groups) via DirectedGraph's Tarjan. It is V-independent -- it depends on the tree
+// alone -- so it is computed ONCE and shared, read-only, by every attribute computation
+// over that term (sym2deBruijn today, the generic fixpoint iterator to come : see
+// FIXPOINT-SPEC). Only the partition is exposed for now ; the reverse-topological order
+// it will also carry lands with the iterator that first consumes it.
+class TLIB_API RecPlan {
+   public:
+    explicit RecPlan(Tree root);
+
+    ///< component id of a symbolic recursive node, or -1 if it is not one of the
+    ///< recursive nodes reachable from root. Two nodes share a component iff their ids
+    ///< are equal ; the numbering itself carries no meaning.
+    int sccOf(Tree recNode) const;
+
+   private:
+    std::unordered_map<Tree, int> fSccOf;
+};
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);
 std::string   toDeBruijnString(Tree t);

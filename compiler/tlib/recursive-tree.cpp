@@ -499,10 +499,12 @@ bool isSym2deBruijnInvariant(Tree t)
 }
 
 struct Sym2DebState {
+    const RecPlan&                 plan;             ///< the shared component partition
     std::unordered_map<Tree, Tree> closedMemo;       ///< closed results, keyed by term
     Sym2DebMemo                    envMemo;          ///< open results, keyed by (term, env)
-    std::unordered_map<Tree, int>  sccOf;            ///< recursive node -> component id
     int                            currentSCC = -1;  ///< component being converted
+
+    explicit Sym2DebState(const RecPlan& p) : plan(p) {}
 };
 
 // Collect every symbolic recursive node occurring in t WITHOUT crossing
@@ -525,19 +527,17 @@ static void scanForRecs(Tree t, std::unordered_set<Tree>& visited, std::vector<T
     }
 }
 
-// Register every recursive node reachable from root (crossing recursive
-// definitions through a worklist), build the dependency digraph, and label
-// each node with its strongly connected component.
+// Register every symbolic recursive node reachable from root (crossing recursive
+// definitions through a worklist), build the dependency digraph, and partition it into
+// strongly connected components.
 //
-// The components come from DirectedGraph's Tarjan rather than a hand-written
-// one : recursive-node components are exactly what graph2dag/partition were
-// written for. Only the PARTITION matters here -- sccOf is consumed solely by
-// the "same component ?" test in sym2deBruijnAux -- so any numbering of the
-// components is correct. A node with no outgoing recursive edge is added on
-// its own so it still gets a singleton component ; a direct self-reference
-// becomes a self-loop, hence again a singleton, which is the intended
-// behaviour for x = f(x).
-static void sym2deBruijnComponents(Tree root, Sym2DebState& state)
+// The components come from DirectedGraph's Tarjan rather than a hand-written one :
+// recursive-node components are exactly what graph2dag/partition were written for. Only
+// the PARTITION matters -- sccOf is consumed solely by "same component ?" tests -- so any
+// numbering of the components is correct. A node with no outgoing recursive edge is added
+// on its own so it still gets a singleton component ; a direct self-reference becomes a
+// self-loop, hence again a singleton, which is the intended behaviour for x = f(x).
+RecPlan::RecPlan(Tree root)
 {
     std::vector<Tree>        work;
     std::unordered_set<Tree> known;
@@ -581,10 +581,16 @@ static void sym2deBruijnComponents(Tree root, Sym2DebState& state)
     int          scc = 0;
     for (const auto& component : tarjan.partition()) {
         for (Tree r : component) {
-            state.sccOf[r] = scc;
+            fSccOf[r] = scc;
         }
         ++scc;
     }
+}
+
+int RecPlan::sccOf(Tree recNode) const
+{
+    auto it = fSccOf.find(recNode);
+    return (it != fSccOf.end()) ? it->second : -1;
 }
 
 static Tree sym2deBruijnAux(Tree t, Tree env, Sym2DebState& state);
@@ -598,13 +604,13 @@ static Tree sym2deBruijnRec(Tree recNode, Sym2DebState& state)
         return it->second;
     }
 
-    auto scc = state.sccOf.find(recNode);
-    if (scc == state.sccOf.end()) {
+    const int id = state.plan.sccOf(recNode);
+    if (id < 0) {
         tlib::error("ASSERT : unregistered recursive node in sym2deBruijn\n");
     }
 
     const int saved  = state.currentSCC;
-    state.currentSCC = scc->second;
+    state.currentSCC = id;
     Tree result      = sym2deBruijnAux(recNode, nil(), state);
     state.currentSCC = saved;
 
@@ -641,8 +647,8 @@ static Tree sym2deBruijnAux(Tree t, Tree env, Sym2DebState& state)
         if (level > 0) {
             result = ref(level);
         } else if (isSymbolicRec(t, var, body) && body) {
-            auto scc = state.sccOf.find(t);
-            if (scc != state.sccOf.end() && scc->second == state.currentSCC) {
+            const int id = state.plan.sccOf(t);
+            if (id >= 0 && id == state.currentSCC) {
                 // Mutual recursion inside the current component: inline
                 result = rec(sym2deBruijnAux(body, cons(var, env), state));
             } else {
@@ -672,8 +678,8 @@ static Tree sym2deBruijnAux(Tree t, Tree env, Sym2DebState& state)
 
 Tree sym2deBruijn(Tree t)
 {
-    Sym2DebState state;
-    sym2deBruijnComponents(t, state);
+    RecPlan      plan(t);
+    Sym2DebState state(plan);
     return sym2deBruijnAux(t, nil(), state);
 }
 
