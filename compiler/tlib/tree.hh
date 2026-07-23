@@ -459,19 +459,28 @@ bool areEquiv(Tree a, Tree b);  ////< alpha-equivalence of recursive trees
 // groups) via DirectedGraph's Tarjan. It is V-independent -- it depends on the tree
 // alone -- so it is computed ONCE and shared, read-only, by every attribute computation
 // over that term (sym2deBruijn today, the generic fixpoint iterator to come : see
-// FIXPOINT-SPEC). Only the partition is exposed for now ; the reverse-topological order
-// it will also carry lands with the iterator that first consumes it.
+// FIXPOINT-SPEC).
+//
+// components() are ordered dependencies-first (reverse topological) : a component is
+// listed after every component it depends on, so solving them in order means never
+// iterating on a value from a component that has not converged yet. A component's id
+// (sccOf) is its index in that list, so the ids themselves increase with the order.
 class TLIB_API RecPlan {
    public:
     explicit RecPlan(Tree root);
 
     ///< component id of a symbolic recursive node, or -1 if it is not one of the
     ///< recursive nodes reachable from root. Two nodes share a component iff their ids
-    ///< are equal ; the numbering itself carries no meaning.
+    ///< are equal ; equivalently, sccOf(r) is the index of r's component in components().
     int sccOf(Tree recNode) const;
 
+    ///< the components, dependencies first : components()[i] holds the nodes of the
+    ///< component whose id is i, and depends only on components()[j] with j < i.
+    const std::vector<std::vector<Tree>>& components() const { return fComponents; }
+
    private:
-    std::unordered_map<Tree, int> fSccOf;
+    std::unordered_map<Tree, int>  fSccOf;
+    std::vector<std::vector<Tree>> fComponents;
 };
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);

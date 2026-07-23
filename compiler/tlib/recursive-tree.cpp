@@ -575,15 +575,20 @@ RecPlan::RecPlan(Tree root)
         }
     }
 
-    // Name the Tarjan : partition() returns a reference INTO it, so a temporary
-    // would dangle across the loop.
-    Tarjan<Tree> tarjan(graph);
-    int          scc = 0;
-    for (const auto& component : tarjan.partition()) {
-        for (Tree r : component) {
-            fSccOf[r] = scc;
+    // Collapse the graph into its DAG of components, then serialize that DAG in
+    // dependencies-first (reverse topological) order. A component's id is its index in
+    // that order, so fSccOf and fComponents share one numbering that increases along the
+    // dependency order -- exactly what a fixpoint iterator needs to solve lower
+    // components before the ones that use them. sym2deBruijn does not care about the
+    // order, only about the partition, so this renumbering is neutral for it.
+    for (const digraph<Tree>& component : serialize(graph2dag(graph))) {
+        const int         id = int(fComponents.size());
+        std::vector<Tree> members;
+        for (Tree r : component.nodes()) {
+            members.push_back(r);
+            fSccOf[r] = id;
         }
-        ++scc;
+        fComponents.push_back(std::move(members));
     }
 }
 
