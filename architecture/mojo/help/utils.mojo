@@ -7,9 +7,9 @@ from conf import *
 def vstore[
     dtype: DType, //, width: SInt
 ](
-    var  ptr:    Ptr[Scalar[dtype], _],
-    read idx:    S32,
-    read value:  SIMD[dtype, SInt(width)]
+    var ptr:    Ptr[Scalar[dtype], _],
+    imm value:  SIMD[dtype, SInt(width)],
+    imm idx:    S32                       =  0
 ) -> None:
     ptr.unsafe_mut_cast[True]().store[width=width](idx, value)
 
@@ -18,9 +18,9 @@ def vstore[
 def vstore[
     dtype: DType, //,  width: SInt
 ](
-    mut  arr:    Arr[Scalar[dtype], _],
-    read idx:    S32,
-    read value:  SIMD[dtype, width]
+    mut arr:    Arr[Scalar[dtype], _],
+    imm value:  SIMD[dtype, width],
+    imm idx:    S32                    =  0
 ) -> None:
     Ptr(to=arr[S32(0)]).store[width=width](idx, value)
 
@@ -30,9 +30,9 @@ def vstore[
 def vstore[
     dtype: DType, //, width: SInt
 ](
-    var  ptr:    Ptr[Scalar[dtype], _],
-    read idx:    S32,
-    read value:  Scalar[dtype]
+    var ptr:    Ptr[Scalar[dtype], _],
+    imm value:  Scalar[dtype],
+    imm idx:    S32                    =  0
 ) -> None:
     ptr.unsafe_mut_cast[True]().store[width=width](idx, SIMD[dtype, width](value))
 
@@ -40,12 +40,12 @@ def vstore[
 @always_inline
 def vload[
     dtype: DType, //, width: SInt = simd_width_of[dtype]()
-](var ptr: Ptr[Scalar[dtype], _], var idx: S32 = 0) -> SIMD[dtype, width]:
+](var ptr: Ptr[Scalar[dtype], _], imm idx: S32 = 0) -> SIMD[dtype, width]:
     return ptr.load[width=width](idx)
 
 
 @always_inline
 def vload[
     dtype: DType, //, width: SInt = simd_width_of[dtype]()
-](arr: Arr[Scalar[dtype], _], idx: S32 = 0) -> SIMD[dtype, width]:
+](imm arr: Arr[Scalar[dtype], _], imm idx: S32 = 0) -> SIMD[dtype, width]:
     return Ptr(to=arr[S32(0)]).load[width=width](idx)

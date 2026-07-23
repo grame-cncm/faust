@@ -46,23 +46,23 @@ struct mydsp(FaustDsp):
         dsp.sample_rate = 0
 
     @always_inline
-    def get_sample_rate(read dsp) -> S32:
+    def get_sample_rate(imm dsp) -> S32:
         return dsp.sample_rate
 
     @always_inline
-    def get_num_outputs(read dsp) -> S32:
+    def get_num_outputs(imm dsp) -> S32:
         return 2
 
     @always_inline
-    def get_num_inputs(read dsp) -> S32:
+    def get_num_inputs(imm dsp) -> S32:
         return 1
 
     @always_inline
-    def class_init(mut dsp, read sample_rate: S32) -> None:
+    def class_init(mut dsp, imm sample_rate: S32) -> None:
         pass
 
     @always_inline
-    def instance_constants(mut dsp, read sample_rate: S32) -> None:
+    def instance_constants(mut dsp, imm sample_rate: S32) -> None:
         dsp.sample_rate = sample_rate
 
     @always_inline
@@ -74,22 +74,22 @@ struct mydsp(FaustDsp):
         pass
 
     @always_inline
-    def instance_init(mut dsp, read sample_rate: S32) -> None:
+    def instance_init(mut dsp, imm sample_rate: S32) -> None:
         dsp.instance_constants(sample_rate)
         dsp.instance_reset_user_interface()
         dsp.instance_clear()
 
     @always_inline
-    def init(mut dsp, read sample_rate: S32) -> None:
+    def init(mut dsp, imm sample_rate: S32) -> None:
         dsp.class_init(sample_rate)
         dsp.instance_init(sample_rate)
 
     @always_inline
-    def get_json(read dsp) -> String:
+    def get_json(imm dsp) -> String:
         return "{\"name\": \"cubic_mini_01\",\"filename\": \"cubic_mini_01.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32\",\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"../_bench/src\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/../_bench/src\"],\"size\": 12,\"inputs\": 1,\"outputs\": 2,\"meta\": [ { \"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32\" },{ \"filename\": \"cubic_mini_01.dsp\" },{ \"name\": \"cubic_mini_01\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"cubic_mini_01\",\"items\": [ {\"type\": \"hslider\",\"label\": \"drive\",\"varname\": \"fHslider0\",\"shortname\": \"drive\",\"address\": \"/cubic_mini_01/drive\",\"init\": 0.5,\"min\": 0,\"max\": 2,\"step\": 0.01}]}]}"
 
     @always_inline
-    def metadata(read dsp, mut meta: Some[FaustMeta]) -> None:
+    def metadata(imm dsp, mut meta: Some[FaustMeta]) -> None:
         meta.declare("compile_options", "-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 32")
         meta.declare("filename", "cubic_mini_01.dsp")
         meta.declare("name", "cubic_mini_01")
@@ -102,7 +102,7 @@ struct mydsp(FaustDsp):
 
     @always_inline
     def compute(
-        mut dsp, var count: S32, var inputs: ReadStreams, var outputs: MutaStreams
+        mut dsp, var count: S32, var inputs: ImmStreams, var outputs: MutStreams
     ) -> None:
         var input0_ptr = inputs[S32(0)]
         var output0_ptr = outputs[S32(0)]
@@ -180,8 +180,8 @@ def main() -> None:
         dsp.free()
         return
     var ptr = base.unsafe_value()
-    var inputs = ptr.bitcast[Ptr[FaustFloat, READ_NOTRK]]().as_immutable()
-    var outputs = (ptr + n_ins).bitcast[Ptr[FaustFloat, MUTA_NOTRK]]()
+    var inputs = ptr.bitcast[Ptr[FaustFloat, IMM_NOTRK]]().as_immutable()
+    var outputs = (ptr + n_ins).bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
     inspect_compute(dsp[], inputs, outputs)
     ptr.free()
     dsp.free()
@@ -189,7 +189,7 @@ def main() -> None:
 @no_inline
 @export("inspect_compute")
 def inspect_compute(
-    mut dsp: mydsp, inputs: ReadStreams, outputs: MutaStreams
+    mut dsp: mydsp, inputs: ImmStreams, outputs: MutStreams
 ) abi("Mojo") -> None:
     for _ in range(COMPUTE_ITERS):
         keep(inputs)

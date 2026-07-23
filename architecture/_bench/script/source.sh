@@ -43,10 +43,7 @@ BENCH_SNAP_DIR="${BENCH_REPORT_DIR}/snap"
 BENCH_TMP_DIR="${BENCH_REPORT_DIR}/tmp"
 
 BENCH_MOJO_ARCH_DIR="${BENCH_ARCH_DIR}/mojo"
-BENCH_MOJO_REPORT_DIR="${BENCH_TAB_DIR}/mojo"
-
 BENCH_CPP_ARCH_DIR="${BENCH_ARCH_DIR}/cpp"
-BENCH_CPP_REPORT_DIR="${BENCH_TAB_DIR}/cpp"
 
 BENCH_CSV="${BENCH_REPORT_DIR}/report.csv"
 BENCH_KEEP_TMP="${BENCH_KEEP_TMP:-0}"
@@ -66,10 +63,11 @@ BENCH_MODES=(
   vec
 )
 
-BENCH_PRECISIONS=(
-  single
-  double
-)
+# Fixed precision profile: internal DSP math is f64, architecture I/O is f32.
+BENCH_INTERNAL_PRECISION="double"
+BENCH_EXTERNAL_PRECISION="float32"
+BENCH_CPP_FAUSTFLOAT="float"
+BENCH_MOJO_FAUST_DTYPE="DType.float32"
 
 BENCH_SAMPLE_RATES=(
   48000
@@ -80,6 +78,16 @@ BENCH_BUFFER_SIZES=(
   64
   512
 )
+
+if ! declare -p BENCH_FAUST_SCALAR_OPT >/dev/null 2>&1; then
+  BENCH_FAUST_SCALAR_OPT=()
+fi
+
+if ! declare -p BENCH_FAUST_VEC_OPT >/dev/null 2>&1; then
+  BENCH_FAUST_VEC_OPT=(
+    -vec -vs 4 -dfs
+  )
+fi
 
 BENCH_WARMUP_ITERS="${BENCH_WARMUP_ITERS:-50}"
 BENCH_COMPUTE_ITERS="${BENCH_COMPUTE_ITERS:-1000000}"
@@ -103,7 +111,7 @@ BENCH_CPP_OPT=(
 )
 
 BENCH_MOJO_OPT=(
-  -O 3
+  -O3
   # --target-cpu apple-m4
 )
 
@@ -125,9 +133,11 @@ bench_make_dirs() {
     "${BENCH_SRC_DIR}" \
     "${BENCH_REPORT_DIR}" \
     "${BENCH_BIN_DIR}" \
+    "${BENCH_BIN_DIR}/cpp" \
+    "${BENCH_BIN_DIR}/mojo" \
     "${BENCH_TAB_DIR}" \
-    "${BENCH_CPP_REPORT_DIR}" \
-    "${BENCH_MOJO_REPORT_DIR}" \
+    "${BENCH_TAB_DIR}/cpp" \
+    "${BENCH_TAB_DIR}/mojo" \
     "${BENCH_PLOT_DIR}" \
     "${BENCH_SNAP_DIR}" \
     "${BENCH_TMP_DIR}" \
@@ -201,10 +211,10 @@ echo
 echo "  bench_snapshot after_changes"
 echo "      Save the current report state under report/snap/."
 echo
-echo "  inspect_llvm_gen scalar all carre_volterra"
+echo "  inspect_llvm scalar all carre_volterra"
 echo "      Generate LLVM IR using the inspect architecture in scalar mode."
 echo
-echo "  inspect_asm_gen vec all carre_volterra"
+echo "  inspect_asm vec all carre_volterra"
 echo "      Generate target assembly using the inspect architecture in vec mode."
 echo
 echo "Argument notes:"
@@ -225,9 +235,9 @@ echo
 echo "  sources:"
 echo "      all, DSP names, DSP paths, or shell-expanded globs."
 echo
-echo "  precisions:"
-echo "      precision is not a command argument."
-echo "      each benchmark run always executes all configured precisions."
+echo "Fixed precision profile:"
+echo "      internal Faust precision: ${BENCH_INTERNAL_PRECISION}."
+echo "      external FAUSTFLOAT / dfaust: ${BENCH_EXTERNAL_PRECISION}."
 echo
 echo "Useful overrides:"
 echo

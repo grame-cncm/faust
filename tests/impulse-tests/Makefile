@@ -712,7 +712,6 @@ mojo:
 	# $(MAKE) -f Make.mojo outdir=mojo/float  lang=mojo arch=mojo/impulse.mojo FAUSTOPTIONS="-I dsp -single"
 	# $(MAKE) -f Make.mojo outdir=mojo/double  lang=mojo  arch=mojo/impulse.mojo  FAUSTOPTIONS="-I dsp -double"
 	$(MAKE) -f Make.mojo outdir=mojo/vec4    lang=mojo  arch=mojo/impulse.mojo  FAUSTOPTIONS="-I dsp -double -vec -vs 4"
-	# $(MAKE) -f Make.mojo outdir=mojo/vec32   lang=mojo  arch=mojo/impulse.mojo  FAUSTOPTIONS="-I dsp -double -vec -vs 32"
 
 #########################################################################
 # Rust backend

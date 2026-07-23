@@ -126,6 +126,7 @@ struct mydsp(FaustDsp):
         mut dsp, var count: S32, var inputs: ImmStreams, var outputs: MutStreams
     ) -> None:
         comptime assert dfaust == DType.float32, "Expected 32 bit float driver precision."
+        comptime vsize = S32(4)
         var lo: SIMD[dfaust, simd_width_of[f64]()]
         var hi: SIMD[dfaust, simd_width_of[f64]()]
         var input0_ptr = inputs[S32(0)]
@@ -138,32 +139,74 @@ struct mydsp(FaustDsp):
         var zec0 = Arr[F64, 4](uninitialized=True)
         var rec0_tmp = Arr[F64, 8](uninitialized=True)
         var rec0 = Ptr(to=rec0_tmp[S32(4)])
-        vindex_re0 = S32(0)
-        while (vindex_re0) <= ((count) - (S32(4))): 
-            var input0 = Ptr(to=input0_ptr[vindex_re0])
-            var output0 = Ptr(to=output0_ptr[vindex_re0])
-            comptime vsize_re0 = S32(4)
-            var j0_re0 = S32(0)
-            var value0 = vload[w64](dsp.rec0_perm, j0_re0)
-            vstore(rec0_tmp, j0_re0, value0)
-            value0 = vload[w64](dsp.rec0_perm, j0_re0 + S32(w64))
-            vstore(rec0_tmp, j0_re0 + S32(w64), value0)
-            var i_re0 = S32(0)
-            while (i_re0) < (vsize_re0): 
-                zec0[i_re0] = (slow4) * (rec0[(i_re0) - (S32(1))])
-                rec0[i_re0] = (F64(input0[i_re0])) - ((slow2) * (((slow3) * (rec0[(i_re0) - (S32(2))])) - (zec0[i_re0])))
-                i_re0 = (i_re0) + (S32(1))
-            var j1_re0 = S32(0)
-            var value1 = vload[w64](rec0_tmp, (vsize_re0) + (j1_re0))
-            vstore(dsp.rec0_perm, j1_re0, value1)
-            value1 = vload[w64](rec0_tmp, (vsize_re0) + (j1_re0) + S32(w64))
-            vstore(dsp.rec0_perm, j1_re0 + S32(w64), value1)
-            var i_re1 = S32(0)
-            lo = ((vload[w64](rec0, (i_re1) - (S32(2)))) + ((slow2) * (((slow3) * (vload[w64](rec0, i_re1))) - (vload[w64](zec0, i_re1))))).cast[dfaust]()
-            hi = ((vload[w64](rec0, (i_re1) - (S32(2)) + S32(w64))) + ((slow2) * (((slow3) * (vload[w64](rec0, i_re1 + S32(w64)))) - (vload[w64](zec0, i_re1 + S32(w64)))))).cast[dfaust]()
-            var value2 = lo.join(hi)
-            vstore(output0, S32(0), value2)
-            vindex_re0 = (vindex_re0) + (S32(4))
+        var vindex = S32(0)
+        var end = count - vsize
+
+        while vindex <= end:
+            var input0 = Ptr(to=input0_ptr[vindex])
+            var output0 = Ptr(to=output0_ptr[vindex])
+
+            vstore(rec0_tmp, S32(0), vload[w64](dsp.rec0_perm, S32(0)))
+            vstore(
+                rec0_tmp,
+                S32(w64),
+                vload[w64](dsp.rec0_perm, S32(w64)),
+            )
+
+            var rm2 = rec0[-S32(2)]
+            var rm1 = rec0[-S32(1)]
+
+            var z0 = slow4 * rm1
+            var r0 = F64(input0[S32(0)]) - slow2 * (slow3 * rm2 - z0)
+            zec0[S32(0)] = z0
+            rec0[S32(0)] = r0
+
+            var z1 = slow4 * r0
+            var r1 = F64(input0[S32(1)]) - slow2 * (slow3 * rm1 - z1)
+            zec0[S32(1)] = z1
+            rec0[S32(1)] = r1
+
+            var z2 = slow4 * r1
+            var r2 = F64(input0[S32(2)]) - slow2 * (slow3 * r0 - z2)
+            zec0[S32(2)] = z2
+            rec0[S32(2)] = r2
+
+            var z3 = slow4 * r2
+            var r3 = F64(input0[S32(3)]) - slow2 * (slow3 * r1 - z3)
+            zec0[S32(3)] = z3
+            rec0[S32(3)] = r3
+
+            vstore(
+                dsp.rec0_perm,
+                S32(0),
+                vload[w64](rec0_tmp, vsize),
+            )
+            vstore(
+                dsp.rec0_perm,
+                S32(w64),
+                vload[w64](rec0_tmp, vsize + S32(w64)),
+            )
+
+            lo = (
+                vload[w64](rec0, -S32(2))
+                + slow2
+                * (
+                    slow3 * vload[w64](rec0, S32(0))
+                    - vload[w64](zec0, S32(0))
+                )
+            ).cast[dfaust]()
+
+            hi = (
+                vload[w64](rec0, -S32(2) + S32(w64))
+                + slow2
+                * (
+                    slow3 * vload[w64](rec0, S32(w64))
+                    - vload[w64](zec0, S32(w64))
+                )
+            ).cast[dfaust]()
+
+            vstore(output0, S32(0), lo.join(hi))
+            vindex = vindex + vsize
 
 # ==============================================================================
 # Faust generated DSP code end.

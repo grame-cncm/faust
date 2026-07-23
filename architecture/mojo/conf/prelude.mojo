@@ -50,20 +50,20 @@ comptime FaustFloat = Scalar[dfaust]
 comptime FVec = Vec[dfaust]
 
 # Origin values constants
-comptime READ_NOTRK = ImmutUntrackedOrigin 
-comptime MUTA_NOTRK = MutUntrackedOrigin
+comptime IMM_NOTRK = ImmUntrackedOrigin 
+comptime MUT_NOTRK = MutUntrackedOrigin
 
 # Pointer types aliases
-comptime Ptr[T: AnyType = Void, ori: Origin = MUTA_NOTRK]    = UnsafePointer[T, ori]
-comptime AnyPtr[ori: Origin = MUTA_NOTRK]                    = Ptr[Void, ori]
-comptime OptPtr[T: AnyType = Void, ori: Origin = MUTA_NOTRK] = Optional[Ptr[T, ori]]
+comptime Ptr[T: AnyType = Void, ori: Origin = MUT_NOTRK]    = UnsafePointer[T, ori]
+comptime AnyPtr[ori: Origin = MUT_NOTRK]                    = Ptr[Void, ori]
+comptime OptPtr[T: AnyType = Void, ori: Origin = MUT_NOTRK] = Optional[Ptr[T, ori]]
 
 # FaustFloat streams
-comptime ReadStreams = Ptr[Ptr[FaustFloat, READ_NOTRK], READ_NOTRK]
-comptime MutaStreams = Ptr[Ptr[FaustFloat, MUTA_NOTRK], MUTA_NOTRK]
+comptime ImmStreams = Ptr[Ptr[FaustFloat, IMM_NOTRK], IMM_NOTRK]
+comptime MutStreams = Ptr[Ptr[FaustFloat, MUT_NOTRK], MUT_NOTRK]
 
 # Memory constants definitions
-comptime PTR_SIZE = size_of[AnyPtr[MUTA_NOTRK]]()
-comptime PTR_ALIGN = align_of[AnyPtr[MUTA_NOTRK]]()
+comptime PTR_SIZE = size_of[AnyPtr[MUT_NOTRK]]()
+comptime PTR_ALIGN = align_of[AnyPtr[MUT_NOTRK]]()
 comptime STD_ALIGN = 2 * PTR_ALIGN
-comptime NULL_PTR[T: AnyType = Void, ori: Origin = MUTA_NOTRK]: OptPtr[T, ori] = None
+comptime NULL_PTR[T: AnyType = Void, ori: Origin = MUT_NOTRK]: OptPtr[T, ori] = None

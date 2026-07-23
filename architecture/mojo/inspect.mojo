@@ -44,8 +44,8 @@ def main() -> None:
         dsp.free()
         return
     var ptr = base.unsafe_value()
-    var inputs = ptr.bitcast[Ptr[FaustFloat, READ_NOTRK]]().as_immutable()
-    var outputs = (ptr + n_ins).bitcast[Ptr[FaustFloat, MUTA_NOTRK]]()
+    var inputs = ptr.bitcast[Ptr[FaustFloat, IMM_NOTRK]]().as_immutable()
+    var outputs = (ptr + n_ins).bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
     inspect_compute(dsp[], inputs, outputs)
     ptr.free()
     dsp.free()
@@ -53,7 +53,7 @@ def main() -> None:
 @no_inline
 @export("inspect_compute")
 def inspect_compute(
-    mut dsp: mydsp, inputs: ReadStreams, outputs: MutaStreams
+    mut dsp: mydsp, inputs: ImmStreams, outputs: MutStreams
 ) abi("Mojo") -> None:
     for _ in range(COMPUTE_ITERS):
         keep(inputs)

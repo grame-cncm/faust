@@ -112,12 +112,12 @@ comptime FAUST_ALREADY_ALIVE         = PaError(-3998)
 
 @always_inline
 def faust_callback[Dsp: FaustDsp](
-    input:     OptPtr[Void, READ_NOTRK],
-    output:    OptPtr[Void, MUTA_NOTRK],
+    input:     OptPtr[Void, IMM_NOTRK],
+    output:    OptPtr[Void, MUT_NOTRK],
     count:     PaULong,
-    time:      OptPtr[PaStreamCallbackTimeInfo, READ_NOTRK],
+    time:      OptPtr[PaStreamCallbackTimeInfo, IMM_NOTRK],
     flags:     PaStreamCallbackFlags,
-    data:      OptPtr[Void, MUTA_NOTRK],
+    data:      OptPtr[Void, MUT_NOTRK],
 ) -> S32:
     if data == None:
         return PA_ABORT
@@ -125,8 +125,8 @@ def faust_callback[Dsp: FaustDsp](
     var input_ptr = input.unsafe_value()
     var output_ptr = output.unsafe_value()
 
-    var inputs = input_ptr.bitcast[Ptr[FaustFloat, READ_NOTRK]]()
-    var outputs = output_ptr.bitcast[Ptr[FaustFloat, MUTA_NOTRK]]()
+    var inputs = input_ptr.bitcast[Ptr[FaustFloat, IMM_NOTRK]]()
+    var outputs = output_ptr.bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
     var dsp = data.unsafe_value().bitcast[Dsp]()
 
     dsp[].compute(S32(count), inputs, outputs)
@@ -140,8 +140,8 @@ comptime FaustCallbackFunc[Dsp: FaustDsp] = type_of(faust_callback[Dsp])
 @always_inline
 def faust_get_device_info(
     device: PaDeviceIndex
-) -> Tuple[OptPtr[PaDeviceInfo, READ_NOTRK], PaError]:
-    var info: OptPtr[PaDeviceInfo, READ_NOTRK] = pa_get_device_info(device)
+) -> Tuple[OptPtr[PaDeviceInfo, IMM_NOTRK], PaError]:
+    var info: OptPtr[PaDeviceInfo, IMM_NOTRK] = pa_get_device_info(device)
     if info == None:
         return None, PA_INVALID_DEVICE
     return info, PA_NO_ERROR
@@ -154,17 +154,17 @@ def faust_open_stream[Dsp: FaustDsp](
     var dsp:          Ptr[Dsp]
 ) -> Tuple[PaStream, S32]:
     var stream = NULL_STREAM
-    var ptr_in = NULL_PTR[PaStreamParameters, READ_NOTRK]
-    var ptr_out = NULL_PTR[PaStreamParameters, READ_NOTRK]
-    var data: OptPtr[Void, MUTA_NOTRK] = dsp.bitcast[NoneType]()
+    var ptr_in = NULL_PTR[PaStreamParameters, IMM_NOTRK]
+    var ptr_out = NULL_PTR[PaStreamParameters, IMM_NOTRK]
+    var data: OptPtr[Void, MUT_NOTRK] = dsp.bitcast[NoneType]()
 
     if in_param.channel_count != 0:
-        ptr_in = Ptr(to=in_param).unsafe_mut_cast[False]().unsafe_origin_cast[READ_NOTRK]()
+        ptr_in = Ptr(to=in_param).unsafe_mut_cast[False]().unsafe_origin_cast[IMM_NOTRK]()
     if out_param.channel_count != 0:
-        ptr_out = Ptr(to=out_param).unsafe_mut_cast[False]().unsafe_origin_cast[READ_NOTRK]()
+        ptr_out = Ptr(to=out_param).unsafe_mut_cast[False]().unsafe_origin_cast[IMM_NOTRK]()
 
     err = pa_open_stream(
-        Ptr(to=stream).unsafe_origin_cast[MUTA_NOTRK](),
+        Ptr(to=stream).unsafe_origin_cast[MUT_NOTRK](),
         ptr_in,
         ptr_out,
         F64(dsp[].get_sample_rate()),
@@ -185,5 +185,5 @@ def faust_stream_param(
         n_chans,
         FAUST_FORMAT,
         latency,
-        NULL_PTR[Void, MUTA_NOTRK],
+        NULL_PTR[Void, MUT_NOTRK],
     )

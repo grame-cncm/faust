@@ -22,7 +22,7 @@ arch ?= mojo/impulse.mojo
 genout ?= archs/mojo
 precision ?=
 FAUSTOPTIONS ?= -I dsp -double
-MOJOBUILDOPTIONS ?= -O3 -D DFAUST=DType.float64
+MOJOBUILDOPTIONS ?= -O3 -D DFAUST=DType.float32
 
 .PHONY: all help test filesCompare clean
 .DELETE_ON_ERROR:

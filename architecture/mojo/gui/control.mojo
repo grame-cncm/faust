@@ -6,16 +6,16 @@ from .gui import FaustGui
 # ControlGui architecture implementation.
 
 struct ControlGui(FaustGui):
-    var buttons: List[Ptr[FaustFloat, MUTA_NOTRK]]
+    var buttons: List[Ptr[FaustFloat, MUT_NOTRK]]
 
     def __init__(out ui):
-        ui.buttons = List[Ptr[FaustFloat, MUTA_NOTRK]]()
+        ui.buttons = List[Ptr[FaustFloat, MUT_NOTRK]]()
 
     def add_button[dreal: DType](
         mut ui, var label: String, mut zone: SIMD[dreal, 1]
     ) -> None:
         ui.buttons.append(
-            Ptr(to=zone).bitcast[FaustFloat]().unsafe_origin_cast[MUTA_NOTRK]()
+            Ptr(to=zone).bitcast[FaustFloat]().unsafe_origin_cast[MUT_NOTRK]()
         )
 
     def set_buttons(mut ui, var state: Bool) -> None:

@@ -29,7 +29,7 @@ struct TerminalGui[dtype: DType](FaustGui):
             WIDGET_ROOT,
             String("root"),
             0,
-            NULL_PTR[Self.Real, MUTA_NOTRK],
+            NULL_PTR[Self.Real, MUT_NOTRK],
             0.0,
             0.0,
             0.0,
@@ -50,7 +50,7 @@ struct TerminalGui[dtype: DType](FaustGui):
             WIDGET_VBOX,
             label,
             parent,
-            NULL_PTR[Self.Real, MUTA_NOTRK],
+            NULL_PTR[Self.Real, MUT_NOTRK],
             SIMD[Self.dtype, 1](0.0),
             SIMD[Self.dtype, 1](0.0),
             SIMD[Self.dtype, 1](0.0),
@@ -86,7 +86,7 @@ struct TerminalGui[dtype: DType](FaustGui):
             WIDGET_HSLIDER,
             label,
             parent,
-            Ptr(to=zone).bitcast[Self.Real]().unsafe_origin_cast[MUTA_NOTRK](),
+            Ptr(to=zone).bitcast[Self.Real]().unsafe_origin_cast[MUT_NOTRK](),
             Self.Real(init),
             Self.Real(min),
             Self.Real(max),
@@ -147,7 +147,7 @@ struct Widget[dtype: DType](ImplicitlyCopyable, Movable):
 
     # Slider payload.
     # Meaningful only when kind == WIDGET_HSLIDER.
-    var zone: OptPtr[SIMD[Self.dtype, 1], MUTA_NOTRK]
+    var zone: OptPtr[SIMD[Self.dtype, 1], MUT_NOTRK]
     var init: SIMD[Self.dtype, 1]
     var min: SIMD[Self.dtype, 1]
     var max: SIMD[Self.dtype, 1]

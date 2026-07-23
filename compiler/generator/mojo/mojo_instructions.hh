@@ -177,34 +177,26 @@ public:
     void visit(Int32NumInst* inst)   override;
     void visit(NamedAddress* inst)   override;
     void visit(IfInst* inst)         override;
-    void visit(StoreVarInst* inst)   override;
+
+    // Global state
+    static inline b32      gSIMDEmit;
+    static inline b32      gSIMDJoin;
+    static inline s32      gSIMDSize;
+    static inline String   gCurAddrs;
+    static inline String   gCurWidth;
+    static inline Address* gCurIndex;
 
 protected:
-
     // Visitor wrappers
-    void visitBroadcast(StoreVarInst* inst)
-    {
-        mj_simd_emit_set(true);
-        *fOut << "var " << gCurValue << " = ";
-        inst->fValue->accept(this);
-        *fOut << wnextl(fTab) << "vstore[wfaust](" << gCurAddrs << ", " << gCurIndex << ", " << gCurValue << ")";
-        mj_simd_emit_restore();
-        return;
-    }
+    void visitMain(ForLoopInst* inst);
+    void visitScalar(ForLoopInst* inst);
+    void visitBroadcast(StoreVarInst* inst);
     void visitBargraphUpdate(ForLoopInst* inst);
     void visitBargraphMulti(ForLoopInst* inst);
     void visitJoin(StoreVarInst* inst);
     void visitStore(StoreVarInst* inst);
-    void visitLoop(ForLoopInst* inst);
-
-    // Global state
-    static inline b32    gSIMDEmit;
-    static inline b32    gSIMDJoin;
-    static inline s32    gSIMDSize;
-    static inline String gCurValue;
-    static inline String gCurWidth;
-    static inline String gCurIndex;
-    static inline String gCurAddrs;
+    void visitUnroll(StoreVarInst* inst);
+    b32  visitIndex(ValueInst* inst);
 
     // Helpers
     static b32 hasWrappedIndex(Address* addr);

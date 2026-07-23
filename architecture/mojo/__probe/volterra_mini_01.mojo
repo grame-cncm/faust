@@ -92,23 +92,23 @@ struct mydsp(FaustDsp):
         dsp.rec5 = Arr[F64, 2](fill=0.0)
 
     @always_inline
-    def get_sample_rate(read dsp) -> S32:
+    def get_sample_rate(imm dsp) -> S32:
         return dsp.sample_rate
 
     @always_inline
-    def get_num_outputs(read dsp) -> S32:
+    def get_num_outputs(imm dsp) -> S32:
         return 1
 
     @always_inline
-    def get_num_inputs(read dsp) -> S32:
+    def get_num_inputs(imm dsp) -> S32:
         return 0
 
     @always_inline
-    def class_init(mut dsp, read sample_rate: S32) -> None:
+    def class_init(mut dsp, imm sample_rate: S32) -> None:
         pass
 
     @always_inline
-    def instance_constants(mut dsp, read sample_rate: S32) -> None:
+    def instance_constants(mut dsp, imm sample_rate: S32) -> None:
         dsp.sample_rate = sample_rate
         dsp.const0 = min(1.92e+05, max(1.0, F64(dsp.sample_rate)))
         dsp.const1 = (6.283185307179586) / (dsp.const0)
@@ -181,22 +181,22 @@ struct mydsp(FaustDsp):
             l12 = (l12) + (S32(1))
 
     @always_inline
-    def instance_init(mut dsp, read sample_rate: S32) -> None:
+    def instance_init(mut dsp, imm sample_rate: S32) -> None:
         dsp.instance_constants(sample_rate)
         dsp.instance_reset_user_interface()
         dsp.instance_clear()
 
     @always_inline
-    def init(mut dsp, read sample_rate: S32) -> None:
+    def init(mut dsp, imm sample_rate: S32) -> None:
         dsp.class_init(sample_rate)
         dsp.instance_init(sample_rate)
 
     @always_inline
-    def get_json(read dsp) -> String:
+    def get_json(imm dsp) -> String:
         return "{\"name\": \"volterra_mini_01\",\"filename\": \"volterra_mini_01.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0\",\"library_list\": [\"/usr/local/share/faust/oscillator.lib\",\"/usr/local/share/faust/math.lib\",\"/usr/local/share/faust/music.lib\"],\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"../_bench/src\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/../_bench/src\"],\"size\": 65792,\"inputs\": 0,\"outputs\": 1,\"meta\": [ { \"compile_options\": \"-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0\" },{ \"filename\": \"volterra_mini_01.dsp\" },{ \"math.lib/author\": \"GRAME\" },{ \"math.lib/copyright\": \"GRAME\" },{ \"math.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"math.lib/license\": \"LGPL with exception\" },{ \"math.lib/name\": \"Math Library\" },{ \"math.lib/version\": \"1.0\" },{ \"music.lib/author\": \"GRAME\" },{ \"music.lib/copyright\": \"GRAME\" },{ \"music.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"music.lib/license\": \"LGPL with exception\" },{ \"music.lib/name\": \"Music Library\" },{ \"music.lib/version\": \"1.0\" },{ \"name\": \"volterra_mini_01\" },{ \"oscillator.lib/author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"oscillator.lib/copyright\": \"Julius O. Smith III\" },{ \"oscillator.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"oscillator.lib/license\": \"STK-4.3\" },{ \"oscillator.lib/name\": \"Faust Oscillator Library\" },{ \"oscillator.lib/version\": \"1.11\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"volterra_mini_01\",\"items\": [ {\"type\": \"checkbox\",\"label\": \"NL\",\"varname\": \"fCheckbox0\",\"shortname\": \"NL\",\"address\": \"/volterra_mini_01/NL\"},{\"type\": \"hslider\",\"label\": \"delta\",\"varname\": \"fHslider3\",\"shortname\": \"delta\",\"address\": \"/volterra_mini_01/delta\",\"init\": 2,\"min\": 0,\"max\": 6,\"step\": 0.1},{\"type\": \"hslider\",\"label\": \"freq carre\",\"varname\": \"fHslider2\",\"shortname\": \"freq_carre\",\"address\": \"/volterra_mini_01/freq_carre\",\"init\": 440,\"min\": 20,\"max\": 8000,\"step\": 1},{\"type\": \"hslider\",\"label\": \"freq\",\"varname\": \"fHslider0\",\"shortname\": \"freq\",\"address\": \"/volterra_mini_01/freq\",\"meta\": [{ \"unit\": \"Hz\" }],\"init\": 700,\"min\": 1,\"max\": 20000,\"step\": 1},{\"type\": \"hslider\",\"label\": \"level\",\"varname\": \"fHslider1\",\"shortname\": \"level\",\"address\": \"/volterra_mini_01/level\",\"init\": 0.5,\"min\": 0,\"max\": 1,\"step\": 0.01}]}]}"
 
     @always_inline
-    def metadata(read dsp, mut meta: Some[FaustMeta]) -> None:
+    def metadata(imm dsp, mut meta: Some[FaustMeta]) -> None:
         meta.declare("compile_options", "-a inspect.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0")
         meta.declare("filename", "volterra_mini_01.dsp")
         meta.declare("math.lib/author", "GRAME")
@@ -232,7 +232,7 @@ struct mydsp(FaustDsp):
 
     @always_inline
     def compute(
-        mut dsp, var count: S32, var inputs: ReadStreams[dfaust], var outputs: MutaStreams[dfaust]
+        mut dsp, var count: S32, var inputs: ImmStreams[dfaust], var outputs: MutStreams[dfaust]
     ) -> None:
         var output0 = outputs[S32(0)]
         var slow0 = F64(dsp.hslider0)
@@ -324,8 +324,8 @@ def main() -> None:
         dsp.free()
         return
     var ptr = base.unsafe_value()
-    var inputs = ptr.bitcast[Ptr[Real, READ_NOTRK]]().as_immutable()
-    var outputs = (ptr + n_ins).bitcast[Ptr[Real, MUTA_NOTRK]]()
+    var inputs = ptr.bitcast[Ptr[Real, IMM_NOTRK]]().as_immutable()
+    var outputs = (ptr + n_ins).bitcast[Ptr[Real, MUT_NOTRK]]()
     inspect_compute(dsp[], inputs, outputs)
     ptr.free()
     dsp.free()
@@ -333,7 +333,7 @@ def main() -> None:
 @no_inline
 @export("inspect_compute")
 def inspect_compute(
-    mut dsp: mydsp, inputs: ReadStreams, outputs: MutaStreams
+    mut dsp: mydsp, inputs: ImmStreams, outputs: MutStreams
 ) abi("Mojo") -> None:
     for _ in range(COMPUTE_ITERS):
         keep(inputs)

@@ -126,28 +126,28 @@ void MojoCodeContainer::writeDefaultConstructor(int n)
 void MojoCodeContainer::writeGetSampleRate(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def get_sample_rate(read dsp) -> S32:\n";
+    *fOut << wtab(n) << "def get_sample_rate(imm dsp) -> S32:\n";
     *fOut << wtab(n + 1) << "return dsp.sample_rate\n";
 }
 
 void MojoCodeContainer::writeGetInputs(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def get_num_inputs(read dsp) -> S32:\n";
+    *fOut << wtab(n) << "def get_num_inputs(imm dsp) -> S32:\n";
     *fOut << wtab(n + 1) << "return " << fNumInputs << "\n";
 }
 
 void MojoCodeContainer::writeGetOutputs(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def get_num_outputs(read dsp) -> S32:\n";
+    *fOut << wtab(n) << "def get_num_outputs(imm dsp) -> S32:\n";
     *fOut << wtab(n + 1) << "return " << fNumOutputs << "\n";
 }
 
 void MojoCodeContainer::writeClassInit(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def class_init(mut dsp, read sample_rate: S32) -> None:\n";
+    *fOut << wtab(n) << "def class_init(mut dsp, imm sample_rate: S32) -> None:\n";
     *fOut << wtab(n + 1);
     if (fStaticInitInstructions->fCode.size() == 0) {
         *fOut << "pass" << "\n";
@@ -160,7 +160,7 @@ void MojoCodeContainer::writeClassInit(int n)
 void MojoCodeContainer::writeInstanceConstants(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def instance_constants(mut dsp, read sample_rate: S32) -> None:\n";
+    *fOut << wtab(n) << "def instance_constants(mut dsp, imm sample_rate: S32) -> None:\n";
     *fOut << wtab(n + 1);
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gScalarProducer);
     *fOut << wrewind(fOut, n + 1);
@@ -222,7 +222,7 @@ void MojoCodeContainer::writeInstanceClear(int n)
 void MojoCodeContainer::writeInstanceInit(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def instance_init(mut dsp, read sample_rate: S32) -> None:\n";
+    *fOut << wtab(n) << "def instance_init(mut dsp, imm sample_rate: S32) -> None:\n";
     *fOut << wtab(n + 1) << "dsp.instance_constants(sample_rate)\n";
     *fOut << wtab(n + 1) << "dsp.instance_reset_user_interface()\n";
     *fOut << wtab(n + 1) << "dsp.instance_clear()\n";
@@ -231,7 +231,7 @@ void MojoCodeContainer::writeInstanceInit(int n)
 void MojoCodeContainer::writeInit(int n)
 {
     *fOut << wtab(n) << "@always_inline" << "\n";
-    *fOut << wtab(n) << "def init(mut dsp, read sample_rate: S32) -> None:\n";
+    *fOut << wtab(n) << "def init(mut dsp, imm sample_rate: S32) -> None:\n";
     *fOut << wtab(n + 1) << "dsp.class_init(sample_rate)\n";
     *fOut << wtab(n + 1) << "dsp.instance_init(sample_rate)\n";
 }
@@ -257,14 +257,14 @@ void MojoCodeContainer::writeGetJson(int n)
 {
     std::string json = generateJSONAux();
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def get_json(read dsp) -> String:\n";
+    *fOut << wtab(n) << "def get_json(imm dsp) -> String:\n";
     *fOut << wtab(n + 1) << "return " << wlit(flattenJSON(json)) << "\n";
 }
 
 void MojoCodeContainer::writeMetadataFunc(int n)
 {
     *fOut << wtab(n) << "@always_inline\n";
-    *fOut << wtab(n) << "def metadata(read dsp, mut meta: Some[FaustMeta]) -> None:\n";
+    *fOut << wtab(n) << "def metadata(imm dsp, mut meta: Some[FaustMeta]) -> None:\n";
     for (auto const& i : gGlobal->gMetaDataSet) {
         if (i.first == tree("compile_options")) {
             *fOut << wtab(n + 1) << "meta.declare(" << wlit("compile_options") << ", "
@@ -304,10 +304,9 @@ void MojoCodeContainer::writeBuildUserInterface(int n)
 
 void MojoScalarCodeContainer::writeCompute(int n)
 {
-    *fOut << wtab(n)   << "@always_inline\n"
-          << wtab(n)   << "def compute(\n"
-          << wtab(n+1) <<      "mut dsp, var count: S32, var inputs: ReadStreams, var outputs: MutaStreams\n"
-          << wtab(n)   << ") -> None:\n" << wtab(n+1);
+    *fOut << wtab(n) << "@always_inline" << wnextl(n)
+          << "def compute(mut dsp, var count: S32, var inputs: ImmStreams, var outputs: MutStreams) -> None:"
+          << wnextl(n+1);
     gScalarProducer->Tab(n + 1);
     generateComputeBlock(gScalarProducer);
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop("count");
@@ -407,9 +406,7 @@ MojoScalarCodeContainer::~MojoScalarCodeContainer() {}
 MojoScalarCodeContainer::MojoScalarCodeContainer(
     std::string const& name, int numInputs, int numOutputs, std::ostream* out, int subContKind
 ) : MojoCodeContainer(name, numInputs, numOutputs, out)
-{
-    fSubContainerType = subContKind;
-}
+{   fSubContainerType = subContKind;   }
 
 
 ////////////////////////////////////////////////////////////////
@@ -419,7 +416,9 @@ MojoVecCodeContainer::~MojoVecCodeContainer() {}
 
 MojoVecCodeContainer::MojoVecCodeContainer(
     const std::string& name, int numInputs, int numOutputs, std::ostream* out
-) : VectorCodeContainer(numInputs, numOutputs) {
+)
+    : VectorCodeContainer(numInputs, numOutputs)
+{
     fKlassName = name;
     fOut = out;
     if (!gGlobal->gMojoVisitor) {
@@ -432,24 +431,21 @@ MojoVecCodeContainer::MojoVecCodeContainer(
 void MojoVecCodeContainer::writeCompute(int n)
 {
     generateComputeFunctions(gVectorProducer);
-    *fOut << wtab(n)   << "@always_inline\n"
-          << wtab(n)   << "def compute(\n"
-          << wtab(n+1) <<      "mut dsp, var count: S32, var inputs: ReadStreams, var outputs: MutaStreams\n"
-          << wtab(n)   << ") -> None:" << wnextl(n+1);
+    *fOut << wtab(n) << "@always_inline" << wnextl(n)
+          << "def compute(mut dsp, var count: S32, var inputs: ImmStreams, var outputs: MutStreams) -> None:";
     n += 1;
     gVectorProducer->Tab(n);
-    *fOut << R"(comptime assert dfaust == DType.float32, "Expected 32 bit float driver precision.")";
+    *fOut << wnextl(n) <<R"(comptime assert dfaust == DType.float32, "Expected 32 bit float driver precision.")";
+    *fOut << wnextl(n) << "comptime vsize = S32(" << gVectorProducer->gSIMDSize << ")";
+    *fOut << wnextl(n) << "comptime hsize = S32(" << gVectorProducer->gSIMDSize / 2 << ")";
+    *fOut << wnextl(n) << "var vindex = S32(0)";
+    *fOut << wnextl(n) << "var end = count - vsize";
     *fOut << wnextl(n) << "var lo: SIMD[dfaust, simd_width_of[f64]()]";
-    *fOut << wnextl(n) << "var hi: SIMD[dfaust, simd_width_of[f64]()]";
-    *fOut << wnextl(n) << "var ";
-    LoopVariableRenamer loop_renamer;
-    BlockInst* loop = loop_renamer.getCode(fDAGBlock);
-    loop->fCode.pop_front();  // main index initalized visiting the instruction
+    *fOut << wnextl(n) << "var hi: SIMD[dfaust, simd_width_of[f64]()]" << wnextl(n);
+    fDAGBlock->pop_front();  // main loop index initalized manually above
     generateComputeBlock(gVectorProducer);
-    loop->accept(gVectorProducer);
-    n -= 1;
-    gVectorProducer->Tab(n);
-    *fOut << wrewind(fOut, n*2, +1) << "\n";
+    fDAGBlock->accept(gVectorProducer);
+    *fOut << "vindex += vsize\n";
 }
 
 }  // namespace mojo

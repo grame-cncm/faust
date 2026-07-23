@@ -1,21 +1,19 @@
 # ==============================================================================
-# Faust to Mojo impulse architecture for the impulse-tests integration.
-# Provides the definitions and the main entry point to run the dsp, and print
-# the samples to stdout. The impulse-tests framework will generate the impulse
-# responses redirecting the output to the `.ir` files.
+# Faust to Mojo architecture file for the benchmark framework integration.
+# Provides the definitons and the main entry point to run the dsp code in
+# several batches and print the write the report to `.tab` and `.csv` files 
 # ==============================================================================
 # First section of architecture provided code start.
 # Imports the modules and the definitions of the architecture code.
 # ==============================================================================
 
 from conf import *
+from help import *
 from mem import *
+from bench import *
 from dsp import *
 from gui import *
 from meta import *
-from help import *
-from test.impulse import *
-from gui.control import ControlGui
 
 # ==============================================================================
 # First section of architecture provided code end.
@@ -23,12 +21,12 @@ from gui.control import ControlGui
 # Code generated with Faust 2.85.5 (https://faust.grame.fr)
 # name: "cubic_distortion"
 # Compilation options: 
-#   -a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
+#   -a bench.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
 #   -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs
 # ==============================================================================
 
 comptime dreal = f64
-comptime wreal = S32(simd_width_of[dreal]())
+comptime wreal = simd_width_of[dreal]()
 comptime Real = Scalar[dreal]
 comptime RVec = Vec[dreal]
 
@@ -1377,23 +1375,23 @@ struct mydsp(FaustDsp):
         dsp.vbargraph14 = 0.0
 
     @always_inline
-    def get_sample_rate(read dsp) -> S32:
+    def get_sample_rate(imm dsp) -> S32:
         return dsp.sample_rate
 
     @always_inline
-    def get_num_outputs(read dsp) -> S32:
+    def get_num_outputs(imm dsp) -> S32:
         return 2
 
     @always_inline
-    def get_num_inputs(read dsp) -> S32:
+    def get_num_inputs(imm dsp) -> S32:
         return 0
 
     @always_inline
-    def class_init(mut dsp, read sample_rate: S32) -> None:
+    def class_init(mut dsp, imm sample_rate: S32) -> None:
         pass
 
     @always_inline
-    def instance_constants(mut dsp, read sample_rate: S32) -> None:
+    def instance_constants(mut dsp, imm sample_rate: S32) -> None:
         dsp.sample_rate = sample_rate
         dsp.const0 = min(1.92e+05, max(1.0, F64(dsp.sample_rate)))
         dsp.const1 = (1.0) / (dsp.const0)
@@ -2379,23 +2377,23 @@ struct mydsp(FaustDsp):
             l107 = (l107) + (S32(1))
 
     @always_inline
-    def instance_init(mut dsp, read sample_rate: S32) -> None:
+    def instance_init(mut dsp, imm sample_rate: S32) -> None:
         dsp.instance_constants(sample_rate)
         dsp.instance_reset_user_interface()
         dsp.instance_clear()
 
     @always_inline
-    def init(mut dsp, read sample_rate: S32) -> None:
+    def init(mut dsp, imm sample_rate: S32) -> None:
         dsp.class_init(sample_rate)
         dsp.instance_init(sample_rate)
 
     @always_inline
-    def get_json(read dsp) -> String:
-        return "{\"name\": \"cubic_distortion\",\"filename\": \"cubic_distortion.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"library_list\": [\"/usr/local/share/faust/oscillator.lib\",\"/usr/local/share/faust/music.lib\",\"/usr/local/share/faust/math.lib\",\"/usr/local/share/faust/filter.lib\",\"/usr/local/share/faust/effect.lib\"],\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\",\"/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/dsp\"],\"size\": 7916,\"inputs\": 0,\"outputs\": 2,\"meta\": [ { \"compile_options\": \"-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"effect.lib/author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"effect.lib/copyright\": \"Julius O. Smith III\" },{ \"effect.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"effect.lib/exciter_author\": \"Priyanka Shekar (pshekar@ccrma.stanford.edu)\" },{ \"effect.lib/exciter_copyright\": \"Copyright (c) 2013 Priyanka Shekar\" },{ \"effect.lib/exciter_license\": \"MIT License (MIT)\" },{ \"effect.lib/exciter_name\": \"Harmonic Exciter\" },{ \"effect.lib/exciter_version\": \"1.0\" },{ \"effect.lib/license\": \"STK-4.3\" },{ \"effect.lib/name\": \"Faust Audio Effect Library\" },{ \"effect.lib/version\": \"1.33\" },{ \"filename\": \"cubic_distortion.dsp\" },{ \"filter.lib/author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"filter.lib/copyright\": \"Julius O. Smith III\" },{ \"filter.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"filter.lib/license\": \"STK-4.3\" },{ \"filter.lib/name\": \"Faust Filter Library\" },{ \"filter.lib/reference\": \"https://ccrma.stanford.edu/~jos/filters/\" },{ \"filter.lib/version\": \"1.29\" },{ \"math.lib/author\": \"GRAME\" },{ \"math.lib/copyright\": \"GRAME\" },{ \"math.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"math.lib/license\": \"LGPL with exception\" },{ \"math.lib/name\": \"Math Library\" },{ \"math.lib/version\": \"1.0\" },{ \"music.lib/author\": \"GRAME\" },{ \"music.lib/copyright\": \"GRAME\" },{ \"music.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"music.lib/license\": \"LGPL with exception\" },{ \"music.lib/name\": \"Music Library\" },{ \"music.lib/version\": \"1.0\" },{ \"name\": \"cubic_distortion\" },{ \"oscillator.lib/author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"oscillator.lib/copyright\": \"Julius O. Smith III\" },{ \"oscillator.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"oscillator.lib/license\": \"STK-4.3\" },{ \"oscillator.lib/name\": \"Faust Oscillator Library\" },{ \"oscillator.lib/version\": \"1.11\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"cubic_distortion\",\"items\": [ {\"type\": \"vgroup\",\"label\": \"0x00\",\"meta\": [{ \"1\": \"\" }],\"items\": [ {\"type\": \"vgroup\",\"label\": \"SINE WAVE OSCILLATOR oscrs\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"Sine oscillator based on 2D vector rotation\" }],\"items\": [ {\"type\": \"hslider\",\"label\": \"Amplitude\",\"varname\": \"fHslider1\",\"shortname\": \"Amplitude\",\"address\": \"/cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Amplitude\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Sawtooth waveform amplitude\" },{ \"unit\": \"dB\" }],\"init\": -20,\"min\": -120,\"max\": 10,\"step\": 0.1},{\"type\": \"hslider\",\"label\": \"Frequency\",\"varname\": \"fHslider3\",\"shortname\": \"Frequency\",\"address\": \"/cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Frequency\",\"meta\": [{ \"2\": \"\" },{ \"tooltip\": \"Sine wave frequency as a Piano Key (PK) number (A440 = 49 PK)\" },{ \"unit\": \"PK\" }],\"init\": 49,\"min\": 1,\"max\": 88,\"step\": 0.01},{\"type\": \"hslider\",\"label\": \"Portamento\",\"varname\": \"fHslider2\",\"shortname\": \"Portamento\",\"address\": \"/cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Portamento\",\"meta\": [{ \"3\": \"\" },{ \"scale\": \"log\" },{ \"tooltip\": \"Portamento (frequency-glide) time-constant in seconds\" },{ \"unit\": \"sec\" }],\"init\": 0.1,\"min\": 0.001,\"max\": 10,\"step\": 0.001}]}]},{\"type\": \"vgroup\",\"label\": \"0x00\",\"meta\": [{ \"2\": \"\" }],\"items\": [ {\"type\": \"vgroup\",\"label\": \"CUBIC NONLINEARITY cubicnl\",\"meta\": [{ \"tooltip\": \"Reference:          https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html\" }],\"items\": [ {\"type\": \"checkbox\",\"label\": \"Bypass\",\"varname\": \"fCheckbox0\",\"shortname\": \"Bypass\",\"address\": \"/cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Bypass\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"When this is checked, the nonlinearity has no effect\" }]},{\"type\": \"hslider\",\"label\": \"Drive\",\"varname\": \"fHslider4\",\"shortname\": \"Drive\",\"address\": \"/cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Drive\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Amount of distortion\" }],\"init\": 0,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"hslider\",\"label\": \"Offset\",\"varname\": \"fHslider0\",\"shortname\": \"Offset\",\"address\": \"/cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Offset\",\"meta\": [{ \"2\": \"\" },{ \"tooltip\": \"Brings in even harmonics\" }],\"init\": 0,\"min\": 0,\"max\": 1,\"step\": 0.01}]}]},{\"type\": \"vgroup\",\"label\": \"0x00\",\"meta\": [{ \"3\": \"\" }],\"items\": [ {\"type\": \"hgroup\",\"label\": \"CONSTANT-Q SPECTRUM ANALYZER (6E), 15 bands spanning LP, 9 octaves below 16000 Hz, HP\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"See Faust\'s filter.lib for documentation and references\" }],\"items\": [ {\"type\": \"vbargraph\",\"label\": \"vbargraph0\",\"varname\": \"fVbargraph14\",\"shortname\": \"vbargraph0\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph0\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph1\",\"varname\": \"fVbargraph13\",\"shortname\": \"vbargraph1\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph1\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph2\",\"varname\": \"fVbargraph12\",\"shortname\": \"vbargraph2\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph2\",\"meta\": [{ \"2\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph3\",\"varname\": \"fVbargraph11\",\"shortname\": \"vbargraph3\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph3\",\"meta\": [{ \"3\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph4\",\"varname\": \"fVbargraph10\",\"shortname\": \"vbargraph4\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph4\",\"meta\": [{ \"4\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph5\",\"varname\": \"fVbargraph9\",\"shortname\": \"vbargraph5\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph5\",\"meta\": [{ \"5\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph6\",\"varname\": \"fVbargraph8\",\"shortname\": \"vbargraph6\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph6\",\"meta\": [{ \"6\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph7\",\"varname\": \"fVbargraph7\",\"shortname\": \"vbargraph7\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph7\",\"meta\": [{ \"7\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph8\",\"varname\": \"fVbargraph6\",\"shortname\": \"vbargraph8\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph8\",\"meta\": [{ \"8\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph9\",\"varname\": \"fVbargraph5\",\"shortname\": \"vbargraph9\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph9\",\"meta\": [{ \"9\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph10\",\"varname\": \"fVbargraph4\",\"shortname\": \"vbargraph10\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph10\",\"meta\": [{ \"10\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph11\",\"varname\": \"fVbargraph3\",\"shortname\": \"vbargraph11\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph11\",\"meta\": [{ \"11\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph12\",\"varname\": \"fVbargraph2\",\"shortname\": \"vbargraph12\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph12\",\"meta\": [{ \"12\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph13\",\"varname\": \"fVbargraph1\",\"shortname\": \"vbargraph13\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph13\",\"meta\": [{ \"13\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph14\",\"varname\": \"fVbargraph0\",\"shortname\": \"vbargraph14\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph14\",\"meta\": [{ \"14\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10}]},{\"type\": \"hgroup\",\"label\": \"SPECTRUM ANALYZER CONTROLS\",\"meta\": [{ \"1\": \"\" }],\"items\": [ {\"type\": \"hslider\",\"label\": \"Level Averaging Time\",\"varname\": \"fHslider5\",\"shortname\": \"Level_Averaging_Time\",\"address\": \"/cubic_distortion/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_Averaging_Time\",\"meta\": [{ \"0\": \"\" },{ \"scale\": \"log\" },{ \"tooltip\": \"band-level averaging time in milliseconds\" },{ \"unit\": \"ms\" }],\"init\": 100,\"min\": 1,\"max\": 10000,\"step\": 1},{\"type\": \"hslider\",\"label\": \"Level dB Offset\",\"varname\": \"fHslider6\",\"shortname\": \"Level_dB_Offset\",\"address\": \"/cubic_distortion/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_dB_Offset\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Level offset in decibels\" },{ \"unit\": \"dB\" }],\"init\": 50,\"min\": 0,\"max\": 100,\"step\": 1}]}]}]}]}"
+    def get_json(imm dsp) -> String:
+        return "{\"name\": \"cubic_distortion\",\"filename\": \"cubic_distortion.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a bench.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"library_list\": [\"/usr/local/share/faust/oscillator.lib\",\"/usr/local/share/faust/music.lib\",\"/usr/local/share/faust/math.lib\",\"/usr/local/share/faust/filter.lib\",\"/usr/local/share/faust/effect.lib\"],\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench/src\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench/src\"],\"size\": 7916,\"inputs\": 0,\"outputs\": 2,\"meta\": [ { \"compile_options\": \"-a bench.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"effect.lib/author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"effect.lib/copyright\": \"Julius O. Smith III\" },{ \"effect.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"effect.lib/exciter_author\": \"Priyanka Shekar (pshekar@ccrma.stanford.edu)\" },{ \"effect.lib/exciter_copyright\": \"Copyright (c) 2013 Priyanka Shekar\" },{ \"effect.lib/exciter_license\": \"MIT License (MIT)\" },{ \"effect.lib/exciter_name\": \"Harmonic Exciter\" },{ \"effect.lib/exciter_version\": \"1.0\" },{ \"effect.lib/license\": \"STK-4.3\" },{ \"effect.lib/name\": \"Faust Audio Effect Library\" },{ \"effect.lib/version\": \"1.33\" },{ \"filename\": \"cubic_distortion.dsp\" },{ \"filter.lib/author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"filter.lib/copyright\": \"Julius O. Smith III\" },{ \"filter.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"filter.lib/license\": \"STK-4.3\" },{ \"filter.lib/name\": \"Faust Filter Library\" },{ \"filter.lib/reference\": \"https://ccrma.stanford.edu/~jos/filters/\" },{ \"filter.lib/version\": \"1.29\" },{ \"math.lib/author\": \"GRAME\" },{ \"math.lib/copyright\": \"GRAME\" },{ \"math.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"math.lib/license\": \"LGPL with exception\" },{ \"math.lib/name\": \"Math Library\" },{ \"math.lib/version\": \"1.0\" },{ \"music.lib/author\": \"GRAME\" },{ \"music.lib/copyright\": \"GRAME\" },{ \"music.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"music.lib/license\": \"LGPL with exception\" },{ \"music.lib/name\": \"Music Library\" },{ \"music.lib/version\": \"1.0\" },{ \"name\": \"cubic_distortion\" },{ \"oscillator.lib/author\": \"Julius O. Smith (jos at ccrma.stanford.edu)\" },{ \"oscillator.lib/copyright\": \"Julius O. Smith III\" },{ \"oscillator.lib/deprecated\": \"This library is deprecated and is not maintained anymore. It will be removed in August 2017.\" },{ \"oscillator.lib/license\": \"STK-4.3\" },{ \"oscillator.lib/name\": \"Faust Oscillator Library\" },{ \"oscillator.lib/version\": \"1.11\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"cubic_distortion\",\"items\": [ {\"type\": \"vgroup\",\"label\": \"0x00\",\"meta\": [{ \"1\": \"\" }],\"items\": [ {\"type\": \"vgroup\",\"label\": \"SINE WAVE OSCILLATOR oscrs\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"Sine oscillator based on 2D vector rotation\" }],\"items\": [ {\"type\": \"hslider\",\"label\": \"Amplitude\",\"varname\": \"fHslider1\",\"shortname\": \"Amplitude\",\"address\": \"/cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Amplitude\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Sawtooth waveform amplitude\" },{ \"unit\": \"dB\" }],\"init\": -20,\"min\": -120,\"max\": 10,\"step\": 0.1},{\"type\": \"hslider\",\"label\": \"Frequency\",\"varname\": \"fHslider3\",\"shortname\": \"Frequency\",\"address\": \"/cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Frequency\",\"meta\": [{ \"2\": \"\" },{ \"tooltip\": \"Sine wave frequency as a Piano Key (PK) number (A440 = 49 PK)\" },{ \"unit\": \"PK\" }],\"init\": 49,\"min\": 1,\"max\": 88,\"step\": 0.01},{\"type\": \"hslider\",\"label\": \"Portamento\",\"varname\": \"fHslider2\",\"shortname\": \"Portamento\",\"address\": \"/cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Portamento\",\"meta\": [{ \"3\": \"\" },{ \"scale\": \"log\" },{ \"tooltip\": \"Portamento (frequency-glide) time-constant in seconds\" },{ \"unit\": \"sec\" }],\"init\": 0.1,\"min\": 0.001,\"max\": 10,\"step\": 0.001}]}]},{\"type\": \"vgroup\",\"label\": \"0x00\",\"meta\": [{ \"2\": \"\" }],\"items\": [ {\"type\": \"vgroup\",\"label\": \"CUBIC NONLINEARITY cubicnl\",\"meta\": [{ \"tooltip\": \"Reference:          https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html\" }],\"items\": [ {\"type\": \"checkbox\",\"label\": \"Bypass\",\"varname\": \"fCheckbox0\",\"shortname\": \"Bypass\",\"address\": \"/cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Bypass\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"When this is checked, the nonlinearity has no effect\" }]},{\"type\": \"hslider\",\"label\": \"Drive\",\"varname\": \"fHslider4\",\"shortname\": \"Drive\",\"address\": \"/cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Drive\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Amount of distortion\" }],\"init\": 0,\"min\": 0,\"max\": 1,\"step\": 0.01},{\"type\": \"hslider\",\"label\": \"Offset\",\"varname\": \"fHslider0\",\"shortname\": \"Offset\",\"address\": \"/cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Offset\",\"meta\": [{ \"2\": \"\" },{ \"tooltip\": \"Brings in even harmonics\" }],\"init\": 0,\"min\": 0,\"max\": 1,\"step\": 0.01}]}]},{\"type\": \"vgroup\",\"label\": \"0x00\",\"meta\": [{ \"3\": \"\" }],\"items\": [ {\"type\": \"hgroup\",\"label\": \"CONSTANT-Q SPECTRUM ANALYZER (6E), 15 bands spanning LP, 9 octaves below 16000 Hz, HP\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"See Faust\'s filter.lib for documentation and references\" }],\"items\": [ {\"type\": \"vbargraph\",\"label\": \"vbargraph0\",\"varname\": \"fVbargraph14\",\"shortname\": \"vbargraph0\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph0\",\"meta\": [{ \"0\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph1\",\"varname\": \"fVbargraph13\",\"shortname\": \"vbargraph1\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph1\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph2\",\"varname\": \"fVbargraph12\",\"shortname\": \"vbargraph2\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph2\",\"meta\": [{ \"2\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph3\",\"varname\": \"fVbargraph11\",\"shortname\": \"vbargraph3\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph3\",\"meta\": [{ \"3\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph4\",\"varname\": \"fVbargraph10\",\"shortname\": \"vbargraph4\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph4\",\"meta\": [{ \"4\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph5\",\"varname\": \"fVbargraph9\",\"shortname\": \"vbargraph5\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph5\",\"meta\": [{ \"5\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph6\",\"varname\": \"fVbargraph8\",\"shortname\": \"vbargraph6\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph6\",\"meta\": [{ \"6\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph7\",\"varname\": \"fVbargraph7\",\"shortname\": \"vbargraph7\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph7\",\"meta\": [{ \"7\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph8\",\"varname\": \"fVbargraph6\",\"shortname\": \"vbargraph8\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph8\",\"meta\": [{ \"8\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph9\",\"varname\": \"fVbargraph5\",\"shortname\": \"vbargraph9\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph9\",\"meta\": [{ \"9\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph10\",\"varname\": \"fVbargraph4\",\"shortname\": \"vbargraph10\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph10\",\"meta\": [{ \"10\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph11\",\"varname\": \"fVbargraph3\",\"shortname\": \"vbargraph11\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph11\",\"meta\": [{ \"11\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph12\",\"varname\": \"fVbargraph2\",\"shortname\": \"vbargraph12\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph12\",\"meta\": [{ \"12\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph13\",\"varname\": \"fVbargraph1\",\"shortname\": \"vbargraph13\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph13\",\"meta\": [{ \"13\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10},{\"type\": \"vbargraph\",\"label\": \"vbargraph14\",\"varname\": \"fVbargraph0\",\"shortname\": \"vbargraph14\",\"address\": \"/cubic_distortion/0x00/CONSTANT-Q_SPECTRUM_ANALYZER__6E___15_bands_spanning_LP__9_octaves_below_16000_Hz__HP/vbargraph14\",\"meta\": [{ \"14\": \"\" },{ \"tooltip\": \"Spectral Band Level in dB\" },{ \"unit\": \"dB\" }],\"min\": -50,\"max\": 10}]},{\"type\": \"hgroup\",\"label\": \"SPECTRUM ANALYZER CONTROLS\",\"meta\": [{ \"1\": \"\" }],\"items\": [ {\"type\": \"hslider\",\"label\": \"Level Averaging Time\",\"varname\": \"fHslider5\",\"shortname\": \"Level_Averaging_Time\",\"address\": \"/cubic_distortion/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_Averaging_Time\",\"meta\": [{ \"0\": \"\" },{ \"scale\": \"log\" },{ \"tooltip\": \"band-level averaging time in milliseconds\" },{ \"unit\": \"ms\" }],\"init\": 100,\"min\": 1,\"max\": 10000,\"step\": 1},{\"type\": \"hslider\",\"label\": \"Level dB Offset\",\"varname\": \"fHslider6\",\"shortname\": \"Level_dB_Offset\",\"address\": \"/cubic_distortion/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_dB_Offset\",\"meta\": [{ \"1\": \"\" },{ \"tooltip\": \"Level offset in decibels\" },{ \"unit\": \"dB\" }],\"init\": 50,\"min\": 0,\"max\": 100,\"step\": 1}]}]}]}]}"
 
     @always_inline
-    def metadata(read dsp, mut meta: Some[FaustMeta]) -> None:
-        meta.declare("compile_options", "-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
+    def metadata(imm dsp, mut meta: Some[FaustMeta]) -> None:
+        meta.declare("compile_options", "-a bench.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
         meta.declare("effect.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)")
         meta.declare("effect.lib/copyright", "Julius O. Smith III")
         meta.declare("effect.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.")
@@ -2555,10 +2553,14 @@ struct mydsp(FaustDsp):
         ui.close_box()
 
     @always_inline
-    def compute(
-        mut dsp, var count: S32, var inputs: ReadStreams, var outputs: MutaStreams
-    ) -> None:
+    def compute(mut dsp, var count: S32, var inputs: ImmStreams, var outputs: MutStreams) -> None:
         comptime assert dfaust == DType.float32, "Expected 32 bit float driver precision."
+        comptime vsize = S32(4)
+        comptime hsize = S32(2)
+        var vindex = S32(0)
+        var end = count - vsize
+        var lo: SIMD[dfaust, simd_width_of[f64]()]
+        var hi: SIMD[dfaust, simd_width_of[f64]()]
         var output0_ptr = outputs[S32(0)]
         var output1_ptr = outputs[S32(1)]
         var slow0 = (0.0010000000000000009) * (F64(dsp.hslider0))
@@ -2808,1667 +2810,754 @@ struct mydsp(FaustDsp):
         var rec102 = Ptr(to=rec102_tmp[S32(4)])
         var slow10 = F64(dsp.hslider6)
         var zec19 = Arr[F64, 4](uninitialized=True)
-        # Main loop 
-        vindex_re0 = S32(0)
-        while (vindex_re0) <= ((count) - (S32(4))): 
-            var output0 = Ptr(to=output0_ptr[vindex_re0])
-            var output1 = Ptr(to=output1_ptr[vindex_re0])
-            var vsize_re0 = S32(4)
-            # Recursive loop 0 
-            # Pre code 
-            var j0_re0 = S32(0)
-            var values0 = simd_load(dsp.rec1_perm, j0_re0)
-            simd_store(rec1_tmp, j0_re0, values0)
-            # Compute code 
-            var i_re0 = S32(0)
-            while (i_re0) < (vsize_re0): 
-                rec1[i_re0] = (slow0) + ((0.999) * (rec1[(i_re0) - (S32(1))]))
-                i_re0 = (i_re0) + (S32(1))
-            # Post code 
-            var j1_re0 = S32(0)
-            var values1 = simd_load(rec1_tmp, vsize_re0 + j1_re0)
-            simd_store(dsp.rec1_perm, j1_re0, values1)
-            # Recursive loop 1 
-            # Pre code 
-            var j2_re0 = S32(0)
-            var values2 = simd_load(dsp.rec2_perm, j2_re0)
-            simd_store(rec2_tmp, j2_re0, values2)
-            # Compute code 
-            var i_re1 = S32(0)
-            while (i_re1) < (vsize_re0): 
-                rec2[i_re1] = (slow1) + ((0.999) * (rec2[(i_re1) - (S32(1))]))
-                i_re1 = (i_re1) + (S32(1))
-            # Post code 
-            var j3_re0 = S32(0)
-            var values3 = simd_load(rec2_tmp, vsize_re0 + j3_re0)
-            simd_store(dsp.rec2_perm, j3_re0, values3)
-            # Recursive loop 2 
-            # Pre code 
-            var j4_re0 = S32(0)
-            var values4 = simd_load(dsp.rec5_perm, j4_re0)
-            simd_store(rec5_tmp, j4_re0, values4)
-            # Compute code 
-            var i_re2 = S32(0)
-            while (i_re2) < (vsize_re0): 
-                rec5[i_re2] = ((rec5[(i_re2) - (S32(1))]) * (slow3)) + (slow4)
-                i_re2 = (i_re2) + (S32(1))
-            # Post code 
-            var j5_re0 = S32(0)
-            var values5 = simd_load(rec5_tmp, vsize_re0 + j5_re0)
-            simd_store(dsp.rec5_perm, j5_re0, values5)
-            # Vectorizable loop 3 
-            # Compute code 
-            var i_re3 = S32(0)
-            var values6 = (dsp.const2) * (simd_load(rec5, i_re3))
-            simd_store(zec0, i_re3, values6)
-            # Vectorizable loop 4 
-            # Compute code 
-            var i_re4 = S32(0)
-            var values7 = sin(simd_load(zec0, i_re4))
-            simd_store(zec1, i_re4, values7)
-            # Vectorizable loop 5 
-            # Compute code 
-            var i_re5 = S32(0)
-            var values8 = cos(simd_load(zec0, i_re5))
-            simd_store(zec2, i_re5, values8)
-            # Vectorizable loop 6 
-            # Pre code 
-            var j8_re0 = S32(0)
-            var values9 = simd_load(dsp.i_vec0_perm, j8_re0)
-            simd_store(i_vec0_tmp, j8_re0, values9)
-            # Compute code 
-            var i_re6 = S32(0)
-            var values10 = S32Vec(1)
-            simd_store(i_vec0, i_re6, values10)
-            # Post code 
-            var j9_re0 = S32(0)
-            var values11 = simd_load(i_vec0_tmp, vsize_re0 + j9_re0)
-            simd_store(dsp.i_vec0_perm, j9_re0, values11)
-            # Recursive loop 7 
-            # Pre code 
-            var j6_re0 = S32(0)
-            var values12 = simd_load(dsp.rec3_perm, j6_re0)
-            simd_store(rec3_tmp, j6_re0, values12)
-            var j10_re0 = S32(0)
-            var values13 = simd_load(dsp.rec4_perm, j10_re0)
-            simd_store(rec4_tmp, j10_re0, values13)
-            # Compute code 
-            var i_re7 = S32(0)
-            while (i_re7) < (vsize_re0): 
-                rec3[i_re7] = ((rec4[(i_re7) - (S32(1))]) * (zec1[i_re7])) + ((rec3[(i_re7) - (S32(1))]) * (zec2[i_re7]))
-                rec4[i_re7] = ((F64((S32(1)) - (i_vec0[(i_re7) - (S32(1))]))) + ((rec4[(i_re7) - (S32(1))]) * (zec2[i_re7]))) - ((zec1[i_re7]) * (rec3[(i_re7) - (S32(1))]))
-                i_re7 = (i_re7) + (S32(1))
-            # Post code 
-            var j7_re0 = S32(0)
-            var values14 = simd_load(rec3_tmp, vsize_re0 + j7_re0)
-            simd_store(dsp.rec3_perm, j7_re0, values14)
-            var j11_re0 = S32(0)
-            var values15 = simd_load(rec4_tmp, vsize_re0 + j11_re0)
-            simd_store(dsp.rec4_perm, j11_re0, values15)
-            # Recursive loop 8 
-            # Pre code 
-            var j12_re0 = S32(0)
-            var values16 = simd_load(dsp.rec6_perm, j12_re0)
-            simd_store(rec6_tmp, j12_re0, values16)
-            # Compute code 
-            var i_re8 = S32(0)
-            while (i_re8) < (vsize_re0): 
-                rec6[i_re8] = (slow5) + ((0.999) * (rec6[(i_re8) - (S32(1))]))
-                i_re8 = (i_re8) + (S32(1))
-            # Post code 
-            var j13_re0 = S32(0)
-            var values17 = simd_load(rec6_tmp, vsize_re0 + j13_re0)
-            simd_store(dsp.rec6_perm, j13_re0, values17)
-            # Vectorizable loop 9 
-            # Compute code 
-            var i_re9 = S32(0)
-            var values18 = (simd_load(rec2, i_re9)) * (simd_load(rec3, i_re9))
-            simd_store(zec3, i_re9, values18)
-            # Vectorizable loop 10 
-            # Compute code 
-            var i_re10 = S32(0)
-            var values19 = max(F64Vec(-1.0), min(F64Vec(1.0), (simd_load(rec1, i_re10)) + ((F64Vec(0.0) if i_slow6 else simd_load(zec3, i_re10)) * (pow(F64Vec(1e+01), (F64Vec(2.0)) * (simd_load(rec6, i_re10)))))))
-            simd_store(zec4, i_re10, values19)
-            # Vectorizable loop 11 
-            # Pre code 
-            var j14_re0 = S32(0)
-            var values20 = simd_load(dsp.yec0_perm, j14_re0)
-            simd_store(yec0_tmp, j14_re0, values20)
-            # Compute code 
-            var i_re11 = S32(0)
-            var values21 = (simd_load(zec4, i_re11)) * ((F64Vec(1.0)) - ((F64Vec(0.3333333333333333)) * (pow_unrolled[2](simd_load(zec4, i_re11)))))
-            simd_store(yec0, i_re11, values21)
-            # Post code 
-            var j15_re0 = S32(0)
-            var values22 = simd_load(yec0_tmp, vsize_re0 + j15_re0)
-            simd_store(dsp.yec0_perm, j15_re0, values22)
-            # Recursive loop 12 
-            # Pre code 
-            var j16_re0 = S32(0)
-            var values23 = simd_load(dsp.rec0_perm, j16_re0)
-            simd_store(rec0_tmp, j16_re0, values23)
-            # Compute code 
-            var i_re12 = S32(0)
-            while (i_re12) < (vsize_re0): 
-                rec0[i_re12] = (((0.995) * (rec0[(i_re12) - (S32(1))])) + (yec0[i_re12])) - (yec0[(i_re12) - (S32(1))])
-                i_re12 = (i_re12) + (S32(1))
-            # Post code 
-            var j17_re0 = S32(0)
-            var values24 = simd_load(rec0_tmp, vsize_re0 + j17_re0)
-            simd_store(dsp.rec0_perm, j17_re0, values24)
-            # Vectorizable loop 13 
-            # Compute code 
-            var i_re13 = S32(0)
-            var values25 = simd_load(zec3, i_re13) if i_slow6 else simd_load(rec0, i_re13)
-            simd_store(zec5, i_re13, values25)
-            # Recursive loop 14 
-            # Pre code 
-            var j26_re0 = S32(0)
-            var values26 = simd_load(dsp.rec17_perm, j26_re0)
-            simd_store(rec17_tmp, j26_re0, values26)
-            # Compute code 
-            var i_re14 = S32(0)
-            while (i_re14) < (vsize_re0): 
-                rec17[i_re14] = (zec5[i_re14]) - ((dsp.const26) * (((dsp.const27) * (rec17[(i_re14) - (S32(2))])) + ((dsp.const28) * (rec17[(i_re14) - (S32(1))]))))
-                i_re14 = (i_re14) + (S32(1))
-            # Post code 
-            var j27_re0 = S32(0)
-            var values27 = simd_load(rec17_tmp, vsize_re0 + j27_re0)
-            simd_store(dsp.rec17_perm, j27_re0, values27)
-            # Recursive loop 15 
-            # Pre code 
-            var j28_re0 = S32(0)
-            var values28 = simd_load(dsp.rec16_perm, j28_re0)
-            simd_store(rec16_tmp, j28_re0, values28)
-            # Compute code 
-            var i_re15 = S32(0)
-            while (i_re15) < (vsize_re0): 
-                rec16[i_re15] = ((dsp.const26) * ((((dsp.const30) * (rec17[i_re15])) + ((dsp.const31) * (rec17[(i_re15) - (S32(1))]))) + ((dsp.const30) * (rec17[(i_re15) - (S32(2))])))) - ((dsp.const32) * (((dsp.const33) * (rec16[(i_re15) - (S32(2))])) + ((dsp.const34) * (rec16[(i_re15) - (S32(1))]))))
-                i_re15 = (i_re15) + (S32(1))
-            # Post code 
-            var j29_re0 = S32(0)
-            var values29 = simd_load(rec16_tmp, vsize_re0 + j29_re0)
-            simd_store(dsp.rec16_perm, j29_re0, values29)
-            # Recursive loop 16 
-            # Pre code 
-            var j30_re0 = S32(0)
-            var values30 = simd_load(dsp.rec15_perm, j30_re0)
-            simd_store(rec15_tmp, j30_re0, values30)
-            # Compute code 
-            var i_re16 = S32(0)
-            while (i_re16) < (vsize_re0): 
-                rec15[i_re16] = ((dsp.const32) * ((((dsp.const35) * (rec16[i_re16])) + ((dsp.const36) * (rec16[(i_re16) - (S32(1))]))) + ((dsp.const35) * (rec16[(i_re16) - (S32(2))])))) - ((dsp.const37) * (((dsp.const38) * (rec15[(i_re16) - (S32(2))])) + ((dsp.const39) * (rec15[(i_re16) - (S32(1))]))))
-                i_re16 = (i_re16) + (S32(1))
-            # Post code 
-            var j31_re0 = S32(0)
-            var values31 = simd_load(rec15_tmp, vsize_re0 + j31_re0)
-            simd_store(dsp.rec15_perm, j31_re0, values31)
-            # Vectorizable loop 17 
-            # Compute code 
-            var i_re17 = S32(0)
-            var values32 = (dsp.const37) * ((((dsp.const40) * (simd_load(rec15, i_re17))) + ((dsp.const41) * (simd_load(rec15, i_re17 - S32(1))))) + ((dsp.const40) * (simd_load(rec15, i_re17 - S32(2)))))
-            simd_store(zec6, i_re17, values32)
-            # Recursive loop 18 
-            # Pre code 
-            var j40_re0 = S32(0)
-            var values33 = simd_load(dsp.rec24_perm, j40_re0)
-            simd_store(rec24_tmp, j40_re0, values33)
-            # Compute code 
-            var i_re18 = S32(0)
-            while (i_re18) < (vsize_re0): 
-                rec24[i_re18] = (zec6[i_re18]) - ((dsp.const64) * (((dsp.const65) * (rec24[(i_re18) - (S32(2))])) + ((dsp.const66) * (rec24[(i_re18) - (S32(1))]))))
-                i_re18 = (i_re18) + (S32(1))
-            # Post code 
-            var j41_re0 = S32(0)
-            var values34 = simd_load(rec24_tmp, vsize_re0 + j41_re0)
-            simd_store(dsp.rec24_perm, j41_re0, values34)
-            # Recursive loop 19 
-            # Pre code 
-            var j42_re0 = S32(0)
-            var values35 = simd_load(dsp.rec23_perm, j42_re0)
-            simd_store(rec23_tmp, j42_re0, values35)
-            # Compute code 
-            var i_re19 = S32(0)
-            while (i_re19) < (vsize_re0): 
-                rec23[i_re19] = ((dsp.const64) * ((((dsp.const68) * (rec24[i_re19])) + ((dsp.const69) * (rec24[(i_re19) - (S32(1))]))) + ((dsp.const68) * (rec24[(i_re19) - (S32(2))])))) - ((dsp.const70) * (((dsp.const71) * (rec23[(i_re19) - (S32(2))])) + ((dsp.const72) * (rec23[(i_re19) - (S32(1))]))))
-                i_re19 = (i_re19) + (S32(1))
-            # Post code 
-            var j43_re0 = S32(0)
-            var values36 = simd_load(rec23_tmp, vsize_re0 + j43_re0)
-            simd_store(dsp.rec23_perm, j43_re0, values36)
-            # Recursive loop 20 
-            # Pre code 
-            var j44_re0 = S32(0)
-            var values37 = simd_load(dsp.rec22_perm, j44_re0)
-            simd_store(rec22_tmp, j44_re0, values37)
-            # Compute code 
-            var i_re20 = S32(0)
-            while (i_re20) < (vsize_re0): 
-                rec22[i_re20] = ((dsp.const70) * ((((dsp.const73) * (rec23[i_re20])) + ((dsp.const74) * (rec23[(i_re20) - (S32(1))]))) + ((dsp.const73) * (rec23[(i_re20) - (S32(2))])))) - ((dsp.const75) * (((dsp.const76) * (rec22[(i_re20) - (S32(2))])) + ((dsp.const77) * (rec22[(i_re20) - (S32(1))]))))
-                i_re20 = (i_re20) + (S32(1))
-            # Post code 
-            var j45_re0 = S32(0)
-            var values38 = simd_load(rec22_tmp, vsize_re0 + j45_re0)
-            simd_store(dsp.rec22_perm, j45_re0, values38)
-            # Vectorizable loop 21 
-            # Compute code 
-            var i_re21 = S32(0)
-            var values39 = (dsp.const75) * ((((dsp.const78) * (simd_load(rec22, i_re21))) + ((dsp.const79) * (simd_load(rec22, i_re21 - S32(1))))) + ((dsp.const78) * (simd_load(rec22, i_re21 - S32(2)))))
-            simd_store(zec7, i_re21, values39)
-            # Recursive loop 22 
-            # Pre code 
-            var j54_re0 = S32(0)
-            var values40 = simd_load(dsp.rec31_perm, j54_re0)
-            simd_store(rec31_tmp, j54_re0, values40)
-            # Compute code 
-            var i_re22 = S32(0)
-            while (i_re22) < (vsize_re0): 
-                rec31[i_re22] = (zec7[i_re22]) - ((dsp.const102) * (((dsp.const103) * (rec31[(i_re22) - (S32(2))])) + ((dsp.const104) * (rec31[(i_re22) - (S32(1))]))))
-                i_re22 = (i_re22) + (S32(1))
-            # Post code 
-            var j55_re0 = S32(0)
-            var values41 = simd_load(rec31_tmp, vsize_re0 + j55_re0)
-            simd_store(dsp.rec31_perm, j55_re0, values41)
-            # Recursive loop 23 
-            # Pre code 
-            var j56_re0 = S32(0)
-            var values42 = simd_load(dsp.rec30_perm, j56_re0)
-            simd_store(rec30_tmp, j56_re0, values42)
-            # Compute code 
-            var i_re23 = S32(0)
-            while (i_re23) < (vsize_re0): 
-                rec30[i_re23] = ((dsp.const102) * ((((dsp.const106) * (rec31[i_re23])) + ((dsp.const107) * (rec31[(i_re23) - (S32(1))]))) + ((dsp.const106) * (rec31[(i_re23) - (S32(2))])))) - ((dsp.const108) * (((dsp.const109) * (rec30[(i_re23) - (S32(2))])) + ((dsp.const110) * (rec30[(i_re23) - (S32(1))]))))
-                i_re23 = (i_re23) + (S32(1))
-            # Post code 
-            var j57_re0 = S32(0)
-            var values43 = simd_load(rec30_tmp, vsize_re0 + j57_re0)
-            simd_store(dsp.rec30_perm, j57_re0, values43)
-            # Recursive loop 24 
-            # Pre code 
-            var j58_re0 = S32(0)
-            var values44 = simd_load(dsp.rec29_perm, j58_re0)
-            simd_store(rec29_tmp, j58_re0, values44)
-            # Compute code 
-            var i_re24 = S32(0)
-            while (i_re24) < (vsize_re0): 
-                rec29[i_re24] = ((dsp.const108) * ((((dsp.const111) * (rec30[i_re24])) + ((dsp.const112) * (rec30[(i_re24) - (S32(1))]))) + ((dsp.const111) * (rec30[(i_re24) - (S32(2))])))) - ((dsp.const113) * (((dsp.const114) * (rec29[(i_re24) - (S32(2))])) + ((dsp.const115) * (rec29[(i_re24) - (S32(1))]))))
-                i_re24 = (i_re24) + (S32(1))
-            # Post code 
-            var j59_re0 = S32(0)
-            var values45 = simd_load(rec29_tmp, vsize_re0 + j59_re0)
-            simd_store(dsp.rec29_perm, j59_re0, values45)
-            # Vectorizable loop 25 
-            # Compute code 
-            var i_re25 = S32(0)
-            var values46 = (dsp.const113) * ((((dsp.const116) * (simd_load(rec29, i_re25))) + ((dsp.const117) * (simd_load(rec29, i_re25 - S32(1))))) + ((dsp.const116) * (simd_load(rec29, i_re25 - S32(2)))))
-            simd_store(zec8, i_re25, values46)
-            # Recursive loop 26 
-            # Pre code 
-            var j68_re0 = S32(0)
-            var values47 = simd_load(dsp.rec38_perm, j68_re0)
-            simd_store(rec38_tmp, j68_re0, values47)
-            # Compute code 
-            var i_re26 = S32(0)
-            while (i_re26) < (vsize_re0): 
-                rec38[i_re26] = (zec8[i_re26]) - ((dsp.const140) * (((dsp.const141) * (rec38[(i_re26) - (S32(2))])) + ((dsp.const142) * (rec38[(i_re26) - (S32(1))]))))
-                i_re26 = (i_re26) + (S32(1))
-            # Post code 
-            var j69_re0 = S32(0)
-            var values48 = simd_load(rec38_tmp, vsize_re0 + j69_re0)
-            simd_store(dsp.rec38_perm, j69_re0, values48)
-            # Recursive loop 27 
-            # Pre code 
-            var j70_re0 = S32(0)
-            var values49 = simd_load(dsp.rec37_perm, j70_re0)
-            simd_store(rec37_tmp, j70_re0, values49)
-            # Compute code 
-            var i_re27 = S32(0)
-            while (i_re27) < (vsize_re0): 
-                rec37[i_re27] = ((dsp.const140) * ((((dsp.const144) * (rec38[i_re27])) + ((dsp.const145) * (rec38[(i_re27) - (S32(1))]))) + ((dsp.const144) * (rec38[(i_re27) - (S32(2))])))) - ((dsp.const146) * (((dsp.const147) * (rec37[(i_re27) - (S32(2))])) + ((dsp.const148) * (rec37[(i_re27) - (S32(1))]))))
-                i_re27 = (i_re27) + (S32(1))
-            # Post code 
-            var j71_re0 = S32(0)
-            var values50 = simd_load(rec37_tmp, vsize_re0 + j71_re0)
-            simd_store(dsp.rec37_perm, j71_re0, values50)
-            # Recursive loop 28 
-            # Pre code 
-            var j72_re0 = S32(0)
-            var values51 = simd_load(dsp.rec36_perm, j72_re0)
-            simd_store(rec36_tmp, j72_re0, values51)
-            # Compute code 
-            var i_re28 = S32(0)
-            while (i_re28) < (vsize_re0): 
-                rec36[i_re28] = ((dsp.const146) * ((((dsp.const149) * (rec37[i_re28])) + ((dsp.const150) * (rec37[(i_re28) - (S32(1))]))) + ((dsp.const149) * (rec37[(i_re28) - (S32(2))])))) - ((dsp.const151) * (((dsp.const152) * (rec36[(i_re28) - (S32(2))])) + ((dsp.const153) * (rec36[(i_re28) - (S32(1))]))))
-                i_re28 = (i_re28) + (S32(1))
-            # Post code 
-            var j73_re0 = S32(0)
-            var values52 = simd_load(rec36_tmp, vsize_re0 + j73_re0)
-            simd_store(dsp.rec36_perm, j73_re0, values52)
-            # Vectorizable loop 29 
-            # Compute code 
-            var i_re29 = S32(0)
-            var values53 = (dsp.const151) * ((((dsp.const154) * (simd_load(rec36, i_re29))) + ((dsp.const155) * (simd_load(rec36, i_re29 - S32(1))))) + ((dsp.const154) * (simd_load(rec36, i_re29 - S32(2)))))
-            simd_store(zec9, i_re29, values53)
-            # Recursive loop 30 
-            # Pre code 
-            var j82_re0 = S32(0)
-            var values54 = simd_load(dsp.rec45_perm, j82_re0)
-            simd_store(rec45_tmp, j82_re0, values54)
-            # Compute code 
-            var i_re30 = S32(0)
-            while (i_re30) < (vsize_re0): 
-                rec45[i_re30] = (zec9[i_re30]) - ((dsp.const178) * (((dsp.const179) * (rec45[(i_re30) - (S32(2))])) + ((dsp.const180) * (rec45[(i_re30) - (S32(1))]))))
-                i_re30 = (i_re30) + (S32(1))
-            # Post code 
-            var j83_re0 = S32(0)
-            var values55 = simd_load(rec45_tmp, vsize_re0 + j83_re0)
-            simd_store(dsp.rec45_perm, j83_re0, values55)
-            # Recursive loop 31 
-            # Pre code 
-            var j84_re0 = S32(0)
-            var values56 = simd_load(dsp.rec44_perm, j84_re0)
-            simd_store(rec44_tmp, j84_re0, values56)
-            # Compute code 
-            var i_re31 = S32(0)
-            while (i_re31) < (vsize_re0): 
-                rec44[i_re31] = ((dsp.const178) * ((((dsp.const182) * (rec45[i_re31])) + ((dsp.const183) * (rec45[(i_re31) - (S32(1))]))) + ((dsp.const182) * (rec45[(i_re31) - (S32(2))])))) - ((dsp.const184) * (((dsp.const185) * (rec44[(i_re31) - (S32(2))])) + ((dsp.const186) * (rec44[(i_re31) - (S32(1))]))))
-                i_re31 = (i_re31) + (S32(1))
-            # Post code 
-            var j85_re0 = S32(0)
-            var values57 = simd_load(rec44_tmp, vsize_re0 + j85_re0)
-            simd_store(dsp.rec44_perm, j85_re0, values57)
-            # Recursive loop 32 
-            # Pre code 
-            var j86_re0 = S32(0)
-            var values58 = simd_load(dsp.rec43_perm, j86_re0)
-            simd_store(rec43_tmp, j86_re0, values58)
-            # Compute code 
-            var i_re32 = S32(0)
-            while (i_re32) < (vsize_re0): 
-                rec43[i_re32] = ((dsp.const184) * ((((dsp.const187) * (rec44[i_re32])) + ((dsp.const188) * (rec44[(i_re32) - (S32(1))]))) + ((dsp.const187) * (rec44[(i_re32) - (S32(2))])))) - ((dsp.const189) * (((dsp.const190) * (rec43[(i_re32) - (S32(2))])) + ((dsp.const191) * (rec43[(i_re32) - (S32(1))]))))
-                i_re32 = (i_re32) + (S32(1))
-            # Post code 
-            var j87_re0 = S32(0)
-            var values59 = simd_load(rec43_tmp, vsize_re0 + j87_re0)
-            simd_store(dsp.rec43_perm, j87_re0, values59)
-            # Vectorizable loop 33 
-            # Compute code 
-            var i_re33 = S32(0)
-            var values60 = (dsp.const189) * ((((dsp.const192) * (simd_load(rec43, i_re33))) + ((dsp.const193) * (simd_load(rec43, i_re33 - S32(1))))) + ((dsp.const192) * (simd_load(rec43, i_re33 - S32(2)))))
-            simd_store(zec10, i_re33, values60)
-            # Recursive loop 34 
-            # Pre code 
-            var j96_re0 = S32(0)
-            var values61 = simd_load(dsp.rec52_perm, j96_re0)
-            simd_store(rec52_tmp, j96_re0, values61)
-            # Compute code 
-            var i_re34 = S32(0)
-            while (i_re34) < (vsize_re0): 
-                rec52[i_re34] = (zec10[i_re34]) - ((dsp.const216) * (((dsp.const217) * (rec52[(i_re34) - (S32(2))])) + ((dsp.const218) * (rec52[(i_re34) - (S32(1))]))))
-                i_re34 = (i_re34) + (S32(1))
-            # Post code 
-            var j97_re0 = S32(0)
-            var values62 = simd_load(rec52_tmp, vsize_re0 + j97_re0)
-            simd_store(dsp.rec52_perm, j97_re0, values62)
-            # Recursive loop 35 
-            # Pre code 
-            var j98_re0 = S32(0)
-            var values63 = simd_load(dsp.rec51_perm, j98_re0)
-            simd_store(rec51_tmp, j98_re0, values63)
-            # Compute code 
-            var i_re35 = S32(0)
-            while (i_re35) < (vsize_re0): 
-                rec51[i_re35] = ((dsp.const216) * ((((dsp.const220) * (rec52[i_re35])) + ((dsp.const221) * (rec52[(i_re35) - (S32(1))]))) + ((dsp.const220) * (rec52[(i_re35) - (S32(2))])))) - ((dsp.const222) * (((dsp.const223) * (rec51[(i_re35) - (S32(2))])) + ((dsp.const224) * (rec51[(i_re35) - (S32(1))]))))
-                i_re35 = (i_re35) + (S32(1))
-            # Post code 
-            var j99_re0 = S32(0)
-            var values64 = simd_load(rec51_tmp, vsize_re0 + j99_re0)
-            simd_store(dsp.rec51_perm, j99_re0, values64)
-            # Recursive loop 36 
-            # Pre code 
-            var j100_re0 = S32(0)
-            var values65 = simd_load(dsp.rec50_perm, j100_re0)
-            simd_store(rec50_tmp, j100_re0, values65)
-            # Compute code 
-            var i_re36 = S32(0)
-            while (i_re36) < (vsize_re0): 
-                rec50[i_re36] = ((dsp.const222) * ((((dsp.const225) * (rec51[i_re36])) + ((dsp.const226) * (rec51[(i_re36) - (S32(1))]))) + ((dsp.const225) * (rec51[(i_re36) - (S32(2))])))) - ((dsp.const227) * (((dsp.const228) * (rec50[(i_re36) - (S32(2))])) + ((dsp.const229) * (rec50[(i_re36) - (S32(1))]))))
-                i_re36 = (i_re36) + (S32(1))
-            # Post code 
-            var j101_re0 = S32(0)
-            var values66 = simd_load(rec50_tmp, vsize_re0 + j101_re0)
-            simd_store(dsp.rec50_perm, j101_re0, values66)
-            # Vectorizable loop 37 
-            # Compute code 
-            var i_re37 = S32(0)
-            var values67 = (dsp.const227) * ((((dsp.const230) * (simd_load(rec50, i_re37))) + ((dsp.const231) * (simd_load(rec50, i_re37 - S32(1))))) + ((dsp.const230) * (simd_load(rec50, i_re37 - S32(2)))))
-            simd_store(zec11, i_re37, values67)
-            # Recursive loop 38 
-            # Pre code 
-            var j110_re0 = S32(0)
-            var values68 = simd_load(dsp.rec59_perm, j110_re0)
-            simd_store(rec59_tmp, j110_re0, values68)
-            # Compute code 
-            var i_re38 = S32(0)
-            while (i_re38) < (vsize_re0): 
-                rec59[i_re38] = (zec11[i_re38]) - ((dsp.const254) * (((dsp.const255) * (rec59[(i_re38) - (S32(2))])) + ((dsp.const256) * (rec59[(i_re38) - (S32(1))]))))
-                i_re38 = (i_re38) + (S32(1))
-            # Post code 
-            var j111_re0 = S32(0)
-            var values69 = simd_load(rec59_tmp, vsize_re0 + j111_re0)
-            simd_store(dsp.rec59_perm, j111_re0, values69)
-            # Recursive loop 39 
-            # Pre code 
-            var j112_re0 = S32(0)
-            var values70 = simd_load(dsp.rec58_perm, j112_re0)
-            simd_store(rec58_tmp, j112_re0, values70)
-            # Compute code 
-            var i_re39 = S32(0)
-            while (i_re39) < (vsize_re0): 
-                rec58[i_re39] = ((dsp.const254) * ((((dsp.const258) * (rec59[i_re39])) + ((dsp.const259) * (rec59[(i_re39) - (S32(1))]))) + ((dsp.const258) * (rec59[(i_re39) - (S32(2))])))) - ((dsp.const260) * (((dsp.const261) * (rec58[(i_re39) - (S32(2))])) + ((dsp.const262) * (rec58[(i_re39) - (S32(1))]))))
-                i_re39 = (i_re39) + (S32(1))
-            # Post code 
-            var j113_re0 = S32(0)
-            var values71 = simd_load(rec58_tmp, vsize_re0 + j113_re0)
-            simd_store(dsp.rec58_perm, j113_re0, values71)
-            # Recursive loop 40 
-            # Pre code 
-            var j114_re0 = S32(0)
-            var values72 = simd_load(dsp.rec57_perm, j114_re0)
-            simd_store(rec57_tmp, j114_re0, values72)
-            # Compute code 
-            var i_re40 = S32(0)
-            while (i_re40) < (vsize_re0): 
-                rec57[i_re40] = ((dsp.const260) * ((((dsp.const263) * (rec58[i_re40])) + ((dsp.const264) * (rec58[(i_re40) - (S32(1))]))) + ((dsp.const263) * (rec58[(i_re40) - (S32(2))])))) - ((dsp.const265) * (((dsp.const266) * (rec57[(i_re40) - (S32(2))])) + ((dsp.const267) * (rec57[(i_re40) - (S32(1))]))))
-                i_re40 = (i_re40) + (S32(1))
-            # Post code 
-            var j115_re0 = S32(0)
-            var values73 = simd_load(rec57_tmp, vsize_re0 + j115_re0)
-            simd_store(dsp.rec57_perm, j115_re0, values73)
-            # Vectorizable loop 41 
-            # Compute code 
-            var i_re41 = S32(0)
-            var values74 = (dsp.const265) * ((((dsp.const268) * (simd_load(rec57, i_re41))) + ((dsp.const269) * (simd_load(rec57, i_re41 - S32(1))))) + ((dsp.const268) * (simd_load(rec57, i_re41 - S32(2)))))
-            simd_store(zec12, i_re41, values74)
-            # Recursive loop 42 
-            # Pre code 
-            var j124_re0 = S32(0)
-            var values75 = simd_load(dsp.rec66_perm, j124_re0)
-            simd_store(rec66_tmp, j124_re0, values75)
-            # Compute code 
-            var i_re42 = S32(0)
-            while (i_re42) < (vsize_re0): 
-                rec66[i_re42] = (zec12[i_re42]) - ((dsp.const292) * (((dsp.const293) * (rec66[(i_re42) - (S32(2))])) + ((dsp.const294) * (rec66[(i_re42) - (S32(1))]))))
-                i_re42 = (i_re42) + (S32(1))
-            # Post code 
-            var j125_re0 = S32(0)
-            var values76 = simd_load(rec66_tmp, vsize_re0 + j125_re0)
-            simd_store(dsp.rec66_perm, j125_re0, values76)
-            # Recursive loop 43 
-            # Pre code 
-            var j126_re0 = S32(0)
-            var values77 = simd_load(dsp.rec65_perm, j126_re0)
-            simd_store(rec65_tmp, j126_re0, values77)
-            # Compute code 
-            var i_re43 = S32(0)
-            while (i_re43) < (vsize_re0): 
-                rec65[i_re43] = ((dsp.const292) * ((((dsp.const296) * (rec66[i_re43])) + ((dsp.const297) * (rec66[(i_re43) - (S32(1))]))) + ((dsp.const296) * (rec66[(i_re43) - (S32(2))])))) - ((dsp.const298) * (((dsp.const299) * (rec65[(i_re43) - (S32(2))])) + ((dsp.const300) * (rec65[(i_re43) - (S32(1))]))))
-                i_re43 = (i_re43) + (S32(1))
-            # Post code 
-            var j127_re0 = S32(0)
-            var values78 = simd_load(rec65_tmp, vsize_re0 + j127_re0)
-            simd_store(dsp.rec65_perm, j127_re0, values78)
-            # Recursive loop 44 
-            # Pre code 
-            var j128_re0 = S32(0)
-            var values79 = simd_load(dsp.rec64_perm, j128_re0)
-            simd_store(rec64_tmp, j128_re0, values79)
-            # Compute code 
-            var i_re44 = S32(0)
-            while (i_re44) < (vsize_re0): 
-                rec64[i_re44] = ((dsp.const298) * ((((dsp.const301) * (rec65[i_re44])) + ((dsp.const302) * (rec65[(i_re44) - (S32(1))]))) + ((dsp.const301) * (rec65[(i_re44) - (S32(2))])))) - ((dsp.const303) * (((dsp.const304) * (rec64[(i_re44) - (S32(2))])) + ((dsp.const305) * (rec64[(i_re44) - (S32(1))]))))
-                i_re44 = (i_re44) + (S32(1))
-            # Post code 
-            var j129_re0 = S32(0)
-            var values80 = simd_load(rec64_tmp, vsize_re0 + j129_re0)
-            simd_store(dsp.rec64_perm, j129_re0, values80)
-            # Vectorizable loop 45 
-            # Compute code 
-            var i_re45 = S32(0)
-            var values81 = (dsp.const303) * ((((dsp.const306) * (simd_load(rec64, i_re45))) + ((dsp.const307) * (simd_load(rec64, i_re45 - S32(1))))) + ((dsp.const306) * (simd_load(rec64, i_re45 - S32(2)))))
-            simd_store(zec13, i_re45, values81)
-            # Recursive loop 46 
-            # Pre code 
-            var j138_re0 = S32(0)
-            var values82 = simd_load(dsp.rec73_perm, j138_re0)
-            simd_store(rec73_tmp, j138_re0, values82)
-            # Compute code 
-            var i_re46 = S32(0)
-            while (i_re46) < (vsize_re0): 
-                rec73[i_re46] = (zec13[i_re46]) - ((dsp.const330) * (((dsp.const331) * (rec73[(i_re46) - (S32(2))])) + ((dsp.const332) * (rec73[(i_re46) - (S32(1))]))))
-                i_re46 = (i_re46) + (S32(1))
-            # Post code 
-            var j139_re0 = S32(0)
-            var values83 = simd_load(rec73_tmp, vsize_re0 + j139_re0)
-            simd_store(dsp.rec73_perm, j139_re0, values83)
-            # Recursive loop 47 
-            # Pre code 
-            var j140_re0 = S32(0)
-            var values84 = simd_load(dsp.rec72_perm, j140_re0)
-            simd_store(rec72_tmp, j140_re0, values84)
-            # Compute code 
-            var i_re47 = S32(0)
-            while (i_re47) < (vsize_re0): 
-                rec72[i_re47] = ((dsp.const330) * ((((dsp.const334) * (rec73[i_re47])) + ((dsp.const335) * (rec73[(i_re47) - (S32(1))]))) + ((dsp.const334) * (rec73[(i_re47) - (S32(2))])))) - ((dsp.const336) * (((dsp.const337) * (rec72[(i_re47) - (S32(2))])) + ((dsp.const338) * (rec72[(i_re47) - (S32(1))]))))
-                i_re47 = (i_re47) + (S32(1))
-            # Post code 
-            var j141_re0 = S32(0)
-            var values85 = simd_load(rec72_tmp, vsize_re0 + j141_re0)
-            simd_store(dsp.rec72_perm, j141_re0, values85)
-            # Recursive loop 48 
-            # Pre code 
-            var j142_re0 = S32(0)
-            var values86 = simd_load(dsp.rec71_perm, j142_re0)
-            simd_store(rec71_tmp, j142_re0, values86)
-            # Compute code 
-            var i_re48 = S32(0)
-            while (i_re48) < (vsize_re0): 
-                rec71[i_re48] = ((dsp.const336) * ((((dsp.const339) * (rec72[i_re48])) + ((dsp.const340) * (rec72[(i_re48) - (S32(1))]))) + ((dsp.const339) * (rec72[(i_re48) - (S32(2))])))) - ((dsp.const341) * (((dsp.const342) * (rec71[(i_re48) - (S32(2))])) + ((dsp.const343) * (rec71[(i_re48) - (S32(1))]))))
-                i_re48 = (i_re48) + (S32(1))
-            # Post code 
-            var j143_re0 = S32(0)
-            var values87 = simd_load(rec71_tmp, vsize_re0 + j143_re0)
-            simd_store(dsp.rec71_perm, j143_re0, values87)
-            # Vectorizable loop 49 
-            # Compute code 
-            var i_re49 = S32(0)
-            var values88 = (dsp.const341) * ((((dsp.const344) * (simd_load(rec71, i_re49))) + ((dsp.const345) * (simd_load(rec71, i_re49 - S32(1))))) + ((dsp.const344) * (simd_load(rec71, i_re49 - S32(2)))))
-            simd_store(zec14, i_re49, values88)
-            # Recursive loop 50 
-            # Pre code 
-            var j144_re0 = S32(0)
-            var values89 = simd_load(dsp.rec70_perm, j144_re0)
-            simd_store(rec70_tmp, j144_re0, values89)
-            # Compute code 
-            var i_re50 = S32(0)
-            while (i_re50) < (vsize_re0): 
-                rec70[i_re50] = (zec14[i_re50]) - ((dsp.const348) * (((dsp.const349) * (rec70[(i_re50) - (S32(2))])) + ((dsp.const352) * (rec70[(i_re50) - (S32(1))]))))
-                i_re50 = (i_re50) + (S32(1))
-            # Post code 
-            var j145_re0 = S32(0)
-            var values90 = simd_load(rec70_tmp, vsize_re0 + j145_re0)
-            simd_store(dsp.rec70_perm, j145_re0, values90)
-            # Recursive loop 51 
-            # Pre code 
-            var j146_re0 = S32(0)
-            var values91 = simd_load(dsp.rec69_perm, j146_re0)
-            simd_store(rec69_tmp, j146_re0, values91)
-            # Compute code 
-            var i_re51 = S32(0)
-            while (i_re51) < (vsize_re0): 
-                rec69[i_re51] = ((dsp.const348) * ((((dsp.const354) * (rec70[i_re51])) + ((dsp.const355) * (rec70[(i_re51) - (S32(1))]))) + ((dsp.const354) * (rec70[(i_re51) - (S32(2))])))) - ((dsp.const356) * (((dsp.const357) * (rec69[(i_re51) - (S32(2))])) + ((dsp.const358) * (rec69[(i_re51) - (S32(1))]))))
-                i_re51 = (i_re51) + (S32(1))
-            # Post code 
-            var j147_re0 = S32(0)
-            var values92 = simd_load(rec69_tmp, vsize_re0 + j147_re0)
-            simd_store(dsp.rec69_perm, j147_re0, values92)
-            # Recursive loop 52 
-            # Pre code 
-            var j148_re0 = S32(0)
-            var values93 = simd_load(dsp.rec68_perm, j148_re0)
-            simd_store(rec68_tmp, j148_re0, values93)
-            # Compute code 
-            var i_re52 = S32(0)
-            while (i_re52) < (vsize_re0): 
-                rec68[i_re52] = ((dsp.const356) * ((((dsp.const360) * (rec69[i_re52])) + ((dsp.const361) * (rec69[(i_re52) - (S32(1))]))) + ((dsp.const360) * (rec69[(i_re52) - (S32(2))])))) - ((dsp.const362) * (((dsp.const363) * (rec68[(i_re52) - (S32(2))])) + ((dsp.const364) * (rec68[(i_re52) - (S32(1))]))))
-                i_re52 = (i_re52) + (S32(1))
-            # Post code 
-            var j149_re0 = S32(0)
-            var values94 = simd_load(rec68_tmp, vsize_re0 + j149_re0)
-            simd_store(dsp.rec68_perm, j149_re0, values94)
-            # Recursive loop 53 
-            # Pre code 
-            var j150_re0 = S32(0)
-            var values95 = simd_load(dsp.rec67_perm, j150_re0)
-            simd_store(rec67_tmp, j150_re0, values95)
-            # Compute code 
-            var i_re53 = S32(0)
-            while (i_re53) < (vsize_re0): 
-                rec67[i_re53] = ((slow8) * (rec67[(i_re53) - (S32(1))])) + ((slow9) * (abs((dsp.const362) * ((((dsp.const366) * (rec68[i_re53])) + ((dsp.const367) * (rec68[(i_re53) - (S32(1))]))) + ((dsp.const366) * (rec68[(i_re53) - (S32(2))]))))))
-                i_re53 = (i_re53) + (S32(1))
-            # Post code 
-            var j151_re0 = S32(0)
-            var values96 = simd_load(rec67_tmp, vsize_re0 + j151_re0)
-            simd_store(dsp.rec67_perm, j151_re0, values96)
-            # Recursive loop 54 
-            # Pre code 
-            var j152_re0 = S32(0)
-            var values97 = simd_load(dsp.rec80_perm, j152_re0)
-            simd_store(rec80_tmp, j152_re0, values97)
-            # Compute code 
-            var i_re54 = S32(0)
-            while (i_re54) < (vsize_re0): 
-                rec80[i_re54] = (zec14[i_re54]) - ((dsp.const368) * (((dsp.const369) * (rec80[(i_re54) - (S32(2))])) + ((dsp.const370) * (rec80[(i_re54) - (S32(1))]))))
-                i_re54 = (i_re54) + (S32(1))
-            # Post code 
-            var j153_re0 = S32(0)
-            var values98 = simd_load(rec80_tmp, vsize_re0 + j153_re0)
-            simd_store(dsp.rec80_perm, j153_re0, values98)
-            # Recursive loop 55 
-            # Pre code 
-            var j154_re0 = S32(0)
-            var values99 = simd_load(dsp.rec79_perm, j154_re0)
-            simd_store(rec79_tmp, j154_re0, values99)
-            # Compute code 
-            var i_re55 = S32(0)
-            while (i_re55) < (vsize_re0): 
-                rec79[i_re55] = ((dsp.const368) * ((((dsp.const372) * (rec80[i_re55])) + ((dsp.const373) * (rec80[(i_re55) - (S32(1))]))) + ((dsp.const372) * (rec80[(i_re55) - (S32(2))])))) - ((dsp.const374) * (((dsp.const375) * (rec79[(i_re55) - (S32(2))])) + ((dsp.const376) * (rec79[(i_re55) - (S32(1))]))))
-                i_re55 = (i_re55) + (S32(1))
-            # Post code 
-            var j155_re0 = S32(0)
-            var values100 = simd_load(rec79_tmp, vsize_re0 + j155_re0)
-            simd_store(dsp.rec79_perm, j155_re0, values100)
-            # Recursive loop 56 
-            # Pre code 
-            var j156_re0 = S32(0)
-            var values101 = simd_load(dsp.rec78_perm, j156_re0)
-            simd_store(rec78_tmp, j156_re0, values101)
-            # Compute code 
-            var i_re56 = S32(0)
-            while (i_re56) < (vsize_re0): 
-                rec78[i_re56] = ((dsp.const374) * ((((dsp.const377) * (rec79[i_re56])) + ((dsp.const378) * (rec79[(i_re56) - (S32(1))]))) + ((dsp.const377) * (rec79[(i_re56) - (S32(2))])))) - ((dsp.const379) * (((dsp.const380) * (rec78[(i_re56) - (S32(2))])) + ((dsp.const381) * (rec78[(i_re56) - (S32(1))]))))
-                i_re56 = (i_re56) + (S32(1))
-            # Post code 
-            var j157_re0 = S32(0)
-            var values102 = simd_load(rec78_tmp, vsize_re0 + j157_re0)
-            simd_store(dsp.rec78_perm, j157_re0, values102)
-            # Vectorizable loop 57 
-            # Compute code 
-            var i_re57 = S32(0)
-            var values103 = (dsp.const379) * ((((dsp.const382) * (simd_load(rec78, i_re57))) + ((dsp.const383) * (simd_load(rec78, i_re57 - S32(1))))) + ((dsp.const382) * (simd_load(rec78, i_re57 - S32(2)))))
-            simd_store(zec15, i_re57, values103)
-            # Recursive loop 58 
-            # Pre code 
-            var j158_re0 = S32(0)
-            var values104 = simd_load(dsp.rec77_perm, j158_re0)
-            simd_store(rec77_tmp, j158_re0, values104)
-            # Compute code 
-            var i_re58 = S32(0)
-            while (i_re58) < (vsize_re0): 
-                rec77[i_re58] = (zec15[i_re58]) - ((dsp.const386) * (((dsp.const387) * (rec77[(i_re58) - (S32(2))])) + ((dsp.const390) * (rec77[(i_re58) - (S32(1))]))))
-                i_re58 = (i_re58) + (S32(1))
-            # Post code 
-            var j159_re0 = S32(0)
-            var values105 = simd_load(rec77_tmp, vsize_re0 + j159_re0)
-            simd_store(dsp.rec77_perm, j159_re0, values105)
-            # Recursive loop 59 
-            # Pre code 
-            var j160_re0 = S32(0)
-            var values106 = simd_load(dsp.rec76_perm, j160_re0)
-            simd_store(rec76_tmp, j160_re0, values106)
-            # Compute code 
-            var i_re59 = S32(0)
-            while (i_re59) < (vsize_re0): 
-                rec76[i_re59] = ((dsp.const386) * ((((dsp.const392) * (rec77[i_re59])) + ((dsp.const393) * (rec77[(i_re59) - (S32(1))]))) + ((dsp.const392) * (rec77[(i_re59) - (S32(2))])))) - ((dsp.const394) * (((dsp.const395) * (rec76[(i_re59) - (S32(2))])) + ((dsp.const396) * (rec76[(i_re59) - (S32(1))]))))
-                i_re59 = (i_re59) + (S32(1))
-            # Post code 
-            var j161_re0 = S32(0)
-            var values107 = simd_load(rec76_tmp, vsize_re0 + j161_re0)
-            simd_store(dsp.rec76_perm, j161_re0, values107)
-            # Recursive loop 60 
-            # Pre code 
-            var j162_re0 = S32(0)
-            var values108 = simd_load(dsp.rec75_perm, j162_re0)
-            simd_store(rec75_tmp, j162_re0, values108)
-            # Compute code 
-            var i_re60 = S32(0)
-            while (i_re60) < (vsize_re0): 
-                rec75[i_re60] = ((dsp.const394) * ((((dsp.const398) * (rec76[i_re60])) + ((dsp.const399) * (rec76[(i_re60) - (S32(1))]))) + ((dsp.const398) * (rec76[(i_re60) - (S32(2))])))) - ((dsp.const400) * (((dsp.const401) * (rec75[(i_re60) - (S32(2))])) + ((dsp.const402) * (rec75[(i_re60) - (S32(1))]))))
-                i_re60 = (i_re60) + (S32(1))
-            # Post code 
-            var j163_re0 = S32(0)
-            var values109 = simd_load(rec75_tmp, vsize_re0 + j163_re0)
-            simd_store(dsp.rec75_perm, j163_re0, values109)
-            # Recursive loop 61 
-            # Pre code 
-            var j164_re0 = S32(0)
-            var values110 = simd_load(dsp.rec74_perm, j164_re0)
-            simd_store(rec74_tmp, j164_re0, values110)
-            # Compute code 
-            var i_re61 = S32(0)
-            while (i_re61) < (vsize_re0): 
-                rec74[i_re61] = ((slow8) * (rec74[(i_re61) - (S32(1))])) + ((slow9) * (abs((dsp.const400) * ((((dsp.const404) * (rec75[i_re61])) + ((dsp.const405) * (rec75[(i_re61) - (S32(1))]))) + ((dsp.const404) * (rec75[(i_re61) - (S32(2))]))))))
-                i_re61 = (i_re61) + (S32(1))
-            # Post code 
-            var j165_re0 = S32(0)
-            var values111 = simd_load(rec74_tmp, vsize_re0 + j165_re0)
-            simd_store(dsp.rec74_perm, j165_re0, values111)
-            # Recursive loop 62 
-            # Pre code 
-            var j166_re0 = S32(0)
-            var values112 = simd_load(dsp.rec87_perm, j166_re0)
-            simd_store(rec87_tmp, j166_re0, values112)
-            # Compute code 
-            var i_re62 = S32(0)
-            while (i_re62) < (vsize_re0): 
-                rec87[i_re62] = (zec15[i_re62]) - ((dsp.const406) * (((dsp.const407) * (rec87[(i_re62) - (S32(2))])) + ((dsp.const408) * (rec87[(i_re62) - (S32(1))]))))
-                i_re62 = (i_re62) + (S32(1))
-            # Post code 
-            var j167_re0 = S32(0)
-            var values113 = simd_load(rec87_tmp, vsize_re0 + j167_re0)
-            simd_store(dsp.rec87_perm, j167_re0, values113)
-            # Recursive loop 63 
-            # Pre code 
-            var j168_re0 = S32(0)
-            var values114 = simd_load(dsp.rec86_perm, j168_re0)
-            simd_store(rec86_tmp, j168_re0, values114)
-            # Compute code 
-            var i_re63 = S32(0)
-            while (i_re63) < (vsize_re0): 
-                rec86[i_re63] = ((dsp.const406) * ((((dsp.const410) * (rec87[i_re63])) + ((dsp.const411) * (rec87[(i_re63) - (S32(1))]))) + ((dsp.const410) * (rec87[(i_re63) - (S32(2))])))) - ((dsp.const412) * (((dsp.const413) * (rec86[(i_re63) - (S32(2))])) + ((dsp.const414) * (rec86[(i_re63) - (S32(1))]))))
-                i_re63 = (i_re63) + (S32(1))
-            # Post code 
-            var j169_re0 = S32(0)
-            var values115 = simd_load(rec86_tmp, vsize_re0 + j169_re0)
-            simd_store(dsp.rec86_perm, j169_re0, values115)
-            # Recursive loop 64 
-            # Pre code 
-            var j170_re0 = S32(0)
-            var values116 = simd_load(dsp.rec85_perm, j170_re0)
-            simd_store(rec85_tmp, j170_re0, values116)
-            # Compute code 
-            var i_re64 = S32(0)
-            while (i_re64) < (vsize_re0): 
-                rec85[i_re64] = ((dsp.const412) * ((((dsp.const415) * (rec86[i_re64])) + ((dsp.const416) * (rec86[(i_re64) - (S32(1))]))) + ((dsp.const415) * (rec86[(i_re64) - (S32(2))])))) - ((dsp.const417) * (((dsp.const418) * (rec85[(i_re64) - (S32(2))])) + ((dsp.const419) * (rec85[(i_re64) - (S32(1))]))))
-                i_re64 = (i_re64) + (S32(1))
-            # Post code 
-            var j171_re0 = S32(0)
-            var values117 = simd_load(rec85_tmp, vsize_re0 + j171_re0)
-            simd_store(dsp.rec85_perm, j171_re0, values117)
-            # Vectorizable loop 65 
-            # Compute code 
-            var i_re65 = S32(0)
-            var values118 = (dsp.const417) * ((((dsp.const420) * (simd_load(rec85, i_re65))) + ((dsp.const421) * (simd_load(rec85, i_re65 - S32(1))))) + ((dsp.const420) * (simd_load(rec85, i_re65 - S32(2)))))
-            simd_store(zec16, i_re65, values118)
-            # Recursive loop 66 
-            # Pre code 
-            var j172_re0 = S32(0)
-            var values119 = simd_load(dsp.rec84_perm, j172_re0)
-            simd_store(rec84_tmp, j172_re0, values119)
-            # Compute code 
-            var i_re66 = S32(0)
-            while (i_re66) < (vsize_re0): 
-                rec84[i_re66] = (zec16[i_re66]) - ((dsp.const424) * (((dsp.const425) * (rec84[(i_re66) - (S32(2))])) + ((dsp.const428) * (rec84[(i_re66) - (S32(1))]))))
-                i_re66 = (i_re66) + (S32(1))
-            # Post code 
-            var j173_re0 = S32(0)
-            var values120 = simd_load(rec84_tmp, vsize_re0 + j173_re0)
-            simd_store(dsp.rec84_perm, j173_re0, values120)
-            # Recursive loop 67 
-            # Pre code 
-            var j174_re0 = S32(0)
-            var values121 = simd_load(dsp.rec83_perm, j174_re0)
-            simd_store(rec83_tmp, j174_re0, values121)
-            # Compute code 
-            var i_re67 = S32(0)
-            while (i_re67) < (vsize_re0): 
-                rec83[i_re67] = ((dsp.const424) * ((((dsp.const430) * (rec84[i_re67])) + ((dsp.const431) * (rec84[(i_re67) - (S32(1))]))) + ((dsp.const430) * (rec84[(i_re67) - (S32(2))])))) - ((dsp.const432) * (((dsp.const433) * (rec83[(i_re67) - (S32(2))])) + ((dsp.const434) * (rec83[(i_re67) - (S32(1))]))))
-                i_re67 = (i_re67) + (S32(1))
-            # Post code 
-            var j175_re0 = S32(0)
-            var values122 = simd_load(rec83_tmp, vsize_re0 + j175_re0)
-            simd_store(dsp.rec83_perm, j175_re0, values122)
-            # Recursive loop 68 
-            # Pre code 
-            var j176_re0 = S32(0)
-            var values123 = simd_load(dsp.rec82_perm, j176_re0)
-            simd_store(rec82_tmp, j176_re0, values123)
-            # Compute code 
-            var i_re68 = S32(0)
-            while (i_re68) < (vsize_re0): 
-                rec82[i_re68] = ((dsp.const432) * ((((dsp.const436) * (rec83[i_re68])) + ((dsp.const437) * (rec83[(i_re68) - (S32(1))]))) + ((dsp.const436) * (rec83[(i_re68) - (S32(2))])))) - ((dsp.const438) * (((dsp.const439) * (rec82[(i_re68) - (S32(2))])) + ((dsp.const440) * (rec82[(i_re68) - (S32(1))]))))
-                i_re68 = (i_re68) + (S32(1))
-            # Post code 
-            var j177_re0 = S32(0)
-            var values124 = simd_load(rec82_tmp, vsize_re0 + j177_re0)
-            simd_store(dsp.rec82_perm, j177_re0, values124)
-            # Recursive loop 69 
-            # Pre code 
-            var j178_re0 = S32(0)
-            var values125 = simd_load(dsp.rec81_perm, j178_re0)
-            simd_store(rec81_tmp, j178_re0, values125)
-            # Compute code 
-            var i_re69 = S32(0)
-            while (i_re69) < (vsize_re0): 
-                rec81[i_re69] = ((slow8) * (rec81[(i_re69) - (S32(1))])) + ((slow9) * (abs((dsp.const438) * ((((dsp.const442) * (rec82[i_re69])) + ((dsp.const443) * (rec82[(i_re69) - (S32(1))]))) + ((dsp.const442) * (rec82[(i_re69) - (S32(2))]))))))
-                i_re69 = (i_re69) + (S32(1))
-            # Post code 
-            var j179_re0 = S32(0)
-            var values126 = simd_load(rec81_tmp, vsize_re0 + j179_re0)
-            simd_store(dsp.rec81_perm, j179_re0, values126)
-            # Recursive loop 70 
-            # Pre code 
-            var j180_re0 = S32(0)
-            var values127 = simd_load(dsp.rec94_perm, j180_re0)
-            simd_store(rec94_tmp, j180_re0, values127)
-            # Compute code 
-            var i_re70 = S32(0)
-            while (i_re70) < (vsize_re0): 
-                rec94[i_re70] = (zec16[i_re70]) - ((dsp.const444) * (((dsp.const445) * (rec94[(i_re70) - (S32(2))])) + ((dsp.const446) * (rec94[(i_re70) - (S32(1))]))))
-                i_re70 = (i_re70) + (S32(1))
-            # Post code 
-            var j181_re0 = S32(0)
-            var values128 = simd_load(rec94_tmp, vsize_re0 + j181_re0)
-            simd_store(dsp.rec94_perm, j181_re0, values128)
-            # Recursive loop 71 
-            # Pre code 
-            var j182_re0 = S32(0)
-            var values129 = simd_load(dsp.rec93_perm, j182_re0)
-            simd_store(rec93_tmp, j182_re0, values129)
-            # Compute code 
-            var i_re71 = S32(0)
-            while (i_re71) < (vsize_re0): 
-                rec93[i_re71] = ((dsp.const444) * ((((dsp.const448) * (rec94[i_re71])) + ((dsp.const449) * (rec94[(i_re71) - (S32(1))]))) + ((dsp.const448) * (rec94[(i_re71) - (S32(2))])))) - ((dsp.const450) * (((dsp.const451) * (rec93[(i_re71) - (S32(2))])) + ((dsp.const452) * (rec93[(i_re71) - (S32(1))]))))
-                i_re71 = (i_re71) + (S32(1))
-            # Post code 
-            var j183_re0 = S32(0)
-            var values130 = simd_load(rec93_tmp, vsize_re0 + j183_re0)
-            simd_store(dsp.rec93_perm, j183_re0, values130)
-            # Recursive loop 72 
-            # Pre code 
-            var j184_re0 = S32(0)
-            var values131 = simd_load(dsp.rec92_perm, j184_re0)
-            simd_store(rec92_tmp, j184_re0, values131)
-            # Compute code 
-            var i_re72 = S32(0)
-            while (i_re72) < (vsize_re0): 
-                rec92[i_re72] = ((dsp.const450) * ((((dsp.const453) * (rec93[i_re72])) + ((dsp.const454) * (rec93[(i_re72) - (S32(1))]))) + ((dsp.const453) * (rec93[(i_re72) - (S32(2))])))) - ((dsp.const455) * (((dsp.const456) * (rec92[(i_re72) - (S32(2))])) + ((dsp.const457) * (rec92[(i_re72) - (S32(1))]))))
-                i_re72 = (i_re72) + (S32(1))
-            # Post code 
-            var j185_re0 = S32(0)
-            var values132 = simd_load(rec92_tmp, vsize_re0 + j185_re0)
-            simd_store(dsp.rec92_perm, j185_re0, values132)
-            # Vectorizable loop 73 
-            # Compute code 
-            var i_re73 = S32(0)
-            var values133 = (dsp.const455) * ((((dsp.const458) * (simd_load(rec92, i_re73))) + ((dsp.const459) * (simd_load(rec92, i_re73 - S32(1))))) + ((dsp.const458) * (simd_load(rec92, i_re73 - S32(2)))))
-            simd_store(zec17, i_re73, values133)
-            # Recursive loop 74 
-            # Pre code 
-            var j186_re0 = S32(0)
-            var values134 = simd_load(dsp.rec91_perm, j186_re0)
-            simd_store(rec91_tmp, j186_re0, values134)
-            # Compute code 
-            var i_re74 = S32(0)
-            while (i_re74) < (vsize_re0): 
-                rec91[i_re74] = (zec17[i_re74]) - ((dsp.const462) * (((dsp.const463) * (rec91[(i_re74) - (S32(2))])) + ((dsp.const466) * (rec91[(i_re74) - (S32(1))]))))
-                i_re74 = (i_re74) + (S32(1))
-            # Post code 
-            var j187_re0 = S32(0)
-            var values135 = simd_load(rec91_tmp, vsize_re0 + j187_re0)
-            simd_store(dsp.rec91_perm, j187_re0, values135)
-            # Recursive loop 75 
-            # Pre code 
-            var j188_re0 = S32(0)
-            var values136 = simd_load(dsp.rec90_perm, j188_re0)
-            simd_store(rec90_tmp, j188_re0, values136)
-            # Compute code 
-            var i_re75 = S32(0)
-            while (i_re75) < (vsize_re0): 
-                rec90[i_re75] = ((dsp.const462) * ((((dsp.const468) * (rec91[i_re75])) + ((dsp.const469) * (rec91[(i_re75) - (S32(1))]))) + ((dsp.const468) * (rec91[(i_re75) - (S32(2))])))) - ((dsp.const470) * (((dsp.const471) * (rec90[(i_re75) - (S32(2))])) + ((dsp.const472) * (rec90[(i_re75) - (S32(1))]))))
-                i_re75 = (i_re75) + (S32(1))
-            # Post code 
-            var j189_re0 = S32(0)
-            var values137 = simd_load(rec90_tmp, vsize_re0 + j189_re0)
-            simd_store(dsp.rec90_perm, j189_re0, values137)
-            # Recursive loop 76 
-            # Pre code 
-            var j190_re0 = S32(0)
-            var values138 = simd_load(dsp.rec89_perm, j190_re0)
-            simd_store(rec89_tmp, j190_re0, values138)
-            # Compute code 
-            var i_re76 = S32(0)
-            while (i_re76) < (vsize_re0): 
-                rec89[i_re76] = ((dsp.const470) * ((((dsp.const474) * (rec90[i_re76])) + ((dsp.const475) * (rec90[(i_re76) - (S32(1))]))) + ((dsp.const474) * (rec90[(i_re76) - (S32(2))])))) - ((dsp.const476) * (((dsp.const477) * (rec89[(i_re76) - (S32(2))])) + ((dsp.const478) * (rec89[(i_re76) - (S32(1))]))))
-                i_re76 = (i_re76) + (S32(1))
-            # Post code 
-            var j191_re0 = S32(0)
-            var values139 = simd_load(rec89_tmp, vsize_re0 + j191_re0)
-            simd_store(dsp.rec89_perm, j191_re0, values139)
-            # Recursive loop 77 
-            # Pre code 
-            var j192_re0 = S32(0)
-            var values140 = simd_load(dsp.rec88_perm, j192_re0)
-            simd_store(rec88_tmp, j192_re0, values140)
-            # Compute code 
-            var i_re77 = S32(0)
-            while (i_re77) < (vsize_re0): 
-                rec88[i_re77] = ((slow8) * (rec88[(i_re77) - (S32(1))])) + ((slow9) * (abs((dsp.const476) * ((((dsp.const480) * (rec89[i_re77])) + ((dsp.const481) * (rec89[(i_re77) - (S32(1))]))) + ((dsp.const480) * (rec89[(i_re77) - (S32(2))]))))))
-                i_re77 = (i_re77) + (S32(1))
-            # Post code 
-            var j193_re0 = S32(0)
-            var values141 = simd_load(rec88_tmp, vsize_re0 + j193_re0)
-            simd_store(dsp.rec88_perm, j193_re0, values141)
-            # Recursive loop 78 
-            # Pre code 
-            var j194_re0 = S32(0)
-            var values142 = simd_load(dsp.rec101_perm, j194_re0)
-            simd_store(rec101_tmp, j194_re0, values142)
-            # Compute code 
-            var i_re78 = S32(0)
-            while (i_re78) < (vsize_re0): 
-                rec101[i_re78] = (zec17[i_re78]) - ((dsp.const482) * (((dsp.const483) * (rec101[(i_re78) - (S32(2))])) + ((dsp.const484) * (rec101[(i_re78) - (S32(1))]))))
-                i_re78 = (i_re78) + (S32(1))
-            # Post code 
-            var j195_re0 = S32(0)
-            var values143 = simd_load(rec101_tmp, vsize_re0 + j195_re0)
-            simd_store(dsp.rec101_perm, j195_re0, values143)
-            # Recursive loop 79 
-            # Pre code 
-            var j196_re0 = S32(0)
-            var values144 = simd_load(dsp.rec100_perm, j196_re0)
-            simd_store(rec100_tmp, j196_re0, values144)
-            # Compute code 
-            var i_re79 = S32(0)
-            while (i_re79) < (vsize_re0): 
-                rec100[i_re79] = ((dsp.const482) * ((((dsp.const486) * (rec101[i_re79])) + ((dsp.const487) * (rec101[(i_re79) - (S32(1))]))) + ((dsp.const486) * (rec101[(i_re79) - (S32(2))])))) - ((dsp.const488) * (((dsp.const489) * (rec100[(i_re79) - (S32(2))])) + ((dsp.const490) * (rec100[(i_re79) - (S32(1))]))))
-                i_re79 = (i_re79) + (S32(1))
-            # Post code 
-            var j197_re0 = S32(0)
-            var values145 = simd_load(rec100_tmp, vsize_re0 + j197_re0)
-            simd_store(dsp.rec100_perm, j197_re0, values145)
-            # Recursive loop 80 
-            # Pre code 
-            var j198_re0 = S32(0)
-            var values146 = simd_load(dsp.rec99_perm, j198_re0)
-            simd_store(rec99_tmp, j198_re0, values146)
-            # Compute code 
-            var i_re80 = S32(0)
-            while (i_re80) < (vsize_re0): 
-                rec99[i_re80] = ((dsp.const488) * ((((dsp.const491) * (rec100[i_re80])) + ((dsp.const492) * (rec100[(i_re80) - (S32(1))]))) + ((dsp.const491) * (rec100[(i_re80) - (S32(2))])))) - ((dsp.const493) * (((dsp.const494) * (rec99[(i_re80) - (S32(2))])) + ((dsp.const495) * (rec99[(i_re80) - (S32(1))]))))
-                i_re80 = (i_re80) + (S32(1))
-            # Post code 
-            var j199_re0 = S32(0)
-            var values147 = simd_load(rec99_tmp, vsize_re0 + j199_re0)
-            simd_store(dsp.rec99_perm, j199_re0, values147)
-            # Vectorizable loop 81 
-            # Compute code 
-            var i_re81 = S32(0)
-            var values148 = (dsp.const493) * ((((dsp.const496) * (simd_load(rec99, i_re81))) + ((dsp.const497) * (simd_load(rec99, i_re81 - S32(1))))) + ((dsp.const496) * (simd_load(rec99, i_re81 - S32(2)))))
-            simd_store(zec18, i_re81, values148)
-            # Recursive loop 82 
-            # Pre code 
-            var j200_re0 = S32(0)
-            var values149 = simd_load(dsp.rec98_perm, j200_re0)
-            simd_store(rec98_tmp, j200_re0, values149)
-            # Compute code 
-            var i_re82 = S32(0)
-            while (i_re82) < (vsize_re0): 
-                rec98[i_re82] = (zec18[i_re82]) - ((dsp.const500) * (((dsp.const501) * (rec98[(i_re82) - (S32(2))])) + ((dsp.const504) * (rec98[(i_re82) - (S32(1))]))))
-                i_re82 = (i_re82) + (S32(1))
-            # Post code 
-            var j201_re0 = S32(0)
-            var values150 = simd_load(rec98_tmp, vsize_re0 + j201_re0)
-            simd_store(dsp.rec98_perm, j201_re0, values150)
-            # Recursive loop 83 
-            # Pre code 
-            var j202_re0 = S32(0)
-            var values151 = simd_load(dsp.rec97_perm, j202_re0)
-            simd_store(rec97_tmp, j202_re0, values151)
-            # Compute code 
-            var i_re83 = S32(0)
-            while (i_re83) < (vsize_re0): 
-                rec97[i_re83] = ((dsp.const500) * ((((dsp.const506) * (rec98[i_re83])) + ((dsp.const507) * (rec98[(i_re83) - (S32(1))]))) + ((dsp.const506) * (rec98[(i_re83) - (S32(2))])))) - ((dsp.const508) * (((dsp.const509) * (rec97[(i_re83) - (S32(2))])) + ((dsp.const510) * (rec97[(i_re83) - (S32(1))]))))
-                i_re83 = (i_re83) + (S32(1))
-            # Post code 
-            var j203_re0 = S32(0)
-            var values152 = simd_load(rec97_tmp, vsize_re0 + j203_re0)
-            simd_store(dsp.rec97_perm, j203_re0, values152)
-            # Recursive loop 84 
-            # Pre code 
-            var j204_re0 = S32(0)
-            var values153 = simd_load(dsp.rec96_perm, j204_re0)
-            simd_store(rec96_tmp, j204_re0, values153)
-            # Compute code 
-            var i_re84 = S32(0)
-            while (i_re84) < (vsize_re0): 
-                rec96[i_re84] = ((dsp.const508) * ((((dsp.const512) * (rec97[i_re84])) + ((dsp.const513) * (rec97[(i_re84) - (S32(1))]))) + ((dsp.const512) * (rec97[(i_re84) - (S32(2))])))) - ((dsp.const514) * (((dsp.const515) * (rec96[(i_re84) - (S32(2))])) + ((dsp.const516) * (rec96[(i_re84) - (S32(1))]))))
-                i_re84 = (i_re84) + (S32(1))
-            # Post code 
-            var j205_re0 = S32(0)
-            var values154 = simd_load(rec96_tmp, vsize_re0 + j205_re0)
-            simd_store(dsp.rec96_perm, j205_re0, values154)
-            # Recursive loop 85 
-            # Pre code 
-            var j206_re0 = S32(0)
-            var values155 = simd_load(dsp.rec95_perm, j206_re0)
-            simd_store(rec95_tmp, j206_re0, values155)
-            # Compute code 
-            var i_re85 = S32(0)
-            while (i_re85) < (vsize_re0): 
-                rec95[i_re85] = ((slow8) * (rec95[(i_re85) - (S32(1))])) + ((slow9) * (abs((dsp.const514) * ((((dsp.const518) * (rec96[i_re85])) + ((dsp.const519) * (rec96[(i_re85) - (S32(1))]))) + ((dsp.const518) * (rec96[(i_re85) - (S32(2))]))))))
-                i_re85 = (i_re85) + (S32(1))
-            # Post code 
-            var j207_re0 = S32(0)
-            var values156 = simd_load(rec95_tmp, vsize_re0 + j207_re0)
-            simd_store(dsp.rec95_perm, j207_re0, values156)
-            # Recursive loop 86 
-            # Pre code 
-            var j208_re0 = S32(0)
-            var values157 = simd_load(dsp.rec105_perm, j208_re0)
-            simd_store(rec105_tmp, j208_re0, values157)
-            # Compute code 
-            var i_re86 = S32(0)
-            while (i_re86) < (vsize_re0): 
-                rec105[i_re86] = (zec18[i_re86]) - ((dsp.const520) * (((dsp.const521) * (rec105[(i_re86) - (S32(2))])) + ((dsp.const522) * (rec105[(i_re86) - (S32(1))]))))
-                i_re86 = (i_re86) + (S32(1))
-            # Post code 
-            var j209_re0 = S32(0)
-            var values158 = simd_load(rec105_tmp, vsize_re0 + j209_re0)
-            simd_store(dsp.rec105_perm, j209_re0, values158)
-            # Recursive loop 87 
-            # Pre code 
-            var j210_re0 = S32(0)
-            var values159 = simd_load(dsp.rec104_perm, j210_re0)
-            simd_store(rec104_tmp, j210_re0, values159)
-            # Compute code 
-            var i_re87 = S32(0)
-            while (i_re87) < (vsize_re0): 
-                rec104[i_re87] = ((dsp.const520) * ((((dsp.const524) * (rec105[i_re87])) + ((dsp.const525) * (rec105[(i_re87) - (S32(1))]))) + ((dsp.const524) * (rec105[(i_re87) - (S32(2))])))) - ((dsp.const526) * (((dsp.const527) * (rec104[(i_re87) - (S32(2))])) + ((dsp.const528) * (rec104[(i_re87) - (S32(1))]))))
-                i_re87 = (i_re87) + (S32(1))
-            # Post code 
-            var j211_re0 = S32(0)
-            var values160 = simd_load(rec104_tmp, vsize_re0 + j211_re0)
-            simd_store(dsp.rec104_perm, j211_re0, values160)
-            # Recursive loop 88 
-            # Pre code 
-            var j212_re0 = S32(0)
-            var values161 = simd_load(dsp.rec103_perm, j212_re0)
-            simd_store(rec103_tmp, j212_re0, values161)
-            # Compute code 
-            var i_re88 = S32(0)
-            while (i_re88) < (vsize_re0): 
-                rec103[i_re88] = ((dsp.const526) * ((((dsp.const529) * (rec104[i_re88])) + ((dsp.const530) * (rec104[(i_re88) - (S32(1))]))) + ((dsp.const529) * (rec104[(i_re88) - (S32(2))])))) - ((dsp.const531) * (((dsp.const532) * (rec103[(i_re88) - (S32(2))])) + ((dsp.const533) * (rec103[(i_re88) - (S32(1))]))))
-                i_re88 = (i_re88) + (S32(1))
-            # Post code 
-            var j213_re0 = S32(0)
-            var values162 = simd_load(rec103_tmp, vsize_re0 + j213_re0)
-            simd_store(dsp.rec103_perm, j213_re0, values162)
-            # Recursive loop 89 
-            # Pre code 
-            var j214_re0 = S32(0)
-            var values163 = simd_load(dsp.rec102_perm, j214_re0)
-            simd_store(rec102_tmp, j214_re0, values163)
-            # Compute code 
-            var i_re89 = S32(0)
-            while (i_re89) < (vsize_re0): 
-                rec102[i_re89] = ((slow8) * (rec102[(i_re89) - (S32(1))])) + ((slow9) * (abs((dsp.const531) * ((((dsp.const534) * (rec103[i_re89])) + ((dsp.const535) * (rec103[(i_re89) - (S32(1))]))) + ((dsp.const534) * (rec103[(i_re89) - (S32(2))]))))))
-                i_re89 = (i_re89) + (S32(1))
-            # Post code 
-            var j215_re0 = S32(0)
-            var values164 = simd_load(rec102_tmp, vsize_re0 + j215_re0)
-            simd_store(dsp.rec102_perm, j215_re0, values164)
-            # Recursive loop 90 
-            # Pre code 
-            var j18_re0 = S32(0)
-            var values165 = simd_load(dsp.rec10_perm, j18_re0)
-            simd_store(rec10_tmp, j18_re0, values165)
-            # Compute code 
-            var i_re90 = S32(0)
-            while (i_re90) < (vsize_re0): 
-                rec10[i_re90] = (zec5[i_re90]) - ((dsp.const5) * (((dsp.const6) * (rec10[(i_re90) - (S32(2))])) + ((dsp.const9) * (rec10[(i_re90) - (S32(1))]))))
-                i_re90 = (i_re90) + (S32(1))
-            # Post code 
-            var j19_re0 = S32(0)
-            var values166 = simd_load(rec10_tmp, vsize_re0 + j19_re0)
-            simd_store(dsp.rec10_perm, j19_re0, values166)
-            # Recursive loop 91 
-            # Pre code 
-            var j20_re0 = S32(0)
-            var values167 = simd_load(dsp.rec9_perm, j20_re0)
-            simd_store(rec9_tmp, j20_re0, values167)
-            # Compute code 
-            var i_re91 = S32(0)
-            while (i_re91) < (vsize_re0): 
-                rec9[i_re91] = ((dsp.const5) * ((((dsp.const11) * (rec10[i_re91])) + ((dsp.const12) * (rec10[(i_re91) - (S32(1))]))) + ((dsp.const11) * (rec10[(i_re91) - (S32(2))])))) - ((dsp.const13) * (((dsp.const14) * (rec9[(i_re91) - (S32(2))])) + ((dsp.const15) * (rec9[(i_re91) - (S32(1))]))))
-                i_re91 = (i_re91) + (S32(1))
-            # Post code 
-            var j21_re0 = S32(0)
-            var values168 = simd_load(rec9_tmp, vsize_re0 + j21_re0)
-            simd_store(dsp.rec9_perm, j21_re0, values168)
-            # Recursive loop 92 
-            # Pre code 
-            var j22_re0 = S32(0)
-            var values169 = simd_load(dsp.rec8_perm, j22_re0)
-            simd_store(rec8_tmp, j22_re0, values169)
-            # Compute code 
-            var i_re92 = S32(0)
-            while (i_re92) < (vsize_re0): 
-                rec8[i_re92] = ((dsp.const13) * ((((dsp.const17) * (rec9[i_re92])) + ((dsp.const18) * (rec9[(i_re92) - (S32(1))]))) + ((dsp.const17) * (rec9[(i_re92) - (S32(2))])))) - ((dsp.const19) * (((dsp.const20) * (rec8[(i_re92) - (S32(2))])) + ((dsp.const21) * (rec8[(i_re92) - (S32(1))]))))
-                i_re92 = (i_re92) + (S32(1))
-            # Post code 
-            var j23_re0 = S32(0)
-            var values170 = simd_load(rec8_tmp, vsize_re0 + j23_re0)
-            simd_store(dsp.rec8_perm, j23_re0, values170)
-            # Recursive loop 93 
-            # Pre code 
-            var j24_re0 = S32(0)
-            var values171 = simd_load(dsp.rec7_perm, j24_re0)
-            simd_store(rec7_tmp, j24_re0, values171)
-            # Compute code 
-            var i_re93 = S32(0)
-            while (i_re93) < (vsize_re0): 
-                rec7[i_re93] = ((rec7[(i_re93) - (S32(1))]) * (slow8)) + ((abs((dsp.const19) * ((((dsp.const24) * (rec8[i_re93])) + ((dsp.const25) * (rec8[(i_re93) - (S32(1))]))) + ((dsp.const24) * (rec8[(i_re93) - (S32(2))]))))) * (slow9))
-                i_re93 = (i_re93) + (S32(1))
-            # Post code 
-            var j25_re0 = S32(0)
-            var values172 = simd_load(rec7_tmp, vsize_re0 + j25_re0)
-            simd_store(dsp.rec7_perm, j25_re0, values172)
-            # Recursive loop 94 
-            # Pre code 
-            var j32_re0 = S32(0)
-            var values173 = simd_load(dsp.rec14_perm, j32_re0)
-            simd_store(rec14_tmp, j32_re0, values173)
-            # Compute code 
-            var i_re94 = S32(0)
-            while (i_re94) < (vsize_re0): 
-                rec14[i_re94] = (zec6[i_re94]) - ((dsp.const44) * (((dsp.const45) * (rec14[(i_re94) - (S32(2))])) + ((dsp.const48) * (rec14[(i_re94) - (S32(1))]))))
-                i_re94 = (i_re94) + (S32(1))
-            # Post code 
-            var j33_re0 = S32(0)
-            var values174 = simd_load(rec14_tmp, vsize_re0 + j33_re0)
-            simd_store(dsp.rec14_perm, j33_re0, values174)
-            # Recursive loop 95 
-            # Pre code 
-            var j34_re0 = S32(0)
-            var values175 = simd_load(dsp.rec13_perm, j34_re0)
-            simd_store(rec13_tmp, j34_re0, values175)
-            # Compute code 
-            var i_re95 = S32(0)
-            while (i_re95) < (vsize_re0): 
-                rec13[i_re95] = ((dsp.const44) * ((((dsp.const50) * (rec14[i_re95])) + ((dsp.const51) * (rec14[(i_re95) - (S32(1))]))) + ((dsp.const50) * (rec14[(i_re95) - (S32(2))])))) - ((dsp.const52) * (((dsp.const53) * (rec13[(i_re95) - (S32(2))])) + ((dsp.const54) * (rec13[(i_re95) - (S32(1))]))))
-                i_re95 = (i_re95) + (S32(1))
-            # Post code 
-            var j35_re0 = S32(0)
-            var values176 = simd_load(rec13_tmp, vsize_re0 + j35_re0)
-            simd_store(dsp.rec13_perm, j35_re0, values176)
-            # Recursive loop 96 
-            # Pre code 
-            var j36_re0 = S32(0)
-            var values177 = simd_load(dsp.rec12_perm, j36_re0)
-            simd_store(rec12_tmp, j36_re0, values177)
-            # Compute code 
-            var i_re96 = S32(0)
-            while (i_re96) < (vsize_re0): 
-                rec12[i_re96] = ((dsp.const52) * ((((dsp.const56) * (rec13[i_re96])) + ((dsp.const57) * (rec13[(i_re96) - (S32(1))]))) + ((dsp.const56) * (rec13[(i_re96) - (S32(2))])))) - ((dsp.const58) * (((dsp.const59) * (rec12[(i_re96) - (S32(2))])) + ((dsp.const60) * (rec12[(i_re96) - (S32(1))]))))
-                i_re96 = (i_re96) + (S32(1))
-            # Post code 
-            var j37_re0 = S32(0)
-            var values178 = simd_load(rec12_tmp, vsize_re0 + j37_re0)
-            simd_store(dsp.rec12_perm, j37_re0, values178)
-            # Recursive loop 97 
-            # Pre code 
-            var j38_re0 = S32(0)
-            var values179 = simd_load(dsp.rec11_perm, j38_re0)
-            simd_store(rec11_tmp, j38_re0, values179)
-            # Compute code 
-            var i_re97 = S32(0)
-            while (i_re97) < (vsize_re0): 
-                rec11[i_re97] = ((slow8) * (rec11[(i_re97) - (S32(1))])) + ((slow9) * (abs((dsp.const58) * ((((dsp.const62) * (rec12[i_re97])) + ((dsp.const63) * (rec12[(i_re97) - (S32(1))]))) + ((dsp.const62) * (rec12[(i_re97) - (S32(2))]))))))
-                i_re97 = (i_re97) + (S32(1))
-            # Post code 
-            var j39_re0 = S32(0)
-            var values180 = simd_load(rec11_tmp, vsize_re0 + j39_re0)
-            simd_store(dsp.rec11_perm, j39_re0, values180)
-            # Recursive loop 98 
-            # Pre code 
-            var j46_re0 = S32(0)
-            var values181 = simd_load(dsp.rec21_perm, j46_re0)
-            simd_store(rec21_tmp, j46_re0, values181)
-            # Compute code 
-            var i_re98 = S32(0)
-            while (i_re98) < (vsize_re0): 
-                rec21[i_re98] = (zec7[i_re98]) - ((dsp.const82) * (((dsp.const83) * (rec21[(i_re98) - (S32(2))])) + ((dsp.const86) * (rec21[(i_re98) - (S32(1))]))))
-                i_re98 = (i_re98) + (S32(1))
-            # Post code 
-            var j47_re0 = S32(0)
-            var values182 = simd_load(rec21_tmp, vsize_re0 + j47_re0)
-            simd_store(dsp.rec21_perm, j47_re0, values182)
-            # Recursive loop 99 
-            # Pre code 
-            var j48_re0 = S32(0)
-            var values183 = simd_load(dsp.rec20_perm, j48_re0)
-            simd_store(rec20_tmp, j48_re0, values183)
-            # Compute code 
-            var i_re99 = S32(0)
-            while (i_re99) < (vsize_re0): 
-                rec20[i_re99] = ((dsp.const82) * ((((dsp.const88) * (rec21[i_re99])) + ((dsp.const89) * (rec21[(i_re99) - (S32(1))]))) + ((dsp.const88) * (rec21[(i_re99) - (S32(2))])))) - ((dsp.const90) * (((dsp.const91) * (rec20[(i_re99) - (S32(2))])) + ((dsp.const92) * (rec20[(i_re99) - (S32(1))]))))
-                i_re99 = (i_re99) + (S32(1))
-            # Post code 
-            var j49_re0 = S32(0)
-            var values184 = simd_load(rec20_tmp, vsize_re0 + j49_re0)
-            simd_store(dsp.rec20_perm, j49_re0, values184)
-            # Recursive loop 100 
-            # Pre code 
-            var j50_re0 = S32(0)
-            var values185 = simd_load(dsp.rec19_perm, j50_re0)
-            simd_store(rec19_tmp, j50_re0, values185)
-            # Compute code 
-            var i_re100 = S32(0)
-            while (i_re100) < (vsize_re0): 
-                rec19[i_re100] = ((dsp.const90) * ((((dsp.const94) * (rec20[i_re100])) + ((dsp.const95) * (rec20[(i_re100) - (S32(1))]))) + ((dsp.const94) * (rec20[(i_re100) - (S32(2))])))) - ((dsp.const96) * (((dsp.const97) * (rec19[(i_re100) - (S32(2))])) + ((dsp.const98) * (rec19[(i_re100) - (S32(1))]))))
-                i_re100 = (i_re100) + (S32(1))
-            # Post code 
-            var j51_re0 = S32(0)
-            var values186 = simd_load(rec19_tmp, vsize_re0 + j51_re0)
-            simd_store(dsp.rec19_perm, j51_re0, values186)
-            # Recursive loop 101 
-            # Pre code 
-            var j52_re0 = S32(0)
-            var values187 = simd_load(dsp.rec18_perm, j52_re0)
-            simd_store(rec18_tmp, j52_re0, values187)
-            # Compute code 
-            var i_re101 = S32(0)
-            while (i_re101) < (vsize_re0): 
-                rec18[i_re101] = ((slow8) * (rec18[(i_re101) - (S32(1))])) + ((slow9) * (abs((dsp.const96) * ((((dsp.const100) * (rec19[i_re101])) + ((dsp.const101) * (rec19[(i_re101) - (S32(1))]))) + ((dsp.const100) * (rec19[(i_re101) - (S32(2))]))))))
-                i_re101 = (i_re101) + (S32(1))
-            # Post code 
-            var j53_re0 = S32(0)
-            var values188 = simd_load(rec18_tmp, vsize_re0 + j53_re0)
-            simd_store(dsp.rec18_perm, j53_re0, values188)
-            # Recursive loop 102 
-            # Pre code 
-            var j60_re0 = S32(0)
-            var values189 = simd_load(dsp.rec28_perm, j60_re0)
-            simd_store(rec28_tmp, j60_re0, values189)
-            # Compute code 
-            var i_re102 = S32(0)
-            while (i_re102) < (vsize_re0): 
-                rec28[i_re102] = (zec8[i_re102]) - ((dsp.const120) * (((dsp.const121) * (rec28[(i_re102) - (S32(2))])) + ((dsp.const124) * (rec28[(i_re102) - (S32(1))]))))
-                i_re102 = (i_re102) + (S32(1))
-            # Post code 
-            var j61_re0 = S32(0)
-            var values190 = simd_load(rec28_tmp, vsize_re0 + j61_re0)
-            simd_store(dsp.rec28_perm, j61_re0, values190)
-            # Recursive loop 103 
-            # Pre code 
-            var j62_re0 = S32(0)
-            var values191 = simd_load(dsp.rec27_perm, j62_re0)
-            simd_store(rec27_tmp, j62_re0, values191)
-            # Compute code 
-            var i_re103 = S32(0)
-            while (i_re103) < (vsize_re0): 
-                rec27[i_re103] = ((dsp.const120) * ((((dsp.const126) * (rec28[i_re103])) + ((dsp.const127) * (rec28[(i_re103) - (S32(1))]))) + ((dsp.const126) * (rec28[(i_re103) - (S32(2))])))) - ((dsp.const128) * (((dsp.const129) * (rec27[(i_re103) - (S32(2))])) + ((dsp.const130) * (rec27[(i_re103) - (S32(1))]))))
-                i_re103 = (i_re103) + (S32(1))
-            # Post code 
-            var j63_re0 = S32(0)
-            var values192 = simd_load(rec27_tmp, vsize_re0 + j63_re0)
-            simd_store(dsp.rec27_perm, j63_re0, values192)
-            # Recursive loop 104 
-            # Pre code 
-            var j64_re0 = S32(0)
-            var values193 = simd_load(dsp.rec26_perm, j64_re0)
-            simd_store(rec26_tmp, j64_re0, values193)
-            # Compute code 
-            var i_re104 = S32(0)
-            while (i_re104) < (vsize_re0): 
-                rec26[i_re104] = ((dsp.const128) * ((((dsp.const132) * (rec27[i_re104])) + ((dsp.const133) * (rec27[(i_re104) - (S32(1))]))) + ((dsp.const132) * (rec27[(i_re104) - (S32(2))])))) - ((dsp.const134) * (((dsp.const135) * (rec26[(i_re104) - (S32(2))])) + ((dsp.const136) * (rec26[(i_re104) - (S32(1))]))))
-                i_re104 = (i_re104) + (S32(1))
-            # Post code 
-            var j65_re0 = S32(0)
-            var values194 = simd_load(rec26_tmp, vsize_re0 + j65_re0)
-            simd_store(dsp.rec26_perm, j65_re0, values194)
-            # Recursive loop 105 
-            # Pre code 
-            var j66_re0 = S32(0)
-            var values195 = simd_load(dsp.rec25_perm, j66_re0)
-            simd_store(rec25_tmp, j66_re0, values195)
-            # Compute code 
-            var i_re105 = S32(0)
-            while (i_re105) < (vsize_re0): 
-                rec25[i_re105] = ((slow8) * (rec25[(i_re105) - (S32(1))])) + ((slow9) * (abs((dsp.const134) * ((((dsp.const138) * (rec26[i_re105])) + ((dsp.const139) * (rec26[(i_re105) - (S32(1))]))) + ((dsp.const138) * (rec26[(i_re105) - (S32(2))]))))))
-                i_re105 = (i_re105) + (S32(1))
-            # Post code 
-            var j67_re0 = S32(0)
-            var values196 = simd_load(rec25_tmp, vsize_re0 + j67_re0)
-            simd_store(dsp.rec25_perm, j67_re0, values196)
-            # Recursive loop 106 
-            # Pre code 
-            var j74_re0 = S32(0)
-            var values197 = simd_load(dsp.rec35_perm, j74_re0)
-            simd_store(rec35_tmp, j74_re0, values197)
-            # Compute code 
-            var i_re106 = S32(0)
-            while (i_re106) < (vsize_re0): 
-                rec35[i_re106] = (zec9[i_re106]) - ((dsp.const158) * (((dsp.const159) * (rec35[(i_re106) - (S32(2))])) + ((dsp.const162) * (rec35[(i_re106) - (S32(1))]))))
-                i_re106 = (i_re106) + (S32(1))
-            # Post code 
-            var j75_re0 = S32(0)
-            var values198 = simd_load(rec35_tmp, vsize_re0 + j75_re0)
-            simd_store(dsp.rec35_perm, j75_re0, values198)
-            # Recursive loop 107 
-            # Pre code 
-            var j76_re0 = S32(0)
-            var values199 = simd_load(dsp.rec34_perm, j76_re0)
-            simd_store(rec34_tmp, j76_re0, values199)
-            # Compute code 
-            var i_re107 = S32(0)
-            while (i_re107) < (vsize_re0): 
-                rec34[i_re107] = ((dsp.const158) * ((((dsp.const164) * (rec35[i_re107])) + ((dsp.const165) * (rec35[(i_re107) - (S32(1))]))) + ((dsp.const164) * (rec35[(i_re107) - (S32(2))])))) - ((dsp.const166) * (((dsp.const167) * (rec34[(i_re107) - (S32(2))])) + ((dsp.const168) * (rec34[(i_re107) - (S32(1))]))))
-                i_re107 = (i_re107) + (S32(1))
-            # Post code 
-            var j77_re0 = S32(0)
-            var values200 = simd_load(rec34_tmp, vsize_re0 + j77_re0)
-            simd_store(dsp.rec34_perm, j77_re0, values200)
-            # Recursive loop 108 
-            # Pre code 
-            var j78_re0 = S32(0)
-            var values201 = simd_load(dsp.rec33_perm, j78_re0)
-            simd_store(rec33_tmp, j78_re0, values201)
-            # Compute code 
-            var i_re108 = S32(0)
-            while (i_re108) < (vsize_re0): 
-                rec33[i_re108] = ((dsp.const166) * ((((dsp.const170) * (rec34[i_re108])) + ((dsp.const171) * (rec34[(i_re108) - (S32(1))]))) + ((dsp.const170) * (rec34[(i_re108) - (S32(2))])))) - ((dsp.const172) * (((dsp.const173) * (rec33[(i_re108) - (S32(2))])) + ((dsp.const174) * (rec33[(i_re108) - (S32(1))]))))
-                i_re108 = (i_re108) + (S32(1))
-            # Post code 
-            var j79_re0 = S32(0)
-            var values202 = simd_load(rec33_tmp, vsize_re0 + j79_re0)
-            simd_store(dsp.rec33_perm, j79_re0, values202)
-            # Recursive loop 109 
-            # Pre code 
-            var j80_re0 = S32(0)
-            var values203 = simd_load(dsp.rec32_perm, j80_re0)
-            simd_store(rec32_tmp, j80_re0, values203)
-            # Compute code 
-            var i_re109 = S32(0)
-            while (i_re109) < (vsize_re0): 
-                rec32[i_re109] = ((slow8) * (rec32[(i_re109) - (S32(1))])) + ((slow9) * (abs((dsp.const172) * ((((dsp.const176) * (rec33[i_re109])) + ((dsp.const177) * (rec33[(i_re109) - (S32(1))]))) + ((dsp.const176) * (rec33[(i_re109) - (S32(2))]))))))
-                i_re109 = (i_re109) + (S32(1))
-            # Post code 
-            var j81_re0 = S32(0)
-            var values204 = simd_load(rec32_tmp, vsize_re0 + j81_re0)
-            simd_store(dsp.rec32_perm, j81_re0, values204)
-            # Recursive loop 110 
-            # Pre code 
-            var j88_re0 = S32(0)
-            var values205 = simd_load(dsp.rec42_perm, j88_re0)
-            simd_store(rec42_tmp, j88_re0, values205)
-            # Compute code 
-            var i_re110 = S32(0)
-            while (i_re110) < (vsize_re0): 
-                rec42[i_re110] = (zec10[i_re110]) - ((dsp.const196) * (((dsp.const197) * (rec42[(i_re110) - (S32(2))])) + ((dsp.const200) * (rec42[(i_re110) - (S32(1))]))))
-                i_re110 = (i_re110) + (S32(1))
-            # Post code 
-            var j89_re0 = S32(0)
-            var values206 = simd_load(rec42_tmp, vsize_re0 + j89_re0)
-            simd_store(dsp.rec42_perm, j89_re0, values206)
-            # Recursive loop 111 
-            # Pre code 
-            var j90_re0 = S32(0)
-            var values207 = simd_load(dsp.rec41_perm, j90_re0)
-            simd_store(rec41_tmp, j90_re0, values207)
-            # Compute code 
-            var i_re111 = S32(0)
-            while (i_re111) < (vsize_re0): 
-                rec41[i_re111] = ((dsp.const196) * ((((dsp.const202) * (rec42[i_re111])) + ((dsp.const203) * (rec42[(i_re111) - (S32(1))]))) + ((dsp.const202) * (rec42[(i_re111) - (S32(2))])))) - ((dsp.const204) * (((dsp.const205) * (rec41[(i_re111) - (S32(2))])) + ((dsp.const206) * (rec41[(i_re111) - (S32(1))]))))
-                i_re111 = (i_re111) + (S32(1))
-            # Post code 
-            var j91_re0 = S32(0)
-            var values208 = simd_load(rec41_tmp, vsize_re0 + j91_re0)
-            simd_store(dsp.rec41_perm, j91_re0, values208)
-            # Recursive loop 112 
-            # Pre code 
-            var j92_re0 = S32(0)
-            var values209 = simd_load(dsp.rec40_perm, j92_re0)
-            simd_store(rec40_tmp, j92_re0, values209)
-            # Compute code 
-            var i_re112 = S32(0)
-            while (i_re112) < (vsize_re0): 
-                rec40[i_re112] = ((dsp.const204) * ((((dsp.const208) * (rec41[i_re112])) + ((dsp.const209) * (rec41[(i_re112) - (S32(1))]))) + ((dsp.const208) * (rec41[(i_re112) - (S32(2))])))) - ((dsp.const210) * (((dsp.const211) * (rec40[(i_re112) - (S32(2))])) + ((dsp.const212) * (rec40[(i_re112) - (S32(1))]))))
-                i_re112 = (i_re112) + (S32(1))
-            # Post code 
-            var j93_re0 = S32(0)
-            var values210 = simd_load(rec40_tmp, vsize_re0 + j93_re0)
-            simd_store(dsp.rec40_perm, j93_re0, values210)
-            # Recursive loop 113 
-            # Pre code 
-            var j94_re0 = S32(0)
-            var values211 = simd_load(dsp.rec39_perm, j94_re0)
-            simd_store(rec39_tmp, j94_re0, values211)
-            # Compute code 
-            var i_re113 = S32(0)
-            while (i_re113) < (vsize_re0): 
-                rec39[i_re113] = ((slow8) * (rec39[(i_re113) - (S32(1))])) + ((slow9) * (abs((dsp.const210) * ((((dsp.const214) * (rec40[i_re113])) + ((dsp.const215) * (rec40[(i_re113) - (S32(1))]))) + ((dsp.const214) * (rec40[(i_re113) - (S32(2))]))))))
-                i_re113 = (i_re113) + (S32(1))
-            # Post code 
-            var j95_re0 = S32(0)
-            var values212 = simd_load(rec39_tmp, vsize_re0 + j95_re0)
-            simd_store(dsp.rec39_perm, j95_re0, values212)
-            # Recursive loop 114 
-            # Pre code 
-            var j102_re0 = S32(0)
-            var values213 = simd_load(dsp.rec49_perm, j102_re0)
-            simd_store(rec49_tmp, j102_re0, values213)
-            # Compute code 
-            var i_re114 = S32(0)
-            while (i_re114) < (vsize_re0): 
-                rec49[i_re114] = (zec11[i_re114]) - ((dsp.const234) * (((dsp.const235) * (rec49[(i_re114) - (S32(2))])) + ((dsp.const238) * (rec49[(i_re114) - (S32(1))]))))
-                i_re114 = (i_re114) + (S32(1))
-            # Post code 
-            var j103_re0 = S32(0)
-            var values214 = simd_load(rec49_tmp, vsize_re0 + j103_re0)
-            simd_store(dsp.rec49_perm, j103_re0, values214)
-            # Recursive loop 115 
-            # Pre code 
-            var j104_re0 = S32(0)
-            var values215 = simd_load(dsp.rec48_perm, j104_re0)
-            simd_store(rec48_tmp, j104_re0, values215)
-            # Compute code 
-            var i_re115 = S32(0)
-            while (i_re115) < (vsize_re0): 
-                rec48[i_re115] = ((dsp.const234) * ((((dsp.const240) * (rec49[i_re115])) + ((dsp.const241) * (rec49[(i_re115) - (S32(1))]))) + ((dsp.const240) * (rec49[(i_re115) - (S32(2))])))) - ((dsp.const242) * (((dsp.const243) * (rec48[(i_re115) - (S32(2))])) + ((dsp.const244) * (rec48[(i_re115) - (S32(1))]))))
-                i_re115 = (i_re115) + (S32(1))
-            # Post code 
-            var j105_re0 = S32(0)
-            var values216 = simd_load(rec48_tmp, vsize_re0 + j105_re0)
-            simd_store(dsp.rec48_perm, j105_re0, values216)
-            # Recursive loop 116 
-            # Pre code 
-            var j106_re0 = S32(0)
-            var values217 = simd_load(dsp.rec47_perm, j106_re0)
-            simd_store(rec47_tmp, j106_re0, values217)
-            # Compute code 
-            var i_re116 = S32(0)
-            while (i_re116) < (vsize_re0): 
-                rec47[i_re116] = ((dsp.const242) * ((((dsp.const246) * (rec48[i_re116])) + ((dsp.const247) * (rec48[(i_re116) - (S32(1))]))) + ((dsp.const246) * (rec48[(i_re116) - (S32(2))])))) - ((dsp.const248) * (((dsp.const249) * (rec47[(i_re116) - (S32(2))])) + ((dsp.const250) * (rec47[(i_re116) - (S32(1))]))))
-                i_re116 = (i_re116) + (S32(1))
-            # Post code 
-            var j107_re0 = S32(0)
-            var values218 = simd_load(rec47_tmp, vsize_re0 + j107_re0)
-            simd_store(dsp.rec47_perm, j107_re0, values218)
-            # Recursive loop 117 
-            # Pre code 
-            var j108_re0 = S32(0)
-            var values219 = simd_load(dsp.rec46_perm, j108_re0)
-            simd_store(rec46_tmp, j108_re0, values219)
-            # Compute code 
-            var i_re117 = S32(0)
-            while (i_re117) < (vsize_re0): 
-                rec46[i_re117] = ((slow8) * (rec46[(i_re117) - (S32(1))])) + ((slow9) * (abs((dsp.const248) * ((((dsp.const252) * (rec47[i_re117])) + ((dsp.const253) * (rec47[(i_re117) - (S32(1))]))) + ((dsp.const252) * (rec47[(i_re117) - (S32(2))]))))))
-                i_re117 = (i_re117) + (S32(1))
-            # Post code 
-            var j109_re0 = S32(0)
-            var values220 = simd_load(rec46_tmp, vsize_re0 + j109_re0)
-            simd_store(dsp.rec46_perm, j109_re0, values220)
-            # Recursive loop 118 
-            # Pre code 
-            var j116_re0 = S32(0)
-            var values221 = simd_load(dsp.rec56_perm, j116_re0)
-            simd_store(rec56_tmp, j116_re0, values221)
-            # Compute code 
-            var i_re118 = S32(0)
-            while (i_re118) < (vsize_re0): 
-                rec56[i_re118] = (zec12[i_re118]) - ((dsp.const272) * (((dsp.const273) * (rec56[(i_re118) - (S32(2))])) + ((dsp.const276) * (rec56[(i_re118) - (S32(1))]))))
-                i_re118 = (i_re118) + (S32(1))
-            # Post code 
-            var j117_re0 = S32(0)
-            var values222 = simd_load(rec56_tmp, vsize_re0 + j117_re0)
-            simd_store(dsp.rec56_perm, j117_re0, values222)
-            # Recursive loop 119 
-            # Pre code 
-            var j118_re0 = S32(0)
-            var values223 = simd_load(dsp.rec55_perm, j118_re0)
-            simd_store(rec55_tmp, j118_re0, values223)
-            # Compute code 
-            var i_re119 = S32(0)
-            while (i_re119) < (vsize_re0): 
-                rec55[i_re119] = ((dsp.const272) * ((((dsp.const278) * (rec56[i_re119])) + ((dsp.const279) * (rec56[(i_re119) - (S32(1))]))) + ((dsp.const278) * (rec56[(i_re119) - (S32(2))])))) - ((dsp.const280) * (((dsp.const281) * (rec55[(i_re119) - (S32(2))])) + ((dsp.const282) * (rec55[(i_re119) - (S32(1))]))))
-                i_re119 = (i_re119) + (S32(1))
-            # Post code 
-            var j119_re0 = S32(0)
-            var values224 = simd_load(rec55_tmp, vsize_re0 + j119_re0)
-            simd_store(dsp.rec55_perm, j119_re0, values224)
-            # Recursive loop 120 
-            # Pre code 
-            var j120_re0 = S32(0)
-            var values225 = simd_load(dsp.rec54_perm, j120_re0)
-            simd_store(rec54_tmp, j120_re0, values225)
-            # Compute code 
-            var i_re120 = S32(0)
-            while (i_re120) < (vsize_re0): 
-                rec54[i_re120] = ((dsp.const280) * ((((dsp.const284) * (rec55[i_re120])) + ((dsp.const285) * (rec55[(i_re120) - (S32(1))]))) + ((dsp.const284) * (rec55[(i_re120) - (S32(2))])))) - ((dsp.const286) * (((dsp.const287) * (rec54[(i_re120) - (S32(2))])) + ((dsp.const288) * (rec54[(i_re120) - (S32(1))]))))
-                i_re120 = (i_re120) + (S32(1))
-            # Post code 
-            var j121_re0 = S32(0)
-            var values226 = simd_load(rec54_tmp, vsize_re0 + j121_re0)
-            simd_store(dsp.rec54_perm, j121_re0, values226)
-            # Recursive loop 121 
-            # Pre code 
-            var j122_re0 = S32(0)
-            var values227 = simd_load(dsp.rec53_perm, j122_re0)
-            simd_store(rec53_tmp, j122_re0, values227)
-            # Compute code 
-            var i_re121 = S32(0)
-            while (i_re121) < (vsize_re0): 
-                rec53[i_re121] = ((slow8) * (rec53[(i_re121) - (S32(1))])) + ((slow9) * (abs((dsp.const286) * ((((dsp.const290) * (rec54[i_re121])) + ((dsp.const291) * (rec54[(i_re121) - (S32(1))]))) + ((dsp.const290) * (rec54[(i_re121) - (S32(2))]))))))
-                i_re121 = (i_re121) + (S32(1))
-            # Post code 
-            var j123_re0 = S32(0)
-            var values228 = simd_load(rec53_tmp, vsize_re0 + j123_re0)
-            simd_store(dsp.rec53_perm, j123_re0, values228)
-            # Recursive loop 122 
-            # Pre code 
-            var j130_re0 = S32(0)
-            var values229 = simd_load(dsp.rec63_perm, j130_re0)
-            simd_store(rec63_tmp, j130_re0, values229)
-            # Compute code 
-            var i_re122 = S32(0)
-            while (i_re122) < (vsize_re0): 
-                rec63[i_re122] = (zec13[i_re122]) - ((dsp.const310) * (((dsp.const311) * (rec63[(i_re122) - (S32(2))])) + ((dsp.const314) * (rec63[(i_re122) - (S32(1))]))))
-                i_re122 = (i_re122) + (S32(1))
-            # Post code 
-            var j131_re0 = S32(0)
-            var values230 = simd_load(rec63_tmp, vsize_re0 + j131_re0)
-            simd_store(dsp.rec63_perm, j131_re0, values230)
-            # Recursive loop 123 
-            # Pre code 
-            var j132_re0 = S32(0)
-            var values231 = simd_load(dsp.rec62_perm, j132_re0)
-            simd_store(rec62_tmp, j132_re0, values231)
-            # Compute code 
-            var i_re123 = S32(0)
-            while (i_re123) < (vsize_re0): 
-                rec62[i_re123] = ((dsp.const310) * ((((dsp.const316) * (rec63[i_re123])) + ((dsp.const317) * (rec63[(i_re123) - (S32(1))]))) + ((dsp.const316) * (rec63[(i_re123) - (S32(2))])))) - ((dsp.const318) * (((dsp.const319) * (rec62[(i_re123) - (S32(2))])) + ((dsp.const320) * (rec62[(i_re123) - (S32(1))]))))
-                i_re123 = (i_re123) + (S32(1))
-            # Post code 
-            var j133_re0 = S32(0)
-            var values232 = simd_load(rec62_tmp, vsize_re0 + j133_re0)
-            simd_store(dsp.rec62_perm, j133_re0, values232)
-            # Recursive loop 124 
-            # Pre code 
-            var j134_re0 = S32(0)
-            var values233 = simd_load(dsp.rec61_perm, j134_re0)
-            simd_store(rec61_tmp, j134_re0, values233)
-            # Compute code 
-            var i_re124 = S32(0)
-            while (i_re124) < (vsize_re0): 
-                rec61[i_re124] = ((dsp.const318) * ((((dsp.const322) * (rec62[i_re124])) + ((dsp.const323) * (rec62[(i_re124) - (S32(1))]))) + ((dsp.const322) * (rec62[(i_re124) - (S32(2))])))) - ((dsp.const324) * (((dsp.const325) * (rec61[(i_re124) - (S32(2))])) + ((dsp.const326) * (rec61[(i_re124) - (S32(1))]))))
-                i_re124 = (i_re124) + (S32(1))
-            # Post code 
-            var j135_re0 = S32(0)
-            var values234 = simd_load(rec61_tmp, vsize_re0 + j135_re0)
-            simd_store(dsp.rec61_perm, j135_re0, values234)
-            # Recursive loop 125 
-            # Pre code 
-            var j136_re0 = S32(0)
-            var values235 = simd_load(dsp.rec60_perm, j136_re0)
-            simd_store(rec60_tmp, j136_re0, values235)
-            # Compute code 
-            var i_re125 = S32(0)
-            while (i_re125) < (vsize_re0): 
-                rec60[i_re125] = ((slow8) * (rec60[(i_re125) - (S32(1))])) + ((slow9) * (abs((dsp.const324) * ((((dsp.const328) * (rec61[i_re125])) + ((dsp.const329) * (rec61[(i_re125) - (S32(1))]))) + ((dsp.const328) * (rec61[(i_re125) - (S32(2))]))))))
-                i_re125 = (i_re125) + (S32(1))
-            # Post code 
-            var j137_re0 = S32(0)
-            var values236 = simd_load(rec60_tmp, vsize_re0 + j137_re0)
-            simd_store(dsp.rec60_perm, j137_re0, values236)
-            # Vectorizable loop 126 
-            # Compute code 
-
-            comptime for i_re126 in range(S32(0), S32(4)):
-                dsp.vbargraph0 = FaustFloat((slow10) + ((2e+01) * (log10(rec7[i_re126]))))
-                dsp.vbargraph1 = FaustFloat((slow10) + ((2e+01) * (log10(rec11[i_re126]))))
-                dsp.vbargraph2 = FaustFloat((slow10) + ((2e+01) * (log10(rec18[i_re126]))))
-                dsp.vbargraph3 = FaustFloat((slow10) + ((2e+01) * (log10(rec25[i_re126]))))
-                dsp.vbargraph4 = FaustFloat((slow10) + ((2e+01) * (log10(rec32[i_re126]))))
-                dsp.vbargraph5 = FaustFloat((slow10) + ((2e+01) * (log10(rec39[i_re126]))))
-                dsp.vbargraph6 = FaustFloat((slow10) + ((2e+01) * (log10(rec46[i_re126]))))
-                dsp.vbargraph7 = FaustFloat((slow10) + ((2e+01) * (log10(rec53[i_re126]))))
-                dsp.vbargraph8 = FaustFloat((slow10) + ((2e+01) * (log10(rec60[i_re126]))))
-                dsp.vbargraph9 = FaustFloat((slow10) + ((2e+01) * (log10(rec67[i_re126]))))
-                dsp.vbargraph10 = FaustFloat((slow10) + ((2e+01) * (log10(rec74[i_re126]))))
-                dsp.vbargraph11 = FaustFloat((slow10) + ((2e+01) * (log10(rec81[i_re126]))))
-                dsp.vbargraph12 = FaustFloat((slow10) + ((2e+01) * (log10(rec88[i_re126]))))
-                dsp.vbargraph13 = FaustFloat((slow10) + ((2e+01) * (log10(rec95[i_re126]))))
-                dsp.vbargraph14 = FaustFloat((slow10) + ((2e+01) * (log10(rec102[i_re126]))))
-
-            comptime for i_re126 in range(S32(0), S32(4), wreal):
-                var values252 = simd_load(zec5, i_re126)
-                simd_store(zec19, i_re126, values252)
-
-            # Vectorizable loop 127 
-            # Compute code 
-            var i_re127 = S32(0)
-            var lo0 = (simd_load(zec19, i_re127)).cast[dfaust]()
-            var hi0 = (simd_load(zec19, i_re127 + S32(wreal))).cast[dfaust]()
-            var values253  = lo0.join(hi0)
-            simd_store(output0, i_re127, values253)
-            # Vectorizable loop 128 
-            # Compute code 
-            var i_re128 = S32(0)
-            var lo1 = (simd_load(zec19, i_re128)).cast[dfaust]()
-            var hi1 = (simd_load(zec19, i_re128 + S32(wreal))).cast[dfaust]()
-            var values254  = lo1.join(hi1)
-            simd_store(output1, i_re128, values254)
-            vindex_re0 = (vindex_re0) + (S32(4))
+        while vindex <= end:
+            var output0 = Ptr(to=output0_ptr[vindex])
+            var output1 = Ptr(to=output1_ptr[vindex])
+            vstore(rec1_tmp, vload[w64](dsp.rec1_perm))
+            vstore(rec1_tmp, vload[w64](dsp.rec1_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec1[i] = (slow0) + ((0.999) * (rec1[(i) - (S32(1))]))
+            vstore(dsp.rec1_perm, vload[w64](rec1_tmp, vsize))
+            vstore(dsp.rec1_perm, vload[w64](rec1_tmp, vsize + hsize), hsize)
+            vstore(rec2_tmp, vload[w64](dsp.rec2_perm))
+            vstore(rec2_tmp, vload[w64](dsp.rec2_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec2[i] = (slow1) + ((0.999) * (rec2[(i) - (S32(1))]))
+            vstore(dsp.rec2_perm, vload[w64](rec2_tmp, vsize))
+            vstore(dsp.rec2_perm, vload[w64](rec2_tmp, vsize + hsize), hsize)
+            vstore(rec5_tmp, vload[w64](dsp.rec5_perm))
+            vstore(rec5_tmp, vload[w64](dsp.rec5_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec5[i] = ((rec5[(i) - (S32(1))]) * (slow3)) + (slow4)
+            vstore(dsp.rec5_perm, vload[w64](rec5_tmp, vsize))
+            vstore(dsp.rec5_perm, vload[w64](rec5_tmp, vsize + hsize), hsize)
+            vstore(zec0, (dsp.const2) * (vload[w64](rec5)))
+            vstore(zec0, (dsp.const2) * (vload[w64](rec5, hsize)), hsize)
+            vstore(zec1, sin(vload[w64](zec0)))
+            vstore(zec1, sin(vload[w64](zec0, hsize)), hsize)
+            vstore(zec2, cos(vload[w64](zec0)))
+            vstore(zec2, cos(vload[w64](zec0, hsize)), hsize)
+            vstore(i_vec0_tmp, vload[w64](dsp.i_vec0_perm))
+            vstore(i_vec0, S32Vec(1))
+            vstore(dsp.i_vec0_perm, vload[w64](i_vec0_tmp, vsize))
+            vstore(rec3_tmp, vload[w64](dsp.rec3_perm))
+            vstore(rec3_tmp, vload[w64](dsp.rec3_perm, hsize), hsize)
+            vstore(rec4_tmp, vload[w64](dsp.rec4_perm))
+            vstore(rec4_tmp, vload[w64](dsp.rec4_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec3[i] = ((rec4[(i) - (S32(1))]) * (zec1[i])) + ((rec3[(i) - (S32(1))]) * (zec2[i]))
+                rec4[i] = ((F64((S32(1)) - (i_vec0[(i) - (S32(1))]))) + ((rec4[(i) - (S32(1))]) * (zec2[i]))) - ((zec1[i]) * (rec3[(i) - (S32(1))]))
+            vstore(dsp.rec3_perm, vload[w64](rec3_tmp, vsize))
+            vstore(dsp.rec3_perm, vload[w64](rec3_tmp, vsize + hsize), hsize)
+            vstore(dsp.rec4_perm, vload[w64](rec4_tmp, vsize))
+            vstore(dsp.rec4_perm, vload[w64](rec4_tmp, vsize + hsize), hsize)
+            vstore(rec6_tmp, vload[w64](dsp.rec6_perm))
+            vstore(rec6_tmp, vload[w64](dsp.rec6_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec6[i] = (slow5) + ((0.999) * (rec6[(i) - (S32(1))]))
+            vstore(dsp.rec6_perm, vload[w64](rec6_tmp, vsize))
+            vstore(dsp.rec6_perm, vload[w64](rec6_tmp, vsize + hsize), hsize)
+            vstore(zec3, (vload[w64](rec2)) * (vload[w64](rec3)))
+            vstore(zec3, (vload[w64](rec2, hsize)) * (vload[w64](rec3, hsize)), hsize)
+            vstore(zec4, max(F64Vec(-1.0), min(F64Vec(1.0), (vload[w64](rec1)) + ((F64Vec(0.0) if i_slow6 else vload[w64](zec3)) * (pow(F64Vec(1e+01), (F64Vec(2.0)) * (vload[w64](rec6))))))))
+            vstore(zec4, max(F64Vec(-1.0), min(F64Vec(1.0), (vload[w64](rec1, hsize)) + ((F64Vec(0.0) if i_slow6 else vload[w64](zec3, hsize)) * (pow(F64Vec(1e+01), (F64Vec(2.0)) * (vload[w64](rec6, hsize))))))), hsize)
+            vstore(yec0_tmp, vload[w64](dsp.yec0_perm))
+            vstore(yec0_tmp, vload[w64](dsp.yec0_perm, hsize), hsize)
+            vstore(yec0, (vload[w64](zec4)) * ((F64Vec(1.0)) - ((F64Vec(0.3333333333333333)) * (pow_unrolled[2](vload[w64](zec4))))))
+            vstore(yec0, (vload[w64](zec4, hsize)) * ((F64Vec(1.0)) - ((F64Vec(0.3333333333333333)) * (pow_unrolled[2](vload[w64](zec4, hsize))))), hsize)
+            vstore(dsp.yec0_perm, vload[w64](yec0_tmp, vsize))
+            vstore(dsp.yec0_perm, vload[w64](yec0_tmp, vsize + hsize), hsize)
+            vstore(rec0_tmp, vload[w64](dsp.rec0_perm))
+            vstore(rec0_tmp, vload[w64](dsp.rec0_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec0[i] = (((0.995) * (rec0[(i) - (S32(1))])) + (yec0[i])) - (yec0[(i) - (S32(1))])
+            vstore(dsp.rec0_perm, vload[w64](rec0_tmp, vsize))
+            vstore(dsp.rec0_perm, vload[w64](rec0_tmp, vsize + hsize), hsize)
+            vstore(zec5, vload[w64](zec3) if i_slow6 else vload[w64](rec0))
+            vstore(zec5, vload[w64](zec3, hsize) if i_slow6 else vload[w64](rec0, hsize), hsize)
+            vstore(rec10_tmp, vload[w64](dsp.rec10_perm))
+            vstore(rec10_tmp, vload[w64](dsp.rec10_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec10[i] = (zec5[i]) - ((dsp.const5) * (((dsp.const6) * (rec10[(i) - (S32(2))])) + ((dsp.const9) * (rec10[(i) - (S32(1))]))))
+            vstore(dsp.rec10_perm, vload[w64](rec10_tmp, vsize))
+            vstore(dsp.rec10_perm, vload[w64](rec10_tmp, vsize + hsize), hsize)
+            vstore(rec9_tmp, vload[w64](dsp.rec9_perm))
+            vstore(rec9_tmp, vload[w64](dsp.rec9_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec9[i] = ((dsp.const5) * ((((dsp.const11) * (rec10[i])) + ((dsp.const12) * (rec10[(i) - (S32(1))]))) + ((dsp.const11) * (rec10[(i) - (S32(2))])))) - ((dsp.const13) * (((dsp.const14) * (rec9[(i) - (S32(2))])) + ((dsp.const15) * (rec9[(i) - (S32(1))]))))
+            vstore(dsp.rec9_perm, vload[w64](rec9_tmp, vsize))
+            vstore(dsp.rec9_perm, vload[w64](rec9_tmp, vsize + hsize), hsize)
+            vstore(rec8_tmp, vload[w64](dsp.rec8_perm))
+            vstore(rec8_tmp, vload[w64](dsp.rec8_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec8[i] = ((dsp.const13) * ((((dsp.const17) * (rec9[i])) + ((dsp.const18) * (rec9[(i) - (S32(1))]))) + ((dsp.const17) * (rec9[(i) - (S32(2))])))) - ((dsp.const19) * (((dsp.const20) * (rec8[(i) - (S32(2))])) + ((dsp.const21) * (rec8[(i) - (S32(1))]))))
+            vstore(dsp.rec8_perm, vload[w64](rec8_tmp, vsize))
+            vstore(dsp.rec8_perm, vload[w64](rec8_tmp, vsize + hsize), hsize)
+            vstore(rec7_tmp, vload[w64](dsp.rec7_perm))
+            vstore(rec7_tmp, vload[w64](dsp.rec7_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec7[i] = ((rec7[(i) - (S32(1))]) * (slow8)) + ((abs((dsp.const19) * ((((dsp.const24) * (rec8[i])) + ((dsp.const25) * (rec8[(i) - (S32(1))]))) + ((dsp.const24) * (rec8[(i) - (S32(2))]))))) * (slow9))
+            vstore(dsp.rec7_perm, vload[w64](rec7_tmp, vsize))
+            vstore(dsp.rec7_perm, vload[w64](rec7_tmp, vsize + hsize), hsize)
+            vstore(rec17_tmp, vload[w64](dsp.rec17_perm))
+            vstore(rec17_tmp, vload[w64](dsp.rec17_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec17[i] = (zec5[i]) - ((dsp.const26) * (((dsp.const27) * (rec17[(i) - (S32(2))])) + ((dsp.const28) * (rec17[(i) - (S32(1))]))))
+            vstore(dsp.rec17_perm, vload[w64](rec17_tmp, vsize))
+            vstore(dsp.rec17_perm, vload[w64](rec17_tmp, vsize + hsize), hsize)
+            vstore(rec16_tmp, vload[w64](dsp.rec16_perm))
+            vstore(rec16_tmp, vload[w64](dsp.rec16_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec16[i] = ((dsp.const26) * ((((dsp.const30) * (rec17[i])) + ((dsp.const31) * (rec17[(i) - (S32(1))]))) + ((dsp.const30) * (rec17[(i) - (S32(2))])))) - ((dsp.const32) * (((dsp.const33) * (rec16[(i) - (S32(2))])) + ((dsp.const34) * (rec16[(i) - (S32(1))]))))
+            vstore(dsp.rec16_perm, vload[w64](rec16_tmp, vsize))
+            vstore(dsp.rec16_perm, vload[w64](rec16_tmp, vsize + hsize), hsize)
+            vstore(rec15_tmp, vload[w64](dsp.rec15_perm))
+            vstore(rec15_tmp, vload[w64](dsp.rec15_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec15[i] = ((dsp.const32) * ((((dsp.const35) * (rec16[i])) + ((dsp.const36) * (rec16[(i) - (S32(1))]))) + ((dsp.const35) * (rec16[(i) - (S32(2))])))) - ((dsp.const37) * (((dsp.const38) * (rec15[(i) - (S32(2))])) + ((dsp.const39) * (rec15[(i) - (S32(1))]))))
+            vstore(dsp.rec15_perm, vload[w64](rec15_tmp, vsize))
+            vstore(dsp.rec15_perm, vload[w64](rec15_tmp, vsize + hsize), hsize)
+            vstore(zec6, (dsp.const37) * ((((dsp.const40) * (vload[w64](rec15))) + ((dsp.const41) * (vload[w64](rec15, - S32(1))))) + ((dsp.const40) * (vload[w64](rec15, - S32(2))))))
+            vstore(zec6, (dsp.const37) * ((((dsp.const40) * (vload[w64](rec15, hsize))) + ((dsp.const41) * (vload[w64](rec15, - S32(1) + hsize)))) + ((dsp.const40) * (vload[w64](rec15, - S32(2) + hsize)))), hsize)
+            vstore(rec14_tmp, vload[w64](dsp.rec14_perm))
+            vstore(rec14_tmp, vload[w64](dsp.rec14_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec14[i] = (zec6[i]) - ((dsp.const44) * (((dsp.const45) * (rec14[(i) - (S32(2))])) + ((dsp.const48) * (rec14[(i) - (S32(1))]))))
+            vstore(dsp.rec14_perm, vload[w64](rec14_tmp, vsize))
+            vstore(dsp.rec14_perm, vload[w64](rec14_tmp, vsize + hsize), hsize)
+            vstore(rec13_tmp, vload[w64](dsp.rec13_perm))
+            vstore(rec13_tmp, vload[w64](dsp.rec13_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec13[i] = ((dsp.const44) * ((((dsp.const50) * (rec14[i])) + ((dsp.const51) * (rec14[(i) - (S32(1))]))) + ((dsp.const50) * (rec14[(i) - (S32(2))])))) - ((dsp.const52) * (((dsp.const53) * (rec13[(i) - (S32(2))])) + ((dsp.const54) * (rec13[(i) - (S32(1))]))))
+            vstore(dsp.rec13_perm, vload[w64](rec13_tmp, vsize))
+            vstore(dsp.rec13_perm, vload[w64](rec13_tmp, vsize + hsize), hsize)
+            vstore(rec12_tmp, vload[w64](dsp.rec12_perm))
+            vstore(rec12_tmp, vload[w64](dsp.rec12_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec12[i] = ((dsp.const52) * ((((dsp.const56) * (rec13[i])) + ((dsp.const57) * (rec13[(i) - (S32(1))]))) + ((dsp.const56) * (rec13[(i) - (S32(2))])))) - ((dsp.const58) * (((dsp.const59) * (rec12[(i) - (S32(2))])) + ((dsp.const60) * (rec12[(i) - (S32(1))]))))
+            vstore(dsp.rec12_perm, vload[w64](rec12_tmp, vsize))
+            vstore(dsp.rec12_perm, vload[w64](rec12_tmp, vsize + hsize), hsize)
+            vstore(rec11_tmp, vload[w64](dsp.rec11_perm))
+            vstore(rec11_tmp, vload[w64](dsp.rec11_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec11[i] = ((slow8) * (rec11[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const58) * ((((dsp.const62) * (rec12[i])) + ((dsp.const63) * (rec12[(i) - (S32(1))]))) + ((dsp.const62) * (rec12[(i) - (S32(2))]))))))
+            vstore(dsp.rec11_perm, vload[w64](rec11_tmp, vsize))
+            vstore(dsp.rec11_perm, vload[w64](rec11_tmp, vsize + hsize), hsize)
+            vstore(rec24_tmp, vload[w64](dsp.rec24_perm))
+            vstore(rec24_tmp, vload[w64](dsp.rec24_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec24[i] = (zec6[i]) - ((dsp.const64) * (((dsp.const65) * (rec24[(i) - (S32(2))])) + ((dsp.const66) * (rec24[(i) - (S32(1))]))))
+            vstore(dsp.rec24_perm, vload[w64](rec24_tmp, vsize))
+            vstore(dsp.rec24_perm, vload[w64](rec24_tmp, vsize + hsize), hsize)
+            vstore(rec23_tmp, vload[w64](dsp.rec23_perm))
+            vstore(rec23_tmp, vload[w64](dsp.rec23_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec23[i] = ((dsp.const64) * ((((dsp.const68) * (rec24[i])) + ((dsp.const69) * (rec24[(i) - (S32(1))]))) + ((dsp.const68) * (rec24[(i) - (S32(2))])))) - ((dsp.const70) * (((dsp.const71) * (rec23[(i) - (S32(2))])) + ((dsp.const72) * (rec23[(i) - (S32(1))]))))
+            vstore(dsp.rec23_perm, vload[w64](rec23_tmp, vsize))
+            vstore(dsp.rec23_perm, vload[w64](rec23_tmp, vsize + hsize), hsize)
+            vstore(rec22_tmp, vload[w64](dsp.rec22_perm))
+            vstore(rec22_tmp, vload[w64](dsp.rec22_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec22[i] = ((dsp.const70) * ((((dsp.const73) * (rec23[i])) + ((dsp.const74) * (rec23[(i) - (S32(1))]))) + ((dsp.const73) * (rec23[(i) - (S32(2))])))) - ((dsp.const75) * (((dsp.const76) * (rec22[(i) - (S32(2))])) + ((dsp.const77) * (rec22[(i) - (S32(1))]))))
+            vstore(dsp.rec22_perm, vload[w64](rec22_tmp, vsize))
+            vstore(dsp.rec22_perm, vload[w64](rec22_tmp, vsize + hsize), hsize)
+            vstore(zec7, (dsp.const75) * ((((dsp.const78) * (vload[w64](rec22))) + ((dsp.const79) * (vload[w64](rec22, - S32(1))))) + ((dsp.const78) * (vload[w64](rec22, - S32(2))))))
+            vstore(zec7, (dsp.const75) * ((((dsp.const78) * (vload[w64](rec22, hsize))) + ((dsp.const79) * (vload[w64](rec22, - S32(1) + hsize)))) + ((dsp.const78) * (vload[w64](rec22, - S32(2) + hsize)))), hsize)
+            vstore(rec21_tmp, vload[w64](dsp.rec21_perm))
+            vstore(rec21_tmp, vload[w64](dsp.rec21_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec21[i] = (zec7[i]) - ((dsp.const82) * (((dsp.const83) * (rec21[(i) - (S32(2))])) + ((dsp.const86) * (rec21[(i) - (S32(1))]))))
+            vstore(dsp.rec21_perm, vload[w64](rec21_tmp, vsize))
+            vstore(dsp.rec21_perm, vload[w64](rec21_tmp, vsize + hsize), hsize)
+            vstore(rec20_tmp, vload[w64](dsp.rec20_perm))
+            vstore(rec20_tmp, vload[w64](dsp.rec20_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec20[i] = ((dsp.const82) * ((((dsp.const88) * (rec21[i])) + ((dsp.const89) * (rec21[(i) - (S32(1))]))) + ((dsp.const88) * (rec21[(i) - (S32(2))])))) - ((dsp.const90) * (((dsp.const91) * (rec20[(i) - (S32(2))])) + ((dsp.const92) * (rec20[(i) - (S32(1))]))))
+            vstore(dsp.rec20_perm, vload[w64](rec20_tmp, vsize))
+            vstore(dsp.rec20_perm, vload[w64](rec20_tmp, vsize + hsize), hsize)
+            vstore(rec19_tmp, vload[w64](dsp.rec19_perm))
+            vstore(rec19_tmp, vload[w64](dsp.rec19_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec19[i] = ((dsp.const90) * ((((dsp.const94) * (rec20[i])) + ((dsp.const95) * (rec20[(i) - (S32(1))]))) + ((dsp.const94) * (rec20[(i) - (S32(2))])))) - ((dsp.const96) * (((dsp.const97) * (rec19[(i) - (S32(2))])) + ((dsp.const98) * (rec19[(i) - (S32(1))]))))
+            vstore(dsp.rec19_perm, vload[w64](rec19_tmp, vsize))
+            vstore(dsp.rec19_perm, vload[w64](rec19_tmp, vsize + hsize), hsize)
+            vstore(rec18_tmp, vload[w64](dsp.rec18_perm))
+            vstore(rec18_tmp, vload[w64](dsp.rec18_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec18[i] = ((slow8) * (rec18[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const96) * ((((dsp.const100) * (rec19[i])) + ((dsp.const101) * (rec19[(i) - (S32(1))]))) + ((dsp.const100) * (rec19[(i) - (S32(2))]))))))
+            vstore(dsp.rec18_perm, vload[w64](rec18_tmp, vsize))
+            vstore(dsp.rec18_perm, vload[w64](rec18_tmp, vsize + hsize), hsize)
+            vstore(rec31_tmp, vload[w64](dsp.rec31_perm))
+            vstore(rec31_tmp, vload[w64](dsp.rec31_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec31[i] = (zec7[i]) - ((dsp.const102) * (((dsp.const103) * (rec31[(i) - (S32(2))])) + ((dsp.const104) * (rec31[(i) - (S32(1))]))))
+            vstore(dsp.rec31_perm, vload[w64](rec31_tmp, vsize))
+            vstore(dsp.rec31_perm, vload[w64](rec31_tmp, vsize + hsize), hsize)
+            vstore(rec30_tmp, vload[w64](dsp.rec30_perm))
+            vstore(rec30_tmp, vload[w64](dsp.rec30_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec30[i] = ((dsp.const102) * ((((dsp.const106) * (rec31[i])) + ((dsp.const107) * (rec31[(i) - (S32(1))]))) + ((dsp.const106) * (rec31[(i) - (S32(2))])))) - ((dsp.const108) * (((dsp.const109) * (rec30[(i) - (S32(2))])) + ((dsp.const110) * (rec30[(i) - (S32(1))]))))
+            vstore(dsp.rec30_perm, vload[w64](rec30_tmp, vsize))
+            vstore(dsp.rec30_perm, vload[w64](rec30_tmp, vsize + hsize), hsize)
+            vstore(rec29_tmp, vload[w64](dsp.rec29_perm))
+            vstore(rec29_tmp, vload[w64](dsp.rec29_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec29[i] = ((dsp.const108) * ((((dsp.const111) * (rec30[i])) + ((dsp.const112) * (rec30[(i) - (S32(1))]))) + ((dsp.const111) * (rec30[(i) - (S32(2))])))) - ((dsp.const113) * (((dsp.const114) * (rec29[(i) - (S32(2))])) + ((dsp.const115) * (rec29[(i) - (S32(1))]))))
+            vstore(dsp.rec29_perm, vload[w64](rec29_tmp, vsize))
+            vstore(dsp.rec29_perm, vload[w64](rec29_tmp, vsize + hsize), hsize)
+            vstore(zec8, (dsp.const113) * ((((dsp.const116) * (vload[w64](rec29))) + ((dsp.const117) * (vload[w64](rec29, - S32(1))))) + ((dsp.const116) * (vload[w64](rec29, - S32(2))))))
+            vstore(zec8, (dsp.const113) * ((((dsp.const116) * (vload[w64](rec29, hsize))) + ((dsp.const117) * (vload[w64](rec29, - S32(1) + hsize)))) + ((dsp.const116) * (vload[w64](rec29, - S32(2) + hsize)))), hsize)
+            vstore(rec28_tmp, vload[w64](dsp.rec28_perm))
+            vstore(rec28_tmp, vload[w64](dsp.rec28_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec28[i] = (zec8[i]) - ((dsp.const120) * (((dsp.const121) * (rec28[(i) - (S32(2))])) + ((dsp.const124) * (rec28[(i) - (S32(1))]))))
+            vstore(dsp.rec28_perm, vload[w64](rec28_tmp, vsize))
+            vstore(dsp.rec28_perm, vload[w64](rec28_tmp, vsize + hsize), hsize)
+            vstore(rec27_tmp, vload[w64](dsp.rec27_perm))
+            vstore(rec27_tmp, vload[w64](dsp.rec27_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec27[i] = ((dsp.const120) * ((((dsp.const126) * (rec28[i])) + ((dsp.const127) * (rec28[(i) - (S32(1))]))) + ((dsp.const126) * (rec28[(i) - (S32(2))])))) - ((dsp.const128) * (((dsp.const129) * (rec27[(i) - (S32(2))])) + ((dsp.const130) * (rec27[(i) - (S32(1))]))))
+            vstore(dsp.rec27_perm, vload[w64](rec27_tmp, vsize))
+            vstore(dsp.rec27_perm, vload[w64](rec27_tmp, vsize + hsize), hsize)
+            vstore(rec26_tmp, vload[w64](dsp.rec26_perm))
+            vstore(rec26_tmp, vload[w64](dsp.rec26_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec26[i] = ((dsp.const128) * ((((dsp.const132) * (rec27[i])) + ((dsp.const133) * (rec27[(i) - (S32(1))]))) + ((dsp.const132) * (rec27[(i) - (S32(2))])))) - ((dsp.const134) * (((dsp.const135) * (rec26[(i) - (S32(2))])) + ((dsp.const136) * (rec26[(i) - (S32(1))]))))
+            vstore(dsp.rec26_perm, vload[w64](rec26_tmp, vsize))
+            vstore(dsp.rec26_perm, vload[w64](rec26_tmp, vsize + hsize), hsize)
+            vstore(rec25_tmp, vload[w64](dsp.rec25_perm))
+            vstore(rec25_tmp, vload[w64](dsp.rec25_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec25[i] = ((slow8) * (rec25[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const134) * ((((dsp.const138) * (rec26[i])) + ((dsp.const139) * (rec26[(i) - (S32(1))]))) + ((dsp.const138) * (rec26[(i) - (S32(2))]))))))
+            vstore(dsp.rec25_perm, vload[w64](rec25_tmp, vsize))
+            vstore(dsp.rec25_perm, vload[w64](rec25_tmp, vsize + hsize), hsize)
+            vstore(rec38_tmp, vload[w64](dsp.rec38_perm))
+            vstore(rec38_tmp, vload[w64](dsp.rec38_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec38[i] = (zec8[i]) - ((dsp.const140) * (((dsp.const141) * (rec38[(i) - (S32(2))])) + ((dsp.const142) * (rec38[(i) - (S32(1))]))))
+            vstore(dsp.rec38_perm, vload[w64](rec38_tmp, vsize))
+            vstore(dsp.rec38_perm, vload[w64](rec38_tmp, vsize + hsize), hsize)
+            vstore(rec37_tmp, vload[w64](dsp.rec37_perm))
+            vstore(rec37_tmp, vload[w64](dsp.rec37_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec37[i] = ((dsp.const140) * ((((dsp.const144) * (rec38[i])) + ((dsp.const145) * (rec38[(i) - (S32(1))]))) + ((dsp.const144) * (rec38[(i) - (S32(2))])))) - ((dsp.const146) * (((dsp.const147) * (rec37[(i) - (S32(2))])) + ((dsp.const148) * (rec37[(i) - (S32(1))]))))
+            vstore(dsp.rec37_perm, vload[w64](rec37_tmp, vsize))
+            vstore(dsp.rec37_perm, vload[w64](rec37_tmp, vsize + hsize), hsize)
+            vstore(rec36_tmp, vload[w64](dsp.rec36_perm))
+            vstore(rec36_tmp, vload[w64](dsp.rec36_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec36[i] = ((dsp.const146) * ((((dsp.const149) * (rec37[i])) + ((dsp.const150) * (rec37[(i) - (S32(1))]))) + ((dsp.const149) * (rec37[(i) - (S32(2))])))) - ((dsp.const151) * (((dsp.const152) * (rec36[(i) - (S32(2))])) + ((dsp.const153) * (rec36[(i) - (S32(1))]))))
+            vstore(dsp.rec36_perm, vload[w64](rec36_tmp, vsize))
+            vstore(dsp.rec36_perm, vload[w64](rec36_tmp, vsize + hsize), hsize)
+            vstore(zec9, (dsp.const151) * ((((dsp.const154) * (vload[w64](rec36))) + ((dsp.const155) * (vload[w64](rec36, - S32(1))))) + ((dsp.const154) * (vload[w64](rec36, - S32(2))))))
+            vstore(zec9, (dsp.const151) * ((((dsp.const154) * (vload[w64](rec36, hsize))) + ((dsp.const155) * (vload[w64](rec36, - S32(1) + hsize)))) + ((dsp.const154) * (vload[w64](rec36, - S32(2) + hsize)))), hsize)
+            vstore(rec35_tmp, vload[w64](dsp.rec35_perm))
+            vstore(rec35_tmp, vload[w64](dsp.rec35_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec35[i] = (zec9[i]) - ((dsp.const158) * (((dsp.const159) * (rec35[(i) - (S32(2))])) + ((dsp.const162) * (rec35[(i) - (S32(1))]))))
+            vstore(dsp.rec35_perm, vload[w64](rec35_tmp, vsize))
+            vstore(dsp.rec35_perm, vload[w64](rec35_tmp, vsize + hsize), hsize)
+            vstore(rec34_tmp, vload[w64](dsp.rec34_perm))
+            vstore(rec34_tmp, vload[w64](dsp.rec34_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec34[i] = ((dsp.const158) * ((((dsp.const164) * (rec35[i])) + ((dsp.const165) * (rec35[(i) - (S32(1))]))) + ((dsp.const164) * (rec35[(i) - (S32(2))])))) - ((dsp.const166) * (((dsp.const167) * (rec34[(i) - (S32(2))])) + ((dsp.const168) * (rec34[(i) - (S32(1))]))))
+            vstore(dsp.rec34_perm, vload[w64](rec34_tmp, vsize))
+            vstore(dsp.rec34_perm, vload[w64](rec34_tmp, vsize + hsize), hsize)
+            vstore(rec33_tmp, vload[w64](dsp.rec33_perm))
+            vstore(rec33_tmp, vload[w64](dsp.rec33_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec33[i] = ((dsp.const166) * ((((dsp.const170) * (rec34[i])) + ((dsp.const171) * (rec34[(i) - (S32(1))]))) + ((dsp.const170) * (rec34[(i) - (S32(2))])))) - ((dsp.const172) * (((dsp.const173) * (rec33[(i) - (S32(2))])) + ((dsp.const174) * (rec33[(i) - (S32(1))]))))
+            vstore(dsp.rec33_perm, vload[w64](rec33_tmp, vsize))
+            vstore(dsp.rec33_perm, vload[w64](rec33_tmp, vsize + hsize), hsize)
+            vstore(rec32_tmp, vload[w64](dsp.rec32_perm))
+            vstore(rec32_tmp, vload[w64](dsp.rec32_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec32[i] = ((slow8) * (rec32[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const172) * ((((dsp.const176) * (rec33[i])) + ((dsp.const177) * (rec33[(i) - (S32(1))]))) + ((dsp.const176) * (rec33[(i) - (S32(2))]))))))
+            vstore(dsp.rec32_perm, vload[w64](rec32_tmp, vsize))
+            vstore(dsp.rec32_perm, vload[w64](rec32_tmp, vsize + hsize), hsize)
+            vstore(rec45_tmp, vload[w64](dsp.rec45_perm))
+            vstore(rec45_tmp, vload[w64](dsp.rec45_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec45[i] = (zec9[i]) - ((dsp.const178) * (((dsp.const179) * (rec45[(i) - (S32(2))])) + ((dsp.const180) * (rec45[(i) - (S32(1))]))))
+            vstore(dsp.rec45_perm, vload[w64](rec45_tmp, vsize))
+            vstore(dsp.rec45_perm, vload[w64](rec45_tmp, vsize + hsize), hsize)
+            vstore(rec44_tmp, vload[w64](dsp.rec44_perm))
+            vstore(rec44_tmp, vload[w64](dsp.rec44_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec44[i] = ((dsp.const178) * ((((dsp.const182) * (rec45[i])) + ((dsp.const183) * (rec45[(i) - (S32(1))]))) + ((dsp.const182) * (rec45[(i) - (S32(2))])))) - ((dsp.const184) * (((dsp.const185) * (rec44[(i) - (S32(2))])) + ((dsp.const186) * (rec44[(i) - (S32(1))]))))
+            vstore(dsp.rec44_perm, vload[w64](rec44_tmp, vsize))
+            vstore(dsp.rec44_perm, vload[w64](rec44_tmp, vsize + hsize), hsize)
+            vstore(rec43_tmp, vload[w64](dsp.rec43_perm))
+            vstore(rec43_tmp, vload[w64](dsp.rec43_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec43[i] = ((dsp.const184) * ((((dsp.const187) * (rec44[i])) + ((dsp.const188) * (rec44[(i) - (S32(1))]))) + ((dsp.const187) * (rec44[(i) - (S32(2))])))) - ((dsp.const189) * (((dsp.const190) * (rec43[(i) - (S32(2))])) + ((dsp.const191) * (rec43[(i) - (S32(1))]))))
+            vstore(dsp.rec43_perm, vload[w64](rec43_tmp, vsize))
+            vstore(dsp.rec43_perm, vload[w64](rec43_tmp, vsize + hsize), hsize)
+            vstore(zec10, (dsp.const189) * ((((dsp.const192) * (vload[w64](rec43))) + ((dsp.const193) * (vload[w64](rec43, - S32(1))))) + ((dsp.const192) * (vload[w64](rec43, - S32(2))))))
+            vstore(zec10, (dsp.const189) * ((((dsp.const192) * (vload[w64](rec43, hsize))) + ((dsp.const193) * (vload[w64](rec43, - S32(1) + hsize)))) + ((dsp.const192) * (vload[w64](rec43, - S32(2) + hsize)))), hsize)
+            vstore(rec42_tmp, vload[w64](dsp.rec42_perm))
+            vstore(rec42_tmp, vload[w64](dsp.rec42_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec42[i] = (zec10[i]) - ((dsp.const196) * (((dsp.const197) * (rec42[(i) - (S32(2))])) + ((dsp.const200) * (rec42[(i) - (S32(1))]))))
+            vstore(dsp.rec42_perm, vload[w64](rec42_tmp, vsize))
+            vstore(dsp.rec42_perm, vload[w64](rec42_tmp, vsize + hsize), hsize)
+            vstore(rec41_tmp, vload[w64](dsp.rec41_perm))
+            vstore(rec41_tmp, vload[w64](dsp.rec41_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec41[i] = ((dsp.const196) * ((((dsp.const202) * (rec42[i])) + ((dsp.const203) * (rec42[(i) - (S32(1))]))) + ((dsp.const202) * (rec42[(i) - (S32(2))])))) - ((dsp.const204) * (((dsp.const205) * (rec41[(i) - (S32(2))])) + ((dsp.const206) * (rec41[(i) - (S32(1))]))))
+            vstore(dsp.rec41_perm, vload[w64](rec41_tmp, vsize))
+            vstore(dsp.rec41_perm, vload[w64](rec41_tmp, vsize + hsize), hsize)
+            vstore(rec40_tmp, vload[w64](dsp.rec40_perm))
+            vstore(rec40_tmp, vload[w64](dsp.rec40_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec40[i] = ((dsp.const204) * ((((dsp.const208) * (rec41[i])) + ((dsp.const209) * (rec41[(i) - (S32(1))]))) + ((dsp.const208) * (rec41[(i) - (S32(2))])))) - ((dsp.const210) * (((dsp.const211) * (rec40[(i) - (S32(2))])) + ((dsp.const212) * (rec40[(i) - (S32(1))]))))
+            vstore(dsp.rec40_perm, vload[w64](rec40_tmp, vsize))
+            vstore(dsp.rec40_perm, vload[w64](rec40_tmp, vsize + hsize), hsize)
+            vstore(rec39_tmp, vload[w64](dsp.rec39_perm))
+            vstore(rec39_tmp, vload[w64](dsp.rec39_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec39[i] = ((slow8) * (rec39[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const210) * ((((dsp.const214) * (rec40[i])) + ((dsp.const215) * (rec40[(i) - (S32(1))]))) + ((dsp.const214) * (rec40[(i) - (S32(2))]))))))
+            vstore(dsp.rec39_perm, vload[w64](rec39_tmp, vsize))
+            vstore(dsp.rec39_perm, vload[w64](rec39_tmp, vsize + hsize), hsize)
+            vstore(rec52_tmp, vload[w64](dsp.rec52_perm))
+            vstore(rec52_tmp, vload[w64](dsp.rec52_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec52[i] = (zec10[i]) - ((dsp.const216) * (((dsp.const217) * (rec52[(i) - (S32(2))])) + ((dsp.const218) * (rec52[(i) - (S32(1))]))))
+            vstore(dsp.rec52_perm, vload[w64](rec52_tmp, vsize))
+            vstore(dsp.rec52_perm, vload[w64](rec52_tmp, vsize + hsize), hsize)
+            vstore(rec51_tmp, vload[w64](dsp.rec51_perm))
+            vstore(rec51_tmp, vload[w64](dsp.rec51_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec51[i] = ((dsp.const216) * ((((dsp.const220) * (rec52[i])) + ((dsp.const221) * (rec52[(i) - (S32(1))]))) + ((dsp.const220) * (rec52[(i) - (S32(2))])))) - ((dsp.const222) * (((dsp.const223) * (rec51[(i) - (S32(2))])) + ((dsp.const224) * (rec51[(i) - (S32(1))]))))
+            vstore(dsp.rec51_perm, vload[w64](rec51_tmp, vsize))
+            vstore(dsp.rec51_perm, vload[w64](rec51_tmp, vsize + hsize), hsize)
+            vstore(rec50_tmp, vload[w64](dsp.rec50_perm))
+            vstore(rec50_tmp, vload[w64](dsp.rec50_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec50[i] = ((dsp.const222) * ((((dsp.const225) * (rec51[i])) + ((dsp.const226) * (rec51[(i) - (S32(1))]))) + ((dsp.const225) * (rec51[(i) - (S32(2))])))) - ((dsp.const227) * (((dsp.const228) * (rec50[(i) - (S32(2))])) + ((dsp.const229) * (rec50[(i) - (S32(1))]))))
+            vstore(dsp.rec50_perm, vload[w64](rec50_tmp, vsize))
+            vstore(dsp.rec50_perm, vload[w64](rec50_tmp, vsize + hsize), hsize)
+            vstore(zec11, (dsp.const227) * ((((dsp.const230) * (vload[w64](rec50))) + ((dsp.const231) * (vload[w64](rec50, - S32(1))))) + ((dsp.const230) * (vload[w64](rec50, - S32(2))))))
+            vstore(zec11, (dsp.const227) * ((((dsp.const230) * (vload[w64](rec50, hsize))) + ((dsp.const231) * (vload[w64](rec50, - S32(1) + hsize)))) + ((dsp.const230) * (vload[w64](rec50, - S32(2) + hsize)))), hsize)
+            vstore(rec49_tmp, vload[w64](dsp.rec49_perm))
+            vstore(rec49_tmp, vload[w64](dsp.rec49_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec49[i] = (zec11[i]) - ((dsp.const234) * (((dsp.const235) * (rec49[(i) - (S32(2))])) + ((dsp.const238) * (rec49[(i) - (S32(1))]))))
+            vstore(dsp.rec49_perm, vload[w64](rec49_tmp, vsize))
+            vstore(dsp.rec49_perm, vload[w64](rec49_tmp, vsize + hsize), hsize)
+            vstore(rec48_tmp, vload[w64](dsp.rec48_perm))
+            vstore(rec48_tmp, vload[w64](dsp.rec48_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec48[i] = ((dsp.const234) * ((((dsp.const240) * (rec49[i])) + ((dsp.const241) * (rec49[(i) - (S32(1))]))) + ((dsp.const240) * (rec49[(i) - (S32(2))])))) - ((dsp.const242) * (((dsp.const243) * (rec48[(i) - (S32(2))])) + ((dsp.const244) * (rec48[(i) - (S32(1))]))))
+            vstore(dsp.rec48_perm, vload[w64](rec48_tmp, vsize))
+            vstore(dsp.rec48_perm, vload[w64](rec48_tmp, vsize + hsize), hsize)
+            vstore(rec47_tmp, vload[w64](dsp.rec47_perm))
+            vstore(rec47_tmp, vload[w64](dsp.rec47_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec47[i] = ((dsp.const242) * ((((dsp.const246) * (rec48[i])) + ((dsp.const247) * (rec48[(i) - (S32(1))]))) + ((dsp.const246) * (rec48[(i) - (S32(2))])))) - ((dsp.const248) * (((dsp.const249) * (rec47[(i) - (S32(2))])) + ((dsp.const250) * (rec47[(i) - (S32(1))]))))
+            vstore(dsp.rec47_perm, vload[w64](rec47_tmp, vsize))
+            vstore(dsp.rec47_perm, vload[w64](rec47_tmp, vsize + hsize), hsize)
+            vstore(rec46_tmp, vload[w64](dsp.rec46_perm))
+            vstore(rec46_tmp, vload[w64](dsp.rec46_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec46[i] = ((slow8) * (rec46[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const248) * ((((dsp.const252) * (rec47[i])) + ((dsp.const253) * (rec47[(i) - (S32(1))]))) + ((dsp.const252) * (rec47[(i) - (S32(2))]))))))
+            vstore(dsp.rec46_perm, vload[w64](rec46_tmp, vsize))
+            vstore(dsp.rec46_perm, vload[w64](rec46_tmp, vsize + hsize), hsize)
+            vstore(rec59_tmp, vload[w64](dsp.rec59_perm))
+            vstore(rec59_tmp, vload[w64](dsp.rec59_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec59[i] = (zec11[i]) - ((dsp.const254) * (((dsp.const255) * (rec59[(i) - (S32(2))])) + ((dsp.const256) * (rec59[(i) - (S32(1))]))))
+            vstore(dsp.rec59_perm, vload[w64](rec59_tmp, vsize))
+            vstore(dsp.rec59_perm, vload[w64](rec59_tmp, vsize + hsize), hsize)
+            vstore(rec58_tmp, vload[w64](dsp.rec58_perm))
+            vstore(rec58_tmp, vload[w64](dsp.rec58_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec58[i] = ((dsp.const254) * ((((dsp.const258) * (rec59[i])) + ((dsp.const259) * (rec59[(i) - (S32(1))]))) + ((dsp.const258) * (rec59[(i) - (S32(2))])))) - ((dsp.const260) * (((dsp.const261) * (rec58[(i) - (S32(2))])) + ((dsp.const262) * (rec58[(i) - (S32(1))]))))
+            vstore(dsp.rec58_perm, vload[w64](rec58_tmp, vsize))
+            vstore(dsp.rec58_perm, vload[w64](rec58_tmp, vsize + hsize), hsize)
+            vstore(rec57_tmp, vload[w64](dsp.rec57_perm))
+            vstore(rec57_tmp, vload[w64](dsp.rec57_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec57[i] = ((dsp.const260) * ((((dsp.const263) * (rec58[i])) + ((dsp.const264) * (rec58[(i) - (S32(1))]))) + ((dsp.const263) * (rec58[(i) - (S32(2))])))) - ((dsp.const265) * (((dsp.const266) * (rec57[(i) - (S32(2))])) + ((dsp.const267) * (rec57[(i) - (S32(1))]))))
+            vstore(dsp.rec57_perm, vload[w64](rec57_tmp, vsize))
+            vstore(dsp.rec57_perm, vload[w64](rec57_tmp, vsize + hsize), hsize)
+            vstore(zec12, (dsp.const265) * ((((dsp.const268) * (vload[w64](rec57))) + ((dsp.const269) * (vload[w64](rec57, - S32(1))))) + ((dsp.const268) * (vload[w64](rec57, - S32(2))))))
+            vstore(zec12, (dsp.const265) * ((((dsp.const268) * (vload[w64](rec57, hsize))) + ((dsp.const269) * (vload[w64](rec57, - S32(1) + hsize)))) + ((dsp.const268) * (vload[w64](rec57, - S32(2) + hsize)))), hsize)
+            vstore(rec56_tmp, vload[w64](dsp.rec56_perm))
+            vstore(rec56_tmp, vload[w64](dsp.rec56_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec56[i] = (zec12[i]) - ((dsp.const272) * (((dsp.const273) * (rec56[(i) - (S32(2))])) + ((dsp.const276) * (rec56[(i) - (S32(1))]))))
+            vstore(dsp.rec56_perm, vload[w64](rec56_tmp, vsize))
+            vstore(dsp.rec56_perm, vload[w64](rec56_tmp, vsize + hsize), hsize)
+            vstore(rec55_tmp, vload[w64](dsp.rec55_perm))
+            vstore(rec55_tmp, vload[w64](dsp.rec55_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec55[i] = ((dsp.const272) * ((((dsp.const278) * (rec56[i])) + ((dsp.const279) * (rec56[(i) - (S32(1))]))) + ((dsp.const278) * (rec56[(i) - (S32(2))])))) - ((dsp.const280) * (((dsp.const281) * (rec55[(i) - (S32(2))])) + ((dsp.const282) * (rec55[(i) - (S32(1))]))))
+            vstore(dsp.rec55_perm, vload[w64](rec55_tmp, vsize))
+            vstore(dsp.rec55_perm, vload[w64](rec55_tmp, vsize + hsize), hsize)
+            vstore(rec54_tmp, vload[w64](dsp.rec54_perm))
+            vstore(rec54_tmp, vload[w64](dsp.rec54_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec54[i] = ((dsp.const280) * ((((dsp.const284) * (rec55[i])) + ((dsp.const285) * (rec55[(i) - (S32(1))]))) + ((dsp.const284) * (rec55[(i) - (S32(2))])))) - ((dsp.const286) * (((dsp.const287) * (rec54[(i) - (S32(2))])) + ((dsp.const288) * (rec54[(i) - (S32(1))]))))
+            vstore(dsp.rec54_perm, vload[w64](rec54_tmp, vsize))
+            vstore(dsp.rec54_perm, vload[w64](rec54_tmp, vsize + hsize), hsize)
+            vstore(rec53_tmp, vload[w64](dsp.rec53_perm))
+            vstore(rec53_tmp, vload[w64](dsp.rec53_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec53[i] = ((slow8) * (rec53[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const286) * ((((dsp.const290) * (rec54[i])) + ((dsp.const291) * (rec54[(i) - (S32(1))]))) + ((dsp.const290) * (rec54[(i) - (S32(2))]))))))
+            vstore(dsp.rec53_perm, vload[w64](rec53_tmp, vsize))
+            vstore(dsp.rec53_perm, vload[w64](rec53_tmp, vsize + hsize), hsize)
+            vstore(rec66_tmp, vload[w64](dsp.rec66_perm))
+            vstore(rec66_tmp, vload[w64](dsp.rec66_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec66[i] = (zec12[i]) - ((dsp.const292) * (((dsp.const293) * (rec66[(i) - (S32(2))])) + ((dsp.const294) * (rec66[(i) - (S32(1))]))))
+            vstore(dsp.rec66_perm, vload[w64](rec66_tmp, vsize))
+            vstore(dsp.rec66_perm, vload[w64](rec66_tmp, vsize + hsize), hsize)
+            vstore(rec65_tmp, vload[w64](dsp.rec65_perm))
+            vstore(rec65_tmp, vload[w64](dsp.rec65_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec65[i] = ((dsp.const292) * ((((dsp.const296) * (rec66[i])) + ((dsp.const297) * (rec66[(i) - (S32(1))]))) + ((dsp.const296) * (rec66[(i) - (S32(2))])))) - ((dsp.const298) * (((dsp.const299) * (rec65[(i) - (S32(2))])) + ((dsp.const300) * (rec65[(i) - (S32(1))]))))
+            vstore(dsp.rec65_perm, vload[w64](rec65_tmp, vsize))
+            vstore(dsp.rec65_perm, vload[w64](rec65_tmp, vsize + hsize), hsize)
+            vstore(rec64_tmp, vload[w64](dsp.rec64_perm))
+            vstore(rec64_tmp, vload[w64](dsp.rec64_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec64[i] = ((dsp.const298) * ((((dsp.const301) * (rec65[i])) + ((dsp.const302) * (rec65[(i) - (S32(1))]))) + ((dsp.const301) * (rec65[(i) - (S32(2))])))) - ((dsp.const303) * (((dsp.const304) * (rec64[(i) - (S32(2))])) + ((dsp.const305) * (rec64[(i) - (S32(1))]))))
+            vstore(dsp.rec64_perm, vload[w64](rec64_tmp, vsize))
+            vstore(dsp.rec64_perm, vload[w64](rec64_tmp, vsize + hsize), hsize)
+            vstore(zec13, (dsp.const303) * ((((dsp.const306) * (vload[w64](rec64))) + ((dsp.const307) * (vload[w64](rec64, - S32(1))))) + ((dsp.const306) * (vload[w64](rec64, - S32(2))))))
+            vstore(zec13, (dsp.const303) * ((((dsp.const306) * (vload[w64](rec64, hsize))) + ((dsp.const307) * (vload[w64](rec64, - S32(1) + hsize)))) + ((dsp.const306) * (vload[w64](rec64, - S32(2) + hsize)))), hsize)
+            vstore(rec63_tmp, vload[w64](dsp.rec63_perm))
+            vstore(rec63_tmp, vload[w64](dsp.rec63_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec63[i] = (zec13[i]) - ((dsp.const310) * (((dsp.const311) * (rec63[(i) - (S32(2))])) + ((dsp.const314) * (rec63[(i) - (S32(1))]))))
+            vstore(dsp.rec63_perm, vload[w64](rec63_tmp, vsize))
+            vstore(dsp.rec63_perm, vload[w64](rec63_tmp, vsize + hsize), hsize)
+            vstore(rec62_tmp, vload[w64](dsp.rec62_perm))
+            vstore(rec62_tmp, vload[w64](dsp.rec62_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec62[i] = ((dsp.const310) * ((((dsp.const316) * (rec63[i])) + ((dsp.const317) * (rec63[(i) - (S32(1))]))) + ((dsp.const316) * (rec63[(i) - (S32(2))])))) - ((dsp.const318) * (((dsp.const319) * (rec62[(i) - (S32(2))])) + ((dsp.const320) * (rec62[(i) - (S32(1))]))))
+            vstore(dsp.rec62_perm, vload[w64](rec62_tmp, vsize))
+            vstore(dsp.rec62_perm, vload[w64](rec62_tmp, vsize + hsize), hsize)
+            vstore(rec61_tmp, vload[w64](dsp.rec61_perm))
+            vstore(rec61_tmp, vload[w64](dsp.rec61_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec61[i] = ((dsp.const318) * ((((dsp.const322) * (rec62[i])) + ((dsp.const323) * (rec62[(i) - (S32(1))]))) + ((dsp.const322) * (rec62[(i) - (S32(2))])))) - ((dsp.const324) * (((dsp.const325) * (rec61[(i) - (S32(2))])) + ((dsp.const326) * (rec61[(i) - (S32(1))]))))
+            vstore(dsp.rec61_perm, vload[w64](rec61_tmp, vsize))
+            vstore(dsp.rec61_perm, vload[w64](rec61_tmp, vsize + hsize), hsize)
+            vstore(rec60_tmp, vload[w64](dsp.rec60_perm))
+            vstore(rec60_tmp, vload[w64](dsp.rec60_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec60[i] = ((slow8) * (rec60[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const324) * ((((dsp.const328) * (rec61[i])) + ((dsp.const329) * (rec61[(i) - (S32(1))]))) + ((dsp.const328) * (rec61[(i) - (S32(2))]))))))
+            vstore(dsp.rec60_perm, vload[w64](rec60_tmp, vsize))
+            vstore(dsp.rec60_perm, vload[w64](rec60_tmp, vsize + hsize), hsize)
+            vstore(rec73_tmp, vload[w64](dsp.rec73_perm))
+            vstore(rec73_tmp, vload[w64](dsp.rec73_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec73[i] = (zec13[i]) - ((dsp.const330) * (((dsp.const331) * (rec73[(i) - (S32(2))])) + ((dsp.const332) * (rec73[(i) - (S32(1))]))))
+            vstore(dsp.rec73_perm, vload[w64](rec73_tmp, vsize))
+            vstore(dsp.rec73_perm, vload[w64](rec73_tmp, vsize + hsize), hsize)
+            vstore(rec72_tmp, vload[w64](dsp.rec72_perm))
+            vstore(rec72_tmp, vload[w64](dsp.rec72_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec72[i] = ((dsp.const330) * ((((dsp.const334) * (rec73[i])) + ((dsp.const335) * (rec73[(i) - (S32(1))]))) + ((dsp.const334) * (rec73[(i) - (S32(2))])))) - ((dsp.const336) * (((dsp.const337) * (rec72[(i) - (S32(2))])) + ((dsp.const338) * (rec72[(i) - (S32(1))]))))
+            vstore(dsp.rec72_perm, vload[w64](rec72_tmp, vsize))
+            vstore(dsp.rec72_perm, vload[w64](rec72_tmp, vsize + hsize), hsize)
+            vstore(rec71_tmp, vload[w64](dsp.rec71_perm))
+            vstore(rec71_tmp, vload[w64](dsp.rec71_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec71[i] = ((dsp.const336) * ((((dsp.const339) * (rec72[i])) + ((dsp.const340) * (rec72[(i) - (S32(1))]))) + ((dsp.const339) * (rec72[(i) - (S32(2))])))) - ((dsp.const341) * (((dsp.const342) * (rec71[(i) - (S32(2))])) + ((dsp.const343) * (rec71[(i) - (S32(1))]))))
+            vstore(dsp.rec71_perm, vload[w64](rec71_tmp, vsize))
+            vstore(dsp.rec71_perm, vload[w64](rec71_tmp, vsize + hsize), hsize)
+            vstore(zec14, (dsp.const341) * ((((dsp.const344) * (vload[w64](rec71))) + ((dsp.const345) * (vload[w64](rec71, - S32(1))))) + ((dsp.const344) * (vload[w64](rec71, - S32(2))))))
+            vstore(zec14, (dsp.const341) * ((((dsp.const344) * (vload[w64](rec71, hsize))) + ((dsp.const345) * (vload[w64](rec71, - S32(1) + hsize)))) + ((dsp.const344) * (vload[w64](rec71, - S32(2) + hsize)))), hsize)
+            vstore(rec70_tmp, vload[w64](dsp.rec70_perm))
+            vstore(rec70_tmp, vload[w64](dsp.rec70_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec70[i] = (zec14[i]) - ((dsp.const348) * (((dsp.const349) * (rec70[(i) - (S32(2))])) + ((dsp.const352) * (rec70[(i) - (S32(1))]))))
+            vstore(dsp.rec70_perm, vload[w64](rec70_tmp, vsize))
+            vstore(dsp.rec70_perm, vload[w64](rec70_tmp, vsize + hsize), hsize)
+            vstore(rec69_tmp, vload[w64](dsp.rec69_perm))
+            vstore(rec69_tmp, vload[w64](dsp.rec69_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec69[i] = ((dsp.const348) * ((((dsp.const354) * (rec70[i])) + ((dsp.const355) * (rec70[(i) - (S32(1))]))) + ((dsp.const354) * (rec70[(i) - (S32(2))])))) - ((dsp.const356) * (((dsp.const357) * (rec69[(i) - (S32(2))])) + ((dsp.const358) * (rec69[(i) - (S32(1))]))))
+            vstore(dsp.rec69_perm, vload[w64](rec69_tmp, vsize))
+            vstore(dsp.rec69_perm, vload[w64](rec69_tmp, vsize + hsize), hsize)
+            vstore(rec68_tmp, vload[w64](dsp.rec68_perm))
+            vstore(rec68_tmp, vload[w64](dsp.rec68_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec68[i] = ((dsp.const356) * ((((dsp.const360) * (rec69[i])) + ((dsp.const361) * (rec69[(i) - (S32(1))]))) + ((dsp.const360) * (rec69[(i) - (S32(2))])))) - ((dsp.const362) * (((dsp.const363) * (rec68[(i) - (S32(2))])) + ((dsp.const364) * (rec68[(i) - (S32(1))]))))
+            vstore(dsp.rec68_perm, vload[w64](rec68_tmp, vsize))
+            vstore(dsp.rec68_perm, vload[w64](rec68_tmp, vsize + hsize), hsize)
+            vstore(rec67_tmp, vload[w64](dsp.rec67_perm))
+            vstore(rec67_tmp, vload[w64](dsp.rec67_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec67[i] = ((slow8) * (rec67[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const362) * ((((dsp.const366) * (rec68[i])) + ((dsp.const367) * (rec68[(i) - (S32(1))]))) + ((dsp.const366) * (rec68[(i) - (S32(2))]))))))
+            vstore(dsp.rec67_perm, vload[w64](rec67_tmp, vsize))
+            vstore(dsp.rec67_perm, vload[w64](rec67_tmp, vsize + hsize), hsize)
+            vstore(rec80_tmp, vload[w64](dsp.rec80_perm))
+            vstore(rec80_tmp, vload[w64](dsp.rec80_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec80[i] = (zec14[i]) - ((dsp.const368) * (((dsp.const369) * (rec80[(i) - (S32(2))])) + ((dsp.const370) * (rec80[(i) - (S32(1))]))))
+            vstore(dsp.rec80_perm, vload[w64](rec80_tmp, vsize))
+            vstore(dsp.rec80_perm, vload[w64](rec80_tmp, vsize + hsize), hsize)
+            vstore(rec79_tmp, vload[w64](dsp.rec79_perm))
+            vstore(rec79_tmp, vload[w64](dsp.rec79_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec79[i] = ((dsp.const368) * ((((dsp.const372) * (rec80[i])) + ((dsp.const373) * (rec80[(i) - (S32(1))]))) + ((dsp.const372) * (rec80[(i) - (S32(2))])))) - ((dsp.const374) * (((dsp.const375) * (rec79[(i) - (S32(2))])) + ((dsp.const376) * (rec79[(i) - (S32(1))]))))
+            vstore(dsp.rec79_perm, vload[w64](rec79_tmp, vsize))
+            vstore(dsp.rec79_perm, vload[w64](rec79_tmp, vsize + hsize), hsize)
+            vstore(rec78_tmp, vload[w64](dsp.rec78_perm))
+            vstore(rec78_tmp, vload[w64](dsp.rec78_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec78[i] = ((dsp.const374) * ((((dsp.const377) * (rec79[i])) + ((dsp.const378) * (rec79[(i) - (S32(1))]))) + ((dsp.const377) * (rec79[(i) - (S32(2))])))) - ((dsp.const379) * (((dsp.const380) * (rec78[(i) - (S32(2))])) + ((dsp.const381) * (rec78[(i) - (S32(1))]))))
+            vstore(dsp.rec78_perm, vload[w64](rec78_tmp, vsize))
+            vstore(dsp.rec78_perm, vload[w64](rec78_tmp, vsize + hsize), hsize)
+            vstore(zec15, (dsp.const379) * ((((dsp.const382) * (vload[w64](rec78))) + ((dsp.const383) * (vload[w64](rec78, - S32(1))))) + ((dsp.const382) * (vload[w64](rec78, - S32(2))))))
+            vstore(zec15, (dsp.const379) * ((((dsp.const382) * (vload[w64](rec78, hsize))) + ((dsp.const383) * (vload[w64](rec78, - S32(1) + hsize)))) + ((dsp.const382) * (vload[w64](rec78, - S32(2) + hsize)))), hsize)
+            vstore(rec77_tmp, vload[w64](dsp.rec77_perm))
+            vstore(rec77_tmp, vload[w64](dsp.rec77_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec77[i] = (zec15[i]) - ((dsp.const386) * (((dsp.const387) * (rec77[(i) - (S32(2))])) + ((dsp.const390) * (rec77[(i) - (S32(1))]))))
+            vstore(dsp.rec77_perm, vload[w64](rec77_tmp, vsize))
+            vstore(dsp.rec77_perm, vload[w64](rec77_tmp, vsize + hsize), hsize)
+            vstore(rec76_tmp, vload[w64](dsp.rec76_perm))
+            vstore(rec76_tmp, vload[w64](dsp.rec76_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec76[i] = ((dsp.const386) * ((((dsp.const392) * (rec77[i])) + ((dsp.const393) * (rec77[(i) - (S32(1))]))) + ((dsp.const392) * (rec77[(i) - (S32(2))])))) - ((dsp.const394) * (((dsp.const395) * (rec76[(i) - (S32(2))])) + ((dsp.const396) * (rec76[(i) - (S32(1))]))))
+            vstore(dsp.rec76_perm, vload[w64](rec76_tmp, vsize))
+            vstore(dsp.rec76_perm, vload[w64](rec76_tmp, vsize + hsize), hsize)
+            vstore(rec75_tmp, vload[w64](dsp.rec75_perm))
+            vstore(rec75_tmp, vload[w64](dsp.rec75_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec75[i] = ((dsp.const394) * ((((dsp.const398) * (rec76[i])) + ((dsp.const399) * (rec76[(i) - (S32(1))]))) + ((dsp.const398) * (rec76[(i) - (S32(2))])))) - ((dsp.const400) * (((dsp.const401) * (rec75[(i) - (S32(2))])) + ((dsp.const402) * (rec75[(i) - (S32(1))]))))
+            vstore(dsp.rec75_perm, vload[w64](rec75_tmp, vsize))
+            vstore(dsp.rec75_perm, vload[w64](rec75_tmp, vsize + hsize), hsize)
+            vstore(rec74_tmp, vload[w64](dsp.rec74_perm))
+            vstore(rec74_tmp, vload[w64](dsp.rec74_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec74[i] = ((slow8) * (rec74[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const400) * ((((dsp.const404) * (rec75[i])) + ((dsp.const405) * (rec75[(i) - (S32(1))]))) + ((dsp.const404) * (rec75[(i) - (S32(2))]))))))
+            vstore(dsp.rec74_perm, vload[w64](rec74_tmp, vsize))
+            vstore(dsp.rec74_perm, vload[w64](rec74_tmp, vsize + hsize), hsize)
+            vstore(rec87_tmp, vload[w64](dsp.rec87_perm))
+            vstore(rec87_tmp, vload[w64](dsp.rec87_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec87[i] = (zec15[i]) - ((dsp.const406) * (((dsp.const407) * (rec87[(i) - (S32(2))])) + ((dsp.const408) * (rec87[(i) - (S32(1))]))))
+            vstore(dsp.rec87_perm, vload[w64](rec87_tmp, vsize))
+            vstore(dsp.rec87_perm, vload[w64](rec87_tmp, vsize + hsize), hsize)
+            vstore(rec86_tmp, vload[w64](dsp.rec86_perm))
+            vstore(rec86_tmp, vload[w64](dsp.rec86_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec86[i] = ((dsp.const406) * ((((dsp.const410) * (rec87[i])) + ((dsp.const411) * (rec87[(i) - (S32(1))]))) + ((dsp.const410) * (rec87[(i) - (S32(2))])))) - ((dsp.const412) * (((dsp.const413) * (rec86[(i) - (S32(2))])) + ((dsp.const414) * (rec86[(i) - (S32(1))]))))
+            vstore(dsp.rec86_perm, vload[w64](rec86_tmp, vsize))
+            vstore(dsp.rec86_perm, vload[w64](rec86_tmp, vsize + hsize), hsize)
+            vstore(rec85_tmp, vload[w64](dsp.rec85_perm))
+            vstore(rec85_tmp, vload[w64](dsp.rec85_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec85[i] = ((dsp.const412) * ((((dsp.const415) * (rec86[i])) + ((dsp.const416) * (rec86[(i) - (S32(1))]))) + ((dsp.const415) * (rec86[(i) - (S32(2))])))) - ((dsp.const417) * (((dsp.const418) * (rec85[(i) - (S32(2))])) + ((dsp.const419) * (rec85[(i) - (S32(1))]))))
+            vstore(dsp.rec85_perm, vload[w64](rec85_tmp, vsize))
+            vstore(dsp.rec85_perm, vload[w64](rec85_tmp, vsize + hsize), hsize)
+            vstore(zec16, (dsp.const417) * ((((dsp.const420) * (vload[w64](rec85))) + ((dsp.const421) * (vload[w64](rec85, - S32(1))))) + ((dsp.const420) * (vload[w64](rec85, - S32(2))))))
+            vstore(zec16, (dsp.const417) * ((((dsp.const420) * (vload[w64](rec85, hsize))) + ((dsp.const421) * (vload[w64](rec85, - S32(1) + hsize)))) + ((dsp.const420) * (vload[w64](rec85, - S32(2) + hsize)))), hsize)
+            vstore(rec84_tmp, vload[w64](dsp.rec84_perm))
+            vstore(rec84_tmp, vload[w64](dsp.rec84_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec84[i] = (zec16[i]) - ((dsp.const424) * (((dsp.const425) * (rec84[(i) - (S32(2))])) + ((dsp.const428) * (rec84[(i) - (S32(1))]))))
+            vstore(dsp.rec84_perm, vload[w64](rec84_tmp, vsize))
+            vstore(dsp.rec84_perm, vload[w64](rec84_tmp, vsize + hsize), hsize)
+            vstore(rec83_tmp, vload[w64](dsp.rec83_perm))
+            vstore(rec83_tmp, vload[w64](dsp.rec83_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec83[i] = ((dsp.const424) * ((((dsp.const430) * (rec84[i])) + ((dsp.const431) * (rec84[(i) - (S32(1))]))) + ((dsp.const430) * (rec84[(i) - (S32(2))])))) - ((dsp.const432) * (((dsp.const433) * (rec83[(i) - (S32(2))])) + ((dsp.const434) * (rec83[(i) - (S32(1))]))))
+            vstore(dsp.rec83_perm, vload[w64](rec83_tmp, vsize))
+            vstore(dsp.rec83_perm, vload[w64](rec83_tmp, vsize + hsize), hsize)
+            vstore(rec82_tmp, vload[w64](dsp.rec82_perm))
+            vstore(rec82_tmp, vload[w64](dsp.rec82_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec82[i] = ((dsp.const432) * ((((dsp.const436) * (rec83[i])) + ((dsp.const437) * (rec83[(i) - (S32(1))]))) + ((dsp.const436) * (rec83[(i) - (S32(2))])))) - ((dsp.const438) * (((dsp.const439) * (rec82[(i) - (S32(2))])) + ((dsp.const440) * (rec82[(i) - (S32(1))]))))
+            vstore(dsp.rec82_perm, vload[w64](rec82_tmp, vsize))
+            vstore(dsp.rec82_perm, vload[w64](rec82_tmp, vsize + hsize), hsize)
+            vstore(rec81_tmp, vload[w64](dsp.rec81_perm))
+            vstore(rec81_tmp, vload[w64](dsp.rec81_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec81[i] = ((slow8) * (rec81[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const438) * ((((dsp.const442) * (rec82[i])) + ((dsp.const443) * (rec82[(i) - (S32(1))]))) + ((dsp.const442) * (rec82[(i) - (S32(2))]))))))
+            vstore(dsp.rec81_perm, vload[w64](rec81_tmp, vsize))
+            vstore(dsp.rec81_perm, vload[w64](rec81_tmp, vsize + hsize), hsize)
+            vstore(rec94_tmp, vload[w64](dsp.rec94_perm))
+            vstore(rec94_tmp, vload[w64](dsp.rec94_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec94[i] = (zec16[i]) - ((dsp.const444) * (((dsp.const445) * (rec94[(i) - (S32(2))])) + ((dsp.const446) * (rec94[(i) - (S32(1))]))))
+            vstore(dsp.rec94_perm, vload[w64](rec94_tmp, vsize))
+            vstore(dsp.rec94_perm, vload[w64](rec94_tmp, vsize + hsize), hsize)
+            vstore(rec93_tmp, vload[w64](dsp.rec93_perm))
+            vstore(rec93_tmp, vload[w64](dsp.rec93_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec93[i] = ((dsp.const444) * ((((dsp.const448) * (rec94[i])) + ((dsp.const449) * (rec94[(i) - (S32(1))]))) + ((dsp.const448) * (rec94[(i) - (S32(2))])))) - ((dsp.const450) * (((dsp.const451) * (rec93[(i) - (S32(2))])) + ((dsp.const452) * (rec93[(i) - (S32(1))]))))
+            vstore(dsp.rec93_perm, vload[w64](rec93_tmp, vsize))
+            vstore(dsp.rec93_perm, vload[w64](rec93_tmp, vsize + hsize), hsize)
+            vstore(rec92_tmp, vload[w64](dsp.rec92_perm))
+            vstore(rec92_tmp, vload[w64](dsp.rec92_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec92[i] = ((dsp.const450) * ((((dsp.const453) * (rec93[i])) + ((dsp.const454) * (rec93[(i) - (S32(1))]))) + ((dsp.const453) * (rec93[(i) - (S32(2))])))) - ((dsp.const455) * (((dsp.const456) * (rec92[(i) - (S32(2))])) + ((dsp.const457) * (rec92[(i) - (S32(1))]))))
+            vstore(dsp.rec92_perm, vload[w64](rec92_tmp, vsize))
+            vstore(dsp.rec92_perm, vload[w64](rec92_tmp, vsize + hsize), hsize)
+            vstore(zec17, (dsp.const455) * ((((dsp.const458) * (vload[w64](rec92))) + ((dsp.const459) * (vload[w64](rec92, - S32(1))))) + ((dsp.const458) * (vload[w64](rec92, - S32(2))))))
+            vstore(zec17, (dsp.const455) * ((((dsp.const458) * (vload[w64](rec92, hsize))) + ((dsp.const459) * (vload[w64](rec92, - S32(1) + hsize)))) + ((dsp.const458) * (vload[w64](rec92, - S32(2) + hsize)))), hsize)
+            vstore(rec91_tmp, vload[w64](dsp.rec91_perm))
+            vstore(rec91_tmp, vload[w64](dsp.rec91_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec91[i] = (zec17[i]) - ((dsp.const462) * (((dsp.const463) * (rec91[(i) - (S32(2))])) + ((dsp.const466) * (rec91[(i) - (S32(1))]))))
+            vstore(dsp.rec91_perm, vload[w64](rec91_tmp, vsize))
+            vstore(dsp.rec91_perm, vload[w64](rec91_tmp, vsize + hsize), hsize)
+            vstore(rec90_tmp, vload[w64](dsp.rec90_perm))
+            vstore(rec90_tmp, vload[w64](dsp.rec90_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec90[i] = ((dsp.const462) * ((((dsp.const468) * (rec91[i])) + ((dsp.const469) * (rec91[(i) - (S32(1))]))) + ((dsp.const468) * (rec91[(i) - (S32(2))])))) - ((dsp.const470) * (((dsp.const471) * (rec90[(i) - (S32(2))])) + ((dsp.const472) * (rec90[(i) - (S32(1))]))))
+            vstore(dsp.rec90_perm, vload[w64](rec90_tmp, vsize))
+            vstore(dsp.rec90_perm, vload[w64](rec90_tmp, vsize + hsize), hsize)
+            vstore(rec89_tmp, vload[w64](dsp.rec89_perm))
+            vstore(rec89_tmp, vload[w64](dsp.rec89_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec89[i] = ((dsp.const470) * ((((dsp.const474) * (rec90[i])) + ((dsp.const475) * (rec90[(i) - (S32(1))]))) + ((dsp.const474) * (rec90[(i) - (S32(2))])))) - ((dsp.const476) * (((dsp.const477) * (rec89[(i) - (S32(2))])) + ((dsp.const478) * (rec89[(i) - (S32(1))]))))
+            vstore(dsp.rec89_perm, vload[w64](rec89_tmp, vsize))
+            vstore(dsp.rec89_perm, vload[w64](rec89_tmp, vsize + hsize), hsize)
+            vstore(rec88_tmp, vload[w64](dsp.rec88_perm))
+            vstore(rec88_tmp, vload[w64](dsp.rec88_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec88[i] = ((slow8) * (rec88[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const476) * ((((dsp.const480) * (rec89[i])) + ((dsp.const481) * (rec89[(i) - (S32(1))]))) + ((dsp.const480) * (rec89[(i) - (S32(2))]))))))
+            vstore(dsp.rec88_perm, vload[w64](rec88_tmp, vsize))
+            vstore(dsp.rec88_perm, vload[w64](rec88_tmp, vsize + hsize), hsize)
+            vstore(rec101_tmp, vload[w64](dsp.rec101_perm))
+            vstore(rec101_tmp, vload[w64](dsp.rec101_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec101[i] = (zec17[i]) - ((dsp.const482) * (((dsp.const483) * (rec101[(i) - (S32(2))])) + ((dsp.const484) * (rec101[(i) - (S32(1))]))))
+            vstore(dsp.rec101_perm, vload[w64](rec101_tmp, vsize))
+            vstore(dsp.rec101_perm, vload[w64](rec101_tmp, vsize + hsize), hsize)
+            vstore(rec100_tmp, vload[w64](dsp.rec100_perm))
+            vstore(rec100_tmp, vload[w64](dsp.rec100_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec100[i] = ((dsp.const482) * ((((dsp.const486) * (rec101[i])) + ((dsp.const487) * (rec101[(i) - (S32(1))]))) + ((dsp.const486) * (rec101[(i) - (S32(2))])))) - ((dsp.const488) * (((dsp.const489) * (rec100[(i) - (S32(2))])) + ((dsp.const490) * (rec100[(i) - (S32(1))]))))
+            vstore(dsp.rec100_perm, vload[w64](rec100_tmp, vsize))
+            vstore(dsp.rec100_perm, vload[w64](rec100_tmp, vsize + hsize), hsize)
+            vstore(rec99_tmp, vload[w64](dsp.rec99_perm))
+            vstore(rec99_tmp, vload[w64](dsp.rec99_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec99[i] = ((dsp.const488) * ((((dsp.const491) * (rec100[i])) + ((dsp.const492) * (rec100[(i) - (S32(1))]))) + ((dsp.const491) * (rec100[(i) - (S32(2))])))) - ((dsp.const493) * (((dsp.const494) * (rec99[(i) - (S32(2))])) + ((dsp.const495) * (rec99[(i) - (S32(1))]))))
+            vstore(dsp.rec99_perm, vload[w64](rec99_tmp, vsize))
+            vstore(dsp.rec99_perm, vload[w64](rec99_tmp, vsize + hsize), hsize)
+            vstore(zec18, (dsp.const493) * ((((dsp.const496) * (vload[w64](rec99))) + ((dsp.const497) * (vload[w64](rec99, - S32(1))))) + ((dsp.const496) * (vload[w64](rec99, - S32(2))))))
+            vstore(zec18, (dsp.const493) * ((((dsp.const496) * (vload[w64](rec99, hsize))) + ((dsp.const497) * (vload[w64](rec99, - S32(1) + hsize)))) + ((dsp.const496) * (vload[w64](rec99, - S32(2) + hsize)))), hsize)
+            vstore(rec98_tmp, vload[w64](dsp.rec98_perm))
+            vstore(rec98_tmp, vload[w64](dsp.rec98_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec98[i] = (zec18[i]) - ((dsp.const500) * (((dsp.const501) * (rec98[(i) - (S32(2))])) + ((dsp.const504) * (rec98[(i) - (S32(1))]))))
+            vstore(dsp.rec98_perm, vload[w64](rec98_tmp, vsize))
+            vstore(dsp.rec98_perm, vload[w64](rec98_tmp, vsize + hsize), hsize)
+            vstore(rec97_tmp, vload[w64](dsp.rec97_perm))
+            vstore(rec97_tmp, vload[w64](dsp.rec97_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec97[i] = ((dsp.const500) * ((((dsp.const506) * (rec98[i])) + ((dsp.const507) * (rec98[(i) - (S32(1))]))) + ((dsp.const506) * (rec98[(i) - (S32(2))])))) - ((dsp.const508) * (((dsp.const509) * (rec97[(i) - (S32(2))])) + ((dsp.const510) * (rec97[(i) - (S32(1))]))))
+            vstore(dsp.rec97_perm, vload[w64](rec97_tmp, vsize))
+            vstore(dsp.rec97_perm, vload[w64](rec97_tmp, vsize + hsize), hsize)
+            vstore(rec96_tmp, vload[w64](dsp.rec96_perm))
+            vstore(rec96_tmp, vload[w64](dsp.rec96_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec96[i] = ((dsp.const508) * ((((dsp.const512) * (rec97[i])) + ((dsp.const513) * (rec97[(i) - (S32(1))]))) + ((dsp.const512) * (rec97[(i) - (S32(2))])))) - ((dsp.const514) * (((dsp.const515) * (rec96[(i) - (S32(2))])) + ((dsp.const516) * (rec96[(i) - (S32(1))]))))
+            vstore(dsp.rec96_perm, vload[w64](rec96_tmp, vsize))
+            vstore(dsp.rec96_perm, vload[w64](rec96_tmp, vsize + hsize), hsize)
+            vstore(rec95_tmp, vload[w64](dsp.rec95_perm))
+            vstore(rec95_tmp, vload[w64](dsp.rec95_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec95[i] = ((slow8) * (rec95[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const514) * ((((dsp.const518) * (rec96[i])) + ((dsp.const519) * (rec96[(i) - (S32(1))]))) + ((dsp.const518) * (rec96[(i) - (S32(2))]))))))
+            vstore(dsp.rec95_perm, vload[w64](rec95_tmp, vsize))
+            vstore(dsp.rec95_perm, vload[w64](rec95_tmp, vsize + hsize), hsize)
+            vstore(rec105_tmp, vload[w64](dsp.rec105_perm))
+            vstore(rec105_tmp, vload[w64](dsp.rec105_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec105[i] = (zec18[i]) - ((dsp.const520) * (((dsp.const521) * (rec105[(i) - (S32(2))])) + ((dsp.const522) * (rec105[(i) - (S32(1))]))))
+            vstore(dsp.rec105_perm, vload[w64](rec105_tmp, vsize))
+            vstore(dsp.rec105_perm, vload[w64](rec105_tmp, vsize + hsize), hsize)
+            vstore(rec104_tmp, vload[w64](dsp.rec104_perm))
+            vstore(rec104_tmp, vload[w64](dsp.rec104_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec104[i] = ((dsp.const520) * ((((dsp.const524) * (rec105[i])) + ((dsp.const525) * (rec105[(i) - (S32(1))]))) + ((dsp.const524) * (rec105[(i) - (S32(2))])))) - ((dsp.const526) * (((dsp.const527) * (rec104[(i) - (S32(2))])) + ((dsp.const528) * (rec104[(i) - (S32(1))]))))
+            vstore(dsp.rec104_perm, vload[w64](rec104_tmp, vsize))
+            vstore(dsp.rec104_perm, vload[w64](rec104_tmp, vsize + hsize), hsize)
+            vstore(rec103_tmp, vload[w64](dsp.rec103_perm))
+            vstore(rec103_tmp, vload[w64](dsp.rec103_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec103[i] = ((dsp.const526) * ((((dsp.const529) * (rec104[i])) + ((dsp.const530) * (rec104[(i) - (S32(1))]))) + ((dsp.const529) * (rec104[(i) - (S32(2))])))) - ((dsp.const531) * (((dsp.const532) * (rec103[(i) - (S32(2))])) + ((dsp.const533) * (rec103[(i) - (S32(1))]))))
+            vstore(dsp.rec103_perm, vload[w64](rec103_tmp, vsize))
+            vstore(dsp.rec103_perm, vload[w64](rec103_tmp, vsize + hsize), hsize)
+            vstore(rec102_tmp, vload[w64](dsp.rec102_perm))
+            vstore(rec102_tmp, vload[w64](dsp.rec102_perm, hsize), hsize)
+            comptime for i in range(vsize):
+                rec102[i] = ((slow8) * (rec102[(i) - (S32(1))])) + ((slow9) * (abs((dsp.const531) * ((((dsp.const534) * (rec103[i])) + ((dsp.const535) * (rec103[(i) - (S32(1))]))) + ((dsp.const534) * (rec103[(i) - (S32(2))]))))))
+            vstore(dsp.rec102_perm, vload[w64](rec102_tmp, vsize))
+            vstore(dsp.rec102_perm, vload[w64](rec102_tmp, vsize + hsize), hsize)
+            comptime for i in range(S32(0), vsize):
+                dsp.vbargraph0 = FaustFloat((slow10) + ((2e+01) * (log10(rec7[i]))))
+                dsp.vbargraph1 = FaustFloat((slow10) + ((2e+01) * (log10(rec11[i]))))
+                dsp.vbargraph2 = FaustFloat((slow10) + ((2e+01) * (log10(rec18[i]))))
+                dsp.vbargraph3 = FaustFloat((slow10) + ((2e+01) * (log10(rec25[i]))))
+                dsp.vbargraph4 = FaustFloat((slow10) + ((2e+01) * (log10(rec32[i]))))
+                dsp.vbargraph5 = FaustFloat((slow10) + ((2e+01) * (log10(rec39[i]))))
+                dsp.vbargraph6 = FaustFloat((slow10) + ((2e+01) * (log10(rec46[i]))))
+                dsp.vbargraph7 = FaustFloat((slow10) + ((2e+01) * (log10(rec53[i]))))
+                dsp.vbargraph8 = FaustFloat((slow10) + ((2e+01) * (log10(rec60[i]))))
+                dsp.vbargraph9 = FaustFloat((slow10) + ((2e+01) * (log10(rec67[i]))))
+                dsp.vbargraph10 = FaustFloat((slow10) + ((2e+01) * (log10(rec74[i]))))
+                dsp.vbargraph11 = FaustFloat((slow10) + ((2e+01) * (log10(rec81[i]))))
+                dsp.vbargraph12 = FaustFloat((slow10) + ((2e+01) * (log10(rec88[i]))))
+                dsp.vbargraph13 = FaustFloat((slow10) + ((2e+01) * (log10(rec95[i]))))
+                dsp.vbargraph14 = FaustFloat((slow10) + ((2e+01) * (log10(rec102[i]))))
+            vstore(zec19, vload[w64](zec5))
+            vstore(zec19, vload[w64](zec5, hsize), hsize)
+            lo = (vload[w64](zec19)).cast[dfaust]()
+            hi = (vload[w64](zec19, hsize)).cast[dfaust]()
+            vstore(output0, lo.join(hi))
+            lo = (vload[w64](zec19)).cast[dfaust]()
+            hi = (vload[w64](zec19, hsize)).cast[dfaust]()
+            vstore(output1, lo.join(hi))
+            vindex += vsize
 
 # ==============================================================================
 # Faust generated DSP code end.
 # ==============================================================================
 # Second section of architecture provided code start.
-# Defines the main entry point of the application, initializes the dsp object,
-# initializes the user interface and calls the dsp runner.
+# Defines the main entry point of the application, initializes the dsp object
+# and the user interface, allocates the buffers and runs the benchmark.
 # ==============================================================================
 
 def main() raises -> None:
-    nbsamples = S32(60_000)
-    dsp = alloc[mydsp](1)
+    var dsp = alloc[mydsp](1)
     dsp[] = mydsp()
-    ctrl_gui = ControlGui()
     dsp[].init(SAMP_RATE)
-    dsp[].build_user_interface(ctrl_gui)
-    print_header(dsp[], nbsamples)
-    run_dsp(dsp, ctrl_gui, nbsamples//4)
+
+    var n_ins = dsp[].get_num_inputs()
+    var n_outs = dsp[].get_num_outputs()
+
+    var base, err = make_streams[dfaust](BUFF_SIZE, n_ins, n_outs)
+    if err:
+        print("Panic in main - Critical allocation error: ", err)
+        dsp.free()
+        return
+
+    var inputs = base.unsafe_value().bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
+    var outputs = inputs + n_ins
+
+    comptime if FILL_INPUTS:
+        fill_inputs(inputs, n_ins)
+
+    warmup(dsp[], inputs, outputs)
+    var report = measure(dsp[], inputs, outputs)
+    report.checksum = checksum_outputs(outputs, n_outs)
+    print_report(report) # the output will be redirected via script
+
+    comptime if WRITE_CSV:
+        write_csv(report)
+
+    free_streams[dfaust](base)
     dsp.free()
 
 # ==============================================================================
