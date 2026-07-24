@@ -201,6 +201,7 @@ def replace_custom_templates(cfg) -> None:
                 print(f"OK : Replaced: {target} with {template}")
             else:
                 print(f"ERROR: Template file not found: {template_path}")
+                sys.exit(cfg.ERR_INTEGRATION)
         
         print("OK: Custom templates applied successfully!")
     else:
@@ -270,7 +271,7 @@ def modify_lua_build_script(cfg) -> None:
     print("OK : Updated Lua build script with Faust include paths")
     os.chdir(original_dir)
 
-def replace_channel_config_line(cfg) -> bool:
+def replace_channel_config_line(cfg) -> None:
     """
     Replaces the entire line that sets the speaker configuration in the 
     scaffolding.{WwiseVersion_Major}\source\SoundEnginePlugin\ProjectNameSource.cpp file with a provided value.
@@ -290,7 +291,7 @@ def replace_channel_config_line(cfg) -> bool:
         lines = filepath.read_text(encoding="utf-8").splitlines(keepends=True)
     except FileNotFoundError:
         print(f"Error: File not found: {filepath}")
-        return False
+        sys.exit(cfg.ERR_INTEGRATION)
 
     for i, line in enumerate(lines):
         if anchor in line:
@@ -303,7 +304,6 @@ def replace_channel_config_line(cfg) -> bool:
 
     try:
         filepath.write_text("".join(lines), encoding="utf-8")
-        return True
     except Exception as e:
         print(f"Error writing file: {e}")
-        return False
+        sys.exit(cfg.ERR_INTEGRATION)
