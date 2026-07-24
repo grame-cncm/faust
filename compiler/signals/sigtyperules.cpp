@@ -574,7 +574,15 @@ static Type inferSigType(Tree sig, Tree env)
             }
         }
 
-        return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0, 0)));
+        // The delay amount t2 is CONSULTED to index the read : its temporality (when it
+        // is available, whether it forces a scalar read) must propagate to the result.
+        // sampCast already sets variability to kSamp (which dominates t2's), so only
+        // computability and vectorability need promoting. Nature and booleanity are value
+        // attributes : the output is a past value of t1, t2 does not contribute them.
+        Type t = sampCast(t1)
+                     ->promoteComputability(t2->computability())
+                     ->promoteVectorability(t2->vectorability());
+        return castInterval(t, itv::reunion(t1->getInterval(), interval(0, 0)));
     }
 
     else if (isSigBinOp(sig, &i, s1, s2)) {

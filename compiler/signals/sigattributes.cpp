@@ -487,7 +487,7 @@ class ComputabilityAlgebra : public SignalAlgebra<int> {
 
     // a delay does not change WHEN a value can be computed, only how fast it changes
     int Mem(const int& x) const override { return x; }
-    int Delay(const int& x, const int&) const override { return x; }
+    int Delay(const int& x, const int& n) const override { return x | n; }  // n consulted
     int Prefix(const int& x, const int& y) const override { return x | y; }
     int AssertBounds(const int&, const int&, const int& x) const override { return x; }
 
@@ -641,7 +641,7 @@ class VectorabilityAlgebra : public SignalAlgebra<int> {
     }
 
     int Mem(const int& x) const override { return x; }
-    int Delay(const int& x, const int&) const override { return x; }
+    int Delay(const int& x, const int& n) const override { return x | n; }  // n consulted
     int Prefix(const int& x, const int& y) const override { return x | y; }
     int AssertBounds(const int&, const int&, const int& x) const override { return x; }
 
