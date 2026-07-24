@@ -20,8 +20,9 @@
  ************************************************************************/
 
 // Generic attribute computation by fixed point over a symbolic recursive term.
-// See FIXPOINT-SPEC (faust-migration repo) for the full design. This header carries
-// the ASCENDING regime ; the descending probe (SolveMode::Probe) is not wired yet.
+// See FIXPOINT-SPEC (faust-migration repo) for the full design. This header carries the
+// ascending regime (Kleene + widening + narrowing), the descending probe, and the
+// three-class expression memo (invariant via the kContainsRec bit / settled / moving).
 //
 // The iterator is temporal-blind : it walks lists / rec / ref / proj itself (all tlib)
 // and delegates every VALUE to the domain's combine. It never unions -- the temporal
@@ -113,7 +114,17 @@ class FixPointIterator {
 
     // Value of an arbitrary expression against the current state. A projection is the
     // only place V and Row meet : it reads the frozen snapshot (current component) or the
-    // settled memo (lower component). Everything else recurses on branches and combines.
+    // settled memo (lower component). Everything else is memoized in one of three classes,
+    // so a shared DAG is walked once per round, not exponentially :
+    //
+    //   isRecFree(sig)               -> INVARIANT : depends on no recursion at all. A true
+    //                                   constant of the term ; permanent, computed once for
+    //                                   the whole iterator's life. O(1) test (the synthesized
+    //                                   kContainsRec bit) -- the cheapest and commonest case.
+    //   maxSccReached(sig) == scc    -> MOVING : reaches the component being solved. Changes
+    //                                   every round ; memo cleared at the start of each round.
+    //   otherwise (< scc, or top)    -> SETTLED : reaches only lower, converged components.
+    //                                   Its value is final ; permanent memo.
     V eval(Tree sig)
     {
         int  i;
@@ -128,13 +139,55 @@ class FixPointIterator {
         if (isRef(sig, id)) {
             tlib::error("ASSERT : bare recursive reference in fixpoint eval (not signals form)\n");
         }
+
+        if (sig->isRecFree()) {
+            return memoized(fInvariant, sig);
+        }
+        if (maxSccReached(sig) == fCurrentScc) {
+            return memoized(fMoving, sig);
+        }
+        return memoized(fSettled, sig);
+    }
+
+    // Look sig up in the given memo ; on a miss, compute it (recurse + combine) and store.
+    V memoized(std::unordered_map<Tree, V>& memo, Tree sig)
+    {
+        auto it = memo.find(sig);
+        if (it != memo.end()) return it->second;
         const int      ar = sig->arity();
         std::vector<V> kids;
         kids.reserve(ar);
         for (int j = 0; j < ar; ++j) {
             kids.push_back(eval(sig->branch(j)));
         }
-        return fDomain.combine(sig, kids);
+        V v      = fDomain.combine(sig, kids);
+        memo[sig] = v;
+        return v;
+    }
+
+    // Highest component id reachable from sig (structural, V-independent, memoized). A
+    // projection reaches its group's component ; a rec-free subtree reaches none (-1) ;
+    // otherwise the max over the branches.
+    int maxSccReached(Tree sig)
+    {
+        auto it = fMaxScc.find(sig);
+        if (it != fMaxScc.end()) return it->second;
+        int  r;
+        int  i;
+        Tree group;
+        if (isProj(sig, i, group)) {
+            r = fPlan.sccOf(group);
+        } else if (sig->isRecFree()) {
+            r = -1;
+        } else {
+            r                = -1;
+            const int ar     = sig->arity();
+            for (int j = 0; j < ar; ++j) {
+                r = std::max(r, maxSccReached(sig->branch(j)));
+            }
+        }
+        fMaxScc[sig] = r;
+        return r;
     }
 
     // Body list of a component member, with the signals-form check.
@@ -224,6 +277,7 @@ class FixPointIterator {
 
         fCurrentScc    = scc;
         fCurrentApprox = approx;  // one descending step against the seed
+        fMoving.clear();          // seed differs from any prior snapshot
 
         bool certified = true;
         {
@@ -267,6 +321,7 @@ class FixPointIterator {
                     bool applyWiden)
     {
         fCurrentApprox = approx;  // frozen : eval reads only this during the round
+        fMoving.clear();          // moving values depend on the snapshot that just changed
 
         std::unordered_map<Tree, Row> fresh;
         for (Tree x : members) {
@@ -305,6 +360,13 @@ class FixPointIterator {
 
     std::unordered_map<Tree, Row> fCurrentApprox;  ///< frozen snapshot of the current cycle
     std::unordered_map<Tree, Row> fSettledVars;    ///< converged components, permanent
+
+    // Expression memos (see eval). Invariant/settled are permanent ; moving is cleared
+    // at the start of every round. maxSccReached is a permanent structural memo.
+    std::unordered_map<Tree, V>   fInvariant;  ///< rec-free : the cheap kContainsRec fast path
+    std::unordered_map<Tree, V>   fSettled;    ///< reaches only lower, converged components
+    std::unordered_map<Tree, V>   fMoving;     ///< reaches the current component
+    std::unordered_map<Tree, int> fMaxScc;     ///< memo of maxSccReached
 };
 
 #endif
