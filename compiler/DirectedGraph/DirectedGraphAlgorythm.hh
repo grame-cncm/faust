@@ -105,7 +105,11 @@ class Tarjan {
         }
     }
 
-    [[nodiscard]] const std::set<std::set<N>>& partition() const { return fPartition; }
+    // Returns a REFERENCE into this Tarjan. The deleted rvalue overload rejects
+    // 'Tarjan<N>(g).partition()' at compile time -- that reference would dangle as soon
+    // as the temporary Tarjan dies. Name the Tarjan first.
+    [[nodiscard]] const std::set<std::set<N>>& partition() const& { return fPartition; }
+    const std::set<std::set<N>>&               partition() const&& = delete;
 
     [[nodiscard]] int cycles() const { return fCycleCount; }
 };

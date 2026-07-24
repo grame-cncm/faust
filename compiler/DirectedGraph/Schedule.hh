@@ -43,8 +43,10 @@ class schedule {
     // number of elements in the schedule
     [[nodiscard]] size_t size() const { return fElements.size(); }
 
-    // the vector of elements (for iterations)
-    [[nodiscard]] const std::vector<N>& elements() const { return fElements; }
+    // the vector of elements (for iterations). Returns a REFERENCE into this schedule :
+    // the deleted rvalue overload rejects 'f(...).elements()' at compile time.
+    [[nodiscard]] const std::vector<N>& elements() const& { return fElements; }
+    const std::vector<N>&               elements() const&& = delete;
 
     // the order of an element in the schedule (starting from 1)
     [[nodiscard]] int order(const N& n) const
