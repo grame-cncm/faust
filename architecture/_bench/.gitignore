@@ -20,3 +20,6 @@ report/*
 
 # mojo architecture packages
 ./arch/mojo/pkg/
+
+# archives
+*.zip
