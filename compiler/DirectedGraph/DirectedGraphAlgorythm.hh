@@ -81,7 +81,7 @@ class Tarjan {
             std::set<N> cycle;
             bool        finished = false;
             do {
-                const N& w = fStack.top();
+                N w = fStack.top();
                 fStack.pop();
                 fAux[w].fStacked = false;
                 cycle.insert(w);
