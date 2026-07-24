@@ -64,7 +64,12 @@ class FixPointDomain {
     virtual int maxIterations() const { return INT_MAX; }
     virtual int maxNarrowingIterations() const { return 0; }
 
+    // Descending probe (third regime). probeSeed returns the seed of a variable (e.g.
+    // [0,+BIG]) or nullopt to skip probing. After a probe, the iterator reports, per
+    // branch, the probed value and whether the WHOLE SCC certified (F#(P_C) ⊑ P_C on the
+    // full product). The domain records it and consumes it in widen(var, …).
     virtual std::optional<V> probeSeed(Tree var) const { return std::nullopt; }
+    virtual void recordProbe(Tree var, const V& probed, bool sccCertified) const {}
 };
 
 template <typename V>
@@ -101,7 +106,8 @@ class FixPointIterator {
         fSolved                                       = true;
         const std::vector<std::vector<Tree>>& comps   = fPlan.components();
         for (int c = 0; c < static_cast<int>(comps.size()); ++c) {
-            solveComponent(c);
+            probeComponent(c);    // descending probe first : certificate + thresholds
+            solveComponent(c);    // then the real ascending pass, guided by the probe
         }
     }
 
@@ -188,6 +194,68 @@ class FixPointIterator {
 
         for (Tree x : members) {
             fSettledVars[x] = approx[x];
+        }
+        fCurrentScc = -1;
+        fCurrentApprox.clear();
+    }
+
+    // Descending probe of a component (SolveMode::Probe). Seed every branch at
+    // probeSeed, take ONE step, and certify at the SCC level : the seed product is a
+    // post-fixpoint iff F#(seed) ⊑ seed on EVERY branch. If certified, narrow (bounded)
+    // to tighten the thresholds. Report per branch to the domain. Never writes
+    // fSettledVars -- the probe informs, it does not compute the real value.
+    void probeComponent(int scc)
+    {
+        const std::vector<Tree>& members = fPlan.components()[scc];
+
+        std::unordered_map<Tree, Row> approx;
+        for (Tree x : members) {
+            Tree      body = bodyOf(x);
+            const int k    = len(body);
+            Row       row;
+            row.reserve(k);
+            for (int b = 0; b < k; ++b) {
+                std::optional<V> seed = fDomain.probeSeed(proj(b, x));
+                if (!seed) return;  // this component opts out of probing
+                row.push_back(*seed);
+            }
+            approx[x] = std::move(row);
+        }
+
+        fCurrentScc    = scc;
+        fCurrentApprox = approx;  // one descending step against the seed
+
+        bool certified = true;
+        {
+            std::unordered_map<Tree, Row> fresh;
+            for (Tree x : members) {
+                Tree      body = bodyOf(x);
+                const int k    = len(body);
+                Row       row(k);
+                for (int b = 0; b < k; ++b) {
+                    row[b] = eval(nth(body, b));
+                    if (!fDomain.lessEqual(row[b], approx[x][b])) certified = false;
+                }
+                fresh[x] = std::move(row);
+            }
+            approx = std::move(fresh);
+        }
+
+        // If certified, [seed] is a post-fixpoint : narrow further to tighten thresholds.
+        if (certified) {
+            int  narrow = 0;
+            bool ndone  = false;
+            while (!ndone && narrow < fDomain.maxNarrowingIterations()) {
+                ++narrow;
+                ndone = jacobiStep(members, approx, /*applyWiden*/ false);
+            }
+        }
+
+        for (Tree x : members) {
+            const Row& row = approx[x];
+            for (int b = 0; b < static_cast<int>(row.size()); ++b) {
+                fDomain.recordProbe(proj(b, x), row[b], certified);
+            }
         }
         fCurrentScc = -1;
         fCurrentApprox.clear();
