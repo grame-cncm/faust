@@ -34,7 +34,7 @@
 inline namespace mojo {
 
 using MathLibTable = std::unordered_map<String, String>;
-using FuncSymTable = std::unordered_map<String, bool>;
+using FuncSymTable = std::unordered_map<String, b32>;
 
 /**
     A `MojoInstVisitor` is a `TextInstVisitor` for the mojo backend.
@@ -157,17 +157,18 @@ public:
     static inline constexpr DType DType_f32    = 1;
     static inline constexpr DType DType_f64    = 2;
     static inline constexpr DType DType_dfaust = 3;
-
-    static inline constexpr VString dtype_widths[] = { "w32", "w32", "w64", "wfaust" };
+    static inline constexpr DType DType_bool   = 3;
 
     static DType getMojoDType(ValueInst* value);
 
     // Enable base class operations
     using MojoInstVisitor::visit;
 
-    MojoVecInstVisitor(OStream* out, String const& structName, int tab = 0);
+    MojoVecInstVisitor(OStream* out, String const& structName, s32 tab = 0);
     virtual ~MojoVecInstVisitor();
 
+    void visit(BinopInst* inst)      override;
+    void visit(BoolNumInst* inst)    override;
     void visit(CastInst* inst)       override;
     void visit(DoubleNumInst* inst)  override;
     void visit(DeclareVarInst* inst) override;
@@ -175,16 +176,32 @@ public:
     void visit(ForLoopInst* inst)    override;
     void visit(IndexedAddress* inst) override;
     void visit(Int32NumInst* inst)   override;
+    void visit(LoadVarInst* inst)    override
+    {
+        b32 saved_force_width = gUseWidth;
+        mj_simd_emit_check();
+        Typed::VarType type = TypingVisitor::getType(inst);
+        if (Typed::isPtrType(type)) {
+            type = Typed::getTypeFromPtr(type);
+        }
+        if (Typed::isVecType(type)) {
+            type = Typed::getTypeFromVec(type);
+        }
+        gUseWidth = not gCurWidth.empty() && (type == Typed::kInt32 || type == Typed::kFloatMacro);
+        MojoInstVisitor::visit(inst);
+        gUseWidth = saved_force_width;
+    }
     void visit(NamedAddress* inst)   override;
     void visit(IfInst* inst)         override;
 
     // Global state
     static inline b32      gSIMDEmit;
-    static inline b32      gSIMDJoin;
+    static inline b32      gSIMDWide;
     static inline s32      gSIMDSize;
     static inline String   gCurAddrs;
     static inline String   gCurWidth;
     static inline Address* gCurIndex;
+    static inline b32      gUseWidth;
 
 protected:
     // Visitor wrappers
@@ -195,7 +212,7 @@ protected:
     void visitBargraphMulti(ForLoopInst* inst);
     void visitJoin(StoreVarInst* inst);
     void visitStore(StoreVarInst* inst);
-    void visitUnroll(StoreVarInst* inst);
+    void visitSplit(StoreVarInst* inst);
     b32  visitIndex(ValueInst* inst);
 
     // Helpers

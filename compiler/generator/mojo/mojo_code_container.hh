@@ -37,7 +37,7 @@ inline namespace mojo {
 using Factory     = dsp_factory_base;
 using TextFactory = text_dsp_factory_aux;
 
-inline MojoInstVisitor* gScalarProducer;
+inline MojoInstVisitor*    gScalarProducer;
 inline MojoVecInstVisitor* gVectorProducer;
 
 /**
@@ -64,7 +64,7 @@ protected:
     MojoCodeContainer() = default;
 
 public:
-    MojoCodeContainer(String const& name, int numInputs, int numOutputs, OStream* out);
+    MojoCodeContainer(String const& name, s32 numInputs, s32 numOutputs, OStream* out);
     virtual ~MojoCodeContainer();
 
     // Public producers
@@ -73,33 +73,33 @@ public:
     void     produceInternal() override;
 
     // Factories
-    CodeContainer*        createScalarContainer(String const& name, int subContKind) override;
-    static CodeContainer* createContainer(String const& name, int numInputs, int numOutputs,
+    CodeContainer*        createScalarContainer(String const& name, s32 subContKind) override;
+    static CodeContainer* createContainer(String const& name, s32 numInputs, s32 numOutputs,
                                           OStream* out = new OString());
 
 protected:
     // Writers
     void writeFaustHeader();
     void writeDRealDefinitions();
-    void writeClassHeaderAndFields(int n);
-    void writeGlobalVariablesInlined(int n);
-    void writeDefaultConstructor(int n);
-    void writeGlobalVariablesInitializations(int n);
-    void writeGetSampleRate(int n);
-    void writeGetInputs(int n);
-    void writeGetOutputs(int n);
-    void writeClassInit(int n);
-    void writeInstanceConstants(int n);
-    void writeInstanceResetUserInterface(int n);
-    void writeInstanceClear(int n);
-    void writeInstanceInit(int n);
-    void writeInit(int n);
-    void writeInitFunctions(int n);
-    void writeGetJson(int n);
-    void writeMetadataFunc(int n);
-    void writeBuildUserInterface(int n);
+    void writeClassHeaderAndFields(s32 n);
+    void writeGlobalVariablesInlined(s32 n);
+    void writeDefaultConstructor(s32 n);
+    void writeGlobalVariablesInitializations(s32 n);
+    void writeGetSampleRate(s32 n);
+    void writeGetInputs(s32 n);
+    void writeGetOutputs(s32 n);
+    void writeClassInit(s32 n);
+    void writeInstanceConstants(s32 n);
+    void writeInstanceResetUserInterface(s32 n);
+    void writeInstanceClear(s32 n);
+    void writeInstanceInit(s32 n);
+    void writeInit(s32 n);
+    void writeInitFunctions(s32 n);
+    void writeGetJson(s32 n);
+    void writeMetadataFunc(s32 n);
+    void writeBuildUserInterface(s32 n);
 
-    virtual void writeCompute(int n) = 0;
+    virtual void writeCompute(s32 n) = 0;
 };
 
 /**
@@ -114,11 +114,11 @@ protected:
 **/
 class MojoScalarCodeContainer : public MojoCodeContainer {
 public:
-    MojoScalarCodeContainer(String const& name, int numInputs, int numOutputs,
-                            OStream* out, int subContKind);
+    MojoScalarCodeContainer(String const& name, s32 numInputs, s32 numOutputs,
+                            OStream* out, s32 subContKind);
     virtual ~MojoScalarCodeContainer();
 protected:
-    void writeCompute(int n) override;
+    void writeCompute(s32 n) override;
 };
 
 /**
@@ -133,10 +133,10 @@ protected:
 **/
 class MojoVecCodeContainer : public VectorCodeContainer, public MojoCodeContainer {
 public:
-    MojoVecCodeContainer(const String& name, int numInputs, int numOutputs, OStream* out);
+    MojoVecCodeContainer(const String& name, s32 numInputs, s32 numOutputs, OStream* out);
     virtual ~MojoVecCodeContainer();
 protected:
-    void writeCompute(int tab) override;
+    void writeCompute(s32 tab) override;
 };
 
 };      // namespace mojo

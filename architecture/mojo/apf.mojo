@@ -1,19 +1,21 @@
 # ==============================================================================
-# Faust to Mojo architecture file for the benchmark framework integration.
-# Provides the definitons and the main entry point to run the dsp code in
-# several batches and print the write the report to `.tab` and `.csv` files 
+# Faust to Mojo impulse architecture for the impulse-tests integration.
+# Provides the definitions and the main entry point to run the dsp, and print
+# the samples to stdout. The impulse-tests framework will generate the impulse
+# responses redirecting the output to the `.ir` files.
 # ==============================================================================
 # First section of architecture provided code start.
 # Imports the modules and the definitions of the architecture code.
 # ==============================================================================
 
 from conf import *
-from help import *
 from mem import *
-from bench import *
 from dsp import *
 from gui import *
 from meta import *
+from help import *
+from test.impulse import *
+from gui.control import ControlGui
 
 # ==============================================================================
 # First section of architecture provided code end.
@@ -21,14 +23,14 @@ from meta import *
 # Code generated with Faust 2.85.5 (https://faust.grame.fr)
 # name: "apf"
 # Compilation options: 
-#   -a bench.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
+#   -a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 
 #   -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs
 # ==============================================================================
 
 comptime dreal = f64
 comptime wreal = simd_width_of[dreal]()
 comptime Real = Scalar[dreal]
-comptime RVec = Vec[dreal]
+comptime RVec = SIMD[dreal, simd_width_of[dreal]()]
 
 @fieldwise_init
 struct mydsp(FaustDsp):
@@ -94,11 +96,11 @@ struct mydsp(FaustDsp):
 
     @always_inline
     def get_json(imm dsp) -> String:
-        return "{\"name\": \"apf\",\"filename\": \"apf.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a bench.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"library_list\": [\"/usr/local/share/faust/maxmsp.lib\",\"/usr/local/share/faust/maths.lib\",\"/usr/local/share/faust/platform.lib\"],\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench/src\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/_bench/src\"],\"size\": 60,\"inputs\": 1,\"outputs\": 1,\"meta\": [ { \"compile_options\": \"-a bench.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"apf.dsp\" },{ \"maths.lib/author\": \"GRAME\" },{ \"maths.lib/copyright\": \"GRAME\" },{ \"maths.lib/license\": \"LGPL with exception\" },{ \"maths.lib/name\": \"Faust Math Library\" },{ \"maths.lib/version\": \"2.9.0\" },{ \"maxmsp.lib/author\": \"GRAME\" },{ \"maxmsp.lib/copyright\": \"GRAME\" },{ \"maxmsp.lib/license\": \"LGPL with exception\" },{ \"maxmsp.lib/name\": \"MaxMSP compatibility Library\" },{ \"maxmsp.lib/version\": \"1.1.0\" },{ \"name\": \"apf\" },{ \"platform.lib/name\": \"Generic Platform Library\" },{ \"platform.lib/version\": \"1.3.0\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"apf\",\"items\": [ {\"type\": \"hslider\",\"label\": \"Freq\",\"varname\": \"fHslider0\",\"shortname\": \"Freq\",\"address\": \"/apf/Freq\",\"init\": 1000,\"min\": 100,\"max\": 10000,\"step\": 1},{\"type\": \"hslider\",\"label\": \"Q\",\"varname\": \"fHslider1\",\"shortname\": \"Q\",\"address\": \"/apf/Q\",\"init\": 1,\"min\": 0.01,\"max\": 100,\"step\": 0.01}]}]}"
+        return "{\"name\": \"apf\",\"filename\": \"apf.dsp\",\"version\": \"2.85.5\",\"compile_options\": \"-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\",\"library_list\": [\"/usr/local/share/faust/maxmsp.lib\",\"/usr/local/share/faust/maths.lib\",\"/usr/local/share/faust/platform.lib\"],\"include_pathnames\": [\"/Users/manuelfarzini/Personal/dev/repo/faust/build/share/faust\",\"/usr/local/share/faust\",\"/usr/share/faust\",\"src\",\"/Users/manuelfarzini/Personal/dev/repo/faust/architecture/mojo/src\"],\"size\": 60,\"inputs\": 1,\"outputs\": 1,\"meta\": [ { \"compile_options\": \"-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs\" },{ \"filename\": \"apf.dsp\" },{ \"maths.lib/author\": \"GRAME\" },{ \"maths.lib/copyright\": \"GRAME\" },{ \"maths.lib/license\": \"LGPL with exception\" },{ \"maths.lib/name\": \"Faust Math Library\" },{ \"maths.lib/version\": \"2.9.0\" },{ \"maxmsp.lib/author\": \"GRAME\" },{ \"maxmsp.lib/copyright\": \"GRAME\" },{ \"maxmsp.lib/license\": \"LGPL with exception\" },{ \"maxmsp.lib/name\": \"MaxMSP compatibility Library\" },{ \"maxmsp.lib/version\": \"1.1.0\" },{ \"name\": \"apf\" },{ \"platform.lib/name\": \"Generic Platform Library\" },{ \"platform.lib/version\": \"1.3.0\" }],\"ui\": [ {\"type\": \"vgroup\",\"label\": \"apf\",\"items\": [ {\"type\": \"hslider\",\"label\": \"Freq\",\"varname\": \"fHslider0\",\"shortname\": \"Freq\",\"address\": \"/apf/Freq\",\"init\": 1000,\"min\": 100,\"max\": 10000,\"step\": 1},{\"type\": \"hslider\",\"label\": \"Q\",\"varname\": \"fHslider1\",\"shortname\": \"Q\",\"address\": \"/apf/Q\",\"init\": 1,\"min\": 0.01,\"max\": 100,\"step\": 0.01}]}]}"
 
     @always_inline
     def metadata(imm dsp, mut meta: Some[FaustMeta]) -> None:
-        meta.declare("compile_options", "-a bench.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
+        meta.declare("compile_options", "-a impulse.mojo -lang mojo -fpga-mem-th 4 -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -double -ftz 0 -vec -lv 0 -vs 4 -dfs")
         meta.declare("filename", "apf.dsp")
         meta.declare("maths.lib/author", "GRAME")
         meta.declare("maths.lib/copyright", "GRAME")
@@ -124,8 +126,9 @@ struct mydsp(FaustDsp):
     @always_inline
     def compute(mut dsp, var count: S32, var inputs: ImmStreams, var outputs: MutStreams) -> None:
         comptime assert dfaust == DType.float32, "Expected 32 bit float driver precision."
-        comptime vsize = S32(4)
-        comptime hsize = S32(2)
+        comptime vsize = S32(simd_width_of[f32]())
+        comptime wsize = S32(simd_width_of[f64]())
+        comptime W = simd_width_of[f64]()
         var vindex = S32(0)
         var end = count - vsize
         var lo: SIMD[dfaust, simd_width_of[f64]()]
@@ -143,15 +146,15 @@ struct mydsp(FaustDsp):
         while vindex <= end:
             var input0 = Ptr(to=input0_ptr[vindex])
             var output0 = Ptr(to=output0_ptr[vindex])
-            vstore(rec0_tmp, vload[w64](dsp.rec0_perm))
-            vstore(rec0_tmp, vload[w64](dsp.rec0_perm, hsize), hsize)
+            vstore(rec0_tmp, vload(dsp.rec0_perm))
+            vstore(rec0_tmp, vload(dsp.rec0_perm, wsize), wsize)
             comptime for i in range(vsize):
                 zec0[i] = (slow4) * (rec0[(i) - (S32(1))])
                 rec0[i] = (F64(input0[i])) - ((slow2) * (((slow3) * (rec0[(i) - (S32(2))])) - (zec0[i])))
-            vstore(dsp.rec0_perm, vload[w64](rec0_tmp, vsize))
-            vstore(dsp.rec0_perm, vload[w64](rec0_tmp, vsize + hsize), hsize)
-            lo = ((vload[w64](rec0, - S32(2))) + ((slow2) * (((slow3) * (vload[w64](rec0))) - (vload[w64](zec0))))).cast[dfaust]()
-            hi = ((vload[w64](rec0, - S32(2) + hsize)) + ((slow2) * (((slow3) * (vload[w64](rec0, hsize))) - (vload[w64](zec0, hsize))))).cast[dfaust]()
+            vstore(dsp.rec0_perm, vload(rec0_tmp, vsize))
+            vstore(dsp.rec0_perm, vload(rec0_tmp, vsize + wsize), wsize)
+            lo = ((vload(rec0, - S32(2))) + ((slow2) * (((slow3) * (vload(rec0))) - (vload(zec0))))).cast[dfaust]()
+            hi = ((vload(rec0, - S32(2) + wsize)) + ((slow2) * (((slow3) * (vload(rec0, wsize))) - (vload(zec0, wsize))))).cast[dfaust]()
             vstore(output0, lo.join(hi))
             vindex += vsize
 
@@ -159,39 +162,19 @@ struct mydsp(FaustDsp):
 # Faust generated DSP code end.
 # ==============================================================================
 # Second section of architecture provided code start.
-# Defines the main entry point of the application, initializes the dsp object
-# and the user interface, allocates the buffers and runs the benchmark.
+# Defines the main entry point of the application, initializes the dsp object,
+# initializes the user interface and calls the dsp runner.
 # ==============================================================================
 
 def main() raises -> None:
-    var dsp = alloc[mydsp](1)
+    nbsamples = S32(60_000)
+    dsp = alloc[mydsp](1)
     dsp[] = mydsp()
+    ctrl_gui = ControlGui()
     dsp[].init(SAMP_RATE)
-
-    var n_ins = dsp[].get_num_inputs()
-    var n_outs = dsp[].get_num_outputs()
-
-    var base, err = make_streams[dfaust](BUFF_SIZE, n_ins, n_outs)
-    if err:
-        print("Panic in main - Critical allocation error: ", err)
-        dsp.free()
-        return
-
-    var inputs = base.unsafe_value().bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
-    var outputs = inputs + n_ins
-
-    comptime if FILL_INPUTS:
-        fill_inputs(inputs, n_ins)
-
-    warmup(dsp[], inputs, outputs)
-    var report = measure(dsp[], inputs, outputs)
-    report.checksum = checksum_outputs(outputs, n_outs)
-    print_report(report) # the output will be redirected via script
-
-    comptime if WRITE_CSV:
-        write_csv(report)
-
-    free_streams[dfaust](base)
+    dsp[].build_user_interface(ctrl_gui)
+    print_header(dsp[], nbsamples)
+    run_dsp(dsp, ctrl_gui, nbsamples//4)
     dsp.free()
 
 # ==============================================================================

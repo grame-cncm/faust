@@ -79,7 +79,7 @@ void MojoCodeContainer::writeDRealDefinitions()
     }
     *fOut << "comptime wreal = simd_width_of[dreal]()\n";
     *fOut << "comptime Real = Scalar[dreal]\n";
-    *fOut << "comptime RVec = Vec[dreal]\n";
+    *fOut << "comptime RVec = SIMD[dreal, simd_width_of[dreal]()]\n";
 }
 
 void MojoCodeContainer::writeGlobalVariablesInlined(int n)
@@ -436,8 +436,9 @@ void MojoVecCodeContainer::writeCompute(int n)
     n += 1;
     gVectorProducer->Tab(n);
     *fOut << wnextl(n) <<R"(comptime assert dfaust == DType.float32, "Expected 32 bit float driver precision.")";
-    *fOut << wnextl(n) << "comptime vsize = S32(" << gVectorProducer->gSIMDSize << ")";
-    *fOut << wnextl(n) << "comptime hsize = S32(" << gVectorProducer->gSIMDSize / 2 << ")";
+    *fOut << wnextl(n) << "comptime vsize = S32(simd_width_of[f32]())";
+    *fOut << wnextl(n) << "comptime wsize = S32(simd_width_of[f64]())";
+    *fOut << wnextl(n) << "comptime W = simd_width_of[f64]()";
     *fOut << wnextl(n) << "var vindex = S32(0)";
     *fOut << wnextl(n) << "var end = count - vsize";
     *fOut << wnextl(n) << "var lo: SIMD[dfaust, simd_width_of[f64]()]";

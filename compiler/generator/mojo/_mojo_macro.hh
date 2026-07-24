@@ -24,119 +24,59 @@
 #ifndef _MOJO_MACRO_HH
 #define _MOJO_MACRO_HH
 
-#ifndef mj_debug_msg
-    #define mj_debug_msg(out, ...) \
-         out << "\n======== DEBUG - " << __VA_ARGS__ << " =========\n"
-#endif
+#include "_mojo_hal.hh"
 
-#ifndef mj_error_msg
-    #define mj_error_msg(out, ...) \
-        out << "\n======== ERROR - " << __VA_ARGS__ << " =========\n"
-#endif
+#define mj_debug_msg(out, ...) out << "\n======== DEBUG - " << __VA_ARGS__ << " =========\n"
+#define mj_error_msg(out, ...) out << "\n======== ERROR - " << __VA_ARGS__ << " =========\n"
+#define mj_panic_msg(out, ...) out << "\n======== PANIC - " << __VA_ARGS__ << " =========\n"
 
-#ifndef mj_debug_fir
-    #define mj_debug_fir(out, inst, msg)      \
-        mj_debug_msg(out, "FIR DUMP - " msg); \
-        dump2FIR(inst, out, false);           \
-        out << "\n"
-#endif
+#define mj_debug_fir(out, inst, msg)      \
+    mj_debug_msg(out, "FIR DUMP - " msg); \
+    dump2FIR(inst, out, false);           \
+    out << "\n"
 
-#ifndef mj_panic_msg
-    #define mj_panic_msg(out, msg) \
-        out << "\n======== PANIC - " << msg << " =========\n"
-#endif
+#define mj_panic(cond, ...)                   \
+    if (!(cond)) {                            \
+        mj_panic_msg(std::cerr, __VA_ARGS__); \
+        faustassert(cond);                    \
+        mj_unreachable();                     \
+    }
 
-#ifndef mj_panic
-    #define mj_panic(cond, msg)           \
-        if (!(cond)) {                    \
-            mj_panic_msg(std::cerr, msg); \
-            faustassert(cond);            \
-            mj_unreachable();             \
-        }
-#endif
+#define mj_unused(x) ((void)(x))
+#define mj_noimpl(out, msg) mj_error_msg(out, msg " is not implemented");
+#define mj_noimpl1(out, msg, x) \
+    mj_unused(x); mj_noimpl(out, msg)
+#define mj_noimpl2(out, msg, x, y) \
+    mj_unused(x); mj_unused(y); mj_noimpl(out, msg)
+#define mj_noimpl3(out, msg, x, y, z) \
+    mj_unused(x); mj_unused(y); mj_unused(z); mj_noimpl(out, msg)
+#define mj_noimpl4(out, msg, x, y, z, w) \
+    mj_unused(x); mj_unused(y); mj_unused(z); mj_unused(w); mj_noimpl(out, msg)
+#define mj_noimpl5(out, msg, x, y, z, w, v) \
+    mj_unused(x); mj_unused(y); mj_unused(z); mj_unused(w); mj_unused(v); mj_noimpl(out, msg)
+#define mj_noimpl6(out, msg, x, y, z, w, v, u) \
+    mj_unused(x); mj_unused(y); mj_unused(z); mj_unused(w); mj_unused(v); mj_unused(u); mj_noimpl(out, msg)
 
-#ifndef mj_unused
-    #define mj_unused(x) ((void)(x))
-#endif
+#define dycast(T, x) dynamic_cast<T>(x)
+#define recast(T, x) reinterpret_cast<T>(x)
 
-#ifndef mj_noimpl
-    #define mj_noimpl(out, msg) \
-        mj_error_msg(out, msg " is not implemented");
-#endif
+#define mj_simd_emit_check() \
+    if (not gSIMDEmit) return MojoInstVisitor::visit(inst);
 
-#ifndef mj_noimpl1
-    #define mj_noimpl1(out, msg, x) \
-        mj_unused(x); mj_noimpl(out, msg)
-#endif
+#define mj_simd_emit_set(b)    b32 old_simd_emit = gSIMDEmit; gSIMDEmit = b
+#define mj_simd_emit_restore() gSIMDEmit = old_simd_emit
 
-#ifndef mj_noimpl2
-    #define mj_noimpl2(out, msg, x, y) \
-        mj_unused(x); mj_unused(y); mj_noimpl(out, msg)
-#endif
+#define mj_simd_wide_set(b)    b32 old_simd_wide = gSIMDWide; gSIMDWide = b
+#define mj_simd_wide_restore() gSIMDWide = old_simd_wide
 
-#ifndef mj_noimpl3
-    #define mj_noimpl3(out, msg, x, y, z) \
-        mj_unused(x); mj_unused(y); mj_unused(z); mj_noimpl(out, msg)
-#endif
+#define mj_simd_emit_accept(_inst_) \
+    mj_simd_emit_set(true); _inst_->accept(this); mj_simd_emit_restore()
+#define mj_scalar_accept(_inst_) \
+    mj_simd_emit_set(false); _inst_->accept(this); mj_simd_emit_restore()
+#define mj_simd_wide_accept(_inst_) \
+    mj_simd_wide_set(true); _inst_->accept(this); mj_simd_wide_restore()
 
-#ifndef mj_noimpl4
-    #define mj_noimpl4(out, msg, x, y, z, w) \
-        mj_unused(x); mj_unused(y); mj_unused(z); mj_unused(w); mj_noimpl(out, msg)
-#endif
-
-#ifndef mj_noimpl5
-    #define mj_noimpl5(out, msg, x, y, z, w, v) \
-        mj_unused(x); mj_unused(y); mj_unused(z); mj_unused(w); mj_unused(v); mj_noimpl(out, msg)
-#endif
-
-#ifndef mj_noimpl6
-    #define mj_noimpl6(out, msg, x, y, z, w, v, u) \
-        mj_unused(x); mj_unused(y); mj_unused(z); mj_unused(w); mj_unused(v); mj_unused(u); mj_noimpl(out, msg)
-#endif
-
-#ifndef dycast
-    #define dycast(T, x) dynamic_cast<T>(x)
-#endif
-#ifndef recast
-    #define recast(T, x) reinterpret_cast<T>(x)
-#endif
-
-#ifndef mj_simd_emit_check
-    #define mj_simd_emit_check()                 \
-        if (not gSIMDEmit) {                     \
-            return MojoInstVisitor::visit(inst); \
-        }
-#endif
-#ifndef mj_simd_emit_set
-    #define mj_simd_emit_set(b)        \
-        b32 old_emit_simd = gSIMDEmit; \
-        gSIMDEmit = b
-#endif
-#ifndef mj_simd_emit_restore
-    #define mj_simd_emit_restore() gSIMDEmit = old_emit_simd
-#endif
-
-#ifndef mj_simd_join_set
-    #define mj_simd_join_set(b)        \
-        b32 old_join_simd = gSIMDJoin; \
-        gSIMDJoin = b
-#endif
-#ifndef mj_simd_join_restore
-    #define mj_simd_join_restore() gSIMDJoin = old_join_simd
-#endif
-
-#ifndef mj_scalar_visit
-    #define mj_scalar_visit(_inst_)     \
-        mj_simd_emit_set(false);        \
-        MojoInstVisitor::visit(_inst_); \
-        mj_simd_emit_restore()
-#endif
-
-#ifndef mj_scalar_accept
-    #define mj_scalar_accept(_inst_) \
-        mj_simd_emit_set(false);     \
-        _inst_->accept(this);        \
-        mj_simd_emit_restore()
-#endif
+#define mj_scalar_visit(_inst_)     \
+    mj_simd_emit_set(false); MojoInstVisitor::visit(_inst_); mj_simd_emit_restore()
 
 #endif  // _MOJO_MACRO_HH

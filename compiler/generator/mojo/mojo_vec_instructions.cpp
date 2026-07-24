@@ -38,11 +38,12 @@ MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, String const& structName, i
     : BaseVisitor(out, structName, tab)
 {
     gSIMDEmit = false;
-    gSIMDJoin = false;
+    gSIMDWide = false;
     gSIMDSize = gGlobal->gVecSize;
     gCurAddrs = "";
     gCurWidth = "";
     gCurIndex = nullptr;
+    gUseWidth = false;
 }
 
 MojoVecInstVisitor::~MojoVecInstVisitor() {}
@@ -53,6 +54,11 @@ void VecVisitor::visit(IfInst* inst)
 void VecVisitor::visit(Int32NumInst* inst)
 {
     mj_simd_emit_check(); *fOut << "S32Vec(" << inst->fNum << ")";
+}
+
+void VecVisitor::visit(BoolNumInst* inst)
+{
+    mj_simd_emit_check(); *fOut << "S32Vec(" << checkFloat(inst->fNum) << ")";
 }
 
 void VecVisitor::visit(DoubleNumInst* inst)
@@ -85,6 +91,12 @@ void VecVisitor::visit(CastInst* inst)
 {
     mj_simd_emit_check();
     Typed::VarType type = inst->fType->getType();
+    if (auto* binop = dycast(BinopInst*, inst->fInst)) {
+        if (isBoolOpcode(binop->fOpcode)) {
+            inst->fInst->accept(this);
+            return;
+        }
+    }
     *fOut << "(";
     inst->fInst->accept(this);
     switch (type) {
@@ -94,6 +106,23 @@ void VecVisitor::visit(CastInst* inst)
         case Typed::kInt32:      *fOut << ").cast[s32]()";    break;
         default:
             mj_panic(false, "`inst` has unexpected type " << Typed::gTypeString[type]);
+    }
+}
+
+void VecVisitor::visit(BinopInst* inst)
+{
+    mj_simd_emit_check();
+    b32 is_cmp = isBoolOpcode(inst->fOpcode);
+    if (is_cmp) {
+        *fOut << "S32Vec(";
+    }
+    *fOut << "(";
+    inst->fInst1->accept(this);
+    *fOut << ") " << gBinOpTable[inst->fOpcode]->fName << " (";
+    inst->fInst2->accept(this);
+    *fOut << ")";
+    if (is_cmp) {
+        *fOut << ")";
     }
 }
 
@@ -128,11 +157,11 @@ void VecVisitor::visit(IndexedAddress* inst)
     Address* addr = inst->fAddress;
     String name = snakeCase(addr->getName());
     name = addr->isStruct() ? "dsp." + name : name;
-    String func = "vload" + (gCurWidth != "" ? "[" + gCurWidth + "]" : "");
+    String func = "vload" + (gUseWidth  ? "[" + gCurWidth + "]" : "");
     *fOut << func << "(" << name;
     b32 has_index = visitIndex(inst->getIndex());
-    if (gSIMDJoin) {
-        *fOut << (has_index ? " + hsize" : ", hsize");
+    if (gSIMDWide) {
+        *fOut << (has_index ? " + wsize" : ", wsize");
     }
     *fOut << ")";
 }
@@ -156,7 +185,8 @@ void VecVisitor::visit(ForLoopInst* inst)
     gCurIndex = ini_inst->fAddress;
 
     if (inst->fCode->size() == 2) {
-        return visitBargraphUpdate(inst);
+        visitBargraphUpdate(inst);
+        return;
     }
 
     if (inst->fCode->size() > 2) {
@@ -177,23 +207,28 @@ void VecVisitor::visit(ForLoopInst* inst)
     }
 
     if (not isVectorizable(lhs)) {
-        return visitScalar(inst);
+        visitScalar(inst);
+        goto End_Loop;
     }
 
     if (isScalarValue(rhs)) {
-        visitBroadcast(store); goto End_Loop;
+        visitBroadcast(store);
+        goto End_Loop;
     }
 
     if (not isVectorizable(rhs)) {
-        mj_scalar_visit(inst); return;
+        visitScalar(inst);
+        goto End_Loop;
     }
 
     if (lhs_type == DType_f64) {
-        visitUnroll(store); goto End_Loop;
+        visitSplit(store);
+        goto End_Loop;
     }
 
     if (rhs_type == DType_f64) {
-        visitJoin(store); goto End_Loop;
+        visitJoin(store);
+        goto End_Loop;
     }
 
     visitStore(store);
@@ -201,29 +236,27 @@ void VecVisitor::visit(ForLoopInst* inst)
 End_Loop:
     *fOut << wnextl(fTab);
     gCurIndex = nullptr;
+    gCurAddrs.clear();
+    gCurWidth.clear();
 }
 
 void VecVisitor::visitStore(StoreVarInst* inst)
 {
-    mj_simd_emit_set(true);
     *fOut << "vstore(" << gCurAddrs << ", ";
-    inst->fValue->accept(this);
+    mj_simd_emit_accept(inst->fValue);
     *fOut << ")";
-    mj_simd_emit_restore();
 }
 
 void MojoVecInstVisitor::visitMain(ForLoopInst* inst)
 {
-    fTab += 1;
-    *fOut << "while vindex <= end:" << wnextl(fTab);
+    *fOut << "while vindex <= end:" << wnextl(fTab += 1);
     inst->fCode->accept(this);
     fTab -= 1;
 }
 
 void MojoVecInstVisitor::visitScalar(ForLoopInst* inst)
 {
-    fTab += 1;
-    *fOut << "comptime for i in range(vsize):" << wnextl(fTab);
+    *fOut << "comptime for i in range(vsize):" << wnextl(fTab += 1);
     mj_scalar_accept(inst->fCode);
     fTab -= 1;
     wrewind(fOut);
@@ -231,29 +264,41 @@ void MojoVecInstVisitor::visitScalar(ForLoopInst* inst)
 
 void VecVisitor::visitBroadcast(StoreVarInst* inst)
 {
-    mj_simd_emit_set(true);
     *fOut << "vstore[wfaust](" << gCurAddrs << ", ";
-    inst->fValue->accept(this);
+    mj_simd_emit_accept(inst->fValue);
     *fOut << ")";
-    mj_simd_emit_restore();
 }
 
 void VecVisitor::visitBargraphUpdate(ForLoopInst* inst)
 {
-    mj_panic(inst->fCode->size() == 2, "Expected `inst->fCode` to be a 2 instructions block");
-
     auto* store_1 = dycast(StoreVarInst*, inst->fCode->front());
     auto* store_2 = dycast(StoreVarInst*, inst->fCode->back());
-    String bargraph = snakeCase(store_1->fAddress->getName());
+    String bar = snakeCase(store_1->fAddress->getName());
     String out = snakeCase(store_2->fAddress->getName());
-    String value = gGlobal->getFreshID("value");
+    DType lhs_type = getMojoDType(store_2->fValue);
+    ValueInst* value = store_1->fValue;
 
-    *fOut << "var " << value << " = ";
     mj_simd_emit_set(true);
-    store_1->fValue->accept(this);
+    if (lhs_type == DType_f64) {
+        auto* cast_inst = dycast(CastInst*, value);
+        mj_panic(cast_inst, "Expected bargraph value to be a `CastInst`");
+        value = cast_inst->fInst;
+        *fOut << "vstore(" << out << ", ";
+        value->accept(this);
+        *fOut << ")" << wnextl(fTab) << "vstore(" << out << ", ";
+        mj_simd_wide_accept(value);
+        *fOut << ", wsize)" << wnextl(fTab);
+        *fOut << "dsp." << bar << " = FaustFloat(" << out << "[vsize - S32(1)])" << wnextl(fTab);
+        goto End_Loop;
+    }
+
+    *fOut << "vstore(" << out << ", ";
+    value->accept(this);
+    *fOut << ")" << wnextl(fTab);
+    *fOut << "dsp." << bar << " = " << out << "[vsize - S32(1)]" << wnextl(fTab);
+
+End_Loop:
     mj_simd_emit_restore();
-    *fOut << "dsp." << bargraph << " = " << value << "[wfaust - 1]";
-    *fOut << wnextl(fTab) << "vstore(" << out << ", " << value << ")";
     gCurIndex = nullptr;
 }
 
@@ -270,8 +315,7 @@ void VecVisitor::visitBargraphMulti(ForLoopInst* inst)
         }
     }
     mj_panic(bars.size() > 1, "Expected at least two bargraph instruction");
-    fTab += 1;
-    *fOut << "comptime for i in range(S32(0), vsize):" << wnextl(fTab);
+    *fOut << "comptime for i in range(S32(0), vsize):" << wnextl(fTab += 1);
     for (auto* bar : bars) {
         mj_scalar_visit(bar);
     }
@@ -282,29 +326,32 @@ void VecVisitor::visitBargraphMulti(ForLoopInst* inst)
 void VecVisitor::visitJoin(StoreVarInst* inst)
 {
     mj_simd_emit_set(true);
-    gCurWidth = "w64";
+    gCurWidth = "W";
     *fOut << "lo = ";
     inst->fValue->accept(this);
     *fOut << wnextl(fTab) << "hi = ";
-    mj_simd_join_set(true);
-    inst->fValue->accept(this);
-    mj_simd_join_restore();
+    mj_simd_wide_accept(inst->fValue);
     *fOut << wnextl(fTab) << "vstore(" << gCurAddrs << ", lo.join(hi))";
     mj_simd_emit_restore();
-    return;
 }
 
-void VecVisitor::visitUnroll(StoreVarInst* inst)
+// yes W
+// 'rhs' cannot be converted from 'SIMD[s32, simd_width_of[s32]()]' to 'SIMD[s32, simd_width_of[f64]()]' 
+// so 'lhs' is SIMD[s32, simd_width_of[f64]()]
+
+// no W
+// 'rhs' cannot be converted from 'SIMD[f64, simd_width_of[s32]()]' to 'SIMD[f64, simd_width_of[f64]()]' 
+// so 'lhs' is SIMD[f64, simd_width_of[f64]()]
+
+void VecVisitor::visitSplit(StoreVarInst* inst)
 {
     mj_simd_emit_set(true);
-    gCurWidth = "w64";
+    gCurWidth = "W";
     *fOut << "vstore(" << gCurAddrs << ", ";
     inst->fValue->accept(this);
     *fOut << ")" << wnextl(fTab) << "vstore(" << gCurAddrs << ", ";
-    mj_simd_join_set(true);
-    inst->fValue->accept(this);
-    mj_simd_join_restore();
-    *fOut << ", hsize)";
+    mj_simd_wide_accept(inst->fValue);
+    *fOut << ", wsize)";
     mj_simd_emit_restore();
 }
 
@@ -312,7 +359,6 @@ b32 VecVisitor::hasWrappedIndex(Address* addr)
 {
     auto* indexed = dycast(IndexedAddress*, addr);
     mj_panic(indexed, "Expected `addr` to be `IndexedAddress`");
-
     if (indexed->fIndices.size() != 1) {
         return true;
     }
@@ -396,6 +442,11 @@ DType VecVisitor::getMojoDType(ValueInst* inst)
         case Typed::kFloat:      return DType_f32;
         case Typed::kDouble:     return DType_f64;
         case Typed::kFloatMacro: return DType_dfaust;
+
+        case Typed::kBool:
+            mj_debug_fir(std::cerr, inst, "kBool");
+            return DType_bool;
+
         default:
             mj_panic(false, "Unexpected `rhs` type " << Typed::gTypeString[type]);
     }

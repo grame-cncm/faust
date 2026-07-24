@@ -27,10 +27,7 @@ comptime sint = SInt.dtype
 comptime uint = UInt.dtype
 comptime f32 = F32.dtype
 comptime f64 = F64.dtype
-
-# SIMD width constants
-comptime w32 = simd_width_of[f32]()
-comptime w64 = simd_width_of[f64]()
+comptime b = DType.bool
 
 # Builtin types aliases
 comptime Res = Tuple
@@ -38,16 +35,15 @@ comptime Arr = InlineArray
 comptime Void = NoneType
 
 # SIMD types aliases
-comptime Vec[dtype: DType] = SIMD[dtype, simd_width_of[dtype]()]
-comptime S32Vec = Vec[s32]
-comptime F32Vec = Vec[f32]
-comptime F64Vec = Vec[f64]
+comptime S32Vec = SIMD[s32, simd_width_of[s32]()]
+comptime F32Vec = SIMD[f32, simd_width_of[f32]()]
+comptime F64Vec = SIMD[f64, simd_width_of[f64]()]
 
 # FaustFloat architecture constants and type aliases
-comptime dfaust = get_defined_dtype["DFAUST", DType.float32]()
+comptime dfaust = get_defined_dtype["DFAUST", f32]()
 comptime wfaust = simd_width_of[dfaust]()
 comptime FaustFloat = Scalar[dfaust]
-comptime FVec = Vec[dfaust]
+comptime FVec = SIMD[dfaust, simd_width_of[dfaust]()]
 
 # Origin values constants
 comptime IMM_NOTRK = ImmUntrackedOrigin 
