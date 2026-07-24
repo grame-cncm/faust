@@ -32,7 +32,7 @@ static double lsh(double x, double k)
     return x * pow(2, k);
 }
 
-interval interval_algebra::Lsh(const interval& x, const interval& k)
+interval interval_algebra::Lsh(const interval& x, const interval& k) const
 {
     if (x.isEmpty() || k.isEmpty()) {
         return empty();

@@ -26,7 +26,7 @@ namespace itv {
 // interval Ceil(const interval& x);
 // void testCeil();
 
-interval interval_algebra::Ceil(const interval& x)
+interval interval_algebra::Ceil(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

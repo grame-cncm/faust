@@ -26,7 +26,7 @@ namespace itv {
 // interval Min(const interval& x);
 // void testMin();
 
-interval interval_algebra::Min(const interval& x, const interval& y)
+interval interval_algebra::Min(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

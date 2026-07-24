@@ -26,7 +26,7 @@ namespace itv {
 // interval Exp(const interval& x);
 // void testExp();
 
-interval interval_algebra::Exp(const interval& x)
+interval interval_algebra::Exp(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();
@@ -47,7 +47,7 @@ interval interval_algebra::Exp(const interval& x)
     return {exp(x.lo()), exp(x.hi()), precision};
 }
 
-interval interval_algebra::Exp10(const interval& x)
+interval interval_algebra::Exp10(const interval& x) const
 {
     // Reuse the general power transfer so base-10 exponentiation follows the
     // same domain and precision policy as Pow.

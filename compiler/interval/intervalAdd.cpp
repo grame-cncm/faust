@@ -35,7 +35,7 @@ static double addint(double x, double y)
     return (int)x + (int)y;
 }
 
-interval interval_algebra::Add(const interval& x, const interval& y)
+interval interval_algebra::Add(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

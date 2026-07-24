@@ -32,7 +32,7 @@ static double sinPi(double x)
     return std::sin(x * M_PI);
 }
 
-interval interval_algebra::Sin(const interval& x)
+interval interval_algebra::Sin(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

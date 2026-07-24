@@ -21,7 +21,7 @@ namespace itv {
 // Interval IntNum
 
 interval interval_algebra::VSlider(const interval& name, const interval& init, const interval& lo,
-                                   const interval& hi, const interval& step)
+                                   const interval& hi, const interval& step) const
 {
     if (init.isEmpty() || lo.isEmpty() || hi.isEmpty() || step.isEmpty()) {
         return empty();

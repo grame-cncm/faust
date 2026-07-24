@@ -35,7 +35,7 @@ static double myOr(double x, double y)
 }
 
 // BRUTE FORCE
-interval interval_algebra::Or(const interval& x, const interval& y)
+interval interval_algebra::Or(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

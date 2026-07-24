@@ -26,7 +26,7 @@ namespace itv {
 // interval Cosh(const interval& x);
 // void testCosh();
 
-interval interval_algebra::Cosh(const interval& x)
+interval interval_algebra::Cosh(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

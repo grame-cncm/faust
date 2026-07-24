@@ -31,7 +31,7 @@ static double myGt(double x, double y)
     return (x > y);
 }
 
-interval interval_algebra::Gt(const interval& x, const interval& y)
+interval interval_algebra::Gt(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

@@ -26,7 +26,7 @@ namespace itv {
 // interval Remainder(const interval& x, const interval& y);
 // void testRemainder();
 
-interval interval_algebra::Remainder(const interval& x, const interval& y)
+interval interval_algebra::Remainder(const interval& x, const interval& y) const
 {
     // The previous unary operation was a placeholder. Keep the result
     // conservative until the binary IEEE remainder transfer is specified.

@@ -32,7 +32,7 @@ static double rsh(double x, double k)
     return x * std::pow(2, -k);
 }
 
-interval interval_algebra::ARsh(const interval& x, const interval& k)
+interval interval_algebra::ARsh(const interval& x, const interval& k) const
 {
     if (x.isEmpty() || k.isEmpty()) {
         return empty();
@@ -46,7 +46,7 @@ interval interval_algebra::ARsh(const interval& x, const interval& k)
         x.lsb() - (int)k.hi()};  // rshifts add some precision to the numbers, at most y.hi() bits
 }
 
-interval interval_algebra::LRsh(const interval& x, const interval& k)
+interval interval_algebra::LRsh(const interval& x, const interval& k) const
 {
     if (x.isEmpty() || k.isEmpty()) {
         return empty();

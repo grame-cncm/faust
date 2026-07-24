@@ -19,6 +19,7 @@
 
 #include "sigs-export.hh"
 #include "symbol.hh"
+#include "tree.hh"
 
 namespace sigs {
 
@@ -85,5 +86,29 @@ static_assert(static_cast<std::uint16_t>(SignalOpcode::Count) <= kOpcodesPerSign
  * cleanup/init cycle invalidates its identity and allocation state.
  */
 SIGS_API Signature signalSignature();
+
+/**
+ * Return true and set \p op when the head of \p t is a constructor of the Signal
+ * signature.
+ *
+ * Returns false for everything else a generic walk of a signal term also meets:
+ * numeric leaves, labels, identifiers, lists, and nodes owned by another signature
+ * (tlib's rec and proj, boxes). A caller dispatching on the result must therefore keep
+ * a path for those.
+ *
+ * \p sigSignature is the handle returned by signalSignature(). It is a parameter rather
+ * than an internal call because signalSignature() performs a registry lookup: a caller
+ * dispatching on every node of a term should hoist it out of the walk.
+ */
+inline bool signalOpcode(Tree t, Signature sigSignature, SignalOpcode& op)
+{
+    Sym s;
+    if (!isSym(t->node(), &s)) return false;
+    SymbolTag tag;
+    if (!getSymbolTag(s, tag)) return false;
+    if (tag.signature != sigSignature.identity()) return false;
+    op = static_cast<SignalOpcode>(tag.localOpcode());
+    return true;
+}
 
 }  // namespace sigs

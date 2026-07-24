@@ -31,7 +31,7 @@ namespace itv {
 
 static const interval domain(-1, 1, 0);  // this interval needs 0 digits of precision
 
-interval interval_algebra::Asin(const interval& x)
+interval interval_algebra::Asin(const interval& x) const
 {
     interval i = intersection(domain, x);
     if (i.isEmpty()) {

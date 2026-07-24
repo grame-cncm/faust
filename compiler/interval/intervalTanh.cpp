@@ -27,7 +27,7 @@ namespace itv {
 // interval Tanh(const interval& x);
 // void testTanh();
 
-interval interval_algebra::Tanh(const interval& x)
+interval interval_algebra::Tanh(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

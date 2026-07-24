@@ -40,7 +40,7 @@ static double specialmultint(double a, double b)
     return ((a == 0.0) || (b == 0.0)) ? 0.0 : (int)a * (int)b;
 }
 
-interval interval_algebra::Mul(const interval& x, const interval& y)
+interval interval_algebra::Mul(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

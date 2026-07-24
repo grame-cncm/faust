@@ -26,7 +26,7 @@ namespace itv {
 // interval Ne(const interval& x, const interval& y);
 // void testNe();
 
-interval interval_algebra::Ne(const interval& x, const interval& y)
+interval interval_algebra::Ne(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

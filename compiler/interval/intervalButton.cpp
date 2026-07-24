@@ -19,7 +19,7 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval IntNum
 
-interval interval_algebra::Button(const interval& name)
+interval interval_algebra::Button(const interval& name) const
 {
     return {0, 1, 0};
 }

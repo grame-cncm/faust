@@ -115,7 +115,7 @@ static interval ipow(const interval& x, int k)
 /**
  * @brief Interval elevated to an interval power
  */
-interval interval_algebra::fPow(const interval& x, const interval& y)
+interval interval_algebra::fPow(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
@@ -126,7 +126,7 @@ interval interval_algebra::fPow(const interval& x, const interval& y)
     return Exp(Mul(y, Log(x)));
 }
 
-interval interval_algebra::iPow(const interval& x, const interval& y)
+interval interval_algebra::iPow(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
@@ -160,7 +160,7 @@ interval interval_algebra::iPow(const interval& x, const interval& y)
     return z;
 }
 
-interval interval_algebra::Pow(const interval& x, const interval& y)
+interval interval_algebra::Pow(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

@@ -26,7 +26,7 @@ namespace itv {
 // interval Sinh(const interval& x);
 // void testSinh();
 
-interval interval_algebra::Sinh(const interval& x)
+interval interval_algebra::Sinh(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

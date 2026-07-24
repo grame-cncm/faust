@@ -28,7 +28,7 @@ namespace itv {
 
 // restrict to integer range
 
-interval interval_algebra::IntCast(const interval& x)
+interval interval_algebra::IntCast(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

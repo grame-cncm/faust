@@ -126,6 +126,7 @@ void init()
     // Option defaults (same values as global.cpp)
     g.gCausality      = false;
     g.gTypeStatistics = false;
+    g.gNatureShadow   = false;
     g.gWideningLimit  = 0;
     g.gNarrowingLimit = 0;
     g.gFloatSize      = 1;

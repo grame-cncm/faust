@@ -26,7 +26,7 @@ namespace itv {
 // interval Mem(const interval& x);
 // void testMem();
 
-interval interval_algebra::Mem(const interval& x)
+interval interval_algebra::Mem(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

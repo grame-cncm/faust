@@ -63,6 +63,7 @@ struct State {
     int                                         gCountRecFreeRedundant{};
     int                                         gCountRecFreeChanged{};
     bool                                        gTypeStatistics{};  // print them after typeAnnotation
+    bool gNatureShadow{};  // recompute nature by fixpoint and compare (see sigattributes.hh)
     int                                         gCountMaximal{};
     int                                         gAllocationCount{};  // Internal signal types counter
     bool                                        gCausality{};  // FIXME: global used as a parameter of typeAnnotation when true trigs

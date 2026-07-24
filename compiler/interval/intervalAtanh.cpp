@@ -30,7 +30,7 @@ namespace itv {
 static const interval domain(std::nexttoward(-1, 0), std::nexttoward(1, 0),
                              0);  // interval ]-1,1[, precision 0
 
-interval interval_algebra::Atanh(const interval& x)
+interval interval_algebra::Atanh(const interval& x) const
 {
     interval i = intersection(domain, x);
     if (i.isEmpty()) {

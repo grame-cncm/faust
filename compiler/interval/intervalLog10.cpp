@@ -26,7 +26,7 @@ namespace itv {
 // interval Log10(const interval& x);
 // void testLog10();
 
-interval interval_algebra::Log10(const interval& x)
+interval interval_algebra::Log10(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

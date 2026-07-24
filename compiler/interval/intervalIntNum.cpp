@@ -20,7 +20,7 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval IntNum
 
-interval interval_algebra::IntNum(int x)
+interval interval_algebra::IntNum(int x) const
 {
     /* int lsb = -24;  // lsb_number(x); // x is an integer so lsb is bound to be >=0, but we might
     be able to shave a
@@ -39,7 +39,7 @@ interval interval_algebra::IntNum(int x)
     return {double(x), double(x), lsb};
 }
 
-interval interval_algebra::Int64Num(int64_t x)
+interval interval_algebra::Int64Num(int64_t x) const
 {
     /* int lsb = -24;  // lsb_number(x); // x is an integer so lsb is bound to be >=0, but we might
     be able to shave a

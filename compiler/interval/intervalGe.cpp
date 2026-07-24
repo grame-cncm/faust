@@ -31,7 +31,7 @@ static double myGe(double x, double y)
     return (x >= y);
 }
 
-interval interval_algebra::Ge(const interval& x, const interval& y)
+interval interval_algebra::Ge(const interval& x, const interval& y) const
 {
     // boolean value => precision 0
     if (x.isEmpty() || y.isEmpty()) {

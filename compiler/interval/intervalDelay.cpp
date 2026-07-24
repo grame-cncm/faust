@@ -26,7 +26,7 @@ namespace itv {
 // interval Delay(const interval& x);
 // void testDelay();
 
-interval interval_algebra::Delay(const interval& x, const interval& y)
+interval interval_algebra::Delay(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

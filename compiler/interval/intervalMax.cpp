@@ -26,7 +26,7 @@ namespace itv {
 // interval Max(const interval& x);
 // void testMax();
 
-interval interval_algebra::Max(const interval& x, const interval& y)
+interval interval_algebra::Max(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

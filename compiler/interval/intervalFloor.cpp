@@ -26,7 +26,7 @@ namespace itv {
 // interval Floor(const interval& x);
 // void testFloor();
 
-interval interval_algebra::Floor(const interval& x)
+interval interval_algebra::Floor(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

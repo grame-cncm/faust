@@ -28,7 +28,7 @@ namespace itv {
 
 static const interval SqrtDomain(0, HUGE_VAL, 0);
 
-interval interval_algebra::Sqrt(const interval& x)
+interval interval_algebra::Sqrt(const interval& x) const
 {
     interval i = intersection(SqrtDomain, x);
 

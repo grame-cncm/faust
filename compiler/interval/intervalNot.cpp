@@ -26,7 +26,7 @@ namespace itv {
 // interval Not(const interval& x);
 // void testNot();
 
-interval interval_algebra::Not(const interval& x)
+interval interval_algebra::Not(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

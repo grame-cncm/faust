@@ -26,7 +26,7 @@ namespace itv {
 // interval Acos(const interval& x);
 // void testAcos();
 
-interval interval_algebra::Abs(const interval& x)
+interval interval_algebra::Abs(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

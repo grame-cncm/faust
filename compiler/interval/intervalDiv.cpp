@@ -24,7 +24,7 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval division
 
-interval interval_algebra::Div(const interval& x, const interval& y)
+interval interval_algebra::Div(const interval& x, const interval& y) const
 {
     interval D = Mul(x, Inv(y));
     return D;

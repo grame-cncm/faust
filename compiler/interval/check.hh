@@ -25,9 +25,9 @@ int reportCheckResults();
 using ufun = double (*)(double);
 using bfun = double (*)(double, double);
 
-using umth = itv::interval (itv::interval_algebra::*)(const itv::interval& x);
+using umth = itv::interval (itv::interval_algebra::*)(const itv::interval& x) const;
 using bmth = itv::interval (itv::interval_algebra::*)(const itv::interval& x,
-                                                      const itv::interval& y);
+                                                      const itv::interval& y) const;
 
 itv::interval testfun(int N, bfun f, const itv::interval& x, const itv::interval& y);
 void          analyzemod(itv::interval x, itv::interval y);

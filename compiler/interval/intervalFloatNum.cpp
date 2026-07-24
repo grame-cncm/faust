@@ -19,7 +19,7 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval IntNum
 
-interval interval_algebra::FloatNum(double x)
+interval interval_algebra::FloatNum(double x) const
 {
     return singleton(x);
 }

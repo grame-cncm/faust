@@ -29,7 +29,7 @@ namespace itv {
 // interval Atan(const interval& x);
 // void testAtan();
 
-interval interval_algebra::Atan(const interval& x)
+interval interval_algebra::Atan(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

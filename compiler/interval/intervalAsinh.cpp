@@ -27,7 +27,7 @@ namespace itv {
 // void testAsinh();
 static const interval domain(-HUGE_VAL, HUGE_VAL);
 
-interval interval_algebra::Asinh(const interval& x)
+interval interval_algebra::Asinh(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

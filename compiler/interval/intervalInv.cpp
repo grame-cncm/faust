@@ -32,7 +32,7 @@ static double inv(double x)
     return 1 / x;
 }
 
-interval interval_algebra::Inv(const interval& x)
+interval interval_algebra::Inv(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

@@ -33,6 +33,7 @@
 #include "recursivness.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
+#include "sigattributes.hh"
 #include "sigtyperules.hh"
 #include "tlib.hh"
 #include "xtended.hh"
@@ -343,6 +344,9 @@ void typeAnnotation(Tree sig, bool causality)
 
     if (sigs::g.gTypeStatistics) {
         annotationStatistics();
+    }
+    if (sigs::g.gNatureShadow) {
+        shadowCheckExactAttributes(sig, true);
     }
 }
 

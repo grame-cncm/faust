@@ -26,7 +26,7 @@ namespace itv {
 // interval Rint(const interval& x);
 // void testRint();
 
-interval interval_algebra::Rint(const interval& x)
+interval interval_algebra::Rint(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

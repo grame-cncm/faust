@@ -131,7 +131,7 @@ interval positiveFMod(const interval& x, const interval& y)
 }
 
 // fmod of two signed intervals
-interval interval_algebra::Mod(const interval& x, const interval& y)
+interval interval_algebra::Mod(const interval& x, const interval& y) const
 {
     auto [xn, xp] = split(x);    // slipts x into a negative and a positive interval
     auto [yn, yp] = splitnz(y);  // slipts y into a negative and a positive interval (zero excluded)

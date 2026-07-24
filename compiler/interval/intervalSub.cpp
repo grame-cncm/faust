@@ -29,7 +29,7 @@ static double sub(double a, double b)
     return a - b;
 }
 
-interval interval_algebra::Sub(const interval& x, const interval& y)
+interval interval_algebra::Sub(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

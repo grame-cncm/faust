@@ -32,7 +32,7 @@ static double tanPi(double x)
     return std::tan(x * M_PI);
 }
 
-interval interval_algebra::Tan(const interval& x)
+interval interval_algebra::Tan(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

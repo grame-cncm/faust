@@ -24,7 +24,7 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // negation, invert sign of an interval
 
-interval interval_algebra::Neg(const interval& x)
+interval interval_algebra::Neg(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

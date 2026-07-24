@@ -106,7 +106,7 @@ interval bmAnd(const interval& x, int mask)
     return interval{0, double(mask)};
 }
 /*
-interval interval_algebra::And(const interval& x, const interval& y)
+interval interval_algebra::And(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) return {};
     if (x.isconst()) {
@@ -127,7 +127,7 @@ interval interval_algebra::And(const interval& x, const interval& y)
 */
 
 // BRUTE FORCE
-interval interval_algebra::And(const interval& x, const interval& y)
+interval interval_algebra::And(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

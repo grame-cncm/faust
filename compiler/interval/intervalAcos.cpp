@@ -28,7 +28,7 @@ namespace itv {
 
 static const interval AcosDomain(-1, 1, 0);  // this interval needs 0 digits of precision
 
-interval interval_algebra::Acos(const interval& x)
+interval interval_algebra::Acos(const interval& x) const
 {
     interval i = intersection(AcosDomain, x);  // TODO: warn about interval violations
     if (i.isEmpty()) {

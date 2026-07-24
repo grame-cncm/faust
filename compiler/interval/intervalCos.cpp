@@ -32,7 +32,7 @@ static double cosPi(double x)
     return std::cos(x * M_PI);
 }
 
-interval interval_algebra::Cos(const interval& x)
+interval interval_algebra::Cos(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

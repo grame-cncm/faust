@@ -26,7 +26,7 @@ namespace itv {
 // interval Round(const interval& x);
 // void testRound();
 
-interval interval_algebra::Round(const interval& x)
+interval interval_algebra::Round(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

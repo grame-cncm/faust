@@ -42,6 +42,21 @@
 
 enum class SolveMode { Ascending, Probe };
 
+// Read access to the value of ANY subtree, handed to combine alongside the children.
+//
+// combine is given the values of its node's direct branches, which is all a constructor
+// whose arguments sit one level down ever needs. Some do not : a Faust slider keeps its
+// four range signals in a nested list, so its node has two branches (label, list) while
+// the operation it denotes takes five arguments. Such a constructor ASKS for what it
+// needs instead of receiving it. Asking costs no more than being given -- values are
+// memoized, so a nested argument is evaluated exactly once either way.
+template <typename V>
+class FixPointEvaluator {
+   public:
+    virtual ~FixPointEvaluator() = default;
+    virtual V eval(Tree sig)     = 0;
+};
+
 // Everything the iterator needs from an attribute domain. The defaults define an EXACT
 // domain : converge by equality, never widen, no cap, no narrowing, no probe. An
 // approximate domain overrides widenAfter() (and widen), and optionally probeSeed().
@@ -50,15 +65,28 @@ class FixPointDomain {
    public:
     virtual ~FixPointDomain() = default;
 
-    virtual V    bottom(Tree var) const = 0;   ///< least element of the lattice
-    virtual V    top(Tree var) const   = 0;    ///< greatest element : guard-rail fallback
-    virtual V    combine(Tree node, const std::vector<V>& children) const = 0;  ///< dense switch
-    virtual bool lessEqual(const V& x, const V& y) const = 0;                   ///< x ⊑ y
+    virtual V bottom(Tree var) const = 0;  ///< least element of the lattice
+    virtual V top(Tree var) const    = 0;  ///< greatest element : guard-rail fallback
+    // combine is const : an algebra is a DENOTATION, not a process -- the value of a
+    // node depends on its constructor and on the values of its arguments, on nothing
+    // else. State that is genuinely needed (the probe table below, a statistics counter)
+    // is declared mutable, which says precisely that it is not part of the denotation.
+    virtual V combine(Tree node, const std::vector<V>& children,
+                      FixPointEvaluator<V>& ev) const   = 0;  ///< dense switch
+    virtual bool lessEqual(const V& x, const V& y) const = 0;  ///< x ⊑ y
 
     virtual bool converged(const V& prev, const V& cur) const
     {
         return lessEqual(cur, prev) && lessEqual(prev, cur);
     }
+
+    // How to read branch i out of a solved (or being-solved) variable. The default takes
+    // the branch and nothing else, which is what an attribute computed strictly per
+    // branch wants. A projection is an OPERATION of the language, though, and some
+    // attributes interpret it: Faust's vectorability forces kScal at every projection,
+    // and its variability and computability promote each branch to the join over the
+    // WHOLE group. Handing the domain the entire row lets it say so.
+    virtual V project(Tree var, int i, const std::vector<V>& row) const { return row[i]; }
 
     virtual int widenAfter() const { return INT_MAX; }
     virtual V   widen(Tree var, const V& old, const V& fresh) const { return fresh; }
@@ -74,7 +102,7 @@ class FixPointDomain {
 };
 
 template <typename V>
-class FixPointIterator {
+class FixPointIterator : public FixPointEvaluator<V> {
    public:
     FixPointIterator(const RecPlan& plan, const FixPointDomain<V>& domain)
         : fPlan(plan), fDomain(domain)
@@ -125,15 +153,17 @@ class FixPointIterator {
     //                                   every round ; memo cleared at the start of each round.
     //   otherwise (< scc, or top)    -> SETTLED : reaches only lower, converged components.
     //                                   Its value is final ; permanent memo.
-    V eval(Tree sig)
+    V eval(Tree sig) override
     {
         int  i;
         Tree group, id;
         if (isProj(sig, i, group)) {
             if (fPlan.sccOf(group) == fCurrentScc) {
-                return fCurrentApprox.at(group)[i];  // Jacobi snapshot of the current cycle
+                // Jacobi snapshot of the current cycle
+                return fDomain.project(group, i, fCurrentApprox.at(group));
             }
-            return fSettledVars.at(group)[i];  // lower, already-converged component
+            // lower, already-converged component
+            return fDomain.project(group, i, fSettledVars.at(group));
         }
         // Signals-form precondition : references appear under proj, never bare.
         if (isRef(sig, id)) {
@@ -160,7 +190,7 @@ class FixPointIterator {
         for (int j = 0; j < ar; ++j) {
             kids.push_back(eval(sig->branch(j)));
         }
-        V v      = fDomain.combine(sig, kids);
+        V v       = fDomain.combine(sig, kids, *this);
         memo[sig] = v;
         return v;
     }
