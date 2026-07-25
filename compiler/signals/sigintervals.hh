@@ -48,9 +48,17 @@ struct IntervalShadowStats {
     int toEmpty    = 0;  ///< empty where the type system had bounds (suspicious)
     int incomparable = 0;  ///< overlapping, neither contains the other (investigate)
 
+    /// The disagreement is confined to the FLOOR: our low bound goes below the
+    /// reference's while our ceiling does not exceed its. This is the signature of the
+    /// signed-noise / plucked-string family, where the reference's [0,+inf) asserts a
+    /// sign the signal does not have -- hand-verified on the idioms (LCG noise wraps
+    /// and IS negative half the time; a string oscillates below zero; an int counter
+    /// eventually wraps negative). Not a loss: there, the REFERENCE is the wrong one.
+    int floorRefuted = 0;
+
     int total() const
     {
-        return equal + tighter + fromTop + wider + toEmpty + incomparable;
+        return equal + tighter + fromTop + wider + toEmpty + incomparable + floorRefuted;
     }
 };
 

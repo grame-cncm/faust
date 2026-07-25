@@ -21,6 +21,7 @@
 
 #include "sigintervals.hh"
 
+#include <climits>
 #include <cmath>
 #include <cstdint>
 #include <optional>
@@ -159,15 +160,14 @@ class IntervalAlgebra : public SignalAlgebra<interval> {
 
     // Per-bound widening: only a bound that is still moving is touched, the stable one
     // keeps its value. A moving bound jumps to the certified probe threshold when there
-    // is one, to infinity otherwise.
-    //
-    // An infinity-widened interval is stamped with a FLOAT lsb, exactly as the current
-    // system's TRECMAX is: gAlgebra's integer path models int32 WRAP-AROUND, under which
-    // Add(1, [0,+inf]) with integer lsb collapses to [INT_MIN, INT_MAX] -- sounder (a
-    // running counter does wrap) but non-monotone against infinities. The current
-    // system's recursive trajectories switch to the naive-infinity float path the moment
-    // they widen; mirroring that keeps the comparison interpretable. A probe-widened
-    // interval keeps its lsb: its bounds are finite, the integer world handles them.
+    // is one; otherwise to the TOP OF ITS WORLD -- and the two worlds have different
+    // tops. An INTEGER interval (lsb >= 0) saturates at [INT_MIN, INT_MAX]: that is the
+    // computational truth (an unbounded int counter wraps, its values span the int32
+    // range and no more), and it keeps the trajectory inside gAlgebra's integer
+    // semantics, where +-inf is not a legal value. A FLOAT interval widens to +-inf with
+    // the float lsb stamp. (The current system escapes to the float path uniformly via
+    // TRECMAX's lsb; under the computational-interval doctrine we keep the int world
+    // honest instead.) A probe-widened interval keeps its lsb: its bounds are finite.
     interval widen(Tree var, const interval& old, const interval& fresh) const override
     {
         if (old.isEmpty() || fresh.isEmpty()) return fresh;
@@ -183,6 +183,10 @@ class IntervalAlgebra : public SignalAlgebra<interval> {
                 return {wlo ? p.lo() : fresh.lo(), whi ? p.hi() : fresh.hi(),
                         std::min(fresh.lsb(), p.lsb())};
             }
+        }
+        if (fresh.lsb() >= 0) {  // integer world: saturate at its computational top
+            return {wlo ? double(INT_MIN) : fresh.lo(), whi ? double(INT_MAX) : fresh.hi(),
+                    fresh.lsb()};
         }
         return {wlo ? -HUGE_VAL : fresh.lo(), whi ? HUGE_VAL : fresh.hi(),
                 std::min(fresh.lsb(), -24)};
@@ -631,6 +635,9 @@ IntervalShadowStats shadowCheckInterval(Tree L, bool verbose)
             stats.equal++;
         } else if (leq(mine, ref)) {
             stats.tighter++;
+        } else if (mine.lo() < ref.lo() && mine.hi() <= ref.hi()) {
+            // floor-only disagreement: the reference asserts a floor we refute
+            stats.floorRefuted++;
         } else if (leq(ref, mine)) {
             stats.wider++;
             if (verbose && shownWider++ < 5) {
@@ -649,8 +656,9 @@ IntervalShadowStats shadowCheckInterval(Tree L, bool verbose)
     if (verbose) {
         std::cerr << "ITV SHADOW : " << stats.total() << " signals, eq=" << stats.equal
                   << " tighter=" << stats.tighter << " fromTop=" << stats.fromTop
-                  << " wider=" << stats.wider << " toEmpty=" << stats.toEmpty
-                  << " incomp=" << stats.incomparable << std::endl;
+                  << " floorRefuted=" << stats.floorRefuted << " wider=" << stats.wider
+                  << " toEmpty=" << stats.toEmpty << " incomp=" << stats.incomparable
+                  << std::endl;
     }
     return stats;
 }
