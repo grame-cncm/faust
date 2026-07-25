@@ -493,6 +493,12 @@ class TLIB_API RecPlan {
     ///< component whose id is i, and depends only on components()[j] with j < i.
     const std::vector<std::vector<Tree>>& components() const { return fComponents; }
 };
+
+/// Memoized access : ONE RecPlan per root per session. Trees are hash-consed and
+/// immutable, so a root's plan never changes ; every fixpoint pass and conversion over
+/// the same term shares it instead of re-running Tarjan. The returned reference is
+/// stable for the session (cleared by cleanup()).
+TLIB_API const RecPlan& getRecPlan(Tree root);
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);
 std::string   toDeBruijnString(Tree t);

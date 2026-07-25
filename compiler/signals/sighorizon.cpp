@@ -245,7 +245,7 @@ std::pair<std::vector<HorizonEvent>, double> datePass(const RecPlan& plan,
 
 HorizonReport horizonAnalysis(Tree L, bool verbose)
 {
-    RecPlan plan(L);
+    const RecPlan& plan = getRecPlan(L);
 
     // Worst case: parameters anywhere in their declared ranges.
     HorizonAlgebra worst(/*defaultParams*/ false);
@@ -283,11 +283,14 @@ HorizonReport horizonAnalysis(Tree L, bool verbose)
 //----------------------------------------------------------------------------------------
 
 struct HorizonReader::Impl {
-    RecPlan                  plan;
+    const RecPlan&           plan;  ///< shared, memoized (getRecPlan)
     HorizonAlgebra           algebra;
     FixPointIterator<AffItv> it;
 
-    explicit Impl(Tree L) : plan(L), algebra(/*defaultParams*/ false), it(plan, algebra) {}
+    explicit Impl(Tree L)
+        : plan(getRecPlan(L)), algebra(/*defaultParams*/ false), it(plan, algebra)
+    {
+    }
 };
 
 HorizonReader::HorizonReader(Tree L) : fImpl(new Impl(L)) {}

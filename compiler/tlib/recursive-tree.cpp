@@ -25,6 +25,7 @@
 #include <sstream>
 #include <algorithm>
 #include <unordered_map>
+#include <memory>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -77,8 +78,13 @@ static inline Tree debruijn2symKey()
 }
 
 // Internal hook used by tlib::init()/cleanup() (see tlib.cpp)
+// One plan per root per session. unique_ptr keeps the addresses stable across rehash,
+// so borrowed references (FixPointIterator's) survive later insertions.
+static std::unordered_map<Tree, std::unique_ptr<RecPlan>> gRecPlans;
+
 void tlibResetRecInternals()
 {
+    gRecPlans.clear();
     gDebruijnSym     = nullptr;
     gDebruijnRefSym  = nullptr;
     gSymRecSym       = nullptr;
@@ -610,6 +616,15 @@ RecPlan::RecPlan(Tree root)
         }
         fComponents.push_back(std::move(members));
     }
+}
+
+const RecPlan& getRecPlan(Tree root)
+{
+    std::unique_ptr<RecPlan>& slot = gRecPlans[root];
+    if (!slot) {
+        slot = std::make_unique<RecPlan>(root);
+    }
+    return *slot;
 }
 
 int RecPlan::sccOf(Tree recNode) const

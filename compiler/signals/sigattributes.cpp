@@ -904,7 +904,7 @@ int shadowCheckExactAttributes(Tree L, bool verbose)
     // Décision A: five INDEPENDENT passes sharing one RecPlan -- the V-independent
     // structure -- rather than one pass over a tuple, which would couple their
     // convergences and let a slow attribute hold back a fast one.
-    RecPlan          plan(L);
+    const RecPlan&   plan  = getRecPlan(L);
     const TypedNodes nodes = collectTypedSignals(L);
 
     int d = 0;
@@ -927,7 +927,7 @@ int shadowCheckExactAttributes(Tree L, bool verbose)
 
 int shadowCheckNature(Tree L, bool verbose)
 {
-    RecPlan          plan(L);
+    const RecPlan&   plan = getRecPlan(L);
     const TypedNodes nodes = collectTypedSignals(L);
     return runPass<NatureAlgebra>(plan, nodes, verbose, "nature",
                                   [](SimpleType* st) { return st->nature(); });
@@ -949,9 +949,9 @@ void typeTimingReport(Tree L, double currentMs)
 
     const TypedNodes nodes = collectTypedSignals(L);
 
-    const auto t0 = clk::now();
-    RecPlan    plan(L);
-    const auto t1 = clk::now();
+    const auto     t0   = clk::now();
+    const RecPlan& plan = getRecPlan(L);
+    const auto     t1   = clk::now();
 
     // the five exact attributes, each a full pass queried on every typed signal
     {
