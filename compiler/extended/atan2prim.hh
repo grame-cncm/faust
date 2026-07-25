@@ -34,16 +34,6 @@ class Atan2Prim : public xtendedCodegen {
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == 2);
-        Type     t = args[0];
-        Type     u = args[1];
-        interval i = t->getInterval();
-        interval j = u->getInterval();
-        return castInterval(floatCast(t | u), gAlgebra.Atan2(i, j));
-    }
-
     virtual int inferSigOrder(const std::vector<int>& args) override
     {
         return std::max(args[0], args[1]);

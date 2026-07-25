@@ -42,21 +42,6 @@ class PowPrim : public xtendedCodegen {
 
     virtual bool needCache() override { return true; }
 
-    virtual Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-
-        Type t = args[0];
-        Type u = args[1];
-
-        interval i = t->getInterval();
-        interval j = u->getInterval();
-
-        return castInterval(
-            t | u,
-            gAlgebra.Pow(i, j));  // maybe we should distinguish between real and integer exponents
-    }
-
     virtual int inferSigOrder(const std::vector<int>& args) override
     {
         faustassert(args.size() == arity());

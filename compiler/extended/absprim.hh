@@ -41,14 +41,6 @@ class AbsPrim : public xtendedCodegen {
         return (type == kInt) ? "abs" : subst("fabs$0", isuffix());
     }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        Type     t = args[0];
-        interval i = t->getInterval();
-        return castInterval(t, gAlgebra.Abs(i));
-    }
-
     virtual int inferSigOrder(const std::vector<int>& args) override
     {
         faustassert(args.size() == arity());
@@ -116,8 +108,7 @@ class AbsPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        Type t = inferSigType(types);
-        if (t->nature() == kReal) {
+        if (types[0]->nature() == kReal) {  // abs keeps its argument's nature
             return subst("fabs$1($0)", args[0], isuffix());
         } else {
             return subst("abs($0)", args[0]);
@@ -130,7 +121,6 @@ class AbsPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        ::Type t = inferSigType(types);
         return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
     }
 

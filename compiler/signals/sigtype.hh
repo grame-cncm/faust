@@ -291,22 +291,7 @@ class SimpleType : public AudioType {
         const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 };
 
-inline Type intCast(Type t)
-{
-    return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(),
-                          t->boolean(), cast2int(t->getInterval()));
-}
-inline Type floatCast(Type t)
-{
-    return makeSimpleType(kReal, t->variability(), t->computability(), t->vectorability(),
-                          t->boolean(), t->getInterval());
-}
 
-inline Type castInterval(Type t, const interval& i)
-{
-    return makeSimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(),
-                          t->boolean(), i);
-}
 
 //-------------------------------------------------
 //-------------------------------------------------

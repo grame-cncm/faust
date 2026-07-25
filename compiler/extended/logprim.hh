@@ -34,20 +34,6 @@ class LogPrim : public xtendedCodegen {
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        Type     t = args[0];
-        interval i = t->getInterval();
-
-        if (i.isValid() && i.lo() < 0 && gGlobal->gMathExceptions) {
-            std::stringstream error;
-            error << "WARNING : potential out of domain in log(" << i << ")" << std::endl;
-            gWarningMessages.push_back(error.str());
-        }
-        return castInterval(floatCast(t), gAlgebra.Log(i));
-    }
-
     virtual int inferSigOrder(const std::vector<int>& args) override
     {
         faustassert(args.size() == arity());

@@ -34,14 +34,6 @@ class Exp10Prim : public xtendedCodegen {
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        Type     t = args[0];
-        interval i = t->getInterval();
-        return castInterval(floatCast(t), gAlgebra.Pow(interval(10, 10, 0), i));
-    }
-
     virtual int inferSigOrder(const std::vector<int>& args) override
     {
         faustassert(args.size() == arity());

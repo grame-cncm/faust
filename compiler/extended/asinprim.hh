@@ -34,19 +34,6 @@ class AsinPrim : public xtendedCodegen {
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == 1);
-        Type     t = args[0];
-        interval i = t->getInterval();
-        if (i.isValid() && gGlobal->gMathExceptions && (i.lo() < -1 || i.hi() > 1)) {
-            std::stringstream error;
-            error << "WARNING : potential out of domain in asin(" << i << ")" << std::endl;
-            gWarningMessages.push_back(error.str());
-        }
-        return castInterval(t, gAlgebra.Asin(i));
-    }
-
     virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override

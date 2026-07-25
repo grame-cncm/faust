@@ -38,22 +38,6 @@ class TanPrim : public xtendedCodegen {
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == 1);
-        interval i = args[0]->getInterval();
-        interval r = gAlgebra.Tan(i);
-        // The check can be improved to ensure that no infinity is in the range
-        /*
-         if (i.isValid()) {
-            if ((-halfpi < i.lo()) && (i.hi() < halfpi)) {
-                r = interval(tan(i.lo()), tan(i.hi()));
-            }
-        }
-        */
-        return castInterval(floatCast(args[0]), r);
-    }
-
     virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override

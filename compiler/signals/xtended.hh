@@ -66,7 +66,6 @@ class xtended : public virtual Garbageable {
     virtual unsigned int arity() = 0;
 
     virtual int    inferSigOrder(const std::vector<int>& args)     = 0;
-    virtual ::Type inferSigType(ConstTypes args)                   = 0;
     virtual Tree   computeSigOutput(const std::vector<Tree>& args) = 0;
     virtual bool   needCache()                                     = 0;
 

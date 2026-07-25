@@ -34,18 +34,6 @@ class SinPrim : public xtendedCodegen {
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == 1);
-
-        Type     t = args[0];
-        interval i = t->getInterval();
-
-        return castInterval(floatCast(t),
-                            gAlgebra.Sin(i));  // to replace by sin(pi*i) once the new version of
-                                               // the interval library is plugged in
-    }
-
     virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override

@@ -35,18 +35,6 @@ class RoundPrim : public xtendedCodegen {
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        interval i = args[0]->getInterval();
-        if (i.isValid()) {
-            // TODO: Round is missing in interval library
-            return castInterval(floatCast(args[0]), gAlgebra.Rint(i));
-        } else {
-            return floatCast(args[0]);
-        }
-    }
-
     virtual int inferSigOrder(const std::vector<int>& args) override
     {
         faustassert(args.size() == arity());

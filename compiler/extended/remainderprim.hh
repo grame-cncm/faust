@@ -35,23 +35,6 @@ class RemainderPrim : public xtendedCodegen {
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-
-        interval i = args[0]->getInterval();
-        interval j = args[1]->getInterval();
-        if (j.isValid() && gGlobal->gMathExceptions && j.hasZero()) {
-            std::stringstream error;
-            error << "WARNING : potential division by zero in remainder(" << i << ", " << j << ")"
-                  << std::endl;
-            gWarningMessages.push_back(error.str());
-        }
-
-        return castInterval(floatCast(args[0] | args[1]),
-                            gAlgebra.Remainder(i,j));  // temporary rule !!!
-    }
-
     virtual int inferSigOrder(const std::vector<int>& args) override
     {
         faustassert(args.size() == arity());

@@ -40,15 +40,6 @@ class MinPrim : public xtendedCodegen {
         return (type == kInt) ? "min_i" : subst("min_$0", isuffix());
     }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        interval i = args[0]->getInterval();
-        interval j = args[1]->getInterval();
-        // Use 'min' on intervals here...
-        return castInterval(args[0] | args[1], gAlgebra.Min(i, j));
-    }
-
     virtual int inferSigOrder(const std::vector<int>& args) override
     {
         faustassert(args.size() == arity());
@@ -169,7 +160,6 @@ class MinPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        ::Type t = inferSigType(types);
         return subst("\\min\\left( $0, $1 \\right)", args[0], args[1]);
     }
 

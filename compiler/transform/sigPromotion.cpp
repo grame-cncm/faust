@@ -93,11 +93,9 @@ void SignalChecker::visit(Tree sig)
     // Extended
     xtended* p = (xtended*)getUserData(sig);
     if (p) {
-        vector<Type> vt;
-        for (Tree b : sig->branches()) {
-            vt.push_back(getCertifiedSigType(b));
-        }
-        Type tx = p->inferSigType(vt);
+        // The node's stored type IS the primitive's result type (the annotation just
+        // computed it): no need to re-infer it from the argument types.
+        Type tx = getCertifiedSigType(sig);
         for (Tree b : sig->branches()) {
             if (tx->nature() != getCertifiedSigType(b)->nature()) {
                 cerr << "ASSERT : xtended with args of incorrect types : "
@@ -279,11 +277,9 @@ Tree SignalPromotion::transformation(Tree sig)
     // Extended
     xtended* p = (xtended*)getUserData(sig);
     if (p) {
-        vector<Type> vt;
-        for (Tree b : sig->branches()) {
-            vt.push_back(getCertifiedSigType(b));
-        }
-        Type         tr = p->inferSigType(vt);
+        // The node's stored type carries the result nature the arguments must be
+        // promoted to: no need to re-infer it from the argument types.
+        Type         tr = getCertifiedSigType(sig);
         vector<Tree> new_branches;
         for (Tree b : sig->branches()) {
             new_branches.push_back(smartCast(tr, getCertifiedSigType(b), self(b)));
