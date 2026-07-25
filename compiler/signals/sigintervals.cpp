@@ -604,6 +604,28 @@ class IntervalAlgebra : public SignalAlgebra<interval> {
 // Shadow comparison: classify, don't equate -- there is no exact oracle here.
 //----------------------------------------------------------------------------------------
 
+namespace {
+
+// Under FAUST_ITV_EXPLAIN, dump the operand intervals (ours vs the reference's) of a
+// diverging binop: divergences on comparisons are usually CASCADES from an operand
+// classified elsewhere, and this shows which operand and by how much.
+void explainBinOp(FixPointIterator<interval>& it, Tree sig)
+{
+    if (getenv("FAUST_ITV_EXPLAIN") == nullptr) return;
+    int  op;
+    Tree x, y;
+    if (!isSigBinOp(sig, &op, x, y)) return;
+    for (Tree operand : {x, y}) {
+        AudioType*  ty = getSigType(operand);
+        SimpleType* st = ty ? isSimpleType(ty) : nullptr;
+        std::cerr << "    operand " << it.value(operand) << " vs ref "
+                  << (st ? st->getInterval() : itv::interval()) << " : " << ppsig(operand, 25)
+                  << std::endl;
+    }
+}
+
+}  // namespace
+
 IntervalShadowStats shadowCheckInterval(Tree L, bool verbose)
 {
     RecPlan                    plan(L);
@@ -643,6 +665,7 @@ IntervalShadowStats shadowCheckInterval(Tree L, bool verbose)
             if (verbose && shownWider++ < 5) {
                 std::cerr << "ITV WIDER   : " << mine << " vs ref " << ref << " : "
                           << ppsig(n.first, 40) << std::endl;
+                explainBinOp(it, n.first);
             }
         } else {
             stats.incomparable++;
