@@ -302,7 +302,7 @@ V SignalAlgebra<V>::combine(Tree sig, const std::vector<V>& c,
 
     // Everything left is STRUCTURE rather than signal: list spines (cons/nil), labels,
     // identifiers, foreign-function signatures. Lists never cross the algebra boundary
-    // (Yann's doctrine) -- constructors whose arguments are list-packed unpack them
+    // -- constructors whose arguments are list-packed unpack them
     // through the evaluator and hand the algebra a std::vector. The walk still reaches
     // these nodes, so they take the domain's inert default value, never consumed.
     return V{};

@@ -28,8 +28,8 @@
 /**
  * The FACADE of the new type system: SimpleTypes assembled from the fixpoint domains.
  *
- * One solving session per root tree, memoized like getRecPlan. Two accesses (Yann's
- * design): the type of a signal, and the i-th type of a recursive group -- the second
+ * One solving session per root tree, memoized like getRecPlan. Two accesses: the
+ * type of a signal, and the i-th type of a recursive group -- the second
  * being sugar for the first, since proj(i, X) is itself a signal whose evaluation
  * routes through each domain's project() hook (the promotions the old inferProjType
  * used to perform). The old system typed the GROUP node and therefore needed a

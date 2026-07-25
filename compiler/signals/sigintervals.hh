@@ -25,7 +25,7 @@
 #include "tlib.hh"
 
 /**
- * The two roles of the interval computation (Yann, 2026-07-25): CORRECTNESS -- the
+ * The two roles of the interval computation: CORRECTNESS -- the
  * program runs right: no div-by-zero, no NaN, no table overflow, no infinity, delay
  * lines allocated large enough -- and SOUND QUALITY -- the precision of the
  * computations: in fixed point, a signal's format takes its integer bits (msb) from
