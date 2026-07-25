@@ -95,7 +95,9 @@ interval toItv(const AffItv& x, double T)
     if (x.isEmpty()) return itv::empty();
     const double lo = std::min(x.lo(0), x.lo(T));
     const double hi = std::max(x.hi(0), x.hi(T));
-    if (x.lsb >= 0 && !x.isConst() && (hi > 2147483647.0 || lo < -2147483648.0)) {
+    // The cap applies to CONSTANT forms too: an integer interval beyond int32 cannot
+    // describe any real int32 value -- the machine one has already wrapped.
+    if (x.lsb >= 0 && (hi > 2147483647.0 || lo < -2147483648.0)) {
         return {-2147483648.0, 2147483647.0, x.lsb};
     }
     return {lo, hi, x.lsb};

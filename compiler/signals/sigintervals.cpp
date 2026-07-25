@@ -785,6 +785,28 @@ IntervalRolesStats intervalRolesReport(Tree L, bool verbose)
             st.tableAccesses++;
             if (ok(hz.at(index))) st.tableSafeHorizon++;
             const bool ro = ok(r), mo = ok(m);
+            if (getenv("FAUST_ROLES_EXPLAIN") != nullptr && ro && !mo) {
+                auto triple = [&](Tree sg, const char* what) {
+                    AudioType*  ty = getSigType(sg);
+                    SimpleType* sy = ty ? isSimpleType(ty) : nullptr;
+                    std::cerr << "      " << what << " réf=" << (sy ? sy->getInterval() : itv::interval())
+                              << " wrap=" << it.value(sg) << " hz=" << hz.at(sg) << " : "
+                              << ppsig(sg, 22) << std::endl;
+                };
+                std::cerr << "    EXPLAIN accès (taille " << sz << ") :" << std::endl;
+                triple(index, "index");
+                int  op;
+                Tree ix, iy;
+                if (isSigBinOp(index, &op, ix, iy)) {
+                    triple(ix, "  op1 ");
+                    triple(iy, "  op2 ");
+                    Tree jx, jy;
+                    if (isSigBinOp(ix, &op, jx, jy)) {
+                        triple(jx, "    op1.1");
+                        triple(jy, "    op1.2");
+                    }
+                }
+            }
             if (ro && mo) {
                 st.tableSafeBoth++;
             } else if (mo) {
