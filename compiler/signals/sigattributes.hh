@@ -31,54 +31,10 @@
  * Attributes of a signal computed by the generic fixpoint engine (tlib/fixpoint.hh),
  * as opposed to the ad-hoc fixpoint inside sigtyperules.cpp.
  *
- * The migration proceeds attribute by attribute, EXACT ones first (no approximation,
- * no widening, no probe), the interval last. Each new attribute is first run as a
- * SHADOW of the existing type inference and compared signal by signal: an exact
- * attribute must agree everywhere, so any divergence is a bug. That gives a
- * falsifiable checkpoint before reaching the interval, where a divergence will
- * legitimately mean "more precise" rather than "wrong".
+ * Since 2026-07-25 these ARE the type system : the shadow-comparison harness that
+ * validated them against the old inference engine (corpus: 0 divergence on the five
+ * exact attributes) was removed with the engine itself.
  */
-
-/**
- * @brief Recompute the five exact attributes of every annotated signal of L by fixpoint
- * and compare them to the ones inferSigType stored.
- *
- * The five are computed by five INDEPENDENT passes sharing one RecPlan, not by one pass
- * over a tuple: a tuple would couple their convergences, so a slow attribute would hold
- * back a fast one. They are genuinely independent -- no type rule crosses two attributes,
- * and none of the five depends on the interval.
- *
- * L must have been through typeAnnotation() first. Signals with no type, and nodes
- * carrying a non-simple type (a recursive group's tuplet), are skipped.
- *
- * @param L the annotated list of output signals
- * @param verbose print one line per divergence, and a summary per attribute
- * @return the total number of divergences (0 is the expected result)
- */
-SIGS_API int shadowCheckNature(Tree L, bool verbose);
-SIGS_API int shadowCheckExactAttributes(Tree L, bool verbose);
-
-//----------------------------------------------------------------------------------------
-// Shared by the shadow comparisons (exact attributes here, interval in sigintervals.cpp).
-//----------------------------------------------------------------------------------------
-
-class SimpleType;  // sigtype.hh
-
-/// One comparable node: a signal and the SimpleType inferSigType stored on it.
-using TypedNodes = std::vector<std::pair<Tree, SimpleType*>>;
-
-/// Every annotated signal reachable from L that carries a SimpleType. Recursive groups
-/// (tuplet type) and the syntax a walk also meets (opcode leaves, labels) are skipped.
-SIGS_API TypedNodes collectTypedSignals(Tree L);
-
-/**
- * @brief Time the NEW system's full equivalent of a typeAnnotation -- RecPlan, the five
- * exact-attribute passes, and the affine interval domain, each queried on every typed
- * signal -- and print it against the measured duration of the CURRENT system's pass.
- * Behind FAUST_TYPE_TIMING; currentMs is measured by the caller around the current
- * inference body.
- */
-SIGS_API void typeTimingReport(Tree L, double currentMs);
 
 /**
  * The five exact attributes of one root, solved once and queryable per signal.

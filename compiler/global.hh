@@ -355,9 +355,6 @@ struct global {
     std::string
         gVHDLComponentsFile;  // -vhdl-operators, a config file to replace specific operators
 
-    int& gWideningLimit = sigs::g.gWideningLimit;   // Max number of iterations before interval widening
-    int& gNarrowingLimit = sigs::g.gNarrowingLimit;  // Max number of iterations to compute interval widener
-
     std::map<std::string, std::string> gFastMathLibTable;  // Mapping table for fastmath functions
     std::map<std::string, bool>        gMathForeignFunctions;  // Map of math foreign functions
 
@@ -419,8 +416,6 @@ struct global {
     std::vector<std::string>& gSignalTrace = sigs::g.gSignalTrace;
 
     // Typing
-    int& gCountInferences = sigs::g.gCountInferences;
-    int& gCountMaximal = sigs::g.gCountMaximal;
     int& gAllocationCount = sigs::g.gAllocationCount;  // Internal signal types counter
 
     // Compiler statistics for performance analysis (FIR backend only)
@@ -449,7 +444,6 @@ struct global {
     Tree COLORPROPERTY;
     Tree& ORDERPROP = sigs::g.ORDERPROP;
     Tree& RECURSIVNESS = sigs::g.RECURSIVNESS;
-    Tree& NULLTYPEENV = sigs::g.NULLTYPEENV;
     Tree NORMALFORM;
     Tree DEFNAMEPROPERTY;
     Tree NICKNAMEPROPERTY;
@@ -608,19 +602,13 @@ struct global {
 
     // Types
     Sym& SIMPLETYPE = sigs::g.SIMPLETYPE;
-    Sym& TABLETYPE = sigs::g.TABLETYPE;
-    Sym& TUPLETTYPE = sigs::g.TUPLETTYPE;
 
     // The map of types and associated Structured types
     std::map<Typed::VarType, DeclareStructTypeInst*> gExternalStructTypes;
 
     // Essential predefined types
-    Type& TINPUT = sigs::g.TINPUT;
-    Type& TGUI = sigs::g.TGUI;
 
     // Trying to accelerate type convergence
-    Type& TREC = sigs::g.TREC;  // kVect ou kScal ?
-    Type& TRECMAX = sigs::g.TRECMAX;
 
     // Predefined symbols CONS and NIL
     Sym  CONS;

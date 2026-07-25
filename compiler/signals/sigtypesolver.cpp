@@ -26,14 +26,11 @@
 #include <memory>
 #include <sstream>
 #include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
 #include "ppsig.hh"
 #include "sigOpcode.hh"
-#include "sigattributes.hh"  // ExactSolvers, collectTypedSignals
+#include "sigattributes.hh"  // ExactSolvers
 #include "sighorizon.hh"     // HorizonReader (the affine interval domain)
-#include "sigtyperules.hh"   // getSigType (for the shadow comparison only)
 #include "signals.hh"
 #include "tlib-error.hh"
 
@@ -148,74 +145,4 @@ TypeSolver& getTypeSolver(Tree root)
 void typeSolverReset()
 {
     gSolvers.clear();
-}
-
-//----------------------------------------------------------------------------------------
-// Shadow: the assembled SimpleTypes against the current system's.
-//----------------------------------------------------------------------------------------
-
-int shadowCheckFacade(Tree L, bool verbose)
-{
-    TypeSolver& solver = getTypeSolver(L);
-
-    // Own walk rather than collectTypedSignals : the comparison must ALSO cover the
-    // nodes the current system types with a TableType (rd/rwtable nodes), whose five
-    // attributes codegen reads through the AudioType virtual accessors. Only
-    // TupletTypes (lists, recursive groups) stay out : they are structure, and the
-    // facade refuses to type them by design.
-    int mismatches = 0, compared = 0, tables = 0;
-
-    std::unordered_set<Tree> visited;
-    std::vector<Tree>        work{L};
-    while (!work.empty()) {
-        Tree t = work.back();
-        work.pop_back();
-        if (!visited.insert(t).second) continue;
-
-        Tree var, body;
-        if (isRec(t, var, body)) {
-            if (body) work.push_back(body);
-            continue;
-        }
-        for (int i = 0; i < t->arity(); i++) {
-            work.push_back(t->branch(i));
-        }
-
-        AudioType* ref = getSigType(t);
-        if (ref == nullptr || isTupletType(ref) != nullptr) continue;
-
-        AudioType* mine = solver.type(t);
-        compared++;
-        if (isTableType(ref) != nullptr) tables++;
-        const bool ok = mine->nature() == ref->nature() &&
-                        mine->variability() == ref->variability() &&
-                        mine->computability() == ref->computability() &&
-                        mine->vectorability() == ref->vectorability() &&
-                        mine->boolean() == ref->boolean();
-        if (!ok) {
-            mismatches++;
-            if (verbose && mismatches <= 5) {
-                std::cerr << "FACADE MISMATCH : ";
-                if (mine->nature() != ref->nature())
-                    std::cerr << "nature " << mine->nature() << "≠" << ref->nature() << " ";
-                if (mine->variability() != ref->variability())
-                    std::cerr << "var " << mine->variability() << "≠" << ref->variability()
-                              << " ";
-                if (mine->computability() != ref->computability())
-                    std::cerr << "comp " << mine->computability() << "≠"
-                              << ref->computability() << " ";
-                if (mine->vectorability() != ref->vectorability())
-                    std::cerr << "vect " << mine->vectorability() << "≠"
-                              << ref->vectorability() << " ";
-                if (mine->boolean() != ref->boolean())
-                    std::cerr << "bool " << mine->boolean() << "≠" << ref->boolean() << " ";
-                std::cerr << ": " << ppsig(t, 30) << std::endl;
-            }
-        }
-    }
-    if (verbose) {
-        std::cerr << "FACADE : " << compared << " signals (" << tables
-                  << " tables), exact-field mismatches=" << mismatches << std::endl;
-    }
-    return mismatches;
 }

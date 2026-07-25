@@ -25,85 +25,29 @@
 #include "tlib.hh"
 
 /**
- * The interval attribute computed by the generic fixpoint engine.
+ * The two roles of the interval computation (Yann, 2026-07-25): CORRECTNESS -- the
+ * program runs right: no div-by-zero, no NaN, no table overflow, no infinity, delay
+ * lines allocated large enough -- and SOUND QUALITY -- the precision of the
+ * computations: in fixed point, a signal's format takes its integer bits (msb) from
+ * its RANGE, so a tighter interval converts directly into fractional bits, i.e. into
+ * signal-to-noise ratio. This report measures THE interval domain (the affine one,
+ * sighorizon.hh) on the concrete consumption sites of both roles.
  *
- * Unlike the five exact attributes (sigattributes.hh), the interval is APPROXIMATE:
- * its lattice is unbounded, so the engine's widening / narrowing / probe machinery is
- * engaged. The transfer function is kept IDENTICAL to the current type system's (same
- * gAlgebra calls, same per-constructor rules), so that every measured difference is
- * attributable to the ITERATION STRATEGY -- per-SCC solving in topological order,
- * per-bound widening after a configurable number of rounds, bounded narrowing --
- * and not to diverging semantics.
- *
- * There is no exact oracle here: the shadow comparison CLASSIFIES instead of equating.
- * `tighter` is the goal; `wider` and `incomparable` demand investigation.
+ * The shadow-comparison harness that validated the domain against the old type
+ * system's intervals (classification: tighter / floorRefuted / wider...) was removed
+ * with the old engine on 2026-07-25; see the journal for the final campaign numbers.
  */
-
-/// Result of comparing the fixpoint interval against the type system's, per signal.
-struct IntervalShadowStats {
-    int equal      = 0;  ///< same bounds (or both unknown/empty)
-    int tighter    = 0;  ///< strictly contained in the type system's (win)
-    int fromTop    = 0;  ///< bounded where the type system had no information (win)
-    int wider      = 0;  ///< strictly contains the type system's (loss: investigate)
-    int toEmpty    = 0;  ///< empty where the type system had bounds (suspicious)
-    int incomparable = 0;  ///< overlapping, neither contains the other (investigate)
-
-    /// The disagreement is confined to the FLOOR: our low bound goes below the
-    /// reference's while our ceiling does not exceed its. This is the signature of the
-    /// signed-noise / plucked-string family, where the reference's [0,+inf) asserts a
-    /// sign the signal does not have -- hand-verified on the idioms (LCG noise wraps
-    /// and IS negative half the time; a string oscillates below zero; an int counter
-    /// eventually wraps negative). Not a loss: there, the REFERENCE is the wrong one.
-    int floorRefuted = 0;
-
-    int total() const
-    {
-        return equal + tighter + fromTop + wider + toEmpty + incomparable + floorRefuted;
-    }
-};
-
-/**
- * @brief Recompute the interval of every annotated signal of L by fixpoint and compare
- * it to the one inferSigType stored. L must have been through typeAnnotation() first.
- *
- * @param L the annotated list of output signals
- * @param verbose print a summary line, plus samples of the suspicious classes
- * @return the comparison statistics
- */
-SIGS_API IntervalShadowStats shadowCheckInterval(Tree L, bool verbose);
-
-/// The interval computation serves two roles (Yann, 2026-07-25): CORRECTNESS -- the
-/// program runs right: no div-by-zero, no NaN, no table overflow, no infinity, delay
-/// lines allocated large enough -- and SOUND QUALITY -- the precision of the
-/// computations: in fixed point, a signal's format takes its integer bits (msb) from
-/// its RANGE, so a tighter interval converts directly into fractional bits, i.e. into
-/// signal-to-noise ratio. This report measures the new domain against the current one
-/// on the concrete consumption sites of both roles.
 struct IntervalRolesStats {
     // correctness: delay-line allocation (the hi bound of every delay amount)
-    int delaySites      = 0;  ///< delay sites with a comparable amount
-    int delayTighter    = 0;  ///< our hi is strictly smaller (less memory)
-    int delayEqual      = 0;
-    int delayWider      = 0;  ///< our hi is larger (would over-allocate)
-    int delayOnlyUs     = 0;  ///< bounded by us, unbounded by the current system
-    int delayOnlyRef    = 0;  ///< the reverse (investigate)
+    int delaySites     = 0;  ///< delay sites whose amount has provable finite bounds
+    int delayUnbounded = 0;  ///< delay sites with no finite bound (compile error zone)
     // correctness: table accesses provably within [0, size)
-    int tableAccesses   = 0;
-    int tableSafeBoth   = 0;
-    int tableSafeUsOnly = 0;
-    int tableSafeRefOnly = 0;
-    int tableSafeNone   = 0;
+    int tableAccesses = 0;
+    int tableSafe     = 0;  ///< accesses proved in bounds (no clamp needed)
+    int tableUnproven = 0;  ///< accesses that keep their guard
     // quality: integer bits of the fixed-point format (msb from the range)
-    int formatSites     = 0;  ///< signals bounded under both systems
-    long long formatBitsSaved = 0;  ///< sum over sites of msb(ref) - msb(ours)
-    int formatOnlyUs    = 0;  ///< bounded by us alone: a format becomes possible
-    int formatOnlyRef   = 0;
-    // the THIRD reading: horizon-bounded intervals (valid for the declared lifetime).
-    // Under T, a counter is [0, T*rate]: table proofs and format bits come back.
-    int       tableSafeHorizon      = 0;  ///< accesses provable under the horizon reading
-    int       formatSitesHorizon    = 0;  ///< signals bounded under ref AND horizon
-    long long formatBitsSavedHorizon = 0;  ///< sum of msb(ref) - msb(horizon)
-    int       formatOnlyHorizon     = 0;  ///< bounded under the horizon reading alone
+    int       formatSites     = 0;  ///< signals with a finite range (a format exists)
+    long long formatBitsTotal = 0;  ///< sum over sites of msb(range)
 };
 
 SIGS_API IntervalRolesStats intervalRolesReport(Tree L, bool verbose);

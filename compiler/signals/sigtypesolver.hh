@@ -67,8 +67,3 @@ class SIGS_API TypeSolver {
 /// Memoized access: one solving session per root per session (cleared by sigs::init).
 SIGS_API TypeSolver& getTypeSolver(Tree root);
 SIGS_API void        typeSolverReset();
-
-/// Compare the facade's SimpleTypes against the current system's on every typed
-/// signal of L: the five exact fields must MATCH (they are exact); the interval is
-/// covered by shadowCheckInterval. Returns the number of exact-field mismatches.
-SIGS_API int shadowCheckFacade(Tree L, bool verbose);

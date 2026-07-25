@@ -104,32 +104,22 @@ void init()
     // Foreign function head and type constructors (ordinary symbols)
     g.FFUN       = symbol("ForeignFunction");
     g.SIMPLETYPE = symbol("SimpleType");
-    g.TABLETYPE  = symbol("TableType");
-    g.TUPLETTYPE = symbol("TupletType");
 
     // Property keys
     g.ORDERPROP    = tree(symbol("OrderProp"));
     g.RECURSIVNESS = tree(symbol("RecursivnessProp"));
-    g.NULLTYPEENV  = tree(symbol("NullTypeEnv"));
 
     // Session state
     g.TABBER = Tabber(1);
     g.gSignalTable.clear();
     g.gSignalTrace.clear();
     g.gSignalCounter   = 0;
-    g.gCountInferences = 0;
-    g.gCountMaximal    = 0;
     g.gAllocationCount = 0;
     g.gSymListProp     = new property<Tree>();
     g.gMemoizedTypes   = new property<AudioType*>();
 
     // Option defaults (same values as global.cpp)
     g.gCausality      = false;
-    g.gTypeStatistics = false;
-    g.gNatureShadow   = false;
-    g.gIntervalShadow = false;
-    g.gWideningLimit  = 0;
-    g.gNarrowingLimit = 0;
     g.gFloatSize      = 1;
 
     // Extended primitive registry: empty in standalone mode (the concrete
@@ -157,10 +147,6 @@ void init()
     g.gTanPrim        = nullptr;
 
     // Type singletons (require the interval algebra and gMemoizedTypes above)
-    g.TINPUT  = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
-    g.TGUI    = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval());
-    g.TREC    = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0, 0));
-    g.TRECMAX = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(-HUGE_VAL, HUGE_VAL));
 }
 
 /**

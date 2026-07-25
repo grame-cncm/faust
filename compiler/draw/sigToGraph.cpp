@@ -81,7 +81,8 @@ static Type drawnType(Tree sig)
             vt.push_back(getCertifiedSigType(hd(body)));
             body = tl(body);
         }
-        return new TupletType(vt);
+        return makeSimpleType(mergenature(vt), mergevariability(vt), mergecomputability(vt),
+                              mergevectorability(vt), mergeboolean(vt), mergeinterval(vt));
     }
     return getCertifiedSigType(sig);
 }

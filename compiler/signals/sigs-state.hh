@@ -48,29 +48,14 @@ namespace sigs {
 
 struct State {
     int                                         gFloatSize{};  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad',
-    int                                         gWideningLimit{};   // Max number of iterations before interval widening
-    int                                         gNarrowingLimit{};  // Max number of iterations to compute interval widener
     Tabber                                      TABBER{};
     std::map<Tree, std::pair<int, std::string>> gSignalTable{};
     int                                         gSignalCounter{};
     std::vector<std::string>                    gSignalTrace{};
-    int                                         gCountInferences{};
-    // Instrumentation for the planned kContainsRec optimization : count the inferences run
-    // on a rec-free node that ALREADY carried a type. Those are exactly the ones the
-    // optimization would skip, since nothing below such a node can move during a fixpoint
-    // iteration. gCountRecFreeChanged counts how many of them nevertheless produced a
-    // DIFFERENT type -- it must stay at 0, otherwise the hypothesis is wrong.
-    int                                         gCountRecFreeRedundant{};
-    int                                         gCountRecFreeChanged{};
-    bool                                        gTypeStatistics{};  // print them after typeAnnotation
-    bool gNatureShadow{};  // recompute nature by fixpoint and compare (see sigattributes.hh)
-    bool gIntervalShadow{};  // recompute intervals by fixpoint and classify (see sigintervals.hh)
-    int                                         gCountMaximal{};
     int                                         gAllocationCount{};  // Internal signal types counter
     bool                                        gCausality{};  // FIXME: global used as a parameter of typeAnnotation when true trigs
     Tree                                        ORDERPROP{};
     Tree                                        RECURSIVNESS{};
-    Tree                                        NULLTYPEENV{};
     xtended*                                    gAbsPrim{};
     xtended*                                    gAcosPrim{};
     xtended*                                    gTanPrim{};
@@ -134,12 +119,6 @@ struct State {
     Sym                                         SIGSOUNDFILEBUFFER{};
     Sym                                         SIGREGISTER{};  // for FPGA Retiming
     Sym                                         SIMPLETYPE{};
-    Sym                                         TABLETYPE{};
-    Sym                                         TUPLETTYPE{};
-    Type                                        TINPUT{};
-    Type                                        TGUI{};
-    Type                                        TREC{};  // kVect ou kScal ?
-    Type                                        TRECMAX{};
 };
 
 /// The state of the signal library (one per process, like tlib).

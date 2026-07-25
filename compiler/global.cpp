@@ -364,8 +364,6 @@ global::global()
     // dispatch can use. The members below are references to sigs::g.
     sigs::initSignalSymbols();
     SIMPLETYPE         = symbol("SimpleType");
-    TABLETYPE          = symbol("TableType");
-    TUPLETTYPE         = symbol("TupletType");
 
     gMachineFloatSize      = sizeof(float);
     gMachineInt32Size      = sizeof(int);
@@ -492,8 +490,6 @@ void global::reset()
     gCheckIntRange        = false;
     gReprC                = true;
 
-    gNarrowingLimit = 0;
-    gWideningLimit  = 0;
 
     gLstDependenciesSwitch = true;  // mdoc listing management.
     gLstMdocTagsSwitch     = true;  // mdoc listing management.
@@ -508,9 +504,6 @@ void global::reset()
     gBoxCounter    = 0;
     gSignalCounter = 0;
 
-    gCountInferences = 0;
-    gCountMaximal    = 0;
-
 #ifdef FIR_BUILD
     gStats.reset();  // Reset compiler statistics
 #endif
@@ -522,13 +515,6 @@ void global::reset()
 
     gLocalCausalityCheck = false;
     gCausality           = false;
-    // Temporary probe for the kContainsRec work : gated by an env var rather than a CLI
-    // option, because -d prints the whole signal expression and is unusable on big files.
-    sigs::g.gTypeStatistics = (getenv("FAUST_TYPE_STATS") != nullptr);
-    sigs::g.gNatureShadow   = (getenv("FAUST_NATURE_SHADOW") != nullptr);
-    sigs::g.gIntervalShadow = (getenv("FAUST_INTERVAL_SHADOW") != nullptr);
-    sigs::g.gCountRecFreeRedundant = 0;
-    sigs::g.gCountRecFreeChanged   = 0;
 
     gOccurrences = nullptr;
     gFoldingFlag = false;
@@ -631,14 +617,6 @@ void global::init()
     // True by default but only usable with -lang ocpp backend
     gEnableFlag = true;
 
-    // Essential predefined types
-    TINPUT = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
-    TGUI   = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval());
-
-    TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0, 0));
-    // !!! TRECMAX Maximal only in the last component of the type lattice
-    TRECMAX = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(-HUGE_VAL, HUGE_VAL));
-
     // Predefined symbols CONS and NIL
     CONS = symbol("cons");
     NIL  = symbol("nil");
@@ -657,7 +635,6 @@ void global::init()
     COLORPROPERTY    = tree(symbol("ColorProperty"));
     ORDERPROP        = tree(symbol("OrderProp"));
     RECURSIVNESS     = tree(symbol("RecursivnessProp"));
-    NULLTYPEENV      = tree(symbol("NullTypeEnv"));
     NORMALFORM       = tree(symbol("NormalForm"));
     DEFNAMEPROPERTY  = tree(symbol("DEFNAMEPROPERTY"));
     NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
@@ -1017,13 +994,9 @@ Typed::VarType global::getVarType(const string& name)
 
 global::~global()
 {
-    // Release the type singletons of the signal library state while the
+    // Release the memoized types of the signal library state while the
     // AudioType objects are still alive (destroyed by tlib::cleanup below);
     // the static sigs::g must not keep stale pointers.
-    TINPUT         = nullptr;
-    TGUI           = nullptr;
-    TREC           = nullptr;
-    TRECMAX        = nullptr;
     gMemoizedTypes = nullptr;
     gSymListProp   = nullptr;
 
@@ -1232,14 +1205,6 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-o") && (i + 1 < argc)) {
             gOutputFile = argv[i + 1];
-            i += 2;
-
-        } else if (isCmd(argv[i], "-wi", "--widening-iterations") && (i + 1 < argc)) {
-            gWideningLimit = std::atoi(argv[i + 1]);
-            i += 2;
-
-        } else if (isCmd(argv[i], "-ni", "--narrowing-iterations") && (i + 1 < argc)) {
-            gNarrowingLimit = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-ps", "--postscript")) {
@@ -2453,15 +2418,6 @@ string global::printHelp()
             "mode."
          << endl;
 
-    sstr << tab
-         << "-wi <n>     --widening-iterations <n>   number of iterations before widening in "
-            "signal bounding."
-         << endl;
-
-    sstr << tab
-         << "-ni <n>     --narrowing-iterations <n>  number of iterations before stopping "
-            "narrowing in signal bounding."
-         << endl;
     sstr << tab
          << "-rnt        --rust-no-faustdsp-trait    (Rust only) Don't generate FaustDsp trait "
             "implementation."

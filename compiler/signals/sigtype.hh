@@ -75,7 +75,7 @@ enum Vectorability {
 /*---------------------------------------------------------------------
 
     AbstractType :
-    The root class for SimpleType, TableType and TupletType
+    The root class of the audio type hierarchy (SimpleType is the concrete citizen)
 
     Type :
     A smartPointer to type
@@ -237,12 +237,6 @@ AudioType* makeSimpleType(int nature, int variability, int computability, int ve
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i, const res& lsb);
 // didn't use a default arg, would have created a cyclic dependancy with global.hh
 
-AudioType* makeTableType(const Type& ct);
-AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, const interval& i);
-
-AudioType* makeTupletType(ConstTypes vt);
-AudioType* makeTupletType(ConstTypes vt, int n, int v, int c, int vec, int b, const interval& i);
-
 /**
  * The type of a simple numeric audio signal.
  * Beside a computability and a variability, SimpleTypes have
@@ -302,44 +296,9 @@ inline Type intCast(Type t)
     return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(),
                           t->boolean(), cast2int(t->getInterval()));
 }
-inline Type bitCast(Type t)
-{
-    return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(),
-                          t->boolean(), t->getInterval());
-}
 inline Type floatCast(Type t)
 {
     return makeSimpleType(kReal, t->variability(), t->computability(), t->vectorability(),
-                          t->boolean(), t->getInterval());
-}
-inline Type sampCast(Type t)
-{
-    return makeSimpleType(t->nature(), kSamp, t->computability(), t->vectorability(), t->boolean(),
-                          t->getInterval());
-}
-inline Type boolCast(Type t)
-{
-    return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), kBool,
-                          t->getInterval());
-}
-inline Type numCast(Type t)
-{
-    return makeSimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(),
-                          kNum, t->getInterval());
-}
-inline Type vecCast(Type t)
-{
-    return makeSimpleType(t->nature(), t->variability(), t->computability(), kVect, t->boolean(),
-                          t->getInterval());
-}
-inline Type scalCast(Type t)
-{
-    return makeSimpleType(t->nature(), t->variability(), t->computability(), kScal, t->boolean(),
-                          t->getInterval());
-}
-inline Type truescalCast(Type t)
-{
-    return makeSimpleType(t->nature(), t->variability(), t->computability(), kTrueScal,
                           t->boolean(), t->getInterval());
 }
 
@@ -348,151 +307,6 @@ inline Type castInterval(Type t, const interval& i)
     return makeSimpleType(t->nature(), t->variability(), t->computability(), t->vectorability(),
                           t->boolean(), i);
 }
-
-/**
- * The type of a table of audio data.
- * Beside a computability and a variability, TableTypes have
- * a "content" indicating the type of the data stored in the table.
- */
-class TableType : public AudioType {
-   protected:
-    const Type fContent;  ///< type of that data stored in the table
-
-   public:
-    TableType(const Type& t)
-        : AudioType(t->nature(), kKonst, kInit, kVect, t->boolean(), t->getInterval()), fContent(t)
-    {
-    }  ///< construct a TableType with a content of a type t
-#if 0
-    TableType(const Type& t, int v, int c) :
-          AudioType(t->nature(), t->variability() | v, t->computability() | c, t->vectorability(), t->boolean()),
-          fContent(t) {}        ///< construct a TableType with a content of a type t, promoting variability and computability
-
-    TableType(const Type& t, int n, int v, int c) :
-          AudioType(t->nature() | n, t->variability() | v, t->computability() | c, t->vectorability(), t->boolean()),
-          fContent(t) {}        ///< construct a TableType with a content of a type t, promoting nature, variability and computability
-
-    TableType(const Type& t, int n, int v, int c, int vec, int b) :
-          AudioType(t->nature() | n, t->variability() | v, t->computability() | c, t->vectorability() | vec, t->boolean()|b),
-          fContent(t) {}        ///< construct a TableType with a content of a type t, promoting nature, variability, computability,            vectorability and booleanity
-#endif
-
-    TableType(const Type& t, int n, int v, int c, int vec, int b, const interval& i)
-        : AudioType(t->nature() | n, kKonst | v, kInit | c, kVect | vec, t->boolean() | b, i),
-          fContent(t)
-    {
-    }  ///< construct a TableType with a content of a type t, promoting nature, variability,
-       ///< computability, vectorability and booleanity
-
-    TableType(const Type& t, int n, int v, int c, int vec)
-        : AudioType(t->nature() | n, kKonst | v, kInit | c, kVect | vec, t->boolean()), fContent(t)
-    {
-    }  ///< construct a TableType with a content of a type t, promoting nature, variability,
-       ///< computability and vectorability
-
-    Type content() const { return fContent; }  ///< return the type of data store in the table
-    virtual std::ostream& print(std::ostream& dst) const;  ///< print a TableType
-
-    virtual AudioType* promoteNature(int n)
-    {
-        return makeTableType(fContent, n | fNature, fVariability, fComputability, fVectorability,
-                             fBoolean, fInterval);
-    }  ///< promote the nature of a type
-    virtual AudioType* promoteVariability(int v)
-    {
-        return makeTableType(fContent, fNature, v | fVariability, fComputability, fVectorability,
-                             fBoolean, fInterval);
-    }  ///< promote the variability of a type
-    virtual AudioType* promoteComputability(int c)
-    {
-        return makeTableType(fContent, fNature, fVariability, c | fComputability, fVectorability,
-                             fBoolean, fInterval);
-    }  ///< promote the computability of a type
-    virtual AudioType* promoteVectorability(int vec)
-    {
-        return makeTableType(fContent, fNature, fVariability, fComputability, vec | fVectorability,
-                             fBoolean, fInterval);
-    }  ///< promote the vectorability of a type
-    virtual AudioType* promoteBoolean(int b)
-    {
-        return makeTableType(fContent, fNature, fVariability, fComputability, fVectorability,
-                             b | fBoolean, fInterval);
-    }  ///< promote the booleanity of a type
-    virtual AudioType* promoteInterval(const interval& i)
-    {
-        return makeTableType(fContent, fNature, fVariability, fComputability, fVectorability,
-                             fBoolean, i);
-    }  ///< promote the interval of a type
-
-    virtual bool isMaximal()
-        const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
-};
-
-/**
- * The type of a tuplet of data.
- * Beside a computability and a variability, TupletTypes have
- * a set of components.
- */
-class TupletType : public AudioType {
-   protected:
-    std::vector<Type> fComponents;
-
-   public:
-    TupletType() : AudioType(0, 0, 0) {}
-
-    TupletType(ConstTypes vt)
-        : AudioType(mergenature(vt), mergevariability(vt), mergecomputability(vt),
-                    mergevectorability(vt), mergeboolean(vt), mergeinterval(vt)),
-          fComponents(vt)
-    {
-    }
-
-    TupletType(ConstTypes vt, int n, int v, int c, int vec, int b, const interval& i)
-        : AudioType(n | mergenature(vt), v | mergevariability(vt), c | mergecomputability(vt),
-                    vec | mergevectorability(vt), b | mergeboolean(vt), i),
-          fComponents(vt)
-    {
-    }
-
-    int  arity() const { return (int)fComponents.size(); }
-    Type operator[](unsigned int i) const { return fComponents[i]; }
-
-    virtual std::ostream& print(std::ostream& dst) const;
-
-    virtual AudioType* promoteNature(int n)
-    {
-        return new TupletType(fComponents, n | fNature, fVariability, fComputability,
-                              fVectorability, fBoolean, fInterval);
-    }  ///< promote the nature of a type
-    virtual AudioType* promoteVariability(int v)
-    {
-        return new TupletType(fComponents, fNature, v | fVariability, fComputability,
-                              fVectorability, fBoolean, fInterval);
-    }  ///< promote the variability of a type
-    virtual AudioType* promoteComputability(int c)
-    {
-        return new TupletType(fComponents, fNature, fVariability, c | fComputability,
-                              fVectorability, fBoolean, fInterval);
-    }  ///< promote the computability of a type
-    virtual AudioType* promoteVectorability(int vec)
-    {
-        return new TupletType(fComponents, fNature, fVariability, fComputability,
-                              vec | fVectorability, fBoolean, fInterval);
-    }  ///< promote the vectorability of a type
-    virtual AudioType* promoteBoolean(int b)
-    {
-        return new TupletType(fComponents, fNature, fVariability, fComputability, fVectorability,
-                              b | fBoolean, fInterval);
-    }  ///< promote the booleanity of a type
-    virtual AudioType* promoteInterval(const interval& i)
-    {
-        return new TupletType(fComponents, fNature, fVariability, fComputability, fVectorability,
-                              fBoolean, i);
-    }  ///< promote the interval of a type
-
-    virtual bool isMaximal()
-        const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
-};
 
 //-------------------------------------------------
 //-------------------------------------------------
@@ -503,9 +317,7 @@ class TupletType : public AudioType {
 //--------------------------------------------------
 // types creation
 
-Type table(const Type& t);
 Type operator|(const Type& t1, const Type& t2);
-Type operator*(const Type& t1, const Type& t2);
 
 //--------------------------------------------------
 // types comparaison
@@ -534,16 +346,12 @@ inline bool operator>=(const Type& t1, const Type& t2)
 // types predicats-conversion
 
 SimpleType* isSimpleType(AudioType* t);
-TableType*  isTableType(AudioType* t);
-TupletType* isTupletType(AudioType* t);
 
 //--------------------------------------------------
 // types impressions
 
 std::ostream& operator<<(std::ostream& dst, const SimpleType& t);
 std::ostream& operator<<(std::ostream& dst, const Type& t);
-std::ostream& operator<<(std::ostream& dst, const TableType& t);
-std::ostream& operator<<(std::ostream& dst, const TupletType& t);
 
 //--------------------------------------------------
 // type verification
@@ -551,10 +359,6 @@ std::ostream& operator<<(std::ostream& dst, const TupletType& t);
 Type checkInt(Type t);    ///< check that t is an integer
 Type checkKonst(Type t);  ///< check that t is a constant
 Type checkInit(Type t);   ///< check that t is known at init time
-
-Type checkIntParam(Type t);  ///< check that t is known at init time, constant and an integer
-
-Type checkWRTbl(Type tbl, Type wr);  ///< check that wr is compatible with tbl content
 
 int checkDelayInterval(Type t);  ///< check if the interval of t is appropriate for a delay
 
