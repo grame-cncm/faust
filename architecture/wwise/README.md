@@ -25,6 +25,10 @@ Supported **target platforms** include Windows, macOS and Android.These are the 
 - Error handling
 - Testing script to validate against all Faust example files
 - Support for channel mask selection for explicit speaker configuration
+- Support for Faust effects with mismatched numbers of input and output channels (see the important note in the [in-place vs out-of-place chapter](#in-place-vs-out-of-place-and-channel-setup-effect-plugins-only)).
+
+(i.e. for [examples/SAM/chorus/chorus.dsp](../../examples/SAM/chorus/chorus.dsp)). 
+
 
 ## Pipeline overview
 
@@ -195,6 +199,29 @@ faust2wwise myGenerator.dsp --spkcfg AK_SPEAKER_SETUP_5POINT1
 ```
 This example shows of how explicit speaker configuration can be provided for a Faust DSP file that generates audio output for 6 channels.
 
+### In-place vs out-of-place and channel setup (Effect plugins only)
+
+For effect plugins, you may explicitly specify the buffer interface you would like to use. Additional information can be found in the [Faust docs]() and the [Wwise docs]().
+
+**Example:**
+
+For **in-place** buffer configuration, where the same buffer is used for both Faust inputs and outputs, you may use the `--in-place` flag, use the `--in-place` flag, or omit the flag completely (this is the default behaviour).
+
+```
+faust2wwise myEffect.dsp
+faust2wwise myEffect2.dsp --in-place
+```
+
+For an **out-of-place** buffer configuration, where separate buffers are used for Faust inputs and outputs, use the `--out-of-place` flag explicitly.
+
+```
+faust2wwise myEffect.dsp --out-of-place
+```
+
+> Important note
+
+The Wwise backend handles Faust channels channel-wise: missing input channels are filled with silence and additional output channels are allocated as needed. No channel mixing or duplication is performed. If an in-place effect is requested, it is automatically generated as an out-of-place effect, since Wwise in-place effects require identical input and output channel counts.
+
 ## Testing
 
 To test `faust2wwise`, a Python test script is provided that runs the conversion script on all `.dsp` files in a given directory. To use it, run `faust2wwise` in test mode using the `test` command-line parameter:
@@ -246,7 +273,6 @@ The following features are currently limited or under development:
 - macOS support for Wwise Authoring plug-ins is indirect because the Authoring application runs as a Windows binary through an adaptation layer, and therefore requires plug-ins to be built as Windows DLLs. To achieve this on macOS, you must build the Authoring plug-in on a Windows machine or VM with Visual Studio, while the Sound Engine plug-in can be built natively on macOS. (For more details, see the official documentation on [macOS Plug-in Considerations](https://www.audiokinetic.com/en/public-library/2024.1.7_8863/?source=SDK&id=authoringplugin_macos.html))
 - `faust2wwise test` currently does not support the `--clean` option on macOS, as the plugin installation directory cannot be reliably determined.
 - `soundfile` primitive is currently not supported.
-- Misalignment between amount of input and output requested channels by the Faust program for effect plugins is currently unsupported (i.e. for [examples/SAM/chorus/chorus.dsp](../../examples/SAM/chorus/chorus.dsp))
 
 If you'd like to help improve any of these, contributions are welcome!
 Please follow the [official contribution guideline](https://faustdoc.grame.fr/manual/community/).

@@ -73,6 +73,7 @@ private:
     int numInputs {0}, numOutputs {0}, channelsAvail{0};
     std::vector<FAUSTFLOAT*> faust_inputs;
     std::vector<FAUSTFLOAT*> faust_outputs;
+    bool faustIOChannelsFilledOnce {false};
 };
 
 #endif // ${name}FX_H

@@ -61,12 +61,15 @@ AKRESULT ${name}FX::Init(AK::IAkPluginMemAlloc* in_pAllocator, AK::IAkEffectPlug
     channelsAvail = in_rFormat.channelConfig.uNumChannels;
     const int numInputs = m_dsp.getNumInputs();
     const int numOutputs = m_dsp.getNumOutputs();
-    // Runtime error in case of misalignment between amount of input and output requested channels by the Faust program
+
+    // Note: This condition should never happen here, since the faust2wwise::jsonprocessor changes the plugin_interface to "out-of-place" in such a case.
+    // Runtime error in case of misalignment between amount of input and output requested channels by the Faust program.
     if (numInputs != numOutputs){
         char errorMsg[256];
         snprintf(errorMsg, sizeof(errorMsg),
-            "[ERROR]: Misalignment between amount of input and output requested channels by the Faust program is currently unsupported."
-            "Wwise FX plugins require the same amount of input/output channels. In this case {} != {}", 
+            "[ERROR]: Misalignment between amount of input and output requested channels by the Faust program is unsupported for in-place effect plugins.",
+            "Now the case of misalignment between amount of input and output requested channels by the Faust is handled by out-of-place effect plugins. In this case, please use an faust2wwise with \'--out-of-place\' argument instead.",
+            "Wwise in-place FX plugins require the same amount of input/output channels. In this case {} != {}", 
                 numInputs, numOutputs);
         AKPLATFORM::OutputDebugMsg(errorMsg);
         return AK_NotImplemented;

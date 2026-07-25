@@ -165,11 +165,6 @@ class Faust2WwiseOrchestrator:
                 print(f"Channel config mask provided : {self.wwise_speaker_cfg_channel_mask} --> {speaker_config_options[self.wwise_speaker_cfg_channel_mask]} num channels")
                 sys.exit(self.ERR_INVALID_INPUT)
 
-        if (self.plugin_type == "effect" and self.num_inputs!=self.num_outputs):
-            print("[ERROR]: Misalignment between amount of input and output requested channels by the Faust program is currently unsupported.")
-            print(f"Wwise FX plugins require the same amount of input/output channels. In this case {self.num_inputs} != {self.num_outputs}")
-            sys.exit(self.ERR_INVALID_INPUT)
-
         print("OK : DSP compiling step was completed successfully!") 
 
     # =========================================================================

@@ -214,7 +214,7 @@ class Config:
         print("=====================================")
         print("Faust2Wwise conversion completed!")
         print(f"Generated plugin: {self.plugin_name}")
-        print(f"Plugin type: {self.plugin_type}" + (" (in-place)" if self.plugin_type == "effect" and self.wwise_plugin_interface=="in-place" else " (out-of-place)" if self.plugin_type == "effect" else ""))
+        print(f"Plugin type: {self.plugin_type}" + (f" ({self.wwise_plugin_interface})" if self.plugin_type == "effect" else ""))
         print(f"IO: num inputs({self.num_inputs}), num outputs({self.num_outputs})")
         print(f"Build location: {self.build_location}")
         if self.wwise_with_test_project:
