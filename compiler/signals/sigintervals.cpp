@@ -136,10 +136,17 @@ class IntervalAlgebra : public SignalAlgebra<interval> {
     // The seed's integer lsb is deliberate: certification must run under the
     // COMPUTATIONAL semantics, wrap included. An LCG probe overflows, wraps, and fails
     // certification -- correctly, since an LCG is not non-negative.
-    std::optional<interval> probeSeed(Tree /*var*/) const override
+    // Two attempts, in order of informativeness: the positivity seed [0, 2^30] first
+    // (its certificate carries the sign, which mod-counters and envelopes want), then
+    // the symmetric [-2^30, 2^30] that a CONTRACTING signed loop still satisfies -- a
+    // Karplus-Strong string averages two past samples and attenuates, so
+    // F([-B,B]) ⊑ [-B,B] holds even though the excitation is signed noise. The
+    // certificate is weaker (no sign) but its threshold is finite, where widening alone
+    // would blow the loop to (-inf,+inf).
+    std::vector<interval> probeSeeds(Tree /*var*/) const override
     {
-        if (getenv("FAUST_ITV_NOPROBE") != nullptr) return std::nullopt;  // measurement A/B
-        return interval(0, kProbeBig, 0);
+        if (getenv("FAUST_ITV_NOPROBE") != nullptr) return {};  // measurement A/B
+        return {interval(0, kProbeBig, 0), interval(-kProbeBig, kProbeBig, 0)};
     }
 
     void recordProbe(Tree var, const interval& probed, bool sccCertified) const override

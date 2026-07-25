@@ -31,7 +31,9 @@
 #ifndef __FIXPOINT__
 #define __FIXPOINT__
 
+#include <algorithm>
 #include <climits>
+#include <cstddef>
 #include <optional>
 #include <unordered_map>
 #include <vector>
@@ -98,6 +100,20 @@ class FixPointDomain {
     // branch, the probed value and whether the WHOLE SCC certified (F#(P_C) ⊑ P_C on the
     // full product). The domain records it and consumes it in widen(var, …).
     virtual std::optional<V> probeSeed(Tree var) const { return std::nullopt; }
+
+    // Ordered list of seed candidates, tried until one certifies the WHOLE SCC. Lets a
+    // domain fall back to a weaker certificate when a stronger one fails -- e.g. the
+    // interval's positivity seed [0,+BIG] first, then the symmetric [-BIG,+BIG] that a
+    // contracting signed loop (a plucked string) still satisfies. An empty list on any
+    // branch opts the whole component out. The default wraps the single-seed API, so
+    // existing domains are unchanged.
+    virtual std::vector<V> probeSeeds(Tree var) const
+    {
+        std::optional<V> s = probeSeed(var);
+        if (s) return {*s};
+        return {};
+    }
+
     virtual void recordProbe(Tree var, const V& probed, bool sccCertified) const {}
 };
 
@@ -291,26 +307,43 @@ class FixPointIterator : public FixPointEvaluator<V> {
     {
         const std::vector<Tree>& members = fPlan.components()[scc];
 
-        std::unordered_map<Tree, Row> approx;
+        // Ordered seed candidates per branch. An empty list on any branch opts the
+        // whole component out; the number of attempts is the longest list, shorter
+        // lists reusing their last candidate.
+        std::unordered_map<Tree, std::vector<std::vector<V>>> seeds;
+        std::size_t                                           attempts = 0;
         for (Tree x : members) {
             Tree      body = bodyOf(x);
             const int k    = len(body);
-            Row       row;
-            row.reserve(k);
+            std::vector<std::vector<V>> rows;
+            rows.reserve(k);
             for (int b = 0; b < k; ++b) {
-                std::optional<V> seed = fDomain.probeSeed(proj(b, x));
-                if (!seed) return;  // this component opts out of probing
-                row.push_back(*seed);
+                std::vector<V> cand = fDomain.probeSeeds(proj(b, x));
+                if (cand.empty()) return;  // this component opts out of probing
+                attempts = std::max(attempts, cand.size());
+                rows.push_back(std::move(cand));
             }
-            approx[x] = std::move(row);
+            seeds[x] = std::move(rows);
         }
 
-        fCurrentScc    = scc;
-        fCurrentApprox = approx;  // one descending step against the seed
-        fMoving.clear();          // seed differs from any prior snapshot
+        fCurrentScc = scc;
 
-        bool certified = true;
-        {
+        std::unordered_map<Tree, Row> approx;
+        bool                          certified = false;
+        for (std::size_t a = 0; a < attempts && !certified; ++a) {
+            for (Tree x : members) {
+                const std::vector<std::vector<V>>& rows = seeds[x];
+                Row                                row(rows.size());
+                for (std::size_t b = 0; b < rows.size(); ++b) {
+                    row[b] = rows[b][std::min(a, rows[b].size() - 1)];
+                }
+                approx[x] = std::move(row);
+            }
+
+            fCurrentApprox = approx;  // one descending step against this attempt's seed
+            fMoving.clear();          // seed differs from any prior snapshot
+
+            certified = true;
             std::unordered_map<Tree, Row> fresh;
             for (Tree x : members) {
                 Tree      body = bodyOf(x);
