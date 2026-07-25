@@ -23,6 +23,7 @@
 
 #include "interval.hh"
 #include "sigOpcode.hh"
+#include "sigtypesolver.hh"
 #include "sigtype.hh"
 
 // The interval algebra used by the signal type system (declared in
@@ -96,6 +97,7 @@ void initSignalSymbols()
  */
 void init()
 {
+    typeSolverReset();  // solving sessions reference trees of the previous session
     // Signal constructors (interned and registered in the Signal signature)
     initSignalSymbols();
 

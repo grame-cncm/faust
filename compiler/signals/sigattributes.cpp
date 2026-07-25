@@ -975,3 +975,59 @@ void typeTimingReport(Tree L, double currentMs)
               << "ms total=" << totalMs << "ms | signaux=" << nodes.size()
               << " | ratio=" << (currentMs > 0 ? totalMs / currentMs : 0) << std::endl;
 }
+
+
+//----------------------------------------------------------------------------------------
+// ExactSolvers: the five passes of one root, solved once, queried per signal.
+//----------------------------------------------------------------------------------------
+
+struct ExactSolvers::Impl {
+    // One shared plan, five domains, five iterators -- the whole session state.
+    const RecPlan& plan;
+
+    NatureAlgebra        nat;
+    VariabilityAlgebra   var;
+    ComputabilityAlgebra comp;
+    VectorabilityAlgebra vect;
+    BooleanAlgebra       boo;
+
+    FixPointIterator<int> itNat, itVar, itComp, itVect, itBoo;
+
+    explicit Impl(Tree root)
+        : plan(getRecPlan(root)),
+          itNat(plan, nat),
+          itVar(plan, var),
+          itComp(plan, comp),
+          itVect(plan, vect),
+          itBoo(plan, boo)
+    {
+    }
+};
+
+ExactSolvers::ExactSolvers(Tree root) : fImpl(new Impl(root)) {}
+
+ExactSolvers::~ExactSolvers()
+{
+    delete fImpl;
+}
+
+int ExactSolvers::nature(Tree sig) const
+{
+    return fImpl->itNat.value(sig);
+}
+int ExactSolvers::variability(Tree sig) const
+{
+    return fImpl->itVar.value(sig);
+}
+int ExactSolvers::computability(Tree sig) const
+{
+    return fImpl->itComp.value(sig);
+}
+int ExactSolvers::vectorability(Tree sig) const
+{
+    return fImpl->itVect.value(sig);
+}
+int ExactSolvers::booleanity(Tree sig) const
+{
+    return fImpl->itBoo.value(sig);
+}

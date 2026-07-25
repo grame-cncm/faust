@@ -37,6 +37,7 @@
 #include "sigattributes.hh"
 #include "sighorizon.hh"
 #include "sigintervals.hh"
+#include "sigtypesolver.hh"
 #include "sigtyperules.hh"
 #include "tlib.hh"
 #include "xtended.hh"
@@ -234,6 +235,8 @@ static void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef,
 void typeAnnotation(Tree sig, bool causality)
 {
     const auto timingStart = std::chrono::steady_clock::now();
+    typeSolverReset();  // rec bodies are mutable properties: solving sessions are
+                        // phase-local (see sigtypesolver.cpp)
     sigs::g.gCausality = causality;
     Tree sl             = symlist(sig);
     int  n              = len(sl);
@@ -366,6 +369,9 @@ void typeAnnotation(Tree sig, bool causality)
     }
     if (getenv("FAUST_INTERVAL_ROLES") != nullptr) {
         intervalRolesReport(sig, true);
+    }
+    if (getenv("FAUST_FACADE") != nullptr) {
+        shadowCheckFacade(sig, true);
     }
 }
 

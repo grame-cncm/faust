@@ -79,3 +79,25 @@ SIGS_API TypedNodes collectTypedSignals(Tree L);
  * inference body.
  */
 SIGS_API void typeTimingReport(Tree L, double currentMs);
+
+/**
+ * The five exact attributes of one root, solved once and queryable per signal.
+ * Building block of the TypeSolver facade (sigtypesolver.hh); the concrete algebras
+ * stay private to sigattributes.cpp, only the values cross this boundary.
+ */
+class SIGS_API ExactSolvers {
+    struct Impl;
+    Impl* fImpl;
+
+   public:
+    explicit ExactSolvers(Tree root);
+    ~ExactSolvers();
+    ExactSolvers(const ExactSolvers&)            = delete;
+    ExactSolvers& operator=(const ExactSolvers&) = delete;
+
+    int nature(Tree sig) const;
+    int variability(Tree sig) const;
+    int computability(Tree sig) const;
+    int vectorability(Tree sig) const;
+    int booleanity(Tree sig) const;
+};
