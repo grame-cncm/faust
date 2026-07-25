@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <algorithm>
+#include <climits>
 #include <functional>
 #include <random>
 
@@ -54,10 +55,15 @@ interval interval_algebra::LRsh(const interval& x, const interval& k) const
     if (x.lo() >= 0) {
         return ARsh(x, k);
     }
-    // Logical shifting depends on the target integer width. Until that width
-    // becomes algebra metadata, a nonnegative unbounded result is the safe
-    // enclosure for intervals containing negative operands.
-    return {0, HUGE_VAL, 0};
+    // Negative operands are reinterpreted as uint32 before shifting. A shift by 0
+    // passes them through UNCHANGED (still negative once stored back in int32), so
+    // when k can be 0 the whole integer range is reachable. For k >= 1 the result is
+    // nonnegative and bounded by 2^(32-k) - 1.
+    if (k.lo() < 1) {
+        return {(double)INT_MIN, (double)INT_MAX, 0};
+    }
+    double hi = std::min((double)INT_MAX, std::pow(2.0, 32.0 - k.lo()) - 1);
+    return {0, hi, 0};
 }
 
 void interval_algebra::testRsh()

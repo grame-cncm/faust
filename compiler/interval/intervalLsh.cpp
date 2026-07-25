@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <algorithm>
+#include <climits>
 #include <cmath>
 #include <functional>
 #include <random>
@@ -40,6 +41,13 @@ interval interval_algebra::Lsh(const interval& x, const interval& k) const
 
     interval j{pow(2, k.lo()), std::pow(2, k.hi())};
     interval z = Mul(x, j);
+
+    // integer left shift wraps around int32 : once the mathematical bounds escape the
+    // integer range, every value in it is reachable (same envelope as Mul's)
+    if ((x.lsb() >= 0) &&
+        ((z.lo() < (double)INT_MIN) || (z.hi() > (double)INT_MAX))) {
+        return {(double)INT_MIN, (double)INT_MAX, x.lsb() + (int)k.lo()};
+    }
 
     return {z.lo(), z.hi(),
             x.lsb() +
