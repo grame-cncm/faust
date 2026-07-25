@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2023-2025, Yann Orlarey
- * SPDX-License-Identifier: BSD-2-Clause
+ * Copyright (c) 2023-2026, Yann Orlarey
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 /*******************************************************************************
