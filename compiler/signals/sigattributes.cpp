@@ -825,16 +825,16 @@ class BooleanAlgebra : public SignalAlgebra<int> {
     int TupleAccess(const int& ts, const int&) const override { return ts; }
 };
 
+}  // namespace
+
 //----------------------------------------------------------------------------------------
 // Shadow comparison
 //----------------------------------------------------------------------------------------
 
-/// One comparable node: a signal and the SimpleType inferSigType stored on it.
-using TypedNodes = std::vector<std::pair<Tree, SimpleType*>>;
-
 /// Every annotated signal reachable from L that carries a SimpleType. Recursive groups
 /// (tuplet type) and the syntax a walk also meets (opcode leaves, labels) are skipped.
-/// Collected ONCE and shared by all five passes.
+/// Collected once per shadow check and shared by all the passes. Declared in the header:
+/// the interval shadow (sigintervals.cpp) walks the same nodes.
 TypedNodes collectTypedSignals(Tree L)
 {
     TypedNodes               nodes;
@@ -863,6 +863,8 @@ TypedNodes collectTypedSignals(Tree L)
     }
     return nodes;
 }
+
+namespace {
 
 template <typename ALG>
 int runPass(const RecPlan& plan, const TypedNodes& nodes, bool verbose, const char* attr,

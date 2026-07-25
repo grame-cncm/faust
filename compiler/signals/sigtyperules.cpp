@@ -34,6 +34,7 @@
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigattributes.hh"
+#include "sigintervals.hh"
 #include "sigtyperules.hh"
 #include "tlib.hh"
 #include "xtended.hh"
@@ -347,6 +348,9 @@ void typeAnnotation(Tree sig, bool causality)
     }
     if (sigs::g.gNatureShadow) {
         shadowCheckExactAttributes(sig, true);
+    }
+    if (sigs::g.gIntervalShadow) {
+        shadowCheckInterval(sig, true);
     }
 }
 

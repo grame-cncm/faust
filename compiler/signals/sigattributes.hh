@@ -21,6 +21,9 @@
 
 #pragma once
 
+#include <utility>
+#include <vector>
+
 #include "sigs-export.hh"
 #include "tlib.hh"
 
@@ -54,3 +57,16 @@
  */
 SIGS_API int shadowCheckNature(Tree L, bool verbose);
 SIGS_API int shadowCheckExactAttributes(Tree L, bool verbose);
+
+//----------------------------------------------------------------------------------------
+// Shared by the shadow comparisons (exact attributes here, interval in sigintervals.cpp).
+//----------------------------------------------------------------------------------------
+
+class SimpleType;  // sigtype.hh
+
+/// One comparable node: a signal and the SimpleType inferSigType stored on it.
+using TypedNodes = std::vector<std::pair<Tree, SimpleType*>>;
+
+/// Every annotated signal reachable from L that carries a SimpleType. Recursive groups
+/// (tuplet type) and the syntax a walk also meets (opcode leaves, labels) are skipped.
+SIGS_API TypedNodes collectTypedSignals(Tree L);

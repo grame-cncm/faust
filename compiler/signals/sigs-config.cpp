@@ -127,6 +127,7 @@ void init()
     g.gCausality      = false;
     g.gTypeStatistics = false;
     g.gNatureShadow   = false;
+    g.gIntervalShadow = false;
     g.gWideningLimit  = 0;
     g.gNarrowingLimit = 0;
     g.gFloatSize      = 1;

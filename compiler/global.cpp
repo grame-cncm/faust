@@ -526,6 +526,7 @@ void global::reset()
     // option, because -d prints the whole signal expression and is unusable on big files.
     sigs::g.gTypeStatistics = (getenv("FAUST_TYPE_STATS") != nullptr);
     sigs::g.gNatureShadow   = (getenv("FAUST_NATURE_SHADOW") != nullptr);
+    sigs::g.gIntervalShadow = (getenv("FAUST_INTERVAL_SHADOW") != nullptr);
     sigs::g.gCountRecFreeRedundant = 0;
     sigs::g.gCountRecFreeChanged   = 0;
 
