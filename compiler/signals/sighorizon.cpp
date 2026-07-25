@@ -128,7 +128,9 @@ AffItv aJoin(const AffItv& x, const AffItv& y, double T)
 
 class HorizonAlgebra : public SignalAlgebra<AffItv> {
    public:
-    HorizonAlgebra()
+    /// defaultParams: parameters held at their DEFAULT values (nominal reading) instead
+    /// of their full declared ranges (worst case). Buttons and checkboxes read released.
+    explicit HorizonAlgebra(bool defaultParams = false) : fDefaults(defaultParams)
     {
         const char* h = getenv("FAUST_HORIZON_SAMPLES");
         fT           = h ? std::atof(h) : 2147483648.0;  // default: 2^31 samples
@@ -232,15 +234,18 @@ class HorizonAlgebra : public SignalAlgebra<AffItv> {
     //--- user interface (rate 0 by nature) --------------------------------------------
     AffItv Button(const AffItv&) const override
     {
+        if (fDefaults) return fromItv(interval(0, 0));  // released
         return fromItv(gAlgebra.Button(interval(0, 0)));
     }
     AffItv Checkbox(const AffItv&) const override
     {
+        if (fDefaults) return fromItv(interval(0, 0));
         return fromItv(gAlgebra.Checkbox(interval(0, 0)));
     }
     AffItv VSlider(const AffItv&, const AffItv& c, const AffItv& l, const AffItv& h,
                    const AffItv& s) const override
     {
+        if (fDefaults) return c;  // the default value, a singleton
         return fromItv(
             gAlgebra.VSlider(interval(0, 0), toItv(c, fT), toItv(l, fT), toItv(h, fT),
                              toItv(s, fT)));
@@ -248,6 +253,7 @@ class HorizonAlgebra : public SignalAlgebra<AffItv> {
     AffItv HSlider(const AffItv&, const AffItv& c, const AffItv& l, const AffItv& h,
                    const AffItv& s) const override
     {
+        if (fDefaults) return c;
         return fromItv(
             gAlgebra.HSlider(interval(0, 0), toItv(c, fT), toItv(l, fT), toItv(h, fT),
                              toItv(s, fT)));
@@ -255,6 +261,7 @@ class HorizonAlgebra : public SignalAlgebra<AffItv> {
     AffItv NumEntry(const AffItv&, const AffItv& c, const AffItv& l, const AffItv& h,
                     const AffItv& s) const override
     {
+        if (fDefaults) return c;
         return fromItv(
             gAlgebra.NumEntry(interval(0, 0), toItv(c, fT), toItv(l, fT), toItv(h, fT),
                               toItv(s, fT)));
@@ -679,6 +686,7 @@ class HorizonAlgebra : public SignalAlgebra<AffItv> {
     }
 
     double fT;
+    bool   fDefaults;
 
     mutable std::unordered_map<Tree, std::pair<AffItv, bool>> fProbe;
 };
@@ -711,14 +719,18 @@ std::string fmtSamples(double s)
 
 }  // namespace
 
-HorizonReport horizonAnalysis(Tree L, bool verbose)
+namespace {
+
+/// One dated pass over the recursive variables with a given parameter policy.
+std::pair<std::vector<HorizonEvent>, double> datePass(const RecPlan& plan,
+                                                      HorizonAlgebra& algebra, bool verbose,
+                                                      const char* tag)
 {
-    RecPlan                  plan(L);
-    HorizonAlgebra           algebra;
     FixPointIterator<AffItv> it(plan, algebra);
 
-    HorizonReport report;
-    const double  INF = HUGE_VAL;
+    std::vector<HorizonEvent> events;
+    double                    horizon = -1;
+    const double              INF     = HUGE_VAL;
 
     for (const std::vector<Tree>& comp : plan.components()) {
         for (Tree var : comp) {
@@ -734,7 +746,7 @@ HorizonReport horizonAnalysis(Tree L, bool verbose)
                     name << ppsig(proj(b, var), 30);
                     e.signal = name.str();
                 }
-                e.rate   = std::max(std::fabs(v.a1), std::fabs(v.b1));
+                e.rate = std::max(std::fabs(v.a1), std::fabs(v.b1));
 
                 // int32 wrap: the growing bound reaches the int range's edge
                 e.wrapAt = INF;
@@ -753,17 +765,15 @@ HorizonReport horizonAnalysis(Tree L, bool verbose)
                         if (v.a1 < 0) t = std::min(t, p - v.a0 / v.a1);
                         return std::max(0.0, t);
                     };
-                    e.absorb32At = absorb(16777216.0);           // 2^24
-                    e.absorb53At = absorb(9007199254740992.0);   // 2^53
+                    e.absorb32At = absorb(16777216.0);          // 2^24
+                    e.absorb53At = absorb(9007199254740992.0);  // 2^53
                 }
 
-                const double first =
-                    std::min(e.wrapAt, e.absorb32At);  // single-precision reading
-                if (report.horizonSamples < 0 || first < report.horizonSamples) {
-                    report.horizonSamples = first;
-                }
+                const double first = std::min(e.wrapAt, e.absorb32At);
+                if (horizon < 0 || first < horizon) horizon = first;
+
                 if (verbose) {
-                    std::cerr << "HORIZON : rate " << e.rate << "/éch.";
+                    std::cerr << "HORIZON " << tag << " : rate " << e.rate << "/éch.";
                     if (e.wrapAt != INF) std::cerr << ", wrap int32 à " << fmtSamples(e.wrapAt);
                     if (e.absorb32At != INF) {
                         std::cerr << ", absorption float à " << fmtSamples(e.absorb32At)
@@ -771,20 +781,45 @@ HorizonReport horizonAnalysis(Tree L, bool verbose)
                     }
                     std::cerr << " : " << e.signal << std::endl;
                 }
-                report.events.push_back(std::move(e));
+                events.push_back(std::move(e));
             }
         }
     }
+    return {std::move(events), horizon};
+}
+
+}  // namespace
+
+HorizonReport horizonAnalysis(Tree L, bool verbose)
+{
+    RecPlan plan(L);
+
+    // Worst case: parameters anywhere in their declared ranges.
+    HorizonAlgebra worst(/*defaultParams*/ false);
+    auto [wev, wt] = datePass(plan, worst, verbose, "pire-cas");
+
+    // Nominal: parameters at their default values, buttons released.
+    HorizonAlgebra nominal(/*defaultParams*/ true);
+    auto [nev, nt] = datePass(plan, nominal, verbose, "défauts ");
+
+    HorizonReport report;
+    report.events                = std::move(wev);
+    report.horizonSamples        = wt;
+    report.horizonDefaultSamples = nt;
+    report.defaultEventCount     = int(nev.size());
 
     if (verbose) {
-        if (report.events.empty()) {
-            std::cerr << "HORIZON T* : aucun accumulateur daté (sémantique exacte sans limite "
-                         "détectée)"
-                      << std::endl;
-        } else {
-            std::cerr << "HORIZON T* : " << fmtSamples(report.horizonSamples) << " ("
-                      << report.events.size() << " accumulateur(s) daté(s))" << std::endl;
-        }
+        auto line = [](const char* tag, double t, std::size_t n) {
+            std::cerr << "HORIZON T* " << tag << " : ";
+            if (n == 0) {
+                std::cerr << "aucun accumulateur daté (sémantique exacte sans limite)";
+            } else {
+                std::cerr << fmtSamples(t) << " (" << n << " accumulateur(s) daté(s))";
+            }
+            std::cerr << std::endl;
+        };
+        line("(pire-cas)", wt, report.events.size());
+        line("(défauts) ", nt, std::size_t(report.defaultEventCount));
     }
     return report;
 }

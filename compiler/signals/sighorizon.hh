@@ -53,9 +53,15 @@ struct HorizonEvent {
 };
 
 /// The report: every rate-carrying recursive signal, dated; T* = the earliest event.
+/// Two readings of the same program: WORST CASE (parameters anywhere in their declared
+/// ranges) and NOMINAL (parameters at their default values, buttons released). The gap
+/// between the two says the horizon is parameter-driven -- some knob's excursion breaks
+/// a contraction -- which is itself a user diagnostic.
 struct HorizonReport {
-    std::vector<HorizonEvent> events;
-    double horizonSamples = -1;  ///< min over events (single precision reading); -1: none
+    std::vector<HorizonEvent> events;             ///< worst-case events
+    double horizonSamples        = -1;  ///< worst-case T* (single-precision reading)
+    double horizonDefaultSamples = -1;  ///< nominal T* (parameters at defaults)
+    int    defaultEventCount     = 0;   ///< dated accumulators in the nominal reading
 };
 
 /**
