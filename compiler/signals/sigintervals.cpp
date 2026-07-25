@@ -305,31 +305,45 @@ class IntervalAlgebra : public SignalAlgebra<interval> {
     }
 
     //--- bitwise and shifts -----------------------------------------------------------
+    // Mirrored on the binop rule's `intCast(t3)`: shifts and bitwise operations always
+    // result in an int, so their interval is truncated to integers. Without it, a shift
+    // by 4 divides by 16 with REAL semantics and produces fractional bounds ([0, 6.1875]
+    // where the compiled program can only reach [0, 6] -- the dx7 root divergence).
     interval And(const interval& x, const interval& y) const override
     {
-        return g2(x, y, [](const interval& a, const interval& b) { return gAlgebra.And(a, b); });
+        return g2(x, y, [](const interval& a, const interval& b) {
+            return gAlgebra.IntCast(gAlgebra.And(a, b));
+        });
     }
     interval Or(const interval& x, const interval& y) const override
     {
-        return g2(x, y, [](const interval& a, const interval& b) { return gAlgebra.Or(a, b); });
+        return g2(x, y, [](const interval& a, const interval& b) {
+            return gAlgebra.IntCast(gAlgebra.Or(a, b));
+        });
     }
     interval Xor(const interval& x, const interval& y) const override
     {
-        return g2(x, y, [](const interval& a, const interval& b) { return gAlgebra.Xor(a, b); });
+        return g2(x, y, [](const interval& a, const interval& b) {
+            return gAlgebra.IntCast(gAlgebra.Xor(a, b));
+        });
     }
     interval Lsh(const interval& x, const interval& y) const override
     {
-        return g2(x, y, [](const interval& a, const interval& b) { return gAlgebra.Lsh(a, b); });
+        return g2(x, y, [](const interval& a, const interval& b) {
+            return gAlgebra.IntCast(gAlgebra.Lsh(a, b));
+        });
     }
     interval ARsh(const interval& x, const interval& y) const override
     {
-        return g2(x, y,
-                  [](const interval& a, const interval& b) { return gAlgebra.ARsh(a, b); });
+        return g2(x, y, [](const interval& a, const interval& b) {
+            return gAlgebra.IntCast(gAlgebra.ARsh(a, b));
+        });
     }
     interval LRsh(const interval& x, const interval& y) const override
     {
-        return g2(x, y,
-                  [](const interval& a, const interval& b) { return gAlgebra.LRsh(a, b); });
+        return g2(x, y, [](const interval& a, const interval& b) {
+            return gAlgebra.IntCast(gAlgebra.LRsh(a, b));
+        });
     }
 
     //--- casts. The type combinators keep the interval except intCast -----------------
