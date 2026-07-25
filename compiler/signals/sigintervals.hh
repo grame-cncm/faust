@@ -71,3 +71,33 @@ struct IntervalShadowStats {
  * @return the comparison statistics
  */
 SIGS_API IntervalShadowStats shadowCheckInterval(Tree L, bool verbose);
+
+/// The interval computation serves two roles (Yann, 2026-07-25): CORRECTNESS -- the
+/// program runs right: no div-by-zero, no NaN, no table overflow, no infinity, delay
+/// lines allocated large enough -- and SOUND QUALITY -- the precision of the
+/// computations: in fixed point, a signal's format takes its integer bits (msb) from
+/// its RANGE, so a tighter interval converts directly into fractional bits, i.e. into
+/// signal-to-noise ratio. This report measures the new domain against the current one
+/// on the concrete consumption sites of both roles.
+struct IntervalRolesStats {
+    // correctness: delay-line allocation (the hi bound of every delay amount)
+    int delaySites      = 0;  ///< delay sites with a comparable amount
+    int delayTighter    = 0;  ///< our hi is strictly smaller (less memory)
+    int delayEqual      = 0;
+    int delayWider      = 0;  ///< our hi is larger (would over-allocate)
+    int delayOnlyUs     = 0;  ///< bounded by us, unbounded by the current system
+    int delayOnlyRef    = 0;  ///< the reverse (investigate)
+    // correctness: table accesses provably within [0, size)
+    int tableAccesses   = 0;
+    int tableSafeBoth   = 0;
+    int tableSafeUsOnly = 0;
+    int tableSafeRefOnly = 0;
+    int tableSafeNone   = 0;
+    // quality: integer bits of the fixed-point format (msb from the range)
+    int formatSites     = 0;  ///< signals bounded under both systems
+    long long formatBitsSaved = 0;  ///< sum over sites of msb(ref) - msb(ours)
+    int formatOnlyUs    = 0;  ///< bounded by us alone: a format becomes possible
+    int formatOnlyRef   = 0;
+};
+
+SIGS_API IntervalRolesStats intervalRolesReport(Tree L, bool verbose);

@@ -356,6 +356,9 @@ void typeAnnotation(Tree sig, bool causality)
     if (getenv("FAUST_HORIZON") != nullptr) {
         horizonAnalysis(sig, true);
     }
+    if (getenv("FAUST_INTERVAL_ROLES") != nullptr) {
+        intervalRolesReport(sig, true);
+    }
 }
 
 /**

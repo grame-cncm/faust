@@ -26,6 +26,7 @@
 #include <cstdint>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <iostream>
 #include <vector>
@@ -684,4 +685,164 @@ IntervalShadowStats shadowCheckInterval(Tree L, bool verbose)
                   << std::endl;
     }
     return stats;
+}
+
+
+//----------------------------------------------------------------------------------------
+// The two roles, measured on their consumption sites.
+//----------------------------------------------------------------------------------------
+
+namespace {
+
+/// Integer bits needed to represent the range (the msb of a fixed-point format),
+/// capped at 64: beyond that a fixed-point format is fiction anyway, and the cap keeps
+/// one pathological bound from dominating a corpus-wide sum.
+int msbOf(const interval& x)
+{
+    const double m = std::max(std::fabs(x.lo()), std::fabs(x.hi()));
+    if (m < 1) return 0;
+    return std::min(64, int(std::ceil(std::log2(m + 1))));
+}
+
+bool boundedItv(const interval& x)
+{
+    return !x.isEmpty() && std::isfinite(x.lo()) && std::isfinite(x.hi());
+}
+
+}  // namespace
+
+IntervalRolesStats intervalRolesReport(Tree L, bool verbose)
+{
+    RecPlan                    plan(L);
+    IntervalAlgebra            algebra;
+    FixPointIterator<interval> it(plan, algebra);
+
+    IntervalRolesStats st;
+    std::unordered_set<Tree> visited;
+    std::vector<Tree>        work{L};
+
+    auto refItv = [](Tree t) -> interval {
+        AudioType*  ty = getSigType(t);
+        SimpleType* s  = ty ? isSimpleType(ty) : nullptr;
+        return s ? s->getInterval() : itv::interval();
+    };
+
+    while (!work.empty()) {
+        Tree t = work.back();
+        work.pop_back();
+        if (!visited.insert(t).second) continue;
+
+        Tree var, body;
+        if (isRec(t, var, body)) {
+            if (body) work.push_back(body);
+            continue;
+        }
+
+        Tree x, n, tbl, ri, size, gen, wi, ws;
+
+        // --- correctness: delay-line allocation, driven by the amount's hi ------------
+        if (isSigDelay(t, x, n)) {
+            const interval r = refItv(n);
+            const interval m = it.value(n);
+            const bool     rb = boundedItv(r), mb = boundedItv(m);
+            if (rb || mb) st.delaySites++;
+            if (mb && !rb) {
+                st.delayOnlyUs++;
+            } else if (rb && !mb) {
+                st.delayOnlyRef++;
+                if (verbose) {
+                    std::cerr << "ROLES delay : réf bornée " << r << ", nous non : "
+                              << ppsig(n, 30) << std::endl;
+                }
+            } else if (rb && mb) {
+                if (m.hi() < r.hi()) {
+                    st.delayTighter++;
+                } else if (m.hi() == r.hi()) {
+                    st.delayEqual++;
+                } else {
+                    st.delayWider++;
+                    if (verbose) {
+                        std::cerr << "ROLES delay : nous " << m.hi() << " vs réf " << r.hi()
+                                  << " : " << ppsig(n, 30) << std::endl;
+                    }
+                }
+            }
+        }
+
+        // --- correctness: table accesses provably inside [0, size) --------------------
+        auto checkAccess = [&](Tree table, Tree index) {
+            int  sz;
+            Tree s1, s2, s3, s4;
+            if (!isSigWRTbl(table, s1, s2, s3, s4)) return;
+            if (!isSigInt(s1, &sz)) return;  // dynamic sizes: skip
+            const interval r  = refItv(index);
+            const interval m  = it.value(index);
+            const auto     ok = [&](const interval& i) {
+                return boundedItv(i) && i.lo() >= 0 && i.hi() < double(sz);
+            };
+            st.tableAccesses++;
+            const bool ro = ok(r), mo = ok(m);
+            if (ro && mo) {
+                st.tableSafeBoth++;
+            } else if (mo) {
+                st.tableSafeUsOnly++;
+            } else if (ro) {
+                st.tableSafeRefOnly++;
+                if (verbose) {
+                    std::cerr << "ROLES table : réf prouve " << r << ", nous " << m << " : "
+                              << ppsig(index, 30) << std::endl;
+                }
+            } else {
+                st.tableSafeNone++;
+            }
+        };
+        if (isSigRDTbl(t, tbl, ri)) checkAccess(tbl, ri);
+        if (isSigWRTbl(t, size, gen, wi, ws) && wi != ::nil()) checkAccess(t, wi);
+
+        // --- quality: integer bits of the fixed-point format --------------------------
+        // Only signals the current system typed with a SimpleType: the same comparison
+        // set as the shadow, free of walk artifacts (opcode leaves, list spines).
+        {
+            AudioType*  ty = getSigType(t);
+            SimpleType* sy = ty ? isSimpleType(ty) : nullptr;
+            if (sy != nullptr) {
+                const interval r  = sy->getInterval();
+                const interval m  = it.value(t);
+                const bool     rb = boundedItv(r), mb = boundedItv(m);
+                if (rb && mb) {
+                    st.formatSites++;
+                    st.formatBitsSaved += msbOf(r) - msbOf(m);
+                } else if (mb) {
+                    st.formatOnlyUs++;
+                } else if (rb) {
+                    st.formatOnlyRef++;
+                    if (verbose && st.formatOnlyRef <= 3) {
+                        std::cerr << "ROLES format : réf bornée " << r << ", nous " << m
+                                  << " : " << ppsig(t, 30) << std::endl;
+                    }
+                }
+            }
+        }
+
+        for (int i = 0; i < t->arity(); i++) {
+            work.push_back(t->branch(i));
+        }
+    }
+
+    if (verbose) {
+        std::cerr << "ROLES delay : sites=" << st.delaySites << " serrés=" << st.delayTighter
+                  << " égaux=" << st.delayEqual << " larges=" << st.delayWider
+                  << " bornés-par-nous-seuls=" << st.delayOnlyUs
+                  << " par-réf-seule=" << st.delayOnlyRef << std::endl;
+        std::cerr << "ROLES table : accès=" << st.tableAccesses
+                  << " prouvés-les-deux=" << st.tableSafeBoth
+                  << " nous-seuls=" << st.tableSafeUsOnly
+                  << " réf-seule=" << st.tableSafeRefOnly << " aucun=" << st.tableSafeNone
+                  << std::endl;
+        std::cerr << "ROLES format : sites=" << st.formatSites
+                  << " bits-gagnés=" << st.formatBitsSaved
+                  << " bornés-par-nous-seuls=" << st.formatOnlyUs
+                  << " par-réf-seule=" << st.formatOnlyRef << std::endl;
+    }
+    return st;
 }
