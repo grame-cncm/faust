@@ -103,7 +103,7 @@ void DocCompiler::sharingAnnotation(int vctxt, Tree sig)
 
     } else {
         // it is our first visit,
-        int v = getCertifiedSigType(sig)->variability();
+        int v = sigVariability(sig);
 
         // check "time sharing" cases
         if (v < vctxt) {

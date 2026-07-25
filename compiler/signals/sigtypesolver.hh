@@ -54,6 +54,11 @@ class SIGS_API TypeSolver {
     /// The type of a signal (memoized). Errors on a tree outside the signal domain.
     Type type(Tree sig);
 
+    /// Signal-domain membership, O(1) (the boundary test type() enforces) : true for
+    /// numeric leaves, xtended applications, projections and Signal-signature
+    /// constructors ; false for structure (lists, nil, labels, bare rec nodes).
+    bool isSignal(Tree t) const;
+
     /// The i-th type of a recursive group: type(proj(i, X)). Errors if X is not a
     /// recursive node.
     Type recType(Tree X, int i);

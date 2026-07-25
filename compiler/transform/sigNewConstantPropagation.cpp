@@ -62,6 +62,13 @@ static void explainInterval(Tree sig)
 
 Tree SigNewConstantPropagation::transformation(Tree sig)
 {
+    {
+        // A recursive GROUP has no type (it is solved, not typed) : traverse it
+        Tree var, le;
+        if (isRec(sig, var, le)) {
+            return SignalIdentity::transformation(sig);
+        }
+    }
     Type     tt = getCertifiedSigType(sig);
     interval I  = tt->getInterval();
 

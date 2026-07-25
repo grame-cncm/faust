@@ -65,7 +65,7 @@ static void sharingAnnotation(int vctxt, Tree sig, Tree key)
 
     } else {
         // it is our first visit,
-        int v = getCertifiedSigType(sig)->variability();
+        int v = sigVariability(sig);
 
         // check "time sharing" cases
         if (v < vctxt) {

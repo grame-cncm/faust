@@ -71,7 +71,7 @@ class SignalChecker final : public SignalVisitor {
     SignalChecker(Tree L)
     {
         // Check that the root tree is properly type annotated
-        getCertifiedSigType(L);
+        certifySignalsTyped(L);
         visitRoot(L);
     }
 };

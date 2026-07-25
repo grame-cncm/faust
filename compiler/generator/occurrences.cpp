@@ -154,9 +154,8 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
     bool         firstVisit = (occ == 0);
     if (firstVisit) {
         // 1) We build initial occurence information
-        Type ty = getCertifiedSigType(t);
-        int  v0 = ty->variability();
-        int  r0 = getRecursivness(t);
+        int v0 = sigVariability(t);
+        int r0 = getRecursivness(t);
         // fConditions may have been initialized empty
         Tree c0 = (fConditions.find(t) == fConditions.end()) ? gGlobal->nil : fConditions[t];
         occ     = new Occurrences(v0, r0, c0);

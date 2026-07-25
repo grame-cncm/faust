@@ -26,6 +26,8 @@
 #include <memory>
 #include <sstream>
 #include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 #include "ppsig.hh"
 #include "sigOpcode.hh"
@@ -102,6 +104,11 @@ Type TypeSolver::type(Tree sig)
     return t;
 }
 
+bool TypeSolver::isSignal(Tree t) const
+{
+    return isSignalTerm(t, fImpl->fSignature);
+}
+
 Type TypeSolver::recType(Tree X, int i)
 {
     Tree var, body;
@@ -151,12 +158,36 @@ int shadowCheckFacade(Tree L, bool verbose)
 {
     TypeSolver& solver = getTypeSolver(L);
 
-    int mismatches = 0, compared = 0;
-    for (const auto& n : collectTypedSignals(L)) {
-        SimpleType* ref  = n.second;
-        SimpleType* mine = isSimpleType(solver.type(n.first));
+    // Own walk rather than collectTypedSignals : the comparison must ALSO cover the
+    // nodes the current system types with a TableType (rd/rwtable nodes), whose five
+    // attributes codegen reads through the AudioType virtual accessors. Only
+    // TupletTypes (lists, recursive groups) stay out : they are structure, and the
+    // facade refuses to type them by design.
+    int mismatches = 0, compared = 0, tables = 0;
+
+    std::unordered_set<Tree> visited;
+    std::vector<Tree>        work{L};
+    while (!work.empty()) {
+        Tree t = work.back();
+        work.pop_back();
+        if (!visited.insert(t).second) continue;
+
+        Tree var, body;
+        if (isRec(t, var, body)) {
+            if (body) work.push_back(body);
+            continue;
+        }
+        for (int i = 0; i < t->arity(); i++) {
+            work.push_back(t->branch(i));
+        }
+
+        AudioType* ref = getSigType(t);
+        if (ref == nullptr || isTupletType(ref) != nullptr) continue;
+
+        AudioType* mine = solver.type(t);
         compared++;
-        const bool ok = mine != nullptr && mine->nature() == ref->nature() &&
+        if (isTableType(ref) != nullptr) tables++;
+        const bool ok = mine->nature() == ref->nature() &&
                         mine->variability() == ref->variability() &&
                         mine->computability() == ref->computability() &&
                         mine->vectorability() == ref->vectorability() &&
@@ -165,30 +196,26 @@ int shadowCheckFacade(Tree L, bool verbose)
             mismatches++;
             if (verbose && mismatches <= 5) {
                 std::cerr << "FACADE MISMATCH : ";
-                if (mine == nullptr) {
-                    std::cerr << "(non-simple)";
-                } else {
-                    if (mine->nature() != ref->nature())
-                        std::cerr << "nature " << mine->nature() << "≠" << ref->nature() << " ";
-                    if (mine->variability() != ref->variability())
-                        std::cerr << "var " << mine->variability() << "≠" << ref->variability()
-                                  << " ";
-                    if (mine->computability() != ref->computability())
-                        std::cerr << "comp " << mine->computability() << "≠"
-                                  << ref->computability() << " ";
-                    if (mine->vectorability() != ref->vectorability())
-                        std::cerr << "vect " << mine->vectorability() << "≠"
-                                  << ref->vectorability() << " ";
-                    if (mine->boolean() != ref->boolean())
-                        std::cerr << "bool " << mine->boolean() << "≠" << ref->boolean() << " ";
-                }
-                std::cerr << ": " << ppsig(n.first, 30) << std::endl;
+                if (mine->nature() != ref->nature())
+                    std::cerr << "nature " << mine->nature() << "≠" << ref->nature() << " ";
+                if (mine->variability() != ref->variability())
+                    std::cerr << "var " << mine->variability() << "≠" << ref->variability()
+                              << " ";
+                if (mine->computability() != ref->computability())
+                    std::cerr << "comp " << mine->computability() << "≠"
+                              << ref->computability() << " ";
+                if (mine->vectorability() != ref->vectorability())
+                    std::cerr << "vect " << mine->vectorability() << "≠"
+                              << ref->vectorability() << " ";
+                if (mine->boolean() != ref->boolean())
+                    std::cerr << "bool " << mine->boolean() << "≠" << ref->boolean() << " ";
+                std::cerr << ": " << ppsig(t, 30) << std::endl;
             }
         }
     }
     if (verbose) {
-        std::cerr << "FACADE : " << compared << " signals, exact-field mismatches="
-                  << mismatches << std::endl;
+        std::cerr << "FACADE : " << compared << " signals (" << tables
+                  << " tables), exact-field mismatches=" << mismatches << std::endl;
     }
     return mismatches;
 }

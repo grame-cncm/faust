@@ -37,7 +37,7 @@ using namespace std;
 SignalTypePrinter::SignalTypePrinter(Tree L)
 {
     // Check that the root tree is properly type annotated
-    getCertifiedSigType(L);
+    certifySignalsTyped(L);
     visitRoot(L);
 }
 
@@ -1040,7 +1040,7 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
 Tree signalPromote(Tree sig, bool trace)
 {
     // Check that the root tree is properly type annotated
-    getCertifiedSigType(sig);
+    certifySignalsTyped(sig);
 
     SignalPromotion SP;
     if (trace) {
@@ -1052,7 +1052,7 @@ Tree signalPromote(Tree sig, bool trace)
 Tree signalBool2IntPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
-    getCertifiedSigType(sig);
+    certifySignalsTyped(sig);
 
     SignalBool2IntPromotion SP;
     return SP.mapself(sig);
@@ -1061,7 +1061,7 @@ Tree signalBool2IntPromote(Tree sig)
 Tree signalFXPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
-    getCertifiedSigType(sig);
+    certifySignalsTyped(sig);
 
     SignalFXPromotion SP;
     return SP.mapself(sig);
@@ -1070,7 +1070,7 @@ Tree signalFXPromote(Tree sig)
 Tree signalTablePromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
-    getCertifiedSigType(sig);
+    certifySignalsTyped(sig);
 
     SignalTablePromotion SP;
     return SP.mapself(sig);
@@ -1079,7 +1079,7 @@ Tree signalTablePromote(Tree sig)
 Tree signalIntCastPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
-    getCertifiedSigType(sig);
+    certifySignalsTyped(sig);
 
     SignalIntCastPromotion SP;
     return SP.mapself(sig);
@@ -1088,7 +1088,7 @@ Tree signalIntCastPromote(Tree sig)
 Tree signalUIPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
-    getCertifiedSigType(sig);
+    certifySignalsTyped(sig);
 
     SignalUIPromotion SP;
     return SP.mapself(sig);
@@ -1097,7 +1097,7 @@ Tree signalUIPromote(Tree sig)
 Tree signalUIFreezePromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
-    getCertifiedSigType(sig);
+    certifySignalsTyped(sig);
 
     SignalUIFreezePromotion SP;
     return SP.mapself(sig);
@@ -1106,7 +1106,7 @@ Tree signalUIFreezePromote(Tree sig)
 Tree signalFTZPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
-    getCertifiedSigType(sig);
+    certifySignalsTyped(sig);
 
     SignalFTZPromotion SP;
     return SP.mapself(sig);
@@ -1115,7 +1115,7 @@ Tree signalFTZPromote(Tree sig)
 Tree signalAutoDifferentiate(Tree sig)
 {
     // Check that the root tree is properly type annotated
-    getCertifiedSigType(sig);
+    certifySignalsTyped(sig);
 
     // Collect input differentiable variables
     DiffVarCollector collector(sig);

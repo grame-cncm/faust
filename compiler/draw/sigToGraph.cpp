@@ -69,6 +69,24 @@ void sigToGraph(Tree L, ostream& fout)
 /******************************* IMPLEMENTATION ***********************************/
 
 /**
+ * Type used to color a drawn node. A recursive GROUP is solved, not typed (the facade
+ * refuses it) : merge its definitions' types, which is what its old TupletType held.
+ */
+static Type drawnType(Tree sig)
+{
+    Tree id, body;
+    if (isRec(sig, id, body)) {
+        vector<Type> vt;
+        while (isList(body)) {
+            vt.push_back(getCertifiedSigType(hd(body)));
+            body = tl(body);
+        }
+        return new TupletType(vt);
+    }
+    return getCertifiedSigType(sig);
+}
+
+/**
  * Draw recursively a signal
  */
 static void recdraw(Tree sig, set<Tree>& drawn, ostream& fout)
@@ -87,7 +105,7 @@ static void recdraw(Tree sig, set<Tree>& drawn, ostream& fout)
         } else {
             // draw the node
             fout << 'S' << sig << "[label=\"" << sigLabel(sig) << "\""
-                 << nodeattr(getCertifiedSigType(sig)) << "];" << endl;
+                 << nodeattr(drawnType(sig)) << "];" << endl;
 
             // draw the subsignals
             n = getSubSignals(sig, subsig);
@@ -111,7 +129,7 @@ static void recdraw(Tree sig, set<Tree>& drawn, ostream& fout)
                 for (int i = 0; i < n; i++) {
                     recdraw(subsig[i], drawn, fout);
                     fout << 'S' << subsig[i] << " -> " << 'S' << sig << "["
-                         << edgeattr(getCertifiedSigType(subsig[i])) << "];" << endl;
+                         << edgeattr(drawnType(subsig[i])) << "];" << endl;
                 }
             }
         }
