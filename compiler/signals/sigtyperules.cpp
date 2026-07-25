@@ -34,6 +34,7 @@
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigattributes.hh"
+#include "sighorizon.hh"
 #include "sigintervals.hh"
 #include "sigtyperules.hh"
 #include "tlib.hh"
@@ -351,6 +352,9 @@ void typeAnnotation(Tree sig, bool causality)
     }
     if (sigs::g.gIntervalShadow) {
         shadowCheckInterval(sig, true);
+    }
+    if (getenv("FAUST_HORIZON") != nullptr) {
+        horizonAnalysis(sig, true);
     }
 }
 
