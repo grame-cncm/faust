@@ -82,9 +82,20 @@ static inline Tree debruijn2symKey()
 // so borrowed references (FixPointIterator's) survive later insertions.
 static std::unordered_map<Tree, std::unique_ptr<RecPlan>> gRecPlans;
 
+// The census of the immutability transition (see tree.hh) : how many times an already
+// defined recursive variable received a different body. Target : zero, then strict.
+// Defined BEFORE tlibResetRecInternals, which resets it.
+static int gRecRedefinitions = 0;
+
+int recRedefinitionCount()
+{
+    return gRecRedefinitions;
+}
+
 void tlibResetRecInternals()
 {
     gRecPlans.clear();
+    gRecRedefinitions = 0;
     gDebruijnSym     = nullptr;
     gDebruijnRefSym  = nullptr;
     gSymRecSym       = nullptr;
@@ -193,7 +204,21 @@ bool isRef(Tree t, int& level)
 // declaration of a recursive tree using a symbolic variable
 Tree rec(Tree var, Tree body)
 {
-    Tree t = tree(gSymRecSym, var);
+    Tree t   = tree(gSymRecSym, var);
+    Tree old = t->getProperty(recdefKey());
+    if ((old != nullptr && old != body) || isNil(body)) {
+        gRecRedefinitions++;
+        if (getenv("TLIB_REC_TRACE") != nullptr) {
+            fprintf(stderr, "TLIB REC REDEF : %s\n", toDeBruijnString(var).c_str());
+        }
+        if (getenv("TLIB_REC_STRICT") != nullptr) {
+            std::stringstream error;
+            error << "ERROR : redefinition of the recursive variable " << *var
+                  << " (recursive definitions are immutable : use a fresh variable)"
+                  << std::endl;
+            tlib::error(error.str());
+        }
+    }
     t->setProperty(recdefKey(), body);
     return t;
 }
