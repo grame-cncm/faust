@@ -58,6 +58,14 @@
  */
 template <typename V>
 class SignalAlgebra : public FixPointDomain<V>, public FaustAlgebra<V> {
+    /// The adapter's only state, hoisted out of the walk : signalOpcode() would
+    /// otherwise hit the symbol registry on every node. Captured at construction,
+    /// which is inside one TLIB session.
+    Signature fSignalSignature;
+
+   protected:
+    SignalAlgebra() : fSignalSignature(sigs::signalSignature()) {}
+
    public:
     V combine(Tree sig, const std::vector<V>& c, FixPointEvaluator<V>& ev) const override;
 
@@ -81,14 +89,7 @@ class SignalAlgebra : public FixPointDomain<V>, public FaustAlgebra<V> {
     virtual V Tuple(int mode, const std::vector<V>& ls) const = 0;
     virtual V TupleAccess(const V& ts, const V& idx) const = 0;
 
-   protected:
-    SignalAlgebra() : fSignalSignature(sigs::signalSignature()) {}
-
    private:
-    /// Hoisted out of the walk: signalOpcode() would otherwise hit the symbol registry
-    /// on every node. Captured at construction, which is inside one TLIB session.
-    Signature fSignalSignature;
-
     V unreachable(const char* what) const
     {
         tlib::error(std::string("ASSERT : SignalAlgebra never calls FaustAlgebra::") + what +

@@ -140,6 +140,14 @@ AffItv aJoin(const AffItv& x, const AffItv& y, double T)
 }
 
 class HorizonAlgebra : public SignalAlgebra<AffItv> {
+    static constexpr double kBig = 1073741824.0;  // 2^30
+
+    double fT;         ///< the horizon, in samples (FAUST_HORIZON_SAMPLES, default 2^31)
+    bool   fDefaults;  ///< parameters at their default values (nominal reading)
+
+    /// Probe results, keyed by proj(b, var). Mutable : engine feedback, not denotation.
+    mutable std::unordered_map<Tree, std::pair<AffItv, bool>> fProbe;
+
    public:
     /// defaultParams: parameters held at their DEFAULT values (nominal reading) instead
     /// of their full declared ranges (worst case). Buttons and checkboxes read released.
@@ -632,7 +640,6 @@ class HorizonAlgebra : public SignalAlgebra<AffItv> {
     AffItv TupleAccess(const AffItv& ts, const AffItv&) const override { return ts; }
 
    private:
-    static constexpr double kBig = 1073741824.0;  // 2^30
 
     template <typename F>
     AffItv c1(const AffItv& x, F f) const
@@ -698,10 +705,6 @@ class HorizonAlgebra : public SignalAlgebra<AffItv> {
         return aJoin(r, fromItv(interval(0, 0)), fT);
     }
 
-    double fT;
-    bool   fDefaults;
-
-    mutable std::unordered_map<Tree, std::pair<AffItv, bool>> fProbe;
 };
 
 //----------------------------------------------------------------------------------------

@@ -94,6 +94,16 @@ inline bool leq(const interval& x, const interval& y)
 }
 
 class IntervalAlgebra : public SignalAlgebra<interval> {
+    static constexpr double kProbeBig = 1073741824.0;  // 2^30 : headroom under INT_MAX
+
+    int fWidenAfter;  ///< rounds of honest ascent before widening
+    int fNarrowFor;   ///< bounded descending rounds after convergence
+
+    /// Probe results, keyed by proj(b, var) as the engine hands them out. Mutable : the
+    /// probe table is engine feedback, not part of the denotation (same convention as
+    /// the toy domains in tlib's tests).
+    mutable std::unordered_map<Tree, std::pair<interval, bool>> fProbe;
+
    public:
     explicit IntervalAlgebra(int widenAfter = 8, int narrowFor = 3)
         : fWidenAfter(widenAfter), fNarrowFor(narrowFor)
@@ -589,15 +599,6 @@ class IntervalAlgebra : public SignalAlgebra<interval> {
         return (x.isEmpty() || y.isEmpty()) ? itv::empty() : f(x, y);
     }
 
-    static constexpr double kProbeBig = 1073741824.0;  // 2^30 : headroom under INT_MAX
-
-    int fWidenAfter;
-    int fNarrowFor;
-
-    /// Probe results, keyed by proj(b, var) as the engine hands them out. Mutable: the
-    /// probe table is engine feedback, not part of the denotation (same convention as
-    /// the toy domains in tlib's tests).
-    mutable std::unordered_map<Tree, std::pair<interval, bool>> fProbe;
 };
 
 }  // namespace

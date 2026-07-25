@@ -84,6 +84,9 @@ SIGS_API HorizonReport horizonAnalysis(Tree L, bool verbose);
  * Worst-case parameters (full declared ranges).
  */
 class SIGS_API HorizonReader {
+    struct Impl;
+    Impl* fImpl;  ///< plan + algebra + iterator, hidden behind the compilation firewall
+
    public:
     explicit HorizonReader(Tree L);
     ~HorizonReader();
@@ -91,8 +94,4 @@ class SIGS_API HorizonReader {
     HorizonReader& operator=(const HorizonReader&) = delete;
 
     itv::interval at(Tree sig) const;  ///< horizon interval of sig
-
-   private:
-    struct Impl;
-    Impl* fImpl;
 };

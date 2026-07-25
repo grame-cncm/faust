@@ -119,6 +119,27 @@ class FixPointDomain {
 
 template <typename V>
 class FixPointIterator : public FixPointEvaluator<V> {
+    // Fields first (house rule) : they carry the whole story. One shared plan, one
+    // borrowed domain, and the solver's state : the per-variable rows (current Jacobi
+    // snapshot, then settled), plus the three-class expression memos.
+    using Row = std::vector<V>;  ///< one V per branch of a variable
+
+    const RecPlan&           fPlan;    ///< shared, read-only
+    const FixPointDomain<V>& fDomain;  ///< borrowed
+
+    bool fSolved     = false;
+    int  fCurrentScc = -1;  ///< component being solved ; -1 outside solveComponent
+
+    std::unordered_map<Tree, Row> fCurrentApprox;  ///< frozen snapshot of the current cycle
+    std::unordered_map<Tree, Row> fSettledVars;    ///< converged components, permanent
+
+    // Expression memos (see eval). Invariant/settled are permanent ; moving is cleared
+    // at the start of every round. maxSccReached is a permanent structural memo.
+    std::unordered_map<Tree, V>   fInvariant;  ///< rec-free : the cheap kContainsRec fast path
+    std::unordered_map<Tree, V>   fSettled;    ///< reaches only lower, converged components
+    std::unordered_map<Tree, V>   fMoving;     ///< reaches the current component
+    std::unordered_map<Tree, int> fMaxScc;     ///< memo of maxSccReached
+
    public:
     FixPointIterator(const RecPlan& plan, const FixPointDomain<V>& domain)
         : fPlan(plan), fDomain(domain)
@@ -140,8 +161,6 @@ class FixPointIterator : public FixPointEvaluator<V> {
     }
 
    private:
-    using Row = std::vector<V>;  ///< one V per branch of a variable
-
     // Solve every component once, in RecPlan order (dependencies first). Because that
     // order is topological, a component references only itself and strictly-lower,
     // already-settled components : no nested solveComponent, one active component at a time.
@@ -415,21 +434,6 @@ class FixPointIterator : public FixPointEvaluator<V> {
         return done;
     }
 
-    const RecPlan&           fPlan;    ///< shared, read-only
-    const FixPointDomain<V>& fDomain;  ///< borrowed
-
-    bool fSolved     = false;
-    int  fCurrentScc = -1;  ///< component being solved ; -1 outside solveComponent
-
-    std::unordered_map<Tree, Row> fCurrentApprox;  ///< frozen snapshot of the current cycle
-    std::unordered_map<Tree, Row> fSettledVars;    ///< converged components, permanent
-
-    // Expression memos (see eval). Invariant/settled are permanent ; moving is cleared
-    // at the start of every round. maxSccReached is a permanent structural memo.
-    std::unordered_map<Tree, V>   fInvariant;  ///< rec-free : the cheap kContainsRec fast path
-    std::unordered_map<Tree, V>   fSettled;    ///< reaches only lower, converged components
-    std::unordered_map<Tree, V>   fMoving;     ///< reaches the current component
-    std::unordered_map<Tree, int> fMaxScc;     ///< memo of maxSccReached
 };
 
 #endif
