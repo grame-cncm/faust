@@ -70,3 +70,12 @@ using TypedNodes = std::vector<std::pair<Tree, SimpleType*>>;
 /// Every annotated signal reachable from L that carries a SimpleType. Recursive groups
 /// (tuplet type) and the syntax a walk also meets (opcode leaves, labels) are skipped.
 SIGS_API TypedNodes collectTypedSignals(Tree L);
+
+/**
+ * @brief Time the NEW system's full equivalent of a typeAnnotation -- RecPlan, the five
+ * exact-attribute passes, and the affine interval domain, each queried on every typed
+ * signal -- and print it against the measured duration of the CURRENT system's pass.
+ * Behind FAUST_TYPE_TIMING; currentMs is measured by the caller around the current
+ * inference body.
+ */
+SIGS_API void typeTimingReport(Tree L, double currentMs);

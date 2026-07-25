@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <algorithm>
+#include <chrono>
 #include <fstream>
 #include <iostream>
 
@@ -232,6 +233,7 @@ static void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef,
  */
 void typeAnnotation(Tree sig, bool causality)
 {
+    const auto timingStart = std::chrono::steady_clock::now();
     sigs::g.gCausality = causality;
     Tree sl             = symlist(sig);
     int  n              = len(sl);
@@ -344,6 +346,12 @@ void typeAnnotation(Tree sig, bool causality)
     T(sig, sigs::g.NULLTYPEENV);
     TRACE(cerr << "type success : " << endl << "BYE" << endl;)
 
+    if (getenv("FAUST_TYPE_TIMING") != nullptr) {
+        const double currentMs = std::chrono::duration<double, std::milli>(
+                                     std::chrono::steady_clock::now() - timingStart)
+                                     .count();
+        typeTimingReport(sig, currentMs);
+    }
     if (sigs::g.gTypeStatistics) {
         annotationStatistics();
     }

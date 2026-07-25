@@ -21,6 +21,7 @@
 
 #include "sigattributes.hh"
 
+#include <chrono>
 #include <functional>
 #include <iostream>
 #include <unordered_set>
@@ -28,6 +29,7 @@
 #include <vector>
 
 #include "ppsig.hh"
+#include "sighorizon.hh"
 #include "signalAlgebra.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -929,4 +931,62 @@ int shadowCheckNature(Tree L, bool verbose)
     const TypedNodes nodes = collectTypedSignals(L);
     return runPass<NatureAlgebra>(plan, nodes, verbose, "nature",
                                   [](SimpleType* st) { return st->nature(); });
+}
+
+
+//----------------------------------------------------------------------------------------
+// Timing: the new system's full equivalent of one typeAnnotation, against the current
+// system's measured duration. The node list is collected outside both timers (harness
+// overhead, not attributable to either system).
+//----------------------------------------------------------------------------------------
+
+void typeTimingReport(Tree L, double currentMs)
+{
+    using clk = std::chrono::steady_clock;
+    auto ms   = [](clk::time_point a, clk::time_point b) {
+        return std::chrono::duration<double, std::milli>(b - a).count();
+    };
+
+    const TypedNodes nodes = collectTypedSignals(L);
+
+    const auto t0 = clk::now();
+    RecPlan    plan(L);
+    const auto t1 = clk::now();
+
+    // the five exact attributes, each a full pass queried on every typed signal
+    {
+        NatureAlgebra         a1;
+        VariabilityAlgebra    a2;
+        ComputabilityAlgebra  a3;
+        VectorabilityAlgebra  a4;
+        BooleanAlgebra        a5;
+        FixPointIterator<int> i1(plan, a1), i2(plan, a2), i3(plan, a3), i4(plan, a4),
+            i5(plan, a5);
+        for (const auto& n : nodes) {
+            i1.value(n.first);
+            i2.value(n.first);
+            i3.value(n.first);
+            i4.value(n.first);
+            i5.value(n.first);
+        }
+    }
+    const auto t2 = clk::now();
+
+    // the affine interval domain (its reader builds its own RecPlan, as today)
+    {
+        HorizonReader hz(L);
+        for (const auto& n : nodes) {
+            hz.at(n.first);
+        }
+    }
+    const auto t3 = clk::now();
+
+    const double planMs  = ms(t0, t1);
+    const double exactMs = ms(t1, t2);
+    const double itvMs   = ms(t2, t3);
+    const double totalMs = ms(t0, t3);
+    std::cerr << "TIMING : actuel=" << currentMs << "ms | RecPlan=" << planMs
+              << "ms exacts(5)=" << exactMs << "ms intervalle=" << itvMs
+              << "ms total=" << totalMs << "ms | signaux=" << nodes.size()
+              << " | ratio=" << (currentMs > 0 ? totalMs / currentMs : 0) << std::endl;
 }
