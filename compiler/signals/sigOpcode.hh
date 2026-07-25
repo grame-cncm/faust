@@ -71,8 +71,6 @@ enum class SignalOpcode : std::uint8_t {
     SoundfileRate,
     SoundfileBuffer,
     Register,
-    Tuple,
-    TupleAccess,
     Count
 };
 

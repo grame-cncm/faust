@@ -86,8 +86,6 @@ class SignalAlgebra : public FixPointDomain<V>, public FaustAlgebra<V> {
     virtual V DocWriteTbl(const V& n, const V& sig, const V& widx, const V& wsig) const = 0;
     virtual V DocAccessTbl(const V& tbl, const V& ridx) const = 0;
     virtual V Register(int n, const V& s) const = 0;
-    virtual V Tuple(int mode, const std::vector<V>& ls) const = 0;
-    virtual V TupleAccess(const V& ts, const V& idx) const = 0;
 
    private:
     V unreachable(const char* what) const
@@ -296,22 +294,16 @@ V SignalAlgebra<V>::combine(Tree sig, const std::vector<V>& c,
             case sigs::SignalOpcode::Register:
                 isSigRegister(sig, &i, x);
                 return this->Register(i, c[1]);
-            case sigs::SignalOpcode::Tuple:
-                isSigTuple(sig, &i, ls);
-                return this->Tuple(i, c);
-            case sigs::SignalOpcode::TupleAccess: return this->TupleAccess(c[0], c[1]);
 
             case sigs::SignalOpcode::Count: break;  // not a constructor
         }
         return unreachable("combine (signal opcode out of range)");
     }
 
-    // Everything left is syntax rather than signal: labels, identifiers, list spines,
-    // foreign-function signatures. Their value is never consumed -- the constructors that
-    // need what they hold read it as data -- but the walk still reaches them.
-    Sym s;
-    if (isSym(sig->node(), &s) && sig->arity() == 0) {
-        return this->Label(::name(s));
-    }
-    return this->Nil();
+    // Everything left is STRUCTURE rather than signal: list spines (cons/nil), labels,
+    // identifiers, foreign-function signatures. Lists never cross the algebra boundary
+    // (Yann's doctrine) -- constructors whose arguments are list-packed unpack them
+    // through the evaluator and hand the algebra a std::vector. The walk still reaches
+    // these nodes, so they take the domain's inert default value, never consumed.
+    return V{};
 }

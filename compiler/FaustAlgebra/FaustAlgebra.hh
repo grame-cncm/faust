@@ -21,7 +21,9 @@ class FaustAlgebra
     //--------------------------------------------------------------------------------
 
     // Injections of external values (numbers and strings)
-    virtual T Nil() const = 0;
+    // NB : lists (cons/nil) are STRUCTURE, not signals -- they never cross the
+    // algebra boundary, so there is no Nil operation. An adapter that must produce a
+    // value for structural syntax uses its domain's inert default.
     virtual T IntNum(int x) const = 0;
     virtual T Int64Num(int64_t x) const = 0;
     virtual T FloatNum(double x) const = 0;

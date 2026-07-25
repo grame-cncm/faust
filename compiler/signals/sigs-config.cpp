@@ -84,8 +84,6 @@ void initSignalSymbols()
     g.SIGSOUNDFILERATE   = signal_signature.add("SigSoundfileRate");
     g.SIGSOUNDFILEBUFFER = signal_signature.add("SigSoundfileBuffer");
     g.SIGREGISTER        = signal_signature.add("SigRegister");
-    g.SIGTUPLE           = signal_signature.add("SigTuple");
-    g.SIGTUPLEACCESS     = signal_signature.add("SigTupleAccess");
 }
 
 /**

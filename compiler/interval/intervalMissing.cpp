@@ -6,10 +6,6 @@ namespace itv {
 // Missing operations. A default implementation is provided for the code to compile. A real
 // implementation has to be provided.
 
-interval interval_algebra::Nil() const
-{
-    return interval(0);
-}
 interval interval_algebra::FixPointUpdate(const interval& x, const interval& y) const
 {
     return interval(0);

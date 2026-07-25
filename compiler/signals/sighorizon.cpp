@@ -144,8 +144,6 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
     }
     AffItv DocAccessTbl(const AffItv& tbl, const AffItv&) const override { return tbl; }
     AffItv Register(int, const AffItv& s) const override { return s; }
-    AffItv Tuple(int, const std::vector<AffItv>&) const override { return itv::aempty(); }
-    AffItv TupleAccess(const AffItv& ts, const AffItv&) const override { return ts; }
 };
 
 //----------------------------------------------------------------------------------------

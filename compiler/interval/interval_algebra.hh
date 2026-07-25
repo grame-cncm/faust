@@ -12,7 +12,6 @@ class interval_algebra : public FaustAlgebra<interval> {
 
    public:
     // Injections of external values
-    interval Nil() const override;
     interval IntNum(int x) const override;
     interval Int64Num(int64_t x) const override;
     interval FloatNum(double x) const override;

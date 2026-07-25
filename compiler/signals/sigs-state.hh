@@ -133,8 +133,6 @@ struct State {
     Sym                                         SIGSOUNDFILERATE{};
     Sym                                         SIGSOUNDFILEBUFFER{};
     Sym                                         SIGREGISTER{};  // for FPGA Retiming
-    Sym                                         SIGTUPLE{};
-    Sym                                         SIGTUPLEACCESS{};
     Sym                                         SIMPLETYPE{};
     Sym                                         TABLETYPE{};
     Sym                                         TUPLETTYPE{};

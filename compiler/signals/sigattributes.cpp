@@ -76,7 +76,6 @@ class NatureAlgebra : public SignalAlgebra<int> {
 
     //--- injections. Nil and Label answer for the syntax a walk meets but no operation
     // consumes; the bottom element is neutral for the join, so they never perturb one.
-    int Nil() const override { return kInt; }
     int Label(const std::string&) const override { return kInt; }
     int IntNum(int) const override { return kInt; }
     int Int64Num(int64_t) const override { return kInt; }
@@ -217,8 +216,6 @@ class NatureAlgebra : public SignalAlgebra<int> {
     }
     int DocAccessTbl(const int& tbl, const int&) const override { return tbl; }
     int Register(int, const int& s) const override { return s; }
-    int Tuple(int, const std::vector<int>& ls) const override { return join(ls); }
-    int TupleAccess(const int& ts, const int&) const override { return ts; }
 };
 
 //========================================================================================
@@ -234,7 +231,6 @@ class VariabilityAlgebra : public SignalAlgebra<int> {
     // the branches of one recursive group end up sharing a single variability.
     int project(Tree, int, const std::vector<int>& row) const override { return join(row); }
 
-    int Nil() const override { return kKonst; }
     int Label(const std::string&) const override { return kKonst; }
     int IntNum(int) const override { return kKonst; }
     int Int64Num(int64_t) const override { return kKonst; }
@@ -379,8 +375,6 @@ class VariabilityAlgebra : public SignalAlgebra<int> {
     }
     int DocAccessTbl(const int& tbl, const int& ridx) const override { return tbl | ridx; }
     int Register(int, const int& s) const override { return s; }
-    int Tuple(int, const std::vector<int>& ls) const override { return join(ls); }
-    int TupleAccess(const int& ts, const int& idx) const override { return ts | idx; }
 };
 
 //========================================================================================
@@ -394,7 +388,6 @@ class ComputabilityAlgebra : public SignalAlgebra<int> {
     bool lessEqual(const int& x, const int& y) const override { return (x | y) == y; }
     int project(Tree, int, const std::vector<int>& row) const override { return join(row); }
 
-    int Nil() const override { return kComp; }
     int Label(const std::string&) const override { return kComp; }
     int IntNum(int) const override { return kComp; }
     int Int64Num(int64_t) const override { return kComp; }
@@ -528,8 +521,6 @@ class ComputabilityAlgebra : public SignalAlgebra<int> {
     }
     int DocAccessTbl(const int& tbl, const int& ridx) const override { return tbl | ridx; }
     int Register(int, const int& s) const override { return s; }
-    int Tuple(int, const std::vector<int>& ls) const override { return join(ls); }
-    int TupleAccess(const int& ts, const int& idx) const override { return ts | idx; }
 };
 
 //========================================================================================
@@ -549,7 +540,6 @@ class VectorabilityAlgebra : public SignalAlgebra<int> {
         return row[i] | kScal;
     }
 
-    int Nil() const override { return kVect; }
     int Label(const std::string&) const override { return kVect; }
     int IntNum(int) const override { return kVect; }
     int Int64Num(int64_t) const override { return kVect; }
@@ -678,8 +668,6 @@ class VectorabilityAlgebra : public SignalAlgebra<int> {
     }
     int DocAccessTbl(const int& tbl, const int& ridx) const override { return tbl | ridx; }
     int Register(int, const int& s) const override { return s; }
-    int Tuple(int, const std::vector<int>& ls) const override { return join(ls); }
-    int TupleAccess(const int& ts, const int& idx) const override { return ts | idx; }
 };
 
 //========================================================================================
@@ -693,7 +681,6 @@ class BooleanAlgebra : public SignalAlgebra<int> {
     bool lessEqual(const int& x, const int& y) const override { return (x | y) == y; }
     int project(Tree, int i, const std::vector<int>& row) const override { return row[i]; }
 
-    int Nil() const override { return kNum; }
     int Label(const std::string&) const override { return kNum; }
     int IntNum(int) const override { return kNum; }
     int Int64Num(int64_t) const override { return kNum; }
@@ -823,8 +810,6 @@ class BooleanAlgebra : public SignalAlgebra<int> {
     }
     int DocAccessTbl(const int& tbl, const int&) const override { return tbl; }
     int Register(int, const int& s) const override { return s; }
-    int Tuple(int, const std::vector<int>& ls) const override { return join(ls); }
-    int TupleAccess(const int& ts, const int&) const override { return ts; }
 };
 
 }  // namespace

@@ -91,9 +91,6 @@ struct sigvisitor {
     // Registers for FPGA retiming
     virtual void visitRegister(Tree sig, int n, Tree s1) = 0;
 
-    // Tuples
-    virtual void visitTuple(Tree sig, int mod, Tree ls)        = 0;
-    virtual void visitTupleAccess(Tree sig, Tree ts, Tree idx) = 0;
 
     // List of signals
     virtual void visitList(Tree lsig) = 0;
@@ -186,13 +183,6 @@ struct fullvisitor : sigvisitor {
 
     virtual void visitRegister(Tree sig, int n, Tree s1) { visit(s1); }
 
-    // Tuples
-    virtual void visitTuple(Tree sig, int mod, Tree ls) { visit(ls); }
-    virtual void visitTupleAccess(Tree sig, Tree ts, Tree idx)
-    {
-        visit(ts);
-        visit(idx);
-    }
 
     // List of signals
     virtual void visitList(Tree lsig)

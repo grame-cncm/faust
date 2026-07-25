@@ -71,7 +71,6 @@ class AffineOps : public Base {
     double horizon() const { return fT; }
 
     //--- injections -------------------------------------------------------------------
-    AffItv Nil() const override { return aempty(); }
     AffItv Label(const std::string&) const override { return aempty(); }
     AffItv IntNum(int x) const override { return fromItv(fItv.IntNum(x)); }
     AffItv Int64Num(int64_t x) const override { return fromItv(fItv.Int64Num(x)); }

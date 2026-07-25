@@ -605,8 +605,6 @@ struct global {
     Sym& SIGSOUNDFILERATE = sigs::g.SIGSOUNDFILERATE;
     Sym& SIGSOUNDFILEBUFFER = sigs::g.SIGSOUNDFILEBUFFER;
     Sym& SIGREGISTER = sigs::g.SIGREGISTER;  // for FPGA Retiming
-    Sym& SIGTUPLE = sigs::g.SIGTUPLE;
-    Sym& SIGTUPLEACCESS = sigs::g.SIGTUPLEACCESS;
 
     // Types
     Sym& SIMPLETYPE = sigs::g.SIMPLETYPE;

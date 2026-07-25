@@ -339,16 +339,11 @@ SIGS_API bool isSigRegister(Tree s, int* n, Tree& x);
 
 // A tuple of signals is basically a list of signals.
 // mode = 0 means normal, mode = 1 means blocked
-Tree              sigTuple(int mode, Tree ls);
-SIGS_API bool isSigTuple(Tree s, int* mode, Tree& ls);
 
 // Access the components of a tuple.
 // ts is tuple of signals, idx is a scalar signal between 0..n
-Tree              sigTupleAccess(Tree ts, Tree idx);
-SIGS_API bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
 
 // Create a tuple of signals
-Tree sigCartesianProd(Tree s1, Tree s2);
 
 /*****************************************************************************
                              Access to sub signals of a signal
