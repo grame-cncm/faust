@@ -84,10 +84,21 @@ AffItv fromItv(const interval& x)
 }
 
 /// Collapse to the ordinary interval hull over [0, T].
+///
+/// An INTEGER chain's affine claim is only valid while its value fits int32: past that
+/// date the real counter has wrapped and the form no longer bounds it, so the collapse
+/// caps to the int32 range -- THE bridge from affine claims to interval facts is where
+/// the wrap reality must re-enter. (A float chain stays bounded past absorption: the
+/// value freezes, the form keeps over-approximating it.)
 interval toItv(const AffItv& x, double T)
 {
     if (x.isEmpty()) return itv::empty();
-    return {std::min(x.lo(0), x.lo(T)), std::max(x.hi(0), x.hi(T)), x.lsb};
+    const double lo = std::min(x.lo(0), x.lo(T));
+    const double hi = std::max(x.hi(0), x.hi(T));
+    if (x.lsb >= 0 && !x.isConst() && (hi > 2147483647.0 || lo < -2147483648.0)) {
+        return {-2147483648.0, 2147483647.0, x.lsb};
+    }
+    return {lo, hi, x.lsb};
 }
 
 /// x ⊑ y over [0, T] : affine bounds compare at the endpoints.
@@ -822,4 +833,30 @@ HorizonReport horizonAnalysis(Tree L, bool verbose)
         line("(défauts) ", nt, std::size_t(report.defaultEventCount));
     }
     return report;
+}
+
+
+//----------------------------------------------------------------------------------------
+// HorizonReader: the horizon-bounded interval of any signal, for the roles report.
+//----------------------------------------------------------------------------------------
+
+struct HorizonReader::Impl {
+    RecPlan                  plan;
+    HorizonAlgebra           algebra;
+    FixPointIterator<AffItv> it;
+
+    explicit Impl(Tree L) : plan(L), algebra(/*defaultParams*/ false), it(plan, algebra) {}
+};
+
+HorizonReader::HorizonReader(Tree L) : fImpl(new Impl(L)) {}
+
+HorizonReader::~HorizonReader()
+{
+    delete fImpl;
+}
+
+itv::interval HorizonReader::at(Tree sig) const
+{
+    // toItv caps integer chains at the int32 range past their wrap date.
+    return toItv(fImpl->it.value(sig), fImpl->algebra.horizon());
 }

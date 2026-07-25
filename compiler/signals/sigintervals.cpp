@@ -34,6 +34,7 @@
 #include "interval.hh"  // gAlgebra and the free interval operators
 #include "ppsig.hh"
 #include "sigattributes.hh"  // collectTypedSignals
+#include "sighorizon.hh"    // HorizonReader, the third reading
 #include "signalAlgebra.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -716,6 +717,7 @@ IntervalRolesStats intervalRolesReport(Tree L, bool verbose)
     RecPlan                    plan(L);
     IntervalAlgebra            algebra;
     FixPointIterator<interval> it(plan, algebra);
+    HorizonReader              hz(L);  // the third reading: valid for the declared lifetime
 
     IntervalRolesStats st;
     std::unordered_set<Tree> visited;
@@ -781,6 +783,7 @@ IntervalRolesStats intervalRolesReport(Tree L, bool verbose)
                 return boundedItv(i) && i.lo() >= 0 && i.hi() < double(sz);
             };
             st.tableAccesses++;
+            if (ok(hz.at(index))) st.tableSafeHorizon++;
             const bool ro = ok(r), mo = ok(m);
             if (ro && mo) {
                 st.tableSafeBoth++;
@@ -808,7 +811,14 @@ IntervalRolesStats intervalRolesReport(Tree L, bool verbose)
             if (sy != nullptr) {
                 const interval r  = sy->getInterval();
                 const interval m  = it.value(t);
-                const bool     rb = boundedItv(r), mb = boundedItv(m);
+                const interval h  = hz.at(t);
+                const bool     rb = boundedItv(r), mb = boundedItv(m), hb = boundedItv(h);
+                if (rb && hb) {
+                    st.formatSitesHorizon++;
+                    st.formatBitsSavedHorizon += msbOf(r) - msbOf(h);
+                } else if (hb) {
+                    st.formatOnlyHorizon++;
+                }
                 if (rb && mb) {
                     st.formatSites++;
                     st.formatBitsSaved += msbOf(r) - msbOf(m);
@@ -843,6 +853,10 @@ IntervalRolesStats intervalRolesReport(Tree L, bool verbose)
                   << " bits-gagnés=" << st.formatBitsSaved
                   << " bornés-par-nous-seuls=" << st.formatOnlyUs
                   << " par-réf-seule=" << st.formatOnlyRef << std::endl;
+        std::cerr << "ROLES horizon : table-prouvés=" << st.tableSafeHorizon
+                  << " format-sites=" << st.formatSitesHorizon
+                  << " bits-gagnés=" << st.formatBitsSavedHorizon
+                  << " bornés-horizon-seul=" << st.formatOnlyHorizon << std::endl;
     }
     return st;
 }

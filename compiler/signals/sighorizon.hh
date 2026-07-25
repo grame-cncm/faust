@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 
+#include "interval_def.hh"
 #include "sigs-export.hh"
 #include "tlib.hh"
 
@@ -73,3 +74,25 @@ struct HorizonReport {
  * @param verbose print one line per event and a final T* summary
  */
 SIGS_API HorizonReport horizonAnalysis(Tree L, bool verbose);
+
+/**
+ * Read access to the horizon-bounded interval of any signal: the affine form evaluated
+ * over [0, T] and collapsed to an ordinary interval. Under a declared lifetime T this
+ * is the reading that reconciles the interval's two roles: a counter is [0, T*rate]
+ * instead of the wrap range, so a (x + counter) % N table index is provably in bounds
+ * FOR THE DECLARED LIFETIME, and the integer bits of a fixed-point format come back.
+ * Worst-case parameters (full declared ranges).
+ */
+class SIGS_API HorizonReader {
+   public:
+    explicit HorizonReader(Tree L);
+    ~HorizonReader();
+    HorizonReader(const HorizonReader&)            = delete;
+    HorizonReader& operator=(const HorizonReader&) = delete;
+
+    itv::interval at(Tree sig) const;  ///< horizon interval of sig
+
+   private:
+    struct Impl;
+    Impl* fImpl;
+};

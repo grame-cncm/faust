@@ -98,6 +98,12 @@ struct IntervalRolesStats {
     long long formatBitsSaved = 0;  ///< sum over sites of msb(ref) - msb(ours)
     int formatOnlyUs    = 0;  ///< bounded by us alone: a format becomes possible
     int formatOnlyRef   = 0;
+    // the THIRD reading: horizon-bounded intervals (valid for the declared lifetime).
+    // Under T, a counter is [0, T*rate]: table proofs and format bits come back.
+    int       tableSafeHorizon      = 0;  ///< accesses provable under the horizon reading
+    int       formatSitesHorizon    = 0;  ///< signals bounded under ref AND horizon
+    long long formatBitsSavedHorizon = 0;  ///< sum of msb(ref) - msb(horizon)
+    int       formatOnlyHorizon     = 0;  ///< bounded under the horizon reading alone
 };
 
 SIGS_API IntervalRolesStats intervalRolesReport(Tree L, bool verbose);
