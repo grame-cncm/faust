@@ -137,7 +137,7 @@ class Symbol : public Garbageable {
     friend void* getUserData(Sym sym);
     friend void  setUserData(Sym sym, void* d);
     friend bool  getSymbolTag(Sym sym, SymbolTag& tag);
-    friend Signature signature(const std::string& name);
+    friend TLIB_API Signature signature(const std::string& name);
     friend class Signature;
 
     static void init();
@@ -159,7 +159,7 @@ class Signature {
     Sym fIdentity;
 
     explicit Signature(Sym identity) : fIdentity(identity) {}
-    friend Signature signature(const std::string& name);
+    friend TLIB_API Signature signature(const std::string& name);
 
    public:
     /**
