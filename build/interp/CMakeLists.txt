@@ -42,6 +42,7 @@ set( INCLUDE
 	${FAUSTROOT}/errors
 	${FAUSTROOT}/tlib
 	${FAUSTROOT}/utils
+	${FAUSTROOT}/signals
 	${ROOT}/architecture
 	${FAUSTGEN}/  
 	${FAUSTITP}/
@@ -123,4 +124,3 @@ install ( TARGETS ${TARGETS}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/dsp
 )
-
