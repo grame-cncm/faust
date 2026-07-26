@@ -39,13 +39,18 @@
  *
  * This is the `SignalInterpreter` layer of FAUSTALGEBRA.md: it is the only place that
  * knows both `Tree` and the algebra. It carries THE dense switch over signal
- * constructors -- written once, shared by every attribute (nature, variability, ...,
- * and eventually the interval) instead of being re-derived as a chain of `isSigXXX`
- * tests in each one.
+ * constructors -- written once, shared by every interpretation instead of being
+ * re-derived as a chain of `isSigXXX` tests in each one.
  *
- * A SignalAlgebra is both:
- *   - a FixPointDomain, which is what the fixpoint iterators require, and
- *   - a FaustAlgebra, which is the exhaustive list of the operations to implement.
+ * The adapter comes in two layers, because DISPATCH and LATTICE are orthogonal:
+ *
+ *   - SignalDispatch<V> : FaustAlgebra<V> -- the dense switch alone. This is all a
+ *     carrier needs to interpret signal trees; in particular the TREE carrier itself
+ *     (TreeAlgebra, the initial algebra) has no lattice: rebuilding is not a fixpoint.
+ *   - SignalAlgebra<V> : FixPointDomain<V>, SignalDispatch<V> -- the junction the
+ *     fixpoint ITERATORS require: dispatch plus a lattice (bottom, join, widening,
+ *     the probe). Every analysis domain (the five exact attributes, the affine
+ *     interval) derives from it.
  *
  * The junction lives HERE rather than in FaustAlgebra itself, because FixPointDomain is
  * intrinsically tree-aware (`combine`, `bottom(Tree var)`, `widen(Tree var, ...)`) and
@@ -53,21 +58,29 @@
  * `interval` library, whose `interval_algebra : FaustAlgebra<interval>` is built without
  * it -- exactly the dependency the migration removed.
  *
- * Concrete algebras derive from SignalAlgebra<V> and implement every operation. Nothing
+ * Concrete algebras derive from one of the two and implement every operation. Nothing
  * is defaulted: a constructor left unhandled is a compile error, not a silent join.
  */
 template <typename V>
-class SignalAlgebra : public FixPointDomain<V>, public FaustAlgebra<V> {
+class SignalDispatch : public FaustAlgebra<V> {
     /// The adapter's only state, hoisted out of the walk : signalOpcode() would
     /// otherwise hit the symbol registry on every node. Captured at construction,
     /// which is inside one TLIB session.
     Signature fSignalSignature;
 
    protected:
-    SignalAlgebra() : fSignalSignature(sigs::signalSignature()) {}
+    SignalDispatch() : fSignalSignature(sigs::signalSignature()) {}
+
+    /// The extended primitives, dispatched by NAME. Virtual because the TREE carrier
+    /// overrides it wholesale: an xtended node is rebuilt from the xtended itself,
+    /// which also disambiguates the operations that several constructors share (the
+    /// `%` binop and the `fmod` primitive both interpret as Mod).
+    virtual V xtendedOp(xtended* p, const std::vector<V>& c) const;
 
    public:
-    V combine(Tree sig, const std::vector<V>& c, FixPointEvaluator<V>& ev) const override;
+    virtual ~SignalDispatch() = default;
+
+    V combine(Tree sig, const std::vector<V>& c, FixPointEvaluator<V>& ev) const;
 
     //----------------------------------------------------------------------------------
     // Constructors of the SIGNAL language that FaustAlgebra does not name.
@@ -90,20 +103,35 @@ class SignalAlgebra : public FixPointDomain<V>, public FaustAlgebra<V> {
    private:
     V unreachable(const char* what) const
     {
-        tlib::error(std::string("ASSERT : SignalAlgebra never calls FaustAlgebra::") + what +
+        tlib::error(std::string("ASSERT : SignalDispatch never calls FaustAlgebra::") + what +
                     " (see the payload-carrying variant)\n");
         return V{};
     }
 
     V binaryOp(int op, const V& x, const V& y) const;
-    V xtendedOp(xtended* p, const std::vector<V>& c) const;
+};
+
+/**
+ * Dispatch plus lattice: what the fixpoint iterators require. Analysis domains derive
+ * from this; the TREE carrier derives from SignalDispatch alone.
+ */
+template <typename V>
+class SignalAlgebra : public FixPointDomain<V>, public SignalDispatch<V> {
+   protected:
+    SignalAlgebra() = default;
+
+   public:
+    V combine(Tree sig, const std::vector<V>& c, FixPointEvaluator<V>& ev) const override
+    {
+        return SignalDispatch<V>::combine(sig, c, ev);
+    }
 };
 
 //--------------------------------------------------------------------------------------
 // The 17 binary operators of the signal language.
 //--------------------------------------------------------------------------------------
 template <typename V>
-V SignalAlgebra<V>::binaryOp(int op, const V& x, const V& y) const
+V SignalDispatch<V>::binaryOp(int op, const V& x, const V& y) const
 {
     switch (op) {
         case kAdd: return this->Add(x, y);
@@ -136,7 +164,7 @@ V SignalAlgebra<V>::binaryOp(int op, const V& x, const V& y) const
 // are the complete set registered by the compiler.
 //--------------------------------------------------------------------------------------
 template <typename V>
-V SignalAlgebra<V>::xtendedOp(xtended* p, const std::vector<V>& c) const
+V SignalDispatch<V>::xtendedOp(xtended* p, const std::vector<V>& c) const
 {
     enum class XOp {
         Abs, Acos, Asin, Atan, Atan2, Ceil, Cos, Exp, Exp10, Floor, Fmod, Log, Log10,
@@ -191,7 +219,7 @@ V SignalAlgebra<V>::xtendedOp(xtended* p, const std::vector<V>& c) const
 // else a walk of a signal term meets is routed here.
 //--------------------------------------------------------------------------------------
 template <typename V>
-V SignalAlgebra<V>::combine(Tree sig, const std::vector<V>& c,
+V SignalDispatch<V>::combine(Tree sig, const std::vector<V>& c,
                             FixPointEvaluator<V>& ev) const
 {
     int     i;

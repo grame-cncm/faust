@@ -760,6 +760,86 @@ bool areEquiv(Tree a, Tree b)
     return (a == b) || (sym2deBruijn(a) == sym2deBruijn(b));
 }
 
+//-----------------------------------------------------------------------------------------
+// Direct alpha-equivalence on symbolic recursive DAGs.
+//
+// areEquiv above is the THEOREM form -- convert both sides to de Bruijn and compare
+// pointers -- but the conversion is uncached and super-linear on large recursive nests
+// (minutes on a big reverb). This version walks the two DAGs together: a pair memo
+// makes it linear in the number of distinct pairs, and recursive variables are matched
+// through a BIJECTION built on first encounter (both directions checked). The pair is
+// memoized BEFORE descending into the definitions, which is what terminates the
+// coinductive comparison of cyclic references.
+//-----------------------------------------------------------------------------------------
+
+namespace {
+struct AlphaEnv {
+    std::unordered_map<Tree, Tree> a2b, b2a;  // the variable bijection
+    std::unordered_set<Tree>       done;       // visited (a,b) pairs, keyed below
+    std::unordered_map<Tree, std::unordered_set<Tree>> pairs;
+
+    bool seen(Tree a, Tree b)
+    {
+        auto& s = pairs[a];
+        if (s.count(b) != 0U) {
+            return true;
+        }
+        s.insert(b);
+        return false;
+    }
+};
+
+bool alphaEquivAux(Tree a, Tree b, AlphaEnv& env)
+{
+    // Pointer equality decides only where no variable renaming can be involved.
+    if (a == b && a->isRecFree()) {
+        return true;
+    }
+    if (env.seen(a, b)) {
+        return true;  // already being compared : coinductive success
+    }
+
+    Tree va, ba, vb, bb;
+    if (isRec(a, va, ba)) {
+        if (!isRec(b, vb, bb)) {
+            return false;
+        }
+        auto ita = env.a2b.find(va);
+        auto itb = env.b2a.find(vb);
+        if (ita != env.a2b.end() || itb != env.b2a.end()) {
+            // at least one side already bound : both bindings must agree
+            return ita != env.a2b.end() && itb != env.b2a.end() && ita->second == vb &&
+                   itb->second == va;
+        }
+        env.a2b[va] = vb;
+        env.b2a[vb] = va;
+        if ((ba == nullptr) != (bb == nullptr)) {
+            return false;  // a bare reference against a defined group
+        }
+        return ba == nullptr || alphaEquivAux(ba, bb, env);
+    }
+    if (isRec(b, vb, bb)) {
+        return false;
+    }
+
+    if (!(a->node() == b->node()) || a->arity() != b->arity()) {
+        return false;
+    }
+    for (int i = 0; i < a->arity(); i++) {
+        if (!alphaEquivAux(a->branch(i), b->branch(i), env)) {
+            return false;
+        }
+    }
+    return true;
+}
+}  // namespace
+
+bool alphaEquiv(Tree a, Tree b)
+{
+    AlphaEnv env;
+    return alphaEquivAux(a, b, env);
+}
+
 //-----------------------------------------------------------
 // Pretty printers for recursive trees
 //-----------------------------------------------------------

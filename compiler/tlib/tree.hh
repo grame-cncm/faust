@@ -479,7 +479,12 @@ bool isSym2deBruijnInvariant(Tree t);  ////< true iff sym2deBruijn(t) == t. Now 
                                        ////< of the synthesized kContainsRec bit : see
                                        ////< CTree::isRecFree(), which is what to call in
                                        ////< new code -- this name only records the theorem
-bool areEquiv(Tree a, Tree b);  ////< alpha-equivalence of recursive trees
+bool areEquiv(Tree a, Tree b);  ////< alpha-equivalence via de Bruijn conversion (the
+                                ////< theorem form ; super-linear on large nests)
+TLIB_API bool alphaEquiv(Tree a, Tree b);  ///< direct alpha-equivalence : pair-memoized
+                                           ///< walk with a variable bijection, linear in
+                                           ///< distinct pairs -- what validations should
+                                           ///< call
 
 // The recursion structure of a symbolic term : every symbolic recursive node reachable
 // from a root, partitioned into strongly connected components (the mutual-recursion
