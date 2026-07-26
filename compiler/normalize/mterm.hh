@@ -42,7 +42,9 @@
 
 class mterm : public virtual Garbageable {
     Tree                fCoef;     ///< constant part of the term (usually 1 or -1)
-    std::map<Tree, int> fFactors;  ///< non constant terms and their power
+    // Canonical order : the normalized product must emit its factors in an order
+    // derived from VALUES, never from node serials (construction history).
+    std::map<Tree, int, CanonicalTreeLess> fFactors;  ///< non constant terms and their power
 
    public:
     mterm();                ///< create a 0 mterm

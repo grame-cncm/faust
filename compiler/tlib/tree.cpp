@@ -183,6 +183,15 @@ void CTree::growHashTableIfNeeded()
 }
 
 // Constructor : add the tree to the hash table
+static std::size_t calcCanonHash(const Node& n, int ar, const Tree br[])
+{
+    std::size_t h = n.canonicalHash();
+    for (int i = 0; i < ar; i++) {
+        h = h * 1099511628211ULL ^ br[i]->canonHash();
+    }
+    return h;
+}
+
 CTree::CTree(size_t hk, const Node& n, const tvec& br)
     : CTree(hk, n, int(br.size()), br.empty() ? nullptr : br.data())
 {
@@ -196,6 +205,7 @@ CTree::CTree(size_t hk, const Node& n, int ar, const Tree br[])
       fProperties(nullptr),
       fHashKey(hk),
       fSerial(++gSerialCounter),
+      fCanonHash(calcCanonHash(n, ar, br)),
       fAperture(calcTreeAperture(n, ar, br)),
       fContains(calcTreeContains(n, ar, br)),
       fVisitTime(0),
@@ -210,6 +220,50 @@ CTree::CTree(size_t hk, const Node& n, int ar, const Tree br[])
     fNext         = gHashTable[j];
     gHashTable[j] = this;
     gHashTableCount++;
+}
+
+bool canonicalTreeLess(Tree a, Tree b)
+{
+    if (a == b) {
+        return false;
+    }
+    if (a->canonHash() != b->canonHash()) {
+        return a->canonHash() < b->canonHash();
+    }
+    // hash tie (rare) : full structural comparison
+    const Node& na = a->node();
+    const Node& nb = b->node();
+    if (na.type() != nb.type()) {
+        return na.type() < nb.type();
+    }
+    switch (na.type()) {
+        case kIntNode:
+            if (na.getInt() != nb.getInt()) return na.getInt() < nb.getInt();
+            break;
+        case kInt64Node:
+            if (na.getInt64() != nb.getInt64()) return na.getInt64() < nb.getInt64();
+            break;
+        case kDoubleNode:
+            if (na.getDouble() != nb.getDouble()) return na.getDouble() < nb.getDouble();
+            break;
+        case kSymNode: {
+            const int c = strcmp(name(na.getSym()), name(nb.getSym()));
+            if (c != 0) return c < 0;
+            break;
+        }
+        default:
+            if (na.getPointer() != nb.getPointer()) return na.getPointer() < nb.getPointer();
+            break;
+    }
+    if (a->arity() != b->arity()) {
+        return a->arity() < b->arity();
+    }
+    for (int i = 0; i < a->arity(); i++) {
+        if (a->branch(i) != b->branch(i)) {
+            return canonicalTreeLess(a->branch(i), b->branch(i));
+        }
+    }
+    return false;  // equal structure : not less
 }
 
 // Destructor

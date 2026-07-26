@@ -177,6 +177,9 @@ class TLIB_API CTree : public Garbageable {
     plist*       fProperties;   ///< lazily allocated; nullptr means no property set
     std::size_t  fHashKey;      ///< the hashtable key
     std::size_t  fSerial;       ///< the increasing serial number
+    std::size_t  fCanonHash;    ///< structural value hash, synthesized at construction
+                                ///< (node canonicalHash + children, order-sensitive) :
+                                ///< identical across processes, unlike serials
     // fAperture and fContains share one 32-bit word : a deBruijn depth never comes close to
     // 24 bits, which buys 8 synthesized flag bits for free (sizeof(CTree) stays 112).
     // fAperture stays SIGNED : calcTreeAperture returns br[0]->fAperture - 1 on a rec node,
@@ -247,6 +250,7 @@ class TLIB_API CTree : public Garbageable {
     const tvec& branches() const { return fBranch; }  ///< return all branches (subtrees) of a tree
     std::size_t hashkey() const { return fHashKey; }  ///< return the hashkey of the tree
     std::size_t serial() const { return fSerial; }    ///< return the serial of the tree
+    std::size_t canonHash() const { return fCanonHash; }  ///< structural value hash
     int         aperture() const
     {
         return fAperture;
@@ -485,6 +489,18 @@ TLIB_API bool alphaEquiv(Tree a, Tree b);  ///< direct alpha-equivalence : pair-
                                            ///< walk with a variable bijection, linear in
                                            ///< distinct pairs -- what validations should
                                            ///< call
+
+/// A TOTAL ORDER on trees derived from VALUES, never from serials : primary key the
+/// synthesized canonical hash, ties broken by a full structural comparison (node kind,
+/// value -- symbols by NAME --, then children left to right). Two processes that build
+/// the same tree values order them identically, whatever their construction history.
+/// Meant for the orderings that must survive alpha-renaming and history (the
+/// normal-form term orders); the default less<CTree*> stays serial-based.
+TLIB_API bool canonicalTreeLess(Tree a, Tree b);
+
+struct CanonicalTreeLess {
+    bool operator()(Tree a, Tree b) const { return canonicalTreeLess(a, b); }
+};
 
 // The recursion structure of a symbolic term : every symbolic recursive node reachable
 // from a root, partitioned into strongly connected components (the mutual-recursion

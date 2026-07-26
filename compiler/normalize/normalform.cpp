@@ -107,6 +107,17 @@ static Tree simplifyToNormalFormAux(Tree LS)
     Tree L2 = signalPromote(L1);
     endTiming("Cast and Promotion");
 
+    // Canonical names BEFORE the normal form : the term orders of the normalized
+    // sums and products hash the recursive variables by NAME, so the names must
+    // already be history-independent here (simplify also reads types : re-annotate).
+    startTiming("canonicalizeRecNames");
+    L2 = canonicalizeRecNames(L2);
+    endTiming("canonicalizeRecNames");
+
+    startTiming("L2 typeAnnotation");
+    typeAnnotation(L2, gGlobal->gLocalCausalityCheck);
+    endTiming("L2 typeAnnotation");
+
     // Simplify by executing every computable operation
     startTiming("L2 simplification");
     Tree L3 = simplify(L2);

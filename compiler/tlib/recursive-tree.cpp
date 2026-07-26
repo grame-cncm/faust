@@ -25,7 +25,9 @@
 #include <sstream>
 #include <algorithm>
 #include <unordered_map>
+#include <map>
 #include <memory>
+#include <queue>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -596,18 +598,24 @@ static void scanForRecs(Tree t, std::unordered_set<Tree>& visited, std::vector<T
 // self-loop, hence again a singleton, which is the intended behaviour for x = f(x).
 RecPlan::RecPlan(Tree root)
 {
-    std::vector<Tree>        work;
-    std::unordered_set<Tree> known;
-    digraph<Tree>            graph;
+    std::vector<Tree>              work;
+    std::unordered_set<Tree>       known;
+    std::unordered_map<Tree, int>  rank;  // structural discovery rank, value-canonical
+    digraph<Tree>                  graph;
+
+    auto note = [&](Tree r) {
+        if (known.insert(r).second) {
+            rank[r] = int(rank.size());
+            work.push_back(r);
+        }
+    };
 
     {
         std::unordered_set<Tree> visited;
         std::vector<Tree>        found;
         scanForRecs(root, visited, found);
         for (Tree r : found) {
-            if (known.insert(r).second) {
-                work.push_back(r);
-            }
+            note(r);
         }
     }
     while (!work.empty()) {
@@ -626,27 +634,75 @@ RecPlan::RecPlan(Tree root)
             if (dedup.insert(s2).second) {
                 graph.add(r, s2);
             }
-            if (known.insert(s2).second) {
-                work.push_back(s2);
+            note(s2);
+        }
+    }
+
+    // Collapse the graph into its DAG of components, then order that DAG
+    // dependencies-first. The dependency order does not constrain INDEPENDENT
+    // components : their relative order -- and the member order inside a component --
+    // is chosen by the STRUCTURAL DISCOVERY RANK above, never by node serials, so the
+    // plan (and everything downstream : canonical names, solving order) is the same
+    // for alpha-equivalent trees whatever their construction history.
+    const auto dag = graph2dag(graph);
+
+    struct Comp {
+        // fields : the members (rank-sorted) and the canonical key of the component
+        std::vector<Tree> members;
+        int               rank = 0;
+    };
+    std::vector<Comp>                comps;
+    std::map<digraph<Tree>, int>     compIndex;
+    for (const digraph<Tree>& component : dag.nodes()) {
+        Comp c;
+        for (Tree r : component.nodes()) {
+            c.members.push_back(r);
+        }
+        std::sort(c.members.begin(), c.members.end(),
+                  [&](Tree a, Tree b) { return rank[a] < rank[b]; });
+        c.rank                = rank[c.members.front()];
+        compIndex[component]  = int(comps.size());
+        comps.push_back(std::move(c));
+    }
+
+    // deps[i] = the components i depends on ; users[j] = the components that use j
+    const int              n = int(comps.size());
+    std::vector<std::vector<int>> users(n);
+    std::vector<int>              missing(n, 0);
+    for (const auto& conn : dag.connections()) {
+        const int from = compIndex[conn.first];
+        for (const auto& dst : conn.second) {
+            const int to = compIndex[dst.first];
+            if (from != to) {
+                users[to].push_back(from);
+                missing[from]++;
             }
         }
     }
 
-    // Collapse the graph into its DAG of components, then serialize that DAG in
-    // dependencies-first (reverse topological) order. A component's id is its index in
-    // that order, so fSccOf and fComponents share one numbering that increases along the
-    // dependency order -- exactly what a fixpoint iterator needs to solve lower
-    // components before the ones that use them. sym2deBruijn does not care about the
-    // order, only about the partition, so this renumbering is neutral for it.
-    for (const digraph<Tree>& component : serialize(graph2dag(graph))) {
-        const int         id = int(fComponents.size());
-        std::vector<Tree> members;
-        for (Tree r : component.nodes()) {
-            members.push_back(r);
+    // Kahn, dependencies first, smallest discovery rank first among the ready ones.
+    using Entry = std::pair<int, int>;  // (component rank, component index)
+    std::priority_queue<Entry, std::vector<Entry>, std::greater<Entry>> ready;
+    for (int i = 0; i < n; i++) {
+        if (missing[i] == 0) {
+            ready.push({comps[i].rank, i});
+        }
+    }
+    while (!ready.empty()) {
+        const int i = ready.top().second;
+        ready.pop();
+        const int id = int(fComponents.size());
+        for (Tree r : comps[i].members) {
             fSccOf[r] = id;
         }
-        fComponents.push_back(std::move(members));
+        fComponents.push_back(std::move(comps[i].members));
+        for (int u : users[i]) {
+            if (--missing[u] == 0) {
+                ready.push({comps[u].rank, u});
+            }
+        }
     }
+    TLIB_ASSERT(int(fComponents.size()) == n);  // the component graph is a DAG
 }
 
 const RecPlan& getRecPlan(Tree root)

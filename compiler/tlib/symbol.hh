@@ -130,6 +130,7 @@ class Symbol : public Garbageable {
     std::ostream& print(std::ostream& fout) const;  ///< print a symbol on a stream
 
     friend Sym         symbol(const char* str);
+    friend std::size_t symbolHashKey(Sym sym);
     friend Sym         symbol(const std::string& str);
     friend Sym         unique(const char* str);
     friend const char* name(Sym sym);
@@ -192,6 +193,11 @@ inline const char* name(Sym sym)
 {
     return sym->fName.c_str();
 }  ///< Returns the name of a symbol
+
+inline std::size_t symbolHashKey(Sym sym)
+{
+    return sym->fHash;
+}  ///< Name-derived hash : identical across processes, unlike the pointer
 
 inline void* getUserData(Sym sym)
 {

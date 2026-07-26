@@ -50,6 +50,8 @@
 #ifndef __NODE__
 #define __NODE__
 
+#include <cstdint>
+#include <cstring>
 #include <stdint.h>
 #include <sys/types.h>
 #include <cmath>
@@ -81,6 +83,26 @@ class Node : public Garbageable {
     } fData;
 
    public:
+
+    /// Value-derived hash, identical across processes : symbols hash by NAME. Pointer
+    /// payloads fall back to the pointer (non-canonical -- box primitives only, which
+    /// never enter the canonical orderings).
+    std::size_t canonicalHash() const
+    {
+        std::size_t h = std::size_t(fType) * 0x9e3779b97f4a7c15ULL;
+        switch (fType) {
+            case kIntNode: return h ^ std::size_t(fData.i);
+            case kInt64Node: return h ^ std::size_t(fData.v);
+            case kDoubleNode: {
+                std::size_t b;
+                static_assert(sizeof(b) == sizeof(fData.f), "size mismatch");
+                memcpy(&b, &fData.f, sizeof(b));
+                return h ^ b;
+            }
+            case kSymNode: return h ^ symbolHashKey(fData.s);
+            default: return h ^ std::size_t(reinterpret_cast<std::uintptr_t>(fData.p));
+        }
+    }
     // constructors (assume size of field f is the biggest)
     Node() { fData.v = 0; }
 

@@ -28,7 +28,7 @@
 
 using namespace std;
 
-typedef map<Tree, int> MP;
+typedef map<Tree, int, CanonicalTreeLess> MP;
 
 mterm::mterm() : fCoef(sigInt(0))
 {
