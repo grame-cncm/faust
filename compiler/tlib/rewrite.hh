@@ -116,8 +116,8 @@ Tree treeRewrite(Tree root, Rule&& rule)
  * original to its result, which is how nested arguments (list-packed operands) are
  * paired with their transforms.
  */
-template <class Rule, class DefRule>
-Tree treeRewritePairedMemo(Tree t, Rule& rule, std::unordered_map<Tree, Tree>& memo,
+template <class Pre, class Rule, class DefRule>
+Tree treeRewritePairedMemo(Tree t, Pre& pre, Rule& rule, std::unordered_map<Tree, Tree>& memo,
                            DefRule& defRule)
 {
     auto it = memo.find(t);
@@ -141,14 +141,24 @@ Tree treeRewritePairedMemo(Tree t, Rule& rule, std::unordered_map<Tree, Tree>& m
         Tree l = body;
         while (isList(l)) {
             Tree d = hd(l);
-            defs.push_back(defRule(d, treeRewritePairedMemo(d, rule, memo, defRule)));
+            defs.push_back(defRule(d, treeRewritePairedMemo(d, pre, rule, memo, defRule)));
             l = tl(l);
         }
-        Tree newBody = treeRewritePairedMemo(l, rule, memo, defRule);
+        Tree newBody = treeRewritePairedMemo(l, pre, rule, memo, defRule);
         for (auto i = defs.rbegin(); i != defs.rend(); ++i) {
             newBody = cons(*i, newBody);
         }
         return rec(newVar, newBody);
+    }
+
+    // the top-down guard : a fired cut decides the whole subtree on the ORIGINAL
+    // node, children are never visited and the bottom-up rule is not applied (R1,
+    // same discipline as the guarded treeRewrite)
+    std::optional<Tree> cut = pre(t);
+    if (cut.has_value()) {
+        TLIB_ASSERT(*cut != nullptr);
+        memo[t] = *cut;
+        return *cut;
     }
 
     int  ar = t->arity();
@@ -157,7 +167,7 @@ Tree treeRewritePairedMemo(Tree t, Rule& rule, std::unordered_map<Tree, Tree>& m
         bool changed = false;
         tvec br(ar);
         for (int i = 0; i < ar; i++) {
-            br[i]   = treeRewritePairedMemo(t->branch(i), rule, memo, defRule);
+            br[i]   = treeRewritePairedMemo(t->branch(i), pre, rule, memo, defRule);
             changed = changed || (br[i] != t->branch(i));
         }
         if (changed) {
@@ -170,22 +180,34 @@ Tree treeRewritePairedMemo(Tree t, Rule& rule, std::unordered_map<Tree, Tree>& m
 }
 
 /**
- * The paired rewrite with a DEFINITION seam : defRule(origDef, rebuiltDef) is applied
- * to every element of a rec body -- each recursive definition, after its own
- * rewriting, before the group is tied. Every group still gets a fresh variable.
+ * The paired rewrite, full form : a top-down guard pre(orig) -> optional<Tree>
+ * consulted on each original node before descending (a fired cut replaces the whole
+ * subtree, R1), and a DEFINITION seam defRule(origDef, rebuiltDef) applied to every
+ * element of a rec body -- each recursive definition, after its own rewriting,
+ * before the group is tied. Every group still gets a fresh variable; the guard is
+ * never consulted on SYMREC nodes.
  */
+template <class Pre, class Rule, class DefRule>
+Tree treeRewritePaired(Tree root, Pre&& pre, Rule&& rule, std::unordered_map<Tree, Tree>& memo,
+                       DefRule&& defRule)
+{
+    return treeRewritePairedMemo(root, pre, rule, memo, defRule);
+}
+
 template <class Rule, class DefRule>
 Tree treeRewritePaired(Tree root, Rule&& rule, std::unordered_map<Tree, Tree>& memo,
                        DefRule&& defRule)
 {
-    return treeRewritePairedMemo(root, rule, memo, defRule);
+    auto nopre = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    return treeRewritePairedMemo(root, nopre, rule, memo, defRule);
 }
 
 template <class Rule>
 Tree treeRewritePaired(Tree root, Rule&& rule, std::unordered_map<Tree, Tree>& memo)
 {
+    auto nopre    = [](Tree) -> std::optional<Tree> { return std::nullopt; };
     auto identity = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
-    return treeRewritePairedMemo(root, rule, memo, identity);
+    return treeRewritePairedMemo(root, nopre, rule, memo, identity);
 }
 
 /**

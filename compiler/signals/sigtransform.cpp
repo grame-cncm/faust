@@ -22,6 +22,7 @@
 #include "sigtransform.hh"
 
 #include <cstdint>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -86,6 +87,23 @@ Tree signalTransform(Tree L, const TransformAlgebra& A, std::unordered_map<Tree,
 
     return treeRewritePaired(
         L,
+        [&](Tree orig) -> std::optional<Tree> {
+            // the algebra's top-down guard, consulted on signal nodes only
+            int                i;
+            int64_t            i64;
+            double             r;
+            sigs::SignalOpcode op;
+            const bool         isSignalNode = isSigInt(orig, &i) || isSigInt64(orig, &i64) ||
+                                      isSigReal(orig, &r) ||
+                                      sigs::signalOpcode(orig, sigSignature, op) ||
+                                      getUserData(orig) != nullptr;
+            if (isSignalNode) {
+                if (Tree c = A.cut(orig)) {
+                    return c;
+                }
+            }
+            return std::nullopt;
+        },
         [&](Tree orig, Tree t) -> Tree {
             // ffunction and extended applications carry their original node (see
             // TransformAlgebra::ffApp / xtdApp).

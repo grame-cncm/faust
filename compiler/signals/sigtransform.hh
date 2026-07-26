@@ -74,6 +74,14 @@ class SIGS_API TransformAlgebra : public SignalDispatch<XSig> {
     /// subtree shared with an inner position keeps its unwrapped transform there.
     virtual XSig recDef(const XSig& def) const { return def; }
 
+    //--- the top-down guard -----------------------------------------------------------
+    /// Consulted on each ORIGINAL signal node before its children are visited. A
+    /// non-null result replaces the whole subtree (R1: the premise is a judgment on
+    /// the source term -- a type, an interval -- that would not survive
+    /// reconstruction); children are then never visited and no other operation is
+    /// applied. Default: no cut. Never consulted on structure or recursive nodes.
+    virtual Tree cut(Tree) const { return nullptr; }
+
     //--- injections -------------------------------------------------------------------
     XSig IntNum(int x) const override { return o(fBuild.IntNum(x)); }
     XSig Int64Num(int64_t x) const override { return o(fBuild.Int64Num(x)); }

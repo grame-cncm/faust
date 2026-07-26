@@ -31,4 +31,4 @@
  * @param trace
  * @return Tree
  */
-Tree newConstantPropagation(Tree sig, bool trace = false);
+Tree newConstantPropagation(Tree sig);
