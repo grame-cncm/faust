@@ -87,11 +87,5 @@ class SinPrim : public xtendedCodegen {
         return subst("\\sin\\left($0\\right)", args[0]);
     }
 
-    virtual Tree diff(const std::vector<Tree>& args) override
-    {
-        // sin(x)' = cos(x)
-        return sigCos(args[0]);
-    }
-
     double compute(const std::vector<Node>& args) override { return sin(args[0].getDouble()); }
 };

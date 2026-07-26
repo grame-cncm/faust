@@ -500,19 +500,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     startTiming("compileMultiSignal");
 
-    // -diff option may add additional outputs
-    if (gGlobal->gAutoDifferentiate) {
-        // Count number of differentiable parameters, and set number of output channels
-        // accordingly. Transform to symbolic representation first.
-        DiffVarCollector collector(deBruijn2Sym(L));
-        fContainer->setOutputs(static_cast<int>(collector.inputs.size()));
-
-        if (gGlobal->gDetailsSwitch) {
-            cout << "Autodiff: differentiated process has " << fContainer->inputs()
-                 << " inputs, and " << fContainer->outputs() << " outputs.\n\n";
-        }
-    }
-
     // Has to be done *after* gMachinePtrSize is set by the actual backend
     gGlobal->initTypeSizeMap();
 

@@ -124,13 +124,6 @@ class AbsPrim : public xtendedCodegen {
         return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
     }
 
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        // |x|' = x / |x|, x != 0
-        return sigSelect2(sigEQ(args[0], sigReal(0.0)), sigReal(0.0),
-                          sigDiv(args[0], sigAbs(args[0])));
-    }
-
     double compute(const std::vector<Node>& args) override
     {
         double f;

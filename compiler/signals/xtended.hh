@@ -71,13 +71,6 @@ class xtended : public virtual Garbageable {
 
     virtual double compute(const std::vector<Node>& args) { return -1.; };
 
-    // Compute the derivative of a primitive with respect to its arguments.
-    virtual Tree diff(const std::vector<Tree>& args)
-    {
-        // TODO: implement `diff` for all `xtended` implementations.
-        return nullptr;
-    }
-
     virtual bool isSpecialInfix()
     {
         return false;

@@ -163,16 +163,6 @@ class MinPrim : public xtendedCodegen {
         return subst("\\min\\left( $0, $1 \\right)", args[0], args[1]);
     }
 
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        /*                /
-         *                | f', f < g
-         * (min(f, g))' = {
-         *                | g', otherwise
-         *                \
-         */
-        return sigSelect2(sigLT(args[0], args[1]), args[2], args[3]);
-    }
 
     double compute(const std::vector<Node>& args) override
     {

@@ -83,11 +83,5 @@ class ExpPrim : public xtendedCodegen {
         return subst("e^{$0}", args[0]);
     }
 
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        // (e^x)' = e^x
-        return sigExp(args[0]);
-    }
-
     double compute(const std::vector<Node>& args) override { return exp(args[0].getDouble()); }
 };

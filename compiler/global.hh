@@ -366,7 +366,6 @@ struct global {
 
     std::unordered_map<Tree, std::set<Tree>> gDependencies;
 
-    bool gAutoDifferentiate;
 
     // Automatic documentation
     std::string                        gDocLang;

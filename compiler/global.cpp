@@ -495,7 +495,6 @@ void global::reset()
     gLstMdocTagsSwitch     = true;  // mdoc listing management.
     gLstDistributedSwitch  = true;  // mdoc listing management.
 
-    gAutoDifferentiate = false;
 
     gLatexDocSwitch = true;  // Only LaTeX outformat is handled for the moment.
 
@@ -739,9 +738,6 @@ string global::printFloat()
 
 void global::printCompilationOptions(stringstream& dst, bool backend)
 {
-    if (gAutoDifferentiate) {
-        dst << "-diff ";
-    }
     if (gArchFile != "") {
         dst << "-a " << gArchFile << " ";
     }
@@ -1641,10 +1637,6 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-me", "--math-exceptions")) {
             gMathExceptions = true;
-            i += 1;
-
-        } else if (isCmd(argv[i], "-diff", "--auto-differentiate")) {
-            gAutoDifferentiate = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-lm", "--local-machine") ||

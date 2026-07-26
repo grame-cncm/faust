@@ -221,15 +221,6 @@ class PowPrim : public xtendedCodegen {
     // indicate that we want ^(n) to be equivalent to _^n
     virtual bool isSpecialInfix() override { return true; }
 
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        // (f^g)' = (f^g)(g*ln(f))' = f^{g-1} * g * f' + f^g * g' * ln(f)
-        //                          = f^{g-1}(g * f' + ln(f) * f * g'))
-        return sigMul(
-            sigPow(args[0], sigSub(args[1], sigReal(1.0))),
-            sigAdd(sigMul(args[1], args[2]), sigMul(sigLog(args[0]), sigMul(args[0], args[3]))));
-    }
-
     double compute(const std::vector<Node>& args) override
     {
         if (isInt(args[0]) && isInt(args[1])) {
