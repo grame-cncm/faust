@@ -120,5 +120,5 @@ Tree signalTransform(Tree L, const TransformAlgebra& A)
             }
             return A.combine(orig, c, ev).out;
         },
-        memo);
+        memo, [&](Tree orig, Tree rebuilt) -> Tree { return A.recDef({orig, rebuilt}).out; });
 }

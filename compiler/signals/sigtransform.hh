@@ -67,6 +67,12 @@ class SIGS_API TransformAlgebra : public SignalDispatch<XSig> {
     /// An ffunction application. Default: identity rebuild around the signature.
     virtual XSig ffApp(Tree orig, Tree ff, const std::vector<XSig>& args) const;
 
+    //--- the recursive-definition seam ------------------------------------------------
+    /// Applied to each definition of a recursive group after its transformation,
+    /// before the group is tied. The wrap lives at the definition slot only: a
+    /// subtree shared with an inner position keeps its unwrapped transform there.
+    virtual XSig recDef(const XSig& def) const { return def; }
+
     //--- injections -------------------------------------------------------------------
     XSig IntNum(int x) const override { return o(fBuild.IntNum(x)); }
     XSig Int64Num(int64_t x) const override { return o(fBuild.Int64Num(x)); }

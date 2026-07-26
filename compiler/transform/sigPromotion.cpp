@@ -264,191 +264,6 @@ void SignalChecker::visit(Tree sig)
     SignalVisitor::visit(sig);
 }
 
-Tree SignalBool2IntPromotion::transformation(Tree sig)
-{
-    int  op;
-    Tree x, y;
-
-    if (isSigBinOp(sig, &op, x, y)) {
-        if (isBoolOpcode(op)) {
-            return sigIntCast(sigBinOp(op, self(x), self(y)));
-        } else {
-            return SignalIdentity::transformation(sig);
-        }
-    } else {
-        // Other cases => identity transformation
-        return SignalIdentity::transformation(sig);
-    }
-}
-
-Tree SignalFXPromotion::transformation(Tree sig)
-{
-    Tree sel, x, y;
-    if (isSigSelect2(sig, sel, x, y)) {
-        return sigSelect2(self(sel), sigFloatCast(self(x)), sigFloatCast(self(y)));
-    } else {
-        // Other cases => identity transformation
-        return SignalIdentity::transformation(sig);
-    }
-}
-
-Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tbl, Tree size_aux, Tree ri)
-{
-    int size = tree2int(size_aux);
-    if (size <= 0) {
-        stringstream error;
-        error << "ERROR : RDTbl size = " << size << " should be > 0 \n";
-        throw faustexception(error.str());
-    }
-    Type     ty = getSigType(ri);
-    interval ri_i(NAN, NAN);
-    // The tree may not be properly typed because of a inner safeSigRDTbl/safeSigWRTbl call
-    if (ty) {
-        ri_i = ty->getInterval();
-    } else {
-        ri_i = interval(INT32_MIN, INT32_MAX);
-    }
-    if (ri_i.lo() < 0 || ri_i.hi() >= size) {
-        if (gAllWarning) {
-            stringstream error;
-            error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi()
-                  << "] is outside of table size (" << size << ") in " << ppsig(sig, MAX_ERROR_SIZE)
-                  << endl;
-            gWarningMessages.push_back(error.str());
-        }
-        return sigRDTbl(self(tbl), sigMax(sigInt(0), sigMin(self(ri), sigInt(size - 1))));
-    } else {
-        // Other cases => identity transformation
-        return SignalIdentity::transformation(sig);
-    }
-}
-
-Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree size_aux, Tree gen, Tree wi, Tree ws)
-{
-    int size = tree2int(size_aux);
-    if (size <= 0) {
-        stringstream error;
-        error << "ERROR : WRTbl size = " << size << " should be > 0 \n";
-        throw faustexception(error.str());
-    }
-    Type     ty = getSigType(wi);
-    interval wi_i(NAN, NAN);
-    // The tree may not be properly typed because of a inner safeSigRDTbl/safeSigWRTbl call
-    if (ty) {
-        wi_i = ty->getInterval();
-    } else {
-        wi_i = interval(INT32_MIN, INT32_MAX);
-    }
-    if (wi_i.lo() < 0 || wi_i.hi() >= size) {
-        if (gAllWarning) {
-            stringstream error;
-            error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi()
-                  << "] is outside of table size (" << size << ") in " << ppsig(sig, MAX_ERROR_SIZE)
-                  << endl;
-            gWarningMessages.push_back(error.str());
-        }
-        return sigWRTbl(self(size_aux), self(gen),
-                        sigMax(sigInt(0), sigMin(self(wi), sigInt(size - 1))), self(ws));
-    } else {
-        // Other cases => identity transformation
-        return SignalIdentity::transformation(sig);
-    }
-}
-
-Tree SignalTablePromotion::transformation(Tree sig)
-{
-    Tree tbl, size, gen, wi, ws, ri;
-
-    if (isSigRDTbl(sig, tbl, ri)) {
-        isSigWRTbl(tbl, size, gen, wi, ws);
-        if (wi == gGlobal->nil) {
-            // rdtable
-            return safeSigRDTbl(sig, tbl, size, ri);
-        } else {
-            // rwtable
-            return safeSigRDTbl(sig, safeSigWRTbl(tbl, size, gen, wi, ws), size, ri);
-        }
-    } else {
-        // Other cases => identity transformation
-        return SignalIdentity::transformation(sig);
-    }
-}
-
-Tree SignalIntCastPromotion::transformation(Tree sig)
-{
-    Tree x;
-    if (isSigIntCast(sig, x)) {
-        interval x_i = getCertifiedSigType(x)->getInterval();
-        if (x_i.lo() <= INT32_MIN || x_i.hi() >= INT32_MAX) {
-            if (gAllWarning) {
-                stringstream error;
-                error << "WARNING : float to integer conversion [" << x_i.lo() << ":" << x_i.hi()
-                      << "] is outside of integer range in " << ppsig(sig, MAX_ERROR_SIZE) << endl;
-                gWarningMessages.push_back(error.str());
-            }
-            return sigIntCast(sigMin(sigReal(INT32_MAX), sigMax(x, sigReal(INT32_MIN))));
-        }
-    }
-
-    // Other cases => identity transformation
-    return SignalIdentity::transformation(sig);
-}
-
-Tree SignalUIPromotion::transformation(Tree sig)
-{
-    Tree label, init, min, max, step;
-
-    if (isSigVSlider(sig, label, init, min, max, step) ||
-        isSigHSlider(sig, label, init, min, max, step) ||
-        isSigNumEntry(sig, label, init, min, max, step)) {
-        return sigMax(min, sigMin(max, sig));
-    } else {
-        // Other cases => identity transformation
-        return SignalIdentity::transformation(sig);
-    }
-}
-
-Tree SignalUIFreezePromotion::transformation(Tree sig)
-{
-    Tree label, init, min, max, step;
-
-    if (isSigVSlider(sig, label, init, min, max, step) ||
-        isSigHSlider(sig, label, init, min, max, step) ||
-        isSigNumEntry(sig, label, init, min, max, step)) {
-        /*
-         Freeze with the init value.
-         TODO:
-            - possibly use a [freeze:1] metadata) to only freeze choosen UI controls
-            - or even a JSON file with 'freeze' metadata to externally change the setup
-         */
-        return init;
-    } else {
-        // Other cases => identity transformation
-        return SignalIdentity::transformation(sig);
-    }
-}
-
-Tree SignalFTZPromotion::selfRec(Tree l)
-{
-    // Recursion here
-    l = self(l);
-
-    // Add FTZ on real signals only
-    if (getCertifiedSigType(l)->nature() == kReal) {
-        if (gGlobal->gFTZMode == 1) {
-            return sigSelect2(sigGT(sigAbs(l), sigReal(inummin())), sigReal(0.0), l);
-        } else if (gGlobal->gFTZMode == 2) {
-            if (gGlobal->gFloatSize == 1) {
-                return sigSelect2(sigAND(sigBitCast(l), sigInt(inummax())), sigReal(0.0), l);
-            } else if (gGlobal->gFloatSize == 2) {
-                return sigSelect2(sigAND(sigBitCast(l), sigInt64(inummax())), sigReal(0.0), l);
-            }
-        }
-    }
-
-    return l;
-}
-
 Tree SignalAutoDifferentiate::transformation(Tree sig)
 {
     int     op;
@@ -1001,22 +816,191 @@ Tree signalPromote(Tree sig)
     return signalTransform(sig, A);
 }
 
+//-------------------------Bool2IntPromotionAlgebra-----------------------
+// Cast bool binary operations (comparison operations) to int.
+//------------------------------------------------------------------------
+class Bool2IntPromotionAlgebra final : public TransformAlgebra {
+    XSig cmp(int op, const XSig& x, const XSig& y) const
+    {
+        return o(sigIntCast(sigBinOp(op, x.out, y.out)));
+    }
+
+   public:
+    XSig Gt(const XSig& x, const XSig& y) const override { return cmp(kGT, x, y); }
+    XSig Lt(const XSig& x, const XSig& y) const override { return cmp(kLT, x, y); }
+    XSig Ge(const XSig& x, const XSig& y) const override { return cmp(kGE, x, y); }
+    XSig Le(const XSig& x, const XSig& y) const override { return cmp(kLE, x, y); }
+    XSig Eq(const XSig& x, const XSig& y) const override { return cmp(kEQ, x, y); }
+    XSig Ne(const XSig& x, const XSig& y) const override { return cmp(kNE, x, y); }
+};
+
+//-------------------------TablePromotionAlgebra--------------------------
+// Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1]). Both guards
+// are decided at the read node, and the write clamp is applied only when the
+// read index is itself out of bounds -- the historical behaviour, reproduced
+// exactly (the warning, however, is always emitted).
+//------------------------------------------------------------------------
+class TablePromotionAlgebra final : public TransformAlgebra {
+   public:
+    XSig RDTbl(const XSig& t, const XSig& ri) const override
+    {
+        Tree size0, gen0, wi0, ws0;
+        isSigWRTbl(t.orig, size0, gen0, wi0, ws0);
+        int size = tree2int(size0);
+
+        Tree tblOut = t.out;
+        if (wi0 != gGlobal->nil) {
+            // rwtable: the write guard runs first
+            if (size <= 0) {
+                stringstream error;
+                error << "ERROR : WRTbl size = " << size << " should be > 0 \n";
+                throw faustexception(error.str());
+            }
+            interval wi_i = getCertifiedSigType(wi0)->getInterval();
+            if (wi_i.lo() < 0 || wi_i.hi() >= size) {
+                if (gAllWarning) {
+                    stringstream error;
+                    error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi()
+                          << "] is outside of table size (" << size << ") in "
+                          << ppsig(t.orig, MAX_ERROR_SIZE) << endl;
+                    gWarningMessages.push_back(error.str());
+                }
+                Tree s2, g2, wi2, ws2;
+                isSigWRTbl(t.out, s2, g2, wi2, ws2);
+                tblOut =
+                    sigWRTbl(s2, g2, sigMax(sigInt(0), sigMin(wi2, sigInt(size - 1))), ws2);
+            }
+        }
+
+        if (size <= 0) {
+            stringstream error;
+            error << "ERROR : RDTbl size = " << size << " should be > 0 \n";
+            throw faustexception(error.str());
+        }
+        interval ri_i = typeOf(ri)->getInterval();
+        if (ri_i.lo() < 0 || ri_i.hi() >= size) {
+            if (gAllWarning) {
+                stringstream error;
+                error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi()
+                      << "] is outside of table size (" << size << ") in "
+                      << ppsig(fBuild.RDTbl(t.orig, ri.orig), MAX_ERROR_SIZE) << endl;
+                gWarningMessages.push_back(error.str());
+            }
+            return o(sigRDTbl(tblOut, sigMax(sigInt(0), sigMin(ri.out, sigInt(size - 1)))));
+        }
+        return o(fBuild.RDTbl(t.out, ri.out));
+    }
+};
+
+//-------------------------IntCastPromotionAlgebra------------------------
+// Float to integer conversion, checking the range.
+//------------------------------------------------------------------------
+class IntCastPromotionAlgebra final : public TransformAlgebra {
+   public:
+    XSig IntCast(const XSig& x) const override
+    {
+        interval x_i = typeOf(x)->getInterval();
+        if (x_i.lo() <= INT32_MIN || x_i.hi() >= INT32_MAX) {
+            if (gAllWarning) {
+                stringstream error;
+                error << "WARNING : float to integer conversion [" << x_i.lo() << ":" << x_i.hi()
+                      << "] is outside of integer range in "
+                      << ppsig(fBuild.IntCast(x.orig), MAX_ERROR_SIZE) << endl;
+                gWarningMessages.push_back(error.str());
+            }
+            return o(sigIntCast(sigMin(sigReal(INT32_MAX), sigMax(x.out, sigReal(INT32_MIN)))));
+        }
+        return o(fBuild.IntCast(x.out));
+    }
+};
+
+//-------------------------UIPromotionAlgebra-----------------------------
+// Generate safe access to range UI items (sliders and nentry).
+//------------------------------------------------------------------------
+class UIPromotionAlgebra final : public TransformAlgebra {
+    XSig clamp(const XSig& lo, const XSig& hi, Tree w) const
+    {
+        return o(sigMax(lo.out, sigMin(hi.out, w)));
+    }
+
+   public:
+    XSig VSlider(const XSig& n, const XSig& i, const XSig& lo, const XSig& hi,
+                 const XSig& st) const override
+    {
+        return clamp(lo, hi, fBuild.VSlider(n.out, i.out, lo.out, hi.out, st.out));
+    }
+    XSig HSlider(const XSig& n, const XSig& i, const XSig& lo, const XSig& hi,
+                 const XSig& st) const override
+    {
+        return clamp(lo, hi, fBuild.HSlider(n.out, i.out, lo.out, hi.out, st.out));
+    }
+    XSig NumEntry(const XSig& n, const XSig& i, const XSig& lo, const XSig& hi,
+                  const XSig& st) const override
+    {
+        return clamp(lo, hi, fBuild.NumEntry(n.out, i.out, lo.out, hi.out, st.out));
+    }
+};
+
+//-------------------------UIFreezePromotionAlgebra-----------------------
+// Freeze range UI items (sliders and nentry) to their init value. Everything
+// that depends on sliders and nentry will be computed at compile time.
+//------------------------------------------------------------------------
+class UIFreezePromotionAlgebra final : public TransformAlgebra {
+   public:
+    XSig VSlider(const XSig&, const XSig& i, const XSig&, const XSig&,
+                 const XSig&) const override
+    {
+        return o(i.out);
+    }
+    XSig HSlider(const XSig&, const XSig& i, const XSig&, const XSig&,
+                 const XSig&) const override
+    {
+        return o(i.out);
+    }
+    XSig NumEntry(const XSig&, const XSig& i, const XSig&, const XSig&,
+                  const XSig&) const override
+    {
+        return o(i.out);
+    }
+};
+
+//-------------------------FTZPromotionAlgebra----------------------------
+// Wrap the real-typed definitions of recursive groups with flush-to-zero code,
+// through the recursive-definition seam. This option should be used only when
+// FTZ is not available on the CPU.
+//------------------------------------------------------------------------
+class FTZPromotionAlgebra final : public TransformAlgebra {
+   public:
+    XSig recDef(const XSig& def) const override
+    {
+        if (typeOf(def)->nature() != kReal) {
+            return def;
+        }
+        if (gGlobal->gFTZMode == 1) {
+            return o(
+                sigSelect2(sigGT(sigAbs(def.out), sigReal(inummin())), sigReal(0.0), def.out));
+        }
+        if (gGlobal->gFTZMode == 2) {
+            if (gGlobal->gFloatSize == 1) {
+                return o(sigSelect2(sigAND(sigBitCast(def.out), sigInt(inummax())),
+                                    sigReal(0.0), def.out));
+            }
+            if (gGlobal->gFloatSize == 2) {
+                return o(sigSelect2(sigAND(sigBitCast(def.out), sigInt64(inummax())),
+                                    sigReal(0.0), def.out));
+            }
+        }
+        return def;
+    }
+};
+
 Tree signalBool2IntPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
     certifySignalsTyped(sig);
 
-    SignalBool2IntPromotion SP;
-    return SP.mapself(sig);
-}
-
-Tree signalFXPromote(Tree sig)
-{
-    // Check that the root tree is properly type annotated
-    certifySignalsTyped(sig);
-
-    SignalFXPromotion SP;
-    return SP.mapself(sig);
+    Bool2IntPromotionAlgebra A;
+    return signalTransform(sig, A);
 }
 
 Tree signalTablePromote(Tree sig)
@@ -1024,8 +1008,8 @@ Tree signalTablePromote(Tree sig)
     // Check that the root tree is properly type annotated
     certifySignalsTyped(sig);
 
-    SignalTablePromotion SP;
-    return SP.mapself(sig);
+    TablePromotionAlgebra A;
+    return signalTransform(sig, A);
 }
 
 Tree signalIntCastPromote(Tree sig)
@@ -1033,8 +1017,8 @@ Tree signalIntCastPromote(Tree sig)
     // Check that the root tree is properly type annotated
     certifySignalsTyped(sig);
 
-    SignalIntCastPromotion SP;
-    return SP.mapself(sig);
+    IntCastPromotionAlgebra A;
+    return signalTransform(sig, A);
 }
 
 Tree signalUIPromote(Tree sig)
@@ -1042,8 +1026,8 @@ Tree signalUIPromote(Tree sig)
     // Check that the root tree is properly type annotated
     certifySignalsTyped(sig);
 
-    SignalUIPromotion SP;
-    return SP.mapself(sig);
+    UIPromotionAlgebra A;
+    return signalTransform(sig, A);
 }
 
 Tree signalUIFreezePromote(Tree sig)
@@ -1051,8 +1035,8 @@ Tree signalUIFreezePromote(Tree sig)
     // Check that the root tree is properly type annotated
     certifySignalsTyped(sig);
 
-    SignalUIFreezePromotion SP;
-    return SP.mapself(sig);
+    UIFreezePromotionAlgebra A;
+    return signalTransform(sig, A);
 }
 
 Tree signalFTZPromote(Tree sig)
@@ -1060,8 +1044,8 @@ Tree signalFTZPromote(Tree sig)
     // Check that the root tree is properly type annotated
     certifySignalsTyped(sig);
 
-    SignalFTZPromotion SP;
-    return SP.mapself(sig);
+    FTZPromotionAlgebra A;
+    return signalTransform(sig, A);
 }
 
 Tree signalAutoDifferentiate(Tree sig)
