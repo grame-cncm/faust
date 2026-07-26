@@ -20,11 +20,15 @@
  ************************************************************************/
 
 #include <stdio.h>
+#include <iostream>
 #include <map>
+#include <set>
+#include <vector>
 
 #include "global.hh"
 #include "ppbox.hh"
 #include "ppsig.hh"
+#include "sigNewConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigtyperules.hh"
 #include "simplify.hh"
@@ -34,6 +38,82 @@
 using namespace std;
 
 // Implementation
+
+//----------------------------------------------------------------------------------------
+// The normalization fixpoint (experimental, FAUST_NORMALIZE_FIXPOINT).
+//
+// Interval-driven constant propagation changes the TOPOLOGY of recursions: a
+// projection with a singleton interval becomes a constant, edges of the dependency
+// graph disappear, groups shrink -- and two distinct recursive expressions can become
+// alpha-EQUIVALENT. The symbolic representation cannot fuse them (distinct variables),
+// but in de Bruijn form alpha-equivalence IS syntactic equality, so hash-consing
+// fuses them for free. Fusion in turn makes pointers equal, the canonical maps of the
+// polynomial normal form collect the newly identical terms, intervals tighten, new
+// constants appear... hence the loop, iterated until the de Bruijn form is
+// POINTER-stable. Termination: (distinct recursive groups, non-constant nodes)
+// decreases on every productive iteration.
+//----------------------------------------------------------------------------------------
+
+/// Count the distinct recursive groups reachable from t (SYMREC nodes, definitions
+/// traversed through their bodies).
+static int countRecGroups(Tree t)
+{
+    std::set<Tree>    seen;
+    std::set<Tree>    groups;
+    std::vector<Tree> work{t};
+    while (!work.empty()) {
+        Tree s = work.back();
+        work.pop_back();
+        if (!seen.insert(s).second) {
+            continue;
+        }
+        Tree var, body;
+        if (isRec(s, var, body)) {
+            groups.insert(s);
+            if (body) {
+                work.push_back(body);
+            }
+            continue;
+        }
+        for (int i = 0; i < s->arity(); i++) {
+            work.push_back(s->branch(i));
+        }
+    }
+    return static_cast<int>(groups.size());
+}
+
+static Tree normalizeFixpoint(Tree L)
+{
+    const int groupsBefore = countRecGroups(L);
+    Tree      prev         = nullptr;
+    int       iter         = 0;
+
+    const bool verbose = getenv("FAUST_NORMALIZE_FIXPOINT_TRACE") != nullptr;
+    while (iter < 10) {
+        Tree d = sym2deBruijn(L);
+        if (d == prev) {
+            break;  // the de Bruijn form is pointer-stable: fixpoint reached
+        }
+        if (verbose) {
+            std::cerr << "NORMFIX iter " << iter << " : groups=" << countRecGroups(L)
+                      << std::endl;
+        }
+        prev = d;
+        // the merge: alpha-equivalent groups are now shared, back to symbolic
+        L = deBruijn2Sym(d);
+        typeAnnotation(L, gGlobal->gLocalCausalityCheck);
+        L = newConstantPropagation(L);
+        L = simplify(L);
+        typeAnnotation(L, gGlobal->gLocalCausalityCheck);
+        L = signalPromote(L);
+        iter++;
+    }
+
+    const int groupsAfter = countRecGroups(L);
+    std::cerr << "NORMFIX : " << iter << " iteration(s), " << groupsBefore << " -> "
+              << groupsAfter << " recursive group(s)" << std::endl;
+    return L;
+}
 static Tree simplifyToNormalFormAux(Tree LS)
 {
     // Convert deBruijn recursion into symbolic recursion
@@ -159,6 +239,12 @@ static Tree simplifyToNormalFormAux(Tree LS)
         startTiming("L4 typeAnnotation");
         typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
         endTiming("L4 typeAnnotation");
+    }
+
+    if (getenv("FAUST_NORMALIZE_FIXPOINT") != nullptr) {
+        startTiming("normalizeFixpoint");
+        L4 = normalizeFixpoint(L4);
+        endTiming("normalizeFixpoint");
     }
 
     // Canonical recursive-variable naming : names AND node serials in plan order, so
