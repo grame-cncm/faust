@@ -452,6 +452,22 @@ static Tree deBruijn2SymCachedReady(Tree t)
     return t2;
 }
 
+/**
+ * The CONTENT-DERIVED variable of a de Bruijn group: named from the canonical hash
+ * of its (closed, name-free) de Bruijn form. Alpha-equal groups thus get the SAME
+ * variable and their symbolic forms collide by hash-consing -- fusion for free --
+ * and any order derived from variable names becomes a pure function of the group's
+ * structure, stable across passes and iterations (what a normalization fixpoint
+ * needs). A 64-bit hash collision between structurally different groups would
+ * surface as a recursive-variable redefinition (census / TLIB_REC_STRICT).
+ */
+static Tree contentVar(Tree dbj)
+{
+    char buf[24];
+    snprintf(buf, sizeof(buf), "D%016zx", static_cast<size_t>(dbj->canonHash()));
+    return tree(symbol(buf));
+}
+
 static Tree deBruijn2SymMemo(Tree t, std::unordered_map<Tree, Tree>& memo)
 {
     auto it = memo.find(t);
@@ -464,7 +480,7 @@ static Tree deBruijn2SymMemo(Tree t, std::unordered_map<Tree, Tree>& memo)
     Tree result;
 
     if (isDebruijnRec(t, body)) {
-        var = tree(unique("W"));
+        var = contentVar(t);
         SubstMemo smemo;
         result = rec(var, deBruijn2SymMemo(substituteMemo(body, 1, ref(var), smemo), memo));
 
@@ -494,7 +510,7 @@ static Tree calcDeBruijn2SymCachedReady(Tree t)
     int  i;
 
     if (isDebruijnRec(t, body)) {
-        var = tree(unique("W"));
+        var = contentVar(t);
         return rec(var, deBruijn2SymCachedReady(substituteReady(body, 1, ref(var))));
 
     } else if (isSymbolicRef(t, var)) {

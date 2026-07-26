@@ -119,11 +119,10 @@ static Tree normalizeFixpoint(Tree L)
         }
         prevPrev = prev;
         prev     = d;
-        // the merge: alpha-equivalent groups are now shared, back to symbolic
+        // the merge: alpha-equivalent groups are now shared, back to symbolic --
+        // with CONTENT-DERIVED variable names (deBruijn2Sym), so every name-derived
+        // order is a pure function of the structure, stable across iterations
         L = deBruijn2Sym(d);
-        // canonical names before the sums are rebuilt: term orders hash the
-        // INSTANCE-STRIPPED canonical keys, so they are stable across iterations
-        L = canonicalizeRecNames(L);
         typeAnnotation(L, gGlobal->gLocalCausalityCheck);
         L = newConstantPropagation(L);
         L = simplify(L);
