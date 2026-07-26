@@ -210,6 +210,18 @@ inline Pat Input(Pat chan)
 {
     return node(Node(sigs::g.SIGINPUT), {std::move(chan)});
 }
+inline Pat Lowest(Pat x)
+{
+    return node(Node(sigs::g.SIGLOWEST), {std::move(x)});
+}
+inline Pat Highest(Pat x)
+{
+    return node(Node(sigs::g.SIGHIGHEST), {std::move(x)});
+}
+inline Pat Attach(Pat x, Pat y)
+{
+    return node(Node(sigs::g.SIGATTACH), {std::move(x), std::move(y)});
+}
 
 /// An extended-primitive application, destructured by name (mirrors
 /// TreeAlgebra::xt).

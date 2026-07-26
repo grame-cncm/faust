@@ -32,6 +32,7 @@
 #include "recursivness.hh"
 #include "signals.hh"
 #include "sigorderrules.hh"
+#include "sigpattern.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -96,30 +97,39 @@ static bool isSigBool(Tree sig)
     return isLogicalOpcode(opnum) && isSigBool(t1) && isSigBool(t2);
 }
 
+// The rules, written in the pattern algebra (sigpattern.hh): each left-hand
+// side is a term of the free algebra over the signal signature extended with
+// variables; the right-hand side is ordinary construction on the bindings.
+// Rule ORDER is semantics: it reproduces the historical cascade exactly.
 static Tree simplification(Tree sig)
 {
     faustassert(sig);
-    int  opnum, opnum2;
-    Tree t1, t2, t3, v1, v2;
+    using namespace pat;
 
-    xtended* xt = (xtended*)getUserData(sig);
-    // primitive elements
-    if (xt) {
+    Tree n, m, x, y, sel;
+
+    xtended* xtd = (xtended*)getUserData(sig);
+    // primitive elements: constant folding is delegated to the primitive itself
+    if (xtd) {
         vector<Tree> args;
         for (int i = 0; i < sig->arity(); i++) {
             args.push_back(sig->branch(i));
         }
 
-        faustassert(args.size() == xt->arity());
+        faustassert(args.size() == xtd->arity());
 
         // to avoid negative power to further normalization
-        if (xt != gGlobal->gPowPrim) {
-            return xt->computeSigOutput(args);
+        if (xtd != gGlobal->gPowPrim) {
+            return xtd->computeSigOutput(args);
         } else {
-            return normalizeAddTerm(xt->computeSigOutput(args));
+            return normalizeAddTerm(xtd->computeSigOutput(args));
         }
+    }
 
-    } else if (isSigBinOp(sig, &opnum, t1, t2)) {
+    int  opnum;
+    Tree t1, t2;
+    if (isSigBinOp(sig, &opnum, t1, t2)) {
+        // the generic frame: rules valid FOR ALL operators, driven by the op tables
         BinOp* op = gBinOpTable[opnum];
         Node   n1 = t1->node();
         Node   n2 = t2->node();
@@ -128,73 +138,52 @@ static Tree simplification(Tree sig)
             return tree(op->compute(n1, n2));
         }
 
-        // New rules for -E
+        // -n*(x-y) -> n*(y-x) ; -1*(x-y) -> y-x
+        if (Mul(negNum(n), Sub(var(x), var(y))).match(sig)) {
+            return isMinusOne(n->node())
+                       ? sigBinOp(kSub, y, x)
+                       : sigBinOp(kMul, tree(minusNode(n->node())), sigBinOp(kSub, y, x));
+        }
 
-        // -n*(x-y) -> n*(y-x)
-        // -1*(x-y) -> y-x
-        else if ((opnum == kMul) && isNegative(n1) && isSigBinOp(t2, &opnum2, v1, v2) &&
-                 (opnum2 == kSub)) {
-            if (isMinusOne(n1)) {
-                return sigBinOp(kSub, v2, v1);
-            } else {
-                return sigBinOp(kMul, tree(minusNode(n1)), sigBinOp(kSub, v2, v1));
-            }
-
-            // (x-y)*-n -> n*(y-x)
-            // (x-y)*-1 -> y-x
-        } else if ((opnum == kMul) && isNegative(n2) && isSigBinOp(t1, &opnum2, v1, v2) &&
-                   (opnum2 == kSub)) {
-            if (isMinusOne(n2)) {
-                return sigBinOp(kSub, v2, v1);
-            } else {
-                return sigBinOp(kMul, tree(minusNode(n2)), sigBinOp(kSub, v2, v1));
-            }
+        // (x-y)*-n -> n*(y-x) ; (x-y)*-1 -> y-x
+        if (Mul(Sub(var(x), var(y)), negNum(n)).match(sig)) {
+            return isMinusOne(n->node())
+                       ? sigBinOp(kSub, y, x)
+                       : sigBinOp(kMul, tree(minusNode(n->node())), sigBinOp(kSub, y, x));
         }
 
         // n*(m*x) -> (n*m)*x or x (if n*m == 1)
-        else if ((opnum == kMul) && isNum(n1) && isSigBinOp(t2, &opnum2, v1, v2) &&
-                 (opnum2 == kMul) && isNum(v1)) {
-            Tree m = tree(mulNode(n1, v1->node()));
-            if (isOne(m)) {
-                return v2;
-            } else {
-                return sigBinOp(kMul, m, v2);
-            }
+        if (Mul(pat::num(n), Mul(pat::num(m), var(x))).match(sig)) {
+            Tree p = tree(mulNode(n->node(), m->node()));
+            return isOne(p->node()) ? x : sigBinOp(kMul, p, x);
         }
 
         // n*(x*m) -> (n*m)*x or x (if n*m == 1)
-        else if ((opnum == kMul) && isNum(n1) && isSigBinOp(t2, &opnum2, v1, v2) &&
-                 (opnum2 == kMul) && isNum(v2)) {
-            Tree m = tree(mulNode(n1, v2->node()));
-            if (isOne(m)) {
-                return v1;
-            } else {
-                return sigBinOp(kMul, m, v1);
-            }
+        if (Mul(pat::num(n), Mul(var(x), pat::num(m))).match(sig)) {
+            Tree p = tree(mulNode(n->node(), m->node()));
+            return isOne(p->node()) ? x : sigBinOp(kMul, p, x);
         }
 
-        // End new rules
-        else if (opnum == kSub && isZero(n1)) {
-            return sigBinOp(kMul, sigInt(-1), t2);
+        // 0-x -> -1*x
+        if (Sub(zero(), var(x)).match(sig)) {
+            return sigBinOp(kMul, sigInt(-1), x);
         }
 
-        else if (op->isLeftNeutral(n1)) {
+        if (op->isLeftNeutral(n1)) {
+            return t2;
+        }
+        if (op->isLeftAbsorbing(n1)) {
+            return t1;
+        }
+        if (op->isRightNeutral(n2)) {
+            return t1;
+        }
+        if (op->isRightAbsorbing(n2)) {
             return t2;
         }
 
-        else if (op->isLeftAbsorbing(n1)) {
-            return t1;
-        }
-
-        else if (op->isRightNeutral(n2)) {
-            return t1;
-        }
-
-        else if (op->isRightAbsorbing(n2)) {
-            return t2;
-        }
-
-        else if (t1 == t2) {
+        if (t1 == t2) {
+            // x op x : hash-consing decides the equality
             if ((opnum == kAND) || (opnum == kOR)) {
                 return t1;
             }
@@ -205,7 +194,6 @@ static Tree simplification(Tree sig)
                 (opnum == kXOR)) {
                 return sigInt(0);
             }
-
         } else if ((opnum == kAND) || (opnum == kOR)) {
             if (isOne(n1) && isSigBool(t2)) {
                 return opnum == kAND ? t2 : sigInt(1);
@@ -216,106 +204,79 @@ static Tree simplification(Tree sig)
         }
 
         return (global::isOpt("FAUST_SIG_NO_NORM") ? sig : normalizeAddTerm(sig));
+    }
 
-    } else if (isSigDelay1(sig, t1)) {
-        return normalizeDelay1Term(t1);
+    // delays go to their normal-form engine
+    if (Mem(var(x)).match(sig)) {
+        return normalizeDelay1Term(x);
+    }
+    if (Delay(var(x), var(y)).match(sig)) {
+        return normalizeDelayTerm(x, y);
+    }
 
-    } else if (isSigDelay(sig, t1, t2)) {
-        return normalizeDelayTerm(t1, t2);
-
-    } else if (isSigIntCast(sig, t1)) {
+    // casts fold on literals
+    if (IntCast(var(x)).match(sig)) {
         int    i;
-        double x;
-        Node   n1 = t1->node();
-
-        if (isInt(n1, &i)) {
-            return t1;
+        double d;
+        if (isInt(x->node(), &i)) {
+            return x;
         }
-        if (isDouble(n1, &x)) {
-            return tree(int(x));
+        if (isDouble(x->node(), &d)) {
+            return tree(int(d));
         }
-
-        return sig;
-
-    } else if (isSigBitCast(sig, t1)) {
-        return sig;
-
-    } else if (isSigFloatCast(sig, t1)) {
-        int    i;
-        double x;
-        Node   n1 = t1->node();
-
-        if (isInt(n1, &i)) {
-            return tree(double(i));
-        }
-        if (isDouble(n1, &x)) {
-            return t1;
-        }
-
-        return sig;
-
-    } else if (isSigSelect2(sig, t1, t2, t3)) {
-        Node n1 = t1->node();
-
-        if (isZero(n1)) {
-            return t2;
-        }
-        if (isNum(n1)) {
-            return t3;
-        }
-
-        if (t2 == t3) {
-            return t2;
-        }
-
-        return sig;
-
-    } else if (isSigEnable(sig, t1, t2)) {
-        Node n2 = t2->node();
-
-        if (isZero(n2)) {
-            return sigInt(0);  // a 'zero' with the correct type
-        }
-
-        else if (isOne(n2)) {
-            return t1;
-        }
-
-        else {
-            return sig;
-        }
-
-        // Control(t1, 0) => 0
-        // Control(t1, 1) => t1
-        // otherwise sig
-    } else if (isSigControl(sig, t1, t2)) {
-        Node n2 = t2->node();
-
-        if (isZero(n2)) {
-            return sigInt(0);  // a 'zero' with the correct type
-        }
-
-        else if (isOne(n2)) {
-            return t1;
-        }
-
-        else {
-            return sig;
-        }
-
-    } else if (isSigLowest(sig, t1)) {
-        typeAnnotation(t1, gGlobal->gLocalCausalityCheck);
-        Type ty = getCertifiedSigType(t1);
-        return sigReal(ty->getInterval().lo());
-
-    } else if (isSigHighest(sig, t1)) {
-        typeAnnotation(t1, gGlobal->gLocalCausalityCheck);
-        Type ty = getCertifiedSigType(t1);
-        return sigReal(ty->getInterval().hi());
-
-    } else {
         return sig;
     }
+    if (BitCast(var(x)).match(sig)) {
+        return sig;
+    }
+    if (FloatCast(var(x)).match(sig)) {
+        int    i;
+        double d;
+        if (isInt(x->node(), &i)) {
+            return tree(double(i));
+        }
+        if (isDouble(x->node(), &d)) {
+            return x;
+        }
+        return sig;
+    }
+
+    // select2(0, x, y) -> x ; select2(n, x, y) -> y ; select2(c, x, x) -> x
+    if (Select2(var(sel), var(x), var(y)).match(sig)) {
+        if (isZero(sel->node())) {
+            return x;
+        }
+        if (isNum(sel->node())) {
+            return y;
+        }
+        if (x == y) {
+            return x;
+        }
+        return sig;
+    }
+
+    // enable/control against a constant guard
+    if (Enable(var(x), var(y)).match(sig) || Control(var(x), var(y)).match(sig)) {
+        if (isZero(y->node())) {
+            return sigInt(0);  // a 'zero' with the correct type
+        }
+        if (isOne(y->node())) {
+            return x;
+        }
+        return sig;
+    }
+
+    // lowest/highest collapse to their certified interval bound
+    if (Lowest(var(x)).match(sig)) {
+        typeAnnotation(x, gGlobal->gLocalCausalityCheck);
+        return sigReal(getCertifiedSigType(x)->getInterval().lo());
+    }
+    if (Highest(var(x)).match(sig)) {
+        typeAnnotation(x, gGlobal->gLocalCausalityCheck);
+        return sigReal(getCertifiedSigType(x)->getInterval().hi());
+    }
+
+    return sig;
 }
 
 /**
