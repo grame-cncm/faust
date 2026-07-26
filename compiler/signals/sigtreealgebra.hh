@@ -22,6 +22,7 @@
 #pragma once
 
 #include "sigs-export.hh"
+#include "sigs-state.hh"
 #include "signalAlgebra.hh"
 
 /**
@@ -39,75 +40,82 @@
  *
  * TreeAlgebra derives from SignalDispatch<Tree>, NOT SignalAlgebra<Tree>: rebuilding
  * is not a fixpoint, the tree carrier has no lattice.
+ *
+ * CONSTRUCTION IS DIRECT AND PURE: the operations build their nodes from the interned
+ * signal symbols, not through the legacy sigXXX constructors -- this class is meant to
+ * REPLACE them, and three of them are not even plain constructors (sigIntCast and
+ * sigFloatCast fold constants, sigRem raises on a constant zero divisor). Those
+ * behaviors belong to DERIVED algebras (a normalizing one) and to the diagnostics,
+ * never to the initial algebra: here, what you ask is what gets built.
  */
 class SIGS_API TreeAlgebra : public SignalDispatch<Tree> {
    public:
     //--- injections -------------------------------------------------------------------
-    Tree IntNum(int x) const override { return sigInt(x); }
-    Tree Int64Num(int64_t x) const override { return sigInt64(x); }
-    Tree FloatNum(double x) const override { return sigReal(x); }
+    Tree IntNum(int x) const override { return tree(x); }
+    Tree Int64Num(int64_t x) const override { return tree(x); }
+    Tree FloatNum(double x) const override { return tree(x); }
     Tree Label(const std::string& s) const override { return tree(s.c_str()); }
 
     //--- engine hook (identity: keep the fresh value) ---------------------------------
     Tree FixPointUpdate(const Tree&, const Tree& y) const override { return y; }
 
     //--- input / output ---------------------------------------------------------------
-    Tree Input(const Tree& chan) const override { return sigInput(tree2int(chan)); }
+    Tree Input(const Tree& chan) const override { return tree(sigs::g.SIGINPUT, chan); }
     Tree Output(const Tree& chan, const Tree& x) const override
     {
-        return sigOutput(tree2int(chan), x);
+        return tree(sigs::g.SIGOUTPUT, chan, x);
     }
 
     //--- user interface ---------------------------------------------------------------
-    Tree Button(const Tree& name) const override { return sigButton(name); }
-    Tree Checkbox(const Tree& name) const override { return sigCheckbox(name); }
+    Tree Button(const Tree& name) const override { return tree(sigs::g.SIGBUTTON, name); }
+    Tree Checkbox(const Tree& name) const override { return tree(sigs::g.SIGCHECKBOX, name); }
     Tree VSlider(const Tree& n, const Tree& i, const Tree& lo, const Tree& hi,
                  const Tree& st) const override
     {
-        return sigVSlider(n, i, lo, hi, st);
+        return tree(sigs::g.SIGVSLIDER, n, list4(i, lo, hi, st));
     }
     Tree HSlider(const Tree& n, const Tree& i, const Tree& lo, const Tree& hi,
                  const Tree& st) const override
     {
-        return sigHSlider(n, i, lo, hi, st);
+        return tree(sigs::g.SIGHSLIDER, n, list4(i, lo, hi, st));
     }
     Tree NumEntry(const Tree& n, const Tree& i, const Tree& lo, const Tree& hi,
                   const Tree& st) const override
     {
-        return sigNumEntry(n, i, lo, hi, st);
+        return tree(sigs::g.SIGNUMENTRY, n, list4(i, lo, hi, st));
     }
     Tree HBargraph(const Tree& n, const Tree& lo, const Tree& hi,
                    const Tree& s) const override
     {
-        return sigHBargraph(n, lo, hi, s);
+        return tree(sigs::g.SIGHBARGRAPH, n, lo, hi, s);
     }
     Tree VBargraph(const Tree& n, const Tree& lo, const Tree& hi,
                    const Tree& s) const override
     {
-        return sigVBargraph(n, lo, hi, s);
+        return tree(sigs::g.SIGVBARGRAPH, n, lo, hi, s);
     }
-    Tree Attach(const Tree& x, const Tree& y) const override { return sigAttach(x, y); }
-    Tree Enable(const Tree& x, const Tree& y) const override { return sigEnable(x, y); }
-    Tree Control(const Tree& x, const Tree& y) const override { return sigControl(x, y); }
+    Tree Attach(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGATTACH, x, y); }
+    Tree Enable(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGENABLE, x, y); }
+    Tree Control(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGCONTROL, x, y); }
 
     //--- time and memory --------------------------------------------------------------
-    Tree Mem(const Tree& x) const override { return sigDelay1(x); }
-    Tree Delay(const Tree& x, const Tree& n) const override { return sigDelay(x, n); }
-    Tree Prefix(const Tree& x, const Tree& y) const override { return sigPrefix(x, y); }
+    Tree Mem(const Tree& x) const override { return tree(sigs::g.SIGDELAY1, x); }
+    Tree Delay(const Tree& x, const Tree& n) const override { return tree(sigs::g.SIGDELAY, x, n); }
+    Tree Prefix(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGPREFIX, x, y); }
 
     //--- casts ------------------------------------------------------------------------
-    Tree IntCast(const Tree& x) const override { return sigIntCast(x); }
-    Tree BitCast(const Tree& x) const override { return sigBitCast(x); }
-    Tree FloatCast(const Tree& x) const override { return sigFloatCast(x); }
+    Tree IntCast(const Tree& x) const override { return tree(sigs::g.SIGINTCAST, x); }
+    Tree BitCast(const Tree& x) const override { return tree(sigs::g.SIGBITCAST, x); }
+    Tree FloatCast(const Tree& x) const override { return tree(sigs::g.SIGFLOATCAST, x); }
 
     //--- foreign ----------------------------------------------------------------------
     Tree ForeignConst(int t, const Tree& name, const Tree& file) const override
     {
-        return sigFConst(tree(t), name, file);
+        return tree(sigs::g.SIGFCONST, tree(t), name, file);
     }
     Tree ForeignVar(int t, const Tree& name, const Tree& file) const override
     {
-        return sigFVar(tree(t), name, file);
+        return tree(sigs::g.SIGFVAR, tree(t), name, file);
     }
     /// Unreachable: the ffunction node embeds its whole signature (name, argument
     /// types, include files) while this operation only carries the return type, so the
@@ -125,84 +133,84 @@ class SIGS_API TreeAlgebra : public SignalDispatch<Tree> {
     //--- tables, waveforms, soundfiles ------------------------------------------------
     Tree Table(const Tree& size, const Tree& content) const override
     {
-        return sigWRTbl(size, content);
+        return tree(sigs::g.SIGWRTBL, size, content, ::nil(), ::nil());
     }
     Tree WRTbl(const Tree& size, const Tree& gen, const Tree& wi,
                const Tree& ws) const override
     {
-        return sigWRTbl(size, gen, wi, ws);
+        return tree(sigs::g.SIGWRTBL, size, gen, wi, ws);
     }
-    Tree RDTbl(const Tree& tbl, const Tree& ri) const override { return sigRDTbl(tbl, ri); }
-    Tree Gen(const Tree& x) const override { return sigGen(x); }
+    Tree RDTbl(const Tree& tbl, const Tree& ri) const override { return tree(sigs::g.SIGRDTBL, tbl, ri); }
+    Tree Gen(const Tree& x) const override { return tree(sigs::g.SIGGEN, x); }
     Tree DocConstantTbl(const Tree& n, const Tree& init) const override
     {
-        return sigDocConstantTbl(n, init);
+        return tree(sigs::g.SIGDOCONSTANTTBL, n, init);
     }
     Tree DocWriteTbl(const Tree& n, const Tree& init, const Tree& wi,
                      const Tree& ws) const override
     {
-        return sigDocWriteTbl(n, init, wi, ws);
+        return tree(sigs::g.SIGDOCWRITETBL, n, init, wi, ws);
     }
     Tree DocAccessTbl(const Tree& tbl, const Tree& ri) const override
     {
-        return sigDocAccessTbl(tbl, ri);
+        return tree(sigs::g.SIGDOCACCESSTBL, tbl, ri);
     }
-    Tree Register(int n, const Tree& s) const override { return sigRegister(n, s); }
+    Tree Register(int n, const Tree& s) const override { return tree(sigs::g.SIGREGISTER, tree(n), s); }
     Tree Waveform(const std::vector<Tree>& w) const override
     {
-        return sigWaveform(tvec(w.begin(), w.end()));
+        return tree(sigs::g.SIGWAVEFORM, tvec(w.begin(), w.end()));
     }
-    Tree SoundFile(const Tree& label) const override { return sigSoundfile(label); }
+    Tree SoundFile(const Tree& label) const override { return tree(sigs::g.SIGSOUNDFILE, label); }
     Tree SoundFileLength(const Tree& sf, const Tree& part) const override
     {
-        return sigSoundfileLength(sf, part);
+        return tree(sigs::g.SIGSOUNDFILELENGTH, sf, part);
     }
     Tree SoundFileRate(const Tree& sf, const Tree& part) const override
     {
-        return sigSoundfileRate(sf, part);
+        return tree(sigs::g.SIGSOUNDFILERATE, sf, part);
     }
     Tree SoundFileBuffer(const Tree& sf, const Tree& chan, const Tree& part,
                          const Tree& ri) const override
     {
-        return sigSoundfileBuffer(sf, chan, part, ri);
+        return tree(sigs::g.SIGSOUNDFILEBUFFER, sf, chan, part, ri);
     }
 
     //--- selection and bounds ---------------------------------------------------------
     Tree Select2(const Tree& sel, const Tree& x, const Tree& y) const override
     {
-        return sigSelect2(sel, x, y);
+        return tree(sigs::g.SIGSELECT2, sel, x, y);
     }
     Tree AssertBounds(const Tree& lo, const Tree& hi, const Tree& x) const override
     {
-        return sigAssertBounds(lo, hi, x);
+        return tree(sigs::g.SIGASSERTBOUNDS, lo, hi, x);
     }
-    Tree Highest(const Tree& x) const override { return sigHighest(x); }
-    Tree Lowest(const Tree& x) const override { return sigLowest(x); }
+    Tree Highest(const Tree& x) const override { return tree(sigs::g.SIGHIGHEST, x); }
+    Tree Lowest(const Tree& x) const override { return tree(sigs::g.SIGLOWEST, x); }
 
     //--- the 17 binary operators ------------------------------------------------------
-    Tree Add(const Tree& x, const Tree& y) const override { return sigBinOp(kAdd, x, y); }
-    Tree Sub(const Tree& x, const Tree& y) const override { return sigBinOp(kSub, x, y); }
-    Tree Mul(const Tree& x, const Tree& y) const override { return sigBinOp(kMul, x, y); }
-    Tree Div(const Tree& x, const Tree& y) const override { return sigBinOp(kDiv, x, y); }
-    Tree Mod(const Tree& x, const Tree& y) const override { return sigBinOp(kRem, x, y); }
-    Tree Lsh(const Tree& x, const Tree& y) const override { return sigBinOp(kLsh, x, y); }
+    Tree Add(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kAdd), x, y); }
+    Tree Sub(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kSub), x, y); }
+    Tree Mul(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kMul), x, y); }
+    Tree Div(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kDiv), x, y); }
+    Tree Mod(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kRem), x, y); }
+    Tree Lsh(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kLsh), x, y); }
     Tree ARsh(const Tree& x, const Tree& y) const override
     {
-        return sigBinOp(kARsh, x, y);
+        return tree(sigs::g.SIGBINOP, tree(kARsh), x, y);
     }
     Tree LRsh(const Tree& x, const Tree& y) const override
     {
-        return sigBinOp(kLRsh, x, y);
+        return tree(sigs::g.SIGBINOP, tree(kLRsh), x, y);
     }
-    Tree Gt(const Tree& x, const Tree& y) const override { return sigBinOp(kGT, x, y); }
-    Tree Lt(const Tree& x, const Tree& y) const override { return sigBinOp(kLT, x, y); }
-    Tree Ge(const Tree& x, const Tree& y) const override { return sigBinOp(kGE, x, y); }
-    Tree Le(const Tree& x, const Tree& y) const override { return sigBinOp(kLE, x, y); }
-    Tree Eq(const Tree& x, const Tree& y) const override { return sigBinOp(kEQ, x, y); }
-    Tree Ne(const Tree& x, const Tree& y) const override { return sigBinOp(kNE, x, y); }
-    Tree And(const Tree& x, const Tree& y) const override { return sigBinOp(kAND, x, y); }
-    Tree Or(const Tree& x, const Tree& y) const override { return sigBinOp(kOR, x, y); }
-    Tree Xor(const Tree& x, const Tree& y) const override { return sigBinOp(kXOR, x, y); }
+    Tree Gt(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kGT), x, y); }
+    Tree Lt(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kLT), x, y); }
+    Tree Ge(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kGE), x, y); }
+    Tree Le(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kLE), x, y); }
+    Tree Eq(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kEQ), x, y); }
+    Tree Ne(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kNE), x, y); }
+    Tree And(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kAND), x, y); }
+    Tree Or(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kOR), x, y); }
+    Tree Xor(const Tree& x, const Tree& y) const override { return tree(sigs::g.SIGBINOP, tree(kXOR), x, y); }
 
     //--- extended primitives ----------------------------------------------------------
     // Rebuilt from the xtended itself (see xtendedOp below): one override covers the 22
@@ -237,9 +245,9 @@ class SIGS_API TreeAlgebra : public SignalDispatch<Tree> {
     //--- operations with no signal constructor ----------------------------------------
     // Not produced by the dense switch; derived transformations may use them as
     // shorthands, interpreted through the constructors they abbreviate.
-    Tree Neg(const Tree& x) const override { return sigBinOp(kSub, sigInt(0), x); }
-    Tree Inv(const Tree& x) const override { return sigBinOp(kDiv, sigReal(1.0), x); }
-    Tree Not(const Tree& x) const override { return sigBinOp(kEQ, x, sigInt(0)); }
+    Tree Neg(const Tree& x) const override { return tree(sigs::g.SIGBINOP, tree(kSub), tree(0), x); }
+    Tree Inv(const Tree& x) const override { return tree(sigs::g.SIGBINOP, tree(kDiv), tree(1.0), x); }
+    Tree Not(const Tree& x) const override { return tree(sigs::g.SIGBINOP, tree(kEQ), x, tree(0)); }
     Tree Sinh(const Tree& x) const override { return xt("sinh", {x}); }
     Tree Cosh(const Tree& x) const override { return xt("cosh", {x}); }
     Tree Tanh(const Tree& x) const override { return xt("tanh", {x}); }
