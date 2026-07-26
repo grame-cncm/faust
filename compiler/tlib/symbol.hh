@@ -104,6 +104,11 @@ class Symbol : public Garbageable {
     // Fields
     std::string fName;  ///< Name of the symbol
     std::size_t fHash;  ///< Hash key computed from the name and used to determine the hash table entry
+    std::size_t fCanonKey;  ///< Canonical-order key: fHash, except for canonical recursive
+                            ///< names R<i>_<k> where the instance <i> is stripped -- the key
+                            ///< is a pure function of the plan position, so value-derived
+                            ///< term orders do not depend on the session's canonicalization
+                            ///< counter (see canonicalTreeLess)
     Sym         fNext;  ///< Next symbol in the hash table entry
     void*       fData;  ///< Field to user disposal to store additional data
     Sym          fSignature;  ///< Owning signature, null while the symbol is ordinary
@@ -119,6 +124,10 @@ class Symbol : public Garbageable {
         const;  ///< Check if the name of the symbol is equal to string \p str
     static std::size_t calcHashKey(
         const std::string& str);  ///< Compute the 32-bits hash key of string \p str
+    static std::size_t canonicalNameKey(
+        const std::string& str,
+        std::size_t hsh);  ///< fCanonKey of a name: hsh, or the instance-stripped key
+                           ///< for canonical recursive names R<i>_<k>
 
     // Static methods
     static Sym get(const std::string& str);     ///< Get the symbol of name \p str
@@ -196,8 +205,9 @@ inline const char* name(Sym sym)
 
 inline std::size_t symbolHashKey(Sym sym)
 {
-    return sym->fHash;
-}  ///< Name-derived hash : identical across processes, unlike the pointer
+    return sym->fCanonKey;
+}  ///< Canonical-order key : name-derived (identical across processes, unlike the
+   ///< pointer), with the instance stripped from canonical recursive names R<i>_<k>
 
 inline void* getUserData(Sym sym)
 {

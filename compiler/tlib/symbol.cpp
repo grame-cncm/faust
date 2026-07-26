@@ -238,10 +238,39 @@ std::size_t Symbol::calcHashKey(const std::string& str)
  * \param nxt a pointer to the next symbol in the hash table entry
  */
 
+/**
+ * The canonical-order key of a name: the name hash, except for canonical recursive
+ * names R<i>_<k> where the instance <i> is stripped -- the key hashes "R_<k>" so it
+ * is a pure function of the PLAN POSITION. Term orders derived from it are then
+ * independent of the session's canonicalization counter, which is what allows a
+ * normalization fixpoint to test convergence on pointer equality.
+ */
+size_t Symbol::canonicalNameKey(const string& str, size_t hsh)
+{
+    size_t i = 1;  // after 'R'
+    if (str.size() < 4 || str[0] != 'R' || !isdigit(static_cast<unsigned char>(str[i]))) {
+        return hsh;
+    }
+    while (i < str.size() && isdigit(static_cast<unsigned char>(str[i]))) {
+        i++;
+    }
+    if (i + 1 >= str.size() || str[i] != '_' ||
+        !isdigit(static_cast<unsigned char>(str[i + 1]))) {
+        return hsh;
+    }
+    for (size_t j = i + 1; j < str.size(); j++) {
+        if (!isdigit(static_cast<unsigned char>(str[j]))) {
+            return hsh;
+        }
+    }
+    return calcHashKey("R" + str.substr(i));  // "R_<k>", instance stripped
+}
+
 Symbol::Symbol(const string& str, size_t hsh, Sym nxt)
 {
     fName      = str;
     fHash      = hsh;
+    fCanonKey  = canonicalNameKey(str, hsh);
     fNext      = nxt;
     fData      = nullptr;
     fSignature = nullptr;

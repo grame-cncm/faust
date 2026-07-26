@@ -23,6 +23,7 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <sstream>
 #include <vector>
 
 #include "global.hh"
@@ -88,19 +89,41 @@ static Tree normalizeFixpoint(Tree L)
     Tree      prev         = nullptr;
     int       iter         = 0;
 
-    const bool verbose = getenv("FAUST_NORMALIZE_FIXPOINT_TRACE") != nullptr;
+    const bool verbose  = getenv("FAUST_NORMALIZE_FIXPOINT_TRACE") != nullptr;
+    Tree       prevPrev = nullptr;
     while (iter < 10) {
         Tree d = sym2deBruijn(L);
         if (d == prev) {
             break;  // the de Bruijn form is pointer-stable: fixpoint reached
         }
         if (verbose) {
+            static Tree prevL = nullptr;
             std::cerr << "NORMFIX iter " << iter << " : groups=" << countRecGroups(L)
+                      << " dbj=" << static_cast<const void*>(d)
+                      << (d == prevPrev ? "  CYCLE-2" : "")
+                      << (prevL ? (alphaEquiv(L, prevL) ? "  ALPHA-EQ" : "  ALPHA-DIFF")
+                                : "")
                       << std::endl;
+            prevL = L;
+            if (getenv("FAUST_NORMALIZE_FIXPOINT_DUMP") != nullptr && iter < 4) {
+                std::string fn = std::string(getenv("FAUST_NORMALIZE_FIXPOINT_DUMP")) +
+                                 "/normfix-iter" + std::to_string(iter) + ".txt";
+                FILE* out = fopen(fn.c_str(), "w");
+                if (out) {
+                    std::ostringstream oss;
+                    oss << ppsig(L, 100000000);
+                    fputs(oss.str().c_str(), out);
+                    fclose(out);
+                }
+            }
         }
-        prev = d;
+        prevPrev = prev;
+        prev     = d;
         // the merge: alpha-equivalent groups are now shared, back to symbolic
         L = deBruijn2Sym(d);
+        // canonical names before the sums are rebuilt: term orders hash the
+        // INSTANCE-STRIPPED canonical keys, so they are stable across iterations
+        L = canonicalizeRecNames(L);
         typeAnnotation(L, gGlobal->gLocalCausalityCheck);
         L = newConstantPropagation(L);
         L = simplify(L);
