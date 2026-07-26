@@ -436,7 +436,7 @@ TLIB_API bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursi
 //   c) rec(id, body') with a DIFFERENT body is a REDEFINITION : illegal ; and
 //      rec(id, nil) -- erasing a definition group -- is always illegal.
 // Consequence : a transformation never redefines, it maps every variable to a FRESH one
-// (what treeRewrite already does, as opposed to treeRewriteInPlace).
+// (what treeRewrite does ; the in-place variant was removed for this very reason).
 //
 // Transition regime : redefinitions are still performed but COUNTED (the census below),
 // printed under TLIB_REC_TRACE, and fatal (tlib::error) under TLIB_REC_STRICT. Once

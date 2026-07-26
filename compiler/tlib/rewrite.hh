@@ -34,10 +34,9 @@
  *
  * treeRewrite() creates a fresh variable for every rec(var, body) : pure, the
  * old tree keeps its RECDEF untouched, but under the identity rule the
- * result is only alpha-equivalent to the input (areEquiv, not ==).
- * treeRewriteInPlace() reuses the same variable : rec(var, newBody) updates
- * RECDEF on the shared SYMREC(var) node. Destructive on the old tree, but
- * pointer-stable : treeRewriteInPlace(t, identity) == t.
+ * result is only alpha-equivalent to the input (areEquiv, not ==). This is
+ * the ONLY rec discipline offered : an in-place variant reusing the same
+ * variable would redefine it, which the immutability protocol forbids.
  *
  * Rule view, for a node f(t1,...,tn) which is not a SYMREC :
  *
@@ -57,14 +56,8 @@
  *   ------------------------------- (rec-copy)
  *   rec(var, body) => rec(var', body')
  *
- * while treeRewriteInPlace keeps the recursive variable :
- *
- *   body => body'
- *   ------------------------------- (rec-in-place)
- *   rec(var, body) => rec(var, body')
- *
- * In both cases, the memo is initialized before descending into body so that
- * recursive references to the definition have a target during the traversal.
+ * The memo is initialized before descending into body so that recursive
+ * references to the definition have a target during the traversal.
  */
 
 template <class Rule>
@@ -195,51 +188,6 @@ Tree treeRewritePaired(Tree root, Rule&& rule, std::unordered_map<Tree, Tree>& m
     return treeRewritePairedMemo(root, rule, memo, identity);
 }
 
-template <class Rule>
-Tree treeRewriteInPlaceMemo(Tree t, Rule& rule, std::unordered_map<Tree, Tree>& memo)
-{
-    auto it = memo.find(t);
-    if (it != memo.end()) {
-        return it->second;
-    }
-
-    Tree var  = nullptr;
-    Tree body = nullptr;
-    if (isRec(t, var, body)) {
-        TLIB_ASSERT(body != nullptr);
-        // self-mapping : recursive references and shared occurrences of t
-        // resolve to t itself; rec(var, newBody) below returns this same
-        // pointer, so the memo entry is already final
-        memo[t]      = t;
-        Tree newBody = treeRewriteInPlaceMemo(body, rule, memo);
-        return rec(var, newBody);
-    }
-
-    int  ar = t->arity();
-    Tree r  = t;
-    if (ar > 0) {
-        bool changed = false;
-        tvec br(ar);
-        for (int i = 0; i < ar; i++) {
-            br[i]   = treeRewriteInPlaceMemo(t->branch(i), rule, memo);
-            changed = changed || (br[i] != t->branch(i));
-        }
-        if (changed) {
-            r = tree(t->node(), br);
-        }
-    }
-    Tree result = rule(r);
-    memo[t]     = result;
-    return result;
-}
-
-template <class Rule>
-Tree treeRewriteInPlace(Tree root, Rule&& rule)
-{
-    std::unordered_map<Tree, Tree> memo;
-    return treeRewriteInPlaceMemo(root, rule, memo);
-}
-
 /**
  * Annotation-guarded variants (see REWRITE-SPEC.md, "Reecriture gardee par
  * annotation") : same bottom-up memoized traversal, plus a top-down guard
@@ -346,56 +294,6 @@ Tree treeRewrite(Tree root, Pre&& pre, Post&& post)
 {
     std::unordered_map<Tree, Tree> memo;
     return treeRewriteMemo(root, pre, post, memo);
-}
-
-template <class Pre, class Post>
-Tree treeRewriteInPlaceMemo(Tree t, Pre& pre, Post& post, std::unordered_map<Tree, Tree>& memo)
-{
-    auto it = memo.find(t);
-    if (it != memo.end()) {
-        return it->second;
-    }
-
-    Tree var  = nullptr;
-    Tree body = nullptr;
-    if (isRec(t, var, body)) {
-        TLIB_ASSERT(body != nullptr);
-        memo[t]      = t;
-        Tree newBody = treeRewriteInPlaceMemo(body, pre, post, memo);
-        return rec(var, newBody);
-    }
-
-    Tree r;
-    std::optional<Tree> cut = pre(t);
-    if (cut.has_value()) {
-        TLIB_ASSERT(*cut != nullptr);
-        memo[t] = *cut;
-        return *cut;
-    } else {
-        int ar = t->arity();
-        r      = t;
-        if (ar > 0) {
-            bool changed = false;
-            tvec br(ar);
-            for (int i = 0; i < ar; i++) {
-                br[i]   = treeRewriteInPlaceMemo(t->branch(i), pre, post, memo);
-                changed = changed || (br[i] != t->branch(i));
-            }
-            if (changed) {
-                r = tree(t->node(), br);
-            }
-        }
-    }
-    Tree result = post(r);
-    memo[t]     = result;
-    return result;
-}
-
-template <class Pre, class Post>
-Tree treeRewriteInPlace(Tree root, Pre&& pre, Post&& post)
-{
-    std::unordered_map<Tree, Tree> memo;
-    return treeRewriteInPlaceMemo(root, pre, post, memo);
 }
 
 #endif
