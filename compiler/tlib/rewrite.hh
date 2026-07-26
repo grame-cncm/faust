@@ -114,6 +114,56 @@ Tree treeRewrite(Tree root, Rule&& rule)
     return treeRewriteMemo(root, rule, memo);
 }
 
+/**
+ * treeRewritePaired : same traversal and rec discipline as treeRewrite, but the rule
+ * receives BOTH trees -- rule(original, rebuilt) -- so a transformation can consult
+ * annotations carried by the original (types, intervals) while building from the
+ * rebuilt branches. The memo is exposed for the same reason : it maps every processed
+ * original to its result, which is how nested arguments (list-packed operands) are
+ * paired with their transforms.
+ */
+template <class Rule>
+Tree treeRewritePairedMemo(Tree t, Rule& rule, std::unordered_map<Tree, Tree>& memo)
+{
+    auto it = memo.find(t);
+    if (it != memo.end()) {
+        return it->second;
+    }
+
+    Tree var  = nullptr;
+    Tree body = nullptr;
+    if (isRec(t, var, body)) {
+        TLIB_ASSERT(body != nullptr);
+        Tree newVar = tree(unique("W"));
+        memo[t]      = ref(newVar);
+        Tree newBody = treeRewritePairedMemo(body, rule, memo);
+        return rec(newVar, newBody);
+    }
+
+    int  ar = t->arity();
+    Tree r  = t;
+    if (ar > 0) {
+        bool changed = false;
+        tvec br(ar);
+        for (int i = 0; i < ar; i++) {
+            br[i]   = treeRewritePairedMemo(t->branch(i), rule, memo);
+            changed = changed || (br[i] != t->branch(i));
+        }
+        if (changed) {
+            r = tree(t->node(), br);
+        }
+    }
+    Tree result = rule(t, r);
+    memo[t]     = result;
+    return result;
+}
+
+template <class Rule>
+Tree treeRewritePaired(Tree root, Rule&& rule, std::unordered_map<Tree, Tree>& memo)
+{
+    return treeRewritePairedMemo(root, rule, memo);
+}
+
 template <class Rule>
 Tree treeRewriteInPlaceMemo(Tree t, Rule& rule, std::unordered_map<Tree, Tree>& memo)
 {

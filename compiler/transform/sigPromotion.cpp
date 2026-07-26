@@ -28,6 +28,7 @@
 #include "ppsig.hh"
 #include "prim2.hh"
 #include "sigPromotion.hh"
+#include "sigtransform.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
@@ -1033,10 +1034,252 @@ Tree SignalAutoDifferentiate::transformation(Tree sig)
 }
 
 // Public API
+//-------------------------SignalPromotionAlgebra------------------------
+// The PILOT of transformations-as-algebras: the cast-promotion pass expressed as a
+// TransformAlgebra. Each override mirrors one case of SignalPromotion::transformation;
+// type questions are asked of the ORIGINAL children (the XSig carrier); recursion,
+// memoization and structure belong to the driver -- and every recursive group gets a
+// fresh variable, so this pass never redefines a definition.
+//------------------------------------------------------------------------
+
+class SignalPromotionAlgebra : public TransformAlgebra {
+   public:
+    //--- extended primitives: promote every argument to the node's own nature --------
+    XSig xtdApp(Tree orig, xtended*, const std::vector<XSig>& c) const override
+    {
+        Type tr = getCertifiedSigType(orig);
+        tvec br;
+        br.reserve(c.size());
+        for (const XSig& b : c) {
+            br.push_back(smartCast(tr, typeOf(b), b.out));
+        }
+        return o(tree(orig->node(), br));
+    }
+
+    //--- the delay amount is an int ---------------------------------------------------
+    XSig Delay(const XSig& x, const XSig& n) const override
+    {
+        return o(fBuild.Delay(x.out, smartIntCast(typeOf(n), n.out)));
+    }
+
+    //--- binary operators, by family --------------------------------------------------
+    XSig Add(const XSig& x, const XSig& y) const override { return sameNature(kAdd, x, y); }
+    XSig Sub(const XSig& x, const XSig& y) const override { return sameNature(kSub, x, y); }
+    XSig Mul(const XSig& x, const XSig& y) const override { return sameNature(kMul, x, y); }
+    XSig Gt(const XSig& x, const XSig& y) const override { return sameNature(kGT, x, y); }
+    XSig Lt(const XSig& x, const XSig& y) const override { return sameNature(kLT, x, y); }
+    XSig Ge(const XSig& x, const XSig& y) const override { return sameNature(kGE, x, y); }
+    XSig Le(const XSig& x, const XSig& y) const override { return sameNature(kLE, x, y); }
+    XSig Eq(const XSig& x, const XSig& y) const override { return sameNature(kEQ, x, y); }
+    XSig Ne(const XSig& x, const XSig& y) const override { return sameNature(kNE, x, y); }
+
+    XSig Mod(const XSig& x, const XSig& y) const override
+    {
+        Type tx = typeOf(x);
+        Type ty = typeOf(y);
+        if (tx->nature() == kInt && ty->nature() == kInt) {
+            return o(fBuild.Mod(x.out, y.out));
+        }
+        // float promotion needed, rem (%) replaced by fmod
+        std::vector<Tree> lsig = {smartFloatCast(tx, x.out), smartFloatCast(ty, y.out)};
+        return o(gGlobal->gFmodPrim->computeSigOutput(lsig));
+    }
+
+    XSig Div(const XSig& x, const XSig& y) const override
+    {
+        Type     tx = typeOf(x);
+        Type     ty = typeOf(y);
+        interval i1 = tx->getInterval();
+        interval j1 = ty->getInterval();
+        if (i1.isValid() && j1.isValid() && gGlobal->gMathExceptions && j1.hasZero()) {
+            stringstream error;
+            error << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")"
+                  << endl;
+            gWarningMessages.push_back(error.str());
+        }
+        // the result of a division is always a float
+        return o(fBuild.Div(smartFloatCast(tx, x.out), smartFloatCast(ty, y.out)));
+    }
+
+    XSig And(const XSig& x, const XSig& y) const override { return intArgs(kAND, x, y); }
+    XSig Or(const XSig& x, const XSig& y) const override { return intArgs(kOR, x, y); }
+    XSig Xor(const XSig& x, const XSig& y) const override { return intArgs(kXOR, x, y); }
+    XSig Lsh(const XSig& x, const XSig& y) const override { return shift(kLsh, x, y); }
+    XSig ARsh(const XSig& x, const XSig& y) const override { return shift(kARsh, x, y); }
+    XSig LRsh(const XSig& x, const XSig& y) const override { return shift(kLRsh, x, y); }
+
+    //--- ffunction: promote each argument to its declared type ------------------------
+    XSig ffApp(Tree, Tree ff, const std::vector<XSig>& args) const override
+    {
+        siglist clargs;
+        int     len = ffarity(ff) - 1;
+        for (int i = 0; i < int(args.size()); i++) {
+            clargs.push_back(
+                smartCast(ffargtype(ff, len - i), typeOf(args[i])->nature(), args[i].out));
+        }
+        return o(sigFFun(ff, listConvert(clargs)));
+    }
+
+    XSig Prefix(const XSig& x, const XSig& y) const override
+    {
+        Type tx = typeOf(x);
+        Type ty = typeOf(y);
+        if (tx->nature() == ty->nature()) {
+            return o(fBuild.Prefix(x.out, y.out));
+        }
+        return o(fBuild.Prefix(smartFloatCast(tx, x.out), smartFloatCast(ty, y.out)));
+    }
+
+    XSig Select2(const XSig& sel, const XSig& x, const XSig& y) const override
+    {
+        Type ts = typeOf(sel);
+        Type tx = typeOf(x);
+        Type ty = typeOf(y);
+        if (tx->nature() == ty->nature()) {
+            return o(fBuild.Select2(smartIntCast(ts, sel.out), x.out, y.out));
+        }
+        return o(fBuild.Select2(smartIntCast(ts, sel.out), smartFloatCast(tx, x.out),
+                                smartFloatCast(ty, y.out)));
+    }
+
+    //--- casts: drop the node when the child already has the nature -------------------
+    XSig IntCast(const XSig& x) const override
+    {
+        return o(smartIntCast(typeOf(x), x.out));
+    }
+    XSig FloatCast(const XSig& x) const override
+    {
+        return o(smartFloatCast(typeOf(x), x.out));
+    }
+
+    //--- tables and soundfiles: integer indices, write signal cast to the content -----
+    XSig RDTbl(const XSig& t, const XSig& ri) const override
+    {
+        return o(fBuild.RDTbl(t.out, smartIntCast(typeOf(ri), ri.out)));
+    }
+    XSig WRTbl(const XSig& s, const XSig& g, const XSig& wi, const XSig& ws) const override
+    {
+        return o(fBuild.WRTbl(s.out, g.out, smartIntCast(typeOf(wi), wi.out),
+                              smartCast(typeOf(g), typeOf(ws), ws.out)));
+    }
+    XSig SoundFileLength(const XSig& sf, const XSig& p) const override
+    {
+        return o(fBuild.SoundFileLength(sf.out, smartIntCast(typeOf(p), p.out)));
+    }
+    XSig SoundFileRate(const XSig& sf, const XSig& p) const override
+    {
+        return o(fBuild.SoundFileRate(sf.out, smartIntCast(typeOf(p), p.out)));
+    }
+    XSig SoundFileBuffer(const XSig& sf, const XSig& c, const XSig& p,
+                         const XSig& ri) const override
+    {
+        return o(fBuild.SoundFileBuffer(sf.out, c.out, smartIntCast(typeOf(p), p.out),
+                                        smartIntCast(typeOf(ri), ri.out)));
+    }
+
+    //--- bargraphs display a float ----------------------------------------------------
+    XSig HBargraph(const XSig& n, const XSig& lo, const XSig& hi,
+                   const XSig& s) const override
+    {
+        return o(fBuild.HBargraph(n.out, lo.out, hi.out, smartFloatCast(typeOf(s), s.out)));
+    }
+    XSig VBargraph(const XSig& n, const XSig& lo, const XSig& hi,
+                   const XSig& s) const override
+    {
+        return o(fBuild.VBargraph(n.out, lo.out, hi.out, smartFloatCast(typeOf(s), s.out)));
+    }
+
+    //--- waveforms: all-int stays, otherwise every value floats -----------------------
+    XSig Waveform(const std::vector<XSig>& w) const override
+    {
+        bool iflag = true;
+        for (const XSig& v : w) {
+            if (!isInt(v.orig->node())) {
+                iflag = false;
+                break;
+            }
+        }
+        if (iflag) {
+            std::vector<Tree> ws;
+            ws.reserve(w.size());
+            for (const XSig& v : w) {
+                ws.push_back(v.out);
+            }
+            return o(fBuild.Waveform(ws));
+        }
+        std::vector<Tree> ws;
+        ws.reserve(w.size());
+        for (const XSig& v : w) {
+            ws.push_back(smartFloatCast(typeOf(v), v.out));
+        }
+        return o(fBuild.Waveform(ws));
+    }
+
+   private:
+    //--- the cast policy of the pass (folding casts: this is a NORMALIZING pass) ------
+    static Tree cast(int t, Tree sig)
+    {
+        if (t == kReal) {
+            return sigFloatCast(sig);
+        }
+        if (t == kInt) {
+            return sigIntCast(sig);
+        }
+        faustassert(t == kAny);
+        return sig;
+    }
+    static Tree smartCast(int t1, int t2, Tree sig) { return (t1 != t2) ? cast(t1, sig) : sig; }
+    static Tree smartCast(Type t1, Type t2, Tree sig)
+    {
+        return smartCast(t1->nature(), t2->nature(), sig);
+    }
+    static Tree smartIntCast(Type t, Tree sig)
+    {
+        return (t->nature() == kReal) ? sigIntCast(sig) : sig;
+    }
+    static Tree smartFloatCast(Type t, Tree sig)
+    {
+        return (t->nature() == kInt) ? sigFloatCast(sig) : sig;
+    }
+
+    XSig sameNature(int op, const XSig& x, const XSig& y) const
+    {
+        Type tx = typeOf(x);
+        Type ty = typeOf(y);
+        if (tx->nature() == ty->nature()) {
+            return o(tree(sigs::g.SIGBINOP, tree(op), x.out, y.out));
+        }
+        return o(tree(sigs::g.SIGBINOP, tree(op), smartFloatCast(tx, x.out),
+                      smartFloatCast(ty, y.out)));
+    }
+    XSig intArgs(int op, const XSig& x, const XSig& y) const
+    {
+        return o(tree(sigs::g.SIGBINOP, tree(op), smartIntCast(typeOf(x), x.out),
+                      smartIntCast(typeOf(y), y.out)));
+    }
+    XSig shift(int op, const XSig& x, const XSig& y) const
+    {
+        Type     ty = typeOf(y);
+        interval i1 = ty->getInterval();
+        if (i1.isValid() && gGlobal->gMathExceptions && i1.lo() < 0) {
+            stringstream error;
+            error << "WARNING : bit shift operation with negative argument (" << i1 << ")"
+                  << endl;
+            gWarningMessages.push_back(error.str());
+        }
+        return intArgs(op, x, y);
+    }
+};
+
 Tree signalPromote(Tree sig, bool trace)
 {
     // Check that the root tree is properly type annotated
     certifySignalsTyped(sig);
+
+    if (getenv("FAUST_PROMOTE_ALGEBRA") != nullptr) {
+        SignalPromotionAlgebra A;
+        return signalTransform(sig, A);
+    }
 
     SignalPromotion SP;
     if (trace) {
