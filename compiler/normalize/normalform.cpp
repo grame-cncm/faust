@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include <stdio.h>
+#include <cstdint>
 #include <iostream>
 #include <map>
 #include <set>
@@ -54,6 +55,118 @@ using namespace std;
 // POINTER-stable. Termination: (distinct recursive groups, non-constant nodes)
 // decreases on every productive iteration.
 //----------------------------------------------------------------------------------------
+
+/**
+ * The AC hash of a (de Bruijn) tree: a memoized structural hash that is INSENSITIVE
+ * to permutations inside commutative operations. At a commutative binop, the whole
+ * same-operator spine is FLATTENED (a normalized sum is a binary comb, so a
+ * permutation also changes the associativity) and the MULTISET of its leaves is
+ * combined orderlessly. Two successive iterations of the normalization loop with
+ * equal AC hashes differ only by alpha-renaming (the de Bruijn form has no names)
+ * and commutative permutations: nothing that counts -- the loop can stop. A 64-bit
+ * collision would stop one iteration early, with a correct (just possibly less
+ * simplified) tree: a benign failure mode.
+ */
+static uint64_t acHash(Tree t, std::map<Tree, uint64_t>& memo);
+
+static void acFlatten(Tree t, int op, std::vector<uint64_t>& leaves,
+                      std::map<Tree, uint64_t>& memo)
+{
+    int  op2;
+    Tree x, y;
+    if (isSigBinOp(t, &op2, x, y) && op2 == op) {
+        acFlatten(x, op, leaves, memo);
+        acFlatten(y, op, leaves, memo);
+    } else {
+        leaves.push_back(acHash(t, memo));
+    }
+}
+
+static uint64_t acHash(Tree t, std::map<Tree, uint64_t>& memo)
+{
+    auto it = memo.find(t);
+    if (it != memo.end()) {
+        return it->second;
+    }
+
+    uint64_t h;
+    int      op;
+    Tree     x, y;
+    if (isSigBinOp(t, &op, x, y) && isCommutativeOpcode(op)) {
+        // orderless combine of the flattened spine's leaves
+        std::vector<uint64_t> leaves;
+        acFlatten(x, op, leaves, memo);
+        acFlatten(y, op, leaves, memo);
+        uint64_t sum = 0;
+        for (uint64_t l : leaves) {
+            // mix each leaf so the sum resists simple collisions
+            l ^= l >> 33;
+            l *= 0xff51afd7ed558ccdULL;
+            l ^= l >> 33;
+            sum += l;
+        }
+        h = 0x9e3779b97f4a7c15ULL * (static_cast<uint64_t>(op) + 1) ^ sum;
+    } else {
+        h = t->node().canonicalHash();
+        for (int i = 0; i < t->arity(); i++) {
+            h = h * 1099511628211ULL ^ acHash(t->branch(i), memo);
+        }
+    }
+    memo[t] = h;
+    return h;
+}
+
+/// Does t contain the node g? Traverses nested recursive definitions through their
+/// bodies; cycle-safe by coinduction (a cycle not passing through g is g-free).
+static bool containsNode(Tree t, Tree g, std::map<Tree, bool>& memo)
+{
+    if (t == g) {
+        return true;
+    }
+    auto it = memo.find(t);
+    if (it != memo.end()) {
+        return it->second;
+    }
+    memo[t] = false;  // coinductive pre-mark: cycles resolve to "no" unless found
+    bool found = false;
+    Tree var, body;
+    if (isRec(t, var, body)) {
+        found = body != nullptr && containsNode(body, g, memo);
+    } else {
+        for (int i = 0; !found && i < t->arity(); i++) {
+            found = containsNode(t->branch(i), g, memo);
+        }
+    }
+    memo[t] = found;
+    return found;
+}
+
+/**
+ * The eta rule of the fixpoint, per definition: a projection of a definition that no
+ * longer references its group (the tree became invariant under recursion) is replaced
+ * by the definition itself -- the recursion, and its generated state, disappear.
+ * Chains harvest themselves across loop iterations: replacing proj_k everywhere
+ * (inside other definitions too) frees their referencers for the next round.
+ */
+static Tree degroupInvariants(Tree L)
+{
+    // one containment memo PER GROUP: a subtree can be g1-free yet contain g2
+    std::map<Tree, std::map<Tree, bool>> memos;
+    return treeRewrite(L, [&memos](Tree r) -> Tree {
+        int  i;
+        Tree g;
+        if (isProj(r, i, g)) {
+            Tree var, body;
+            if (isRec(g, var, body) && body != nullptr) {
+                Tree def = nth(body, i);
+                if (def != nullptr && !isNil(def) && !containsNode(def, g, memos[g])) {
+                    return def;
+                }
+            }
+        }
+        return r;
+    });
+}
 
 /// Count the distinct recursive groups reachable from t (SYMREC nodes, definitions
 /// traversed through their bodies).
@@ -91,10 +204,23 @@ static Tree normalizeFixpoint(Tree L)
 
     const bool verbose  = getenv("FAUST_NORMALIZE_FIXPOINT_TRACE") != nullptr;
     Tree       prevPrev = nullptr;
+    uint64_t   prevAch  = 0;
+    bool       haveAch  = false;
     while (iter < 10) {
         Tree d = sym2deBruijn(L);
         if (d == prev) {
             break;  // the de Bruijn form is pointer-stable: fixpoint reached
+        }
+        {
+            // the AC judge: stop when the iteration changed nothing that counts
+            // (only alpha-renamings and commutative permutations)
+            std::map<Tree, uint64_t> achMemo;
+            uint64_t                 ach = acHash(d, achMemo);
+            if (haveAch && ach == prevAch) {
+                break;
+            }
+            prevAch = ach;
+            haveAch = true;
         }
         if (verbose) {
             static Tree prevL = nullptr;
@@ -126,6 +252,8 @@ static Tree normalizeFixpoint(Tree L)
         typeAnnotation(L, gGlobal->gLocalCausalityCheck);
         L = newConstantPropagation(L);
         L = simplify(L);
+        // the eta rule: harvest the definitions the simplifications made invariant
+        L = degroupInvariants(L);
         typeAnnotation(L, gGlobal->gLocalCausalityCheck);
         L = signalPromote(L);
         iter++;
@@ -196,12 +324,6 @@ static Tree simplifyToNormalFormAux(Tree LS)
         startTiming("L1 typeAnnotation");
         typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
         endTiming("L1 typeAnnotation");
-    }
-
-    // Auto differentiation
-    if (gGlobal->gAutoDifferentiate) {
-        L1 = signalAutoDifferentiate(L1);
-        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     }
 
     // Needed before 'simplify' (see sigPromotion.hh)
