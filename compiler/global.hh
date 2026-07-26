@@ -439,6 +439,9 @@ struct global {
     Tree DEFLINEPROP;
     Tree USELINEPROP;
     Tree SIMPLIFIED;
+    // Cross-call memo of simplify (a pure-function cache: original -> simplified).
+    // Lives and dies with gGlobal, so one compilation never sees another's trees.
+    std::unordered_map<Tree, Tree> gSimplifiedMemo;
     Tree DOCTABLES;
     Tree NULLENV;
     Tree COLORPROPERTY;

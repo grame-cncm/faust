@@ -33,6 +33,7 @@
 #include "signals.hh"
 #include "sigorderrules.hh"
 #include "sigpattern.hh"
+#include "sigtransform.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -46,7 +47,6 @@ using namespace std;
 // declarations
 
 static Tree simplification(Tree sig);
-static Tree sigMap(Tree key, tfun f, Tree t);
 
 static Tree traced_simplification(Tree sig)
 {
@@ -75,9 +75,40 @@ static Tree traced_simplification(Tree sig)
     return r;
 }
 
+namespace {
+
+// Simplify as a transformation: the driver walks the DAG (fresh variable per
+// recursive group, memo local to the call), the algebra applies the rule cascade
+// to every rebuilt signal node. Extended primitives fold through the primitive
+// itself, on the already-simplified children.
+class SimplifyAlgebra final : public TransformAlgebra {
+   public:
+    XSig combine(Tree orig, const std::vector<XSig>& c,
+                 FixPointEvaluator<XSig>& ev) const override
+    {
+        XSig r = TransformAlgebra::combine(orig, c, ev);
+        return o(traced_simplification(r.out));
+    }
+
+    XSig xtdApp(Tree, xtended* p, const std::vector<XSig>& c) const override
+    {
+        std::vector<Tree> args;
+        args.reserve(c.size());
+        for (const XSig& v : c) {
+            args.push_back(v.out);
+        }
+        // to avoid negative power to further normalization
+        Tree r = p->computeSigOutput(args);
+        return o(p != gGlobal->gPowPrim ? r : normalizeAddTerm(r));
+    }
+};
+
+}  // namespace
+
 Tree simplify(Tree sig)
 {
-    return sigMap(gGlobal->SIMPLIFIED, traced_simplification, sig);
+    SimplifyAlgebra A;
+    return signalTransform(sig, A, gGlobal->gSimplifiedMemo);
 }
 
 // Implementation
@@ -108,23 +139,8 @@ static Tree simplification(Tree sig)
 
     Tree n, m, x, y, sel;
 
-    xtended* xtd = (xtended*)getUserData(sig);
-    // primitive elements: constant folding is delegated to the primitive itself
-    if (xtd) {
-        vector<Tree> args;
-        for (int i = 0; i < sig->arity(); i++) {
-            args.push_back(sig->branch(i));
-        }
-
-        faustassert(args.size() == xtd->arity());
-
-        // to avoid negative power to further normalization
-        if (xtd != gGlobal->gPowPrim) {
-            return xtd->computeSigOutput(args);
-        } else {
-            return normalizeAddTerm(xtd->computeSigOutput(args));
-        }
-    }
+    // extended primitives never reach this cascade: the driver routes them to
+    // SimplifyAlgebra::xtdApp, which folds through the primitive itself
 
     int  opnum;
     Tree t1, t2;
@@ -280,46 +296,8 @@ static Tree simplification(Tree sig)
 }
 
 /**
- * Recursively transform a graph by applying a function f.
- * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
- */
-static Tree sigMap(Tree key, tfun f, Tree t)
-{
-    Tree p, id, body;
-
-    if (getProperty(t, key, p)) {
-        return (isNil(p)) ? t : p;  // trick to avoid loops
-
-    } else if (isRec(t, id, body)) {
-        setProperty(t, key, gGlobal->nil);  // avoid infinite loop
-        return rec(id, sigMap(key, f, body));
-
-    } else {
-        tvec br;
-        int  n   = t->arity();
-        int  arg = 0;
-        if (isUIInputItem(t) || isUIOutputItem(t)) {
-            // Do not handle labels to avoid simplifying them when using reserved keyword
-            br.push_back(t->branch(arg));
-            arg++;
-        }
-        for (int i = arg; i < n; i++) {
-            br.push_back(sigMap(key, f, t->branch(i)));
-        }
-
-        Tree r2 = f(tree(t->node(), br));
-        if (r2 == t) {
-            setProperty(t, key, gGlobal->nil);
-        } else {
-            setProperty(t, key, r2);
-        }
-        return r2;
-    }
-}
-
-/**
- * Like SigMap, recursively transform a graph by applying a
- * function f. But here recursive trees are also renamed.
+ * Recursively transform a graph by applying a function f, renaming the
+ * recursive trees along the way.
  * map(f, foo[t1..tn]) = f(foo[map(f,t1)..map(f,tn)])
  */
 static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)

@@ -32,18 +32,23 @@
  * (isSigMul(s, x, y) is Mul(var(x), var(y)).match(s)).
  *
  * Discipline:
- *  - patterns are LINEAR: each variable occurs once; cross-branch equality is
- *    a pointer comparison in the rule body (hash-consing makes it exact);
+ *  - patterns are LINEAR: each variable occurs once per alternative branch;
+ *    cross-branch equality is a pointer comparison in the rule body
+ *    (hash-consing makes it exact);
  *  - bindings are WRITE-ONLY until match returns true: after a failed match
  *    (or in the non-succeeding branch of an alternative) the bound trees are
  *    unspecified, like the isSigXXX outputs on false;
  *  - patterns are built INLINE at the call site, at each attempt: they capture
  *    references to stack variables and must not outlive them.
+ *
+ * Representation: EXPRESSION TEMPLATES. A pattern is a small value type whose
+ * composition is resolved at compile time -- no allocation, no indirection;
+ * matching inlines to the same test cascade one would write by hand against
+ * the isSigXXX destructors.
  */
 
-#include <functional>
+#include <tuple>
 #include <utility>
-#include <vector>
 
 #include "binop.hh"
 #include "sigs-export.hh"
@@ -52,190 +57,257 @@
 
 namespace pat {
 
-/// A pattern: a composable matcher over signal trees.
-class Pat {
-    std::function<bool(Tree)> fMatch;  ///< the whole state
-
-   public:
-    explicit Pat(std::function<bool(Tree)> m) : fMatch(std::move(m)) {}
-
-    bool match(Tree t) const { return fMatch(t); }
-
-    /// Ordered alternative: only the bindings of the succeeding branch are
-    /// meaningful (write-only discipline).
-    Pat operator|(const Pat& q) const
-    {
-        Pat p = *this;
-        return Pat([p, q](Tree t) { return p.match(t) || q.match(t); });
-    }
-};
-
 //--- the three generators ---------------------------------------------------
 
 /// Matches only the tree it was built from (a pinned ground term).
-inline Pat constant(Tree t)
+struct Constant {
+    using is_pattern = void;
+    Tree t;
+    bool match(Tree s) const { return s == t; }
+};
+inline Constant constant(Tree t)
 {
-    return Pat([t](Tree s) { return s == t; });
+    return {t};
 }
 
 /// Matches everything, binds x to the matched tree.
-inline Pat var(Tree& x)
-{
-    return Pat([&x](Tree s) {
+struct Var {
+    using is_pattern = void;
+    Tree& x;
+    bool  match(Tree s) const
+    {
         x = s;
         return true;
-    });
+    }
+};
+inline Var var(Tree& x)
+{
+    return {x};
 }
 
 /// Matches when the guard accepts the tree, then binds x.
 template <class Guard>
-inline Pat var(Tree& x, Guard g)
-{
-    return Pat([&x, g](Tree s) {
+struct GuardedVar {
+    using is_pattern = void;
+    Tree& x;
+    Guard g;
+    bool  match(Tree s) const
+    {
         if (!g(s)) {
             return false;
         }
         x = s;
         return true;
-    });
+    }
+};
+template <class Guard>
+inline GuardedVar<Guard> var(Tree& x, Guard g)
+{
+    return {x, std::move(g)};
 }
 
 /// An anonymous guarded hole: matches when the guard accepts, binds nothing.
 template <class Guard>
-inline Pat hole(Guard g)
+struct Hole {
+    using is_pattern = void;
+    Guard g;
+    bool  match(Tree s) const { return g(s); }
+};
+template <class Guard>
+inline Hole<Guard> hole(Guard g)
 {
-    return Pat([g](Tree s) { return g(s); });
+    return {std::move(g)};
 }
 
 //--- derived numeric guards -------------------------------------------------
 
-inline Pat num(Tree& x)
+struct IsNumG {
+    bool operator()(Tree s) const { return isNum(s->node()); }
+};
+struct IsNegG {
+    bool operator()(Tree s) const { return isNegative(s->node()); }
+};
+struct IsZeroG {
+    bool operator()(Tree s) const { return isZero(s->node()); }
+};
+struct IsOneG {
+    bool operator()(Tree s) const { return isOne(s->node()); }
+};
+struct IsMinusOneG {
+    bool operator()(Tree s) const { return isMinusOne(s->node()); }
+};
+
+inline GuardedVar<IsNumG> num(Tree& x)
 {
-    return var(x, [](Tree s) { return isNum(s->node()); });
+    return {x, IsNumG{}};
 }
-inline Pat negNum(Tree& x)
+inline GuardedVar<IsNegG> negNum(Tree& x)
 {
-    return var(x, [](Tree s) { return isNegative(s->node()); });
+    return {x, IsNegG{}};
 }
-inline Pat zero()
+inline Hole<IsZeroG> zero()
 {
-    return hole([](Tree s) { return isZero(s->node()); });
+    return {IsZeroG{}};
 }
-inline Pat one()
+inline Hole<IsOneG> one()
 {
-    return hole([](Tree s) { return isOne(s->node()); });
+    return {IsOneG{}};
 }
-inline Pat minusOne()
+inline Hole<IsMinusOneG> minusOne()
 {
-    return hole([](Tree s) { return isMinusOne(s->node()); });
+    return {IsMinusOneG{}};
+}
+
+//--- composition ------------------------------------------------------------
+
+/// Ordered alternative: only the bindings of the succeeding branch are
+/// meaningful (write-only discipline).
+template <class P, class Q>
+struct Alt {
+    using is_pattern = void;
+    P p;
+    Q q;
+    bool match(Tree s) const { return p.match(s) || q.match(s); }
+};
+template <class P, class Q, class = typename P::is_pattern, class = typename Q::is_pattern>
+inline Alt<P, Q> operator|(P p, Q q)
+{
+    return {std::move(p), std::move(q)};
 }
 
 //--- node patterns: one per signature operation, TreeAlgebra shapes ---------
 
 /// F(p1..pn) matches the node TreeAlgebra's F builds: same head, same arity,
 /// children matched left to right.
-inline Pat node(const Node& head, std::vector<Pat> kids)
-{
-    return Pat([head, kids = std::move(kids)](Tree t) {
-        if (!(t->node() == head) || t->arity() != static_cast<int>(kids.size())) {
+template <class... Ks>
+struct NodePat {
+    using is_pattern = void;
+    Node               head;
+    std::tuple<Ks...>  kids;
+
+    bool match(Tree t) const
+    {
+        if (!(t->node() == head) || t->arity() != static_cast<int>(sizeof...(Ks))) {
             return false;
         }
-        for (size_t i = 0; i < kids.size(); i++) {
-            if (!kids[i].match(t->branch(static_cast<int>(i)))) {
-                return false;
-            }
-        }
-        return true;
-    });
+        return matchKids(t, std::index_sequence_for<Ks...>{});
+    }
+
+   private:
+    template <std::size_t... I>
+    bool matchKids(Tree t, std::index_sequence<I...>) const
+    {
+        return (std::get<I>(kids).match(t->branch(static_cast<int>(I))) && ...);
+    }
+};
+
+template <class... Ks>
+inline NodePat<Ks...> node(const Node& head, Ks... ks)
+{
+    return {head, std::tuple<Ks...>{std::move(ks)...}};
 }
 
-inline Pat binop(int op, Pat x, Pat y)
+template <class X, class Y>
+inline auto binop(int op, X x, Y y)
 {
-    return node(Node(sigs::g.SIGBINOP), {constant(tree(op)), std::move(x), std::move(y)});
+    return node(Node(sigs::g.SIGBINOP), constant(tree(op)), std::move(x), std::move(y));
 }
 
 // clang-format off
-inline Pat Add (Pat x, Pat y) { return binop(kAdd,  std::move(x), std::move(y)); }
-inline Pat Sub (Pat x, Pat y) { return binop(kSub,  std::move(x), std::move(y)); }
-inline Pat Mul (Pat x, Pat y) { return binop(kMul,  std::move(x), std::move(y)); }
-inline Pat Div (Pat x, Pat y) { return binop(kDiv,  std::move(x), std::move(y)); }
-inline Pat Mod (Pat x, Pat y) { return binop(kRem,  std::move(x), std::move(y)); }
-inline Pat Lsh (Pat x, Pat y) { return binop(kLsh,  std::move(x), std::move(y)); }
-inline Pat ARsh(Pat x, Pat y) { return binop(kARsh, std::move(x), std::move(y)); }
-inline Pat LRsh(Pat x, Pat y) { return binop(kLRsh, std::move(x), std::move(y)); }
-inline Pat Gt  (Pat x, Pat y) { return binop(kGT,   std::move(x), std::move(y)); }
-inline Pat Lt  (Pat x, Pat y) { return binop(kLT,   std::move(x), std::move(y)); }
-inline Pat Ge  (Pat x, Pat y) { return binop(kGE,   std::move(x), std::move(y)); }
-inline Pat Le  (Pat x, Pat y) { return binop(kLE,   std::move(x), std::move(y)); }
-inline Pat Eq  (Pat x, Pat y) { return binop(kEQ,   std::move(x), std::move(y)); }
-inline Pat Ne  (Pat x, Pat y) { return binop(kNE,   std::move(x), std::move(y)); }
-inline Pat And (Pat x, Pat y) { return binop(kAND,  std::move(x), std::move(y)); }
-inline Pat Or  (Pat x, Pat y) { return binop(kOR,   std::move(x), std::move(y)); }
-inline Pat Xor (Pat x, Pat y) { return binop(kXOR,  std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Add (X x, Y y) { return binop(kAdd,  std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Sub (X x, Y y) { return binop(kSub,  std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Mul (X x, Y y) { return binop(kMul,  std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Div (X x, Y y) { return binop(kDiv,  std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Mod (X x, Y y) { return binop(kRem,  std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Lsh (X x, Y y) { return binop(kLsh,  std::move(x), std::move(y)); }
+template <class X, class Y> inline auto ARsh(X x, Y y) { return binop(kARsh, std::move(x), std::move(y)); }
+template <class X, class Y> inline auto LRsh(X x, Y y) { return binop(kLRsh, std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Gt  (X x, Y y) { return binop(kGT,   std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Lt  (X x, Y y) { return binop(kLT,   std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Ge  (X x, Y y) { return binop(kGE,   std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Le  (X x, Y y) { return binop(kLE,   std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Eq  (X x, Y y) { return binop(kEQ,   std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Ne  (X x, Y y) { return binop(kNE,   std::move(x), std::move(y)); }
+template <class X, class Y> inline auto And (X x, Y y) { return binop(kAND,  std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Or  (X x, Y y) { return binop(kOR,   std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Xor (X x, Y y) { return binop(kXOR,  std::move(x), std::move(y)); }
 // clang-format on
 
-inline Pat Mem(Pat x)
+template <class X>
+inline auto Mem(X x)
 {
-    return node(Node(sigs::g.SIGDELAY1), {std::move(x)});
+    return node(Node(sigs::g.SIGDELAY1), std::move(x));
 }
-inline Pat Delay(Pat x, Pat n)
+template <class X, class N>
+inline auto Delay(X x, N n)
 {
-    return node(Node(sigs::g.SIGDELAY), {std::move(x), std::move(n)});
+    return node(Node(sigs::g.SIGDELAY), std::move(x), std::move(n));
 }
-inline Pat IntCast(Pat x)
+template <class X>
+inline auto IntCast(X x)
 {
-    return node(Node(sigs::g.SIGINTCAST), {std::move(x)});
+    return node(Node(sigs::g.SIGINTCAST), std::move(x));
 }
-inline Pat BitCast(Pat x)
+template <class X>
+inline auto BitCast(X x)
 {
-    return node(Node(sigs::g.SIGBITCAST), {std::move(x)});
+    return node(Node(sigs::g.SIGBITCAST), std::move(x));
 }
-inline Pat FloatCast(Pat x)
+template <class X>
+inline auto FloatCast(X x)
 {
-    return node(Node(sigs::g.SIGFLOATCAST), {std::move(x)});
+    return node(Node(sigs::g.SIGFLOATCAST), std::move(x));
 }
-inline Pat Select2(Pat sel, Pat x, Pat y)
+template <class S, class X, class Y>
+inline auto Select2(S sel, X x, Y y)
 {
-    return node(Node(sigs::g.SIGSELECT2), {std::move(sel), std::move(x), std::move(y)});
+    return node(Node(sigs::g.SIGSELECT2), std::move(sel), std::move(x), std::move(y));
 }
-inline Pat Enable(Pat x, Pat y)
+template <class X, class Y>
+inline auto Enable(X x, Y y)
 {
-    return node(Node(sigs::g.SIGENABLE), {std::move(x), std::move(y)});
+    return node(Node(sigs::g.SIGENABLE), std::move(x), std::move(y));
 }
-inline Pat Control(Pat x, Pat y)
+template <class X, class Y>
+inline auto Control(X x, Y y)
 {
-    return node(Node(sigs::g.SIGCONTROL), {std::move(x), std::move(y)});
+    return node(Node(sigs::g.SIGCONTROL), std::move(x), std::move(y));
 }
-inline Pat Input(Pat chan)
+template <class C>
+inline auto Input(C chan)
 {
-    return node(Node(sigs::g.SIGINPUT), {std::move(chan)});
+    return node(Node(sigs::g.SIGINPUT), std::move(chan));
 }
-inline Pat Lowest(Pat x)
+template <class X>
+inline auto Lowest(X x)
 {
-    return node(Node(sigs::g.SIGLOWEST), {std::move(x)});
+    return node(Node(sigs::g.SIGLOWEST), std::move(x));
 }
-inline Pat Highest(Pat x)
+template <class X>
+inline auto Highest(X x)
 {
-    return node(Node(sigs::g.SIGHIGHEST), {std::move(x)});
+    return node(Node(sigs::g.SIGHIGHEST), std::move(x));
 }
-inline Pat Attach(Pat x, Pat y)
+template <class X, class Y>
+inline auto Attach(X x, Y y)
 {
-    return node(Node(sigs::g.SIGATTACH), {std::move(x), std::move(y)});
+    return node(Node(sigs::g.SIGATTACH), std::move(x), std::move(y));
 }
 
 /// An extended-primitive application, destructured by name (mirrors
 /// TreeAlgebra::xt).
-inline Pat xt(const char* name, std::vector<Pat> kids)
+template <class... Ks>
+inline auto xt(const char* name, Ks... ks)
 {
-    return node(Node(symbol(name)), std::move(kids));
+    return node(Node(symbol(name)), std::move(ks)...);
 }
 
 // clang-format off
-inline Pat Abs (Pat x)        { return xt("abs",  {std::move(x)}); }
-inline Pat Floor(Pat x)       { return xt("floor",{std::move(x)}); }
-inline Pat Max (Pat x, Pat y) { return xt("max",  {std::move(x), std::move(y)}); }
-inline Pat Min (Pat x, Pat y) { return xt("min",  {std::move(x), std::move(y)}); }
-inline Pat Pow (Pat x, Pat y) { return xt("pow",  {std::move(x), std::move(y)}); }
+template <class X>          inline auto Abs  (X x)      { return xt("abs",   std::move(x)); }
+template <class X>          inline auto Floor(X x)      { return xt("floor", std::move(x)); }
+template <class X, class Y> inline auto Max  (X x, Y y) { return xt("max",   std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Min  (X x, Y y) { return xt("min",   std::move(x), std::move(y)); }
+template <class X, class Y> inline auto Pow  (X x, Y y) { return xt("pow",   std::move(x), std::move(y)); }
 // clang-format on
 
 }  // namespace pat

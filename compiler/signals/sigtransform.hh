@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <unordered_map>
 #include <vector>
 
 #include "sigs-export.hh"
@@ -316,3 +317,12 @@ class SIGS_API TransformAlgebra : public SignalDispatch<XSig> {
  * carrying its annotated original. L must have been through typeAnnotation().
  */
 SIGS_API Tree signalTransform(Tree L, const TransformAlgebra& A);
+
+/**
+ * Same, with a caller-owned memo surviving across calls: a pure-function cache
+ * (original -> transformed) for transformations invoked repeatedly on overlapping
+ * trees. The cache is sound only while the algebra is deterministic and the trees
+ * it maps are alive; the caller owns both concerns.
+ */
+SIGS_API Tree signalTransform(Tree L, const TransformAlgebra& A,
+                              std::unordered_map<Tree, Tree>& memo);

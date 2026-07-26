@@ -75,9 +75,14 @@ struct PairedEval : FixPointEvaluator<XSig> {
 
 Tree signalTransform(Tree L, const TransformAlgebra& A)
 {
-    const Signature                sigSignature = sigs::signalSignature();
     std::unordered_map<Tree, Tree> memo;
-    PairedEval                     ev(memo);
+    return signalTransform(L, A, memo);
+}
+
+Tree signalTransform(Tree L, const TransformAlgebra& A, std::unordered_map<Tree, Tree>& memo)
+{
+    const Signature sigSignature = sigs::signalSignature();
+    PairedEval      ev(memo);
 
     return treeRewritePaired(
         L,

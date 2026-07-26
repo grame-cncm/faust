@@ -80,7 +80,9 @@ class SignalDispatch : public FaustAlgebra<V> {
    public:
     virtual ~SignalDispatch() = default;
 
-    V combine(Tree sig, const std::vector<V>& c, FixPointEvaluator<V>& ev) const;
+    /// Virtual so a transformation can wrap the dispatch with a post-rule applied to
+    /// every rebuilt signal node (a simplifier's rule cascade, typically).
+    virtual V combine(Tree sig, const std::vector<V>& c, FixPointEvaluator<V>& ev) const;
 
     //----------------------------------------------------------------------------------
     // Constructors of the SIGNAL language that FaustAlgebra does not name.
