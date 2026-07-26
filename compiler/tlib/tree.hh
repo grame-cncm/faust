@@ -522,6 +522,14 @@ class TLIB_API RecPlan {
 /// the same term shares it instead of re-running Tarjan. The returned reference is
 /// stable for the session (cleared by cleanup()).
 TLIB_API const RecPlan& getRecPlan(Tree root);
+
+/// Rename every recursive group after the plan : names R<instance>_<k> in
+/// dependencies-first order, variables PRE-CREATED in that order so node serials
+/// follow the plan too. Alpha-equivalent inputs give the SAME canonical tree
+/// (pointer-equal) : downstream serial-ordered consumers (symbol sets, loop
+/// scheduling) become independent of the transformation history. Immutability-clean
+/// (fresh definitions, per-instance prefix).
+TLIB_API Tree canonicalizeRecNames(Tree root);
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);
 std::string   toDeBruijnString(Tree t);

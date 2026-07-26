@@ -150,6 +150,18 @@ static Tree simplifyToNormalFormAux(Tree LS)
         endTiming("L4 typeAnnotation");
     }
 
+    // Canonical recursive-variable naming : names AND node serials in plan order, so
+    // the downstream serial-ordered consumers (symbol sets, loop scheduling) become
+    // independent of the transformation history -- the generated code is the same for
+    // alpha-equivalent trees.
+    startTiming("canonicalizeRecNames");
+    L4 = canonicalizeRecNames(L4);
+    endTiming("canonicalizeRecNames");
+
+    startTiming("L4 typeAnnotation");
+    typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
+    endTiming("L4 typeAnnotation");
+
     // Check signal tree
     startTiming("L4 signalChecker");
     SignalChecker checker(L4);

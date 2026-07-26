@@ -87,6 +87,11 @@ static std::unordered_map<Tree, std::unique_ptr<RecPlan>> gRecPlans;
 // Defined BEFORE tlibResetRecInternals, which resets it.
 static int gRecRedefinitions = 0;
 
+// Instance counter of canonicalizeRecNames : gives every canonicalization pass of a
+// session a distinct name prefix, so canonical variables never collide across passes
+// (a definition is written once). Defined BEFORE tlibResetRecInternals, which resets it.
+static int gCanonInstance = 0;
+
 int recRedefinitionCount()
 {
     return gRecRedefinitions;
@@ -96,6 +101,7 @@ void tlibResetRecInternals()
 {
     gRecPlans.clear();
     gRecRedefinitions = 0;
+    gCanonInstance    = 0;
     gDebruijnSym     = nullptr;
     gDebruijnRefSym  = nullptr;
     gSymRecSym       = nullptr;
@@ -838,6 +844,78 @@ bool alphaEquiv(Tree a, Tree b)
 {
     AlphaEnv env;
     return alphaEquivAux(a, b, env);
+}
+
+//-----------------------------------------------------------------------------------------
+// Canonical recursive-variable naming, in PLAN ORDER.
+//
+// Downstream consumers order their work by node serial numbers (symbolic sets, loop
+// scheduling) and occasionally by variable identity : two alpha-equivalent trees can
+// therefore compile differently. This pass renames every recursive group after the
+// RecPlan -- names R<instance>_<k> with k in dependencies-first order -- and, crucially,
+// PRE-CREATES the variables in that same order, so the SERIALS follow the plan too.
+// Alpha-equivalent inputs produce the SAME canonical tree (pointer-equal, by
+// hash-consing) : the generated code becomes independent of the transformation history.
+//
+// Every canonical group is a FRESH definition (the instance prefix guarantees no
+// collision) : the pass is immutability-clean.
+//-----------------------------------------------------------------------------------------
+
+static Tree renameRecMemo(Tree t, std::unordered_map<Tree, Tree>& memo,
+                          const std::unordered_map<Tree, Tree>& newVar)
+{
+    auto it = memo.find(t);
+    if (it != memo.end()) {
+        return it->second;
+    }
+
+    Tree var, body;
+    if (isRec(t, var, body)) {
+        auto nv = newVar.find(t);
+        TLIB_ASSERT(nv != newVar.end());  // every reachable group is in the plan
+        TLIB_ASSERT(body != nullptr);
+        memo[t]      = ref(nv->second);
+        Tree newBody = renameRecMemo(body, memo, newVar);
+        return rec(nv->second, newBody);
+    }
+
+    int  ar = t->arity();
+    Tree r  = t;
+    if (ar > 0) {
+        bool changed = false;
+        tvec br(ar);
+        for (int i = 0; i < ar; i++) {
+            br[i]   = renameRecMemo(t->branch(i), memo, newVar);
+            changed = changed || (br[i] != t->branch(i));
+        }
+        if (changed) {
+            r = tree(t->node(), br);
+        }
+    }
+    memo[t] = r;
+    return r;
+}
+
+Tree canonicalizeRecNames(Tree root)
+{
+    const RecPlan& plan = getRecPlan(root);
+    if (plan.components().empty()) {
+        return root;  // no recursion : nothing to rename
+    }
+
+    // Pre-create every canonical variable in dependencies-first order : names and
+    // serials both follow the plan.
+    const std::string prefix = "R" + std::to_string(++gCanonInstance) + "_";
+    std::unordered_map<Tree, Tree> newVar;
+    int                            k = 0;
+    for (const auto& comp : plan.components()) {
+        for (Tree r : comp) {
+            newVar[r] = tree(symbol(prefix + std::to_string(k++)));
+        }
+    }
+
+    std::unordered_map<Tree, Tree> memo;
+    return renameRecMemo(root, memo, newVar);
 }
 
 //-----------------------------------------------------------
