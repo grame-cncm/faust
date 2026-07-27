@@ -425,7 +425,7 @@ Tree rec(Tree id, Tree body);  ///< create a symbolic recursive tree
 bool              isRec(Tree t, Tree& body);            ///< is t a de Bruijn recursive tree
 TLIB_API bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursive tree
 
-// IMMUTABILITY OF RECURSIVE DEFINITIONS (target invariant, transition regime).
+// IMMUTABILITY OF RECURSIVE DEFINITIONS.
 //
 // Hash-consing guarantees immutable BRANCHES, but a symbolic recursive definition is a
 // PROPERTY of a node hash-consed by its NAME : rec(id, body') on an existing id silently
@@ -438,10 +438,9 @@ TLIB_API bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursi
 // Consequence : a transformation never redefines, it maps every variable to a FRESH one
 // (what treeRewrite does ; the in-place variant was removed for this very reason).
 //
-// Transition regime : redefinitions are still performed but COUNTED (the census below),
-// printed under TLIB_REC_TRACE, and fatal (tlib::error) under TLIB_REC_STRICT. Once
-// every transformation creates fresh variables, strict becomes the only behavior.
-TLIB_API int recRedefinitionCount();  ///< redefinitions observed since init()
+// The protocol is enforced : a different-body redefinition or an erasure is fatal
+// (tlib::error), with no environment override. The transition regime (census counter,
+// TLIB_REC_TRACE, opt-in TLIB_REC_STRICT) ended once the whole corpus ran clean.
 
 // Creation of recursive references
 

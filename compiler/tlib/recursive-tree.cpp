@@ -84,25 +84,14 @@ static inline Tree debruijn2symKey()
 // so borrowed references (FixPointIterator's) survive later insertions.
 static std::unordered_map<Tree, std::unique_ptr<RecPlan>> gRecPlans;
 
-// The census of the immutability transition (see tree.hh) : how many times an already
-// defined recursive variable received a different body. Target : zero, then strict.
-// Defined BEFORE tlibResetRecInternals, which resets it.
-static int gRecRedefinitions = 0;
-
 // Instance counter of canonicalizeRecNames : gives every canonicalization pass of a
 // session a distinct name prefix, so canonical variables never collide across passes
 // (a definition is written once). Defined BEFORE tlibResetRecInternals, which resets it.
 static int gCanonInstance = 0;
 
-int recRedefinitionCount()
-{
-    return gRecRedefinitions;
-}
-
 void tlibResetRecInternals()
 {
     gRecPlans.clear();
-    gRecRedefinitions = 0;
     gCanonInstance    = 0;
     gDebruijnSym     = nullptr;
     gDebruijnRefSym  = nullptr;
@@ -215,17 +204,15 @@ Tree rec(Tree var, Tree body)
     Tree t   = tree(gSymRecSym, var);
     Tree old = t->getProperty(recdefKey());
     if ((old != nullptr && old != body) || isNil(body)) {
-        gRecRedefinitions++;
-        if (getenv("TLIB_REC_TRACE") != nullptr) {
-            fprintf(stderr, "TLIB REC REDEF : %s\n", toDeBruijnString(var).c_str());
-        }
-        if (getenv("TLIB_REC_STRICT") != nullptr) {
-            std::stringstream error;
-            error << "ERROR : redefinition of the recursive variable " << *var
-                  << " (recursive definitions are immutable : use a fresh variable)"
-                  << std::endl;
-            tlib::error(error.str());
-        }
+        // Immutability of recursive definitions (see tree.hh) : a different body is
+        // a redefinition, rec(id, nil) an erasure -- both fatal, no override. The
+        // same body again is an idempotent no-op (falls through, setProperty is a
+        // write of the value already there).
+        std::stringstream error;
+        error << "ERROR : redefinition of the recursive variable " << *var
+              << " (recursive definitions are immutable : use a fresh variable)"
+              << std::endl;
+        tlib::error(error.str());
     }
     t->setProperty(recdefKey(), body);
     return t;
@@ -459,7 +446,7 @@ static Tree deBruijn2SymCachedReady(Tree t)
  * and any order derived from variable names becomes a pure function of the group's
  * structure, stable across passes and iterations (what a normalization fixpoint
  * needs). A 64-bit hash collision between structurally different groups would
- * surface as a recursive-variable redefinition (census / TLIB_REC_STRICT).
+ * surface as a recursive-variable redefinition (fatal redefinition).
  */
 static Tree contentVar(Tree dbj)
 {
