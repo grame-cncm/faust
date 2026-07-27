@@ -187,7 +187,11 @@ static std::size_t calcCanonHash(const Node& n, int ar, const Tree br[])
 {
     std::size_t h = n.canonicalHash();
     for (int i = 0; i < ar; i++) {
-        h = h * 1099511628211ULL ^ br[i]->canonHash();
+        // hash_combine-style : the addition breaks the XOR-linearity of the
+        // 'h = h*F ^ child' form, whose contributions cancel pairwise on lists of
+        // identical elements (two equal definitions in a rec group hashed to a
+        // CONSTANT, colliding distinct groups into one content-derived name)
+        h ^= br[i]->canonHash() + 0x9e3779b97f4a7c15ULL + (h << 12) + (h >> 4);
     }
     return h;
 }
