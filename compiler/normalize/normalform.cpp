@@ -109,7 +109,10 @@ static uint64_t acHash(Tree t, std::map<Tree, uint64_t>& memo)
     } else {
         h = t->node().canonicalHash();
         for (int i = 0; i < t->arity(); i++) {
-            h = h * 1099511628211ULL ^ acHash(t->branch(i), memo);
+            // hash_combine-style: the addition breaks the XOR-linearity that made
+            // 'h = h*F ^ child' cancel on repeated identical elements (a stereo
+            // program with equal outputs hashed to a CONSTANT, blinding the judge)
+            h ^= acHash(t->branch(i), memo) + 0x9e3779b97f4a7c15ULL + (h << 12) + (h >> 4);
         }
     }
     memo[t] = h;
@@ -214,6 +217,9 @@ static Tree normalizeFixpoint(Tree L)
     while (iter < maxIter) {
         Tree d = sym2deBruijn(L);
         if (d == prev) {
+            if (verbose) {
+                std::cerr << "NORMFIX exit at iter " << iter << " : pointer-stable" << std::endl;
+            }
             break;  // the de Bruijn form is pointer-stable: fixpoint reached
         }
         {
@@ -222,6 +228,9 @@ static Tree normalizeFixpoint(Tree L)
             std::map<Tree, uint64_t> achMemo;
             uint64_t                 ach = acHash(d, achMemo);
             if (haveAch && ach == prevAch) {
+                if (verbose) {
+                    std::cerr << "NORMFIX exit at iter " << iter << " : AC-equal" << std::endl;
+                }
                 break;
             }
             prevAch = ach;
@@ -258,7 +267,17 @@ static Tree normalizeFixpoint(Tree L)
         L = newConstantPropagation(L);
         L = simplify(L);
         // the eta rule: harvest the definitions the simplifications made invariant
-        L = degroupInvariants(L);
+        Tree Lh = degroupInvariants(L);
+        if (Lh != L) {
+            // a harvest substitutes definition trees for projections, creating
+            // compositions (nested delays, foldable constants) the backends must
+            // never see: re-normalize NOW, not at the next iteration -- with -eta
+            // (a single pass) there is no next iteration
+            L = Lh;
+            typeAnnotation(L, gGlobal->gLocalCausalityCheck);
+            L = newConstantPropagation(L);
+            L = simplify(L);
+        }
         typeAnnotation(L, gGlobal->gLocalCausalityCheck);
         L = signalPromote(L);
         iter++;
