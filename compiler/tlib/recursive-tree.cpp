@@ -926,11 +926,14 @@ bool alphaEquiv(Tree a, Tree b)
 // therefore compile differently. This pass renames every recursive group after the
 // RecPlan -- names R<instance>_<k> with k in dependencies-first order -- and, crucially,
 // PRE-CREATES the variables in that same order, so the SERIALS follow the plan too.
-// Alpha-equivalent inputs produce the SAME canonical tree (pointer-equal, by
-// hash-consing) : the generated code becomes independent of the transformation history.
 //
 // Every canonical group is a FRESH definition (the instance prefix guarantees no
-// collision) : the pass is immutability-clean.
+// collision) : the pass is immutability-clean. The price of that freshness : results
+// of separate calls are only alpha-equivalent, never pointer-equal. What is
+// instance-independent is the canonical ORDER, through fCanonKey (canonicalNameKey
+// strips the instance from R<i>_<k>) : the generated code becomes independent of the
+// transformation history. True pointer-equal canonicity is deBruijn2Sym's job
+// (content-derived names).
 //-----------------------------------------------------------------------------------------
 
 static Tree renameRecMemo(Tree t, std::unordered_map<Tree, Tree>& memo,
