@@ -104,7 +104,14 @@ class Node : public Garbageable {
         }
     }
     // constructors (assume size of field f is the biggest)
-    Node() { fData.v = 0; }
+
+    ///< There is deliberately NO default constructor, for the same reason CTree has none
+    ///< (see tree.hh) : a node IS its content, so a contentless node has no meaning. The
+    ///< former default constructor zeroed fData but left fType INDETERMINATE, so comparing
+    ///< or hashing a default-built Node was undefined behaviour. Giving it a well-defined
+    ///< default instead would be worse in a different way : it would silently read as the
+    ///< valid value Node(0). Build a Node from its content, always.
+    Node() = delete;
 
     Node(int x) : fType(kIntNode)
     {

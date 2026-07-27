@@ -549,8 +549,12 @@ struct global {
     property2<Tree>* gEvalMemo;
     property2<Tree>* gPMMemo;
 
-    Node EVALPROPERTY;
-    Node PMPROPERTYNODE;
+    // Node has no default constructor (a node IS its content, see tlib/node.hh), and these
+    // two cannot be interned in the member init list either : global::global() calls
+    // tlib::init(), which resets the symbol table, only in its BODY. So hold a placeholder
+    // until the real symbols are interned right after that call.
+    Node EVALPROPERTY{0};
+    Node PMPROPERTYNODE{0};
 
     property<Tree>* gSimplifiedBoxProperty;
 
