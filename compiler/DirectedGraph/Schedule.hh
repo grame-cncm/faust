@@ -121,19 +121,32 @@ inline schedule<N> dfschedule(const digraph<N>& G)
     schedule<N> S;
     std::set<N> V;  // set of visited nodes
 
-    // recursive deep first visit (pseudo local function using a lambda)
-    std::function<void(const N&)> dfvisit = [&](const N& n) {
-        if (V.find(n) == V.end()) {
-            V.insert(n);
-            for (const auto& p : G.destinations(n)) {
-                dfvisit(p.first);
+    // Iterative deep-first visit: an explicit two-phase stack -- an unexpanded
+    // entry pushes its destinations (reversed, so they are explored in order), an
+    // expanded entry is appended to the schedule. Exactly the recursive visit's
+    // order, but the C++ stack depth stays constant: scheduling a pathologically
+    // deep graph must not be the thing that overflows.
+    for (const auto& r : roots(G)) {
+        std::vector<std::pair<N, bool>> work;  // (node, expanded)
+        work.push_back({r, false});
+        while (!work.empty()) {
+            if (work.back().second) {
+                S.append(work.back().first);
+                work.pop_back();
+                continue;
             }
-            S.append(n);
+            N n = work.back().first;
+            if (V.find(n) != V.end()) {
+                work.pop_back();
+                continue;
+            }
+            V.insert(n);
+            work.back().second = true;
+            const auto& dests = G.destinations(n);
+            for (auto it = dests.rbegin(); it != dests.rend(); ++it) {
+                work.push_back({it->first, false});
+            }
         }
-    };
-
-    for (const auto& n : roots(G)) {
-        dfvisit(n);
     }
 
     return S;
