@@ -541,10 +541,14 @@ TLIB_API const RecPlan& getRecPlan(Tree root);
 
 /// Rename every recursive group after the plan : names R<instance>_<k> in
 /// dependencies-first order, variables PRE-CREATED in that order so node serials
-/// follow the plan too. Alpha-equivalent inputs give the SAME canonical tree
-/// (pointer-equal) : downstream serial-ordered consumers (symbol sets, loop
-/// scheduling) become independent of the transformation history. Immutability-clean
-/// (fresh definitions, per-instance prefix).
+/// follow the plan too. The prefix is fresh per call (immutability : a variable is
+/// never redefined), so alpha-equivalent inputs give alpha-equivalent -- NOT
+/// pointer-equal -- results, whose names agree modulo the instance prefix. What IS
+/// instance-independent is the canonical ORDER : fCanonKey (canonicalNameKey) strips
+/// the instance from R<i>_<k>, so serial-ordered consumers (symbol sets, loop
+/// scheduling) see the same order whatever the transformation history. For a true
+/// canonical form (same content, same pointer), use deBruijn2Sym, whose names are
+/// content-derived.
 TLIB_API Tree canonicalizeRecNames(Tree root);
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);
