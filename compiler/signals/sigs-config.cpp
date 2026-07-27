@@ -23,6 +23,7 @@
 
 #include "interval.hh"
 #include "sigOpcode.hh"
+#include "sigtreealgebra.hh"
 #include "sigtypesolver.hh"
 #include "sigtype.hh"
 
@@ -85,6 +86,18 @@ void initSignalSymbols()
     g.SIGSOUNDFILERATE   = signal_signature.add("SigSoundfileRate");
     g.SIGSOUNDFILEBUFFER = signal_signature.add("SigSoundfileBuffer");
     g.SIGREGISTER        = signal_signature.add("SigRegister");
+
+    // The session's initial algebra: its dispatch signature was just interned,
+    // and dies with the tlib session -- rebuild it here, on both init paths
+    // (standalone sigs::init() and the compiler's own sequence).
+    delete g.gTreeAlgebra;
+    g.gTreeAlgebra = new TreeAlgebra();
+}
+
+const TreeAlgebra& algebra()
+{
+    TLIB_ASSERT(g.gTreeAlgebra != nullptr);
+    return *g.gTreeAlgebra;
 }
 
 /**

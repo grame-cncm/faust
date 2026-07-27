@@ -43,6 +43,7 @@
 class AudioType;
 typedef P<AudioType> Type;
 class xtended;
+class TreeAlgebra;
 
 namespace sigs {
 
@@ -119,10 +120,18 @@ struct State {
     Sym                                         SIGSOUNDFILEBUFFER{};
     Sym                                         SIGREGISTER{};  // for FPGA Retiming
     Sym                                         SIMPLETYPE{};
+
+    /// The initial algebra of the session, rebuilt by initSignalSymbols(): its
+    /// dispatch signature dies with the tlib session, so its lifetime is one
+    /// compilation. The sigXXX constructors are a facade over it.
+    TreeAlgebra* gTreeAlgebra{};
 };
 
 /// The state of the signal library (one per process, like tlib).
 SIGS_API extern State g;
+
+/// The initial algebra of the current session (built by initSignalSymbols()).
+SIGS_API const TreeAlgebra& algebra();
 
 }  // namespace sigs
 

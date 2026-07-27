@@ -119,6 +119,16 @@ inline Hole<Guard> hole(Guard g)
     return {std::move(g)};
 }
 
+/// Matches everything, binds nothing (the anonymous wildcard).
+struct Any {
+    using is_pattern = void;
+    bool match(Tree) const { return true; }
+};
+inline Any any()
+{
+    return {};
+}
+
 //--- derived numeric guards -------------------------------------------------
 
 struct IsNumG {
@@ -207,6 +217,48 @@ inline NodePat<Ks...> node(const Node& head, Ks... ks)
     return {head, std::tuple<Ks...>{std::move(ks)...}};
 }
 
+/// Matches any node with the given head, whatever its arity (n-ary
+/// constructors like waveforms).
+struct HeadPat {
+    using is_pattern = void;
+    Node head;
+    bool match(Tree t) const { return t->node() == head; }
+};
+inline HeadPat headOnly(const Node& head)
+{
+    return {head};
+}
+
+//--- list patterns (structure: cons cells and nil) --------------------------
+
+struct NilPat {
+    using is_pattern = void;
+    bool match(Tree s) const { return isNil(s); }
+};
+inline NilPat nilp()
+{
+    return {};
+}
+
+template <class H, class T>
+struct ConsPat {
+    using is_pattern = void;
+    H h;
+    T t;
+    bool match(Tree s) const { return isList(s) && h.match(hd(s)) && t.match(tl(s)); }
+};
+template <class H, class T>
+inline ConsPat<H, T> consp(H h, T t)
+{
+    return {std::move(h), std::move(t)};
+}
+
+template <class A, class B, class C, class D>
+inline auto list4p(A a, B b, C c, D d)
+{
+    return consp(std::move(a), consp(std::move(b), consp(std::move(c), consp(std::move(d), nilp()))));
+}
+
 template <class X, class Y>
 inline auto binop(int op, X x, Y y)
 {
@@ -292,6 +344,145 @@ template <class X, class Y>
 inline auto Attach(X x, Y y)
 {
     return node(Node(sigs::g.SIGATTACH), std::move(x), std::move(y));
+}
+template <class C, class X>
+inline auto Output(C chan, X x)
+{
+    return node(Node(sigs::g.SIGOUTPUT), std::move(chan), std::move(x));
+}
+template <class X, class Y>
+inline auto Prefix(X x, Y y)
+{
+    return node(Node(sigs::g.SIGPREFIX), std::move(x), std::move(y));
+}
+template <class X>
+inline auto Gen(X x)
+{
+    return node(Node(sigs::g.SIGGEN), std::move(x));
+}
+template <class T, class R>
+inline auto RDTbl(T t, R ri)
+{
+    return node(Node(sigs::g.SIGRDTBL), std::move(t), std::move(ri));
+}
+template <class S, class G, class W, class V>
+inline auto WRTbl(S s, G g, W wi, V ws)
+{
+    return node(Node(sigs::g.SIGWRTBL), std::move(s), std::move(g), std::move(wi),
+                std::move(ws));
+}
+template <class N, class I>
+inline auto DocConstantTbl(N n, I i)
+{
+    return node(Node(sigs::g.SIGDOCONSTANTTBL), std::move(n), std::move(i));
+}
+template <class N, class I, class W, class V>
+inline auto DocWriteTbl(N n, I i, W wi, V ws)
+{
+    return node(Node(sigs::g.SIGDOCWRITETBL), std::move(n), std::move(i), std::move(wi),
+                std::move(ws));
+}
+template <class T, class R>
+inline auto DocAccessTbl(T t, R ri)
+{
+    return node(Node(sigs::g.SIGDOCACCESSTBL), std::move(t), std::move(ri));
+}
+template <class A, class B, class C>
+inline auto AssertBounds(A lo, B hi, C x)
+{
+    return node(Node(sigs::g.SIGASSERTBOUNDS), std::move(lo), std::move(hi), std::move(x));
+}
+template <class T, class N, class F>
+inline auto FConst(T t, N n, F f)
+{
+    return node(Node(sigs::g.SIGFCONST), std::move(t), std::move(n), std::move(f));
+}
+template <class T, class N, class F>
+inline auto FVar(T t, N n, F f)
+{
+    return node(Node(sigs::g.SIGFVAR), std::move(t), std::move(n), std::move(f));
+}
+template <class F, class L>
+inline auto FFun(F ff, L largs)
+{
+    return node(Node(sigs::g.SIGFFUN), std::move(ff), std::move(largs));
+}
+template <class L>
+inline auto Button(L lbl)
+{
+    return node(Node(sigs::g.SIGBUTTON), std::move(lbl));
+}
+template <class L>
+inline auto Checkbox(L lbl)
+{
+    return node(Node(sigs::g.SIGCHECKBOX), std::move(lbl));
+}
+inline auto Waveform()
+{
+    return headOnly(Node(sigs::g.SIGWAVEFORM));  // n-ary: head only
+}
+template <class L, class I, class Lo, class Hi, class St>
+inline auto VSlider(L lbl, I i, Lo lo, Hi hi, St st)
+{
+    return node(Node(sigs::g.SIGVSLIDER), std::move(lbl),
+                list4p(std::move(i), std::move(lo), std::move(hi), std::move(st)));
+}
+template <class L, class I, class Lo, class Hi, class St>
+inline auto HSlider(L lbl, I i, Lo lo, Hi hi, St st)
+{
+    return node(Node(sigs::g.SIGHSLIDER), std::move(lbl),
+                list4p(std::move(i), std::move(lo), std::move(hi), std::move(st)));
+}
+template <class L, class I, class Lo, class Hi, class St>
+inline auto NumEntry(L lbl, I i, Lo lo, Hi hi, St st)
+{
+    return node(Node(sigs::g.SIGNUMENTRY), std::move(lbl),
+                list4p(std::move(i), std::move(lo), std::move(hi), std::move(st)));
+}
+template <class L, class Lo, class Hi, class X>
+inline auto HBargraph(L lbl, Lo lo, Hi hi, X x)
+{
+    return node(Node(sigs::g.SIGHBARGRAPH), std::move(lbl), std::move(lo), std::move(hi),
+                std::move(x));
+}
+template <class L, class Lo, class Hi, class X>
+inline auto VBargraph(L lbl, Lo lo, Hi hi, X x)
+{
+    return node(Node(sigs::g.SIGVBARGRAPH), std::move(lbl), std::move(lo), std::move(hi),
+                std::move(x));
+}
+template <class L>
+inline auto SoundFile(L lbl)
+{
+    return node(Node(sigs::g.SIGSOUNDFILE), std::move(lbl));
+}
+template <class S, class P>
+inline auto SoundFileLength(S sf, P part)
+{
+    return node(Node(sigs::g.SIGSOUNDFILELENGTH), std::move(sf), std::move(part));
+}
+template <class S, class P>
+inline auto SoundFileRate(S sf, P part)
+{
+    return node(Node(sigs::g.SIGSOUNDFILERATE), std::move(sf), std::move(part));
+}
+template <class S, class C, class P, class R>
+inline auto SoundFileBuffer(S sf, C chan, P part, R ri)
+{
+    return node(Node(sigs::g.SIGSOUNDFILEBUFFER), std::move(sf), std::move(chan),
+                std::move(part), std::move(ri));
+}
+template <class N, class S>
+inline auto Register(N n, S s)
+{
+    return node(Node(sigs::g.SIGREGISTER), std::move(n), std::move(s));
+}
+/// The generic binary operation, with the OPCODE as a sub-pattern (bind it as a
+/// tree and read the int in the rule body).
+template <class O, class X, class Y>
+inline auto BinOp(O op, X x, Y y)
+{
+    return node(Node(sigs::g.SIGBINOP), std::move(op), std::move(x), std::move(y));
 }
 
 /// An extended-primitive application, destructured by name (mirrors

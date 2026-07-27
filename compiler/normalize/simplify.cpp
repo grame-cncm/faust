@@ -146,7 +146,7 @@ static Tree simplification(Tree sig)
     Tree t1, t2;
     if (isSigBinOp(sig, &opnum, t1, t2)) {
         // the generic frame: rules valid FOR ALL operators, driven by the op tables
-        BinOp* op = gBinOpTable[opnum];
+        ::BinOp* op = gBinOpTable[opnum];
         Node   n1 = t1->node();
         Node   n2 = t2->node();
 
