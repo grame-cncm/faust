@@ -206,7 +206,14 @@ static Tree normalizeFixpoint(Tree L)
     Tree       prevPrev = nullptr;
     uint64_t   prevAch  = 0;
     bool       haveAch  = false;
-    while (iter < 10) {
+    // Iteration budget (Yann's backstop heuristic); MAXITER=1 isolates the eta
+    // harvest (merge + propagation + simplify + eta, one pass) from the effects
+    // of iterated re-normalization -- the two measure differently.
+    int maxIter = 10;
+    if (const char* e = getenv("FAUST_NORMALIZE_FIXPOINT_MAXITER")) {
+        maxIter = atoi(e);
+    }
+    while (iter < maxIter) {
         Tree d = sym2deBruijn(L);
         if (d == prev) {
             break;  // the de Bruijn form is pointer-stable: fixpoint reached
