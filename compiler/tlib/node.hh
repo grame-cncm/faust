@@ -57,6 +57,8 @@
 #include <cmath>
 #include <iostream>
 
+#include <cstdint>
+#include <cstring>
 #include <sstream>
 
 #include "garbageable.hh"
@@ -83,6 +85,18 @@ class Node : public Garbageable {
     } fData;
 
    public:
+
+    /// The payload as an opaque 64-bit word, without reading an inactive union
+    /// member : memcpy is the C++17 spelling of bit_cast, and folds to a single
+    /// load at -O2. Used by the equality below ; canonicalHash uses the same
+    /// idiom for its double case.
+    std::uint64_t payload() const
+    {
+        std::uint64_t w;
+        static_assert(sizeof(w) == sizeof(fData), "the payload union must be one 64-bit word");
+        memcpy(&w, &fData, sizeof(w));
+        return w;
+    }
 
     /// Value-derived hash, identical across processes : symbols hash by NAME. Pointer
     /// payloads fall back to the pointer (non-canonical -- box primitives only, which
@@ -148,8 +162,19 @@ class Node : public Garbageable {
     }
 
     // predicats
-    bool operator==(const Node& n) const { return fType == n.fType && fData.v == n.fData.v; }
-    bool operator!=(const Node& n) const { return fType != n.fType || fData.v != n.fData.v; }
+
+    ///< Equality compares the payload as RAW BITS (through the widest union member),
+    ///< never by value. This is not an optimization, hash-consing DEPENDS on it :
+    ///< IEEE equality is not reflexive -- a NaN is not equal to itself -- so a table
+    ///< built on '==' would never find a NaN node it had just inserted and would
+    ///< allocate new ones forever. Bitwise comparison makes node equality a genuine
+    ///< equivalence relation. The price, in the other direction : +0.0 and -0.0 have
+    ///< different bit patterns and are therefore different nodes. Both consequences
+    ///< are pinned by tests in tour-examples.cpp.
+    ///< Narrow constructors zero fData.f first so the unused bits are deterministic,
+    ///< which is what makes the whole-word comparison exact for every payload type.
+    bool operator==(const Node& n) const { return fType == n.fType && payload() == n.payload(); }
+    bool operator!=(const Node& n) const { return fType != n.fType || payload() != n.payload(); }
 
     // accessors
     int type() const { return fType; }

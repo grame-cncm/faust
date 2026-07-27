@@ -290,6 +290,10 @@ bool CTree::equiv(const Node& n, const tvec& br) const
     return (fNode == n) && (fBranch == br);
 }
 
+// Branches are compared BY POINTER, not structurally. That is sound only because
+// every child was itself obtained from make() and so already satisfies the
+// unique-representative property : the invariant is maintained inductively from the
+// leaves up. Comparing structurally here would make construction quadratic.
 bool CTree::equiv(const Node& n, int ar, const Tree br[]) const
 {
     if (fNode != n || fBranch.size() != size_t(ar)) {

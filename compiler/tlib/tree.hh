@@ -181,7 +181,8 @@ class TLIB_API CTree : public Garbageable {
                                 ///< (node canonicalHash + children, order-sensitive) :
                                 ///< identical across processes, unlike serials
     // fAperture and fContains share one 32-bit word : a deBruijn depth never comes close to
-    // 24 bits, which buys 8 synthesized flag bits for free (sizeof(CTree) stays 112).
+    // 24 bits, which buys 8 synthesized flag bits for free (the pair occupies the single
+    // 4-byte slot a lone aperture field would take, so the flags do not grow the struct).
     // fAperture stays SIGNED : calcTreeAperture returns br[0]->fAperture - 1 on a rec node,
     // which can be negative.
     int          fAperture : 24;  ///< how "open" is a tree (synthesized field)
