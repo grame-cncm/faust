@@ -62,6 +62,37 @@
 
 using namespace std;
 
+/**
+ * The compilation-order strategy (experimental, FAUST_OCPP_SCHEDULE): df (the
+ * default, deep-first), bf (breadth-first levels), sp (special), dfcycles /
+ * bfcycles (DAG of cycles, then deep-first inside), rb (reverse breadth-first).
+ * All are dependencies-first, so the generated code is a reordering of the same
+ * statements -- semantics unchanged, performance to be measured.
+ */
+static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
+{
+    const char* m = getenv("FAUST_OCPP_SCHEDULE");
+    if (m == nullptr || strcmp(m, "df") == 0) {
+        return dfschedule(G);
+    }
+    if (strcmp(m, "bf") == 0) {
+        return bfschedule(G);
+    }
+    if (strcmp(m, "sp") == 0) {
+        return spschedule(G);
+    }
+    if (strcmp(m, "dfcycles") == 0) {
+        return dfcyclesschedule(G);
+    }
+    if (strcmp(m, "bfcycles") == 0) {
+        return bfcyclesschedule(G);
+    }
+    if (strcmp(m, "rb") == 0) {
+        return rbschedule(G);
+    }
+    return dfschedule(G);
+}
+
 static Klass* signal2klass(Klass* parent, const string& name, Tree sig)
 {
     Type t = getCertifiedSigType(sig);  //, NULLENV);
@@ -475,7 +506,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
 
     // force a specific compilation order
     auto G = immediateGraph(L);
-    auto S = dfschedule(G);
+    auto S = ocppSchedule(G);
     // register the compilation order S for debug purposes
     {
         int jj = 0;
@@ -552,7 +583,7 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
 #endif
     // force a specific compilation order
     auto G = immediateGraph(cons(sig, gGlobal->nil));
-    auto S = dfschedule(G);
+    auto S = ocppSchedule(G);
 #ifdef TRACE
     std::cerr << "\nBEFORE COMPILING SINGLE SIGNAL" << std::endl;
     std::cerr << G << std::endl;
