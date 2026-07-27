@@ -435,6 +435,8 @@ void global::reset()
     tlib::setHashLoadFactor(gHashLoadFactor);
     gRangeUI        = false;
     gFreezeUI       = false;
+    gEtaHarvest     = false;
+    gEtaIterations  = 1;
 
     gFloatSize      = 1;             // -single by default
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
@@ -784,6 +786,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gRangeUI) {
         dst << "-rui ";
+    }
+    if (gEtaHarvest) {
+        dst << "-etai " << gEtaIterations << " ";
     }
     if (gNoVirtual) {
         dst << "-nvi ";
@@ -1532,6 +1537,15 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-fui", "--freeze-ui")) {
             gFreezeUI = true;
             i += 1;
+
+        } else if (isCmd(argv[i], "-eta", "--eta-normalization")) {
+            gEtaHarvest = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-etai", "--eta-iterations")) {
+            gEtaHarvest    = true;
+            gEtaIterations = std::atoi(argv[i + 1]);
+            i += 2;
 
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
             gFastMathLib = argv[i + 1];
@@ -2312,6 +2326,14 @@ string global::printHelp()
             "vslider/hslider/nentry "
             "values "
             "in [min..max] range."
+         << endl;
+    sstr << tab
+         << "-eta        --eta-normalization         normalization loop with the eta harvest: "
+            "definitions no longer recursive replace their projections (one pass by default)."
+         << endl;
+    sstr << tab
+         << "-etai <n>   --eta-iterations <n>        iteration budget of the eta normalization "
+            "loop (implies -eta; the loop may stop earlier)."
          << endl;
     sstr << tab
          << "-fui        --freeze-ui                 whether to freeze vslider/hslider/nentry to a "

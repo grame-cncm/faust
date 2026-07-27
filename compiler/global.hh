@@ -289,6 +289,11 @@ struct global {
                      // in [min..max] range
     bool gFreezeUI;  // -fui option, whether to freeze vslider/hslider/nentry to a given value (init
                      // value by default)
+    bool gEtaHarvest;     // -eta option, normalization loop with the eta harvest (a projection
+                          // whose definition no longer references its group is replaced by the
+                          // definition: the recursion and its state disappear)
+    int  gEtaIterations;  // -etai option, iteration budget of the normalization loop (default 1;
+                          // the AC judge may stop earlier)
     int  gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
     double gHashLoadFactor;  // -hlf option, tlib CTree/Symbol hash table growth threshold
                               // (0.7 by default, see TLIB.md §1) : purely an internal

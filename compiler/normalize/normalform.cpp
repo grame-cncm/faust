@@ -42,7 +42,7 @@ using namespace std;
 // Implementation
 
 //----------------------------------------------------------------------------------------
-// The normalization fixpoint (experimental, FAUST_NORMALIZE_FIXPOINT).
+// The normalization fixpoint (-eta / -etai <n>).
 //
 // Interval-driven constant propagation changes the TOPOLOGY of recursions: a
 // projection with a singleton interval becomes a constant, edges of the dependency
@@ -206,13 +206,11 @@ static Tree normalizeFixpoint(Tree L)
     Tree       prevPrev = nullptr;
     uint64_t   prevAch  = 0;
     bool       haveAch  = false;
-    // Iteration budget (Yann's backstop heuristic); MAXITER=1 isolates the eta
-    // harvest (merge + propagation + simplify + eta, one pass) from the effects
-    // of iterated re-normalization -- the two measure differently.
-    int maxIter = 10;
-    if (const char* e = getenv("FAUST_NORMALIZE_FIXPOINT_MAXITER")) {
-        maxIter = atoi(e);
-    }
+    // Iteration budget (-etai, default 1): one pass isolates the eta harvest
+    // (merge + propagation + simplify + eta) from the effects of iterated
+    // re-normalization -- the two measure differently; the AC judge may stop
+    // the loop before the budget is spent.
+    const int maxIter = gGlobal->gEtaIterations;
     while (iter < maxIter) {
         Tree d = sym2deBruijn(L);
         if (d == prev) {
@@ -392,7 +390,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
         endTiming("L4 typeAnnotation");
     }
 
-    if (getenv("FAUST_NORMALIZE_FIXPOINT") != nullptr) {
+    if (gGlobal->gEtaHarvest) {
         startTiming("normalizeFixpoint");
         L4 = normalizeFixpoint(L4);
         endTiming("normalizeFixpoint");
