@@ -19,6 +19,12 @@
  ************************************************************************
  ************************************************************************/
 
+// P<T> is a NULL-CHECKING pointer wrapper, nothing more : dereferencing a null P
+// goes through tlib-error instead of crashing. It does NOT own, count references,
+// or free anything (the destructor is empty) -- memory follows the session model
+// of garbageable.hh. tlib itself never uses it ; it is kept for legacy consumers
+// (e.g. the audio types : Type = P<AudioType> in sigtype.hh).
+
 #ifndef _SMARTPOINTER_H
 #define _SMARTPOINTER_H
 

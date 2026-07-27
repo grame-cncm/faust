@@ -27,9 +27,12 @@
 Trees are made of a Node associated with a list of branches : (Node x [CTree]).
 Up to 4 branches are allowed in this implementation. A hash table is used to
 maximize the sharing of trees during construction : trees at different
-addresses always have a different content. Reference counting is used for
-garbage collection, and smart pointers P<CTree> should be used for permanent
-storage of trees.
+addresses always have a different content. Memory follows the SESSION model
+(garbageable.hh) : trees are allocated freely during a session and all freed
+at once by tlib::cleanup(). There is NO reference counting -- a raw Tree
+pointer is valid for the whole session, nothing else is needed for storage.
+(P<CTree> from smartpointer.hh is a null-checking wrapper kept for legacy
+consumers ; the library itself does not use it.)
 
  API:
  ----
