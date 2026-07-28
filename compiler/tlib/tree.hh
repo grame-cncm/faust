@@ -172,8 +172,6 @@ class TLIB_API CTree : public Garbageable {
     Tree         fNext;         ///< next tree in the same hashtable entry
     Node         fNode;         ///< the node content of the tree
     void*        fType;         ///< the type of a tree
-    Tree         fFastProperty; ///< generic single-slot fast path for one caller-chosen "hot"
-                                 ///< property, bypassing fProperties entirely (see setFastProperty)
     plist*       fProperties;   ///< lazily allocated; nullptr means no property set
     std::size_t  fHashKey;      ///< the hashtable key
     std::size_t  fSerial;       ///< the increasing serial number
@@ -288,16 +286,6 @@ class TLIB_API CTree : public Garbageable {
     // type information
     void  setType(void* t) { fType = t; }
     void* getType() { return fType; }
-
-    // Generic fast-path slot for one caller-chosen property : one dedicated field instead of a
-    // map entry, for a property so widely used that the map overhead isn't worth paying. It is not
-    // namespaced by key like setProperty/getProperty, so AT MOST ONE caller in the whole program
-    // may claim it -- two unrelated users would silently overwrite each other. Currently
-    // UNCLAIMED : the historical claimant (Faust's propagation memo, ~20% of property traffic
-    // when measured) moved to its own table keyed by plain C++ data, because on large parallel
-    // structures the cost was building the hash-consed KEY, not the map lookup.
-    void setFastProperty(Tree value) { fFastProperty = value; }
-    Tree getFastProperty() { return fFastProperty; }
 
     // Keep track of visited trees (WARNING : non reentrant)
     static void startNewVisit() { ++gVisitTime; }

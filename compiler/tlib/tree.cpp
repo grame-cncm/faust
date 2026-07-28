@@ -208,7 +208,6 @@ CTree::CTree(size_t hk, const Node& n, const tvec& br)
 CTree::CTree(size_t hk, const Node& n, int ar, const Tree br[])
     : fNode(n),
       fType(0),
-      fFastProperty(nullptr),
       fProperties(nullptr),
       fHashKey(hk),
       fSerial(++gSerialCounter),
