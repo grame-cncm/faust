@@ -29,6 +29,8 @@
 #pragma warning(disable : 4251 4275 4800)
 #endif
 
+#include <math.h>
+
 #include "compatibility.hh"
 #include "libfaust.h"
 #include "wasm_dsp_aux.hh"
@@ -163,22 +165,22 @@ static wasm_functype_t* fn_2_1(wasm_valkind_t p0, wasm_valkind_t p1, wasm_valkin
 
 #endif
 
-UNARY_CB(_sinf, std::sinf, WASM_F32)
-UNARY_CB(_cosf, std::cosf, WASM_F32)
-UNARY_CB(_tanf, std::tanf, WASM_F32)
-UNARY_CB(_asinf, std::asinf, WASM_F32)
-UNARY_CB(_acosf, std::acosf, WASM_F32)
-UNARY_CB(_atanf, std::atanf, WASM_F32)
-UNARY_CB(_expf, std::expf, WASM_F32)
-UNARY_CB(_logf, std::logf, WASM_F32)
-UNARY_CB(_log10f, std::log10f, WASM_F32)
-UNARY_CB(_roundf, std::roundf, WASM_F32)
-UNARY_CB(_sinhf, std::sinhf, WASM_F32)
-UNARY_CB(_coshf, std::coshf, WASM_F32)
-UNARY_CB(_tanhf, std::tanhf, WASM_F32)
-UNARY_CB(_asinhf, std::asinhf, WASM_F32)
-UNARY_CB(_acoshf, std::acoshf, WASM_F32)
-UNARY_CB(_atanhf, std::atanhf, WASM_F32)
+UNARY_CB(_sinf, ::sinf, WASM_F32)
+UNARY_CB(_cosf, ::cosf, WASM_F32)
+UNARY_CB(_tanf, ::tanf, WASM_F32)
+UNARY_CB(_asinf, ::asinf, WASM_F32)
+UNARY_CB(_acosf, ::acosf, WASM_F32)
+UNARY_CB(_atanf, ::atanf, WASM_F32)
+UNARY_CB(_expf, ::expf, WASM_F32)
+UNARY_CB(_logf, ::logf, WASM_F32)
+UNARY_CB(_log10f, ::log10f, WASM_F32)
+UNARY_CB(_roundf, ::roundf, WASM_F32)
+UNARY_CB(_sinhf, ::sinhf, WASM_F32)
+UNARY_CB(_coshf, ::coshf, WASM_F32)
+UNARY_CB(_tanhf, ::tanhf, WASM_F32)
+UNARY_CB(_asinhf, ::asinhf, WASM_F32)
+UNARY_CB(_acoshf, ::acoshf, WASM_F32)
+UNARY_CB(_atanhf, ::atanhf, WASM_F32)
 
 UNARY_CB(_sin, std::sin, WASM_F64)
 UNARY_CB(_cos, std::cos, WASM_F64)
@@ -197,10 +199,10 @@ UNARY_CB(_asinh, std::asinh, WASM_F64)
 UNARY_CB(_acosh, std::acosh, WASM_F64)
 UNARY_CB(_atanh, std::atanh, WASM_F64)
 
-BINARY_CB(_atan2f, std::atan2f, WASM_F32)
-BINARY_CB(_fmodf, std::fmodf, WASM_F32)
-BINARY_CB(_powf, std::powf, WASM_F32)
-BINARY_CB(_remainderf, std::remainderf, WASM_F32)
+BINARY_CB(_atan2f, ::atan2f, WASM_F32)
+BINARY_CB(_fmodf, ::fmodf, WASM_F32)
+BINARY_CB(_powf, ::powf, WASM_F32)
+BINARY_CB(_remainderf, ::remainderf, WASM_F32)
 
 BINARY_CB(_atan2, std::atan2, WASM_F64)
 BINARY_CB(_fmod, std::fmod, WASM_F64)
@@ -511,7 +513,9 @@ int wasm_dsp::callIntExport(const char* name)
     wasmtime_extern_t ext;
     wasmtime_instance_export_get(CTX(fStore), &fInstance, name, strlen(name), &ext);
 
-    wasmtime_val_t arg{.kind = WASM_I32, .of = {.i32 = 0}};
+    wasmtime_val_t arg;
+    arg.kind   = WASM_I32;
+    arg.of.i32 = 0;
     wasmtime_val_t out;
     wasm_trap_t*   trap = nullptr;
     wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, &out, 1, &trap);
@@ -536,7 +540,9 @@ void wasm_dsp::instanceResetUserInterface()
     wasmtime_extern_t ext;
     wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceResetUserInterface",
                                  strlen("instanceResetUserInterface"), &ext);
-    wasmtime_val_t arg{.kind = WASM_I32, .of = {.i32 = 0}};
+    wasmtime_val_t arg;
+    arg.kind   = WASM_I32;
+    arg.of.i32 = 0;
     wasm_trap_t*   trap = nullptr;
     wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);
 }
@@ -546,7 +552,9 @@ void wasm_dsp::instanceClear()
     wasmtime_extern_t ext;
     wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceClear", strlen("instanceClear"),
                                  &ext);
-    wasmtime_val_t arg{.kind = WASM_I32, .of = {.i32 = 0}};
+    wasmtime_val_t arg;
+    arg.kind   = WASM_I32;
+    arg.of.i32 = 0;
     wasm_trap_t*   trap = nullptr;
     wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);
 }
