@@ -290,10 +290,12 @@ class TLIB_API CTree : public Garbageable {
     void* getType() { return fType; }
 
     // Generic fast-path slot for one caller-chosen property : one dedicated field instead of a
-    // map entry, for a property so widely used that the map overhead isn't worth paying. Only one
-    // caller should claim this (currently compiler/propagate/propagate.cpp's PropagateProperty,
-    // ~20% of all property traffic measured on examples/*.dsp) : it is not namespaced by key like
-    // setProperty/getProperty, so two unrelated callers using it on the same trees would collide.
+    // map entry, for a property so widely used that the map overhead isn't worth paying. It is not
+    // namespaced by key like setProperty/getProperty, so AT MOST ONE caller in the whole program
+    // may claim it -- two unrelated users would silently overwrite each other. Currently
+    // UNCLAIMED : the historical claimant (Faust's propagation memo, ~20% of property traffic
+    // when measured) moved to its own table keyed by plain C++ data, because on large parallel
+    // structures the cost was building the hash-consed KEY, not the map lookup.
     void setFastProperty(Tree value) { fFastProperty = value; }
     Tree getFastProperty() { return fFastProperty; }
 
