@@ -45,8 +45,17 @@ option ( LINK_LLVM_STATIC          "Link LLVM statically" on )
 option ( INCLUDE_LLVM_STATIC_IN_ARCHIVE "Combine static LLVM .a files and libfaust.a in a single .a file" on )
 
 if (INCLUDE_WASMTIME)
-    set(WASMTIME_LIB /usr/local/lib/libwasmtime.a)
-    link_directories(/usr/local/lib)
+    # WASMTIME_LIB / WASMTIME_INCLUDE_DIR let an embedder point at a prebuilt
+    # wasmtime C API (the official release artifacts) instead of a system-wide
+    # install. Unset, the historical /usr/local layout is used.
+    if (NOT WASMTIME_LIB)
+        set(WASMTIME_LIB /usr/local/lib/libwasmtime.a)
+    endif()
+    get_filename_component(WASMTIME_LIB_DIR ${WASMTIME_LIB} DIRECTORY)
+    link_directories(${WASMTIME_LIB_DIR})
+    if (WASMTIME_INCLUDE_DIR)
+        include_directories(${WASMTIME_INCLUDE_DIR})
+    endif()
     add_compile_definitions(WASMTIME)
 endif()
 
