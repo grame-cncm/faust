@@ -9,7 +9,35 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import json
 import os
+import sys
 from pathlib import Path
+
+def control_file_path():
+    """Where the plugin looks for the DSP path to load.
+
+    Mirrors controlFilePath() in dynamic-faust.cpp. The file used to live at a
+    fixed /tmp path, which meant every plugin instance on the machine followed
+    the same DSP and any local user could rewrite it. It is now per user and
+    private, and FAUST_CLAP_CONTROL overrides it so that two instances can
+    follow two different programs.
+    """
+    override = os.environ.get("FAUST_CLAP_CONTROL")
+    if override:
+        return override
+
+    if sys.platform == "win32":
+        base = os.environ.get("LOCALAPPDATA", "")
+        directory = os.path.join(base, "faust-clap")
+    elif sys.platform == "darwin":
+        directory = os.path.expanduser("~/Library/Application Support/faust-clap")
+    else:
+        base = os.environ.get("XDG_RUNTIME_DIR") or os.environ.get("XDG_CONFIG_HOME")
+        directory = (os.path.join(base, "faust-clap") if base
+                     else os.path.expanduser("~/.config/faust-clap"))
+
+    os.makedirs(directory, mode=0o700, exist_ok=True)
+    return os.path.join(directory, "current-dsp.txt")
+
 
 class FaustHotReloadGUI:
     def __init__(self):
@@ -17,8 +45,9 @@ class FaustHotReloadGUI:
         self.root.title("Faust Hot Reload")
         self.root.geometry("600x500")
         
-        # config file path for the plugin
-        self.config_file = "/tmp/faust-current-dsp.txt"
+        # Control file the plugin watches. Must resolve exactly as
+        # controlFilePath() does in dynamic-faust.cpp.
+        self.config_file = control_file_path()
         
         # history file to remember loaded DSP files
         self.history_file = os.path.expanduser("~/.faust-hot-reload-history.json")
@@ -192,8 +221,9 @@ class FaustHotReloadGUI:
                 # show success with note about compilation
                 messagebox.showinfo("File Loaded", 
                     f"DSP file loaded:\n{filename}\n\n" +
-                    "Note: If the DSP has compilation errors, check Reaper's console output.\n" +
-                    "The plugin will show '❌ Compilation error' in the terminal.")
+                    "Note: If the DSP has compilation errors, the plugin keeps\n" +
+                    "playing the previous one and prints the Faust error to the\n" +
+                    "terminal. Run your DAW from a terminal to see it.")
             
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load DSP file:\n{str(e)}")
