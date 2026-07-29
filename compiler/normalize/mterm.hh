@@ -29,6 +29,7 @@
 #include "exception.hh"
 #include "garbageable.hh"
 #include "normalize.hh"
+#include "global.hh"
 #include "signals.hh"
 #include "sigorderrules.hh"
 #include "sigprint.hh"
@@ -40,11 +41,30 @@
  * k*x^n*y^m*... and its arithmetic.
  */
 
+/**
+ * The normal-form term order (-co option) : by default SERIAL (the historical,
+ * construction-driven order -- measured performance parity with the code the
+ * compiler always produced) ; with -co, CANONICAL (value-derived,
+ * history-independent -- the instrument of bit-identical A/B validation, and
+ * a stabilizer of the -eta fixpoint). The two choices are deliberately
+ * orthogonal to -eta : running the eta loop under the serial order is allowed,
+ * and if it never converges the iteration budget stops it.
+ */
+struct NormalFormTreeLess {
+    bool operator()(Tree a, Tree b) const
+    {
+        if (gGlobal->gCanonicalOrder) {
+            return CanonicalTreeLess()(a, b);
+        }
+        return std::less<CTree*>()(a, b);
+    }
+};
+
 class mterm : public virtual Garbageable {
     Tree                fCoef;     ///< constant part of the term (usually 1 or -1)
     // Canonical order : the normalized product must emit its factors in an order
     // derived from VALUES, never from node serials (construction history).
-    std::map<Tree, int, CanonicalTreeLess> fFactors;  ///< non constant terms and their power
+    std::map<Tree, int, NormalFormTreeLess> fFactors;  ///< non constant terms and their power
 
    public:
     mterm();                ///< create a 0 mterm

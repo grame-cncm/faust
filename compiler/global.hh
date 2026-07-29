@@ -294,6 +294,9 @@ struct global {
                           // definition: the recursion and its state disappear)
     int  gEtaIterations;  // -etai option, iteration budget of the normalization loop (default 1;
                           // the AC judge may stop earlier)
+    bool gCanonicalOrder;  // -co option, value-derived (history-independent) order for the terms
+                           // of normalized sums and products; default false = serial order (the
+                           // historical, construction-driven order). Orthogonal to -eta.
     int  gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
     double gHashLoadFactor;  // -hlf option, tlib CTree/Symbol hash table growth threshold
                               // (0.7 by default, see TLIB.md §1) : purely an internal
