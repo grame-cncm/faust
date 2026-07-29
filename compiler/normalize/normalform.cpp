@@ -355,16 +355,20 @@ static Tree simplifyToNormalFormAux(Tree LS)
     Tree L2 = signalPromote(L1);
     endTiming("Cast and Promotion");
 
-    // Canonical names BEFORE the normal form : the term orders of the normalized
-    // sums and products hash the recursive variables by NAME, so the names must
-    // already be history-independent here (simplify also reads types : re-annotate).
-    startTiming("canonicalizeRecNames");
-    L2 = canonicalizeRecNames(L2);
-    endTiming("canonicalizeRecNames");
+    // Canonical names BEFORE the normal form (only under -co) : the CANONICAL
+    // term orders hash the recursive variables by name, so the names must be
+    // history-independent before normalization. Under the default serial order
+    // this pass serves nothing and its fresh variables would shift the serials
+    // (a reorder of the generated code) : it follows the option it serves.
+    if (gGlobal->gCanonicalOrder) {
+        startTiming("canonicalizeRecNames");
+        L2 = canonicalizeRecNames(L2);
+        endTiming("canonicalizeRecNames");
 
-    startTiming("L2 typeAnnotation");
-    typeAnnotation(L2, gGlobal->gLocalCausalityCheck);
-    endTiming("L2 typeAnnotation");
+        startTiming("L2 typeAnnotation");
+        typeAnnotation(L2, gGlobal->gLocalCausalityCheck);
+        endTiming("L2 typeAnnotation");
+    }
 
     // Simplify by executing every computable operation
     startTiming("L2 simplification");
@@ -415,17 +419,21 @@ static Tree simplifyToNormalFormAux(Tree LS)
         endTiming("normalizeFixpoint");
     }
 
-    // Canonical recursive-variable naming : names AND node serials in plan order, so
-    // the downstream serial-ordered consumers (symbol sets, loop scheduling) become
-    // independent of the transformation history -- the generated code is the same for
-    // alpha-equivalent trees.
-    startTiming("canonicalizeRecNames");
-    L4 = canonicalizeRecNames(L4);
-    endTiming("canonicalizeRecNames");
+    // Canonical recursive-variable naming (only under -co) : names AND node serials
+    // in plan order, so the downstream serial-ordered consumers (symbol sets, loop
+    // scheduling) become independent of the transformation history -- the generated
+    // code is the same for alpha-equivalent trees. Like the canonical term order it
+    // serves, this is opt-in : the default serial regime keeps the historical,
+    // construction-driven serials (and their measured performance).
+    if (gGlobal->gCanonicalOrder) {
+        startTiming("canonicalizeRecNames");
+        L4 = canonicalizeRecNames(L4);
+        endTiming("canonicalizeRecNames");
 
-    startTiming("L4 typeAnnotation");
-    typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
-    endTiming("L4 typeAnnotation");
+        startTiming("L4 typeAnnotation");
+        typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
+        endTiming("L4 typeAnnotation");
+    }
 
     // Check signal tree
     startTiming("L4 signalChecker");
