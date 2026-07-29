@@ -25,20 +25,47 @@ In addition to this static mode, a dynamic implementation has been added. In thi
 ### 🛠️ Static build 
 Generate and build a static CLAP plugin from your DSP file
 
-```python
-python tools/faust2clap/faust2clap.py your_file.dsp
+```shell
+faust2clap your_file.dsp
 ```
 ```shell
 optional flags:
-  -mono        generate monophonic plugin
-  -poly        generate polyphonic plugin (default)
-  -nvoices N   set number of polyphonic voices (default: 16)
+  -nvoices N   build a polyphonic instrument with N voices
+  -midi        accepted for consistency; CLAP plugins always receive host MIDI
+  --clap-sdk DIR   directory holding clap-sdk/ and clap-helpers/
+  --no-install     build only, do not copy into the user CLAP directory
 ```
 
-The plugin will be automatically built and installed to:
-```shell
-~/Library/Audio/Plug-Ins/CLAP/your_file.clap
-```
+Polyphony follows the same convention as the other `faust2xx` tools:
+`-nvoices N` requests it, otherwise the DSP's own `declare nvoices "N";` is
+used, otherwise the plugin is monophonic. There is no flag to force mono —
+no sibling tool has one, and a `declare nvoices` is the DSP saying what it is. Unrecognised options are passed
+through to the Faust compiler, so `-vec -lv 0 -I /path/to/lib` behave as
+elsewhere.
+
+`-osc` and `-soundfile` are refused rather than ignored: the CLAP architecture
+builds neither interface, so accepting them would produce a plugin silently
+missing what was asked for.
+
+Generated sources and the build tree are written beside the input `.dsp`, in a
+`<name>-clap/` directory. The `-clap` suffix matters: `<name>` on its own is
+what `faust2caqt`, `faust2jaqt` and other siblings call the executable they
+build from the same program, so an unsuffixed directory would collide with it.
+
+The plugin is built and installed into the per-user CLAP directory for the
+platform, as listed in the CLAP specification (`clap/entry.h`):
+
+| Platform | Destination |
+|---|---|
+| macOS | `~/Library/Audio/Plug-Ins/CLAP` |
+| Linux | `~/.clap` |
+| Windows | `%LOCALAPPDATA%\Programs\Common\CLAP` |
+
+Setting `CLAP_PATH` overrides this — its first entry is used, so builds land
+wherever your hosts already look. `--no-install` builds without copying.
+
+On macOS the plugin is a `.clap` bundle; elsewhere it is a `.clap` shared
+object. Only the macOS path has been exercised so far.
 
 ###  Dynamic (Interpreter) mode
 Build the dynamic hot-reload plugin
@@ -118,7 +145,15 @@ The dynamic plugin watches bash `/tmp/faust-current-dsp.txt`  for DSP file paths
 ---
 
 ## 🔐 Broader Limitations
-- Design choice of a 12 fixed-parameter system places a limitation on dsp designs requiring more parameters (e.g a complex synthesiser), one could say this is a tool targeted towards effects processing, mainly.
+- The 12 fixed-parameter ceiling applies to the **dynamic** hot-reload plugin
+  only (`architecture/clap/simple-faust.cpp`), where fixed slots are what lets
+  a host keep its parameter assignments across a reload. The static path
+  (`clap-arch.cpp`) uses `fUI.getParamsCount()` and has no such limit.
+- The CLAP headers are installed with Faust (`share/faust/clap/include`), so
+  the tool works from a plain installation. It falls back to the `external/`
+  submodules in a source checkout, and `--clap-sdk DIR` / `CLAP_SDK_DIR`
+  override both. A Faust built without the submodules checked out will not
+  carry the headers, and `--clap-sdk` is then required.
 - No "friendly" UI, yet. I will be working on a JUCE implementation for the GUI and a on-display preset management system which will end the need for an external python script that runs the .dsp selector.
 - Although notably fast, utilising LLVM instead of the Interpreter could make it 3 to 10 times faster.
 

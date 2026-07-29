@@ -43,6 +43,9 @@ tests/impulse-tests/ir
 .idea/
 ### Pyenv
 .python-version
+### Python bytecode
+__pycache__/
+*.py[cod]
 ### Gradle (Android builds)
 .gradle/
 ### CMake

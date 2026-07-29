@@ -15,6 +15,8 @@ You can use 'sudo make install' to install them.
 
 * `faust2caqt  <file.dsp>` : create a CoreAudio/QT application for each input file
 
+* `faust2clap <file.dsp>` : create a CLAP plugin for each input file
+
 * `faust2csound <file.dsp>` : create a CSOUND plugin for each input file
 
 * `faust2dssi <file.dsp>` : create a DSSI plugin for each input file

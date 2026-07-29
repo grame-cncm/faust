@@ -425,7 +425,7 @@ install (
 
 ####################################
 # install faust2xxx tools
-file (GLOB FAUST2XXX ${ROOT}/tools/faust2appls/faust2* ${ROOT}/tools/faust2appls/faustremote ${ROOT}/tools/faust2appls/encoderunitypackage ${ROOT}/tools/faust2appls/usage.sh ${ROOT}/tools/faust2appls/filename2ident ${ROOT}/tools/faust2sc-1.0.0/faust2sc ${ROOT}/tools/faust2clap/faust2clap.py )
+file (GLOB FAUST2XXX ${ROOT}/tools/faust2appls/faust2* ${ROOT}/tools/faust2appls/faustremote ${ROOT}/tools/faust2appls/encoderunitypackage ${ROOT}/tools/faust2appls/usage.sh ${ROOT}/tools/faust2appls/filename2ident ${ROOT}/tools/faust2sc-1.0.0/faust2sc )
 install (
     FILES ${FAUST2XXX} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
@@ -489,6 +489,30 @@ install (
     FILES ${FAUSTDPSEMB} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust/embedded
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
+
+####################################
+# install the CLAP headers next to the CLAP architecture
+#
+# faust2clap compiles a plugin against these. They are git submodules rather
+# than repository content, so without this an installed Faust could not build
+# a CLAP plugin at all and the tool required a source checkout.
+#
+# Both projects ship headers under include/clap/ and the two trees do not
+# overlap, so they merge into one include root. Guarded on the submodules being
+# checked out: a build from a shallow clone must not fail here.
+if (EXISTS ${ROOT}/external/clap-sdk/include/clap/clap.h AND
+    EXISTS ${ROOT}/external/clap-helpers/include/clap/helpers)
+    install (
+        DIRECTORY ${ROOT}/external/clap-sdk/include/clap
+                  ${ROOT}/external/clap-helpers/include/clap
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust/clap/include
+        FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+        DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    )
+else()
+    message (STATUS "CLAP submodules absent: faust2clap will need --clap-sdk")
+endif()
 
 # install folders
 set (ARCHSRC android api AU audiokit autodiff chaos-stratus clap cmajor comparator daisy esp32 hothouse iOS jax juce julia max-msp nodejs osclib sam smartKeyboard svgplot teensy unity rust vcvrack webaudio wwise)
