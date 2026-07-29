@@ -2,8 +2,7 @@
 
 // this file implements a CLAP plugin backend by wrapping Faust's mydsp class.
 // it acts as a bridge between Faust-generated DSP code and the CLAP plugin API.
-<<includeIntrinsic>>
-
+<< includeIntrinsic >>
 // faust DSP and UI headers
 #include <faust/dsp/dsp.h>
 #include <faust/dsp/poly-dsp.h>
@@ -13,6 +12,22 @@
 #include <faust/gui/meta.h>
 #include <faust/midi/midi.h>  // faust midi types
 #include "plugin_metadata.h"
+
+// Unlocks the FAUST_INPUTS/FAUST_OUTPUTS block that `faust -uim` emits with the
+// generated class below. Must precede <<includeclass>>.
+#define FAUST_UIMACROS 1
+
+// That block also declares a control-registration macro per widget. Only the
+// arity constants are wanted here -- the UI is built through CLAPMapUI -- so
+// they are defined empty, as minimal-static.cpp and csound.cpp do.
+#define FAUST_ADDBUTTON(l, f)
+#define FAUST_ADDCHECKBOX(l, f)
+#define FAUST_ADDVERTICALSLIDER(l, f, i, a, b, s)
+#define FAUST_ADDHORIZONTALSLIDER(l, f, i, a, b, s)
+#define FAUST_ADDNUMENTRY(l, f, i, a, b, s)
+#define FAUST_ADDVERTICALBARGRAPH(l, f, a, b)
+#define FAUST_ADDHORIZONTALBARGRAPH(l, f, a, b)
+#define FAUST_ADDSOUNDFILE(l, f, s)
 
 // cpp logging
 #include <iostream>
@@ -24,7 +39,7 @@
 #include <clap/helpers/plugin.hh>
 
 // include user Faust-generated class placeholder
-<<includeclass>>
+<< includeclass >>
 
 // custom UI class inheriting Faust's MapUI to store parameter metadata
 struct CLAPMapUI : public MapUI {
@@ -164,8 +179,26 @@ class APlugin;
 using Base = clap::helpers::Plugin<clap::helpers::MisbehaviourHandler::Terminate,
                                    clap::helpers::CheckingLevel::Minimal>;
 
-// plugin features declaration
+// What kind of plugin this is, from the host's point of view.
+//
+// A DSP with no audio input is an instrument. Announcing audio-effect for
+// everything, as this did, files a synthesiser away with the reverbs: REAPER
+// records the kind in its plugin cache, so the instrument never shows up where
+// a musician looks for one.
+//
+// FAUST_INPUTS comes from the `-uim` macros, which faust2clap asks for; the
+// #ifdef keeps the file usable with a hand-written faust command line that
+// omits it, falling back to the conservative answer.
+#if defined(FAUST_INPUTS) && FAUST_INPUTS == 0
+#if defined(FAUST_IS_POLYPHONIC) && FAUST_IS_POLYPHONIC == 1
+static const char* gain_features[] = {CLAP_PLUGIN_FEATURE_INSTRUMENT,
+                                      CLAP_PLUGIN_FEATURE_SYNTHESIZER, nullptr};
+#else
+static const char* gain_features[] = {CLAP_PLUGIN_FEATURE_INSTRUMENT, nullptr};
+#endif
+#else
 static const char* gain_features[] = {CLAP_PLUGIN_FEATURE_AUDIO_EFFECT, nullptr};
+#endif
 
 // plugin descriptor structure describing metadata to the host
 constexpr static clap_plugin_descriptor_t gain_desc = {.clap_version = CLAP_VERSION_INIT,

@@ -43,6 +43,14 @@ no sibling tool has one, and a `declare nvoices` is the DSP saying what it is. U
 through to the Faust compiler, so `-vec -lv 0 -I /path/to/lib` behave as
 elsewhere.
 
+A DSP with no audio input is declared to hosts as an **instrument**
+(`[instrument]`, plus `[synthesizer]` when it is polyphonic); anything else is
+an `[audio-effect]`. The arity comes from the `-uim` macros, which the tool asks
+Faust for. This matters for more than tidiness: REAPER records the kind in its
+plugin cache, so a synthesiser announced as an effect never appears where a
+musician looks for one. After rebuilding a plugin whose kind changed, rescan in
+**Options → Preferences → Plug-ins → CLAP → Re-scan**.
+
 `-osc` and `-soundfile` are refused rather than ignored: the CLAP architecture
 builds neither interface, so accepting them would produce a plugin silently
 missing what was asked for.

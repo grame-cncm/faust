@@ -533,9 +533,14 @@ def main():
         "description": metadata.get("description", f"Generated from {base}.dsp"),
     }
 
+    # -uim emits FAUST_INPUTS/FAUST_OUTPUTS alongside the class, which is how
+    # the architecture file knows at compile time whether it is wrapping an
+    # instrument or an effect. Without it the arity is only reachable through
+    # getNumInputs(), a virtual member, and the plugin cannot describe itself
+    # honestly to a host.
     try:
         subprocess.run(
-            ["faust", "-a", arch_path, *faust_options, dsp_path, "-o", generated_cpp],
+            ["faust", "-a", arch_path, "-uim", *faust_options, dsp_path, "-o", generated_cpp],
             check=True,
         )
     except subprocess.CalledProcessError:
