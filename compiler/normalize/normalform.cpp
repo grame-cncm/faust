@@ -429,7 +429,12 @@ static Tree simplifyToNormalFormAux(Tree LS)
         startTiming("canonicalizeRecNames");
         L4 = canonicalizeRecNames(L4);
         endTiming("canonicalizeRecNames");
-
+    }
+    // Whoever rebuilt trees above (the renaming, or the -eta fixpoint) leaves them
+    // without type annotations : re-annotate for the passes that follow. This is
+    // tied to the REBUILDERS, not to -co -- the eta loop under serial order needs
+    // it just as much (first caught by zitaRev -etai 10 : assert sigtyperules:224).
+    if (gGlobal->gCanonicalOrder || gGlobal->gEtaHarvest) {
         startTiming("L4 typeAnnotation");
         typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
         endTiming("L4 typeAnnotation");
