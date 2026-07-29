@@ -3,6 +3,7 @@
 // this file implements a CLAP plugin backend by wrapping Faust's mydsp class.
 // it acts as a bridge between Faust-generated DSP code and the CLAP plugin API.
 << includeIntrinsic >>
+
 // faust DSP and UI headers
 #include <faust/dsp/dsp.h>
 #include <faust/dsp/poly-dsp.h>
@@ -43,6 +44,7 @@
 
 // custom UI class inheriting Faust's MapUI to store parameter metadata
 struct CLAPMapUI : public MapUI {
+
     // One entry per host-visible parameter, in DSP declaration order.
     //
     // MapUI's own index space cannot be reused for this. It walks
@@ -170,6 +172,18 @@ struct CLAPMapUI : public MapUI {
     {
         return validIndex(index) ? fParams[index].path : "";
     }
+
+    // A host is free to send a value outside the control's range. Faust code
+    // may index a table or drive a filter coefficient with it, so it is clamped
+    // before it ever reaches a DSP zone.
+    FAUSTFLOAT clampToRange(int index, FAUSTFLOAT value) const
+    {
+        if (!validIndex(index)) {
+            return value;
+        }
+        const ParamMeta& p = fParams[index];
+        return (value < p.min) ? p.min : ((value > p.max) ? p.max : value);
+    }
 };
 
 // forward declaration for Plugin class
@@ -234,6 +248,18 @@ class APlugin final : public Base {
     // constructor initialises base class with descriptor and host pointers
     APlugin(const clap_plugin_descriptor_t* desc, const clap_host_t* host) : Base(desc, host) {}
 
+    // Order matters. MidiUI deregisters itself from the handler on destruction,
+    // so it has to go first; MidiUI does not own the handler. mydsp_poly owns
+    // and deletes the voice it was given, so deleting fDSP is enough in both
+    // modes. Without this, every plugin a user added and removed leaked its DSP
+    // -- sixteen voices at a time for a polyphonic instrument.
+    ~APlugin()
+    {
+        delete fMidiUI;
+        delete fMidiHandler;
+        delete fDSP;
+    }
+
     bool init() noexcept override
     {
 // Check if FAUST_IS_POLYPHONIC is defined and set to 1
@@ -284,13 +310,14 @@ class APlugin final : public Base {
             return false;
         }
 
-        const auto* ev         = reinterpret_cast<const clap_event_param_value_t*>(hdr);
-        int         paramCount = fUI.getParamsCount();
-        if (ev->param_id >= uint32_t(paramCount)) {
+        const auto*    ev         = reinterpret_cast<const clap_event_param_value_t*>(hdr);
+        const uint32_t paramCount = uint32_t(fUI.getParamsCount());
+        if (ev->param_id >= paramCount) {
             return false;
         }
 
-        fUI.setParamValue(ev->param_id, ev->value);
+        const int index = int(ev->param_id);
+        fUI.setParamValue(index, fUI.clampToRange(index, FAUSTFLOAT(ev->value)));
         return true;
     }
 
@@ -366,6 +393,18 @@ class APlugin final : public Base {
         }
     }
 
+    // Route one event to the handler for the current mode. Both callers --
+    // process() and paramsFlush() -- need exactly this, and having the test in
+    // one place is what keeps them from drifting apart.
+    void handleMIDIEvent(const clap_event_header_t* hdr)
+    {
+        if (fIsPolyphonic) {
+            handlePolyMIDIEvent(hdr);
+        } else {
+            handleDSPMIDIEvent(hdr);
+        }
+    }
+
     // provide CLAP extensions this plugin supports
     const void* get_extension(const char* id) noexcept
     {
@@ -380,7 +419,6 @@ class APlugin final : public Base {
         }
         return nullptr;
     }
-
     // main processing method called by host each audio block
     clap_process_status process(const clap_process_t* process) noexcept override
     {
@@ -406,11 +444,7 @@ class APlugin final : public Base {
             for (uint32_t i = 0, N = process->in_events->size(process->in_events); i < N; ++i) {
                 const clap_event_header_t* hdr = process->in_events->get(process->in_events, i);
                 applyParamEventIfValid(hdr);
-                if (fIsPolyphonic) {
-                    handlePolyMIDIEvent(hdr);
-                } else {
-                    handleDSPMIDIEvent(hdr);
-                }
+                handleMIDIEvent(hdr);
             }
         }
 
@@ -460,22 +494,53 @@ class APlugin final : public Base {
     // implement state extension to save and restore parameter values
     bool implementsState() const noexcept override { return true; }
 
+    // clap_ostream/clap_istream are allowed to transfer fewer bytes than asked
+    // for; the contract is to loop until done. Treating a short transfer as
+    // success is how a saved session silently loses its tail.
+    static bool writeAll(const clap_ostream_t* stream, const void* data, size_t size)
+    {
+        const char* bytes = static_cast<const char*>(data);
+        while (size > 0) {
+            int64_t written = stream->write(stream, bytes, size);
+            if (written <= 0) {
+                return false;
+            }
+            bytes += written;
+            size -= size_t(written);
+        }
+        return true;
+    }
+
+    static bool readAll(const clap_istream_t* stream, void* data, size_t size)
+    {
+        char* bytes = static_cast<char*>(data);
+        while (size > 0) {
+            int64_t got = stream->read(stream, bytes, size);
+            if (got <= 0) {  // 0 is end of stream, -1 an error; both are short
+                return false;
+            }
+            bytes += got;
+            size -= size_t(got);
+        }
+        return true;
+    }
+
     bool stateSave(const clap_ostream_t* stream) noexcept override
     {
         if (!stream || !stream->write) {
             return false;
         }
-        int paramCount = fUI.getParamsCount();
-
-        // write number of parameters
-        if (!stream->write(stream, &paramCount, sizeof(paramCount))) {
+        // The format is a count followed by that many floats, in the DSP's own
+        // parameter order. It is deliberately tied to this build: the count
+        // check on load is what stops a state saved by another DSP from being
+        // applied to this one.
+        const uint32_t paramCount = uint32_t(fUI.getParamsCount());
+        if (!writeAll(stream, &paramCount, sizeof(paramCount))) {
             return false;
         }
-
-        // write each parameter value
-        for (int i = 0; i < paramCount; ++i) {
-            float v = fUI.getParamValue(i);
-            if (!stream->write(stream, &v, sizeof(v))) {
+        for (uint32_t i = 0; i < paramCount; ++i) {
+            float v = float(fUI.getParamValue(int(i)));
+            if (!writeAll(stream, &v, sizeof(v))) {
                 return false;
             }
         }
@@ -488,28 +553,27 @@ class APlugin final : public Base {
             return false;
         }
         uint32_t paramCount = 0;
-
-        // read number of parameters
-        if (!stream->read(stream, &paramCount, sizeof(paramCount))) {
+        if (!readAll(stream, &paramCount, sizeof(paramCount))) {
+            return false;
+        }
+        if (paramCount != uint32_t(fUI.getParamsCount())) {
             return false;
         }
 
-        if (paramCount != (uint32_t)fUI.getParamsCount()) {
-            return false;
-        }
-
-        // read each parameter and set value
         for (uint32_t i = 0; i < paramCount; ++i) {
-            float v;
-            if (!stream->read(stream, &v, sizeof(v))) {
+            float v = 0.f;
+            if (!readAll(stream, &v, sizeof(v))) {
                 return false;
             }
-            fUI.setParamValue(i, v);
+            const int index = int(i);
+            fUI.setParamValue(index, fUI.clampToRange(index, FAUSTFLOAT(v)));
         }
 
-        // notify host to update parameter display and processing
+        // Values only: the parameter list of a static plugin cannot change, and
+        // CLAP_PARAM_RESCAN_ALL is illegal while the plugin is active, so a
+        // running host is entitled to ignore the whole request.
         if (_host.canUseParams()) {
-            _host.paramsRescan(CLAP_PARAM_RESCAN_VALUES | CLAP_PARAM_RESCAN_ALL);
+            _host.paramsRescan(CLAP_PARAM_RESCAN_VALUES);
             _host.paramsRequestFlush();
         }
 
@@ -525,39 +589,24 @@ class APlugin final : public Base {
 
     bool paramsInfo(uint32_t index, clap_param_info_t* info) const noexcept override
     {
-        int paramCount = fUI.getParamsCount();
-        if (index >= paramCount) {
+        if (index >= uint32_t(fUI.getParamsCount())) {
             return false;
         }
 
         std::memset(info, 0, sizeof(*info));
         info->id = index;
 
-        std::string paramName = fUI.getParamShortname(index);
-        if (paramName.empty() || paramName == "/") {
+        // getParamShortname() already returns the last path segment; stripping
+        // slashes again here could only ever be a no-op.
+        std::string paramName = fUI.getParamShortname(int(index));
+        if (paramName.empty()) {
             paramName = "param" + std::to_string(index);
         }
-
-        // strip leading slash
-        if (!paramName.empty() && paramName[0] == '/') {
-            paramName = paramName.substr(1);
-        }
-
-        // only show last path segment
-        size_t lastSlash = paramName.find_last_of('/');
-        if (lastSlash != std::string::npos) {
-            paramName = paramName.substr(lastSlash + 1);
-        }
-
         std::snprintf(info->name, CLAP_NAME_SIZE, "%s", paramName.c_str());
 
-        FAUSTFLOAT min  = fUI.getParamMin(index);
-        FAUSTFLOAT max  = fUI.getParamMax(index);
-        FAUSTFLOAT init = fUI.getParamInit(index);
-
-        info->min_value     = min;
-        info->max_value     = max;
-        info->default_value = init;
+        info->min_value     = fUI.getParamMin(int(index));
+        info->max_value     = fUI.getParamMax(int(index));
+        info->default_value = fUI.getParamInit(int(index));
         info->flags         = CLAP_PARAM_IS_AUTOMATABLE;
 
         std::strncpy(info->module, "Main", sizeof(info->module));
@@ -583,7 +632,8 @@ class APlugin final : public Base {
             return false;
         }
         try {
-            *outValue = std::stod(text);
+            const int index = int(id);
+            *outValue       = fUI.clampToRange(index, FAUSTFLOAT(std::stod(text)));
             return true;
         } catch (...) {
             return false;
@@ -597,7 +647,9 @@ class APlugin final : public Base {
         if (!outBuffer || bufferSize == 0 || id >= (clap_id)fUI.getParamsCount()) {
             return false;
         }
-        std::snprintf(outBuffer, bufferSize, "%.3f", value);
+        // %g rather than a fixed three decimals: a frequency reads as "440",
+        // not "440.000", and a small gain keeps its precision.
+        std::snprintf(outBuffer, bufferSize, "%.4g", value);
         return true;
     }
 
@@ -619,11 +671,7 @@ class APlugin final : public Base {
             applyParamEventIfValid(hdr);
 
             // route MIDI events according to polyphony mode
-            if (fIsPolyphonic) {
-                handlePolyMIDIEvent(hdr);
-            } else {
-                handleDSPMIDIEvent(hdr);
-            }
+            handleMIDIEvent(hdr);
         }
     }
 
@@ -703,7 +751,7 @@ constexpr static clap_plugin_factory_t gain_factory = {.get_plugin_count      = 
                                                        .create_plugin         = plugin_create};
 
 // entry point initialisation and deinitialisation
-static bool entry_init(const char* path)
+static bool entry_init(const char*)
 {
     return true;
 }

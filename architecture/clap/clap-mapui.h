@@ -98,9 +98,24 @@ struct CLAPMapUI : public MapUI {
         return validIndex(index) ? fParams[index].zone : nullptr;
     }
 
-    std::string getParamAddress(int index) const
+    // By reference: an address is compared against many candidates during a
+    // reload, and returning by value allocated a string per comparison.
+    const std::string& getParamAddress(int index) const
     {
-        return validIndex(index) ? fParams[index].path : "";
+        static const std::string kNoAddress;
+        return validIndex(index) ? fParams[index].path : kNoAddress;
+    }
+
+    // Index of the control at this address, or -1. Addresses are unique, so
+    // the first match is the only one.
+    int indexOfAddress(const std::string& address) const
+    {
+        for (size_t i = 0; i < fParams.size(); ++i) {
+            if (fParams[i].path == address) {
+                return int(i);
+            }
+        }
+        return -1;
     }
 
     void setParamValue(int index, FAUSTFLOAT value)

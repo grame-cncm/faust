@@ -268,6 +268,11 @@ class FaustDynamicPlugin final : public Base {
             bundle = DspBundle::fromFile(path, fSampleRate, fSlotCount, nullptr, error);
             if (!bundle) {
                 logLine("cannot load " + path + ": " + error);
+            } else if (!fitsChannelBudget(*bundle)) {
+                logLine("cannot load " + path + ": more than " + std::to_string(kMaxDspChannels) +
+                        " channels");
+                delete bundle;
+                bundle = nullptr;
             }
         }
         if (!bundle) {
@@ -544,6 +549,17 @@ class FaustDynamicPlugin final : public Base {
     }
 
    private:
+    // process() lays out its channel pointers in fixed-size arrays and its
+    // scratch buffers are cut into kMaxDspChannels slices, so a DSP wider than
+    // that must never be published. The reload path checked this; the initial
+    // load did not, which left a program with more than eight channels writing
+    // past both arrays on its very first block.
+    static bool fitsChannelBudget(const DspBundle& bundle)
+    {
+        return bundle.getNumInputs() <= kMaxDspChannels &&
+               bundle.getNumOutputs() <= kMaxDspChannels;
+    }
+
     static std::string defaultDSP() { return "process = _, _;"; }
 
     static int readSlotCount()
@@ -762,7 +778,7 @@ class FaustDynamicPlugin final : public Base {
             logLine("reload failed, keeping the current DSP: " + error);
             return;
         }
-        if (bundle->getNumInputs() > kMaxDspChannels || bundle->getNumOutputs() > kMaxDspChannels) {
+        if (!fitsChannelBudget(*bundle)) {
             logLine("reload refused: " + path + " has more than " +
                     std::to_string(kMaxDspChannels) + " channels");
             delete bundle;

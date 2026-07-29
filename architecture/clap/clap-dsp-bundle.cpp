@@ -84,25 +84,28 @@ bool DspBundle::finish(int sampleRate, int slotCount, const DspBundle* previous,
     fNumInputs  = fDSP->getNumInputs();
     fNumOutputs = fDSP->getNumOutputs();
 
-    // Carry values over by address, so that editing a DSP does not reset the
-    // controls that survived the edit. Reading the previous bundle's zones can
-    // race with the audio thread writing them; the result is at worst one
-    // automation step stale, which is the right trade for not locking the
-    // audio thread.
+    // Every control starts at the value its own DSP declares.
     const int count = fUI.getParamsCount();
     for (int i = 0; i < count; ++i) {
-        FAUSTFLOAT value = fUI.getParamInit(i);
-        if (previous) {
-            const CLAPMapUI& old      = previous->getUI();
-            const int        oldCount = old.getParamsCount();
-            for (int j = 0; j < oldCount; ++j) {
-                if (old.getParamAddress(j) == fUI.getParamAddress(i)) {
-                    value = fUI.clampToRange(i, old.getParamValue(j));
-                    break;
-                }
+        fUI.setParamValue(i, fUI.getParamInit(i));
+    }
+
+    // Then, when replacing a running DSP, whatever survived the edit takes its
+    // value back, matched by address -- so editing a program does not reset the
+    // controls the author did not touch.
+    //
+    // Reading the previous bundle's zones can race with the audio thread
+    // writing them; the result is at worst one automation step stale, which is
+    // the right trade for not locking the audio thread.
+    if (previous) {
+        const CLAPMapUI& old      = previous->getUI();
+        const int        oldCount = old.getParamsCount();
+        for (int j = 0; j < oldCount; ++j) {
+            const int i = fUI.indexOfAddress(old.getParamAddress(j));
+            if (i >= 0) {
+                fUI.setParamValue(i, fUI.clampToRange(i, old.getParamValue(j)));
             }
         }
-        fUI.setParamValue(i, value);
     }
 
     buildSlotMapping(slotCount, previous);
