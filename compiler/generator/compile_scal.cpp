@@ -1351,7 +1351,7 @@ class LoopSplitEmitter {
      */
     long blockCostShadow(const std::vector<int>& members)
     {
-        const long CL = 20, SPILLW = 4;
+        const long CL = gGlobal->gLSCl, SPILLW = gGlobal->gLSSpillW;
         const std::vector<Tree>& mat = fSN.materialized();
         std::vector<LSOp>        sops;
         std::map<Tree, int>      memo;
@@ -1362,14 +1362,24 @@ class LoopSplitEmitter {
         // makes fusion visibly profitable to the oracle -- scalarized in-set
         // reads cost nothing, the same reads across a boundary cost a slot
         auto load = [&](Tree t, std::vector<int> deps) -> int {
-            LSOp o;
-            for (int d : deps) {
-                if (d >= 0) {
-                    o.deps.push_back(d);
-                }
+            if (gGlobal->gLSLoadW == 0) {
+                return -1;  // loads free (leaf)
             }
-            sops.push_back(o);
-            int id  = (int)sops.size() - 1;
+            int id = -1;
+            for (int w = 0; w < gGlobal->gLSLoadW; w++) {
+                LSOp o;
+                if (id >= 0) {
+                    o.deps.push_back(id);  // heavier loads: a chain of slots
+                } else {
+                    for (int d : deps) {
+                        if (d >= 0) {
+                            o.deps.push_back(d);
+                        }
+                    }
+                }
+                sops.push_back(o);
+                id = (int)sops.size() - 1;
+            }
             memo[t] = id;
             return id;
         };

@@ -444,6 +444,9 @@ void global::reset()
     gLSWidth        = 4;
     gLSFuse         = false;
     gLSFuseOps      = 1024;
+    gLSCl           = 20;
+    gLSSpillW       = 4;
+    gLSLoadW        = 1;
 
     gFloatSize      = 1;             // -single by default
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
@@ -805,7 +808,8 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         dst << "-ls -ls-sched " << schedNames[gLSSched] << " -ls-R " << gLSRegisters
             << " -ls-U " << gLSWidth << " ";
         if (gLSFuse) {
-            dst << "-ls-fuse -ls-fuse-ops " << gLSFuseOps << " ";
+            dst << "-ls-fuse -ls-fuse-ops " << gLSFuseOps << " -ls-cl " << gLSCl
+                << " -ls-spill " << gLSSpillW << " -ls-load " << gLSLoadW << " ";
         }
     }
     if (gNoVirtual) {
@@ -1607,6 +1611,24 @@ bool global::processCmdline(int argc, const char* argv[])
             gLoopSplit = true;
             i += 2;
 
+        } else if (isCmd(argv[i], "-ls-cl", "--loop-split-cl")) {
+            gLSCl      = std::atoi(argv[i + 1]);
+            gLSFuse    = true;
+            gLoopSplit = true;
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ls-spill", "--loop-split-spill-weight")) {
+            gLSSpillW  = std::atoi(argv[i + 1]);
+            gLSFuse    = true;
+            gLoopSplit = true;
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ls-load", "--loop-split-load-weight")) {
+            gLSLoadW   = std::atoi(argv[i + 1]);
+            gLSFuse    = true;
+            gLoopSplit = true;
+            i += 2;
+
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
             gFastMathLib = argv[i + 1];
             i += 2;
@@ -2393,6 +2415,18 @@ string global::printHelp()
     sstr << tab
          << "-ls-fuse-ops <n> --loop-split-fuse-ops <n> op-count budget of a fused block "
             "(default 1024, compile-time guard; the cost oracle decides, implies -ls-fuse)."
+         << endl;
+    sstr << tab
+         << "-ls-cl <n>  --loop-split-cl <n>         oracle: per-loop per-chunk overhead "
+            "(default 20 cycles, implies -ls-fuse)."
+         << endl;
+    sstr << tab
+         << "-ls-spill <n> --loop-split-spill-weight <n> oracle: cycles per register-cycle "
+            "above R (default 4, implies -ls-fuse)."
+         << endl;
+    sstr << tab
+         << "-ls-load <n> --loop-split-load-weight <n> oracle: issue slots per buffer load "
+            "(0 = free, default 1, implies -ls-fuse)."
          << endl;
     sstr << tab
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no "

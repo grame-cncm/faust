@@ -307,7 +307,13 @@ struct global {
     int  gLSWidth;         // -ls-U option: superscalar width for the model scheduler (default 4)
     bool gLSFuse;          // -ls-fuse option: greedy single-consumer fusion of the super-node
                            // partition before emission
-    int  gLSFuseOps;       // -ls-fuse-ops option: op-count budget of a fused block (default 256)
+    int  gLSFuseOps;       // -ls-fuse-ops option: compile-time guard on fused-block op count
+    int  gLSCl;            // -ls-cl option: per-loop per-chunk overhead in the fusion cost
+                           // oracle (default 20 cycles)
+    int  gLSSpillW;        // -ls-spill option: cycles charged per register-cycle above R in the
+                           // oracle (the spill proxy, default 4)
+    int  gLSLoadW;         // -ls-load option: issue slots charged per buffer load in the oracle
+                           // (0 = loads free, default 1)
     int  gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
     double gHashLoadFactor;  // -hlf option, tlib CTree/Symbol hash table growth threshold
                               // (0.7 by default, see TLIB.md §1) : purely an internal
