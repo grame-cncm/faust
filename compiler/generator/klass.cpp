@@ -1040,6 +1040,11 @@ void Klass::printComputeMethod(int n, ostream& fout)
         printComputeMethodScheduler(n, fout);
     } else if (gGlobal->gOpenMPSwitch) {
         printComputeMethodOpenMP(n, fout);
+    } else if (gGlobal->gLoopSplit) {
+        // super-node emission builds its own inner loops and handles partial
+        // chunks itself: it needs the scalar-block skeleton (whose Zone3Post
+        // carries the buffer shifts) even under -vec
+        printComputeMethodScalarBlock(n, fout);
     } else if (gGlobal->gVectorSwitch) {
         switch (gGlobal->gVectorLoopVariant) {
             case 0:

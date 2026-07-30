@@ -542,7 +542,11 @@ static void compileOCPP(Tree signals, int numInputs, int numOutputs)
         gOldComp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
                                          numOutputs);
     } else if (gGlobal->gVectorSwitch) {
-        gOldComp = new VectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
+        // ocpp -vec routes to the super-node loop-split emission: the
+        // historical VectorCompiler relies on retired delay machinery
+        // (generateRec asserts). Same functionality, new structure.
+        gGlobal->gLoopSplit = true;
+        gOldComp = new ScalarCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
                                       numOutputs);
     } else {
         gOldComp = new ScalarCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,

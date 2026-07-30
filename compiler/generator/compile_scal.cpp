@@ -51,6 +51,7 @@
 #include "sigRetiming.hh"
 #include "sigToGraph.hh"
 #include "sigprint.hh"
+#include "superNodes.hh"
 #include "sigtype.hh"
 #include "timing.hh"
 #include "xtendedCodegen.hh"
@@ -491,66 +492,36 @@ string ScalarCompiler::CS(Tree sig)
 
 /**
  * Export the program as a DAG of loops, in the JSON format understood by the
- * loop-merging simulator (../loop-splitting/faust_dag.py). One loop per
- * materialized signal: recursive projection, delayed signal (maxDelay > 0),
- * shared sample-rate subexpression, program output -- i.e. the signals a
- * vector backend materializes as vectors. Loops that depend on each other
- * through a cycle (recursive groups and their satellites) are collapsed into
- * a single multi-output loop (the simulator only supports self-recursion);
- * instantaneous intra-loop references are inlined, delayed ones become
- * self-reads. Slow (sub-sample-rate) subtrees are pruned to opaque leaves:
- * the model describes the sample-rate loops only.
+ * loop-merging simulator (../loop-splitting/faust_dag.py). The partition is
+ * computed by SuperNodeGraph (the single source of truth for materialization
+ * and blocks); this class only owns the JSON representation choices required
+ * by the simulator's Program model: instantaneous intra-block references are
+ * inlined (lock-step multi-output bodies cannot self-read at d=0), delayed
+ * ones become self-reads, slow subtrees are pruned to opaque leaves, members
+ * never read from outside are dropped from the outputs.
  */
 class LoopDagDumper {
-    OccMarkup* fOcc;   // occurrences (for maxDelay)
-    Tree       fKey;   // sharing analysis key
-
-    std::vector<Tree>             fMat;      // materialized nodes, schedule order
-    std::map<Tree, int>           fMatIdx;   // node -> index in fMat
-    std::vector<std::set<int>>    fRefs;     // index -> referenced indices (any delay)
-    std::vector<int>              fScc;      // index -> scc id
-    std::vector<std::vector<int>> fSccMembers;
-    std::vector<bool>             fNeeded;      // index -> read somewhere => output vector
-    std::vector<bool>             fSccSelfRead; // scc -> emits a self-read
-    std::map<Tree, int>           fSlowId;      // slow leaf -> id
+    SuperNodeGraph      fSN;
+    std::vector<bool>   fNeeded;         // index -> read somewhere => output vector
+    std::vector<bool>   fBlockSelfRead;  // block -> emits a self-read
+    std::map<Tree, int> fSlowId;         // slow leaf -> id
 
    public:
-    LoopDagDumper(OccMarkup* occ, Tree key) : fOcc(occ), fKey(key) {}
+    LoopDagDumper(OccMarkup* occ, Tree key) : fSN(occ, key) {}
 
     void dump(Tree L, const std::vector<Tree>& sched, int nins, int nouts, std::ostream& out)
     {
-        // 1. collect materialized nodes in schedule order
-        for (Tree t : sched) {
-            if (fMatIdx.find(t) == fMatIdx.end() && isMaterialized(t)) {
-                fMatIdx[t] = (int)fMat.size();
-                fMat.push_back(t);
-            }
-        }
-        int n = (int)fMat.size();
-        fRefs.resize(n);
+        fSN.build(L, sched);
+        int n = (int)fSN.materialized().size();
         fNeeded.assign(n, false);
+        fBlockSelfRead.assign(fSN.blockCount(), false);
 
-        // 2. loop-level reference graph (bodies walked without output).
-        // root is true only when the definition IS the node itself: a
-        // projection whose definition is another materialized node must
-        // read it, not inline it.
-        for (int i = 0; i < n; i++) {
-            Tree d = defOf(fMat[i]);
-            emit(d, nullptr, -1, &fRefs[i], d == fMat[i]);
-        }
-
-        // 3. collapse cycles: Tarjan SCC on the reference graph
-        tarjan();
-        fSccSelfRead.assign(fSccMembers.size(), false);
-
-        // 4. serialize every member body (marks fNeeded and fSccSelfRead;
-        // the collection pass over-marked fNeeded, reset it first)
-        fNeeded.assign(n, false);
+        // serialize every member body (marks fNeeded and fBlockSelfRead)
         std::vector<std::string> body(n);
         for (int i = 0; i < n; i++) {
-            Tree               d = defOf(fMat[i]);
+            Tree               d = SuperNodeGraph::defOf(fSN.materialized()[i]);
             std::ostringstream b;
-            emit(d, &b, fScc[i], nullptr, d == fMat[i]);
+            emit(d, &b, fSN.blockOf(i), d == fSN.materialized()[i]);
             body[i] = b.str();
         }
         std::vector<std::string> obody(nouts);
@@ -559,18 +530,19 @@ class LoopDagDumper {
             Tree L1 = L;
             for (; isList(L1); L1 = tl(L1), i++) {
                 std::ostringstream b;
-                emit(hd(L1), &b, -2, nullptr, false);
+                emit(hd(L1), &b, -2, false);
                 obody[i] = b.str();
             }
         }
 
-        // 5. assemble
+        // assemble
         out << "{\"inputs\": " << nins << ", \"outputs\": " << nouts << ",\n";
         out << " \"loops\": [\n";
         bool first = true;
-        for (size_t s = 0; s < fSccMembers.size(); s++) {
-            std::vector<int> vs;
-            for (int i : fSccMembers[s]) {
+        for (int s = 0; s < fSN.blockCount(); s++) {
+            const std::vector<int>& members = fSN.blockMembers(s);
+            std::vector<int>        vs;
+            for (int i : members) {
                 if (fNeeded[i]) {
                     vs.push_back(i);
                 }
@@ -578,17 +550,17 @@ class LoopDagDumper {
             if (vs.empty()) {
                 continue;  // fully inlined into its consumers
             }
-            const char* kind = (fSccMembers[s].size() > 1 || fSccSelfRead[s]) ? "rec"
-                               : maxDelayOf(fMat[vs[0]]) > 0                  ? "delayed"
-                                                                              : "shared";
+            const char* kind = (members.size() > 1 || fBlockSelfRead[s]) ? "rec"
+                               : fSN.maxDelayOf(fSN.materialized()[vs[0]]) > 0 ? "delayed"
+                                                                               : "shared";
             out << (first ? "  " : ",\n  ") << "{\"vs\": [";
             first = false;
             for (size_t k = 0; k < vs.size(); k++) {
-                out << (k ? ", " : "") << vid(vs[k]);
+                out << (k ? ", " : "") << vs[k];
             }
             out << "], \"kind\": \"" << kind << "\", \"maxdelays\": [";
             for (size_t k = 0; k < vs.size(); k++) {
-                out << (k ? ", " : "") << maxDelayOf(fMat[vs[k]]);
+                out << (k ? ", " : "") << fSN.maxDelayOf(fSN.materialized()[vs[k]]);
             }
             out << "],\n   \"bodies\": [";
             for (size_t k = 0; k < vs.size(); k++) {
@@ -599,7 +571,7 @@ class LoopDagDumper {
         for (int i = 0; i < nouts; i++) {
             out << (first ? "  " : ",\n  ");
             first = false;
-            out << "{\"vs\": [" << (fMat.size() + i) << "], \"kind\": \"output\", "
+            out << "{\"vs\": [" << (n + i) << "], \"kind\": \"output\", "
                 << "\"output_index\": " << i << ", \"maxdelays\": [0],\n   \"bodies\": ["
                 << obody[i] << "]}";
         }
@@ -607,72 +579,6 @@ class LoopDagDumper {
     }
 
    private:
-    // exported vector id of materialized node index i (program outputs follow)
-    int vid(int i) const { return i; }
-
-    static bool isNum(Tree t)
-    {
-        int     i;
-        int64_t i64;
-        double  r;
-        return isSigInt(t, &i) || isSigInt64(t, &i64) || isSigReal(t, &r);
-    }
-
-    static bool isSlow(Tree t) { return getCertifiedSigType(t)->variability() < kSamp; }
-
-    int maxDelayOf(Tree t) const
-    {
-        Occurrences* o = fOcc->retrieve(t);
-        return o ? o->getMaxDelay() : 0;
-    }
-
-    bool isMaterialized(Tree t)
-    {
-        int  i;
-        Tree w;
-        if (isNum(t) || isSigInput(t, &i) || isSlow(t)) {
-            return false;
-        }
-        return isProj(t, &i, w) || maxDelayOf(t) > 0 || getSharingCount(t, fKey) > 1;
-    }
-
-    // the expression a materialized node's loop computes
-    static Tree defOf(Tree m)
-    {
-        int  i;
-        Tree w, id, le;
-        if (isProj(m, &i, w)) {
-            faustassert(isRec(w, id, le));
-            return nth(le, i);
-        }
-        return m;
-    }
-
-    // opaque-call primitives: the result of the phaser/dx7 autopsy -- at the
-    // cycle where one of these issues, only callee-saved registers survive
-    static bool isCallPrim(const std::string& name)
-    {
-        static const std::set<std::string> calls = {
-            "sin",  "cos",  "tan",  "asin",  "acos",  "atan",  "atan2", "exp",
-            "exp2", "exp10", "log", "log2",  "log10", "pow",   "fmod",  "remainder",
-            "sinh", "cosh", "tanh", "asinh", "acosh", "atanh"};
-        return calls.count(name) > 0;
-    }
-
-    void delayBounds(Tree y, int& dmin, int& dmax, bool& dvar)
-    {
-        int d;
-        if (isSigInt(y, &d)) {
-            dmin = dmax = d;
-            dvar        = false;
-        } else {
-            interval I = getCertifiedSigType(y)->getInterval();
-            dmin       = (int)I.lo();
-            dmax       = (int)I.hi();
-            dvar       = true;
-        }
-    }
-
     static void jsonEscape(std::ostream& out, const std::string& s)
     {
         for (char c : s) {
@@ -684,215 +590,141 @@ class LoopDagDumper {
     }
 
     // reference to materialized node m, read with delay dmin (dvar: variable)
-    void emitRef(Tree m, int dmin, int dmax, bool dvar, std::ostream* out, int scc,
-                 std::set<int>* refs)
+    void emitRef(Tree m, int dmin, int dmax, bool dvar, std::ostream* out, int scc)
     {
-        int  idx     = fMatIdx[m];
-        bool sameScc = (scc >= 0) && (fScc[idx] == scc);
-        if (refs) {
-            refs->insert(idx);
-        }
+        int  idx     = fSN.indexOf(m);
+        bool sameScc = (scc >= 0) && (fSN.blockOf(idx) == scc);
         if (sameScc && dmin == 0 && !dvar) {
             // instantaneous intra-loop reference: inline the definition
             // (acyclic by causality)
-            Tree d = defOf(m);
-            emit(d, out, scc, refs, d == m);
+            Tree d = SuperNodeGraph::defOf(m);
+            emit(d, out, scc, d == m);
             return;
         }
         if (sameScc && dmin == 0 && dvar) {
             dmin = 1;  // lock-step bodies cannot self-read at d=0
         }
         fNeeded[idx] = true;
-        if (sameScc && scc >= 0) {
-            fSccSelfRead[scc] = true;
+        if (sameScc) {
+            fBlockSelfRead[scc] = true;
         }
-        if (out) {
-            *out << "{\"read\": " << vid(idx) << ", \"d\": " << dmin;
-            if (dvar) {
-                *out << ", \"dvar\": true, \"dmax\": " << dmax;
-            }
-            *out << "}";
+        *out << "{\"read\": " << idx << ", \"d\": " << dmin;
+        if (dvar) {
+            *out << ", \"dvar\": true, \"dmax\": " << dmax;
         }
+        *out << "}";
     }
 
     void emitOp(const std::string& name, bool call, int r, const std::vector<Tree>& args,
-                std::ostream* out, int scc, std::set<int>* refs)
+                std::ostream* out, int scc)
     {
-        if (out) {
-            *out << "{\"op\": \"";
-            jsonEscape(*out, name);
-            *out << "\"";
-            if (call) {
-                *out << ", \"call\": true";
-            }
-            if (r > 0) {
-                *out << ", \"r\": " << r;
-            }
-            *out << ", \"args\": [";
+        *out << "{\"op\": \"";
+        jsonEscape(*out, name);
+        *out << "\"";
+        if (call) {
+            *out << ", \"call\": true";
         }
+        if (r > 0) {
+            *out << ", \"r\": " << r;
+        }
+        *out << ", \"args\": [";
         for (size_t i = 0; i < args.size(); i++) {
-            if (out && i > 0) {
+            if (i > 0) {
                 *out << ", ";
             }
-            emit(args[i], out, scc, refs, false);
+            emit(args[i], out, scc, false);
         }
-        if (out) {
-            *out << "]}";
-        }
+        *out << "]}";
     }
 
-    void emit(Tree t, std::ostream* out, int scc, std::set<int>* refs, bool root)
+    void emit(Tree t, std::ostream* out, int scc, bool root)
     {
         int     i;
         int64_t i64;
         double  r;
-        Tree    x, y, z, sel, w, ff, largs, tb, size, gen, wi, ws, ri, label, c;
+        Tree    x, y, z, sel, ff, largs, tb, size, gen, wi, ws, ri, label;
 
         // materialized nodes referenced from a body become vector reads
-        if (!root && fMatIdx.count(t)) {
-            emitRef(t, 0, 0, false, out, scc, refs);
+        if (!root && fSN.indexOf(t) >= 0) {
+            emitRef(t, 0, 0, false, out, scc);
             return;
         }
         if (isSigInt(t, &i)) {
-            if (out) {
-                *out << "{\"num\": " << i << "}";
-            }
+            *out << "{\"num\": " << i << "}";
         } else if (isSigInt64(t, &i64)) {
-            if (out) {
-                *out << "{\"num\": " << i64 << "}";
-            }
+            *out << "{\"num\": " << i64 << "}";
         } else if (isSigReal(t, &r)) {
-            if (out) {
-                *out << "{\"num\": " << r << "}";
-            }
+            *out << "{\"num\": " << r << "}";
         } else if (isSigInput(t, &i)) {
-            if (out) {
-                *out << "{\"input\": " << i << "}";
-            }
-        } else if (isSigAttach(t, x, y) && !isSlow(y)) {
+            *out << "{\"input\": " << i << "}";
+        } else if (isSigAttach(t, x, y) && !SuperNodeGraph::isSlow(y)) {
             // attach takes the TYPE of its left arm but its right arm is a
             // side effect (bargraph) running at sample rate: it must escape
             // the slow pruning below even when the attach node itself is slow
-            emitOp("attach", false, 0, {x, y}, out, scc, refs);
-        } else if (isSlow(t)) {
+            emitOp("attach", false, 0, {x, y}, out, scc);
+        } else if (SuperNodeGraph::isSlow(t)) {
             // opaque slow leaf: computed outside the sample loop
             if (fSlowId.find(t) == fSlowId.end()) {
-                int id      = (int)fSlowId.size();
+                int id     = (int)fSlowId.size();
                 fSlowId[t] = id;
             }
-            if (out) {
-                *out << "{\"slow\": " << fSlowId[t] << "}";
-            }
+            *out << "{\"slow\": " << fSlowId[t] << "}";
         } else if (isSigDelay(t, x, y)) {
             int  dmin, dmax;
             bool dvar;
-            delayBounds(y, dmin, dmax, dvar);
-            if (fMatIdx.count(x)) {
-                emitRef(x, dmin, dmax, dvar, out, scc, refs);
+            SuperNodeGraph::delayBounds(y, dmin, dmax, dvar);
+            if (fSN.indexOf(x) >= 0) {
+                emitRef(x, dmin, dmax, dvar, out, scc);
             } else {
                 // delay of a non-materialized signal: only possible for
                 // slow/constant values, where the delay is transparent
-                emit(x, out, scc, refs, false);
+                emit(x, out, scc, false);
             }
         } else if (isSigPrefix(t, x, y)) {
-            emitOp("prefix", false, 1, {x, y}, out, scc, refs);
+            emitOp("prefix", false, 1, {x, y}, out, scc);
         } else if (isSigBinOp(t, &i, x, y)) {
             bool call = (i == kRem) && (getCertifiedSigType(t)->nature() == kReal);
-            emitOp(gBinOpTable[i]->fName, call, 0, {x, y}, out, scc, refs);
+            emitOp(gBinOpTable[i]->fName, call, 0, {x, y}, out, scc);
         } else if (getUserData(t)) {
             std::string       name = ((xtended*)getUserData(t))->name();
             std::vector<Tree> args;
             for (int k = 0; k < t->arity(); k++) {
                 args.push_back(t->branch(k));
             }
-            emitOp(name, isCallPrim(name), 0, args, out, scc, refs);
+            emitOp(name, SuperNodeGraph::isCallPrim(name), 0, args, out, scc);
         } else if (isSigFFun(t, ff, largs)) {
             std::vector<Tree> args;
             for (Tree l = largs; isList(l); l = tl(l)) {
                 args.push_back(hd(l));
             }
-            emitOp(ffname(ff), true, 0, args, out, scc, refs);
+            emitOp(ffname(ff), true, 0, args, out, scc);
         } else if (isSigRDTbl(t, tb, ri)) {
             if (isSigWRTbl(tb, size, gen)) {
-                emitOp("rdtable", false, 0, {ri}, out, scc, refs);
+                emitOp("rdtable", false, 0, {ri}, out, scc);
             } else if (isSigWRTbl(tb, size, gen, wi, ws)) {
-                emitOp("rwtable", false, 0, {wi, ws, ri}, out, scc, refs);
+                emitOp("rwtable", false, 0, {wi, ws, ri}, out, scc);
             } else {
-                emitOp("rdtable", false, 0, {ri}, out, scc, refs);
+                emitOp("rdtable", false, 0, {ri}, out, scc);
             }
         } else if (isSigSelect2(t, sel, x, y)) {
-            emitOp("select2", false, 0, {sel, x, y}, out, scc, refs);
+            emitOp("select2", false, 0, {sel, x, y}, out, scc);
         } else if (isSigIntCast(t, x) || isSigFloatCast(t, x) || isSigBitCast(t, x)) {
-            emitOp("cast", false, 0, {x}, out, scc, refs);
+            emitOp("cast", false, 0, {x}, out, scc);
         } else if (isSigAttach(t, x, y)) {
-            emitOp("attach", false, 0, {x, y}, out, scc, refs);
+            emitOp("attach", false, 0, {x, y}, out, scc);
         } else if (isSigVBargraph(t, label, x, y, z) || isSigHBargraph(t, label, x, y, z)) {
-            emitOp("bargraph", false, 0, {z}, out, scc, refs);
+            emitOp("bargraph", false, 0, {z}, out, scc);
         } else if (isSigControl(t, x, y)) {
-            emitOp("control", false, 0, {x, y}, out, scc, refs);
+            emitOp("control", false, 0, {x, y}, out, scc);
         } else if (isSigAssertBounds(t, x, y, z)) {
-            emit(z, out, scc, refs, false);
+            emit(z, out, scc, false);
         } else {
             // generic fallback: dependencies as an anonymous op
             tvec subs;
             getSubSignals(t, subs, false);
             std::ostringstream name;
             name << "op:" << t->node();
-            emitOp(name.str(), false, 0, subs, out, scc, refs);
-        }
-    }
-
-    // ---- Tarjan strongly connected components over fRefs ----
-    struct TarjanState {
-        std::vector<int>  index, low;
-        std::vector<bool> onstack;
-        std::vector<int>  stack;
-        int               counter = 0;
-    };
-
-    void tarjanVisit(int v, TarjanState& st)
-    {
-        st.index[v] = st.low[v] = st.counter++;
-        st.stack.push_back(v);
-        st.onstack[v] = true;
-        for (int w : fRefs[v]) {
-            if (st.index[w] < 0) {
-                tarjanVisit(w, st);
-                st.low[v] = std::min(st.low[v], st.low[w]);
-            } else if (st.onstack[w]) {
-                st.low[v] = std::min(st.low[v], st.index[w]);
-            }
-        }
-        if (st.low[v] == st.index[v]) {
-            std::vector<int> comp;
-            int              w;
-            do {
-                w = st.stack.back();
-                st.stack.pop_back();
-                st.onstack[w] = false;
-                comp.push_back(w);
-            } while (w != v);
-            int id = (int)fSccMembers.size();
-            std::sort(comp.begin(), comp.end());  // schedule order within the loop
-            for (int m : comp) {
-                fScc[m] = id;
-            }
-            fSccMembers.push_back(comp);
-        }
-    }
-
-    void tarjan()
-    {
-        int         n = (int)fMat.size();
-        TarjanState st;
-        st.index.assign(n, -1);
-        st.low.assign(n, 0);
-        st.onstack.assign(n, false);
-        fScc.assign(n, -1);
-        for (int v = 0; v < n; v++) {
-            if (st.index[v] < 0) {
-                tarjanVisit(v, st);
-            }
+            emitOp(name.str(), false, 0, subs, out, scc);
         }
     }
 };
@@ -931,7 +763,7 @@ class LoopSplitUnsupported {
 class LoopSplitEmitter {
    public:
     LoopSplitEmitter(ScalarCompiler* C, OccMarkup* occ, Tree key)
-        : fC(C), fClass(C->fClass), fOcc(occ), fKey(key)
+        : fC(C), fClass(C->fClass), fSN(occ, key)
     {
     }
 
@@ -940,20 +772,13 @@ class LoopSplitEmitter {
    private:
     ScalarCompiler* fC;
     Klass*          fClass;
-    OccMarkup*      fOcc;
-    Tree            fKey;
+    SuperNodeGraph  fSN;  // the partition (single source of truth)
 
-    // materialized signals and their loop-level structure
-    std::vector<Tree>             fMat;
-    std::map<Tree, int>           fMatIdx;
-    std::vector<std::set<int>>    fRefs;   // any-delay references (Tarjan)
-    std::vector<std::set<int>>    fRefs0;  // possibly-instantaneous references
-    std::vector<int>              fScc;
-    std::vector<std::vector<int>> fSccMembers;
-    std::vector<std::string>      fBufName;  // per materialized index
-    std::vector<int>              fMaxD;
-    std::vector<bool>             fIsInt;
-    std::vector<bool>             fLocal;  // maxDelay == 0: chunk-local buffer
+    // per-buffer emission decisions (materialized index -> ...)
+    std::vector<std::string> fBufName;
+    std::vector<int>         fMaxD;
+    std::vector<bool>        fIsInt;
+    std::vector<bool>        fLocal;  // maxDelay == 0: chunk-local buffer
     std::vector<bool> fRing;      // maxDelay > gMaxCopyDelay: masked ring buffer
     std::vector<int>  fRingMask;  // per ring buffer: size - 1 (power of two)
     bool              fHasRing = false;  // at least one ring: emit the fLSIota index
@@ -970,69 +795,14 @@ class LoopSplitEmitter {
     std::map<Tree, int> fOpOf;      // sample-rate op tree -> index in fOps
     std::map<int, int>  fStoreOf;   // materialized index -> its store op
 
-    // ---- shared helpers (same criteria as the DAG dumper) ----
-
-    static bool isNum(Tree t)
+    // shorthands into the shared criteria
+    static bool isNum(Tree t) { return SuperNodeGraph::isNum(t); }
+    static bool isSlow(Tree t) { return SuperNodeGraph::isSlow(t); }
+    static Tree defOf(Tree m) { return SuperNodeGraph::defOf(m); }
+    static bool isCallPrim(const std::string& n) { return SuperNodeGraph::isCallPrim(n); }
+    static void delayBounds(Tree y, int& dmin, int& dmax, bool& dvar)
     {
-        int     i;
-        int64_t i64;
-        double  r;
-        return isSigInt(t, &i) || isSigInt64(t, &i64) || isSigReal(t, &r);
-    }
-
-    static bool isSlow(Tree t) { return getCertifiedSigType(t)->variability() < kSamp; }
-
-    int maxDelayOf(Tree t) const
-    {
-        Occurrences* o = fOcc->retrieve(t);
-        return o ? o->getMaxDelay() : 0;
-    }
-
-    bool isMaterialized(Tree t)
-    {
-        int  i;
-        Tree w;
-        if (isNum(t) || isSlow(t) || isSigInput(t, &i)) {
-            // a delayed constant/slow/input needs a history buffer (a copy
-            // loop; the zero-initialized prefix IS the delay semantics of
-            // the initial samples -- e.g. the ubiquitous 1@1 init pattern)
-            return maxDelayOf(t) > 0;
-        }
-        return isProj(t, &i, w) || maxDelayOf(t) > 0 || getSharingCount(t, fKey) > 1;
-    }
-
-    static Tree defOf(Tree m)
-    {
-        int  i;
-        Tree w, id, le;
-        if (isProj(m, &i, w)) {
-            faustassert(isRec(w, id, le));
-            return nth(le, i);
-        }
-        return m;
-    }
-
-    static bool isCallPrim(const std::string& name)
-    {
-        static const std::set<std::string> calls = {
-            "sin",  "cos",   "tan", "asin", "acos",  "atan",  "atan2", "exp",
-            "exp2", "exp10", "log", "log2", "log10", "pow",   "fmod",  "remainder",
-            "sinh", "cosh",  "tanh", "asinh", "acosh", "atanh"};
-        return calls.count(name) > 0;
-    }
-
-    void delayBounds(Tree y, int& dmin, int& dmax, bool& dvar)
-    {
-        int d;
-        if (isSigInt(y, &d)) {
-            dmin = dmax = d;
-            dvar        = false;
-        } else {
-            interval I = getCertifiedSigType(y)->getInterval();
-            dmin       = (int)I.lo();
-            dmax       = (int)I.hi();
-            dvar       = true;
-        }
+        SuperNodeGraph::delayBounds(y, dmin, dmax, dvar);
     }
 
     // ---- pre-scan: refuse constructs the emitter cannot handle yet.
@@ -1114,120 +884,6 @@ class LoopSplitEmitter {
         throw LoopSplitUnsupported(what.str());
     }
 
-    // ---- reference collection (loop-level graph for Tarjan) ----
-
-    void collectRefs(Tree t, std::set<int>& refs, std::set<int>& refs0, std::set<Tree>& seen,
-                     bool root = false)
-    {
-        int  i;
-        Tree x, y, tb, size, gen, ri;
-        if (seen.count(t)) {
-            return;
-        }
-        seen.insert(t);
-        // materialization first: nums/slow/inputs CAN be materialized (when
-        // delayed), and their d0 readers need the ordering edge. The walk's
-        // ROOT is the materialized node whose refs we are collecting -- it
-        // must not match itself, its children are the references.
-        auto it = fMatIdx.find(t);
-        if (!root && it != fMatIdx.end()) {
-            refs.insert(it->second);
-            refs0.insert(it->second);
-            return;
-        }
-        if (isNum(t) || isSigInput(t, &i)) {
-            return;
-        }
-        if (isSigAttach(t, x, y) && !isSlow(y)) {
-            collectRefs(x, refs, refs0, seen);
-            collectRefs(y, refs, refs0, seen);
-            return;
-        }
-        if (isSlow(t)) {
-            return;
-        }
-        if (isSigDelay(t, x, y)) {
-            int  dmin, dmax;
-            bool dvar;
-            delayBounds(y, dmin, dmax, dvar);
-            auto ix = fMatIdx.find(x);
-            if (ix != fMatIdx.end()) {
-                refs.insert(ix->second);
-                if (dmin == 0) {
-                    refs0.insert(ix->second);
-                }
-            } else {
-                collectRefs(x, refs, refs0, seen);
-            }
-            collectRefs(y, refs, refs0, seen);
-            return;
-        }
-        if (isSigRDTbl(t, tb, ri) && isSigWRTbl(tb, size, gen)) {
-            collectRefs(ri, refs, refs0, seen);
-            return;
-        }
-        tvec subs;
-        getSubSignals(t, subs, false);
-        for (Tree s : subs) {
-            collectRefs(s, refs, refs0, seen);
-        }
-    }
-
-    // ---- Tarjan strongly connected components over fRefs ----
-
-    struct TarjanState {
-        std::vector<int>  index, low;
-        std::vector<bool> onstack;
-        std::vector<int>  stack;
-        int               counter = 0;
-    };
-
-    void tarjanVisit(int v, TarjanState& st)
-    {
-        st.index[v] = st.low[v] = st.counter++;
-        st.stack.push_back(v);
-        st.onstack[v] = true;
-        for (int w : fRefs[v]) {
-            if (st.index[w] < 0) {
-                tarjanVisit(w, st);
-                st.low[v] = std::min(st.low[v], st.low[w]);
-            } else if (st.onstack[w]) {
-                st.low[v] = std::min(st.low[v], st.index[w]);
-            }
-        }
-        if (st.low[v] == st.index[v]) {
-            std::vector<int> comp;
-            int              w;
-            do {
-                w = st.stack.back();
-                st.stack.pop_back();
-                st.onstack[w] = false;
-                comp.push_back(w);
-            } while (w != v);
-            int id = (int)fSccMembers.size();
-            std::sort(comp.begin(), comp.end());
-            for (int m : comp) {
-                fScc[m] = id;
-            }
-            fSccMembers.push_back(comp);
-        }
-    }
-
-    void tarjan()
-    {
-        int         n = (int)fMat.size();
-        TarjanState st;
-        st.index.assign(n, -1);
-        st.low.assign(n, 0);
-        st.onstack.assign(n, false);
-        fScc.assign(n, -1);
-        for (int v = 0; v < n; v++) {
-            if (st.index[v] < 0) {
-                tarjanVisit(v, st);
-            }
-        }
-    }
-
     // ---- body construction: expression walk producing the op DAG ----
 
     int newOp(const std::string& code, std::vector<int> deps, bool isStore, bool isCall,
@@ -1298,7 +954,7 @@ class LoopSplitEmitter {
     {
         Operand o;
         std::string acc = accessCode(idx, dcode);
-        if (maybeInstant && fScc[idx] == curScc) {
+        if (maybeInstant && fSN.blockOf(idx) == curScc) {
             auto it = fStoreOf.find(idx);
             faustassert(it != fStoreOf.end());  // members walked in d0-topo order
             o.op = newOp(acc, {it->second}, false, false, fIsInt[idx]);
@@ -1324,8 +980,8 @@ class LoopSplitEmitter {
         }
 
         // materialized signals referenced from a body become buffer reads
-        if (!root && fMatIdx.count(t)) {
-            return refOperand(fMatIdx[t], "0", true, curScc);
+        if (!root && fSN.indexOf(t) >= 0) {
+            return refOperand(fSN.indexOf(t), "0", true, curScc);
         }
         if (isSigInt(t, &i)) {
             o.code = T(i);
@@ -1362,22 +1018,22 @@ class LoopSplitEmitter {
             int  dmin, dmax;
             bool dvar;
             delayBounds(y, dmin, dmax, dvar);
-            auto ix = fMatIdx.find(x);
-            if (ix == fMatIdx.end()) {
+            int ix = fSN.indexOf(x);
+            if (ix < 0) {
                 // delay of a non-materialized signal: slow/constant, transparent
                 return walk(x, curScc, false);
             }
             if (!dvar) {
-                return refOperand(ix->second, T(dmin), dmin == 0, curScc);
+                return refOperand(ix, T(dmin), dmin == 0, curScc);
             }
             Operand oy = walk(y, curScc, false);
-            std::string acc = accessCode(ix->second, operandCode(oy));
+            std::string acc = accessCode(ix, operandCode(oy));
             std::vector<int> deps;
             addDep(deps, oy);
-            if (dmin == 0 && fScc[ix->second] == curScc) {
-                deps.push_back(fStoreOf.at(ix->second));
+            if (dmin == 0 && fSN.blockOf(ix) == curScc) {
+                deps.push_back(fStoreOf.at(ix));
             }
-            o.op = newOp(acc, deps, false, false, fIsInt[ix->second]);
+            o.op = newOp(acc, deps, false, false, fIsInt[ix]);
             return o;
         }
 
@@ -1664,31 +1320,13 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         }
     }
 
-    // 1. materialized signals, in schedule order
-    for (Tree t : sched) {
-        if (fMatIdx.find(t) == fMatIdx.end() && isMaterialized(t)) {
-            fMatIdx[t] = (int)fMat.size();
-            fMat.push_back(t);
-        }
+    // 1-2. the partition (materialization, reference graph, blocks)
+    fSN.build(L, sched);
+    if (getenv("FAUST_DEBUG_SUPERNODES")) {
+        fSN.print(std::cerr);
     }
-    int n = (int)fMat.size();
-
-    // 2. loop-level reference graph, then Tarjan (components come out in
-    // dependencies-first order)
-    fRefs.resize(n);
-    fRefs0.resize(n);
-    for (int i = 0; i < n; i++) {
-        std::set<Tree> seen;
-        Tree           d = defOf(fMat[i]);
-        if (d != fMat[i] && fMatIdx.count(d)) {
-            // projection defined by another materialized signal: pure ref
-            fRefs[i].insert(fMatIdx[d]);
-            fRefs0[i].insert(fMatIdx[d]);
-        } else {
-            collectRefs(d, fRefs[i], fRefs0[i], seen, /*root*/ true);
-        }
-    }
-    tarjan();
+    const std::vector<Tree>& mat = fSN.materialized();
+    int                      n   = (int)mat.size();
 
     // 3. buffers. Three flavors, by maxDelay m:
     //    m == 0                 chunk-local vector, no state
@@ -1705,8 +1343,8 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     fRingMask.resize(n);
     int vs = gGlobal->gVecSize;
     for (int i = 0; i < n; i++) {
-        fMaxD[i]  = maxDelayOf(fMat[i]);
-        fIsInt[i] = getCertifiedSigType(fMat[i])->nature() == kInt;
+        fMaxD[i]  = fSN.maxDelayOf(mat[i]);
+        fIsInt[i] = getCertifiedSigType(mat[i])->nature() == kInt;
         fLocal[i] = (fMaxD[i] == 0);
         fRing[i]  = (fMaxD[i] > gGlobal->gMaxCopyDelay);
         const char* ctype = fIsInt[i] ? "int" : ifloat();
@@ -1741,36 +1379,15 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         fClass->addZone3Post("fLSIota += count;");
     }
 
-    // 4. loop bodies, one per SCC, in dependencies-first order
+    // 4. loop bodies, one per block, in dependencies-first order (members
+    // already come in instantaneous-dependency order)
     std::ostringstream loops;
-    for (const auto& members : fSccMembers) {
-        // members in instantaneous-dependency order (DFS over fRefs0)
-        std::vector<int> ordered;
-        {
-            std::set<int>              inScc(members.begin(), members.end());
-            std::map<int, int>         state;  // 0 unvisited, 1 visiting, 2 done
-            std::function<void(int)> dfs = [&](int m) {
-                if (state[m]) {
-                    return;
-                }
-                state[m] = 1;
-                for (int p : fRefs0[m]) {
-                    if (inScc.count(p) && p != m) {
-                        dfs(p);
-                    }
-                }
-                state[m] = 2;
-                ordered.push_back(m);
-            };
-            for (int m : members) {
-                dfs(m);
-            }
-        }
-        int scc = fScc[members[0]];
-        int lo  = (int)fOps.size();
+    for (int b = 0; b < fSN.blockCount(); b++) {
+        int lo = (int)fOps.size();
         fOpOf.clear();  // tls temporaries are loop-scoped
-        for (int m : ordered) {
-            Operand root = walk(defOf(fMat[m]), scc, defOf(fMat[m]) == fMat[m]);
+        for (int m : fSN.blockMembers(b)) {
+            Tree             d    = defOf(mat[m]);
+            Operand          root = walk(d, b, d == mat[m]);
             std::vector<int> deps;
             addDep(deps, root);
             int st = newOp(subst("$0 = $1;", storeCode(m), operandCode(root)), deps, true,
