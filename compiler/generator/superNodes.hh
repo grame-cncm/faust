@@ -119,6 +119,9 @@ class SuperNodeGraph {
     /// number of sample-rate operation nodes in a block's bodies (memoized
     /// per member; the cheap size proxy for fusion budgets)
     int opsEstimate(int b) const;
+    /// d0-topological order of the union of two blocks' members (what the
+    /// merged block's emission order WOULD be -- for cost oracles)
+    std::vector<int> orderedUnion(int a, int b) const;
 
     /// one-line summary per block (FAUST_DEBUG_SUPERNODES)
     void print(std::ostream& out) const;

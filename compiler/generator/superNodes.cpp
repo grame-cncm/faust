@@ -499,6 +499,14 @@ int SuperNodeGraph::opsEstimate(int b) const
     return total;
 }
 
+std::vector<int> SuperNodeGraph::orderedUnion(int a, int b) const
+{
+    std::vector<int> merged = fBlocks[a];
+    merged.insert(merged.end(), fBlocks[b].begin(), fBlocks[b].end());
+    std::sort(merged.begin(), merged.end());
+    return orderByInstantDeps(merged);
+}
+
 std::set<int> SuperNodeGraph::blockIns(int b) const
 {
     std::set<int> ins;

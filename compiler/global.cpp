@@ -443,7 +443,7 @@ void global::reset()
     gLSRegisters    = 20;
     gLSWidth        = 4;
     gLSFuse         = false;
-    gLSFuseOps      = 256;
+    gLSFuseOps      = 1024;
 
     gFloatSize      = 1;             // -single by default
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
@@ -2392,7 +2392,7 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-ls-fuse-ops <n> --loop-split-fuse-ops <n> op-count budget of a fused block "
-            "(default 256, implies -ls-fuse)."
+            "(default 1024, compile-time guard; the cost oracle decides, implies -ls-fuse)."
          << endl;
     sstr << tab
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no "

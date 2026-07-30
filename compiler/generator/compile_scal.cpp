@@ -1205,15 +1205,32 @@ class LoopSplitEmitter {
             }
             return order;
         }
-        // model: pressure-aware list scheduler under (R, U); calls prefer
-        // cycles with at most 8 live values (callee-saved constraint)
-        const int R = gGlobal->gLSRegisters, U = gGlobal->gLSWidth, RCALLEE = 8;
-        // consumers within the span
-        std::vector<int> pending(n, 0);   // unmet deps
-        std::vector<int> consumers(n, 0);
+        // model: the pressure-aware list scheduler
+        order = modelSchedule(fOps, lo, hi, gGlobal->gLSRegisters, gGlobal->gLSWidth, nullptr,
+                              nullptr);
+        return order;
+    }
+
+    /**
+     * The pressure-aware list scheduler under (R, U); calls prefer cycles
+     * with at most 8 live values (callee-saved constraint). Works on any op
+     * vector: the emission path passes fOps, the fusion cost oracle passes a
+     * side-effect-free shadow DAG. Optionally reports the schedule length in
+     * cycles and the cumulated over-pressure (sum over cycles of
+     * max(0, live - R): the spill proxy).
+     */
+    static std::vector<int> modelSchedule(const std::vector<LSOp>& ops, int lo, int hi, int R,
+                                          int U, int* cyclesOut, long* overROut)
+    {
+        const int        RCALLEE = 8;
+        int              n       = hi - lo;
+        std::vector<int> order;
+        order.reserve(n);
+        std::vector<int>              pending(n, 0);
+        std::vector<int>              consumers(n, 0);
         std::vector<std::vector<int>> users(n);
         for (int k = lo; k < hi; k++) {
-            for (int d : fOps[k].deps) {
+            for (int d : ops[k].deps) {
                 if (d >= lo && d < hi) {
                     pending[k - lo]++;
                     consumers[d - lo]++;
@@ -1221,7 +1238,6 @@ class LoopSplitEmitter {
                 }
             }
         }
-        // critical height
         std::vector<int> height(n, 0);
         for (int k = n - 1; k >= 0; k--) {
             for (int u : users[k]) {
@@ -1231,7 +1247,8 @@ class LoopSplitEmitter {
         std::vector<int>  remaining = consumers;  // unread results = live
         std::vector<bool> emitted(n, false);
         std::vector<int>  emittedThisCycle;
-        int live = 0, done = 0;
+        int  live = 0, done = 0, cycles = 0;
+        long overR = 0;
         std::vector<int> ready;
         for (int k = 0; k < n; k++) {
             if (pending[k] == 0) {
@@ -1249,7 +1266,7 @@ class LoopSplitEmitter {
                     int k = readyNow[c];
                     // freed = deps whose last use this would be
                     int freed = 0;
-                    for (int d : fOps[lo + k].deps) {
+                    for (int d : ops[lo + k].deps) {
                         if (d >= lo && d < hi && remaining[d - lo] == 1) {
                             freed++;
                         }
@@ -1263,7 +1280,7 @@ class LoopSplitEmitter {
                     }
                     // calls prefer low-live cycles: penalize a call issued
                     // while more than RCALLEE values are live
-                    if (fOps[lo + k].isCall && live > RCALLEE) {
+                    if (ops[lo + k].isCall && live > RCALLEE) {
                         score -= 500000;
                     }
                     if (score > bestScore) {
@@ -1280,7 +1297,7 @@ class LoopSplitEmitter {
                 done++;
                 order.push_back(lo + k);
                 emittedThisCycle.push_back(k);
-                for (int d : fOps[lo + k].deps) {
+                for (int d : ops[lo + k].deps) {
                     if (d >= lo && d < hi) {
                         if (--remaining[d - lo] == 0) {
                             live--;
@@ -1307,8 +1324,148 @@ class LoopSplitEmitter {
             }
             ready = std::move(newReady);
             faustassert(!(emittedThisCycle.empty() && ready.empty() && done < n));
+            cycles++;
+            overR += std::max(0, live - R);
+        }
+        if (cyclesOut) {
+            *cyclesOut = cycles;
+        }
+        if (overROut) {
+            *overROut = overR;
         }
         return order;
+    }
+
+    /**
+     * Fusion cost oracle: estimated per-chunk cost of running the given
+     * member set as ONE loop. A side-effect-free shadow of walk() builds the
+     * op/dependency structure (no CS on slow leaves, no table or UI
+     * declarations, no code strings), the model scheduler prices it:
+     *
+     *   cost = N * (cycles + SPILL_W * overPressure) + C_L
+     *
+     * with N the chunk size, C_L the per-loop overhead and SPILL_W the
+     * cycles charged per register-cycle above R (the spill proxy). The
+     * merged-versus-separate comparison then accounts for both the saved
+     * loop overhead and the pressure risk of oversized bodies.
+     */
+    long blockCostShadow(const std::vector<int>& members)
+    {
+        const long CL = 20, SPILLW = 4;
+        const std::vector<Tree>& mat = fSN.materialized();
+        std::vector<LSOp>        sops;
+        std::map<Tree, int>      memo;
+        std::map<int, int>       rootOf;  // member -> shadow op index (-1: leaf)
+        std::set<int>            inSet(members.begin(), members.end());
+
+        std::function<int(Tree, bool)> sw = [&](Tree t, bool root) -> int {
+            if (!root) {
+                auto sh = memo.find(t);
+                if (sh != memo.end()) {
+                    return sh->second;
+                }
+                int idx = fSN.indexOf(t);
+                if (idx >= 0) {
+                    // in-set instantaneous reads are scalarized (the root
+                    // value); everything else is a buffer load (leaf)
+                    return inSet.count(idx) && rootOf.count(idx) ? rootOf[idx] : -1;
+                }
+            }
+            int     i;
+            int64_t i64;
+            double  r;
+            Tree    x, y, z, sel, ff, largs, tb, size, gen, wi, ws, ri, label;
+            if (SuperNodeGraph::isNum(t) || isSigInput(t, &i)) {
+                return -1;
+            }
+            auto op = [&](std::vector<int> deps, bool call) -> int {
+                LSOp o;
+                for (int d : deps) {
+                    if (d >= 0) {
+                        o.deps.push_back(d);
+                    }
+                }
+                o.isCall = call;
+                sops.push_back(o);
+                int id = (int)sops.size() - 1;
+                memo[t] = id;
+                return id;
+            };
+            if (isSigAttach(t, x, y) && !SuperNodeGraph::isSlow(y)) {
+                return op({sw(x, false), sw(y, false)}, false);
+            }
+            if (SuperNodeGraph::isSlow(t)) {
+                return -1;
+            }
+            if (isSigDelay(t, x, y)) {
+                int  dmin, dmax;
+                bool dvar;
+                SuperNodeGraph::delayBounds(y, dmin, dmax, dvar);
+                int ix = fSN.indexOf(x);
+                if (ix >= 0) {
+                    if (inSet.count(ix) && dmin == 0 && !dvar && rootOf.count(ix)) {
+                        return rootOf[ix];
+                    }
+                    if (dvar && !SuperNodeGraph::isSlow(y)) {
+                        return op({sw(y, false)}, false);  // indexed load
+                    }
+                    return -1;  // constant-delay buffer load
+                }
+                return sw(x, false);
+            }
+            if (isSigBinOp(t, &i, x, y)) {
+                bool call = (i == kRem) && (getCertifiedSigType(t)->nature() == kReal);
+                return op({sw(x, false), sw(y, false)}, call);
+            }
+            if (getUserData(t)) {
+                std::vector<int> deps;
+                for (int k = 0; k < t->arity(); k++) {
+                    deps.push_back(sw(t->branch(k), false));
+                }
+                return op(deps,
+                          SuperNodeGraph::isCallPrim(((xtended*)getUserData(t))->name()));
+            }
+            if (isSigFFun(t, ff, largs)) {
+                std::vector<int> deps;
+                for (int k = 0; k < ffarity(ff); k++) {
+                    deps.push_back(sw(nth(largs, k), false));
+                }
+                return op(deps, true);
+            }
+            if (isSigSelect2(t, sel, x, y)) {
+                return op({sw(sel, false), sw(x, false), sw(y, false)}, false);
+            }
+            if (isSigIntCast(t, x) || isSigBitCast(t, x) || isSigFloatCast(t, x)) {
+                return op({sw(x, false)}, false);
+            }
+            if (isSigRDTbl(t, tb, ri) && isSigWRTbl(tb, size, gen)) {
+                return op({sw(ri, false)}, false);
+            }
+            if (isSigVBargraph(t, label, x, y, z) || isSigHBargraph(t, label, x, y, z)) {
+                return op({sw(z, false)}, false);
+            }
+            if (isSigAssertBounds(t, x, y, z)) {
+                return sw(z, false);
+            }
+            return op({}, false);  // unknown: one slot, no deps
+        };
+
+        for (int m : members) {
+            Tree d      = SuperNodeGraph::defOf(mat[m]);
+            int  r      = sw(d, d == mat[m]);
+            rootOf[m]   = r;
+            LSOp store;
+            if (r >= 0) {
+                store.deps.push_back(r);
+            }
+            store.isStore = true;
+            sops.push_back(store);
+        }
+        int  cycles = 0;
+        long overR  = 0;
+        modelSchedule(sops, 0, (int)sops.size(), gGlobal->gLSRegisters, gGlobal->gLSWidth,
+                      &cycles, &overR);
+        return (long)gGlobal->gVecSize * (cycles + SPILLW * overR) + CL;
     }
 };
 
@@ -1333,6 +1490,16 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // body fits the op budget. The policy of the predictor, as a walk in
     // the lattice of legal partitions.
     if (gGlobal->gLSFuse) {
+        std::map<int, long> costMemo;  // block id -> shadow cost (per campaign step)
+        auto costOfBlock = [&](int b) -> long {
+            auto it = costMemo.find(b);
+            if (it != costMemo.end()) {
+                return it->second;
+            }
+            long c      = blockCostShadow(fSN.blockMembers(b));
+            costMemo[b] = c;
+            return c;
+        };
         bool changed = true;
         while (changed) {
             changed = false;
@@ -1342,13 +1509,22 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                     continue;
                 }
                 int c = *cons.begin();
+                // compile-time guard only: the cost oracle decides
                 if (fSN.opsEstimate(b) + fSN.opsEstimate(c) > gGlobal->gLSFuseOps) {
                     continue;
                 }
                 if (!fSN.canContract(b, c)) {
                     continue;
                 }
+                // fuse iff the merged loop is estimated cheaper than the two
+                // separate ones (the saved C_L and the over-pressure penalty
+                // are both inside the shadow cost)
+                long costM = blockCostShadow(fSN.orderedUnion(b, c));
+                if (costM >= costOfBlock(b) + costOfBlock(c)) {
+                    continue;
+                }
                 fSN.contract(std::min(b, c), std::max(b, c));
+                costMemo.clear();  // block ids shifted
                 changed = true;
             }
         }
