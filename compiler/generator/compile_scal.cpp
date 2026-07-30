@@ -1220,7 +1220,8 @@ class LoopSplitEmitter {
      * max(0, live - R): the spill proxy).
      */
     static std::vector<int> modelSchedule(const std::vector<LSOp>& ops, int lo, int hi, int R,
-                                          int U, int* cyclesOut, long* overROut)
+                                          int U, int* cyclesOut, long* overROut,
+                                          int* peakOut = nullptr)
     {
         const int        RCALLEE = 8;
         int              n       = hi - lo;
@@ -1247,7 +1248,7 @@ class LoopSplitEmitter {
         std::vector<int>  remaining = consumers;  // unread results = live
         std::vector<bool> emitted(n, false);
         std::vector<int>  emittedThisCycle;
-        int  live = 0, done = 0, cycles = 0;
+        int  live = 0, done = 0, cycles = 0, peak = 0;
         long overR = 0;
         std::vector<int> ready;
         for (int k = 0; k < n; k++) {
@@ -1326,12 +1327,16 @@ class LoopSplitEmitter {
             faustassert(!(emittedThisCycle.empty() && ready.empty() && done < n));
             cycles++;
             overR += std::max(0, live - R);
+            peak = std::max(peak, live);
         }
         if (cyclesOut) {
             *cyclesOut = cycles;
         }
         if (overROut) {
             *overROut = overR;
+        }
+        if (peakOut) {
+            *peakOut = peak;
         }
         return order;
     }
@@ -1657,14 +1662,27 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     fClass->addZone3(loops.str());
 }
 
-// emit one inner loop covering ops [lo, hi) under the selected strategy
+// emit one inner loop covering ops [lo, hi) under the selected strategy,
+// annotated with the model estimate of its quality: a perfect loop keeps
+// its peak pressure within R and occupies every issue unit (occupancy 100%)
 void LoopSplitEmitter::emitLoop(std::ostringstream& out, int lo, int hi)
 {
     if (lo == hi) {
         return;
     }
     std::vector<int> order = scheduleSpan(lo, hi);
-    out << "for (int i=0; i<count; i++) {";
+    int  R = gGlobal->gLSRegisters, U = gGlobal->gLSWidth;
+    int  cycles = 0, peak = 0;
+    long overR = 0;
+    modelSchedule(fOps, lo, hi, R, U, &cycles, &overR, &peak);
+    int n   = hi - lo;
+    int occ = (cycles > 0) ? (100 * n) / (cycles * U) : 0;
+    out << "// loop: " << n << " ops, model(R=" << R << ",U=" << U << "): " << cycles
+        << " cycles, pressure " << peak << "/" << R << ", occupancy " << occ << "%";
+    if (overR > 0) {
+        out << ", over-pressure " << overR << " (spill risk)";
+    }
+    out << "\n\t\t\tfor (int i=0; i<count; i++) {";
     for (int k : order) {
         const LSOp& op = fOps[k];
         out << "\n\t\t\t\t";
