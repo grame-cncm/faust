@@ -438,6 +438,10 @@ void global::reset()
     gEtaHarvest     = false;
     gEtaIterations  = 1;
     gCanonicalOrder = false;
+    gLoopSplit      = false;
+    gLSSched        = 0;
+    gLSRegisters    = 20;
+    gLSWidth        = 4;
 
     gFloatSize      = 1;             // -single by default
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
@@ -793,6 +797,11 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gCanonicalOrder) {
         dst << "-co ";
+    }
+    if (gLoopSplit) {
+        static const char* schedNames[] = {"df", "bf", "model"};
+        dst << "-ls -ls-sched " << schedNames[gLSSched] << " -ls-R " << gLSRegisters
+            << " -ls-U " << gLSWidth << " ";
     }
     if (gNoVirtual) {
         dst << "-nvi ";
@@ -1554,6 +1563,33 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-co", "--canonical-order")) {
             gCanonicalOrder = true;
             i += 1;
+
+        } else if (isCmd(argv[i], "-ls", "--loop-split")) {
+            gLoopSplit = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-ls-sched", "--loop-split-scheduling")) {
+            if (strcmp(argv[i + 1], "df") == 0) {
+                gLSSched = 0;
+            } else if (strcmp(argv[i + 1], "bf") == 0) {
+                gLSSched = 1;
+            } else if (strcmp(argv[i + 1], "model") == 0) {
+                gLSSched = 2;
+            } else {
+                throw faustexception("ERROR : -ls-sched expects df, bf or model\n");
+            }
+            gLoopSplit = true;
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ls-R", "--loop-split-registers")) {
+            gLSRegisters = std::atoi(argv[i + 1]);
+            gLoopSplit   = true;
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ls-U", "--loop-split-width")) {
+            gLSWidth   = std::atoi(argv[i + 1]);
+            gLoopSplit = true;
+            i += 2;
 
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
             gFastMathLib = argv[i + 1];
@@ -2318,6 +2354,22 @@ string global::printHelp()
             "no explicit memory manager with access as function parameters."
          << endl;
 #endif
+    sstr << tab
+         << "-ls         --loop-split                (ocpp, experimental) emit the materialized "
+            "DAG as separate loops."
+         << endl;
+    sstr << tab
+         << "-ls-sched <s> --loop-split-scheduling <s> intra-loop op order: df (default), bf, "
+            "model (implies -ls)."
+         << endl;
+    sstr << tab
+         << "-ls-R <n>   --loop-split-registers <n>  register budget of the model scheduler "
+            "(default 20, implies -ls)."
+         << endl;
+    sstr << tab
+         << "-ls-U <n>   --loop-split-width <n>      superscalar width of the model scheduler "
+            "(default 4, implies -ls)."
+         << endl;
     sstr << tab
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no "
             "(default), 1:fabs based, "

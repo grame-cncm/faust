@@ -297,6 +297,14 @@ struct global {
     bool gCanonicalOrder;  // -co option, value-derived (history-independent) order for the terms
                            // of normalized sums and products; default false = serial order (the
                            // historical, construction-driven order). Orthogonal to -eta.
+    bool gLoopSplit;       // -ls option (ocpp, experimental): emit the materialized-signal DAG as
+                           // separate loops (one per recursive group / delayed / shared signal /
+                           // output) instead of one big sample loop
+    int  gLSSched;         // -ls-sched option: intra-loop op scheduling strategy,
+                           // 0 = df (depth-first, the control), 1 = bf (breadth-first levels),
+                           // 2 = model (pressure-aware list scheduler under R/U)
+    int  gLSRegisters;     // -ls-R option: register budget for the model scheduler (default 20)
+    int  gLSWidth;         // -ls-U option: superscalar width for the model scheduler (default 4)
     int  gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
     double gHashLoadFactor;  // -hlf option, tlib CTree/Symbol hash table growth threshold
                               // (0.7 by default, see TLIB.md §1) : purely an internal

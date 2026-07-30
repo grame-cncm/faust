@@ -40,6 +40,8 @@
 ///////////////////////////////////////////////////////////////////////
 
 class ScalarCompiler : public Compiler {
+    friend class LoopSplitEmitter;  // -ls experimental loop-split emission
+
    protected:
     property<std::string> fCompileProperty;
     property<std::string> fSoundfileVariableProperty;  // variable associated to a soundfile
