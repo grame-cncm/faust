@@ -148,17 +148,7 @@ Tree treeRewritePairedMemo(Tree t, Pre& pre, Rule& rule, std::unordered_map<Tree
         for (auto i = defs.rbegin(); i != defs.rend(); ++i) {
             newBody = cons(*i, newBody);
         }
-        Tree result = rec(newVar, newBody);
-        // The fresh group is a FIXED POINT of this pass : its variable is fresh, so
-        // the result pointer can never be one of the pass' original inputs, and
-        // mapping it to itself is sound. Without this entry, a RE-ENTRANT call
-        // sharing the memo (a rule invoking the transformation on a tree it just
-        // built -- e.g. delay normalization re-simplifying a rebuilt operand) would
-        // alpha-rename the fresh group AGAIN, and the two copies -- alpha-equivalent
-        // but distinct -- would both survive : duplicated recursive state in the
-        // generated code (first caught on violin : 15 groups out of 13).
-        memo[result] = result;
-        return result;
+        return rec(newVar, newBody);
     }
 
     // the top-down guard : a fired cut decides the whole subtree on the ORIGINAL
