@@ -1067,6 +1067,11 @@ static void printHeader(ostream& dst)
 
     dst << "//" << endl;
     dst << "// Code generated with Faust " << FAUSTVERSION << " (https://faust.grame.fr)" << endl;
+    // Same contract as the cpp backend : the canonical option line is embedded in
+    // the generated code (header comment now, compile_options metadata as a side
+    // effect), so tools reading the code -- the dashboard's config identity in
+    // particular -- never have to guess the options from the command line.
+    dst << "// Compilation options: " << gGlobal->printCompilationOptions1() << endl;
     dst << "//----------------------------------------------------------" << endl << endl;
 }
 
