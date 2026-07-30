@@ -1320,8 +1320,11 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         }
     }
 
-    // 1-2. the partition (materialization, reference graph, blocks)
-    fSN.build(L, sched);
+    // 1-2. the partition (materialization, reference graph, blocks).
+    // References with certified delay >= the chunk size do not constrain
+    // grouping: cycles with long feedback edges split legally (the d < N
+    // restriction of LOOPMERGING.md)
+    fSN.build(L, sched, gGlobal->gVecSize);
     if (getenv("FAUST_DEBUG_SUPERNODES")) {
         fSN.print(std::cerr);
     }

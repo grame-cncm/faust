@@ -61,8 +61,19 @@ class SuperNodeGraph {
      * Build the finest partition from the output list L and a
      * dependencies-first schedule of all signals (materialized signals are
      * collected in schedule order, which makes indices deterministic).
+     *
+     * freeDelayThreshold: when > 0, references whose CERTIFIED minimal delay
+     * is >= this threshold are not grouping constraints (they still size the
+     * buffers). Rationale (LOOPMERGING.md, "Le paramètre caché : N"): blocks
+     * exchange N samples per chunk through buffers that keep maxDelay
+     * history; a read at d >= N only touches positions written in previous
+     * chunks, intact whatever the loop order inside the chunk -- so cycles
+     * whose feedback edges all carry d >= N split legally. Pass the chunk
+     * size (gVecSize) to enable; 0 keeps every edge constraining (required
+     * by consumers whose downstream model does not know this freedom, like
+     * the JSON export toward the Python simulator).
      */
-    void build(Tree L, const std::vector<Tree>& sched);
+    void build(Tree L, const std::vector<Tree>& sched, int freeDelayThreshold = 0);
 
     // ---- materialized signals ----
     const std::vector<Tree>& materialized() const { return fMat; }
@@ -109,7 +120,8 @@ class SuperNodeGraph {
 
    private:
     OccMarkup* fOcc;
-    Tree       fKey;  // sharing analysis key
+    Tree       fKey;           // sharing analysis key
+    int        fFreeDelay = 0; // active freeDelayThreshold during build
 
     std::vector<Tree>             fMat;
     std::map<Tree, int>           fMatIdx;

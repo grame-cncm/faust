@@ -144,7 +144,11 @@ void SuperNodeGraph::collectRefs(Tree t, std::set<int>& refs, std::set<int>& ref
         delayBounds(y, dmin, dmax, dvar);
         auto ix = fMatIdx.find(x);
         if (ix != fMatIdx.end()) {
-            refs.insert(ix->second);
+            // a read whose certified minimal delay reaches the chunk size
+            // only touches previous chunks: it does not constrain grouping
+            if (fFreeDelay == 0 || dmin < fFreeDelay) {
+                refs.insert(ix->second);
+            }
             if (dmin == 0) {
                 refs0.insert(ix->second);
             }
@@ -207,8 +211,10 @@ void SuperNodeGraph::tarjanVisit(int v, TarjanState& st, std::vector<std::vector
  build
  *****************************************************************************/
 
-void SuperNodeGraph::build(Tree L, const std::vector<Tree>& sched)
+void SuperNodeGraph::build(Tree L, const std::vector<Tree>& sched, int freeDelayThreshold)
 {
+    fFreeDelay = freeDelayThreshold;
+
     // 1. materialized signals, in schedule order (deterministic indices)
     for (Tree t : sched) {
         if (fMatIdx.find(t) == fMatIdx.end() && materializedCriterion(t)) {
