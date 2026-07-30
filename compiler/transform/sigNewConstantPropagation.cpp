@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include <map>
 #include <vector>
 
 #include "global.hh"
@@ -43,6 +44,13 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
         if (!I.isconst()) {
             return nullptr;
         }
+        // Cutting replaces the whole subtree by its value: only licit when
+        // the value is all the subtree contributes. A subtree carrying a
+        // side effect (attach, bargraph) contributes an observable action
+        // too -- attach(0, vumeter) must keep its vumeter.
+        if (hasSideEffect(orig)) {
+            return nullptr;
+        }
         Tree res = (tt->nature() == kInt) ? sigInt(int(I.lo())) : sigReal(I.lo());
         Tree exp;
         // We want to keep the sigGen indication, we don't want
@@ -61,6 +69,28 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
     }
 
    private:
+    // Memoized "this subtree contains an observable side effect" predicate.
+    // The provisional-false insertion before descending cuts the cycles of
+    // recursive trees (conservative fixpoint, standard for rec groups).
+    mutable std::map<Tree, bool> fSideEffect;
+
+    bool hasSideEffect(Tree t) const
+    {
+        auto it = fSideEffect.find(t);
+        if (it != fSideEffect.end()) {
+            return it->second;
+        }
+        fSideEffect[t] = false;
+        Tree x, y, z, label;
+        bool se = isSigAttach(t, x, y) || isSigVBargraph(t, label, x, y, z) ||
+                  isSigHBargraph(t, label, x, y, z);
+        for (int i = 0; !se && i < t->arity(); i++) {
+            se = hasSideEffect(t->branch(i));
+        }
+        fSideEffect[t] = se;
+        return se;
+    }
+
     // The generic frame: rules valid FOR ALL binary operators, driven by the op
     // tables (constant folding, neutral and absorbing elements, x op x).
     static Tree numericFrame(Tree sig)
