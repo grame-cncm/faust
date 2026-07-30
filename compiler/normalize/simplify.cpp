@@ -111,6 +111,11 @@ Tree simplify(Tree sig)
     return signalTransform(sig, A, gGlobal->gSimplifiedMemo);
 }
 
+Tree simplifyExpression(Tree sig)
+{
+    return traced_simplification(sig);
+}
+
 // Implementation
 
 static bool isSigBool(Tree sig)

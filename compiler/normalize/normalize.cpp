@@ -130,7 +130,12 @@ Tree normalizeDelayTerm(Tree s, Tree d)
     } else if (isSigDelay(s, x, y)) {
         if (getSigOrder(y) < 2) {
             // (x@n)@m = x@(n+m) when n is constant
-            return normalizeDelayTerm(x, simplify(sigAdd(d, y)));
+            // Local fold only : d and y are already simplified, and a full
+            // simplify() here would be a transformation inside a transformation
+            // (re-entrant driver on a freshly built tree -- the duplication bug
+            // fixed structurally in tlib 89742b3 ; the neighbouring commented
+            // /*simplify*/ calls show the same doctrine applied historically).
+            return normalizeDelayTerm(x, simplifyExpression(sigAdd(d, y)));
         } else {
             return sigDelay(s, d);
         }
