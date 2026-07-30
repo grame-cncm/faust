@@ -1358,6 +1358,22 @@ class LoopSplitEmitter {
         std::map<int, int>       rootOf;  // member -> shadow op index (-1: leaf)
         std::set<int>            inSet(members.begin(), members.end());
 
+        // a buffer load costs an issue slot (the model's Read): this is what
+        // makes fusion visibly profitable to the oracle -- scalarized in-set
+        // reads cost nothing, the same reads across a boundary cost a slot
+        auto load = [&](Tree t, std::vector<int> deps) -> int {
+            LSOp o;
+            for (int d : deps) {
+                if (d >= 0) {
+                    o.deps.push_back(d);
+                }
+            }
+            sops.push_back(o);
+            int id  = (int)sops.size() - 1;
+            memo[t] = id;
+            return id;
+        };
+
         std::function<int(Tree, bool)> sw = [&](Tree t, bool root) -> int {
             if (!root) {
                 auto sh = memo.find(t);
@@ -1367,8 +1383,11 @@ class LoopSplitEmitter {
                 int idx = fSN.indexOf(t);
                 if (idx >= 0) {
                     // in-set instantaneous reads are scalarized (the root
-                    // value); everything else is a buffer load (leaf)
-                    return inSet.count(idx) && rootOf.count(idx) ? rootOf[idx] : -1;
+                    // value); everything else is a buffer load
+                    if (inSet.count(idx) && rootOf.count(idx)) {
+                        return rootOf[idx];
+                    }
+                    return load(t, {});
                 }
             }
             int     i;
@@ -1407,9 +1426,9 @@ class LoopSplitEmitter {
                         return rootOf[ix];
                     }
                     if (dvar && !SuperNodeGraph::isSlow(y)) {
-                        return op({sw(y, false)}, false);  // indexed load
+                        return load(t, {sw(y, false)});  // indexed load
                     }
-                    return -1;  // constant-delay buffer load
+                    return load(t, {});  // constant-delay buffer load
                 }
                 return sw(x, false);
             }
