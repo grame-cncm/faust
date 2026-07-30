@@ -1534,32 +1534,76 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             costMemo[b] = c;
             return c;
         };
+        // fuse iff the merged loop is estimated cheaper than the two
+        // separate ones (the saved C_L and the over-pressure penalty are
+        // both inside the shadow cost)
+        auto tryContract = [&](int b, int c) -> bool {
+            if (fSN.opsEstimate(b) + fSN.opsEstimate(c) > gGlobal->gLSFuseOps) {
+                return false;  // compile-time guard only: the cost oracle decides
+            }
+            if (!fSN.canContract(b, c)) {
+                return false;
+            }
+            long costM = blockCostShadow(fSN.orderedUnion(b, c));
+            if (costM >= costOfBlock(b) + costOfBlock(c)) {
+                return false;
+            }
+            fSN.contract(std::min(b, c), std::max(b, c));
+            costMemo.clear();  // block ids shifted
+            return true;
+        };
         bool changed = true;
         while (changed) {
             changed = false;
+            // vertical pass: a producer into its only consumer
             for (int b = 0; b < fSN.blockCount() && !changed; b++) {
                 std::set<int> cons = fSN.blockConsumers(b);
-                if (cons.size() != 1) {
-                    continue;
+                if (cons.size() == 1) {
+                    changed = tryContract(b, *cons.begin());
                 }
-                int c = *cons.begin();
-                // compile-time guard only: the cost oracle decides
-                if (fSN.opsEstimate(b) + fSN.opsEstimate(c) > gGlobal->gLSFuseOps) {
-                    continue;
+            }
+            if (changed) {
+                continue;
+            }
+            // horizontal pass (F4): independent siblings sharing a consumer
+            // or an input -- a bank of small identical bodies interleaves
+            // into one loop whose pressure the oracle bounds by R (the
+            // packet size emerges from the price, not from a constant)
+            int nb = fSN.blockCount();
+            std::map<int, std::vector<int>> byConsumer;  // consumer block -> producers
+            std::map<int, std::vector<int>> byInput;     // materialized in -> readers
+            for (int b = 0; b < nb; b++) {
+                for (int c : fSN.blockConsumers(b)) {
+                    byConsumer[c].push_back(b);
                 }
-                if (!fSN.canContract(b, c)) {
-                    continue;
+                for (int in : fSN.blockIns(b)) {
+                    byInput[in].push_back(b);
                 }
-                // fuse iff the merged loop is estimated cheaper than the two
-                // separate ones (the saved C_L and the over-pressure penalty
-                // are both inside the shadow cost)
-                long costM = blockCostShadow(fSN.orderedUnion(b, c));
-                if (costM >= costOfBlock(b) + costOfBlock(c)) {
-                    continue;
+            }
+            auto tryGroup = [&](const std::vector<int>& group) -> bool {
+                for (size_t i = 0; i < group.size(); i++) {
+                    for (size_t j = i + 1; j < group.size(); j++) {
+                        if (tryContract(group[i], group[j])) {
+                            return true;
+                        }
+                    }
                 }
-                fSN.contract(std::min(b, c), std::max(b, c));
-                costMemo.clear();  // block ids shifted
-                changed = true;
+                return false;
+            };
+            for (auto& g : byConsumer) {
+                if (tryGroup(g.second)) {
+                    changed = true;
+                    break;
+                }
+            }
+            if (changed) {
+                continue;
+            }
+            for (auto& g : byInput) {
+                if (tryGroup(g.second)) {
+                    changed = true;
+                    break;
+                }
             }
         }
         fSN.retopo();
