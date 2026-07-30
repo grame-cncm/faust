@@ -947,20 +947,22 @@ class LoopSplitEmitter {
         return subst("$0[$1+i]", fBufName[idx], T(fMaxD[idx]));
     }
 
-    // reference to materialized idx read at delay dcode; becomes an op with a
-    // dependency on the producer's store when the producer is in the same
-    // loop and the read may be instantaneous
+    // reference to materialized idx read at delay dcode. An instantaneous
+    // read of a producer living in the SAME loop is scalarized: it
+    // references the producer's root value directly (a register), not the
+    // buffer -- this is what makes fusion pay. The store still happens for
+    // external readers; d0-topological member order guarantees the root
+    // exists. Variable delays that may be 0 keep the buffer access with a
+    // dependency on the store (the runtime delay may be positive).
+    std::map<int, Operand> fRootOf;  // materialized index -> its body root
+
     Operand refOperand(int idx, const std::string& dcode, bool maybeInstant, int curScc)
     {
         Operand o;
-        std::string acc = accessCode(idx, dcode);
         if (maybeInstant && fSN.blockOf(idx) == curScc) {
-            auto it = fStoreOf.find(idx);
-            faustassert(it != fStoreOf.end());  // members walked in d0-topo order
-            o.op = newOp(acc, {it->second}, false, false, fIsInt[idx]);
-        } else {
-            o.code = acc;
+            return fRootOf.at(idx);
         }
+        o.code = accessCode(idx, dcode);
         return o;
     }
 
@@ -1325,6 +1327,33 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // grouping: cycles with long feedback edges split legally (the d < N
     // restriction of LOOPMERGING.md)
     fSN.build(L, sched, gGlobal->gVecSize);
+
+    // 2b. greedy single-consumer fusion (-ls-fuse): contract a block into
+    // its only consumer when legal (quotient stays acyclic) and the merged
+    // body fits the op budget. The policy of the predictor, as a walk in
+    // the lattice of legal partitions.
+    if (gGlobal->gLSFuse) {
+        bool changed = true;
+        while (changed) {
+            changed = false;
+            for (int b = 0; b < fSN.blockCount() && !changed; b++) {
+                std::set<int> cons = fSN.blockConsumers(b);
+                if (cons.size() != 1) {
+                    continue;
+                }
+                int c = *cons.begin();
+                if (fSN.opsEstimate(b) + fSN.opsEstimate(c) > gGlobal->gLSFuseOps) {
+                    continue;
+                }
+                if (!fSN.canContract(b, c)) {
+                    continue;
+                }
+                fSN.contract(std::min(b, c), std::max(b, c));
+                changed = true;
+            }
+        }
+        fSN.retopo();
+    }
     if (getenv("FAUST_DEBUG_SUPERNODES")) {
         fSN.print(std::cerr);
     }
@@ -1391,6 +1420,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         for (int m : fSN.blockMembers(b)) {
             Tree             d    = defOf(mat[m]);
             Operand          root = walk(d, b, d == mat[m]);
+            fRootOf[m]            = root;
             std::vector<int> deps;
             addDep(deps, root);
             int st = newOp(subst("$0 = $1;", storeCode(m), operandCode(root)), deps, true,

@@ -442,6 +442,8 @@ void global::reset()
     gLSSched        = 0;
     gLSRegisters    = 20;
     gLSWidth        = 4;
+    gLSFuse         = false;
+    gLSFuseOps      = 256;
 
     gFloatSize      = 1;             // -single by default
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
@@ -802,6 +804,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         static const char* schedNames[] = {"df", "bf", "model"};
         dst << "-ls -ls-sched " << schedNames[gLSSched] << " -ls-R " << gLSRegisters
             << " -ls-U " << gLSWidth << " ";
+        if (gLSFuse) {
+            dst << "-ls-fuse -ls-fuse-ops " << gLSFuseOps << " ";
+        }
     }
     if (gNoVirtual) {
         dst << "-nvi ";
@@ -1591,6 +1596,17 @@ bool global::processCmdline(int argc, const char* argv[])
             gLoopSplit = true;
             i += 2;
 
+        } else if (isCmd(argv[i], "-ls-fuse", "--loop-split-fuse")) {
+            gLSFuse    = true;
+            gLoopSplit = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-ls-fuse-ops", "--loop-split-fuse-ops")) {
+            gLSFuseOps = std::atoi(argv[i + 1]);
+            gLSFuse    = true;
+            gLoopSplit = true;
+            i += 2;
+
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
             gFastMathLib = argv[i + 1];
             i += 2;
@@ -2369,6 +2385,14 @@ string global::printHelp()
     sstr << tab
          << "-ls-U <n>   --loop-split-width <n>      superscalar width of the model scheduler "
             "(default 4, implies -ls)."
+         << endl;
+    sstr << tab
+         << "-ls-fuse    --loop-split-fuse           greedy single-consumer fusion of the "
+            "super-node partition (implies -ls)."
+         << endl;
+    sstr << tab
+         << "-ls-fuse-ops <n> --loop-split-fuse-ops <n> op-count budget of a fused block "
+            "(default 256, implies -ls-fuse)."
          << endl;
     sstr << tab
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no "

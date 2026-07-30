@@ -305,6 +305,9 @@ struct global {
                            // 2 = model (pressure-aware list scheduler under R/U)
     int  gLSRegisters;     // -ls-R option: register budget for the model scheduler (default 20)
     int  gLSWidth;         // -ls-U option: superscalar width for the model scheduler (default 4)
+    bool gLSFuse;          // -ls-fuse option: greedy single-consumer fusion of the super-node
+                           // partition before emission
+    int  gLSFuseOps;       // -ls-fuse-ops option: op-count budget of a fused block (default 256)
     int  gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
     double gHashLoadFactor;  // -hlf option, tlib CTree/Symbol hash table growth threshold
                               // (0.7 by default, see TLIB.md §1) : purely an internal

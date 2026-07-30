@@ -263,27 +263,240 @@ void SuperNodeGraph::build(Tree L, const std::vector<Tree>& sched, int freeDelay
         for (int m : comp) {
             fScc[m] = b;
         }
-        std::set<int>            inScc(comp.begin(), comp.end());
-        std::vector<int>         ordered;
-        std::map<int, int>       state;  // 0 unvisited, 1 visiting, 2 done
-        std::function<void(int)> dfs = [&](int m) {
-            if (state[m]) {
-                return;
+        fBlocks.push_back(orderByInstantDeps(comp));
+    }
+}
+
+/**
+ * Topological order of a member set along its internal instantaneous
+ * dependencies (fRefs0 restricted to the set) -- acyclic by causality.
+ */
+std::vector<int> SuperNodeGraph::orderByInstantDeps(const std::vector<int>& members) const
+{
+    std::set<int>            inSet(members.begin(), members.end());
+    std::vector<int>         ordered;
+    std::map<int, int>       state;  // 0 unvisited, 1 visiting, 2 done
+    std::function<void(int)> dfs = [&](int m) {
+        if (state[m]) {
+            return;
+        }
+        state[m] = 1;
+        for (int p : fRefs0[m]) {
+            if (inSet.count(p) && p != m) {
+                dfs(p);
             }
-            state[m] = 1;
-            for (int p : fRefs0[m]) {
-                if (inScc.count(p) && p != m) {
-                    dfs(p);
+        }
+        state[m] = 2;
+        ordered.push_back(m);
+    };
+    for (int m : members) {
+        dfs(m);
+    }
+    return ordered;
+}
+
+/*****************************************************************************
+ the moves
+ *****************************************************************************/
+
+std::set<int> SuperNodeGraph::blockDeps(int b) const
+{
+    std::set<int> deps;
+    for (int m : fBlocks[b]) {
+        for (int r : fRefs[m]) {
+            if (fScc[r] != b) {
+                deps.insert(fScc[r]);
+            }
+        }
+    }
+    return deps;
+}
+
+std::set<int> SuperNodeGraph::blockConsumers(int b) const
+{
+    std::set<int> cons;
+    for (int b2 = 0; b2 < (int)fBlocks.size(); b2++) {
+        if (b2 == b) {
+            continue;
+        }
+        for (int m : fBlocks[b2]) {
+            for (int r : fRefs[m]) {
+                if (fScc[r] == b) {
+                    cons.insert(b2);
                 }
             }
-            state[m] = 2;
-            ordered.push_back(m);
-        };
-        for (int m : comp) {
-            dfs(m);
         }
-        fBlocks.push_back(ordered);
     }
+    return cons;
+}
+
+/**
+ * Contract(a, b) keeps the quotient acyclic iff there is no path between a
+ * and b through a third block, in either direction. Check: DFS in the
+ * quotient dependency graph ignoring direct a<->b edges.
+ */
+bool SuperNodeGraph::canContract(int a, int b) const
+{
+    auto reachesThroughOthers = [&](int from, int to) -> bool {
+        std::set<int>    seen = {from};
+        std::vector<int> todo;
+        for (int d : blockDeps(from)) {
+            if (d != to) {  // ignore the direct edge
+                todo.push_back(d);
+            }
+        }
+        while (!todo.empty()) {
+            int x = todo.back();
+            todo.pop_back();
+            if (x == to) {
+                return true;
+            }
+            if (!seen.insert(x).second) {
+                continue;
+            }
+            for (int d : blockDeps(x)) {
+                todo.push_back(d);
+            }
+        }
+        return false;
+    };
+    return !reachesThroughOthers(a, b) && !reachesThroughOthers(b, a);
+}
+
+void SuperNodeGraph::contract(int a, int b)
+{
+    faustassert(a != b);
+    std::vector<int> merged = fBlocks[a];
+    merged.insert(merged.end(), fBlocks[b].begin(), fBlocks[b].end());
+    std::sort(merged.begin(), merged.end());
+    for (int m : merged) {
+        fScc[m] = a;
+    }
+    fBlocks[a] = orderByInstantDeps(merged);
+    fBlocks.erase(fBlocks.begin() + b);
+    // block ids above b shift down
+    for (int& s : fScc) {
+        if (s > b) {
+            s--;
+        }
+    }
+}
+
+/**
+ * Renumber blocks in dependencies-first order (Kahn on the quotient) --
+ * emission relies on it. Called once after a fusion campaign.
+ */
+void SuperNodeGraph::retopo()
+{
+    int              nb = (int)fBlocks.size();
+    std::vector<int> indeg(nb, 0);
+    std::vector<std::set<int>> cons(nb);
+    for (int b = 0; b < nb; b++) {
+        for (int d : blockDeps(b)) {
+            cons[d].insert(b);
+        }
+        indeg[b] = (int)blockDeps(b).size();
+    }
+    std::vector<int> order;
+    std::vector<int> todo;
+    for (int b = 0; b < nb; b++) {
+        if (indeg[b] == 0) {
+            todo.push_back(b);
+        }
+    }
+    while (!todo.empty()) {
+        int b = todo.back();
+        todo.pop_back();
+        order.push_back(b);
+        for (int c : cons[b]) {
+            if (--indeg[c] == 0) {
+                todo.push_back(c);
+            }
+        }
+    }
+    faustassert((int)order.size() == nb);  // acyclic by invariant
+    std::vector<std::vector<int>> nb2(nb);
+    std::vector<int>              newId(nb);
+    for (int k = 0; k < nb; k++) {
+        newId[order[k]] = k;
+        nb2[k]          = fBlocks[order[k]];
+    }
+    fBlocks = std::move(nb2);
+    for (int& s : fScc) {
+        s = newId[s];
+    }
+}
+
+/**
+ * Count of sample-rate operation nodes in a member's body, stopping at the
+ * same boundaries as the reference walk (other materialized signals, nums,
+ * slow subtrees, inputs). Pure analysis, no side effects.
+ */
+int SuperNodeGraph::opsOfMember(int m) const
+{
+    auto it = fOpsEstimate.find(m);
+    if (it != fOpsEstimate.end()) {
+        return it->second;
+    }
+    int            count = 0;
+    std::set<Tree> seen;
+    // the root exemption is POSITIONAL (like collectRefs), not by identity:
+    // a member's self-read re-encounters the member's tree deeper in the
+    // walk, and must stop there like any materialized reference
+    std::function<void(Tree, bool)> walk = [&](Tree t, bool root) {
+        int  i;
+        Tree x, y, tb, size, gen, ri;
+        if (seen.count(t)) {
+            return;
+        }
+        seen.insert(t);
+        if (!root && fMatIdx.count(t)) {
+            return;
+        }
+        if (isNum(t) || isSigInput(t, &i)) {
+            return;
+        }
+        Tree ax, ay;
+        if (isSigAttach(t, ax, ay) && !isSlow(ay)) {
+            count++;
+            walk(ax, false);
+            walk(ay, false);
+            return;
+        }
+        if (isSlow(t)) {
+            return;
+        }
+        if (isSigDelay(t, x, y)) {
+            walk(x, false);
+            walk(y, false);
+            return;
+        }
+        count++;
+        if (isSigRDTbl(t, tb, ri) && isSigWRTbl(tb, size, gen)) {
+            walk(ri, false);
+            return;
+        }
+        tvec subs;
+        getSubSignals(t, subs, false);
+        for (Tree s : subs) {
+            walk(s, false);
+        }
+    };
+    Tree d = defOf(fMat[m]);
+    if (!(d != fMat[m] && fMatIdx.count(d))) {
+        walk(d, true);
+    }
+    fOpsEstimate[m] = count;
+    return count;
+}
+
+int SuperNodeGraph::opsEstimate(int b) const
+{
+    int total = 0;
+    for (int m : fBlocks[b]) {
+        total += opsOfMember(m);
+    }
+    return total;
 }
 
 std::set<int> SuperNodeGraph::blockIns(int b) const

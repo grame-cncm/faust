@@ -102,6 +102,24 @@ class SuperNodeGraph {
     /// materialized signals a block reads from other blocks
     std::set<int> blockIns(int b) const;
 
+    // ---- the moves (walking the lattice of legal partitions) ----
+
+    /// blocks this block depends on (reads, quotient constraint edges)
+    std::set<int> blockDeps(int b) const;
+    /// blocks reading this block (quotient constraint edges)
+    std::set<int> blockConsumers(int b) const;
+    /// legality of Contract(a, b): no path between a and b through a third
+    /// block, in either direction (the quotient stays acyclic)
+    bool canContract(int a, int b) const;
+    /// merge block b into block a (members re-ordered by instantaneous
+    /// dependencies). Caller must retopo() before emission.
+    void contract(int a, int b);
+    /// renumber blocks in dependencies-first order (after contractions)
+    void retopo();
+    /// number of sample-rate operation nodes in a block's bodies (memoized
+    /// per member; the cheap size proxy for fusion budgets)
+    int opsEstimate(int b) const;
+
     /// one-line summary per block (FAUST_DEBUG_SUPERNODES)
     void print(std::ostream& out) const;
 
@@ -130,9 +148,13 @@ class SuperNodeGraph {
     std::vector<int>              fScc;     // materialized index -> block id
     std::vector<std::vector<int>> fBlocks;  // block id -> ordered members
 
+    mutable std::map<int, int> fOpsEstimate;  // materialized index -> op count
+
     bool materializedCriterion(Tree t) const;
     void collectRefs(Tree t, std::set<int>& refs, std::set<int>& refs0, std::set<Tree>& seen,
                      bool root) const;
+    std::vector<int> orderByInstantDeps(const std::vector<int>& members) const;
+    int              opsOfMember(int m) const;
 
     struct TarjanState;
     void tarjanVisit(int v, TarjanState& st, std::vector<std::vector<int>>& comps);
