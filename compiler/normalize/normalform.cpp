@@ -67,10 +67,10 @@ using namespace std;
  * collision would stop one iteration early, with a correct (just possibly less
  * simplified) tree: a benign failure mode.
  */
-static uint64_t acHash(Tree t, std::map<Tree, uint64_t>& memo);
+static uint64_t acHash(Tree t, std::map<Tree, uint64_t, treeorder>& memo);
 
 static void acFlatten(Tree t, int op, std::vector<uint64_t>& leaves,
-                      std::map<Tree, uint64_t>& memo)
+                      std::map<Tree, uint64_t, treeorder>& memo)
 {
     int  op2;
     Tree x, y;
@@ -82,7 +82,7 @@ static void acFlatten(Tree t, int op, std::vector<uint64_t>& leaves,
     }
 }
 
-static uint64_t acHash(Tree t, std::map<Tree, uint64_t>& memo)
+static uint64_t acHash(Tree t, std::map<Tree, uint64_t, treeorder>& memo)
 {
     auto it = memo.find(t);
     if (it != memo.end()) {
@@ -121,7 +121,7 @@ static uint64_t acHash(Tree t, std::map<Tree, uint64_t>& memo)
 
 /// Does t contain the node g? Traverses nested recursive definitions through their
 /// bodies; cycle-safe by coinduction (a cycle not passing through g is g-free).
-static bool containsNode(Tree t, Tree g, std::map<Tree, bool>& memo)
+static bool containsNode(Tree t, Tree g, std::map<Tree, bool, treeorder>& memo)
 {
     if (t == g) {
         return true;
@@ -154,7 +154,7 @@ static bool containsNode(Tree t, Tree g, std::map<Tree, bool>& memo)
 static Tree degroupInvariants(Tree L)
 {
     // one containment memo PER GROUP: a subtree can be g1-free yet contain g2
-    std::map<Tree, std::map<Tree, bool>> memos;
+    std::map<Tree, std::map<Tree, bool, treeorder>, treeorder> memos;
     return treeRewrite(L, [&memos](Tree r) -> Tree {
         int  i;
         Tree g;
@@ -175,8 +175,8 @@ static Tree degroupInvariants(Tree L)
 /// traversed through their bodies).
 static int countRecGroups(Tree t)
 {
-    std::set<Tree>    seen;
-    std::set<Tree>    groups;
+    std::set<Tree, treeorder>    seen;
+    std::set<Tree, treeorder>    groups;
     std::vector<Tree> work{t};
     while (!work.empty()) {
         Tree s = work.back();
@@ -225,7 +225,7 @@ static Tree normalizeFixpoint(Tree L)
         {
             // the AC judge: stop when the iteration changed nothing that counts
             // (only alpha-renamings and commutative permutations)
-            std::map<Tree, uint64_t> achMemo;
+            std::map<Tree, uint64_t, treeorder> achMemo;
             uint64_t                 ach = acHash(d, achMemo);
             if (haveAch && ach == prevAch) {
                 if (verbose) {
@@ -296,7 +296,7 @@ void debugRecCount(const char* where, Tree L)
         return;
     }
     // collecte des groupes (mêmes règles que countRecGroups)
-    std::set<Tree>    seen;
+    std::set<Tree, treeorder>    seen;
     std::vector<Tree> groups;
     std::vector<Tree> work{L};
     while (!work.empty()) {
@@ -351,7 +351,7 @@ void debugRecCount(const char* where, Tree L)
                 if (h == g) {
                     continue;
                 }
-                std::map<Tree, bool> memo;
+                std::map<Tree, bool, treeorder> memo;
                 Tree                 hv, hb;
                 isRec(h, hv, hb);
                 if (hb && containsNode(hb, g, memo)) {
@@ -360,7 +360,7 @@ void debugRecCount(const char* where, Tree L)
                 }
             }
             // parents dans L
-            std::set<Tree>    seen2;
+            std::set<Tree, treeorder>    seen2;
             std::vector<Tree> work2{L};
             int               shown = 0;
             while (!work2.empty() && shown < 4) {

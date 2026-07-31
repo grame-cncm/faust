@@ -50,7 +50,7 @@ namespace sigs {
 struct State {
     int                                         gFloatSize{};  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad',
     Tabber                                      TABBER{};
-    std::map<Tree, std::pair<int, std::string>> gSignalTable{};
+    std::map<Tree, std::pair<int, std::string>, treeorder> gSignalTable{};
     int                                         gSignalCounter{};
     std::vector<std::string>                    gSignalTrace{};
     int                                         gAllocationCount{};  // Internal signal types counter

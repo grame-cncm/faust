@@ -56,7 +56,7 @@ struct NormalFormTreeLess {
         if (gGlobal->gCanonicalOrder) {
             return CanonicalTreeLess()(a, b);
         }
-        return std::less<CTree*>()(a, b);
+        return treeorder()(a, b);
     }
 };
 

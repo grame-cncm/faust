@@ -71,6 +71,7 @@
 
 #include <cstddef>
 #include <map>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -109,16 +110,26 @@ typedef CTree* Tree;
 
 typedef std::vector<Tree> tvec;
 
-namespace std {
-
-// The std::less <CTree*>comparison function is redefined to provide an unique and stable ordering
-// for all CTree instances and so maintain determinism.
-template <>
-struct less<CTree*> {
+// Named comparator providing the unique and stable serial() ordering of CTree instances, so
+// that iterating an ordered container of trees is deterministic (creation order, not memory
+// addresses). It MUST be a named type, not a specialization of std::less<CTree*>: specializing
+// std::less for a pointer type is undefined behaviour ([namespace.std] requires the pointer
+// specialization to yield the implementation-defined pointer order), and libc++ 20+ exploits
+// exactly that latitude -- its __make_transparent optimization rewrites the literal std::less<T>
+// to the transparent std::less<> (raw pointer <) on the tree INSERT path but not on the LOOKUP
+// path, so a container built with one order is queried with the other and lookups miss present
+// elements (intermittently, depending on malloc addresses). A named comparator is not
+// pattern-matched, both paths agree, and the UB is gone.
+struct treeorder {
     bool operator()(const CTree* lhs, const CTree* rhs) const;
 };
 
-}  // namespace std
+// Ordered containers keyed by Tree: always use these (or spell the comparator explicitly);
+// a bare std::set<Tree>/std::map<Tree, V> would fall back to the address order and lose
+// compilation determinism.
+using TreeSet = std::set<Tree, treeorder>;
+template <typename V>
+using TreeMap = std::map<Tree, V, treeorder>;
 
 /**
  * A CTree = (Node x [CTree]) is the association of a content Node and a list of subtrees
@@ -165,7 +176,7 @@ class TLIB_API CTree : public Garbageable {
     // memoization keyed by a fresh Tree per call, e.g. substitute()/liftn()) : with a flat buffer
     // that node's O(n) lookup made the whole compile quadratic. std::map keeps every node bounded
     // at O(log n) regardless of how many properties it accumulates. See TLIB.md for the numbers.
-    typedef std::map<Tree, Tree> plist;
+    typedef std::map<Tree, Tree, treeorder> plist;
 
    protected:
     // fields
@@ -326,14 +337,12 @@ class TLIB_API CTree : public Garbageable {
     }
 };
 
-// The comparison function relies on lhs->serial() which provides an unique and stable ordering
-// for all CTree instances and so maintain determinism.
-namespace std {
-inline bool less<CTree*>::operator()(const CTree* lhs, const CTree* rhs) const
+// The comparison relies on lhs->serial() which provides an unique and stable ordering
+// for all CTree instances and so maintains determinism.
+inline bool treeorder::operator()(const CTree* lhs, const CTree* rhs) const
 {
     return lhs->serial() < rhs->serial();
 }
-};  // namespace std
 
 //---------------------------------API---------------------------------------
 // To build trees

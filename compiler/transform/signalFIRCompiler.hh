@@ -685,12 +685,12 @@ struct SignalFIRCompiler : public SignalVisitor {
 
     std::stack<ValueInst*> fValueStack;  // Compiler's value stack used during signal traversal
 
-    std::map<Tree, DelayLine> fDelays;  // Mapping between signals and their delay buffers
-    std::map<Tree, TableData> fTables;  // Mapping between signals and their associated tables
-                                        // std::map<Tree, TableData> fWaveforms;    // (Commented
+    std::map<Tree, DelayLine, treeorder> fDelays;  // Mapping between signals and their delay buffers
+    std::map<Tree, TableData, treeorder> fTables;  // Mapping between signals and their associated tables
+                                        // std::map<Tree, TableData, treeorder> fWaveforms;    // (Commented
                                         // out) Similar to tables but for waveforms
-    std::map<Tree, inputControl>  fInputControls;   // UI input controls (buttons, sliders, etc.)
-    std::map<Tree, outputControl> fOutputControls;  // UI output controls (bargraphs)
+    std::map<Tree, inputControl, treeorder>  fInputControls;   // UI input controls (buttons, sliders, etc.)
+    std::map<Tree, outputControl, treeorder> fOutputControls;  // UI output controls (bargraphs)
     int                           fNumInputs  = 0;  // Number of DSP input signals
     int                           fNumOutputs = 0;  // Number of DSP output signals
     Tree                          fOutputSig;       // The root signal tree to compile

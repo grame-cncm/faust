@@ -342,7 +342,7 @@ void AssemblyScriptCodeContainer::produceMetadata(int tabs)
             *fOut << "m.declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
             tab(tabs + 1, *fOut);
         } else {
-            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+            for (set<Tree, treeorder>::iterator j = i.second.begin(); j != i.second.end(); j++) {
                 if (j == i.second.begin()) {
                     *fOut << "m.declare(\"" << *(i.first) << "\", " << **j << ");";
                 } else {

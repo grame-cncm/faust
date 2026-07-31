@@ -80,7 +80,7 @@ class CodeLoop : public virtual Garbageable {
     int                  fUseCount;    ///< how many loops depend on this one
     std::list<CodeLoop*> fExtraLoops;  ///< extra loops that where in sequences
 
-    std::set<Tree>      fRecDependencies;  ///< Loops having recursive dependencies must be merged
+    std::set<Tree, treeorder>      fRecDependencies;  ///< Loops having recursive dependencies must be merged
     std::set<CodeLoop*> fBackwardLoopDependencies;  ///< Loops that must be computed before this one
     std::set<CodeLoop*> fForwardLoopDependencies;   ///< Loops that will be computed after this one
 

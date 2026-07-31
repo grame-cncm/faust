@@ -72,7 +72,7 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
     // Memoized "this subtree contains an observable side effect" predicate.
     // The provisional-false insertion before descending cuts the cycles of
     // recursive trees (conservative fixpoint, standard for rec groups).
-    mutable std::map<Tree, bool> fSideEffect;
+    mutable std::map<Tree, bool, treeorder> fSideEffect;
 
     bool hasSideEffect(Tree t) const
     {

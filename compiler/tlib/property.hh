@@ -157,7 +157,7 @@ class property<double> : public Garbageable {
 template <class P>
 class property2 : public Garbageable {
     Tree fOuterKey;
-    typedef std::map<Tree, P> Inner;
+    typedef std::map<Tree, P, treeorder> Inner;
 
     struct Slot {
         Tree   fB;      // the single 'b' seen so far ; unused once fInner is non-null
@@ -253,7 +253,7 @@ class property2<Tree> : public Garbageable {
     struct Entry {
         Tree              fB;             // the single 'b' seen so far ; unused once fInner set
         Tree              fValue;         // its value ; unused once fInner set
-        std::map<Tree, Tree>* fInner = nullptr;  // non-null once a 2nd distinct 'b' is seen
+        std::map<Tree, Tree, treeorder>* fInner = nullptr;  // non-null once a 2nd distinct 'b' is seen
     };
     std::unordered_map<Tree, Entry> fOuter;
 
@@ -276,7 +276,7 @@ class property2<Tree> : public Garbageable {
             e.fValue = value;
         } else {
             // Second distinct 'b' for this 'a' : only now pay for a small nested map.
-            e.fInner        = new std::map<Tree, Tree>();
+            e.fInner        = new std::map<Tree, Tree, treeorder>();
             (*e.fInner)[e.fB] = e.fValue;
             (*e.fInner)[b]    = value;
         }

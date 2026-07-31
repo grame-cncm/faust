@@ -145,7 +145,7 @@ class SuperNodeGraph {
     int        fFreeDelay = 0; // active freeDelayThreshold during build
 
     std::vector<Tree>             fMat;
-    std::map<Tree, int>           fMatIdx;
+    std::map<Tree, int, treeorder>           fMatIdx;
     std::vector<std::set<int>>    fRefs;
     std::vector<std::set<int>>    fRefs0;
     std::vector<int>              fScc;     // materialized index -> block id
@@ -154,7 +154,7 @@ class SuperNodeGraph {
     mutable std::map<int, int> fOpsEstimate;  // materialized index -> op count
 
     bool materializedCriterion(Tree t) const;
-    void collectRefs(Tree t, std::set<int>& refs, std::set<int>& refs0, std::set<Tree>& seen,
+    void collectRefs(Tree t, std::set<int>& refs, std::set<int>& refs0, std::set<Tree, treeorder>& seen,
                      bool root) const;
     std::vector<int> orderByInstantDeps(const std::vector<int>& members) const;
     int              opsOfMember(int m) const;

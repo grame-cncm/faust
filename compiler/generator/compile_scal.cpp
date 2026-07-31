@@ -307,7 +307,7 @@ void ScalarCompiler::conditionStatistics(Tree l)
 
 void ScalarCompiler::conditionStatistics(Tree l)
 {
-    map<Tree, int>
+    map<Tree, int, treeorder>
         fConditionStatistics;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
     for (const auto& p : fConditionProperty) {
         for (Tree lc = p.second; !isNil(lc); lc = tl(lc)) {
@@ -504,7 +504,7 @@ class LoopDagDumper {
     SuperNodeGraph      fSN;
     std::vector<bool>   fNeeded;         // index -> read somewhere => output vector
     std::vector<bool>   fBlockSelfRead;  // block -> emits a self-read
-    std::map<Tree, int> fSlowId;         // slow leaf -> id
+    std::map<Tree, int, treeorder> fSlowId;         // slow leaf -> id
 
    public:
     LoopDagDumper(OccMarkup* occ, Tree key) : fSN(occ, key) {}
@@ -792,7 +792,7 @@ class LoopSplitEmitter {
         bool isInt   = false;
     };
     std::vector<LSOp>   fOps;
-    std::map<Tree, int> fOpOf;      // sample-rate op tree -> index in fOps
+    std::map<Tree, int, treeorder> fOpOf;      // sample-rate op tree -> index in fOps
     std::map<int, int>  fStoreOf;   // materialized index -> its store op
 
     // shorthands into the shared criteria
@@ -809,7 +809,7 @@ class LoopSplitEmitter {
     // Mirrors walk()'s dispatch exactly, and throws BEFORE anything has been
     // written, so the caller can fall back to classic emission cleanly.
 
-    void prescan(Tree t, std::set<Tree>& seen)
+    void prescan(Tree t, std::set<Tree, treeorder>& seen)
     {
         int  i;
         Tree x, y, z, sel, w, ff, largs, tb, size, gen, wi, ws, ri, label;
@@ -1359,7 +1359,7 @@ class LoopSplitEmitter {
         const long CL = gGlobal->gLSCl, SPILLW = gGlobal->gLSSpillW;
         const std::vector<Tree>& mat = fSN.materialized();
         std::vector<LSOp>        sops;
-        std::map<Tree, int>      memo;
+        std::map<Tree, int, treeorder>      memo;
         std::map<int, int>       rootOf;  // member -> shadow op index (-1: leaf)
         std::set<int>            inSet(members.begin(), members.end());
 
@@ -1507,7 +1507,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
 {
     // 0. refuse unsupported constructs before writing anything
     {
-        std::set<Tree> seen;
+        std::set<Tree, treeorder> seen;
         for (Tree l = L; isList(l); l = tl(l)) {
             prescan(hd(l), seen);
         }

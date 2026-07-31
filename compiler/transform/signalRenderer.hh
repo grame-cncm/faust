@@ -542,12 +542,12 @@ struct SignalRenderer : public SignalVisitor {
     }
 
     std::stack<Node>                fValueStack;     // Interpreter stack of values
-    std::map<Tree, DelayLine<int>>  fIntDelays;      // Delay lines for integer signals
-    std::map<Tree, DelayLine<REAL>> fRealDelays;     // Delay lines for REAL signals
-    std::map<Tree, TableData<int>>  fIntTables;      // Table for integer signals
-    std::map<Tree, TableData<REAL>> fRealTables;     // Table for REAL signals
-    std::map<Tree, inputControl>    fInputControls;  // Inputs controls (sliders, nentries, buttons)
-    std::map<Tree, outputControl>   fOutputControls;  // Output controls (bargraphs)
+    std::map<Tree, DelayLine<int>, treeorder>  fIntDelays;      // Delay lines for integer signals
+    std::map<Tree, DelayLine<REAL>, treeorder> fRealDelays;     // Delay lines for REAL signals
+    std::map<Tree, TableData<int>, treeorder>  fIntTables;      // Table for integer signals
+    std::map<Tree, TableData<REAL>, treeorder> fRealTables;     // Table for REAL signals
+    std::map<Tree, inputControl, treeorder>    fInputControls;  // Inputs controls (sliders, nentries, buttons)
+    std::map<Tree, outputControl, treeorder>   fOutputControls;  // Output controls (bargraphs)
     int                             fNumInputs  = 0;
     int                             fNumOutputs = 0;
     int                             fSampleRate = -1;

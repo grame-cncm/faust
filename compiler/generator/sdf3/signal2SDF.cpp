@@ -45,7 +45,7 @@ using namespace std;
 void Signal2SDF::sigToSDF(Tree L, ostream& fout)
 {
     const string graphName = gGlobal->gMasterName;  // name of .dsp file
-    set<Tree>    alreadyDrawn;
+    set<Tree, treeorder>    alreadyDrawn;
     while (!isNil(L)) {
         self(hd(L));
         // recLog(hd(L), alreadyDrawn);

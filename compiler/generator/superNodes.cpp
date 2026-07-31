@@ -107,7 +107,7 @@ bool SuperNodeGraph::materializedCriterion(Tree t) const
  *****************************************************************************/
 
 void SuperNodeGraph::collectRefs(Tree t, std::set<int>& refs, std::set<int>& refs0,
-                                 std::set<Tree>& seen, bool root) const
+                                 std::set<Tree, treeorder>& seen, bool root) const
 {
     int  i;
     Tree x, y, tb, size, gen, ri;
@@ -228,7 +228,7 @@ void SuperNodeGraph::build(Tree L, const std::vector<Tree>& sched, int freeDelay
     fRefs.resize(n);
     fRefs0.resize(n);
     for (int i = 0; i < n; i++) {
-        std::set<Tree> seen;
+        std::set<Tree, treeorder> seen;
         Tree           d = defOf(fMat[i]);
         if (d != fMat[i] && fMatIdx.count(d)) {
             // projection defined by another materialized signal: pure ref
@@ -439,7 +439,7 @@ int SuperNodeGraph::opsOfMember(int m) const
         return it->second;
     }
     int            count = 0;
-    std::set<Tree> seen;
+    std::set<Tree, treeorder> seen;
     // the root exemption is POSITIONAL (like collectRefs), not by identity:
     // a member's self-read re-encounters the member's tree deeper in the
     // walk, and must stop there like any materialized reference

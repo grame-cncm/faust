@@ -34,7 +34,7 @@ struct ScalarGroup {
 // cycles, while the node memo preserves sharing outside recursive groups.
 class Scalarizer {
    private:
-    std::map<Tree, ScalarGroup>      fGroups;
+    std::map<Tree, ScalarGroup, treeorder>      fGroups;
     std::unordered_map<Tree, Tree>   fMemo;
 
     ScalarGroup& scalarizeGroup(Tree group)
@@ -146,7 +146,7 @@ class Scalarizer {
 
 // Validate the scalar normal form structurally. The visited set terminates on
 // recursive DAG cycles and prevents shared definitions from being rescanned.
-bool checkScalarized(Tree signal, std::set<Tree>& visited)
+bool checkScalarized(Tree signal, std::set<Tree, treeorder>& visited)
 {
     if (!visited.insert(signal).second) {
         return true;
@@ -223,7 +223,7 @@ bool isSigScalarized(Tree signal)
     if (!signal) {
         return false;
     }
-    std::set<Tree> visited;
+    std::set<Tree, treeorder> visited;
     // The visited set makes the structural check terminate while following
     // every reachable recursive definition.
     return checkScalarized(signal, visited);
