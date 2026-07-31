@@ -51,6 +51,7 @@
 #include "sigRetiming.hh"
 #include "sigToGraph.hh"
 #include "sigprint.hh"
+#include "rewrite.hh"
 #include "superNodes.hh"
 #include "sigtype.hh"
 #include "timing.hh"
@@ -127,6 +128,40 @@ string ScalarCompiler::getFreshID(const string& prefix)
 }
 
 /*****************************************************************************
+ delay floor (-mindelay, experimental)
+ *****************************************************************************/
+
+/**
+ * Semantic delay floor: rewrite sigDelay(x, y) into sigDelay(x, max(y, K))
+ * for LARGE VARIABLE delays -- certified dmin < K and dmax >= 32*K (the
+ * excursion threshold: a multi-second echo is floored, a flanger or a
+ * variable-pitch string is not). The max is REAL, emitted code included:
+ * the interval system then certifies dmin >= K by itself, and when
+ * K >= gVecSize the d < N freedom cuts the feedback cycles that go through
+ * these delays -- no special case anywhere downstream, the proof travels
+ * through the types. Opt-in: settings below K no longer reach them.
+ * Trees are rebuilt, so every annotation must be redone by the caller.
+ */
+static Tree applyDelayFloor(Tree L, int K)
+{
+    const int excursion = 32 * K;
+    return treeRewrite(L, [K, excursion](Tree t) -> Tree {
+        Tree x, y;
+        int  d;
+        if (isSigDelay(t, x, y) && !isSigInt(y, &d)) {
+            ::Type ty = getSigType(y);  // null-safe: renamed-rec subtrees are untyped
+            if (ty) {
+                interval I = ty->getInterval();
+                if ((int)I.lo() < K && (int)I.hi() >= excursion) {
+                    return sigDelay(x, sigMax(y, sigInt(K)));
+                }
+            }
+        }
+        return t;
+    });
+}
+
+/*****************************************************************************
  prepare
  *****************************************************************************/
 
@@ -161,6 +196,15 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("L2 typeAnnotation");
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");
+
+    if (gGlobal->gMinDelay > 0) {
+        // semantic delay floor: needs the intervals just computed, rebuilds
+        // trees, so the annotations are redone in the same order as above
+        L2 = applyDelayFloor(L2, gGlobal->gMinDelay);
+        conditionAnnotation(L2);
+        recursivnessAnnotation(L2);
+        typeAnnotation(L2, true);
+    }
 
     startTiming("sharingAnalysis");
     sharingAnalysis(L2, fSharingKey);  // Annotate L2 with sharing count

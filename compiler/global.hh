@@ -308,6 +308,11 @@ struct global {
     bool gLSFuse;          // -ls-fuse option: greedy single-consumer fusion of the super-node
                            // partition before emission
     int  gLSFuseOps;       // -ls-fuse-ops option: compile-time guard on fused-block op count
+    int  gMinDelay;        // -mindelay option (ocpp, experimental): SEMANTIC delay floor --
+                           // large variable delays (certified dmin < K, dmax >= 32*K) get a real
+                           // max(d, K) so their certified minimum reaches K; with K >= gVecSize
+                           // the d<N freedom then cuts their feedback cycles (proof carried by
+                           // the interval system). Changes the sound of sub-K settings: opt-in.
     int  gLSCl;            // -ls-cl option: per-loop per-chunk overhead in the fusion cost
                            // oracle (default 20 cycles)
     int  gLSSpillW;        // -ls-spill option: cycles charged per register-cycle above R in the

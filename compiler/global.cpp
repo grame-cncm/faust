@@ -444,6 +444,7 @@ void global::reset()
     gLSWidth        = 4;
     gLSFuse         = false;
     gLSFuseOps      = 1024;
+    gMinDelay       = 0;
     gLSCl           = 20;
     gLSSpillW       = 4;
     gLSLoadW        = 1;
@@ -802,6 +803,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gCanonicalOrder) {
         dst << "-co ";
+    }
+    if (gMinDelay > 0) {
+        dst << "-mindelay " << gMinDelay << " ";
     }
     if (gLoopSplit) {
         static const char* schedNames[] = {"df", "bf", "model"};
@@ -1611,6 +1615,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gLoopSplit = true;
             i += 2;
 
+        } else if (isCmd(argv[i], "-mindelay", "--min-delay")) {
+            gMinDelay = std::atoi(argv[i + 1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-ls-cl", "--loop-split-cl")) {
             gLSCl      = std::atoi(argv[i + 1]);
             gLSFuse    = true;
@@ -2415,6 +2423,11 @@ string global::printHelp()
     sstr << tab
          << "-ls-fuse-ops <n> --loop-split-fuse-ops <n> op-count budget of a fused block "
             "(default 1024, compile-time guard; the cost oracle decides, implies -ls-fuse)."
+         << endl;
+    sstr << tab
+         << "-mindelay <n> --min-delay <n>           (ocpp, experimental) semantic floor for "
+            "large variable delays: emits max(d, n) when certified dmin < n and dmax >= 32*n; "
+            "with n >= vector size, long feedback cycles split legally."
          << endl;
     sstr << tab
          << "-ls-cl <n>  --loop-split-cl <n>         oracle: per-loop per-chunk overhead "
