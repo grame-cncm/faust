@@ -1552,26 +1552,37 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             costMemo.clear();  // block ids shifted
             return true;
         };
+        // BEST-GAIN greedy: at each step, evaluate every candidate --
+        // vertical (producer into its only consumer) and horizontal
+        // (independent siblings sharing a consumer or an input) -- and apply
+        // the contraction with the LARGEST estimated gain. First-win order
+        // was path-dependent: on the 9x9 filter matrix it followed the
+        // chains (vertical first) and locked out the measurably better
+        // square tiles the oracle itself prefers when allowed to compare.
+        auto gainOf = [&](int b, int c) -> long {
+            if (fSN.opsEstimate(b) + fSN.opsEstimate(c) > gGlobal->gLSFuseOps) {
+                return 0;  // compile-time guard only: the cost oracle decides
+            }
+            if (!fSN.canContract(b, c)) {
+                return 0;
+            }
+            long costM = blockCostShadow(fSN.orderedUnion(b, c));
+            return costOfBlock(b) + costOfBlock(c) - costM;
+        };
         bool changed = true;
         while (changed) {
             changed = false;
-            // vertical pass: a producer into its only consumer
-            for (int b = 0; b < fSN.blockCount() && !changed; b++) {
+            int  nb = fSN.blockCount();
+            std::set<std::pair<int, int>> cands;
+            for (int b = 0; b < nb; b++) {
                 std::set<int> cons = fSN.blockConsumers(b);
                 if (cons.size() == 1) {
-                    changed = tryContract(b, *cons.begin());
+                    int c = *cons.begin();
+                    cands.insert({std::min(b, c), std::max(b, c)});
                 }
             }
-            if (changed) {
-                continue;
-            }
-            // horizontal pass (F4): independent siblings sharing a consumer
-            // or an input -- a bank of small identical bodies interleaves
-            // into one loop whose pressure the oracle bounds by R (the
-            // packet size emerges from the price, not from a constant)
-            int nb = fSN.blockCount();
-            std::map<int, std::vector<int>> byConsumer;  // consumer block -> producers
-            std::map<int, std::vector<int>> byInput;     // materialized in -> readers
+            std::map<int, std::vector<int>> byConsumer;
+            std::map<int, std::vector<int>> byInput;
             for (int b = 0; b < nb; b++) {
                 for (int c : fSN.blockConsumers(b)) {
                     byConsumer[c].push_back(b);
@@ -1580,30 +1591,46 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                     byInput[in].push_back(b);
                 }
             }
-            auto tryGroup = [&](const std::vector<int>& group) -> bool {
-                for (size_t i = 0; i < group.size(); i++) {
-                    for (size_t j = i + 1; j < group.size(); j++) {
-                        if (tryContract(group[i], group[j])) {
-                            return true;
+            // third affinity: same topological depth. Disjoint parallel
+            // chains (the 9x9 filter matrix: 9 ins, 9 outs, no shared sum)
+            // offer no consumer/input affinity, yet same-stage segments
+            // across chains are exactly the profitable square tiles. Window
+            // the pairs to keep the candidate count linear.
+            std::map<int, std::vector<int>> byDepth;
+            {
+                std::vector<int> depth(nb, 0);
+                for (int b = 0; b < nb; b++) {  // blocks are topo-ordered
+                    for (int d : fSN.blockDeps(b)) {
+                        depth[b] = std::max(depth[b], depth[d] + 1);
+                    }
+                    byDepth[depth[b]].push_back(b);
+                }
+            }
+            for (auto* groups : {&byConsumer, &byInput, &byDepth}) {
+                for (auto& g : *groups) {
+                    size_t win = (groups == &byDepth) ? 8 : g.second.size();
+                    for (size_t i = 0; i < g.second.size(); i++) {
+                        for (size_t j = i + 1; j < g.second.size() && j <= i + win; j++) {
+                            cands.insert({std::min(g.second[i], g.second[j]),
+                                          std::max(g.second[i], g.second[j])});
                         }
                     }
                 }
-                return false;
-            };
-            for (auto& g : byConsumer) {
-                if (tryGroup(g.second)) {
-                    changed = true;
-                    break;
+            }
+            long bestGain = 0;
+            int  bestA = -1, bestB = -1;
+            for (auto& bc : cands) {
+                long g = gainOf(bc.first, bc.second);
+                if (g > bestGain) {
+                    bestGain = g;
+                    bestA    = bc.first;
+                    bestB    = bc.second;
                 }
             }
-            if (changed) {
-                continue;
-            }
-            for (auto& g : byInput) {
-                if (tryGroup(g.second)) {
-                    changed = true;
-                    break;
-                }
+            if (bestA >= 0) {
+                fSN.contract(bestA, bestB);
+                costMemo.clear();
+                changed = true;
             }
         }
         fSN.retopo();
