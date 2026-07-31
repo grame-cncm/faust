@@ -1409,9 +1409,6 @@ class LoopSplitEmitter {
             int64_t i64;
             double  r;
             Tree    x, y, z, sel, ff, largs, tb, size, gen, wi, ws, ri, label;
-            if (SuperNodeGraph::isNum(t) || isSigInput(t, &i)) {
-                return -1;
-            }
             auto op = [&](std::vector<int> deps, bool call) -> int {
                 LSOp o;
                 for (int d : deps) {
@@ -1425,11 +1422,26 @@ class LoopSplitEmitter {
                 memo[t] = id;
                 return id;
             };
+            // constants and slow leaves are LIVE VALUES: materialized once
+            // (one shadow op, no deps, memoized per distinct tree across the
+            // whole member set) and consumed at each use -- the scheduler
+            // tracks their liveness like any value. This is the pressure the
+            // R=16 optimum revealed: ~90 live fConst in a big body occupy
+            // registers the signal-only model did not count. Sharing a
+            // constant across fused members is now a fusion benefit the
+            // oracle can see. (Inputs stay free: per-iteration loads, not
+            // resident values -- a separate refinement.)
+            if (SuperNodeGraph::isNum(t)) {
+                return op({}, false);
+            }
+            if (isSigInput(t, &i)) {
+                return -1;
+            }
             if (isSigAttach(t, x, y) && !SuperNodeGraph::isSlow(y)) {
                 return op({sw(x, false), sw(y, false)}, false);
             }
             if (SuperNodeGraph::isSlow(t)) {
-                return -1;
+                return op({}, false);
             }
             if (isSigDelay(t, x, y)) {
                 int  dmin, dmax;
