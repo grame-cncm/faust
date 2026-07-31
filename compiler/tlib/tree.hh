@@ -494,7 +494,7 @@ TLIB_API bool alphaEquiv(Tree a, Tree b);  ///< direct alpha-equivalence : pair-
 /// value -- symbols by NAME --, then children left to right). Two processes that build
 /// the same tree values order them identically, whatever their construction history.
 /// Meant for the orderings that must survive alpha-renaming and history (the
-/// normal-form term orders); the default less<CTree*> stays serial-based.
+/// normal-form term orders); the default treeorder stays serial-based.
 TLIB_API bool canonicalTreeLess(Tree a, Tree b);
 
 struct CanonicalTreeLess {
