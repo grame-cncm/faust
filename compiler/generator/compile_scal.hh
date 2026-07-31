@@ -49,7 +49,7 @@ class ScalarCompiler : public Compiler {
     property<std::pair<std::string, std::string> >
         fInstanceInitProperty;  // property added to solve 20101208 kjetil bug
 
-    std::map<Tree, Tree>
+    TreeMap<Tree>
         fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
 
     static std::map<std::string, int>  fIDCounters;
@@ -57,7 +57,7 @@ class ScalarCompiler : public Compiler {
     OccMarkup*                         fOccMarkup;
     int                                fMaxIota;
     std::map<std::string, std::string> fIotaCache;
-    std::map<Tree, int>                fScheduleOrder;
+    TreeMap<int>                       fScheduleOrder;
 
    public:
     ScalarCompiler(const std::string& name, const std::string& super, int numInputs, int numOutputs)

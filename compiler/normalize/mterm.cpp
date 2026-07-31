@@ -28,7 +28,7 @@
 
 using namespace std;
 
-typedef map<Tree, int> MP;
+typedef TreeMap<int> MP;
 
 mterm::mterm() : fCoef(sigInt(0))
 {

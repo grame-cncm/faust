@@ -320,8 +320,8 @@ static void printDocMetadata(const Tree expr, ostream& docout)
 {
     if (gGlobal->gMetaDataSet.count(expr)) {
         string    sep  = "";
-        set<Tree> mset = gGlobal->gMetaDataSet[expr];
-        for (set<Tree>::iterator j = mset.begin(); j != mset.end(); j++) {
+        TreeSet   mset = gGlobal->gMetaDataSet[expr];
+        for (TreeSet::iterator j = mset.begin(); j != mset.end(); j++) {
             docout << sep << unquote(tree2str(*j));
             sep = ", ";
         }

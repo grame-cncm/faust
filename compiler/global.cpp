@@ -2014,7 +2014,7 @@ void global::printDeclareHeader(ostream& dst)
             dst << replaceCharList(key.str(), rep, '_');
             dst << " " << **(i.second.begin()) << ";" << endl;
         } else {
-            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); ++j) {
+            for (TreeSet::iterator j = i.second.begin(); j != i.second.end(); ++j) {
                 if (j == i.second.begin()) {
                     dst << "declare " << *(i.first) << " " << **j << ";" << endl;
                 } else {

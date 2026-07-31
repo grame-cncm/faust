@@ -88,7 +88,7 @@ void Klass::openLoop(Tree recsymbol, const string& size)
     // cerr << "\nOPEN REC LOOP(" << *recsymbol << ", " << size << ") ----> " << fTopLoop << endl;
 }
 
-void Klass::listAllLoopProperties(Tree sig, set<Loop*>& L, set<Tree>& visited)
+void Klass::listAllLoopProperties(Tree sig, set<Loop*>& L, TreeSet& visited)
 {
     if (visited.count(sig) == 0) {
         visited.insert(sig);
@@ -116,7 +116,7 @@ void Klass::closeLoop(Tree sig)
 
     // fix the missing dependencies
     set<Loop*> L;
-    set<Tree>  V;
+    TreeSet    V;
     listAllLoopProperties(sig, L, V);
     for (Loop* l : L) {
         fTopLoop->fBackwardLoopDependencies.insert(l);

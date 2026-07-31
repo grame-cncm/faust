@@ -291,7 +291,7 @@ void JuliaCodeContainer::produceMetadata(int tabs)
         } else {
             // But the "author" meta data is accumulated, the upper level becomes the main author
             // and sub-levels become "contributor"
-            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+            for (TreeSet::iterator j = i.second.begin(); j != i.second.end(); j++) {
                 if (j == i.second.begin()) {
                     tab(tabs + 1, *fOut);
                     *fOut << "declare!(m, \"" << *(i.first) << "\", " << **j << ");";

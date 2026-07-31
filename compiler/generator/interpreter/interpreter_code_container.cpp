@@ -359,7 +359,7 @@ FIRMetaBlockInstruction* InterpreterCodeContainer<REAL>::produceMetadata(string&
             }
             block->push(new FIRMetaInstruction(str1.str(), unquote(str2.str())));
         } else {
-            for (set<Tree>::iterator j = it.second.begin(); j != it.second.end(); j++) {
+            for (TreeSet::iterator j = it.second.begin(); j != it.second.end(); j++) {
                 if (j == it.second.begin()) {
                     stringstream str1, str2;
                     str1 << *(it.first);
