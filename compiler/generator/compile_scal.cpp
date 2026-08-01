@@ -838,6 +838,7 @@ class LoopSplitEmitter {
     std::vector<LSOp>   fOps;
     std::map<Tree, int, treeorder> fOpOf;      // sample-rate op tree -> index in fOps
     std::map<int, int>  fStoreOf;   // materialized index -> its store op
+    int                 fLoopNo = 0;  // emission counter, gives each loop a stable id
 
     // shorthands into the shared criteria
     static bool isNum(Tree t) { return SuperNodeGraph::isNum(t); }
@@ -1804,7 +1805,7 @@ void LoopSplitEmitter::emitLoop(std::ostringstream& out, int lo, int hi)
     modelSchedule(fOps, lo, hi, R, U, &cycles, &overR, &peak);
     int n   = hi - lo;
     int occ = (cycles > 0) ? (100 * n) / (cycles * U) : 0;
-    out << "// loop: " << n << " ops, model(R=" << R << ",U=" << U << "): " << cycles
+    out << "// loop " << fLoopNo++ << ": " << n << " ops, model(R=" << R << ",U=" << U << "): " << cycles
         << " cycles, pressure " << peak << "/" << R << ", occupancy " << occ << "%";
     if (overR > 0) {
         out << ", over-pressure " << overR << " (spill risk)";
