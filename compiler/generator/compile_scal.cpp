@@ -784,7 +784,11 @@ class LoopDagDumper {
 class LoopSplitUnsupported {
    public:
     std::string fWhat;
-    LoopSplitUnsupported(const std::string& w) : fWhat(w) {}
+    bool        fIntentional;  // deliberate route to classic, not a coverage gap
+    LoopSplitUnsupported(const std::string& w, bool intentional = false)
+        : fWhat(w), fIntentional(intentional)
+    {
+    }
 };
 
 /**
@@ -1399,7 +1403,9 @@ class LoopSplitEmitter {
      * merged-versus-separate comparison then accounts for both the saved
      * loop overhead and the pressure risk of oversized bodies.
      */
-    long blockCostShadow(const std::vector<int>& members)
+    long blockCostShadow(const std::vector<int>& members, long* overROut = nullptr,
+                         int* peakOut = nullptr, bool constantsLive = true,
+                         int loadWOverride = -1, bool* hasCallOut = nullptr)
     {
         const long CL = gGlobal->gLSCl, SPILLW = gGlobal->gLSSpillW;
         const std::vector<Tree>& mat = fSN.materialized();
@@ -1411,12 +1417,13 @@ class LoopSplitEmitter {
         // a buffer load costs an issue slot (the model's Read): this is what
         // makes fusion visibly profitable to the oracle -- scalarized in-set
         // reads cost nothing, the same reads across a boundary cost a slot
+        const int loadW = (loadWOverride >= 0) ? loadWOverride : gGlobal->gLSLoadW;
         auto load = [&](Tree t, std::vector<int> deps) -> int {
-            if (gGlobal->gLSLoadW == 0) {
+            if (loadW == 0) {
                 return -1;  // loads free (leaf)
             }
             int id = -1;
-            for (int w = 0; w < gGlobal->gLSLoadW; w++) {
+            for (int w = 0; w < loadW; w++) {
                 LSOp o;
                 if (id >= 0) {
                     o.deps.push_back(id);  // heavier loads: a chain of slots
@@ -1477,7 +1484,7 @@ class LoopSplitEmitter {
             // oracle can see. (Inputs stay free: per-iteration loads, not
             // resident values -- a separate refinement.)
             if (SuperNodeGraph::isNum(t)) {
-                return op({}, false);
+                return constantsLive ? op({}, false) : -1;
             }
             if (isSigInput(t, &i)) {
                 return -1;
@@ -1486,7 +1493,7 @@ class LoopSplitEmitter {
                 return op({sw(x, false), sw(y, false)}, false);
             }
             if (SuperNodeGraph::isSlow(t)) {
-                return op({}, false);
+                return constantsLive ? op({}, false) : -1;
             }
             if (isSigDelay(t, x, y)) {
                 int  dmin, dmax;
@@ -1554,8 +1561,24 @@ class LoopSplitEmitter {
         }
         int  cycles = 0;
         long overR  = 0;
+        int  peak   = 0;
         modelSchedule(sops, 0, (int)sops.size(), gGlobal->gLSRegisters, gGlobal->gLSWidth,
-                      &cycles, &overR);
+                      &cycles, &overR, &peak);
+        if (hasCallOut) {
+            *hasCallOut = false;
+            for (const LSOp& o : sops) {
+                if (o.isCall) {
+                    *hasCallOut = true;
+                    break;
+                }
+            }
+        }
+        if (overROut) {
+            *overROut = overR;
+        }
+        if (peakOut) {
+            *peakOut = peak;
+        }
         return (long)gGlobal->gVecSize * (cycles + SPILLW * overR) + CL;
     }
 };
@@ -1694,6 +1717,59 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     }
     if (getenv("FAUST_DEBUG_SUPERNODES")) {
         fSN.print(std::cerr);
+    }
+
+    // 2c. degenerate partition: everything in ONE super-node (or none), and
+    // the model says the body fits the register bank with room to spare
+    // (peak < R, no over-pressure). Splitting has nothing to offer -- there
+    // is no partition to exploit -- and the -ls emission style only adds its
+    // taxes: chunk buffers where the classic emission keeps short recurrences
+    // in rotating locals that live in registers (measured x1.7 on a single
+    // resonlp). So route to classic emission. When the body SATURATES the
+    // bank (peak == R: frenchBell 20/20, x1.9 over classic) or overflows it
+    // (over-pressure: fdnRev 0.877 vs classic), the register-aware order is
+    // precisely what -ls brings: keep it.
+    {
+        // constantsLive = false and loads free here: this check compares the
+        // -ls monobloc against CLASSIC emission, so the shadow must be
+        // isomorphic to what -ls would EMIT (the per-loop annotation's DAG:
+        // inline delayed reads, hoisted constants), not to the oracle's
+        // fusion currency where loads and constants are priced. What
+        // discriminates monobloc-vs-classic is the pressure of the flowing
+        // temporaries alone: m33 13/20 (classic wins, measured) vs
+        // frenchBell 20/20 (-ls wins x1.9, measured).
+        //
+        // Two further guards, both tied to the MECHANISM of the classic
+        // advantage (short recurrences as rotating locals in registers,
+        // where our chunk buffers pay memory traffic -- x1.7 on m11): it
+        // only exists where every member's history is short enough for the
+        // rotation idiom (maxDelay <= gMaxCopyDelay), and it is voided by
+        // opaque calls, where the -ls order works around the callee-saved
+        // register clobber (dbmeter, log10-saturated: fused 0.51 vs
+        // classic; echo, ring-buffered long delay: 0.41 -- both measured
+        // AGAINST the blind version of this rule).
+        long overR   = 0;
+        int  peak    = 0;
+        bool hasCall = false;
+        bool shortD  = true;
+        if (fSN.blockCount() == 1) {
+            blockCostShadow(fSN.blockMembers(0), &overR, &peak, false, 0, &hasCall);
+            for (int m : fSN.blockMembers(0)) {
+                if (fSN.maxDelayOf(fSN.materialized()[m]) > gGlobal->gMaxCopyDelay) {
+                    shortD = false;
+                    break;
+                }
+            }
+        }
+        if (getenv("FAUST_DEBUG_SUPERNODES") && fSN.blockCount() <= 1) {
+            std::cerr << "degenerate check: shadow peak " << peak << "/"
+                      << gGlobal->gLSRegisters << ", overR " << overR << ", calls "
+                      << hasCall << ", short delays " << shortD << std::endl;
+        }
+        if (fSN.blockCount() <= 1 && overR == 0 && peak < gGlobal->gLSRegisters && !hasCall &&
+            shortD) {
+            throw LoopSplitUnsupported("single super-node within the register budget", true);
+        }
     }
     const std::vector<Tree>& mat = fSN.materialized();
     int                      n   = (int)mat.size();
@@ -1894,8 +1970,13 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                 .emit(L, S.elements(), fClass->outputs());
             loopSplitDone = true;
         } catch (LoopSplitUnsupported& e) {
-            std::cerr << "WARNING : -ls falls back to classic emission (" << e.fWhat << ")"
-                      << std::endl;
+            if (e.fIntentional) {
+                std::cerr << "NOTE : -ls chooses classic emission (" << e.fWhat << ")"
+                          << std::endl;
+            } else {
+                std::cerr << "WARNING : -ls falls back to classic emission (" << e.fWhat << ")"
+                          << std::endl;
+            }
         }
     }
 
