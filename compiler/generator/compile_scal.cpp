@@ -824,6 +824,8 @@ class LoopSplitEmitter {
 
     // per-buffer emission decisions (materialized index -> ...)
     std::vector<std::string> fBufName;
+    std::vector<int>         fAliasIx;  // tap aliasing: member -> producer index (-1: own buffer)
+    std::vector<int>         fAliasD;   //   and the constant delay into the producer's history
     std::vector<int>         fMaxD;
     std::vector<bool>        fIsInt;
     std::vector<bool>        fLocal;  // maxDelay == 0: chunk-local buffer
@@ -969,6 +971,12 @@ class LoopSplitEmitter {
     // read access into a materialized signal's buffer
     std::string accessCode(int idx, const std::string& dcode) const
     {
+        if (fAliasIx[idx] >= 0) {
+            // aliased tap: every read redirects into the producer's history
+            // (only instantaneous reads exist -- maxDelayOf == 0 guard)
+            faustassert(dcode == "0");
+            return accessCode(fAliasIx[idx], T(fAliasD[idx]));
+        }
         if (fMaxD[idx] == 0) {
             return subst("$0[i]", fBufName[idx]);
         }
@@ -1008,7 +1016,7 @@ class LoopSplitEmitter {
     Operand refOperand(int idx, const std::string& dcode, bool maybeInstant, int curScc)
     {
         Operand o;
-        if (maybeInstant && fSN.blockOf(idx) == curScc) {
+        if (maybeInstant && fSN.blockOf(idx) == curScc && fAliasIx[idx] < 0) {
             return fRootOf.at(idx);
         }
         o.code = accessCode(idx, dcode);
@@ -1845,12 +1853,48 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     fLocal.resize(n);
     fRing.resize(n);
     fRingMask.resize(n);
+    // 3a. tap aliasing: a materialized CONSTANT-delay read of another
+    // materialized signal owns no storage of its own -- the producer's
+    // history already holds the value (the occurrences size it from this
+    // very read), so every access redirects there: taps read the line.
+    // The read must not be read with delay itself (maxDelayOf == 0).
+    // The PARTITION is deliberately left untouched: removing taps from
+    // the materialized set reshapes the greedy's affinity graph and was
+    // measured +6% on the 9x9 filter matrix; emission-only elision was
+    // measured time-neutral with the compute() stack divided by 3.
+    fAliasIx.assign(n, -1);
+    fAliasD.assign(n, 0);
+    for (int i = 0; i < n; i++) {
+        Tree x, y;
+        if (fSN.maxDelayOf(mat[i]) != 0 || !isSigDelay(mat[i], x, y)) {
+            continue;
+        }
+        int  dmin, dmax;
+        bool dvar;
+        delayBounds(y, dmin, dmax, dvar);
+        int ix = fSN.indexOf(x);
+        if (dvar || dmin != dmax || ix < 0) {
+            continue;
+        }
+        fAliasIx[i] = ix;
+        fAliasD[i]  = dmin;
+    }
+    for (int i = 0; i < n; i++) {  // resolve alias chains (delay of delay)
+        while (fAliasIx[i] >= 0 && fAliasIx[fAliasIx[i]] >= 0) {
+            fAliasD[i] += fAliasD[fAliasIx[i]];
+            fAliasIx[i] = fAliasIx[fAliasIx[i]];
+        }
+    }
     int vs = gGlobal->gVecSize;
     for (int i = 0; i < n; i++) {
         fMaxD[i]  = fSN.maxDelayOf(mat[i]);
         fIsInt[i] = getCertifiedSigType(mat[i])->nature() == kInt;
         fLocal[i] = (fMaxD[i] == 0);
         fRing[i]  = (fMaxD[i] > gGlobal->gMaxCopyDelay);
+        if (fAliasIx[i] >= 0) {
+            fBufName[i] = "<aliased>";  // never emitted: accessCode redirects
+            continue;
+        }
         const char* ctype = fIsInt[i] ? "int" : ifloat();
         std::string base  = fC->getFreshID("Wls");
         if (fLocal[i]) {
@@ -1890,6 +1934,9 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         int lo = (int)fOps.size();
         fOpOf.clear();  // tls temporaries are loop-scoped
         for (int m : fSN.blockMembers(b)) {
+            if (fAliasIx[m] >= 0) {
+                continue;  // aliased tap: no body, no store -- reads redirect
+            }
             Tree             d    = defOf(mat[m]);
             Operand          root = walk(d, b, d == mat[m]);
             fRootOf[m]            = root;
