@@ -398,6 +398,7 @@ void global::reset()
 
     gDetailsSwitch    = false;
     gDrawSignals      = false;
+    gDrawSuperNodes   = false;
     gDrawRetiming     = false;
     gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
@@ -1252,6 +1253,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-sg", "--signal-graph")) {
             gDrawSignals = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-sng", "--super-node-graph")) {
+            gDrawSuperNodes = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-rg", "--retiming-graph")) {

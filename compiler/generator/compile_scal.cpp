@@ -1216,6 +1216,7 @@ class LoopSplitEmitter {
     // ---- intra-loop scheduling strategies ----
 
     void emitLoop(std::ostringstream& out, int lo, int hi);
+    void dumpSuperNodesDot(std::ostream& out);
 
     // returns the emission order of ops in [lo, hi)
     std::vector<int> scheduleSpan(int lo, int hi)
@@ -1583,6 +1584,59 @@ class LoopSplitEmitter {
     }
 };
 
+// -sng: the super-node DAG as graphviz clusters -- the -ls counterpart of
+// -sg (signal graph) and -tg (task graph). One cluster per super-node,
+// annotated with the model's view of its body (emission-isomorphic shadow:
+// ops, peak pressure / R); one node per materialized signal (blue: recursive
+// projection, green: delayed, yellow: shared instantaneous); solid edges:
+// instantaneous reads (they order the members), dashed: delayed reads.
+// Output loops and d >= chunk free reads are not part of the partition and
+// do not appear.
+void LoopSplitEmitter::dumpSuperNodesDot(std::ostream& out)
+{
+    const std::vector<Tree>& mat = fSN.materialized();
+    out << "digraph supernodes {\n";
+    out << "  rankdir=BT; node [style=filled, fontname=\"helvetica\"];\n";
+    for (int b = 0; b < fSN.blockCount(); b++) {
+        long overR = 0;
+        int  peak  = 0;
+        blockCostShadow(fSN.blockMembers(b), &overR, &peak, false, 0);
+        out << "  subgraph cluster_" << b << " {\n";
+        out << "    label=\"loop " << b << "  ·  " << fSN.opsEstimate(b)
+            << " ops  ·  pressure " << peak << "/" << gGlobal->gLSRegisters
+            << (overR > 0 ? "  ·  over-pressure!" : "") << "\";\n";
+        out << "    style=rounded; color=\"#4477cc\";\n";
+        for (int m : fSN.blockMembers(b)) {
+            Tree        t = mat[m];
+            int         i;
+            Tree        w;
+            const char* color = "#fdf1c9";  // shared instantaneous
+            const char* kind  = "shared";
+            if (isProj(t, &i, w)) {
+                color = "#cfe0f5";  // recursive projection
+                kind  = "rec";
+            } else if (fSN.maxDelayOf(t) > 0) {
+                color = "#d8ecd2";  // delayed
+                kind  = "delayed";
+            }
+            out << "    s" << m << " [label=\"s" << m << " (" << kind;
+            if (int d = fSN.maxDelayOf(t)) {
+                out << ", maxd " << d;
+            }
+            out << ")\", fillcolor=\"" << color << "\"];\n";
+        }
+        out << "  }\n";
+    }
+    for (int i = 0; i < (int)mat.size(); i++) {
+        for (int j : fSN.refs(i)) {
+            bool inst = fSN.refs0(i).count(j) > 0;
+            out << "  s" << j << " -> s" << i
+                << (inst ? ";" : " [style=dashed, color=\"#cc7733\"];") << "\n";
+        }
+    }
+    out << "}\n";
+}
+
 void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
 {
     // 0. refuse unsupported constructs before writing anything
@@ -1717,6 +1771,10 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     }
     if (getenv("FAUST_DEBUG_SUPERNODES")) {
         fSN.print(std::cerr);
+    }
+    if (gGlobal->gDrawSuperNodes) {
+        std::ofstream dotfile(subst("$0-sn.dot", gGlobal->makeDrawPath()).c_str());
+        dumpSuperNodesDot(dotfile);
     }
 
     // 2c. degenerate partition: everything in ONE super-node (or none), and

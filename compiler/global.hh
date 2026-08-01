@@ -229,6 +229,7 @@ struct global {
     // compilation options
     bool        gDetailsSwitch;   // -d option
     bool        gDrawSignals;     // -sg option
+    bool        gDrawSuperNodes;  // -sng option (super-node DAG of -ls)
     bool        gDrawRetiming;    // -rg option
     bool        gDrawRouteFrame;  // -drf option
     bool        gShadowBlur;      // -blur option, note: svg2pdf doesn't like the blur filter
