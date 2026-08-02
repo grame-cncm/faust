@@ -1601,17 +1601,14 @@ bool global::processCmdline(int argc, const char* argv[])
             } else {
                 throw faustexception("ERROR : -ls-sched expects df, bf or model\n");
             }
-            gLoopSplit = true;
             i += 2;
 
         } else if (isCmd(argv[i], "-ls-R", "--loop-split-registers")) {
             gLSRegisters = std::atoi(argv[i + 1]);
-            gLoopSplit   = true;
             i += 2;
 
         } else if (isCmd(argv[i], "-ls-U", "--loop-split-width")) {
-            gLSWidth   = std::atoi(argv[i + 1]);
-            gLoopSplit = true;
+            gLSWidth = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-ls-fuse", "--loop-split-fuse")) {
@@ -1621,8 +1618,6 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-ls-fuse-ops", "--loop-split-fuse-ops")) {
             gLSFuseOps = std::atoi(argv[i + 1]);
-            gLSFuse    = true;
-            gLoopSplit = true;
             i += 2;
 
         } else if (isCmd(argv[i], "-mindelay", "--min-delay")) {
@@ -1630,21 +1625,15 @@ bool global::processCmdline(int argc, const char* argv[])
             i += 2;
 
         } else if (isCmd(argv[i], "-ls-cl", "--loop-split-cl")) {
-            gLSCl      = std::atoi(argv[i + 1]);
-            gLSFuse    = true;
-            gLoopSplit = true;
+            gLSCl = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-ls-spill", "--loop-split-spill-weight")) {
-            gLSSpillW  = std::atoi(argv[i + 1]);
-            gLSFuse    = true;
-            gLoopSplit = true;
+            gLSSpillW = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-ls-load", "--loop-split-load-weight")) {
-            gLSLoadW   = std::atoi(argv[i + 1]);
-            gLSFuse    = true;
-            gLoopSplit = true;
+            gLSLoadW = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
