@@ -403,262 +403,334 @@ inline schedule<N> mcschedule(const digraph<N>& G, unsigned int R, unsigned int 
 
 /**
  * @brief Compositional scheduling of a DAG G under (R, U) -- the schedule
- * is built by COMBINING sub-schedules, not by picking from a global front.
+ * is built by COMBINING sub-schedules along the DOMINATOR TREE, not by
+ * picking from a global front.
  *
  * View (the filling-a-grid formulation): scheduling is filling a U x cycles
  * grid under a register constraint R, minimizing empty slots. The recursion
- * follows the expression structure of the DAG made explicit by its LETS:
- * every node with several consumers (or none: a final root) is a let;
- * every other node belongs to the REGION of its unique consumer's let.
+ * follows the structure of the expression: the block of a node n is the
+ * fold of the blocks of its dominator-tree children (every node whose
+ * value converges to n: its exclusive operands, and every shared operand
+ * whose consumers all funnel through n), merged pairwise by an optimal
+ * interleaving, with n appended last. The dominator tree makes the
+ * cross-dependency story exact: a shared value is always a SIBLING block,
+ * placed before its readers by the topological fold order.
  *
- *   1. each region is scheduled by dfschedule -- a contiguous block with
- *      perfect operand locality (and, downstream, field-layout locality,
- *      since declarations follow emission order);
- *   2. the lets are folded in dependencies-first order, each region being
- *      merged into the accumulated schedule by an OPTIMAL pairwise
- *      interleaving: a dynamic program over the |A| x |B| grid that
- *      preserves both internal orders, respects cross-dependencies
- *      (a B node cannot precede its A operands), minimizes the summed
- *      over-pressure max(0, live - R), and among equal-cost paths prefers
- *      ALTERNATION (fill the issue slots with independent work).
+ * The pairwise merge is a dynamic program over the |A| x |B| grid that
+ * preserves both internal orders, respects cross-dependencies, and
+ * minimizes  BIG * over-pressure + stalls  where a stall is a node placed
+ * immediately after one of its operands (the guaranteed empty slot of the
+ * unit-latency machine). Ties prefer STAYING on the same sequence:
+ * locality (blocks, and downstream the field layout that follows emission
+ * order) is the default, interleaving the exception that pays -- either
+ * by relieving pressure or by filling stalls.
  *
- * Locality is thus the default (df blocks), interleaving the exception,
- * decided where it pays. Degenerate cases: a combine that always
- * concatenates is df; one that always alternates level-by-level is bf.
- *
- * DAG only (use graph2dag upstream for cyclic graphs).
- * Complexity: O(V^2) overall (each pairwise DP is |acc| x |region|).
+ * Degenerate cases: always-concatenate is df, always-alternate is bf.
+ * DAG only (use graph2dag upstream for cyclic graphs). A pairwise merge
+ * beyond ~4M DP cells falls back to concatenation (guarded, logged by
+ * cost only).
  *
  * @tparam N the type of nodes of G
  * @param G the DAG we want to schedule
  * @param R the register budget (live values)
- * @param U the issue width (only steers the alternation preference in v1)
+ * @param U the issue width (v1: the stall term models its effect)
  * @return schedule<N> a valid schedule of G
  */
 template <typename N>
 inline schedule<N> csschedule(const digraph<N>& G, unsigned int R, unsigned int U)
 {
-    (void)U;  // v1: alternation preference; a finer hole model may use U
-    const schedule<N>&    topo  = dfschedule(G);
-    const std::vector<N>& order = topo.elements();
+    (void)U;
+    const schedule<N>     topo  = dfschedule(G);
+    const std::vector<N>& order = topo.elements();  // operands first
+    const int             V     = int(order.size());
     digraph<N>            Rg    = reverse(G);
 
-    // lets: several consumers, or none (final roots)
-    auto nconsumers = [&](const N& n) { return int(Rg.destinations(n).size()); };
-    std::map<N, N> letOf;
-    for (const N& n : order) {  // operands before consumers: memo is ready
-        letOf.emplace(n, n);
+    std::map<N, int> pos;
+    for (int i = 0; i < V; i++) {
+        pos[order[i]] = i;
     }
-    // a single-consumer node belongs to its consumer's let -- computed
-    // consumers-first (backward on the topological order)
-    for (auto it = order.rbegin(); it != order.rend(); ++it) {
-        if (nconsumers(*it) == 1) {
-            const N& c   = Rg.destinations(*it).begin()->first;
-            letOf.at(*it) = letOf.at(c);
-        }
-    }
+    auto consumers = [&](const N& n) -> const auto& { return Rg.destinations(n); };
 
-    // per-let region, in topological order of the lets
-    std::vector<N>                lets;
-    std::map<N, std::vector<int>> unused;  // silence some compilers
-    std::map<N, std::vector<N>>   region;
-    for (const N& n : order) {
-        const N& L = letOf.at(n);
-        if (region.find(L) == region.end()) {
-            lets.push_back(L);
-        }
-        region[L].push_back(n);  // topological inside the region
-    }
-
-    // fold: merge each region into the accumulated sequence by DP
-    std::vector<N>   acc;
-    std::map<N, int> posInAcc;
-    for (const N& L : lets) {
-        const std::vector<N>& B  = region[L];
-        const int             nb = int(B.size());
-        const int             na = int(acc.size());
-        if (na == 0) {
-            acc = B;
-            for (int j = 0; j < nb; j++) {
-                posInAcc[B[j]] = j;
+    // ---- immediate dominators, flow entry -> consumers -> ... -> node.
+    // Classic intersection algorithm; preds in the flow are the consumers,
+    // the virtual ENTRY (index V) precedes every node without consumers.
+    // Processing order: consumers first = reverse of `order`.
+    std::vector<int> idom(V + 1, -1);
+    idom[V] = V;
+    auto intersect = [&](int a, int b) {
+        // walk up; ENTRY has the SMALLEST consumers-first rank, i.e. the
+        // LARGEST operand-first position -> compare by operand-first pos,
+        // where entry(V) ranks above everything
+        auto rank = [&](int x) { return (x == V) ? V : x; };
+        while (a != b) {
+            while (rank(a) < rank(b)) {
+                a = idom[a];
             }
-            continue;
+            while (rank(b) < rank(a)) {
+                b = idom[b];
+            }
         }
-        // cross-dependencies: B[j] needs its operands in acc placed first
-        std::vector<int> minI(nb, 0);
-        std::map<N, int> posInB;
+        return a;
+    };
+    for (int i = V - 1; i >= 0; i--) {
+        const N& n   = order[i];
+        int      nid = -1;
+        if (consumers(n).empty()) {
+            nid = V;
+        } else {
+            for (const auto& c : consumers(n)) {
+                int cp = pos[c.first];
+                if (idom[cp] == -1) {
+                    continue;  // (cannot happen on a DAG)
+                }
+                nid = (nid == -1) ? cp : intersect(nid, cp);
+            }
+        }
+        idom[i] = nid;
+    }
+
+    // ---- dominator-tree children, kept in operand-first order
+    std::vector<std::vector<int>> children(V + 1);
+    for (int i = 0; i < V; i++) {
+        children[idom[i]].push_back(i);
+    }
+
+    // ---- the pairwise merge (DP with side-memory for the stall term)
+    auto dpmerge = [&](std::vector<N> A, std::vector<N> B) -> std::vector<N> {
+        const int na = int(A.size()), nb = int(B.size());
+        if (na == 0) {
+            return B;
+        }
+        if (nb == 0) {
+            return A;
+        }
+        std::vector<N> cat;  // the guarded fallback: concatenation
+        if (long(na + 1) * long(nb + 1) > 4000000L) {
+            cat = A;
+            cat.insert(cat.end(), B.begin(), B.end());
+            return cat;
+        }
+        std::map<N, int> pA, pB;
+        for (int i = 0; i < na; i++) {
+            pA[A[i]] = i;
+        }
         for (int j = 0; j < nb; j++) {
-            posInB[B[j]] = j;
+            pB[B[j]] = j;
         }
+        // cross-deps: B[j] cannot precede its operands living in A
+        std::vector<int> minI(nb, 0);
         for (int j = 0; j < nb; j++) {
             int need = (j > 0) ? minI[j - 1] : 0;
             for (const auto& d : G.destinations(B[j])) {
-                auto pa = posInAcc.find(d.first);
-                if (pa != posInAcc.end() && pa->second + 1 > need) {
-                    need = pa->second + 1;
+                auto it = pA.find(d.first);
+                if (it != pA.end() && it->second + 1 > need) {
+                    need = it->second + 1;
                 }
             }
             minI[j] = need;
         }
-        // liveness bookkeeping for the DP: a node is dead once ALL its
-        // consumers are in the combined prefix ; consumers in future lets
-        // keep it alive throughout this combine (hasExt)
-        auto tag = [&](const std::vector<N>& S, std::map<N, int>& pos,
-                       std::vector<std::vector<int>>& diesAt, std::vector<bool>& alive) {
-            diesAt.assign(S.size(), {});
-            alive.assign(S.size(), false);
-            (void)pos;
-        };
-        (void)tag;
-        // last consumer positions of every prefix node, split by side
+        // liveness: last consumer coordinate on each side; a consumer
+        // outside A and B keeps the value live for this whole merge
         std::map<N, int>  lastA, lastB;
-        std::map<N, bool> hasExt;
+        std::map<N, bool> ext;
         auto scan = [&](const N& x) {
             int la = -1, lb = -1;
-            bool ext = false;
-            for (const auto& c : Rg.destinations(x)) {
-                auto ia = posInAcc.find(c.first);
-                auto ib = posInB.find(c.first);
-                if (ia != posInAcc.end()) {
+            bool e = false;
+            for (const auto& c : consumers(x)) {
+                auto ia = pA.find(c.first);
+                auto ib = pB.find(c.first);
+                if (ia != pA.end()) {
                     la = std::max(la, ia->second);
-                } else if (ib != posInB.end()) {
+                } else if (ib != pB.end()) {
                     lb = std::max(lb, ib->second);
                 } else {
-                    ext = true;
+                    e = true;
                 }
             }
             lastA[x] = la;
             lastB[x] = lb;
-            hasExt[x] = ext;
+            ext[x]   = e;
         };
-        for (const N& x : acc) {
+        for (const N& x : A) {
             scan(x);
         }
         for (const N& x : B) {
             scan(x);
         }
-        // deaths triggered when crossing row i (adding acc[i]) or column j
-        std::vector<std::vector<N>> deathA(na), deathB(nb);
-        auto classify = [&](const N& x) {
-            if (hasExt[x]) {
-                return;  // stays live for this whole combine
+        std::vector<std::vector<int>> dieA(na), dieB(nb);  // indexes into A/B universe
+        std::vector<N>                univ;
+        univ.reserve(na + nb);
+        univ.insert(univ.end(), A.begin(), A.end());
+        univ.insert(univ.end(), B.begin(), B.end());
+        for (const N& x : univ) {
+            if (ext[x]) {
+                continue;
             }
             int la = lastA[x], lb = lastB[x];
-            auto ia = posInAcc.find(x);
-            int  self = (ia != posInAcc.end()) ? ia->second : -1;
-            if (self > la && posInB.find(x) == posInB.end()) {
-                la = self;  // a value exists only once placed
+            if (la < 0 && lb < 0) {
+                continue;  // never consumed here: never live in this merge
             }
-            auto ib2 = posInB.find(x);
-            if (ib2 != posInB.end() && ib2->second > lb) {
-                lb = ib2->second;
+            if (lb < 0) {
+                dieA[la].push_back(pB.count(x) ? na + pB[x] : pA[x]);
+            } else if (la < 0) {
+                dieB[lb].push_back(pB.count(x) ? na + pB[x] : pA[x]);
+            } else {
+                dieA[la].push_back(pB.count(x) ? na + pB[x] : pA[x]);  // guarded by j at DP time
             }
-            if (la >= 0 && lb < 0) {
-                deathA[la].push_back(x);
-            } else if (lb >= 0 && la < 0) {
-                deathB[lb].push_back(x);
-            } else if (la >= 0 && lb >= 0) {
-                // dies when BOTH coordinates passed: attach to the A side,
-                // guarded by the B coordinate at DP time
-                deathA[la].push_back(x);
-            }
-        };
-        for (const N& x : acc) {
-            classify(x);
         }
-        for (const N& x : B) {
-            classify(x);
-        }
-        auto hasAnyConsumer = [&](const N& x) { return nconsumers(x) > 0 || hasExt[x]; };
-
-        // the DP grid: cost = summed over-pressure, prefer alternation
-        const int      W = nb + 1;
-        std::vector<long>    cost((na + 1) * W, LONG_MAX);
-        std::vector<int>     live((na + 1) * W, 0);
-        std::vector<char>    from((na + 1) * W, 0);  // 1: from A, 2: from B
-        auto idx = [&](int i, int j) { return i * W + j; };
-        cost[idx(0, 0)] = 0;
-        auto deltaLive = [&](const N& u, int i, int j) {
-            // adding u to prefix (i, j) : +1 if it will be consumed later,
-            // -1 for each of its prefix operands whose last consumer it is
-            int d = hasAnyConsumer(u) ? 1 : 0;
-            (void)i;
-            (void)j;
-            return d;
+        auto liveAfter = [&](const N& u) {
+            if (ext[u]) {
+                return true;
+            }
+            return lastA[u] >= 0 || lastB[u] >= 0;
         };
-        (void)deltaLive;
+        auto dependsOn = [&](const N& u, const N& v) {
+            for (const auto& d : G.destinations(u)) {
+                if (d.first == v) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        const long      PBIG = 1000000L;
+        const int       W    = nb + 1;
+        const long      INF  = LONG_MAX / 4;
+        std::vector<long> cost(size_t(na + 1) * W * 2, INF);
+        std::vector<int>  live(size_t(na + 1) * W * 2, 0);
+        std::vector<char> par(size_t(na + 1) * W * 2, 0);  // 1 from A, 2 from B
+        auto id = [&](int i, int j, int s) { return (size_t(i) * W + j) * 2 + s; };
+        cost[id(0, 0, 0)] = 0;
         for (int i = 0; i <= na; i++) {
             for (int j = 0; j <= nb; j++) {
-                long c0 = cost[idx(i, j)];
-                if (c0 == LONG_MAX) {
-                    continue;
-                }
-                int l0 = live[idx(i, j)];
-                // advance A
-                if (i < na) {
-                    const N& u = acc[i];
-                    int      l = l0 + (hasAnyConsumer(u) ? 1 : 0);
-                    for (const N& x : deathA[i]) {
-                        if (lastB.count(x) == 0 || lastB[x] < 0 || lastB[x] <= j - 1) {
-                            l--;
+                for (int s = 0; s < 2; s++) {
+                    long c0 = cost[id(i, j, s)];
+                    if (c0 >= INF) {
+                        continue;
+                    }
+                    int l0 = live[id(i, j, s)];
+                    const N* prev = nullptr;
+                    if (i + j > 0) {
+                        prev = (s == 0) ? (i > 0 ? &A[i - 1] : nullptr)
+                                        : (j > 0 ? &B[j - 1] : nullptr);
+                    }
+                    auto relax = [&](int ni, int nj, int ns, const N& u,
+                                     const std::vector<int>& dies, int dieGuardJ) {
+                        int l = l0 + (liveAfter(u) ? 1 : 0);
+                        for (int x : dies) {
+                            int lbx = lastB[(x < na) ? A[x] : B[x - na]];
+                            if (lbx < 0 || lbx <= dieGuardJ) {
+                                l--;
+                            }
                         }
-                    }
-                    // deaths of B side waiting on this A coordinate
-                    for (int jj = 0; jj < j; jj++) {
-                        (void)jj;
-                    }
-                    long pen = std::max(0, l - int(R));
-                    long c   = c0 + pen;
-                    int  k   = idx(i + 1, j);
-                    bool alt = (from[idx(i, j)] == 2);
-                    if (c < cost[k] || (c == cost[k] && alt && from[k] != 1)) {
-                        cost[k] = c;
-                        live[k] = l;
-                        from[k] = 1;
-                    }
-                }
-                // advance B (cross-deps permitting)
-                if (j < nb && minI[j] <= i) {
-                    const N& u = B[j];
-                    int      l = l0 + (hasAnyConsumer(u) ? 1 : 0);
-                    for (const N& x : deathB[j]) {
-                        if (lastA.count(x) == 0 || lastA[x] < 0 || lastA[x] <= i - 1) {
-                            l--;
+                        long stall = (prev != nullptr && dependsOn(u, *prev)) ? 1 : 0;
+                        long c     = c0 + PBIG * std::max(0, l - int(R)) + stall;
+                        size_t k   = id(ni, nj, ns);
+                        bool same  = (ns == s);  // prefer staying on a side
+                        if (c < cost[k] || (c == cost[k] && same && par[k] == 0)) {
+                            cost[k] = c;
+                            live[k] = l;
+                            par[k]  = char(s + 1);
                         }
+                    };
+                    if (i < na) {
+                        relax(i + 1, j, 0, A[i], dieA.empty() ? std::vector<int>{} : dieA[i],
+                              j - 1);
                     }
-                    long pen = std::max(0, l - int(R));
-                    long c   = c0 + pen;
-                    int  k   = idx(i, j + 1);
-                    bool alt = (from[idx(i, j)] == 1);
-                    if (c < cost[k] || (c == cost[k] && alt && from[k] != 2)) {
-                        cost[k] = c;
-                        live[k] = l;
-                        from[k] = 2;
+                    if (j < nb && minI[j] <= i) {
+                        relax(i, j + 1, 1, B[j], dieB.empty() ? std::vector<int>{} : dieB[j],
+                              j);
                     }
                 }
             }
         }
-        // reconstruct
+        // best final state
+        int  sEnd = (cost[id(na, nb, 0)] <= cost[id(na, nb, 1)]) ? 0 : 1;
         std::vector<N> merged;
         merged.reserve(na + nb);
-        int i = na, j = nb;
+        int i = na, j = nb, sc = sEnd;
         while (i > 0 || j > 0) {
-            if (from[idx(i, j)] == 1) {
-                merged.push_back(acc[--i]);
+            char p = par[id(i, j, sc)];
+            if (sc == 0) {
+                merged.push_back(A[--i]);
             } else {
                 merged.push_back(B[--j]);
             }
+            sc = (p == 1) ? 0 : (p == 2) ? 1 : sc;
         }
         std::reverse(merged.begin(), merged.end());
-        acc = merged;
-        posInAcc.clear();
-        for (int k = 0; k < int(acc.size()); k++) {
-            posInAcc[acc[k]] = k;
+        return merged;
+    };
+
+    // ---- bottom-up along the dominator tree: operands-first order means
+    // every dominated child block is complete before its dominator
+    std::vector<std::vector<N>> block(V + 1);
+    // fold the children of a dominator node. Children that no sibling
+    // depends on and that depend on no sibling are INDEPENDENT: they are
+    // interleaved by a REGULAR round-robin in batches of width <= R --
+    // the memory-regular sweep (breadth-first's stride, the prefetcher's
+    // friend, and the -ls engine's packet tiling rediscovered). Dependent
+    // children (shared values and their readers) go through the DP merge
+    // in topological order.
+    auto foldChildren = [&](int d) {
+        // membership of each node in a child block
+        std::map<N, int> owner;
+        for (int c : children[d]) {
+            for (const N& x : block[c]) {
+                owner[x] = c;
+            }
         }
+        std::set<int> dependent;
+        for (int c : children[d]) {
+            for (const N& x : block[c]) {
+                for (const auto& dd : G.destinations(x)) {
+                    auto o = owner.find(dd.first);
+                    if (o != owner.end() && o->second != c) {
+                        dependent.insert(c);          // reads a sibling
+                        dependent.insert(o->second);  // is read by a sibling
+                    }
+                }
+            }
+        }
+        std::vector<N> acc;
+        std::vector<int> indep;
+        for (int c : children[d]) {
+            if (dependent.count(c)) {
+                acc = dpmerge(std::move(acc), std::move(block[c]));
+            } else {
+                indep.push_back(c);
+            }
+        }
+        // batches of independent siblings, regular round-robin inside
+        size_t batchW = (R > 1) ? size_t(R) : 1;
+        for (size_t b0 = 0; b0 < indep.size(); b0 += batchW) {
+            size_t b1 = std::min(indep.size(), b0 + batchW);
+            std::vector<N> rr;
+            for (size_t k = 0;; k++) {
+                bool any = false;
+                for (size_t c = b0; c < b1; c++) {
+                    const std::vector<N>& blk = block[indep[c]];
+                    if (k < blk.size()) {
+                        rr.push_back(blk[k]);
+                        any = true;
+                    }
+                }
+                if (!any) {
+                    break;
+                }
+            }
+            acc = dpmerge(std::move(acc), std::move(rr));
+        }
+        return acc;
+    };
+    for (int i = 0; i < V; i++) {
+        std::vector<N> b = foldChildren(i);
+        b.push_back(order[i]);
+        block[i] = std::move(b);
     }
+    std::vector<N> final_ = foldChildren(V);
 
     schedule<N> S;
-    for (const N& n : acc) {
+    for (const N& n : final_) {
         S.append(n);
     }
     return S;
