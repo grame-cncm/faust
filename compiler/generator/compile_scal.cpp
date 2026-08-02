@@ -102,30 +102,15 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
             return bfcyclesschedule(G);
         case 6:
             return mcschedule(G, gGlobal->gLSRegisters, gGlobal->gLSWidth);
-        case 7: {
-            // compositional v4: csschedule associates the cycle-groups, then
-            // the groups' internal df sequences are re-folded at STATEMENT
-            // grain by dpcombine armed with the Tree shape (the operation
-            // symbol) -- the isomorphic-adjacency term finally works at the
-            // level the SLP vectorizer sees (vocoder ablation, 2026-08-02)
-            digraph<digraph<Tree>>  H  = graph2dag(G);
-            schedule<digraph<Tree>> SH =
-                csschedule(H, gGlobal->gLSRegisters, gGlobal->gLSWidth);
-            digraph<Tree>                    Rt    = reverse(G);
-            std::function<long(const Tree&)> shape = ocppTreeShape;
-            std::vector<Tree> acc;
-            for (const digraph<Tree>& grp : SH.elements()) {
-                schedule<Tree>    ds    = dfschedule(cut(grp, 1));
-                std::vector<Tree> piece = ds.elements();
-                acc = dpcombine(G, Rt, std::move(acc), std::move(piece),
-                                gGlobal->gLSRegisters, shape);
-            }
-            schedule<Tree> S;
-            for (const Tree& t : acc) {
-                S.append(t);
-            }
-            return S;
-        }
+        case 7:
+            // compositional v5: csschedule DIRECTLY at Tree grain -- its
+            // dominator association, batched round-robin of independent
+            // siblings (the tiling that reaches the certified optimum on
+            // large(16,6,R4)) and shape-armed DP merges all operate at the
+            // statement level the SLP vectorizer sees. Cycle back-edges are
+            // ignored by its structures exactly as dfschedule ignores them.
+            return csschedule(G, gGlobal->gLSRegisters, gGlobal->gLSWidth,
+                              std::function<long(const Tree&)>(ocppTreeShape));
         default:
             return rbschedule(G);
     }
