@@ -17,7 +17,10 @@
 //   join         : aggregation of the parts reaching a node from all its
 //                  parents (sum for occurrence counts, min for depths,
 //                  lattice joins for clock environments, or/and for
-//                  conditions...)
+//                  conditions...). The join MUST be associative and
+//                  commutative : contributions arrive in an unspecified
+//                  order and are folded as they come -- an order-sensitive
+//                  join would give an unspecified result.
 //   order        : parents before children (topological descent from the
 //                  root), a node's join being COMPLETE before its own
 //                  descent -- the invariant every hand-written pass
@@ -27,8 +30,13 @@
 // on the current exploration stack -- are excluded from the readiness
 // counts, so the descent terminates. Their contributions are applied by
 // BOUNDED ROUNDS (recRounds) : each extra round replays the descent with
-// the previous round's attributes feeding the back edges (a truncated
-// Kleene iteration ; recRounds = 0 simply cuts them).
+// the previous round's attributes feeding the back edges (recRounds = 0
+// simply cuts them). This truncation is not an approximation awaiting a
+// better machinery : for a join like +, the least solution on a cyclic
+// graph is INFINITE (a node inside a recursion genuinely occurs unboundedly
+// often in the unfolding), so a bounded truncation is the only finite
+// answer -- fixpoint.hh serves the complementary case of lattice domains
+// with a termination argument.
 //
 // The result is returned as an explicit map (treeorder : deterministic),
 // deliberately NOT stored in tree properties : two computations with
