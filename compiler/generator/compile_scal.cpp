@@ -115,10 +115,23 @@ static Tree ocppShape(Tree t, const std::set<Tree, treeorder>& inG,
             r = tree(symbol("SHAPE_HOLE_IN"));  // which input: forgotten
         } else {
             onstack.insert(t);
+            // operation SELECTORS are part of the computation, not data:
+            // the binop opcode (branch 0) stays literal in the shape --
+            // mul and add must not share a shape (SLP packs same opcodes)
+            int  selKeep = -1;
+            {
+                int  op;
+                Tree x, y;
+                if (isSigBinOp(t, &op, x, y)) {
+                    selKeep = 0;
+                }
+            }
             std::vector<Tree> br;
             for (int k = 0; k < t->arity(); k++) {
                 Tree c = t->branch(k);
-                if (inG.count(c) && !(c == t)) {
+                if (k == selKeep) {
+                    br.push_back(c);  // literal selector
+                } else if (inG.count(c) && !(c == t)) {
                     br.push_back(tree(symbol("SHAPE_HOLE_REF")));
                 } else {
                     br.push_back(ocppShape(c, inG, memo, onstack));
@@ -130,6 +143,75 @@ static Tree ocppShape(Tree t, const std::set<Tree, treeorder>& inG,
     }
     memo[t] = r;
     return r;
+}
+
+// compact printer for shape trees (holes abbreviated, depth-capped)
+static void ocppShapePrint(Tree t, std::ostream& out, int depth)
+{
+    Sym s;
+    if (isSym(t->node(), &s)) {
+        std::string n = name(s);
+        if (n == "SHAPE_HOLE_F") {
+            out << "□f";
+        } else if (n == "SHAPE_HOLE_I") {
+            out << "□i";
+        } else if (n == "SHAPE_HOLE_IN") {
+            out << "□in";
+        } else if (n == "SHAPE_HOLE_REF") {
+            out << "□";
+        } else if (n == "SHAPE_HOLE_CYCLE") {
+            out << "□@";
+        } else {
+            out << (n.rfind("Sig", 0) == 0 ? n.substr(3) : n);
+            if (t->arity() > 0) {
+                if (depth <= 0) {
+                    out << "(…)";
+                    return;
+                }
+                out << "(";
+                for (int i = 0; i < t->arity(); i++) {
+                    if (i) {
+                        out << ",";
+                    }
+                    ocppShapePrint(t->branch(i), out, depth - 1);
+                }
+                out << ")";
+            }
+        }
+    } else {
+        out << t->node();
+    }
+}
+
+// FAUST_SS_SHAPES=1 : the shape statistics of the scheduled graph -- how
+// many nodes live in shapes of multiplicity >= 4 (the SLP packing
+// threshold: the Bank move's raw material), and the top shapes.
+static void ocppShapeStats(const digraph<Tree>& G)
+{
+    std::set<Tree, treeorder> inG(G.nodes().begin(), G.nodes().end());
+    std::map<Tree, Tree, treeorder> memo;
+    std::map<Tree, int, treeorder>  count;
+    for (const Tree& t : G.nodes()) {
+        std::set<Tree, treeorder> onstack;
+        count[ocppShape(t, inG, memo, onstack)]++;
+    }
+    int total = int(G.nodes().size()), bankable = 0, distinct = int(count.size());
+    std::vector<std::pair<int, Tree>> top;
+    for (const auto& [sh, c] : count) {
+        if (c >= 4) {
+            bankable += c;
+        }
+        top.push_back({c, sh});
+    }
+    std::sort(top.begin(), top.end(),
+              [](const auto& a, const auto& b) { return a.first > b.first; });
+    std::cerr << "SS_SHAPES nodes=" << total << " distinct=" << distinct
+              << " bankable=" << (total ? 100 * bankable / total : 0) << "%";
+    for (size_t i = 0; i < top.size() && i < 5; i++) {
+        std::cerr << "  " << top[i].first << "x ";
+        ocppShapePrint(top[i].second, std::cerr, 3);
+    }
+    std::cerr << std::endl;
 }
 
 // the shape functor for a given graph: boundary = the graph's node set
@@ -180,6 +262,9 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
 static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
 {
     schedule<Tree> S = ocppScheduleRaw(G);
+    if (getenv("FAUST_SS_SHAPES")) {
+        ocppShapeStats(G);
+    }
     if (const char* qenv = getenv("FAUST_SS_QUALITY")) {
         // valeur "R,U" : machine d'ÉVALUATION (comparer des ordres générés
         // avec des réglages différents sur une même référence) ; toute
