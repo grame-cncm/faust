@@ -399,6 +399,7 @@ void global::reset()
     gDetailsSwitch    = false;
     gDrawSignals      = false;
     gDrawSuperNodes   = false;
+    gSchedulingStrategy = 0;
     gDrawRetiming     = false;
     gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
@@ -1258,6 +1259,10 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-sng", "--super-node-graph")) {
             gDrawSuperNodes = true;
             i += 1;
+
+        } else if (isCmd(argv[i], "-ss", "--scheduling-strategy") && (i + 1 < argc)) {
+            gSchedulingStrategy = std::atoi(argv[i + 1]);
+            i += 2;
 
         } else if (isCmd(argv[i], "-rg", "--retiming-graph")) {
             gDrawRetiming = true;

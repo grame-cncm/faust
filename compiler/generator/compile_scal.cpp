@@ -66,34 +66,31 @@
 using namespace std;
 
 /**
- * The compilation-order strategy (experimental, FAUST_OCPP_SCHEDULE): df (the
- * default, deep-first), bf (breadth-first levels), sp (special), dfcycles /
- * bfcycles (DAG of cycles, then deep-first inside), rb (reverse breadth-first).
- * All are dependencies-first, so the generated code is a reordering of the same
- * statements -- semantics unchanged, performance to be measured.
+ * The compilation-order strategy (-ss <n>, --scheduling-strategy; formerly the
+ * FAUST_OCPP_SCHEDULE environment variable): 0 = df (the default, deep-first),
+ * 1 = bf (breadth-first levels), 2 = sp (special), 3 = rb (reverse
+ * breadth-first, and the fallback for any other value, as in the FIR branch),
+ * 4 = dfcycles / 5 = bfcycles (DAG of cycles, then deep-first inside). All are
+ * dependencies-first, so the generated code is a reordering of the same
+ * statements -- semantics unchanged, performance to be measured. Numbering
+ * 0-3 matches master-dev-ocpp-od-fir-2-FIR20 for cross-branch comparability.
  */
 static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
 {
-    const char* m = getenv("FAUST_OCPP_SCHEDULE");
-    if (m == nullptr || strcmp(m, "df") == 0) {
-        return dfschedule(G);
+    switch (gGlobal->gSchedulingStrategy) {
+        case 0:
+            return dfschedule(G);
+        case 1:
+            return bfschedule(G);
+        case 2:
+            return spschedule(G);
+        case 4:
+            return dfcyclesschedule(G);
+        case 5:
+            return bfcyclesschedule(G);
+        default:
+            return rbschedule(G);
     }
-    if (strcmp(m, "bf") == 0) {
-        return bfschedule(G);
-    }
-    if (strcmp(m, "sp") == 0) {
-        return spschedule(G);
-    }
-    if (strcmp(m, "dfcycles") == 0) {
-        return dfcyclesschedule(G);
-    }
-    if (strcmp(m, "bfcycles") == 0) {
-        return bfcyclesschedule(G);
-    }
-    if (strcmp(m, "rb") == 0) {
-        return rbschedule(G);
-    }
-    return dfschedule(G);
 }
 
 static Klass* signal2klass(Klass* parent, const string& name, Tree sig)

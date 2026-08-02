@@ -230,6 +230,7 @@ struct global {
     bool        gDetailsSwitch;   // -d option
     bool        gDrawSignals;     // -sg option
     bool        gDrawSuperNodes;  // -sng option (super-node DAG of -ls)
+    int         gSchedulingStrategy;  // -ss <n> classic emission order (0=df 1=bf 2=sp 3=rb 4=dfcycles 5=bfcycles)
     bool        gDrawRetiming;    // -rg option
     bool        gDrawRouteFrame;  // -drf option
     bool        gShadowBlur;      // -blur option, note: svg2pdf doesn't like the blur filter
