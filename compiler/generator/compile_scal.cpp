@@ -93,6 +93,16 @@ static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
             return bfcyclesschedule(G);
         case 6:
             return mcschedule(G, gGlobal->gLSRegisters, gGlobal->gLSWidth);
+        case 7: {
+            // compositional: df regions + DP combine, on the DAG of cycles
+            digraph<digraph<Tree>>  H  = graph2dag(G);
+            schedule<digraph<Tree>> SH = csschedule(H, gGlobal->gLSRegisters, gGlobal->gLSWidth);
+            schedule<Tree>          S;
+            for (const digraph<Tree>& n : SH.elements()) {
+                S.append(dfschedule(cut(n, 1)));
+            }
+            return S;
+        }
         default:
             return rbschedule(G);
     }
