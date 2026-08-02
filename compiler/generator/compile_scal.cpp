@@ -212,6 +212,15 @@ static void ocppShapeStats(const digraph<Tree>& G)
         ocppShapePrint(top[i].second, std::cerr, 3);
     }
     std::cerr << std::endl;
+    // FAUST_SS_SHAPES=full : the whole histogram, one line per shape
+    const char* env = getenv("FAUST_SS_SHAPES");
+    if (env != nullptr && std::string(env) == "full") {
+        for (const auto& [c, sh] : top) {
+            std::cerr << "SS_SHAPE " << c << " ";
+            ocppShapePrint(sh, std::cerr, 4);
+            std::cerr << '\n';
+        }
+    }
 }
 
 // the shape functor for a given graph: boundary = the graph's node set
