@@ -87,6 +87,62 @@ static long ocppTreeShape(const Tree& t)
     return 1;  // numeric leaves share one shape
 }
 
+// ---- the SHAPE of an expression: the computation with the data forgotten.
+// shape(op(a, b)) = op(shape(a), shape(b)) ; data leaves (numbers, inputs)
+// become typed holes ; children that are themselves SCHEDULED nodes (the
+// truncation boundary: they will be emitted as their own statements) become
+// reference holes. Two statements are isomorphic -- SLP-packable -- iff
+// their shapes are the SAME TREE, and shapes being hash-consed trees, that
+// comparison is pointer identity. Constant delay amounts become holes too:
+// offsets are forgotten by the same generic rule. Cycles (rec bodies not on
+// the boundary) are cut by an on-stack guard.
+static Tree ocppShape(Tree t, const std::set<Tree, treeorder>& inG,
+                      std::map<Tree, Tree, treeorder>& memo, std::set<Tree, treeorder>& onstack)
+{
+    auto it = memo.find(t);
+    if (it != memo.end()) {
+        return it->second;
+    }
+    Tree r;
+    if (!isSym(t->node())) {
+        // a number: a typed hole
+        r = tree(symbol(t->node().type() == kIntNode ? "SHAPE_HOLE_I" : "SHAPE_HOLE_F"));
+    } else if (onstack.count(t)) {
+        r = tree(symbol("SHAPE_HOLE_CYCLE"));
+    } else {
+        int i;
+        if (isSigInput(t, &i)) {
+            r = tree(symbol("SHAPE_HOLE_IN"));  // which input: forgotten
+        } else {
+            onstack.insert(t);
+            std::vector<Tree> br;
+            for (int k = 0; k < t->arity(); k++) {
+                Tree c = t->branch(k);
+                if (inG.count(c) && !(c == t)) {
+                    br.push_back(tree(symbol("SHAPE_HOLE_REF")));
+                } else {
+                    br.push_back(ocppShape(c, inG, memo, onstack));
+                }
+            }
+            r = tree(t->node(), br);
+            onstack.erase(t);
+        }
+    }
+    memo[t] = r;
+    return r;
+}
+
+// the shape functor for a given graph: boundary = the graph's node set
+static std::function<long(const Tree&)> ocppShapeFunctor(const digraph<Tree>& G)
+{
+    auto inG  = std::make_shared<std::set<Tree, treeorder>>(G.nodes().begin(), G.nodes().end());
+    auto memo = std::make_shared<std::map<Tree, Tree, treeorder>>();
+    return [inG, memo](const Tree& t) -> long {
+        std::set<Tree, treeorder> onstack;
+        return (long)(size_t)ocppShape(t, *inG, *memo, onstack);
+    };
+}
+
 static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
 {
     switch (gGlobal->gSchedulingStrategy) {
@@ -110,7 +166,7 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
             // statement level the SLP vectorizer sees. Cycle back-edges are
             // ignored by its structures exactly as dfschedule ignores them.
             return csschedule(G, gGlobal->gLSRegisters, gGlobal->gLSWidth,
-                              std::function<long(const Tree&)>(ocppTreeShape));
+                              ocppShapeFunctor(G));
         default:
             return rbschedule(G);
     }
@@ -134,8 +190,7 @@ static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
             R = r2;
             U = u2;
         }
-        schedquality q =
-            squality(G, S.elements(), R, U, std::function<long(const Tree&)>(ocppTreeShape));
+        schedquality q = squality(G, S.elements(), R, U, ocppShapeFunctor(G));
         double fill = (q.cycles > 0) ? 100.0 * double(S.size()) / (double(q.cycles) * U) : 0;
         std::cerr << "SS_QUALITY ss=" << gGlobal->gSchedulingStrategy << " nodes=" << S.size()
                   << " cycles=" << q.cycles << " holes=" << q.holes << " fill=" << int(fill)
