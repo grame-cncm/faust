@@ -70,10 +70,13 @@ using namespace std;
  * FAUST_OCPP_SCHEDULE environment variable): 0 = df (the default, deep-first),
  * 1 = bf (breadth-first levels), 2 = sp (special), 3 = rb (reverse
  * breadth-first, and the fallback for any other value, as in the FIR branch),
- * 4 = dfcycles / 5 = bfcycles (DAG of cycles, then deep-first inside). All are
- * dependencies-first, so the generated code is a reordering of the same
- * statements -- semantics unchanged, performance to be measured. Numbering
- * 0-3 matches master-dev-ocpp-od-fir-2-FIR20 for cross-branch comparability.
+ * 4 = dfcycles / 5 = bfcycles (DAG of cycles, then deep-first inside),
+ * 6 = mc (the model-constrained list scheduler of the -ls engine, ported to
+ * the DirectedGraph library: width and register budget from -ls-U / -ls-R).
+ * All are dependencies-first, so the generated code is a reordering of the
+ * same statements -- semantics unchanged, performance to be measured.
+ * Numbering 0-3 matches master-dev-ocpp-od-fir-2-FIR20 for cross-branch
+ * comparability.
  */
 static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
 {
@@ -88,6 +91,8 @@ static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
             return dfcyclesschedule(G);
         case 5:
             return bfcyclesschedule(G);
+        case 6:
+            return mcschedule(G, gGlobal->gLSRegisters, gGlobal->gLSWidth);
         default:
             return rbschedule(G);
     }

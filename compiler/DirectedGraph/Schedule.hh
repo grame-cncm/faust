@@ -262,6 +262,145 @@ inline schedule<N> bfcyclesschedule(const digraph<N>& G)
 }
 
 /**
+ * @brief Model-constrained scheduling of a DAG G on an abstract machine
+ * with R registers and U issue units.
+ *
+ * A list scheduler working in cycles of width U with unit latency: a node
+ * issued in a cycle becomes usable as an operand in the NEXT cycle only.
+ * A node is READY when all its destinations (its operands, since n->m
+ * means "n depends on m") were issued in a previous cycle. A scheduled
+ * node is LIVE while at least one of its consumers (its sources) is still
+ * unscheduled -- the live count models register pressure.
+ *
+ * Two selection regimes, switching on the live count:
+ *   live <  R : pick the ready node of greatest critical HEIGHT (the
+ *               longest chain of dependents above it) -- widen the front,
+ *               feed the units;
+ *   live >= R : pick the ready node RELEASING the most registers (operands
+ *               whose last pending consumer it is) -- narrow the front,
+ *               free the bank.
+ *
+ * Ties anchor on the dfschedule order of G, so the result is stable
+ * relative to graph iteration. Cyclic graphs are tolerated by a
+ * deadlock-breaking fallback (issue the first unscheduled node in anchor
+ * order, as dfschedule tolerates cycles); the full contract holds on DAGs.
+ *
+ * Complexity: O(V * cycles) candidate scans -- fine up to ~1e5 nodes.
+ *
+ * @tparam N the type of nodes of G
+ * @param G the graph we want to schedule
+ * @param R the register budget (live values) of the abstract machine
+ * @param U the issue width (nodes per cycle) of the abstract machine
+ * @return schedule<N> a valid schedule of G shaped by (R, U)
+ */
+template <typename N>
+inline schedule<N> mcschedule(const digraph<N>& G, unsigned int R, unsigned int U)
+{
+    if (U < 1) {
+        U = 1;
+    }
+    const schedule<N>&    anchor = dfschedule(G);
+    const std::vector<N>& order  = anchor.elements();
+    digraph<N>            Rg     = reverse(G);
+
+    // critical height : 1 + max over consumers, computed consumers-first
+    // (backward on the anchor, whose operands precede their consumers)
+    std::map<N, int> height;
+    for (auto it = order.rbegin(); it != order.rend(); ++it) {
+        int h = 1;
+        for (const auto& c : Rg.destinations(*it)) {
+            auto hc = height.find(c.first);
+            if (hc != height.end() && hc->second >= h) {
+                h = hc->second + 1;
+            }
+        }
+        height[*it] = h;
+    }
+
+    std::map<N, int> pending;  // remaining unscheduled consumers
+    for (const N& n : order) {
+        pending[n] = int(Rg.destinations(n).size());
+    }
+
+    schedule<N>  S;
+    std::set<N>  done;  // issued in a COMPLETED cycle (usable as operand)
+    unsigned int live = 0;
+
+    auto ready = [&](const N& n) {
+        if (S.order(n) > 0) {
+            return false;
+        }
+        for (const auto& d : G.destinations(n)) {
+            if (done.find(d.first) == done.end() && !(d.first == n)) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    auto issue = [&](const N& n) {
+        S.append(n);
+        if (pending[n] > 0) {
+            live++;
+        }
+        for (const auto& d : G.destinations(n)) {
+            if (!(d.first == n) && --pending[d.first] == 0) {
+                if (live > 0) {
+                    live--;
+                }
+            }
+        }
+    };
+
+    while (S.size() < order.size()) {
+        std::vector<N> cycle;
+        for (unsigned int u = 0; u < U; u++) {
+            const N* best  = nullptr;
+            int      bestK = -1;
+            for (const N& n : order) {
+                if (!ready(n)) {
+                    continue;
+                }
+                int k;
+                if (live < R) {
+                    k = height[n];
+                } else {
+                    k = 0;  // registers released by issuing n
+                    for (const auto& d : G.destinations(n)) {
+                        if (!(d.first == n) && pending[d.first] == 1) {
+                            k++;
+                        }
+                    }
+                }
+                if (k > bestK) {
+                    bestK = k;
+                    best  = &n;
+                }
+            }
+            if (best == nullptr) {
+                break;
+            }
+            issue(*best);
+            cycle.push_back(*best);
+        }
+        if (cycle.empty()) {
+            // cyclic remainder : break the deadlock in anchor order
+            for (const N& n : order) {
+                if (S.order(n) == 0) {
+                    issue(n);
+                    cycle.push_back(n);
+                    break;
+                }
+            }
+        }
+        for (const N& n : cycle) {
+            done.insert(n);
+        }
+    }
+    return S;
+}
+
+/**
  * @brief reverse breadth first schedule for a DAG
  *
  * @tparam N
