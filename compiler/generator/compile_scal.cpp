@@ -78,7 +78,16 @@ using namespace std;
  * Numbering 0-3 matches master-dev-ocpp-od-fir-2-FIR20 for cross-branch
  * comparability.
  */
-static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
+static long ocppTreeShape(const Tree& t)
+{
+    Sym s;
+    if (isSym(t->node(), &s)) {
+        return (long)(size_t)s;
+    }
+    return 1;  // numeric leaves share one shape
+}
+
+static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
 {
     switch (gGlobal->gSchedulingStrategy) {
         case 0:
@@ -94,18 +103,60 @@ static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
         case 6:
             return mcschedule(G, gGlobal->gLSRegisters, gGlobal->gLSWidth);
         case 7: {
-            // compositional: df regions + DP combine, on the DAG of cycles
+            // compositional v4: csschedule associates the cycle-groups, then
+            // the groups' internal df sequences are re-folded at STATEMENT
+            // grain by dpcombine armed with the Tree shape (the operation
+            // symbol) -- the isomorphic-adjacency term finally works at the
+            // level the SLP vectorizer sees (vocoder ablation, 2026-08-02)
             digraph<digraph<Tree>>  H  = graph2dag(G);
-            schedule<digraph<Tree>> SH = csschedule(H, gGlobal->gLSRegisters, gGlobal->gLSWidth);
-            schedule<Tree>          S;
-            for (const digraph<Tree>& n : SH.elements()) {
-                S.append(dfschedule(cut(n, 1)));
+            schedule<digraph<Tree>> SH =
+                csschedule(H, gGlobal->gLSRegisters, gGlobal->gLSWidth);
+            digraph<Tree>                    Rt    = reverse(G);
+            std::function<long(const Tree&)> shape = ocppTreeShape;
+            std::vector<Tree> acc;
+            for (const digraph<Tree>& grp : SH.elements()) {
+                schedule<Tree>    ds    = dfschedule(cut(grp, 1));
+                std::vector<Tree> piece = ds.elements();
+                acc = dpcombine(G, Rt, std::move(acc), std::move(piece),
+                                gGlobal->gLSRegisters, shape);
+            }
+            schedule<Tree> S;
+            for (const Tree& t : acc) {
+                S.append(t);
             }
             return S;
         }
         default:
             return rbschedule(G);
     }
+}
+
+// FAUST_SS_QUALITY=1 : imprime le vecteur qualité (grille U x cycles du
+// modèle) de l'ordre choisi -- remplissage = cases occupées / disponibles.
+// Le remplissage est celui de la machine ABSTRAITE (latence 1, U slots),
+// le diagnostic de Yann : faut-il un effort de remplissage, ou le résidu
+// est-il ailleurs (adjacence isomorphe, régimes mémoire) ?
+static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
+{
+    schedule<Tree> S = ocppScheduleRaw(G);
+    if (const char* qenv = getenv("FAUST_SS_QUALITY")) {
+        // valeur "R,U" : machine d'ÉVALUATION (comparer des ordres générés
+        // avec des réglages différents sur une même référence) ; toute
+        // autre valeur : les réglages de génération
+        unsigned R = gGlobal->gLSRegisters, U = gGlobal->gLSWidth;
+        unsigned r2, u2;
+        if (sscanf(qenv, "%u,%u", &r2, &u2) == 2 && u2 > 0) {
+            R = r2;
+            U = u2;
+        }
+        schedquality q =
+            squality(G, S.elements(), R, U, std::function<long(const Tree&)>(ocppTreeShape));
+        double fill = (q.cycles > 0) ? 100.0 * double(S.size()) / (double(q.cycles) * U) : 0;
+        std::cerr << "SS_QUALITY ss=" << gGlobal->gSchedulingStrategy << " nodes=" << S.size()
+                  << " cycles=" << q.cycles << " holes=" << q.holes << " fill=" << int(fill)
+                  << "% peak=" << q.peak << " isoadj=" << q.isoadj << std::endl;
+    }
+    return S;
 }
 
 static Klass* signal2klass(Klass* parent, const string& name, Tree sig)
