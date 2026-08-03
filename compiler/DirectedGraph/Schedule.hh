@@ -467,11 +467,19 @@ struct schedquality {
     int cpdil = 0;  // mean gap along the chain (schedule positions)
     int cpmax = 0;  // largest gap along the chain
     int cplen = 0;  // chain length (nodes)
+    // two-resource machine (compute units U, memory ports M) : a schedule
+    // cannot beat the per-resource floor II = max(nAlu/U, nMem/M) -- the
+    // modulo-scheduling ResMII, one bound per typed resource. Optimizing a
+    // resource below the BINDING bound is wasted work.
+    int nmem   = 0;  // nodes classified memory
+    int aluMII = 0;  // ceil(nAlu / U)
+    int memMII = 0;  // ceil(nMem / M), 0 when no mem functor given
 };
 
 template <typename N>
 inline schedquality squality(const digraph<N>& G, const std::vector<N>& S, unsigned int R,
-                             unsigned int U, std::function<long(const N&)> shape = nullptr)
+                             unsigned int U, std::function<long(const N&)> shape = nullptr,
+                             std::function<bool(const N&)> mem = nullptr, unsigned int M = 0)
 {
     schedquality q;
     digraph<N>   Rg = reverse(G);
@@ -480,6 +488,8 @@ inline schedquality squality(const digraph<N>& G, const std::vector<N>& S, unsig
         pending[n] = int(Rg.destinations(n).size());
     }
     int  cur = 0, slots = 0, live = 0;
+    int  slotsM   = 0;  // memory ops issued in the current cycle
+    bool twoRes   = (mem != nullptr) && (M > 0);
     int  run      = 0;
     auto closeRun = [&]() {
         if (run > 0) {
@@ -499,16 +509,30 @@ inline schedquality squality(const digraph<N>& G, const std::vector<N>& S, unsig
                 lo = std::max(lo, it->second + 1);
             }
         }
+        bool isM = twoRes && mem(n);
+        if (isM) {
+            q.nmem++;
+        }
         if (lo > cur) {
             q.holes += (lo - cur) * int(U) - slots;
-            cur   = lo;
-            slots = 0;
-        } else if (slots == int(U)) {
+            cur    = lo;
+            slots  = 0;
+            slotsM = 0;
+        } else if ((!twoRes || !isM) && slots == int(U)) {
             cur++;
-            slots = 0;
+            slots  = 0;
+            slotsM = 0;
+        } else if (twoRes && isM && slotsM == int(M)) {
+            cur++;
+            slots  = 0;
+            slotsM = 0;
         }
         cyc[n] = cur;
-        slots++;
+        if (isM) {
+            slotsM++;
+        } else {
+            slots++;
+        }
         if (pending[n] > 0) {
             live++;
         }
@@ -542,6 +566,11 @@ inline schedquality squality(const digraph<N>& G, const std::vector<N>& S, unsig
     closeRun();
     q.cycles = cur + 1;
     q.holes += int(U) - slots;
+    {
+        int nalu = int(S.size()) - q.nmem;
+        q.aluMII = (U > 0) ? (nalu + int(U) - 1) / int(U) : 0;
+        q.memMII = (M > 0) ? (q.nmem + int(M) - 1) / int(M) : 0;
+    }
     // one longest chain, walked back through maximal-depth operands
     {
         std::map<N, int> pos, depth;

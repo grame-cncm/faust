@@ -345,7 +345,27 @@ static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
             R = r2;
             U = u2;
         }
-        schedquality q = squality(G, S.elements(), R, U, ocppShapeFunctor(G));
+        // memory classification at Tree grain : a delayed read (dmin >= 1)
+        // is a buffer load, an input is a stream load. Writes are folded
+        // into their producer (v1 approximation). M from FAUST_SS_M
+        // (default 3, the M-series load/store width).
+        auto memf = std::function<bool(const Tree&)>([](const Tree& t) {
+            Tree x, y;
+            int  i;
+            if (isSigInput(t, &i)) {
+                return true;
+            }
+            if (isSigDelay(t, x, y)) {
+                interval I = getCertifiedSigType(y)->getInterval();
+                return int(I.lo()) >= 1;
+            }
+            return false;
+        });
+        unsigned M = 3;
+        if (const char* me = getenv("FAUST_SS_M")) {
+            M = unsigned(std::atoi(me));
+        }
+        schedquality q = squality(G, S.elements(), R, U, ocppShapeFunctor(G), memf, M);
         double fill = (q.cycles > 0) ? 100.0 * double(S.size()) / (double(q.cycles) * U) : 0;
         std::cerr << "SS_QUALITY ss=" << gGlobal->gSchedulingStrategy << " nodes=" << S.size()
                   << " cycles=" << q.cycles << " holes=" << q.holes << " fill=" << int(fill)
@@ -359,6 +379,7 @@ static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
             }
             std::cerr << " scost=" << schedulingcost(G, SS) / std::max<size_t>(S.size(), 1);
         }
+        std::cerr << " nmem=" << q.nmem << " aluMII=" << q.aluMII << " memMII=" << q.memMII;
         std::cerr << std::endl;
     }
     return S;
@@ -2350,6 +2371,36 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     // force a specific compilation order
     auto G = immediateGraph(L);
     auto S = ocppSchedule(G);
+    if (getenv("FAUST_SS_QUALITY")) {
+        // RecMII estimate : recurrences live in the FULL graph (delay
+        // edges included) ; per SCC, the zero-delay skeleton's depth
+        // approximates the cycle latency at distance ~1 -- the
+        // recurrence bound II >= RecMII no schedule can beat.
+        auto H      = graph2dag(fullGraph(L));
+        int  recmii = 0, nscc = 0;
+        for (const auto& scc : H.nodes()) {
+            if (scc.nodes().size() > 1) {
+                nscc++;
+                auto            sk = cut(scc, 1);
+                schedule<Tree>  ds = dfschedule(sk);
+                std::map<Tree, int> depth;
+                int                 dmax = 0;
+                for (const auto& n : ds.elements()) {
+                    int d = 0;
+                    for (const auto& e : sk.destinations(n)) {
+                        auto it = depth.find(e.first);
+                        if (it != depth.end()) {
+                            d = std::max(d, it->second + 1);
+                        }
+                    }
+                    depth[n] = d;
+                    dmax     = std::max(dmax, d);
+                }
+                recmii = std::max(recmii, dmax + 1);
+            }
+        }
+        std::cerr << "SS_RECMII sccs=" << nscc << " recMII=" << recmii << std::endl;
+    }
     // register the compilation order S for debug purposes
     {
         int jj = 0;
