@@ -249,6 +249,10 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
             return bfcyclesschedule(G);
         case 6:
             return mcschedule(G, gGlobal->gLSRegisters, gGlobal->gLSWidth);
+        case 8:
+            // shape-ALIGNED order (Yann's alignment step) : shapes as
+            // colors, grouped in monochromatic ranks -- the banks
+            return alignschedule(G, ocppShapeFunctor(G));
         case 7:
             // compositional v5: csschedule DIRECTLY at Tree grain -- its
             // dominator association, batched round-robin of independent

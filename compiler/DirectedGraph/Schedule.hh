@@ -844,6 +844,154 @@ inline schedule<N> csschedule(const digraph<N>& G, unsigned int R, unsigned int 
 }
 
 /**
+ * @brief Shape-ALIGNED scheduling of a DAG G -- Yann's alignment step.
+ *
+ * View the shapes as colors : a schedule is well aligned when equal colors
+ * are grouped in monochromatic RANKS instead of dispersed. A rank being an
+ * antichain by construction, the mutual independence of a bank's instances
+ * is structural -- ranks of one shape are exactly the banks the superword
+ * vectorizer wants, in runs whose LENGTH is the packing currency.
+ *
+ * Algorithm (v1) :
+ *   1. mobility intervals [ASAP, ALAP] for every node (topological levels
+ *      at the earliest / latest) ;
+ *   2. shape classes by DECREASING frequency ; each class groups its
+ *      instances on the fewest possible ranks given the intervals -- the
+ *      polynomial interval-stabbing greedy (sort by ALAP, place a rank at
+ *      each uncovered instance). Frequent colors are served first,
+ *      singletons fill the gaps ;
+ *   3. robust emission : target ranks are PRIORITIES in a Kahn descent
+ *      (among ready nodes, smallest (targetRank, shape, anchor) wins) --
+ *      validity by construction, monochromatic runs emerge.
+ *
+ * Breadth-first is the color-blind special case (pure ASAP) : it aligns
+ * banks only when the program happens to put them at equal depths ; this
+ * step does it on purpose. Cyclic graphs tolerated like dfschedule
+ * (back edges ignored by the level computation, deadlock-broken in Kahn).
+ */
+template <typename N>
+inline schedule<N> alignschedule(const digraph<N>& G, std::function<long(const N&)> shape)
+{
+    const schedule<N>     topo  = dfschedule(G);
+    const std::vector<N>& order = topo.elements();  // operands first
+    const int             V     = int(order.size());
+    digraph<N>            Rg    = reverse(G);
+    std::map<N, int>      pos;
+    for (int i = 0; i < V; i++) {
+        pos[order[i]] = i;
+    }
+
+    // ---- mobility intervals (back edges ignored : an operand placed
+    // AFTER its consumer in the anchor is a cycle edge)
+    std::vector<int> asap(V, 0), alap(V, 0);
+    int              maxRank = 0;
+    for (int i = 0; i < V; i++) {
+        int lo = 0;
+        for (const auto& d : G.destinations(order[i])) {
+            auto it = pos.find(d.first);
+            if (it != pos.end() && it->second < i) {
+                lo = std::max(lo, asap[it->second] + 1);
+            }
+        }
+        asap[i] = lo;
+        maxRank = std::max(maxRank, lo);
+    }
+    for (int i = V - 1; i >= 0; i--) {
+        int hi = maxRank;
+        for (const auto& c : Rg.destinations(order[i])) {
+            auto it = pos.find(c.first);
+            if (it != pos.end() && it->second > i) {
+                hi = std::min(hi, alap[it->second] - 1);
+            }
+        }
+        alap[i] = std::max(hi, asap[i]);
+    }
+
+    // ---- shape classes by decreasing frequency
+    std::map<long, std::vector<int>> classes;
+    std::vector<long>                shapeOf(V);
+    for (int i = 0; i < V; i++) {
+        shapeOf[i] = shape ? shape(order[i]) : long(i);
+        classes[shapeOf[i]].push_back(i);
+    }
+    std::vector<std::pair<int, long>> byFreq;
+    for (const auto& [sh, v] : classes) {
+        byFreq.push_back({int(v.size()), sh});
+    }
+    std::sort(byFreq.begin(), byFreq.end(),
+              [](const auto& a, const auto& b) { return a.first > b.first; });
+
+    // ---- per class : group on the fewest ranks (interval stabbing)
+    std::vector<int> target(V, 0);
+    for (const auto& [cnt, sh] : byFreq) {
+        std::vector<int> inst = classes[sh];
+        std::sort(inst.begin(), inst.end(),
+                  [&](int a, int b) { return alap[a] < alap[b]; });
+        int current = -1;
+        for (int i : inst) {
+            if (current < asap[i]) {
+                current = alap[i];  // a new rank, as late as allowed
+            }
+            target[i] = std::min(current, alap[i]);
+        }
+    }
+
+    // ---- Kahn with (target, shape, anchor) priority
+    std::vector<int> pending(V, 0);
+    for (int i = 0; i < V; i++) {
+        for (const auto& d : G.destinations(order[i])) {
+            auto it = pos.find(d.first);
+            if (it != pos.end() && it->second < i) {
+                pending[i]++;
+            }
+        }
+    }
+    auto        cmp = [&](int a, int b) {
+        if (target[a] != target[b]) {
+            return target[a] > target[b];  // min-heap on target rank
+        }
+        if (shapeOf[a] != shapeOf[b]) {
+            return shapeOf[a] > shapeOf[b];
+        }
+        return a > b;  // anchor position
+    };
+    std::vector<int> heap;
+    for (int i = 0; i < V; i++) {
+        if (pending[i] == 0) {
+            heap.push_back(i);
+        }
+    }
+    std::make_heap(heap.begin(), heap.end(), cmp);
+    schedule<N> S;
+    while (int(S.size()) < V) {
+        if (heap.empty()) {  // cyclic remainder : deadlock-break in anchor order
+            for (int i = 0; i < V; i++) {
+                if (S.order(order[i]) == 0) {
+                    S.append(order[i]);
+                    break;
+                }
+            }
+            continue;
+        }
+        std::pop_heap(heap.begin(), heap.end(), cmp);
+        int n = heap.back();
+        heap.pop_back();
+        if (S.order(order[n]) > 0) {
+            continue;
+        }
+        S.append(order[n]);
+        for (const auto& c : Rg.destinations(order[n])) {
+            auto it = pos.find(c.first);
+            if (it != pos.end() && it->second > n && --pending[it->second] == 0) {
+                heap.push_back(it->second);
+                std::push_heap(heap.begin(), heap.end(), cmp);
+            }
+        }
+    }
+    return S;
+}
+
+/**
  * @brief reverse breadth first schedule for a DAG
  *
  * @tparam N
