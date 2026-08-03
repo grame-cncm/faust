@@ -2372,11 +2372,99 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     auto G = immediateGraph(L);
     auto S = ocppSchedule(G);
     if (getenv("FAUST_SS_QUALITY")) {
+        // ---- calibrated per-op costs (M-series orders of magnitude) :
+        // latency enters recurrence chains, reciprocal throughput enters
+        // the compute floor (a division blocks the pipe ~8 slots, a libm
+        // call ~20 ; mul/add pipeline at 1/cycle despite latency 3)
+        auto lat = [](Tree t) -> int {
+            int  op, i;
+            Tree x, y;
+            if (isSigInput(t, &i)) {
+                return 4;
+            }
+            if (isSigDelay(t, x, y)) {
+                return 4;  // load-use
+            }
+            if (isSigBinOp(t, &op, x, y)) {
+                if (op == kDiv || op == kRem) {
+                    return 10;
+                }
+                if (op == kMul || op == kAdd || op == kSub) {
+                    return 3;
+                }
+                return 2;
+            }
+            Tree ff, largs;
+            if (isSigFFun(t, ff, largs)) {
+                return 25;  // libm
+            }
+            return 2;
+        };
+        auto tw = [](Tree t) -> int {
+            int  op;
+            Tree x, y, ff, largs;
+            if (isSigBinOp(t, &op, x, y) && (op == kDiv || op == kRem)) {
+                return 8;
+            }
+            if (isSigFFun(t, ff, largs)) {
+                return 20;
+            }
+            return 1;
+        };
+        // weighted compute floor over the immediate graph
+        {
+            long twsum = 0;
+            for (const auto& n : G.nodes()) {
+                twsum += tw(n);
+            }
+            unsigned Ue = gGlobal->gLSWidth > 0 ? gGlobal->gLSWidth : 4;
+            // weighted critical path per sample : zero-delay skeleton of
+            // the FULL graph, node latencies -- the serial spine one
+            // sample cannot overlap with itself
+            auto        G2 = fullGraph(L);
+            auto        sk = cut(G2, 1);
+            schedule<Tree> ds = dfschedule(sk);
+            std::map<Tree, int> depth;
+            int                 cp = 0;
+            for (const auto& n : ds.elements()) {
+                int d = 0;
+                for (const auto& e : sk.destinations(n)) {
+                    auto it = depth.find(e.first);
+                    if (it != depth.end()) {
+                        d = std::max(d, it->second);
+                    }
+                }
+                depth[n] = d + lat(n);
+                cp       = std::max(cp, depth[n]);
+            }
+            std::cerr << "SS_BOUNDS alu2=" << (twsum + Ue - 1) / Ue << " cplat=" << cp
+                      << ((cp > long(twsum / Ue)) ? " bind=REC" : " bind=CALC") << std::endl;
+        }
         // RecMII estimate : recurrences live in the FULL graph (delay
         // edges included) ; per SCC, the zero-delay skeleton's depth
         // approximates the cycle latency at distance ~1 -- the
         // recurrence bound II >= RecMII no schedule can beat.
-        auto H      = graph2dag(fullGraph(L));
+        auto lat2 = [](Tree t) -> int {
+            int  op, i;
+            Tree x, y, ff, largs;
+            if (isSigInput(t, &i) || isSigDelay(t, x, y)) {
+                return 4;
+            }
+            if (isSigBinOp(t, &op, x, y)) {
+                return (op == kDiv || op == kRem) ? 10
+                       : (op == kMul || op == kAdd || op == kSub) ? 3
+                                                                  : 2;
+            }
+            if (isSigFFun(t, ff, largs)) {
+                return 25;
+            }
+            return 2;
+        };
+        // keep only distance-1 delay edges : the remaining SCCs are the
+        // TIGHT recursion nests, whose weighted depth is an exact
+        // per-sample bound (long-distance cycles dilute theirs by their
+        // delay and are negligible v1)
+        auto H      = graph2dag(cut(fullGraph(L), 2));
         int  recmii = 0, nscc = 0;
         for (const auto& scc : H.nodes()) {
             if (scc.nodes().size() > 1) {
@@ -2390,13 +2478,13 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                     for (const auto& e : sk.destinations(n)) {
                         auto it = depth.find(e.first);
                         if (it != depth.end()) {
-                            d = std::max(d, it->second + 1);
+                            d = std::max(d, it->second);
                         }
                     }
-                    depth[n] = d;
-                    dmax     = std::max(dmax, d);
+                    depth[n] = d + lat2(n);
+                    dmax     = std::max(dmax, depth[n]);
                 }
-                recmii = std::max(recmii, dmax + 1);
+                recmii = std::max(recmii, dmax);  // distance 1 by construction
             }
         }
         std::cerr << "SS_RECMII sccs=" << nscc << " recMII=" << recmii << std::endl;
