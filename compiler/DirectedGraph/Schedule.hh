@@ -459,6 +459,14 @@ struct schedquality {
     int packs4 = 0;  // complete groups of 4 : sum of len/4 over runs
     int r4n    = 0;  // nodes living in runs of length >= 4
     int maxrun = 1;  // longest run
+    // critical-path DILATION : mean scheduled distance between consecutive
+    // nodes of one longest dependency chain. Serial-bound programs lose
+    // when the next chain step drifts beyond the out-of-order window
+    // (whole layers inserted between two dependent steps expose the full
+    // chain latency) ; bank-bound programs do not care
+    int cpdil = 0;  // mean gap along the chain (schedule positions)
+    int cpmax = 0;  // largest gap along the chain
+    int cplen = 0;  // chain length (nodes)
 };
 
 template <typename N>
@@ -534,6 +542,51 @@ inline schedquality squality(const digraph<N>& G, const std::vector<N>& S, unsig
     closeRun();
     q.cycles = cur + 1;
     q.holes += int(U) - slots;
+    // one longest chain, walked back through maximal-depth operands
+    {
+        std::map<N, int> pos, depth;
+        for (size_t i = 0; i < S.size(); i++) {
+            pos[S[i]] = int(i);
+        }
+        N    best  = S.empty() ? N() : S[0];
+        int  bestd = -1;
+        for (const N& n : S) {
+            int d = 0;
+            for (const auto& e : G.destinations(n)) {
+                auto it = depth.find(e.first);
+                if (it != depth.end()) {
+                    d = std::max(d, it->second + 1);
+                }
+            }
+            depth[n] = d;
+            if (d > bestd) {
+                bestd = d;
+                best  = n;
+            }
+        }
+        if (bestd > 0) {
+            N    cur2 = best;
+            long sum = 0;
+            int  cnt = 0;
+            while (depth[cur2] > 0) {
+                N nxt = cur2;
+                for (const auto& e : G.destinations(cur2)) {
+                    auto it = depth.find(e.first);
+                    if (it != depth.end() && it->second == depth[cur2] - 1) {
+                        nxt = e.first;
+                        break;
+                    }
+                }
+                int gap = std::abs(pos[cur2] - pos[nxt]);
+                sum += gap;
+                q.cpmax = std::max(q.cpmax, gap);
+                cnt++;
+                cur2 = nxt;
+            }
+            q.cplen = cnt + 1;
+            q.cpdil = int(sum / std::max(cnt, 1));
+        }
+    }
     return q;
 }
 
@@ -1064,7 +1117,7 @@ inline schedule<N> alignschedule(const digraph<N>& G, std::function<long(const N
 template <typename N>
 inline schedule<N> bankschedule(const digraph<N>& G, unsigned int R, unsigned int U,
                                 std::function<long(const N&)> shape,
-                                unsigned int bankcap = 0)
+                                unsigned int bankcap = 0, int stagec = 0)
 {
     const schedule<N>     topo  = dfschedule(G);
     const std::vector<N>& order = topo.elements();  // operands first
@@ -1112,6 +1165,15 @@ inline schedule<N> bankschedule(const digraph<N>& G, unsigned int R, unsigned in
     std::sort(byFreq.begin(), byFreq.end(),
               [](const auto& a, const auto& b) { return a.first > b.first; });
     std::vector<int> target(V, 0);
+    if (stagec == 2) {
+        // layers mode : natural levels untouched (the frequency grouping
+        // pulls instances OFF their level and dephases their operand
+        // lanes -- bf keeps levels intact, we keep bf's phase and only
+        // sort colors inside each level)
+        for (int i = 0; i < V; i++) {
+            target[i] = asap[i];
+        }
+    } else
     for (const auto& [cnt, sh] : byFreq) {
         std::vector<int> inst = classes[sh];
         std::sort(inst.begin(), inst.end(),
@@ -1150,7 +1212,9 @@ inline schedule<N> bankschedule(const digraph<N>& G, unsigned int R, unsigned in
     // in charge of (on wide chain families the R-tiling must emerge from
     // the composition, not be crushed by a giant bank) ; U floors the cap
     // so runs stay superword-packable when R is small.
-    const size_t cap = (bankcap > 0) ? bankcap : std::max<size_t>(1, std::max(R, U));
+    const size_t cap = (stagec == 2) ? size_t(V)
+                       : (bankcap > 0) ? bankcap
+                                       : std::max<size_t>(1, std::max(R, U));
     std::map<std::pair<int, long>, int> bankOf;
     std::vector<std::vector<int>>       members;
     std::vector<int>                    bankIx(V);
@@ -1188,7 +1252,39 @@ inline schedule<N> bankschedule(const digraph<N>& G, unsigned int R, unsigned in
     unsigned int Rb = std::max<unsigned int>(1, R / unsigned(cap));
     auto bankShape = std::function<long(const int&)>(
         [&](const int& b) { return shapeOf[members[b][0]]; });
-    schedule<int> BS = csschedule(B, Rb, U, bankShape);
+    // stagec selects the composition of the bank dag : 0 = csschedule
+    // (default) ; 1 = dfschedule -- pure VERTICAL column chaining, the
+    // phase-coherence experiment (consecutive layers of one family stay
+    // inside the SLP scheduling window)
+    schedule<int> BS;
+    if (stagec == 2) {
+        // layers : banks in (rank, class frequency) order -- level-major
+        // emission, colors grouped inside each level
+        std::vector<int> bk(members.size());
+        for (size_t b = 0; b < members.size(); b++) {
+            bk[b] = int(b);
+        }
+        std::map<long, int> freq;
+        for (int i = 0; i < V; i++) {
+            freq[shapeOf[i]]++;
+        }
+        std::sort(bk.begin(), bk.end(), [&](int a, int b) {
+            int ra = rank[members[a][0]], rb2 = rank[members[b][0]];
+            if (ra != rb2) {
+                return ra < rb2;
+            }
+            long sa = shapeOf[members[a][0]], sb = shapeOf[members[b][0]];
+            if (freq[sa] != freq[sb]) {
+                return freq[sa] > freq[sb];
+            }
+            return sa < sb;
+        });
+        for (int b : bk) {
+            BS.append(b);
+        }
+    } else {
+        BS = (stagec == 1) ? dfschedule(B) : csschedule(B, Rb, U, bankShape);
+    }
 
     schedule<N> S;
     for (const int& b : BS.elements()) {

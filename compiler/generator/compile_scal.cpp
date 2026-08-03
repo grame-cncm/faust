@@ -275,8 +275,13 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
                 if (const char* e = getenv("FAUST_SS_BANKCAP")) {
                     bc = unsigned(std::atoi(e));
                 }
+                // FAUST_SS_STAGEC=df : stage C experiment (vertical columns)
+                int sc = 0;
+                if (const char* e = getenv("FAUST_SS_STAGEC")) {
+                    sc = (std::string(e) == "df") ? 1 : (std::string(e) == "layers") ? 2 : 0;
+                }
                 return bankschedule(G, gGlobal->gLSRegisters, gGlobal->gLSWidth,
-                                    ocppShapeFunctor(G), bc);
+                                    ocppShapeFunctor(G), bc, sc);
             }
         default:
             return rbschedule(G);
@@ -345,7 +350,16 @@ static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
         std::cerr << "SS_QUALITY ss=" << gGlobal->gSchedulingStrategy << " nodes=" << S.size()
                   << " cycles=" << q.cycles << " holes=" << q.holes << " fill=" << int(fill)
                   << "% peak=" << q.peak << " isoadj=" << q.isoadj << " packs4=" << q.packs4
-                  << " r4n=" << q.r4n << " maxrun=" << q.maxrun << std::endl;
+                  << " r4n=" << q.r4n << " maxrun=" << q.maxrun << " cplen=" << q.cplen
+                  << " cpdil=" << q.cpdil << " cpmax=" << q.cpmax;
+        {
+            schedule<Tree> SS;
+            for (const auto& n : S.elements()) {
+                SS.append(n);
+            }
+            std::cerr << " scost=" << schedulingcost(G, SS) / std::max<size_t>(S.size(), 1);
+        }
+        std::cerr << std::endl;
     }
     return S;
 }
