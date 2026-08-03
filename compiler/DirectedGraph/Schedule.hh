@@ -1004,6 +1004,174 @@ inline schedule<N> alignschedule(const digraph<N>& G, std::function<long(const N
 }
 
 /**
+ * @brief Bank-compositional scheduling -- alignment THEN composition,
+ * the two steps that were competing strategies composed as intended :
+ * all composition happens under constraint (R, U), simply on a DAG
+ * previously ALIGNED by shapes.
+ *
+ * Stage A (alignment as ANALYSIS, not order) : mobility intervals and
+ * earliest-common-rank grouping as in alignschedule, but the output is
+ * target ranks, not a schedule.
+ *
+ * Stage B (legalization + condensation) : final ranks are recomputed in
+ * topological order as max(target, 1 + rank of dependencies), so every
+ * edge STRICTLY increases the rank. Members that drift lose their bank
+ * but validity is structural. Nodes are then grouped by (rank, shape) :
+ * each bank is an antichain (one rank = no internal edges) and the
+ * quotient DAG is acyclic (edges strictly decrease rank), by
+ * construction -- no verification pass needed. A bank is the native
+ * superword unit : isomorphic independent instructions emitted as one
+ * contiguous run.
+ *
+ * Stage C (composition under constraint) : csschedule on the bank DAG
+ * -- dominator association, batched round-robin, DP merges -- decides
+ * WHERE banks go, never whether they exist. On singleton-shape regions
+ * (deep recurrences) banks have size 1 and the stage degenerates into
+ * plain csschedule ; on repeated-shape regions the colors can no longer
+ * be dispersed. The align-vs-cs selection becomes local and automatic.
+ *
+ * Note : R now counts pressure in BANKS, not values -- a deliberate
+ * coarsening for this first version.
+ */
+template <typename N>
+inline schedule<N> bankschedule(const digraph<N>& G, unsigned int R, unsigned int U,
+                                std::function<long(const N&)> shape,
+                                unsigned int bankcap = 0)
+{
+    const schedule<N>     topo  = dfschedule(G);
+    const std::vector<N>& order = topo.elements();  // operands first
+    const int             V     = int(order.size());
+    digraph<N>            Rg    = reverse(G);
+    std::map<N, int>      pos;
+    for (int i = 0; i < V; i++) {
+        pos[order[i]] = i;
+    }
+
+    // ---- stage A : mobility + earliest-common-rank targets (alignschedule)
+    std::vector<int> asap(V, 0), alap(V, 0);
+    int              maxRank = 0;
+    for (int i = 0; i < V; i++) {
+        int lo = 0;
+        for (const auto& d : G.destinations(order[i])) {
+            auto it = pos.find(d.first);
+            if (it != pos.end() && it->second < i) {
+                lo = std::max(lo, asap[it->second] + 1);
+            }
+        }
+        asap[i] = lo;
+        maxRank = std::max(maxRank, lo);
+    }
+    for (int i = V - 1; i >= 0; i--) {
+        int hi = maxRank;
+        for (const auto& c : Rg.destinations(order[i])) {
+            auto it = pos.find(c.first);
+            if (it != pos.end() && it->second > i) {
+                hi = std::min(hi, alap[it->second] - 1);
+            }
+        }
+        alap[i] = std::max(hi, asap[i]);
+    }
+    std::map<long, std::vector<int>> classes;
+    std::vector<long>                shapeOf(V);
+    for (int i = 0; i < V; i++) {
+        shapeOf[i] = shape ? shape(order[i]) : long(i);
+        classes[shapeOf[i]].push_back(i);
+    }
+    std::vector<std::pair<int, long>> byFreq;
+    for (const auto& [sh, v] : classes) {
+        byFreq.push_back({int(v.size()), sh});
+    }
+    std::sort(byFreq.begin(), byFreq.end(),
+              [](const auto& a, const auto& b) { return a.first > b.first; });
+    std::vector<int> target(V, 0);
+    for (const auto& [cnt, sh] : byFreq) {
+        std::vector<int> inst = classes[sh];
+        std::sort(inst.begin(), inst.end(),
+                  [&](int a, int b) { return asap[a] < asap[b]; });
+        size_t g0 = 0;
+        while (g0 < inst.size()) {
+            int    lo = asap[inst[g0]], hi = alap[inst[g0]];
+            size_t g1 = g0 + 1;
+            while (g1 < inst.size() && asap[inst[g1]] <= hi) {
+                lo = std::max(lo, asap[inst[g1]]);
+                hi = std::min(hi, alap[inst[g1]]);
+                g1++;
+            }
+            for (size_t k = g0; k < g1; k++) {
+                target[inst[k]] = lo;
+            }
+            g0 = g1;
+        }
+    }
+
+    // ---- stage B : legalization (edges strictly increase the rank)
+    std::vector<int> rank(V, 0);
+    for (int i = 0; i < V; i++) {
+        int lo = target[i];
+        for (const auto& d : G.destinations(order[i])) {
+            auto it = pos.find(d.first);
+            if (it != pos.end() && it->second < i) {
+                lo = std::max(lo, rank[it->second] + 1);
+            }
+        }
+        rank[i] = lo;
+    }
+    // banks by (rank, shape) ; members kept in anchor order. A bank is
+    // CAPPED at max(R, U) members : a contiguous run keeps all its values
+    // live, so an uncapped bank would override the R constraint stage C is
+    // in charge of (on wide chain families the R-tiling must emerge from
+    // the composition, not be crushed by a giant bank) ; U floors the cap
+    // so runs stay superword-packable when R is small.
+    const size_t cap = (bankcap > 0) ? bankcap : std::max<size_t>(1, std::max(R, U));
+    std::map<std::pair<int, long>, int> bankOf;
+    std::vector<std::vector<int>>       members;
+    std::vector<int>                    bankIx(V);
+    for (int i = 0; i < V; i++) {
+        auto key = std::make_pair(rank[i], shapeOf[i]);
+        auto it  = bankOf.find(key);
+        if (it == bankOf.end() || members[it->second].size() >= cap) {
+            if (it != bankOf.end()) {
+                bankOf.erase(it);
+            }
+            it = bankOf.insert({key, int(members.size())}).first;
+            members.push_back({});
+        }
+        bankIx[i] = it->second;
+        members[it->second].push_back(i);
+    }
+    digraph<int> B;
+    for (int b = 0; b < int(members.size()); b++) {
+        B.add(b);
+    }
+    for (int i = 0; i < V; i++) {
+        for (const auto& d : G.destinations(order[i])) {
+            auto it = pos.find(d.first);
+            if (it != pos.end() && it->second < i && bankIx[i] != bankIx[it->second]) {
+                B.add(bankIx[i], bankIx[it->second], 0);
+            }
+        }
+    }
+
+    // ---- stage C : composition under constraint on the bank DAG.
+    // Stage C counts pressure in BANKS while R counts values : with banks
+    // of up to `cap` values each, the value budget R converts to a bank
+    // budget R/cap (uniform-size approximation) -- this is what lets the
+    // R-tiling of wide chain families emerge from the composition.
+    unsigned int Rb = std::max<unsigned int>(1, R / unsigned(cap));
+    auto bankShape = std::function<long(const int&)>(
+        [&](const int& b) { return shapeOf[members[b][0]]; });
+    schedule<int> BS = csschedule(B, Rb, U, bankShape);
+
+    schedule<N> S;
+    for (const int& b : BS.elements()) {
+        for (int i : members[b]) {
+            S.append(order[i]);
+        }
+    }
+    return S;
+}
+
+/**
  * @brief reverse breadth first schedule for a DAG
  *
  * @tparam N

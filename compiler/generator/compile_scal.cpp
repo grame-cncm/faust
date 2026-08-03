@@ -262,6 +262,22 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
             // ignored by its structures exactly as dfschedule ignores them.
             return csschedule(G, gGlobal->gLSRegisters, gGlobal->gLSWidth,
                               ocppShapeFunctor(G));
+        case 9:
+            // bank-compositional hybrid : composition under constraint on
+            // a previously shape-ALIGNED dag -- banks (capped monochromatic
+            // antichains) become the atoms csschedule places. Singleton
+            // shapes degenerate into plain cs (deep recurrences keep their
+            // locality) ; repeated shapes can no longer be dispersed.
+            {
+                // FAUST_SS_BANKCAP : experimental override of the bank cap
+                // (0 = auto max(R, U)) while the right coupling is calibrated
+                unsigned int bc = 0;
+                if (const char* e = getenv("FAUST_SS_BANKCAP")) {
+                    bc = unsigned(std::atoi(e));
+                }
+                return bankschedule(G, gGlobal->gLSRegisters, gGlobal->gLSWidth,
+                                    ocppShapeFunctor(G), bc);
+            }
         default:
             return rbschedule(G);
     }
