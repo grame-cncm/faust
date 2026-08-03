@@ -922,17 +922,29 @@ inline schedule<N> alignschedule(const digraph<N>& G, std::function<long(const N
               [](const auto& a, const auto& b) { return a.first > b.first; });
 
     // ---- per class : group on the fewest ranks (interval stabbing)
+    // per-class grouping, EARLIEST placement : instances are grouped while
+    // their intervals keep a common rank, and the group takes the earliest
+    // rank its members allow (the v1 latest-placement variant hoarded --
+    // values were kept alive to meet late color ranks, downstream stalled :
+    // vocoder fill 49 %)
     std::vector<int> target(V, 0);
     for (const auto& [cnt, sh] : byFreq) {
         std::vector<int> inst = classes[sh];
         std::sort(inst.begin(), inst.end(),
-                  [&](int a, int b) { return alap[a] < alap[b]; });
-        int current = -1;
-        for (int i : inst) {
-            if (current < asap[i]) {
-                current = alap[i];  // a new rank, as late as allowed
+                  [&](int a, int b) { return asap[a] < asap[b]; });
+        size_t g0 = 0;
+        while (g0 < inst.size()) {
+            int lo = asap[inst[g0]], hi = alap[inst[g0]];
+            size_t g1 = g0 + 1;
+            while (g1 < inst.size() && asap[inst[g1]] <= hi) {
+                lo = std::max(lo, asap[inst[g1]]);
+                hi = std::min(hi, alap[inst[g1]]);
+                g1++;
             }
-            target[i] = std::min(current, alap[i]);
+            for (size_t k = g0; k < g1; k++) {
+                target[inst[k]] = lo;  // earliest common rank
+            }
+            g0 = g1;
         }
     }
 
