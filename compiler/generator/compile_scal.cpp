@@ -281,7 +281,8 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
                     sc = (std::string(e) == "df") ? 1 : (std::string(e) == "layers") ? 2 : 0;
                 }
                 return bankschedule(G, gGlobal->gLSRegisters, gGlobal->gLSWidth,
-                                    ocppShapeFunctor(G), bc, sc);
+                                    ocppShapeFunctor(G), bc, sc,
+                                    getenv("FAUST_SS_BANKSTATS") != nullptr);
             }
         default:
             return rbschedule(G);

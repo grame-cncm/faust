@@ -1146,7 +1146,8 @@ inline schedule<N> alignschedule(const digraph<N>& G, std::function<long(const N
 template <typename N>
 inline schedule<N> bankschedule(const digraph<N>& G, unsigned int R, unsigned int U,
                                 std::function<long(const N&)> shape,
-                                unsigned int bankcap = 0, int stagec = 0)
+                                unsigned int bankcap = 0, int stagec = 0,
+                                bool stats = false)
 {
     const schedule<N>     topo  = dfschedule(G);
     const std::vector<N>& order = topo.elements();  // operands first
@@ -1241,6 +1242,24 @@ inline schedule<N> bankschedule(const digraph<N>& G, unsigned int R, unsigned in
     // in charge of (on wide chain families the R-tiling must emerge from
     // the composition, not be crushed by a giant bank) ; U floors the cap
     // so runs stay superword-packable when R is small.
+    if (stats) {
+        // NATURAL bank widths : (rank, shape) group sizes before capping --
+        // the antichain width per class, the statistic the auto-cap needs
+        std::map<std::pair<int, long>, int> nat;
+        for (int i = 0; i < V; i++) {
+            nat[{rank[i], shapeOf[i]}]++;
+        }
+        std::map<int, int> hist;
+        for (const auto& [k, c] : nat) {
+            hist[c]++;
+        }
+        std::cerr << "SS_BANKSTATS widths:";
+        int shown = 0;
+        for (auto it = hist.rbegin(); it != hist.rend() && shown < 8; ++it, ++shown) {
+            std::cerr << " " << it->first << "x" << it->second;
+        }
+        std::cerr << std::endl;
+    }
     const size_t cap = (stagec == 2) ? size_t(V)
                        : (bankcap > 0) ? bankcap
                                        : std::max<size_t>(1, std::max(R, U));
