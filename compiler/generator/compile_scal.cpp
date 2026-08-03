@@ -1288,6 +1288,25 @@ class LoopSplitEmitter {
             return fRootOf.at(idx);
         }
         o.code = accessCode(idx, dcode);
+        // an instantaneous read that goes THROUGH a buffer (aliased tap at
+        // zero offset) reads the very slot the host's store writes this
+        // iteration : inside the host's own loop the write must precede the
+        // read. The direct-root path above gets that ordering for free ; the
+        // buffer path must carry the RAW edge explicitly -- without it every
+        // intra-loop order beyond creation order is legally allowed to emit
+        // the read first (model and df disagreed bit-exactly on zitaRev and
+        // reverbTank precisely here).
+        if (maybeInstant) {
+            int host = (fAliasIx[idx] >= 0) ? fAliasIx[idx] : idx;
+            int dEff = (fAliasIx[idx] >= 0) ? fAliasD[idx] : 0;  // dcode == "0"
+            if (dEff == 0 && fSN.blockOf(host) == curScc) {
+                auto st = fStoreOf.find(host);
+                if (st != fStoreOf.end()) {
+                    o.op = newOp(o.code, {st->second}, false, false, fIsInt[idx]);
+                    o.code.clear();
+                }
+            }
+        }
         return o;
     }
 
@@ -1526,6 +1545,42 @@ class LoopSplitEmitter {
             }
             std::stable_sort(idx.begin(), idx.end(),
                              [&](int a, int b) { return level[a] < level[b]; });
+            for (int k : idx) {
+                order.push_back(lo + k);
+            }
+            return order;
+        }
+        if (gGlobal->gLSSched == 3) {
+            // layers: natural levels with COLORS grouped inside each level --
+            // the intra-loop port of the day's winning recipe at Tree grain
+            // (phase-coherent monochromatic runs are what the superword
+            // vectorizer packs). The shape of an op is its code with digit
+            // runs erased: identifiers lose their indices, numeric literals
+            // become holes -- textual isomorphism, exactly SLP's grain.
+            auto norm = [](const std::string& c) {
+                std::string r;
+                r.reserve(c.size());
+                for (char ch : c) {
+                    if (!isdigit((unsigned char)ch)) {
+                        r += ch;
+                    }
+                }
+                return r;
+            };
+            std::vector<std::string> sh(n);
+            for (int k = 0; k < n; k++) {
+                sh[k] = norm(fOps[lo + k].code);
+            }
+            std::vector<int> idx(n);
+            for (int k = 0; k < n; k++) {
+                idx[k] = k;
+            }
+            std::stable_sort(idx.begin(), idx.end(), [&](int a, int b) {
+                if (level[a] != level[b]) {
+                    return level[a] < level[b];
+                }
+                return sh[a] < sh[b];
+            });
             for (int k : idx) {
                 order.push_back(lo + k);
             }

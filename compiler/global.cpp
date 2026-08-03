@@ -810,7 +810,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         dst << "-mindelay " << gMinDelay << " ";
     }
     if (gLoopSplit) {
-        static const char* schedNames[] = {"df", "bf", "model"};
+        static const char* schedNames[] = {"df", "bf", "model", "layers"};
         dst << "-ls -ls-sched " << schedNames[gLSSched] << " -ls-R " << gLSRegisters
             << " -ls-U " << gLSWidth << " ";
         if (gLSFuse) {
@@ -1598,8 +1598,10 @@ bool global::processCmdline(int argc, const char* argv[])
                 gLSSched = 1;
             } else if (strcmp(argv[i + 1], "model") == 0) {
                 gLSSched = 2;
+            } else if (strcmp(argv[i + 1], "layers") == 0) {
+                gLSSched = 3;
             } else {
-                throw faustexception("ERROR : -ls-sched expects df, bf or model\n");
+                throw faustexception("ERROR : -ls-sched expects df, bf, model or layers\n");
             }
             i += 2;
 
