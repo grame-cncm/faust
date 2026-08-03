@@ -2348,6 +2348,50 @@ void LoopSplitEmitter::emitLoop(std::ostringstream& out, int lo, int hi)
     out << "\n\t\t\t}\n\t\t\t";
 }
 
+// weighted depth of the tight (distance-1) recursion nests -- the
+// per-sample recurrence bound II >= recMII no schedule can beat. The
+// static selector of the auto-regime hybrid (-ss 10).
+static int ocppTightRecMII(Tree L)
+{
+    auto lat2 = [](Tree t) -> int {
+        int  op, i;
+        Tree x, y, ff, largs;
+        if (isSigInput(t, &i) || isSigDelay(t, x, y)) {
+            return 4;
+        }
+        if (isSigBinOp(t, &op, x, y)) {
+            return (op == kDiv || op == kRem)                    ? 10
+               : (op == kMul || op == kAdd || op == kSub)        ? 3
+                                                                 : 2;
+        }
+        if (isSigFFun(t, ff, largs)) {
+            return 25;
+        }
+        return 2;
+    };
+    auto H      = graph2dag(cut(fullGraph(L), 2));
+    int  recmii = 0;
+    for (const auto& scc : H.nodes()) {
+        if (scc.nodes().size() > 1) {
+            auto                sk = cut(scc, 1);
+            schedule<Tree>      ds = dfschedule(sk);
+            std::map<Tree, int> depth;
+            for (const auto& n : ds.elements()) {
+                int d = 0;
+                for (const auto& e : sk.destinations(n)) {
+                    auto it = depth.find(e.first);
+                    if (it != depth.end()) {
+                        d = std::max(d, it->second);
+                    }
+                }
+                depth[n] = d + lat2(n);
+                recmii   = std::max(recmii, depth[n]);
+            }
+        }
+    }
+    return recmii;
+}
+
 /*****************************************************************************
  compileMultiSignal
  *****************************************************************************/
@@ -2368,6 +2412,19 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         fClass->addZone3(subst("$1* output$0 = &output[$0][index]; // Zone 3", T(i), xfloat()));
     }
 
+    // -ss 10 : auto-regime hybrid -- the tight-nest recurrence bound
+    // picks the pole of the bank-compositional family : deep nests want
+    // locality (small R), shallow programs want bursts (large R)
+    if (gGlobal->gSchedulingStrategy == 10) {
+        int  rec      = ocppTightRecMII(L);
+        bool locality = (rec >= 45);
+        gGlobal->gLSRegisters        = locality ? 2 : 16;
+        gGlobal->gLSWidth            = 4;
+        gGlobal->gSchedulingStrategy = 9;
+        std::cerr << "SS_AUTO recMII=" << rec
+                  << " regime=" << (locality ? "localite(R2U4)" : "rafales(R16U4)")
+                  << std::endl;
+    }
     // force a specific compilation order
     auto G = immediateGraph(L);
     auto S = ocppSchedule(G);
