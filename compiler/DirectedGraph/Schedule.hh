@@ -450,6 +450,15 @@ struct schedquality {
     int  peak   = 0;
     long over   = 0;
     int  isoadj = 0;
+    // monochromatic RUNS : maximal sequences of same-shape nodes with no
+    // direct dependency between consecutive elements (approximation of
+    // superword packability : the vectorizer packs by groups of 4, so the
+    // currency is the run-length DISTRIBUTION, not the sum of adjacencies
+    // -- 600 adjacencies in runs of 2-3 are worthless, 500 in runs of 8
+    // are gold)
+    int packs4 = 0;  // complete groups of 4 : sum of len/4 over runs
+    int r4n    = 0;  // nodes living in runs of length >= 4
+    int maxrun = 1;  // longest run
 };
 
 template <typename N>
@@ -462,7 +471,17 @@ inline schedquality squality(const digraph<N>& G, const std::vector<N>& S, unsig
     for (const N& n : S) {
         pending[n] = int(Rg.destinations(n).size());
     }
-    int cur = 0, slots = 0, live = 0;
+    int  cur = 0, slots = 0, live = 0;
+    int  run      = 0;
+    auto closeRun = [&]() {
+        if (run > 0) {
+            q.packs4 += run / 4;
+            q.maxrun = std::max(q.maxrun, run);
+            if (run >= 4) {
+                q.r4n += run;
+            }
+        }
+    };
     for (size_t i = 0; i < S.size(); i++) {
         const N& n  = S[i];
         int      lo = 0;
@@ -492,6 +511,7 @@ inline schedquality squality(const digraph<N>& G, const std::vector<N>& S, unsig
         }
         q.peak = std::max(q.peak, live);
         q.over += std::max(0, live - int(R));
+        bool extend = false;
         if (i > 0 && shape != nullptr && shape(S[i - 1]) == shape(n)) {
             bool dep = false;
             for (const auto& d : G.destinations(n)) {
@@ -501,9 +521,17 @@ inline schedquality squality(const digraph<N>& G, const std::vector<N>& S, unsig
             }
             if (!dep) {
                 q.isoadj++;
+                extend = true;
             }
         }
+        if (extend) {
+            run++;
+        } else {
+            closeRun();
+            run = 1;
+        }
     }
+    closeRun();
     q.cycles = cur + 1;
     q.holes += int(U) - slots;
     return q;

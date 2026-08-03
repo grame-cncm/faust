@@ -344,7 +344,8 @@ static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
         double fill = (q.cycles > 0) ? 100.0 * double(S.size()) / (double(q.cycles) * U) : 0;
         std::cerr << "SS_QUALITY ss=" << gGlobal->gSchedulingStrategy << " nodes=" << S.size()
                   << " cycles=" << q.cycles << " holes=" << q.holes << " fill=" << int(fill)
-                  << "% peak=" << q.peak << " isoadj=" << q.isoadj << std::endl;
+                  << "% peak=" << q.peak << " isoadj=" << q.isoadj << " packs4=" << q.packs4
+                  << " r4n=" << q.r4n << " maxrun=" << q.maxrun << std::endl;
     }
     return S;
 }
