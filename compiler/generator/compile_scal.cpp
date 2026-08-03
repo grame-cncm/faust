@@ -275,6 +275,42 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
 static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
 {
     schedule<Tree> S = ocppScheduleRaw(G);
+    if (getenv("FAUST_SS_CHECK")) {
+        // le graphe immédiat est-il un DAG, et l'ordre émis le
+        // respecte-t-il ? (toute arête présente est une contrainte dure :
+        // la dépendance doit être ordonnancée avant son consommateur)
+        auto H       = graph2dag(G);
+        int  ncyclic = 0, maxscc = 0;
+        for (const auto& scc : H.nodes()) {
+            int n = int(scc.nodes().size());
+            if (n > 1) {
+                ncyclic++;
+                maxscc = std::max(maxscc, n);
+            }
+        }
+        std::map<Tree, int> pos;
+        int                 k = 0;
+        auto                E = S.elements();
+        for (const auto& s : E) {
+            pos[s] = k++;
+        }
+        int nviol = 0;
+        for (const auto& u : G.nodes()) {
+            for (const auto& d : G.destinations(u)) {
+                if (pos[d.first] > pos[u]) {
+                    if (nviol < 3) {
+                        std::cerr << "SS_CHECK violation: dep at " << pos[d.first]
+                                  << " scheduled after consumer at " << pos[u]
+                                  << " (edge weight " << d.second << ")" << std::endl;
+                    }
+                    nviol++;
+                }
+            }
+        }
+        std::cerr << "SS_CHECK ss=" << gGlobal->gSchedulingStrategy
+                  << " nodes=" << G.nodes().size() << " sccs>1=" << ncyclic
+                  << " maxscc=" << maxscc << " violations=" << nviol << std::endl;
+    }
     if (getenv("FAUST_SS_SHAPES")) {
         ocppShapeStats(G);
     }
