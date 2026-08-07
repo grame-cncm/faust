@@ -2069,6 +2069,68 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                 }
             }
         }
+        // -- terme de FLUX de l'oracle (budget du préchargeur, mesuré
+        // S ~ 10-16 sur karplus : G4 a 9 flux et gagne, G8 en a 17 et
+        // décroche). Un flux : un tampon d'HISTORique réel (maxDelay >= 16
+        // flottants -- les petits locaux chauds ne comptent pas, sinon le
+        // budget bloquerait les grandes fusions gagnantes type frenchBell),
+        // lu ou écrit, plus les canaux d'entrée. Clés par membre calculées
+        // UNE fois ; le refus porte sur l'UNION des flux des deux blocs.
+        long streamBudget = 12;
+        if (const char* e = getenv("FAUST_LS_STREAMS")) {
+            streamBudget = std::atol(e);  // 0 : désactivé
+        }
+        std::map<int, std::vector<long>> memberStreams;
+        {
+            const std::vector<Tree>& matv = fSN.materialized();
+            for (int m = 0; m < int(matv.size()); m++) {
+                std::set<long>            keys;
+                std::set<Tree>            seen;
+                std::function<void(Tree)> walks = [&](Tree t) {
+                    if (!seen.insert(t).second) {
+                        return;
+                    }
+                    Tree x, y;
+                    int  ich;
+                    if (isSigDelay(t, x, y)) {
+                        int ix = fSN.indexOf(x);
+                        if (ix >= 0 && fSN.maxDelayOf(matv[ix]) >= 16) {
+                            interval I    = getCertifiedSigType(y)->getInterval();
+                            int      dmin = int(I.lo());
+                            keys.insert(long(ix) * 1000 + (dmin >= 1 ? dmin / 16 % 997 : 998));
+                        }
+                    } else if (isSigInput(t, &ich)) {
+                        keys.insert(-1000 - ich);
+                    }
+                    for (int k = 0; k < t->arity(); k++) {
+                        Tree br = t->branch(k);
+                        if (fSN.indexOf(br) >= 0) {
+                            continue;
+                        }
+                        walks(br);
+                    }
+                };
+                walks(SuperNodeGraph::defOf(matv[m]));
+                if (fSN.maxDelayOf(matv[m]) >= 16) {
+                    keys.insert(long(m) * 1000 + 999);  // sa propre écriture
+                }
+                if (!keys.empty()) {
+                    memberStreams[m] = std::vector<long>(keys.begin(), keys.end());
+                }
+            }
+        }
+        auto streamsUnion = [&](int b, int c) -> long {
+            std::set<long> u;
+            for (int blk : {b, c}) {
+                for (int m : fSN.blockMembers(blk)) {
+                    auto it = memberStreams.find(m);
+                    if (it != memberStreams.end()) {
+                        u.insert(it->second.begin(), it->second.end());
+                    }
+                }
+            }
+            return long(u.size());
+        };
         auto isKernelBlock = [&](int b) -> bool {
             if (memberTaps.empty()) {
                 return false;
@@ -2109,6 +2171,9 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             if (isKernelBlock(b) != isKernelBlock(c)) {
                 return false;  // -fir barrier
             }
+            if (streamBudget > 0 && streamsUnion(b, c) > streamBudget) {
+                return false;  // budget de flux du préchargeur
+            }
             long costM = blockCostShadow(fSN.orderedUnion(b, c));
             if (costM >= costOfBlock(b) + costOfBlock(c)) {
                 return false;
@@ -2133,6 +2198,9 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             }
             if (isKernelBlock(b) != isKernelBlock(c)) {
                 return 0;  // -fir barrier
+            }
+            if (streamBudget > 0 && streamsUnion(b, c) > streamBudget) {
+                return 0;  // budget de flux du préchargeur
             }
             long costM = blockCostShadow(fSN.orderedUnion(b, c));
             return costOfBlock(b) + costOfBlock(c) - costM;
