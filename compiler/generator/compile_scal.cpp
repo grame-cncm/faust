@@ -1311,6 +1311,13 @@ class LoopSplitEmitter {
     // dependency on the store (the runtime delay may be positive).
     std::map<int, Operand> fRootOf;  // materialized index -> its body root
 
+    // flux par boucle : clés de lecture (tampon, retard/16 -- les retards
+    // d'une même ligne de cache forment UN flux pour le préchargeur ;
+    // -1 : retard variable) et tampons écrits. Remplis pendant le walk du
+    // bloc courant, lus par emitLoop, remis à zéro entre blocs.
+    std::set<std::pair<int, int>> fCurReadStreams;
+    std::set<int>                 fCurWriteStreams;
+
     Operand refOperand(int idx, const std::string& dcode, bool maybeInstant, int curScc)
     {
         Operand o;
@@ -1318,6 +1325,11 @@ class LoopSplitEmitter {
             return fRootOf.at(idx);
         }
         o.code = accessCode(idx, dcode);
+        {
+            int host = (fAliasIx[idx] >= 0) ? fAliasIx[idx] : idx;
+            int d    = atoi(dcode.c_str());  // constant delays only reach here
+            fCurReadStreams.insert({host, d / 16});
+        }
         // an instantaneous read that goes THROUGH a buffer (aliased tap at
         // zero offset) reads the very slot the host's store writes this
         // iteration : inside the host's own loop the write must precede the
@@ -1373,6 +1385,7 @@ class LoopSplitEmitter {
         }
         if (isSigInput(t, &i)) {
             o.code = subst("$1input$0[i]", T(i), icast());
+            fCurReadStreams.insert({-1000 - i, 0});  // un flux par canal d'entrée
             return o;
         }
         if (isSigAttach(t, x, y) && !isSlow(y)) {
@@ -1404,6 +1417,7 @@ class LoopSplitEmitter {
             }
             Operand oy = walk(y, curScc, false);
             std::string acc = accessCode(ix, operandCode(oy));
+            fCurReadStreams.insert({(fAliasIx[ix] >= 0) ? fAliasIx[ix] : ix, -1});
             std::vector<int> deps;
             addDep(deps, oy);
             if (dmin == 0 && fSN.blockOf(ix) == curScc) {
@@ -2364,10 +2378,13 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     for (int b = 0; b < fSN.blockCount(); b++) {
         int lo = (int)fOps.size();
         fOpOf.clear();  // tls temporaries are loop-scoped
+        fCurReadStreams.clear();
+        fCurWriteStreams.clear();
         for (int m : fSN.blockMembers(b)) {
             if (fAliasIx[m] >= 0) {
                 continue;  // aliased tap: no body, no store -- reads redirect
             }
+            fCurWriteStreams.insert(m);
             Tree             d    = defOf(mat[m]);
             Operand          root = walk(d, b, d == mat[m]);
             fRootOf[m]            = root;
@@ -2388,6 +2405,9 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         for (; isList(l1); l1 = tl(l1), i++) {
             int lo = (int)fOps.size();
             fOpOf.clear();
+            fCurReadStreams.clear();
+            fCurWriteStreams.clear();
+            fCurWriteStreams.insert(-2000 - i);  // le canal de sortie
             Operand root = walk(hd(l1), -1, false);
             std::vector<int> deps;
             addDep(deps, root);
@@ -2450,7 +2470,8 @@ void LoopSplitEmitter::emitLoop(std::ostringstream& out, int lo, int hi)
     packs4 += (runlen + 1) / 4;
     out << "// loop " << fLoopNo++ << ": " << n << " ops, model(R=" << R << ",U=" << U << "): " << cycles
         << " cycles, pressure " << peak << "/" << R << ", occupancy " << occ << "%"
-        << ", iso " << isoadj << " adj / " << packs4 << " packs4";
+        << ", iso " << isoadj << " adj / " << packs4 << " packs4"
+        << ", streams " << fCurReadStreams.size() << "r+" << fCurWriteStreams.size() << "w";
     if (overR > 0) {
         out << ", over-pressure " << overR << " (spill risk)";
     }
@@ -2736,11 +2757,60 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         schedquality q = squality(G, S.elements(), 8, 4, ocppShapeFunctor(G),
                                   std::function<bool(const Tree&)>(ocppIsMemNode), 3);
         double fill = (q.cycles > 0) ? 100.0 * double(S.size()) / (double(q.cycles) * 4) : 0;
+        // pic de flux fenêtré : combien de flux mémoire distincts une
+        // fenêtre de W instructions consécutives touche-t-elle ? Un flux :
+        // (source, retard/16) en lecture -- les retards d'une même ligne de
+        // cache se confondent --, la source elle-même en écriture (son
+        // tampon avance en [i]), un par canal d'entrée. Sensible à l'ORDRE :
+        // df visite les tampons un à un, un ordre par niveaux les entrelace
+        // tous -- le préchargeur ne suit qu'un petit nombre de flux.
+        int speak = 0;
+        double savg = 0;
+        {
+            const int W = 64;
+            struct Key { long a, b; bool operator<(const Key& o) const { return a != o.a ? a < o.a : b < o.b; } };
+            std::vector<std::vector<Key>> touch;
+            for (const auto& n : S.elements()) {
+                std::vector<Key> ks;
+                Tree x, y;
+                int  ich;
+                if (isSigDelay(n, x, y)) {
+                    interval I = getCertifiedSigType(y)->getInterval();
+                    int dmin = int(I.lo());
+                    if (dmin >= 1) {
+                        ks.push_back({(long)(size_t)(void*)x, dmin / 16});
+                    }
+                } else if (isSigInput(n, &ich)) {
+                    ks.push_back({-1000 - ich, 0});
+                }
+                Occurrences* o = fOccMarkup->retrieve(n);
+                if (o && o->getMaxDelay() > 0) {
+                    ks.push_back({(long)(size_t)(void*)n, -7});  // l'écriture du tampon
+                }
+                touch.push_back(ks);
+            }
+            int nwin = 0;
+            for (size_t w0 = 0; w0 < touch.size(); w0 += 16) {
+                std::set<Key> win;
+                for (size_t k = w0; k < touch.size() && k < w0 + W; k++) {
+                    for (const auto& key : touch[k]) {
+                        win.insert(key);
+                    }
+                }
+                speak = std::max(speak, int(win.size()));
+                savg += double(win.size());
+                nwin++;
+            }
+            if (nwin > 0) {
+                savg /= nwin;
+            }
+        }
         std::ostringstream qc;
         qc << "// schedule: ss=" << gGlobal->gSchedulingStrategy << " nodes=" << S.size()
            << " cycles=" << q.cycles << " fill=" << int(fill) << "% peak=" << q.peak
            << " isoadj=" << q.isoadj << " packs4=" << q.packs4 << " aluMII=" << q.aluMII
            << " memMII=" << q.memMII << " recMII=" << ocppTightRecMII(L)
+           << " streams(peak/avg,win64)=" << speak << "/" << int(savg + 0.5)
            << " (eval machine R=8 U=4 M=3)";
         fClass->addZone3(qc.str());
     }
