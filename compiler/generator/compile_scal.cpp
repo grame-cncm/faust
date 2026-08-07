@@ -2767,24 +2767,34 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         int speak = 0;
         double savg = 0;
         {
-            const int W = 64;
+            int W = 64;
+            if (const char* we = getenv("FAUST_SS_STREAMWIN")) {
+                W = std::atoi(we);
+            }
             struct Key { long a, b; bool operator<(const Key& o) const { return a != o.a ? a < o.a : b < o.b; } };
             std::vector<std::vector<Key>> touch;
             for (const auto& n : S.elements()) {
                 std::vector<Key> ks;
                 Tree x, y;
                 int  ich;
+                // un tampon qui tient dans une ligne de cache (16 floats)
+                // a des adresses fixes : ce n'est pas un flux
+                auto isStreamBuf = [&](Tree b) {
+                    Occurrences* ob = fOccMarkup->retrieve(b);
+                    return ob && ob->getMaxDelay() >= 16;
+                };
                 if (isSigDelay(n, x, y)) {
-                    interval I = getCertifiedSigType(y)->getInterval();
-                    int dmin = int(I.lo());
-                    if (dmin >= 1) {
-                        ks.push_back({(long)(size_t)(void*)x, dmin / 16});
+                    if (isStreamBuf(x)) {
+                        interval I = getCertifiedSigType(y)->getInterval();
+                        int dmin = int(I.lo());
+                        // retard variable (ou non certifié >= 1) : un flux
+                        // quand même, à clé propre -- la lecture avance
+                        ks.push_back({(long)(size_t)(void*)x, dmin >= 1 ? dmin / 16 : -1});
                     }
                 } else if (isSigInput(n, &ich)) {
                     ks.push_back({-1000 - ich, 0});
                 }
-                Occurrences* o = fOccMarkup->retrieve(n);
-                if (o && o->getMaxDelay() > 0) {
+                if (isStreamBuf(n)) {
                     ks.push_back({(long)(size_t)(void*)n, -7});  // l'écriture du tampon
                 }
                 touch.push_back(ks);
