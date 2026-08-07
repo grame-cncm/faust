@@ -268,6 +268,24 @@ static int inferSigOrder(Tree sig)
         return O(s1);
     }
 
+    
+    // FIR and IIR (port : signal-level filter kernels)
+    else if (isSigFIR(sig)) {
+        return 3;
+    }
+
+    else if (isSigIIR(sig)) {
+        return 3;
+    }
+
+    else if (tvec subs; isSigSum(sig, subs)) {
+        int r1 = 0;
+        for (auto& sub : subs) {
+            r1 = std::max(r1, O(sub));
+        }
+        return r1;
+    }
+
     else if (isList(sig)) {
         int r1 = 0;
         while (isList(sig)) {

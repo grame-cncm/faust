@@ -1046,3 +1046,83 @@ siglist treeConvert(Tree t)
     }
     return res;
 }
+
+/*****************************************************************************
+                             FIR and IIR
+*****************************************************************************/
+
+// FIR
+
+SIGS_API Tree sigFIR(const tvec& sigcoefs)
+{
+    return tree(sigs::g.SIGFIR, sigcoefs);
+}
+
+SIGS_API bool isSigFIR(Tree s)
+{
+    return isTree(s, sigs::g.SIGFIR);
+}
+
+SIGS_API bool isSigFIR(Tree s, Tree c0)
+{
+    return isTree(s, sigs::g.SIGFIR) && (s->branch(0) == c0);
+}
+
+SIGS_API bool isSigFIR(Tree s, tvec& sigcoefs)
+{
+    if (isTree(s, sigs::g.SIGFIR)) {
+        sigcoefs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// IIR
+
+SIGS_API Tree sigIIR(const tvec& sigcoefs)
+{
+    return tree(sigs::g.SIGIIR, sigcoefs);
+}
+
+SIGS_API bool isSigIIR(Tree s)
+{
+    return isTree(s, sigs::g.SIGIIR);
+}
+
+SIGS_API bool isSigIIR(Tree s, Tree c0)
+{
+    return isTree(s, sigs::g.SIGIIR) && (s->branch(0) == c0);
+}
+
+SIGS_API bool isSigIIR(Tree s, tvec& sigcoefs)
+{
+    if (isTree(s, sigs::g.SIGIIR)) {
+        sigcoefs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// SUM
+
+SIGS_API Tree sigSum(const tvec& sigsubs)
+{
+    return tree(sigs::g.SIGSUM, sigsubs);
+}
+
+SIGS_API bool isSigSum(Tree s)
+{
+    return isTree(s, sigs::g.SIGSUM);
+}
+
+SIGS_API bool isSigSum(Tree s, tvec& sigsubs)
+{
+    if (isTree(s, sigs::g.SIGSUM)) {
+        sigsubs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}

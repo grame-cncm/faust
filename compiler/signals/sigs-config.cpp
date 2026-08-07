@@ -86,6 +86,12 @@ void initSignalSymbols()
     g.SIGSOUNDFILERATE   = signal_signature.add("SigSoundfileRate");
     g.SIGSOUNDFILEBUFFER = signal_signature.add("SigSoundfileBuffer");
     g.SIGREGISTER        = signal_signature.add("SigRegister");
+    // port FIR/IIR : REGISTERED LAST -- the signature order indexes the
+    // dispatch tables of the signal algebra ; inserting mid-list shifts
+    // every later symbol and misaligns the typing solvers
+    g.SIGFIR             = signal_signature.add("SigFIR");
+    g.SIGIIR             = signal_signature.add("SigIIR");
+    g.SIGSUM             = signal_signature.add("SigSum");
 
     // The session's initial algebra: its dispatch signature was just interned,
     // and dies with the tlib session -- rebuild it here, on both init paths

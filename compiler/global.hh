@@ -299,7 +299,8 @@ struct global {
     bool gCanonicalOrder;  // -co option, value-derived (history-independent) order for the terms
                            // of normalized sums and products; default false = serial order (the
                            // historical, construction-driven order). Orthogonal to -eta.
-    bool gLoopSplit;       // -ls option (ocpp, experimental): emit the materialized-signal DAG as
+    bool gLoopSplit;
+    bool gReconstructFIRIIRs;  // -fir : signal-level FIR/IIR recognition (side-channel)       // -ls option (ocpp, experimental): emit the materialized-signal DAG as
                            // separate loops (one per recursive group / delayed / shared signal /
                            // output) instead of one big sample loop
     int  gLSSched;         // -ls-sched option: intra-loop op scheduling strategy,

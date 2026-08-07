@@ -53,6 +53,8 @@
 #include "sigprint.hh"
 #include "rewrite.hh"
 #include "superNodes.hh"
+#include "revealFIR.hh"
+#include "revealIIR.hh"
 #include "sigtype.hh"
 #include "timing.hh"
 #include "xtendedCodegen.hh"
@@ -2449,6 +2451,44 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     }
     for (int i = 0; i < fClass->outputs(); i++) {
         fClass->addZone3(subst("$1* output$0 = &output[$0][index]; // Zone 3", T(i), xfloat()));
+    }
+
+    // -fir : signal-level FIR/IIR recognition, SIDE-CHANNEL ONLY at this
+    // stage -- the reveal passes run on a copy of the signal list, the
+    // recognized kernels are counted and reported, and the copy is
+    // discarded : the emitted code is unchanged to the byte. The
+    // information exists (oracle barriers, bank seeding, auto selector
+    // are the intended consumers) ; emission changes are a later,
+    // separately-judged stage.
+    if (gGlobal->gReconstructFIRIIRs) {
+        Tree Lf = revealFIR(L);  // (revealIIR : étage 2 — motifs horloges)
+        int  nfir = 0, niir = 0, maxtaps = 0;
+        long taps = 0;
+        std::set<Tree>    seen;
+        std::vector<Tree> work;
+        for (Tree l = Lf; isList(l); l = tl(l)) {
+            work.push_back(hd(l));
+        }
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            if (!seen.insert(t).second) {
+                continue;
+            }
+            tvec cs;
+            if (isSigFIR(t, cs)) {
+                nfir++;
+                taps += long(cs.size()) - 1;
+                maxtaps = std::max(maxtaps, int(cs.size()) - 1);
+            } else if (isSigIIR(t, cs)) {
+                niir++;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                work.push_back(t->branch(k));
+            }
+        }
+        std::cerr << "SS_FIR fir=" << nfir << " iir=" << niir << " taps=" << taps
+                  << " maxtaps=" << maxtaps << std::endl;
     }
 
     // -ss 10 : auto-regime hybrid -- the tight-nest recurrence bound

@@ -375,4 +375,22 @@ Tree listConvert(const siglist& a);
  */
 siglist treeConvert(Tree t);
 
+
+/*****************************************************************************
+                             FIR and IIR
+*****************************************************************************/
+SIGS_API Tree sigFIR(const tvec& sigcoefs);
+SIGS_API bool isSigFIR(Tree s);
+SIGS_API bool isSigFIR(Tree s, Tree c0);  // true if s is a FIR on signal c0
+SIGS_API bool isSigFIR(Tree s, tvec& sigcoefs);
+
+SIGS_API Tree sigIIR(const tvec& sigcoefs);
+SIGS_API bool isSigIIR(Tree s);
+SIGS_API bool isSigIIR(Tree s, Tree c0);  // true if s is a IIR on signal c0
+SIGS_API bool isSigIIR(Tree s, tvec& sigcoefs);
+
+SIGS_API Tree sigSum(const tvec& sigsubs);
+SIGS_API bool isSigSum(Tree s);
+SIGS_API bool isSigSum(Tree s, tvec& sigsubs);
+
 #endif
