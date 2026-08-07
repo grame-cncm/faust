@@ -2020,6 +2020,59 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // the lattice of legal partitions.
     if (gGlobal->gLSFuse) {
         std::map<int, long> costMemo;  // block id -> shadow cost (per campaign step)
+        // -fir barrier : a KERNEL block is dominated by dense recognized-FIR
+        // tap reads. Fusing kernel with non-kernel code destroys the
+        // vectorizable form the informed delay-line layout just created ;
+        // kernel+kernel stays legal (parallel kernels are the profitable
+        // tiles). Only active when -fir filled the facts.
+        // per-MEMBER tap counts, computed ONCE : contractions only merge
+        // member lists, so a block's taps are the sum of its members'
+        std::map<int, int> memberTaps;
+        if (!fC->fFirFacts.empty()) {
+            const std::vector<Tree>& matv = fSN.materialized();
+            for (int m = 0; m < int(matv.size()); m++) {
+                int                       taps = 0;
+                std::set<Tree>            seen;
+                std::function<void(Tree)> walkd = [&](Tree t) {
+                    if (!seen.insert(t).second) {
+                        return;
+                    }
+                    Tree x, y;
+                    if (isSigDelay(t, x, y) && fC->fFirFacts.count(x)) {
+                        taps++;
+                    }
+                    for (int k = 0; k < t->arity(); k++) {
+                        Tree br = t->branch(k);
+                        if (fSN.indexOf(br) >= 0) {
+                            continue;  // other members' territory
+                        }
+                        walkd(br);
+                    }
+                };
+                walkd(SuperNodeGraph::defOf(matv[m]));
+                if (taps > 0) {
+                    memberTaps[m] = taps;
+                }
+            }
+        }
+        auto isKernelBlock = [&](int b) -> bool {
+            if (memberTaps.empty()) {
+                return false;
+            }
+            int taps = 0;
+            for (int m : fSN.blockMembers(b)) {
+                auto mt = memberTaps.find(m);
+                if (mt != memberTaps.end()) {
+                    taps += mt->second;
+                }
+            }
+            bool k = (taps >= 4) && (2 * taps >= fSN.opsEstimate(b));
+            if (k && getenv("FAUST_SS_FIRDEBUG")) {
+                std::cerr << "  FIRDEBUG kernel block " << b << " taps=" << taps
+                          << " ops=" << fSN.opsEstimate(b) << std::endl;
+            }
+            return k;
+        };
         auto costOfBlock = [&](int b) -> long {
             auto it = costMemo.find(b);
             if (it != costMemo.end()) {
@@ -2038,6 +2091,9 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             }
             if (!fSN.canContract(b, c)) {
                 return false;
+            }
+            if (isKernelBlock(b) != isKernelBlock(c)) {
+                return false;  // -fir barrier
             }
             long costM = blockCostShadow(fSN.orderedUnion(b, c));
             if (costM >= costOfBlock(b) + costOfBlock(c)) {
@@ -2060,6 +2116,9 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             }
             if (!fSN.canContract(b, c)) {
                 return 0;
+            }
+            if (isKernelBlock(b) != isKernelBlock(c)) {
+                return 0;  // -fir barrier
             }
             long costM = blockCostShadow(fSN.orderedUnion(b, c));
             return costOfBlock(b) + costOfBlock(c) - costM;
@@ -2673,7 +2732,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     // COMMON evaluation machine (R=8, U=4, M=3), as a comment at the top
     // of compute() -- campaigns and archaeology read it straight from
     // the generated code, no environment needed
-    {
+    if (!getenv("FAUST_SS_NOCOMMENT")) {
         schedquality q = squality(G, S.elements(), 8, 4, ocppShapeFunctor(G),
                                   std::function<bool(const Tree&)>(ocppIsMemNode), 3);
         double fill = (q.cycles > 0) ? 100.0 * double(S.size()) / (double(q.cycles) * 4) : 0;
