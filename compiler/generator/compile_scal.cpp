@@ -2631,16 +2631,17 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     if (gGlobal->gReconstructFIRIIRs) {
         // revealSum first : the FIR-merge rule of revealFIR only listens
         // to n-ary SigSum nodes, never to the binary sigAdd chains of the
-        // normal form (fir18 pipeline order)
-        // revealSum first : the FIR-merge rule of revealFIR only listens
-        // to n-ary SigSum nodes, never to the binary sigAdd chains of the
-        // normal form (fir18 pipeline order)
-        Tree Lf = revealFIR(revealSum(L));  // (revealIIR : étage 2 — motifs horloges)
+        // normal form (fir18 pipeline order). revealIIR last : it needs
+        // the recursive definitions already in Sum-of-FIR form. The
+        // typing probe below runs on Lf (pre-IIR) : IIR nodes have no
+        // typing rule yet (recursive equation, fixpoint-domain rule).
+        Tree Lf = revealFIR(revealSum(L));
+        Tree Li = revealIIR(Lf);
         int  nfir = 0, niir = 0, maxtaps = 0;
         long taps = 0;
         std::set<Tree>    seen;
         std::vector<Tree> work;
-        for (Tree l = Lf; isList(l); l = tl(l)) {
+        for (Tree l = Li; isList(l); l = tl(l)) {
             work.push_back(hd(l));
         }
         while (!work.empty()) {
@@ -2667,9 +2668,9 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                     }
                 }
                 // aggregate PER SOURCE : kernels reading the same delay
-                // line pool their taps (the identity simplify shim keeps
-                // sibling kernels unmerged at stage 1, but their union is
-                // what the delay line serves)
+                // line pool their taps (siblings on one source merge in
+                // the reveal, but distinct outputs can still share a
+                // source, and their union is what the delay line serves)
                 auto& f = fFirFacts[cs[0]];
                 f.first = std::max(f.first, span);
                 f.second += nz;

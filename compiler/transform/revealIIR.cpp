@@ -1,5 +1,6 @@
 #include "revealIIR.hh"
 #include <iostream>
+#include <set>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -184,16 +185,72 @@ static Tree proj2IIR(int indentation, Tree proj)
 // IIRevealer : reveal IIR structures
 //----------------------------------------------------------------------
 
+// Open-safe conservative dependency test : does f reach sig anywhere in
+// its tree, unfolding recursive bodies ? Replaces isDependingOn here :
+// its transitive walk assumes closed terms (nth on a null body of a
+// still-open enclosing group segfaults) and caches results globally
+// (poisonous if computed mid-reveal). An open body is unknowable -> the
+// term is assumed to depend, the candidacy is dropped : conservative,
+// never a wrong IIR. Precision on nested groups would need a second
+// reveal pass over the fully closed tree.
+static bool reachesConservative(Tree f, Tree sig, std::set<Tree>& seen)
+{
+    if (f == sig) {
+        return true;
+    }
+    if (!seen.insert(f).second) {
+        return false;
+    }
+    if (Tree var, body; isRec(f, var, body)) {
+        if (body == nullptr) {
+            return true;  // open group : unknown, assume dependency
+        }
+        return reachesConservative(body, sig, seen);
+    }
+    for (int k = 0; k < f->arity(); k++) {
+        if (reachesConservative(f->branch(k), sig, seen)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool dependsOnConservative(Tree f, Tree sig)
+{
+    std::set<Tree> seen;
+    return reachesConservative(f, sig, seen);
+}
+
 class IIRRevealer : public SignalIdentity {
    protected:
+    Tree transformation(Tree L) override;
     Tree postprocess(Tree L) override;
 };
+
+Tree IIRRevealer::transformation(Tree sig)
+{
+    Tree var, le;
+    if (isRec(sig, var, le)) {
+        // rec protocol : ref() creates the (unique) virgin group, mapself
+        // runs with the open reference registered, ONE rec() closes it.
+        // While the group is open its body is null, so the postprocess
+        // pattern below skips the inner self-references and only external
+        // projections (closed group) become IIR candidates.
+        Tree var2 = tree(unique("WI"));
+        Tree rec2 = ref(var2);
+        fResult.set(sig, rec2);
+        Tree l2 = mapself(le);
+        return rec(var2, l2);
+    }
+    return SignalIdentity::transformation(sig);
+}
 
 Tree IIRRevealer::postprocess(Tree sig)
 {
     int p;
 
-    if (Tree rgroup, var, le; isProj(sig, &p, rgroup) && isRec(rgroup, var, le) && !isNil(le)) {
+    if (Tree rgroup, var, le;
+        isProj(sig, &p, rgroup) && isRec(rgroup, var, le) && le && !isNil(le)) {
         // we have a candidate for an IIR; ajouter une seul definition ???
         Tree def = nth(le, p);
         // std::cerr << "def: " << *def << "\n";
@@ -201,10 +258,12 @@ Tree IIRRevealer::postprocess(Tree sig)
             std::vector<Tree> R, D, L;
             // We analyze the various terms of the sum
             for (Tree f : def->branches()) {
-                // FIR[CLK(h,w), 0, c1, c2, ...]
-                if (Tree h, w; isSigFIR(f) && isSigClocked(f->branch(0), h, w) && (w == sig)) {
+                // clock-free pattern : FIR[w, 0, c1, c2, ...] whose
+                // source w IS the projection itself (pointer equality,
+                // guaranteed by hash-consing)
+                if (isSigFIR(f) && (f->branch(0) == sig)) {
                     R.push_back(f);
-                } else if (isDependingOn(f, sig)) {
+                } else if (dependsOnConservative(f, sig)) {
                     D.push_back(f);
                 } else {
                     L.push_back(f);
@@ -214,12 +273,11 @@ Tree IIRRevealer::postprocess(Tree sig)
                 // we have a candidate for an IIR
                 // std::cerr << "we have a candidate1 for an IIRA!\n";
                 tvec coef1, coef2;
-                Tree ck, w;
                 faustassert(isSigFIR(R[0], coef1));
-                faustassert(isSigClocked(coef1[0], ck, w));
+                faustassert(coef1[0] == sig);
                 Tree in = (L.size() == 1) ? L[0] : sigSum(L);
                 coef2.push_back(gGlobal->nil);
-                coef2.push_back(sigClocked(ck, in));
+                coef2.push_back(in);
                 for (unsigned int i = 1; i < coef1.size(); i++) {
                     coef2.push_back(coef1[i]);
                 }
