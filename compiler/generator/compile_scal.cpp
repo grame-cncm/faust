@@ -55,6 +55,7 @@
 #include "superNodes.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
+#include "revealSum.hh"
 #include "sigtype.hh"
 #include "timing.hh"
 #include "xtendedCodegen.hh"
@@ -2628,7 +2629,13 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     // are the intended consumers) ; emission changes are a later,
     // separately-judged stage.
     if (gGlobal->gReconstructFIRIIRs) {
-        Tree Lf = revealFIR(L);  // (revealIIR : étage 2 — motifs horloges)
+        // revealSum first : the FIR-merge rule of revealFIR only listens
+        // to n-ary SigSum nodes, never to the binary sigAdd chains of the
+        // normal form (fir18 pipeline order)
+        // revealSum first : the FIR-merge rule of revealFIR only listens
+        // to n-ary SigSum nodes, never to the binary sigAdd chains of the
+        // normal form (fir18 pipeline order)
+        Tree Lf = revealFIR(revealSum(L));  // (revealIIR : étage 2 — motifs horloges)
         int  nfir = 0, niir = 0, maxtaps = 0;
         long taps = 0;
         std::set<Tree>    seen;

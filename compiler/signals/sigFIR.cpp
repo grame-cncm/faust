@@ -44,16 +44,19 @@
 // for test purposes
 #include "sharing.hh"
 #include "sigorderrules.hh"
+#include "simplify.hh"
 
-// ---- port stage-1 shim : the source branch calls its SIGLIB-internal
-// simplifier (sigs::simplify) on coefficient expressions. Our full
-// normalize/simplify runs the typing algebra, which does not know the
-// FIR/IIR nodes yet (stage 2). Coefficient simplification is cosmetic
-// for recognition, so stage 1 uses the identity.
-static inline Tree firPortSimplify(Tree t)
+// simplify() exige des termes clos : pendant la descente du revelateur,
+// les sous-arbres d'un groupe recursif portent des references ouvertes
+// (ref sans rec rempli) que la machinerie de reecriture refuse
+// (rewrite.hh, body != nullptr). La garde derive du contrat : un terme
+// non rec-free reste tel quel -- la simplification est une optimisation.
+static Tree recSafeSimplify(Tree t)
 {
-    return t;
+    return t->isRecFree() ? simplify(t) : t;
 }
+
+
 
 //-------------------------------------------------------------------------
 // Create an elementary FIR from a signal with a fixed delay
@@ -106,7 +109,7 @@ Tree delaySigFIR(Tree s1, Tree s2)
 // Negate a signal: S -> -S
 static Tree sigNeg(Tree sig)
 {
-    return firPortSimplify(sigMul(sigInt(-1), sig));
+    return recSafeSimplify(sigMul(sigInt(-1), sig));
 }
 
 //-------------------------------------------------------------------------
@@ -244,7 +247,7 @@ Tree addSigFIR(Tree s1, Tree s2)
             V.push_back(V1[0]);
             unsigned int minsize = std::min(V1.size(), V2.size());
             for (unsigned int i = 1; i < minsize; i++) {
-                V.push_back(firPortSimplify(sigAdd(V1[i], V2[i])));
+                V.push_back(recSafeSimplify(sigAdd(V1[i], V2[i])));
             }
             for (unsigned int i = minsize; i < V1.size(); i++) {
                 V.push_back(V1[i]);
@@ -269,15 +272,15 @@ Tree addSigFIR(Tree s1, Tree s2)
         }
     } else if (isSigFIR(s1, V1) && isDivisibleBy(s2, V1[0], r)) {
         // CASE 2: [S, C0, C1, ...] + S*R = [S, C0+R, C1, ...]
-        V1[1] = firPortSimplify(sigAdd(V1[1], r));
+        V1[1] = recSafeSimplify(sigAdd(V1[1], r));
         return sigFIR(V1);
     } else if (isSigFIR(s2, V2) && isDivisibleBy(s1, V2[0], r)) {
         // CASE 3: S*R + [S, C0, C1, ...] = [S, C0+R, C1, ...]
-        V2[1] = firPortSimplify(sigAdd(V2[1], r));
+        V2[1] = recSafeSimplify(sigAdd(V2[1], r));
         return sigFIR(V2);
     } else {
         // CASE 4: Not two FIRs
-        return firPortSimplify(sigAdd(s1, s2));
+        return recSafeSimplify(sigAdd(s1, s2));
     }
 }
 
@@ -303,7 +306,7 @@ Tree TryAddSigFIR(Tree s1, Tree s2)
             V.push_back(V1[0]);
             unsigned int minsize = std::min(V1.size(), V2.size());
             for (unsigned int i = 1; i < minsize; i++) {
-                V.push_back(firPortSimplify(sigAdd(V1[i], V2[i])));
+                V.push_back(recSafeSimplify(sigAdd(V1[i], V2[i])));
             }
             for (unsigned int i = minsize; i < V1.size(); i++) {
                 V.push_back(V1[i]);
@@ -328,11 +331,11 @@ Tree TryAddSigFIR(Tree s1, Tree s2)
         }
     } else if (isSigFIR(s1, V1) && isDivisibleBy(s2, V1[0], r)) {
         // CASE 2: [S, C0, C1, ...] + S*R = [S, C0+R, C1, ...]
-        V1[1] = firPortSimplify(sigAdd(V1[1], r));
+        V1[1] = recSafeSimplify(sigAdd(V1[1], r));
         return sigFIR(V1);
     } else if (isSigFIR(s2, V2) && isDivisibleBy(s1, V2[0], r)) {
         // CASE 3: S*R + [S, C0, C1, ...] = [S, C0+R, C1, ...]
-        V2[1] = firPortSimplify(sigAdd(V2[1], r));
+        V2[1] = recSafeSimplify(sigAdd(V2[1], r));
         return sigFIR(V2);
     } else {
         // CASE 4: Not two FIRs
@@ -445,7 +448,7 @@ Tree mulSigFIR(Tree s1, Tree s2)
             // CASE 1: [S, C0, C1, ...] * S2 = [S*C0, S*C1, ...]
             for (unsigned int i = 1; i < V.size(); i++) {
                 if (!isZero(V[i])) {
-                    V[i] = firPortSimplify(sigMul(V[i], s2));
+                    V[i] = recSafeSimplify(sigMul(V[i], s2));
                 }
             }
             return sigFIR(V);
@@ -457,17 +460,17 @@ Tree mulSigFIR(Tree s1, Tree s2)
             if (isSigInt(s2, &ii) || isSigReal(s2, &r)) {
                 for (unsigned int i = 1; i < V.size(); i++) {
                     if (!isZero(V[i])) {
-                        V[i] = firPortSimplify(sigMul(V[i], s2));
+                        V[i] = recSafeSimplify(sigMul(V[i], s2));
                     }
                 }
                 return sigFIR(V);
             } else {
                 // CASE 2: Not a FIR
-                return firPortSimplify(sigMul(s1, s2));
+                return recSafeSimplify(sigMul(s1, s2));
             }
         } else {
             // CASE 3: Not a FIR
-            return firPortSimplify(sigMul(s1, s2));
+            return recSafeSimplify(sigMul(s1, s2));
         }
     } else if (isSigFIR(s2, V)) {
         return mulSigFIR(s2, s1);
@@ -491,7 +494,7 @@ Tree mulSigFIR(Tree s1, Tree s2)
     else {
         // CASE 3: Not a FIR
 
-        Tree sr = firPortSimplify(sigMul(s1, s2));
+        Tree sr = recSafeSimplify(sigMul(s1, s2));
         // std::cerr << "NOT A FIR : mulSigFIR(" << ppsig(s1) << ", " << ppsig(s2) << ") ==> "
         //           << ppsig(sr) << "\n";
         return sr;
@@ -514,7 +517,7 @@ Tree divSigFIR(Tree s1, Tree s2)
             // CASE 1: [S, C0, C1, ...] / S2 = [S, C0, S*C1, ...]
             for (unsigned int i = 1; i < V.size(); i++) {
                 if (!isZero(V[i])) {
-                    V[i] = firPortSimplify(sigDiv(V[i], s2));
+                    V[i] = recSafeSimplify(sigDiv(V[i], s2));
                 }
             }
             return sigFIR(V);
@@ -525,20 +528,20 @@ Tree divSigFIR(Tree s1, Tree s2)
             if (isSigInt(s2, &ii) || isSigReal(s2, &r)) {
                 for (unsigned int i = 1; i < V.size(); i++) {
                     if (!isZero(V[i])) {
-                        V[i] = firPortSimplify(sigDiv(V[i], s2));
+                        V[i] = recSafeSimplify(sigDiv(V[i], s2));
                     }
                 }
                 return sigFIR(V);
             } else {
                 // CASE 2: Not a FIR
-                return firPortSimplify(sigDiv(s1, s2));
+                return recSafeSimplify(sigDiv(s1, s2));
             }
         } else {
-            return firPortSimplify(sigDiv(s1, s2));
+            return recSafeSimplify(sigDiv(s1, s2));
         }
 
     } else {
-        return firPortSimplify(sigDiv(s1, s2));
+        return recSafeSimplify(sigDiv(s1, s2));
     }
 }
 
@@ -579,7 +582,7 @@ bool haveEquivCoefs(const tvec& V1, const tvec& V2)
         return false;
     }
     for (unsigned int i = 1; i < V1.size(); i++) {
-        Tree c = firPortSimplify(sigSub(V1[i], V2[i]));
+        Tree c = recSafeSimplify(sigSub(V1[i], V2[i]));
         if (!isZero(c)) {
             return false;
         }
@@ -595,7 +598,7 @@ bool haveComplementaryCoefs(const tvec& V1, const tvec& V2)
         return false;
     }
     for (unsigned int i = 1; i < V1.size(); i++) {
-        Tree c = firPortSimplify(sigAdd(V1[i], V2[i]));
+        Tree c = recSafeSimplify(sigAdd(V1[i], V2[i]));
         if (!isZero(c)) {
             return false;
         }
@@ -641,7 +644,7 @@ Tree simplifyFIR(Tree sig)
         }
         // if (lnz == 1) {
         //     // not a real FIR
-        //     return firPortSimplify(sigMul(V[0], V[1]));
+        //     return recSafeSimplify(sigMul(V[0], V[1]));
         // }
         if (lnz < V.size() - 1) {
             // remove trailing zeros
@@ -692,14 +695,14 @@ static std::pair<Tree, Tree> splitMulSig(Tree sig)
         // sig is a multiplication
         auto [a, b] = splitMulSig(x);
         auto [c, d] = splitMulSig(y);
-        return {firPortSimplify(sigMul(a, c)), firPortSimplify(sigMul(b, d))};
+        return {recSafeSimplify(sigMul(a, c)), recSafeSimplify(sigMul(b, d))};
     }
 
     if (Tree x, y; isSigDiv(sig, x, y)) {
         // sig is a division
         auto [a, b] = splitMulSig(x);
         auto [c, d] = splitMulSig(y);
-        return {firPortSimplify(sigDiv(a, c)), firPortSimplify(sigDiv(b, d))};
+        return {recSafeSimplify(sigDiv(a, c)), recSafeSimplify(sigDiv(b, d))};
     }
     // sig is a pure signal
     return {sigInt(1), sig};
@@ -761,7 +764,7 @@ void combine(std::map<Tree, Tree>& M, bool subflag, Tree sig)
     if (M.find(key) == M.end()) {
         M[key] = (subflag) ? sigNeg(sig) : sig;
     } else {
-        M[key] = (subflag) ? firPortSimplify(sigSub(M[key], sig)) : firPortSimplify(sigAdd(M[key], sig));
+        M[key] = (subflag) ? recSafeSimplify(sigSub(M[key], sig)) : recSafeSimplify(sigAdd(M[key], sig));
     }
 }
 
@@ -795,7 +798,7 @@ Tree combineFIRs(Tree x, Tree y, bool subflag)
         Tree term = t.second;
         if (tvec coefs; isSigFIR(term, coefs) && (coefs.size() == 2)) {
             // if the term is a FIR with only one non-zero coefficient we simplify it"
-            term = firPortSimplify(sigMul(coefs[1], coefs[0]));
+            term = recSafeSimplify(sigMul(coefs[1], coefs[0]));
         }
         if (init) {
             result = term;

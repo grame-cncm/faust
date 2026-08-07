@@ -57,16 +57,19 @@ if Ci constant, then (Ci@d)*(Vi@(d+k)) = Ci*(Vi@(d+k)) PROOF t<d+k : Vi@(d+k) = 
 
 // for test purposes
 #include "sharing.hh"
+#include "simplify.hh"
 
-// ---- port stage-1 shim : the source branch calls its SIGLIB-internal
-// simplifier (sigs::simplify) on coefficient expressions. Our full
-// normalize/simplify runs the typing algebra, which does not know the
-// FIR/IIR nodes yet (stage 2). Coefficient simplification is cosmetic
-// for recognition, so stage 1 uses the identity.
-static inline Tree firPortSimplify(Tree t)
+// simplify() exige des termes clos : pendant la descente du revelateur,
+// les sous-arbres d'un groupe recursif portent des references ouvertes
+// (ref sans rec rempli) que la machinerie de reecriture refuse
+// (rewrite.hh, body != nullptr). La garde derive du contrat : un terme
+// non rec-free reste tel quel -- la simplification est une optimisation.
+static Tree recSafeSimplify(Tree t)
 {
-    return t;
+    return t->isRecFree() ? simplify(t) : t;
 }
+
+
 
 #define TRACE 1
 // We use nil to indicate that a recursive expression is not representable by an IIR
@@ -254,7 +257,7 @@ Tree addSigIIR_real(Tree rt, Tree x, Tree y)
         unsigned int n = std::min(coef1.size(), coef2.size());
         // add coefficients of the same order
         for (unsigned int i = 1; i < n; i++) {
-            coef.push_back(firPortSimplify(sigAdd(coef1[i], coef2[i])));
+            coef.push_back(recSafeSimplify(sigAdd(coef1[i], coef2[i])));
         }
         // copy coefficients of the longuest IIR
         for (unsigned int i = n; i < coef1.size(); i++) {
@@ -267,16 +270,16 @@ Tree addSigIIR_real(Tree rt, Tree x, Tree y)
     } else if (cx) {
         // x is a concerned IIR but y is not, we add y to the input signal of x
         // [v, a, c0, c1, c2, ...] + y -> [v, a+y, c0, c1, c2, ...]
-        coef1[1] = firPortSimplify(sigAdd(coef1[1], y));
+        coef1[1] = recSafeSimplify(sigAdd(coef1[1], y));
         return sigIIR(coef1);
     } else if (cy) {
         // x is not concerned, but y is, we add x to the input signal of y
         // x + [v, b, c0, c1, c2, ...] -> [v, x+b, c0, c1, c2, ...]
-        coef2[1] = firPortSimplify(sigAdd(coef2[1], x));  // add x to the input signal of the IIR
+        coef2[1] = recSafeSimplify(sigAdd(coef2[1], x));  // add x to the input signal of the IIR
         return sigIIR(coef2);
     } else {
         // x and y are unrelated to the recursive variable
-        return firPortSimplify(sigAdd(x, y));
+        return recSafeSimplify(sigAdd(x, y));
     }
 }
 
@@ -309,33 +312,33 @@ Tree subSigIIR_real(Tree rt, Tree x, Tree y)
         unsigned int n = std::min(coef1.size(), coef2.size());
         // add coefficients of the same order
         for (unsigned int i = 1; i < n; i++) {
-            coef.push_back(firPortSimplify(sigSub(coef1[i], coef2[i])));
+            coef.push_back(recSafeSimplify(sigSub(coef1[i], coef2[i])));
         }
         // copy coefficients of the longuest IIR
         for (unsigned int i = n; i < coef1.size(); i++) {
             coef.push_back(coef1[i]);
         }
         for (unsigned int i = n; i < coef2.size(); i++) {
-            coef.push_back(firPortSimplify(sigSub(sigInt(0), coef2[i])));
+            coef.push_back(recSafeSimplify(sigSub(sigInt(0), coef2[i])));
         }
         return sigIIR(coef);
     } else if (cx) {
         // x is a concerned IIR but y is not, we add y to the input signal of x
         // [v, a, c0, c1, c2, ...] + y -> [v, a+y, c0, c1, c2, ...]
-        coef1[1] = firPortSimplify(sigSub(coef1[1], y));
+        coef1[1] = recSafeSimplify(sigSub(coef1[1], y));
         return sigIIR(coef1);
     } else if (cy) {
         // x is not concerned, but y is, we add x to the input signal of y
         // x + [v, b, c0, c1, c2, ...] -> [v, x-b, -c0, -c1, -c2, ...]
         // we invert y coefficients
         for (unsigned int j = 1; j < coef2.size(); j++) {
-            coef2[j] = firPortSimplify(sigSub(sigInt(0), coef2[j]));
+            coef2[j] = recSafeSimplify(sigSub(sigInt(0), coef2[j]));
         }
-        coef2[1] = firPortSimplify(sigAdd(x, coef2[1]));  // add x to the input signal of the IIR
+        coef2[1] = recSafeSimplify(sigAdd(x, coef2[1]));  // add x to the input signal of the IIR
         return sigIIR(coef2);
     } else {
         // x and y are unrelated to the recursive variable
-        return firPortSimplify(sigSub(x, y));
+        return recSafeSimplify(sigSub(x, y));
     }
 }
 
@@ -369,7 +372,7 @@ Tree mulSigIIR_real(Tree rt, Tree x, Tree y)
         tvec coef;
         coef.push_back(coef1[0]);  // Vi
         for (unsigned int i = 1; i < coef1.size(); i++) {
-            coef.push_back(firPortSimplify(sigMul(coef1[i], y)));
+            coef.push_back(recSafeSimplify(sigMul(coef1[i], y)));
         }
         return sigIIR(coef);
     } else if (cy) {
@@ -378,12 +381,12 @@ Tree mulSigIIR_real(Tree rt, Tree x, Tree y)
         tvec coef;
         coef.push_back(coef2[0]);  // Vi
         for (unsigned int i = 1; i < coef2.size(); i++) {
-            coef.push_back(firPortSimplify(sigMul(coef2[i], x)));
+            coef.push_back(recSafeSimplify(sigMul(coef2[i], x)));
         }
         return sigIIR(coef);
     } else {
         // x and y are unrelated to the recursive variable
-        return firPortSimplify(sigMul(x, y));
+        return recSafeSimplify(sigMul(x, y));
     }
 }
 
@@ -417,12 +420,12 @@ Tree divSigIIR_real(Tree rt, Tree x, Tree y)
         tvec coef;
         coef.push_back(coef1[0]);  // Vi
         for (unsigned int i = 1; i < coef1.size(); i++) {
-            coef.push_back(firPortSimplify(sigDiv(coef1[i], y)));
+            coef.push_back(recSafeSimplify(sigDiv(coef1[i], y)));
         }
         return sigIIR(coef);
     } else {
         // x and y are unrelated to the recursive variable
-        return firPortSimplify(sigDiv(x, y));
+        return recSafeSimplify(sigDiv(x, y));
     }
 }
 

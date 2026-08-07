@@ -14,6 +14,18 @@
 #include "Schedule.hh"
 #include "sigRecursiveDependencies.hh"
 #include "global.hh"
+#include "simplify.hh"
+
+// simplify() exige des termes clos : pendant la descente du revelateur,
+// les sous-arbres d'un groupe recursif portent des references ouvertes
+// (ref sans rec rempli) que la machinerie de reecriture refuse
+// (rewrite.hh, body != nullptr). La garde derive du contrat : un terme
+// non rec-free reste tel quel -- la simplification est une optimisation.
+static Tree recSafeSimplify(Tree t)
+{
+    return t->isRecFree() ? simplify(t) : t;
+}
+
 
 // ---- port shims : this branch has no clock system. The source branch
 // wraps clocked signals in sigClocked and its reveal rules unwrap them ;
@@ -31,15 +43,6 @@ static inline bool hasClock(Tree, Tree&)
     return false;
 }
 
-// ---- port stage-1 shim : the source branch calls its SIGLIB-internal
-// simplifier (sigs::simplify) on coefficient expressions. Our full
-// normalize/simplify runs the typing algebra, which does not know the
-// FIR/IIR nodes yet (stage 2). Coefficient simplification is cosmetic
-// for recognition, so stage 1 uses the identity.
-static inline Tree firPortSimplify(Tree t)
-{
-    return t;
-}
 
 
 #define TRACE false
@@ -75,7 +78,7 @@ static Tree makeIIR(Tree fir, Tree in)
 // Negate a signal: S -> -S
 static Tree sigNeg(Tree sig)
 {
-    return firPortSimplify(sigMul(sigInt(-1), sig));
+    return recSafeSimplify(sigMul(sigInt(-1), sig));
 }
 
 /**
