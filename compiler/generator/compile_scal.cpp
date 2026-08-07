@@ -289,6 +289,23 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
     }
 }
 
+// memory classification at Tree grain : a delayed read (dmin >= 1) is a
+// buffer load, an input is a stream load ; writes folded into their
+// producer (v1). Shared by the quality print and the emitted comment.
+static bool ocppIsMemNode(const Tree& t)
+{
+    Tree x, y;
+    int  i;
+    if (isSigInput(t, &i)) {
+        return true;
+    }
+    if (isSigDelay(t, x, y)) {
+        interval I = getCertifiedSigType(y)->getInterval();
+        return int(I.lo()) >= 1;
+    }
+    return false;
+}
+
 // FAUST_SS_QUALITY=1 : imprime le vecteur qualité (grille U x cycles du
 // modèle) de l'ordre choisi -- remplissage = cases occupées / disponibles.
 // Le remplissage est celui de la machine ABSTRAITE (latence 1, U slots),
@@ -350,18 +367,7 @@ static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
         // is a buffer load, an input is a stream load. Writes are folded
         // into their producer (v1 approximation). M from FAUST_SS_M
         // (default 3, the M-series load/store width).
-        auto memf = std::function<bool(const Tree&)>([](const Tree& t) {
-            Tree x, y;
-            int  i;
-            if (isSigInput(t, &i)) {
-                return true;
-            }
-            if (isSigDelay(t, x, y)) {
-                interval I = getCertifiedSigType(y)->getInterval();
-                return int(I.lo()) >= 1;
-            }
-            return false;
-        });
+        auto memf = std::function<bool(const Tree&)>(ocppIsMemNode);
         unsigned M = 3;
         if (const char* me = getenv("FAUST_SS_M")) {
             M = unsigned(std::atoi(me));
@@ -2331,8 +2337,40 @@ void LoopSplitEmitter::emitLoop(std::ostringstream& out, int lo, int hi)
     modelSchedule(fOps, lo, hi, R, U, &cycles, &overR, &peak);
     int n   = hi - lo;
     int occ = (cycles > 0) ? (100 * n) / (cycles * U) : 0;
+    // iso runs at the op grain : digit-erased code strings as shapes,
+    // a run breaks on shape change or direct dependency
+    int isoadj = 0, packs4 = 0, runlen = 0, prevIx = -1;
+    std::string prevSh;
+    for (int k : order) {
+        std::string sh;
+        sh.reserve(fOps[k].code.size());
+        for (char ch : fOps[k].code) {
+            if (!isdigit((unsigned char)ch)) {
+                sh += ch;
+            }
+        }
+        bool dep = false;
+        if (prevIx >= 0) {
+            for (int d : fOps[k].deps) {
+                if (d == prevIx) {
+                    dep = true;
+                }
+            }
+        }
+        if (prevIx >= 0 && sh == prevSh && !dep) {
+            isoadj++;
+            runlen++;
+        } else {
+            packs4 += (runlen + 1) / 4;
+            runlen = 0;
+        }
+        prevSh = sh;
+        prevIx = k;
+    }
+    packs4 += (runlen + 1) / 4;
     out << "// loop " << fLoopNo++ << ": " << n << " ops, model(R=" << R << ",U=" << U << "): " << cycles
-        << " cycles, pressure " << peak << "/" << R << ", occupancy " << occ << "%";
+        << " cycles, pressure " << peak << "/" << R << ", occupancy " << occ << "%"
+        << ", iso " << isoadj << " adj / " << packs4 << " packs4";
     if (overR > 0) {
         out << ", over-pressure " << overR << " (spill risk)";
     }
@@ -2547,6 +2585,23 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         }
         std::cerr << "SS_RECMII sccs=" << nscc << " recMII=" << recmii << std::endl;
     }
+    // self-describing artifact : the schedule's quality vector, on the
+    // COMMON evaluation machine (R=8, U=4, M=3), as a comment at the top
+    // of compute() -- campaigns and archaeology read it straight from
+    // the generated code, no environment needed
+    {
+        schedquality q = squality(G, S.elements(), 8, 4, ocppShapeFunctor(G),
+                                  std::function<bool(const Tree&)>(ocppIsMemNode), 3);
+        double fill = (q.cycles > 0) ? 100.0 * double(S.size()) / (double(q.cycles) * 4) : 0;
+        std::ostringstream qc;
+        qc << "// schedule: ss=" << gGlobal->gSchedulingStrategy << " nodes=" << S.size()
+           << " cycles=" << q.cycles << " fill=" << int(fill) << "% peak=" << q.peak
+           << " isoadj=" << q.isoadj << " packs4=" << q.packs4 << " aluMII=" << q.aluMII
+           << " memMII=" << q.memMII << " recMII=" << ocppTightRecMII(L)
+           << " (eval machine R=8 U=4 M=3)";
+        fClass->addZone3(qc.str());
+    }
+
     // register the compilation order S for debug purposes
     {
         int jj = 0;
