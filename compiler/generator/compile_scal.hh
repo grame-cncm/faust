@@ -60,6 +60,11 @@ class ScalarCompiler : public Compiler {
     int                                fMaxIota;
     std::map<std::string, std::string> fIotaCache;
     std::map<Tree, int, treeorder>                fScheduleOrder;
+    // -fir bridge : recognized FIR kernels, keyed by their SOURCE tree
+    // (the signal whose delay line the kernel reads). value = (read span
+    // maxtaps, nonzero coefficient count) -- consumers : delay-line
+    // implementation policy, fusion oracle.
+    std::map<Tree, std::pair<int, int>, treeorder> fFirFacts;
 
    public:
     ScalarCompiler(const std::string& name, const std::string& super, int numInputs, int numOutputs)

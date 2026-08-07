@@ -2244,6 +2244,25 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         fIsInt[i] = getCertifiedSigType(mat[i])->nature() == kInt;
         fLocal[i] = (fMaxD[i] == 0);
         fRing[i]  = (fMaxD[i] > gGlobal->gMaxCopyDelay);
+        // -fir consumer : a DENSE recognized FIR reads its whole window
+        // every sample -- the linear layout (contiguous prefix reads, one
+        // end-of-chunk shift) is the vectorizable form ; the masked ring
+        // defeats it (measured x4.2 on par_fir_32). Sparse kernels
+        // (tapiir) keep the ring.
+        if (fRing[i]) {
+            if (getenv("FAUST_SS_FIRDEBUG")) {
+                std::cerr << "  FIRDEBUG ring candidate ptr=" << (void*)mat[i]
+                          << " maxD=" << fMaxD[i] << " sig=" << ppsig(mat[i], 12) << std::endl;
+            }
+            auto it = fC->fFirFacts.find(mat[i]);
+            if (it != fC->fFirFacts.end()) {
+                int span = it->second.first, nz = it->second.second;
+                if (span == fMaxD[i] && span <= gGlobal->gMaxDenseDelay &&
+                    100 * nz >= 50 * span) {
+                    fRing[i] = false;
+                }
+            }
+        }
         if (fAliasIx[i] >= 0) {
             fBufName[i] = "<aliased>";  // never emitted: accessCode redirects
             continue;
@@ -2480,6 +2499,25 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                 nfir++;
                 taps += long(cs.size()) - 1;
                 maxtaps = std::max(maxtaps, int(cs.size()) - 1);
+                // bridge : record the kernel on its source (branch 0). The
+                // reveal leaves non-FIR sources untouched, so the pointer
+                // matches the prepared tree the emitters work on.
+                // branches = [S, c0..cN] : N+1 coefficients cover delays
+                // 0..N, so the read span in delay terms is size-2
+                int span = int(cs.size()) - 2;
+                int nz   = 0;
+                for (unsigned int k = 1; k < cs.size(); k++) {
+                    if (!isZero(cs[k])) {
+                        nz++;
+                    }
+                }
+                // aggregate PER SOURCE : kernels reading the same delay
+                // line pool their taps (the identity simplify shim keeps
+                // sibling kernels unmerged at stage 1, but their union is
+                // what the delay line serves)
+                auto& f = fFirFacts[cs[0]];
+                f.first = std::max(f.first, span);
+                f.second += nz;
             } else if (isSigIIR(t, cs)) {
                 niir++;
             }
@@ -2488,7 +2526,13 @@ void ScalarCompiler::compileMultiSignal(Tree L)
             }
         }
         std::cerr << "SS_FIR fir=" << nfir << " iir=" << niir << " taps=" << taps
-                  << " maxtaps=" << maxtaps << std::endl;
+                  << " maxtaps=" << maxtaps << " sources=" << fFirFacts.size() << std::endl;
+        if (getenv("FAUST_SS_FIRDEBUG")) {
+            for (auto& [src, f] : fFirFacts) {
+                std::cerr << "  FIRDEBUG source ptr=" << (void*)src << " span=" << f.first
+                          << " nz=" << f.second << " sig=" << ppsig(src, 12) << std::endl;
+            }
+        }
     }
 
     // -ss 10 : auto-regime hybrid -- the tight-nest recurrence bound
