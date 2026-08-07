@@ -325,6 +325,37 @@ V SignalDispatch<V>::combine(Tree sig, const std::vector<V>& c,
                 isSigRegister(sig, &i, x);
                 return this->Register(i, c[1]);
 
+            // FIR[X, c0..cN] = c0*X + c1*X@1 + ... : expressed through the
+            // existing operations, so EVERY interpretation (nature,
+            // intervals, all five attributes) gets the rule for free. The
+            // interval this yields is the L1 bound (sum |ci|*|X|) -- the
+            // sound worst-case for arbitrary bounded inputs ; the tighter
+            // frequency-domain gain (max |H|) is a later refinement.
+            case sigs::SignalOpcode::Fir: {
+                V acc = this->Mul(c[1], c[0]);
+                for (size_t k = 2; k < c.size(); k++) {
+                    acc = this->Add(acc,
+                                    this->Mul(c[k], this->Delay(c[0], this->IntNum(int(k) - 1))));
+                }
+                return acc;
+            }
+
+            // The IIR value obeys a RECURSIVE equation (y = X + sum ci*y@i)
+            // that a pure function of children cannot express. Our branch
+            // cannot produce SigIIR yet (the recognition patterns need
+            // clocks) ; when the clock-free patterns exist, this becomes a
+            // fixpoint-domain rule, not a combine case.
+            case sigs::SignalOpcode::Iir:
+                return unreachable("IIR typing pending (stage 2: clock-free recognition)");
+
+            case sigs::SignalOpcode::Sum: {
+                V acc = c[0];
+                for (size_t k = 1; k < c.size(); k++) {
+                    acc = this->Add(acc, c[k]);
+                }
+                return acc;
+            }
+
             case sigs::SignalOpcode::Count: break;  // not a constructor
         }
         return unreachable("combine (signal opcode out of range)");

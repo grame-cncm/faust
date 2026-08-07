@@ -71,6 +71,11 @@ enum class SignalOpcode : std::uint8_t {
     SoundfileRate,
     SoundfileBuffer,
     Register,
+    // port FIR/IIR : registered last in sigs-config (the registration
+    // order assigns the dense local opcodes -- see the header comment)
+    Fir,
+    Iir,
+    Sum,
     Count
 };
 

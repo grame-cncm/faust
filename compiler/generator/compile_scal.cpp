@@ -2675,6 +2675,32 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         }
         std::cerr << "SS_FIR fir=" << nfir << " iir=" << niir << " taps=" << taps
                   << " maxtaps=" << maxtaps << " sources=" << fFirFacts.size() << std::endl;
+        if (getenv("FAUST_SS_FIRTYPE")) {
+            // la sonde du typage : annoter la copie révélée (les nœuds FIR
+            // passent dans l'algèbre du point fixe) et montrer le type du
+            // premier noyau -- nature, variabilité, intervalle
+            typeAnnotation(Lf, true);
+            for (Tree l = Lf; isList(l); l = tl(l)) {
+                std::set<Tree>    seen2;
+                std::vector<Tree> work2{hd(l)};
+                while (!work2.empty()) {
+                    Tree t = work2.back();
+                    work2.pop_back();
+                    if (!seen2.insert(t).second) {
+                        continue;
+                    }
+                    if (isSigFIR(t)) {
+                        std::cerr << "SS_FIRTYPE " << ppsig(t, 8) << " : "
+                                  << getCertifiedSigType(t) << std::endl;
+                        goto done_type;
+                    }
+                    for (int k = 0; k < t->arity(); k++) {
+                        work2.push_back(t->branch(k));
+                    }
+                }
+            }
+        done_type:;
+        }
         if (getenv("FAUST_SS_FIRDEBUG")) {
             for (auto& [src, f] : fFirFacts) {
                 std::cerr << "  FIRDEBUG source ptr=" << (void*)src << " span=" << f.first
@@ -2891,6 +2917,80 @@ void ScalarCompiler::compileMultiSignal(Tree L)
            << " streams(peak/avg,win64)=" << speak << "/" << int(savg + 0.5)
            << " (eval machine R=8 U=4 M=3)";
         fClass->addZone3(qc.str());
+    }
+
+    // FAUST_SS_SIG : la signature statique du programme, une ligne — la
+    // matière première du sélecteur automatique (couche 1). Tout se
+    // calcule sans bench : taille, borne de récurrence, comptes
+    // calcul/mémoire, flux (total et pic fenêtré sur l'ordre df), formes.
+    if (getenv("FAUST_SS_SIG")) {
+        int nalu = 0, nmem = 0;
+        for (const auto& n : G.nodes()) {
+            if (ocppIsMemNode(n)) {
+                nmem++;
+            } else {
+                nalu++;
+            }
+        }
+        // flux : clés réelles (tampons >= 16), total + pic fenêtré (64)
+        std::set<std::pair<long, long>> allk;
+        int         speak = 0;
+        {
+            const int W = 64;
+            std::vector<std::vector<std::pair<long, long>>> touch;
+            for (const auto& n : S.elements()) {
+                std::vector<std::pair<long, long>> ks;
+                Tree x, y;
+                int  ich;
+                Occurrences* ob;
+                if (isSigDelay(n, x, y) && (ob = fOccMarkup->retrieve(x)) && ob->getMaxDelay() >= 16) {
+                    interval I = getCertifiedSigType(y)->getInterval();
+                    int dmin = int(I.lo());
+                    ks.push_back({(long)(size_t)(void*)x, dmin >= 1 ? dmin / 16 : -1});
+                } else if (isSigInput(n, &ich)) {
+                    ks.push_back({-1000 - ich, 0});
+                }
+                Occurrences* o = fOccMarkup->retrieve(n);
+                if (o && o->getMaxDelay() >= 16) {
+                    ks.push_back({(long)(size_t)(void*)n, -7});
+                }
+                for (auto& k : ks) {
+                    allk.insert(k);
+                }
+                touch.push_back(ks);
+            }
+            for (size_t w0 = 0; w0 < touch.size(); w0 += 16) {
+                std::set<std::pair<long, long>> win;
+                for (size_t k = w0; k < touch.size() && k < w0 + W; k++) {
+                    for (const auto& key : touch[k]) {
+                        win.insert(key);
+                    }
+                }
+                speak = std::max(speak, int(win.size()));
+            }
+        }
+        // formes : classes, part bankable (multiplicité >= 4), top-3
+        std::map<long, int> cls;
+        auto shf = ocppShapeFunctor(G);
+        for (const auto& n : G.nodes()) {
+            cls[shf(n)]++;
+        }
+        std::vector<int> sizes;
+        long bank = 0;
+        for (auto& [k, c] : cls) {
+            sizes.push_back(c);
+            if (c >= 4) {
+                bank += c;
+            }
+        }
+        std::sort(sizes.rbegin(), sizes.rend());
+        std::cerr << "SS_SIG nodes=" << G.nodes().size() << " recmii=" << ocppTightRecMII(L)
+                  << " nalu=" << nalu << " nmem=" << nmem << " nstreams=" << allk.size()
+                  << " speak64=" << speak << " distinct=" << cls.size()
+                  << " bankablepct=" << (100 * bank / std::max<size_t>(G.nodes().size(), 1))
+                  << " top1=" << (sizes.size() > 0 ? sizes[0] : 0)
+                  << " top2=" << (sizes.size() > 1 ? sizes[1] : 0)
+                  << " top3=" << (sizes.size() > 2 ? sizes[2] : 0) << std::endl;
     }
 
     // register the compilation order S for debug purposes
