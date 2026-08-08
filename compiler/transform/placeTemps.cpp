@@ -89,6 +89,17 @@ static bool isStageable(Tree t)
     if (isSigTemp(t, x) || isSigOutput(t, &i, x)) {
         return false;
     }
+    // select2 cascades : a barrier on (or accounted through) a selection
+    // tree measurably hurts (the vocal family, x2.3) -- the C compiler
+    // treats the inline cascade as lazily-selected / loop-invariant
+    // material, which a named stage disturbs. Selections are neither
+    // staged nor counted.
+    {
+        Tree sel, then_, else_;
+        if (isSigSelect2(t, sel, then_, else_)) {
+            return false;
+        }
+    }
     // STRUCTURAL nodes : their consumers pattern-match them bare (a table
     // argument of RDTbl, a generator, a soundfile head, a waveform) and
     // the UI traversals must meet the widgets unwrapped. A barrier here
