@@ -310,8 +310,8 @@ if (INCLUDE_EXECUTABLE)
         # installed 'faust' needs an explicit, relocatable rpath or it cannot
         # find it at all. Not meaningful on Windows (DLL search is PATH/same-
         # directory based), so the dylib install + rpath below is Unix-only;
-        # a Windows package needs mimalloc.dll copied next to faust.exe
-        # instead, which nothing here does yet.
+        # the Windows install() rule below instead places mimalloc.dll next
+        # to faust.exe in bin/.
         if (APPLE)
             set_target_properties(faust PROPERTIES INSTALL_RPATH "@executable_path/../${LIBSDIR}")
         elseif (UNIX)
@@ -325,11 +325,6 @@ if (INCLUDE_EXECUTABLE)
         # correct unconditionally, since build/bin/ and build/lib/ already
         # sit in the same layout an install does.
         set_target_properties(faust PROPERTIES BUILD_WITH_INSTALL_RPATH ON)
-        install (
-            TARGETS mimalloc
-            LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
-            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
-        )
     endif()
     scan_backends (faust COMPILER)
     set_target_properties(faust PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
@@ -470,6 +465,26 @@ install ( TARGETS ${INSTALL_TARGETS}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
 )
+
+if (USE_MIMALLOC)
+# Installed after the PACK-mode CMAKE_INSTALL_PREFIX override above so this
+# destination is relative like every other install() here; CPack (NSIS on
+# Windows) rejects an absolute install() DESTINATION outright.
+if (WIN32)
+    # Windows DLL search is exe-directory + PATH, not LIBSDIR: faust.exe
+    # would silently fail to load mimalloc.dll if it only landed in lib/.
+    install (
+        TARGETS mimalloc
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    )
+else()
+    install (
+        TARGETS mimalloc
+        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
+    )
+endif()
+endif()
 
 if (INCLUDE_DYNAMIC)
 install ( TARGETS dynamiclib
