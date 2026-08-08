@@ -410,17 +410,18 @@ static Tree simplifyToNormalFormAux(Tree LS)
     Tree L1 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
 
-    if (gGlobal->gEtaRegroup) {
-        // -etar : normalize the recursive structure AT THE BIRTH of the
-        // symbolic form -- every downstream stage (simplifications, typing,
-        // the eta loop) sees minimal groups. canonical=true here : we just
-        // received content-derived names and owe the same downstream ; the
-        // internal round trip runs on the flattened structure (positional,
-        // cheap).
-        startTiming("normalizeRecGroups");
-        L1 = normalizeRecGroups(L1);
-        endTiming("normalizeRecGroups");
-    }
+    // Normalize the recursive structure AT THE BIRTH of the symbolic form,
+    // unconditionally : the letrec packaging is a syntactic accident, the
+    // projection SCCs are the real structure, and every downstream stage
+    // (simplifications, typing, sharing, the eta loop, the backends) sees
+    // minimal groups. canonical=true here : we just received content-derived
+    // names and owe the same downstream ; the internal round trip runs on
+    // the flattened structure (positional, cheap). Validated against the
+    // 2026-07-27 reference milestone : impulse responses at rounding level
+    // on the whole corpus, cost within noise.
+    startTiming("normalizeRecGroups");
+    L1 = normalizeRecGroups(L1);
+    endTiming("normalizeRecGroups");
 /*
     // PROBE: cost of the symbolic -> deBruijn -> symbolic round-trip on the
     // recursive-group representation (scalarization abandoned: n-ary groups
