@@ -247,20 +247,17 @@ class TLIB_API CTree : public Garbageable {
         kUserKinds   = 0xF0u,    ///< bits reserved for the consumer (user-kinds hook)
     };
 
-    // User-kinds hook : the consumer's LOCAL contribution to a node's kind bits,
-    // combined by the same union as tlib's own bits :
+    // Consumer bits are DATA, not code : each interned symbol carries an opaque kind
+    // byte (symbol.hh, setSymbolUserKinds / Signature::add(name, kinds)), initialized
+    // at registration and folded here into every tree headed by it :
     //
-    //     kinds(t) = tlibKind(t) | (hook(t) & kUserKinds) | U_i kinds(branch_i)
+    //     kinds(t) = tlibKind(t) | (symbolUserKinds(head(t)) & kUserKinds) | U_i kinds(branch_i)
     //
-    // tlib stays blind : it calls, masks to the high nibble, and unions. The hook MUST be
-    // a pure function of the node and branches (both fixed at construction -- the result
-    // is stamped once, hash-consing shares it), and MUST be registered before any tree
-    // whose bits it contributes to is built : registration does not restamp existing
-    // trees. The typical consumer implementation is a lookup of the node's symbol in a
-    // registry filled at initialization -- a symbol-headed tree cannot predate its
-    // symbol's creation, the same soundness argument initRecSymbols() relies on.
-    using UserKindsFn = unsigned int (*)(const Node& n, int ar, const Tree br[]);
-    static void setUserKindsHook(UserKindsFn fn);
+    // tlib stays blind : it reads a byte it never interprets. The byte must be
+    // initialized BEFORE any tree headed by the symbol is built -- bits are stamped
+    // once, at construction, hash-consing shares them, nothing restamps. A
+    // symbol-headed tree cannot predate its symbol's creation, the same soundness
+    // argument initRecSymbols() relies on.
 
     static Tree make(const Node& n, int ar,
                      const Tree br[]);  ///< return a new tree or an existing equivalent one

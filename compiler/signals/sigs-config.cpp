@@ -39,40 +39,6 @@ itv::interval_algebra gAlgebra;
 
 namespace sigs {
 
-// The consumer side of CTree's user-kinds hook (see tree.hh) : the LOCAL
-// audio-rate contribution of a node, combined by tlib with the branches'
-// bits through the usual union. Carriers are the constructors whose result
-// is audio rate even when every argument is slow -- the unconditional
-// order-3 cases of sigorderrules.cpp, which this list must mirror exactly
-// (a missing carrier under-approximates the bit and lets a state or
-// input-dependent coefficient fold into a kernel). Projections carry it
-// locally for a second reason : a rec group's body is a property, not a
-// branch, so nothing propagates through the group boundary by union.
-static unsigned int signalUserKinds(const Node& n, int ar, const Tree br[])
-{
-    if (n == g.PROJ || n == g.SIGINPUT || n == g.SIGOUTPUT || n == g.SIGDELAY1 ||
-        n == g.SIGDELAY || n == g.SIGPREFIX || n == g.SIGRDTBL || n == g.SIGWRTBL ||
-        n == g.SIGGEN || n == g.SIGDOCONSTANTTBL || n == g.SIGDOCWRITETBL ||
-        n == g.SIGDOCACCESSTBL || n == g.SIGWAVEFORM || n == g.SIGSOUNDFILEBUFFER ||
-        n == g.SIGIIR) {
-        return kAudioRate;
-    }
-    // a foreign function WITHOUT arguments is a generator (random()...)
-    if (n == g.SIGFFUN && ar == 2 && isNil(br[1])) {
-        return kAudioRate;
-    }
-    // a FIR with REAL taps ("si ce n'est pas une simple multiplication") :
-    // its delays temporalize even a slow source -- FIR[1, 0, 1] is 1@1,
-    // audio rate with a constant source. The one-coefficient form
-    // FIR[x, c0] is a plain product and inherits from x, under the
-    // construction invariant that x is then audio rate (asserted in
-    // sigFIR()).
-    if (n == g.SIGFIR && ar > 2) {
-        return kAudioRate;
-    }
-    return 0;
-}
-
 void initSignalSymbols()
 {
     const Signature signal_signature = signalSignature();
@@ -80,23 +46,35 @@ void initSignalSymbols()
     // Every SIG* symbol is a constructor of the Signal language. Keeping
     // these add() calls in SignalOpcode declaration order makes their dense
     // local opcodes usable directly by folds without a translation table.
-    g.SIGINPUT           = signal_signature.add("SigInput");
-    g.SIGOUTPUT          = signal_signature.add("SigOutput");
-    g.SIGDELAY1          = signal_signature.add("SigDelay1");
-    g.SIGDELAY           = signal_signature.add("SigDelay");
-    g.SIGPREFIX          = signal_signature.add("SigPrefix");
-    g.SIGRDTBL           = signal_signature.add("SigRDTbl");
-    g.SIGWRTBL           = signal_signature.add("SigWRTbl");
-    g.SIGGEN             = signal_signature.add("SigGen");
-    g.SIGDOCONSTANTTBL   = signal_signature.add("SigDocConstantTbl");
-    g.SIGDOCWRITETBL     = signal_signature.add("SigDocWriteTbl");
-    g.SIGDOCACCESSTBL    = signal_signature.add("SigDocAccessTbl");
+    //
+    // kAudioRate masks : DATA in the declaration, folded by the tree layer
+    // into the synthesized kind bits of every tree headed by the symbol
+    // (kinds(t) = mask(head) | union of branches). Carriers are the
+    // constructors whose result is audio rate even with slow arguments --
+    // the unconditional order-3 cases of sigorderrules.cpp, which this
+    // list must mirror (a missing carrier lets a state or input-dependent
+    // coefficient fold into a kernel). Two deliberate roundings : SIGFIR
+    // is marked unconditionally (for the one-coefficient form the mask is
+    // redundant -- sigFIR() asserts its source is audio rate -- and never
+    // false) ; SIGFFUN too (over-approximates foreign functions WITH slow
+    // arguments -- rare, and refusing a fold is the safe direction).
+    g.SIGINPUT           = signal_signature.add("SigInput", kAudioRate);
+    g.SIGOUTPUT          = signal_signature.add("SigOutput", kAudioRate);
+    g.SIGDELAY1          = signal_signature.add("SigDelay1", kAudioRate);
+    g.SIGDELAY           = signal_signature.add("SigDelay", kAudioRate);
+    g.SIGPREFIX          = signal_signature.add("SigPrefix", kAudioRate);
+    g.SIGRDTBL           = signal_signature.add("SigRDTbl", kAudioRate);
+    g.SIGWRTBL           = signal_signature.add("SigWRTbl", kAudioRate);
+    g.SIGGEN             = signal_signature.add("SigGen", kAudioRate);
+    g.SIGDOCONSTANTTBL   = signal_signature.add("SigDocConstantTbl", kAudioRate);
+    g.SIGDOCWRITETBL     = signal_signature.add("SigDocWriteTbl", kAudioRate);
+    g.SIGDOCACCESSTBL    = signal_signature.add("SigDocAccessTbl", kAudioRate);
     g.SIGSELECT2         = signal_signature.add("SigSelect2");
     g.SIGASSERTBOUNDS    = signal_signature.add("sigAssertBounds");
     g.SIGHIGHEST         = signal_signature.add("sigHighest");
     g.SIGLOWEST          = signal_signature.add("sigLowest");
     g.SIGBINOP           = signal_signature.add("SigBinOp");
-    g.SIGFFUN            = signal_signature.add("SigFFun");
+    g.SIGFFUN            = signal_signature.add("SigFFun", kAudioRate);
     g.SIGFCONST          = signal_signature.add("SigFConst");
     g.SIGFVAR            = signal_signature.add("SigFVar");
     // Projection moved to tlib (proj/isProj) : no longer a signal-signature member,
@@ -106,7 +84,7 @@ void initSignalSymbols()
     g.SIGFLOATCAST       = signal_signature.add("SigFloatCast");
     g.SIGBUTTON          = signal_signature.add("SigButton");
     g.SIGCHECKBOX        = signal_signature.add("SigCheckbox");
-    g.SIGWAVEFORM        = signal_signature.add("SigWaveform");
+    g.SIGWAVEFORM        = signal_signature.add("SigWaveform", kAudioRate);
     g.SIGHSLIDER         = signal_signature.add("SigHSlider");
     g.SIGVSLIDER         = signal_signature.add("SigVSlider");
     g.SIGNUMENTRY        = signal_signature.add("SigNumEntry");
@@ -118,13 +96,13 @@ void initSignalSymbols()
     g.SIGSOUNDFILE       = signal_signature.add("SigSoundfile");
     g.SIGSOUNDFILELENGTH = signal_signature.add("SigSoundfileLength");
     g.SIGSOUNDFILERATE   = signal_signature.add("SigSoundfileRate");
-    g.SIGSOUNDFILEBUFFER = signal_signature.add("SigSoundfileBuffer");
+    g.SIGSOUNDFILEBUFFER = signal_signature.add("SigSoundfileBuffer", kAudioRate);
     g.SIGREGISTER        = signal_signature.add("SigRegister");
     // port FIR/IIR : REGISTERED LAST -- the signature order indexes the
     // dispatch tables of the signal algebra ; inserting mid-list shifts
     // every later symbol and misaligns the typing solvers
-    g.SIGFIR             = signal_signature.add("SigFIR");
-    g.SIGIIR             = signal_signature.add("SigIIR");
+    g.SIGFIR             = signal_signature.add("SigFIR", kAudioRate);
+    g.SIGIIR             = signal_signature.add("SigIIR", kAudioRate);
     g.SIGSUM             = signal_signature.add("SigSum");
 
     // The session's initial algebra: its dispatch signature was just interned,
@@ -133,12 +111,13 @@ void initSignalSymbols()
     delete g.gTreeAlgebra;
     g.gTreeAlgebra = new TreeAlgebra();
 
-    // audio-rate kind bit : cache tlib's projection head, then register the
-    // user-kinds hook -- HERE, before any signal tree is built (stamping
-    // happens at construction and never retroactively), and on both init
+    // Projections are audio rate (recursive state) and NEED the local mask :
+    // a rec group's body is a property, not a branch, so nothing propagates
+    // through the group boundary by union. PROJ is tlib's symbol, not a
+    // signature member -- initialized here, before any signal tree is built
+    // (bits are stamped at construction, never retroactively), on both init
     // paths since the compiler's global.cpp calls initSignalSymbols() too.
-    g.PROJ = symbol("PROJ");
-    CTree::setUserKindsHook(signalUserKinds);
+    setSymbolUserKinds(symbol("PROJ"), kAudioRate);
 }
 
 const TreeAlgebra& algebra()

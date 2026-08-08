@@ -307,16 +307,6 @@ int CTree::calcTreeAperture(const Node& n, int ar, const Tree br[])
 // the two are the same node), so "no recursive node below" really does mean the subtree is
 // a finite, recursion-free DAG.
 
-// The consumer's local-contribution hook (see tree.hh). File-scope : it is called from
-// both calcTreeContains and the independent recomputation below, so the invariant check
-// validates consumer bits exactly like tlib bits.
-static CTree::UserKindsFn gUserKindsHook = nullptr;
-
-void CTree::setUserKindsHook(UserKindsFn fn)
-{
-    gUserKindsHook = fn;
-}
-
 unsigned int CTree::calcTreeContains(const Node& n, const tvec& br)
 {
     return calcTreeContains(n, int(br.size()), br.empty() ? nullptr : br.data());
@@ -328,8 +318,10 @@ unsigned int CTree::calcTreeContains(const Node& n, int ar, const Tree br[])
     // so a rule for one bit can never discard another bit's information.
     unsigned int c =
         (n == gSymRecSym || n == gDebruijnSym || n == gDebruijnRefSym) ? kContainsRec : 0;
-    if (gUserKindsHook) {
-        c |= (gUserKindsHook(n, ar, br) & kUserKinds);
+    if (isSym(n)) {
+        // the consumer's local contribution : an opaque byte attached to the symbol
+        // at registration, masked to the consumer nibble and unioned like the rest
+        c |= (symbolUserKinds(n.getSym()) & kUserKinds);
     }
     for (int i = 0; i < ar; ++i) {
         c |= br[i]->contains();
@@ -350,14 +342,11 @@ static unsigned int recomputeContains(Tree t, std::unordered_map<Tree, unsigned 
     const Node&  n = t->node();
     unsigned int c =
         (n == gSymRecSym || n == gDebruijnSym || n == gDebruijnRefSym) ? CTree::kContainsRec : 0;
-    if (gUserKindsHook) {
-        // the consumer's local contribution, recomputed under the same mask as at
-        // construction -- consumer bits are validated exactly like tlib bits. This
-        // assumes the hook is the pure function the contract demands AND that it was
-        // registered before the trees it contributes to were built.
-        const tvec& br = t->branches();
-        c |= (gUserKindsHook(n, t->arity(), br.empty() ? nullptr : br.data()) &
-              CTree::kUserKinds);
+    if (isSym(n)) {
+        // the consumer's byte, reread under the same mask as at construction --
+        // consumer bits are validated exactly like tlib bits (assuming the byte was
+        // initialized before the trees headed by its symbol were built)
+        c |= (symbolUserKinds(n.getSym()) & CTree::kUserKinds);
     }
     // Insert before descending : a shared subtree may be reached again, and the branch DAG
     // is acyclic (a symbolic rec keeps its body in a property, not in a branch).

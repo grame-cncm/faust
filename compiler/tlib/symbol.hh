@@ -111,6 +111,9 @@ class Symbol : public Garbageable {
                             ///< counter (see canonicalTreeLess)
     Sym         fNext;  ///< Next symbol in the hash table entry
     void*       fData;  ///< Field to user disposal to store additional data
+    unsigned char fUserKinds = 0;  ///< opaque consumer byte, read by the tree layer's
+                                   ///< synthesized kind bits (see tree.hh, kUserKinds) ;
+                                   ///< initialized at registration, never interpreted here
     Sym          fSignature;  ///< Owning signature, null while the symbol is ordinary
     SymbolOpcode fOpcode;     ///< Global constructor identity; meaningful only when signed
 
@@ -146,6 +149,8 @@ class Symbol : public Garbageable {
 
     friend void* getUserData(Sym sym);
     friend void  setUserData(Sym sym, void* d);
+    friend unsigned int symbolUserKinds(Sym sym);
+    friend void         setSymbolUserKinds(Sym sym, unsigned int kinds);
     friend bool  getSymbolTag(Sym sym, SymbolTag& tag);
     friend TLIB_API Signature signature(const std::string& name);
     friend class Signature;
@@ -182,6 +187,19 @@ class Signature {
      */
     TLIB_API Sym add(const std::string& name) const;
 
+    /**
+     * Add \p name and initialize its opaque consumer kind byte (see tree.hh,
+     * kUserKinds) in the same declaration -- the byte is data attached to the
+     * symbol, folded by the tree layer into the synthesized kind bits of every
+     * tree headed by it.
+     */
+    Sym add(const std::string& name, unsigned int kinds) const
+    {
+        Sym s = add(name);
+        setSymbolUserKinds(s, kinds);
+        return s;
+    }
+
     /** Return the interned symbol that identifies this signature. */
     Sym identity() const { return fIdentity; }
 };
@@ -217,6 +235,17 @@ inline void setUserData(Sym sym, void* d)
 {
     sym->fData = d;
 }  ///< Set user data
+
+inline unsigned int symbolUserKinds(Sym sym)
+{
+    return sym->fUserKinds;
+}  ///< The symbol's opaque consumer kind byte (see tree.hh, kUserKinds)
+inline void setSymbolUserKinds(Sym sym, unsigned int kinds)
+{
+    sym->fUserKinds = (unsigned char)kinds;
+}  ///< Initialize the consumer kind byte. To be called at registration, BEFORE any
+   ///< tree headed by this symbol is built : the tree layer folds the byte into its
+   ///< synthesized bits at construction, never retroactively.
 
 //--------------------------------------------------------------------------
 // Public API: symbol signatures
