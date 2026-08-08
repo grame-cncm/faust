@@ -41,9 +41,13 @@
 // output tree (all candidacy questions are asked on the input side).
 class ProjSCCIndex {
    private:
-    std::unordered_map<Tree, int> fScc;  // projection -> component id
+    std::unordered_map<Tree, int>  fScc;    // projection -> component id
+    std::unordered_map<Tree, Tree> fGroup;  // projection -> its letrec group
 
    public:
+    const std::unordered_map<Tree, int>&  sccMap() const { return fScc; }
+    const std::unordered_map<Tree, Tree>& groupMap() const { return fGroup; }
+
     explicit ProjSCCIndex(Tree root)
     {
         // Discovery : all reachable projections and the edges p -> q.
@@ -74,6 +78,7 @@ class ProjSCCIndex {
                         g.add(from, t, 0);
                     }
                     if (known.insert(t).second) {
+                        fGroup[t] = rg;
                         defQueue.push_back(t);
                     }
                     continue;
@@ -142,6 +147,79 @@ class ProjSCCIndex {
         return false;
     }
 };
+
+//----------------------------------------------------------------------
+// Instruction probe : what would splitting the letrecs along the
+// projection SCCs buy ? (FAUST_SS_SPLIT, measured on the tree the
+// reveals see -- i.e. AFTER simplification, which may already have
+// disentangled definitions that merely seemed mutually recursive.)
+//----------------------------------------------------------------------
+
+void projSCCReport(Tree L)
+{
+    ProjSCCIndex index(L);
+    const auto&  scc   = index.sccMap();
+    const auto&  group = index.groupMap();
+
+    // current grouping : live projections per letrec group
+    std::unordered_map<Tree, std::vector<Tree>> byGroup;
+    for (const auto& [p, g] : group) {
+        byGroup[g].push_back(p);
+    }
+    // ideal grouping : projections per component
+    std::unordered_map<int, std::vector<Tree>> byScc;
+    std::unordered_map<int, std::unordered_set<Tree>> sccGroups;
+    for (const auto& [p, id] : scc) {
+        byScc[id].push_back(p);
+        sccGroups[id].insert(group.at(p));
+    }
+
+    int g1 = 0, gm = 0, splittable = 0;
+    for (const auto& [g, projs] : byGroup) {
+        if (projs.size() == 1) {
+            g1++;
+            continue;
+        }
+        gm++;
+        std::unordered_set<int> parts;
+        for (Tree p : projs) {
+            parts.insert(scc.at(p));
+        }
+        if (parts.size() > 1) {
+            splittable++;
+        }
+    }
+
+    int singNonRec = 0, singSelfRec = 0, multi = 0, spanning = 0, maxScc = 0;
+    for (const auto& [id, members] : byScc) {
+        maxScc = std::max(maxScc, int(members.size()));
+        if (sccGroups.at(id).size() > 1) {
+            spanning++;  // a knot across several current letrecs : a MERGE, not a split
+        }
+        if (members.size() > 1) {
+            multi++;
+            continue;
+        }
+        // singleton : self-recursive iff its definition reaches it
+        Tree p0 = members[0];
+        int  p;
+        Tree rg, var, le;
+        isProj(p0, &p, rg);
+        isRec(rg, var, le);
+        Tree def = (le && !isNil(le)) ? nth(le, p) : nullptr;
+        if (def && index.reaches(def, p0)) {
+            singSelfRec++;
+        } else {
+            singNonRec++;
+        }
+    }
+
+    std::cerr << "SS_SPLIT groups=" << byGroup.size() << " projs=" << group.size()
+              << " g1=" << g1 << " gmulti=" << gm << " splittable=" << splittable
+              << " sccs=" << byScc.size() << " sccSingleSelfrec=" << singSelfRec
+              << " sccSingleNonrec=" << singNonRec << " sccMulti=" << multi
+              << " sccSpanningGroups=" << spanning << " maxScc=" << maxScc << std::endl;
+}
 
 //----------------------------------------------------------------------
 // The reveal : one paired rule under the generic tlib rewrite

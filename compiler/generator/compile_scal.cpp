@@ -2646,6 +2646,9 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         // typing probe below runs on Lf (pre-IIR) : IIR nodes have no
         // typing rule yet (recursive equation, fixpoint-domain rule).
         Tree Lf = revealFIR(revealSum(L));
+        if (getenv("FAUST_SS_SPLIT")) {
+            projSCCReport(Lf);  // instruction : scission des letrec par CFC
+        }
         Tree Li = revealIIR(Lf);
         int  nfir = 0, niir = 0, maxtaps = 0;
         long taps = 0;
