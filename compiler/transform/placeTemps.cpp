@@ -144,11 +144,15 @@ Tree placeTemps(Tree lsig, int K)
             for (int k = 0; k < t->arity(); k++) {
                 raw += costOf(t->branch(k));
             }
-            if (occ[t] > 1) {
-                c = 0;  // the emitter will name it anyway
-            } else if (raw >= K) {
-                stage.insert(t);  // barrier : materialized, costs nothing above
+            if (raw >= K) {
+                // barrier even on SHARED nodes : the emitter's sharing is
+                // CONTEXT-sensitive and may inline a DAG-shared node once
+                // per context (GrainGenerator's grain sums, duplicated per
+                // channel) -- the barrier materializes it once, globally
+                stage.insert(t);
                 c = 0;
+            } else if (occ[t] > 1) {
+                c = 0;  // the emitter will name it anyway
             } else {
                 c = raw;
             }
@@ -170,8 +174,10 @@ Tree placeTemps(Tree lsig, int K)
         cost[t] = c;
         return c;
     };
-    // seed the analysis from every expression reachable outside rec bodies,
-    // and from every definition (walk mirrors countOccurrences)
+    // seed the analysis by a FULL traversal (same shape as
+    // countOccurrences : rec bodies entered, projections' groups pushed
+    // wherever they occur -- a projection buried in an expression must
+    // still get its definitions analyzed)
     {
         std::unordered_set<Tree> visited;
         std::vector<Tree>        work{lsig};
@@ -188,21 +194,19 @@ Tree placeTemps(Tree lsig, int K)
                 }
                 continue;
             }
-            if (isList(t) || isNil(t)) {
-                for (int k = 0; k < t->arity(); k++) {
-                    work.push_back(t->branch(k));
-                }
-                continue;
+            if (!isList(t) && !isNil(t)) {
+                costOf(t);
             }
-            costOf(t);
-            int  i;
-            Tree g;
-            if (isProj(t, &i, g)) {
-                work.push_back(g);
+            for (int k = 0; k < t->arity(); k++) {
+                work.push_back(t->branch(k));
             }
         }
     }
 
+    if (getenv("FAUST_DEBUG_PLACETEMPS")) {
+        std::cerr << "PLACETEMPS K=" << K << " nodes-costed=" << cost.size()
+                  << " staged=" << stage.size() << std::endl;
+    }
     // placement : the generic paired rewrite -- decisions were taken on the
     // ORIGINAL side, barriers go on the rebuilt side
     std::unordered_map<Tree, Tree> memo;
