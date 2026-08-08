@@ -2645,9 +2645,18 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         // the recursive definitions already in Sum-of-FIR form. The
         // typing probe below runs on Lf (pre-IIR) : IIR nodes have no
         // typing rule yet (recursive equation, fixpoint-domain rule).
-        Tree Lf = revealFIR(revealSum(L));
+        // normalizeRecGroups first : the letrecs are re-partitioned along
+        // the projection SCCs (minimal groups, dependencies-first, twins
+        // unified by the deBruijn round trip). On the normalized term the
+        // IIR hosts are exactly the single-definition self-recursive
+        // groups. NOTE : recursive FIR sources are rebuilt by the
+        // normalization, so their fFirFacts pointers no longer match the
+        // emitters' trees -- rec-free sources (the delay-line consumers'
+        // case) keep their pointers.
+        Tree Ln = normalizeRecGroups(L);
+        Tree Lf = revealFIR(revealSum(Ln));
         if (getenv("FAUST_SS_SPLIT")) {
-            projSCCReport(Lf);  // instruction : scission des letrec par CFC
+            projSCCReport(Lf);  // post-normalisation : doit ressortir minimal
         }
         Tree Li = revealIIR(Lf);
         int  nfir = 0, niir = 0, maxtaps = 0;

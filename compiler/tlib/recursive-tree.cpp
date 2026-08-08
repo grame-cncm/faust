@@ -1205,3 +1205,198 @@ static Tree calcsubstituteReady(Tree t, int level, Tree id)
     }
     return tree(t->node(), br);
 }
+
+//-----------------------------------------------------------------------------------------
+// normalizeRecGroups : re-partition the letrecs along the projection SCCs
+//-----------------------------------------------------------------------------------------
+//
+// The letrec groups of a term are SYNTACTIC packaging ; the real mutual-recursion
+// structure is the strongly connected components of the PROJECTION graph : one node
+// per projection, an edge p -> q whenever the definition of p contains q. The two
+// disagree in both directions -- a group can pack independent definitions
+// (accidental cohabitation), and a knot can span several groups (fragmented cycle).
+// This transformation rebuilds the term on the real structure :
+//
+//   - each component becomes one minimal letrec, emitted dependencies-first
+//     (the recursion of the rebuild IS the topological order) ;
+//   - a singleton component without self-reference is not recursive at all :
+//     its definition dissolves into a plain expression, the letrec disappears ;
+//   - definitions inside a component are ordered by canonicalTreeLess (a
+//     value-derived order : structural twins agree on it whatever their history) ;
+//   - dead definitions (never projected) are dropped ;
+//   - the result goes through the deBruijn round trip, so recursions that BECOME
+//     alpha-equivalent under the finer grouping unify into the same pointer.
+//     Splitting is what makes the sharing reachable : two identical filters
+//     imprisoned in two different large groups are alpha-inequivalent as packaged,
+//     alpha-equivalent once minimal.
+//
+// The input must be closed (every group defined). The traversal recurses to the
+// depth of the term : deep terms belong on a comfortable stack.
+
+// does the definition reach the projection SELF, projections being opaque leaves ?
+// (exact for a singleton component : any longer path back would put its steps in
+// the same component -- see the SCC argument in the header of the function below)
+static bool defReachesSelf(Tree def, Tree self)
+{
+    std::unordered_set<Tree> seen;
+    std::vector<Tree>        st{def};
+    while (!st.empty()) {
+        Tree t = st.back();
+        st.pop_back();
+        if (t == self) {
+            return true;
+        }
+        if (!seen.insert(t).second) {
+            continue;
+        }
+        int  i;
+        Tree g;
+        if (isProj(t, i, g)) {
+            continue;  // another projection : an opaque leaf here
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            st.push_back(t->branch(k));
+        }
+    }
+    return false;
+}
+
+Tree normalizeRecGroups(Tree root)
+{
+    // ---- discovery : live projections and their dependency edges. Each
+    // definition is walked once with a PER-WALK seen set : a subtree shared
+    // between two definitions must contribute its projections as edges of
+    // BOTH (a global set would drop the second edge and under-connect the
+    // graph).
+    digraph<Tree>            g;
+    std::vector<Tree>        defQueue;
+    std::unordered_set<Tree> known;
+
+    auto projDef = [](Tree p) -> Tree {
+        int  i;
+        Tree grp, var, body;
+        bool okp = isProj(p, i, grp);
+        TLIB_ASSERT(okp);
+        bool okr = isRec(grp, var, body);
+        TLIB_ASSERT(okr && body != nullptr && !isNil(body));
+        return nth(body, i);
+    };
+
+    auto discover = [&](Tree t0, Tree from) {
+        std::unordered_set<Tree> seen;
+        std::vector<Tree>        st{t0};
+        while (!st.empty()) {
+            Tree t = st.back();
+            st.pop_back();
+            if (!seen.insert(t).second) {
+                continue;
+            }
+            int  i;
+            Tree grp;
+            if (isProj(t, i, grp)) {
+                g.add(t);
+                if (from) {
+                    g.add(from, t, 0);
+                }
+                if (known.insert(t).second) {
+                    defQueue.push_back(t);
+                }
+                continue;  // a projection is a leaf : its definition has its own turn
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                st.push_back(t->branch(k));
+            }
+        }
+    };
+
+    discover(root, nullptr);
+    for (std::size_t i = 0; i < defQueue.size(); i++) {
+        discover(projDef(defQueue[i]), defQueue[i]);
+    }
+
+    // ---- the real structure : Tarjan on the projection graph
+    Tarjan<Tree>                                tarjan(g);
+    std::unordered_map<Tree, int>               sccOf;
+    std::vector<std::vector<Tree>>              members;
+    for (const auto& comp : tarjan.partition()) {
+        int id = int(members.size());
+        members.emplace_back(comp.begin(), comp.end());
+        for (Tree m : members.back()) {
+            sccOf[m] = id;
+        }
+        // canonical order inside the component : value-derived, so structural
+        // twins order their definitions identically whatever their history
+        std::sort(members.back().begin(), members.back().end(),
+                  [&](Tree a, Tree b) { return canonicalTreeLess(projDef(a), projDef(b)); });
+    }
+
+    // ---- rebuild, dependencies first (the recursion is the topological order)
+    std::unordered_map<Tree, Tree> memo;
+    std::vector<char>              built(members.size(), 0);
+
+    std::function<Tree(Tree)> build = [&](Tree t) -> Tree {
+        if (auto it = memo.find(t); it != memo.end()) {
+            return it->second;
+        }
+        int  i;
+        Tree grp;
+        if (isProj(t, i, grp)) {
+            int c = sccOf.at(t);
+            if (!built[c]) {
+                built[c] = 1;
+                const std::vector<Tree>& ms = members[c];
+                if (ms.size() == 1 && !defReachesSelf(projDef(ms[0]), ms[0])) {
+                    // not recursive at all : the definition dissolves into a
+                    // plain expression, the letrec disappears
+                    memo[ms[0]] = build(projDef(ms[0]));
+                } else {
+                    // one minimal letrec ; images registered BEFORE the
+                    // definitions are built, so the component's internal
+                    // references resolve (ref and the filled rec are the
+                    // same hash-consed pointer)
+                    Tree var = tree(unique("N"));
+                    Tree grp2 = ref(var);
+                    for (std::size_t j = 0; j < ms.size(); j++) {
+                        memo[ms[j]] = proj(int(j), grp2);
+                    }
+                    Tree body = nil();
+                    std::vector<Tree> defs;
+                    for (Tree m : ms) {
+                        defs.push_back(build(projDef(m)));
+                    }
+                    for (auto it2 = defs.rbegin(); it2 != defs.rend(); ++it2) {
+                        body = cons(*it2, body);
+                    }
+                    rec(var, body);
+                }
+            }
+            return memo.at(t);
+        }
+        Tree var, bodyle;
+        // a recursive group outside a projection has no meaning once the
+        // groups are re-partitioned ; reaching one here is a caller error
+        TLIB_ASSERT(!isRec(t, var, bodyle));
+        int  ar = t->arity();
+        Tree r  = t;
+        if (ar > 0) {
+            bool changed = false;
+            tvec br(ar);
+            for (int k = 0; k < ar; k++) {
+                br[k]   = build(t->branch(k));
+                changed = changed || (br[k] != t->branch(k));
+            }
+            if (changed) {
+                r = tree(t->node(), br);
+            }
+        }
+        memo[t] = r;
+        return r;
+    };
+
+    Tree rebuilt = build(root);
+
+    // ---- unification : the deBruijn round trip gives the canonical symbolic
+    // form -- recursions made alpha-equivalent by the finer grouping become
+    // pointer-equal, and the fresh variable names above are erased
+    return deBruijn2Sym(sym2deBruijn(rebuilt));
+}

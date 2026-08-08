@@ -563,6 +563,19 @@ TLIB_API const RecPlan& getRecPlan(Tree root);
 /// canonical form (same content, same pointer), use deBruijn2Sym, whose names are
 /// content-derived.
 TLIB_API Tree canonicalizeRecNames(Tree root);
+
+/// Normalize the recursive structure : re-partition every letrec along the strongly
+/// connected components of the PROJECTION graph (one node per projection, an edge
+/// p -> q whenever the definition of p contains q), emitted dependencies-first.
+/// Accidental cohabitations split ; knots spanning several groups merge ; a
+/// definition in a singleton component without self-reference dissolves into a
+/// plain expression ; dead definitions (never projected) are dropped. Definitions
+/// inside a component are ordered by canonicalTreeLess and the result goes through
+/// the deBruijn round trip : recursions that BECOME alpha-equivalent under the
+/// finer grouping unify into the same pointer -- splitting is what makes the
+/// maximal sharing of recursive trees reachable. Input must be closed ; the
+/// traversal recurses to the depth of the term.
+TLIB_API Tree normalizeRecGroups(Tree root);
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);
 std::string   toDeBruijnString(Tree t);
