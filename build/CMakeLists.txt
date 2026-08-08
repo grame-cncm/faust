@@ -43,6 +43,51 @@ option ( INCLUDE_WASMTIME    "Compile with wasmtime support" off)
 option ( SELF_CONTAINED_LIBRARY    "Don't search system architecture files." off)
 option ( LINK_LLVM_STATIC          "Link LLVM statically" on )
 option ( INCLUDE_LLVM_STATIC_IN_ARCHIVE "Combine static LLVM .a files and libfaust.a in a single .a file" on )
+option ( USE_MIMALLOC              "Use mimalloc as the standalone compiler's allocator" on )
+
+#######################################
+# mimalloc: the standalone 'faust' executable's allocator.
+#
+# Linked as a SHARED library ('mimalloc', not 'mimalloc-static'), on purpose:
+# static linking crashed 'faust' 100% of the time on macOS 12.7.6/arm64
+# (SIGSEGV or an abort on corrupted-heap detection, at a different site each
+# run -- real heap corruption, not a flaky one-off), with either mimalloc
+# v2.4.5 or v3.4.5, with MI_OSX_ZONE/MI_OSX_INTERPOSE both on or both off,
+# and with MallocNanoZone=0. mimalloc's own debug build
+# (-DMI_DEBUG_FULL=ON) confirmed the mechanism: repeated "mi_free: pointer
+# does not point to a valid heap space" during a single run, i.e. some
+# allocations happen via the system allocator before mimalloc's own
+# constructor takes over the process-wide zone/link bindings, and get freed
+# via mimalloc later once it has. That is a static-linking-specific hazard:
+# mimalloc's init constructor becomes part of 'faust's own object code and
+# has to race every other static initializer in a very large codebase for
+# who runs first, with no guaranteed winner. As a normal dynamic dependency
+# instead, dyld initializes it as part of loading 'faust's dependencies --
+# which is guaranteed to finish before 'faust's own static initializers
+# run -- and the race is gone by construction. Confirmed clean over repeated
+# runs of --version and of a real DX7-algorithm compile, both from the build
+# tree and from a relocated install (see the INSTALL_RPATH below).
+#
+# Scoped to the executable only, not staticlib/dynamiclib: those get linked
+# into a host process (a DAW, a plugin host...) that owns its own allocator,
+# and mimalloc's malloc/free override is process-wide once linked in --
+# hijacking a host's allocator from inside an embedded library would be a
+# surprise no embedder asked for. The compiler binary has no such host to
+# surprise.
+if (USE_MIMALLOC)
+    if (EXISTS ${ROOT}/external/mimalloc/CMakeLists.txt)
+        set (MI_BUILD_SHARED ON  CACHE BOOL "" FORCE)
+        set (MI_BUILD_STATIC OFF CACHE BOOL "" FORCE)
+        set (MI_BUILD_OBJECT OFF CACHE BOOL "" FORCE)
+        set (MI_BUILD_TESTS  OFF CACHE BOOL "" FORCE)
+        add_subdirectory (${ROOT}/external/mimalloc ${CMAKE_CURRENT_BINARY_DIR}/mimalloc EXCLUDE_FROM_ALL)
+    else()
+        message (STATUS "mimalloc submodule absent (external/mimalloc): run "
+                         "'git submodule update --init external/mimalloc', or configure with "
+                         "-DUSE_MIMALLOC=off to build against the system allocator")
+        set (USE_MIMALLOC off)
+    endif()
+endif()
 
 if (INCLUDE_WASMTIME)
     # WASMTIME_LIB / WASMTIME_INCLUDE_DIR let an embedder point at a prebuilt
@@ -244,6 +289,28 @@ if (INCLUDE_EXECUTABLE)
     endif()
     target_include_directories (faust PRIVATE ${FAUST_INC} ${LLVM_INCLUDE_DIRS})
     target_link_libraries (faust PRIVATE ${FAUST_LIBS} ${WASMTIME_LIB})
+    if (USE_MIMALLOC)
+        target_link_libraries (faust PRIVATE mimalloc)
+        target_compile_definitions (faust PRIVATE USE_MIMALLOC)
+        # 'faust' has otherwise never had a runtime dylib dependency (LLVM is
+        # linked statically, wasmtime is a static .a): CMake's default build-
+        # tree rpath finds libmimalloc fine while running in place, but an
+        # installed 'faust' needs an explicit, relocatable rpath or it cannot
+        # find it at all. Not meaningful on Windows (DLL search is PATH/same-
+        # directory based), so the dylib install + rpath below is Unix-only;
+        # a Windows package needs mimalloc.dll copied next to faust.exe
+        # instead, which nothing here does yet.
+        if (APPLE)
+            set_target_properties(faust PROPERTIES INSTALL_RPATH "@executable_path/../${LIBSDIR}")
+        elseif (UNIX)
+            set_target_properties(faust PROPERTIES INSTALL_RPATH "$ORIGIN/../${LIBSDIR}")
+        endif()
+        install (
+            TARGETS mimalloc
+            LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
+        )
+    endif()
     scan_backends (faust COMPILER)
     set_target_properties(faust PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
     set_target_properties(faust PROPERTIES COMPILE_FLAGS -DFAUST_EXE)
