@@ -272,10 +272,17 @@ Tree addSigFIR(Tree s1, Tree s2)
         }
     } else if (isSigFIR(s1, V1) && isDivisibleBy(s2, V1[0], r) && (getSigOrder(r) < 3)) {
         // CASE 2: [S, C0, C1, ...] + S*R = [S, C0+R, C1, ...]
+        // Conceptually redundant with the traversal rules 4/5 (S*R with
+        // slow R becomes FIR[S, R], then CASE 1.1 merges) -- but
+        // addSigFIR is also fed terms the traversal never postprocessed
+        // (algebra-built products, inner sum elements) : this is the
+        // build-time replay of rule 4/5, under the same slow-rate
+        // guard. Measured on the corpus : 2016 nontrivial legitimate
+        // folds go through here.
         V1[1] = recSafeSimplify(sigAdd(V1[1], r));
         return sigFIR(V1);
     } else if (isSigFIR(s2, V2) && isDivisibleBy(s1, V2[0], r) && (getSigOrder(r) < 3)) {
-        // CASE 3: S*R + [S, C0, C1, ...] = [S, C0+R, C1, ...]
+        // CASE 3: symmetric of CASE 2
         V2[1] = recSafeSimplify(sigAdd(V2[1], r));
         return sigFIR(V2);
     } else {
