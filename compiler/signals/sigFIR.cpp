@@ -270,11 +270,11 @@ Tree addSigFIR(Tree s1, Tree s2)
             // Two uncompatible FIRs
             return sigAdd(s1, s2);
         }
-    } else if (isSigFIR(s1, V1) && isDivisibleBy(s2, V1[0], r)) {
+    } else if (isSigFIR(s1, V1) && isDivisibleBy(s2, V1[0], r) && (getSigOrder(r) < 3)) {
         // CASE 2: [S, C0, C1, ...] + S*R = [S, C0+R, C1, ...]
         V1[1] = recSafeSimplify(sigAdd(V1[1], r));
         return sigFIR(V1);
-    } else if (isSigFIR(s2, V2) && isDivisibleBy(s1, V2[0], r)) {
+    } else if (isSigFIR(s2, V2) && isDivisibleBy(s1, V2[0], r) && (getSigOrder(r) < 3)) {
         // CASE 3: S*R + [S, C0, C1, ...] = [S, C0+R, C1, ...]
         V2[1] = recSafeSimplify(sigAdd(V2[1], r));
         return sigFIR(V2);
@@ -329,11 +329,11 @@ Tree TryAddSigFIR(Tree s1, Tree s2)
             // Two uncompatible FIRs
             return ::nil();
         }
-    } else if (isSigFIR(s1, V1) && isDivisibleBy(s2, V1[0], r)) {
+    } else if (isSigFIR(s1, V1) && isDivisibleBy(s2, V1[0], r) && (getSigOrder(r) < 3)) {
         // CASE 2: [S, C0, C1, ...] + S*R = [S, C0+R, C1, ...]
         V1[1] = recSafeSimplify(sigAdd(V1[1], r));
         return sigFIR(V1);
-    } else if (isSigFIR(s2, V2) && isDivisibleBy(s1, V2[0], r)) {
+    } else if (isSigFIR(s2, V2) && isDivisibleBy(s1, V2[0], r) && (getSigOrder(r) < 3)) {
         // CASE 3: S*R + [S, C0, C1, ...] = [S, C0+R, C1, ...]
         V2[1] = recSafeSimplify(sigAdd(V2[1], r));
         return sigFIR(V2);

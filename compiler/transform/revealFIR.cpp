@@ -200,7 +200,7 @@ Tree FIRRevealer::postprocess(Tree sig)
         return divSigFIR(f, c);
     }
 
-    if (Tree f, c; isSigDiv(sig, f, c) && isSigFIR(f)) {
+    if (Tree f, c; isSigDiv(sig, f, c) && isSigFIR(f) && (getSigOrder(c) < 3)) {
         // std::cerr << "Rule 17\n";
         return divSigFIR(f, c);
     }
@@ -414,7 +414,7 @@ Tree FIRRevealer::postprocess(Tree sig)
         return divSigFIR(f, c);
     }
 
-    if (Tree f, c; isSigDiv(sig, f, c) && isSigFIR(f)) {
+    if (Tree f, c; isSigDiv(sig, f, c) && isSigFIR(f) && (getSigOrder(c) < 3)) {
         return divSigFIR(f, c);
     }
 
