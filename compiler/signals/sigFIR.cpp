@@ -694,7 +694,7 @@ Tree simplifyFIR(Tree sig)
  */
 static std::pair<Tree, Tree> splitMulSig(Tree sig)
 {
-    if (getSigOrder(sig) < 3) {
+    if (!sigs::isAudioRate(sig)) {
         // sig is already a pure coef
         return {sig, sigInt(1)};
     }
@@ -752,8 +752,8 @@ void combine(std::map<Tree, Tree>& M, bool subflag, Tree sig)
         return;
     }
 
-    if (getSigOrder(sig) == 3) {
-        // sig is a signal with order 3, we split it into a coef and a signal
+    if (sigs::isAudioRate(sig)) {
+        // sig is audio rate : split it into a slow coef and a signal
         auto [coef, key] = splitMulSig(sig);
         tvec coefs       = {key, coef};
         Tree fir         = sigFIR(coefs);
