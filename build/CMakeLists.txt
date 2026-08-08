@@ -81,6 +81,18 @@ if (USE_MIMALLOC)
         set (MI_BUILD_OBJECT OFF CACHE BOOL "" FORCE)
         set (MI_BUILD_TESTS  OFF CACHE BOOL "" FORCE)
         add_subdirectory (${ROOT}/external/mimalloc ${CMAKE_CURRENT_BINARY_DIR}/mimalloc EXCLUDE_FROM_ALL)
+        # Without this, the shared lib lands in its default CMake binary dir
+        # (build/faustdir/mimalloc/), not build/lib/ where 'faust' looks for
+        # it via rpath and where CI packages build/bin/ + build/lib/ as the
+        # artifact with no 'make install' step -- so a plain `make` produced
+        # a 'faust' that ran fine locally (same build tree) but broke the
+        # moment it was unpacked anywhere else: "error while loading shared
+        # libraries: libmimalloc.so.2: cannot open shared object file".
+        # RUNTIME_OUTPUT_DIRECTORY covers the Windows case (a DLL is a
+        # RUNTIME artifact there, not a LIBRARY one).
+        set_target_properties(mimalloc PROPERTIES
+            LIBRARY_OUTPUT_DIRECTORY ${LIBDIR}
+            RUNTIME_OUTPUT_DIRECTORY ${LIBDIR})
     else()
         message (STATUS "mimalloc submodule absent (external/mimalloc): run "
                          "'git submodule update --init external/mimalloc', or configure with "
@@ -305,6 +317,14 @@ if (INCLUDE_EXECUTABLE)
         elseif (UNIX)
             set_target_properties(faust PROPERTIES INSTALL_RPATH "$ORIGIN/../${LIBSDIR}")
         endif()
+        # CMake's default *build*-tree rpath is an absolute path into this
+        # checkout (verified: '/abs/path/to/build/lib'), which only works by
+        # accident when a CI job happens to reuse the exact same absolute
+        # checkout path across jobs. BUILD_WITH_INSTALL_RPATH makes the
+        # build-tree binary use the *relative* INSTALL_RPATH above instead --
+        # correct unconditionally, since build/bin/ and build/lib/ already
+        # sit in the same layout an install does.
+        set_target_properties(faust PROPERTIES BUILD_WITH_INSTALL_RPATH ON)
         install (
             TARGETS mimalloc
             LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
