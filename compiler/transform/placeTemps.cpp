@@ -89,6 +89,28 @@ static bool isStageable(Tree t)
     if (isSigTemp(t, x) || isSigOutput(t, &i, x)) {
         return false;
     }
+    // STRUCTURAL nodes : their consumers pattern-match them bare (a table
+    // argument of RDTbl, a generator, a soundfile head, a waveform) and
+    // the UI traversals must meet the widgets unwrapped. A barrier here
+    // would hide them behind temp() and break the matchers.
+    {
+        Tree size, gen, wi, ws, sf, lbl, cur, mn, mx, st;
+        if (isSigWRTbl(t, size, gen) || isSigWRTbl(t, size, gen, wi, ws) || isSigGen(t, x) ||
+            isSigWaveform(t)) {
+            return false;
+        }
+        if (isSigSoundfile(t, lbl) || isSigSoundfileLength(t, sf, x) ||
+            isSigSoundfileRate(t, sf, x)) {
+            return false;
+        }
+        if (isSigButton(t, lbl) || isSigCheckbox(t, lbl) ||
+            isSigHSlider(t, lbl, cur, mn, mx, st) || isSigVSlider(t, lbl, cur, mn, mx, st) ||
+            isSigNumEntry(t, lbl, cur, mn, mx, st) || isSigHBargraph(t, lbl, mn, mx, x) ||
+            isSigVBargraph(t, lbl, mn, mx, x) || isSigAttach(t, x, cur) ||
+            isSigEnable(t, x, cur) || isSigControl(t, x, cur)) {
+            return false;
+        }
+    }
     return true;
 }
 
