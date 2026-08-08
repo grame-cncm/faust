@@ -296,6 +296,8 @@ struct global {
                           // definition: the recursion and its state disappear)
     int  gEtaIterations;  // -etai option, iteration budget of the normalization loop (default 1;
                           // the AC judge may stop earlier)
+    bool gEtaRegroup;     // -etar option, re-partition the letrecs along the projection SCCs
+                          // inside the normalization loop (implies -eta)
     bool gCanonicalOrder;  // -co option, value-derived (history-independent) order for the terms
                            // of normalized sums and products; default false = serial order (the
                            // historical, construction-driven order). Orthogonal to -eta.

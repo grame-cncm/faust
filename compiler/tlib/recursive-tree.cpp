@@ -1261,7 +1261,7 @@ static bool defReachesSelf(Tree def, Tree self)
     return false;
 }
 
-Tree normalizeRecGroups(Tree root)
+Tree normalizeRecGroups(Tree root, bool canonical)
 {
     // ---- discovery : live projections and their dependency edges. Each
     // definition is walked once with a PER-WALK seen set : a subtree shared
@@ -1395,6 +1395,9 @@ Tree normalizeRecGroups(Tree root)
 
     Tree rebuilt = build(root);
 
+    if (!canonical) {
+        return rebuilt;  // the caller's own round trip will unify
+    }
     // ---- unification : the deBruijn round trip gives the canonical symbolic
     // form -- recursions made alpha-equivalent by the finer grouping become
     // pointer-equal, and the fresh variable names above are erased

@@ -574,8 +574,10 @@ TLIB_API Tree canonicalizeRecNames(Tree root);
 /// the deBruijn round trip : recursions that BECOME alpha-equivalent under the
 /// finer grouping unify into the same pointer -- splitting is what makes the
 /// maximal sharing of recursive trees reachable. Input must be closed ; the
-/// traversal recurses to the depth of the term.
-TLIB_API Tree normalizeRecGroups(Tree root);
+/// traversal recurses to the depth of the term. With canonical=false the final
+/// round trip is skipped -- for callers already inside a canonicalization loop
+/// whose own round trip will unify (fresh variable names are then left as is).
+TLIB_API Tree normalizeRecGroups(Tree root, bool canonical = true);
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);
 std::string   toDeBruijnString(Tree t);

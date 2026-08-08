@@ -438,6 +438,7 @@ void global::reset()
     gRangeUI        = false;
     gFreezeUI       = false;
     gEtaHarvest     = false;
+    gEtaRegroup     = false;
     gEtaIterations  = 1;
     gCanonicalOrder = false;
     gLoopSplit      = false;
@@ -800,6 +801,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gRangeUI) {
         dst << "-rui ";
+    }
+    if (gEtaRegroup) {
+        dst << "-etar ";
     }
     if (gEtaHarvest) {
         dst << "-etai " << gEtaIterations << " ";
@@ -1583,6 +1587,11 @@ bool global::processCmdline(int argc, const char* argv[])
             gEtaHarvest    = true;
             gEtaIterations = std::atoi(argv[i + 1]);
             i += 2;
+
+        } else if (isCmd(argv[i], "-etar", "--eta-regroup")) {
+            gEtaHarvest = true;
+            gEtaRegroup = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-co", "--canonical-order")) {
             gCanonicalOrder = true;

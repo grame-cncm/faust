@@ -266,6 +266,17 @@ static Tree normalizeFixpoint(Tree L)
         typeAnnotation(L, gGlobal->gLocalCausalityCheck);
         L = newConstantPropagation(L);
         L = simplify(L);
+        if (gGlobal->gEtaRegroup) {
+            // -etar : complete the loop's two half-measures -- the merge (this
+            // loop's deBruijn round trip) and the dissolution (the eta harvest
+            // below) -- into the full re-partition of the letrecs along the
+            // projection SCCs. The loop's own round trip canonicalizes at the
+            // next iteration : no final trip here (canonical=false). The
+            // simplifications of THIS iteration may have disentangled groups ;
+            // the regroup of this iteration exposes new simplifications to the
+            // next one -- the AC judge stops at their joint fixpoint.
+            L = normalizeRecGroups(L, false);
+        }
         // the eta rule: harvest the definitions the simplifications made invariant
         Tree Lh = degroupInvariants(L);
         if (Lh != L) {
