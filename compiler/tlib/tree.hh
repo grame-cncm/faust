@@ -240,11 +240,11 @@ class TLIB_API CTree : public Garbageable {
     //
     // The 8 bits are PARTITIONED : the low nibble belongs to tlib (rules decidable from
     // the node alone, inside recursive-tree.cpp) ; the high nibble belongs to the
-    // consumer, stamped through the user-kinds hook below and completely opaque to tlib.
+    // consumer, read from the head symbol's kind byte and completely opaque to tlib.
     enum : unsigned int {
         kContainsRec = 1u << 0,  ///< a recursive node (SYMREC, DEBRUIJN or DEBRUIJNREF) occurs
         kTlibKinds   = 0x0Fu,    ///< bits reserved for tlib's own rules
-        kUserKinds   = 0xF0u,    ///< bits reserved for the consumer (user-kinds hook)
+        kUserKinds   = 0xF0u,    ///< bits reserved for the consumer (symbol kind byte)
     };
 
     // Consumer bits are DATA, not code : each interned symbol carries an opaque kind
