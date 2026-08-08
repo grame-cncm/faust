@@ -3511,6 +3511,21 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         return generateVariableStore(sig, exp);
 
     } else if (sharing == 1) {
+        // -stage <K> : a DEEP single-use expression gains a temporary too.
+        // Two motivations, one mechanism : (1) in one-sample recursive
+        // loops, staged temps let the C compiler interleave independent
+        // work inside the latency shadow of the recurrence chain, where a
+        // mega-expression tends to be emitted as one contiguous block
+        // (measured x1.3-1.46 on the oberheim/korg35 family after the
+        // letrec dissolution removed the projection boundaries that used
+        // to stage them accidentally) ; (2) named stages are schedulable
+        // units for the intra-loop model -- a mega-expression is opaque
+        // to it. The size proxy is free : this emitter parenthesizes
+        // every operation, so counting '(' counts operations.
+        if (gGlobal->gStagingOps > 0 &&
+            std::count(exp.begin(), exp.end(), '(') >= gGlobal->gStagingOps) {
+            return generateVariableStore(sig, exp);
+        }
         return exp;
 
     } else {

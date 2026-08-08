@@ -439,6 +439,7 @@ void global::reset()
     gFreezeUI       = false;
     gEtaHarvest     = false;
     gEtaRegroup     = false;
+    gStagingOps     = 0;
     gEtaIterations  = 1;
     gCanonicalOrder = false;
     gLoopSplit      = false;
@@ -804,6 +805,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gEtaRegroup) {
         dst << "-etar ";
+    }
+    if (gStagingOps > 0) {
+        dst << "-stage " << gStagingOps << " ";
     }
     if (gEtaHarvest) {
         dst << "-etai " << gEtaIterations << " ";
@@ -1592,6 +1596,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gEtaHarvest = true;
             gEtaRegroup = true;
             i += 1;
+
+        } else if (isCmd(argv[i], "-stage", "--staging-threshold")) {
+            gStagingOps = std::atoi(argv[i + 1]);
+            i += 2;
 
         } else if (isCmd(argv[i], "-co", "--canonical-order")) {
             gCanonicalOrder = true;

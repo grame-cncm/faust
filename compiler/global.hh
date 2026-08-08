@@ -298,6 +298,8 @@ struct global {
                           // the AC judge may stop earlier)
     bool gEtaRegroup;     // -etar option, re-partition the letrecs along the projection SCCs
                           // inside the normalization loop (implies -eta)
+    int  gStagingOps;     // -stage <n> option, ocpp emission : a single-use expression of n
+                          // operations or more gains a temporary (0 = inline whatever the size)
     bool gCanonicalOrder;  // -co option, value-derived (history-independent) order for the terms
                            // of normalized sums and products; default false = serial order (the
                            // historical, construction-driven order). Orthogonal to -eta.
