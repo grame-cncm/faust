@@ -201,6 +201,16 @@ static int countRecGroups(Tree t)
 
 static Tree normalizeFixpoint(Tree L)
 {
+    if (gGlobal->gEtaRegroup) {
+        // -etar pre-pass, BEFORE the first deBruijn conversion : a knot
+        // fragmented over separate scalar groups converts by MUTUAL
+        // INLINING (exponential on deep chains -- jprev, 103 groups for a
+        // 90-projection knot, never finished) ; regrouped into one n-ary
+        // letrec it converts positionally. The regroup does not only feed
+        // the loop, it repairs the loop's own pathological entry.
+        L = normalizeRecGroups(L, false);
+        typeAnnotation(L, gGlobal->gLocalCausalityCheck);
+    }
     const int groupsBefore = countRecGroups(L);
     Tree      prev         = nullptr;
     int       iter         = 0;
