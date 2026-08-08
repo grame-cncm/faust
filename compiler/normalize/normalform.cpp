@@ -201,16 +201,12 @@ static int countRecGroups(Tree t)
 
 static Tree normalizeFixpoint(Tree L)
 {
-    if (gGlobal->gEtaRegroup) {
-        // -etar pre-pass, BEFORE the first deBruijn conversion : a knot
-        // fragmented over separate scalar groups converts by MUTUAL
-        // INLINING (exponential on deep chains -- jprev, 103 groups for a
-        // 90-projection knot, never finished) ; regrouped into one n-ary
-        // letrec it converts positionally. The regroup does not only feed
-        // the loop, it repairs the loop's own pathological entry.
-        L = normalizeRecGroups(L, false);
-        typeAnnotation(L, gGlobal->gLocalCausalityCheck);
-    }
+    // (-etar : the input arrives already normalized -- the entry pass of
+    // simplifyToNormalFormAux runs at the birth of the symbolic form, which
+    // also protects the sym2deBruijn below from the exponential mutual
+    // inlining of fragmented knots, jprev's old pathology. The in-loop
+    // regroup below remains : each iteration's simplifications may
+    // disentangle groups again.)
     const int groupsBefore = countRecGroups(L);
     Tree      prev         = nullptr;
     int       iter         = 0;
@@ -413,6 +409,18 @@ static Tree simplifyToNormalFormAux(Tree LS)
     startTiming("deBruijn2Sym");
     Tree L1 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
+
+    if (gGlobal->gEtaRegroup) {
+        // -etar : normalize the recursive structure AT THE BIRTH of the
+        // symbolic form -- every downstream stage (simplifications, typing,
+        // the eta loop) sees minimal groups. canonical=true here : we just
+        // received content-derived names and owe the same downstream ; the
+        // internal round trip runs on the flattened structure (positional,
+        // cheap).
+        startTiming("normalizeRecGroups");
+        L1 = normalizeRecGroups(L1);
+        endTiming("normalizeRecGroups");
+    }
 /*
     // PROBE: cost of the symbolic -> deBruijn -> symbolic round-trip on the
     // recursive-group representation (scalarization abandoned: n-ary groups
