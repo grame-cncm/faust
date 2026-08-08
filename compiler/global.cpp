@@ -440,6 +440,7 @@ void global::reset()
     gEtaHarvest     = false;
     gEtaRegroup     = false;
     gStagingOps     = 0;
+    gTempOps        = 0;
     gEtaIterations  = 1;
     gCanonicalOrder = false;
     gLoopSplit      = false;
@@ -808,6 +809,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gStagingOps > 0) {
         dst << "-stage " << gStagingOps << " ";
+    }
+    if (gTempOps > 0) {
+        dst << "-temp " << gTempOps << " ";
     }
     if (gEtaHarvest) {
         dst << "-etai " << gEtaIterations << " ";
@@ -1599,6 +1603,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-stage", "--staging-threshold")) {
             gStagingOps = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-temp", "--temp-threshold")) {
+            gTempOps = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-co", "--canonical-order")) {

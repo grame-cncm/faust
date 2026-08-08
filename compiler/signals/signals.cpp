@@ -1070,6 +1070,25 @@ SIGS_API bool isSigFIR(Tree s)
     return isTree(s, sigs::g.SIGFIR);
 }
 
+// temp(x) : a staging barrier -- semantically the identity, compiled by
+// materializing x into a named temporary (see placeTemps.cpp for the
+// placement policy). Two temp(x) of the same x are the same hash-consed
+// node : one variable, several reads.
+SIGS_API Tree sigTemp(Tree x)
+{
+    return tree(sigs::g.SIGTEMP, x);
+}
+
+SIGS_API bool isSigTemp(Tree s, Tree& x)
+{
+    return isTree(s, sigs::g.SIGTEMP, x);
+}
+
+SIGS_API bool isSigTemp(Tree s)
+{
+    return isTree(s, sigs::g.SIGTEMP);
+}
+
 SIGS_API bool isSigFIR(Tree s, Tree c0)
 {
     return isTree(s, sigs::g.SIGFIR) && (s->branch(0) == c0);

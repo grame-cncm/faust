@@ -104,6 +104,7 @@ void initSignalSymbols()
     g.SIGFIR             = signal_signature.add("SigFIR", kAudioRate);
     g.SIGIIR             = signal_signature.add("SigIIR", kAudioRate);
     g.SIGSUM             = signal_signature.add("SigSum");
+    g.SIGTEMP            = signal_signature.add("SigTemp");
 
     // The session's initial algebra: its dispatch signature was just interned,
     // and dies with the tlib session -- rebuild it here, on both init paths

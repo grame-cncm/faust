@@ -269,6 +269,10 @@ static int inferSigOrder(Tree sig)
     }
 
     
+    else if (Tree tx; isSigTemp(sig, tx)) {
+        return O(tx);  // temp(x) = x
+    }
+
     // FIR and IIR (port : signal-level filter kernels)
     else if (isSigFIR(sig)) {
         return 3;

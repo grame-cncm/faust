@@ -241,6 +241,10 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     }
 
     else {
+        if (Tree tx; isSigTemp(sig, tx)) {
+            vsigs.push_back(tx);
+            return 1;
+        }
         cerr << "ASSERT : getSubSignals unrecognized signal : " << *sig << endl;
         TLIB_ASSERT(false);
     }

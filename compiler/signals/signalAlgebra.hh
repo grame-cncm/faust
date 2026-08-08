@@ -348,6 +348,10 @@ V SignalDispatch<V>::combine(Tree sig, const std::vector<V>& c,
             case sigs::SignalOpcode::Iir:
                 return unreachable("IIR typing pending (stage 2: clock-free recognition)");
 
+            // temp(x) = x : a staging barrier for the emitter, transparent
+            // to every interpretation (types, intervals, attributes)
+            case sigs::SignalOpcode::Temp:
+                return c[0];
             case sigs::SignalOpcode::Sum: {
                 V acc = c[0];
                 for (size_t k = 1; k < c.size(); k++) {

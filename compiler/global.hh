@@ -300,6 +300,9 @@ struct global {
                           // inside the normalization loop (implies -eta)
     int  gStagingOps;     // -stage <n> option, ocpp emission : a single-use expression of n
                           // operations or more gains a temporary (0 = inline whatever the size)
+    int  gTempOps;        // -temp <n> option, structural staging : sigTemp barriers placed at
+                          // normalization on single-use expressions of n operations or more
+                          // (1 = every operation, the SSA form ; 0 = off)
     bool gCanonicalOrder;  // -co option, value-derived (history-independent) order for the terms
                            // of normalized sums and products; default false = serial order (the
                            // historical, construction-driven order). Orthogonal to -eta.

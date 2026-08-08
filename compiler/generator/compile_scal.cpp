@@ -57,6 +57,7 @@
 #include "revealIIR.hh"
 #include <pthread.h>
 
+#include "placeTemps.hh"
 #include "revealSum.hh"
 #include "sigorderrules.hh"
 #include "sigtype.hh"
@@ -503,6 +504,21 @@ Tree ScalarCompiler::prepare(Tree LS)
         // semantic delay floor: needs the intervals just computed, rebuilds
         // trees, so the annotations are redone in the same order as above
         L2 = applyDelayFloor(L2, gGlobal->gMinDelay);
+        conditionAnnotation(L2);
+        recursivnessAnnotation(L2);
+        typeAnnotation(L2, true);
+    }
+
+    if (gGlobal->gTempOps > 0) {
+        // -temp <K> : the staging transformation -- deep single-use
+        // expressions gain a sigTemp barrier (K=1 : every operation, the
+        // SSA form). Placed AFTER the normal form (temp is opaque to the
+        // rewrite rules) and BEFORE sharing/occurrences, which count the
+        // barriers like any node. Annotations are redone : the placement
+        // rebuilds trees.
+        startTiming("placeTemps");
+        L2 = placeTemps(L2, gGlobal->gTempOps);
+        endTiming("placeTemps");
         conditionAnnotation(L2);
         recursivnessAnnotation(L2);
         typeAnnotation(L2, true);
@@ -3248,7 +3264,12 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateOutput(sig, T(i), CS(x));
     }
 
-    else if (isSigDelay(sig, x, y)) {
+    else if (isSigTemp(sig, x)) {
+        // the staging barrier : compile x, then FORCE its materialization
+        // into a named temporary whatever its sharing count (see
+        // placeTemps.cpp for who decides where the barriers go)
+        return forceCacheCode(sig, CS(x));
+    } else if (isSigDelay(sig, x, y)) {
         return generateDelayAccess(sig, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
