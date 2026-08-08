@@ -42,8 +42,11 @@ class Tarjan {
     const digraph<N>       fGraph;
     int                    fGroup = 0;
     std::stack<N>          fStack;
-    std::map<N, tarjanAux> fAux;
-    std::set<std::set<N>>  fPartition;
+    std::map<N, tarjanAux, dgorder<N>> fAux;
+    // Components in COMPLETION order (deterministic given the graph's
+    // dgorder iteration ; also reverse-topological, like Tarjan yields) --
+    // a set of sets would re-order them by element addresses.
+    std::vector<std::set<N, dgorder<N>>> fPartition;
     int                    fCycleCount = 0;
 
     // visit a specific node n of the graph
@@ -78,7 +81,7 @@ class Tarjan {
         if (x.fNum1 == x.fNum2) {
             // std::cout << "the node " << v << " is the root of a cycle" << '\n';
 
-            std::set<N> cycle;
+            std::set<N, dgorder<N>> cycle;
             bool        finished = false;
             do {
                 N w = fStack.top();
@@ -87,7 +90,7 @@ class Tarjan {
                 cycle.insert(w);
                 finished = (w == v);
             } while (!finished);
-            fPartition.insert(cycle);
+            fPartition.push_back(cycle);
             if ((cycle.size() > 1) || fGraph.areConnected(v, v)) {
                 fCycleCount++;
             }
@@ -108,8 +111,11 @@ class Tarjan {
     // Returns a REFERENCE into this Tarjan. The deleted rvalue overload rejects
     // 'Tarjan<N>(g).partition()' at compile time -- that reference would dangle as soon
     // as the temporary Tarjan dies. Name the Tarjan first.
-    [[nodiscard]] const std::set<std::set<N>>& partition() const& { return fPartition; }
-    const std::set<std::set<N>>&               partition() const&& = delete;
+    [[nodiscard]] const std::vector<std::set<N, dgorder<N>>>& partition() const&
+    {
+        return fPartition;
+    }
+    const std::vector<std::set<N, dgorder<N>>>& partition() const&& = delete;
 
     [[nodiscard]] int cycles() const { return fCycleCount; }
 };
@@ -141,7 +147,7 @@ template <typename N>
 inline digraph<digraph<N>> graph2dag(const digraph<N>& g)
 {
     Tarjan<N>               T(g);  // the partition of g
-    std::map<N, digraph<N>> M;     // std::mapping between nodes and supernodes
+    std::map<N, digraph<N>, dgorder<N>> M;     // std::mapping between nodes and supernodes
     digraph<digraph<N>>     sg;    // the resulting supergraph
 
     // build the graph of supernodes
@@ -191,7 +197,7 @@ template <typename N>
 inline digraph<digraph<N>> graph2dag2(const digraph<N>& g)
 {
     Tarjan<N>               T(g);  // the partition of g
-    std::map<N, digraph<N>> M;     // std::mapping between nodes and supernodes
+    std::map<N, digraph<N>, dgorder<N>> M;     // std::mapping between nodes and supernodes
     digraph<digraph<N>>     sg;    // the resulting supergraph
     std::map<std::pair<digraph<N>, digraph<N>>, int>
         CC;  // count of destinations between supernodes

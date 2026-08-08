@@ -38,7 +38,7 @@ template <typename N>
 class schedule {
    private:
     std::vector<N>   fElements;  // ordered set of elements
-    std::map<N, int> fOrder;  // order of each element (starting at 1, 0 indicates not in schedule)
+    std::map<N, int, dgorder<N>> fOrder;  // order of each element (starting at 1, 0 indicates not in schedule)
 
    public:
     // number of elements in the schedule
@@ -120,7 +120,7 @@ template <typename N>
 inline schedule<N> dfschedule(const digraph<N>& G)
 {
     schedule<N> S;
-    std::set<N> V;  // set of visited nodes
+    std::set<N, dgorder<N>> V;  // set of visited nodes
 
     // Iterative deep-first visit: an explicit two-phase stack -- an unexpanded
     // entry pushes its destinations (reversed, so they are explored in order), an
@@ -185,7 +185,7 @@ inline schedule<N> bfschedule(const digraph<N>& G)
 template <typename N>
 inline schedule<N> spschedule(const digraph<N>& G)
 {
-    std::set<N> V;  // already scheduled nodes
+    std::set<N, dgorder<N>> V;  // already scheduled nodes
     schedule<N> S;  // the final schedule
 
     std::list<N> L = recschedule(G);  // schedule list with duplicated
@@ -306,7 +306,7 @@ inline schedule<N> mcschedule(const digraph<N>& G, unsigned int R, unsigned int 
 
     // critical height : 1 + max over consumers, computed consumers-first
     // (backward on the anchor, whose operands precede their consumers)
-    std::map<N, int> height;
+    std::map<N, int, dgorder<N>> height;
     for (auto it = order.rbegin(); it != order.rend(); ++it) {
         int h = 1;
         for (const auto& c : Rg.destinations(*it)) {
@@ -318,13 +318,13 @@ inline schedule<N> mcschedule(const digraph<N>& G, unsigned int R, unsigned int 
         height[*it] = h;
     }
 
-    std::map<N, int> pending;  // remaining unscheduled consumers
+    std::map<N, int, dgorder<N>> pending;  // remaining unscheduled consumers
     for (const N& n : order) {
         pending[n] = int(Rg.destinations(n).size());
     }
 
     schedule<N>  S;
-    std::set<N>  done;  // issued in a COMPLETED cycle (usable as operand)
+    std::set<N, dgorder<N>>  done;  // issued in a COMPLETED cycle (usable as operand)
     unsigned int live = 0;
 
     auto ready = [&](const N& n) {
@@ -483,7 +483,7 @@ inline schedquality squality(const digraph<N>& G, const std::vector<N>& S, unsig
 {
     schedquality q;
     digraph<N>   Rg = reverse(G);
-    std::map<N, int> cyc, pending;
+    std::map<N, int, dgorder<N>> cyc, pending;
     for (const N& n : S) {
         pending[n] = int(Rg.destinations(n).size());
     }
@@ -573,7 +573,7 @@ inline schedquality squality(const digraph<N>& G, const std::vector<N>& S, unsig
     }
     // one longest chain, walked back through maximal-depth operands
     {
-        std::map<N, int> pos, depth;
+        std::map<N, int, dgorder<N>> pos, depth;
         for (size_t i = 0; i < S.size(); i++) {
             pos[S[i]] = int(i);
         }
@@ -658,7 +658,7 @@ inline std::vector<N> dpcombine(const digraph<N>& G, const digraph<N>& Rg, std::
         cat.insert(cat.end(), B.begin(), B.end());
         return cat;
     }
-    std::map<N, int> pA, pB;
+    std::map<N, int, dgorder<N>> pA, pB;
     for (int i = 0; i < na; i++) {
         pA[A[i]] = i;
     }
@@ -667,7 +667,7 @@ inline std::vector<N> dpcombine(const digraph<N>& G, const digraph<N>& Rg, std::
     }
     // global usage counts, and the positions of each value's consumers
     // inside A and inside B (for exact prefix-consumption counting)
-    std::map<N, int>              usage;
+    std::map<N, int, dgorder<N>>              usage;
     std::map<N, std::vector<int>> consA, consB;
     auto note = [&](const N& x) {
         if (usage.count(x)) {

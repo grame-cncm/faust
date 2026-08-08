@@ -124,6 +124,16 @@ struct treeorder {
     bool operator()(const CTree* lhs, const CTree* rhs) const;
 };
 
+// DirectedGraph's deterministic-order customization point (dgorder, see
+// DirectedGraph.hh) resolves to the serial order for trees : every
+// digraph<Tree>, and every algorithm iterating one, orders its nodes by
+// creation serial -- never by allocation address. This is what makes the
+// schedules derived from signal graphs run-to-run deterministic.
+template <typename N>
+struct dgorder;
+template <>
+struct dgorder<CTree*> : treeorder {};
+
 // Ordered containers keyed by Tree: always use these (or spell the comparator explicitly);
 // a bare std::set<Tree>/std::map<Tree, V> would fall back to the address order and lose
 // compilation determinism.
