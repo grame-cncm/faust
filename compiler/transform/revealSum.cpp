@@ -2,16 +2,14 @@
 
 #include "global.hh"
 #include "revealSum.hh"
-#include "sigIdentity.hh"
+#include "rewrite.hh"
 #include "simplify.hh"
 
-#define TRACE false
-
-// simplify() exige des termes clos : pendant la descente du revelateur,
-// les sous-arbres d'un groupe recursif portent des references ouvertes
-// (ref sans rec rempli) que la machinerie de reecriture refuse
-// (rewrite.hh, body != nullptr). La garde derive du contrat : un terme
-// non rec-free reste tel quel -- la simplification est une optimisation.
+// simplify() exige des termes clos : pendant la reecriture, les sous-arbres
+// d'un groupe recursif portent des references ouvertes (ref sans rec rempli)
+// que la machinerie de reecriture refuse (rewrite.hh, body != nullptr). La
+// garde derive du contrat : un terme non rec-free reste tel quel -- la
+// simplification est une optimisation.
 static Tree recSafeSimplify(Tree t)
 {
     return t->isRecFree() ? simplify(t) : t;
@@ -45,30 +43,10 @@ static Tree ensureSum(Tree x, bool invertSecondTerm)
     return sigSum(invsubs);
 }
 
-// Transform a signal expression by revealing SUM structures
-
-class SumRevealer : public SignalIdentity {
-   protected:
-    Tree postprocess(Tree L);
-    Tree transformation(Tree L);
-};
-
-Tree SumRevealer::transformation(Tree sig)
-{
-    Tree var, le;
-    if (isRec(sig, var, le)) {
-        // rec protocol : ref() creates the (unique) virgin group, mapself
-        // runs with the open reference registered, ONE rec() closes it
-        Tree var2 = tree(unique("WS"));
-        Tree rec2 = ref(var2);
-        fResult.set(sig, rec2);
-        Tree l2 = mapself(le);
-        return rec(var2, l2);
-    }
-    return SignalIdentity::transformation(sig);
-}
-
-Tree SumRevealer::postprocess(Tree sig)
+// The local rule : adds and subs become n-ary SigSum nodes. Bottom-up on the
+// rebuilt node, per the generic tlib rewrite (rec renaming is the traversal's
+// business, not ours).
+static Tree sumRule(Tree sig)
 {
     Tree x, y;
     if (isSigAdd(sig, x, y)) {
@@ -98,7 +76,5 @@ Tree SumRevealer::postprocess(Tree sig)
 
 Tree revealSum(Tree L1)
 {
-    SumRevealer R;
-    R.trace(TRACE, "revealSUM");
-    return R.mapself(L1);
+    return treeRewrite(L1, sumRule);
 }

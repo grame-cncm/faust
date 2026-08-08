@@ -1,351 +1,259 @@
 #include "revealIIR.hh"
+
 #include <iostream>
-#include <set>
-#include <sstream>
-#include <string>
-#include <tuple>
-#include "ppsig.hh"
-#include "sigFIR.hh"
-#include "sigIIR.hh"
-#include "sigs-state.hh"
-#include "sigIdentity.hh"
-#include "signals.hh"
+#include <optional>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 #include "DirectedGraph.hh"
 #include "DirectedGraphAlgorythm.hh"
-#include "Schedule.hh"
-#include "sigRecursiveDependencies.hh"
 #include "global.hh"
-#include "simplify.hh"
-
-// simplify() exige des termes clos : pendant la descente du revelateur,
-// les sous-arbres d'un groupe recursif portent des references ouvertes
-// (ref sans rec rempli) que la machinerie de reecriture refuse
-// (rewrite.hh, body != nullptr). La garde derive du contrat : un terme
-// non rec-free reste tel quel -- la simplification est une optimisation.
-static Tree recSafeSimplify(Tree t)
-{
-    return t->isRecFree() ? simplify(t) : t;
-}
-
-
-// ---- port shims : this branch has no clock system. The source branch
-// wraps clocked signals in sigClocked and its reveal rules unwrap them ;
-// here the clocked patterns never match and wrappers are identities.
-static inline bool isSigClocked(Tree, Tree&, Tree&)
-{
-    return false;
-}
-static inline Tree sigClocked(Tree, Tree s)
-{
-    return s;
-}
-static inline bool hasClock(Tree, Tree&)
-{
-    return false;
-}
-
-
+#include "ppsig.hh"
+#include "rewrite.hh"
+#include "sigFIR.hh"
+#include "sigIIR.hh"
+#include "sigs-state.hh"
+#include "signals.hh"
 
 #define TRACE false
 
-#if 0
 //----------------------------------------------------------------------
-// IIR part
+// The projection SCC index -- the analysis-side plan, on the INPUT tree
 //----------------------------------------------------------------------
+//
+// The IIR question, for def(Wi) = x + FIR[Wi, 0, c1...] : does x reach Wi,
+// directly or through other definitions ? The key fact making it cheap :
+// every projection Rj met while walking x is a subterm of def(Wi), so the
+// edge Wi -> Rj exists by construction, and therefore
+//
+//     Rj reaches Wi  <=>  Rj and Wi are in the same SCC
+//
+// of the PROJECTION graph (nodes = projections, one edge p -> q whenever
+// def(p) contains q -- finer than the letrec groups : a multi-definition
+// group splits into its real components). So the SCCs, computed once per
+// pass by Tarjan, turn every reachability query into a tree walk of x where
+// projections are LEAVES answered by an SCC lookup -- no definition is ever
+// entered at query time : they were all entered exactly once, at graph
+// construction.
+//
+// The index is read-only and dies with the pass ; it never crosses to the
+// output tree (all candidacy questions are asked on the input side).
+class ProjSCCIndex {
+   private:
+    std::unordered_map<Tree, int> fScc;  // projection -> component id
 
-/**
- * @brief Transform a FIR on a rec variable and an input signal into an IIR
- *
- * @param fir: [W,c0,c1,...,cn]
- * @param input signal: x
- * @return IIR [W,x,c0,c1,...,cn]
- */
-static Tree makeIIR(Tree fir, Tree in)
-{
-    tvec coef1, coef2;
-    faustassert(isSigFIR(fir, coef1));
-    coef2.push_back(coef1[0]);
-    coef2.push_back(in);
-    for (unsigned int i = 1; i < coef1.size(); i++) {
-        coef2.push_back(coef1[i]);
-    }
-    Tree iir = sigIIR(coef2);
-    // std::cerr << "makeIIR1: " << *iir << "\n";
-    // std::cerr << "makeIIR2: " << ppsig(iir) << "\n";
-    return iir;
-}
+   public:
+    explicit ProjSCCIndex(Tree root)
+    {
+        // Discovery : all reachable projections and the edges p -> q.
+        // Each definition is walked once, with a PER-WALK seen set : a
+        // subtree shared between two definitions must contribute its
+        // projections as edges of BOTH (a global set would silently drop
+        // the second edge and under-connect the graph).
+        digraph<Tree>            g;
+        std::vector<Tree>        defQueue;
+        std::unordered_set<Tree> known;
 
-//-------------------------------------------------------------------------
-// Negate a signal: S -> -S
-static Tree sigNeg(Tree sig)
-{
-    return recSafeSimplify(sigMul(sigInt(-1), sig));
-}
+        auto walk = [&](Tree t0, Tree from) {
+            std::unordered_set<Tree> seen;
+            std::vector<Tree>        st{t0};
+            while (!st.empty()) {
+                Tree t = st.back();
+                st.pop_back();
+                if (!seen.insert(t).second) {
+                    continue;
+                }
+                int  p;
+                Tree rg, var, le;
+                if (isProj(t, &p, rg) && isRec(rg, var, le) && le) {
+                    // a projection is a LEAF of the walk : its definition
+                    // is walked on its own turn, never inline
+                    g.add(t);
+                    if (from) {
+                        g.add(from, t, 0);
+                    }
+                    if (known.insert(t).second) {
+                        defQueue.push_back(t);
+                    }
+                    continue;
+                }
+                for (int k = 0; k < t->arity(); k++) {
+                    st.push_back(t->branch(k));
+                }
+            }
+        };
 
-/**
- * @brief indicate if x and/or y are clocked and return the clock and the unclocked signals
- * Trig an exception if x and y have different clocks
- *
- * @param x a potentially clocked signal
- * @param y a potentially clocked signal
- * @return std::tuple<bool, Tree, Tree, Tree> = (clocked, clock, unclocked x, unclocked y)
- */
-static std::tuple<bool, Tree, Tree, Tree> unclock(Tree x, Tree y)
-{
-    Tree clock, clockx, x1, clocky, y1;
-    bool clockedx = false;
-    bool clockedy = false;
-    bool clocked  = false;
-
-    if (isSigClocked(x, clockx, x1)) {
-        clockedx = true;
-        clocked  = true;
-        clock    = clockx;
-    } else {
-        x1 = x;
-    }
-
-    if (isSigClocked(y, clocky, y1)) {
-        clockedy = true;
-        clocked  = true;
-        clock    = clocky;
-    } else {
-        y1 = y;
-    }
-
-    // if the two signals are clocked, they must be clocked by the same clock
-    if (clockedx & clockedy) {
-        faustassert(clockx == clocky);
-    }
-
-    return std::make_tuple(clocked, clock, x1, y1);
-}
-
-/**
- * @brief Check if a recursive projection is a FIR that can
- * be transformed into an IIR:
- *
- * def(Wi) = x + c1*Wi@1 + c2*Wi@2 + ...
- * def(Wi) = x + FIR[Wi, 0, c1, c2, ...]
- * IIR[nil, x, 0, c1, c2, ...]
- * (assuming, x doesn't depend on Wi)
- *
- * @param indentation
- * @param proj: proj(i,rec(var,le))
- * @return an IIR or nil
- */
-static Tree recdef2IIR(int indentation, Tree proj, Tree def)
-{
-    // std::cerr << std::string(indentation, '\t') << "proj2IIR: " << ppsig(def) << "\n";
-    if (Tree x, y; isSigAdd(def, x, y)) {
-        if (tvec cy; isSigFIR(y, cy) && !isDependingOn(x, proj)) {
-            if (Tree h, p; isSigClocked(cy[0], h, p) && p == proj) {
-                return makeIIR(y, sigClocked(h, x));
-            } else {
-                return gGlobal->nil;
+        walk(root, nullptr);
+        for (std::size_t i = 0; i < defQueue.size(); i++) {
+            Tree q = defQueue[i];
+            int  p;
+            Tree rg, var, le;
+            isProj(q, &p, rg);
+            isRec(rg, var, le);
+            if (le && !isNil(le)) {
+                walk(nth(le, p), q);
             }
         }
-        if (tvec cx; isSigFIR(x, cx) && !isDependingOn(y, proj)) {
-            if (Tree h, p; isSigClocked(cx[0], h, p) && p == proj) {
-                return makeIIR(x, sigClocked(h, y));
-            } else {
-                return gGlobal->nil;
+
+        Tarjan<Tree> tarjan(g);
+        int          id = 0;
+        for (const auto& comp : tarjan.partition()) {
+            for (Tree m : comp) {
+                fScc[m] = id;
+            }
+            id++;
+        }
+    }
+
+    /// does f reach sig ? Tree walk with projections as SCC-lookup leaves.
+    bool reaches(Tree f, Tree sig) const
+    {
+        auto itSig = fScc.find(sig);
+        TLIB_ASSERT(itSig != fScc.end());
+        std::unordered_set<Tree> seen;
+        std::vector<Tree>        st{f};
+        while (!st.empty()) {
+            Tree t = st.back();
+            st.pop_back();
+            if (t == sig) {
+                return true;
+            }
+            if (!seen.insert(t).second) {
+                continue;
+            }
+            int  p;
+            Tree rg;
+            if (isProj(t, &p, rg)) {
+                auto it = fScc.find(t);
+                if (it == fScc.end() || it->second == itSig->second) {
+                    return true;  // same component (or unknown : conservative)
+                }
+                continue;  // foreign component : opaque leaf, cannot come back
+            }
+            Tree var, le;
+            if (isRec(t, var, le)) {
+                return true;  // a bare rec group in expression position : conservative
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                st.push_back(t->branch(k));
             }
         }
-        return gGlobal->nil;
-    }
-
-    if (Tree x, y; isSigSub(def, x, y)) {
-        // We don't handle this case directly, we transform it into an addition
-        if (isSigFIR(y)) {
-            return recdef2IIR(indentation, proj, sigAdd(x, negSigFIR(y)));
-        }
-        if (isSigFIR(x)) {
-            return recdef2IIR(indentation, proj, sigAdd(x, sigNeg(y)));
-        }
-        return gGlobal->nil;
-    }
-
-    // the recursive definition can't be transformed into an IIR
-    return gGlobal->nil;
-}
-
-static Tree proj2IIR(int indentation, Tree proj)
-{
-    int  i;
-    Tree rg, var, le;
-
-    faustassert(isProj(proj, &i, rg));
-    faustassert(isRec(rg, var, le));
-    Tree def = nth(le, i);
-    return recdef2IIR(indentation, proj, def);
-}
-#endif
-//----------------------------------------------------------------------
-// IIRevealer : reveal IIR structures
-//----------------------------------------------------------------------
-
-// Exact reachability on the CLOSED input tree : does f reach sig,
-// descending recursive bodies, cycles cut by the seen-set. Group
-// granularity (a projection's group body covers all its definitions) :
-// a sound over-approximation of per-definition dependency. Used instead
-// of isDependingOn because sigDependencies caches, in its global table,
-// results truncated by the underVisit cycle guard -- on mutually
-// recursive definitions an entry of the cycle keeps an incomplete set
-// forever, and a candidacy accepted on that false independence re-enters
-// the projection in flight (infinite recursion, order-sensitive). The
-// open-body case cannot occur here (the input is fully closed) ; it is
-// kept as a conservative safety.
-static bool reachesConservative(Tree f, Tree sig, std::set<Tree>& seen)
-{
-    if (f == sig) {
-        return true;
-    }
-    if (!seen.insert(f).second) {
         return false;
     }
-    if (Tree var, body; isRec(f, var, body)) {
-        if (body == nullptr) {
-            return true;  // open group : unknown, assume dependency
-        }
-        return reachesConservative(body, sig, seen);
-    }
-    for (int k = 0; k < f->arity(); k++) {
-        if (reachesConservative(f->branch(k), sig, seen)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-static bool dependsOnConservative(Tree f, Tree sig)
-{
-    std::set<Tree> seen;
-    return reachesConservative(f, sig, seen);
-}
-
-class IIRRevealer : public SignalIdentity {
-   protected:
-    Tree transformation(Tree L) override;
 };
 
-static long gRevealDepth = 0, gRevealMaxDepth = 0;
-
-Tree IIRRevealer::transformation(Tree sig)
-{
-    struct DepthGuard {
-        DepthGuard()
-        {
-            if (++gRevealDepth > gRevealMaxDepth) {
-                gRevealMaxDepth = gRevealDepth;
-                if ((gRevealMaxDepth & (gRevealMaxDepth - 1)) == 0 && gRevealMaxDepth >= 262144 &&
-                    getenv("FAUST_SS_FIRDEBUG")) {
-                    std::cerr << "SS_DEPTH " << gRevealMaxDepth << std::endl;
-                }
-            }
-        }
-        ~DepthGuard() { --gRevealDepth; }
-    } guard;
-
-
-    Tree var, le;
-    if (isRec(sig, var, le)) {
-        // rec protocol : ref() creates the (unique) virgin group, mapself
-        // runs with the open reference registered, ONE rec() closes it
-        Tree var2 = tree(unique("WI"));
-        Tree rec2 = ref(var2);
-        fResult.set(sig, rec2);
-        Tree l2 = mapself(le);
-        return rec(var2, l2);
-    }
-
-    int p;
-    if (Tree rgroup; isProj(sig, &p, rgroup) && isRec(rgroup, var, le) && !isNil(le)) {
-        // Internal or external occurrence ? While a group is being
-        // renamed the memo maps it to a still-open reference : its
-        // self-references stay plain projections, only external
-        // occurrences are IIR candidates.
-        Tree g2, v2, b2;
-        bool inside = fResult.get(rgroup, g2) && isRec(g2, v2, b2) && (b2 == nullptr);
-        if (!inside && isSigSum(nth(le, p))) {
-            // Candidacy analysis on the INPUT tree : it is fully closed
-            // and already in Sum-of-FIR form (revealFIR ran before), so
-            // the real dependency machinery (sigRecursiveDependencies)
-            // applies, and its global cache only ever sees closed terms.
-            Tree              def = nth(le, p);
-            std::vector<Tree> R, D, L;
-            for (Tree f : def->branches()) {
-                // clock-free pattern : FIR[w, 0, c1, c2, ...] whose
-                // source w IS the projection itself (pointer equality,
-                // guaranteed by hash-consing)
-                if (isSigFIR(f) && (f->branch(0) == sig)) {
-                    R.push_back(f);
-                }
-            }
-            if (R.size() == 1) {
-                // only a plausible candidate is worth the dependency
-                // analysis (a transitive walk of the whole graph)
-                for (Tree f : def->branches()) {
-                    if (isSigFIR(f) && (f->branch(0) == sig)) {
-                        continue;
-                    }
-                    if (dependsOnConservative(f, sig)) {
-                        D.push_back(f);
-                    } else {
-                        L.push_back(f);
-                    }
-                }
-            }
-            if ((R.size() == 1) && (D.size() == 0) && (L.size() > 0)) {
-                // def(Wi) = x + FIR[Wi, 0, c1, c2, ...] with x proven
-                // independent of Wi : IIR[nil, x, 0, c1, c2, ...]. The
-                // pieces cross to the output tree through self().
-                tvec coef1, coef2;
-                faustassert(isSigFIR(R[0], coef1));
-                faustassert(coef1[0] == sig);
-                // The COEFFICIENTS must be independent of Wi too : a
-                // kernel whose coefficients read the state (drumkit's
-                // saturating counters, y = (y' <= 14)*(...)) is a
-                // NONLINEAR feedback, not an IIR -- and rebuilding such
-                // a coefficient through self() would re-enter the
-                // projection in flight (infinite recursion). fir18's
-                // clock typing enforced control-rate coefficients ; the
-                // clock-free port checks explicitly.
-                bool coefsFree = true;
-                for (unsigned int i = 1; i < coef1.size(); i++) {
-                    if (sigs::isAudioRate(coef1[i])) {
-                        // audio-rate coefficient : state or input
-                        // dependent -> nonlinear or time-varying kernel,
-                        // not an IIR. O(1) by the synthesized bit.
-                        coefsFree = false;
-                        break;
-                    }
-                }
-                if (!coefsFree) {
-                    return SignalIdentity::transformation(sig);
-                }
-                Tree in = (L.size() == 1) ? L[0] : sigSum(L);
-                coef2.push_back(gGlobal->nil);
-                coef2.push_back(self(in));
-                for (unsigned int i = 1; i < coef1.size(); i++) {
-                    coef2.push_back(self(coef1[i]));
-                }
-                return sigIIR(coef2);
-            }
-        }
-        return SignalIdentity::transformation(sig);
-    }
-
-    return SignalIdentity::transformation(sig);
-}
-
-// External API
+//----------------------------------------------------------------------
+// The reveal : one paired rule under the generic tlib rewrite
+//----------------------------------------------------------------------
 
 Tree revealIIR(Tree L1)
 {
-    IIRRevealer R;
-    R.trace(TRACE, "NEW revealIIR");
-    Tree L2 = R.mapself(L1);
-    return L2;
+    ProjSCCIndex                   index(L1);
+    std::unordered_map<Tree, Tree> memo;
+
+    auto pre     = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
+
+    // The candidacy analysis runs entirely on the ORIGINAL side (closed
+    // input, valid pointer equality, SCC index) ; the pieces of a
+    // recognized IIR cross to the output through the traversal MEMO --
+    // when the rule fires on an external projection, the group's body is
+    // already rebuilt, so the images of x and of the coefficients are
+    // present : read, never re-descend.
+    auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
+        int  p;
+        Tree rgroup, var, le;
+        if (!(isProj(orig, &p, rgroup) && isRec(rgroup, var, le) && le && !isNil(le))) {
+            return rebuilt;
+        }
+
+        // Internal or external occurrence ? While the group is being
+        // rebuilt the memo maps it to a still-open reference : its
+        // self-references stay plain projections, only external
+        // occurrences are IIR candidates.
+        if (auto it = memo.find(rgroup); it != memo.end()) {
+            Tree v2, b2;
+            if (isRec(it->second, v2, b2) && (b2 == nullptr)) {
+                return rebuilt;
+            }
+        }
+
+        Tree def = nth(le, p);
+        if (!isSigSum(def)) {
+            return rebuilt;
+        }
+
+        // def(Wi) = x + FIR[Wi, 0, c1, c2, ...] : exactly one FIR whose
+        // source IS this projection (pointer equality, hash-consing)
+        std::vector<Tree> R, L;
+        for (Tree f : def->branches()) {
+            if (isSigFIR(f) && (f->branch(0) == orig)) {
+                R.push_back(f);
+            }
+        }
+        if (R.size() != 1) {
+            return rebuilt;
+        }
+        for (Tree f : def->branches()) {
+            if (isSigFIR(f) && (f->branch(0) == orig)) {
+                continue;
+            }
+            if (index.reaches(f, orig)) {
+                return rebuilt;  // x depends on Wi : not an IIR
+            }
+            L.push_back(f);
+        }
+        if (L.empty()) {
+            return rebuilt;
+        }
+
+        tvec coef1;
+        faustassert(isSigFIR(R[0], coef1));
+        // The COEFFICIENTS must be slow rate : an audio-rate coefficient
+        // (state or input dependent) makes a nonlinear or time-varying
+        // kernel, not an IIR. O(1) by the synthesized bit. This is a
+        // DIFFERENT requirement from x's independence : well-foundedness
+        // there, the LTI doctrine here.
+        for (unsigned int i = 1; i < coef1.size(); i++) {
+            if (sigs::isAudioRate(coef1[i])) {
+                return rebuilt;
+            }
+        }
+
+        // Assemble IIR[nil, x, 0, c1, c2, ...] from the memoized images
+        auto image = [&](Tree t) -> Tree {
+            auto it = memo.find(t);
+            return (it != memo.end()) ? it->second : nullptr;
+        };
+        tvec coef2;
+        coef2.push_back(gGlobal->nil);
+        if (L.size() == 1) {
+            Tree in = image(L[0]);
+            if (!in) {
+                return rebuilt;
+            }
+            coef2.push_back(in);
+        } else {
+            tvec ins;
+            for (Tree f : L) {
+                Tree in = image(f);
+                if (!in) {
+                    return rebuilt;
+                }
+                ins.push_back(in);
+            }
+            coef2.push_back(sigSum(ins));
+        }
+        for (unsigned int i = 1; i < coef1.size(); i++) {
+            Tree c = image(coef1[i]);
+            if (!c) {
+                return rebuilt;
+            }
+            coef2.push_back(c);
+        }
+        return sigIIR(coef2);
+    };
+
+    return treeRewritePairedMemo(L1, pre, rule, memo, defRule);
 }

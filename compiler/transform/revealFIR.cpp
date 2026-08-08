@@ -8,7 +8,7 @@
 #include "sigFIR.hh"
 #include "sigs-state.hh"
 #include "sigIIR.hh"
-#include "sigIdentity.hh"
+#include "rewrite.hh"
 #include "sigRecursiveDependencies.hh"
 #include "sigorderrules.hh"
 #include "global.hh"
@@ -35,31 +35,10 @@ static inline bool hasClock(Tree, Tree&)
 
 // Tree revealIIR(Tree rt, Tree def);
 
-class FIRRevealer : public SignalIdentity {
-   protected:
-    Tree postprocess(Tree L);
-    Tree transformation(Tree L);
-};
-
-Tree FIRRevealer::transformation(Tree sig)
-{
-    Tree var, le;
-    if (isRec(sig, var, le)) {
-        // port : the source branch declared with rec(var2, nil) then
-        // refilled -- our tlib forbids both (immutability of recursive
-        // definitions, tree.hh). Sanctioned idiom : ref() creates the
-        // VIRGIN group, the single rec() fills it ; the pointer is stable
-        // across the fill.
-        Tree var2 = tree(unique("M"));
-        Tree rec2 = ref(var2);
-        fResult.set(sig, rec2);    // self-references map to the fresh group
-        Tree l2 = mapself(le);     // transform the definitions
-        return rec(var2, l2);      // first and only fill
-
-    } else {
-        return SignalIdentity::transformation(sig);
-    }
-}
+// The reveal is a single bottom-up rule on rebuilt nodes, run by the generic
+// tlib rewrite (rewrite.hh) : rec renaming, memoization and sharing are the
+// traversal's business, the rule only knows its local patterns.
+static Tree firRule(Tree sig);
 #if 0
 // isFirElem((x@d)*c) -> <x, d, c> with d integer constant
 std::optional<std::tuple<Tree, int, Tree>> isFirElem(Tree s)
@@ -125,7 +104,7 @@ static void collectSigSumElements(tvec& L, Tree sig)
     - SUM(...,FIR(x,C), x*a, ...) -> SUM(...,FIR(x, C+a),...)
 */
 
-Tree FIRRevealer::postprocess(Tree sig)
+static Tree firRule(Tree sig)
 {
     // std::cerr << "postprocess: " << ppsig(sig) << "\n";
 
@@ -427,8 +406,5 @@ Tree FIRRevealer::postprocess(Tree sig)
 
 Tree revealFIR(Tree L1)
 {
-    FIRRevealer R;
-    R.trace(TRACE, "revealFIR");
-    Tree L2 = R.mapself(L1);
-    return L2;
+    return treeRewrite(L1, firRule);
 }
