@@ -224,10 +224,48 @@ void projSCCReport(Tree L)
 //----------------------------------------------------------------------
 // The reveal : one paired rule under the generic tlib rewrite
 //----------------------------------------------------------------------
+//
+// REQUIRES a normalizeRecGroups-normalized input. On the normalized term
+// the letrecs are minimal, which collapses the whole dependency analysis :
+//
+//   - the hosts are exactly the SINGLE-definition letrecs (a
+//     multi-definition group is a true knot : every member depends on a
+//     sibling, no member can be an IIR) ;
+//   - any OTHER projection met in x belongs to a foreign component BY
+//     CONSTRUCTION and cannot come back : "x independent of Wi" reduces
+//     to "x does not contain Wi literally" -- a plain tree search with
+//     projections as opaque leaves. No SCC index, no dependency machinery.
+//
+// (ProjSCCIndex above only survives for the SS_SPLIT instruction probe.)
+
+// does f contain the projection self, other projections being opaque leaves ?
+static bool containsSelf(Tree f, Tree self)
+{
+    std::unordered_set<Tree> seen;
+    std::vector<Tree>        st{f};
+    while (!st.empty()) {
+        Tree t = st.back();
+        st.pop_back();
+        if (t == self) {
+            return true;
+        }
+        if (!seen.insert(t).second) {
+            continue;
+        }
+        int  i;
+        Tree g;
+        if (isProj(t, &i, g)) {
+            continue;  // a foreign component : cannot come back
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            st.push_back(t->branch(k));
+        }
+    }
+    return false;
+}
 
 Tree revealIIR(Tree L1)
 {
-    ProjSCCIndex                   index(L1);
     std::unordered_map<Tree, Tree> memo;
 
     auto pre     = [](Tree) -> std::optional<Tree> { return std::nullopt; };
@@ -257,6 +295,9 @@ Tree revealIIR(Tree L1)
             }
         }
 
+        if (len(le) != 1) {
+            return rebuilt;  // a true knot : never an IIR host (see header)
+        }
         Tree def = nth(le, p);
         if (!isSigSum(def)) {
             return rebuilt;
@@ -277,8 +318,8 @@ Tree revealIIR(Tree L1)
             if (isSigFIR(f) && (f->branch(0) == orig)) {
                 continue;
             }
-            if (index.reaches(f, orig)) {
-                return rebuilt;  // x depends on Wi : not an IIR
+            if (containsSelf(f, orig)) {
+                return rebuilt;  // the feedback is not solely through the FIR
             }
             L.push_back(f);
         }
