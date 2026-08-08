@@ -1055,6 +1055,13 @@ siglist treeConvert(Tree t)
 
 SIGS_API Tree sigFIR(const tvec& sigcoefs)
 {
+    // Construction invariant : a FIR with real taps (delays) is audio rate
+    // by its local mask whatever its source -- FIR[1, 0, 1] is 1@1. The
+    // one-coefficient form FIR[x, c0] is a plain product with no mask : it
+    // is only truthful when x itself is audio rate, which the reveal rules
+    // guarantee and this assert makes contractual.
+    TLIB_ASSERT(sigcoefs.size() > 2 ||
+                (sigcoefs.size() == 2 && sigs::isAudioRate(sigcoefs[0])));
     return tree(sigs::g.SIGFIR, sigcoefs);
 }
 

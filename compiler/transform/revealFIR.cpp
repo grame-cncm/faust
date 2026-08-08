@@ -6,6 +6,7 @@
 #include "ppsig.hh"
 #include "revealFIR.hh"
 #include "sigFIR.hh"
+#include "sigs-state.hh"
 #include "sigIIR.hh"
 #include "sigIdentity.hh"
 #include "sigRecursiveDependencies.hh"
@@ -200,28 +201,28 @@ Tree FIRRevealer::postprocess(Tree sig)
         return divSigFIR(f, c);
     }
 
-    if (Tree f, c; isSigDiv(sig, f, c) && isSigFIR(f) && (getSigOrder(c) < 3)) {
+    if (Tree f, c; isSigDiv(sig, f, c) && isSigFIR(f) && !sigs::isAudioRate(c)) {
         // std::cerr << "Rule 17\n";
         return divSigFIR(f, c);
     }
 
-    if (Tree x, y; isSigMul(sig, x, y) && (getSigOrder(x) < 3) && isSigFIR(y)) {
+    if (Tree x, y; isSigMul(sig, x, y) && !sigs::isAudioRate(x) && isSigFIR(y)) {
         // std::cerr << "Rule 2\n";
         return mulSigFIR(y, x);
     }
 
-    if (Tree x, y; isSigMul(sig, y, x) && (getSigOrder(x) < 3) && isSigFIR(y)) {
+    if (Tree x, y; isSigMul(sig, y, x) && !sigs::isAudioRate(x) && isSigFIR(y)) {
         // std::cerr << "Rule 3\n";
         return mulSigFIR(y, x);
     }
 
-    if (Tree x, y; isSigMul(sig, x, y) && (getSigOrder(x) < 3) && (getSigOrder(y) == 3)) {
+    if (Tree x, y; isSigMul(sig, x, y) && !sigs::isAudioRate(x) && sigs::isAudioRate(y)) {
         // std::cerr << "Rule 4\n";
         tvec v{y, x};
         return sigFIR(v);
     }
 
-    if (Tree x, y; isSigMul(sig, y, x) && (getSigOrder(x) < 3) && (getSigOrder(y) == 3)) {
+    if (Tree x, y; isSigMul(sig, y, x) && !sigs::isAudioRate(x) && sigs::isAudioRate(y)) {
         // std::cerr << "Rule 5\n";
         tvec v{y, x};
         return sigFIR(v);
@@ -414,7 +415,7 @@ Tree FIRRevealer::postprocess(Tree sig)
         return divSigFIR(f, c);
     }
 
-    if (Tree f, c; isSigDiv(sig, f, c) && isSigFIR(f) && (getSigOrder(c) < 3)) {
+    if (Tree f, c; isSigDiv(sig, f, c) && isSigFIR(f) && !sigs::isAudioRate(c)) {
         return divSigFIR(f, c);
     }
 

@@ -238,12 +238,29 @@ class TLIB_API CTree : public Garbageable {
     // ("free of X") polarity : the uniform rule is worth more than per-bit optimality.
     // Accessors may of course read either way (see isRecFree below).
     //
-    // These 8 bits are tlib-level : a bit's rule must be decidable from the node alone,
-    // inside recursive-tree.cpp. A consumer-level notion (a Faust table, a clock node...)
-    // would need a registered hook, which does not exist today.
+    // The 8 bits are PARTITIONED : the low nibble belongs to tlib (rules decidable from
+    // the node alone, inside recursive-tree.cpp) ; the high nibble belongs to the
+    // consumer, stamped through the user-kinds hook below and completely opaque to tlib.
     enum : unsigned int {
         kContainsRec = 1u << 0,  ///< a recursive node (SYMREC, DEBRUIJN or DEBRUIJNREF) occurs
+        kTlibKinds   = 0x0Fu,    ///< bits reserved for tlib's own rules
+        kUserKinds   = 0xF0u,    ///< bits reserved for the consumer (user-kinds hook)
     };
+
+    // User-kinds hook : the consumer's LOCAL contribution to a node's kind bits,
+    // combined by the same union as tlib's own bits :
+    //
+    //     kinds(t) = tlibKind(t) | (hook(t) & kUserKinds) | U_i kinds(branch_i)
+    //
+    // tlib stays blind : it calls, masks to the high nibble, and unions. The hook MUST be
+    // a pure function of the node and branches (both fixed at construction -- the result
+    // is stamped once, hash-consing shares it), and MUST be registered before any tree
+    // whose bits it contributes to is built : registration does not restamp existing
+    // trees. The typical consumer implementation is a lookup of the node's symbol in a
+    // registry filled at initialization -- a symbol-headed tree cannot predate its
+    // symbol's creation, the same soundness argument initRecSymbols() relies on.
+    using UserKindsFn = unsigned int (*)(const Node& n, int ar, const Tree br[]);
+    static void setUserKindsHook(UserKindsFn fn);
 
     static Tree make(const Node& n, int ar,
                      const Tree br[]);  ///< return a new tree or an existing equivalent one

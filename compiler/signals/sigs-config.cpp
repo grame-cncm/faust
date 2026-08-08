@@ -39,6 +39,40 @@ itv::interval_algebra gAlgebra;
 
 namespace sigs {
 
+// The consumer side of CTree's user-kinds hook (see tree.hh) : the LOCAL
+// audio-rate contribution of a node, combined by tlib with the branches'
+// bits through the usual union. Carriers are the constructors whose result
+// is audio rate even when every argument is slow -- the unconditional
+// order-3 cases of sigorderrules.cpp, which this list must mirror exactly
+// (a missing carrier under-approximates the bit and lets a state or
+// input-dependent coefficient fold into a kernel). Projections carry it
+// locally for a second reason : a rec group's body is a property, not a
+// branch, so nothing propagates through the group boundary by union.
+static unsigned int signalUserKinds(const Node& n, int ar, const Tree br[])
+{
+    if (n == g.PROJ || n == g.SIGINPUT || n == g.SIGOUTPUT || n == g.SIGDELAY1 ||
+        n == g.SIGDELAY || n == g.SIGPREFIX || n == g.SIGRDTBL || n == g.SIGWRTBL ||
+        n == g.SIGGEN || n == g.SIGDOCONSTANTTBL || n == g.SIGDOCWRITETBL ||
+        n == g.SIGDOCACCESSTBL || n == g.SIGWAVEFORM || n == g.SIGSOUNDFILEBUFFER ||
+        n == g.SIGIIR) {
+        return kAudioRate;
+    }
+    // a foreign function WITHOUT arguments is a generator (random()...)
+    if (n == g.SIGFFUN && ar == 2 && isNil(br[1])) {
+        return kAudioRate;
+    }
+    // a FIR with REAL taps ("si ce n'est pas une simple multiplication") :
+    // its delays temporalize even a slow source -- FIR[1, 0, 1] is 1@1,
+    // audio rate with a constant source. The one-coefficient form
+    // FIR[x, c0] is a plain product and inherits from x, under the
+    // construction invariant that x is then audio rate (asserted in
+    // sigFIR()).
+    if (n == g.SIGFIR && ar > 2) {
+        return kAudioRate;
+    }
+    return 0;
+}
+
 void initSignalSymbols()
 {
     const Signature signal_signature = signalSignature();
@@ -98,6 +132,13 @@ void initSignalSymbols()
     // (standalone sigs::init() and the compiler's own sequence).
     delete g.gTreeAlgebra;
     g.gTreeAlgebra = new TreeAlgebra();
+
+    // audio-rate kind bit : cache tlib's projection head, then register the
+    // user-kinds hook -- HERE, before any signal tree is built (stamping
+    // happens at construction and never retroactively), and on both init
+    // paths since the compiler's global.cpp calls initSignalSymbols() too.
+    g.PROJ = symbol("PROJ");
+    CTree::setUserKindsHook(signalUserKinds);
 }
 
 const TreeAlgebra& algebra()

@@ -7,6 +7,7 @@
 #include "ppsig.hh"
 #include "sigFIR.hh"
 #include "sigIIR.hh"
+#include "sigs-state.hh"
 #include "sigIdentity.hh"
 #include "signals.hh"
 
@@ -313,7 +314,10 @@ Tree IIRRevealer::transformation(Tree sig)
                 // clock-free port checks explicitly.
                 bool coefsFree = true;
                 for (unsigned int i = 1; i < coef1.size(); i++) {
-                    if (dependsOnConservative(coef1[i], sig)) {
+                    if (sigs::isAudioRate(coef1[i])) {
+                        // audio-rate coefficient : state or input
+                        // dependent -> nonlinear or time-varying kernel,
+                        // not an IIR. O(1) by the synthesized bit.
                         coefsFree = false;
                         break;
                     }

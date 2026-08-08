@@ -47,6 +47,22 @@ class TreeAlgebra;
 
 namespace sigs {
 
+// Consumer kind bit, stamped in CTree's user nibble through the user-kinds
+// hook (see tree.hh) : "audio-rate temporality occurs in this subtree". Set
+// LOCALLY by the constructors whose result is audio rate even when every
+// argument is slow (inputs, projections, delays, tables, waveforms, IIR --
+// the unconditional order-3 cases of sigorderrules) ; every other
+// constructor inherits it by the union convention. 1@1 is the witness that
+// delays must declare : delaying a constant still yields a sample-rate
+// signal.
+enum : unsigned int { kAudioRate = 1u << 4 };
+
+///< true iff audio-rate temporality occurs in this signal, by construction
+inline bool isAudioRate(Tree t)
+{
+    return (t->contains() & kAudioRate) != 0;
+}
+
 struct State {
     int                                         gFloatSize{};  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad',
     Tabber                                      TABBER{};
@@ -81,6 +97,7 @@ struct State {
     property<Tree>*                             gSymListProp{};
     property<AudioType*>*                       gMemoizedTypes{};
     Sym                                         FFUN{};
+    Sym                                         PROJ{};  // tlib's projection head, cached for the user-kinds hook
     Sym                                         SIGINPUT{};
     Sym                                         SIGOUTPUT{};
     Sym                                         SIGDELAY1{};

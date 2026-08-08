@@ -58,6 +58,7 @@
 #include <pthread.h>
 
 #include "revealSum.hh"
+#include "sigorderrules.hh"
 #include "sigtype.hh"
 #include "timing.hh"
 #include "xtendedCodegen.hh"
@@ -2717,6 +2718,39 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                 }
             }
         done_type:;
+        }
+        if (getenv("FAUST_SS_BITCHECK")) {
+            // validation croisee : le bit audio-rate synthetise doit
+            // etre d'accord avec getSigOrder sur chaque noeud (ordre 3
+            // <=> bit pose), modulo les sur-approximations connues de
+            // l'union (attach, casts d'expressions mixtes)
+            long agree = 0, bitOnly = 0, orderOnly = 0;
+            for (Tree t : seen) {
+                if (isList(t) || isNil(t)) {
+                    continue;
+                }
+                Tree v_, b_;
+                if (isRec(t, v_, b_)) {
+                    continue;  // getSigOrder asserts on rec nodes
+                }
+                bool bit = sigs::isAudioRate(t);
+                bool ord = false;
+                try {
+                    ord = (getSigOrder(t) == 3);
+                } catch (...) {
+                    continue;  // hors-langage (variables de letrec...)
+                }
+                if (bit == ord) {
+                    agree++;
+                } else if (bit) {
+                    bitOnly++;
+                } else {
+                    orderOnly++;
+                    std::cerr << "SS_BITMISS " << ppsig(t, 4) << std::endl;
+                }
+            }
+            std::cerr << "SS_BITCHECK agree=" << agree << " bitOnly=" << bitOnly
+                      << " orderOnly=" << orderOnly << std::endl;
         }
         if (getenv("FAUST_SS_FIRDEBUG")) {
             for (auto& [src, f] : fFirFacts) {
