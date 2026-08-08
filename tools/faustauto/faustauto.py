@@ -40,6 +40,8 @@ CAND = {
     "h2":  ["-ss", "9", "-ls-R", "2", "-ls-U", "4"],
     "h32": ["-ss", "9", "-ls-R", "32", "-ls-U", "4"],
     "cs8": ["-ss", "7", "-ls-R", "8", "-ls-U", "4"],
+    "t4":  ["-temp", "4"],
+    "t4fu": ["-temp", "4", "-ls-fuse", "-ls-sched", "model"],
 }
 
 
@@ -54,19 +56,23 @@ def signature(dsp):
 
 
 def candidates(sig):
-    """L'élagueur : la signature -> (zone, liste de candidats)."""
+    """L'élagueur : la signature -> (zone, liste de candidats).
+
+    Depuis la normalisation des letrec (2026-08-09), recmii se mesure sur
+    les NIDS VRAIS et l'inventaire fir/iir sépare statiquement les
+    ex-jumeaux (vocoder fir=64/iir=0 vs filterBank fir=29/iir=10). Et
+    l'étagement structurel -temp 4 est une dimension nouvelle : gains
+    ×0.45-0.66 sur cloches/générateurs — le flash-bench le découvre.
+    """
     fusion_signal = sig["recmii"] >= 50 or sig["nstreams"] >= 5
     locality = sig["recmii"] >= 45
     order = ["h2", "cs8"] if locality else ["al", "h32"]
     if fusion_signal:
-        # la validation du 2026-08-08 : les trois ratés (m55, clarinet-stk,
-        # pluckedString) avaient tous leur vrai gagnant dans le régime
-        # d'ordre ABSENT -- les zones sûres embarquent donc les deux
-        # régimes (le témoin de l'autre bord coûte ~3 s et vaut jusqu'à
-        # 22 % : zita l'a déjà prouvé en battant sa fusion « sûre »)
+        # les zones sûres embarquent les deux régimes d'ordre (validation
+        # 2026-08-08) + le témoin étagé
         other = "al" if locality else "h2"
-        return "fusion-sûre", ["fu", order[0], other]
-    return "incertain", ["fu", order[0], order[1], "df"]
+        return "fusion-sûre", ["fu", order[0], other, "t4fu"]
+    return "incertain", ["fu", order[0], order[1], "df", "t4"]
 
 
 def compile_candidate(dsp, name, workdir):
