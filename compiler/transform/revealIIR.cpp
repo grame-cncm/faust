@@ -185,14 +185,17 @@ static Tree proj2IIR(int indentation, Tree proj)
 // IIRevealer : reveal IIR structures
 //----------------------------------------------------------------------
 
-// Open-safe conservative dependency test : does f reach sig anywhere in
-// its tree, unfolding recursive bodies ? Replaces isDependingOn here :
-// its transitive walk assumes closed terms (nth on a null body of a
-// still-open enclosing group segfaults) and caches results globally
-// (poisonous if computed mid-reveal). An open body is unknowable -> the
-// term is assumed to depend, the candidacy is dropped : conservative,
-// never a wrong IIR. Precision on nested groups would need a second
-// reveal pass over the fully closed tree.
+// Exact reachability on the CLOSED input tree : does f reach sig,
+// descending recursive bodies, cycles cut by the seen-set. Group
+// granularity (a projection's group body covers all its definitions) :
+// a sound over-approximation of per-definition dependency. Used instead
+// of isDependingOn because sigDependencies caches, in its global table,
+// results truncated by the underVisit cycle guard -- on mutually
+// recursive definitions an entry of the cycle keeps an incomplete set
+// forever, and a candidacy accepted on that false independence re-enters
+// the projection in flight (infinite recursion, order-sensitive). The
+// open-body case cannot occur here (the input is fully closed) ; it is
+// kept as a conservative safety.
 static bool reachesConservative(Tree f, Tree sig, std::set<Tree>& seen)
 {
     if (f == sig) {
@@ -224,71 +227,113 @@ static bool dependsOnConservative(Tree f, Tree sig)
 class IIRRevealer : public SignalIdentity {
    protected:
     Tree transformation(Tree L) override;
-    Tree postprocess(Tree L) override;
 };
+
+static long gRevealDepth = 0, gRevealMaxDepth = 0;
 
 Tree IIRRevealer::transformation(Tree sig)
 {
+    struct DepthGuard {
+        DepthGuard()
+        {
+            if (++gRevealDepth > gRevealMaxDepth) {
+                gRevealMaxDepth = gRevealDepth;
+                if ((gRevealMaxDepth & (gRevealMaxDepth - 1)) == 0 && gRevealMaxDepth >= 262144 &&
+                    getenv("FAUST_SS_FIRDEBUG")) {
+                    std::cerr << "SS_DEPTH " << gRevealMaxDepth << std::endl;
+                }
+            }
+        }
+        ~DepthGuard() { --gRevealDepth; }
+    } guard;
+
+
     Tree var, le;
     if (isRec(sig, var, le)) {
         // rec protocol : ref() creates the (unique) virgin group, mapself
-        // runs with the open reference registered, ONE rec() closes it.
-        // While the group is open its body is null, so the postprocess
-        // pattern below skips the inner self-references and only external
-        // projections (closed group) become IIR candidates.
+        // runs with the open reference registered, ONE rec() closes it
         Tree var2 = tree(unique("WI"));
         Tree rec2 = ref(var2);
         fResult.set(sig, rec2);
         Tree l2 = mapself(le);
         return rec(var2, l2);
     }
-    return SignalIdentity::transformation(sig);
-}
 
-Tree IIRRevealer::postprocess(Tree sig)
-{
     int p;
-
-    if (Tree rgroup, var, le;
-        isProj(sig, &p, rgroup) && isRec(rgroup, var, le) && le && !isNil(le)) {
-        // we have a candidate for an IIR; ajouter une seul definition ???
-        Tree def = nth(le, p);
-        // std::cerr << "def: " << *def << "\n";
-        if (isSigSum(def)) {
+    if (Tree rgroup; isProj(sig, &p, rgroup) && isRec(rgroup, var, le) && !isNil(le)) {
+        // Internal or external occurrence ? While a group is being
+        // renamed the memo maps it to a still-open reference : its
+        // self-references stay plain projections, only external
+        // occurrences are IIR candidates.
+        Tree g2, v2, b2;
+        bool inside = fResult.get(rgroup, g2) && isRec(g2, v2, b2) && (b2 == nullptr);
+        if (!inside && isSigSum(nth(le, p))) {
+            // Candidacy analysis on the INPUT tree : it is fully closed
+            // and already in Sum-of-FIR form (revealFIR ran before), so
+            // the real dependency machinery (sigRecursiveDependencies)
+            // applies, and its global cache only ever sees closed terms.
+            Tree              def = nth(le, p);
             std::vector<Tree> R, D, L;
-            // We analyze the various terms of the sum
             for (Tree f : def->branches()) {
                 // clock-free pattern : FIR[w, 0, c1, c2, ...] whose
                 // source w IS the projection itself (pointer equality,
                 // guaranteed by hash-consing)
                 if (isSigFIR(f) && (f->branch(0) == sig)) {
                     R.push_back(f);
-                } else if (dependsOnConservative(f, sig)) {
-                    D.push_back(f);
-                } else {
-                    L.push_back(f);
+                }
+            }
+            if (R.size() == 1) {
+                // only a plausible candidate is worth the dependency
+                // analysis (a transitive walk of the whole graph)
+                for (Tree f : def->branches()) {
+                    if (isSigFIR(f) && (f->branch(0) == sig)) {
+                        continue;
+                    }
+                    if (dependsOnConservative(f, sig)) {
+                        D.push_back(f);
+                    } else {
+                        L.push_back(f);
+                    }
                 }
             }
             if ((R.size() == 1) && (D.size() == 0) && (L.size() > 0)) {
-                // we have a candidate for an IIR
-                // std::cerr << "we have a candidate1 for an IIRA!\n";
+                // def(Wi) = x + FIR[Wi, 0, c1, c2, ...] with x proven
+                // independent of Wi : IIR[nil, x, 0, c1, c2, ...]. The
+                // pieces cross to the output tree through self().
                 tvec coef1, coef2;
                 faustassert(isSigFIR(R[0], coef1));
                 faustassert(coef1[0] == sig);
+                // The COEFFICIENTS must be independent of Wi too : a
+                // kernel whose coefficients read the state (drumkit's
+                // saturating counters, y = (y' <= 14)*(...)) is a
+                // NONLINEAR feedback, not an IIR -- and rebuilding such
+                // a coefficient through self() would re-enter the
+                // projection in flight (infinite recursion). fir18's
+                // clock typing enforced control-rate coefficients ; the
+                // clock-free port checks explicitly.
+                bool coefsFree = true;
+                for (unsigned int i = 1; i < coef1.size(); i++) {
+                    if (dependsOnConservative(coef1[i], sig)) {
+                        coefsFree = false;
+                        break;
+                    }
+                }
+                if (!coefsFree) {
+                    return SignalIdentity::transformation(sig);
+                }
                 Tree in = (L.size() == 1) ? L[0] : sigSum(L);
                 coef2.push_back(gGlobal->nil);
-                coef2.push_back(in);
+                coef2.push_back(self(in));
                 for (unsigned int i = 1; i < coef1.size(); i++) {
-                    coef2.push_back(coef1[i]);
+                    coef2.push_back(self(coef1[i]));
                 }
-                Tree iir = sigIIR(coef2);
-                // std::cerr << "makeIIRA1: " << *iir << "\n";
-                // std::cerr << "makeIIRA2: " << ppsig(iir) << "\n";
-                return iir;
+                return sigIIR(coef2);
             }
         }
+        return SignalIdentity::transformation(sig);
     }
-    return sig;
+
+    return SignalIdentity::transformation(sig);
 }
 
 // External API

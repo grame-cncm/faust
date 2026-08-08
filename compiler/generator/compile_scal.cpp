@@ -55,6 +55,8 @@
 #include "superNodes.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
+#include <pthread.h>
+
 #include "revealSum.hh"
 #include "sigtype.hh"
 #include "timing.hh"
@@ -2629,6 +2631,13 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     // are the intended consumers) ; emission changes are a later,
     // separately-judged stage.
     if (gGlobal->gReconstructFIRIIRs) {
+        // The reveal traversals and the dependency analysis recurse as
+        // deep as the signal graph ; on large programs (thunder,
+        // drumkit) this exceeds the default 8 MB main stack. The whole
+        // side channel therefore runs in a dedicated thread with a
+        // comfortable stack, joined immediately : still one thread at a
+        // time in tlib.
+        std::function<void()> sideChannel = [&]() {
         // revealSum first : the FIR-merge rule of revealFIR only listens
         // to n-ary SigSum nodes, never to the binary sigAdd chains of the
         // normal form (fir18 pipeline order). revealIIR last : it needs
@@ -2715,6 +2724,26 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                           << " nz=" << f.second << " sig=" << ppsig(src, 12) << std::endl;
             }
         }
+        };
+        pthread_attr_t attr;
+        pthread_attr_init(&attr);
+        pthread_attr_setstacksize(&attr, size_t(2048) << 20);
+        pthread_t th;
+        auto trampoline = [](void* p) -> void* {
+            if (getenv("FAUST_SS_FIRDEBUG")) {
+                std::cerr << "SS_STACK thread stack = "
+                          << (pthread_get_stacksize_np(pthread_self()) >> 20) << " MB"
+                          << std::endl;
+            }
+            (*static_cast<std::function<void()>*>(p))();
+            return nullptr;
+        };
+        if (pthread_create(&th, &attr, trampoline, &sideChannel) == 0) {
+            pthread_join(th, nullptr);
+        } else {
+            sideChannel();  // fallback : run on the main stack
+        }
+        pthread_attr_destroy(&attr);
     }
 
     // -ss 10 : auto-regime hybrid -- the tight-nest recurrence bound
