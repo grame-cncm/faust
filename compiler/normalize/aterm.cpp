@@ -131,10 +131,10 @@ Tree aterm::normalizedTree() const
     // negative terms are inverted (made positive) and stored in N[]
     // terms sorted by order: to better enable the sharing of expensive expressions (like signal
     // over control.etc)
-    Tree P[4], N[4];
+    Tree P[5], N[5];
 
     // prepare
-    for (int order = 0; order < 4; order++) {
+    for (int order = 0; order < 5; order++) {
         P[order] = N[order] = tree(0);
     }
 
@@ -166,6 +166,19 @@ Tree aterm::normalizedTree() const
         signe = s;
         SUM   = R;
     }
+
+    // audio-recursive terms (order 4) join LAST, nearest the root : the
+    // state-to-state chain then crosses no foreign addition -- the late
+    // state-join, served by the normal form itself. They join as the
+    // RIGHT operand (SUM comes first) : a two-term sum {slow, state}
+    // then keeps its historical operand order (slow + state), so only
+    // sums with several off-path terms actually change shape
+    addTermsWithSign(signe, SUM, false, N[4], s, R);
+    signe = s;
+    SUM   = R;
+    addTermsWithSign(signe, SUM, true, P[4], s, R);
+    signe = s;
+    SUM   = R;
 
     if (!signe) {
         SUM = sigBinOp(kMul, sigInt(-1), SUM);

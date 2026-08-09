@@ -509,16 +509,20 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
         }
     } else {
         // it's not a pure number, it has factors
-        Tree A[4], B[4];
+        Tree A[5], B[5];
 
         // group by order
-        for (int order = 0; order < 4; order++) {
+        for (int order = 0; order < 5; order++) {
             A[order] = 0;
             B[order] = 0;
             for (const auto& p : fFactors) {
                 Tree f = p.first;   // f = factor
                 int  q = p.second;  // q = power of f
-                if (f && q && sigs::sigOrder(f) == order) {
+                // level 4 capped to 3 HERE : the late state-join pays in
+                // SUMS (aterm) ; in products the state factor's position is
+                // recMII-neutral and the regrouping only flips clang's
+                // scheduling luck (brightOrgan bisection, exp-rec4)
+                if (f && q && std::min(sigs::sigOrder(f), 3) == order) {
                     combineMulDiv(A[order], B[order], f, q);
                 }
             }
@@ -554,9 +558,11 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
             A[0] = fCoef;
         }
 
-        // combine each order separately : R[i] = A[i]/B[i]
+        // combine each order separately : R[i] = A[i]/B[i] -- ascending,
+        // so the audio-recursive factors (order 4) multiply nearest the
+        // root, off every slower factor's path
         Tree RR = 0;
-        for (int order = 0; order < 4; order++) {
+        for (int order = 0; order < 5; order++) {
             if (A[order] && B[order]) {
                 combineMulLeft(RR, sigDiv(A[order], B[order]));
             } else if (A[order]) {

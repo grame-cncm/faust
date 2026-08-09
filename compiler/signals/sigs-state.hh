@@ -82,11 +82,20 @@ inline bool isAudioRate(Tree t)
     return (t->contains() & kAudioRate) != 0;
 }
 
-///< order 0-3 of a signal (numbers / constants / UI / audio), read from
-///< the kind bits : highest order bit present, O(1), total domain
+///< order 0-4 of a signal (numbers / constants / UI / audio /
+///< audio-recursive), read from the kind bits : highest level present,
+///< O(1), total domain. Level 4 is tlib's own kContainsRec bit : "a
+///< recursive node reaches me" == "I depend on some state" (inside a
+///< definition too : a self-reference is proj(i, SYMREC), the rec node
+///< closes its knot through the RECDEF property, not a branch, so the
+///< bit stays honest). Known pessimisms : SOME state (not necessarily
+///< my own), and table generators whose init-time recursions count.
 inline int sigOrder(Tree t)
 {
     unsigned int k = t->contains();
+    if (t->containsRec()) {
+        return 4;
+    }
     if (k & kAudioRate) {
         return 3;
     }
