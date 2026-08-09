@@ -22,14 +22,16 @@
 //   - the JOIN PLACEMENT is worth x4 without -ffast-math, and clang's
 //     rescue under fast-math gives up on complex chains (korg35) ;
 //
-// KNOWN ISSUE (parked, reproducer : korg35HPF) : on some reference
-// topologies the group-rebuild protocol DUPLICATES recursive groups (+4
-// states on korg35, cycles 74 -> 120) while the guards keep every sum
-// untouched there -- the duplication comes from the rebuild machinery,
-// not from the reassociation itself. The 10 measured beneficiaries
-// (freeverb, sawtoothLab, simpleFX...) are clean : states identical,
-// recMII genuinely down (18 -> 16 on sawtoothLab). One focused debug
-// session needed before any benching ; option stays experimental.
+// STATUS after the full investigation (2026-08-09) : correct (0
+// duplications corpus-wide by the state-count detector, 0 recMII
+// regressions, 10 model-level improvements) but runtime-MARGINAL on the
+// corpus (freeverb -6%, pluckedString -8% fast, others +/-3%) : real
+// programs' long sums feed through DELAYS (memory reads, off the
+// zero-delay cycle), so the x4 micro-bench scenario (long zero-delay
+// add-chain into state) is rare. The FDN knots' sums live in multi-def
+// groups, which V1 deliberately does not reassociate. Kept experimental :
+// the correct tool for a rare disease, and the doctrine carrier (content
+// vs shape, late join) for the emission work to come.
 //
 // so the pass does exactly one thing : inside every single-definition
 // recursive group, flatten each addition spine (stopping at shared nodes
@@ -121,19 +123,30 @@ Tree reassociate(Tree lsig)
         int  i;
         Tree grp, var, body;
         if (isProj(t, &i, grp) && isRec(grp, var, body) && body != nullptr && !isNil(body)) {
-            // group already being rebuilt ? (open reference registered)
-            // -- the memo covers it ; here : first encounter, rebuild
-            if (len(body) == 1) {
-                Tree var2 = tree(unique("A"));
-                Tree g2   = ref(var2);
-                Tree p2   = proj(0, g2);
-                memo[t]   = p2;
-                // inside the definition, the state is THIS projection
-                Tree d2 = build(nth(body, 0), t);
-                rec(var2, cons(d2, gGlobal->nil));
-                return p2;
+            // EVERY group is rebuilt -- a knot left "untouched" in a renamed
+            // world keeps stale references to the OLD singletons and both
+            // versions end up emitted (korg35 : +4 duplicated states). The
+            // knots get no reassociation (selfProj null : pure reference
+            // remapping through the memo) ; only single-definition groups
+            // get the late join.
+            int               n = len(body);
+            Tree              var2 = tree(unique("A"));
+            Tree              g2   = ref(var2);
+            std::vector<Tree> oldp(n);
+            for (int j = 0; j < n; j++) {
+                oldp[j]       = proj(j, grp);
+                memo[oldp[j]] = proj(j, g2);
             }
-            // multi-definition knot : rebuild untouched (generic path below)
+            tvec defs;
+            for (int j = 0; j < n; j++) {
+                defs.push_back(build(nth(body, j), (n == 1) ? oldp[j] : nullptr));
+            }
+            Tree body2 = gGlobal->nil;
+            for (auto it2 = defs.rbegin(); it2 != defs.rend(); ++it2) {
+                body2 = cons(*it2, body2);
+            }
+            rec(var2, body2);
+            return memo.at(t);
         }
 
         Tree x, y;
