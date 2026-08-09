@@ -95,6 +95,11 @@ static bool isStageable(Tree t)
     // material, which a named stage disturbs. Selections are neither
     // staged nor counted.
     {
+        // The exclusion holds EVEN under -lazyselect : lifting it was
+        // measured and refuted (vocal x2.34, dx7 diverges) -- many small
+        // guarded statements in a cascade recreate the shattering that
+        // the refined design had just cured. Barriers and selections do
+        // not mix ; the inline ternary stays the cascade's home.
         Tree sel, then_, else_;
         if (isSigSelect2(t, sel, then_, else_)) {
             return false;

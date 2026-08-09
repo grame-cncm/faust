@@ -554,7 +554,20 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     startTiming("occurrences analysis");
     delete fOccMarkup;
-    fOccMarkup = new OccMarkup(fConditionProperty);
+    if (gGlobal->gLazySelect) {
+        // REFINED design : conditions must never influence caching. The
+        // condition-aware markup (built for enable, whose semantics
+        // REQUIRES materialization) forces any node used under two
+        // different conditions into a cached statement -- on select
+        // cascades this shattered the inline world (vocal : 87 -> 1422
+        // statements). Under -lazyselect the markup runs condition-BLIND
+        // (df-identical inline/statement partition) ; the conditions,
+        // computed separately, only GUARD the statements that exist
+        // anyway (getConditionCode at the Statement sites).
+        fOccMarkup = new OccMarkup();
+    } else {
+        fOccMarkup = new OccMarkup(fConditionProperty);
+    }
     fOccMarkup->mark(Lx);  // Annotate L2 (+ condition atoms) with occurrences analysis
     endTiming("occurrences analysis");
 
@@ -747,6 +760,43 @@ static bool isConditionBoundary(Tree t)
     return false;
 }
 
+// (sel==0) v (sel!=0) = TRUE : a condition holding two complementary
+// singleton atoms on the same selector is a tautology -- collapse to nil
+// (unconditional) instead of emitting an always-true guard.
+static Tree collapseComplements(Tree dnf)
+{
+    if (dnf == gGlobal->nil) {
+        return dnf;
+    }
+    std::vector<Tree> eqs, nes;
+    for (Tree c = dnf; isList(c); c = tl(c)) {
+        Tree andl = hd(c);
+        if (isList(andl) && isNil(tl(andl))) {
+            int  op;
+            Tree x, y;
+            if (isSigBinOp(hd(andl), &op, x, y)) {
+                if (op == kEQ) {
+                    eqs.push_back(hd(andl));
+                } else if (op == kNE) {
+                    nes.push_back(hd(andl));
+                }
+            }
+        }
+    }
+    for (Tree e : eqs) {
+        int  op1, op2;
+        Tree x1, y1, x2, y2;
+        isSigBinOp(e, &op1, x1, y1);
+        for (Tree n : nes) {
+            isSigBinOp(n, &op2, x2, y2);
+            if (x1 == x2 && y1 == y2) {
+                return gGlobal->nil;  // complementary pair : always true
+            }
+        }
+    }
+    return dnf;
+}
+
 void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
 {
     if (gGlobal->gLazySelect && isConditionBoundary(t)) {
@@ -776,6 +826,9 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
     if (p != fConditionProperty.end()) {
         Tree cc = p->second;
         Tree xc = _OR_(cc, nc);
+        if (gGlobal->gLazySelect) {
+            xc = collapseComplements(xc);
+        }
         if (cc == xc) {
             // Tree t already correctly annotated, nothing to change
             return;
