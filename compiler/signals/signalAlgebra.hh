@@ -332,10 +332,28 @@ V SignalDispatch<V>::combine(Tree sig, const std::vector<V>& c,
             // sound worst-case for arbitrary bounded inputs ; the tighter
             // frequency-domain gain (max |H|) is a later refinement.
             case sigs::SignalOpcode::Fir: {
-                V acc = this->Mul(c[1], c[0]);
-                for (size_t k = 2; k < c.size(); k++) {
-                    acc = this->Add(acc,
-                                    this->Mul(c[k], this->Delay(c[0], this->IntNum(int(k) - 1))));
+                // ZERO coefficients are SKIPPED, not multiplied : the fixpoint
+                // iterates recursive sources from bottom, and bottom is
+                // absorbing through Mul/Add -- a synthetic 0*X term (which the
+                // normal form never produces, only this expansion does) would
+                // freeze the whole sum at bottom. The delayed terms escape
+                // through Delay's zero-history rule ; the k==1 term is the
+                // undelayed source, which a causal FIR on a recursive source
+                // cannot carry anyway (its coefficient is always zero there).
+                bool first = true;
+                V    acc{};
+                for (size_t k = 1; k < c.size(); k++) {
+                    if (isZero(sig->branch(int(k)))) {
+                        continue;
+                    }
+                    V term = (k == 1)
+                                 ? this->Mul(c[1], c[0])
+                                 : this->Mul(c[k], this->Delay(c[0], this->IntNum(int(k) - 1)));
+                    acc  = first ? term : this->Add(acc, term);
+                    first = false;
+                }
+                if (first) {
+                    return this->IntNum(0);  // degenerated all-zero FIR
                 }
                 return acc;
             }

@@ -81,6 +81,27 @@ void SigDependenciesGraph::visit(Tree t)
             fGraph.add(t, x, 1);
         }
         self(x);
+    } else if (tvec V; isSigFIR(t, V)) {
+        // FIR[X,C0,C1,...] : the non-zero coefficients are immediate
+        // dependencies ; the source X enters with the delay of the first
+        // non-zero coefficient (immediate only when that delay is 0)
+        faustassert(V.size() >= 2);
+        int dmin = INT32_MAX;
+        for (unsigned int k = 1; k < V.size(); k++) {
+            if (!isZero(V[k])) {
+                fGraph.add(t, V[k], 0);
+                dmin = std::min(dmin, int(k) - 1);
+            }
+        }
+        faustassert(dmin < INT32_MAX);
+        if (fFullGraph || (dmin == 0)) {
+            fGraph.add(t, V[0], dmin);
+        }
+        for (auto s : V) {
+            if (!isZero(s)) {
+                self(s);
+            }
+        }
     } else if (isSigRDTbl(t, tbl, ri)) {
         // special case for tables. We can't compile the content without knowing the context
 

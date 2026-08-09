@@ -240,6 +240,11 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         return 1;
     }
 
+    else if (isSigFIR(sig) || isSigIIR(sig) || isSigSum(sig)) {
+        vsigs = sig->branches();
+        return int(vsigs.size());
+    }
+
     else {
         if (Tree tx; isSigTemp(sig, tx)) {
             vsigs.push_back(tx);

@@ -489,6 +489,36 @@ Tree ScalarCompiler::prepare(Tree LS)
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);
 
+    if (gGlobal->gReconstructFIRIIRs) {
+        // -fir stage 1 : the revealed kernels are INJECTED into the
+        // pipeline -- n-ary sums (revealSum) then FIR kernels (revealFIR).
+        // revealIIR waits for its typing rule (WCPG, see PILE n.12). The
+        // reveal recursions are as deep as the signal graph : dedicated
+        // big-stack thread, joined immediately (thunder, drumkit).
+        std::function<void()> reveal = [&]() {
+            startTiming("Sum revealer");
+            L2 = revealSum(L2);
+            endTiming("Sum revealer");
+            startTiming("FIR revealer");
+            L2 = revealFIR(L2);
+            endTiming("FIR revealer");
+        };
+        pthread_attr_t attr;
+        pthread_attr_init(&attr);
+        pthread_attr_setstacksize(&attr, size_t(2048) << 20);
+        pthread_t th;
+        auto      trampoline = [](void* p) -> void* {
+            (*static_cast<std::function<void()>*>(p))();
+            return nullptr;
+        };
+        if (pthread_create(&th, &attr, trampoline, &reveal) == 0) {
+            pthread_join(th, nullptr);
+        } else {
+            reveal();  // fallback : main stack
+        }
+        pthread_attr_destroy(&attr);
+    }
+
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
     endTiming("conditionAnnotation");
@@ -2873,7 +2903,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         // unconditionally at the birth of the symbolic form (normalform.cpp),
         // so the letrecs are minimal and the IIR hosts are exactly the
         // single-definition self-recursive groups.
-        Tree Lf = revealFIR(revealSum(L));
+        Tree Lf = L;  // Sum and FIR are already revealed by prepare (injection)
         if (getenv("FAUST_SS_SPLIT")) {
             projSCCReport(Lf);  // post-normalisation : doit ressortir minimal
         }
@@ -3455,6 +3485,10 @@ string ScalarCompiler::generateCode(Tree sig)
         return forceCacheCode(sig, CS(x));
     } else if (isSigDelay(sig, x, y)) {
         return generateDelayAccess(sig, x, y);
+    } else if (tvec V; isSigFIR(sig, V)) {
+        return generateFIR(sig, V);
+    } else if (tvec subs; isSigSum(sig, subs)) {
+        return generateSum(sig, subs);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
     } else if (isSigBinOp(sig, &i, x, y)) {
@@ -4426,6 +4460,193 @@ string ScalarCompiler::generateXtended(Tree sig)
  * Generate code for accessing a delayed signal. The generated code depend of
  * the maximum delay attached to exp.
  */
+/**
+ * Raw access to a delayed signal with a string index -- used by the FIR
+ * accumulation loop. No caching : the index may be the loop variable.
+ */
+string ScalarCompiler::generateDelayAccessRaw(Tree sig, Tree exp, const string& delayidx)
+{
+    std::string ctype, pname;
+    getTypedNames(getCertifiedSigType(sig), "Veeec", ctype, pname);
+    string    vecname = ensureVectorNameProperty(pname, exp);
+    int       mxd     = fOccMarkup->retrieve(exp)->getMaxDelay();
+    DelayType dt      = analyzeDelayType(exp);
+    switch (dt) {
+        case DelayType::kNotADelay:
+            faustexception("Try to compile as a delay something that is not a delay");
+            return "";
+        case DelayType::kZeroDelay:
+        case DelayType::kMonoDelay:
+            return vecname;
+        case DelayType::kSingleDelay:
+        case DelayType::kCopyDelay:
+        case DelayType::kDenseDelay:
+            return subst("$0[$1]", vecname, delayidx);
+        case DelayType::kMaskRingDelay:
+        case DelayType::kSelectRingDelay:
+        default: {
+            int N = pow2limit(mxd + 1);
+            // the index cannot be cached : it may depend on the loop variable
+            return subst("$0[(IOTA-$1)&$2]", vecname, delayidx, T(N - 1));
+        }
+    }
+}
+
+string ScalarCompiler::generateDelayAccessRaw(Tree sig, Tree exp, int delay)
+{
+    return generateDelayAccessRaw(sig, exp, T(delay));
+}
+
+// density of the non-zero coefficients of a FIR, from its first non-zero one
+static float firDensity(const tvec& coefs)
+{
+    unsigned int fnz = 0;
+    for (unsigned int i = 1; i < coefs.size(); ++i) {
+        if (!isZero(coefs[i])) {
+            fnz = i;
+            break;
+        }
+    }
+    unsigned int cnz = 0;
+    for (unsigned int i = fnz; i < coefs.size(); ++i) {
+        if (!isZero(coefs[i])) {
+            cnz++;
+        }
+    }
+    faustassert(cnz > 0);
+    return float(cnz) / float(coefs.size() - fnz);
+}
+
+/**
+ * Generate code for a n-ary sum node (revealed by revealSum) : a flat
+ * parenthesis-free addition, the association left to the C compiler.
+ */
+string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
+{
+    faustassert(subs.size() > 1);
+    ostringstream oss;
+    string        sep   = "";
+    int           terms = 0;
+    oss << '(';
+    for (unsigned int i = 0; i < subs.size(); ++i) {
+        if (!isZero(subs[i])) {
+            oss << sep << CS(subs[i]);
+            terms++;
+            sep = " + ";
+        }
+    }
+    if (terms == 0) {
+        oss << "0";
+    }
+    oss << " /* Sum */)";
+    return generateCacheCode(sig, oss.str());
+}
+
+/**
+ * Generate code for a FIR kernel FIR[X,C0,C1,...] = C0.X + C1.X@1 + ...
+ * Three regimes : simple gain (2 coefs), unrolled sum (small or sparse),
+ * loop over a coefficient table (large and dense). Ported from the fir18
+ * branch (compile_scal_fir.cpp), HLS pragmas left out.
+ */
+string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
+{
+    faustassert(coefs.size() > 1);
+    constexpr int kFirLoopSize = 4;  // below this many taps, no loop
+    float         density      = firDensity(coefs);
+    if (coefs.size() == 2) {
+        // simple gain
+        return generateCacheCode(sig, subst("($0) * ($1)", CS(coefs[1]), CS(coefs[0])));
+    }
+    bool r1 = density * 100 < gGlobal->gMinDensity;
+    bool r2 = int(coefs.size()) - 1 < kFirLoopSize;
+    if (r1 || r2) {
+        // unrolled : small or low-density FIR
+        std::ostringstream oss;
+        string             sep = "";
+        Tree               exp = coefs[0];
+        std::string        comment = " /* ";
+        comment += r1 ? "low-density " : "";
+        comment += r2 ? "small " : "";
+        comment += "FIR */";
+        oss << '(';
+        for (unsigned int i = 1; i < coefs.size(); ++i) {
+            if (isZero(coefs[i])) {
+                continue;
+            }
+            string access = generateDelayAccessRaw(sig, exp, int(i) - 1);
+            if (isOne(coefs[i])) {
+                oss << sep << access;
+            } else if (Tree x, y; isSigAdd(coefs[i], x, y) || isSigSub(coefs[i], x, y)) {
+                oss << sep << '(' << CS(coefs[i]) << ") * " << access;
+            } else {
+                oss << sep << CS(coefs[i]) << " * " << access;
+            }
+            sep = " + ";
+        }
+        oss << ')' << comment;
+        return generateCacheCode(sig, oss.str());
+    }
+    // loop over a coefficient table
+    Type tc;
+    for (unsigned int i = 1; i < coefs.size(); ++i) {
+        Type t = getCertifiedSigType(coefs[i]);
+        tc     = (i == 1) ? t : (tc | t);
+    }
+    std::string ctype, ctable;
+    getTypedNames(tc, "FIRCoefs", ctype, ctable);
+
+    int                mnzc = 1 << 20;  // first non-zero coefficient
+    std::ostringstream coefInitStream;
+    coefInitStream << "{";
+    for (unsigned int i = 1; i < coefs.size(); ++i) {
+        if (i > 1) {
+            coefInitStream << ", ";
+        }
+        if (!isZero(coefs[i]) && (int(i) < mnzc)) {
+            mnzc = i;
+        }
+        coefInitStream << CS(coefs[i]);
+    }
+    coefInitStream << "}";
+    std::string coefInit   = coefInitStream.str();
+    std::string csize      = T(int(coefs.size() - 1));
+    std::string ctabledecl = subst("const $0 \t$1[$2] = $3;", ctype, ctable, csize, coefInit);
+    switch (tc->variability()) {
+        case kKonst:
+            if (tc->computability() == kComp) {
+                fClass->addDeclCode(ctabledecl);
+            } else {
+                // constants only computable at init time
+                fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, ctable, csize));
+                fClass->addInitCode(
+                    subst("const $0 \t$1tmp[$2] = $3;", ctype, ctable, csize, coefInit));
+                fClass->addInitCode(
+                    subst("for (int i = 0; i < $0; i++) { $1[i] = $1tmp[i]; }", csize, ctable));
+            }
+            break;
+        case kBlock:
+            fClass->addZone2(ctabledecl);
+            break;
+        case kSamp:
+            fClass->addExecCode(Statement("", ctabledecl));
+            break;
+        default:
+            faustassert(false);
+    }
+
+    Tree        exp       = coefs[0];
+    std::string idxaccess = generateDelayAccessRaw(sig, exp, "ii");
+    Type        ty        = getCertifiedSigType(sig);
+    std::string ftype, facc;
+    getTypedNames(ty, "Acc", ftype, facc);
+    fClass->addExecCode(Statement("", subst("$0 \t$1 = 0;", ftype, facc)));
+    std::string accloop =
+        subst("for (int ii = $4; ii < $0; ii++) { $1 += $2[ii] * $3; } /* FIR acc. */",
+              T(int(coefs.size() - 1)), facc, ctable, idxaccess, T(mnzc - 1));
+    fClass->addExecCode(Statement("", accloop));
+    return generateCacheCode(sig, facc);
+}
+
 string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
 #if OLDDELAY

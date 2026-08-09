@@ -172,6 +172,21 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         } else if (isSigPrefix(t, y, x)) {
             incOcc(env, v0, r0, 1, c0, x);
             incOcc(env, v0, r0, 0, c0, y);
+        } else if (tvec V; isSigFIR(t, V)) {
+            // FIR[X,C0,C1,...] : the source X is read at delays 0..n-1 (one
+            // per non-zero coefficient) -- this is what sizes its delay
+            // line ; the coefficients are ordinary immediate reads
+            faustassert(V.size() >= 2);
+            for (unsigned int k = 1; k < V.size(); k++) {
+                incOcc(env, v0, r0, 0, c0, V[k]);
+                if (!isZero(V[k])) {
+                    incOcc(env, v0, r0, int(k) - 1, c0, V[0]);
+                }
+            }
+            if (!getOcc(V[0])) {
+                // degenerated FIR[X,0,0,...] : X still needs a mark
+                incOcc(env, v0, r0, 0, c0, V[0]);
+            }
         } else {
             tvec br;
             int  n = getSubSignals(t, br);
