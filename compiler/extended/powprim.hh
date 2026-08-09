@@ -42,11 +42,6 @@ class PowPrim : public xtendedCodegen {
 
     virtual bool needCache() override { return true; }
 
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return std::max(args[0], args[1]);
-    }
 
     // Fast integer based power, for positive exponent
     template <typename Type1, typename Type2>

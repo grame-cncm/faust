@@ -30,7 +30,6 @@
 #include "normalize.hh"
 #include "ppsig.hh"
 #include "signals.hh"
-#include "sigorderrules.hh"
 #include "sigprint.hh"
 #include "simplify.hh"
 #include "tlib.hh"

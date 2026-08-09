@@ -51,8 +51,9 @@ void initSignalSymbols()
     // into the synthesized kind bits of every tree headed by the symbol
     // (kinds(t) = mask(head) | union of branches). Carriers are the
     // constructors whose result is audio rate even with slow arguments --
-    // the unconditional order-3 cases of sigorderrules.cpp, which this
-    // list must mirror (a missing carrier lets a state or input-dependent
+    // the unconditional order-3 cases of the retired sigorderrules.cpp,
+    // whose role this list has absorbed (a missing carrier lets a state or
+    // input-dependent
     // coefficient fold into a kernel). Two deliberate roundings : SIGFIR
     // is marked unconditionally (for the one-coefficient form the mask is
     // redundant -- sigFIR() asserts its source is audio rate -- and never
@@ -151,7 +152,6 @@ void init()
     g.SIMPLETYPE = symbol("SimpleType");
 
     // Property keys
-    g.ORDERPROP    = tree(symbol("OrderProp"));
     g.RECURSIVNESS = tree(symbol("RecursivnessProp"));
 
     // Session state

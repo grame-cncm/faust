@@ -52,8 +52,8 @@ namespace sigs {
 // the tree layer into every tree headed by them : "audio-rate temporality
 // occurs in this subtree". Carriers are the constructors whose result is
 // audio rate even when every argument is slow (inputs, projections, delays,
-// tables, waveforms, IIR -- the unconditional order-3 cases of
-// sigorderrules) ; every other constructor inherits by the union
+// tables, waveforms, IIR -- what the retired sigorderrules called the
+// unconditional order-3 cases) ; every other constructor inherits by the union
 // convention. 1@1 is the witness that delays must declare : delaying a
 // constant still yields a sample-rate signal.
 enum : unsigned int { kAudioRate = 1u << 4 };
@@ -116,7 +116,6 @@ struct State {
     std::vector<std::string>                    gSignalTrace{};
     int                                         gAllocationCount{};  // Internal signal types counter
     bool                                        gCausality{};  // FIXME: global used as a parameter of typeAnnotation when true trigs
-    Tree                                        ORDERPROP{};
     Tree                                        RECURSIVNESS{};
     xtended*                                    gAbsPrim{};
     xtended*                                    gAcosPrim{};

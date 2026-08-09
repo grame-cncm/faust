@@ -35,11 +35,6 @@ class RintPrim : public xtendedCodegen {
 
     virtual bool needCache() override { return true; }
 
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return args[0];
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {

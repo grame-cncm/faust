@@ -653,7 +653,6 @@ void global::init()
     DOCTABLES        = tree(symbol("DocTablesProp"));
     NULLENV          = tree(symbol("NullRenameEnv"));
     COLORPROPERTY    = tree(symbol("ColorProperty"));
-    ORDERPROP        = tree(symbol("OrderProp"));
     RECURSIVNESS     = tree(symbol("RecursivnessProp"));
     NORMALFORM       = tree(symbol("NormalForm"));
     DEFNAMEPROPERTY  = tree(symbol("DEFNAMEPROPERTY"));

@@ -31,7 +31,6 @@
 #include "normalize.hh"
 #include "global.hh"
 #include "signals.hh"
-#include "sigorderrules.hh"
 #include "sigprint.hh"
 #include "simplify.hh"
 #include "tlib.hh"

@@ -43,7 +43,6 @@
 
 // for test purposes
 #include "sharing.hh"
-#include "sigorderrules.hh"
 #include "sigs-state.hh"
 #include "simplify.hh"
 

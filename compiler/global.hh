@@ -491,7 +491,6 @@ struct global {
     Tree DOCTABLES;
     Tree NULLENV;
     Tree COLORPROPERTY;
-    Tree& ORDERPROP = sigs::g.ORDERPROP;
     Tree& RECURSIVNESS = sigs::g.RECURSIVNESS;
     Tree NORMALFORM;
     Tree DEFNAMEPROPERTY;

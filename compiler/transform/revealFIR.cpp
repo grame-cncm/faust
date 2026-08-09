@@ -10,7 +10,6 @@
 #include "sigIIR.hh"
 #include "rewrite.hh"
 #include "sigRecursiveDependencies.hh"
-#include "sigorderrules.hh"
 #include "global.hh"
 
 // ---- port shims : this branch has no clock system. The source branch

@@ -41,11 +41,6 @@ class AbsPrim : public xtendedCodegen {
         return (type == kInt) ? "abs" : subst("fabs$0", isuffix());
     }
 
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return args[0];
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {

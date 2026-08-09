@@ -31,7 +31,6 @@
 #include "ppsig.hh"
 #include "recursivness.hh"
 #include "signals.hh"
-#include "sigorderrules.hh"
 #include "sigpattern.hh"
 #include "sigtransform.hh"
 #include "sigprint.hh"

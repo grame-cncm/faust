@@ -40,11 +40,6 @@ class MinPrim : public xtendedCodegen {
         return (type == kInt) ? "min_i" : subst("min_$0", isuffix());
     }
 
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return std::max(args[0], args[1]);
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {

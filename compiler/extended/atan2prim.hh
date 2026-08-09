@@ -34,10 +34,6 @@ class Atan2Prim : public xtendedCodegen {
 
     virtual bool needCache() override { return true; }
 
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        return std::max(args[0], args[1]);
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
