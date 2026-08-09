@@ -53,7 +53,6 @@
 #include "files.hh"
 #include "global.hh"
 #include "names.hh"
-#include "occur.hh"
 #include "occurrences.hh"
 #include "ppbox.hh"
 #include "prim2.hh"
@@ -237,7 +236,6 @@ static void writeSchemaFile(Tree bd)
 
     char temp[1024];
 
-    gGlobal->gOccurrences = new Occur(bd);
     getBoxType(bd, &ins, &outs);
 
     bool hasname = getDefNameProperty(bd, id);
@@ -367,8 +365,7 @@ static schema* generateDiagramSchema(Tree t)
         // cerr << t << "\tNAMED : " << s.str() << endl;
     }
 
-    if (gGlobal->gFoldingFlag && /*(gOccurrences->getCount(t) > 0) &&*/
-        (boxComplexity(t) >= gGlobal->gFoldComplexity) && getDefNameProperty(t, id)) {
+    if (gGlobal->gFoldingFlag && (boxComplexity(t) >= gGlobal->gFoldComplexity) && getDefNameProperty(t, id)) {
         char temp[1024];
         getBoxType(t, &ins, &outs);
         stringstream l;
