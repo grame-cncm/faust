@@ -441,6 +441,7 @@ void global::reset()
     gEtaRegroup     = false;
     gStagingOps     = 0;
     gTempOps        = 0;
+    gReassoc        = false;
     gLazySelect     = false;
     gEtaIterations  = 1;
     gCanonicalOrder = false;
@@ -813,6 +814,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gTempOps > 0) {
         dst << "-temp " << gTempOps << " ";
+    }
+    if (gReassoc) {
+        dst << "-reassoc ";
     }
     if (gLazySelect) {
         dst << "-lazyselect ";
@@ -1612,6 +1616,10 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-temp", "--temp-threshold")) {
             gTempOps = std::atoi(argv[i + 1]);
             i += 2;
+
+        } else if (isCmd(argv[i], "-reassoc", "--reassociate")) {
+            gReassoc = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-lazyselect", "--lazy-select")) {
             gLazySelect = true;

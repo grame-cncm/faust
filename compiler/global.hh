@@ -303,6 +303,9 @@ struct global {
     int  gTempOps;        // -temp <n> option, structural staging : sigTemp barriers placed at
                           // normalization on single-use expressions of n operations or more
                           // (1 = every operation, the SSA form ; 0 = off)
+    bool gReassoc;        // -reassoc option : late state-join reassociation of the sums inside
+                          // single-definition recursive groups (off-path terms first and flat,
+                          // state-dependent terms joined last -- minimal recurrence chain)
     bool gLazySelect;     // -lazyselect option : select2 branches generate per-node conditions
                           // (stopped at state boundaries), so the emitter's guarded statements
                           // skip the STATELESS crowns of unselected branches -- the stateful

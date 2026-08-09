@@ -58,6 +58,7 @@
 #include <pthread.h>
 
 #include "placeTemps.hh"
+#include "reassociate.hh"
 #include "revealSum.hh"
 #include "sigorderrules.hh"
 #include "sigtype.hh"
@@ -504,6 +505,17 @@ Tree ScalarCompiler::prepare(Tree LS)
         // semantic delay floor: needs the intervals just computed, rebuilds
         // trees, so the annotations are redone in the same order as above
         L2 = applyDelayFloor(L2, gGlobal->gMinDelay);
+        conditionAnnotation(L2);
+        recursivnessAnnotation(L2);
+        typeAnnotation(L2, true);
+    }
+
+    if (gGlobal->gReassoc) {
+        // -reassoc : late state-join (see reassociate.cpp) -- BEFORE the
+        // staging pass, so barriers see the final tree shapes
+        startTiming("reassociate");
+        L2 = reassociate(L2);
+        endTiming("reassociate");
         conditionAnnotation(L2);
         recursivnessAnnotation(L2);
         typeAnnotation(L2, true);
