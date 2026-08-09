@@ -1403,6 +1403,13 @@ class LoopSplitEmitter {
             prescan(z, seen);
             return;
         }
+        if (isSigTemp(t, x)) {
+            // staging barrier : transparent here -- the split emitter
+            // stages per instruction anyway, the barrier dissolves into
+            // its machine model
+            prescan(x, seen);
+            return;
+        }
         std::ostringstream what;
         what << "signal " << t->node();
         throw LoopSplitUnsupported(what.str());
@@ -1720,6 +1727,9 @@ class LoopSplitEmitter {
         }
         if (isSigAssertBounds(t, x, y, z)) {
             return walk(z, curScc, false);
+        }
+        if (isSigTemp(t, x)) {
+            return walk(x, curScc, false);  // barrier transparent (see prescan)
         }
 
         std::ostringstream what;

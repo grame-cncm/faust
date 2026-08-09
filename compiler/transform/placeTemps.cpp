@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "global.hh"
+#include "prim2.hh"
 #include "rewrite.hh"
 
 //----------------------------------------------------------------------
@@ -87,6 +88,14 @@ static bool isStageable(Tree t)
         return false;
     }
     if (isSigTemp(t, x) || isSigOutput(t, &i, x)) {
+        return false;
+    }
+    // the FFUN descriptor (signature/incfile/libfile) is structural DATA,
+    // not a signal : arity 3, so neither the leaf test nor isList protects
+    // it, and at K=1 its raw cost (1) reaches the threshold -- wrapped, the
+    // accessors read through temp and ffrestype lands tree2int on the whole
+    // signature (autopan broke exactly there)
+    if (isffunction(t)) {
         return false;
     }
     // select2 cascades : a barrier on (or accounted through) a selection

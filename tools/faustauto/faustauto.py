@@ -42,6 +42,7 @@ CAND = {
     "cs8": ["-ss", "7", "-ls-R", "8", "-ls-U", "4"],
     "t4":  ["-temp", "4"],
     "t4fu": ["-temp", "4", "-ls-fuse", "-ls-sched", "model"],
+    "t1fu": ["-temp", "1", "-ls-fuse", "-ls-sched", "model"],
     "lz":  ["-lazyselect"],
 }
 
@@ -75,8 +76,10 @@ def candidates(sig):
     if fusion_signal:
         # les zones sûres embarquent les deux régimes d'ordre (validation
         # 2026-08-08) + le témoin étagé
+        # t1fu : le grain SSA sous la fusion -- répare le pire cas de fu
+        # (korg35HPF 1.08 -> 0.81) et mène le geomean du jury (0.692)
         other = "al" if locality else "h2"
-        return "fusion-sûre", ["fu", order[0], other, "t4fu"] + lazy
+        return "fusion-sûre", ["fu", order[0], other, "t4fu", "t1fu"] + lazy
     return "incertain", ["fu", order[0], order[1], "df", "t4"] + lazy
 
 
