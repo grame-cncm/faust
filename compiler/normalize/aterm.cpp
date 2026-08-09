@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include "aterm.hh"
+#include "sigs-state.hh"
 #include "ppsig.hh"
 #include "sigtype.hh"
 #include "exception.hh"
@@ -142,11 +143,11 @@ Tree aterm::normalizedTree() const
         const mterm& m = p.second;
         if (m.isNegative()) {
             Tree t     = m.normalizedTree(false, true);  // not in signatureMode
-            int  order = getSigOrder(t);
+            int  order = sigs::sigOrder(t);
             N[order]   = simplifyingAdd(N[order], t);
         } else {
             Tree t     = m.normalizedTree();
-            int  order = getSigOrder(t);
+            int  order = sigs::sigOrder(t);
             P[order]   = simplifyingAdd(P[order], t);
         }
     }

@@ -24,6 +24,7 @@
 #include <map>
 
 #include "aterm.hh"
+#include "sigs-state.hh"
 #include "exception.hh"
 #include "mterm.hh"
 #include "normalize.hh"
@@ -112,23 +113,23 @@ Tree normalizeDelayTerm(Tree s, Tree d)
         return s;
 
     } else if (isSigMul(s, x, y)) {
-        if (getSigOrder(x) < 2) {
+        if (sigs::sigOrder(x) < 2) {
             return /*simplify*/ (sigMul(x, normalizeDelayTerm(y, d)));
-        } else if (getSigOrder(y) < 2) {
+        } else if (sigs::sigOrder(y) < 2) {
             return /*simplify*/ (sigMul(y, normalizeDelayTerm(x, d)));
         } else {
             return sigDelay(s, d);
         }
 
     } else if (isSigDiv(s, x, y)) {
-        if (getSigOrder(y) < 2) {
+        if (sigs::sigOrder(y) < 2) {
             return /*simplify*/ (sigDiv(normalizeDelayTerm(x, d), y));
         } else {
             return sigDelay(s, d);
         }
 
     } else if (isSigDelay(s, x, y)) {
-        if (getSigOrder(y) < 2) {
+        if (sigs::sigOrder(y) < 2) {
             // (x@n)@m = x@(n+m) when n is constant
             // Local fold only : d and y are already simplified, and a full
             // simplify() here would be a transformation inside a transformation

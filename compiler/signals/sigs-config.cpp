@@ -47,6 +47,10 @@ void initSignalSymbols()
     // these add() calls in SignalOpcode declaration order makes their dense
     // local opcodes usable directly by folds without a translation table.
     //
+    // both audio bits at once : every kAudioRate carrier is also an
+    // order-3 carrier (the two sets differ only on select2)
+    constexpr unsigned int kAR = kAudioRate | kOrderAudio;
+
     // kAudioRate masks : DATA in the declaration, folded by the tree layer
     // into the synthesized kind bits of every tree headed by the symbol
     // (kinds(t) = mask(head) | union of branches). Carriers are the
@@ -58,51 +62,51 @@ void initSignalSymbols()
     // redundant -- sigFIR() asserts its source is audio rate -- and never
     // false) ; SIGFFUN too (over-approximates foreign functions WITH slow
     // arguments -- rare, and refusing a fold is the safe direction).
-    g.SIGINPUT           = signal_signature.add("SigInput", kAudioRate);
-    g.SIGOUTPUT          = signal_signature.add("SigOutput", kAudioRate);
-    g.SIGDELAY1          = signal_signature.add("SigDelay1", kAudioRate);
-    g.SIGDELAY           = signal_signature.add("SigDelay", kAudioRate);
-    g.SIGPREFIX          = signal_signature.add("SigPrefix", kAudioRate);
-    g.SIGRDTBL           = signal_signature.add("SigRDTbl", kAudioRate);
-    g.SIGWRTBL           = signal_signature.add("SigWRTbl", kAudioRate);
-    g.SIGGEN             = signal_signature.add("SigGen", kAudioRate);
-    g.SIGDOCONSTANTTBL   = signal_signature.add("SigDocConstantTbl", kAudioRate);
-    g.SIGDOCWRITETBL     = signal_signature.add("SigDocWriteTbl", kAudioRate);
-    g.SIGDOCACCESSTBL    = signal_signature.add("SigDocAccessTbl", kAudioRate);
-    g.SIGSELECT2         = signal_signature.add("SigSelect2");
+    g.SIGINPUT           = signal_signature.add("SigInput", kAR);
+    g.SIGOUTPUT          = signal_signature.add("SigOutput", kAR);
+    g.SIGDELAY1          = signal_signature.add("SigDelay1", kAR);
+    g.SIGDELAY           = signal_signature.add("SigDelay", kAR);
+    g.SIGPREFIX          = signal_signature.add("SigPrefix", kAR);
+    g.SIGRDTBL           = signal_signature.add("SigRDTbl", kAR);
+    g.SIGWRTBL           = signal_signature.add("SigWRTbl", kAR);
+    g.SIGGEN             = signal_signature.add("SigGen", kAR);
+    g.SIGDOCONSTANTTBL   = signal_signature.add("SigDocConstantTbl", kAR);
+    g.SIGDOCWRITETBL     = signal_signature.add("SigDocWriteTbl", kAR);
+    g.SIGDOCACCESSTBL    = signal_signature.add("SigDocAccessTbl", kAR);
+    g.SIGSELECT2         = signal_signature.add("SigSelect2", kOrderAudio);
     g.SIGASSERTBOUNDS    = signal_signature.add("sigAssertBounds");
     g.SIGHIGHEST         = signal_signature.add("sigHighest");
     g.SIGLOWEST          = signal_signature.add("sigLowest");
     g.SIGBINOP           = signal_signature.add("SigBinOp");
-    g.SIGFFUN            = signal_signature.add("SigFFun", kAudioRate);
-    g.SIGFCONST          = signal_signature.add("SigFConst");
-    g.SIGFVAR            = signal_signature.add("SigFVar");
+    g.SIGFFUN            = signal_signature.add("SigFFun", kAR);
+    g.SIGFCONST          = signal_signature.add("SigFConst", kOrderConst);
+    g.SIGFVAR            = signal_signature.add("SigFVar", kOrderCtrl);
     // Projection moved to tlib (proj/isProj) : no longer a signal-signature member,
     // like rec/ref. The SignalOpcode enum drops Projection in step with this.
     g.SIGINTCAST         = signal_signature.add("SigIntCast");
     g.SIGBITCAST         = signal_signature.add("SigBitCast");
     g.SIGFLOATCAST       = signal_signature.add("SigFloatCast");
-    g.SIGBUTTON          = signal_signature.add("SigButton");
-    g.SIGCHECKBOX        = signal_signature.add("SigCheckbox");
-    g.SIGWAVEFORM        = signal_signature.add("SigWaveform", kAudioRate);
-    g.SIGHSLIDER         = signal_signature.add("SigHSlider");
-    g.SIGVSLIDER         = signal_signature.add("SigVSlider");
-    g.SIGNUMENTRY        = signal_signature.add("SigNumEntry");
-    g.SIGHBARGRAPH       = signal_signature.add("SigHBargraph");
-    g.SIGVBARGRAPH       = signal_signature.add("SigVBargraph");
-    g.SIGATTACH          = signal_signature.add("SigAttach");
+    g.SIGBUTTON          = signal_signature.add("SigButton", kOrderCtrl);
+    g.SIGCHECKBOX        = signal_signature.add("SigCheckbox", kOrderCtrl);
+    g.SIGWAVEFORM        = signal_signature.add("SigWaveform", kAR);
+    g.SIGHSLIDER         = signal_signature.add("SigHSlider", kOrderCtrl);
+    g.SIGVSLIDER         = signal_signature.add("SigVSlider", kOrderCtrl);
+    g.SIGNUMENTRY        = signal_signature.add("SigNumEntry", kOrderCtrl);
+    g.SIGHBARGRAPH       = signal_signature.add("SigHBargraph", kOrderCtrl);
+    g.SIGVBARGRAPH       = signal_signature.add("SigVBargraph", kOrderCtrl);
+    g.SIGATTACH          = signal_signature.add("SigAttach", kOrderConst);
     g.SIGENABLE          = signal_signature.add("SigEnable");
     g.SIGCONTROL         = signal_signature.add("SigControl");
     g.SIGSOUNDFILE       = signal_signature.add("SigSoundfile");
-    g.SIGSOUNDFILELENGTH = signal_signature.add("SigSoundfileLength");
-    g.SIGSOUNDFILERATE   = signal_signature.add("SigSoundfileRate");
-    g.SIGSOUNDFILEBUFFER = signal_signature.add("SigSoundfileBuffer", kAudioRate);
+    g.SIGSOUNDFILELENGTH = signal_signature.add("SigSoundfileLength", kOrderCtrl);
+    g.SIGSOUNDFILERATE   = signal_signature.add("SigSoundfileRate", kOrderCtrl);
+    g.SIGSOUNDFILEBUFFER = signal_signature.add("SigSoundfileBuffer", kAR);
     g.SIGREGISTER        = signal_signature.add("SigRegister");
     // port FIR/IIR : REGISTERED LAST -- the signature order indexes the
     // dispatch tables of the signal algebra ; inserting mid-list shifts
     // every later symbol and misaligns the typing solvers
-    g.SIGFIR             = signal_signature.add("SigFIR", kAudioRate);
-    g.SIGIIR             = signal_signature.add("SigIIR", kAudioRate);
+    g.SIGFIR             = signal_signature.add("SigFIR", kAR);
+    g.SIGIIR             = signal_signature.add("SigIIR", kAR);
     g.SIGSUM             = signal_signature.add("SigSum");
     g.SIGTEMP            = signal_signature.add("SigTemp");
 
@@ -118,7 +122,7 @@ void initSignalSymbols()
     // signature member -- initialized here, before any signal tree is built
     // (bits are stamped at construction, never retroactively), on both init
     // paths since the compiler's global.cpp calls initSignalSymbols() too.
-    setSymbolUserKinds(symbol("PROJ"), kAudioRate);
+    setSymbolUserKinds(symbol("PROJ"), kAR);
 }
 
 const TreeAlgebra& algebra()

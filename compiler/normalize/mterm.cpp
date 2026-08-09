@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include "mterm.hh"
+#include "sigs-state.hh"
 #include "exception.hh"
 #include "global.hh"
 #include "ppsig.hh"
@@ -102,7 +103,7 @@ int mterm::complexity() const
 {
     int c = isOne(fCoef) ? 0 : (isMinusOne(fCoef) ? 0 : 1);
     for (const auto& p : fFactors) {
-        c += (1 + getSigOrder(p.first)) * abs(p.second);
+        c += (1 + sigs::sigOrder(p.first)) * abs(p.second);
     }
     // cerr << __LINE__ << ":" << __FUNCTION__ << "(" << *this << ") --> " << c << endl;
     return c;
@@ -517,7 +518,7 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
             for (const auto& p : fFactors) {
                 Tree f = p.first;   // f = factor
                 int  q = p.second;  // q = power of f
-                if (f && q && getSigOrder(f) == order) {
+                if (f && q && sigs::sigOrder(f) == order) {
                     combineMulDiv(A[order], B[order], f, q);
                 }
             }

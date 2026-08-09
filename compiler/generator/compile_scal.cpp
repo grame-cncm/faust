@@ -3178,6 +3178,62 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         fClass->addZone3(qc.str());
     }
 
+        if (getenv("FAUST_SS_ORDERCHECK")) {
+            // validation croisee de la migration ordre->bits : sigOrder
+            // (3 bits de kinds) contre getSigOrder (annotation memoisee),
+            // sur chaque noeud. bitsHigher = pessimismes attendus (ffun a
+            // arguments lents, attach, jamais select2 qui est pessimiste
+            // des deux cotes) ; bitsLower = BUG, un porteur manque
+            long exact = 0, bitsHigher = 0, bitsLower = 0;
+            std::set<Tree>    seen;
+            std::vector<Tree> work{L};
+            while (!work.empty()) {
+                Tree t = work.back();
+                work.pop_back();
+                if (!seen.insert(t).second) {
+                    continue;
+                }
+                Tree v_, b_;
+                if (isRec(t, v_, b_)) {
+                    if (b_ != nullptr && !isNil(b_)) {
+                        work.push_back(b_);
+                    }
+                    continue;
+                }
+                for (int k = 0; k < t->arity(); k++) {
+                    work.push_back(t->branch(k));
+                }
+            }
+            for (Tree t : seen) {
+                if (isList(t) || isNil(t)) {
+                    continue;
+                }
+                Tree v_, b_;
+                if (isRec(t, v_, b_)) {
+                    continue;  // getSigOrder asserts on rec nodes
+                }
+                int ord;
+                try {
+                    ord = getSigOrder(t);
+                } catch (...) {
+                    continue;  // hors-langage (variables de letrec...)
+                }
+                int bits = sigs::sigOrder(t);
+                if (bits == ord) {
+                    exact++;
+                } else if (bits > ord) {
+                    bitsHigher++;
+                    std::cerr << "SS_ORDERHIGH bits=" << bits << " ord=" << ord << " "
+                              << ppsig(t, 4) << std::endl;
+                } else {
+                    bitsLower++;
+                    std::cerr << "SS_ORDERLOW bits=" << bits << " ord=" << ord << " "
+                              << ppsig(t, 4) << std::endl;
+                }
+            }
+            std::cerr << "SS_ORDERCHECK exact=" << exact << " bitsHigher=" << bitsHigher
+                      << " bitsLower=" << bitsLower << std::endl;
+        }
     // FAUST_SS_SIG : la signature statique du programme, une ligne — la
     // matière première du sélecteur automatique (couche 1). Tout se
     // calcule sans bench : taille, borne de récurrence, comptes
