@@ -61,6 +61,7 @@
 #include "reassociate.hh"
 #include "revealSum.hh"
 #include "sigorderrules.hh"
+#include "descend.hh"
 #include "sigtype.hh"
 #include "timing.hh"
 #include "xtendedCodegen.hh"
@@ -582,6 +583,49 @@ Tree ScalarCompiler::prepare(Tree LS)
     }
     fOccMarkup->mark(Lx);  // Annotate L2 (+ condition atoms) with occurrences analysis
     endTiming("occurrences analysis");
+
+    if (getenv("FAUST_SS_DESCENDCHECK")) {
+        // validation du descendAttribute v2 (portes absorbantes) : les
+        // max-delay recomptes par la descente generique doivent coincider
+        // avec OccMarkup sur chaque noeud qu'il a visite. Etiquettes
+        // d'aretes locales (regime A) + le suivi -1*y (chaine, regime B,
+        // hors porte), memes valeurs que incOcc.
+        auto md = descendAttribute<int>(
+            Lx, 0,
+            [](Tree parent, int i, const int& pa) -> int {
+                Tree x, y;
+                int  opnum;
+                if (isSigDelay(parent, x, y) && i == 0) {
+                    return checkDelayInterval(getCertifiedSigType(y));
+                }
+                if (isSigPrefix(parent, x, y) && i == 1) {
+                    return 1;
+                }
+                if (isSigBinOp(parent, &opnum, x, y) && opnum == kMul && isMinusOne(x) &&
+                    i == 1) {
+                    return pa;  // le partage de -1*y se propage (cf. OccMarkup)
+                }
+                return 0;
+            },
+            [](const int& a, const int& b) { return a > b ? a : b; });
+        long agree = 0, miss = 0;
+        for (const auto& [t, d] : md) {
+            Occurrences* o = fOccMarkup->retrieve(t);
+            if (o == nullptr) {
+                continue;  // hors du parcours OccMarkup (gen, descripteurs)
+            }
+            if (o->getMaxDelay() == d) {
+                agree++;
+            } else {
+                miss++;
+                if (miss <= 4) {
+                    std::cerr << "SS_DESCENDMISS occ=" << o->getMaxDelay() << " descend=" << d
+                              << " " << ppsig(t, 4) << std::endl;
+                }
+            }
+        }
+        std::cerr << "SS_DESCENDCHECK agree=" << agree << " miss=" << miss << std::endl;
+    }
 
     endTiming("prepare");
 
