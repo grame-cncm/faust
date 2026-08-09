@@ -42,6 +42,7 @@ CAND = {
     "cs8": ["-ss", "7", "-ls-R", "8", "-ls-U", "4"],
     "t4":  ["-temp", "4"],
     "t4fu": ["-temp", "4", "-ls-fuse", "-ls-sched", "model"],
+    "lz":  ["-lazyselect"],
 }
 
 
@@ -67,12 +68,16 @@ def candidates(sig):
     fusion_signal = sig["recmii"] >= 50 or sig["nstreams"] >= 5
     locality = sig["recmii"] >= 45
     order = ["h2", "cs8"] if locality else ["al", "h32"]
+    # la dimension -lazyselect ne paie que sur les programmes riches en
+    # selects (vocal 0.78, oberheim 0.74) et coûte ailleurs : candidat
+    # seulement au-delà du seuil statique
+    lazy = ["lz"] if sig.get("nselect", 0) >= 8 else []
     if fusion_signal:
         # les zones sûres embarquent les deux régimes d'ordre (validation
         # 2026-08-08) + le témoin étagé
         other = "al" if locality else "h2"
-        return "fusion-sûre", ["fu", order[0], other, "t4fu"]
-    return "incertain", ["fu", order[0], order[1], "df", "t4"]
+        return "fusion-sûre", ["fu", order[0], other, "t4fu"] + lazy
+    return "incertain", ["fu", order[0], order[1], "df", "t4"] + lazy
 
 
 def compile_candidate(dsp, name, workdir):

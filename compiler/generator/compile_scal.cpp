@@ -3233,7 +3233,16 @@ void ScalarCompiler::compileMultiSignal(Tree L)
             }
         }
         std::sort(sizes.rbegin(), sizes.rend());
+        // selects : le signal statique de la dimension -lazyselect
+        int nselect = 0;
+        for (const auto& n : G.nodes()) {
+            Tree sel_, sx_, sy_;
+            if (isSigSelect2(n, sel_, sx_, sy_)) {
+                nselect++;
+            }
+        }
         std::cerr << "SS_SIG nodes=" << G.nodes().size() << " recmii=" << ocppTightRecMII(L)
+                  << " nselect=" << nselect
                   << " nalu=" << nalu << " nmem=" << nmem << " nstreams=" << allk.size()
                   << " speak64=" << speak << " distinct=" << cls.size()
                   << " bankablepct=" << (100 * bank / std::max<size_t>(G.nodes().size(), 1))
