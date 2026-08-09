@@ -524,14 +524,38 @@ Tree ScalarCompiler::prepare(Tree LS)
         typeAnnotation(L2, true);
     }
 
+    // -lazyselect : the synthesized condition atoms (sel==0, sel!=0) are
+    // compiled like any signal by the guarded statements -- they need
+    // sharing counts and occurrence marks. Both analyses run ONCE on an
+    // extended root list (mark() regenerates its property key, a second
+    // call would lose the first).
+    Tree Lx = L2;
+    if (gGlobal->gLazySelect) {
+        std::set<Tree, treeorder> atoms;
+        for (const auto& pc : fConditionProperty) {
+            for (Tree cc = pc.second; cc && isList(cc); cc = tl(cc)) {
+                for (Tree at = hd(cc); at && isList(at); at = tl(at)) {
+                    atoms.insert(hd(at));
+                }
+            }
+        }
+        for (Tree a : atoms) {
+            Lx = cons(a, Lx);
+        }
+        // the atoms are compiled : they need every annotation the emitter
+        // reads -- types, recursivness (memoized for the L2 part)
+        recursivnessAnnotation(Lx);
+        typeAnnotation(Lx, gGlobal->gLocalCausalityCheck);
+    }
+
     startTiming("sharingAnalysis");
-    sharingAnalysis(L2, fSharingKey);  // Annotate L2 with sharing count
+    sharingAnalysis(Lx, fSharingKey);  // Annotate L2 (+ condition atoms) with sharing count
     endTiming("sharingAnalysis");
 
     startTiming("occurrences analysis");
     delete fOccMarkup;
     fOccMarkup = new OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L2);  // Annotate L2 with occurrences analysis
+    fOccMarkup->mark(Lx);  // Annotate L2 (+ condition atoms) with occurrences analysis
     endTiming("occurrences analysis");
 
     endTiming("prepare");
@@ -690,8 +714,63 @@ void ScalarCompiler::conditionAnnotation(Tree l)
     }
 }
 
+// State boundaries of the lazy-select condition propagation : below these
+// nodes the condition is forced to nil (unconditional). Everything feeding a
+// state sink (delay lines, recursions, tables, soundfiles) must run every
+// sample whatever the selection -- Faust's strict state semantics : an
+// unheard echo still ages. Observables (bargraphs, attach) and foreign
+// functions (side effects) are boundaries too.
+static bool isConditionBoundary(Tree t)
+{
+    int     i;
+    Tree    x, y, z, u, v, w, lbl, mn, mx;
+    if (isSigDelay(t, x, y) || isSigDelay1(t, x) || isSigPrefix(t, x, y)) {
+        return true;
+    }
+    if (isProj(t, &i, x) || isRec(t, x, y)) {
+        return true;
+    }
+    if (isSigWRTbl(t, x, y) || isSigWRTbl(t, x, y, u, v) || isSigRDTbl(t, x, y) ||
+        isSigGen(t, x)) {
+        return true;
+    }
+    if (isSigSoundfileBuffer(t, x, y, u, v) || isSigWaveform(t)) {
+        return true;
+    }
+    if (isSigHBargraph(t, lbl, mn, mx, x) || isSigVBargraph(t, lbl, mn, mx, x) ||
+        isSigAttach(t, x, y) || isSigEnable(t, x, y) || isSigControl(t, x, y)) {
+        return true;
+    }
+    if (Tree ff, largs; isSigFFun(t, ff, largs)) {
+        return true;
+    }
+    return false;
+}
+
 void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
 {
+    if (gGlobal->gLazySelect && isConditionBoundary(t)) {
+        nc = gGlobal->nil;  // the node and its subtree stay unconditional
+    }
+    if (gGlobal->gLazySelect && nc != gGlobal->nil) {
+        // a condition is an OPTIMIZATION : beyond a few OR-terms the guard
+        // costs more than it saves, and on deep select cascades (dx7 : 32
+        // algorithms) the DNF growth is combinatorial -- collapse to nil
+        // (unconditional, always sound ; nil is the lattice top, so the
+        // re-annotation converges immediately)
+        int  n  = 0;
+        Tree cc = nc;
+        while (isList(cc) && n <= 4) {
+            for (Tree aa = hd(cc); isList(aa) && n <= 4; aa = tl(aa)) {
+                n++;  // count ATOMS (OR-terms x AND-lengths) : a guard of
+                      // more than 4 atoms costs more than it saves
+            }
+            cc = tl(cc);
+        }
+        if (n > 4) {
+            nc = gGlobal->nil;
+        }
+    }
     // Check if we need to annotate the tree with new conditions
     auto p = fConditionProperty.find(t);
     if (p != fConditionProperty.end()) {
@@ -717,6 +796,17 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
         // specific annotation case for SigControl
         conditionAnnotation(y, nc);
         conditionAnnotation(x, _AND_(nc, _CND_(y)));
+    } else if (Tree sel; gGlobal->gLazySelect && isSigSelect2(t, sel, x, y)) {
+        // lazy select : the selector decides, so it is needed under the
+        // SAME condition as the select itself ; each branch's stateless
+        // crown inherits the branch condition (the boundary rule above
+        // keeps every stateful part unconditional). Emitted statements
+        // then guard themselves via getConditionCode -- the machinery
+        // built for sigControl serves unchanged. Convention :
+        // select2(sel, x, y) = sel ? y : x.
+        conditionAnnotation(sel, nc);
+        conditionAnnotation(x, _AND_(nc, _CND_(sigBinOp(kEQ, sel, sigInt(0)))));
+        conditionAnnotation(y, _AND_(nc, _CND_(sigBinOp(kNE, sel, sigInt(0)))));
     } else {
         // general annotation case
         // Annotate the sub signals with nc

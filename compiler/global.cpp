@@ -441,6 +441,7 @@ void global::reset()
     gEtaRegroup     = false;
     gStagingOps     = 0;
     gTempOps        = 0;
+    gLazySelect     = false;
     gEtaIterations  = 1;
     gCanonicalOrder = false;
     gLoopSplit      = false;
@@ -812,6 +813,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gTempOps > 0) {
         dst << "-temp " << gTempOps << " ";
+    }
+    if (gLazySelect) {
+        dst << "-lazyselect ";
     }
     if (gEtaHarvest) {
         dst << "-etai " << gEtaIterations << " ";
@@ -1608,6 +1612,10 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-temp", "--temp-threshold")) {
             gTempOps = std::atoi(argv[i + 1]);
             i += 2;
+
+        } else if (isCmd(argv[i], "-lazyselect", "--lazy-select")) {
+            gLazySelect = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-co", "--canonical-order")) {
             gCanonicalOrder = true;
