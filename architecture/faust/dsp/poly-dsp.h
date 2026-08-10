@@ -539,6 +539,9 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         // Fade out the audio in the buffer
         void fadeOut(int count, FAUSTFLOAT** outBuffer)
         {
+			if (count <= 0)
+				return;
+			
             // FadeOut on half buffer
             for (int chan = 0; chan < getNumOutputs(); chan++) {
                 double factor = 1., step = 1./double(count);
