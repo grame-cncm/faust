@@ -43,6 +43,7 @@ CAND = {
     "t4":  ["-temp", "4"],
     "t4fu": ["-temp", "4", "-ls-fuse", "-ls-sched", "model"],
     "t1fu": ["-temp", "1", "-ls-fuse", "-ls-sched", "model"],
+    "fi":  ["-fir"],
     "lz":  ["-lazyselect"],
 }
 
@@ -78,9 +79,12 @@ def candidates(sig):
         # 2026-08-08) + le témoin étagé
         # t1fu : le grain SSA sous la fusion -- répare le pire cas de fu
         # (korg35HPF 1.08 -> 0.81) et mène le geomean du jury (0.692)
+        # fi : l'algèbre -fir révélée+émise -- gains concentrés
+        # (spectralTilt 0.52, korg35HPF 0.72), pertes réverb : le flash-
+        # bench arbitre. df partout : la ligne de base de la carte.
         other = "al" if locality else "h2"
-        return "fusion-sûre", ["fu", order[0], other, "t4fu", "t1fu"] + lazy
-    return "incertain", ["fu", order[0], order[1], "df", "t4"] + lazy
+        return "fusion-sûre", ["fu", order[0], other, "t4fu", "t1fu", "df", "fi"] + lazy
+    return "incertain", ["fu", order[0], order[1], "df", "t4", "fi"] + lazy
 
 
 def compile_candidate(dsp, name, workdir):
