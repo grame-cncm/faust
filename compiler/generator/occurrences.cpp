@@ -119,6 +119,23 @@ Tree Occurrences::getExecCondition() const
 //	Mark and retrieve occurrences of subtrees of root
 //----------------------------------------------------
 
+
+// an all-ones CONTIGUOUS FIR from tap 0 with at least 4 taps : a moving
+// sum, eligible for the O(1) sliding emission (y = y' + x - x@T)
+static bool isSlidingSumFIR(const tvec& coef, int& T)
+{
+    if (coef.size() < 5) {
+        return false;  // fewer than 4 taps
+    }
+    for (size_t i = 1; i < coef.size(); i++) {
+        if (!isOne(coef[i])) {
+            return false;
+        }
+    }
+    T = int(coef.size()) - 1;
+    return true;
+}
+
 void OccMarkup::mark(Tree root)
 {
     fRootTree = root;
@@ -185,6 +202,15 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
                 }
             }
         } else if (tvec V; isSigFIR(t, V)) {
+            // sliding-sum candidates read the source one slot FURTHER
+            // (x@T) than the widest tap : declare it here so the delay
+            // line covers the O(1) emission (see generateFIR)
+            {
+                int T;
+                if (isSlidingSumFIR(V, T)) {
+                    incOcc(env, v0, r0, T, c0, V[0]);
+                }
+            }
             // FIR[X,C0,C1,...] : the source X is read at delays 0..n-1 (one
             // per non-zero coefficient) -- this is what sizes its delay
             // line ; the coefficients are ordinary immediate reads

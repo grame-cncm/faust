@@ -61,6 +61,7 @@
 #include "reassociate.hh"
 #include "revealSum.hh"
 #include "descend.hh"
+#include "factorizeFIRs.hh"
 #include "lowerSums.hh"
 #include "sigtype.hh"
 #include "timing.hh"
@@ -506,6 +507,9 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("IIR revealer");
             L2 = revealIIR(L2);
             endTiming("IIR revealer");
+            startTiming("FIR factorizer");
+            L2 = factorizeFIRs(L2);
+            endTiming("FIR factorizer");
             if (gGlobal->gLowerSums || getenv("FAUST_LOWERSUMS")) {
                 // experimental co-occurrence lowering : the n-ary sums
                 // become binary adds whose shared pairs and canonical
@@ -4612,6 +4616,23 @@ string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
  * loop over a coefficient table (large and dense). Ported from the fir18
  * branch (compile_scal_fir.cpp), HLS pragmas left out.
  */
+
+// an all-ones CONTIGUOUS FIR from tap 0 with at least 4 taps : a moving
+// sum, eligible for the O(1) sliding emission (y = y' + x - x@T)
+static bool isSlidingSumFIR(const tvec& coef, int& T)
+{
+    if (coef.size() < 5) {
+        return false;  // fewer than 4 taps
+    }
+    for (size_t i = 1; i < coef.size(); i++) {
+        if (!isOne(coef[i])) {
+            return false;
+        }
+    }
+    T = int(coef.size()) - 1;
+    return true;
+}
+
 string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
     faustassert(coefs.size() > 1);
@@ -4620,6 +4641,63 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
     if (coefs.size() == 2) {
         // simple gain
         return generateCacheCode(sig, subst("($0) * ($1)", CS(coefs[1]), CS(coefs[0])));
+    }
+    if (int T; isSlidingSumFIR(coefs, T) && getConditionCode(sig).empty()) {
+        // MOVING SUM : y(t) = y(t-1) + x(t) - x(t-T), O(1) whatever T.
+        // The accumulator is a scalar state (same idiom as kMonoDelay) ;
+        // its occurrences case declared the x@T read that feeds the exit.
+        // Numerics : exact for ints ; float accumulators drift (judged by
+        // the -double discriminator like every reassociation).
+        Type        ty = getCertifiedSigType(sig);
+        std::string ctype, aname;
+        getTypedNames(ty, "Slide", ctype, aname);
+        fClass->addDeclCode(subst("$0 \t$1State; // Sliding sum", ctype, aname));
+        fClass->addClearCode(subst("$0State = 0;", aname));
+        fClass->addZone2(subst("$0 \t$1;", ctype, aname));
+        fClass->addZone3(subst("$0 = $0State;", aname));
+        std::string enter = CS(coefs[0]);
+        std::string leave = generateDelayAccessRaw(sig, coefs[0], T);
+        fClass->addExecCode(
+            Statement("", subst("$0 = $0 + $1 - $2; /* Sliding sum */", aname, enter, leave)));
+        fClass->addZone3Post(subst("$0State = $0;", aname));
+        return generateCacheCode(sig, aname);
+    }
+    {
+        // LINEAR PHASE : symmetric coefficients (c_t == c_{T-1-t}) pre-add
+        // the mirrored taps before multiplying -- half the products
+        const int T = int(coefs.size()) - 1;
+        bool      sym = (T >= 4);
+        for (int t = 0; sym && t < T / 2; t++) {
+            sym = (coefs[1 + t] == coefs[1 + (T - 1 - t)]);
+        }
+        if (sym) {  // (the sliding case returned above)
+            std::ostringstream oss;
+            string             sep = "";
+            Tree               exp = coefs[0];
+            oss << '(';
+            for (int t = 0; t < T / 2; t++) {
+                if (isZero(coefs[1 + t])) {
+                    continue;
+                }
+                string pair = "(" + generateDelayAccessRaw(sig, exp, t) + " + " +
+                              generateDelayAccessRaw(sig, exp, T - 1 - t) + ")";
+                if (isOne(coefs[1 + t])) {
+                    oss << sep << pair;
+                } else {
+                    oss << sep << CS(coefs[1 + t]) << " * " << pair;
+                }
+                sep = " + ";
+            }
+            if (T % 2 == 1 && !isZero(coefs[1 + T / 2])) {
+                oss << sep;
+                if (!isOne(coefs[1 + T / 2])) {
+                    oss << CS(coefs[1 + T / 2]) << " * ";
+                }
+                oss << generateDelayAccessRaw(sig, exp, T / 2);
+            }
+            oss << ") /* symmetric FIR */";
+            return generateCacheCode(sig, oss.str());
+        }
     }
     bool r1 = density * 100 < gGlobal->gMinDensity;
     bool r2 = int(coefs.size()) - 1 < kFirLoopSize;
