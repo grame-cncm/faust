@@ -1,9 +1,13 @@
+#include <map>
+#include <optional>
+#include <set>
+#include <unordered_map>
 #include <vector>
 
 #include "global.hh"
 #include "revealSum.hh"
-#include "sigs-state.hh"
 #include "rewrite.hh"
+#include "sigs-state.hh"
 #include "simplify.hh"
 
 // simplify() exige des termes clos : pendant la reecriture, les sous-arbres
@@ -22,72 +26,88 @@ static Tree sigNeg(Tree sig)
     return recSafeSimplify(sigMul(sigInt(-1), sig));
 }
 
-// If needed, wrap a signal into a sum
-static Tree ensureSum(Tree x, bool invertSecondTerm)
+// occurrence count on the ORIGINAL tree (one per parent edge, rec bodies
+// crossed once) : flattening THROUGH a shared sub-sum destroys structural
+// sharing -- an FDN's butterfly stages are adds with two consumers each,
+// and splicing them into every consumer turns O(N log N) additions into
+// O(N^2) (fdnRev : 823 -> 3056). The reassociate pass learned the same
+// lesson : a shared node is an ATOM of the enclosing spine.
+static void countOcc(Tree root, std::map<Tree, int, treeorder>& occ)
 {
-    if (!invertSecondTerm) {
-        if (isSigSum(x)) {
-            return x;
+    std::set<Tree>    seen;
+    std::vector<Tree> work{root};
+    while (!work.empty()) {
+        Tree t = work.back();
+        work.pop_back();
+        Tree var, body;
+        if (isRec(t, var, body)) {
+            if (seen.insert(t).second && body) {
+                work.push_back(body);
+            }
+            continue;
         }
-        tvec subs{x};
-        return sigSum(subs);
-    }
-    // we need to invert the subsignals
-    if (tvec subs; isSigSum(x, subs)) {
-        tvec invsubs;
-        for (Tree s : subs) {
-            invsubs.push_back(sigNeg(s));
+        for (int k = 0; k < t->arity(); k++) {
+            Tree c = t->branch(k);
+            occ[c] += 1;
+            if (seen.insert(c).second) {
+                work.push_back(c);
+            }
         }
-        return sigSum(invsubs);
     }
-    tvec invsubs{sigNeg(x)};
-    return sigSum(invsubs);
 }
 
-// The local rule : adds and subs become n-ary SigSum nodes. Bottom-up on the
-// rebuilt node, per the generic tlib rewrite (rec renaming is the traversal's
-// business, not ours).
-static Tree sumRule(Tree sig)
+// Append the terms of x (rebuilt) to zsubs : spliced when x is a Sum whose
+// ORIGINAL was single-use, kept as one opaque atom otherwise.
+static void appendTerms(Tree xrebuilt, bool xShared, bool invert, tvec& zsubs)
 {
-    // AUDIO sums only. A slow add stays binary and factored : flattening it
-    // serves no FIR (the kernels live on delayed audio terms) and DESTROYS
-    // NUMERICAL CONDITIONING -- distributing 440*(1-p)*f into
-    // 440*f - 440*p*f computes a smoother's input as the cancelling
-    // difference of two large numbers (3e-4 relative on oscrs' frequency),
-    // which a marginally-stable rotation then integrates into a gross
-    // phase error (the filterOsc family of the first -fir campaign). The
-    // slow term enters the enclosing audio sum as ONE opaque atom, exactly
-    // the factored form the default path emits.
-    if (!sigs::isAudioRate(sig)) {
-        return sig;
+    tvec subs;
+    if (!xShared && isSigSum(xrebuilt, subs)) {
+        for (Tree s : subs) {
+            zsubs.push_back(invert ? sigNeg(s) : s);
+        }
+        return;
     }
-    Tree x, y;
-    if (isSigAdd(sig, x, y)) {
-        Tree sx = ensureSum(x, false);
-        Tree sy = ensureSum(y, false);
-        tvec xsubs, ysubs;
-        faustassert(isSigSum(sx, xsubs) && isSigSum(sy, ysubs));
-        tvec zsubs;
-        zsubs.insert(zsubs.end(), xsubs.begin(), xsubs.end());
-        zsubs.insert(zsubs.end(), ysubs.begin(), ysubs.end());
-        return sigSum(zsubs);
-    }
-    if (isSigSub(sig, x, y)) {
-        Tree sx = ensureSum(x, false);
-        Tree sy = ensureSum(y, true);
-        tvec xsubs, ysubs;
-        faustassert(isSigSum(sx, xsubs) && isSigSum(sy, ysubs));
-        tvec zsubs;
-        zsubs.insert(zsubs.end(), xsubs.begin(), xsubs.end());
-        zsubs.insert(zsubs.end(), ysubs.begin(), ysubs.end());
-        return sigSum(zsubs);
-    }
-    return sig;
+    zsubs.push_back(invert ? sigNeg(xrebuilt) : xrebuilt);
 }
 
 // External API
 
 Tree revealSum(Tree L1)
 {
-    return treeRewrite(L1, sumRule);
+    std::map<Tree, int, treeorder> occ;
+    countOcc(L1, occ);
+    auto shared = [&occ](Tree t) {
+        auto it = occ.find(t);
+        return it != occ.end() && it->second > 1;
+    };
+
+    std::unordered_map<Tree, Tree> memo;
+    auto pre     = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
+
+    // AUDIO sums only (see the conditioning note in the commit history :
+    // flattening a slow add invites cancelling distributions). The
+    // original side supplies the audio bit and the occurrences ; the
+    // rebuilt side supplies the terms.
+    auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
+        if (!sigs::isAudioRate(orig)) {
+            return rebuilt;
+        }
+        Tree xo, yo, xr, yr;
+        if (isSigAdd(orig, xo, yo) && isSigAdd(rebuilt, xr, yr)) {
+            tvec zsubs;
+            appendTerms(xr, shared(xo), false, zsubs);
+            appendTerms(yr, shared(yo), false, zsubs);
+            return sigSum(zsubs);
+        }
+        if (isSigSub(orig, xo, yo) && isSigSub(rebuilt, xr, yr)) {
+            tvec zsubs;
+            appendTerms(xr, shared(xo), false, zsubs);
+            appendTerms(yr, shared(yo), true, zsubs);
+            return sigSum(zsubs);
+        }
+        return rebuilt;
+    };
+
+    return treeRewritePairedMemo(L1, pre, rule, memo, defRule);
 }

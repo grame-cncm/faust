@@ -61,6 +61,7 @@
 #include "reassociate.hh"
 #include "revealSum.hh"
 #include "descend.hh"
+#include "lowerSums.hh"
 #include "sigtype.hh"
 #include "timing.hh"
 #include "xtendedCodegen.hh"
@@ -502,6 +503,15 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("FIR revealer");
             L2 = revealFIR(L2);
             endTiming("FIR revealer");
+            if (getenv("FAUST_LOWERSUMS")) {
+                // experimental co-occurrence lowering : the n-ary sums
+                // become binary adds whose shared pairs and canonical
+                // prefixes rebuild the structural sharing the flattening
+                // destroyed (fdnRev : 823 -> 3056 additions without it)
+                startTiming("Sum lowering");
+                L2 = lowerSums(L2);
+                endTiming("Sum lowering");
+            }
         };
         pthread_attr_t attr;
         pthread_attr_init(&attr);

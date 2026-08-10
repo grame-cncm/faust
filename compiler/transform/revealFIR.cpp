@@ -44,6 +44,44 @@ static inline bool hasClock(Tree, Tree&)
 // for nothing, and downstream cliffs (phasor wraps, hardsync resets,
 // comparisons) amplify every ulp into an O(1) sample difference (the
 // hs_oscsin family of the first -fir campaign).
+// occurrence count of every node (one per parent edge, rec bodies crossed) :
+// distribution over a SHARED sum destroys structural sharing (an FDN's
+// butterfly rows each get their own gain-multiplied copies of the common
+// partial sums -- fdnRev : +800 multiplications, +2200 additions), so the
+// rules refuse to distribute over a sum that has several parents
+static std::map<Tree, int, treeorder> gSumOcc;
+
+static void countOcc(Tree root)
+{
+    gSumOcc.clear();
+    std::set<Tree>    seen;
+    std::vector<Tree> work{root};
+    while (!work.empty()) {
+        Tree t = work.back();
+        work.pop_back();
+        Tree var, body;
+        if (isRec(t, var, body)) {
+            if (seen.insert(t).second && body) {
+                work.push_back(body);
+            }
+            continue;
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            Tree c = t->branch(k);
+            gSumOcc[c] += 1;
+            if (seen.insert(c).second) {
+                work.push_back(c);
+            }
+        }
+    }
+}
+
+static bool isSharedNode(Tree t)
+{
+    auto it = gSumOcc.find(t);
+    return it != gSumOcc.end() && it->second > 1;
+}
+
 static bool hasDelayedTerm(Tree sum)
 {
     tvec subs;
@@ -185,12 +223,14 @@ static Tree firRule(Tree sig)
         return sigMul(sigMul(x, u), v);
     }
 
-    if (Tree sum, c; isSigMul(sig, sum, c) && isSigSum(sum) && hasDelayedTerm(sum)) {
+    if (Tree sum, c; isSigMul(sig, sum, c) && isSigSum(sum) && hasDelayedTerm(sum) &&
+                     !isSharedNode(sum)) {
         // std::cerr << "Rule 12\n";
         return mulSigSum(sum, c);
     }
 
-    if (Tree sum, c; isSigMul(sig, c, sum) && isSigSum(sum) && hasDelayedTerm(sum)) {
+    if (Tree sum, c; isSigMul(sig, c, sum) && isSigSum(sum) && hasDelayedTerm(sum) &&
+                     !isSharedNode(sum)) {
         // std::cerr << "Rule 13\n";
         return mulSigSum(sum, c);
     }
@@ -436,5 +476,6 @@ Tree FIRRevealer::postprocess(Tree sig)
 
 Tree revealFIR(Tree L1)
 {
+    countOcc(L1);
     return treeRewrite(L1, firRule);
 }
