@@ -510,6 +510,83 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("FIR factorizer");
             L2 = factorizeFIRs(L2);
             endTiming("FIR factorizer");
+            if (getenv("FAUST_SS_MCM")) {
+                // sonde du gisement etage 3 : les paires PONDEREES.
+                // atome d'un terme : c*x -> (x, c numerique) ; x -> (x, 1).
+                // une extraction a+lambda*b sert les rangees ou wb/wa vaut
+                // le meme lambda : on met les paires en godets par ratio et
+                // on borne l'economie = somme des (count-1) des godets >=2.
+                std::vector<std::vector<std::pair<Tree, double>>> rows;
+                {
+                    std::set<Tree>    seen;
+                    std::vector<Tree> work{L2};
+                    while (!work.empty()) {
+                        Tree t = work.back();
+                        work.pop_back();
+                        if (!seen.insert(t).second) continue;
+                        Tree var, body;
+                        if (isRec(t, var, body)) {
+                            if (body) work.push_back(body);
+                            continue;
+                        }
+                        if (tvec subs; isSigSum(t, subs)) {
+                            std::vector<std::pair<Tree, double>> row;
+                            for (Tree s2 : subs) {
+                                Tree   a, b;
+                                double w = 1.0, num;
+                                int    inum;
+                                Tree   at = s2;
+                                if (isSigMul(s2, a, b) &&
+                                    (isSigReal(a, &num) || (isSigInt(a, &inum) && (num = inum, true)))) {
+                                    w  = num;
+                                    at = b;
+                                } else if (isSigMul(s2, a, b) &&
+                                           (isSigReal(b, &num) ||
+                                            (isSigInt(b, &inum) && (num = inum, true)))) {
+                                    w  = num;
+                                    at = a;
+                                }
+                                row.push_back({at, w});
+                            }
+                            rows.push_back(std::move(row));
+                        }
+                        for (int k = 0; k < t->arity(); k++) work.push_back(t->branch(k));
+                    }
+                }
+                std::map<std::tuple<Tree, Tree, long long>, int> buckets;
+                long terms = 0;
+                for (auto& row : rows) {
+                    terms += long(row.size());
+                    for (size_t i2 = 0; i2 < row.size(); i2++) {
+                        for (size_t j2 = i2 + 1; j2 < row.size(); j2++) {
+                            Tree   a = row[i2].first, b = row[j2].first;
+                            double wa = row[i2].second, wb = row[j2].second;
+                            if (a == b || wa == 0.0) continue;
+                            treeorder lt;
+                            if (lt(b, a)) {
+                                std::swap(a, b);
+                                std::swap(wa, wb);
+                            }
+                            long long q = (long long)(std::llround((wb / wa) * 1e9));
+                            buckets[{a, b, q}]++;
+                        }
+                    }
+                }
+                long pot1 = 0, potw = 0, bigw = 0;
+                for (auto& [k2, c2] : buckets) {
+                    if (c2 < 2) continue;
+                    long long q = std::get<2>(k2);
+                    if (q == 1000000000LL || q == -1000000000LL) {
+                        pot1 += c2 - 1;  // deja couvert par le papillon +-1
+                    } else {
+                        potw += c2 - 1;
+                        bigw++;
+                    }
+                }
+                std::cerr << "SS_MCM sums=" << rows.size() << " terms=" << terms
+                          << " lambda=+-1(deja fait)=" << pot1
+                          << " PONDERE godets=" << bigw << " borne=" << potw << std::endl;
+            }
             if (gGlobal->gLowerSums || getenv("FAUST_LOWERSUMS")) {
                 // experimental co-occurrence lowering : the n-ary sums
                 // become binary adds whose shared pairs and canonical
