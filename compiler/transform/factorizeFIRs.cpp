@@ -24,7 +24,20 @@ Tree factorizeFIRs(Tree L)
             while (z < coef.size() && isZero(coef[z])) {
                 z++;
             }
-            if (z > 1 && z < coef.size() && coef.size() - z >= 2) {
+            // CONSTANT coefficients only : time invariance is what makes
+            // the rewrite exact, and a delayed kernel evaluates its
+            // coefficients k samples EARLIER -- with slider-driven or
+            // smoothed coefficients (vocalFOF) the two forms differ
+            // STRUCTURALLY (3e-04 surviving the -double discriminator).
+            bool numeric = true;
+            for (size_t i = z; numeric && i < coef.size(); i++) {
+                int     ni;
+                int64_t n64;
+                double  nr;
+                numeric = isZero(coef[i]) || isSigInt(coef[i], &ni) ||
+                          isSigInt64(coef[i], &n64) || isSigReal(coef[i], &nr);
+            }
+            if (numeric && z > 1 && z < coef.size() && coef.size() - z >= 2) {
                 // (>= 2 taps denses : la forme a 1 coefficient serait un
                 // gain retarde, et sigFIR[x,c0] exige une source audio)
                 tvec dense;
