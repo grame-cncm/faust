@@ -775,6 +775,49 @@ Tree ScalarCompiler::prepare(Tree LS)
     } else {
         fOccMarkup = new OccMarkup(fConditionProperty);
     }
+    if (gGlobal->gIIRTransposed) {
+        // TOPOLOGY election (one judge for occurrences AND emission) : an
+        // order>=2 IIR kernel whose history nobody reads from outside --
+        // no sigDelay on it, never the source of a multi-tap FIR -- takes
+        // the TRANSPOSED all-pole form (scalar state chain, no delay
+        // line). The others keep the direct form ; the campaign of
+        // 2026-08-10 showed the transposed form LOSES when the delay
+        // line must survive for external readers (modal banks +25..58%)
+        // and wins ~20% when it disappears (tester/tester2).
+        std::set<Tree>    readers;  // IIRs with an external delayed read
+        std::set<Tree>    seen;
+        std::vector<Tree> work{Lx};
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            if (!seen.insert(t).second) {
+                continue;
+            }
+            Tree x, d;
+            tvec cs, dd;
+            if (isSigDelay(t, x, d) && isSigIIR(x, dd)) {
+                readers.insert(x);
+            } else if (isSigFIR(t, cs) && cs.size() >= 3 && isSigIIR(cs[0], dd)) {
+                readers.insert(cs[0]);
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                work.push_back(t->branch(k));
+            }
+        }
+        for (Tree t : seen) {
+            if (tvec cs; isSigIIR(t, cs)) {
+                int order = 0;
+                for (size_t k = 3; k < cs.size(); k++) {
+                    if (!isZero(cs[k])) {
+                        order = int(k) - 2;
+                    }
+                }
+                if (order >= 2 && readers.count(t) == 0) {
+                    t->setProperty(tree(symbol("SIGIIRTRANSPOSED")), tree(1));
+                }
+            }
+        }
+    }
     fOccMarkup->mark(Lx);  // Annotate L2 (+ condition atoms) with occurrences analysis
     endTiming("occurrences analysis");
 
@@ -3111,6 +3154,13 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                 f.first = std::max(f.first, span);
                 f.second += nz;
             } else if (isSigIIR(t, cs)) {
+                if (getenv("FAUST_SS_IIRORDER")) {
+                    int order = 0;
+                    for (size_t k2 = 3; k2 < cs.size(); k2++) {
+                        if (!isZero(cs[k2])) order = int(k2) - 2;
+                    }
+                    std::cerr << "SS_IIRORDER " << order << std::endl;
+                }
                 niir++;
             }
             for (int k = 0; k < t->arity(); k++) {
@@ -4704,6 +4754,47 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
 
     std::string vname, ctype;
     getTypedNames(ty, "IIR", ctype, vname);
+
+    const int order = int(coefs.size()) - 3;
+    if (sig->getProperty(tree(symbol("SIGIIRTRANSPOSED"))) != nullptr) {
+        // TRANSPOSED all-pole (DF-IIt pole half) : y = X + s1' ;
+        // si = ci*y + s(i+1)' ; sk = ck*y. The states are 1-delay
+        // scalars updated in order (each reads the OLD next state) ; the
+        // kernel never reads its own history -- its occurrences case
+        // declared no self reads under this flag. External delayed
+        // readers of the node still go through generateDelayVec below.
+        std::vector<std::string> sname(order);
+        for (int i2 = 0; i2 < order; i2++) {
+            std::string dummy;
+            getTypedNames(ty, "St", dummy, sname[i2]);
+            fClass->addDeclCode(subst("$0 \t$1State; // IIRt state", ctype, sname[i2]));
+            fClass->addClearCode(subst("$0State = 0;", sname[i2]));
+            fClass->addZone2(subst("$0 \t$1;", ctype, sname[i2]));
+            fClass->addZone3(subst("$0 = $0State;", sname[i2]));
+            fClass->addZone3Post(subst("$0State = $0;", sname[i2]));
+        }
+        std::string y = subst("($0 + $1)", CS(coefs[1]), sname[0]);
+        // no external delayed reader -> plain sample variable (the self
+        // reads that sized the direct form's line are gone by design)
+        std::string ycached =
+            (o->getMaxDelay() > 0)
+                ? generateDelayVec(sig, y, ctype, vname, o->getMaxDelay(), o->getDelayCount())
+                : generateVariableStore(sig, y);
+        for (int i2 = 0; i2 < order; i2++) {
+            Tree        c    = coefs[3 + i2];
+            std::string prod = isZero(c)      ? std::string("0")
+                               : isOne(c)     ? ycached
+                                              : subst("($0) * $1", CS(c), ycached);
+            std::string ccs = getConditionCode(sig);
+            if (i2 < order - 1) {
+                fClass->addExecCode(
+                    Statement(ccs, subst("$0 = $1 + $2; /* IIRt */", sname[i2], prod, sname[i2 + 1])));
+            } else {
+                fClass->addExecCode(Statement(ccs, subst("$0 = $1; /* IIRt */", sname[i2], prod)));
+            }
+        }
+        return ycached;
+    }
 
     std::ostringstream oss;
     oss << CS(coefs[1]);

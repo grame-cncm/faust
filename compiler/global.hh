@@ -314,7 +314,8 @@ struct global {
                            // historical, construction-driven order). Orthogonal to -eta.
     bool gLoopSplit;
     bool gReconstructFIRIIRs;
-    bool gLowerSums;  // -lsum : butterfly lowering of the revealed sums  // -fir : signal-level FIR/IIR recognition (side-channel)       // -ls option (ocpp, experimental): emit the materialized-signal DAG as
+    bool gLowerSums;  // -lsum : butterfly lowering of the revealed sums
+    bool gIIRTransposed;  // -iirt : transposed all-pole emission of the IIR kernels  // -fir : signal-level FIR/IIR recognition (side-channel)       // -ls option (ocpp, experimental): emit the materialized-signal DAG as
                            // separate loops (one per recursive group / delayed / shared signal /
                            // output) instead of one big sample loop
     int  gLSSched;         // -ls-sched option: intra-loop op scheduling strategy,

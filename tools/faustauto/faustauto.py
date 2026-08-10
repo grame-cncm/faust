@@ -43,8 +43,8 @@ CAND = {
     "t4":  ["-temp", "4"],
     "t4fu": ["-temp", "4", "-ls-fuse", "-ls-sched", "model"],
     "t1fu": ["-temp", "1", "-ls-fuse", "-ls-sched", "model"],
-    "fi":  ["-fir"],
-    "fib": ["-fir", "-lsum"],
+    "fi":  ["-fir", "-iirt"],
+    "fib": ["-fir", "-iirt", "-lsum"],
     "lz":  ["-lazyselect"],
 }
 

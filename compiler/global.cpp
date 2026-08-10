@@ -447,6 +447,7 @@ void global::reset()
     gLoopSplit      = false;
     gReconstructFIRIIRs = false;
     gLowerSums          = false;
+    gIIRTransposed      = false;
     gLSSched        = 0;
     gLSRegisters    = 20;
     gLSWidth        = 4;
@@ -1633,6 +1634,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-lsum", "--lower-sums")) {
             gLowerSums = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-iirt", "--iir-transposed")) {
+            gIIRTransposed = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-ls", "--loop-split")) {

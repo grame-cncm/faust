@@ -195,9 +195,13 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
             // input and the coefficients at delay 0
             faustassert(V.size() >= 4);
             incOcc(env, v0, r0, 0, c0, V[1]);
+            // the direct form reads ITSELF delayed ; a kernel ELECTED
+            // transposed (property set by the pre-markup scan, same judge
+            // as the emission) replaces those reads by its state chain
+            bool transposed = (t->getProperty(tree(symbol("SIGIIRTRANSPOSED"))) != nullptr);
             for (unsigned int k = 3; k < V.size(); k++) {
                 incOcc(env, v0, r0, 0, c0, V[k]);
-                if (!isZero(V[k])) {
+                if (!isZero(V[k]) && !transposed) {
                     incOcc(env, v0, r0, int(k) - 2, c0, t);
                 }
             }
