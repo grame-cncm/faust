@@ -503,6 +503,9 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("FIR revealer");
             L2 = revealFIR(L2);
             endTiming("FIR revealer");
+            startTiming("IIR revealer");
+            L2 = revealIIR(L2);
+            endTiming("IIR revealer");
             if (getenv("FAUST_LOWERSUMS")) {
                 // experimental co-occurrence lowering : the n-ary sums
                 // become binary adds whose shared pairs and canonical
@@ -2917,7 +2920,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         if (getenv("FAUST_SS_SPLIT")) {
             projSCCReport(Lf);  // post-normalisation : doit ressortir minimal
         }
-        Tree Li = revealIIR(Lf);
+        Tree Li = Lf;  // IIR revele par prepare (injection etage 2)
         int  nfir = 0, niir = 0, maxtaps = 0;
         long taps = 0;
         std::set<Tree>    seen;
@@ -3497,6 +3500,8 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateDelayAccess(sig, x, y);
     } else if (tvec V; isSigFIR(sig, V)) {
         return generateFIR(sig, V);
+    } else if (tvec V; isSigIIR(sig, V)) {
+        return generateIIR(sig, V);
     } else if (tvec subs; isSigSum(sig, subs)) {
         return generateSum(sig, subs);
     } else if (isSigPrefix(sig, x, y)) {
@@ -4531,6 +4536,39 @@ static float firDensity(const tvec& coefs)
  * Generate code for a n-ary sum node (revealed by revealSum) : a flat
  * parenthesis-free addition, the association left to the C compiler.
  */
+/**
+ * Generate code for an IIR kernel IIR[nil,X,C0=0,C1..Cn] :
+ * y = X + C1*y@1 + ... + Cn*y@n. The node reads ITSELF through the
+ * standard delay machinery (its occurrences case declares the self reads,
+ * which size the delay line). Ported from fir18 (compile_scal_iir.cpp) ;
+ * reversed coefficient order kept ("seems faster").
+ */
+string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
+{
+    Type         ty = getCertifiedSigType(sig);
+    Occurrences* o  = fOccMarkup->retrieve(sig);
+    faustassert(o);
+    faustassert(coefs.size() > 3);
+
+    std::string vname, ctype;
+    getTypedNames(ty, "IIR", ctype, vname);
+
+    std::ostringstream oss;
+    oss << CS(coefs[1]);
+    for (unsigned int i = coefs.size() - 1; i >= 3; i--) {
+        if (isZero(coefs[i])) {
+            continue;
+        }
+        string access = generateDelayAccessRaw(sig, sig, int(i) - 2);
+        if (isOne(coefs[i])) {
+            oss << " + " << access;
+        } else {
+            oss << " + (" << CS(coefs[i]) << ") * " << access;
+        }
+    }
+    return generateDelayVec(sig, oss.str(), ctype, vname, o->getMaxDelay(), o->getDelayCount());
+}
+
 string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
 {
     faustassert(subs.size() > 1);

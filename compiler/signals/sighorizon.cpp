@@ -19,6 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
+#include <complex>
+#include <limits>
+
 #include "sighorizon.hh"
 
 #include <algorithm>
@@ -63,7 +66,77 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         return h ? std::atof(h) : 2147483648.0;  // default: 2^31 samples
     }
 
+    // ---- IIR : worst-peak-gain (port simple de fir18) --------------------------------
+    // Gain = 1/min|A(e^jw)| echantillonne (norme H-infini de la reponse en
+    // frequence d'un tout-poles). C'est une HEURISTIQUE : la borne sure pour
+    // une entree bornee quelconque est la norme L1 de la reponse
+    // impulsionnelle, toujours >= H-inf, et la grille peut rater une
+    // resonance tres etroite ; le certifie (WCPG, Volkova-Hilaire-Lauter)
+    // est l'upgrade documente (PILE n.12). Coefficients variables : max du
+    // gain sur les 2^nz coins de la boite (non rigoureux, pragmatique).
+    static double iirWorstPeakGain(const std::vector<double>& a, int numPoints = 10000)
+    {
+        const double pi      = std::acos(-1.0);
+        double       min_mag = std::numeric_limits<double>::max();
+        for (int i = 0; i < numPoints; ++i) {
+            double               omega = pi * i / (numPoints - 1);
+            std::complex<double> ejw   = std::polar(1.0, -omega);
+            std::complex<double> A     = 1.0;
+            std::complex<double> ejw_pow = 1.0;
+            for (double ak : a) {
+                ejw_pow *= ejw;
+                A -= ak * ejw_pow;  // y = X + sum ak*y@k  =>  A(z) = 1 - sum ak z^-k
+            }
+            min_mag = std::min(min_mag, std::abs(A));
+        }
+        return 1.0 / min_mag;
+    }
+
    public:
+    AffItv Iir(Tree sig, const std::vector<AffItv>& c) const override
+    {
+        // coefficient boxes (C1..Cn), corners for the variable ones
+        std::vector<interval> box;
+        int                   nz = 0;
+        for (size_t k = 3; k < c.size(); k++) {
+            interval ci = itv::toItv(c[k], fT);
+            if (!ci.isValid() || !ci.isBounded()) {
+                return top(sig);  // unbounded coefficient : no finite gain claim
+            }
+            box.push_back(ci);
+            if (ci.hi() > ci.lo()) {
+                nz++;
+            }
+        }
+        if (nz > 12) {
+            return top(sig);  // corner explosion guard
+        }
+        double gain = 0.0;
+        int    combos = 1 << nz;
+        for (int mask = 0; mask < combos; mask++) {
+            std::vector<double> a;
+            int                 bit = 0;
+            for (const interval& ci : box) {
+                if (ci.hi() > ci.lo()) {
+                    a.push_back((mask & (1 << bit)) ? ci.hi() : ci.lo());
+                    bit++;
+                } else {
+                    a.push_back(ci.lo());
+                }
+            }
+            gain = std::max(gain, iirWorstPeakGain(a));
+        }
+        interval ix = itv::toItv(c[1], fT);
+        if (!ix.isValid()) {
+            return itv::aempty();
+        }
+        if (!std::isfinite(gain) || gain > 1e12 || !ix.isBounded()) {
+            return top(sig);  // unstable filter, or unbounded input
+        }
+        const double m = gain * std::max(std::fabs(ix.lo()), std::fabs(ix.hi()));
+        return itv::fromItv(interval(-m, m));
+    }
+
     /// defaultParams: parameters held at their DEFAULT values (nominal reading) instead
     /// of their full declared ranges (worst case). Buttons and checkboxes read released.
     explicit HorizonAlgebra(bool defaultParams = false)

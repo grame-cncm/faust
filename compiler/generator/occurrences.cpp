@@ -172,6 +172,18 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         } else if (isSigPrefix(t, y, x)) {
             incOcc(env, v0, r0, 1, c0, x);
             incOcc(env, v0, r0, 0, c0, y);
+        } else if (tvec V; isSigIIR(t, V)) {
+            // IIR[nil,X,C0=0,C1,...] : y = X + sum Ci*y@i -- the node reads
+            // ITSELF at delays i-2 (that sizes its own delay line), the
+            // input and the coefficients at delay 0
+            faustassert(V.size() >= 4);
+            incOcc(env, v0, r0, 0, c0, V[1]);
+            for (unsigned int k = 3; k < V.size(); k++) {
+                incOcc(env, v0, r0, 0, c0, V[k]);
+                if (!isZero(V[k])) {
+                    incOcc(env, v0, r0, int(k) - 2, c0, t);
+                }
+            }
         } else if (tvec V; isSigFIR(t, V)) {
             // FIR[X,C0,C1,...] : the source X is read at delays 0..n-1 (one
             // per non-zero coefficient) -- this is what sizes its delay

@@ -82,6 +82,26 @@ class SignalDispatch : public FaustAlgebra<V> {
 
     /// Virtual so a transformation can wrap the dispatch with a post-rule applied to
     /// every rebuilt signal node (a simplifier's rule cascade, typically).
+    /// IIR[nil, X, C0=0, C1..Cn] : y = X + sum Ci*y@i. The default is the
+    /// FEEDFORWARD approximation (y replaced by X in the feedback reads) :
+    /// sound and exact for the exact attribute algebras -- y introduces no
+    /// generator beyond X and the coefficients, and Delay forces the sample
+    /// variability. Zero coefficients are SKIPPED (bottom is absorbing
+    /// through Mul/Add in interval-like domains ; same lesson as Fir).
+    /// Interval-like domains MUST override with a genuine gain rule.
+    virtual V Iir(Tree sig, const std::vector<V>& c) const
+    {
+        V acc = c[1];
+        for (size_t k = 3; k < c.size(); k++) {
+            if (isZero(sig->branch(int(k)))) {
+                continue;
+            }
+            acc = this->Add(acc,
+                            this->Mul(c[k], this->Delay(c[1], this->IntNum(int(k) - 2))));
+        }
+        return acc;
+    }
+
     virtual V combine(Tree sig, const std::vector<V>& c, FixPointEvaluator<V>& ev) const;
 
     //----------------------------------------------------------------------------------
@@ -359,12 +379,13 @@ V SignalDispatch<V>::combine(Tree sig, const std::vector<V>& c,
             }
 
             // The IIR value obeys a RECURSIVE equation (y = X + sum ci*y@i)
-            // that a pure function of children cannot express. Our branch
-            // cannot produce SigIIR yet (the recognition patterns need
-            // clocks) ; when the clock-free patterns exist, this becomes a
-            // fixpoint-domain rule, not a combine case.
+            // that a pure function of children cannot express. The Iir hook
+            // below carries a sound DEFAULT (feedforward approximation :
+            // exact for the five exact attribute algebras, whose joins gain
+            // no generator from y itself) ; the interval domain overrides
+            // it with the worst-peak-gain rule (see sighorizon.cpp).
             case sigs::SignalOpcode::Iir:
-                return unreachable("IIR typing pending (stage 2: clock-free recognition)");
+                return this->Iir(sig, c);
 
             // temp(x) = x : a staging barrier for the emitter, transparent
             // to every interpretation (types, intervals, attributes)
