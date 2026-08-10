@@ -586,6 +586,77 @@ Tree ScalarCompiler::prepare(Tree LS)
                 std::cerr << "SS_MCM sums=" << rows.size() << " terms=" << terms
                           << " lambda=+-1(deja fait)=" << pot1
                           << " PONDERE godets=" << bigw << " borne=" << potw << std::endl;
+
+                // --- l'angle mort (question de Yann) : le partage ENTRE
+                // noyaux FIR d'une MEME source. Trois mesures par source
+                // multi-noyaux : (a) fenetres decalees (vecteur de coefs
+                // egal a decalage pres -> partage par delai de sortie),
+                // (b) paires ponderees inter-noyaux sur les taps,
+                // (c) prefixes communs (accumulations partielles).
+                {
+                    std::map<Tree, std::vector<tvec>, treeorder> bySource;
+                    std::set<Tree>    seenF;
+                    std::vector<Tree> workF{L2};
+                    while (!workF.empty()) {
+                        Tree t = workF.back();
+                        workF.pop_back();
+                        if (!seenF.insert(t).second) continue;
+                        Tree var, body;
+                        if (isRec(t, var, body)) {
+                            if (body) workF.push_back(body);
+                            continue;
+                        }
+                        if (tvec cf; isSigFIR(t, cf) && cf.size() > 2) {
+                            bySource[cf[0]].push_back(cf);
+                        }
+                        for (int k = 0; k < t->arity(); k++) workF.push_back(t->branch(k));
+                    }
+                    long nMulti = 0, nKern = 0, shifts = 0, prefixes = 0, wpairs = 0;
+                    for (auto& [src, kerns] : bySource) {
+                        if (kerns.size() < 2) continue;
+                        nMulti++;
+                        nKern += long(kerns.size());
+                        // formes normalisees (coefs des taps, zeros de tete otes)
+                        auto trimmed = [](const tvec& cf) {
+                            size_t b = 1;
+                            while (b < cf.size() && isZero(cf[b])) b++;
+                            return tvec(cf.begin() + b, cf.end());
+                        };
+                        for (size_t i2 = 0; i2 < kerns.size(); i2++) {
+                            tvec ti = trimmed(kerns[i2]);
+                            for (size_t j2 = i2 + 1; j2 < kerns.size(); j2++) {
+                                tvec tj = trimmed(kerns[j2]);
+                                if (ti == tj && kerns[i2] != kerns[j2]) shifts++;
+                                // prefixe commun >= 2 taps
+                                size_t common = 0;
+                                while (common < ti.size() && common < tj.size() &&
+                                       ti[common] == tj[common]) common++;
+                                if (common >= 2 && ti != tj) prefixes++;
+                            }
+                        }
+                        // paires ponderees inter-noyaux : godets (i, j, cj/ci)
+                        std::map<std::tuple<int, int, long long>, int> kb;
+                        for (auto& cf : kerns) {
+                            for (size_t i2 = 1; i2 < cf.size(); i2++) {
+                                double wi, wj; int ni2, nj2;
+                                if (isZero(cf[i2])) continue;
+                                if (!(isSigReal(cf[i2], &wi) || (isSigInt(cf[i2], &ni2) && (wi = ni2, true)))) continue;
+                                for (size_t j2 = i2 + 1; j2 < cf.size(); j2++) {
+                                    if (isZero(cf[j2])) continue;
+                                    if (!(isSigReal(cf[j2], &wj) || (isSigInt(cf[j2], &nj2) && (wj = nj2, true)))) continue;
+                                    long long q = (long long)std::llround((wj / wi) * 1e9);
+                                    kb[{int(i2), int(j2), q}]++;
+                                }
+                            }
+                        }
+                        for (auto& [k2, c2] : kb) {
+                            if (c2 >= 2) wpairs += c2 - 1;
+                        }
+                    }
+                    std::cerr << "SS_MCM_FIR sources-multi=" << nMulti << " noyaux=" << nKern
+                              << " decalages=" << shifts << " prefixes=" << prefixes
+                              << " paires-taps-bornees=" << wpairs << std::endl;
+                }
             }
             if (gGlobal->gLowerSums || getenv("FAUST_LOWERSUMS")) {
                 // experimental co-occurrence lowering : the n-ary sums

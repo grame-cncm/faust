@@ -13,6 +13,28 @@ Tree factorizeFIRs(Tree L)
         if (!isSigFIR(sig, coef) || coef.size() < 3) {
             return sig;
         }
+        // LEADING ZEROS become an outer delay : FIR[x, 0..0, C] is the
+        // dense kernel FIR[x, C] delayed (time invariance, exact). Two
+        // SHIFTED WINDOWS of the same source then hash-cons to the SAME
+        // dense kernel plus two delays -- the sharing the FFT's 283
+        // shifted pairs were waiting for. The dense form also feeds the
+        // sliding-sum and symmetry detections better.
+        {
+            size_t z = 1;
+            while (z < coef.size() && isZero(coef[z])) {
+                z++;
+            }
+            if (z > 1 && z < coef.size() && coef.size() - z >= 2) {
+                // (>= 2 taps denses : la forme a 1 coefficient serait un
+                // gain retarde, et sigFIR[x,c0] exige une source audio)
+                tvec dense;
+                dense.push_back(coef[0]);
+                for (size_t i = z; i < coef.size(); i++) {
+                    dense.push_back(coef[i]);
+                }
+                return sigDelay(sigFIR(dense), sigInt(int(z) - 1));
+            }
+        }
         Tree factor = nullptr;
         for (size_t i = 1; i < coef.size(); i++) {
             if (isZero(coef[i])) {
