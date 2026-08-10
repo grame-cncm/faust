@@ -2,6 +2,7 @@
 
 #include "global.hh"
 #include "rewrite.hh"
+#include "sigs-state.hh"
 
 // FIR[x, c0..cn] with every non-zero coefficient EQUAL (hash-consing
 // makes this pointer equality) : extract the gain. Coefficients equal to
@@ -29,15 +30,11 @@ Tree factorizeFIRs(Tree L)
             // coefficients k samples EARLIER -- with slider-driven or
             // smoothed coefficients (vocalFOF) the two forms differ
             // STRUCTURALLY (3e-04 surviving the -double discriminator).
-            bool numeric = true;
-            for (size_t i = z; numeric && i < coef.size(); i++) {
-                int     ni;
-                int64_t n64;
-                double  nr;
-                numeric = isZero(coef[i]) || isSigInt(coef[i], &ni) ||
-                          isSigInt64(coef[i], &n64) || isSigReal(coef[i], &nr);
+            bool constant = true;
+            for (size_t i = z; constant && i < coef.size(); i++) {
+                constant = (sigs::sigOrder(coef[i]) <= 1);  // nombre ou constante
             }
-            if (numeric && z > 1 && z < coef.size() && coef.size() - z >= 2) {
+            if (constant && z > 1 && z < coef.size() && coef.size() - z >= 2) {
                 // (>= 2 taps denses : la forme a 1 coefficient serait un
                 // gain retarde, et sigFIR[x,c0] exige une source audio)
                 tvec dense;
