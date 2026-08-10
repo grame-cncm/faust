@@ -506,7 +506,7 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("IIR revealer");
             L2 = revealIIR(L2);
             endTiming("IIR revealer");
-            if (getenv("FAUST_LOWERSUMS")) {
+            if (gGlobal->gLowerSums || getenv("FAUST_LOWERSUMS")) {
                 // experimental co-occurrence lowering : the n-ary sums
                 // become binary adds whose shared pairs and canonical
                 // prefixes rebuild the structural sharing the flattening

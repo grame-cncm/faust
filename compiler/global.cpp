@@ -446,6 +446,7 @@ void global::reset()
     gCanonicalOrder = false;
     gLoopSplit      = false;
     gReconstructFIRIIRs = false;
+    gLowerSums          = false;
     gLSSched        = 0;
     gLSRegisters    = 20;
     gLSWidth        = 4;
@@ -1628,6 +1629,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-fir", "--fir-iir")) {
             gReconstructFIRIIRs = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-lsum", "--lower-sums")) {
+            gLowerSums = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-ls", "--loop-split")) {

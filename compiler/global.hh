@@ -313,7 +313,8 @@ struct global {
                            // of normalized sums and products; default false = serial order (the
                            // historical, construction-driven order). Orthogonal to -eta.
     bool gLoopSplit;
-    bool gReconstructFIRIIRs;  // -fir : signal-level FIR/IIR recognition (side-channel)       // -ls option (ocpp, experimental): emit the materialized-signal DAG as
+    bool gReconstructFIRIIRs;
+    bool gLowerSums;  // -lsum : butterfly lowering of the revealed sums  // -fir : signal-level FIR/IIR recognition (side-channel)       // -ls option (ocpp, experimental): emit the materialized-signal DAG as
                            // separate loops (one per recursive group / delayed / shared signal /
                            // output) instead of one big sample loop
     int  gLSSched;         // -ls-sched option: intra-loop op scheduling strategy,

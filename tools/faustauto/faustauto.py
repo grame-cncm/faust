@@ -44,6 +44,7 @@ CAND = {
     "t4fu": ["-temp", "4", "-ls-fuse", "-ls-sched", "model"],
     "t1fu": ["-temp", "1", "-ls-fuse", "-ls-sched", "model"],
     "fi":  ["-fir"],
+    "fib": ["-fir", "-lsum"],
     "lz":  ["-lazyselect"],
 }
 
@@ -83,8 +84,8 @@ def candidates(sig):
         # (spectralTilt 0.52, korg35HPF 0.72), pertes réverb : le flash-
         # bench arbitre. df partout : la ligne de base de la carte.
         other = "al" if locality else "h2"
-        return "fusion-sûre", ["fu", order[0], other, "t4fu", "t1fu", "df", "fi"] + lazy
-    return "incertain", ["fu", order[0], order[1], "df", "t4", "fi"] + lazy
+        return "fusion-sûre", ["fu", order[0], other, "t4fu", "t1fu", "df", "fi", "fib"] + lazy
+    return "incertain", ["fu", order[0], order[1], "df", "t4", "fi", "fib"] + lazy
 
 
 def compile_candidate(dsp, name, workdir):
