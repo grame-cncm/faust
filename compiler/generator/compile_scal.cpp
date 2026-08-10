@@ -4524,19 +4524,35 @@ static float firDensity(const tvec& coefs)
 string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
 {
     faustassert(subs.size() > 1);
+    // INT sums wrap through UNSIGNED arithmetic : a flat signed chain is
+    // UB on overflow, and clang -O3 reassociates it under the no-overflow
+    // assumption -- false for anything that lives off the wrap (the LCG
+    // noise family : bit-exact under -fwrapv, garbage without). The
+    // classic emitter's nested form merely survived by luck.
+    const bool wrapInt = (getCertifiedSigType(sig)->nature() == kInt);
     ostringstream oss;
     string        sep   = "";
     int           terms = 0;
     oss << '(';
+    if (wrapInt) {
+        oss << "int(";
+    }
     for (unsigned int i = 0; i < subs.size(); ++i) {
         if (!isZero(subs[i])) {
-            oss << sep << CS(subs[i]);
+            if (wrapInt) {
+                oss << sep << "uint32_t(" << CS(subs[i]) << ')';
+            } else {
+                oss << sep << CS(subs[i]);
+            }
             terms++;
             sep = " + ";
         }
     }
     if (terms == 0) {
         oss << "0";
+    }
+    if (wrapInt) {
+        oss << ')';
     }
     oss << " /* Sum */)";
     return generateCacheCode(sig, oss.str());

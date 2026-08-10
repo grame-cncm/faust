@@ -2,6 +2,7 @@
 
 #include "global.hh"
 #include "revealSum.hh"
+#include "sigs-state.hh"
 #include "rewrite.hh"
 #include "simplify.hh"
 
@@ -48,6 +49,18 @@ static Tree ensureSum(Tree x, bool invertSecondTerm)
 // business, not ours).
 static Tree sumRule(Tree sig)
 {
+    // AUDIO sums only. A slow add stays binary and factored : flattening it
+    // serves no FIR (the kernels live on delayed audio terms) and DESTROYS
+    // NUMERICAL CONDITIONING -- distributing 440*(1-p)*f into
+    // 440*f - 440*p*f computes a smoother's input as the cancelling
+    // difference of two large numbers (3e-4 relative on oscrs' frequency),
+    // which a marginally-stable rotation then integrates into a gross
+    // phase error (the filterOsc family of the first -fir campaign). The
+    // slow term enters the enclosing audio sum as ONE opaque atom, exactly
+    // the factored form the default path emits.
+    if (!sigs::isAudioRate(sig)) {
+        return sig;
+    }
     Tree x, y;
     if (isSigAdd(sig, x, y)) {
         Tree sx = ensureSum(x, false);

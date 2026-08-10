@@ -37,6 +37,37 @@ static inline bool hasClock(Tree, Tree&)
 // The reveal is a single bottom-up rule on rebuilt nodes, run by the generic
 // tlib rewrite (rewrite.hh) : rec renaming, memoization and sharing are the
 // traversal's business, the rule only knows its local patterns.
+// A distribution over a sum only serves the FIR mission when the sum
+// carries DELAYED terms (Delay or FIR, possibly under a Mul) : those are
+// the shapes the folding rules consume. Distributing over a delay-free
+// audio sum is gratuitous churn -- it changes rounding at the ulp level
+// for nothing, and downstream cliffs (phasor wraps, hardsync resets,
+// comparisons) amplify every ulp into an O(1) sample difference (the
+// hs_oscsin family of the first -fir campaign).
+static bool hasDelayedTerm(Tree sum)
+{
+    tvec subs;
+    if (!isSigSum(sum, subs)) {
+        return false;
+    }
+    // a one-coefficient FIR is a pure GAIN (no delay) : it must not count
+    auto firWithDelay = [](Tree t) {
+        tvec cs;
+        return isSigFIR(t, cs) && cs.size() >= 3;
+    };
+    for (Tree t : subs) {
+        Tree a, b, u, v;
+        if (isSigDelay(t, a, b) || firWithDelay(t)) {
+            return true;
+        }
+        if (isSigMul(t, a, b) && (isSigDelay(a, u, v) || firWithDelay(a) ||
+                                  isSigDelay(b, u, v) || firWithDelay(b))) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static Tree firRule(Tree sig);
 #if 0
 // isFirElem((x@d)*c) -> <x, d, c> with d integer constant
@@ -154,12 +185,12 @@ static Tree firRule(Tree sig)
         return sigMul(sigMul(x, u), v);
     }
 
-    if (Tree sum, c; isSigMul(sig, sum, c) && isSigSum(sum)) {
+    if (Tree sum, c; isSigMul(sig, sum, c) && isSigSum(sum) && hasDelayedTerm(sum)) {
         // std::cerr << "Rule 12\n";
         return mulSigSum(sum, c);
     }
 
-    if (Tree sum, c; isSigMul(sig, c, sum) && isSigSum(sum)) {
+    if (Tree sum, c; isSigMul(sig, c, sum) && isSigSum(sum) && hasDelayedTerm(sum)) {
         // std::cerr << "Rule 13\n";
         return mulSigSum(sum, c);
     }
