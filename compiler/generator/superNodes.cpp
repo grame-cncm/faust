@@ -165,6 +165,47 @@ void SuperNodeGraph::collectRefs(Tree t, std::set<int>& refs, std::set<int>& ref
         collectRefs(ri, refs, refs0, seen, false);
         return;
     }
+    if (tvec cs; isSigFIR(t, cs) && cs.size() >= 3) {
+        // the kernel reads its source at delays 0..n-1 : the INSTANT edge
+        // exists only when tap 0 is non-zero. Leading-zero kernels survive
+        // canonicalization when their coefficients are not constant
+        // (statespace : UI-driven coefficients), and treating their source
+        // read as instantaneous fabricates a d0 cycle the member order
+        // cannot satisfy.
+        auto ix = fMatIdx.find(cs[0]);
+        if (ix != fMatIdx.end()) {
+            refs.insert(ix->second);
+            if (!isZero(cs[1])) {
+                refs0.insert(ix->second);
+            }
+        } else {
+            collectRefs(cs[0], refs, refs0, seen, false);
+        }
+        for (size_t k = 1; k < cs.size(); k++) {
+            collectRefs(cs[k], refs, refs0, seen, false);
+        }
+        return;
+    }
+    if (tvec cs; isSigIIR(t, cs)) {
+        // the kernel reads ITSELF delayed -- an implicit self loop that no
+        // sigDelay child encodes (a recursive projection gets the same edge
+        // through its explicit delayed self-reads). Branch 0 is nil.
+        int dmin = 0;
+        for (size_t k = 3; k < cs.size(); k++) {
+            if (!isZero(cs[k])) {
+                dmin = int(k) - 2;
+                break;
+            }
+        }
+        auto self = fMatIdx.find(t);
+        if (self != fMatIdx.end() && (fFreeDelay == 0 || dmin < fFreeDelay)) {
+            refs.insert(self->second);
+        }
+        for (size_t k = 1; k < cs.size(); k++) {
+            collectRefs(cs[k], refs, refs0, seen, false);
+        }
+        return;
+    }
     tvec subs;
     getSubSignals(t, subs, false);
     for (Tree s : subs) {
@@ -490,6 +531,40 @@ int SuperNodeGraph::opsOfMember(int m) const
         if (isSigDelay(t, x, y)) {
             walk(x, false);
             walk(y, false);
+            return;
+        }
+        if (tvec cs; isSigSum(t, cs)) {
+            // n terms are n-1 adds, not one op
+            int terms = 0;
+            for (Tree b : cs) {
+                if (!isZero(b)) {
+                    terms++;
+                }
+                walk(b, false);
+            }
+            count += std::max(1, terms - 1);
+            return;
+        }
+        if (tvec cs; isSigFIR(t, cs)) {
+            // one mul-add per non-zero tap
+            for (size_t k = 1; k < cs.size(); k++) {
+                if (!isZero(cs[k])) {
+                    count++;
+                }
+                walk(cs[k], false);
+            }
+            walk(cs[0], false);
+            return;
+        }
+        if (tvec cs; isSigIIR(t, cs)) {
+            count++;  // the X add
+            for (size_t k = 3; k < cs.size(); k++) {
+                if (!isZero(cs[k])) {
+                    count++;
+                }
+                walk(cs[k], false);
+            }
+            walk(cs[1], false);
             return;
         }
         count++;

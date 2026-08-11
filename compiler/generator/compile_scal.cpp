@@ -775,7 +775,10 @@ Tree ScalarCompiler::prepare(Tree LS)
     } else {
         fOccMarkup = new OccMarkup(fConditionProperty);
     }
-    if (gGlobal->gIIRTransposed) {
+    if (gGlobal->gIIRTransposed && !gGlobal->gLoopSplit) {
+        // Under -ls the election stands down : the split emitter only knows
+        // the DIRECT form, whose buffers are sized by the occurrence
+        // self-marks the election would have skipped.
         // TOPOLOGY election (one judge for occurrences AND emission) : an
         // order>=2 IIR kernel whose history nobody reads from outside --
         // no sigDelay on it, never the source of a multi-tap FIR -- takes
@@ -1691,6 +1694,20 @@ class LoopSplitEmitter {
             prescan(x, seen);
             return;
         }
+        if (tvec V; isSigSum(t, V) || isSigFIR(t, V)) {
+            // -fir kernels, stage 1 : plain forms (Sum n-ary, FIR weighted
+            // taps, IIR direct). V = terms for Sum, [source, c0..cn] for FIR
+            for (Tree b : V) {
+                prescan(b, seen);
+            }
+            return;
+        }
+        if (tvec V; isSigIIR(t, V)) {
+            for (size_t k = 1; k < V.size(); k++) {  // branch 0 is nil
+                prescan(V[k], seen);
+            }
+            return;
+        }
         std::ostringstream what;
         what << "signal " << t->node();
         throw LoopSplitUnsupported(what.str());
@@ -1889,6 +1906,117 @@ class LoopSplitEmitter {
             o.op = newOp(acc, deps, false, false, fIsInt[ix]);
             return o;
         }
+        if (tvec V; isSigSum(t, V)) {
+            // flat revealed sum ; INT sums wrap through unsigned arithmetic
+            // (the classic emitter's generateSum semantics, same reason)
+            const bool         wrapInt = (getCertifiedSigType(t)->nature() == kInt);
+            std::vector<int>   deps;
+            std::ostringstream oss;
+            std::string        sep   = "";
+            int                terms = 0;
+            oss << '(';
+            if (wrapInt) {
+                oss << "int(";
+            }
+            for (Tree b : V) {
+                if (isZero(b)) {
+                    continue;
+                }
+                Operand a = walk(b, curScc, false);
+                addDep(deps, a);
+                if (wrapInt) {
+                    oss << sep << "uint32_t(" << operandCode(a) << ')';
+                } else {
+                    oss << sep << operandCode(a);
+                }
+                sep = " + ";
+                terms++;
+            }
+            if (terms == 0) {
+                oss << '0';
+            }
+            if (wrapInt) {
+                oss << ')';
+            }
+            oss << ')';
+            o.op = newOp(oss.str(), deps, false, false,
+                         getCertifiedSigType(t)->nature() == kInt);
+            fOpOf[t] = o.op;
+            return o;
+        }
+        if (tvec V; isSigFIR(t, V)) {
+            // stage 1 : plain weighted taps (the scalar regimes -- sliding
+            // sum, symmetric pre-add -- need chunk-carried state and wait).
+            // V[0] = source read at delays 0..n-1 ; taps at delay >= 1 give
+            // the source occurrence marks that MATERIALIZE it (inputs
+            // included, as copy members)
+            if (V.size() == 2) {  // simple gain, source read at 0 only
+                Operand a = walk(V[0], curScc, false);
+                Operand c = walk(V[1], curScc, false);
+                std::vector<int> deps;
+                addDep(deps, a);
+                addDep(deps, c);
+                o.op = newOp(subst("($0) * ($1)", operandCode(c), operandCode(a)), deps,
+                             false, false, getCertifiedSigType(t)->nature() == kInt);
+                fOpOf[t] = o.op;
+                return o;
+            }
+            const int ix = fSN.indexOf(V[0]);
+            faustassert(ix >= 0);
+            std::vector<int>   deps;
+            std::ostringstream oss;
+            std::string        sep = "";
+            for (size_t k = 1; k < V.size(); k++) {
+                if (isZero(V[k])) {
+                    continue;
+                }
+                Operand tap = refOperand(ix, T(int(k) - 1), k == 1, curScc);
+                addDep(deps, tap);
+                if (isOne(V[k])) {
+                    oss << sep << operandCode(tap);
+                } else {
+                    Operand c = walk(V[k], curScc, false);
+                    addDep(deps, c);
+                    oss << sep << '(' << operandCode(c) << ") * " << operandCode(tap);
+                }
+                sep = " + ";
+            }
+            o.op = newOp('(' + oss.str() + ')', deps, false, false,
+                         getCertifiedSigType(t)->nature() == kInt);
+            fOpOf[t] = o.op;
+            return o;
+        }
+        if (tvec V; isSigIIR(t, V)) {
+            // stage 1 : DIRECT form only (y = X + sum ci*y@i) -- under -ls
+            // the transposed election stands down, so the occurrence
+            // self-marks size this member's buffer. Descending tap order
+            // mirrors generateIIR (bit-exact with the scalar emission).
+            const int ixSelf = fSN.indexOf(t);
+            faustassert(ixSelf >= 0);
+            Operand          X = walk(V[1], curScc, false);
+            std::vector<int> deps;
+            addDep(deps, X);
+            std::ostringstream oss;
+            oss << operandCode(X);
+            for (size_t k = V.size() - 1; k >= 3; k--) {
+                if (isZero(V[k])) {
+                    continue;
+                }
+                Operand tap = refOperand(ixSelf, T(int(k) - 2), false, curScc);
+                addDep(deps, tap);
+                if (isOne(V[k])) {
+                    oss << " + " << operandCode(tap);
+                } else {
+                    Operand c = walk(V[k], curScc, false);
+                    addDep(deps, c);
+                    oss << " + (" << operandCode(c) << ") * " << operandCode(tap);
+                }
+            }
+            o.op = newOp('(' + oss.str() + ')', deps, false, false,
+                         getCertifiedSigType(t)->nature() == kInt);
+            fOpOf[t] = o.op;
+            return o;
+        }
 
         // generic n-ary operation: walk the arguments, then build the op
         std::vector<Tree> args;
@@ -1960,7 +2088,8 @@ class LoopSplitEmitter {
             Operand a = walk(x, curScc, false);
             std::vector<int> deps;
             addDep(deps, a);
-            o.op = newOp(subst("int($0)", operandCode(a)), deps, false, false, true);
+            // unary plus : same type-id-parse guard as the scalar casts
+            o.op = newOp(subst("int(+$0)", operandCode(a)), deps, false, false, true);
             fOpOf[t] = o.op;
             return o;
         }
@@ -1976,7 +2105,7 @@ class LoopSplitEmitter {
             Operand a = walk(x, curScc, false);
             std::vector<int> deps;
             addDep(deps, a);
-            o.op = newOp(subst("$1($0)", operandCode(a), ifloat()), deps, false, false, false);
+            o.op = newOp(subst("$1(+$0)", operandCode(a), ifloat()), deps, false, false, false);
             fOpOf[t] = o.op;
             return o;
         }
@@ -2386,6 +2515,51 @@ class LoopSplitEmitter {
             }
             if (isSigAssertBounds(t, x, y, z)) {
                 return sw(z, false);
+            }
+            if (tvec V; isSigSum(t, V)) {
+                std::vector<int> deps;
+                for (Tree b : V) {
+                    if (!isZero(b)) {
+                        deps.push_back(sw(b, false));
+                    }
+                }
+                return op(deps, false);
+            }
+            if (tvec V; isSigFIR(t, V)) {
+                // one buffer load per non-zero tap feeding one op (the
+                // model's Read slots -- what makes kernel banks visible)
+                std::vector<int> deps;
+                for (size_t k2 = 1; k2 < V.size(); k2++) {
+                    if (!isZero(V[k2]) && loadW > 0) {
+                        int id = -1;
+                        for (int w = 0; w < loadW; w++) {
+                            LSOp lo;
+                            if (id >= 0) {
+                                lo.deps.push_back(id);
+                            }
+                            sops.push_back(lo);
+                            id = (int)sops.size() - 1;
+                        }
+                        deps.push_back(id);
+                    }
+                }
+                return op(deps, false);
+            }
+            if (tvec V; isSigIIR(t, V)) {
+                std::vector<int> deps{sw(V[1], false)};
+                if (loadW > 0) {
+                    int id = -1;
+                    for (int w = 0; w < loadW; w++) {
+                        LSOp lo;
+                        if (id >= 0) {
+                            lo.deps.push_back(id);
+                        }
+                        sops.push_back(lo);
+                        id = (int)sops.size() - 1;
+                    }
+                    deps.push_back(id);
+                }
+                return op(deps, false);
             }
             return op({}, false);  // unknown: one slot, no deps
         };
@@ -4075,9 +4249,16 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
  CASTING
  *****************************************************************************/
 
+// The functional casts carry a unary plus : "(float(int(id)))" is a valid
+// TYPE-ID (function type, id as parameter name), and in cast position --
+// after '*', '+', '(' -- C++ resolves the ambiguity in favour of the type
+// (insects : "(-1) * (float(int(fTemp116))) + ..." swallowed the tail as
+// the cast operand). "+id" cannot be a declarator, closing the parse class
+// whatever parenthesization the consumers add. Unary plus is an exact
+// no-op on arithmetic values.
 string ScalarCompiler::generateIntCast(Tree sig, Tree x)
 {
-    return generateCacheCode(sig, subst("int($0)", CS(x)));
+    return generateCacheCode(sig, subst("int(+$0)", CS(x)));
 }
 
 string ScalarCompiler::generateBitCast(Tree sig, Tree x)
@@ -4094,7 +4275,7 @@ string ScalarCompiler::generateBitCast(Tree sig, Tree x)
 
 string ScalarCompiler::generateFloatCast(Tree sig, Tree x)
 {
-    return generateCacheCode(sig, subst("$1($0)", CS(x), ifloat()));
+    return generateCacheCode(sig, subst("$1(+$0)", CS(x), ifloat()));
 }
 
 /*****************************************************************************
