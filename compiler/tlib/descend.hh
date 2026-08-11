@@ -5,7 +5,7 @@
  */
 
 // Generic DESCENDING (inherited) attribute over a tree, a DAG, or a
-// RECURSIVE term.
+// SYMBOLIC recursive term.
 //
 // A synthesized attribute is a function of the subtree : hash-consing plus a
 // memoized recursion computes it once per shared node -- the tlib serves that
@@ -23,12 +23,13 @@
 //                  order and are folded as they come.
 //   order        : joins complete before descent (see the invariant below).
 //
-// RECURSIVE TERMS. The traversal follows the branches PLUS the doors : a
-// symbolic recursive node (SYMREC) holds its definition behind the RECDEF
+// RECURSIVE TERMS. Recursive flow is interpreted in SYMBOLIC form only :
+// the traversal follows the branches PLUS the doors -- a symbolic
+// recursive node (SYMREC) holds its definition behind the RECDEF
 // property, never behind a branch, and the descent crosses that property
-// edge exactly once per door. (De Bruijn recursive trees need no door :
-// their body is an ordinary branch and their references are indices, so
-// they are plain DAGs for this traversal.)
+// edge exactly once per door. (A de Bruijn term is traversed as its
+// finite syntactic DAG : its references are indices and are NOT resolved.
+// Convert with deBruijn2Sym first when the recursive flow matters.)
 //
 // Two structural facts make the recursive descent exact and finite :
 //
@@ -40,12 +41,16 @@
 //   into its definition. If out(W) were a function of W's context -- the
 //   join of W's incoming edges -- the equation would be circular : through
 //   the cycle, W's context contains contributions that depend on out(W).
-//   The only one-pass solution is that out(W) be CONSTANT with respect to
-//   the context : independent of the context, though it may perfectly well
-//   be computed from the node W itself (doorSeed below). This is not an
-//   approximation but the semantics of sharing : a recursive definition has
-//   ONE instance, shared by every use site, so an inherited attribute of
-//   the body cannot depend on any particular use site.
+//   Sharing does impose that out(W) not depend on WHICH use site asks (the
+//   definition has ONE instance, common to every use site) ; it does NOT
+//   impose independence from all the sites jointly. That joint dependency
+//   is a legitimate circular system, solvable as a least fixpoint under
+//   the usual completeness and monotonicity hypotheses -- regime C below,
+//   with no finite solution at all for a join like +. Taking out(W)
+//   CONSTANT with respect to the context -- independent of the context,
+//   though it may perfectly well be computed from the node W itself
+//   (doorSeed below) -- is therefore not a consequence of sharing but the
+//   absorbing contract this one-pass analysis adopts.
 //
 //   The caller's context is not lost : it lands ON the door. A door node
 //   accumulates, like any node, the join of ALL its incoming edges --
@@ -60,7 +65,12 @@
 //      depends on the parent node and branch index alone). The attribute of
 //      a node is then a join over its finitely many incoming EDGES, not
 //      over the infinitely many paths : exact in one pass, cycles harmless.
-//      Occurrence counting and min/max delay analysis are of this kind.
+//      Edge counting (contribution 1 per edge) is of this kind ; so is a
+//      max-delay analysis whose contribution is read off the parent node's
+//      own label rather than off the inherited attribute. Path counting
+//      and depth chain through the parent attribute -- regime B ; on a
+//      cyclic graph the path count is even infinite while the edge count
+//      stays finite : two different quantities, not two spellings of one.
 //   B. CHAINED WITH ABSORBING DOORS : the contribution reads the parent
 //      attribute ; the door replaces it with doorSeed(W). Each definition
 //      is analyzed once, independently of its use sites -- exact by the
