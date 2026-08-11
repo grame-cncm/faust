@@ -1907,41 +1907,48 @@ class LoopSplitEmitter {
             return o;
         }
         if (tvec V; isSigSum(t, V)) {
-            // flat revealed sum ; INT sums wrap through unsigned arithmetic
-            // (the classic emitter's generateSum semantics, same reason)
-            const bool         wrapInt = (getCertifiedSigType(t)->nature() == kInt);
-            std::vector<int>   deps;
-            std::ostringstream oss;
-            std::string        sep   = "";
-            int                terms = 0;
-            oss << '(';
-            if (wrapInt) {
-                oss << "int(";
-            }
+            // LOWERING AT SCHEDULING TIME : the revealed sum becomes a left
+            // chain of BINARY add ops -- each one an atom the RUM scheduler
+            // places, so isomorphic kernels interleave (the monolithic
+            // emission was an opaque brick for isoadj/SLP). Left-chain
+            // association == the scalar generateSum, bit-exact ; INT sums
+            // wrap through unsigned arithmetic pairwise (mod-2^32 addition
+            // is associative, the flat and chained forms agree).
+            const bool wrapInt = (getCertifiedSigType(t)->nature() == kInt);
+            Operand    acc;
+            bool       first = true;
             for (Tree b : V) {
                 if (isZero(b)) {
                     continue;
                 }
                 Operand a = walk(b, curScc, false);
-                addDep(deps, a);
-                if (wrapInt) {
-                    oss << sep << "uint32_t(" << operandCode(a) << ')';
-                } else {
-                    oss << sep << operandCode(a);
+                if (first) {
+                    acc   = a;
+                    first = false;
+                    continue;
                 }
-                sep = " + ";
-                terms++;
+                std::vector<int> deps;
+                addDep(deps, acc);
+                addDep(deps, a);
+                Operand n2;
+                if (wrapInt) {
+                    n2.op = newOp(subst("int(uint32_t($0) + uint32_t($1))",
+                                        operandCode(acc), operandCode(a)),
+                                  deps, false, false, true);
+                } else {
+                    n2.op = newOp(subst("($0 + $1)", operandCode(acc), operandCode(a)),
+                                  deps, false, false, false);
+                }
+                acc = n2;
             }
-            if (terms == 0) {
-                oss << '0';
+            if (first) {
+                o.code = "0";
+                return o;
             }
-            if (wrapInt) {
-                oss << ')';
+            o = acc;
+            if (o.op >= 0) {
+                fOpOf[t] = o.op;
             }
-            oss << ')';
-            o.op = newOp(oss.str(), deps, false, false,
-                         getCertifiedSigType(t)->nature() == kInt);
-            fOpOf[t] = o.op;
             return o;
         }
         if (tvec V; isSigFIR(t, V)) {
@@ -1963,27 +1970,44 @@ class LoopSplitEmitter {
             }
             const int ix = fSN.indexOf(V[0]);
             faustassert(ix >= 0);
-            std::vector<int>   deps;
-            std::ostringstream oss;
-            std::string        sep = "";
+            // lowering at scheduling time : one product op per tap, then a
+            // left chain of adds (ascending taps, the scalar association)
+            const bool kInt2 = (getCertifiedSigType(t)->nature() == kInt);
+            Operand    acc;
+            bool       first = true;
             for (size_t k = 1; k < V.size(); k++) {
                 if (isZero(V[k])) {
                     continue;
                 }
                 Operand tap = refOperand(ix, T(int(k) - 1), k == 1, curScc);
-                addDep(deps, tap);
+                Operand term;
                 if (isOne(V[k])) {
-                    oss << sep << operandCode(tap);
+                    term = tap;
                 } else {
-                    Operand c = walk(V[k], curScc, false);
-                    addDep(deps, c);
-                    oss << sep << '(' << operandCode(c) << ") * " << operandCode(tap);
+                    Operand          c = walk(V[k], curScc, false);
+                    std::vector<int> pd;
+                    addDep(pd, c);
+                    addDep(pd, tap);
+                    term.op = newOp(subst("(($0) * $1)", operandCode(c), operandCode(tap)),
+                                    pd, false, false, kInt2);
                 }
-                sep = " + ";
+                if (first) {
+                    acc   = term;
+                    first = false;
+                } else {
+                    std::vector<int> ad;
+                    addDep(ad, acc);
+                    addDep(ad, term);
+                    Operand n2;
+                    n2.op = newOp(subst("($0 + $1)", operandCode(acc), operandCode(term)),
+                                  ad, false, false, kInt2);
+                    acc = n2;
+                }
             }
-            o.op = newOp('(' + oss.str() + ')', deps, false, false,
-                         getCertifiedSigType(t)->nature() == kInt);
-            fOpOf[t] = o.op;
+            o = acc;
+            if (o.op >= 0) {
+                fOpOf[t] = o.op;
+            }
             return o;
         }
         if (tvec V; isSigIIR(t, V)) {
@@ -1993,28 +2017,41 @@ class LoopSplitEmitter {
             // mirrors generateIIR (bit-exact with the scalar emission).
             const int ixSelf = fSN.indexOf(t);
             faustassert(ixSelf >= 0);
-            Operand          X = walk(V[1], curScc, false);
-            std::vector<int> deps;
-            addDep(deps, X);
-            std::ostringstream oss;
-            oss << operandCode(X);
+            // lowering at scheduling time : the recurrence stays a chain
+            // PER KERNEL (its nature) but fifty kernels' chains interleave
+            // BETWEEN them -- which is where plain fusion's win on the
+            // modal banks came from. Descending taps from X, the scalar
+            // association of generateIIR, bit-exact.
+            const bool kInt2 = (getCertifiedSigType(t)->nature() == kInt);
+            Operand    acc   = walk(V[1], curScc, false);
             for (size_t k = V.size() - 1; k >= 3; k--) {
                 if (isZero(V[k])) {
                     continue;
                 }
                 Operand tap = refOperand(ixSelf, T(int(k) - 2), false, curScc);
-                addDep(deps, tap);
+                Operand term;
                 if (isOne(V[k])) {
-                    oss << " + " << operandCode(tap);
+                    term = tap;
                 } else {
-                    Operand c = walk(V[k], curScc, false);
-                    addDep(deps, c);
-                    oss << " + (" << operandCode(c) << ") * " << operandCode(tap);
+                    Operand          c = walk(V[k], curScc, false);
+                    std::vector<int> pd;
+                    addDep(pd, c);
+                    addDep(pd, tap);
+                    term.op = newOp(subst("(($0) * $1)", operandCode(c), operandCode(tap)),
+                                    pd, false, false, kInt2);
                 }
+                std::vector<int> ad;
+                addDep(ad, acc);
+                addDep(ad, term);
+                Operand n2;
+                n2.op = newOp(subst("($0 + $1)", operandCode(acc), operandCode(term)), ad,
+                              false, false, kInt2);
+                acc = n2;
             }
-            o.op = newOp('(' + oss.str() + ')', deps, false, false,
-                         getCertifiedSigType(t)->nature() == kInt);
-            fOpOf[t] = o.op;
+            o = acc;
+            if (o.op >= 0) {
+                fOpOf[t] = o.op;
+            }
             return o;
         }
 
