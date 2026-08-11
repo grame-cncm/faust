@@ -3470,6 +3470,58 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     }
     // force a specific compilation order
     auto G = immediateGraph(L);
+    if (getenv("FAUST_SS_READERSFIRST")) {
+        // LECTEURS D'ABORD (prototype) : pour chaque lecture retardee
+        // t = sigDelay(x, y) avec dmin >= 1, une arete DOUCE x -> t
+        // (« x depend de t » : le lecteur de l'ancienne valeur passe
+        // avant que l'ecrivain ne l'ecrase). L'ecriture etant emise a
+        // sa position d'ordonnancement (generateDelayAccess ne compile
+        // plus l'ecrivain), l'ordre suffit a rendre le scalaire legal —
+        // le peephole de scalarisation recolte. Une arete qui fermerait
+        // un cycle est ABANDONNEE : chaque cycle de preferences impose
+        // un sacrifie, dont le tableau joue le temporaire.
+        auto reaches = [&G](Tree from, Tree to) -> bool {
+            std::set<Tree>    seen;
+            std::vector<Tree> work{from};
+            while (!work.empty()) {
+                Tree n = work.back();
+                work.pop_back();
+                if (n == to) {
+                    return true;
+                }
+                if (!seen.insert(n).second) {
+                    continue;
+                }
+                for (const auto& c : G.destinations(n)) {
+                    work.push_back(c.first);
+                }
+            }
+            return false;
+        };
+        int added = 0, dropped = 0;
+        std::vector<std::pair<Tree, Tree>> soft;
+        for (const Tree& t : G.nodes()) {
+            Tree x, y;
+            if (isSigDelay(t, x, y)) {
+                interval I = getCertifiedSigType(y)->getInterval();
+                if (int(I.lo()) >= 1 && G.nodes().count(x)) {
+                    soft.push_back({x, t});
+                }
+            }
+        }
+        for (auto& p : soft) {
+            if (reaches(p.second, p.first)) {
+                dropped++;
+                continue;
+            }
+            G.add(p.first, p.second, 0);
+            added++;
+        }
+        if (getenv("FAUST_SS_MONODEBUG")) {
+            std::cerr << "READERSFIRST aretes +" << added << " sacrifices " << dropped
+                      << std::endl;
+        }
+    }
     auto S = ocppSchedule(G);
     if (getenv("FAUST_SS_QUALITY")) {
         // ---- calibrated per-op costs (M-series orders of magnitude) :
