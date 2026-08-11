@@ -2304,6 +2304,7 @@ class LoopSplitEmitter {
         }
         std::vector<int>  remaining = consumers;  // unread results = live
         std::vector<bool> emitted(n, false);
+        std::vector<int>  birth(n, 0);  // emission index of each producer
         std::vector<int>  emittedThisCycle;
         int  live = 0, done = 0, cycles = 0, peak = 0;
         long overR = 0;
@@ -2331,7 +2332,26 @@ class LoopSplitEmitter {
                     }
                     int creates = (consumers[k] > 0) ? 1 : 0;
                     int score;
-                    if (live >= R) {
+                    if (live >= R + U) {
+                        // DRAIN THE OLDEST : among pressure-relieving ops,
+                        // prefer the one consuming the longest-lived value.
+                        // Kernel banks feeding a mix chain are the motive :
+                        // height-first postponed the mix, so every kernel
+                        // output stayed live until the end (bells, 53/20) ;
+                        // age-first folds each kernel into the mix as soon
+                        // as it lands -- the natural tile. The R+U margin
+                        // (one issue width, the fastest possible reaction)
+                        // leaves populations that graze R untouched : at
+                        // exactly R the height order was already healthy,
+                        // and disturbing it cost fu 7% on the bells.
+                        int age = 0;
+                        for (int d : ops[lo + k].deps) {
+                            if (d >= lo && d < hi && remaining[d - lo] > 0) {
+                                age = std::max(age, done - birth[d - lo]);
+                            }
+                        }
+                        score = 1000 * (freed - creates) + std::min(age, 900);
+                    } else if (live >= R) {
                         score = 1000 * (freed - creates) + height[k];
                     } else {
                         score = 1000 * height[k] + freed;
@@ -2352,6 +2372,7 @@ class LoopSplitEmitter {
                 int k = readyNow[best];
                 readyNow.erase(readyNow.begin() + best);
                 emitted[k] = true;
+                birth[k]   = done;
                 done++;
                 order.push_back(lo + k);
                 emittedThisCycle.push_back(k);
