@@ -3440,11 +3440,6 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         pthread_attr_setstacksize(&attr, size_t(2048) << 20);
         pthread_t th;
         auto trampoline = [](void* p) -> void* {
-            if (getenv("FAUST_SS_FIRDEBUG")) {
-                std::cerr << "SS_STACK thread stack = "
-                          << (pthread_get_stacksize_np(pthread_self()) >> 20) << " MB"
-                          << std::endl;
-            }
             (*static_cast<std::function<void()>*>(p))();
             return nullptr;
         };
