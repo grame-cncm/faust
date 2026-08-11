@@ -580,14 +580,28 @@ TLIB_API Tree canonicalizeRecNames(Tree root);
 /// Accidental cohabitations split ; knots spanning several groups merge ; a
 /// definition in a singleton component without self-reference dissolves into a
 /// plain expression ; dead definitions (never projected) are dropped. Definitions
-/// inside a component are ordered by canonicalTreeLess and the result goes through
-/// the deBruijn round trip : recursions that BECOME alpha-equivalent under the
-/// finer grouping unify into the same pointer -- splitting is what makes the
-/// maximal sharing of recursive trees reachable. Input must be closed ; the
-/// traversal recurses to the depth of the term. With canonical=false the final
-/// round trip is skipped -- for callers already inside a canonicalization loop
-/// whose own round trip will unify (fresh variable names are then left as is).
-TLIB_API Tree normalizeRecGroups(Tree root, bool canonical = true);
+/// inside a component are ordered by canonicalTreeLess, REFINED into a topological
+/// order on the INSTANTANEOUS references between members : a definition reading
+/// another member through no delayed branch reads the value of the current tick,
+/// so consumers that emit definitions in list order need the referee first. Which
+/// branches shift time is not tlib's to know : the caller says it through
+/// delayedBranch(parent, k) -- true when branch k of parent is read at least one
+/// tick late. The flag counts only when the flagged branch IS a projection : a
+/// delayed compound expression is computed at the current tick (only its result
+/// is shifted), so the references inside it stay instantaneous and are
+/// classified on their own. Without a classifier every reference counts as instantaneous, every
+/// true component is then a cycle, and the plain canonical order is kept (the
+/// historical behaviour, and the fallback whenever an instantaneous cycle shows
+/// up : such a program is delay-free recursive and bound for rejection anyway).
+/// The result goes through the deBruijn round trip : recursions that BECOME
+/// alpha-equivalent under the finer grouping unify into the same pointer --
+/// splitting is what makes the maximal sharing of recursive trees reachable.
+/// Input must be closed ; the traversal recurses to the depth of the term. With
+/// canonical=false the final round trip is skipped -- for callers already inside
+/// a canonicalization loop whose own round trip will unify (fresh variable names
+/// are then left as is).
+TLIB_API Tree normalizeRecGroups(Tree root, bool canonical = true,
+                                 bool (*delayedBranch)(Tree parent, int branch) = nullptr);
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);
 std::string   toDeBruijnString(Tree t);

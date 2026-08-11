@@ -1261,7 +1261,7 @@ static bool defReachesSelf(Tree def, Tree self)
     return false;
 }
 
-Tree normalizeRecGroups(Tree root, bool canonical)
+Tree normalizeRecGroups(Tree root, bool canonical, bool (*delayedBranch)(Tree, int))
 {
     // ---- discovery : live projections and their dependency edges. Each
     // definition is walked once with a PER-WALK seen set : a subtree shared
@@ -1271,6 +1271,9 @@ Tree normalizeRecGroups(Tree root, bool canonical)
     digraph<Tree>            g;
     std::vector<Tree>        defQueue;
     std::unordered_set<Tree> known;
+    // from -> the projections its definition reads through no delayed branch :
+    // the only edges that constrain the member order inside a component
+    std::unordered_map<Tree, std::unordered_set<Tree>> instRefs;
 
     auto projDef = [](Tree p) -> Tree {
         int  i;
@@ -1283,20 +1286,32 @@ Tree normalizeRecGroups(Tree root, bool canonical)
     };
 
     auto discover = [&](Tree t0, Tree from) {
-        std::unordered_set<Tree> seen;
-        std::vector<Tree>        st{t0};
+        // The delayed flag is NOT sticky : it matters only when the flagged
+        // child is itself a projection. A delayed compound expression is
+        // computed at the current tick -- only its result is shifted -- so
+        // the references inside it are classified on their own, fresh. A
+        // projection can be reached both ways through sharing, hence the
+        // per-context bit : the instantaneous sighting must not be shadowed
+        // by an earlier delayed one.
+        std::unordered_map<Tree, char>     seen;  // bit 1 : instant, bit 2 : delayed
+        std::vector<std::pair<Tree, bool>> st{{t0, false}};
         while (!st.empty()) {
-            Tree t = st.back();
+            auto [t, delayed] = st.back();
             st.pop_back();
-            if (!seen.insert(t).second) {
+            char bit = delayed ? 2 : 1;
+            if (seen[t] & bit) {
                 continue;
             }
+            seen[t] = char(seen[t] | bit);
             int  i;
             Tree grp;
             if (isProj(t, i, grp)) {
                 g.add(t);
                 if (from) {
                     g.add(from, t, 0);
+                    if (!delayed) {
+                        instRefs[from].insert(t);
+                    }
                 }
                 if (known.insert(t).second) {
                     defQueue.push_back(t);
@@ -1304,7 +1319,7 @@ Tree normalizeRecGroups(Tree root, bool canonical)
                 continue;  // a projection is a leaf : its definition has its own turn
             }
             for (int k = 0; k < t->arity(); k++) {
-                st.push_back(t->branch(k));
+                st.push_back({t->branch(k), delayedBranch && delayedBranch(t, k)});
             }
         }
     };
@@ -1324,10 +1339,53 @@ Tree normalizeRecGroups(Tree root, bool canonical)
         for (Tree m : members.back()) {
             sccOf[m] = id;
         }
-        // canonical order inside the component : value-derived, so structural
-        // twins order their definitions identically whatever their history
-        std::sort(members.back().begin(), members.back().end(),
+        // Member order inside the component. Start from the value-derived
+        // canonical order (structural twins order their definitions
+        // identically whatever their history), then refine it into a
+        // topological order on the instantaneous references between members :
+        // a definition reading another member through no delayed branch reads
+        // the value of the CURRENT tick, so consumers that emit definitions
+        // in list order need the referee first. The refinement is a stable
+        // repeated selection (first ready member in canonical order), hence
+        // deterministic. If no member is ready (no classifier -- a component
+        // is strongly connected on all-instantaneous edges -- or a delay-free
+        // recursion bound for rejection), the canonical order is kept as is.
+        std::vector<Tree>& ms = members.back();
+        std::sort(ms.begin(), ms.end(),
                   [&](Tree a, Tree b) { return canonicalTreeLess(projDef(a), projDef(b)); });
+        if (ms.size() > 1) {
+            std::vector<Tree>        ordered;
+            std::vector<char>        placed(ms.size(), 0);
+            std::unordered_set<Tree> emitted;
+            bool                     progress = true;
+            while (ordered.size() < ms.size() && progress) {
+                progress = false;
+                for (std::size_t j = 0; j < ms.size(); j++) {
+                    if (placed[j]) {
+                        continue;
+                    }
+                    bool ready = true;
+                    if (auto it = instRefs.find(ms[j]); it != instRefs.end()) {
+                        for (Tree q : it->second) {
+                            if (q != ms[j] && sccOf.count(q) && sccOf.at(q) == id &&
+                                !emitted.count(q)) {
+                                ready = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (ready) {
+                        placed[j] = 1;
+                        emitted.insert(ms[j]);
+                        ordered.push_back(ms[j]);
+                        progress = true;
+                    }
+                }
+            }
+            if (ordered.size() == ms.size()) {
+                ms = std::move(ordered);
+            }
+        }
     }
 
     // ---- rebuild, dependencies first (the recursion is the topological order)

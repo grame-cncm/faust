@@ -419,8 +419,28 @@ static Tree simplifyToNormalFormAux(Tree LS)
     // the flattened structure (positional, cheap). Validated against the
     // 2026-07-27 reference milestone : impulse responses at rounding level
     // on the whole corpus, cost within noise.
+    // The classifier tells normalizeRecGroups which branches shift time :
+    // branch 0 of a delay whose amount is a literal >= 1, the delayed branch
+    // of mem and prefix. Every other reference counts as instantaneous, so
+    // the member order of each rebuilt group puts current-tick dependencies
+    // first -- the order the backends that emit definitions in list order
+    // rely on (a member read undelayed one position too early costs exactly
+    // one sample : the freeverb comb regression of 2026-08-11).
     startTiming("normalizeRecGroups");
-    L1 = normalizeRecGroups(L1);
+    L1 = normalizeRecGroups(L1, true, [](Tree t, int k) -> bool {
+        Tree x, y;
+        int  n;
+        if (isSigDelay(t, x, y)) {
+            return k == 0 && isSigInt(y, &n) && n >= 1;
+        }
+        if (isSigDelay1(t, x)) {
+            return k == 0;
+        }
+        if (isSigPrefix(t, x, y)) {
+            return k == 1;
+        }
+        return false;
+    });
     endTiming("normalizeRecGroups");
 /*
     // PROBE: cost of the symbolic -> deBruijn -> symbolic round-trip on the
