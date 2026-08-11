@@ -3824,6 +3824,23 @@ void ScalarCompiler::compileMultiSignal(Tree L)
             fClass->addExecCode(Statement("", subst("output$0[i] = $2($1);  // Zone Exec Code",
                                                     T(i), generateCacheCode(s, CS(s)), xcast())));
         }
+
+        // schedule-verified scalarization : a [2]-vector whose delayed reads
+        // all precede its write in the EMITTED order degrades to a plain
+        // scalar and its rotation dies. This restores what the group-wise
+        // emission used to grant : freeverb's one-pole comb states live in
+        // 2-definition groups, which the kMonoDelay criterion (singleton
+        // self-recursions only) cannot serve.
+        {
+            int done = 0;
+            for (const auto& v : fSingleDelayScalarCandidates) {
+                done += fClass->scalarizeSingleDelay(v);
+            }
+            if (getenv("FAUST_SS_MONODEBUG")) {
+                std::cerr << "SCALARIZED " << done << "/" << fSingleDelayScalarCandidates.size()
+                          << std::endl;
+            }
+        }
     }
 
     generateMetaData();
@@ -4758,6 +4775,13 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
             if (fOccMarkup->retrieve(f) && !fOccMarkup->retrieve(f)->hasMultiOccurrences()) {
                 return DelayType::kMonoDelay;
             }
+            if (getenv("FAUST_SS_MONODEBUG")) {
+                std::cerr << "MONOMISS retrieve=" << (fOccMarkup->retrieve(f) != nullptr)
+                          << " " << ppsig(sig, 2) << std::endl;
+            }
+        } else if (getenv("FAUST_SS_MONODEBUG")) {
+            std::cerr << "MONOMISS count=" << count << " isproj=" << isProj(sig, &i, x)
+                      << " " << ppsig(sig, 2) << std::endl;
         }
         return DelayType::kSingleDelay;
     }
@@ -5513,6 +5537,11 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             return vname;
 
         case DelayType::kSingleDelay:
+            if (ccs.empty()) {
+                // candidate for the schedule-verified demotion to scalar
+                // (see the peephole at the end of compileMultiSignal)
+                fSingleDelayScalarCandidates.push_back(vname);
+            }
             fClass->addDeclCode(subst("$0 \t$1State; // Single Delay", ctype, vname));
             fClass->addClearCode(subst("$0State = 0;", vname));
             fClass->addZone2(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));

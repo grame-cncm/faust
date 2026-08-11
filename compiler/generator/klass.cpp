@@ -32,6 +32,8 @@
 ***********************************************************************/
 
 #include <stdio.h>
+#include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <list>
 #include <map>
@@ -1599,4 +1601,124 @@ void Klass::collectLibrary(set<string>& S)
         k->collectLibrary(S);
     }
     merge(S, fLibrarySet);
+}
+
+// every reference to vname in code must be exactly vname[0] or vname[1] on a
+// word boundary ; counts them, or returns false on any other access form
+static bool scanDelayRefs(const std::string& code, const std::string& vname, int& n0, int& n1)
+{
+    size_t p = 0;
+    while ((p = code.find(vname, p)) != std::string::npos) {
+        size_t q         = p + vname.size();
+        bool   wordStart = (p == 0) || (!isalnum((unsigned char)code[p - 1]) && code[p - 1] != '_');
+        bool   longerId  = (q < code.size()) && (isalnum((unsigned char)code[q]) || code[q] == '_');
+        if (wordStart && !longerId) {
+            if (code.compare(q, 3, "[0]") == 0) {
+                n0++;
+            } else if (code.compare(q, 3, "[1]") == 0) {
+                n1++;
+            } else {
+                return false;
+            }
+        }
+        p = q;
+    }
+    return true;
+}
+
+static void replaceAll(std::string& s, const std::string& from, const std::string& to)
+{
+    size_t p = 0;
+    while ((p = s.find(from, p)) != std::string::npos) {
+        s.replace(p, from.size(), to);
+        p += to.size();
+    }
+}
+
+bool Klass::scalarizeSingleDelay(const std::string& vname)
+{
+    // the structural pieces exactly as generateDelayLine wrote them
+    const std::string declTail = vname + "[2];";
+    const std::string loadLine = vname + "[1] = " + vname + "State;";
+    const std::string saveLine = vname + "State = " + vname + "[1];";
+    const std::string rotLine  = vname + "[1] = " + vname + "[0];";
+    const std::string writePre = vname + "[0] = ";
+
+    // ---- verification phase : nothing is touched unless EVERYTHING holds
+    auto zone2It = fZone2Code.end();
+    for (auto it = fZone2Code.begin(); it != fZone2Code.end(); ++it) {
+        if (it->size() >= declTail.size() &&
+            it->compare(it->size() - declTail.size(), declTail.size(), declTail) == 0) {
+            zone2It = it;
+            break;
+        }
+    }
+    auto zone3It = std::find(fZone3Code.begin(), fZone3Code.end(), loadLine);
+    auto z3pIt   = std::find(fZone3Post.begin(), fZone3Post.end(), saveLine);
+    if (zone2It == fZone2Code.end() || zone3It == fZone3Code.end() || z3pIt == fZone3Post.end()) {
+        return false;
+    }
+    auto rotIt = fTopLoop->fPostCode.end();
+    for (auto it = fTopLoop->fPostCode.begin(); it != fTopLoop->fPostCode.end(); ++it) {
+        int n0 = 0, n1 = 0;
+        if (!scanDelayRefs(it->code(), vname, n0, n1)) {
+            return false;
+        }
+        if (it->code() == rotLine) {
+            rotIt = it;
+        } else if (n0 || n1) {
+            return false;  // a foreign post statement touches the vector
+        }
+    }
+    if (rotIt == fTopLoop->fPostCode.end()) {
+        return false;
+    }
+    for (auto& st : fTopLoop->fPreCode) {
+        int n0 = 0, n1 = 0;
+        if (!scanDelayRefs(st.code(), vname, n0, n1) || n0 || n1) {
+            return false;  // pre-code must not touch the vector
+        }
+    }
+    // the loop order : every [1] read at or before the write, [0] only after
+    int idx = 0, writeIdx = -1, lastR1 = -1, firstR0 = -1;
+    for (auto& st : fTopLoop->fExecCode) {
+        int n0 = 0, n1 = 0;
+        if (!scanDelayRefs(st.code(), vname, n0, n1)) {
+            return false;
+        }
+        bool isWrite = st.code().compare(0, writePre.size(), writePre) == 0;
+        if (isWrite) {
+            if (writeIdx >= 0 || !st.condition().empty()) {
+                return false;  // two writes, or a conditional one
+            }
+            writeIdx = idx;
+        } else if ((n0 || n1) && !st.condition().empty()) {
+            return false;  // conditional reader : stay conservative
+        }
+        if (n1 && !isWrite) {
+            lastR1 = idx;
+        }
+        if (n0 && !isWrite && firstR0 < 0) {
+            firstR0 = idx;
+        }
+        idx++;
+    }
+    if (writeIdx < 0 || lastR1 > writeIdx || (firstR0 >= 0 && firstR0 < writeIdx)) {
+        return false;
+    }
+
+    // ---- commit : the vector degrades to a scalar, the rotation dies
+    replaceAll(*zone2It, declTail, vname + ";");
+    *zone3It = vname + " = " + vname + "State;";
+    *z3pIt   = vname + "State = " + vname + ";";
+    fTopLoop->fPostCode.erase(rotIt);
+    std::list<Statement> newExec;
+    for (auto& st : fTopLoop->fExecCode) {
+        std::string c = st.code();
+        replaceAll(c, vname + "[0]", vname);
+        replaceAll(c, vname + "[1]", vname);
+        newExec.push_back(Statement(st.condition(), c));
+    }
+    fTopLoop->fExecCode.swap(newExec);
+    return true;
 }

@@ -183,6 +183,12 @@ class Klass {
     void addFirstPrivateDecl(const std::string& str) { fFirstPrivateDecl.push_back(str); }
 
     void addZone1(const std::string& str) { fZone1Code.push_back(str); }
+    // schedule-verified scalarization : demote a kSingleDelay [2]-vector to
+    // a plain scalar when the EMITTED order proves it legal (every delayed
+    // read precedes the write, everything unconditional). Returns true when
+    // the demotion was applied. See generateDelayLine (kSingleDelay).
+    bool scalarizeSingleDelay(const std::string& vname);
+
     void addZone2(const std::string& str) { fZone2Code.push_back(str); }
     void addZone2b(const std::string& str) { fZone2bCode.push_back(str); }
     void addZone2c(const std::string& str) { fZone2cCode.push_back(str); }

@@ -56,6 +56,7 @@ class ScalarCompiler : public Compiler {
 
     static std::map<std::string, int>  fIDCounters;
     Tree                               fSharingKey;
+    std::vector<std::string> fSingleDelayScalarCandidates;  // [2]-vectors, schedule-verified demotion
     OccMarkup*                         fOccMarkup;
     int                                fMaxIota;
     std::map<std::string, std::string> fIotaCache;
