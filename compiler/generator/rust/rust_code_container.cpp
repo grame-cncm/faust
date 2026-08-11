@@ -369,7 +369,7 @@ void RustCodeContainer::produceFaustDspBlob()
 void RustCodeContainer::produceClass()
 {
     if (gGlobal->gInlineTable) {
-        // merge the subcontainers before we generate 
+        // merge the subcontainers before we generate
         // the dsp struct
         mergeSubContainers();
     } else {
@@ -403,7 +403,7 @@ void RustCodeContainer::produceClass()
         // because we want to be able to add derive macros to the dsp struct via architecture file
         // we need to keep the code for sub containers after the struct.
         generateSubContainers();
-    } 
+    }
     // Functions
     tab(n, *fOut);
     fCodeProducer.Tab(n);

@@ -37,8 +37,8 @@
 // set, not a name-prefix match: the architectures implement exactly these.
 inline bool isNNXRandomFunction(const std::string& name)
 {
-    return name == "random_uniform" || name == "random_normal" ||
-           name == "random_exponential" || name == "random_bernoulli" || name == "random_beta";
+    return name == "random_uniform" || name == "random_normal" || name == "random_exponential" ||
+           name == "random_bernoulli" || name == "random_beta";
 }
 
 /**
@@ -87,8 +87,8 @@ struct NNXScalarizeAnalysis : public DispatchVisitor {
     {
         NamedAddress* named = dynamic_cast<NamedAddress*>(indexed->fAddress);
         if (named) {
-            bool constant_single_index = (indexed->fIndices.size() == 1) &&
-                                         dynamic_cast<Int32NumInst*>(indexed->getIndex());
+            bool constant_single_index =
+                (indexed->fIndices.size() == 1) && dynamic_cast<Int32NumInst*>(indexed->getIndex());
             if (!constant_single_index) {
                 fExcluded.insert(named->fName);
             }
@@ -244,8 +244,8 @@ struct NNXBaseInitFieldsVisitor : public DispatchVisitor {
  * Linen containers to emit the generated class docstring.
  */
 struct NNXUIDocVisitor : public DispatchVisitor {
-    std::vector<std::string> fParams;      // input widgets (sliders, nentries, buttons, ...)
-    std::vector<std::string> fBargraphs;   // output-only widgets
+    std::vector<std::string> fParams;     // input widgets (sliders, nentries, buttons, ...)
+    std::vector<std::string> fBargraphs;  // output-only widgets
     std::vector<std::string> fSoundfiles;
     std::vector<std::string> fPath;
     std::set<std::string>    fLogSet;
@@ -313,14 +313,21 @@ struct NNXUIDocVisitor : public DispatchVisitor {
     {
         std::string type;
         switch (inst->fType) {
-            case AddSliderInst::kHorizontal: type = "hslider"; break;
-            case AddSliderInst::kVertical:   type = "vslider"; break;
-            case AddSliderInst::kNumEntry:   type = "nentry"; break;
+            case AddSliderInst::kHorizontal:
+                type = "hslider";
+                break;
+            case AddSliderInst::kVertical:
+                type = "vslider";
+                break;
+            case AddSliderInst::kNumEntry:
+                type = "nentry";
+                break;
         }
-        std::string scale =
-            fExpSet.count(inst->fZone) ? ", exp scale" : fLogSet.count(inst->fZone) ? ", log scale" : "";
-        fParams.push_back(fullLabel(inst->fLabel) + " (" + type + " in [" + num(inst->fMin) +
-                          ", " + num(inst->fMax) + "], default " + num(inst->fInit) + scale + ")");
+        std::string scale = fExpSet.count(inst->fZone)   ? ", exp scale"
+                            : fLogSet.count(inst->fZone) ? ", log scale"
+                                                         : "";
+        fParams.push_back(fullLabel(inst->fLabel) + " (" + type + " in [" + num(inst->fMin) + ", " +
+                          num(inst->fMax) + "], default " + num(inst->fInit) + scale + ")");
     }
 
     void visit(AddBargraphInst* inst) override
@@ -440,12 +447,24 @@ class NNXBaseInstVisitor : public TextInstVisitor {
         std::string out = "\"";
         for (char c : s) {
             switch (c) {
-                case '\\': out += "\\\\"; break;
-                case '"':  out += "\\\""; break;
-                case '\n': out += "\\n"; break;
-                case '\r': out += "\\r"; break;
-                case '\t': out += "\\t"; break;
-                default:   out += c; break;
+                case '\\':
+                    out += "\\\\";
+                    break;
+                case '"':
+                    out += "\\\"";
+                    break;
+                case '\n':
+                    out += "\\n";
+                    break;
+                case '\r':
+                    out += "\\r";
+                    break;
+                case '\t':
+                    out += "\\t";
+                    break;
+                default:
+                    out += c;
+                    break;
             }
         }
         out += "\"";
@@ -624,11 +643,11 @@ class NNXBaseInstVisitor : public TextInstVisitor {
         // quotient to nearest (ties to even), so the code container emits a
         // custom remainder(x, y) = x - round(x/y)*y that matches the reference.
         gPolyMathLibTable["remainderf"] = "remainder";
-        gPolyMathLibTable["rintf"]  = "jnp.rint";
-        gPolyMathLibTable["roundf"] = "jnp.round";
-        gPolyMathLibTable["sinf"]   = "jnp.sin";
-        gPolyMathLibTable["sqrtf"]  = "jnp.sqrt";
-        gPolyMathLibTable["tanf"]   = "jnp.tan";
+        gPolyMathLibTable["rintf"]      = "jnp.rint";
+        gPolyMathLibTable["roundf"]     = "jnp.round";
+        gPolyMathLibTable["sinf"]       = "jnp.sin";
+        gPolyMathLibTable["sqrtf"]      = "jnp.sqrt";
+        gPolyMathLibTable["tanf"]       = "jnp.tan";
 
         // Hyperbolic
         gPolyMathLibTable["acoshf"] = "jnp.arccosh";
@@ -665,11 +684,11 @@ class NNXBaseInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["pow"]   = "jnp.power";
         // Do NOT change to jnp.remainder: see the remainderf note above.
         gPolyMathLibTable["remainder"] = "remainder";
-        gPolyMathLibTable["rint"]  = "jnp.rint";
-        gPolyMathLibTable["round"] = "jnp.round";
-        gPolyMathLibTable["sin"]   = "jnp.sin";
-        gPolyMathLibTable["sqrt"]  = "jnp.sqrt";
-        gPolyMathLibTable["tan"]   = "jnp.tan";
+        gPolyMathLibTable["rint"]      = "jnp.rint";
+        gPolyMathLibTable["round"]     = "jnp.round";
+        gPolyMathLibTable["sin"]       = "jnp.sin";
+        gPolyMathLibTable["sqrt"]      = "jnp.sqrt";
+        gPolyMathLibTable["tan"]       = "jnp.tan";
 
         // Hyperbolic
         gPolyMathLibTable["acosh"] = "jnp.arccosh";
@@ -780,8 +799,7 @@ class NNXBaseInstVisitor : public TextInstVisitor {
         const char* method =
             (inst->fType == AddBargraphInst::kVertical) ? "add_vbargraph" : "add_hbargraph";
         *fOut << "self." << method << "(" << quote(inst->fZone) << ", ui_path, "
-              << pyStr(inst->fLabel) << ", "
-              << checkReal(inst->fMin) << ", "
+              << pyStr(inst->fLabel) << ", " << checkReal(inst->fMin) << ", "
               << checkReal(inst->fMax) << ", unnorm_funcs)";
         EndLine(' ');
     }
@@ -1028,11 +1046,11 @@ class NNXBaseInstVisitor : public TextInstVisitor {
     virtual void visit(StoreVarInst* inst)
     {
         // Check if this is a cache variable assignment (ends with "ca")
-        NamedAddress* named = dynamic_cast<NamedAddress*>(inst->fAddress);
-        bool isCacheVar = false;
+        NamedAddress* named      = dynamic_cast<NamedAddress*>(inst->fAddress);
+        bool          isCacheVar = false;
         if (named) {
             std::string name = named->fName;
-            isCacheVar = (name.length() > 2 && name.substr(name.length() - 2) == "ca");
+            isCacheVar       = (name.length() > 2 && name.substr(name.length() - 2) == "ca");
         }
 
         if (isCacheVar) {

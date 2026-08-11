@@ -155,9 +155,9 @@ void NNXCodeContainer::produceClass()
     // The analysis must cover exactly the blocks emitted below, including the
     // one-sample loop body, which is therefore generated once here and reused
     // by generateCompute().
-    fOneSampleBlock                = fCurLoop->generateOneSample();
-    BlockInst* init_inlined        = inlineSubcontainersFunCalls(fInitInstructions);
-    BlockInst* static_init_inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
+    fOneSampleBlock                       = fCurLoop->generateOneSample();
+    BlockInst* init_inlined               = inlineSubcontainersFunCalls(fInitInstructions);
+    BlockInst* static_init_inlined        = inlineSubcontainersFunCalls(fStaticInitInstructions);
     std::map<std::string, int> scalarized = nnxComputeScalarizedArrays(
         {fGlobalDeclarationInstructions, fDeclarationInstructions, init_inlined,
          static_init_inlined, fClearInstructions, fComputeBlockInstructions,
@@ -216,7 +216,10 @@ void NNXCodeContainer::produceClass()
 
     // Generate __init__ method for NNX
     tab(n + 1, *fOut);
-    *fOut << "def __init__(self, sample_rate: int, faust_float: Dtype = FAUSTFLOAT, soundfile_dirs: Optional[List[str]] = None, use_magic_clamp: bool = True, return_bargraphs: bool = False, deterministic: bool = False, rngs: rnglib.Rngs | rnglib.RngStream | None = None):";
+    *fOut << "def __init__(self, sample_rate: int, faust_float: Dtype = FAUSTFLOAT, "
+             "soundfile_dirs: Optional[List[str]] = None, use_magic_clamp: bool = True, "
+             "return_bargraphs: bool = False, deterministic: bool = False, rngs: rnglib.Rngs | "
+             "rnglib.RngStream | None = None):";
     tab(n + 2, *fOut);
     *fOut << "self.sample_rate = sample_rate";
     tab(n + 2, *fOut);
@@ -312,7 +315,8 @@ void NNXCodeContainer::produceClass()
 
     // User interface
     tab(n + 1, *fOut);
-    *fOut << "def build_interface(self, ui_path: List[str], unnorm_funcs: Dict[str, Tuple[str, Callable]]) -> None:";
+    *fOut << "def build_interface(self, ui_path: List[str], unnorm_funcs: Dict[str, Tuple[str, "
+             "Callable]]) -> None:";
     tab(n + 2, *fOut);
     gGlobal->gNNXVisitor->Tab(n + 2);
     generateUserInterface(gGlobal->gNNXVisitor);
@@ -339,9 +343,10 @@ void NNXCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    *fOut << "def tick(self, params: dict, state: dict, inputs: jnp.ndarray, rng: jax.Array = None):";
+    *fOut
+        << "def tick(self, params: dict, state: dict, inputs: jnp.ndarray, rng: jax.Array = None):";
     tab(n + 1, *fOut);
-    
+
     // Generate RNG helper function for random calls
     tab(n + 1, *fOut);
     *fOut << "# Helper function to get RNG keys";

@@ -40,7 +40,8 @@ using namespace std;
  ### Key Design Decisions:
  - **Flax Linen Integration**: Uses nn.Module with @nn.compact
  - **Immutable Arrays**: JAX arrays require `.at[index].set(value)` instead of in-place updates
- - **All in state**: Both UI parameters and state variables stored in `state` dict (no params/state split)
+ - **All in state**: Both UI parameters and state variables stored in `state` dict (no params/state
+ split)
  - **Cache Variables**: Soundfile cache variables (ending in "ca") are local vars, not state entries
  - **NumPy Initialization**: Use mutable NumPy arrays during setup, convert to JAX in tick method
 */
@@ -72,8 +73,8 @@ CodeContainer* LinenCodeContainer::createScalarContainer(const string& name, int
     return new LinenScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
 }
 
-CodeContainer* LinenCodeContainer::createContainer(const string& name, int numInputs, int numOutputs,
-                                                   ostream* dst)
+CodeContainer* LinenCodeContainer::createContainer(const string& name, int numInputs,
+                                                   int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
@@ -138,9 +139,9 @@ void LinenCodeContainer::produceClass()
     // The analysis must cover exactly the blocks emitted below, including the
     // one-sample loop body, which is therefore generated once here and reused
     // by generateCompute().
-    fOneSampleBlock                = fCurLoop->generateOneSample();
-    BlockInst* init_inlined        = inlineSubcontainersFunCalls(fInitInstructions);
-    BlockInst* static_init_inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
+    fOneSampleBlock                       = fCurLoop->generateOneSample();
+    BlockInst* init_inlined               = inlineSubcontainersFunCalls(fInitInstructions);
+    BlockInst* static_init_inlined        = inlineSubcontainersFunCalls(fStaticInitInstructions);
     std::map<std::string, int> scalarized = nnxComputeScalarizedArrays(
         {fGlobalDeclarationInstructions, fDeclarationInstructions, init_inlined,
          static_init_inlined, fClearInstructions, fComputeBlockInstructions,
@@ -279,7 +280,8 @@ void LinenCodeContainer::produceClass()
 
     // User interface
     tab(n + 1, *fOut);
-    *fOut << "def build_interface(self, ui_path: List[str], unnorm_funcs: Dict[str, Tuple[str, Callable]]) -> None:";
+    *fOut << "def build_interface(self, ui_path: List[str], unnorm_funcs: Dict[str, Tuple[str, "
+             "Callable]]) -> None:";
     tab(n + 2, *fOut);
     gGlobal->gLinenVisitor->Tab(n + 2);
     generateUserInterface(gGlobal->gLinenVisitor);
@@ -342,8 +344,9 @@ void LinenCodeContainer::generateSR()
 }
 
 // Scalar
-LinenScalarCodeContainer::LinenScalarCodeContainer(const string& name, int numInputs, int numOutputs,
-                                                   std::ostream* out, int sub_container_type)
+LinenScalarCodeContainer::LinenScalarCodeContainer(const string& name, int numInputs,
+                                                   int numOutputs, std::ostream* out,
+                                                   int sub_container_type)
     : LinenCodeContainer(name, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;

@@ -1,4 +1,4 @@
-% man(1) Version 2.87.1 (20-July-2026) | Faust man page
+% man(1) Version 2.87.4 (02-August-2026) | Faust man page
 
 NAME
 ====
@@ -113,6 +113,10 @@ Code generation options:
   **-mem3**       **--memory-manager3**           use iControl/fControl, iZone/fZone model and no explicit memory manager with access as function parameters.
 
   **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
+
+               mode 2 bitcasts float/double values and tests their IEEE-754 exponent; zero/subnormal values become +0.0.
+
+               exponent masks: binary32 0x7F800000 (2139095040), binary64 0x7FF0000000000000 (9218868437227405312).
 
   **-hlf** \<n>    **--hash-load-factor** \<n>      load factor that triggers tlib hash table growth (0.7 by default) ; internal compiler tuning knob, never changes generated code, see TLIB.md.
 

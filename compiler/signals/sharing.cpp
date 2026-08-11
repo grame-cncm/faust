@@ -34,8 +34,8 @@
 #include <stdio.h>
 
 #include "sharing.hh"
-#include "sigtyperules.hh"
 #include "shlysis.hh"
+#include "sigtyperules.hh"
 
 using namespace std;
 

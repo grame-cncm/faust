@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.87.1)
+set (VERSION 2.87.4)
 macro (get_major_minor_patch version)
     string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
     string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -45,8 +45,17 @@ option ( LINK_LLVM_STATIC          "Link LLVM statically" on )
 option ( INCLUDE_LLVM_STATIC_IN_ARCHIVE "Combine static LLVM .a files and libfaust.a in a single .a file" on )
 
 if (INCLUDE_WASMTIME)
-    set(WASMTIME_LIB /usr/local/lib/libwasmtime.a)
-    link_directories(/usr/local/lib)
+    # WASMTIME_LIB / WASMTIME_INCLUDE_DIR let an embedder point at a prebuilt
+    # wasmtime C API (the official release artifacts) instead of a system-wide
+    # install. Unset, the historical /usr/local layout is used.
+    if (NOT WASMTIME_LIB)
+        set(WASMTIME_LIB /usr/local/lib/libwasmtime.a)
+    endif()
+    get_filename_component(WASMTIME_LIB_DIR ${WASMTIME_LIB} DIRECTORY)
+    link_directories(${WASMTIME_LIB_DIR})
+    if (WASMTIME_INCLUDE_DIR)
+        include_directories(${WASMTIME_INCLUDE_DIR})
+    endif()
     add_compile_definitions(WASMTIME)
 endif()
 
@@ -425,7 +434,7 @@ install (
 
 ####################################
 # install faust2xxx tools
-file (GLOB FAUST2XXX ${ROOT}/tools/faust2appls/faust2* ${ROOT}/tools/faust2appls/faustremote ${ROOT}/tools/faust2appls/encoderunitypackage ${ROOT}/tools/faust2appls/usage.sh ${ROOT}/tools/faust2appls/filename2ident ${ROOT}/tools/faust2sc-1.0.0/faust2sc ${ROOT}/tools/faust2clap/faust2clap.py )
+file (GLOB FAUST2XXX ${ROOT}/tools/faust2appls/faust2* ${ROOT}/tools/faust2appls/faustremote ${ROOT}/tools/faust2appls/encoderunitypackage ${ROOT}/tools/faust2appls/usage.sh ${ROOT}/tools/faust2appls/filename2ident ${ROOT}/tools/faust2sc-1.0.0/faust2sc )
 install (
     FILES ${FAUST2XXX} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
@@ -489,6 +498,30 @@ install (
     FILES ${FAUSTDPSEMB} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust/embedded
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
+
+####################################
+# install the CLAP headers next to the CLAP architecture
+#
+# faust2clap compiles a plugin against these. They are git submodules rather
+# than repository content, so without this an installed Faust could not build
+# a CLAP plugin at all and the tool required a source checkout.
+#
+# Both projects ship headers under include/clap/ and the two trees do not
+# overlap, so they merge into one include root. Guarded on the submodules being
+# checked out: a build from a shallow clone must not fail here.
+if (EXISTS ${ROOT}/external/clap-sdk/include/clap/clap.h AND
+    EXISTS ${ROOT}/external/clap-helpers/include/clap/helpers)
+    install (
+        DIRECTORY ${ROOT}/external/clap-sdk/include/clap
+                  ${ROOT}/external/clap-helpers/include/clap
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust/clap/include
+        FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+        DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    )
+else()
+    message (STATUS "CLAP submodules absent: faust2clap will need --clap-sdk")
+endif()
 
 # install folders
 set (ARCHSRC android api AU audiokit autodiff chaos-stratus clap cmajor comparator daisy esp32 hothouse iOS jax juce julia max-msp nodejs osclib sam smartKeyboard svgplot teensy unity rust vcvrack webaudio wwise)

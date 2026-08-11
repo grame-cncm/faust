@@ -676,6 +676,12 @@ class FTZPromotionAlgebra final : public TransformAlgebra {
                 sigSelect2(sigGT(sigAbs(def.out), sigReal(inummin())), sigReal(0.0), def.out));
         }
         if (gGlobal->gFTZMode == 2) {
+            // Bitcast the recursive value and test only its IEEE-754 exponent field.
+            // An all-zero exponent denotes zero or a subnormal, which is replaced by +0.0;
+            // normal values, infinities, and NaNs have a nonzero exponent and are preserved.
+            // The generated integer literals are printed in decimal:
+            //   binary32: 0x7F800000         = 2139095040
+            //   binary64: 0x7FF0000000000000 = 9218868437227405312
             if (gGlobal->gFloatSize == 1) {
                 return o(sigSelect2(sigAND(sigBitCast(def.out), sigInt(inummax())),
                                     sigReal(0.0), def.out));

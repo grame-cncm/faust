@@ -163,6 +163,16 @@ inline std::string pathToContent(const std::string& path)
     int size = int(file.tellg());
     file.seekg(0, file.beg);
 
+    // A file that cannot be opened (or is empty) reports size -1 (or 0): the
+    // code below would then allocate 'new char[0]' and write buffer[-1],
+    // corrupting the heap. This happens in practice for every string-based
+    // factory: generateJSON() falls back to pathToContent(gMasterDocument)
+    // because the parser cleared gInputString, and gMasterDocument holds the
+    // factory name, which is not an existing file.
+    if (size <= 0) {
+        return "";
+    }
+
     // And allocate buffer to that a single line can be read...
     char* buffer = new char[size + 1];
     file.read(buffer, size);

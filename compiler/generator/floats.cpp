@@ -44,7 +44,11 @@ static const char* floatptrname[5];     // float ptr types
 static const char* floatptrptrname[5];  // float ptr ptr types
 static const char* castname[5];         // float castings
 static double      floatmin[5];         // minimum float values before denormals
-static int64_t     floatmax[5];         // maximum float values
+
+// Despite its historical name, floatmax contains the IEEE-754 exponent masks used by
+// -ftz 2, not maximum finite values. The integer IR printers render these masks in decimal:
+// binary32 0x7F800000 -> 2139095040, binary64 0x7FF0000000000000 -> 9218868437227405312.
+static int64_t floatmax[5];
 
 void initFaustFloat()
 {

@@ -1013,8 +1013,8 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
         FunTyped* fun_type = IB::genFunTyped(args_types, genBasicFIRTyped(ffrestype(ff)));
         pushExtGlobalDeclare(IB::genDeclareFunInst(funname, fun_type));
 
-        // For the NNX/Linen backends, skip caching for random_* functions to ensure independent streams
-        // Each call should generate fresh random values, not reuse cached results
+        // For the NNX/Linen backends, skip caching for random_* functions to ensure independent
+        // streams Each call should generate fresh random values, not reuse cached results
         bool is_random_ffun = gGlobal->isPythonBackend() && isNNXRandomFunction(funname);
 
         if (is_random_ffun) {
@@ -1654,7 +1654,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
     args2.push_back(signame);
     args2.push_back(IB::genInt32NumInst(size));
     // HACK for Rust backend
-    if (gGlobal->gInlineTable){
+    if (gGlobal->gInlineTable) {
         args2.push_back(IB::genLoadStructVar(vname));
     } else {
         args2.push_back(IB::genLoadMutRefStructVar(vname));

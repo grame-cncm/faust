@@ -119,6 +119,12 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
             gMathLibTable["sinf"]       = "Mathf.sin";
             gMathLibTable["sqrtf"]      = "Mathf.sqrt";
             gMathLibTable["tanf"]       = "Mathf.tan";
+            gMathLibTable["acoshf"]     = "Mathf.acosh";
+            gMathLibTable["asinhf"]     = "Mathf.asinh";
+            gMathLibTable["atanhf"]     = "Mathf.atanh";
+            gMathLibTable["coshf"]      = "Mathf.cosh";
+            gMathLibTable["sinhf"]      = "Mathf.sinh";
+            gMathLibTable["tanhf"]      = "Mathf.tanh";
             gMathLibTable["fmodf"]      = "%";
             gMathLibTable["remainderf"] = "Mathf.rem";
             gMathLibTable["rintf"]      = "Mathf.round";
@@ -140,6 +146,12 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
             gMathLibTable["sin"]        = "Math.sin";
             gMathLibTable["sqrt"]       = "Math.sqrt";
             gMathLibTable["tan"]        = "Math.tan";
+            gMathLibTable["acosh"]      = "Math.acosh";
+            gMathLibTable["asinh"]      = "Math.asinh";
+            gMathLibTable["atanh"]      = "Math.atanh";
+            gMathLibTable["cosh"]       = "Math.cosh";
+            gMathLibTable["sinh"]       = "Math.sinh";
+            gMathLibTable["tanh"]       = "Math.tanh";
             gMathLibTable["fmod"]       = "%";
             gMathLibTable["remainder"]  = "Math.rem";
             gMathLibTable["rint"]       = "Math.round";

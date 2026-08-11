@@ -195,10 +195,9 @@ static bool propagateProfileSwitch()
 
 static const char* propagateProfileName(int kind)
 {
-    static const char* names[kPropCount] = {"atom",  "wire/cut/slot", "prim",  "ui",
-                                            "group", "seq",           "par",   "split",
-                                            "merge", "rec",           "route", "symbolic",
-                                            "xtended", "other"};
+    static const char* names[kPropCount] = {"atom",  "wire/cut/slot", "prim",    "ui",    "group",
+                                            "seq",   "par",           "split",   "merge", "rec",
+                                            "route", "symbolic",      "xtended", "other"};
     return names[kind];
 }
 
@@ -210,15 +209,15 @@ static double profileSecond()
 
 static int classifyPropagateBox(Tree box)
 {
-    int     i;
-    double  r;
-    prim0   p0;
-    prim1   p1;
-    prim2   p2;
-    prim3   p3;
-    prim4   p4;
-    prim5   p5;
-    Tree    t1, t2, t3, ff, label, cur, min, max, step, type, name, file, slot, body, chan;
+    int    i;
+    double r;
+    prim0  p0;
+    prim1  p1;
+    prim2  p2;
+    prim3  p3;
+    prim4  p4;
+    prim5  p5;
+    Tree   t1, t2, t3, ff, label, cur, min, max, step, type, name, file, slot, body, chan;
 
     if (getUserData(box)) {
         return kPropExtended;
@@ -805,7 +804,7 @@ siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
     if (!gPropagateMemo.get(key, result)) {
         FAUST_STATS_DO(gGlobal->gStats.fPropagateCacheMisses++);
         double realStart = (gTimingSwitch && propagateProfileSwitch()) ? profileSecond() : 0;
-        result = realPropagate(slotenv, path, box, lsig);
+        result           = realPropagate(slotenv, path, box, lsig);
         if (gTimingSwitch && propagateProfileSwitch()) {
             gPropagateProfile[profileKind].misses++;
             gPropagateProfile[profileKind].realTime += profileSecond() - realStart;

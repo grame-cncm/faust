@@ -9,7 +9,35 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import json
 import os
+import sys
 from pathlib import Path
+
+def control_file_path():
+    """Where the plugin looks for the DSP path to load.
+
+    Mirrors controlFilePath() in dynamic-faust.cpp. The file used to live at a
+    fixed /tmp path, which meant every plugin instance on the machine followed
+    the same DSP and any local user could rewrite it. It is now per user and
+    private, and FAUST_CLAP_CONTROL overrides it so that two instances can
+    follow two different programs.
+    """
+    override = os.environ.get("FAUST_CLAP_CONTROL")
+    if override:
+        return override
+
+    if sys.platform == "win32":
+        base = os.environ.get("LOCALAPPDATA", "")
+        directory = os.path.join(base, "faust-clap")
+    elif sys.platform == "darwin":
+        directory = os.path.expanduser("~/Library/Application Support/faust-clap")
+    else:
+        base = os.environ.get("XDG_RUNTIME_DIR") or os.environ.get("XDG_CONFIG_HOME")
+        directory = (os.path.join(base, "faust-clap") if base
+                     else os.path.expanduser("~/.config/faust-clap"))
+
+    os.makedirs(directory, mode=0o700, exist_ok=True)
+    return os.path.join(directory, "current-dsp.txt")
+
 
 class FaustHotReloadGUI:
     def __init__(self):
@@ -17,8 +45,9 @@ class FaustHotReloadGUI:
         self.root.title("Faust Hot Reload")
         self.root.geometry("600x500")
         
-        # config file path for the plugin
-        self.config_file = "/tmp/faust-current-dsp.txt"
+        # Control file the plugin watches. Must resolve exactly as
+        # controlFilePath() does in dynamic-faust.cpp.
+        self.config_file = control_file_path()
         
         # history file to remember loaded DSP files
         self.history_file = os.path.expanduser("~/.faust-hot-reload-history.json")
@@ -33,8 +62,8 @@ class FaustHotReloadGUI:
             if os.path.exists(self.history_file):
                 with open(self.history_file, 'r') as f:
                     return json.load(f)
-        except:
-            pass
+        except (OSError, ValueError):
+            pass  # unreadable or corrupt history is not worth reporting
         return []
     
     def save_history(self):
@@ -132,7 +161,7 @@ class FaustHotReloadGUI:
                     filename = os.path.basename(current_path)
                     self.current_label.config(text=f"📄 {filename}\n{current_path}")
                     return
-        except:
+        except OSError:
             pass
         self.current_label.config(text="No DSP file loaded")
     
@@ -145,12 +174,16 @@ class FaustHotReloadGUI:
         
         # start in Faust examples directory if it exists
         # Try multiple possible locations for Faust examples
+        # This script lives in architecture/clap, so the checkout's own examples
+        # are two levels up. That replaces a hardcoded ~/Documents/GitHub path,
+        # which could only ever have worked on one machine.
+        here = os.path.dirname(os.path.abspath(__file__))
         possible_example_dirs = [
-            os.path.expanduser("~/Documents/GitHub/faust/examples"),
+            os.path.normpath(os.path.join(here, "..", "..", "examples")),
             "/usr/local/share/faust/examples",
-            "/usr/share/faust/examples", 
+            "/usr/share/faust/examples",
             "/opt/homebrew/share/faust/examples",
-            os.path.join(os.environ.get("FAUST_LIB", ""), "examples") if os.environ.get("FAUST_LIB") else None,
+            os.path.join(os.environ["FAUST_LIB"], "examples") if os.environ.get("FAUST_LIB") else None,
         ]
         
         initial_dir = os.path.expanduser("~")
@@ -169,47 +202,62 @@ class FaustHotReloadGUI:
             self.load_dsp_file(filepath)
     
     def load_dsp_file(self, filepath):
-        """Load a DSP file into the hot reload system"""
+        """Point the plugin at a DSP file by writing the control file."""
+        # Checked before writing, not after: the previous order pointed the
+        # plugin at a bad path and only then told the user it was bad.
+        if not os.path.isfile(filepath):
+            messagebox.showwarning(
+                "Warning", f"Not a readable file:\n{filepath}\n\nNothing was loaded.")
+            return
+        if not filepath.endswith('.dsp'):
+            if not messagebox.askyesno(
+                    "Not a .dsp file",
+                    f"{filepath}\n\nThis does not look like a Faust program. Load it anyway?"):
+                return
+
         try:
-            # write to config file for the plugin
-            with open(self.config_file, 'w') as f:
-                f.write(filepath)
-            
-            # add to history
+            self.write_control_file(filepath)
             self.add_to_history(filepath)
-            
-            # update UI
             self.update_current_file()
             filename = os.path.basename(filepath)
             self.status_label.config(text=f"✅ Loaded: {filename}")
-            
-            # check if file compiles (basic check - file exists and has .dsp extension)
-            if not os.path.exists(filepath):
-                messagebox.showwarning("Warning", f"File not found:\n{filepath}\n\nThe plugin may fail to compile.")
-            elif not filepath.endswith('.dsp'):
-                messagebox.showwarning("Warning", f"Not a .dsp file:\n{filepath}\n\nThe plugin may fail to compile.")
-            else:
-                # show success with note about compilation
-                messagebox.showinfo("File Loaded", 
-                    f"DSP file loaded:\n{filename}\n\n" +
-                    "Note: If the DSP has compilation errors, check Reaper's console output.\n" +
-                    "The plugin will show '❌ Compilation error' in the terminal.")
-            
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to load DSP file:\n{str(e)}")
+            messagebox.showinfo(
+                "File Loaded",
+                f"DSP file loaded:\n{filename}\n\n"
+                "Note: If the DSP has compilation errors, the plugin keeps\n"
+                "playing the previous one and prints the Faust error to the\n"
+                "terminal. Run your DAW from a terminal to see it.")
+        except OSError as e:
+            messagebox.showerror("Error", f"Failed to load DSP file:\n{e}")
             self.status_label.config(text="❌ Error loading file")
+
+    def write_control_file(self, filepath):
+        """Write the control file in one step.
+
+        Through a temporary file and os.replace, because the plugin polls this
+        path several times a second: a plain truncate-then-write leaves a window
+        where it reads an empty or half-written path and logs a spurious error.
+        """
+        directory = os.path.dirname(self.config_file) or "."
+        temporary = os.path.join(directory, f".{os.path.basename(self.config_file)}.tmp")
+        with open(temporary, 'w') as handle:
+            handle.write(filepath + "\n")
+        os.replace(temporary, self.config_file)
     
     def refresh_history_list(self):
-        """Refresh the history listbox"""
+        """Refresh the listbox, dropping entries whose file is gone.
+
+        The pruning builds a new list rather than removing from the one being
+        iterated: removing in place skips the element after each removal, so two
+        consecutive missing files left the second one in the list -- and in the
+        listbox, whose indices the selection handlers then trusted.
+        """
+        self.history = [path for path in self.history if os.path.exists(path)]
+
         self.history_listbox.delete(0, tk.END)
         for filepath in self.history:
-            if os.path.exists(filepath):
-                filename = os.path.basename(filepath)
-                display_text = f"{filename} - {filepath}"
-                self.history_listbox.insert(tk.END, display_text)
-            else:
-                # remove non-existent files from history
-                self.history.remove(filepath)
+            self.history_listbox.insert(
+                tk.END, f"{os.path.basename(filepath)} - {filepath}")
         self.save_history()
     
     def load_from_history(self, event=None):

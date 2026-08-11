@@ -116,8 +116,7 @@ struct TypingVisitor : public InstVisitor {
                     // Whole-array operands: backends with array value semantics
                     // (like NNX) keep unindexed input channels as FIR pointer
                     // loads; the binop result has the pointed-to sample type.
-                    fCurType =
-                        Typed::getTypeFromPtr(isRealPtrType(type1) ? type1 : type2);
+                    fCurType = Typed::getTypeFromPtr(isRealPtrType(type1) ? type1 : type2);
                 } else {
                     // Should never happen...
                     std::cerr << "ASSERT : TypingVisitor : BinopInst a1 = ";

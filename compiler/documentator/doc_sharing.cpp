@@ -37,10 +37,10 @@ Compile a list of FAUST signals into a LaTeX equation.
 #include <stdio.h>
 
 #include "doc_compile.hh"
+#include "shlysis.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
-#include "shlysis.hh"
 
 using namespace std;
 

@@ -29,6 +29,8 @@
 #pragma warning(disable : 4251 4275 4800)
 #endif
 
+#include <math.h>
+
 #include "compatibility.hh"
 #include "libfaust.h"
 #include "wasm_dsp_aux.hh"
@@ -92,6 +94,51 @@ static wasm_functype_t* fn_2_1(wasm_valkind_t p0, wasm_valkind_t p1, wasm_valkin
 // Host math callbacks
 // ---------------------------------------------------------------------
 
+// The math functions the WASM backend emits are host imports, so a DSP with
+// transcendentals in its inner loop pays one wasm->host call per sample per
+// call site. wasmtime's "unchecked" entry point uses the raw calling
+// convention (wasmtime_val_raw_t, no per-call kind tagging or type check),
+// which is materially cheaper than the checked one. Set
+// FAUST_WASMTIME_RAW_MATH to 0 to fall back to the checked path.
+//
+// Measured on macOS arm64 (libfaust 2.85.5, wasmtime v47.0.2, 512-sample
+// buffer): no change on DSP without transcendentals, 3-5x on DSP with them
+// (a 5-shape antialiased clipper at 10 host calls/sample went 29 -> 142
+// MBytes/sec). Output stays bit-identical to the interpreter backend.
+//
+// Note: wasmtime_val_raw_t fields are documented as little-endian, so the raw
+// path needs a byte swap to be correct on a big-endian host. The checked
+// fallback above is portable.
+#ifndef FAUST_WASMTIME_RAW_MATH
+#define FAUST_WASMTIME_RAW_MATH 1
+#endif
+
+#if FAUST_WASMTIME_RAW_MATH
+
+#define UNARY_CB(NAME, FN, VKIND)                                                     \
+    static wasm_trap_t* NAME##_cb(void*, wasmtime_caller_t*, wasmtime_val_raw_t* vals, \
+                                  size_t)                                              \
+    {                                                                                  \
+        if (VKIND == WASM_F32)                                                         \
+            vals[0].f32 = FN(vals[0].f32);                                             \
+        else                                                                           \
+            vals[0].f64 = FN(vals[0].f64);                                             \
+        return nullptr;                                                                \
+    }
+
+#define BINARY_CB(NAME, FN, VKIND)                                                     \
+    static wasm_trap_t* NAME##_cb(void*, wasmtime_caller_t*, wasmtime_val_raw_t* vals, \
+                                  size_t)                                              \
+    {                                                                                  \
+        if (VKIND == WASM_F32)                                                         \
+            vals[0].f32 = FN(vals[0].f32, vals[1].f32);                                \
+        else                                                                           \
+            vals[0].f64 = FN(vals[0].f64, vals[1].f64);                                \
+        return nullptr;                                                                \
+    }
+
+#else
+
 #define UNARY_CB(NAME, FN, VKIND)                                                                \
     static wasm_trap_t* NAME##_cb(void*, wasmtime_caller_t*, const wasmtime_val_t* args, size_t, \
                                   wasmtime_val_t* res, size_t)                                   \
@@ -116,22 +163,24 @@ static wasm_functype_t* fn_2_1(wasm_valkind_t p0, wasm_valkind_t p1, wasm_valkin
         return nullptr;                                                                          \
     }
 
-UNARY_CB(_sinf, std::sinf, WASM_F32)
-UNARY_CB(_cosf, std::cosf, WASM_F32)
-UNARY_CB(_tanf, std::tanf, WASM_F32)
-UNARY_CB(_asinf, std::asinf, WASM_F32)
-UNARY_CB(_acosf, std::acosf, WASM_F32)
-UNARY_CB(_atanf, std::atanf, WASM_F32)
-UNARY_CB(_expf, std::expf, WASM_F32)
-UNARY_CB(_logf, std::logf, WASM_F32)
-UNARY_CB(_log10f, std::log10f, WASM_F32)
-UNARY_CB(_roundf, std::roundf, WASM_F32)
-UNARY_CB(_sinhf, std::sinhf, WASM_F32)
-UNARY_CB(_coshf, std::coshf, WASM_F32)
-UNARY_CB(_tanhf, std::tanhf, WASM_F32)
-UNARY_CB(_asinhf, std::asinhf, WASM_F32)
-UNARY_CB(_acoshf, std::acoshf, WASM_F32)
-UNARY_CB(_atanhf, std::atanhf, WASM_F32)
+#endif
+
+UNARY_CB(_sinf, ::sinf, WASM_F32)
+UNARY_CB(_cosf, ::cosf, WASM_F32)
+UNARY_CB(_tanf, ::tanf, WASM_F32)
+UNARY_CB(_asinf, ::asinf, WASM_F32)
+UNARY_CB(_acosf, ::acosf, WASM_F32)
+UNARY_CB(_atanf, ::atanf, WASM_F32)
+UNARY_CB(_expf, ::expf, WASM_F32)
+UNARY_CB(_logf, ::logf, WASM_F32)
+UNARY_CB(_log10f, ::log10f, WASM_F32)
+UNARY_CB(_roundf, ::roundf, WASM_F32)
+UNARY_CB(_sinhf, ::sinhf, WASM_F32)
+UNARY_CB(_coshf, ::coshf, WASM_F32)
+UNARY_CB(_tanhf, ::tanhf, WASM_F32)
+UNARY_CB(_asinhf, ::asinhf, WASM_F32)
+UNARY_CB(_acoshf, ::acoshf, WASM_F32)
+UNARY_CB(_atanhf, ::atanhf, WASM_F32)
 
 UNARY_CB(_sin, std::sin, WASM_F64)
 UNARY_CB(_cos, std::cos, WASM_F64)
@@ -150,10 +199,10 @@ UNARY_CB(_asinh, std::asinh, WASM_F64)
 UNARY_CB(_acosh, std::acosh, WASM_F64)
 UNARY_CB(_atanh, std::atanh, WASM_F64)
 
-BINARY_CB(_atan2f, std::atan2f, WASM_F32)
-BINARY_CB(_fmodf, std::fmodf, WASM_F32)
-BINARY_CB(_powf, std::powf, WASM_F32)
-BINARY_CB(_remainderf, std::remainderf, WASM_F32)
+BINARY_CB(_atan2f, ::atan2f, WASM_F32)
+BINARY_CB(_fmodf, ::fmodf, WASM_F32)
+BINARY_CB(_powf, ::powf, WASM_F32)
+BINARY_CB(_remainderf, ::remainderf, WASM_F32)
 
 BINARY_CB(_atan2, std::atan2, WASM_F64)
 BINARY_CB(_fmod, std::fmod, WASM_F64)
@@ -161,6 +210,13 @@ BINARY_CB(_pow, std::pow, WASM_F64)
 BINARY_CB(_remainder, std::remainder, WASM_F64)
 
 // abs(int)
+#if FAUST_WASMTIME_RAW_MATH
+static wasm_trap_t* _abs_cb(void*, wasmtime_caller_t*, wasmtime_val_raw_t* vals, size_t)
+{
+    vals[0].i32 = std::abs(vals[0].i32);
+    return nullptr;
+}
+#else
 static wasm_trap_t* _abs_cb(void*, wasmtime_caller_t*, const wasmtime_val_t* args, size_t,
                             wasmtime_val_t* res, size_t)
 {
@@ -168,6 +224,7 @@ static wasm_trap_t* _abs_cb(void*, wasmtime_caller_t*, const wasmtime_val_t* arg
     res[0].of.i32 = std::abs(args[0].of.i32);
     return nullptr;
 }
+#endif
 
 // ---------------------------------------------------------------------
 // Factory
@@ -206,6 +263,19 @@ wasm_dsp_factory::wasm_dsp_factory(const string& binary_code) : wasm_dsp_factory
 //--------------------------------------------------------------------
 // Helper: register one host callback
 //--------------------------------------------------------------------
+#if FAUST_WASMTIME_RAW_MATH
+static void define_func(wasmtime_linker_t* linker, wasmtime_store_t*, const char* name,
+                        wasm_functype_t* ft, wasmtime_func_unchecked_callback_t cb)
+{
+    wasmtime_linker_define_func_unchecked(linker, "env", 3,    // module name
+                                          name, strlen(name),  // export name
+                                          ft,                  // type
+                                          cb,                  // callback
+                                          nullptr,             // env  (not needed)
+                                          nullptr              // finalizer (not needed)
+    );
+}
+#else
 static void define_func(wasmtime_linker_t* linker, wasmtime_store_t*, const char* name,
                         wasm_functype_t* ft, wasmtime_func_callback_t cb)
 {
@@ -217,6 +287,7 @@ static void define_func(wasmtime_linker_t* linker, wasmtime_store_t*, const char
                                 nullptr              // finalizer (not needed)
     );
 }
+#endif
 
 void wasm_dsp_factory::registerMathFuns(wasmtime_linker_t* linker, wasmtime_store_t* s)
 {
@@ -442,7 +513,9 @@ int wasm_dsp::callIntExport(const char* name)
     wasmtime_extern_t ext;
     wasmtime_instance_export_get(CTX(fStore), &fInstance, name, strlen(name), &ext);
 
-    wasmtime_val_t arg{.kind = WASM_I32, .of = {.i32 = 0}};
+    wasmtime_val_t arg;
+    arg.kind   = WASM_I32;
+    arg.of.i32 = 0;
     wasmtime_val_t out;
     wasm_trap_t*   trap = nullptr;
     wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, &out, 1, &trap);
@@ -467,7 +540,9 @@ void wasm_dsp::instanceResetUserInterface()
     wasmtime_extern_t ext;
     wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceResetUserInterface",
                                  strlen("instanceResetUserInterface"), &ext);
-    wasmtime_val_t arg{.kind = WASM_I32, .of = {.i32 = 0}};
+    wasmtime_val_t arg;
+    arg.kind   = WASM_I32;
+    arg.of.i32 = 0;
     wasm_trap_t*   trap = nullptr;
     wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);
 }
@@ -477,7 +552,9 @@ void wasm_dsp::instanceClear()
     wasmtime_extern_t ext;
     wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceClear", strlen("instanceClear"),
                                  &ext);
-    wasmtime_val_t arg{.kind = WASM_I32, .of = {.i32 = 0}};
+    wasmtime_val_t arg;
+    arg.kind   = WASM_I32;
+    arg.of.i32 = 0;
     wasm_trap_t*   trap = nullptr;
     wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);
 }
