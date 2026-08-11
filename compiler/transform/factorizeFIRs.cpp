@@ -32,11 +32,11 @@ Tree factorizeFIRs(Tree L)
             // STRUCTURALLY (3e-04 surviving the -double discriminator).
             bool constant = true;
             for (size_t i = z; constant && i < coef.size(); i++) {
-                constant = (sigs::sigOrder(coef[i]) <= 1);  // nombre ou constante
+                constant = (sigs::sigOrder(coef[i]) <= 1);  // number or constant
             }
             if (constant && z > 1 && z < coef.size() && coef.size() - z >= 2) {
-                // (>= 2 taps denses : la forme a 1 coefficient serait un
-                // gain retarde, et sigFIR[x,c0] exige une source audio)
+                // (>= 2 dense taps : the 1-coefficient form would be a
+                // delayed gain, and sigFIR[x,c0] requires an audio source)
                 tvec dense;
                 dense.push_back(coef[0]);
                 for (size_t i = z; i < coef.size(); i++) {

@@ -66,14 +66,14 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         return h ? std::atof(h) : 2147483648.0;  // default: 2^31 samples
     }
 
-    // ---- IIR : worst-peak-gain (port simple de fir18) --------------------------------
-    // Gain = 1/min|A(e^jw)| echantillonne (norme H-infini de la reponse en
-    // frequence d'un tout-poles). C'est une HEURISTIQUE : la borne sure pour
-    // une entree bornee quelconque est la norme L1 de la reponse
-    // impulsionnelle, toujours >= H-inf, et la grille peut rater une
-    // resonance tres etroite ; le certifie (WCPG, Volkova-Hilaire-Lauter)
-    // est l'upgrade documente (PILE n.12). Coefficients variables : max du
-    // gain sur les 2^nz coins de la boite (non rigoureux, pragmatique).
+    // ---- IIR : worst-peak-gain (simple port of fir18) --------------------------------
+    // Gain = 1/min|A(e^jw)| sampled (H-infinity norm of the frequency
+    // response of an all-poles). This is a HEURISTIC : the safe bound for
+    // an arbitrary bounded input is the L1 norm of the impulse response,
+    // always >= H-inf, and the grid can miss a very narrow resonance ;
+    // the certified bound (WCPG, Volkova-Hilaire-Lauter) is the
+    // documented upgrade. Variable coefficients : max of the gain over
+    // the 2^nz corners of the box (not rigorous, pragmatic).
     static double iirWorstPeakGain(const std::vector<double>& a, int numPoints = 10000)
     {
         const double pi      = std::acos(-1.0);
@@ -241,7 +241,7 @@ std::string fmtSamples(double s)
     } else {
         o << sec / 86400 << " j";
     }
-    o << " @48kHz (" << std::scientific << s << " éch.)";
+    o << " @48kHz (" << std::scientific << s << " samples)";
     return o.str();
 }
 
@@ -297,10 +297,10 @@ std::pair<std::vector<HorizonEvent>, double> datePass(const RecPlan& plan,
                 if (horizon < 0 || first < horizon) horizon = first;
 
                 if (verbose) {
-                    std::cerr << "HORIZON " << tag << " : rate " << e.rate << "/éch.";
-                    if (e.wrapAt != INF) std::cerr << ", wrap int32 à " << fmtSamples(e.wrapAt);
+                    std::cerr << "HORIZON " << tag << " : rate " << e.rate << "/sample";
+                    if (e.wrapAt != INF) std::cerr << ", int32 wrap at " << fmtSamples(e.wrapAt);
                     if (e.absorb32At != INF) {
-                        std::cerr << ", absorption float à " << fmtSamples(e.absorb32At)
+                        std::cerr << ", float absorption at " << fmtSamples(e.absorb32At)
                                   << " (double : " << fmtSamples(e.absorb53At) << ")";
                     }
                     std::cerr << " : " << e.signal << std::endl;
@@ -324,7 +324,7 @@ HorizonReport horizonAnalysis(Tree L, bool verbose)
 
     // Nominal: parameters at their default values, buttons released.
     HorizonAlgebra nominal(/*defaultParams*/ true);
-    auto [nev, nt] = datePass(plan, nominal, verbose, "défauts ");
+    auto [nev, nt] = datePass(plan, nominal, verbose, "defaults ");
 
     HorizonReport report;
     report.events                = std::move(wev);
@@ -336,14 +336,14 @@ HorizonReport horizonAnalysis(Tree L, bool verbose)
         auto line = [](const char* tag, double t, std::size_t n) {
             std::cerr << "HORIZON T* " << tag << " : ";
             if (n == 0) {
-                std::cerr << "aucun accumulateur daté (sémantique exacte sans limite)";
+                std::cerr << "no dated accumulator (exact semantics, no limit)";
             } else {
-                std::cerr << fmtSamples(t) << " (" << n << " accumulateur(s) daté(s))";
+                std::cerr << fmtSamples(t) << " (" << n << " dated accumulator(s))";
             }
             std::cerr << std::endl;
         };
         line("(pire-cas)", wt, report.events.size());
-        line("(défauts) ", nt, std::size_t(report.defaultEventCount));
+        line("(defaults) ", nt, std::size_t(report.defaultEventCount));
     }
     return report;
 }

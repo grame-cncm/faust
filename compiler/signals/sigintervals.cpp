@@ -131,13 +131,13 @@ IntervalRolesStats intervalRolesReport(Tree L, bool verbose)
     }
 
     if (verbose) {
-        std::cerr << "ROLES delay : bornés=" << st.delaySites
-                  << " non-bornés=" << st.delayUnbounded << std::endl;
-        std::cerr << "ROLES table : accès=" << st.tableAccesses
-                  << " prouvés=" << st.tableSafe << " gardés=" << st.tableUnproven
+        std::cerr << "ROLES delay : bounded=" << st.delaySites
+                  << " unbounded=" << st.delayUnbounded << std::endl;
+        std::cerr << "ROLES table : accesses=" << st.tableAccesses
+                  << " proven=" << st.tableSafe << " guarded=" << st.tableUnproven
                   << std::endl;
-        std::cerr << "ROLES format : sites-bornés=" << st.formatSites
-                  << " bits-entiers-totaux=" << st.formatBitsTotal << std::endl;
+        std::cerr << "ROLES format : bounded-sites=" << st.formatSites
+                  << " total-integer-bits=" << st.formatBitsTotal << std::endl;
     }
     return st;
 }

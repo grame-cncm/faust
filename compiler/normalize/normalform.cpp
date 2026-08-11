@@ -312,7 +312,7 @@ void debugRecCount(const char* where, Tree L)
     if (getenv("FAUST_DEBUG_RECCOUNT") == nullptr) {
         return;
     }
-    // collecte des groupes (mêmes règles que countRecGroups)
+    // collect the groups (same rules as countRecGroups)
     std::set<Tree, treeorder>    seen;
     std::vector<Tree> groups;
     std::vector<Tree> work{L};
@@ -334,7 +334,7 @@ void debugRecCount(const char* where, Tree L)
             work.push_back(s->branch(i));
         }
     }
-    // classes d'alpha-équivalence : les duplicatas sont le partage perdu
+    // alpha-equivalence classes : duplicates are the lost sharing
     std::vector<std::vector<Tree>> classes;
     for (Tree g : groups) {
         bool placed = false;
@@ -357,7 +357,7 @@ void debugRecCount(const char* where, Tree L)
         }
     }
     std::cerr << std::endl;
-    // pour chaque duplicata : parents immédiats et imbrication mutuelle
+    // for each duplicate : immediate parents and mutual nesting
     for (auto& c : classes) {
         if (c.size() < 2) {
             continue;

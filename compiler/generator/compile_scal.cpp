@@ -316,18 +316,18 @@ static bool ocppIsMemNode(const Tree& t)
     return false;
 }
 
-// FAUST_SS_QUALITY=1 : imprime le vecteur qualité (grille U x cycles du
-// modèle) de l'ordre choisi -- remplissage = cases occupées / disponibles.
-// Le remplissage est celui de la machine ABSTRAITE (latence 1, U slots),
-// le diagnostic de Yann : faut-il un effort de remplissage, ou le résidu
-// est-il ailleurs (adjacence isomorphe, régimes mémoire) ?
+// FAUST_SS_QUALITY=1 : print the quality vector (U x cycles grid of the
+// model) of the chosen order -- fill = occupied / available slots. The
+// fill is that of the ABSTRACT machine (latency 1, U slots) ; the
+// diagnostic question : is a fill effort needed, or does the residue
+// live elsewhere (isomorphic adjacency, memory regimes) ?
 static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
 {
     schedule<Tree> S = ocppScheduleRaw(G);
     if (getenv("FAUST_SS_CHECK")) {
-        // le graphe immédiat est-il un DAG, et l'ordre émis le
-        // respecte-t-il ? (toute arête présente est une contrainte dure :
-        // la dépendance doit être ordonnancée avant son consommateur)
+        // is the immediate graph a DAG, and does the emitted order
+        // respect it ? (every present edge is a hard constraint : the
+        // dependency must be scheduled before its consumer)
         auto H       = graph2dag(G);
         int  ncyclic = 0, maxscc = 0;
         for (const auto& scc : H.nodes()) {
@@ -364,9 +364,9 @@ static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
         ocppShapeStats(G);
     }
     if (const char* qenv = getenv("FAUST_SS_QUALITY")) {
-        // valeur "R,U" : machine d'ÉVALUATION (comparer des ordres générés
-        // avec des réglages différents sur une même référence) ; toute
-        // autre valeur : les réglages de génération
+        // value "R,U" : EVALUATION machine (compare orders generated
+        // with different settings against one reference) ; any other
+        // value : the generation settings
         unsigned R = gGlobal->gLSRegisters, U = gGlobal->gLSWidth;
         unsigned r2, u2;
         if (sscanf(qenv, "%u,%u", &r2, &u2) == 2 && u2 > 0) {
@@ -511,11 +511,12 @@ Tree ScalarCompiler::prepare(Tree LS)
             L2 = factorizeFIRs(L2);
             endTiming("FIR factorizer");
             if (getenv("FAUST_SS_MCM")) {
-                // sonde du gisement etage 3 : les paires PONDEREES.
-                // atome d'un terme : c*x -> (x, c numerique) ; x -> (x, 1).
-                // une extraction a+lambda*b sert les rangees ou wb/wa vaut
-                // le meme lambda : on met les paires en godets par ratio et
-                // on borne l'economie = somme des (count-1) des godets >=2.
+                // stage-3 deposit probe : the WEIGHTED pairs. Atom of a
+                // term : c*x -> (x, numeric c) ; x -> (x, 1). An
+                // extraction a+lambda*b serves the rows where wb/wa is
+                // the same lambda : pairs are bucketed by ratio and the
+                // saving is bounded by the sum of (count-1) over the
+                // buckets of size >= 2.
                 std::vector<std::vector<std::pair<Tree, double>>> rows;
                 {
                     std::set<Tree>    seen;
@@ -577,22 +578,22 @@ Tree ScalarCompiler::prepare(Tree LS)
                     if (c2 < 2) continue;
                     long long q = std::get<2>(k2);
                     if (q == 1000000000LL || q == -1000000000LL) {
-                        pot1 += c2 - 1;  // deja couvert par le papillon +-1
+                        pot1 += c2 - 1;  // already served by the +-1 butterfly
                     } else {
                         potw += c2 - 1;
                         bigw++;
                     }
                 }
                 std::cerr << "SS_MCM sums=" << rows.size() << " terms=" << terms
-                          << " lambda=+-1(deja fait)=" << pot1
-                          << " PONDERE godets=" << bigw << " borne=" << potw << std::endl;
+                          << " lambda=+-1(already done)=" << pot1
+                          << " WEIGHTED buckets=" << bigw << " bound=" << potw << std::endl;
 
-                // --- l'angle mort (question de Yann) : le partage ENTRE
-                // noyaux FIR d'une MEME source. Trois mesures par source
-                // multi-noyaux : (a) fenetres decalees (vecteur de coefs
-                // egal a decalage pres -> partage par delai de sortie),
-                // (b) paires ponderees inter-noyaux sur les taps,
-                // (c) prefixes communs (accumulations partielles).
+                // --- the blind spot : sharing BETWEEN FIR kernels of
+                // one SAME source. Three measures per multi-kernel
+                // source : (a) shifted windows (equal coefficient vector
+                // up to a shift -> share through an output delay),
+                // (b) weighted inter-kernel pairs over the taps,
+                // (c) common prefixes (partial accumulations).
                 {
                     std::map<Tree, std::vector<tvec>, treeorder> bySource;
                     std::set<Tree>    seenF;
@@ -616,7 +617,7 @@ Tree ScalarCompiler::prepare(Tree LS)
                         if (kerns.size() < 2) continue;
                         nMulti++;
                         nKern += long(kerns.size());
-                        // formes normalisees (coefs des taps, zeros de tete otes)
+                        // normalized forms (tap coefs, leading zeros removed)
                         auto trimmed = [](const tvec& cf) {
                             size_t b = 1;
                             while (b < cf.size() && isZero(cf[b])) b++;
@@ -634,7 +635,7 @@ Tree ScalarCompiler::prepare(Tree LS)
                                 if (common >= 2 && ti != tj) prefixes++;
                             }
                         }
-                        // paires ponderees inter-noyaux : godets (i, j, cj/ci)
+                        // weighted inter-kernel pairs : buckets (i, j, cj/ci)
                         std::map<std::tuple<int, int, long long>, int> kb;
                         for (auto& cf : kerns) {
                             for (size_t i2 = 1; i2 < cf.size(); i2++) {
@@ -825,11 +826,11 @@ Tree ScalarCompiler::prepare(Tree LS)
     endTiming("occurrences analysis");
 
     if (getenv("FAUST_SS_DESCENDCHECK")) {
-        // validation du descendAttribute v2 (portes absorbantes) : les
-        // max-delay recomptes par la descente generique doivent coincider
-        // avec OccMarkup sur chaque noeud qu'il a visite. Etiquettes
-        // d'aretes locales (regime A) + le suivi -1*y (chaine, regime B,
-        // hors porte), memes valeurs que incOcc.
+        // descendAttribute v2 validation (absorbing doors) : the
+        // max-delays recomputed by the generic descent must agree with
+        // OccMarkup on every node it visited. Local edge labels
+        // (regime A) + the -1*y tracking (chain, regime B, outside the
+        // doors), same values as incOcc.
         auto md = descendAttribute<int>(
             Lx, 0,
             [](Tree parent, int i, const int& pa) -> int {
@@ -843,7 +844,7 @@ Tree ScalarCompiler::prepare(Tree LS)
                 }
                 if (isSigBinOp(parent, &opnum, x, y) && opnum == kMul && isMinusOne(x) &&
                     i == 1) {
-                    return pa;  // le partage de -1*y se propage (cf. OccMarkup)
+                    return pa;  // the -1*y sharing propagates (cf. OccMarkup)
                 }
                 return 0;
             },
@@ -1791,10 +1792,10 @@ class LoopSplitEmitter {
     // dependency on the store (the runtime delay may be positive).
     std::map<int, Operand> fRootOf;  // materialized index -> its body root
 
-    // flux par boucle : clés de lecture (tampon, retard/16 -- les retards
-    // d'une même ligne de cache forment UN flux pour le préchargeur ;
-    // -1 : retard variable) et tampons écrits. Remplis pendant le walk du
-    // bloc courant, lus par emitLoop, remis à zéro entre blocs.
+    // per-loop streams : read keys (buffer, delay/16 -- delays within one
+    // cache line form ONE stream for the prefetcher ; -1 : variable
+    // delay) and written buffers. Filled during the current block's walk,
+    // read by emitLoop, cleared between blocks.
     std::set<std::pair<int, int>> fCurReadStreams;
     std::set<int>                 fCurWriteStreams;
 
@@ -1865,7 +1866,7 @@ class LoopSplitEmitter {
         }
         if (isSigInput(t, &i)) {
             o.code = subst("$1input$0[i]", T(i), icast());
-            fCurReadStreams.insert({-1000 - i, 0});  // un flux par canal d'entrée
+            fCurReadStreams.insert({-1000 - i, 0});  // one stream per input channel
             return o;
         }
         if (isSigAttach(t, x, y) && !isSlow(y)) {
@@ -2767,16 +2768,16 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                 }
             }
         }
-        // -- terme de FLUX de l'oracle (budget du préchargeur, mesuré
-        // S ~ 10-16 sur karplus : G4 a 9 flux et gagne, G8 en a 17 et
-        // décroche). Un flux : un tampon d'HISTORique réel (maxDelay >= 16
-        // flottants -- les petits locaux chauds ne comptent pas, sinon le
-        // budget bloquerait les grandes fusions gagnantes type frenchBell),
-        // lu ou écrit, plus les canaux d'entrée. Clés par membre calculées
-        // UNE fois ; le refus porte sur l'UNION des flux des deux blocs.
+        // -- STREAM term of the oracle (prefetcher budget, measured
+        // S ~ 10-16 on karplus : G4 has 9 streams and wins, G8 has 17 and
+        // stalls). A stream : a real HISTORY buffer (maxDelay >= 16
+        // floats -- small hot locals do not count, else the budget would
+        // block the big winning fusions like frenchBell), read or
+        // written, plus the input channels. Per-member keys computed
+        // ONCE ; the refusal weighs the UNION of both blocks' streams.
         long streamBudget = 12;
         if (const char* e = getenv("FAUST_LS_STREAMS")) {
-            streamBudget = std::atol(e);  // 0 : désactivé
+            streamBudget = std::atol(e);  // 0 : disabled
         }
         std::map<int, std::vector<long>> memberStreams;
         {
@@ -2810,7 +2811,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                 };
                 walks(SuperNodeGraph::defOf(matv[m]));
                 if (fSN.maxDelayOf(matv[m]) >= 16) {
-                    keys.insert(long(m) * 1000 + 999);  // sa propre écriture
+                    keys.insert(long(m) * 1000 + 999);  // its own write
                 }
                 if (!keys.empty()) {
                     memberStreams[m] = std::vector<long>(keys.begin(), keys.end());
@@ -2870,7 +2871,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                 return false;  // -fir barrier
             }
             if (streamBudget > 0 && streamsUnion(b, c) > streamBudget) {
-                return false;  // budget de flux du préchargeur
+                return false;  // prefetcher stream budget
             }
             long costM = blockCostShadow(fSN.orderedUnion(b, c));
             if (costM >= costOfBlock(b) + costOfBlock(c)) {
@@ -2898,7 +2899,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                 return 0;  // -fir barrier
             }
             if (streamBudget > 0 && streamsUnion(b, c) > streamBudget) {
-                return 0;  // budget de flux du préchargeur
+                return 0;  // prefetcher stream budget
             }
             long costM = blockCostShadow(fSN.orderedUnion(b, c));
             return costOfBlock(b) + costOfBlock(c) - costM;
@@ -3173,7 +3174,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             fOpOf.clear();
             fCurReadStreams.clear();
             fCurWriteStreams.clear();
-            fCurWriteStreams.insert(-2000 - i);  // le canal de sortie
+            fCurWriteStreams.insert(-2000 - i);  // the output channel
             Operand root = walk(hd(l1), -1, false);
             std::vector<int> deps;
             addDep(deps, root);
@@ -3347,7 +3348,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         if (getenv("FAUST_SS_SPLIT")) {
             projSCCReport(Lf);  // post-normalisation : doit ressortir minimal
         }
-        Tree Li = Lf;  // IIR revele par prepare (injection etage 2)
+        Tree Li = Lf;  // IIRs revealed by prepare (stage-2 injection)
         int  nfir = 0, niir = 0, maxtaps = 0;
         long taps = 0;
         std::set<Tree>    seen;
@@ -3402,9 +3403,9 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         std::cerr << "SS_FIR fir=" << nfir << " iir=" << niir << " taps=" << taps
                   << " maxtaps=" << maxtaps << " sources=" << fFirFacts.size() << std::endl;
         if (getenv("FAUST_SS_FIRTYPE")) {
-            // la sonde du typage : annoter la copie révélée (les nœuds FIR
-            // passent dans l'algèbre du point fixe) et montrer le type du
-            // premier noyau -- nature, variabilité, intervalle
+            // the typing probe : annotate the revealed copy (FIR nodes go
+            // through the fixed-point algebra) and show the type of the
+            // first kernel -- nature, variability, interval
             typeAnnotation(Lf, true);
             for (Tree l = Lf; isList(l); l = tl(l)) {
                 std::set<Tree>    seen2;
@@ -3471,15 +3472,15 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     // force a specific compilation order
     auto G = immediateGraph(L);
     if (getenv("FAUST_SS_READERSFIRST")) {
-        // LECTEURS D'ABORD (prototype) : pour chaque lecture retardee
-        // t = sigDelay(x, y) avec dmin >= 1, une arete DOUCE x -> t
-        // (« x depend de t » : le lecteur de l'ancienne valeur passe
-        // avant que l'ecrivain ne l'ecrase). L'ecriture etant emise a
-        // sa position d'ordonnancement (generateDelayAccess ne compile
-        // plus l'ecrivain), l'ordre suffit a rendre le scalaire legal —
-        // le peephole de scalarisation recolte. Une arete qui fermerait
-        // un cycle est ABANDONNEE : chaque cycle de preferences impose
-        // un sacrifie, dont le tableau joue le temporaire.
+        // READERS FIRST (prototype) : for every delayed read
+        // t = sigDelay(x, y) with dmin >= 1, one SOFT edge x -> t
+        // ("x depends on t" : the reader of the OLD value passes before
+        // the writer overwrites it). Since the write is emitted at its
+        // own scheduling position (generateDelayAccess no longer
+        // compiles the writer), the order alone makes the scalar legal —
+        // the scalarization peephole harvests. An edge that would close
+        // a cycle is DROPPED : each preference cycle imposes one
+        // sacrificed state, whose vector plays the temporary.
         auto reaches = [&G](Tree from, Tree to) -> bool {
             std::set<Tree>    seen;
             std::vector<Tree> work{from};
@@ -3518,7 +3519,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
             added++;
         }
         if (getenv("FAUST_SS_MONODEBUG")) {
-            std::cerr << "READERSFIRST aretes +" << added << " sacrifices " << dropped
+            std::cerr << "READERSFIRST edges +" << added << " sacrificed " << dropped
                       << std::endl;
         }
     }
@@ -3649,13 +3650,13 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         schedquality q = squality(G, S.elements(), 8, 4, ocppShapeFunctor(G),
                                   std::function<bool(const Tree&)>(ocppIsMemNode), 3);
         double fill = (q.cycles > 0) ? 100.0 * double(S.size()) / (double(q.cycles) * 4) : 0;
-        // pic de flux fenêtré : combien de flux mémoire distincts une
-        // fenêtre de W instructions consécutives touche-t-elle ? Un flux :
-        // (source, retard/16) en lecture -- les retards d'une même ligne de
-        // cache se confondent --, la source elle-même en écriture (son
-        // tampon avance en [i]), un par canal d'entrée. Sensible à l'ORDRE :
-        // df visite les tampons un à un, un ordre par niveaux les entrelace
-        // tous -- le préchargeur ne suit qu'un petit nombre de flux.
+        // windowed stream peak : how many distinct memory streams does a
+        // window of W consecutive instructions touch ? A stream :
+        // (source, delay/16) for reads -- delays within one cache line
+        // merge --, the source itself for writes (its buffer advances at
+        // [i]), one per input channel. ORDER-sensitive : df visits the
+        // buffers one by one, a level order interleaves them all -- the
+        // prefetcher only follows a small number of streams.
         int speak = 0;
         double savg = 0;
         {
@@ -3669,8 +3670,8 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                 std::vector<Key> ks;
                 Tree x, y;
                 int  ich;
-                // un tampon qui tient dans une ligne de cache (16 floats)
-                // a des adresses fixes : ce n'est pas un flux
+                // a buffer that fits in one cache line (16 floats) has
+                // fixed addresses : not a stream
                 auto isStreamBuf = [&](Tree b) {
                     Occurrences* ob = fOccMarkup->retrieve(b);
                     return ob && ob->getMaxDelay() >= 16;
@@ -3679,15 +3680,15 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                     if (isStreamBuf(x)) {
                         interval I = getCertifiedSigType(y)->getInterval();
                         int dmin = int(I.lo());
-                        // retard variable (ou non certifié >= 1) : un flux
-                        // quand même, à clé propre -- la lecture avance
+                        // variable delay (or not certified >= 1) : still a
+                        // stream, with its own key -- the read advances
                         ks.push_back({(long)(size_t)(void*)x, dmin >= 1 ? dmin / 16 : -1});
                     }
                 } else if (isSigInput(n, &ich)) {
                     ks.push_back({-1000 - ich, 0});
                 }
                 if (isStreamBuf(n)) {
-                    ks.push_back({(long)(size_t)(void*)n, -7});  // l'écriture du tampon
+                    ks.push_back({(long)(size_t)(void*)n, -7});  // the buffer write
                 }
                 touch.push_back(ks);
             }
@@ -3717,10 +3718,10 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         fClass->addZone3(qc.str());
     }
 
-    // FAUST_SS_SIG : la signature statique du programme, une ligne — la
-    // matière première du sélecteur automatique (couche 1). Tout se
-    // calcule sans bench : taille, borne de récurrence, comptes
-    // calcul/mémoire, flux (total et pic fenêtré sur l'ordre df), formes.
+    // FAUST_SS_SIG : the program's static signature, one line — the raw
+    // material of the automatic selector (layer 1). Everything computes
+    // without a bench : size, recurrence bound, compute/memory counts,
+    // streams (total and windowed peak on the df order), shapes.
     if (getenv("FAUST_SS_SIG")) {
         int nalu = 0, nmem = 0;
         for (const auto& n : G.nodes()) {
@@ -3730,7 +3731,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                 nalu++;
             }
         }
-        // flux : clés réelles (tampons >= 16), total + pic fenêtré (64)
+        // streams : real keys (buffers >= 16), total + windowed peak (64)
         std::set<std::pair<long, long>> allk;
         int         speak = 0;
         {
@@ -3767,7 +3768,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                 speak = std::max(speak, int(win.size()));
             }
         }
-        // formes : classes, part bankable (multiplicité >= 4), top-3
+        // shapes : classes, bankable share (multiplicity >= 4), top-3
         std::map<long, int> cls;
         auto shf = ocppShapeFunctor(G);
         for (const auto& n : G.nodes()) {
@@ -3782,7 +3783,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
             }
         }
         std::sort(sizes.rbegin(), sizes.rend());
-        // selects : le signal statique de la dimension -lazyselect
+        // selects : the static signal of the -lazyselect dimension
         int nselect = 0;
         for (const auto& n : G.nodes()) {
             Tree sel_, sx_, sy_;

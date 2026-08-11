@@ -48,7 +48,7 @@ static void printlines(int n, list<Statement>& lines, ostream& fout)
             tab(n, fout);
             fout << s->code();
         } else {
-            // fin précédente condition
+            // end of previous condition
             n--;
             tab(n, fout);
             fout << "}";

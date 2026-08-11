@@ -59,11 +59,11 @@ if Ci constant, then (Ci@d)*(Vi@(d+k)) = Ci*(Vi@(d+k)) PROOF t<d+k : Vi@(d+k) = 
 #include "sharing.hh"
 #include "simplify.hh"
 
-// simplify() exige des termes clos : pendant la descente du revelateur,
-// les sous-arbres d'un groupe recursif portent des references ouvertes
-// (ref sans rec rempli) que la machinerie de reecriture refuse
-// (rewrite.hh, body != nullptr). La garde derive du contrat : un terme
-// non rec-free reste tel quel -- la simplification est une optimisation.
+// simplify() requires closed terms : during the revealer's descent, the
+// subtrees of a recursive group carry open references (ref without a
+// filled rec) that the rewriting machinery refuses (rewrite.hh,
+// body != nullptr). The guard derives from the contract : a non rec-free
+// term stays as it is -- the simplification is an optimization.
 static Tree recSafeSimplify(Tree t)
 {
     return t->isRecFree() ? simplify(t) : t;
