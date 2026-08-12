@@ -3466,9 +3466,9 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     }
     // force a specific compilation order
     auto G = immediateGraph(L);
-    if (getenv("FAUST_SS_READERSFIRST")) {
-        // READERS FIRST (prototype) : for every delayed read
-        // t = sigDelay(x, y) with dmin >= 1, one SOFT edge x -> t
+    if (!getenv("FAUST_SS_NOREADERSFIRST")) {
+        // READERS FIRST (default since 2026-08-12) : for every delayed
+        // read t = sigDelay(x, y) with dmin >= 1, one SOFT edge x -> t
         // ("x depends on t" : the reader of the OLD value passes before
         // the writer overwrites it). Since the write is emitted at its
         // own scheduling position (generateDelayAccess no longer
@@ -3476,6 +3476,10 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         // the scalarization peephole harvests. An edge that would close
         // a cycle is DROPPED : each preference cycle imposes one
         // sacrificed state, whose vector plays the temporary.
+        // Corpus verdict (campaign-readersfirst-20260812) : 199/199
+        // bit-exact, geomean 0.9978, cycles rare and always single
+        // (78 of 9847 edges). The env var above is the forensic
+        // opt-out for A/B comparisons, not a supported mode.
         auto reaches = [&G](Tree from, Tree to) -> bool {
             std::set<Tree>    seen;
             std::vector<Tree> work{from};
