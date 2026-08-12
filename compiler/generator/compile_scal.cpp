@@ -3465,8 +3465,87 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                   << std::endl;
     }
     // force a specific compilation order
-    auto G       = immediateGraph(L);
-    int  rfAdded = 0;
+    auto G = immediateGraph(L);
+    if (getenv("FAUST_SS_DOMTREE")) {
+        // CSSCHEDULE probe (PILE, spec CSSCHEDULE.md) : the SHAPE of the
+        // dominator tree over the pristine immediate DAG decides both the
+        // opportunity (sibling banks to interleave) and the cost (flat
+        // trees degenerate into one giant root combine). Same idom
+        // construction as csschedule, statistics only.
+        const schedule<Tree>     topo  = dfschedule(G);
+        const std::vector<Tree>& order = topo.elements();
+        const int                V     = int(order.size());
+        digraph<Tree>            Rg    = reverse(G);
+        std::map<Tree, int>      pos;
+        for (int i = 0; i < V; i++) {
+            pos[order[i]] = i;
+        }
+        std::vector<int> idom(V + 1, -1);
+        idom[V]        = V;
+        auto intersect = [&](int a, int b) {
+            while (a != b) {
+                while (a < b) {
+                    a = idom[a];
+                }
+                while (b < a) {
+                    b = idom[b];
+                }
+            }
+            return a;
+        };
+        int outputs = 0;
+        for (int i = V - 1; i >= 0; i--) {
+            const Tree& n   = order[i];
+            int         nid = -1;
+            if (Rg.destinations(n).empty()) {
+                nid = V;
+                outputs++;
+            } else {
+                for (const auto& c : Rg.destinations(n)) {
+                    int cp = pos[c.first];
+                    if (idom[cp] != -1) {
+                        nid = (nid == -1) ? cp : intersect(nid, cp);
+                    }
+                }
+                if (nid == -1) {
+                    nid = V;
+                }
+            }
+            idom[i] = nid;
+        }
+        std::vector<int> kids(V + 1, 0), size(V + 1, 1), depth(V + 1, 0);
+        int omegaShared = 0;
+        for (int i = 0; i < V; i++) {
+            kids[idom[i]]++;
+            if (idom[i] == V && !Rg.destinations(order[i]).empty()) {
+                omegaShared++;  // shared value escaping to the top
+            }
+        }
+        for (int i = 0; i < V; i++) {
+            size[idom[i]] += size[i];  // children rank below their idom
+        }
+        int maxDepth = 0, maxKids = 0, internals = 0, kidsSum = 0, maxBlock = 0;
+        for (int i = V - 1; i >= 0; i--) {
+            depth[i] = depth[idom[i] == i ? V : idom[i]] + 1;
+            maxDepth = std::max(maxDepth, depth[i]);
+        }
+        for (int i = 0; i < V + 1; i++) {
+            if (kids[i] > 0 && i < V) {
+                internals++;
+                kidsSum += kids[i];
+                maxKids = std::max(maxKids, kids[i]);
+                maxBlock = std::max(maxBlock, size[i]);
+            }
+        }
+        maxKids = std::max(maxKids, kids[V]);
+        std::cerr << "DOMTREE nodes=" << V << " outputs=" << outputs
+                  << " omegaKids=" << kids[V] << " omegaShared=" << omegaShared
+                  << " depth=" << maxDepth << " maxKids=" << maxKids
+                  << " meanKids=" << (internals ? double(kidsSum) / internals : 0)
+                  << " maxBlock=" << maxBlock
+                  << " maxBlockFrac=" << (V ? double(maxBlock) / V : 0) << std::endl;
+    }
+    int rfAdded = 0;
     if (!getenv("FAUST_SS_NOREADERSFIRST")) {
         // READERS FIRST (default since 2026-08-12) : for every delayed
         // read t = sigDelay(x, y) with dmin >= 1, one SOFT edge x -> t
