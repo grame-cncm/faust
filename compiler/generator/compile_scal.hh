@@ -187,6 +187,8 @@ class ScalarCompiler : public Compiler {
     std::string and2code(Tree oc);
 
     virtual DelayType analyzeDelayType(Tree sig);
+    DelayType         analyzeDelayTypeAux(Tree sig);
+    std::set<Tree>    fResidenceSeen;  // probe dedup (FAUST_SS_RESIDENCE)
 };
 
 #endif

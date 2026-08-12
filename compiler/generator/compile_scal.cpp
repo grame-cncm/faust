@@ -4846,12 +4846,44 @@ static bool occursWithin(Tree needle, Tree def)
 
 /**
  * @brief indicate best delay implementation type for a signal according to its max delay and
- * various compilation options
+ * various compilation options. Probe wrapper : FAUST_SS_RESIDENCE prints, once
+ * per line, the data of the residence election (depth, real taps, density,
+ * elected type) -- the map that will decide the per-line mcd (PILE 24).
  *
  * @param sig
  * @return DelayType
  */
 DelayType ScalarCompiler::analyzeDelayType(Tree sig)
+{
+    DelayType dt = analyzeDelayTypeAux(sig);
+    if (getenv("FAUST_SS_RESIDENCE") && fResidenceSeen.insert(sig).second) {
+        Occurrences* occ = fOccMarkup->retrieve(sig);
+        int          mxd = occ ? occ->getMaxDelay() : 0;
+        if (mxd > 0) {
+            // real taps : the literal-delay read nodes that actually occur
+            // (scan capped at 64 -- deeper lines have vanishing density)
+            int scan = std::min(mxd, 64);
+            int taps = 0, multi = 0;
+            // k = 0 excluded : the current-value read does not consume the
+            // line's storage (it compiles to the scalar expression)
+            for (int k = 1; k <= scan; k++) {
+                Tree fk = sigDelay(sig, sigInt(k));
+                if (Occurrences* ok = fOccMarkup->retrieve(fk)) {
+                    taps++;
+                    if (ok->hasMultiOccurrences()) {
+                        multi++;
+                    }
+                }
+            }
+            std::cerr << "RESIDENCE type=" << nameDelayType(dt) << " mxd=" << mxd
+                      << " taps=" << taps << " multi=" << multi << " capped=" << (mxd > 64)
+                      << " density=" << (double(taps + 1) / double(mxd + 1)) << std::endl;
+        }
+    }
+    return dt;
+}
+
+DelayType ScalarCompiler::analyzeDelayTypeAux(Tree sig)
 {
     Occurrences* occ = fOccMarkup->retrieve(sig);
     faustassert(occ != nullptr);
