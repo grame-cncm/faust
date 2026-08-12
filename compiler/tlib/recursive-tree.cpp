@@ -1261,7 +1261,9 @@ static bool defReachesSelf(Tree def, Tree self)
     return false;
 }
 
-Tree normalizeRecGroups(Tree root, bool canonical, bool (*delayedBranch)(Tree, int))
+Tree normalizeRecGroups(Tree root, bool canonical, bool (*delayedBranch)(Tree, int),
+                        bool (*shiftTerm)(Tree, Tree&, Tree&),
+                        Tree (*reshift)(Tree, Tree, Tree))
 {
     // ---- discovery : live projections and their dependency edges. Each
     // definition is walked once with a PER-WALK seen set : a subtree shared
@@ -1333,6 +1335,13 @@ Tree normalizeRecGroups(Tree root, bool canonical, bool (*delayedBranch)(Tree, i
     Tarjan<Tree>                                tarjan(g);
     std::unordered_map<Tree, int>               sccOf;
     std::vector<std::vector<Tree>>              members;
+    // DISSOLUTION RULE 2 -- delayed aliases. A member of a multi-member
+    // component whose definition is a pure shift term (caller-recognized :
+    // x = w shifted by a constant amount >= 1) and does not contain its own
+    // projection is not kept as a member : every reference to it re-points,
+    // folded, onto w -- the storage that materializes w exists anyway, the
+    // alias only re-reads it deeper. aliasInfo[proj] = (payload, amount).
+    std::unordered_map<Tree, std::pair<Tree, Tree>> aliasInfo;
     for (const auto& comp : tarjan.partition()) {
         int id = int(members.size());
         members.emplace_back(comp.begin(), comp.end());
@@ -1353,6 +1362,62 @@ Tree normalizeRecGroups(Tree root, bool canonical, bool (*delayedBranch)(Tree, i
         std::vector<Tree>& ms = members.back();
         std::sort(ms.begin(), ms.end(),
                   [&](Tree a, Tree b) { return canonicalTreeLess(projDef(a), projDef(b)); });
+        if (shiftTerm && reshift && ms.size() > 1) {
+            // Identify the delayed aliases of this component, in canonical
+            // order (deterministic). Guards : the definition must not
+            // contain its own projection (substituting would unfold the
+            // recursion), and the containment graph among accepted aliases
+            // must stay acyclic -- an all-alias cycle is a pure delay loop
+            // and must keep a survivor.
+            std::unordered_map<Tree, Tree> candPayload, candAmount;
+            for (Tree m : ms) {
+                Tree w, n;
+                if (!shiftTerm(projDef(m), w, n) || defReachesSelf(projDef(m), m)) {
+                    continue;
+                }
+                bool                     cycle = false;
+                std::vector<Tree>        work{w};
+                std::unordered_set<Tree> vis;
+                while (!work.empty() && !cycle) {
+                    Tree t2 = work.back();
+                    work.pop_back();
+                    if (!vis.insert(t2).second) {
+                        continue;
+                    }
+                    int  i2;
+                    Tree g2;
+                    if (isProj(t2, i2, g2)) {
+                        if (t2 == m) {
+                            cycle = true;
+                        } else if (auto it = candPayload.find(t2); it != candPayload.end()) {
+                            work.push_back(it->second);  // follow the accepted chain
+                        }
+                        continue;
+                    }
+                    for (int k2 = 0; k2 < t2->arity(); k2++) {
+                        work.push_back(t2->branch(k2));
+                    }
+                }
+                if (!cycle) {
+                    candPayload[m] = w;
+                    candAmount[m]  = n;
+                }
+            }
+            if (!candPayload.empty()) {
+                std::vector<Tree> survivors;
+                for (Tree m : ms) {
+                    if (auto it = candPayload.find(m); it != candPayload.end()) {
+                        aliasInfo[m] = {it->second, candAmount[m]};
+                    } else {
+                        survivors.push_back(m);
+                    }
+                }
+                // the acyclicity guard always leaves one : an all-alias
+                // component would be a delay loop closed on itself
+                TLIB_ASSERT(!survivors.empty());
+                ms = std::move(survivors);
+            }
+        }
         if (ms.size() > 1) {
             std::vector<Tree>        ordered;
             std::vector<char>        placed(ms.size(), 0);
@@ -1367,8 +1432,11 @@ Tree normalizeRecGroups(Tree root, bool canonical, bool (*delayedBranch)(Tree, i
                     bool ready = true;
                     if (auto it = instRefs.find(ms[j]); it != instRefs.end()) {
                         for (Tree q : it->second) {
-                            if (q != ms[j] && sccOf.count(q) && sccOf.at(q) == id &&
-                                !emitted.count(q)) {
+                            // dissolved aliases never constrain : a read
+                            // through an alias is shifted by its amount
+                            // (>= 1), hence never instantaneous
+                            if (q != ms[j] && !aliasInfo.count(q) && sccOf.count(q) &&
+                                sccOf.at(q) == id && !emitted.count(q)) {
                                 ready = false;
                                 break;
                             }
@@ -1396,9 +1464,27 @@ Tree normalizeRecGroups(Tree root, bool canonical, bool (*delayedBranch)(Tree, i
         if (auto it = memo.find(t); it != memo.end()) {
             return it->second;
         }
+        // a shift term over a dissolved alias re-points, FOLDED, onto the
+        // alias's payload : one storage, one deeper read -- never two
+        if (shiftTerm && reshift) {
+            Tree tgt, k;
+            if (shiftTerm(t, tgt, k)) {
+                if (auto ia = aliasInfo.find(tgt); ia != aliasInfo.end()) {
+                    Tree img = reshift(build(ia->second.first), ia->second.second, k);
+                    memo[t]  = img;
+                    return img;
+                }
+            }
+        }
         int  i;
         Tree grp;
         if (isProj(t, i, grp)) {
+            if (auto ia = aliasInfo.find(t); ia != aliasInfo.end()) {
+                // bare reference to a dissolved alias : the payload, shifted
+                Tree img = reshift(build(ia->second.first), ia->second.second, nullptr);
+                memo[t]  = img;
+                return img;
+            }
             int c = sccOf.at(t);
             if (!built[c]) {
                 built[c] = 1;

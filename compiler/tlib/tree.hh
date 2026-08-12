@@ -593,6 +593,19 @@ TLIB_API Tree canonicalizeRecNames(Tree root);
 /// true component is then a cycle, and the plain canonical order is kept (the
 /// historical behaviour, and the fallback whenever an instantaneous cycle shows
 /// up : such a program is delay-free recursive and bound for rejection anyway).
+/// DISSOLUTION OF DELAYED ALIASES (optional, needs both shiftTerm and reshift) :
+/// a member of a multi-member component whose definition is a pure shift term
+/// -- shiftTerm(def, payload, amount) true, with the contract that amount is a
+/// CONSTANT shift of at least one tick -- and which does not contain its own
+/// projection is not kept as a member. Every reference re-points, folded, onto
+/// the payload : reshift(payload, amount, outer) rebuilds one shift of
+/// amount+outer (outer == nullptr for a bare reference). The storage that
+/// materializes the payload exists anyway ; the alias only re-read it deeper,
+/// so the elimination is memory-neutral and shrinks components toward their
+/// recursive kernel (many become singletons). Aliases whose containment graph
+/// would cycle (a delay loop closed on itself) keep a survivor, chosen in
+/// canonical order. The final round trip then unifies the recursions this
+/// dissolution makes alpha-equivalent.
 /// The result goes through the deBruijn round trip : recursions that BECOME
 /// alpha-equivalent under the finer grouping unify into the same pointer --
 /// splitting is what makes the maximal sharing of recursive trees reachable.
@@ -601,7 +614,9 @@ TLIB_API Tree canonicalizeRecNames(Tree root);
 /// a canonicalization loop whose own round trip will unify (fresh variable names
 /// are then left as is).
 TLIB_API Tree normalizeRecGroups(Tree root, bool canonical = true,
-                                 bool (*delayedBranch)(Tree parent, int branch) = nullptr);
+                                 bool (*delayedBranch)(Tree parent, int branch) = nullptr,
+                                 bool (*shiftTerm)(Tree def, Tree& payload, Tree& amount) = nullptr,
+                                 Tree (*reshift)(Tree payload, Tree amount, Tree outer) = nullptr);
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);
 std::string   toDeBruijnString(Tree t);

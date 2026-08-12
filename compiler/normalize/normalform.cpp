@@ -427,20 +427,43 @@ static Tree simplifyToNormalFormAux(Tree LS)
     // rely on (a member read undelayed one position too early costs exactly
     // one sample : the freeverb comb regression of 2026-08-11).
     startTiming("normalizeRecGroups");
-    L1 = normalizeRecGroups(L1, true, [](Tree t, int k) -> bool {
-        Tree x, y;
-        int  n;
-        if (isSigDelay(t, x, y)) {
-            return k == 0 && isSigInt(y, &n) && n >= 1;
-        }
-        if (isSigDelay1(t, x)) {
-            return k == 0;
-        }
-        if (isSigPrefix(t, x, y)) {
-            return k == 1;
-        }
-        return false;
-    });
+    L1 = normalizeRecGroups(
+        L1, true,
+        [](Tree t, int k) -> bool {
+            Tree x, y;
+            int  n;
+            if (isSigDelay(t, x, y)) {
+                return k == 0 && isSigInt(y, &n) && n >= 1;
+            }
+            if (isSigDelay1(t, x)) {
+                return k == 0;
+            }
+            if (isSigPrefix(t, x, y)) {
+                return k == 1;
+            }
+            return false;
+        },
+        // shiftTerm : a pure delay term with a literal amount >= 1. Serves
+        // both as the delayed-alias recognizer (x = w@n dissolves, its
+        // readers re-point onto w's line, one tap deeper) and as the
+        // reference matcher for the folded re-pointing.
+        [](Tree def, Tree& payload, Tree& amount) -> bool {
+            Tree y;
+            int  n;
+            if (isSigDelay(def, payload, y) && isSigInt(y, &n) && n >= 1) {
+                amount = y;
+                return true;
+            }
+            return false;
+        },
+        // reshift : one shift of amount(+outer) over the payload. Local
+        // fold only, same doctrine as normalizeDelayTerm.
+        [](Tree payload, Tree amount, Tree outer) -> Tree {
+            if (!outer) {
+                return sigDelay(payload, amount);
+            }
+            return sigDelay(payload, simplifyExpression(sigAdd(amount, outer)));
+        });
     endTiming("normalizeRecGroups");
 /*
     // PROBE: cost of the symbolic -> deBruijn -> symbolic round-trip on the
