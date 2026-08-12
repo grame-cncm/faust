@@ -55,6 +55,12 @@ class InstructionsCompiler : public virtual Garbageable {
     Tree       fSharingKey;
     OccMarkup* fOccMarkup;
 
+    // Decoupled line writes (see generateDelayAccess) : projections of the
+    // recursive groups being generated whose store is not emitted yet, and
+    // the delayed expressions whose computation waits for those stores
+    std::set<Tree>    fUnstoredRecMembers;
+    std::vector<Tree> fPendingDelayWrites;
+
     // Ensure IOTA base fixed delays are computed once
     std::map<int, std::string> fIOTATable;
 
@@ -227,6 +233,8 @@ class InstructionsCompiler : public virtual Garbageable {
 
     virtual ValueInst* generateXtended(Tree sig);
     virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree size);
+    void               flushPendingDelayWrites();
+    bool               reachesUnstoredRecMember(Tree t);
     virtual ValueInst* generatePrefix(Tree sig, Tree x, Tree e);
     virtual ValueInst* generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 
