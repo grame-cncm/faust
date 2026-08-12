@@ -3465,7 +3465,8 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                   << std::endl;
     }
     // force a specific compilation order
-    auto G = immediateGraph(L);
+    auto G       = immediateGraph(L);
+    int  rfAdded = 0;
     if (!getenv("FAUST_SS_NOREADERSFIRST")) {
         // READERS FIRST (default since 2026-08-12) : for every delayed
         // read t = sigDelay(x, y) with dmin >= 1, one SOFT edge x -> t
@@ -3527,8 +3528,42 @@ void ScalarCompiler::compileMultiSignal(Tree L)
             std::cerr << "READERSFIRST edges +" << added << " sacrificed " << dropped
                       << std::endl;
         }
+        rfAdded = added;
     }
     auto S = ocppSchedule(G);
+    // THE PRESSURE GAUGE (PILE 24). Preferences are worth honoring only if
+    // the program can host their liveness : the readers moved early keep
+    // their values alive longer, and a program whose resident floor
+    // already crowds the registers has nothing to offer them (nylonGuitar :
+    // floor 26, peak 52 -> 65, -8.6% for three scalars). Both schedules
+    // are computed and the FACT decides : the preferences are refused
+    // whenever their peak exceeds both the budget and the baseline peak
+    // by more than the margin. Stage-3 elections stand down with them.
+    if (rfAdded > 0) {
+        int budget = 48, margin = 4;
+        if (const char* be = getenv("FAUST_SS_RFPEAK")) {
+            budget = std::atoi(be);
+        }
+        // the baseline is REBUILT from scratch : digraph copies share their
+        // internal graph (shared_ptr), a plain copy would alias the mutated
+        // one -- the very bug that made the gauge blind on its first run
+        auto G0   = immediateGraph(L);
+        auto memf = std::function<bool(const Tree&)>(ocppIsMemNode);
+        auto sq1  = squality(G, S.elements(), 8, 4, ocppShapeFunctor(G), memf, 3);
+        auto S0   = ocppSchedule(G0);
+        auto sq0  = squality(G0, S0.elements(), 8, 4, ocppShapeFunctor(G0), memf, 3);
+        bool gated = sq1.peak > std::max(budget, sq0.peak + margin);
+        if (getenv("FAUST_SS_MONODEBUG")) {
+            std::cerr << "READERSFIRST peak " << sq0.peak << " -> " << sq1.peak << " budget "
+                      << budget << (gated ? " GATED" : "") << std::endl;
+        }
+        if (gated) {
+            G = G0;
+            S = S0;
+            fRFKeptWriters.clear();
+            fRFSacrificedWriters.clear();
+        }
+    }
     // the FACT for the stage-3 mono election : the emitted order is S
     fSchedPos.clear();
     {
