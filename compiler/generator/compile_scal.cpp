@@ -3512,10 +3512,16 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         for (auto& p : soft) {
             if (reaches(p.second, p.first)) {
                 dropped++;
+                fRFSacrificedWriters.insert(p.first);
                 continue;
             }
             G.add(p.first, p.second, 0);
             added++;
+            fRFKeptWriters.insert(p.first);
+        }
+        // a writer with edges on both sides is sacrificed, not promised
+        for (Tree s2 : fRFSacrificedWriters) {
+            fRFKeptWriters.erase(s2);
         }
         if (getenv("FAUST_SS_MONODEBUG")) {
             std::cerr << "READERSFIRST edges +" << added << " sacrificed " << dropped
@@ -3523,6 +3529,14 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         }
     }
     auto S = ocppSchedule(G);
+    // the FACT for the stage-3 mono election : the emitted order is S
+    fSchedPos.clear();
+    {
+        int p2 = 0;
+        for (const Tree& n2 : S.elements()) {
+            fSchedPos[n2] = p2++;
+        }
+    }
     if (getenv("FAUST_SS_QUALITY")) {
         // ---- calibrated per-op costs (M-series orders of magnitude) :
         // latency enters recurrence chains, reciprocal throughput enters
@@ -4801,6 +4815,36 @@ bool ScalarCompiler::isSigSimpleRec(Tree sig)
 }
 
 /**
+ * @brief is the node needle contained in the tree def ? Projections are
+ * opaque leaves : the walk must not escape into sibling definitions
+ * through the recursive node.
+ */
+static bool occursWithin(Tree needle, Tree def)
+{
+    std::set<Tree>    seen;
+    std::vector<Tree> work{def};
+    while (!work.empty()) {
+        Tree t = work.back();
+        work.pop_back();
+        if (t == needle) {
+            return true;
+        }
+        if (!seen.insert(t).second) {
+            continue;
+        }
+        int  i;
+        Tree g;
+        if (isProj(t, &i, g)) {
+            continue;
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            work.push_back(t->branch(k));
+        }
+    }
+    return false;
+}
+
+/**
  * @brief indicate best delay implementation type for a signal according to its max delay and
  * various compilation options
  *
@@ -4818,22 +4862,52 @@ DelayType ScalarCompiler::analyzeDelayType(Tree sig)
         return DelayType::kZeroDelay;
     }
     if (mxd == 1) {
-        // check for special mono delay case
+        // The mono election, in three stages of decreasing comfort. A state
+        // of depth 1 can live in one scalar iff every read of its OLD value
+        // is emitted before its write.
         int  i;
         Tree x, var, le;
-        if (count == 1 && isProj(sig, &i, x) && isRec(x, var, le) && (len(le) == 1)) {
-            // potential simple recursion if sig@1 is used only once
-            Tree f = sigDelay(sig, sigInt(1));  // check if it is a delay
-            if (fOccMarkup->retrieve(f) && !fOccMarkup->retrieve(f)->hasMultiOccurrences()) {
-                return DelayType::kMonoDelay;
+        if (isProj(sig, &i, x) && isRec(x, var, le)) {
+            Tree         f  = sigDelay(sig, sigInt(1));
+            Occurrences* fo = fOccMarkup->retrieve(f);
+            if (fo) {
+                bool unique = (count == 1) && !fo->hasMultiOccurrences();
+                // stage 1 -- singleton group, unique delayed read : the only
+                // reader of the old value is the definition itself
+                if (unique && len(le) == 1) {
+                    return DelayType::kMonoDelay;
+                }
+                // stage 2 -- mutual group, but the unique delayed read lives
+                // in sig's own definition : safe whatever the member order
+                if (unique && occursWithin(f, nth(le, i))) {
+                    return DelayType::kMonoDelay;
+                }
+                // stage 3 -- cross readers : safe iff the readers-first
+                // promise holds for this writer (every soft edge kept), the
+                // write is unconditional, and the schedule is the witness.
+                // The shared node f is computed once at its scheduled
+                // position ; later uses read its cached OLD value.
+                if (fRFKeptWriters.count(sig) && !fRFSacrificedWriters.count(sig) &&
+                    getConditionCode(sig).empty()) {
+                    auto pf = fSchedPos.find(f);
+                    auto px = fSchedPos.find(sig);
+                    if (pf != fSchedPos.end() && px != fSchedPos.end()) {
+                        // the witness : a kept edge sig -> f is a schedule
+                        // constraint ; its violation is a scheduler bug
+                        faustassert(pf->second < px->second);
+                        return DelayType::kMonoDelay;
+                    }
+                }
             }
             if (getenv("FAUST_SS_MONODEBUG")) {
-                std::cerr << "MONOMISS retrieve=" << (fOccMarkup->retrieve(f) != nullptr)
-                          << " " << ppsig(sig, 2) << std::endl;
+                std::cerr << "MONOMISS count=" << count << " retrieve=" << (fo != nullptr)
+                          << " kept=" << fRFKeptWriters.count(sig)
+                          << " sacr=" << fRFSacrificedWriters.count(sig) << " " << ppsig(sig, 2)
+                          << std::endl;
             }
         } else if (getenv("FAUST_SS_MONODEBUG")) {
-            std::cerr << "MONOMISS count=" << count << " isproj=" << isProj(sig, &i, x)
-                      << " " << ppsig(sig, 2) << std::endl;
+            std::cerr << "MONOMISS count=" << count << " isproj=" << isProj(sig, &i, x) << " "
+                      << ppsig(sig, 2) << std::endl;
         }
         return DelayType::kSingleDelay;
     }

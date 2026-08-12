@@ -57,6 +57,14 @@ class ScalarCompiler : public Compiler {
     static std::map<std::string, int>  fIDCounters;
     Tree                               fSharingKey;
     std::vector<std::string> fSingleDelayScalarCandidates;  // [2]-vectors, schedule-verified demotion
+    // A-priori mono election, stage 3 (readers first). The soft-edge block
+    // records its promise per writer x of a delayed read : kept = every edge
+    // x -> reader was added ; sacrificed = at least one was dropped to break
+    // a preference cycle. The schedule positions are the FACT the election
+    // asserts against (promise to elect, fact to witness).
+    std::set<Tree>                 fRFKeptWriters;
+    std::set<Tree>                 fRFSacrificedWriters;
+    std::unordered_map<Tree, int>  fSchedPos;
     OccMarkup*                         fOccMarkup;
     int                                fMaxIota;
     std::map<std::string, std::string> fIotaCache;
