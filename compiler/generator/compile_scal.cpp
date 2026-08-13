@@ -2241,6 +2241,27 @@ class LoopSplitEmitter {
             }
             return order;
         }
+        if (gGlobal->gLSSched == 4 || gGlobal->gLSSched == 5) {
+            // cs2/cs2b: the compositional scheduler at the op grain
+            // (Schedule.hh csschedule2) -- dominator blocks, Pareto beam,
+            // (R,U) grid combination. Same contract as model: deps are the
+            // only constraints. cs2b = breadth-first spine.
+            digraph<int> G;
+            for (int k = lo; k < hi; k++) {
+                G.add(k);
+                for (int d : fOps[k].deps) {
+                    if (d >= lo && d < hi) {
+                        G.add(k, d, 0);
+                    }
+                }
+            }
+            schedule<int> S = csschedule2(G, gGlobal->gLSRegisters, gGlobal->gLSWidth, 4,
+                                          nullptr, 1000000, nullptr, gGlobal->gLSSched == 5);
+            for (int k : S.elements()) {
+                order.push_back(k);
+            }
+            return order;
+        }
         // dependency levels restricted to the span
         std::vector<int> level(n, 0);
         for (int k = lo; k < hi; k++) {
