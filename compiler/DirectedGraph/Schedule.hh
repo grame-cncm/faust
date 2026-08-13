@@ -959,13 +959,14 @@ inline schedule<N> csschedule(const digraph<N>& G, unsigned int R, unsigned int 
  * of open traces, cycle-wide DP combination under (R,U), ASAP closure as
  * the only R certificate.
  *
- * Diversity (spec par.9), second cut: each combination returns up to
- * three structurally distinct candidates -- the DP optimum with cost
- * (cycles, peak), the DP optimum with cost (peak, cycles), and the plain
- * concatenation -- and every dominator node folds its children in two
+ * Diversity (spec par.6 and par.9), third cut: the prefix-grid DP keeps
+ * a PARETO BEAM of up to K (cycles, peak) entries per state -- the
+ * spec's "K best paths", subsuming the two cost orders of the second
+ * cut in a single run -- the plain concatenation joins as a structural
+ * alternative, and every dominator node folds its children in two
  * orders (operand-first, then largest-frontier-first) when they differ.
  * Frontiers keep the K best distinct traces. Still deviating from the
- * full spec: no per-grid-state beam, no interface-signature diversity;
+ * full spec: no interface-signature diversity;
  * the R filter inside folds is a PRUNE (open inputs are not placed yet,
  * mid-fold peaks under-estimate) and CloseReplay alone certifies
  * peak <= R. A pair over the cell budget degrades to concatenation.
@@ -1082,10 +1083,13 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
 
     const long CELLBUDGET = 4000000;
 
-    // ---- one DP run over the prefix grid (spec par.6); pkFirst flips the
-    // lexicographic cost. Returns false if no path (filterR pruned all).
-    auto dpOnce = [&](const Trace& A, const Trace& B, bool filterR, bool pkFirst,
-                      Cand& out) -> bool {
+    // ---- the cycle-wide DP on the prefix grid, with a PARETO BEAM of up
+    // to K (cycles, peak) entries per state -- the spec's "K best paths"
+    // (par.6). All insertions into a state happen before it is processed
+    // (transitions strictly increase (i,j)), so each beam is finalized
+    // exactly once and entry indices stay stable for the backtracks.
+    auto dpBeam = [&](const Trace& A, const Trace& B, bool filterR,
+                      std::vector<Cand>& outv) -> bool {
         const int        m = int(A.size()), n = int(B.size());
         std::vector<int> inA(V, -1), inB(V, -1);
         for (int i = 0; i < m; i++) {
@@ -1103,13 +1107,6 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
             }
             return true;  // open input: owned above, no obligation here
         };
-        const int          W  = n + 1;
-        const int          NS = (m + 1) * W;
-        std::vector<int>   cyc(NS, 1 << 28), pk(NS, 1 << 28), lv(NS, -1);
-        std::vector<short> act(NS, -1);
-        cyc[0] = 0;
-        pk[0]  = 0;
-        lv[0]  = 0;
         auto deathsAt = [&](int o, int i, int j) {
             int dth = 0;
             for (int d : ops[o]) {
@@ -1133,8 +1130,6 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
                 return da != db ? da < db : a < b;
             });
         };
-        // evaluate batch (x from A, y from B) at state (i,j): returns max
-        // live during the batch, or -1 if not ready; net = live delta
         auto evalBatch = [&](int i, int j, int x, int y, int liveIn, int& net) {
             std::vector<int> batch;
             for (int k = 0; k < x; k++) {
@@ -1182,16 +1177,35 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
             net = live - liveIn;
             return mx;
         };
-        auto better = [&](int ncy, int npk, int ocy, int opk) {
-            if (pkFirst) {
-                return npk != opk ? npk < opk : ncy < ocy;
-            }
-            return ncy != ocy ? ncy < ocy : npk < opk;
+        struct Ent {
+            int   cyc, pk, par, pei;
+            short act;
         };
+        const int      W  = n + 1;
+        const int      NS = (m + 1) * W;
+        const unsigned BW = std::max(1u, K);  // beam width
+        std::vector<std::vector<Ent>> beam(NS), pend(NS);
+        std::vector<int>              lv(NS, -1);
+        pend[0].push_back({0, 0, -1, -1, short(-1)});
+        lv[0] = 0;
         for (int i = 0; i <= m; i++) {
             for (int j = 0; j <= n; j++) {
                 int s = i * W + j;
-                if (cyc[s] >= (1 << 28)) {
+                if (!pend[s].empty()) {
+                    std::sort(pend[s].begin(), pend[s].end(), [](const Ent& a, const Ent& b) {
+                        return a.cyc != b.cyc ? a.cyc < b.cyc : a.pk < b.pk;
+                    });
+                    int minPk = 1 << 30;
+                    for (Ent& e : pend[s]) {
+                        if (e.pk < minPk && beam[s].size() < BW) {
+                            beam[s].push_back(e);  // Pareto front, capped
+                            minPk = e.pk;
+                        }
+                    }
+                    pend[s].clear();
+                    pend[s].shrink_to_fit();
+                }
+                if (beam[s].empty()) {
                     continue;
                 }
                 for (int x = 0; x <= std::min<int>(U, m - i); x++) {
@@ -1204,53 +1218,52 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
                         if (filterR && mx > int(R)) {
                             continue;
                         }
-                        int t   = (i + x) * W + (j + y);
-                        int ncy = cyc[s] + 1;
-                        int npk = std::max(pk[s], mx);
-                        if (better(ncy, npk, cyc[t], pk[t])) {
-                            cyc[t] = ncy;
-                            pk[t]  = npk;
-                            lv[t]  = lv[s] + net;
-                            act[t] = short(x * (U + 1) + y);
+                        int t = (i + x) * W + (j + y);
+                        if (lv[t] < 0) {
+                            lv[t] = lv[s] + net;  // set-determined
+                        }
+                        for (size_t ei = 0; ei < beam[s].size(); ei++) {
+                            const Ent& e = beam[s][ei];
+                            pend[t].push_back({e.cyc + 1, std::max(e.pk, mx), s, int(ei),
+                                               short(x * (U + 1) + y)});
                         }
                     }
                 }
             }
         }
         int fs = m * W + n;
-        if (cyc[fs] >= (1 << 28)) {
+        if (beam[fs].empty()) {
             return false;
         }
-        // reconstruct: walk actions backward, replay each batch order
-        out.trace.clear();
-        std::vector<std::pair<int, int>> steps;
-        int                              ci = m, cj = n;
-        while (ci != 0 || cj != 0) {
-            int a = act[ci * W + cj];
-            int x = a / (U + 1), y = a % (U + 1);
-            steps.push_back({x, y});
-            ci -= x;
-            cj -= y;
+        for (const Ent& fe : beam[fs]) {
+            std::vector<std::pair<int, int>> steps;
+            const Ent*                       e = &fe;
+            while (e->par >= 0) {
+                steps.push_back({e->act / (U + 1), e->act % (U + 1)});
+                e = &beam[e->par][e->pei];
+            }
+            std::reverse(steps.begin(), steps.end());
+            Cand c;
+            int  i = 0, j = 0;
+            for (auto& st : steps) {
+                std::vector<int> batch;
+                for (int k = 0; k < st.first; k++) {
+                    batch.push_back(A[i + k]);
+                }
+                for (int k = 0; k < st.second; k++) {
+                    batch.push_back(B[j + k]);
+                }
+                orderBatch(batch, i, j);
+                for (int o : batch) {
+                    c.trace.push_back(o);
+                }
+                i += st.first;
+                j += st.second;
+            }
+            c.cyc  = fe.cyc;
+            c.peak = fe.pk;
+            outv.push_back(std::move(c));
         }
-        std::reverse(steps.begin(), steps.end());
-        int i = 0, j = 0;
-        for (auto& st : steps) {
-            std::vector<int> batch;
-            for (int k = 0; k < st.first; k++) {
-                batch.push_back(A[i + k]);
-            }
-            for (int k = 0; k < st.second; k++) {
-                batch.push_back(B[j + k]);
-            }
-            orderBatch(batch, i, j);
-            for (int o : batch) {
-                out.trace.push_back(o);
-            }
-            i += st.first;
-            j += st.second;
-        }
-        out.cyc  = cyc[fs];
-        out.peak = pk[fs];
         return true;
     };
 
@@ -1293,18 +1306,8 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
             return deg;
         }
         std::vector<Cand> out;
-        Cand              a, b;
-        if (dpOnce(A, B, true, false, a)) {
-            out.push_back(std::move(a));
-        }
-        if (dpOnce(A, B, true, true, b)) {
-            out.push_back(std::move(b));
-        }
-        if (out.empty()) {
-            Cand u;  // no R-feasible path: unfiltered grid
-            if (dpOnce(A, B, false, false, u)) {
-                out.push_back(std::move(u));
-            }
+        if (!dpBeam(A, B, true, out)) {
+            dpBeam(A, B, false, out);  // no R-feasible path: unfiltered grid
         }
         concatCand(A, B, out);
         return out;
@@ -1354,19 +1357,32 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
         const std::vector<int>& kids = children[d];
         std::vector<Cand>       F    = foldOrder(kids);
         if (kids.size() > 2) {
-            std::vector<int> alt = kids;  // largest child frontier first
-            std::stable_sort(alt.begin(), alt.end(), [&](int a, int b) {
-                size_t sa = frontier[a].empty() ? 0 : frontier[a][0].trace.size();
-                size_t sb = frontier[b].empty() ? 0 : frontier[b][0].trace.size();
-                return sa > sb;
-            });
-            if (alt != kids) {
-                std::vector<Cand> F2 = foldOrder(alt);
-                for (Cand& c : F2) {
-                    F.push_back(std::move(c));
-                }
-                dedupTrim(F);
+            auto childSize = [&](int a) {
+                return frontier[a].empty() ? size_t(0) : frontier[a][0].trace.size();
+            };
+            std::vector<std::vector<int>> alts;
+            {
+                std::vector<int> byBig = kids;  // largest child frontier first
+                std::stable_sort(byBig.begin(), byBig.end(),
+                                 [&](int a, int b) { return childSize(a) > childSize(b); });
+                alts.push_back(std::move(byBig));
+                std::vector<int> bySmall = kids;  // smallest first
+                std::stable_sort(bySmall.begin(), bySmall.end(),
+                                 [&](int a, int b) { return childSize(a) < childSize(b); });
+                alts.push_back(std::move(bySmall));
+                std::vector<int> rev = kids;  // reversed operand order
+                std::reverse(rev.begin(), rev.end());
+                alts.push_back(std::move(rev));
             }
+            for (auto& alt : alts) {
+                if (alt != kids) {
+                    std::vector<Cand> F2 = foldOrder(alt);
+                    for (Cand& c : F2) {
+                        F.push_back(std::move(c));
+                    }
+                }
+            }
+            dedupTrim(F);
         }
         return F;
     };
@@ -1380,6 +1396,25 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
         frontier[i] = std::move(F);
     }
     std::vector<Cand> C = foldNode(V);
+
+    // ---- ensemble seeding: the existing family's traces join the
+    // candidates before closure, so csschedule2 never returns worse than
+    // the best of the portfolio on any instance
+    {
+        Cand cdf;  // dfschedule = the identity over `order`
+        for (int i = 0; i < V; i++) {
+            cdf.trace.push_back(i);
+        }
+        scoreTrace(cdf);
+        C.push_back(std::move(cdf));
+        const schedule<N> lab = csschedule(G, R, U);
+        Cand              clab;
+        for (const N& n2 : lab.elements()) {
+            clab.trace.push_back(pos[n2]);
+        }
+        scoreTrace(clab);
+        C.push_back(std::move(clab));
+    }
 
     // ---- closure: ASAP cycles under U, global liveness, hard R (par.6-7)
     auto closeReplay = [&](const Trace& T, int& cycOut, int& pkOut) {
