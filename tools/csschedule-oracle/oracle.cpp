@@ -301,41 +301,47 @@ int main()
                              bank(4, 3),  bank(3, 4),   bank(5, 2), randomDag(12, 1),
                              randomDag(12, 2), randomDag(14, 3), randomDag(14, 4),
                              randomDag(16, 5), randomDag(16, 6)};
-    printf("%-12s %3s %2s | %6s | %-13s | %-13s\n", "dag", "n", "R", "oracle",
-           "df (cyc,pk)", "cs (cyc,pk)");
-    int dfOpt = 0, csOpt = 0, total = 0, dfPkOk = 0, csPkOk = 0;
+    printf("%-12s %3s %2s | %6s | %-12s | %-12s | %-12s | %-12s\n", "dag", "n", "R",
+           "oracle", "df", "cs", "cs2 K=1", "cs2 K=4");
+    int total = 0;
+    int opt_[4] = {0, 0, 0, 0}, ok_[4] = {0, 0, 0, 0};
     for (auto& d : dags) {
         G g = d.graph();
         for (int R : {4, 6, 8}) {
             int opt = oracle(d, R, U);
-            const schedule<int> dfs = dfschedule(g);
-            const schedule<int> css = csschedule(g, (unsigned)R, (unsigned)U);
-            Replay rdf = replay(d, dfs.elements(), R, U);
-            Replay rcs = replay(d, css.elements(), R, U);
-            printf("%-12s %3d %2d | %6s | %3d,%2d %-5s | %3d,%2d %-5s\n",
-                   d.name.c_str(), d.n, R,
-                   opt < 0 ? "infeas" : std::to_string(opt).c_str(), rdf.cycles,
-                   rdf.peak, rdf.underR ? "" : "OVER", rcs.cycles, rcs.peak,
-                   rcs.underR ? "" : "OVER");
+            const schedule<int> dfs  = dfschedule(g);
+            const schedule<int> css  = csschedule(g, (unsigned)R, (unsigned)U);
+            const schedule<int> cs21 = csschedule2(g, (unsigned)R, (unsigned)U, 1);
+            const schedule<int> cs24 = csschedule2(g, (unsigned)R, (unsigned)U, 4);
+            Replay r[4] = {replay(d, dfs.elements(), R, U),
+                           replay(d, css.elements(), R, U),
+                           replay(d, cs21.elements(), R, U),
+                           replay(d, cs24.elements(), R, U)};
+            printf("%-12s %3d %2d | %6s |", d.name.c_str(), d.n, R,
+                   opt < 0 ? "infeas" : std::to_string(opt).c_str());
+            for (int k = 0; k < 4; k++) {
+                printf(" %3d,%2d %-4s |", r[k].cycles, r[k].peak,
+                       r[k].underR ? "" : "OVER");
+            }
+            printf("\n");
             if (opt >= 0) {
                 total++;
-                if (rdf.underR && rdf.cycles == opt) {
-                    dfOpt++;
-                }
-                if (rcs.underR && rcs.cycles == opt) {
-                    csOpt++;
-                }
-                if (rdf.underR) {
-                    dfPkOk++;
-                }
-                if (rcs.underR) {
-                    csPkOk++;
+                for (int k = 0; k < 4; k++) {
+                    if (r[k].underR) {
+                        ok_[k]++;
+                        if (r[k].cycles == opt) {
+                            opt_[k]++;
+                        }
+                    }
                 }
             }
         }
     }
-    printf("\nfaisables: %d | df: optimal %d/%d, sous R %d/%d | "
-           "csschedule: optimal %d/%d, sous R %d/%d\n",
-           total, dfOpt, total, dfPkOk, total, csOpt, total, csPkOk, total);
+    const char* names[4] = {"df", "cs", "cs2K1", "cs2K4"};
+    printf("\nfaisables: %d\n", total);
+    for (int k = 0; k < 4; k++) {
+        printf("  %-6s : optimal %2d/%d, sous R %2d/%d\n", names[k], opt_[k], total,
+               ok_[k], total);
+    }
     return 0;
 }
