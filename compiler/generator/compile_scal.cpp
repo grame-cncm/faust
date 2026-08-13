@@ -1636,6 +1636,8 @@ class LoopSplitEmitter {
         bool isStore = false;
         bool isCall  = false;
         bool isInt   = false;
+        int  shape   = 0;  // shadow-side shape tag (emitted ops use their
+                           // digit-erased code string instead; see emitLoop)
     };
     std::vector<LSOp>   fOps;
     std::map<Tree, int, treeorder> fOpOf;      // sample-rate op tree -> index in fOps
@@ -2515,6 +2517,7 @@ class LoopSplitEmitter {
             int id = -1;
             for (int w = 0; w < loadW; w++) {
                 LSOp o;
+                o.shape = 11;
                 if (id >= 0) {
                     o.deps.push_back(id);  // heavier loads: a chain of slots
                 } else {
@@ -2551,7 +2554,7 @@ class LoopSplitEmitter {
             int64_t i64;
             double  r;
             Tree    x, y, z, sel, ff, largs, tb, size, gen, wi, ws, ri, label;
-            auto op = [&](std::vector<int> deps, bool call) -> int {
+            auto op = [&](std::vector<int> deps, bool call, int shp = 0) -> int {
                 LSOp o;
                 for (int d : deps) {
                     if (d >= 0) {
@@ -2559,10 +2562,20 @@ class LoopSplitEmitter {
                     }
                 }
                 o.isCall = call;
+                o.shape  = shp;
                 sops.push_back(o);
                 int id = (int)sops.size() - 1;
                 memo[t] = id;
                 return id;
+            };
+            // shape tag of an external name (userdata, foreign functions):
+            // stable small hash, offset out of the fixed tags' range
+            auto nameShape = [](const std::string& nm) -> int {
+                int h = 0;
+                for (char c : nm) {
+                    h = (h * 31 + (unsigned char)c) % 700;
+                }
+                return 200 + h;
             };
             // constants and slow leaves are LIVE VALUES: materialized once
             // (one shadow op, no deps, memoized per distinct tree across the
@@ -2574,16 +2587,16 @@ class LoopSplitEmitter {
             // oracle can see. (Inputs stay free: per-iteration loads, not
             // resident values -- a separate refinement.)
             if (SuperNodeGraph::isNum(t)) {
-                return constantsLive ? op({}, false) : -1;
+                return constantsLive ? op({}, false, 10) : -1;
             }
             if (isSigInput(t, &i)) {
                 return -1;
             }
             if (isSigAttach(t, x, y) && !SuperNodeGraph::isSlow(y)) {
-                return op({sw(x, false), sw(y, false)}, false);
+                return op({sw(x, false), sw(y, false)}, false, 1);
             }
             if (SuperNodeGraph::isSlow(t)) {
-                return constantsLive ? op({}, false) : -1;
+                return constantsLive ? op({}, false, 10) : -1;
             }
             if (isSigDelay(t, x, y)) {
                 int  dmin, dmax;
@@ -2603,34 +2616,34 @@ class LoopSplitEmitter {
             }
             if (isSigBinOp(t, &i, x, y)) {
                 bool call = (i == kRem) && (getCertifiedSigType(t)->nature() == kReal);
-                return op({sw(x, false), sw(y, false)}, call);
+                return op({sw(x, false), sw(y, false)}, call, 100 + i);
             }
             if (getUserData(t)) {
                 std::vector<int> deps;
                 for (int k = 0; k < t->arity(); k++) {
                     deps.push_back(sw(t->branch(k), false));
                 }
-                return op(deps,
-                          SuperNodeGraph::isCallPrim(((xtended*)getUserData(t))->name()));
+                const std::string nm = ((xtended*)getUserData(t))->name();
+                return op(deps, SuperNodeGraph::isCallPrim(nm), nameShape(nm));
             }
             if (isSigFFun(t, ff, largs)) {
                 std::vector<int> deps;
                 for (int k = 0; k < ffarity(ff); k++) {
                     deps.push_back(sw(nth(largs, k), false));
                 }
-                return op(deps, true);
+                return op(deps, true, nameShape(ffname(ff)));
             }
             if (isSigSelect2(t, sel, x, y)) {
-                return op({sw(sel, false), sw(x, false), sw(y, false)}, false);
+                return op({sw(sel, false), sw(x, false), sw(y, false)}, false, 2);
             }
             if (isSigIntCast(t, x) || isSigBitCast(t, x) || isSigFloatCast(t, x)) {
-                return op({sw(x, false)}, false);
+                return op({sw(x, false)}, false, 3);
             }
             if (isSigRDTbl(t, tb, ri) && isSigWRTbl(tb, size, gen)) {
-                return op({sw(ri, false)}, false);
+                return op({sw(ri, false)}, false, 4);
             }
             if (isSigVBargraph(t, label, x, y, z) || isSigHBargraph(t, label, x, y, z)) {
-                return op({sw(z, false)}, false);
+                return op({sw(z, false)}, false, 5);
             }
             if (isSigAssertBounds(t, x, y, z)) {
                 return sw(z, false);
@@ -2642,7 +2655,7 @@ class LoopSplitEmitter {
                         deps.push_back(sw(b, false));
                     }
                 }
-                return op(deps, false);
+                return op(deps, false, 6);
             }
             if (tvec V; isSigFIR(t, V)) {
                 // one buffer load per non-zero tap feeding one op (the
@@ -2653,6 +2666,7 @@ class LoopSplitEmitter {
                         int id = -1;
                         for (int w = 0; w < loadW; w++) {
                             LSOp lo;
+                            lo.shape = 11;
                             if (id >= 0) {
                                 lo.deps.push_back(id);
                             }
@@ -2662,7 +2676,7 @@ class LoopSplitEmitter {
                         deps.push_back(id);
                     }
                 }
-                return op(deps, false);
+                return op(deps, false, 7);
             }
             if (tvec V; isSigIIR(t, V)) {
                 std::vector<int> deps{sw(V[1], false)};
@@ -2670,6 +2684,7 @@ class LoopSplitEmitter {
                     int id = -1;
                     for (int w = 0; w < loadW; w++) {
                         LSOp lo;
+                        lo.shape = 11;
                         if (id >= 0) {
                             lo.deps.push_back(id);
                         }
@@ -2678,9 +2693,9 @@ class LoopSplitEmitter {
                     }
                     deps.push_back(id);
                 }
-                return op(deps, false);
+                return op(deps, false, 8);
             }
-            return op({}, false);  // unknown: one slot, no deps
+            return op({}, false, 9);  // unknown: one slot, no deps
         };
 
         for (int m : members) {
@@ -2692,6 +2707,7 @@ class LoopSplitEmitter {
                 store.deps.push_back(r);
             }
             store.isStore = true;
+            store.shape   = 12;
             sops.push_back(store);
         }
         int  cycles = 0;
@@ -2730,7 +2746,8 @@ class LoopSplitEmitter {
      * portfolio's notes comparable by construction.
      */
     static void replayOrderScore(const std::vector<LSOp>& ops, const std::vector<int>& order,
-                                 int R, int U, int* cyclesOut, long* overROut)
+                                 int R, int U, int* cyclesOut, long* overROut,
+                                 int* peakOut = nullptr)
     {
         int              n = (int)ops.size();
         std::vector<int> consumers(n, 0);
@@ -2741,10 +2758,11 @@ class LoopSplitEmitter {
         }
         std::vector<int> remaining = consumers;
         std::vector<int> cyc(n, -1);
-        int              cur = 0, slots = 0, live = 0;
+        int              cur = 0, slots = 0, live = 0, peak = 0;
         long             overR  = 0;
         auto             closeCycle = [&] {
             overR += std::max(0, live - R);
+            peak = std::max(peak, live);
             cur++;
             slots = 0;
         };
@@ -2775,6 +2793,58 @@ class LoopSplitEmitter {
         }
         if (overROut) {
             *overROut = overR;
+        }
+        if (peakOut) {
+            *peakOut = peak;
+        }
+    }
+
+    /**
+     * Order-sensitive SLP-visible features of a shadow order (RUM stage B
+     * candidates): iso-adjacency and 4-packs mirror emitLoop's computation
+     * with the shadow shape tag standing in for the digit-erased code
+     * string ; dist is the mean order-distance from a value to its
+     * consumers (x1000), the locality clang's window actually sees.
+     */
+    static void orderFeatures(const std::vector<LSOp>& ops, const std::vector<int>& order,
+                              int* isoOut, int* packs4Out, long* distX1000Out)
+    {
+        int              isoadj = 0, packs4 = 0, runlen = 0, prevIx = -1;
+        int              prevSh = -1;
+        std::vector<int> pos(ops.size(), 0);
+        for (size_t p = 0; p < order.size(); p++) {
+            pos[order[p]] = (int)p;
+        }
+        long distSum = 0, distCnt = 0;
+        for (int k : order) {
+            bool dep = false;
+            for (int d : ops[k].deps) {
+                if (d == prevIx) {
+                    dep = true;
+                }
+                distSum += pos[k] - pos[d];
+                distCnt++;
+            }
+            int sh = ops[k].shape;
+            if (prevIx >= 0 && sh == prevSh && !dep) {
+                isoadj++;
+                runlen++;
+            } else {
+                packs4 += (runlen + 1) / 4;
+                runlen = 0;
+            }
+            prevSh = sh;
+            prevIx = k;
+        }
+        packs4 += (runlen + 1) / 4;
+        if (isoOut) {
+            *isoOut = isoadj;
+        }
+        if (packs4Out) {
+            *packs4Out = packs4;
+        }
+        if (distX1000Out) {
+            *distX1000Out = distCnt ? (distSum * 1000) / distCnt : 0;
         }
     }
 };
@@ -3105,14 +3175,21 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             std::vector<LSOp> sops;
             blockCostShadow(fSN.blockMembers(b), nullptr, nullptr, true, -1, nullptr, &sops);
             int  n = (int)sops.size();
-            int  cy;
-            long ov;
-            auto note = [&](const std::vector<int>& ord) -> long {
-                replayOrderScore(sops, ord, R, U, &cy, &ov);
+            int  cy, pk, iso, p4;
+            long ov, dist;
+            // the full feature vector of one order (RUM stage-B bench) :
+            // machine axes (cycles, overR, peak) and SLP-visible axes
+            // (iso-adjacency, 4-packs, mean operand distance)
+            auto features = [&](const char* sig, const std::vector<int>& ord) -> long {
+                replayOrderScore(sops, ord, R, U, &cy, &ov, &pk);
+                orderFeatures(sops, ord, &iso, &p4, &dist);
+                std::cerr << "NOTE0F b=" << b << " n=" << n << " sig=" << sig << " cy=" << cy
+                          << " ov=" << ov << " pk=" << pk << " iso=" << iso << " p4=" << p4
+                          << " dist=" << dist << std::endl;
                 return (long)gGlobal->gVecSize * (cy + SPILLW * ov) + CL;
             };
             std::vector<int> om = modelSchedule(sops, 0, n, R, U, nullptr, nullptr);
-            long             nm = note(om);
+            long             nm = features("model", om);
             long             nc = nm, nb = nm;
             if (n > 2) {
                 digraph<int> G;
@@ -3130,8 +3207,11 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                     }
                     return v;
                 };
-                nc = note(toOrd(csschedule2(G, R, U, 4u, nullptr, 500000, nullptr, false)));
-                nb = note(toOrd(csschedule2(G, R, U, 4u, nullptr, 500000, nullptr, true)));
+                nc = features("cs2", toOrd(csschedule2(G, R, U, 4u, nullptr, 500000, nullptr, false)));
+                nb = features("cs2b", toOrd(csschedule2(G, R, U, 4u, nullptr, 500000, nullptr, true)));
+            } else {
+                features("cs2", om);
+                features("cs2b", om);
             }
             Nm += nm;
             Nc += nc;
