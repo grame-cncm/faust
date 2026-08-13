@@ -2494,7 +2494,8 @@ class LoopSplitEmitter {
      */
     long blockCostShadow(const std::vector<int>& members, long* overROut = nullptr,
                          int* peakOut = nullptr, bool constantsLive = true,
-                         int loadWOverride = -1, bool* hasCallOut = nullptr)
+                         int loadWOverride = -1, bool* hasCallOut = nullptr,
+                         std::vector<LSOp>* sopsOut = nullptr)
     {
         const long CL = gGlobal->gLSCl, SPILLW = gGlobal->gLSSpillW;
         const std::vector<Tree>& mat = fSN.materialized();
@@ -2713,7 +2714,68 @@ class LoopSplitEmitter {
         if (peakOut) {
             *peakOut = peak;
         }
+        if (sopsOut) {
+            *sopsOut = std::move(sops);
+        }
         return (long)gGlobal->gVecSize * (cycles + SPILLW * overR) + CL;
+    }
+
+    /**
+     * Normative scorer (CSFUSE par.4.1): replay ANY topological order of a
+     * shadow on the (R, U) machine -- latency 1, U slots per cycle, empty
+     * cycles impossible (latency 1 bounds a stall to the next cycle) --
+     * with the liveness SAMPLED AT THE END OF EACH CYCLE, births counted
+     * and deaths deducted. modelSchedule samples the same way; scoring
+     * every scheduler's order through this one function is what makes the
+     * portfolio's notes comparable by construction.
+     */
+    static void replayOrderScore(const std::vector<LSOp>& ops, const std::vector<int>& order,
+                                 int R, int U, int* cyclesOut, long* overROut)
+    {
+        int              n = (int)ops.size();
+        std::vector<int> consumers(n, 0);
+        for (int k = 0; k < n; k++) {
+            for (int d : ops[k].deps) {
+                consumers[d]++;
+            }
+        }
+        std::vector<int> remaining = consumers;
+        std::vector<int> cyc(n, -1);
+        int              cur = 0, slots = 0, live = 0;
+        long             overR  = 0;
+        auto             closeCycle = [&] {
+            overR += std::max(0, live - R);
+            cur++;
+            slots = 0;
+        };
+        for (int o : order) {
+            int lo = 0;
+            for (int d : ops[o].deps) {
+                lo = std::max(lo, cyc[d] + 1);
+            }
+            while (cur < lo || slots == U) {
+                closeCycle();
+            }
+            cyc[o] = cur;
+            slots++;
+            for (int d : ops[o].deps) {
+                if (--remaining[d] == 0 && consumers[d] > 0) {
+                    live--;
+                }
+            }
+            if (consumers[o] > 0) {
+                live++;
+            }
+        }
+        if (slots > 0) {
+            closeCycle();  // the final partial cycle is sampled too
+        }
+        if (cyclesOut) {
+            *cyclesOut = cur;
+        }
+        if (overROut) {
+            *overROut = overR;
+        }
     }
 };
 
@@ -3028,6 +3090,55 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             }
         }
         fSN.retopo();
+    }
+    if (gGlobal->gLSFuse && getenv("FAUST_LS_NOTE0")) {
+        // CSFUSE stage 0 (spec faust-migration/CSFUSE.md par.6): the
+        // portfolio note of every FINAL block, decision-free. One shadow
+        // per block, three orders (model / cs2 df-spine / cs2b bf-spine),
+        // ONE normative scorer for all three. The per-program aggregation
+        // N_sigma = sum of n_sigma over blocks and the confrontation with
+        // the stage-1 measured winners happen outside the compiler.
+        const long CL = gGlobal->gLSCl, SPILLW = gGlobal->gLSSpillW;
+        const int  R = gGlobal->gLSRegisters, U = gGlobal->gLSWidth;
+        long       Nm = 0, Nc = 0, Nb = 0;
+        for (int b = 0; b < fSN.blockCount(); b++) {
+            std::vector<LSOp> sops;
+            blockCostShadow(fSN.blockMembers(b), nullptr, nullptr, true, -1, nullptr, &sops);
+            int  n = (int)sops.size();
+            int  cy;
+            long ov;
+            auto note = [&](const std::vector<int>& ord) -> long {
+                replayOrderScore(sops, ord, R, U, &cy, &ov);
+                return (long)gGlobal->gVecSize * (cy + SPILLW * ov) + CL;
+            };
+            std::vector<int> om = modelSchedule(sops, 0, n, R, U, nullptr, nullptr);
+            long             nm = note(om);
+            long             nc = nm, nb = nm;
+            if (n > 2) {
+                digraph<int> G;
+                for (int k = 0; k < n; k++) {
+                    G.add(k);
+                    for (int d : sops[k].deps) {
+                        G.add(k, d, 0);
+                    }
+                }
+                auto toOrd = [&](const schedule<int>& S) {
+                    std::vector<int> v;
+                    v.reserve(n);
+                    for (int o : S.elements()) {
+                        v.push_back(o);
+                    }
+                    return v;
+                };
+                nc = note(toOrd(csschedule2(G, R, U, 4u, nullptr, 500000, nullptr, false)));
+                nb = note(toOrd(csschedule2(G, R, U, 4u, nullptr, 500000, nullptr, true)));
+            }
+            Nm += nm;
+            Nc += nc;
+            Nb += nb;
+        }
+        std::cerr << "NOTE0 blocks=" << fSN.blockCount() << " model=" << Nm << " cs2=" << Nc
+                  << " cs2b=" << Nb << std::endl;
     }
     if (getenv("FAUST_DEBUG_SUPERNODES")) {
         fSN.print(std::cerr);
