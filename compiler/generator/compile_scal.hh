@@ -64,6 +64,11 @@ class ScalarCompiler : public Compiler {
     // asserts against (promise to elect, fact to witness).
     std::set<Tree>                 fRFKeptWriters;
     std::set<Tree>                 fRFSacrificedWriters;
+    // Writers actually elected at stage 3. Their old-value read is FORCED
+    // into a temporary at its scheduled slot (generateDelayAccess) : the
+    // soft edge orders the read NODE before the write, but an inlined read
+    // would be emitted at its consumer's slot, possibly after the write.
+    std::set<Tree>                 fRFStage3Elected;
     std::unordered_map<Tree, int>  fSchedPos;
     OccMarkup*                         fOccMarkup;
     int                                fMaxIota;

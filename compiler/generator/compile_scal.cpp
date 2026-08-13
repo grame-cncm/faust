@@ -5060,8 +5060,12 @@ DelayType ScalarCompiler::analyzeDelayTypeAux(Tree sig)
                 // stage 3 -- cross readers : safe iff the readers-first
                 // promise holds for this writer (every soft edge kept), the
                 // write is unconditional, and the schedule is the witness.
-                // The shared node f is computed once at its scheduled
-                // position ; later uses read its cached OLD value.
+                // The node f is computed once at its scheduled position and
+                // FORCED into a temporary there (generateDelayAccess) : the
+                // soft edge only orders the node, an inlined read would be
+                // emitted at its consumer's slot, possibly after the write
+                // (nylonGuitar under -ss 11 : the noise state read moved
+                // past its own update).
                 if (fRFKeptWriters.count(sig) && !fRFSacrificedWriters.count(sig) &&
                     getConditionCode(sig).empty()) {
                     auto pf = fSchedPos.find(f);
@@ -5070,6 +5074,7 @@ DelayType ScalarCompiler::analyzeDelayTypeAux(Tree sig)
                         // the witness : a kept edge sig -> f is a schedule
                         // constraint ; its violation is a scheduler bug
                         faustassert(pf->second < px->second);
+                        fRFStage3Elected.insert(sig);
                         return DelayType::kMonoDelay;
                     }
                 }
@@ -5660,6 +5665,13 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
             break;
 
         case DelayType::kMonoDelay:
+            if (fRFStage3Elected.count(exp)) {
+                // stage-3 election : this read node is scheduled before the
+                // write, but its consumers need not be. Capture the OLD
+                // value here, at the read's own slot -- returning the bare
+                // name would let a later consumer read the overwritten one.
+                return forceCacheCode(sig, vecname);
+            }
             result = vecname;
             break;
 
