@@ -64,11 +64,15 @@ class ScalarCompiler : public Compiler {
     // asserts against (promise to elect, fact to witness).
     std::set<Tree>                 fRFKeptWriters;
     std::set<Tree>                 fRFSacrificedWriters;
-    // Writers actually elected at stage 3. Their old-value read is FORCED
-    // into a temporary at its scheduled slot (generateDelayAccess) : the
-    // soft edge orders the read NODE before the write, but an inlined read
-    // would be emitted at its consumer's slot, possibly after the write.
+    // Writers actually elected at stage 3. The election is granted ONLY
+    // when the schedule places the LAST consumer of the old-value read
+    // before the write (an inlined read is emitted at its consumer's
+    // slot) ; otherwise the type falls back to kSingleDelay, whose
+    // [2]-vector is order-robust by distinct cells. A forced capture at
+    // the read's slot was tried instead and measurably costs (brassMIDI
+    // +30%, flute +14% : it hoists a live range across the whole body).
     std::set<Tree>                 fRFStage3Elected;
+    std::unordered_map<Tree, int>  fConsumerMaxPos;  // delayed-read node -> last consumer slot
     std::unordered_map<Tree, int>  fSchedPos;
     OccMarkup*                         fOccMarkup;
     int                                fMaxIota;

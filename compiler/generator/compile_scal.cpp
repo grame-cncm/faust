@@ -3898,10 +3898,28 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     }
     // the FACT for the stage-3 mono election : the emitted order is S
     fSchedPos.clear();
+    fConsumerMaxPos.clear();
     {
         int p2 = 0;
         for (const Tree& n2 : S.elements()) {
             fSchedPos[n2] = p2++;
+        }
+        // last consumer slot of every delayed-read node : a consumer's
+        // emission pastes the read's value at the consumer's own slot,
+        // so the read is order-protected iff its LAST consumer precedes
+        // the writer (stage-3 necessity check for the forced temporary)
+        for (const Tree& n2 : G.nodes()) {
+            auto pn = fSchedPos.find(n2);
+            if (pn == fSchedPos.end()) {
+                continue;
+            }
+            for (const auto& d2 : G.destinations(n2)) {
+                Tree xx, yy;
+                if (isSigDelay(d2.first, xx, yy)) {
+                    auto& mx = fConsumerMaxPos[d2.first];
+                    mx       = std::max(mx, pn->second);
+                }
+            }
         }
     }
     if (getenv("FAUST_SS_QUALITY")) {
@@ -5298,8 +5316,21 @@ DelayType ScalarCompiler::analyzeDelayTypeAux(Tree sig)
                         // the witness : a kept edge sig -> f is a schedule
                         // constraint ; its violation is a scheduler bug
                         faustassert(pf->second < px->second);
-                        fRFStage3Elected.insert(sig);
-                        return DelayType::kMonoDelay;
+                        // the election requires the ORDER to protect every
+                        // read site : the last consumer of f must precede
+                        // the write, because an inlined read is emitted at
+                        // its consumer's slot. When a consumer sits after
+                        // the write, we do NOT elect -- the kSingleDelay
+                        // fallback ([2]-vector, rotation) is order-robust
+                        // by distinct cells and costs the same storage as
+                        // mono + a forced capture, without hoisting a live
+                        // range across the body (brassMIDI +30% when the
+                        // capture was forced instead).
+                        auto cm = fConsumerMaxPos.find(f);
+                        if (cm == fConsumerMaxPos.end() || cm->second < px->second) {
+                            fRFStage3Elected.insert(sig);
+                            return DelayType::kMonoDelay;
+                        }
                     }
                 }
             }
@@ -5889,13 +5920,10 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
             break;
 
         case DelayType::kMonoDelay:
-            if (fRFStage3Elected.count(exp)) {
-                // stage-3 election : this read node is scheduled before the
-                // write, but its consumers need not be. Capture the OLD
-                // value here, at the read's own slot -- returning the bare
-                // name would let a later consumer read the overwritten one.
-                return forceCacheCode(sig, vecname);
-            }
+            // stage-3 elections are only granted when the schedule places
+            // every consumer of the old-value read BEFORE the write
+            // (analyzeDelayTypeAux) : the bare name is order-protected,
+            // no capture is ever emitted.
             result = vecname;
             break;
 
