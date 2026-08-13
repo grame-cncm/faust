@@ -295,6 +295,7 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
                                     getenv("FAUST_SS_BANKSTATS") != nullptr);
             }
         case 11:
+        case 12:
             // CSSCHEDULE v3 (spec faust-migration/CSSCHEDULE.md) :
             // dominator blocks, K-wide frontiers, Pareto-beam grid
             // combination under (R,U), ASAP closure as the only R
@@ -302,6 +303,8 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
             // candidate closes under R -- hard R is a certificate, not a
             // validity condition ; feasibility is reported under
             // MONODEBUG. K from FAUST_SS_CS2K (default 4).
+            // 11 = depth-first spine, 12 = breadth-first spine (wide,
+            // parallel -- fdnRev and paradigma clientele).
             {
                 unsigned int k2 = 4;
                 if (const char* e = getenv("FAUST_SS_CS2K")) {
@@ -311,9 +314,9 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
                 if (const char* e = getenv("FAUST_SS_CS2BUDGET")) {
                     b2 = std::max(100000L, std::atol(e));
                 }
-                // FAUST_SS_CS2SPINE=bf : breadth-first spine (wide,
-                // parallel) instead of the default depth-first one
-                bool bfsp = false;
+                // spine from the strategy ; FAUST_SS_CS2SPINE=bf|df is the
+                // forensic override for A/B comparisons
+                bool bfsp = (gGlobal->gSchedulingStrategy == 12);
                 if (const char* e = getenv("FAUST_SS_CS2SPINE")) {
                     bfsp = (std::string(e) == "bf");
                 }

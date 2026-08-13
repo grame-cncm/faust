@@ -49,10 +49,13 @@ CAND = {
     "fibfu": ["-fir", "-iirt", "-lsum", "-ls-fuse", "-ls-sched", "model"],
     "lz":  ["-lazyselect"],
     # cs2 : l'ordonnanceur compositionnel CSSCHEDULE (blocs dominateurs,
-    # faisceau de Pareto, budget 1M). Étage 4 (2026-08-13) : paradigma
-    # 0.58, pluckedString 0.80, nylonGuitar 0.90, réverbes banques 0.98,
-    # pertes <= 3.5% ailleurs. Compile 0.4-10 s : le plus cher du jury.
-    "cs2": ["-ss", "11"],
+    # faisceau de Pareto, budget 1M), en PAIRE d'épines depuis la carte
+    # (R,U) x 2 épines du 2026-08-13 : le défaut (20,4) n'était optimal
+    # nulle part. cs2 = épine df à (32,4) (greyhole 3.53, pluckedString
+    # 6.77) ; cs2b = épine bf à (32,8) (paradigma 2.76 record x0.51,
+    # fdnRev 12.21). Compile 0.4-10 s chacun : les plus chers du jury.
+    "cs2":  ["-ss", "11", "-ls-R", "32", "-ls-U", "4"],
+    "cs2b": ["-ss", "12", "-ls-R", "32", "-ls-U", "8"],
 }
 
 
@@ -94,9 +97,9 @@ def candidates(sig):
         # cs2 sans porte statique (campagne 2026-08-13) : la couche 2
         # arbitre ; une porte informée par les signatures des gagnants
         # pourra venir après la carte
-        return "fusion-sûre", ["fu", order[0], other, "t4fu", "t1fu", "df", "cs2", "fi",
-                               "fib", "fifu", "fibfu"] + lazy
-    return "incertain", ["fu", order[0], order[1], "df", "cs2", "t4", "fi", "fib",
+        return "fusion-sûre", ["fu", order[0], other, "t4fu", "t1fu", "df", "cs2", "cs2b",
+                               "fi", "fib", "fifu", "fibfu"] + lazy
+    return "incertain", ["fu", order[0], order[1], "df", "cs2", "cs2b", "t4", "fi", "fib",
                          "fifu", "fibfu"] + lazy
 
 
