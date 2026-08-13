@@ -294,6 +294,32 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
                                     ocppShapeFunctor(G), bc, sc,
                                     getenv("FAUST_SS_BANKSTATS") != nullptr);
             }
+        case 11:
+            // CSSCHEDULE v3 (spec faust-migration/CSSCHEDULE.md) :
+            // dominator blocks, K-wide frontiers, Pareto-beam grid
+            // combination under (R,U), ASAP closure as the only R
+            // certificate. The best trace is emitted even when no
+            // candidate closes under R -- hard R is a certificate, not a
+            // validity condition ; feasibility is reported under
+            // MONODEBUG. K from FAUST_SS_CS2K (default 4).
+            {
+                unsigned int k2 = 4;
+                if (const char* e = getenv("FAUST_SS_CS2K")) {
+                    k2 = unsigned(std::max(1, std::atoi(e)));
+                }
+                long b2 = 1000000;  // global cell budget (FAUST_SS_CS2BUDGET)
+                if (const char* e = getenv("FAUST_SS_CS2BUDGET")) {
+                    b2 = std::max(100000L, std::atol(e));
+                }
+                bool           feas = true;
+                schedule<Tree> S2 =
+                    csschedule2(G, gGlobal->gLSRegisters, gGlobal->gLSWidth, k2, &feas, b2);
+                if (getenv("FAUST_SS_MONODEBUG")) {
+                    std::cerr << "CS2 feasible-under-R=" << feas
+                              << " R=" << gGlobal->gLSRegisters << std::endl;
+                }
+                return S2;
+            }
         default:
             return rbschedule(G);
     }
@@ -3618,7 +3644,10 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     // are computed and the FACT decides : the preferences are refused
     // whenever their peak exceeds both the budget and the baseline peak
     // by more than the margin. Stage-3 elections stand down with them.
-    if (rfAdded > 0) {
+    if (rfAdded > 0 && gGlobal->gSchedulingStrategy == 0) {
+        // the gauge reschedules from scratch : affordable for the default
+        // df, wasteful for the experimental strategies (ss 11 runs a full
+        // compositional search) -- those run ungated
         int budget = 48, margin = 4;
         if (const char* be = getenv("FAUST_SS_RFPEAK")) {
             budget = std::atoi(be);

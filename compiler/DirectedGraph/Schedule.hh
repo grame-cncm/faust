@@ -973,7 +973,8 @@ inline schedule<N> csschedule(const digraph<N>& G, unsigned int R, unsigned int 
  */
 template <typename N>
 inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int U,
-                               unsigned int K = 4, bool* feasibleOut = nullptr)
+                               unsigned int K = 4, bool* feasibleOut = nullptr,
+                               long cellBudget = 8000000)
 {
     const schedule<N>     topo  = dfschedule(G);
     const std::vector<N>& order = topo.elements();  // operands first
@@ -1081,7 +1082,8 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
         c.peak = mx;
     };
 
-    const long CELLBUDGET = 4000000;
+    const long PAIRCAP    = 4000000;   // per-pair memory guard
+    long       cellsLeft  = cellBudget;  // global work budget (spec par.11)
 
     // ---- the cycle-wide DP on the prefix grid, with a PARETO BEAM of up
     // to K (cycles, peak) entries per state -- the spec's "K best paths"
@@ -1297,17 +1299,22 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
             scoreTrace(c);
             return {c};
         }
-        if (long(A.size() + 1) * long(B.size() + 1) > CELLBUDGET) {
-            std::vector<Cand> deg;
+        const long cost = long(A.size() + 1) * long(B.size() + 1);
+        if (cost > PAIRCAP || cost > cellsLeft) {
+            std::vector<Cand> deg;  // budget exhausted: degrade to concat
             concatCand(A, B, deg);
             if (deg.empty()) {
                 concatCand(B, A, deg);  // acyclicity: one direction is valid
             }
             return deg;
         }
+        cellsLeft -= cost;
         std::vector<Cand> out;
         if (!dpBeam(A, B, true, out)) {
-            dpBeam(A, B, false, out);  // no R-feasible path: unfiltered grid
+            if (cost <= cellsLeft) {
+                cellsLeft -= cost;
+                dpBeam(A, B, false, out);  // no R-feasible path: unfiltered
+            }
         }
         concatCand(A, B, out);
         return out;
@@ -1356,10 +1363,16 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
     auto foldNode = [&](int d) {
         const std::vector<int>& kids = children[d];
         std::vector<Cand>       F    = foldOrder(kids);
-        if (kids.size() > 2) {
-            auto childSize = [&](int a) {
-                return frontier[a].empty() ? size_t(0) : frontier[a][0].trace.size();
-            };
+        auto                    childSize = [&](int a) {
+            return frontier[a].empty() ? size_t(0) : frontier[a][0].trace.size();
+        };
+        size_t total = 0;
+        for (int ch : kids) {
+            total += childSize(ch);
+        }
+        // alternate fold orders only while the fold stays affordable :
+        // beyond the threshold the primary order alone is explored
+        if (kids.size() > 2 && total <= 1200 && cellsLeft > 0) {
             std::vector<std::vector<int>> alts;
             {
                 std::vector<int> byBig = kids;  // largest child frontier first
