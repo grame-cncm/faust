@@ -311,10 +311,16 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
                 if (const char* e = getenv("FAUST_SS_CS2BUDGET")) {
                     b2 = std::max(100000L, std::atol(e));
                 }
+                // FAUST_SS_CS2SPINE=bf : breadth-first spine (wide,
+                // parallel) instead of the default depth-first one
+                bool bfsp = false;
+                if (const char* e = getenv("FAUST_SS_CS2SPINE")) {
+                    bfsp = (std::string(e) == "bf");
+                }
                 bool           feas = true;
                 cs2stats       st;
-                schedule<Tree> S2 =
-                    csschedule2(G, gGlobal->gLSRegisters, gGlobal->gLSWidth, k2, &feas, b2, &st);
+                schedule<Tree> S2   = csschedule2(G, gGlobal->gLSRegisters, gGlobal->gLSWidth,
+                                                  k2, &feas, b2, &st, bfsp);
                 if (getenv("FAUST_SS_MONODEBUG")) {
                     std::cerr << "CS2 feasible-under-R=" << feas
                               << " R=" << gGlobal->gLSRegisters << " pairs=" << st.pairs

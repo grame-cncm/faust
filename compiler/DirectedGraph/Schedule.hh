@@ -983,9 +983,15 @@ struct cs2stats {
 template <typename N>
 inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int U,
                                unsigned int K = 4, bool* feasibleOut = nullptr,
-                               long cellBudget = 8000000, cs2stats* statsOut = nullptr)
+                               long cellBudget = 8000000, cs2stats* statsOut = nullptr,
+                               bool bfSpine = false)
 {
-    const schedule<N>     topo  = dfschedule(G);
+    // The SPINE is the base topological order everything inherits from :
+    // fold orders derive from it, the identity seed IS it, and above all
+    // budget-degraded pairs concatenate segments shaped like it. df spine
+    // (default) leans deep and local ; bf spine leans wide and parallel --
+    // the DP refines either under (R,U) where the budget allows.
+    const schedule<N>     topo  = bfSpine ? bfschedule(G) : dfschedule(G);
     const std::vector<N>& order = topo.elements();  // operands first
     const int             V     = int(order.size());
     digraph<N>            Rg    = reverse(G);
@@ -1428,7 +1434,7 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
     // candidates before closure, so csschedule2 never returns worse than
     // the best of the portfolio on any instance
     {
-        Cand cdf;  // dfschedule = the identity over `order`
+        Cand cdf;  // the spine = the identity over `order`
         for (int i = 0; i < V; i++) {
             cdf.trace.push_back(i);
         }
