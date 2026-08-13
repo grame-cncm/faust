@@ -48,6 +48,11 @@ CAND = {
     "fifu":  ["-fir", "-iirt", "-ls-fuse", "-ls-sched", "model"],
     "fibfu": ["-fir", "-iirt", "-lsum", "-ls-fuse", "-ls-sched", "model"],
     "lz":  ["-lazyselect"],
+    # cs2 : l'ordonnanceur compositionnel CSSCHEDULE (blocs dominateurs,
+    # faisceau de Pareto, budget 1M). Étage 4 (2026-08-13) : paradigma
+    # 0.58, pluckedString 0.80, nylonGuitar 0.90, réverbes banques 0.98,
+    # pertes <= 3.5% ailleurs. Compile 0.4-10 s : le plus cher du jury.
+    "cs2": ["-ss", "11"],
 }
 
 
@@ -86,9 +91,12 @@ def candidates(sig):
         # (spectralTilt 0.52, korg35HPF 0.72), pertes réverb : le flash-
         # bench arbitre. df partout : la ligne de base de la carte.
         other = "al" if locality else "h2"
-        return "fusion-sûre", ["fu", order[0], other, "t4fu", "t1fu", "df", "fi", "fib",
-                               "fifu", "fibfu"] + lazy
-    return "incertain", ["fu", order[0], order[1], "df", "t4", "fi", "fib",
+        # cs2 sans porte statique (campagne 2026-08-13) : la couche 2
+        # arbitre ; une porte informée par les signatures des gagnants
+        # pourra venir après la carte
+        return "fusion-sûre", ["fu", order[0], other, "t4fu", "t1fu", "df", "cs2", "fi",
+                               "fib", "fifu", "fibfu"] + lazy
+    return "incertain", ["fu", order[0], order[1], "df", "cs2", "t4", "fi", "fib",
                          "fifu", "fibfu"] + lazy
 
 
