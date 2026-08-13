@@ -971,10 +971,19 @@ inline schedule<N> csschedule(const digraph<N>& G, unsigned int R, unsigned int 
  * mid-fold peaks under-estimate) and CloseReplay alone certifies
  * peak <= R. A pair over the cell budget degrades to concatenation.
  */
+// work accounting of one csschedule2 run : how many trace pairs were
+// combined, how many degraded to concatenation (budget or pair cap), and
+// how many grid cells were actually charged against the budget
+struct cs2stats {
+    long pairs    = 0;
+    long degraded = 0;
+    long cells    = 0;
+};
+
 template <typename N>
 inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int U,
                                unsigned int K = 4, bool* feasibleOut = nullptr,
-                               long cellBudget = 8000000)
+                               long cellBudget = 8000000, cs2stats* statsOut = nullptr)
 {
     const schedule<N>     topo  = dfschedule(G);
     const std::vector<N>& order = topo.elements();  // operands first
@@ -1084,6 +1093,7 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
 
     const long PAIRCAP    = 4000000;   // per-pair memory guard
     long       cellsLeft  = cellBudget;  // global work budget (spec par.11)
+    cs2stats   stats;                    // work accounting for this run
 
     // ---- the cycle-wide DP on the prefix grid, with a PARETO BEAM of up
     // to K (cycles, peak) entries per state -- the spec's "K best paths"
@@ -1300,7 +1310,9 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
             return {c};
         }
         const long cost = long(A.size() + 1) * long(B.size() + 1);
+        stats.pairs++;
         if (cost > PAIRCAP || cost > cellsLeft) {
+            stats.degraded++;
             std::vector<Cand> deg;  // budget exhausted: degrade to concat
             concatCand(A, B, deg);
             if (deg.empty()) {
@@ -1309,10 +1321,12 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
             return deg;
         }
         cellsLeft -= cost;
+        stats.cells += cost;
         std::vector<Cand> out;
         if (!dpBeam(A, B, true, out)) {
             if (cost <= cellsLeft) {
                 cellsLeft -= cost;
+                stats.cells += cost;
                 dpBeam(A, B, false, out);  // no R-feasible path: unfiltered
             }
         }
@@ -1478,6 +1492,9 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
     }
     if (feasibleOut) {
         *feasibleOut = feasible;
+    }
+    if (statsOut) {
+        *statsOut = stats;
     }
     schedule<N> S;
     if (bestIdx >= 0) {

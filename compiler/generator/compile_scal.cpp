@@ -312,11 +312,14 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
                     b2 = std::max(100000L, std::atol(e));
                 }
                 bool           feas = true;
+                cs2stats       st;
                 schedule<Tree> S2 =
-                    csschedule2(G, gGlobal->gLSRegisters, gGlobal->gLSWidth, k2, &feas, b2);
+                    csschedule2(G, gGlobal->gLSRegisters, gGlobal->gLSWidth, k2, &feas, b2, &st);
                 if (getenv("FAUST_SS_MONODEBUG")) {
                     std::cerr << "CS2 feasible-under-R=" << feas
-                              << " R=" << gGlobal->gLSRegisters << std::endl;
+                              << " R=" << gGlobal->gLSRegisters << " pairs=" << st.pairs
+                              << " degraded=" << st.degraded << " cells=" << st.cells << "/"
+                              << b2 << std::endl;
                 }
                 return S2;
             }
