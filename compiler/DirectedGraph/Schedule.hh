@@ -954,22 +954,21 @@ inline schedule<N> csschedule(const digraph<N>& G, unsigned int R, unsigned int 
 }
 
 /**
- * @brief CSSCHEDULE v2 -- first cut of the compositional scheduler
- * specified in faust-migration/CSSCHEDULE.md. Dominator-tree blocks,
- * K-wide frontiers of open traces, cycle-wide DP combination under
- * (R,U), ASAP closure as the only R certificate.
+ * @brief CSSCHEDULE v2 -- compositional scheduler of the spec in
+ * faust-migration/CSSCHEDULE.md. Dominator-tree blocks, K-wide frontiers
+ * of open traces, cycle-wide DP combination under (R,U), ASAP closure as
+ * the only R certificate.
  *
- * v1 deviations from the spec, documented: one best value per grid
- * state (the beam lives across the (frontier x frontier) pairs, not
- * inside the DP); cost restricted to (cycles, peak) -- area, holes and
- * trace-change tiebreaks TODO; diversity of the frontier is by rank
- * only; a pair whose grid exceeds the cell budget degrades to plain
- * concatenation (always topologically valid between sibling blocks).
- * The R filter inside folds is a PRUNE, not a certificate: liveness of
- * a prefix set is exact (global usage counts) but open inputs are not
- * yet placed, so mid-fold peaks under-estimate; the final CloseReplay
- * alone certifies peak <= R (spec par.5-6). If a fold has no R-feasible
- * path its pair falls back to the unfiltered grid.
+ * Diversity (spec par.9), second cut: each combination returns up to
+ * three structurally distinct candidates -- the DP optimum with cost
+ * (cycles, peak), the DP optimum with cost (peak, cycles), and the plain
+ * concatenation -- and every dominator node folds its children in two
+ * orders (operand-first, then largest-frontier-first) when they differ.
+ * Frontiers keep the K best distinct traces. Still deviating from the
+ * full spec: no per-grid-state beam, no interface-signature diversity;
+ * the R filter inside folds is a PRUNE (open inputs are not placed yet,
+ * mid-fold peaks under-estimate) and CloseReplay alone certifies
+ * peak <= R. A pair over the cell budget degrades to concatenation.
  */
 template <typename N>
 inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int U,
@@ -1037,23 +1036,57 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
         int   cyc = 0, peak = 0;
     };
 
-    // ---- the cycle-wide DP combine of two disjoint traces (spec par.6)
+    // provisional (open) score of a trace: ASAP under U on its internal
+    // deps, liveness with global usage counts (open inputs ignored)
+    auto scoreTrace = [&](Cand& c) {
+        std::vector<int>  cy(V, -1), consumed(V, 0);
+        std::vector<char> inT(V, 0);
+        for (int o : c.trace) {
+            inT[o] = 1;
+        }
+        int cur = 0, slots = 0, live = 0, mx = 0;
+        for (int o : c.trace) {
+            int lo = 0;
+            for (int d : ops[o]) {
+                if (inT[d]) {
+                    if (cy[d] < 0) {  // in-trace dep not yet emitted:
+                        c.cyc  = 1 << 27;  // topology violated, bury it
+                        c.peak = 1 << 27;
+                        return;
+                    }
+                    lo = std::max(lo, cy[d] + 1);
+                }
+            }
+            if (lo > cur) {
+                cur   = lo;
+                slots = 0;
+            } else if (slots == int(U)) {
+                cur++;
+                slots = 0;
+            }
+            cy[o] = cur;
+            slots++;
+            if (usage[o] > 0) {
+                live++;
+            }
+            for (int d : ops[o]) {
+                if (inT[d] && ++consumed[d] == usage[d] && usage[d] > 0) {
+                    live--;
+                }
+            }
+            mx = std::max(mx, live);
+        }
+        c.cyc  = c.trace.empty() ? 0 : cur + 1;
+        c.peak = mx;
+    };
+
     const long CELLBUDGET = 4000000;
-    std::function<Cand(const Trace&, const Trace&, bool)> combine;
-    combine = [&](const Trace& A, const Trace& B, bool filterR) -> Cand {
-        const int m = int(A.size()), n = int(B.size());
-        if (m == 0 || n == 0) {
-            Cand c;
-            c.trace = m ? A : B;
-            // provisional cycles of a lone trace: ASAP within itself
-            return c;
-        }
-        if (long(m + 1) * long(n + 1) > CELLBUDGET) {
-            Cand c;  // degrade: concatenation, still a valid interleave
-            c.trace = A;
-            c.trace.insert(c.trace.end(), B.begin(), B.end());
-            return c;
-        }
+
+    // ---- one DP run over the prefix grid (spec par.6); pkFirst flips the
+    // lexicographic cost. Returns false if no path (filterR pruned all).
+    auto dpOnce = [&](const Trace& A, const Trace& B, bool filterR, bool pkFirst,
+                      Cand& out) -> bool {
+        const int        m = int(A.size()), n = int(B.size());
         std::vector<int> inA(V, -1), inB(V, -1);
         for (int i = 0; i < m; i++) {
             inA[A[i]] = i;
@@ -1070,17 +1103,39 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
             }
             return true;  // open input: owned above, no obligation here
         };
-        const int          W = n + 1;
+        const int          W  = n + 1;
         const int          NS = (m + 1) * W;
-        std::vector<int>   cyc(NS, 1 << 28), pk(NS, 0), lv(NS, -1);
-        std::vector<short> act(NS, -1);  // (x*(U+1)+y) of the arriving batch
-        // live at state 0: nothing placed
+        std::vector<int>   cyc(NS, 1 << 28), pk(NS, 1 << 28), lv(NS, -1);
+        std::vector<short> act(NS, -1);
         cyc[0] = 0;
         pk[0]  = 0;
         lv[0]  = 0;
-        // batch evaluation: returns {maxLive, netDelta} or {-1,..} invalid
+        auto deathsAt = [&](int o, int i, int j) {
+            int dth = 0;
+            for (int d : ops[o]) {
+                int consumedNow = 0;
+                for (int c : cons[d]) {
+                    if ((inA[c] >= 0 && inA[c] < i) || (inB[c] >= 0 && inB[c] < j) ||
+                        c == o) {
+                        consumedNow++;
+                    }
+                }
+                if (consumedNow == usage[d]) {
+                    dth++;
+                }
+            }
+            return dth;
+        };
+        auto orderBatch = [&](std::vector<int>& batch, int i, int j) {
+            std::sort(batch.begin(), batch.end(), [&](int a, int b) {
+                int da = (usage[a] ? 1 : 0) - deathsAt(a, i, j);
+                int db = (usage[b] ? 1 : 0) - deathsAt(b, i, j);
+                return da != db ? da < db : a < b;
+            });
+        };
+        // evaluate batch (x from A, y from B) at state (i,j): returns max
+        // live during the batch, or -1 if not ready; net = live delta
         auto evalBatch = [&](int i, int j, int x, int y, int liveIn, int& net) {
-            // readiness: every batch op's deps inside A|B placed before (i,j)
             std::vector<int> batch;
             for (int k = 0; k < x; k++) {
                 batch.push_back(A[i + k]);
@@ -1095,30 +1150,8 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
                     }
                 }
             }
-            // deaths-first intra order: sort by (birth - deaths) ascending
-            auto deathsOf = [&](int o) {
-                int dth = 0;
-                for (int d : ops[o]) {
-                    int consumedNow = 0;
-                    for (int c : cons[d]) {
-                        if ((inA[c] >= 0 && inA[c] < i) || (inB[c] >= 0 && inB[c] < j) ||
-                            c == o) {
-                            consumedNow++;
-                        }
-                    }
-                    if (consumedNow == usage[d]) {
-                        dth++;
-                    }
-                }
-                return dth;
-            };
-            std::sort(batch.begin(), batch.end(), [&](int a, int b) {
-                int da = (usage[a] ? 1 : 0) - deathsOf(a);
-                int db = (usage[b] ? 1 : 0) - deathsOf(b);
-                return da != db ? da < db : a < b;
-            });
-            // exact simulation in that order (global usage counts)
-            int live = liveIn, mx = liveIn;
+            orderBatch(batch, i, j);
+            int              live = liveIn, mx = liveIn;
             std::vector<int> placedBatch;
             for (int o : batch) {
                 if (usage[o] > 0) {
@@ -1127,8 +1160,8 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
                 for (int d : ops[o]) {
                     int consumed = 0;
                     for (int c : cons[d]) {
-                        bool inPref = (inA[c] >= 0 && inA[c] < i) ||
-                                      (inB[c] >= 0 && inB[c] < j);
+                        bool inPref =
+                            (inA[c] >= 0 && inA[c] < i) || (inB[c] >= 0 && inB[c] < j);
                         bool inBat = false;
                         for (int pb : placedBatch) {
                             if (pb == c) {
@@ -1149,6 +1182,12 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
             net = live - liveIn;
             return mx;
         };
+        auto better = [&](int ncy, int npk, int ocy, int opk) {
+            if (pkFirst) {
+                return npk != opk ? npk < opk : ncy < ocy;
+            }
+            return ncy != ocy ? ncy < ocy : npk < opk;
+        };
         for (int i = 0; i <= m; i++) {
             for (int j = 0; j <= n; j++) {
                 int s = i * W + j;
@@ -1168,7 +1207,7 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
                         int t   = (i + x) * W + (j + y);
                         int ncy = cyc[s] + 1;
                         int npk = std::max(pk[s], mx);
-                        if (ncy < cyc[t] || (ncy == cyc[t] && npk < pk[t])) {
+                        if (better(ncy, npk, cyc[t], pk[t])) {
                             cyc[t] = ncy;
                             pk[t]  = npk;
                             lv[t]  = lv[s] + net;
@@ -1180,18 +1219,12 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
         }
         int fs = m * W + n;
         if (cyc[fs] >= (1 << 28)) {
-            if (filterR) {
-                return combine(A, B, false);  // no R-feasible path: open grid
-            }
-            Cand c;  // should not happen without filter; degrade to concat
-            c.trace = A;
-            c.trace.insert(c.trace.end(), B.begin(), B.end());
-            return c;
+            return false;
         }
-        // reconstruct: walk actions backward, re-evaluate batch order
-        Cand              c;
+        // reconstruct: walk actions backward, replay each batch order
+        out.trace.clear();
         std::vector<std::pair<int, int>> steps;
-        int               ci = m, cj = n;
+        int                              ci = m, cj = n;
         while (ci != 0 || cj != 0) {
             int a = act[ci * W + cj];
             int x = a / (U + 1), y = a % (U + 1);
@@ -1209,61 +1242,131 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
             for (int k = 0; k < st.second; k++) {
                 batch.push_back(B[j + k]);
             }
-            // same intra order as evalBatch (deterministic tie by index)
-            int net = 0;
-            evalBatch(i, j, st.first, st.second, 0, net);  // ordering side effect only
-            // re-sort identically:
-            // (evalBatch sorted a copy; redo the sort here)
-            auto deathsOf = [&](int o) {
-                int dth = 0;
-                for (int d : ops[o]) {
-                    int consumedNow = 0;
-                    for (int cc : cons[d]) {
-                        if ((inA[cc] >= 0 && inA[cc] < i) || (inB[cc] >= 0 && inB[cc] < j) ||
-                            cc == o) {
-                            consumedNow++;
-                        }
-                    }
-                    if (consumedNow == usage[d]) {
-                        dth++;
-                    }
-                }
-                return dth;
-            };
-            std::sort(batch.begin(), batch.end(), [&](int a2, int b2) {
-                int da = (usage[a2] ? 1 : 0) - deathsOf(a2);
-                int db = (usage[b2] ? 1 : 0) - deathsOf(b2);
-                return da != db ? da < db : a2 < b2;
-            });
+            orderBatch(batch, i, j);
             for (int o : batch) {
-                c.trace.push_back(o);
+                out.trace.push_back(o);
             }
             i += st.first;
             j += st.second;
         }
-        c.cyc  = cyc[fs];
-        c.peak = pk[fs];
-        return c;
+        out.cyc  = cyc[fs];
+        out.peak = pk[fs];
+        return true;
     };
 
-    // ---- frontiers along the dominator tree, operands first (spec par.7)
+    // concatenation A-then-B is a candidate only when valid : no op of A
+    // may depend on an op of B (possible under the alternate fold order,
+    // where a block precedes a shared value it reads)
+    auto concatCand = [&](const Trace& A, const Trace& B, std::vector<Cand>& out) {
+        std::vector<char> inB(V, 0);
+        for (int o : B) {
+            inB[o] = 1;
+        }
+        for (int o : A) {
+            for (int d : ops[o]) {
+                if (inB[d]) {
+                    return;  // invalid concatenation, skip
+                }
+            }
+        }
+        Cand c;
+        c.trace = A;
+        c.trace.insert(c.trace.end(), B.begin(), B.end());
+        scoreTrace(c);
+        out.push_back(std::move(c));
+    };
+
+    // ---- combine two disjoint traces: up to three diverse candidates
+    auto combine = [&](const Trace& A, const Trace& B) -> std::vector<Cand> {
+        if (A.empty() || B.empty()) {
+            Cand c;
+            c.trace = A.empty() ? B : A;
+            scoreTrace(c);
+            return {c};
+        }
+        if (long(A.size() + 1) * long(B.size() + 1) > CELLBUDGET) {
+            std::vector<Cand> deg;
+            concatCand(A, B, deg);
+            if (deg.empty()) {
+                concatCand(B, A, deg);  // acyclicity: one direction is valid
+            }
+            return deg;
+        }
+        std::vector<Cand> out;
+        Cand              a, b;
+        if (dpOnce(A, B, true, false, a)) {
+            out.push_back(std::move(a));
+        }
+        if (dpOnce(A, B, true, true, b)) {
+            out.push_back(std::move(b));
+        }
+        if (out.empty()) {
+            Cand u;  // no R-feasible path: unfiltered grid
+            if (dpOnce(A, B, false, false, u)) {
+                out.push_back(std::move(u));
+            }
+        }
+        concatCand(A, B, out);
+        return out;
+    };
+
+    // rank by (cycles, peak), drop duplicate traces, keep K
+    auto dedupTrim = [&](std::vector<Cand>& v) {
+        std::sort(v.begin(), v.end(), [](const Cand& a, const Cand& b) {
+            return a.cyc != b.cyc ? a.cyc < b.cyc : a.peak < b.peak;
+        });
+        std::set<size_t>  seen;
+        std::vector<Cand> out;
+        for (auto& c : v) {
+            size_t h = 1469598103934665603ull;
+            for (int o : c.trace) {
+                h = (h ^ size_t(o)) * 1099511628211ull;
+            }
+            if (seen.insert(h).second) {
+                out.push_back(std::move(c));
+            }
+            if (out.size() >= K) {
+                break;
+            }
+        }
+        v = std::move(out);
+    };
+
+    // ---- frontier fold (spec par.7), two child orders when they differ
     std::vector<std::vector<Cand>> frontier(V + 1);
-    auto foldNode = [&](int d) {
-        std::vector<Cand> F{Cand{}};  // the empty trace
-        for (int ch : children[d]) {
+    auto foldOrder = [&](const std::vector<int>& kids) {
+        std::vector<Cand> F{Cand{}};
+        for (int ch : kids) {
             std::vector<Cand> nf;
             for (const Cand& f : F) {
                 for (const Cand& t : frontier[ch]) {
-                    nf.push_back(combine(f.trace, t.trace, true));
+                    for (Cand& c : combine(f.trace, t.trace)) {
+                        nf.push_back(std::move(c));
+                    }
                 }
             }
-            std::sort(nf.begin(), nf.end(), [](const Cand& a, const Cand& b) {
-                return a.cyc != b.cyc ? a.cyc < b.cyc : a.peak < b.peak;
-            });
-            if (nf.size() > K) {
-                nf.resize(K);
-            }
+            dedupTrim(nf);
             F = std::move(nf);
+        }
+        return F;
+    };
+    auto foldNode = [&](int d) {
+        const std::vector<int>& kids = children[d];
+        std::vector<Cand>       F    = foldOrder(kids);
+        if (kids.size() > 2) {
+            std::vector<int> alt = kids;  // largest child frontier first
+            std::stable_sort(alt.begin(), alt.end(), [&](int a, int b) {
+                size_t sa = frontier[a].empty() ? 0 : frontier[a][0].trace.size();
+                size_t sb = frontier[b].empty() ? 0 : frontier[b][0].trace.size();
+                return sa > sb;
+            });
+            if (alt != kids) {
+                std::vector<Cand> F2 = foldOrder(alt);
+                for (Cand& c : F2) {
+                    F.push_back(std::move(c));
+                }
+                dedupTrim(F);
+            }
         }
         return F;
     };
@@ -1271,7 +1374,9 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
         std::vector<Cand> F = foldNode(i);
         for (Cand& f : F) {
             f.trace.push_back(i);  // "f suivie de d"
+            scoreTrace(f);
         }
+        dedupTrim(F);
         frontier[i] = std::move(F);
     }
     std::vector<Cand> C = foldNode(V);
@@ -1311,7 +1416,7 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
     int  bestIdx = -1, bestCyc = 1 << 28, bestPk = 1 << 28;
     bool feasible = false;
     for (size_t k = 0; k < C.size(); k++) {
-        int cy2 = 0, pk2 = 0;
+        int  cy2 = 0, pk2 = 0;
         bool ok = closeReplay(C[k].trace, cy2, pk2);
         if (ok && (!feasible || cy2 < bestCyc || (cy2 == bestCyc && pk2 < bestPk))) {
             feasible = true;

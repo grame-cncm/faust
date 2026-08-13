@@ -53,10 +53,37 @@ static std::vector<int> usages(const Dag& d)
 // Returns {cycles, peak, feasible under R}.
 struct Replay {
     int  cycles = 0, peak = 0;
-    bool underR = true;
+    bool underR = true, valid = true;  // valid: permutation + topology (spec par.10)
 };
 static Replay replay(const Dag& d, const std::vector<int>& order, int R, int U)
 {
+    // invariants 1-2: permutation of V, producers before consumers
+    {
+        std::vector<int> seen(d.n, 0);
+        for (int o : order) {
+            if (o < 0 || o >= d.n || seen[o]++) {
+                Replay r;
+                r.valid = false;
+                return r;
+            }
+        }
+        if (int(order.size()) != d.n) {
+            Replay r;
+            r.valid = false;
+            return r;
+        }
+        std::vector<int> at(d.n);
+        for (int i = 0; i < d.n; i++) {
+            at[order[i]] = i;
+        }
+        for (auto& e : d.deps) {
+            if (at[e.second] > at[e.first]) {
+                Replay r;
+                r.valid = false;
+                return r;
+            }
+        }
+    }
     std::vector<int>              use = usages(d);
     std::vector<std::vector<int>> ops(d.n);  // operands per consumer
     for (auto& e : d.deps) {
@@ -320,14 +347,18 @@ int main()
             printf("%-12s %3d %2d | %6s |", d.name.c_str(), d.n, R,
                    opt < 0 ? "infeas" : std::to_string(opt).c_str());
             for (int k = 0; k < 4; k++) {
-                printf(" %3d,%2d %-4s |", r[k].cycles, r[k].peak,
-                       r[k].underR ? "" : "OVER");
+                if (!r[k].valid) {
+                    printf(" INVALIDE    |");
+                } else {
+                    printf(" %3d,%2d %-4s |", r[k].cycles, r[k].peak,
+                           r[k].underR ? "" : "OVER");
+                }
             }
             printf("\n");
             if (opt >= 0) {
                 total++;
                 for (int k = 0; k < 4; k++) {
-                    if (r[k].underR) {
+                    if (r[k].valid && r[k].underR) {
                         ok_[k]++;
                         if (r[k].cycles == opt) {
                             opt_[k]++;
