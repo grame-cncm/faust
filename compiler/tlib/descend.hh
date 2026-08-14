@@ -119,8 +119,11 @@
 #ifndef __DESCEND__
 #define __DESCEND__
 
+#include <algorithm>
 #include <functional>
 #include <map>
+#include <set>
+#include <utility>
 #include <vector>
 
 #include "tlib-error.hh"
@@ -208,6 +211,240 @@ std::map<Tree, A, treeorder> descendAttribute(
     // runtime witness of the theorem : if a cycle avoided the doors, some
     // node would keep a positive count and this would fail
     TLIB_ASSERT(processed == pending.size());
+    return attr;
+}
+
+// ---------------------------------------------------------------------------
+// THE UNIFIED ENGINE -- regime C brought in scope (spec DESCEND-REGIME-C).
+//
+// The general model : a finite directed graph -- the branch edges, plus any
+// extra edges the instance declares (the "doors", which are ordinary edges
+// here ; they merely happen to close cycles). Attributes live on nodes ; at
+// every node an equation
+//
+//   a(n) = combine(n, [ values of the incoming edges ] ++ [ seed if root ])
+//
+// where a branch edge (p --i--> n) carries contrib(p, i, a(p)) and a door
+// edge (p --> n) carries doorContrib(p, a(p)). combine receives the LIST of
+// incoming values -- not their join -- which is what admits equations that
+// COUNT their inputs (saturating sums) as well as plain joins.
+//
+// Two conditions buy three theorems. If every equation is MONOTONE in each
+// argument and the attribute domain has FINITE HEIGHT on reachable chains,
+// then the least fixpoint exists (Knaster-Tarski), the fair chaotic
+// iteration below reaches it in at most height x |edges| re-evaluations,
+// and the result is CANONICAL -- independent of the visiting order. Proof
+// of canonicity in three lines : starting from bottom every intermediate
+// state stays <= lfp by monotonicity ; the final state (empty worklist)
+// satisfies every equation, hence is a fixpoint ; a fixpoint reached from
+// below is the least one.
+//
+// The engine is RECOMPUTE-AND-COMPARE : when a node is scheduled, its
+// attribute is recomputed from the current values of its parents and
+// propagated only if it changed. Blind accumulation would double-count a
+// non-idempotent equation ; recomputation never does. (For idempotent
+// joins, accumulation is a legitimate optimization -- not taken here : one
+// engine, one semantics, the optimization can come with a measured need.)
+//
+// The default strategy processes nodes in REVERSE POSTORDER of the extended
+// graph : on an acyclic instance the first sweep reaches the fixpoint and
+// nothing is ever re-scheduled -- the one-pass regimes are the emergent
+// behavior of the default, not a separate mode. The strategy set is CLOSED
+// (all members are fair) : fairness is a correctness condition and stays
+// inside the engine. Its first use is the cross-strategy canonicity test.
+//
+// Determinism of the equation inputs : the incoming list of a node is
+// ordered by (treeorder of the parent, branch index, door flag), and the
+// root seed comes first -- so any combine, commutative or not, sees a
+// reproducible list.
+// ---------------------------------------------------------------------------
+
+enum class DescendStrategy { kReversePostorder, kFifo, kLifo };
+
+template <typename A>
+std::map<Tree, A, treeorder> descendFixpoint(
+    Tree root, const A& bottom, const A& seed,
+    std::function<A(Tree, int, const A&)>          contrib,
+    std::function<A(Tree, const std::vector<A>&)>  combine,
+    std::function<void(Tree, std::vector<Tree>&)>  doorTargets = nullptr,
+    std::function<A(Tree, const A&)>               doorContrib = nullptr,
+    DescendStrategy strategy = DescendStrategy::kReversePostorder)
+{
+    // default doors : the RECDEF edge of a symbolic recursive node
+    if (!doorTargets) {
+        doorTargets = [](Tree n, std::vector<Tree>& out) {
+            Tree id, body;
+            if (isRec(n, id, body) && body != nullptr) {
+                out.push_back(body);
+            }
+        };
+    }
+    if (!doorContrib) {
+        doorContrib = [](Tree, const A& a) { return a; };
+    }
+
+    // ---- phase 1 : discover the extended graph. Per node : the incoming
+    // edges (parent, branch index ; index -1 = door) and the successors.
+    struct Edge {
+        Tree parent;
+        int  index;  // branch index, or -1 for a door edge
+    };
+    std::map<Tree, std::vector<Edge>, treeorder> incoming;
+    std::map<Tree, std::vector<Tree>, treeorder> successors;
+    {
+        std::map<Tree, bool, treeorder> seen;
+        std::vector<Tree>               work{root};
+        seen[root]     = true;
+        incoming[root];  // the root exists even without incoming edges
+        std::vector<Tree> targets;
+        while (!work.empty()) {
+            Tree n = work.back();
+            work.pop_back();
+            auto visit = [&](Tree c) {
+                successors[n].push_back(c);
+                if (!seen[c]) {
+                    seen[c] = true;
+                    work.push_back(c);
+                }
+            };
+            for (int i = 0; i < n->arity(); i++) {
+                Tree c = n->branch(i);
+                incoming[c].push_back({n, i});
+                visit(c);
+            }
+            targets.clear();
+            doorTargets(n, targets);
+            for (Tree c : targets) {
+                incoming[c].push_back({n, -1});
+                visit(c);
+            }
+        }
+        // determinism : a node's incoming list is ordered independently of
+        // the discovery order
+        treeorder lt;
+        for (auto& [t, edges] : incoming) {
+            std::sort(edges.begin(), edges.end(), [&lt](const Edge& a, const Edge& b) {
+                if (a.parent != b.parent) {
+                    return lt(a.parent, b.parent);
+                }
+                return a.index < b.index;
+            });
+        }
+    }
+
+    // ---- phase 2 : the fair chaotic iteration, recompute-and-compare.
+    std::map<Tree, A, treeorder> attr;
+    for (const auto& [t, e] : incoming) {
+        attr.emplace(t, bottom);
+    }
+    auto recompute = [&](Tree n) -> A {
+        std::vector<A> in;
+        if (n == root) {
+            in.push_back(seed);  // the root's virtual edge, always first
+        }
+        for (const Edge& e : incoming.at(n)) {
+            const A& pa = attr.at(e.parent);
+            in.push_back(e.index >= 0 ? contrib(e.parent, e.index, pa)
+                                      : doorContrib(e.parent, pa));
+        }
+        return combine(n, in);
+    };
+
+    // rank : reverse postorder of the extended graph (iterative DFS,
+    // finishing order reversed). On an acyclic instance, processing by
+    // ascending rank makes the first sweep exact.
+    std::map<Tree, int, treeorder> rank;
+    {
+        std::map<Tree, int, treeorder> state;  // 0 new, 1 expanded
+        std::vector<Tree>              stack{root};
+        std::vector<Tree>              post;
+        while (!stack.empty()) {
+            Tree n = stack.back();
+            if (state[n] == 0) {
+                state[n] = 1;
+                auto it  = successors.find(n);
+                if (it != successors.end()) {
+                    for (auto r = it->second.rbegin(); r != it->second.rend(); ++r) {
+                        if (state[*r] == 0) {
+                            stack.push_back(*r);
+                        }
+                    }
+                }
+            } else {
+                stack.pop_back();
+                if (rank.find(n) == rank.end()) {
+                    post.push_back(n);
+                    rank[n] = 0;  // placeholder
+                }
+            }
+        }
+        int r = 0;
+        for (auto it = post.rbegin(); it != post.rend(); ++it) {
+            rank[*it] = r++;
+        }
+    }
+
+    // the worklist : a strategy-ordered set of scheduled nodes. All three
+    // strategies are fair (every scheduled node is eventually processed).
+    std::vector<Tree>               fifo, lifo;
+    std::set<std::pair<int, Tree>>  prio;
+    std::map<Tree, bool, treeorder> queued;
+    auto push = [&](Tree t) {
+        if (queued[t]) {
+            return;
+        }
+        queued[t] = true;
+        switch (strategy) {
+            case DescendStrategy::kReversePostorder:
+                prio.insert({rank.at(t), t});
+                break;
+            case DescendStrategy::kFifo:
+                fifo.push_back(t);
+                break;
+            case DescendStrategy::kLifo:
+                lifo.push_back(t);
+                break;
+        }
+    };
+    auto pop = [&]() -> Tree {
+        Tree t;
+        switch (strategy) {
+            case DescendStrategy::kReversePostorder:
+                t = prio.begin()->second;
+                prio.erase(prio.begin());
+                break;
+            case DescendStrategy::kFifo:
+                t = fifo.front();
+                fifo.erase(fifo.begin());
+                break;
+            case DescendStrategy::kLifo:
+                t = lifo.back();
+                lifo.pop_back();
+                break;
+        }
+        queued[t] = false;
+        return t;
+    };
+    auto empty = [&]() {
+        return prio.empty() && fifo.empty() && lifo.empty();
+    };
+
+    for (const auto& [t, e] : incoming) {
+        push(t);
+    }
+    while (!empty()) {
+        Tree n = pop();
+        A    v = recompute(n);
+        if (!(v == attr.at(n))) {
+            attr.at(n) = v;
+            auto it    = successors.find(n);
+            if (it != successors.end()) {
+                for (Tree s : it->second) {
+                    push(s);
+                }
+            }
+        }
+    }
     return attr;
 }
 

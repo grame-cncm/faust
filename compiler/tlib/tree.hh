@@ -617,6 +617,18 @@ TLIB_API Tree normalizeRecGroups(Tree root, bool canonical = true,
                                  bool (*delayedBranch)(Tree parent, int branch) = nullptr,
                                  bool (*shiftTerm)(Tree def, Tree& payload, Tree& amount) = nullptr,
                                  Tree (*reshift)(Tree payload, Tree amount, Tree outer) = nullptr);
+
+/// Garbage collection of the MEMBERS of the recursive groups of a term
+/// (spec GC-MEMBRES). A member is alive iff its projection is reachable from
+/// the root through branches and projection doors -- the criterion is
+/// transitive : members read only by dead members die (cascades), and a
+/// cycle of members unreachable from the outside dies as a whole. Dead
+/// members are removed, the survivors keep their relative order and their
+/// projections are renumbered by compaction ; untouched subtrees return
+/// pointer-identical. Symbolic form only : de Bruijn groups pass through
+/// unchanged. The result is alpha-equivalent to the input on every live
+/// projection.
+TLIB_API Tree gcRecGroups(Tree root);
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);
 std::string   toDeBruijnString(Tree t);

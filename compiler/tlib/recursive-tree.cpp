@@ -1547,3 +1547,216 @@ Tree normalizeRecGroups(Tree root, bool canonical, bool (*delayedBranch)(Tree, i
     // pointer-equal, and the fresh variable names above are erased
     return deBruijn2Sym(sym2deBruijn(rebuilt));
 }
+
+//============================================================================
+// gcRecGroups : garbage collection of the MEMBERS of recursive groups
+// (spec GC-MEMBRES). Symbolic form only : de Bruijn groups are ordinary
+// finite trees here and pass through untouched.
+//
+// Phase 1 -- liveness. The bit instance of the unified descending engine
+// (descendFixpoint, spec DESCEND-REGIME-C par.7.1), with PROJECTION doors :
+// proj_i(W) --> the i-th definition of W. Discovery follows branches and
+// doors from the root, so a definition is reached only through a live
+// projection chain : for the bit domain, the computation IS reachability,
+// and a member is dead exactly when its projection node was never reached
+// -- the transitive criterion (cascades, dead cycles) for free.
+//
+// Phase 2 -- surgery. The exact DIRTY set first (reverse reachability,
+// over the live containment edges, from every group that loses a member) ;
+// then one memoized rebuild : untouched subtrees return pointer-identical
+// (invariant 4 of the spec) ; a rebuilt group creates its fresh SYMREC
+// node FIRST -- the group is its own reference, the body may not exist yet
+// (the guide's trick) -- keeps its live definitions in relative order, and
+// every surviving projection is renumbered by the per-group compaction.
+//============================================================================
+
+#include "descend.hh"
+
+// the i-th definition of a list-shaped RECDEF body
+static Tree nthDef(Tree body, int i)
+{
+    while (i-- > 0) {
+        TLIB_ASSERT(isList(body));
+        body = tl(body);
+    }
+    TLIB_ASSERT(isList(body));
+    return hd(body);
+}
+
+Tree gcRecGroups(Tree root)
+{
+    // ---- phase 1 : liveness = the discovered set of the bit descent with
+    // projection doors
+    auto live = descendFixpoint<char>(
+        root, 0, 1,
+        [](Tree, int, const char& a) { return a; },
+        [](Tree, const std::vector<char>& in) {
+            char r = 0;
+            for (char v : in) {
+                r |= v;
+            }
+            return r;
+        },
+        [](Tree n, std::vector<Tree>& out) {
+            int  i;
+            Tree g, id, body;
+            if (isProj(n, i, g) && isRec(g, id, body) && body != nullptr && isList(body)) {
+                out.push_back(nthDef(body, i));
+            }
+        });
+
+    // ---- the per-group verdict : live member indices, by probing the
+    // hash-consed projection nodes against the discovered set
+    std::map<Tree, std::vector<int>, treeorder> liveIdx;   // dirty groups only
+    std::map<Tree, std::vector<int>, treeorder> renumber;  // old index -> new (-1 : dead)
+    for (const auto& [t, bit] : live) {
+        Tree id, body;
+        if (!isRec(t, id, body) || body == nullptr || !isList(body)) {
+            continue;
+        }
+        int n = 0;
+        for (Tree l = body; isList(l); l = tl(l)) {
+            n++;
+        }
+        std::vector<int> keep;
+        for (int i = 0; i < n; i++) {
+            if (live.count(proj(i, t)) > 0) {
+                keep.push_back(i);
+            }
+        }
+        if ((int)keep.size() < n) {
+            std::vector<int> sigma(n, -1);
+            int              next = 0;
+            for (int i : keep) {
+                sigma[i] = next++;
+            }
+            liveIdx[t]  = keep;
+            renumber[t] = sigma;
+        }
+    }
+    if (liveIdx.empty()) {
+        return root;  // nothing dead anywhere : pointer identity
+    }
+
+    // ---- the exact dirty set : every node from which a shrinking group is
+    // reachable through the LIVE containment edges (branches, and the live
+    // definitions of a group) must be rebuilt ; everything else returns
+    // pointer-identical
+    std::map<Tree, std::vector<Tree>, treeorder> parents;
+    {
+        std::map<Tree, bool, treeorder> seen;
+        std::vector<Tree>               work{root};
+        seen[root] = true;
+        while (!work.empty()) {
+            Tree n = work.back();
+            work.pop_back();
+            auto visit = [&](Tree c) {
+                parents[c].push_back(n);
+                if (!seen[c]) {
+                    seen[c] = true;
+                    work.push_back(c);
+                }
+            };
+            for (int i = 0; i < n->arity(); i++) {
+                visit(n->branch(i));
+            }
+            Tree id, body;
+            if (isRec(n, id, body) && body != nullptr && isList(body)) {
+                auto it = liveIdx.find(n);
+                if (it != liveIdx.end()) {
+                    for (int i : it->second) {
+                        visit(nthDef(body, i));
+                    }
+                } else if (live.count(n) > 0) {
+                    for (Tree l = body; isList(l); l = tl(l)) {
+                        visit(hd(l));
+                    }
+                }
+            }
+        }
+    }
+    std::map<Tree, bool, treeorder> dirty;
+    {
+        std::vector<Tree> work;
+        for (const auto& [g, k] : liveIdx) {
+            dirty[g] = true;
+            work.push_back(g);
+        }
+        while (!work.empty()) {
+            Tree n = work.back();
+            work.pop_back();
+            auto it = parents.find(n);
+            if (it == parents.end()) {
+                continue;
+            }
+            for (Tree p : it->second) {
+                if (!dirty[p]) {
+                    dirty[p] = true;
+                    work.push_back(p);
+                }
+            }
+        }
+    }
+
+    // ---- phase 2 : one memoized rebuild
+    std::map<Tree, Tree, treeorder>         memo;
+    std::function<Tree(Tree)>               build = [&](Tree t) -> Tree {
+        if (!dirty[t]) {
+            return t;  // invariant 4 : untouched subtrees, same pointer
+        }
+        auto m = memo.find(t);
+        if (m != memo.end()) {
+            return m->second;
+        }
+        int  i;
+        Tree g, id, body;
+        if (isProj(t, i, g) && isRec(g, id, body) && body != nullptr && isList(body)) {
+            auto rn = renumber.find(g);
+            int  i2 = (rn != renumber.end()) ? rn->second[i] : i;
+            TLIB_ASSERT(i2 >= 0);  // a live occurrence of a dead member is impossible
+            Tree r  = proj(i2, build(g));
+            memo[t] = r;
+            return r;
+        }
+        if (isRec(t, id, body) && body != nullptr && isList(body)) {
+            // the fresh SYMREC node first : the group is its own reference,
+            // and its RECDEF may not exist yet (the guide's trick) -- this
+            // single memo entry resolves every inner self-reference
+            Tree id2 = tree(unique("W"));
+            Tree w2  = ref(id2);
+            memo[t]  = w2;
+            auto             it = liveIdx.find(t);
+            std::vector<Tree> defs;
+            if (it != liveIdx.end()) {
+                for (int k : it->second) {
+                    defs.push_back(build(nthDef(body, k)));
+                }
+            } else {
+                for (Tree l = body; isList(l); l = tl(l)) {
+                    defs.push_back(build(hd(l)));
+                }
+            }
+            Tree nb = nil();
+            for (auto d = defs.rbegin(); d != defs.rend(); ++d) {
+                nb = cons(*d, nb);
+            }
+            return rec(id2, nb);
+        }
+        int  ar = t->arity();
+        Tree r  = t;
+        if (ar > 0) {
+            bool changed = false;
+            tvec br(ar);
+            for (int k = 0; k < ar; k++) {
+                br[k]   = build(t->branch(k));
+                changed = changed || (br[k] != t->branch(k));
+            }
+            if (changed) {
+                r = tree(t->node(), br);
+            }
+        }
+        memo[t] = r;
+        return r;
+    };
+    return build(root);
+}
