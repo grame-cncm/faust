@@ -36,8 +36,170 @@
 #include "simplify.hh"
 #include "timing.hh"
 #include "tree.hh"
+#include "rewrite.hh"
 
 using namespace std;
+
+//----------------------------------------------------------------------------------------
+// Delayed-alias dissolution, caller side (spec GC-MEMBRES par.8).
+//
+// A member r of a recursive group whose definition is a pure literal delay
+// x = y@n (n >= 1) stores nothing of its own : every reader can read y n
+// taps deeper. The previous implementation lived INSIDE normalizeRecGroups
+// behind three semantic callbacks (delayedBranch / shiftTerm / reshift) ;
+// this one keeps the signal knowledge where it belongs :
+//
+//   1. detect the alias members and resolve alias-of-alias chains (folded
+//      amounts ; a CYCLE of aliases is simply left unresolved -- if nothing
+//      external reads it, gcRecGroups collects it wholesale : the old ad hoc
+//      cycle guard became a theorem) ;
+//   2. re-point every reference in ONE treeRewritePaired pass -- the rule
+//      matches the ORIGINAL, where the group identity is unambiguous even
+//      with nested groups, and folds the amounts locally (same doctrine as
+//      the old reshift) so no nested delay is ever created ;
+//   3. gcRecGroups : the now-unreferenced members disappear -- and whatever
+//      they alone kept alive with them -- projections renumbered.
+//----------------------------------------------------------------------------------------
+static Tree dissolveDelayedAliases(Tree L)
+{
+    // ---- 1a. collect the raw aliases, keyed by their (hash-consed)
+    // projection node : projNode -> (payload, literal amount)
+    struct Alias {
+        Tree payload;
+        int  amount;
+    };
+    map<Tree, Alias, treeorder> raw;
+    {
+        set<Tree, treeorder>  seen;
+        vector<Tree>          work{L};
+        while (!work.empty()) {
+            Tree n = work.back();
+            work.pop_back();
+            if (!seen.insert(n).second) {
+                continue;
+            }
+            Tree id, body;
+            if (isRec(n, id, body) && body != nullptr && isList(body)) {
+                int i = 0;
+                for (Tree l = body; isList(l); l = tl(l), i++) {
+                    Tree def = hd(l);
+                    Tree y, ny;
+                    int  amt;
+                    if (isSigDelay(def, y, ny) && isSigInt(ny, &amt) && amt >= 1) {
+                        raw[proj(i, n)] = {y, amt};
+                    }
+                    work.push_back(def);
+                }
+                continue;
+            }
+            for (int i = 0; i < n->arity(); i++) {
+                work.push_back(n->branch(i));
+            }
+        }
+    }
+    if (raw.empty()) {
+        return L;
+    }
+
+    // ---- 1b. resolve chains (x = y@n where y is itself an alias) with
+    // folded amounts ; a chain that loops is dropped whole
+    map<Tree, Alias, treeorder> resolved;
+    for (const auto& [p, a] : raw) {
+        Tree                 pay = a.payload;
+        int                  amt = a.amount;
+        set<Tree, treeorder> visited{p};
+        bool                 cyclic = false;
+        while (true) {
+            auto next = raw.find(pay);
+            if (next == raw.end()) {
+                break;
+            }
+            if (!visited.insert(pay).second) {
+                cyclic = true;
+                break;
+            }
+            amt += next->second.amount;
+            pay = next->second.payload;
+        }
+        if (!cyclic) {
+            resolved[p] = {pay, amt};
+        }
+    }
+
+    // ---- 1c. the self-reach guard : an alias whose resolved payload
+    // reaches its own projection THROUGH BRANCHES cannot be dissolved (the
+    // re-pointing rule would recurse into itself before its memo entry
+    // exists). Branches only, deliberately : the path through a RECDEF body
+    // is already safe -- treeRewritePaired memoizes a recursive node BEFORE
+    // descending its definitions, which breaks any loop through the group.
+    // Walking RECDEF here would kill every intra-group alias (the payload
+    // of x = s@n is typically a projection of the same group) for a danger
+    // that does not exist.
+    {
+        vector<Tree> drop;
+        for (const auto& [p, a] : resolved) {
+            set<Tree, treeorder> seen;
+            vector<Tree>         work{a.payload};
+            bool                 reaches = false;
+            while (!work.empty() && !reaches) {
+                Tree n = work.back();
+                work.pop_back();
+                if (!seen.insert(n).second) {
+                    continue;
+                }
+                if (n == p) {
+                    reaches = true;
+                    break;
+                }
+                for (int i = 0; i < n->arity(); i++) {
+                    work.push_back(n->branch(i));
+                }
+            }
+            if (reaches) {
+                drop.push_back(p);
+            }
+        }
+        for (Tree p : drop) {
+            resolved.erase(p);
+        }
+    }
+    if (resolved.empty()) {
+        return L;
+    }
+
+    // ---- 2. one re-pointing pass. The rule matches ORIGINAL nodes ; the
+    // payload is itself rewritten on demand through the shared memo (it may
+    // read other aliases).
+    unordered_map<Tree, Tree>        memo;
+    function<Tree(Tree, Tree)> rule = [&](Tree orig, Tree rebuilt) -> Tree {
+        int  i;
+        Tree g;
+        Tree op, oy;
+        // a delay over an alias projection folds : (proj@n)@k -> payload@(n+k)
+        if (isSigDelay(orig, op, oy)) {
+            auto a = resolved.find(op);
+            if (a != resolved.end()) {
+                Tree pay = treeRewritePaired(a->second.payload, rule, memo);
+                Tree k   = rebuilt->branch(1);  // the rewritten amount
+                return sigDelay(pay,
+                                simplifyExpression(sigAdd(sigInt(a->second.amount), k)));
+            }
+        }
+        // a bare alias projection reads the payload at the alias depth
+        if (isProj(orig, i, g)) {
+            auto a = resolved.find(orig);
+            if (a != resolved.end()) {
+                Tree pay = treeRewritePaired(a->second.payload, rule, memo);
+                return sigDelay(pay, sigInt(a->second.amount));
+            }
+        }
+        return rebuilt;
+    };
+    Tree L2 = treeRewritePaired(L, rule, memo);
+
+    // ---- 3. the dead members -- and their cascades -- disappear
+    return gcRecGroups(L2);
+}
 
 // Implementation
 
@@ -426,44 +588,28 @@ static Tree simplifyToNormalFormAux(Tree LS)
     // first -- the order the backends that emit definitions in list order
     // rely on (a member read undelayed one position too early costs exactly
     // one sample : the freeverb comb regression of 2026-08-11).
+    // The dissolution now precedes the normalization, on the caller's side
+    // (spec GC-MEMBRES par.8) : detection, re-pointing and GC are signal
+    // knowledge and live here ; normalizeRecGroups keeps only the ORDER
+    // classifier below. The old shiftTerm/reshift callbacks are gone.
+    startTiming("dissolveDelayedAliases");
+    L1 = dissolveDelayedAliases(L1);
+    endTiming("dissolveDelayedAliases");
     startTiming("normalizeRecGroups");
-    L1 = normalizeRecGroups(
-        L1, true,
-        [](Tree t, int k) -> bool {
-            Tree x, y;
-            int  n;
-            if (isSigDelay(t, x, y)) {
-                return k == 0 && isSigInt(y, &n) && n >= 1;
-            }
-            if (isSigDelay1(t, x)) {
-                return k == 0;
-            }
-            if (isSigPrefix(t, x, y)) {
-                return k == 1;
-            }
-            return false;
-        },
-        // shiftTerm : a pure delay term with a literal amount >= 1. Serves
-        // both as the delayed-alias recognizer (x = w@n dissolves, its
-        // readers re-point onto w's line, one tap deeper) and as the
-        // reference matcher for the folded re-pointing.
-        [](Tree def, Tree& payload, Tree& amount) -> bool {
-            Tree y;
-            int  n;
-            if (isSigDelay(def, payload, y) && isSigInt(y, &n) && n >= 1) {
-                amount = y;
-                return true;
-            }
-            return false;
-        },
-        // reshift : one shift of amount(+outer) over the payload. Local
-        // fold only, same doctrine as normalizeDelayTerm.
-        [](Tree payload, Tree amount, Tree outer) -> Tree {
-            if (!outer) {
-                return sigDelay(payload, amount);
-            }
-            return sigDelay(payload, simplifyExpression(sigAdd(amount, outer)));
-        });
+    L1 = normalizeRecGroups(L1, true, [](Tree t, int k) -> bool {
+        Tree x, y;
+        int  n;
+        if (isSigDelay(t, x, y)) {
+            return k == 0 && isSigInt(y, &n) && n >= 1;
+        }
+        if (isSigDelay1(t, x)) {
+            return k == 0;
+        }
+        if (isSigPrefix(t, x, y)) {
+            return k == 1;
+        }
+        return false;
+    });
     endTiming("normalizeRecGroups");
 /*
     // PROBE: cost of the symbolic -> deBruijn -> symbolic round-trip on the
