@@ -44,8 +44,8 @@ using namespace std;
 // Delayed-alias dissolution, caller side (spec GC-MEMBRES par.8).
 //
 // A member r of a recursive group whose definition is a pure literal delay
-// x = y@n (n >= 1) stores nothing of its own : every reader can read y n
-// taps deeper. The previous implementation lived INSIDE normalizeRecGroups
+// x = y@n (literal n >= 0) stores nothing of its own : every reader can read
+// y n taps deeper. The previous implementation lived INSIDE normalizeRecGroups
 // behind three semantic callbacks (delayedBranch / shiftTerm / reshift) ;
 // this one keeps the signal knowledge where it belongs :
 //
