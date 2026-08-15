@@ -85,6 +85,15 @@ static Tree dissolveDelayedAliases(Tree L)
                     Tree def = hd(l);
                     Tree y, ny;
                     int  amt;
+                    // n >= 1 only. The INSTANTANEOUS copies (x = s, or s@0,
+                    // with s a projection) are covered by nobody -- eta
+                    // requires a group-free definition, this rule a positive
+                    // depth -- but the hole is theoretical : extending the
+                    // match to amt == 0 (payload restricted to projections,
+                    // bare payload emitted without a delay node) left the
+                    // whole corpus byte-identical (199/199, 2026-08-15).
+                    // The box-to-signal translation never produces such
+                    // members ; if it ever does, extend here.
                     if (isSigDelay(def, y, ny) && isSigInt(ny, &amt) && amt >= 1) {
                         raw[proj(i, n)] = {y, amt};
                     }
