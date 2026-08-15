@@ -89,7 +89,15 @@ static Tree dissolveDelayedAliases(Tree L)
                     // The rule is UNIFORM over n >= 0 : for all d,
                     // x = y@0 implies x@d = y@d -- the zero case is not an
                     // exception, and keeping an arbitrary n >= 1 boundary
-                    // here would be doctrine debt. At depth 0 the payload is
+                    // here would be doctrine debt. The LITERAL restriction,
+                    // however, is semantics, not caution : with a variable
+                    // amount v, (y@v)@d = y@(d + v@d) -- the amount is read
+                    // at the SHIFTED time -- not y@(v+d) ; folding would
+                    // substitute v(t) for v(t-d). Even a slow amount fails
+                    // at parameter changes, and the correct generalized form
+                    // would need v's own history line, killing the storage
+                    // argument. Only a compile-time literal is truly
+                    // time-invariant : isSigInt is the exact guard. At depth 0 the payload is
                     // restricted to a PROJECTION : only a member COPY
                     // duplicates storage (x = E just names E's history, the
                     // line would merely move). Empirically the zero case
