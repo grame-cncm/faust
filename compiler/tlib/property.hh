@@ -31,10 +31,21 @@ template <class P>
 class property : public Garbageable {
     Tree fKey;
 
-    P* access(Tree t)
+    // The stored pointer is the OWNING GarbageablePtr wrapper, never its
+    // payload : the wrapper frees the payload (at cleanup(), or when clear()
+    // deletes it individually -- which also unregisters it, see
+    // garbageable.cpp). Storing the payload pointer instead would leave two
+    // owners and a double free at cleanup().
+    GarbageablePtr<P>* wrapper(Tree t)
     {
         Tree d = t->getProperty(fKey);
-        return d ? (P*)(d->node().getPointer()) : nullptr;
+        return d ? (GarbageablePtr<P>*)(d->node().getPointer()) : nullptr;
+    }
+
+    P* access(Tree t)
+    {
+        GarbageablePtr<P>* w = wrapper(t);
+        return w ? w->getPointer() : nullptr;
     }
 
    public:
@@ -47,7 +58,7 @@ class property : public Garbageable {
         if (P* p = access(t)) {
             *p = data;
         } else {
-            t->setProperty(fKey, tree(Node((new GarbageablePtr<P>(data))->getPointer())));
+            t->setProperty(fKey, tree(Node((void*)new GarbageablePtr<P>(data))));
         }
     }
 
@@ -63,8 +74,8 @@ class property : public Garbageable {
 
     void clear(Tree t)
     {
-        if (P* p = access(t)) {
-            delete p;
+        if (GarbageablePtr<P>* w = wrapper(t)) {
+            delete w;
         }
         t->clearProperty(fKey);
     }
@@ -159,10 +170,16 @@ class property2 : public Garbageable {
     Tree fOuterKey;
     typedef std::map<Tree, P, treeorder> Inner;
 
-    struct Slot {
+    // A Garbageable : Slots die with the session like the trees they annotate
+    // (this class has no index of its live 'a' hosts, so no destructor could
+    // enumerate them) ; clear() deletes one individually, which unregisters it.
+    // The Slot owns its promoted map.
+    struct Slot : public Garbageable {
         Tree   fB;      // the single 'b' seen so far ; unused once fInner is non-null
         P      fValue;  // its value ; unused once fInner is non-null
         Inner* fInner;  // nullptr until a second distinct 'b' forces promotion
+
+        ~Slot() override { delete fInner; }
     };
 
     Slot* access(Tree a)
@@ -220,8 +237,7 @@ class property2 : public Garbageable {
     void clear(Tree a)
     {
         if (Slot* s = access(a)) {
-            delete s->fInner;
-            delete s;
+            delete s;  // ~Slot frees the promoted map
         }
         a->clearProperty(fOuterKey);
     }

@@ -386,7 +386,12 @@ std::map<Tree, A, treeorder> descendFixpoint(
 
     // the worklist : a strategy-ordered set of scheduled nodes. All three
     // strategies are fair (every scheduled node is eventually processed).
+    // The fifo pops by advancing a head cursor instead of erasing the front
+    // (which would cost the queue's length per pop) : the retired prefix is
+    // kept, but total pushes are bounded by the recomputation budget
+    // (height x |arrows|), so the memory is proportional to work done.
     std::vector<Tree>               fifo, lifo;
+    std::size_t                     fifoHead = 0;
     std::set<std::pair<int, Tree>>  prio;
     std::map<Tree, bool, treeorder> queued;
     auto push = [&](Tree t) {
@@ -414,8 +419,7 @@ std::map<Tree, A, treeorder> descendFixpoint(
                 prio.erase(prio.begin());
                 break;
             case DescendStrategy::kFifo:
-                t = fifo.front();
-                fifo.erase(fifo.begin());
+                t = fifo[fifoHead++];
                 break;
             case DescendStrategy::kLifo:
                 t = lifo.back();
@@ -426,7 +430,7 @@ std::map<Tree, A, treeorder> descendFixpoint(
         return t;
     };
     auto empty = [&]() {
-        return prio.empty() && fifo.empty() && lifo.empty();
+        return prio.empty() && fifoHead == fifo.size() && lifo.empty();
     };
 
     for (const auto& [t, e] : incoming) {
