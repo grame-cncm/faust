@@ -79,7 +79,14 @@ static Tree dissolveDelayedAliases(Tree L)
                 continue;
             }
             Tree id, body;
-            if (isRec(n, id, body) && body != nullptr && isList(body)) {
+            if (isRec(n, id, body)) {
+                // In a complete signal term these are malformations, not
+                // cases : a SYMREC without its RECDEF is a never-defined
+                // reference (the guide's 'fatal erasure', asserted by
+                // rewrite.hh as well), and every signal-level letrec is a
+                // LIST of definitions accessed through projections.
+                faustassert(body != nullptr);
+                faustassert(isList(body));
                 int i = 0;
                 for (Tree l = body; isList(l); l = tl(l), i++) {
                     Tree def = hd(l);

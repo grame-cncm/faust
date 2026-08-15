@@ -1600,8 +1600,11 @@ Tree gcRecGroups(Tree root)
         [](Tree n, std::vector<Tree>& out) {
             int  i;
             Tree g, id, body;
-            if (isProj(n, i, g) && isRec(g, id, body) && body != nullptr && isList(body)) {
-                out.push_back(nthDef(body, i));
+            if (isProj(n, i, g) && isRec(g, id, body)) {
+                TLIB_ASSERT(body != nullptr);  // a projection onto an undefined group
+                if (isList(body)) {
+                    out.push_back(nthDef(body, i));
+                }
             }
         });
 
@@ -1611,7 +1614,16 @@ Tree gcRecGroups(Tree root)
     std::map<Tree, std::vector<int>, treeorder> renumber;  // old index -> new (-1 : dead)
     for (const auto& [t, bit] : live) {
         Tree id, body;
-        if (!isRec(t, id, body) || body == nullptr || !isList(body)) {
+        if (!isRec(t, id, body)) {
+            continue;
+        }
+        // a SYMREC without its RECDEF in a complete term is a never-defined
+        // reference -- the guide's 'fatal erasure', same contract as
+        // rewrite.hh. A NON-LIST body, however, is a legitimate tlib citizen
+        // (the single-equation recursion rec(x, expr) of the guide) : it has
+        // no members and no projections, the GC does not apply BY DOMAIN.
+        TLIB_ASSERT(body != nullptr);
+        if (!isList(body)) {
             continue;
         }
         int n = 0;
@@ -1661,7 +1673,7 @@ Tree gcRecGroups(Tree root)
                 visit(n->branch(i));
             }
             Tree id, body;
-            if (isRec(n, id, body) && body != nullptr && isList(body)) {
+            if (isRec(n, id, body) && isList(body)) {
                 auto it = liveIdx.find(n);
                 if (it != liveIdx.end()) {
                     for (int i : it->second) {
@@ -1710,7 +1722,7 @@ Tree gcRecGroups(Tree root)
         }
         int  i;
         Tree g, id, body;
-        if (isProj(t, i, g) && isRec(g, id, body) && body != nullptr && isList(body)) {
+        if (isProj(t, i, g) && isRec(g, id, body) && isList(body)) {
             auto rn = renumber.find(g);
             int  i2 = (rn != renumber.end()) ? rn->second[i] : i;
             TLIB_ASSERT(i2 >= 0);  // a live occurrence of a dead member is impossible
@@ -1718,7 +1730,7 @@ Tree gcRecGroups(Tree root)
             memo[t] = r;
             return r;
         }
-        if (isRec(t, id, body) && body != nullptr && isList(body)) {
+        if (isRec(t, id, body) && isList(body)) {
             // the fresh SYMREC node first : the group is its own reference,
             // and its RECDEF may not exist yet (the guide's trick) -- this
             // single memo entry resolves every inner self-reference
