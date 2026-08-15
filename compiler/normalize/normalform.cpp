@@ -84,18 +84,24 @@ static Tree dissolveDelayedAliases(Tree L)
                 for (Tree l = body; isList(l); l = tl(l), i++) {
                     Tree def = hd(l);
                     Tree y, ny;
-                    int  amt;
-                    // n >= 1 only. The INSTANTANEOUS copies (x = s, or s@0,
-                    // with s a projection) are covered by nobody -- eta
-                    // requires a group-free definition, this rule a positive
-                    // depth -- but the hole is theoretical : extending the
-                    // match to amt == 0 (payload restricted to projections,
-                    // bare payload emitted without a delay node) left the
-                    // whole corpus byte-identical (199/199, 2026-08-15).
-                    // The box-to-signal translation never produces such
-                    // members ; if it ever does, extend here.
+                    int  amt, j;
+                    Tree h;
+                    // The rule is UNIFORM over n >= 0 : for all d,
+                    // x = y@0 implies x@d = y@d -- the zero case is not an
+                    // exception, and keeping an arbitrary n >= 1 boundary
+                    // here would be doctrine debt. At depth 0 the payload is
+                    // restricted to a PROJECTION : only a member COPY
+                    // duplicates storage (x = E just names E's history, the
+                    // line would merely move). Empirically the zero case
+                    // never fires today (corpus byte-identical with and
+                    // without it, 2026-08-15) : the uniformity is kept for
+                    // the semantics, not for the corpus.
                     if (isSigDelay(def, y, ny) && isSigInt(ny, &amt) && amt >= 1) {
                         raw[proj(i, n)] = {y, amt};
+                    } else if (isProj(def, j, h) ||
+                               (isSigDelay(def, y, ny) && isSigInt(ny, &amt) && amt == 0 &&
+                                isProj(y, j, h))) {
+                        raw[proj(i, n)] = {isProj(def, j, h) ? def : y, 0};
                     }
                     work.push_back(def);
                 }
@@ -194,12 +200,14 @@ static Tree dissolveDelayedAliases(Tree L)
                                 simplifyExpression(sigAdd(sigInt(a->second.amount), k)));
             }
         }
-        // a bare alias projection reads the payload at the alias depth
+        // a bare alias projection reads the payload at the alias depth --
+        // and a zero-depth alias reads it directly, no delay node
         if (isProj(orig, i, g)) {
             auto a = resolved.find(orig);
             if (a != resolved.end()) {
                 Tree pay = treeRewritePaired(a->second.payload, rule, memo);
-                return sigDelay(pay, sigInt(a->second.amount));
+                return a->second.amount == 0 ? pay
+                                             : sigDelay(pay, sigInt(a->second.amount));
             }
         }
         return rebuilt;
