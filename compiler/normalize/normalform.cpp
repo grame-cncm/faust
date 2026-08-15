@@ -49,10 +49,13 @@ using namespace std;
 // behind three semantic callbacks (delayedBranch / shiftTerm / reshift) ;
 // this one keeps the signal knowledge where it belongs :
 //
-//   1. detect the alias members and resolve alias-of-alias chains (folded
-//      amounts ; a CYCLE of aliases is simply left unresolved -- if nothing
-//      external reads it, gcRecGroups collects it wholesale : the old ad hoc
-//      cycle guard became a theorem) ;
+//   1. detect the alias members, and drop every alias that reaches itself
+//      through MENTION edges (its payload uses an alias whose payload uses...
+//      -- the closure that makes the re-pointing rule terminate by
+//      construction). A cycle keeps all its members : a delay loop needs its
+//      storage, and if nothing external reads it, gcRecGroups collects it
+//      wholesale. Alias-of-alias CHAINS stay lazy : the rule folds them on
+//      demand ;
 //   2. re-point every reference in ONE treeRewritePaired pass -- the rule
 //      matches the ORIGINAL, where the group identity is unambiguous even
 //      with nested groups, and folds the amounts locally (same doctrine as
@@ -131,66 +134,73 @@ static Tree dissolveDelayedAliases(Tree L)
         return L;
     }
 
-    // ---- 1b. resolve chains (x = y@n where y is itself an alias) with
-    // folded amounts ; a chain that loops is dropped whole
+    // ---- 1b. drop alias CYCLES whole -- the guard that makes the
+    // re-pointing rule below terminate by construction, not by traversal
+    // order. The rule rewrites an alias's payload on demand, and that
+    // payload may use other aliases, whose payloads are rewritten on
+    // demand in turn : the reentrant chain follows the MENTION edges
+    // a -> b, "the payload of a contains a use of alias b", found by
+    // walking the payload through BRANCHES only. (Branches only,
+    // deliberately : a RECDEF body met during the real rewrite is
+    // pre-memoized before its definitions descend, and walking it here
+    // would kill every intra-group alias for nothing.) A mention CYCLE
+    // never completes a memo entry -- the payload of x = (y@1)@9 chains
+    // to y whatever wraps it, a compound payload like (y+1)@4 mentions y
+    // all the same, and a pure delay loop is the projection-only case --
+    // so every alias that reaches itself through mention edges is left
+    // undissolved. Its storage was needed anyway (a delay loop keeps a
+    // line), and if nothing external reads the cycle, gcRecGroups
+    // collects it wholesale : the old ad hoc cycle guard became a
+    // theorem. On the acyclic remainder the reentrant chain descends a
+    // finite DAG : termination is structural. Self-reach is the one-step
+    // case of the closure. Chains stay LAZY : a surviving alias keeps
+    // its collected payload untouched, the rule folds on demand.
     map<Tree, Alias, treeorder> resolved;
-    for (const auto& [p, a] : raw) {
-        Tree                 pay = a.payload;
-        int                  amt = a.amount;
-        set<Tree, treeorder> visited{p};
-        bool                 cyclic = false;
-        while (true) {
-            auto next = raw.find(pay);
-            if (next == raw.end()) {
-                break;
-            }
-            if (!visited.insert(pay).second) {
-                cyclic = true;
-                break;
-            }
-            amt += next->second.amount;
-            pay = next->second.payload;
-        }
-        if (!cyclic) {
-            resolved[p] = {pay, amt};
-        }
-    }
-
-    // ---- 1c. the self-reach guard : an alias whose resolved payload
-    // reaches its own projection THROUGH BRANCHES cannot be dissolved (the
-    // re-pointing rule would recurse into itself before its memo entry
-    // exists). Branches only, deliberately : the path through a RECDEF body
-    // is already safe -- treeRewritePaired memoizes a recursive node BEFORE
-    // descending its definitions, which breaks any loop through the group.
-    // Walking RECDEF here would kill every intra-group alias (the payload
-    // of x = s@n is typically a projection of the same group) for a danger
-    // that does not exist.
     {
-        vector<Tree> drop;
-        for (const auto& [p, a] : resolved) {
+        // the mention edges, one branch walk per alias
+        map<Tree, vector<Tree>, treeorder> mentions;
+        for (const auto& [p, a] : raw) {
             set<Tree, treeorder> seen;
             vector<Tree>         work{a.payload};
-            bool                 reaches = false;
-            while (!work.empty() && !reaches) {
+            while (!work.empty()) {
                 Tree n = work.back();
                 work.pop_back();
                 if (!seen.insert(n).second) {
                     continue;
                 }
-                if (n == p) {
-                    reaches = true;
-                    break;
+                if (raw.count(n)) {
+                    mentions[p].push_back(n);
                 }
                 for (int i = 0; i < n->arity(); i++) {
                     work.push_back(n->branch(i));
                 }
             }
-            if (reaches) {
-                drop.push_back(p);
-            }
         }
-        for (Tree p : drop) {
-            resolved.erase(p);
+        // transitive self-reach over the mention edges
+        for (const auto& [p, a] : raw) {
+            set<Tree, treeorder> seen;
+            vector<Tree>         work;
+            if (auto it = mentions.find(p); it != mentions.end()) {
+                work = it->second;
+            }
+            bool cyclic = false;
+            while (!work.empty() && !cyclic) {
+                Tree n = work.back();
+                work.pop_back();
+                if (n == p) {
+                    cyclic = true;
+                    break;
+                }
+                if (!seen.insert(n).second) {
+                    continue;
+                }
+                if (auto it = mentions.find(n); it != mentions.end()) {
+                    work.insert(work.end(), it->second.begin(), it->second.end());
+                }
+            }
+            if (!cyclic) {
+                resolved[p] = a;
+            }
         }
     }
     if (resolved.empty()) {
