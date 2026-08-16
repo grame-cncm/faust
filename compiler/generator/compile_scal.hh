@@ -77,6 +77,10 @@ class ScalarCompiler : public Compiler {
     OccMarkup*                         fOccMarkup;
     int                                fMaxIota;
     std::map<std::string, std::string> fIotaCache;
+    // iota caches hoisted to the head of the loop body (ring-preload) :
+    // only an index whose delay amount is sub-sample-rate may hoist, and
+    // only a ring access through a hoisted index may preload
+    std::set<std::string> fIotaHeadNames;
     std::map<Tree, int, treeorder>                fScheduleOrder;
     // -fir bridge : recognized FIR kernels, keyed by their SOURCE tree
     // (the signal whose delay line the kernel reads). value = (read span
@@ -104,7 +108,7 @@ class ScalarCompiler : public Compiler {
     virtual std::string CS(Tree sig);
     virtual std::string generateCode(Tree sig);
     virtual std::string generateCacheCode(Tree sig, const std::string& exp);
-    virtual std::string generateIotaCache(const std::string& exp);
+    virtual std::string generateIotaCache(const std::string& exp, bool headSafe = false);
     virtual std::string forceCacheCode(Tree sig, const std::string& exp);
     virtual std::string generateVariableStore(Tree sig, const std::string& exp);
 

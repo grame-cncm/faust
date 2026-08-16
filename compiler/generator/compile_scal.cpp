@@ -4629,11 +4629,25 @@ void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, 
  * @param iota expression
  * @return variable name
  */
-string ScalarCompiler::generateIotaCache(const std::string& exp)
+string ScalarCompiler::generateIotaCache(const std::string& exp, bool headSafe)
 {
     if (fIotaCache.find(exp) == fIotaCache.end()) {
         string vname = getFreshID("vIota");
-        fClass->addExecCode(Statement("", subst("int $0 = $1;", vname, exp)));
+        if (getenv("FAUST_SS_RINGPRELOAD") && headSafe) {
+            // ring-preload prototype : an index whose delay amount is
+            // sub-sample-rate (a literal, a sampling-rate constant, a
+            // block-rate value -- everything already computed before the
+            // loop) is a pure function of IOTA within the body, so it
+            // declares at the HEAD, available to the preloaded ring reads
+            // batched there. A per-sample amount stays at its slot : at the
+            // head it would read the PREVIOUS tick's value of its inputs --
+            // the one-sample class of bug, caught by the suite on
+            // comb_delay2 when this hoist was unconditional.
+            fClass->addPreCode(Statement("", subst("int $0 = $1;", vname, exp)));
+            fIotaHeadNames.insert(vname);
+        } else {
+            fClass->addExecCode(Statement("", subst("int $0 = $1;", vname, exp)));
+        }
         fIotaCache[exp] = vname;
     }
     return fIotaCache[exp];
@@ -5937,7 +5951,8 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
         case DelayType::kSelectRingDelay:
             int         N   = pow2limit(mxd + 1);
             std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
-            result          = subst("$0[$1]", vecname, generateIotaCache(idx));
+            bool headSafe   = getCertifiedSigType(delay)->variability() < kSamp;
+            result          = subst("$0[$1]", vecname, generateIotaCache(idx, headSafe));
             break;
     }
     return generateCacheCode(sig, result);
@@ -6023,6 +6038,31 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 #endif
 }
 
+// is the compiled expression exactly a ring access, name[vIotaN] ? (the
+// ring-preload form guard : such an expression reads past-tick memory
+// through its index and nothing else). On success, ixname receives the
+// index variable -- the caller checks it belongs to the HEAD-hoisted
+// family before preloading.
+static bool isPureRingAccess(const std::string& exp, std::string& ixname)
+{
+    std::size_t b = exp.find("[vIota");
+    if (b == std::string::npos || b == 0 || exp.back() != ']') {
+        return false;
+    }
+    for (std::size_t i = 0; i < b; i++) {
+        if (!isalnum(exp[i]) && exp[i] != '_') {
+            return false;
+        }
+    }
+    for (std::size_t i = b + 6; i + 1 < exp.size(); i++) {
+        if (!isdigit(exp[i])) {
+            return false;
+        }
+    }
+    ixname = exp.substr(b + 1, exp.size() - b - 2);
+    return true;
+}
+
 /**
  * Generate code for the delay mechanism without using temporary variables
  */
@@ -6075,6 +6115,7 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             Statement(ccs, subst("$0[$1] = $2;", vname, generateIotaCache(idx), exp)));
     }
 #else
+    std::string preIx;  // ring-preload : the index name of a pure ring access
     switch (dt) {
         case DelayType::kNotADelay:
             faustexception("Try to compile has a delay something that is not a delay");
@@ -6097,7 +6138,25 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fClass->addClearCode(subst("$0State = 0;", vname));
             fClass->addZone2(subst("$0 \t$1;", ctype, vname));
             fClass->addZone3(subst("$0 = $0State;", vname));
-            fClass->addExecCode(Statement(ccs, subst("$0 = $1;", vname, exp)));
+            if (getenv("FAUST_SS_RINGPRELOAD") && ccs.empty() && isPureRingAccess(exp, preIx) &&
+                fIotaHeadNames.count(preIx)) {
+                // Ring-preload prototype (the freeverb family) : the ring
+                // LOAD issues at the head of the loop body, where the whole
+                // family batches -- the cache misses overlap instead of
+                // serializing one per stage -- while the architectural
+                // update of the mono scalar stays at its original slot as a
+                // register move : every consumer keeps reading exactly the
+                // value it read before, no one-sample shift. The guard is
+                // the FORM : only an expression that is exactly
+                // name[vIotaN] moves -- its only inputs are the head-hoisted
+                // index and past-tick memory -- a compound expression has
+                // per-sample dependencies not yet computed at the head.
+                fClass->addZone2(subst("$0 \t$1Pre;", ctype, vname));
+                fClass->addPreCode(Statement(ccs, subst("$0Pre = $1;", vname, exp)));
+                fClass->addExecCode(Statement(ccs, subst("$0 = $0Pre;", vname)));
+            } else {
+                fClass->addExecCode(Statement(ccs, subst("$0 = $1;", vname, exp)));
+            }
             fClass->addZone3Post(subst("$0State = $0;", vname));
             return vname;
 
@@ -6111,7 +6170,23 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fClass->addClearCode(subst("$0State = 0;", vname));
             fClass->addZone2(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
             fClass->addZone3(subst("$0[1] = $0State;", vname));
-            fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+            if (getenv("FAUST_SS_RINGPRELOAD") && ccs.empty() && isPureRingAccess(exp, preIx) &&
+                fIotaHeadNames.count(preIx)) {
+                // Ring-preload prototype (the freeverb family) : the ring
+                // LOAD issues at the head of the loop body, where the whole
+                // family batches -- the cache misses overlap instead of
+                // serializing one per stage -- while the [2]-vector update
+                // stays at its original slot as a register move, so every
+                // consumer keeps reading exactly the value it read before.
+                // The Pre scalar does not count as a touch of the vector for
+                // the demotion peephole (word-boundary scan), and the write
+                // keeps its "$0[0] = " shape, so the demotion still applies.
+                fClass->addZone2(subst("$0 \t$1Pre;", ctype, vname));
+                fClass->addPreCode(Statement("", subst("$0Pre = $1;", vname, exp)));
+                fClass->addExecCode(Statement("", subst("$0[0] = $0Pre;", vname)));
+            } else {
+                fClass->addExecCode(Statement(ccs, subst("$0[0] = $1;", vname, exp)));
+            }
             fClass->addPostCode(Statement("", subst("$0[1] = $0[0];", vname)));
             fClass->addZone3Post(subst("$0State = $0[1];", vname));
             return subst("$0[0]", vname);
@@ -6166,9 +6241,9 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fClass->addDeclCode(subst("$0 \t$1[$2]; // Ring Delay", ctype, vname, T(N)));
             fClass->addClearCode(subst("for (int i = 0; i < $1; i++) { $0[i] = 0; }", vname, T(N)));
 
-            // execute
+            // execute (the write index is pure IOTA : always head-safe)
             std::string idx      = subst("IOTA&$0", T(N - 1));
-            std::string cacheidx = generateIotaCache(idx);
+            std::string cacheidx = generateIotaCache(idx, true);
             fClass->addExecCode(Statement(ccs, subst("$0[$1] = $2;", vname, cacheidx, exp)));
             return subst("$0[$1]", vname, cacheidx);
     }
