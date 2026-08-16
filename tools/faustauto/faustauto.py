@@ -35,6 +35,12 @@ CXXFLAGS = os.environ.get("FAUSTAUTO_CXXFLAGS",
 # la nomenclature officielle (MODES.md §7)
 CAND = {
     "fu":  ["-ls-fuse", "-ls-sched", "model"],
+    # ls : l'eclate NU, sans fusion -- le grain fin. Decouvert absent du
+    # jury le 2026-08-16 : sur quantizedChords (20 oscillateurs a table
+    # independants) fu fait 2.1x PIRE que df la ou ls fait 25% MIEUX --
+    # l'oracle de fusion sous-pese la forme des corps. ls est le candidat
+    # des bancs de chaines independantes.
+    "ls":  ["-ls", "-ls-sched", "model"],
     "df":  ["-ss", "0"],
     "al":  ["-ss", "8"],
     "h2":  ["-ss", "9", "-ls-R", "2", "-ls-U", "4"],
@@ -108,9 +114,9 @@ def candidates(sig):
         # cs2 sans porte statique (campagne 2026-08-13) : la couche 2
         # arbitre ; une porte informée par les signatures des gagnants
         # pourra venir après la carte
-        return "fusion-sûre", ["fu", order[0], other, "t4fu", "t1fu", "df", "rp", "cs2", "cs2b",
+        return "fusion-sûre", ["fu", "ls", order[0], other, "t4fu", "t1fu", "df", "rp", "cs2", "cs2b",
                                "fi", "fib", "fifu", "fibfu"] + lazy
-    return "incertain", ["fu", order[0], order[1], "df", "rp", "cs2", "cs2b", "t4", "fi", "fib",
+    return "incertain", ["fu", "ls", order[0], order[1], "df", "rp", "cs2", "cs2b", "t4", "fi", "fib",
                          "fifu", "fibfu"] + lazy
 
 
