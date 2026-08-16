@@ -2504,6 +2504,9 @@ class LoopSplitEmitter {
         std::vector<LSOp>        sops;
         std::map<Tree, int, treeorder>      memo;
         std::map<int, int>       rootOf;  // member -> shadow op index (-1: leaf)
+        // member -> the m ops of its carried history window (see the
+        // register-window pricing in the sigDelay case)
+        std::map<int, std::vector<int>> carriedOps;
         std::set<int>            inSet(members.begin(), members.end());
 
         // a buffer load costs an issue slot (the model's Read): this is what
@@ -2607,18 +2610,34 @@ class LoopSplitEmitter {
                     if (inSet.count(ix) && dmin == 0 && !dvar && rootOf.count(ix)) {
                         return rootOf[ix];
                     }
-                    if (inSet.count(ix) && !dvar && fSN.maxDelayOf(mat[ix]) <= 2) {
-                        // register-class history (mxd <= 2 : the mono /
-                        // single / copy-2 family -- 97% of the corpus
-                        // lines) : inside the fused loop, LLVM promotes
-                        // the loop-carried read to a register -- no load
-                        // at all. The same read ACROSS blocks pays the
-                        // boundary load below : pricing the two sides by
-                        // the line's implementation class is what makes
-                        // small FIR/IIR chains fusible, while a long ring
-                        // stays a load on both sides (the line persists,
-                        // fusion saves nothing there).
-                        return -1;
+                    if (inSet.count(ix) && !dvar &&
+                        fSN.maxDelayOf(mat[ix]) <= gGlobal->gMaxCopyDelay) {
+                        // Carried history window : inside the fused loop a
+                        // short line (copy class, mxd <= mcd) rides in
+                        // registers -- LLVM promotes the loop-carried
+                        // reads -- so a read costs no load. It is not
+                        // free either : the window is m RESIDENT VALUES,
+                        // priced like the live constants, and the
+                        // over-pressure penalty arbitrates -- a body that
+                        // can afford mxd+1 registers fuses, one that
+                        // cannot is refused by its own spill cost (the
+                        // budget question, answered by the model instead
+                        // of a rigid mxd threshold). Across blocks the
+                        // same read pays the boundary load below ; a long
+                        // ring stays a load on both sides (the line
+                        // persists, fusion saves nothing there).
+                        int   m = fSN.maxDelayOf(mat[ix]);
+                        auto& w = carriedOps[ix];
+                        if (w.empty()) {
+                            for (int k = 0; k < m; k++) {
+                                LSOp o;
+                                o.shape = 13;  // carried history value
+                                sops.push_back(o);
+                                w.push_back((int)sops.size() - 1);
+                            }
+                        }
+                        int d = std::min(std::max(dmin, 1), m);
+                        return w[d - 1];
                     }
                     if (dvar && !SuperNodeGraph::isSlow(y)) {
                         return load(t, {sw(y, false)});  // indexed load
