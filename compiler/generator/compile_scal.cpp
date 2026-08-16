@@ -2607,6 +2607,19 @@ class LoopSplitEmitter {
                     if (inSet.count(ix) && dmin == 0 && !dvar && rootOf.count(ix)) {
                         return rootOf[ix];
                     }
+                    if (inSet.count(ix) && !dvar && fSN.maxDelayOf(mat[ix]) <= 2) {
+                        // register-class history (mxd <= 2 : the mono /
+                        // single / copy-2 family -- 97% of the corpus
+                        // lines) : inside the fused loop, LLVM promotes
+                        // the loop-carried read to a register -- no load
+                        // at all. The same read ACROSS blocks pays the
+                        // boundary load below : pricing the two sides by
+                        // the line's implementation class is what makes
+                        // small FIR/IIR chains fusible, while a long ring
+                        // stays a load on both sides (the line persists,
+                        // fusion saves nothing there).
+                        return -1;
+                    }
                     if (dvar && !SuperNodeGraph::isSlow(y)) {
                         return load(t, {sw(y, false)});  // indexed load
                     }
