@@ -164,9 +164,12 @@ five elements : symbols, nodes, smartpointers, trees and lists :
 
 namespace tlib {
 
-/// (Re)initialize the library : fresh hash tables, fresh internal symbols.
-/// Call before first use to start a session. cleanup() already leaves the
-/// library ready for a new session.
+/// FIRST initialization only : fresh hash tables, fresh internal symbols.
+/// Call once before first use. Calling it again without an intervening
+/// cleanup() asserts : it would restart the serial counter and re-intern the
+/// lazy internals over a live population, silently breaking pointer
+/// equality, treeorder and the uniqueness of nil. cleanup() is the one real
+/// reset -- after it, a new init() is legal but not required.
 TLIB_API void init();
 
 /// End a session : delete every Garbageable object created so far (all trees,
