@@ -20,9 +20,24 @@
 // would let a reverb settle to exact zeros and measure nothing), 512-frame
 // blocks, warmup then repetitions, prints the BEST ns/frame (the min is the
 // machine's clean answer, the rest is scheduling noise).
+static int envInt(const char* name, int dflt)
+{
+    const char* v = getenv(name);
+    return v ? atoi(v) : dflt;
+}
+
 int main()
 {
-    const int count = 512, warm = 400, reps = 30, blocks = 200;
+    const int count  = envInt("FLASH_COUNT", 512);
+    const int warm   = envInt("FLASH_WARM", 400);
+    const int reps   = envInt("FLASH_REPS", 30);
+    const int blocks = envInt("FLASH_BLOCKS", 200);
+    // FLASH_SCRUB=<KB> : between two blocks, dirty this much cache -- the
+    // simulated concurrent workload that evicts the DSP state between real
+    // audio callbacks (0 = back-to-back hot blocks). When active, timing
+    // switches to per-block sums so the scrub cost itself stays OUT of the
+    // measurement.
+    const long scrubKB = envInt("FLASH_SCRUB", 0);
 
     mydsp* d = new mydsp();
     d->init(44100);
@@ -48,6 +63,15 @@ int main()
         }
     };
 
+    char*         scrub  = scrubKB ? new char[scrubKB * 1024] : nullptr;
+    unsigned char scrubv = 1;
+    auto          doScrub = [&]() {
+        for (long i = 0; i < scrubKB * 1024; i += 64) {
+            scrub[i] = char(i + scrubv);
+        }
+        scrubv++;
+    };
+
     fill();
     for (int w = 0; w < warm; w++) {
         d->compute(count, in, out);
@@ -56,13 +80,26 @@ int main()
     double best = 1e30;
     for (int r = 0; r < reps; r++) {
         fill();
-        auto t0 = std::chrono::steady_clock::now();
-        for (int b = 0; b < blocks; b++) {
-            d->compute(count, in, out);
+        double ns;
+        if (scrub) {
+            double sum = 0;
+            for (int b = 0; b < blocks; b++) {
+                doScrub();
+                auto t0 = std::chrono::steady_clock::now();
+                d->compute(count, in, out);
+                auto t1 = std::chrono::steady_clock::now();
+                sum += std::chrono::duration<double, std::nano>(t1 - t0).count();
+            }
+            ns = sum / (double(blocks) * double(count));
+        } else {
+            auto t0 = std::chrono::steady_clock::now();
+            for (int b = 0; b < blocks; b++) {
+                d->compute(count, in, out);
+            }
+            auto t1 = std::chrono::steady_clock::now();
+            ns = std::chrono::duration<double, std::nano>(t1 - t0).count() /
+                 (double(blocks) * double(count));
         }
-        auto   t1 = std::chrono::steady_clock::now();
-        double ns = std::chrono::duration<double, std::nano>(t1 - t0).count() /
-                    (double(blocks) * double(count));
         if (ns < best) {
             best = ns;
         }
