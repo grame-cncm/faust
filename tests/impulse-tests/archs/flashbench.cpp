@@ -26,6 +26,32 @@ static int envInt(const char* name, int dflt)
     return v ? atoi(v) : dflt;
 }
 
+// Writes every widget's DECLARED default into its zone. Without this, the
+// control values are whatever the heap held (ocpp assigns defaults only in
+// buildUserInterface) : on programs whose per-sample work depends on a
+// control (oscillator frequencies, enables), the measured cost was the
+// cost of garbage -- observed 48 to 128 ns/frame on quantizedChords from
+// one process to the next.
+struct SetDefaultUI : public GenericUI {
+    void addButton(const char*, FAUSTFLOAT* z) override { *z = 0; }
+    void addCheckButton(const char*, FAUSTFLOAT* z) override { *z = 0; }
+    void addVerticalSlider(const char*, FAUSTFLOAT* z, FAUSTFLOAT init, FAUSTFLOAT, FAUSTFLOAT,
+                           FAUSTFLOAT) override
+    {
+        *z = init;
+    }
+    void addHorizontalSlider(const char*, FAUSTFLOAT* z, FAUSTFLOAT init, FAUSTFLOAT, FAUSTFLOAT,
+                             FAUSTFLOAT) override
+    {
+        *z = init;
+    }
+    void addNumEntry(const char*, FAUSTFLOAT* z, FAUSTFLOAT init, FAUSTFLOAT, FAUSTFLOAT,
+                     FAUSTFLOAT) override
+    {
+        *z = init;
+    }
+};
+
 int main()
 {
     const int count  = envInt("FLASH_COUNT", 512);
@@ -41,6 +67,8 @@ int main()
 
     mydsp* d = new mydsp();
     d->init(44100);
+    SetDefaultUI ui;
+    d->buildUserInterface(&ui);
     int nins  = d->getNumInputs();
     int nouts = d->getNumOutputs();
 

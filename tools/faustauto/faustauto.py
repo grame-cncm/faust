@@ -26,9 +26,22 @@ import time
 
 FAUST = os.environ.get("FAUSTAUTO_FAUST",
                        os.path.join(os.path.dirname(__file__), "../../build/bin/faust"))
-BENCH_HEADER = os.environ.get("FAUSTAUTO_BH", "/usr/local/share/fctool/bencharch_header.cpp")
-BENCH_FOOTER = os.environ.get("FAUSTAUTO_BF", "/usr/local/share/fctool/bencharch_footer.cpp")
-CXX = os.environ.get("FAUSTAUTO_CXX", "clang++")
+# La couche 2 juge au JUGE UNIQUE de la carte (decision du 2026-08-16) :
+# arch flashbench (blocs de 512, entree LCG, min des repetitions), float,
+# -O3 -ffast-math -march=native. L'ancien bencharch (bloc d'1 s, protocole
+# min-stable) divergeait du juge de reference jusqu'a x2.7 sur un meme
+# binaire (quantizedChords) : les elections doivent etre rendues par le
+# juge qui fait foi, pas par un cousin.
+FAUST_ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+FLASH_ARCH = os.path.join(FAUST_ROOT, "tests", "impulse-tests", "archs", "flashbench.cpp")
+ARCH_DIR   = os.path.join(FAUST_ROOT, "architecture")
+ARCHS_DIR  = os.path.join(FAUST_ROOT, "tests", "impulse-tests", "archs")
+FLASH_ENV  = {"FLASH_REPS": "10", "FLASH_BLOCKS": "100", "FLASH_WARM": "120"}
+# Le compilateur C++ fait partie du juge : "clang++" resolvait vers le
+# LLVM MacPorts 22 quand la carte etait jugee par l'Apple clang de
+# /usr/bin/c++ -- x2.6 d'ecart sur quantizedChords, et des builds
+# sensibles au layout. Le juge epingle le binaire, pas un nom.
+CXX = os.environ.get("FAUSTAUTO_CXX", "/usr/bin/c++")
 CXXFLAGS = os.environ.get("FAUSTAUTO_CXXFLAGS",
                           "-O3 -ffast-math -march=native -fbracket-depth=1024").split()
 
@@ -123,25 +136,24 @@ def candidates(sig):
 def compile_candidate(dsp, name, workdir):
     cpp = os.path.join(workdir, f"{name}.cpp")
     env = dict(os.environ, **CAND_ENV.get(name, {}))
-    r = subprocess.run([FAUST, "-lang", "ocpp", *CAND[name], dsp, "-o", cpp],
+    r = subprocess.run([FAUST, "-lang", "ocpp", *CAND[name],
+                        "-a", FLASH_ARCH, "-A", ARCH_DIR, dsp, "-o", cpp],
                        env=env, capture_output=True, text=True)
     if r.returncode != 0 or not os.path.getsize(cpp):
         return None, None
-    wrapped = os.path.join(workdir, f"{name}-b.cpp")
-    with open(wrapped, "w") as out:
-        for part in (BENCH_HEADER, cpp, BENCH_FOOTER):
-            out.write(open(part).read())
     binp = os.path.join(workdir, f"{name}-bin")
-    r = subprocess.run([CXX, *CXXFLAGS, wrapped, "-o", binp], capture_output=True)
+    r = subprocess.run([CXX, *CXXFLAGS, f"-I{ARCH_DIR}", f"-I{ARCHS_DIR}", cpp, "-o", binp],
+                       capture_output=True)
     if r.returncode != 0:
         return cpp, None
     return cpp, binp
 
 
-def run_once(binp, iters):
-    r = subprocess.run([binp, str(iters)], capture_output=True, text=True)
-    m = re.findall(r"([0-9.]+) ms", r.stdout)
-    return float(m[-1]) if m else None
+def run_once(binp, iters=None):
+    r = subprocess.run([binp], env=dict(os.environ, **FLASH_ENV),
+                       capture_output=True, text=True)
+    m = re.match(r"([0-9.]+)", r.stdout)
+    return float(m.group(1)) if m else None
 
 
 def main():
@@ -170,25 +182,22 @@ def main():
     if not built:
         sys.exit("faustauto: aucun candidat construit")
 
-    # bench éclair : sonde, puis tours alternés
-    iters = {}
-    for name, (_, binp) in built.items():
-        t = run_once(binp, 3)
-        iters[name] = max(10, min(3000, int(300 / max(t, 1e-3)))) if t else 10
+    # bench éclair : protocole uniforme du juge (min de 10 répétitions de
+    # 100 blocs de 512), tours alternés
     times = {name: [] for name in built}
     for _ in range(a.rounds):
         for name, (_, binp) in built.items():
-            t = run_once(binp, iters[name])
+            t = run_once(binp)
             if t is not None:
                 times[name].append(t)
     best, score = None, None
     for name in built:
         if times[name]:
             m = min(times[name])
-            print(f"  {name:<4} {m:.4f} ms")
+            print(f"  {name:<4} {m:.4f} ns")
             if score is None or m < score:
                 best, score = name, m
-    print(f"faustauto: gagnant {best} ({score:.4f} ms) — options : "
+    print(f"faustauto: gagnant {best} ({score:.4f} ns/éch.) — options : "
           f"{' '.join(CAND[best])}  [{time.time()-t0:.1f} s]")
     if a.output:
         with open(a.output, "w") as out:
