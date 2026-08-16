@@ -56,6 +56,17 @@ CAND = {
     # fdnRev 12.21). Compile 0.4-10 s chacun : les plus chers du jury.
     "cs2":  ["-ss", "11", "-ls-R", "32", "-ls-U", "4"],
     "cs2b": ["-ss", "12", "-ls-R", "32", "-ls-U", "8"],
+    # rp : le prechargement des lectures d'anneau (df + env) -- les loads
+    # partent en rafale en tete du corps de boucle, mouvement de registre
+    # au slot d'origine. Prouve par compteurs sur freeverb (stalls -43%),
+    # candidat par-programme (zitaRev 1.03 : jamais un defaut).
+    "rp":   ["-ss", "0"],
+}
+
+# les candidats portes par une variable d'environnement plutot que des
+# drapeaux (le compilateur est invoque avec cet environnement en plus)
+CAND_ENV = {
+    "rp": {"FAUST_SS_RINGPRELOAD": "1"},
 }
 
 
@@ -97,16 +108,17 @@ def candidates(sig):
         # cs2 sans porte statique (campagne 2026-08-13) : la couche 2
         # arbitre ; une porte informée par les signatures des gagnants
         # pourra venir après la carte
-        return "fusion-sûre", ["fu", order[0], other, "t4fu", "t1fu", "df", "cs2", "cs2b",
+        return "fusion-sûre", ["fu", order[0], other, "t4fu", "t1fu", "df", "rp", "cs2", "cs2b",
                                "fi", "fib", "fifu", "fibfu"] + lazy
-    return "incertain", ["fu", order[0], order[1], "df", "cs2", "cs2b", "t4", "fi", "fib",
+    return "incertain", ["fu", order[0], order[1], "df", "rp", "cs2", "cs2b", "t4", "fi", "fib",
                          "fifu", "fibfu"] + lazy
 
 
 def compile_candidate(dsp, name, workdir):
     cpp = os.path.join(workdir, f"{name}.cpp")
+    env = dict(os.environ, **CAND_ENV.get(name, {}))
     r = subprocess.run([FAUST, "-lang", "ocpp", *CAND[name], dsp, "-o", cpp],
-                       capture_output=True, text=True)
+                       env=env, capture_output=True, text=True)
     if r.returncode != 0 or not os.path.getsize(cpp):
         return None, None
     wrapped = os.path.join(workdir, f"{name}-b.cpp")
