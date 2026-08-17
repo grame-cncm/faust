@@ -5124,7 +5124,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
             exp.find("Vec") == std::string::npos && exp.find("wr") == std::string::npos;
         if (gGlobal->gLazySelect && getenv("FAUST_LZ_DUP") && fMainCompilePhase &&
             !fHasEnableControl && posInsensitive && !getConditionCode(sig).empty() &&
-            exp.size() <= 2048) {
+            getCertifiedSigType(sig)->variability() == kSamp && exp.size() <= 2048) {
             // memoized as its STRING : built once, inlined at every use
             // site (an unregistered return made every consumer re-derive
             // the subtree -- exponential compile time, dx7 timeout)
@@ -5132,7 +5132,13 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         }
         if (false) {
             // EXPERIMENTAL (FAUST_LZ_DUP, spec a venir) -- path-sensitive
-            // cache. POSITION-SENSITIVITY GUARD : a duplicated string is
+            // cache. SLOW nodes NEVER duplicate : per-sample laziness is
+            // meaningless for them, inlining pulls their once-per-block
+            // computation INTO the loop, and compiling their condition
+            // drags the atom cluster -- per-sample STATE READS -- to
+            // their (early, meaningless) schedule slot, BEFORE the state
+            // updates : the gate_compressor one-sample-late gate.
+            // POSITION-SENSITIVITY GUARD : a duplicated string is
             // re-evaluated at its consumer's slot -- a reference to a
             // MUTABLE scalar (mono/single states Veeec, carried fAdj,
             // rotation wr, delay vecs) would read post-update state (the
