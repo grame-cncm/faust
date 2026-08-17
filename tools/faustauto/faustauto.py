@@ -198,9 +198,13 @@ def main():
             if t is not None:
                 times[name].append(t)
     # RE-COURSE DU PODIUM : min-de-2 est fragile aux pointes, et seule la
-    # tête compte. Les 3 meilleurs regagnent 4 tours alternés ; la
-    # précision va là où elle décide, pour ~15 s de plus.
-    podium = sorted((n for n in built if times[n]), key=lambda n: min(times[n]))[:3]
+    # tête compte. Repêchage LARGE : tout candidat à moins de 2x du
+    # meneur provisoire regagne 4 tours alternés — un vrai vainqueur
+    # pollué d'un facteur 2 (ls sur les filtres : 2.28 mesuré 4.45)
+    # reste repêchable. Plafond 8 pour borner le coût.
+    ranked = sorted((n for n in built if times[n]), key=lambda n: min(times[n]))
+    lead   = min(times[ranked[0]]) if ranked else 0.0
+    podium = [n for n in ranked if min(times[n]) <= 2.0 * lead][:8]
     for _ in range(4):
         for name in podium:
             t = run_once(built[name][1])
