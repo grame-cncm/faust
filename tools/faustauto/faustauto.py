@@ -186,11 +186,24 @@ def main():
         sys.exit("faustauto: aucun candidat construit")
 
     # bench éclair : protocole uniforme du juge (min de 10 répétitions de
-    # 100 blocs de 512), tours alternés
+    # 100 blocs de 512), tours alternés. PAUSE THERMIQUE d'abord : la
+    # phase de compilation (20+ candidats à -O3) chauffe la machine et
+    # polluait le premier tour (leçon co-mesure ; lfBoost V4, highShelf/
+    # lowCut V5 : des ls à 2.28 mesurés 4.45 et perdants).
+    time.sleep(6)
     times = {name: [] for name in built}
     for _ in range(a.rounds):
         for name, (_, binp) in built.items():
             t = run_once(binp)
+            if t is not None:
+                times[name].append(t)
+    # RE-COURSE DU PODIUM : min-de-2 est fragile aux pointes, et seule la
+    # tête compte. Les 3 meilleurs regagnent 4 tours alternés ; la
+    # précision va là où elle décide, pour ~15 s de plus.
+    podium = sorted((n for n in built if times[n]), key=lambda n: min(times[n]))[:3]
+    for _ in range(4):
+        for name in podium:
+            t = run_once(built[name][1])
             if t is not None:
                 times[name].append(t)
     best, score = None, None
