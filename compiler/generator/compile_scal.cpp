@@ -731,9 +731,28 @@ Tree ScalarCompiler::prepare(Tree LS)
     recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
     endTiming("recursivnessAnnotation");
 
+    if (!getenv("FAUST_SS_NODISPLAYBLOCK")) {
+        // spec SIGNAUX-ATTACHES (default since 2026-08-17) : harvest D,
+        // dissolve attach and bargraph decorations from the audio path,
+        // BEFORE typing (the rebuild creates new trees). The env var is
+        // the forensic opt-out for A/B comparisons, not a supported mode.
+        startTiming("display harvest");
+        L2 = harvestDisplay(L2);
+        endTiming("display harvest");
+        // the harvest rebuilds the trees : every annotation the emitters
+        // read must be recomputed on the new world (the lazy-select
+        // extended-roots precedent)
+        recursivnessAnnotation(L2);
+    }
     startTiming("L2 typeAnnotation");
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");
+    if (fDisplayList != nullptr && isList(fDisplayList)) {
+        // the display cones need every annotation the emitters read
+        recursivnessAnnotation(fDisplayList);
+        typeAnnotation(fDisplayList, false);
+        computeDisplayFrontier();
+    }
 
     if (gGlobal->gMinDelay > 0) {
         // semantic delay floor: needs the intervals just computed, rebuilds
@@ -776,6 +795,28 @@ Tree ScalarCompiler::prepare(Tree LS)
     // extended root list (mark() regenerates its property key, a second
     // call would lose the first).
     Tree Lx = L2;
+    for (Tree sd : fDisplayStateful) {
+        // spec SIGNAUX-ATTACHES : S compiles at audio rate -- same
+        // extended-root pattern as the lazy-select condition atoms
+        Lx = cons(sd, Lx);
+    }
+    if (fDisplayList != nullptr) {
+        // the display list itself joins the sharing/occurrence roots :
+        // the marks compile nothing (the schedule does), but the tail
+        // emitter's CS() on slow and constant nodes reads them
+        // (generateNumber consults getMaxDelay -- null without a mark)
+        for (Tree l = fDisplayList; isList(l); l = tl(l)) {
+            Tree path, mn, mx, x;
+            if (isSigVBargraph(hd(l), path, mn, mx, x) ||
+                isSigHBargraph(hd(l), path, mn, mx, x)) {
+                Lx = cons(hd(l), Lx);  // widget items : declaration-only, no marks needed
+            }
+        }
+    }
+    if (!fDisplayStateful.empty() || fDisplayList != nullptr) {
+        recursivnessAnnotation(Lx);
+        typeAnnotation(Lx, false);
+    }
     if (gGlobal->gLazySelect) {
         std::set<Tree, treeorder> atoms;
         for (const auto& pc : fConditionProperty) {
@@ -3746,8 +3787,24 @@ void ScalarCompiler::compileMultiSignal(Tree L)
                   << " regime=" << (locality ? "localite(R2U4)" : "rafales(R16U4)")
                   << std::endl;
     }
-    // force a specific compilation order
-    auto G = immediateGraph(L);
+    // force a specific compilation order. The display-stateful roots (S)
+    // join the graph so they are scheduled and compiled at audio rate
+    // even when the audio path never reads them -- but ONLY the
+    // display-EXCLUSIVE ones : an S node the audio graph already reaches
+    // is scheduled anyway, and rooting it again reorders the scheduler's
+    // seeds, which reshuffles the whole order and the order-sensitive
+    // mono elections with it (flanger : +70% for a bargraph displaying
+    // the very delays the audio uses).
+    Tree Lg = L;
+    if (!fDisplayStateful.empty()) {
+        auto GA = immediateGraph(L);
+        for (Tree sd : fDisplayStateful) {
+            if (GA.nodes().count(sd) == 0) {
+                Lg = cons(sd, Lg);
+            }
+        }
+    }
+    auto G = immediateGraph(Lg);
     if (getenv("FAUST_SS_DOMTREE")) {
         // CSSCHEDULE probe (PILE, spec CSSCHEDULE.md) : the SHAPE of the
         // dominator tree over the pristine immediate DAG decides both the
@@ -3911,7 +3968,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         // the baseline is REBUILT from scratch : digraph copies share their
         // internal graph (shared_ptr), a plain copy would alias the mutated
         // one -- the very bug that made the gauge blind on its first run
-        auto G0   = immediateGraph(L);
+        auto G0   = immediateGraph(Lg);  // the SAME roots as G (display S included)
         auto memf = std::function<bool(const Tree&)>(ocppIsMemNode);
         auto sq1  = squality(G, S.elements(), 8, 4, ocppShapeFunctor(G), memf, 3);
         auto S0   = ocppSchedule(G0);
@@ -4307,6 +4364,10 @@ void ScalarCompiler::compileMultiSignal(Tree L)
             fClass->addExecCode(Statement("", subst("output$0[i] = $2($1);  // Zone Exec Code",
                                                     T(i), generateCacheCode(s, CS(s)), xcast())));
         }
+
+        // spec SIGNAUX-ATTACHES : captures at end of loop body, then the
+        // block-rate display stores (Zone4, once per compute)
+        emitDisplayList();
 
         // schedule-verified scalarization : a [2]-vector whose delayed reads
         // all precede its write in the EMITTED order degrades to a plain
@@ -4908,6 +4969,314 @@ string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min,
 
     // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
+}
+
+//-----------------------------------------------------------------------------------------
+// FAUST_SS_DISPLAYBLOCK (spec SIGNAUX-ATTACHES) : the display list D.
+//
+// Harvest (recursive, one treeRewritePaired pass) : attach(x,y) dissolves
+// into x -- the rebuilt y is walked for its bargraphs and otherwise
+// DROPPED (the elimination rule : a display signal without a bargraph
+// feeds no widget and computes nothing observable) ; every bargraph node
+// dissolves into its pass-through and its REBUILT form joins D. Nested
+// attaches and bargraphs are handled by the rewrite recursion itself :
+// the harvest reaches its fixpoint in one pass.
+//-----------------------------------------------------------------------------------------
+Tree ScalarCompiler::harvestDisplay(Tree L)
+{
+    // Conditioned subtrees keep the LEGACY path : under enable/control the
+    // old bargraph store is conditional -- the widget latches its last
+    // value when the condition is off, and downstream audio reads the
+    // latch. The block-rate transformation would compute always : a
+    // semantic change the impulse suite catches (the enable family).
+    // A pre-scan marks every node under a sigEnable/sigControl body ;
+    // marked attaches and bargraphs are left untouched.
+    std::set<Tree> conditioned;
+    {
+        std::set<Tree>    seen;
+        std::vector<Tree> work{L};
+        bool              under = false;
+        std::function<void(Tree, bool)> scan = [&](Tree t, bool u) {
+            auto it = seen.find(t);
+            if (it != seen.end() && !u) {
+                return;  // already walked unconditioned ; conditioned walk may still need to mark
+            }
+            if (u && conditioned.count(t)) {
+                return;
+            }
+            seen.insert(t);
+            if (u) {
+                conditioned.insert(t);
+            }
+            Tree a, b, var, body;
+            if (isRec(t, var, body)) {
+                if (body != nullptr) {
+                    scan(body, u);
+                }
+                return;
+            }
+            bool cu = u || isSigEnable(t, a, b) || isSigControl(t, a, b);
+            for (int k = 0; k < t->arity(); k++) {
+                scan(t->branch(k), cu);
+            }
+        };
+        scan(L, false);
+    }
+    // An attach dissolves ONLY when its attached cone is fully
+    // harvestable : at least one bargraph (otherwise dropping the cone
+    // would also drop its input widgets from the built interface -- an
+    // observable UI change : the virtualAnalog "gain" slider, a
+    // MIDI-mapped name, exists only through its attach), and none of its
+    // bargraphs conditioned (a conditioned bargraph stays legacy in
+    // place ; dropping the cone would silently lose its widget). Every
+    // other attach stays on the legacy path, widgets declared as before.
+    // bgMask bit 1 : cone holds a harvestable bargraph ; bit 2 : cone
+    // holds a conditioned one.
+    std::map<Tree, char>     bgMemo;
+    std::function<int(Tree)> bgMask = [&](Tree t) -> int {
+        auto it = bgMemo.find(t);
+        if (it != bgMemo.end()) {
+            return (it->second < 0) ? 0 : it->second;  // in-progress : cycles add nothing
+        }
+        bgMemo[t] = -1;
+        Tree p, mn, mx, x, var, body;
+        int  m = 0;
+        if (isSigVBargraph(t, p, mn, mx, x) || isSigHBargraph(t, p, mn, mx, x)) {
+            m |= conditioned.count(t) ? 2 : 1;
+        }
+        if (isRec(t, var, body)) {
+            if (body != nullptr) {
+                m |= bgMask(body);
+            }
+        } else {
+            for (int k = 0; k < t->arity(); k++) {
+                m |= bgMask(t->branch(k));
+            }
+        }
+        bgMemo[t] = (char)m;
+        return m;
+    };
+    std::vector<Tree>                rakes;
+    bool                             changed = false;
+    std::unordered_map<Tree, Tree>   memo;
+    std::function<Tree(Tree, Tree)>  rule = [&](Tree orig, Tree rebuilt) -> Tree {
+        Tree x, y, path, mn, mx, c1, c2;
+        if (isSigButton(orig, path) || isSigCheckbox(orig, path) ||
+            isSigVSlider(orig, path, c1, mn, mx, c2) ||
+            isSigHSlider(orig, path, c1, mn, mx, c2) ||
+            isSigNumEntry(orig, path, c1, mn, mx, c2)) {
+            // UI preservation : every input widget is recorded. A widget
+            // whose cone a dissolving attach drops (the midiTester MIDI
+            // clock checkboxes feed no bargraph) is declared at emission
+            // time -- declaration only, no computation ; widgets the
+            // audio path or a harvested bargraph compiles are skipped
+            // there. Recording is not a change (collected BEFORE the
+            // conditioned cut so conditioned cones lose nothing).
+            rakes.push_back(rebuilt);
+            return rebuilt;
+        }
+        if (conditioned.count(orig)) {
+            return rebuilt;  // legacy path for the enable family
+        }
+        if (isSigAttach(orig, x, y)) {
+            if (bgMask(y) != 1) {
+                return rebuilt;  // not fully harvestable : legacy attach, widgets stay
+            }
+            // audio keeps x ; the rebuilt y was walked (its bargraphs are
+            // already collected) and is dropped here
+            changed = true;
+            return rebuilt->branch(0);
+        }
+        if (isSigVBargraph(orig, path, mn, mx, x) || isSigHBargraph(orig, path, mn, mx, x)) {
+            rakes.push_back(rebuilt);      // the widget store, block-rate
+            changed = true;
+            return rebuilt->branch(3);     // the pass-through stays audio
+        }
+        return rebuilt;
+    };
+    Tree L2 = treeRewritePaired(L, rule, memo);
+    if (!changed) {
+        // nothing harvested : keep the ORIGINAL tree, not the rebuild
+        // (the rewrite is not always pointer-identity on rec-heavy trees,
+        // and a spurious rebuild shifts the schedule by a node -- dx7)
+        return L;
+    }
+    Tree D  = gGlobal->nil;
+    for (auto it = rakes.rbegin(); it != rakes.rend(); ++it) {
+        D = cons(*it, D);
+    }
+    fDisplayList = D;
+    return L2;
+}
+
+// The frontier of D : walking each display cone through branches, stop at
+// (a) sub-sample-rate nodes -- inlined at emission through the normal
+// machinery ; (b) the CAPTURE POINTS -- stateful signals (delayed or
+// recursive : the list S of the spec, also made scheduling roots so they
+// compile at audio rate), inputs, and any construct the block-rate tail
+// emitter does not carry (tables, generators...) : those are computed
+// in-loop and captured at the end of the loop body.
+void ScalarCompiler::computeDisplayFrontier()
+{
+    if (fDisplayList == nullptr || !isList(fDisplayList)) {
+        return;
+    }
+    std::set<Tree>    seenS, seenC, walked;
+    std::vector<Tree> work;
+    for (Tree l = fDisplayList; isList(l); l = tl(l)) {
+        Tree path, mn, mx, x;
+        if (isSigVBargraph(hd(l), path, mn, mx, x) || isSigHBargraph(hd(l), path, mn, mx, x)) {
+            work.push_back(x);
+        }
+    }
+    auto tailCarries = [](Tree t) -> bool {
+        int  op;
+        Tree x, y, sel;
+        return isSigBinOp(t, &op, x, y) || isSigIntCast(t, x) || isSigFloatCast(t, x) ||
+               isSigSelect2(t, sel, x, y) || (getUserData(t) != nullptr && t->arity() > 0);
+    };
+    while (!work.empty()) {
+        Tree t = work.back();
+        work.pop_back();
+        if (!walked.insert(t).second) {
+            continue;
+        }
+        if (getCertifiedSigType(t)->variability() < kSamp) {
+            continue;  // consts and slow : inlined at emission
+        }
+        int  i;
+        Tree x, y, g;
+        bool stateful = isProj(t, &i, g) || isSigDelay(t, x, y) || isSigPrefix(t, x, y);
+        if (stateful) {
+            // the SCHEDULING root is the WRITER under the read : a delayed
+            // read has no immediate edge to its writer, so rooting the
+            // read alone would never compile (nor declare) the line. The
+            // read itself stays the capture point.
+            Tree root = t;
+            Tree dx, dy;
+            while (isSigDelay(root, dx, dy)) {
+                root = dx;
+            }
+            if (seenS.insert(root).second) {
+                fDisplayStateful.push_back(root);
+            }
+            if (seenC.insert(t).second) {
+                fDisplayCapturePoints.push_back(t);
+            }
+            continue;
+        }
+        if (!tailCarries(t)) {
+            // inputs, tables, generators... : computed in-loop, captured
+            if (seenC.insert(t).second) {
+                fDisplayCapturePoints.push_back(t);
+            }
+            continue;
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            work.push_back(t->branch(k));
+        }
+    }
+}
+
+// The block-rate tail : builds the expression string of a display signal
+// from capture variables, slow values (normal machinery) and the
+// stateless operators the frontier walked through.
+std::string ScalarCompiler::displayExpr(Tree t)
+{
+    if (auto it = fDisplayCaptures.find(t); it != fDisplayCaptures.end()) {
+        return it->second;
+    }
+    if (getCertifiedSigType(t)->variability() < kSamp) {
+        return CS(t);  // const or slow : loop-independent by construction
+    }
+    int  op;
+    Tree x, y, sel;
+    if (isSigBinOp(t, &op, x, y)) {
+        return subst("($0 $1 $2)", displayExpr(x), gBinOpTable[op]->fName, displayExpr(y));
+    }
+    if (isSigIntCast(t, x)) {
+        return subst("int(+$0)", displayExpr(x));
+    }
+    if (isSigFloatCast(t, x)) {
+        return subst("$1(+$0)", displayExpr(x), ifloat());
+    }
+    if (isSigSelect2(t, sel, x, y)) {
+        return subst("(($0) ? $1 : $2)", displayExpr(sel), displayExpr(y), displayExpr(x));
+    }
+    if (getUserData(t) != nullptr && t->arity() > 0) {
+        xtendedCodegen*          p = static_cast<xtendedCodegen*>((xtended*)getUserData(t));
+        std::vector<std::string> args;
+        std::vector<Type>        types;
+        for (int k = 0; k < t->arity(); k++) {
+            args.push_back(displayExpr(t->branch(k)));
+            types.push_back(getCertifiedSigType(t->branch(k)));
+        }
+        return p->generateCode(fClass, args, types);
+    }
+    std::stringstream err;
+    err << "ERROR : DISPLAYBLOCK tail cannot carry " << ppsig(t, 32) << "\n";
+    throw faustexception(err.str());
+}
+
+// Emission : the capture stores at the end of the loop body, then one
+// Zone4 store per widget -- the whole display list evaluates once per
+// compute, on the block-final values.
+void ScalarCompiler::emitDisplayList()
+{
+    if (fDisplayList == nullptr || !isList(fDisplayList)) {
+        return;
+    }
+    int k = 0;
+    for (Tree p : fDisplayCapturePoints) {
+        Type        ty    = getCertifiedSigType(p);
+        std::string ctype = (ty->nature() == kInt) ? "int" : ifloat();
+        std::string name  = subst("fDpyCap$0", T(k++));
+        fClass->addZone2(subst("$0 \t$1;", ctype, name));
+        fClass->addExecCode(Statement("", subst("$0 = $1;", name, CS(p))));
+        fDisplayCaptures[p] = name;
+    }
+    for (Tree l = fDisplayList; isList(l); l = tl(l)) {
+        Tree d = hd(l);
+        Tree path, mn, mx, x;
+        if (!isSigVBargraph(d, path, mn, mx, x) && !isSigHBargraph(d, path, mn, mx, x)) {
+            // input widget item : declare it if nothing else will (the UI
+            // must not lose a control), compute nothing. The compiled
+            // expression is registered so a later CS on the same widget
+            // (a slider under a harvested bargraph) reuses the name
+            // instead of re-declaring it.
+            Tree        c, stp;
+            std::string done;
+            if (getCompiledExpression(d, done)) {
+                continue;  // audio (or an earlier item) declared it
+            }
+            std::string vn, init;
+            if (isSigButton(d, path)) {
+                vn   = getFreshID("fbutton");
+                init = "0.0";
+            } else if (isSigCheckbox(d, path)) {
+                vn   = getFreshID("fcheckbox");
+                init = "0.0";
+            } else if (isSigVSlider(d, path, c, mn, mx, stp) ||
+                       isSigHSlider(d, path, c, mn, mx, stp)) {
+                vn   = getFreshID("fslider");
+                init = T(tree2double(c));
+            } else if (isSigNumEntry(d, path, c, mn, mx, stp)) {
+                vn   = getFreshID("fentry");
+                init = T(tree2double(c));
+            } else {
+                continue;
+            }
+            fClass->addDeclCode(subst("$1 \t$0;", vn, xfloat()));
+            fClass->addInitUICode(subst("$0 = $1;", vn, init));
+            fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(vn), d));
+            setCompiledExpression(d, subst("$1($0)", vn, ifloat()));
+            continue;
+        }
+        std::string varname = getFreshID("fbargraph");
+        fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
+        fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), d));
+        fClass->addZone4(subst("$0 = $1;", varname, displayExpr(x)));
+    }
 }
 
 string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)

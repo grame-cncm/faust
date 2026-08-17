@@ -77,6 +77,20 @@ class ScalarCompiler : public Compiler {
     OccMarkup*                         fOccMarkup;
     int                                fMaxIota;
     std::map<std::string, std::string> fIotaCache;
+    // FAUST_SS_DISPLAYBLOCK (spec SIGNAUX-ATTACHES) : bargraph stores and
+    // their stateless tails evaluate ONCE PER BLOCK. fDisplayList holds
+    // the harvested bargraph nodes (D) ; fDisplayStateful their stateful
+    // sub-signals (S, compiled at audio rate as extra roots) ; capture
+    // points map to end-of-loop capture variables read by the block-rate
+    // tail.
+    Tree                                   fDisplayList = nullptr;
+    std::vector<Tree>                      fDisplayStateful;
+    std::vector<Tree>                      fDisplayCapturePoints;
+    std::map<Tree, std::string, treeorder> fDisplayCaptures;
+    Tree        harvestDisplay(Tree L);
+    void        computeDisplayFrontier();
+    std::string displayExpr(Tree t);
+    void        emitDisplayList();
     // iota caches hoisted to the head of the loop body (ring-preload) :
     // only an index whose delay amount is sub-sample-rate may hoist, and
     // only a ring access through a hoisted index may preload
