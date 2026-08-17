@@ -110,6 +110,10 @@ class ScalarCompiler : public Compiler {
         int         d;
         std::string var;  // cached variable of the real read at d
     };
+    bool fHasEnableControl  = false;  // program uses enable/control : the dup
+                                      // inline cache stays off (dying
+                                      // primitives, dcond interactions not
+                                      // worth debugging -- ondemand replaces)
     bool fMainCompilePhase = false;  // true after prepare : the lazy inline
                                      // duplication must never register strings
                                      // built during prepare's condition-atom
@@ -140,6 +144,7 @@ class ScalarCompiler : public Compiler {
     }
 
     virtual void compileMultiSignal(Tree lsig);
+    void         compileMultiSignalAux(Tree lsig);
     virtual void compileSingleSignal(Tree lsig);
 
    protected:

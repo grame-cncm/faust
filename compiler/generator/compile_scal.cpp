@@ -740,8 +740,15 @@ Tree ScalarCompiler::prepare(Tree LS)
         L2 = harvestDisplay(L2);
         endTiming("display harvest");
         // the harvest rebuilds the trees : every annotation the emitters
-        // read must be recomputed on the new world (the lazy-select
-        // extended-roots precedent)
+        // read must be recomputed on the new world -- INCLUDING the
+        // condition property, CLEARED first : conditionAnnotation MERGES
+        // (_OR_), so a plain re-run keeps the stale atoms alive. Stale
+        // atoms reference the pre-harvest trees : their cones are not in
+        // the schedule, and their delayed reads name writers nobody ever
+        // compiles (the gate_compressor phantom -- a second, undeclared
+        // copy of the whole gate machinery).
+        fConditionProperty.clear();
+        conditionAnnotation(L2);
         recursivnessAnnotation(L2);
     }
     startTiming("L2 typeAnnotation");
@@ -1201,12 +1208,15 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
             }
             cc = tl(cc);
         }
-        // limit 8 : the deep sides of a 7-note quantizer cascade sit at
-        // 5-7 atoms and carry the expensive cones (measured : the same
-        // program at limit 4 guards crumbs and loses, at 8 it beats the
-        // vectorized backend on the isolated group). Beyond 8 the DNF
-        // growth costs more than it saves (dx7's 32 algorithms).
-        if (n > 8) {
+        // limit 4, and it is a CLIFF, not a dial : at 8 the DNF growth
+        // on dx7's 32-algorithm cascade is combinatorial (compiler
+        // crash, stack exhausted beyond 2 GB) ; at 4 with the fine
+        // table-read boundary below, the quantizer family keeps 95% of
+        // its lazy win (63.3 vs 60.0 ns isolated -- the boundary was
+        // the big lock, not the depth). FAUST_LZ_ATOMS overrides for
+        // experiments.
+        int lzlim = getenv("FAUST_LZ_ATOMS") ? atoi(getenv("FAUST_LZ_ATOMS")) : 4;
+        if (n > lzlim) {
             nc = gGlobal->nil;
         }
     }
@@ -3754,6 +3764,36 @@ static int ocppTightRecMII(Tree L)
 
 void ScalarCompiler::compileMultiSignal(Tree L)
 {
+    if (gGlobal->gLazySelect) {
+        // the guarded (conditional) region is NOT pre-compiled by the
+        // scheduler : it compiles in ONE recursive plunge at the first
+        // guarded statement. With deep conditions kept (atom limit 8)
+        // and table-index cones conditional, dx7's cascade overflows any
+        // ordinary stack -- same remedy as the reveal section : a thread
+        // with a 2 GB stack. Lazy-select only, the default path is
+        // untouched.
+        std::function<void()> body = [&]() { compileMultiSignalAux(L); };
+        pthread_attr_t        attr;
+        pthread_attr_init(&attr);
+        pthread_attr_setstacksize(&attr, size_t(2048) << 20);
+        pthread_t th;
+        auto      trampoline = [](void* p) -> void* {
+            (*static_cast<std::function<void()>*>(p))();
+            return nullptr;
+        };
+        if (pthread_create(&th, &attr, trampoline, &body) == 0) {
+            pthread_join(th, nullptr);
+        } else {
+            compileMultiSignalAux(L);  // fallback : main stack
+        }
+        pthread_attr_destroy(&attr);
+        return;
+    }
+    compileMultiSignalAux(L);
+}
+
+void ScalarCompiler::compileMultiSignalAux(Tree L)
+{
     // contextor recursivness(0);
     L = prepare(L);  // optimize, share and annotate expression
     censusAdjacentReads(L);
@@ -4900,8 +4940,12 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         }
 
     } else if ((sharing > 1) || (o->hasMultiOccurrences())) {
+        bool posInsensitive =
+            exp.find("Veeec") == std::string::npos && exp.find("fAdj") == std::string::npos &&
+            exp.find("Vec") == std::string::npos && exp.find("wr") == std::string::npos;
         if (gGlobal->gLazySelect && getenv("FAUST_LZ_DUP") && fMainCompilePhase &&
-            !getConditionCode(sig).empty() && exp.size() <= 2048) {
+            !fHasEnableControl && posInsensitive && !getConditionCode(sig).empty() &&
+            exp.size() <= 2048) {
             // memoized as its STRING : built once, inlined at every use
             // site (an unregistered return made every consumer re-derive
             // the subtree -- exponential compile time, dx7 timeout)
@@ -4909,7 +4953,13 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         }
         if (false) {
             // EXPERIMENTAL (FAUST_LZ_DUP, spec a venir) -- path-sensitive
-            // cache : every use of this node lives under
+            // cache. POSITION-SENSITIVITY GUARD : a duplicated string is
+            // re-evaluated at its consumer's slot -- a reference to a
+            // MUTABLE scalar (mono/single states Veeec, carried fAdj,
+            // rotation wr, delay vecs) would read post-update state (the
+            // scheduled-position-vs-emission-site lesson, 49f4be216).
+            // Only pure references (fTemp, fSlow, tables) may duplicate.
+            // path-sensitive cache : every use of this node lives under
             // the same select-side condition. A store would hoist it OUT
             // of the ternary and make it strict -- the very leak that
             // kept seven cubic blends computed per sample where one is
@@ -6130,6 +6180,9 @@ void ScalarCompiler::censusAdjacentReads(Tree L)
         int  d;
         if (isSigDelay(t, x, y) && isSigInt(y, &d) && d >= 1 && getConditionCode(t).empty()) {
             fAdjDelaySets[x].insert(d);
+        }
+        if (isSigEnable(t, x, y) || isSigControl(t, x, y)) {
+            fHasEnableControl = true;
         }
         if (isRec(t, var, body)) {
             // recursive groups do not expose their definitions through
