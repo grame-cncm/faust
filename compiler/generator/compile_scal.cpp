@@ -1887,12 +1887,41 @@ class LoopSplitEmitter {
     // read by emitLoop, cleared between blocks.
     std::set<std::pair<int, int>> fCurReadStreams;
     std::set<int>                 fCurWriteStreams;
+    // rotation locals for SELF-history reads (grain fin, lfBoost autopsy) :
+    // materialized index -> max delay read this loop. A delayed read of the
+    // current block's own short history through the slice buffer loads
+    // slots ADJACENT to the store -- SLP bait : clang packs them into a
+    // 2-lane reduction whose cross-lane add and shuffle ride the serial
+    // chain (x1.6 on lfBoost against the same filter one sign away).
+    // Rotating locals reproduce the classic idiom -- the state lives in
+    // registers -- while the buffer store remains for the tails.
+    std::map<int, int> fCurRotDepth;
 
     Operand refOperand(int idx, const std::string& dcode, bool maybeInstant, int curScc)
     {
         Operand o;
         if (maybeInstant && fSN.blockOf(idx) == curScc && fAliasIx[idx] < 0) {
             return fRootOf.at(idx);
+        }
+        {
+            // a self-history read may arrive DIRECT (constant dcode) or as
+            // an ALIASED TAP (the materialized read redirecting into its
+            // producer's history) : resolve to the host and its delay
+            int host = (fAliasIx[idx] >= 0) ? fAliasIx[idx] : idx;
+            int dR   = -1;
+            if (fAliasIx[idx] >= 0) {
+                dR = fAliasD[idx];
+            } else if (!dcode.empty() &&
+                       dcode.find_first_not_of("0123456789") == std::string::npos) {
+                dR = atoi(dcode.c_str());
+            }
+            if (curScc >= 0 && dR >= 1 && fSN.blockOf(host) == curScc && !fRing[host] &&
+                fMaxD[host] > 0 && fMaxD[host] <= gGlobal->gMaxCopyDelay) {
+                int& dep = fCurRotDepth[host];
+                dep      = std::max(dep, dR);
+                o.code   = subst("wr$0d$1", T(host), T(dR));
+                return o;  // register-resident history, no memory stream
+            }
         }
         o.code = accessCode(idx, dcode);
         {
@@ -3513,6 +3542,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         fOpOf.clear();  // tls temporaries are loop-scoped
         fCurReadStreams.clear();
         fCurWriteStreams.clear();
+        fCurRotDepth.clear();
         for (int m : fSN.blockMembers(b)) {
             if (fAliasIx[m] >= 0) {
                 continue;  // aliased tap: no body, no store -- reads redirect
@@ -3540,6 +3570,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             fOpOf.clear();
             fCurReadStreams.clear();
             fCurWriteStreams.clear();
+            fCurRotDepth.clear();
             fCurWriteStreams.insert(-2000 - i);  // the output channel
             Operand root = walk(hd(l1), -1, false);
             std::vector<int> deps;
@@ -3608,6 +3639,15 @@ void LoopSplitEmitter::emitLoop(std::ostringstream& out, int lo, int hi)
     if (overR > 0) {
         out << ", over-pressure " << overR << " (spill risk)";
     }
+    for (const auto& rot : fCurRotDepth) {
+        // seam init : local d holds the value stored d iterations before
+        // i == 0, i.e. the buffer's carried history at h - d
+        for (int d = 1; d <= rot.second; d++) {
+            out << "\n\t\t\t" << (fIsInt[rot.first] ? "int" : ifloat()) << " wr" << rot.first
+                << "d" << d << " = " << fBufName[rot.first] << "[" << (fMaxD[rot.first] - d)
+                << "];";
+        }
+    }
     out << "\n\t\t\tfor (int i=0; i<count; i++) {";
     for (int k : order) {
         const LSOp& op = fOps[k];
@@ -3616,6 +3656,22 @@ void LoopSplitEmitter::emitLoop(std::ostringstream& out, int lo, int hi)
             out << op.code;
         } else {
             out << (op.isInt ? "int" : ifloat()) << " tls" << k << " = " << op.code << ";";
+        }
+    }
+    for (const auto& rot : fCurRotDepth) {
+        // rotate LAST : during the body every local still holds the
+        // previous iteration's chain, whatever order the scheduler chose
+        for (int d = rot.second; d >= 2; d--) {
+            out << "\n\t\t\t\twr" << rot.first << "d" << d << " = wr" << rot.first << "d"
+                << (d - 1) << ";";
+        }
+        const Operand& r = fRootOf.at(rot.first);
+        if (r.op >= 0) {
+            out << "\n\t\t\t\twr" << rot.first << "d1 = tls" << r.op << ";";
+        } else {
+            // root inlined as pure code : read the freshly stored slot back
+            out << "\n\t\t\t\twr" << rot.first << "d1 = " << fBufName[rot.first] << "["
+                << fMaxD[rot.first] << "+i];";
         }
     }
     out << "\n\t\t\t}\n\t\t\t";
