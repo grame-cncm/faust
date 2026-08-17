@@ -110,6 +110,10 @@ class ScalarCompiler : public Compiler {
         int         d;
         std::string var;  // cached variable of the real read at d
     };
+    bool fMainCompilePhase = false;  // true after prepare : the lazy inline
+                                     // duplication must never register strings
+                                     // built during prepare's condition-atom
+                                     // compilation (names not yet final)
     std::map<Tree, std::set<int>, treeorder> fAdjDelaySets;
     std::vector<AdjHigh>                     fAdjHighs;
     std::vector<AdjLow>                      fAdjLows;

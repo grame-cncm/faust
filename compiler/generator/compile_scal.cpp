@@ -3748,6 +3748,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     // contextor recursivness(0);
     L = prepare(L);  // optimize, share and annotate expression
     censusAdjacentReads(L);
+    fMainCompilePhase = true;
 
     for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = &input[$0][index]; // Zone 3", T(i), xfloat()));
@@ -4890,6 +4891,30 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         }
 
     } else if ((sharing > 1) || (o->hasMultiOccurrences())) {
+        if (gGlobal->gLazySelect && getenv("FAUST_LZ_DUP") && fMainCompilePhase &&
+            !getConditionCode(sig).empty() && exp.size() <= 2048) {
+            // memoized as its STRING : built once, inlined at every use
+            // site (an unregistered return made every consumer re-derive
+            // the subtree -- exponential compile time, dx7 timeout)
+            return setCompiledExpression(sig, exp);
+        }
+        if (false) {
+            // EXPERIMENTAL (FAUST_LZ_DUP, spec a venir) -- path-sensitive
+            // cache : every use of this node lives under
+            // the same select-side condition. A store would hoist it OUT
+            // of the ternary and make it strict -- the very leak that
+            // kept seven cubic blends computed per sample where one is
+            // taken. Kept INLINE (textually duplicated), it stays inside
+            // the ternary : clang evaluates the taken branch only and
+            // re-factorizes the duplicates within it (quantizedChords
+            // 91.3 -> 49.5 ns, code SMALLER, bit-exact ; the inline form
+            // even beats the guarded-statement form 49.5 vs 86.8 -- the
+            // mega-ternary is its own schedule). The cap is on the FINAL
+            // STRING : nested duplications compound multiplicatively (a
+            // 64-op cap per node let dx7's 32 algorithm sides explode to
+            // a compiler crash) -- string size bounds the composition.
+            return exp;
+        }
         return generateVariableStore(sig, exp);
 
     } else if (sharing == 1) {
