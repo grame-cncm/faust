@@ -3729,6 +3729,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
 {
     // contextor recursivness(0);
     L = prepare(L);  // optimize, share and annotate expression
+    censusAdjacentReads(L);
 
     for (int i = 0; i < fClass->inputs(); i++) {
         fClass->addZone3(subst("$1* input$0 = &input[$0][index]; // Zone 3", T(i), xfloat()));
@@ -4467,6 +4468,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         // spec SIGNAUX-ATTACHES : captures at end of loop body, then the
         // block-rate display stores (Zone4, once per compute)
         emitDisplayList();
+        emitAdjacentUpdates();
 
         // schedule-verified scalarization : a [2]-vector whose delayed reads
         // all precede its write in the EMITTED order degrades to a plain
@@ -6060,6 +6062,92 @@ string ScalarCompiler::generateXtended(Tree sig)
  * Raw access to a delayed signal with a string index -- used by the FIR
  * accumulation loop. No caching : the index may be the loop variable.
  */
+/**
+ * Adjacent-pair collapse, census side (spec PAIRE-ADJACENTE) : record every
+ * CONSTANT, UNCONDITIONAL read delay per delayed signal. Pairs (d-1, d)
+ * found here turn the d read into a carried scalar at emission time.
+ */
+void ScalarCompiler::censusAdjacentReads(Tree L)
+{
+    std::set<Tree>            seen;
+    std::function<void(Tree)> walkT = [&](Tree t) {
+        if (!seen.insert(t).second) {
+            return;
+        }
+        Tree x, y, var, body;
+        int  d;
+        if (isSigDelay(t, x, y) && isSigInt(y, &d) && d >= 1 && getConditionCode(t).empty()) {
+            fAdjDelaySets[x].insert(d);
+        }
+        if (isRec(t, var, body)) {
+            // recursive groups do not expose their definitions through
+            // arity() -- the cycle ; every walker descends explicitly
+            if (body != nullptr) {
+                walkT(body);
+            }
+            return;
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            walkT(t->branch(k));
+        }
+    };
+    walkT(L);
+}
+
+/**
+ * Adjacent-pair collapse, refresh side : at the end of every loop body the
+ * carried scalars shift, HIGHEST delay first (a chain d+2, d+1 must move
+ * before its source is overwritten). Runs after the whole schedule
+ * compiled, so every source variable exists ; iteration follows CREATION
+ * order (the schedule's), never a pointer-keyed map -- determinism.
+ * The IOTA increment is itself an earlier post statement, so the memory
+ * fallback reads at d, not d-1 (the index has already advanced).
+ */
+void ScalarCompiler::emitAdjacentUpdates()
+{
+    std::vector<Tree> exps;
+    for (const auto& h : fAdjHighs) {
+        if (std::find(exps.begin(), exps.end(), h.exp) == exps.end()) {
+            exps.push_back(h.exp);
+        }
+    }
+    for (Tree e : exps) {
+        std::vector<const AdjHigh*> hs;
+        for (const auto& h : fAdjHighs) {
+            if (h.exp == e) {
+                hs.push_back(&h);
+            }
+        }
+        std::sort(hs.begin(), hs.end(),
+                  [](const AdjHigh* a, const AdjHigh* b) { return a->d > b->d; });
+        for (const AdjHigh* h : hs) {
+            std::string src;
+            for (const auto& hh : fAdjHighs) {
+                if (hh.exp == e && hh.d == h->d - 1) {
+                    src = hh.name;
+                }
+            }
+            if (src.empty()) {
+                for (const auto& lo : fAdjLows) {
+                    if (lo.exp == e && lo.d == h->d - 1) {
+                        src = lo.var;
+                    }
+                }
+            }
+            if (src.empty()) {
+                // safety net : re-read from memory, post-increment index
+                std::string vecname;
+                if (!getVectorNameProperty(e, vecname)) {
+                    continue;
+                }
+                int N = pow2limit(fOccMarkup->retrieve(e)->getMaxDelay() + 1);
+                src   = subst("$0[(IOTA-$1)&$2]", vecname, T(h->d), T(N - 1));
+            }
+            fClass->addPostCode(Statement("", subst("$0 = $1;", h->name, src)));
+        }
+    }
+}
+
 string ScalarCompiler::generateDelayAccessRaw(Tree sig, Tree exp, const string& delayidx)
 {
     std::string ctype, pname;
@@ -6489,12 +6577,43 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
             break;
 
         case DelayType::kMaskRingDelay:
-        case DelayType::kSelectRingDelay:
-            int         N   = pow2limit(mxd + 1);
+        case DelayType::kSelectRingDelay: {
+            int N  = pow2limit(mxd + 1);
+            int dc = 0;
+            // adjacent-pair collapse (spec PAIRE-ADJACENTE) : ring@d when
+            // ring@(d-1) is also read. The value at d THIS iteration is
+            // the value the d-1 read produced ONE iteration earlier --
+            // same cell, same bits. Seeded from memory at the tile head,
+            // refreshed at the end of every loop body.
+            bool cst = isSigInt(delay, &dc);
+            auto has = [&](int d) {
+                auto it = fAdjDelaySets.find(exp);
+                return it != fAdjDelaySets.end() && it->second.count(d) > 0;
+            };
+            if (cst && dc >= 1 && getConditionCode(sig).empty() && has(dc) && has(dc - 1)) {
+                std::string aname = getFreshID("fAdj");
+                fClass->addZone2(subst("$1 \t$0;", aname, ctype));
+                fClass->addZone3(
+                    subst("$0 = $1[(IOTA-$2)&$3];", aname, vecname, T(dc), T(N - 1)));
+                fAdjHighs.push_back({exp, dc, aname});
+                result = aname;
+                break;
+            }
             std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
             bool headSafe   = getCertifiedSigType(delay)->variability() < kSamp;
             result          = subst("$0[$1]", vecname, generateIotaCache(idx, headSafe));
+            if (cst && getConditionCode(sig).empty() && has(dc + 1)) {
+                // the LOW of a pair : the carried scalar one delay above
+                // refreshes from whatever this read compiles to -- the
+                // ORACLE path (no forced cache, zero churn) ; a raw access
+                // string stays valid in the post zone, its vIota body
+                // local is still in scope and pre-increment
+                std::string v = generateCacheCode(sig, result);
+                fAdjLows.push_back({exp, dc, v});
+                return v;
+            }
             break;
+        }
     }
     return generateCacheCode(sig, result);
 

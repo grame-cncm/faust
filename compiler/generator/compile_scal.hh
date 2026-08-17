@@ -96,6 +96,25 @@ class ScalarCompiler : public Compiler {
     // only an index whose delay amount is sub-sample-rate may hoist, and
     // only a ring access through a hoisted index may preload
     std::set<std::string> fIotaHeadNames;
+    // adjacent-pair collapse (spec PAIRE-ADJACENTE) : a ring read at d,
+    // when the same ring is also read at d-1, carries the previous
+    // iteration's d-1 value in a scalar instead of loading -- the same
+    // cell, the same bits (the damp+tap pattern of every damped comb).
+    struct AdjHigh {
+        Tree        exp;   // the delayed writer
+        int         d;     // the collapsed delay
+        std::string name;  // the carried scalar
+    };
+    struct AdjLow {
+        Tree        exp;
+        int         d;
+        std::string var;  // cached variable of the real read at d
+    };
+    std::map<Tree, std::set<int>, treeorder> fAdjDelaySets;
+    std::vector<AdjHigh>                     fAdjHighs;
+    std::vector<AdjLow>                      fAdjLows;
+    void censusAdjacentReads(Tree L);
+    void emitAdjacentUpdates();
     std::map<Tree, int, treeorder>                fScheduleOrder;
     // -fir bridge : recognized FIR kernels, keyed by their SOURCE tree
     // (the signal whose delay line the kernel reads). value = (read span
