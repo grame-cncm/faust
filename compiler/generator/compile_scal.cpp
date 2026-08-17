@@ -3438,8 +3438,17 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                 }
             }
         }
+        // stream term : a monobloc that interleaves MANY output/input
+        // streams in one loop defeats the prefetcher and the store
+        // buffer even with ZERO compute ops (UITester : 30 constant
+        // splats + 6 passthroughs, 9.9 ns monobloc against 2.2 split --
+        // below -vec's 3.4). One stream at a time streams perfectly ;
+        // the split-emission loops are exactly that. Threshold 8 : a
+        // stereo program stays monobloc, the M-series prefetcher
+        // tracks ~8 streams.
+        bool manyStreams = (nouts + fC->fClass->inputs()) > 8;
         if (fSN.blockCount() <= 1 && overR == 0 && peak < gGlobal->gLSRegisters && !hasCall &&
-            shortD && tailGain <= 0) {
+            shortD && tailGain <= 0 && !manyStreams) {
             throw LoopSplitUnsupported("single super-node within the register budget", true);
         }
     }
