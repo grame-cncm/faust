@@ -1724,6 +1724,14 @@ class LoopSplitEmitter {
             return;
         }
         if (isProj(t, &i, w)) {
+            Occurrences* o = fC->fOccMarkup ? fC->fOccMarkup->retrieve(t) : nullptr;
+            if (o && o->getMaxDelay() == 0) {
+                // zero-delay recursion (a feedback the rewriting reduced to
+                // nothing, echo_bug) : the classic emitter has a dedicated
+                // idiom (a plain local), the -ls emission would reference
+                // its name across worlds -- route the whole program back
+                throw LoopSplitUnsupported("zero-delay recursive projection");
+            }
             prescan(defOf(t), seen);
             return;
         }
@@ -3348,8 +3356,43 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                       << gGlobal->gLSRegisters << ", overR " << overR << ", calls "
                       << hasCall << ", short delays " << shortD << std::endl;
         }
+        // grain fin (spec GRAIN-FIN.md) : a single super-node may still be
+        // worth splitting when the OUTPUT TAILS it feeds carry real work.
+        // Emitted as separate loops they are stateless -- no carried
+        // dependency -- and auto-vectorize (the vec mechanism : the four
+        // shelving filters at 1.46, kernel+tail split measured at vec
+        // parity). The scalar shadow cannot price SIMD, so the tail term
+        // is explicit : serial ops saved, minus the vectorized cost at
+        // width 4, minus a per-loop tax (buffer round-trip, loop
+        // overhead). Split as soon as the sum gains.
+        long tailGain = 0;
+        if (fSN.blockCount() <= 1) {
+            std::function<long(Tree, std::set<Tree>&)> tailOps = [&](Tree t,
+                                                                     std::set<Tree>& seen) -> long {
+                if (seen.count(t)) {
+                    return 0;  // shared sub-expression : counted once
+                }
+                seen.insert(t);
+                int itmp;
+                if (isNum(t) || isSlow(t) || isSigInput(t, &itmp) || fSN.indexOf(t) >= 0) {
+                    return 0;  // buffer read, constant or slow : not tail work
+                }
+                long n = 1;
+                for (int k = 0; k < t->arity(); k++) {
+                    n += tailOps(t->branch(k), seen);
+                }
+                return n;
+            };
+            for (Tree l = L; isList(l); l = tl(l)) {
+                std::set<Tree> seen;
+                long           ops = tailOps(hd(l), seen);
+                if (ops >= 2) {
+                    tailGain += ops - (ops + 3) / 4 - 2;  // saved - simd cost - tax
+                }
+            }
+        }
         if (fSN.blockCount() <= 1 && overR == 0 && peak < gGlobal->gLSRegisters && !hasCall &&
-            shortD) {
+            shortD && tailGain <= 0) {
             throw LoopSplitUnsupported("single super-node within the register budget", true);
         }
     }
