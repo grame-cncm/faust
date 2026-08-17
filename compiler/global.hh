@@ -306,6 +306,9 @@ struct global {
                           // single-definition recursive groups (off-path terms first and flat,
                           // state-dependent terms joined last -- minimal recurrence chain)
     bool gLazySelect;     // -lazyselect option : select2 branches generate per-node conditions
+    bool gGateEquiv;      // -gatequiv : canonical form of the gated signal -- c*y and
+                          // select2(c,0,y) are two spellings of one object, the exclusive
+                          // stateless crown weight picks the form (spec LA-PAIRE-CANONIQUE)
                           // (stopped at state boundaries), so the emitter's guarded statements
                           // skip the STATELESS crowns of unselected branches -- the stateful
                           // parts keep Faust's strict semantics (state ticks unconditionally)

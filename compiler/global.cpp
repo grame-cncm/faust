@@ -442,6 +442,7 @@ void global::reset()
     gTempOps        = 0;
     gReassoc        = false;
     gLazySelect     = false;
+    gGateEquiv      = false;
     gEtaIterations  = 1;
     gCanonicalOrder = false;
     gLoopSplit      = false;
@@ -816,6 +817,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gReassoc) {
         dst << "-reassoc ";
+    }
+    if (gGateEquiv) {
+        dst << "-gatequiv ";
     }
     if (gLazySelect) {
         dst << "-lazyselect ";
@@ -1620,6 +1624,9 @@ bool global::processCmdline(int argc, const char* argv[])
             gReassoc = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-gatequiv", "--gate-equivalence")) {
+            gGateEquiv = true;
+            i += 1;
         } else if (isCmd(argv[i], "-lazyselect", "--lazy-select")) {
             gLazySelect = true;
             i += 1;

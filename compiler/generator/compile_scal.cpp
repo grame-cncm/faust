@@ -509,6 +509,160 @@ static Tree applyDelayFloor(Tree L, int K)
  prepare
  *****************************************************************************/
 
+static bool isConditionBoundary(Tree t);  // defined with the lazy-select machinery below
+
+/**
+ * -gatequiv (spec LA-PAIRE-CANONIQUE) : c*y (c boolean) and
+ * select2(c,0,y) are two SPELLINGS of the gated signal -- worth y when
+ * c, 0 otherwise. What is compiled is the meaning, not the spelling :
+ * the weight of the EXCLUSIVE STATELESS CROWN of y picks the form. Fat
+ * crown (> tau) : the select2 spelling, whose sides the lazy emission
+ * may guard. Thin crown : the multiplicative spelling -- branch-free,
+ * it melts into the arithmetic stream and vectorizes. One shared tau :
+ * confluence, no ping-pong, one pass.
+ */
+static bool gatequivBool(Tree c)
+{
+    int  op, i;
+    Tree x, y;
+    if (isSigBinOp(c, &op, x, y)) {
+        if (isBoolOpcode(op)) {
+            return true;  // comparisons are 0/1 by construction
+        }
+        if (op == kAND || op == kOR) {
+            return gatequivBool(x) && gatequivBool(y);
+        }
+        return false;
+    }
+    if (isSigIntCast(c, x) || isSigFloatCast(c, x)) {
+        // casts preserve 0/1 -- the multiplicative spelling wraps its
+        // boolean in a float cast (float(check == 0))
+        return gatequivBool(x);
+    }
+    if (isSigInt(c, &i)) {
+        return i == 0 || i == 1;
+    }
+    return false;
+}
+
+static Tree gatequivNormalize(Tree L)
+{
+    // consumer lists over the whole program (rec bodies descended
+    // explicitly -- letrec does not expose its definitions through
+    // arity, the census lesson)
+    std::map<Tree, std::vector<Tree>> consumers;
+    {
+        std::set<Tree>            seen;
+        std::function<void(Tree)> walk = [&](Tree t) {
+            if (!seen.insert(t).second) {
+                return;
+            }
+            Tree var, body;
+            if (isRec(t, var, body)) {
+                if (body != nullptr) {
+                    consumers[body].push_back(t);
+                    walk(body);
+                }
+                return;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                consumers[t->branch(k)].push_back(t);
+                walk(t->branch(k));
+            }
+        };
+        walk(L);
+    }
+
+    // exclusive stateless crown of y under the gating site : stop at the
+    // state frontier (states beat always -- an unheard echo still ages) ;
+    // a static table READ is pure, count it and descend its index only ;
+    // then the exclusivity fixpoint drops every node some OUTSIDE
+    // consumer also needs (it computes anyway, the gate saves nothing).
+    auto crownWeight = [&](Tree y, Tree site) -> int {
+        std::set<Tree>            cone;
+        std::function<void(Tree)> collect = [&](Tree t) {
+            if (cone.count(t)) {
+                return;
+            }
+            Tree tb, ix;
+            if (isSigRDTbl(t, tb, ix)) {
+                cone.insert(t);
+                collect(ix);
+                return;
+            }
+            if (isConditionBoundary(t)) {
+                return;
+            }
+            cone.insert(t);
+            for (int k = 0; k < t->arity(); k++) {
+                collect(t->branch(k));
+            }
+        };
+        collect(y);
+        bool moved = true;
+        while (moved) {
+            moved = false;
+            std::vector<Tree> out;
+            for (Tree t : cone) {
+                if (t == y) {
+                    continue;  // the root answers to the gating site alone
+                }
+                for (Tree pc : consumers[t]) {
+                    if (pc != site && cone.count(pc) == 0) {
+                        out.push_back(t);
+                        break;
+                    }
+                }
+            }
+            for (Tree t : out) {
+                cone.erase(t);
+                moved = true;
+            }
+        }
+        int w = 0;
+        for (Tree t : cone) {
+            int  op2;
+            Tree a2, b2, s2, tb2, ix2;
+            if (isSigBinOp(t, &op2, a2, b2) || isSigIntCast(t, a2) || isSigFloatCast(t, a2) ||
+                isSigBitCast(t, a2) || isSigSelect2(t, s2, a2, b2) || isSigRDTbl(t, tb2, ix2) ||
+                (getUserData(t) != nullptr && t->arity() > 0)) {
+                w++;
+            }
+        }
+        return w;
+    };
+
+    const int tau = getenv("FAUST_GATEQUIV_TAU") ? atoi(getenv("FAUST_GATEQUIV_TAU")) : 12;
+
+    std::unordered_map<Tree, Tree>  memo;
+    std::function<Tree(Tree, Tree)> rule = [&](Tree orig, Tree rebuilt) -> Tree {
+        int    op, iz;
+        double rz;
+        Tree   a, b, sel, x, y;
+        if (isSigBinOp(orig, &op, a, b) && op == kMul) {
+            int  op2;
+            Tree ra, rb;
+            isSigBinOp(rebuilt, &op2, ra, rb);
+            if (gatequivBool(a) && crownWeight(b, orig) > tau) {
+                return sigSelect2(ra, sigInt(0), rb);
+            }
+            if (gatequivBool(b) && crownWeight(a, orig) > tau) {
+                return sigSelect2(rb, sigInt(0), ra);
+            }
+        }
+        if (isSigSelect2(orig, sel, x, y)) {
+            bool zeroFalse = (isSigInt(x, &iz) && iz == 0) || (isSigReal(x, &rz) && rz == 0.0);
+            if (zeroFalse && gatequivBool(sel) && crownWeight(y, orig) <= tau) {
+                Tree rs, rx, ry;
+                isSigSelect2(rebuilt, rs, rx, ry);
+                return sigBinOp(kMul, rs, ry);
+            }
+        }
+        return rebuilt;
+    };
+    return treeRewritePaired(L, rule, memo);
+}
+
 Tree ScalarCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
@@ -529,6 +683,31 @@ Tree ScalarCompiler::prepare(Tree LS)
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);
 
+    if (gGlobal->gGateEquiv) {
+        // spec LA-PAIRE-CANONIQUE : the canonical form of the gated
+        // signal, by exclusive stateless crown weight. Own big-stack
+        // thread : the crown and consumer walks are as deep as the
+        // signal graph.
+        std::function<void()> gq = [&]() {
+            startTiming("gatequiv");
+            L2 = gatequivNormalize(L2);
+            endTiming("gatequiv");
+        };
+        pthread_attr_t gqattr;
+        pthread_attr_init(&gqattr);
+        pthread_attr_setstacksize(&gqattr, size_t(2048) << 20);
+        pthread_t gqth;
+        auto      gqtramp = [](void* q) -> void* {
+            (*static_cast<std::function<void()>*>(q))();
+            return nullptr;
+        };
+        if (pthread_create(&gqth, &gqattr, gqtramp, &gq) == 0) {
+            pthread_join(gqth, nullptr);
+        } else {
+            gq();
+        }
+        pthread_attr_destroy(&gqattr);
+    }
     if (gGlobal->gReconstructFIRIIRs) {
         // -fir stage 1 : the revealed kernels are INJECTED into the
         // pipeline -- n-ary sums (revealSum) then FIR kernels (revealFIR).

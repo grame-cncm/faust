@@ -68,6 +68,8 @@ CAND = {
     "fibfu": ["-fir", "-iirt", "-lsum", "-ls-fuse", "-ls-sched", "model"],
     "lz":  ["-lazyselect"],
     "lzh": ["-lazyselect", "-ss", "9", "-ls-R", "32", "-ls-U", "4"],
+    "gq":  ["-gatequiv"],
+    "gqlz": ["-gatequiv", "-lazyselect"],
     # cs2 : l'ordonnanceur compositionnel CSSCHEDULE (blocs dominateurs,
     # faisceau de Pareto, budget 1M), en PAIRE d'épines depuis la carte
     # (R,U) x 2 épines du 2026-08-13 : le défaut (20,4) n'était optimal
@@ -115,7 +117,7 @@ def candidates(sig):
     # la dimension -lazyselect ne paie que sur les programmes riches en
     # selects (vocal 0.78, oberheim 0.74) et coûte ailleurs : candidat
     # seulement au-delà du seuil statique
-    lazy = ["lz", "lzh"] if sig.get("nselect", 0) >= 8 else []
+    lazy = ["lz", "lzh", "gq", "gqlz"] if sig.get("nselect", 0) >= 8 else []
     if fusion_signal:
         # les zones sûres embarquent les deux régimes d'ordre (validation
         # 2026-08-08) + le témoin étagé
