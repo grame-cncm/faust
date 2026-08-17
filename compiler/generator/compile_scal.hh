@@ -84,6 +84,7 @@ class ScalarCompiler : public Compiler {
     // points map to end-of-loop capture variables read by the block-rate
     // tail.
     Tree                                   fDisplayList = nullptr;
+    std::set<Tree>                         fDisplayPreserved;  // widgets of harvested cones
     std::vector<Tree>                      fDisplayStateful;
     std::vector<Tree>                      fDisplayCapturePoints;
     std::map<Tree, std::string, treeorder> fDisplayCaptures;

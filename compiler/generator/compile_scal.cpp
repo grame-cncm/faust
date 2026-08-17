@@ -5057,6 +5057,33 @@ Tree ScalarCompiler::harvestDisplay(Tree L)
         return m;
     };
     std::vector<Tree>                rakes;
+    std::set<Tree>                   visitedP;
+    std::function<void(Tree)>        collectPreserved = [&](Tree t) {
+        if (!visitedP.insert(t).second) {
+            return;
+        }
+        Tree p, c1, mn, mx, c2, x2, y2, var, body;
+        if (isSigButton(t, p) || isSigCheckbox(t, p) || isSigVSlider(t, p, c1, mn, mx, c2) ||
+            isSigHSlider(t, p, c1, mn, mx, c2) || isSigNumEntry(t, p, c1, mn, mx, c2)) {
+            fDisplayPreserved.insert(t);
+        }
+        if (isSigAttach(t, x2, y2)) {
+            collectPreserved(x2);
+            if (bgMask(y2) == 1) {
+                collectPreserved(y2);  // an inner eliminated cone (mask 0) dies whole
+            }
+            return;
+        }
+        if (isRec(t, var, body)) {
+            if (body != nullptr) {
+                collectPreserved(body);
+            }
+            return;
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            collectPreserved(t->branch(k));
+        }
+    };
     bool                             changed = false;
     std::unordered_map<Tree, Tree>   memo;
     std::function<Tree(Tree, Tree)>  rule = [&](Tree orig, Tree rebuilt) -> Tree {
@@ -5079,11 +5106,20 @@ Tree ScalarCompiler::harvestDisplay(Tree L)
             return rebuilt;  // legacy path for the enable family
         }
         if (isSigAttach(orig, x, y)) {
-            if (bgMask(y) != 1) {
-                return rebuilt;  // not fully harvestable : legacy attach, widgets stay
+            int m = bgMask(y);
+            if (m & 2) {
+                return rebuilt;  // conditioned bargraph in the cone : legacy attach
             }
-            // audio keeps x ; the rebuilt y was walked (its bargraphs are
-            // already collected) and is dropped here
+            if (m == 1) {
+                // harvestable cone : its bargraphs are already collected ;
+                // its input widgets are marked PRESERVED so the emission
+                // declares the strays no path compiles (midiTester)
+                collectPreserved(y);
+            }
+            // m == 0 : the aggressive elimination -- an attach without a
+            // bargraph computes nothing observable, the cone dies whole,
+            // dead input widgets included (the virtualAnalog "gain"
+            // slider goes away WITH its per-sample smoothing)
             changed = true;
             return rebuilt->branch(0);
         }
@@ -5248,6 +5284,11 @@ void ScalarCompiler::emitDisplayList()
             std::string done;
             if (getCompiledExpression(d, done)) {
                 continue;  // audio (or an earlier item) declared it
+            }
+            if (fDisplayPreserved.count(d) == 0) {
+                continue;  // only a widget of a HARVESTED cone earns the
+                           // declaration ; one whose only life was an
+                           // eliminated attach cone dies with it
             }
             std::string vn, init;
             if (isSigButton(d, path)) {
