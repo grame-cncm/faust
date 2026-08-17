@@ -547,13 +547,13 @@ static bool gatequivBool(Tree c)
 
 static Tree gatequivNormalize(Tree L)
 {
-    // consumer lists over the whole program (rec bodies descended
-    // explicitly -- letrec does not expose its definitions through
-    // arity, the census lesson)
-    std::map<Tree, std::vector<Tree>> consumers;
-    {
-        std::set<Tree>            seen;
-        std::function<void(Tree)> walk = [&](Tree t) {
+    // ---- shared helpers ------------------------------------------------
+    // consumer lists over a tree (rec bodies descended explicitly --
+    // letrec does not expose its definitions through arity)
+    auto buildConsumers = [](Tree root) {
+        std::map<Tree, std::vector<Tree>> consumers;
+        std::set<Tree>                    seen;
+        std::function<void(Tree)>         walk = [&](Tree t) {
             if (!seen.insert(t).second) {
                 return;
             }
@@ -570,15 +570,38 @@ static Tree gatequivNormalize(Tree L)
                 walk(t->branch(k));
             }
         };
-        walk(L);
-    }
+        walk(root);
+        return consumers;
+    };
 
-    // exclusive stateless crown of y under the gating site : stop at the
-    // state frontier (states beat always -- an unheard echo still ages) ;
-    // a static table READ is pure, count it and descend its index only ;
-    // then the exclusivity fixpoint drops every node some OUTSIDE
-    // consumer also needs (it computes anyway, the gate saves nothing).
-    auto crownWeight = [&](Tree y, Tree site) -> int {
+    // the INTERNAL gate node -- introduced in phase 1, eliminated in
+    // phase 3, never escapes the pass (asserted)
+    static Sym GQGATE = symbol("GateQuivInternal");
+    auto       gate   = [](Tree c, Tree y) { return tree(GQGATE, c, y); };
+    auto       isGate = [](Tree t, Tree& c, Tree& y) { return isTree(t, GQGATE, c, y); };
+
+    auto stripCasts = [](Tree c) {
+        Tree x;
+        while (isSigIntCast(c, x) || isSigFloatCast(c, x)) {
+            c = x;
+        }
+        return c;
+    };
+    auto isZeroNum = [](Tree t) {
+        int    i;
+        double r;
+        return (isSigInt(t, &i) && i == 0) || (isSigReal(t, &r) && r == 0.0);
+    };
+    auto isOneNum = [](Tree t) {
+        int    i;
+        double r;
+        return (isSigInt(t, &i) && i == 1) || (isSigReal(t, &r) && r == 1.0);
+    };
+
+    // exclusive stateless crown weight of y under the gating site (the
+    // consumers map must match the tree being weighed)
+    auto crownWeight = [&](Tree y, Tree site,
+                           std::map<Tree, std::vector<Tree>>& consumers) -> int {
         std::set<Tree>            cone;
         std::function<void(Tree)> collect = [&](Tree t) {
             if (cone.count(t)) {
@@ -605,7 +628,7 @@ static Tree gatequivNormalize(Tree L)
             std::vector<Tree> out;
             for (Tree t : cone) {
                 if (t == y) {
-                    continue;  // the root answers to the gating site alone
+                    continue;
                 }
                 for (Tree pc : consumers[t]) {
                     if (pc != site && cone.count(pc) == 0) {
@@ -632,35 +655,128 @@ static Tree gatequivNormalize(Tree L)
         return w;
     };
 
-    const int tau = getenv("FAUST_GATEQUIV_TAU") ? atoi(getenv("FAUST_GATEQUIV_TAU")) : 12;
-
-    std::unordered_map<Tree, Tree>  memo;
-    std::function<Tree(Tree, Tree)> rule = [&](Tree orig, Tree rebuilt) -> Tree {
-        int    op, iz;
-        double rz;
-        Tree   a, b, sel, x, y;
-        if (isSigBinOp(orig, &op, a, b) && op == kMul) {
-            int  op2;
-            Tree ra, rb;
-            isSigBinOp(rebuilt, &op2, ra, rb);
-            if (gatequivBool(a) && crownWeight(b, orig) > tau) {
-                return sigSelect2(ra, sigInt(0), rb);
+    // ---- phase 1 : TRANSLATION into the object -------------------------
+    // both spellings (and the mirror) become gate(c, y) ; c stripped of
+    // its wrapping casts (the multiplicative spelling wraps its boolean
+    // in float())
+    {
+        std::unordered_map<Tree, Tree>  memo;
+        std::function<Tree(Tree, Tree)> t1 = [&](Tree orig, Tree rebuilt) -> Tree {
+            int  op;
+            Tree a, b, sel, x, y;
+            if (isSigBinOp(orig, &op, a, b) && op == kMul) {
+                int  op2;
+                Tree ra, rb;
+                isSigBinOp(rebuilt, &op2, ra, rb);
+                if (gatequivBool(a)) {
+                    return gate(stripCasts(ra), rb);
+                }
+                if (gatequivBool(b)) {
+                    return gate(stripCasts(rb), ra);
+                }
             }
-            if (gatequivBool(b) && crownWeight(a, orig) > tau) {
-                return sigSelect2(rb, sigInt(0), ra);
-            }
-        }
-        if (isSigSelect2(orig, sel, x, y)) {
-            bool zeroFalse = (isSigInt(x, &iz) && iz == 0) || (isSigReal(x, &rz) && rz == 0.0);
-            if (zeroFalse && gatequivBool(sel) && crownWeight(y, orig) <= tau) {
+            if (isSigSelect2(orig, sel, x, y) && gatequivBool(sel)) {
                 Tree rs, rx, ry;
                 isSigSelect2(rebuilt, rs, rx, ry);
-                return sigBinOp(kMul, rs, ry);
+                if (isZeroNum(x)) {
+                    return gate(stripCasts(rs), ry);  // select2(c, 0, y) : y when c
+                }
+                if (isZeroNum(y)) {
+                    // mirror : select2(c, x, 0) = x when NOT c
+                    return gate(sigBinOp(kEQ, stripCasts(rs), sigInt(0)), rx);
+                }
             }
-        }
-        return rebuilt;
-    };
-    return treeRewritePaired(L, rule, memo);
+            return rebuilt;
+        };
+        L = treeRewritePaired(L, t1, memo);
+    }
+
+    // ---- phase 2 : NORMALIZATION, growth-oriented ----------------------
+    // the algebra never shrinks a gate : conjunction of nested gates,
+    // fusion of same-condition sisters under sums, absorption of
+    // NUMERIC factors (general pure-exclusive absorption : v2)
+    {
+        std::unordered_map<Tree, Tree>  memo;
+        std::function<Tree(Tree, Tree)> t2 = [&](Tree orig, Tree rebuilt) -> Tree {
+            Tree c, y, d, z, a, b;
+            if (isGate(rebuilt, c, y)) {
+                if (isOneNum(c)) {
+                    return y;
+                }
+                if (isZeroNum(c)) {
+                    return sigInt(0);
+                }
+                if (isGate(y, d, z)) {
+                    return gate(sigBinOp(kAND, c, d), z);
+                }
+            }
+            int op;
+            if (isSigBinOp(rebuilt, &op, a, b)) {
+                Tree c1, y1, c2, y2;
+                if (op == kAdd && isGate(a, c1, y1) && isGate(b, c2, y2) && c1 == c2) {
+                    return gate(c1, sigBinOp(kAdd, y1, y2));  // sister fusion
+                }
+                if (op == kMul) {
+                    if (isNum(a) && isGate(b, c1, y1)) {
+                        return gate(c1, sigBinOp(kMul, a, y1));  // absorption
+                    }
+                    if (isNum(b) && isGate(a, c1, y1)) {
+                        return gate(c1, sigBinOp(kMul, y1, b));
+                    }
+                }
+            }
+            return rebuilt;
+        };
+        L = treeRewritePaired(L, t2, memo);
+    }
+
+    // ---- phase 3 : SPELLING by crown weight, AFTER fusion --------------
+    const int tau = getenv("FAUST_GATEQUIV_TAU") ? atoi(getenv("FAUST_GATEQUIV_TAU")) : 12;
+    {
+        auto consumers = buildConsumers(L);
+        std::unordered_map<Tree, Tree>  memo;
+        std::function<Tree(Tree, Tree)> t3 = [&](Tree orig, Tree rebuilt) -> Tree {
+            Tree c, y;
+            if (isGate(rebuilt, c, y)) {
+                Tree co, yo;
+                // weigh on the ORIGINAL tree (the consumers map's world) ;
+                // fall back to the rebuilt one for gates born in phase 2
+                Tree wy = isGate(orig, co, yo) ? yo : y;
+                Tree ws = isGate(orig, co, yo) ? orig : rebuilt;
+                if (crownWeight(wy, ws, consumers) > tau) {
+                    return sigSelect2(c, sigInt(0), y);
+                }
+                return sigBinOp(kMul, c, y);
+            }
+            return rebuilt;
+        };
+        L = treeRewritePaired(L, t3, memo);
+    }
+
+    // ---- the object never escapes --------------------------------------
+    {
+        std::set<Tree>            seen;
+        std::function<void(Tree)> check = [&](Tree t) {
+            if (!seen.insert(t).second) {
+                return;
+            }
+            Tree c, y, var, body;
+            if (isTree(t, GQGATE, c, y)) {
+                faustexception("gatequiv : internal gate node escaped the pass\n");
+            }
+            if (isRec(t, var, body)) {
+                if (body != nullptr) {
+                    check(body);
+                }
+                return;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                check(t->branch(k));
+            }
+        };
+        check(L);
+    }
+    return L;
 }
 
 Tree ScalarCompiler::prepare(Tree LS)
