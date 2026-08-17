@@ -1175,7 +1175,15 @@ static Tree collapseComplements(Tree dnf)
 
 void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
 {
-    if (gGlobal->gLazySelect && isConditionBoundary(t)) {
+    // fine boundary for STATIC table reads : the read itself is pure --
+    // the condition reaches its INDEX cone (the four taps of a cubic
+    // tabulate are exactly the expensive guarded work), only the table
+    // DEFINITION stays unconditional. The blunt boundary made every
+    // tabulate-based select side strict : quantizedChords paid all seven
+    // cubic blends per sample where one is taken.
+    Tree tb_, ix_;
+    bool rdFine = gGlobal->gLazySelect && isSigRDTbl(t, tb_, ix_);
+    if (gGlobal->gLazySelect && !rdFine && isConditionBoundary(t)) {
         nc = gGlobal->nil;  // the node and its subtree stay unconditional
     }
     if (gGlobal->gLazySelect && nc != gGlobal->nil) {
@@ -1193,7 +1201,12 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
             }
             cc = tl(cc);
         }
-        if (n > 4) {
+        // limit 8 : the deep sides of a 7-note quantizer cascade sit at
+        // 5-7 atoms and carry the expensive cones (measured : the same
+        // program at limit 4 guards crumbs and loses, at 8 it beats the
+        // vectorized backend on the isolated group). Beyond 8 the DNF
+        // growth costs more than it saves (dx7's 32 algorithms).
+        if (n > 8) {
             nc = gGlobal->nil;
         }
     }
@@ -1236,6 +1249,11 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
         conditionAnnotation(sel, nc);
         conditionAnnotation(x, _AND_(nc, _CND_(sigBinOp(kEQ, sel, sigInt(0)))));
         conditionAnnotation(y, _AND_(nc, _CND_(sigBinOp(kNE, sel, sigInt(0)))));
+    } else if (Tree tb, ix; rdFine && isSigRDTbl(t, tb, ix)) {
+        // fine boundary : a STATIC table read is pure -- the condition
+        // reaches the index cone, never the table definition
+        conditionAnnotation(ix, nc);
+        conditionAnnotation(tb, gGlobal->nil);
     } else {
         // general annotation case
         // Annotate the sub signals with nc
