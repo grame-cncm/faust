@@ -152,6 +152,47 @@ def compile_candidate(dsp, name, workdir):
     return cpp, binp
 
 
+FAUST_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "../.."))
+IMPULSE_ARCH = os.path.join(FAUST_DIR, "tests/impulse-tests/archs/impulsearch.cpp")
+NUMRE = re.compile(r"-?\d+\.?\d*(?:[eE][+-]?\d+)?")
+
+def impulse_ir(dsp, flags, env, workdir, tag):
+    """Reponse impulsionnelle -double (60000 ech.) ; None si inconstructible."""
+    cpp = os.path.join(workdir, f"ir-{tag}.cpp")
+    r = subprocess.run([FAUST, "-lang", "ocpp", "-double", *flags, "-i", "-A",
+                        os.path.join(FAUST_DIR, "architecture"), "-a", IMPULSE_ARCH,
+                        dsp, "-o", cpp], env=dict(os.environ, **env), capture_output=True)
+    if r.returncode:
+        return None
+    b = os.path.join(workdir, f"ir-{tag}")
+    r = subprocess.run(["/usr/bin/c++", "-O2", "-std=c++17",
+                        "-I" + os.path.join(FAUST_DIR, "architecture"),
+                        "-I" + os.path.join(FAUST_DIR, "tests/impulse-tests/archs"),
+                        cpp, "-o", b], capture_output=True)
+    if r.returncode:
+        return None
+    r = subprocess.run([b, "-n", "60000"], capture_output=True, text=True)
+    return r.stdout if r.returncode == 0 and r.stdout.strip() else None
+
+def ir_equivalent(a, b, tol=1e-9):
+    """EXACT, ou reassociation flottante legale (< tol relatif)."""
+    if a == b:
+        return True
+    la, lb = a.splitlines(), b.splitlines()
+    if len(la) != len(lb):
+        return False
+    for x, y in zip(la, lb):
+        if x == y:
+            continue
+        na, nb = NUMRE.findall(x), NUMRE.findall(y)
+        if len(na) != len(nb):
+            return False
+        for u, v in zip(na, nb):
+            fu, fv = float(u), float(v)
+            if abs(fu - fv) > tol * max(abs(fu), abs(fv), 1e-30):
+                return False
+    return True
+
 def run_once(binp, iters=None):
     r = subprocess.run([binp], env=dict(os.environ, **FLASH_ENV),
                        capture_output=True, text=True)
@@ -210,13 +251,28 @@ def main():
             t = run_once(built[name][1])
             if t is not None:
                 times[name].append(t)
-    best, score = None, None
     for name in built:
         if times[name]:
-            m = min(times[name])
-            print(f"  {name:<4} {m:.4f} ns")
-            if score is None or m < score:
-                best, score = name, m
+            print(f"  {name:<4} {min(times[name]):.4f} ns")
+    # PORTE DE JUSTESSE (leçon dbmeter, famille des échelles VA) : les
+    # élections mesurent la vitesse, jamais la justesse — un candidat
+    # faux-mais-rapide gagnerait. L'élu doit reproduire la réponse
+    # impulsionnelle du df (au bit, ou réassociation < 1e-9 relatif) ;
+    # sinon DISQUALIFIÉ, au suivant. df lui-même est toujours accepté.
+    ref_ir = impulse_ir(a.dsp, [], {}, workdir, "ref")
+    ranked2 = sorted((n for n in built if times[n]), key=lambda n: min(times[n]))
+    best, score = None, None
+    for name in ranked2:
+        if name == "df" or ref_ir is None:
+            best, score = name, min(times[name])
+            break
+        el_ir = impulse_ir(a.dsp, CAND[name], CAND_ENV.get(name, {}), workdir, name)
+        if el_ir is not None and ir_equivalent(ref_ir, el_ir):
+            best, score = name, min(times[name])
+            break
+        print(f"  {name}: DISQUALIFIÉ (réponse impulsionnelle fausse)")
+    if best is None and ranked2:
+        best, score = "df" if "df" in built else ranked2[0], min(times["df" if "df" in built else ranked2[0]])
     print(f"faustauto: gagnant {best} ({score:.4f} ns/éch.) — options : "
           f"{' '.join(CAND[best])}  [{time.time()-t0:.1f} s]")
     if a.output:
