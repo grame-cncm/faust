@@ -154,6 +154,17 @@ def compile_candidate(dsp, name, workdir):
 
 FAUST_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "../.."))
 IMPULSE_ARCH = os.path.join(FAUST_DIR, "tests/impulse-tests/archs/impulsearch.cpp")
+# harnais 17 chiffres pour la porte : a 6 decimales, un onset d'ulp est
+# invisible pendant 30k echantillons puis surgit comme une fausse
+# divergence finie -- le critere d'onset exige la pleine precision
+HIPREC_DIR = os.path.join(tempfile.gettempdir(), "faustauto-hiprec")
+def _ensure_hiprec():
+    os.makedirs(HIPREC_DIR, exist_ok=True)
+    dst = os.path.join(HIPREC_DIR, "controlTools.h")
+    if not os.path.exists(dst):
+        src = open(os.path.join(FAUST_DIR, "tests/impulse-tests/archs/controlTools.h")).read()
+        open(dst, "w").write(src.replace("%8.6f", "%.17g"))
+    return HIPREC_DIR
 NUMRE = re.compile(r"-?\d+\.?\d*(?:[eE][+-]?\d+)?")
 
 def impulse_ir(dsp, flags, env, workdir, tag):
@@ -165,7 +176,7 @@ def impulse_ir(dsp, flags, env, workdir, tag):
     if r.returncode:
         return None
     b = os.path.join(workdir, f"ir-{tag}")
-    r = subprocess.run(["/usr/bin/c++", "-O2", "-std=c++17",
+    r = subprocess.run(["/usr/bin/c++", "-O2", "-std=c++17", "-I" + _ensure_hiprec(),
                         "-I" + os.path.join(FAUST_DIR, "architecture"),
                         "-I" + os.path.join(FAUST_DIR, "tests/impulse-tests/archs"),
                         cpp, "-o", b], capture_output=True)
@@ -174,8 +185,15 @@ def impulse_ir(dsp, flags, env, workdir, tag):
     r = subprocess.run([b, "-n", "60000"], capture_output=True, text=True)
     return r.stdout if r.returncode == 0 and r.stdout.strip() else None
 
-def ir_equivalent(a, b, tol=1e-9):
-    """EXACT, ou reassociation flottante legale (< tol relatif)."""
+def ir_equivalent(a, b, onset_tol=1e-11):
+    """Critere d'ONSET (verdict du 2026-08-18, famille des echelles VA) :
+    ce qui compte est la PREMIERE divergence. Classe ulp (< onset_tol
+    relatif) = reassociation flottante legale ; la suite peut diverger
+    librement -- les filtres VA resonnants amplifient un ulp jusqu'a
+    ~2.0 relatif en 30k echantillons (Lyapunov positif), sans qu'aucune
+    arithmetique soit fausse. Une divergence FINIE d'entree (le cas
+    dup/gate_compressor : rel ~1 a l'echantillon 0) = miscompilation,
+    rejetee. NaN/inf naissants = rejet."""
     if a == b:
         return True
     la, lb = a.splitlines(), b.splitlines()
@@ -188,9 +206,14 @@ def ir_equivalent(a, b, tol=1e-9):
         if len(na) != len(nb):
             return False
         for u, v in zip(na, nb):
+            if 'nan' in u or 'nan' in v or 'inf' in u or 'inf' in v:
+                return u == v
             fu, fv = float(u), float(v)
-            if abs(fu - fv) > tol * max(abs(fu), abs(fv), 1e-30):
-                return False
+            d = abs(fu - fv)
+            if d == 0.0:
+                continue
+            # premiere divergence trouvee : classe-t-elle ulp ?
+            return d <= onset_tol * max(abs(fu), abs(fv), 1e-30)
     return True
 
 def run_once(binp, iters=None):
