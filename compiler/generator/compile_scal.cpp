@@ -5424,6 +5424,22 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
             if (getConditionCode(sig) == "") {
                 fClass->addExecCode(Statement(
                     "", subst("$0 \t$1 = $2; // step: $3", ctype, vname, exp, T(gGlobal->gSTEP))));
+            } else if (fMainCompilePhase && !fHasEnableControl && !getenv("FAUST_LZ_TEMPPERM")) {
+                // dominated placement : without enable/control in the
+                // program, a condition can only come from select2 branch
+                // annotation, and every consumer then SELECTS this value
+                // away outside the condition -- a stale or zero value is
+                // read by the ternary but never used. An ordinary
+                // block-local assigned under guard suffices ; the TempPerm
+                // form below (permanent field + per-block copies) exists
+                // for enable/control's hold semantics only, where the
+                // consumer genuinely uses the last computed value.
+                // Adjacent same-condition assignments group into a single
+                // if block at print time.
+                fClass->addZone2(
+                    subst("$0 \t$1 = 0; // step: $2", ctype, vname, T(gGlobal->gSTEP)));
+                fClass->addExecCode(
+                    Statement(getConditionCode(sig), subst("$0 = $1;", vname, exp)));
             } else {
                 getTypedNames(t, "TempPerm", ctype, vname_perm);
                 // need to be preserved because of new enable and control primitives
