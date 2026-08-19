@@ -257,6 +257,16 @@ def main():
     # phase de compilation (20+ candidats à -O3) chauffe la machine et
     # polluait le premier tour (leçon co-mesure ; lfBoost V4, highShelf/
     # lowCut V5 : des ls à 2.28 mesurés 4.45 et perdants).
+    # power gate : on battery, frequency scaling biases even co-measured
+    # ratios (memory-bound and compute-bound codes throttle differently).
+    # Refuse to bench rather than record a biased verdict.
+    try:
+        batt = subprocess.run(["pmset", "-g", "batt"], capture_output=True, text=True).stdout
+        if "Battery Power" in batt:
+            sys.exit("REFUS : sur batterie (pmset). Brancher le secteur avant de bencher "
+                     "(FAUSTAUTO_ALLOW_BATTERY=1 pour outrepasser, resultats non canoniques).")                 if not os.environ.get("FAUSTAUTO_ALLOW_BATTERY") else                 print("ATTENTION : bench sur batterie (FAUSTAUTO_ALLOW_BATTERY) -- resultats non canoniques", file=sys.stderr)
+    except FileNotFoundError:
+        pass
     time.sleep(6)
     times = {name: [] for name in built}
     for _ in range(a.rounds):
