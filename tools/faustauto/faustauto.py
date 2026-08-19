@@ -70,6 +70,7 @@ CAND = {
     "lzh": ["-lazyselect", "-ss", "9", "-ls-R", "32", "-ls-U", "4"],
     "gq":  ["-gatequiv"],
     "gqlz": ["-gatequiv", "-lazyselect"],
+    "lb":  ["-lsum"],
     # cs2 : l'ordonnanceur compositionnel CSSCHEDULE (blocs dominateurs,
     # faisceau de Pareto, budget 1M), en PAIRE d'épines depuis la carte
     # (R,U) x 2 épines du 2026-08-13 : le défaut (20,4) n'était optimal
@@ -118,6 +119,8 @@ def candidates(sig):
     # selects (vocal 0.78, oberheim 0.74) et coûte ailleurs : candidat
     # seulement au-delà du seuil statique
     lazy = ["lz", "lzh", "gq", "gqlz"] if sig.get("nselect", 0) >= 8 else []
+    lazy += ["lb"]  # -lsum autonome (2026-08-18) : la factorisation polynomiale
+                    # des sommes, decouplee de -fir -- old_freeverb 133->65 adds
     if fusion_signal:
         # les zones sûres embarquent les deux régimes d'ordre (validation
         # 2026-08-08) + le témoin étagé

@@ -799,6 +799,66 @@ Tree ScalarCompiler::prepare(Tree LS)
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);
 
+    // enable/control escape hatch for the standalone -lsum path : the sum
+    // restructuring interacts with the enable cut (osc_enable : a disabled
+    // branch leaked its last value instead of 0). enable/control are slated
+    // for removal -- no investment ; the option simply steps aside.
+    auto hasEnableControl = [](Tree sigs) -> bool {
+        std::set<Tree>            seen;
+        bool                      found = false;
+        std::function<void(Tree)> walk = [&](Tree t) {
+            if (found || !seen.insert(t).second) {
+                return;
+            }
+            Tree x, y, var, body;
+            if (isSigEnable(t, x, y) || isSigControl(t, x, y)) {
+                found = true;
+                return;
+            }
+            if (isRec(t, var, body)) {
+                if (body != nullptr) {
+                    walk(body);
+                }
+                return;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                walk(t->branch(k));
+            }
+        };
+        walk(sigs);
+        return found;
+    };
+    if ((gGlobal->gLowerSums || getenv("FAUST_LOWERSUMS")) && !gGlobal->gReconstructFIRIIRs &&
+        !hasEnableControl(L2)) {
+        // -lsum STANDALONE (the old_freeverb bisection, 2026-08-18) :
+        // lowerSums was trapped inside the -fir reveal lambda -- alone it
+        // was a silent no-op. It needs revealSum's n-ary rows but NOT the
+        // kernel injection (-fir costs +46 muls on old_freeverb : kernels
+        // revealed where they do not pay). Own big-stack thread, the
+        // reveal precedent.
+        std::function<void()> lsOnly = [&]() {
+            startTiming("Sum revealer (lsum standalone)");
+            L2 = revealSum(L2);
+            endTiming("Sum revealer (lsum standalone)");
+            startTiming("Sum lowering");
+            L2 = lowerSums(L2);
+            endTiming("Sum lowering");
+        };
+        pthread_attr_t lsattr;
+        pthread_attr_init(&lsattr);
+        pthread_attr_setstacksize(&lsattr, size_t(2048) << 20);
+        pthread_t lsth;
+        auto      lstramp = [](void* q) -> void* {
+            (*static_cast<std::function<void()>*>(q))();
+            return nullptr;
+        };
+        if (pthread_create(&lsth, &lsattr, lstramp, &lsOnly) == 0) {
+            pthread_join(lsth, nullptr);
+        } else {
+            lsOnly();
+        }
+        pthread_attr_destroy(&lsattr);
+    }
     if (gGlobal->gGateEquiv) {
         // spec LA-PAIRE-CANONIQUE : the canonical form of the gated
         // signal, by exclusive stateless crown weight. Own big-stack
@@ -1001,7 +1061,7 @@ Tree ScalarCompiler::prepare(Tree LS)
                 L2 = lowerSums(L2);
                 endTiming("Sum lowering");
             }
-        };
+        };  // fin du lambda reveal (-fir)
         pthread_attr_t attr;
         pthread_attr_init(&attr);
         pthread_attr_setstacksize(&attr, size_t(2048) << 20);
