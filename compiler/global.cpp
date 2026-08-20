@@ -1971,6 +1971,18 @@ void global::initDirectories(int argc, const char* argv[])
 #endif
 
     gImportDirList.push_back(exepath::dirup(gFaustExeDir) + "/share/faust");
+    // Covers hosts that ship the libraries next to their own binary, which is the
+    // usual layout when libfaust is embedded in a third-party application rather
+    // than invoked from an installed bin/ + share/ tree.
+    gImportDirList.push_back(gFaustExeDir + "/share/faust");
+#ifdef _WIN32
+    // The exe-relative paths above only resolve for a host binary sitting inside a
+    // Faust install. Unix has /usr/local/share/faust and /usr/share/faust as a
+    // system-wide safety net; on Windows the equivalent is the installer location.
+    if (char* programfiles = getenv("ProgramFiles")) {
+        gImportDirList.push_back(string(programfiles) + "\\Faust\\share\\faust");
+    }
+#endif
     gImportDirList.push_back("/usr/local/share/faust");
     gImportDirList.push_back("/usr/share/faust");
 

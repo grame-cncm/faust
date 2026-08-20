@@ -195,7 +195,7 @@ char* realpath(const char* path, char resolved_path[MAX_PATH])
     if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0)) {
         return resolved_path;
     } else {
-        return "";
+        return nullptr;
     }
 }
 
