@@ -1611,6 +1611,13 @@ bool global::processCmdline(int argc, const char* argv[])
                     // We want to search user given directories *before* the standard ones, so
                     // insert at the beginning
                     gImportDirList.insert(gImportDirList.begin(), path);
+                } else {
+                    // Dropping the directory without a trace makes the resulting 'unable to
+                    // open file' error very hard to relate to the faulty option.
+                    stringstream error;
+                    error << "WARNING : cannot resolve import directory '" << argv[i + 1]
+                          << "', option ignored" << endl;
+                    gWarningMessages.push_back(error.str());
                 }
             }
             i += 2;
@@ -1623,6 +1630,11 @@ bool global::processCmdline(int argc, const char* argv[])
                 char* path = realpath(argv[i + 1], temp);
                 if (path) {
                     gArchitectureDirList.push_back(path);
+                } else {
+                    stringstream error;
+                    error << "WARNING : cannot resolve architecture directory '" << argv[i + 1]
+                          << "', option ignored" << endl;
+                    gWarningMessages.push_back(error.str());
                 }
             }
             i += 2;
