@@ -188,6 +188,7 @@ class Klass {
     // read precedes the write, everything unconditional). Returns true when
     // the demotion was applied. See generateDelayLine (kSingleDelay).
     bool scalarizeSingleDelay(const std::string& vname);
+    void sinkExpensiveCalls();
 
     void addZone2(const std::string& str) { fZone2Code.push_back(str); }
     void addZone2b(const std::string& str) { fZone2bCode.push_back(str); }

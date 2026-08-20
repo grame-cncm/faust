@@ -1066,8 +1066,238 @@ void Klass::printComputeMethod(int n, ostream& fout)
     }
 }
 
+// ---- the call-sink pass ------------------------------------------------
+// A libm call scheduled early in the loop body keeps every later-defined
+// value live across the call, and the AArch64 convention makes nearly all
+// NEON registers caller-saved : each such live is a spill/reload pair
+// around the call, per sample, on the carried chains (granulator : the
+// SAME expf with the SAME arguments costs 10.6 ns/sample emitted early
+// against 2.3 emitted late). The pass sinks each unconditional
+// libm-defining temp, together with the pure temps chained on it, down
+// to its first real consumer ; any statement writing one of the group's
+// inputs is a barrier. String-level like its neighbours above : verify
+// everything or move nothing.
+
+static const char* kLibmNames[] = {"expf", "logf", "log10f", "powf", "tanf", "sinf", "cosf",
+                                   "tanhf", "sinhf", "coshf", "asinf", "acosf", "atanf",
+                                   "atan2f", "fmodf", "remainderf", "exp", "log", "log10",
+                                   "pow", "tan", "sin", "cos", "tanh", "sinh", "cosh",
+                                   "asin", "acos", "atan", "atan2", "fmod", "remainder"};
+
+static bool hasLibmCall(const std::string& code)
+{
+    for (const char* name : kLibmNames) {
+        size_t len = strlen(name);
+        size_t p   = 0;
+        while ((p = code.find(name, p)) != std::string::npos) {
+            bool bounded = (p == 0) || (!isalnum((unsigned char)code[p - 1]) && code[p - 1] != '_');
+            if (bounded && p + len < code.size() && code[p + len] == '(') {
+                return true;
+            }
+            p += len;
+        }
+    }
+    return false;
+}
+
+static void collectIdents(const std::string& code, std::set<std::string>& out)
+{
+    size_t p = 0;
+    while (p < code.size()) {
+        if (isalpha((unsigned char)code[p]) || code[p] == '_') {
+            size_t q = p;
+            while (q < code.size() && (isalnum((unsigned char)code[q]) || code[q] == '_')) {
+                q++;
+            }
+            out.insert(code.substr(p, q - p));
+            p = q;
+        } else {
+            p++;
+        }
+    }
+}
+
+// accepts "[type \t]IDENT[optional [..]] = ..." ; lhs receives IDENT
+static bool parseWriteTarget(const std::string& code, std::string& lhs, bool& isDecl)
+{
+    size_t p = 0;
+    while (p < code.size() && isspace((unsigned char)code[p])) {
+        p++;
+    }
+    isDecl = false;
+    for (const char* ty : {"float", "double", "int"}) {
+        size_t len = strlen(ty);
+        if (code.compare(p, len, ty) == 0 && p + len < code.size() &&
+            isspace((unsigned char)code[p + len])) {
+            p += len;
+            while (p < code.size() && isspace((unsigned char)code[p])) {
+                p++;
+            }
+            isDecl = true;
+            break;
+        }
+    }
+    size_t q = p;
+    while (q < code.size() && (isalnum((unsigned char)code[q]) || code[q] == '_')) {
+        q++;
+    }
+    if (q == p) {
+        return false;
+    }
+    lhs = code.substr(p, q - p);
+    if (q < code.size() && code[q] == '[') {
+        int depth = 1;
+        q++;
+        while (q < code.size() && depth) {
+            if (code[q] == '[') {
+                depth++;
+            }
+            if (code[q] == ']') {
+                depth--;
+            }
+            q++;
+        }
+        isDecl = false;  // an indexed write is a store, never a fresh temp
+    }
+    while (q < code.size() && isspace((unsigned char)code[q])) {
+        q++;
+    }
+    return q + 1 < code.size() && code[q] == '=' && code[q + 1] != '=';
+}
+
+void Klass::sinkExpensiveCalls()
+{
+    if (getenv("FAUST_NO_CALLSINK") || fTopLoop == nullptr) {
+        return;
+    }
+    std::vector<Statement> v(fTopLoop->fExecCode.begin(), fTopLoop->fExecCode.end());
+    bool restart = true;
+    int  guard   = 0;
+    while (restart && guard++ < 32) {
+        restart = false;
+        for (size_t i = 0; i < v.size() && !restart; i++) {
+            std::string lhs;
+            bool        isDecl;
+            if (!v[i].condition().empty() || !hasLibmCall(v[i].code()) ||
+                !parseWriteTarget(v[i].code(), lhs, isDecl) || !isDecl) {
+                continue;
+            }
+            std::vector<size_t>   group{i};
+            std::set<std::string> defs{lhs}, reads;
+            collectIdents(v[i].code(), reads);
+            reads.erase(lhs);
+            size_t stop = v.size();
+            for (size_t j = i + 1; j < v.size(); j++) {
+                std::set<std::string> mention;
+                collectIdents(v[j].code(), mention);
+                collectIdents(v[j].condition(), mention);
+                std::string tlhs;
+                bool        tdecl;
+                bool        parsed = parseWriteTarget(v[j].code(), tlhs, tdecl);
+                if (parsed && reads.count(tlhs)) {
+                    stop = j;  // writes one of our inputs : hard barrier
+                    break;
+                }
+                bool consumes = false;
+                for (const auto& d : defs) {
+                    if (mention.count(d)) {
+                        consumes = true;
+                        break;
+                    }
+                }
+                if (!consumes) {
+                    if (!parsed) {
+                        stop = j;  // opaque statement : stay conservative
+                        break;
+                    }
+                    continue;
+                }
+                // first consumer : a pure fresh temp joins the group,
+                // anything else fixes the insertion point
+                if (parsed && tdecl && v[j].condition().empty() && group.size() < 4) {
+                    group.push_back(j);
+                    defs.insert(tlhs);
+                    mention.erase(tlhs);
+                    for (const auto& m : mention) {
+                        if (!defs.count(m)) {
+                            reads.insert(m);
+                        }
+                    }
+                    continue;
+                }
+                stop = j;
+                break;
+            }
+            if (stop <= group.back() + 1) {
+                continue;  // already adjacent to its consumer
+            }
+            std::vector<Statement> rebuilt;
+            rebuilt.reserve(v.size());
+            std::set<size_t> ingroup(group.begin(), group.end());
+            for (size_t j = 0; j < v.size(); j++) {
+                if (j == stop) {
+                    for (size_t g : group) {
+                        rebuilt.push_back(v[g]);
+                    }
+                }
+                if (!ingroup.count(j)) {
+                    rebuilt.push_back(v[j]);
+                }
+            }
+            if (stop == v.size()) {
+                for (size_t g : group) {
+                    rebuilt.push_back(v[g]);
+                }
+            }
+            v.swap(rebuilt);
+            restart = true;
+        }
+    }
+    fTopLoop->fExecCode.clear();
+    fTopLoop->fExecCode.insert(fTopLoop->fExecCode.end(), v.begin(), v.end());
+}
+
 void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
 {
+    if (!gGlobal->gLoopSplit) {
+        sinkExpensiveCalls();
+    }
+    // Flat variant : a class with no per-block state machinery gains
+    // nothing from the block chunking, and the &input[k][index] rebase
+    // form costs the C compiler its aliasing analysis on the hot loop
+    // (DNN : scalar ccmp check chains instead of vectorized ones, weight
+    // constants rematerialized inside the loop -- 10% on the program).
+    // Detection is a strict whitelist : no post-block code, and every
+    // per-block line is an input/output pointer rebase. Stateful classes
+    // (delay states, rings, IOTA) keep the chunked skeleton unchanged.
+    bool flat = !gGlobal->gLoopSplit && fZone3Post.empty();
+    if (flat) {
+        for (const auto& s : fZone3Code) {
+            bool comment = s.compare(0, 2, "//") == 0;
+            if (!comment && s.find("= &input[") == string::npos &&
+                s.find("= &output[") == string::npos) {
+                flat = false;
+                break;
+            }
+        }
+    }
+    if (flat) {
+        tab(n + 1, fout);
+        fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
+        printlines(n + 2, fZone1Code, fout);
+        printlines(n + 2, fZone2Code, fout);
+        printlines(n + 2, fZone2bCode, fout);
+        tab(n + 2, fout);
+        // index pinned to 0 : the zone-3 rebases fold to plain pointers
+        fout << "const int index = 0; (void)index; // flat: stateless class";
+        printlines(n + 2, fZone3Code, fout);
+        printLoopGraphScalar(n + 2, fout);
+        printlines(n + 2, fZone4Code, fout);
+        tab(n + 1, fout);
+        fout << "}";
+        return;
+    }
+
     tab(n + 1, fout);
     fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
     printlines(n + 2, fZone1Code, fout);
