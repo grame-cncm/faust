@@ -56,7 +56,7 @@
 #include "tlib.hh"
 #include "tree.hh"
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(disable : 4996)
 #endif
 
@@ -2073,7 +2073,7 @@ void global::parseSourceFiles()
 /****************************************************************
  Faust directories information
  *****************************************************************/
-#ifdef WIN32
+#ifdef _WIN32
 #define kPSEP '\\'
 #else
 #define kPSEP '/'

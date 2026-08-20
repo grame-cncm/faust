@@ -30,7 +30,7 @@
 #include "faust/gui/JSONUI.h"
 #include "instructions.hh"
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(disable : 4244)
 #endif
 

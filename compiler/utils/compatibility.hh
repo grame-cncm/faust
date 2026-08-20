@@ -26,7 +26,7 @@ unsigned faust_alarm(unsigned seconds);
 
 #if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER >= 1900)
 #define faust_mkdir(path, attribute) mkdir(path)
-#elif !defined(WIN32)
+#elif !defined(_WIN32)
 #define faust_mkdir(path, attribute) mkdir(path, attribute)
 #endif
 
@@ -72,7 +72,7 @@ int chdir(const char* path);
 int mkdir(const char* path);
 #endif
 char* getcwd(char* str, int size);
-#ifndef WIN32
+#ifndef _WIN32
 int isatty(int file);
 #endif
 }

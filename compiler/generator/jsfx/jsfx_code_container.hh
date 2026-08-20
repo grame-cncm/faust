@@ -27,7 +27,7 @@
 #include "jsfx_instructions.hh"
 #include "vec_code_container.hh"
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(disable : 4250)
 #endif
 

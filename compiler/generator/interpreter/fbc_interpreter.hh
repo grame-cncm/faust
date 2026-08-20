@@ -81,7 +81,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         ReflectFunction fReflect;
         ModifyFunction  fModify;
 
-#if defined(TARGET_OS_IPHONE) || defined(WIN32)
+#if defined(TARGET_OS_IPHONE) || defined(_WIN32)
         ZoneParam(ReflectFunction reflect = nullptr, ModifyFunction modify = nullptr)
             : fReflect(reflect), fModify(modify)
         {

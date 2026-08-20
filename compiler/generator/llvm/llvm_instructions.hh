@@ -22,7 +22,7 @@
 #ifndef _LLVM_INSTRUCTIONS_H
 #define _LLVM_INSTRUCTIONS_H
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(disable : 4624 4291 4141 4267)
 #endif
 

@@ -77,7 +77,7 @@ class FBCCompiler : public FBCInterpreter<REAL, 0> {
             (*fCompiledBlocks)[block] = new FBCTemplateCompiler<REAL>(block, this->fSoundTable);
 #endif
 #else
-#ifdef WIN32
+#ifdef _WIN32
 #pragma message("warning pure Interpreter mode")
 #else
 #warning pure Interpreter mode

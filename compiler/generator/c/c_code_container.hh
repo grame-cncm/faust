@@ -29,7 +29,7 @@
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(disable : 4250)
 #endif
 

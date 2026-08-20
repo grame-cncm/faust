@@ -30,7 +30,7 @@
 #include <string>
 #include <vector>
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(disable : 4800)
 #endif
 

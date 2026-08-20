@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(disable : 4251 4275 4800)
 #endif
 
@@ -30,7 +30,7 @@
 
 using namespace std;
 
-#ifdef WIN32
+#ifdef _WIN32
 #define strdup _strdup
 #endif
 

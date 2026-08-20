@@ -32,7 +32,7 @@
 #include "num.hh"
 #include "tlib.hh"
 
-#if defined(WIN32) && !defined(__GNUC__)
+#if defined(_WIN32) && !defined(__GNUC__)
 #pragma warning(disable : 4800)
 #endif
 

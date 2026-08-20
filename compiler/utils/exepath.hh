@@ -40,7 +40,7 @@ class exepath {
     // resolves symbolic links (not implemented on Windows/MSVC
     static std::string resolvelink(const std::string& path);
 
-#ifndef WIN32
+#ifndef _WIN32
     static std::string relative2absolute(const std::string& path);
 #endif
 

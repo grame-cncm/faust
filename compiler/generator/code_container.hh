@@ -38,7 +38,7 @@
 #include "struct_manager.hh"
 #include "tlib.hh"
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(disable : 4250)
 #endif
 

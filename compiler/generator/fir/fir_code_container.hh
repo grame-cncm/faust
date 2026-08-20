@@ -22,7 +22,7 @@
 #ifndef _FIR_CODE_CONTAINER_H
 #define _FIR_CODE_CONTAINER_H
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(disable : 4250)
 #endif
 
