@@ -1262,26 +1262,33 @@ void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
     if (!gGlobal->gLoopSplit) {
         sinkExpensiveCalls();
     }
-    // Flat variant : a class with no per-block state machinery gains
-    // nothing from the block chunking, and the &input[k][index] rebase
-    // form costs the C compiler its aliasing analysis on the hot loop
-    // (DNN : scalar ccmp check chains instead of vectorized ones, weight
-    // constants rematerialized inside the loop -- 10% on the program).
-    // Detection is a strict whitelist : no post-block code, and every
-    // per-block line is an input/output pointer rebase. Stateful classes
-    // (delay states, rings, IOTA) keep the chunked skeleton unchanged.
-    bool flat = !gGlobal->gLoopSplit && fZone3Post.empty();
-    if (flat) {
-        for (const auto& s : fZone3Code) {
-            bool comment = s.compare(0, 2, "//") == 0;
-            if (!comment && s.find("= &input[") == string::npos &&
-                s.find("= &output[") == string::npos) {
-                flat = false;
+    // Flat variant. The block chunking exists to bound the fixed-size
+    // buffers through which VECTOR loops communicate ; the plain scalar
+    // graph is a SINGLE loop by construction, there is nobody to talk
+    // to, and the &input[k][index] rebase form costs the C compiler its
+    // aliasing analysis on the hot loop (DNN : scalar ccmp check chains
+    // re-run per block, constants rematerialized -- 10% on the program).
+    // The per-block state copies (X = XState; ... XState = X;) are a
+    // register-promotion idiom, valid at any block size -- emitted flat
+    // they run once per compute instead of once per 32 samples. Only
+    // -ls keeps the chunked skeleton : its stream buffers are the
+    // fixed-size communication case (buf[count+k] shifts, fLSIota).
+    // Empirical exception : a libm call in the loop body reverses the
+    // trade (granulator : 7.1 ns chunked+sink against 16-17 flat, sink
+    // or not). Under -ffast-math the call is pure and clang reschedules
+    // it freely in a long-trip loop, undoing the sink order and paying
+    // caller-saved spills ; the 32-bound trip keeps its scheduling
+    // tight. Flat only when the loop body is call-free.
+    bool loopHasCall = false;
+    if (fTopLoop != nullptr) {
+        for (auto& st : fTopLoop->fExecCode) {
+            if (hasLibmCall(st.code())) {
+                loopHasCall = true;
                 break;
             }
         }
     }
-    if (flat) {
+    if (!gGlobal->gLoopSplit && !loopHasCall && !getenv("FAUST_CHUNKED")) {
         tab(n + 1, fout);
         fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
         printlines(n + 2, fZone1Code, fout);
@@ -1289,9 +1296,10 @@ void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
         printlines(n + 2, fZone2bCode, fout);
         tab(n + 2, fout);
         // index pinned to 0 : the zone-3 rebases fold to plain pointers
-        fout << "const int index = 0; (void)index; // flat: stateless class";
+        fout << "const int index = 0; (void)index; // flat: single-loop scalar";
         printlines(n + 2, fZone3Code, fout);
         printLoopGraphScalar(n + 2, fout);
+        printlines(n + 2, fZone3Post, fout);
         printlines(n + 2, fZone4Code, fout);
         tab(n + 1, fout);
         fout << "}";
