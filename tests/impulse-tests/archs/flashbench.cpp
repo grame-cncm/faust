@@ -101,6 +101,26 @@ int main()
     };
 
     fill();
+    // Core promotion (the 2026-08-23 night, solved with Yann) : this
+    // scheduler starts short processes on E-cores and only promotes
+    // SUSTAINED work to P-cores. A flash run computes mere hundreds of
+    // microseconds : it lived and died on an E-core whose DVFS steps
+    // were our whole ladder of "mystery slow modes" (2.10, 2.46, 2.98,
+    // 3.91, 4.76 -- one per frequency rung), lottery-drawn per process
+    // against the desktop hum. ~200 ms of insistence buys the P-core
+    // before anything is timed. FLASH_SPIN_MS=0 disables (forensics).
+    {
+        double spinMs = envInt("FLASH_SPIN_MS", 200);
+        volatile double spin = 1.0;
+        auto t0 = std::chrono::steady_clock::now();
+        while (std::chrono::duration<double, std::milli>(
+                   std::chrono::steady_clock::now() - t0).count() < spinMs) {
+            for (int i = 0; i < 20000; i++) {
+                spin = spin * 1.0000001 + 1e-9;
+            }
+        }
+        if (spin < 0) printf("%f", spin);  // keep the loop observable
+    }
     for (int w = 0; w < warm; w++) {
         d->compute(count, in, out);
     }
