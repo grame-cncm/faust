@@ -26,6 +26,7 @@
 #include "wasm_dynamic_dsp_aux.hh"
 #include "Text.hh"
 #include "compatibility.hh"
+#include "libfaust.h"
 #include "lock_api.hh"
 
 using namespace std;
@@ -63,14 +64,16 @@ LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name
     if ((expanded_dsp_content = sha1FromDSP(name_app, dsp_content, argc, argv, sha_key)) == "") {
         return nullptr;
     } else {
+        // The target language changes the generated binary, so it is part of the cache key
+        const char* lang = (internal_memory ? "wasm-i" : "wasm-e");
+        sha_key          = generateSHA1(sha_key + lang);
         dsp_factory_table<SDsp_factory>::factory_iterator it;
         if (wasm_dsp_factory::gWasmFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
         } else {
-            vector<const char*> argv1 = {"faust", "-lang", (internal_memory ? "wasm-i" : "wasm-e"),
-                                         "-o", "binary"};
+            vector<const char*> argv1 = {"faust", "-lang", lang, "-o", "binary"};
             for (int i = 0; i < argc; i++) {
                 argv1.push_back(argv[i]);
             }
