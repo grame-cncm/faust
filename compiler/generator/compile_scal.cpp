@@ -799,6 +799,107 @@ Tree ScalarCompiler::prepare(Tree LS)
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);
 
+    // selectN census (FAUST_SELECTN_CENSUS=1) : how many select2 chains
+    // or trees share a COMMON selector expression -- the spellings of a
+    // semantic N-way selection (ba.selectn builds balanced trees of
+    // select2 on (i >= k) range tests ; the DNF atom explosion of
+    // lazyselect measures this ENCODING, not real program complexity).
+    // Census only : counts and shapes, no transformation.
+    if (getenv("FAUST_SELECTN_CENSUS")) {
+        std::map<Tree, std::vector<Tree>> families;  // base selector -> select2 nodes
+        std::set<Tree>                    seenC;
+        std::function<Tree(Tree)> baseOf = [&](Tree sel) -> Tree {
+            // the comparison's common expression, through int casts
+            int  op;
+            Tree a, b, xx;
+            if (isSigBinOp(sel, &op, a, b) &&
+                (op == kGT || op == kLT || op == kGE || op == kLE || op == kEQ || op == kNE)) {
+                Tree base = a;
+                if (isSigIntCast(a, xx)) {
+                    base = xx;
+                }
+                int  iv;
+                double rv;
+                if (isSigInt(b, &iv) || isSigReal(b, &rv)) {
+                    return base;
+                }
+            }
+            return nullptr;
+        };
+        std::function<void(Tree)> walkC = [&](Tree t) {
+            if (!seenC.insert(t).second) {
+                return;
+            }
+            Tree sel, x, y, var, body;
+            if (isSigSelect2(t, sel, x, y)) {
+                Tree base = baseOf(sel);
+                if (base != nullptr) {
+                    families[base].push_back(t);
+                }
+            }
+            if (isRec(t, var, body)) {
+                if (body != nullptr) {
+                    walkC(body);
+                }
+                return;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                walkC(t->branch(k));
+            }
+        };
+        walkC(L2);
+        int nfam = 0, nsel = 0, biggest = 0;
+        for (const auto& f : families) {
+            if ((int)f.second.size() >= 2) {
+                nfam++;
+                nsel += (int)f.second.size();
+                biggest = std::max(biggest, (int)f.second.size());
+            }
+        }
+        int singles = 0;
+        for (const auto& f : families) {
+            if ((int)f.second.size() == 1) {
+                singles++;
+            }
+        }
+        // leaves of the biggest family : how many are numeric constants ?
+        // (a selectN of constants is a TABLE in disguise -- the stronger
+        // canonization : one rdtable read instead of a comparison tree)
+        int constleaves = 0, sigleaves = 0;
+        for (const auto& f : families) {
+            if ((int)f.second.size() != biggest || biggest < 2) {
+                continue;
+            }
+            std::set<Tree> infam(f.second.begin(), f.second.end());
+            for (Tree t : f.second) {
+                Tree sel, x, y;
+                isSigSelect2(t, sel, x, y);
+                for (Tree leaf : {x, y}) {
+                    if (infam.count(leaf)) {
+                        continue;  // internal edge of the tree
+                    }
+                    int    iv;
+                    double rv;
+                    Tree   xx  = leaf;
+                    Tree   xc;
+                    if (isSigIntCast(leaf, xc) || isSigFloatCast(leaf, xc)) {
+                        xx = xc;
+                    }
+                    if (isSigInt(xx, &iv) || isSigReal(xx, &rv)) {
+                        constleaves++;
+                    } else {
+                        sigleaves++;
+                    }
+                }
+            }
+            break;
+        }
+        fprintf(stderr,
+                "SELECTN_CENSUS familles>=2=%d selects_en_famille=%d plus_grande=%d isolees=%d "
+                "feuilles_grande_famille: const=%d signal=%d\n",
+                nfam, nsel, biggest, singles, constleaves, sigleaves);
+    }
+
     // enable/control escape hatch for the standalone -lsum path : the sum
     // restructuring interacts with the enable cut (osc_enable : a disabled
     // branch leaked its last value instead of 0). enable/control are slated
