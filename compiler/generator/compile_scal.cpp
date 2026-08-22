@@ -862,42 +862,149 @@ Tree ScalarCompiler::prepare(Tree LS)
                 singles++;
             }
         }
-        // leaves of the biggest family : how many are numeric constants ?
-        // (a selectN of constants is a TABLE in disguise -- the stronger
-        // canonization : one rdtable read instead of a comparison tree)
-        int constleaves = 0, sigleaves = 0;
+        // The funnel (spec LE-SELECTN v2, Codex review) : families are an
+        // upper bound. A tree is CERTIFIED iff monotone inequalities only
+        // and its leaf intervals form the exact anchored saturated
+        // partition (-inf,0], {1}.. or grouped middles, [N-1,+inf) -- the
+        // ba.selectn spelling. Interval propagation, no unions (==/!=
+        // excluded), verify-everything-or-drop.
+        const long long INF = 0x3FFFFFFFFFFFLL;
+        struct IvLeaf {
+            long long lo, hi;
+            Tree      leaf;
+        };
+        int ntrees = 0, ncert = 0, ncertsel = 0, nbranches = 0, maxN = 0;
         for (const auto& f : families) {
-            if ((int)f.second.size() != biggest || biggest < 2) {
+            if ((int)f.second.size() < 2) {
                 continue;
             }
             std::set<Tree> infam(f.second.begin(), f.second.end());
+            std::set<Tree> ischild;
             for (Tree t : f.second) {
                 Tree sel, x, y;
                 isSigSelect2(t, sel, x, y);
-                for (Tree leaf : {x, y}) {
-                    if (infam.count(leaf)) {
-                        continue;  // internal edge of the tree
-                    }
-                    int    iv;
-                    double rv;
-                    Tree   xx  = leaf;
-                    Tree   xc;
-                    if (isSigIntCast(leaf, xc) || isSigFloatCast(leaf, xc)) {
-                        xx = xc;
-                    }
-                    if (isSigInt(xx, &iv) || isSigReal(xx, &rv)) {
-                        constleaves++;
-                    } else {
-                        sigleaves++;
-                    }
+                if (infam.count(x)) {
+                    ischild.insert(x);
+                }
+                if (infam.count(y)) {
+                    ischild.insert(y);
                 }
             }
-            break;
+            for (Tree root : f.second) {
+                if (ischild.count(root)) {
+                    continue;
+                }
+                ntrees++;
+                // DFS with interval [lo,hi] ; convention select2(c,x,y)=c?y:x
+                std::vector<IvLeaf>  leaves;
+                bool                 ok    = true;
+                int                  nsize = 0;
+                std::function<void(Tree, long long, long long)> dive =
+                    [&](Tree t, long long lo, long long hi) {
+                        if (!ok || lo > hi) {
+                            ok = false;
+                            return;
+                        }
+                        if (!infam.count(t)) {
+                            leaves.push_back({lo, hi, t});
+                            return;
+                        }
+                        nsize++;
+                        Tree sel, x, y, a, b;
+                        int  op, k;
+                        isSigSelect2(t, sel, x, y);
+                        if (!isSigBinOp(sel, &op, a, b)) {
+                            ok = false;
+                            return;
+                        }
+                        bool intmode = isSigInt(b, &k);
+                        if (!intmode) {
+                            // real mode : integral thresholds, kGE/kLT ONLY --
+                            // with these two ops every split is half-open [k,..)
+                            // and the interval [k,k+1) identifies with the
+                            // integer pair [k,k], so selector int(x) is exact
+                            // (NaN corner excepted, the gatequiv-admitted one)
+                            double rr;
+                            if (!isSigReal(b, &rr) || rr != (double)(long long)rr ||
+                                (op != kGE && op != kLT)) {
+                                ok = false;
+                                return;
+                            }
+                            k = (int)(long long)rr;
+                        }
+                        long long tlo, thi, flo, fhi;  // true side (y), false side (x)
+                        switch (op) {
+                            case kGE: tlo = k;      thi = hi;    flo = lo;    fhi = k - 1; break;
+                            case kGT: tlo = k + 1;  thi = hi;    flo = lo;    fhi = k;     break;
+                            case kLT: tlo = lo;     thi = k - 1; flo = k;     fhi = hi;    break;
+                            case kLE: tlo = lo;     thi = k;     flo = k + 1; fhi = hi;    break;
+                            default:  ok = false; return;  // ==/!= : unions, hors V1
+                        }
+                        dive(x, std::max(flo, lo), std::min(fhi, hi));
+                        dive(y, std::max(tlo, lo), std::min(thi, hi));
+                    };
+                // diagnostic : la nature du selecteur racine des gros arbres
+                if (getenv("FAUST_SELECTN_DEBUG") && (int)f.second.size() >= 8) {
+                    Tree sel, x, y, a, b;
+                    int  op, k;
+                    isSigSelect2(root, sel, x, y);
+                    if (isSigBinOp(sel, &op, a, b)) {
+                        int    kk;
+                        double rr;
+                        if (isSigInt(b, &kk)) {
+                            fprintf(stderr, "  racine: op=%d rhs=int %d\n", op, kk);
+                        } else if (isSigReal(b, &rr)) {
+                            fprintf(stderr, "  racine: op=%d rhs=real %g\n", op, rr);
+                        } else {
+                            fprintf(stderr, "  racine: op=%d rhs=EXPR\n", op);
+                        }
+                    } else if (false) {
+                        fprintf(stderr, "  racine: selecteur non-binop\n");
+                    }
+                }
+                dive(root, -INF, INF);
+                if (!ok || leaves.size() < 3) {
+                    if (getenv("FAUST_SELECTN_DEBUG") && nsize >= 4) {
+                        fprintf(stderr, "  arbre rejete en descente (%d selects, ok=%d, feuilles=%zu)\n",
+                                nsize, (int)ok, leaves.size());
+                    }
+                    continue;  // N >= 3 (decision Yann/Codex)
+                }
+                std::sort(leaves.begin(), leaves.end(),
+                          [](const IvLeaf& u, const IvLeaf& v) { return u.lo < v.lo; });
+                // anchored saturated partition : (-inf,0], [1..], contiguous,
+                // last reaches +inf ; grouped middles allowed
+                bool part = leaves.front().lo == -INF && leaves.front().hi == 0 &&
+                            leaves.back().hi == INF;
+                for (size_t i = 1; part && i < leaves.size(); i++) {
+                    if (leaves[i].lo != leaves[i - 1].hi + 1) {
+                        part = false;
+                    }
+                }
+                if (part) {
+                    ncert++;
+                    ncertsel += nsize;
+                    int N = (int)leaves.back().lo + 1;
+                    nbranches += N;
+                    maxN = std::max(maxN, N);
+                } else if (getenv("FAUST_SELECTN_DEBUG") && nsize >= 8) {
+                    fprintf(stderr, "  arbre non-certifie (%d selects, %zu feuilles) intervalles:",
+                            nsize, leaves.size());
+                    for (size_t i = 0; i < std::min(leaves.size(), (size_t)12); i++) {
+                        fprintf(stderr, " [%lld,%lld]",
+                                leaves[i].lo == -INF ? -99 : leaves[i].lo,
+                                leaves[i].hi == INF ? 99 : leaves[i].hi);
+                    }
+                    fprintf(stderr, "%s\n", leaves.size() > 12 ? " ..." : "");
+                } else if (getenv("FAUST_SELECTN_DEBUG") && !ok && nsize >= 8) {
+                    fprintf(stderr, "  arbre rejete en descente (%d selects) : op non-monotone ou intervalle vide\n", nsize);
+                }
+            }
         }
         fprintf(stderr,
-                "SELECTN_CENSUS familles>=2=%d selects_en_famille=%d plus_grande=%d isolees=%d "
-                "feuilles_grande_famille: const=%d signal=%d\n",
-                nfam, nsel, biggest, singles, constleaves, sigleaves);
+                "SELECTN_CENSUS familles=%d selects=%d arbres=%d certifies=%d "
+                "selects_certifies=%d branches=%d maxN=%d isolees=%d\n",
+                nfam, nsel, ntrees, ncert, ncertsel, nbranches, maxN, singles);
     }
 
     // enable/control escape hatch for the standalone -lsum path : the sum
