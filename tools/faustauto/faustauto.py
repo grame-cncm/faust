@@ -103,40 +103,57 @@ def signature(dsp):
     return {k: int(v) for k, v in re.findall(r"(\w+)=(\d+)", m.group(1))}
 
 
-def candidates(sig):
+def candidates(sig, full=False):
     """L'élagueur : la signature -> (zone, liste de candidats).
 
-    Depuis la normalisation des letrec (2026-08-09), recmii se mesure sur
-    les NIDS VRAIS et l'inventaire fir/iir sépare statiquement les
-    ex-jumeaux (vocoder fir=64/iir=0 vs filterBank fir=29/iir=10). Et
-    l'étagement structurel -temp 4 est une dimension nouvelle : gains
-    ×0.45-0.66 sur cloches/générateurs — le flash-bench le découvre.
+    Couche 1 DISTILLÉE des campagnes V7/V8 (2026-08-22, 199 programmes,
+    élections stables entre les deux) : un noyau universel + des zones
+    par signature. Validée par le REGRET : le sous-jury contient une
+    option à <=1.7% du vrai gagnant sur TOUTE la V8 (geomean 1.0009),
+    et généralise sur la V7 (1.0021, une exception à 9%). Taille
+    moyenne 10.2 candidats contre 15.6 au jury complet — l'élection
+    passe de ~45 s à ~25 s. --full restaure le jury complet (mode
+    campagne : c'est lui qui fabrique les cartes dont la distillation
+    est issue — ne jamais distiller depuis la distillation).
     """
-    fusion_signal = sig["recmii"] >= 50 or sig["nstreams"] >= 5
-    locality = sig["recmii"] >= 45
-    order = ["h2", "cs8"] if locality else ["al", "h32"]
-    # la dimension -lazyselect ne paie que sur les programmes riches en
-    # selects (vocal 0.78, oberheim 0.74) et coûte ailleurs : candidat
-    # seulement au-delà du seuil statique
-    lazy = ["lz", "lzh", "gq", "gqlz"] if sig.get("nselect", 0) >= 8 else []
-    lazy += ["lb"]  # -lsum autonome (2026-08-18) : la factorisation polynomiale
-                    # des sommes, decouplee de -fir -- old_freeverb 133->65 adds
-    if fusion_signal:
-        # les zones sûres embarquent les deux régimes d'ordre (validation
-        # 2026-08-08) + le témoin étagé
-        # t1fu : le grain SSA sous la fusion -- répare le pire cas de fu
-        # (korg35HPF 1.08 -> 0.81) et mène le geomean du jury (0.692)
-        # fi : l'algèbre -fir révélée+émise -- gains concentrés
-        # (spectralTilt 0.52, korg35HPF 0.72), pertes réverb : le flash-
-        # bench arbitre. df partout : la ligne de base de la carte.
-        other = "al" if locality else "h2"
-        # cs2 sans porte statique (campagne 2026-08-13) : la couche 2
-        # arbitre ; une porte informée par les signatures des gagnants
-        # pourra venir après la carte
-        return "fusion-sûre", ["fu", "ls", order[0], other, "t4fu", "t1fu", "df", "rp", "cs2", "cs2b",
-                               "fi", "fib", "fifu", "fibfu"] + lazy
-    return "incertain", ["fu", "ls", order[0], order[1], "df", "rp", "cs2", "cs2b", "t4", "fi", "fib",
-                         "fifu", "fibfu"] + lazy
+    if full:
+        fusion_signal = sig["recmii"] >= 50 or sig["nstreams"] >= 5
+        locality = sig["recmii"] >= 45
+        order = ["h2", "cs8"] if locality else ["al", "h32"]
+        lazy = ["lz", "lzh", "gq", "gqlz"] if sig.get("nselect", 0) >= 8 else []
+        lazy += ["lb"]
+        if fusion_signal:
+            other = "al" if locality else "h2"
+            return "fusion-sûre", ["fu", "ls", order[0], other, "t4fu", "t1fu", "df", "rp", "cs2",
+                                   "cs2b", "fi", "fib", "fifu", "fibfu"] + lazy
+        return "incertain", ["fu", "ls", order[0], order[1], "df", "rp", "cs2", "cs2b", "t4", "fi",
+                             "fib", "fifu", "fibfu"] + lazy
+    n, r, st = sig["nodes"], sig["recmii"], sig["nstreams"]
+    sel, alu = sig.get("nselect", 0), sig["nalu"]
+    # le noyau universel : df la référence, lb (la factorisation des
+    # sommes, no-op ailleurs), fu la fusion, al l'alignement, et la
+    # paire fir-fusion (fifu SANS -lsum et fibfu AVEC : sur les guitares
+    # -lsum coûte, sur les Lab il paie — les deux voyagent ensemble)
+    cand = ["df", "lb", "fu", "al", "fifu", "fibfu"]
+    if n < 200 or alu > 0.9 * n:
+        cand += ["fi"]           # petits programmes ou ALU pur (ambisonics)
+    if r >= 80:
+        cand += ["t1fu", "t4fu"]  # récurrence dominante -> étagement fin
+    if st >= 20:
+        cand += ["t4fu"]
+    if r >= 40 or st >= 5:
+        cand += ["h2"]           # localité ou flux -> hybride R2
+    else:
+        cand += ["h32"]
+    if st >= 8:
+        cand += ["rp"]           # rafales de lectures d'anneaux
+    if n >= 700 or r >= 80:
+        cand += ["cs2"]          # gros ou récurrent -> épine df
+    if n >= 200:
+        cand += ["cs2b"]         # l'épine bf porte les gros (violin, vital_rev)
+    if sel >= 8:
+        cand += ["lz", "gqlz", "t4"]
+    return "distillée", list(dict.fromkeys(cand))
 
 
 def compile_candidate(dsp, name, workdir):
@@ -169,6 +186,58 @@ def _ensure_hiprec():
         open(dst, "w").write(src.replace("%8.6f", "%.17g"))
     return HIPREC_DIR
 NUMRE = re.compile(r"-?\d+\.?\d*(?:[eE][+-]?\d+)?")
+
+# Serrure 6 (2026-08-22, la nuit de la V8) : des periodes ou les
+# sous-processus frais sont servis en coeurs E / paliers DVFS lents --
+# valeurs QUANTIFIEES et STABLES (2.98 au lieu de 1.6 sur le canari),
+# donc invisibles pour une garde de dispersion. Cause partiellement
+# prouvee (QoS background : taskpolicy -b reproduit 2.46 deterministe),
+# partiellement ouverte (regimes globaux sans thermique declaree).
+# Defense : un canari-BINAIRE etalonne, lance par le meme chemin que
+# les candidats ; s'il mesure lent, on attend au lieu de compter.
+CANARY_DIR = os.path.join(tempfile.gettempdir(), "faustauto-canary")
+
+def _ensure_canary():
+    """Construit et etalonne le canari (une fois, cache) ; retourne
+    (binaire, ref) ou (None, None) si inconstructible."""
+    os.makedirs(CANARY_DIR, exist_ok=True)
+    b = os.path.join(CANARY_DIR, "canary-bin")
+    reff = os.path.join(CANARY_DIR, "canary.ref")
+    if os.path.exists(b) and os.path.exists(reff) and not os.environ.get("FAUSTAUTO_RECAL"):
+        try:
+            return b, float(open(reff).read())
+        except ValueError:
+            pass
+    dsp = os.path.join(FAUST_ROOT, "examples", "analysis", "vumeter.dsp")
+    cpp, binp = compile_candidate(dsp, "df", CANARY_DIR)
+    if not binp:
+        return None, None
+    if binp != b:
+        os.replace(binp, b)
+    for _ in range(10):
+        vals = [v for v in (run_once(b) for _ in range(10)) if v]
+        if vals and max(vals) / min(vals) < 1.15:
+            open(reff, "w").write(f"{min(vals):.6f}")
+            return b, min(vals)
+        print("faustauto: etalonnage du canari instable, attente 60 s", file=sys.stderr)
+        time.sleep(60)
+    return None, None
+
+def wait_quiet(max_waits=5):
+    """Attend un ordonnanceur stable ; au-dela de max_waits, procede en
+    signalant des mesures non canoniques (un outil ne bloque pas sans fin)."""
+    b, ref = _ensure_canary()
+    if b is None:
+        return True
+    for _ in range(max_waits):
+        vals = [v for v in (run_once(b) for _ in range(3)) if v]
+        if vals and min(vals) < 1.25 * ref:
+            return True
+        print(f"faustauto: canari lent ({min(vals):.3f} vs {ref:.3f} etalonne), attente 60 s",
+              file=sys.stderr)
+        time.sleep(60)
+    print("ATTENTION: ordonnanceur instable persistant -- mesures non canoniques", file=sys.stderr)
+    return False
 
 def impulse_ir(dsp, flags, env, workdir, tag):
     """Reponse impulsionnelle -double (60000 ech.) ; None si inconstructible."""
@@ -232,11 +301,13 @@ def main():
     ap.add_argument("-o", "--output")
     ap.add_argument("--rounds", type=int, default=2)
     ap.add_argument("--keep", action="store_true", help="garder le dossier de travail")
+    ap.add_argument("--full", action="store_true",
+                    help="jury complet (mode campagne, ~15-19 candidats)")
     a = ap.parse_args()
 
     t0 = time.time()
     sig = signature(a.dsp)
-    zone, cands = candidates(sig)
+    zone, cands = candidates(sig, full=a.full)
     print(f"faustauto: zone {zone} ; candidats {cands}")
     print(f"  signature : nodes={sig['nodes']} recmii={sig['recmii']} "
           f"nstreams={sig['nstreams']} bankable={sig['bankablepct']}% top1={sig['top1']}")
@@ -267,13 +338,22 @@ def main():
                      "(FAUSTAUTO_ALLOW_BATTERY=1 pour outrepasser, resultats non canoniques).")                 if not os.environ.get("FAUSTAUTO_ALLOW_BATTERY") else                 print("ATTENTION : bench sur batterie (FAUSTAUTO_ALLOW_BATTERY) -- resultats non canoniques", file=sys.stderr)
     except FileNotFoundError:
         pass
+    wait_quiet()
     time.sleep(6)
     times = {name: [] for name in built}
-    for _ in range(a.rounds):
-        for name, (_, binp) in built.items():
-            t = run_once(binp)
-            if t is not None:
-                times[name].append(t)
+    for attempt in range(2):
+        times = {name: [] for name in built}
+        for _ in range(a.rounds):
+            for name, (_, binp) in built.items():
+                t = run_once(binp)
+                if t is not None:
+                    times[name].append(t)
+        spread = [max(v) / min(v) for v in times.values() if v and min(v) > 0]
+        dirty = sum(1 for r in spread if r > 1.6) / max(1, len(spread))
+        if dirty <= 0.4:
+            break
+        print(f"faustauto: tour disperse ({int(dirty*100)}% instables), re-essai", file=sys.stderr)
+        wait_quiet()
     # RE-COURSE DU PODIUM : min-de-2 est fragile aux pointes, et seule la
     # tête compte. Repêchage LARGE : tout candidat à moins de 2x du
     # meneur provisoire regagne 4 tours alternés — un vrai vainqueur
