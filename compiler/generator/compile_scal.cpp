@@ -1387,6 +1387,20 @@ Tree ScalarCompiler::prepare(Tree LS)
         recursivnessAnnotation(Lx);
         typeAnnotation(Lx, false);
     }
+    if (gGlobal->gSelectN) {
+        // spec LE-SELECTN : the multiplex atoms must be compilable even
+        // when the 4-atom cliff collapsed a branch's condition to nil
+        // (the property then no longer carries them, but the emission
+        // still guards its assignments with them). They join the
+        // sharing/occurrence roots directly from the side table ; the
+        // gLazySelect block below runs the annotations on the final Lx.
+        for (const auto& e : fSelectNInfo) {
+            Lx = cons(e.second.selEff, Lx);
+            for (const auto& lf : e.second.leaves) {
+                Lx = cons(lf.atom, Lx);
+            }
+        }
+    }
     if (gGlobal->gLazySelect) {
         std::set<Tree, treeorder> atoms;
         for (const auto& pc : fConditionProperty) {
@@ -1665,8 +1679,189 @@ void ScalarCompiler::conditionStatistics(Tree l)
     }
 }
 
+/**
+ * spec LE-SELECTN : recognize the ba.selectn spelling -- balanced trees
+ * of select2 over monotone comparisons of a common selector against
+ * constant thresholds -- and certify by interval propagation that the
+ * leaves receive the exact anchored saturated partition (-inf,0], {1}
+ * (or grouped runs), ..., [N-1,+inf). Two threshold modes : integer
+ * (all four monotone ops) and real-integral (kGE/kLT only : every
+ * split is then half-open [k,..) and [k,k+1) identifies with the
+ * integer pair, so int(x) is an exact selector -- NaN corner excepted,
+ * the gatequiv-admitted one). Verify-everything-or-drop ; N >= 3.
+ * No tree surgery : certified roots enter fSelectNInfo, the spelling
+ * stays in place.
+ */
+void ScalarCompiler::computeSelectNInfo(Tree L)
+{
+    fSelectNInfo.clear();
+    // family collection : select2 grouped by comparison base (casts stripped)
+    std::map<Tree, std::vector<Tree>> families;
+    std::set<Tree>                    seenC;
+    std::function<Tree(Tree)> baseOf = [&](Tree sel) -> Tree {
+        int  op;
+        Tree a, b, xx;
+        if (isSigBinOp(sel, &op, a, b) &&
+            (op == kGT || op == kLT || op == kGE || op == kLE)) {
+            Tree base = a;
+            if (isSigIntCast(a, xx)) {
+                base = xx;
+            }
+            int    iv;
+            double rv;
+            if (isSigInt(b, &iv) || isSigReal(b, &rv)) {
+                return base;
+            }
+        }
+        return nullptr;
+    };
+    std::function<void(Tree)> walkC = [&](Tree t) {
+        if (!seenC.insert(t).second) {
+            return;
+        }
+        Tree sel, x, y, var, body;
+        if (isSigSelect2(t, sel, x, y)) {
+            Tree base = baseOf(sel);
+            if (base != nullptr) {
+                families[base].push_back(t);
+            }
+        }
+        if (isRec(t, var, body)) {
+            if (body != nullptr) {
+                walkC(body);
+            }
+            return;
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            walkC(t->branch(k));
+        }
+    };
+    while (isList(L)) {
+        walkC(hd(L));
+        L = tl(L);
+    }
+    const long long INF = 0x3FFFFFFFFFFFLL;
+    for (const auto& f : families) {
+        if ((int)f.second.size() < 2) {
+            continue;
+        }
+        std::set<Tree> infam(f.second.begin(), f.second.end());
+        std::set<Tree> ischild;
+        for (Tree t : f.second) {
+            Tree sel, x, y;
+            isSigSelect2(t, sel, x, y);
+            if (infam.count(x)) {
+                ischild.insert(x);
+            }
+            if (infam.count(y)) {
+                ischild.insert(y);
+            }
+        }
+        for (Tree root : f.second) {
+            if (ischild.count(root)) {
+                continue;
+            }
+            struct IvLeaf {
+                long long lo, hi;
+                Tree      leaf;
+            };
+            std::vector<IvLeaf> leaves;
+            bool                ok       = true;
+            bool                realMode = false;
+            Tree                selLhs   = nullptr;  // the comparisons' actual LHS (cast kept)
+            std::function<void(Tree, long long, long long)> dive =
+                [&](Tree t, long long lo, long long hi) {
+                    if (!ok || lo > hi) {
+                        ok = false;
+                        return;
+                    }
+                    if (!infam.count(t)) {
+                        leaves.push_back({lo, hi, t});
+                        return;
+                    }
+                    Tree sel, x, y, a, b;
+                    int  op, k;
+                    isSigSelect2(t, sel, x, y);
+                    if (!isSigBinOp(sel, &op, a, b)) {
+                        ok = false;
+                        return;
+                    }
+                    if (selLhs == nullptr) {
+                        selLhs = a;
+                    } else if (selLhs != a) {
+                        ok = false;  // one selector expression, cast included
+                        return;
+                    }
+                    if (isSigInt(b, &k)) {
+                        if (realMode) {
+                            ok = false;  // no mixed modes
+                            return;
+                        }
+                    } else {
+                        double rr;
+                        if (!isSigReal(b, &rr) || rr != (double)(long long)rr ||
+                            (op != kGE && op != kLT)) {
+                            ok = false;
+                            return;
+                        }
+                        realMode = true;
+                        k        = (int)(long long)rr;
+                    }
+                    long long tlo, thi, flo, fhi;  // convention select2(c,x,y) = c ? y : x
+                    switch (op) {
+                        case kGE: tlo = k;      thi = hi;    flo = lo;    fhi = k - 1; break;
+                        case kGT: tlo = k + 1;  thi = hi;    flo = lo;    fhi = k;     break;
+                        case kLT: tlo = lo;     thi = k - 1; flo = k;     fhi = hi;    break;
+                        case kLE: tlo = lo;     thi = k;     flo = k + 1; fhi = hi;    break;
+                        default:  ok = false; return;
+                    }
+                    dive(x, std::max(flo, lo), std::min(fhi, hi));
+                    dive(y, std::max(tlo, lo), std::min(thi, hi));
+                };
+            dive(root, -INF, INF);
+            if (!ok || leaves.size() < 3) {
+                continue;  // N >= 3 (spec, decisions actees)
+            }
+            std::sort(leaves.begin(), leaves.end(),
+                      [](const IvLeaf& u, const IvLeaf& v) { return u.lo < v.lo; });
+            bool part = leaves.front().lo == -INF && leaves.front().hi == 0 &&
+                        leaves.back().hi == INF && leaves.back().lo < 4096;
+            for (size_t i = 1; part && i < leaves.size(); i++) {
+                if (leaves[i].lo != leaves[i - 1].hi + 1) {
+                    part = false;
+                }
+            }
+            if (!part) {
+                continue;
+            }
+            SelectNInfo info;
+            info.selEff = realMode ? sigIntCast(selLhs) : selLhs;
+            int N       = (int)leaves.back().lo + 1;
+            for (const auto& lf : leaves) {
+                long long a = std::max(lf.lo, 0LL);
+                long long b = std::min(lf.hi, (long long)(N - 1));
+                for (long long k = a; k <= b; k++) {
+                    Tree atom;
+                    if (k == 0) {
+                        atom = sigBinOp(kLE, info.selEff, sigInt(0));
+                    } else if (k == N - 1) {
+                        atom = sigBinOp(kGE, info.selEff, sigInt(N - 1));
+                    } else {
+                        atom = sigBinOp(kEQ, info.selEff, sigInt((int)k));
+                    }
+                    info.leaves.push_back({lf.leaf, atom});
+                }
+            }
+            fSelectNInfo[root] = info;
+        }
+    }
+}
+
 void ScalarCompiler::conditionAnnotation(Tree l)
 {
+    if (gGlobal->gSelectN) {
+        computeSelectNInfo(l);
+    }
     while (isList(l)) {
         conditionAnnotation(hd(l), gGlobal->nil);
         l = tl(l);
@@ -1811,6 +2006,17 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
         // specific annotation case for SigControl
         conditionAnnotation(y, nc);
         conditionAnnotation(x, _AND_(nc, _CND_(y)));
+    } else if (gGlobal->gSelectN && fSelectNInfo.count(t)) {
+        // spec LE-SELECTN : a certified root dispatches with ONE
+        // saturating atom per index (the Codex-blocking correction :
+        // k=0 is sel<=0 and k=N-1 is sel>=N-1, never ==, because the
+        // clamp keeps the extreme branches alive out of bounds). The
+        // spine below is never compiled from here -- not descended.
+        const SelectNInfo& info = fSelectNInfo[t];
+        conditionAnnotation(info.selEff, nc);
+        for (const auto& lf : info.leaves) {
+            conditionAnnotation(lf.branch, _AND_(nc, _CND_(lf.atom)));
+        }
     } else if (Tree sel; gGlobal->gLazySelect && isSigSelect2(t, sel, x, y)) {
         // lazy select : the selector decides, so it is needed under the
         // SAME condition as the select itself ; each branch's stateless
@@ -5193,6 +5399,33 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
  * @return the C code translation of sig
  */
 
+/**
+ * spec LE-SELECTN, emission : one result variable, one guarded
+ * assignment per index -- the dispatch atoms are disjoint and covering
+ * (saturating ends), so exactly one branch assigns per sample. Each
+ * branch cone was condition-annotated with the SAME atom, so its own
+ * statements land in the same guarded block (printlines groups equal
+ * adjacent conditions) : native laziness through the existing
+ * machinery, no switch printer needed. Delays and sharing of the root
+ * ride the ordinary generateCacheCode.
+ */
+string ScalarCompiler::generateSelectN(Tree sig, const SelectNInfo& info)
+{
+    string selc = CS(info.selEff);
+    Type   t    = getCertifiedSigType(sig);
+    string vname, ctype;
+    getTypedNames(t, "Sel", ctype, vname);
+    // block-local, zero-init : the value is always assigned before any
+    // read in the same sample (dominated placement, the lazyselect form)
+    fClass->addZone2(subst("$0 \t$1 = 0;", ctype, vname));
+    for (const auto& lf : info.leaves) {
+        string atomc = CS(lf.atom);
+        string bexp  = CS(lf.branch);
+        fClass->addExecCode(Statement(atomc, subst("$0 = $1;", vname, bexp)));
+    }
+    return generateCacheCode(sig, vname);
+}
+
 string ScalarCompiler::generateCode(Tree sig)
 {
     int     i;
@@ -5202,6 +5435,18 @@ string ScalarCompiler::generateCode(Tree sig)
 
     // printf("compilation of %p : ", sig); print(sig); printf("\n");
 
+    if (gGlobal->gSelectN) {
+        // spec LE-SELECTN : a certified root compiles as an N-way
+        // multiplex ; its select2 spine below is dead from this path.
+        // Sample-rate roots only : a slow root multiplexed in the loop
+        // would drag block-rate work to sample rate (drumkit) -- slow
+        // spellings keep their ordinary zone-2 compilation.
+        auto it = fSelectNInfo.find(sig);
+        if (it != fSelectNInfo.end() &&
+            getCertifiedSigType(sig)->variability() == kSamp) {
+            return generateSelectN(sig, it->second);
+        }
+    }
     if (getUserData(sig)) {
         return generateXtended(sig);
     } else if (isSigInt(sig, &i)) {
@@ -5490,6 +5735,11 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
     string       vname, ctype;
     int          sharing = getSharingCount(sig, fSharingKey);
     Occurrences* o       = fOccMarkup->retrieve(sig);
+    if (o == nullptr && getenv("FAUST_SELECTN_DEBUG")) {
+        std::stringstream ss;
+        ss << ppsig(sig, 20);
+        fprintf(stderr, "OCC-NULL sur : %s\n", ss.str().c_str());
+    }
     faustassert(o);
 
     // check for expression occuring in delays

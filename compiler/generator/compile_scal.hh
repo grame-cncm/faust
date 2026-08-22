@@ -110,6 +110,23 @@ class ScalarCompiler : public Compiler {
         int         d;
         std::string var;  // cached variable of the real read at d
     };
+    // spec LE-SELECTN : side table, no tree surgery -- a certified root
+    // keeps its select2 spelling (every downstream walker intact) ; only
+    // conditionAnnotation (saturating atoms) and compileSignal (multiplex
+    // emission) consult the table. The spine below a root is never
+    // compiled from it (dead), unless shared externally (normal path).
+    struct SelectNLeaf {
+        Tree branch;  // leaf signal for index k
+        Tree atom;    // saturating dispatch atom : k=0 sel<=0 ; mid sel==k ; last sel>=N-1
+    };
+    struct SelectNInfo {
+        Tree                     selEff;  // effective INTEGER selector (cast built in real mode)
+        std::vector<SelectNLeaf> leaves;  // index order 0..N-1, repeated leaves allowed
+    };
+    std::map<Tree, SelectNInfo> fSelectNInfo;
+    void                        computeSelectNInfo(Tree L);
+    std::string                 generateSelectN(Tree sig, const SelectNInfo& info);
+
     bool fHasEnableControl  = false;  // program uses enable/control : the dup
                                       // inline cache stays off (dying
                                       // primitives, dcond interactions not

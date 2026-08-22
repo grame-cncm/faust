@@ -442,6 +442,7 @@ void global::reset()
     gTempOps        = 0;
     gReassoc        = false;
     gLazySelect     = false;
+    gSelectN        = false;
     gGateEquiv      = false;
     gEtaIterations  = 1;
     gCanonicalOrder = false;
@@ -1628,6 +1629,14 @@ bool global::processCmdline(int argc, const char* argv[])
             gGateEquiv = true;
             i += 1;
         } else if (isCmd(argv[i], "-lazyselect", "--lazy-select")) {
+            gLazySelect = true;
+            i += 1;
+        } else if (isCmd(argv[i], "-selectn", "--select-n")) {
+            // spec LE-SELECTN : reconstruct N-way selections from their
+            // select2 spellings ; the object is lazy dispatch, so the
+            // lazyselect plumbing (guarded statements, condition atoms)
+            // comes with it
+            gSelectN    = true;
             gLazySelect = true;
             i += 1;
 
