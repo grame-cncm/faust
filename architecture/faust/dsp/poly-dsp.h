@@ -624,7 +624,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         // Allocate a voice with a given type
         int allocVoice(int voice, int type)
         {
-            fVoiceTable[voice]->fDate++;
+            fVoiceTable[voice]->fDate = fDate++;
             fVoiceTable[voice]->fCurNote = type;
             return voice;
         }
