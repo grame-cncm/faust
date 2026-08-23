@@ -116,8 +116,11 @@ class ScalarCompiler : public Compiler {
     // emission) consult the table. The spine below a root is never
     // compiled from it (dead), unless shared externally (normal path).
     struct SelectNLeaf {
-        Tree branch;  // leaf signal for index k
-        Tree atom;    // saturating dispatch atom : k=0 sel<=0 ; mid sel==k ; last sel>=N-1
+        Tree branch;              // leaf signal for this entry
+        std::vector<Tree> atoms;  // dispatch condition, a CONJUNCTION of atoms :
+                                  // V1 saturating entries carry one (sel<=0 / sel==k /
+                                  // sel>=N-1) ; the V1.2 eq-chain default carries the
+                                  // negations (sel!=k0, sel!=k1, ...)
     };
     struct SelectNInfo {
         Tree                     selEff;  // effective INTEGER selector (cast built in real mode)

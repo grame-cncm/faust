@@ -1397,7 +1397,9 @@ Tree ScalarCompiler::prepare(Tree LS)
         for (const auto& e : fSelectNInfo) {
             Lx = cons(e.second.selEff, Lx);
             for (const auto& lf : e.second.leaves) {
-                Lx = cons(lf.atom, Lx);
+                for (Tree a : lf.atoms) {
+                    Lx = cons(a, Lx);
+                }
             }
         }
     }
@@ -1696,13 +1698,15 @@ void ScalarCompiler::computeSelectNInfo(Tree L)
 {
     fSelectNInfo.clear();
     // family collection : select2 grouped by comparison base (casts stripped)
-    std::map<Tree, std::vector<Tree>> families;
+    std::map<Tree, std::vector<Tree>> families;    // monotone selectors (V1)
+    std::map<Tree, std::vector<Tree>> eqFamilies;  // ==/!= selectors (V1.2 chains)
     std::set<Tree>                    seenC;
-    std::function<Tree(Tree)> baseOf = [&](Tree sel) -> Tree {
+    std::function<Tree(Tree, bool&)> baseOf = [&](Tree sel, bool& isEq) -> Tree {
         int  op;
         Tree a, b, xx;
         if (isSigBinOp(sel, &op, a, b) &&
-            (op == kGT || op == kLT || op == kGE || op == kLE)) {
+            (op == kGT || op == kLT || op == kGE || op == kLE || op == kEQ || op == kNE)) {
+            isEq = (op == kEQ || op == kNE);
             Tree base = a;
             if (isSigIntCast(a, xx)) {
                 base = xx;
@@ -1721,9 +1725,10 @@ void ScalarCompiler::computeSelectNInfo(Tree L)
         }
         Tree sel, x, y, var, body;
         if (isSigSelect2(t, sel, x, y)) {
-            Tree base = baseOf(sel);
+            bool isEq = false;
+            Tree base = baseOf(sel, isEq);
             if (base != nullptr) {
-                families[base].push_back(t);
+                (isEq ? eqFamilies : families)[base].push_back(t);
             }
         }
         if (isRec(t, var, body)) {
@@ -1849,10 +1854,93 @@ void ScalarCompiler::computeSelectNInfo(Tree L)
                     } else {
                         atom = sigBinOp(kEQ, info.selEff, sigInt((int)k));
                     }
-                    info.leaves.push_back({lf.leaf, atom});
+                    info.leaves.push_back({lf.leaf, {atom}});
                 }
             }
             fSelectNInfo[root] = info;
+        }
+    }
+    // ---- V1.2 : equality CHAINS with a default branch ----------------
+    // select2(base==k, CONT, TAKEN) nested through the continuation side
+    // (kNE : sides swapped). The dispatch atoms ARE the original
+    // comparison nodes (hash-consed, already typed) ; the default is
+    // guarded by the conjunction of built negations. No clamp, no index
+    // math -- the emission reproduces the nested ternaries exactly,
+    // NaN corner included (every == false lands on the default, as the
+    // cascade does). Chains only : a branch that is itself an eq member
+    // rejects the candidate (trees stay in their spelling).
+    for (const auto& f : eqFamilies) {
+        if (getenv("FAUST_SELECTN_DEBUG")) {
+            fprintf(stderr, "  eq-famille : %zu membres\n", f.second.size());
+        }
+        if ((int)f.second.size() < 2) {
+            continue;
+        }
+        std::set<Tree> infam(f.second.begin(), f.second.end());
+        std::set<Tree> ischild;
+        for (Tree t : f.second) {
+            Tree sel, x, y;
+            isSigSelect2(t, sel, x, y);
+            if (infam.count(x)) {
+                ischild.insert(x);
+            }
+            if (infam.count(y)) {
+                ischild.insert(y);
+            }
+        }
+        for (Tree root : f.second) {
+            if (ischild.count(root)) {
+                continue;
+            }
+            SelectNInfo    info;
+            std::set<Tree> kseen;
+            bool           ok   = true;
+            Tree           cur  = root;
+            Tree           base = nullptr;
+            std::vector<Tree> negs;
+            while (ok) {
+                Tree sel, x, y, a, b;
+                int  op;
+                isSigSelect2(cur, sel, x, y);
+                isSigBinOp(sel, &op, a, b);
+                if (base == nullptr) {
+                    base = a;
+                } else if (base != a) {
+                    ok = false;
+                    break;
+                }
+                if (!kseen.insert(b).second) {
+                    ok = false;  // duplicate constant : later test is dead
+                    break;
+                }
+                Tree branch = (op == kEQ) ? y : x;
+                Tree cont   = (op == kEQ) ? x : y;
+                if (infam.count(branch)) {
+                    ok = false;  // a tree, not a chain
+                    break;
+                }
+                info.leaves.push_back({branch, {(op == kEQ) ? sel : sigBinOp(kEQ, a, b)}});
+                negs.push_back(sigBinOp(kNE, a, b));
+                if (infam.count(cont)) {
+                    cur = cont;
+                    continue;
+                }
+                info.leaves.push_back({cont, negs});  // the default entry
+                break;
+            }
+            if (getenv("FAUST_SELECTN_DEBUG")) {
+                fprintf(stderr, "  eq-candidat : ok=%d entrees=%zu\n", (int)ok,
+                        info.leaves.size());
+            }
+            if (!ok || info.leaves.size() < 3 || info.leaves.size() > 65) {
+                continue;  // entries + default >= 3 (spec N >= 3)
+            }
+            info.selEff = base;
+            fSelectNInfo[root] = info;
+            if (getenv("FAUST_SELECTN_DEBUG")) {
+                fprintf(stderr, "  chaine== reconnue : %zu entrees + defaut\n",
+                        info.leaves.size() - 1);
+            }
         }
     }
 }
@@ -2015,7 +2103,11 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
         const SelectNInfo& info = fSelectNInfo[t];
         conditionAnnotation(info.selEff, nc);
         for (const auto& lf : info.leaves) {
-            conditionAnnotation(lf.branch, _AND_(nc, _CND_(lf.atom)));
+            Tree c = nc;
+            for (Tree a : lf.atoms) {
+                c = _AND_(c, _CND_(a));
+            }
+            conditionAnnotation(lf.branch, c);
         }
     } else if (Tree sel; gGlobal->gLazySelect && isSigSelect2(t, sel, x, y)) {
         // lazy select : the selector decides, so it is needed under the
@@ -5419,9 +5511,16 @@ string ScalarCompiler::generateSelectN(Tree sig, const SelectNInfo& info)
     // read in the same sample (dominated placement, the lazyselect form)
     fClass->addZone2(subst("$0 \t$1 = 0;", ctype, vname));
     for (const auto& lf : info.leaves) {
-        string atomc = CS(lf.atom);
-        string bexp  = CS(lf.branch);
-        fClass->addExecCode(Statement(atomc, subst("$0 = $1;", vname, bexp)));
+        // the SAME CND path as the annotation : byte-identical condition
+        // strings, so the branch cone's guarded statements group with the
+        // final assignment into one if block
+        Tree cnd = gGlobal->nil;
+        for (Tree a : lf.atoms) {
+            cnd = _AND_(cnd, _CND_(a));
+        }
+        string cond = CND2CODE(cnd);
+        string bexp = CS(lf.branch);
+        fClass->addExecCode(Statement(cond, subst("$0 = $1;", vname, bexp)));
     }
     return generateCacheCode(sig, vname);
 }
