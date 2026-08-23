@@ -71,6 +71,8 @@ CAND = {
     "gq":  ["-gatequiv"],
     "gqlz": ["-gatequiv", "-lazyselect"],
     "lb":  ["-lsum"],
+    "sn":  ["-selectn"],
+    "gqsn": ["-gatequiv", "-selectn"],
     # cs2 : l'ordonnanceur compositionnel CSSCHEDULE (blocs dominateurs,
     # faisceau de Pareto, budget 1M), en PAIRE d'épines depuis la carte
     # (R,U) x 2 épines du 2026-08-13 : le défaut (20,4) n'était optimal
@@ -120,7 +122,7 @@ def candidates(sig, full=False):
         fusion_signal = sig["recmii"] >= 50 or sig["nstreams"] >= 5
         locality = sig["recmii"] >= 45
         order = ["h2", "cs8"] if locality else ["al", "h32"]
-        lazy = ["lz", "lzh", "gq", "gqlz"] if sig.get("nselect", 0) >= 8 else []
+        lazy = ["lz", "lzh", "gq", "gqlz", "sn", "gqsn"] if sig.get("nselect", 0) >= 8 else []
         lazy += ["lb"]
         if fusion_signal:
             other = "al" if locality else "h2"
@@ -152,7 +154,7 @@ def candidates(sig, full=False):
     if n >= 200:
         cand += ["cs2b"]         # l'épine bf porte les gros (violin, vital_rev)
     if sel >= 8:
-        cand += ["lz", "gqlz", "t4"]
+        cand += ["lz", "gqlz", "t4", "sn", "gqsn"]
     return "distillée", list(dict.fromkeys(cand))
 
 

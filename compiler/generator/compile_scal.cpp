@@ -1860,6 +1860,117 @@ void ScalarCompiler::computeSelectNInfo(Tree L)
             fSelectNInfo[root] = info;
         }
     }
+    // ---- V2 : DISPATCH by real domains (spec section 11) -------------
+    // Any tree of monotone comparisons of a common base against
+    // constants tiles the real line by construction (each split makes
+    // complementary halves : no gap, no overlap possible). No index
+    // mapping, no anchoring : the object is the partition itself --
+    // quantizedChords dispatches on its pitch-quantizer boundaries
+    // (1.88775...). Exact open/closed boundary bookkeeping ; empty
+    // leaves (contradictory nesting) are dead code, skipped ; the NaN
+    // corner is the gatequiv-admitted one (all guards false -> the
+    // zero-init survives, where the cascade lands on one leaf).
+    // Tried on monotone roots the V1 certificate did not take.
+    for (const auto& f : families) {
+        if ((int)f.second.size() < 2) {
+            continue;
+        }
+        std::set<Tree> infam(f.second.begin(), f.second.end());
+        std::set<Tree> ischild;
+        for (Tree t : f.second) {
+            Tree sel, x, y;
+            isSigSelect2(t, sel, x, y);
+            if (infam.count(x)) {
+                ischild.insert(x);
+            }
+            if (infam.count(y)) {
+                ischild.insert(y);
+            }
+        }
+        for (Tree root : f.second) {
+            if (ischild.count(root) || fSelectNInfo.count(root)) {
+                continue;  // internal, or already V1-certified
+            }
+            struct RLeaf {
+                long double lo, hi;
+                bool        loIn, hiIn;
+                Tree        leaf;
+            };
+            std::vector<RLeaf>              leaves;
+            std::map<long double, Tree>     thr;   // threshold value -> its constant tree
+            bool                            ok   = true;
+            Tree                            base = nullptr;
+            const long double               RINF = 1e300L;
+            std::function<void(Tree, long double, bool, long double, bool)> dive =
+                [&](Tree t, long double lo, bool loIn, long double hi, bool hiIn) {
+                    if (!ok) {
+                        return;
+                    }
+                    bool empty = lo > hi || (lo == hi && !(loIn && hiIn));
+                    if (!infam.count(t)) {
+                        if (!empty) {
+                            leaves.push_back({lo, hi, loIn, hiIn, t});
+                        }
+                        return;
+                    }
+                    if (empty) {
+                        return;  // dead subtree : its leaves are unreachable
+                    }
+                    Tree sel, x, y, a, b;
+                    int  op, iv;
+                    double rv;
+                    isSigSelect2(t, sel, x, y);
+                    isSigBinOp(sel, &op, a, b);
+                    if (base == nullptr) {
+                        base = a;
+                    } else if (base != a) {
+                        ok = false;
+                        return;
+                    }
+                    long double k;
+                    if (isSigInt(b, &iv)) {
+                        k = (long double)iv;
+                    } else if (isSigReal(b, &rv)) {
+                        k = (long double)rv;
+                    } else {
+                        ok = false;
+                        return;
+                    }
+                    thr.emplace(k, b);
+                    // convention select2(c,x,y)=c?y:x -- y is the true side
+                    switch (op) {
+                        case kGE: dive(y, k, true, hi, hiIn);  dive(x, lo, loIn, k, false); break;
+                        case kGT: dive(y, k, false, hi, hiIn); dive(x, lo, loIn, k, true);  break;
+                        case kLT: dive(y, lo, loIn, k, false); dive(x, k, true, hi, hiIn);  break;
+                        case kLE: dive(y, lo, loIn, k, true);  dive(x, k, false, hi, hiIn); break;
+                        default:  ok = false; return;
+                    }
+                };
+            dive(root, -RINF, false, RINF, false);
+            if (!ok || leaves.size() < 3 || leaves.size() > 65) {
+                continue;
+            }
+            std::sort(leaves.begin(), leaves.end(), [](const RLeaf& u, const RLeaf& v) {
+                return u.lo < v.lo || (u.lo == v.lo && u.loIn && !v.loIn);
+            });
+            SelectNInfo info;
+            info.selEff = base;
+            for (const auto& lf : leaves) {
+                std::vector<Tree> atoms;
+                if (lf.lo > -RINF / 2) {
+                    atoms.push_back(sigBinOp(lf.loIn ? kGE : kGT, base, thr[lf.lo]));
+                }
+                if (lf.hi < RINF / 2) {
+                    atoms.push_back(sigBinOp(lf.hiIn ? kLE : kLT, base, thr[lf.hi]));
+                }
+                info.leaves.push_back({lf.leaf, atoms});
+            }
+            fSelectNInfo[root] = info;
+            if (getenv("FAUST_SELECTN_DEBUG")) {
+                fprintf(stderr, "  dispatch reconnu : %zu domaines\n", leaves.size());
+            }
+        }
+    }
     // ---- V1.2 : equality CHAINS with a default branch ----------------
     // select2(base==k, CONT, TAKEN) nested through the continuation side
     // (kNE : sides swapped). The dispatch atoms ARE the original
