@@ -297,6 +297,25 @@ def run_once(binp, iters=None):
     return float(m.group(1)) if m else None
 
 
+RECIPES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "recipes.tsv")
+
+def book_recipe(dsp):
+    """Le livre de recettes (couche 4) : une recette evoluee pour CE
+    programme, injectee comme candidat 'bk'. Retourne (flags, env) ou None."""
+    base = os.path.basename(dsp)
+    try:
+        for l in open(RECIPES):
+            if l.startswith("#") or not l.strip():
+                continue
+            c = l.rstrip("\n").split("\t")
+            if len(c) >= 4 and c[0] == base:
+                flags = c[2].split()
+                env   = dict(kv.split("=", 1) for kv in c[3].split() if "=" in kv)
+                return flags, env
+    except FileNotFoundError:
+        pass
+    return None
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("dsp")
@@ -310,6 +329,12 @@ def main():
     t0 = time.time()
     sig = signature(a.dsp)
     zone, cands = candidates(sig, full=a.full)
+    recipe = book_recipe(a.dsp)
+    if recipe is not None:
+        CAND["bk"] = recipe[0]
+        CAND_ENV["bk"] = recipe[1]
+        cands = cands + ["bk"]
+        print("faustauto: recette du livre injectée (candidat bk)")
     print(f"faustauto: zone {zone} ; candidats {cands}")
     print(f"  signature : nodes={sig['nodes']} recmii={sig['recmii']} "
           f"nstreams={sig['nstreams']} bankable={sig['bankablepct']}% top1={sig['top1']}")

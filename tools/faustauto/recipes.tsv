@@ -1,0 +1,5 @@
+# livre de recettes (couche 4) : programme -> recette evoluee, injectee
+# comme candidat "bk" dans le jury de faustauto (la porte de justesse
+# s'applique comme a tout candidat). Cle = basename du .dsp.
+# basename	date	flags	env
+reverbTank.dsp	2026-08-24	-ss 11 -ls-R 16 -ls-U 8 -ls -ls-sched model -temp 1 -lsum -gatequiv	FAUST_SS_RINGPRELOAD=1 FAUST_GATEQUIV_TAU=24

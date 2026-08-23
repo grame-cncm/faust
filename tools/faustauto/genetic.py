@@ -95,6 +95,8 @@ def main():
     ap.add_argument("--pop", type=int, default=16)
     ap.add_argument("--gens", type=int, default=20)
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--book", action="store_true",
+                    help="inscrire le champion valide au livre de recettes")
     a = ap.parse_args()
     rng = random.Random(a.seed)
     wd = tempfile.mkdtemp(prefix="gen-")
@@ -144,6 +146,16 @@ def main():
     if ev.correct(bestg):
         fl, env = flags_of(bestg)
         print(f"CHAMPION VALIDE : {best:.3f} ns : {' '.join(fl)} {env}")
+        if a.book:
+            import datetime
+            book = os.path.join(os.path.dirname(os.path.abspath(__file__)), "recipes.tsv")
+            base = os.path.basename(a.dsp)
+            lines = [l for l in open(book)] if os.path.exists(book) else []
+            lines = [l for l in lines if not l.startswith(base + "\t")]
+            envs = " ".join(f"{k}={v}" for k, v in sorted(env.items()))
+            lines.append(f"{base}\t{datetime.date.today()}\t{' '.join(fl)}\t{envs or '-'}\n")
+            open(book, "w").writelines(lines)
+            print(f"inscrit au livre : {base}")
     else:
         print("champion DISQUALIFIE (IR fausse) — a instruire")
     shutil.rmtree(wd, ignore_errors=True)
