@@ -7,7 +7,12 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2026
 
 ----------------------------------------------------
-Version 1.82 - 30/06/2025
+Version 1.83 - 25/08/2026
+
+- correct deallocation bug, distribution with Faust 2.87.7.
+
+----------------------------------------------------
+Version 1.82 - 30/06/2026
 
 - distribution with Faust 2.85.9.
 
