@@ -34,21 +34,21 @@ comptime COMPUTE_ITERS = S32(get_defined_int["COMPUTE_ITERS", 100]())
 # ==============================================================================
 
 def main() -> None:
-    var dsp = alloc[mydsp](1)
+    var dsp = unsafe_alloc[mydsp](1)
     dsp[] = mydsp()
     dsp[].init(SAMP_RATE)
     var n_ins = dsp[].get_num_inputs()
     var n_outs = dsp[].get_num_outputs()
     var base, err = make_streams[dfaust](BUFF_SIZE, n_ins, n_outs)
     if err:
-        dsp.free()
+        dsp.unsafe_free()
         return
     var ptr = base.unsafe_value()
     var inputs = ptr.bitcast[Ptr[FaustFloat, IMM_NOTRK]]().as_immutable()
     var outputs = (ptr + n_ins).bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
     inspect_compute(dsp[], inputs, outputs)
-    ptr.free()
-    dsp.free()
+    ptr.unsafe_free()
+    dsp.unsafe_free()
 
 @no_inline
 @export("inspect_compute")

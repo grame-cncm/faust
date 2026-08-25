@@ -24,8 +24,8 @@ def run_dsp[Dsp: FaustDsp](
         print("Panic in main - Critical allocation error: ", err)
         return
 
-    var inputs = base.unsafe_value().bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
-    var outputs = inputs + n_ins
+    var inputs = base.unsafe_value().unsafe_bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
+    var outputs = inputs.unsafe_offset(n_ins)
 
     try:
         while nbsamples > 0:
@@ -37,14 +37,14 @@ def run_dsp[Dsp: FaustDsp](
                 ctrl_ui.set_buttons(False)
             var count = min(BUFF_SIZE, nbsamples)
             dsp[].compute(
-                S32(count), inputs.bitcast[Ptr[FaustFloat, IMM_NOTRK]](), outputs
+                S32(count), inputs.unsafe_bitcast[Ptr[FaustFloat, IMM_NOTRK]](), outputs
             )
             run += 1
             for i in range(count):
                 print(String(linenum).ascii_rjust(6), ": ", end="")
                 linenum += 1
                 for c in range(n_outs):
-                    var f = normalize(outputs[c][i])
+                    var f = normalize(outputs[unsafe_offset=c][unsafe_offset=i])
                     print(" " + format_real(F64(f)), end="")
                 print("")
             nbsamples -= count
@@ -55,7 +55,7 @@ def run_dsp[Dsp: FaustDsp](
 
 def impulse(n_ins: S32, inputs: MutStreams) -> None:
     for var i in range(n_ins):
-        inputs[i][0] = FaustFloat(1.0)
+        inputs[unsafe_offset=i][unsafe_offset=0] = FaustFloat(1.0)
 
 def normalize(real: FaustFloat) raises -> FaustFloat:
     if not real == real:

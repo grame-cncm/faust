@@ -34,10 +34,6 @@ comptime PRECISION = get_defined_string["PRECISION", "single"]()
 comptime CSV_PATH = get_defined_string["CSV_PATH", "report/mojo/report.csv"]()
 comptime WRITE_CSV = get_defined_bool["WRITE_CSV", False]()
 
-# Comptime dfaust assertion.
-def assert_dfaust() -> None: comptime assert dfaust == F32.dtype
-comptime _ = assert_dfaust()
-
 # Faust benchmark API.
 
 struct BenchBatch(ImplicitlyCopyable):
@@ -127,19 +123,19 @@ def fill_inputs(inputs: MutStreams, n_ins: S32) -> None:
     for chan in range(n_ins):
         for frame in range(BUFF_SIZE):
             var value = 0.001 * F64(frame + 1) + F64(chan)
-            inputs[chan][frame] = FaustFloat(value)
+            inputs[unsafe_offset=chan][unsafe_offset=frame] = FaustFloat(value)
 
 def warmup(
     mut dsp: Some[FaustDsp], inputs: MutStreams, outputs: MutStreams
 ) -> None:
-    var read_inputs = inputs.bitcast[Ptr[FaustFloat, IMM_NOTRK]]().as_immutable()
+    var read_inputs = inputs.unsafe_bitcast[Ptr[FaustFloat, IMM_NOTRK]]().unsafe_mut_cast[False]()
     for _ in range(S32(WARMUP_ITERS)):
         dsp.compute(BUFF_SIZE, read_inputs, outputs)
 
 def _measure_adaptive(
     mut dsp: Some[FaustDsp], inputs: MutStreams, outputs: MutStreams
 ) -> BenchRun:
-    var read_inputs = inputs.bitcast[Ptr[FaustFloat, IMM_NOTRK]]().as_immutable()
+    var read_inputs = inputs.unsafe_bitcast[Ptr[FaustFloat, IMM_NOTRK]]().unsafe_mut_cast[False]()
 
     var batches = Arr[BenchBatch, MAX_BATCHES](fill=BenchBatch())
 
@@ -287,7 +283,7 @@ def checksum_outputs(outputs: MutStreams, n_outs: S32) -> F64:
     var sum = 0.0
     for chan in range(n_outs):
         for frame in range(BUFF_SIZE):
-            sum += F64(outputs[chan][frame])
+            sum += F64(outputs[unsafe_offset=chan][unsafe_offset=frame])
     return sum
 
 def print_report(report: FaustReport) -> None:

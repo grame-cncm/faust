@@ -50,7 +50,8 @@ using FuncSymTable = std::unordered_map<String, b32>;
       Mojo standard ones.
     - Allows to generate a textual cast expression `to FaustFloat` type.
 **/
-class MojoInstVisitor : public TextInstVisitor {
+class MojoInstVisitor : public TextInstVisitor
+{
 public:
     MojoInstVisitor(OStream* out, String const& structName, s32 tab = 0);
     virtual ~MojoInstVisitor();
@@ -120,7 +121,8 @@ protected:
     @glob
     - Allows to generate a `zero initializer` for a given `typed` value.
 **/
-class MojoInitFieldsVisitor : public DispatchVisitor {
+class MojoInitFieldsVisitor : public DispatchVisitor
+{
 public:
     using DispatchVisitor::visit;
     OStream* fOut;
@@ -145,21 +147,30 @@ public:
       and a `struct name`.
     - XXX:
  **/
-class MojoVecInstVisitor : public MojoInstVisitor {
+class MojoVecInstVisitor : public MojoInstVisitor
+{
 // In the context of the project this class is only used in
 // `MojoVecCodeContainer::writeCompute` while generating the
 // `FaustDsp.compute(...)` method.
 
 public:
     // Mapping to mojo DType
-    using DType = s32;
-    static inline constexpr DType DType_s32    = 0;
-    static inline constexpr DType DType_f32    = 1;
-    static inline constexpr DType DType_f64    = 2;
-    static inline constexpr DType DType_dfaust = 3;
-    static inline constexpr DType DType_bool   = 3;
+    enum MojoDType : s32 {
+        MojoDType_none  = -1,
+        MojoDType_s32   = 0,
+        MojoDType_f32   = 1,
+        MojoDType_f64   = 2,
+        MojoDType_faust = 3,
+        MojoDType_bool  = 4,
+    };
 
-    static DType getMojoDType(ValueInst* value);
+    enum MojoWidth : s32 {
+        MojoWidth_Small,
+        MojoWidth_Large,
+    };
+
+    static MojoDType getMojoDType(ValueInst* value);
+    static String    getMojoDTypeName(MojoDType dtype);
 
     // Enable base class operations
     using MojoInstVisitor::visit;
@@ -167,84 +178,52 @@ public:
     MojoVecInstVisitor(OStream* out, String const& structName, s32 tab = 0);
     virtual ~MojoVecInstVisitor();
 
-    void visit(BinopInst* inst)      override;
-    void visit(BoolNumInst* inst)    override;
-    void visit(CastInst* inst)       override;
-    void visit(DoubleNumInst* inst)  override;
-    void visit(DeclareVarInst* inst) override;
-    void visit(FloatNumInst* inst)   override;
-    void visit(ForLoopInst* inst)    override;
-    void visit(IndexedAddress* inst) override;
-    void visit(Int32NumInst* inst)   override;
-    void visit(LoadVarInst* inst)    override
-    {
-        b32 saved_force_width = gUseWidth;
-        mj_simd_emit_check();
-        Typed::VarType type = TypingVisitor::getType(inst);
-        if (Typed::isPtrType(type)) {
-            type = Typed::getTypeFromPtr(type);
-        }
-        if (Typed::isVecType(type)) {
-            type = Typed::getTypeFromVec(type);
-        }
-        gUseWidth = not gCurWidth.empty() && (type == Typed::kInt32 || type == Typed::kFloatMacro);
-        MojoInstVisitor::visit(inst);
-        gUseWidth = saved_force_width;
-    }
-    void visit(NamedAddress* inst)   override;
     void visit(IfInst* inst)         override;
+    void visit(Int32NumInst* inst)   override;
+    void visit(BoolNumInst* inst)    override;
+    void visit(FloatNumInst* inst)   override;
+    void visit(DoubleNumInst* inst)  override;
+
+    void visit(DeclareVarInst* inst) override;
+    void visit(NamedAddress* inst)   override;
+    void visit(LoadVarInst* inst)    override;
+    void visit(CastInst* inst)       override;
+    void visit(IndexedAddress* inst) override;
+    void visit(BinopInst* inst)      override;
+    void visit(ForLoopInst* inst)    override;
 
     // Global state
-    static inline b32      gSIMDEmit;
-    static inline b32      gSIMDWide;
-    static inline s32      gSIMDSize;
-    static inline String   gCurAddrs;
-    static inline String   gCurWidth;
-    static inline Address* gCurIndex;
-    static inline b32      gUseWidth;
+    static inline s32          gSIMDSize;
+    static inline b32          gSIMDEmit;
+    static inline b32          gSIMDHigh;
+    static inline b32          gSIMDWide;
+    static inline b32          gSIMDJoin;
+    static inline MojoDType    gCurLhsDT;
+    static inline String       gCurAddrs;
+    static inline Address*     gCurIndex;
 
 protected:
     // Visitor wrappers
     void visitMain(ForLoopInst* inst);
     void visitScalar(ForLoopInst* inst);
-    void visitBroadcast(StoreVarInst* inst);
     void visitBargraphUpdate(ForLoopInst* inst);
     void visitBargraphMulti(ForLoopInst* inst);
+    void visitBroadcast(StoreVarInst* inst);
+    void visitSplit(StoreVarInst* inst);
     void visitJoin(StoreVarInst* inst);
     void visitStore(StoreVarInst* inst);
-    void visitSplit(StoreVarInst* inst);
+    void visitBinopOperand(ValueInst* inst);
     b32  visitIndex(ValueInst* inst);
 
     // Helpers
+    static b32 isVectorizable(Address* addr);
+    static b32 isVectorizable(ValueInst* inst);
     static b32 hasWrappedIndex(Address* addr);
     static b32 hasWrappedIndex(ValueInst* inst);
     static b32 isWrappedIndexExpr(ValueInst* inst);
     static b32 isScalarAddress(Address* addr);
     static b32 isScalarValue(ValueInst* inst);
-    static b32 isVectorizable(Address* addr);
-    static b32 isVectorizable(ValueInst* inst);
-    static b32 isJoinable(StoreVarInst* inst);
 };
 
 }       // namespace mojo
 #endif  // MOJO_INSTRUCTIONS_HH
-
-//  lhs rhs   #inst  width  unroll  join
-//  
-//  f32 f32      1     4       1      0
-//  f64 f64      2     2       2      0
-//  
-//  f32 f64      1     4       1      1
-//  f64 f32      2     2       2      0
-//  
-//      lhs == f64
-//         /  \
-//       Y/    \N
-//      /        \
-//     /          \
-//    u2      rhs == f64
-//                /  \
-//              Y/    \N
-//             /        \
-//            j         u1
-//               

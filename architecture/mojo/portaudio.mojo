@@ -29,38 +29,31 @@ from audio.portaudio import *
 
 def main() -> None:
     comptime assert dfaust == F32.dtype, "Expected 32 bit float driver precision."
-
-    var dsp = alloc[mydsp](1)
+    var dsp = unsafe_alloc[mydsp](1)
     dsp[] = mydsp()
     dsp[].init(SAMP_RATE)
-
     var driver = PortAudio()
-
     err = driver.init()
     if err:
         print(err)
-        dsp.free()
+        dsp.unsafe_free()
         return
-
     err = driver.start(dsp)
     if err:
         print(err)
-        dsp.free()
+        dsp.unsafe_free()
         return
-
     try:
         _ = input()
     except e:
         print(e)
         return
-
     err = driver.stop()
     if err:
         print(err)
-        dsp.free()
+        dsp.unsafe_free()
         return
-
-    dsp.free()
+    dsp.unsafe_free()
     print("done")
 
 # ==============================================================================

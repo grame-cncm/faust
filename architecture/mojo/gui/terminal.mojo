@@ -86,7 +86,7 @@ struct TerminalGui[dtype: DType](FaustGui):
             WIDGET_HSLIDER,
             label,
             parent,
-            Ptr(to=zone).bitcast[Self.Real]().unsafe_origin_cast[MUT_NOTRK](),
+            Ptr(to=zone).unsafe_bitcast[Self.Real]().unsafe_origin_cast[MUT_NOTRK](),
             Self.Real(init),
             Self.Real(min),
             Self.Real(max),

@@ -26,9 +26,9 @@
 
 #include "_mojo_hal.hh"
 
-#define mj_debug_msg(out, ...) out << "\n======== DEBUG - " << __VA_ARGS__ << " =========\n"
-#define mj_error_msg(out, ...) out << "\n======== ERROR - " << __VA_ARGS__ << " =========\n"
-#define mj_panic_msg(out, ...) out << "\n======== PANIC - " << __VA_ARGS__ << " =========\n"
+#define mj_debug_msg(out, ...) out << "\n======== DEBUG -- " << __VA_ARGS__ << " =========\n"
+#define mj_error_msg(out, ...) out << "\n======== ERROR -- " << __VA_ARGS__ << " =========\n"
+#define mj_panic_msg(out, ...) out << "\n======== PANIC -- " << __VA_ARGS__ << " =========\n"
 
 #define mj_debug_fir(out, inst, msg)      \
     mj_debug_msg(out, "FIR DUMP - " msg); \
@@ -60,23 +60,21 @@
 #define dycast(T, x) dynamic_cast<T>(x)
 #define recast(T, x) reinterpret_cast<T>(x)
 
-#define mj_simd_emit_check() \
-    if (not gSIMDEmit) return MojoInstVisitor::visit(inst);
+#define mj_simd_emit_check() if (not gSIMDEmit) return MojoInstVisitor::visit(inst);
 
-#define mj_simd_emit_set(b)    b32 old_simd_emit = gSIMDEmit; gSIMDEmit = b
-#define mj_simd_emit_restore() gSIMDEmit = old_simd_emit
+#define mj_simd_emit_set(b)    b32 simd_emit_saved = gSIMDEmit; gSIMDEmit = b
+#define mj_simd_emit_restore() gSIMDEmit = simd_emit_saved
 
-#define mj_simd_wide_set(b)    b32 old_simd_wide = gSIMDWide; gSIMDWide = b
-#define mj_simd_wide_restore() gSIMDWide = old_simd_wide
+#define mj_simd_high_set(b)    b32 simd_high_saved = gSIMDHigh; gSIMDHigh = b
+#define mj_simd_high_restore() gSIMDHigh = simd_high_saved
 
 #define mj_simd_emit_accept(_inst_) \
     mj_simd_emit_set(true); _inst_->accept(this); mj_simd_emit_restore()
 #define mj_scalar_accept(_inst_) \
     mj_simd_emit_set(false); _inst_->accept(this); mj_simd_emit_restore()
-#define mj_simd_wide_accept(_inst_) \
-    mj_simd_wide_set(true); _inst_->accept(this); mj_simd_wide_restore()
+#define mj_simd_high_accept(_inst_) \
+    mj_simd_high_set(true); _inst_->accept(this); mj_simd_high_restore()
 
-#define mj_scalar_visit(_inst_)     \
-    mj_simd_emit_set(false); MojoInstVisitor::visit(_inst_); mj_simd_emit_restore()
+#define mj_scalar_visit(_inst_) mj_simd_emit_set(false); MojoInstVisitor::visit(_inst_); mj_simd_emit_restore()
 
 #endif  // _MOJO_MACRO_HH

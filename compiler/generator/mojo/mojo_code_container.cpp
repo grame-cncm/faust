@@ -440,9 +440,9 @@ void MojoVecCodeContainer::writeCompute(int n)
     *fOut << wnextl(n) << "comptime wsize = S32(simd_width_of[f64]())";
     *fOut << wnextl(n) << "comptime W = simd_width_of[f64]()";
     *fOut << wnextl(n) << "var vindex = S32(0)";
-    *fOut << wnextl(n) << "var end = count - vsize";
-    *fOut << wnextl(n) << "var lo: SIMD[dfaust, simd_width_of[f64]()]";
-    *fOut << wnextl(n) << "var hi: SIMD[dfaust, simd_width_of[f64]()]" << wnextl(n);
+    *fOut << wnextl(n) << "var end = count - vsize" << wnextl(n);
+    // *fOut << wnextl(n) << "var lo: SIMD[dfaust, simd_width_of[f64]()]";
+    // *fOut << wnextl(n) << "var hi: SIMD[dfaust, simd_width_of[f64]()]" << wnextl(n);
     fDAGBlock->pop_front();  // main loop index initalized manually above
     generateComputeBlock(gVectorProducer);
     fDAGBlock->accept(gVectorProducer);

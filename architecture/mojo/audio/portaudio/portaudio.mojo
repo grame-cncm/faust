@@ -125,9 +125,9 @@ def faust_callback[Dsp: FaustDsp](
     var input_ptr = input.unsafe_value()
     var output_ptr = output.unsafe_value()
 
-    var inputs = input_ptr.bitcast[Ptr[FaustFloat, IMM_NOTRK]]()
-    var outputs = output_ptr.bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
-    var dsp = data.unsafe_value().bitcast[Dsp]()
+    var inputs = input_ptr.unsafe_bitcast[Ptr[FaustFloat, IMM_NOTRK]]()
+    var outputs = output_ptr.unsafe_bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
+    var dsp = data.unsafe_value().unsafe_bitcast[Dsp]()
 
     dsp[].compute(S32(count), inputs, outputs)
 
@@ -156,7 +156,7 @@ def faust_open_stream[Dsp: FaustDsp](
     var stream = NULL_STREAM
     var ptr_in = NULL_PTR[PaStreamParameters, IMM_NOTRK]
     var ptr_out = NULL_PTR[PaStreamParameters, IMM_NOTRK]
-    var data: OptPtr[Void, MUT_NOTRK] = dsp.bitcast[NoneType]()
+    var data: OptPtr[Void, MUT_NOTRK] = dsp.unsafe_bitcast[NoneType]()
 
     if in_param.channel_count != 0:
         ptr_in = Ptr(to=in_param).unsafe_mut_cast[False]().unsafe_origin_cast[IMM_NOTRK]()

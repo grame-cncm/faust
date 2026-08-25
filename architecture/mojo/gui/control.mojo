@@ -15,7 +15,7 @@ struct ControlGui(FaustGui):
         mut ui, var label: String, mut zone: SIMD[dreal, 1]
     ) -> None:
         ui.buttons.append(
-            Ptr(to=zone).bitcast[FaustFloat]().unsafe_origin_cast[MUT_NOTRK]()
+            Ptr(to=zone).unsafe_bitcast[FaustFloat]().unsafe_origin_cast[MUT_NOTRK]()
         )
 
     def set_buttons(mut ui, var state: Bool) -> None:

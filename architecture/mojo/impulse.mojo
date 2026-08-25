@@ -30,15 +30,15 @@ from gui.control import ControlGui
 # ==============================================================================
 
 def main() raises -> None:
-    nbsamples = S32(60_000)
-    dsp = alloc[mydsp](1)
+    var nbsamples = S32(60_000)
+    var dsp = unsafe_alloc[mydsp](1)
     dsp[] = mydsp()
-    ctrl_gui = ControlGui()
+    var ctrl_gui = ControlGui()
     dsp[].init(SAMP_RATE)
     dsp[].build_user_interface(ctrl_gui)
     print_header(dsp[], nbsamples)
     run_dsp(dsp, ctrl_gui, nbsamples//4)
-    dsp.free()
+    dsp.unsafe_free()
 
 # ==============================================================================
 # Second section of architecture provided code end.

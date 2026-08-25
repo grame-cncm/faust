@@ -298,8 +298,20 @@ void MojoInstVisitor::visit(IndexedAddress* indexed)
         String name = snakeCase(struct_type->fType->getName(idx->fNum));
         *fOut << "." << name;
         return;
-    }  
-    *fOut << "[";
+    }
+
+    Typed* typed = gGlobal->findVarType(indexed->fAddress->getName());
+    mj_panic(typed, "Expected typed to be found");
+    auto* arr_typed = dycast(ArrayTyped*, typed);
+
+    if (arr_typed) {
+        *fOut << "[" << (arr_typed->fSize == 0 ? "unsafe_offset = " : "");
+        indexed->getIndex()->accept(this);
+        *fOut << "]";
+        return;
+    }
+
+    *fOut << "[unsafe_offset = ";
     indexed->getIndex()->accept(this);
     *fOut << "]";
 }

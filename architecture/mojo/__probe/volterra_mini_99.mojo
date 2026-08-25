@@ -317,14 +317,14 @@ def main() -> None:
     var n_outs = dsp[].get_num_outputs()
     var base, err = make_streams[dfaust](BUFF_SIZE, n_ins, n_outs)
     if err:
-        dsp.free()
+        dsp.()
         return
     var ptr = base.unsafe_value()
     var inputs = ptr.bitcast[Ptr[Real, IMM_NOTRK]]().as_immutable()
     var outputs = (ptr + n_ins).bitcast[Ptr[Real, MUT_NOTRK]]()
     inspect_compute(dsp[], inputs, outputs)
-    ptr.free()
-    dsp.free()
+    ptr.()
+    dsp.()
 
 @no_inline
 @export("inspect_compute")

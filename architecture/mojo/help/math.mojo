@@ -8,6 +8,11 @@ from conf import *
 def mod[dtype: DType](num: SIMD[dtype, 1], den: SIMD[dtype, 1]) -> SIMD[dtype, 1]:
     return num % den
 
+def mod[
+    dtype: DType, width: SInt
+](num: SIMD[dtype, width], den: SIMD[dtype, width]) -> SIMD[dtype, width]:
+    return num % den
+
 @always_inline
 def rint(var x: SIMD[F64.dtype, 1]) -> SIMD[F64.dtype, 1]:
     return external_call["rint", c_double, c_double](c_double(x))

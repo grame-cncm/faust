@@ -1,7 +1,8 @@
 # conf/prelude.mojo
 
 from std.math import *
-from std.memory import memset_zero
+from std.memory import unsafe_memset_zero
+from std.memory.alloc import unsafe_alloc # FIX: to be removed
 from std.sys.info import size_of, align_of, simd_width_of
 from std.sys.defines import (
     is_defined, get_defined_int, get_defined_bool, get_defined_string, get_defined_dtype
@@ -27,16 +28,18 @@ comptime sint = SInt.dtype
 comptime uint = UInt.dtype
 comptime f32 = F32.dtype
 comptime f64 = F64.dtype
-comptime b = DType.bool
+comptime bool = DType.bool
 
 # Builtin types aliases
 comptime Res = Tuple
-comptime Arr = InlineArray
+comptime Arr = Array
 comptime Void = NoneType
 
 # SIMD types aliases
 comptime S32Vec = SIMD[s32, simd_width_of[s32]()]
+comptime S32Wec = SIMD[s32, simd_width_of[f64]()]
 comptime F32Vec = SIMD[f32, simd_width_of[f32]()]
+comptime F32Wec = SIMD[f32, simd_width_of[f64]()]
 comptime F64Vec = SIMD[f64, simd_width_of[f64]()]
 
 # FaustFloat architecture constants and type aliases
@@ -50,9 +53,9 @@ comptime IMM_NOTRK = ImmUntrackedOrigin
 comptime MUT_NOTRK = MutUntrackedOrigin
 
 # Pointer types aliases
-comptime Ptr[T: AnyType = Void, ori: Origin = MUT_NOTRK]    = UnsafePointer[T, ori]
-comptime AnyPtr[ori: Origin = MUT_NOTRK]                    = Ptr[Void, ori]
-comptime OptPtr[T: AnyType = Void, ori: Origin = MUT_NOTRK] = Optional[Ptr[T, ori]]
+comptime Ptr[T: AnyType = Void, ori: Origin = MUT_NOTRK]    = Pointer[T, ori]
+comptime AnyPtr[ori: Origin = MUT_NOTRK]                    = Pointer[Void, ori]
+comptime OptPtr[T: AnyType = Void, ori: Origin = MUT_NOTRK] = OptionalPointer[T, ori]
 
 # FaustFloat streams
 comptime ImmStreams = Ptr[Ptr[FaustFloat, IMM_NOTRK], IMM_NOTRK]
