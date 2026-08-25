@@ -3768,42 +3768,71 @@ class LoopSplitEmitter {
                 return op(deps, false, 6);
             }
             if (tvec V; isSigFIR(t, V)) {
-                // one buffer load per non-zero tap feeding one op (the
-                // model's Read slots -- what makes kernel banks visible)
-                std::vector<int> deps;
-                for (size_t k2 = 1; k2 < V.size(); k2++) {
-                    if (!isZero(V[k2]) && loadW > 0) {
-                        int id = -1;
-                        for (int w = 0; w < loadW; w++) {
-                            LSOp lo;
-                            lo.shape = 11;
-                            if (id >= 0) {
-                                lo.deps.push_back(id);
-                            }
-                            sops.push_back(lo);
-                            id = (int)sops.size() - 1;
+                // FAITHFUL kernel body (the bells lesson : a 3-tap kernel
+                // priced as one op made every fusion comparison a fiction).
+                // Per non-zero tap : a source read -- carried window when
+                // the source is a fused member with a short line, a buffer
+                // load otherwise, exactly like sigDelay -- a multiply for
+                // non-unit coefficients (the coefficient is a live slow
+                // value), and the adds that chain the taps.
+                int  ix     = fSN.indexOf(V[0]);
+                bool inset  = (ix >= 0) && inSet.count(ix);
+                bool window = inset && fSN.maxDelayOf(mat[ix]) <= gGlobal->gMaxCopyDelay;
+                int  m      = (ix >= 0) ? fSN.maxDelayOf(mat[ix]) : 0;
+                if (window && m > 0) {
+                    auto& w = carriedOps[ix];
+                    if (w.empty()) {
+                        for (int k = 0; k < m; k++) {
+                            LSOp o;
+                            o.shape = 13;  // carried history value
+                            sops.push_back(o);
+                            w.push_back((int)sops.size() - 1);
                         }
-                        deps.push_back(id);
                     }
                 }
-                return op(deps, false, 7);
+                int acc = -1;
+                for (size_t k2 = 1; k2 < V.size(); k2++) {
+                    if (isZero(V[k2])) {
+                        continue;
+                    }
+                    int d   = int(k2) - 1;
+                    int src = -1;
+                    if (d == 0 && inset && rootOf.count(ix)) {
+                        src = rootOf[ix];
+                    } else if (window && d >= 1 && d <= m) {
+                        src = carriedOps[ix][d - 1];
+                    } else if (ix >= 0) {
+                        src = load(t, {});
+                    } else {
+                        src = sw(V[0], false);  // inlined source, costed once
+                    }
+                    int prod = isOne(V[k2])
+                                   ? src
+                                   : op({src, sw(V[k2], false)}, false, 100 + kMul);
+                    acc = (acc < 0) ? prod : op({acc, prod}, false, 100 + kAdd);
+                }
+                return (acc >= 0) ? acc : op({}, false, 7);
             }
             if (tvec V; isSigIIR(t, V)) {
-                std::vector<int> deps{sw(V[1], false)};
-                if (loadW > 0) {
-                    int id = -1;
-                    for (int w = 0; w < loadW; w++) {
-                        LSOp lo;
-                        lo.shape = 11;
-                        if (id >= 0) {
-                            lo.deps.push_back(id);
-                        }
-                        sops.push_back(lo);
-                        id = (int)sops.size() - 1;
+                // y = X + sum a_i * y@i : the state window is 'order'
+                // RESIDENT VALUES (the transposed emission keeps them in
+                // scalars), each non-zero tap a multiply by a live slow
+                // coefficient and an add into the recurrence.
+                int acc = sw(V[1], false);
+                for (size_t k2 = 3; k2 < V.size(); k2++) {
+                    if (isZero(V[k2])) {
+                        continue;
                     }
-                    deps.push_back(id);
+                    LSOp st;
+                    st.shape = 13;  // carried state value
+                    sops.push_back(st);
+                    int sid  = (int)sops.size() - 1;
+                    int prod = isOne(V[k2])
+                                   ? sid
+                                   : op({sid, sw(V[k2], false)}, false, 100 + kMul);
+                    acc = (acc >= 0) ? op({acc, prod}, false, 100 + kAdd) : prod;
                 }
-                return op(deps, false, 8);
+                return (acc >= 0) ? acc : op({}, false, 8);
             }
             return op({}, false, 9);  // unknown: one slot, no deps
         };
@@ -4053,7 +4082,14 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                     }
                     Tree x, y;
                     if (isSigDelay(t, x, y) && fC->fFirFacts.count(x)) {
-                        taps++;
+                        // only DENSE kernels raise the barrier : a span < 4
+                        // kernel is dust (bell modes, shelves) whose tap
+                        // reads are ordinary reads -- barring their fusion
+                        // left the resonator banks as separate buffered
+                        // loops, twice the canonical fused time
+                        if (fC->fFirFacts[x].first >= 4) {
+                            taps++;
+                        }
                     }
                     for (int k = 0; k < t->arity(); k++) {
                         Tree br = t->branch(k);
