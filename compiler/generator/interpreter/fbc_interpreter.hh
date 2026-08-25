@@ -36,6 +36,14 @@
 #include "fbc_executor.hh"
 #include "interpreter_bytecode.hh"
 
+// Two's-complement wrapping integer arithmetic: signed overflow is UB in the
+// host C++, so the VM's int add/sub/mul run on unsigned (defined modulo
+// 2^32) and convert back — the semantics the generated code contract
+// (integer noise LCG included) requires.
+static inline int wrapAddInt(int a, int b) { return (int)((unsigned int)a + (unsigned int)b); }
+static inline int wrapSubInt(int a, int b) { return (int)((unsigned int)a - (unsigned int)b); }
+static inline int wrapMultInt(int a, int b) { return (int)((unsigned int)a * (unsigned int)b); }
+
 // #define INTERP_MIR_BUILD 1
 // #define INTERP_LLVM_BUILD 1
 // #define INTERP_TEMPLATE_BUILD 1
@@ -1072,7 +1080,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     }
                     pushInt(res);
                 } else {
-                    pushInt(v1 + v2);
+                    pushInt(wrapAddInt(v1, v2));
                 }
                 dispatchNextScal();
             }
@@ -1094,7 +1102,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     }
                     pushInt(res);
                 } else {
-                    pushInt(v1 - v2);
+                    pushInt(wrapSubInt(v1, v2));
                 }
                 dispatchNextScal();
             }
@@ -1116,7 +1124,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     }
                     pushInt(res);
                 } else {
-                    pushInt(v1 * v2);
+                    pushInt(wrapMultInt(v1, v2));
                 }
                 dispatchNextScal();
             }
@@ -1319,7 +1327,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
 
             case FBCInstruction::kAddIntHeap: {
-                pushInt(fIntHeap[(*it)->fOffset1] + fIntHeap[(*it)->fOffset2]);
+                pushInt(wrapAddInt(fIntHeap[(*it)->fOffset1], fIntHeap[(*it)->fOffset2]));
                 dispatchNextScal();
             }
 
@@ -1329,7 +1337,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
 
             case FBCInstruction::kSubIntHeap: {
-                pushInt(fIntHeap[(*it)->fOffset1] - fIntHeap[(*it)->fOffset2]);
+                pushInt(wrapSubInt(fIntHeap[(*it)->fOffset1], fIntHeap[(*it)->fOffset2]));
                 dispatchNextScal();
             }
 
@@ -1339,7 +1347,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
 
             case FBCInstruction::kMultIntHeap: {
-                pushInt(fIntHeap[(*it)->fOffset1] * fIntHeap[(*it)->fOffset2]);
+                pushInt(wrapMultInt(fIntHeap[(*it)->fOffset1], fIntHeap[(*it)->fOffset2]));
                 dispatchNextScal();
             }
 
@@ -1485,7 +1493,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
             case FBCInstruction::kAddIntStack: {
                 int v1 = popInt();
-                pushInt(fIntHeap[(*it)->fOffset1] + v1);
+                pushInt(wrapAddInt(fIntHeap[(*it)->fOffset1], v1));
                 dispatchNextScal();
             }
 
@@ -1497,7 +1505,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
             case FBCInstruction::kSubIntStack: {
                 int v1 = popInt();
-                pushInt(fIntHeap[(*it)->fOffset1] - v1);
+                pushInt(wrapSubInt(fIntHeap[(*it)->fOffset1], v1));
                 dispatchNextScal();
             }
 
@@ -1509,7 +1517,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
             case FBCInstruction::kMultIntStack: {
                 int v1 = popInt();
-                pushInt(fIntHeap[(*it)->fOffset1] * v1);
+                pushInt(wrapMultInt(fIntHeap[(*it)->fOffset1], v1));
                 dispatchNextScal();
             }
 
@@ -1673,7 +1681,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
             case FBCInstruction::kAddIntStackValue: {
                 int v1 = popInt();
-                pushInt((*it)->fIntValue + v1);
+                pushInt(wrapAddInt((*it)->fIntValue, v1));
                 dispatchNextScal();
             }
 
@@ -1685,7 +1693,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
             case FBCInstruction::kSubIntStackValue: {
                 int v1 = popInt();
-                pushInt((*it)->fIntValue - v1);
+                pushInt(wrapSubInt((*it)->fIntValue, v1));
                 dispatchNextScal();
             }
 
@@ -1697,7 +1705,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
             case FBCInstruction::kMultIntStackValue: {
                 int v1 = popInt();
-                pushInt((*it)->fIntValue * v1);
+                pushInt(wrapMultInt((*it)->fIntValue, v1));
                 dispatchNextScal();
             }
 
@@ -1859,7 +1867,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
 
             case FBCInstruction::kAddIntValue: {
-                pushInt((*it)->fIntValue + fIntHeap[(*it)->fOffset1]);
+                pushInt(wrapAddInt((*it)->fIntValue, fIntHeap[(*it)->fOffset1]));
                 dispatchNextScal();
             }
 
@@ -1869,7 +1877,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
 
             case FBCInstruction::kSubIntValue: {
-                pushInt((*it)->fIntValue - fIntHeap[(*it)->fOffset1]);
+                pushInt(wrapSubInt((*it)->fIntValue, fIntHeap[(*it)->fOffset1]));
                 dispatchNextScal();
             }
 
@@ -1879,7 +1887,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
 
             case FBCInstruction::kMultIntValue: {
-                pushInt((*it)->fIntValue * fIntHeap[(*it)->fOffset1]);
+                pushInt(wrapMultInt((*it)->fIntValue, fIntHeap[(*it)->fOffset1]));
                 dispatchNextScal();
             }
 
@@ -2020,7 +2028,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
 
             case FBCInstruction::kSubIntValueInvert: {
-                pushInt(fIntHeap[(*it)->fOffset1] - (*it)->fIntValue);
+                pushInt(wrapSubInt(fIntHeap[(*it)->fOffset1], (*it)->fIntValue));
                 dispatchNextScal();
             }
 
@@ -3209,7 +3217,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
             pushInt(res);
         } else {
-            pushInt(v1 + v2);
+            pushInt(wrapAddInt(v1, v2));
         }
         dispatchNextScal();
     }
@@ -3231,7 +3239,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
             pushInt(res);
         } else {
-            pushInt(v1 - v2);
+            pushInt(wrapSubInt(v1, v2));
         }
         dispatchNextScal();
     }
@@ -3253,7 +3261,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             }
             pushInt(res);
         } else {
-            pushInt(v1 * v2);
+            pushInt(wrapMultInt(v1, v2));
         }
         dispatchNextScal();
     }
@@ -3451,7 +3459,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 
     do_kAddIntHeap: {
-        pushInt(fIntHeap[(*it)->fOffset1] + fIntHeap[(*it)->fOffset2]);
+        pushInt(wrapAddInt(fIntHeap[(*it)->fOffset1], fIntHeap[(*it)->fOffset2]));
         dispatchNextScal();
     }
 
@@ -3461,7 +3469,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 
     do_kSubIntHeap: {
-        pushInt(fIntHeap[(*it)->fOffset1] - fIntHeap[(*it)->fOffset2]);
+        pushInt(wrapSubInt(fIntHeap[(*it)->fOffset1], fIntHeap[(*it)->fOffset2]));
         dispatchNextScal();
     }
 
@@ -3471,7 +3479,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 
     do_kMultIntHeap: {
-        pushInt(fIntHeap[(*it)->fOffset1] * fIntHeap[(*it)->fOffset2]);
+        pushInt(wrapMultInt(fIntHeap[(*it)->fOffset1], fIntHeap[(*it)->fOffset2]));
         dispatchNextScal();
     }
 
@@ -3613,7 +3621,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     do_kAddIntStack: {
         int v1 = popInt();
-        pushInt(fIntHeap[(*it)->fOffset1] + v1);
+        pushInt(wrapAddInt(fIntHeap[(*it)->fOffset1], v1));
         dispatchNextScal();
     }
 
@@ -3625,7 +3633,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     do_kSubIntStack: {
         int v1 = popInt();
-        pushInt(fIntHeap[(*it)->fOffset1] - v1);
+        pushInt(wrapSubInt(fIntHeap[(*it)->fOffset1], v1));
         dispatchNextScal();
     }
 
@@ -3637,7 +3645,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     do_kMultIntStack: {
         int v1 = popInt();
-        pushInt(fIntHeap[(*it)->fOffset1] * v1);
+        pushInt(wrapMultInt(fIntHeap[(*it)->fOffset1], v1));
         dispatchNextScal();
     }
 
@@ -3802,7 +3810,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     do_kAddIntStackValue: {
         int v1 = popInt();
-        pushInt((*it)->fIntValue + v1);
+        pushInt(wrapAddInt((*it)->fIntValue, v1));
         dispatchNextScal();
     }
 
@@ -3814,7 +3822,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     do_kSubIntStackValue: {
         int v1 = popInt();
-        pushInt((*it)->fIntValue - v1);
+        pushInt(wrapSubInt((*it)->fIntValue, v1));
         dispatchNextScal();
     }
 
@@ -3826,7 +3834,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     do_kMultIntStackValue: {
         int v1 = popInt();
-        pushInt((*it)->fIntValue * v1);
+        pushInt(wrapMultInt((*it)->fIntValue, v1));
         dispatchNextScal();
     }
 
@@ -3988,7 +3996,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 
     do_kAddIntValue: {
-        pushInt((*it)->fIntValue + fIntHeap[(*it)->fOffset1]);
+        pushInt(wrapAddInt((*it)->fIntValue, fIntHeap[(*it)->fOffset1]));
         dispatchNextScal();
     }
 
@@ -3998,7 +4006,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 
     do_kSubIntValue: {
-        pushInt((*it)->fIntValue - fIntHeap[(*it)->fOffset1]);
+        pushInt(wrapSubInt((*it)->fIntValue, fIntHeap[(*it)->fOffset1]));
         dispatchNextScal();
     }
 
@@ -4008,7 +4016,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 
     do_kMultIntValue: {
-        pushInt((*it)->fIntValue * fIntHeap[(*it)->fOffset1]);
+        pushInt(wrapMultInt((*it)->fIntValue, fIntHeap[(*it)->fOffset1]));
         dispatchNextScal();
     }
 
@@ -4149,7 +4157,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 
     do_kSubIntValueInvert: {
-        pushInt(fIntHeap[(*it)->fOffset1] - (*it)->fIntValue);
+        pushInt(wrapSubInt(fIntHeap[(*it)->fOffset1], (*it)->fIntValue));
         dispatchNextScal();
     }
 

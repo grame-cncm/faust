@@ -362,6 +362,19 @@ class CInstVisitor : public TextInstVisitor {
             *fOut << " >> ";
             inst->fInst2->accept(this);
             *fOut << "))";
+        } else if ((inst->fOpcode == kAdd || inst->fOpcode == kSub || inst->fOpcode == kMul) &&
+                   isInt32Type(TypingVisitor::getType(inst->fInst1))) {
+            // Int32 add/sub/mul must wrap in two's complement (the integer
+            // noise LCG relies on it) but signed overflow is UB in C, so
+            // they render as the faust_wrap_* helpers the container defines.
+            // Int64 arithmetic keeps the plain infix rendering.
+            *fOut << ((inst->fOpcode == kAdd)   ? "faust_wrap_add("
+                      : (inst->fOpcode == kSub) ? "faust_wrap_sub("
+                                                : "faust_wrap_mul(");
+            inst->fInst1->accept(this);
+            *fOut << ", ";
+            inst->fInst2->accept(this);
+            *fOut << ")";
         } else {
             TextInstVisitor::visit(inst);
         }

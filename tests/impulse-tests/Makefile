@@ -15,7 +15,11 @@ else
 endif
 
 MAKE ?= make
-GCCOPTIONS := -O3 -I../../architecture -I/usr/local/include/ap_fixed -Iarchs -pthread -std=c++14
+# -fwrapv: Faust-generated code assumes two's-complement wrapping for the
+# integer noise LCG (1103515245 * i + 12345 overflows int, which is UB in
+# C/C++). Newer compilers (observed with Apple clang 21) exploit that UB
+# at -O2/-O3 and miscompile the table-fill variant (dsp/table.dsp).
+GCCOPTIONS := -O3 -fwrapv -I../../architecture -I/usr/local/include/ap_fixed -Iarchs -pthread -std=c++14
 outdir ?= float
 arch ?= ./archs/impulsearch.cpp
 FAUSTOPTIONS := -lang cpp -double -i -a $(arch)

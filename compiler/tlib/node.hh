@@ -284,19 +284,27 @@ inline bool isPointer(const Node& n, void** x)
 
 // arithmetic operations
 
+// Constant folding must reproduce the runtime semantics exactly: integer
+// add/sub/mul wrap in two's complement (signed overflow is UB in the host
+// C++, so the arithmetic runs on unsigned, defined modulo 2^32), and shift
+// counts are masked to 0..31 as on the target hardware.
+
 inline const Node addNode(const Node& x, const Node& y)
 {
-    return (isDouble(x) || isDouble(y)) ? Node(double(x) + double(y)) : Node(int(x) + int(y));
+    return (isDouble(x) || isDouble(y)) ? Node(double(x) + double(y))
+                                        : Node(int((unsigned int)int(x) + (unsigned int)int(y)));
 }
 
 inline const Node subNode(const Node& x, const Node& y)
 {
-    return (isDouble(x) || isDouble(y)) ? Node(double(x) - double(y)) : Node(int(x) - int(y));
+    return (isDouble(x) || isDouble(y)) ? Node(double(x) - double(y))
+                                        : Node(int((unsigned int)int(x) - (unsigned int)int(y)));
 }
 
 inline const Node mulNode(const Node& x, const Node& y)
 {
-    return (isDouble(x) || isDouble(y)) ? Node(double(x) * double(y)) : Node(int(x) * int(y));
+    return (isDouble(x) || isDouble(y)) ? Node(double(x) * double(y))
+                                        : Node(int((unsigned int)int(x) * (unsigned int)int(y)));
 }
 
 inline const Node divExtendedNode(const Node& x, const Node& y)
@@ -345,17 +353,19 @@ inline const Node inverseNode(const Node& x)
 
 inline const Node lshNode(const Node& x, const Node& y)
 {
-    return Node(int(x) << int(y));
+    return Node(int((unsigned int)int(x) << (int(y) & 31)));
 }
 
 inline const Node arshNode(const Node& x, const Node& y)
 {
-    return Node(int(x) >> int(y));
+    return Node(int(x) >> (int(y) & 31));
 }
 
+// Logical right shift: the runtime '>>>' shifts on unsigned; folding with a
+// plain signed '>>' would diverge for negative operands.
 inline const Node lrshNode(const Node& x, const Node& y)
 {
-    return Node(int(x) >> int(y));
+    return Node(int((unsigned int)int(x) >> (int(y) & 31)));
 }
 
 // boolean operations on bits

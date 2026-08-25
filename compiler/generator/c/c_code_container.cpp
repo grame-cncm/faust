@@ -234,6 +234,18 @@ void CCodeContainer::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
 
+    // Two's-complement wrapping integer arithmetic: signed overflow is UB in
+    // C and newer compilers exploit it at -O2/-O3 (the integer noise LCG
+    // miscompiles), so int add/sub/mul render as these helpers. The guard
+    // keeps multiple DSP structs in one translation unit legal.
+    *fOut << "#ifndef FAUST_INT_WRAP" << endl;
+    *fOut << "#define FAUST_INT_WRAP" << endl;
+    *fOut << "static inline int faust_wrap_add(int a, int b) { return (int)((unsigned int)a + (unsigned int)b); }" << endl;
+    *fOut << "static inline int faust_wrap_sub(int a, int b) { return (int)((unsigned int)a - (unsigned int)b); }" << endl;
+    *fOut << "static inline int faust_wrap_mul(int a, int b) { return (int)((unsigned int)a * (unsigned int)b); }" << endl;
+    *fOut << "#endif" << endl;
+    tab(n, *fOut);
+
     if (gGlobal->gInlineTable) {
         // Sub containers are merged in the main class
         mergeSubContainers();
