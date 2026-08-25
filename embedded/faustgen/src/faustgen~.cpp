@@ -202,6 +202,15 @@ void faustgen::free_dsp()
         fSavedUI = nullptr;
     }
     
+    // The multichannel adapter borrows fDSP, so release it first.
+    delete fMCDSP;
+    fMCDSP = nullptr;
+
+    // A polyphonic DSP keeps the MidiUI as its MIDI interface.  Destroy the
+    // DSP while that interface is still alive so it can unregister itself.
+    delete fDSP;
+    fDSP = nullptr;
+
     delete fMidiUI;
     fMidiUI = nullptr;
     
@@ -210,12 +219,6 @@ void faustgen::free_dsp()
  
     delete fDSPUI;
     fDSPUI = nullptr;
-    
-    delete fDSP;
-    fDSP = nullptr;
-    
-    delete fMCDSP;
-    fMCDSP = nullptr;
 }
 
 // Parse a JSON string into a Max dictionary object
