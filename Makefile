@@ -101,16 +101,20 @@ debug :
 ioslib :
 	$(MAKE) -C $(BUILDLOCATION) ioslib
 
+WASM_TOOL_PATH := $(CURDIR)/tools/wasm
+WASM_EMCC := $(shell command -v emcc)
+WASM_ENV = PATH="$(WASM_TOOL_PATH):$$PATH" FAUST_REAL_EMCC="$(WASM_EMCC)"
+
 wasm :
-	$(MAKE) -C $(BUILDLOCATION) wasmlib
-	$(MAKE) -C $(BUILDLOCATION) cmake WORKLET=on
-	$(MAKE) -C $(BUILDLOCATION) wasmglue
+	$(WASM_ENV) $(MAKE) -C $(BUILDLOCATION) wasmlib
+	$(WASM_ENV) $(MAKE) -C $(BUILDLOCATION) cmake WORKLET=on
+	$(WASM_ENV) $(MAKE) -C $(BUILDLOCATION) wasmglue
 	# Hack : be sure to use LIB_NAME define in build/wasmglue/CMakeLists.txt
 	echo "export default FaustModule;" >> $(BUILDLOCATION)/lib/libfaust-worklet-glue.js
 	# Fix for EMCC codegen bug
 	echo "var tempDouble, tempI64;" >> $(BUILDLOCATION)/lib/libfaust-worklet-glue.js
-	$(MAKE) -C $(BUILDLOCATION) cmake WORKLET=off
-	$(MAKE) -C $(BUILDLOCATION) wasmglue
+	$(WASM_ENV) $(MAKE) -C $(BUILDLOCATION) cmake WORKLET=off
+	$(WASM_ENV) $(MAKE) -C $(BUILDLOCATION) wasmglue
 
 sound2faust :
 	$(MAKE) -C tools/sound2faust

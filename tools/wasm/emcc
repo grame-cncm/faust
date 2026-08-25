@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# macOS CMake configurations can add `-arch <architecture>` to these targets.
+# Emscripten builds wasm32 and rejects that host-only option.
+if [[ -z ${FAUST_REAL_EMCC:-} ]]; then
+    echo "error: FAUST_REAL_EMCC is not set" >&2
+    exit 1
+fi
+
+args=()
+while (($#)); do
+    if [[ $1 == -arch ]]; then
+        shift 2
+    else
+        args+=("$1")
+        shift
+    fi
+done
+
+exec "$FAUST_REAL_EMCC" "${args[@]}"

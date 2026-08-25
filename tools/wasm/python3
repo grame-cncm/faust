@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Emscripten currently requires Python 3.10+.  Keep the Xcode-provided
+# Python 3.9 from being selected through emcc's `/usr/bin/env python3` shebang.
+for python in python3.13 python3.12 python3.11 python3.10; do
+    if command -v "$python" >/dev/null 2>&1; then
+        exec "$python" "$@"
+    fi
+done
+
+echo "error: Emscripten requires Python 3.10 or later (install python3.10+)." >&2
+exit 1
