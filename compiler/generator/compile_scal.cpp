@@ -1049,12 +1049,6 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("Sum revealer (lsum standalone)");
             L2 = revealSum(L2);
             endTiming("Sum revealer (lsum standalone)");
-            startTiming("Sum lowering");
-            L2 = lowerSums(L2);
-            endTiming("Sum lowering");
-            startTiming("Sum nesting");
-            L2 = nestSums(L2);
-            endTiming("Sum nesting");
         };
         pthread_attr_t lsattr;
         pthread_attr_init(&lsattr);
@@ -1288,6 +1282,15 @@ Tree ScalarCompiler::prepare(Tree LS)
                 startTiming("Sum lowering");
                 L2 = lowerSums(L2);
                 endTiming("Sum lowering");
+                // occurrence-ordered re-nesting of the surviving flat
+                // sums, AFTER the lowering. Both restructurings stay
+                // behind -lsum : unconditional they regressed the fused
+                // resonator banks (churchBell forced fusion 31.7 -> 45.0
+                // and 43.8 ns respectively -- the flat mode sum is what
+                // the fusion partition feeds on).
+                startTiming("Sum nesting");
+                L2 = nestSums(L2);
+                endTiming("Sum nesting");
             }
         };  // fin du lambda reveal (-fir)
         pthread_attr_t attr;

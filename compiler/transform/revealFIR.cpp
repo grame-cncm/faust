@@ -50,6 +50,7 @@ static inline bool hasClock(Tree, Tree&)
 // partial sums -- fdnRev : +800 multiplications, +2200 additions), so the
 // rules refuse to distribute over a sum that has several parents
 static std::map<Tree, int, treeorder> gSumOcc;
+static bool gDistribute = true;  // see revealFIR : two-pass reveal
 
 static void countOcc(Tree root)
 {
@@ -100,48 +101,6 @@ static bool hasDelayedTerm(Tree sum)
         }
         if (isSigMul(t, a, b) && (isSigDelay(a, u, v) || firWithDelay(a) ||
                                   isSigDelay(b, u, v) || firWithDelay(b))) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// distribution of c over a delayed sum only pays when at least two
-// terms read the SAME delayed source : their c-scaled taps then merge
-// into one kernel. Distinct-source delayed terms each become a 1-tap
-// gain kernel -- n multiplies instead of one -- and a SHARED sum is
-// recomputed per consumer (freeverb : the 8-comb sum re-added term by
-// term under -0.5 for the allpass feedforward, twice per channel).
-static bool hasMergeableDelayedTerms(Tree sum)
-{
-    tvec subs;
-    if (!isSigSum(sum, subs)) {
-        return false;
-    }
-    auto sourceOf = [](Tree t) -> Tree {
-        Tree a, b;
-        tvec cs;
-        if (isSigDelay(t, a, b)) {
-            return a;
-        }
-        if (isSigFIR(t, cs) && cs.size() >= 3) {
-            return cs[0];
-        }
-        return nullptr;
-    };
-    std::map<Tree, int> bySource;
-    for (Tree t : subs) {
-        Tree s = sourceOf(t);
-        if (s == nullptr) {
-            Tree a, b;
-            if (isSigMul(t, a, b)) {
-                s = sourceOf(a);
-                if (s == nullptr) {
-                    s = sourceOf(b);
-                }
-            }
-        }
-        if (s != nullptr && ++bySource[s] >= 2) {
             return true;
         }
     }
@@ -265,13 +224,13 @@ static Tree firRule(Tree sig)
         return sigMul(sigMul(x, u), v);
     }
 
-    if (Tree sum, c; isSigMul(sig, sum, c) && isSigSum(sum) && hasMergeableDelayedTerms(sum) &&
+    if (Tree sum, c; isSigMul(sig, sum, c) && isSigSum(sum) && gDistribute && hasDelayedTerm(sum) &&
                      !isSharedNode(sum) && !sigs::isAudioRate(c)) {
         // std::cerr << "Rule 12\n";
         return mulSigSum(sum, c);
     }
 
-    if (Tree sum, c; isSigMul(sig, c, sum) && isSigSum(sum) && hasMergeableDelayedTerms(sum) &&
+    if (Tree sum, c; isSigMul(sig, c, sum) && isSigSum(sum) && gDistribute && hasDelayedTerm(sum) &&
                      !isSharedNode(sum) && !sigs::isAudioRate(c)) {
         // std::cerr << "Rule 13\n";
         return mulSigSum(sum, c);
@@ -516,8 +475,21 @@ Tree FIRRevealer::postprocess(Tree sig)
 
 // External API
 
+// distribution toggle : pass 1 reveals without distributing ; the
+// occurrences are then recounted on the REWRITTEN tree -- the flattened
+// sums are born during the rewrite, invisible to a pre-count (freeverb's
+// comb sum, read twice : bare and scaled by the allpass feedforward) --
+// and pass 2 distributes under a sharing test that finally sees them.
+// The bell shows the other side : its 50-mode sum has ONE consumer, and
+// the fusion wants it distributed -- so the structural mergeable-source
+// test was wrong, and the sharing test is the right discriminant.
+
 Tree revealFIR(Tree L1)
 {
     countOcc(L1);
-    return treeRewrite(L1, firRule);
+    gDistribute = false;
+    Tree T1 = treeRewrite(L1, firRule);
+    countOcc(T1);
+    gDistribute = true;
+    return treeRewrite(T1, firRule);
 }
