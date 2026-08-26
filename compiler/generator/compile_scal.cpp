@@ -7481,6 +7481,43 @@ string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
     if (wrapInt) {
         oss << "int(";
     }
+    if (!wrapInt) {
+        // negative-weight terms (mul(-1, x)) render as subtractions after
+        // the positive ones -- the reveal spells a - b as a + (-1)*b, and
+        // emitting the multiply costs a real op per sample. The unsigned
+        // int path keeps its uniform spelling (the LCG wrap families).
+        std::vector<Tree> pos, neg;
+        for (Tree t : subs) {
+            if (isZero(t)) {
+                continue;
+            }
+            Tree a, b;
+            tvec fc;
+            if (isSigMul(t, a, b) && isMinusOne(a)) {
+                neg.push_back(b);
+            } else if (isSigMul(t, a, b) && isMinusOne(b)) {
+                neg.push_back(a);
+            } else if (isSigFIR(t, fc) && fc.size() == 2 && isMinusOne(fc[1])) {
+                // the reveal spells -x as a gain kernel FIR[x, -1]
+                neg.push_back(fc[0]);
+            } else {
+                pos.push_back(t);
+            }
+        }
+        if (!pos.empty()) {
+            for (Tree t : pos) {
+                oss << sep << CS(t);
+                terms++;
+                sep = " + ";
+            }
+            for (Tree t : neg) {
+                oss << " - " << CS(t);
+                terms++;
+            }
+            oss << " /* Sum */)";
+            return generateCacheCode(sig, oss.str());
+        }
+    }
     for (unsigned int i = 0; i < subs.size(); ++i) {
         if (!isZero(subs[i])) {
             if (wrapInt) {

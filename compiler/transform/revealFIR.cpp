@@ -193,12 +193,12 @@ static Tree firRule(Tree sig)
         }
     }
 
-    if (Tree ck, h, f, c; isSigMul(sig, ck, c) && isSigClocked(ck, h, f) && isSigFIR(f)) {
+    if (Tree ck, h, f, c; isSigMul(sig, ck, c) && isSigClocked(ck, h, f) && isSigFIR(f) && !sigs::isAudioRate(c)) {
         // std::cerr << "Rule 6\n";
         return mulSigFIR(f, c);
     }
 
-    if (Tree ck, h, f, c; isSigMul(sig, c, ck) && isSigClocked(ck, h, f) && isSigFIR(f)) {
+    if (Tree ck, h, f, c; isSigMul(sig, c, ck) && isSigClocked(ck, h, f) && isSigFIR(f) && !sigs::isAudioRate(c)) {
         // std::cerr << "Rule 7\n";
         return mulSigFIR(f, c);
     }
@@ -224,28 +224,28 @@ static Tree firRule(Tree sig)
     }
 
     if (Tree sum, c; isSigMul(sig, sum, c) && isSigSum(sum) && hasDelayedTerm(sum) &&
-                     !isSharedNode(sum)) {
+                     !isSharedNode(sum) && !sigs::isAudioRate(c)) {
         // std::cerr << "Rule 12\n";
         return mulSigSum(sum, c);
     }
 
     if (Tree sum, c; isSigMul(sig, c, sum) && isSigSum(sum) && hasDelayedTerm(sum) &&
-                     !isSharedNode(sum)) {
+                     !isSharedNode(sum) && !sigs::isAudioRate(c)) {
         // std::cerr << "Rule 13\n";
         return mulSigSum(sum, c);
     }
 
-    if (Tree f, c; isSigMul(sig, f, c) && isSigFIR(f)) {
+    if (Tree f, c; isSigMul(sig, f, c) && isSigFIR(f) && !sigs::isAudioRate(c)) {
         // std::cerr << "Rule 14\n";
         return mulSigFIR(f, c);
     }
 
-    if (Tree f, c; isSigMul(sig, c, f) && isSigFIR(f)) {
+    if (Tree f, c; isSigMul(sig, c, f) && isSigFIR(f) && !sigs::isAudioRate(c)) {
         // std::cerr << "Rule 15\n";
         return mulSigFIR(f, c);
     }
 
-    if (Tree ck, h, f, c; isSigDiv(sig, ck, c) && isSigClocked(ck, h, f) && isSigFIR(f)) {
+    if (Tree ck, h, f, c; isSigDiv(sig, ck, c) && isSigClocked(ck, h, f) && isSigFIR(f) && !sigs::isAudioRate(c)) {
         // std::cerr << "Rule 16\n";
         return divSigFIR(f, c);
     }

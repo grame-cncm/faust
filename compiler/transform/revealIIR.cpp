@@ -371,6 +371,16 @@ Tree revealIIR(Tree L1)
             }
             coef2.push_back(c);
         }
+        // an IIR whose denominator coefficients are audio-rate is not a
+        // polynomial over slow values : every product the kernel algebra
+        // would build with them runs per sample, and the lift only
+        // de-factors what the canonical recursion shared (dattorro's
+        // smoothed allpass gains). Refuse the lift.
+        for (size_t i = 3; i < coef2.size(); i++) {
+            if (sigs::isAudioRate(coef2[i])) {
+                return rebuilt;
+            }
+        }
         return sigIIR(coef2);
     };
 

@@ -154,7 +154,11 @@ Tree factorizeFIRs(Tree L)
                     tvec nc;
                     nc.push_back(coef[0]);
                     for (size_t i = 1; i < coef.size(); i++) {
-                        nc.push_back(isZero(coef[i]) ? coef[i] : sigMul(k, coef[i]));
+                        // a unit coefficient absorbs k itself -- sigMul(k, 1)
+                        // would emit a (1 * k) per sample
+                        nc.push_back(isZero(coef[i]) ? coef[i]
+                                     : isOne(coef[i]) ? k
+                                                      : sigMul(k, coef[i]));
                     }
                     return sigFIR(nc);
                 }
@@ -182,7 +186,15 @@ Tree factorizeFIRs(Tree L)
             return sig;
         }
         tvec coef;
-        if (!isSigFIR(sig, coef) || coef.size() < 3) {
+        if (!isSigFIR(sig, coef)) {
+            return sig;
+        }
+        // a unit gain kernel FIR[x, 1] is pure wrapping debris (the
+        // reveal wraps every slow*audio product, including *1) : unwrap
+        if (coef.size() == 2 && isOne(coef[1])) {
+            return coef[0];
+        }
+        if (coef.size() < 3) {
             return sig;
         }
         // ---- rule 1 : leading zeros become an outer delay -------------
