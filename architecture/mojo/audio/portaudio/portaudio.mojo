@@ -1,4 +1,4 @@
-# audio/portaudio.mojo
+# audio/portaudio/portaudio.mojo
 
 from conf import *
 from dsp import *
@@ -62,9 +62,9 @@ struct PortAudio(FaustAudio):
         if (out_device < 0):
             return FAUST_NO_DEFAULT_OUT_DEVICE
 
-        var err: S32
         var in_device_info: OptPtr[PaDeviceInfo, IMM_NOTRK]
         var out_device_info: OptPtr[PaDeviceInfo, IMM_NOTRK]
+        var err: PaError
 
         in_device_info, err = faust_get_device_info(in_device)
         if err:
@@ -99,8 +99,8 @@ struct PortAudio(FaustAudio):
 
 # Faust PortAudio constant definitions.
 
-comptime BUFF_SIZE    = S32(get_defined_int["BUFF_SIZE", 256]())
-comptime SAMP_RATE    = S32(get_defined_int["SAMP_RATE", 96]()) * 1000
+comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 256]())
+comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96]()) * 1000
 
 comptime NULL_STREAM: PaStream = None
 
@@ -142,9 +142,7 @@ comptime FaustCallbackFunc[Dsp: FaustDsp] = type_of(faust_callback[Dsp])
 # Faust PortAudio stream helpers.
 
 @always_inline
-def faust_get_device_info(
-    device: PaDeviceIndex
-) -> Tuple[OptPtr[PaDeviceInfo, IMM_NOTRK], PaError]:
+def faust_get_device_info(device: PaDeviceIndex) -> Tuple[OptPtr[PaDeviceInfo, IMM_NOTRK], PaError]:
     var info: OptPtr[PaDeviceInfo, IMM_NOTRK] = pa_get_device_info(device)
     if info == None:
         return None, PA_INVALID_DEVICE
@@ -175,7 +173,7 @@ def faust_open_stream[Dsp: FaustDsp](
         buff_size,
         FAUST_NOFLAG,
         faust_callback[Dsp],
-        data,
+        data
     )
 
     return stream, err
@@ -189,5 +187,5 @@ def faust_stream_param(
         n_chans,
         FAUST_FORMAT,
         latency,
-        NULL_PTR[Void, MUT_NOTRK],
+        NULL_PTR[Void, MUT_NOTRK]
     )

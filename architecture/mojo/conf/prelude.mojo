@@ -49,6 +49,8 @@ comptime FaustFloat = Scalar[dfaust]
 comptime FVec = SIMD[dfaust, simd_width_of[dfaust]()]
 
 # Origin values constants
+comptime IMM_ANY = MutAnyOrigin
+comptime MUT_ANY = MutAnyOrigin
 comptime IMM_NOTRK = ImmUntrackedOrigin 
 comptime MUT_NOTRK = MutUntrackedOrigin
 

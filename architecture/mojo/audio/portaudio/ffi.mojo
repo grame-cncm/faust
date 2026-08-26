@@ -65,7 +65,7 @@ def pa_open_default_stream(
     stream:               Pointer[PaStream, MutUntrackedOrigin],
     num_inputs:           Int32,
     num_outputs:          Int32,
-    sample_format:        UInt64,
+    sample_format:        PaSampleFormat,
     sample_rate:          Int32,
     frames_per_buffer:    Int32,
     stream_callback:      PaStreamCallback,

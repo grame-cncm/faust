@@ -33,12 +33,12 @@ from gui.terminal import TerminalGui
 def main() -> None:
     comptime assert dfaust == F32.dtype, "Expected 32 bit float driver precision."
     var dsp = unsafe_alloc[mydsp](1)
-    dsp[] = mydsp()
+    dsp.unsafe_write(mydsp())
     dsp[].init(SAMP_RATE)
     var gui = TerminalGui[dfaust]()
     dsp[].build_user_interface(gui)
     var driver = PortAudio()
-    err = driver.init()
+    var err = driver.init()
     if err:
         dsp.unsafe_free()
         print(err)
