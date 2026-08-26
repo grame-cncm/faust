@@ -59,6 +59,7 @@
 
 #include "placeTemps.hh"
 #include "reassociate.hh"
+#include "nestSums.hh"
 #include "revealSum.hh"
 #include "descend.hh"
 #include "factorizeFIRs.hh"
@@ -1051,6 +1052,9 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("Sum lowering");
             L2 = lowerSums(L2);
             endTiming("Sum lowering");
+            startTiming("Sum nesting");
+            L2 = nestSums(L2);
+            endTiming("Sum nesting");
         };
         pthread_attr_t lsattr;
         pthread_attr_init(&lsattr);
@@ -1124,6 +1128,9 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("Sum lowering");
             L2 = lowerSums(L2);
             endTiming("Sum lowering");
+            startTiming("Sum nesting");
+            L2 = nestSums(L2);
+            endTiming("Sum nesting");
             if (getenv("FAUST_SS_MCM")) {
                 // stage-3 deposit probe : the WEIGHTED pairs. Atom of a
                 // term : c*x -> (x, numeric c) ; x -> (x, 1). An
