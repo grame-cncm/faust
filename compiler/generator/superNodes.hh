@@ -75,6 +75,13 @@ class SuperNodeGraph {
      */
     void build(Tree L, const std::vector<Tree>& sched, int freeDelayThreshold = 0);
 
+    /// signals excluded from materialization (the Dissolve move : a
+    /// shared expression whose consumers inline it -- decided by the
+    /// fusion oracle, applied by a reset() + rebuild)
+    void setExcluded(std::set<Tree, treeorder> e) { fExcluded = std::move(e); }
+    /// clear every derived structure so build() can run again
+    void reset();
+
     // ---- materialized signals ----
     const std::vector<Tree>& materialized() const { return fMat; }
     /// materialized signal -> index in materialized(), -1 if absent
@@ -152,6 +159,7 @@ class SuperNodeGraph {
     std::vector<std::vector<int>> fBlocks;  // block id -> ordered members
 
     mutable std::map<int, int> fOpsEstimate;  // materialized index -> op count
+    std::set<Tree, treeorder>  fExcluded;     // Dissolve move : never materialized
 
     bool materializedCriterion(Tree t) const;
     void collectRefs(Tree t, std::set<int>& refs, std::set<int>& refs0, std::set<Tree, treeorder>& seen,

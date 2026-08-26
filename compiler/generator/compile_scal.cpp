@@ -1049,6 +1049,9 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("Sum revealer (lsum standalone)");
             L2 = revealSum(L2);
             endTiming("Sum revealer (lsum standalone)");
+            startTiming("Sum lowering");
+            L2 = lowerSums(L2);
+            endTiming("Sum lowering");
         };
         pthread_attr_t lsattr;
         pthread_attr_init(&lsattr);
@@ -1109,22 +1112,6 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("FIR factorizer");
             L2 = factorizeFIRs(L2);
             endTiming("FIR factorizer");
-            // Sum lowering LAST : revealSum's flattening destroys the
-            // prefix sharing the canonical binary nesting gave for free
-            // (freeverb and crazyGuiro grow a staircase of Sum(13..9)
-            // nodes each re-adding almost the same terms), and the
-            // kernel reveal wants the rows FLAT -- so kernels first,
-            // then the factorization recovers the shared sub-sums.
-            // Historically trapped here as a silent no-op, divorced by
-            // the old_freeverb bisection when kernels cost +46 muls ;
-            // with audio-rate coefficients refused and the debris swept,
-            // the two are remarried in the right order.
-            startTiming("Sum lowering");
-            L2 = lowerSums(L2);
-            endTiming("Sum lowering");
-            startTiming("Sum nesting");
-            L2 = nestSums(L2);
-            endTiming("Sum nesting");
             if (getenv("FAUST_SS_MCM")) {
                 // stage-3 deposit probe : the WEIGHTED pairs. Atom of a
                 // term : c*x -> (x, numeric c) ; x -> (x, 1). An
@@ -1282,15 +1269,6 @@ Tree ScalarCompiler::prepare(Tree LS)
                 startTiming("Sum lowering");
                 L2 = lowerSums(L2);
                 endTiming("Sum lowering");
-                // occurrence-ordered re-nesting of the surviving flat
-                // sums, AFTER the lowering. Both restructurings stay
-                // behind -lsum : unconditional they regressed the fused
-                // resonator banks (churchBell forced fusion 31.7 -> 45.0
-                // and 43.8 ns respectively -- the flat mode sum is what
-                // the fusion partition feeds on).
-                startTiming("Sum nesting");
-                L2 = nestSums(L2);
-                endTiming("Sum nesting");
             }
         };  // fin du lambda reveal (-fir)
         pthread_attr_t attr;
@@ -3598,7 +3576,8 @@ class LoopSplitEmitter {
     long blockCostShadow(const std::vector<int>& members, long* overROut = nullptr,
                          int* peakOut = nullptr, bool constantsLive = true,
                          int loadWOverride = -1, bool* hasCallOut = nullptr,
-                         std::vector<LSOp>* sopsOut = nullptr)
+                         std::vector<LSOp>* sopsOut = nullptr,
+                         const std::set<int>* noBoundary = nullptr)
     {
         const long CL = gGlobal->gLSCl, SPILLW = gGlobal->gLSSpillW;
         const std::vector<Tree>& mat = fSN.materialized();
@@ -3645,9 +3624,11 @@ class LoopSplitEmitter {
                     return sh->second;
                 }
                 int idx = fSN.indexOf(t);
-                if (idx >= 0) {
+                if (idx >= 0 && !(noBoundary && noBoundary->count(idx))) {
                     // in-set instantaneous reads are scalarized (the root
-                    // value); everything else is a buffer load
+                    // value); everything else is a buffer load. A
+                    // noBoundary index prices the Dissolve move : the
+                    // walk descends into the definition instead.
                     if (inSet.count(idx) && rootOf.count(idx)) {
                         return rootOf[idx];
                     }
@@ -4079,6 +4060,68 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // grouping: cycles with long feedback edges split legally (the d < N
     // restriction of LOOPMERGING.md)
     fSN.build(L, sched, gGlobal->gVecSize);
+
+    // 2a-bis. the Dissolve move : a signal materialized ONLY for sharing
+    // (not a projection, never read delayed, not an output) may be
+    // cheaper INLINED in each consumer than computed once and joined --
+    // the bells' mode sum wants per-mode locality, freeverb's comb sum
+    // wants the shared member (x0.97). No static rule separates them
+    // (three falsified in one day) : the faithful shadow oracle prices
+    // both worlds per candidate, duplication included.
+    if (gGlobal->gLSFuse && !getenv("FAUST_NO_DISSOLVE")) {
+        std::set<Tree, treeorder> outs;
+        for (Tree l = L; isList(l); l = tl(l)) {
+            outs.insert(hd(l));
+        }
+        const std::vector<Tree>&  mat = fSN.materialized();
+        std::set<Tree, treeorder> dissolved;
+        for (int m = 0; m < int(mat.size()); m++) {
+            Tree t = mat[m];
+            int  pi;
+            Tree pw;
+            if (isProj(t, &pi, pw) || fSN.maxDelayOf(t) > 0 || outs.count(t)) {
+                continue;
+            }
+            int mb = fSN.blockOf(m);
+            if (fSN.blockMembers(mb).size() != 1) {
+                continue;  // v1 : only singleton blocks dissolve cleanly
+            }
+            // consumer blocks
+            std::set<int> cbs;
+            for (int i = 0; i < int(mat.size()); i++) {
+                if (i != m && fSN.refs(i).count(m)) {
+                    cbs.insert(fSN.blockOf(i));
+                }
+            }
+            cbs.erase(mb);
+            if (cbs.empty()) {
+                continue;
+            }
+            std::set<int>  excl{m};
+            long           with = blockCostShadow(fSN.blockMembers(mb));
+            long           without = 0;
+            for (int cb : cbs) {
+                with += blockCostShadow(fSN.blockMembers(cb));
+                without += blockCostShadow(fSN.blockMembers(cb), nullptr, nullptr, true, -1,
+                                           nullptr, nullptr, &excl);
+            }
+            if (without < with) {
+                dissolved.insert(t);
+                if (getenv("FAUST_LS_DISSOLVE_DEBUG")) {
+                    std::cerr << "DISSOLVE member " << m << " consumers=" << cbs.size()
+                              << " with=" << with << " without=" << without << std::endl;
+                }
+            }
+        }
+        if (!dissolved.empty()) {
+            if (getenv("FAUST_LS_DISSOLVE_DEBUG")) {
+                std::cerr << "DISSOLVE " << dissolved.size() << " members, rebuild" << std::endl;
+            }
+            fSN.setExcluded(std::move(dissolved));
+            fSN.reset();
+            fSN.build(L, sched, gGlobal->gVecSize);
+        }
+    }
 
     // 2b. greedy single-consumer fusion (-ls-fuse): contract a block into
     // its only consumer when legal (quotient stays acyclic) and the merged

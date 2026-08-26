@@ -96,6 +96,11 @@ bool SuperNodeGraph::materializedCriterion(Tree t) const
 {
     int  i;
     Tree w;
+    if (fExcluded.count(t)) {
+        // Dissolve move : the oracle decided this shared expression is
+        // cheaper inlined in each consumer than materialized and joined
+        return false;
+    }
     if (isNum(t) || isSlow(t) || isSigInput(t, &i)) {
         // a delayed constant/slow/input needs a history buffer (a copy loop
         // whose zero-initialized prefix IS the initial-delay semantics)
@@ -253,6 +258,17 @@ void SuperNodeGraph::tarjanVisit(int v, TarjanState& st, std::vector<std::vector
 /*****************************************************************************
  build
  *****************************************************************************/
+
+void SuperNodeGraph::reset()
+{
+    fMat.clear();
+    fMatIdx.clear();
+    fRefs.clear();
+    fRefs0.clear();
+    fScc.clear();
+    fBlocks.clear();
+    fOpsEstimate.clear();
+}
 
 void SuperNodeGraph::build(Tree L, const std::vector<Tree>& sched, int freeDelayThreshold)
 {
