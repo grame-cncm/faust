@@ -1111,6 +1111,19 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("FIR factorizer");
             L2 = factorizeFIRs(L2);
             endTiming("FIR factorizer");
+            // Sum lowering LAST : revealSum's flattening destroys the
+            // prefix sharing the canonical binary nesting gave for free
+            // (freeverb and crazyGuiro grow a staircase of Sum(13..9)
+            // nodes each re-adding almost the same terms), and the
+            // kernel reveal wants the rows FLAT -- so kernels first,
+            // then the factorization recovers the shared sub-sums.
+            // Historically trapped here as a silent no-op, divorced by
+            // the old_freeverb bisection when kernels cost +46 muls ;
+            // with audio-rate coefficients refused and the debris swept,
+            // the two are remarried in the right order.
+            startTiming("Sum lowering");
+            L2 = lowerSums(L2);
+            endTiming("Sum lowering");
             if (getenv("FAUST_SS_MCM")) {
                 // stage-3 deposit probe : the WEIGHTED pairs. Atom of a
                 // term : c*x -> (x, numeric c) ; x -> (x, 1). An
