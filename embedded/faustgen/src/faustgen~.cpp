@@ -42,6 +42,16 @@ std::map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
+namespace {
+
+// GUI keeps a module-wide registry, whereas factories have independent
+// locks. This lock serializes registry mutation with a global GUI refresh.
+std::recursive_mutex gGUIRegistryMutex;
+using RecursiveLock = std::lock_guard<std::recursive_mutex>;
+using TryRecursiveLock = std::unique_lock<std::recursive_mutex>;
+
+}
+
 //====================
 // Faust DSP Instance
 //====================
@@ -195,6 +205,11 @@ void faustgen::assist(void* b, long msg, long a, char* dst)
 // Release DSP, UI, MIDI, and OSC resources
 void faustgen::free_dsp()
 {
+    // Keep the global GUI registry stable while its MIDI and OSC entries are
+    // removed. Deleting an OSCUI also stops its process-wide OSC streams.
+    RecursiveLock gui_lock(gGUIRegistryMutex);
+    RecursiveLock osc_lock(oscfaust::OSCControler::globalMutex());
+
     // Save controller state
     if (fSavedUI) {
         fSavedUI->save();
@@ -465,6 +480,11 @@ void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
         fDSPfactory->lock_audio();
         fDSPfactory->lock_ui();
         {
+            // OSCUI participates in GUI's process-wide registry and owns a
+            // reference to process-wide OSC streams.
+            RecursiveLock gui_lock(gGUIRegistryMutex);
+            RecursiveLock osc_lock(oscfaust::OSCControler::globalMutex());
+
             delete fOSCUI;
             
             const char* argv1[32];
@@ -694,7 +714,15 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
             // Use the right outlet to output messages
             dump_outputs();
             // Done for fMidiUI and fOSCUI
-            GUI::updateAllGuis();
+            // Do not ever block the audio callback. A concurrent UI/OSC
+            // reconfiguration simply defers this refresh to a later block.
+            TryRecursiveLock gui_lock(gGUIRegistryMutex, std::try_to_lock);
+            if (gui_lock.owns_lock()) {
+                TryRecursiveLock osc_lock(oscfaust::OSCControler::globalMutex(), std::try_to_lock);
+                if (osc_lock.owns_lock()) {
+                    GUI::updateAllGuis();
+                }
+            }
         }
         fDSPfactory->unlock_audio();
     }
@@ -767,6 +795,10 @@ void faustgen::hilight_error(const string& error)
 // Build control, MIDI, soundfile, and state UIs for the DSP
 void faustgen::init_controllers()
 {
+    // MidiUI is registered in GUI::fGuiList. Its replacement must not race
+    // with GUI::updateAllGuis() in another faustgen~ audio callback.
+    RecursiveLock gui_lock(gGUIRegistryMutex);
+
     // Initialize User Interface (here connnection with controls)
     delete fDSPUI;
     fDSPUI = new mspUI();

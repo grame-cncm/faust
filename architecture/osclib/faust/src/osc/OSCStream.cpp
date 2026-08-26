@@ -32,10 +32,19 @@ OSCStream* _oscerr = 0;				// OSC standard error stream
 
 static UdpSocket* _socket = 0;		// a shared transmit socket
 int OSCStream::fRefCount = 0;
+static std::recursive_mutex gOSCStreamMutex;
+using OSCStreamLock = std::lock_guard<std::recursive_mutex>;
+
+//--------------------------------------------------------------------------
+std::recursive_mutex& OSCStream::globalMutex()
+{
+    return gOSCStreamMutex;
+}
 
 //--------------------------------------------------------------------------
 void OSCStream::start()
 {
+    OSCStreamLock lock(globalMutex());
     if (fRefCount++ == 0) {
         _socket = new UdpSocket;
         if (!_socket) throw bad_alloc();
@@ -49,6 +58,7 @@ void OSCStream::start()
 //--------------------------------------------------------------------------
 void OSCStream::stop()
 {
+    OSCStreamLock lock(globalMutex());
     if (--fRefCount == 0) {
         delete _socket;
         delete _oscout;

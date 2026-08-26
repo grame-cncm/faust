@@ -26,6 +26,7 @@
 #ifndef __OSCControler__
 #define __OSCControler__
 
+#include <mutex>
 #include <string>
 #include "faust/osc/FaustFactory.h"
 
@@ -112,6 +113,8 @@ class OSCControler
     
 		static float version();				// the Faust OSC library version number
 		static const char* versionstr();	// the Faust OSC library version number as a string
+		// Serializes access to the shared OSC output streams and their lifecycle.
+		static std::recursive_mutex& globalMutex();
 		static int gXmit;                   // a static variable to control the transmission of values
                                             // i.e. the use of the interface as a controler
 		static int gBundle;                 // a static variable to control the osc bundle mode

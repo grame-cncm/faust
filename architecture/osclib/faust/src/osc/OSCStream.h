@@ -24,6 +24,7 @@
 
 #include <string>
 #include <vector>
+#include <mutex>
 
 #include "osc/OscOutboundPacketStream.h"
 #include "ip/UdpSocket.h"
@@ -73,6 +74,11 @@ class OSCStream
 //	void initSocket();
 	
 	public:
+	// Serializes access to the process-wide OSC output streams. A caller that
+	// sends a complete OSC message must retain this lock from OSCStart through
+	// its matching OSCEnd (or endBundle()).
+	static std::recursive_mutex& globalMutex();
+
 	static void start();
 	static void stop();
 

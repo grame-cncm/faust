@@ -35,6 +35,7 @@
 #include "OSCSetup.h"
 #include "OSCFError.h"
 #include "OSCRegexp.h"
+#include "OSCStream.h"
 
 #ifdef WIN32
 # pragma warning (disable: 4800)
@@ -172,6 +173,7 @@ OSCControler::~OSCControler()
 //--------------------------------------------------------------------------
 float OSCControler::version()			{ return kVersion; }
 const char* OSCControler::versionstr()	{ return kVersionStr; }
+std::recursive_mutex& OSCControler::globalMutex() { return OSCStream::globalMutex(); }
 
 //--------------------------------------------------------------------------
 static string quote(const char* str)
