@@ -97,6 +97,22 @@ Or to synchronize the *node-matcher-plugin* folder only:
 
 Since release 2.5.18, Faust compilation and installation is based on [CMake](https://cmake.org/). For details about compilation, you should look at the [Faust wiki pages](https://github.com/grame-cncm/faust/wiki) or go directly to the [simple tutorial](https://github.com/grame-cncm/faust/wiki/BuildingSimple) to compile and install.
 
+### Notes for Windows Contributors
+
+On Windows, contributors should be aware of the following points when working with Faust:
+
+- The Faust repository is a multi-project monorepo; not all subprojects are required to work with the core Faust compiler. In particular, components such as `faustgen` depend on external SDKs (e.g. MAXSDK) and are not part of the standard compiler workflow.
+- For most contribution and testing tasks on Windows, using the official prebuilt Faust binaries is sufficient and significantly simpler than attempting a full source build.
+- Faust is a code generator (compiler), not a runtime: `.dsp` files are not executable artifacts and must be compiled to a target language or architecture via the command line.
+- Many DSP examples (e.g. ambisonics-related examples) are not standalone and require a host environment, specific architecture files, or multiple inputs; this is expected and does not indicate a build or installation issue.
+- Depending on the installer and environment, the core `faust` binary may be available on Windows without all `faust2*` helper scripts on the system `PATH`, even though the compiler itself is functional.
+git 
+
+
+
+
+
+
 ## Using the Faust Examples
 
 The `/examples` folder contains dozen of example Faust codes organized by categories. There are many options to use them.
