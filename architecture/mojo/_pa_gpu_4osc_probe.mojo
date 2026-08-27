@@ -126,7 +126,7 @@ def gpu_callback(
     if count != PaULong(UInt64(BUFF_SIZE)):
         return PA_ABORT
 
-    var out = output.unsafe_value().unsafe_bitcast[F32]()
+    var out_buf = output.unsafe_value().unsafe_bitcast[F32]()
     var state = data.unsafe_value().unsafe_bitcast[GpuOscState]()
 
     try:
@@ -141,7 +141,7 @@ def gpu_callback(
         )
 
         # GPU -> PortAudio output.
-        state[].ctx.enqueue_copy(dst_ptr=out, src_buf=state[].out_buf)
+        state[].ctx.enqueue_copy(dst_ptr=out_buf, src_buf=state[].out_buf)
 
         state[].ctx.synchronize()
 

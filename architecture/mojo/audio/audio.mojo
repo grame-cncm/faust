@@ -3,10 +3,10 @@
 from conf import *
 from dsp import FaustDsp
 
-# --------------------------------------------------------------
+# ==============================================================
 # FaustAudio interface declaration.
 # General contract for Audio architectures.
-# --------------------------------------------------------------
+# ==============================================================
 
 trait FaustAudio:
     @always_inline
