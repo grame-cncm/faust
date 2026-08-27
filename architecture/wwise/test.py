@@ -68,7 +68,7 @@ class TestFaustExamples:
         
     def platform_dependent_setup(self) -> None:
         """
-        Function that will eventually be used for platform depended setup.
+        Function that will eventually be used for host platform depended setup.
         """
         mySystem = platform.system()
 
