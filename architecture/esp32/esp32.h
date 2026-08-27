@@ -42,6 +42,14 @@ class esp32_midi;
 class SoundUI;
 #endif
 
+#define DEFAULT_I2S_PIN_CONFIG { \
+    .mck_io_num = I2S_PIN_NO_CHANGE, \
+    .bck_io_num = I2S_PIN_NO_CHANGE, \
+    .ws_io_num = I2S_PIN_NO_CHANGE, \
+    .data_out_num = I2S_PIN_NO_CHANGE, \
+    .data_in_num = I2S_PIN_NO_CHANGE \
+}
+
 class AudioFaust
 {
     private:
@@ -59,7 +67,7 @@ class AudioFaust
 
     public:
     
-        AudioFaust(int sample_rate, int buffer_size);
+        AudioFaust(int sample_rate, int buffer_size, i2s_pin_config_t pin_config = DEFAULT_I2S_PIN_CONFIG);
         ~AudioFaust();
     
         bool start();

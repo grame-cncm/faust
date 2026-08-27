@@ -143,7 +143,7 @@ class esp32audio : public audio {
     
     public:
     
-        esp32audio(int srate, int bsize):
+        esp32audio(int srate, int bsize, i2s_pin_config_t pin_config):
         fSampleRate(srate),
         fBufferSize(bsize),
         fNumInputs(0),
@@ -154,7 +154,6 @@ class esp32audio : public audio {
         fDSP(nullptr),
         fRunning(false)
         {
-            i2s_pin_config_t pin_config;
         #if TTGO_TAUDIO
             pin_config = {
                 .mck_io_num = I2S_PIN_NO_CHANGE,
@@ -178,14 +177,6 @@ class esp32audio : public audio {
                 .ws_io_num = 25,
                 .data_out_num = 26,
                 .data_in_num = 35
-            };
-        #else // Default
-            pin_config = {
-                .mck_io_num = I2S_PIN_NO_CHANGE,
-                .bck_io_num = 33,
-                .ws_io_num = 25,
-                .data_out_num = 26,
-                .data_in_num = 27
             };
         #endif
             
@@ -220,7 +211,9 @@ class esp32audio : public audio {
         #endif
             i2s_driver_install((i2s_port_t)0, &i2s_config, 0, nullptr);
             i2s_set_pin((i2s_port_t)0, &pin_config);
-            PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_CLK_OUT1);
+            #if CONFIG_IDF_TARGET_ESP32
+                PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_CLK_OUT1);
+            #endif
             REG_WRITE(PIN_CTRL, 0xFFFFFFF0);
         }
     
