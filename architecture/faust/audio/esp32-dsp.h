@@ -220,7 +220,9 @@ class esp32audio : public audio {
         #endif
             i2s_driver_install((i2s_port_t)0, &i2s_config, 0, nullptr);
             i2s_set_pin((i2s_port_t)0, &pin_config);
-            PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_CLK_OUT1);
+            #if CONFIG_IDF_TARGET_ESP32
+                PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0_CLK_OUT1);
+            #endif
             REG_WRITE(PIN_CTRL, 0xFFFFFFF0);
         }
     
