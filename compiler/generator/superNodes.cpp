@@ -21,6 +21,8 @@
 
 #include "superNodes.hh"
 
+#include "kernelCandidacy.hh"
+
 #include "Schedule.hh"
 
 #include <algorithm>
@@ -149,9 +151,8 @@ void SuperNodeGraph::collectRefs(Tree t, std::set<int>& refs, std::set<int>& ref
         int  dmin, dmax;
         bool dvar;
         delayBounds(y, dmin, dmax, dvar);
-        Tree dsrc{}, dkf{}, pw1{};
-        int  pj1;
-        if (isSigDense(x, dsrc, dkf) && isProj(dsrc, &pj1, pw1) && !fMatIdx.count(x)) {
+        Tree dsrc{}, dkf{};
+        if (isSigDense(x, dsrc, dkf) && isKernelInline(t) && !fMatIdx.count(x)) {
             // the delay traverses the DENSE : the source is read at
             // dmin..dmin+n-1 -- anchored, so the earliest read is dmin
             // itself, and the instant edge exists only when dmin == 0

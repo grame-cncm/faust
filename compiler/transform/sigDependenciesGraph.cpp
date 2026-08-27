@@ -1,4 +1,6 @@
 #include "sigDependenciesGraph.hh"
+
+#include "kernelCandidacy.hh"
 #include "ppsig.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
@@ -54,9 +56,9 @@ void SigDependenciesGraph::visit(Tree t)
         fGraph.add(t, d, 0);
         self(d);
     } else if (isSigDelay(t, x, y)) {
-        int  sh, pj0;
-        Tree tdsrc, tdkf, pw0;
-        if (isSigInt(y, &sh) && isSigDense(x, tdsrc, tdkf) && isProj(tdsrc, &pj0, pw0)) {
+        int  sh;
+        Tree tdsrc, tdkf;
+        if (isSigInt(y, &sh) && isSigDense(x, tdsrc, tdkf) && isKernelInline(t)) {
             // the delay traverses the DENSE (one shifted read site) : the
             // kernel never becomes a schedulable node of its own. Edge and
             // visit order mirror the former FIR[x, 0..0, C..] case exactly

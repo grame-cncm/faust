@@ -26,6 +26,7 @@
 #include "global.hh"
 #include "occurrences.hh"
 #include "recursivness.hh"
+#include "kernelCandidacy.hh"
 #include "sigtyperules.hh"
 
 using namespace std;
@@ -215,9 +216,9 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
             Type g2 = getCertifiedSigType(y);
             int  d2 = checkDelayInterval(g2);
             faustassert(d2 >= 0);
-            int  sh, pj;
-            Tree dsrc, dkf, pw;
-            if (isSigInt(y, &sh) && isSigDense(x, dsrc, dkf) && isProj(dsrc, &pj, pw)) {
+            int  sh;
+            Tree dsrc, dkf;
+            if (isSigInt(y, &sh) && isSigDense(x, dsrc, dkf) && isKernelInline(t)) {
                 // shifted read of a constant operator (the traversal
                 // table) : the delay TRAVERSES the DENSE -- the source
                 // is read at taps sh..sh+n-1, the kernel's own output

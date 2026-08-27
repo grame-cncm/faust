@@ -63,6 +63,7 @@
 #include "revealSum.hh"
 #include "descend.hh"
 #include "factorizeFIRs.hh"
+#include "kernelCandidacy.hh"
 #include "lowerSums.hh"
 #include "sigtype.hh"
 #include "timing.hh"
@@ -84,18 +85,18 @@ using namespace std;
 // working form produced before the migration.
 static bool isDenseRead(Tree t, Tree& src, Tree& kf, int& sh)
 {
-    Tree x, y, pw;
-    int  d, pj;
+    Tree x, y;
+    int  d;
     if (isSigDense(t, src, kf)) {
         sh = 0;
         return true;
     }
-    // the delayed read TRAVERSES the kernel only on a recursive
-    // projection source (shifted taps on the ring, the former
-    // zeros-inside spelling) ; on any other source it is a delayed read
-    // of the materialized kernel VALUE (the former Delay(FIR))
+    // the delayed read TRAVERSES the kernel only when kernelCandidacy
+    // judged the site a SELF read (shifted taps on the ring, the former
+    // zeros-inside spelling) ; every other shifted read is a delayed
+    // read of the materialized kernel VALUE (the former Delay(FIR))
     if (isSigDelay(t, x, y) && isSigInt(y, &d) && isSigDense(x, src, kf) &&
-        isProj(src, &pj, pw)) {
+        isKernelInline(t)) {
         sh = d;
         return true;
     }
@@ -1158,6 +1159,7 @@ Tree ScalarCompiler::prepare(Tree LS)
             endTiming("IIR revealer");
             startTiming("FIR factorizer");
             L2 = factorizeFIRs(L2);
+            kernelCandidacy(L2);  // traversal-or-materialize, one verdict
             endTiming("FIR factorizer");
             if (getenv("FAUST_SS_MCM")) {
                 // stage-3 deposit probe : the WEIGHTED pairs. Atom of a
