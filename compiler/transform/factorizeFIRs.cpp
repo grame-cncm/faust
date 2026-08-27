@@ -4,7 +4,6 @@
 #include <functional>
 #include <iostream>
 #include <unordered_map>
-#include <sstream>
 #include <vector>
 
 #include "global.hh"
@@ -13,22 +12,26 @@
 #include "signals.hh"
 #include "sigs-state.hh"
 
-// KERNELIZE. The reveal keeps sigFIR as its internal WORKING form (its
-// merging machinery reads it) ; this pass, at the end of the chain, applies
-// the kernel normal form (the same rules the former normalization pass
-// applied to working kernels) and spells every surviving kernel in the
-// typed core -- no sigFIR crosses the boundary :
+// KERNELIZE, v7 : the kernel normal form on the ORDINARY signal algebra.
+// No dedicated node -- every kernel is the existing n-ary sigFIR, whose
+// branches are all signals, spelled as the canonical triple
 //
-//   constant coefficients            -> delay?(DENSE(x, KFORM(C)), d)
-//   proportional (numeric ratios)    -> mul(u, delay?(DENSE(x, KFORM(R))))
-//   single tap                       -> mul(c, delay?(x, d))   (envelope)
-//   slow coefficients (residue)      -> LTVFIR[x, 0..0, C..]   (zeros INSIDE)
+//     k * FIR[ x@d , c0..cN ]
 //
-// The delayed DENSE spelling covers BOTH former forms : on a RECURSIVE
-// PROJECTION source the consumers traverse it (shifted taps on the ring,
-// the former zeros-inside kernel) ; on any other source it is a delayed
-// read of the materialized kernel VALUE (the former Delay(FIR), which is
-// what lets the FFT family share one window across shifted readers).
+//   - ANCHORED : c0 != 0 and cN != 0. Leading zeros live in the SOURCE
+//     delay (an ordinary sigDelay), trailing zeros are dropped, interior
+//     zeros stay (sparse kernels).
+//   - coefficients at time t : y(t) = k(t) * sum ci(t) * x(t-d-i). The
+//     delay is on the source, no coefficient or level ever crosses time,
+//     for EVERY class -- the vocalFOF trap is gone by construction.
+//   - content extraction is UNIT-PINNED : k comes out only when one of
+//     the residual coefficients is 1 or -1 (a unit tap costs nothing, so
+//     the freed tap-mult pays for the outer mul ; and the pin keeps the
+//     rewrite exact -- ratios are read from the structure, never divided).
+//
+// The materialized spelling FIR[x,C]@d (one value, one line, k loads) is
+// NOT produced here : it is the retiming law, legal for constant C only,
+// applied per site by kernelCandidacy right after this pass.
 
 // c -> (r, u) with c == r * u, r numeric, u symbolic (nullptr for a
 // pure number). Recognizes numbers and products with a numeric side.
@@ -100,74 +103,68 @@ static Tree ratioTree(double r)
     return sigReal(r);
 }
 
-// constant-class test of a working coefficient vector (numeric or init-time)
-static bool constClass(const tvec& c)
+// constant-class test of a coefficient list (numeric or init-time)
+static bool constCoefs(const tvec& V, size_t from)
 {
-    for (size_t i = 1; i < c.size(); i++) {
-        if (sigs::sigOrder(c[i]) > 1) {
+    for (size_t i = from; i < V.size(); i++) {
+        if (sigs::sigOrder(V[i]) > 1) {
             return false;
         }
     }
     return true;
 }
 
-// a DENSE read : bare DENSE (sh == 0) or delay(DENSE, literal)
-static bool denseRead(Tree t, Tree& x, Tree& kf, int& sh)
+// source of a kernel read : unwrap ONE literal delay. x@d -> (x, d) ;
+// anything else -> (t, 0).
+static Tree kernelSrc(Tree t, int& sh)
 {
     Tree a, b;
     int  d;
-    if (isSigDense(t, x, kf)) {
-        sh = 0;
-        return true;
-    }
-    if (isSigDelay(t, a, b) && isSigInt(b, &d) && isSigDense(a, x, kf)) {
+    if (isSigDelay(t, a, b) && isSigInt(b, &d)) {
         sh = d;
-        return true;
+        return a;
     }
-    return false;
+    sh = 0;
+    return t;
 }
 
-// the working vector [x, c0..cn] of a core read (the shift re-spelled as
-// leading zeros), for rule inspection and cascade convolution
-static bool coreWorkVec(Tree t, tvec& V)
+// delayed source, collapsing a literal delay of a literal delay (the
+// kernel shifts compose : (x@a)@b reads are x@(a+b) reads)
+static Tree mkShiftedSrc(Tree x, int d)
 {
-    if (isSigLtvFIR(t, V)) {
-        return true;
+    if (d == 0) {
+        return x;
     }
-    Tree x, kf;
-    int  sh;
-    if (denseRead(t, x, kf, sh)) {
-        V.clear();
-        V.push_back(x);
-        for (int k = 0; k < sh; k++) {
-            V.push_back(sigInt(0));
-        }
-        for (Tree c : kf->branches()) {
-            V.push_back(c);
-        }
-        return true;
-    }
-    return false;
+    int  sh0;
+    Tree x0 = kernelSrc(x, sh0);
+    return sigDelay(x0, sigInt(sh0 + d));
 }
 
-// spell a working vector in the typed core WITHOUT proportional
-// extraction and WITHOUT the delay extraction (the former rules 2 and 3
-// emitted their vectors once, zeros in place, and never revisited them --
-// a leading-zero kernel spelled here stays an INLINE read)
-static Tree spellVerbatim(const tvec& coef);
+// dense spelling WITHOUT content extraction (used for law outputs the
+// former pass emitted once -- cascade -- and as the residue spelling)
+static Tree spellDense(Tree x, const tvec& coef, int lo, int hi)
+{
+    // single tap : the envelope spelling (gain and delay are canonical
+    // by judgment, never a one-tap kernel)
+    if (lo == hi) {
+        Tree c = coef[lo];
+        Tree r = (lo - 1 > 0) ? mkShiftedSrc(x, lo - 1) : x;
+        return isOne(c) ? r : sigMul(c, r);
+    }
+    tvec nc;
+    nc.push_back(mkShiftedSrc(x, lo - 1));
+    for (int i = lo; i <= hi; i++) {
+        nc.push_back(coef[i]);
+    }
+    return sigFIR(nc);
+}
 
-// spell a CASCADE result : structural typing WITH the delay extraction
-// (the source is a projection, the consumers traverse the spelling, and
-// a further outer kernel can cascade again through it)
-static Tree spellCore(const tvec& coef);
-
-// classification of a reveal-produced working kernel : the former rules
-// 1 (leading zeros out, via the delayed-DENSE spelling), 2 (proportional
-// factor out) and the envelope normalization, then the structural typing
-static Tree classify(const tvec& coef, bool allowProportional)
+// classification of a reveal-produced working kernel [x, c0..cn] into
+// the canonical triple
+static Tree classify(const tvec& coef)
 {
     Tree x  = coef[0];
-    int  n  = int(coef.size()) - 1;  // taps at delays 0..n-1
+    int  n  = int(coef.size()) - 1;
     int  lo = 1;
     while (lo <= n && isZero(coef[lo])) {
         lo++;
@@ -177,66 +174,20 @@ static Tree classify(const tvec& coef, bool allowProportional)
     }
     int hi = n;
     while (isZero(coef[hi])) {
-        hi--;  // trailing zero taps are absent reads
-    }
-    int d = lo - 1;
-    // -- ENVELOPE NORMALIZATION : a single tap is a gain and a delay,
-    //    level OUTSIDE the delay (never crossing it). A delayed read of a
-    //    projection kernel folds into the kernel's own shift instead of
-    //    cascading two delays.
-    if (lo == hi && getenv("FAUST_KERNEL_NO_ENVELOPE")) {
-        tvec lc0;
-        lc0.push_back(x);
-        for (int i = 1; i <= hi; i++) {
-            lc0.push_back(coef[i]);
-        }
-        return sigLtvFIR(lc0);
+        hi--;  // trailing zeros are absent reads
     }
     if (lo == hi) {
-        Tree c = coef[lo];
-        Tree r;
-        if (d == 0) {
-            r = x;
-        } else {
-            Tree kx, kkf;
-            int  ksh, pj;
-            Tree pw;
-            if (denseRead(x, kx, kkf, ksh) && isProj(kx, &pj, pw)) {
-                r = sigDelay(sigDense(kx, kkf), sigInt(ksh + d));
-            } else {
-                r = sigDelay(x, sigInt(d));
-            }
-        }
-        return isOne(c) ? r : sigMul(c, r);
+        return spellDense(x, coef, lo, hi);  // envelope
     }
-    // -- constant class -> delayed DENSE (rule 1's extraction ; on a
-    //    projection source the consumers traverse it, which is the former
-    //    zeros-inside spelling, emission identical)
-    bool constant = true;
-    for (int i = lo; constant && i <= hi; i++) {
-        constant = (sigs::sigOrder(coef[i]) <= 1);
-    }
-    if (constant) {
-        if (d > 0 && getenv("FAUST_KERNEL_NO_EXTRACT")) {
-            tvec lc1;
-            lc1.push_back(x);
-            for (int i = 1; i <= hi; i++) {
-                lc1.push_back(coef[i]);
-            }
-            return sigLtvFIR(lc1);
-        }
-        tvec tail(coef.begin() + lo, coef.begin() + hi + 1);
-        Tree K = sigDense(x, sigKForm(tail));
-        return (d > 0) ? sigDelay(K, sigInt(d)) : K;
-    }
-    // -- rule 2 : proportional coefficients factor out. Same acceptance
-    //    as the former pass : a common SYMBOLIC part u with numeric
-    //    ratios, at least two taps, not entirely numeric.
-    if (allowProportional && !getenv("FAUST_KERNEL_NO_PROP")) {
+    // ---- content extraction, unit-pinned : coefficients r_i * u with a
+    // common SYMBOLIC u, numeric ratios read from the structure, and at
+    // least one ratio in {1, -1}
+    {
         Tree                u            = nullptr;
         int                 nz           = 0;
         bool                proportional = true;
         bool                allNumeric   = true;
+        bool                hasUnit      = false;
         std::vector<double> ratio(coef.size(), 0.0);
         for (size_t i = 1; proportional && i < coef.size(); i++) {
             if (isZero(coef[i])) {
@@ -262,84 +213,34 @@ static Tree classify(const tvec& coef, bool allowProportional)
                     proportional = false;  // two distinct symbolic parts
                 }
             }
+            if (r == 1.0 || r == -1.0) {
+                hasUnit = true;
+            }
             ratio[i] = r;
             nz++;
         }
-        if (proportional && !allNumeric && u != nullptr && nz >= 2) {
+        if (proportional && !allNumeric && u != nullptr && nz >= 2 && hasUnit) {
             tvec rc;
-            rc.push_back(coef[0]);
+            rc.push_back(x);
             for (size_t i = 1; i < coef.size(); i++) {
                 rc.push_back(isZero(coef[i]) ? coef[i] : ratioTree(ratio[i]));
             }
-            return sigMul(u, spellVerbatim(rc));
+            return sigMul(u, spellDense(x, rc, lo, hi));
         }
     }
-    // -- residue : LTVFIR, leading zeros INSIDE (a coefficient never
-    //    crosses time), trailing zeros dropped
-    tvec lc;
-    lc.push_back(x);
-    for (int i = 1; i <= hi; i++) {
-        lc.push_back(coef[i]);
-    }
-    return sigLtvFIR(lc);
-}
-
-static Tree spellVerbatim(const tvec& coef)
-{
-    Tree x  = coef[0];
-    int  n  = int(coef.size()) - 1;
-    int  lo = 1;
-    while (lo <= n && isZero(coef[lo])) {
-        lo++;
-    }
-    if (lo > n) {
-        return sigReal(0.0);
-    }
-    int hi = n;
-    while (isZero(coef[hi])) {
-        hi--;
-    }
-    // single tap : the envelope spelling (no single-tap node exists)
-    if (lo == hi) {
-        Tree c = coef[lo];
-        int  d = lo - 1;
-        Tree r = (d > 0) ? sigDelay(x, sigInt(d)) : x;
-        return isOne(c) ? r : sigMul(c, r);
-    }
-    // no leading zeros and constant : the bare DENSE
-    if (lo == 1) {
-        bool constant = true;
-        for (int i = 1; constant && i <= hi; i++) {
-            constant = (sigs::sigOrder(coef[i]) <= 1);
-        }
-        if (constant) {
-            tvec tail(coef.begin() + 1, coef.begin() + hi + 1);
-            return sigDense(x, sigKForm(tail));
-        }
-    }
-    // zeros in place : the inline spelling (trailing zeros dropped)
-    tvec lc;
-    lc.push_back(x);
-    for (int i = 1; i <= hi; i++) {
-        lc.push_back(coef[i]);
-    }
-    return sigLtvFIR(lc);
-}
-
-static Tree spellCore(const tvec& coef)
-{
-    return classify(coef, false);
+    return spellDense(x, coef, lo, hi);
 }
 
 Tree factorizeFIRs(Tree L)
 {
     auto rule = [](Tree sig) -> Tree {
-        // ---- rule 3 : absorption of scalar multiply chains ------------
-        // Cores are the UNDELAYED kernels and the traversed (projection)
-        // delayed DENSE -- the delayed read of a materialized kernel
-        // VALUE is not a core (the level stays outside, as the former
-        // pass left mul(k, Delay(FIR)) untouched).
-        if (Tree mx, my; !getenv("FAUST_KERNEL_NO_ABSORB") && isSigMul(sig, mx, my)) {
+        // ---- absorption of scalar multiply chains ---------------------
+        // canonical spellings : k stays OUT of a kernel that owns a unit
+        // coefficient (extraction's anti-cycle) or that is shared numeric
+        // (nz >= 2, all numbers -- the hash-consed primitive kernels) ;
+        // it is absorbed into every other kernel (the k*ci are slow, the
+        // sample loop loses the outer multiply -- the lowShelf lesson).
+        if (Tree mx, my; isSigMul(sig, mx, my)) {
             std::vector<Tree>         scalars;
             std::vector<Tree>         cores;
             bool                      flat_ok = true;
@@ -350,13 +251,7 @@ Tree factorizeFIRs(Tree L)
                     flat(b);
                     return;
                 }
-                Tree cx, ckf;
-                int  csh, pj;
-                Tree pw;
-                if (isSigLtvFIR(t)) {
-                    cores.push_back(t);
-                } else if (denseRead(t, cx, ckf, csh) &&
-                           (csh == 0 || isProj(cx, &pj, pw))) {
+                if (isSigFIR(t)) {
                     cores.push_back(t);
                 } else if (isSlowFactor(t)) {
                     scalars.push_back(t);
@@ -365,13 +260,9 @@ Tree factorizeFIRs(Tree L)
                 }
             };
             flat(sig);
-            if (getenv("FAUST_FIRNORM_DEBUG") && cores.size() >= 1) {
-                fprintf(stderr, "FIRNORM3 mul flat_ok=%d cores=%zu scalars=%zu\n", int(flat_ok),
-                        cores.size(), scalars.size());
-            }
             if (flat_ok && cores.size() == 1 && !scalars.empty()) {
                 tvec coef;
-                coreWorkVec(cores[0], coef);
+                isSigFIR(cores[0], coef);
                 int  nz       = 0;
                 bool numeric  = true;
                 int  maxOrder = 0;
@@ -383,22 +274,12 @@ Tree factorizeFIRs(Tree L)
                     numeric  = numeric && isNum(coef[i]);
                     maxOrder = std::max(maxOrder, sigs::sigOrder(coef[i]));
                 }
-                // a shared numeric kernel stays shared ; audio-rate
-                // coefficients would pay the fold per sample and per tap
-                bool absorb = (nz >= 1) && !(numeric && nz >= 2) && (maxOrder <= 2 || nz == 1);
-                if (getenv("FAUST_FIRNORM_DEBUG")) {
-                    Tree qx, qkf;
-                    int  qsh = -1, qpj;
-                    Tree qpw;
-                    char kind = isSigLtvFIR(cores[0]) ? 'L'
-                                : (denseRead(cores[0], qx, qkf, qsh) ? 'D' : '?');
-                    int  prj  = (kind == 'D') ? int(isProj(qx, &qpj, qpw)) : -1;
-                    fprintf(stderr,
-                            "FIRNORM3 absorb=%d scalars=%zu nz=%d numeric=%d maxOrder=%d "
-                            "kind=%c sh=%d proj=%d\n",
-                            int(absorb), scalars.size(), nz, int(numeric), maxOrder, kind, qsh,
-                            prj);
-                }
+                // anti-cycle : extraction outputs are ALL-NUMERIC unit
+                // kernels, already protected by the numeric guard below --
+                // a symbolic kernel with a unit tap absorbs like any other
+                // (mul(k, c) has no numeric head : no re-extraction)
+                bool absorb =
+                    (nz >= 1) && !(numeric && nz >= 2) && (maxOrder <= 2 || nz == 1);
                 if (absorb) {
                     Tree k = scalars[0];
                     for (size_t i = 1; i < scalars.size(); i++) {
@@ -407,17 +288,12 @@ Tree factorizeFIRs(Tree L)
                     tvec nc;
                     nc.push_back(coef[0]);
                     for (size_t i = 1; i < coef.size(); i++) {
-                        // a unit coefficient absorbs k itself -- sigMul(k, 1)
-                        // would emit a (1 * k) per sample
-                        nc.push_back(isZero(coef[i])  ? coef[i]
-                                     : isOne(coef[i]) ? k
-                                                      : sigMul(k, coef[i]));
+                        nc.push_back(isZero(coef[i]) ? coef[i] : sigMul(k, coef[i]));
                     }
-                    return spellVerbatim(nc);
+                    return sigFIR(nc);
                 }
                 // kept kernel : still REGROUP the scalar chain around it,
-                // so k1 * (E * k2) costs ONE sample multiply (the product
-                // of the k's evaluates at control rate)
+                // so k1 * (K * k2) costs ONE sample multiply
                 if (scalars.size() >= 2) {
                     Tree k = scalars[0];
                     for (size_t i = 1; i < scalars.size(); i++) {
@@ -432,18 +308,26 @@ Tree factorizeFIRs(Tree L)
             return sig;
         }
         // ---- SHIFT-IN LAW : a delayed read of a PROJECTION kernel folds
-        // into the kernel's shift (one read site on the ring) instead of
-        // cascading a line on the kernel's value
+        // into the kernel's source shift (one read site on the ring)
+        // instead of cascading a line on the kernel's value. Constant
+        // coefficients only -- this is the retiming law right-to-left.
         {
             Tree fk, dd;
             int  dv;
-            if (isSigDelay(sig, fk, dd) && isSigInt(dd, &dv) && dv > 0 &&
-                !getenv("FAUST_KERNEL_NO_SHIFTIN")) {
-                Tree kx, kkf;
-                int  ksh, pj;
-                Tree pw;
-                if (denseRead(fk, kx, kkf, ksh) && isProj(kx, &pj, pw)) {
-                    return sigDelay(sigDense(kx, kkf), sigInt(ksh + dv));
+            if (isSigDelay(sig, fk, dd) && isSigInt(dd, &dv) && dv > 0) {
+                tvec kc;
+                if (isSigFIR(fk, kc) && constCoefs(kc, 1)) {
+                    int  ksh, pj;
+                    Tree pw;
+                    Tree kx = kernelSrc(kc[0], ksh);
+                    if (isProj(kx, &pj, pw)) {
+                        tvec nc;
+                        nc.push_back(mkShiftedSrc(kx, ksh + dv));
+                        for (size_t i = 1; i < kc.size(); i++) {
+                            nc.push_back(kc[i]);
+                        }
+                        return sigFIR(nc);
+                    }
                 }
             }
         }
@@ -456,52 +340,66 @@ Tree factorizeFIRs(Tree L)
         // read lands on the projection's existing ring, no intermediate
         // kernel VALUE at all (the plate's stencil kernels).
         {
-            Tree kx, kkf;
-            int  ksh, pj;
-            Tree pw;
-            if (coef.size() >= 2 && denseRead(coef[0], kx, kkf, ksh) &&
-                isProj(kx, &pj, pw) && constClass(coef) &&
-                !getenv("FAUST_KERNEL_NO_CASCADE")) {
-                tvec ic;
-                ic.push_back(kx);
-                for (int z2 = 0; z2 < ksh; z2++) {
-                    ic.push_back(sigInt(0));
-                }
-                for (Tree c : kkf->branches()) {
-                    ic.push_back(c);
-                }
-                int  n = int(ic.size()) - 1, m = int(coef.size()) - 1;
-                tvec conv;
-                conv.push_back(ic[0]);
-                for (int k = 0; k < n + m - 1; k++) {
-                    Tree acc = nullptr;
-                    for (int i = 0; i < n; i++) {
-                        int j = k - i;
-                        if (j < 0 || j >= m) {
-                            continue;
-                        }
-                        if (isZero(ic[1 + i]) || isZero(coef[1 + j])) {
-                            continue;
-                        }
-                        Tree term = (isOne(ic[1 + i]))     ? coef[1 + j]
-                                    : (isOne(coef[1 + j])) ? ic[1 + i]
-                                                           : sigMul(ic[1 + i], coef[1 + j]);
-                        acc = acc ? sigAdd(acc, term) : term;
+            tvec ic0;
+            if (coef.size() >= 2 && isSigFIR(coef[0], ic0) && constCoefs(coef, 1) &&
+                constCoefs(ic0, 1)) {
+                int  ksh, pj;
+                Tree pw;
+                Tree kx = kernelSrc(ic0[0], ksh);
+                if (isProj(kx, &pj, pw)) {
+                    tvec ic;
+                    ic.push_back(kx);
+                    for (int z2 = 0; z2 < ksh; z2++) {
+                        ic.push_back(sigInt(0));
                     }
-                    conv.push_back(acc ? acc : sigInt(0));
+                    for (size_t i = 1; i < ic0.size(); i++) {
+                        ic.push_back(ic0[i]);
+                    }
+                    int  n = int(ic.size()) - 1, m = int(coef.size()) - 1;
+                    tvec conv;
+                    conv.push_back(ic[0]);
+                    for (int k = 0; k < n + m - 1; k++) {
+                        Tree acc = nullptr;
+                        for (int i = 0; i < n; i++) {
+                            int j = k - i;
+                            if (j < 0 || j >= m) {
+                                continue;
+                            }
+                            if (isZero(ic[1 + i]) || isZero(coef[1 + j])) {
+                                continue;
+                            }
+                            Tree term = (isOne(ic[1 + i]))     ? coef[1 + j]
+                                        : (isOne(coef[1 + j])) ? ic[1 + i]
+                                                               : sigMul(ic[1 + i], coef[1 + j]);
+                            acc = acc ? sigAdd(acc, term) : term;
+                        }
+                        conv.push_back(acc ? acc : sigInt(0));
+                    }
+                    // spell without extraction (emitted once, like the
+                    // former pass)
+                    int lo = 1, hi = int(conv.size()) - 1;
+                    while (lo <= hi && isZero(conv[lo])) {
+                        lo++;
+                    }
+                    if (lo > hi) {
+                        return sigReal(0.0);
+                    }
+                    while (isZero(conv[hi])) {
+                        hi--;
+                    }
+                    return spellDense(conv[0], conv, lo, hi);
                 }
-                return spellCore(conv);
             }
         }
-        // ---- classification of the reveal's working kernel ------------
-        return classify(coef, true);
+        // ---- classification into the canonical triple -----------------
+        return classify(coef);
     };
     Tree R = treeRewrite(L, rule);
     if (getenv("FAUST_KERNEL_WELLFORMED") || getenv("FAUST_FIRNORM_DEBUG")) {
-        // well-formedness census : no working sigFIR may survive the
-        // classification ; count the core population on the way
+        // well-formedness census : every kernel is ANCHORED (no leading
+        // zero -- the shift lives in the source delay)
         std::unordered_map<Tree, bool> seen;
-        int                            nfir = 0, ndense = 0, nltv = 0, nkform = 0;
+        int                            nfir = 0, nbad = 0, nshifted = 0;
         std::function<void(Tree)>      walk = [&](Tree t) {
             if (seen.count(t)) {
                 return;
@@ -514,28 +412,51 @@ Tree factorizeFIRs(Tree L)
                 }
                 return;
             }
-            if (isSigFIR(t)) {
+            if (tvec cs; isSigFIR(t, cs)) {
                 nfir++;
-                if (nfir <= 3) {
-                    std::cerr << "KERNELIZE surviving sigFIR : " << ppsig(t, 3) << std::endl;
+                if (cs.size() < 3 || isZero(cs[1]) || isZero(cs.back())) {
+                    nbad++;
+                    if (nbad <= 3) {
+                        std::cerr << "KERNELIZE non-anchored : " << ppsig(t, 3) << std::endl;
+                    }
                 }
-            }
-            if (isSigDense(t)) {
-                ndense++;
-            }
-            if (isSigLtvFIR(t)) {
-                nltv++;
-            }
-            if (isSigKForm(t)) {
-                nkform++;
+                int  sh;
+                Tree src = kernelSrc(cs[0], sh);
+                (void)src;
+                if (sh > 0) {
+                    nshifted++;
+                }
             }
             for (int k = 0; k < t->arity(); k++) {
                 walk(t->branch(k));
             }
         };
         walk(R);
-        fprintf(stderr, "KERNELIZE post : sigFIR=%d DENSE=%d KFORM=%d LTVFIR=%d\n", nfir, ndense,
-                nkform, nltv);
+        fprintf(stderr, "KERNELIZE post : FIR=%d shifted=%d non-anchored=%d\n", nfir, nshifted,
+                nbad);
     }
     return R;
+}
+
+bool kernelWorkVec(Tree t, tvec& V)
+{
+    tvec W;
+    if (!isSigFIR(t, W)) {
+        return false;
+    }
+    int  sh;
+    Tree src = kernelSrc(W[0], sh);
+    if (sh == 0) {
+        V = W;
+        return true;
+    }
+    V.clear();
+    V.push_back(src);
+    for (int k = 0; k < sh; k++) {
+        V.push_back(sigInt(0));
+    }
+    for (size_t i = 1; i < W.size(); i++) {
+        V.push_back(W[i]);
+    }
+    return true;
 }

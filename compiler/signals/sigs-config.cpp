@@ -111,12 +111,6 @@ void initSignalSymbols()
     g.SIGIIR             = signal_signature.add("SigIIR", kAudioRate);
     g.SIGSUM             = signal_signature.add("SigSum");
     g.SIGTEMP            = signal_signature.add("SigTemp");
-    // spec LA-FORME-NOYAU v6 : the typed kernel core. KFORM is a constant
-    // FORM (no rate mask -- it is not a signal value) ; DENSE and LTVFIR
-    // are audio values like SIGFIR. Appended last, like their elders.
-    g.SIGKFORM           = signal_signature.add("SigKForm");
-    g.SIGDENSE           = signal_signature.add("SigDense", kAudioRate);
-    g.SIGLTVFIR          = signal_signature.add("SigLtvFIR", kAudioRate);
 
     // The session's initial algebra: its dispatch signature was just interned,
     // and dies with the tlib session -- rebuild it here, on both init paths

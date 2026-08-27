@@ -351,8 +351,7 @@ V SignalDispatch<V>::combine(Tree sig, const std::vector<V>& c,
             // interval this yields is the L1 bound (sum |ci|*|X|) -- the
             // sound worst-case for arbitrary bounded inputs ; the tighter
             // frequency-domain gain (max |H|) is a later refinement.
-            case sigs::SignalOpcode::Fir:
-            case sigs::SignalOpcode::LtvFir: {
+            case sigs::SignalOpcode::Fir: {
                 // ZERO coefficients are SKIPPED, not multiplied : the fixpoint
                 // iterates recursive sources from bottom, and bottom is
                 // absorbing through Mul/Add -- a synthetic 0*X term (which the
@@ -396,42 +395,6 @@ V SignalDispatch<V>::combine(Tree sig, const std::vector<V>& c,
                 V acc = c[0];
                 for (size_t k = 1; k < c.size(); k++) {
                     acc = this->Add(acc, c[k]);
-                }
-                return acc;
-            }
-
-            // KFORM(c0..cn) : a constant vector form. Its own value is only
-            // a memo slot (DENSE re-reads the coefficients through the
-            // evaluator) ; the added chain keeps every attribute the join
-            // of the coefficients'.
-            case sigs::SignalOpcode::KForm: {
-                V acc = c[0];
-                for (size_t k = 1; k < c.size(); k++) {
-                    acc = this->Add(acc, c[k]);
-                }
-                return acc;
-            }
-
-            // DENSE(X, KFORM(C)) = c0*X + c1*X@1 + ... : the Fir expansion,
-            // the coefficient values fetched through the evaluator (they
-            // are the kform's branches, one level down). Zero coefficients
-            // skipped for the same bottom-absorption reason as Fir ; the
-            // anchored ends guarantee a non-empty sum.
-            case sigs::SignalOpcode::Dense: {
-                Tree kf    = sig->branch(1);
-                bool first = true;
-                V    acc{};
-                for (int k = 0; k < kf->arity(); k++) {
-                    Tree ck = kf->branch(k);
-                    if (isZero(ck)) {
-                        continue;
-                    }
-                    V cv   = ev.eval(ck);
-                    V term = (k == 0)
-                                 ? this->Mul(cv, c[0])
-                                 : this->Mul(cv, this->Delay(c[0], this->IntNum(k)));
-                    acc   = first ? term : this->Add(acc, term);
-                    first = false;
                 }
                 return acc;
             }

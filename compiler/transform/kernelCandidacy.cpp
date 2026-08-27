@@ -7,36 +7,34 @@
 #include <set>
 #include <vector>
 
+#include "rewrite.hh"
 #include "signals.hh"
+#include "sigs-state.hh"
 
-// the verdict key : present on a delay node = traversal site
-static Tree inlineKey()
+// a shifted kernel site : FIR[x@d, c..] with a literal d > 0
+static bool isShiftedKernel(Tree t, Tree& x, int& d, tvec& coef)
 {
-    return tree(symbol("KERNELINLINE"));
-}
-
-bool isKernelInline(Tree t)
-{
-    return t->getProperty(inlineKey()) != nullptr;
-}
-
-// a shifted kernel read : delay(DENSE(proj(W), K), literal d > 0)
-static bool isShiftedProjKernelRead(Tree t, Tree& w)
-{
-    Tree x, y, src, kf, pw;
-    int  d, pj;
-    if (isSigDelay(t, x, y) && isSigInt(y, &d) && d > 0 && isSigDense(x, src, kf) &&
-        isProj(src, &pj, pw)) {
-        w = pw;
+    Tree a, b;
+    if (isSigFIR(t, coef) && isSigDelay(coef[0], a, b) && isSigInt(b, &d) && d > 0) {
+        x = a;
         return true;
     }
     return false;
 }
 
+static bool constCoefs(const tvec& V)
+{
+    for (size_t i = 1; i < V.size(); i++) {
+        if (sigs::sigOrder(V[i]) > 1) {
+            return false;
+        }
+    }
+    return true;
+}
+
 // The subtrees LEXICALLY inside a group's definitions : descend every
 // branch but never through a projection of ANOTHER group -- what sits in
-// V's body is V's, even when W uses V. (A projection's group tree is one
-// of its branches ; following it would annex the neighbour's body.)
+// V's body is V's, even when W uses V.
 static void subTreesOf(Tree w, std::set<Tree>& sub)
 {
     Tree id, le;
@@ -62,13 +60,15 @@ static void subTreesOf(Tree w, std::set<Tree>& sub)
     }
 }
 
-void kernelCandidacy(Tree L)
+Tree kernelCandidacy(Tree L)
 {
-    // ---- census : every shifted projection-kernel read, with its group
-    std::vector<std::pair<Tree, Tree>> sites;  // (delay node, group tree)
+    // ---- census : shifted constant-class kernel sites and their verdict
+    std::set<Tree> keep;     // self sites : stay inline whatever else
+    std::set<Tree> retime;   // materialization candidates
     {
-        std::set<Tree>    seen;
-        std::vector<Tree> work;
+        std::set<Tree>                 seen;
+        std::vector<Tree>              work;
+        std::map<Tree, std::set<Tree>> bodies;
         for (Tree l = L; isList(l); l = tl(l)) {
             work.push_back(hd(l));
         }
@@ -85,38 +85,53 @@ void kernelCandidacy(Tree L)
                 }
                 continue;
             }
-            Tree w;
-            if (isShiftedProjKernelRead(t, w)) {
-                sites.push_back({t, w});
+            Tree x;
+            int  d, pj;
+            Tree pw;
+            tvec coef;
+            if (isShiftedKernel(t, x, d, coef) && constCoefs(coef)) {
+                if (isProj(x, &pj, pw)) {
+                    if (!bodies.count(pw)) {
+                        subTreesOf(pw, bodies[pw]);
+                    }
+                    if (bodies[pw].count(t)) {
+                        keep.insert(t);  // self : inline, never carried state
+                    } else {
+                        retime.insert(t);  // cross-group projection read
+                    }
+                } else {
+                    retime.insert(t);  // non-recursive source (FFT windows)
+                }
             }
             for (int k = 0; k < t->arity(); k++) {
                 work.push_back(t->branch(k));
             }
         }
     }
-    if (sites.empty()) {
-        return;
-    }
-    // ---- residence : the group bodies, computed once per group
-    std::map<Tree, std::set<Tree>> bodies;
-    for (auto& [t, w] : sites) {
-        if (!bodies.count(w)) {
-            subTreesOf(w, bodies[w]);
-        }
-    }
-    // ---- verdict : SELF (the site lives in its own source's group)
-    //      traverses ; every other shifted read materializes
-    int nself = 0, ncross = 0;
-    for (auto& [t, w] : sites) {
-        if (bodies[w].count(t)) {
-            t->setProperty(inlineKey(), tree(1));
-            nself++;
-        } else {
-            ncross++;
-        }
+    for (Tree t : keep) {
+        retime.erase(t);  // read from both sides : the state is the danger
     }
     if (getenv("FAUST_KERNEL_CANDIDACY")) {
-        fprintf(stderr, "CANDIDACY : %d shifted proj reads -> self/inline=%d cross/mat=%d\n",
-                int(sites.size()), nself, ncross);
+        fprintf(stderr, "CANDIDACY : self/inline=%d retimed/materialized=%d\n", int(keep.size()),
+                int(retime.size()));
     }
+    if (retime.empty()) {
+        return L;
+    }
+    // ---- the retiming law, applied to the elected sites ---------------
+    auto rule = [&](Tree sig) -> Tree {
+        Tree x;
+        int  d;
+        tvec coef;
+        if (retime.count(sig) && isShiftedKernel(sig, x, d, coef)) {
+            tvec nc;
+            nc.push_back(x);
+            for (size_t i = 1; i < coef.size(); i++) {
+                nc.push_back(coef[i]);
+            }
+            return sigDelay(sigFIR(nc), sigInt(d));
+        }
+        return sig;
+    };
+    return treeRewrite(L, rule);
 }

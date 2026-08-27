@@ -202,23 +202,6 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigRegister(i, self(x));
     }
 
-    // the typed kernel core (spec LA-FORME-NOYAU v6)
-    else if (Tree ksrc, kf; isSigDense(sig, ksrc, kf)) {
-        return sigDense(self(ksrc), self(kf));
-    } else if (isSigKForm(sig)) {
-        tvec c = sig->branches();
-        for (unsigned int k = 0; k < c.size(); k++) {
-            c[k] = self(c[k]);
-        }
-        return sigKForm(c);
-    } else if (isSigLtvFIR(sig)) {
-        tvec c = sig->branches();
-        for (unsigned int k = 0; k < c.size(); k++) {
-            c[k] = self(c[k]);
-        }
-        return sigLtvFIR(c);
-    }
-
     // FIR and IIR (port : signal-level filter kernels)
     else if (isSigFIR(sig)) {
         tvec c = sig->branches();

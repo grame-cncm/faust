@@ -11,3 +11,13 @@
 /// its length). The content stays a FIR -- typed tightly by the
 /// compositional expansion -- and the emission chooses the form.
 Tree factorizeFIRs(Tree L);
+
+/**
+ * Consumer-side view of a kernel read. For any sigFIR node, rebuilds the
+ * WORKING coefficient vector [x, c0..cn] with the source's literal delay
+ * re-spelled as leading zeros : FIR[x@d, C] -> [x, 0 x d, C]. Returns
+ * false for non-kernel nodes. Every consumer (occurrences, dependency
+ * graph, supernodes, emission, oracle, probes) reads kernels through
+ * this one lens, so a site's spelling and its accounting always agree.
+ */
+bool kernelWorkVec(Tree t, tvec& V);

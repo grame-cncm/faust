@@ -77,52 +77,6 @@
 
 using namespace std;
 
-// ---- the typed kernel core, read side --------------------------------
-// DENSE(x, KFORM(C)) possibly under a literal delay, and LTVFIR, re-spell
-// the reveal's former working vector [x, c0..cn] (the shift returns as
-// leading zeros) : every FIR consumer -- emission, oracle, probes -- then
-// serves the whole core unchanged, and the generated code is the one the
-// working form produced before the migration.
-static bool isDenseRead(Tree t, Tree& src, Tree& kf, int& sh)
-{
-    Tree x, y;
-    int  d;
-    if (isSigDense(t, src, kf)) {
-        sh = 0;
-        return true;
-    }
-    // the delayed read TRAVERSES the kernel only when kernelCandidacy
-    // judged the site a SELF read (shifted taps on the ring, the former
-    // zeros-inside spelling) ; every other shifted read is a delayed
-    // read of the materialized kernel VALUE (the former Delay(FIR))
-    if (isSigDelay(t, x, y) && isSigInt(y, &d) && isSigDense(x, src, kf) &&
-        isKernelInline(t)) {
-        sh = d;
-        return true;
-    }
-    return false;
-}
-
-static bool kernelReadVector(Tree t, tvec& V)
-{
-    if (isSigLtvFIR(t, V)) {
-        return true;
-    }
-    Tree src, kf;
-    int  sh;
-    if (isDenseRead(t, src, kf, sh)) {
-        V.clear();
-        V.push_back(src);
-        for (int k = 0; k < sh; k++) {
-            V.push_back(sigInt(0));
-        }
-        for (Tree c : kf->branches()) {
-            V.push_back(c);
-        }
-        return true;
-    }
-    return false;
-}
 
 /**
  * The compilation-order strategy (-ss <n>, --scheduling-strategy; formerly the
@@ -1159,7 +1113,7 @@ Tree ScalarCompiler::prepare(Tree LS)
             endTiming("IIR revealer");
             startTiming("FIR factorizer");
             L2 = factorizeFIRs(L2);
-            kernelCandidacy(L2);  // traversal-or-materialize, one verdict
+            L2 = kernelCandidacy(L2);  // the retiming law, per site
             endTiming("FIR factorizer");
             if (getenv("FAUST_SS_MCM")) {
                 // stage-3 deposit probe : the WEIGHTED pairs. Atom of a
@@ -1258,15 +1212,8 @@ Tree ScalarCompiler::prepare(Tree LS)
                             if (body) workF.push_back(body);
                             continue;
                         }
-                        if (tvec cf; isSigFIR(t, cf) && cf.size() > 2) {
+                        if (tvec cf; kernelWorkVec(t, cf) && cf.size() > 2) {
                             bySource[cf[0]].push_back(cf);
-                        } else if (tvec cf2; kernelReadVector(t, cf2) && cf2.size() > 2) {
-                            // one record per READ (the shifted delay and its
-                            // naked kernel are the same entity) : push the
-                            // vector's elements, not the node's branches
-                            bySource[cf2[0]].push_back(cf2);
-                            for (Tree b : cf2) workF.push_back(b);
-                            continue;
                         }
                         for (int k = 0; k < t->arity(); k++) workF.push_back(t->branch(k));
                     }
@@ -1523,12 +1470,8 @@ Tree ScalarCompiler::prepare(Tree LS)
             tvec cs, dd;
             if (isSigDelay(t, x, d) && isSigIIR(x, dd)) {
                 readers.insert(x);
-            } else if (isSigFIR(t, cs) && cs.size() >= 3 && isSigIIR(cs[0], dd)) {
-                readers.insert(cs[0]);
-            } else if (Tree ds, dk; isSigDense(t, ds, dk) && isSigIIR(ds, dd)) {
-                // the kernel form reads its source at delays 0..n-1
-                readers.insert(ds);
-            } else if (isSigLtvFIR(t, cs) && cs.size() >= 3 && isSigIIR(cs[0], dd)) {
+            } else if (kernelWorkVec(t, cs) && cs.size() >= 3 && isSigIIR(cs[0], dd)) {
+                // kernels read their source at delays 0..n-1
                 readers.insert(cs[0]);
             }
             for (int k = 0; k < t->arity(); k++) {
@@ -2846,7 +2789,7 @@ class LoopSplitEmitter {
             prescan(x, seen);
             return;
         }
-        if (tvec V; isSigSum(t, V) || isSigFIR(t, V) || kernelReadVector(t, V)) {
+        if (tvec V; isSigSum(t, V) || kernelWorkVec(t, V)) {
             // -fir kernels, stage 1 : plain forms (Sum n-ary, FIR weighted
             // taps, IIR direct). V = terms for Sum, [source, c0..cn] for FIR
             for (Tree b : V) {
@@ -3064,7 +3007,7 @@ class LoopSplitEmitter {
             o.code = fC->CS(t);  // scalar machinery, code lives outside the loops
             return o;
         }
-        if (tvec V; isSigFIR(t, V) || kernelReadVector(t, V)) {
+        if (tvec V; kernelWorkVec(t, V)) {
             // stage 1 : plain weighted taps (the scalar regimes -- sliding
             // sum, symmetric pre-add -- need chunk-carried state and wait).
             // V[0] = source read at delays 0..n-1 ; taps at delay >= 1 give
@@ -3744,7 +3687,7 @@ class LoopSplitEmitter {
             if (SuperNodeGraph::isSlow(t)) {
                 return constantsLive ? op({}, false, 10) : -1;
             }
-            if (tvec V; isSigFIR(t, V) || kernelReadVector(t, V)) {
+            if (tvec V; kernelWorkVec(t, V)) {
                 // FAITHFUL kernel body (the bells lesson : a 3-tap kernel
                 // priced as one op made every fusion comparison a fiction).
                 // Per non-zero tap : a source read -- carried window when
@@ -4989,11 +4932,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
                 continue;
             }
             tvec cs;
-            bool kernelRead = false;
-            if (!isSigFIR(t, cs) && kernelReadVector(t, cs)) {
-                kernelRead = true;  // DENSE read (possibly shifted) or LTVFIR
-            }
-            if (isSigFIR(t, cs) || kernelRead) {
+            if (kernelWorkVec(t, cs)) {
                 nfir++;
                 taps += long(cs.size()) - 1;
                 maxtaps = std::max(maxtaps, int(cs.size()) - 1);
@@ -5016,15 +4955,6 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
                 auto& f = fFirFacts[cs[0]];
                 f.first = std::max(f.first, span);
                 f.second += nz;
-                if (kernelRead) {
-                    // one record per READ : walk the vector's elements, not
-                    // the node's branches (the naked kernel under a shifted
-                    // read must not be double counted)
-                    for (Tree b : cs) {
-                        work.push_back(b);
-                    }
-                    continue;
-                }
             } else if (isSigIIR(t, cs)) {
                 if (getenv("FAUST_SS_IIRORDER")) {
                     int order = 0;
@@ -5055,7 +4985,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
                     if (!seen2.insert(t).second) {
                         continue;
                     }
-                    if (isSigFIR(t) || isSigDense(t) || isSigLtvFIR(t)) {
+                    if (isSigFIR(t)) {
                         std::cerr << "SS_FIRTYPE " << ppsig(t, 8) << " : "
                                   << getCertifiedSigType(t) << std::endl;
                         goto done_type;
@@ -5854,13 +5784,11 @@ string ScalarCompiler::generateCode(Tree sig)
         // into a named temporary whatever its sharing count (see
         // placeTemps.cpp for who decides where the barriers go)
         return forceCacheCode(sig, CS(x));
-    } else if (tvec V; kernelReadVector(sig, V)) {
-        // DENSE (possibly shifted) and LTVFIR : the FIR emission serves
-        // the reconstructed working vector
-        return generateFIR(sig, V);
     } else if (isSigDelay(sig, x, y)) {
         return generateDelayAccess(sig, x, y);
-    } else if (tvec V; isSigFIR(sig, V)) {
+    } else if (tvec V; kernelWorkVec(sig, V)) {
+        // the source's literal delay re-spelled as leading zeros : the
+        // FIR emission serves the working vector
         return generateFIR(sig, V);
     } else if (tvec V; isSigIIR(sig, V)) {
         return generateIIR(sig, V);

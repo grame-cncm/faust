@@ -1,6 +1,6 @@
 #include "sigDependenciesGraph.hh"
 
-#include "kernelCandidacy.hh"
+#include "factorizeFIRs.hh"
 #include "ppsig.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
@@ -56,29 +56,6 @@ void SigDependenciesGraph::visit(Tree t)
         fGraph.add(t, d, 0);
         self(d);
     } else if (isSigDelay(t, x, y)) {
-        int  sh;
-        Tree tdsrc, tdkf;
-        if (isSigInt(y, &sh) && isSigDense(x, tdsrc, tdkf) && isKernelInline(t)) {
-            // the delay traverses the DENSE (one shifted read site) : the
-            // kernel never becomes a schedulable node of its own. Edge and
-            // visit order mirror the former FIR[x, 0..0, C..] case exactly
-            // (dgorder reads insertion order).
-            for (Tree c : tdkf->branches()) {
-                if (!isZero(c)) {
-                    fGraph.add(t, c, 0);
-                }
-            }
-            if (fFullGraph || (sh == 0)) {
-                fGraph.add(t, tdsrc, sh);
-            }
-            self(tdsrc);
-            for (Tree c : tdkf->branches()) {
-                if (!isZero(c)) {
-                    self(c);
-                }
-            }
-            return;
-        }
         // We place x in the graph only if:
         // - we want the full graph
         // - or the dependency to x is immediate
@@ -128,44 +105,9 @@ void SigDependenciesGraph::visit(Tree t)
                 self(s2);
             }
         }
-    } else if (Tree dsrc, dkf; isSigDense(t, dsrc, dkf)) {
-        // DENSE(x, KFORM(C)) : anchored (c0 != 0), the source is an
-        // IMMEDIATE dependency. Edge and visit order mirror the former
-        // FIR[x, C..] case exactly (dgorder reads insertion order).
-        for (Tree c : dkf->branches()) {
-            if (!isZero(c)) {
-                fGraph.add(t, c, 0);
-            }
-        }
-        fGraph.add(t, dsrc, 0);
-        self(dsrc);
-        for (Tree c : dkf->branches()) {
-            if (!isZero(c)) {
-                self(c);
-            }
-        }
-    } else if (tvec V; isSigLtvFIR(t, V)) {
-        // like the working FIR : non-zero coefficients immediate, the
-        // source enters at the delay of the first non-zero tap
-        faustassert(V.size() >= 2);
-        int dmin2 = INT32_MAX;
-        for (unsigned int k = 1; k < V.size(); k++) {
-            if (!isZero(V[k])) {
-                fGraph.add(t, V[k], 0);
-                dmin2 = std::min(dmin2, int(k) - 1);
-            }
-        }
-        faustassert(dmin2 < INT32_MAX);
-        if (fFullGraph || (dmin2 == 0)) {
-            fGraph.add(t, V[0], dmin2);
-        }
-        for (auto s2 : V) {
-            if (!isZero(s2)) {
-                self(s2);
-            }
-        }
-    } else if (tvec V; isSigFIR(t, V)) {
-        // FIR[X,C0,C1,...] : the non-zero coefficients are immediate
+    } else if (tvec V; kernelWorkVec(t, V)) {
+        // kernel [X, C0, C1, ...] (the source's literal delay re-spelled
+        // as leading zeros) : the non-zero coefficients are immediate
         // dependencies ; the source X enters with the delay of the first
         // non-zero coefficient (immediate only when that delay is 0)
         faustassert(V.size() >= 2);

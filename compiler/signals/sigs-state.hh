@@ -146,9 +146,6 @@ struct State {
     Sym                                         SIGDELAY1{};
     Sym                                         SIGDELAY{};
     Sym                                         SIGFIR{};
-    Sym                                         SIGKFORM{};
-    Sym                                         SIGDENSE{};
-    Sym                                         SIGLTVFIR{};
     Sym                                         SIGIIR{};
     Sym                                         SIGSUM{};
     Sym                                         SIGTEMP{};

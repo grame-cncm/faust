@@ -24,33 +24,24 @@
 #include "tlib.hh"
 
 /**
- * Kernel materialization candidacy. For every shifted kernel read
- * delay(DENSE(x, KFORM(C)), d) the emission has two spellings :
+ * Kernel materialization candidacy, as the RETIMING LAW applied per
+ * site. A shifted kernel FIR[x@d, C] has two spellings :
  *
- *  - TRAVERSAL : the reader inlines the shifted taps on the source's
- *    existing ring -- no entity for the kernel's own value ;
- *  - MATERIALIZATION : the kernel value is computed once, stored in a
- *    line, and the reader loads it at d.
+ *   FIR[x@d, C]              the reader inlines the shifted taps on the
+ *                            source's line (one line, no store, no new
+ *                            entity) -- the CANONICAL spelling ;
+ *   delay(FIR[x, C], d)      the kernel value is computed once, stored
+ *                            in its own line, and read delayed -- legal
+ *                            for CONSTANT C only (time invariance).
  *
- * The decision is structural : a SELF read (the reader lives inside the
- * very recursive group the kernel's source projects from -- the plate's
- * stencil kernels re-read by their own grid recursion) traverses,
- * because materializing it turns the value into a loop-carried state
- * pair. Every other shifted read materializes : cross-group readers
- * (statespace : one state's kernel consumed by the other equations) and
- * non-recursive sources (the FFT windows, shared across shifted
- * readers) pay one computation and a line instead of one computation
- * per reader.
- *
- * The verdict is deposited as the KERNELINLINE property on the delay
- * node itself, BEFORE the occurrences, dependency-graph, supernode and
- * emission consumers run -- one decision, read by everyone (a site's
- * spelling and its accounting must never disagree). A node read from
- * both inside and outside its group keeps the traversal (the state
- * pair is the greater danger, measured x1.51 on the plate).
+ * The right spelling pays on shared computation (k shifted readers :
+ * one evaluation instead of k) and on large shifts (one deep access
+ * instead of N+1, and x's line stays in the short window class). This
+ * pass rewrites, per site, the constant-class shifted kernels that are
+ * NOT self reads (a site living inside the very group its source
+ * projects from stays inline : materializing it would carry state
+ * across the loop -- the plate's stencils, x1.51 measured). Both
+ * results are ordinary signal trees ; downstream consumers need no
+ * special knowledge.
  */
-void kernelCandidacy(Tree L);
-
-/// true when the shifted read t = delay(DENSE(..), d) was judged a
-/// traversal site by kernelCandidacy
-bool isKernelInline(Tree t);
+Tree kernelCandidacy(Tree L);
