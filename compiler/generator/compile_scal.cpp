@@ -7166,6 +7166,13 @@ DelayType ScalarCompiler::analyzeDelayTypeAux(Tree sig)
         // The mono election, in three stages of decreasing comfort. A state
         // of depth 1 can live in one scalar iff every read of its OLD value
         // is emitted before its write.
+        if (hasKernelDelayedTap(sig)) {
+            // a kernel reads the old value through an internal tap : that
+            // read is inseparable from the kernel's tap 0, so it can never
+            // precede the write -- and it is invisible to the delayed-read
+            // counters below (the readers are sigDelay nodes)
+            return DelayType::kSingleDelay;
+        }
         int  i;
         Tree x, var, le;
         if (isProj(sig, &i, x) && isRec(x, var, le)) {

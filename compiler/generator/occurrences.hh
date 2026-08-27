@@ -61,6 +61,7 @@ class OccMarkup : public virtual Garbageable {
     std::map<Tree, Tree, treeorder> fConditions;  ///< condition associated to each tree
 
     void markDense(Tree env, int v, int r, int sh, Tree xc, Tree dsrc, Tree dkf);
+    
     void         incOcc(Tree env, int v, int r, int d, Tree xc,
                         Tree t);                    ///< inc the occurrence of t in context v,r
     Occurrences* getOcc(Tree t);                    ///< get Occurrences property of t or null
@@ -78,3 +79,6 @@ class OccMarkup : public virtual Garbageable {
 };
 
 #endif
+
+// true when a kernel reads this signal through a tap at delay >= 1
+bool hasKernelDelayedTap(Tree sig);

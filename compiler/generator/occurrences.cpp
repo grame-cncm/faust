@@ -172,6 +172,21 @@ Occurrences* OccMarkup::retrieve(Tree t)
 // KFORM node itself is structure, never marked.
 //------------------------------------------------------------------------------
 
+// a source read by a KERNEL tap at delay >= 1 : the read site is
+// structurally inseparable from the kernel's other taps, so it can never
+// be scheduled before the writer -- the mono election must see it (the
+// lf_imptrain lesson : x - x@1 as a kernel on a mono scalar read the SAME
+// value twice, and the impulse train fell silent)
+static void markKernelTapped(Tree src)
+{
+    src->setProperty(tree(symbol("KERNELTAPPED")), tree(1));
+}
+
+bool hasKernelDelayedTap(Tree sig)
+{
+    return sig->getProperty(tree(symbol("KERNELTAPPED"))) != nullptr;
+}
+
 void OccMarkup::markDense(Tree env, int v, int r, int sh, Tree xc, Tree dsrc, Tree dkf)
 {
     const tvec& C = dkf->branches();
@@ -192,6 +207,9 @@ void OccMarkup::markDense(Tree env, int v, int r, int sh, Tree xc, Tree dsrc, Tr
         incOcc(env, v, r, 0, xc, C[k]);
         if (!isZero(C[k])) {
             incOcc(env, v, r, sh + int(k), xc, dsrc);
+            if (sh + int(k) >= 1) {
+                markKernelTapped(dsrc);
+            }
         }
     }
 }
@@ -268,6 +286,9 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
                 incOcc(env, v0, r0, 0, c0, V[k]);
                 if (!isZero(V[k])) {
                     incOcc(env, v0, r0, int(k) - 1, c0, V[0]);
+                    if (int(k) - 1 >= 1) {
+                        markKernelTapped(V[0]);
+                    }
                 }
             }
             if (!getOcc(V[0])) {

@@ -184,6 +184,14 @@ static Tree classify(const tvec& coef, bool allowProportional)
     //    level OUTSIDE the delay (never crossing it). A delayed read of a
     //    projection kernel folds into the kernel's own shift instead of
     //    cascading two delays.
+    if (lo == hi && getenv("FAUST_KERNEL_NO_ENVELOPE")) {
+        tvec lc0;
+        lc0.push_back(x);
+        for (int i = 1; i <= hi; i++) {
+            lc0.push_back(coef[i]);
+        }
+        return sigLtvFIR(lc0);
+    }
     if (lo == hi) {
         Tree c = coef[lo];
         Tree r;
@@ -209,6 +217,14 @@ static Tree classify(const tvec& coef, bool allowProportional)
         constant = (sigs::sigOrder(coef[i]) <= 1);
     }
     if (constant) {
+        if (d > 0 && getenv("FAUST_KERNEL_NO_EXTRACT")) {
+            tvec lc1;
+            lc1.push_back(x);
+            for (int i = 1; i <= hi; i++) {
+                lc1.push_back(coef[i]);
+            }
+            return sigLtvFIR(lc1);
+        }
         tvec tail(coef.begin() + lo, coef.begin() + hi + 1);
         Tree K = sigDense(x, sigKForm(tail));
         return (d > 0) ? sigDelay(K, sigInt(d)) : K;
@@ -216,7 +232,7 @@ static Tree classify(const tvec& coef, bool allowProportional)
     // -- rule 2 : proportional coefficients factor out. Same acceptance
     //    as the former pass : a common SYMBOLIC part u with numeric
     //    ratios, at least two taps, not entirely numeric.
-    if (allowProportional) {
+    if (allowProportional && !getenv("FAUST_KERNEL_NO_PROP")) {
         Tree                u            = nullptr;
         int                 nz           = 0;
         bool                proportional = true;
@@ -323,7 +339,7 @@ Tree factorizeFIRs(Tree L)
         // delayed DENSE -- the delayed read of a materialized kernel
         // VALUE is not a core (the level stays outside, as the former
         // pass left mul(k, Delay(FIR)) untouched).
-        if (Tree mx, my; isSigMul(sig, mx, my)) {
+        if (Tree mx, my; !getenv("FAUST_KERNEL_NO_ABSORB") && isSigMul(sig, mx, my)) {
             std::vector<Tree>         scalars;
             std::vector<Tree>         cores;
             bool                      flat_ok = true;
@@ -421,7 +437,8 @@ Tree factorizeFIRs(Tree L)
         {
             Tree fk, dd;
             int  dv;
-            if (isSigDelay(sig, fk, dd) && isSigInt(dd, &dv) && dv > 0) {
+            if (isSigDelay(sig, fk, dd) && isSigInt(dd, &dv) && dv > 0 &&
+                !getenv("FAUST_KERNEL_NO_SHIFTIN")) {
                 Tree kx, kkf;
                 int  ksh, pj;
                 Tree pw;
@@ -443,7 +460,8 @@ Tree factorizeFIRs(Tree L)
             int  ksh, pj;
             Tree pw;
             if (coef.size() >= 2 && denseRead(coef[0], kx, kkf, ksh) &&
-                isProj(kx, &pj, pw) && constClass(coef)) {
+                isProj(kx, &pj, pw) && constClass(coef) &&
+                !getenv("FAUST_KERNEL_NO_CASCADE")) {
                 tvec ic;
                 ic.push_back(kx);
                 for (int z2 = 0; z2 < ksh; z2++) {
