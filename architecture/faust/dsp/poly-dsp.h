@@ -57,6 +57,21 @@ architecture section is not modified.
 #define VOICE_STOP_LEVEL 0.00003162  // -90 db
 #define MIX_BUFFER_SIZE  4096
 
+// NotePriority / TriggerMode / StealMode / Voicing enums and the PolyPolicy
+// struct are defined in "faust/gui/MidiUI.h" (included above), because the
+// metadata parser MidiMeta::analyse() there fills a PolyPolicy from the DSP's
+// 'declare options' before the polyphonic engine is constructed.
+
+/**
+ * A physically-held key, tracked independently of voice allocation so the engine
+ * can fall back to still-held notes (mono/duo note priority, poly note stack).
+ */
+struct NoteInfo {
+    int fPitch;     // MIDI note number
+    int fVelocity;  // raw MIDI velocity 0..127
+    int fDate;      // press order (monotonic)
+};
+
 /**
  * Allows to control zones in a grouped manner.
  */
@@ -312,6 +327,16 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         }
     }
 
+    // Legato pitch change: move an already-sounding voice to a new note WITHOUT
+    // re-gating, so the envelope continues (single-trigger legato). Any glide is
+    // the DSP author's smoothing on the freq/key parameter.
+    void steer(int pitch)
+    {
+        for (size_t i = 0; i < fFreqPath.size(); i++) {
+            setParamValue(fFreqPath[i], fKeyFun(pitch));
+        }
+        fCurNote = pitch;
+    }
 };
 
 /**
@@ -535,7 +560,11 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         FAUSTFLOAT** fOutBuffer;        // Intermediate buffer for output
         midi_interface* fMidiHandler;   // The midi_interface the DSP is connected to
         int fDate;                      // Current date for managing voices
-    
+
+        PolyPolicy fPolicy;       // Note-priority / trigger / steal configuration
+        int        fMaxSounding;  // Max simultaneously-sounding notes (mono=1, duo=2, poly=nvoices)
+        std::vector<NoteInfo> fHeldNotes;  // Physically-held keys, oldest first
+
         // Fade out the audio in the buffer
         void fadeOut(int count, FAUSTFLOAT** outBuffer)
         {
@@ -628,57 +657,162 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             fVoiceTable[voice]->fCurNote = type;
             return voice;
         }
-    
-        // Get a free voice for allocation, always returns a voice
+
+        // True if actively-playing voice 'a' is a better steal victim than 'b',
+        // per the configured StealMode.
+        bool stealPrefer(int a, int b)
+        {
+            dsp_voice* va = fVoiceTable[a];
+            dsp_voice* vb = fVoiceTable[b];
+            switch (fPolicy.steal) {
+                case StealMode::Quietest:
+                    return va->fLevel < vb->fLevel;
+                case StealMode::Lowest:
+                    return va->fCurNote < vb->fCurNote;
+                case StealMode::Highest:
+                    return va->fCurNote > vb->fCurNote;
+                case StealMode::Oldest:
+                default:
+                    return va->fDate < vb->fDate;
+            }
+        }
+
+        // Get a free voice for allocation, always returns a voice.
         int getFreeVoice()
         {
-            // Looks for the first available voice
+            // 1. First truly free voice.
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 if (fVoiceTable[i]->fCurNote == kFreeVoice) {
                     return allocVoice(int(i), kActiveVoice);
                 }
             }
 
-            // Otherwise steal one
-            int voice_release = kNoVoice;
-            int voice_playing = kNoVoice;
+            // 2. Prefer stealing the oldest releasing voice (cheapest to reuse).
+            int voice_release       = kNoVoice;
             int oldest_date_release = INT_MAX;
-            int oldest_date_playing = INT_MAX;
-        
-            // Scan all voices
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
-                if (fVoiceTable[i]->fCurNote == kReleaseVoice) {
-                    // Keeps oldest release voice
-                    if (fVoiceTable[i]->fDate < oldest_date_release) {
-                        oldest_date_release = fVoiceTable[i]->fDate;
-                        voice_release = int(i);
-                    }
-                } else {
-                    // Otherwise keeps oldest playing voice
-                    if (fVoiceTable[i]->fDate < oldest_date_playing) {
-                        oldest_date_playing = fVoiceTable[i]->fDate;
-                        voice_playing = int(i);
-                    }
+                if (fVoiceTable[i]->fCurNote == kReleaseVoice &&
+                    fVoiceTable[i]->fDate < oldest_date_release) {
+                    oldest_date_release = fVoiceTable[i]->fDate;
+                    voice_release       = int(i);
                 }
             }
-        
-            
-            // Then decide which one to steal
-            if (oldest_date_release != INT_MAX) {
-                fprintf(stderr, "Steal release voice : voice_date = %d cur_date = %d voice = %d \n",
-                        fVoiceTable[voice_release]->fDate,
-                        fDate,
-                        voice_release);
+            if (voice_release != kNoVoice) {
                 return allocVoice(voice_release, kLegatoVoice);
-            } else if (oldest_date_playing != INT_MAX) {
-                fprintf(stderr, "Steal playing voice : voice_date = %d cur_date = %d voice = %d \n",
-                        fVoiceTable[voice_playing]->fDate,
-                        fDate,
-                        voice_release);
-                return allocVoice(voice_playing, kLegatoVoice);
-            } else {
-                assert(false);
-                return kNoVoice;
+            }
+
+            // 3. All voices actively playing: steal one per the StealMode policy.
+            int victim = kNoVoice;
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
+                if (victim == kNoVoice || stealPrefer(int(i), victim)) {
+                    victim = int(i);
+                }
+            }
+            assert(victim != kNoVoice);
+            return allocVoice(victim, kLegatoVoice);
+        }
+
+        // Pitch a voice will render this block, or kNoVoice if free/releasing.
+        int soundingPitch(size_t i)
+        {
+            int cur = fVoiceTable[i]->fCurNote;
+            if (cur >= 0) {
+                return cur;  // active note
+            }
+            if (cur == kLegatoVoice) {
+                return fVoiceTable[i]->fNextNote;  // becoming active
+            }
+            return kNoVoice;  // free or releasing
+        }
+
+        // Select up to fMaxSounding held notes to sound, per the note-priority policy.
+        std::vector<NoteInfo> targetSet()
+        {
+            std::vector<NoteInfo> sel = fHeldNotes;
+            if (int(sel.size()) > fMaxSounding) {
+                switch (fPolicy.priority) {
+                    case NotePriority::Low:
+                        std::sort(sel.begin(), sel.end(), [](const NoteInfo& a, const NoteInfo& b) {
+                            return a.fPitch < b.fPitch;
+                        });
+                        break;
+                    case NotePriority::High:
+                        std::sort(sel.begin(), sel.end(), [](const NoteInfo& a, const NoteInfo& b) {
+                            return a.fPitch > b.fPitch;
+                        });
+                        break;
+                    case NotePriority::Last:
+                    default:
+                        std::sort(sel.begin(), sel.end(), [](const NoteInfo& a, const NoteInfo& b) {
+                            return a.fDate > b.fDate;
+                        });
+                        break;
+                }
+                sel.resize(fMaxSounding);
+            }
+            return sel;
+        }
+
+        // Reconcile the sounding voices with the target set (held notes selected by
+        // priority). Notes newly in the target set are assigned voices; notes that
+        // left it are released. Under SINGLE trigger, dropped voices are handed over
+        // to new target notes by pitch-steering (legato, no envelope re-strike)
+        // instead of being released and re-attacked.
+        void updateVoices()
+        {
+            std::vector<NoteInfo> target = targetSet();
+
+            auto inTarget = [&](int pitch) {
+                for (const NoteInfo& n : target) {
+                    if (n.fPitch == pitch) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+            auto isSounding = [&](int pitch) {
+                for (size_t i = 0; i < fVoiceTable.size(); i++) {
+                    if (soundingPitch(i) == pitch) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            // Voices actively sounding a note that is no longer wanted.
+            std::vector<int> dropped;
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
+                int p = soundingPitch(i);
+                if (p >= 0 && !inTarget(p)) {
+                    dropped.push_back(int(i));
+                }
+            }
+            // Target notes not yet sounding.
+            std::vector<NoteInfo> added;
+            for (const NoteInfo& n : target) {
+                if (!isSounding(n.fPitch)) {
+                    added.push_back(n);
+                }
+            }
+
+            // SINGLE trigger: hand voices over by pitch-steering (legato), no re-attack.
+            if (fPolicy.trigger == TriggerMode::Single) {
+                while (!added.empty() && !dropped.empty()) {
+                    fVoiceTable[dropped.back()]->steer(added.back().fPitch);
+                    dropped.pop_back();
+                    added.pop_back();
+                }
+            }
+
+            // Remaining dropped voices: release.
+            for (int v : dropped) {
+                fVoiceTable[v]->keyOff();
+            }
+            // Remaining target notes: assign a fresh (attacking) voice, stealing if needed.
+            for (const NoteInfo& n : added) {
+                int v = getFreeVoice();
+                fVoiceTable[v]->keyOn(n.fPitch, n.fVelocity,
+                                      fVoiceTable[v]->fCurNote == kLegatoVoice);
             }
         }
 
@@ -715,31 +849,55 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
          *                If false, all voices can be individually controlled.
          *
          */
-        mydsp_poly(::dsp* dsp,
-                   int nvoices,
-                   bool control = false,
-                   bool group = true)
-        : dsp_voice_group(panic, this, control, group), dsp_poly(dsp) // dsp parameter is deallocated by ~dsp_poly
-        {
-            fDate = 0;
-            fMidiHandler = nullptr;
+     mydsp_poly(::dsp* dsp, int nvoices, bool control = false, bool group = true,
+                const PolyPolicy* policy = nullptr)
+         : dsp_voice_group(panic, this, control, group),
+           dsp_poly(dsp)  // dsp parameter is deallocated by ~dsp_poly
+     {
+         fDate        = 0;
+         fMidiHandler = nullptr;
 
-            // Create voices
-            assert(nvoices > 0);
-            for (int i = 0; i < nvoices; i++) {
-                addVoice(new dsp_voice(dsp->clone()));
-            }
+         // Note-allocation policy: an explicit policy overrides; otherwise it is
+         // read from the DSP's own 'options' metadata, so every host honors the
+         // '[voicing]'/'[note_priority]'/'[trigger]' options without extra plumbing.
+         if (policy) {
+             fPolicy = *policy;
+         } else {
+             bool midi = false, midi_sync = false;
+             int  meta_nvoices = nvoices;
+             MidiMeta::analyse(dsp, midi, midi_sync, meta_nvoices, fPolicy);
+         }
+         // Derive the simultaneously-sounding budget from the voicing mode,
+         // but never exceed the physical voice pool.
+         switch (fPolicy.voicing) {
+             case Voicing::Mono:
+                 fMaxSounding = 1;
+                 break;
+             case Voicing::Duo:
+                 fMaxSounding = 2;
+                 break;
+             default:
+                 fMaxSounding = nvoices;
+                 break;
+         }
+         fMaxSounding = std::min(fMaxSounding, nvoices);
 
-            // Init audio output buffers
-            fMixBuffer = new FAUSTFLOAT*[getNumOutputs()];
-            fOutBuffer = new FAUSTFLOAT*[getNumOutputs()];
-            for (int chan = 0; chan < getNumOutputs(); chan++) {
-                fMixBuffer[chan] = new FAUSTFLOAT[MIX_BUFFER_SIZE];
-                fOutBuffer[chan] = new FAUSTFLOAT[MIX_BUFFER_SIZE];
-            }
+         // Create voices
+         assert(nvoices > 0);
+         for (int i = 0; i < nvoices; i++) {
+             addVoice(new dsp_voice(dsp->clone()));
+         }
 
-            dsp_voice_group::init();
-        }
+         // Init audio output buffers
+         fMixBuffer = new FAUSTFLOAT*[getNumOutputs()];
+         fOutBuffer = new FAUSTFLOAT*[getNumOutputs()];
+         for (int chan = 0; chan < getNumOutputs(); chan++) {
+             fMixBuffer[chan] = new FAUSTFLOAT[MIX_BUFFER_SIZE];
+             fOutBuffer[chan] = new FAUSTFLOAT[MIX_BUFFER_SIZE];
+         }
+
+         dsp_voice_group::init();
+     }
 
         virtual ~mydsp_poly()
         {
@@ -817,7 +975,8 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         {
             decorator_dsp::instanceClear();
             fVoiceGroup->instanceClear();
-            
+            fHeldNotes.clear();
+
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->instanceClear();
             }
@@ -825,7 +984,8 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
         virtual mydsp_poly* clone()
         {
-            return new mydsp_poly(fDSP->clone(), int(fVoiceTable.size()), fVoiceControl, fGroupControl);
+            return new mydsp_poly(fDSP->clone(), int(fVoiceTable.size()), fVoiceControl,
+                                  fGroupControl, &fPolicy);
         }
 
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -876,6 +1036,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         // Terminate all active voices, gently or immediately (depending of 'hard' value)
         void allNotesOff(bool hard = false)
         {
+            fHeldNotes.clear();
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->keyOff(hard);
             }
@@ -902,24 +1063,38 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         // MIDI API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
-            if (checkPolyphony()) {
-                int voice = getFreeVoice();
-                fVoiceTable[voice]->keyOn(pitch, velocity, fVoiceTable[voice]->fCurNote == kLegatoVoice);
-                return fVoiceTable[voice];
-            } else {
+            if (!checkPolyphony()) {
                 return 0;
             }
+            // Maintain the held-note stack (a re-pressed pitch refreshes its order).
+            for (auto it = fHeldNotes.begin(); it != fHeldNotes.end();) {
+                it = (it->fPitch == pitch) ? fHeldNotes.erase(it) : it + 1;
+            }
+            NoteInfo note = {pitch, velocity, ++fDate};
+            fHeldNotes.push_back(note);
+            updateVoices();
+            int voice = getPlayingVoice(pitch);
+            return (voice != kNoVoice) ? fVoiceTable[voice] : 0;
         }
 
         void keyOff(int channel, int pitch, int velocity = 127)
         {
-            if (checkPolyphony()) {
-                int voice = getPlayingVoice(pitch);
-                if (voice != kNoVoice) {
-                    fVoiceTable[voice]->keyOff();
+            if (!checkPolyphony()) {
+                return;
+            }
+            // Remove the released key from the stack, then reconcile: a still-held
+            // note may re-sound (note-priority fall-back).
+            bool held = false;
+            for (auto it = fHeldNotes.begin(); it != fHeldNotes.end();) {
+                if (it->fPitch == pitch) {
+                    it   = fHeldNotes.erase(it);
+                    held = true;
                 } else {
-                    fprintf(stderr, "Playing pitch = %d not found\n", pitch);
+                    ++it;
                 }
+            }
+            if (held) {
+                updateVoices();
             }
         }
 
@@ -1041,25 +1216,37 @@ struct dsp_poly_factory : public dsp_factory {
     /* Create a new polyphonic DSP instance with global effect, to be deleted with C++ 'delete'
      *
      * @param nvoices - number of polyphony voices, should be at least 1.
-     * If -1 is used, the voice number found in the 'declare options "[nvoices:N]";' section will be used.
-     * @param control - whether voices will be dynamically allocated and controlled (typically by a MIDI controler).
-     *                If false all voices are always running.
-     * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
-     *                a given control on all voices, assuming GUI::updateAllGuis() is called.
-     *                If false, all voices can be individually controlled.
-     * @param is_double - if true, internally allocated DSPs will be adapted to receive 'double' samples.
+     * If -1 is used, the voice number found in the 'declare options "[nvoices:N]";' section will be
+     * used.
+     * @param control - whether voices will be dynamically allocated and controlled (typically by a
+     * MIDI controler). If false all voices are always running.
+     * @param group - if true, voices are not individually accessible, a global "Voices" tab will
+     * automatically dispatch a given control on all voices, assuming GUI::updateAllGuis() is
+     * called. If false, all voices can be individually controlled.
+     * @param is_double - if true, internally allocated DSPs will be adapted to receive 'double'
+     * samples.
+     * @param policy - note-priority / trigger / steal configuration. Defaults reproduce the
+     * historical behavior; the per-DSP '[note_priority][trigger][steal][voicing]' options metadata
+     *                is read below and overrides these defaults when present.
      */
-    dsp_poly* createPolyDSPInstance(int nvoices, bool control, bool group, bool is_double = false)
+    dsp_poly* createPolyDSPInstance(int nvoices, bool control, bool group, bool is_double = false,
+                                    PolyPolicy policy = PolyPolicy())
     {
-        if (nvoices == -1) {
-            // Get 'nvoices' from the metadata declaration
+        // Read 'nvoices' (when -1) and the note-allocation policy from the DSP metadata.
+        {
             ::dsp* dsp = fProcessFactory->createDSPInstance();
             bool midi_sync = false;
             bool midi = false;
-            MidiMeta::analyse(dsp, midi, midi_sync, nvoices);
+            int    meta_nvoices = nvoices;
+            MidiMeta::analyse(dsp, midi, midi_sync, meta_nvoices, policy);
+            if (nvoices == -1) {
+                nvoices = meta_nvoices;
+            }
             delete dsp;
         }
-        dsp_poly* dsp_poly = new mydsp_poly(adaptDSP(fProcessFactory->createDSPInstance(), is_double), nvoices, control, group);
+        dsp_poly* dsp_poly =
+            new mydsp_poly(adaptDSP(fProcessFactory->createDSPInstance(), is_double), nvoices,
+                           control, group, &policy);
         if (fEffectFactory) {
             // the 'dsp_poly' object has to be controlled with MIDI, so kept separated from new dsp_sequencer(...) object
             return new dsp_poly_effect(dsp_poly, new dsp_sequencer(dsp_poly, adaptDSP(fEffectFactory->createDSPInstance(), is_double)));
