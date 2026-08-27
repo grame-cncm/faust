@@ -78,6 +78,8 @@ Code generation options:
 
   **-cir**        **--check-integer-range**       check float to integer range conversion.
 
+  **-nsa**        **--numeric-stability-analysis** run static analysis for numerical instability and enable automatic precision compensation.
+
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
   **-os**         **--one-sample**                generate one sample computation.
