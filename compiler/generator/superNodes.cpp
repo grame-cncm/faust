@@ -149,6 +149,26 @@ void SuperNodeGraph::collectRefs(Tree t, std::set<int>& refs, std::set<int>& ref
         int  dmin, dmax;
         bool dvar;
         delayBounds(y, dmin, dmax, dvar);
+        Tree dsrc{}, dkf{}, pw1{};
+        int  pj1;
+        if (isSigDense(x, dsrc, dkf) && isProj(dsrc, &pj1, pw1) && !fMatIdx.count(x)) {
+            // the delay traverses the DENSE : the source is read at
+            // dmin..dmin+n-1 -- anchored, so the earliest read is dmin
+            // itself, and the instant edge exists only when dmin == 0
+            auto is = fMatIdx.find(dsrc);
+            if (is != fMatIdx.end()) {
+                if (fFreeDelay == 0 || dmin < fFreeDelay) {
+                    refs.insert(is->second);
+                }
+                if (dmin == 0) {
+                    refs0.insert(is->second);
+                }
+            } else {
+                collectRefs(dsrc, refs, refs0, seen, false);
+            }
+            collectRefs(y, refs, refs0, seen, false);
+            return;
+        }
         auto ix = fMatIdx.find(x);
         if (ix != fMatIdx.end()) {
             // a read whose certified minimal delay reaches the chunk size
@@ -170,7 +190,19 @@ void SuperNodeGraph::collectRefs(Tree t, std::set<int>& refs, std::set<int>& ref
         collectRefs(ri, refs, refs0, seen, false);
         return;
     }
-    if (tvec cs; isSigFIR(t, cs) && cs.size() >= 3) {
+    if (Tree dsrc, dkf; isSigDense(t, dsrc, dkf)) {
+        // anchored : tap 0 exists, the source read is instantaneous ;
+        // the constant coefficients carry no reference
+        auto ix = fMatIdx.find(dsrc);
+        if (ix != fMatIdx.end()) {
+            refs.insert(ix->second);
+            refs0.insert(ix->second);
+        } else {
+            collectRefs(dsrc, refs, refs0, seen, false);
+        }
+        return;
+    }
+    if (tvec cs; (isSigFIR(t, cs) || isSigLtvFIR(t, cs)) && cs.size() >= 3) {
         // the kernel reads its source at delays 0..n-1 : the INSTANT edge
         // exists only when tap 0 is non-zero. Leading-zero kernels survive
         // canonicalization when their coefficients are not constant
@@ -561,7 +593,17 @@ int SuperNodeGraph::opsOfMember(int m) const
             count += std::max(1, terms - 1);
             return;
         }
-        if (tvec cs; isSigFIR(t, cs)) {
+        if (Tree dsrc, dkf; isSigDense(t, dsrc, dkf)) {
+            // one mul-add per non-zero coefficient
+            for (Tree c : dkf->branches()) {
+                if (!isZero(c)) {
+                    count++;
+                }
+            }
+            walk(dsrc, false);
+            return;
+        }
+        if (tvec cs; isSigFIR(t, cs) || isSigLtvFIR(t, cs)) {
             // one mul-add per non-zero tap
             for (size_t k = 1; k < cs.size(); k++) {
                 if (!isZero(cs[k])) {

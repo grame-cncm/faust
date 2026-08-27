@@ -342,9 +342,15 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "register", sigInt(i), x);
     }
 
-    else if (isSigFIR(fSig) || isSigIIR(fSig) || isSigSum(fSig)) {
+    else if (isSigFIR(fSig) || isSigIIR(fSig) || isSigSum(fSig) || isSigDense(fSig) ||
+             isSigKForm(fSig) || isSigLtvFIR(fSig)) {
         // n-ary kernels revealed by -fir : generic bracketed print
-        fout << (isSigFIR(fSig) ? "FIR[" : (isSigIIR(fSig) ? "IIR[" : "Sum["));
+        fout << (isSigFIR(fSig)     ? "FIR["
+                 : isSigIIR(fSig)   ? "IIR["
+                 : isSigSum(fSig)   ? "Sum["
+                 : isSigDense(fSig) ? "DENSE["
+                 : isSigKForm(fSig) ? "KFORM["
+                                    : "LTVFIR[");
         std::string sep = "";
         for (Tree b : fSig->branches()) {
             fout << sep << ppsig(b, fEnv, fPriority);

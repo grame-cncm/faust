@@ -60,6 +60,7 @@ class OccMarkup : public virtual Garbageable {
     Tree                 fPropKey;     ///< key used to store occurrences property
     std::map<Tree, Tree, treeorder> fConditions;  ///< condition associated to each tree
 
+    void markDense(Tree env, int v, int r, int sh, Tree xc, Tree dsrc, Tree dkf);
     void         incOcc(Tree env, int v, int r, int d, Tree xc,
                         Tree t);                    ///< inc the occurrence of t in context v,r
     Occurrences* getOcc(Tree t);                    ///< get Occurrences property of t or null

@@ -77,6 +77,11 @@ enum class SignalOpcode : std::uint8_t {
     Iir,
     Sum,
     Temp,
+    // the typed kernel core : KFORM (constant vector form), DENSE (constant
+    // operator applied to a source), LTVFIR (slow time-varying residue)
+    KForm,
+    Dense,
+    LtvFir,
     Count
 };
 

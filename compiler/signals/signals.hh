@@ -392,6 +392,25 @@ SIGS_API bool isSigIIR(Tree s);
 SIGS_API bool isSigIIR(Tree s, Tree c0);  // true if s is a IIR on signal c0
 SIGS_API bool isSigIIR(Tree s, tvec& sigcoefs);
 
+// spec LA-FORME-NOYAU v6 : the typed kernel core.
+// KFORM : the CONSTANT polynomial, a real node (the shape identity of the
+// bells). Anchored by its builder : first and last coefficients not the
+// literal zero.
+SIGS_API Tree sigKForm(const tvec& coefs);
+SIGS_API bool isSigKForm(Tree s);
+SIGS_API bool isSigKForm(Tree s, tvec& coefs);
+// DENSE : the constant operator applied -- y(t) = sum Ci . x(t-i). The
+// family identity (x, C) of the FFT windows. Never owns storage.
+SIGS_API Tree sigDense(Tree src, Tree kform);
+SIGS_API bool isSigDense(Tree s);
+SIGS_API bool isSigDense(Tree s, Tree& src, Tree& kform);
+// LTVFIR : the slowly-varying residue -- y(t) = sum ci(t) . x(t-i).
+// Same layout as sigFIR : [x, c0..cn]. Readable delayed (its VALUE keeps
+// a window) but never moved in time (spec, traversal table).
+SIGS_API Tree sigLtvFIR(const tvec& sigcoefs);
+SIGS_API bool isSigLtvFIR(Tree s);
+SIGS_API bool isSigLtvFIR(Tree s, tvec& sigcoefs);
+
 SIGS_API Tree sigSum(const tvec& sigsubs);
 SIGS_API bool isSigSum(Tree s);
 SIGS_API bool isSigSum(Tree s, tvec& sigsubs);

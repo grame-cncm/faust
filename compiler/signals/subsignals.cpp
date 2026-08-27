@@ -240,7 +240,8 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         return 1;
     }
 
-    else if (isSigFIR(sig) || isSigIIR(sig) || isSigSum(sig)) {
+    else if (isSigFIR(sig) || isSigIIR(sig) || isSigSum(sig) || isSigDense(sig) ||
+             isSigKForm(sig) || isSigLtvFIR(sig)) {
         // nil (the IIR's first branch) is a layout placeholder, not a
         // subsignal : generic walkers would try to type it
         for (Tree b : sig->branches()) {

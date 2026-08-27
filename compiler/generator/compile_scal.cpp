@@ -76,6 +76,53 @@
 
 using namespace std;
 
+// ---- the typed kernel core, read side --------------------------------
+// DENSE(x, KFORM(C)) possibly under a literal delay, and LTVFIR, re-spell
+// the reveal's former working vector [x, c0..cn] (the shift returns as
+// leading zeros) : every FIR consumer -- emission, oracle, probes -- then
+// serves the whole core unchanged, and the generated code is the one the
+// working form produced before the migration.
+static bool isDenseRead(Tree t, Tree& src, Tree& kf, int& sh)
+{
+    Tree x, y, pw;
+    int  d, pj;
+    if (isSigDense(t, src, kf)) {
+        sh = 0;
+        return true;
+    }
+    // the delayed read TRAVERSES the kernel only on a recursive
+    // projection source (shifted taps on the ring, the former
+    // zeros-inside spelling) ; on any other source it is a delayed read
+    // of the materialized kernel VALUE (the former Delay(FIR))
+    if (isSigDelay(t, x, y) && isSigInt(y, &d) && isSigDense(x, src, kf) &&
+        isProj(src, &pj, pw)) {
+        sh = d;
+        return true;
+    }
+    return false;
+}
+
+static bool kernelReadVector(Tree t, tvec& V)
+{
+    if (isSigLtvFIR(t, V)) {
+        return true;
+    }
+    Tree src, kf;
+    int  sh;
+    if (isDenseRead(t, src, kf, sh)) {
+        V.clear();
+        V.push_back(src);
+        for (int k = 0; k < sh; k++) {
+            V.push_back(sigInt(0));
+        }
+        for (Tree c : kf->branches()) {
+            V.push_back(c);
+        }
+        return true;
+    }
+    return false;
+}
+
 /**
  * The compilation-order strategy (-ss <n>, --scheduling-strategy; formerly the
  * FAUST_OCPP_SCHEDULE environment variable): 0 = df (the default, deep-first),
@@ -1211,6 +1258,13 @@ Tree ScalarCompiler::prepare(Tree LS)
                         }
                         if (tvec cf; isSigFIR(t, cf) && cf.size() > 2) {
                             bySource[cf[0]].push_back(cf);
+                        } else if (tvec cf2; kernelReadVector(t, cf2) && cf2.size() > 2) {
+                            // one record per READ (the shifted delay and its
+                            // naked kernel are the same entity) : push the
+                            // vector's elements, not the node's branches
+                            bySource[cf2[0]].push_back(cf2);
+                            for (Tree b : cf2) workF.push_back(b);
+                            continue;
                         }
                         for (int k = 0; k < t->arity(); k++) workF.push_back(t->branch(k));
                     }
@@ -1468,6 +1522,11 @@ Tree ScalarCompiler::prepare(Tree LS)
             if (isSigDelay(t, x, d) && isSigIIR(x, dd)) {
                 readers.insert(x);
             } else if (isSigFIR(t, cs) && cs.size() >= 3 && isSigIIR(cs[0], dd)) {
+                readers.insert(cs[0]);
+            } else if (Tree ds, dk; isSigDense(t, ds, dk) && isSigIIR(ds, dd)) {
+                // the kernel form reads its source at delays 0..n-1
+                readers.insert(ds);
+            } else if (isSigLtvFIR(t, cs) && cs.size() >= 3 && isSigIIR(cs[0], dd)) {
                 readers.insert(cs[0]);
             }
             for (int k = 0; k < t->arity(); k++) {
@@ -2785,7 +2844,7 @@ class LoopSplitEmitter {
             prescan(x, seen);
             return;
         }
-        if (tvec V; isSigSum(t, V) || isSigFIR(t, V)) {
+        if (tvec V; isSigSum(t, V) || isSigFIR(t, V) || kernelReadVector(t, V)) {
             // -fir kernels, stage 1 : plain forms (Sum n-ary, FIR weighted
             // taps, IIR direct). V = terms for Sum, [source, c0..cn] for FIR
             for (Tree b : V) {
@@ -3003,6 +3062,65 @@ class LoopSplitEmitter {
             o.code = fC->CS(t);  // scalar machinery, code lives outside the loops
             return o;
         }
+        if (tvec V; isSigFIR(t, V) || kernelReadVector(t, V)) {
+            // stage 1 : plain weighted taps (the scalar regimes -- sliding
+            // sum, symmetric pre-add -- need chunk-carried state and wait).
+            // V[0] = source read at delays 0..n-1 ; taps at delay >= 1 give
+            // the source occurrence marks that MATERIALIZE it (inputs
+            // included, as copy members)
+            if (V.size() == 2) {  // simple gain, source read at 0 only
+                Operand a = walk(V[0], curScc, false);
+                Operand c = walk(V[1], curScc, false);
+                std::vector<int> deps;
+                addDep(deps, a);
+                addDep(deps, c);
+                o.op = newOp(subst("($0) * ($1)", operandCode(c), operandCode(a)), deps,
+                             false, false, getCertifiedSigType(t)->nature() == kInt);
+                fOpOf[t] = o.op;
+                return o;
+            }
+            const int ix = fSN.indexOf(V[0]);
+            faustassert(ix >= 0);
+            // lowering at scheduling time : one product op per tap, then a
+            // left chain of adds (ascending taps, the scalar association)
+            const bool kInt2 = (getCertifiedSigType(t)->nature() == kInt);
+            Operand    acc;
+            bool       first = true;
+            for (size_t k = 1; k < V.size(); k++) {
+                if (isZero(V[k])) {
+                    continue;
+                }
+                Operand tap = refOperand(ix, T(int(k) - 1), k == 1, curScc);
+                Operand term;
+                if (isOne(V[k])) {
+                    term = tap;
+                } else {
+                    Operand          c = walk(V[k], curScc, false);
+                    std::vector<int> pd;
+                    addDep(pd, c);
+                    addDep(pd, tap);
+                    term.op = newOp(subst("(($0) * $1)", operandCode(c), operandCode(tap)),
+                                    pd, false, false, kInt2);
+                }
+                if (first) {
+                    acc   = term;
+                    first = false;
+                } else {
+                    std::vector<int> ad;
+                    addDep(ad, acc);
+                    addDep(ad, term);
+                    Operand n2;
+                    n2.op = newOp(subst("($0 + $1)", operandCode(acc), operandCode(term)),
+                                  ad, false, false, kInt2);
+                    acc = n2;
+                }
+            }
+            o = acc;
+            if (o.op >= 0) {
+                fOpOf[t] = o.op;
+            }
+            return o;
+        }
         if (isSigDelay(t, x, y)) {
             int  dmin, dmax;
             bool dvar;
@@ -3064,65 +3182,6 @@ class LoopSplitEmitter {
             if (first) {
                 o.code = "0";
                 return o;
-            }
-            o = acc;
-            if (o.op >= 0) {
-                fOpOf[t] = o.op;
-            }
-            return o;
-        }
-        if (tvec V; isSigFIR(t, V)) {
-            // stage 1 : plain weighted taps (the scalar regimes -- sliding
-            // sum, symmetric pre-add -- need chunk-carried state and wait).
-            // V[0] = source read at delays 0..n-1 ; taps at delay >= 1 give
-            // the source occurrence marks that MATERIALIZE it (inputs
-            // included, as copy members)
-            if (V.size() == 2) {  // simple gain, source read at 0 only
-                Operand a = walk(V[0], curScc, false);
-                Operand c = walk(V[1], curScc, false);
-                std::vector<int> deps;
-                addDep(deps, a);
-                addDep(deps, c);
-                o.op = newOp(subst("($0) * ($1)", operandCode(c), operandCode(a)), deps,
-                             false, false, getCertifiedSigType(t)->nature() == kInt);
-                fOpOf[t] = o.op;
-                return o;
-            }
-            const int ix = fSN.indexOf(V[0]);
-            faustassert(ix >= 0);
-            // lowering at scheduling time : one product op per tap, then a
-            // left chain of adds (ascending taps, the scalar association)
-            const bool kInt2 = (getCertifiedSigType(t)->nature() == kInt);
-            Operand    acc;
-            bool       first = true;
-            for (size_t k = 1; k < V.size(); k++) {
-                if (isZero(V[k])) {
-                    continue;
-                }
-                Operand tap = refOperand(ix, T(int(k) - 1), k == 1, curScc);
-                Operand term;
-                if (isOne(V[k])) {
-                    term = tap;
-                } else {
-                    Operand          c = walk(V[k], curScc, false);
-                    std::vector<int> pd;
-                    addDep(pd, c);
-                    addDep(pd, tap);
-                    term.op = newOp(subst("(($0) * $1)", operandCode(c), operandCode(tap)),
-                                    pd, false, false, kInt2);
-                }
-                if (first) {
-                    acc   = term;
-                    first = false;
-                } else {
-                    std::vector<int> ad;
-                    addDep(ad, acc);
-                    addDep(ad, term);
-                    Operand n2;
-                    n2.op = newOp(subst("($0 + $1)", operandCode(acc), operandCode(term)),
-                                  ad, false, false, kInt2);
-                    acc = n2;
-                }
             }
             o = acc;
             if (o.op >= 0) {
@@ -3683,6 +3742,52 @@ class LoopSplitEmitter {
             if (SuperNodeGraph::isSlow(t)) {
                 return constantsLive ? op({}, false, 10) : -1;
             }
+            if (tvec V; isSigFIR(t, V) || kernelReadVector(t, V)) {
+                // FAITHFUL kernel body (the bells lesson : a 3-tap kernel
+                // priced as one op made every fusion comparison a fiction).
+                // Per non-zero tap : a source read -- carried window when
+                // the source is a fused member with a short line, a buffer
+                // load otherwise, exactly like sigDelay -- a multiply for
+                // non-unit coefficients (the coefficient is a live slow
+                // value), and the adds that chain the taps.
+                int  ix     = fSN.indexOf(V[0]);
+                bool inset  = (ix >= 0) && inSet.count(ix);
+                bool window = inset && fSN.maxDelayOf(mat[ix]) <= gGlobal->gMaxCopyDelay;
+                int  m      = (ix >= 0) ? fSN.maxDelayOf(mat[ix]) : 0;
+                if (window && m > 0) {
+                    auto& w = carriedOps[ix];
+                    if (w.empty()) {
+                        for (int k = 0; k < m; k++) {
+                            LSOp o;
+                            o.shape = 13;  // carried history value
+                            sops.push_back(o);
+                            w.push_back((int)sops.size() - 1);
+                        }
+                    }
+                }
+                int acc = -1;
+                for (size_t k2 = 1; k2 < V.size(); k2++) {
+                    if (isZero(V[k2])) {
+                        continue;
+                    }
+                    int d   = int(k2) - 1;
+                    int src = -1;
+                    if (d == 0 && inset && rootOf.count(ix)) {
+                        src = rootOf[ix];
+                    } else if (window && d >= 1 && d <= m) {
+                        src = carriedOps[ix][d - 1];
+                    } else if (ix >= 0) {
+                        src = load(t, {});
+                    } else {
+                        src = sw(V[0], false);  // inlined source, costed once
+                    }
+                    int prod = isOne(V[k2])
+                                   ? src
+                                   : op({src, sw(V[k2], false)}, false, 100 + kMul);
+                    acc = (acc < 0) ? prod : op({acc, prod}, false, 100 + kAdd);
+                }
+                return (acc >= 0) ? acc : op({}, false, 7);
+            }
             if (isSigDelay(t, x, y)) {
                 int  dmin, dmax;
                 bool dvar;
@@ -3770,52 +3875,6 @@ class LoopSplitEmitter {
                     }
                 }
                 return op(deps, false, 6);
-            }
-            if (tvec V; isSigFIR(t, V)) {
-                // FAITHFUL kernel body (the bells lesson : a 3-tap kernel
-                // priced as one op made every fusion comparison a fiction).
-                // Per non-zero tap : a source read -- carried window when
-                // the source is a fused member with a short line, a buffer
-                // load otherwise, exactly like sigDelay -- a multiply for
-                // non-unit coefficients (the coefficient is a live slow
-                // value), and the adds that chain the taps.
-                int  ix     = fSN.indexOf(V[0]);
-                bool inset  = (ix >= 0) && inSet.count(ix);
-                bool window = inset && fSN.maxDelayOf(mat[ix]) <= gGlobal->gMaxCopyDelay;
-                int  m      = (ix >= 0) ? fSN.maxDelayOf(mat[ix]) : 0;
-                if (window && m > 0) {
-                    auto& w = carriedOps[ix];
-                    if (w.empty()) {
-                        for (int k = 0; k < m; k++) {
-                            LSOp o;
-                            o.shape = 13;  // carried history value
-                            sops.push_back(o);
-                            w.push_back((int)sops.size() - 1);
-                        }
-                    }
-                }
-                int acc = -1;
-                for (size_t k2 = 1; k2 < V.size(); k2++) {
-                    if (isZero(V[k2])) {
-                        continue;
-                    }
-                    int d   = int(k2) - 1;
-                    int src = -1;
-                    if (d == 0 && inset && rootOf.count(ix)) {
-                        src = rootOf[ix];
-                    } else if (window && d >= 1 && d <= m) {
-                        src = carriedOps[ix][d - 1];
-                    } else if (ix >= 0) {
-                        src = load(t, {});
-                    } else {
-                        src = sw(V[0], false);  // inlined source, costed once
-                    }
-                    int prod = isOne(V[k2])
-                                   ? src
-                                   : op({src, sw(V[k2], false)}, false, 100 + kMul);
-                    acc = (acc < 0) ? prod : op({acc, prod}, false, 100 + kAdd);
-                }
-                return (acc >= 0) ? acc : op({}, false, 7);
             }
             if (tvec V; isSigIIR(t, V)) {
                 // y = X + sum a_i * y@i : the state window is 'order'
@@ -4928,7 +4987,11 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
                 continue;
             }
             tvec cs;
-            if (isSigFIR(t, cs)) {
+            bool kernelRead = false;
+            if (!isSigFIR(t, cs) && kernelReadVector(t, cs)) {
+                kernelRead = true;  // DENSE read (possibly shifted) or LTVFIR
+            }
+            if (isSigFIR(t, cs) || kernelRead) {
                 nfir++;
                 taps += long(cs.size()) - 1;
                 maxtaps = std::max(maxtaps, int(cs.size()) - 1);
@@ -4951,6 +5014,15 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
                 auto& f = fFirFacts[cs[0]];
                 f.first = std::max(f.first, span);
                 f.second += nz;
+                if (kernelRead) {
+                    // one record per READ : walk the vector's elements, not
+                    // the node's branches (the naked kernel under a shifted
+                    // read must not be double counted)
+                    for (Tree b : cs) {
+                        work.push_back(b);
+                    }
+                    continue;
+                }
             } else if (isSigIIR(t, cs)) {
                 if (getenv("FAUST_SS_IIRORDER")) {
                     int order = 0;
@@ -4981,7 +5053,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
                     if (!seen2.insert(t).second) {
                         continue;
                     }
-                    if (isSigFIR(t)) {
+                    if (isSigFIR(t) || isSigDense(t) || isSigLtvFIR(t)) {
                         std::cerr << "SS_FIRTYPE " << ppsig(t, 8) << " : "
                                   << getCertifiedSigType(t) << std::endl;
                         goto done_type;
@@ -5780,6 +5852,10 @@ string ScalarCompiler::generateCode(Tree sig)
         // into a named temporary whatever its sharing count (see
         // placeTemps.cpp for who decides where the barriers go)
         return forceCacheCode(sig, CS(x));
+    } else if (tvec V; kernelReadVector(sig, V)) {
+        // DENSE (possibly shifted) and LTVFIR : the FIR emission serves
+        // the reconstructed working vector
+        return generateFIR(sig, V);
     } else if (isSigDelay(sig, x, y)) {
         return generateDelayAccess(sig, x, y);
     } else if (tvec V; isSigFIR(sig, V)) {

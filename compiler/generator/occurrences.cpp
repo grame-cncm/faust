@@ -164,6 +164,37 @@ Occurrences* OccMarkup::retrieve(Tree t)
 // xc : exec condition expression
 //------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+// Reads of a DENSE kernel seen from a (possibly shifted) reader : the source
+// is read at sh..sh+n-1 (one tap per non-zero coefficient ; the anchored ends
+// guarantee both extremes exist), the coefficients are immediate reads. The
+// KFORM node itself is structure, never marked.
+//------------------------------------------------------------------------------
+
+void OccMarkup::markDense(Tree env, int v, int r, int sh, Tree xc, Tree dsrc, Tree dkf)
+{
+    const tvec& C = dkf->branches();
+    {
+        // sliding-sum candidates read the source one slot FURTHER (x@T)
+        // than the widest tap (see generateFIR)
+        tvec V;
+        V.push_back(dsrc);
+        for (Tree c : C) {
+            V.push_back(c);
+        }
+        int T;
+        if (isSlidingSumFIR(V, T)) {
+            incOcc(env, v, r, sh + T, xc, dsrc);
+        }
+    }
+    for (unsigned int k = 0; k < C.size(); k++) {
+        incOcc(env, v, r, 0, xc, C[k]);
+        if (!isZero(C[k])) {
+            incOcc(env, v, r, sh + int(k), xc, dsrc);
+        }
+    }
+}
+
 void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 {
     // Check if we have already visited this tree
@@ -184,7 +215,17 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
             Type g2 = getCertifiedSigType(y);
             int  d2 = checkDelayInterval(g2);
             faustassert(d2 >= 0);
-            incOcc(env, v0, r0, d2, c0, x);
+            int  sh, pj;
+            Tree dsrc, dkf, pw;
+            if (isSigInt(y, &sh) && isSigDense(x, dsrc, dkf) && isProj(dsrc, &pj, pw)) {
+                // shifted read of a constant operator (the traversal
+                // table) : the delay TRAVERSES the DENSE -- the source
+                // is read at taps sh..sh+n-1, the kernel's own output
+                // never becomes a line of its own
+                markDense(env, v0, r0, sh, c0, dsrc, dkf);
+            } else {
+                incOcc(env, v0, r0, d2, c0, x);
+            }
             incOcc(env, v0, r0, 0, c0, y);
         } else if (isSigPrefix(t, y, x)) {
             incOcc(env, v0, r0, 1, c0, x);
@@ -205,7 +246,10 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
                     incOcc(env, v0, r0, int(k) - 2, c0, t);
                 }
             }
-        } else if (tvec V; isSigFIR(t, V)) {
+        } else if (Tree dsrc, dkf; isSigDense(t, dsrc, dkf)) {
+            // DENSE(x, KFORM(C)) read at the current instant
+            markDense(env, v0, r0, 0, c0, dsrc, dkf);
+        } else if (tvec V; isSigFIR(t, V) || isSigLtvFIR(t, V)) {
             // sliding-sum candidates read the source one slot FURTHER
             // (x@T) than the widest tap : declare it here so the delay
             // line covers the O(1) emission (see generateFIR)

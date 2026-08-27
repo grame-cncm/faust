@@ -1133,6 +1133,73 @@ SIGS_API bool isSigIIR(Tree s, tvec& sigcoefs)
 
 // SUM
 
+// spec LA-FORME-NOYAU v6 : the typed kernel core
+
+SIGS_API Tree sigKForm(const tvec& coefs)
+{
+    // anchored by construction : first and last coefficients are not the
+    // literal zero (syntactic anchor -- an init-time expression that
+    // happens to be zero cannot be detected here)
+    TLIB_ASSERT(!coefs.empty());
+    TLIB_ASSERT(!isZero(coefs.front()) && !isZero(coefs.back()));
+    return tree(sigs::g.SIGKFORM, coefs);
+}
+
+SIGS_API bool isSigKForm(Tree s)
+{
+    return isTree(s, sigs::g.SIGKFORM);
+}
+
+SIGS_API bool isSigKForm(Tree s, tvec& coefs)
+{
+    if (isTree(s, sigs::g.SIGKFORM)) {
+        coefs = s->branches();
+        return true;
+    }
+    return false;
+}
+
+SIGS_API Tree sigDense(Tree src, Tree kform)
+{
+    TLIB_ASSERT(isSigKForm(kform));
+    return tree(sigs::g.SIGDENSE, src, kform);
+}
+
+SIGS_API bool isSigDense(Tree s)
+{
+    return isTree(s, sigs::g.SIGDENSE);
+}
+
+SIGS_API bool isSigDense(Tree s, Tree& src, Tree& kform)
+{
+    if (isTree(s, sigs::g.SIGDENSE)) {
+        src   = s->branch(0);
+        kform = s->branch(1);
+        return true;
+    }
+    return false;
+}
+
+SIGS_API Tree sigLtvFIR(const tvec& sigcoefs)
+{
+    TLIB_ASSERT(sigcoefs.size() >= 2);
+    return tree(sigs::g.SIGLTVFIR, sigcoefs);
+}
+
+SIGS_API bool isSigLtvFIR(Tree s)
+{
+    return isTree(s, sigs::g.SIGLTVFIR);
+}
+
+SIGS_API bool isSigLtvFIR(Tree s, tvec& sigcoefs)
+{
+    if (isTree(s, sigs::g.SIGLTVFIR)) {
+        sigcoefs = s->branches();
+        return true;
+    }
+    return false;
+}
+
 SIGS_API Tree sigSum(const tvec& sigsubs)
 {
     return tree(sigs::g.SIGSUM, sigsubs);
