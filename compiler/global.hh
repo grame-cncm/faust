@@ -319,6 +319,10 @@ struct global {
     bool gLoopSplit;
     bool gReconstructFIRIIRs;
     bool gLowerSums;  // -lsum : butterfly lowering of the revealed sums
+    bool gMatrixRows;  // -mxr : matrix-row regime for dense coefficient
+                       // families (spec LA-FORME-MATRICE) -- spares them
+                       // from the sum lowering and, under -ls, emits
+                       // recurrence-carried rows as table dot products
     bool gIIRTransposed;  // -iirt : transposed all-pole emission of the IIR kernels  // -fir : signal-level FIR/IIR recognition (side-channel)       // -ls option (ocpp, experimental): emit the materialized-signal DAG as
                            // separate loops (one per recursive group / delayed / shared signal /
                            // output) instead of one big sample loop

@@ -1054,7 +1054,7 @@ Tree ScalarCompiler::prepare(Tree LS)
             endTiming("Sum revealer (lsum standalone)");
             startTiming("Sum lowering");
             std::set<Tree> keepRows;
-            if (getenv("FAUST_MATRIX_ROWOP")) {
+            if ((gGlobal->gMatrixRows || getenv("FAUST_MATRIX_ROWOP"))) {
                 // matrix rows stay n-ary through the lowering : the -ls
                 // row-op regime consumes them whole (spec LA-FORME-MATRICE)
                 for (auto& [row, id] : revealMatrix(L2).rowOf) {
@@ -1283,7 +1283,7 @@ Tree ScalarCompiler::prepare(Tree LS)
                 // destroyed (fdnRev : 823 -> 3056 additions without it)
                 startTiming("Sum lowering");
                 std::set<Tree> keepRows;
-                if (getenv("FAUST_MATRIX_ROWOP")) {
+                if ((gGlobal->gMatrixRows || getenv("FAUST_MATRIX_ROWOP"))) {
                     // matrix rows stay n-ary through the lowering : the
                     // -ls row-op regime consumes them whole (spec
                     // LA-FORME-MATRICE)
@@ -2715,7 +2715,8 @@ class LoopSplitEmitter {
     int                 fLoopNo = 0;  // emission counter, gives each loop a stable id
 
     // the matrix form (spec LA-FORME-MATRICE) : detected families and the
-    // row-op emission regime gate (FAUST_MATRIX_ROWOP while experimental)
+    // row-op emission regime gate (-mxr, or FAUST_MATRIX_ROWOP for
+    // forensic A/B comparisons)
     MatrixPlans fMatrix;
     bool        fRowOp = false;
     std::map<int, std::string> fMatTable;  // family -> coefficient table field
@@ -4297,7 +4298,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // 0-bis. the matrix form : detect the families ON THE EMITTED LIST
     // (same trees the walk will see -- hash-consing makes the plan's keys
     // pointer-exact). The row-op regime is gated while experimental.
-    if (getenv("FAUST_MATRIX_ROWOP")) {
+    if ((gGlobal->gMatrixRows || getenv("FAUST_MATRIX_ROWOP"))) {
         fMatrix = revealMatrix(L);
         fRowOp  = !fMatrix.families.empty();
     }

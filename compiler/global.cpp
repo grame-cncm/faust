@@ -449,6 +449,7 @@ void global::reset()
     gLoopSplit      = false;
     gReconstructFIRIIRs = false;
     gLowerSums          = false;
+    gMatrixRows         = false;
     gIIRTransposed      = false;
     gLSSched        = 0;
     gLSRegisters    = 20;
@@ -1650,6 +1651,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-lsum", "--lower-sums")) {
             gLowerSums = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-mxr", "--matrix-rows")) {
+            gMatrixRows = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-iirt", "--iir-transposed")) {

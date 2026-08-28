@@ -66,6 +66,13 @@ CAND = {
     "fib": ["-fir", "-iirt", "-lsum"],
     "fifu":  ["-fir", "-iirt", "-ls-fuse", "-ls-sched", "model"],
     "fibfu": ["-fir", "-iirt", "-lsum", "-ls-fuse", "-ls-sched", "model"],
+    # fibmx : fibfu + la forme matrice (-mxr, spec LA-FORME-MATRICE).
+    # Deux effets : les familles denses echappent au papillon de -lsum
+    # (DNN x0.50 par la seule epargne), et sous -ls les rangees des blocs
+    # recurrents deviennent des dots table+vecteur contigus (statespace
+    # 9.46 -> 7.76). Sans famille, identique octet pour octet a fibfu --
+    # ne l'inviter que si la signature voit nmatrix >= 1.
+    "fibmx": ["-fir", "-iirt", "-lsum", "-mxr", "-ls-fuse", "-ls-sched", "model"],
     "lz":  ["-lazyselect"],
     "lzh": ["-lazyselect", "-ss", "9", "-ls-R", "32", "-ls-U", "4"],
     "gq":  ["-gatequiv"],
@@ -102,7 +109,18 @@ def signature(dsp):
     m = re.search(r"SS_SIG ([^\n]*)", r.stderr)
     if not m:
         sys.exit(f"faustauto: pas de signature (faust a dit : {r.stderr.strip()[:200]})")
-    return {k: int(v) for k, v in re.findall(r"(\w+)=(\d+)", m.group(1))}
+    sig = {k: int(v) for k, v in re.findall(r"(\w+)=(\d+)", m.group(1))}
+    # la quatrieme forme : compte de familles matricielles. Sonde separee
+    # (les familles n'existent qu'apres revealSum, hors du monde par
+    # defaut de la signature) -- ~0.5 s, ne paie que l'invitation de
+    # fibmx la ou il peut differer de fibfu.
+    r = subprocess.run([FAUST, "-lang", "ocpp", "-fir", "-iirt", "-lsum", dsp,
+                        "-o", os.devnull],
+                       env=dict(os.environ, FAUST_MATRIX_CENSUS="1"),
+                       capture_output=True, text=True)
+    fams = re.findall(r"MATRIX census : \d+ candidats, (\d+) familles", r.stderr)
+    sig["nmatrix"] = int(fams[-1]) if fams else 0
+    return sig
 
 
 def candidates(sig, full=False):
@@ -124,12 +142,15 @@ def candidates(sig, full=False):
         order = ["h2", "cs8"] if locality else ["al", "h32"]
         lazy = ["lz", "lzh", "gq", "gqlz", "sn", "gqsn"] if sig.get("nselect", 0) >= 8 else []
         lazy += ["lb"]
+        # fibmx seulement la ou il existe : sans famille il est fibfu
+        # octet pour octet (le chrono ne departagerait que du bruit)
+        mx = ["fibmx"] if sig.get("nmatrix", 0) >= 1 else []
         if fusion_signal:
             other = "al" if locality else "h2"
             return "fusion-sûre", ["fu", "ls", order[0], other, "t4fu", "t1fu", "df", "rp", "cs2",
-                                   "cs2b", "fi", "fib", "fifu", "fibfu"] + lazy
+                                   "cs2b", "fi", "fib", "fifu", "fibfu"] + mx + lazy
         return "incertain", ["fu", "ls", order[0], order[1], "df", "rp", "cs2", "cs2b", "t4", "fi",
-                             "fib", "fifu", "fibfu"] + lazy
+                             "fib", "fifu", "fibfu"] + mx + lazy
     n, r, st = sig["nodes"], sig["recmii"], sig["nstreams"]
     sel, alu = sig.get("nselect", 0), sig["nalu"]
     # le noyau universel : df la référence, lb (la factorisation des
@@ -137,6 +158,8 @@ def candidates(sig, full=False):
     # paire fir-fusion (fifu SANS -lsum et fibfu AVEC : sur les guitares
     # -lsum coûte, sur les Lab il paie — les deux voyagent ensemble)
     cand = ["df", "lb", "fu", "al", "fifu", "fibfu"]
+    if sig.get("nmatrix", 0) >= 1:
+        cand += ["fibmx"]        # la forme matrice, la ou des familles existent
     if n < 200 or alu > 0.9 * n:
         cand += ["fi"]           # petits programmes ou ALU pur (ambisonics)
     if r >= 80:
