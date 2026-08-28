@@ -1,5 +1,7 @@
 #pragma once
 
+#include <set>
+
 #include "signals.hh"
 
 /// Co-occurrence lowering of the n-ary Sum nodes into binary adds.
@@ -17,4 +19,8 @@
 /// as a canonically-sorted left comb. Two sums that share terms make the
 /// same choices in the same order, build the same subtrees, and
 /// hash-consing shares them without any explicit coordination.
-Tree lowerSums(Tree L);
+///
+/// A Sum node in `keep` is left N-ARY (neither mutated nor lowered) :
+/// the matrix-row regime (spec LA-FORME-MATRICE) consumes whole rows at
+/// emission, so the lowering must not shred them.
+Tree lowerSums(Tree L, const std::set<Tree>* keep = nullptr);

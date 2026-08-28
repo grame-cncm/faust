@@ -64,6 +64,7 @@
 #include "descend.hh"
 #include "factorizeFIRs.hh"
 #include "kernelCandidacy.hh"
+#include "revealMatrix.hh"
 #include "lowerSums.hh"
 #include "sigtype.hh"
 #include "timing.hh"
@@ -1052,7 +1053,15 @@ Tree ScalarCompiler::prepare(Tree LS)
             L2 = revealSum(L2);
             endTiming("Sum revealer (lsum standalone)");
             startTiming("Sum lowering");
-            L2 = lowerSums(L2);
+            std::set<Tree> keepRows;
+            if (getenv("FAUST_MATRIX_ROWOP")) {
+                // matrix rows stay n-ary through the lowering : the -ls
+                // row-op regime consumes them whole (spec LA-FORME-MATRICE)
+                for (auto& [row, id] : revealMatrix(L2).rowOf) {
+                    keepRows.insert(row);
+                }
+            }
+            L2 = lowerSums(L2, keepRows.empty() ? nullptr : &keepRows);
             endTiming("Sum lowering");
         };
         pthread_attr_t lsattr;
@@ -1114,6 +1123,9 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("FIR factorizer");
             L2 = factorizeFIRs(L2);
             L2 = kernelCandidacy(L2);  // the retiming law, per site
+            if (getenv("FAUST_MATRIX_CENSUS")) {
+                revealMatrix(L2);  // analysis only : the fourth gathering's census
+            }
             endTiming("FIR factorizer");
             if (getenv("FAUST_SS_MCM")) {
                 // stage-3 deposit probe : the WEIGHTED pairs. Atom of a
@@ -1270,7 +1282,16 @@ Tree ScalarCompiler::prepare(Tree LS)
                 // prefixes rebuild the structural sharing the flattening
                 // destroyed (fdnRev : 823 -> 3056 additions without it)
                 startTiming("Sum lowering");
-                L2 = lowerSums(L2);
+                std::set<Tree> keepRows;
+                if (getenv("FAUST_MATRIX_ROWOP")) {
+                    // matrix rows stay n-ary through the lowering : the
+                    // -ls row-op regime consumes them whole (spec
+                    // LA-FORME-MATRICE)
+                    for (auto& [row, id] : revealMatrix(L2).rowOf) {
+                        keepRows.insert(row);
+                    }
+                }
+                L2 = lowerSums(L2, keepRows.empty() ? nullptr : &keepRows);
                 endTiming("Sum lowering");
             }
         };  // fin du lambda reveal (-fir)
@@ -2684,11 +2705,70 @@ class LoopSplitEmitter {
         bool isInt   = false;
         int  shape   = 0;  // shadow-side shape tag (emitted ops use their
                            // digit-erased code string instead; see emitLoop)
+        int  weight  = 1;  // issue slots consumed (composite ops : a matrix
+                           // row op is one INDIVISIBLE op priced at its
+                           // vectorized reduction tariff, see the Sum arm)
     };
     std::vector<LSOp>   fOps;
     std::map<Tree, int, treeorder> fOpOf;      // sample-rate op tree -> index in fOps
     std::map<int, int>  fStoreOf;   // materialized index -> its store op
     int                 fLoopNo = 0;  // emission counter, gives each loop a stable id
+
+    // the matrix form (spec LA-FORME-MATRICE) : detected families and the
+    // row-op emission regime gate (FAUST_MATRIX_ROWOP while experimental)
+    MatrixPlans fMatrix;
+    bool        fRowOp = false;
+    std::map<int, std::string> fMatTable;  // family -> coefficient table field
+    std::map<int, bool>        fMatRecBlock;  // block -> carries a recurrence
+
+    // a block carries a recurrence iff its in-block reference graph has a
+    // cycle. The row regime claims ONLY those spans : there the sample
+    // loop is serial anyway and the row shape wins ; in a feedforward
+    // span clang vectorizes ACROSS SAMPLES, and the gather array's
+    // per-iteration overwrite is a WAR dependence that kills it
+    // (matrix.dsp : x1.73 against the chain, measured).
+    bool blockHasRecurrence(int b)
+    {
+        if (b < 0) {
+            return false;  // output-only spans are feedforward
+        }
+        auto it = fMatRecBlock.find(b);
+        if (it != fMatRecBlock.end()) {
+            return it->second;
+        }
+        const std::vector<int>& mem = fSN.blockMembers(b);
+        std::set<int>           inb(mem.begin(), mem.end());
+        bool                    cyc = false;
+        for (int s : mem) {
+            std::vector<int> st{s};
+            std::set<int>    vis;
+            while (!st.empty() && !cyc) {
+                int u = st.back();
+                st.pop_back();
+                for (int v : fSN.refs(u)) {
+                    if (v == s) {
+                        cyc = true;
+                        break;
+                    }
+                    if (inb.count(v) && vis.insert(v).second) {
+                        st.push_back(v);
+                    }
+                }
+            }
+            if (cyc) {
+                break;
+            }
+        }
+        fMatRecBlock[b] = cyc;
+        return cyc;
+    }
+    // family -> (operand vector name, its gather op ids), valid for the
+    // CURRENT loop span only (reset with fOpOf)
+    std::map<int, std::pair<std::string, std::vector<int>>> fMatGather;
+    std::map<int, std::vector<bool>> fMatResolved;  // which columns are gathered
+    // (first gather op id, (vector name, size)) : emitLoop declares the
+    // vectors whose gather ops fall in its [lo, hi) span
+    std::vector<std::pair<int, std::pair<std::string, int>>> fMatDecls;
 
     // shorthands into the shared criteria
     static bool isNum(Tree t) { return SuperNodeGraph::isNum(t); }
@@ -3090,6 +3170,106 @@ class LoopSplitEmitter {
             return o;
         }
         if (tvec V; isSigSum(t, V)) {
+            const bool wrapInt = (getCertifiedSigType(t)->nature() == kInt);
+            if (fRowOp && !wrapInt && fMatrix.isRow(t) && blockHasRecurrence(curScc)) {
+                // MATRIX ROW OP (the -ls regime of the fourth gathering) :
+                // the row is ONE indivisible op spelled as an unrolled dot
+                // product over TWO CONTIGUOUS ARRAYS -- the family's
+                // coefficient table (a field, refilled at control rate
+                // like the fSlow it copies) and a per-sample operand
+                // vector gathered once per family per loop. Contiguity is
+                // the point : the same rows spelled over scattered fSlow
+                // scalars stayed scalar (56 live coefficients overflow 32
+                // registers -- 66 reloads/sample -- and the interleaved
+                // schedule starves clang's SLP seeds), while two dense
+                // arrays give vector loads and a uniform reduction
+                // (statespace : the 9.46 vs 7.49 residual). Zero cells
+                // are gathered and multiplied too : uniformity buys the
+                // vector shape, the <=10% budget bounds the waste.
+                // Association follows the family's canonical column order
+                // (ulp-class vs the source order, legal at onset ; the
+                // regime stays out of the impulse-gate option sets). Int
+                // rows stay on the chain (wrapInt spelling, excluded v1).
+                const auto [fam, row] = fMatrix.rowOf.at(t);
+                const MatrixFamily& F = fMatrix.families[fam];
+                const int           n = (int)F.tuple.size();
+                if (!fMatTable.count(fam)) {
+                    // the table field, declared once and refilled at
+                    // control rate right after the coefficients' own
+                    // slow code (zone2 appends in call order)
+                    std::string tab = fC->getFreshID("fMat");
+                    fClass->addDeclCode(subst("$0 \t$1[$2];", ifloat(), tab,
+                                              T(n * (int)F.rows.size())));
+                    for (size_t r2 = 0; r2 < F.rows.size(); r2++) {
+                        for (int j = 0; j < n; j++) {
+                            // numeric cells (zero padding, literal
+                            // weights) are spelled directly : CS's
+                            // generateNumber needs an occurrence mark
+                            // numbers reached only through the plan
+                            // never received (the DNN crash)
+                            Tree        cf = F.coef[r2][j];
+                            int         ci;
+                            int64_t     cl;
+                            double      cr;
+                            std::string cc = isSigInt(cf, &ci)     ? T(ci)
+                                             : isSigInt64(cf, &cl) ? T(cl)
+                                             : isSigReal(cf, &cr)  ? T(cr)
+                                                                   : fC->CS(cf);
+                            fClass->addZone2(subst("$0[$1] = $2;", tab,
+                                                   T((int)r2 * n + j), cc));
+                        }
+                    }
+                    fMatTable[fam] = tab;
+                }
+                auto git = fMatGather.find(fam);
+                if (git == fMatGather.end()) {
+                    // the operand vector, gathered once per loop span and
+                    // shared by every row of the family in it. Cells
+                    // start as constant-0 placeholder stores : a family
+                    // may straddle loops, and a span must never compute
+                    // operands only FOREIGN rows read (the DNN crash --
+                    // walking a column no local row uses reached signals
+                    // with no occurrence record). Columns are resolved
+                    // below, on the first local row that reads them.
+                    std::string      arr = "mxv" + T(fam);
+                    std::vector<int> gops;
+                    for (int j = 0; j < n; j++) {
+                        gops.push_back(newOp(subst("$0[$1] = 0;", arr, T(j)), {},
+                                             true, false, false));
+                    }
+                    fMatDecls.push_back({gops[0], {arr, n}});
+                    git = fMatGather.insert({fam, {arr, gops}}).first;
+                    fMatResolved[fam].assign(n, false);
+                }
+                {
+                    std::vector<bool>& res = fMatResolved[fam];
+                    for (int j = 0; j < n; j++) {
+                        if (!res[j] && !isZero(F.coef[row][j])) {
+                            res[j]              = true;
+                            Operand          ox = walk(F.tuple[j], curScc, false);
+                            std::vector<int> gd;
+                            addDep(gd, ox);
+                            const int g  = git->second.second[j];
+                            fOps[g].code = subst("$0[$1] = $2;", git->second.first,
+                                                 T(j), operandCode(ox));
+                            fOps[g].deps = gd;
+                        }
+                    }
+                }
+                const std::string& tab = fMatTable[fam];
+                const std::string& arr = git->second.first;
+                std::string        code;
+                for (int j = 0; j < n; j++) {
+                    std::string term =
+                        subst("$0[$1] * $2[$3]", tab, T(row * n + j), arr, T(j));
+                    code = j ? code + " + " + term : term;
+                }
+                o.op = newOp("(" + code + ")", git->second.second, false, false, false);
+                fOps[o.op].shape  = 14;
+                fOps[o.op].weight = std::max(1, (n + 3) / 4 + (n + 2) / 4);
+                fOpOf[t]          = o.op;
+                return o;
+            }
             // LOWERING AT SCHEDULING TIME : the revealed sum becomes a left
             // chain of BINARY add ops -- each one an atom the RUM scheduler
             // places, so isomorphic kernels interleave (the monolithic
@@ -3097,7 +3277,6 @@ class LoopSplitEmitter {
             // association == the scalar generateSum, bit-exact ; INT sums
             // wrap through unsigned arithmetic pairwise (mod-2^32 addition
             // is associative, the flat and chained forms agree).
-            const bool wrapInt = (getCertifiedSigType(t)->nature() == kInt);
             Operand    acc;
             bool       first = true;
             for (Tree b : V) {
@@ -3463,7 +3642,8 @@ class LoopSplitEmitter {
             emittedThisCycle.clear();
             // ops becoming ready THIS cycle wait for the next one (latency 1)
             std::vector<int> readyNow = ready;
-            for (int slot = 0; slot < U && !readyNow.empty(); slot++) {
+            for (int slot = 0; slot < U && !readyNow.empty();
+                 /* advanced per emitted op's weight below */) {
                 // pick the best candidate (k below is span-relative)
                 int best = -1, bestScore = INT_MIN;
                 for (size_t c = 0; c < readyNow.size(); c++) {
@@ -3521,6 +3701,8 @@ class LoopSplitEmitter {
                 done++;
                 order.push_back(lo + k);
                 emittedThisCycle.push_back(k);
+                // composite ops (matrix rows) consume their weight in slots
+                slot += ops[lo + k].weight;
                 for (int d : ops[lo + k].deps) {
                     if (d >= lo && d < hi) {
                         if (--remaining[d - lo] == 0) {
@@ -3597,6 +3779,31 @@ class LoopSplitEmitter {
         // makes fusion visibly profitable to the oracle -- scalarized in-set
         // reads cost nothing, the same reads across a boundary cost a slot
         const int loadW = (loadWOverride >= 0) ? loadWOverride : gGlobal->gLSLoadW;
+        // the row regime prices only member sets carrying a recurrence
+        // (mirror of blockHasRecurrence : same criterion as emission)
+        bool shadowRowRegime = false;
+        if (fRowOp) {
+            for (int s : members) {
+                std::vector<int> st{s};
+                std::set<int>    vis;
+                while (!st.empty() && !shadowRowRegime) {
+                    int u = st.back();
+                    st.pop_back();
+                    for (int v : fSN.refs(u)) {
+                        if (v == s) {
+                            shadowRowRegime = true;
+                            break;
+                        }
+                        if (inSet.count(v) && vis.insert(v).second) {
+                            st.push_back(v);
+                        }
+                    }
+                }
+                if (shadowRowRegime) {
+                    break;
+                }
+            }
+        }
         auto load = [&](Tree t, std::vector<int> deps) -> int {
             if (loadW == 0) {
                 return -1;  // loads free (leaf)
@@ -3813,6 +4020,34 @@ class LoopSplitEmitter {
                 return sw(z, false);
             }
             if (tvec V; isSigSum(t, V)) {
+                if (fRowOp && fMatrix.isRow(t) &&
+                    getCertifiedSigType(t)->nature() != kInt && shadowRowRegime) {
+                    // MATRIX ROW OP : the shadow mirrors the emission --
+                    // per term a live coefficient and the operand (the
+                    // per-term product ops disappear into the composite),
+                    // one op whose weight is the vectorized reduction
+                    // tariff : ceil(n/4) multiply slots + ceil((n-1)/4)
+                    // add slots.
+                    std::vector<int> deps;
+                    int              nz = 0;
+                    for (Tree b : V) {
+                        if (isZero(b)) {
+                            continue;
+                        }
+                        nz++;
+                        Tree a2, b2;
+                        if (isSigMul(b, a2, b2) && (SuperNodeGraph::isSlow(a2) !=
+                                                    SuperNodeGraph::isSlow(b2))) {
+                            deps.push_back(sw(SuperNodeGraph::isSlow(a2) ? a2 : b2, false));
+                            deps.push_back(sw(SuperNodeGraph::isSlow(a2) ? b2 : a2, false));
+                        } else {
+                            deps.push_back(sw(b, false));
+                        }
+                    }
+                    int id           = op(deps, false, 14);
+                    sops[id].weight  = std::max(1, (nz + 3) / 4 + (nz + 2) / 4);
+                    return id;
+                }
                 std::vector<int> deps;
                 for (Tree b : V) {
                     if (!isZero(b)) {
@@ -4057,6 +4292,14 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         for (Tree l = L; isList(l); l = tl(l)) {
             prescan(hd(l), seen);
         }
+    }
+
+    // 0-bis. the matrix form : detect the families ON THE EMITTED LIST
+    // (same trees the walk will see -- hash-consing makes the plan's keys
+    // pointer-exact). The row-op regime is gated while experimental.
+    if (getenv("FAUST_MATRIX_ROWOP")) {
+        fMatrix = revealMatrix(L);
+        fRowOp  = !fMatrix.families.empty();
     }
 
     // 1-2. the partition (materialization, reference graph, blocks).
@@ -4750,6 +4993,8 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     for (int b = 0; b < fSN.blockCount(); b++) {
         int lo = (int)fOps.size();
         fOpOf.clear();  // tls temporaries are loop-scoped
+        fMatGather.clear();
+        fMatResolved.clear();
         fCurReadStreams.clear();
         fCurWriteStreams.clear();
         fCurRotDepth.clear();
@@ -4784,6 +5029,8 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             }
             int lo = (int)fOps.size();
             fOpOf.clear();
+            fMatGather.clear();
+            fMatResolved.clear();
             fCurReadStreams.clear();
             fCurWriteStreams.clear();
             fCurRotDepth.clear();
@@ -4862,6 +5109,13 @@ void LoopSplitEmitter::emitLoop(std::ostringstream& out, int lo, int hi)
         for (int d = 1; d <= rot.second; d++) {
             out << "\n\t\t\t" << (fIsInt[rot.first] ? "int" : ifloat()) << " wr" << rot.first
                 << "d" << d << " = " << fBufName[rot.first] << "[" << (fMaxD[rot.first] - d)
+                << "];";
+        }
+    }
+    for (const auto& d : fMatDecls) {
+        // operand vectors of the matrix families gathered in this span
+        if (d.first >= lo && d.first < hi) {
+            out << "\n\t\t\t" << ifloat() << " " << d.second.first << "[" << d.second.second
                 << "];";
         }
     }

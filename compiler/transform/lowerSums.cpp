@@ -102,7 +102,7 @@ Tree rebuildRow(const Row& row)
 // synthesized butterfly atoms : placeholder -> (left, right, isAdd)
 static std::map<Tree, std::tuple<Tree, Tree, bool>, treeorder> gSynth;
 
-Tree lowerSums(Tree L)
+Tree lowerSums(Tree L, const std::set<Tree>* keep)
 {
     gSynth.clear();
     // ---- collect the distinct Sum nodes and their signed rows
@@ -124,7 +124,7 @@ Tree lowerSums(Tree L)
                 }
                 continue;
             }
-            if (tvec subs; isSigSum(t, subs)) {
+            if (tvec subs; isSigSum(t, subs) && !(keep && keep->count(t))) {
                 Row row;
                 for (Tree s : subs) {
                     row.push_back(atomOf(s));
