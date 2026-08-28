@@ -5013,9 +5013,19 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                            false, fIsInt[m]);
             fStoreOf[m] = st;
         }
-        for (auto& q : outPlans) {
-            if (!q.placed && q.home == b && adoptOutput(q, lo, b)) {
-                q.placed = true;
+        // output adoption is OPT-IN (-ls-adopt) : the campaign that
+        // followed its unconditional landing measured x1.26-1.83 fusion
+        // regressions on ten programs (six bells, wfs, drums, djembe,
+        // modularInterp) -- two extra output stores in a large host
+        // flipped clang's vectorization of the whole body -- against a
+        // single -2% win (statespace fibfu, a non-elected lane). The
+        // oracle that accepted it prices registers and slots, not
+        // clang's SLP moods : the urns arbitrate instead.
+        if (gGlobal->gLSAdopt || getenv("FAUST_LS_ADOPT")) {
+            for (auto& q : outPlans) {
+                if (!q.placed && q.home == b && adoptOutput(q, lo, b)) {
+                    q.placed = true;
+                }
             }
         }
         int hi = (int)fOps.size();
@@ -5037,7 +5047,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             fCurRotDepth.clear();
             buildOutput(outPlans[k], -1);
             outPlans[k].placed = true;
-            if (gGlobal->gLSFuse) {
+            if (gGlobal->gLSFuse && (gGlobal->gLSAdopt || getenv("FAUST_LS_ADOPT"))) {
                 for (size_t j = k + 1; j < outPlans.size(); j++) {
                     if (!outPlans[j].placed && adoptOutput(outPlans[j], lo, -1)) {
                         outPlans[j].placed = true;

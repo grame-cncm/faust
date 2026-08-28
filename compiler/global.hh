@@ -333,6 +333,8 @@ struct global {
     int  gLSWidth;         // -ls-U option: superscalar width for the model scheduler (default 4)
     bool gLSFuse;          // -ls-fuse option: greedy single-consumer fusion of the super-node
                            // partition before emission
+    bool gLSAdopt;         // -ls-adopt option: outputs join their producing block's loop
+                           // (opt-in : measured x1.26-1.83 against on ten fusion lanes)
     int  gLSFuseOps;       // -ls-fuse-ops option: compile-time guard on fused-block op count
     int  gMinDelay;        // -mindelay option (ocpp, experimental): SEMANTIC delay floor --
                            // large variable delays (certified dmin < K, dmax >= 32*K) get a real

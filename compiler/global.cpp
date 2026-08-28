@@ -455,6 +455,7 @@ void global::reset()
     gLSRegisters    = 20;
     gLSWidth        = 4;
     gLSFuse         = false;
+    gLSAdopt        = false;
     gLSFuseOps      = 1024;
     gMinDelay       = 0;
     gLSCl           = 20;
@@ -1695,6 +1696,10 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-ls-fuse", "--loop-split-fuse")) {
             gLSFuse    = true;
             gLoopSplit = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-ls-adopt", "--loop-split-adopt-outputs")) {
+            gLSAdopt   = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-ls-fuse-ops", "--loop-split-fuse-ops")) {
