@@ -45,12 +45,6 @@ def main() -> None:
         print(e)
         return
 
-    if err:
-        _ = driver.stop()
-        dsp.unsafe_free()
-        print(err)
-        return
-
     err = wait_stdin()
     if err:
         _ = driver.stop()

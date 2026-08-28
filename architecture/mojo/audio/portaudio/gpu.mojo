@@ -2,11 +2,7 @@
 
 from conf import *
 from dsp import FaustDsp
-from gpu.device import (
-    FaustGpuDevice,
-    create_gpu_runtime,
-    FAUST_GPU_ALLOCATION_ERROR
-)
+from gpu import *
 from .ffi import *
 from .portaudio import *
 
@@ -74,9 +70,9 @@ struct PortAudioGpu[Dsp: FaustDsp]:
                 return out_info_err
             out_latency = out_info.unsafe_value()[].default_low_output_latency
 
-        var state: OptPtr[FaustGpuDevice[Self.Dsp], MUT_NOTRK] = unsafe_alloc[
-            FaustGpuDevice[Self.Dsp]
-        ](1)
+        var state: OptPtr[
+            FaustGpuDevice[Self.Dsp], MUT_NOTRK
+        ] = unsafe_alloc[FaustGpuDevice[Self.Dsp]](1)
         if state == None:
             return FAUST_GPU_ALLOCATION_ERROR
 
@@ -124,11 +120,9 @@ struct PortAudioGpu[Dsp: FaustDsp]:
             var err = pa_stop_stream(driver.stream)
             if err:
                 return err
-
             err = pa_close_stream(driver.stream)
             if err:
                 return err
-
             driver.stream = NULL_STREAM
 
         driver._release_state()
@@ -138,7 +132,6 @@ struct PortAudioGpu[Dsp: FaustDsp]:
     def _release_state(mut driver) -> None:
         if driver.state == None:
             return
-
         var state = driver.state.unsafe_value()
         state.unsafe_deinit_pointee()
         state.unsafe_free()
@@ -146,10 +139,10 @@ struct PortAudioGpu[Dsp: FaustDsp]:
 
 
 def gpu_open_stream[Dsp: FaustDsp](
-    var in_param: PaStreamParameters,
-    var out_param: PaStreamParameters,
-    sample_rate: S32,
-    state: Ptr[FaustGpuDevice[Dsp]]
+    var in_param:     PaStreamParameters,
+    var out_param:    PaStreamParameters,
+    var sample_rate:  S32,
+    var state:        Ptr[FaustGpuDevice[Dsp]]
 ) -> Tuple[PaStream, S32]:
     var stream = NULL_STREAM
     var ptr_in = NULL_PTR[PaStreamParameters, IMM_NOTRK]
@@ -180,12 +173,12 @@ def gpu_open_stream[Dsp: FaustDsp](
 
 
 def gpu_callback[Dsp: FaustDsp](
-    input: OptPtr[Void, IMM_NOTRK],
-    output: OptPtr[Void, MUT_NOTRK],
-    count: PaULong,
-    time: OptPtr[PaStreamCallbackTimeInfo, IMM_NOTRK],
-    flags: PaStreamCallbackFlags,
-    data: OptPtr[Void, MUT_NOTRK]
+    input:   OptPtr[Void, IMM_NOTRK],
+    output:  OptPtr[Void, MUT_NOTRK],
+    count:   PaULong,
+    time:    OptPtr[PaStreamCallbackTimeInfo, IMM_NOTRK],
+    flags:   PaStreamCallbackFlags,
+    data:    OptPtr[Void, MUT_NOTRK]
 ) -> S32:
     if data == None:
         return PA_ABORT
@@ -198,13 +191,9 @@ def gpu_callback[Dsp: FaustDsp](
         if input == None:
             return PA_ABORT
 
-        var inputs = input.unsafe_value().unsafe_bitcast[
-            Ptr[FaustFloat, IMM_NOTRK]
-        ]()
+        var inputs = input.unsafe_value().unsafe_bitcast[Ptr[FaustFloat, IMM_NOTRK]]()
         for channel in range(state[].n_ins):
-            if state[].enqueue_input(
-                channel, inputs[unsafe_offset=channel]
-            ):
+            if state[].enqueue_input(channel, inputs[unsafe_offset=channel]):
                 return PA_ABORT
 
     if state[].enqueue_compute():
@@ -214,13 +203,9 @@ def gpu_callback[Dsp: FaustDsp](
         if output == None:
             return PA_ABORT
 
-        var outputs = output.unsafe_value().unsafe_bitcast[
-            Ptr[FaustFloat, MUT_NOTRK]
-        ]()
+        var outputs = output.unsafe_value().unsafe_bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
         for channel in range(state[].n_outs):
-            if state[].enqueue_output(
-                channel, outputs[unsafe_offset=channel]
-            ):
+            if state[].enqueue_output(channel, outputs[unsafe_offset=channel]):
                 return PA_ABORT
 
     if state[].synchronize():
