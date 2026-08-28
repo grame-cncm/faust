@@ -709,9 +709,9 @@ interp1:
 #########################################################################
 # Mojo backend
 mojo:
-	# $(MAKE) -f Make.mojo outdir=mojo/float  lang=mojo arch=mojo/impulse.mojo FAUSTOPTIONS="-I dsp -single"
-	# $(MAKE) -f Make.mojo outdir=mojo/double  lang=mojo  arch=mojo/impulse.mojo  FAUSTOPTIONS="-I dsp -double"
-	$(MAKE) -f Make.mojo outdir=mojo/vec4    lang=mojo  arch=mojo/impulse.mojo  FAUSTOPTIONS="-I dsp -double -vec -vs 4"
+	# $(MAKE) -f Make.mojo outdir=mojo/float lang=mojo arch=mojo/impulse.mojo FAUSTOPTIONS="-I dsp -single"
+	# $(MAKE) -f Make.mojo outdir=mojo/double lang=mojo arch=mojo/impulse.mojo FAUSTOPTIONS="-I dsp -double" MOJOBUILDOPTIONS-O3="-D DFAUST=DType.float64""
+	$(MAKE) -f Make.mojo outdir=mojo/vec4 lang=mojo arch=mojo/impulse.mojo FAUSTOPTIONS="-I dsp -double -vec -vs 4" MOJOBUILDOPTIONS="-O3 -D DFAUST=DType.float32"
 
 #########################################################################
 # Rust backend

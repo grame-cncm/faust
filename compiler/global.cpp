@@ -1042,10 +1042,11 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
     bool internal_math_ff = (
         startWith(gOutputLang, "wast")   || startWith(gOutputLang, "jsfx")    ||
         startWith(gOutputLang, "wasm")   || startWith(gOutputLang, "codebox") ||
-        startWith(gOutputLang, "cmajor") || isPythonBackend();                ||
+        startWith(gOutputLang, "cmajor") || isPythonBackend()                 ||
         gOutputLang == "interp" || gOutputLang == "dlang"  || gOutputLang == "jax"    ||
         gOutputLang == "rust"   || gOutputLang == "julia"  || gOutputLang == "csharp" ||
-        gOutputLang == "mojo"   || gOutputLang == "asc")   || gOutputLang == "llvm"
+        gOutputLang == "mojo"   || gOutputLang == "asc"    || gOutputLang == "llvm"
+    );
 
     return (internal_math_ff &&
             (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) ||

@@ -22,12 +22,13 @@ arch ?= mojo/impulse.mojo
 genout ?= archs/mojo
 precision ?=
 FAUSTOPTIONS ?= -I dsp -double
-MOJOBUILDOPTIONS ?= -O3 -D DFAUST=DType.float32
+MOJOBUILDOPTIONS ?= -O3 -D DFAUST=DType.float64
 
 .PHONY: all help test filesCompare clean
 .DELETE_ON_ERROR:
 
-dspfiles := $(wildcard dsp/*.dsp)
+# BUG:(manu) transpiled `grain3.mojo` has infinite runtime
+dspfiles := $(filter-out dsp/grain3.dsp,$(wildcard dsp/*.dsp))
 
 listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 

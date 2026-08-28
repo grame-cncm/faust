@@ -33,7 +33,7 @@ def main() -> None:
     dsp[] = mydsp()
     dsp[].init(SAMP_RATE)
     var driver = PortAudio()
-    err = driver.init()
+    var err = driver.init()
     if err:
         print(err)
         dsp.unsafe_free()

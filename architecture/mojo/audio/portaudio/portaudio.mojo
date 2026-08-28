@@ -25,7 +25,7 @@ struct PortAudio(FaustAudio):
 
     @always_inline
     def init(mut driver) -> S32:
-        err = pa_initialize()
+        var err = pa_initialize()
         if err:
             return err
         driver.alive = True
@@ -38,7 +38,7 @@ struct PortAudio(FaustAudio):
         if driver.stream == None:
             return FAUST_STOPPED_NOT_ALIVE
 
-        err = pa_stop_stream(driver.stream)
+        var err = pa_stop_stream(driver.stream)
         if err:
             return err
         err = pa_close_stream(driver.stream)
@@ -55,22 +55,26 @@ struct PortAudio(FaustAudio):
         if not driver.alive:
             return PA_NOT_INITIALIZED
 
-        in_device = pa_get_default_input_device()
+        var in_device = pa_get_default_input_device()
         if (in_device < 0):
             return FAUST_NO_DEFAULT_IN_DEVICE
-        out_device = pa_get_default_output_device()
+        var out_device = pa_get_default_output_device()
         if (out_device < 0):
             return FAUST_NO_DEFAULT_OUT_DEVICE
+
+        var err: S32
+        var in_device_info: OptPtr[PaDeviceInfo, IMM_NOTRK]
+        var out_device_info: OptPtr[PaDeviceInfo, IMM_NOTRK]
 
         in_device_info, err = faust_get_device_info(in_device)
         if err:
             return err
-        in_latency = in_device_info.unsafe_value()[].default_low_input_latency
+        var in_latency = in_device_info.unsafe_value()[].default_low_input_latency
 
         out_device_info, err = faust_get_device_info(out_device)
         if err:
             return err
-        out_latency = out_device_info.unsafe_value()[].default_low_output_latency
+        var out_latency = out_device_info.unsafe_value()[].default_low_output_latency
 
         var n_ins = dsp[].get_num_inputs()
         var m_outs = dsp[].get_num_outputs()
@@ -163,7 +167,7 @@ def faust_open_stream[Dsp: FaustDsp](
     if out_param.channel_count != 0:
         ptr_out = Ptr(to=out_param).unsafe_mut_cast[False]().unsafe_origin_cast[IMM_NOTRK]()
 
-    err = pa_open_stream(
+    var err = pa_open_stream(
         Ptr(to=stream).unsafe_origin_cast[MUT_NOTRK](),
         ptr_in,
         ptr_out,
