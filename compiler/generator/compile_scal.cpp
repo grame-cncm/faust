@@ -5972,8 +5972,27 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
             gGlobal->gSTEP++;
         }
 
+        std::map<Tree, int, treeorder> firstChan;
         for (int i = 0; isList(L); L = tl(L), i++) {
             Tree s = hd(L);
+            if (auto dup = firstChan.find(s);
+                dup != firstChan.end() && !getenv("FAUST_NO_OUTPUT_SPLIT")) {
+                // THE DUPLICATE-CHANNEL LAW (the bells dig) : storing the
+                // SAME value to two arrays in one loop body poisons
+                // clang's SLP vectorization of the WHOLE body -- the
+                // stereo idiom output0[i] = output1[i] = mix cost the
+                // modal banks their SIMD (englishBell under its elected
+                // options : 36.9 -> 16.3 ns once split, x2.26). Value
+                // identity is the trigger (different values are fine, a
+                // +0.0f relay folds back and stays poisoned), so the
+                // duplicate channels LEAVE the loop : a trivial copy
+                // loop after it, reading the first channel back.
+                fClass->addZone3Post(subst(
+                    "for (int k=0; k<count; k++) output$0[k] = output$1[k];", T(i),
+                    T(dup->second)));
+                continue;
+            }
+            firstChan[s] = i;
             fClass->addExecCode(Statement("", subst("output$0[i] = $2($1);  // Zone Exec Code",
                                                     T(i), generateCacheCode(s, CS(s)), xcast())));
         }
