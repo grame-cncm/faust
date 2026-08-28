@@ -1,5 +1,6 @@
 #include "factorizeFIRs.hh"
 
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <iostream>
@@ -92,6 +93,34 @@ static bool isSlowFactor(Tree t)
         return sigs::sigOrder(ri) <= 2;
     }
     return false;
+}
+
+// content pivot with EXACT division : k is the smallest non-zero |ratio|
+// (so the pivot residue is a UNIT by construction) ; accepted only when
+// every ratio divides by k exactly in double (bit-reconstructible), so
+// the rewrite never changes a single sample -- powers of two, halves,
+// integer families all pass ; anything that would round is refused.
+static double contentPivot(const std::vector<double>& ratio)
+{
+    double k = 0.0;
+    for (double r : ratio) {
+        double a = std::fabs(r);
+        if (a > 0.0 && (k == 0.0 || a < k)) {
+            k = a;
+        }
+    }
+    if (k == 0.0 || k == 1.0) {
+        return 0.0;
+    }
+    for (double r : ratio) {
+        if (r != 0.0) {
+            double q = r / k;
+            if (q * k != r) {
+                return 0.0;  // inexact division : no extraction
+            }
+        }
+    }
+    return k;
 }
 
 // numeric ratio as the smallest faithful tree
@@ -226,6 +255,26 @@ static Tree classify(const tvec& coef)
                 rc.push_back(isZero(coef[i]) ? coef[i] : ratioTree(ratio[i]));
             }
             return sigMul(u, spellDense(x, rc, lo, hi));
+        }
+        // ALL-NUMERIC kernels : extract the numeric content when the
+        // division is EXACT (contentPivot) -- the pivot residue is a
+        // unit, the rewrite is bit-exact (ring-exact in int, verified
+        // reconstruction in float), and the primitive kernel is shared
+        // by hash-consing across extractions (statespace : the impulse
+        // ramps FIR[x, i, -i], i = 1..4, collapse onto ONE shared
+        // FIR[x, 1, -1]). No cycle : rule 3 never absorbs into a
+        // shared numeric kernel, and the pivot bans k == 1.
+        if (allNumeric && nz >= 2) {
+            std::vector<double> rr(ratio.begin() + 1, ratio.begin() + int(coef.size()));
+            double              g = contentPivot(rr);
+            if (g != 0.0) {
+                tvec rc;
+                rc.push_back(x);
+                for (size_t i = 1; i < coef.size(); i++) {
+                    rc.push_back(isZero(coef[i]) ? coef[i] : ratioTree(ratio[i] / g));
+                }
+                return sigMul(ratioTree(g), spellDense(x, rc, lo, hi));
+            }
         }
     }
     return spellDense(x, coef, lo, hi);
