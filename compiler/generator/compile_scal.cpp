@@ -4649,8 +4649,103 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         fClass->addZone3Post("fLSIota += count;");
     }
 
+    // ---- output placement : under fusion, outputs are ordinary
+    // candidates rather than one pinned loop per channel (the
+    // state-space lesson : the pinned C rows sat at 43% occupancy,
+    // re-reading the same streams once per channel). Each output gets a
+    // HOME block -- the one producing most of the member streams it
+    // reads -- and joins that block's loop when the machine model
+    // accepts the pressure ; the leftovers merge with each other under
+    // the same rule. Without -ls-fuse the former one-loop-per-channel
+    // behaviour is kept (the plain split stays the reference).
+    struct OutPlan {
+        Tree expr;
+        int  chan;
+        int  home;
+        bool placed;
+    };
+    std::vector<OutPlan> outPlans;
+    {
+        int i = 0;
+        for (Tree l1 = L; isList(l1); l1 = tl(l1), i++) {
+            int home = -1;
+            if (gGlobal->gLSFuse) {
+                std::set<Tree>            seen;
+                std::map<int, int>        byBlock;
+                std::function<void(Tree)> rec = [&](Tree u) {
+                    if (!seen.insert(u).second) {
+                        return;
+                    }
+                    int ix = fSN.indexOf(u);
+                    if (ix >= 0) {
+                        byBlock[fSN.blockOf((fAliasIx[ix] >= 0) ? fAliasIx[ix] : ix)]++;
+                        return;
+                    }
+                    Tree var, body;
+                    if (isRec(u, var, body)) {
+                        if (body) {
+                            rec(body);
+                        }
+                        return;
+                    }
+                    for (int k = 0; k < u->arity(); k++) {
+                        rec(u->branch(k));
+                    }
+                };
+                rec(hd(l1));
+                // the LEGAL home is the LAST producing block : adopted
+                // there, every stream the output reads -- at any delay --
+                // has already been written this chunk (an earlier-block
+                // home would read the previous chunk : bells/karplus32
+                // caught it at the gate)
+                for (auto& [b2, nn] : byBlock) {
+                    (void)nn;
+                    if (b2 > home) {
+                        home = b2;
+                    }
+                }
+            }
+            outPlans.push_back({hd(l1), i, home, false});
+        }
+        faustassert(i == nouts);
+    }
+    // the unconditional build of one output's ops in the current range
+    auto buildOutput = [&](OutPlan& q, int curScc) {
+        fCurWriteStreams.insert(-2000 - q.chan);
+        Operand          root = walk(q.expr, curScc, false);
+        std::vector<int> deps;
+        addDep(deps, root);
+        newOp(subst("output$0[i] = $2$1;", T(q.chan), operandCode(root), xcast()), deps, true,
+              false, false);
+    };
+    // tentative adoption : build, ask the model, roll back on refusal
+    auto adoptOutput = [&](OutPlan& q, int lo, int curScc) -> bool {
+        auto savedReads  = fCurReadStreams;
+        auto savedWrites = fCurWriteStreams;
+        auto savedRot    = fCurRotDepth;
+        int  lo2         = (int)fOps.size();
+        buildOutput(q, curScc);
+        int  cycles = 0, peak = 0;
+        long overR = 0;
+        modelSchedule(fOps, lo, (int)fOps.size(), gGlobal->gLSRegisters, gGlobal->gLSWidth,
+                      &cycles, &overR, &peak);
+        if (overR == 0) {
+            return true;  // the model absorbs it : adopted
+        }
+        // rollback : the merged body would spill
+        fOps.resize(lo2);
+        for (auto it = fOpOf.begin(); it != fOpOf.end();) {
+            it = (it->second >= lo2) ? fOpOf.erase(it) : std::next(it);
+        }
+        fCurReadStreams  = savedReads;
+        fCurWriteStreams = savedWrites;
+        fCurRotDepth     = savedRot;
+        return false;
+    };
+
     // 4. loop bodies, one per block, in dependencies-first order (members
-    // already come in instantaneous-dependency order)
+    // already come in instantaneous-dependency order) ; each block then
+    // adopts the outputs it is home to, if the model accepts
     std::ostringstream loops;
     for (int b = 0; b < fSN.blockCount(); b++) {
         int lo = (int)fOps.size();
@@ -4672,30 +4767,37 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                            false, fIsInt[m]);
             fStoreOf[m] = st;
         }
+        for (auto& q : outPlans) {
+            if (!q.placed && q.home == b && adoptOutput(q, lo, b)) {
+                q.placed = true;
+            }
+        }
         int hi = (int)fOps.size();
         emitLoop(loops, lo, hi);
     }
 
-    // 5. output loops
+    // 5. leftover output loops : merged greedily while the model accepts
     {
-        int  i  = 0;
-        Tree l1 = L;
-        for (; isList(l1); l1 = tl(l1), i++) {
+        for (size_t k = 0; k < outPlans.size(); k++) {
+            if (outPlans[k].placed) {
+                continue;
+            }
             int lo = (int)fOps.size();
             fOpOf.clear();
             fCurReadStreams.clear();
             fCurWriteStreams.clear();
             fCurRotDepth.clear();
-            fCurWriteStreams.insert(-2000 - i);  // the output channel
-            Operand root = walk(hd(l1), -1, false);
-            std::vector<int> deps;
-            addDep(deps, root);
-            newOp(subst("output$0[i] = $2$1;", T(i), operandCode(root), xcast()), deps, true,
-                  false, false);
-            int hi = (int)fOps.size();
-            emitLoop(loops, lo, hi);
+            buildOutput(outPlans[k], -1);
+            outPlans[k].placed = true;
+            if (gGlobal->gLSFuse) {
+                for (size_t j = k + 1; j < outPlans.size(); j++) {
+                    if (!outPlans[j].placed && adoptOutput(outPlans[j], lo, -1)) {
+                        outPlans[j].placed = true;
+                    }
+                }
+            }
+            emitLoop(loops, lo, (int)fOps.size());
         }
-        faustassert(i == nouts);
     }
 
     fClass->addZone3(loops.str());
