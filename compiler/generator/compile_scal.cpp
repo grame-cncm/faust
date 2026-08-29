@@ -7623,6 +7623,11 @@ DelayType ScalarCompiler::analyzeDelayTypeAux(Tree sig)
         // The mono election, in three stages of decreasing comfort. A state
         // of depth 1 can live in one scalar iff every read of its OLD value
         // is emitted before its write.
+        if (getenv("FAUST_NO_MONO")) {
+            // forensic kill-switch : fall back to the order-robust
+            // [2]-vector spelling
+            return DelayType::kSingleDelay;
+        }
         if (hasKernelDelayedTap(sig)) {
             // a kernel reads the old value through an internal tap : that
             // read is inseparable from the kernel's tap 0, so it can never
@@ -7890,8 +7895,9 @@ void ScalarCompiler::censusAdjacentReads(Tree L)
 
 /**
  * Adjacent-pair collapse, refresh side : at the end of every loop body the
- * carried scalars shift, HIGHEST delay first (a chain d+2, d+1 must move
- * before its source is overwritten). Runs after the whole schedule
+ * carried scalars shift, HIGHEST delay first in the EMITTED text (a chain
+ * d+2, d+1 must move before its source is overwritten -- and postcode is
+ * a stack, so the append order is the reverse). Runs after the whole schedule
  * compiled, so every source variable exists ; iteration follows CREATION
  * order (the schedule's), never a pointer-keyed map -- determinism.
  * The IOTA increment is itself an earlier post statement, so the memory
@@ -7912,8 +7918,14 @@ void ScalarCompiler::emitAdjacentUpdates()
                 hs.push_back(&h);
             }
         }
+        // addPostCode STACKS (push_front, printed in reverse of addition) :
+        // append lowest delay first so the EMITTED order is highest first,
+        // each link reading its source before that source's own refresh.
+        // Appending highest first emits the chain reversed and the fresh
+        // value floods every carried scalar (guitarix : the 133-tap
+        // cabinet convolution collapsed onto its most recent samples).
         std::sort(hs.begin(), hs.end(),
-                  [](const AdjHigh* a, const AdjHigh* b) { return a->d > b->d; });
+                  [](const AdjHigh* a, const AdjHigh* b) { return a->d < b->d; });
         for (const AdjHigh* h : hs) {
             std::string src;
             for (const auto& hh : fAdjHighs) {
