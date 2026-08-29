@@ -3647,6 +3647,23 @@ class LoopSplitEmitter {
             return order;
         }
         // model: the pressure-aware list scheduler
+        if (getenv("FAUST_GROUP_STICKY")) {
+            // sticky-shape probe : digit-erased codes as shapes, span-local
+            std::vector<std::string> shapes(hi - lo);
+            for (int k = lo; k < hi; k++) {
+                std::string sh;
+                sh.reserve(fOps[k].code.size());
+                for (char ch : fOps[k].code) {
+                    if (!isdigit((unsigned char)ch)) {
+                        sh += ch;
+                    }
+                }
+                shapes[k - lo] = std::move(sh);
+            }
+            order = modelSchedule(fOps, lo, hi, gGlobal->gLSRegisters, gGlobal->gLSWidth,
+                                  nullptr, nullptr, nullptr, &shapes);
+            return order;
+        }
         order = modelSchedule(fOps, lo, hi, gGlobal->gLSRegisters, gGlobal->gLSWidth, nullptr,
                               nullptr);
         return order;
@@ -3662,7 +3679,8 @@ class LoopSplitEmitter {
      */
     static std::vector<int> modelSchedule(const std::vector<LSOp>& ops, int lo, int hi, int R,
                                           int U, int* cyclesOut, long* overROut,
-                                          int* peakOut = nullptr)
+                                          int* peakOut = nullptr,
+                                          const std::vector<std::string>* shapes = nullptr)
     {
         const int        RCALLEE = 8;
         int              n       = hi - lo;
@@ -3745,6 +3763,15 @@ class LoopSplitEmitter {
                     // while more than RCALLEE values are live
                     if (ops[lo + k].isCall && live > RCALLEE) {
                         score -= 500000;
+                    }
+                    // STICKY-SHAPE probe (spec LE-GROUPEMENT-HIERARCHIQUE,
+                    // question 1) : a mid-order affinity for the last
+                    // emitted op's shape -- does DECLARED adjacency pay in
+                    // the completion ? Below the 1000-scale regime terms,
+                    // above the freed tie-breaks.
+                    if (shapes && !order.empty() &&
+                        (*shapes)[k] == (*shapes)[order.back() - lo]) {
+                        score += 500;
                     }
                     if (score > bestScore) {
                         bestScore = score;
