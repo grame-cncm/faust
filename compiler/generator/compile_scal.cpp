@@ -794,6 +794,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     SERIAL_PROBE("entree-prepare")
     startTiming("prepare");
     Tree L1 = simplifyToNormalForm(LS);
+    SERIAL_PROBE("apres-normalform")
 
     // dump normal form
     if (gGlobal->gDumpNorm == 0) {
@@ -809,6 +810,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     }
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);
+    SERIAL_PROBE("apres-constprop")
 
     // selectN census (FAUST_SELECTN_CENSUS=1) : how many select2 chains
     // or trees share a COMMON selector expression -- the spellings of a
@@ -1121,15 +1123,20 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("Sum revealer");
             L2 = revealSum(L2);
             endTiming("Sum revealer");
+            SERIAL_PROBE("apres-revealSum")
             startTiming("FIR revealer");
             L2 = revealFIR(L2);
             endTiming("FIR revealer");
+            SERIAL_PROBE("apres-revealFIR")
             startTiming("IIR revealer");
             L2 = revealIIR(L2);
             endTiming("IIR revealer");
+            SERIAL_PROBE("apres-revealIIR")
             startTiming("FIR factorizer");
             L2 = factorizeFIRs(L2);
+            SERIAL_PROBE("apres-factorize")
             L2 = kernelCandidacy(L2);  // the retiming law, per site
+            SERIAL_PROBE("apres-candidacy")
             if (getenv("FAUST_MATRIX_CENSUS")) {
                 revealMatrix(L2);  // analysis only : the fourth gathering's census
             }
@@ -1298,8 +1305,10 @@ Tree ScalarCompiler::prepare(Tree LS)
                         keepRows.insert(row);
                     }
                 }
+                SERIAL_PROBE("apres-revealMatrix")
                 L2 = lowerSums(L2, keepRows.empty() ? nullptr : &keepRows);
                 endTiming("Sum lowering");
+                SERIAL_PROBE("apres-lowerSums")
             }
         };  // fin du lambda reveal (-fir)
         pthread_attr_t attr;
