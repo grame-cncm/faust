@@ -96,6 +96,8 @@ class Klass {
     property<Loop*> fLoopProperty;  ///< loops used to compute some signals
 
     bool fVec;
+    bool fBlockBound = false;  ///< some emitted structure (dense delay window) is only
+                               ///< valid for count <= gVecSize : compute must chunk
 
    public:
     Klass(const std::string& name, const std::string& super, int numInputs, int numOutputs,
@@ -195,6 +197,10 @@ class Klass {
     void addZone2c(const std::string& str) { fZone2cCode.push_back(str); }
     void addZone3(const std::string& str) { fZone3Code.push_back(str); }
     void addZone3Post(const std::string& str) { fZone3Post.push_back(str); }
+
+    // declare that some emitted structure requires count <= gVecSize
+    // (the compute skeleton must then process the buffer in chunks)
+    void setBlockBound() { fBlockBound = true; }
     void addZone4(const std::string& str) { fZone4Code.push_back(str); }
 
     void addPreCode(const Statement& stmt) { fTopLoop->addPreCode(stmt); }

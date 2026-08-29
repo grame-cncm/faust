@@ -1288,7 +1288,12 @@ void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
             }
         }
     }
-    if (!gGlobal->gLoopSplit && !loopHasCall && !getenv("FAUST_CHUNKED")) {
+    // A block-bound class (dense delay window) is only correct for
+    // count <= gVecSize : it must keep the chunked skeleton whatever
+    // the other criteria say (the flat form fed kFrames=64 walks the
+    // window pointer below its cache : garbage in float, crash in
+    // double).
+    if (!gGlobal->gLoopSplit && !loopHasCall && !fBlockBound && !getenv("FAUST_CHUNKED")) {
         tab(n + 1, fout);
         fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
         printlines(n + 2, fZone1Code, fout);

@@ -8719,6 +8719,10 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
 
         case DelayType::kDenseDelay:
 
+            // the window is anchored at Cache + gVecSize - 1 and walks one
+            // slot down per sample : only valid for count <= gVecSize, so
+            // the compute skeleton must chunk (never the flat variant)
+            fClass->setBlockBound();
             fClass->addDeclCode(subst("$0 \t$1State[$2]; // Dense Delay", ctype, vname, T(mxd)));
             fClass->addClearCode(
                 subst("for (int j = 0; j < $0; j++) { $1State[j] = 0; }", T(mxd), vname));
