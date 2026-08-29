@@ -723,7 +723,7 @@ static std::pair<Tree, Tree> splitMulSig(Tree sig)
  * @param sig the signal to add to M (addition, substraction, FIR or other)
  */
 
-void combine(std::map<Tree, Tree>& M, bool subflag, Tree sig)
+void combine(std::map<Tree, Tree, treeorder>& M, bool subflag, Tree sig)
 {
     if (Tree x, y; isSigAdd(sig, x, y)) {
         // if sig is an addition we combine its two subtrees with M
@@ -793,7 +793,14 @@ void combine(std::map<Tree, Tree>& M, bool subflag, Tree sig)
  */
 Tree combineFIRs(Tree x, Tree y, bool subflag)
 {
-    std::map<Tree, Tree> M;  // Map of all FIRs collected
+    // STRUCTURAL order (treeorder), never the default pointer order : this
+    // map is ITERATED to build the additive chain, so its order is the
+    // emitted term order -- with pointer keys it was the allocation order,
+    // i.e. the BINARY LAYOUT of the compiler build. Two builds of the same
+    // source commuted wrap sums, hash-consing then built different trees,
+    // different kernels formed, and latent bugs surfaced on some builds
+    // only (the guitarix crash roulette). The phantom of the campaigns.
+    std::map<Tree, Tree, treeorder> M;  // Map of all FIRs collected
 
     combine(M, false, x);    // We add x to M
     combine(M, subflag, y);  // We add or substract y to M

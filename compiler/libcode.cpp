@@ -284,6 +284,12 @@ static void createHelperFile(const string& outpath)
                                 MAIN
 *****************************************************************/
 
+
+#define SERIAL_PROBE_FE(tag)                                                            \
+    if (getenv("FAUST_SERIAL_PROBE")) {                                                 \
+        std::cerr << "SERIAL " << tag << " : " << CTree::serialCounter()                \
+                  << " seq=" << CTree::seqHash() << std::endl;                          \
+    }
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs)
 {
     startTiming("evaluation");
@@ -1310,7 +1316,9 @@ static void* expandDSPInternal(void* arg)
         *****************************************************************/
         int  numInputs;
         int  numOutputs;
+        SERIAL_PROBE_FE("avant-eval")
         Tree processTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+        SERIAL_PROBE_FE("apres-eval")
 
         stringstream out;
         expandDSPInternalAux(processTree, argc, argv, out);
@@ -1437,7 +1445,9 @@ static void* createFactoryAux1(void* arg)
         *****************************************************************/
         int  numInputs;
         int  numOutputs;
+        SERIAL_PROBE_FE("avant-eval")
         Tree processTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+        SERIAL_PROBE_FE("apres-eval")
         if (numOutputs == 0) {
             throw faustexception("ERROR : the Faust program has no output signal\n");
         }
@@ -1456,7 +1466,9 @@ static void* createFactoryAux1(void* arg)
         *****************************************************************/
         startTiming("propagation");
 
+        SERIAL_PROBE_FE("avant-propagate")
         Tree lsignals = boxPropagateSig(gGlobal->nil, processTree, makeSigInputList(numInputs));
+        SERIAL_PROBE_FE("apres-propagate")
 
         if (gGlobal->gDetailsSwitch) {
             cout << "output signals are : " << endl;

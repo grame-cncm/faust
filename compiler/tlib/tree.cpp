@@ -107,6 +107,7 @@ double       CTree::gHashLoadFactor  = 0.7;
 bool         CTree::gDetails        = false;
 unsigned int CTree::gVisitTime      = 0;
 size_t       CTree::gSerialCounter  = 0;
+size_t       CTree::gSeqHash        = 0;
 
 // Smallest prime >= n (trial division; only called on the rare rehash path)
 static size_t nextPrimeAtLeast(size_t n)
@@ -217,6 +218,7 @@ CTree::CTree(size_t hk, const Node& n, int ar, const Tree br[])
       fVisitTime(0),
       fBranch()
 {
+    gSeqHash = gSeqHash * 1000003u ^ fCanonHash;  // order-sensitive sequence probe
     if (ar > 0) {
         fBranch.assign(br, br + ar);
     }

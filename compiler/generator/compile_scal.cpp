@@ -786,6 +786,12 @@ static Tree gatequivNormalize(Tree L)
 
 Tree ScalarCompiler::prepare(Tree LS)
 {
+#define SERIAL_PROBE(tag)                                                      \
+    if (getenv("FAUST_SERIAL_PROBE")) {                                        \
+        std::cerr << "SERIAL " << tag << " : " << CTree::serialCounter()               \
+                  << " seq=" << CTree::seqHash() << std::endl;                            \
+    }
+    SERIAL_PROBE("entree-prepare")
     startTiming("prepare");
     Tree L1 = simplifyToNormalForm(LS);
 
@@ -1312,6 +1318,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         pthread_attr_destroy(&attr);
     }
 
+    SERIAL_PROBE("apres-reveal")
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
     endTiming("conditionAnnotation");
@@ -1340,6 +1347,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         conditionAnnotation(L2);
         recursivnessAnnotation(L2);
     }
+    SERIAL_PROBE("avant-typing")
     startTiming("L2 typeAnnotation");
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");

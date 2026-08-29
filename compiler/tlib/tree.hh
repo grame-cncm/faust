@@ -161,6 +161,7 @@ class TLIB_API CTree : public Garbageable {
     static const std::size_t kInitialHashTableSize = 1009;  ///< initial size of the hash table (prime);
                                                              ///< grows as needed, see growHashTableIfNeeded
     static std::size_t   gSerialCounter;   ///< the serial number counter
+    static std::size_t   gSeqHash;         ///< rolling hash of the creation sequence
     static double        gHashLoadFactor; ///< load factor triggering table growth
     static std::size_t   gHashTableSize;   ///< current size of the hash table (grows as needed)
     static std::size_t   gHashTableCount;  ///< number of trees currently stored in the table
@@ -284,6 +285,8 @@ class TLIB_API CTree : public Garbageable {
     const tvec& branches() const { return fBranch; }  ///< return all branches (subtrees) of a tree
     std::size_t hashkey() const { return fHashKey; }  ///< return the hashkey of the tree
     std::size_t serial() const { return fSerial; }    ///< return the serial of the tree
+    static std::size_t serialCounter() { return gSerialCounter; }  ///< creation-sequence probe
+    static std::size_t seqHash() { return gSeqHash; }  ///< order-sensitive creation hash
     std::size_t canonHash() const { return fCanonHash; }  ///< structural value hash
     int         aperture() const
     {
