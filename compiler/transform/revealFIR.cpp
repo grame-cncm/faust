@@ -282,8 +282,13 @@ static Tree firRule(Tree sig)
         // std::cerr << "\nWe have a sum: " << ppsig(sig) << "\n";
         tvec subs;
         collectSigSumElements(subs, sig);
-        std::map<Tree, Tree> M;
-        std::vector<Tree>    L;
+        // treeorder, NOT pointer order : this map is ITERATED to build the
+        // output sum, so its order becomes term order becomes creation
+        // order downstream (serials, treeorder, lowerSums). Pointer order
+        // follows the binary layout -- the build-determinism phantom
+        // (combineFIRs had the same disease, same cure).
+        std::map<Tree, Tree, treeorder> M;
+        std::vector<Tree>               L;
         // 1 - combine FIRs and collect non-FIR elements
         for (Tree f : subs) {
             if (tvec coefs; isSigFIR(f, coefs)) {
