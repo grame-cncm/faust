@@ -85,6 +85,7 @@ consumers ; the library itself does not use it.)
 #include <sstream>
 
 #include "tlib-error.hh"
+#include <unordered_map>
 #include "tree.hh"
 
 using namespace std;
@@ -107,6 +108,44 @@ double       CTree::gHashLoadFactor  = 0.7;
 bool         CTree::gDetails        = false;
 unsigned int CTree::gVisitTime      = 0;
 size_t       CTree::gSerialCounter  = 0;
+
+// the pointer-canonical registry (see node.hh) : registered pointer
+// payloads hash by name, so canonical orderings never depend on the
+// binary layout. FNV-1a on the name : stable across builds and hosts.
+static std::unordered_map<const void*, std::size_t>& pointerCanonicalRegistry()
+{
+    static std::unordered_map<const void*, std::size_t> reg;
+    return reg;
+}
+std::size_t canonicalNameHash(const char* name)
+{
+    std::size_t h = 1469598103934665603ULL;
+    for (const char* c = name; *c; c++) {
+        h = (h ^ std::size_t(*c)) * 1099511628211ULL;
+    }
+    return h;
+}
+void setPointerCanonicalHash(const void* p, std::size_t h)
+{
+    // first registration wins (idempotent for repeated boxPrimN calls),
+    // and a monotonic counter is mixed in : registration order follows
+    // the program flow (deterministic), so hashes are BOTH stable across
+    // builds and UNIQUE per pointer -- name collisions ("prim2???" for
+    // every primitive the name chains do not know) would otherwise tie,
+    // and canonical-order ties fall back to pointer comparison, i.e.
+    // the binary layout.
+    static std::size_t gRegCounter = 0;
+    auto& reg = pointerCanonicalRegistry();
+    if (reg.find(p) == reg.end()) {
+        reg[p] = h ^ (++gRegCounter * 0x9e3779b97f4a7c15ULL);
+    }
+}
+const std::size_t* getPointerCanonicalHash(const void* p)
+{
+    auto& reg = pointerCanonicalRegistry();
+    auto  it  = reg.find(p);
+    return (it == reg.end()) ? nullptr : &it->second;
+}
 size_t       CTree::gSeqHash        = 0;
 
 // Smallest prime >= n (trial division; only called on the rare rehash path)
@@ -218,7 +257,15 @@ CTree::CTree(size_t hk, const Node& n, int ar, const Tree br[])
       fVisitTime(0),
       fBranch()
 {
-    gSeqHash = gSeqHash * 1000003u ^ fCanonHash;  // order-sensitive sequence probe
+    // order-sensitive sequence probe. Fold the NODE's own canonical
+    // content only : fCanonHash folds branch hashes, so any ancestor of
+    // a pointer-payload node (box primitives hash by ADDRESS, layout-
+    // dependent by design) would fake a divergence. Skip pointer nodes,
+    // fold node content -- the sequence of (kind, value) is exactly the
+    // creation order the serials record.
+    if (n.type() != kPointerNode) {
+        gSeqHash = gSeqHash * 1000003u ^ n.canonicalHash() ^ (std::size_t(ar) << 1);
+    }
     if (ar > 0) {
         fBranch.assign(br, br + ar);
     }

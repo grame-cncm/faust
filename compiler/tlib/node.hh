@@ -74,6 +74,14 @@ enum NodeType { kIntNode, kInt64Node, kDoubleNode, kSymNode, kPointerNode };
  * Class Node = (type x (int + double + Sym + void*))
  */
 
+/// The pointer-canonical registry (defined in tree.cpp) : a pointer payload
+/// whose NAME was registered at creation (box primitives register through
+/// primNname) hashes by that name -- value-derived, identical across builds.
+/// Unregistered pointers fall back to the address (never canonical).
+TLIB_API void               setPointerCanonicalHash(const void* p, std::size_t h);
+TLIB_API const std::size_t* getPointerCanonicalHash(const void* p);
+TLIB_API std::size_t        canonicalNameHash(const char* name);
+
 class Node : public Garbageable {
     int fType;
     union {
@@ -98,9 +106,11 @@ class Node : public Garbageable {
         return w;
     }
 
-    /// Value-derived hash, identical across processes : symbols hash by NAME. Pointer
-    /// payloads fall back to the pointer (non-canonical -- box primitives only, which
-    /// never enter the canonical orderings).
+    /// Value-derived hash, identical across processes : symbols hash by NAME ;
+    /// registered pointer payloads (box primitives) hash by their registered
+    /// name ; unregistered pointers fall back to the address (non-canonical --
+    /// they must never enter the canonical orderings, and their ancestors'
+    /// canonHash is contaminated : the build-determinism phantom lived there).
     std::size_t canonicalHash() const
     {
         std::size_t h = std::size_t(fType) * 0x9e3779b97f4a7c15ULL;
@@ -114,7 +124,12 @@ class Node : public Garbageable {
                 return h ^ b;
             }
             case kSymNode: return h ^ symbolHashKey(fData.s);
-            default: return h ^ std::size_t(reinterpret_cast<std::uintptr_t>(fData.p));
+            default: {
+                if (const std::size_t* r = getPointerCanonicalHash(fData.p)) {
+                    return h ^ *r;
+                }
+                return h ^ std::size_t(reinterpret_cast<std::uintptr_t>(fData.p));
+            }
         }
     }
     // constructors (assume size of field f is the biggest)

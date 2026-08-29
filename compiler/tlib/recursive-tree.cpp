@@ -458,6 +458,14 @@ static Tree deBruijn2SymCachedReady(Tree t)
  * structure, stable across passes and iterations (what a normalization fixpoint
  * needs). A 64-bit hash collision between structurally different groups would
  * surface as a recursive-variable redefinition (fatal redefinition).
+ * The hash is the node's cached canonHash. With the pointer-canonical
+ * registry (see node.hh) it is layout-free as long as every pointer
+ * payload is registered BEFORE its tree is created (the box primitives
+ * and the pattern matchers do). Replacing it with a recomputed traversal
+ * hash was tried and REVERTED : the member order inside a group and the
+ * group's name must be fixed points of one another, and changing the
+ * naming hash alone broke the idempotence of normalizeRecGroups on
+ * transversal merges (the standalone test caught it).
  */
 static Tree contentVar(Tree dbj)
 {
