@@ -7007,6 +7007,9 @@ Tree ScalarCompiler::harvestDisplay(Tree L)
 void ScalarCompiler::computeDisplayFrontier()
 {
     if (fDisplayList == nullptr || !isList(fDisplayList)) {
+        if (getenv("FAUST_FRONTIER_DEBUG")) {
+            std::cerr << "FRONTIER : pas de liste d'affichage" << std::endl;
+        }
         return;
     }
     std::set<Tree>    seenS, seenC, walked;
@@ -7034,7 +7037,16 @@ void ScalarCompiler::computeDisplayFrontier()
         }
         int  i;
         Tree x, y, g;
-        bool stateful = isProj(t, &i, g) || isSigDelay(t, x, y) || isSigPrefix(t, x, y);
+        tvec V;
+        // the STATEFUL parts of a display cone (the design of
+        // SIGNAUX-ATTACHES restated 2026-08-29) : projections, delays,
+        // prefixes -- and the FIR/IIR kernels, which carry the state of
+        // the delays they absorbed. Every stateful part is ROOTED (it
+        // joins the scheduling and marking lists ; the immediate graph
+        // then orders its whole cone, kernel sources included), and the
+        // stateless crown stays in the block-rate tail.
+        bool stateful = isProj(t, &i, g) || isSigDelay(t, x, y) || isSigPrefix(t, x, y) ||
+                        isSigFIR(t, V) || isSigIIR(t, V);
         if (stateful) {
             // the SCHEDULING root is the WRITER under the read : a delayed
             // read has no immediate edge to its writer, so rooting the
@@ -7054,15 +7066,28 @@ void ScalarCompiler::computeDisplayFrontier()
             continue;
         }
         if (!tailCarries(t)) {
-            // inputs, tables, generators... : computed in-loop, captured
+            // inputs, tables, generators... : computed in-loop, captured.
+            // The DESCENT CONTINUES below the capture : a captured node
+            // may sit above stateful parts (spectralLevel : fifteen
+            // octave-band kernels under the level computation), and only
+            // the frontier can root them -- stopping here left them to a
+            // schedule-less compilation referencing undeclared vectors.
             if (seenC.insert(t).second) {
                 fDisplayCapturePoints.push_back(t);
             }
-            continue;
         }
         for (int k = 0; k < t->arity(); k++) {
             work.push_back(t->branch(k));
         }
+    }
+    if (getenv("FAUST_FRONTIER_DEBUG")) {
+        int nbg = 0;
+        for (Tree l = fDisplayList; isList(l); l = tl(l)) {
+            nbg++;
+        }
+        std::cerr << "FRONTIER : " << nbg << " bargraphs, " << fDisplayStateful.size()
+                  << " racines a etat, " << fDisplayCapturePoints.size() << " captures"
+                  << std::endl;
     }
 }
 
@@ -8251,7 +8276,23 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
         if (!isZero(coefs[i]) && (int(i) < mnzc)) {
             mnzc = i;
         }
-        coefInitStream << CS(coefs[i]);
+        // numeric cells are spelled directly : CS's generateNumber
+        // consults an occurrence mark that fresh literals (the shifted
+        // kernels' leading zeros) never received (the DNN table lesson,
+        // paid again by guitarix's 133-tap table)
+        Tree    cf = coefs[i];
+        int     ci;
+        int64_t cl;
+        double  cr;
+        if (isSigInt(cf, &ci)) {
+            coefInitStream << T(ci);
+        } else if (isSigInt64(cf, &cl)) {
+            coefInitStream << T(cl);
+        } else if (isSigReal(cf, &cr)) {
+            coefInitStream << T(cr);
+        } else {
+            coefInitStream << CS(cf);
+        }
     }
     coefInitStream << "}";
     std::string coefInit   = coefInitStream.str();
