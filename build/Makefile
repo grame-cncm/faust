@@ -28,7 +28,7 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
-VERSION := 2.87.10
+VERSION := 2.87.11
 
 #===============================================================
 # current generator and backends
