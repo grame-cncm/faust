@@ -54,7 +54,7 @@ The white noise then corresponds to:
 process = noise * vslider("Volume[style:knob]", 0.0697, 0, 1, 0.1);
 
 <mdoc>
-Endly, the sound level of this program is controlled by a user slider, which gives the following equation:
+Finally, the sound level of this program is controlled by a user slider, which gives the following equation:
 <equation>process</equation>
 
 \section{Block-diagram schema of process}

@@ -7,7 +7,7 @@ import("stdfaust.lib");
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
-// OSC messages (see BELA console for precise adress)
+// OSC messages (see BELA console for precise address)
 // For each harmonics (%rang indicate harmonic number, starting at 0) :
 // vol%rang	: General Volume (vol0 control the volume of the fundamental)
 // A%rang : Attack

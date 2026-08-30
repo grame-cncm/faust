@@ -13,7 +13,7 @@ import("stdfaust.lib");
 // ...
 // ANALOG_7	: vol7
 //
-// OSC messages (see BELA console for precise adress)
+// OSC messages (see BELA console for precise address)
 // For each harmonics (%rang indicate harmonic number, starting at 0) :
 // A%rang : Attack
 // D%rang : Decay

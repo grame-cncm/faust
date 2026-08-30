@@ -22,7 +22,7 @@ import("stdfaust.lib");
 // ANALOG 6	: Reverberation Dry/Wet
 // ANALOG 7	: Reverberation Room size
 //
-// Available by OSC : (see BELA console for precise adress)
+// Available by OSC : (see BELA console for precise address)
 // Rate			: Chorus LFO modulation rate (Hz)
 // Deviation	: Chorus delay time deviation.
 //

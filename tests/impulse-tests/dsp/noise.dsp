@@ -25,7 +25,7 @@ noise   = random/2147483647.0;
 
 <mdoc>
 \subsection{Just add a user interface element to play volume!}
-Endly, the sound level of this program is controlled by a user slider, which gives the following equation: 
+Finally, the sound level of this program is controlled by a user slider, which gives the following equation: 
 <equation>process</equation>
 </mdoc>
 
