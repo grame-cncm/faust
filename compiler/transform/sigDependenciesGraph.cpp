@@ -1,7 +1,10 @@
 #include "sigDependenciesGraph.hh"
+
+#include "factorizeFIRs.hh"
 #include "ppsig.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
+#include "exception.hh"
 
 #undef TRACE
 /**
@@ -80,6 +83,50 @@ void SigDependenciesGraph::visit(Tree t)
             fGraph.add(t, x, 1);
         }
         self(x);
+    } else if (tvec V; isSigIIR(t, V)) {
+        // IIR[nil,X,C0=0,C1,...] : X and the non-zero coefficients are
+        // immediate dependencies ; the self-loop (full graph only) carries
+        // the delay of the first non-zero self-coefficient
+        faustassert(V.size() >= 4);
+        int dmin = INT32_MAX;
+        for (unsigned int k = 2; k < V.size(); k++) {
+            if (!isZero(V[k])) {
+                fGraph.add(t, V[k], 0);
+                dmin = std::min(dmin, int(k) - 2);
+            }
+        }
+        faustassert(dmin > 0 && dmin < INT32_MAX);
+        fGraph.add(t, V[1], 0);
+        if (fFullGraph) {
+            fGraph.add(t, t, dmin);
+        }
+        for (auto s2 : V) {
+            if (!isNil(s2) && !isZero(s2)) {
+                self(s2);
+            }
+        }
+    } else if (tvec V; kernelWorkVec(t, V)) {
+        // kernel [X, C0, C1, ...] (the source's literal delay re-spelled
+        // as leading zeros) : the non-zero coefficients are immediate
+        // dependencies ; the source X enters with the delay of the first
+        // non-zero coefficient (immediate only when that delay is 0)
+        faustassert(V.size() >= 2);
+        int dmin = INT32_MAX;
+        for (unsigned int k = 1; k < V.size(); k++) {
+            if (!isZero(V[k])) {
+                fGraph.add(t, V[k], 0);
+                dmin = std::min(dmin, int(k) - 1);
+            }
+        }
+        faustassert(dmin < INT32_MAX);
+        if (fFullGraph || (dmin == 0)) {
+            fGraph.add(t, V[0], dmin);
+        }
+        for (auto s : V) {
+            if (!isZero(s)) {
+                self(s);
+            }
+        }
     } else if (isSigRDTbl(t, tbl, ri)) {
         // special case for tables. We can't compile the content without knowing the context
 
