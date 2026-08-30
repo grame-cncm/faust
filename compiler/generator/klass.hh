@@ -96,6 +96,8 @@ class Klass {
     property<Loop*> fLoopProperty;  ///< loops used to compute some signals
 
     bool fVec;
+    bool fBlockBound = false;  ///< some emitted structure (dense delay window) is only
+                               ///< valid for count <= gVecSize : compute must chunk
 
    public:
     Klass(const std::string& name, const std::string& super, int numInputs, int numOutputs,
@@ -183,11 +185,22 @@ class Klass {
     void addFirstPrivateDecl(const std::string& str) { fFirstPrivateDecl.push_back(str); }
 
     void addZone1(const std::string& str) { fZone1Code.push_back(str); }
+    // schedule-verified scalarization : demote a kSingleDelay [2]-vector to
+    // a plain scalar when the EMITTED order proves it legal (every delayed
+    // read precedes the write, everything unconditional). Returns true when
+    // the demotion was applied. See generateDelayLine (kSingleDelay).
+    bool scalarizeSingleDelay(const std::string& vname);
+    void sinkExpensiveCalls();
+
     void addZone2(const std::string& str) { fZone2Code.push_back(str); }
     void addZone2b(const std::string& str) { fZone2bCode.push_back(str); }
     void addZone2c(const std::string& str) { fZone2cCode.push_back(str); }
     void addZone3(const std::string& str) { fZone3Code.push_back(str); }
     void addZone3Post(const std::string& str) { fZone3Post.push_back(str); }
+
+    // declare that some emitted structure requires count <= gVecSize
+    // (the compute skeleton must then process the buffer in chunks)
+    void setBlockBound() { fBlockBound = true; }
     void addZone4(const std::string& str) { fZone4Code.push_back(str); }
 
     void addPreCode(const Statement& stmt) { fTopLoop->addPreCode(stmt); }

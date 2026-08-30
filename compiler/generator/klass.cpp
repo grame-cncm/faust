@@ -32,6 +32,8 @@
 ***********************************************************************/
 
 #include <stdio.h>
+#include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <list>
 #include <map>
@@ -44,6 +46,7 @@
 #include "recursivness.hh"
 #include "signals.hh"
 #include "uitree.hh"
+#include "global.hh"
 
 using namespace std;
 
@@ -1039,6 +1042,11 @@ void Klass::printComputeMethod(int n, ostream& fout)
         printComputeMethodScheduler(n, fout);
     } else if (gGlobal->gOpenMPSwitch) {
         printComputeMethodOpenMP(n, fout);
+    } else if (gGlobal->gLoopSplit) {
+        // super-node emission builds its own inner loops and handles partial
+        // chunks itself: it needs the scalar-block skeleton (whose Zone3Post
+        // carries the buffer shifts) even under -vec
+        printComputeMethodScalarBlock(n, fout);
     } else if (gGlobal->gVectorSwitch) {
         switch (gGlobal->gVectorLoopVariant) {
             case 0:
@@ -1058,8 +1066,251 @@ void Klass::printComputeMethod(int n, ostream& fout)
     }
 }
 
+// ---- the call-sink pass ------------------------------------------------
+// A libm call scheduled early in the loop body keeps every later-defined
+// value live across the call, and the AArch64 convention makes nearly all
+// NEON registers caller-saved : each such live is a spill/reload pair
+// around the call, per sample, on the carried chains (granulator : the
+// SAME expf with the SAME arguments costs 10.6 ns/sample emitted early
+// against 2.3 emitted late). The pass sinks each unconditional
+// libm-defining temp, together with the pure temps chained on it, down
+// to its first real consumer ; any statement writing one of the group's
+// inputs is a barrier. String-level like its neighbours above : verify
+// everything or move nothing.
+
+static const char* kLibmNames[] = {"expf", "logf", "log10f", "powf", "tanf", "sinf", "cosf",
+                                   "tanhf", "sinhf", "coshf", "asinf", "acosf", "atanf",
+                                   "atan2f", "fmodf", "remainderf", "exp", "log", "log10",
+                                   "pow", "tan", "sin", "cos", "tanh", "sinh", "cosh",
+                                   "asin", "acos", "atan", "atan2", "fmod", "remainder"};
+
+static bool hasLibmCall(const std::string& code)
+{
+    for (const char* name : kLibmNames) {
+        size_t len = strlen(name);
+        size_t p   = 0;
+        while ((p = code.find(name, p)) != std::string::npos) {
+            bool bounded = (p == 0) || (!isalnum((unsigned char)code[p - 1]) && code[p - 1] != '_');
+            if (bounded && p + len < code.size() && code[p + len] == '(') {
+                return true;
+            }
+            p += len;
+        }
+    }
+    return false;
+}
+
+static void collectIdents(const std::string& code, std::set<std::string>& out)
+{
+    size_t p = 0;
+    while (p < code.size()) {
+        if (isalpha((unsigned char)code[p]) || code[p] == '_') {
+            size_t q = p;
+            while (q < code.size() && (isalnum((unsigned char)code[q]) || code[q] == '_')) {
+                q++;
+            }
+            out.insert(code.substr(p, q - p));
+            p = q;
+        } else {
+            p++;
+        }
+    }
+}
+
+// accepts "[type \t]IDENT[optional [..]] = ..." ; lhs receives IDENT
+static bool parseWriteTarget(const std::string& code, std::string& lhs, bool& isDecl)
+{
+    size_t p = 0;
+    while (p < code.size() && isspace((unsigned char)code[p])) {
+        p++;
+    }
+    isDecl = false;
+    for (const char* ty : {"float", "double", "int"}) {
+        size_t len = strlen(ty);
+        if (code.compare(p, len, ty) == 0 && p + len < code.size() &&
+            isspace((unsigned char)code[p + len])) {
+            p += len;
+            while (p < code.size() && isspace((unsigned char)code[p])) {
+                p++;
+            }
+            isDecl = true;
+            break;
+        }
+    }
+    size_t q = p;
+    while (q < code.size() && (isalnum((unsigned char)code[q]) || code[q] == '_')) {
+        q++;
+    }
+    if (q == p) {
+        return false;
+    }
+    lhs = code.substr(p, q - p);
+    if (q < code.size() && code[q] == '[') {
+        int depth = 1;
+        q++;
+        while (q < code.size() && depth) {
+            if (code[q] == '[') {
+                depth++;
+            }
+            if (code[q] == ']') {
+                depth--;
+            }
+            q++;
+        }
+        isDecl = false;  // an indexed write is a store, never a fresh temp
+    }
+    while (q < code.size() && isspace((unsigned char)code[q])) {
+        q++;
+    }
+    return q + 1 < code.size() && code[q] == '=' && code[q + 1] != '=';
+}
+
+void Klass::sinkExpensiveCalls()
+{
+    if (getenv("FAUST_NO_CALLSINK") || fTopLoop == nullptr) {
+        return;
+    }
+    std::vector<Statement> v(fTopLoop->fExecCode.begin(), fTopLoop->fExecCode.end());
+    bool restart = true;
+    int  guard   = 0;
+    while (restart && guard++ < 32) {
+        restart = false;
+        for (size_t i = 0; i < v.size() && !restart; i++) {
+            std::string lhs;
+            bool        isDecl;
+            if (!v[i].condition().empty() || !hasLibmCall(v[i].code()) ||
+                !parseWriteTarget(v[i].code(), lhs, isDecl) || !isDecl) {
+                continue;
+            }
+            std::vector<size_t>   group{i};
+            std::set<std::string> defs{lhs}, reads;
+            collectIdents(v[i].code(), reads);
+            reads.erase(lhs);
+            size_t stop = v.size();
+            for (size_t j = i + 1; j < v.size(); j++) {
+                std::set<std::string> mention;
+                collectIdents(v[j].code(), mention);
+                collectIdents(v[j].condition(), mention);
+                std::string tlhs;
+                bool        tdecl;
+                bool        parsed = parseWriteTarget(v[j].code(), tlhs, tdecl);
+                if (parsed && reads.count(tlhs)) {
+                    stop = j;  // writes one of our inputs : hard barrier
+                    break;
+                }
+                bool consumes = false;
+                for (const auto& d : defs) {
+                    if (mention.count(d)) {
+                        consumes = true;
+                        break;
+                    }
+                }
+                if (!consumes) {
+                    if (!parsed) {
+                        stop = j;  // opaque statement : stay conservative
+                        break;
+                    }
+                    continue;
+                }
+                // first consumer : a pure fresh temp joins the group,
+                // anything else fixes the insertion point
+                if (parsed && tdecl && v[j].condition().empty() && group.size() < 4) {
+                    group.push_back(j);
+                    defs.insert(tlhs);
+                    mention.erase(tlhs);
+                    for (const auto& m : mention) {
+                        if (!defs.count(m)) {
+                            reads.insert(m);
+                        }
+                    }
+                    continue;
+                }
+                stop = j;
+                break;
+            }
+            if (stop <= group.back() + 1) {
+                continue;  // already adjacent to its consumer
+            }
+            std::vector<Statement> rebuilt;
+            rebuilt.reserve(v.size());
+            std::set<size_t> ingroup(group.begin(), group.end());
+            for (size_t j = 0; j < v.size(); j++) {
+                if (j == stop) {
+                    for (size_t g : group) {
+                        rebuilt.push_back(v[g]);
+                    }
+                }
+                if (!ingroup.count(j)) {
+                    rebuilt.push_back(v[j]);
+                }
+            }
+            if (stop == v.size()) {
+                for (size_t g : group) {
+                    rebuilt.push_back(v[g]);
+                }
+            }
+            v.swap(rebuilt);
+            restart = true;
+        }
+    }
+    fTopLoop->fExecCode.clear();
+    fTopLoop->fExecCode.insert(fTopLoop->fExecCode.end(), v.begin(), v.end());
+}
+
 void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
 {
+    if (!gGlobal->gLoopSplit) {
+        sinkExpensiveCalls();
+    }
+    // Flat variant. The block chunking exists to bound the fixed-size
+    // buffers through which VECTOR loops communicate ; the plain scalar
+    // graph is a SINGLE loop by construction, there is nobody to talk
+    // to, and the &input[k][index] rebase form costs the C compiler its
+    // aliasing analysis on the hot loop (DNN : scalar ccmp check chains
+    // re-run per block, constants rematerialized -- 10% on the program).
+    // The per-block state copies (X = XState; ... XState = X;) are a
+    // register-promotion idiom, valid at any block size -- emitted flat
+    // they run once per compute instead of once per 32 samples. Only
+    // -ls keeps the chunked skeleton : its stream buffers are the
+    // fixed-size communication case (buf[count+k] shifts, fLSIota).
+    // Empirical exception : a libm call in the loop body reverses the
+    // trade (granulator : 7.1 ns chunked+sink against 16-17 flat, sink
+    // or not). Under -ffast-math the call is pure and clang reschedules
+    // it freely in a long-trip loop, undoing the sink order and paying
+    // caller-saved spills ; the 32-bound trip keeps its scheduling
+    // tight. Flat only when the loop body is call-free.
+    bool loopHasCall = false;
+    if (fTopLoop != nullptr) {
+        for (auto& st : fTopLoop->fExecCode) {
+            if (hasLibmCall(st.code())) {
+                loopHasCall = true;
+                break;
+            }
+        }
+    }
+    // A block-bound class (dense delay window) is only correct for
+    // count <= gVecSize : it must keep the chunked skeleton whatever
+    // the other criteria say (the flat form fed kFrames=64 walks the
+    // window pointer below its cache : garbage in float, crash in
+    // double).
+    if (!gGlobal->gLoopSplit && !loopHasCall && !fBlockBound && !getenv("FAUST_CHUNKED")) {
+        tab(n + 1, fout);
+        fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
+        printlines(n + 2, fZone1Code, fout);
+        printlines(n + 2, fZone2Code, fout);
+        printlines(n + 2, fZone2bCode, fout);
+        tab(n + 2, fout);
+        // index pinned to 0 : the zone-3 rebases fold to plain pointers
+        fout << "const int index = 0; (void)index; // flat: single-loop scalar";
+        printlines(n + 2, fZone3Code, fout);
+        printLoopGraphScalar(n + 2, fout);
+        printlines(n + 2, fZone3Post, fout);
+        printlines(n + 2, fZone4Code, fout);
+        tab(n + 1, fout);
+        fout << "}";
+        return;
+    }
+
     tab(n + 1, fout);
     fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
     printlines(n + 2, fZone1Code, fout);
@@ -1593,4 +1844,124 @@ void Klass::collectLibrary(set<string>& S)
         k->collectLibrary(S);
     }
     merge(S, fLibrarySet);
+}
+
+// every reference to vname in code must be exactly vname[0] or vname[1] on a
+// word boundary ; counts them, or returns false on any other access form
+static bool scanDelayRefs(const std::string& code, const std::string& vname, int& n0, int& n1)
+{
+    size_t p = 0;
+    while ((p = code.find(vname, p)) != std::string::npos) {
+        size_t q         = p + vname.size();
+        bool   wordStart = (p == 0) || (!isalnum((unsigned char)code[p - 1]) && code[p - 1] != '_');
+        bool   longerId  = (q < code.size()) && (isalnum((unsigned char)code[q]) || code[q] == '_');
+        if (wordStart && !longerId) {
+            if (code.compare(q, 3, "[0]") == 0) {
+                n0++;
+            } else if (code.compare(q, 3, "[1]") == 0) {
+                n1++;
+            } else {
+                return false;
+            }
+        }
+        p = q;
+    }
+    return true;
+}
+
+static void replaceAll(std::string& s, const std::string& from, const std::string& to)
+{
+    size_t p = 0;
+    while ((p = s.find(from, p)) != std::string::npos) {
+        s.replace(p, from.size(), to);
+        p += to.size();
+    }
+}
+
+bool Klass::scalarizeSingleDelay(const std::string& vname)
+{
+    // the structural pieces exactly as generateDelayLine wrote them
+    const std::string declTail = vname + "[2];";
+    const std::string loadLine = vname + "[1] = " + vname + "State;";
+    const std::string saveLine = vname + "State = " + vname + "[1];";
+    const std::string rotLine  = vname + "[1] = " + vname + "[0];";
+    const std::string writePre = vname + "[0] = ";
+
+    // ---- verification phase : nothing is touched unless EVERYTHING holds
+    auto zone2It = fZone2Code.end();
+    for (auto it = fZone2Code.begin(); it != fZone2Code.end(); ++it) {
+        if (it->size() >= declTail.size() &&
+            it->compare(it->size() - declTail.size(), declTail.size(), declTail) == 0) {
+            zone2It = it;
+            break;
+        }
+    }
+    auto zone3It = std::find(fZone3Code.begin(), fZone3Code.end(), loadLine);
+    auto z3pIt   = std::find(fZone3Post.begin(), fZone3Post.end(), saveLine);
+    if (zone2It == fZone2Code.end() || zone3It == fZone3Code.end() || z3pIt == fZone3Post.end()) {
+        return false;
+    }
+    auto rotIt = fTopLoop->fPostCode.end();
+    for (auto it = fTopLoop->fPostCode.begin(); it != fTopLoop->fPostCode.end(); ++it) {
+        int n0 = 0, n1 = 0;
+        if (!scanDelayRefs(it->code(), vname, n0, n1)) {
+            return false;
+        }
+        if (it->code() == rotLine) {
+            rotIt = it;
+        } else if (n0 || n1) {
+            return false;  // a foreign post statement touches the vector
+        }
+    }
+    if (rotIt == fTopLoop->fPostCode.end()) {
+        return false;
+    }
+    for (auto& st : fTopLoop->fPreCode) {
+        int n0 = 0, n1 = 0;
+        if (!scanDelayRefs(st.code(), vname, n0, n1) || n0 || n1) {
+            return false;  // pre-code must not touch the vector
+        }
+    }
+    // the loop order : every [1] read at or before the write, [0] only after
+    int idx = 0, writeIdx = -1, lastR1 = -1, firstR0 = -1;
+    for (auto& st : fTopLoop->fExecCode) {
+        int n0 = 0, n1 = 0;
+        if (!scanDelayRefs(st.code(), vname, n0, n1)) {
+            return false;
+        }
+        bool isWrite = st.code().compare(0, writePre.size(), writePre) == 0;
+        if (isWrite) {
+            if (writeIdx >= 0 || !st.condition().empty()) {
+                return false;  // two writes, or a conditional one
+            }
+            writeIdx = idx;
+        } else if ((n0 || n1) && !st.condition().empty()) {
+            return false;  // conditional reader : stay conservative
+        }
+        if (n1 && !isWrite) {
+            lastR1 = idx;
+        }
+        if (n0 && !isWrite && firstR0 < 0) {
+            firstR0 = idx;
+        }
+        idx++;
+    }
+    if (writeIdx < 0 || lastR1 > writeIdx || (firstR0 >= 0 && firstR0 < writeIdx)) {
+        return false;
+    }
+
+    // ---- commit : the vector degrades to a scalar, the rotation dies
+    replaceAll(*zone2It, declTail, vname + ";");
+    *zone3It = vname + " = " + vname + "State;";
+    *z3pIt   = vname + "State = " + vname + ";";
+    fTopLoop->fPostCode.erase(rotIt);
+    std::list<Statement> newExec;
+    for (auto& st : fTopLoop->fExecCode) {
+        std::string c = st.code();
+        replaceAll(c, vname + "[0]", vname);
+        replaceAll(c, vname + "[1]", vname);
+        newExec.push_back(Statement(st.condition(), c));
+    }
+    fTopLoop->fExecCode.swap(newExec);
+    return true;
 }

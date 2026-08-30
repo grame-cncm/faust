@@ -1781,6 +1781,74 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-gatequiv", "--gate-equivalence")) {
             gGateEquiv = true;
             i += 1;
+        } else if (isCmd(argv[i], "-ls", "--loop-split")) {
+            gLoopSplit = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-ls-R", "--loop-split-registers")) {
+            gLSRegisters = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ls-U", "--loop-split-width")) {
+            gLSWidth = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ls-fuse", "--loop-split-fuse")) {
+            gLSFuse    = true;
+            gLoopSplit = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-ls-fuse-ops", "--loop-split-fuse-ops")) {
+            gLSFuseOps = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ls-sched", "--loop-split-scheduling")) {
+            if (strcmp(argv[i + 1], "df") == 0) {
+                gLSSched = 0;
+            } else if (strcmp(argv[i + 1], "bf") == 0) {
+                gLSSched = 1;
+            } else if (strcmp(argv[i + 1], "model") == 0) {
+                gLSSched = 2;
+            } else if (strcmp(argv[i + 1], "layers") == 0) {
+                gLSSched = 3;
+            } else if (strcmp(argv[i + 1], "cs2") == 0) {
+                gLSSched = 4;
+            } else if (strcmp(argv[i + 1], "cs2b") == 0) {
+                gLSSched = 5;
+            } else {
+                throw faustexception(
+                    "ERROR : -ls-sched expects df, bf, model, layers, cs2 or cs2b\n");
+            }
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ls-load", "--loop-split-load-weight")) {
+            gLSLoadW = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ls-spill", "--loop-split-spill-weight")) {
+            gLSSpillW = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ls-cl", "--loop-split-cl")) {
+            gLSCl = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-ls-adopt", "--loop-split-adopt-outputs")) {
+            gLSAdopt   = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-ss", "--scheduling-strategy") && (i + 1 < argc)) {
+            gSchedulingStrategy = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-mxr", "--matrix-rows")) {
+            gMatrixRows = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-sng", "--super-node-graph")) {
+            gDrawSuperNodes = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-diff", "--auto-differentiate")) {
             gAutoDifferentiate = true;
             i += 1;

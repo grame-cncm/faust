@@ -40,6 +40,8 @@
 ///////////////////////////////////////////////////////////////////////
 
 class ScalarCompiler : public Compiler {
+    friend class LoopSplitEmitter;  // -ls experimental loop-split emission
+
    protected:
     property<std::string> fCompileProperty;
     property<std::string> fSoundfileVariableProperty;  // variable associated to a soundfile
@@ -54,10 +56,99 @@ class ScalarCompiler : public Compiler {
 
     static std::map<std::string, int>  fIDCounters;
     Tree                               fSharingKey;
+    std::vector<std::string> fSingleDelayScalarCandidates;  // [2]-vectors, schedule-verified demotion
+    // A-priori mono election, stage 3 (readers first). The soft-edge block
+    // records its promise per writer x of a delayed read : kept = every edge
+    // x -> reader was added ; sacrificed = at least one was dropped to break
+    // a preference cycle. The schedule positions are the FACT the election
+    // asserts against (promise to elect, fact to witness).
+    std::set<Tree>                 fRFKeptWriters;
+    std::set<Tree>                 fRFSacrificedWriters;
+    // Writers actually elected at stage 3. The election is granted ONLY
+    // when the schedule places the LAST consumer of the old-value read
+    // before the write (an inlined read is emitted at its consumer's
+    // slot) ; otherwise the type falls back to kSingleDelay, whose
+    // [2]-vector is order-robust by distinct cells. A forced capture at
+    // the read's slot was tried instead and measurably costs (brassMIDI
+    // +30%, flute +14% : it hoists a live range across the whole body).
+    std::set<Tree>                 fRFStage3Elected;
+    std::unordered_map<Tree, int>  fConsumerMaxPos;  // delayed-read node -> last consumer slot
+    std::unordered_map<Tree, int>  fSchedPos;
     OccMarkup*                         fOccMarkup;
     int                                fMaxIota;
     std::map<std::string, std::string> fIotaCache;
-    std::map<Tree, int>                fScheduleOrder;
+    // FAUST_SS_DISPLAYBLOCK (spec SIGNAUX-ATTACHES) : bargraph stores and
+    // their stateless tails evaluate ONCE PER BLOCK. fDisplayList holds
+    // the harvested bargraph nodes (D) ; fDisplayStateful their stateful
+    // sub-signals (S, compiled at audio rate as extra roots) ; capture
+    // points map to end-of-loop capture variables read by the block-rate
+    // tail.
+    Tree                                   fDisplayList = nullptr;
+    std::set<Tree>                         fDisplayPreserved;  // widgets of harvested cones
+    std::vector<Tree>                      fDisplayStateful;
+    std::vector<Tree>                      fDisplayCapturePoints;
+    std::map<Tree, std::string, treeorder> fDisplayCaptures;
+    Tree        harvestDisplay(Tree L);
+    void        computeDisplayFrontier();
+    std::string displayExpr(Tree t);
+    void        emitDisplayList();
+    // iota caches hoisted to the head of the loop body (ring-preload) :
+    // only an index whose delay amount is sub-sample-rate may hoist, and
+    // only a ring access through a hoisted index may preload
+    std::set<std::string> fIotaHeadNames;
+    // adjacent-pair collapse (spec PAIRE-ADJACENTE) : a ring read at d,
+    // when the same ring is also read at d-1, carries the previous
+    // iteration's d-1 value in a scalar instead of loading -- the same
+    // cell, the same bits (the damp+tap pattern of every damped comb).
+    struct AdjHigh {
+        Tree        exp;   // the delayed writer
+        int         d;     // the collapsed delay
+        std::string name;  // the carried scalar
+    };
+    struct AdjLow {
+        Tree        exp;
+        int         d;
+        std::string var;  // cached variable of the real read at d
+    };
+    // spec LE-SELECTN : side table, no tree surgery -- a certified root
+    // keeps its select2 spelling (every downstream walker intact) ; only
+    // conditionAnnotation (saturating atoms) and compileSignal (multiplex
+    // emission) consult the table. The spine below a root is never
+    // compiled from it (dead), unless shared externally (normal path).
+    struct SelectNLeaf {
+        Tree branch;              // leaf signal for this entry
+        std::vector<Tree> atoms;  // dispatch condition, a CONJUNCTION of atoms :
+                                  // V1 saturating entries carry one (sel<=0 / sel==k /
+                                  // sel>=N-1) ; the V1.2 eq-chain default carries the
+                                  // negations (sel!=k0, sel!=k1, ...)
+    };
+    struct SelectNInfo {
+        Tree                     selEff;  // effective INTEGER selector (cast built in real mode)
+        std::vector<SelectNLeaf> leaves;  // index order 0..N-1, repeated leaves allowed
+    };
+    std::map<Tree, SelectNInfo> fSelectNInfo;
+    void                        computeSelectNInfo(Tree L);
+    std::string                 generateSelectN(Tree sig, const SelectNInfo& info);
+
+    bool fHasEnableControl  = false;  // program uses enable/control : the dup
+                                      // inline cache stays off (dying
+                                      // primitives, dcond interactions not
+                                      // worth debugging -- ondemand replaces)
+    bool fMainCompilePhase = false;  // true after prepare : the lazy inline
+                                     // duplication must never register strings
+                                     // built during prepare's condition-atom
+                                     // compilation (names not yet final)
+    std::map<Tree, std::set<int>, treeorder> fAdjDelaySets;
+    std::vector<AdjHigh>                     fAdjHighs;
+    std::vector<AdjLow>                      fAdjLows;
+    void censusAdjacentReads(Tree L);
+    void emitAdjacentUpdates();
+    std::map<Tree, int, treeorder>                fScheduleOrder;
+    // -fir bridge : recognized FIR kernels, keyed by their SOURCE tree
+    // (the signal whose delay line the kernel reads). value = (read span
+    // maxtaps, nonzero coefficient count) -- consumers : delay-line
+    // implementation policy, fusion oracle.
+    std::map<Tree, std::pair<int, int>, treeorder> fFirFacts;
 
    public:
     ScalarCompiler(const std::string& name, const std::string& super, int numInputs, int numOutputs)
@@ -73,13 +164,14 @@ class ScalarCompiler : public Compiler {
     }
 
     virtual void compileMultiSignal(Tree lsig);
+    void         compileMultiSignalAux(Tree lsig);
     virtual void compileSingleSignal(Tree lsig);
 
    protected:
     virtual std::string CS(Tree sig);
     virtual std::string generateCode(Tree sig);
     virtual std::string generateCacheCode(Tree sig, const std::string& exp);
-    virtual std::string generateIotaCache(const std::string& exp);
+    virtual std::string generateIotaCache(const std::string& exp, bool headSafe = false);
     virtual std::string forceCacheCode(Tree sig, const std::string& exp);
     virtual std::string generateVariableStore(Tree sig, const std::string& exp);
 
@@ -109,22 +201,6 @@ class ScalarCompiler : public Compiler {
     std::string         generateFIR(Tree sig, const tvec& coefs);
     std::string         generateIIR(Tree sig, const tvec& coefs);
     std::string         generateSum(Tree sig, const tvec& subs);
-
-    // spec LE-SELECTN : side table, no tree surgery -- a certified root
-    // keeps its select2 spelling (every downstream walker intact) ; only
-    // conditionAnnotation (saturating atoms) and compileSignal (multiplex
-    // emission) consult the table.
-    struct SelectNLeaf {
-        Tree branch;              // leaf signal for this entry
-        std::vector<Tree> atoms;  // dispatch condition, a CONJUNCTION of atoms
-    };
-    struct SelectNInfo {
-        Tree                     selEff;  // effective INTEGER selector
-        std::vector<SelectNLeaf> leaves;  // index order 0..N-1
-    };
-    std::map<Tree, SelectNInfo> fSelectNInfo;
-    void                        computeSelectNInfo(Tree L);
-    std::string                 generateSelectN(Tree sig, const SelectNInfo& info);
     std::string         generatePrefix(Tree sig, Tree x, Tree e);
     std::string         generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 
@@ -187,6 +263,8 @@ class ScalarCompiler : public Compiler {
     std::string and2code(Tree oc);
 
     virtual DelayType analyzeDelayType(Tree sig);
+    DelayType         analyzeDelayTypeAux(Tree sig);
+    std::set<Tree>    fResidenceSeen;  // probe dedup (FAUST_SS_RESIDENCE)
 };
 
 #endif
