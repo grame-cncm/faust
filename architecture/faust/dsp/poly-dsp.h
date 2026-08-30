@@ -225,8 +225,8 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         // Start next keyOn
         keyOn(fNextNote, fNextVel);
         
-        // Compute on second half buffer
-        computeSlice(slice, slice, inputs, outputs);
+        // Compute on second half buffer (the remainder, for an odd count)
+        computeSlice(slice, count - slice, inputs, outputs);
     }
 
     // Extract control paths from fullpath map
@@ -552,6 +552,22 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
     
+        // Fade in the audio in the buffer from 'offset' on (mirror of fadeOut)
+        void fadeIn(int count, int offset, FAUSTFLOAT** outBuffer)
+        {
+            if (count <= 0)
+                return;
+
+            // FadeIn on second half buffer
+            for (int chan = 0; chan < getNumOutputs(); chan++) {
+                double step = 1./double(count), factor = step;
+                for (int frame = 0; frame < count; frame++) {
+                    outBuffer[chan][offset + frame] *= factor;
+                    factor += step;
+                }
+            }
+        }
+
         FAUSTFLOAT mixCheckVoice(int count, FAUSTFLOAT** mixBuffer, FAUSTFLOAT** outBuffer)
         {
             FAUSTFLOAT sumSquares = 0;
@@ -842,8 +858,9 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                     if (voice->fCurNote == kLegatoVoice) {
                         // Play from current note and next note
                         voice->computeLegato(count, inputs, fMixBuffer);
-                        // FadeOut on first half buffer
+                        // FadeOut on first half buffer, FadeIn on second half buffer
                         fadeOut(count/2, fMixBuffer);
+                        fadeIn(count/2, count/2, fMixBuffer);
                         // Mix it in result
                         voice->fLevel = mixCheckVoice(count, fMixBuffer, fOutBuffer);
                     } else if (voice->fCurNote != kFreeVoice) {
