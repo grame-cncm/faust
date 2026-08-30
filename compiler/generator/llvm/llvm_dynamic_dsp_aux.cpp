@@ -312,13 +312,15 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 #if LLVM_VERSION_MAJOR < 22
         targetOptions.UnsafeFPMath = true;
 #endif
-        targetOptions.NoInfsFPMath          = true;
-        targetOptions.NoNaNsFPMath          = true;
+#if LLVM_VERSION_MAJOR < 23
+        targetOptions.NoInfsFPMath = true;
+        targetOptions.NoNaNsFPMath = true;
+#endif
         targetOptions.GuaranteedTailCallOpt = true;
         targetOptions.NoTrappingFPMath      = true;
     }
 
-#if LLVM_VERSION_MAJOR >= 9
+#if LLVM_VERSION_MAJOR >= 9 && LLVM_VERSION_MAJOR < 23
     targetOptions.NoSignedZerosFPMath = true;
 #endif
 
@@ -500,7 +502,11 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(
 #endif
 
     string Error;
-    auto   Target = TargetRegistry::lookupTarget(TargetTriple, Error);
+#if LLVM_VERSION_MAJOR >= 21
+    auto Target = TargetRegistry::lookupTarget(TT, Error);
+#else
+    auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
+#endif
 
     // Print an error and exit if we couldn't find the requested target.
     // This generally occurs if we've forgotten to initialise the

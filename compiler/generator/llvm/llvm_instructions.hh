@@ -975,11 +975,16 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 #if LLVM_VERSION_MAJOR >= 8
             // LLVM unary intrinsic
         } else if (fUnaryIntrinsicTable.find(inst->fName) != fUnaryIntrinsicTable.end()) {
-            llvm::CallInst* call_inst =
+            llvm::Value* value_inst =
                 fBuilder->CreateUnaryIntrinsic(fUnaryIntrinsicTable[inst->fName], fun_args[0]);
-            AddAttributeAtIndex(call_inst, llvm::AttributeList::FunctionIndex,
-                                llvm::Attribute::Builtin);
-            fCurValue = call_inst;
+            llvm::CallInst* call_inst = llvm::dyn_cast<llvm::CallInst>(value_inst);
+            if (call_inst) {
+                AddAttributeAtIndex(call_inst, llvm::AttributeList::FunctionIndex,
+                                    llvm::Attribute::Builtin);
+            } else {
+                faustassert(false);
+            }
+            fCurValue = value_inst;
 
             // LLVM binary intrinsic
         } else if (fBinaryIntrinsicTable.find(inst->fName) != fBinaryIntrinsicTable.end()) {

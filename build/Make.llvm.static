@@ -15,7 +15,7 @@ ifeq ($(system), Darwin)
 NCURSES_PRIMARY_PREFIX := /usr/local/Cellar/ncurses
 NCURSES_BACKUP1_PREFIX := /opt/homebrew/Cellar/ncurses
 NCURSES_BACKUP2_PREFIX := /opt/local
-LIBNCURSES_PATH ?= $(shell find $(NCURSES_PRIMARY_PREFIX) -name libncurses.a 2>/dev/null || find $(NCURSES_BACKUP1_PREFIX) -name libncurses.a 2>/dev/null || find $(NCURSES_BACKUP2_PREFIX) -name libncurses.a 2>/dev/null)
+LIBNCURSES_PATH ?= $(shell find $(NCURSES_PRIMARY_PREFIX) -name libncurses.a 2>/dev/null | head -n1 || find $(NCURSES_BACKUP1_PREFIX) -name libncurses.a 2>/dev/null | head -n1 || find $(NCURSES_BACKUP2_PREFIX) -name libncurses.a 2>/dev/null | head -n1)
 
 # Use libtool instead of ar on macOS
 AR = libtool
