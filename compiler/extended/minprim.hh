@@ -24,11 +24,12 @@
 #include "Text.hh"
 #include "floats.hh"
 #include "sigtyperules.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class MinPrim : public xtended {
+class MinPrim : public xtendedCodegen {
    public:
-    MinPrim() : xtended("min") {}
+    MinPrim() : xtendedCodegen("min") {}
 
     virtual unsigned int arity() override { return 2; }
 
@@ -39,20 +40,6 @@ class MinPrim : public xtended {
         return (type == kInt) ? "min_i" : subst("min_$0", isuffix());
     }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        interval i = args[0]->getInterval();
-        interval j = args[1]->getInterval();
-        // Use 'min' on intervals here...
-        return castInterval(args[0] | args[1], gAlgebra.Min(i, j));
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return std::max(args[0], args[1]);
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -168,9 +155,20 @@ class MinPrim : public xtended {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        ::Type t = inferSigType(types);
         return subst("\\min\\left( $0, $1 \\right)", args[0], args[1]);
     }
+
+
+    double compute(const std::vector<Node>& args) override
+    {
+        int i, j;
+        if (isInt(args[0], &i) && isInt(args[1], &j)) {
+            return std::min(i, j);
+        } else {
+            return std::min(args[0].getDouble(), args[1].getDouble());
+        }
+    }
+
 
     Tree diff(const std::vector<Tree>& args) override
     {
@@ -181,15 +179,5 @@ class MinPrim : public xtended {
          *                \
          */
         return sigSelect2(sigLT(args[0], args[1]), args[2], args[3]);
-    }
-
-    double compute(const std::vector<Node>& args) override
-    {
-        int i, j;
-        if (isInt(args[0], &i) && isInt(args[1], &j)) {
-            return std::min(i, j);
-        } else {
-            return std::min(args[0].getDouble(), args[1].getDouble());
-        }
     }
 };

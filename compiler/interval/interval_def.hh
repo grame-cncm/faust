@@ -1,23 +1,21 @@
-/************************************************************************
- ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- ************************************************************************
- ************************************************************************/
+/* Copyright 2020-2026 Yann Orlarey, Agathe Herrou, Stéphane Letz
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Lineage : this file started in 2020 as a copy of the FAUST compiler's
+ * interval class (GRAME, GPL) and has been fully rewritten since -- the
+ * lo/hi/lsb model, the NaN-empty convention and every operation are new.
+ */
 
 #pragma once
 
@@ -61,6 +59,14 @@ class interval {
 
     interval(double n, double m, int lsb = -24) noexcept
     {
+        if (n == 0.0 && m == 0.0) {
+            fLo  = 0.0;
+            fHi  = 0.0;
+            fLSB = 0;
+            // std::cerr << "Warning: creating an interval with both bounds equal to zero."
+            //           << std::endl;
+            return;
+        }
         if (lsb == INT_MIN) {
             fLSB = -24;
         } else {
@@ -76,7 +82,27 @@ class interval {
         }
     }
 
-    explicit interval(double n) noexcept : interval(n, n) {}
+    explicit interval(double x) noexcept
+    {
+        if (x == 0) {
+            fLo  = 0;
+            fHi  = 0;
+            fLSB = 0;
+        } else {
+            // compute the preficion needed to represent x
+            // in the form x = 2^p * y, where y is an integer
+            int    p = 0;
+            double y = x;
+            double ipart;
+            while (std::modf(y, &ipart) != 0.0) {
+                y *= 2.0;
+                p--;
+            }
+            fLo  = x;
+            fHi  = x;
+            fLSB = p;
+        }
+    }
 
     // interval(const interval& r) : fEmpty(r.empty()), fLo(r.lo()), fHi(r.hi())
     // {}
@@ -156,7 +182,7 @@ class interval {
 inline std::ostream& operator<<(std::ostream& dst, const interval& i)
 {
     if (i.isEmpty()) {
-        return dst << "interval()";
+        return dst << "empty()";
     } else {
         return dst << "interval(" << i.lo() << ',' << i.hi() << ',' << i.lsb() << ")";
     }
@@ -169,6 +195,17 @@ inline std::ostream& operator<<(std::ostream& dst, const interval& i)
 inline interval empty() noexcept
 {
     return {NAN, NAN, 0};
+}
+
+/**
+ * Return the interval containing every finite value representable by a double.
+ *
+ * This is the explicit equivalent of the historical default constructor. It
+ * does not contain positive or negative infinity.
+ */
+inline interval fullFinite(int lsb = -24) noexcept
+{
+    return {std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max(), lsb};
 }
 
 inline interval intersection(const interval& i, const interval& j)

@@ -23,29 +23,17 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class Exp10Prim : public xtended {
+class Exp10Prim : public xtendedCodegen {
    public:
-    Exp10Prim() : xtended("exp10") {}
+    Exp10Prim() : xtendedCodegen("exp10") {}
 
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        Type     t = args[0];
-        interval i = t->getInterval();
-        return castInterval(floatCast(t), gAlgebra.Pow(interval(10, 10, 0), i));
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return args[0];
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -90,11 +78,11 @@ class Exp10Prim : public xtended {
         return subst("e10^{$0}", args[0]);
     }
 
+    double compute(const std::vector<Node>& args) override { return pow(10, args[0].getDouble()); }
+
     Tree diff(const std::vector<Tree>& args) override
     {
         // (10^x)' = 10^x * ln(10)
         return sigMul(sigExp10(args[0]), sigLog(sigReal(10.0)));
     }
-
-    double compute(const std::vector<Node>& args) override { return pow(10, args[0].getDouble()); }
 };

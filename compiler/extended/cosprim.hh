@@ -23,26 +23,17 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class CosPrim : public xtended {
+class CosPrim : public xtendedCodegen {
    public:
-    CosPrim() : xtended("cos") {}
+    CosPrim() : xtendedCodegen("cos") {}
 
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == 1);
-        Type     t = args[0];
-        interval i = t->getInterval();
-        return castInterval(floatCast(t),
-                            gAlgebra.Cos(i));  // todo change once the intervals library is updated
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -95,11 +86,11 @@ class CosPrim : public xtended {
         return subst("\\cos\\left($0\\right)", args[0]);
     }
 
+    double compute(const std::vector<Node>& args) override { return cos(args[0].getDouble()); }
+
     virtual Tree diff(const std::vector<Tree>& args) override
     {
         // cos(x)' = -sin(x)
         return sigMul(sigReal(-1.0), sigSin(args[0]));
     }
-
-    double compute(const std::vector<Node>& args) override { return cos(args[0].getDouble()); }
 };

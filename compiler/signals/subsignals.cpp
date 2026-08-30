@@ -23,8 +23,8 @@
 #include <signals.hh>
 #include <sstream>
 
-#include "exception.hh"
-#include "global.hh"
+#include "tlib-error.hh"
+#include "sigs-state.hh"
 
 using namespace std;
 
@@ -102,7 +102,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     else if (isSigWRTbl(sig, size, gen, wi, ws)) {
         vsigs.push_back(size);
         vsigs.push_back(gen);
-        if (wi == gGlobal->nil) {
+        if (wi == ::nil()) {
             // rdtable
             return 2;
         } else {
@@ -240,9 +240,24 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         return 1;
     }
 
+    else if (isSigFIR(sig) || isSigIIR(sig) || isSigSum(sig)) {
+        // nil (the IIR's first branch) is a layout placeholder, not a
+        // subsignal : generic walkers would try to type it
+        for (Tree b : sig->branches()) {
+            if (!isNil(b)) {
+                vsigs.push_back(b);
+            }
+        }
+        return int(vsigs.size());
+    }
+
     else {
+        if (Tree tx; isSigTemp(sig, tx)) {
+            vsigs.push_back(tx);
+            return 1;
+        }
         cerr << "ASSERT : getSubSignals unrecognized signal : " << *sig << endl;
-        faustassert(false);
+        TLIB_ASSERT(false);
     }
     return 0;
 }

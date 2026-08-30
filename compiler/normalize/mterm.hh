@@ -29,17 +29,25 @@
 #include "exception.hh"
 #include "garbageable.hh"
 #include "normalize.hh"
+#include "global.hh"
 #include "signals.hh"
-#include "sigorderrules.hh"
 #include "sigprint.hh"
 #include "simplify.hh"
 #include "tlib.hh"
 
 /**
+ * Implements a multiplicative term, a term of type
+ * k*x^n*y^m*... and its arithmetic.
+ */
+
+/**
  * The normal-form term order (-co option) : by default SERIAL (the historical,
  * construction-driven order -- measured performance parity with the code the
  * compiler always produced) ; with -co, CANONICAL (value-derived,
- * history-independent -- the instrument of bit-identical A/B validation).
+ * history-independent -- the instrument of bit-identical A/B validation, and
+ * a stabilizer of the -eta fixpoint). The two choices are deliberately
+ * orthogonal to -eta : running the eta loop under the serial order is allowed,
+ * and if it never converges the iteration budget stops it.
  */
 struct NormalFormTreeLess {
     bool operator()(Tree a, Tree b) const
@@ -51,17 +59,10 @@ struct NormalFormTreeLess {
     }
 };
 
-/**
- * Implements a multiplicative term, a term of type
- * k*x^n*y^m*... and its arithmetic.
- */
-
 class mterm : public virtual Garbageable {
     Tree                fCoef;     ///< constant part of the term (usually 1 or -1)
     // Canonical order : the normalized product must emit its factors in an order
-    // derived from VALUES, never from raw pointers (the historical map order was
-    // the allocation order -- monotone malloc made it coincide with the serial
-    // order, a coincidence the extensible hash tables break).
+    // derived from VALUES, never from node serials (construction history).
     std::map<Tree, int, NormalFormTreeLess> fFactors;  ///< non constant terms and their power
 
    public:

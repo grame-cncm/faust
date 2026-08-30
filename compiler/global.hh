@@ -42,9 +42,9 @@
 #include "loopDetector.hh"
 #include "property.hh"
 #include "smartpointer.hh"
+#include "sigs-state.hh"
 #include "sourcereader.hh"
 
-class Occur;
 
 class AudioType;
 typedef P<AudioType> Type;
@@ -86,7 +86,7 @@ struct comp_str {
 };
 
 typedef std::map<Tree, std::set<Tree, treeorder>, comp_str> MetaDataSet;
-typedef std::map<Tree, std::set<Tree, treeorder>, treeorder> FunMDSet;  // foo -> {(file/foo/key,value)...}
+typedef std::map<Tree, std::set<Tree, treeorder>, treeorder>           FunMDSet;  // foo -> {(file/foo/key,value)...}
 
 // Global outside of the global context
 extern std::vector<std::string> gWarningMessages;
@@ -192,6 +192,8 @@ struct StatsTimer {
 #endif
 
 // Global singleton like compiler state
+class Occur;
+
 struct global {
     // Parsing
     SourceReader           gReader;
@@ -228,6 +230,8 @@ struct global {
     // compilation options
     bool        gDetailsSwitch;   // -d option
     bool        gDrawSignals;     // -sg option
+    bool        gDrawSuperNodes;  // -sng option (super-node DAG of -ls)
+    int         gSchedulingStrategy;  // -ss <n> classic emission order (0=df 1=bf 2=sp 3=rb 4=dfcycles 5=bfcycles)
     bool        gDrawRetiming;    // -rg option
     bool        gDrawRouteFrame;  // -drf option
     bool        gShadowBlur;      // -blur option, note: svg2pdf doesn't like the blur filter
@@ -274,7 +278,7 @@ struct global {
     int  gMaxCopyDelay;       // -mcd threshold
     int  gMaxDenseDelay;      // -mdd threshold
     int  gMinDensity;         // -mdy threshold
-    int  gFloatSize;  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad',
+    int& gFloatSize = sigs::g.gFloatSize;  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad',
                       // 4 for 'fixed-point')
     int  gFixedPointSize;          // -fx-size (-1 by default = not used)
     int  gFixedPointMSB;           // max value of MSB in -fx mode
@@ -288,13 +292,70 @@ struct global {
                      // in [min..max] range
     bool gFreezeUI;  // -fui option, whether to freeze vslider/hslider/nentry to a given value (init
                      // value by default)
-    int    gFTZMode;  // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
+    bool gEtaHarvest;     // -eta option, normalization loop with the eta harvest (a projection
+                          // whose definition no longer references its group is replaced by the
+                          // definition: the recursion and its state disappear)
+    int  gEtaIterations;  // -etai option, iteration budget of the normalization loop (default 1;
+                          // the AC judge may stop earlier)
+    bool gEtaRegroup;     // -etar option, re-partition the letrecs along the projection SCCs
+                          // inside the normalization loop (implies -eta)
+    int  gStagingOps;     // -stage <n> option, ocpp emission : a single-use expression of n
+                          // operations or more gains a temporary (0 = inline whatever the size)
+    int  gTempOps;        // -temp <n> option, structural staging : sigTemp barriers placed at
+                          // normalization on single-use expressions of n operations or more
+                          // (1 = every operation, the SSA form ; 0 = off)
+    bool gReassoc;        // -reassoc option : late state-join reassociation of the sums inside
+                          // single-definition recursive groups (off-path terms first and flat,
+                          // state-dependent terms joined last -- minimal recurrence chain)
+    bool gLazySelect;
+    bool gSelectN;     // -lazyselect option : select2 branches generate per-node conditions
+    bool gGateEquiv;      // -gatequiv : canonical form of the gated signal -- c*y and
+                          // select2(c,0,y) are two spellings of one object, the exclusive
+                          // stateless crown weight picks the form (spec LA-PAIRE-CANONIQUE)
+                          // (stopped at state boundaries), so the emitter's guarded statements
+                          // skip the STATELESS crowns of unselected branches -- the stateful
+                          // parts keep Faust's strict semantics (state ticks unconditionally)
+    bool gCanonicalOrder;  // -co option, value-derived (history-independent) order for the terms
+                           // of normalized sums and products; default false = serial order (the
+                           // historical, construction-driven order). Orthogonal to -eta.
+    bool gLoopSplit;
+    bool gReconstructFIRIIRs;
+    bool gLowerSums;  // -lsum : butterfly lowering of the revealed sums
+    bool gMatrixRows;  // -mxr : matrix-row regime for dense coefficient
+                       // families (spec LA-FORME-MATRICE) -- spares them
+                       // from the sum lowering and, under -ls, emits
+                       // recurrence-carried rows as table dot products
+    bool gIIRTransposed;  // -iirt : transposed all-pole emission of the IIR kernels  // -fir : signal-level FIR/IIR recognition (side-channel)       // -ls option (ocpp, experimental): emit the materialized-signal DAG as
+                           // separate loops (one per recursive group / delayed / shared signal /
+                           // output) instead of one big sample loop
+    int  gLSSched;         // -ls-sched option: intra-loop op scheduling strategy,
+                           // 0 = df (depth-first, the control), 1 = bf (breadth-first levels),
+                           // 2 = model (pressure-aware list scheduler under R/U)
+    int  gLSRegisters;     // -ls-R option: register budget for the model scheduler (default 20)
+    int  gLSWidth;         // -ls-U option: superscalar width for the model scheduler (default 4)
+    bool gLSFuse;          // -ls-fuse option: greedy single-consumer fusion of the super-node
+                           // partition before emission
+    bool gLSAdopt;         // -ls-adopt option: outputs join their producing block's loop
+                           // (opt-in : measured x1.26-1.83 against on ten fusion lanes)
+    int  gLSFuseOps;       // -ls-fuse-ops option: compile-time guard on fused-block op count
+    int  gMinDelay;        // -mindelay option (ocpp, experimental): SEMANTIC delay floor --
+                           // large variable delays (certified dmin < K, dmax >= 32*K) get a real
+                           // max(d, K) so their certified minimum reaches K; with K >= gVecSize
+                           // the d<N freedom then cuts their feedback cycles (proof carried by
+                           // the interval system). Changes the sound of sub-K settings: opt-in.
+    int  gLSCl;            // -ls-cl option: per-loop per-chunk overhead in the fusion cost
+                           // oracle (default 20 cycles)
+    int  gLSSpillW;        // -ls-spill option: cycles charged per register-cycle above R in the
+                           // oracle (the spill proxy, default 4)
+    int  gLSLoadW;         // -ls-load option: issue slots charged per buffer load in the oracle
+                           // (0 = loads free, default 1)
+    int  gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
     double gHashLoadFactor;  // -hlf option, tlib CTree/Symbol hash table growth threshold
-                             // (0.7 by default, see TLIB.md §1) : purely an internal
-                             // compiler performance knob, never affects generated code
-    bool gInPlace;           // -inpl option, add cache to input for correct in-place computations
-    bool gStrictSelect;      // -sts option, generate strict code for 'selectX' even for stateless
-                             // branches (both are computed)
+                              // (0.7 by default, see TLIB.md §1) : purely an internal
+                              // compiler performance knob, never affects generated code
+    bool gInPlace;   // -inpl option, add cache to input for correct in-place computations
+    bool gStrictSelect;  // -sts option, generate strict code for 'selectX' even for stateless
+                         // branches (both are computed)
 
     bool gDSPStruct;  // to control method generation in -fun mode
     bool gLightMode;  // -light option, do not generate the entire DSP API (to be used with
@@ -317,17 +378,17 @@ struct global {
                        // (0/1: 1 by default)
 
     // Backend configuration
-    std::string gOutputLang;  // Chosen backend
+    std::string gOutputLang;            // Chosen backend
 
     // The NNX and Linen backends share the Python/JAX code generators
     bool isPythonBackend() const { return (gOutputLang == "nnx") || (gOutputLang == "linen"); }
 
-    bool gAllowForeignFunction;  // Can use foreign functions
-    bool gAllowForeignConstant;  // Can use foreign constant
-    bool gAllowForeignVar;       // Can use foreign variable
-    bool gComputeIOTA;           // Cache some computation done with IOTA variable
-    bool gFAUSTFLOAT2Internal;   // FAUSTFLOAT type (= kFloatMacro) forced to internal real
-    bool gHasExp10;              // -exp10, if the 'exp10' math function is available
+    bool        gAllowForeignFunction;  // Can use foreign functions
+    bool        gAllowForeignConstant;  // Can use foreign constant
+    bool        gAllowForeignVar;       // Can use foreign variable
+    bool        gComputeIOTA;           // Cache some computation done with IOTA variable
+    bool        gFAUSTFLOAT2Internal;   // FAUSTFLOAT type (= kFloatMacro) forced to internal real
+    bool        gHasExp10;              // -exp10, if the 'exp10' math function is available
     bool gLoopVarInBytes;  // If the 'i' variable used in the scalar loop moves by bytes instead of
                            // frames
     bool gUseMemmove;      // Use 'memmove' function to shift arrays
@@ -354,9 +415,6 @@ struct global {
     std::string
         gVHDLComponentsFile;  // -vhdl-operators, a config file to replace specific operators
 
-    int gWideningLimit;   // Max number of iterations before interval widening
-    int gNarrowingLimit;  // Max number of iterations to compute interval widener
-
     std::map<std::string, std::string> gFastMathLibTable;  // Mapping table for fastmath functions
     std::map<std::string, bool>        gMathForeignFunctions;  // Map of math foreign functions
 
@@ -368,7 +426,6 @@ struct global {
 
     std::unordered_map<Tree, std::set<Tree, treeorder>> gDependencies;
 
-    bool gAutoDifferentiate;
 
     // Automatic documentation
     std::string                        gDocLang;
@@ -394,7 +451,7 @@ struct global {
     // Error handling
     int         gErrorCount;
     std::string gErrorMessage;
-    Tabber      TABBER;
+    Tabber& TABBER = sigs::g.TABBER;
 
     // ------------
     // boxppShared
@@ -412,15 +469,13 @@ struct global {
     // ------------
     // Tree is used to identify the same nodes during Signal tree traversal,
     // but gSignalCounter is then used to generate unique IDs
-    std::map<Tree, std::pair<int, std::string>, treeorder> gSignalTable;
-    int                                         gSignalCounter;
+    std::map<Tree, std::pair<int, std::string>, treeorder>& gSignalTable = sigs::g.gSignalTable;
+    int& gSignalCounter = sigs::g.gSignalCounter;
     // To keep the signal tree traversing trace
-    std::vector<std::string> gSignalTrace;
+    std::vector<std::string>& gSignalTrace = sigs::g.gSignalTrace;
 
     // Typing
-    int gCountInferences;
-    int gCountMaximal;
-    int gAllocationCount;  // Internal signal types counter
+    int& gAllocationCount = sigs::g.gAllocationCount;  // Internal signal types counter
 
     // Compiler statistics for performance analysis (FIR backend only)
 #ifdef FIR_BUILD
@@ -433,7 +488,7 @@ struct global {
     // Used in eval
     int gBoxSlotNumber;  // counter for unique slot number
 
-    bool gCausality;  // FIXME: global used as a parameter of typeAnnotation when true trigs
+    bool& gCausality = sigs::g.gCausality;  // FIXME: global used as a parameter of typeAnnotation when true trigs
                       // causality errors (negative delay)
     int gSTEP;        // counter for unique compilation step number
 
@@ -443,40 +498,41 @@ struct global {
     Tree DEFLINEPROP;
     Tree USELINEPROP;
     Tree SIMPLIFIED;
+    // Cross-call memo of simplify (a pure-function cache: original -> simplified).
+    // Lives and dies with gGlobal, so one compilation never sees another's trees.
+    std::unordered_map<Tree, Tree> gSimplifiedMemo;
     Tree DOCTABLES;
     Tree NULLENV;
     Tree COLORPROPERTY;
-    Tree ORDERPROP;
-    Tree RECURSIVNESS;
-    Tree NULLTYPEENV;
+    Tree& RECURSIVNESS = sigs::g.RECURSIVNESS;
     Tree NORMALFORM;
     Tree DEFNAMEPROPERTY;
     Tree NICKNAMEPROPERTY;
     Tree BCOMPLEXITY;  // Node used for memoization purposes
     Tree LETRECBODY;
     // Extended math
-    xtended* gAbsPrim;
-    xtended* gAcosPrim;
-    xtended* gTanPrim;
-    xtended* gSqrtPrim;
-    xtended* gSinPrim;
-    xtended* gRintPrim;
+    xtended*& gAbsPrim = sigs::g.gAbsPrim;
+    xtended*& gAcosPrim = sigs::g.gAcosPrim;
+    xtended*& gTanPrim = sigs::g.gTanPrim;
+    xtended*& gSqrtPrim = sigs::g.gSqrtPrim;
+    xtended*& gSinPrim = sigs::g.gSinPrim;
+    xtended*& gRintPrim = sigs::g.gRintPrim;
     xtended* gRoundPrim;
-    xtended* gRemainderPrim;
-    xtended* gPowPrim;
-    xtended* gMinPrim;
-    xtended* gMaxPrim;
-    xtended* gLogPrim;
-    xtended* gLog10Prim;
-    xtended* gFmodPrim;
-    xtended* gFloorPrim;
-    xtended* gExpPrim;
-    xtended* gExp10Prim;
-    xtended* gCosPrim;
-    xtended* gCeilPrim;
-    xtended* gAtanPrim;
-    xtended* gAtan2Prim;
-    xtended* gAsinPrim;
+    xtended*& gRemainderPrim = sigs::g.gRemainderPrim;
+    xtended*& gPowPrim = sigs::g.gPowPrim;
+    xtended*& gMinPrim = sigs::g.gMinPrim;
+    xtended*& gMaxPrim = sigs::g.gMaxPrim;
+    xtended*& gLogPrim = sigs::g.gLogPrim;
+    xtended*& gLog10Prim = sigs::g.gLog10Prim;
+    xtended*& gFmodPrim = sigs::g.gFmodPrim;
+    xtended*& gFloorPrim = sigs::g.gFloorPrim;
+    xtended*& gExpPrim = sigs::g.gExpPrim;
+    xtended*& gExp10Prim = sigs::g.gExp10Prim;
+    xtended*& gCosPrim = sigs::g.gCosPrim;
+    xtended*& gCeilPrim = sigs::g.gCeilPrim;
+    xtended*& gAtanPrim = sigs::g.gAtanPrim;
+    xtended*& gAtan2Prim = sigs::g.gAtan2Prim;
+    xtended*& gAsinPrim = sigs::g.gAsinPrim;
 
     // Signals
     Sym BOXIDENT;
@@ -542,8 +598,8 @@ struct global {
     // Used in environment layering
     Sym BARRIER;
 
-    property<bool>*  gPureRoutingProperty;
-    property<Tree>*  gSymbolicBoxProperty;
+    property<bool>* gPureRoutingProperty;
+    property<Tree>* gSymbolicBoxProperty;
     property2<Tree>* gEvalMemo;
     property2<Tree>* gPMMemo;
 
@@ -557,10 +613,10 @@ struct global {
     property<Tree>* gSimplifiedBoxProperty;
 
     // The property used to memoize the results
-    property<Tree>* gSymListProp;
+    property<Tree>*& gSymListProp = sigs::g.gSymListProp;
 
     // Memoized type contruction
-    property<AudioType*>* gMemoizedTypes;
+    property<AudioType*>*& gMemoizedTypes = sigs::g.gMemoizedTypes;
 
     // Symbols
     Sym UIFOLDER;
@@ -568,64 +624,56 @@ struct global {
     Sym PATHROOT;
     Sym PATHPARENT;
     Sym PATHCURRENT;
-    Sym FFUN;
-    Sym SIGINPUT;
-    Sym SIGOUTPUT;
-    Sym SIGDELAY1;
-    Sym SIGDELAY;
-    Sym SIGPREFIX;
-    Sym SIGRDTBL;
-    Sym SIGWRTBL;
-    Sym SIGGEN;
-    Sym SIGDOCONSTANTTBL;
-    Sym SIGDOCWRITETBL;
-    Sym SIGDOCACCESSTBL;
-    Sym SIGSELECT2;
-    Sym SIGASSERTBOUNDS;
-    Sym SIGHIGHEST;
-    Sym SIGLOWEST;
-    Sym SIGBINOP;
-    Sym SIGFFUN;
-    Sym SIGFCONST;
-    Sym SIGFVAR;
-    Sym SIGPROJ;
-    Sym SIGINTCAST;
-    Sym SIGBITCAST;
-    Sym SIGFLOATCAST;
-    Sym SIGBUTTON;
-    Sym SIGCHECKBOX;
-    Sym SIGWAVEFORM;
-    Sym SIGHSLIDER;
-    Sym SIGVSLIDER;
-    Sym SIGNUMENTRY;
-    Sym SIGHBARGRAPH;
-    Sym SIGVBARGRAPH;
-    Sym SIGATTACH;
-    Sym SIGENABLE;
-    Sym SIGCONTROL;
-    Sym SIGSOUNDFILE;
-    Sym SIGSOUNDFILELENGTH;
-    Sym SIGSOUNDFILERATE;
-    Sym SIGSOUNDFILEBUFFER;
-    Sym SIGREGISTER;  // for FPGA Retiming
-    Sym SIGTUPLE;
-    Sym SIGTUPLEACCESS;
+    Sym& FFUN = sigs::g.FFUN;
+    Sym& SIGINPUT = sigs::g.SIGINPUT;
+    Sym& SIGOUTPUT = sigs::g.SIGOUTPUT;
+    Sym& SIGDELAY1 = sigs::g.SIGDELAY1;
+    Sym& SIGDELAY = sigs::g.SIGDELAY;
+    Sym& SIGPREFIX = sigs::g.SIGPREFIX;
+    Sym& SIGRDTBL = sigs::g.SIGRDTBL;
+    Sym& SIGWRTBL = sigs::g.SIGWRTBL;
+    Sym& SIGGEN = sigs::g.SIGGEN;
+    Sym& SIGDOCONSTANTTBL = sigs::g.SIGDOCONSTANTTBL;
+    Sym& SIGDOCWRITETBL = sigs::g.SIGDOCWRITETBL;
+    Sym& SIGDOCACCESSTBL = sigs::g.SIGDOCACCESSTBL;
+    Sym& SIGSELECT2 = sigs::g.SIGSELECT2;
+    Sym& SIGASSERTBOUNDS = sigs::g.SIGASSERTBOUNDS;
+    Sym& SIGHIGHEST = sigs::g.SIGHIGHEST;
+    Sym& SIGLOWEST = sigs::g.SIGLOWEST;
+    Sym& SIGBINOP = sigs::g.SIGBINOP;
+    Sym& SIGFFUN = sigs::g.SIGFFUN;
+    Sym& SIGFCONST = sigs::g.SIGFCONST;
+    Sym& SIGFVAR = sigs::g.SIGFVAR;
+    // SIGPROJ removed : projection is now a tlib primitive (proj/isProj).
+    Sym& SIGINTCAST = sigs::g.SIGINTCAST;
+    Sym& SIGBITCAST = sigs::g.SIGBITCAST;
+    Sym& SIGFLOATCAST = sigs::g.SIGFLOATCAST;
+    Sym& SIGBUTTON = sigs::g.SIGBUTTON;
+    Sym& SIGCHECKBOX = sigs::g.SIGCHECKBOX;
+    Sym& SIGWAVEFORM = sigs::g.SIGWAVEFORM;
+    Sym& SIGHSLIDER = sigs::g.SIGHSLIDER;
+    Sym& SIGVSLIDER = sigs::g.SIGVSLIDER;
+    Sym& SIGNUMENTRY = sigs::g.SIGNUMENTRY;
+    Sym& SIGHBARGRAPH = sigs::g.SIGHBARGRAPH;
+    Sym& SIGVBARGRAPH = sigs::g.SIGVBARGRAPH;
+    Sym& SIGATTACH = sigs::g.SIGATTACH;
+    Sym& SIGENABLE = sigs::g.SIGENABLE;
+    Sym& SIGCONTROL = sigs::g.SIGCONTROL;
+    Sym& SIGSOUNDFILE = sigs::g.SIGSOUNDFILE;
+    Sym& SIGSOUNDFILELENGTH = sigs::g.SIGSOUNDFILELENGTH;
+    Sym& SIGSOUNDFILERATE = sigs::g.SIGSOUNDFILERATE;
+    Sym& SIGSOUNDFILEBUFFER = sigs::g.SIGSOUNDFILEBUFFER;
+    Sym& SIGREGISTER = sigs::g.SIGREGISTER;  // for FPGA Retiming
 
     // Types
-    Sym SIMPLETYPE;
-    Sym TABLETYPE;
-    Sym TUPLETTYPE;
+    Sym& SIMPLETYPE = sigs::g.SIMPLETYPE;
 
     // The map of types and associated Structured types
     std::map<Typed::VarType, DeclareStructTypeInst*> gExternalStructTypes;
 
     // Essential predefined types
-    Type TINPUT;
-    Type TGUI;
 
     // Trying to accelerate type convergence
-    Type TREC;  // kVect ou kScal ?
-    Type TRECMAX;
 
     // Predefined symbols CONS and NIL
     Sym  CONS;
@@ -653,7 +701,8 @@ struct global {
     std::map<std::string, int> gIDCounters;
 
     // Internal state during drawing
-    Occur*                      gOccurrences;
+    Occur*                      gOccurrences;     // upstream drawing state (occur survives until its wave)
+    bool gAutoDifferentiate;  // upstream -diff feature
     bool                        gFoldingFlag;     // true with complex block-diagrams
     std::stack<Tree>            gPendingExp;      // Expressions that need to be drawn
     std::set<Tree, treeorder>              gDrawnExp;        // Expressions drawn or scheduled so far
@@ -674,10 +723,6 @@ struct global {
 
     // Colorize
     std::map<Tree, int, treeorder> gColorMap;
-
-    // value-derived (history-independent) order for normal-form terms ; the
-    // -co option arrives with its wave, the member defaults to false (serial)
-    bool gCanonicalOrder = false;
     int                 gNextFreeColor;
 
     // To keep current local

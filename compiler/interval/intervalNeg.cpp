@@ -1,4 +1,4 @@
-/* Copyright 2023 Yann ORLAREY
+/* Copyright 2020-2026 Yann Orlarey, Agathe Herrou, Stéphane Letz
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <algorithm>
+#include <climits>
 #include <functional>
 #include <random>
 
@@ -24,10 +25,31 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // negation, invert sign of an interval
 
-interval interval_algebra::Neg(const interval& x)
+interval interval_algebra::Neg(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();
+    }
+
+    if (x.lsb() >= 0) {  // integer negation wraps: -INT_MIN is INT_MIN again
+        const int xlo = (int)x.lo();
+        const int xhi = (int)x.hi();
+
+        double lo = -x.hi();
+        double hi = -x.lo();
+
+        // if there is a discontinuity by the lower end of integers
+        if ((lo <= (double)INT_MIN - 1) && (hi >= (double)INT_MIN)) {
+            return {(double)INT_MIN, (double)INT_MAX, x.lsb()};
+        }
+
+        // if there is a discontinuity by the higher end of integers
+        if ((lo <= (double)INT_MAX) && (hi >= (double)INT_MAX + 1)) {
+            return {(double)INT_MIN, (double)INT_MAX, x.lsb()};
+        }
+
+        // if there is potential wrapping but no discontinuity
+        return {(double)(-xhi), (double)(-xlo), x.lsb()};
     }
 
     return {-x.hi(), -x.lo(), x.lsb()};

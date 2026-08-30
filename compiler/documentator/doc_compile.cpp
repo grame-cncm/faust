@@ -48,7 +48,7 @@
 #include "sigtyperules.hh"
 #include "simplify.hh"
 #include "tlib.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
 
 using namespace std;
 
@@ -1030,7 +1030,7 @@ string DocCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2, int pr
  */
 string DocCompiler::generateXtended(Tree sig, int priority)
 {
-    xtended*       p = (xtended*)getUserData(sig);
+    xtendedCodegen* p = static_cast<xtendedCodegen*>((xtended*)getUserData(sig));
     vector<string> args;
     vector<Type>   types;
 

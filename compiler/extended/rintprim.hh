@@ -24,32 +24,17 @@
 #include "Text.hh"
 #include "compatibility.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class RintPrim : public xtended {
+class RintPrim : public xtendedCodegen {
    public:
-    RintPrim() : xtended("rint") {}
+    RintPrim() : xtendedCodegen("rint") {}
 
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        interval i = args[0]->getInterval();
-        if (i.isValid()) {
-            return castInterval(floatCast(args[0]), gAlgebra.Rint(i));
-        } else {
-            return floatCast(args[0]);
-        }
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return args[0];
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -89,11 +74,11 @@ class RintPrim : public xtended {
         return subst("\\left[ {$0} \\right]", args[0]);
     }
 
+    double compute(const std::vector<Node>& args) override { return rint(args[0].getDouble()); }
+
     Tree diff(const std::vector<Tree>& args) override
     {
         // (rint(x))' = 0, cos(pi * x) != 0
         return getCertifiedSigType(args[0])->nature() == kInt ? sigInt(0) : sigReal(0.0);
     }
-
-    double compute(const std::vector<Node>& args) override { return rint(args[0].getDouble()); }
 };

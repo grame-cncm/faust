@@ -1,4 +1,4 @@
-/* Copyright 2023 Yann ORLAREY
+/* Copyright 2020-2026 Yann Orlarey, Agathe Herrou, Stéphane Letz
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ static double specialmultint(double a, double b)
     return ((a == 0.0) || (b == 0.0)) ? 0.0 : (int)a * (int)b;
 }
 
-interval interval_algebra::Mul(const interval& x, const interval& y)
+interval interval_algebra::Mul(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

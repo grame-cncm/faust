@@ -26,7 +26,7 @@
 #include <sstream>
 #include <string>
 
-#ifdef _WIN32
+#ifdef WIN32
 #include <windows.h>
 #define kPSEP '\\'
 #else
@@ -66,7 +66,7 @@ string exepath::stripPath(const string& path)
     return (stripped == path) ? path : stripPath(stripped);
 }
 
-#ifdef _WIN32
+#ifdef WIN32
 //-----------------------------------------------------------------
 string exepath::resolvelink(const string& path)
 {
@@ -93,7 +93,7 @@ string exepath::resolvelink(const string& path)
 
 #endif
 
-#ifdef _WIN32
+#ifdef WIN32
 //-----------------------------------------------------------------
 string exepath::get(const string& name)
 {
@@ -143,7 +143,7 @@ string exepath::relative2absolute(const string& path)
 //-----------------------------------------------------------------
 string exepath::get(const string& argv0)
 {
-#ifdef _WIN32
+#ifdef WIN32
     if (argv0[1] == ':') {  // with msys, argv[0] is the full path name
         string path = dirup(argv0);
         return (path.back() != kPSEP) ? path + kPSEP : path;

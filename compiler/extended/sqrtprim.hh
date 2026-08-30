@@ -23,30 +23,17 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class SqrtPrim : public xtended {
+class SqrtPrim : public xtendedCodegen {
    public:
-    SqrtPrim() : xtended("sqrt") {}
+    SqrtPrim() : xtendedCodegen("sqrt") {}
 
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == 1);
-        Type     t = args[0];
-        interval i = t->getInterval();
-        if (i.isValid() && i.lo() < 0 && gGlobal->gMathExceptions) {
-            std::stringstream error;
-            error << "WARNING : potential out of domain in sqrt(" << i << ")" << std::endl;
-            gWarningMessages.push_back(error.str());
-        }
-        return castInterval(floatCast(t), gAlgebra.Sqrt(i));
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -93,11 +80,11 @@ class SqrtPrim : public xtended {
         return subst("\\sqrt{$0}", args[0]);
     }
 
+    double compute(const std::vector<Node>& args) override { return sqrt(args[0].getDouble()); }
+
     virtual Tree diff(const std::vector<Tree>& args) override
     {
         // (x^{1/2})' =  1/2 * x^{-1/2}
         return sigMul(sigReal(0.5), sigPow(args[0], sigReal(-0.5)));
     }
-
-    double compute(const std::vector<Node>& args) override { return sqrt(args[0].getDouble()); }
 };

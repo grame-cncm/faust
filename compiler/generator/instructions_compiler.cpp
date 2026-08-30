@@ -43,10 +43,11 @@
 #include "sigprint.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
 
 #include "c_instructions.hh"
 #include "cpp_instructions.hh"
+#include "global.hh"
 
 using namespace std;
 
@@ -287,7 +288,7 @@ void InstructionsCompiler::conditionStatistics(Tree l)
 
 void InstructionsCompiler::conditionStatistics(Tree l)
 {
-    map<Tree, int>
+    map<Tree, int, treeorder>
         fConditionStatistics;  // used with the new X,Y:enable --> sigEnable(X*Y,Y != 0) primitive
     for (const auto& p : fConditionProperty) {
         for (Tree lc = p.second; !isNil(lc); lc = tl(lc)) {
@@ -498,19 +499,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     };
 
     startTiming("compileMultiSignal");
-
-    // -diff option may add additional outputs
-    if (gGlobal->gAutoDifferentiate) {
-        // Count number of differentiable parameters, and set number of output channels
-        // accordingly. Transform to symbolic representation first.
-        DiffVarCollector collector(deBruijn2Sym(L));
-        fContainer->setOutputs(static_cast<int>(collector.inputs.size()));
-
-        if (gGlobal->gDetailsSwitch) {
-            cout << "Autodiff: differentiated process has " << fContainer->inputs()
-                 << " inputs, and " << fContainer->outputs() << " outputs.\n\n";
-        }
-    }
 
     // Has to be done *after* gMachinePtrSize is set by the actual backend
     gGlobal->initTypeSizeMap();
@@ -1088,6 +1076,20 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 
     // Check for expression occuring in delays
     if (o->getMaxDelay() > 0) {
+        string existing;
+        if (getVectorNameProperty(sig, existing)) {
+            // The line was pre-allocated by a deferred delay access
+            // (decoupled write, see generateDelayAccess) : reuse its name,
+            // the computation and the write are emitted now.
+            ::Type t = getCertifiedSigType(sig);
+            ctype    = (t->nature() == kInt) ? IB::genBasicTyped(Typed::kInt32) : genFloatType(t);
+            if (sharing > 1) {
+                return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, existing,
+                                        o->getMaxDelay());
+            } else {
+                return generateDelayVec(sig, exp, ctype, existing, o->getMaxDelay());
+            }
+        }
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         if (sharing > 1) {
             return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname,
@@ -1911,6 +1913,15 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
         }
     }
 
+    // Members not yet stored : the line writes triggered while compiling
+    // the definitions must not read their current value (decoupled write,
+    // see generateDelayAccess)
+    for (int i = 0; i < N; i++) {
+        if (used[i]) {
+            fUnstoredRecMembers.insert(sigProj(i, sig));
+        }
+    }
+
     // Generate delayline for each element of a recursive definition
     for (int i = 0; i < N; i++) {
         if (used[i]) {
@@ -1921,10 +1932,78 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
             } else {
                 generateDelayLine(CS(nth(le, i)), ctype[i], vname[i], delay[i], access, ccs);
             }
+            fUnstoredRecMembers.erase(sigProj(i, sig));
+            flushPendingDelayWrites();
         }
     }
 
     return res;
+}
+
+/**
+ * Deferred line writes (decoupled write, see generateDelayAccess) : emit the
+ * pending expressions whose recursive reads are all stored by now. Compiling
+ * one may defer new ones ; loop until stable. Expressions still reaching an
+ * unstored member stay pending for a later store.
+ */
+void InstructionsCompiler::flushPendingDelayWrites()
+{
+    bool progress = true;
+    while (progress) {
+        progress = false;
+        std::vector<Tree> work;
+        work.swap(fPendingDelayWrites);
+        for (Tree e : work) {
+            if (reachesUnstoredRecMember(e)) {
+                fPendingDelayWrites.push_back(e);
+            } else {
+                CS(e);  // emits the computation and, through the cache path,
+                        // the write into the pre-allocated line
+                progress = true;
+            }
+        }
+    }
+}
+
+/**
+ * Does this expression, compiled now, read the CURRENT value of a recursive
+ * member whose store has not been emitted yet ? A delay sitting DIRECTLY on
+ * a projection is a read of past state, hence safe ; a delayed compound is
+ * computed at the current tick (only its result is shifted), so the walk
+ * descends into it -- its own line write would be triggered too.
+ */
+bool InstructionsCompiler::reachesUnstoredRecMember(Tree t)
+{
+    std::set<Tree>    seen;
+    std::vector<Tree> work{t};
+    while (!work.empty()) {
+        Tree n = work.back();
+        work.pop_back();
+        if (!seen.insert(n).second) {
+            continue;
+        }
+        int  i;
+        Tree x, y;
+        if (isProj(n, &i, x)) {
+            if (fUnstoredRecMembers.count(n)) {
+                return true;
+            }
+            continue;
+        }
+        if (isSigDelay(n, x, y)) {
+            int  d;
+            Tree g;
+            if (isProj(x, &i, g) && isSigInt(y, &d) && d >= 1) {
+                work.push_back(y);  // the amount only : the projection
+                                    // read is past state
+                continue;
+            }
+        }
+        for (int k = 0; k < n->arity(); k++) {
+            work.push_back(n->branch(k));
+        }
+    }
+    return false;
 }
 
 /*****************************************************************************
@@ -2035,7 +2114,7 @@ ValueInst* InstructionsCompiler::generateSelect2Aux(Tree sig, Tree s1, Tree s2, 
 
 ValueInst* InstructionsCompiler::generateXtended(Tree sig)
 {
-    xtended*       p = (xtended*)getUserData(sig);
+    xtendedCodegen* p = static_cast<xtendedCodegen*>((xtended*)getUserData(sig));
     Values         args;
     vector<::Type> types;
 
@@ -2076,25 +2155,45 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
  */
 ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
-    ValueInst* code = CS(exp);  // Ensure exp is compiled to have a vector name
-    int        mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
-    string     vname;
+    int    mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
+    string vname;
 
-    if (!getVectorNameProperty(exp, vname)) {
+    if (!getVectorNameProperty(exp, vname) && mxd > 0 && !fUnstoredRecMembers.empty() &&
+        reachesUnstoredRecMember(exp)) {
+        // DECOUPLED LINE WRITE. Compiling exp right here would emit its line
+        // write before the store of a recursive member it reads at the
+        // current tick, making that read one sample late (shape : a member
+        // definition d = f(d@1, s@n) where s reads d instantaneously).
+        // Allocate the line name only ; the computation and the write are
+        // deferred until every member exp reads has been stored -- see
+        // generateRec and flushPendingDelayWrites. The accesses below only
+        // need the name and mxd, and always target past slots : a delay-0
+        // access cannot reach this state, because the member emission order
+        // guarantees its referee is already stored.
+        BasicTyped* ctype;
+        getTypedNames(getCertifiedSigType(exp), "Vec", ctype, vname);
+        setVectorNameProperty(exp, vname);
+        fPendingDelayWrites.push_back(exp);
+    } else {
+        ValueInst* code = CS(exp);  // Ensure exp is compiled to have a vector name
+
+        if (!getVectorNameProperty(exp, vname)) {
+            if (mxd == 0) {
+                // cerr << "it is a pure zero delay : " << code << endl;
+                return code;
+            } else {
+                cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
+                faustassert(false);
+            }
+        }
+
         if (mxd == 0) {
-            // cerr << "it is a pure zero delay : " << code << endl;
-            return code;
-        } else {
-            cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
-            faustassert(false);
+            // not a real vector name but a scalar name
+            return IB::genLoadStackVar(vname);
         }
     }
 
-    if (mxd == 0) {
-        // not a real vector name but a scalar name
-        return IB::genLoadStackVar(vname);
-
-    } else if (mxd < gGlobal->gMaxCopyDelay) {
+    if (mxd < gGlobal->gMaxCopyDelay) {
         int d;
         if (isSigInt(delay, &d)) {
             return IB::genLoadArrayStructVar(vname, CS(delay));

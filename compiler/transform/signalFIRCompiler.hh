@@ -40,6 +40,7 @@
 
 #include "Text.hh"
 #include "description.hh"
+class xtendedCodegen;
 #include "fir_to_fir.hh"
 #include "global.hh"
 #include "instructions.hh"
@@ -684,12 +685,12 @@ struct SignalFIRCompiler : public SignalVisitor {
 
     std::stack<ValueInst*> fValueStack;  // Compiler's value stack used during signal traversal
 
-    std::map<Tree, DelayLine> fDelays;  // Mapping between signals and their delay buffers
-    std::map<Tree, TableData> fTables;  // Mapping between signals and their associated tables
-                                        // std::map<Tree, TableData> fWaveforms;    // (Commented
+    std::map<Tree, DelayLine, treeorder> fDelays;  // Mapping between signals and their delay buffers
+    std::map<Tree, TableData, treeorder> fTables;  // Mapping between signals and their associated tables
+                                        // std::map<Tree, TableData, treeorder> fWaveforms;    // (Commented
                                         // out) Similar to tables but for waveforms
-    std::map<Tree, inputControl>  fInputControls;   // UI input controls (buttons, sliders, etc.)
-    std::map<Tree, outputControl> fOutputControls;  // UI output controls (bargraphs)
+    std::map<Tree, inputControl, treeorder>  fInputControls;   // UI input controls (buttons, sliders, etc.)
+    std::map<Tree, outputControl, treeorder> fOutputControls;  // UI output controls (bargraphs)
     int                           fNumInputs  = 0;  // Number of DSP input signals
     int                           fNumOutputs = 0;  // Number of DSP output signals
     Tree                          fOutputSig;       // The root signal tree to compile
@@ -1018,7 +1019,7 @@ struct SignalFIRCompiler : public SignalVisitor {
     virtual void compileSigAttach(Tree sig, Tree x_tree, Tree y_tree);
     virtual void compileSigEnable(Tree sig, Tree x_tree, Tree y_tree);
     virtual void compileSigControl(Tree sig, Tree x_tree, Tree y_tree);
-    virtual void compileXtended(Tree sig, xtended* xt);
+    virtual void compileXtended(Tree sig, xtendedCodegen* xt);
 
     /**
      * @brief Generates a FIR DSP module instance.

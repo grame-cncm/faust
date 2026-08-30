@@ -22,22 +22,19 @@
 #ifndef __XTENDED__
 #define __XTENDED__
 
-#include <sstream>
+#include <cmath>
+#include <string>
 #include <vector>
 
-#include "floats.hh"
 #include "garbageable.hh"
-#include "instructions.hh"
-#include "klass.hh"
-#include "lateq.hh"
-#include "ppsig.hh"
 #include "sigtype.hh"
 #include "tlib.hh"
 
-class CodeContainer;
-
 /*
- Base class for math primitives:
+ Base class for math primitives, signal-level interface: identity (symbol,
+ box), arity, type and order inference, symbolic computation. The code
+ generation layer of these primitives lives in the compiler, in the derived
+ class xtendedCodegen (extended/xtendedCodegen.hh).
  - most of them have same args and result type, except 'pow' which can have different value and
  exponent types
  - max/min, abs/fabs have polymorphic kInt/kReal versions
@@ -57,39 +54,26 @@ class xtended : public virtual Garbageable {
     const char* name() { return ::name(fSymbol); }
     std::string sname() { return std::string(::name(fSymbol)); }
 
-    virtual std::string fname(int type) { return sname() + isuffix(); }
-
     // Create the box
     Tree box()
     {
         Tree b = tree(fSymbol);
-        faustassert(getUserData(b) != nullptr);
+        TLIB_ASSERT(getUserData(b) != nullptr);
         return b;
     }
 
     // virtual method to be implemented by subclasses
     virtual unsigned int arity() = 0;
 
-    // FIR backends
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type rtype,
-                                    ConstTypes types) = 0;
-    // Old CPP backend
-    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args,
-                                     ConstTypes types) = 0;
-
-    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args,
-                                      const std::vector< ::Type>& types) = 0;
-    virtual int         inferSigOrder(const std::vector<int>& args)      = 0;
-    virtual ::Type      inferSigType(ConstTypes args)                    = 0;
-    virtual Tree        computeSigOutput(const std::vector<Tree>& args)  = 0;
-    virtual bool        needCache()                                      = 0;
+    virtual Tree   computeSigOutput(const std::vector<Tree>& args) = 0;
+    virtual bool   needCache()                                     = 0;
 
     virtual double compute(const std::vector<Node>& args) { return -1.; };
 
-    // Compute the derivative of a primitive with respect to its arguments.
+    // Auto-differentiation face (upstream -diff feature) : signal-level,
+    // default nullptr until a primitive overrides it
     virtual Tree diff(const std::vector<Tree>& args)
     {
-        // TODO: implement `diff` for all `xtended` implementations.
         return nullptr;
     }
 
@@ -97,9 +81,6 @@ class xtended : public virtual Garbageable {
     {
         return false;
     }  ///< generally false, but true for binary op # such that #(x) == _#x
-
-    ValueInst* generateFun(CodeContainer* container, const std::string& fun_name,
-                           const Values& args, ::Type rtype, ConstTypes types);
 };
 
 // True if two floating point numbers are close enough to be considered identical.
@@ -107,25 +88,6 @@ class xtended : public virtual Garbageable {
 inline bool comparable(double x, double y)
 {
     return fabs(x - y) < 0.00001;
-}
-
-// Casting operations
-inline ValueInst* promote2real(int type, ValueInst* val)
-{
-    return (type == kReal) ? val : IB::genCastRealInst(val);
-}
-inline ValueInst* promote2int(int type, ValueInst* val)
-{
-    return (type == kInt) ? val : IB::genCastInt32Inst(val);
-}
-
-inline ValueInst* cast2real(int type, ValueInst* val)
-{
-    return (type == kReal) ? IB::genCastRealInst(val) : val;
-}
-inline ValueInst* cast2int(int type, ValueInst* val)
-{
-    return (type == kInt) ? IB::genCastInt32Inst(val) : val;
 }
 
 #endif

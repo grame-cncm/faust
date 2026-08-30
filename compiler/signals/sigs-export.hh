@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    FAUST signal library
+    Copyright (C) 2003-2026 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -19,21 +19,20 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __SIGORDER__
-#define __SIGORDER__
+#ifndef __SIGS_EXPORT__
+#define __SIGS_EXPORT__
 
-#include "signals.hh"
-
-/**
- * Retrieve the order annotation (between 0 and 3) of a signal.
- * (compute the order the first time). Orders have the following meanings:
- *    0 : numbers
- *    1 : constants
- *    2 : user interface values
- *    3 : audio values
- * @param sig the signal we want to know the order
- * @return the order number
- */
-int getSigOrder(Tree sig);
+// Symbol visibility macro. Empty for a static library (the default build).
+// A host application that embeds the signal library in a shared library can
+// redefine it from its build system, e.g. :
+//     -DSIGS_EXPORT_HEADER='"faust/export.h"' -DSIGS_API=LIBFAUST_API
+// SIGS_EXPORT_HEADER is included first so the macro SIGS_API expands to can
+// be defined (dllexport/dllimport on Windows, visibility("default") elsewhere).
+#ifdef SIGS_EXPORT_HEADER
+#include SIGS_EXPORT_HEADER
+#endif
+#ifndef SIGS_API
+#define SIGS_API
+#endif
 
 #endif

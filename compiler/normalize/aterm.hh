@@ -31,7 +31,6 @@
 #include "mterm.hh"
 #include "normalize.hh"
 #include "signals.hh"
-#include "sigorderrules.hh"
 #include "sigprint.hh"
 #include "simplify.hh"
 #include "tlib.hh"
@@ -42,7 +41,9 @@
  */
 
 class aterm : public virtual Garbageable {
-    std::map<Tree, mterm, NormalFormTreeLess> fSig2MTerms;  ///< mapping between signatures and corresponding mterms
+    // Canonical order : the normalized sum must emit its terms in an order derived
+    // from VALUES, never from node serials (construction history).
+    std::map<Tree, mterm, NormalFormTreeLess> fSig2MTerms;  ///< signatures to mterms
 
    public:
     aterm();        ///< create an empty aterm (equivalent to 0)

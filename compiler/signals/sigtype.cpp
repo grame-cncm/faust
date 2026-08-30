@@ -23,8 +23,8 @@
 #include <iostream>
 #include <sstream>
 
-#include "exception.hh"
-#include "global.hh"
+#include "tlib-error.hh"
+#include "sigs-state.hh"
 #include "property.hh"
 #include "sigtype.hh"
 #include "tree.hh"
@@ -49,7 +49,7 @@ AudioType::AudioType(int n, int v, int c, int vec, int b, interval i, res r)
       fRes(r),
       fCode(nullptr)
 {
-    TRACE(cerr << gGlobal->TABBER << "Building audioType : n="
+    TRACE(cerr << sigs::g.TABBER << "Building audioType : n="
                << "NR"[n] << ", v="
                << "KB?S"[v] << ", c="
                << "CI?E"[c] << ", vec="
@@ -79,16 +79,6 @@ ostream& operator<<(ostream& dst, const SimpleType& t)
     return t.print(dst);
 }
 
-ostream& operator<<(ostream& dst, const TableType& t)
-{
-    return t.print(dst);
-}
-
-ostream& operator<<(ostream& dst, const TupletType& t)
-{
-    return t.print(dst);
-}
-
 //------------------------------------------------------------------------------------
 //
 //        Print method definition
@@ -107,50 +97,15 @@ ostream& SimpleType::print(ostream& dst) const
 /**
  * Print the content of a table type on a stream
  */
-ostream& TableType::print(ostream& dst) const
-{
-    dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()]
-        << "VS?TS"[vectorability()] << "N?B"[boolean()] << " " << fInterval << ":Table(";
-    fContent->print(dst);
-    return dst << ')';
-}
-
 /**
  *  True when type is maximal (and therefore can't change depending of hypothesis)
  */
-bool TableType::isMaximal() const
-{
-    return (fNature == kReal) && (fVariability == kSamp) && (fComputability == kExec);
-}
-
 /**
  * Print the content of a tuplet of types on a stream
  */
-ostream& TupletType::print(ostream& dst) const
-{
-    dst << "KB?S"[variability()] << "CI?E"[computability()] << " " << fInterval << " : {";
-    string sep = "";
-    for (unsigned int i = 0; i < fComponents.size(); i++, sep = "*") {
-        dst << sep;
-        fComponents[i]->print(dst);
-    }
-    dst << '}';
-    return dst;
-}
-
 /**
  *  True when type is maximal (and therefore can't change depending of hypothesis)
  */
-bool TupletType::isMaximal() const
-{
-    for (unsigned int i = 0; i < fComponents.size(); i++) {
-        if (!fComponents[i]->isMaximal()) {
-            return false;
-        }
-    }
-    return true;
-}
-
 //------------------------------------------------------------------------------------
 //
 //        Types constructions
@@ -161,8 +116,6 @@ bool TupletType::isMaximal() const
 Type operator|(const Type& t1, const Type& t2)
 {
     SimpleType *st1, *st2;
-    TableType * tt1, *tt2;
-    TupletType *nt1, *nt2;
 
     if ((st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2))) {
         return makeSimpleType(
@@ -171,29 +124,16 @@ Type operator|(const Type& t1, const Type& t2)
             st1->vectorability() | st2->vectorability(), st1->boolean() | st2->boolean(),
             itv::reunion(st1->getInterval(), st2->getInterval()));
 
-    } else if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) {
-        return makeTableType(tt1->content() | tt2->content());
-
-    } else if ((nt1 = isTupletType(t1)) && (nt2 = isTupletType(t2))) {
-        vector<Type> v;
-        int          n = (int)std::min(nt1->arity(), nt2->arity());
-        for (int i = 0; i < n; i++) {
-            v.push_back((*nt1)[i] | (*nt2)[i]);
-        }
-        return new TupletType(v);
-
     } else {
         stringstream error;
         error << "ERROR : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
 }
 
 bool operator==(const Type& t1, const Type& t2)
 {
     SimpleType *st1, *st2;
-    TableType * tt1, *tt2;
-    TupletType *nt1, *nt2;
 
     if (t1->variability() != t2->variability()) {
         return false;
@@ -211,23 +151,6 @@ bool operator==(const Type& t1, const Type& t2)
                (st1->getInterval().lo() == st2->getInterval().lo()) &&
                (st1->getInterval().hi() == st2->getInterval().hi());
     }
-    if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) {
-        return tt1->content() == tt2->content();
-    }
-    if ((nt1 = isTupletType(t1)) && (nt2 = isTupletType(t2))) {
-        int a1 = nt1->arity();
-        int a2 = nt2->arity();
-        if (a1 == a2) {
-            for (int i = 0; i < a1; i++) {
-                if ((*nt1)[i] != (*nt2)[i]) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
     return false;
 }
 
@@ -236,42 +159,9 @@ bool operator<=(const Type& t1, const Type& t2)
     return (t1 | t2) == t2;
 }
 
-Type operator*(const Type& t1, const Type& t2)
-{
-    vector<Type> v;
-
-    TupletType* nt1 = dynamic_cast<TupletType*>((AudioType*)t1);
-    TupletType* nt2 = dynamic_cast<TupletType*>((AudioType*)t2);
-
-    if (nt1) {
-        for (int i = 0; i < nt1->arity(); i++) {
-            v.push_back((*nt1)[i]);
-        }
-    } else {
-        v.push_back(t1);
-    }
-
-    if (nt2) {
-        for (int i = 0; i < nt2->arity(); i++) {
-            v.push_back((*nt2)[i]);
-        }
-    } else {
-        v.push_back(t2);
-    }
-    return new TupletType(v);
-}
-
 SimpleType* isSimpleType(AudioType* t)
 {
     return dynamic_cast<SimpleType*>(t);
-}
-TableType* isTableType(AudioType* t)
-{
-    return dynamic_cast<TableType*>(t);
-}
-TupletType* isTupletType(AudioType* t)
-{
-    return dynamic_cast<TupletType*>(t);
 }
 
 //--------------------------------------------------
@@ -285,7 +175,7 @@ Type checkInt(Type t)
     if (st == nullptr || st->nature() > kInt) {
         stringstream error;
         error << "ERROR : checkInt failed for type " << t << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     return t;
 }
@@ -296,7 +186,7 @@ Type checkKonst(Type t)
     if (t->variability() > kKonst) {
         stringstream error;
         error << "ERROR : checkKonst failed for type " << t << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     return t;
 }
@@ -307,14 +197,9 @@ Type checkInit(Type t)
     if (t->computability() > kInit) {
         stringstream error;
         error << "ERROR : checkInit failed for type " << t << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     return t;
-}
-
-Type checkIntParam(Type t)
-{
-    return checkInit(checkKonst(checkInt(t)));
 }
 
 Type checkWRTbl(Type tbl, Type wr)
@@ -324,7 +209,7 @@ Type checkWRTbl(Type tbl, Type wr)
         stringstream error;
         error << "ERROR : checkWRTbl failed, the content of " << tbl << " is incompatible with "
               << wr << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     return tbl;
 }
@@ -342,7 +227,7 @@ int checkDelayInterval(Type t)
         stringstream error;
         error << "ERROR : invalid delay parameter range: " << i
               << ". The range must be between 0 and INT_MAX" << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
 }
 
@@ -354,8 +239,6 @@ int checkDelayInterval(Type t)
  *****************************************************************************/
 
 static Tree codeSimpleType(SimpleType* st);
-static Tree codeTableType(TableType* st);
-static Tree codeTupletType(TupletType* st);
 
 /**
  * codeAudioType(Type) -> Tree
@@ -366,8 +249,6 @@ static Tree codeTupletType(TupletType* st);
 Tree codeAudioType(AudioType* t)
 {
     SimpleType* st;
-    TableType*  tt;
-    TupletType* nt;
 
     Tree r;
 
@@ -377,14 +258,10 @@ Tree codeAudioType(AudioType* t)
 
     if ((st = isSimpleType(t))) {
         r = codeSimpleType(st);
-    } else if ((tt = isTableType(t))) {
-        r = codeTableType(tt);
-    } else if ((nt = isTupletType(t))) {
-        r = codeTupletType(nt);
     } else {
         stringstream error;
         error << "ERROR : codeAudioType(), invalid pointer " << t << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
 
     r->setType(t);
@@ -409,7 +286,7 @@ static Tree codeSimpleType(SimpleType* st)
 
     elems.push_back(tree(st->getRes().valid));
     elems.push_back(tree(st->getRes().index));
-    return tree(gGlobal->SIMPLETYPE, elems);
+    return tree(sigs::g.SIMPLETYPE, elems);
 }
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i)
@@ -423,115 +300,14 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
     Tree       code = codeAudioType(&prototype);
 
     AudioType* t;
-    if (gGlobal->gMemoizedTypes->get(code, t)) {
+    if (sigs::g.gMemoizedTypes->get(code, t)) {
         return t;
     } else {
-        gGlobal->gAllocationCount++;
+        sigs::g.gAllocationCount++;
         t = new SimpleType(n, v, c, vec, b, i, lsb);
-        gGlobal->gMemoizedTypes->set(code, t);
+        sigs::g.gMemoizedTypes->set(code, t);
         t->setCode(code);
         return t;
     }
 }
 
-/**
- * Code a table type as a tree in order to benefit of memoization
- */
-static Tree codeTableType(TableType* tt)
-{
-    vector<Tree> elems;
-    elems.push_back(tree(tt->nature()));
-    elems.push_back(tree(tt->variability()));
-    elems.push_back(tree(tt->computability()));
-    elems.push_back(tree(tt->vectorability()));
-    elems.push_back(tree(tt->boolean()));
-
-    elems.push_back(tree(tt->getInterval().isValid()));
-    elems.push_back(tree(tt->getInterval().lo()));
-    elems.push_back(tree(tt->getInterval().hi()));
-
-    elems.push_back(tree(tt->getRes().valid));
-    elems.push_back(tree(tt->getRes().index));
-
-    return CTree::make(gGlobal->TABLETYPE, elems);
-}
-
-AudioType* makeTableType(const Type& ct)
-{
-    TableType prototype(ct);
-    Tree      code = codeAudioType(&prototype);
-
-    AudioType* tt;
-    if (gGlobal->gMemoizedTypes->get(code, tt)) {
-        return tt;
-    } else {
-        gGlobal->gAllocationCount++;
-        tt = new TableType(prototype);
-        gGlobal->gMemoizedTypes->set(code, tt);
-        tt->setCode(code);
-        return tt;
-    }
-}
-
-AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, const interval& i)
-{
-    TableType prototype(ct, n, v, c, vec, b, i);
-    Tree      code = codeAudioType(&prototype);
-
-    AudioType* tt;
-    if (gGlobal->gMemoizedTypes->get(code, tt)) {
-        return tt;
-    } else {
-        gGlobal->gAllocationCount++;
-        tt = new TableType(ct, n, v, c, vec, b, i);
-        gGlobal->gMemoizedTypes->set(code, tt);
-        tt->setCode(code);
-        return tt;
-    }
-}
-
-/**
- * Code a tuplet type as a tree in order to benefit of memoization
- */
-static Tree codeTupletType(TupletType* nt)
-{
-    vector<Tree> elems;
-    for (int i = 0; i < nt->arity(); i++) {
-        elems.push_back(codeAudioType((*nt)[i]));
-    }
-    return CTree::make(gGlobal->TUPLETTYPE, elems);
-}
-
-AudioType* makeTupletType(ConstTypes vt)
-{
-    TupletType prototype(vt);
-    Tree       code = codeAudioType(&prototype);
-
-    AudioType* t;
-    if (gGlobal->gMemoizedTypes->get(code, t)) {
-        return t;
-    } else {
-        gGlobal->gAllocationCount++;
-        t = new TupletType(vt);
-        gGlobal->gMemoizedTypes->set(code, t);
-        t->setCode(code);
-        return t;
-    }
-}
-
-AudioType* makeTupletType(ConstTypes vt, int n, int v, int c, int vec, int b, const interval& i)
-{
-    TupletType prototype(vt, n, v, c, vec, b, i);
-    Tree       code = codeAudioType(&prototype);
-
-    AudioType* t;
-    if (gGlobal->gMemoizedTypes->get(code, t)) {
-        return t;
-    } else {
-        gGlobal->gAllocationCount++;
-        t = new TupletType(vt, n, v, c, vec, b, i);
-        gGlobal->gMemoizedTypes->set(code, t);
-        t->setCode(code);
-        return t;
-    }
-}

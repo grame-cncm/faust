@@ -23,7 +23,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
-#ifndef _WIN32
+#ifndef WIN32
 #include <alloca.h>
 #include <unistd.h>
 #else

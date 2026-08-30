@@ -24,38 +24,17 @@
 #include "Text.hh"
 #include "compatibility.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class RemainderPrim : public xtended {
+class RemainderPrim : public xtendedCodegen {
    public:
-    RemainderPrim() : xtended("remainder") {}
+    RemainderPrim() : xtendedCodegen("remainder") {}
 
     virtual unsigned int arity() override { return 2; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-
-        interval i = args[0]->getInterval();
-        interval j = args[1]->getInterval();
-        if (j.isValid() && gGlobal->gMathExceptions && j.hasZero()) {
-            std::stringstream error;
-            error << "WARNING : potential division by zero in remainder(" << i << ", " << j << ")"
-                  << std::endl;
-            gWarningMessages.push_back(error.str());
-        }
-
-        return castInterval(floatCast(args[0] | args[1]),
-                            gAlgebra.Remainder(i));  // temporary rule !!!
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return std::max(args[0], args[1]);
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -107,15 +86,15 @@ class RemainderPrim : public xtended {
         return subst("$0\\pmod{$1}", args[0], args[1]);  // Same as fmodprim.cpp.
     }
 
+    double compute(const std::vector<Node>& args) override
+    {
+        return remainder(args[0].getDouble(), args[1].getDouble());
+    }
+
     Tree diff(const std::vector<Tree>& args) override
     {
         // remainder(f, g) = f - g * round(f / g)
         // (remainder(f, g))' = f' - g' * round(f / g), cos(pi * f / g) != 0
         return sigSub(args[2], sigMul(args[3], sigRint(sigDiv(args[0], args[1]))));
-    }
-
-    double compute(const std::vector<Node>& args) override
-    {
-        return remainder(args[0].getDouble(), args[1].getDouble());
     }
 };

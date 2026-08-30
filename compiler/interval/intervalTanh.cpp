@@ -1,4 +1,4 @@
-/* Copyright 2023 Yann ORLAREY
+/* Copyright 2020-2026 Yann Orlarey, Agathe Herrou, Stéphane Letz
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ namespace itv {
 // interval Tanh(const interval& x);
 // void testTanh();
 
-interval interval_algebra::Tanh(const interval& x)
+interval interval_algebra::Tanh(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

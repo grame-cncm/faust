@@ -15,14 +15,19 @@ void check(const std::string& testname, const itv::interval& exp);
 
 void check(const std::string& testname, const itv::interval& exp, const itv::interval& res);
 
+void checkExact(const std::string& testname, const itv::interval& actual,
+                const itv::interval& expected);
+
 void check(const std::string& testname, bool exp, bool res);
+
+int reportCheckResults();
 
 using ufun = double (*)(double);
 using bfun = double (*)(double, double);
 
-using umth = itv::interval (itv::interval_algebra::*)(const itv::interval& x);
+using umth = itv::interval (itv::interval_algebra::*)(const itv::interval& x) const;
 using bmth = itv::interval (itv::interval_algebra::*)(const itv::interval& x,
-                                                      const itv::interval& y);
+                                                      const itv::interval& y) const;
 
 itv::interval testfun(int N, bfun f, const itv::interval& x, const itv::interval& y);
 void          analyzemod(itv::interval x, itv::interval y);

@@ -60,6 +60,7 @@
 #include "property.hh"
 #include "routeSchema.h"
 #include "schema.h"
+#include "Text.hh"
 #include "xtended.hh"
 
 #if 0

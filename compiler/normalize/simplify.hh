@@ -30,6 +30,14 @@
  */
 Tree simplify(Tree sig);
 
+/// Local, driverless simplification of ONE freshly built node whose subtrees are
+/// already simplified : applies the rewrite rules (and the polynomial normal form
+/// they invoke) to that node only. This is what a transformation RULE may call on
+/// an expression it just built -- never simplify(), whose full traversal would be
+/// a transformation inside a transformation (see the doctrine note in
+/// normalize.cpp, normalizeDelayTerm).
+Tree simplifyExpression(Tree sig);
+
 /**
  * Converts regular tables into doc tables in order to
  * facilitate the mathematical documentation generation

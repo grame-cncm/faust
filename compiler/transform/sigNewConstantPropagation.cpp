@@ -19,145 +19,129 @@
  ************************************************************************
  ************************************************************************/
 
-#include <iostream>
-#include <string>
+#include <map>
+#include <vector>
 
-#include "Schedule.hh"
 #include "global.hh"
-#include "ppsig.hh"
-#include "sigDependenciesGraph.hh"
-#include "sigIdentity.hh"
 #include "sigNewConstantPropagation.hh"
-#include "sigRecursiveDependencies.hh"
 #include "signals.hh"
+#include "sigtransform.hh"
 #include "sigtyperules.hh"
 
-class SigNewConstantPropagation final : public SignalIdentity {
-   protected:
-    virtual Tree transformation(Tree sig) override;
-    virtual Tree postprocess(
-        Tree) override;  // modify a tree after the transformation of its children
-};
-static void explainInterval(Tree sig)
-{
-    digraph<Tree>  G = fullGraph(list1(sig));
-    schedule<Tree> S = dfcyclesschedule(G);
-    int            i = 0;
-    std::cerr << "\n\n EXPLAIN INTERVAL: " << getCertifiedSigType(sig)->getInterval()
-              << " FOR SIGNAL " << sig << " = " << ppsig(sig, 10) << std::endl;
-    for (Tree s : S.elements()) {
-        Type Ty = getSigType(s);
-        if (Ty.pointee() == nullptr) {
-            std::cerr << "\n"
-                      << ++i << "@" << s << " : "
-                      << "NOTYPE"
-                      << "; sig = " << ppsig(s, 10) << std::endl;
-        } else {
-            std::cerr << "\n"
-                      << ++i << "@" << s << " : " << Ty->getInterval() << "; sig = " << ppsig(s, 10)
-                      << std::endl;
-        }
-    }
-}
+namespace {
 
-Tree SigNewConstantPropagation::transformation(Tree sig)
-{
-    Type     tt = getCertifiedSigType(sig);
-    interval I  = tt->getInterval();
-
-    Tree res;
-    if (I.isconst()) {
-        if (tt->nature() == kInt) {
-            res = sigInt(int(I.lo()));
-        } else {
-            res = sigReal(I.lo());
+// Constant propagation as a transformation. The main rule is the algebra's TOP-DOWN
+// guard: a certified interval reduced to a single number decides the whole subtree
+// (the judgment lives on the SOURCE node and would not survive reconstruction), and
+// its children are never visited. The bottom-up side is the generic numeric frame on
+// binary operators, applied to every rebuilt node.
+class ConstantPropagationAlgebra final : public TransformAlgebra {
+   public:
+    Tree cut(Tree orig) const override
+    {
+        Type     tt = getCertifiedSigType(orig);
+        interval I  = tt->getInterval();
+        if (!I.isconst()) {
+            return nullptr;
         }
+        // Cutting replaces the whole subtree by its value: only licit when
+        // the value is all the subtree contributes. A subtree carrying a
+        // side effect (attach, bargraph) contributes an observable action
+        // too -- attach(0, vumeter) must keep its vumeter.
+        if (hasSideEffect(orig)) {
+            return nullptr;
+        }
+        Tree res = (tt->nature() == kInt) ? sigInt(int(I.lo())) : sigReal(I.lo());
         Tree exp;
         // We want to keep the sigGen indication, we don't want
         // sigGen(2) to be replaced by 2
-        if (isSigGen(sig, exp)) {
+        if (isSigGen(orig, exp)) {
             res = sigGen(res);
-            // std::cerr << "Special sigGen case " << ppsig(sig) << " ===> " << ppsig(res) <<
-            // std::endl;
         }
-    } else {
-        res = SignalIdentity::transformation(sig);
+        return res;
     }
-    // if (res != sig) {
-    //     std::cerr << "\n\nConstant propagation: " << ppsig(sig, 10) << " ==> " << ppsig(res, 10)
-    //     << std::endl; explainInterval(sig);
-    // }
-    return res;
-}
 
-/**
- * @brief simplify numerical expressions
- *
- * @param sig
- * @return Tree
- */
-Tree SigNewConstantPropagation::postprocess(Tree sig)
-{
-    int  opnum;
-    Tree t1, t2;
+    XSig combine(Tree orig, const std::vector<XSig>& c,
+                 FixPointEvaluator<XSig>& ev) const override
+    {
+        XSig r = TransformAlgebra::combine(orig, c, ev);
+        return o(numericFrame(r.out));
+    }
 
-    if (isSigBinOp(sig, &opnum, t1, t2)) {
+   private:
+    // Memoized "this subtree contains an observable side effect" predicate.
+    // The provisional-false insertion before descending cuts the cycles of
+    // recursive trees (conservative fixpoint, standard for rec groups).
+    mutable std::map<Tree, bool, treeorder> fSideEffect;
+
+    bool hasSideEffect(Tree t) const
+    {
+        auto it = fSideEffect.find(t);
+        if (it != fSideEffect.end()) {
+            return it->second;
+        }
+        fSideEffect[t] = false;
+        Tree x, y, z, label;
+        bool se = isSigAttach(t, x, y) || isSigVBargraph(t, label, x, y, z) ||
+                  isSigHBargraph(t, label, x, y, z);
+        for (int i = 0; !se && i < t->arity(); i++) {
+            se = hasSideEffect(t->branch(i));
+        }
+        fSideEffect[t] = se;
+        return se;
+    }
+
+    // The generic frame: rules valid FOR ALL binary operators, driven by the op
+    // tables (constant folding, neutral and absorbing elements, x op x).
+    static Tree numericFrame(Tree sig)
+    {
+        int  opnum;
+        Tree t1, t2;
+
+        if (!isSigBinOp(sig, &opnum, t1, t2)) {
+            return sig;
+        }
+
         BinOp* op = gBinOpTable[opnum];
-
-        Node n1 = t1->node();
-        Node n2 = t2->node();
+        Node   n1 = t1->node();
+        Node   n2 = t2->node();
 
         if (isNum(n1) && isNum(n2)) {
-            // std::cerr << "\nnumop\n" << std::endl;
             return tree(op->compute(n1, n2));
-
-        } else if (op->isLeftNeutral(n1)) {
-            // std::cerr << "\nleft neutral\n" << std::endl;
+        }
+        if (op->isLeftNeutral(n1)) {
             return t2;
-        } else if (op->isLeftAbsorbing(n1)) {
-            // std::cerr << "\nleft absorbing\n" << std::endl;
+        }
+        if (op->isLeftAbsorbing(n1)) {
             return t1;
-        } else if (op->isRightNeutral(n2)) {
-            // std::cerr << "\nright neutral\n" << std::endl;
+        }
+        if (op->isRightNeutral(n2)) {
             return t1;
-        } else if (op->isRightAbsorbing(n2)) {
-            // std::cerr << "\nright absorbing\n" << std::endl;
+        }
+        if (op->isRightAbsorbing(n2)) {
             return t2;
-        } else if (t1 == t2) {
+        }
+        if (t1 == t2) {
+            // x op x : hash-consing decides the equality
             if ((opnum == kAND) || (opnum == kOR)) {
-                // std::cerr << "\nAnd or Or\n" << std::endl;
                 return t1;
             }
             if ((opnum == kGE) || (opnum == kLE) || (opnum == kEQ)) {
-                // std::cerr << "\nGE, LE or EQ\n" << std::endl;
                 return sigInt(1);
             }
             if ((opnum == kGT) || (opnum == kLT) || (opnum == kNE) || (opnum == kRem) ||
                 (opnum == kXOR)) {
-                // std::cerr << "\nGT LT NE REM XOR\n" << std::endl;
                 return sigInt(0);
             }
         }
         return sig;
     }
-    return sig;
-}
+};
 
-/**
- * @brief
- *
- * @param sig
- * @param trace
- * @return Tree
- */
-Tree newConstantPropagation(Tree sig, bool trace)
+}  // namespace
+
+Tree newConstantPropagation(Tree sig)
 {
-    SigNewConstantPropagation cp;
-    cp.trace(trace);
-
-    if (isList(sig)) {
-        return cp.mapself(sig);
-    } else {
-        return cp.self(sig);
-    }
+    ConstantPropagationAlgebra A;
+    return signalTransform(sig, A);
 }

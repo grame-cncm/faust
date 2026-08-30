@@ -23,29 +23,17 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class CeilPrim : public xtended {
+class CeilPrim : public xtendedCodegen {
    public:
-    CeilPrim() : xtended("ceil") {}
+    CeilPrim() : xtendedCodegen("ceil") {}
 
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        Type     t = args[0];
-        interval i = t->getInterval();
-        return castInterval(floatCast(t), gAlgebra.Ceil(i));
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return args[0];
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -93,11 +81,11 @@ class CeilPrim : public xtended {
         return subst("\\left\\lceil $0 \\right\\rceil", args[0]);
     }
 
+    double compute(const std::vector<Node>& args) override { return ceil(args[0].getDouble()); }
+
     Tree diff(const std::vector<Tree>& args) override
     {
         // (ceil(x))' = 0, sin(pi * x) != 0
         return getCertifiedSigType(args[0])->nature() == kInt ? sigInt(0) : sigReal(0.0);
     }
-
-    double compute(const std::vector<Node>& args) override { return ceil(args[0].getDouble()); }
 };

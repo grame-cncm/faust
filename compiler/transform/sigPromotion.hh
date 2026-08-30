@@ -32,6 +32,7 @@
 #include "sigIdentity.hh"
 #include "signalVisitor.hh"
 #include "sigtyperules.hh"
+#include "global.hh"
 
 /*
  Print the type of a signal.
@@ -70,150 +71,20 @@ class SignalChecker final : public SignalVisitor {
     SignalChecker(Tree L)
     {
         // Check that the root tree is properly type annotated
-        getCertifiedSigType(L);
+        certifySignalsTyped(L);
         visitRoot(L);
     }
 };
 
-//-------------------------SignalPromotion------------------------------
-// Adds explicit int or float cast when needed. This is needed prior
-// to any optimisations to avoid to scramble int and float expressions.
-// To be used on a type annotated signal.
-//----------------------------------------------------------------------
-class SignalPromotion final : public SignalIdentity {
-   private:
-    Tree transformation(Tree sig);
 
-    // Cast a sig to t1 if t1 != t2
-    Tree smartCast(Type t1, Type t2, Tree sig);
-    Tree smartCast(int t1, int t2, Tree sig);
-    // Cast a sig to t
-    Tree cast(Type t, Tree sig);
-    Tree cast(int t, Tree sig);
-    // Adds an intCast only if needed
-    Tree smartIntCast(Type t, Tree sig);
-    // Adds a floatCast only if needed
-    Tree smartFloatCast(Type t, Tree sig);
-
-   public:
-    SignalPromotion()
-    {
-        // Go inside tables
-        fVisitGen = true;
-    }
-};
-
-//--------------------SignalBool2IntPromotion------------------
-// Cast bool binary operations (comparison operations) to int.
-//-------------------------------------------------------------
-class SignalBool2IntPromotion final : public SignalIdentity {
-   private:
-    Tree transformation(Tree sig);
-
-   public:
-    SignalBool2IntPromotion()
-    {
-        // Go inside tables
-        fVisitGen = true;
-    }
-};
-
-//--------------------SignalFXPromotion------------------
-// Special math function casting mode in -fx generation.
-//-------------------------------------------------------------
-class SignalFXPromotion final : public SignalIdentity {
-   private:
-    Tree transformation(Tree sig);
-
-   public:
-    SignalFXPromotion()
-    {
-        // Go inside tables
-        fVisitGen = true;
-    }
-};
-
-//-------------SignalIntCastPromotion---------------
-// Float to integer conversion, checking the range.
-//--------------------------------------------------
-class SignalIntCastPromotion final : public SignalIdentity {
-   private:
-    Tree transformation(Tree sig);
-
-   public:
-    SignalIntCastPromotion()
-    {
-        // Go inside tables
-        fVisitGen = true;
-    }
-};
-
-//-------------------------SignalTablePromotion----------------------
-// Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1]).
-//-------------------------------------------------------------------
-class SignalTablePromotion final : public SignalIdentity {
-   private:
-    Tree transformation(Tree sig);
-
-    // Safe version of rtable/rwtable access
-    Tree safeSigRDTbl(Tree sig, Tree tbl, Tree size, Tree ri);
-    Tree safeSigWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws);
-
-   public:
-    SignalTablePromotion()
-    {
-        // Go inside tables
-        fVisitGen = true;
-    }
-};
-
-//-------------------------SignalUIPromotion--------------------
-// Generate safe access to range UI items (sliders and nentry).
-//--------------------------------------------------------------
-class SignalUIPromotion final : public SignalIdentity {
-   private:
-    Tree transformation(Tree sig);
-
-   public:
-    SignalUIPromotion()
-    {
-        // Go inside tables
-        fVisitGen = true;
-    }
-};
-
-//-------------------------SignalUIFreezePromotion---------------------------
-// Freeze range UI items (sliders and nentry) to their init value. Everything
-// that depends of sliders and nentry will be computed at compile time.
-//---------------------------------------------------------------------------
-class SignalUIFreezePromotion final : public SignalIdentity {
-   private:
-    Tree transformation(Tree sig);
-
-   public:
-    SignalUIFreezePromotion()
-    {
-        // Go inside tables
-        fVisitGen = true;
-    }
-};
-
-//-------------SignalFTZPromotion---------------
-// The wrapping code allows to flush to zero denormalized number.
-// This option should be used only when it is not available on the CPU.
-//--------------------------------------------------
-class SignalFTZPromotion final : public SignalIdentity {
-   private:
-    Tree selfRec(Tree t);
-
-   public:
-    SignalFTZPromotion()
-    {
-        // Go inside tables
-        fVisitGen = true;
-    }
-};
-
+// Public API
+Tree signalPromote(Tree sig);
+Tree signalBool2IntPromote(Tree sig);
+Tree signalTablePromote(Tree sig);
+Tree signalIntCastPromote(Tree sig);
+Tree signalUIPromote(Tree sig);
+Tree signalUIFreezePromote(Tree sig);
+Tree signalFTZPromote(Tree sig);
 //-------------SignalAutoDifferentiate---------------
 // Auto Differentiate a signal for a given variable
 //--------------------------------------------------
@@ -279,14 +150,6 @@ struct DiffVarCollector : public SignalVisitor {
     }
 };
 
-// Public API
-Tree signalPromote(Tree sig, bool trace = false);
-Tree signalBool2IntPromote(Tree sig);
-Tree signalFXPromote(Tree sig);
-Tree signalTablePromote(Tree sig);
-Tree signalIntCastPromote(Tree sig);
-Tree signalUIPromote(Tree sig);
-Tree signalUIFreezePromote(Tree sig);
-Tree signalFTZPromote(Tree sig);
 Tree signalAutoDifferentiate(Tree sig);
+
 #endif
