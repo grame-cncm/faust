@@ -1,0 +1,181 @@
+//----------------------------------------------------------
+// name: "long_convolution"
+//
+// Code generated with Faust 2.87.4 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	class SIG0 {
+	  private:
+		int fSampleRate;
+		int 	iVec1State; // Single Delay
+		// Recursion delay iVeeec6 is of type kMonoDelay
+		// While its definition is of type kZeroDelay
+		int 	iVeeec6State; // Mono Delay
+	  public:
+		int getNumInputs() { return 0; }
+		int getNumOutputs() { return 1; }
+		void init(int sample_rate) {
+			fSampleRate = sample_rate;
+			iVec1State = 0;
+			iVeeec6State = 0;
+		}
+		void fill(int count, float output[]) {
+			int 	iVec1[2];
+			int 	iVeeec6;
+			int fullcount = count;
+			for (int index = 0; index < fullcount; index += 32) {
+				int count = faustmini(32, fullcount-index);
+				iVec1[1] = iVec1State;
+				iVeeec6 = iVeeec6State;
+				for (int i=0; i<count; i++) {
+					iVec1[0] = 1;
+					iVeeec6 = ((iVec1[1] + iVeeec6) % 65536);
+					output[i] = sinf((9.58738e-05f * float(+iVeeec6)));
+					// post processing
+					iVec1[1] = iVec1[0];
+				}
+				iVec1State = iVec1[1];
+				iVeeec6State = iVeeec6;
+				output += 32;
+			}
+		}
+	};
+
+
+	int 	iVec0State; // Single Delay
+	// Recursion delay fVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Mono Delay
+	float 	fConst0; // step: 24
+	// Recursion delay fVeeec3 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec3State; // Mono Delay
+	static float 	ftbl0[65536];
+	float 	fVec2State[47]; // Dense Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("basics.lib/name", "Faust Basic Element Library");
+		m->declare("basics.lib/version", "1.23.0");
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "long_convolution.dsp");
+		m->declare("filters.lib/conv:author", "Julius O. Smith III");
+		m->declare("filters.lib/conv:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/conv:license", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/fir:author", "Julius O. Smith III");
+		m->declare("filters.lib/fir:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/fir:license", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/lowpass0_highpass1", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/name", "Faust Filters Library");
+		m->declare("filters.lib/pole:author", "Julius O. Smith III");
+		m->declare("filters.lib/pole:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/pole:license", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/version", "1.7.1");
+		m->declare("maths.lib/author", "GRAME");
+		m->declare("maths.lib/copyright", "GRAME");
+		m->declare("maths.lib/license", "LGPL with exception");
+		m->declare("maths.lib/name", "Faust Math Library");
+		m->declare("maths.lib/version", "2.9.0");
+		m->declare("name", "long_convolution");
+		m->declare("oscillators.lib/name", "Faust Oscillator Library");
+		m->declare("oscillators.lib/version", "1.7.0");
+		m->declare("platform.lib/name", "Generic Platform Library");
+		m->declare("platform.lib/version", "1.3.0");
+	}
+
+	virtual int getNumInputs() { return 1; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+		SIG0 sig0;
+		sig0.init(sample_rate);
+		sig0.fill(65536,ftbl0);
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = (4.4e+02f / fminf(1.92e+05f, fmaxf(1.0f, float(+fSampleRate)))); // step: 24
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		iVec0State = 0;
+		fVeeec0State = 0;
+		fVeeec3State = 0;
+		for (int j = 0; j < 47; j++) { fVec2State[j] = 0; }
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("long_convolution");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iVec0[2];
+		float 	fVeeec0;
+		float 	fVeeec3;
+		float 	fVec2Cache[32+47];
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = faustmini(32, fullcount-index);
+			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			// schedule: ss=0 nodes=269 cycles=165 fill=40% peak=13 isoadj=3 packs4=0 aluMII=55 memMII=17 recMII=16 streams(peak/avg,win64)=4/2 (eval machine R=8 U=4 M=3)
+			iVec0[1] = iVec0State;
+			fVeeec0 = fVeeec0State;
+			fVeeec3 = fVeeec3State;
+			float* 	fVec2 = fVec2Cache + 32 - 1;
+			for (int j = 0; j < 47; j++) { fVec2[j+1] = fVec2State[j]; }
+			for (int i=0; i<count; i++) {
+				iVec0[0] = 1;
+				fVeeec0 = ((float)input0[i] + (0.5f * fVeeec0));
+				float 	fTemp0 = (((1 - iVec0[1])) ? 0.0f : (fConst0 + fVeeec3)); // step: 27
+				fVeeec3 = (fTemp0 - floorf(fTemp0));
+				float 	fTemp1 = (fVeeec0 + (0.25f * ftbl0[faustmaxi(0, faustmini(int(+(65536.0f * fVeeec3)), 65535))])); // step: 51
+				fVec2[0] = fTemp1;
+				output0[i] = (FAUSTFLOAT)((((((((((((((((((((((((((((((0.000488281f * fVec2[0]) + (0.000561523f * fVec2[2])) + (0.000634766f * fVec2[4])) + (0.000512695f * fVec2[6])) + (0.000146484f * fVec2[8])) + (0.00706787f * fVec2[17])) + (0.0202148f * fVec2[19])) + (0.0953003f * fVec2[21])) + (0.312427f * fVec2[23])) + (0.75f * fVec2[24])) + (0.399963f * fVec2[26])) + (0.200696f * fVec2[27])) + (0.0267334f * fVec2[32])) + (0.0312134f * fVec2[33])) + (0.164685f * fVec2[34])) + (0.0443481f * fVec2[35])) + (0.186621f * fVec2[36])) + (0.0540039f * fVec2[37])) + (0.123303f * fVec2[38])) + (0.0805054f * fVec2[39])) + (0.0739868f * fVec2[40])) + (0.0591797f * fVec2[41])) + (0.0661743f * fVec2[42])) + (0.0400391f * fVec2[43])) + (0.0429932f * fVec2[44])) + (0.0339844f * fVec2[45])) + (0.0320557f * fVec2[46])) + (0.02323f * fVec2[47])) - ((((((((((((0.00438232f * fVec2[14]) + ((2.44141e-05f * fVec2[13]) + ((0.00202637f * fVec2[12]) + ((0.00145264f * fVec2[11]) + ((0.000622559f * fVec2[10]) + (((0.0020752f * fVec2[1]) + (0.00231934f * fVec2[3])) + (0.00219727f * fVec2[9]))))))) + (0.00247803f * ((fVec2[5] + fVec2[7]) - fVec2[15]))) + (0.00822754f * fVec2[16])) + (0.0159546f * fVec2[18])) + (0.0471558f * fVec2[20])) + (0.208582f * fVec2[22])) + (0.26803f * fVec2[25])) + (0.146655f * fVec2[28])) + (0.29303f * fVec2[29])) + (0.222168f * fVec2[30])) + (0.113098f * fVec2[31]))));  // Zone Exec Code
+				// post processing
+				--fVec2;
+				iVec0[1] = iVec0[0];
+			}
+			iVec0State = iVec0[1];
+			fVeeec0State = fVeeec0;
+			fVeeec3State = fVeeec3;
+			for (int j = 0; j < 47; j++) { fVec2State[j] = fVec2[j+1]; }
+		}
+	}
+};
+
+
+float 	mydsp::ftbl0[65536];

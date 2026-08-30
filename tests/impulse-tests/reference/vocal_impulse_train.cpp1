@@ -1,0 +1,181 @@
+//----------------------------------------------------------
+// name: "vocal_impulse_train"
+//
+// Code generated with Faust 2.87.4 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	float 	fConst0; // step: 7
+	float 	fConst1; // step: 9
+	float 	fConst2; // step: 11
+	float 	fConst3; // step: 14
+	float 	fConst4; // step: 16
+	int 	iVec0State; // Single Delay
+	float 	fConst5; // step: 27
+	// Recursion delay fVeeec2 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec2State; // Single Delay
+	float 	fConst6; // step: 37
+	float 	fConst7; // step: 41
+	float 	fConst8; // step: 47
+	// Recursion delay fVeeec0 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State[2]; // Copy Delay
+	float 	fConst9; // step: 59
+	float 	fConst10; // step: 61
+	float 	fConst11; // step: 64
+	float 	fConst12; // step: 66
+	float 	fConst13; // step: 69
+	float 	fConst14; // step: 73
+	float 	fConst15; // step: 78
+	// Recursion delay fVeeec6 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec6State[2]; // Copy Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "vocal_impulse_train.dsp");
+		m->declare("filters.lib/fir:author", "Julius O. Smith III");
+		m->declare("filters.lib/fir:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/fir:license", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/iir:author", "Julius O. Smith III");
+		m->declare("filters.lib/iir:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/iir:license", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/lowpass0_highpass1", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/name", "Faust Filters Library");
+		m->declare("filters.lib/resonbp:author", "Julius O. Smith III");
+		m->declare("filters.lib/resonbp:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/resonbp:license", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/tf2:author", "Julius O. Smith III");
+		m->declare("filters.lib/tf2:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/tf2:license", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/tf2s:author", "Julius O. Smith III");
+		m->declare("filters.lib/tf2s:copyright", "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>");
+		m->declare("filters.lib/tf2s:license", "MIT-style STK-4.3 license");
+		m->declare("filters.lib/version", "1.7.1");
+		m->declare("maths.lib/author", "GRAME");
+		m->declare("maths.lib/copyright", "GRAME");
+		m->declare("maths.lib/license", "LGPL with exception");
+		m->declare("maths.lib/name", "Faust Math Library");
+		m->declare("maths.lib/version", "2.9.0");
+		m->declare("name", "vocal_impulse_train");
+		m->declare("oscillators.lib/lf_sawpos:author", "Bart Brouns, revised by Stéphane Letz");
+		m->declare("oscillators.lib/lf_sawpos:licence", "STK-4.3");
+		m->declare("oscillators.lib/name", "Faust Oscillator Library");
+		m->declare("oscillators.lib/version", "1.7.0");
+		m->declare("platform.lib/name", "Generic Platform Library");
+		m->declare("platform.lib/version", "1.3.0");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = fminf(1.92e+05f, fmaxf(1.0f, float(+fSampleRate))); // step: 7
+		fConst1 = tanf((2042.0353f / fConst0)); // step: 9
+		fConst2 = (1.0f / fConst1); // step: 11
+		fConst3 = (((fConst2 + 0.025f) / fConst1) + 1.0f); // step: 14
+		fConst4 = (1.0f / (fConst1 * fConst3)); // step: 16
+		fConst5 = (1.1e+02f / fConst0); // step: 27
+		fConst6 = (1.0f / fConst3); // step: 37
+		fConst7 = (((fConst2 + -0.025f) / fConst1) + 1.0f); // step: 41
+		fConst8 = (2.0f * (1.0f - (1.0f / powf(fConst1,2.0f)))); // step: 47
+		fConst9 = tanf((3392.9202f / fConst0)); // step: 59
+		fConst10 = (1.0f / fConst9); // step: 61
+		fConst11 = (((fConst10 + 0.02f) / fConst9) + 1.0f); // step: 64
+		fConst12 = (0.8f / (fConst9 * fConst11)); // step: 66
+		fConst13 = (1.0f / fConst11); // step: 69
+		fConst14 = (((fConst10 + -0.02f) / fConst9) + 1.0f); // step: 73
+		fConst15 = (2.0f * (1.0f - (1.0f / powf(fConst9,2.0f)))); // step: 78
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		iVec0State = 0;
+		fVeeec2State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec0State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec6State[j] = 0; }
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("vocal_impulse_train");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iVec0[2];
+		float 	fVeeec2;
+		float 	fVeeec0[3];
+		float 	fVeeec6[3];
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		// schedule: ss=0 nodes=87 cycles=65 fill=33% peak=15 isoadj=6 packs4=0 aluMII=21 memMII=2 recMII=18 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		iVec0[1] = iVec0State;
+		fVeeec2 = fVeeec2State;
+		fVeeec0[1] = fVeeec0State[0];
+		fVeeec0[2] = fVeeec0State[1];
+		fVeeec6[1] = fVeeec6State[0];
+		fVeeec6[2] = fVeeec6State[1];
+		for (int i=0; i<count; i++) {
+			float 	fTemp0 = fVeeec0[2]; // step: 18
+			iVec0[0] = 1;
+			float 	fTemp1 = fVeeec2; // step: 23
+			float 	fTemp2 = (((1 - iVec0[1])) ? 0.0f : (fConst5 + fTemp1)); // step: 29
+			fVeeec2 = (fTemp2 - floorf(fTemp2));
+			float 	fTemp3 = float(+((fVeeec2 - fTemp1) < 0.0f)); // step: 36
+			fVeeec0[0] = (fTemp3 - (fConst6 * ((fConst7 * fTemp0) + (fConst8 * fVeeec0[1]))));
+			float 	fTemp4 = fVeeec6[2]; // step: 67
+			fVeeec6[0] = (fTemp3 - (fConst13 * ((fConst14 * fTemp4) + (fConst15 * fVeeec6[1]))));
+			output0[i] = (FAUSTFLOAT)(((fConst4 * (fVeeec0[0] - fTemp0)) + (fConst12 * (fVeeec6[0] - fTemp4))));  // Zone Exec Code
+			// post processing
+			fVeeec6[2] = fVeeec6[1];
+			fVeeec6[1] = fVeeec6[0];
+			fVeeec0[2] = fVeeec0[1];
+			fVeeec0[1] = fVeeec0[0];
+			iVec0[1] = iVec0[0];
+		}
+		iVec0State = iVec0[1];
+		fVeeec2State = fVeeec2;
+		fVeeec0State[0] = fVeeec0[1];
+		fVeeec0State[1] = fVeeec0[2];
+		fVeeec6State[0] = fVeeec6[1];
+		fVeeec6State[1] = fVeeec6[2];
+	}
+};
+
+
