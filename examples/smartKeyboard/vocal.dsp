@@ -31,13 +31,13 @@ declare interface "SmartKeyboard{
 }";
 
 // standard parameters
-vowel = hslider("vowel[acc: 0 0 -10 0 10]",2,0,4,0.01) : si.smoo;
-x = hslider("x",0.5,0,1,0.01) : si.smoo;
-vibrato = hslider("vibrato[acc: 1 0 -10 0 10]",0.05,0,0.1,0.01);
-gain = hslider("gain",0.25,0,1,0.01);
+vowel = hslider("vowel[acc: 0 0 -10 0 10]", 2, 0, 4, 0.01):si.smoo;
+x = hslider("x", 0.5, 0, 1, 0.01):si.smoo;
+vibrato = hslider("vibrato[acc: 1 0 -10 0 10]", 0.05, 0, 0.1, 0.01);
+gain = hslider("gain", 0.25, 0, 1, 0.01);
 
 // fomating parameters
-freq = x*200 + 50;
+freq = x*200+50;
 voiceFreq = freq*(os.osc(6)*vibrato+1);
 
-process = pm.SFFormantModelBP(1,vowel,0,voiceFreq,gain) <: _,_;
+process = pm.SFFormantModelBP(1, vowel, 0, voiceFreq, gain)<:_, _;

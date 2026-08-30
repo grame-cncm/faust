@@ -43,17 +43,18 @@ declare interface "SmartKeyboard{
 }";
 
 // standard parameters
-f = hslider("freq",300,50,2000,0.01);
-bend = ba.semi2ratio(hslider("bend[midi:pitchwheel]",0,-2,2,0.001)) : si.polySmooth(gate,0.999,1);
-gain = hslider("gain",1,0,1,0.01);
-s = hslider("sustain[midi:ctrl 64]",0,0,1,1); // for sustain pedal
+f = hslider("freq", 300, 50, 2000, 0.01);
+bend = ba.semi2ratio(hslider("bend[midi:pitchwheel]", 0, -2, 2, 0.001)):si.polySmooth(gate, 0.999, 1);
+gain = hslider("gain", 1, 0, 1, 0.01);
+s = hslider("sustain[midi:ctrl 64]", 0, 0, 1, 1);
+// for sustain pedal
 t = button("gate");
-y = hslider("y[midi:ctrl 1]",1,0,1,0.001) : si.smoo;
+y = hslider("y[midi:ctrl 1]", 1, 0, 1, 0.001):si.smoo;
 
 // fomating parameters
-gate = t+s : min(1);
+gate = t+s:min(1);
 freq = f*bend;
 cutoff = y*4000+50;
-envelope = gate*gain : si.smoo;
+envelope = gate*gain:si.smoo;
 
-process = os.sawtooth(freq)*envelope : fi.lowpass(3,cutoff) <: _,_;
+process = os.sawtooth(freq)*envelope:fi.lowpass(3, cutoff)<:_, _;

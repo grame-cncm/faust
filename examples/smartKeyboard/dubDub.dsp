@@ -43,22 +43,20 @@ declare interface "SmartKeyboard{
 	'Keyboard 0 - Send Y':'1'
 }";
 
-
 //================================ Instrument Parameters =================================
 // Creates the connection between the synth and the mobile device
 //========================================================================================
 
 // SmartKeyboard X parameter
-x = hslider("x",0,0,1,0.01);
+x = hslider("x", 0, 0, 1, 0.01);
 // SmartKeyboard Y parameter
-y = hslider("y",0,0,1,0.01);
+y = hslider("y", 0, 0, 1, 0.01);
 // SmartKeyboard gate parameter
 gate = button("gate");
 // modulation frequency is controlled with the x axis of the accelerometer
-modFreq = hslider("modFeq[acc: 0 0 -10 0 10]",9,0.5,18,0.01);
+modFreq = hslider("modFeq[acc: 0 0 -10 0 10]", 9, 0.5, 18, 0.01);
 // general gain is controlled with the y axis of the accelerometer
-gain = hslider("gain[acc: 1 0 -10 0 10]",0.5,0,1,0.01);
-
+gain = hslider("gain[acc: 1 0 -10 0 10]", 0.5, 0, 1, 0.01);
 
 //=================================== Parameters Mapping =================================
 //========================================================================================
@@ -66,7 +64,7 @@ gain = hslider("gain[acc: 1 0 -10 0 10]",0.5,0,1,0.01);
 // sawtooth frequency
 minFreq = 80;
 maxFreq = 500;
-freq = x*(maxFreq-minFreq) + minFreq : si.polySmooth(gate,0.999,1);
+freq = x*(maxFreq-minFreq)+minFreq:si.polySmooth(gate, 0.999, 1);
 
 // filter q
 q = 8;
@@ -74,14 +72,13 @@ q = 8;
 // filter cutoff frequency is modulate with a triangle wave
 minFilterCutoff = 50;
 maxFilterCutoff = 5000;
-filterModFreq = modFreq : si.smoo;
+filterModFreq = modFreq:si.smoo;
 filterCutoff = (1-os.lf_trianglepos(modFreq)*(1-y))*(maxFilterCutoff-minFilterCutoff)+minFilterCutoff;
 
 // general gain of the synth
-generalGain = gain : ba.lin2LogGain : si.smoo;
-
+generalGain = gain:ba.lin2LogGain:si.smoo;
 
 //============================================ DSP =======================================
 //========================================================================================
 
-process = sy.dubDub(freq,filterCutoff,q,gate)*generalGain <: _,_;
+process = sy.dubDub(freq, filterCutoff, q, gate)*generalGain<:_, _;

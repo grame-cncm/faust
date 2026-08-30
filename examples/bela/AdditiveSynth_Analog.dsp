@@ -28,21 +28,21 @@ midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
 midigain = nentry("gain", 0.5, 0, 10, 0.01);
 
 // pitchwheel
-bend = ba.semi2ratio(hslider("bend [midi:pitchwheel]",0,-2,2,0.01));
+bend = ba.semi2ratio(hslider("bend [midi:pitchwheel]", 0, -2, 2, 0.01));
 
-gFreq = midifreq * bend;
+gFreq = midifreq*bend;
 
 partiel(rang) = os.oscrs(gFreq*(rang+1))*volume
     with {
         // UI
-        vol	= hslider("vol%rang[BELA: ANALOG_%rang]", 1, 0, 1, 0.001);
-     
-        a = 0.01 * hslider("A%rang", 1, 0, 400, 0.001);
-        d = 0.01 * hslider("D%rang", 1, 0, 400, 0.001);
-        s = hslider("S%rang", 1, 0, 1, 0.001);
-        r = 0.01 * hslider("R%rang", 1, 0, 800, 0.001);
+        vol = hslider("vol%rang[BELA: ANALOG_%rang]", 1, 0, 1, 0.001);
 
-        volume = ((en.adsr(a,d,s,r,midigate))*vol) : max(0) : min(1);
+        a = 0.01*hslider("A%rang", 1, 0, 400, 0.001);
+        d = 0.01*hslider("D%rang", 1, 0, 400, 0.001);
+        s = hslider("S%rang", 1, 0, 1, 0.001);
+        r = 0.01*hslider("R%rang", 1, 0, 800, 0.001);
+
+        volume = ((en.adsr(a, d, s, r, midigate))*vol):max(0):min(1);
     };
 
-process = par(i, 8, partiel(i)) :> /(8);
+process = par(i, 8, partiel(i)):>/(8);

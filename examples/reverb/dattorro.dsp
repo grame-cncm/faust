@@ -5,4 +5,4 @@ declare description "Dattorro demo application.";
 
 import("stdfaust.lib");
 
-process = dm.dattorro_rev_demo;	
+process = dm.dattorro_rev_demo;

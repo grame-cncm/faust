@@ -57,35 +57,35 @@ declare interface "SmartKeyboard{
 import("stdfaust.lib");
 
 // SMARTKEYBOARD PARAMS
-kbfreq(0) = hslider("kb0freq",220,20,10000,0.01);
-kbbend(0) = hslider("kb0bend",1,ma.EPSILON,10,0.01);
-kbfreq(1) = hslider("kb1freq",330,20,10000,0.01);
-kbbend(1) = hslider("kb1bend",1,ma.EPSILON,10,0.01);
-kbfreq(2) = hslider("kb2freq",440,20,10000,0.01);
-kbbend(2) = hslider("kb2bend",1,ma.EPSILON,10,0.01);
-kbfreq(3) = hslider("kb3freq",550,20,10000,0.01);
-kbbend(3) = hslider("kb3bend",1,ma.EPSILON,10,0.01);
-kb4k0x = hslider("kb4k0x",0,0,1,1) : si.smoo;
-kb4k0y = hslider("kb4k0y",0,0,1,1) : si.smoo;
-kbfingers(0) = hslider("kb0fingers",0,0,10,1) : int;
-kbfingers(1) = hslider("kb1fingers",0,0,10,1) : int;
-kbfingers(2) = hslider("kb2fingers",0,0,10,1) : int;
-kbfingers(3) = hslider("kb3fingers",0,0,10,1) : int;
+kbfreq(0) = hslider("kb0freq", 220, 20, 10000, 0.01);
+kbbend(0) = hslider("kb0bend", 1, ma.EPSILON, 10, 0.01);
+kbfreq(1) = hslider("kb1freq", 330, 20, 10000, 0.01);
+kbbend(1) = hslider("kb1bend", 1, ma.EPSILON, 10, 0.01);
+kbfreq(2) = hslider("kb2freq", 440, 20, 10000, 0.01);
+kbbend(2) = hslider("kb2bend", 1, ma.EPSILON, 10, 0.01);
+kbfreq(3) = hslider("kb3freq", 550, 20, 10000, 0.01);
+kbbend(3) = hslider("kb3bend", 1, ma.EPSILON, 10, 0.01);
+kb4k0x = hslider("kb4k0x", 0, 0, 1, 1):si.smoo;
+kb4k0y = hslider("kb4k0y", 0, 0, 1, 1):si.smoo;
+kbfingers(0) = hslider("kb0fingers", 0, 0, 10, 1):int;
+kbfingers(1) = hslider("kb1fingers", 0, 0, 10, 1):int;
+kbfingers(2) = hslider("kb2fingers", 0, 0, 10, 1):int;
+kbfingers(3) = hslider("kb3fingers", 0, 0, 10, 1):int;
 
 // MODEL PARAMETERS
 // strings lengths
-sl(i) = kbfreq(i)*kbbend(i) : pm.f2l : si.smoo;
+sl(i) = kbfreq(i)*kbbend(i):pm.f2l:si.smoo;
 // string active only if fingers are touching the keyboard
 as(i) = kbfingers(i)>0;
 // bow pressure could also be controlled by an external parameter
 bowPress = kb4k0y;
 // retrieving finger displacement on screen (dirt simple)
-bowVel = kb4k0x-kb4k0x' : abs : *(8000) : min(1) : si.smoo;
+bowVel = kb4k0x-kb4k0x':abs:*(8000):min(1):si.smoo;
 // bow position is constant but could be ontrolled by an external interface
 bowPos = 0.7;
 
 // ASSEMBLING MODELS
 // essentially 4 parallel violin strings
-model = par(i,4,pm.violinModel(sl(i),bowPress,bowVel*as(i),bowPos)) :> _;
+model = par(i, 4, pm.violinModel(sl(i), bowPress, bowVel*as(i), bowPos)):>_;
 
-process = model <: _,_;
+process = model<:_, _;

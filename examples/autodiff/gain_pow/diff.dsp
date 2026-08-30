@@ -4,6 +4,6 @@ f(x)^{g(x)} are differentiated correctly.";
 
 import("maths.lib");
 
-x = hslider("gain [diff:1]", .5, 0, (ma.PI,2 : /), .001);
+x = hslider("gain [diff:1]", .5, 0, (ma.PI, 2:/), .001);
 
-process = _,(sin(x),cos(x): ^): *;
+process = _, (sin(x), cos(x):^):*;

@@ -1,4 +1,4 @@
 gain = .75;
 dc = -.15;
 
-process = _*(gain),dc : +;
+process = _*(gain), dc:+;

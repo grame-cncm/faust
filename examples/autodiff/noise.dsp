@@ -1,2 +1,2 @@
- import("stdfaust.lib");
- process = no.noise;
+import("stdfaust.lib");
+process = no.noise;

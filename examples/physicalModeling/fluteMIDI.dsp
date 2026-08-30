@@ -5,4 +5,4 @@ declare copyright "(c)Romain Michon, CCRMA (Stanford University), GRAME";
 
 import("stdfaust.lib");
 
-process = pm.flute_ui_MIDI <: _,_;
+process = pm.flute_ui_MIDI<:_, _;

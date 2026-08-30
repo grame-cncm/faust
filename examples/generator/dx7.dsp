@@ -5,4 +5,4 @@
 
 import("stdfaust.lib");
 
-process = dx.algorithm(1) <: _,_;
+process = dx.algorithm(1)<:_, _;

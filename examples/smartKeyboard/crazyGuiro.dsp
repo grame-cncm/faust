@@ -32,7 +32,6 @@
 
 import("stdfaust.lib");
 
-
 //========================= Smart Keyboard Configuration =================================
 // 8 keyboards, each has 16 keys, none of them display key names.
 //========================================================================================
@@ -57,33 +56,33 @@ declare interface "SmartKeyboard{
 	'Keyboard 7 - Piano Keyboard':'0'
 }";
 
-
 //================================ Instrument Parameters =================================
 // Creates the connection between the synth and the mobile device
 //========================================================================================
 
 // the current keyboard
-keyboard = hslider("keyboard",0,0,2,1);
+keyboard = hslider("keyboard", 0, 0, 2, 1);
 // the current key of the current keyboard
-key = hslider("key",0,0,2,1);
+key = hslider("key", 0, 0, 2, 1);
 // the wet factor of the reverb
-wet = hslider("wet[acc: 0 0 -10 0 10]",0,0,1,0.01);
+wet = hslider("wet[acc: 0 0 -10 0 10]", 0, 0, 1, 0.01);
 // the resonance factor of the reverb
-res = hslider("res[acc: 1 0 -10 0 10]",0.5,0,1,0.01);
+res = hslider("res[acc: 1 0 -10 0 10]", 0.5, 0, 1, 0.01);
 // smart keyboard gate parameter
 gate = button("gate");
-
 
 //=================================== Parameters Mapping =================================
 //========================================================================================
 
 // the resonance frequency of each click of the Guiro changes in function of
 // the selected keyboard and key on it
-minKey = 50; // min key of lowest keyboard
-keySkipKeyboard = 8; // key skip per keyboard
-drumResFreq = (key+minKey)+(keyboard*keySkipKeyboard) : ba.midikey2hz;
-reverbWet = wet : si.smoo;
-reverbRes = wet : si.smoo;
+minKey = 50;
+// min key of lowest keyboard
+keySkipKeyboard = 8;
+// key skip per keyboard
+drumResFreq = (key+minKey)+(keyboard*keySkipKeyboard):ba.midikey2hz;
+reverbWet = wet:si.smoo;
+reverbRes = wet:si.smoo;
 
 // filter q
 q = 8;
@@ -91,6 +90,6 @@ q = 8;
 //============================================ DSP =======================================
 //========================================================================================
 
-reverb(wet,res)  =  _ <: *(1-wet),(*(wet) : re.mono_freeverb(res, 0.5, 0.5, 0)) :> _;
+reverb(wet, res) = _<:*(1-wet), (*(wet):re.mono_freeverb(res, 0.5, 0.5, 0)):>_;
 
-process = sy.popFilterDrum(drumResFreq,q,gate) : reverb(wet,res) <: _,_;
+process = sy.popFilterDrum(drumResFreq, q, gate):reverb(wet, res)<:_, _;

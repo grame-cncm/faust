@@ -5,4 +5,4 @@ declare copyright "(c)Mike Olsen, CCRMA (Stanford University)";
 
 import("stdfaust.lib");
 
-process = pm.SFFormantModelFofSmooth_ui_MIDI <: _,_;
+process = pm.SFFormantModelFofSmooth_ui_MIDI<:_, _;

@@ -50,18 +50,20 @@ declare interface "SmartKeyboard{
 import("stdfaust.lib");
 
 // standard parameters
-f = hslider("freq",300,50,2000,0.01);
-bend = hslider("bend[midi:pitchwheel]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
-gain = hslider("gain",1,0,1,0.01);
-s = hslider("sustain[midi:ctrl 64]",0,0,1,1); // for sustain pedal
+f = hslider("freq", 300, 50, 2000, 0.01);
+bend = hslider("bend[midi:pitchwheel]", 1, 0, 10, 0.01):si.polySmooth(gate, 0.999, 1);
+gain = hslider("gain", 1, 0, 1, 0.01);
+s = hslider("sustain[midi:ctrl 64]", 0, 0, 1, 1);
+// for sustain pedal
 t = button("gate");
 
 // mapping params
-gate = t+s : min(1);
-freq = f*bend : max(50); // min freq is 50 Hz
+gate = t+s:min(1);
+freq = f*bend:max(50);
+// min freq is 50 Hz
 
-stringLength = freq : pm.f2l;
+stringLength = freq:pm.f2l;
 pluckPosition = 0.8;
-mute = gate : si.polySmooth(gate,0.999,1);
+mute = gate:si.polySmooth(gate, 0.999, 1);
 
-process = pm.elecGuitar(stringLength,pluckPosition,mute,gain,gate) <: _,_;
+process = pm.elecGuitar(stringLength, pluckPosition, mute, gain, gate)<:_, _;

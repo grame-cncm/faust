@@ -5,4 +5,4 @@ declare description "Greyhole demo application.";
 
 import("stdfaust.lib");
 
-process = dm.greyhole_demo;	
+process = dm.greyhole_demo;

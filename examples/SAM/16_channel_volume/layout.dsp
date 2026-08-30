@@ -1,4 +1,4 @@
-mixer(x) = hgroup("",x);
+mixer(x) = hgroup("", x);
 v01(x) = mixer(hgroup("", x));
 v02(x) = mixer(hgroup("", x));
 v03(x) = mixer(hgroup("", x));
@@ -14,4 +14,4 @@ v12(x) = mixer(hgroup("", x));
 v13(x) = mixer(hgroup("", x));
 v14(x) = mixer(hgroup("", x));
 v15(x) = mixer(hgroup("", x));
-v16(x) = mixer(hgroup("", x));      
+v16(x) = mixer(hgroup("", x));

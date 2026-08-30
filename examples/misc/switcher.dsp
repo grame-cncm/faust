@@ -11,10 +11,9 @@ declare copyright   "(c)GRAME 2007";
 // channels to select
 //-----------------------------------------------
 
-switch(c,x0,x1,y0,y1) = sel(c,x0,y0), sel(c,x1,y1)
-                        with { 
-                            sel(c,x,y) = (1-c)*x + c*y; 
-                        };
-    
-process = switch(hslider("source 0 <-> source 1",0,0,1,1));
+switch(c, x0, x1, y0, y1) = sel(c, x0, y0), sel(c, x1, y1)
+    with {
+        sel(c, x, y) = (1-c)*x+c*y;
+    };
 
+process = switch(hslider("source 0 <-> source 1", 0, 0, 1, 1));

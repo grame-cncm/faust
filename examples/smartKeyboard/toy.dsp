@@ -53,19 +53,19 @@ declare interface "SmartKeyboard{
 import("stdfaust.lib");
 
 // parameters
-x0 = hslider("x0",0.5,0,1,0.01) : si.smoo;
-y0 = hslider("y0",0.5,0,1,0.01) : si.smoo;
-y1 = hslider("y1",0,0,1,0.01) : si.smoo;
-q = hslider("q[acc: 0 0 -10 0 10]",30,10,50,0.01) : si.smoo;
-del = hslider("del[acc: 0 0 -10 0 10]",0.5,0.01,1,0.01) : si.smoo;
-fb = hslider("fb[acc: 1 0 -10 0 10]",0.5,0,1,0.01) : si.smoo;
+x0 = hslider("x0", 0.5, 0, 1, 0.01):si.smoo;
+y0 = hslider("y0", 0.5, 0, 1, 0.01):si.smoo;
+y1 = hslider("y1", 0, 0, 1, 0.01):si.smoo;
+q = hslider("q[acc: 0 0 -10 0 10]", 30, 10, 50, 0.01):si.smoo;
+del = hslider("del[acc: 0 0 -10 0 10]", 0.5, 0.01, 1, 0.01):si.smoo;
+fb = hslider("fb[acc: 1 0 -10 0 10]", 0.5, 0, 1, 0.01):si.smoo;
 
 // mapping
-impFreq = 2 + x0*20;
+impFreq = 2+x0*20;
 resFreq = y0*3000+300;
 
 // simple echo effect
-echo = +~(de.delay(65536,del*ma.SR)*fb);
+echo = +~(de.delay(65536, del*ma.SR)*fb);
 
 // putting it together
-process = os.lf_imptrain(impFreq) : fi.resonlp(resFreq,q,1) : echo : ef.cubicnl(y1,0)*0.95 <: _,_;
+process = os.lf_imptrain(impFreq):fi.resonlp(resFreq, q, 1):echo:ef.cubicnl(y1, 0)*0.95<:_, _;

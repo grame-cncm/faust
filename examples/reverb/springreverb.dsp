@@ -5,4 +5,4 @@ declare description "Spring reverb demo application.";
 
 import("stdfaust.lib");
 
-process = dm.springreverb_demo;	
+process = dm.springreverb_demo;

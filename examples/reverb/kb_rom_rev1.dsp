@@ -5,4 +5,4 @@ declare description "Keith Barr reverb effect rom_rev1 demo application.";
 
 import("stdfaust.lib");
 
-process = dm.kb_rom_rev1_demo;	
+process = dm.kb_rom_rev1_demo;

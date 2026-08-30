@@ -7,4 +7,4 @@ import("stdfaust.lib");
 
 // TODO: We could potentially add an audio effect chain here
 
-process = pm.elecGuitar_ui_MIDI <: _,_;
+process = pm.elecGuitar_ui_MIDI<:_, _;

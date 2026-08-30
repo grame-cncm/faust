@@ -48,27 +48,27 @@ declare interface "SmartKeyboard{
 //========================================================================================
 
 // SmartKeyboard X parameter
-x = hslider("x",0,0,1,0.01);
+x = hslider("x", 0, 0, 1, 0.01);
 // SmartKeyboard Y parameter
-y = hslider("y",0,0,1,0.01);
+y = hslider("y", 0, 0, 1, 0.01);
 // SmartKeyboard gate parameter
 gate = button("gate");
 // the cutoff frequency of the filter is controlled with the x axis of the accelerometer
-cutoff = hslider("cutoff[acc: 0 0 -10 0 10]",2500,50,5000,0.01);
+cutoff = hslider("cutoff[acc: 0 0 -10 0 10]", 2500, 50, 5000, 0.01);
 
 //=================================== Parameters Mapping =================================
 //========================================================================================
 
 maxFreq = 100;
 minFreq = 1;
-freq = x*(maxFreq-minFreq) + minFreq : si.polySmooth(gate,0.999,1);
+freq = x*(maxFreq-minFreq)+minFreq:si.polySmooth(gate, 0.999, 1);
 
 maxQ = 40;
 minQ = 1;
-q = (1-y)*(maxQ-minQ) + minQ : si.smoo;
-filterCutoff = cutoff : si.smoo;
+q = (1-y)*(maxQ-minQ)+minQ:si.smoo;
+filterCutoff = cutoff:si.smoo;
 
 //============================================ DSP =======================================
 //========================================================================================
 
-process = sy.dubDub(freq,filterCutoff,q,gate) <: _,_;
+process = sy.dubDub(freq, filterCutoff, q, gate)<:_, _;

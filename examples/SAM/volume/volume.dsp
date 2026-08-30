@@ -4,6 +4,6 @@
 
 import("stdfaust.lib");
 
-gain		=  vslider("Volume[midi:ctrl 2] [tooltip CC-1]", 0, -70, +4, 0.1) : ba.db2linear : si.smoo;
+gain = vslider("Volume[midi:ctrl 2] [tooltip CC-1]", 0, -70, +4, 0.1):ba.db2linear:si.smoo;
 
-process		= _,_: *(gain), *(gain);
+process = _, _:*(gain), *(gain);

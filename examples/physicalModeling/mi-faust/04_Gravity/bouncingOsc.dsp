@@ -14,29 +14,23 @@ Note: Beware, if using 32 bit precision gravity forces can become so small they 
 
 import("stdfaust.lib");
 
-
 OutGain = 700;
 
 grav = 0.002;
 K = 0.04;
 
-model = (
-	mi.oscil(1., K, 0.0003, 0, 0., 0.),
-	mi.mass(1, grav/ ma.SR, 0.5, 0.5):
-	RoutingMassToLink :
-	mi.collision(0.1, 0.02, 0, 0., 0.5),
-	par(i, nbOut, _):
-	RoutingLinkToMass
-)~par(i, nbMass, _):
-par(i, nbMass, !), par(i, nbOut , _)
-with{
-	RoutingMassToLink(m0, m1) = /* routed positions */ m0, m1, /* outputs */ m0;
-	RoutingLinkToMass(l0_f1, l0_f2, p_out1) = /* routed forces  */ l0_f1, l0_f2, /* pass-through */ p_out1;
-	nbMass = 2;
-	nbOut = 1;
-};
+model = (mi.oscil(1., K, 0.0003, 0, 0., 0.), mi.mass(1, grav/ma.SR, 0.5, 0.5):RoutingMassToLink:mi.collision(0.1, 0.02, 0, 0., 0.5), par(i, nbOut, _):RoutingLinkToMass)~par(i, nbMass, _):par(i, nbMass, !), par(i, nbOut, _)
+    with {
+        RoutingMassToLink(m0, m1) = /* routed positions */
+        m0, m1, /* outputs */
+        m0;
+        RoutingLinkToMass(l0_f1, l0_f2, p_out1) = /* routed forces  */
+        l0_f1, l0_f2, /* pass-through */
+        p_out1;
+        nbMass = 2;
+        nbOut = 1;
+    };
 process = model:*(OutGain);
-
 
 /*
 ========= MIMS SCRIPT USED FOR MODEL GENERATION =============

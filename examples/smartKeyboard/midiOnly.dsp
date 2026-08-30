@@ -42,21 +42,21 @@ declare interface "SmartKeyboard{
 
 import("stdfaust.lib");
 
-f = hslider("freq",300,50,2000,0.01);
-bend = ba.semi2ratio(hslider("bend[midi:pitchwheel]",0,-2,2,0.001)) : si.polySmooth(gate,0.999,1);
-gain = hslider("gain",1,0,1,0.01);
-key = hslider("key",0,0,1,1) : int;
-kb0k0x = hslider("kb0k0x[midi:ctrl 1]",0.5,0,1,0.01) : si.smoo;
-kb0k1x = hslider("kb0k1x[midi:ctrl 1]",0.5,0,1,0.01) : si.smoo;
-s = hslider("sustain[midi:ctrl 64]",0,0,1,1);
+f = hslider("freq", 300, 50, 2000, 0.01);
+bend = ba.semi2ratio(hslider("bend[midi:pitchwheel]", 0, -2, 2, 0.001)):si.polySmooth(gate, 0.999, 1);
+gain = hslider("gain", 1, 0, 1, 0.01);
+key = hslider("key", 0, 0, 1, 1):int;
+kb0k0x = hslider("kb0k0x[midi:ctrl 1]", 0.5, 0, 1, 0.01):si.smoo;
+kb0k1x = hslider("kb0k1x[midi:ctrl 1]", 0.5, 0, 1, 0.01):si.smoo;
+s = hslider("sustain[midi:ctrl 64]", 0, 0, 1, 1);
 t = button("gate");
 
 // fomating parameters
-gate = t+s : min(1);
+gate = t+s:min(1);
 freq = f*bend;
 index = kb0k0x*1000;
 modFreqRatio = kb0k1x;
 
-envelope = gain*gate : si.smoo;
+envelope = gain*gate:si.smoo;
 
-process = sy.fm((freq,freq + freq*modFreqRatio),index*envelope)*envelope <: _,_;
+process = sy.fm((freq, freq+freq*modFreqRatio), index*envelope)*envelope<:_, _;

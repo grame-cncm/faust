@@ -5,4 +5,4 @@ declare description "Jprev demo application.";
 
 import("stdfaust.lib");
 
-process = dm.jprev_demo;	
+process = dm.jprev_demo;

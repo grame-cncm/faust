@@ -84,13 +84,13 @@ declare interface "SmartKeyboard{
 //========================================================================================
 
 // SmartKeyboard Y parameter
-y = hslider("y",0,0,1,0.01);
+y = hslider("y", 0, 0, 1, 0.01);
 // Smart Keyboard frequency parameter
-freq = hslider("freq",400,50,2000,0.01);
+freq = hslider("freq", 400, 50, 2000, 0.01);
 // SmartKeyboard gate parameter
 gate = button("gate");
 // mode resonance duration is controlled with the x axis of the accelerometer
-res = hslider("res[acc: 0 0 -10 0 10]",2.5,0.01,5,0.01);
+res = hslider("res[acc: 0 0 -10 0 10]", 2.5, 0.01, 5, 0.01);
 
 //=================================== Parameters Mapping =================================
 //========================================================================================
@@ -101,14 +101,14 @@ nModes = 6;
 maxModeSpread = 5;
 modeSpread = y*maxModeSpread;
 // computing modes frequency ratio
-modeFreqRatios = par(i,nModes,1+(i+1)/nModes*modeSpread);
+modeFreqRatios = par(i, nModes, 1+(i+1)/nModes*modeSpread);
 // computing modes gain
 minModeGain = 0.3;
-modeGains = par(i,nModes,1-(i+1)/(nModes*minModeGain));
+modeGains = par(i, nModes, 1-(i+1)/(nModes*minModeGain));
 // smoothed mode resonance
-modeRes = res : si.smoo;
+modeRes = res:si.smoo;
 
 //============================================ DSP =======================================
 //========================================================================================
 
-process = sy.additiveDrum(freq,modeFreqRatios,modeGains,0.8,0.001,modeRes,gate)*0.05;
+process = sy.additiveDrum(freq, modeFreqRatios, modeGains, 0.8, 0.001, modeRes, gate)*0.05;

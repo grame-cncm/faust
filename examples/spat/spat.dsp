@@ -21,5 +21,3 @@ angle = hslider("angle", 0.0, 0, 1, 0.01);
 distance = hslider("distance", 0.5, 0, 1, 0.01);
 
 process = vgroup("Spatializer 1x8", sp.spat(8, angle, distance));
-
-

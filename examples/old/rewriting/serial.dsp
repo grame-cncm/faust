@@ -1,7 +1,6 @@
-
 // sequences from tuples (parallel -> serial)
 
-serial((x,y))	= serial(x) : serial(y);
-serial(x)	= x;
+serial((x, y)) = serial(x):serial(y);
+serial(x) = x;
 
-process		= serial((sin,cos,tan));
+process = serial((sin, cos, tan));

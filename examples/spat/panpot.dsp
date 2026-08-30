@@ -9,9 +9,8 @@ declare copyright "(c)GRAME 2006";
 //-------------------------------------------------
 
 panpot(x) = sqrt(c)*x, sqrt(1-c)*x
-            with {
-                c = (nentry("[1]pan[style:knob]",0,-90,90,1)-90.0)/-180.0;
-            };
+    with {
+        c = (nentry("[1]pan[style:knob]", 0, -90, 90, 1)-90.0)/-180.0;
+    };
 
 process = panpot;
-

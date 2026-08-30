@@ -31,19 +31,19 @@ import("stdfaust.lib");
 
 Nb = 3;
 
-process = synth*gain<:_,_;
+process = synth*gain<:_, _;
 
-synth = freq : chord <: mQuantizer, mQuantizerSmooth, mBypass :> par(i,Nb,os.osc):>_/Nb;
+synth = freq:chord<:mQuantizer, mQuantizerSmooth, mBypass:>par(i, Nb, os.osc):>_/Nb;
 
-chord = _ <: par(i,Nb,(_*(i+2)/(i+1)));
+chord = _<:par(i, Nb, (_*(i+2)/(i+1)));
 
-mQuantizer = par(i,Nb,_:qu.quantize(200,qu.ionian) *(check==0) );
-mQuantizerSmooth = par(i,Nb,_:qu.quantizeSmoothed(200,qu.ionian) *(check==1) );
-mBypass = par(i,Nb,_*(check==2) );
+mQuantizer = par(i, Nb, _:qu.quantize(200, qu.ionian)*(check==0));
+mQuantizerSmooth = par(i, Nb, _:qu.quantizeSmoothed(200, qu.ionian)*(check==1));
+mBypass = par(i, Nb, _*(check==2));
 
 //freq = hslider("freq",200,200,400,2);
 freq = os.osc(rate)*100+300;
 rate = 0.15;
 
-gain = vslider("gain", -10, -60, 0, 0.1) : ba.db2linear : si.smoo;
-check = nentry("quantization[style:radio{'Normal':0;'Smoothed':1;'Off':2}]",0,0,2,1);
+gain = vslider("gain", -10, -60, 0, 0.1):ba.db2linear:si.smoo;
+check = nentry("quantization[style:radio{'Normal':0;'Smoothed':1;'Off':2}]", 0, 0, 2, 1);

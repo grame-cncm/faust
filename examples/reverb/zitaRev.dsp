@@ -5,4 +5,4 @@ declare description "Example GUI for `zita_rev1_stereo` (mostly following the Li
 
 import("stdfaust.lib");
 
-process = dm.zita_rev1;	
+process = dm.zita_rev1;

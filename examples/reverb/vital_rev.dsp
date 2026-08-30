@@ -5,4 +5,4 @@ declare description "Vital demo application.";
 
 import("stdfaust.lib");
 
-process = dm.vital_rev_demo;	
+process = dm.vital_rev_demo;

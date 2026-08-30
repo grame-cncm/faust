@@ -23,18 +23,18 @@ import("stdfaust.lib");
 //
 //--------------------------------------------------------------------------------
 
-lfboost(F,G)	= fi.TF2((1 + sqrt(2*V)*K + V*K*K) / denom,
-						2 * (V*K*K - 1) / denom,
-						(1 - sqrt(2*V)*K + V*K*K) / denom,
-						2 * (K*K - 1) / denom,
-						(1 - sqrt(2)*K + K*K) / denom)
-		with {
-			V			= ba.db2linear(G);
-			K 			= tan(ma.PI*F/ma.SR);
-			denom		= 1 + sqrt(2)*K + K*K;
-		};
+lfboost(F, G) = fi.TF2((1+sqrt(2*V)*K+V*K*K)/denom,
+    2*(V*K*K-1)/denom,
+    (1-sqrt(2*V)*K+V*K*K)/denom,
+    2*(K*K-1)/denom,
+    (1-sqrt(2)*K+K*K)/denom)
+    with {
+        V = ba.db2linear(G);
+        K = tan(ma.PI*F/ma.SR);
+        denom = 1+sqrt(2)*K+K*K;
+    };
 
 //====================low frequency boost process ===============================
 
 process = vgroup("lowboost", lfboost(nentry("freq [unit:Hz][style:knob]", 100, 20, 150, 1),
-									vslider("gain [unit:dB]", 0, -20, 20, 0.1)));
+    vslider("gain [unit:dB]", 0, -20, 20, 0.1)));

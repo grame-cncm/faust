@@ -47,13 +47,13 @@ declare interface "SmartKeyboard{
 //========================================================================================
 
 // SmartKeyboard X parameter
-x = hslider("x",0,0,1,0.01);
+x = hslider("x", 0, 0, 1, 0.01);
 // SmartKeyboard Y parameter
-y = hslider("y",0,0,1,0.01);
+y = hslider("y", 0, 0, 1, 0.01);
 // SmartKeyboard gate parameter
-gate = button("gate") ;
+gate = button("gate");
 // mode resonance duration is controlled with the x axis of the accelerometer
-modFreqRatio = hslider("res[acc: 0 0 -10 0 10]",1,0,2,0.01) : si.smoo;
+modFreqRatio = hslider("res[acc: 0 0 -10 0 10]", 1, 0, 2, 0.01):si.smoo;
 
 //=================================== Parameters Mapping =================================
 //========================================================================================
@@ -61,18 +61,18 @@ modFreqRatio = hslider("res[acc: 0 0 -10 0 10]",1,0,2,0.01) : si.smoo;
 // carrier frequency
 minFreq = 80;
 maxFreq = 500;
-cFreq = x*(maxFreq-minFreq) + minFreq : si.polySmooth(gate,0.999,1);
+cFreq = x*(maxFreq-minFreq)+minFreq:si.polySmooth(gate, 0.999, 1);
 
 // modulator frequency
 modFreq = cFreq*modFreqRatio;
 
 // modulation index
-modIndex = y*1000 : si.smoo;
+modIndex = y*1000:si.smoo;
 
 //============================================ DSP =======================================
 //========================================================================================
 
 // since the generated sound is pretty chaotic, there is no need for an envelope generator
-fmSynth = sy.fm((cFreq,modFreq),(modIndex))*(gate : si.smoo)*0.5;
+fmSynth = sy.fm((cFreq, modFreq), (modIndex))*(gate:si.smoo)*0.5;
 
 process = fmSynth;

@@ -8,5 +8,3 @@ import("stdfaust.lib");
 
 // Spatialize 1 sound source on 8 speakers
 process = sp.spcap_ui(8);
-
-

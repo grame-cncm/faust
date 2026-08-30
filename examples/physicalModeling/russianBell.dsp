@@ -5,4 +5,4 @@ declare copyright "(c)Romain Michon, CCRMA (Stanford University), GRAME";
 
 import("stdfaust.lib");
 
-process = pm.russianBell_ui <: _,_;
+process = pm.russianBell_ui<:_, _;

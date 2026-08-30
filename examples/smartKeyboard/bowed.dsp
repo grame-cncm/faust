@@ -61,27 +61,27 @@ declare interface "SmartKeyboard{
 import("stdfaust.lib");
 
 // parameters
-f = hslider("freq",400,50,2000,0.01);
-bend = hslider("bend",1,0,10,0.01);
-keyboard = hslider("keyboard",0,0,5,1) : int;
-key = hslider("key",0,0,18,1) : int;
-x = hslider("x",0.5,0,1,0.01) : si.smoo;
-y = hslider("y",0,0,1,0.01) : si.smoo;
+f = hslider("freq", 400, 50, 2000, 0.01);
+bend = hslider("bend", 1, 0, 10, 0.01);
+keyboard = hslider("keyboard", 0, 0, 5, 1):int;
+key = hslider("key", 0, 0, 18, 1):int;
+x = hslider("x", 0.5, 0, 1, 0.01):si.smoo;
+y = hslider("y", 0, 0, 1, 0.01):si.smoo;
 
 // mapping
 freq = f*bend;
 // dirty motion tracker
-velocity = x-x' : abs : an.amp_follower_ar(0.1,1) : *(8000) : min(1);
+velocity = x-x':abs:an.amp_follower_ar(0.1, 1):*(8000):min(1);
 
 // 4 "strings"
-synthSet = par(i,4,synth(localFreq(i),velocity)) :> _
-with{
-	localFreq(i) = freq : ba.sAndH(keyboard == i) : si.smoo;
-	synth(freq,velocity) = sy.fm((freq,freq + freq*modFreqRatio),index*velocity)*velocity
-	with{
-		index = 1000;
-		modFreqRatio = y*0.3;
-	};
-};
+synthSet = par(i, 4, synth(localFreq(i), velocity)):>_
+    with {
+        localFreq(i) = freq:ba.sAndH(keyboard==i):si.smoo;
+        synth(freq, velocity) = sy.fm((freq, freq+freq*modFreqRatio), index*velocity)*velocity
+            with {
+                index = 1000;
+                modFreqRatio = y*0.3;
+            };
+    };
 
-process = synthSet <: _,_;
+process = synthSet<:_, _;

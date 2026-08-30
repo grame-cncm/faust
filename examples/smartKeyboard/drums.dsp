@@ -52,23 +52,23 @@ import("stdfaust.lib");
 
 // standard parameters
 gate = button("gate");
-x = hslider("x",1,0,1,0.001);
-y = hslider("y",1,0,1,0.001);
-keyboard = hslider("keyboard",0,0,1,1) : int;
-key = hslider("key",0,0,1,1) : int;
+x = hslider("x", 1, 0, 1, 0.001);
+y = hslider("y", 1, 0, 1, 0.001);
+keyboard = hslider("keyboard", 0, 0, 1, 1):int;
+key = hslider("key", 0, 0, 1, 1):int;
 
-drumModel = pm.djembe(rootFreq,exPos,strikeSharpness,gain,gate)
-with{
-	// frequency of the lowest drum
-	bFreq = 60;
-	// retrieving pad ID (0-2)
-	padID = 2-(keyboard*2+key);
-	// drum root freq is computed in function of pad number
-	rootFreq = bFreq*(padID+1);
-	// excitation position
-	exPos = min((x*2-1 : abs),(y*2-1 : abs));
-	strikeSharpness = 0.5;
-	gain = 2;
-};
+drumModel = pm.djembe(rootFreq, exPos, strikeSharpness, gain, gate)
+    with {
+        // frequency of the lowest drum
+        bFreq = 60;
+        // retrieving pad ID (0-2)
+        padID = 2-(keyboard*2+key);
+        // drum root freq is computed in function of pad number
+        rootFreq = bFreq*(padID+1);
+        // excitation position
+        exPos = min((x*2-1:abs), (y*2-1:abs));
+        strikeSharpness = 0.5;
+        gain = 2;
+    };
 
-process = drumModel <: _,_;
+process = drumModel<:_, _;

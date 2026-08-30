@@ -47,36 +47,31 @@ declare interface "SmartKeyboard{
 import("stdfaust.lib");
 
 // SMARTKEYBOARD PARAMS
-kb0k0x = hslider("kb0k0x",0,0,1,1);
-kb1k0status = hslider("kb1k0status",0,0,1,1) : min(1) : int;
-kb1k1status = hslider("kb1k1status",0,0,1,1) : min(1) : int;
-kb1k2status = hslider("kb1k2status",0,0,1,1) : min(1) : int;
+kb0k0x = hslider("kb0k0x", 0, 0, 1, 1);
+kb1k0status = hslider("kb1k0status", 0, 0, 1, 1):min(1):int;
+kb1k1status = hslider("kb1k1status", 0, 0, 1, 1):min(1):int;
+kb1k2status = hslider("kb1k2status", 0, 0, 1, 1):min(1):int;
 
 // MODEL PARAMETERS
 // pressure is controlled by accelerometer
-pressure = hslider("pressure[acc: 1 1 -10 0 10]",0,0,1,0.01) : si.smoo;
-breathGain = 0.005; breathCutoff = 2000;
-vibratoFreq = 5; vibratoGain = 0;
+pressure = hslider("pressure[acc: 1 1 -10 0 10]", 0, 0, 1, 0.01):si.smoo;
+breathGain = 0.005;
+breathCutoff = 2000;
+vibratoFreq = 5;
+vibratoGain = 0;
 //pitch when no pistons are pushed
-basePitch = 48; // C4
+basePitch = 48;
+// C4
 // calculate pitch shift in function of piston combination
-pitchShift =
-  ((kb1k0status == 0) & (kb1k1status == 1) & (kb1k2status == 0))*(1) +
-  ((kb1k0status == 1) & (kb1k1status == 0) & (kb1k2status == 0))*(2) +
-  ((kb1k0status == 1) & (kb1k1status == 1) & (kb1k2status == 0))*(3) +
-  ((kb1k0status == 0) & (kb1k1status == 1) & (kb1k2status == 1))*(4) +
-  ((kb1k0status == 1) & (kb1k1status == 0) & (kb1k2status == 1))*(5) +
-  ((kb1k0status == 1) & (kb1k1status == 1) & (kb1k2status == 1))*(6);
+pitchShift = ((kb1k0status==0)&(kb1k1status==1)&(kb1k2status==0))*(1)+((kb1k0status==1)&(kb1k1status==0)&(kb1k2status==0))*(2)+((kb1k0status==1)&(kb1k1status==1)&(kb1k2status==0))*(3)+((kb1k0status==0)&(kb1k1status==1)&(kb1k2status==1))*(4)+((kb1k0status==1)&(kb1k1status==0)&(kb1k2status==1))*(5)+((kb1k0status==1)&(kb1k1status==1)&(kb1k2status==1))*(6);
 // tube length is calculated based on piston combination
-tubeLength = basePitch-pitchShift : ba.midikey2hz : pm.f2l : si.smoo;
+tubeLength = basePitch-pitchShift:ba.midikey2hz:pm.f2l:si.smoo;
 // lips tension is controlled using pad on screen
-lipsTension = kb0k0x : si.smoo;
+lipsTension = kb0k0x:si.smoo;
 // default mute value
 mute = 0.5;
 
 // ASSEMBLING MODEL
-model =
-	pm.blower(pressure,breathGain,breathCutoff,vibratoFreq,vibratoGain) :
-  pm.brassModel(tubeLength,lipsTension,mute);
+model = pm.blower(pressure, breathGain, breathCutoff, vibratoFreq, vibratoGain):pm.brassModel(tubeLength, lipsTension, mute);
 
-process = model <: _,_;
+process = model<:_, _;

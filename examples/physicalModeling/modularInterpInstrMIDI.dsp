@@ -5,4 +5,4 @@ declare copyright "(c)Romain Michon & John Granzow, CCRMA (Stanford University),
 
 import("stdfaust.lib");
 
-process = pm.modularInterpInstr_ui_MIDI <: _,_;
+process = pm.modularInterpInstr_ui_MIDI<:_, _;

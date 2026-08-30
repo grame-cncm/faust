@@ -67,9 +67,9 @@ declare interface "SmartKeyboard{
 //========================================================================================
 
 // the string resonance in second is controlled by the x axis of the accelerometer
-res = hslider("res[acc: 0 0 -10 0 10]",2,0.1,4,0.01);
+res = hslider("res[acc: 0 0 -10 0 10]", 2, 0.1, 4, 0.01);
 // Smart Keyboard frequency parameter
-freq = hslider("freq",400,50,2000,0.01);
+freq = hslider("freq", 400, 50, 2000, 0.01);
 // Smart Keyboard gate parameter
 gate = button("gate");
 
@@ -81,4 +81,4 @@ stringFreq = freq;
 //============================================ DSP =======================================
 //========================================================================================
 
-process = sy.combString(freq,res,gate);
+process = sy.combString(freq, res, gate);
