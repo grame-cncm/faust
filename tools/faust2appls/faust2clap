@@ -458,6 +458,7 @@ def main():
         prog="faust2clap",
         description="Compile a Faust DSP program into a CLAP plugin.",
     )
+    parser.add_argument("-help", action="help", help=argparse.SUPPRESS)
     parser.add_argument("dsp_file", help="input .dsp file")
     parser.add_argument("-nvoices", type=int, metavar="N",
                         help="build a polyphonic instrument with N voices "
