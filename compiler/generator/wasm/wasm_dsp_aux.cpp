@@ -115,26 +115,24 @@ static wasm_functype_t* fn_2_1(wasm_valkind_t p0, wasm_valkind_t p1, wasm_valkin
 
 #if FAUST_WASMTIME_RAW_MATH
 
-#define UNARY_CB(NAME, FN, VKIND)                                                     \
-    static wasm_trap_t* NAME##_cb(void*, wasmtime_caller_t*, wasmtime_val_raw_t* vals, \
-                                  size_t)                                              \
-    {                                                                                  \
-        if (VKIND == WASM_F32)                                                         \
-            vals[0].f32 = FN(vals[0].f32);                                             \
-        else                                                                           \
-            vals[0].f64 = FN(vals[0].f64);                                             \
-        return nullptr;                                                                \
+#define UNARY_CB(NAME, FN, VKIND)                                                              \
+    static wasm_trap_t* NAME##_cb(void*, wasmtime_caller_t*, wasmtime_val_raw_t* vals, size_t) \
+    {                                                                                          \
+        if (VKIND == WASM_F32)                                                                 \
+            vals[0].f32 = FN(vals[0].f32);                                                     \
+        else                                                                                   \
+            vals[0].f64 = FN(vals[0].f64);                                                     \
+        return nullptr;                                                                        \
     }
 
-#define BINARY_CB(NAME, FN, VKIND)                                                     \
-    static wasm_trap_t* NAME##_cb(void*, wasmtime_caller_t*, wasmtime_val_raw_t* vals, \
-                                  size_t)                                              \
-    {                                                                                  \
-        if (VKIND == WASM_F32)                                                         \
-            vals[0].f32 = FN(vals[0].f32, vals[1].f32);                                \
-        else                                                                           \
-            vals[0].f64 = FN(vals[0].f64, vals[1].f64);                                \
-        return nullptr;                                                                \
+#define BINARY_CB(NAME, FN, VKIND)                                                             \
+    static wasm_trap_t* NAME##_cb(void*, wasmtime_caller_t*, wasmtime_val_raw_t* vals, size_t) \
+    {                                                                                          \
+        if (VKIND == WASM_F32)                                                                 \
+            vals[0].f32 = FN(vals[0].f32, vals[1].f32);                                        \
+        else                                                                                   \
+            vals[0].f64 = FN(vals[0].f64, vals[1].f64);                                        \
+        return nullptr;                                                                        \
     }
 
 #else
@@ -541,9 +539,9 @@ void wasm_dsp::instanceResetUserInterface()
     wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceResetUserInterface",
                                  strlen("instanceResetUserInterface"), &ext);
     wasmtime_val_t arg;
-    arg.kind   = WASM_I32;
-    arg.of.i32 = 0;
-    wasm_trap_t*   trap = nullptr;
+    arg.kind          = WASM_I32;
+    arg.of.i32        = 0;
+    wasm_trap_t* trap = nullptr;
     wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);
 }
 
@@ -553,9 +551,9 @@ void wasm_dsp::instanceClear()
     wasmtime_instance_export_get(CTX(fStore), &fInstance, "instanceClear", strlen("instanceClear"),
                                  &ext);
     wasmtime_val_t arg;
-    arg.kind   = WASM_I32;
-    arg.of.i32 = 0;
-    wasm_trap_t*   trap = nullptr;
+    arg.kind          = WASM_I32;
+    arg.of.i32        = 0;
+    wasm_trap_t* trap = nullptr;
     wasmtime_func_call(CTX(fStore), &ext.of.func, &arg, 1, nullptr, 0, &trap);
 }
 

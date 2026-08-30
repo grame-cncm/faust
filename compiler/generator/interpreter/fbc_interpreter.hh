@@ -40,9 +40,18 @@
 // host C++, so the VM's int add/sub/mul run on unsigned (defined modulo
 // 2^32) and convert back — the semantics the generated code contract
 // (integer noise LCG included) requires.
-static inline int wrapAddInt(int a, int b) { return (int)((unsigned int)a + (unsigned int)b); }
-static inline int wrapSubInt(int a, int b) { return (int)((unsigned int)a - (unsigned int)b); }
-static inline int wrapMultInt(int a, int b) { return (int)((unsigned int)a * (unsigned int)b); }
+static inline int wrapAddInt(int a, int b)
+{
+    return (int)((unsigned int)a + (unsigned int)b);
+}
+static inline int wrapSubInt(int a, int b)
+{
+    return (int)((unsigned int)a - (unsigned int)b);
+}
+static inline int wrapMultInt(int a, int b)
+{
+    return (int)((unsigned int)a * (unsigned int)b);
+}
 
 // #define INTERP_MIR_BUILD 1
 // #define INTERP_LLVM_BUILD 1
