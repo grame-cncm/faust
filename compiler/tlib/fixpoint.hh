@@ -1,0 +1,439 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler -- tlib
+    Copyright (C) 2003-2026 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
+// Generic attribute computation by fixed point over a symbolic recursive term.
+// See FIXPOINT-SPEC (faust-migration repo) for the full design. This header carries the
+// ascending regime (Kleene + widening + narrowing), the descending probe, and the
+// three-class expression memo (invariant via the kContainsRec bit / settled / moving).
+//
+// The iterator is temporal-blind : it walks lists / rec / ref / proj itself (all tlib)
+// and delegates every VALUE to the domain's combine. It never unions -- the temporal
+// union lives in the domain's delay rule, inside combine.
+
+#ifndef __FIXPOINT__
+#define __FIXPOINT__
+
+#include <algorithm>
+#include <climits>
+#include <cstddef>
+#include <optional>
+#include <unordered_map>
+#include <vector>
+
+#include "list.hh"
+#include "tlib-error.hh"
+#include "tree.hh"
+
+enum class SolveMode { Ascending, Probe };
+
+// Read access to the value of ANY subtree, handed to combine alongside the children.
+//
+// combine is given the values of its node's direct branches, which is all a constructor
+// whose arguments sit one level down ever needs. Some do not : a Faust slider keeps its
+// four range signals in a nested list, so its node has two branches (label, list) while
+// the operation it denotes takes five arguments. Such a constructor ASKS for what it
+// needs instead of receiving it. Asking costs no more than being given -- values are
+// memoized, so a nested argument is evaluated exactly once either way.
+template <typename V>
+class FixPointEvaluator {
+   public:
+    virtual ~FixPointEvaluator() = default;
+    virtual V eval(Tree sig)     = 0;
+};
+
+// Everything the iterator needs from an attribute domain. The defaults define an EXACT
+// domain : converge by equality, never widen, no cap, no narrowing, no probe. An
+// approximate domain overrides widenAfter() (and widen), and optionally probeSeed().
+template <typename V>
+class FixPointDomain {
+   public:
+    virtual ~FixPointDomain() = default;
+
+    virtual V bottom(Tree var) const = 0;  ///< least element of the lattice
+    virtual V top(Tree var) const    = 0;  ///< greatest element : guard-rail fallback
+    // combine is const : an algebra is a DENOTATION, not a process -- the value of a
+    // node depends on its constructor and on the values of its arguments, on nothing
+    // else. State that is genuinely needed (the probe table below, a statistics counter)
+    // is declared mutable, which says precisely that it is not part of the denotation.
+    virtual V combine(Tree node, const std::vector<V>& children,
+                      FixPointEvaluator<V>& ev) const   = 0;  ///< dense switch
+    virtual bool lessEqual(const V& x, const V& y) const = 0;  ///< x ⊑ y
+
+    virtual bool converged(const V& prev, const V& cur) const
+    {
+        return lessEqual(cur, prev) && lessEqual(prev, cur);
+    }
+
+    // How to read branch i out of a solved (or being-solved) variable. The default takes
+    // the branch and nothing else, which is what an attribute computed strictly per
+    // branch wants. A projection is an OPERATION of the language, though, and some
+    // attributes interpret it: Faust's vectorability forces kScal at every projection,
+    // and its variability and computability promote each branch to the join over the
+    // WHOLE group. Handing the domain the entire row lets it say so.
+    virtual V project(Tree var, int i, const std::vector<V>& row) const { return row[i]; }
+
+    virtual int widenAfter() const { return INT_MAX; }
+    virtual V   widen(Tree var, const V& old, const V& fresh) const { return fresh; }
+    virtual int maxIterations() const { return INT_MAX; }
+    virtual int maxNarrowingIterations() const { return 0; }
+
+    // Descending probe (third regime). probeSeed returns the seed of a variable (e.g.
+    // [0,+BIG]) or nullopt to skip probing. After a probe, the iterator reports, per
+    // branch, the probed value and whether the WHOLE SCC certified (F#(P_C) ⊑ P_C on the
+    // full product). The domain records it and consumes it in widen(var, …).
+    virtual std::optional<V> probeSeed(Tree var) const { return std::nullopt; }
+
+    // Ordered list of seed candidates, tried until one certifies the WHOLE SCC. Lets a
+    // domain fall back to a weaker certificate when a stronger one fails -- e.g. the
+    // interval's positivity seed [0,+BIG] first, then the symmetric [-BIG,+BIG] that a
+    // contracting signed loop (a plucked string) still satisfies. An empty list on any
+    // branch opts the whole component out. The default wraps the single-seed API, so
+    // existing domains are unchanged.
+    virtual std::vector<V> probeSeeds(Tree var) const
+    {
+        std::optional<V> s = probeSeed(var);
+        if (s) return {*s};
+        return {};
+    }
+
+    virtual void recordProbe(Tree var, const V& probed, bool sccCertified) const {}
+};
+
+template <typename V>
+class FixPointIterator : public FixPointEvaluator<V> {
+    // Fields first (house rule) : they carry the whole story. One shared plan, one
+    // borrowed domain, and the solver's state : the per-variable rows (current Jacobi
+    // snapshot, then settled), plus the three-class expression memos.
+    using Row = std::vector<V>;  ///< one V per branch of a variable
+
+    const RecPlan&           fPlan;    ///< shared, read-only
+    const FixPointDomain<V>& fDomain;  ///< borrowed
+
+    bool fSolved     = false;
+    int  fCurrentScc = -1;  ///< component being solved ; -1 outside solveComponent
+
+    std::unordered_map<Tree, Row> fCurrentApprox;  ///< frozen snapshot of the current cycle
+    std::unordered_map<Tree, Row> fSettledVars;    ///< converged components, permanent
+
+    // Expression memos (see eval). Invariant/settled are permanent ; moving is cleared
+    // at the start of every round. maxSccReached is a permanent structural memo.
+    std::unordered_map<Tree, V>   fInvariant;  ///< rec-free : the cheap kContainsRec fast path
+    std::unordered_map<Tree, V>   fSettled;    ///< reaches only lower, converged components
+    std::unordered_map<Tree, V>   fMoving;     ///< reaches the current component
+    std::unordered_map<Tree, int> fMaxScc;     ///< memo of maxSccReached
+
+   public:
+    FixPointIterator(const RecPlan& plan, const FixPointDomain<V>& domain)
+        : fPlan(plan), fDomain(domain)
+    {
+    }
+
+    /// Attribute of an ordinary signal (any component it reaches is solved first).
+    V value(Tree sig)
+    {
+        solveAll();
+        return eval(sig);
+    }
+
+    /// Attribute of ONE recursive variable : one V per branch of its body.
+    const std::vector<V>& variableValue(Tree recNode)
+    {
+        solveAll();
+        return fSettledVars.at(recNode);
+    }
+
+   private:
+    // Solve every component once, in RecPlan order (dependencies first). Because that
+    // order is topological, a component references only itself and strictly-lower,
+    // already-settled components : no nested solveComponent, one active component at a time.
+    void solveAll()
+    {
+        if (fSolved) return;
+        fSolved                                       = true;
+        const std::vector<std::vector<Tree>>& comps   = fPlan.components();
+        for (int c = 0; c < static_cast<int>(comps.size()); ++c) {
+            probeComponent(c);    // descending probe first : certificate + thresholds
+            solveComponent(c);    // then the real ascending pass, guided by the probe
+        }
+    }
+
+    // Value of an arbitrary expression against the current state. A projection is the
+    // only place V and Row meet : it reads the frozen snapshot (current component) or the
+    // settled memo (lower component). Everything else is memoized in one of three classes,
+    // so a shared DAG is walked once per round, not exponentially :
+    //
+    //   isRecFree(sig)               -> INVARIANT : depends on no recursion at all. A true
+    //                                   constant of the term ; permanent, computed once for
+    //                                   the whole iterator's life. O(1) test (the synthesized
+    //                                   kContainsRec bit) -- the cheapest and commonest case.
+    //   maxSccReached(sig) == scc    -> MOVING : reaches the component being solved. Changes
+    //                                   every round ; memo cleared at the start of each round.
+    //   otherwise (< scc, or top)    -> SETTLED : reaches only lower, converged components.
+    //                                   Its value is final ; permanent memo.
+    V eval(Tree sig) override
+    {
+        int  i;
+        Tree group, id;
+        if (isProj(sig, i, group)) {
+            if (fPlan.sccOf(group) == fCurrentScc) {
+                // Jacobi snapshot of the current cycle
+                return fDomain.project(group, i, fCurrentApprox.at(group));
+            }
+            // lower, already-converged component
+            return fDomain.project(group, i, fSettledVars.at(group));
+        }
+        // Signals-form precondition : references appear under proj, never bare.
+        if (isRef(sig, id)) {
+            tlib::error("ASSERT : bare recursive reference in fixpoint eval (not signals form)\n");
+        }
+
+        if (sig->isRecFree()) {
+            return memoized(fInvariant, sig);
+        }
+        if (maxSccReached(sig) == fCurrentScc) {
+            return memoized(fMoving, sig);
+        }
+        return memoized(fSettled, sig);
+    }
+
+    // Look sig up in the given memo ; on a miss, compute it (recurse + combine) and store.
+    V memoized(std::unordered_map<Tree, V>& memo, Tree sig)
+    {
+        auto it = memo.find(sig);
+        if (it != memo.end()) return it->second;
+        const int      ar = sig->arity();
+        std::vector<V> kids;
+        kids.reserve(ar);
+        for (int j = 0; j < ar; ++j) {
+            kids.push_back(eval(sig->branch(j)));
+        }
+        V v       = fDomain.combine(sig, kids, *this);
+        memo[sig] = v;
+        return v;
+    }
+
+    // Highest component id reachable from sig (structural, V-independent, memoized). A
+    // projection reaches its group's component ; a rec-free subtree reaches none (-1) ;
+    // otherwise the max over the branches.
+    int maxSccReached(Tree sig)
+    {
+        auto it = fMaxScc.find(sig);
+        if (it != fMaxScc.end()) return it->second;
+        int  r;
+        int  i;
+        Tree group;
+        if (isProj(sig, i, group)) {
+            r = fPlan.sccOf(group);
+        } else if (sig->isRecFree()) {
+            r = -1;
+        } else {
+            r                = -1;
+            const int ar     = sig->arity();
+            for (int j = 0; j < ar; ++j) {
+                r = std::max(r, maxSccReached(sig->branch(j)));
+            }
+        }
+        fMaxScc[sig] = r;
+        return r;
+    }
+
+    // Body list of a component member, with the signals-form check.
+    Tree bodyOf(Tree var) const
+    {
+        Tree id, body;
+        if (!isRec(var, id, body) || !body) {
+            tlib::error("ASSERT : component member without a body in fixpoint (free reference?)\n");
+        }
+        return body;
+    }
+
+    void solveComponent(int scc)
+    {
+        const std::vector<Tree>& members = fPlan.components()[scc];
+
+        std::unordered_map<Tree, Row> approx;
+        for (Tree x : members) {
+            Tree      body = bodyOf(x);
+            const int k    = len(body);
+            Row       row;
+            row.reserve(k);
+            for (int b = 0; b < k; ++b) {
+                row.push_back(fDomain.bottom(proj(b, x)));
+            }
+            approx[x] = std::move(row);
+        }
+
+        fCurrentScc = scc;
+
+        // Phase 1 : ascending Kleene, with widening beyond widenAfter().
+        int  iteration = 0;
+        bool done      = false;
+        do {
+            ++iteration;
+            const bool applyWiden = iteration > fDomain.widenAfter();
+            done                  = jacobiStep(members, approx, applyWiden);
+        } while (!done && iteration < fDomain.maxIterations());
+
+        if (!done) {
+            // Guard-rail reached : the only sound fallback is top.
+            for (Tree x : members) {
+                Row& row = approx[x];
+                for (int b = 0; b < static_cast<int>(row.size()); ++b) {
+                    row[b] = fDomain.top(proj(b, x));
+                }
+            }
+        } else if (fDomain.widenAfter() < INT_MAX) {
+            // Phase 2 : narrowing (no widening), capped. Each step stays a post-fixpoint.
+            int  narrow = 0;
+            bool ndone  = false;
+            while (!ndone && narrow < fDomain.maxNarrowingIterations()) {
+                ++narrow;
+                ndone = jacobiStep(members, approx, /*applyWiden*/ false);
+            }
+        }
+
+        for (Tree x : members) {
+            fSettledVars[x] = approx[x];
+        }
+        fCurrentScc = -1;
+        fCurrentApprox.clear();
+    }
+
+    // Descending probe of a component (SolveMode::Probe). Seed every branch at
+    // probeSeed, take ONE step, and certify at the SCC level : the seed product is a
+    // post-fixpoint iff F#(seed) ⊑ seed on EVERY branch. If certified, narrow (bounded)
+    // to tighten the thresholds. Report per branch to the domain. Never writes
+    // fSettledVars -- the probe informs, it does not compute the real value.
+    void probeComponent(int scc)
+    {
+        const std::vector<Tree>& members = fPlan.components()[scc];
+
+        // Ordered seed candidates per branch. An empty list on any branch opts the
+        // whole component out; the number of attempts is the longest list, shorter
+        // lists reusing their last candidate.
+        std::unordered_map<Tree, std::vector<std::vector<V>>> seeds;
+        std::size_t                                           attempts = 0;
+        for (Tree x : members) {
+            Tree      body = bodyOf(x);
+            const int k    = len(body);
+            std::vector<std::vector<V>> rows;
+            rows.reserve(k);
+            for (int b = 0; b < k; ++b) {
+                std::vector<V> cand = fDomain.probeSeeds(proj(b, x));
+                if (cand.empty()) return;  // this component opts out of probing
+                attempts = std::max(attempts, cand.size());
+                rows.push_back(std::move(cand));
+            }
+            seeds[x] = std::move(rows);
+        }
+
+        fCurrentScc = scc;
+
+        std::unordered_map<Tree, Row> approx;
+        bool                          certified = false;
+        for (std::size_t a = 0; a < attempts && !certified; ++a) {
+            for (Tree x : members) {
+                const std::vector<std::vector<V>>& rows = seeds[x];
+                Row                                row(rows.size());
+                for (std::size_t b = 0; b < rows.size(); ++b) {
+                    row[b] = rows[b][std::min(a, rows[b].size() - 1)];
+                }
+                approx[x] = std::move(row);
+            }
+
+            fCurrentApprox = approx;  // one descending step against this attempt's seed
+            fMoving.clear();          // seed differs from any prior snapshot
+
+            certified = true;
+            std::unordered_map<Tree, Row> fresh;
+            for (Tree x : members) {
+                Tree      body = bodyOf(x);
+                const int k    = len(body);
+                Row       row(k);
+                for (int b = 0; b < k; ++b) {
+                    row[b] = eval(nth(body, b));
+                    if (!fDomain.lessEqual(row[b], approx[x][b])) certified = false;
+                }
+                fresh[x] = std::move(row);
+            }
+            approx = std::move(fresh);
+        }
+
+        // If certified, [seed] is a post-fixpoint : narrow further to tighten thresholds.
+        if (certified) {
+            int  narrow = 0;
+            bool ndone  = false;
+            while (!ndone && narrow < fDomain.maxNarrowingIterations()) {
+                ++narrow;
+                ndone = jacobiStep(members, approx, /*applyWiden*/ false);
+            }
+        }
+
+        for (Tree x : members) {
+            const Row& row = approx[x];
+            for (int b = 0; b < static_cast<int>(row.size()); ++b) {
+                fDomain.recordProbe(proj(b, x), row[b], certified);
+            }
+        }
+        fCurrentScc = -1;
+        fCurrentApprox.clear();
+    }
+
+    // One Jacobi round : freeze the snapshot, recompute every branch against it,
+    // optionally widen, swap in. Returns true iff nothing moved (converged).
+    bool jacobiStep(const std::vector<Tree>& members, std::unordered_map<Tree, Row>& approx,
+                    bool applyWiden)
+    {
+        fCurrentApprox = approx;  // frozen : eval reads only this during the round
+        fMoving.clear();          // moving values depend on the snapshot that just changed
+
+        std::unordered_map<Tree, Row> fresh;
+        for (Tree x : members) {
+            Tree      body = bodyOf(x);
+            const int k    = len(body);
+            Row       row(k);
+            for (int b = 0; b < k; ++b) {
+                V v = eval(nth(body, b));
+                if (applyWiden) {
+                    v = fDomain.widen(proj(b, x), approx[x][b], v);
+                }
+                row[b] = std::move(v);
+            }
+            fresh[x] = std::move(row);
+        }
+
+        bool done = true;
+        for (Tree x : members) {
+            const Row& oldRow = approx[x];
+            const Row& newRow = fresh[x];
+            for (int b = 0; b < static_cast<int>(newRow.size()); ++b) {
+                if (!fDomain.converged(oldRow[b], newRow[b])) {
+                    done = false;
+                }
+            }
+        }
+        approx = std::move(fresh);
+        return done;
+    }
+
+};
+
+#endif

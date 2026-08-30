@@ -28,7 +28,7 @@
 
 using namespace std;
 
-typedef map<Tree, int> MP;
+typedef map<Tree, int, NormalFormTreeLess> MP;
 
 mterm::mterm() : fCoef(sigInt(0))
 {

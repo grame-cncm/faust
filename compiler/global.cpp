@@ -149,6 +149,11 @@ global::global()
 {
     tlib::setErrorHandler(tlibErrorHandler);
     tlib::init();
+    // TRANSITIONAL (merge campaign, 2026-08) : the signal transformers still
+    // rebuild recursive groups in place (define, erase, redefine under the
+    // same variable) ; keep tlib's historical overwrite semantics until the
+    // per-definition transformer architecture lands, then remove this call.
+    tlib::setMutableRecDefinitions(true);
 
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     reset();
@@ -2038,7 +2043,7 @@ void global::printDeclareHeader(ostream& dst)
             dst << replaceCharList(key.str(), rep, '_');
             dst << " " << **(i.second.begin()) << ";" << endl;
         } else {
-            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); ++j) {
+            for (set<Tree, treeorder>::iterator j = i.second.begin(); j != i.second.end(); ++j) {
                 if (j == i.second.begin()) {
                     dst << "declare " << *(i.first) << " " << **j << ";" << endl;
                 } else {

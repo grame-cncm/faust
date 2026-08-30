@@ -34,7 +34,9 @@
 Tree dnfCond(Tree c);            // create a dcond from a simple expression
 Tree dnfAnd(Tree c1, Tree c2);   // And operation between two conditions in DNF
 Tree dnfOr(Tree c1, Tree c2);    // Or operation between two conditions in DNF
-bool dnfLess(Tree c1, Tree c2);  // True if (c1 v c2) == c2 i.e. c1 ==> c2
+bool dnfLess(Tree c1, Tree c2);  // True if (c1 v c2) == c1 : c1 is the more general
+                                 // condition, i.e. c2 ==> c1 (the test pins it :
+                                 // dnfLess(a, a AND b) holds). Same reading for cnfLess.
 
 Tree cnfCond(Tree c);
 Tree cnfAnd(Tree c1, Tree c2);

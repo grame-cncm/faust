@@ -51,7 +51,7 @@ class TreeTraversal : public Garbageable {
     explicit TreeTraversal(const std::string& msg = "TreeTraversal") : fMessage(msg) {}
     virtual ~TreeTraversal() = default;
 
-    std::map<Tree, int> fVisited;  // visiting counter
+    std::map<Tree, int, treeorder> fVisited;  // visiting counter
 
     virtual void self(Tree t)
     {

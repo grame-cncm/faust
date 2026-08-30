@@ -152,6 +152,8 @@ five elements : symbols, nodes, smartpointers, trees and lists :
 #include "list.hh"
 #include "node.hh"
 #include "property.hh"
+#include "recursive-print.hh"
+#include "rewrite.hh"
 #include "symbol.hh"
 #include "tlib-error.hh"
 #include "tree.hh"
@@ -162,9 +164,12 @@ five elements : symbols, nodes, smartpointers, trees and lists :
 
 namespace tlib {
 
-/// (Re)initialize the library : fresh hash tables, fresh internal symbols.
-/// Call before first use to start a session. cleanup() already leaves the
-/// library ready for a new session.
+/// FIRST initialization only : fresh hash tables, fresh internal symbols.
+/// Call once before first use. Calling it again without an intervening
+/// cleanup() asserts : it would restart the serial counter and re-intern the
+/// lazy internals over a live population, silently breaking pointer
+/// equality, treeorder and the uniqueness of nil. cleanup() is the one real
+/// reset -- after it, a new init() is legal but not required.
 TLIB_API void init();
 
 /// End a session : delete every Garbageable object created so far (all trees,
@@ -175,6 +180,16 @@ TLIB_API void cleanup();
 /// Load factor triggering CTree/Symbol hash table growth (default 0.7).
 /// A pure performance knob : it never changes the trees created.
 TLIB_API void setHashLoadFactor(double f);
+
+/// MIGRATION AFFORDANCE. Recursive definitions are immutable (see rec() in
+/// recursive-tree.cpp) : redefining a variable with a different body, or
+/// erasing it with rec(id, nil), is fatal. A consumer whose transformation
+/// passes still REBUILD groups in place (define, erase, redefine under the
+/// same variable -- the historical idiom) can restore the old overwrite
+/// semantics with this switch while it migrates. The immutable contract is
+/// the destination : new code must not rely on this, and the switch is
+/// meant to disappear with its last caller.
+TLIB_API void setMutableRecDefinitions(bool legacy);
 
 }  // namespace tlib
 

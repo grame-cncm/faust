@@ -25,7 +25,7 @@
 
 using namespace std;
 
-typedef map<Tree, mterm> SM;
+typedef map<Tree, mterm, NormalFormTreeLess> SM;
 
 aterm::aterm()
 {

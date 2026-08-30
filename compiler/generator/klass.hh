@@ -138,7 +138,7 @@ class Klass {
     bool getLoopProperty(Tree sig, Loop*& l);  ///< Returns the loop used to compute a signal
     void listAllLoopProperties(
         Tree            sig, std::set<Loop*>&,
-        std::set<Tree>& visited);  ///< Returns all the loop used to compute a signal
+        std::set<Tree, treeorder>& visited);  ///< Returns all the loop used to compute a signal
 
     const std::string& getClassName() const
     {

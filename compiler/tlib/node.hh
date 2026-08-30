@@ -50,11 +50,15 @@
 #ifndef __NODE__
 #define __NODE__
 
+#include <cstdint>
+#include <cstring>
 #include <stdint.h>
 #include <sys/types.h>
 #include <cmath>
 #include <iostream>
 
+#include <cstdint>
+#include <cstring>
 #include <sstream>
 
 #include "garbageable.hh"
@@ -70,6 +74,14 @@ enum NodeType { kIntNode, kInt64Node, kDoubleNode, kSymNode, kPointerNode };
  * Class Node = (type x (int + double + Sym + void*))
  */
 
+/// The pointer-canonical registry (defined in tree.cpp) : a pointer payload
+/// whose NAME was registered at creation (box primitives register through
+/// primNname) hashes by that name -- value-derived, identical across builds.
+/// Unregistered pointers fall back to the address (never canonical).
+TLIB_API void               setPointerCanonicalHash(const void* p, std::size_t h);
+TLIB_API const std::size_t* getPointerCanonicalHash(const void* p);
+TLIB_API std::size_t        canonicalNameHash(const char* name);
+
 class Node : public Garbageable {
     int fType;
     union {
@@ -81,8 +93,54 @@ class Node : public Garbageable {
     } fData;
 
    public:
+
+    /// The payload as an opaque 64-bit word, without reading an inactive union
+    /// member : memcpy is the C++17 spelling of bit_cast, and folds to a single
+    /// load at -O2. Used by the equality below ; canonicalHash uses the same
+    /// idiom for its double case.
+    std::uint64_t payload() const
+    {
+        std::uint64_t w;
+        static_assert(sizeof(w) == sizeof(fData), "the payload union must be one 64-bit word");
+        memcpy(&w, &fData, sizeof(w));
+        return w;
+    }
+
+    /// Value-derived hash, identical across processes : symbols hash by NAME ;
+    /// registered pointer payloads (box primitives) hash by their registered
+    /// name ; unregistered pointers fall back to the address (non-canonical --
+    /// they must never enter the canonical orderings, and their ancestors'
+    /// canonHash is contaminated : the build-determinism phantom lived there).
+    std::size_t canonicalHash() const
+    {
+        std::size_t h = std::size_t(fType) * 0x9e3779b97f4a7c15ULL;
+        switch (fType) {
+            case kIntNode: return h ^ std::size_t(fData.i);
+            case kInt64Node: return h ^ std::size_t(fData.v);
+            case kDoubleNode: {
+                std::size_t b;
+                static_assert(sizeof(b) == sizeof(fData.f), "size mismatch");
+                memcpy(&b, &fData.f, sizeof(b));
+                return h ^ b;
+            }
+            case kSymNode: return h ^ symbolHashKey(fData.s);
+            default: {
+                if (const std::size_t* r = getPointerCanonicalHash(fData.p)) {
+                    return h ^ *r;
+                }
+                return h ^ std::size_t(reinterpret_cast<std::uintptr_t>(fData.p));
+            }
+        }
+    }
     // constructors (assume size of field f is the biggest)
-    Node() { fData.v = 0; }
+
+    ///< There is deliberately NO default constructor, for the same reason CTree has none
+    ///< (see tree.hh) : a node IS its content, so a contentless node has no meaning. The
+    ///< former default constructor zeroed fData but left fType INDETERMINATE, so comparing
+    ///< or hashing a default-built Node was undefined behaviour. Giving it a well-defined
+    ///< default instead would be worse in a different way : it would silently read as the
+    ///< valid value Node(0). Build a Node from its content, always.
+    Node() = delete;
 
     Node(int x) : fType(kIntNode)
     {
@@ -119,8 +177,19 @@ class Node : public Garbageable {
     }
 
     // predicats
-    bool operator==(const Node& n) const { return fType == n.fType && fData.v == n.fData.v; }
-    bool operator!=(const Node& n) const { return fType != n.fType || fData.v != n.fData.v; }
+
+    ///< Equality compares the payload as RAW BITS (through the widest union member),
+    ///< never by value. This is not an optimization, hash-consing DEPENDS on it :
+    ///< IEEE equality is not reflexive -- a NaN is not equal to itself -- so a table
+    ///< built on '==' would never find a NaN node it had just inserted and would
+    ///< allocate new ones forever. Bitwise comparison makes node equality a genuine
+    ///< equivalence relation. The price, in the other direction : +0.0 and -0.0 have
+    ///< different bit patterns and are therefore different nodes. Both consequences
+    ///< are pinned by tests in tour-examples.cpp.
+    ///< Narrow constructors zero fData.f first so the unused bits are deterministic,
+    ///< which is what makes the whole-word comparison exact for every payload type.
+    bool operator==(const Node& n) const { return fType == n.fType && payload() == n.payload(); }
+    bool operator!=(const Node& n) const { return fType != n.fType || payload() != n.payload(); }
 
     // accessors
     int type() const { return fType; }
@@ -284,27 +353,19 @@ inline bool isPointer(const Node& n, void** x)
 
 // arithmetic operations
 
-// Constant folding must reproduce the runtime semantics exactly: integer
-// add/sub/mul wrap in two's complement (signed overflow is UB in the host
-// C++, so the arithmetic runs on unsigned, defined modulo 2^32), and shift
-// counts are masked to 0..31 as on the target hardware.
-
 inline const Node addNode(const Node& x, const Node& y)
 {
-    return (isDouble(x) || isDouble(y)) ? Node(double(x) + double(y))
-                                        : Node(int((unsigned int)int(x) + (unsigned int)int(y)));
+    return (isDouble(x) || isDouble(y)) ? Node(double(x) + double(y)) : Node(int(x) + int(y));
 }
 
 inline const Node subNode(const Node& x, const Node& y)
 {
-    return (isDouble(x) || isDouble(y)) ? Node(double(x) - double(y))
-                                        : Node(int((unsigned int)int(x) - (unsigned int)int(y)));
+    return (isDouble(x) || isDouble(y)) ? Node(double(x) - double(y)) : Node(int(x) - int(y));
 }
 
 inline const Node mulNode(const Node& x, const Node& y)
 {
-    return (isDouble(x) || isDouble(y)) ? Node(double(x) * double(y))
-                                        : Node(int((unsigned int)int(x) * (unsigned int)int(y)));
+    return (isDouble(x) || isDouble(y)) ? Node(double(x) * double(y)) : Node(int(x) * int(y));
 }
 
 inline const Node divExtendedNode(const Node& x, const Node& y)
@@ -353,19 +414,17 @@ inline const Node inverseNode(const Node& x)
 
 inline const Node lshNode(const Node& x, const Node& y)
 {
-    return Node(int((unsigned int)int(x) << (int(y) & 31)));
+    return Node(int(x) << int(y));
 }
 
 inline const Node arshNode(const Node& x, const Node& y)
 {
-    return Node(int(x) >> (int(y) & 31));
+    return Node(int(x) >> int(y));
 }
 
-// Logical right shift: the runtime '>>>' shifts on unsigned; folding with a
-// plain signed '>>' would diverge for negative operands.
 inline const Node lrshNode(const Node& x, const Node& y)
 {
-    return Node(int((unsigned int)int(x) >> (int(y) & 31)));
+    return Node(int(x) >> int(y));
 }
 
 // boolean operations on bits

@@ -60,10 +60,12 @@ void Occur::setCount(Tree t, int c)
  */
 Tree Occur::specificKey(Tree root)
 {
-    char keyname[256];
-    snprintf(keyname, 256, "OCCURRENCES COUNT IN %p : ", root);
-
-    return tree(unique(keyname));
+    // one fresh key per analyzed root. unique() alone guarantees the
+    // uniqueness ; the root's ADDRESS must never enter the name -- a
+    // symbol content derived from the memory layout contaminates every
+    // canonical hash downstream (the build-determinism doctrine)
+    (void)root;
+    return tree(unique("OCCURRENCES COUNT IN"));
 }
 
 /**

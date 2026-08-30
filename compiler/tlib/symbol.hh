@@ -39,27 +39,58 @@
 #define __SYMBOL__
 
 #include <cstddef>
+#include <cstdint>
 #include <map>
 #include <string>
 
 #include "export.hh"
 #include "garbageable.hh"
+#include "tlib-error.hh"
 
 //--------------------------------SYMBOL-------------------------------------
 
 class Symbol;
 typedef Symbol* Sym;
+class Signature;
+
+using SymbolOpcode = std::uint32_t;
+
+/** Number of consecutive global opcodes reserved by every signature. */
+inline constexpr SymbolOpcode kOpcodesPerSignature = 256;
+
+/**
+ * Optional signature membership attached to an interned symbol.
+ *
+ * The signature identifies a constructor language and the global opcode
+ * identifies one constructor in its disjoint 256-opcode range. A null
+ * signature represents an ordinary, unregistered symbol.
+ */
+struct SymbolTag {
+    Sym          signature = nullptr;
+    SymbolOpcode opcode    = 0;
+
+    /**
+     * Return the dense opcode within this tag's signature.
+     *
+     * Valid tags need no registry lookup: aligned 256-opcode ranges make the
+     * low byte of the global opcode its local position. The caller must first
+     * establish that signature is non-null, normally through getSymbolTag().
+     */
+    constexpr std::uint8_t localOpcode() const noexcept
+    {
+        return static_cast<std::uint8_t>(opcode % kOpcodesPerSignature);
+    }
+};
 
 /**
  * Symbols are unique objects with a name stored in a hash table.
  */
 class Symbol : public Garbageable {
    private:
-    static const std::size_t kInitialHashTableSize =
-        511;                             ///< initial size of the hash table (prime)
-    static std::size_t gHashTableSize;   ///< current size of the hash table (grows as needed)
-    static std::size_t gHashTableCount;  ///< number of symbols currently stored in the table
-    static Symbol**    gSymbolTable;  ///< hash table used to store the symbols (grows by rehashing)
+    static const std::size_t kInitialHashTableSize = 511;  ///< initial size of the hash table (prime)
+    static std::size_t        gHashTableSize;   ///< current size of the hash table (grows as needed)
+    static std::size_t        gHashTableCount;  ///< number of symbols currently stored in the table
+    static Symbol**       gSymbolTable;     ///< hash table used to store the symbols (grows by rehashing)
     static std::map<std::string, std::size_t> gPrefixCounters;
 
     static double gHashLoadFactor;  ///< load factor triggering table growth (see setHashLoadFactor)
@@ -72,10 +103,19 @@ class Symbol : public Garbageable {
 
     // Fields
     std::string fName;  ///< Name of the symbol
-    std::size_t
-          fHash;  ///< Hash key computed from the name and used to determine the hash table entry
-    Sym   fNext;  ///< Next symbol in the hash table entry
-    void* fData;  ///< Field to user disposal to store additional data
+    std::size_t fHash;  ///< Hash key computed from the name and used to determine the hash table entry
+    std::size_t fCanonKey;  ///< Canonical-order key: fHash, except for canonical recursive
+                            ///< names R<i>_<k> where the instance <i> is stripped -- the key
+                            ///< is a pure function of the plan position, so value-derived
+                            ///< term orders do not depend on the session's canonicalization
+                            ///< counter (see canonicalTreeLess)
+    Sym         fNext;  ///< Next symbol in the hash table entry
+    void*       fData;  ///< Field to user disposal to store additional data
+    unsigned char fUserKinds = 0;  ///< opaque consumer byte, read by the tree layer's
+                                   ///< synthesized kind bits (see tree.hh, kUserKinds) ;
+                                   ///< initialized at registration, never interpreted here
+    Sym          fSignature;  ///< Owning signature, null while the symbol is ordinary
+    SymbolOpcode fOpcode;     ///< Global constructor identity; meaningful only when signed
 
     // Constructors & destructors
     Symbol(const std::string&, std::size_t hsh,
@@ -87,6 +127,10 @@ class Symbol : public Garbageable {
         const;  ///< Check if the name of the symbol is equal to string \p str
     static std::size_t calcHashKey(
         const std::string& str);  ///< Compute the 32-bits hash key of string \p str
+    static std::size_t canonicalNameKey(
+        const std::string& str,
+        std::size_t hsh);  ///< fCanonKey of a name: hsh, or the instance-stripped key
+                           ///< for canonical recursive names R<i>_<k>
 
     // Static methods
     static Sym get(const std::string& str);     ///< Get the symbol of name \p str
@@ -98,18 +142,66 @@ class Symbol : public Garbageable {
     std::ostream& print(std::ostream& fout) const;  ///< print a symbol on a stream
 
     friend Sym         symbol(const char* str);
+    friend std::size_t symbolHashKey(Sym sym);
     friend Sym         symbol(const std::string& str);
     friend Sym         unique(const char* str);
     friend const char* name(Sym sym);
 
     friend void* getUserData(Sym sym);
     friend void  setUserData(Sym sym, void* d);
+    friend unsigned int symbolUserKinds(Sym sym);
+    friend void         setSymbolUserKinds(Sym sym, unsigned int kinds);
+    friend bool  getSymbolTag(Sym sym, SymbolTag& tag);
+    friend TLIB_API Signature signature(const std::string& name);
+    friend class Signature;
 
     static void init();
 
     ///< Set the load factor that triggers hash table growth (default 0.7).
     ///< A pure performance knob : it never changes the symbols created.
     static void setHashLoadFactor(double f) { gHashLoadFactor = f; }
+};
+
+/**
+ * Copyable handle to an interned constructor signature.
+ *
+ * Each signature owns one disjoint range of 256 global opcodes. Handles and
+ * their identity Sym belong to the current TLIB session and become invalid at
+ * cleanup(), like every other symbol pointer.
+ */
+class Signature {
+   private:
+    Sym fIdentity;
+
+    explicit Signature(Sym identity) : fIdentity(identity) {}
+    friend TLIB_API Signature signature(const std::string& name);
+
+   public:
+    /**
+     * Add the interned symbol named \p name to this signature.
+     *
+     * First additions receive dense local opcodes from 0 to 255. Repeating an
+     * addition returns the same symbol without consuming an opcode. Adding a
+     * 257th distinct constructor or a symbol owned by another signature is
+     * reported through the TLIB error handler without changing existing tags.
+     */
+    TLIB_API Sym add(const std::string& name) const;
+
+    /**
+     * Add \p name and initialize its opaque consumer kind byte (see tree.hh,
+     * kUserKinds) in the same declaration -- the byte is data attached to the
+     * symbol, folded by the tree layer into the synthesized kind bits of every
+     * tree headed by it.
+     */
+    Sym add(const std::string& name, unsigned int kinds) const
+    {
+        Sym s = add(name);
+        setSymbolUserKinds(s, kinds);
+        return s;
+    }
+
+    /** Return the interned symbol that identifies this signature. */
+    Sym identity() const { return fIdentity; }
 };
 
 inline Sym symbol(const char* str)
@@ -129,6 +221,12 @@ inline const char* name(Sym sym)
     return sym->fName.c_str();
 }  ///< Returns the name of a symbol
 
+inline std::size_t symbolHashKey(Sym sym)
+{
+    return sym->fCanonKey;
+}  ///< Canonical-order key : name-derived (identical across processes, unlike the
+   ///< pointer), with the instance stripped from canonical recursive names R<i>_<k>
+
 inline void* getUserData(Sym sym)
 {
     return sym->fData;
@@ -137,6 +235,49 @@ inline void setUserData(Sym sym, void* d)
 {
     sym->fData = d;
 }  ///< Set user data
+
+inline unsigned int symbolUserKinds(Sym sym)
+{
+    return sym->fUserKinds;
+}  ///< The symbol's opaque consumer kind byte (see tree.hh, kUserKinds)
+inline void setSymbolUserKinds(Sym sym, unsigned int kinds)
+{
+    sym->fUserKinds = (unsigned char)kinds;
+}  ///< Initialize the consumer kind byte. To be called at registration, BEFORE any
+   ///< tree headed by this symbol is built : the tree layer folds the byte into its
+   ///< synthesized bits at construction, never retroactively.
+
+//--------------------------------------------------------------------------
+// Public API: symbol signatures
+//--------------------------------------------------------------------------
+
+/**
+ * Return the interned signature named \p name.
+ *
+ * The first call reserves a fresh, aligned range of 256 global opcodes.
+ * Repeating the call returns a handle to the same range and allocation state.
+ */
+TLIB_API Signature signature(const std::string& name);
+
+/**
+ * Read the immutable signature tag of \p sym.
+ *
+ * Return true and copy the complete tag to \p tag when one is present.
+ * Return false without modifying \p tag when the symbol is ordinary. A null
+ * symbol is invalid and is reported through the TLIB error handler. This hot
+ * fold accessor is inline so successful lookups compile to two field reads.
+ */
+inline bool getSymbolTag(Sym sym, SymbolTag& tag)
+{
+    if (!sym) {
+        tlib::error("getSymbolTag: null symbol");
+    }
+    if (!sym->fSignature) {
+        return false;
+    }
+    tag = {sym->fSignature, sym->fOpcode};
+    return true;
+}
 
 inline std::ostream& operator<<(std::ostream& s, const Symbol& n)
 {
