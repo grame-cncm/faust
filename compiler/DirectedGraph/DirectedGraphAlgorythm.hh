@@ -1,12 +1,12 @@
+/*
+ * Copyright (c) 2022-2026, Yann Orlarey
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /*******************************************************************************
-********************************************************************************
+    DirectedGraphAlgorythm.hh
 
-    digraphop : a set of operations on directed graphs
-
-    Created by Yann Orlarey on 31/01/2022.
-    Copyright © 2023 Yann Orlarey. All rights reserved.
-
- *******************************************************************************
+    A set of operations on directed graphs
  ******************************************************************************/
 
 #pragma once
@@ -14,6 +14,7 @@
 #include <functional>
 #include <iostream>
 #include <list>
+#include <queue>
 #include <sstream>
 #include <vector>
 
@@ -41,8 +42,11 @@ class Tarjan {
     const digraph<N>       fGraph;
     int                    fGroup = 0;
     std::stack<N>          fStack;
-    std::map<N, tarjanAux> fAux;
-    std::set<std::set<N>>  fPartition;
+    std::map<N, tarjanAux, dgorder<N>> fAux;
+    // Components in COMPLETION order (deterministic given the graph's
+    // dgorder iteration ; also reverse-topological, like Tarjan yields) --
+    // a set of sets would re-order them by element addresses.
+    std::vector<std::set<N, dgorder<N>>> fPartition;
     int                    fCycleCount = 0;
 
     // visit a specific node n of the graph
@@ -77,16 +81,16 @@ class Tarjan {
         if (x.fNum1 == x.fNum2) {
             // std::cout << "the node " << v << " is the root of a cycle" << '\n';
 
-            std::set<N> cycle;
+            std::set<N, dgorder<N>> cycle;
             bool        finished = false;
             do {
-                const N& w = fStack.top();
+                N w = fStack.top();
                 fStack.pop();
                 fAux[w].fStacked = false;
                 cycle.insert(w);
                 finished = (w == v);
             } while (!finished);
-            fPartition.insert(cycle);
+            fPartition.push_back(cycle);
             if ((cycle.size() > 1) || fGraph.areConnected(v, v)) {
                 fCycleCount++;
             }
@@ -104,7 +108,14 @@ class Tarjan {
         }
     }
 
-    [[nodiscard]] const std::set<std::set<N>>& partition() const { return fPartition; }
+    // Returns a REFERENCE into this Tarjan. The deleted rvalue overload rejects
+    // 'Tarjan<N>(g).partition()' at compile time -- that reference would dangle as soon
+    // as the temporary Tarjan dies. Name the Tarjan first.
+    [[nodiscard]] const std::vector<std::set<N, dgorder<N>>>& partition() const&
+    {
+        return fPartition;
+    }
+    const std::vector<std::set<N, dgorder<N>>>& partition() const&& = delete;
 
     [[nodiscard]] int cycles() const { return fCycleCount; }
 };
@@ -136,7 +147,7 @@ template <typename N>
 inline digraph<digraph<N>> graph2dag(const digraph<N>& g)
 {
     Tarjan<N>               T(g);  // the partition of g
-    std::map<N, digraph<N>> M;     // std::mapping between nodes and supernodes
+    std::map<N, digraph<N>, dgorder<N>> M;     // std::mapping between nodes and supernodes
     digraph<digraph<N>>     sg;    // the resulting supergraph
 
     // build the graph of supernodes
@@ -186,7 +197,7 @@ template <typename N>
 inline digraph<digraph<N>> graph2dag2(const digraph<N>& g)
 {
     Tarjan<N>               T(g);  // the partition of g
-    std::map<N, digraph<N>> M;     // std::mapping between nodes and supernodes
+    std::map<N, digraph<N>, dgorder<N>> M;     // std::mapping between nodes and supernodes
     digraph<digraph<N>>     sg;    // the resulting supergraph
     std::map<std::pair<digraph<N>, digraph<N>>, int>
         CC;  // count of destinations between supernodes
@@ -324,6 +335,9 @@ inline std::vector<N> serialize(const digraph<N>& G)
 
     std::vector<N> S;
     std::set<N>    V;
+
+    S.reserve(G.nodes().size());
+
     for (const N& n : G.nodes()) {
         visit(G, n, V, S);
     }
@@ -370,10 +384,14 @@ template <typename N>
 inline digraph<N> reverse(const digraph<N>& g)
 {
     digraph<N> r;
-    // copy the destinations
+
     for (const auto& n : g.nodes()) {
         r.add(n);
+    }
+
+    for (const auto& n : g.nodes()) {
         for (const auto& cnx : g.destinations(n)) {
+            // Reverse connection: cnx.first -> n becomes n -> cnx.first
             r.add(cnx.first, n, cnx.second);
         }
     }
@@ -471,9 +489,9 @@ digraph<N> subgraph(const digraph<N>& G, const std::set<N>& S)
             R.add(n);     // add n to the resulting graph
             P.insert(n);  // mark n as processed
             for (const auto& a : G.destinations(n)) {
-                R.add(n, a.first, a.second);  // add its adjacent nodes
-                if (!P.contains(a.first)) {   // is it new ?
-                    M.insert(a.first);        // we will have to process it
+                R.add(n, a.first, a.second);       // add its adjacent nodes
+                if (P.find(a.first) == P.end()) {  // is it new ?
+                    M.insert(a.first);             // we will have to process it
                 }
             }
         }
@@ -543,6 +561,44 @@ inline digraph<N> chain(const digraph<N>& g, bool strict)
     return r;
 }
 
+/**
+ * @brief Compute in-degree and out-degree for all nodes in a graph
+ *
+ * @tparam N the type of nodes
+ * @param G the graph
+ * @return std::map<N, std::pair<int, int>> where each node maps to (in-degree, out-degree)
+ *
+ * The in-degree is the number of incoming edges to a node.
+ * The out-degree is the number of outgoing edges from a node.
+ *
+ * Example:
+ *   auto deg = degrees(G);
+ *   auto [in, out] = deg[node];  // C++17 structured binding
+ *   // or:
+ *   int in_deg = deg[node].first;
+ *   int out_deg = deg[node].second;
+ */
+template <typename N>
+inline std::map<N, std::pair<int, int>> degrees(const digraph<N>& G)
+{
+    std::map<N, std::pair<int, int>> deg;
+
+    // Initialize all nodes with (0, 0)
+    for (const N& n : G.nodes()) {
+        deg[n] = {0, 0};
+    }
+
+    // Count degrees by iterating over all edges
+    for (const N& n : G.nodes()) {
+        for (const auto& dest : G.destinations(n)) {
+            deg[n].second++;           // increment out-degree of n
+            deg[dest.first].first++;   // increment in-degree of destination
+        }
+    }
+
+    return deg;
+}
+
 template <typename N>
 inline std::vector<N> roots(const digraph<N>& G)
 {
@@ -591,6 +647,121 @@ inline std::vector<N> criticalpath(const digraph<N>& G, const N& n)
     }
     P.push_back(n);
     return P;
+}
+
+/**
+ * @brief Compute all critical paths in a DAG
+ *
+ * Returns all paths of maximum length in a directed acyclic graph.
+ * Uses Kahn's algorithm for topological sorting combined with dynamic programming
+ * to compute path lengths, followed by backtracking to enumerate all critical paths.
+ *
+ * @tparam N the type of nodes
+ * @param G the directed acyclic graph
+ * @return std::vector<std::vector<N>> vector of all paths with maximum length
+ *
+ * Algorithm:
+ * 1. Kahn's topological sort with integrated distance computation (O(V+E))
+ * 2. Backtracking to enumerate all paths of maximum length (O(k*L) where k=number of
+ * paths, L=length)
+ *
+ * Note: Returns empty vector if the graph contains cycles (not a DAG).
+ *
+ * Example:
+ *   Graph: A -> B -> D
+ *          A -> C -> B
+ *   Returns: {{A, C, B, D}} (the single critical path of length 4)
+ */
+template <typename N>
+inline std::vector<std::vector<N>> allcriticalpaths(const digraph<N>& G)
+{
+    // Compute degrees once
+    auto deg = degrees(G);
+
+    // Maps for algorithm
+    std::map<N, int> indeg;  // mutable copy of in-degrees
+    std::map<N, int> dist;   // distance (path length) from roots
+
+    // Initialize: prepare for Kahn's algorithm
+    std::queue<N> q;
+    for (const N& n : G.nodes()) {
+        indeg[n] = deg[n].first;
+        dist[n]  = 1;  // all nodes have at least distance 1
+        if (indeg[n] == 0) {
+            q.push(n);  // roots (nodes with no incoming edges)
+        }
+    }
+
+    // Phase 1: Kahn's topological sort with integrated distance computation
+    int processed = 0;
+    while (!q.empty()) {
+        N u = q.front();
+        q.pop();
+        processed++;
+
+        // For each successor of u
+        for (const auto& dest : G.destinations(u)) {
+            const N& v = dest.first;
+
+            // Update distance: longest path to v is max of all paths through predecessors
+            dist[v] = std::max(dist[v], dist[u] + 1);
+
+            // Decrement in-degree and add to queue when it reaches 0
+            indeg[v]--;
+            if (indeg[v] == 0) {
+                q.push(v);
+            }
+        }
+    }
+
+    // Check if graph is a DAG (all nodes should be processed)
+    if (processed != (int)G.nodes().size()) {
+        // Graph contains cycles, return empty result
+        return {};
+    }
+
+    // Find maximum distance (length of critical paths)
+    int max_dist = 0;
+    for (const auto& [n, d] : dist) {
+        max_dist = std::max(max_dist, d);
+    }
+
+    // Phase 2: Backtracking to enumerate all critical paths
+    std::vector<std::vector<N>> all_paths;
+
+    // Recursive DFS function to explore critical paths
+    std::function<void(const N&, std::vector<N>&)> dfs = [&](const N& node, std::vector<N>& path) {
+        path.push_back(node);
+
+        if (deg[node].second == 0) {
+            // Reached a leaf - save the path only if it has maximum length
+            if (dist[node] == max_dist) {
+                all_paths.push_back(path);
+            }
+        } else {
+            // Continue along edges that are on critical paths
+            for (const auto& dest : G.destinations(node)) {
+                const N& succ = dest.first;
+                // Only follow edges where distance increases by exactly 1 (going towards leaves)
+                if (dist[succ] == dist[node] + 1) {
+                    dfs(succ, path);
+                }
+            }
+        }
+
+        path.pop_back();
+    };
+
+    // Start DFS from all roots (only paths reaching max_dist leaves will be kept)
+    // We start from ALL roots because we'll filter by only following critical edges
+    for (const N& n : G.nodes()) {
+        if (deg[n].first == 0) {  // root node (no incoming edges)
+            std::vector<N> path;
+            dfs(n, path);
+        }
+    }
+
+    return all_paths;
 }
 
 /**

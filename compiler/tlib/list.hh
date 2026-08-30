@@ -87,9 +87,11 @@ This file contains several extensions to the tree library :
 
  Warning :
  ---------
- Since reference counters are used for garbage collecting, one must be careful not to
- create cycles in trees. The only possible source of cycles is by setting the attribut
- of a tree t to a tree t' that contains t as a subtree.
+ Do not create cycles through attributes : setting the attribut of a tree t to a tree
+ t' that contains t as a subtree makes every traversal that follows attributes loop.
+ (The historical justification here mentioned reference counting ; memory actually
+ follows the session model of garbageable.hh -- the warning survives it, the cycle
+ hazard is about traversal, not reclamation.)
 
  History :
  ---------
@@ -148,8 +150,8 @@ inline Tree tl(Tree l)
 }
 
 // predicates
-TLIB_API bool isNil(Tree l);
-bool          isList(Tree l);
+TLIB_API bool     isNil(Tree l);
+bool              isList(Tree l);
 
 // predicates
 Tree nth(Tree l, int i);

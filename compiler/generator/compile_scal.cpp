@@ -96,10 +96,19 @@ string ScalarCompiler::getFreshID(const string& prefix)
  prepare
  *****************************************************************************/
 
+// creation-sequence probe (FAUST_SERIAL_PROBE=1) : see libcode.cpp
+#define SERIAL_PROBE(tag)                                                       \
+    if (getenv("FAUST_SERIAL_PROBE")) {                                         \
+        fprintf(stderr, "SERIAL %s : %zu seq=%zu\n", tag,                      \
+                CTree::serialCounter(), CTree::seqHash());                      \
+    }
+
 Tree ScalarCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
+    SERIAL_PROBE("entree-prepare")
     Tree L1 = simplifyToNormalForm(LS);
+    SERIAL_PROBE("apres-normalform")
 
     // dump normal form
     if (gGlobal->gDumpNorm == 0) {
@@ -115,6 +124,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     }
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);
+    SERIAL_PROBE("apres-constprop")
 
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
@@ -137,6 +147,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     fOccMarkup = new OccMarkup(fConditionProperty);
     fOccMarkup->mark(L2);  // Annotate L2 with occurrences analysis
     endTiming("occurrences analysis");
+    SERIAL_PROBE("apres-annotations")
 
     endTiming("prepare");
 

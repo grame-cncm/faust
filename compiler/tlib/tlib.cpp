@@ -22,6 +22,7 @@
 #include "tlib.hh"
 
 #include "garbageable.hh"
+#include "tlib-error.hh"
 
 // Internal reset hooks : the library owns a few lazily interned symbols and
 // key trees (the list cons/nil, the recursion symbols). They die with the
@@ -40,8 +41,16 @@ static void resetInternals()
     tlibResetRecInternals();
 }
 
+// Armed by init(), disarmed by cleanup(). A second init() over a live
+// population would restart the serial counter and re-intern the lazy
+// internals : addresses and serials of still-alive trees would be reissued
+// for different terms -- the corruption is silent, so the guard is loud.
+static bool gInitialized = false;
+
 void init()
 {
+    TLIB_ASSERT(!gInitialized);
+    gInitialized = true;
     resetInternals();
 }
 
@@ -52,6 +61,7 @@ void cleanup()
     // immediately ready for a new session.
     Garbageable::cleanup();
     resetInternals();
+    gInitialized = false;
 }
 
 void setHashLoadFactor(double f)

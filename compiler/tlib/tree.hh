@@ -71,7 +71,9 @@
 
 #include <cstddef>
 #include <map>
+#include <set>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "export.hh"
@@ -108,16 +110,36 @@ typedef CTree* Tree;
 
 typedef std::vector<Tree> tvec;
 
-namespace std {
-
-// The std::less <CTree*>comparison function is redefined to provide an unique and stable ordering
-// for all CTree instances and so maintain determinism.
-template <>
-struct less<CTree*> {
+// Named comparator providing the unique and stable serial() ordering of CTree instances, so
+// that iterating an ordered container of trees is deterministic (creation order, not memory
+// addresses). It MUST be a named type, not a specialization of std::less<CTree*>: specializing
+// std::less for a pointer type is undefined behaviour ([namespace.std] requires the pointer
+// specialization to yield the implementation-defined pointer order), and libc++ 20+ exploits
+// exactly that latitude -- its __make_transparent optimization rewrites the literal std::less<T>
+// to the transparent std::less<> (raw pointer <) on the tree INSERT path but not on the LOOKUP
+// path, so a container built with one order is queried with the other and lookups miss present
+// elements (intermittently, depending on malloc addresses). A named comparator is not
+// pattern-matched, both paths agree, and the UB is gone.
+struct treeorder {
     bool operator()(const CTree* lhs, const CTree* rhs) const;
 };
 
-}  // namespace std
+// DirectedGraph's deterministic-order customization point (dgorder, see
+// DirectedGraph.hh) resolves to the serial order for trees : every
+// digraph<Tree>, and every algorithm iterating one, orders its nodes by
+// creation serial -- never by allocation address. This is what makes the
+// schedules derived from signal graphs run-to-run deterministic.
+template <typename N>
+struct dgorder;
+template <>
+struct dgorder<CTree*> : treeorder {};
+
+// Ordered containers keyed by Tree: always use these (or spell the comparator explicitly);
+// a bare std::set<Tree>/std::map<Tree, V> would fall back to the address order and lose
+// compilation determinism.
+using TreeSet = std::set<Tree, treeorder>;
+template <typename V>
+using TreeMap = std::map<Tree, V, treeorder>;
 
 /**
  * A CTree = (Node x [CTree]) is the association of a content Node and a list of subtrees
@@ -136,14 +158,14 @@ struct less<CTree*> {
 
 class TLIB_API CTree : public Garbageable {
    protected:
-    static const std::size_t kInitialHashTableSize =
-        1009;                            ///< initial size of the hash table (prime);
-                                         ///< grows as needed, see growHashTableIfNeeded
-    static std::size_t gSerialCounter;   ///< the serial number counter
-    static double      gHashLoadFactor;  ///< load factor triggering table growth
-    static std::size_t gHashTableSize;   ///< current size of the hash table (grows as needed)
-    static std::size_t gHashTableCount;  ///< number of trees currently stored in the table
-    static Tree*       gHashTable;  ///< hash table used for "hash consing" (grows by rehashing)
+    static const std::size_t kInitialHashTableSize = 1009;  ///< initial size of the hash table (prime);
+                                                             ///< grows as needed, see growHashTableIfNeeded
+    static std::size_t   gSerialCounter;   ///< the serial number counter
+    static std::size_t   gSeqHash;         ///< rolling hash of the creation sequence
+    static double        gHashLoadFactor; ///< load factor triggering table growth
+    static std::size_t   gHashTableSize;   ///< current size of the hash table (grows as needed)
+    static std::size_t   gHashTableCount;  ///< number of trees currently stored in the table
+    static Tree*         gHashTable;       ///< hash table used for "hash consing" (grows by rehashing)
 
     ///< cheap check, called on every make() : lazily allocates the table on first use (needed
     ///< even for a lookup, not just an insert -- see the comment on the definition)
@@ -165,34 +187,34 @@ class TLIB_API CTree : public Garbageable {
     // memoization keyed by a fresh Tree per call, e.g. substitute()/liftn()) : with a flat buffer
     // that node's O(n) lookup made the whole compile quadratic. std::map keeps every node bounded
     // at O(log n) regardless of how many properties it accumulates. See TLIB.md for the numbers.
-    typedef std::map<Tree, Tree> plist;
+    typedef std::map<Tree, Tree, treeorder> plist;
 
    protected:
     // fields
-    Tree  fNext;               ///< next tree in the same hashtable entry
-    Node  fNode;               ///< the node content of the tree
-    void* fType;               ///< the type of a tree
-    Tree  fFastProperty;       ///< generic single-slot fast path for one caller-chosen "hot"
-                               ///< property, bypassing fProperties entirely (see setFastProperty)
-    plist*       fProperties;  ///< lazily allocated; nullptr means no property set
-    std::size_t  fHashKey;     ///< the hashtable key
-    std::size_t  fSerial;      ///< the increasing serial number
-    int          fAperture;    ///< how "open" is a tree (synthesized field)
-    unsigned int fVisitTime;   ///< keep track of visits
-    tvec         fBranch;      ///< the subtrees
+    Tree         fNext;         ///< next tree in the same hashtable entry
+    Node         fNode;         ///< the node content of the tree
+    void*        fType;         ///< the type of a tree
+    plist*       fProperties;   ///< lazily allocated; nullptr means no property set
+    std::size_t  fHashKey;      ///< the hashtable key
+    std::size_t  fSerial;       ///< the increasing serial number
+    std::size_t  fCanonHash;    ///< structural value hash, synthesized at construction
+                                ///< (node canonicalHash + children, order-sensitive) :
+                                ///< identical across processes, unlike serials
+    // fAperture and fContains share one 32-bit word : a deBruijn depth never comes close to
+    // 24 bits, which buys 8 synthesized flag bits for free (the pair occupies the single
+    // 4-byte slot a lone aperture field would take, so the flags do not grow the struct).
+    // fAperture stays SIGNED : calcTreeAperture returns br[0]->fAperture - 1 on a rec node,
+    // which can be negative.
+    int          fAperture : 24;  ///< how "open" is a tree (synthesized field)
+    unsigned int fContains : 8;   ///< kinds of constructs occurring here or below (synthesized)
+    unsigned int fVisitTime;      ///< keep track of visits
+    tvec         fBranch;         ///< the subtrees
 
-    CTree()
-        : fNext(nullptr),
-          fType(nullptr),
-          fFastProperty(nullptr),
-          fProperties(nullptr),
-          fHashKey(0),
-          fSerial(0),
-          fAperture(0),
-          fVisitTime(0)
-    {
-    }
-    ///< construction is private, uses tree::make instead
+    ///< construction is private, uses tree::make instead.
+    ///< There is deliberately NO default constructor : every CTree must go through a
+    ///< constructor that computes fContains. A zero-initialized fContains would read as
+    ///< "contains nothing", i.e. the optimistic value, and a fold would then wrongly skip
+    ///< fixpoint iteration on a recursive subtree.
     CTree(std::size_t hk, const Node& n, const tvec& br);
     CTree(std::size_t hk, const Node& n, int ar, const Tree br[]);
 
@@ -206,9 +228,47 @@ class TLIB_API CTree : public Garbageable {
     static std::size_t calcTreeHash(const Node& n, int ar, const Tree br[]);
     static int calcTreeAperture(const Node& n, const tvec& br);  ///< compute how open is a tree
     static int calcTreeAperture(const Node& n, int ar, const Tree br[]);
+    ///< compute the kinds occurring in a tree. Defined in recursive-tree.cpp, next to
+    ///< calcTreeAperture, because that is where the recursive node symbols live.
+    static unsigned int calcTreeContains(const Node& n, const tvec& br);
+    static unsigned int calcTreeContains(const Node& n, int ar, const Tree br[]);
 
    public:
     virtual ~CTree();
+
+    // Synthesized set of construct kinds occurring in a tree (itself included).
+    //
+    // CONVENTION : each bit means "this kind occurs here or below", and bits combine by
+    // UNION over the branches :
+    //
+    //     kinds(t) = {kind(t)} U (U_i kinds(branch_i))
+    //
+    // so a single word-wide |= folds every present and future bit at once, a leaf is
+    // naturally 0 (contains nothing), and adding a bit costs no change to the combining
+    // loop -- only a new rule in calcTreeContains. Do NOT mix in a bit with the opposite
+    // ("free of X") polarity : the uniform rule is worth more than per-bit optimality.
+    // Accessors may of course read either way (see isRecFree below).
+    //
+    // The 8 bits are PARTITIONED : the low nibble belongs to tlib (rules decidable from
+    // the node alone, inside recursive-tree.cpp) ; the high nibble belongs to the
+    // consumer, read from the head symbol's kind byte and completely opaque to tlib.
+    enum : unsigned int {
+        kContainsRec = 1u << 0,  ///< a recursive node (SYMREC, DEBRUIJN or DEBRUIJNREF) occurs
+        kTlibKinds   = 0x0Fu,    ///< bits reserved for tlib's own rules
+        kUserKinds   = 0xF0u,    ///< bits reserved for the consumer (symbol kind byte)
+    };
+
+    // Consumer bits are DATA, not code : each interned symbol carries an opaque kind
+    // byte (symbol.hh, setSymbolUserKinds / Signature::add(name, kinds)), initialized
+    // at registration and folded here into every tree headed by it :
+    //
+    //     kinds(t) = tlibKind(t) | (symbolUserKinds(head(t)) & kUserKinds) | U_i kinds(branch_i)
+    //
+    // tlib stays blind : it reads a byte it never interprets. The byte must be
+    // initialized BEFORE any tree headed by the symbol is built -- bits are stamped
+    // once, at construction, hash-consing shares them, nothing restamps. A
+    // symbol-headed tree cannot predate its symbol's creation, the same soundness
+    // argument initRecSymbols() relies on.
 
     static Tree make(const Node& n, int ar,
                      const Tree br[]);  ///< return a new tree or an existing equivalent one
@@ -225,16 +285,35 @@ class TLIB_API CTree : public Garbageable {
     const tvec& branches() const { return fBranch; }  ///< return all branches (subtrees) of a tree
     std::size_t hashkey() const { return fHashKey; }  ///< return the hashkey of the tree
     std::size_t serial() const { return fSerial; }    ///< return the serial of the tree
+    static std::size_t serialCounter() { return gSerialCounter; }  ///< creation-sequence probe
+    static std::size_t seqHash() { return gSeqHash; }  ///< order-sensitive creation hash
+    std::size_t canonHash() const { return fCanonHash; }  ///< structural value hash
     int         aperture() const
     {
         return fAperture;
     }  ///< return how "open" is a tree in terms of free variables
     void setAperture(int a) { fAperture = a; }  ///< modify the aperture of a tree
 
+    unsigned int contains() const { return fContains; }  ///< the raw set of kinds
+
+    ///< true iff a recursive node occurs in this tree
+    bool containsRec() const { return (fContains & kContainsRec) != 0; }
+
+    ///< true iff NO recursive node occurs in this tree, in either notation (symbolic or
+    ///< deBruijn). Such a tree is its own sym2deBruijn image, and -- the reason this is
+    ///< worth a synthesized bit -- a bottom-up fold over it reaches its final value in one
+    ///< pass : it can never change during a fixpoint iteration.
+    bool isRecFree() const { return (fContains & kContainsRec) == 0; }
+
     // Print a tree and the hash table (for debugging purposes)
     std::ostream& print(
         std::ostream& fout) const;  ///< print recursively the content of a tree on a stream
     static void control();          ///< print the hash table content (for debug purpose)
+
+    ///< Test/debug : recompute the synthesized kind bits of EVERY live tree by an
+    ///< independent traversal and compare them with the value stored at construction.
+    ///< Returns the number of mismatches (0 when the synthesized attribute is sound).
+    static std::size_t checkContainsInvariant();
 
     static void init();
 
@@ -245,14 +324,6 @@ class TLIB_API CTree : public Garbageable {
     // type information
     void  setType(void* t) { fType = t; }
     void* getType() { return fType; }
-
-    // Generic fast-path slot for one caller-chosen property : one dedicated field instead of a
-    // map entry, for a property so widely used that the map overhead isn't worth paying. Only one
-    // caller should claim this (currently compiler/propagate/propagate.cpp's PropagateProperty,
-    // ~20% of all property traffic measured on examples/*.dsp) : it is not namespaced by key like
-    // setProperty/getProperty, so two unrelated callers using it on the same trees would collide.
-    void setFastProperty(Tree value) { fFastProperty = value; }
-    Tree getFastProperty() { return fFastProperty; }
 
     // Keep track of visited trees (WARNING : non reentrant)
     static void startNewVisit() { ++gVisitTime; }
@@ -293,14 +364,12 @@ class TLIB_API CTree : public Garbageable {
     }
 };
 
-// The comparison function relies on lhs->serial() which provides an unique and stable ordering
-// for all CTree instances and so maintain determinism.
-namespace std {
-inline bool less<CTree*>::operator()(const CTree* lhs, const CTree* rhs) const
+// The comparison relies on lhs->serial() which provides an unique and stable ordering
+// for all CTree instances and so maintains determinism.
+inline bool treeorder::operator()(const CTree* lhs, const CTree* rhs) const
 {
     return lhs->serial() < rhs->serial();
 }
-};  // namespace std
 
 //---------------------------------API---------------------------------------
 // To build trees
@@ -347,12 +416,13 @@ inline Tree tree(const Node& n, const tvec& br)
 }
 
 // Useful conversions
-TLIB_API int    tree2int(Tree t);     ///< if t has a node of type int, return it otherwise error
-TLIB_API double tree2double(Tree t);  ///< if t has a node of type double, return it otherwise error
+TLIB_API int    tree2int(Tree t);  ///< if t has a node of type int, return it otherwise error
+TLIB_API double tree2double(
+    Tree t);  ///< if t has a node of type double, return it otherwise error
 TLIB_API const char* tree2str(
     Tree t);  ///< if t has a node of type symbol, return its name otherwise error
-std::string    tree2quotedstr(Tree t);
-void*          tree2ptr(Tree t);  ///< if t has a node of type ptr, return it otherwise error
+std::string        tree2quotedstr(Tree t);
+void*              tree2ptr(Tree t);  ///< if t has a node of type ptr, return it otherwise error
 TLIB_API void* getUserData(
     Tree t);  ///< if t has a node of type symbol, return the associated user data
 
@@ -379,8 +449,25 @@ inline std::ostream& operator<<(std::ostream& s, const CTree& t)
 Tree rec(Tree body);           ///< create a de Bruijn recursive tree
 Tree rec(Tree id, Tree body);  ///< create a symbolic recursive tree
 
-bool          isRec(Tree t, Tree& body);            ///< is t a de Bruijn recursive tree
+bool              isRec(Tree t, Tree& body);            ///< is t a de Bruijn recursive tree
 TLIB_API bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursive tree
+
+// IMMUTABILITY OF RECURSIVE DEFINITIONS.
+//
+// Hash-consing guarantees immutable BRANCHES, but a symbolic recursive definition is a
+// PROPERTY of a node hash-consed by its NAME : rec(id, body') on an existing id silently
+// changes what every holder of that pointer means. The target protocol therefore is :
+//   a) ref(id) creates the node with a VIRGIN definition group (no RECDEF property) ;
+//   b) the first rec(id, defs) fills it -- and rec(id, defs) again with the SAME body is
+//      an idempotent no-op (hash-consed reconstruction passes through it naturally) ;
+//   c) rec(id, body') with a DIFFERENT body is a REDEFINITION : illegal ; and
+//      rec(id, nil) -- erasing a definition group -- is always illegal.
+// Consequence : a transformation never redefines, it maps every variable to a FRESH one
+// (what treeRewrite does ; the in-place variant was removed for this very reason).
+//
+// The protocol is enforced : a different-body redefinition or an erasure is fatal
+// (tlib::error), with no environment override. The transition regime (census counter,
+// TLIB_REC_TRACE, opt-in TLIB_REC_STRICT) ended once the whole corpus ran clean.
 
 // Creation of recursive references
 
@@ -389,6 +476,15 @@ Tree ref(Tree id);    ///< create a symbolic recursive reference
 
 bool isRef(Tree t, int& level);  ///< is t a de Bruijn recursive reference
 bool isRef(Tree t, Tree& id);    ///< is t a symbolic recursive reference
+
+// Projection out of an n-ary recursive group. A recursive binder holds a LIST of k
+// mutually recursive definitions ; proj(i, group) names its i-th component. Projection
+// is intrinsic to n-ary recursion, so it belongs with rec/ref in tlib rather than in a
+// consumer -- this is what lets a generic fixpoint bridge a group's vector of values
+// back to a single value without knowing anything about signals.
+
+TLIB_API Tree proj(int i, Tree group);         ///< the i-th component of a recursive group
+TLIB_API bool isProj(Tree t, int& i, Tree& group);  ///< is t such a projection
 
 // Open vs Closed regarding de Bruijn references
 
@@ -406,10 +502,126 @@ inline bool isClosed(Tree t)
 
 Tree lift(Tree t);  ////< add 1 to the free de bruijn references of t
 
-Tree          deBruijn2Sym(Tree t);  ////< transform a tree from deBruijn to symbolic representation
-Tree          deBruijn2SymCached(Tree t);  ////< deBruijn2Sym with a persistent tree-property cache
-Tree          sym2deBruijn(Tree t);  ////< transform a tree from symbolic to deBruijn representation
-bool          areEquiv(Tree a, Tree b);  ////< alpha-equivalence of recursive trees
+Tree deBruijn2Sym(Tree t);  ////< transform a tree from deBruijn to symbolic representation
+Tree deBruijn2SymCached(Tree t);  ////< deBruijn2Sym with a persistent tree-property cache
+Tree sym2deBruijn(Tree t);  ////< transform a tree from symbolic to deBruijn representation
+bool isSym2deBruijnInvariant(Tree t);  ////< true iff sym2deBruijn(t) == t. Now a corollary
+                                       ////< of the synthesized kContainsRec bit : see
+                                       ////< CTree::isRecFree(), which is what to call in
+                                       ////< new code -- this name only records the theorem
+bool areEquiv(Tree a, Tree b);  ////< alpha-equivalence via de Bruijn conversion (the
+                                ////< theorem form ; super-linear on large nests)
+TLIB_API bool alphaEquiv(Tree a, Tree b);  ///< direct alpha-equivalence : pair-memoized
+                                           ///< walk with a variable bijection, linear in
+                                           ///< distinct pairs -- what validations should
+                                           ///< call
+
+/// A TOTAL ORDER on trees derived from VALUES, never from serials : primary key the
+/// synthesized canonical hash, ties broken by a full structural comparison (node kind,
+/// value -- symbols by NAME --, then children left to right). Two processes that build
+/// the same tree values order them identically, whatever their construction history.
+/// Meant for the orderings that must survive alpha-renaming and history (the
+/// normal-form term orders); the default treeorder stays serial-based.
+TLIB_API bool canonicalTreeLess(Tree a, Tree b);
+
+struct CanonicalTreeLess {
+    bool operator()(Tree a, Tree b) const { return canonicalTreeLess(a, b); }
+};
+
+// The recursion structure of a symbolic term : every symbolic recursive node reachable
+// from a root, partitioned into strongly connected components (the mutual-recursion
+// groups) via DirectedGraph's Tarjan. It is V-independent -- it depends on the tree
+// alone -- so it is computed ONCE and shared, read-only, by every attribute computation
+// over that term (sym2deBruijn today, the generic fixpoint iterator to come : see
+// FIXPOINT-SPEC).
+//
+// components() are ordered dependencies-first (reverse topological) : a component is
+// listed after every component it depends on, so solving them in order means never
+// iterating on a value from a component that has not converged yet. A component's id
+// (sccOf) is its index in that list, so the ids themselves increase with the order.
+class TLIB_API RecPlan {
+    // The whole plan is these two fields : the partition of the reachable recursive
+    // nodes into strongly connected components, and the components themselves in
+    // dependencies-first order (one shared numbering).
+    std::unordered_map<Tree, int>  fSccOf;
+    std::vector<std::vector<Tree>> fComponents;
+
+   public:
+    explicit RecPlan(Tree root);
+
+    ///< component id of a symbolic recursive node, or -1 if it is not one of the
+    ///< recursive nodes reachable from root. Two nodes share a component iff their ids
+    ///< are equal ; equivalently, sccOf(r) is the index of r's component in components().
+    int sccOf(Tree recNode) const;
+
+    ///< the components, dependencies first : components()[i] holds the nodes of the
+    ///< component whose id is i, and depends only on components()[j] with j < i.
+    const std::vector<std::vector<Tree>>& components() const { return fComponents; }
+};
+
+/// Memoized access : ONE RecPlan per root per session. Trees are hash-consed and
+/// immutable, so a root's plan never changes ; every fixpoint pass and conversion over
+/// the same term shares it instead of re-running Tarjan. The returned reference is
+/// stable for the session (cleared by cleanup()).
+TLIB_API const RecPlan& getRecPlan(Tree root);
+
+/// Rename every recursive group after the plan : names R<instance>_<k> in
+/// dependencies-first order, variables PRE-CREATED in that order so node serials
+/// follow the plan too. The prefix is fresh per call (immutability : a variable is
+/// never redefined), so alpha-equivalent inputs give alpha-equivalent -- NOT
+/// pointer-equal -- results, whose names agree modulo the instance prefix. What IS
+/// instance-independent is the canonical ORDER : fCanonKey (canonicalNameKey) strips
+/// the instance from R<i>_<k>, so serial-ordered consumers (symbol sets, loop
+/// scheduling) see the same order whatever the transformation history. For a true
+/// canonical form (same content, same pointer), use deBruijn2Sym, whose names are
+/// content-derived.
+TLIB_API Tree canonicalizeRecNames(Tree root);
+
+/// Normalize the recursive structure : re-partition every letrec along the strongly
+/// connected components of the PROJECTION graph (one node per projection, an edge
+/// p -> q whenever the definition of p contains q), emitted dependencies-first.
+/// Accidental cohabitations split ; knots spanning several groups merge ; a
+/// definition in a singleton component without self-reference dissolves into a
+/// plain expression ; dead definitions (never projected) are dropped. Definitions
+/// inside a component are ordered by canonicalTreeLess, REFINED into a topological
+/// order on the INSTANTANEOUS references between members : a definition reading
+/// another member through no delayed branch reads the value of the current tick,
+/// so consumers that emit definitions in list order need the referee first. Which
+/// branches shift time is not tlib's to know : the caller says it through
+/// delayedBranch(parent, k) -- true when branch k of parent is read at least one
+/// tick late. The flag counts only when the flagged branch IS a projection : a
+/// delayed compound expression is computed at the current tick (only its result
+/// is shifted), so the references inside it stay instantaneous and are
+/// classified on their own. Without a classifier every reference counts as instantaneous, every
+/// true component is then a cycle, and the plain canonical order is kept (the
+/// historical behaviour, and the fallback whenever an instantaneous cycle shows
+/// up : such a program is delay-free recursive and bound for rejection anyway).
+/// Dissolving members whose definition merely shifts another member (delayed
+/// aliases) is NOT this function's job : recognizing a shift term and folding
+/// two shifts into one are semantic acts that belong to the caller, who
+/// rewrites the references itself and lets gcRecGroups collect the members
+/// made dead.
+/// The result goes through the deBruijn round trip : recursions that BECOME
+/// alpha-equivalent under the finer grouping unify into the same pointer --
+/// splitting is what makes the maximal sharing of recursive trees reachable.
+/// Input must be closed ; the traversal recurses to the depth of the term. With
+/// canonical=false the final round trip is skipped -- for callers already inside
+/// a canonicalization loop whose own round trip will unify (fresh variable names
+/// are then left as is).
+TLIB_API Tree normalizeRecGroups(Tree root, bool canonical = true,
+                                 bool (*delayedBranch)(Tree parent, int branch) = nullptr);
+
+/// Garbage collection of the MEMBERS of the recursive groups of a term
+/// (spec GC-MEMBRES). A member is alive iff its projection is reachable from
+/// the root through branches and projection doors -- the criterion is
+/// transitive : members read only by dead members die (cascades), and a
+/// cycle of members unreachable from the outside dies as a whole. Dead
+/// members are removed, the survivors keep their relative order and their
+/// projections are renumbered by compaction ; untouched subtrees return
+/// pointer-identical. Symbolic form only : de Bruijn groups pass through
+/// unchanged. The result is alpha-equivalent to the input on every live
+/// projection.
+TLIB_API Tree gcRecGroups(Tree root);
 std::ostream& printDeBruijn(std::ostream& out, Tree t);
 std::ostream& printSymbolic(std::ostream& out, Tree t);
 std::string   toDeBruijnString(Tree t);

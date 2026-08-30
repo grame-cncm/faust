@@ -26,6 +26,19 @@
  * deallocation for a very fast "free everything at the end of the session"
  * model, which fits the hash-consing design: trees are immutable, maximally
  * shared, and their lifetime is the whole session by construction.
+ *
+ * The model is not merely convenient, it is what makes hash-consing SOUND.
+ * Freeing a tree individually would let the allocator hand the same address
+ * back for an unrelated term, and a pointer obtained earlier would then compare
+ * equal to a tree it has nothing to do with -- silently breaking "pointer
+ * equality is structural equality". The invariant to preserve is therefore
+ * stronger than "memory is eventually reclaimed":
+ *
+ *   within a session, an address is handed out ONCE and denotes the same term
+ *   until cleanup(); no address is ever reused for a different term.
+ *
+ * Everything that keys a table by Tree pointer (property.hh) or orders trees by
+ * serial (tree.hh) rests on it.
  */
 
 #ifndef __TLIB_GARBAGEABLE__

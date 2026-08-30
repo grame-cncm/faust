@@ -30,6 +30,8 @@ ostream& Node::print(ostream& fout) const  ///< print a node on a stream
     switch (fType) {
         case kIntNode:
             return fout << fData.i;
+        case kInt64Node:
+            return fout << fData.v;
         case kDoubleNode:
             return fout << fData.f;
         case kSymNode:
@@ -59,7 +61,8 @@ bool sameMagnitude(const Node& a, const Node& b)
         if (b.type() == kDoubleNode) {
             return fabs(double(a.getInt())) == fabs(b.getDouble());
         } else if (b.type() == kIntNode) {
-            return abs(a.getInt()) == abs(b.getInt());
+            // magnitude in a wider type : abs(int) overflows on INT_MIN
+            return llabs((long long)a.getInt()) == llabs((long long)b.getInt());
         } else {
             return false;
         }

@@ -284,11 +284,23 @@ static void createHelperFile(const string& outpath)
                                 MAIN
 *****************************************************************/
 
+// creation-sequence probe (FAUST_SERIAL_PROBE=1) : serial counter and
+// order-sensitive rolling hash of every tree created so far -- two builds
+// that diverge here diverge in tree CREATION order, whatever the trees'
+// contents (the build-determinism forensic instrument)
+#define SERIAL_PROBE(tag)                                                       \
+    if (getenv("FAUST_SERIAL_PROBE")) {                                         \
+        fprintf(stderr, "SERIAL %s : %zu seq=%zu\n", tag,                       \
+                CTree::serialCounter(), CTree::seqHash());                      \
+    }
+
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs)
 {
     startTiming("evaluation");
 
+    SERIAL_PROBE("avant-eval")
     Tree process = evalprocess(expandedDefList);
+    SERIAL_PROBE("apres-eval")
     if (gGlobal->gErrorCount > 0) {
         stringstream error;
         error << "ERROR : total of " << gGlobal->gErrorCount << " errors during the compilation of "
@@ -1045,7 +1057,7 @@ static void generateCodeAux1(unique_ptr<ostream>& helpers, unique_ptr<ifstream>&
 static void printHeader(ostream& dst)
 {
     // defines the metadata we want to print as comments at the begin of in the C++ file
-    set<Tree> selectedKeys;
+    set<Tree, treeorder> selectedKeys;
     selectedKeys.insert(tree("name"));
     selectedKeys.insert(tree("author"));
     selectedKeys.insert(tree("copyright"));
@@ -1447,7 +1459,9 @@ static void* createFactoryAux1(void* arg)
         *****************************************************************/
         startTiming("propagation");
 
+        SERIAL_PROBE("avant-propagate")
         Tree lsignals = boxPropagateSig(gGlobal->nil, processTree, makeSigInputList(numInputs));
+        SERIAL_PROBE("apres-propagate")
 
         if (gGlobal->gDetailsSwitch) {
             cout << "output signals are : " << endl;

@@ -23,9 +23,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sstream>
+#include <algorithm>
 #include <unordered_map>
+#include <map>
+#include <memory>
+#include <queue>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
+#include "DirectedGraphAlgorythm.hh"
 #include "export.hh"
 #include "tlib-error.hh"
 #include "tlib.hh"
@@ -36,24 +43,24 @@ using namespace std;
 // tlib::init()/cleanup() reset time so calcTreeAperture(), called on every tree construction, does
 // not have to run a lazy initialization path for ordinary trees.
 // The property-key TREES (recdefKey, debruijn2symKey) are still created lazily, but only from the
-// rec/deBruijn2SymCached/sym2deBruijn entry points, never during construction.
+// rec/deBruijn2SymCached entry points, never during construction.
 static Sym  gDebruijnSym     = nullptr;
 static Sym  gDebruijnRefSym  = nullptr;
 static Sym  gSymRecSym       = nullptr;
+static Sym  gProjSym         = nullptr;
 static Sym  gSubstituteSym   = nullptr;
 static Sym  gSymLiftnSym     = nullptr;
-static Sym  gSym2DebruijnSym = nullptr;
 static Tree gRecDefKey       = nullptr;
 static Tree gDeBruijn2SymKey = nullptr;
 
 static inline void initRecSymbols()
 {
-    gDebruijnSym     = symbol("DEBRUIJN");
-    gDebruijnRefSym  = symbol("DEBRUIJNREF");
-    gSymRecSym       = symbol("SYMREC");
-    gSubstituteSym   = symbol("SUBSTITUTE");
-    gSymLiftnSym     = symbol("LIFTN");
-    gSym2DebruijnSym = symbol("SYM2DEBRUIJN");
+    gDebruijnSym    = symbol("DEBRUIJN");
+    gDebruijnRefSym = symbol("DEBRUIJNREF");
+    gSymRecSym      = symbol("SYMREC");
+    gProjSym        = symbol("PROJ");
+    gSubstituteSym  = symbol("SUBSTITUTE");
+    gSymLiftnSym    = symbol("LIFTN");
 }
 
 static inline Tree recdefKey()
@@ -73,33 +80,66 @@ static inline Tree debruijn2symKey()
 }
 
 // Internal hook used by tlib::init()/cleanup() (see tlib.cpp)
+// One plan per root per session. unique_ptr keeps the addresses stable across rehash,
+// so borrowed references (FixPointIterator's) survive later insertions.
+static std::unordered_map<Tree, std::unique_ptr<RecPlan>> gRecPlans;
+
+// Instance counter of canonicalizeRecNames : gives every canonicalization pass of a
+// session a distinct name prefix, so canonical variables never collide across passes
+// (a definition is written once). Defined BEFORE tlibResetRecInternals, which resets it.
+static int gCanonInstance = 0;
+
 void tlibResetRecInternals()
 {
+    gRecPlans.clear();
+    gCanonInstance    = 0;
     gDebruijnSym     = nullptr;
     gDebruijnRefSym  = nullptr;
     gSymRecSym       = nullptr;
+    gProjSym         = nullptr;
     gSubstituteSym   = nullptr;
     gSymLiftnSym     = nullptr;
-    gSym2DebruijnSym = nullptr;
     gRecDefKey       = nullptr;
     gDeBruijn2SymKey = nullptr;
     initRecSymbols();
 }
 
+// Local memos for the conversions : the memo lives for one conversion call
+// and dies with it, so the conversion leaves no property attached to the
+// trees (see REWRITE-SPEC.md, "Memo local par appel"). The property-cached
+// variants (deBruijn2SymCached, substituteReady) are kept for callers that
+// explicitly want a persistent cache.
+//
+// The substitution memo is keyed by (tree, level) : 'id' is fixed for one
+// substitution call, and 'level' grows when the traversal crosses a rec
+// binder. The sym2deBruijn memo is keyed by (tree, env) : the same subtree
+// can convert differently under different binder environments.
+struct TreeIntPairHash {
+    std::size_t operator()(const std::pair<Tree, int>& k) const
+    {
+        return std::hash<const void*>()(k.first) * 31u + std::size_t(k.second);
+    }
+};
+using SubstMemo = std::unordered_map<std::pair<Tree, int>, Tree, TreeIntPairHash>;
+
+struct TreePairHash {
+    std::size_t operator()(const std::pair<Tree, Tree>& k) const
+    {
+        return std::hash<const void*>()(k.first) * 31u + std::hash<const void*>()(k.second);
+    }
+};
+using Sym2DebMemo = std::unordered_map<std::pair<Tree, Tree>, Tree, TreePairHash>;
+
 // Declaration of implementation
-static Tree          deBruijn2SymCachedReady(Tree t);
-static Tree          calcDeBruijn2SymCachedReady(Tree t);
-static Tree          deBruijn2SymRec(Tree t, std::unordered_map<Tree, Tree>& memo);
-static Tree          sym2deBruijnReady(Tree t, Tree env);
-static Tree          calcSym2deBruijnReady(Tree t, Tree env);
-static Tree          alphaNormalize(Tree t);
-static std::ostream& printDeBruijnRec(std::ostream& out, Tree t);
+static Tree deBruijn2SymCachedReady(Tree t);
+static Tree calcDeBruijn2SymCachedReady(Tree t);
+static Tree deBruijn2SymMemo(Tree t, std::unordered_map<Tree, Tree>& memo);
+static Tree substituteMemo(Tree t, int level, Tree id, SubstMemo& memo);
 static std::ostream& printTreeExpr(std::ostream& out, Tree t);
-static Tree          substituteReady(Tree t, int n, Tree id);
-static Tree          calcsubstituteReady(Tree t, int level, Tree id);
-Tree                 liftn(Tree t, int threshold);
-static Tree          liftnReady(Tree t, int threshold);
-static Tree          calcliftnReady(Tree t, int threshold);
+static Tree substituteReady(Tree t, int n, Tree id);
+static Tree calcsubstituteReady(Tree t, int level, Tree id);
+Tree        liftn(Tree t, int threshold);
+static Tree calcliftnReady(Tree t, int threshold);
 
 static inline bool isDebruijnRec(Tree t, Tree& body)
 {
@@ -109,17 +149,13 @@ static inline bool isDebruijnRec(Tree t, Tree& body)
 static inline bool isDebruijnRef(Tree t, int& level)
 {
     Tree u;
-    if (!isTree(t, gDebruijnRefSym, u)) {
-        return false;
-    }
+    if (!isTree(t, gDebruijnRefSym, u)) return false;
     return isInt(u->node(), &level);
 }
 
 static inline bool isSymbolicRec(Tree t, Tree& var, Tree& body)
 {
-    if (!isTree(t, gSymRecSym, var)) {
-        return false;
-    }
+    if (!isTree(t, gSymRecSym, var)) return false;
     body = t->getProperty(recdefKey());
     return true;
 }
@@ -163,9 +199,34 @@ bool isRef(Tree t, int& level)
 //-----------------------------------------------------------------------------------------
 
 // declaration of a recursive tree using a symbolic variable
+// MIGRATION AFFORDANCE (see tlib.hh) : when true, rec() restores the
+// historical overwrite semantics for consumers whose transformation passes
+// still rebuild groups in place. The immutable contract is the destination.
+static bool gMutableRecDefinitions = false;
+
+namespace tlib {
+void setMutableRecDefinitions(bool legacy)
+{
+    gMutableRecDefinitions = legacy;
+}
+}  // namespace tlib
+
 Tree rec(Tree var, Tree body)
 {
-    Tree t = tree(gSymRecSym, var);
+    Tree t   = tree(gSymRecSym, var);
+    Tree old = t->getProperty(recdefKey());
+    if (((old != nullptr && old != body) || isNil(body)) && !gMutableRecDefinitions) {
+        // Immutability of recursive definitions (see tree.hh) : a different body is
+        // a redefinition, rec(id, nil) an erasure -- both fatal, no override
+        // short of the migration affordance above. The same body again is an
+        // idempotent no-op (falls through, setProperty is a write of the value
+        // already there).
+        std::stringstream error;
+        error << "ERROR : redefinition of the recursive variable " << *var
+              << " (recursive definitions are immutable : use a fresh variable)"
+              << std::endl;
+        tlib::error(error.str());
+    }
     t->setProperty(recdefKey(), body);
     return t;
 }
@@ -183,6 +244,23 @@ Tree ref(Tree id)
 bool isRef(Tree t, Tree& v)
 {
     return isSymbolicRef(t, v);
+}
+
+//-----------------------------------------------------------------------------------------
+// Projection out of an n-ary recursive group (see tree.hh). Same node shape the signal
+// layer used before it moved here : head PROJ, branch 0 the integer index, branch 1 the
+// group. Kept identical so every consumer that reads the branches keeps working.
+//-----------------------------------------------------------------------------------------
+
+Tree proj(int i, Tree group)
+{
+    return tree(gProjSym, tree(i), group);
+}
+
+bool isProj(Tree t, int& i, Tree& group)
+{
+    Tree x;
+    return isTree(t, gProjSym, x, group) && isInt(x->node(), &i);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -222,19 +300,100 @@ int CTree::calcTreeAperture(const Node& n, int ar, const Tree br[])
     }
 }
 
+//-----------------------------------------------------------------------------------------
+// The kinds occurring in a tree : a synthesized set, unioned over the branches (see the
+// CONVENTION note on CTree::kContainsRec in tree.hh).
+//
+// Defined here rather than in tree.cpp because this is where the recursive node symbols
+// live -- the same arrangement calcTreeAperture already uses.
+//
+// SOUNDNESS DURING INITIALIZATION : the three symbols are nullptr until initRecSymbols()
+// runs, so a tree built before that compares equal to none of them and gets kContainsRec
+// clear. That is correct, not a race : building a recursive node requires passing the
+// symbol to tree(), so a pre-init tree provably is not one, and cannot contain one.
+// calcTreeAperture already relies on exactly this argument.
+//
+// SOUNDNESS UNDER MUTATION : a symbolic rec node carries its body as a PROPERTY, attached
+// after construction. The rule below never reads properties -- only the node and the
+// branches, both fixed at construction -- so the bit cannot go stale. A rec node is caught
+// by its own symbol, whether it occurs as a definition or as a reference (in symbolic form
+// the two are the same node), so "no recursive node below" really does mean the subtree is
+// a finite, recursion-free DAG.
+
+unsigned int CTree::calcTreeContains(const Node& n, const tvec& br)
+{
+    return calcTreeContains(n, int(br.size()), br.empty() ? nullptr : br.data());
+}
+
+unsigned int CTree::calcTreeContains(const Node& n, int ar, const Tree br[])
+{
+    // Union, never replacement : the node's own kind is added to what the branches carry,
+    // so a rule for one bit can never discard another bit's information.
+    unsigned int c =
+        (n == gSymRecSym || n == gDebruijnSym || n == gDebruijnRefSym) ? kContainsRec : 0;
+    if (isSym(n)) {
+        // the consumer's local contribution : an opaque byte attached to the symbol
+        // at registration, masked to the consumer nibble and unioned like the rest
+        c |= (symbolUserKinds(n.getSym()) & kUserKinds);
+    }
+    for (int i = 0; i < ar; ++i) {
+        c |= br[i]->contains();
+    }
+    return c;
+}
+
+// Test/debug : recompute the kind bits of every live tree by an independent traversal and
+// compare with what the constructor stored. This is the real safety net for a synthesized
+// attribute -- it validates the bits on every tree the test suite ever built, not just on
+// the handful a hand-written test remembers to check.
+static unsigned int recomputeContains(Tree t, std::unordered_map<Tree, unsigned int>& memo)
+{
+    auto it = memo.find(t);
+    if (it != memo.end()) {
+        return it->second;
+    }
+    const Node&  n = t->node();
+    unsigned int c =
+        (n == gSymRecSym || n == gDebruijnSym || n == gDebruijnRefSym) ? CTree::kContainsRec : 0;
+    if (isSym(n)) {
+        // the consumer's byte, reread under the same mask as at construction --
+        // consumer bits are validated exactly like tlib bits (assuming the byte was
+        // initialized before the trees headed by its symbol were built)
+        c |= (symbolUserKinds(n.getSym()) & CTree::kUserKinds);
+    }
+    // Insert before descending : a shared subtree may be reached again, and the branch DAG
+    // is acyclic (a symbolic rec keeps its body in a property, not in a branch).
+    memo[t]         = c;
+    const int ar    = t->arity();
+    for (int i = 0; i < ar; ++i) {
+        c |= recomputeContains(t->branch(i), memo);
+    }
+    memo[t] = c;
+    return c;
+}
+
+std::size_t CTree::checkContainsInvariant()
+{
+    std::unordered_map<Tree, unsigned int> memo;
+    std::size_t                            mismatches = 0;
+    for (std::size_t i = 0; i < gHashTableSize; i++) {
+        for (Tree t = gHashTable[i]; t; t = t->fNext) {
+            if (recomputeContains(t, memo) != t->contains()) {
+                mismatches++;
+            }
+        }
+    }
+    return mismatches;
+}
+
+// lift(t) : increase free references by 1
+
 Tree lift(Tree t)
 {
     return liftn(t, 1);
 }
 
-// lift(t) : increase free references by 1
-
 Tree liftn(Tree t, int threshold)
-{
-    return liftnReady(t, threshold);
-}
-
-static Tree liftnReady(Tree t, int threshold)
 {
     Tree L  = tree(Node(gSymLiftnSym), tree(Node(threshold)));
     Tree t2 = t->getProperty(L);
@@ -264,13 +423,13 @@ static Tree calcliftnReady(Tree t, int threshold)
         }
 
     } else if (isDebruijnRec(t, u)) {
-        return rec(liftnReady(u, threshold + 1));
+        return rec(liftn(u, threshold + 1));
 
     } else {
         int  n1 = t->arity();
         tvec br(n1);
         for (int i = 0; i < n1; i++) {
-            br[i] = liftnReady(t->branch(i), threshold);
+            br[i] = liftn(t->branch(i), threshold);
         }
         return tree(t->node(), br);
     }
@@ -284,7 +443,7 @@ Tree deBruijn2Sym(Tree t)
 {
     TLIB_ASSERT(isClosed(t));
     std::unordered_map<Tree, Tree> memo;
-    return deBruijn2SymRec(t, memo);
+    return deBruijn2SymMemo(t, memo);
 }
 
 Tree deBruijn2SymCached(Tree t)
@@ -304,7 +463,64 @@ static Tree deBruijn2SymCachedReady(Tree t)
     return t2;
 }
 
-static Tree deBruijn2SymRec(Tree t, std::unordered_map<Tree, Tree>& memo)
+/**
+ * The CONTENT-DERIVED variable of a de Bruijn group: named from the canonical hash
+ * of its (closed, name-free) de Bruijn form. Alpha-equal groups thus get the SAME
+ * variable and their symbolic forms collide by hash-consing -- fusion for free --
+ * and any order derived from variable names becomes a pure function of the group's
+ * structure, stable across passes and iterations (what a normalization fixpoint
+ * needs). A 64-bit hash collision between structurally different groups would
+ * surface as a recursive-variable redefinition (fatal redefinition).
+ * The hash is the node's cached canonHash. With the pointer-canonical
+ * registry (see node.hh) it is layout-free as long as every pointer
+ * payload is registered BEFORE its tree is created (the box primitives
+ * and the pattern matchers do). Replacing it with a recomputed traversal
+ * hash was tried and REVERTED : the member order inside a group and the
+ * group's name must be fixed points of one another, and changing the
+ * naming hash alone broke the idempotence of normalizeRecGroups on
+ * transversal merges (the standalone test caught it).
+ */
+// Forensic lamp (TLIB_DBJ_POINTER_CENSUS=1) : walk a de Bruijn form about
+// to be NAMED from its canonHash and report every pointer payload with no
+// registered canonical hash -- each one makes the name (hence downstream
+// orders) follow the binary layout. Prints the pointer and the head symbol
+// of its parent, the two facts that identify the creator to register.
+static void dbjPointerCensus(Tree t, Tree parent, std::unordered_set<Tree>& seen)
+{
+    if (!seen.insert(t).second) {
+        return;
+    }
+    const Node& n = t->node();
+    if (n.type() == kPointerNode && !getPointerCanonicalHash(n.getPointer())) {
+        const char* ctx = "?";
+        if (parent != nullptr && parent->node().type() == kSymNode) {
+            ctx = name(parent->node().getSym());
+        }
+        fprintf(stderr, "DBJ-POINTER non-enregistre : %p sous %s\n", n.getPointer(), ctx);
+    }
+    for (int i = 0; i < t->arity(); i++) {
+        dbjPointerCensus(t->branch(i), (t->arity() > 0 && t->node().type() == kSymNode)
+                                            ? t
+                                            : parent,
+                         seen);
+    }
+}
+
+static Tree contentVar(Tree dbj)
+{
+    if (getenv("TLIB_DBJ_POINTER_CENSUS")) {
+        std::unordered_set<Tree> seen;
+        dbjPointerCensus(dbj, nullptr, seen);
+    }
+    char buf[24];
+    snprintf(buf, sizeof(buf), "D%016zx", static_cast<size_t>(dbj->canonHash()));
+    if (getenv("TLIB_DBJ_NAME_TRACE")) {
+        fprintf(stderr, "DBJ-NAME %s\n", buf);
+    }
+    return tree(symbol(buf));
+}
+
+static Tree deBruijn2SymMemo(Tree t, std::unordered_map<Tree, Tree>& memo)
 {
     auto it = memo.find(t);
     if (it != memo.end()) {
@@ -316,8 +532,9 @@ static Tree deBruijn2SymRec(Tree t, std::unordered_map<Tree, Tree>& memo)
     Tree result;
 
     if (isDebruijnRec(t, body)) {
-        var    = tree(unique("W"));
-        result = rec(var, deBruijn2SymRec(substituteReady(body, 1, ref(var)), memo));
+        var = contentVar(t);
+        SubstMemo smemo;
+        result = rec(var, deBruijn2SymMemo(substituteMemo(body, 1, ref(var), smemo), memo));
 
     } else if (isSymbolicRef(t, var)) {
         result = t;
@@ -330,7 +547,7 @@ static Tree deBruijn2SymRec(Tree t, std::unordered_map<Tree, Tree>& memo)
         int  a = t->arity();
         tvec br(a);
         for (int i1 = 0; i1 < a; i1++) {
-            br[i1] = deBruijn2SymRec(t->branch(i1), memo);
+            br[i1] = deBruijn2SymMemo(t->branch(i1), memo);
         }
         result = tree(t->node(), br);
     }
@@ -345,7 +562,7 @@ static Tree calcDeBruijn2SymCachedReady(Tree t)
     int  i;
 
     if (isDebruijnRec(t, body)) {
-        var = tree(unique("W"));
+        var = contentVar(t);
         return rec(var, deBruijn2SymCachedReady(substituteReady(body, 1, ref(var))));
 
     } else if (isSymbolicRef(t, var)) {
@@ -367,12 +584,19 @@ static Tree calcDeBruijn2SymCachedReady(Tree t)
 
 //-----------------------------------------------------------
 // Transform a tree from symbolic to deBruijn representation
+//
+// The conversion is organized around the DAG of mutually recursive groups
+// (the strongly connected components of the dependency graph between
+// recursive variables). A recursive node of the component currently being
+// converted is inlined by extending the environment (mutual recursion needs
+// the single-binder de Bruijn inlining); a recursive node of any OTHER
+// component is converted separately, under an empty environment, into a
+// CLOSED de Bruijn term reused from a closed memo. Every subterm whose
+// converted form is closed (aperture 0, an O(1) test) is memoized by term
+// only; the open skeleton uses the (term, environment) memo. Environments
+// therefore stay small (the variables of one component) and shared closed
+// sub-DAGs are converted exactly once.
 //-----------------------------------------------------------
-
-Tree sym2deBruijn(Tree t)
-{
-    return sym2deBruijnReady(t, nil());
-}
 
 static int symbolicLevel(Tree var, Tree env)
 {
@@ -385,64 +609,445 @@ static int symbolicLevel(Tree var, Tree env)
     return 0;
 }
 
-static Tree sym2deBruijnReady(Tree t, Tree env)
+// A tree is INVARIANT by sym2deBruijn (sym2deBruijn(t) == t) when no symbolic recursive
+// node is reachable through its branches : every other node reconstructs to itself by
+// hash-consing.
+//
+// This used to be a lazily memoized tree property. It is now a corollary of the
+// synthesized kContainsRec bit : isRecFree() is slightly stronger (it also excludes
+// deBruijn recursive nodes), so using it here is sound. It would only be less precise on
+// a MIXED tree -- symbolic and deBruijn recursive nodes in the same term -- which the
+// conversion never sees : sym2deBruijnAux only ever descends into symbolic subterms.
+// Even then the cost would be a lost shortcut, never a wrong result : the generic branch
+// rebuilds the node and hash-consing hands back the very same tree.
+bool isSym2deBruijnInvariant(Tree t)
 {
-    Tree S  = tree(Node(gSym2DebruijnSym), env);
-    Tree t2 = t->getProperty(S);
-
-    if (!t2) {
-        t2 = calcSym2deBruijnReady(t, env);
-        t->setProperty(S, t2);
-    }
-    return t2;
+    return t->isRecFree();
 }
 
-static Tree calcSym2deBruijnReady(Tree t, Tree env)
+struct Sym2DebState {
+    const RecPlan&                 plan;             ///< the shared component partition
+    std::unordered_map<Tree, Tree> closedMemo;       ///< closed results, keyed by term
+    Sym2DebMemo                    envMemo;          ///< open results, keyed by (term, env)
+    int                            currentSCC = -1;  ///< component being converted
+
+    explicit Sym2DebState(const RecPlan& p) : plan(p) {}
+};
+
+// Collect every symbolic recursive node occurring in t WITHOUT crossing
+// recursive definitions (bodies are attached as properties, not branches).
+static void scanForRecs(Tree t, std::unordered_set<Tree>& visited, std::vector<Tree>& found)
 {
+    if (isSym2deBruijnInvariant(t)) {
+        return;  // no symbolic recursive node below : nothing to collect
+    }
+    if (!visited.insert(t).second) {
+        return;
+    }
+    Tree var;
+    if (isSymbolicRef(t, var)) {
+        found.push_back(t);  // rec and ref are the same node in symbolic form
+        return;
+    }
+    for (int i = 0; i < t->arity(); i++) {
+        scanForRecs(t->branch(i), visited, found);
+    }
+}
+
+// Register every symbolic recursive node reachable from root (crossing recursive
+// definitions through a worklist), build the dependency digraph, and partition it into
+// strongly connected components.
+//
+// The components come from DirectedGraph's Tarjan rather than a hand-written one :
+// recursive-node components are exactly what graph2dag/partition were written for. Only
+// the PARTITION matters -- sccOf is consumed solely by "same component ?" tests -- so any
+// numbering of the components is correct. A node with no outgoing recursive edge is added
+// on its own so it still gets a singleton component ; a direct self-reference becomes a
+// self-loop, hence again a singleton, which is the intended behaviour for x = f(x).
+RecPlan::RecPlan(Tree root)
+{
+    std::vector<Tree>              work;
+    std::unordered_set<Tree>       known;
+    std::unordered_map<Tree, int>  rank;  // structural discovery rank, value-canonical
+    digraph<Tree>                  graph;
+
+    auto note = [&](Tree r) {
+        if (known.insert(r).second) {
+            rank[r] = int(rank.size());
+            work.push_back(r);
+        }
+    };
+
+    {
+        std::unordered_set<Tree> visited;
+        std::vector<Tree>        found;
+        scanForRecs(root, visited, found);
+        for (Tree r : found) {
+            note(r);
+        }
+    }
+    while (!work.empty()) {
+        Tree r = work.back();
+        work.pop_back();
+        graph.add(r);  // ensure r is a node even if its body holds no recursion
+        Tree var, body;
+        if (!(isSymbolicRec(r, var, body) && body)) {
+            continue;  // free reference: reported by the conversion itself
+        }
+        std::unordered_set<Tree> visited;
+        std::vector<Tree>        found;
+        scanForRecs(body, visited, found);
+        std::unordered_set<Tree> dedup;
+        for (Tree s2 : found) {
+            if (dedup.insert(s2).second) {
+                graph.add(r, s2);
+            }
+            note(s2);
+        }
+    }
+
+    // Collapse the graph into its DAG of components, then order that DAG
+    // dependencies-first. The dependency order does not constrain INDEPENDENT
+    // components : their relative order -- and the member order inside a component --
+    // is chosen by the STRUCTURAL DISCOVERY RANK above, never by node serials, so the
+    // plan (and everything downstream : canonical names, solving order) is the same
+    // for alpha-equivalent trees whatever their construction history.
+    const auto dag = graph2dag(graph);
+
+    struct Comp {
+        // fields : the members (rank-sorted) and the canonical key of the component
+        std::vector<Tree> members;
+        int               rank = 0;
+    };
+    std::vector<Comp>                comps;
+    std::map<digraph<Tree>, int>     compIndex;
+    for (const digraph<Tree>& component : dag.nodes()) {
+        Comp c;
+        for (Tree r : component.nodes()) {
+            c.members.push_back(r);
+        }
+        std::sort(c.members.begin(), c.members.end(),
+                  [&](Tree a, Tree b) { return rank[a] < rank[b]; });
+        c.rank                = rank[c.members.front()];
+        compIndex[component]  = int(comps.size());
+        comps.push_back(std::move(c));
+    }
+
+    // deps[i] = the components i depends on ; users[j] = the components that use j
+    const int              n = int(comps.size());
+    std::vector<std::vector<int>> users(n);
+    std::vector<int>              missing(n, 0);
+    for (const auto& conn : dag.connections()) {
+        const int from = compIndex[conn.first];
+        for (const auto& dst : conn.second) {
+            const int to = compIndex[dst.first];
+            if (from != to) {
+                users[to].push_back(from);
+                missing[from]++;
+            }
+        }
+    }
+
+    // Kahn, dependencies first, smallest discovery rank first among the ready ones.
+    using Entry = std::pair<int, int>;  // (component rank, component index)
+    std::priority_queue<Entry, std::vector<Entry>, std::greater<Entry>> ready;
+    for (int i = 0; i < n; i++) {
+        if (missing[i] == 0) {
+            ready.push({comps[i].rank, i});
+        }
+    }
+    while (!ready.empty()) {
+        const int i = ready.top().second;
+        ready.pop();
+        const int id = int(fComponents.size());
+        for (Tree r : comps[i].members) {
+            fSccOf[r] = id;
+        }
+        fComponents.push_back(std::move(comps[i].members));
+        for (int u : users[i]) {
+            if (--missing[u] == 0) {
+                ready.push({comps[u].rank, u});
+            }
+        }
+    }
+    TLIB_ASSERT(int(fComponents.size()) == n);  // the component graph is a DAG
+}
+
+const RecPlan& getRecPlan(Tree root)
+{
+    std::unique_ptr<RecPlan>& slot = gRecPlans[root];
+    if (!slot) {
+        slot = std::make_unique<RecPlan>(root);
+    }
+    return *slot;
+}
+
+int RecPlan::sccOf(Tree recNode) const
+{
+    auto it = fSccOf.find(recNode);
+    return (it != fSccOf.end()) ? it->second : -1;
+}
+
+static Tree sym2deBruijnAux(Tree t, Tree env, Sym2DebState& state);
+
+// Convert a recursive node of another (lower) component, standalone: the
+// result is closed and ends up in the closed memo.
+static Tree sym2deBruijnRec(Tree recNode, Sym2DebState& state)
+{
+    auto it = state.closedMemo.find(recNode);
+    if (it != state.closedMemo.end()) {
+        return it->second;
+    }
+
+    const int id = state.plan.sccOf(recNode);
+    if (id < 0) {
+        tlib::error("ASSERT : unregistered recursive node in sym2deBruijn\n");
+    }
+
+    const int saved  = state.currentSCC;
+    state.currentSCC = id;
+    Tree result      = sym2deBruijnAux(recNode, nil(), state);
+    state.currentSCC = saved;
+
+    if (!isClosed(result)) {
+        tlib::error("ASSERT : component conversion is not closed in sym2deBruijn\n");
+    }
+    return result;
+}
+
+static Tree sym2deBruijnAux(Tree t, Tree env, Sym2DebState& state)
+{
+    // Invariant subtrees convert to themselves : no traversal, no memo entry
+    if (isSym2deBruijnInvariant(t)) {
+        return t;
+    }
+
+    // A closed result does not depend on the environment
+    auto cIt = state.closedMemo.find(t);
+    if (cIt != state.closedMemo.end()) {
+        return cIt->second;
+    }
+
+    const std::pair<Tree, Tree> key(t, env);
+    auto                        oIt = state.envMemo.find(key);
+    if (oIt != state.envMemo.end()) {
+        return oIt->second;
+    }
+
     Tree body, var;
+    Tree result;
 
     if (isSymbolicRef(t, var)) {
         int level = symbolicLevel(var, env);
         if (level > 0) {
-            return ref(level);
+            result = ref(level);
+        } else if (isSymbolicRec(t, var, body) && body) {
+            const int id = state.plan.sccOf(t);
+            if (id >= 0 && id == state.currentSCC) {
+                // Mutual recursion inside the current component: inline
+                result = rec(sym2deBruijnAux(body, cons(var, env), state));
+            } else {
+                // Another component: splice its closed conversion
+                result = sym2deBruijnRec(t, state);
+            }
+        } else {
+            tlib::error("ASSERT : free symbolic reference found in sym2deBruijn\n");
+            result = t;
         }
-        if (isSymbolicRec(t, var, body) && body) {
-            return rec(sym2deBruijnReady(body, cons(var, env)));
+    } else {
+        int  ar = t->arity();
+        tvec br(ar);
+        for (int i = 0; i < ar; i++) {
+            br[i] = sym2deBruijnAux(t->branch(i), env, state);
         }
-        tlib::error("ASSERT : free symbolic reference found in sym2deBruijn\n");
-        return t;
+        result = tree(t->node(), br);
     }
 
-    int  ar = t->arity();
-    tvec br(ar);
-    for (int i = 0; i < ar; i++) {
-        br[i] = sym2deBruijnReady(t->branch(i), env);
+    if (isClosed(result)) {
+        state.closedMemo[t] = result;
+    } else {
+        state.envMemo[key] = result;
     }
-    return tree(t->node(), br);
+    return result;
+}
+
+Tree sym2deBruijn(Tree t)
+{
+    RecPlan      plan(t);
+    Sym2DebState state(plan);
+    return sym2deBruijnAux(t, nil(), state);
 }
 
 //-----------------------------------------------------------
 // Alpha-equivalence
 //-----------------------------------------------------------
 
+// The de Bruijn form is canonical w.r.t. alpha-equivalence : two recursive
+// trees are equivalent iff their de Bruijn conversions are the same
+// hash-consed tree.
 bool areEquiv(Tree a, Tree b)
 {
-    return (a == b) || (alphaNormalize(a) == alphaNormalize(b));
+    return (a == b) || (sym2deBruijn(a) == sym2deBruijn(b));
 }
 
-static Tree alphaNormalize(Tree t)
+//-----------------------------------------------------------------------------------------
+// Direct alpha-equivalence on symbolic recursive DAGs.
+//
+// areEquiv above is the THEOREM form -- convert both sides to de Bruijn and compare
+// pointers -- but the conversion is uncached and super-linear on large recursive nests
+// (minutes on a big reverb). This version walks the two DAGs together: a pair memo
+// makes it linear in the number of distinct pairs, and recursive variables are matched
+// through a BIJECTION built on first encounter (both directions checked). The pair is
+// memoized BEFORE descending into the definitions, which is what terminates the
+// coinductive comparison of cyclic references.
+//-----------------------------------------------------------------------------------------
+
+namespace {
+struct AlphaEnv {
+    std::unordered_map<Tree, Tree> a2b, b2a;  // the variable bijection
+    std::unordered_set<Tree>       done;       // visited (a,b) pairs, keyed below
+    std::unordered_map<Tree, std::unordered_set<Tree>> pairs;
+
+    bool seen(Tree a, Tree b)
+    {
+        auto& s = pairs[a];
+        if (s.count(b) != 0U) {
+            return true;
+        }
+        s.insert(b);
+        return false;
+    }
+};
+
+bool alphaEquivAux(Tree a, Tree b, AlphaEnv& env)
 {
-    return sym2deBruijn(t);
+    // Pointer equality decides only where no variable renaming can be involved.
+    if (a == b && a->isRecFree()) {
+        return true;
+    }
+    if (env.seen(a, b)) {
+        return true;  // already being compared : coinductive success
+    }
+
+    Tree va, ba, vb, bb;
+    if (isRec(a, va, ba)) {
+        if (!isRec(b, vb, bb)) {
+            return false;
+        }
+        auto ita = env.a2b.find(va);
+        auto itb = env.b2a.find(vb);
+        if (ita != env.a2b.end() || itb != env.b2a.end()) {
+            // at least one side already bound : both bindings must agree
+            return ita != env.a2b.end() && itb != env.b2a.end() && ita->second == vb &&
+                   itb->second == va;
+        }
+        env.a2b[va] = vb;
+        env.b2a[vb] = va;
+        if ((ba == nullptr) != (bb == nullptr)) {
+            return false;  // a bare reference against a defined group
+        }
+        return ba == nullptr || alphaEquivAux(ba, bb, env);
+    }
+    if (isRec(b, vb, bb)) {
+        return false;
+    }
+
+    if (!(a->node() == b->node()) || a->arity() != b->arity()) {
+        return false;
+    }
+    for (int i = 0; i < a->arity(); i++) {
+        if (!alphaEquivAux(a->branch(i), b->branch(i), env)) {
+            return false;
+        }
+    }
+    return true;
+}
+}  // namespace
+
+bool alphaEquiv(Tree a, Tree b)
+{
+    AlphaEnv env;
+    return alphaEquivAux(a, b, env);
+}
+
+//-----------------------------------------------------------------------------------------
+// Canonical recursive-variable naming, in PLAN ORDER.
+//
+// Downstream consumers order their work by node serial numbers (symbolic sets, loop
+// scheduling) and occasionally by variable identity : two alpha-equivalent trees can
+// therefore compile differently. This pass renames every recursive group after the
+// RecPlan -- names R<instance>_<k> with k in dependencies-first order -- and, crucially,
+// PRE-CREATES the variables in that same order, so the SERIALS follow the plan too.
+//
+// Every canonical group is a FRESH definition (the instance prefix guarantees no
+// collision) : the pass is immutability-clean. The price of that freshness : results
+// of separate calls are only alpha-equivalent, never pointer-equal. What is
+// instance-independent is the canonical ORDER, through fCanonKey (canonicalNameKey
+// strips the instance from R<i>_<k>) : the generated code becomes independent of the
+// transformation history. True pointer-equal canonicity is deBruijn2Sym's job
+// (content-derived names).
+//-----------------------------------------------------------------------------------------
+
+static Tree renameRecMemo(Tree t, std::unordered_map<Tree, Tree>& memo,
+                          const std::unordered_map<Tree, Tree>& newVar)
+{
+    auto it = memo.find(t);
+    if (it != memo.end()) {
+        return it->second;
+    }
+
+    Tree var, body;
+    if (isRec(t, var, body)) {
+        auto nv = newVar.find(t);
+        TLIB_ASSERT(nv != newVar.end());  // every reachable group is in the plan
+        TLIB_ASSERT(body != nullptr);
+        memo[t]      = ref(nv->second);
+        Tree newBody = renameRecMemo(body, memo, newVar);
+        return rec(nv->second, newBody);
+    }
+
+    int  ar = t->arity();
+    Tree r  = t;
+    if (ar > 0) {
+        bool changed = false;
+        tvec br(ar);
+        for (int i = 0; i < ar; i++) {
+            br[i]   = renameRecMemo(t->branch(i), memo, newVar);
+            changed = changed || (br[i] != t->branch(i));
+        }
+        if (changed) {
+            r = tree(t->node(), br);
+        }
+    }
+    memo[t] = r;
+    return r;
+}
+
+Tree canonicalizeRecNames(Tree root)
+{
+    const RecPlan& plan = getRecPlan(root);
+    if (plan.components().empty()) {
+        return root;  // no recursion : nothing to rename
+    }
+
+    // Pre-create every canonical variable in dependencies-first order : names and
+    // serials both follow the plan.
+    const std::string prefix = "R" + std::to_string(++gCanonInstance) + "_";
+    std::unordered_map<Tree, Tree> newVar;
+    int                            k = 0;
+    for (const auto& comp : plan.components()) {
+        for (Tree r : comp) {
+            newVar[r] = tree(symbol(prefix + std::to_string(k++)));
+        }
+    }
+
+    std::unordered_map<Tree, Tree> memo;
+    return renameRecMemo(root, memo, newVar);
 }
 
 //-----------------------------------------------------------
 // Pretty printers for recursive trees
 //-----------------------------------------------------------
-
-std::ostream& printDeBruijn(std::ostream& out, Tree t)
-{
-    return printDeBruijnRec(out, t);
-}
 
 std::string toDeBruijnString(Tree t)
 {
@@ -468,14 +1073,14 @@ static std::ostream& printTreeExpr(std::ostream& out, Tree t)
     return out;
 }
 
-static std::ostream& printDeBruijnRec(std::ostream& out, Tree t)
+std::ostream& printDeBruijn(std::ostream& out, Tree t)
 {
     Tree body;
     int  level;
 
     if (isDebruijnRec(t, body)) {
         out << "rec(";
-        printDeBruijnRec(out, body);
+        printDeBruijn(out, body);
         return out << ")";
     }
     if (isDebruijnRef(t, level)) {
@@ -490,7 +1095,7 @@ static std::ostream& printDeBruijnRec(std::ostream& out, Tree t)
             if (i > 0) {
                 out << ", ";
             }
-            printDeBruijnRec(out, t->branch(i));
+            printDeBruijn(out, t->branch(i));
         }
         out << ")";
     }
@@ -579,6 +1184,46 @@ std::string toSymbolicString(Tree t)
     return out.str();
 }
 
+// Local-memo variant used by deBruijn2Sym : same traversal as
+// substituteReady/calcsubstituteReady below, but the memo dies with the call
+// instead of staying attached to the trees as properties.
+static Tree substituteMemo(Tree t, int level, Tree id, SubstMemo& memo)
+{
+    if (t->aperture() < level) {
+        // no free reference at this depth in this subtree : nothing to do
+        return t;
+    }
+
+    int l;
+    if (isDebruijnRef(t, l)) {
+        return (l == level) ? id : t;
+    }
+
+    const std::pair<Tree, int> key(t, level);
+
+    auto it = memo.find(key);
+    if (it != memo.end()) {
+        return it->second;
+    }
+
+    Tree body;
+    Tree result;
+
+    if (isDebruijnRec(t, body)) {
+        result = rec(substituteMemo(body, level + 1, id, memo));
+    } else {
+        int  ar = t->arity();
+        tvec br(ar);
+        for (int i = 0; i < ar; i++) {
+            br[i] = substituteMemo(t->branch(i), level, id, memo);
+        }
+        result = tree(t->node(), br);
+    }
+
+    memo[key] = result;
+    return result;
+}
+
 static Tree substituteReady(Tree t, int level, Tree id)
 {
     Tree S  = tree(Node(gSubstituteSym), tree(Node(level)), id);
@@ -613,4 +1258,485 @@ static Tree calcsubstituteReady(Tree t, int level, Tree id)
         br[i] = substituteReady(t->branch(i), level, id);
     }
     return tree(t->node(), br);
+}
+
+//-----------------------------------------------------------------------------------------
+// normalizeRecGroups : re-partition the letrecs along the projection SCCs
+//-----------------------------------------------------------------------------------------
+//
+// The letrec groups of a term are SYNTACTIC packaging ; the real mutual-recursion
+// structure is the strongly connected components of the PROJECTION graph : one node
+// per projection, an edge p -> q whenever the definition of p contains q. The two
+// disagree in both directions -- a group can pack independent definitions
+// (accidental cohabitation), and a knot can span several groups (fragmented cycle).
+// This transformation rebuilds the term on the real structure :
+//
+//   - each component becomes one minimal letrec, emitted dependencies-first
+//     (the recursion of the rebuild IS the topological order) ;
+//   - a singleton component without self-reference is not recursive at all :
+//     its definition dissolves into a plain expression, the letrec disappears ;
+//   - definitions inside a component are ordered by canonicalTreeLess (a
+//     value-derived order : structural twins agree on it whatever their history) ;
+//   - dead definitions (never projected) are dropped ;
+//   - the result goes through the deBruijn round trip, so recursions that BECOME
+//     alpha-equivalent under the finer grouping unify into the same pointer.
+//     Splitting is what makes the sharing reachable : two identical filters
+//     imprisoned in two different large groups are alpha-inequivalent as packaged,
+//     alpha-equivalent once minimal.
+//
+// The input must be closed (every group defined). The traversal recurses to the
+// depth of the term : deep terms belong on a comfortable stack.
+
+// does the definition reach the projection SELF, projections being opaque leaves ?
+// (exact for a singleton component : any longer path back would put its steps in
+// the same component -- see the SCC argument in the header of the function below)
+static bool defReachesSelf(Tree def, Tree self)
+{
+    std::unordered_set<Tree> seen;
+    std::vector<Tree>        st{def};
+    while (!st.empty()) {
+        Tree t = st.back();
+        st.pop_back();
+        if (t == self) {
+            return true;
+        }
+        if (!seen.insert(t).second) {
+            continue;
+        }
+        int  i;
+        Tree g;
+        if (isProj(t, i, g)) {
+            continue;  // another projection : an opaque leaf here
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            st.push_back(t->branch(k));
+        }
+    }
+    return false;
+}
+
+Tree normalizeRecGroups(Tree root, bool canonical, bool (*delayedBranch)(Tree, int))
+{
+    // ---- discovery : live projections and their dependency edges. Each
+    // definition is walked once with a PER-WALK seen set : a subtree shared
+    // between two definitions must contribute its projections as edges of
+    // BOTH (a global set would drop the second edge and under-connect the
+    // graph).
+    digraph<Tree>            g;
+    std::vector<Tree>        defQueue;
+    std::unordered_set<Tree> known;
+    // from -> the projections its definition reads through no delayed branch :
+    // the only edges that constrain the member order inside a component
+    std::unordered_map<Tree, std::unordered_set<Tree>> instRefs;
+
+    auto projDef = [](Tree p) -> Tree {
+        int  i;
+        Tree grp, var, body;
+        bool okp = isProj(p, i, grp);
+        TLIB_ASSERT(okp);
+        bool okr = isRec(grp, var, body);
+        TLIB_ASSERT(okr && body != nullptr && !isNil(body));
+        return nth(body, i);
+    };
+
+    auto discover = [&](Tree t0, Tree from) {
+        // The delayed flag is NOT sticky : it matters only when the flagged
+        // child is itself a projection. A delayed compound expression is
+        // computed at the current tick -- only its result is shifted -- so
+        // the references inside it are classified on their own, fresh. A
+        // projection can be reached both ways through sharing, hence the
+        // per-context bit : the instantaneous sighting must not be shadowed
+        // by an earlier delayed one.
+        std::unordered_map<Tree, char>     seen;  // bit 1 : instant, bit 2 : delayed
+        std::vector<std::pair<Tree, bool>> st{{t0, false}};
+        while (!st.empty()) {
+            auto [t, delayed] = st.back();
+            st.pop_back();
+            char bit = delayed ? 2 : 1;
+            if (seen[t] & bit) {
+                continue;
+            }
+            seen[t] = char(seen[t] | bit);
+            int  i;
+            Tree grp;
+            if (isProj(t, i, grp)) {
+                g.add(t);
+                if (from) {
+                    g.add(from, t, 0);
+                    if (!delayed) {
+                        instRefs[from].insert(t);
+                    }
+                }
+                if (known.insert(t).second) {
+                    defQueue.push_back(t);
+                }
+                continue;  // a projection is a leaf : its definition has its own turn
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                st.push_back({t->branch(k), delayedBranch && delayedBranch(t, k)});
+            }
+        }
+    };
+
+    discover(root, nullptr);
+    for (std::size_t i = 0; i < defQueue.size(); i++) {
+        discover(projDef(defQueue[i]), defQueue[i]);
+    }
+
+    // ---- the real structure : Tarjan on the projection graph
+    Tarjan<Tree>                                tarjan(g);
+    std::unordered_map<Tree, int>               sccOf;
+    std::vector<std::vector<Tree>>              members;
+    for (const auto& comp : tarjan.partition()) {
+        int id = int(members.size());
+        members.emplace_back(comp.begin(), comp.end());
+        for (Tree m : members.back()) {
+            sccOf[m] = id;
+        }
+        // Member order inside the component. Start from the value-derived
+        // canonical order (structural twins order their definitions
+        // identically whatever their history), then refine it into a
+        // topological order on the instantaneous references between members :
+        // a definition reading another member through no delayed branch reads
+        // the value of the CURRENT tick, so consumers that emit definitions
+        // in list order need the referee first. The refinement is a stable
+        // repeated selection (first ready member in canonical order), hence
+        // deterministic. If no member is ready (no classifier -- a component
+        // is strongly connected on all-instantaneous edges -- or a delay-free
+        // recursion bound for rejection), the canonical order is kept as is.
+        std::vector<Tree>& ms = members.back();
+        std::sort(ms.begin(), ms.end(),
+                  [&](Tree a, Tree b) { return canonicalTreeLess(projDef(a), projDef(b)); });
+        if (ms.size() > 1) {
+            std::vector<Tree>        ordered;
+            std::vector<char>        placed(ms.size(), 0);
+            std::unordered_set<Tree> emitted;
+            bool                     progress = true;
+            while (ordered.size() < ms.size() && progress) {
+                progress = false;
+                for (std::size_t j = 0; j < ms.size(); j++) {
+                    if (placed[j]) {
+                        continue;
+                    }
+                    bool ready = true;
+                    if (auto it = instRefs.find(ms[j]); it != instRefs.end()) {
+                        for (Tree q : it->second) {
+                            if (q != ms[j] && sccOf.count(q) && sccOf.at(q) == id &&
+                                !emitted.count(q)) {
+                                ready = false;
+                                break;
+                            }
+                        }
+                    }
+                    if (ready) {
+                        placed[j] = 1;
+                        emitted.insert(ms[j]);
+                        ordered.push_back(ms[j]);
+                        progress = true;
+                    }
+                }
+            }
+            if (ordered.size() == ms.size()) {
+                ms = std::move(ordered);
+            }
+        }
+    }
+
+    // ---- rebuild, dependencies first (the recursion is the topological order)
+    std::unordered_map<Tree, Tree> memo;
+    std::vector<char>              built(members.size(), 0);
+
+    std::function<Tree(Tree)> build = [&](Tree t) -> Tree {
+        if (auto it = memo.find(t); it != memo.end()) {
+            return it->second;
+        }
+        int  i;
+        Tree grp;
+        if (isProj(t, i, grp)) {
+            int c = sccOf.at(t);
+            if (!built[c]) {
+                built[c] = 1;
+                const std::vector<Tree>& ms = members[c];
+                if (ms.size() == 1 && !defReachesSelf(projDef(ms[0]), ms[0])) {
+                    // not recursive at all : the definition dissolves into a
+                    // plain expression, the letrec disappears
+                    memo[ms[0]] = build(projDef(ms[0]));
+                } else {
+                    // one minimal letrec ; images registered BEFORE the
+                    // definitions are built, so the component's internal
+                    // references resolve (ref and the filled rec are the
+                    // same hash-consed pointer)
+                    Tree var = tree(unique("N"));
+                    Tree grp2 = ref(var);
+                    for (std::size_t j = 0; j < ms.size(); j++) {
+                        memo[ms[j]] = proj(int(j), grp2);
+                    }
+                    Tree body = nil();
+                    std::vector<Tree> defs;
+                    for (Tree m : ms) {
+                        defs.push_back(build(projDef(m)));
+                    }
+                    for (auto it2 = defs.rbegin(); it2 != defs.rend(); ++it2) {
+                        body = cons(*it2, body);
+                    }
+                    rec(var, body);
+                }
+            }
+            return memo.at(t);
+        }
+        Tree var, bodyle;
+        // a recursive group outside a projection has no meaning once the
+        // groups are re-partitioned ; reaching one here is a caller error
+        TLIB_ASSERT(!isRec(t, var, bodyle));
+        int  ar = t->arity();
+        Tree r  = t;
+        if (ar > 0) {
+            bool changed = false;
+            tvec br(ar);
+            for (int k = 0; k < ar; k++) {
+                br[k]   = build(t->branch(k));
+                changed = changed || (br[k] != t->branch(k));
+            }
+            if (changed) {
+                r = tree(t->node(), br);
+            }
+        }
+        memo[t] = r;
+        return r;
+    };
+
+    Tree rebuilt = build(root);
+
+    if (!canonical) {
+        return rebuilt;  // the caller's own round trip will unify
+    }
+    // ---- unification : the deBruijn round trip gives the canonical symbolic
+    // form -- recursions made alpha-equivalent by the finer grouping become
+    // pointer-equal, and the fresh variable names above are erased
+    return deBruijn2Sym(sym2deBruijn(rebuilt));
+}
+
+//============================================================================
+// gcRecGroups : garbage collection of the MEMBERS of recursive groups
+// (spec GC-MEMBRES). Symbolic form only : de Bruijn groups are ordinary
+// finite trees here and pass through untouched.
+//
+// Phase 1 -- liveness. The bit instance of the unified descending engine
+// (descendFixpoint, spec DESCEND-REGIME-C par.7.1), with PROJECTION doors :
+// proj_i(W) --> the i-th definition of W. Discovery follows branches and
+// doors from the root, so a definition is reached only through a live
+// projection chain : for the bit domain, the computation IS reachability,
+// and a member is dead exactly when its projection node was never reached
+// -- the transitive criterion (cascades, dead cycles) for free.
+//
+// Phase 2 -- surgery. The exact DIRTY set first (reverse reachability,
+// over the live containment edges, from every group that loses a member) ;
+// then one memoized rebuild : untouched subtrees return pointer-identical
+// (invariant 4 of the spec) ; a rebuilt group creates its fresh SYMREC
+// node FIRST -- the group is its own reference, the body may not exist yet
+// (the guide's trick) -- keeps its live definitions in relative order, and
+// every surviving projection is renumbered by the per-group compaction.
+//============================================================================
+
+#include "descend.hh"
+
+// the i-th definition of a list-shaped RECDEF body
+static Tree nthDef(Tree body, int i)
+{
+    while (i-- > 0) {
+        TLIB_ASSERT(isList(body));
+        body = tl(body);
+    }
+    TLIB_ASSERT(isList(body));
+    return hd(body);
+}
+
+Tree gcRecGroups(Tree root)
+{
+    // ---- phase 1 : liveness = the discovered set of the bit descent with
+    // projection doors
+    auto live = descendFixpoint<char>(
+        root, 0, 1,
+        [](Tree, int, const char& a) { return a; },
+        [](Tree, const std::vector<char>& in) {
+            char r = 0;
+            for (char v : in) {
+                r |= v;
+            }
+            return r;
+        },
+        [](Tree n, std::vector<Tree>& out) {
+            int  i;
+            Tree g, id, body;
+            if (isProj(n, i, g) && isRec(g, id, body)) {
+                TLIB_ASSERT(body != nullptr);  // a projection onto an undefined group
+                if (isList(body)) {
+                    out.push_back(nthDef(body, i));
+                }
+            }
+        });
+
+    // ---- the per-group verdict : live member indices, by probing the
+    // hash-consed projection nodes against the discovered set
+    std::map<Tree, std::vector<int>, treeorder> liveIdx;   // dirty groups only
+    std::map<Tree, std::vector<int>, treeorder> renumber;  // old index -> new (-1 : dead)
+    for (const auto& [t, bit] : live) {
+        Tree id, body;
+        if (!isRec(t, id, body)) {
+            continue;
+        }
+        // a SYMREC without its RECDEF in a complete term is a never-defined
+        // reference -- the guide's 'fatal erasure', same contract as
+        // rewrite.hh. A NON-LIST body, however, is a legitimate tlib citizen
+        // (the single-equation recursion rec(x, expr) of the guide) : it has
+        // no members and no projections, the GC does not apply BY DOMAIN.
+        TLIB_ASSERT(body != nullptr);
+        if (!isList(body)) {
+            continue;
+        }
+        int n = 0;
+        for (Tree l = body; isList(l); l = tl(l)) {
+            n++;
+        }
+        std::vector<int> keep;
+        for (int i = 0; i < n; i++) {
+            if (live.count(proj(i, t)) > 0) {
+                keep.push_back(i);
+            }
+        }
+        if ((int)keep.size() < n) {
+            std::vector<int> sigma(n, -1);
+            int              next = 0;
+            for (int i : keep) {
+                sigma[i] = next++;
+            }
+            liveIdx[t]  = keep;
+            renumber[t] = sigma;
+        }
+    }
+    if (liveIdx.empty()) {
+        return root;  // nothing dead anywhere : pointer identity
+    }
+
+    // ---- the exact dirty set : every node from which a shrinking group is
+    // reachable through the LIVE containment edges (branches, and the live
+    // definitions of a group) must be rebuilt ; everything else returns
+    // pointer-identical
+    std::map<Tree, std::vector<Tree>, treeorder> parents;
+    {
+        std::map<Tree, bool, treeorder> seen;
+        std::vector<Tree>               work{root};
+        seen[root] = true;
+        while (!work.empty()) {
+            Tree n = work.back();
+            work.pop_back();
+            auto visit = [&](Tree c) {
+                parents[c].push_back(n);
+                if (!seen[c]) {
+                    seen[c] = true;
+                    work.push_back(c);
+                }
+            };
+            for (int i = 0; i < n->arity(); i++) {
+                visit(n->branch(i));
+            }
+            Tree id, body;
+            if (isRec(n, id, body) && isList(body)) {
+                auto it = liveIdx.find(n);
+                if (it != liveIdx.end()) {
+                    for (int i : it->second) {
+                        visit(nthDef(body, i));
+                    }
+                } else if (live.count(n) > 0) {
+                    for (Tree l = body; isList(l); l = tl(l)) {
+                        visit(hd(l));
+                    }
+                }
+            }
+        }
+    }
+    std::map<Tree, bool, treeorder> dirty;
+    {
+        std::vector<Tree> work;
+        for (const auto& [g, k] : liveIdx) {
+            dirty[g] = true;
+            work.push_back(g);
+        }
+        while (!work.empty()) {
+            Tree n = work.back();
+            work.pop_back();
+            auto it = parents.find(n);
+            if (it == parents.end()) {
+                continue;
+            }
+            for (Tree p : it->second) {
+                if (!dirty[p]) {
+                    dirty[p] = true;
+                    work.push_back(p);
+                }
+            }
+        }
+    }
+
+    // ---- phase 2 : one memoized rebuild
+    std::map<Tree, Tree, treeorder>         memo;
+    std::function<Tree(Tree)>               build = [&](Tree t) -> Tree {
+        if (!dirty[t]) {
+            return t;  // invariant 4 : untouched subtrees, same pointer
+        }
+        auto m = memo.find(t);
+        if (m != memo.end()) {
+            return m->second;
+        }
+        int  i;
+        Tree g, id, body;
+        if (isProj(t, i, g) && isRec(g, id, body) && isList(body)) {
+            auto rn = renumber.find(g);
+            int  i2 = (rn != renumber.end()) ? rn->second[i] : i;
+            TLIB_ASSERT(i2 >= 0);  // a live occurrence of a dead member is impossible
+            Tree r  = proj(i2, build(g));
+            memo[t] = r;
+            return r;
+        }
+        if (isRec(t, id, body) && isList(body)) {
+            // the fresh SYMREC node first : the group is its own reference,
+            // and its RECDEF may not exist yet (the guide's trick) -- this
+            // single memo entry resolves every inner self-reference
+            Tree id2 = tree(unique("W"));
+            Tree w2  = ref(id2);
+            memo[t]  = w2;
+            auto             it = liveIdx.find(t);
+            std::vector<Tree> defs;
+            if (it != liveIdx.end()) {
+                for (int k : it->second) {
+                    defs.push_back(build(nthDef(body, k)));
+                }
+            } else {
+                for (Tree l = body; isList(l); l = tl(l)) {
+                    defs.push_back(build(hd(l)));
+                }
+            }
+            Tree nb = nil();
+            for (auto d = defs.rbegin(); d != defs.rend(); ++d) {
+                nb = cons(*d, nb);
+            }
+            return rec(id2, nb);
+        }
+        int  ar = t->arity();
+        Tree r  = t;
+        if (ar > 0) {
+            bool changed = false;
+            tvec br(ar);
+            for (int k = 0; k < ar; k++) {
+                br[k]   = build(t->branch(k));
+                changed = changed || (br[k] != t->branch(k));
+            }
+            if (changed) {
+                r = tree(t->node(), br);
+            }
+        }
+        memo[t] = r;
+        return r;
+    };
+    return build(root);
 }

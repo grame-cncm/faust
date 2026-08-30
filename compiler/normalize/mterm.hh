@@ -36,13 +36,33 @@
 #include "tlib.hh"
 
 /**
+ * The normal-form term order (-co option) : by default SERIAL (the historical,
+ * construction-driven order -- measured performance parity with the code the
+ * compiler always produced) ; with -co, CANONICAL (value-derived,
+ * history-independent -- the instrument of bit-identical A/B validation).
+ */
+struct NormalFormTreeLess {
+    bool operator()(Tree a, Tree b) const
+    {
+        if (gGlobal->gCanonicalOrder) {
+            return CanonicalTreeLess()(a, b);
+        }
+        return treeorder()(a, b);
+    }
+};
+
+/**
  * Implements a multiplicative term, a term of type
  * k*x^n*y^m*... and its arithmetic.
  */
 
 class mterm : public virtual Garbageable {
     Tree                fCoef;     ///< constant part of the term (usually 1 or -1)
-    std::map<Tree, int> fFactors;  ///< non constant terms and their power
+    // Canonical order : the normalized product must emit its factors in an order
+    // derived from VALUES, never from raw pointers (the historical map order was
+    // the allocation order -- monotone malloc made it coincide with the serial
+    // order, a coincidence the extensible hash tables break).
+    std::map<Tree, int, NormalFormTreeLess> fFactors;  ///< non constant terms and their power
 
    public:
     mterm();                ///< create a 0 mterm
