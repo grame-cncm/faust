@@ -39,7 +39,7 @@ class Signal2SDF : public TreeTraversal {
     bool           fVisitGen{false};
     int            fIndent{0};  // current indentation during trace
     std::string    fMessage;    // trace message
-    std::set<Tree> fVisited;    // avoid visiting a tree twice
+    std::set<Tree, treeorder> fVisited;    // avoid visiting a tree twice
 
     std::map<std::string, Actor>   actorList;
     std::map<std::string, Channel> chList;

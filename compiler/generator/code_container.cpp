@@ -157,7 +157,7 @@ bool CodeContainer::getLoopProperty(Tree sig, CodeLoop*& l)
     return fLoopProperty.get(sig, l);
 }
 
-void CodeContainer::listAllLoopProperties(Tree sig, set<CodeLoop*>& L, set<Tree>& visited)
+void CodeContainer::listAllLoopProperties(Tree sig, set<CodeLoop*>& L, set<Tree, treeorder>& visited)
 {
     if (visited.count(sig) == 0) {
         visited.insert(sig);
@@ -204,7 +204,7 @@ void CodeContainer::closeLoop(Tree sig)
 
     // fix the missing dependencies
     set<CodeLoop*> L;
-    set<Tree>      V;
+    set<Tree, treeorder>      V;
     listAllLoopProperties(sig, L, V);
     for (CodeLoop* l : L) {
         fCurLoop->fBackwardLoopDependencies.insert(l);
