@@ -56,7 +56,7 @@
 #include "sigs-config.hh"
 #include "tree.hh"
 
-#ifdef WIN32
+#ifdef _WIN32
 #pragma warning(disable : 4996)
 #endif
 
@@ -1654,6 +1654,13 @@ bool global::processCmdline(int argc, const char* argv[])
                     // We want to search user given directories *before* the standard ones, so
                     // insert at the beginning
                     gImportDirList.insert(gImportDirList.begin(), path);
+                } else {
+                    // Dropping the directory without a trace makes the resulting 'unable to
+                    // open file' error very hard to relate to the faulty option.
+                    stringstream error;
+                    error << "WARNING : cannot resolve import directory '" << argv[i + 1]
+                          << "', option ignored" << endl;
+                    gWarningMessages.push_back(error.str());
                 }
             }
             i += 2;
@@ -1666,6 +1673,11 @@ bool global::processCmdline(int argc, const char* argv[])
                 char* path = realpath(argv[i + 1], temp);
                 if (path) {
                     gArchitectureDirList.push_back(path);
+                } else {
+                    stringstream error;
+                    error << "WARNING : cannot resolve architecture directory '" << argv[i + 1]
+                          << "', option ignored" << endl;
+                    gWarningMessages.push_back(error.str());
                 }
             }
             i += 2;
@@ -1738,6 +1750,37 @@ bool global::processCmdline(int argc, const char* argv[])
             gLowerSums = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-temp", "--temp-threshold")) {
+            gTempOps = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-stage", "--staging-threshold")) {
+            gStagingOps = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-mindelay", "--min-delay")) {
+            gMinDelay = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-reassoc", "--reassociate")) {
+            gReassoc = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-selectn", "--select-n")) {
+            // spec LE-SELECTN : reconstruct N-way selections from their
+            // select2 spellings ; the object is lazy dispatch, so the
+            // lazyselect plumbing (guarded statements, condition atoms)
+            // comes with it
+            gSelectN    = true;
+            gLazySelect = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-lazyselect", "--lazy-select")) {
+            gLazySelect = true;
+            i += 1;
+        } else if (isCmd(argv[i], "-gatequiv", "--gate-equivalence")) {
+            gGateEquiv = true;
+            i += 1;
         } else if (isCmd(argv[i], "-diff", "--auto-differentiate")) {
             gAutoDifferentiate = true;
             i += 1;
@@ -2024,6 +2067,18 @@ void global::initDirectories(int argc, const char* argv[])
 #endif
 
     gImportDirList.push_back(exepath::dirup(gFaustExeDir) + "/share/faust");
+    // Covers hosts that ship the libraries next to their own binary, which is the
+    // usual layout when libfaust is embedded in a third-party application rather
+    // than invoked from an installed bin/ + share/ tree.
+    gImportDirList.push_back(gFaustExeDir + "/share/faust");
+#ifdef _WIN32
+    // The exe-relative paths above only resolve for a host binary sitting inside a
+    // Faust install. Unix has /usr/local/share/faust and /usr/share/faust as a
+    // system-wide safety net; on Windows the equivalent is the installer location.
+    if (char* programfiles = getenv("ProgramFiles")) {
+        gImportDirList.push_back(string(programfiles) + "\\Faust\\share\\faust");
+    }
+#endif
     gImportDirList.push_back("/usr/local/share/faust");
     gImportDirList.push_back("/usr/share/faust");
 
@@ -2102,7 +2157,7 @@ void global::parseSourceFiles()
 /****************************************************************
  Faust directories information
  *****************************************************************/
-#ifdef WIN32
+#ifdef _WIN32
 #define kPSEP '\\'
 #else
 #define kPSEP '/'

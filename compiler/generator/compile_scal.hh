@@ -109,6 +109,22 @@ class ScalarCompiler : public Compiler {
     std::string         generateFIR(Tree sig, const tvec& coefs);
     std::string         generateIIR(Tree sig, const tvec& coefs);
     std::string         generateSum(Tree sig, const tvec& subs);
+
+    // spec LE-SELECTN : side table, no tree surgery -- a certified root
+    // keeps its select2 spelling (every downstream walker intact) ; only
+    // conditionAnnotation (saturating atoms) and compileSignal (multiplex
+    // emission) consult the table.
+    struct SelectNLeaf {
+        Tree branch;              // leaf signal for this entry
+        std::vector<Tree> atoms;  // dispatch condition, a CONJUNCTION of atoms
+    };
+    struct SelectNInfo {
+        Tree                     selEff;  // effective INTEGER selector
+        std::vector<SelectNLeaf> leaves;  // index order 0..N-1
+    };
+    std::map<Tree, SelectNInfo> fSelectNInfo;
+    void                        computeSelectNInfo(Tree L);
+    std::string                 generateSelectN(Tree sig, const SelectNInfo& info);
     std::string         generatePrefix(Tree sig, Tree x, Tree e);
     std::string         generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 

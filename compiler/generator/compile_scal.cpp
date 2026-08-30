@@ -59,6 +59,8 @@
 #include "factorizeFIRs.hh"
 #include "kernelCandidacy.hh"
 #include "lowerSums.hh"
+#include "reassociate.hh"
+#include "placeTemps.hh"
 #include "sigFIR.hh"
 #include "sigIIR.hh"
 #include <pthread.h>
@@ -105,6 +107,306 @@ string ScalarCompiler::getFreshID(const string& prefix)
  prepare
  *****************************************************************************/
 
+static bool isConditionBoundary(Tree t);  // defined with the lazy-select machinery below
+
+/**
+ * -gatequiv (spec LA-PAIRE-CANONIQUE) : c*y (c boolean) and
+ * select2(c,0,y) are two SPELLINGS of the gated signal -- worth y when
+ * c, 0 otherwise. What is compiled is the meaning, not the spelling :
+ * the weight of the EXCLUSIVE STATELESS CROWN of y picks the form. Fat
+ * crown (> tau) : the select2 spelling, whose sides the lazy emission
+ * may guard. Thin crown : the multiplicative spelling -- branch-free,
+ * it melts into the arithmetic stream and vectorizes. One shared tau :
+ * confluence, no ping-pong, one pass.
+ */
+static bool gatequivBool(Tree c)
+{
+    int  op, i;
+    Tree x, y;
+    if (isSigBinOp(c, &op, x, y)) {
+        if (isBoolOpcode(op)) {
+            return true;  // comparisons are 0/1 by construction
+        }
+        if (op == kAND || op == kOR) {
+            return gatequivBool(x) && gatequivBool(y);
+        }
+        return false;
+    }
+    if (isSigIntCast(c, x) || isSigFloatCast(c, x)) {
+        // casts preserve 0/1 -- the multiplicative spelling wraps its
+        // boolean in a float cast (float(check == 0))
+        return gatequivBool(x);
+    }
+    if (isSigInt(c, &i)) {
+        return i == 0 || i == 1;
+    }
+    return false;
+}
+
+static Tree gatequivNormalize(Tree L)
+{
+    // ---- shared helpers ------------------------------------------------
+    // consumer lists over a tree (rec bodies descended explicitly --
+    // letrec does not expose its definitions through arity)
+    auto buildConsumers = [](Tree root) {
+        std::map<Tree, std::vector<Tree>> consumers;
+        std::set<Tree>                    seen;
+        std::function<void(Tree)>         walk = [&](Tree t) {
+            if (!seen.insert(t).second) {
+                return;
+            }
+            Tree var, body;
+            if (isRec(t, var, body)) {
+                if (body != nullptr) {
+                    consumers[body].push_back(t);
+                    walk(body);
+                }
+                return;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                consumers[t->branch(k)].push_back(t);
+                walk(t->branch(k));
+            }
+        };
+        walk(root);
+        return consumers;
+    };
+
+    // the INTERNAL gate node -- introduced in phase 1, eliminated in
+    // phase 3, never escapes the pass (asserted)
+    static Sym GQGATE = symbol("GateQuivInternal");
+    auto       gate   = [](Tree c, Tree y) { return tree(GQGATE, c, y); };
+    auto       isGate = [](Tree t, Tree& c, Tree& y) { return isTree(t, GQGATE, c, y); };
+
+    auto stripCasts = [](Tree c) {
+        Tree x;
+        while (isSigIntCast(c, x) || isSigFloatCast(c, x)) {
+            c = x;
+        }
+        return c;
+    };
+    auto isZeroNum = [](Tree t) {
+        int    i;
+        double r;
+        return (isSigInt(t, &i) && i == 0) || (isSigReal(t, &r) && r == 0.0);
+    };
+    auto isOneNum = [](Tree t) {
+        int    i;
+        double r;
+        return (isSigInt(t, &i) && i == 1) || (isSigReal(t, &r) && r == 1.0);
+    };
+
+    // exclusive stateless crown weight of y under the gating site (the
+    // consumers map must match the tree being weighed)
+    auto crownWeight = [&](Tree y, Tree site,
+                           std::map<Tree, std::vector<Tree>>& consumers) -> int {
+        std::set<Tree>            cone;
+        std::function<void(Tree)> collect = [&](Tree t) {
+            if (cone.count(t)) {
+                return;
+            }
+            Tree tb, ix;
+            if (isSigRDTbl(t, tb, ix)) {
+                cone.insert(t);
+                collect(ix);
+                return;
+            }
+            if (isConditionBoundary(t)) {
+                return;
+            }
+            cone.insert(t);
+            for (int k = 0; k < t->arity(); k++) {
+                collect(t->branch(k));
+            }
+        };
+        collect(y);
+        bool moved = true;
+        while (moved) {
+            moved = false;
+            std::vector<Tree> out;
+            for (Tree t : cone) {
+                if (t == y) {
+                    continue;
+                }
+                for (Tree pc : consumers[t]) {
+                    if (pc != site && cone.count(pc) == 0) {
+                        out.push_back(t);
+                        break;
+                    }
+                }
+            }
+            for (Tree t : out) {
+                cone.erase(t);
+                moved = true;
+            }
+        }
+        int w = 0;
+        for (Tree t : cone) {
+            int  op2;
+            Tree a2, b2, s2, tb2, ix2;
+            if (isSigBinOp(t, &op2, a2, b2) || isSigIntCast(t, a2) || isSigFloatCast(t, a2) ||
+                isSigBitCast(t, a2) || isSigSelect2(t, s2, a2, b2) || isSigRDTbl(t, tb2, ix2) ||
+                (getUserData(t) != nullptr && t->arity() > 0)) {
+                w++;
+            }
+        }
+        return w;
+    };
+
+    // ---- phase 1 : TRANSLATION into the object -------------------------
+    // both spellings (and the mirror) become gate(c, y) ; c stripped of
+    // its wrapping casts (the multiplicative spelling wraps its boolean
+    // in float())
+    {
+        std::unordered_map<Tree, Tree>  memo;
+        std::function<Tree(Tree, Tree)> t1 = [&](Tree orig, Tree rebuilt) -> Tree {
+            int  op;
+            Tree a, b, sel, x, y;
+            if (isSigBinOp(orig, &op, a, b) && op == kMul) {
+                int  op2;
+                Tree ra, rb;
+                isSigBinOp(rebuilt, &op2, ra, rb);
+                if (gatequivBool(a)) {
+                    return gate(stripCasts(ra), rb);
+                }
+                if (gatequivBool(b)) {
+                    return gate(stripCasts(rb), ra);
+                }
+            }
+            if (isSigSelect2(orig, sel, x, y) && gatequivBool(sel)) {
+                Tree rs, rx, ry;
+                isSigSelect2(rebuilt, rs, rx, ry);
+                if (isZeroNum(x)) {
+                    return gate(stripCasts(rs), ry);  // select2(c, 0, y) : y when c
+                }
+                if (isZeroNum(y)) {
+                    // mirror : select2(c, x, 0) = x when NOT c
+                    return gate(sigBinOp(kEQ, stripCasts(rs), sigInt(0)), rx);
+                }
+            }
+            return rebuilt;
+        };
+        L = treeRewritePaired(L, t1, memo);
+    }
+
+    // ---- phase 2 : NORMALIZATION, growth-oriented ----------------------
+    // the algebra never shrinks a gate : conjunction of nested gates,
+    // fusion of same-condition sisters under sums, absorption of
+    // NUMERIC factors (general pure-exclusive absorption : v2)
+    {
+        std::unordered_map<Tree, Tree>  memo;
+        std::function<Tree(Tree, Tree)> t2 = [&](Tree orig, Tree rebuilt) -> Tree {
+            Tree c, y, d, z, a, b;
+            if (isGate(rebuilt, c, y)) {
+                if (isOneNum(c)) {
+                    return y;
+                }
+                if (isZeroNum(c)) {
+                    return sigInt(0);
+                }
+                if (isGate(y, d, z)) {
+                    return gate(sigBinOp(kAND, c, d), z);
+                }
+            }
+            int op;
+            if (isSigBinOp(rebuilt, &op, a, b)) {
+                Tree c1, y1, c2, y2;
+                if (op == kAdd && isGate(a, c1, y1) && isGate(b, c2, y2) && c1 == c2) {
+                    return gate(c1, sigBinOp(kAdd, y1, y2));  // sister fusion
+                }
+                if (op == kMul) {
+                    if (isNum(a) && isGate(b, c1, y1)) {
+                        return gate(c1, sigBinOp(kMul, a, y1));  // absorption
+                    }
+                    if (isNum(b) && isGate(a, c1, y1)) {
+                        return gate(c1, sigBinOp(kMul, y1, b));
+                    }
+                }
+            }
+            return rebuilt;
+        };
+        L = treeRewritePaired(L, t2, memo);
+    }
+
+    // ---- phase 3 : SPELLING by crown weight, AFTER fusion --------------
+    const int tau = getenv("FAUST_GATEQUIV_TAU") ? atoi(getenv("FAUST_GATEQUIV_TAU")) : 12;
+    {
+        auto consumers = buildConsumers(L);
+        std::unordered_map<Tree, Tree>  memo;
+        std::function<Tree(Tree, Tree)> t3 = [&](Tree orig, Tree rebuilt) -> Tree {
+            Tree c, y;
+            if (isGate(rebuilt, c, y)) {
+                Tree co, yo;
+                // weigh on the ORIGINAL tree (the consumers map's world) ;
+                // fall back to the rebuilt one for gates born in phase 2
+                Tree wy = isGate(orig, co, yo) ? yo : y;
+                Tree ws = isGate(orig, co, yo) ? orig : rebuilt;
+                if (crownWeight(wy, ws, consumers) > tau) {
+                    return sigSelect2(c, sigInt(0), y);
+                }
+                return sigBinOp(kMul, c, y);
+            }
+            return rebuilt;
+        };
+        L = treeRewritePaired(L, t3, memo);
+    }
+
+    // ---- the object never escapes --------------------------------------
+    {
+        std::set<Tree>            seen;
+        std::function<void(Tree)> check = [&](Tree t) {
+            if (!seen.insert(t).second) {
+                return;
+            }
+            Tree c, y, var, body;
+            if (isTree(t, GQGATE, c, y)) {
+                faustexception("gatequiv : internal gate node escaped the pass\n");
+            }
+            if (isRec(t, var, body)) {
+                if (body != nullptr) {
+                    check(body);
+                }
+                return;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                check(t->branch(k));
+            }
+        };
+        check(L);
+    }
+    return L;
+}
+
+/**
+ * Semantic delay floor: rewrite sigDelay(x, y) into sigDelay(x, max(y, K))
+ * for LARGE VARIABLE delays -- certified dmin < K and dmax >= 32*K (the
+ * excursion threshold: a multi-second echo is floored, a flanger or a
+ * variable-pitch string is not). The max is REAL, emitted code included:
+ * the interval system then certifies dmin >= K by itself, and when
+ * K >= gVecSize the d < N freedom cuts the feedback cycles that go through
+ * these delays -- no special case anywhere downstream, the proof travels
+ * through the types. Opt-in: settings below K no longer reach them.
+ * Trees are rebuilt, so every annotation must be redone by the caller.
+ */
+static Tree applyDelayFloor(Tree L, int K)
+{
+    const int excursion = 32 * K;
+    return treeRewrite(L, [K, excursion](Tree t) -> Tree {
+        Tree x, y;
+        int  d;
+        if (isSigDelay(t, x, y) && !isSigInt(y, &d)) {
+            ::Type ty = getSigType(y);  // null-safe: renamed-rec subtrees are untyped
+            if (ty) {
+                interval I = ty->getInterval();
+                if ((int)I.lo() < K && (int)I.hi() >= excursion) {
+                    return sigDelay(x, sigMax(y, sigInt(K)));
+                }
+            }
+        }
+        return t;
+    });
+}
+
 // creation-sequence probe (FAUST_SERIAL_PROBE=1) : see libcode.cpp
 #define SERIAL_PROBE(tag)                                                       \
     if (getenv("FAUST_SERIAL_PROBE")) {                                         \
@@ -112,11 +414,7 @@ string ScalarCompiler::getFreshID(const string& prefix)
                 CTree::serialCounter(), CTree::seqHash());                      \
     }
 
-#define SERIAL_PROBE(tag)                                                      \
-    if (getenv("FAUST_SERIAL_PROBE")) {                                        \
-        std::cerr << "SERIAL " << tag << " : " << CTree::serialCounter()               \
-                  << " seq=" << CTree::seqHash() << std::endl;                            \
-    }
+// (duplicate SERIAL_PROBE definition removed -- wave F1 hygiene)
 
 Tree ScalarCompiler::prepare(Tree LS)
 {
@@ -140,6 +438,90 @@ Tree ScalarCompiler::prepare(Tree LS)
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);
     SERIAL_PROBE("apres-constprop")
+    auto hasEnableControl = [](Tree sigs) -> bool {
+        std::set<Tree>            seen;
+        bool                      found = false;
+        std::function<void(Tree)> walk = [&](Tree t) {
+            if (found || !seen.insert(t).second) {
+                return;
+            }
+            Tree x, y, var, body;
+            if (isSigEnable(t, x, y) || isSigControl(t, x, y)) {
+                found = true;
+                return;
+            }
+            if (isRec(t, var, body)) {
+                if (body != nullptr) {
+                    walk(body);
+                }
+                return;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                walk(t->branch(k));
+            }
+        };
+        walk(sigs);
+        return found;
+    };
+    if ((gGlobal->gLowerSums || getenv("FAUST_LOWERSUMS")) && !gGlobal->gReconstructFIRIIRs &&
+        !hasEnableControl(L2)) {
+        // -lsum STANDALONE (the old_freeverb bisection, 2026-08-18) :
+        // lowerSums was trapped inside the -fir reveal lambda -- alone it
+        // was a silent no-op. It needs revealSum's n-ary rows but NOT the
+        // kernel injection (-fir costs +46 muls on old_freeverb : kernels
+        // revealed where they do not pay). Own big-stack thread, the
+        // reveal precedent.
+        std::function<void()> lsOnly = [&]() {
+            startTiming("Sum revealer (lsum standalone)");
+            L2 = revealSum(L2);
+            endTiming("Sum revealer (lsum standalone)");
+            startTiming("Sum lowering");
+            std::set<Tree> keepRows;
+            // matrix rows stay n-ary through the lowering ; the -mxr
+            // producer arrives with wave H, keepRows stays empty until then
+            L2 = lowerSums(L2, keepRows.empty() ? nullptr : &keepRows);
+            endTiming("Sum lowering");
+        };
+        pthread_attr_t lsattr;
+        pthread_attr_init(&lsattr);
+        pthread_attr_setstacksize(&lsattr, size_t(2048) << 20);
+        pthread_t lsth;
+        auto      lstramp = [](void* q) -> void* {
+            (*static_cast<std::function<void()>*>(q))();
+            return nullptr;
+        };
+        if (pthread_create(&lsth, &lsattr, lstramp, &lsOnly) == 0) {
+            pthread_join(lsth, nullptr);
+        } else {
+            lsOnly();
+        }
+        pthread_attr_destroy(&lsattr);
+    }
+    if (gGlobal->gGateEquiv) {
+        // spec LA-PAIRE-CANONIQUE : the canonical form of the gated
+        // signal, by exclusive stateless crown weight. Own big-stack
+        // thread : the crown and consumer walks are as deep as the
+        // signal graph.
+        std::function<void()> gq = [&]() {
+            startTiming("gatequiv");
+            L2 = gatequivNormalize(L2);
+            endTiming("gatequiv");
+        };
+        pthread_attr_t gqattr;
+        pthread_attr_init(&gqattr);
+        pthread_attr_setstacksize(&gqattr, size_t(2048) << 20);
+        pthread_t gqth;
+        auto      gqtramp = [](void* q) -> void* {
+            (*static_cast<std::function<void()>*>(q))();
+            return nullptr;
+        };
+        if (pthread_create(&gqth, &gqattr, gqtramp, &gq) == 0) {
+            pthread_join(gqth, nullptr);
+        } else {
+            gq();
+        }
+        pthread_attr_destroy(&gqattr);
+    }
     if (gGlobal->gReconstructFIRIIRs) {
         // -fir stage 1 : the revealed kernels are INJECTED into the
         // pipeline -- n-ary sums (revealSum) then FIR kernels (revealFIR).
@@ -359,14 +741,149 @@ Tree ScalarCompiler::prepare(Tree LS)
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");
 
+    if (gGlobal->gMinDelay > 0) {
+        // semantic delay floor: needs the intervals just computed, rebuilds
+        // trees, so the annotations are redone in the same order as above
+        L2 = applyDelayFloor(L2, gGlobal->gMinDelay);
+        conditionAnnotation(L2);
+        recursivnessAnnotation(L2);
+        typeAnnotation(L2, true);
+    }
+
+    if (gGlobal->gReassoc) {
+        // -reassoc : late state-join (see reassociate.cpp) -- BEFORE the
+        // staging pass, so barriers see the final tree shapes
+        startTiming("reassociate");
+        L2 = reassociate(L2);
+        endTiming("reassociate");
+        conditionAnnotation(L2);
+        recursivnessAnnotation(L2);
+        typeAnnotation(L2, true);
+    }
+
+    if (gGlobal->gTempOps > 0) {
+        // -temp <K> : the staging transformation -- deep single-use
+        // expressions gain a sigTemp barrier (K=1 : every operation, the
+        // SSA form). Placed AFTER the normal form (temp is opaque to the
+        // rewrite rules) and BEFORE sharing/occurrences, which count the
+        // barriers like any node. Annotations are redone : the placement
+        // rebuilds trees.
+        startTiming("placeTemps");
+        L2 = placeTemps(L2, gGlobal->gTempOps);
+        endTiming("placeTemps");
+        conditionAnnotation(L2);
+        recursivnessAnnotation(L2);
+        typeAnnotation(L2, true);
+    }
+
+    // -lazyselect : the synthesized condition atoms (sel==0, sel!=0) are
+    // compiled like any signal by the guarded statements -- they need
+    // sharing counts and occurrence marks. Both analyses run ONCE on an
+    // extended root list (mark() regenerates its property key, a second
+    // call would lose the first).
+    Tree Lx = L2;
+    if (gGlobal->gSelectN) {
+        // spec LE-SELECTN : the multiplex atoms must be compilable even
+        // when the 4-atom cliff collapsed a branch's condition to nil
+        // (the property then no longer carries them, but the emission
+        // still guards its assignments with them). They join the
+        // sharing/occurrence roots directly from the side table ; the
+        // gLazySelect block below runs the annotations on the final Lx.
+        for (const auto& e : fSelectNInfo) {
+            Lx = cons(e.second.selEff, Lx);
+            for (const auto& lf : e.second.leaves) {
+                for (Tree a : lf.atoms) {
+                    Lx = cons(a, Lx);
+                }
+            }
+        }
+    }
+    if (gGlobal->gLazySelect) {
+        std::set<Tree, treeorder> atoms;
+        for (const auto& pc : fConditionProperty) {
+            for (Tree cc = pc.second; cc && isList(cc); cc = tl(cc)) {
+                for (Tree at = hd(cc); at && isList(at); at = tl(at)) {
+                    atoms.insert(hd(at));
+                }
+            }
+        }
+        for (Tree a : atoms) {
+            Lx = cons(a, Lx);
+        }
+        // the atoms are compiled : they need every annotation the emitter
+        // reads -- types, recursivness (memoized for the L2 part)
+        recursivnessAnnotation(Lx);
+        typeAnnotation(Lx, gGlobal->gLocalCausalityCheck);
+    }
+
     startTiming("sharingAnalysis");
-    sharingAnalysis(L2, fSharingKey);  // Annotate L2 with sharing count
+    sharingAnalysis(Lx, fSharingKey);  // Annotate L2 (+ condition atoms) with sharing count
     endTiming("sharingAnalysis");
 
     startTiming("occurrences analysis");
     delete fOccMarkup;
-    fOccMarkup = new OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L2);  // Annotate L2 with occurrences analysis
+    if (gGlobal->gLazySelect) {
+        // REFINED design : conditions must never influence caching. The
+        // condition-aware markup (built for enable, whose semantics
+        // REQUIRES materialization) forces any node used under two
+        // different conditions into a cached statement -- on select
+        // cascades this shattered the inline world (vocal : 87 -> 1422
+        // statements). Under -lazyselect the markup runs condition-BLIND
+        // (df-identical inline/statement partition) ; the conditions,
+        // computed separately, only GUARD the statements that exist
+        // anyway (getConditionCode at the Statement sites).
+        fOccMarkup = new OccMarkup();
+    } else {
+        fOccMarkup = new OccMarkup(fConditionProperty);
+    }
+    if (gGlobal->gIIRTransposed && !gGlobal->gLoopSplit) {
+        // Under -ls the election stands down : the split emitter only knows
+        // the DIRECT form, whose buffers are sized by the occurrence
+        // self-marks the election would have skipped.
+        // TOPOLOGY election (one judge for occurrences AND emission) : an
+        // order>=2 IIR kernel whose history nobody reads from outside --
+        // no sigDelay on it, never the source of a multi-tap FIR -- takes
+        // the TRANSPOSED all-pole form (scalar state chain, no delay
+        // line). The others keep the direct form ; the campaign of
+        // 2026-08-10 showed the transposed form LOSES when the delay
+        // line must survive for external readers (modal banks +25..58%)
+        // and wins ~20% when it disappears (tester/tester2).
+        std::set<Tree>    readers;  // IIRs with an external delayed read
+        std::set<Tree>    seen;
+        std::vector<Tree> work{Lx};
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            if (!seen.insert(t).second) {
+                continue;
+            }
+            Tree x, d;
+            tvec cs, dd;
+            if (isSigDelay(t, x, d) && isSigIIR(x, dd)) {
+                readers.insert(x);
+            } else if (kernelWorkVec(t, cs) && cs.size() >= 3 && isSigIIR(cs[0], dd)) {
+                // kernels read their source at delays 0..n-1
+                readers.insert(cs[0]);
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                work.push_back(t->branch(k));
+            }
+        }
+        for (Tree t : seen) {
+            if (tvec cs; isSigIIR(t, cs)) {
+                int order = 0;
+                for (size_t k = 3; k < cs.size(); k++) {
+                    if (!isZero(cs[k])) {
+                        order = int(k) - 2;
+                    }
+                }
+                if (order >= 2 && readers.count(t) == 0) {
+                    t->setProperty(tree(symbol("SIGIIRTRANSPOSED")), tree(1));
+                }
+            }
+        }
+    }
+    fOccMarkup->mark(Lx);  // Annotate L2 (+ condition atoms) with occurrences analysis
     endTiming("occurrences analysis");
     SERIAL_PROBE("apres-annotations")
 
@@ -520,6 +1037,9 @@ void ScalarCompiler::conditionStatistics(Tree l)
 
 void ScalarCompiler::conditionAnnotation(Tree l)
 {
+    if (gGlobal->gSelectN) {
+        computeSelectNInfo(l);
+    }
     while (isList(l)) {
         conditionAnnotation(hd(l), gGlobal->nil);
         l = tl(l);
@@ -837,6 +1357,19 @@ string ScalarCompiler::generateCode(Tree sig)
 
     // printf("compilation of %p : ", sig); print(sig); printf("\n");
 
+
+    if (gGlobal->gSelectN) {
+        // spec LE-SELECTN : a certified root compiles as an N-way
+        // multiplex ; its select2 spine below is dead from this path.
+        // Sample-rate roots only : a slow root multiplexed in the loop
+        // would drag block-rate work to sample rate (drumkit) -- slow
+        // spellings keep their ordinary zone-2 compilation.
+        auto it = fSelectNInfo.find(sig);
+        if (it != fSelectNInfo.end() &&
+            getCertifiedSigType(sig)->variability() == kSamp) {
+            return generateSelectN(sig, it->second);
+        }
+    }
     if (getUserData(sig)) {
         return generateXtended(sig);
     } else if (isSigInt(sig, &i)) {
@@ -851,6 +1384,13 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateInput(sig, T(i));
     } else if (isSigOutput(sig, &i, x)) {
         return generateOutput(sig, T(i), CS(x));
+    }
+
+    else if (isSigTemp(sig, x)) {
+        // the staging barrier : compile x, then FORCE its materialization
+        // into a named temporary whatever its sharing count (see
+        // placeTemps.cpp for who decides where the barriers go)
+        return forceCacheCode(sig, CS(x));
     }
 
     else if (isSigDelay(sig, x, y)) {
@@ -1133,6 +1673,13 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         return generateVariableStore(sig, exp);
 
     } else if (sharing == 1) {
+        // -stage <K> : a deep single-use expression becomes a named stage
+        // (schedulable unit, register-pressure relief). The size proxy is
+        // free : this emitter parenthesizes every operation.
+        if (gGlobal->gStagingOps > 0 &&
+            std::count(exp.begin(), exp.end(), '(') >= gGlobal->gStagingOps) {
+            return generateVariableStore(sig, exp);
+        }
         return exp;
 
     } else {
@@ -2603,4 +3150,442 @@ string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
 string ScalarCompiler::generateDelayAccessRaw(Tree sig, Tree exp, int delay)
 {
     return generateDelayAccessRaw(sig, exp, T(delay));
+}
+
+// State boundaries of the lazy-select condition propagation : below these
+// nodes the condition is forced to nil (unconditional). Everything feeding a
+// state sink (delay lines, recursions, tables, soundfiles) must run every
+// sample whatever the selection -- Faust's strict state semantics : an
+// unheard echo still ages. Observables (bargraphs, attach) and foreign
+// functions (side effects) are boundaries too.
+static bool isConditionBoundary(Tree t)
+{
+    int     i;
+    Tree    x, y, z, u, v, w, lbl, mn, mx;
+    if (isSigDelay(t, x, y) || isSigDelay1(t, x) || isSigPrefix(t, x, y)) {
+        return true;
+    }
+    if (isProj(t, &i, x) || isRec(t, x, y)) {
+        return true;
+    }
+    if (isSigWRTbl(t, x, y) || isSigWRTbl(t, x, y, u, v) || isSigRDTbl(t, x, y) ||
+        isSigGen(t, x)) {
+        return true;
+    }
+    if (isSigSoundfileBuffer(t, x, y, u, v) || isSigWaveform(t)) {
+        return true;
+    }
+    if (isSigHBargraph(t, lbl, mn, mx, x) || isSigVBargraph(t, lbl, mn, mx, x) ||
+        isSigAttach(t, x, y) || isSigEnable(t, x, y) || isSigControl(t, x, y)) {
+        return true;
+    }
+    if (Tree ff, largs; isSigFFun(t, ff, largs)) {
+        return true;
+    }
+    return false;
+}
+
+/*****************************************************************************
+ WAVE F1 : the guarded regimes (selectN certification and multiplex)
+ *****************************************************************************/
+
+/**
+ * spec LE-SELECTN : certify select2 spines as N-way multiplexes. The
+ * split is half-open, int(x) an exact selector (NaN corner excepted,
+ * the gatequiv-admitted one). Verify-everything-or-drop ; N >= 3.
+ * No tree surgery : certified roots enter fSelectNInfo, the spelling
+ * stays in place.
+ */
+void ScalarCompiler::computeSelectNInfo(Tree L)
+{
+    fSelectNInfo.clear();
+    // family collection : select2 grouped by comparison base (casts stripped)
+    std::map<Tree, std::vector<Tree>> families;    // monotone selectors (V1)
+    std::map<Tree, std::vector<Tree>> eqFamilies;  // ==/!= selectors (V1.2 chains)
+    std::set<Tree>                    seenC;
+    std::function<Tree(Tree, bool&)> baseOf = [&](Tree sel, bool& isEq) -> Tree {
+        int  op;
+        Tree a, b, xx;
+        if (isSigBinOp(sel, &op, a, b) &&
+            (op == kGT || op == kLT || op == kGE || op == kLE || op == kEQ || op == kNE)) {
+            isEq = (op == kEQ || op == kNE);
+            Tree base = a;
+            if (isSigIntCast(a, xx)) {
+                base = xx;
+            }
+            int    iv;
+            double rv;
+            if (isSigInt(b, &iv) || isSigReal(b, &rv)) {
+                return base;
+            }
+        }
+        return nullptr;
+    };
+    std::function<void(Tree)> walkC = [&](Tree t) {
+        if (!seenC.insert(t).second) {
+            return;
+        }
+        Tree sel, x, y, var, body;
+        if (isSigSelect2(t, sel, x, y)) {
+            bool isEq = false;
+            Tree base = baseOf(sel, isEq);
+            if (base != nullptr) {
+                (isEq ? eqFamilies : families)[base].push_back(t);
+            }
+        }
+        if (isRec(t, var, body)) {
+            if (body != nullptr) {
+                walkC(body);
+            }
+            return;
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            walkC(t->branch(k));
+        }
+    };
+    while (isList(L)) {
+        walkC(hd(L));
+        L = tl(L);
+    }
+    const long long INF = 0x3FFFFFFFFFFFLL;
+    for (const auto& f : families) {
+        if ((int)f.second.size() < 2) {
+            continue;
+        }
+        std::set<Tree> infam(f.second.begin(), f.second.end());
+        std::set<Tree> ischild;
+        for (Tree t : f.second) {
+            Tree sel, x, y;
+            isSigSelect2(t, sel, x, y);
+            if (infam.count(x)) {
+                ischild.insert(x);
+            }
+            if (infam.count(y)) {
+                ischild.insert(y);
+            }
+        }
+        for (Tree root : f.second) {
+            if (ischild.count(root)) {
+                continue;
+            }
+            struct IvLeaf {
+                long long lo, hi;
+                Tree      leaf;
+            };
+            std::vector<IvLeaf> leaves;
+            bool                ok       = true;
+            bool                realMode = false;
+            Tree                selLhs   = nullptr;  // the comparisons' actual LHS (cast kept)
+            std::function<void(Tree, long long, long long)> dive =
+                [&](Tree t, long long lo, long long hi) {
+                    if (!ok || lo > hi) {
+                        ok = false;
+                        return;
+                    }
+                    if (!infam.count(t)) {
+                        leaves.push_back({lo, hi, t});
+                        return;
+                    }
+                    Tree sel, x, y, a, b;
+                    int  op, k;
+                    isSigSelect2(t, sel, x, y);
+                    if (!isSigBinOp(sel, &op, a, b)) {
+                        ok = false;
+                        return;
+                    }
+                    if (selLhs == nullptr) {
+                        selLhs = a;
+                    } else if (selLhs != a) {
+                        ok = false;  // one selector expression, cast included
+                        return;
+                    }
+                    if (isSigInt(b, &k)) {
+                        if (realMode) {
+                            ok = false;  // no mixed modes
+                            return;
+                        }
+                    } else {
+                        double rr;
+                        if (!isSigReal(b, &rr) || rr != (double)(long long)rr ||
+                            (op != kGE && op != kLT)) {
+                            ok = false;
+                            return;
+                        }
+                        realMode = true;
+                        k        = (int)(long long)rr;
+                    }
+                    long long tlo, thi, flo, fhi;  // convention select2(c,x,y) = c ? y : x
+                    switch (op) {
+                        case kGE: tlo = k;      thi = hi;    flo = lo;    fhi = k - 1; break;
+                        case kGT: tlo = k + 1;  thi = hi;    flo = lo;    fhi = k;     break;
+                        case kLT: tlo = lo;     thi = k - 1; flo = k;     fhi = hi;    break;
+                        case kLE: tlo = lo;     thi = k;     flo = k + 1; fhi = hi;    break;
+                        default:  ok = false; return;
+                    }
+                    dive(x, std::max(flo, lo), std::min(fhi, hi));
+                    dive(y, std::max(tlo, lo), std::min(thi, hi));
+                };
+            dive(root, -INF, INF);
+            if (!ok || leaves.size() < 3) {
+                continue;  // N >= 3 (spec, decisions actees)
+            }
+            std::sort(leaves.begin(), leaves.end(),
+                      [](const IvLeaf& u, const IvLeaf& v) { return u.lo < v.lo; });
+            bool part = leaves.front().lo == -INF && leaves.front().hi == 0 &&
+                        leaves.back().hi == INF && leaves.back().lo < 4096;
+            for (size_t i = 1; part && i < leaves.size(); i++) {
+                if (leaves[i].lo != leaves[i - 1].hi + 1) {
+                    part = false;
+                }
+            }
+            if (!part) {
+                continue;
+            }
+            SelectNInfo info;
+            info.selEff = realMode ? sigIntCast(selLhs) : selLhs;
+            int N       = (int)leaves.back().lo + 1;
+            for (const auto& lf : leaves) {
+                long long a = std::max(lf.lo, 0LL);
+                long long b = std::min(lf.hi, (long long)(N - 1));
+                for (long long k = a; k <= b; k++) {
+                    Tree atom;
+                    if (k == 0) {
+                        atom = sigBinOp(kLE, info.selEff, sigInt(0));
+                    } else if (k == N - 1) {
+                        atom = sigBinOp(kGE, info.selEff, sigInt(N - 1));
+                    } else {
+                        atom = sigBinOp(kEQ, info.selEff, sigInt((int)k));
+                    }
+                    info.leaves.push_back({lf.leaf, {atom}});
+                }
+            }
+            fSelectNInfo[root] = info;
+        }
+    }
+    // ---- V2 : DISPATCH by real domains (spec section 11) -------------
+    // Any tree of monotone comparisons of a common base against
+    // constants tiles the real line by construction (each split makes
+    // complementary halves : no gap, no overlap possible). No index
+    // mapping, no anchoring : the object is the partition itself --
+    // quantizedChords dispatches on its pitch-quantizer boundaries
+    // (1.88775...). Exact open/closed boundary bookkeeping ; empty
+    // leaves (contradictory nesting) are dead code, skipped ; the NaN
+    // corner is the gatequiv-admitted one (all guards false -> the
+    // zero-init survives, where the cascade lands on one leaf).
+    // Tried on monotone roots the V1 certificate did not take.
+    for (const auto& f : families) {
+        if ((int)f.second.size() < 2) {
+            continue;
+        }
+        std::set<Tree> infam(f.second.begin(), f.second.end());
+        std::set<Tree> ischild;
+        for (Tree t : f.second) {
+            Tree sel, x, y;
+            isSigSelect2(t, sel, x, y);
+            if (infam.count(x)) {
+                ischild.insert(x);
+            }
+            if (infam.count(y)) {
+                ischild.insert(y);
+            }
+        }
+        for (Tree root : f.second) {
+            if (ischild.count(root) || fSelectNInfo.count(root)) {
+                continue;  // internal, or already V1-certified
+            }
+            struct RLeaf {
+                long double lo, hi;
+                bool        loIn, hiIn;
+                Tree        leaf;
+            };
+            std::vector<RLeaf>              leaves;
+            std::map<long double, Tree>     thr;   // threshold value -> its constant tree
+            bool                            ok   = true;
+            Tree                            base = nullptr;
+            const long double               RINF = 1e300L;
+            std::function<void(Tree, long double, bool, long double, bool)> dive =
+                [&](Tree t, long double lo, bool loIn, long double hi, bool hiIn) {
+                    if (!ok) {
+                        return;
+                    }
+                    bool empty = lo > hi || (lo == hi && !(loIn && hiIn));
+                    if (!infam.count(t)) {
+                        if (!empty) {
+                            leaves.push_back({lo, hi, loIn, hiIn, t});
+                        }
+                        return;
+                    }
+                    if (empty) {
+                        return;  // dead subtree : its leaves are unreachable
+                    }
+                    Tree sel, x, y, a, b;
+                    int  op, iv;
+                    double rv;
+                    isSigSelect2(t, sel, x, y);
+                    isSigBinOp(sel, &op, a, b);
+                    if (base == nullptr) {
+                        base = a;
+                    } else if (base != a) {
+                        ok = false;
+                        return;
+                    }
+                    long double k;
+                    if (isSigInt(b, &iv)) {
+                        k = (long double)iv;
+                    } else if (isSigReal(b, &rv)) {
+                        k = (long double)rv;
+                    } else {
+                        ok = false;
+                        return;
+                    }
+                    thr.emplace(k, b);
+                    // convention select2(c,x,y)=c?y:x -- y is the true side
+                    switch (op) {
+                        case kGE: dive(y, k, true, hi, hiIn);  dive(x, lo, loIn, k, false); break;
+                        case kGT: dive(y, k, false, hi, hiIn); dive(x, lo, loIn, k, true);  break;
+                        case kLT: dive(y, lo, loIn, k, false); dive(x, k, true, hi, hiIn);  break;
+                        case kLE: dive(y, lo, loIn, k, true);  dive(x, k, false, hi, hiIn); break;
+                        default:  ok = false; return;
+                    }
+                };
+            dive(root, -RINF, false, RINF, false);
+            if (!ok || leaves.size() < 3 || leaves.size() > 65) {
+                continue;
+            }
+            std::sort(leaves.begin(), leaves.end(), [](const RLeaf& u, const RLeaf& v) {
+                return u.lo < v.lo || (u.lo == v.lo && u.loIn && !v.loIn);
+            });
+            SelectNInfo info;
+            info.selEff = base;
+            for (const auto& lf : leaves) {
+                std::vector<Tree> atoms;
+                if (lf.lo > -RINF / 2) {
+                    atoms.push_back(sigBinOp(lf.loIn ? kGE : kGT, base, thr[lf.lo]));
+                }
+                if (lf.hi < RINF / 2) {
+                    atoms.push_back(sigBinOp(lf.hiIn ? kLE : kLT, base, thr[lf.hi]));
+                }
+                info.leaves.push_back({lf.leaf, atoms});
+            }
+            fSelectNInfo[root] = info;
+            if (getenv("FAUST_SELECTN_DEBUG")) {
+                fprintf(stderr, "  dispatch reconnu : %zu domaines\n", leaves.size());
+            }
+        }
+    }
+    // ---- V1.2 : equality CHAINS with a default branch ----------------
+    // select2(base==k, CONT, TAKEN) nested through the continuation side
+    // (kNE : sides swapped). The dispatch atoms ARE the original
+    // comparison nodes (hash-consed, already typed) ; the default is
+    // guarded by the conjunction of built negations. No clamp, no index
+    // math -- the emission reproduces the nested ternaries exactly,
+    // NaN corner included (every == false lands on the default, as the
+    // cascade does). Chains only : a branch that is itself an eq member
+    // rejects the candidate (trees stay in their spelling).
+    for (const auto& f : eqFamilies) {
+        if (getenv("FAUST_SELECTN_DEBUG")) {
+            fprintf(stderr, "  eq-famille : %zu membres\n", f.second.size());
+        }
+        if ((int)f.second.size() < 2) {
+            continue;
+        }
+        std::set<Tree> infam(f.second.begin(), f.second.end());
+        std::set<Tree> ischild;
+        for (Tree t : f.second) {
+            Tree sel, x, y;
+            isSigSelect2(t, sel, x, y);
+            if (infam.count(x)) {
+                ischild.insert(x);
+            }
+            if (infam.count(y)) {
+                ischild.insert(y);
+            }
+        }
+        for (Tree root : f.second) {
+            if (ischild.count(root)) {
+                continue;
+            }
+            SelectNInfo    info;
+            std::set<Tree> kseen;
+            bool           ok   = true;
+            Tree           cur  = root;
+            Tree           base = nullptr;
+            std::vector<Tree> negs;
+            while (ok) {
+                Tree sel, x, y, a, b;
+                int  op;
+                isSigSelect2(cur, sel, x, y);
+                isSigBinOp(sel, &op, a, b);
+                if (base == nullptr) {
+                    base = a;
+                } else if (base != a) {
+                    ok = false;
+                    break;
+                }
+                if (!kseen.insert(b).second) {
+                    ok = false;  // duplicate constant : later test is dead
+                    break;
+                }
+                Tree branch = (op == kEQ) ? y : x;
+                Tree cont   = (op == kEQ) ? x : y;
+                if (infam.count(branch)) {
+                    ok = false;  // a tree, not a chain
+                    break;
+                }
+                info.leaves.push_back({branch, {(op == kEQ) ? sel : sigBinOp(kEQ, a, b)}});
+                negs.push_back(sigBinOp(kNE, a, b));
+                if (infam.count(cont)) {
+                    cur = cont;
+                    continue;
+                }
+                info.leaves.push_back({cont, negs});  // the default entry
+                break;
+            }
+            if (getenv("FAUST_SELECTN_DEBUG")) {
+                fprintf(stderr, "  eq-candidat : ok=%d entrees=%zu\n", (int)ok,
+                        info.leaves.size());
+            }
+            if (!ok || info.leaves.size() < 3 || info.leaves.size() > 65) {
+                continue;  // entries + default >= 3 (spec N >= 3)
+            }
+            info.selEff = base;
+            fSelectNInfo[root] = info;
+            if (getenv("FAUST_SELECTN_DEBUG")) {
+                fprintf(stderr, "  chaine== reconnue : %zu entrees + defaut\n",
+                        info.leaves.size() - 1);
+            }
+        }
+    }
+}
+
+/**
+ * spec LE-SELECTN, emission face : each
+ * branch cone was condition-annotated with the SAME atom, so its own
+ * statements land in the same guarded block (printlines groups equal
+ * adjacent conditions) : native laziness through the existing
+ * machinery, no switch printer needed. Delays and sharing of the root
+ * ride the ordinary generateCacheCode.
+ */
+string ScalarCompiler::generateSelectN(Tree sig, const SelectNInfo& info)
+{
+    string selc = CS(info.selEff);
+    Type   t    = getCertifiedSigType(sig);
+    string vname, ctype;
+    getTypedNames(t, "Sel", ctype, vname);
+    // block-local, zero-init : the value is always assigned before any
+    // read in the same sample (dominated placement, the lazyselect form)
+    fClass->addZone2(subst("$0 \t$1 = 0;", ctype, vname));
+    for (const auto& lf : info.leaves) {
+        // the SAME CND path as the annotation : byte-identical condition
+        // strings, so the branch cone's guarded statements group with the
+        // final assignment into one if block
+        Tree cnd = gGlobal->nil;
+        for (Tree a : lf.atoms) {
+            cnd = _AND_(cnd, _CND_(a));
+        }
+        string cond = CND2CODE(cnd);
+        string bexp = CS(lf.branch);
+        fClass->addExecCode(Statement(cond, subst("$0 = $1;", vname, bexp)));
+    }
+    return generateCacheCode(sig, vname);
 }
