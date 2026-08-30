@@ -1,0 +1,167 @@
+//----------------------------------------------------------
+// name: "vocal_impulse_train"
+//
+// Code generated with Faust 2.87.10 (https://faust.grame.fr)
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	float 	fConst0; // step: 7
+	float 	fConst1; // step: 9
+	float 	fConst2; // step: 11
+	float 	fConst3; // step: 14
+	float 	fConst4; // step: 16
+	float 	fConst5; // step: 20
+	// Recursion delay fVeeec0 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Single Delay
+	float 	fConst6; // step: 32
+	float 	fConst7; // step: 38
+	float 	fConst8; // step: 45
+	// Recursion delay fVeeec2 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec2State[2]; // Copy Delay
+	float 	fConst9; // step: 57
+	float 	fConst10; // step: 59
+	float 	fConst11; // step: 62
+	float 	fConst12; // step: 64
+	float 	fConst13; // step: 65
+	float 	fConst14; // step: 70
+	float 	fConst15; // step: 76
+	// Recursion delay fVeeec5 is of type kCopyDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec5State[2]; // Copy Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("filename", "vocal_impulse_train.dsp");
+		m->declare("filter.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("filter.lib/copyright", "Julius O. Smith III");
+		m->declare("filter.lib/license", "STK-4.3");
+		m->declare("filter.lib/name", "Faust Filter Library");
+		m->declare("filter.lib/reference", "https://ccrma.stanford.edu/~jos/filters/");
+		m->declare("filter.lib/version", "1.29");
+		m->declare("math.lib/author", "GRAME");
+		m->declare("math.lib/copyright", "GRAME");
+		m->declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m->declare("math.lib/license", "LGPL with exception");
+		m->declare("math.lib/name", "Math Library");
+		m->declare("math.lib/version", "1.0");
+		m->declare("music.lib/author", "GRAME");
+		m->declare("music.lib/copyright", "GRAME");
+		m->declare("music.lib/license", "LGPL with exception");
+		m->declare("music.lib/name", "Music Library");
+		m->declare("music.lib/version", "1.0");
+		m->declare("name", "vocal_impulse_train");
+		m->declare("oscillator.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
+		m->declare("oscillator.lib/copyright", "Julius O. Smith III");
+		m->declare("oscillator.lib/license", "STK-4.3");
+		m->declare("oscillator.lib/name", "Faust Oscillator Library");
+		m->declare("oscillator.lib/version", "1.11");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+		fConst0 = fminf(1.92e+05f, fmaxf(1.0f, float(fSampleRate))); // step: 7
+		fConst1 = tanf((2042.0353f / fConst0)); // step: 9
+		fConst2 = (1.0f / fConst1); // step: 11
+		fConst3 = (((fConst2 + 0.025f) / fConst1) + 1.0f); // step: 14
+		fConst4 = (1.0f / (fConst1 * fConst3)); // step: 16
+		fConst5 = (1.1e+02f / fConst0); // step: 20
+		fConst6 = (1.0f / fConst3); // step: 32
+		fConst7 = (((fConst2 + -0.025f) / fConst1) + 1.0f); // step: 38
+		fConst8 = (2.0f * (1.0f - (1.0f / powf(fConst1,2.0f)))); // step: 45
+		fConst9 = tanf((3392.9202f / fConst0)); // step: 57
+		fConst10 = (1.0f / fConst9); // step: 59
+		fConst11 = (((fConst10 + 0.02f) / fConst9) + 1.0f); // step: 62
+		fConst12 = (0.8f / (fConst9 * fConst11)); // step: 64
+		fConst13 = (1.0f / fConst11); // step: 65
+		fConst14 = (((fConst10 + -0.02f) / fConst9) + 1.0f); // step: 70
+		fConst15 = (2.0f * (1.0f - (1.0f / powf(fConst9,2.0f)))); // step: 76
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		fVeeec0State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec2State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec5State[j] = 0; }
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("vocal_impulse_train");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fVeeec0[2];
+		float 	fVeeec2[3];
+		float 	fVeeec5[3];
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = faustmini(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			fVeeec0[1] = fVeeec0State;
+			fVeeec2[1] = fVeeec2State[0];
+			fVeeec2[2] = fVeeec2State[1];
+			fVeeec5[1] = fVeeec5State[0];
+			fVeeec5[2] = fVeeec5State[1];
+			for (int i=0; i<count; i++) {
+				float 	fTemp0 = fVeeec0[1]; // step: 22
+				fVeeec0[0] = (fConst5 + (fTemp0 - floorf((fConst5 + fTemp0))));
+				float 	fTemp1 = float(((fVeeec0[0] - fTemp0) < 0.0f)); // step: 31
+				float 	fTemp2 = fVeeec2[2]; // step: 34
+				fVeeec2[0] = (fTemp1 - (fConst6 * ((fConst7 * fTemp2) + (fConst8 * fVeeec2[1]))));
+				float 	fTemp3 = fVeeec5[2]; // step: 66
+				fVeeec5[0] = (fTemp1 - (fConst13 * ((fConst14 * fTemp3) + (fConst15 * fVeeec5[1]))));
+				output0[i] = (FAUSTFLOAT)(((fConst4 * (fVeeec2[0] - fTemp2)) + (fConst12 * (fVeeec5[0] - fTemp3))));  // Zone Exec Code
+				// post processing
+				fVeeec5[2] = fVeeec5[1];
+				fVeeec5[1] = fVeeec5[0];
+				fVeeec2[2] = fVeeec2[1];
+				fVeeec2[1] = fVeeec2[0];
+				fVeeec0[1] = fVeeec0[0];
+			}
+			fVeeec0State = fVeeec0[1];
+			fVeeec2State[0] = fVeeec2[1];
+			fVeeec2State[1] = fVeeec2[2];
+			fVeeec5State[0] = fVeeec5[1];
+			fVeeec5State[1] = fVeeec5[2];
+		}
+	}
+};
+
+
