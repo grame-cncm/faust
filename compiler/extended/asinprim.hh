@@ -23,30 +23,17 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class AsinPrim : public xtended {
+class AsinPrim : public xtendedCodegen {
    public:
-    AsinPrim() : xtended("asin") {}
+    AsinPrim() : xtendedCodegen("asin") {}
 
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == 1);
-        Type     t = args[0];
-        interval i = t->getInterval();
-        if (i.isValid() && gGlobal->gMathExceptions && (i.lo() < -1 || i.hi() > 1)) {
-            std::stringstream error;
-            error << "WARNING : potential out of domain in asin(" << i << ")" << std::endl;
-            gWarningMessages.push_back(error.str());
-        }
-        return castInterval(t, gAlgebra.Asin(i));
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -92,11 +79,11 @@ class AsinPrim : public xtended {
         return subst("\\arcsin\\left($0\\right)", args[0]);
     }
 
+    double compute(const std::vector<Node>& args) override { return asin(args[0].getDouble()); }
+
     Tree diff(const std::vector<Tree>& args) override
     {
         // (asin(x))' = 1 / sqrt(1 - x^2), -1 < x < 1
         return sigDiv(sigReal(1.0), sigSqrt(sigSub(sigReal(1.0), sigPow(args[0], sigReal(2.0)))));
     }
-
-    double compute(const std::vector<Node>& args) override { return asin(args[0].getDouble()); }
 };

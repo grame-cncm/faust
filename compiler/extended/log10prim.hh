@@ -23,34 +23,17 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class Log10Prim : public xtended {
+class Log10Prim : public xtendedCodegen {
    public:
-    Log10Prim() : xtended("log10") {}
+    Log10Prim() : xtendedCodegen("log10") {}
 
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        Type     t = args[0];
-        interval i = t->getInterval();
-        if (i.isValid() && i.lo() < 0 && gGlobal->gMathExceptions) {
-            std::stringstream error;
-            error << "WARNING : potential out of domain in log10(" << i << ")" << std::endl;
-            gWarningMessages.push_back(error.str());
-        }
-        return castInterval(floatCast(t), gAlgebra.Log10(i));
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return args[0];
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -102,12 +85,12 @@ class Log10Prim : public xtended {
         return subst("\\log_{10}\\left( $0 \\right)", args[0]);
     }
 
+    double compute(const std::vector<Node>& args) override { return log10(args[0].getDouble()); }
+
     Tree diff(const std::vector<Tree>& args) override
     {
         // (log_10(x))' = 1/(x * ln(10))
         // TODO: handle division by zero
         return sigDiv(sigReal(1.0), sigMul(args[0], sigLog(sigReal(10.0))));
     }
-
-    double compute(const std::vector<Node>& args) override { return log10(args[0].getDouble()); }
 };

@@ -24,29 +24,17 @@
 
 #include "floats.hh"
 #include "sigtyperules.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class FloorPrim : public xtended {
+class FloorPrim : public xtendedCodegen {
    public:
-    FloorPrim() : xtended("floor") {}
+    FloorPrim() : xtendedCodegen("floor") {}
 
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        Type     t = args[0];
-        interval i = t->getInterval();
-        return castInterval(floatCast(t), gAlgebra.Floor(i));
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return args[0];
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -94,11 +82,11 @@ class FloorPrim : public xtended {
         return subst("\\left\\lfloor {$0} \\right\\rfloor", args[0]);
     }
 
+    double compute(const std::vector<Node>& args) override { return floor(args[0].getDouble()); }
+
     Tree diff(const std::vector<Tree>& args) override
     {
         // (floor(x))' = 0, sin(pi * x) != 0
         return getCertifiedSigType(args[0])->nature() == kInt ? sigInt(0) : sigReal(0.0);
     }
-
-    double compute(const std::vector<Node>& args) override { return floor(args[0].getDouble()); }
 };

@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-#include "exception.hh"
+#include "tlib-error.hh"
 #include "sigvisitor.hh"
 
 using namespace std;
@@ -40,7 +40,7 @@ void sigvisitor::visit(Tree sig)
     double  r;
     Tree    sel, s1, s2, s3, s4, ff, ls, l, var, body, type, name, file, cur, min, max, step;
 
-    faustassert(sig);
+    TLIB_ASSERT(sig);
 
     if (isSigInt(sig, &i)) {
         visitInt(sig, i);
@@ -199,13 +199,7 @@ void sigvisitor::visit(Tree sig)
     }
     //----------------------------
 
-    else if (isSigTuple(sig, &i, ls)) {
-        visitTuple(sig, i, ls);
-    }
 
-    else if (isSigTupleAccess(sig, s1, s2)) {
-        visitTupleAccess(sig, s1, s2);
-    }
 
     //----------------------------
 

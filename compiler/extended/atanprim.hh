@@ -23,25 +23,17 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class AtanPrim : public xtended {
+class AtanPrim : public xtendedCodegen {
    public:
-    AtanPrim() : xtended("atan") {}
+    AtanPrim() : xtendedCodegen("atan") {}
 
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == 1);
-        Type     t = args[0];
-        interval i = t->getInterval();
-        return castInterval(floatCast(t), gAlgebra.Atan(i));
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -80,11 +72,11 @@ class AtanPrim : public xtended {
         return subst("\\arctan\\left($0\\right)", args[0]);
     }
 
+    double compute(const std::vector<Node>& args) override { return atan(args[0].getDouble()); }
+
     Tree diff(const std::vector<Tree>& args) override
     {
         // (atan(x))' = 1 / (x^2 + 1), x real
         return sigDiv(sigReal(1.0), sigAdd(sigPow(args[0], sigReal(2.0)), sigReal(1.0)));
     }
-
-    double compute(const std::vector<Node>& args) override { return atan(args[0].getDouble()); }
 };

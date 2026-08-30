@@ -43,7 +43,6 @@
 #include "logprim.hh"
 #include "maxprim.hh"
 #include "minprim.hh"
-#include "occur.hh"
 #include "powprim.hh"
 #include "remainderprim.hh"
 #include "rintprim.hh"
@@ -54,9 +53,10 @@
 #include "tanprim.hh"
 #include "timing.hh"
 #include "tlib.hh"
+#include "sigs-config.hh"
 #include "tree.hh"
 
-#ifdef _WIN32
+#ifdef WIN32
 #pragma warning(disable : 4996)
 #endif
 
@@ -135,7 +135,6 @@ using namespace std;
 extern FILE*       FAUSTin;
 extern const char* FAUSTfilename;
 
-itv::interval_algebra gAlgebra;
 
 // tlib reports its internal errors through this hook : the compiler keeps
 // receiving faustexception exactly as before tlib became a standalone library.
@@ -144,16 +143,30 @@ itv::interval_algebra gAlgebra;
     throw faustexception(msg);
 }
 
+// The signal library prints real numbers through this hook: ppsig keeps
+// following the -single/-double/-quad and target language conventions.
+static std::string sigsRealPrinter(double n)
+{
+    return T(n);
+}
+
 global::global()
-    : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
+    : gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
     tlib::setErrorHandler(tlibErrorHandler);
     tlib::init();
-    // TRANSITIONAL (merge campaign, 2026-08) : the signal transformers still
-    // rebuild recursive groups in place (define, erase, redefine under the
-    // same variable) ; keep tlib's historical overwrite semantics until the
-    // per-definition transformer architecture lands, then remove this call.
+    // MIGRATION AFFORDANCE (wave A) : the historical transformers still
+    // rebuild recursive groups in place ; the immutable contract arrives
+    // with the per-definition transformer wave.
     tlib::setMutableRecDefinitions(true);
+    sigs::setRealPrinter(sigsRealPrinter);
+
+    // The members of the signal library state (sigs::g) referenced by this
+    // class live across sessions: reset here what a fresh 'global' used to
+    // reset by construction.
+    TABBER = Tabber(1);
+    gSignalTable.clear();
+    gSignalTrace.clear();
 
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     reset();
@@ -349,50 +362,11 @@ global::global()
     PATHCURRENT = symbol(".");
     FFUN        = symbol("ForeignFunction");
 
-    SIGINPUT           = symbol("SigInput");
-    SIGOUTPUT          = symbol("SigOutput");
-    SIGDELAY1          = symbol("SigDelay1");
-    SIGDELAY           = symbol("SigDelay");
-    SIGPREFIX          = symbol("SigPrefix");
-    SIGRDTBL           = symbol("SigRDTbl");
-    SIGWRTBL           = symbol("SigWRTbl");
-    SIGGEN             = symbol("SigGen");
-    SIGDOCONSTANTTBL   = symbol("SigDocConstantTbl");
-    SIGDOCWRITETBL     = symbol("SigDocWriteTbl");
-    SIGDOCACCESSTBL    = symbol("SigDocAccessTbl");
-    SIGSELECT2         = symbol("SigSelect2");
-    SIGASSERTBOUNDS    = symbol("sigAssertBounds");
-    SIGHIGHEST         = symbol("sigHighest");
-    SIGLOWEST          = symbol("sigLowest");
-    SIGBINOP           = symbol("SigBinOp");
-    SIGFFUN            = symbol("SigFFun");
-    SIGFCONST          = symbol("SigFConst");
-    SIGFVAR            = symbol("SigFVar");
-    SIGPROJ            = symbol("SigProj");
-    SIGINTCAST         = symbol("SigIntCast");
-    SIGBITCAST         = symbol("SigBitCast");
-    SIGFLOATCAST       = symbol("SigFloatCast");
-    SIGBUTTON          = symbol("SigButton");
-    SIGCHECKBOX        = symbol("SigCheckbox");
-    SIGWAVEFORM        = symbol("SigWaveform");
-    SIGHSLIDER         = symbol("SigHSlider");
-    SIGVSLIDER         = symbol("SigVSlider");
-    SIGNUMENTRY        = symbol("SigNumEntry");
-    SIGHBARGRAPH       = symbol("SigHBargraph");
-    SIGVBARGRAPH       = symbol("SigVBargraph");
-    SIGATTACH          = symbol("SigAttach");
-    SIGENABLE          = symbol("SigEnable");
-    SIGCONTROL         = symbol("SigControl");
-    SIGSOUNDFILE       = symbol("SigSoundfile");
-    SIGSOUNDFILELENGTH = symbol("SigSoundfileLength");
-    SIGSOUNDFILERATE   = symbol("SigSoundfileRate");
-    SIGSOUNDFILEBUFFER = symbol("SigSoundfileBuffer");
-    SIGREGISTER        = symbol("SigRegister");  // for FPGA Retiming
-    SIGTUPLE           = symbol("SigTuple");
-    SIGTUPLEACCESS     = symbol("SigTupleAccess");
+    // The SIG* constructors are interned AND registered in the Signal
+    // signature by the library, so they carry the dense opcodes signal
+    // dispatch can use. The members below are references to sigs::g.
+    sigs::initSignalSymbols();
     SIMPLETYPE         = symbol("SimpleType");
-    TABLETYPE          = symbol("TableType");
-    TUPLETTYPE         = symbol("TupletType");
 
     gMachineFloatSize      = sizeof(float);
     gMachineInt32Size      = sizeof(int);
@@ -427,6 +401,10 @@ void global::reset()
 
     gDetailsSwitch    = false;
     gDrawSignals      = false;
+    gOccurrences      = nullptr;
+    gAutoDifferentiate = false;
+    gDrawSuperNodes   = false;
+    gSchedulingStrategy = 0;
     gDrawRetiming     = false;
     gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
@@ -462,8 +440,33 @@ void global::reset()
     gFTZMode        = 0;
     gHashLoadFactor = 0.7;
     tlib::setHashLoadFactor(gHashLoadFactor);
-    gRangeUI  = false;
-    gFreezeUI = false;
+    gRangeUI        = false;
+    gFreezeUI       = false;
+    gEtaHarvest     = false;
+    gEtaRegroup     = false;
+    gStagingOps     = 0;
+    gTempOps        = 0;
+    gReassoc        = false;
+    gLazySelect     = false;
+    gSelectN        = false;
+    gGateEquiv      = false;
+    gEtaIterations  = 1;
+    gCanonicalOrder = false;
+    gLoopSplit      = false;
+    gReconstructFIRIIRs = false;
+    gLowerSums          = false;
+    gMatrixRows         = false;
+    gIIRTransposed      = false;
+    gLSSched        = 0;
+    gLSRegisters    = 20;
+    gLSWidth        = 4;
+    gLSFuse         = false;
+    gLSAdopt        = false;
+    gLSFuseOps      = 1024;
+    gMinDelay       = 0;
+    gLSCl           = 20;
+    gLSSpillW       = 4;
+    gLSLoadW        = 1;
 
     gFloatSize      = 1;             // -single by default
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
@@ -519,14 +522,11 @@ void global::reset()
     gCheckIntRange        = false;
     gReprC                = true;
 
-    gNarrowingLimit = 0;
-    gWideningLimit  = 0;
 
     gLstDependenciesSwitch = true;  // mdoc listing management.
     gLstMdocTagsSwitch     = true;  // mdoc listing management.
     gLstDistributedSwitch  = true;  // mdoc listing management.
 
-    gAutoDifferentiate = false;
 
     gLatexDocSwitch = true;  // Only LaTeX outformat is handled for the moment.
 
@@ -534,9 +534,6 @@ void global::reset()
 
     gBoxCounter    = 0;
     gSignalCounter = 0;
-
-    gCountInferences = 0;
-    gCountMaximal    = 0;
 
 #ifdef FIR_BUILD
     gStats.reset();  // Reset compiler statistics
@@ -550,7 +547,6 @@ void global::reset()
     gLocalCausalityCheck = false;
     gCausality           = false;
 
-    gOccurrences = nullptr;
     gFoldingFlag = false;
     gDevSuffix   = nullptr;
 
@@ -651,14 +647,6 @@ void global::init()
     // True by default but only usable with -lang ocpp backend
     gEnableFlag = true;
 
-    // Essential predefined types
-    TINPUT = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
-    TGUI   = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval());
-
-    TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0, 0));
-    // !!! TRECMAX Maximal only in the last component of the type lattice
-    TRECMAX = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(-HUGE_VAL, HUGE_VAL));
-
     // Predefined symbols CONS and NIL
     CONS = symbol("cons");
     NIL  = symbol("nil");
@@ -675,9 +663,7 @@ void global::init()
     DOCTABLES        = tree(symbol("DocTablesProp"));
     NULLENV          = tree(symbol("NullRenameEnv"));
     COLORPROPERTY    = tree(symbol("ColorProperty"));
-    ORDERPROP        = tree(symbol("OrderProp"));
     RECURSIVNESS     = tree(symbol("RecursivnessProp"));
-    NULLTYPEENV      = tree(symbol("NullTypeEnv"));
     NORMALFORM       = tree(symbol("NormalForm"));
     DEFNAMEPROPERTY  = tree(symbol("DEFNAMEPROPERTY"));
     NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
@@ -831,6 +817,42 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gRangeUI) {
         dst << "-rui ";
+    }
+    if (gEtaRegroup) {
+        dst << "-etar ";
+    }
+    if (gStagingOps > 0) {
+        dst << "-stage " << gStagingOps << " ";
+    }
+    if (gTempOps > 0) {
+        dst << "-temp " << gTempOps << " ";
+    }
+    if (gReassoc) {
+        dst << "-reassoc ";
+    }
+    if (gGateEquiv) {
+        dst << "-gatequiv ";
+    }
+    if (gLazySelect) {
+        dst << "-lazyselect ";
+    }
+    if (gEtaHarvest) {
+        dst << "-etai " << gEtaIterations << " ";
+    }
+    if (gCanonicalOrder) {
+        dst << "-co ";
+    }
+    if (gMinDelay > 0) {
+        dst << "-mindelay " << gMinDelay << " ";
+    }
+    if (gLoopSplit) {
+        static const char* schedNames[] = {"df", "bf", "model", "layers", "cs2", "cs2b"};
+        dst << "-ls -ls-sched " << schedNames[gLSSched] << " -ls-R " << gLSRegisters
+            << " -ls-U " << gLSWidth << " ";
+        if (gLSFuse) {
+            dst << "-ls-fuse -ls-fuse-ops " << gLSFuseOps << " -ls-cl " << gLSCl
+                << " -ls-spill " << gLSSpillW << " -ls-load " << gLSLoadW << " ";
+        }
     }
     if (gNoVirtual) {
         dst << "-nvi ";
@@ -1037,6 +1059,12 @@ Typed::VarType global::getVarType(const string& name)
 
 global::~global()
 {
+    // Release the memoized types of the signal library state while the
+    // AudioType objects are still alive (destroyed by tlib::cleanup below);
+    // the static sigs::g must not keep stale pointers.
+    gMemoizedTypes = nullptr;
+    gSymListProp   = nullptr;
+
     tlib::cleanup();
     BasicTyped::cleanup();
     DeclareVarInst::cleanup();
@@ -1242,14 +1270,6 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-o") && (i + 1 < argc)) {
             gOutputFile = argv[i + 1];
-            i += 2;
-
-        } else if (isCmd(argv[i], "-wi", "--widening-iterations") && (i + 1 < argc)) {
-            gWideningLimit = std::atoi(argv[i + 1]);
-            i += 2;
-
-        } else if (isCmd(argv[i], "-ni", "--narrowing-iterations") && (i + 1 < argc)) {
-            gNarrowingLimit = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-ps", "--postscript")) {
@@ -1582,6 +1602,24 @@ bool global::processCmdline(int argc, const char* argv[])
             gFreezeUI = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-eta", "--eta-normalization")) {
+            gEtaHarvest = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-etai", "--eta-iterations")) {
+            gEtaHarvest    = true;
+            gEtaIterations = std::atoi(argv[i + 1]);
+            i += 2;
+
+        } else if (isCmd(argv[i], "-etar", "--eta-regroup")) {
+            gEtaHarvest = true;
+            gEtaRegroup = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-co", "--canonical-order")) {
+            gCanonicalOrder = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
             gFastMathLib = argv[i + 1];
             i += 2;
@@ -1616,13 +1654,6 @@ bool global::processCmdline(int argc, const char* argv[])
                     // We want to search user given directories *before* the standard ones, so
                     // insert at the beginning
                     gImportDirList.insert(gImportDirList.begin(), path);
-                } else {
-                    // Dropping the directory without a trace makes the resulting 'unable to
-                    // open file' error very hard to relate to the faulty option.
-                    stringstream error;
-                    error << "WARNING : cannot resolve import directory '" << argv[i + 1]
-                          << "', option ignored" << endl;
-                    gWarningMessages.push_back(error.str());
                 }
             }
             i += 2;
@@ -1635,11 +1666,6 @@ bool global::processCmdline(int argc, const char* argv[])
                 char* path = realpath(argv[i + 1], temp);
                 if (path) {
                     gArchitectureDirList.push_back(path);
-                } else {
-                    stringstream error;
-                    error << "WARNING : cannot resolve architecture directory '" << argv[i + 1]
-                          << "', option ignored" << endl;
-                    gWarningMessages.push_back(error.str());
                 }
             }
             i += 2;
@@ -1826,10 +1852,8 @@ bool global::processCmdline(int argc, const char* argv[])
     }
 
     // gInlinetable check
-    if (gInlineTable && (gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "llvm" &&
-                         gOutputLang != "rust")) {
-        throw faustexception(
-            "ERROR : -it can only be used with 'cpp', 'c', 'llvm' and 'rust' backends\n");
+    if (gInlineTable && (gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "llvm" && gOutputLang != "rust")) {
+        throw faustexception("ERROR : -it can only be used with 'cpp', 'c', 'llvm' and 'rust' backends\n");
     }
 
     // gMemoryManager check
@@ -1988,18 +2012,6 @@ void global::initDirectories(int argc, const char* argv[])
 #endif
 
     gImportDirList.push_back(exepath::dirup(gFaustExeDir) + "/share/faust");
-    // Covers hosts that ship the libraries next to their own binary, which is the
-    // usual layout when libfaust is embedded in a third-party application rather
-    // than invoked from an installed bin/ + share/ tree.
-    gImportDirList.push_back(gFaustExeDir + "/share/faust");
-#ifdef _WIN32
-    // The exe-relative paths above only resolve for a host binary sitting inside a
-    // Faust install. Unix has /usr/local/share/faust and /usr/share/faust as a
-    // system-wide safety net; on Windows the equivalent is the installer location.
-    if (char* programfiles = getenv("ProgramFiles")) {
-        gImportDirList.push_back(string(programfiles) + "\\Faust\\share\\faust");
-    }
-#endif
     gImportDirList.push_back("/usr/local/share/faust");
     gImportDirList.push_back("/usr/share/faust");
 
@@ -2078,7 +2090,7 @@ void global::parseSourceFiles()
 /****************************************************************
  Faust directories information
  *****************************************************************/
-#ifdef _WIN32
+#ifdef WIN32
 #define kPSEP '\\'
 #else
 #define kPSEP '/'
@@ -2091,11 +2103,11 @@ void global::parseSourceFiles()
 static void enumBackends(ostream& out)
 {
     const char* dspto = "   DSP to ";
-
+    
 #ifdef ASSEMBLYSCRIPT_BUILD
     out << dspto << "AssemblyScript" << endl;
 #endif
-
+    
 #ifdef C_BUILD
     out << dspto << "C" << endl;
 #endif
@@ -2376,17 +2388,50 @@ string global::printHelp()
          << endl;
 #endif
     sstr << tab
+         << "-ls         --loop-split                (ocpp, experimental) emit the materialized "
+            "DAG as separate loops."
+         << endl;
+    sstr << tab
+         << "-ls-sched <s> --loop-split-scheduling <s> intra-loop op order: df (default), bf, "
+            "model, layers, cs2, cs2b (implies -ls)."
+         << endl;
+    sstr << tab
+         << "-ls-R <n>   --loop-split-registers <n>  register budget of the model scheduler "
+            "(default 20, implies -ls)."
+         << endl;
+    sstr << tab
+         << "-ls-U <n>   --loop-split-width <n>      superscalar width of the model scheduler "
+            "(default 4, implies -ls)."
+         << endl;
+    sstr << tab
+         << "-ls-fuse    --loop-split-fuse           greedy single-consumer fusion of the "
+            "super-node partition (implies -ls)."
+         << endl;
+    sstr << tab
+         << "-ls-fuse-ops <n> --loop-split-fuse-ops <n> op-count budget of a fused block "
+            "(default 1024, compile-time guard; the cost oracle decides, implies -ls-fuse)."
+         << endl;
+    sstr << tab
+         << "-mindelay <n> --min-delay <n>           (ocpp, experimental) semantic floor for "
+            "large variable delays: emits max(d, n) when certified dmin < n and dmax >= 32*n; "
+            "with n >= vector size, long feedback cycles split legally."
+         << endl;
+    sstr << tab
+         << "-ls-cl <n>  --loop-split-cl <n>         oracle: per-loop per-chunk overhead "
+            "(default 20 cycles, implies -ls-fuse)."
+         << endl;
+    sstr << tab
+         << "-ls-spill <n> --loop-split-spill-weight <n> oracle: cycles per register-cycle "
+            "above R (default 4, implies -ls-fuse)."
+         << endl;
+    sstr << tab
+         << "-ls-load <n> --loop-split-load-weight <n> oracle: issue slots per buffer load "
+            "(0 = free, default 1, implies -ls-fuse)."
+         << endl;
+    sstr << tab
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no "
             "(default), 1:fabs based, "
             "2:mask based (fastest)]."
-         << endl;
-    sstr << tab
-         << "             mode 2 bitcasts float/double values and tests their IEEE-754 "
-            "exponent; zero/subnormal values become +0.0."
-         << endl;
-    sstr << tab
-         << "             exponent masks: binary32 0x7F800000 (2139095040), binary64 "
-            "0x7FF0000000000000 (9218868437227405312)."
          << endl;
     sstr << tab
          << "-hlf <n>    --hash-load-factor <n>      load factor that triggers tlib hash table "
@@ -2399,6 +2444,18 @@ string global::printHelp()
             "vslider/hslider/nentry "
             "values "
             "in [min..max] range."
+         << endl;
+    sstr << tab
+         << "-eta        --eta-normalization         normalization loop with the eta harvest: "
+            "definitions no longer recursive replace their projections (one pass by default)."
+         << endl;
+    sstr << tab
+         << "-etai <n>   --eta-iterations <n>        iteration budget of the eta normalization "
+            "loop (implies -eta; the loop may stop earlier)."
+         << endl;
+    sstr << tab
+         << "-co         --canonical-order           order the terms of normalized sums and "
+            "products by value (history-independent) instead of the default serial order."
          << endl;
     sstr << tab
          << "-fui        --freeze-ui                 whether to freeze vslider/hslider/nentry to a "
@@ -2497,15 +2554,6 @@ string global::printHelp()
             "mode."
          << endl;
 
-    sstr << tab
-         << "-wi <n>     --widening-iterations <n>   number of iterations before widening in "
-            "signal bounding."
-         << endl;
-
-    sstr << tab
-         << "-ni <n>     --narrowing-iterations <n>  number of iterations before stopping "
-            "narrowing in signal bounding."
-         << endl;
     sstr << tab
          << "-rnt        --rust-no-faustdsp-trait    (Rust only) Don't generate FaustDsp trait "
             "implementation."
@@ -2834,6 +2882,7 @@ void CompilerStats::print(std::ostream& out) const
     out << "\n==========================================\n";
 }
 #endif
+
 
 /*
     Threaded calls API: the compilation code is executed in a separate

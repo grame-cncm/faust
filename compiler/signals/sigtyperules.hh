@@ -52,7 +52,7 @@ void typeAnnotation(Tree sig, bool causality);
 
 /**
  *  Return the type of a previously annotated signal term,
- *  fails with faustassert if the term is not typed.
+ *  fails with TLIB_ASSERT if the term is not typed.
  *  @param sig the signal we want to know the type
  */
 ::Type getCertifiedSigType(Tree term);
@@ -68,5 +68,20 @@ void typeAnnotation(Tree sig, bool causality);
  * @param sig the signal we want to know the type
  */
 void setSigType(Tree sig, ::Type);
+
+/**
+ * Sanity check used by the transformation entry points : every signal of L -- a
+ * signal or a LIST of signals -- carries a type annotation. Replaces the old idiom
+ * getCertifiedSigType(root), which relied on lists being typed (TupletType) : the
+ * facade types signals only, lists are structure.
+ */
+void certifySignalsTyped(Tree L);
+
+/**
+ * Variability of a node as the sharing analyses need it. A recursive GROUP has no
+ * type (it is solved, not typed) : its variability is the join of its definitions' --
+ * exactly what the old TupletType aggregated.
+ */
+int sigVariability(Tree sig);
 
 #endif

@@ -1,4 +1,4 @@
-/* Copyright 2023 Yann ORLAREY
+/* Copyright 2020-2026 Yann Orlarey, Agathe Herrou, Stéphane Letz
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ interval bmAnd(const interval& x, int mask)
     return interval{0, double(mask)};
 }
 /*
-interval interval_algebra::And(const interval& x, const interval& y)
+interval interval_algebra::And(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) return {};
     if (x.isconst()) {
@@ -127,7 +127,7 @@ interval interval_algebra::And(const interval& x, const interval& y)
 */
 
 // BRUTE FORCE
-interval interval_algebra::And(const interval& x, const interval& y)
+interval interval_algebra::And(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

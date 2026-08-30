@@ -23,29 +23,17 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class SinPrim : public xtended {
+class SinPrim : public xtendedCodegen {
    public:
-    SinPrim() : xtended("sin") {}
+    SinPrim() : xtendedCodegen("sin") {}
 
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == 1);
-
-        Type     t = args[0];
-        interval i = t->getInterval();
-
-        return castInterval(floatCast(t),
-                            gAlgebra.Sin(i));  // to replace by sin(pi*i) once the new version of
-                                               // the interval library is plugged in
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -98,11 +86,11 @@ class SinPrim : public xtended {
         return subst("\\sin\\left($0\\right)", args[0]);
     }
 
+    double compute(const std::vector<Node>& args) override { return sin(args[0].getDouble()); }
+
     virtual Tree diff(const std::vector<Tree>& args) override
     {
         // sin(x)' = cos(x)
         return sigCos(args[0]);
     }
-
-    double compute(const std::vector<Node>& args) override { return sin(args[0].getDouble()); }
 };

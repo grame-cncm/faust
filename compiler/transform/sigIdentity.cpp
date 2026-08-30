@@ -202,6 +202,31 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigRegister(i, self(x));
     }
 
+    // FIR and IIR (port : signal-level filter kernels)
+    else if (isSigFIR(sig)) {
+        tvec c = sig->branches();
+        for (unsigned int k = 0; k < c.size(); k++) {
+            c[k] = self(c[k]);
+        }
+        return sigFIR(c);
+    } else if (isSigIIR(sig)) {
+        // branch 0 is the recursive reference : NOT traversed (the source
+        // branch does the same -- descending into it would loop)
+        tvec c = sig->branches();
+        for (unsigned int k = 1; k < c.size(); k++) {
+            c[k] = self(c[k]);
+        }
+        return sigIIR(c);
+    } else if (Tree tx; isSigTemp(sig, tx)) {
+        return sigTemp(self(tx));
+    } else if (isSigSum(sig)) {
+        tvec c = sig->branches();
+        for (unsigned int k = 0; k < c.size(); k++) {
+            c[k] = self(c[k]);
+        }
+        return sigSum(c);
+    }
+
     else {
         cerr << "ASSERT : unrecognized signal : " << *sig << endl;
         faustassert(false);

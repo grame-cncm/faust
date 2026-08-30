@@ -21,17 +21,17 @@
 
 #include <stdlib.h>
 
-#include "global.hh"
+#include "sigs-state.hh"
 #include "prim2.hh"
 
 Tree ffunction(Tree signature, Tree incfile, Tree libfile)
 {
-    return tree(gGlobal->FFUN, signature, incfile, libfile);
+    return tree(sigs::g.FFUN, signature, incfile, libfile);
 }
 
 bool isffunction(Tree t)
 {
-    return t->node() == Node(gGlobal->FFUN);
+    return t->node() == Node(sigs::g.FFUN);
 }
 
 Tree ffsignature(Tree ff)
@@ -57,7 +57,7 @@ int ffrestype(Tree t)
 const char* ffname(Tree t)
 {
     Tree namelist = nth(ffsignature(t), 1);
-    return tree2str(nth(namelist, gGlobal->gFloatSize - 1));
+    return tree2str(nth(namelist, sigs::g.gFloatSize - 1));
 }
 
 int ffarity(Tree t)

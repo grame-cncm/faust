@@ -192,15 +192,11 @@ double rint(double nr)
 
 char* realpath(const char* path, char resolved_path[MAX_PATH])
 {
-    // GetFullPathName() has three outcomes, and only one of them fills the buffer:
-    //  - success            : returns the length written, excluding the null terminator
-    //  - buffer too small   : returns the *required* size, null terminator included,
-    //                         and leaves resolved_path untouched
-    //  - any other failure  : returns zero
-    // Testing the result as a boolean therefore accepts the second case and hands back
-    // an uninitialized buffer, so the length has to be checked against the buffer size.
-    DWORD size = GetFullPathNameA(path, MAX_PATH, resolved_path, 0);
-    return (size > 0 && size < MAX_PATH) ? resolved_path : nullptr;
+    if (GetFullPathNameA(path, MAX_PATH, resolved_path, 0)) {
+        return resolved_path;
+    } else {
+        return "";
+    }
 }
 
 char* basename(const char* fullpath)

@@ -1,4 +1,4 @@
-/* Copyright 2023 Yann ORLAREY
+/* Copyright 2020-2026 Yann Orlarey, Agathe Herrou, Stéphane Letz
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ namespace itv {
 // be careful with the order of the arguments:
 // atan2 is typically called as atan2(y,x)
 // (where (x,y) are the cartesian coordinates of the point we wish to retrieve the angle of)
-interval interval_algebra::Atan2(const interval& y, const interval& x)
+interval interval_algebra::Atan2(const interval& y, const interval& x) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

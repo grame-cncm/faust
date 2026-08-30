@@ -24,11 +24,12 @@
 #include "Text.hh"
 #include "floats.hh"
 #include "sigtyperules.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class MaxPrim : public xtended {
+class MaxPrim : public xtendedCodegen {
    public:
-    MaxPrim() : xtended("max") {}
+    MaxPrim() : xtendedCodegen("max") {}
 
     virtual unsigned int arity() override { return 2; }
 
@@ -39,20 +40,6 @@ class MaxPrim : public xtended {
         return (type == kInt) ? "max_i" : subst("max_$0", isuffix());
     }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        interval i = args[0]->getInterval();
-        interval j = args[1]->getInterval();
-        // Use 'max' on intervals here...
-        return castInterval(args[0] | args[1], gAlgebra.Max(i, j));
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return std::max(args[0], args[1]);
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -168,9 +155,20 @@ class MaxPrim : public xtended {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        ::Type t = inferSigType(types);
         return subst("\\max\\left( $0, $1 \\right)", args[0], args[1]);
     }
+
+
+    double compute(const std::vector<Node>& args) override
+    {
+        int i, j;
+        if (isInt(args[0], &i) && isInt(args[1], &j)) {
+            return std::max(i, j);
+        } else {
+            return std::max(args[0].getDouble(), args[1].getDouble());
+        }
+    }
+
 
     Tree diff(const std::vector<Tree>& args) override
     {
@@ -181,15 +179,5 @@ class MaxPrim : public xtended {
          *                \
          */
         return sigSelect2(sigGT(args[0], args[1]), args[2], args[3]);
-    }
-
-    double compute(const std::vector<Node>& args) override
-    {
-        int i, j;
-        if (isInt(args[0], &i) && isInt(args[1], &j)) {
-            return std::max(i, j);
-        } else {
-            return std::max(args[0].getDouble(), args[1].getDouble());
-        }
     }
 };

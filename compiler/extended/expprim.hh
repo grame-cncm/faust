@@ -23,29 +23,17 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class ExpPrim : public xtended {
+class ExpPrim : public xtendedCodegen {
    public:
-    ExpPrim() : xtended("exp") {}
+    ExpPrim() : xtendedCodegen("exp") {}
 
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        Type     t = args[0];
-        interval i = t->getInterval();
-        return castInterval(floatCast(t), gAlgebra.Exp(i));
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return args[0];
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -90,11 +78,11 @@ class ExpPrim : public xtended {
         return subst("e^{$0}", args[0]);
     }
 
+    double compute(const std::vector<Node>& args) override { return exp(args[0].getDouble()); }
+
     Tree diff(const std::vector<Tree>& args) override
     {
         // (e^x)' = e^x
         return sigExp(args[0]);
     }
-
-    double compute(const std::vector<Node>& args) override { return exp(args[0].getDouble()); }
 };

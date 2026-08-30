@@ -1,4 +1,4 @@
-/* Copyright 2023 Yann ORLAREY
+/* Copyright 2020-2026 Yann Orlarey, Agathe Herrou, Stéphane Letz
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <algorithm>
+#include <climits>
 #include <functional>
 #include <random>
 
@@ -26,7 +27,7 @@ namespace itv {
 // interval Acos(const interval& x);
 // void testAcos();
 
-interval interval_algebra::Abs(const interval& x)
+interval interval_algebra::Abs(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();
@@ -37,10 +38,10 @@ interval interval_algebra::Abs(const interval& x)
         return x;
     }
 
-    // integer overflowing
+    // integer wrapping : abs(INT_MIN) is INT_MIN again, so when INT_MIN is in x the
+    // result reaches BOTH ends of the integer range
     if ((x.lsb() >= 0) && (x.lo() <= (double)INT_MIN)) {
-        double lo = (x.hi() >= 0) ? 0 : std::min(std::abs(x.hi()), (double)INT_MAX);
-        return {lo, (double)INT_MAX, x.lsb()};
+        return {(double)INT_MIN, (double)INT_MAX, x.lsb()};
     }
     if (x.hi() <= 0) {
         return {-x.hi(), -x.lo(), x.lsb()};

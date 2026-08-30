@@ -23,30 +23,17 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
-class Atan2Prim : public xtended {
+class Atan2Prim : public xtendedCodegen {
    public:
-    Atan2Prim() : xtended("atan2") {}
+    Atan2Prim() : xtendedCodegen("atan2") {}
 
     virtual unsigned int arity() override { return 2; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == 2);
-        Type     t = args[0];
-        Type     u = args[1];
-        interval i = t->getInterval();
-        interval j = u->getInterval();
-        return castInterval(floatCast(t | u), gAlgebra.Atan2(i, j));
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        return std::max(args[0], args[1]);
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {

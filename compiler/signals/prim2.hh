@@ -22,6 +22,7 @@
 #ifndef _Prim2_
 #define _Prim2_
 
+#include "sigs-export.hh"
 #include "sigtype.hh"
 #include "tlib.hh"
 
@@ -39,7 +40,7 @@ Tree ffsignature(Tree t);
  * @param  t - the signal
  * @return the name
  */
-LIBFAUST_API const char* ffname(Tree t);
+SIGS_API const char* ffname(Tree t);
 
 /**
  *  Return the arity of a foreign function
@@ -47,7 +48,7 @@ LIBFAUST_API const char* ffname(Tree t);
  * @param  s - the signal
  * @return the name
  */
-LIBFAUST_API int ffarity(Tree t);
+SIGS_API int ffarity(Tree t);
 
 int         ffrestype(Tree t);
 int         ffargtype(Tree t, int i);

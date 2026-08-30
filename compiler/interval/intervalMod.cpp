@@ -1,4 +1,4 @@
-/* Copyright 2023 Yann ORLAREY
+/* Copyright 2020-2026 Yann Orlarey, Agathe Herrou, Stéphane Letz
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,8 +131,31 @@ interval positiveFMod(const interval& x, const interval& y)
 }
 
 // fmod of two signed intervals
-interval interval_algebra::Mod(const interval& x, const interval& y)
+interval interval_algebra::Mod(const interval& x, const interval& y) const
 {
+    if (x.isEmpty() || y.isEmpty()) {
+        return empty();
+    }
+
+    // INTEGER modulo (C semantics) : the result has the SIGN of x and its magnitude is
+    // bounded by BOTH |x| and the largest divisor magnitude minus one. The float path
+    // below, correct for fmod, closes the bound at |y| -- one whole unit too wide for
+    // integers : int(sr) % 2 is [0, 1], not [0, 2].
+    if ((x.lsb() >= 0) && (y.lsb() >= 0)) {
+        const double m = std::max(std::fabs(y.lo()), std::fabs(y.hi()));
+        if (m == 0) {
+            return empty();  // y == [0, 0] : division by zero, no value to describe
+        }
+        // smallest NONZERO divisor magnitude : when |x| stays below it, x % y = x
+        const double mmin = (y.lo() > 0) ? y.lo() : ((y.hi() < 0) ? -y.hi() : 1.0);
+        if (x.lo() > -mmin && x.hi() < mmin) {
+            return x;
+        }
+        const double lo = (x.lo() >= 0) ? 0.0 : std::max(x.lo(), -(m - 1));
+        const double hi = (x.hi() <= 0) ? 0.0 : std::min(x.hi(), m - 1);
+        return {lo, hi, std::min(x.lsb(), y.lsb())};
+    }
+
     auto [xn, xp] = split(x);    // slipts x into a negative and a positive interval
     auto [yn, yp] = splitnz(y);  // slipts y into a negative and a positive interval (zero excluded)
 
@@ -154,6 +177,16 @@ interval interval_algebra::Mod(const interval& x, const interval& y)
 
 void interval_algebra::testMod()
 {
+    // the integer path (C semantics : sign of x, magnitude < |y|)
+    checkExact("integer mod", Mod(interval(1, 192000, 0), interval(2, 2, 0)),
+               interval(0, 1, 0));
+    checkExact("integer mod signed x", Mod(interval(-10, 10, 0), interval(3, 3, 0)),
+               interval(-2, 2, 0));
+    checkExact("integer mod small x", Mod(interval(3, 5, 0), interval(7, 7, 0)),
+               interval(3, 5, 0));
+    checkExact("integer mod negative y", Mod(interval(0, 100, 0), interval(-7, -7, 0)),
+               interval(0, 6, 0));
+
     // check("test algebra Mod", Mod(interval(-100, 100), 1.0), interval(nextafter(-1.0, 0.0),
     // nextafter(1.0, 0.0))); check("test algebra Mod", Mod(interval(0, 100), 2), interval(0,
     // nextafter(2.0, 0))); check("test algebra Mod", Mod(interval(0, 100), -1.0), interval(0,

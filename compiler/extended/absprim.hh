@@ -25,11 +25,12 @@
 #include "code_container.hh"
 #include "floats.hh"
 #include "sigtyperules.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "global.hh"
 
-class AbsPrim : public xtended {
+class AbsPrim : public xtendedCodegen {
    public:
-    AbsPrim() : xtended("abs") {}
+    AbsPrim() : xtendedCodegen("abs") {}
 
     virtual unsigned int arity() override { return 1; }
 
@@ -40,19 +41,6 @@ class AbsPrim : public xtended {
         return (type == kInt) ? "abs" : subst("fabs$0", isuffix());
     }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-        Type     t = args[0];
-        interval i = t->getInterval();
-        return castInterval(t, gAlgebra.Abs(i));
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return args[0];
-    }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -115,8 +103,7 @@ class AbsPrim : public xtended {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        Type t = inferSigType(types);
-        if (t->nature() == kReal) {
+        if (types[0]->nature() == kReal) {  // abs keeps its argument's nature
             return subst("fabs$1($0)", args[0], isuffix());
         } else {
             return subst("abs($0)", args[0]);
@@ -129,15 +116,7 @@ class AbsPrim : public xtended {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        ::Type t = inferSigType(types);
         return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
-    }
-
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        // |x|' = x / |x|, x != 0
-        return sigSelect2(sigEQ(args[0], sigReal(0.0)), sigReal(0.0),
-                          sigDiv(args[0], sigAbs(args[0])));
     }
 
     double compute(const std::vector<Node>& args) override
@@ -152,5 +131,12 @@ class AbsPrim : public xtended {
             faustassert(false);
             return 0;
         }
+    }
+
+    Tree diff(const std::vector<Tree>& args) override
+    {
+        // |x|' = x / |x|, x != 0
+        return sigSelect2(sigEQ(args[0], sigReal(0.0)), sigReal(0.0),
+                          sigDiv(args[0], sigAbs(args[0])));
     }
 };

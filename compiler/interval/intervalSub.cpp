@@ -1,4 +1,4 @@
-/* Copyright 2023 Yann ORLAREY
+/* Copyright 2020-2026 Yann Orlarey, Agathe Herrou, Stéphane Letz
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include <algorithm>
+#include <climits>
 #include <functional>
 #include <random>
 
@@ -29,10 +30,33 @@ static double sub(double a, double b)
     return a - b;
 }
 
-interval interval_algebra::Sub(const interval& x, const interval& y)
+interval interval_algebra::Sub(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
+    }
+
+    if ((x.lsb() >= 0) && (y.lsb() >= 0)) {  // integer subtraction wraps around int32
+        const int xlo = (int)x.lo();
+        const int xhi = (int)x.hi();
+        const int ylo = (int)y.lo();
+        const int yhi = (int)y.hi();
+
+        double lo = x.lo() - y.hi();
+        double hi = x.hi() - y.lo();
+
+        // if there is a discontinuity by the lower end of integers
+        if ((lo <= (double)INT_MIN - 1) && (hi >= (double)INT_MIN)) {
+            return {(double)INT_MIN, (double)INT_MAX, std::min(x.lsb(), y.lsb())};
+        }
+
+        // if there is a discontinuity by the higher end of integers
+        if ((lo <= (double)INT_MAX) && (hi >= (double)INT_MAX + 1)) {
+            return {(double)INT_MIN, (double)INT_MAX, std::min(x.lsb(), y.lsb())};
+        }
+
+        // if there is potential wrapping but no discontinuity
+        return {(double)(xlo - yhi), (double)(xhi - ylo), std::min(x.lsb(), y.lsb())};
     }
 
     return {x.lo() - y.hi(), x.hi() - y.lo(), std::min(x.lsb(), y.lsb())};

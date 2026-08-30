@@ -57,7 +57,6 @@ unique to each sharing analysis must be generated.
 #include <stdlib.h>
 #include <string.h>
 
-#include "compatibility.hh"
 #include "shlysis.hh"
 
 /**
@@ -66,12 +65,9 @@ unique to each sharing analysis must be generated.
 
 Tree shprkey(Tree t)
 {
-    // one fresh key per analyzed root. unique() alone guarantees the
-    // uniqueness ; the root's ADDRESS must never enter the name -- a
-    // symbol content derived from the memory layout contaminates every
-    // canonical hash downstream (the build-determinism doctrine)
-    (void)t;
-    return tree(unique("SHARED IN"));
+    char name[256];
+    snprintf(name, 256, "SHARED IN %p : ", t);
+    return tree(unique(name));
 }
 
 /**

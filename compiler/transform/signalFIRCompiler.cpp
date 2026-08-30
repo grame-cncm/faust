@@ -20,12 +20,14 @@
  ************************************************************************/
 
 #include "signalFIRCompiler.hh"
+#include "xtendedCodegen.hh"
 #include "compatibility.hh"  // For basename, pathToContent
 #include "xtended.hh"
 
 #include <iostream>
 #include <string>
 #include <vector>
+#include "global.hh"
 
 using namespace std;
 
@@ -59,7 +61,7 @@ using namespace std;
 //
 //----------------------------------------------------------------------
 
-void SignalFIRCompiler::compileXtended(Tree sig, xtended* xt)
+void SignalFIRCompiler::compileXtended(Tree sig, xtendedCodegen* xt)
 {
     list<ValueInst*>       args;
     vector<Typed::VarType> atypes;
@@ -443,7 +445,7 @@ void SignalFIRCompiler::visit(Tree sig)
      }
      */
 
-    if (xtended* xt = (xtended*)getUserData(sig)) {
+    if (xtendedCodegen* xt = static_cast<xtendedCodegen*>((xtended*)getUserData(sig))) {
         compileXtended(sig, xt);
     } else if (isSigInt(sig, &i_val)) {
         compileSigInt(sig, i_val);

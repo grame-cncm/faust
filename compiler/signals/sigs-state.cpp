@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    FAUST signal library
+    Copyright (C) 2003-2026 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as published by
@@ -19,19 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
-#include "xtended.hh"
-#include "code_container.hh"
-#include "floats.hh"
+#include "sigs-state.hh"
 
-using namespace std;
+namespace sigs {
 
-ValueInst* xtended::generateFun(CodeContainer* container, const string& fun_name,
-                                const Values& args, ::Type result, ConstTypes types)
-{
-    Typed::VarType         rtype = convert2FIRType(result->nature());
-    vector<Typed::VarType> atypes;
-    for (size_t i = 0; i < types.size(); i++) {
-        atypes.push_back(convert2FIRType(types[i]->nature()));
-    }
-    return container->pushFunction(fun_name, rtype, atypes, args);
-}
+State g;
+
+}  // namespace sigs

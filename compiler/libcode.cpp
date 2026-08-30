@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#ifdef _WIN32
+#ifdef WIN32
 #pragma warning(disable : 4996 4146 4244)
 #endif
 
@@ -284,23 +284,17 @@ static void createHelperFile(const string& outpath)
                                 MAIN
 *****************************************************************/
 
-// creation-sequence probe (FAUST_SERIAL_PROBE=1) : serial counter and
-// order-sensitive rolling hash of every tree created so far -- two builds
-// that diverge here diverge in tree CREATION order, whatever the trees'
-// contents (the build-determinism forensic instrument)
-#define SERIAL_PROBE(tag)                                                       \
-    if (getenv("FAUST_SERIAL_PROBE")) {                                         \
-        fprintf(stderr, "SERIAL %s : %zu seq=%zu\n", tag,                       \
-                CTree::serialCounter(), CTree::seqHash());                      \
-    }
 
+#define SERIAL_PROBE_FE(tag)                                                            \
+    if (getenv("FAUST_SERIAL_PROBE")) {                                                 \
+        std::cerr << "SERIAL " << tag << " : " << CTree::serialCounter()                \
+                  << " seq=" << CTree::seqHash() << std::endl;                          \
+    }
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs)
 {
     startTiming("evaluation");
 
-    SERIAL_PROBE("avant-eval")
     Tree process = evalprocess(expandedDefList);
-    SERIAL_PROBE("apres-eval")
     if (gGlobal->gErrorCount > 0) {
         stringstream error;
         error << "ERROR : total of " << gGlobal->gErrorCount << " errors during the compilation of "
@@ -554,7 +548,11 @@ static void compileOCPP(Tree signals, int numInputs, int numOutputs)
         gOldComp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
                                          numOutputs);
     } else if (gGlobal->gVectorSwitch) {
-        gOldComp = new VectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
+        // ocpp -vec routes to the super-node loop-split emission: the
+        // historical VectorCompiler relies on retired delay machinery
+        // (generateRec asserts). Same functionality, new structure.
+        gGlobal->gLoopSplit = true;
+        gOldComp = new ScalarCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
                                       numOutputs);
     } else {
         gOldComp = new ScalarCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
@@ -1079,6 +1077,11 @@ static void printHeader(ostream& dst)
 
     dst << "//" << endl;
     dst << "// Code generated with Faust " << FAUSTVERSION << " (https://faust.grame.fr)" << endl;
+    // Same contract as the cpp backend : the canonical option line is embedded in
+    // the generated code (header comment now, compile_options metadata as a side
+    // effect), so tools reading the code -- the dashboard's config identity in
+    // particular -- never have to guess the options from the command line.
+    dst << "// Compilation options: " << gGlobal->printCompilationOptions1() << endl;
     dst << "//----------------------------------------------------------" << endl << endl;
 }
 
@@ -1313,7 +1316,9 @@ static void* expandDSPInternal(void* arg)
         *****************************************************************/
         int  numInputs;
         int  numOutputs;
+        SERIAL_PROBE_FE("avant-eval")
         Tree processTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+        SERIAL_PROBE_FE("apres-eval")
 
         stringstream out;
         expandDSPInternalAux(processTree, argc, argv, out);
@@ -1440,7 +1445,9 @@ static void* createFactoryAux1(void* arg)
         *****************************************************************/
         int  numInputs;
         int  numOutputs;
+        SERIAL_PROBE_FE("avant-eval")
         Tree processTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+        SERIAL_PROBE_FE("apres-eval")
         if (numOutputs == 0) {
             throw faustexception("ERROR : the Faust program has no output signal\n");
         }
@@ -1459,9 +1466,9 @@ static void* createFactoryAux1(void* arg)
         *****************************************************************/
         startTiming("propagation");
 
-        SERIAL_PROBE("avant-propagate")
+        SERIAL_PROBE_FE("avant-propagate")
         Tree lsignals = boxPropagateSig(gGlobal->nil, processTree, makeSigInputList(numInputs));
-        SERIAL_PROBE("apres-propagate")
+        SERIAL_PROBE_FE("apres-propagate")
 
         if (gGlobal->gDetailsSwitch) {
             cout << "output signals are : " << endl;

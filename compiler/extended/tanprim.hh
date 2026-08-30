@@ -23,37 +23,21 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
+#include "exception.hh"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
 
-class TanPrim : public xtended {
+class TanPrim : public xtendedCodegen {
    public:
-    TanPrim() : xtended("tan") {}
+    TanPrim() : xtendedCodegen("tan") {}
 
     virtual unsigned int arity() override { return 1; }
 
     virtual bool needCache() override { return true; }
 
-    virtual ::Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == 1);
-        interval i = args[0]->getInterval();
-        interval r = gAlgebra.Tan(i);
-        // The check can be improved to ensure that no infinity is in the range
-        /*
-         if (i.isValid()) {
-            if ((-halfpi < i.lo()) && (i.hi() < halfpi)) {
-                r = interval(tan(i.lo()), tan(i.hi()));
-            }
-        }
-        */
-        return castInterval(floatCast(args[0]), r);
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override { return args[0]; }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args) override
     {
@@ -92,12 +76,12 @@ class TanPrim : public xtended {
         return subst("\\tan\\left($0\\right)", args[0]);
     }
 
+    double compute(const std::vector<Node>& args) override { return tan(args[0].getDouble()); }
+
     Tree diff(const std::vector<Tree>& args) override
     {
         // (tan(x))' = sec^2(x) = 1 / cos^2(x)
         // TODO: handle division by zero
         return sigDiv(sigReal(1.0), sigPow(sigCos(args[0]), sigReal(2.0)));
     }
-
-    double compute(const std::vector<Node>& args) override { return tan(args[0].getDouble()); }
 };

@@ -24,7 +24,7 @@
 #include "Text.hh"
 #include "floats.hh"
 #include "global.hh"
-#include "xtended.hh"
+#include "xtendedCodegen.hh"
 
 /*
  When argument is kInt and exponent is kInt (or kReal without decimal part),
@@ -34,34 +34,14 @@
  Otherwise pow[f||l](argument,exponent) is generated.
  */
 
-class PowPrim : public xtended {
+class PowPrim : public xtendedCodegen {
    public:
-    PowPrim() : xtended("pow") {}
+    PowPrim() : xtendedCodegen("pow") {}
 
     virtual unsigned int arity() override { return 2; }
 
     virtual bool needCache() override { return true; }
 
-    virtual Type inferSigType(ConstTypes args) override
-    {
-        faustassert(args.size() == arity());
-
-        Type t = args[0];
-        Type u = args[1];
-
-        interval i = t->getInterval();
-        interval j = u->getInterval();
-
-        return castInterval(
-            t | u,
-            gAlgebra.Pow(i, j));  // maybe we should distinguish between real and integer exponents
-    }
-
-    virtual int inferSigOrder(const std::vector<int>& args) override
-    {
-        faustassert(args.size() == arity());
-        return std::max(args[0], args[1]);
-    }
 
     // Fast integer based power, for positive exponent
     template <typename Type1, typename Type2>
@@ -236,15 +216,6 @@ class PowPrim : public xtended {
     // indicate that we want ^(n) to be equivalent to _^n
     virtual bool isSpecialInfix() override { return true; }
 
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        // (f^g)' = (f^g)(g*ln(f))' = f^{g-1} * g * f' + f^g * g' * ln(f)
-        //                          = f^{g-1}(g * f' + ln(f) * f * g'))
-        return sigMul(
-            sigPow(args[0], sigSub(args[1], sigReal(1.0))),
-            sigAdd(sigMul(args[1], args[2]), sigMul(sigLog(args[0]), sigMul(args[0], args[3]))));
-    }
-
     double compute(const std::vector<Node>& args) override
     {
         if (isInt(args[0]) && isInt(args[1])) {
@@ -252,5 +223,14 @@ class PowPrim : public xtended {
         } else {
             return pow(args[0].getDouble(), args[1].getDouble());
         }
+    }
+
+    Tree diff(const std::vector<Tree>& args) override
+    {
+        // (f^g)' = (f^g)(g*ln(f))' = f^{g-1} * g * f' + f^g * g' * ln(f)
+        //                          = f^{g-1}(g * f' + ln(f) * f * g'))
+        return sigMul(
+            sigPow(args[0], sigSub(args[1], sigReal(1.0))),
+            sigAdd(sigMul(args[1], args[2]), sigMul(sigLog(args[0]), sigMul(args[0], args[3]))));
     }
 };

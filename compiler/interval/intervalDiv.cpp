@@ -1,4 +1,4 @@
-/* Copyright 2023 Yann ORLAREY
+/* Copyright 2020-2026 Yann Orlarey, Agathe Herrou, Stéphane Letz
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval division
 
-interval interval_algebra::Div(const interval& x, const interval& y)
+interval interval_algebra::Div(const interval& x, const interval& y) const
 {
     interval D = Mul(x, Inv(y));
     return D;
