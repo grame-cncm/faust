@@ -1726,6 +1726,18 @@ bool global::processCmdline(int argc, const char* argv[])
             gMathExceptions = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-fir", "--fir-iir")) {
+            gReconstructFIRIIRs = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-iirt", "--iir-transposed")) {
+            gIIRTransposed = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-lsum", "--lower-sums")) {
+            gLowerSums = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-diff", "--auto-differentiate")) {
             gAutoDifferentiate = true;
             i += 1;

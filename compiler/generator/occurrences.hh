@@ -77,3 +77,6 @@ class OccMarkup : public virtual Garbageable {
 };
 
 #endif
+
+// true when a kernel reads this signal through a tap at delay >= 1
+bool hasKernelDelayedTap(Tree sig);

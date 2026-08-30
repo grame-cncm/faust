@@ -26,6 +26,7 @@
 #include "global.hh"
 #include "occurrences.hh"
 #include "recursivness.hh"
+#include "factorizeFIRs.hh"
 #include "sigtyperules.hh"
 
 using namespace std;
@@ -119,6 +120,23 @@ Tree Occurrences::getExecCondition() const
 //	Mark and retrieve occurrences of subtrees of root
 //----------------------------------------------------
 
+
+// an all-ones CONTIGUOUS FIR from tap 0 with at least 4 taps : a moving
+// sum, eligible for the O(1) sliding emission (y = y' + x - x@T)
+static bool isSlidingSumFIR(const tvec& coef, int& T)
+{
+    if (coef.size() < 5) {
+        return false;  // fewer than 4 taps
+    }
+    for (size_t i = 1; i < coef.size(); i++) {
+        if (!isOne(coef[i])) {
+            return false;
+        }
+    }
+    T = int(coef.size()) - 1;
+    return true;
+}
+
 void OccMarkup::mark(Tree root)
 {
     fRootTree = root;
@@ -147,6 +165,21 @@ Occurrences* OccMarkup::retrieve(Tree t)
 // xc : exec condition expression
 //------------------------------------------------------------------------------
 
+// a source read by a KERNEL tap at delay >= 1 : the read site is
+// structurally inseparable from the kernel's other taps, so it can never
+// be scheduled before the writer -- the mono election must see it (the
+// lf_imptrain lesson : x - x@1 as a kernel on a mono scalar read the SAME
+// value twice, and the impulse train fell silent)
+static void markKernelTapped(Tree src)
+{
+    src->setProperty(tree(symbol("KERNELTAPPED")), tree(1));
+}
+
+bool hasKernelDelayedTap(Tree sig)
+{
+    return sig->getProperty(tree(symbol("KERNELTAPPED"))) != nullptr;
+}
+
 void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 {
     // Check if we have already visited this tree
@@ -154,11 +187,8 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
     bool         firstVisit = (occ == 0);
     if (firstVisit) {
         // 1) We build initial occurence information
-        // variability from the kind bits : total on the whole language
-        // (letrec groups included), where the type annotation only covers
-        // projections in the fixpoint-typing world
         int v0 = sigVariability(t);
-        int  r0 = getRecursivness(t);
+        int r0 = getRecursivness(t);
         // fConditions may have been initialized empty
         Tree c0 = (fConditions.find(t) == fConditions.end()) ? gGlobal->nil : fConditions[t];
         occ     = new Occurrences(v0, r0, c0);
@@ -175,6 +205,53 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         } else if (isSigPrefix(t, y, x)) {
             incOcc(env, v0, r0, 1, c0, x);
             incOcc(env, v0, r0, 0, c0, y);
+        } else if (tvec V; isSigIIR(t, V)) {
+            // IIR[nil,X,C0=0,C1,...] : y = X + sum Ci*y@i -- the node reads
+            // ITSELF at delays i-2 (that sizes its own delay line), the
+            // input and the coefficients at delay 0
+            faustassert(V.size() >= 4);
+            incOcc(env, v0, r0, 0, c0, V[1]);
+            // the direct form reads ITSELF delayed ; a kernel ELECTED
+            // transposed (property set by the pre-markup scan, same judge
+            // as the emission) replaces those reads by its state chain
+            bool transposed = (t->getProperty(tree(symbol("SIGIIRTRANSPOSED"))) != nullptr);
+            for (unsigned int k = 3; k < V.size(); k++) {
+                incOcc(env, v0, r0, 0, c0, V[k]);
+                if (!isZero(V[k]) && !transposed) {
+                    incOcc(env, v0, r0, int(k) - 2, c0, t);
+                }
+            }
+        } else if (tvec V; kernelWorkVec(t, V)) {
+            // sliding-sum candidates read the source one slot FURTHER
+            // (x@T) than the widest tap : declare it here so the delay
+            // line covers the O(1) emission (see generateFIR)
+            {
+                int T;
+                if (isSlidingSumFIR(V, T)) {
+                    incOcc(env, v0, r0, T, c0, V[0]);
+                }
+            }
+            // FIR[X,C0,C1,...] : the source X is read at delays 0..n-1 (one
+            // per non-zero coefficient) -- this is what sizes its delay
+            // line ; the coefficients are ordinary immediate reads
+            faustassert(V.size() >= 2);
+            for (unsigned int k = 1; k < V.size(); k++) {
+                // zero coefficients are absent reads -- and the leading
+                // zeros of a shifted kernel are FRESH trees built by the
+                // work-vector reconstruction, never annotated : marking
+                // them would consult annotations they cannot have
+                if (!isZero(V[k])) {
+                    incOcc(env, v0, r0, 0, c0, V[k]);
+                    incOcc(env, v0, r0, int(k) - 1, c0, V[0]);
+                    if (int(k) - 1 >= 1) {
+                        markKernelTapped(V[0]);
+                    }
+                }
+            }
+            if (!getOcc(V[0])) {
+                // degenerated FIR[X,0,0,...] : X still needs a mark
+                incOcc(env, v0, r0, 0, c0, V[0]);
+            }
         } else {
             tvec br;
             int  n = getSubSignals(t, br);
