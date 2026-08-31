@@ -31,7 +31,6 @@ inline namespace mojo {
 using VecVisitor  = MojoVecInstVisitor;
 using BaseVisitor = MojoInstVisitor;
 using MojoDType   = VecVisitor::MojoDType;
-using MojoWidth   = VecVisitor::MojoWidth;
 
 MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, String const& structName, int tab)
     : BaseVisitor(out, structName, tab)
@@ -39,7 +38,7 @@ MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, String const& structName, i
     gSIMDSize = gGlobal->gVecSize;
     gSIMDEmit = false;
     gSIMDHigh = false;
-    gSIMDWide = false;
+    gSIMDHalf = false;
     gSIMDJoin = false;
     gCurLhsDT = MojoDType_none;
     gCurAddrs = "";
@@ -58,19 +57,19 @@ void VecVisitor::visit(IfInst* inst)
 void VecVisitor::visit(Int32NumInst* inst)
 {
     mj_simd_emit_check();
-    *fOut << (gSIMDWide ? "S32Wec(" : "S32Vec(") << inst->fNum << ")";
+    *fOut << (gSIMDHalf ? "S32Wec(" : "S32Vec(") << inst->fNum << ")";
 }
 
 void VecVisitor::visit(BoolNumInst* inst)
 {
     mj_simd_emit_check();
-    *fOut << (gSIMDWide ? "S32Wec(" : "S32Vec(") << checkFloat(inst->fNum) << ")";
+    *fOut << (gSIMDHalf ? "S32Wec(" : "S32Vec(") << checkFloat(inst->fNum) << ")";
 }
 
 void VecVisitor::visit(FloatNumInst* inst)
 {
     mj_simd_emit_check();
-    *fOut << (gSIMDWide ? "F32Wec(" : "F32Vec(") << checkFloat(inst->fNum) << ")";
+    *fOut << (gSIMDHalf ? "F32Wec(" : "F32Vec(") << checkFloat(inst->fNum) << ")";
 }
 
 void VecVisitor::visit(DoubleNumInst* inst)
@@ -98,16 +97,16 @@ void MojoVecInstVisitor::visit(LoadVarInst* inst)
 {
     MojoDType cur_load_dtype = getMojoDType(inst);
     if (gCurLhsDT == MojoDType_faust && cur_load_dtype == MojoDType_f64) {
-        gSIMDWide = true;
+        gSIMDHalf = true;
     }
     if (gCurLhsDT == MojoDType_f64 && cur_load_dtype == MojoDType_s32) {
-        gSIMDWide = true; 
+        gSIMDHalf = true; 
     }
     if (gCurLhsDT == MojoDType_f64 && cur_load_dtype == MojoDType_faust) {
-        gSIMDWide = true; 
+        gSIMDHalf = true; 
     }
     if (gCurLhsDT == MojoDType_faust && gSIMDJoin) {
-        gSIMDWide = true; 
+        gSIMDHalf = true; 
     }
     BaseVisitor::visit(inst);
 }
@@ -140,11 +139,11 @@ void VecVisitor::visit(IndexedAddress* inst)
     Address* addr = inst->fAddress;
     String name = snakeCase(addr->getName());
     name = addr->isStruct() || addr->isStaticStruct() ? "dsp." + name : name;
-    String func = gSIMDWide ? "vload[W]" : "vload";
+    String func = gSIMDHalf ? "vload[H]" : "vload";
     *fOut << func << "(" << name;
     b32 has_index = visitIndex(inst->getIndex());
     if (gSIMDHigh) {
-        *fOut << (has_index ? " + wsize" : ", wsize");
+        *fOut << (has_index ? " + hsize" : ", hsize");
     }
     *fOut << ")";
 }
@@ -249,7 +248,7 @@ void VecVisitor::visit(ForLoopInst* inst)
 End_Loop:
     *fOut << wnextl(fTab);
     gSIMDHigh = false;
-    gSIMDWide = false;
+    gSIMDHalf = false;
     gSIMDJoin = false;
     gCurLhsDT = MojoDType_none;
     gCurAddrs.clear();
@@ -293,7 +292,7 @@ void VecVisitor::visitBargraphUpdate(ForLoopInst* inst)
         value->accept(this);
         *fOut << ")" << wnextl(fTab) << "vstore(" << out << ", ";
         mj_simd_high_accept(value);
-        *fOut << ", wsize)" << wnextl(fTab);
+        *fOut << ", hsize)" << wnextl(fTab);
         *fOut << "dsp." << bar << " = FaustFloat(" << out << idx << "vsize - S32(1)])" << wnextl(fTab);
         goto End_Loop;
     }
@@ -344,7 +343,7 @@ void VecVisitor::visitSplit(StoreVarInst* inst)
     inst->fValue->accept(this);
     *fOut << ")" << wnextl(fTab) << "vstore(" << gCurAddrs << ", ";
     mj_simd_high_accept(inst->fValue);
-    *fOut << ", wsize)";
+    *fOut << ", hsize)";
     mj_simd_emit_restore();
 }
 
@@ -377,7 +376,7 @@ void VecVisitor::visitBinopOperand(ValueInst* inst)
     }
 
     MojoDType dtype = getMojoDType(inst);
-    b32       wec   = gSIMDWide || gSIMDJoin || gCurLhsDT == MojoDType_f64;
+    b32       wec   = gSIMDHalf || gSIMDJoin || gCurLhsDT == MojoDType_f64;
 
     switch (dtype) {
         case MojoDType_s32:

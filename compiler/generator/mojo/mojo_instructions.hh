@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-/** @file compiler/generator/mojo/mojo_instructions.cpp */
+/** @file compiler/generator/mojo/mojo_instructions.hh */
 
 #ifndef MOJO_INSTRUCTIONS_HH
 #define MOJO_INSTRUCTIONS_HH
@@ -107,39 +107,6 @@ protected:
 };
 
 /**
-    A `MojoInitFieldsVisitor` is a `DispatchVisitor` for the mojo backend.
-    @desc
-    - It is used to generate the fields initialization code in the default
-      constructor `__init__(out dsp)` of the generated class.
-    - Produces and writes the translation from Faust IR to Mojo code using
-      the visit operations.
-    - An instance is created with an `output` stream and a `tab` number
-      for indentation.
-    @rep
-    - `out`: the stream to write to.
-    - `tab`: the number of tabs for indentation.
-    @glob
-    - Allows to generate a `zero initializer` for a given `typed` value.
-**/
-class MojoInitFieldsVisitor : public DispatchVisitor
-{
-public:
-    using DispatchVisitor::visit;
-    OStream* fOut;
-    s32      fTab;
-
-    MojoInitFieldsVisitor(OStream* out, s32 tab = 0);
-
-    void visit(DeclareVarInst* inst)     override;
-    void visit(NamedAddress* inst)       override;
-    void visit(Int32ArrayNumInst* inst)  override;
-    void visit(FloatArrayNumInst* inst)  override;
-    void visit(DoubleArrayNumInst* inst) override;
-
-    static void gZeroInitializer(OStream* out, Typed* typed);
-};
-
-/**
     A `MojoVecInstVisitor` is a `MojoInstVisitor` when the `-vec` mode is enabled.
     @desc
     - Produces and writes explicit SIMD expressions.
@@ -162,11 +129,6 @@ public:
         MojoDType_f64   = 2,
         MojoDType_faust = 3,
         MojoDType_bool  = 4,
-    };
-
-    enum MojoWidth : s32 {
-        MojoWidth_Small,
-        MojoWidth_Large,
     };
 
     static MojoDType getMojoDType(ValueInst* value);
@@ -193,14 +155,14 @@ public:
     void visit(ForLoopInst* inst)    override;
 
     // Global state
-    static inline s32          gSIMDSize;
-    static inline b32          gSIMDEmit;
-    static inline b32          gSIMDHigh;
-    static inline b32          gSIMDWide;
-    static inline b32          gSIMDJoin;
-    static inline MojoDType    gCurLhsDT;
-    static inline String       gCurAddrs;
-    static inline Address*     gCurIndex;
+    static inline s32        gSIMDSize;
+    static inline b32        gSIMDEmit;
+    static inline b32        gSIMDHigh;
+    static inline b32        gSIMDHalf;
+    static inline b32        gSIMDJoin;
+    static inline MojoDType  gCurLhsDT;
+    static inline String     gCurAddrs;
+    static inline Address*   gCurIndex;
 
 protected:
     // Visitor wrappers
@@ -223,6 +185,39 @@ protected:
     static b32 isWrappedIndexExpr(ValueInst* inst);
     static b32 isScalarAddress(Address* addr);
     static b32 isScalarValue(ValueInst* inst);
+};
+
+/**
+    A `MojoInitFieldsVisitor` is a `DispatchVisitor` for the mojo backend.
+    @desc
+    - It is used to generate the fields initialization code in the default
+      constructor `__init__(out dsp)` of the generated class.
+    - Produces and writes the translation from Faust IR to Mojo code using
+      the visit operations.
+    - An instance is created with an `output` stream and a `tab` number
+      for indentation.
+    @rep
+    - `out`: the stream to write to.
+    - `tab`: the number of tabs for indentation.
+    @glob
+    - Allows to generate a `zero initializer` for a given `Typed` value.
+**/
+class MojoInitFieldsVisitor : public DispatchVisitor
+{
+public:
+    using DispatchVisitor::visit;
+    OStream* fOut;
+    s32      fTab;
+
+    MojoInitFieldsVisitor(OStream* out, s32 tab = 0);
+
+    void visit(DeclareVarInst* inst)     override;
+    void visit(NamedAddress* inst)       override;
+    void visit(Int32ArrayNumInst* inst)  override;
+    void visit(FloatArrayNumInst* inst)  override;
+    void visit(DoubleArrayNumInst* inst) override;
+
+    static void gZeroInitializer(OStream* out, Typed* typed);
 };
 
 }       // namespace mojo

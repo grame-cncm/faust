@@ -416,8 +416,7 @@ MojoVecCodeContainer::~MojoVecCodeContainer() {}
 
 MojoVecCodeContainer::MojoVecCodeContainer(
     const std::string& name, int numInputs, int numOutputs, std::ostream* out
-)
-    : VectorCodeContainer(numInputs, numOutputs)
+) : VectorCodeContainer(numInputs, numOutputs)
 {
     fKlassName = name;
     fOut = out;
@@ -437,16 +436,15 @@ void MojoVecCodeContainer::writeCompute(int n)
     gVectorProducer->Tab(n);
     *fOut << wnextl(n) <<R"(comptime assert dfaust == DType.float32, "Expected 32 bit float driver precision.")";
     *fOut << wnextl(n) << "comptime vsize = S32(simd_width_of[f32]())";
-    *fOut << wnextl(n) << "comptime wsize = S32(simd_width_of[f64]())";
-    *fOut << wnextl(n) << "comptime W = simd_width_of[f64]()";
+    *fOut << wnextl(n) << "comptime hsize = S32(simd_width_of[f64]())";
+    *fOut << wnextl(n) << "comptime H = simd_width_of[f64]()";
     *fOut << wnextl(n) << "var vindex = S32(0)";
     *fOut << wnextl(n) << "var end = count - vsize" << wnextl(n);
-    // *fOut << wnextl(n) << "var lo: SIMD[dfaust, simd_width_of[f64]()]";
-    // *fOut << wnextl(n) << "var hi: SIMD[dfaust, simd_width_of[f64]()]" << wnextl(n);
     fDAGBlock->pop_front();  // main loop index initalized manually above
     generateComputeBlock(gVectorProducer);
     fDAGBlock->accept(gVectorProducer);
     *fOut << "vindex += vsize\n";
 }
+
 
 }  // namespace mojo

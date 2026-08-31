@@ -27,6 +27,7 @@ CompileFlags:
       -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/generator,
       -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/generator/fir,
       -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/generator/interpreter,
+      -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/normalize,
       -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/parallelize,
       -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/parser,
       -I/Users/manuelfarzini/Personal/dev/repo/faust/compiler/signals,
