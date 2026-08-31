@@ -128,6 +128,28 @@ Code generation options:
 
   **-rp**         **--ring-preload**              (ocpp, experimental) ring reads leave as a burst at the head of the loop body, a register move stays at the original slot.
 
+  **-ss** \<n>     **--scheduling-strategy** \<n>   (ocpp, experimental) instruction order of the loop body: 0 depth-first (default), 8 aligned, 9 bank-compositional, 11/12 compositional deep/wide spine.
+
+  **-fir**        **--fir-iir**                   (ocpp, experimental) recognise FIR/IIR kernels in the signal graph and emit their dedicated forms.
+
+  **-iirt**       **--iir-transposed**            (ocpp, experimental) transposed emission for the all-pole kernels recognised by -fir.
+
+  **-lsum**       **--lower-sums**                (ocpp, experimental) recover the polynomial form of large sums before emission.
+
+  **-mxr**        **--matrix-rows**               (ocpp, experimental) group families of parallel rows over a shared vector into matrix-vector emission.
+
+  **-temp** \<n>   **--temp-threshold** \<n>        (ocpp, experimental) materialize single-use expressions of n operations or more as temporaries (1 = SSA form, 0 = off).
+
+  **-stage** \<n>  **--staging-threshold** \<n>     (ocpp, experimental) stage expressions nested deeper than n into named temporaries.
+
+  **-reassoc**    **--reassociate**               (ocpp, experimental) late reassociation of the sums inside single-definition recursive groups (minimal recurrence chain).
+
+  **-lazyselect** **--lazy-select**               (ocpp, experimental) compute the branches of a selection only when selected.
+
+  **-selectn**    **--select-n**                  (ocpp, experimental) rebuild N-way dispatches from their select2 chains (implies -lazyselect).
+
+  **-gatequiv**   **--gate-equivalence**          (ocpp, experimental) one canonical form for the two spellings of a gated signal, so guards reach further.
+
   **-ls**-cl \<n>  **--loop-split-cl** \<n>         oracle: per-loop per-chunk overhead (default 20 cycles, implies -ls-fuse).
 
   **-ls**-spill \<n> **--loop-split-spill-weight** \<n> oracle: cycles per register-cycle above R (default 4, implies -ls-fuse).
