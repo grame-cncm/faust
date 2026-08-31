@@ -532,7 +532,7 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     return 1;
 }
 
-#ifndef TARGET_OS_IPHONE
+#if !defined(TARGET_OS_IPHONE) || !TARGET_OS_IPHONE
 
 int main(int argc, char* argv[])
 {
