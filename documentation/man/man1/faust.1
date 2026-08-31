@@ -189,6 +189,46 @@ feedback cycles split legally.
 reads leave as a burst at the head of the loop body, a register move
 stays at the original slot.
 .PP
+\f[B]-ss\f[R] <n> \f[B]\-\-scheduling-strategy\f[R] <n> (ocpp,
+experimental) instruction order of the loop body: 0 depth-first
+(default), 8 aligned, 9 bank-compositional, 11/12 compositional
+deep/wide spine.
+.PP
+\f[B]-fir\f[R] \f[B]\-\-fir-iir\f[R] (ocpp, experimental) recognise
+FIR/IIR kernels in the signal graph and emit their dedicated forms.
+.PP
+\f[B]-iirt\f[R] \f[B]\-\-iir-transposed\f[R] (ocpp, experimental)
+transposed emission for the all-pole kernels recognised by -fir.
+.PP
+\f[B]-lsum\f[R] \f[B]\-\-lower-sums\f[R] (ocpp, experimental) recover
+the polynomial form of large sums before emission.
+.PP
+\f[B]-mxr\f[R] \f[B]\-\-matrix-rows\f[R] (ocpp, experimental) group
+families of parallel rows over a shared vector into matrix-vector
+emission.
+.PP
+\f[B]-temp\f[R] <n> \f[B]\-\-temp-threshold\f[R] <n> (ocpp,
+experimental) materialize single-use expressions of n operations or more
+as temporaries (1 = SSA form, 0 = off).
+.PP
+\f[B]-stage\f[R] <n> \f[B]\-\-staging-threshold\f[R] <n> (ocpp,
+experimental) stage expressions nested deeper than n into named
+temporaries.
+.PP
+\f[B]-reassoc\f[R] \f[B]\-\-reassociate\f[R] (ocpp, experimental) late
+reassociation of the sums inside single-definition recursive groups
+(minimal recurrence chain).
+.PP
+\f[B]-lazyselect\f[R] \f[B]\-\-lazy-select\f[R] (ocpp, experimental)
+compute the branches of a selection only when selected.
+.PP
+\f[B]-selectn\f[R] \f[B]\-\-select-n\f[R] (ocpp, experimental) rebuild
+N-way dispatches from their select2 chains (implies -lazyselect).
+.PP
+\f[B]-gatequiv\f[R] \f[B]\-\-gate-equivalence\f[R] (ocpp, experimental)
+one canonical form for the two spellings of a gated signal, so guards
+reach further.
+.PP
 \f[B]-ls\f[R]-cl <n> \f[B]\-\-loop-split-cl\f[R] <n> oracle: per-loop
 per-chunk overhead (default 20 cycles, implies -ls-fuse).
 .PP
