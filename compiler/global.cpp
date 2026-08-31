@@ -447,6 +447,7 @@ void global::reset()
     gStagingOps     = 0;
     gTempOps        = 0;
     gReassoc        = false;
+    gRingPreload    = false;
     gLazySelect     = false;
     gSelectN        = false;
     gGateEquiv      = false;
@@ -829,6 +830,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gReassoc) {
         dst << "-reassoc ";
+    }
+    if (gRingPreload) {
+        dst << "-rp ";
     }
     if (gGateEquiv) {
         dst << "-gatequiv ";
@@ -1766,6 +1770,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gReassoc = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-rp", "--ring-preload")) {
+            gRingPreload = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-selectn", "--select-n")) {
             // spec LE-SELECTN : reconstruct N-way selections from their
             // select2 spellings ; the object is lazy dispatch, so the
@@ -2550,6 +2558,10 @@ string global::printHelp()
          << "-mindelay <n> --min-delay <n>           (ocpp, experimental) semantic floor for "
             "large variable delays: emits max(d, n) when certified dmin < n and dmax >= 32*n; "
             "with n >= vector size, long feedback cycles split legally."
+         << endl;
+    sstr << tab
+         << "-rp         --ring-preload              (ocpp, experimental) ring reads leave as a "
+            "burst at the head of the loop body, a register move stays at the original slot."
          << endl;
     sstr << tab
          << "-ls-cl <n>  --loop-split-cl <n>         oracle: per-loop per-chunk overhead "

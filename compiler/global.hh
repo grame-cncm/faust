@@ -307,6 +307,9 @@ struct global {
     bool gReassoc;        // -reassoc option : late state-join reassociation of the sums inside
                           // single-definition recursive groups (off-path terms first and flat,
                           // state-dependent terms joined last -- minimal recurrence chain)
+    bool gRingPreload;    // -rp option : ring reads leave as a burst at the head of the loop
+                          // body, a register move stays at the original slot (the env
+                          // FAUST_SS_RINGPRELOAD remains an equivalent alias)
     bool gLazySelect;
     bool gSelectN;     // -lazyselect option : select2 branches generate per-node conditions
     bool gGateEquiv;      // -gatequiv : canonical form of the gated signal -- c*y and
