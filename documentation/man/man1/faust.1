@@ -185,6 +185,10 @@ experimental) semantic floor for large variable delays: emits max(d, n)
 when certified dmin < n and dmax >= 32*n; with n >= vector size, long
 feedback cycles split legally.
 .PP
+\f[B]-rp\f[R] \f[B]\-\-ring-preload\f[R] (ocpp, experimental) ring
+reads leave as a burst at the head of the loop body, a register move
+stays at the original slot.
+.PP
 \f[B]-ls\f[R]-cl <n> \f[B]\-\-loop-split-cl\f[R] <n> oracle: per-loop
 per-chunk overhead (default 20 cycles, implies -ls-fuse).
 .PP

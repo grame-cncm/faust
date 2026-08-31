@@ -126,6 +126,8 @@ Code generation options:
 
   **-mindelay** \<n> **--min-delay** \<n>           (ocpp, experimental) semantic floor for large variable delays: emits max(d, n) when certified dmin \< n and dmax >= 32*n; with n >= vector size, long feedback cycles split legally.
 
+  **-rp**         **--ring-preload**              (ocpp, experimental) ring reads leave as a burst at the head of the loop body, a register move stays at the original slot.
+
   **-ls**-cl \<n>  **--loop-split-cl** \<n>         oracle: per-loop per-chunk overhead (default 20 cycles, implies -ls-fuse).
 
   **-ls**-spill \<n> **--loop-split-spill-weight** \<n> oracle: cycles per register-cycle above R (default 4, implies -ls-fuse).

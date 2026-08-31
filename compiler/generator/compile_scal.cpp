@@ -6548,7 +6548,7 @@ string ScalarCompiler::generateIotaCache(const std::string& exp, bool headSafe)
 {
     if (fIotaCache.find(exp) == fIotaCache.end()) {
         string vname = getFreshID("vIota");
-        if (getenv("FAUST_SS_RINGPRELOAD") && headSafe) {
+        if ((gGlobal->gRingPreload || getenv("FAUST_SS_RINGPRELOAD")) && headSafe) {
             // ring-preload prototype : an index whose delay amount is
             // sub-sample-rate (a literal, a sampling-rate constant, a
             // block-rate value -- everything already computed before the
@@ -8683,7 +8683,7 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fClass->addClearCode(subst("$0State = 0;", vname));
             fClass->addZone2(subst("$0 \t$1;", ctype, vname));
             fClass->addZone3(subst("$0 = $0State;", vname));
-            if (getenv("FAUST_SS_RINGPRELOAD") && ccs.empty() && isPureRingAccess(exp, preIx) &&
+            if ((gGlobal->gRingPreload || getenv("FAUST_SS_RINGPRELOAD")) && ccs.empty() && isPureRingAccess(exp, preIx) &&
                 fIotaHeadNames.count(preIx)) {
                 // Ring-preload prototype (the freeverb family) : the ring
                 // LOAD issues at the head of the loop body, where the whole
@@ -8715,7 +8715,7 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fClass->addClearCode(subst("$0State = 0;", vname));
             fClass->addZone2(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
             fClass->addZone3(subst("$0[1] = $0State;", vname));
-            if (getenv("FAUST_SS_RINGPRELOAD") && ccs.empty() && isPureRingAccess(exp, preIx) &&
+            if ((gGlobal->gRingPreload || getenv("FAUST_SS_RINGPRELOAD")) && ccs.empty() && isPureRingAccess(exp, preIx) &&
                 fIotaHeadNames.count(preIx)) {
                 // Ring-preload prototype (the freeverb family) : the ring
                 // LOAD issues at the head of the loop body, where the whole
