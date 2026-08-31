@@ -4855,9 +4855,23 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                     return 0;  // shared sub-expression : counted once
                 }
                 seen.insert(t);
-                int itmp;
+                int  itmp;
+                Tree ff, largs, ftype, fname, ffile;
                 if (isNum(t) || isSlow(t) || isSigInput(t, &itmp) || fSN.indexOf(t) >= 0) {
                     return 0;  // buffer read, constant or slow : not tail work
+                }
+                // descriptor-carrying signals : their structural branches
+                // (signature, name, file) are not signals and must not be
+                // walked -- only the real arguments count as tail work
+                if (isSigFFun(t, ff, largs)) {
+                    long n = 1;
+                    for (Tree l = largs; isList(l); l = tl(l)) {
+                        n += tailOps(hd(l), seen);
+                    }
+                    return n;
+                }
+                if (isSigFConst(t, ftype, fname, ffile) || isSigFVar(t, ftype, fname, ffile)) {
+                    return 1;  // a plain external read, no signal branches
                 }
                 long n = 1;
                 for (int k = 0; k < t->arity(); k++) {
