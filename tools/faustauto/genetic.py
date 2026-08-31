@@ -44,8 +44,9 @@ def flags_of(g):
         env.update(ENVGENES[k][g[k]])
     return fl, env
 
-def rand_genome(rng):
-    return {k: rng.randrange(len(GENES.get(k) or ENVGENES[k])) for k in ALL}
+def rand_genome(rng, free):
+    # locked genes stay at allele 0 (their "off"/default form)
+    return {k: (rng.randrange(len(GENES.get(k) or ENVGENES[k])) if k in free else 0) for k in ALL}
 
 def seed_genome(**kw):
     g = {k: 0 for k in ALL}
@@ -53,8 +54,8 @@ def seed_genome(**kw):
     return g
 
 class Evaluator:
-    def __init__(self, dsp, wd):
-        self.dsp, self.wd, self.cache, self.n = dsp, wd, {}, 0
+    def __init__(self, dsp, wd, runs=2):
+        self.dsp, self.wd, self.cache, self.n, self.runs = dsp, wd, {}, 0, runs
     def fitness(self, g):
         fl, env = flags_of(g)
         key = (tuple(fl), tuple(sorted(env.items())))
@@ -74,7 +75,7 @@ class Evaluator:
                                 cpp, "-o", b], capture_output=True, timeout=180)
             if r.returncode:
                 raise RuntimeError()
-            vals = [v for v in (fa.run_once(b) for _ in range(2)) if v]
+            vals = [v for v in (fa.run_once(b) for _ in range(self.runs)) if v]
             fit = min(vals) if vals else float("inf")
         except Exception:
             fit = float("inf")
@@ -95,12 +96,27 @@ def main():
     ap.add_argument("--pop", type=int, default=16)
     ap.add_argument("--gens", type=int, default=20)
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--mut", type=float, default=0.15, help="per-gene mutation probability")
+    ap.add_argument("--elite", type=int, default=2, help="genomes carried over unchanged")
+    ap.add_argument("--tourney", type=int, default=3, help="tournament size for parent selection")
+    ap.add_argument("--stall", type=int, default=6,
+                    help="stop after N generations without real progress")
+    ap.add_argument("--runs", type=int, default=2, help="flash runs per fitness (the min is kept)")
+    ap.add_argument("--genes", default=None,
+                    help="comma list restricting the searched genes, e.g. sched,R,U,fuse "
+                         "(the others stay locked at their off/default allele)")
     ap.add_argument("--book", action="store_true",
                     help="inscrire le champion valide au livre de recettes")
     a = ap.parse_args()
+    free = set(ALL)
+    if a.genes:
+        free = {g.strip() for g in a.genes.split(",") if g.strip()}
+        unknown = free - set(ALL)
+        if unknown:
+            sys.exit(f"genetic: unknown gene(s) {sorted(unknown)} ; available: {ALL}")
     rng = random.Random(a.seed)
     wd = tempfile.mkdtemp(prefix="gen-")
-    ev = Evaluator(a.dsp, wd)
+    ev = Evaluator(a.dsp, wd, runs=a.runs)
     # seeds: the known points of the map + randomness
     pop = [
         seed_genome(),                                   # df
@@ -110,8 +126,14 @@ def main():
         seed_genome(sched=4, R=3, U=1),                  # cs2
         seed_genome(gq=1, sn=1, lazy=1),                 # gqsn
     ]
+    if a.genes:
+        # a restricted search space also restricts the seeds
+        for g in pop:
+            for k in ALL:
+                if k not in free:
+                    g[k] = 0
     while len(pop) < a.pop:
-        pop.append(rand_genome(rng))
+        pop.append(rand_genome(rng, free))
     best, bestg = float("inf"), None
     stall = 0
     for gen in range(a.gens):
@@ -124,20 +146,20 @@ def main():
         fl, env = flags_of(pop[gi])
         print(f"gen {gen:2d} : best={gbest:8.3f} (global {best:8.3f}) "
               f"evals={ev.n} : {' '.join(fl)} {env}", flush=True)
-        if stall >= 6:
+        if stall >= a.stall:
             print("stagnation, arret.", flush=True)
             break
-        # next generation: elitism 2, tournament 3, uniform crossover, mutation
-        elite = [dict(pop[i]) for _, i in scored[:2]]
+        # next generation: elitism, tournament, uniform crossover, mutation
+        elite = [dict(pop[i]) for _, i in scored[:a.elite]]
         def pick():
-            cands = rng.sample(range(len(pop)), 3)
+            cands = rng.sample(range(len(pop)), a.tourney)
             return pop[min(cands, key=lambda i: ev.fitness(pop[i]))]
         nxt = elite
         while len(nxt) < a.pop:
             p1, p2 = pick(), pick()
             child = {k: (p1 if rng.random() < 0.5 else p2)[k] for k in ALL}
             for k in ALL:
-                if rng.random() < 0.15:
+                if k in free and rng.random() < a.mut:
                     child[k] = rng.randrange(len(GENES.get(k) or ENVGENES[k]))
             nxt.append(child)
         pop = nxt
