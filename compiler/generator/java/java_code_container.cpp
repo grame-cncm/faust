@@ -207,7 +207,7 @@ void JAVACodeContainer::produceClass()
             tab(n + 2, *fOut);
             *fOut << "m.declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
         } else {
-            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+            for (TreeSet::iterator j = i.second.begin(); j != i.second.end(); j++) {
                 if (j == i.second.begin()) {
                     tab(n + 2, *fOut);
                     *fOut << "m.declare(\"" << *(i.first) << "\", " << **j << ");";

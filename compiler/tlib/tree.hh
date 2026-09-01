@@ -71,6 +71,7 @@
 
 #include <cstddef>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -108,16 +109,17 @@ typedef CTree* Tree;
 
 typedef std::vector<Tree> tvec;
 
-namespace std {
-
-// The std::less <CTree*>comparison function is redefined to provide an unique and stable ordering
-// for all CTree instances and so maintain determinism.
-template <>
-struct less<CTree*> {
+// Orders trees by creation order instead of by address, so that iterating an ordered
+// container of trees is reproducible from one run to the next. Use TreeSet/TreeMap rather
+// than std::set<Tree>/std::map<Tree, T>, which order by address.
+struct treeorder {
     bool operator()(const CTree* lhs, const CTree* rhs) const;
 };
 
-}  // namespace std
+typedef std::set<Tree, treeorder> TreeSet;
+
+template <class T>
+using TreeMap = std::map<Tree, T, treeorder>;
 
 /**
  * A CTree = (Node x [CTree]) is the association of a content Node and a list of subtrees
@@ -165,7 +167,7 @@ class TLIB_API CTree : public Garbageable {
     // memoization keyed by a fresh Tree per call, e.g. substitute()/liftn()) : with a flat buffer
     // that node's O(n) lookup made the whole compile quadratic. std::map keeps every node bounded
     // at O(log n) regardless of how many properties it accumulates. See TLIB.md for the numbers.
-    typedef std::map<Tree, Tree> plist;
+    typedef TreeMap<Tree> plist;
 
    protected:
     // fields
@@ -293,14 +295,10 @@ class TLIB_API CTree : public Garbageable {
     }
 };
 
-// The comparison function relies on lhs->serial() which provides an unique and stable ordering
-// for all CTree instances and so maintain determinism.
-namespace std {
-inline bool less<CTree*>::operator()(const CTree* lhs, const CTree* rhs) const
+inline bool treeorder::operator()(const CTree* lhs, const CTree* rhs) const
 {
     return lhs->serial() < rhs->serial();
 }
-};  // namespace std
 
 //---------------------------------API---------------------------------------
 // To build trees

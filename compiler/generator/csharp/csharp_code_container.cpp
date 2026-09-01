@@ -233,7 +233,7 @@ void CSharpCodeContainer::produceClass()
             tab(n + 2, *fOut);
             *fOut << "MetaData.Declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
         } else {
-            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+            for (TreeSet::iterator j = i.second.begin(); j != i.second.end(); j++) {
                 if (j == i.second.begin()) {
                     tab(n + 2, *fOut);
                     *fOut << "MetaData.Declare(\"" << *(i.first) << "\", " << **j << ");";

@@ -374,7 +374,7 @@ void JSFXCodeContainer::produceMetadata(int tabs)
     // key numbers
     for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first == tree("options")) {
-            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+            for (TreeSet::iterator j = i.second.begin(); j != i.second.end(); j++) {
                 stringstream ss;
                 ss << **j;
                 string s;
@@ -403,7 +403,7 @@ void JSFXCodeContainer::produceMetadata(int tabs)
         } else {
             // But the "author" meta data is accumulated, the upper level becomes the main author
             // and sub-levels become "contributor"
-            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+            for (TreeSet::iterator j = i.second.begin(); j != i.second.end(); j++) {
                 if (j == i.second.begin()) {
                     *fOut << "desc: " << *(i.first) << " " << **j << "\n";
                 } else {
