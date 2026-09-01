@@ -1924,6 +1924,15 @@ bool global::processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : 'ocpp' backend can only be used in scalar mode\n");
     }
 #endif
+    // The old backend's scheduler emission is a deliberate dead end (its
+    // generateRec starts with faustassert(false)) : refuse cleanly instead
+    // of asserting on the first recursive program. -omp and -vec stay
+    // allowed (the OpenMP printer works, -vec routes to the super-node
+    // graph).
+    if (gOutputLang == "ocpp" && gSchedulerSwitch) {
+        throw faustexception(
+            "ERROR : the scheduler (-sch) mode is not supported by the 'ocpp' backend\n");
+    }
     if (gOneSample && gOutputLang != "cpp" && gOutputLang != "c" && gOutputLang != "dlang" &&
         !startWith(gOutputLang, "cmajor") && gOutputLang != "fir" && gOutputLang != "rust") {
         throw faustexception(
