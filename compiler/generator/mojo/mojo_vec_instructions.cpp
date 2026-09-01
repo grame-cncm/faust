@@ -57,19 +57,19 @@ void VecVisitor::visit(IfInst* inst)
 void VecVisitor::visit(Int32NumInst* inst)
 {
     mj_simd_emit_check();
-    *fOut << (gSIMDHalf ? "S32Wec(" : "S32Vec(") << inst->fNum << ")";
+    *fOut << (gSIMDHalf ? "S32Hec(" : "S32Vec(") << inst->fNum << ")";
 }
 
 void VecVisitor::visit(BoolNumInst* inst)
 {
     mj_simd_emit_check();
-    *fOut << (gSIMDHalf ? "S32Wec(" : "S32Vec(") << checkFloat(inst->fNum) << ")";
+    *fOut << (gSIMDHalf ? "S32Hec(" : "S32Vec(") << checkFloat(inst->fNum) << ")";
 }
 
 void VecVisitor::visit(FloatNumInst* inst)
 {
     mj_simd_emit_check();
-    *fOut << (gSIMDHalf ? "F32Wec(" : "F32Vec(") << checkFloat(inst->fNum) << ")";
+    *fOut << (gSIMDHalf ? "F32Hec(" : "F32Vec(") << checkFloat(inst->fNum) << ")";
 }
 
 void VecVisitor::visit(DoubleNumInst* inst)
@@ -381,11 +381,11 @@ void VecVisitor::visitBinopOperand(ValueInst* inst)
     switch (dtype) {
         case MojoDType_s32:
         case MojoDType_bool:
-            *fOut << (wec ? "S32Wec(" : "S32Vec("); break;
+            *fOut << (wec ? "S32Hec(" : "S32Vec("); break;
 
         case MojoDType_f32:
         case MojoDType_faust:
-            *fOut << (wec ? "F32Wec(" : "F32Vec("); break;
+            *fOut << (wec ? "F32Hec(" : "F32Vec("); break;
 
         case MojoDType_f64:
             *fOut << "F64Vec("; break;

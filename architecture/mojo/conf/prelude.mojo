@@ -2,7 +2,7 @@
 
 from std.math import *
 from std.memory import unsafe_memset_zero
-from std.memory.alloc import unsafe_alloc # FIX: to be removed
+from std.memory.alloc import unsafe_alloc
 from std.sys.info import size_of, align_of, simd_width_of
 from std.sys.defines import (
     is_defined, get_defined_int, get_defined_bool, get_defined_string, get_defined_dtype
@@ -37,9 +37,9 @@ comptime Void = NoneType
 
 # SIMD types aliases
 comptime S32Vec = SIMD[s32, simd_width_of[s32]()]
-comptime S32Wec = SIMD[s32, simd_width_of[f64]()]
+comptime S32Hec = SIMD[s32, simd_width_of[f64]()]
 comptime F32Vec = SIMD[f32, simd_width_of[f32]()]
-comptime F32Wec = SIMD[f32, simd_width_of[f64]()]
+comptime F32Hec = SIMD[f32, simd_width_of[f64]()]
 comptime F64Vec = SIMD[f64, simd_width_of[f64]()]
 
 # FaustFloat architecture constants and type aliases
