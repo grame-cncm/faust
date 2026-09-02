@@ -339,6 +339,7 @@ void VecVisitor::visitBroadcast(StoreVarInst* inst)
 void VecVisitor::visitSplit(StoreVarInst* inst)
 {
     mj_simd_emit_set(true);
+    gSIMDHalf = true;
     *fOut << "vstore(" << gCurAddrs << ", ";
     inst->fValue->accept(this);
     *fOut << ")" << wnextl(fTab) << "vstore(" << gCurAddrs << ", ";
@@ -351,13 +352,11 @@ void VecVisitor::visitJoin(StoreVarInst* inst)
 {
     mj_simd_emit_set(true);
     gSIMDJoin = true;
-
     *fOut << "vstore(" << gCurAddrs << ", (";
     inst->fValue->accept(this);
     *fOut << ").join(";
     mj_simd_high_accept(inst->fValue);
     *fOut << "))";
-    gSIMDJoin = false;
     mj_simd_emit_restore();
 }
 
@@ -370,7 +369,7 @@ void VecVisitor::visitStore(StoreVarInst* inst)
 
 void VecVisitor::visitBinopOperand(ValueInst* inst)
 {
-    if (not isScalarValue(inst)) {
+    if (gCurLhsDT == MojoDType_none || not isScalarValue(inst)) {
         inst->accept(this);
         return;
     }
