@@ -899,6 +899,7 @@ extern global* gGlobal;
 // Threaded calls API
 typedef void* (*threaded_fun)(void* arg);
 void callFun(threaded_fun fun, void* arg);
+void callFunWithStackSize(threaded_fun fun, void* arg, size_t stack_size);
 
 // Used to pass parameters and possibly return a result
 struct CallContext {
