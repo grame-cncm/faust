@@ -1336,7 +1336,13 @@ Tree ScalarCompiler::prepare(Tree LS)
     recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
     endTiming("recursivnessAnnotation");
 
-    if (!getenv("FAUST_SS_NODISPLAYBLOCK")) {
+    // No harvest under loop-split emission : the split emitter emits the
+    // bargraphs it meets in its DAG but never the harvested block-rate
+    // tail, so a harvested display cone silently vanished from the
+    // generated code (the FFT "miracle" of the August campaigns was a
+    // display-only FFT that was no longer computed). Under -ls the
+    // displays stay in the audio DAG, at sample rate.
+    if (!getenv("FAUST_SS_NODISPLAYBLOCK") && !gGlobal->gLoopSplit) {
         // spec SIGNAUX-ATTACHES (default since 2026-08-17) : harvest D,
         // dissolve attach and bargraph decorations from the audio path,
         // BEFORE typing (the rebuild creates new trees). The env var is
@@ -4872,6 +4878,17 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                 }
                 if (isSigFConst(t, ftype, fname, ffile) || isSigFVar(t, ftype, fname, ffile)) {
                     return 1;  // a plain external read, no signal branches
+                }
+                // widgets carry a label PATH (a list) among their branches :
+                // a bargraph's only signal is its value arm, a soundfile
+                // descriptor has none (the slow widgets never get here)
+                Tree wpath, wmin, wmax, wval;
+                if (isSigVBargraph(t, wpath, wmin, wmax, wval) ||
+                    isSigHBargraph(t, wpath, wmin, wmax, wval)) {
+                    return 1 + tailOps(wval, seen);
+                }
+                if (isSigSoundfile(t, wpath)) {
+                    return 1;
                 }
                 long n = 1;
                 for (int k = 0; k < t->arity(); k++) {
