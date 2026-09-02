@@ -1283,6 +1283,7 @@ bool global::processCmdline(int argc, const char* argv[])
     */
 
     while (i < argc) {
+        const int option_index = i;
         if (isCmd(argv[i], "-h", "--help")) {
             gHelpSwitch = true;
             i += 1;
@@ -1599,7 +1600,12 @@ bool global::processCmdline(int argc, const char* argv[])
             gClassName       = replaceCharList(argv[i + 1], rep, '_');
             i += 2;
 
-        } else if (isCmd(argv[i], "-scn", "--super-class-name") && (i + 1 < argc)) {
+        }
+
+        // Keep this as a separate chain: MSVC represents an else-if chain
+        // as nested blocks and rejects the historical monolithic parser.
+        if (i == option_index) {
+            if (isCmd(argv[i], "-scn", "--super-class-name") && (i + 1 < argc)) {
             gSuperClassName = argv[i + 1];
             i += 2;
 
@@ -1887,6 +1893,7 @@ bool global::processCmdline(int argc, const char* argv[])
             }
             i++;
             err++;
+            }
         }
     }
 
