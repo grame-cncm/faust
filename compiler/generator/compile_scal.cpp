@@ -55,8 +55,6 @@
 #include "superNodes.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
-#include <pthread.h>
-
 #include "placeTemps.hh"
 #include "reassociate.hh"
 #include "nestSums.hh"
@@ -78,6 +76,15 @@
 #define OLDDELAY 0
 
 using namespace std;
+
+static void callWithLargeStack(std::function<void()>& function)
+{
+    auto trampoline = [](void* opaque) -> void* {
+        (*static_cast<std::function<void()>*>(opaque))();
+        return nullptr;
+    };
+    callFunWithStackSize(trampoline, &function, size_t(2048) << 20);
+}
 
 
 /**
@@ -1073,20 +1080,7 @@ Tree ScalarCompiler::prepare(Tree LS)
             L2 = lowerSums(L2, keepRows.empty() ? nullptr : &keepRows);
             endTiming("Sum lowering");
         };
-        pthread_attr_t lsattr;
-        pthread_attr_init(&lsattr);
-        pthread_attr_setstacksize(&lsattr, size_t(2048) << 20);
-        pthread_t lsth;
-        auto      lstramp = [](void* q) -> void* {
-            (*static_cast<std::function<void()>*>(q))();
-            return nullptr;
-        };
-        if (pthread_create(&lsth, &lsattr, lstramp, &lsOnly) == 0) {
-            pthread_join(lsth, nullptr);
-        } else {
-            lsOnly();
-        }
-        pthread_attr_destroy(&lsattr);
+        callWithLargeStack(lsOnly);
     }
     if (gGlobal->gGateEquiv) {
         // spec LA-PAIRE-CANONIQUE : the canonical form of the gated
@@ -1098,20 +1092,7 @@ Tree ScalarCompiler::prepare(Tree LS)
             L2 = gatequivNormalize(L2);
             endTiming("gatequiv");
         };
-        pthread_attr_t gqattr;
-        pthread_attr_init(&gqattr);
-        pthread_attr_setstacksize(&gqattr, size_t(2048) << 20);
-        pthread_t gqth;
-        auto      gqtramp = [](void* q) -> void* {
-            (*static_cast<std::function<void()>*>(q))();
-            return nullptr;
-        };
-        if (pthread_create(&gqth, &gqattr, gqtramp, &gq) == 0) {
-            pthread_join(gqth, nullptr);
-        } else {
-            gq();
-        }
-        pthread_attr_destroy(&gqattr);
+        callWithLargeStack(gq);
     }
     if (gGlobal->gReconstructFIRIIRs) {
         // -fir stage 1 : the revealed kernels are INJECTED into the
@@ -1311,20 +1292,7 @@ Tree ScalarCompiler::prepare(Tree LS)
                 SERIAL_PROBE("apres-lowerSums")
             }
         };  // fin du lambda reveal (-fir)
-        pthread_attr_t attr;
-        pthread_attr_init(&attr);
-        pthread_attr_setstacksize(&attr, size_t(2048) << 20);
-        pthread_t th;
-        auto      trampoline = [](void* p) -> void* {
-            (*static_cast<std::function<void()>*>(p))();
-            return nullptr;
-        };
-        if (pthread_create(&th, &attr, trampoline, &reveal) == 0) {
-            pthread_join(th, nullptr);
-        } else {
-            reveal();  // fallback : main stack
-        }
-        pthread_attr_destroy(&attr);
+        callWithLargeStack(reveal);
     }
 
     SERIAL_PROBE("apres-reveal")
@@ -5481,20 +5449,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
         // with a 2 GB stack. Lazy-select only, the default path is
         // untouched.
         std::function<void()> body = [&]() { compileMultiSignalAux(L); };
-        pthread_attr_t        attr;
-        pthread_attr_init(&attr);
-        pthread_attr_setstacksize(&attr, size_t(2048) << 20);
-        pthread_t th;
-        auto      trampoline = [](void* p) -> void* {
-            (*static_cast<std::function<void()>*>(p))();
-            return nullptr;
-        };
-        if (pthread_create(&th, &attr, trampoline, &body) == 0) {
-            pthread_join(th, nullptr);
-        } else {
-            compileMultiSignalAux(L);  // fallback : main stack
-        }
-        pthread_attr_destroy(&attr);
+        callWithLargeStack(body);
         return;
     }
     compileMultiSignalAux(L);
@@ -5646,20 +5601,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
             }
         }
         };
-        pthread_attr_t attr;
-        pthread_attr_init(&attr);
-        pthread_attr_setstacksize(&attr, size_t(2048) << 20);
-        pthread_t th;
-        auto trampoline = [](void* p) -> void* {
-            (*static_cast<std::function<void()>*>(p))();
-            return nullptr;
-        };
-        if (pthread_create(&th, &attr, trampoline, &sideChannel) == 0) {
-            pthread_join(th, nullptr);
-        } else {
-            sideChannel();  // fallback : run on the main stack
-        }
-        pthread_attr_destroy(&attr);
+        callWithLargeStack(sideChannel);
     }
 
     // -ss 10 : auto-regime hybrid -- the tight-nest recurrence bound

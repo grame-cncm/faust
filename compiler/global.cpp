@@ -1213,6 +1213,62 @@ static bool isCmd(const char* cmd, const char* kw1, const char* kw2)
     return (strcmp(cmd, kw1) == 0) || (strcmp(cmd, kw2) == 0);
 }
 
+// Keep the scheduled-emitter options out of processCmdline's already large
+// conditional chain. Besides making this group self-contained, this avoids
+// exceeding MSVC's nesting limit while preserving the existing syntax.
+static bool processScheduledEmitterOption(global& state, const char* arg, const char* value, int& i)
+{
+    if (isCmd(arg, "-ls", "--loop-split")) {
+        state.gLoopSplit = true;
+        i += 1;
+    } else if (isCmd(arg, "-ls-R", "--loop-split-registers")) {
+        state.gLSRegisters = std::atoi(value);
+        i += 2;
+    } else if (isCmd(arg, "-ls-U", "--loop-split-width")) {
+        state.gLSWidth = std::atoi(value);
+        i += 2;
+    } else if (isCmd(arg, "-ls-fuse", "--loop-split-fuse")) {
+        state.gLSFuse = true;
+        state.gLoopSplit = true;
+        i += 1;
+    } else if (isCmd(arg, "-ls-fuse-ops", "--loop-split-fuse-ops")) {
+        state.gLSFuseOps = std::atoi(value);
+        i += 2;
+    } else if (isCmd(arg, "-ls-sched", "--loop-split-scheduling")) {
+        if (strcmp(value, "df") == 0) {
+            state.gLSSched = 0;
+        } else if (strcmp(value, "bf") == 0) {
+            state.gLSSched = 1;
+        } else if (strcmp(value, "model") == 0) {
+            state.gLSSched = 2;
+        } else if (strcmp(value, "layers") == 0) {
+            state.gLSSched = 3;
+        } else if (strcmp(value, "cs2") == 0) {
+            state.gLSSched = 4;
+        } else if (strcmp(value, "cs2b") == 0) {
+            state.gLSSched = 5;
+        } else {
+            throw faustexception("ERROR : -ls-sched expects df, bf, model, layers, cs2 or cs2b\n");
+        }
+        i += 2;
+    } else if (isCmd(arg, "-ls-load", "--loop-split-load-weight")) {
+        state.gLSLoadW = std::atoi(value);
+        i += 2;
+    } else if (isCmd(arg, "-ls-spill", "--loop-split-spill-weight")) {
+        state.gLSSpillW = std::atoi(value);
+        i += 2;
+    } else if (isCmd(arg, "-ls-cl", "--loop-split-cl")) {
+        state.gLSCl = std::atoi(value);
+        i += 2;
+    } else if (isCmd(arg, "-ls-adopt", "--loop-split-adopt-outputs")) {
+        state.gLSAdopt = true;
+        i += 1;
+    } else {
+        return false;
+    }
+    return true;
+}
+
 bool global::processCmdline(int argc, const char* argv[])
 {
     int          i   = 1;
@@ -1789,61 +1845,8 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-gatequiv", "--gate-equivalence")) {
             gGateEquiv = true;
             i += 1;
-        } else if (isCmd(argv[i], "-ls", "--loop-split")) {
-            gLoopSplit = true;
-            i += 1;
-
-        } else if (isCmd(argv[i], "-ls-R", "--loop-split-registers")) {
-            gLSRegisters = std::atoi(argv[i + 1]);
-            i += 2;
-
-        } else if (isCmd(argv[i], "-ls-U", "--loop-split-width")) {
-            gLSWidth = std::atoi(argv[i + 1]);
-            i += 2;
-
-        } else if (isCmd(argv[i], "-ls-fuse", "--loop-split-fuse")) {
-            gLSFuse    = true;
-            gLoopSplit = true;
-            i += 1;
-
-        } else if (isCmd(argv[i], "-ls-fuse-ops", "--loop-split-fuse-ops")) {
-            gLSFuseOps = std::atoi(argv[i + 1]);
-            i += 2;
-
-        } else if (isCmd(argv[i], "-ls-sched", "--loop-split-scheduling")) {
-            if (strcmp(argv[i + 1], "df") == 0) {
-                gLSSched = 0;
-            } else if (strcmp(argv[i + 1], "bf") == 0) {
-                gLSSched = 1;
-            } else if (strcmp(argv[i + 1], "model") == 0) {
-                gLSSched = 2;
-            } else if (strcmp(argv[i + 1], "layers") == 0) {
-                gLSSched = 3;
-            } else if (strcmp(argv[i + 1], "cs2") == 0) {
-                gLSSched = 4;
-            } else if (strcmp(argv[i + 1], "cs2b") == 0) {
-                gLSSched = 5;
-            } else {
-                throw faustexception(
-                    "ERROR : -ls-sched expects df, bf, model, layers, cs2 or cs2b\n");
-            }
-            i += 2;
-
-        } else if (isCmd(argv[i], "-ls-load", "--loop-split-load-weight")) {
-            gLSLoadW = std::atoi(argv[i + 1]);
-            i += 2;
-
-        } else if (isCmd(argv[i], "-ls-spill", "--loop-split-spill-weight")) {
-            gLSSpillW = std::atoi(argv[i + 1]);
-            i += 2;
-
-        } else if (isCmd(argv[i], "-ls-cl", "--loop-split-cl")) {
-            gLSCl = std::atoi(argv[i + 1]);
-            i += 2;
-
-        } else if (isCmd(argv[i], "-ls-adopt", "--loop-split-adopt-outputs")) {
-            gLSAdopt   = true;
-            i += 1;
+        } else if (processScheduledEmitterOption(*this, argv[i],
+                                                  (i + 1 < argc) ? argv[i + 1] : "", i)) {
 
         } else if (isCmd(argv[i], "-ss", "--scheduling-strategy") && (i + 1 < argc)) {
             gSchedulingStrategy = std::atoi(argv[i + 1]);
@@ -3089,7 +3092,7 @@ void CompilerStats::print(std::ostream& out) const
     Threaded calls API: the compilation code is executed in a separate
     thread so that the stack size can be raised to MAX_STACK_SIZE.
  */
-void callFun(threaded_fun fun, void* arg)
+void callFunWithStackSize(threaded_fun fun, void* arg, size_t stack_size)
 {
 #if defined(EMCC)
     // No thread support in JavaScript
@@ -3097,7 +3100,7 @@ void callFun(threaded_fun fun, void* arg)
 #elif defined(_WIN32)
     DWORD  id;
     // reserve, do not commit : the stack is only touched as far as used
-    HANDLE thread = CreateThread(NULL, MAX_STACK_SIZE, LPTHREAD_START_ROUTINE(fun), arg,
+    HANDLE thread = CreateThread(NULL, stack_size, LPTHREAD_START_ROUTINE(fun), arg,
                                  STACK_SIZE_PARAM_IS_A_RESERVATION, &id);
     faustassert(thread != NULL);
     WaitForSingleObject(thread, INFINITE);
@@ -3105,10 +3108,15 @@ void callFun(threaded_fun fun, void* arg)
     pthread_t      thread;
     pthread_attr_t attr;
     faustassert(pthread_attr_init(&attr) == 0);
-    faustassert(pthread_attr_setstacksize(&attr, MAX_STACK_SIZE) == 0);
+    faustassert(pthread_attr_setstacksize(&attr, stack_size) == 0);
     faustassert(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) == 0);
     faustassert(pthread_create(&thread, &attr, fun, arg) == 0);
     faustassert(pthread_join(thread, nullptr) == 0);
     faustassert(pthread_attr_destroy(&attr) == 0);
 #endif
+}
+
+void callFun(threaded_fun fun, void* arg)
+{
+    callFunWithStackSize(fun, arg, MAX_STACK_SIZE);
 }
