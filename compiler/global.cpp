@@ -3096,7 +3096,9 @@ void callFun(threaded_fun fun, void* arg)
     fun(arg);
 #elif defined(_WIN32)
     DWORD  id;
-    HANDLE thread = CreateThread(NULL, MAX_STACK_SIZE, LPTHREAD_START_ROUTINE(fun), arg, 0, &id);
+    // reserve, do not commit : the stack is only touched as far as used
+    HANDLE thread = CreateThread(NULL, MAX_STACK_SIZE, LPTHREAD_START_ROUTINE(fun), arg,
+                                 STACK_SIZE_PARAM_IS_A_RESERVATION, &id);
     faustassert(thread != NULL);
     WaitForSingleObject(thread, INFINITE);
 #else

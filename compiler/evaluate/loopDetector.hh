@@ -48,7 +48,13 @@ class loopDetector : public virtual Garbageable {
     bool detect(Tree t);
 };
 
-#define MAX_STACK_SIZE 1024 * 1024 * 16  // 16 MO
+// The compilation runs in a thread whose stack is raised to this size
+// (callFun). The evaluator's recursions (eval, a2sb) scale with the
+// block diagram : a large physical model (2dKirchhoffThinPlate) needs
+// 47 000 frames of a2sb, more than 16 MB under GCC 15 -- a crash, not
+// a diagnostic, since the detector below only watches eval. The size
+// is a reservation of virtual memory, touched only as far as used.
+#define MAX_STACK_SIZE 1024 * 1024 * 256  // 256 MB
 #define STACK_FRAME 65536 * 4
 
 class stackOverflowDetector {
