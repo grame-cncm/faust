@@ -98,6 +98,11 @@ bool SuperNodeGraph::materializedCriterion(Tree t) const
 {
     int  i;
     Tree w;
+    if (fForced.count(t)) {
+        // a display capture of the loop-split path : read once per chunk
+        // as the last element of its vector, whatever its sharing
+        return true;
+    }
     if (fExcluded.count(t)) {
         // Dissolve move : the oracle decided this shared expression is
         // cheaper inlined in each consumer than materialized and joined

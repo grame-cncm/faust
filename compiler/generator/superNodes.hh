@@ -79,6 +79,11 @@ class SuperNodeGraph {
     /// shared expression whose consumers inline it -- decided by the
     /// fusion oracle, applied by a reset() + rebuild)
     void setExcluded(std::set<Tree, treeorder> e) { fExcluded = std::move(e); }
+    /// signals materialized WHATEVER the criterion says : the display
+    /// captures of the loop-split path (the block-rate tail reads each one
+    /// as the last element of its vector, so each one must own a vector)
+    void setForced(std::set<Tree, treeorder> f) { fForced = std::move(f); }
+    bool isForced(Tree t) const { return fForced.count(t) > 0; }
     /// clear every derived structure so build() can run again
     void reset();
 
@@ -160,6 +165,7 @@ class SuperNodeGraph {
 
     mutable std::map<int, int> fOpsEstimate;  // materialized index -> op count
     std::set<Tree, treeorder>  fExcluded;     // Dissolve move : never materialized
+    std::set<Tree, treeorder>  fForced;       // display captures : always materialized
 
     bool materializedCriterion(Tree t) const;
     void collectRefs(Tree t, std::set<int>& refs, std::set<int>& refs0, std::set<Tree, treeorder>& seen,

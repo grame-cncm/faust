@@ -1336,13 +1336,12 @@ Tree ScalarCompiler::prepare(Tree LS)
     recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
     endTiming("recursivnessAnnotation");
 
-    // No harvest under loop-split emission : the split emitter emits the
-    // bargraphs it meets in its DAG but never the harvested block-rate
-    // tail, so a harvested display cone silently vanished from the
-    // generated code (the FFT "miracle" of the August campaigns was a
-    // display-only FFT that was no longer computed). Under -ls the
-    // displays stay in the audio DAG, at sample rate.
-    if (!getenv("FAUST_SS_NODISPLAYBLOCK") && !gGlobal->gLoopSplit) {
+    // Both emitters carry the harvested tail : the classic one captures
+    // at the end of its loop body, the split one reads the last element
+    // of each capture's vector once per chunk (a split emission that
+    // dropped the tail was the FFT "miracle" of the August campaigns : a
+    // display-only FFT that was no longer computed).
+    if (!getenv("FAUST_SS_NODISPLAYBLOCK")) {
         // spec SIGNAUX-ATTACHES (default since 2026-08-17) : harvest D,
         // dissolve attach and bargraph decorations from the audio path,
         // BEFORE typing (the rebuild creates new trees). The env var is
@@ -3039,6 +3038,58 @@ class LoopSplitEmitter {
         return subst("$0[$1+i]", fBufName[idx], T(fMaxD[idx]));
     }
 
+    // the value of materialized idx at the LAST sample of the chunk, read
+    // d samples back -- valid after the loops and before the Zone3Post
+    // shifts (where the display captures are taken)
+    std::string lastCode(int idx, int d) const
+    {
+        if (fAliasIx[idx] >= 0) {
+            return lastCode(fAliasIx[idx], fAliasD[idx] + d);
+        }
+        if (fMaxD[idx] == 0) {
+            faustassert(d == 0);
+            return subst("$0[count-1]", fBufName[idx]);
+        }
+        if (fRing[idx]) {
+            return subst("$0[(fLSIota+count-1-$2)&$1]", fBufName[idx], T(fRingMask[idx]), T(d));
+        }
+        return subst("$0[$1+count-1-$2]", fBufName[idx], T(fMaxD[idx]), T(d));
+    }
+
+    // a display capture point resolves to the input buffer, to its own
+    // vector, or to the writer's history under a constant delay
+    bool captureResolvable(Tree p) const
+    {
+        int  k, dmin, dmax;
+        bool dvar;
+        Tree x, y;
+        if (isSigInput(p, &k) || fSN.indexOf(p) >= 0) {
+            return true;
+        }
+        if (isSigDelay(p, x, y)) {
+            delayBounds(y, dmin, dmax, dvar);
+            return !dvar && fSN.indexOf(x) >= 0;
+        }
+        return false;
+    }
+    std::string captureCode(Tree p) const
+    {
+        int  k, dmin, dmax;
+        bool dvar;
+        Tree x, y;
+        if (isSigInput(p, &k)) {
+            return subst("$1input$0[count-1]", T(k), icast());
+        }
+        int ix = fSN.indexOf(p);
+        if (ix >= 0) {
+            return lastCode(ix, 0);
+        }
+        faustassert(isSigDelay(p, x, y));
+        delayBounds(y, dmin, dmax, dvar);
+        return lastCode(fSN.indexOf(x), dmin);
+    }
+    void emitDisplayCaptures();
+
     // reference to materialized idx read at delay dcode. An instantaneous
     // read of a producer living in the SAME loop is scalarized: it
     // references the producer's root value directly (a register), not the
@@ -4402,6 +4453,9 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         for (Tree l = L; isList(l); l = tl(l)) {
             prescan(hd(l), seen);
         }
+        for (Tree p : fC->fDisplayCapturePoints) {
+            prescan(p, seen);  // the display captures are emitted too
+        }
     }
 
     // 0-bis. the matrix form : detect the families ON THE EMITTED LIST
@@ -4416,6 +4470,29 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // References with certified delay >= the chunk size do not constrain
     // grouping: cycles with long feedback edges split legally (the d < N
     // restriction of LOOPMERGING.md)
+    // the display captures (spec SIGNAUX-ATTACHES, split path) : each
+    // capture point owns a vector -- FORCED materialization -- except an
+    // input (read straight from the input buffer) and a constant-delay
+    // read (the writer's history holds the value)
+    {
+        std::set<Tree, treeorder> forced;
+        for (Tree p : fC->fDisplayCapturePoints) {
+            int  k, dmin, dmax;
+            bool dvar;
+            Tree x, y;
+            if (isSigInput(p, &k)) {
+                continue;
+            }
+            if (isSigDelay(p, x, y)) {
+                delayBounds(y, dmin, dmax, dvar);
+                if (!dvar) {
+                    continue;
+                }
+            }
+            forced.insert(p);
+        }
+        fSN.setForced(std::move(forced));
+    }
     fSN.build(L, sched, gGlobal->gVecSize);
 
     // 2a-bis. the Dissolve move : a signal materialized ONLY for sharing
@@ -4436,7 +4513,8 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             Tree t = mat[m];
             int  pi;
             Tree pw;
-            if (isProj(t, &pi, pw) || fSN.maxDelayOf(t) > 0 || outs.count(t)) {
+            if (isProj(t, &pi, pw) || fSN.maxDelayOf(t) > 0 || outs.count(t) ||
+                fSN.isForced(t)) {
                 continue;
             }
             int mb = fSN.blockOf(m);
@@ -4477,6 +4555,14 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             fSN.setExcluded(std::move(dissolved));
             fSN.reset();
             fSN.build(L, sched, gGlobal->gVecSize);
+        }
+    }
+    // every display capture must resolve to a vector (or the input
+    // buffer) -- checked BEFORE anything is written, like the prescan, so
+    // the classic emitter can still take over
+    for (Tree p : fC->fDisplayCapturePoints) {
+        if (!captureResolvable(p)) {
+            throw LoopSplitUnsupported("display capture without a vector");
         }
     }
 
@@ -5199,6 +5285,25 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     }
 
     fClass->addZone3(loops.str());
+
+    // 6. the display captures : once per chunk, AFTER the loops and before
+    // the Zone3Post shifts, each capture scalar takes the last element of
+    // its vector ; the block-rate tail (Zone4, emitted by the compiler once
+    // the emission is done) computes the crowns from these scalars
+    emitDisplayCaptures();
+}
+
+void LoopSplitEmitter::emitDisplayCaptures()
+{
+    int k = 0;
+    for (Tree p : fC->fDisplayCapturePoints) {
+        Type        ty    = getCertifiedSigType(p);
+        std::string ctype = (ty->nature() == kInt) ? "int" : ifloat();
+        std::string name  = subst("fDpyCap$0", T(k++));
+        fClass->addZone2(subst("$0 \t$1;", ctype, name));
+        fClass->addZone3(subst("$0 = $1;", name, captureCode(p)));
+        fC->fDisplayCaptures[p] = name;
+    }
 }
 
 // emit one inner loop covering ops [lo, hi) under the selected strategy,
@@ -5450,6 +5555,18 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         for (Tree l = Li; isList(l); l = tl(l)) {
             work.push_back(hd(l));
         }
+        // the display roots too : the frontier rooted the stateful parts
+        // of the harvested display cones (kernels included) OUTSIDE L,
+        // and the facts must describe every kernel the emitters meet --
+        // a kernel without facts is fused like plain code and laid out
+        // without the informed delay line (spectralLevel under -fir :
+        // fifteen band kernels, SS_FIR 15 -> 0, loop 0 440 -> 618 ops)
+        for (Tree sd : fDisplayStateful) {
+            work.push_back(sd);
+        }
+        for (Tree p : fDisplayCapturePoints) {
+            work.push_back(p);
+        }
         while (!work.empty()) {
             Tree t = work.back();
             work.pop_back();
@@ -5567,11 +5684,25 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
     // mono elections with it (flanger : +70% for a bargraph displaying
     // the very delays the audio uses).
     Tree Lg = L;
-    if (!fDisplayStateful.empty()) {
+    // under -ls the CAPTURE POINTS join the schedule too : the split
+    // emitter reads each one as the last element of a materialized
+    // vector, and only a scheduled signal gets a vector. Same
+    // display-exclusive rule ; an input needs no vector (the capture
+    // reads the input buffer directly)
+    const bool rootCaptures = gGlobal->gLoopSplit && !fDisplayCapturePoints.empty();
+    if (!fDisplayStateful.empty() || rootCaptures) {
         auto GA = immediateGraph(L);
         for (Tree sd : fDisplayStateful) {
             if (GA.nodes().count(sd) == 0) {
                 Lg = cons(sd, Lg);
+            }
+        }
+        if (rootCaptures) {
+            int k;
+            for (Tree p : fDisplayCapturePoints) {
+                if (!isSigInput(p, &k) && GA.nodes().count(p) == 0) {
+                    Lg = cons(p, Lg);
+                }
             }
         }
     }
@@ -6106,6 +6237,10 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
             LoopSplitEmitter(this, fOccMarkup, fSharingKey)
                 .emit(L, S.elements(), fClass->outputs());
             loopSplitDone = true;
+            // spec SIGNAUX-ATTACHES : the captures were taken by the
+            // emitter (last element of each vector, once per chunk) ; the
+            // block-rate display stores follow (Zone4, once per compute)
+            emitDisplayWidgets();
         } catch (LoopSplitUnsupported& e) {
             if (e.fIntentional) {
                 std::cerr << "NOTE : -ls chooses classic emission (" << e.fWhat << ")"
@@ -7072,7 +7207,8 @@ void ScalarCompiler::computeDisplayFrontier()
         int  op;
         Tree x, y, sel;
         return isSigBinOp(t, &op, x, y) || isSigIntCast(t, x) || isSigFloatCast(t, x) ||
-               isSigSelect2(t, sel, x, y) || (getUserData(t) != nullptr && t->arity() > 0);
+               isSigSelect2(t, sel, x, y) || isSigSum(t) ||
+               (getUserData(t) != nullptr && t->arity() > 0);
     };
     while (!work.empty()) {
         Tree t = work.back();
@@ -7136,6 +7272,9 @@ void ScalarCompiler::computeDisplayFrontier()
         std::cerr << "FRONTIER : " << nbg << " bargraphs, " << fDisplayStateful.size()
                   << " racines a etat, " << fDisplayCapturePoints.size() << " captures"
                   << std::endl;
+        for (Tree p : fDisplayCapturePoints) {
+            std::cerr << "  capture " << ppsig(p, 10) << std::endl;
+        }
     }
 }
 
@@ -7163,6 +7302,29 @@ std::string ScalarCompiler::displayExpr(Tree t)
     }
     if (isSigSelect2(t, sel, x, y)) {
         return subst("(($0) ? $1 : $2)", displayExpr(sel), displayExpr(y), displayExpr(x));
+    }
+    if (tvec V; isSigSum(t, V)) {
+        // the n-ary sum of the normal form (revealSum), chained left like
+        // generateSum -- same association, bit-exact ; int sums wrap
+        // pairwise through unsigned arithmetic. Without this arm a
+        // level-in-dB crown (20*log10(...) + offset) was a capture,
+        // computed per sample on both emitters (spectralLevel).
+        const bool  wrapInt = (getCertifiedSigType(t)->nature() == kInt);
+        std::string acc;
+        for (Tree b : V) {
+            if (isZero(b)) {
+                continue;
+            }
+            std::string a = displayExpr(b);
+            if (acc.empty()) {
+                acc = a;
+            } else if (wrapInt) {
+                acc = subst("int(uint32_t($0) + uint32_t($1))", acc, a);
+            } else {
+                acc = subst("($0 + $1)", acc, a);
+            }
+        }
+        return acc.empty() ? std::string("0") : acc;
     }
     if (getUserData(t) != nullptr && t->arity() > 0) {
         xtendedCodegen*          p = static_cast<xtendedCodegen*>((xtended*)getUserData(t));
@@ -7195,6 +7357,17 @@ void ScalarCompiler::emitDisplayList()
         fClass->addZone2(subst("$0 \t$1;", ctype, name));
         fClass->addExecCode(Statement("", subst("$0 = $1;", name, CS(p))));
         fDisplayCaptures[p] = name;
+    }
+    emitDisplayWidgets();
+}
+
+// The widget stores : one Zone4 store per harvested bargraph, computed
+// from the capture scalars -- taken at the end of the loop body on the
+// classic path, as the last element of each vector on the split path.
+void ScalarCompiler::emitDisplayWidgets()
+{
+    if (fDisplayList == nullptr || !isList(fDisplayList)) {
+        return;
     }
     for (Tree l = fDisplayList; isList(l); l = tl(l)) {
         Tree d = hd(l);
