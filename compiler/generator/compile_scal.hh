@@ -92,6 +92,7 @@ class ScalarCompiler : public Compiler {
     void        computeDisplayFrontier();
     std::string displayExpr(Tree t);
     void        emitDisplayList();
+    void        emitDisplayWidgets();
     // iota caches hoisted to the head of the loop body (ring-preload) :
     // only an index whose delay amount is sub-sample-rate may hoist, and
     // only a ring access through a hoisted index may preload
