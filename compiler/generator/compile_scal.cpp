@@ -4823,11 +4823,11 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         fClass->addZone3(qc.str());
     }
 
-    // FAUST_SS_SIG : the program's static signature, one line — the raw
-    // material of the automatic selector (layer 1). Everything computes
-    // without a bench : size, recurrence bound, compute/memory counts,
-    // streams (total and windowed peak on the df order), shapes.
-    if (getenv("FAUST_SS_SIG")) {
+    // -sig : the program's static signature, one line on stdout -- the raw
+    // material of the automatic selector (layer 1 of fcautotool). Everything
+    // computes without a bench : size, recurrence bound, compute/memory
+    // counts, streams (total and windowed peak on the df order), shapes.
+    if (gGlobal->gPrintSignature) {
         int nalu = 0, nmem = 0;
         for (const auto& n : G.nodes()) {
             if (ocppIsMemNode(n)) {
@@ -4896,7 +4896,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
                 nselect++;
             }
         }
-        std::cerr << "SS_SIG nodes=" << G.nodes().size() << " recmii=" << ocppTightRecMII(L)
+        std::cout << "SS_SIG nodes=" << G.nodes().size() << " recmii=" << ocppTightRecMII(L)
                   << " nselect=" << nselect
                   << " nalu=" << nalu << " nmem=" << nmem << " nstreams=" << allk.size()
                   << " speak64=" << speak << " distinct=" << cls.size()
