@@ -5337,26 +5337,22 @@ string ScalarCompiler::generateOutput(Tree sig, const string& idx, const string&
 
 string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
-    // Special case for -1*a2
-    if ((opcode == kMul) && isMinusOne(arg1)) {
-        std::string res = CS(arg2);
-        if ((res[0] == '(') || (res[0] == 'f') || (res[0] == 'i')) {
-            return subst("-$0", res);
-        } else {
-            return subst("-($0)", res);
-        }
-        // Special case for a1*-1
-    } else if ((opcode == kMul) && isMinusOne(arg2)) {
-        std::string res = CS(arg1);
-        if ((res[0] == '(') || (res[0] == 'f') || (res[0] == 'i')) {
-            return subst("-$0", res);
-        } else {
-            return subst("-($0)", res);
-        }
-    } else {
-        return generateCacheCode(
-            sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
+    // Special case for -1*a2 and a1*-1 : the negation is emitted as a
+    // unary minus, inline even when shared (it costs nothing). Inlining
+    // is legal only while nobody reads the node's history : a delayed
+    // reader spells the node as a delay vector, and that vector is
+    // declared by generateCacheCode alone, so a negation with a delayed
+    // occurrence takes the cache route like every other operation.
+    if ((opcode == kMul) && (isMinusOne(arg1) || isMinusOne(arg2))) {
+        std::string res = CS(isMinusOne(arg1) ? arg2 : arg1);
+        std::string neg = ((res[0] == '(') || (res[0] == 'f') || (res[0] == 'i'))
+                              ? subst("-$0", res)
+                              : subst("-($0)", res);
+        Occurrences* o = fOccMarkup->retrieve(sig);
+        return (o && o->getMaxDelay() > 0) ? generateCacheCode(sig, neg) : neg;
     }
+    return generateCacheCode(sig,
+                             subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
 }
 
 /*****************************************************************************
