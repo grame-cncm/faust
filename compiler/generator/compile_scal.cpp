@@ -7232,7 +7232,11 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
             break;
 
         case DelayType::kZeroDelay:
-            result = vecname;
+            // nobody reads this signal's history, so no vector is ever
+            // declared for it : a read at delay 0 is the signal itself,
+            // whatever code its own compilation produced (a name or an
+            // inline expression)
+            result = CS(exp);
             break;
 
         case DelayType::kMonoDelay:
