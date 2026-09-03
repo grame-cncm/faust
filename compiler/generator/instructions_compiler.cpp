@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include <algorithm>
 #include <string>
 
 #include "Text.hh"
@@ -2158,8 +2159,18 @@ ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree de
     int    mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
     string vname;
 
-    if (!getVectorNameProperty(exp, vname) && mxd > 0 && !fUnstoredRecMembers.empty() &&
-        reachesUnstoredRecMember(exp)) {
+    if (std::find(fPendingDelayWrites.begin(), fPendingDelayWrites.end(), exp) !=
+        fPendingDelayWrites.end()) {
+        // A further access to a line whose write is still deferred : the
+        // name is known, nothing is compiled here. Without this test the
+        // second access (a member reading s@n and s@n+1) found the name
+        // set, took the eager branch below and emitted the write before
+        // the member's store -- the very read-one-sample-late the deferral
+        // exists to prevent (witness : a lowpass in the feedback of a
+        // delay, fdnrev0 and greyhole in faustlibraries).
+        getVectorNameProperty(exp, vname);
+    } else if (!getVectorNameProperty(exp, vname) && mxd > 0 && !fUnstoredRecMembers.empty() &&
+               reachesUnstoredRecMember(exp)) {
         // DECOUPLED LINE WRITE. Compiling exp right here would emit its line
         // write before the store of a recursive member it reads at the
         // current tick, making that read one sample late (shape : a member
