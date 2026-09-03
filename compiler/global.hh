@@ -309,6 +309,7 @@ struct global {
                           // state-dependent terms joined last -- minimal recurrence chain)
     bool gRingPreload;    // -rp option : ring reads leave as a burst at the head of the loop
                           // body, a register move stays at the original slot
+    bool gPrintSignature;  // -sig option : print the program's static signature (one line)
     bool gLazySelect;
     bool gSelectN;     // -lazyselect option : select2 branches generate per-node conditions
     bool gGateEquiv;      // -gatequiv : canonical form of the gated signal -- c*y and

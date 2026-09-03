@@ -448,6 +448,7 @@ void global::reset()
     gTempOps        = 0;
     gReassoc        = false;
     gRingPreload    = false;
+    gPrintSignature = false;
     gLazySelect     = false;
     gSelectN        = false;
     gGateEquiv      = false;
@@ -1835,6 +1836,9 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-rp", "--ring-preload")) {
             gRingPreload = true;
             i += 1;
+        } else if (isCmd(argv[i], "-sig", "--signature")) {
+            gPrintSignature = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-selectn", "--select-n")) {
             // spec LE-SELECTN : reconstruct N-way selections from their
@@ -2581,6 +2585,11 @@ string global::printHelp()
     sstr << tab
          << "-rp         --ring-preload              (ocpp, experimental) ring reads leave as a "
             "burst at the head of the loop body, a register move stays at the original slot."
+         << endl;
+    sstr << tab
+         << "-sig        --signature                 (ocpp) print the program's static signature "
+            "on one line (size, recurrence bound, selects, compute/memory nodes, streams, shapes) "
+            "before emission -- the material of the option election."
          << endl;
     sstr << tab
          << "-ss <n>     --scheduling-strategy <n>   (ocpp, experimental) instruction order of "
