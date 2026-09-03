@@ -77,7 +77,7 @@ class ScalarCompiler : public Compiler {
     OccMarkup*                         fOccMarkup;
     int                                fMaxIota;
     std::map<std::string, std::string> fIotaCache;
-    // FAUST_SS_DISPLAYBLOCK (spec SIGNAUX-ATTACHES) : bargraph stores and
+    // The display frontier (spec SIGNAUX-ATTACHES) : bargraph stores and
     // their stateless tails evaluate ONCE PER BLOCK. fDisplayList holds
     // the harvested bargraph nodes (D) ; fDisplayStateful their stateful
     // sub-signals (S, compiled at audio rate as extra roots) ; capture
@@ -265,7 +265,6 @@ class ScalarCompiler : public Compiler {
 
     virtual DelayType analyzeDelayType(Tree sig);
     DelayType         analyzeDelayTypeAux(Tree sig);
-    std::set<Tree>    fResidenceSeen;  // probe dedup (FAUST_SS_RESIDENCE)
 };
 
 #endif

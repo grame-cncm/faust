@@ -480,25 +480,6 @@ void SuperNodeGraph::retopo()
             }
         }
     }
-    // FAUST_LS_ORDER : experimental strategy for the SUPER-NODE dag itself
-    // (the LIFO-Kahn above is an accidental order nobody chose ; the loop
-    // emission order decides producer->consumer buffer heat). The quotient
-    // goes through the DirectedGraph library like any other dag.
-    if (const char* e = getenv("FAUST_LS_ORDER")) {
-        digraph<int> B;
-        for (int b = 0; b < nb; b++) {
-            B.add(b);
-            for (int d : blockDeps(b)) {
-                B.add(b, d, 0);
-            }
-        }
-        std::string   m(e);
-        schedule<int> S = (m == "bf")   ? bfschedule(B)
-                          : (m == "rb") ? rbschedule(B)
-                          : (m == "sp") ? spschedule(B)
-                                        : dfschedule(B);  // "df" and default
-        order = S.elements();
-    }
     faustassert((int)order.size() == nb);  // acyclic by invariant
     std::vector<std::vector<int>> nb2(nb);
     std::vector<int>              newId(nb);

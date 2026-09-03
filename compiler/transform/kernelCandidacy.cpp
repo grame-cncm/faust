@@ -111,10 +111,6 @@ Tree kernelCandidacy(Tree L)
     for (Tree t : keep) {
         retime.erase(t);  // read from both sides : the state is the danger
     }
-    if (getenv("FAUST_KERNEL_CANDIDACY")) {
-        fprintf(stderr, "CANDIDACY : self/inline=%d retimed/materialized=%d\n", int(keep.size()),
-                int(retime.size()));
-    }
     if (retime.empty()) {
         return L;
     }

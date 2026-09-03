@@ -1167,7 +1167,7 @@ static bool parseWriteTarget(const std::string& code, std::string& lhs, bool& is
 
 void Klass::sinkExpensiveCalls()
 {
-    if (getenv("FAUST_NO_CALLSINK") || fTopLoop == nullptr) {
+    if (fTopLoop == nullptr) {
         return;
     }
     std::vector<Statement> v(fTopLoop->fExecCode.begin(), fTopLoop->fExecCode.end());
@@ -1293,7 +1293,7 @@ void Klass::printComputeMethodScalarBlock(int n, ostream& fout)
     // the other criteria say (the flat form fed kFrames=64 walks the
     // window pointer below its cache : garbage in float, crash in
     // double).
-    if (!gGlobal->gLoopSplit && !loopHasCall && !fBlockBound && !getenv("FAUST_CHUNKED")) {
+    if (!gGlobal->gLoopSplit && !loopHasCall && !fBlockBound) {
         tab(n + 1, fout);
         fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
         printlines(n + 2, fZone1Code, fout);

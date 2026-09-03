@@ -191,21 +191,6 @@ void typeAnnotation(Tree sig, bool causality)
         checkSignal(t, solver);
     }
 
-    if (getenv("FAUST_REBUILD_CHECK") != nullptr) {
-        // The initial algebra: rebuilding through TreeAlgebra must give back the same
-        // term up to the fresh recursive variables (alpha-equivalence).
-        TreeAlgebra A;
-        Tree        rebuilt = signalRebuild(sig, A);
-        std::cerr << "REBUILD : "
-                  << (alphaEquiv(rebuilt, sig) ? "alpha-equivalent" : "MISMATCH")
-                  << (rebuilt == sig ? " (pointer-equal)" : "") << std::endl;
-    }
-    if (getenv("FAUST_HORIZON") != nullptr) {
-        horizonAnalysis(sig, true);
-    }
-    if (getenv("FAUST_INTERVAL_ROLES") != nullptr) {
-        intervalRolesReport(sig, true);
-    }
 }
 
 //----------------------------------------------------------------------------------------

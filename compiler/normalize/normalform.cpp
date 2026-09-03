@@ -415,7 +415,6 @@ static Tree normalizeFixpoint(Tree L)
     Tree      prev         = nullptr;
     int       iter         = 0;
 
-    const bool verbose  = getenv("FAUST_NORMALIZE_FIXPOINT_TRACE") != nullptr;
     Tree       prevPrev = nullptr;
     uint64_t   prevAch  = 0;
     bool       haveAch  = false;
@@ -427,9 +426,6 @@ static Tree normalizeFixpoint(Tree L)
     while (iter < maxIter) {
         Tree d = sym2deBruijn(L);
         if (d == prev) {
-            if (verbose) {
-                std::cerr << "NORMFIX exit at iter " << iter << " : pointer-stable" << std::endl;
-            }
             break;  // the de Bruijn form is pointer-stable: fixpoint reached
         }
         {
@@ -438,34 +434,10 @@ static Tree normalizeFixpoint(Tree L)
             std::map<Tree, uint64_t, treeorder> achMemo;
             uint64_t                 ach = acHash(d, achMemo);
             if (haveAch && ach == prevAch) {
-                if (verbose) {
-                    std::cerr << "NORMFIX exit at iter " << iter << " : AC-equal" << std::endl;
-                }
                 break;
             }
             prevAch = ach;
             haveAch = true;
-        }
-        if (verbose) {
-            static Tree prevL = nullptr;
-            std::cerr << "NORMFIX iter " << iter << " : groups=" << countRecGroups(L)
-                      << " dbj=" << static_cast<const void*>(d)
-                      << (d == prevPrev ? "  CYCLE-2" : "")
-                      << (prevL ? (alphaEquiv(L, prevL) ? "  ALPHA-EQ" : "  ALPHA-DIFF")
-                                : "")
-                      << std::endl;
-            prevL = L;
-            if (getenv("FAUST_NORMALIZE_FIXPOINT_DUMP") != nullptr && iter < 4) {
-                std::string fn = std::string(getenv("FAUST_NORMALIZE_FIXPOINT_DUMP")) +
-                                 "/normfix-iter" + std::to_string(iter) + ".txt";
-                FILE* out = fopen(fn.c_str(), "w");
-                if (out) {
-                    std::ostringstream oss;
-                    oss << ppsig(L, 100000000);
-                    fputs(oss.str().c_str(), out);
-                    fclose(out);
-                }
-            }
         }
         prevPrev = prev;
         prev     = d;
@@ -508,103 +480,6 @@ static Tree normalizeFixpoint(Tree L)
     std::cerr << "NORMFIX : " << iter << " iteration(s), " << groupsBefore << " -> "
               << groupsAfter << " recursive group(s)" << std::endl;
     return L;
-}
-// Temporary debug (FAUST_DEBUG_RECCOUNT) : print the recursive-group count at a
-// pipeline point, to localize where group sharing is lost vs master-dev.
-void debugRecCount(const char* where, Tree L)
-{
-    if (getenv("FAUST_DEBUG_RECCOUNT") == nullptr) {
-        return;
-    }
-    // collect the groups (same rules as countRecGroups)
-    std::set<Tree, treeorder>    seen;
-    std::vector<Tree> groups;
-    std::vector<Tree> work{L};
-    while (!work.empty()) {
-        Tree s = work.back();
-        work.pop_back();
-        if (!seen.insert(s).second) {
-            continue;
-        }
-        Tree var, body;
-        if (isRec(s, var, body)) {
-            groups.push_back(s);
-            if (body) {
-                work.push_back(body);
-            }
-            continue;
-        }
-        for (int i = 0; i < s->arity(); i++) {
-            work.push_back(s->branch(i));
-        }
-    }
-    // alpha-equivalence classes : duplicates are the lost sharing
-    std::vector<std::vector<Tree>> classes;
-    for (Tree g : groups) {
-        bool placed = false;
-        for (auto& c : classes) {
-            if (alphaEquiv(g, c[0])) {
-                c.push_back(g);
-                placed = true;
-                break;
-            }
-        }
-        if (!placed) {
-            classes.push_back({g});
-        }
-    }
-    std::cerr << "RECCOUNT " << where << " : " << groups.size() << " groupes, "
-              << classes.size() << " classes alpha";
-    for (auto& c : classes) {
-        if (c.size() > 1) {
-            std::cerr << "  [dup x" << c.size() << " : " << *c[0]->branch(0) << "]";
-        }
-    }
-    std::cerr << std::endl;
-    // for each duplicate : immediate parents and mutual nesting
-    for (auto& c : classes) {
-        if (c.size() < 2) {
-            continue;
-        }
-        for (Tree g : c) {
-            // g est-il atteignable depuis le corps de l'autre ?
-            for (Tree h : c) {
-                if (h == g) {
-                    continue;
-                }
-                std::map<Tree, bool, treeorder> memo;
-                Tree                 hv, hb;
-                isRec(h, hv, hb);
-                if (hb && containsNode(hb, g, memo)) {
-                    std::cerr << "    " << *g->branch(0) << " est DANS le corps de "
-                              << *h->branch(0) << std::endl;
-                }
-            }
-            // parents dans L
-            std::set<Tree, treeorder>    seen2;
-            std::vector<Tree> work2{L};
-            int               shown = 0;
-            while (!work2.empty() && shown < 4) {
-                Tree s2 = work2.back();
-                work2.pop_back();
-                if (!seen2.insert(s2).second) {
-                    continue;
-                }
-                for (int i2 = 0; i2 < s2->arity(); i2++) {
-                    if (s2->branch(i2) == g) {
-                        std::cerr << "    parent de " << *g->branch(0) << " : " << s2->node()
-                                  << " (branche " << i2 << ")" << std::endl;
-                        shown++;
-                    }
-                    work2.push_back(s2->branch(i2));
-                }
-                Tree v2, b2;
-                if (isRec(s2, v2, b2) && b2) {
-                    work2.push_back(b2);
-                }
-            }
-        }
-    }
 }
 
 static Tree simplifyToNormalFormAux(Tree LS)
@@ -711,7 +586,6 @@ static Tree simplifyToNormalFormAux(Tree LS)
 
     // Needed before 'simplify' (see sigPromotion.hh)
     startTiming("Cast and Promotion");
-    debugRecCount("NF:L1", L1);
     Tree L2 = signalPromote(L1);
     endTiming("Cast and Promotion");
 
@@ -732,7 +606,6 @@ static Tree simplifyToNormalFormAux(Tree LS)
 
     // Simplify by executing every computable operation
     startTiming("L2 simplification");
-    debugRecCount("NF:L2(promote)", L2);
     Tree L3 = simplify(L2);
     endTiming("L2 simplification");
 
@@ -742,7 +615,6 @@ static Tree simplifyToNormalFormAux(Tree LS)
     endTiming("L3 typeAnnotation");
 
     startTiming("Cast and Promotion");
-    debugRecCount("NF:L3(simplify)", L3);
     Tree L4 = signalPromote(L3);
     endTiming("Cast and Promotion");
 
@@ -806,7 +678,6 @@ static Tree simplifyToNormalFormAux(Tree LS)
     startTiming("L4 signalChecker");
     SignalChecker checker(L4);
     endTiming("L4 signalChecker");
-    debugRecCount("NF:L4(return)", L4);
     return L4;
 }
 
