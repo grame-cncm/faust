@@ -77,6 +77,23 @@
 
 using namespace std;
 
+/**
+ * A real constant as C++ source. T() spells the finite values ; the
+ * non-finite ones have no literal (T() would print "inf.0") and take the
+ * <cmath> macros, sign kept.
+ */
+static string realLiteral(double r)
+{
+    if (std::isnan(r)) {
+        return "NAN";
+    }
+    if (std::isinf(r)) {
+        return (r < 0) ? "-INFINITY" : "INFINITY";
+    }
+    return T(r);
+}
+
+
 static void callWithLargeStack(std::function<void()>& function)
 {
     auto trampoline = [](void* opaque) -> void* {
@@ -2305,7 +2322,7 @@ class LoopSplitEmitter {
             return o;
         }
         if (isSigReal(t, &r)) {
-            o.code = T(r);
+            o.code = realLiteral(r);
             return o;
         }
         if (isSigInput(t, &i)) {
@@ -5154,7 +5171,7 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (isSigInt64(sig, &i64)) {
         return generateNumber(sig, T(i64));
     } else if (isSigReal(sig, &r)) {
-        return generateNumber(sig, T(r));
+        return generateNumber(sig, realLiteral(r));
     } else if (isSigWaveform(sig)) {
         return generateWaveform(sig);
     } else if (isSigInput(sig, &i)) {
