@@ -1586,8 +1586,13 @@ inline schedule<N> alignschedule(const digraph<N>& G, std::function<long(const N
     for (const auto& [sh, v] : classes) {
         byFreq.push_back({int(v.size()), sh});
     }
-    std::sort(byFreq.begin(), byFreq.end(),
-              [](const auto& a, const auto& b) { return a.first > b.first; });
+    // a TOTAL order : by decreasing frequency, then by the shape key -- a
+    // comparator that does not separate two classes of equal frequency
+    // leaves their order to the input sequence and to the sort's
+    // implementation, i.e. to how the data arrived
+    std::sort(byFreq.begin(), byFreq.end(), [](const auto& a, const auto& b) {
+        return a.first != b.first ? a.first > b.first : a.second < b.second;
+    });
 
     // ---- per class : group on the fewest ranks (interval stabbing)
     // per-class grouping, EARLIEST placement : instances are grouped while
@@ -1750,8 +1755,13 @@ inline schedule<N> bankschedule(const digraph<N>& G, unsigned int R, unsigned in
     for (const auto& [sh, v] : classes) {
         byFreq.push_back({int(v.size()), sh});
     }
-    std::sort(byFreq.begin(), byFreq.end(),
-              [](const auto& a, const auto& b) { return a.first > b.first; });
+    // a TOTAL order : by decreasing frequency, then by the shape key -- a
+    // comparator that does not separate two classes of equal frequency
+    // leaves their order to the input sequence and to the sort's
+    // implementation, i.e. to how the data arrived
+    std::sort(byFreq.begin(), byFreq.end(), [](const auto& a, const auto& b) {
+        return a.first != b.first ? a.first > b.first : a.second < b.second;
+    });
     std::vector<int> target(V, 0);
     if (stagec == 2) {
         // layers mode : natural levels untouched (the frequency grouping
