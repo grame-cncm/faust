@@ -235,6 +235,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree size);
     void               flushPendingDelayWrites();
     bool               reachesUnstoredRecMember(Tree t);
+    std::vector<int> instantaneousMemberOrder(Tree sig, Tree le, const std::vector<bool>& used);
     virtual ValueInst* generatePrefix(Tree sig, Tree x, Tree e);
     virtual ValueInst* generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 

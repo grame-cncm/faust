@@ -1887,6 +1887,121 @@ ValueInst* InstructionsCompiler::generateRecProj(Tree sig, Tree r, int i)
 /**
  * Generate code for a group of mutually recursive definitions
  */
+/**
+ * Is this delay amount always 1 or more ? A constant >= 1, or an amount
+ * whose typed interval starts at 1 or more (the frontend places 1 + d on
+ * a dissolved alias, and the interval typing keeps the 1). An amount that
+ * may be 0 is an instantaneous read.
+ */
+static bool delayIsPositive(Tree y)
+{
+    int d;
+    if (isSigInt(y, &d)) {
+        return d >= 1;
+    }
+    ::Type t = getCertifiedSigType(y);
+    if (t) {
+        itv::interval it = t->getInterval();
+        return it.isValid() && it.lo() >= 1;
+    }
+    return false;
+}
+
+/**
+ * Is this delayed read of a projection a read of PAST state ?
+ */
+static bool isPastProjRead(Tree x, Tree y)
+{
+    int  i;
+    Tree g;
+    return isProj(x, &i, g) && delayIsPositive(y);
+}
+
+/**
+ * Members of the recursive group `group` read at the CURRENT tick by
+ * expression t : directly, or through a compound read at delay 0. Any read
+ * at a delay of 1 or more is past state and stops the walk, a delayed
+ * compound included : its line write is ordered by the deferral above,
+ * not by the member order (descending into it would draw a dependency
+ * edge for every past read and knot the members into false cycles).
+ */
+static void instantaneousReferees(Tree t, Tree group, std::set<int>& out, std::set<Tree>& seen)
+{
+    std::vector<Tree> work{t};
+    while (!work.empty()) {
+        Tree n = work.back();
+        work.pop_back();
+        if (!seen.insert(n).second) {
+            continue;
+        }
+        int  i;
+        Tree x, y;
+        if (isProj(n, &i, x)) {
+            if (x == group) {
+                out.insert(i);
+            }
+            continue;
+        }
+        if (isSigDelay(n, x, y) && delayIsPositive(y)) {
+            work.push_back(y);  // the amount only : the read is past state
+            continue;
+        }
+        for (int k = 0; k < n->arity(); k++) {
+            work.push_back(n->branch(k));
+        }
+    }
+}
+
+/**
+ * Emission order of the members of a recursive group : every member after
+ * the members it reads at the current tick (a topological order on the
+ * instantaneous references, definition order among the free ones). An
+ * instantaneous cycle cannot come from a causal program ; should one
+ * remain, its members follow in definition order.
+ */
+std::vector<int> InstructionsCompiler::instantaneousMemberOrder(Tree sig, Tree le,
+                                                                const std::vector<bool>& used)
+{
+    int                        N = len(le);
+    std::vector<std::set<int>> deps(N);
+    for (int i = 0; i < N; i++) {
+        if (used[i]) {
+            std::set<Tree> seen;
+            instantaneousReferees(nth(le, i), sig, deps[i], seen);
+            deps[i].erase(i);
+        }
+    }
+    std::vector<int>  order;
+    std::vector<bool> done(N, false);
+    bool              progress = true;
+    while (progress) {
+        progress = false;
+        for (int i = 0; i < N; i++) {
+            if (done[i]) {
+                continue;
+            }
+            bool ready = true;
+            for (int j : deps[i]) {
+                if (!done[j] && used[j]) {
+                    ready = false;
+                    break;
+                }
+            }
+            if (ready) {
+                done[i] = true;
+                order.push_back(i);
+                progress = true;
+            }
+        }
+    }
+    for (int i = 0; i < N; i++) {
+        if (!done[i]) {
+            order.push_back(i);
+        }
+    }
+    return order;
+}
+
 ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int index)
 {
     int N = len(le);
@@ -1923,8 +2038,20 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
         }
     }
 
+    // Emission order : a member is stored before every member that reads
+    // it at the current tick, directly or through a compound computed at
+    // the current tick (the deferred line writes above rely on it : a
+    // delay-0 access never meets a pending line when the referee is
+    // already stored). Definition order otherwise. The frontend places
+    // the one-tick delay on every ~ and letrec crossing, so definition
+    // order was topological by construction ; the delayed-alias
+    // dissolution of normalizeRecGroups produces instantaneous reads
+    // between members in any order (fdnrev0 : three members read a
+    // later member at the current tick, one sample late).
+    std::vector<int> order = instantaneousMemberOrder(sig, le, used);
+
     // Generate delayline for each element of a recursive definition
-    for (int i = 0; i < N; i++) {
+    for (int i : order) {
         if (used[i]) {
             Address::AccessType access;
             ValueInst*          ccs = getConditionCode(nth(le, i));
@@ -1991,14 +2118,16 @@ bool InstructionsCompiler::reachesUnstoredRecMember(Tree t)
             }
             continue;
         }
-        if (isSigDelay(n, x, y)) {
-            int  d;
-            Tree g;
-            if (isProj(x, &i, g) && isSigInt(y, &d) && d >= 1) {
-                work.push_back(y);  // the amount only : the projection
-                                    // read is past state
-                continue;
-            }
+        if (isSigDelay(n, x, y) && isPastProjRead(x, y)) {
+            work.push_back(y);  // the amount only : the projection read is
+                                // past state (constant or interval-typed
+                                // delay >= 1 ; a variable delay that may
+                                // be 0 was taken for an instantaneous
+                                // read, deferring a line that its reader
+                                // then read at delay 0 before the write :
+                                // greyhole, a modulated fdelay4 into an
+                                // sdelay)
+            continue;
         }
         for (int k = 0; k < n->arity(); k++) {
             work.push_back(n->branch(k));
