@@ -176,7 +176,11 @@ static std::function<long(const Tree&)> ocppShapeFunctor(const digraph<Tree>& G)
     auto memo = std::make_shared<std::map<Tree, Tree, treeorder>>();
     return [inG, memo](const Tree& t) -> long {
         std::set<Tree, treeorder> onstack;
-        return (long)(size_t)ocppShape(t, *inG, *memo, onstack);
+        // the colour is the shape tree's SERIAL, never its address : the
+        // schedulers key their shape classes by this value and break
+        // frequency ties in key order -- an address made -ss 8 differ from
+        // one run of the same binary to the next (ASLR)
+        return long(ocppShape(t, *inG, *memo, onstack)->serial());
     };
 }
 
