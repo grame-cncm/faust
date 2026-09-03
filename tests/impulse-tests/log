@@ -1,0 +1,62 @@
+/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:149:67: error: invalid call to '__mul__': value passed to 'rhs' cannot be converted from 'SIMD[.float64, simd_width_of[dfaust]()]' to 'SIMD[.float64, simd_width_of[DType.float64]()]'
+            vstore(output3, (S32Vec(200) if (((F64Vec(12345.0)) * ((vload(input6)).cast[f64]())).cast[s32]()) & (((F64Vec(67895.0)) * ((vload(input7)).cast[f64]())).cast[s32]()) else S32Vec(100)).cast[dfaust]())
+                                              ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Imported from /Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:11:
+Mojo/stdlib/std/builtin/simd.mojo:1100:1: note: function declared here
+def __mul__(self, rhs: Self) -> Self    # note - synthetic signature
+^
+/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:149:67: note: .length of the first value is 'SIMDLength(simd_width_of[dfaust]())' but the second value is 'SIMDLength(simd_width_of[DType.float64]())'
+            vstore(output3, (S32Vec(200) if (((F64Vec(12345.0)) * ((vload(input6)).cast[f64]())).cast[s32]()) & (((F64Vec(67895.0)) * ((vload(input7)).cast[f64]())).cast[s32]()) else S32Vec(100)).cast[dfaust]())
+                                                                  ^
+/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:149:135: error: invalid call to '__mul__': value passed to 'rhs' cannot be converted from 'SIMD[.float64, simd_width_of[dfaust]()]' to 'SIMD[.float64, simd_width_of[DType.float64]()]'
+            vstore(output3, (S32Vec(200) if (((F64Vec(12345.0)) * ((vload(input6)).cast[f64]())).cast[s32]()) & (((F64Vec(67895.0)) * ((vload(input7)).cast[f64]())).cast[s32]()) else S32Vec(100)).cast[dfaust]())
+                                                                                                                  ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Imported from /Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:11:
+Mojo/stdlib/std/builtin/simd.mojo:1100:1: note: function declared here
+def __mul__(self, rhs: Self) -> Self    # note - synthetic signature
+^
+/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:149:135: note: .length of the first value is 'SIMDLength(simd_width_of[dfaust]())' but the second value is 'SIMDLength(simd_width_of[DType.float64]())'
+            vstore(output3, (S32Vec(200) if (((F64Vec(12345.0)) * ((vload(input6)).cast[f64]())).cast[s32]()) & (((F64Vec(67895.0)) * ((vload(input7)).cast[f64]())).cast[s32]()) else S32Vec(100)).cast[dfaust]())
+                                                                                                                                      ^
+/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:150:66: error: invalid call to '__mul__': value passed to 'rhs' cannot be converted from 'SIMD[.float64, simd_width_of[dfaust]()]' to 'SIMD[.float64, simd_width_of[DType.float64]()]'
+            vstore(output4, (S32Vec(20) if (((F64Vec(12345.0)) * ((vload(input8)).cast[f64]())).cast[s32]()) | (((F64Vec(67895.0)) * ((vload(input9)).cast[f64]())).cast[s32]()) else S32Vec(10)).cast[dfaust]())
+                                             ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Imported from /Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:11:
+Mojo/stdlib/std/builtin/simd.mojo:1100:1: note: function declared here
+def __mul__(self, rhs: Self) -> Self    # note - synthetic signature
+^
+/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:150:66: note: .length of the first value is 'SIMDLength(simd_width_of[dfaust]())' but the second value is 'SIMDLength(simd_width_of[DType.float64]())'
+            vstore(output4, (S32Vec(20) if (((F64Vec(12345.0)) * ((vload(input8)).cast[f64]())).cast[s32]()) | (((F64Vec(67895.0)) * ((vload(input9)).cast[f64]())).cast[s32]()) else S32Vec(10)).cast[dfaust]())
+                                                                 ^
+/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:150:134: error: invalid call to '__mul__': value passed to 'rhs' cannot be converted from 'SIMD[.float64, simd_width_of[dfaust]()]' to 'SIMD[.float64, simd_width_of[DType.float64]()]'
+            vstore(output4, (S32Vec(20) if (((F64Vec(12345.0)) * ((vload(input8)).cast[f64]())).cast[s32]()) | (((F64Vec(67895.0)) * ((vload(input9)).cast[f64]())).cast[s32]()) else S32Vec(10)).cast[dfaust]())
+                                                                                                                 ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Imported from /Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:11:
+Mojo/stdlib/std/builtin/simd.mojo:1100:1: note: function declared here
+def __mul__(self, rhs: Self) -> Self    # note - synthetic signature
+^
+/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:150:134: note: .length of the first value is 'SIMDLength(simd_width_of[dfaust]())' but the second value is 'SIMDLength(simd_width_of[DType.float64]())'
+            vstore(output4, (S32Vec(20) if (((F64Vec(12345.0)) * ((vload(input8)).cast[f64]())).cast[s32]()) | (((F64Vec(67895.0)) * ((vload(input9)).cast[f64]())).cast[s32]()) else S32Vec(10)).cast[dfaust]())
+                                                                                                                                     ^
+/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:151:65: error: invalid call to '__mul__': value passed to 'rhs' cannot be converted from 'SIMD[.float64, simd_width_of[dfaust]()]' to 'SIMD[.float64, simd_width_of[DType.float64]()]'
+            vstore(output5, (S32Vec(2) if (((F64Vec(12345.0)) * ((vload(input10)).cast[f64]())).cast[s32]()) ^ (((F64Vec(67895.0)) * ((vload(input11)).cast[f64]())).cast[s32]()) else S32Vec(1)).cast[dfaust]())
+                                            ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Imported from /Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:11:
+Mojo/stdlib/std/builtin/simd.mojo:1100:1: note: function declared here
+def __mul__(self, rhs: Self) -> Self    # note - synthetic signature
+^
+/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:151:65: note: .length of the first value is 'SIMDLength(simd_width_of[dfaust]())' but the second value is 'SIMDLength(simd_width_of[DType.float64]())'
+            vstore(output5, (S32Vec(2) if (((F64Vec(12345.0)) * ((vload(input10)).cast[f64]())).cast[s32]()) ^ (((F64Vec(67895.0)) * ((vload(input11)).cast[f64]())).cast[s32]()) else S32Vec(1)).cast[dfaust]())
+                                                                ^
+/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:151:134: error: invalid call to '__mul__': value passed to 'rhs' cannot be converted from 'SIMD[.float64, simd_width_of[dfaust]()]' to 'SIMD[.float64, simd_width_of[DType.float64]()]'
+            vstore(output5, (S32Vec(2) if (((F64Vec(12345.0)) * ((vload(input10)).cast[f64]())).cast[s32]()) ^ (((F64Vec(67895.0)) * ((vload(input11)).cast[f64]())).cast[s32]()) else S32Vec(1)).cast[dfaust]())
+                                                                                                                 ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Imported from /Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:11:
+Mojo/stdlib/std/builtin/simd.mojo:1100:1: note: function declared here
+def __mul__(self, rhs: Self) -> Self    # note - synthetic signature
+^
+/Users/manuelfarzini/Personal/dev/repo/faust/tests/impulse-tests/tmp/logical.mojo:151:134: note: .length of the first value is 'SIMDLength(simd_width_of[dfaust]())' but the second value is 'SIMDLength(simd_width_of[DType.float64]())'
+            vstore(output5, (S32Vec(2) if (((F64Vec(12345.0)) * ((vload(input10)).cast[f64]())).cast[s32]()) ^ (((F64Vec(67895.0)) * ((vload(input11)).cast[f64]())).cast[s32]()) else S32Vec(1)).cast[dfaust]())
+                                                                                                                                     ^
+mojo: error: failed to parse the provided Mojo source module
+error: Mojo build failed

@@ -21,6 +21,8 @@ ext ?= mojo
 arch ?= mojo/impulse.mojo
 genout ?= archs/mojo
 precision ?=
+refdir ?= reference
+refsuffix ?=
 FAUSTOPTIONS ?= -I dsp -double
 MOJOBUILDOPTIONS ?= -O3 -D DFAUST=DType.float64
 
@@ -28,7 +30,7 @@ MOJOBUILDOPTIONS ?= -O3 -D DFAUST=DType.float64
 .DELETE_ON_ERROR:
 
 # BUG:(manu) transpiled `grain3.mojo` has infinite runtime
-dspfiles := $(filter-out dsp/grain3.dsp,$(wildcard dsp/*.dsp))
+dspfiles := $(filter-out dsp/grain3.dsp dsp/osc_enable.dsp dsp/prefix.dsp,$(wildcard dsp/*.dsp))
 
 listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 
@@ -46,6 +48,8 @@ help:
 	@echo " 'FAUSTOPTIONS'     : define additional faust options (default to $(FAUSTOPTIONS))"
 	@echo " 'MOJOBUILDOPTIONS' : additional options passed to 'mojo build'"
 	@echo " 'precision'        : define filesCompare expected precision (empty by default)"
+	@echo " 'refdir'           : directory containing reference impulse responses"
+	@echo " 'refsuffix'        : suffix before the .ir extension of reference files"
 
 ################################################################
 # output directories
@@ -57,9 +61,9 @@ filesCompare:
 
 ################################################################
 # rules
-ir/$(outdir)/%.ir: ir/$(outdir)/%$(EXEEXT) reference/%.ir | ir/$(outdir)
+ir/$(outdir)/%.ir: ir/$(outdir)/%$(EXEEXT) $(refdir)/%$(refsuffix).ir | ir/$(outdir)
 	$< -n 60000 > $@
-	$(COMPARE) $@ reference/$(notdir $@) $(precision)
+	$(COMPARE) $@ $(refdir)/$*$(refsuffix).ir $(precision)
 
 ir/$(outdir)/%$(EXEEXT): $(genout)/%.$(ext) | ir/$(outdir)
 	$(MOJO) build $< -o $@ $(MOJOBUILDOPTIONS)

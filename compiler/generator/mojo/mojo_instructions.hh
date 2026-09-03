@@ -145,9 +145,9 @@ public:
     void visit(BoolNumInst* inst)    override;
     void visit(FloatNumInst* inst)   override;
     void visit(DoubleNumInst* inst)  override;
-
     void visit(DeclareVarInst* inst) override;
     void visit(NamedAddress* inst)   override;
+    void visit(Select2Inst* inst)    override;
     void visit(LoadVarInst* inst)    override;
     void visit(CastInst* inst)       override;
     void visit(IndexedAddress* inst) override;
@@ -163,6 +163,7 @@ public:
     static inline MojoDType  gCurLhsDT;
     static inline String     gCurAddrs;
     static inline Address*   gCurIndex;
+    static inline String     gCurGraph;
 
 protected:
     // Visitor wrappers
@@ -185,6 +186,7 @@ protected:
     static b32 isWrappedIndexExpr(ValueInst* inst);
     static b32 isScalarAddress(Address* addr);
     static b32 isScalarValue(ValueInst* inst);
+    static b32 hasF64Value(ValueInst* inst);
 };
 
 /**
