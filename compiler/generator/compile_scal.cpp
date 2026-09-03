@@ -6136,7 +6136,11 @@ string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
 
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    fClass->addDeclCode(subst("Soundfile* \t$0;", varname));
+    // the pointer is read before any UI writes it (instanceResetUserInterface
+    // tests it for null) : an indeterminate value there is undefined
+    // behaviour, and clang -O2 has been seen deleting the exit of the table
+    // fill loop that precedes the read (faustlibraries loop_test)
+    fClass->addDeclCode(subst("Soundfile* \t$0 = nullptr;", varname));
 
     fClass->addInitUICode(subst("if (uintptr_t($0) == 0) $0 = defaultsound;", varname));
     fClass->addFirstPrivateDecl(subst("$0cache", varname));
