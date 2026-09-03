@@ -49,8 +49,7 @@
  * causality guarantees acyclic.
  *
  * This object only DECIDES the partition; it emits nothing. Consumers:
- * the -ls loop emitter, the FAUST_OCPP_DUMPDAG JSON export toward the
- * loop-merging simulator, and, to come, the fusion/split moves
+ * the -ls loop emitter and, to come, the fusion/split moves
  * (Contract/Split) that walk the lattice of legal partitions.
  */
 class SuperNodeGraph {
@@ -135,7 +134,7 @@ class SuperNodeGraph {
     /// merged block's emission order WOULD be -- for cost oracles)
     std::vector<int> orderedUnion(int a, int b) const;
 
-    /// one-line summary per block (FAUST_DEBUG_SUPERNODES)
+    /// one-line summary per block
     void print(std::ostream& out) const;
 
     // ---- shared helpers (the single source of truth for the criteria) ----

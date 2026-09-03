@@ -62,8 +62,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
 
     static double horizonFromEnv()
     {
-        const char* h = getenv("FAUST_HORIZON_SAMPLES");
-        return h ? std::atof(h) : 2147483648.0;  // default: 2^31 samples
+        return 2147483648.0;  // default: 2^31 samples
     }
 
     // ---- IIR : worst-peak-gain (simple port of fir18) --------------------------------
@@ -167,17 +166,12 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
     //--- probe: positivity seed first, then the symmetric fallback ---------------------
     std::vector<AffItv> probeSeeds(Tree) const override
     {
-        if (getenv("FAUST_ITV_NOPROBE") != nullptr) return {};  // measurement A/B
         return {itv::fromItv(interval(0, kBig, 0)),
                 itv::fromItv(interval(-kBig, kBig, 0))};
     }
     void recordProbe(Tree var, const AffItv& probed, bool certified) const override
     {
         fProbe[var] = {probed, certified};
-        if (getenv("FAUST_ITV_TRACE") != nullptr && certified) {
-            std::cerr << "PROBE CERTIFIED " << itv::toItv(probed, fT) << " : "
-                      << ppsig(var, 30) << std::endl;
-        }
     }
 
     // Widening: a certified rate-0 probe threshold absorbs the move; otherwise the

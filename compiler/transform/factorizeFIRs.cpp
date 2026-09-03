@@ -444,46 +444,6 @@ Tree factorizeFIRs(Tree L)
         return classify(coef);
     };
     Tree R = treeRewrite(L, rule);
-    if (getenv("FAUST_KERNEL_WELLFORMED") || getenv("FAUST_FIRNORM_DEBUG")) {
-        // well-formedness census : every kernel is ANCHORED (no leading
-        // zero -- the shift lives in the source delay)
-        std::unordered_map<Tree, bool> seen;
-        int                            nfir = 0, nbad = 0, nshifted = 0;
-        std::function<void(Tree)>      walk = [&](Tree t) {
-            if (seen.count(t)) {
-                return;
-            }
-            seen[t] = true;
-            Tree var, body;
-            if (isRec(t, var, body)) {
-                if (body) {
-                    walk(body);
-                }
-                return;
-            }
-            if (tvec cs; isSigFIR(t, cs)) {
-                nfir++;
-                if (cs.size() < 3 || isZero(cs[1]) || isZero(cs.back())) {
-                    nbad++;
-                    if (nbad <= 3) {
-                        std::cerr << "KERNELIZE non-anchored : " << ppsig(t, 3) << std::endl;
-                    }
-                }
-                int  sh;
-                Tree src = kernelSrc(cs[0], sh);
-                (void)src;
-                if (sh > 0) {
-                    nshifted++;
-                }
-            }
-            for (int k = 0; k < t->arity(); k++) {
-                walk(t->branch(k));
-            }
-        };
-        walk(R);
-        fprintf(stderr, "KERNELIZE post : FIR=%d shifted=%d non-anchored=%d\n", nfir, nshifted,
-                nbad);
-    }
     return R;
 }
 

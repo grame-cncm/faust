@@ -127,13 +127,7 @@ MatrixPlans revealMatrix(Tree L)
         }
         // ---- spec budgets : K >= 3, n >= 4, zeros <= 10% of K x n ----
         int  K   = int(members.size()), n = int(tuple.size());
-        auto rej = [&](const char* why, long a, long b) {
-            if (getenv("FAUST_MATRIX_DEBUG")) {
-                fprintf(stderr, "MATRIX rejet (%s %ld/%ld) : K=%d n=%d\n", why, a, b, K, n);
-            }
-        };
         if (K < 3 || n < 4) {
-            rej("taille", K, n);
             continue;
         }
         long cells = long(K) * n, zeros = 0;
@@ -141,14 +135,11 @@ MatrixPlans revealMatrix(Tree L)
             zeros += n - long(cand[m].second.size());
         }
         // zero budget : 10% of the table (the spec's starting
-        // calibration). FAUST_MATRIX_ZEROPCT overrides it for forensic
-        // A/B runs -- fourSourcesToOcto sits at 29% (harmonic parity :
-        // half the decoder rows read 4 of the 7 harmonics).
+        // calibration ; fourSourcesToOcto sits at 29% -- harmonic parity :
+        // half the decoder rows read 4 of the 7 harmonics -- and stays out).
         {
-            const char* zp   = getenv("FAUST_MATRIX_ZEROPCT");
-            long        zpct = zp ? atol(zp) : 10;
+            long zpct = 10;
             if (100 * zeros > zpct * cells) {
-                rej("zeros", zeros, cells);
                 continue;
             }
         }
@@ -168,13 +159,10 @@ MatrixPlans revealMatrix(Tree L)
                     nonzero++;
                 }
             }
-            // FAUST_MATRIX_DENSPCT overrides the 50% floor for forensic
-            // A/B runs (fourSourcesToOcto : 19 distinct / 40 cells, the
-            // symmetric decoder repeats its +-cos/sin across rows)
-            const char* dp    = getenv("FAUST_MATRIX_DENSPCT");
-            long        dpct  = dp ? atol(dp) : 50;
+            // the 50% floor (fourSourcesToOcto : 19 distinct / 40 cells, the
+            // symmetric decoder repeats its +-cos/sin across rows, stays out)
+            long dpct = 50;
             if (100 * long(distinct.size()) < dpct * nonzero) {
-                rej("densite", long(distinct.size()), nonzero);
                 continue;
             }
         }
@@ -199,45 +187,6 @@ MatrixPlans revealMatrix(Tree L)
             F.coef.push_back(rc);
         }
         plans.families.push_back(F);
-    }
-    if (getenv("FAUST_MATRIX_CENSUS")) {
-        fprintf(stderr, "MATRIX census : %d candidats, %d familles\n", int(cand.size()),
-                int(plans.families.size()));
-        if (getenv("FAUST_MATRIX_DEBUG")) {
-            // the orphans : per candidate its column count and the best
-            // overlap with any other candidate's tuple -- why a family
-            // did or did not gather
-            for (size_t i = 0; i < cand.size(); i++) {
-                int bestov = 0;
-                for (size_t j = 0; j < cand.size(); j++) {
-                    if (i == j) {
-                        continue;
-                    }
-                    int ov = 0;
-                    for (auto& [x, c] : cand[i].second) {
-                        if (cand[j].second.count(x)) {
-                            ov++;
-                        }
-                    }
-                    bestov = std::max(bestov, ov);
-                }
-                fprintf(stderr, "  candidat %zu : cols=%zu recouvrement-max=%d\n", i,
-                        cand[i].second.size(), bestov);
-            }
-        }
-        for (size_t f = 0; f < plans.families.size(); f++) {
-            auto& F     = plans.families[f];
-            long  cells = long(F.rows.size()) * F.tuple.size(), zeros = 0;
-            for (auto& rc : F.coef) {
-                for (Tree c : rc) {
-                    if (isZero(c)) {
-                        zeros++;
-                    }
-                }
-            }
-            fprintf(stderr, "  famille %zu : K=%zu n=%zu zeros=%ld/%ld\n", f, F.rows.size(),
-                    F.tuple.size(), zeros, cells);
-        }
     }
     return plans;
 }

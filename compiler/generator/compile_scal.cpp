@@ -167,83 +167,7 @@ static Tree ocppShape(Tree t, const std::set<Tree, treeorder>& inG,
     return r;
 }
 
-// compact printer for shape trees (holes abbreviated, depth-capped)
-static void ocppShapePrint(Tree t, std::ostream& out, int depth)
-{
-    Sym s;
-    if (isSym(t->node(), &s)) {
-        std::string n = name(s);
-        if (n == "SHAPE_HOLE_F") {
-            out << "□f";
-        } else if (n == "SHAPE_HOLE_I") {
-            out << "□i";
-        } else if (n == "SHAPE_HOLE_IN") {
-            out << "□in";
-        } else if (n == "SHAPE_HOLE_REF") {
-            out << "□";
-        } else if (n == "SHAPE_HOLE_CYCLE") {
-            out << "□@";
-        } else {
-            out << (n.rfind("Sig", 0) == 0 ? n.substr(3) : n);
-            if (t->arity() > 0) {
-                if (depth <= 0) {
-                    out << "(…)";
-                    return;
-                }
-                out << "(";
-                for (int i = 0; i < t->arity(); i++) {
-                    if (i) {
-                        out << ",";
-                    }
-                    ocppShapePrint(t->branch(i), out, depth - 1);
-                }
-                out << ")";
-            }
-        }
-    } else {
-        out << t->node();
-    }
-}
 
-// FAUST_SS_SHAPES=1 : the shape statistics of the scheduled graph -- how
-// many nodes live in shapes of multiplicity >= 4 (the SLP packing
-// threshold: the Bank move's raw material), and the top shapes.
-static void ocppShapeStats(const digraph<Tree>& G)
-{
-    std::set<Tree, treeorder> inG(G.nodes().begin(), G.nodes().end());
-    std::map<Tree, Tree, treeorder> memo;
-    std::map<Tree, int, treeorder>  count;
-    for (const Tree& t : G.nodes()) {
-        std::set<Tree, treeorder> onstack;
-        count[ocppShape(t, inG, memo, onstack)]++;
-    }
-    int total = int(G.nodes().size()), bankable = 0, distinct = int(count.size());
-    std::vector<std::pair<int, Tree>> top;
-    for (const auto& [sh, c] : count) {
-        if (c >= 4) {
-            bankable += c;
-        }
-        top.push_back({c, sh});
-    }
-    std::sort(top.begin(), top.end(),
-              [](const auto& a, const auto& b) { return a.first > b.first; });
-    std::cerr << "SS_SHAPES nodes=" << total << " distinct=" << distinct
-              << " bankable=" << (total ? 100 * bankable / total : 0) << "%";
-    for (size_t i = 0; i < top.size() && i < 5; i++) {
-        std::cerr << "  " << top[i].first << "x ";
-        ocppShapePrint(top[i].second, std::cerr, 3);
-    }
-    std::cerr << std::endl;
-    // FAUST_SS_SHAPES=full : the whole histogram, one line per shape
-    const char* env = getenv("FAUST_SS_SHAPES");
-    if (env != nullptr && std::string(env) == "full") {
-        for (const auto& [c, sh] : top) {
-            std::cerr << "SS_SHAPE " << c << " ";
-            ocppShapePrint(sh, std::cerr, 4);
-            std::cerr << '\n';
-        }
-    }
-}
 
 // the shape functor for a given graph: boundary = the graph's node set
 static std::function<long(const Tree&)> ocppShapeFunctor(const digraph<Tree>& G)
@@ -291,20 +215,11 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
             // shapes degenerate into plain cs (deep recurrences keep their
             // locality) ; repeated shapes can no longer be dispersed.
             {
-                // FAUST_SS_BANKCAP : experimental override of the bank cap
-                // (0 = auto max(R, U)) while the right coupling is calibrated
                 unsigned int bc = 0;
-                if (const char* e = getenv("FAUST_SS_BANKCAP")) {
-                    bc = unsigned(std::atoi(e));
-                }
-                // FAUST_SS_STAGEC=df : stage C experiment (vertical columns)
                 int sc = 0;
-                if (const char* e = getenv("FAUST_SS_STAGEC")) {
-                    sc = (std::string(e) == "df") ? 1 : (std::string(e) == "layers") ? 2 : 0;
-                }
                 return bankschedule(G, gGlobal->gLSRegisters, gGlobal->gLSWidth,
                                     ocppShapeFunctor(G), bc, sc,
-                                    getenv("FAUST_SS_BANKSTATS") != nullptr);
+                                    false);
             }
         case 11:
         case 12:
@@ -313,35 +228,17 @@ static schedule<Tree> ocppScheduleRaw(const digraph<Tree>& G)
             // combination under (R,U), ASAP closure as the only R
             // certificate. The best trace is emitted even when no
             // candidate closes under R -- hard R is a certificate, not a
-            // validity condition ; feasibility is reported under
-            // MONODEBUG. K from FAUST_SS_CS2K (default 4).
+            // validity condition. K = 4 (the frontier width).
             // 11 = depth-first spine, 12 = breadth-first spine (wide,
             // parallel -- fdnRev and paradigma clientele).
             {
                 unsigned int k2 = 4;
-                if (const char* e = getenv("FAUST_SS_CS2K")) {
-                    k2 = unsigned(std::max(1, std::atoi(e)));
-                }
-                long b2 = 1000000;  // global cell budget (FAUST_SS_CS2BUDGET)
-                if (const char* e = getenv("FAUST_SS_CS2BUDGET")) {
-                    b2 = std::max(100000L, std::atol(e));
-                }
-                // spine from the strategy ; FAUST_SS_CS2SPINE=bf|df is the
-                // forensic override for A/B comparisons
+                long b2 = 1000000;  // global cell budget
                 bool bfsp = (gGlobal->gSchedulingStrategy == 12);
-                if (const char* e = getenv("FAUST_SS_CS2SPINE")) {
-                    bfsp = (std::string(e) == "bf");
-                }
                 bool           feas = true;
                 cs2stats       st;
                 schedule<Tree> S2   = csschedule2(G, gGlobal->gLSRegisters, gGlobal->gLSWidth,
                                                   k2, &feas, b2, &st, bfsp);
-                if (getenv("FAUST_SS_MONODEBUG")) {
-                    std::cerr << "CS2 feasible-under-R=" << feas
-                              << " R=" << gGlobal->gLSRegisters << " pairs=" << st.pairs
-                              << " degraded=" << st.degraded << " cells=" << st.cells << "/"
-                              << b2 << std::endl;
-                }
                 return S2;
             }
         default:
@@ -366,89 +263,10 @@ static bool ocppIsMemNode(const Tree& t)
     return false;
 }
 
-// FAUST_SS_QUALITY=1 : print the quality vector (U x cycles grid of the
-// model) of the chosen order -- fill = occupied / available slots. The
-// fill is that of the ABSTRACT machine (latency 1, U slots) ; the
-// diagnostic question : is a fill effort needed, or does the residue
-// live elsewhere (isomorphic adjacency, memory regimes) ?
+// the scheduled order of the immediate graph, under the chosen strategy
 static schedule<Tree> ocppSchedule(const digraph<Tree>& G)
 {
     schedule<Tree> S = ocppScheduleRaw(G);
-    if (getenv("FAUST_SS_CHECK")) {
-        // is the immediate graph a DAG, and does the emitted order
-        // respect it ? (every present edge is a hard constraint : the
-        // dependency must be scheduled before its consumer)
-        auto H       = graph2dag(G);
-        int  ncyclic = 0, maxscc = 0;
-        for (const auto& scc : H.nodes()) {
-            int n = int(scc.nodes().size());
-            if (n > 1) {
-                ncyclic++;
-                maxscc = std::max(maxscc, n);
-            }
-        }
-        std::map<Tree, int> pos;
-        int                 k = 0;
-        auto                E = S.elements();
-        for (const auto& s : E) {
-            pos[s] = k++;
-        }
-        int nviol = 0;
-        for (const auto& u : G.nodes()) {
-            for (const auto& d : G.destinations(u)) {
-                if (pos[d.first] > pos[u]) {
-                    if (nviol < 3) {
-                        std::cerr << "SS_CHECK violation: dep at " << pos[d.first]
-                                  << " scheduled after consumer at " << pos[u]
-                                  << " (edge weight " << d.second << ")" << std::endl;
-                    }
-                    nviol++;
-                }
-            }
-        }
-        std::cerr << "SS_CHECK ss=" << gGlobal->gSchedulingStrategy
-                  << " nodes=" << G.nodes().size() << " sccs>1=" << ncyclic
-                  << " maxscc=" << maxscc << " violations=" << nviol << std::endl;
-    }
-    if (getenv("FAUST_SS_SHAPES")) {
-        ocppShapeStats(G);
-    }
-    if (const char* qenv = getenv("FAUST_SS_QUALITY")) {
-        // value "R,U" : EVALUATION machine (compare orders generated
-        // with different settings against one reference) ; any other
-        // value : the generation settings
-        unsigned R = gGlobal->gLSRegisters, U = gGlobal->gLSWidth;
-        unsigned r2, u2;
-        if (sscanf(qenv, "%u,%u", &r2, &u2) == 2 && u2 > 0) {
-            R = r2;
-            U = u2;
-        }
-        // memory classification at Tree grain : a delayed read (dmin >= 1)
-        // is a buffer load, an input is a stream load. Writes are folded
-        // into their producer (v1 approximation). M from FAUST_SS_M
-        // (default 3, the M-series load/store width).
-        auto memf = std::function<bool(const Tree&)>(ocppIsMemNode);
-        unsigned M = 3;
-        if (const char* me = getenv("FAUST_SS_M")) {
-            M = unsigned(std::atoi(me));
-        }
-        schedquality q = squality(G, S.elements(), R, U, ocppShapeFunctor(G), memf, M);
-        double fill = (q.cycles > 0) ? 100.0 * double(S.size()) / (double(q.cycles) * U) : 0;
-        std::cerr << "SS_QUALITY ss=" << gGlobal->gSchedulingStrategy << " nodes=" << S.size()
-                  << " cycles=" << q.cycles << " holes=" << q.holes << " fill=" << int(fill)
-                  << "% peak=" << q.peak << " isoadj=" << q.isoadj << " packs4=" << q.packs4
-                  << " r4n=" << q.r4n << " maxrun=" << q.maxrun << " cplen=" << q.cplen
-                  << " cpdil=" << q.cpdil << " cpmax=" << q.cpmax;
-        {
-            schedule<Tree> SS;
-            for (const auto& n : S.elements()) {
-                SS.append(n);
-            }
-            std::cerr << " scost=" << schedulingcost(G, SS) / std::max<size_t>(S.size(), 1);
-        }
-        std::cerr << " nmem=" << q.nmem << " aluMII=" << q.aluMII << " memMII=" << q.memMII;
-        std::cerr << std::endl;
-    }
     return S;
 }
 
@@ -743,7 +561,7 @@ static Tree gatequivNormalize(Tree L)
     }
 
     // ---- phase 3 : SPELLING by crown weight, AFTER fusion --------------
-    const int tau = getenv("FAUST_GATEQUIV_TAU") ? atoi(getenv("FAUST_GATEQUIV_TAU")) : 12;
+    const int tau = 12;
     {
         auto consumers = buildConsumers(L);
         std::unordered_map<Tree, Tree>  memo;
@@ -793,15 +611,8 @@ static Tree gatequivNormalize(Tree L)
 
 Tree ScalarCompiler::prepare(Tree LS)
 {
-#define SERIAL_PROBE(tag)                                                      \
-    if (getenv("FAUST_SERIAL_PROBE")) {                                        \
-        std::cerr << "SERIAL " << tag << " : " << CTree::serialCounter()               \
-                  << " seq=" << CTree::seqHash() << std::endl;                            \
-    }
-    SERIAL_PROBE("entree-prepare")
     startTiming("prepare");
     Tree L1 = simplifyToNormalForm(LS);
-    SERIAL_PROBE("apres-normalform")
 
     // dump normal form
     if (gGlobal->gDumpNorm == 0) {
@@ -817,215 +628,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     }
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);
-    SERIAL_PROBE("apres-constprop")
 
-    // selectN census (FAUST_SELECTN_CENSUS=1) : how many select2 chains
-    // or trees share a COMMON selector expression -- the spellings of a
-    // semantic N-way selection (ba.selectn builds balanced trees of
-    // select2 on (i >= k) range tests ; the DNF atom explosion of
-    // lazyselect measures this ENCODING, not real program complexity).
-    // Census only : counts and shapes, no transformation.
-    if (getenv("FAUST_SELECTN_CENSUS")) {
-        std::map<Tree, std::vector<Tree>> families;  // base selector -> select2 nodes
-        std::set<Tree>                    seenC;
-        std::function<Tree(Tree)> baseOf = [&](Tree sel) -> Tree {
-            // the comparison's common expression, through int casts
-            int  op;
-            Tree a, b, xx;
-            if (isSigBinOp(sel, &op, a, b) &&
-                (op == kGT || op == kLT || op == kGE || op == kLE || op == kEQ || op == kNE)) {
-                Tree base = a;
-                if (isSigIntCast(a, xx)) {
-                    base = xx;
-                }
-                int  iv;
-                double rv;
-                if (isSigInt(b, &iv) || isSigReal(b, &rv)) {
-                    return base;
-                }
-            }
-            return nullptr;
-        };
-        std::function<void(Tree)> walkC = [&](Tree t) {
-            if (!seenC.insert(t).second) {
-                return;
-            }
-            Tree sel, x, y, var, body;
-            if (isSigSelect2(t, sel, x, y)) {
-                Tree base = baseOf(sel);
-                if (base != nullptr) {
-                    families[base].push_back(t);
-                }
-            }
-            if (isRec(t, var, body)) {
-                if (body != nullptr) {
-                    walkC(body);
-                }
-                return;
-            }
-            for (int k = 0; k < t->arity(); k++) {
-                walkC(t->branch(k));
-            }
-        };
-        walkC(L2);
-        int nfam = 0, nsel = 0, biggest = 0;
-        for (const auto& f : families) {
-            if ((int)f.second.size() >= 2) {
-                nfam++;
-                nsel += (int)f.second.size();
-                biggest = std::max(biggest, (int)f.second.size());
-            }
-        }
-        int singles = 0;
-        for (const auto& f : families) {
-            if ((int)f.second.size() == 1) {
-                singles++;
-            }
-        }
-        // The funnel (spec LE-SELECTN v2, Codex review) : families are an
-        // upper bound. A tree is CERTIFIED iff monotone inequalities only
-        // and its leaf intervals form the exact anchored saturated
-        // partition (-inf,0], {1}.. or grouped middles, [N-1,+inf) -- the
-        // ba.selectn spelling. Interval propagation, no unions (==/!=
-        // excluded), verify-everything-or-drop.
-        const long long INF = 0x3FFFFFFFFFFFLL;
-        struct IvLeaf {
-            long long lo, hi;
-            Tree      leaf;
-        };
-        int ntrees = 0, ncert = 0, ncertsel = 0, nbranches = 0, maxN = 0;
-        for (const auto& f : families) {
-            if ((int)f.second.size() < 2) {
-                continue;
-            }
-            std::set<Tree> infam(f.second.begin(), f.second.end());
-            std::set<Tree> ischild;
-            for (Tree t : f.second) {
-                Tree sel, x, y;
-                isSigSelect2(t, sel, x, y);
-                if (infam.count(x)) {
-                    ischild.insert(x);
-                }
-                if (infam.count(y)) {
-                    ischild.insert(y);
-                }
-            }
-            for (Tree root : f.second) {
-                if (ischild.count(root)) {
-                    continue;
-                }
-                ntrees++;
-                // DFS with interval [lo,hi] ; convention select2(c,x,y)=c?y:x
-                std::vector<IvLeaf>  leaves;
-                bool                 ok    = true;
-                int                  nsize = 0;
-                std::function<void(Tree, long long, long long)> dive =
-                    [&](Tree t, long long lo, long long hi) {
-                        if (!ok || lo > hi) {
-                            ok = false;
-                            return;
-                        }
-                        if (!infam.count(t)) {
-                            leaves.push_back({lo, hi, t});
-                            return;
-                        }
-                        nsize++;
-                        Tree sel, x, y, a, b;
-                        int  op, k;
-                        isSigSelect2(t, sel, x, y);
-                        if (!isSigBinOp(sel, &op, a, b)) {
-                            ok = false;
-                            return;
-                        }
-                        bool intmode = isSigInt(b, &k);
-                        if (!intmode) {
-                            // real mode : integral thresholds, kGE/kLT ONLY --
-                            // with these two ops every split is half-open [k,..)
-                            // and the interval [k,k+1) identifies with the
-                            // integer pair [k,k], so selector int(x) is exact
-                            // (NaN corner excepted, the gatequiv-admitted one)
-                            double rr;
-                            if (!isSigReal(b, &rr) || rr != (double)(long long)rr ||
-                                (op != kGE && op != kLT)) {
-                                ok = false;
-                                return;
-                            }
-                            k = (int)(long long)rr;
-                        }
-                        long long tlo, thi, flo, fhi;  // true side (y), false side (x)
-                        switch (op) {
-                            case kGE: tlo = k;      thi = hi;    flo = lo;    fhi = k - 1; break;
-                            case kGT: tlo = k + 1;  thi = hi;    flo = lo;    fhi = k;     break;
-                            case kLT: tlo = lo;     thi = k - 1; flo = k;     fhi = hi;    break;
-                            case kLE: tlo = lo;     thi = k;     flo = k + 1; fhi = hi;    break;
-                            default:  ok = false; return;  // ==/!= : unions, hors V1
-                        }
-                        dive(x, std::max(flo, lo), std::min(fhi, hi));
-                        dive(y, std::max(tlo, lo), std::min(thi, hi));
-                    };
-                // diagnostic : la nature du selecteur racine des gros arbres
-                if (getenv("FAUST_SELECTN_DEBUG") && (int)f.second.size() >= 8) {
-                    Tree sel, x, y, a, b;
-                    int  op, k;
-                    isSigSelect2(root, sel, x, y);
-                    if (isSigBinOp(sel, &op, a, b)) {
-                        int    kk;
-                        double rr;
-                        if (isSigInt(b, &kk)) {
-                            fprintf(stderr, "  racine: op=%d rhs=int %d\n", op, kk);
-                        } else if (isSigReal(b, &rr)) {
-                            fprintf(stderr, "  racine: op=%d rhs=real %g\n", op, rr);
-                        } else {
-                            fprintf(stderr, "  racine: op=%d rhs=EXPR\n", op);
-                        }
-                    } else if (false) {
-                        fprintf(stderr, "  racine: selecteur non-binop\n");
-                    }
-                }
-                dive(root, -INF, INF);
-                if (!ok || leaves.size() < 3) {
-                    if (getenv("FAUST_SELECTN_DEBUG") && nsize >= 4) {
-                        fprintf(stderr, "  arbre rejete en descente (%d selects, ok=%d, feuilles=%zu)\n",
-                                nsize, (int)ok, leaves.size());
-                    }
-                    continue;  // N >= 3 (decision Yann/Codex)
-                }
-                std::sort(leaves.begin(), leaves.end(),
-                          [](const IvLeaf& u, const IvLeaf& v) { return u.lo < v.lo; });
-                // anchored saturated partition : (-inf,0], [1..], contiguous,
-                // last reaches +inf ; grouped middles allowed
-                bool part = leaves.front().lo == -INF && leaves.front().hi == 0 &&
-                            leaves.back().hi == INF;
-                for (size_t i = 1; part && i < leaves.size(); i++) {
-                    if (leaves[i].lo != leaves[i - 1].hi + 1) {
-                        part = false;
-                    }
-                }
-                if (part) {
-                    ncert++;
-                    ncertsel += nsize;
-                    int N = (int)leaves.back().lo + 1;
-                    nbranches += N;
-                    maxN = std::max(maxN, N);
-                } else if (getenv("FAUST_SELECTN_DEBUG") && nsize >= 8) {
-                    fprintf(stderr, "  arbre non-certifie (%d selects, %zu feuilles) intervalles:",
-                            nsize, leaves.size());
-                    for (size_t i = 0; i < std::min(leaves.size(), (size_t)12); i++) {
-                        fprintf(stderr, " [%lld,%lld]",
-                                leaves[i].lo == -INF ? -99 : leaves[i].lo,
-                                leaves[i].hi == INF ? 99 : leaves[i].hi);
-                    }
-                    fprintf(stderr, "%s\n", leaves.size() > 12 ? " ..." : "");
-                } else if (getenv("FAUST_SELECTN_DEBUG") && !ok && nsize >= 8) {
-                    fprintf(stderr, "  arbre rejete en descente (%d selects) : op non-monotone ou intervalle vide\n", nsize);
-                }
-            }
-        }
-        fprintf(stderr,
-                "SELECTN_CENSUS familles=%d selects=%d arbres=%d certifies=%d "
-                "selects_certifies=%d branches=%d maxN=%d isolees=%d\n",
-                nfam, nsel, ntrees, ncert, ncertsel, nbranches, maxN, singles);
-    }
 
     // enable/control escape hatch for the standalone -lsum path : the sum
     // restructuring interacts with the enable cut (osc_enable : a disabled
@@ -1056,7 +659,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         walk(sigs);
         return found;
     };
-    if ((gGlobal->gLowerSums || getenv("FAUST_LOWERSUMS")) && !gGlobal->gReconstructFIRIIRs &&
+    if (gGlobal->gLowerSums && !gGlobal->gReconstructFIRIIRs &&
         !hasEnableControl(L2)) {
         // -lsum STANDALONE (the old_freeverb bisection, 2026-08-18) :
         // lowerSums was trapped inside the -fir reveal lambda -- alone it
@@ -1070,7 +673,7 @@ Tree ScalarCompiler::prepare(Tree LS)
             endTiming("Sum revealer (lsum standalone)");
             startTiming("Sum lowering");
             std::set<Tree> keepRows;
-            if ((gGlobal->gMatrixRows || getenv("FAUST_MATRIX_ROWOP"))) {
+            if (gGlobal->gMatrixRows) {
                 // matrix rows stay n-ary through the lowering : the -ls
                 // row-op regime consumes them whole (spec LA-FORME-MATRICE)
                 for (auto& [row, id] : revealMatrix(L2).rowOf) {
@@ -1104,181 +707,24 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("Sum revealer");
             L2 = revealSum(L2);
             endTiming("Sum revealer");
-            SERIAL_PROBE("apres-revealSum")
             startTiming("FIR revealer");
             L2 = revealFIR(L2);
             endTiming("FIR revealer");
-            SERIAL_PROBE("apres-revealFIR")
             startTiming("IIR revealer");
             L2 = revealIIR(L2);
             endTiming("IIR revealer");
-            SERIAL_PROBE("apres-revealIIR")
             startTiming("FIR factorizer");
             L2 = factorizeFIRs(L2);
-            SERIAL_PROBE("apres-factorize")
             L2 = kernelCandidacy(L2);  // the retiming law, per site
-            SERIAL_PROBE("apres-candidacy")
-            if (getenv("FAUST_MATRIX_CENSUS")) {
-                revealMatrix(L2);  // analysis only : the fourth gathering's census
-            }
             endTiming("FIR factorizer");
-            if (getenv("FAUST_SS_MCM")) {
-                // stage-3 deposit probe : the WEIGHTED pairs. Atom of a
-                // term : c*x -> (x, numeric c) ; x -> (x, 1). An
-                // extraction a+lambda*b serves the rows where wb/wa is
-                // the same lambda : pairs are bucketed by ratio and the
-                // saving is bounded by the sum of (count-1) over the
-                // buckets of size >= 2.
-                std::vector<std::vector<std::pair<Tree, double>>> rows;
-                {
-                    std::set<Tree>    seen;
-                    std::vector<Tree> work{L2};
-                    while (!work.empty()) {
-                        Tree t = work.back();
-                        work.pop_back();
-                        if (!seen.insert(t).second) continue;
-                        Tree var, body;
-                        if (isRec(t, var, body)) {
-                            if (body) work.push_back(body);
-                            continue;
-                        }
-                        if (tvec subs; isSigSum(t, subs)) {
-                            std::vector<std::pair<Tree, double>> row;
-                            for (Tree s2 : subs) {
-                                Tree   a, b;
-                                double w = 1.0, num;
-                                int    inum;
-                                Tree   at = s2;
-                                if (isSigMul(s2, a, b) &&
-                                    (isSigReal(a, &num) || (isSigInt(a, &inum) && (num = inum, true)))) {
-                                    w  = num;
-                                    at = b;
-                                } else if (isSigMul(s2, a, b) &&
-                                           (isSigReal(b, &num) ||
-                                            (isSigInt(b, &inum) && (num = inum, true)))) {
-                                    w  = num;
-                                    at = a;
-                                }
-                                row.push_back({at, w});
-                            }
-                            rows.push_back(std::move(row));
-                        }
-                        for (int k = 0; k < t->arity(); k++) work.push_back(t->branch(k));
-                    }
-                }
-                std::map<std::tuple<Tree, Tree, long long>, int> buckets;
-                long terms = 0;
-                for (auto& row : rows) {
-                    terms += long(row.size());
-                    for (size_t i2 = 0; i2 < row.size(); i2++) {
-                        for (size_t j2 = i2 + 1; j2 < row.size(); j2++) {
-                            Tree   a = row[i2].first, b = row[j2].first;
-                            double wa = row[i2].second, wb = row[j2].second;
-                            if (a == b || wa == 0.0) continue;
-                            treeorder lt;
-                            if (lt(b, a)) {
-                                std::swap(a, b);
-                                std::swap(wa, wb);
-                            }
-                            long long q = (long long)(std::llround((wb / wa) * 1e9));
-                            buckets[{a, b, q}]++;
-                        }
-                    }
-                }
-                long pot1 = 0, potw = 0, bigw = 0;
-                for (auto& [k2, c2] : buckets) {
-                    if (c2 < 2) continue;
-                    long long q = std::get<2>(k2);
-                    if (q == 1000000000LL || q == -1000000000LL) {
-                        pot1 += c2 - 1;  // already served by the +-1 butterfly
-                    } else {
-                        potw += c2 - 1;
-                        bigw++;
-                    }
-                }
-                std::cerr << "SS_MCM sums=" << rows.size() << " terms=" << terms
-                          << " lambda=+-1(already done)=" << pot1
-                          << " WEIGHTED buckets=" << bigw << " bound=" << potw << std::endl;
-
-                // --- the blind spot : sharing BETWEEN FIR kernels of
-                // one SAME source. Three measures per multi-kernel
-                // source : (a) shifted windows (equal coefficient vector
-                // up to a shift -> share through an output delay),
-                // (b) weighted inter-kernel pairs over the taps,
-                // (c) common prefixes (partial accumulations).
-                {
-                    std::map<Tree, std::vector<tvec>, treeorder> bySource;
-                    std::set<Tree>    seenF;
-                    std::vector<Tree> workF{L2};
-                    while (!workF.empty()) {
-                        Tree t = workF.back();
-                        workF.pop_back();
-                        if (!seenF.insert(t).second) continue;
-                        Tree var, body;
-                        if (isRec(t, var, body)) {
-                            if (body) workF.push_back(body);
-                            continue;
-                        }
-                        if (tvec cf; kernelWorkVec(t, cf) && cf.size() > 2) {
-                            bySource[cf[0]].push_back(cf);
-                        }
-                        for (int k = 0; k < t->arity(); k++) workF.push_back(t->branch(k));
-                    }
-                    long nMulti = 0, nKern = 0, shifts = 0, prefixes = 0, wpairs = 0;
-                    for (auto& [src, kerns] : bySource) {
-                        if (kerns.size() < 2) continue;
-                        nMulti++;
-                        nKern += long(kerns.size());
-                        // normalized forms (tap coefs, leading zeros removed)
-                        auto trimmed = [](const tvec& cf) {
-                            size_t b = 1;
-                            while (b < cf.size() && isZero(cf[b])) b++;
-                            return tvec(cf.begin() + b, cf.end());
-                        };
-                        for (size_t i2 = 0; i2 < kerns.size(); i2++) {
-                            tvec ti = trimmed(kerns[i2]);
-                            for (size_t j2 = i2 + 1; j2 < kerns.size(); j2++) {
-                                tvec tj = trimmed(kerns[j2]);
-                                if (ti == tj && kerns[i2] != kerns[j2]) shifts++;
-                                // prefixe commun >= 2 taps
-                                size_t common = 0;
-                                while (common < ti.size() && common < tj.size() &&
-                                       ti[common] == tj[common]) common++;
-                                if (common >= 2 && ti != tj) prefixes++;
-                            }
-                        }
-                        // weighted inter-kernel pairs : buckets (i, j, cj/ci)
-                        std::map<std::tuple<int, int, long long>, int> kb;
-                        for (auto& cf : kerns) {
-                            for (size_t i2 = 1; i2 < cf.size(); i2++) {
-                                double wi, wj; int ni2, nj2;
-                                if (isZero(cf[i2])) continue;
-                                if (!(isSigReal(cf[i2], &wi) || (isSigInt(cf[i2], &ni2) && (wi = ni2, true)))) continue;
-                                for (size_t j2 = i2 + 1; j2 < cf.size(); j2++) {
-                                    if (isZero(cf[j2])) continue;
-                                    if (!(isSigReal(cf[j2], &wj) || (isSigInt(cf[j2], &nj2) && (wj = nj2, true)))) continue;
-                                    long long q = (long long)std::llround((wj / wi) * 1e9);
-                                    kb[{int(i2), int(j2), q}]++;
-                                }
-                            }
-                        }
-                        for (auto& [k2, c2] : kb) {
-                            if (c2 >= 2) wpairs += c2 - 1;
-                        }
-                    }
-                    std::cerr << "SS_MCM_FIR sources-multi=" << nMulti << " noyaux=" << nKern
-                              << " decalages=" << shifts << " prefixes=" << prefixes
-                              << " paires-taps-bornees=" << wpairs << std::endl;
-                }
-            }
-            if (gGlobal->gLowerSums || getenv("FAUST_LOWERSUMS")) {
+            if (gGlobal->gLowerSums) {
                 // experimental co-occurrence lowering : the n-ary sums
                 // become binary adds whose shared pairs and canonical
                 // prefixes rebuild the structural sharing the flattening
                 // destroyed (fdnRev : 823 -> 3056 additions without it)
                 startTiming("Sum lowering");
                 std::set<Tree> keepRows;
-                if ((gGlobal->gMatrixRows || getenv("FAUST_MATRIX_ROWOP"))) {
+                if (gGlobal->gMatrixRows) {
                     // matrix rows stay n-ary through the lowering : the
                     // -ls row-op regime consumes them whole (spec
                     // LA-FORME-MATRICE)
@@ -1286,16 +732,13 @@ Tree ScalarCompiler::prepare(Tree LS)
                         keepRows.insert(row);
                     }
                 }
-                SERIAL_PROBE("apres-revealMatrix")
                 L2 = lowerSums(L2, keepRows.empty() ? nullptr : &keepRows);
                 endTiming("Sum lowering");
-                SERIAL_PROBE("apres-lowerSums")
             }
         };  // fin du lambda reveal (-fir)
         callWithLargeStack(reveal);
     }
 
-    SERIAL_PROBE("apres-reveal")
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
     endTiming("conditionAnnotation");
@@ -1309,11 +752,10 @@ Tree ScalarCompiler::prepare(Tree LS)
     // of each capture's vector once per chunk (a split emission that
     // dropped the tail was the FFT "miracle" of the August campaigns : a
     // display-only FFT that was no longer computed).
-    if (!getenv("FAUST_SS_NODISPLAYBLOCK")) {
+    {
         // spec SIGNAUX-ATTACHES (default since 2026-08-17) : harvest D,
         // dissolve attach and bargraph decorations from the audio path,
-        // BEFORE typing (the rebuild creates new trees). The env var is
-        // the forensic opt-out for A/B comparisons, not a supported mode.
+        // BEFORE typing (the rebuild creates new trees).
         startTiming("display harvest");
         L2 = harvestDisplay(L2);
         endTiming("display harvest");
@@ -1329,7 +771,6 @@ Tree ScalarCompiler::prepare(Tree LS)
         conditionAnnotation(L2);
         recursivnessAnnotation(L2);
     }
-    SERIAL_PROBE("avant-typing")
     startTiming("L2 typeAnnotation");
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");
@@ -1507,48 +948,6 @@ Tree ScalarCompiler::prepare(Tree LS)
     fOccMarkup->mark(Lx);  // Annotate L2 (+ condition atoms) with occurrences analysis
     endTiming("occurrences analysis");
 
-    if (getenv("FAUST_SS_DESCENDCHECK")) {
-        // descendAttribute v2 validation (absorbing doors) : the
-        // max-delays recomputed by the generic descent must agree with
-        // OccMarkup on every node it visited. Local edge labels
-        // (regime A) + the -1*y tracking (chain, regime B, outside the
-        // doors), same values as incOcc.
-        auto md = descendAttribute<int>(
-            Lx, 0,
-            [](Tree parent, int i, const int& pa) -> int {
-                Tree x, y;
-                int  opnum;
-                if (isSigDelay(parent, x, y) && i == 0) {
-                    return checkDelayInterval(getCertifiedSigType(y));
-                }
-                if (isSigPrefix(parent, x, y) && i == 1) {
-                    return 1;
-                }
-                if (isSigBinOp(parent, &opnum, x, y) && opnum == kMul && isMinusOne(x) &&
-                    i == 1) {
-                    return pa;  // the -1*y sharing propagates (cf. OccMarkup)
-                }
-                return 0;
-            },
-            [](const int& a, const int& b) { return a > b ? a : b; });
-        long agree = 0, miss = 0;
-        for (const auto& [t, d] : md) {
-            Occurrences* o = fOccMarkup->retrieve(t);
-            if (o == nullptr) {
-                continue;  // hors du parcours OccMarkup (gen, descripteurs)
-            }
-            if (o->getMaxDelay() == d) {
-                agree++;
-            } else {
-                miss++;
-                if (miss <= 4) {
-                    std::cerr << "SS_DESCENDMISS occ=" << o->getMaxDelay() << " descend=" << d
-                              << " " << ppsig(t, 4) << std::endl;
-                }
-            }
-        }
-        std::cerr << "SS_DESCENDCHECK agree=" << agree << " miss=" << miss << std::endl;
-    }
 
     endTiming("prepare");
 
@@ -1983,9 +1382,6 @@ void ScalarCompiler::computeSelectNInfo(Tree L)
                 info.leaves.push_back({lf.leaf, atoms});
             }
             fSelectNInfo[root] = info;
-            if (getenv("FAUST_SELECTN_DEBUG")) {
-                fprintf(stderr, "  dispatch reconnu : %zu domaines\n", leaves.size());
-            }
         }
     }
     // ---- V1.2 : equality CHAINS with a default branch ----------------
@@ -1998,9 +1394,6 @@ void ScalarCompiler::computeSelectNInfo(Tree L)
     // cascade does). Chains only : a branch that is itself an eq member
     // rejects the candidate (trees stay in their spelling).
     for (const auto& f : eqFamilies) {
-        if (getenv("FAUST_SELECTN_DEBUG")) {
-            fprintf(stderr, "  eq-famille : %zu membres\n", f.second.size());
-        }
         if ((int)f.second.size() < 2) {
             continue;
         }
@@ -2056,19 +1449,11 @@ void ScalarCompiler::computeSelectNInfo(Tree L)
                 info.leaves.push_back({cont, negs});  // the default entry
                 break;
             }
-            if (getenv("FAUST_SELECTN_DEBUG")) {
-                fprintf(stderr, "  eq-candidat : ok=%d entrees=%zu\n", (int)ok,
-                        info.leaves.size());
-            }
             if (!ok || info.leaves.size() < 3 || info.leaves.size() > 65) {
                 continue;  // entries + default >= 3 (spec N >= 3)
             }
             info.selEff = base;
             fSelectNInfo[root] = info;
-            if (getenv("FAUST_SELECTN_DEBUG")) {
-                fprintf(stderr, "  chaine== reconnue : %zu entrees + defaut\n",
-                        info.leaves.size() - 1);
-            }
         }
     }
 }
@@ -2187,9 +1572,8 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
         // crash, stack exhausted beyond 2 GB) ; at 4 with the fine
         // table-read boundary below, the quantizer family keeps 95% of
         // its lazy win (63.3 vs 60.0 ns isolated -- the boundary was
-        // the big lock, not the depth). FAUST_LZ_ATOMS overrides for
-        // experiments.
-        int lzlim = getenv("FAUST_LZ_ATOMS") ? atoi(getenv("FAUST_LZ_ATOMS")) : 4;
+        // the big lock, not the depth).
+        const int lzlim = 4;
         if (n > lzlim) {
             nc = gGlobal->nil;
         }
@@ -2385,249 +1769,6 @@ string ScalarCompiler::CS(Tree sig)
 }
 
 /*****************************************************************************
- Loop-DAG export (experimental, FAUST_OCPP_DUMPDAG)
- *****************************************************************************/
-
-/**
- * Export the program as a DAG of loops, in the JSON format understood by the
- * loop-merging simulator (../loop-splitting/faust_dag.py). The partition is
- * computed by SuperNodeGraph (the single source of truth for materialization
- * and blocks); this class only owns the JSON representation choices required
- * by the simulator's Program model: instantaneous intra-block references are
- * inlined (lock-step multi-output bodies cannot self-read at d=0), delayed
- * ones become self-reads, slow subtrees are pruned to opaque leaves, members
- * never read from outside are dropped from the outputs.
- */
-class LoopDagDumper {
-    SuperNodeGraph      fSN;
-    std::vector<bool>   fNeeded;         // index -> read somewhere => output vector
-    std::vector<bool>   fBlockSelfRead;  // block -> emits a self-read
-    std::map<Tree, int, treeorder> fSlowId;         // slow leaf -> id
-
-   public:
-    LoopDagDumper(OccMarkup* occ, Tree key) : fSN(occ, key) {}
-
-    void dump(Tree L, const std::vector<Tree>& sched, int nins, int nouts, std::ostream& out)
-    {
-        fSN.build(L, sched);
-        int n = (int)fSN.materialized().size();
-        fNeeded.assign(n, false);
-        fBlockSelfRead.assign(fSN.blockCount(), false);
-
-        // serialize every member body (marks fNeeded and fBlockSelfRead)
-        std::vector<std::string> body(n);
-        for (int i = 0; i < n; i++) {
-            Tree               d = SuperNodeGraph::defOf(fSN.materialized()[i]);
-            std::ostringstream b;
-            emit(d, &b, fSN.blockOf(i), d == fSN.materialized()[i]);
-            body[i] = b.str();
-        }
-        std::vector<std::string> obody(nouts);
-        {
-            int  i  = 0;
-            Tree L1 = L;
-            for (; isList(L1); L1 = tl(L1), i++) {
-                std::ostringstream b;
-                emit(hd(L1), &b, -2, false);
-                obody[i] = b.str();
-            }
-        }
-
-        // assemble
-        out << "{\"inputs\": " << nins << ", \"outputs\": " << nouts << ",\n";
-        out << " \"loops\": [\n";
-        bool first = true;
-        for (int s = 0; s < fSN.blockCount(); s++) {
-            const std::vector<int>& members = fSN.blockMembers(s);
-            std::vector<int>        vs;
-            for (int i : members) {
-                if (fNeeded[i]) {
-                    vs.push_back(i);
-                }
-            }
-            if (vs.empty()) {
-                continue;  // fully inlined into its consumers
-            }
-            const char* kind = (members.size() > 1 || fBlockSelfRead[s]) ? "rec"
-                               : fSN.maxDelayOf(fSN.materialized()[vs[0]]) > 0 ? "delayed"
-                                                                               : "shared";
-            out << (first ? "  " : ",\n  ") << "{\"vs\": [";
-            first = false;
-            for (size_t k = 0; k < vs.size(); k++) {
-                out << (k ? ", " : "") << vs[k];
-            }
-            out << "], \"kind\": \"" << kind << "\", \"maxdelays\": [";
-            for (size_t k = 0; k < vs.size(); k++) {
-                out << (k ? ", " : "") << fSN.maxDelayOf(fSN.materialized()[vs[k]]);
-            }
-            out << "],\n   \"bodies\": [";
-            for (size_t k = 0; k < vs.size(); k++) {
-                out << (k ? ",\n              " : "") << body[vs[k]];
-            }
-            out << "]}";
-        }
-        for (int i = 0; i < nouts; i++) {
-            out << (first ? "  " : ",\n  ");
-            first = false;
-            out << "{\"vs\": [" << (n + i) << "], \"kind\": \"output\", "
-                << "\"output_index\": " << i << ", \"maxdelays\": [0],\n   \"bodies\": ["
-                << obody[i] << "]}";
-        }
-        out << "\n]}\n";
-    }
-
-   private:
-    static void jsonEscape(std::ostream& out, const std::string& s)
-    {
-        for (char c : s) {
-            if (c == '"' || c == '\\') {
-                out << '\\';
-            }
-            out << c;
-        }
-    }
-
-    // reference to materialized node m, read with delay dmin (dvar: variable)
-    void emitRef(Tree m, int dmin, int dmax, bool dvar, std::ostream* out, int scc)
-    {
-        int  idx     = fSN.indexOf(m);
-        bool sameScc = (scc >= 0) && (fSN.blockOf(idx) == scc);
-        if (sameScc && dmin == 0 && !dvar) {
-            // instantaneous intra-loop reference: inline the definition
-            // (acyclic by causality)
-            Tree d = SuperNodeGraph::defOf(m);
-            emit(d, out, scc, d == m);
-            return;
-        }
-        if (sameScc && dmin == 0 && dvar) {
-            dmin = 1;  // lock-step bodies cannot self-read at d=0
-        }
-        fNeeded[idx] = true;
-        if (sameScc) {
-            fBlockSelfRead[scc] = true;
-        }
-        *out << "{\"read\": " << idx << ", \"d\": " << dmin;
-        if (dvar) {
-            *out << ", \"dvar\": true, \"dmax\": " << dmax;
-        }
-        *out << "}";
-    }
-
-    void emitOp(const std::string& name, bool call, int r, const std::vector<Tree>& args,
-                std::ostream* out, int scc)
-    {
-        *out << "{\"op\": \"";
-        jsonEscape(*out, name);
-        *out << "\"";
-        if (call) {
-            *out << ", \"call\": true";
-        }
-        if (r > 0) {
-            *out << ", \"r\": " << r;
-        }
-        *out << ", \"args\": [";
-        for (size_t i = 0; i < args.size(); i++) {
-            if (i > 0) {
-                *out << ", ";
-            }
-            emit(args[i], out, scc, false);
-        }
-        *out << "]}";
-    }
-
-    void emit(Tree t, std::ostream* out, int scc, bool root)
-    {
-        int     i;
-        int64_t i64;
-        double  r;
-        Tree    x, y, z, sel, ff, largs, tb, size, gen, wi, ws, ri, label;
-
-        // materialized nodes referenced from a body become vector reads
-        if (!root && fSN.indexOf(t) >= 0) {
-            emitRef(t, 0, 0, false, out, scc);
-            return;
-        }
-        if (isSigInt(t, &i)) {
-            *out << "{\"num\": " << i << "}";
-        } else if (isSigInt64(t, &i64)) {
-            *out << "{\"num\": " << i64 << "}";
-        } else if (isSigReal(t, &r)) {
-            *out << "{\"num\": " << r << "}";
-        } else if (isSigInput(t, &i)) {
-            *out << "{\"input\": " << i << "}";
-        } else if (isSigAttach(t, x, y) && !SuperNodeGraph::isSlow(y)) {
-            // attach takes the TYPE of its left arm but its right arm is a
-            // side effect (bargraph) running at sample rate: it must escape
-            // the slow pruning below even when the attach node itself is slow
-            emitOp("attach", false, 0, {x, y}, out, scc);
-        } else if (SuperNodeGraph::isSlow(t)) {
-            // opaque slow leaf: computed outside the sample loop
-            if (fSlowId.find(t) == fSlowId.end()) {
-                int id     = (int)fSlowId.size();
-                fSlowId[t] = id;
-            }
-            *out << "{\"slow\": " << fSlowId[t] << "}";
-        } else if (isSigDelay(t, x, y)) {
-            int  dmin, dmax;
-            bool dvar;
-            SuperNodeGraph::delayBounds(y, dmin, dmax, dvar);
-            if (fSN.indexOf(x) >= 0) {
-                emitRef(x, dmin, dmax, dvar, out, scc);
-            } else {
-                // delay of a non-materialized signal: only possible for
-                // slow/constant values, where the delay is transparent
-                emit(x, out, scc, false);
-            }
-        } else if (isSigPrefix(t, x, y)) {
-            emitOp("prefix", false, 1, {x, y}, out, scc);
-        } else if (isSigBinOp(t, &i, x, y)) {
-            bool call = (i == kRem) && (getCertifiedSigType(t)->nature() == kReal);
-            emitOp(gBinOpTable[i]->fName, call, 0, {x, y}, out, scc);
-        } else if (getUserData(t)) {
-            std::string       name = ((xtended*)getUserData(t))->name();
-            std::vector<Tree> args;
-            for (int k = 0; k < t->arity(); k++) {
-                args.push_back(t->branch(k));
-            }
-            emitOp(name, SuperNodeGraph::isCallPrim(name), 0, args, out, scc);
-        } else if (isSigFFun(t, ff, largs)) {
-            std::vector<Tree> args;
-            for (Tree l = largs; isList(l); l = tl(l)) {
-                args.push_back(hd(l));
-            }
-            emitOp(ffname(ff), true, 0, args, out, scc);
-        } else if (isSigRDTbl(t, tb, ri)) {
-            if (isSigWRTbl(tb, size, gen)) {
-                emitOp("rdtable", false, 0, {ri}, out, scc);
-            } else if (isSigWRTbl(tb, size, gen, wi, ws)) {
-                emitOp("rwtable", false, 0, {wi, ws, ri}, out, scc);
-            } else {
-                emitOp("rdtable", false, 0, {ri}, out, scc);
-            }
-        } else if (isSigSelect2(t, sel, x, y)) {
-            emitOp("select2", false, 0, {sel, x, y}, out, scc);
-        } else if (isSigIntCast(t, x) || isSigFloatCast(t, x) || isSigBitCast(t, x)) {
-            emitOp("cast", false, 0, {x}, out, scc);
-        } else if (isSigAttach(t, x, y)) {
-            emitOp("attach", false, 0, {x, y}, out, scc);
-        } else if (isSigVBargraph(t, label, x, y, z) || isSigHBargraph(t, label, x, y, z)) {
-            emitOp("bargraph", false, 0, {z}, out, scc);
-        } else if (isSigControl(t, x, y)) {
-            emitOp("control", false, 0, {x, y}, out, scc);
-        } else if (isSigAssertBounds(t, x, y, z)) {
-            emit(z, out, scc, false);
-        } else {
-            // generic fallback: dependencies as an anonymous op
-            tvec subs;
-            getSubSignals(t, subs, false);
-            std::ostringstream name;
-            name << "op:" << t->node();
-            emitOp(name.str(), false, 0, subs, out, scc);
-        }
-    }
-};
-
-/*****************************************************************************
  Loop-split emission (experimental, -ls / -ls-sched / -ls-R / -ls-U)
  *****************************************************************************/
 
@@ -2706,8 +1847,7 @@ class LoopSplitEmitter {
     int                 fLoopNo = 0;  // emission counter, gives each loop a stable id
 
     // the matrix form (spec LA-FORME-MATRICE) : detected families and the
-    // row-op emission regime gate (-mxr, or FAUST_MATRIX_ROWOP for
-    // forensic A/B comparisons)
+    // row-op emission regime gate (-mxr)
     MatrixPlans fMatrix;
     bool        fRowOp = false;
 
@@ -2761,10 +1901,6 @@ class LoopSplitEmitter {
                 fPlan.atomOf.emplace(s, aid);
                 fPlan.leaf(s, -1, aid);
             }
-        }
-        if (getenv("FAUST_GROUP_CENSUS")) {
-            std::cerr << "GROUP census :\n";
-            fPlan.print(std::cerr);
         }
     }
     std::map<int, std::string> fMatTable;  // family -> coefficient table field
@@ -3689,23 +2825,6 @@ class LoopSplitEmitter {
             return order;
         }
         // model: the pressure-aware list scheduler
-        if (getenv("FAUST_GROUP_STICKY")) {
-            // sticky-shape probe : digit-erased codes as shapes, span-local
-            std::vector<std::string> shapes(hi - lo);
-            for (int k = lo; k < hi; k++) {
-                std::string sh;
-                sh.reserve(fOps[k].code.size());
-                for (char ch : fOps[k].code) {
-                    if (!isdigit((unsigned char)ch)) {
-                        sh += ch;
-                    }
-                }
-                shapes[k - lo] = std::move(sh);
-            }
-            order = modelSchedule(fOps, lo, hi, gGlobal->gLSRegisters, gGlobal->gLSWidth,
-                                  nullptr, nullptr, nullptr, &shapes);
-            return order;
-        }
         order = modelSchedule(fOps, lo, hi, gGlobal->gLSRegisters, gGlobal->gLSWidth, nullptr,
                               nullptr);
         return order;
@@ -4429,7 +3548,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // 0-bis. the matrix form : detect the families ON THE EMITTED LIST
     // (same trees the walk will see -- hash-consing makes the plan's keys
     // pointer-exact). The row-op regime is gated while experimental.
-    if ((gGlobal->gMatrixRows || getenv("FAUST_MATRIX_ROWOP"))) {
+    if (gGlobal->gMatrixRows) {
         fMatrix = revealMatrix(L);
         fRowOp  = !fMatrix.families.empty();
     }
@@ -4470,7 +3589,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // wants the shared member (x0.97). No static rule separates them
     // (three falsified in one day) : the faithful shadow oracle prices
     // both worlds per candidate, duplication included.
-    if (gGlobal->gLSFuse && !getenv("FAUST_NO_DISSOLVE")) {
+    if (gGlobal->gLSFuse) {
         std::set<Tree, treeorder> outs;
         for (Tree l = L; isList(l); l = tl(l)) {
             outs.insert(hd(l));
@@ -4510,16 +3629,9 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             }
             if (without < with) {
                 dissolved.insert(t);
-                if (getenv("FAUST_LS_DISSOLVE_DEBUG")) {
-                    std::cerr << "DISSOLVE member " << m << " consumers=" << cbs.size()
-                              << " with=" << with << " without=" << without << std::endl;
-                }
             }
         }
         if (!dissolved.empty()) {
-            if (getenv("FAUST_LS_DISSOLVE_DEBUG")) {
-                std::cerr << "DISSOLVE " << dissolved.size() << " members, rebuild" << std::endl;
-            }
             fSN.setExcluded(std::move(dissolved));
             fSN.reset();
             fSN.build(L, sched, gGlobal->gVecSize);
@@ -4590,9 +3702,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         // written, plus the input channels. Per-member keys computed
         // ONCE ; the refusal weighs the UNION of both blocks' streams.
         long streamBudget = 12;
-        if (const char* e = getenv("FAUST_LS_STREAMS")) {
-            streamBudget = std::atol(e);  // 0 : disabled
-        }
         std::map<int, std::vector<long>> memberStreams;
         {
             const std::vector<Tree>& matv = fSN.materialized();
@@ -4656,10 +3765,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                 }
             }
             bool k = (taps >= 4) && (2 * taps >= fSN.opsEstimate(b));
-            if (k && getenv("FAUST_SS_FIRDEBUG")) {
-                std::cerr << "  FIRDEBUG kernel block " << b << " taps=" << taps
-                          << " ops=" << fSN.opsEstimate(b) << std::endl;
-            }
             return k;
         };
         auto costOfBlock = [&](int b) -> long {
@@ -4784,68 +3889,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         }
         fSN.retopo();
     }
-    if (gGlobal->gLSFuse && getenv("FAUST_LS_NOTE0")) {
-        // CSFUSE stage 0 (spec faust-migration/CSFUSE.md par.6): the
-        // portfolio note of every FINAL block, decision-free. One shadow
-        // per block, three orders (model / cs2 df-spine / cs2b bf-spine),
-        // ONE normative scorer for all three. The per-program aggregation
-        // N_sigma = sum of n_sigma over blocks and the confrontation with
-        // the stage-1 measured winners happen outside the compiler.
-        const long CL = gGlobal->gLSCl, SPILLW = gGlobal->gLSSpillW;
-        const int  R = gGlobal->gLSRegisters, U = gGlobal->gLSWidth;
-        long       Nm = 0, Nc = 0, Nb = 0;
-        for (int b = 0; b < fSN.blockCount(); b++) {
-            std::vector<LSOp> sops;
-            blockCostShadow(fSN.blockMembers(b), nullptr, nullptr, true, -1, nullptr, &sops);
-            int  n = (int)sops.size();
-            int  cy, pk, iso, p4;
-            long ov, dist;
-            // the full feature vector of one order (RUM stage-B bench) :
-            // machine axes (cycles, overR, peak) and SLP-visible axes
-            // (iso-adjacency, 4-packs, mean operand distance)
-            auto features = [&](const char* sig, const std::vector<int>& ord) -> long {
-                replayOrderScore(sops, ord, R, U, &cy, &ov, &pk);
-                orderFeatures(sops, ord, &iso, &p4, &dist);
-                std::cerr << "NOTE0F b=" << b << " n=" << n << " sig=" << sig << " cy=" << cy
-                          << " ov=" << ov << " pk=" << pk << " iso=" << iso << " p4=" << p4
-                          << " dist=" << dist << std::endl;
-                return (long)gGlobal->gVecSize * (cy + SPILLW * ov) + CL;
-            };
-            std::vector<int> om = modelSchedule(sops, 0, n, R, U, nullptr, nullptr);
-            long             nm = features("model", om);
-            long             nc = nm, nb = nm;
-            if (n > 2) {
-                digraph<int> G;
-                for (int k = 0; k < n; k++) {
-                    G.add(k);
-                    for (int d : sops[k].deps) {
-                        G.add(k, d, 0);
-                    }
-                }
-                auto toOrd = [&](const schedule<int>& S) {
-                    std::vector<int> v;
-                    v.reserve(n);
-                    for (int o : S.elements()) {
-                        v.push_back(o);
-                    }
-                    return v;
-                };
-                nc = features("cs2", toOrd(csschedule2(G, R, U, 4u, nullptr, 500000, nullptr, false)));
-                nb = features("cs2b", toOrd(csschedule2(G, R, U, 4u, nullptr, 500000, nullptr, true)));
-            } else {
-                features("cs2", om);
-                features("cs2b", om);
-            }
-            Nm += nm;
-            Nc += nc;
-            Nb += nb;
-        }
-        std::cerr << "NOTE0 blocks=" << fSN.blockCount() << " model=" << Nm << " cs2=" << Nc
-                  << " cs2b=" << Nb << std::endl;
-    }
-    if (getenv("FAUST_DEBUG_SUPERNODES")) {
-        fSN.print(std::cerr);
-    }
     if (gGlobal->gDrawSuperNodes) {
         std::ofstream dotfile(subst("$0-sn.dot", gGlobal->makeDrawPath()).c_str());
         dumpSuperNodesDot(dotfile);
@@ -4892,11 +3935,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                     break;
                 }
             }
-        }
-        if (getenv("FAUST_DEBUG_SUPERNODES") && fSN.blockCount() <= 1) {
-            std::cerr << "degenerate check: shadow peak " << peak << "/"
-                      << gGlobal->gLSRegisters << ", overR " << overR << ", calls "
-                      << hasCall << ", short delays " << shortD << std::endl;
         }
         // grain fin (spec GRAIN-FIN.md) : a single super-node may still be
         // worth splitting when the OUTPUT TAILS it feeds carry real work.
@@ -5038,10 +4076,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         // defeats it (measured x4.2 on par_fir_32). Sparse kernels
         // (tapiir) keep the ring.
         if (fRing[i]) {
-            if (getenv("FAUST_SS_FIRDEBUG")) {
-                std::cerr << "  FIRDEBUG ring candidate ptr=" << (void*)mat[i]
-                          << " maxD=" << fMaxD[i] << " sig=" << ppsig(mat[i], 12) << std::endl;
-            }
             auto it = fC->fFirFacts.find(mat[i]);
             if (it != fC->fFirFacts.end()) {
                 int span = it->second.first, nz = it->second.second;
@@ -5215,7 +4249,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         // single -2% win (statespace fibfu, a non-elected lane). The
         // oracle that accepted it prices registers and slots, not
         // clang's SLP moods : the urns arbitrate instead.
-        if (gGlobal->gLSAdopt || getenv("FAUST_LS_ADOPT")) {
+        if (gGlobal->gLSAdopt) {
             for (auto& q : outPlans) {
                 if (!q.placed && q.home == b && adoptOutput(q, lo, b)) {
                     q.placed = true;
@@ -5241,7 +4275,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             fCurRotDepth.clear();
             buildOutput(outPlans[k], -1);
             outPlans[k].placed = true;
-            if (gGlobal->gLSFuse && (gGlobal->gLSAdopt || getenv("FAUST_LS_ADOPT"))) {
+            if (gGlobal->gLSFuse && gGlobal->gLSAdopt) {
                 for (size_t j = k + 1; j < outPlans.size(); j++) {
                     if (!outPlans[j].placed && adoptOutput(outPlans[j], lo, -1)) {
                         outPlans[j].placed = true;
@@ -5326,17 +4360,6 @@ void LoopSplitEmitter::emitLoop(std::ostringstream& out, int lo, int hi)
     packs4 += (runlen + 1) / 4;
     if (runlen + 1 >= 4) {
         harvest.push_back(runlen + 1);
-    }
-    if (getenv("FAUST_GROUP_CENSUS")) {
-        // the HARVEST (spec LE-GROUPEMENT-HIERARCHIQUE par.2) : the groups
-        // the scheduler FORMED without naming them -- what a recolte pass
-        // would reify as Adjacent deposits
-        std::cerr << "GROUP recolte loop " << fLoopNo << " : " << harvest.size()
-                  << " runs adjacents (tailles";
-        for (int r : harvest) {
-            std::cerr << " " << r;
-        }
-        std::cerr << ") sur " << n << " ops\n";
     }
     out << "// loop " << fLoopNo++ << ": " << n << " ops, model(R=" << R << ",U=" << U << "): " << cycles
         << " cycles, pressure " << peak << "/" << R << ", occupancy " << occ << "%"
@@ -5499,9 +4522,6 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         // so the letrecs are minimal and the IIR hosts are exactly the
         // single-definition self-recursive groups.
         Tree Lf = L;  // Sum and FIR are already revealed by prepare (injection)
-        if (getenv("FAUST_SS_SPLIT")) {
-            projSCCReport(Lf);  // post-normalisation : doit ressortir minimal
-        }
         Tree Li = Lf;  // IIRs revealed by prepare (stage-2 injection)
         int  nfir = 0, niir = 0, maxtaps = 0;
         long taps = 0;
@@ -5553,13 +4573,6 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
                 f.first = std::max(f.first, span);
                 f.second += nz;
             } else if (isSigIIR(t, cs)) {
-                if (getenv("FAUST_SS_IIRORDER")) {
-                    int order = 0;
-                    for (size_t k2 = 3; k2 < cs.size(); k2++) {
-                        if (!isZero(cs[k2])) order = int(k2) - 2;
-                    }
-                    std::cerr << "SS_IIRORDER " << order << std::endl;
-                }
                 niir++;
             }
             for (int k = 0; k < t->arity(); k++) {
@@ -5568,38 +4581,6 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         }
         std::cerr << "SS_FIR fir=" << nfir << " iir=" << niir << " taps=" << taps
                   << " maxtaps=" << maxtaps << " sources=" << fFirFacts.size() << std::endl;
-        if (getenv("FAUST_SS_FIRTYPE")) {
-            // the typing probe : annotate the revealed copy (FIR nodes go
-            // through the fixed-point algebra) and show the type of the
-            // first kernel -- nature, variability, interval
-            typeAnnotation(Lf, true);
-            for (Tree l = Lf; isList(l); l = tl(l)) {
-                std::set<Tree>    seen2;
-                std::vector<Tree> work2{hd(l)};
-                while (!work2.empty()) {
-                    Tree t = work2.back();
-                    work2.pop_back();
-                    if (!seen2.insert(t).second) {
-                        continue;
-                    }
-                    if (isSigFIR(t)) {
-                        std::cerr << "SS_FIRTYPE " << ppsig(t, 8) << " : "
-                                  << getCertifiedSigType(t) << std::endl;
-                        goto done_type;
-                    }
-                    for (int k = 0; k < t->arity(); k++) {
-                        work2.push_back(t->branch(k));
-                    }
-                }
-            }
-        done_type:;
-        }
-        if (getenv("FAUST_SS_FIRDEBUG")) {
-            for (auto& [src, f] : fFirFacts) {
-                std::cerr << "  FIRDEBUG source ptr=" << (void*)src << " span=" << f.first
-                          << " nz=" << f.second << " sig=" << ppsig(src, 12) << std::endl;
-            }
-        }
         };
         callWithLargeStack(sideChannel);
     }
@@ -5649,87 +4630,8 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         }
     }
     auto G = immediateGraph(Lg);
-    if (getenv("FAUST_SS_DOMTREE")) {
-        // CSSCHEDULE probe (PILE, spec CSSCHEDULE.md) : the SHAPE of the
-        // dominator tree over the pristine immediate DAG decides both the
-        // opportunity (sibling banks to interleave) and the cost (flat
-        // trees degenerate into one giant root combine). Same idom
-        // construction as csschedule, statistics only.
-        const schedule<Tree>     topo  = dfschedule(G);
-        const std::vector<Tree>& order = topo.elements();
-        const int                V     = int(order.size());
-        digraph<Tree>            Rg    = reverse(G);
-        std::map<Tree, int>      pos;
-        for (int i = 0; i < V; i++) {
-            pos[order[i]] = i;
-        }
-        std::vector<int> idom(V + 1, -1);
-        idom[V]        = V;
-        auto intersect = [&](int a, int b) {
-            while (a != b) {
-                while (a < b) {
-                    a = idom[a];
-                }
-                while (b < a) {
-                    b = idom[b];
-                }
-            }
-            return a;
-        };
-        int outputs = 0;
-        for (int i = V - 1; i >= 0; i--) {
-            const Tree& n   = order[i];
-            int         nid = -1;
-            if (Rg.destinations(n).empty()) {
-                nid = V;
-                outputs++;
-            } else {
-                for (const auto& c : Rg.destinations(n)) {
-                    int cp = pos[c.first];
-                    if (idom[cp] != -1) {
-                        nid = (nid == -1) ? cp : intersect(nid, cp);
-                    }
-                }
-                if (nid == -1) {
-                    nid = V;
-                }
-            }
-            idom[i] = nid;
-        }
-        std::vector<int> kids(V + 1, 0), size(V + 1, 1), depth(V + 1, 0);
-        int omegaShared = 0;
-        for (int i = 0; i < V; i++) {
-            kids[idom[i]]++;
-            if (idom[i] == V && !Rg.destinations(order[i]).empty()) {
-                omegaShared++;  // shared value escaping to the top
-            }
-        }
-        for (int i = 0; i < V; i++) {
-            size[idom[i]] += size[i];  // children rank below their idom
-        }
-        int maxDepth = 0, maxKids = 0, internals = 0, kidsSum = 0, maxBlock = 0;
-        for (int i = V - 1; i >= 0; i--) {
-            depth[i] = depth[idom[i] == i ? V : idom[i]] + 1;
-            maxDepth = std::max(maxDepth, depth[i]);
-        }
-        for (int i = 0; i < V + 1; i++) {
-            if (kids[i] > 0 && i < V) {
-                internals++;
-                kidsSum += kids[i];
-                maxKids = std::max(maxKids, kids[i]);
-                maxBlock = std::max(maxBlock, size[i]);
-            }
-        }
-        maxKids = std::max(maxKids, kids[V]);
-        std::cerr << "DOMTREE nodes=" << V << " outputs=" << outputs
-                  << " omegaKids=" << kids[V] << " omegaShared=" << omegaShared
-                  << " depth=" << maxDepth << " maxKids=" << maxKids
-                  << " meanKids=" << (internals ? double(kidsSum) / internals : 0)
-                  << " maxBlock=" << maxBlock
-                  << " maxBlockFrac=" << (V ? double(maxBlock) / V : 0) << std::endl;
-    }
     int rfAdded = 0;
-    if (!getenv("FAUST_SS_NOREADERSFIRST")) {
+    {
         // READERS FIRST (default since 2026-08-12) : for every delayed
         // read t = sigDelay(x, y) with dmin >= 1, one SOFT edge x -> t
         // ("x depends on t" : the reader of the OLD value passes before
@@ -5786,10 +4688,6 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         for (Tree s2 : fRFSacrificedWriters) {
             fRFKeptWriters.erase(s2);
         }
-        if (getenv("FAUST_SS_MONODEBUG")) {
-            std::cerr << "READERSFIRST edges +" << added << " sacrificed " << dropped
-                      << std::endl;
-        }
         rfAdded = added;
     }
     auto S = ocppSchedule(G);
@@ -5806,9 +4704,6 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         // df, wasteful for the experimental strategies (ss 11 runs a full
         // compositional search) -- those run ungated
         int budget = 48, margin = 4;
-        if (const char* be = getenv("FAUST_SS_RFPEAK")) {
-            budget = std::atoi(be);
-        }
         // the baseline is REBUILT from scratch : digraph copies share their
         // internal graph (shared_ptr), a plain copy would alias the mutated
         // one -- the very bug that made the gauge blind on its first run
@@ -5818,10 +4713,6 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         auto S0   = ocppSchedule(G0);
         auto sq0  = squality(G0, S0.elements(), 8, 4, ocppShapeFunctor(G0), memf, 3);
         bool gated = sq1.peak > std::max(budget, sq0.peak + margin);
-        if (getenv("FAUST_SS_MONODEBUG")) {
-            std::cerr << "READERSFIRST peak " << sq0.peak << " -> " << sq1.peak << " budget "
-                      << budget << (gated ? " GATED" : "") << std::endl;
-        }
         if (gated) {
             G = G0;
             S = S0;
@@ -5855,129 +4746,11 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
             }
         }
     }
-    if (getenv("FAUST_SS_QUALITY")) {
-        // ---- calibrated per-op costs (M-series orders of magnitude) :
-        // latency enters recurrence chains, reciprocal throughput enters
-        // the compute floor (a division blocks the pipe ~8 slots, a libm
-        // call ~20 ; mul/add pipeline at 1/cycle despite latency 3)
-        auto lat = [](Tree t) -> int {
-            int  op, i;
-            Tree x, y;
-            if (isSigInput(t, &i)) {
-                return 4;
-            }
-            if (isSigDelay(t, x, y)) {
-                return 4;  // load-use
-            }
-            if (isSigBinOp(t, &op, x, y)) {
-                if (op == kDiv || op == kRem) {
-                    return 10;
-                }
-                if (op == kMul || op == kAdd || op == kSub) {
-                    return 3;
-                }
-                return 2;
-            }
-            Tree ff, largs;
-            if (isSigFFun(t, ff, largs)) {
-                return 25;  // libm
-            }
-            return 2;
-        };
-        auto tw = [](Tree t) -> int {
-            int  op;
-            Tree x, y, ff, largs;
-            if (isSigBinOp(t, &op, x, y) && (op == kDiv || op == kRem)) {
-                return 8;
-            }
-            if (isSigFFun(t, ff, largs)) {
-                return 20;
-            }
-            return 1;
-        };
-        // weighted compute floor over the immediate graph
-        {
-            long twsum = 0;
-            for (const auto& n : G.nodes()) {
-                twsum += tw(n);
-            }
-            unsigned Ue = gGlobal->gLSWidth > 0 ? gGlobal->gLSWidth : 4;
-            // weighted critical path per sample : zero-delay skeleton of
-            // the FULL graph, node latencies -- the serial spine one
-            // sample cannot overlap with itself
-            auto        G2 = fullGraph(L);
-            auto        sk = cut(G2, 1);
-            schedule<Tree> ds = dfschedule(sk);
-            std::map<Tree, int> depth;
-            int                 cp = 0;
-            for (const auto& n : ds.elements()) {
-                int d = 0;
-                for (const auto& e : sk.destinations(n)) {
-                    auto it = depth.find(e.first);
-                    if (it != depth.end()) {
-                        d = std::max(d, it->second);
-                    }
-                }
-                depth[n] = d + lat(n);
-                cp       = std::max(cp, depth[n]);
-            }
-            std::cerr << "SS_BOUNDS alu2=" << (twsum + Ue - 1) / Ue << " cplat=" << cp
-                      << ((cp > long(twsum / Ue)) ? " bind=REC" : " bind=CALC") << std::endl;
-        }
-        // RecMII estimate : recurrences live in the FULL graph (delay
-        // edges included) ; per SCC, the zero-delay skeleton's depth
-        // approximates the cycle latency at distance ~1 -- the
-        // recurrence bound II >= RecMII no schedule can beat.
-        auto lat2 = [](Tree t) -> int {
-            int  op, i;
-            Tree x, y, ff, largs;
-            if (isSigInput(t, &i) || isSigDelay(t, x, y)) {
-                return 4;
-            }
-            if (isSigBinOp(t, &op, x, y)) {
-                return (op == kDiv || op == kRem) ? 10
-                       : (op == kMul || op == kAdd || op == kSub) ? 3
-                                                                  : 2;
-            }
-            if (isSigFFun(t, ff, largs)) {
-                return 25;
-            }
-            return 2;
-        };
-        // keep only distance-1 delay edges : the remaining SCCs are the
-        // TIGHT recursion nests, whose weighted depth is an exact
-        // per-sample bound (long-distance cycles dilute theirs by their
-        // delay and are negligible v1)
-        auto H      = graph2dag(cut(fullGraph(L), 2));
-        int  recmii = 0, nscc = 0;
-        for (const auto& scc : H.nodes()) {
-            if (scc.nodes().size() > 1) {
-                nscc++;
-                auto            sk = cut(scc, 1);
-                schedule<Tree>  ds = dfschedule(sk);
-                std::map<Tree, int> depth;
-                int                 dmax = 0;
-                for (const auto& n : ds.elements()) {
-                    int d = 0;
-                    for (const auto& e : sk.destinations(n)) {
-                        auto it = depth.find(e.first);
-                        if (it != depth.end()) {
-                            d = std::max(d, it->second);
-                        }
-                    }
-                    depth[n] = d + lat2(n);
-                    dmax     = std::max(dmax, depth[n]);
-                }
-                recmii = std::max(recmii, dmax);  // distance 1 by construction
-            }
-        }
-        std::cerr << "SS_RECMII sccs=" << nscc << " recMII=" << recmii << std::endl;
-    }
     // self-describing artifact : the schedule's quality vector, on the
     // COMMON evaluation machine (R=8, U=4, M=3), as a comment at the top
     // of compute() -- campaigns and archaeology read it straight from
     // the generated code, no environment needed
-    if (!getenv("FAUST_SS_NOCOMMENT")) {
+    {
         schedquality q = squality(G, S.elements(), 8, 4, ocppShapeFunctor(G),
                                   std::function<bool(const Tree&)>(ocppIsMemNode), 3);
         double fill = (q.cycles > 0) ? 100.0 * double(S.size()) / (double(q.cycles) * 4) : 0;
@@ -5992,9 +4765,6 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         double savg = 0;
         {
             int W = 64;
-            if (const char* we = getenv("FAUST_SS_STREAMWIN")) {
-                W = std::atoi(we);
-            }
             struct Key { long a, b; bool operator<(const Key& o) const { return a != o.a ? a < o.a : b < o.b; } };
             std::vector<std::vector<Key>> touch;
             for (const auto& n : S.elements()) {
@@ -6155,13 +4925,6 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         }
     }
 
-    // export the loop DAG for the loop-merging simulator (experimental)
-    if (const char* dumpfile = getenv("FAUST_OCPP_DUMPDAG")) {
-        std::ofstream out(dumpfile);
-        LoopDagDumper(fOccMarkup, fSharingKey)
-            .dump(L, S.elements(), fClass->inputs(), fClass->outputs(), out);
-        std::cerr << "Loop DAG dumped to " << dumpfile << std::endl;
-    }
 
 #ifdef TRACE
     std::cerr << "\nBEFORE COMPILING" << std::endl;
@@ -6211,7 +4974,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         for (int i = 0; isList(L); L = tl(L), i++) {
             Tree s = hd(L);
             if (auto dup = firstChan.find(s);
-                dup != firstChan.end() && !getenv("FAUST_NO_OUTPUT_SPLIT")) {
+                dup != firstChan.end()) {
                 // THE DUPLICATE-CHANNEL LAW (the bells dig) : storing the
                 // SAME value to two arrays in one loop body poisons
                 // clang's SLP vectorization of the WHOLE body -- the
@@ -6247,10 +5010,6 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
             int done = 0;
             for (const auto& v : fSingleDelayScalarCandidates) {
                 done += fClass->scalarizeSingleDelay(v);
-            }
-            if (getenv("FAUST_SS_MONODEBUG")) {
-                std::cerr << "SCALARIZED " << done << "/" << fSingleDelayScalarCandidates.size()
-                          << std::endl;
             }
         }
     }
@@ -6642,7 +5401,7 @@ string ScalarCompiler::generateIotaCache(const std::string& exp, bool headSafe)
 {
     if (fIotaCache.find(exp) == fIotaCache.end()) {
         string vname = getFreshID("vIota");
-        if ((gGlobal->gRingPreload || getenv("FAUST_SS_RINGPRELOAD")) && headSafe) {
+        if (gGlobal->gRingPreload && headSafe) {
             // ring-preload prototype : an index whose delay amount is
             // sub-sample-rate (a literal, a sampling-rate constant, a
             // block-rate value -- everything already computed before the
@@ -6674,11 +5433,6 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
     string       vname, ctype;
     int          sharing = getSharingCount(sig, fSharingKey);
     Occurrences* o       = fOccMarkup->retrieve(sig);
-    if (o == nullptr && getenv("FAUST_SELECTN_DEBUG")) {
-        std::stringstream ss;
-        ss << ppsig(sig, 20);
-        fprintf(stderr, "OCC-NULL sur : %s\n", ss.str().c_str());
-    }
     faustassert(o);
 
     // check for expression occuring in delays
@@ -6692,46 +5446,6 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         }
 
     } else if ((sharing > 1) || (o->hasMultiOccurrences())) {
-        bool posInsensitive =
-            exp.find("Veeec") == std::string::npos && exp.find("fAdj") == std::string::npos &&
-            exp.find("Vec") == std::string::npos && exp.find("wr") == std::string::npos;
-        if (gGlobal->gLazySelect && getenv("FAUST_LZ_DUP") && fMainCompilePhase &&
-            !fHasEnableControl && posInsensitive && !getConditionCode(sig).empty() &&
-            getCertifiedSigType(sig)->variability() == kSamp && exp.size() <= 2048) {
-            // memoized as its STRING : built once, inlined at every use
-            // site (an unregistered return made every consumer re-derive
-            // the subtree -- exponential compile time, dx7 timeout)
-            return setCompiledExpression(sig, exp);
-        }
-        if (false) {
-            // EXPERIMENTAL (FAUST_LZ_DUP, spec a venir) -- path-sensitive
-            // cache. SLOW nodes NEVER duplicate : per-sample laziness is
-            // meaningless for them, inlining pulls their once-per-block
-            // computation INTO the loop, and compiling their condition
-            // drags the atom cluster -- per-sample STATE READS -- to
-            // their (early, meaningless) schedule slot, BEFORE the state
-            // updates : the gate_compressor one-sample-late gate.
-            // POSITION-SENSITIVITY GUARD : a duplicated string is
-            // re-evaluated at its consumer's slot -- a reference to a
-            // MUTABLE scalar (mono/single states Veeec, carried fAdj,
-            // rotation wr, delay vecs) would read post-update state (the
-            // scheduled-position-vs-emission-site lesson, 49f4be216).
-            // Only pure references (fTemp, fSlow, tables) may duplicate.
-            // path-sensitive cache : every use of this node lives under
-            // the same select-side condition. A store would hoist it OUT
-            // of the ternary and make it strict -- the very leak that
-            // kept seven cubic blends computed per sample where one is
-            // taken. Kept INLINE (textually duplicated), it stays inside
-            // the ternary : clang evaluates the taken branch only and
-            // re-factorizes the duplicates within it (quantizedChords
-            // 91.3 -> 49.5 ns, code SMALLER, bit-exact ; the inline form
-            // even beats the guarded-statement form 49.5 vs 86.8 -- the
-            // mega-ternary is its own schedule). The cap is on the FINAL
-            // STRING : nested duplications compound multiplicatively (a
-            // 64-op cap per node let dx7's 32 algorithm sides explode to
-            // a compiler crash) -- string size bounds the composition.
-            return exp;
-        }
         return generateVariableStore(sig, exp);
 
     } else if (sharing == 1) {
@@ -6821,7 +5535,7 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
             if (getConditionCode(sig) == "") {
                 fClass->addExecCode(Statement(
                     "", subst("$0 \t$1 = $2; // step: $3", ctype, vname, exp, T(gGlobal->gSTEP))));
-            } else if (fMainCompilePhase && !fHasEnableControl && !getenv("FAUST_LZ_TEMPPERM")) {
+            } else if (fMainCompilePhase && !fHasEnableControl) {
                 // dominated placement : without enable/control in the
                 // program, a condition can only come from select2 branch
                 // annotation, and every consumer then SELECTS this value
@@ -6949,7 +5663,7 @@ string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min,
 }
 
 //-----------------------------------------------------------------------------------------
-// FAUST_SS_DISPLAYBLOCK (spec SIGNAUX-ATTACHES) : the display list D.
+// The display frontier (spec SIGNAUX-ATTACHES) : the display list D.
 //
 // Harvest (recursive, one treeRewritePaired pass) : attach(x,y) dissolves
 // into x -- the rebuilt y is walked for its bargraphs and otherwise
@@ -7132,9 +5846,6 @@ Tree ScalarCompiler::harvestDisplay(Tree L)
 void ScalarCompiler::computeDisplayFrontier()
 {
     if (fDisplayList == nullptr || !isList(fDisplayList)) {
-        if (getenv("FAUST_FRONTIER_DEBUG")) {
-            std::cerr << "FRONTIER : pas de liste d'affichage" << std::endl;
-        }
         return;
     }
     std::set<Tree>    seenS, seenC, walked;
@@ -7204,18 +5915,6 @@ void ScalarCompiler::computeDisplayFrontier()
         }
         for (int k = 0; k < t->arity(); k++) {
             work.push_back(t->branch(k));
-        }
-    }
-    if (getenv("FAUST_FRONTIER_DEBUG")) {
-        int nbg = 0;
-        for (Tree l = fDisplayList; isList(l); l = tl(l)) {
-            nbg++;
-        }
-        std::cerr << "FRONTIER : " << nbg << " bargraphs, " << fDisplayStateful.size()
-                  << " racines a etat, " << fDisplayCapturePoints.size() << " captures"
-                  << std::endl;
-        for (Tree p : fDisplayCapturePoints) {
-            std::cerr << "  capture " << ppsig(p, 10) << std::endl;
         }
     }
 }
@@ -7727,9 +6426,7 @@ static bool occursWithin(Tree needle, Tree def)
 
 /**
  * @brief indicate best delay implementation type for a signal according to its max delay and
- * various compilation options. Probe wrapper : FAUST_SS_RESIDENCE prints, once
- * per line, the data of the residence election (depth, real taps, density,
- * elected type) -- the map that will decide the per-line mcd (PILE 24).
+ * various compilation options.
  *
  * @param sig
  * @return DelayType
@@ -7737,30 +6434,6 @@ static bool occursWithin(Tree needle, Tree def)
 DelayType ScalarCompiler::analyzeDelayType(Tree sig)
 {
     DelayType dt = analyzeDelayTypeAux(sig);
-    if (getenv("FAUST_SS_RESIDENCE") && fResidenceSeen.insert(sig).second) {
-        Occurrences* occ = fOccMarkup->retrieve(sig);
-        int          mxd = occ ? occ->getMaxDelay() : 0;
-        if (mxd > 0) {
-            // real taps : the literal-delay read nodes that actually occur
-            // (scan capped at 64 -- deeper lines have vanishing density)
-            int scan = std::min(mxd, 64);
-            int taps = 0, multi = 0;
-            // k = 0 excluded : the current-value read does not consume the
-            // line's storage (it compiles to the scalar expression)
-            for (int k = 1; k <= scan; k++) {
-                Tree fk = sigDelay(sig, sigInt(k));
-                if (Occurrences* ok = fOccMarkup->retrieve(fk)) {
-                    taps++;
-                    if (ok->hasMultiOccurrences()) {
-                        multi++;
-                    }
-                }
-            }
-            std::cerr << "RESIDENCE type=" << nameDelayType(dt) << " mxd=" << mxd
-                      << " taps=" << taps << " multi=" << multi << " capped=" << (mxd > 64)
-                      << " density=" << (double(taps + 1) / double(mxd + 1)) << std::endl;
-        }
-    }
     return dt;
 }
 
@@ -7778,11 +6451,6 @@ DelayType ScalarCompiler::analyzeDelayTypeAux(Tree sig)
         // The mono election, in three stages of decreasing comfort. A state
         // of depth 1 can live in one scalar iff every read of its OLD value
         // is emitted before its write.
-        if (getenv("FAUST_NO_MONO")) {
-            // forensic kill-switch : fall back to the order-robust
-            // [2]-vector spelling
-            return DelayType::kSingleDelay;
-        }
         if (hasKernelDelayedTap(sig)) {
             // a kernel reads the old value through an internal tap : that
             // read is inseparable from the kernel's tap 0, so it can never
@@ -7842,15 +6510,6 @@ DelayType ScalarCompiler::analyzeDelayTypeAux(Tree sig)
                     }
                 }
             }
-            if (getenv("FAUST_SS_MONODEBUG")) {
-                std::cerr << "MONOMISS count=" << count << " retrieve=" << (fo != nullptr)
-                          << " kept=" << fRFKeptWriters.count(sig)
-                          << " sacr=" << fRFSacrificedWriters.count(sig) << " " << ppsig(sig, 2)
-                          << std::endl;
-            }
-        } else if (getenv("FAUST_SS_MONODEBUG")) {
-            std::cerr << "MONOMISS count=" << count << " isproj=" << isProj(sig, &i, x) << " "
-                      << ppsig(sig, 2) << std::endl;
         }
         return DelayType::kSingleDelay;
     }
@@ -8604,10 +7263,7 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
                 auto it = fAdjDelaySets.find(exp);
                 return it != fAdjDelaySets.end() && it->second.count(d) > 0;
             };
-            if (cst && dc >= 1 && getConditionCode(sig).empty() && has(dc) && has(dc - 1) &&
-                !getenv("FAUST_NO_ADJPAIRS")) {
-                // FAUST_NO_ADJPAIRS : forensic opt-out, completing the
-                // per-default-change A/B switch set (wave F2)
+            if (cst && dc >= 1 && getConditionCode(sig).empty() && has(dc) && has(dc - 1)) {
                 std::string aname = getFreshID("fAdj");
                 fClass->addZone2(subst("$1 \t$0;", aname, ctype));
                 fClass->addZone3(
@@ -8815,7 +7471,7 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fClass->addClearCode(subst("$0State = 0;", vname));
             fClass->addZone2(subst("$0 \t$1;", ctype, vname));
             fClass->addZone3(subst("$0 = $0State;", vname));
-            if ((gGlobal->gRingPreload || getenv("FAUST_SS_RINGPRELOAD")) && ccs.empty() && isPureRingAccess(exp, preIx) &&
+            if (gGlobal->gRingPreload && ccs.empty() && isPureRingAccess(exp, preIx) &&
                 fIotaHeadNames.count(preIx)) {
                 // Ring-preload prototype (the freeverb family) : the ring
                 // LOAD issues at the head of the loop body, where the whole
@@ -8847,7 +7503,7 @@ string ScalarCompiler::generateDelayLine(DelayType dt, const string& ctype, cons
             fClass->addClearCode(subst("$0State = 0;", vname));
             fClass->addZone2(subst("$0 \t$1[$2];", ctype, vname, T(mxd + 1)));
             fClass->addZone3(subst("$0[1] = $0State;", vname));
-            if ((gGlobal->gRingPreload || getenv("FAUST_SS_RINGPRELOAD")) && ccs.empty() && isPureRingAccess(exp, preIx) &&
+            if (gGlobal->gRingPreload && ccs.empty() && isPureRingAccess(exp, preIx) &&
                 fIotaHeadNames.count(preIx)) {
                 // Ring-preload prototype (the freeverb family) : the ring
                 // LOAD issues at the head of the loop body, where the whole

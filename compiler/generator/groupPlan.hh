@@ -91,6 +91,6 @@ struct GroupPlan {
     bool isAtomic(Tree t) const { return atomOf.count(t) != 0; }
     const GroupNode& atomic(Tree t) const { return nodes[atomOf.at(t)]; }
 
-    /// one line per node (FAUST_GROUP_CENSUS)
+    /// one line per node
     void print(std::ostream& out) const;
 };

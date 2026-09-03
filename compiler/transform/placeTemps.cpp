@@ -217,10 +217,6 @@ Tree placeTemps(Tree lsig, int K)
         }
     }
 
-    if (getenv("FAUST_DEBUG_PLACETEMPS")) {
-        std::cerr << "PLACETEMPS K=" << K << " nodes-costed=" << cost.size()
-                  << " staged=" << stage.size() << std::endl;
-    }
     // placement : the generic paired rewrite -- decisions were taken on the
     // ORIGINAL side, barriers go on the rebuilt side
     std::unordered_map<Tree, Tree> memo;
