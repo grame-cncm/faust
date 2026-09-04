@@ -1,11 +1,23 @@
 //----------------------------------------------------------
 // name: "math"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.87.11 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with : "" */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTPOWER
 #define FAUSTPOWER
 #include <cmath>
@@ -29,12 +41,13 @@ template <> 	 inline float faustpower<2>(float x)          { return x*x; }
 
 class mydsp : public dsp {
   private:
-	int 	iVec0State; // Single Delay
+	int 	iVeeec0State; // Single Delay
 	float 	fVeeec1State; // Single Delay
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "math.dsp");
 		m->declare("math.lib/author", "GRAME");
 		m->declare("math.lib/copyright", "GRAME");
@@ -45,8 +58,8 @@ class mydsp : public dsp {
 		m->declare("name", "math");
 	}
 
-	virtual int getNumInputs() { return 104; }
-	virtual int getNumOutputs() { return 76; }
+	virtual int getNumInputs() { return 106; }
+	virtual int getNumOutputs() { return 78; }
 	static void classInit(int sample_rate) {
 	}
 	virtual void instanceConstants(int sample_rate) {
@@ -55,7 +68,7 @@ class mydsp : public dsp {
 	virtual void instanceResetUserInterface() {
 	}
 	virtual void instanceClear() {
-		iVec0State = 0;
+		iVeeec0State = 0;
 		fVeeec1State = 0;
 	}
 	virtual void init(int sample_rate) {
@@ -78,11 +91,11 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int 	iVec0[2];
+		int 	iVeeec0[2];
 		float 	fVeeec1[2];
 		int fullcount = count;
 		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
+			int count = faustmini(32, fullcount-index);
 			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
 			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
 			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
@@ -187,6 +200,8 @@ class mydsp : public dsp {
 			FAUSTFLOAT* input101 = &input[101][index]; // Zone 3
 			FAUSTFLOAT* input102 = &input[102][index]; // Zone 3
 			FAUSTFLOAT* input103 = &input[103][index]; // Zone 3
+			FAUSTFLOAT* input104 = &input[104][index]; // Zone 3
+			FAUSTFLOAT* input105 = &input[105][index]; // Zone 3
 			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
 			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
 			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
@@ -263,47 +278,50 @@ class mydsp : public dsp {
 			FAUSTFLOAT* output73 = &output[73][index]; // Zone 3
 			FAUSTFLOAT* output74 = &output[74][index]; // Zone 3
 			FAUSTFLOAT* output75 = &output[75][index]; // Zone 3
-			iVec0[1] = iVec0State;
+			FAUSTFLOAT* output76 = &output[76][index]; // Zone 3
+			FAUSTFLOAT* output77 = &output[77][index]; // Zone 3
+			// schedule: ss=0 nodes=343 cycles=219 fill=39% peak=11 isoadj=5 packs4=0 aluMII=61 memMII=34 recMII=0 streams(peak/avg,win64)=21/17 (eval machine R=8 U=4 M=3)
+			iVeeec0[1] = iVeeec0State;
 			fVeeec1[1] = fVeeec1State;
 			for (int i=0; i<count; i++) {
-				iVec0[0] = 2;
+				iVeeec0[0] = 2;
 				fVeeec1[0] = 2.0f;
 				output0[i] = (FAUSTFLOAT)(powf(fVeeec1[1],3e+01f));  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(faustpower<30>(iVec0[1]));  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(faustpower<30>(iVeeec0[1]));  // Zone Exec Code
 				output2[i] = (FAUSTFLOAT)(1.0737418e+09f);  // Zone Exec Code
 				output3[i] = (FAUSTFLOAT)(1073741824);  // Zone Exec Code
 				output4[i] = (FAUSTFLOAT)(isnanf((float)input0[i]));  // Zone Exec Code
 				output5[i] = (FAUSTFLOAT)(isinff((float)input1[i]));  // Zone Exec Code
 				output6[i] = (FAUSTFLOAT)(copysignf((float)input2[i], (float)input3[i]));  // Zone Exec Code
-				output7[i] = (FAUSTFLOAT)((int((float)input4[i]) >> int((float)input5[i])));  // Zone Exec Code
-				output8[i] = (FAUSTFLOAT)((int((float)input6[i]) << int((float)input7[i])));  // Zone Exec Code
-				output9[i] = (FAUSTFLOAT)((int((10.5f * (float)input8[i])) % 3));  // Zone Exec Code
+				output7[i] = (FAUSTFLOAT)((int(+(float)input4[i]) >> int(+(float)input5[i])));  // Zone Exec Code
+				output8[i] = (FAUSTFLOAT)((int(+(float)input6[i]) << int(+(float)input7[i])));  // Zone Exec Code
+				output9[i] = (FAUSTFLOAT)((int(+(10.5f * (float)input8[i])) % 3));  // Zone Exec Code
 				output10[i] = (FAUSTFLOAT)(fmodf((10.5f * (float)input9[i]),3.0f));  // Zone Exec Code
-				output11[i] = (FAUSTFLOAT)((int((float)input10[i]) & int((float)input11[i])));  // Zone Exec Code
-				output12[i] = (FAUSTFLOAT)((int((3.5f * (float)input12[i])) & int((2.4f * (float)input13[i]))));  // Zone Exec Code
-				output13[i] = (FAUSTFLOAT)((int((3.5f * (float)input14[i])) & int((2.4f * (float)input15[i]))));  // Zone Exec Code
-				output14[i] = (FAUSTFLOAT)((2.4f * float((int((3.5f * (float)input16[i])) & int((float)input17[i])))));  // Zone Exec Code
-				output15[i] = (FAUSTFLOAT)((int((3.5f * (float)input18[i])) | int((2.4f * (float)input19[i]))));  // Zone Exec Code
-				output16[i] = (FAUSTFLOAT)((int((3.5f * (float)input20[i])) | int((2.4f * (float)input21[i]))));  // Zone Exec Code
-				output17[i] = (FAUSTFLOAT)((int((3.5f * (float)input22[i])) ^ int((2.4f * (float)input23[i]))));  // Zone Exec Code
-				output18[i] = (FAUSTFLOAT)((int((3.5f * (float)input24[i])) ^ int((2.4f * (float)input25[i]))));  // Zone Exec Code
-				output19[i] = (FAUSTFLOAT)(powf(int((3.5f * (float)input26[i])),int((2.4f * (float)input27[i]))));  // Zone Exec Code
+				output11[i] = (FAUSTFLOAT)((int(+(float)input10[i]) & int(+(float)input11[i])));  // Zone Exec Code
+				output12[i] = (FAUSTFLOAT)((int(+(3.5f * (float)input12[i])) & int(+(2.4f * (float)input13[i]))));  // Zone Exec Code
+				output13[i] = (FAUSTFLOAT)((int(+(3.5f * (float)input14[i])) & int(+(2.4f * (float)input15[i]))));  // Zone Exec Code
+				output14[i] = (FAUSTFLOAT)((2.4f * float(+(int(+(3.5f * (float)input16[i])) & int(+(float)input17[i])))));  // Zone Exec Code
+				output15[i] = (FAUSTFLOAT)((int(+(3.5f * (float)input18[i])) | int(+(2.4f * (float)input19[i]))));  // Zone Exec Code
+				output16[i] = (FAUSTFLOAT)((int(+(3.5f * (float)input20[i])) | int(+(2.4f * (float)input21[i]))));  // Zone Exec Code
+				output17[i] = (FAUSTFLOAT)((int(+(3.5f * (float)input22[i])) ^ int(+(2.4f * (float)input23[i]))));  // Zone Exec Code
+				output18[i] = (FAUSTFLOAT)((int(+(3.5f * (float)input24[i])) ^ int(+(2.4f * (float)input25[i]))));  // Zone Exec Code
+				output19[i] = (FAUSTFLOAT)(powf(int(+(3.5f * (float)input26[i])),int(+(2.4f * (float)input27[i]))));  // Zone Exec Code
 				output20[i] = (FAUSTFLOAT)((2.4f * ((float)input28[i] * powf(3.5f,(float)input29[i]))));  // Zone Exec Code
-				output21[i] = (FAUSTFLOAT)((int((3.5f * (float)input30[i])) > int((2.4f * (float)input31[i]))));  // Zone Exec Code
-				output22[i] = (FAUSTFLOAT)(((3.5f * (float)input32[i]) > float(int((2.4f * (float)input33[i])))));  // Zone Exec Code
+				output21[i] = (FAUSTFLOAT)((int(+(3.5f * (float)input30[i])) > int(+(2.4f * (float)input31[i]))));  // Zone Exec Code
+				output22[i] = (FAUSTFLOAT)(((3.5f * (float)input32[i]) > float(+int(+(2.4f * (float)input33[i])))));  // Zone Exec Code
 				output23[i] = (FAUSTFLOAT)(((3.5f * (float)input34[i]) > (2.4f * (float)input35[i])));  // Zone Exec Code
-				output24[i] = (FAUSTFLOAT)((int((3.5f * (float)input36[i])) >= int((2.4f * (float)input37[i]))));  // Zone Exec Code
+				output24[i] = (FAUSTFLOAT)((int(+(3.5f * (float)input36[i])) >= int(+(2.4f * (float)input37[i]))));  // Zone Exec Code
 				output25[i] = (FAUSTFLOAT)(((3.5f * (float)input38[i]) >= (2.4f * (float)input39[i])));  // Zone Exec Code
-				output26[i] = (FAUSTFLOAT)((int((3.5f * (float)input40[i])) < int((2.4f * (float)input41[i]))));  // Zone Exec Code
+				output26[i] = (FAUSTFLOAT)((int(+(3.5f * (float)input40[i])) < int(+(2.4f * (float)input41[i]))));  // Zone Exec Code
 				output27[i] = (FAUSTFLOAT)(((3.5f * (float)input42[i]) < (2.4f * (float)input43[i])));  // Zone Exec Code
-				output28[i] = (FAUSTFLOAT)((int((3.5f * (float)input44[i])) <= int((2.4f * (float)input45[i]))));  // Zone Exec Code
+				output28[i] = (FAUSTFLOAT)((int(+(3.5f * (float)input44[i])) <= int(+(2.4f * (float)input45[i]))));  // Zone Exec Code
 				output29[i] = (FAUSTFLOAT)(((3.5f * (float)input46[i]) <= (2.4f * (float)input47[i])));  // Zone Exec Code
-				output30[i] = (FAUSTFLOAT)((int((3.5f * (float)input48[i])) == int((2.4f * (float)input49[i]))));  // Zone Exec Code
+				output30[i] = (FAUSTFLOAT)((int(+(3.5f * (float)input48[i])) == int(+(2.4f * (float)input49[i]))));  // Zone Exec Code
 				output31[i] = (FAUSTFLOAT)(((3.5f * (float)input50[i]) == (2.4f * (float)input51[i])));  // Zone Exec Code
-				output32[i] = (FAUSTFLOAT)((int((3.5f * (float)input52[i])) != int((2.4f * (float)input53[i]))));  // Zone Exec Code
+				output32[i] = (FAUSTFLOAT)((int(+(3.5f * (float)input52[i])) != int(+(2.4f * (float)input53[i]))));  // Zone Exec Code
 				output33[i] = (FAUSTFLOAT)(((3.5f * (float)input54[i]) != (2.4f * (float)input55[i])));  // Zone Exec Code
-				output34[i] = (FAUSTFLOAT)(abs(int((4.4f * (float)input56[i]))));  // Zone Exec Code
-				output35[i] = (FAUSTFLOAT)(abs(int(-(4.4f * (float)input57[i]))));  // Zone Exec Code
+				output34[i] = (FAUSTFLOAT)(abs(int(+(4.4f * (float)input56[i]))));  // Zone Exec Code
+				output35[i] = (FAUSTFLOAT)(abs(int(+-(4.4f * (float)input57[i]))));  // Zone Exec Code
 				output36[i] = (FAUSTFLOAT)(fabsf((4.4f * (float)input58[i])));  // Zone Exec Code
 				output37[i] = (FAUSTFLOAT)(fabsf(-(4.4f * (float)input59[i])));  // Zone Exec Code
 				output38[i] = (FAUSTFLOAT)(acosf((0.5f * (float)input60[i])));  // Zone Exec Code
@@ -312,44 +330,46 @@ class mydsp : public dsp {
 				output41[i] = (FAUSTFLOAT)(atanf((0.5f * (float)input63[i])));  // Zone Exec Code
 				output42[i] = (FAUSTFLOAT)(atan2f((0.5f * (float)input64[i]),4.0f));  // Zone Exec Code
 				output43[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
-				output44[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
 				output45[i] = (FAUSTFLOAT)(ceilf((1.3f * (float)input67[i])));  // Zone Exec Code
 				output46[i] = (FAUSTFLOAT)(cosf((0.3f * (float)input68[i])));  // Zone Exec Code
 				output47[i] = (FAUSTFLOAT)(expf((0.5f * (float)input69[i])));  // Zone Exec Code
 				output48[i] = (FAUSTFLOAT)(floorf((6.5f * (float)input70[i])));  // Zone Exec Code
 				output49[i] = (FAUSTFLOAT)(fmodf((9.2f * (float)input71[i]),2.0f));  // Zone Exec Code
-				output50[i] = (FAUSTFLOAT)(logf((0.5f * ((float)input72[i] + 1.0f))));  // Zone Exec Code
-				output51[i] = (FAUSTFLOAT)(log10f((0.5f * ((float)input73[i] + 1.0f))));  // Zone Exec Code
-				output52[i] = (FAUSTFLOAT)(max((0.5f * (float)input74[i]), (0.4f * (float)input75[i])));  // Zone Exec Code
-				output53[i] = (FAUSTFLOAT)(min((0.5f * (float)input76[i]), (0.4f * (float)input77[i])));  // Zone Exec Code
-				output54[i] = (FAUSTFLOAT)(max((0.5f * (float)input78[i]), 0.0f));  // Zone Exec Code
-				output55[i] = (FAUSTFLOAT)(min((0.5f * (float)input80[i]), 0.0f));  // Zone Exec Code
-				output56[i] = (FAUSTFLOAT)(max(int((3.5f * (float)input82[i])), int((2.4f * (float)input83[i]))));  // Zone Exec Code
-				output57[i] = (FAUSTFLOAT)(min(int((3.5f * (float)input84[i])), int((2.4f * (float)input85[i]))));  // Zone Exec Code
-				output58[i] = (FAUSTFLOAT)(powf((0.5f * (float)input86[i]),0.3f));  // Zone Exec Code
-				output59[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
-				output60[i] = (FAUSTFLOAT)(powf((0.5f * (float)input88[i]),3.0f));  // Zone Exec Code
-				output61[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
-				output62[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
-				output63[i] = (FAUSTFLOAT)(powf(1e+01f,(3.0f * (float)input91[i])));  // Zone Exec Code
-				output64[i] = (FAUSTFLOAT)(remainderf((9.2f * (float)input92[i]),2.0f));  // Zone Exec Code
-				output65[i] = (FAUSTFLOAT)(rintf((1.5f * (float)input93[i])));  // Zone Exec Code
-				output66[i] = (FAUSTFLOAT)(roundf((1.5f * (float)input94[i])));  // Zone Exec Code
-				output67[i] = (FAUSTFLOAT)(sinf((0.3f * (float)input95[i])));  // Zone Exec Code
-				output68[i] = (FAUSTFLOAT)(sqrtf((0.3f * (float)input96[i])));  // Zone Exec Code
-				output69[i] = (FAUSTFLOAT)(tanf((0.3f * (float)input97[i])));  // Zone Exec Code
-				output70[i] = (FAUSTFLOAT)(acoshf(((0.3f * (float)input98[i]) + 1e+01f)));  // Zone Exec Code
-				output71[i] = (FAUSTFLOAT)(asinhf(((0.3f * (float)input99[i]) + 1e+01f)));  // Zone Exec Code
-				output72[i] = (FAUSTFLOAT)(atanhf(((0.3f * (float)input100[i]) + 0.5f)));  // Zone Exec Code
-				output73[i] = (FAUSTFLOAT)(coshf(((0.3f * (float)input101[i]) + 1e+01f)));  // Zone Exec Code
-				output74[i] = (FAUSTFLOAT)(sinhf(((0.3f * (float)input102[i]) + 1e+01f)));  // Zone Exec Code
-				output75[i] = (FAUSTFLOAT)(tanhf(((0.3f * (float)input103[i]) + 1e+01f)));  // Zone Exec Code
+				output50[i] = (FAUSTFLOAT)(fmodf(float(+int(+(9.2f * (float)input72[i]))),2.0f));  // Zone Exec Code
+				output51[i] = (FAUSTFLOAT)(fmodf(float(+int(+(9.2f * (float)input73[i]))),2.0f));  // Zone Exec Code
+				output52[i] = (FAUSTFLOAT)(logf((0.5f * ((float)input74[i] + 1.0f))));  // Zone Exec Code
+				output53[i] = (FAUSTFLOAT)(log10f((0.5f * ((float)input75[i] + 1.0f))));  // Zone Exec Code
+				output54[i] = (FAUSTFLOAT)(fmaxf((0.5f * (float)input76[i]), (0.4f * (float)input77[i])));  // Zone Exec Code
+				output55[i] = (FAUSTFLOAT)(fminf((0.5f * (float)input78[i]), (0.4f * (float)input79[i])));  // Zone Exec Code
+				output56[i] = (FAUSTFLOAT)(fmaxf((0.5f * (float)input80[i]), 0.0f));  // Zone Exec Code
+				output57[i] = (FAUSTFLOAT)(fminf((0.5f * (float)input82[i]), 0.0f));  // Zone Exec Code
+				output58[i] = (FAUSTFLOAT)(faustmaxi(int(+(3.5f * (float)input84[i])), int(+(2.4f * (float)input85[i]))));  // Zone Exec Code
+				output59[i] = (FAUSTFLOAT)(faustmini(int(+(3.5f * (float)input86[i])), int(+(2.4f * (float)input87[i]))));  // Zone Exec Code
+				output60[i] = (FAUSTFLOAT)(powf((0.5f * (float)input88[i]),0.3f));  // Zone Exec Code
+				output62[i] = (FAUSTFLOAT)(powf((0.5f * (float)input90[i]),3.0f));  // Zone Exec Code
+				output63[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
+				output65[i] = (FAUSTFLOAT)(powf(1e+01f,(3.0f * (float)input93[i])));  // Zone Exec Code
+				output66[i] = (FAUSTFLOAT)(remainderf((9.2f * (float)input94[i]),2.0f));  // Zone Exec Code
+				output67[i] = (FAUSTFLOAT)(rintf((1.5f * (float)input95[i])));  // Zone Exec Code
+				output68[i] = (FAUSTFLOAT)(roundf((1.5f * (float)input96[i])));  // Zone Exec Code
+				output69[i] = (FAUSTFLOAT)(sinf((0.3f * (float)input97[i])));  // Zone Exec Code
+				output70[i] = (FAUSTFLOAT)(sqrtf((0.3f * (float)input98[i])));  // Zone Exec Code
+				output71[i] = (FAUSTFLOAT)(tanf((0.3f * (float)input99[i])));  // Zone Exec Code
+				output72[i] = (FAUSTFLOAT)(acoshf(((0.3f * (float)input100[i]) + 1e+01f)));  // Zone Exec Code
+				output73[i] = (FAUSTFLOAT)(asinhf(((0.3f * (float)input101[i]) + 1e+01f)));  // Zone Exec Code
+				output74[i] = (FAUSTFLOAT)(atanhf(((0.3f * (float)input102[i]) + 0.5f)));  // Zone Exec Code
+				output75[i] = (FAUSTFLOAT)(coshf(((0.3f * (float)input103[i]) + 1e+01f)));  // Zone Exec Code
+				output76[i] = (FAUSTFLOAT)(sinhf(((0.3f * (float)input104[i]) + 1e+01f)));  // Zone Exec Code
+				output77[i] = (FAUSTFLOAT)(tanhf(((0.3f * (float)input105[i]) + 1e+01f)));  // Zone Exec Code
 				// post processing
 				fVeeec1[1] = fVeeec1[0];
-				iVec0[1] = iVec0[0];
+				iVeeec0[1] = iVeeec0[0];
 			}
-			iVec0State = iVec0[1];
+			iVeeec0State = iVeeec0[1];
 			fVeeec1State = fVeeec1[1];
+			for (int k=0; k<count; k++) output44[k] = output43[k];
+			for (int k=0; k<count; k++) output61[k] = output43[k];
+			for (int k=0; k<count; k++) output64[k] = output63[k];
 		}
 	}
 };

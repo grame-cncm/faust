@@ -227,6 +227,7 @@ class SIGS_API TreeAlgebra : public SignalDispatch<Tree> {
     Tree Exp(const Tree& x) const override { return xt("exp", {x}); }
     Tree Exp10(const Tree& x) const override { return xt("exp10", {x}); }
     Tree Floor(const Tree& x) const override { return xt("floor", {x}); }
+    Tree Fmod(const Tree& x, const Tree& y) const override { return xt("fmod", {x, y}); }
     Tree Log(const Tree& x) const override { return xt("log", {x}); }
     Tree Log10(const Tree& x) const override { return xt("log10", {x}); }
     Tree Max(const Tree& x, const Tree& y) const override { return xt("max", {x, y}); }

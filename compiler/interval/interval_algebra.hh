@@ -85,6 +85,7 @@ class interval_algebra : public FaustAlgebra<interval> {
     //
     interval Mod(const interval& x, double m) const;
     interval Mod(const interval& x, const interval& y) const override;
+    interval Fmod(const interval& x, const interval& y) const override;
     void     testMod();
     //
 

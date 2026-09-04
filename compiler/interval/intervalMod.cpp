@@ -175,6 +175,14 @@ interval interval_algebra::Mod(const interval& x, const interval& y) const
     return bb + xnyn + xnyp + xpyn + xpyp;
 }
 
+// fmod carries the modulo semantics this file already computes : the two differ by
+// their NATURE (fmod is real whatever its operands, `%` on integers is an integer),
+// which is not an interval's business.
+interval interval_algebra::Fmod(const interval& x, const interval& y) const
+{
+    return Mod(x, y);
+}
+
 void interval_algebra::testMod()
 {
     // the integer path (C semantics : sign of x, magnitude < |y|)
