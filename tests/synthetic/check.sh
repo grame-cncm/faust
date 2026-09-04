@@ -7,12 +7,13 @@
 #   usage : ./check.sh [name-regex] [extra faust options...]
 #   env   : FAUST (default ../../build/bin/faust)  REF (optional reference faust)
 #           N frames (48000)  BLOCK (64)  TOL relative-to-scale tolerance (1e-12)
-#           JOBS parallel tests (6)  OUT results directory (out)
+#           JOBS parallel tests (6)  OUT results directory, outside the source tree by default
+#           (~/.cache/faust-synthetic/check : generated bodies in the tree get indexed by the editor)
 #   e.g.  ./check.sh 'r[1-3][1-3]'          ./check.sh 'd..' -ss 8        REF=~/faust-refbins/faust-X ./check.sh
 set -u
 cd "$(dirname "$0")"
 PATTERN=${1:-'[a-z][0-9][0-9]'}; shift || true
-FAUST=${FAUST:-../../build/bin/faust}; REF=${REF:-}; N=${N:-48000}; BLOCK=${BLOCK:-64}; TOL=${TOL:-1e-12}; JOBS=${JOBS:-6}; OUT=${OUT:-out}
+FAUST=${FAUST:-../../build/bin/faust}; REF=${REF:-}; N=${N:-48000}; BLOCK=${BLOCK:-64}; TOL=${TOL:-1e-12}; JOBS=${JOBS:-6}; OUT=${OUT:-${XDG_CACHE_HOME:-$HOME/.cache}/faust-synthetic/check}
 ARCH=$HOME/Documents/Install/faust/architecture; [ -d ../../architecture ] && ARCH=$(cd ../../architecture && pwd)
 CXX=${CXX:-c++}; CXXFLAGS=${CXXFLAGS:--O2 -std=c++17}
 mkdir -p "$OUT"; RES="$OUT/results.tsv"; : > "$RES"
