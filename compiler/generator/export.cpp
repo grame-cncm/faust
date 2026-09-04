@@ -63,11 +63,18 @@ extern "C" LIBFAUST_API const char* getCLibFaustVersion()
 
 const char* faustexception::gJSExceptionMsg = nullptr;
 
+// The message is null whenever the failure was not a faustexception : an abort,
+// or -- far more often -- an error raised on the JS side after this call returned,
+// such as WebAssembly.compile() refusing the module just generated. Reading it as a
+// string was undefined behaviour that LOOKED deliberate : Emscripten's assertion
+// build writes the null-pointer canary "emsc" at address 0, so std::string(nullptr)
+// read back exactly the value the test compared against, and every such failure was
+// reported as "ERROR : stack overflow". Saying nothing lets the JS side rethrow the
+// exception it actually caught, which names the real cause -- a genuine stack
+// exhaustion included, since the runtime's own message says so.
 extern "C" LIBFAUST_API const char* getErrorAfterException()
 {
-    return (std::string(faustexception::gJSExceptionMsg) == "emsc")
-               ? "ERROR : stack overflow\n"
-               : faustexception::gJSExceptionMsg;
+    return (faustexception::gJSExceptionMsg) ? faustexception::gJSExceptionMsg : "";
 }
 #endif
 
