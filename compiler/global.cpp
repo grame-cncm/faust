@@ -472,6 +472,7 @@ void global::reset()
     gLSRegisters    = 20;
     gLSWidth        = 4;
     gLSFuse         = false;
+    gLSConstLive    = false;
     gLSAdopt        = false;
     gLSFuseOps      = 1024;
     gMinDelay       = 0;
@@ -1254,6 +1255,10 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
     } else if (isCmd(arg, "-ls-fuse", "--loop-split-fuse")) {
         state.gLSFuse = true;
         state.gLoopSplit = true;
+        i += 1;
+    } else if (isCmd(arg, "-ls-const-live", "--loop-split-const-live")) {
+        state.gLSConstLive = true;
+        state.gLoopSplit   = true;
         i += 1;
     } else if (isCmd(arg, "-ls-fuse-ops", "--loop-split-fuse-ops")) {
         state.gLSFuseOps = std::atoi(value);
@@ -2591,6 +2596,10 @@ string global::printHelp()
     sstr << tab
          << "-ls-fuse    --loop-split-fuse           greedy single-consumer fusion of the "
             "super-node partition (implies -ls)."
+         << endl;
+    sstr << tab
+         << "-ls-const-live --loop-split-const-live the model scheduler counts the constants "
+            "and slow leaves of a loop as live values (implies -ls)."
          << endl;
     sstr << tab
          << "-ls-fuse-ops <n> --loop-split-fuse-ops <n> op-count budget of a fused block "

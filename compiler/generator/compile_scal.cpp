@@ -2344,17 +2344,30 @@ class LoopSplitEmitter {
         if (!root && fSN.indexOf(t) >= 0) {
             return refOperand(fSN.indexOf(t), "0", true, curScc);
         }
+        // -ls-const-live : a constant or a slow leaf becomes an op of the
+        // loop, without dependency, so that the model scheduler tracks its
+        // liveness like any value (from its placement to its last use) --
+        // the register a hoisted coefficient occupies. Emitted as a local
+        // copy the C++ compiler folds away ; one op per distinct tree and
+        // loop (fOpOf memo).
+        auto constOp = [&](const std::string& code, bool isInt) -> Operand {
+            Operand oc;
+            if (!gGlobal->gLSConstLive || root) {
+                oc.code = code;
+                return oc;
+            }
+            oc.op     = newOp(code, {}, false, false, isInt);
+            fOpOf[t]  = oc.op;
+            return oc;
+        };
         if (isSigInt(t, &i)) {
-            o.code = T(i);
-            return o;
+            return constOp(T(i), true);
         }
         if (isSigInt64(t, &i64)) {
-            o.code = T(i64);
-            return o;
+            return constOp(T(i64), true);
         }
         if (isSigReal(t, &r)) {
-            o.code = realLiteral(r);
-            return o;
+            return constOp(realLiteral(r), false);
         }
         if (isSigInput(t, &i)) {
             o.code = subst("$1input$0[i]", T(i), icast());
@@ -2373,8 +2386,9 @@ class LoopSplitEmitter {
             return o;
         }
         if (isSlow(t)) {
-            o.code = fC->CS(t);  // scalar machinery, code lives outside the loops
-            return o;
+            // scalar machinery, code lives outside the loops ; a live value
+            // of the loop under -ls-const-live (see constOp)
+            return constOp(fC->CS(t), getCertifiedSigType(t)->nature() == kInt);
         }
         if (tvec V; kernelWorkVec(t, V)) {
             // stage 1 : plain weighted taps (the scalar regimes -- sliding
