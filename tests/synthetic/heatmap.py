@@ -10,7 +10,7 @@ filters S*P, r : stages + taps, d : delays, t : readers, w : B*L). Every map
 shares one colour scale, so a lighter cell is a cheaper filter whatever the
 leg. The elections tsv has the columns name, winner label, winner ns and
 the elected option set (fcautotool output collected by elect.sh)."""
-import sys, argparse, math, collections
+import sys, os, argparse, math, collections
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
@@ -113,6 +113,7 @@ def main():
         axs[k // ncol][k % ncol].axis("off")
     fig.colorbar(im, ax=axs.ravel().tolist(), shrink=0.6, label="ns per frame per %s" % unit)
     fig.suptitle("family %s : efficiency, ns per frame per %s (lighter = cheaper)" % (f, unit))
+    os.makedirs(a.out, exist_ok=True)
     out = "%s/heatmap-%s.png" % (a.out, f)
     fig.savefig(out, dpi=130, bbox_inches="tight")
     print("wrote", out)
