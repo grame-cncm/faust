@@ -2406,7 +2406,7 @@ class LoopSplitEmitter {
         if (isSlow(t)) {
             // scalar machinery, code lives outside the loops ; a live value
             // of the loop under -ls-const-live (see constOp)
-            return constOp(fC->CS(t), getCertifiedSigType(t)->nature() == kInt);
+            return constOp(fC->coefCode(t), getCertifiedSigType(t)->nature() == kInt);
         }
         if (tvec V; kernelWorkVec(t, V)) {
             // stage 1 : plain weighted taps (the scalar regimes -- sliding
@@ -5719,6 +5719,18 @@ string ScalarCompiler::generateOutput(Tree sig, const string& idx, const string&
  BINARY OPERATION
  *****************************************************************************/
 
+// A spelling that costs nothing to repeat : a variable name or a literal
+// (no operator, no call, no subscript)
+static bool isSimpleSpelling(const std::string& code)
+{
+    for (char c : code) {
+        if (!isalnum((unsigned char)c) && c != '_' && c != '.' && c != '-') {
+            return false;
+        }
+    }
+    return true;
+}
+
 string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
     // Special case for -1*a2 and a1*-1 : the negation is emitted as a
@@ -5734,8 +5746,16 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         std::string neg = ((res[0] == '(') || (res[0] == 'f') || (res[0] == 'i'))
                               ? subst("-$0", res)
                               : subst("-($0)", res);
+        // A slow negation of a non-trivial spelling takes the cache route
+        // too : the argument, slow in a slow context, is inlined by the
+        // sharing rule, and only the negation (slow in a fast context) is
+        // marked shared -- skipping the cache here would inline the whole
+        // slow expression in the sample loop (a division per sample on the
+        // gains rebuilt by the kernel reconstruction).
         Occurrences* o = fOccMarkup->retrieve(sig);
-        return (o && o->getMaxDelay() > 0) ? generateCacheCode(sig, neg) : neg;
+        const bool   slowDeep =
+            (getCertifiedSigType(sig)->variability() < kSamp) && !isSimpleSpelling(res);
+        return ((o && o->getMaxDelay() > 0) || slowDeep) ? generateCacheCode(sig, neg) : neg;
     }
     // CS compiles a whole subtree ; two of them as arguments of one call ran in
     // the order the C++ compiler picks. Sequenced left to right (see the same
@@ -7270,6 +7290,35 @@ static float firDensity(const tvec& coefs)
  * which size the delay line). Ported from fir18 (compile_scal_iir.cpp) ;
  * reversed coefficient order kept ("seems faster").
  */
+/**
+ * The code of a kernel coefficient. The reveal builds the coefficients as
+ * new trees over the program's constants ; those trees were never seen by
+ * the sharing analysis, so CS() spelled them inline in the sample loop
+ * (pow, divisions, per sample : the -fir -iirt emission ran 1.66 times
+ * slower than the default on every synthetic matrix). A coefficient
+ * whose variability is below sample rate is stored once, at the rate of
+ * its variability (a constant at init, a slow value per block), like any
+ * cached slow signal ; memoized through the compiled-expression property.
+ */
+string ScalarCompiler::coefCode(Tree coef)
+{
+    auto memo = fHoistedCoef.find(coef);
+    if (memo != fHoistedCoef.end()) {
+        return memo->second;
+    }
+    string code = CS(coef);
+    // CS may hold an INLINE spelling of this tree (a coefficient built by
+    // the kernel reconstruction, unknown to the sharing analysis, compiled
+    // once as a sample-rate operand) : a slow spelling that is neither a
+    // variable nor a literal is stored once, computed at its own rate
+    if (!isSimpleSpelling(code) && getCertifiedSigType(coef)->variability() < kSamp) {
+        code = generateVariableStore(coef, code);
+        setCompiledExpression(coef, code);
+    }
+    fHoistedCoef[coef] = code;
+    return code;
+}
+
 string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
 {
     Type         ty = getCertifiedSigType(sig);
@@ -7298,7 +7347,7 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
             fClass->addZone3(subst("$0 = $0State;", sname[i2]));
             fClass->addZone3Post(subst("$0State = $0;", sname[i2]));
         }
-        std::string y = subst("($0 + $1)", CS(coefs[1]), sname[0]);
+        std::string y = subst("($0 + $1)", coefCode(coefs[1]), sname[0]);
         // no external delayed reader -> plain sample variable (the self
         // reads that sized the direct form's line are gone by design)
         std::string ycached =
@@ -7322,7 +7371,7 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
     }
 
     std::ostringstream oss;
-    oss << CS(coefs[1]);
+    oss << coefCode(coefs[1]);
     for (unsigned int i = coefs.size() - 1; i >= 3; i--) {
         if (isZero(coefs[i])) {
             continue;
@@ -7331,7 +7380,7 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
         if (isOne(coefs[i])) {
             oss << " + " << access;
         } else {
-            oss << " + (" << CS(coefs[i]) << ") * " << access;
+            oss << " + (" << coefCode(coefs[i]) << ") * " << access;
         }
     }
     return generateDelayVec(sig, oss.str(), ctype, vname, o->getMaxDelay(), o->getDelayCount());
@@ -7445,8 +7494,8 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
     float         density      = firDensity(coefs);
     if (coefs.size() == 2) {
         // simple gain
-        std::string gain = CS(coefs[1]);
-        std::string in   = CS(coefs[0]);
+        std::string gain = coefCode(coefs[1]);
+        std::string in   = coefCode(coefs[0]);
         return generateCacheCode(sig, subst("($0) * ($1)", gain, in));
     }
     if (int T; isSlidingSumFIR(coefs, T) && getConditionCode(sig).empty()) {
@@ -7462,7 +7511,7 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
         fClass->addClearCode(subst("$0State = 0;", aname));
         fClass->addZone2(subst("$0 \t$1;", ctype, aname));
         fClass->addZone3(subst("$0 = $0State;", aname));
-        std::string enter = CS(coefs[0]);
+        std::string enter = coefCode(coefs[0]);
         std::string leave = generateDelayAccessRaw(sig, coefs[0], T);
         fClass->addExecCode(
             Statement("", subst("$0 = $0 + $1 - $2; /* Sliding sum */", aname, enter, leave)));
@@ -7492,14 +7541,14 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
                 if (isOne(coefs[1 + t])) {
                     oss << sep << pair;
                 } else {
-                    oss << sep << CS(coefs[1 + t]) << " * " << pair;
+                    oss << sep << coefCode(coefs[1 + t]) << " * " << pair;
                 }
                 sep = " + ";
             }
             if (T % 2 == 1 && !isZero(coefs[1 + T / 2])) {
                 oss << sep;
                 if (!isOne(coefs[1 + T / 2])) {
-                    oss << CS(coefs[1 + T / 2]) << " * ";
+                    oss << coefCode(coefs[1 + T / 2]) << " * ";
                 }
                 oss << generateDelayAccessRaw(sig, exp, T / 2);
             }
@@ -7527,9 +7576,9 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
             if (isOne(coefs[i])) {
                 oss << sep << access;
             } else if (Tree x, y; isSigAdd(coefs[i], x, y) || isSigSub(coefs[i], x, y)) {
-                oss << sep << '(' << CS(coefs[i]) << ") * " << access;
+                oss << sep << '(' << coefCode(coefs[i]) << ") * " << access;
             } else {
-                oss << sep << CS(coefs[i]) << " * " << access;
+                oss << sep << coefCode(coefs[i]) << " * " << access;
             }
             sep = " + ";
         }
