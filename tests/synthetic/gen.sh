@@ -8,6 +8,7 @@
 # (their output is an impulse response), the tables (t) and the integer
 # generators (w) are their own source. The families :
 #
+#   s<S><P>  the same matrix with its P sequences summed into one output
 #   m<S><P>  the original matrix : S resonlp filters in sequence, P sequences
 #            in parallel, coefficients depending on (i, j)
 #   r<D><K>  feedback network : a chain of D one-pole filters in the loop of
@@ -41,6 +42,13 @@ echo '// m<S><P> : the filter matrix'
 echo 'mF(i,j) = fi.resonlp(30+500*i+50*j,5,1);'
 for S in $(seq 1 9); do for P in $(seq 1 9); do
   echo "m$S$P = par(j, $P, pulse : seq(i, $S, mF(i,j)));"
+done; done
+echo
+echo '// s<S><P> : the same matrix, the P sequences summed into ONE output --'
+echo '// identical arithmetic per filter, one output buffer instead of P, to'
+echo '// tell a cost of the emitted body from a cost of the channel count'
+for S in $(seq 1 9); do for P in $(seq 1 9); do
+  echo "s$S$P = par(j, $P, pulse : seq(i, $S, mF(i,j))) :> _;"
 done; done
 echo
 echo '// r<D><K> : feedback network, D one-pole stages in the loop, K delayed taps'
