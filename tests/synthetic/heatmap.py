@@ -38,6 +38,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("results"); ap.add_argument("--family", default="m")
     ap.add_argument("--elections", default=None); ap.add_argument("--out", default=".")
+    ap.add_argument("--legs", default="ocpp:ocpp:;cpp:cpp:;cppvec:cpp:-vec;fu:ocpp:-ls-fuse -ls-sched model",
+                    help="label:lang:options;... of the measured legs, to recognise an elected set that IS a leg")
     a = ap.parse_args()
     legs, data = load(a.results)
     f = a.family; unit, work = UNITS[f]; xl, yl = AXES[f]
@@ -51,12 +53,18 @@ def main():
                 if n in data and l in data[n]:
                     g[i, j] = data[n][l] / work(y, x)
         grids[l] = g
+    # a leg is known by its full faust options, "-lang <lang> <options>"
+    legopts = {}
+    for spec in a.legs.split(";"):
+        label, lang, opts = (spec.split(":", 2) + ["", ""])[:3]
+        legopts[" ".join(("-lang " + lang + " " + opts).split())] = label
     elect = None
     if a.elections:
         elect = {}
         for r in [l.rstrip("\n").split("\t") for l in open(a.elections)][1:]:
             try:
-                elect[r[0]] = (r[1], float(r[2]), r[3])
+                same = legopts.get(" ".join(r[3].split()))
+                elect[r[0]] = (r[1] if same is None else "= " + same, float(r[2]), r[3], same)
             except (ValueError, IndexError):
                 pass
         g = np.full((len(ys), len(xs)), np.nan); lab = np.full((len(ys), len(xs)), "", dtype=object)
@@ -69,9 +77,19 @@ def main():
     best = np.full((len(ys), len(xs)), np.nan); bestlab = np.full((len(ys), len(xs)), "", dtype=object)
     for i in range(len(ys)):
         for j in range(len(xs)):
-            cands = [(grids[l][i, j], l) for l in grids if not np.isnan(grids[l][i, j])]
+            n = "%s%d%d" % (f, ys[i], xs[j])
+            cands = []
+            for l in grids:
+                if np.isnan(grids[l][i, j]):
+                    continue
+                label = l
+                if l == "elected" and elect is not None and n in elect and elect[n][3] is not None:
+                    label = elect[n][3]  # the elected set is this leg : one set, two measures
+                cands.append((grids[l][i, j], label))
             if cands:
-                best[i, j], bestlab[i, j] = min(cands)
+                v, label = min(cands)
+                # a leg and the elected set that IS that leg : the same code, keep the leg's name
+                best[i, j], bestlab[i, j] = v, label
     vals = np.concatenate([g[~np.isnan(g)] for g in grids.values()] + [best[~np.isnan(best)]])
     vmin, vmax = np.nanmin(vals), np.nanmax(vals)
     panels = list(grids.items()) + [("best of all", best)]
