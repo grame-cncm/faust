@@ -6,11 +6,12 @@
 # columns name, winner, ns (re-measured), options -- the --elections input
 # of heatmap.py.
 #   usage : ./remeasure.sh elections.tsv [out.tsv]
-#   env   : FAUST, CXX, BENCHFLAGS, N, BLOCK, ROUNDS, OUT (remeasure) as bench.sh
+#   env   : FAUST, CXX, BENCHFLAGS, N, BLOCK, ROUNDS, OUT (~/.cache/faust-synthetic/remeasure) as bench.sh
 set -u
 cd "$(dirname "$0")"
-IN=$1; RES=${2:-remeasure/elections-remeasured.tsv}
-FAUST=${FAUST:-../../build/bin/faust}; N=${N:-48000}; BLOCK=${BLOCK:-64}; ROUNDS=${ROUNDS:-7}; OUT=${OUT:-remeasure}
+OUT=${OUT:-${XDG_CACHE_HOME:-$HOME/.cache}/faust-synthetic/remeasure}
+IN=$1; RES=${2:-$OUT/elections-remeasured.tsv}
+FAUST=${FAUST:-../../build/bin/faust}; N=${N:-48000}; BLOCK=${BLOCK:-64}; ROUNDS=${ROUNDS:-7}
 ARCH=$(cd ../../architecture && pwd); CXX=${CXX:-c++}; BENCHFLAGS=${BENCHFLAGS:--O3 -ffast-math}
 mkdir -p "$OUT" "$(dirname "$RES")"; printf 'name\twinner\tns\toptions\n' > "$RES"
 echo "faust : $FAUST ; judge : $CXX $BENCHFLAGS -DFAUSTFLOAT=double ($($CXX --version | head -1)) ; $N frames, blocks of $BLOCK, best of $ROUNDS rounds"

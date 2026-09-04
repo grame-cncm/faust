@@ -9,14 +9,16 @@
 #
 #   usage : ./bench.sh [name-regex] [extra faust options...]
 #   env   : FAUST (../../build/bin/faust)  CXX (c++)  BENCHFLAGS (-O3 -ffast-math)
-#           N frames (48000)  BLOCK (64)  ROUNDS (7)  JOBS compile jobs (6)  OUT (bench)
+#           N frames (48000)  BLOCK (64)  ROUNDS (7)  JOBS compile jobs (6)
+#           OUT results directory, OUTSIDE the source tree by default (~/.cache/faust-synthetic/bench :
+#           the hundreds of generated bodies would otherwise be indexed by the editor's C++ tools)
 #           LEGS : the configurations measured, "label:lang:options;..." (default
 #           "cpp:cpp:;ocpp:ocpp:") ; e.g. LEGS="ocpp:ocpp:;cpp:cpp:;cppvec:cpp:-vec;fu:ocpp:-ls-fuse -ls-sched model"
 #           The first two legs give the ratio column (second over first).
 set -u
 cd "$(dirname "$0")"
 PATTERN=${1:-'[a-z][0-9][0-9]'}; shift || true
-FAUST=${FAUST:-../../build/bin/faust}; N=${N:-48000}; BLOCK=${BLOCK:-64}; ROUNDS=${ROUNDS:-7}; JOBS=${JOBS:-6}; OUT=${OUT:-bench}
+FAUST=${FAUST:-../../build/bin/faust}; N=${N:-48000}; BLOCK=${BLOCK:-64}; ROUNDS=${ROUNDS:-7}; JOBS=${JOBS:-6}; OUT=${OUT:-${XDG_CACHE_HOME:-$HOME/.cache}/faust-synthetic/bench}
 ARCH=$HOME/Documents/Install/faust/architecture; [ -d ../../architecture ] && ARCH=$(cd ../../architecture && pwd)
 CXX=${CXX:-c++}; BENCHFLAGS=${BENCHFLAGS:--O3 -ffast-math}; LEGS=${LEGS:-cpp:cpp:;ocpp:ocpp:}
 IFS=';' read -r -a LEGARR <<< "$LEGS"; LABELS=(); for leg in "${LEGARR[@]}"; do LABELS+=("${leg%%:*}"); done

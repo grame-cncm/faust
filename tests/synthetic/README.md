@@ -69,7 +69,7 @@ REF=~/faust-refbins/faust-X ./check.sh
 
 Environment : `FAUST` (default `../../build/bin/faust`), `REF`, `N` frames
 (48000), `BLOCK` (64), `TOL` tolerance relative to the scale (1e-12),
-`JOBS` (6), `OUT` results directory (`out`, ignored by git), `KEEP=1` to
+`JOBS` (6), `OUT` results directory (`~/.cache/faust-synthetic/...` by default : the generated bodies stay out of the source tree, where the editor would index them), `KEEP=1` to
 keep the outputs. The verdict of a pair is `OK` (worst difference within
 the tolerance, with the first ulp-level divergence named), or `DIFF` with
 the first differing sample, the two values at 17 digits and the worst
