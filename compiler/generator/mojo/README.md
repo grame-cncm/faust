@@ -223,10 +223,10 @@ global state for the current loop to share context between these methods.
 - `gSIMDEmit` indicates whether the visited instructions must be emitted in SIMD form;
 - `gSIMDHigh` indicates generation of the second portion of an `f64` block, shifted by `hsize`;
 - `gSIMDHalf` selects width `H`, corresponding to the SIMD width of `f64` (`Half`);
-- `gSIMDJoin` indicates that two `f64` results must be packed into a single `f32` vector;
 - `gCurLhsDT` stores the result type assigned by the current loop (`Current Lhs DType`);
 - `gCurAddrs` stores the current destination name;
-- `gCurIndex` identifies the index of the FAUST loop removed during vectorization.
+- `gCurIndex` identifies the index of the FAUST loop removed during vectorization;
+- `gCurBargraph` identifies a bargraph whose values are temporarily stored in an array.
 
 The `gSIMDHalf` flag generates operations with the explicit `H` parameter, such as `vstore[H]`, and is
 essential when the numeric type does not match its native SIMD width, for example:

@@ -87,12 +87,12 @@ struttura generale della `struct` e specializzano la generazione di `compute` tr
 
 La produzione delle istruzioni utilizza due visitor globali: `gScalarProducer`, condiviso dalle parti
 scalari del codice, e `gVectorProducer`, creato dal container vettoriale per la generazione esplicita
-SIMD. Anche in modalità vettoriale, dichiarazioni, inizializzazioni, metadati e interfaccia utente
+SIMD. Anche in modalità  vettoriale, dichiarazioni, inizializzazioni, metadati e interfaccia utente
 continuano a essere prodotti dal visitor scalare; il visitor vettoriale viene utilizzato solamente
 per la generazione del metodo `compute`.
 
 Il container vettoriale deriva inoltre da `VectorCodeContainer`, il quale incapsula la rappresentazione del
-calcolo vettoriale e la capacità di individuare i nodi ricorsivi e quelli che possono essere vettorizzati.
+calcolo vettoriale e la capacità  di individuare i nodi ricorsivi e quelli che possono essere vettorizzati.
 
 ### Explicit SIMD emission
 
@@ -119,11 +119,11 @@ Il fallback scalare viene applicato anche ai cicli che, pur non essendo ricorsiv
 memoria non compatibili con una vettorizzazione contigua. 
 
 L'implementazione richiede alcune assunzioni e workaround, descritti nei paragrafi seguenti, che in alcuni
-casi introducono un accoppiamento tra le responsabilità del container e del visitor. Queste soluzioni
+casi introducono un accoppiamento tra le responsabilità  del container e del visitor. Queste soluzioni
 permettono di adattare la struttura della `FAUST IR` e le espressioni generate ai vincoli del type system
 di Mojo.
 
-La prima importante assunzione riguarda la precisione di calcolo dei numeri reali. La modalità di emissione
+La prima importante assunzione riguarda la precisione di calcolo dei numeri reali. La modalità  di emissione
 SIMD supporta unicamente precisione di calcolo interna `f64` e precisione dell'architettura del driver
 esterno di `f32`.
 
@@ -151,7 +151,7 @@ Poiché un vettore `f32` contiene il doppio delle lane di un vettore `f64`, vale
     vsize = 2 * hsize
 ```
 
-Il nome `vsize` è stato scelto per continuità semantico con l'opzione `-vs` di FAUST e il loro valore deve
+Il nome `vsize` è stato scelto per continuità  semantico con l'opzione `-vs` di FAUST e il loro valore deve
 coincidere ai fini della correttezza:
 
 - FAUST genera sub-loop di `-vs` frame (e.g. `for i in 0..vsize`),
@@ -203,7 +203,7 @@ Il backend è stato testato con unicamente con tale configurazione su Apple M1 e
 Le operazioni `visit` specializzate, oltre a generare costruttori vettoriali, cast, operazioni binarie,
 caricamenti e scritture SIMD, classificano i sottocicli in base alla strategia di emissione richiesta.
 
-La visita di un ciclo interno può produrre:
+La visita di un ciclo interno puà² produrre:
 
 - una singola scrittura SIMD su destinazione `f32` (di `vsize` elementi);
 - il broadcast di un valore scalare;
@@ -225,10 +225,10 @@ condividere il contesto tra questi metodi mantiene uno stato globale per il cicl
 - `gSIMDEmit` indica se le istruzioni visitate devono essere emesse in forma SIMD;
 - `gSIMDHigh` indica la generazione della seconda porzione di un blocco `f64` (con shift di `hsize`);
 - `gSIMDHalf` seleziona la larghezza `H`, corrispondente alla larghezza SIMD di `f64` (`Half`);
-- `gSIMDJoin` indica l'impacchettamento di due risultati `f64` in un singolo vettore `f32`;
 - `gCurLhsDT` mantiene il tipo del risultato assegnato dal ciclo corrente (`Current Lhs DType`);
 - `gCurAddrs` mantiene il nome della destinazione corrente;
-- `gCurIndex` identifica l'indice del ciclo FAUST eliminato durante la vettorizzazione.
+- `gCurIndex` identifica l'indice del ciclo FAUST eliminato durante la vettorizzazione;
+- `gCurBargraph` identifica un bargraph i cui valori vengono salvati temporaneamente in un array.
 
 La flag `gSIMDHalf` genera operazioni con parametro esplicito `H`, come `vstore[H]`, ed è essenziale per
 ottenere risultati nei quali il tipo numerico non corrisponde alla larghezza SIMD nativa, ad esempio:
@@ -363,7 +363,7 @@ che lo store del parametro sia l'ultima istruzione del ciclo.
 
 - I bargraph sono riconosciuti attraverso la forma del ciclo e il nome dei campi.
 
-- La vettorizzabilità degli indici è limitata a semplici espressioni affini.
+- La vettorizzabilità  degli indici è limitata a semplici espressioni affini.
 
 - Gather e scatter non sono implementati e causano il fallback scalare.
 
