@@ -2,7 +2,10 @@
 # Time the synthetic tests whose name matches a pattern under the cpp and ocpp
 # backends of one faust binary : compile everything first (in parallel), then
 # measure sequentially, the two backends of a test back to back, best of
-# several rounds, nanoseconds per frame. Summary : ratio ocpp/cpp per family.
+# several rounds, nanoseconds per frame. Summary (summary.py, also usable on
+# a saved results.tsv) : ratio ocpp/cpp per family, and the efficiency per
+# unit of work of the family (m : filters S*P, r : stages + taps, d : delays,
+# t : readers, w : multiply-adds B*L).
 #
 #   usage : ./bench.sh [name-regex] [extra faust options...]
 #   env   : FAUST (../../build/bin/faust)  CXX (c++)  BENCHFLAGS (-O3 -ffast-math)
@@ -33,17 +36,5 @@ try: print('%.3f' % (float('$o')/float('$c')))
 except Exception: print('n/a')")
   printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$name" "${name:0:1}" "${name:1:1}" "${name:2:1}" "$c" "$o" "$r" >> "$RES"
 done
-python3 - "$RES" <<'PY'
-import sys, math, collections
-rows=[l.rstrip('\n').split('\t') for l in open(sys.argv[1])][1:]
-fam=collections.defaultdict(list)
-for r in rows:
-    try: fam[r[1]].append((r[0], float(r[4]), float(r[5]), float(r[6])))
-    except ValueError: pass
-print("\nfamily\tn\tgeomean ocpp/cpp\tbest (ocpp faster)\tworst (ocpp slower)\tmedian ns cpp\tmedian ns ocpp")
-for f in sorted(fam):
-    v=fam[f]; g=math.exp(sum(math.log(x[3]) for x in v)/len(v)); b=min(v,key=lambda x:x[3]); w=max(v,key=lambda x:x[3])
-    mc=sorted(x[1] for x in v)[len(v)//2]; mo=sorted(x[2] for x in v)[len(v)//2]
-    print("%s\t%d\t%.3f\t%s %.3f\t%s %.3f\t%.2f\t%.2f"%(f,len(v),g,b[0],b[3],w[0],w[3],mc,mo))
-PY
+python3 "$(dirname "$0")/summary.py" "$RES"
 echo; echo "results : $RES"
