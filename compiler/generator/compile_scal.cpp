@@ -2898,7 +2898,271 @@ class LoopSplitEmitter {
         // own, the fusion oracle keeping -ls-R (to test the order alone at a
         // fixed partition)
         int Rsched = (gGlobal->gLSSchedRegisters > 0) ? gGlobal->gLSSchedRegisters : gGlobal->gLSRegisters;
+        if (gGlobal->gLSSched == 6) {
+            // profile: sequence or interleave, decided node by node on the
+            // live profiles (spec L-ORDONNANCEMENT-PAR-PROFILS)
+            order = profileSchedule(fOps, lo, hi, Rsched, gGlobal->gLSWidth, nullptr, nullptr);
+            return order;
+        }
         order = modelSchedule(fOps, lo, hi, Rsched, gGlobal->gLSWidth, nullptr, nullptr);
+        return order;
+    }
+
+    /**
+     * The profile scheduler (spec L-ORDONNANCEMENT-PAR-PROFILS). A schedule
+     * is a set of ops with a cycle each ; its live profile counts, per
+     * cycle, the values produced and not yet fully consumed, its issue
+     * profile the weights emitted. A node composes the schedules of its
+     * operands by sliding each one over the accumulated schedule to the
+     * SMALLEST shift admissible under (R, U) and under the dependencies
+     * that cross from the slid schedule into the accumulated one (shared
+     * values placed earlier). Shift 0 is the total interleaving (BF),
+     * shift = length of the accumulated schedule is the sequence (DF) ;
+     * the scheduler finds both as particular cases, node by node. Greedy
+     * bottom-up : the inner order of a composed schedule is never revisited.
+     */
+    struct ProfSched {
+        std::vector<std::pair<int, int>> ops;  // (op index, cycle)
+        std::vector<int> live, issue;          // profiles by cycle
+        int length() const { return (int)live.size(); }
+    };
+
+    static void profileRecompute(ProfSched& S, const std::vector<LSOp>& ops, int lo, int hi,
+                                 const std::vector<int>& cycleOf, const std::vector<std::vector<int>>& users)
+    {
+        int L = 0;
+        for (auto& p : S.ops) {
+            L = std::max(L, p.second + 1);
+        }
+        S.live.assign(L, 0);
+        S.issue.assign(L, 0);
+        for (auto& p : S.ops) {
+            int k = p.first, c = p.second;
+            S.issue[c] += std::max(1, ops[k].weight);
+            if (ops[k].isStore) {
+                continue;  // no value produced
+            }
+            // the value lives from its cycle to the cycle of its last placed
+            // user ; a user not yet placed keeps it live to the end
+            int last = L;
+            bool allPlaced = true;
+            for (int u : users[k - lo]) {
+                if (cycleOf[u - lo] < 0) {
+                    allPlaced = false;
+                } else {
+                    last = std::max(last == L && allPlaced ? 0 : last, cycleOf[u - lo]);
+                }
+            }
+            if (!allPlaced) {
+                last = L;
+            } else if (users[k - lo].empty()) {
+                last = c + 1;
+            } else {
+                last = 0;
+                for (int u : users[k - lo]) {
+                    last = std::max(last, cycleOf[u - lo]);
+                }
+            }
+            for (int t = c; t < std::min(last, L); t++) {
+                S.live[t]++;
+            }
+        }
+    }
+
+    static std::vector<int> profileSchedule(const std::vector<LSOp>& ops, int lo, int hi, int R,
+                                            int U, int* cyclesOut, int* peakOut)
+    {
+        int n = hi - lo;
+        std::vector<std::vector<int>> users(n);
+        std::vector<int>              consumers(n, 0);
+        for (int k = lo; k < hi; k++) {
+            for (int d : ops[k].deps) {
+                if (d >= lo && d < hi) {
+                    users[d - lo].push_back(k);
+                    consumers[d - lo]++;
+                }
+            }
+        }
+        std::vector<int> cycleOf(n, -1);  // absolute cycle once placed, -1 before
+        std::vector<int> subLen(n, 0);    // length of the subtree schedule (for the child order)
+
+        // merge B into A at the smallest admissible shift ; B's ops get
+        // their cycles shifted, A is extended. cross deps : an op of B
+        // depending on an op already placed in A (memo) must come after it.
+        auto merge = [&](ProfSched& A, const ProfSched& B) {
+            int LA = A.length(), LB = B.length();
+            int smin = 0;
+            for (auto& p : B.ops) {
+                for (int d : ops[p.first].deps) {
+                    if (d >= lo && d < hi && cycleOf[d - lo] >= 0) {
+                        bool inB = false;
+                        for (auto& q : B.ops) {
+                            if (q.first == d) {
+                                inB = true;
+                                break;
+                            }
+                        }
+                        if (!inB) {
+                            smin = std::max(smin, cycleOf[d - lo] + 1 - p.second);
+                        }
+                    }
+                }
+            }
+            int chosen = LA;
+            for (int s = std::max(0, smin); s < LA; s++) {
+                bool ok = true;
+                for (int t = s; t < std::min(LA, s + LB) && ok; t++) {
+                    if (A.live[t] + B.live[t - s] > R || A.issue[t] + B.issue[t - s] > U) {
+                        ok = false;
+                    }
+                }
+                if (ok) {
+                    chosen = s;
+                    break;
+                }
+            }
+            for (auto& p : B.ops) {
+                A.ops.push_back({p.first, p.second + chosen});
+                cycleOf[p.first - lo] = p.second + chosen;
+            }
+            profileRecompute(A, ops, lo, hi, cycleOf, users);
+        };
+
+        // the recursion : schedule the subtree of op k ; a placed op is a leaf
+        std::function<ProfSched(int)> sched = [&](int k) -> ProfSched {
+            ProfSched C;
+            if (cycleOf[k - lo] >= 0) {
+                return C;  // shared value, already placed : a leaf of length 0
+            }
+            std::vector<int> kids;
+            for (int d : ops[k].deps) {
+                if (d >= lo && d < hi && cycleOf[d - lo] < 0) {
+                    kids.push_back(d);
+                }
+            }
+            std::vector<ProfSched> E;
+            for (int d : kids) {
+                if (cycleOf[d - lo] < 0) {  // may have been placed by a sibling meanwhile
+                    ProfSched S = sched(d);
+                    if (!S.ops.empty()) {
+                        E.push_back(std::move(S));
+                    }
+                }
+            }
+            // longest first : the short ones slide into its hollows
+            std::sort(E.begin(), E.end(), [](const ProfSched& a, const ProfSched& b) {
+                return a.length() > b.length();
+            });
+            // the accumulated composition starts from the longest child ; its
+            // ops keep their relative cycles as absolute ones
+            for (size_t i = 0; i < E.size(); i++) {
+                if (i == 0) {
+                    C = std::move(E[0]);
+                    for (auto& p : C.ops) {
+                        cycleOf[p.first - lo] = p.second;
+                    }
+                    profileRecompute(C, ops, lo, hi, cycleOf, users);
+                } else {
+                    merge(C, E[i]);
+                }
+            }
+            // place k : after every dep, at the first cycle with room for it
+            int t = 0;
+            for (int d : ops[k].deps) {
+                if (d >= lo && d < hi) {
+                    t = std::max(t, cycleOf[d - lo] + 1);
+                }
+            }
+            int w = std::max(1, ops[k].weight);
+            while (t < C.length() && C.issue[t] + w > U) {
+                t++;
+            }
+            C.ops.push_back({k, t});
+            cycleOf[k - lo] = t;
+            profileRecompute(C, ops, lo, hi, cycleOf, users);
+            subLen[k - lo] = C.length();
+            return C;
+        };
+
+        // the sinks of the span are the children of a virtual root
+        ProfSched root;
+        std::vector<int> sinks;
+        for (int k = lo; k < hi; k++) {
+            if (consumers[k - lo] == 0) {
+                sinks.push_back(k);
+            }
+        }
+        std::vector<ProfSched> E;
+        for (int k : sinks) {
+            if (cycleOf[k - lo] < 0) {
+                ProfSched S = sched(k);
+                if (!S.ops.empty()) {
+                    E.push_back(std::move(S));
+                }
+            }
+        }
+        std::sort(E.begin(), E.end(), [](const ProfSched& a, const ProfSched& b) {
+            return a.length() > b.length();
+        });
+        for (size_t i = 0; i < E.size(); i++) {
+            if (i == 0) {
+                root = std::move(E[0]);
+                for (auto& p : root.ops) {
+                    cycleOf[p.first - lo] = p.second;
+                }
+                profileRecompute(root, ops, lo, hi, cycleOf, users);
+            } else {
+                merge(root, E[i]);
+            }
+        }
+        // any op left unplaced (should not happen : every op is a sink or
+        // reaches one) is appended in creation order
+        for (int k = lo; k < hi; k++) {
+            if (cycleOf[k - lo] < 0) {
+                cycleOf[k - lo] = root.length();
+                root.ops.push_back({k, root.length()});
+                profileRecompute(root, ops, lo, hi, cycleOf, users);
+            }
+        }
+        // the order : by cycle, stable by op index -- made dependency-safe by
+        // a depth-first emission along that preference (a sibling subtree
+        // merged before the one holding a value it reads could otherwise
+        // land before it : the greedy composition keeps the profiles, the
+        // emission keeps the dependencies)
+        std::vector<int> byCycle;
+        byCycle.reserve(n);
+        for (int k = lo; k < hi; k++) {
+            byCycle.push_back(k);
+        }
+        std::stable_sort(byCycle.begin(), byCycle.end(),
+                         [&](int a, int b) { return cycleOf[a - lo] < cycleOf[b - lo]; });
+        std::vector<int>  order;
+        std::vector<bool> emitted(n, false);
+        std::function<void(int)> emit = [&](int k) {
+            if (emitted[k - lo]) {
+                return;
+            }
+            emitted[k - lo] = true;
+            for (int d : ops[k].deps) {
+                if (d >= lo && d < hi) {
+                    emit(d);
+                }
+            }
+            order.push_back(k);
+        };
+        for (int k : byCycle) {
+            emit(k);
+        }
+        if (cyclesOut) {
+            *cyclesOut = root.length();
+        }
+        if (peakOut) {
+            int pk = 0;
+            for (int v : root.live) {
+                pk = std::max(pk, v);
+            }
+            *peakOut = pk;
+        }
         return order;
     }
 

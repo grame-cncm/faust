@@ -876,7 +876,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         dst << "-mindelay " << gMinDelay << " ";
     }
     if (gLoopSplit) {
-        static const char* schedNames[] = {"df", "bf", "model", "layers", "cs2", "cs2b"};
+        static const char* schedNames[] = {"df", "bf", "model", "layers", "cs2", "cs2b", "profile"};
         dst << "-ls -ls-sched " << schedNames[gLSSched] << " -ls-R " << gLSRegisters
             << " -ls-U " << gLSWidth << " ";
         if (gLSFuse) {
@@ -1281,8 +1281,10 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
             state.gLSSched = 4;
         } else if (strcmp(value, "cs2b") == 0) {
             state.gLSSched = 5;
+        } else if (strcmp(value, "profile") == 0) {
+            state.gLSSched = 6;
         } else {
-            throw faustexception("ERROR : -ls-sched expects df, bf, model, layers, cs2 or cs2b\n");
+            throw faustexception("ERROR : -ls-sched expects df, bf, model, layers, cs2, cs2b or profile\n");
         }
         i += 2;
     } else if (isCmd(arg, "-ls-load", "--loop-split-load-weight")) {
@@ -2588,7 +2590,7 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-ls-sched <s> --loop-split-scheduling <s> intra-loop op order: df (default), bf, "
-            "model, layers, cs2, cs2b (implies -ls)."
+            "model, layers, cs2, cs2b, profile (spec L-ORDONNANCEMENT-PAR-PROFILS) (implies -ls)."
          << endl;
     sstr << tab
          << "-ls-R <n>   --loop-split-registers <n>  register budget of the model scheduler "
