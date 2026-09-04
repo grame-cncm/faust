@@ -975,13 +975,21 @@ Tree ScalarCompiler::prepare(Tree LS)
         }
         for (Tree t : seen) {
             if (tvec cs; isSigIIR(t, cs)) {
-                int order = 0;
+                int order = 0, taps = 0;
                 for (size_t k = 3; k < cs.size(); k++) {
                     if (!isZero(cs[k])) {
                         order = int(k) - 2;
+                        taps++;
                     }
                 }
-                if (order >= 2 && readers.count(t) == 0) {
+                // DENSITY guard : the transposed form carries one state per
+                // unit of order, shifted every sample, where the direct form
+                // pays one product per nonzero tap and a delay line. A sparse
+                // recurrence (a feedback loop through long delays : order in
+                // the hundreds, one tap) would become hundreds of scalar
+                // states -- a loop body the C compiler cannot even allocate
+                // in reasonable time. Half the order in taps, at least.
+                if (order >= 2 && 2 * taps >= order && readers.count(t) == 0) {
                     Tree key = tree(symbol("SIGIIRTRANSPOSED"));
                     Tree one = tree(1);
                     t->setProperty(key, one);
