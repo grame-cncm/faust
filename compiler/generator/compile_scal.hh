@@ -200,6 +200,8 @@ class ScalarCompiler : public Compiler {
     std::string         generateDelayAccessRaw(Tree sig, Tree exp, const std::string& delayidx);
     std::string         generateDelayAccessRaw(Tree sig, Tree exp, int delay);
     std::string         generateFIR(Tree sig, const tvec& coefs);
+    std::string         coefCode(Tree coef);
+    std::map<Tree, std::string, treeorder> fHoistedCoef;  // kernel coefficients stored at their rate
     std::string         generateIIR(Tree sig, const tvec& coefs);
     std::string         generateSum(Tree sig, const tvec& subs);
     std::string         generatePrefix(Tree sig, Tree x, Tree e);
