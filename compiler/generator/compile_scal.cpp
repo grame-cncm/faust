@@ -2894,8 +2894,11 @@ class LoopSplitEmitter {
             return order;
         }
         // model: the pressure-aware list scheduler
-        order = modelSchedule(fOps, lo, hi, gGlobal->gLSRegisters, gGlobal->gLSWidth, nullptr,
-                              nullptr);
+        // -ls-sched-R : the emission scheduler may run under a budget of its
+        // own, the fusion oracle keeping -ls-R (to test the order alone at a
+        // fixed partition)
+        int Rsched = (gGlobal->gLSSchedRegisters > 0) ? gGlobal->gLSSchedRegisters : gGlobal->gLSRegisters;
+        order = modelSchedule(fOps, lo, hi, Rsched, gGlobal->gLSWidth, nullptr, nullptr);
         return order;
     }
 
@@ -4386,7 +4389,8 @@ void LoopSplitEmitter::emitLoop(std::ostringstream& out, int lo, int hi)
         return;
     }
     std::vector<int> order = scheduleSpan(lo, hi);
-    int  R = gGlobal->gLSRegisters, U = gGlobal->gLSWidth;
+    int  R = (gGlobal->gLSSchedRegisters > 0) ? gGlobal->gLSSchedRegisters : gGlobal->gLSRegisters,
+         U = gGlobal->gLSWidth;
     int  cycles = 0, peak = 0;
     long overR = 0;
     modelSchedule(fOps, lo, hi, R, U, &cycles, &overR, &peak);

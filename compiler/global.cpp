@@ -473,6 +473,7 @@ void global::reset()
     gLSWidth        = 4;
     gLSFuse         = false;
     gLSConstLive    = false;
+    gLSSchedRegisters = -1;
     gLSAdopt        = false;
     gLSFuseOps      = 1024;
     gMinDelay       = 0;
@@ -1256,6 +1257,10 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
         state.gLSFuse = true;
         state.gLoopSplit = true;
         i += 1;
+    } else if (isCmd(arg, "-ls-sched-R", "--loop-split-sched-registers")) {
+        state.gLSSchedRegisters = std::atoi(value);
+        state.gLoopSplit        = true;
+        i += 2;
     } else if (isCmd(arg, "-ls-const-live", "--loop-split-const-live")) {
         state.gLSConstLive = true;
         state.gLoopSplit   = true;
@@ -2596,6 +2601,10 @@ string global::printHelp()
     sstr << tab
          << "-ls-fuse    --loop-split-fuse           greedy single-consumer fusion of the "
             "super-node partition (implies -ls)."
+         << endl;
+    sstr << tab
+         << "-ls-sched-R <n> --loop-split-sched-registers <n> register budget of the emission "
+            "scheduler alone, the fusion oracle keeping -ls-R (default : same as -ls-R)."
          << endl;
     sstr << tab
          << "-ls-const-live --loop-split-const-live the model scheduler counts the constants "
