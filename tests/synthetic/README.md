@@ -18,6 +18,7 @@ architecture runs it as is.
 | name | x | y | what it exercises |
 | :--- | :--- | :--- | :--- |
 | `m<S><P>` | S filters in sequence | P sequences in parallel | the original matrix of `resonlp` filters, coefficients depending on (i, j) |
+| `s<S><P>` | S filters in sequence | P sequences in parallel | the same matrix, its P sequences summed into one output : same arithmetic per filter, one output buffer instead of P |
 | `r<D><K>` | D one-pole stages in the loop | K delayed taps (delays 37 + 11 i) | feedback networks : the normal form dissolves the aliases, the members read each other at the current tick, the delayed compounds are deferred line writes (the fdnrev0 and greyhole shapes) |
 | `d<N><V>` | N delays in series in a loop | kind V : 1 constant, 2 modulated fdelay4, 3 modulated into a crossfading sdelay, 4 fractional lti, 5 select2 between two delays | variable and crossed delays, reads at delay 0 of deferred lines |
 | `t<N><Z>` | N table readers combined | read at delay Z − 1 | table reads at delay 0 and more, latched by an oscillator whose period is not an integer sample count |
