@@ -2270,6 +2270,7 @@ class LoopSplitEmitter {
     // Rotating locals reproduce the classic idiom -- the state lives in
     // registers -- while the buffer store remains for the tails.
     std::map<int, int> fCurRotDepth;
+    std::map<std::pair<int, int>, int> fResidentHistory;  // (host, delay) -> resident op, per loop (-ls-const-live)
 
     Operand refOperand(int idx, const std::string& dcode, bool maybeInstant, int curScc)
     {
@@ -2294,6 +2295,22 @@ class LoopSplitEmitter {
                 int& dep = fCurRotDepth[host];
                 dep      = std::max(dep, dR);
                 o.code   = subst("wr$0d$1", T(host), T(dR));
+                if (gGlobal->gLSConstLive) {
+                    // -ls-const-live : a register-resident history value is a
+                    // resident value of the loop like a constant -- a
+                    // register from cycle 0 to its last read (one op per
+                    // (host, delay) and loop, no issue slot)
+                    auto key = fResidentHistory.find({host, dR});
+                    if (key != fResidentHistory.end()) {
+                        o.op = key->second;
+                    } else {
+                        bool hostInt = getCertifiedSigType(fSN.materialized()[host])->nature() == kInt;
+                        o.op = newOp(o.code, {}, false, false, hostInt);
+                        fOps[o.op].weight        = 0;
+                        fOps[o.op].shape         = -7;  // a loop-carried state : must stay in a register
+                        fResidentHistory[{host, dR}] = o.op;
+                    }
+                }
                 return o;  // register-resident history, no memory stream
             }
         }
@@ -2357,6 +2374,7 @@ class LoopSplitEmitter {
                 return oc;
             }
             oc.op     = newOp(code, {}, false, false, isInt);
+            fOps[oc.op].weight = 0;  // a resident value : a register, no issue slot
             fOpOf[t]  = oc.op;
             return oc;
         };
@@ -2938,7 +2956,7 @@ class LoopSplitEmitter {
         S.issue.assign(L, 0);
         for (auto& p : S.ops) {
             int k = p.first, c = p.second;
-            S.issue[c] += std::max(1, ops[k].weight);
+            S.issue[c] += ops[k].weight;  // 0 for a resident constant
             if (ops[k].isStore) {
                 continue;  // no value produced
             }
@@ -2963,7 +2981,16 @@ class LoopSplitEmitter {
                     last = std::max(last, cycleOf[u - lo]);
                 }
             }
-            for (int t = c; t < std::min(last, L); t++) {
+            // a loop-carried state (a register-resident history read, weight
+            // 0, tagged -7) is read at the top of the iteration and rotated at
+            // its bottom : it occupies its register for the WHOLE iteration,
+            // whatever cycles the composition gave it and its readers. A
+            // constant lives from its placement to its last use (the C++
+            // compiler reloads it cheaply when registers are short).
+            bool state = (ops[k].weight == 0 && ops[k].shape == -7);
+            int  from  = state ? 0 : c;
+            int  to    = state ? L : std::min(last, L);
+            for (int t = from; t < to; t++) {
                 S.live[t]++;
             }
         }
@@ -3049,8 +3076,17 @@ class LoopSplitEmitter {
                     }
                 }
             }
-            // longest first : the short ones slide into its hollows
-            std::sort(E.begin(), E.end(), [](const ProfSched& a, const ProfSched& b) {
+            // residents first (a single weight-0 op each : the background
+            // the columns must fit in), then longest first : the short
+            // ones slide into the hollows of the long
+            auto isResident = [&](const ProfSched& S) {
+                return S.ops.size() == 1 && ops[S.ops[0].first].weight == 0;
+            };
+            std::stable_sort(E.begin(), E.end(), [&](const ProfSched& a, const ProfSched& b) {
+                bool ra = isResident(a), rb = isResident(b);
+                if (ra != rb) {
+                    return ra;
+                }
                 return a.length() > b.length();
             });
             // the accumulated composition starts from the longest child ; its
@@ -3073,8 +3109,8 @@ class LoopSplitEmitter {
                     t = std::max(t, cycleOf[d - lo] + 1);
                 }
             }
-            int w = std::max(1, ops[k].weight);
-            while (t < C.length() && C.issue[t] + w > U) {
+            int w = ops[k].weight;
+            while (w > 0 && t < C.length() && C.issue[t] + w > U) {
                 t++;
             }
             C.ops.push_back({k, t});
@@ -3101,7 +3137,12 @@ class LoopSplitEmitter {
                 }
             }
         }
-        std::sort(E.begin(), E.end(), [](const ProfSched& a, const ProfSched& b) {
+        std::stable_sort(E.begin(), E.end(), [&](const ProfSched& a, const ProfSched& b) {
+            bool ra = (a.ops.size() == 1 && ops[a.ops[0].first].weight == 0);
+            bool rb = (b.ops.size() == 1 && ops[b.ops[0].first].weight == 0);
+            if (ra != rb) {
+                return ra;
+            }
             return a.length() > b.length();
         });
         for (size_t i = 0; i < E.size(); i++) {
@@ -4563,6 +4604,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         fCurReadStreams.clear();
         fCurWriteStreams.clear();
         fCurRotDepth.clear();
+        fResidentHistory.clear();
         for (int m : fSN.blockMembers(b)) {
             if (fAliasIx[m] >= 0) {
                 continue;  // aliased tap: no body, no store -- reads redirect
@@ -4609,6 +4651,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             fCurReadStreams.clear();
             fCurWriteStreams.clear();
             fCurRotDepth.clear();
+        fResidentHistory.clear();
             buildOutput(outPlans[k], -1);
             outPlans[k].placed = true;
             if (gGlobal->gLSFuse && gGlobal->gLSAdopt) {
