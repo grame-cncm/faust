@@ -119,11 +119,14 @@ static std::unordered_map<const void*, std::size_t>& pointerCanonicalRegistry()
 }
 std::size_t canonicalNameHash(const char* name)
 {
-    std::size_t h = 1469598103934665603ULL;
+    // FNV-1a in a 64-bit word, folded once (see foldHash in node.hh). Held in
+    // a size_t, the basis and the prime truncate on a 32-bit target: the
+    // multiplier degenerates to 435, which is not a usable FNV prime.
+    std::uint64_t h = 1469598103934665603ULL;
     for (const char* c = name; *c; c++) {
-        h = (h ^ std::size_t(*c)) * 1099511628211ULL;
+        h = (h ^ std::uint64_t(*c)) * 1099511628211ULL;
     }
-    return h;
+    return foldHash(h);
 }
 void setPointerCanonicalHash(const void* p, std::size_t h)
 {
@@ -137,7 +140,7 @@ void setPointerCanonicalHash(const void* p, std::size_t h)
     static std::size_t gRegCounter = 0;
     auto& reg = pointerCanonicalRegistry();
     if (reg.find(p) == reg.end()) {
-        reg[p] = h ^ (++gRegCounter * 0x9e3779b97f4a7c15ULL);
+        reg[p] = foldHash(std::uint64_t(h) ^ (std::uint64_t(++gRegCounter) * 0x9e3779b97f4a7c15ULL));
     }
 }
 const std::size_t* getPointerCanonicalHash(const void* p)
@@ -228,15 +231,17 @@ void CTree::growHashTableIfNeeded()
 // Constructor : add the tree to the hash table
 static std::size_t calcCanonHash(const Node& n, int ar, const Tree br[])
 {
-    std::size_t h = n.canonicalHash();
+    // Mixed in a 64-bit word, folded once at the end: on a 32-bit size_t the
+    // shifts below would drop the high bits at every step of the chain.
+    std::uint64_t h = n.canonicalHash();
     for (int i = 0; i < ar; i++) {
         // hash_combine-style : the addition breaks the XOR-linearity of the
         // 'h = h*F ^ child' form, whose contributions cancel pairwise on lists of
         // identical elements (two equal definitions in a rec group hashed to a
         // CONSTANT, colliding distinct groups into one content-derived name)
-        h ^= br[i]->canonHash() + 0x9e3779b97f4a7c15ULL + (h << 12) + (h >> 4);
+        h ^= std::uint64_t(br[i]->canonHash()) + 0x9e3779b97f4a7c15ULL + (h << 12) + (h >> 4);
     }
-    return h;
+    return foldHash(h);
 }
 
 CTree::CTree(size_t hk, const Node& n, const tvec& br)
