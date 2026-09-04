@@ -222,6 +222,24 @@ void Klass::printAdditionalCode(ostream& fout)
     fout << "static inline int faustmini(int a, int b) { return (a < b) ? a : b; }" << endl;
     fout << "#endif" << endl;
 
+    // Int32 add/sub/mul must wrap in two's complement (the integer noise
+    // LCG relies on it) but signed overflow is undefined in C++ (clang -O2
+    // miscompiles), so int add/sub/mul render as these helpers, the same
+    // three as the cpp backend. The guard keeps multiple DSP classes in one
+    // translation unit legal.
+    fout << "#ifndef FAUST_INT_WRAP" << endl;
+    fout << "#define FAUST_INT_WRAP" << endl;
+    fout << "inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned "
+            "int)b); }"
+         << endl;
+    fout << "inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned "
+            "int)b); }"
+         << endl;
+    fout << "inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned "
+            "int)b); }"
+         << endl;
+    fout << "#endif" << endl;
+
     if (fNeedPowerDef) {
         // Add faustpower definition to C++ code
         fout << "#ifndef FAUSTPOWER" << endl;

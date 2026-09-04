@@ -82,6 +82,27 @@ using namespace std;
  * non-finite ones have no literal (T() would print "inf.0") and take the
  * <cmath> macros, sign kept.
  */
+/**
+ * Int32 add, sub and mul must wrap in two's complement (the integer noise
+ * LCG relies on it) but signed overflow is undefined in C++, and clang -O2
+ * exploits it ; they render as the faust_wrap_* helpers the class header
+ * defines, the same three the cpp backend emits. Other operations, and
+ * every real operation, keep the infix rendering.
+ */
+static const char* wrapHelper(int opcode)
+{
+    switch (opcode) {
+        case kAdd:
+            return "faust_wrap_add";
+        case kSub:
+            return "faust_wrap_sub";
+        case kMul:
+            return "faust_wrap_mul";
+        default:
+            return nullptr;
+    }
+}
+
 static string realLiteral(double r)
 {
     if (std::isnan(r)) {
@@ -2553,8 +2574,7 @@ class LoopSplitEmitter {
                 addDep(deps, a);
                 Operand n2;
                 if (wrapInt) {
-                    n2.op = newOp(subst("int(uint32_t($0) + uint32_t($1))",
-                                        operandCode(acc), operandCode(a)),
+                    n2.op = newOp(subst("faust_wrap_add($0, $1)", operandCode(acc), operandCode(a)),
                                   deps, false, false, true);
                 } else {
                     n2.op = newOp(subst("($0 + $1)", operandCode(acc), operandCode(a)),
@@ -2629,8 +2649,10 @@ class LoopSplitEmitter {
             addDep(deps, a);
             addDep(deps, b);
             call = (i == kRem) && !isInt;
-            o.op = newOp(subst("($0 $1 $2)", operandCode(a), gBinOpTable[i]->fName,
-                               operandCode(b)),
+            const char* wrap = isInt ? wrapHelper(i) : nullptr;
+            o.op = newOp(wrap ? subst("$0($1, $2)", wrap, operandCode(a), operandCode(b))
+                              : subst("($0 $1 $2)", operandCode(a), gBinOpTable[i]->fName,
+                                      operandCode(b)),
                          deps, false, call, isInt);
             fOpOf[t] = o.op;
             return o;
@@ -5360,13 +5382,18 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
     // reader spells the node as a delay vector, and that vector is
     // declared by generateCacheCode alone, so a negation with a delayed
     // occurrence takes the cache route like every other operation.
-    if ((opcode == kMul) && (isMinusOne(arg1) || isMinusOne(arg2))) {
+    const char* wrap =
+        (getCertifiedSigType(sig)->nature() == kInt) ? wrapHelper(opcode) : nullptr;
+    if ((opcode == kMul) && (isMinusOne(arg1) || isMinusOne(arg2)) && !wrap) {
         std::string res = CS(isMinusOne(arg1) ? arg2 : arg1);
         std::string neg = ((res[0] == '(') || (res[0] == 'f') || (res[0] == 'i'))
                               ? subst("-$0", res)
                               : subst("-($0)", res);
         Occurrences* o = fOccMarkup->retrieve(sig);
         return (o && o->getMaxDelay() > 0) ? generateCacheCode(sig, neg) : neg;
+    }
+    if (wrap) {
+        return generateCacheCode(sig, subst("$0($1, $2)", wrap, CS(arg1), CS(arg2)));
     }
     return generateCacheCode(sig,
                              subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
@@ -5950,7 +5977,10 @@ std::string ScalarCompiler::displayExpr(Tree t)
     int  op;
     Tree x, y, sel;
     if (isSigBinOp(t, &op, x, y)) {
-        return subst("($0 $1 $2)", displayExpr(x), gBinOpTable[op]->fName, displayExpr(y));
+        const char* wrap =
+            (getCertifiedSigType(t)->nature() == kInt) ? wrapHelper(op) : nullptr;
+        return wrap ? subst("$0($1, $2)", wrap, displayExpr(x), displayExpr(y))
+                    : subst("($0 $1 $2)", displayExpr(x), gBinOpTable[op]->fName, displayExpr(y));
     }
     if (isSigIntCast(t, x)) {
         return subst("int(+$0)", displayExpr(x));
@@ -5977,7 +6007,7 @@ std::string ScalarCompiler::displayExpr(Tree t)
             if (acc.empty()) {
                 acc = a;
             } else if (wrapInt) {
-                acc = subst("int(uint32_t($0) + uint32_t($1))", acc, a);
+                acc = subst("faust_wrap_add($0, $1)", acc, a);
             } else {
                 acc = subst("($0 + $1)", acc, a);
             }
@@ -6782,7 +6812,7 @@ void ScalarCompiler::emitAdjacentUpdates()
                     continue;
                 }
                 int N = pow2limit(fOccMarkup->retrieve(e)->getMaxDelay() + 1);
-                src   = subst("$0[(IOTA-$1)&$2]", vecname, T(h->d), T(N - 1));
+                src   = subst("$0[faust_wrap_sub(IOTA, $1)&$2]", vecname, T(h->d), T(N - 1));
             }
             fClass->addPostCode(Statement("", subst("$0 = $1;", h->name, src)));
         }
@@ -6812,7 +6842,7 @@ string ScalarCompiler::generateDelayAccessRaw(Tree sig, Tree exp, const string& 
         default: {
             int N = pow2limit(mxd + 1);
             // the index cannot be cached : it may depend on the loop variable
-            return subst("$0[(IOTA-$1)&$2]", vecname, delayidx, T(N - 1));
+            return subst("$0[faust_wrap_sub(IOTA, $1)&$2]", vecname, delayidx, T(N - 1));
         }
     }
 }
@@ -6923,19 +6953,16 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
 string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
 {
     faustassert(subs.size() > 1);
-    // INT sums wrap through UNSIGNED arithmetic : a flat signed chain is
-    // UB on overflow, and clang -O3 reassociates it under the no-overflow
-    // assumption -- false for anything that lives off the wrap (the LCG
-    // noise family : bit-exact under -fwrapv, garbage without). The
-    // classic emitter's nested form merely survived by luck.
+    // INT sums wrap through the faust_wrap_add helper, like every Int32
+    // add/sub/mul of this emitter : a flat signed chain is UB on overflow,
+    // and clang -O3 reassociates it under the no-overflow assumption --
+    // false for anything that lives off the wrap (the LCG noise family :
+    // bit-exact under -fwrapv, garbage without).
     const bool wrapInt = (getCertifiedSigType(sig)->nature() == kInt);
     ostringstream oss;
     string        sep   = "";
     int           terms = 0;
     oss << '(';
-    if (wrapInt) {
-        oss << "int(";
-    }
     if (!wrapInt) {
         // negative-weight terms (mul(-1, x)) render as subtractions after
         // the positive ones -- the reveal spells a - b as a + (-1)*b, and
@@ -6973,22 +7000,29 @@ string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
             return generateCacheCode(sig, oss.str());
         }
     }
+    if (wrapInt) {
+        // pairwise faust_wrap_add chain, left-associated like the real
+        // case (mod-2^32 addition is associative : any order agrees)
+        std::string acc;
+        for (Tree t : subs) {
+            if (isZero(t)) {
+                continue;
+            }
+            acc = acc.empty() ? CS(t) : subst("faust_wrap_add($0, $1)", acc, CS(t));
+            terms++;
+        }
+        oss << (terms == 0 ? std::string("0") : acc) << " /* Sum */)";
+        return generateCacheCode(sig, oss.str());
+    }
     for (unsigned int i = 0; i < subs.size(); ++i) {
         if (!isZero(subs[i])) {
-            if (wrapInt) {
-                oss << sep << "uint32_t(" << CS(subs[i]) << ')';
-            } else {
-                oss << sep << CS(subs[i]);
-            }
+            oss << sep << CS(subs[i]);
             terms++;
             sep = " + ";
         }
     }
     if (terms == 0) {
         oss << "0";
-    }
-    if (wrapInt) {
-        oss << ')';
     }
     oss << " /* Sum */)";
     return generateCacheCode(sig, oss.str());
@@ -7228,7 +7262,7 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 #endif
     } else {
         int         N   = pow2limit(mxd + 1);
-        std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
+        std::string idx = subst("faust_wrap_sub(IOTA, $0)&$1", CS(delay), T(N - 1));
         return generateCacheCode(sig, subst("$0[$1]", vecname, generateIotaCache(idx)));
     }
 #else
@@ -7292,12 +7326,12 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
                 std::string aname = getFreshID("fAdj");
                 fClass->addZone2(subst("$1 \t$0;", aname, ctype));
                 fClass->addZone3(
-                    subst("$0 = $1[(IOTA-$2)&$3];", aname, vecname, T(dc), T(N - 1)));
+                    subst("$0 = $1[faust_wrap_sub(IOTA, $2)&$3];", aname, vecname, T(dc), T(N - 1)));
                 fAdjHighs.push_back({exp, dc, aname});
                 result = aname;
                 break;
             }
-            std::string idx = subst("(IOTA-$0)&$1", CS(delay), T(N - 1));
+            std::string idx = subst("faust_wrap_sub(IOTA, $0)&$1", CS(delay), T(N - 1));
             bool headSafe   = getCertifiedSigType(delay)->variability() < kSamp;
             result          = subst("$0[$1]", vecname, generateIotaCache(idx, headSafe));
             if (cst && getConditionCode(sig).empty() && has(dc + 1)) {
@@ -7622,7 +7656,7 @@ void ScalarCompiler::ensureIotaCode()
     if (fMaxIota >= 0) {
         fClass->addDeclCode("int \tIOTA;");
         fClass->addClearCode(subst("IOTA = $0;", T(fMaxIota)));
-        fClass->addPostCode(Statement("", "IOTA = IOTA+1;"));
+        fClass->addPostCode(Statement("", "IOTA = faust_wrap_add(IOTA, 1);"));
     }
 }
 
