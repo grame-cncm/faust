@@ -74,7 +74,8 @@ class SignalDispatch : public FaustAlgebra<V> {
     /// The extended primitives, dispatched by NAME. Virtual because the TREE carrier
     /// overrides it wholesale: an xtended node is rebuilt from the xtended itself,
     /// which also disambiguates the operations that several constructors share (the
-    /// `%` binop and the `fmod` primitive both interpret as Mod).
+    /// `%` binop and the `fmod` primitive both interpret as Mod -- the algebras that
+    /// tell them apart, the nature among them, answer Fmod instead).
     virtual V xtendedOp(xtended* p, const std::vector<V>& c) const;
 
    public:
@@ -218,7 +219,7 @@ V SignalDispatch<V>::xtendedOp(xtended* p, const std::vector<V>& c) const
         case XOp::Exp: return this->Exp(c[0]);
         case XOp::Exp10: return this->Exp10(c[0]);
         case XOp::Floor: return this->Floor(c[0]);
-        case XOp::Fmod: return this->Mod(c[0], c[1]);
+        case XOp::Fmod: return this->Fmod(c[0], c[1]);
         case XOp::Log: return this->Log(c[0]);
         case XOp::Log10: return this->Log10(c[0]);
         case XOp::Max: return this->Max(c[0], c[1]);

@@ -209,6 +209,10 @@ class AffineOps : public Base {
     {
         return c2(x, y, [this](const interval& a, const interval& b) { return fItv.Mod(a, b); });
     }
+    AffItv Fmod(const AffItv& x, const AffItv& y) const override
+    {
+        return c2(x, y, [this](const interval& a, const interval& b) { return fItv.Fmod(a, b); });
+    }
     AffItv Inv(const AffItv& x) const override
     {
         return c1(x, [this](const interval& a) { return fItv.Inv(a); });

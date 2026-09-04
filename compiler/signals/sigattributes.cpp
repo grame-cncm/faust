@@ -115,6 +115,9 @@ class NatureAlgebra : public SignalAlgebra<int> {
     int Mul(const int& x, const int& y) const override { return x | y; }
     int Div(const int&, const int&) const override { return kReal; }  // division always floats
     int Mod(const int& x, const int& y) const override { return x | y; }
+    // fmod is the C function : real whatever its operands, unlike the `%` binop
+    // just above. The old FmodPrim::inferSigType said the same with a floatCast.
+    int Fmod(const int&, const int&) const override { return kReal; }
     int Neg(const int& x) const override { return x; }
     int Inv(const int&) const override { return kReal; }
     int Abs(const int& x) const override { return x; }
@@ -275,6 +278,7 @@ class VariabilityAlgebra : public SignalAlgebra<int> {
     int Mul(const int& x, const int& y) const override { return x | y; }
     int Div(const int& x, const int& y) const override { return x | y; }
     int Mod(const int& x, const int& y) const override { return x | y; }
+    int Fmod(const int& x, const int& y) const override { return Mod(x, y); }
     int Neg(const int& x) const override { return x; }
     int Inv(const int& x) const override { return x; }
     int Abs(const int& x) const override { return x; }
@@ -423,6 +427,7 @@ class ComputabilityAlgebra : public SignalAlgebra<int> {
     int Mul(const int& x, const int& y) const override { return x | y; }
     int Div(const int& x, const int& y) const override { return x | y; }
     int Mod(const int& x, const int& y) const override { return x | y; }
+    int Fmod(const int& x, const int& y) const override { return Mod(x, y); }
     int Neg(const int& x) const override { return x; }
     int Inv(const int& x) const override { return x; }
     int Abs(const int& x) const override { return x; }
@@ -575,6 +580,7 @@ class VectorabilityAlgebra : public SignalAlgebra<int> {
     int Mul(const int& x, const int& y) const override { return x | y; }
     int Div(const int& x, const int& y) const override { return x | y; }
     int Mod(const int& x, const int& y) const override { return x | y; }
+    int Fmod(const int& x, const int& y) const override { return Mod(x, y); }
     int Neg(const int& x) const override { return x; }
     int Inv(const int& x) const override { return x; }
     int Abs(const int& x) const override { return x; }
@@ -718,6 +724,7 @@ class BooleanAlgebra : public SignalAlgebra<int> {
     int Mul(const int& x, const int& y) const override { return x | y; }
     int Div(const int& x, const int& y) const override { return x | y; }
     int Mod(const int& x, const int& y) const override { return x | y; }
+    int Fmod(const int& x, const int& y) const override { return Mod(x, y); }
     int Neg(const int& x) const override { return x; }
     int Inv(const int& x) const override { return x; }
     int Abs(const int& x) const override { return x; }

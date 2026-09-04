@@ -275,6 +275,10 @@ class SIGS_API TransformAlgebra : public SignalDispatch<XSig> {
     XSig Exp(const XSig& x) const override { return o(fBuild.Exp(x.out)); }
     XSig Exp10(const XSig& x) const override { return o(fBuild.Exp10(x.out)); }
     XSig Floor(const XSig& x) const override { return o(fBuild.Floor(x.out)); }
+    XSig Fmod(const XSig& x, const XSig& y) const override
+    {
+        return o(fBuild.Fmod(x.out, y.out));
+    }
     XSig Log(const XSig& x) const override { return o(fBuild.Log(x.out)); }
     XSig Log10(const XSig& x) const override { return o(fBuild.Log10(x.out)); }
     XSig Max(const XSig& x, const XSig& y) const override

@@ -79,6 +79,11 @@ class FaustAlgebra
     virtual T Inv(const T& x) const = 0;
     virtual T Neg(const T& x) const = 0;
     virtual T Mod(const T& x, const T& y) const = 0;
+    // The `%` binop and the `fmod` primitive share the modulo semantics but not
+    // the nature : `%` on two integers is an integer, `fmod` is the C function and
+    // is real whatever its operands. One operation cannot answer both, so fmod
+    // gets its own : every domain but the nature answers it with Mod.
+    virtual T Fmod(const T& x, const T& y) const = 0;
     virtual T Acos(const T& x) const = 0;
     virtual T Acosh(const T& x) const = 0;
     virtual T And(const T& x, const T& y) const = 0;
