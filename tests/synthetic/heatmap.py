@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/python3
 """Heat-maps of the efficiency of one family over its (x, y) grid, one map
 per measured leg, plus the map of the best leg (and, given an elections
 tsv, the elected option set and its efficiency).

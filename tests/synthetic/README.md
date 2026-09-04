@@ -42,7 +42,7 @@ the **efficiency per unit of work**, the family's own unit :
 
 `LEGS` names the configurations measured, `label:lang:options` separated
 by `;` (default `cpp:cpp:;ocpp:ocpp:`), e.g. `LEGS="ocpp:ocpp:;cpp:cpp:;cppvec:cpp:-vec;fu:ocpp:-ls-fuse -ls-sched model"` ;
-`heatmap.py results.tsv --family m` draws the efficiency of every leg over
+`heatmap.py results.tsv --family m` (matplotlib : the script names /usr/local/bin/python3, which has it here) draws the efficiency of every leg over
 the family's grid on one colour scale, plus the best leg per cell (and the
 elected set with `--elections`).
 
