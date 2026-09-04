@@ -333,6 +333,8 @@ struct global {
                            // 2 = model (pressure-aware list scheduler under R/U)
     int  gLSRegisters;     // -ls-R option: register budget for the model scheduler (default 20)
     int  gLSWidth;         // -ls-U option: superscalar width for the model scheduler (default 4)
+    int  gLSSchedRegisters; // -ls-sched-R option: register budget of the EMISSION scheduler alone
+                            // (the fusion oracle keeps -ls-R) ; -1 = same as -ls-R
     bool gLSConstLive;     // -ls-const-live option: the model scheduler of the emission path
                            // counts the constants and slow leaves of a loop as live values
     bool gLSFuse;          // -ls-fuse option: greedy single-consumer fusion of the super-node
