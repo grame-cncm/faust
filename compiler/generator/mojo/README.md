@@ -1,162 +1,164 @@
 ## Faust to Mojo generator
 
-Il codice presente in questa cartella implementa il transpilatore da FAUST a Mojo.
+The code in this directory implements the FAUST-to-Mojo transpiler.
 
-### File miscellanei
+### Miscellaneous files
 
-- `.clangd`: configurazione per silenziare alcuni errori dello LSP Clangd
-  - Definisce la variabile di ambiente `MOJO_BUILD=1`, utilizzata successivamente a compile time.
+- `.clangd`: configuration used to silence some Clangd LSP errors.
+  - It defines the `MOJO_BUILD=1` environment variable, which is used later at compile time.
 
-### File di configurazione
+### Configuration files
 
-Si tratta dei file prefissi da `_`, contenenti codice privato che esula dalle classi strettamente utilizzate
-dalle altre componenti compilatore (`faust/compiler`, `faust/compiler/generator`).
+These are the files prefixed with `_`. They contain private code outside the classes directly used by the
+other compiler components (`faust/compiler` and `faust/compiler/generator`).
 
-- `_mojo_hal.hh`: codice per l'astrazione dall'hardware sottostante (`Hardware Abstraction Layer`).
-- `_mojo_macro.hh`: macro per ergonomia e pulizia semantica del codice pubblico.
-- `_mojo_utils.hh`: funzioni helper per le classi pubbliche principali.
+- `_mojo_hal.hh`: abstraction layer for the underlying hardware (`Hardware Abstraction Layer`).
+- `_mojo_macro.hh`: macros used to improve the ergonomics and semantic clarity of the public code.
+- `_mojo_utils.hh`: helper functions for the main public classes.
 
-### File principali
+### Main files
 
-Contengono le classi principali del backend, le cui interfacce vengono utilizzate dalle altre componenti
-del compilatore.
+These files contain the main backend classes, whose interfaces are used by other compiler components.
 
-I file si suddividono in file di intestazione (`*.hh`), contenenti le dichiarazioni delle classi, e file
-di implementazione (`*.cpp`), contenenti le relative definizioni.
+They are divided into header files (`*.hh`), containing class declarations, and implementation files
+(`*.cpp`), containing the corresponding definitions.
 
-Le due componenti principali sono:
+The two main components are:
 
-- `MojoInstVisitor` − Il produttore che traduce le istruzioni della `FAUST IR` in codice `Mojo` e le scrive
-  sullo stream di output.
-- `MojoCodeContainer` − Usa il produttore per costruire il tipo (`struct mydsp`) che incapsula il kernel DSP.
+- `MojoInstVisitor` - The producer that translates `FAUST IR` instructions into `Mojo` code and writes
+  them to the output stream.
+- `MojoCodeContainer` - Uses the producer to build the type (`struct mydsp`) that encapsulates the DSP
+  kernel.
 
-In altri termini, il visitor attraversa le istruzioni della `FAUST IR` e ne produce la rappresentazione
-testuale in `Mojo`; il container organizza il codice prodotto per costruire la struttura che rappresenta
-il programma `FAUST`.
+In other words, the visitor traverses the `FAUST IR` instructions and produces their textual representation
+in `Mojo`; the container organizes the generated code to build the structure representing the `FAUST`
+program.
 
-- `mojo_instructions.hh` − Dichiara `MojoInstVisitor` e le derivate `MojoVecInstVisitor` e `MojoInitFieldsVisitor`.
-- `mojo_code_container.hh` − Dichiara `MojoCodeContainer` e le derivate `MojoScalarCodeContainer` e `MojoVecCodeContainer`.
+- `mojo_instructions.hh` - Declares `MojoInstVisitor` and its derived classes `MojoVecInstVisitor` and
+  `MojoInitFieldsVisitor`.
+- `mojo_code_container.hh` - Declares `MojoCodeContainer` and its derived classes
+  `MojoScalarCodeContainer` and `MojoVecCodeContainer`.
 
-- `mojo_instructions.cpp` − Implementa `MojoInstVisitor` e `MojoInitFieldsVisitor`.
-- `mojo_vec_instructions.cpp` − Implementa `MojoVecInstVisitor`.
-- `mojo_code_container.cpp` − Implementa `MojoCodeContainer` e la derivata `MojoVecCodeContainer`.
+- `mojo_instructions.cpp` - Implements `MojoInstVisitor` and `MojoInitFieldsVisitor`.
+- `mojo_vec_instructions.cpp` - Implements `MojoVecInstVisitor`.
+- `mojo_code_container.cpp` - Implements `MojoCodeContainer` and the derived `MojoVecCodeContainer`.
 
 ### Instructions Visitor
 
-Il linguaggio `FAUST` descrive il DSP in forma puramente funzionale. Durante la transpilazione, questa viene
-progressivamente trasformata nella `FAUST IR`, una rappresentazione intermedia procedurale e imperativa
-composta da istruzioni tipizzate per dichiarazioni, espressioni, accessi alla memoria, cicli e controllo di
-flusso. Il backend Mojo attraversa questa IR e traduce ciascuna istruzione nel corrispondente codice
-sorgente `Mojo`, organizzato dal *Code Container*  in una `struct` che rappresenta il DSP generato.
+The `FAUST` language describes DSPs in a purely functional form. During transpilation, this representation
+is progressively transformed into the `FAUST IR`, a procedural and imperative intermediate representation
+composed of typed instructions for declarations, expressions, memory accesses, loops and control flow.
+The Mojo backend traverses this IR and translates each instruction into the corresponding `Mojo` source
+code. The *Code Container* organizes this code into a `struct` representing the generated DSP.
 
-La traduzione è implementata da `MojoInstVisitor` mediante il *visitor pattern*. La classe deriva da
-`TextInstVisitor`, dal quale eredita l'infrastruttura comune per attraversare l'IR e produrre codice
-testuale indentato su uno stream di output, e sovraccarica l'operazione `visit` per i differenti tipi di
-istruzione. Quando un'istruzione accetta il visitor, viene selezionata l'operazione corrispondente al suo
-tipo concreto.
+The translation is implemented by `MojoInstVisitor` using the *visitor pattern*. The class derives from
+`TextInstVisitor`, from which it inherits the common infrastructure used to traverse the IR and write
+indented textual code to an output stream. It overloads the `visit` operation for the different instruction
+types. When an instruction accepts the visitor, the operation corresponding to its concrete type is
+selected.
 
-`MojoInitFieldsVisitor` è un visitor specializzato nella generazione delle inizializzazioni dei campi
-nel *default constructor* `__init__` della `struct` DSP. Per ogni dichiarazione emette l'assegnamento
-al relativo campo, usando il valore presente nella `FAUST IR` oppure, quando assente, un inizializzatore
-a zero appropriato al tipo.
+`MojoInitFieldsVisitor` is a visitor specialized in generating field initializations for the DSP `struct`
+*default constructor*, `__init__`. For each declaration, it emits an assignment to the corresponding field,
+using either the value stored in the `FAUST IR` or, when no value is present, a zero initializer appropriate
+for the type.
 
 ### Code Container
 
-`MojoCodeContainer` organizza il codice prodotto dagli instruction visitor e costruisce la `struct`
-che rappresenta il DSP in `Mojo`. La classe deriva da `CodeContainer` e definisce la struttura comune
-del programma generato.
+`MojoCodeContainer` organizes the code produced by the instruction visitors and builds the `struct` that
+represents the DSP in `Mojo`. The class derives from `CodeContainer` and defines the common structure of the
+generated program.
 
-L'interfaccia principale del container è `produceClass`, che coordina la generazione delle diverse sezioni.
-Per convenzione, gli helper che scrivono le singole sezioni del codice hanno il prefisso `write`. Il
-container genera:
+The main container interface is `produceClass`, which coordinates the generation of the different sections.
+By convention, helpers that write individual code sections use the `write` prefix. The container generates:
 
-- l'intestazione e le definizioni dei tipi numerici;
-- la dichiarazione della `struct` e dei relativi campi;
-- il *default constructor* e l'inizializzazione dei campi;
-- gli accessor per sample rate, numero di ingressi e numero di uscite;
-- le funzioni di inizializzazione e reset dell'istanza;
-- i metadati e la rappresentazione JSON del DSP;
-- il metodo per la costruzione dell'interfaccia utente;
-- il metodo `compute` contenente il calcolo del DSP.
+- the header and numeric type definitions;
+- the `struct` declaration and its fields;
+- the *default constructor* and field initialization;
+- accessors for the sample rate and the number of inputs and outputs;
+- instance initialization and reset functions;
+- metadata and the JSON representation of the DSP;
+- the method used to build the user interface;
+- the `compute` method containing the DSP computation.
 
-`MojoCodeContainer` è una classe astratta dalla quale derivano `MojoScalarCodeContainer` e
-`MojoVecCodeContainer`. La factory `createContainer` seleziona la variante appropriata in base alle
-opzioni di compilazione: il container scalare viene usato per la generazione ordinaria, mentre quello
-vettoriale viene istanziato quando è attiva l'opzione `-vec`. Le due implementazioni condividono la
-struttura generale della `struct` e specializzano la generazione di `compute` tramite `writeCompute`.
+`MojoCodeContainer` is an abstract class from which `MojoScalarCodeContainer` and `MojoVecCodeContainer`
+derive. The `createContainer` factory selects the appropriate variant according to the compilation options:
+the scalar container is used for ordinary generation, while the vector container is instantiated when the
+`-vec` option is enabled. The two implementations share the general structure of the `struct` and
+specialize the generation of `compute` through `writeCompute`.
 
-La produzione delle istruzioni utilizza due visitor globali: `gScalarProducer`, condiviso dalle parti
-scalari del codice, e `gVectorProducer`, creato dal container vettoriale per la generazione esplicita
-SIMD. Anche in modalità vettoriale, dichiarazioni, inizializzazioni, metadati e interfaccia utente
-continuano a essere prodotti dal visitor scalare; il visitor vettoriale viene utilizzato solamente
-per la generazione del metodo `compute`.
+Instruction production uses two global visitors: `gScalarProducer`, shared by the scalar portions of the
+code, and `gVectorProducer`, created by the vector container for explicit SIMD generation. Even in vector
+mode, declarations, initializations, metadata and the user interface are still produced by the scalar
+visitor. The vector visitor is used only to generate the `compute` method.
 
-Il container vettoriale deriva inoltre da `VectorCodeContainer`, il quale incapsula la rappresentazione del
-calcolo vettoriale e la capacità di individuare i nodi ricorsivi e quelli che possono essere vettorizzati.
+The vector container also derives from `VectorCodeContainer`, which encapsulates the vector representation
+of the computation and the ability to distinguish recursive nodes from vectorizable ones.
 
 ### Explicit SIMD emission
 
-Con l'opzione `-vec`, FAUST riorganizza la rappresentazione imperativa del DSP suddividendo il calcolo in
-sottocicli ordinati secondo le dipendenze descritte dal relativo DAG. I sottocicli vengono inoltre distinti
-tra ricorsivi, quindi non vettorizzabili, e indipendenti tra le iterazioni.
+With the `-vec` option, FAUST reorganizes the imperative DSP representation by dividing the computation
+into subloops ordered according to the dependencies described by the corresponding DAG. The subloops are
+also classified as recursive, and therefore not vectorizable, or independent across iterations.
 
-Nel percorso tradizionale di FAUST, questa forma permette al compilatore del linguaggio target, ad esempio
-`clang`, di autovettorizzare i sottocicli compatibili. Mojo disabilita invece i pass di autovettorizzazione
-di LLVM, per cui l'emissione scalare non viene convertita automaticamente in istruzioni vettoriali.
+In the traditional FAUST path, this form allows the compiler of the target language, for example `clang`,
+to autovectorize compatible subloops. Mojo instead disables LLVM autovectorization passes, so scalar
+emission is not automatically converted into vector instructions.
 
-Il backend Mojo utilizza quindi la suddivisione in sottocicli prodotta da `-vec` come base per una
-vettorizzazione esplicita, sfruttando il sistema di tipi SIMD fornito dal linguaggio.
+The Mojo backend therefore uses the subdivision into subloops produced by `-vec` as the basis for explicit
+vectorization, using the SIMD type system provided by the language.
 
-Il tipo numerico fondamentale è `SIMD[dtype, width]`, dove `dtype` è il tipo primitivo, ad esempio
-`f32`, e `width` è la larghezza del vettore, ovvero il numero di elementi sui quali l'operazione viene
-eseguita in parallelo. `SIMD[dtype, 1]` corrisponde al caso scalare `Scalar[dtype]`; la `width` viene
-inoltre utilizzata come parametro nelle operazioni di metaprogrammazione.
+The fundamental numeric type is `SIMD[dtype, width]`, where `dtype` is the primitive type, for example
+`f32`, and `width` is the vector width, namely the number of elements on which the operation is performed
+in parallel. `SIMD[dtype, 1]` corresponds to the scalar case `Scalar[dtype]`; `width` is also used as a
+parameter in metaprogramming operations.
 
-Nel backend Mojo i sottocicli ricorsivi vengono sottoposti ad unrolling completo di `vsize` operazioni
-tramite `comptime for`, mentre i cicli indipendenti vengono tradotti in istruzioni SIMD esplicite.
+In the Mojo backend, recursive subloops are fully unrolled into `vsize` operations through `comptime for`,
+while independent loops are translated into explicit SIMD instructions.
 
-Il fallback scalare viene applicato anche ai cicli che, pur non essendo ricorsivi, contengono accessi alla
-memoria non compatibili con una vettorizzazione contigua. 
+The scalar fallback is also applied to loops that are not recursive but contain memory accesses that are
+incompatible with contiguous vectorization.
 
-L'implementazione richiede alcune assunzioni e workaround, descritti nei paragrafi seguenti, che in alcuni
-casi introducono un accoppiamento tra le responsabilità del container e del visitor. Queste soluzioni
-permettono di adattare la struttura della `FAUST IR` e le espressioni generate ai vincoli del type system
-di Mojo.
+The implementation requires several assumptions and workarounds, described in the following sections,
+which in some cases couple the responsibilities of the container and the visitor. These solutions adapt
+the structure of the `FAUST IR` and the generated expressions to the constraints of Mojo's type system.
 
-La prima importante assunzione riguarda la precisione di calcolo dei numeri reali. La modalità di emissione
-SIMD supporta unicamente precisione di calcolo interna `f64` e precisione dell'architettura del driver
-esterno di `f32`.
+The first important assumption concerns floating-point precision. SIMD emission supports only `f64`
+internal computation precision and `f32` precision for the external driver architecture.
 
 #### Vector Code Container
 
-`MojoVecCodeContainer` deriva sia da `MojoCodeContainer` sia da `VectorCodeContainer`. Il primo fornisce la
-struttura comune della `struct` DSP, mentre il secondo trasforma il kernel DSP in un grafo di cicli.
+`MojoVecCodeContainer` derives from both `MojoCodeContainer` and `VectorCodeContainer`. The former provides
+the common structure of the DSP `struct`, while the latter transforms the DSP kernel into a graph of loops.
 
-Nel codice generato si ricavano le larghezze native del target:
+The container explicitly generates the `vindex` index, the `end` limit and the main loop increment. The
+equivalent declaration is removed from the DAG, while `MojoVecInstVisitor` recognizes the main loop through
+the name `vindex`. This introduces an intentional coupling between the container and the visitor.
+
+The generated code obtains the native vector widths of the target:
 
 ```
     vsize = simd_width_of[f32]()
     hsize = simd_width_of[f64]()
 ```
 
-dove `vsize` significa "vector size" ed `hsize` significa "half size".
+Here, `vsize` means "vector size" and `hsize` means "half size".
 
-Poiché un vettore `f32` contiene il doppio delle lane di un vettore `f64`, vale la relazione:
+Because an `f32` vector contains twice as many lanes as an `f64` vector, the following relation holds:
 
 ```
     vsize = 2 * hsize
 ```
 
-Il nome `vsize` è stato scelto per continuità semantica con l'opzione `-vs` di FAUST e i due valori devono
-coincidere ai fini della correttezza:
+The name `vsize` was chosen for semantic continuity with the FAUST `-vs` option, and the two values must
+match for correctness:
 
-- FAUST genera sub-loop di `-vs` frame (ad esempio `for i in 0..vsize`),
-- Mojo utilizza `vsize` (ed `hsize`) per definire tipi, invocare operazioni ed avanzare nel buffer,
+- FAUST generates subloops of `-vs` frames (e.g. `for i in 0..vsize`);
+- Mojo uses `vsize` (and `hsize`) to define types, invoke operations and advance through the buffer.
 
-una discrepanza tra i due valori introduce degli errori strutturali.
+A mismatch between the two values introduces structural errors.
 
-Il backend risulta indipendente da una specifica estensione hardware SIMD, purché la compilazione FAUST usi
-la larghezza `f32` nativa del target:
+The backend is independent of a specific hardware SIMD extension, provided that FAUST compilation uses the
+native `f32` width of the target:
 
 ```
     ARM NEON 128 bit
@@ -175,78 +177,88 @@ la larghezza `f32` nativa del target:
         hsize = 8
 ```
 
-Il backend è stato testato con `-vs 4` su Apple M1 e M4, basati su SIMD NEON da 128 bit. Le configurazioni
-x86 sono teoricamente supportate ma non sono state verificate sperimentalmente.
+Generation also uses `-mcd 4`, which defines the threshold above which delay lines are represented with a
+ring buffer rather than through copies.
 
-Il container genera esplicitamente l'indice `vindex`, il limite `end` e l'incremento del ciclo principale.
-La dichiarazione equivalente viene rimossa dal DAG, mentre `MojoVecInstVisitor` riconosce il ciclo cercando
-lo stesso nome `vindex`: si tratta di un accoppiamento intenzionale tra container e visitor.
+In the Mojo backend's vec mode, `-vs` and `-mcd` must match `vsize`. With `-vs 4 -mcd 4`, delay lines below
+the threshold are rounded to four elements; otherwise, they use a ring buffer.
+
+The subloops are therefore compatible with processing blocks of `vsize` frames.
+
+The currently supported invocation is:
+
+```
+    faust -double -vec -dfs -vs 4 -mcd 4 -lang mojo [name].dsp -o [name].mojo
+```
+
+The backend has only been tested with this configuration on Apple M1 and M4 processors, which use 128-bit
+NEON SIMD. The x86 configurations are theoretically supported but have not been verified.
 
 #### Vector Instructions Visitor
 
-`MojoVecInstVisitor` deriva da `MojoInstVisitor` del quale riutilizza le operazioni per istruzioni scalari. 
+`MojoVecInstVisitor` derives from `MojoInstVisitor` and reuses its scalar instruction operations.
 
-Le operazioni `visit` specializzate, oltre a generare costruttori vettoriali, cast, operazioni binarie,
-caricamenti e scritture SIMD, classificano i sottocicli in base alla strategia di emissione richiesta.
+In addition to generating vector constructors, casts, binary operations, SIMD loads and stores, the
+specialized `visit` operations classify subloops according to the required emission strategy.
 
-La visita di un ciclo interno può produrre:
+Visiting an inner loop may produce:
 
-- una singola scrittura SIMD su destinazione `f32` (di `vsize` elementi);
-- il broadcast di un valore scalare;
-- due scritture SIMD per una destinazione `f64` (di `2 * hsize` elementi);
-- il join di due risultati `f64` con scrittura finale su `f32`;
-- un ciclo scalare con unrolling `comptime for` per i cicli ricorsivi;
-- un ciclo scalare con unrolling `comptime for` per forme con accesso a memoria non lineare;
-- un trattamento specializzato per l'aggiornamento di un bargraph e di un parametro ad esso legato;
-- un trattamento specializzato per l'aggiornamento di bargraph multipli e di un parametro non legato ad essi.
+- a single SIMD store to an `f32` destination (`vsize` elements);
+- the broadcast of a scalar value;
+- two SIMD stores to an `f64` destination (`2 * hsize` elements);
+- the join of two `f64` results followed by a final store to `f32`;
+- a scalar loop unrolled through `comptime for` for recursive loops;
+- a scalar loop unrolled through `comptime for` for memory access patterns that are not linear;
+- specialized handling for updating a bargraph and a related parameter;
+- specialized handling for updating multiple bargraphs and a parameter unrelated to them.
 
-Il visitor assume che l'ultima (o unica) istruzione del ciclo sia lo `StoreVarInst` principale. Da questa
-ricava la destinazione, il tipo del risultato e la strategia necessaria per generare l'intero ciclo.
+The visitor assumes that the last (or only) instruction in the loop is the main `StoreVarInst`. From this
+instruction, it obtains the destination, result type and strategy required to generate the complete loop.
 
-#### Stato di generazione
+#### Generation state
 
-`MojoVecInstVisitor` suddivide la logica di generazione tra le operazioni `visit` e i relativi helper. Per
-condividere il contesto tra questi metodi mantiene uno stato globale per il ciclo corrente.
+`MojoVecInstVisitor` divides the generation logic among `visit` operations and their helpers. It maintains
+global state for the current loop to share context between these methods.
 
-- `gSIMDEmit` indica se le istruzioni visitate devono essere emesse in forma SIMD;
-- `gSIMDHigh` indica la generazione della seconda porzione di un blocco `f64` (con shift di `hsize`);
-- `gSIMDHalf` seleziona la larghezza `H`, corrispondente alla larghezza SIMD di `f64` (`Half`);
-- `gSIMDJoin` indica l'impacchettamento di due risultati `f64` in un singolo vettore `f32`;
-- `gCurLhsDT` mantiene il tipo del risultato assegnato dal ciclo corrente (`Current Lhs DType`);
-- `gCurAddrs` mantiene il nome della destinazione corrente;
-- `gCurIndex` identifica l'indice del ciclo FAUST eliminato durante la vettorizzazione.
+- `gSIMDEmit` indicates whether the visited instructions must be emitted in SIMD form;
+- `gSIMDHigh` indicates generation of the second portion of an `f64` block, shifted by `hsize`;
+- `gSIMDHalf` selects width `H`, corresponding to the SIMD width of `f64` (`Half`);
+- `gSIMDJoin` indicates that two `f64` results must be packed into a single `f32` vector;
+- `gCurLhsDT` stores the result type assigned by the current loop (`Current Lhs DType`);
+- `gCurAddrs` stores the current destination name;
+- `gCurIndex` identifies the index of the FAUST loop removed during vectorization.
 
-La flag `gSIMDHalf` genera operazioni con parametro esplicito `H`, come `vstore[H]`, ed è essenziale per
-ottenere risultati nei quali il tipo numerico non corrisponde alla larghezza SIMD nativa, ad esempio:
-
-```
-    SIMD[f32, simd_width_of[f64]()`
-```
-
-#### Macro di visita contestuale
-
-Le macro SIMD applicano generalmente un pattern di salvataggio e ripristino dello stato:
+The `gSIMDHalf` flag generates operations with the explicit `H` parameter, such as `vstore[H]`, and is
+essential when the numeric type does not match its native SIMD width, for example:
 
 ```
-    salva il valore corrente della flag
-    imposta il nuovo contesto
-    visita l'istruzione
-    ripristina il valore precedente
+    SIMD[f32, simd_width_of[f64]()]
 ```
 
-`mj_simd_emit_set` e `mj_simd_emit_restore` delimitano una regione di emissione SIMD, mentre
-`mj_simd_emit_accept` applica lo stesso pattern attorno alla visita di una singola istruzione.
-`mj_simd_high_accept` visita un'espressione con `gSIMDHigh` attivo per produrre la seconda porzione `f64`.
-Le macro `mj_scalar_accept` e `mj_scalar_visit` disattivano invece temporaneamente l'emissione SIMD e
-delegano la traduzione al comportamento scalare ereditato da `MojoInstVisitor`.
+#### Contextual visit macros
 
-Questo meccanismo evita di replicare manualmente la gestione delle flag in ogni operazione `visit`
-e preserva il contesto esterno durante le visite ricorsive.
+The SIMD macros generally apply a save-and-restore pattern to the state:
 
-#### Precisione mista e larghezze SIMD
+```
+    save the current flag value
+    set the new context
+    visit the instruction
+    restore the previous value
+```
 
-La differenza tra `vsize` e `hsize` richiede una gestione esplicita delle espressioni a precisione
-mista. I valori numerici vengono emessi usando costruttori differenti secondo il tipo e il contesto:
+`mj_simd_emit_set` and `mj_simd_emit_restore` delimit a SIMD emission region, while
+`mj_simd_emit_accept` applies the same pattern around a single instruction visit.
+`mj_simd_high_accept` visits an expression with `gSIMDHigh` enabled to produce the second `f64` portion.
+The `mj_scalar_accept` and `mj_scalar_visit` macros temporarily disable SIMD emission and delegate the
+translation to the scalar behavior inherited from `MojoInstVisitor`.
+
+This mechanism avoids manually replicating flag management in every `visit` operation and preserves the
+outer context during recursive visits.
+
+#### Mixed precision and SIMD widths
+
+The difference between `vsize` and `hsize` requires explicit handling of mixed-precision expressions.
+Numeric values are emitted using different constructors according to their type and context:
 
 ```
     s32  -> S32Vec / S32Hec
@@ -254,30 +266,30 @@ mista. I valori numerici vengono emessi usando costruttori differenti secondo il
     f64  -> F64Vec
 ```
 
-I tipi `Hec` rappresentano valori `s32` o `f32` con lo stesso numero di lane del vettore `f64`. Sono
-necessari, quando un intero o un valore `f32` partecipa a un'espressione `f64`.
+The `Hec` types represent `s32` or `f32` values with the same number of lanes as the `f64` vector. They are
+required when an integer or an `f32` value participates in an `f64` expression.
 
-La flag `gSIMDHalf` propaga questa scelta a tutti gli operandi successivi dell'espressione, evitando
-operazioni tra vettori con larghezze incompatibili.
+The `gSIMDHalf` flag propagates this choice to all subsequent operands in the expression, preventing
+operations between vectors with incompatible widths.
 
-Quando la destinazione è `f64`, il visitor genera separatamente la porzione bassa e quella alta:
+When the destination is `f64`, the visitor generates the low and high portions separately:
 
 ```
     vstore(dst, low)
     vstore(dst, high, hsize)
 ```
 
-Durante la seconda visita `gSIMDHigh` aggiunge `hsize` agli accessi indicizzati. Quando invece
-un'espressione `f64` deve essere scritta su un'uscita `f32`, le due porzioni vengono combinate:
+During the second visit, `gSIMDHigh` adds `hsize` to indexed accesses. When an `f64` expression must instead
+be written to an `f32` output, the two portions are combined:
 
 ```
     vstore(dst, low.join(high))
 ```
 
-#### Analisi degli accessi alla memoria
+#### Memory access analysis
 
-La vettorizzazione è consentita solamente quando ogni lane SIMD accede a indirizzi consecutivi.
-Il visitor riconosce attualmente indici affini semplici rispetto all'indice del ciclo:
+Vectorization is allowed only when every SIMD lane accesses consecutive addresses. The visitor currently
+recognizes simple affine indices relative to the loop index:
 
 ```
     A[i]
@@ -286,80 +298,77 @@ Il visitor riconosce attualmente indici affini semplici rispetto all'indice del 
     A[c + i]
 ```
 
-`gCurIndex` rappresenta l'indice scalare rimosso dal ciclo vettoriale, mentre `visitIndex` traduce
-queste forme in un offset per `vload` o `vstore`. Durante la generazione della porzione alta `f64`
-viene aggiunto un ulteriore offset pari a `hsize`.
+`gCurIndex` represents the scalar index removed from the vector loop, while `visitIndex` translates these
+forms into an offset for `vload` or `vstore`. During generation of the high `f64` portion, an additional
+offset equal to `hsize` is added.
 
-Indici circolari, operatori diversi da somma e sottrazione, chiamate di funzione e accessi indiretti
-sono classificati come non vettorizzabili. Espressioni quali:
+Circular indices, operators other than addition and subtraction, function calls and indirect accesses are
+classified as not vectorizable. Expressions such as:
 
 ```
     table[f(i)]
     buffer[(i + offset) & mask]
 ```
 
-richiederebbero rispettivamente operazioni gather o una gestione esplicita dell'indirizzamento delle
-singole lane. Poiché queste operazioni non sono ancora implementate, il ciclo viene conservativamente
-tradotto mediante il percorso scalare. Un normale `vload` contiguo non sarebbe infatti semanticamente
-equivalente a un gather.
+would respectively require gather operations or explicit handling of the address used by each lane. Since
+these operations are not implemented yet, the loop is conservatively translated through the scalar path.
+A normal contiguous `vload` would not be semantically equivalent to a gather.
 
-#### Fallback scalare e casi speciali
+#### Scalar fallback and special cases
 
-I cicli ricorsivi e quelli con accessi non vettorizzabili vengono emessi come cicli scalari svolti
-per le `vsize` lane del blocco corrente:
+Recursive loops and loops with non-vectorizable accesses are emitted as scalar loops executed over the
+`vsize` lanes of the current block:
 
 ```
     comptime for i in range(vsize):
         scalar body
 ```
 
-Il fallback usa `MojoInstVisitor` per emettere le operazioni scalari, preservandone l'ordine anche
-dopo l'unrolling.
+The fallback uses `MojoInstVisitor` to emit scalar operations, preserving their order after unrolling.
 
-I bargraph vengono gestiti distinguendo due casi:
+Bargraphs are handled as two separate cases:
 
-- Il bargraph è direttamente collegato al parametro scritto dallo store finale. Il valore viene
-  calcolato in SIMD e il bargraph viene aggiornato con l'ultimo elemento del blocco.
+- The bargraph is directly related to the parameter written by the final store. The value is computed in
+  SIMD form, and the bargraph is updated with the final element of the block.
 
-- Il ciclo contiene più aggiornamenti di bargraph, seguiti dallo store di un parametro non direttamente
-  correlato. Gli aggiornamenti vengono emessi scalarmente tramite `comptime for`, mentre lo store
-  finale viene elaborato separatamente secondo le regole di vettorizzazione di cui sopra.
+- The loop contains multiple bargraph updates followed by the store of an unrelated parameter. The updates
+  are emitted in scalar form through `comptime for`, while the final store is handled separately according
+  to the vectorization rules described above.
 
-Il riconoscimento è basato sul numero delle istruzioni e sui nomi contenenti `bargraph`, assumendo
-che lo store del parametro sia l'ultima istruzione del ciclo.
+Recognition is based on the number of instructions and names containing `bargraph`, assuming that the
+parameter store is the last instruction in the loop.
 
-#### Vincoli e workaround correnti
+#### Current constraints and workarounds
 
-- `-vs` deve corrispondere alla larghezza restituita da `simd_width_of[f32]()`.
+- `-vs` must match the width returned by `simd_width_of[f32]()`.
 
-- Questa corrispondenza è richiesta dal backend, ma non viene ancora verificata esplicitamente.
+- This correspondence is required by the backend but is not explicitly checked yet.
 
-- Il ciclo principale è riconosciuto dal nome `vindex`.
+- The main loop is recognized by the name `vindex`.
 
-- La dichiarazione contenente `vsize` viene ignorata perché generata direttamente dal container.
+- The declaration containing `vsize` is ignored because it is generated directly by the container.
 
-- Il primo elemento del DAG viene rimosso assumendo che sia l'inizializzazione dell'indice principale.
+- The first DAG element is removed under the assumption that it initializes the main index.
 
-- Ciascun ciclo ha una singola `StoreVarInst` principale ed è l'ultima istruzione.
+- Each loop has one main `StoreVarInst`, which is the last instruction.
 
-- I cicli possono avere una, due o più di due istruzioni:
-  - la sola store principale;
-  - l'update di un bargraph e la store principale ad esso correlata;
-  - l'update di diversi bargraph e la store principale ad essi *non* necessariamente correlata;
+- Loops may contain one, two or more than two instructions:
+  - only the main store;
+  - a bargraph update and the related main store;
+  - several bargraph updates and a main store that is not necessarily related to them.
 
-- I bargraph sono riconosciuti attraverso la forma del ciclo e il nome dei campi.
+- Bargraphs are recognized through the loop shape and field names.
 
-- La vettorizzabilità degli indici è limitata a semplici espressioni affini.
+- Index vectorizability is limited to simple affine expressions.
 
-- Gather e scatter non sono implementati e causano il fallback scalare.
+- Gather and scatter are not implemented and trigger the scalar fallback.
 
-- Lo stato SIMD è globale e viene ripristinato manualmente alla fine di ogni ciclo.
+- SIMD state is global and is restored manually at the end of each loop.
 
-- `gSIMDHalf` persiste per l'intero ciclo per mantenere coerente la larghezza degli operandi.
+- `gSIMDHalf` persists for the entire loop to keep operand widths consistent.
 
-- La generazione non emette il percorso scalare per gli eventuali frame rimanenti dopo l'ultimo blocco
-  completo.
+- Generation does not emit the scalar path for frames remaining after the final complete block.
 
-L'ultimo vincolo implica che la dimensione del buffer sia compatibile con `vsize`. Il visitor ignora infatti
-l'`IfInst` prodotto dalla pipeline FAUST per la gestione dei frame rimanenti ed il ciclo principale processa
-solamente blocchi SIMD completi.
+The final constraint means that the buffer size must be compatible with `vsize`. The visitor ignores the
+`IfInst` produced by the FAUST pipeline to handle remaining frames, while the main loop processes only
+complete SIMD blocks.

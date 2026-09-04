@@ -5,7 +5,7 @@ Il codice presente in questa cartella implementa il transpilatore da FAUST a Moj
 ### File miscellanei
 
 - `.clangd`: configurazione per silenziare alcuni errori dello LSP Clangd
-  - Definisice la variabile di ambiente `MOJO_BUILD=1` che viene passata solo successivamente a compile time.
+  - Definisce la variabile di ambiente `MOJO_BUILD=1`, utilizzata successivamente a compile time.
 
 ### File di configurazione
 
@@ -18,28 +18,28 @@ dalle altre componenti compilatore (`faust/compiler`, `faust/compiler/generator`
 
 ### File principali
 
-Contengono il codice contenente classi le cui interfacce sono pubbliche ed utilizzate dalle altre componenti
-del compilatore tramite ereditarietà (polimorfismo per sottotipizzazione).
+Contengono le classi principali del backend, le cui interfacce vengono utilizzate dalle altre componenti
+del compilatore.
 
-Tali file si suddividono in file di intestazione (`*.hh`), contenenti le dichiarazioni delle classi, e file
-di implementazione (`*.cpp`), contenenti le definizioni delle classi.
+I file si suddividono in file di intestazione (`*.hh`), contenenti le dichiarazioni delle classi, e file
+di implementazione (`*.cpp`), contenenti le relative definizioni.
 
-In sintesi, i file implementano le due seguenti classi.
+Le due componenti principali sono:
 
-- `MojoInstVisitor` − Il produttore che traduce il codice `FAUST` in codice `Mojo` e lo scrive su output.
-- `MojoCodeCtonainer` − Usa il produttore per generare il tipo (`struct mydsp`) che incapsula il kernel DSP.
+- `MojoInstVisitor` − Il produttore che traduce le istruzioni della `FAUST IR` in codice `Mojo` e le scrive
+  sullo stream di output.
+- `MojoCodeContainer` − Usa il produttore per costruire il tipo (`struct mydsp`) che incapsula il kernel DSP.
 
-In altri termini: 
-- il produttore implementa un *visitor pattern* sui token della `FAUST IR` e li traduce in token `Mojo`
-- il container si avvale dei token di cui sopra per costruire la struttura dati che effettivamente
-  rappresenta il programma `FAUST`.
+In altri termini, il visitor attraversa le istruzioni della `FAUST IR` e ne produce la rappresentazione
+testuale in `Mojo`; il container organizza il codice prodotto per costruire la struttura che rappresenta
+il programma `FAUST`.
 
 - `mojo_instructions.hh` − Dichiara `MojoInstVisitor` e le derivate `MojoVecInstVisitor` e `MojoInitFieldsVisitor`.
 - `mojo_code_container.hh` − Dichiara `MojoCodeContainer` e le derivate `MojoScalarCodeContainer` e `MojoVecCodeContainer`.
 
 - `mojo_instructions.cpp` − Implementa `MojoInstVisitor` e `MojoInitFieldsVisitor`.
 - `mojo_vec_instructions.cpp` − Implementa `MojoVecInstVisitor`.
-- `mojo_code_container.cpp` − Implementa `MojoCodeContainer` e le derivata `MojoVecCodeContainer`.
+- `mojo_code_container.cpp` − Implementa `MojoCodeContainer` e la derivata `MojoVecCodeContainer`.
 
 ### Instructions Visitor
 
@@ -60,15 +60,15 @@ nel *default constructor* `__init__` della `struct` DSP. Per ogni dichiarazione 
 al relativo campo, usando il valore presente nella `FAUST IR` oppure, quando assente, un inizializzatore
 a zero appropriato al tipo.
 
-### Code Container (TODO: alleggerire)
+### Code Container
 
 `MojoCodeContainer` organizza il codice prodotto dagli instruction visitor e costruisce la `struct`
 che rappresenta il DSP in `Mojo`. La classe deriva da `CodeContainer` e definisce la struttura comune
-del programma generato, indipendentemente dalla strategia usata per il calcolo scalare o vettoriale.
+del programma generato.
 
-L'interfaccia principale del container è `produceClass`, che coordina l'intera generazione invocando
-in ordine le operazioni necessarie. Per convenzione, gli helper che scrivono le singole sezioni del
-codice hanno il prefisso `write`. Il container genera:
+L'interfaccia principale del container è `produceClass`, che coordina la generazione delle diverse sezioni.
+Per convenzione, gli helper che scrivono le singole sezioni del codice hanno il prefisso `write`. Il
+container genera:
 
 - l'intestazione e le definizioni dei tipi numerici;
 - la dichiarazione della `struct` e dei relativi campi;
@@ -82,9 +82,8 @@ codice hanno il prefisso `write`. Il container genera:
 `MojoCodeContainer` è una classe astratta dalla quale derivano `MojoScalarCodeContainer` e
 `MojoVecCodeContainer`. La factory `createContainer` seleziona la variante appropriata in base alle
 opzioni di compilazione: il container scalare viene usato per la generazione ordinaria, mentre quello
-vettoriale viene istanziato quando è attiva l'opzione `-vec`. La struttura generale della `struct`
-rimane condivisa; le due implementazioni specializzano la generazione del metodo `compute` attraverso
-la rispettiva implementazione di `writeCompute`.
+vettoriale viene istanziato quando è attiva l'opzione `-vec`. Le due implementazioni condividono la
+struttura generale della `struct` e specializzano la generazione di `compute` tramite `writeCompute`.
 
 La produzione delle istruzioni utilizza due visitor globali: `gScalarProducer`, condiviso dalle parti
 scalari del codice, e `gVectorProducer`, creato dal container vettoriale per la generazione esplicita
@@ -98,25 +97,20 @@ calcolo vettoriale e la capacità di individuare i nodi ricorsivi e quelli che p
 ### Explicit SIMD emission
 
 Con l'opzione `-vec`, FAUST riorganizza la rappresentazione imperativa del DSP suddividendo il calcolo in
-sottocicli, ordinati secondo le dipendenze descritte dal relativo DAG. I sottocicli vengono al contempo
-divisi in ricorsivi (non vettorizzabili) ed indipendenti tra le iterazioni (vettorizzabili).
+sottocicli ordinati secondo le dipendenze descritte dal relativo DAG. I sottocicli vengono inoltre distinti
+tra ricorsivi, quindi non vettorizzabili, e indipendenti tra le iterazioni.
 
-Si assume quindi che la forma del codice generata, una sequenza di piccoli cicli scalari, sia comunque tale
-da permettere al compilatore del linguaggio target (e.g `clang`) di autovettorizzare i sottocicli compatibili.
+Nel percorso tradizionale di FAUST, questa forma permette al compilatore del linguaggio target, ad esempio
+`clang`, di autovettorizzare i sottocicli compatibili. Mojo disabilita invece i pass di autovettorizzazione
+di LLVM, per cui l'emissione scalare non viene convertita automaticamente in istruzioni vettoriali.
 
-Mojo, tuttavia, disabilita volutamente i pass di autovectorization di LLVM: l'emissione scalare non viene 
-quindi convertita in istruzioni vettoriali, rendendo inutile la `-vec` mode tradizionale di FAUST.
+Il backend Mojo utilizza quindi la suddivisione in sottocicli prodotta da `-vec` come base per una
+vettorizzazione esplicita, sfruttando il sistema di tipi SIMD fornito dal linguaggio.
 
-Il backend Mojo è quindi un caso atipico nel progetto FAUST, poiché utilizza la suddivisione in sottocicli
-come base per una vettorizzazione esplicita. 
-
-D'altra parte, Mojo stesso ha optato per tale design: presenta un sistema di tipi vettoriale, con operazioni
-vettoriali (fra oggetti compatibili) invocate tramite gli operatori tradizionali (e.g. `+`, `-`, etc.).
-
-Il tipo numerico fondamentale è `SIMD[dtype, width]`, dove `dtype` è il tipo primitivo (ad esempio
-`f32`) e `width` è la larghezza del vettore, ovvero su quanti `dtype` l'operazione viene eseguita in
-parallelo. Banalmente, si ha che `SIMD[dtype, 1]` corrisponde al caso scalare `Scalar[dtype]`. Si ricordi
-che la `width` viene spesso utilizzata come parametro ai fini della metaprogrammazione.
+Il tipo numerico fondamentale è `SIMD[dtype, width]`, dove `dtype` è il tipo primitivo, ad esempio
+`f32`, e `width` è la larghezza del vettore, ovvero il numero di elementi sui quali l'operazione viene
+eseguita in parallelo. `SIMD[dtype, 1]` corrisponde al caso scalare `Scalar[dtype]`; la `width` viene
+inoltre utilizzata come parametro nelle operazioni di metaprogrammazione.
 
 Nel backend Mojo i sottocicli ricorsivi vengono sottoposti ad unrolling completo di `vsize` operazioni
 tramite `comptime for`, mentre i cicli indipendenti vengono tradotti in istruzioni SIMD esplicite.
@@ -124,10 +118,10 @@ tramite `comptime for`, mentre i cicli indipendenti vengono tradotti in istruzio
 Il fallback scalare viene applicato anche ai cicli che, pur non essendo ricorsivi, contengono accessi alla
 memoria non compatibili con una vettorizzazione contigua. 
 
-Si sottolinea che, per ottenere il risultato desidarato, sono state fatte alcune assunzioni e sono stati
-adottati alcuni 'hack' (che talvolta accoppiano le responsabilità del container e del visitor). Queste
-soluzioni vengono descritte nei paragrafi seguenti e servono al far digerire alcune espressioni al type
-system di Mojo.
+L'implementazione richiede alcune assunzioni e workaround, descritti nei paragrafi seguenti, che in alcuni
+casi introducono un accoppiamento tra le responsabilità del container e del visitor. Queste soluzioni
+permettono di adattare la struttura della `FAUST IR` e le espressioni generate ai vincoli del type system
+di Mojo.
 
 La prima importante assunzione riguarda la precisione di calcolo dei numeri reali. La modalità di emissione
 SIMD supporta unicamente precisione di calcolo interna `f64` e precisione dell'architettura del driver
@@ -137,6 +131,10 @@ esterno di `f32`.
 
 `MojoVecCodeContainer` deriva sia da `MojoCodeContainer` sia da `VectorCodeContainer`. Il primo fornisce la
 struttura comune della `struct` DSP, mentre il secondo trasforma il kernel DSP in un grafo di cicli.
+
+Il container genera esplicitamente l'indice `vindex`, il limite `end` e l'incremento del ciclo principale.
+La dichiarazione equivalente viene rimossa dal DAG, mentre `MojoVecInstVisitor` riconosce il main loop dal
+nome `vindex`. Questo introduce un accoppiamento intenzionale tra container e visitor.
 
 Nel codice generato si ricavano le larghezze native del target:
 
@@ -181,19 +179,29 @@ la larghezza `f32` nativa del target:
         hsize = 8
 ```
 
-Il backend è stato testato con `-vs 4` su Apple M1 e M4, basati su SIMD NEON da 128 bit. Le configurazioni
-x86 sono teoricamente supportate ma non sono state verificate sperimentalmente.
+La generazione utilizza inoltre `-mcd 4`, che definisce la soglia oltre la quale le delay line vengono
+rappresentate mediante ring buffer anziché tramite copie.
 
-Il container genera esplicitamente l'indice `vindex`, il limite `end` e l'incremento del ciclo principale.
-La dichiarazione equivalente viene rimossa dal DAG, mentre `MojoVecInstVisitor` riconosce il ciclo cercando
-lo stesso nome `vindex`: si tratta di un accoppiamento intenzionale tra container e visitor.
+Nella vec mode del backend Mojo, `-vs` e `-mcd` devono coincidere con `vsize`. Con `-vs 4 -mcd 4`, delay
+line inferiori alla soglia vengono arrotondate a quattro elementi, altrimenti utilizzano un ring buffer.
+
+I sottocicli sono quindi compatibili con l'elaborazione in blocchi di `vsize` frame.
+
+L'invocazione attualmente supportata è quindi:
+
+```
+    faust -double -vec -dfs -vs 4 -mcd 4 -lang mojo [name].dsp -o [name].mojo
+```
+
+Il backend è stato testato con unicamente con tale configurazione su Apple M1 e M4, basati su SIMD NEON da
+128 bit. Le configurazioni x86 sono teoricamente supportate ma non sono state verificate.
 
 #### Vector Instructions Visitor
 
 `MojoVecInstVisitor` deriva da `MojoInstVisitor` del quale riutilizza le operazioni per istruzioni scalari. 
 
 Le operazioni `visit` specializzate, oltre a generare costruttori vettoriali, cast, operazioni binarie,
-caricamenti e scritture SIMD, si occuppa di classificare i sottocicli per strategia di emissione richiesta.
+caricamenti e scritture SIMD, classificano i sottocicli in base alla strategia di emissione richiesta.
 
 La visita di un ciclo interno può produrre:
 
@@ -202,8 +210,8 @@ La visita di un ciclo interno può produrre:
 - due scritture SIMD per una destinazione `f64` (di `2 * hsize` elementi);
 - il join di due risultati `f64` con scrittura finale su `f32`;
 - un ciclo scalare con unrolling `comptime for` per i cicli ricorsivi;
-- un ciclo scalare con unrolling `comptime for` per forme con accesso a memoria non lineare.
-- un trattamento specializzato per l'aggiornamento di un bargraph e di un parametro ad esso legato.
+- un ciclo scalare con unrolling `comptime for` per forme con accesso a memoria non lineare;
+- un trattamento specializzato per l'aggiornamento di un bargraph e di un parametro ad esso legato;
 - un trattamento specializzato per l'aggiornamento di bargraph multipli e di un parametro non legato ad essi.
 
 Il visitor assume che l'ultima (o unica) istruzione del ciclo sia lo `StoreVarInst` principale. Da questa
@@ -218,12 +226,12 @@ condividere il contesto tra questi metodi mantiene uno stato globale per il cicl
 - `gSIMDHigh` indica la generazione della seconda porzione di un blocco `f64` (con shift di `hsize`);
 - `gSIMDHalf` seleziona la larghezza `H`, corrispondente alla larghezza SIMD di `f64` (`Half`);
 - `gSIMDJoin` indica l'impacchettamento di due risultati `f64` in un singolo vettore `f32`;
-- `gCurLhsDT` mantiene il tipo del risultato assegnato dal ciclo corrente ('Current Lhs DType')
+- `gCurLhsDT` mantiene il tipo del risultato assegnato dal ciclo corrente (`Current Lhs DType`);
 - `gCurAddrs` mantiene il nome della destinazione corrente;
 - `gCurIndex` identifica l'indice del ciclo FAUST eliminato durante la vettorizzazione.
 
 La flag `gSIMDHalf` genera operazioni con parametro esplicito `H`, come `vstore[H]`, ed è essenziale per
-ottenere un risultati dove il tipo numerico non corrisponde alla larghezza SIMD nativa, ovvero come:
+ottenere risultati nei quali il tipo numerico non corrisponde alla larghezza SIMD nativa, ad esempio:
 
 ```
     SIMD[f32, simd_width_of[f64]()`
@@ -355,7 +363,7 @@ che lo store del parametro sia l'ultima istruzione del ciclo.
 
 - I bargraph sono riconosciuti attraverso la forma del ciclo e il nome dei campi.
 
-- La vectorizzabilità degli indici è limitata a semplici espressioni affini.
+- La vettorizzabilità degli indici è limitata a semplici espressioni affini.
 
 - Gather e scatter non sono implementati e causano il fallback scalare.
 
