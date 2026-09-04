@@ -23,6 +23,27 @@ architecture runs it as is.
 | `t<N><Z>` | N table readers combined | read at delay Z − 1 | table reads at delay 0 and more, latched by an oscillator whose period is not an integer sample count |
 | `w<B><L>` | B LCG generators summed | L chained multiply-adds each | integer arithmetic on overflow : the n-ary int Sum path and the binary path, bit-exact only with wrapping semantics |
 
+## The bench
+
+`bench.sh [name-regex] [faust options...]` times every matching test under
+the `cpp` and `ocpp` backends of one binary (`bench_arch.cpp` : DSP on the
+heap, blocks of 64, best of several rounds of at least 100 ms, nanoseconds
+per frame), the two backends of a test back to back, and `summary.py`
+(usable on a saved `results.tsv`) gives per family the ocpp/cpp ratio and
+the **efficiency per unit of work**, the family's own unit :
+
+| family | unit of work | why |
+| :--- | :--- | :--- |
+| `m` | filters, S × P | the cost per filter is the matrix study's measure of yield |
+| `r` | stages + taps, D + K | one recurrence stage or one delayed tap each |
+| `d` | delays, N | the delays in the loop |
+| `t` | readers, N | the table readers combined |
+| `w` | multiply-adds, B × L | the integer operations |
+
+The smallest tests are the least efficient by unit (m11 : one filter pays
+the whole loop and state), the yield settles under a nanosecond per unit
+once the structure holds a few dozen units.
+
 ## The checker
 
 `check.sh [name-regex] [faust options...]` compiles every matching test
