@@ -40,6 +40,12 @@ the **efficiency per unit of work**, the family's own unit :
 | `t` | readers, N | the table readers combined |
 | `w` | multiply-adds, B × L | the integer operations |
 
+`LEGS` names the configurations measured, `label:lang:options` separated
+by `;` (default `cpp:cpp:;ocpp:ocpp:`), e.g. `LEGS="ocpp:ocpp:;cpp:cpp:;cppvec:cpp:-vec;fu:ocpp:-ls-fuse -ls-sched model"` ;
+`heatmap.py results.tsv --family m` draws the efficiency of every leg over
+the family's grid on one colour scale, plus the best leg per cell (and the
+elected set with `--elections`).
+
 The smallest tests are the least efficient by unit (m11 : one filter pays
 the whole loop and state), the yield settles under a nanosecond per unit
 once the structure holds a few dozen units.
