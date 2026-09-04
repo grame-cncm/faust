@@ -1,6 +1,6 @@
 // Bench architecture for the synthetic tests : the DSP on the heap, computed
-// in blocks like print_arch.cpp, timed over several rounds, the best round
-// printed as nanoseconds per frame (one number on stdout).
+// in blocks like print_arch.cpp, timed over several rounds of at least
+// 100 ms each, the best round printed as nanoseconds per frame (one number).
 //   usage : <binary> [frames=48000] [samplerate=48000] [block=64] [rounds=7]
 #include <cstdio>
 #include <cstdlib>
@@ -41,18 +41,29 @@ int main(int argc, char* argv[])
     for (int i = 0; i < nin; i++) inp[i] = in[i].data();
     for (int i = 0; i < nout; i++) outp[i] = out[i].data();
 
-    double best = 1e300;
+    double          best = 1e300;
     volatile double sink = 0;  // the outputs are consumed, so nothing is dead
-    for (int r = 0; r < rounds + 1; r++) {  // round 0 is the warm-up
-        auto t0 = std::chrono::steady_clock::now();
+    auto            pass = [&]() {
         for (int done = 0; done < frames; done += block) {
             int n = std::min(block, frames - done);
             dsp->compute(n, nin ? inp.data() : nullptr, nout ? outp.data() : nullptr);
             for (int c = 0; c < nout; c++) sink += out[c][n - 1];
         }
-        auto t1 = std::chrono::steady_clock::now();
-        double ns = std::chrono::duration<double, std::nano>(t1 - t0).count() / frames;
-        if (r > 0 && ns < best) best = ns;
+    };
+    // a round lasts at least 100 ms whatever the cost per frame : a cheap
+    // test (a nanosecond per frame, 48 us per pass) is timed over enough
+    // passes for the clock and the scheduler jitter to be negligible
+    auto   t0 = std::chrono::steady_clock::now();
+    pass();  // warm-up, and the first estimate of a pass
+    auto   t1 = std::chrono::steady_clock::now();
+    double one = std::chrono::duration<double>(t1 - t0).count();
+    int    passes = std::max(1, int(0.1 / std::max(one, 1e-9)));
+    for (int r = 0; r < rounds; r++) {
+        auto ta = std::chrono::steady_clock::now();
+        for (int p = 0; p < passes; p++) pass();
+        auto   tb = std::chrono::steady_clock::now();
+        double ns = std::chrono::duration<double, std::nano>(tb - ta).count() / (double(frames) * passes);
+        if (ns < best) best = ns;
     }
     if (!std::isfinite(sink)) std::fprintf(stderr, "non-finite output\n");
     std::printf("%.4f\n", best);
