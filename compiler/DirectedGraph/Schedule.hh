@@ -20,6 +20,7 @@
 #include <iostream>
 #include <list>
 #include <map>
+#include <cstdint>
 #include <set>
 #include <sstream>
 #include <string>
@@ -1345,12 +1346,16 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
         std::sort(v.begin(), v.end(), [](const Cand& a, const Cand& b) {
             return a.cyc != b.cyc ? a.cyc < b.cyc : a.peak < b.peak;
         });
-        std::set<size_t>  seen;
+        // Kept in a 64-bit word rather than a size_t: the FNV basis and prime
+        // truncate where size_t is 32 bits (emscripten targets wasm32), the
+        // multiplier degenerating to 435, and a collision here does not merely
+        // slow a lookup -- it drops a distinct candidate as a duplicate.
+        std::set<std::uint64_t> seen;
         std::vector<Cand> out;
         for (auto& c : v) {
-            size_t h = 1469598103934665603ull;
+            std::uint64_t h = 1469598103934665603ull;
             for (int o : c.trace) {
-                h = (h ^ size_t(o)) * 1099511628211ull;
+                h = (h ^ std::uint64_t(o)) * 1099511628211ull;
             }
             if (seen.insert(h).second) {
                 out.push_back(std::move(c));
