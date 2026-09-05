@@ -8,7 +8,7 @@
 # t : readers, w : multiply-adds B*L).
 #
 #   usage : ./bench.sh [name-regex] [extra faust options...]
-#   env   : FAUST (../../build/bin/faust)  CXX (c++)  BENCHFLAGS (-O3 -ffast-math)
+#   env   : FAUST (../../build/bin/faust)  CXX (c++)  BENCHFLAGS (-O3 -ffast-math)  PREC (double ; float for single-precision bodies)
 #           N frames (48000)  BLOCK (64)  ROUNDS (7)  JOBS compile jobs (6)
 #           OUT results directory, OUTSIDE the source tree by default (~/.cache/faust-synthetic/bench :
 #           the hundreds of generated bodies would otherwise be indexed by the editor's C++ tools)
@@ -25,14 +25,15 @@ IFS=';' read -r -a LEGARR <<< "$LEGS"; LABELS=(); for leg in "${LEGARR[@]}"; do 
 mkdir -p "$OUT"; RES="$OUT/results.tsv"
 NAMES=$(grep -o "^$PATTERN" synthetic_tests.dsp | grep -o '^[a-z][0-9][0-9]' | sort -u)
 [ -n "$NAMES" ] || { echo "no test matches '$PATTERN'"; exit 1; }
-echo "faust : $FAUST ($($FAUST --version 2>&1 | head -1)) ; judge : $CXX $BENCHFLAGS -DFAUSTFLOAT=double ($($CXX --version | head -1))"
+PREC=${PREC:-double}; if [ "$PREC" = double ]; then FOPT=-double; else FOPT=; fi   # PREC=float times the single-precision bodies
+echo "faust : $FAUST ($($FAUST --version 2>&1 | head -1)) ; judge : $CXX $BENCHFLAGS -DFAUSTFLOAT=$PREC ($($CXX --version | head -1))"
 echo "frames $N, blocks of $BLOCK, best of $ROUNDS rounds, faust options : $*"
 build() { name=$1; shift; W="$OUT/$name"; mkdir -p "$W"
   for leg in "${LEGARR[@]}"; do
     label=${leg%%:*}; rest=${leg#*:}; lang=${rest%%:*}; opts=${rest#*:}
     # shellcheck disable=SC2086
-    "$FAUST" -lang $lang -double -t 0 $opts "$@" -a bench_arch.cpp -pn "$name" synthetic_tests.dsp -o "$W/$label.cpp" 2>"$W/$label.err" || { echo "FAUSTFAIL" > "$W/$label.ns"; continue; }
-    $CXX $BENCHFLAGS -std=c++17 -DFAUSTFLOAT=double -I "$ARCH" "$W/$label.cpp" -o "$W/$label" 2>"$W/$label.cxx" || echo "CXXFAIL" > "$W/$label.ns"
+    "$FAUST" -lang $lang $FOPT -t 0 $opts "$@" -a bench_arch.cpp -pn "$name" synthetic_tests.dsp -o "$W/$label.cpp" 2>"$W/$label.err" || { echo "FAUSTFAIL" > "$W/$label.ns"; continue; }
+    $CXX $BENCHFLAGS -std=c++17 -DFAUSTFLOAT=$PREC -I "$ARCH" "$W/$label.cpp" -o "$W/$label" 2>"$W/$label.cxx" || echo "CXXFAIL" > "$W/$label.ns"
   done; }
 i=0; for name in $NAMES; do i=$((i+1)); ( build "$name" "$@" ) & if [ $((i % JOBS)) -eq 0 ]; then wait; fi; done; wait
 { printf 'name\tfamily\tx\ty'; for l in "${LABELS[@]}"; do printf '\tns_%s' "$l"; done; printf '\tratio_%s_%s\n' "${LABELS[1]}" "${LABELS[0]}"; } > "$RES"
