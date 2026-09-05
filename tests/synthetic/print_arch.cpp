@@ -1,4 +1,4 @@
-// Print architecture for the synthetic tests : no input, no UI, the DSP on
+// Print architecture for the synthetic tests : an impulse train on every input, no UI, the DSP on
 // the heap, computed in blocks (so that the block boundaries of the emitters
 // are exercised), every output sample printed with 17 significant digits.
 //   usage : <binary> [frames=48000] [samplerate=48000] [block=64]
@@ -42,6 +42,12 @@ int main(int argc, char* argv[])
     std::cout << std::setprecision(17);
     for (int done = 0; done < frames; done += block) {
         int n = std::min(block, frames - done);
+        // the excitation of a circuit with inputs : an impulse every 4096 frames on
+        // every input channel, the same train the input-less networks generate
+        // internally, so that a P-input P-output matrix answers with its impulse
+        // response rather than with silence
+        for (int c = 0; c < nin; c++)
+            for (int f = 0; f < n; f++) in[c][f] = FAUSTFLOAT(((done + f) % 4096) == 0);
         dsp->compute(n, nin ? inp.data() : nullptr, nout ? outp.data() : nullptr);
         for (int f = 0; f < n; f++) {
             std::cout << (done + f);
