@@ -46,6 +46,12 @@ int main(int argc, char* argv[])
     auto            pass = [&]() {
         for (int done = 0; done < frames; done += block) {
             int n = std::min(block, frames - done);
+            // the excitation of a circuit with inputs : an impulse every 4096 frames on
+            // every input channel, the same train the input-less networks generate
+            // internally, so that a P-input P-output matrix answers with its impulse
+            // response rather than with silence
+            for (int c = 0; c < nin; c++)
+                for (int f = 0; f < n; f++) in[c][f] = FAUSTFLOAT(((done + f) % 4096) == 0);
             dsp->compute(n, nin ? inp.data() : nullptr, nout ? outp.data() : nullptr);
             for (int c = 0; c < nout; c++) sink += out[c][n - 1];
         }
