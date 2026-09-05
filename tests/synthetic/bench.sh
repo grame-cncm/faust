@@ -8,7 +8,7 @@
 # t : readers, w : multiply-adds B*L).
 #
 #   usage : ./bench.sh [name-regex] [extra faust options...]
-#   env   : FAUST (../../build/bin/faust)  CXX (c++)  BENCHFLAGS (-O3 -ffast-math)  PREC (double ; float for single-precision bodies)
+#   env   : FAUST (../../build/bin/faust)  CXX (c++)  BENCHFLAGS (-O3 -ffast-math)  PREC (double ; float for single-precision bodies)  DSP (synthetic_tests.dsp)
 #           N frames (48000)  BLOCK (64)  ROUNDS (7)  JOBS compile jobs (6)
 #           OUT results directory, OUTSIDE the source tree by default (~/.cache/faust-synthetic/bench :
 #           the hundreds of generated bodies would otherwise be indexed by the editor's C++ tools)
@@ -18,12 +18,13 @@
 set -u
 cd "$(dirname "$0")"
 PATTERN=${1:-'[a-z][0-9][0-9]'}; shift || true
+DSP=${DSP:-synthetic_tests.dsp}   # the file of named entry points (DSP=synthetic_tests_v2.dsp for the second version)
 FAUST=${FAUST:-../../build/bin/faust}; N=${N:-48000}; BLOCK=${BLOCK:-64}; ROUNDS=${ROUNDS:-7}; JOBS=${JOBS:-6}; OUT=${OUT:-${XDG_CACHE_HOME:-$HOME/.cache}/faust-synthetic/bench}
 ARCH=$HOME/Documents/Install/faust/architecture; [ -d ../../architecture ] && ARCH=$(cd ../../architecture && pwd)
 CXX=${CXX:-c++}; BENCHFLAGS=${BENCHFLAGS:--O3 -ffast-math}; LEGS=${LEGS:-cpp:cpp:;ocpp:ocpp:}
 IFS=';' read -r -a LEGARR <<< "$LEGS"; LABELS=(); for leg in "${LEGARR[@]}"; do LABELS+=("${leg%%:*}"); done
 mkdir -p "$OUT"; RES="$OUT/results.tsv"
-NAMES=$(grep -o "^$PATTERN" synthetic_tests.dsp | grep -o '^[a-z][0-9][0-9]' | sort -u)
+NAMES=$(grep -o "^$PATTERN" "$DSP" | grep -o '^[a-z][0-9][0-9]' | sort -u)
 [ -n "$NAMES" ] || { echo "no test matches '$PATTERN'"; exit 1; }
 PREC=${PREC:-double}; if [ "$PREC" = double ]; then FOPT=-double; else FOPT=; fi   # PREC=float times the single-precision bodies
 echo "faust : $FAUST ($($FAUST --version 2>&1 | head -1)) ; judge : $CXX $BENCHFLAGS -DFAUSTFLOAT=$PREC ($($CXX --version | head -1))"
@@ -32,7 +33,7 @@ build() { name=$1; shift; W="$OUT/$name"; mkdir -p "$W"
   for leg in "${LEGARR[@]}"; do
     label=${leg%%:*}; rest=${leg#*:}; lang=${rest%%:*}; opts=${rest#*:}
     # shellcheck disable=SC2086
-    "$FAUST" -lang $lang $FOPT -t 0 $opts "$@" -a bench_arch.cpp -pn "$name" synthetic_tests.dsp -o "$W/$label.cpp" 2>"$W/$label.err" || { echo "FAUSTFAIL" > "$W/$label.ns"; continue; }
+    "$FAUST" -lang $lang $FOPT -t 0 $opts "$@" -a bench_arch.cpp -pn "$name" "$DSP" -o "$W/$label.cpp" 2>"$W/$label.err" || { echo "FAUSTFAIL" > "$W/$label.ns"; continue; }
     $CXX $BENCHFLAGS -std=c++17 -DFAUSTFLOAT=$PREC -I "$ARCH" "$W/$label.cpp" -o "$W/$label" 2>"$W/$label.cxx" || echo "CXXFAIL" > "$W/$label.ns"
   done; }
 i=0; for name in $NAMES; do i=$((i+1)); ( build "$name" "$@" ) & if [ $((i % JOBS)) -eq 0 ]; then wait; fi; done; wait
