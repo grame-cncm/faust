@@ -51,6 +51,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <mutex>
 
 #ifdef __APPLE__
 #include <Carbon/Carbon.h>
@@ -160,6 +161,19 @@ using namespace std;
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
+
+#if defined(MIDICTRL) || defined(OSCCTRL)
+namespace {
+
+// GUI keeps a registry shared by every instance of this external, whereas each
+// object only owns a per-instance mutex. This lock serializes mutation of that
+// registry (MidiUI and OSCUI creation and destruction) with a global refresh.
+std::recursive_mutex gGUIRegistryMutex;
+using RecursiveLock = std::lock_guard<std::recursive_mutex>;
+using TryRecursiveLock = std::unique_lock<std::recursive_mutex>;
+
+}
+#endif
 
 static t_class* faust_class;
 
@@ -460,7 +474,12 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 #ifdef MIDICTRL
     x->m_midi_outlet = outlet_new((t_pxobject*)x, NULL);
     x->m_midiHandler = new max_midi(x->m_midi_outlet);
-    x->m_midiUI = new MidiUI(x->m_midiHandler);
+    {
+        // MidiUI registers itself in GUI::fGuiList, which another instance of
+        // this external may be walking from its audio callback.
+        RecursiveLock gui_lock(gGUIRegistryMutex);
+        x->m_midiUI = new MidiUI(x->m_midiHandler);
+    }
 #endif
     
     faust_allocate(x, nvoices);
@@ -518,6 +537,10 @@ void faust_osc(t_faust* x, t_symbol* s, short ac, t_atom* av)
             return;
         }
         if (systhread_mutex_lock(x->m_mutex) == MAX_ERR_NONE) {
+            
+            // Both the destruction and the construction below mutate the
+            // process-wide GUI registry, which x->m_mutex does not cover.
+            RecursiveLock gui_lock(gGUIRegistryMutex);
             
             delete x->m_oscInterface;
             
@@ -692,6 +715,10 @@ long faust_multichanneloutputs(t_faust* x, long outletindex)
 /*--------------------------------------------------------------------------*/
 void faust_free(t_faust* x)
 {
+#if defined(MIDICTRL) || defined(OSCCTRL)
+    // Keep the GUI registry stable while this instance's entries are removed.
+    RecursiveLock gui_lock(gGUIRegistryMutex);
+#endif
     dsp_free((t_pxobject*)x);
     delete x->m_dsp;        x->m_dsp = nullptr;
     delete x->m_dspUI;      x->m_dspUI = nullptr;
@@ -737,7 +764,12 @@ void faust_perform64(t_faust* x, t_object* dsp64, double** ins, long numins, dou
             faust_dump_outputs(x);
         }
     #if defined(MIDICTRL) || defined(OSCCTRL)
-        GUI::updateAllGuis();
+        // Do not ever block the audio callback. A concurrent UI reconfiguration
+        // in another instance simply defers this refresh to a later block.
+        TryRecursiveLock gui_lock(gGUIRegistryMutex, std::try_to_lock);
+        if (gui_lock.owns_lock()) {
+            GUI::updateAllGuis();
+        }
     #endif
         systhread_mutex_unlock(x->m_mutex);
     } else {
