@@ -348,6 +348,7 @@ struct global {
                            // the d<N freedom then cuts their feedback cycles (proof carried by
                            // the interval system). Changes the sound of sub-K settings: opt-in.
     int  gLSCl;            // -ls-cl option: per-loop per-chunk overhead in the fusion cost
+    int  gLSLatency;       // -ls-latency option: frames the core overlaps in a register-resident loop (0: the fusion cost prices one isolated iteration)
                            // oracle (default 20 cycles)
     int  gLSSpillW;        // -ls-spill option: cycles charged per register-cycle above R in the
                            // oracle (the spill proxy, default 4)
