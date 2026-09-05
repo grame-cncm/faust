@@ -484,6 +484,10 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     string bundle_path_str = SoundUI::getBinaryPathFrom(meta3.fName);
     if (bundle_path_str == "") {
         post("Bundle_path '%s' cannot be found!", meta3.fName.c_str());
+    } else {
+        // faust2max6 puts the soundfiles there: a bundle whose root holds
+        // unsealed contents cannot be code signed
+        bundle_path_str += "/Contents/Resources";
     }
     x->m_soundInterface = new SoundUI(bundle_path_str, -1, nullptr, sizeof(FAUSTFLOAT) == 8);
 #endif

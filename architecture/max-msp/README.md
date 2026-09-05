@@ -86,7 +86,7 @@ If you plan to use **faust2max6** on your own machine, you will have to:
 
 ## Misc
 
-- the original DSP file as well as the compiled self-contained C++ file are kept in the compiled `.mxo` external, to be accessed using the *Show Package Contents* option. 
+- the original DSP file as well as the compiled self-contained C++ file are kept in the compiled `.mxo` external, in `Contents/Resources`, to be accessed using the *Show Package Contents* option. Soundfiles added with `-soundfile` are copied there too, so that the external can be code signed.
 
 # faust2gen
 

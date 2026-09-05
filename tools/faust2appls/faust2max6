@@ -210,8 +210,10 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir
-    TDR=$(mktemp -d faust.XXX)
+    # creates a temporary dir, outside of the working directory, and make sure
+    # it is removed even when a step below exits early
+    TDR=$(mktemp -d "${TMPDIR:-/tmp}/faust.XXXXXX")
+    trap 'rm -rf "$TDR"; rm -f "$p.json"' EXIT
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
@@ -248,25 +250,27 @@ for p in $FILES; do
         install -d "${f%.dsp}$EXT/Contents/MacOS"
         # universal binaries produced on M1
         if [[ $(uname -p) = arm  || "$UNIVERSAL" = "1" ]]; then
-            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64"
-            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
+            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64"
+            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
             $LIPO -create "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64" -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~" || exit
+            # the per-architecture slices are merged now, and codesign would
+            # treat the leftovers as unsigned subcomponents
+            rm -f "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
         else
         # native target
-           $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+           $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
         fi
-        if which codesign > /dev/null; then
-            codesign --sign - --deep --force "${f%.dsp}$EXT"
-        fi
-
        ) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
-    # Keep .dsp, self-contained expanded .dsp and self-contained .cpp files in the plugin
-    cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT"
-    cp "$TMP/${f%.dsp}-exp.dsp" "$TMP/${f%.dsp}$EXT"
-    cp "$SRCDIR/$f" "$TMP/${f%.dsp}$EXT"
+    # Keep .dsp, self-contained expanded .dsp and self-contained .cpp files in the
+    # plugin. They go in Contents/Resources: codesign refuses to seal a bundle
+    # that has unsealed contents in its root.
+    install -d "$TMP/${f%.dsp}$EXT/Contents/Resources"
+    cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT/Contents/Resources"
+    cp "$TMP/${f%.dsp}-exp.dsp" "$TMP/${f%.dsp}$EXT/Contents/Resources"
+    cp "$SRCDIR/$f" "$TMP/${f%.dsp}$EXT/Contents/Resources"
  
     # Create Info.plist
     createInfoPList "${f%.dsp}~" "$TMP/${f%.dsp}$EXT/Contents/Info.plist"
@@ -292,7 +296,7 @@ for p in $FILES; do
                     echo "Warning: soundfile with absolute path is not copied !"
                 else
                     #create destination path and possibly create directory
-                    sfpath="$TMP/${f%.dsp}$EXT/$(dirname $snd)/"
+                    sfpath="$TMP/${f%.dsp}$EXT/Contents/Resources/$(dirname $snd)/"
                     if ! [ -d $sfpath ]; then
                         echo "Create $sfpath"
                         mkdir -p $sfpath
@@ -308,8 +312,17 @@ for p in $FILES; do
     fi
 
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
+
+    # Sign last: the file copies and createInfoPList above add content to the
+    # bundle, which would break a seal made right after the link step
+    if which codesign > /dev/null; then
+        # copied files carry extended attributes that codesign rejects
+        xattr -cr "$SRCDIR/${f%.dsp}$EXT"
+        codesign --sign - --force "$SRCDIR/${f%.dsp}$EXT"
+    fi
+
     rm -rf "$TDR"
-    rm -f $p.json
+    rm -f "$p.json"
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
