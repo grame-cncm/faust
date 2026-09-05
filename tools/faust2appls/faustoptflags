@@ -18,15 +18,15 @@ if [ "$(uname -m)" = armv6l ]; then        # for Raspberry PI
 elif [ "$(uname -s)" = Darwin ]; then      # for macOS
     if [[ $(sysctl -n machdep.cpu.brand_string) =~ "Apple" ]]; then
         # Silicon MX
-        MYGCCFLAGS="-std=c++14 -Ofast"
+        MYGCCFLAGS="-std=c++14 -O3 -ffast-math"
     else
         # Intel
-        MYGCCFLAGS="-std=c++14 -Ofast -march=native"
+        MYGCCFLAGS="-std=c++14 -O3 -ffast-math -march=native"
     fi
-    MYGCCFLAGSGENERIC="-std=c++14 -Ofast"
+    MYGCCFLAGSGENERIC="-std=c++14 -O3 -ffast-math"
 else                                        # for Linux (Intel)
-    MYGCCFLAGS="-std=c++14 -Ofast -march=native"
-    MYGCCFLAGSGENERIC="-std=c++14 -Ofast"
+    MYGCCFLAGS="-std=c++14 -O3 -ffast-math -march=native"
+    MYGCCFLAGSGENERIC="-std=c++14 -O3 -ffast-math"
 fi
 
 # For Linux (intel) with icc
