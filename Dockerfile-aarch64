@@ -21,7 +21,10 @@ RUN chmod u+x $LLVM_CONFIG
 
 WORKDIR /faust/build
 RUN cmake -C ./backends/all.cmake . -Bbuild -DCMAKE_PREFIX_PATH="/usr/local/ncurses/6_4/lib/pkgconfig" -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=ON -DLLVM_CONFIG=$LLVM_CONFIG
-RUN cmake --build build --config Release
+# The ARM64 image is built through QEMU on a hosted x86_64 runner.  A small
+# amount of parallelism keeps this build well below GitHub Actions' 6-hour
+# job limit without exhausting the runner's memory.
+RUN cmake --build build --config Release --parallel 2
 
 WORKDIR /faust/build/lib
 RUN rm -f libfaust.so libfaust.so.2
