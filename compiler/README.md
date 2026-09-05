@@ -1,4 +1,4 @@
-% man(1) Version 2.87.11 (30-August-2026) | Faust man page
+% man(1) Version 2.88.0 (05-September-2026) | Faust man page
 
 NAME
 ====
@@ -127,6 +127,8 @@ Code generation options:
   **-mindelay** \<n> **--min-delay** \<n>           (ocpp, experimental) semantic floor for large variable delays: emits max(d, n) when certified dmin \< n and dmax >= 32*n; with n >= vector size, long feedback cycles split legally.
 
   **-rp**         **--ring-preload**              (ocpp, experimental) ring reads leave as a burst at the head of the loop body, a register move stays at the original slot.
+
+  **-sig**        **--signature**                 (ocpp) print the program's static signature on one line (size, recurrence bound, selects, compute/memory nodes, streams, shapes) before emission -- the material of the option election.
 
   **-ss** \<n>     **--scheduling-strategy** \<n>   (ocpp, experimental) instruction order of the loop body: 0 depth-first (default), 8 aligned, 9 bank-compositional, 11/12 compositional deep/wide spine.
 
