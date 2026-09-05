@@ -3728,8 +3728,20 @@ class LoopSplitEmitter {
         int  cycles = 0;
         long overR  = 0;
         int  peak   = 0;
-        modelSchedule(sops, 0, (int)sops.size(), gGlobal->gLSRegisters, gGlobal->gLSWidth,
-                      &cycles, &overR, &peak);
+        // under the latency term, the carried states of the member set are
+        // register-resident for the whole iteration (they are read at the
+        // top and written at the bottom), so the scheduler works against
+        // the budget they leave : without this, seven 9-deep cascades
+        // (126 states) were priced as fitting 32 registers
+        int carried = 0;
+        if (gGlobal->gLSLatency > 0) {
+            for (const auto& kv : carriedOps) {
+                carried += (int)kv.second.size();
+            }
+        }
+        modelSchedule(sops, 0, (int)sops.size(), std::max(1, gGlobal->gLSRegisters - carried),
+                      gGlobal->gLSWidth, &cycles, &overR, &peak);
+        peak += carried;
         if (hasCallOut) {
             *hasCallOut = false;
             for (const LSOp& o : sops) {
@@ -3745,10 +3757,70 @@ class LoopSplitEmitter {
         if (peakOut) {
             *peakOut = peak;
         }
+        // The LATENCY term (-ls-latency k). One isolated iteration is bounded
+        // by its critical path, and a loop whose body is a dependent chain
+        // (a filter cascade : each stage waits for the previous one) fills
+        // its slots poorly -- but the core overlaps consecutive frames as
+        // long as the loop's states stay in registers and its body fits
+        // the reorder window, so its steady state is the largest of the
+        // resource bound, the memory bound, the loop-carried recurrence
+        // bound and the critical path divided by the frames in flight.
+        // Measured on a 9-deep cascade alone in its loop : 19 cycles per
+        // frame against a 56-cycle critical path, 4 frames overlapped ;
+        // the same loop serialized across frames runs 4 times slower. The
+        // isolated-iteration price made a chain look 3 times dearer than
+        // it is and handed the matrices to stage-major tiles, which pay
+        // for their intra-frame overlap in buffers.
+        long iter = cycles;
+        if (gGlobal->gLSLatency > 0) {
+            long slots = 0, memops = 0;
+            for (const LSOp& o : sops) {
+                if (o.shape == 12) {
+                    memops++;  // a store, one memory port
+                } else {
+                    slots += o.weight;  // an op or a buffer load : an issue slot, as the model prices it
+                }
+            }
+            const int  U   = std::max(1, gGlobal->gLSWidth);
+            const long alu = (slots + U - 1) / U;
+            const long mem = (memops + 2) / 3;  // three memory ports, the eval machine's M
+            // recurrence bound : the longest path (unit latencies, the
+            // model's) from a member's carried history to its own root
+            std::vector<int> depth(sops.size(), -1);
+            std::set<int>    carried;
+            for (const auto& kv : carriedOps) {
+                for (int o : kv.second) {
+                    carried.insert(o);
+                }
+            }
+            std::function<int(int)> reach = [&](int o) -> int {
+                if (depth[o] >= 0) {
+                    return depth[o] == INT_MAX ? -1 : depth[o];
+                }
+                depth[o] = INT_MAX;  // visiting : a cycle never reaches
+                int best = carried.count(o) ? 0 : -1;
+                for (int d : sops[o].deps) {
+                    int r = reach(d);
+                    if (r >= 0) {
+                        best = std::max(best, r + 1);
+                    }
+                }
+                depth[o] = (best >= 0) ? best : INT_MAX;
+                return best;
+            };
+            long rec = 0;
+            for (const auto& kv : rootOf) {
+                if (kv.second >= 0 && carriedOps.count(kv.first)) {
+                    rec = std::max(rec, (long)std::max(0, reach(kv.second)) + 1);
+                }
+            }
+            const long overlap = (overR == 0) ? gGlobal->gLSLatency : 1;
+            iter = std::max({alu, mem, rec, (long)((cycles + overlap - 1) / overlap)});
+        }
         if (sopsOut) {
             *sopsOut = std::move(sops);
         }
-        return (long)gGlobal->gVecSize * (cycles + SPILLW * overR) + CL;
+        return (long)gGlobal->gVecSize * (iter + SPILLW * overR) + CL;
     }
 
     /**

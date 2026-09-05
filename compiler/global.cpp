@@ -478,6 +478,7 @@ void global::reset()
     gLSFuseOps      = 1024;
     gMinDelay       = 0;
     gLSCl           = 20;
+    gLSLatency      = 0;
     gLSSpillW       = 4;
     gLSLoadW        = 1;
 
@@ -880,7 +881,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         dst << "-ls -ls-sched " << schedNames[gLSSched] << " -ls-R " << gLSRegisters
             << " -ls-U " << gLSWidth << " ";
         if (gLSFuse) {
-            dst << "-ls-fuse -ls-fuse-ops " << gLSFuseOps << " -ls-cl " << gLSCl
+            dst << "-ls-fuse -ls-fuse-ops " << gLSFuseOps << (gLSLatency > 0 ? " -ls-latency " + std::to_string(gLSLatency) : std::string()) << " -ls-cl " << gLSCl
                 << " -ls-spill " << gLSSpillW << " -ls-load " << gLSLoadW << " ";
         }
     }
@@ -1267,6 +1268,11 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
         i += 1;
     } else if (isCmd(arg, "-ls-fuse-ops", "--loop-split-fuse-ops")) {
         state.gLSFuseOps = std::atoi(value);
+        i += 2;
+    } else if (isCmd(arg, "-ls-latency", "--loop-split-latency")) {
+        state.gLSLatency = std::atoi(value);
+        state.gLSFuse    = true;
+        state.gLoopSplit = true;
         i += 2;
     } else if (isCmd(arg, "-ls-sched", "--loop-split-scheduling")) {
         if (strcmp(value, "df") == 0) {
@@ -2614,6 +2620,7 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-ls-fuse-ops <n> --loop-split-fuse-ops <n> op-count budget of a fused block "
+         << "-ls-latency <k> --loop-split-latency <k> (ocpp, experimental) the fusion cost prices a loop at its steady state : max(resource, memory, recurrence bound, critical path / k), k the frames the core overlaps while the loop stays in registers (0 : one isolated iteration, the default).\n"
             "(default 1024, compile-time guard; the cost oracle decides, implies -ls-fuse)."
          << endl;
     sstr << tab
