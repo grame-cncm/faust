@@ -35,8 +35,6 @@ You can use 'sudo make install' to install them.
 
 * `faust2max6 <file.dsp>` : create a Max/MSP 6 plugin (64 bits samples) for each input file and a wrapping patch
 
-* `faust2msp <file.dsp>` : create a Max/MSP 4 or 5 plugin (32 bits samples) for each input file and a wrapping patch
-
 * `faust2paqt <file.dsp>` : create a PortAudio/QT application for each input file
 
 * `faust2netjackqt <file.dsp>.` : create a NetJack/QT application for each input file

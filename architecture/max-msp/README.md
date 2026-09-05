@@ -1,6 +1,6 @@
-# faust2max6/faust2msp
+# faust2max6
 
-The **faust2max6/faust2msp** tools transform a Faust DSP program into a compiled Max/MSP external, and a ready-to-use patch to load and use it, containing the control GUI. Polyphonic and MIDI controllable instruments can be created. Note that **faust2msp** is the old version compiling 32 bits external for Max5, and **faust2max6** compiles 64 bits for Max6 and newer versions, and should be preferably used. 
+The **faust2max6** tool transforms a Faust DSP program into a compiled Max/MSP external, and a ready-to-use patch to load and use it, containing the control GUI. Polyphonic and MIDI controllable instruments can be created. It compiles 64 bits externals for Max6 and newer versions.
 
 ## How to use
 
@@ -76,15 +76,13 @@ Here are the available options:
   - `-soundfile-dynamic` : when compiling DSP using 'soundfile' primitive, to add the needed resources (soundfiles) in the produced .mxo file, and use the installed libsndfile library (so possibly using dynamic link)
   - `-help or -h` : shows the different options 
  
-The *faust2msp* tools has to be used to create old Max5 compatible externals, the **faust2max6** tools has to be used starting with Max6. 
-
 ## Configuration
 
-If you plan to use **faust2max6/faust2msp** on your own machine, you will have to:
+If you plan to use **faust2max6** on your own machine, you will have to:
 
 - install [Max/MSP SDK](https://cycling74.com/downloads/sdk)
 - edit the `faust/tools/faust2appls/faustpath` script to properly setup the $MAXSDK variable, then re-install the scripts again using `sudo make install`
-- alternatively you can locally change the $MAXSDK variable in a terminal using `export MAXSDK=/your/alternate/path`, then use **faust2max6/faust2msp** in this terminal.
+- alternatively you can locally change the $MAXSDK variable in a terminal using `export MAXSDK=/your/alternate/path`, then use **faust2max6** in this terminal.
 
 ## Misc
 

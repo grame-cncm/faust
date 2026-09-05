@@ -141,7 +141,6 @@ The most commonly used `faust2` scripts are:
     faust2graph             : svg graph
     faust2puredata          : PureData external
     faust2api               : API generator
-    faust2msp               : MaxMSP 5 external and patch
     faust2max6              : MaxMSP 6 (and later) external and patch
     faust2ios               : iOS app
     faust2ros               : ROS app

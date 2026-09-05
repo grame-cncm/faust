@@ -111,7 +111,6 @@ function testfaust {
 	testscript faust2bela
 	testscript faust2dssi
 	testscript faust2jackinternal
-	testscript faust2msp
 	testscript faust2puredata
 	testscript faust2svg
 	testscript faust2alsa
@@ -140,7 +139,6 @@ function testfaust {
 	testscript faust2lv2 -gui -qt4
 	testscript faust2owl
 	testscript faust2rpialsaconsole
-	testscript faust2w32msp
 	testscript faust2asmjs
 	testscript faust2graph
 	testscript faust2lv2synth
