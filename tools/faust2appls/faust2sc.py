@@ -92,14 +92,14 @@ def faustoptflags():
 
         if machine == 'arm64':
             # Silicon MX
-            envDict["MYGCCFLAGS"] = "-std=c++11 -Ofast"
+            envDict["MYGCCFLAGS"] = "-std=c++11 -O3 -ffast-math"
         else:
-            envDict["MYGCCFLAGS"] = "-std=c++11 -Ofast -march=native"
+            envDict["MYGCCFLAGS"] = "-std=c++11 -O3 -ffast-math -march=native"
 
-        envDict["MYGCCFLAGSGENERIC"]="-std=c++11 -Ofast"
+        envDict["MYGCCFLAGSGENERIC"]="-std=c++11 -O3 -ffast-math"
     else:
-        envDict["MYGCCFLAGS"] = "-std=c++11 -Ofast -march=native"
-        envDict["MYGCCFLAGSGENERIC"] = "-std=c++11 -Ofast"
+        envDict["MYGCCFLAGS"] = "-std=c++11 -O3 -ffast-math -march=native"
+        envDict["MYGCCFLAGSGENERIC"] = "-std=c++11 -O3 -ffast-math"
 
     envDict["MYICCFLAGS"]="-std=c++11 -O3 -xHost -ftz -fno-alias -fp-model fast=2"
 

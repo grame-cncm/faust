@@ -137,8 +137,8 @@ layout-ui: layout-ui.cpp
 	$(CXX) $(COMPILEOPT) $(ARCHS) layout-ui.cpp -I $(INC) $(LIB_FLAGS) $(LIBS) $(LLVM) -o $@
 
 fastmath: $(FASTMATH)
-	clang++ -Ofast -emit-llvm -S $(FASTMATH) -o fastmath.ll
-	clang++ -Ofast -emit-llvm -c $(FASTMATH) -o fastmath.bc
+	clang++ -O3 -ffast-math -emit-llvm -S $(FASTMATH) -o fastmath.ll
+	clang++ -O3 -ffast-math -emit-llvm -c $(FASTMATH) -o fastmath.bc
 
 emcc: $(FASTMATH)
 	emcc -O3 -s WASM=1 -s SIDE_MODULE=1 -s LEGALIZE_JS_FFI=0 $(FASTMATH) -o fastmath.wasm

@@ -177,7 +177,7 @@ Here are the available options:
  - `-bs <frames> to set the buffer-size in frames`
  - `-source to keep the intermediate source folder and exit`
  - `-double to compile DSP in double and set FAUSTFLOAT to double`
- - `-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-Ofast for now' but may change in the future)`
+ - `-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-O3 -ffast-math for now' but may change in the future)`
  - `-us <factor> to upsample the DSP by a factor (can be 2, 3, 4, 8, 16, 32)`
  - `-ds <factor> to downsample the DSP by a factor (can be 2, 3, 4, 8, 16, 32)`
  - `-filter <filter> for upsampling or downsampling [0..4], 0 means no filtering`

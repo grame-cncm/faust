@@ -176,7 +176,7 @@ for p in $FILES; do
 
             # compiling
             if [ $SOURCES = false ]; then
-                $CXX $CXXFLAGS -Ofast -std=c++17 -march=$arch_cpu -I `faust -includedir` $SOUNDFILEDEFS $SOUNDFILEINCS -c $dspName$cpu".cpp"
+                $CXX $CXXFLAGS -O3 -ffast-math -std=c++17 -march=$arch_cpu -I `faust -includedir` $SOUNDFILEDEFS $SOUNDFILEINCS -c $dspName$cpu".cpp"
             fi
         fi
     done
@@ -220,9 +220,9 @@ for p in $FILES; do
         faust $OPTIONS -inj $dspName"multi.h" -a $FAUSTARCH/minimal-bench.cpp -cn $dspName"multi" $p -o $dspName"multi.cpp"
 
         if [ $MULTI = true ]; then
-            $CXX $CXXFLAGS -Ofast -std=c++17 $dspName"multi.cpp" -dead_strip $SOUNDFILEDEFS $SOUNDFILELIBS -I `llvm-config --link-static --includedir --ldflags --libs all --system-libs` $OPT_LD $dspName*".o" -o $dspName"multi"
+            $CXX $CXXFLAGS -O3 -ffast-math -std=c++17 $dspName"multi.cpp" -dead_strip $SOUNDFILEDEFS $SOUNDFILELIBS -I `llvm-config --link-static --includedir --ldflags --libs all --system-libs` $OPT_LD $dspName*".o" -o $dspName"multi"
         elif [ $MULTIFUN = true ]; then
-            $CXX $CXXFLAGS -Ofast -std=c++17 $dspName"multi.cpp" $dspName"generic.cpp" $SOUNDFILEDEFS $SOUNDFILELIBS -o $dspName"multi"
+            $CXX $CXXFLAGS -O3 -ffast-math -std=c++17 $dspName"multi.cpp" $dspName"generic.cpp" $SOUNDFILEDEFS $SOUNDFILELIBS -o $dspName"multi"
         fi
          
         echo "Run ./"$dspName"multi"" to test the program"

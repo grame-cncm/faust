@@ -63,13 +63,13 @@ STYLE=""
 
 PROCARCH="-fPIC"
 dllext=".so"
-CXXFLAGS="-Ofast -std=c++11 -march=native"
+CXXFLAGS="-O3 -ffast-math -std=c++11 -march=native"
 
 # Darwin-specific
 #ARCH="-arch i386 -arch x86_64"
 if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
-    #CXXFLAGS="-Ofast -std=c++11 -march=native $ARCH -I/opt/local/include"
-    CXXFLAGS="-Ofast -std=c++11 -mmacosx-version-min=10.9 $ARCH -I/opt/local/include"
+    #CXXFLAGS="-O3 -ffast-math -std=c++11 -march=native $ARCH -I/opt/local/include"
+    CXXFLAGS="-O3 -ffast-math -std=c++11 -mmacosx-version-min=10.9 $ARCH -I/opt/local/include"
     dllext=".vst"
 fi
 

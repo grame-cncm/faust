@@ -53,7 +53,7 @@ do
         echo "Use '-bs <frames>' to set the buffer-size in frames"
         echo "Use '-source' to keep the intermediate source folder and exit"
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"
-        echo "Use '-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-Ofast for now' but may change in the future)"
+        echo "Use '-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-O3 -ffast-math for now' but may change in the future)"
         echo "Use '-us <factor>' to upsample the DSP by a factor"
         echo "Use '-ds <factor>' to downsample the DSP by a factor"
         echo "Use '-filter <filter>' for upsampling or downsampling [0..4]"
@@ -115,7 +115,7 @@ done
 if [ "$CXXFLAGS" = "" ]; then
     if $GENERIC; then
         if [ $OPT = -1 ]; then
-            CXXFLAGS="-Ofast"
+            CXXFLAGS="-O3 -ffast-math"
         else
             CXXFLAGS="-O$OPT"
         fi
@@ -123,9 +123,9 @@ if [ "$CXXFLAGS" = "" ]; then
         if [ $OPT = -1 ]; then
             # -march=native does not work yet on M1
             if [ $(uname) == Darwin ] && [ $(uname -p) == arm ]; then
-                CXXFLAGS="-Ofast"
+                CXXFLAGS="-O3 -ffast-math"
             else 
-                CXXFLAGS="-Ofast -march=native"
+                CXXFLAGS="-O3 -ffast-math -march=native"
             fi
         else
             # -march=native does not work yet on M1
