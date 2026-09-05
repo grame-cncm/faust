@@ -196,6 +196,8 @@ typedef struct faust
     dsp* m_dsp;
 #ifdef MC_VERSION
     dsp* m_mc_dsp;
+    long m_mc_inputs;      // hardware inputs, kept to rebuild m_mc_dsp
+    long m_mc_vector_size; // max vector size, kept to rebuild m_mc_dsp
 #endif
     void* m_control_outlet;
     char* m_json;
@@ -218,6 +220,23 @@ typedef struct faust
 
 void faust_create_jsui(t_faust* x);
 void faust_make_json(t_faust* x);
+
+#ifdef MC_VERSION
+/*--------------------------------------------------------------------------*/
+// The multichannel adapter borrows x->m_dsp, so it has to be rebuilt whenever
+// that DSP is replaced. Does nothing until faust_dsp64 has given the actual
+// channel count and vector size.
+void faust_build_mc_dsp(t_faust* x)
+{
+    delete x->m_mc_dsp;
+    x->m_mc_dsp = nullptr;
+    if (x->m_dsp && x->m_mc_vector_size > 0) {
+        // x->m_mc_dsp will not delete the x->m_dsp object
+        x->m_mc_dsp = new dsp_adapter(x->m_dsp, x->m_mc_inputs, x->m_Outputs,
+                                      x->m_mc_vector_size, false);
+    }
+}
+#endif
 
 /*--------------------------------------------------------------------------*/
 void faust_allocate(t_faust* x, int nvoices)
@@ -288,6 +307,11 @@ void faust_allocate(t_faust* x, int nvoices)
     
     // Load old controller state
     x->m_dsp->buildUserInterface(x->m_savedUI);
+    
+#ifdef MC_VERSION
+    // x->m_dsp has just been replaced, the adapter still points at the old one
+    faust_build_mc_dsp(x);
+#endif
 }
 
 /*--------------------------------------------------------------------------*/
@@ -466,6 +490,8 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_dsp = NULL;
 #ifdef MC_VERSION
     x->m_mc_dsp = NULL;
+    x->m_mc_inputs = 0;
+    x->m_mc_vector_size = 0;
 #endif
     x->m_json = NULL;
     x->m_mute = false;
@@ -720,6 +746,10 @@ void faust_free(t_faust* x)
     RecursiveLock gui_lock(gGUIRegistryMutex);
 #endif
     dsp_free((t_pxobject*)x);
+#ifdef MC_VERSION
+    // The adapter borrows x->m_dsp, so release it first
+    delete x->m_mc_dsp;     x->m_mc_dsp = nullptr;
+#endif
     delete x->m_dsp;        x->m_dsp = nullptr;
     delete x->m_dspUI;      x->m_dspUI = nullptr;
     delete x->m_savedUI;    x->m_savedUI = nullptr;
@@ -786,9 +816,9 @@ void faust_dsp64(t_faust* x, t_object* dsp64, short* count, double samplerate, l
 #ifdef MC_VERSION
     // We need to know the real number of inputs to adapt faust_perform64
     intptr_t inputs = (intptr_t)object_method(dsp64, gensym("getnuminputchannels"), x, 0);
-    delete x->m_mc_dsp;
-    // x->m_mc_dsp will not delete the x->m_dsp object
-    x->m_mc_dsp = new dsp_adapter(x->m_dsp, inputs, x->m_Outputs, maxvectorsize, false);
+    x->m_mc_inputs = long(inputs);
+    x->m_mc_vector_size = maxvectorsize;
+    faust_build_mc_dsp(x);
 #endif
     object_method(dsp64, gensym("dsp_add64"), x, faust_perform64, 0, NULL);
 }
