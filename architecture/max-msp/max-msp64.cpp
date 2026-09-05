@@ -242,6 +242,15 @@ void faust_build_mc_dsp(t_faust* x)
 void faust_allocate(t_faust* x, int nvoices)
 {
     // Delete old
+#ifdef OSCCTRL
+    {
+        // The OSCUI points at the zones of the DSP deleted below, and
+        // unregisters itself from the shared GUI registry
+        RecursiveLock gui_lock(gGUIRegistryMutex);
+        delete x->m_oscInterface;
+        x->m_oscInterface = nullptr;
+    }
+#endif
     delete x->m_dsp;
     delete x->m_dspUI;
     if (x->m_savedUI) {
@@ -300,10 +309,6 @@ void faust_allocate(t_faust* x, int nvoices)
     
     // Send JSON to JS script
     faust_create_jsui(x);
-    
-#ifdef OSCCTRL
-    x->m_oscInterface = NULL;
-#endif
     
     // Load old controller state
     x->m_dsp->buildUserInterface(x->m_savedUI);
@@ -492,6 +497,9 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_mc_dsp = NULL;
     x->m_mc_inputs = 0;
     x->m_mc_vector_size = 0;
+#endif
+#ifdef OSCCTRL
+    x->m_oscInterface = NULL;
 #endif
     x->m_json = NULL;
     x->m_mute = false;
