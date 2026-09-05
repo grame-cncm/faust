@@ -70,13 +70,6 @@ class xtended : public virtual Garbageable {
 
     virtual double compute(const std::vector<Node>& args) { return -1.; };
 
-    // Auto-differentiation face (upstream -diff feature) : signal-level,
-    // default nullptr until a primitive overrides it
-    virtual Tree diff(const std::vector<Tree>& args)
-    {
-        return nullptr;
-    }
-
     virtual bool isSpecialInfix()
     {
         return false;

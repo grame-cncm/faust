@@ -169,15 +169,4 @@ class MaxPrim : public xtendedCodegen {
         }
     }
 
-
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        /*                /
-         *                | f', f > g
-         * (max(f, g))' = {
-         *                | g', otherwise
-         *                \
-         */
-        return sigSelect2(sigGT(args[0], args[1]), args[2], args[3]);
-    }
 };

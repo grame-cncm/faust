@@ -77,11 +77,4 @@ class TanPrim : public xtendedCodegen {
     }
 
     double compute(const std::vector<Node>& args) override { return tan(args[0].getDouble()); }
-
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        // (tan(x))' = sec^2(x) = 1 / cos^2(x)
-        // TODO: handle division by zero
-        return sigDiv(sigReal(1.0), sigPow(sigCos(args[0]), sigReal(2.0)));
-    }
 };

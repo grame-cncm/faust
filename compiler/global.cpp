@@ -402,7 +402,6 @@ void global::reset()
     gDetailsSwitch    = false;
     gDrawSignals      = false;
     gOccurrences      = nullptr;
-    gAutoDifferentiate = false;
     gDrawSuperNodes   = false;
     gSchedulingStrategy = 0;
     gDrawRetiming     = false;
@@ -770,9 +769,6 @@ string global::printFloat()
 
 void global::printCompilationOptions(stringstream& dst, bool backend)
 {
-    if (gAutoDifferentiate) {
-        dst << "-diff ";
-    }
     if (gArchFile != "") {
         dst << "-a " << gArchFile << " ";
     }
@@ -1868,10 +1864,6 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-sng", "--super-node-graph")) {
             gDrawSuperNodes = true;
-            i += 1;
-
-        } else if (isCmd(argv[i], "-diff", "--auto-differentiate")) {
-            gAutoDifferentiate = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-lm", "--local-machine") ||

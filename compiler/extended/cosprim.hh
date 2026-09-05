@@ -87,10 +87,4 @@ class CosPrim : public xtendedCodegen {
     }
 
     double compute(const std::vector<Node>& args) override { return cos(args[0].getDouble()); }
-
-    virtual Tree diff(const std::vector<Tree>& args) override
-    {
-        // cos(x)' = -sin(x)
-        return sigMul(sigReal(-1.0), sigSin(args[0]));
-    }
 };

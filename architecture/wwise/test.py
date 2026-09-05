@@ -47,7 +47,6 @@ class TestFaustExamples:
         "physicalModeling/faust-stk/piano.dsp",     # ok, builds when copying piano.h and instrument.h into the SoundEnginePlugin directory + change #include <piano.h> to "piano.h" in faustdsp.cpp
         "physicalModeling/faust-stk/voiceForm.dsp", # ok, builds when copying phonemes.h into the SoundEnginePlugin directory + change #include <phonemes.h> to "phonemes.h" in faustdsp.cpp
         "physicalModeling/mi-faust/08_TwoMassChain/2massChain.dsp", # ok, builds if remove the - symbol from the declare name statement, i.e. from "2-mass .." to "2_mass.."
-        "autodiff/gain_dc/diff.dsp"                 # ok, builds if remove the + symbol from the declare name statement 
     }
 
     def __init__(self, wwiseroot:Path) -> None:

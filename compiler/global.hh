@@ -705,7 +705,6 @@ struct global {
 
     // Internal state during drawing
     Occur*                      gOccurrences;     // upstream drawing state (occur survives until its wave)
-    bool gAutoDifferentiate;  // upstream -diff feature
     bool                        gFoldingFlag;     // true with complex block-diagrams
     std::stack<Tree>            gPendingExp;      // Expressions that need to be drawn
     std::set<Tree, treeorder>              gDrawnExp;        // Expressions drawn or scheduled so far

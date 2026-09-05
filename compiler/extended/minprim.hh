@@ -169,15 +169,4 @@ class MinPrim : public xtendedCodegen {
         }
     }
 
-
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        /*                /
-         *                | f', f < g
-         * (min(f, g))' = {
-         *                | g', otherwise
-         *                \
-         */
-        return sigSelect2(sigLT(args[0], args[1]), args[2], args[3]);
-    }
 };

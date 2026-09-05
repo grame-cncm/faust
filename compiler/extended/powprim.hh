@@ -224,13 +224,4 @@ class PowPrim : public xtendedCodegen {
             return pow(args[0].getDouble(), args[1].getDouble());
         }
     }
-
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        // (f^g)' = (f^g)(g*ln(f))' = f^{g-1} * g * f' + f^g * g' * ln(f)
-        //                          = f^{g-1}(g * f' + ln(f) * f * g'))
-        return sigMul(
-            sigPow(args[0], sigSub(args[1], sigReal(1.0))),
-            sigAdd(sigMul(args[1], args[2]), sigMul(sigLog(args[0]), sigMul(args[0], args[3]))));
-    }
 };

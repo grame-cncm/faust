@@ -73,10 +73,4 @@ class AtanPrim : public xtendedCodegen {
     }
 
     double compute(const std::vector<Node>& args) override { return atan(args[0].getDouble()); }
-
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        // (atan(x))' = 1 / (x^2 + 1), x real
-        return sigDiv(sigReal(1.0), sigAdd(sigPow(args[0], sigReal(2.0)), sigReal(1.0)));
-    }
 };

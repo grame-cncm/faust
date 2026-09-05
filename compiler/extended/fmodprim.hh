@@ -88,10 +88,4 @@ class FmodPrim : public xtendedCodegen {
     {
         return fmod(args[0].getDouble(), args[1].getDouble());
     }
-
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        // (f % g)' = f' - g' * floor(f / g), sin(pi * f / g) != 0
-        return sigSub(args[2], sigMul(args[3], sigFloor(sigDiv(args[0], args[1]))));
-    }
 };

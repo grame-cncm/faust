@@ -86,11 +86,4 @@ class Log10Prim : public xtendedCodegen {
     }
 
     double compute(const std::vector<Node>& args) override { return log10(args[0].getDouble()); }
-
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        // (log_10(x))' = 1/(x * ln(10))
-        // TODO: handle division by zero
-        return sigDiv(sigReal(1.0), sigMul(args[0], sigLog(sigReal(10.0))));
-    }
 };

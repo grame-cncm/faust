@@ -22,7 +22,7 @@ FAUSTLIBS2 ?= ../../libraries/old
 FAUSTINC  ?= ../../architecture/faust
 
 # Lists of DSPs used by the JSON targets (examples + codegen-tests, minus exclusions)
-DSP_EXAMPLES := $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v "TODO\|old\|faust-stk\|SAM\|autodiff")
+DSP_EXAMPLES := $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v "TODO\|old\|faust-stk\|SAM")
 DSP_REGRESSION := $(shell find $(REGRESSION)/codegen-tests -name "*.dsp" | grep -v BUG)
 
 # Capture current Faust version to segregate outputs

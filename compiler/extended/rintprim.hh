@@ -75,10 +75,4 @@ class RintPrim : public xtendedCodegen {
     }
 
     double compute(const std::vector<Node>& args) override { return rint(args[0].getDouble()); }
-
-    Tree diff(const std::vector<Tree>& args) override
-    {
-        // (rint(x))' = 0, cos(pi * x) != 0
-        return getCertifiedSigType(args[0])->nature() == kInt ? sigInt(0) : sigReal(0.0);
-    }
 };
