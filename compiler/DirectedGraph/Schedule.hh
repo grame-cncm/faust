@@ -205,10 +205,10 @@ inline schedule<N> spschedule(const digraph<N>& G)
  * of how hot the cache is kept by this scheduling. The less the cost
  * is the better it is.
  *
- * @tparam N
- * @param G
- * @param S
- * @return int
+ * @pre S is a VALID schedule of a DAG G : every operand precedes its
+ * consumer. The arithmetic is unsigned : on a cyclic graph, or on an
+ * invalid order, a distance wraps around and the total compares to
+ * nothing (which is why the assertion below is commented out).
  */
 template <typename N>
 inline unsigned int schedulingcost(const digraph<N>& G, const schedule<N>& S)
