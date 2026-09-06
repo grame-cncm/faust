@@ -56,7 +56,14 @@
 
 class CodeLoop;
 
-typedef std::set<CodeLoop*> lclset;
+// The loops of one level are emitted in the order of this set. Ordering the
+// pointers themselves would follow the allocator, which on some systems hands
+// out addresses per CPU : the emitted order would then vary from one run to
+// the next. The rank is the creation order, which follows the traversal.
+struct CodeLoopOrder {
+    bool operator()(const CodeLoop* a, const CodeLoop* b) const;
+};
+typedef std::set<CodeLoop*, CodeLoopOrder> lclset;
 typedef std::vector<lclset> lclgraph;
 
 class CodeLoop : public virtual Garbageable {
@@ -69,6 +76,8 @@ class CodeLoop : public virtual Garbageable {
     int             fSize;           ///< number of iterations of the loop
     int             fOrder;          ///< used during topological sort
     int             fIndex;
+    int             fRank;        // creation order, the key of CodeLoopOrder
+    static int      sNextRank;
 
     BlockInst* fPreInst;
     BlockInst* fComputeInst;
@@ -109,6 +118,7 @@ class CodeLoop : public virtual Garbageable {
           fSize(size),
           fOrder(-1),
           fIndex(-1),
+          fRank(sNextRank++),
           fPreInst(new BlockInst()),
           fComputeInst(new BlockInst()),
           fPostInst(new BlockInst()),
@@ -125,6 +135,7 @@ class CodeLoop : public virtual Garbageable {
           fSize(size),
           fOrder(-1),
           fIndex(-1),
+          fRank(sNextRank++),
           fPreInst(new BlockInst()),
           fComputeInst(new BlockInst()),
           fPostInst(new BlockInst()),
@@ -152,6 +163,7 @@ class CodeLoop : public virtual Garbageable {
     bool isRecursive() { return fIsRecursive; }
 
     int getIndex() { return fIndex; }
+    int getRank() const { return fRank; }
 
     std::set<CodeLoop*>& getForwardLoopDependencies() { return fForwardLoopDependencies; }
     std::set<CodeLoop*>& getBackwardLoopDependencies() { return fBackwardLoopDependencies; }
@@ -189,5 +201,10 @@ class CodeLoop : public virtual Garbageable {
     static void computeUseCount(CodeLoop* l);
     static void groupSeqLoops(CodeLoop* l, std::set<CodeLoop*>& visited);
 };
+
+inline bool CodeLoopOrder::operator()(const CodeLoop* a, const CodeLoop* b) const
+{
+    return a->getRank() < b->getRank();
+}
 
 #endif

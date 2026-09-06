@@ -338,3 +338,5 @@ void CodeLoop::groupSeqLoops(CodeLoop* l, set<CodeLoop*>& visited)
         }
     }
 }
+
+int CodeLoop::sNextRank = 0;
