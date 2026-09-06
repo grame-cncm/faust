@@ -1886,6 +1886,10 @@ class LoopSplitEmitter {
     std::vector<bool>        fIsInt;
     std::vector<bool>        fLocal;  // maxDelay == 0: chunk-local buffer
     std::vector<bool> fRing;      // maxDelay > gMaxCopyDelay: masked ring buffer
+    std::vector<int>  fCapD;      // -ls-regstate : deepest display capture of a member (-1: none)
+    std::vector<bool> fRegState;  // -ls-regstate : read only inside its own block, at
+                                  // constant delays -- no chunk buffer, no store per
+                                  // sample ; its history crosses the chunks in scalars
     std::vector<int>  fRingMask;  // per ring buffer: size - 1 (power of two)
     bool              fHasRing = false;  // at least one ring: emit the fLSIota index
 
@@ -2214,6 +2218,12 @@ class LoopSplitEmitter {
         if (fAliasIx[idx] >= 0) {
             return lastCode(fAliasIx[idx], fAliasD[idx] + d);
         }
+        if (fRegState[idx]) {
+            // no buffer : after its loop, the persistent scalar d+1 holds
+            // the value d samples before the last one (the rotation runs
+            // to maxDelay+1 for these members, see the block emission)
+            return subst("fWr$0d$1", T(idx), T(d + 1));
+        }
         if (fMaxD[idx] == 0) {
             faustassert(d == 0);
             return subst("$0[count-1]", fBufName[idx]);
@@ -2344,6 +2354,9 @@ class LoopSplitEmitter {
             int host = (fAliasIx[idx] >= 0) ? fAliasIx[idx] : idx;
             int dEff = (fAliasIx[idx] >= 0) ? fAliasD[idx] : 0;  // dcode == "0"
             if (dEff == 0 && fSN.blockOf(host) == curScc) {
+                if (fRegState[host]) {
+                    return fRootOf.at(host);  // no buffer slot : the value itself
+                }
                 auto st = fStoreOf.find(host);
                 if (st != fStoreOf.end()) {
                     o.op = newOp(o.code, {st->second}, false, false, fIsInt[idx]);
@@ -4609,6 +4622,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     fIsInt.resize(n);
     fLocal.resize(n);
     fRing.resize(n);
+    fRegState.assign(n, false);
     fRingMask.resize(n);
     // 3a. tap aliasing: a materialized CONSTANT-delay read of another
     // materialized signal owns no storage of its own -- the producer's
@@ -4642,6 +4656,99 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             fAliasIx[i] = fAliasIx[fAliasIx[i]];
         }
     }
+    // -ls-regstate : the DEAD STORES of the split. Every materialized member
+    // was written to its chunk buffer at every sample, even when nothing
+    // outside its own loop ever reads it -- inside the loop its history
+    // already rides in the rotating locals, and the buffer only carried
+    // two values from one chunk to the next. Measured on o99 : 81 stores a
+    // sample, 50 of them read by no other loop, against 46 in the hand
+    // forged tile. A member read only inside its block, at constant delays
+    // within the copy class, keeps no buffer : its history crosses the
+    // chunks in maxDelay persistent scalars, seeded into the rotating
+    // locals at the top of the loop and saved at its end.
+    std::vector<bool> extRead(n, false), varRead(n, false);
+    fCapD.assign(n, -1);
+    if (gGlobal->gLSRegState) {
+        auto resolve = [&](int ix) { return (fAliasIx[ix] >= 0) ? fAliasIx[ix] : ix; };
+        for (int m = 0; m < n; m++) {
+            for (int r : fSN.refs(m)) {
+                int h = resolve(r);
+                if (fSN.blockOf(m) != fSN.blockOf(h)) {
+                    extRead[h] = true;
+                }
+            }
+            if (fAliasIx[m] >= 0 && fSN.blockOf(m) != fSN.blockOf(fAliasIx[m])) {
+                extRead[fAliasIx[m]] = true;
+            }
+            // a read at a delay that is not a literal goes through the buffer
+            std::set<Tree, treeorder>   seen;
+            std::function<void(Tree)> vr = [&](Tree u) {
+                if (!seen.insert(u).second) {
+                    return;
+                }
+                Tree x, y;
+                int  lit;
+                if (isSigDelay(u, x, y) && fSN.indexOf(x) >= 0 && !isSigInt(y, &lit)) {
+                    varRead[resolve(fSN.indexOf(x))] = true;
+                }
+                Tree var, body;
+                if (isRec(u, var, body)) {
+                    if (body) {
+                        vr(body);
+                    }
+                    return;
+                }
+                for (int k = 0; k < u->arity(); k++) {
+                    vr(u->branch(k));
+                }
+            };
+            vr(defOf(mat[m]));
+        }
+        // a display capture reads the value d samples before the last one
+        // of the chunk : the member's rotation must run d+1 deep and be
+        // saved, whatever its loop reads
+        for (Tree p : fC->fDisplayCapturePoints) {
+            Tree x, y;
+            int  ix = fSN.indexOf(p), dd = 0;
+            if (ix < 0 && isSigDelay(p, x, y)) {
+                int  dmin, dmax;
+                bool dvar;
+                delayBounds(y, dmin, dmax, dvar);
+                ix = fSN.indexOf(x);
+                dd = dmin;
+            }
+            if (ix >= 0) {
+                int h = resolve(ix);
+                dd += (fAliasIx[ix] >= 0) ? fAliasD[ix] : 0;
+                fCapD[h] = std::max(fCapD[h], dd);
+            }
+        }
+        // the outputs read through the buffers, wherever they are placed
+        for (Tree l1 = L; isList(l1); l1 = tl(l1)) {
+            std::set<Tree, treeorder>   seen;
+            std::function<void(Tree)> rec = [&](Tree u) {
+                if (!seen.insert(u).second) {
+                    return;
+                }
+                int ix = fSN.indexOf(u);
+                if (ix >= 0) {
+                    extRead[resolve(ix)] = true;
+                    return;
+                }
+                Tree var, body;
+                if (isRec(u, var, body)) {
+                    if (body) {
+                        rec(body);
+                    }
+                    return;
+                }
+                for (int k = 0; k < u->arity(); k++) {
+                    rec(u->branch(k));
+                }
+            };
+            rec(hd(l1));
+        }
+    }
     int vs = gGlobal->gVecSize;
     for (int i = 0; i < n; i++) {
         fMaxD[i]  = fSN.maxDelayOf(mat[i]);
@@ -4668,6 +4775,19 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             continue;
         }
         const char* ctype = fIsInt[i] ? "int" : ifloat();
+        fRegState[i] = gGlobal->gLSRegState && !fRowOp && !fRing[i] &&
+                       fMaxD[i] <= gGlobal->gMaxCopyDelay && !extRead[i] && !varRead[i];
+        if (fRegState[i]) {
+            // no buffer : maxDelay+1 persistent scalars carry the history
+            // across the chunks, the last one serving the display captures
+            // (lastCode) ; a maxDelay-0 member keeps one, its last value
+            fBufName[i] = "<regstate>";  // never emitted: the reads are the rotating locals
+            for (int d = 1; d <= fMaxD[i] + 1; d++) {
+                fClass->addDeclCode(subst("$0 \tfWr$1d$2;", ctype, T(i), T(d)));
+                fClass->addClearCode(subst("fWr$0d$1 = 0;", T(i), T(d)));
+            }
+            continue;
+        }
         std::string base  = fC->getFreshID("Wls");
         if (fLocal[i]) {
             fBufName[i] = base;
@@ -4810,15 +4930,35 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             if (fAliasIx[m] >= 0) {
                 continue;  // aliased tap: no body, no store -- reads redirect
             }
-            fCurWriteStreams.insert(m);
             Tree             d    = defOf(mat[m]);
             Operand          root = walk(d, b, d == mat[m]);
-            fRootOf[m]            = root;
+            if (fRegState[m]) {
+                // no store : the value lives in its op, the rotation reads
+                // it at the end of the sample (an inline leaf becomes an op)
+                if (root.op < 0) {
+                    root.op = newOp(root.code, {}, false, false, fIsInt[m]);
+                    root.code.clear();
+                }
+                fRootOf[m] = root;
+                continue;
+            }
+            fCurWriteStreams.insert(m);
+            fRootOf[m] = root;
             std::vector<int> deps;
             addDep(deps, root);
             int st = newOp(subst("$0 = $1;", storeCode(m), operandCode(root)), deps, true,
                            false, fIsInt[m]);
             fStoreOf[m] = st;
+        }
+        for (int m : fSN.blockMembers(b)) {
+            if (fRegState[m] && fCapD[m] >= 0) {
+                // a captured member rotates one deeper than its capture
+                // reads, so that the saved scalar holds that value after
+                // the loop ; the others rotate exactly as their loop reads
+                // (one live local more per member cost 7% on m99)
+                int& dep = fCurRotDepth[m];
+                dep      = std::max(dep, fCapD[m] + 1);
+            }
         }
         // output adoption is OPT-IN (-ls-adopt) : the campaign that
         // followed its unconditional landing measured x1.26-1.83 fusion
@@ -4954,8 +5094,12 @@ void LoopSplitEmitter::emitLoop(std::ostringstream& out, int lo, int hi)
         // i == 0, i.e. the buffer's carried history at h - d
         for (int d = 1; d <= rot.second; d++) {
             out << "\n\t\t\t" << (fIsInt[rot.first] ? "int" : ifloat()) << " wr" << rot.first
-                << "d" << d << " = " << fBufName[rot.first] << "[" << (fMaxD[rot.first] - d)
-                << "];";
+                << "d" << d << " = ";
+            if (fRegState[rot.first]) {
+                out << "fWr" << rot.first << "d" << d << ";";  // the scalar that crossed the chunks
+            } else {
+                out << fBufName[rot.first] << "[" << (fMaxD[rot.first] - d) << "];";
+            }
         }
     }
     for (const auto& d : fMatDecls) {
@@ -4991,7 +5135,17 @@ void LoopSplitEmitter::emitLoop(std::ostringstream& out, int lo, int hi)
                 << fMaxD[rot.first] << "+i];";
         }
     }
-    out << "\n\t\t\t}\n\t\t\t";
+    out << "\n\t\t\t}";
+    for (const auto& rot : fCurRotDepth) {
+        if (fRegState[rot.first]) {
+            // the history crosses to the next chunk in the persistent scalars
+            for (int d = 1; d <= rot.second; d++) {
+                out << "\n\t\t\tfWr" << rot.first << "d" << d << " = wr" << rot.first << "d" << d
+                    << ";";
+            }
+        }
+    }
+    out << "\n\t\t\t";
 }
 
 // weighted depth of the tight (distance-1) recursion nests -- the
