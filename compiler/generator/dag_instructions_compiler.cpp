@@ -392,7 +392,13 @@ bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
     } else if (verySimple(sig) || t->variability() < kSamp) {
         b = false;  // non sample computation never require a loop
     } else if (isSigDelay(sig, x, y)) {
-        b = false;
+        // A delayed read is a memory access, not worth a loop of its own,
+        // unless it is shared and its delay is not a simple constant : the
+        // cache code then stores it in a block temporary, and that temporary
+        // needs a loop that owns it, so that the loops reading it depend on
+        // it. Placed in whichever loop is current, it was read by loops
+        // scheduled before that one.
+        b = (c > 1) && !verySimple(y);
     } else if (isProj(sig, &i, x)) {
         b = true;
     } else if (c > 1) {
