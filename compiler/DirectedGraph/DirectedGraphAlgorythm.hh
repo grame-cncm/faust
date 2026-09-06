@@ -465,7 +465,7 @@ void splitgraph(const digraph<N>& G, std::function<bool(const N&)> left, digraph
 
 //===========================================================
 //===========================================================
-// subgraph(G, S)
+// reachableFrom(G, S), formerly subgraph(G, S)
 //===========================================================
 //===========================================================
 
@@ -478,7 +478,7 @@ void splitgraph(const digraph<N>& G, std::function<bool(const N&)> left, digraph
  * @return the reachable subgraph, with all the connections among its nodes
  */
 template <typename N, typename C>
-digraph<N> subgraph(const digraph<N>& G, const std::set<N, C>& S)
+digraph<N> reachableFrom(const digraph<N>& G, const std::set<N, C>& S)
 {
     // the caller may hand a set in any order ; the work sets below follow
     // dgorder so that the traversal never follows addresses
@@ -500,6 +500,15 @@ digraph<N> subgraph(const digraph<N>& G, const std::set<N, C>& S)
         W = M;
     }
     return R;
+}
+
+// The former name promised the subgraph induced by S and returned the
+// reachable closure ; it stays as a deprecated alias for one transition.
+template <typename N, typename C>
+[[deprecated("renamed reachableFrom : it returns what is reachable from S, not the subgraph induced by S")]]
+digraph<N> subgraph(const digraph<N>& G, const std::set<N, C>& S)
+{
+    return reachableFrom(G, S);
 }
 
 //===========================================================
