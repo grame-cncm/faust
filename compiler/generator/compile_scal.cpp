@@ -55,6 +55,7 @@
 #include "superNodes.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
+#include "HierarchyDot.hh"
 #include "placeTemps.hh"
 #include "reassociate.hh"
 #include "nestSums.hh"
@@ -4468,6 +4469,43 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         }
     }
     const std::vector<Tree>& mat = fSN.materialized();
+    // -hg : the blocks, as they stand after fusion, drawn as a one-level
+    // hierarchy of the materialized signals (HierarchyDot.hh) -- one cluster
+    // per block, the reads as edges with their delays, the file beside the
+    // -sg drawing. A debugging view of the cuts, nothing else reads it.
+    if (gGlobal->gDrawHierarchy) {
+        digraph<int> dg;
+        for (int i = 0; i < int(mat.size()); i++) {
+            dg.add(i);
+        }
+        for (int i = 0; i < int(mat.size()); i++) {
+            for (int r : fSN.refs(i)) {
+                dg.add(r, i, std::max(0, fSN.maxDelayOf(mat[r])));
+            }
+        }
+        hierarchy<int, std::string> hg(dg);
+        for (int b = 0; b < fSN.blockCount(); b++) {
+            std::set<int, dgorder<int>> members(fSN.blockMembers(b).begin(), fSN.blockMembers(b).end());
+            if (members.size() < mat.size()) {
+                std::string why;
+                if (auto next = hg.group(members, &why)) {
+                    hg = next->label(members, "loop " + std::to_string(b) + " : " +
+                                                  std::to_string(fSN.opsEstimate(b)) + " ops");
+                } else {
+                    std::cerr << "-hg : block " << b << " is not a group : " << why << std::endl;
+                }
+            }
+        }
+        std::ofstream dotfile(subst("$0-hier.dot", gGlobal->makeDrawPath()).c_str());
+        hierarchyDot<int, std::string>(
+            dotfile, hg, [](const int& i) { return "m" + std::to_string(i); },
+            [&](const int& i) {
+                std::ostringstream os;
+                os << "m" << i << " " << mat[i]->node();
+                return os.str();
+            },
+            [](const std::string& l) { return l; }, "loop split");
+    }
     int                      n   = (int)mat.size();
 
     // 2d. the deposit tree (spec LE-GROUPEMENT-HIERARCHIQUE) : the

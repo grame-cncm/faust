@@ -413,6 +413,7 @@ void global::reset()
 
     gDetailsSwitch    = false;
     gDrawSignals      = false;
+    gDrawHierarchy    = false;
     gDrawSuperNodes   = false;
     gSchedulingStrategy = 0;
     gDrawRetiming     = false;
@@ -1393,6 +1394,9 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-sg", "--signal-graph")) {
             gDrawSignals = true;
+            i += 1;
+        } else if (isCmd(argv[i], "-hg", "--hierarchy-graph")) {
+            gDrawHierarchy = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-rg", "--retiming-graph")) {
@@ -2891,6 +2895,8 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-sg         --signal-graph              print the internal signal graph in dot format."
+
+         << "-hg         --hierarchy-graph           (ocpp, -ls) print the loop-split blocks as a hierarchy of the materialized signals, in dot format (<file>-hier.dot).\n"
          << endl;
     sstr << tab
          << "-rg         --retiming-graph            print the internal signal graph after "
