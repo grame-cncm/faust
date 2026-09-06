@@ -12,12 +12,13 @@
 #   e.g.  ./check.sh 'r[1-3][1-3]'          ./check.sh 'd..' -ss 8        REF=~/faust-refbins/faust-X ./check.sh
 set -u
 cd "$(dirname "$0")"
+DSP=${DSP:-synthetic_tests.dsp}
 PATTERN=${1:-'[a-z][0-9][0-9]'}; shift || true
 FAUST=${FAUST:-../../build/bin/faust}; REF=${REF:-}; N=${N:-48000}; BLOCK=${BLOCK:-64}; TOL=${TOL:-1e-12}; JOBS=${JOBS:-6}; OUT=${OUT:-${XDG_CACHE_HOME:-$HOME/.cache}/faust-synthetic/check}
 ARCH=$HOME/Documents/Install/faust/architecture; [ -d ../../architecture ] && ARCH=$(cd ../../architecture && pwd)
 CXX=${CXX:-c++}; CXXFLAGS=${CXXFLAGS:--O2 -std=c++17}
 mkdir -p "$OUT"; RES="$OUT/results.tsv"; : > "$RES"
-NAMES=$(grep -o "^$PATTERN" synthetic_tests.dsp | grep -o '^[a-z][0-9][0-9]' | sort -u)
+NAMES=$(grep -o "^$PATTERN" "$DSP" | grep -o '^[a-z][0-9][0-9]' | sort -u)
 [ -n "$NAMES" ] || { echo "no test matches '$PATTERN'"; exit 1; }
 echo "faust  : $FAUST  ($($FAUST --version 2>&1 | head -1))"; [ -n "$REF" ] && echo "ref    : $REF  ($($REF --version 2>&1 | head -1))"
 echo "judge  : $CXX $CXXFLAGS -DFAUSTFLOAT=double ; $N frames, blocks of $BLOCK, tolerance $TOL of the scale"
@@ -25,7 +26,7 @@ one() {
   name=$1; shift; W="$OUT/$name"; mkdir -p "$W"
   for leg in cpp ocpp ${REF:+ref}; do
     bin=$FAUST; lang=$leg; [ "$leg" = ref ] && { bin=$REF; lang=cpp; }
-    if ! "$bin" -lang $lang -double -t 0 "$@" -a print_arch.cpp -pn "$name" synthetic_tests.dsp -o "$W/$leg.cpp" 2>"$W/$leg.err"; then
+    if ! "$bin" -lang $lang -double -t 0 "$@" -a print_arch.cpp -pn "$name" "$DSP" -o "$W/$leg.cpp" 2>"$W/$leg.err"; then
       printf '%s\tFAUSTFAIL-%s\t%s\n' "$name" "$leg" "$(head -1 "$W/$leg.err" | cut -c1-100)"; return; fi
     if ! $CXX $CXXFLAGS -DFAUSTFLOAT=double -I "$ARCH" "$W/$leg.cpp" -o "$W/$leg" 2>"$W/$leg.cxx"; then
       printf '%s\tCXXFAIL-%s\t%s\n' "$name" "$leg" "$(grep -m1 'error:' "$W/$leg.cxx" | sed 's/.*error: //' | cut -c1-100)"; return; fi
