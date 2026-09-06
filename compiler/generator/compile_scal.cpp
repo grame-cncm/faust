@@ -1896,6 +1896,9 @@ class LoopSplitEmitter {
         bool isStore = false;
         bool isCall  = false;
         bool isInt   = false;
+        bool resident = false;  // a register-resident value (a constant or a
+                                // carried state) : ready from the start, out of
+                                // the temporaries' live profile (-ls-regs3)
         int  shape   = 0;  // shadow-side shape tag (emitted ops use their
                            // digit-erased code string instead; see emitLoop)
         int  weight  = 1;  // issue slots consumed (composite ops : a matrix
@@ -3238,7 +3241,9 @@ class LoopSplitEmitter {
         std::vector<std::vector<int>> users(n);
         for (int k = lo; k < hi; k++) {
             for (int d : ops[k].deps) {
-                if (d >= lo && d < hi) {
+                // a resident value is a register : it blocks nothing and
+                // counts in no live profile
+                if (d >= lo && d < hi && !ops[d].resident) {
                     pending[k - lo]++;
                     consumers[d - lo]++;
                     users[d - lo].push_back(k - lo);
@@ -3338,7 +3343,7 @@ class LoopSplitEmitter {
                 // composite ops (matrix rows) consume their weight in slots
                 slot += ops[lo + k].weight;
                 for (int d : ops[lo + k].deps) {
-                    if (d >= lo && d < hi) {
+                    if (d >= lo && d < hi && !ops[d].resident) {
                         if (--remaining[d - lo] == 0) {
                             live--;
                         }
@@ -3735,14 +3740,76 @@ class LoopSplitEmitter {
         // the budget they leave : without this, seven 9-deep cascades
         // (126 states) were priced as fitting 32 registers
         int carried = 0;
-        if (gGlobal->gLSLatency > 0) {
+        if (gGlobal->gLSLatency > 0 || gGlobal->gLSRegClasses) {
             for (const auto& kv : carriedOps) {
                 carried += (int)kv.second.size();
             }
         }
-        modelSchedule(sops, 0, (int)sops.size(), std::max(1, gGlobal->gLSRegisters - carried),
-                      gGlobal->gLSWidth, &cycles, &overR, &peak);
-        peak += carried;
+        // THREE CLASSES OF REGISTERS (-ls-regs3). A value in a register is
+        // one of three things, and they do not spill at the same price :
+        //   the STATES, carried from one frame to the next, read at the top
+        //   of the iteration and written at the bottom -- a spilled state
+        //   costs a load and a store per frame, for ever, and it is the
+        //   state in memory that serializes the frames ;
+        //   the CONSTANTS, permanent too but never written -- a constant
+        //   out of registers costs one pipelined load per use ;
+        //   the TEMPORARIES, the intermediate results waiting for their
+        //   consumers, a profile that rises and falls within the frame --
+        //   a spill is a store at the definition and a load at the use.
+        // One budget for the three (states + resident constants + the peak
+        // of the temporaries within R), and the excess spills in the order
+        // of the cheapest : constants first, the least used first, then
+        // the temporaries at the spill weight, the states last. Without
+        // this the model priced every excess as a spilled temporary and
+        // could not tell 3 x 3 tiles (18 states, fits) from 3 x 9 (54
+        // states, 119 stack operations per frame).
+        int  states = 0, constLoads = 0, stateSpill = 0, cres = 0;
+        if (gGlobal->gLSRegClasses) {
+            states = carried;
+            std::vector<int> uses;  // per constant, its number of uses
+            {
+                std::map<int, int> useOf;
+                for (LSOp& o : sops) {
+                    if (o.shape == 10 || o.shape == 13) {
+                        o.resident = true;
+                        o.weight   = 0;  // a register, no issue slot
+                    }
+                }
+                for (const LSOp& o : sops) {
+                    for (int d : o.deps) {
+                        if (d >= 0 && sops[d].shape == 10) {
+                            useOf[d]++;
+                        }
+                    }
+                }
+                for (const auto& kv : useOf) {
+                    uses.push_back(kv.second);
+                }
+                for (size_t k = 0; k < sops.size(); k++) {
+                    if (sops[k].shape == 10 && !useOf.count((int)k)) {
+                        uses.push_back(0);  // materialized, never read
+                    }
+                }
+            }
+            const int R = gGlobal->gLSRegisters;
+            // the temporaries are scheduled against what the states leave
+            modelSchedule(sops, 0, (int)sops.size(), std::max(1, R - states), gGlobal->gLSWidth,
+                          &cycles, &overR, &peak);
+            // the constants take the registers left by the states and the
+            // temporaries' peak ; the least used ones go to memory first
+            const int C = (int)uses.size();
+            cres        = std::min(C, std::max(0, R - states - peak));
+            std::sort(uses.begin(), uses.end());
+            for (int k = 0; k < C - cres; k++) {
+                constLoads += uses[k];
+            }
+            stateSpill = std::max(0, states - R);
+            peak += states + cres;
+        } else {
+            modelSchedule(sops, 0, (int)sops.size(), std::max(1, gGlobal->gLSRegisters - carried),
+                          gGlobal->gLSWidth, &cycles, &overR, &peak);
+            peak += carried;
+        }
         if (hasCallOut) {
             *hasCallOut = false;
             for (const LSOp& o : sops) {
@@ -3773,6 +3840,13 @@ class LoopSplitEmitter {
         // it is and handed the matrices to stage-major tiles, which pay
         // for their intra-frame overlap in buffers.
         long iter = cycles;
+        if (gGlobal->gLSRegClasses && gGlobal->gLSLatency == 0) {
+            // the spilled classes, priced in slots under the isolated
+            // iteration : a load per use of a spilled constant, a load and
+            // a store per frame for a spilled state
+            const int U = std::max(1, gGlobal->gLSWidth);
+            iter += ((long)constLoads * loadW + 2L * stateSpill + U - 1) / U;
+        }
         if (gGlobal->gLSLatency > 0) {
             long slots = 0, memops = 0;
             for (const LSOp& o : sops) {
@@ -3782,6 +3856,11 @@ class LoopSplitEmitter {
                     slots += o.weight;  // an op or a buffer load : an issue slot, as the model prices it
                 }
             }
+            // the spilled classes : a load per use of a spilled constant
+            // (an issue slot, as the model prices a load), a load and a
+            // store per frame for a spilled state (the memory ports)
+            slots += (long)constLoads * loadW;
+            memops += 2L * stateSpill;
             const int  U   = std::max(1, gGlobal->gLSWidth);
             const long alu = (slots + U - 1) / U;
             const long mem = (memops + 2) / 3;  // three memory ports, the eval machine's M
@@ -3815,7 +3894,11 @@ class LoopSplitEmitter {
                     rec = std::max(rec, (long)std::max(0, reach(kv.second)) + 1);
                 }
             }
-            const long overlap = (overR == 0) ? gGlobal->gLSLatency : 1;
+            // the frames overlap as long as the states stay in registers ;
+            // under the three classes a spilled temporary is stack traffic
+            // within the frame, only a spilled state serializes the frames
+            const bool serialized = gGlobal->gLSRegClasses ? (stateSpill > 0) : (overR > 0);
+            const long overlap    = serialized ? 1 : gGlobal->gLSLatency;
             iter = std::max({alu, mem, rec, (long)((cycles + overlap - 1) / overlap)});
         }
         if (sopsOut) {
