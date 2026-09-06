@@ -477,14 +477,16 @@ void splitgraph(const digraph<N>& G, std::function<bool(const N&)> left, digraph
  * @param S the set of nodes to keep with their dependencies
  * @return the resulting subgraph
  */
-template <typename N>
-digraph<N> subgraph(const digraph<N>& G, const std::set<N>& S)
+template <typename N, typename C>
+digraph<N> subgraph(const digraph<N>& G, const std::set<N, C>& S)
 {
+    // the caller may hand a set in any order ; the work sets below follow
+    // dgorder so that the traversal never follows addresses
     digraph<N>  R;     // the (R)esulting graph
-    std::set<N> W{S};  // nodes (W)aiting to be processed
-    std::set<N> P;     // nodes already (P)rocessed
+    std::set<N, dgorder<N>> W(S.begin(), S.end());  // nodes (W)aiting to be processed
+    std::set<N, dgorder<N>> P;                      // nodes already (P)rocessed
     while (!W.empty()) {
-        std::set<N> M;  // (M)ore nodes to process at next iteration
+        std::set<N, dgorder<N>> M;  // (M)ore nodes to process at next iteration
         for (auto n : W) {
             R.add(n);     // add n to the resulting graph
             P.insert(n);  // mark n as processed
@@ -566,7 +568,7 @@ inline digraph<N> chain(const digraph<N>& g, bool strict)
  *
  * @tparam N the type of nodes
  * @param G the graph
- * @return std::map<N, std::pair<int, int>> where each node maps to (in-degree, out-degree)
+ * @return std::map<N, std::pair<int, int>, dgorder<N>> where each node maps to (in-degree, out-degree)
  *
  * The in-degree is the number of incoming edges to a node.
  * The out-degree is the number of outgoing edges from a node.
@@ -579,9 +581,10 @@ inline digraph<N> chain(const digraph<N>& g, bool strict)
  *   int out_deg = deg[node].second;
  */
 template <typename N>
-inline std::map<N, std::pair<int, int>> degrees(const digraph<N>& G)
+inline std::map<N, std::pair<int, int>, dgorder<N>> degrees(const digraph<N>& G)
 {
-    std::map<N, std::pair<int, int>> deg;
+    // the result is iterated by the caller : it follows dgorder, never addresses
+    std::map<N, std::pair<int, int>, dgorder<N>> deg;
 
     // Initialize all nodes with (0, 0)
     for (const N& n : G.nodes()) {
@@ -602,7 +605,7 @@ inline std::map<N, std::pair<int, int>> degrees(const digraph<N>& G)
 template <typename N>
 inline std::vector<N> roots(const digraph<N>& G)
 {
-    std::map<N, int> R;
+    std::map<N, int, dgorder<N>> R;
     for (const N& n : G.nodes()) {
         for (const auto& c : G.destinations(n)) {
             R[c.first]++;
@@ -893,8 +896,8 @@ inline std::ostream& operator<<(std::ostream& file, const std::vector<N>& V)
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline std::ostream& operator<<(std::ostream& file, const std::set<N>& S)
+template <typename N, typename C>
+inline std::ostream& operator<<(std::ostream& file, const std::set<N, C>& S)
 {
     std::string sep = "";
 
