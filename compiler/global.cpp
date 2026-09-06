@@ -481,6 +481,7 @@ void global::reset()
     gLSCl           = 20;
     gLSLatency      = 0;
     gLSRegClasses   = false;
+    gLSRegState     = false;
     gLSSpillW       = 4;
     gLSLoadW        = 1;
 
@@ -883,7 +884,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         dst << "-ls -ls-sched " << schedNames[gLSSched] << " -ls-R " << gLSRegisters
             << " -ls-U " << gLSWidth << " ";
         if (gLSFuse) {
-            dst << "-ls-fuse -ls-fuse-ops " << gLSFuseOps << (gLSLatency > 0 ? " -ls-latency " + std::to_string(gLSLatency) : std::string()) << (gLSRegClasses ? " -ls-regs3" : "") << " -ls-cl " << gLSCl
+            dst << "-ls-fuse -ls-fuse-ops " << gLSFuseOps << (gLSLatency > 0 ? " -ls-latency " + std::to_string(gLSLatency) : std::string()) << (gLSRegClasses ? " -ls-regs3" : "") << (gLSRegState ? " -ls-regstate" : "") << " -ls-cl " << gLSCl
                 << " -ls-spill " << gLSSpillW << " -ls-load " << gLSLoadW << " ";
         }
     }
@@ -1271,6 +1272,10 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
     } else if (isCmd(arg, "-ls-fuse-ops", "--loop-split-fuse-ops")) {
         state.gLSFuseOps = std::atoi(value);
         i += 2;
+    } else if (isCmd(arg, "-ls-regstate", "--loop-split-register-state")) {
+        state.gLSRegState = true;
+        state.gLoopSplit  = true;
+        i += 1;
     } else if (isCmd(arg, "-ls-regs3", "--loop-split-register-classes")) {
         state.gLSRegClasses = true;
         state.gLSFuse       = true;
@@ -2637,6 +2642,9 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-ls-regs3       --loop-split-register-classes (ocpp, experimental) the fusion cost counts three classes of registers : the carried states, the constants and the temporaries, each spilling at its own price (constants first, states last)."
+         << endl;
+    sstr << tab
+         << "-ls-regstate    --loop-split-register-state (ocpp, experimental) a materialized member read only inside its own loop, at constant delays, keeps no chunk buffer : no store per sample, its history crosses the chunks in scalars."
          << endl;
     sstr << tab
          << "-mindelay <n> --min-delay <n>           (ocpp, experimental) semantic floor for "
