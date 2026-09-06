@@ -122,8 +122,8 @@ class Tarjan {
 
 //===========================================================
 //===========================================================
-// cycles:graph->int : counts the number of cycles
-// (strongly connected components) of a graph
+// cycles:graph->int : counts the strongly connected components
+// that contain a cycle (size above one, or a self-loop)
 //===========================================================
 //===========================================================
 
@@ -137,9 +137,9 @@ inline int cycles(const digraph<N>& g)
 //===========================================================
 //===========================================================
 // graph2dag : transforms a graph into a dag of supernodes,
-// ie strongly connected components. The connection value
-// between two supernodes A and B is the smallest value of all
-// the destinations between nodes of A and nodes of B.
+// ie strongly connected components. The connection between
+// two supernodes A and B carries the UNION of the delay sets of
+// all the connections from nodes of A to nodes of B.
 //===========================================================
 //===========================================================
 
@@ -176,7 +176,7 @@ inline digraph<digraph<N>> graph2dag(const digraph<N>& g)
                 sn1.add(n1, n2, W12);
             } else {
                 // the connection is between supernodes
-                sg.add(sn1, sn2, W12);  // exploit the fact that add will keep the mini
+                sg.add(sn1, sn2, W12);  // add unions the delay sets of the supernode edge
             }
         }
     }
