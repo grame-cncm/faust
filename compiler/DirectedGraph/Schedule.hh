@@ -1537,10 +1537,11 @@ inline schedule<N> csschedule2(const digraph<N>& G, unsigned int R, unsigned int
  *      (among ready nodes, smallest (targetRank, shape, anchor) wins) --
  *      validity by construction, monochromatic runs emerge.
  *
- * Breadth-first is the color-blind special case (pure ASAP) : it aligns
- * banks only when the program happens to put them at equal depths ; this
- * step does it on purpose. Cyclic graphs tolerated like dfschedule
- * (back edges ignored by the level computation, deadlock-broken in Kahn).
+ * Breadth-first is the color-blind special case (pure ASAP) : it aligns banks
+ * only when the program puts them at equal depths ; this step does it on
+ * purpose. Cyclic graphs tolerated like dfschedule (back edges ignored, Kahn
+ * deadlock-broken). @pre shape derives from the node's VALUE, never from its
+ * address : an address color gives a valid order that varies run to run.
  */
 template <typename N>
 inline schedule<N> alignschedule(const digraph<N>& G, std::function<long(const N&)> shape)
