@@ -470,12 +470,12 @@ void splitgraph(const digraph<N>& G, std::function<bool(const N&)> left, digraph
 //===========================================================
 
 /**
- * @brief extract a subgraph of G according to a std::set of nodes S.
- *
+ * @brief the subgraph of G REACHABLE from the nodes of S : S and every node
+ * their destinations lead to, transitively -- not the subgraph induced by S.
  * @tparam N the type of nodes
  * @param G the input graph
- * @param S the set of nodes to keep with their dependencies
- * @return the resulting subgraph
+ * @param S the starting nodes (any comparator)
+ * @return the reachable subgraph, with all the connections among its nodes
  */
 template <typename N, typename C>
 digraph<N> subgraph(const digraph<N>& G, const std::set<N, C>& S)
