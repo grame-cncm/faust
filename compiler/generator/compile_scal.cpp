@@ -3877,34 +3877,44 @@ class LoopSplitEmitter {
             const int  U   = std::max(1, gGlobal->gLSWidth);
             const long alu = (slots + U - 1) / U;
             const long mem = (memops + 2) / 3;  // three memory ports, the eval machine's M
-            // recurrence bound : the longest path (unit latencies, the
-            // model's) from a member's carried history to its own root
-            std::vector<int> depth(sops.size(), -1);
-            std::set<int>    carried;
-            for (const auto& kv : carriedOps) {
-                for (int o : kv.second) {
-                    carried.insert(o);
-                }
-            }
-            std::function<int(int)> reach = [&](int o) -> int {
-                if (depth[o] >= 0) {
-                    return depth[o] == INT_MAX ? -1 : depth[o];
-                }
-                depth[o] = INT_MAX;  // visiting : a cycle never reaches
-                int best = carried.count(o) ? 0 : -1;
-                for (int d : sops[o].deps) {
-                    int r = reach(d);
-                    if (r >= 0) {
-                        best = std::max(best, r + 1);
-                    }
-                }
-                depth[o] = (best >= 0) ? best : INT_MAX;
-                return best;
-            };
+            // Recurrence bound : PER STATE, the longest path from a member's
+            // own carried history to its own root -- the length of the cycle
+            // no overlap can shorten, since the value written this frame is
+            // the one read the next. Taking instead the longest path from ANY
+            // carried value made the bound grow when two stages of a chain
+            // were fused, although neither state's own cycle had changed :
+            // the path from the first stage's state through the second
+            // stage's body is an intra-frame chain, already priced by the
+            // critical path divided by the frames in flight. That reading
+            // made fusion look harmful on chained filters -- on a matrix of
+            // four chains of three, the oracle cut by stage (three loops,
+            // twelve stores a frame) where one loop measured 34% faster.
             long rec = 0;
-            for (const auto& kv : rootOf) {
-                if (kv.second >= 0 && carriedOps.count(kv.first)) {
-                    rec = std::max(rec, (long)std::max(0, reach(kv.second)) + 1);
+            for (const auto& kv : carriedOps) {
+                auto it = rootOf.find(kv.first);
+                if (it == rootOf.end() || it->second < 0) {
+                    continue;
+                }
+                const std::set<int>      own(kv.second.begin(), kv.second.end());
+                std::vector<int>         depth(sops.size(), -1);
+                std::function<int(int)>  reach = [&](int o) -> int {
+                    if (depth[o] >= 0) {
+                        return depth[o] == INT_MAX ? -1 : depth[o];
+                    }
+                    depth[o] = INT_MAX;  // visiting : a cycle never reaches
+                    int best = own.count(o) ? 0 : -1;
+                    for (int d : sops[o].deps) {
+                        int r = reach(d);
+                        if (r >= 0) {
+                            best = std::max(best, r + 1);
+                        }
+                    }
+                    depth[o] = (best >= 0) ? best : INT_MAX;
+                    return best;
+                };
+                int r = reach(it->second);
+                if (r >= 0) {
+                    rec = std::max(rec, (long)r + 1);
                 }
             }
             // the frames overlap as long as the states stay in registers ;
