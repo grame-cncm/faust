@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include <algorithm>
 #include <fstream>
 
 #include "dag_instructions_compiler.hh"
@@ -318,7 +319,14 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
         // sample-rate signal
         if (d > 0) {
             // used delayed : we need a delay line
-            getTypedNames(getCertifiedSigType(sig), "Yec", ctype, vname);
+            if (getVectorNameProperty(sig, vname)) {
+                // A recursive delay access reserved this line before its
+                // current-sample input was available. Emit the deferred write
+                // into that same line, after the recursive member's store.
+                ctype = (t->nature() == kInt) ? IB::genBasicTyped(Typed::kInt32) : genFloatType(t);
+            } else {
+                getTypedNames(t, "Yec", ctype, vname);
+            }
             Address::AccessType access;
             generateDelayLine(exp, ctype, vname, d, access, nullptr);
             setVectorNameProperty(sig, vname);
@@ -434,17 +442,32 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
 
 ValueInst* DAGInstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
-    string     vname;
-    ValueInst* code = CS(exp);  // ensure exp is compiled to have a vector name
-    int        d, mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
+    string vname;
+    int    d, mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
 
-    if (!getVectorNameProperty(exp, vname)) {
-        if (mxd == 0) {
-            // cerr << "it is a pure zero delay : " << code << endl;
-            return code;
-        } else {
-            cerr << "ASSERT : no vector name for : " << ppsig(exp) << endl;
-            faustassert(false);
+    if (std::find(fPendingDelayWrites.begin(), fPendingDelayWrites.end(), exp) !=
+        fPendingDelayWrites.end()) {
+        getVectorNameProperty(exp, vname);
+    } else if (!getVectorNameProperty(exp, vname) && mxd > 0 && !fUnstoredRecMembers.empty() &&
+               reachesUnstoredRecMember(exp)) {
+        // As in the scalar backend, reading past samples does not require
+        // writing the current sample first. Eagerly compiling exp here can
+        // read Rec[i] before it is stored (Freeverb's damped comb feedback).
+        // generateRec/flushPendingDelayWrites emit the write once its current
+        // recursive inputs are available. Repeated reads reuse the reservation.
+        BasicTyped* ctype;
+        getTypedNames(getCertifiedSigType(exp), "Yec", ctype, vname);
+        setVectorNameProperty(exp, vname);
+        fPendingDelayWrites.push_back(exp);
+    } else {
+        ValueInst* code = CS(exp);  // Ensure the line is compiled when it is safe.
+        if (!getVectorNameProperty(exp, vname)) {
+            if (mxd == 0) {
+                return code;
+            } else {
+                cerr << "ASSERT : no vector name for : " << ppsig(exp) << endl;
+                faustassert(false);
+            }
         }
     }
 
