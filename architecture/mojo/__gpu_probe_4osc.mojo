@@ -1,9 +1,10 @@
 # gpu_osc_portaudio.mojo
 
-from conf import *
-from std.gpu import thread_idx
-from std.sys import has_accelerator
+from max.gpu import thread_idx
 from max.gpu.host import DeviceBuffer, DeviceContext
+from std.sys import has_accelerator
+
+from conf import *
 from audio.portaudio.ffi import *
 
 comptime NUM_OSCS = 4
