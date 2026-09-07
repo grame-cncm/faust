@@ -44,8 +44,8 @@ def main() -> None:
         dsp.unsafe_free()
         return
     var ptr = base.unsafe_value()
-    var inputs = ptr.bitcast[Ptr[FaustFloat, IMM_NOTRK]]().as_immutable()
-    var outputs = (ptr + n_ins).bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
+    var inputs = ptr.unsafe_bitcast[Ptr[FaustFloat, IMM_NOTRK]]().unsafe_mut_cast[False]()
+    var outputs = ptr.unsafe_offset(n_ins).unsafe_bitcast[Ptr[FaustFloat, MUT_NOTRK]]()
     inspect_compute(dsp[], inputs, outputs)
     ptr.unsafe_free()
     dsp.unsafe_free()
