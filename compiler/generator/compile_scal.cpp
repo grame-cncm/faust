@@ -4731,7 +4731,25 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         }
         for (int i = 0; i < int(mat.size()); i++) {
             for (int r : fSN.refs(i)) {
-                dg.add(r, i, std::max(0, fSN.maxDelayOf(mat[r])));
+                // The edge's OWN delays. What the acyclicity test reads is
+                // whether the set contains 0, and refs0 is exactly the
+                // criterion the partition itself uses for that. A source
+                // also read late contributes its maximal delay, so the
+                // drawing keeps that information without weakening the
+                // test. maxDelayOf alone, as this used to be, is the
+                // largest delay the source is read with ANYWHERE : it hid
+                // the 0 of an instantaneous edge as soon as another
+                // consumer read the same source late.
+                const bool instant = fSN.refs0(i).count(r) > 0;
+                const int  dmax    = fSN.maxDelayOf(mat[r]);
+                if (instant) {
+                    dg.add(r, i, 0);
+                }
+                if (dmax > 0) {
+                    dg.add(r, i, dmax);
+                } else if (!instant) {
+                    dg.add(r, i, 1);  // delayed, by an amount occurrences does not know
+                }
             }
         }
         hierarchy<int, std::string> hg(dg);
