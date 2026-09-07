@@ -385,12 +385,30 @@ bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
     bool         b;
 
     int  i;
-    Tree x, y;
+    Tree x, y, ttb, tri, tsize, tgen, twi, tws;
 
     if (o->getMaxDelay() > 0) {
         b = true;
     } else if (verySimple(sig) || t->variability() < kSamp) {
         b = false;  // non sample computation never require a loop
+    } else if ((isSigWRTbl(sig, tsize, tgen, twi, tws) && !isNil(twi)) ||
+               (isSigRDTbl(sig, ttb, tri) && isSigWRTbl(ttb, tsize, tgen, twi, tws) &&
+                !isNil(twi))) {
+        // A READ-WRITE TABLE is a per-sample recurrence : the value read at
+        // sample i is the one the same iteration writes, so the write and
+        // every read of it must stay in the SAME loop, in that order.
+        // Giving either one a loop of its own writes the whole chunk before
+        // reading any of it, and every read then sees the future : on
+        // frwtable the vectorized output leaves the scalar one at sample 0.
+        // Neither gets a loop : both are emitted where they are used, the
+        // write first, since compiling the read compiles the table.
+        //
+        // The nil write index is what separates the two kinds : a READ-ONLY
+        // table is a degenerated sigWRTbl whose 'wi' and 'ws' are nil
+        // (signals.cpp, sigReadOnlyTable). Without that test the clause also
+        // catches waveform reads, takes away a loop they legitimately own,
+        // and five hoa/physmodels tests diverge.
+        b = false;
     } else if (isSigDelay(sig, x, y)) {
         // A delayed read is a memory access, not worth a loop of its own,
         // unless it is shared and its delay is not a simple constant : the
