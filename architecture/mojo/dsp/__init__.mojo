@@ -1,3 +1,3 @@
 # dsp/__init__.mojo
 
-from .dsp import FaustDsp
+from .dsp import FaustDsp, FaustDspGpu

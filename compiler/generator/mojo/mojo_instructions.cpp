@@ -328,12 +328,13 @@ void MojoInstVisitor::visit(Int64NumInst* inst)
 
 void MojoInstVisitor::visit(LabelInst* inst)
 {
-    auto label = String(inst->fLabel.begin() + 1, inst->fLabel.end() - 2);
-    if (label.find("Remaining") != String::npos) {
-        return;
-    }
-    label[0] = '#';
-    *fOut << label << wnextl(fTab);
+    // NOTE:(manu) comments disabled
+    //  auto label = String(inst->fLabel.begin() + 1, inst->fLabel.end() - 2);
+    //  if (label.find("Remaining") != String::npos) {
+    //      return;
+    //  }
+    //  label[0] = '#';
+    //  *fOut << label << wnextl(fTab);
 }
 
 void MojoInstVisitor::visit(LoadVarAddressInst* inst)

@@ -60,6 +60,8 @@ comptime AnyPtr[ori: Origin = MUT_NOTRK]                    = Pointer[Void, ori]
 comptime OptPtr[T: AnyType = Void, ori: Origin = MUT_NOTRK] = OptionalPointer[T, ori]
 
 # FaustFloat streams
+comptime ImmStream  = Ptr[FaustFloat, IMM_NOTRK]
+comptime MutStream  = Ptr[FaustFloat, MUT_NOTRK]
 comptime ImmStreams = Ptr[Ptr[FaustFloat, IMM_NOTRK], IMM_NOTRK]
 comptime MutStreams = Ptr[Ptr[FaustFloat, MUT_NOTRK], MUT_NOTRK]
 

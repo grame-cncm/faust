@@ -1,5 +1,3 @@
-# pa-gpu.mojo
-
 # ==============================================================================
 # Reference architecture for PortAudio GPU.
 # ==============================================================================
@@ -42,7 +40,7 @@ def main() -> None:
     if err:
         _ = driver.stop()
         dsp.unsafe_free()
-        print(e)
+        print(err)
         return
 
     err = wait_stdin()

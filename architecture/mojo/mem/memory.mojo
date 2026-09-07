@@ -11,20 +11,20 @@ comptime AllocError_ExhaustedMem  = ErrorCode(2)
 def align_up(num: SInt, aln: SInt) -> SInt:
     return (num + aln - 1) & ~(aln - 1)
 
-# Allocate memory for input and output streams with the following layout:
-#   +--------+---------+-----------------+
-#   | header | padding |      data       |
-#   +--------+---------+-----------------+
-# - `header` is an array of `n_ins + n_outs` pointers into `data`:
-#   +---------+---------+-----+----------+----------+-----+
-#   | ptr_in0 | ptr_in1 | ... | ptr_out0 | ptr_out1 | ... |
-#   +---------+---------+-----+----------+----------+-----+
-# - `padding` is needed to ensure `data` has proper alignment.
-# - `data` contains `n_ins + n_outs` channel buffers, each with `buff_size` frames:
-#   +------+------+-----+-------+-------+-----+
-#   | in_0 | in_1 | ... | out_0 | out_1 | ... |
-#   +------+------+-----+-------+-------+-----+
-#
+# TODO: improve doc
+#   Allocate memory for input and output streams with the following layout:
+#     +--------+---------+-----------------+
+#     | header | padding |      data       |
+#     +--------+---------+-----------------+
+#   - `header` is an array of `n_ins + n_outs` pointers into `data`:
+#     +---------+---------+-----+----------+----------+-----+
+#     | ptr_in0 | ptr_in1 | ... | ptr_out0 | ptr_out1 | ... |
+#     +---------+---------+-----+----------+----------+-----+
+#   - `padding` is needed to ensure `data` has proper alignment.
+#   - `data` contains `n_ins + n_outs` channel buffers, each with `buff_size` frames:
+#     +------+------+-----+-------+-------+-----+
+#     | in_0 | in_1 | ... | out_0 | out_1 | ... |
+#     +------+------+-----+-------+-------+-----+
 def alloc_streams[dreal: DType](
     buff_size: S32, n_ins: S32, m_outs: S32,
 ) -> Res[OptPtr[SIMD[dreal, 1]], ErrorCode]:
@@ -116,7 +116,7 @@ def zero_outputs_base[dreal: DType](
     base: OptPtr[SIMD[dreal, 1]], buff_size: S32, n_ins: S32, m_outs: S32
 ) -> ErrorCode:
     comptime Real = SIMD[dreal, 1]
-    header_size = align_up(PTR_SIZE * SInt(n_ins + m_outs), align_of[Real]())
+    var header_size = align_up(PTR_SIZE * SInt(n_ins + m_outs), align_of[Real]())
     # var data_raw = base.unsafe_value().unsafe_bitcast[U8]() + header_size
     var data_raw = base.unsafe_value().unsafe_bitcast[U8]().unsafe_offset(header_size)
     # var data_outs = data_raw + SInt(n_ins) * SInt(buff_size) * size_of[Real]()

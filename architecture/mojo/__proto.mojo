@@ -1,5 +1,3 @@
-# pa-gpu.mojo
-
 # ==============================================================================
 # Probe file to prototype hardcoded Dsp shapes
 # ==============================================================================
@@ -15,7 +13,7 @@ from meta import *
 from audio.portaudio import *
 from audio.portaudio.gpu import PortAudioGpu
 
-struct ProbeDsp(FaustDsp):
+struct ProbeDsp(FaustDspGpu):
     var sample_rate: S32
     var phases: Arr[FaustFloat, NUM_OSCS]
 
@@ -75,18 +73,28 @@ struct ProbeDsp(FaustDsp):
     def build_user_interface(mut dsp, mut ui: Some[FaustGui]) -> None:
         pass
 
+    @staticmethod
     @always_inline
-    def compute(mut dsp, var count: S32, var inputs: ImmStreams, var outputs: MutStreams) -> None:
+    def gpu_compute(
+        dsp_raw: Ptr[U8, MUT_ANY], buf_size: S32, in_buf: ImmStream, out_buf: MutStream
+    ) -> None:
+        var dsp = dsp_raw.unsafe_bitcast[ProbeDsp]()
         var osc = Int(global_idx.x)
         if osc >= NUM_OSCS:
             return
 
-        var output = outputs[unsafe_offset=osc]
+        var output = out_buf.unsafe_offset(osc * Int(buf_size))
+        dsp[]._compute_osc(osc, buf_size, output)
+
+    @always_inline
+    def _compute_osc(
+        mut dsp, osc: Int, buf_size: S32, output: Ptr[FaustFloat, MUT_NOTRK]
+    ) -> None:
         var phase = dsp.phases[osc]
         var frequency = FaustFloat(55 * (osc + 1))
         var step = TWO_PI * frequency / FaustFloat(dsp.sample_rate)
 
-        for frame in range(Int(count)):
+        for frame in range(Int(buf_size)):
             output[unsafe_offset=frame] = AMP * sin(phase.cast[f32]()).cast[dfaust]()
             phase += step
 
@@ -122,7 +130,7 @@ def main() -> None:
     if err:
         _ = driver.stop()
         dsp.unsafe_free()
-        print(e)
+        print(err)
         return
 
     err = wait_stdin()

@@ -8,8 +8,7 @@ The current prototype separates the system into three layers:
 - `audio/portaudio/gpu.mojo` connects PortAudio to GPU processing.
 - `gpu/device.mojo` owns GPU resources and launches kernels.
 
-The goal is to validate the GPU-oriented DSP shape in `probe.mojo` before
-implementing it in the FAUST generator.
+The goal is to validate the GPU-oriented DSP shape in `probe.mojo` before implementing the generator.
 
 ## Complete audio-block flow
 
@@ -26,7 +25,7 @@ PortAudio inputs
 
 The callback returns only after the GPU output has been copied back.
 
-## `probe.mojo`
+## Probe experiment
 
 This is the experimental frontend.
 
@@ -39,16 +38,15 @@ It currently:
 5. waits on standard input;
 6. stops the driver and frees the DSP.
 
-`ProtoDsp` will be replaced by a manually written GPU-oriented DSP. Once that
-shape works correctly, the compiler can be modified to generate it.
+`ProtoDsp` will be replaced by a manually written GPU-oriented DSP. Once that shape works correctly, the
+compiler can be modified to generate it.
 
-`portaudio-gpu.mojo` remains the reference architecture; experimentation belongs
-in `probe.mojo`.
+The file `portaudio-gpu.mojo` remains the reference architecture; experimentation belongs in `probe.mojo`.
 
-## `PortAudioGpu`
+## PortAudio GPU driver
 
-`PortAudioGpu` owns the PortAudio lifecycle and a pointer to `FaustGpuDevice`.
-It also stores the GPU grid and block dimensions selected by the frontend.
+`PortAudioGpu` owns the PortAudio lifecycle and a pointer to `FaustGpuDevice`. It also stores the GPU grid
+and block dimensions selected by the frontend.
 
 ### Initialization
 
@@ -86,7 +84,7 @@ separate pointer.
 `stop` stops and closes the PortAudio stream, destroys the GPU state, and
 terminates PortAudio. The stream must stop before its callback state is freed.
 
-## `FaustGpuDevice`
+## Faust GPU device
 
 `FaustGpuDevice` owns the persistent GPU resources:
 
@@ -97,8 +95,8 @@ terminates PortAudio. The stream must stop before its callback state is freed.
 - `input_channels` and `output_channels`: reusable channel sub-buffer views;
 - buffer size, channel counts, and kernel launch dimensions.
 
-The DSP state lives in `dsp_buf` across callbacks. Oscillator phases, delay
-lines, and other state modified by `compute` therefore persist on the GPU.
+The DSP state lives in `dsp_buf` across callbacks. Oscillator phases, delay lines, and other state modified
+by `compute` therefore persist on the GPU.
 
 ## GPU runtime creation
 
@@ -114,9 +112,9 @@ lines, and other state modified by `compute` therefore persist on the GPU.
 Zero-channel DSPs receive minimum one-element placeholder allocations. Those
 elements are never accessed when the corresponding channel count is zero.
 
-## `init_streams`
+## Streams initialization
 
-`init_streams` is an initialization kernel. Each thread handles one channel and
+The file `init_streams` is an initialization kernel. Each thread handles one channel and
 writes its device address into the appropriate FAUST stream table.
 
 The resulting layout is equivalent to:
@@ -130,20 +128,19 @@ These are the `ImmStreams` and `MutStreams` layouts expected by `Dsp.compute`.
 
 ## `compute_gpu`
 
-`compute_gpu` is a free GPU-launchable wrapper around the DSP instance method.
-It reconstructs the DSP and stream pointers from their raw buffers, then calls:
+The file `compute_gpu` is a free GPU-launchable wrapper around the DSP instance method. It reconstructs the
+DSP and stream pointers from their raw buffers, then calls:
 
 ```mojo
 dsp[].compute(count, inputs, outputs)
 ```
 
-The wrapper is necessary because `enqueue_function` cannot directly launch the
-instance method `Dsp.compute`.
+The wrapper is necessary because `enqueue_function` cannot directly launch the instance method `Dsp.compute`.
 
 ## What the probe must validate
 
-The existing infrastructure already moves audio through PortAudio and the GPU.
-The next experiment must validate the shape inside `compute`:
+The existing infrastructure already moves audio through PortAudio and the GPU. The next experiment must
+validate the shape inside `compute`:
 
 - how `thread_idx` maps threads to oscillators or independent DSP units;
 - how per-thread state is laid out and indexed;
@@ -155,6 +152,5 @@ Only after this shape works should the FAUST generator be changed to emit it.
 
 ## Current frontend issue
 
-The committed `probe.mojo` and `portaudio-gpu.mojo` contain `print(e)` in a
-non-raising error branch. It should be `print(err)`. The following repeated
-`if err` block is also redundant.
+The committed `probe.mojo` and `portaudio-gpu.mojo` contain `print(e)` in a non-raising error branch. It
+should be `print(err)`. The following repeated `if err` block is also redundant.

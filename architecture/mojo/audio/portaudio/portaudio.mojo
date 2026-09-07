@@ -97,21 +97,6 @@ struct PortAudio(FaustAudio):
 
         return PA_NO_ERROR
 
-# Faust PortAudio constant definitions.
-
-comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 256]())
-comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96]()) * 1000
-
-comptime NULL_STREAM: PaStream = None
-
-comptime FAUST_FORMAT = PA_FLOAT32 | PA_NON_INTERLEAVED
-comptime FAUST_NOFLAG = 0
-
-comptime FAUST_NO_DEFAULT_IN_DEVICE  = PaError(-6999)
-comptime FAUST_NO_DEFAULT_OUT_DEVICE = PaError(-6998)
-comptime FAUST_STOPPED_NOT_ALIVE     = PaError(-3999)
-comptime FAUST_ALREADY_ALIVE         = PaError(-3998)
-
 # Faust PortAudio callback wrapper.
 
 @always_inline
@@ -189,3 +174,20 @@ def faust_stream_param(
         latency,
         NULL_PTR[Void, MUT_NOTRK]
     )
+
+# Faust PortAudio constant definitions.
+
+comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 256]())
+comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96]()) * 1000
+
+comptime NULL_STREAM: PaStream = None
+
+comptime FAUST_FORMAT = PA_FLOAT32 | PA_NON_INTERLEAVED
+comptime FAUST_NOFLAG = 0
+
+comptime FAUST_NO_DEFAULT_IN_DEVICE  = PaError(-6999)
+comptime FAUST_NO_DEFAULT_OUT_DEVICE = PaError(-6998)
+comptime FAUST_STOPPED_NOT_ALIVE     = PaError(-3999)
+comptime FAUST_ALREADY_ALIVE         = PaError(-3998)
+
+

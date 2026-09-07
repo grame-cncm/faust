@@ -446,5 +446,4 @@ void MojoVecCodeContainer::writeCompute(int n)
     *fOut << "vindex += vsize\n";
 }
 
-
 }  // namespace mojo
