@@ -1887,6 +1887,13 @@ class LoopSplitEmitter {
     std::vector<bool>        fLocal;  // maxDelay == 0: chunk-local buffer
     std::vector<bool> fRing;      // maxDelay > gMaxCopyDelay: masked ring buffer
     std::vector<int>  fCapD;      // -ls-regstate : deepest display capture of a member (-1: none)
+    // who reads a materialized member, and what forces it to keep a buffer
+    // whatever its block : an output, a display capture, a read at a delay
+    // that is not a literal. Built once (storeClasses) for the fusion oracle,
+    // reused by the emission so that both answer "is this member written ?"
+    // the same way.
+    std::vector<std::vector<int>> fReadersOf;
+    std::vector<char>             fStoreForced;
     std::vector<bool> fRegState;  // -ls-regstate : read only inside its own block, at
                                   // constant delays -- no chunk buffer, no store per
                                   // sample ; its history crosses the chunks in scalars
@@ -3411,6 +3418,109 @@ class LoopSplitEmitter {
      * merged-versus-separate comparison then accounts for both the saved
      * loop overhead and the pressure risk of oversized bodies.
      */
+    // Build the reader tables the store price rests on. A materialized
+    // member is written to its chunk buffer only if something outside the
+    // loop that computes it will read it ; inside the loop its history
+    // rides in the rotating locals. Called once, before the fusion oracle,
+    // so that the oracle prices the stores the emission will actually write.
+    void storeClasses(Tree L)
+    {
+        const std::vector<Tree>& mat = fSN.materialized();
+        const int                n   = (int)mat.size();
+        fReadersOf.assign(n, {});
+        fStoreForced.assign(n, 0);
+        auto resolve = [&](int ix) { return (fAliasIx[ix] >= 0) ? fAliasIx[ix] : ix; };
+        for (int m = 0; m < n; m++) {
+            for (int r : fSN.refs(m)) {
+                fReadersOf[resolve(r)].push_back(m);
+            }
+            if (fAliasIx[m] >= 0) {
+                fReadersOf[fAliasIx[m]].push_back(m);
+            }
+            // a read at a delay that is not a literal goes through the buffer
+            std::set<Tree, treeorder> seen;
+            std::function<void(Tree)> vr = [&](Tree u) {
+                if (!seen.insert(u).second) {
+                    return;
+                }
+                Tree x, y;
+                int  lit;
+                if (isSigDelay(u, x, y) && fSN.indexOf(x) >= 0 && !isSigInt(y, &lit)) {
+                    fStoreForced[resolve(fSN.indexOf(x))] = 1;
+                }
+                Tree var, body;
+                if (isRec(u, var, body)) {
+                    if (body) {
+                        vr(body);
+                    }
+                    return;
+                }
+                for (int k = 0; k < u->arity(); k++) {
+                    vr(u->branch(k));
+                }
+            };
+            vr(defOf(mat[m]));
+        }
+        // the outputs and the display captures read through the buffers,
+        // wherever the members they read are placed
+        auto forceIn = [&](Tree p) {
+            std::set<Tree, treeorder> seen;
+            std::function<void(Tree)> rec = [&](Tree u) {
+                if (!seen.insert(u).second) {
+                    return;
+                }
+                int ix = fSN.indexOf(u);
+                if (ix >= 0) {
+                    fStoreForced[resolve(ix)] = 1;
+                    return;
+                }
+                Tree var, body;
+                if (isRec(u, var, body)) {
+                    if (body) {
+                        rec(body);
+                    }
+                    return;
+                }
+                for (int k = 0; k < u->arity(); k++) {
+                    rec(u->branch(k));
+                }
+            };
+            rec(p);
+        };
+        for (Tree l1 = L; isList(l1); l1 = tl(l1)) {
+            forceIn(hd(l1));
+        }
+        for (Tree p : fC->fDisplayCapturePoints) {
+            forceIn(p);
+        }
+        // the row-op regime writes its members whatever their readers
+        if (fRowOp) {
+            fStoreForced.assign(n, 1);
+        }
+    }
+    // does this member's value have to reach memory when the block holding
+    // it is exactly `inSet` ? Under -ls-regstate a member read only inside
+    // its own block keeps no buffer, so the oracle must not price a store
+    // for it -- otherwise fusing two loops looks free of memory savings
+    // while the emission drops the writes that joined them.
+    bool storedIn(int m, const std::set<int>& inSet) const
+    {
+        if (!gGlobal->gLSRegState || fStoreForced.empty() || fStoreForced[m]) {
+            // fStoreForced is empty until the classification runs : the
+            // dissolve phase prices blocks before it, and there every
+            // member is written, as the emission did until then
+            return true;
+        }
+        if (fSN.maxDelayOf(fSN.materialized()[m]) > gGlobal->gMaxCopyDelay) {
+            return true;  // a long line lives in memory anyway
+        }
+        for (int r : fReadersOf[m]) {
+            if (inSet.count(r) == 0) {
+                return true;
+            }
+        }
+        return false;
+    }
     long blockCostShadow(const std::vector<int>& members, long* overROut = nullptr,
                          int* peakOut = nullptr, bool constantsLive = true,
                          int loadWOverride = -1, bool* hasCallOut = nullptr,
@@ -3736,6 +3846,9 @@ class LoopSplitEmitter {
             Tree d      = SuperNodeGraph::defOf(mat[m]);
             int  r      = sw(d, d == mat[m]);
             rootOf[m]   = r;
+            if (!storedIn(m, inSet)) {
+                continue;  // register-resident in this block : no store to price
+            }
             LSOp store;
             if (r >= 0) {
                 store.deps.push_back(r);
@@ -4210,6 +4323,38 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         }
     }
 
+    // TAP ALIASING : a materialized member that is only a constant delay of
+    // another one keeps no buffer -- its reads redirect into the producer's
+    // history. Built here, before the oracle, because the store price rests
+    // on it as much as the emission does.
+    {
+        const std::vector<Tree>& mat = fSN.materialized();
+        const int                n   = (int)mat.size();
+        fAliasIx.assign(n, -1);
+        fAliasD.assign(n, 0);
+        for (int i = 0; i < n; i++) {
+            Tree x, y;
+            if (fSN.maxDelayOf(mat[i]) != 0 || !isSigDelay(mat[i], x, y)) {
+                continue;
+            }
+            int  dmin, dmax;
+            bool dvar;
+            delayBounds(y, dmin, dmax, dvar);
+            int ix = fSN.indexOf(x);
+            if (dvar || dmin != dmax || ix < 0) {
+                continue;
+            }
+            fAliasIx[i] = ix;
+            fAliasD[i]  = dmin;
+        }
+        for (int i = 0; i < n; i++) {  // resolve alias chains (delay of delay)
+            while (fAliasIx[i] >= 0 && fAliasIx[fAliasIx[i]] >= 0) {
+                fAliasD[i] += fAliasD[fAliasIx[i]];
+                fAliasIx[i] = fAliasIx[fAliasIx[i]];
+            }
+        }
+    }
+    storeClasses(L);
     // 2b. greedy single-consumer fusion (-ls-fuse): contract a block into
     // its only consumer when legal (quotient stays acyclic) and the merged
     // body fits the op budget. The policy of the predictor, as a walk in
@@ -4643,29 +4788,8 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // the materialized set reshapes the greedy's affinity graph and was
     // measured +6% on the 9x9 filter matrix; emission-only elision was
     // measured time-neutral with the compute() stack divided by 3.
-    fAliasIx.assign(n, -1);
-    fAliasD.assign(n, 0);
-    for (int i = 0; i < n; i++) {
-        Tree x, y;
-        if (fSN.maxDelayOf(mat[i]) != 0 || !isSigDelay(mat[i], x, y)) {
-            continue;
-        }
-        int  dmin, dmax;
-        bool dvar;
-        delayBounds(y, dmin, dmax, dvar);
-        int ix = fSN.indexOf(x);
-        if (dvar || dmin != dmax || ix < 0) {
-            continue;
-        }
-        fAliasIx[i] = ix;
-        fAliasD[i]  = dmin;
-    }
-    for (int i = 0; i < n; i++) {  // resolve alias chains (delay of delay)
-        while (fAliasIx[i] >= 0 && fAliasIx[fAliasIx[i]] >= 0) {
-            fAliasD[i] += fAliasD[fAliasIx[i]];
-            fAliasIx[i] = fAliasIx[fAliasIx[i]];
-        }
-    }
+    // (the alias table is built before the fusion oracle : both the store
+    // price and the emission need it)
     // -ls-regstate : the DEAD STORES of the split. Every materialized member
     // was written to its chunk buffer at every sample, even when nothing
     // outside its own loop ever reads it -- inside the loop its history
@@ -4680,40 +4804,20 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     fCapD.assign(n, -1);
     if (gGlobal->gLSRegState) {
         auto resolve = [&](int ix) { return (fAliasIx[ix] >= 0) ? fAliasIx[ix] : ix; };
+        // the reader tables were built for the oracle (storeClasses) : a
+        // member is written iff something forces it -- an output, a capture,
+        // a read at a variable delay -- or one of its readers sits in
+        // another block. Reusing them keeps the price the oracle paid and
+        // the code the emitter writes in step.
         for (int m = 0; m < n; m++) {
-            for (int r : fSN.refs(m)) {
-                int h = resolve(r);
-                if (fSN.blockOf(m) != fSN.blockOf(h)) {
-                    extRead[h] = true;
+            varRead[m] = fStoreForced[m];
+            for (int r : fReadersOf[m]) {
+                if (fSN.blockOf(r) != fSN.blockOf(m)) {
+                    extRead[m] = true;
                 }
             }
-            if (fAliasIx[m] >= 0 && fSN.blockOf(m) != fSN.blockOf(fAliasIx[m])) {
-                extRead[fAliasIx[m]] = true;
-            }
-            // a read at a delay that is not a literal goes through the buffer
-            std::set<Tree, treeorder>   seen;
-            std::function<void(Tree)> vr = [&](Tree u) {
-                if (!seen.insert(u).second) {
-                    return;
-                }
-                Tree x, y;
-                int  lit;
-                if (isSigDelay(u, x, y) && fSN.indexOf(x) >= 0 && !isSigInt(y, &lit)) {
-                    varRead[resolve(fSN.indexOf(x))] = true;
-                }
-                Tree var, body;
-                if (isRec(u, var, body)) {
-                    if (body) {
-                        vr(body);
-                    }
-                    return;
-                }
-                for (int k = 0; k < u->arity(); k++) {
-                    vr(u->branch(k));
-                }
-            };
-            vr(defOf(mat[m]));
         }
+        (void)resolve;
         // a display capture reads the value d samples before the last one
         // of the chunk : the member's rotation must run d+1 deep and be
         // saved, whatever its loop reads
