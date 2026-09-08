@@ -63,7 +63,6 @@
 #include "descend.hh"
 #include "factorizeFIRs.hh"
 #include "kernelCandidacy.hh"
-#include "groupPlan.hh"
 #include "revealMatrix.hh"
 #include "lowerSums.hh"
 #include "sigtype.hh"
@@ -1926,58 +1925,6 @@ class LoopSplitEmitter {
     MatrixPlans fMatrix;
     bool        fRowOp = false;
 
-    // the hierarchical grouping (spec LE-GROUPEMENT-HIERARCHIQUE) : the
-    // deposit tree. Producers : the super-node partition (Loop layer)
-    // and the matrix families (Atomic "matrix-row"). The walk consults
-    // the tree ; the regimes keep their private data (fMatrix).
-    GroupPlan fPlan;
-
-    void buildGroupPlan()
-    {
-        fPlan = GroupPlan();
-        std::map<int, int> loopNode;  // block -> Loop node id
-        for (int b = 0; b < fSN.blockCount(); b++) {
-            GroupNode ln{GroupNode::kLoop};
-            int       lid = fPlan.add(std::move(ln), 0);
-            loopNode[b]   = lid;
-            for (int m : fSN.blockMembers(b)) {
-                Tree s   = fSN.materialized()[m];
-                auto row = fMatrix.rowOf.find(s);
-                if (fRowOp && row != fMatrix.rowOf.end()) {
-                    // a materialized matrix row : Atomic wrapping its leaf
-                    GroupNode an{GroupNode::kAtomic};
-                    an.regime     = "matrix-row";
-                    an.a          = row->second.first;
-                    an.b          = row->second.second;
-                    const int n   = (int)fMatrix.families[an.a].tuple.size();
-                    an.weight     = std::max(1, (n + 3) / 4 + (n + 2) / 4);
-                    int aid       = fPlan.add(std::move(an), lid);
-                    fPlan.atomOf.emplace(s, aid);
-                    fPlan.leaf(s, m, aid);
-                } else {
-                    fPlan.leaf(s, m, lid);
-                }
-            }
-        }
-        if (fRowOp) {
-            // non-materialized rows (claimed expressions) : Atomic under
-            // the root -- their loop is only known at consumption time
-            for (auto& [s, fr] : fMatrix.rowOf) {
-                if (fPlan.atomOf.count(s)) {
-                    continue;
-                }
-                GroupNode an{GroupNode::kAtomic};
-                an.regime   = "matrix-row";
-                an.a        = fr.first;
-                an.b        = fr.second;
-                const int n = (int)fMatrix.families[an.a].tuple.size();
-                an.weight   = std::max(1, (n + 3) / 4 + (n + 2) / 4);
-                int aid     = fPlan.add(std::move(an), 0);
-                fPlan.atomOf.emplace(s, aid);
-                fPlan.leaf(s, -1, aid);
-            }
-        }
-    }
     std::map<int, std::string> fMatTable;  // family -> coefficient table field
     std::map<int, bool>        fMatRecBlock;  // block -> carries a recurrence
 
@@ -2524,7 +2471,7 @@ class LoopSplitEmitter {
         }
         if (tvec V; isSigSum(t, V)) {
             const bool wrapInt = (getCertifiedSigType(t)->nature() == kInt);
-            if (fRowOp && !wrapInt && fPlan.isAtomic(t) && blockHasRecurrence(curScc)) {
+            if (fRowOp && !wrapInt && fMatrix.rowOf.count(t) && blockHasRecurrence(curScc)) {
                 // MATRIX ROW OP (the -ls regime of the fourth gathering) :
                 // the row is ONE indivisible op spelled as an unrolled dot
                 // product over TWO CONTIGUOUS ARRAYS -- the family's
@@ -2543,8 +2490,8 @@ class LoopSplitEmitter {
                 // (ulp-class vs the source order, legal at onset ; the
                 // regime stays out of the impulse-gate option sets). Int
                 // rows stay on the chain (wrapInt spelling, excluded v1).
-                const GroupNode&    at  = fPlan.atomic(t);  // regime "matrix-row"
-                const int           fam = at.a, row = at.b;
+                const auto&         fr  = fMatrix.rowOf.at(t);  // regime "matrix-row"
+                const int           fam = fr.first, row = fr.second;
                 const MatrixFamily& F = fMatrix.families[fam];
                 const int           n = (int)F.tuple.size();
                 if (!fMatTable.count(fam)) {
@@ -2620,7 +2567,10 @@ class LoopSplitEmitter {
                 }
                 o.op = newOp("(" + code + ")", git->second.second, false, false, false);
                 fOps[o.op].shape  = 14;
-                fOps[o.op].weight = at.weight;  // the Atomic's declared weight
+                // the regime's declared weight : one indivisible op priced at
+                // its vectorised reduction tariff, a function of the family's
+                // width and of nothing else
+                fOps[o.op].weight = std::max(1, (n + 3) / 4 + (n + 2) / 4);
                 fOpOf[t]          = o.op;
                 return o;
             }
@@ -4776,12 +4726,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             [](const std::string& l) { return l; }, "loop split");
     }
     int                      n   = (int)mat.size();
-
-    // 2d. the deposit tree (spec LE-GROUPEMENT-HIERARCHIQUE) : the
-    // partition is FINAL here (dissolution and fusion moves done) --
-    // record it, with the matrix families' Atomic deposits, before any
-    // emission decision reads it.
-    buildGroupPlan();
 
     // 3. buffers. Three flavors, by maxDelay m:
     //    m == 0                 chunk-local vector, no state
