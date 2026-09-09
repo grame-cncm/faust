@@ -43,10 +43,11 @@ def main() -> None:
         print(err)
         dsp.unsafe_free()
         return
-    try:
-        _ = input()
-    except e:
-        print(e)
+    err = wait_stdin()
+    if err:
+        _ = driver.stop()
+        dsp.unsafe_free()
+        print(err)
         return
     err = driver.stop()
     if err:

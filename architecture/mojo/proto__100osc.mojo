@@ -1,7 +1,6 @@
-# ==============================================================================
-# Probe file to prototype hardcoded Dsp shapes
-# ==============================================================================
+# proto__100osc.mojo
 
+from max.gpu.sync import barrier
 from std.sys import has_accelerator
 
 from conf import *
@@ -12,15 +11,21 @@ from help import *
 from meta import *
 from audio.portaudio import *
 from audio.portaudio.gpu import PortAudioGpu
+from gui.terminal import TerminalGui
+
 
 struct ProbeDsp(FaustDspGpu):
     var sample_rate: S32
+    var freq_shift: FaustFloat
     var phases: Arr[FaustFloat, NUM_OSCS]
+    var osc_buf: Arr[FaustFloat, OSC_BUF_SIZE]
 
     @always_inline
     def __init__(out dsp):
         dsp.sample_rate = 0
+        dsp.freq_shift = FaustFloat(0.0)
         dsp.phases = Arr[FaustFloat, NUM_OSCS](fill=FaustFloat(0.0))
+        dsp.osc_buf = Arr[FaustFloat, OSC_BUF_SIZE](uninitialized=True)
 
     @always_inline
     def get_num_inputs(imm dsp) -> S32:
@@ -44,7 +49,7 @@ struct ProbeDsp(FaustDspGpu):
 
     @always_inline
     def instance_reset_user_interface(mut dsp) -> None:
-        pass
+        dsp.freq_shift = FaustFloat(0.0)
 
     @always_inline
     def instance_clear(mut dsp) -> None:
@@ -71,42 +76,61 @@ struct ProbeDsp(FaustDspGpu):
 
     @always_inline
     def build_user_interface(mut dsp, mut ui: Some[FaustGui]) -> None:
-        pass
+        ui.open_vertical_box("Oscillators")
+        ui.add_horizontal_slider(
+            "Frequency shift", dsp.freq_shift,
+            FaustFloat(0.0), FaustFloat(-10.0), FaustFloat(10.0), FaustFloat(0.1)
+        )
+        ui.close_box()
 
     @staticmethod
-    @always_inline
     def gpu_compute(
         dsp_raw: Ptr[U8, MUT_ANY], buf_size: S32, in_buf: ImmStream, out_buf: MutStream
     ) -> None:
         var dsp = dsp_raw.unsafe_bitcast[ProbeDsp]()
         var osc = Int(global_idx.x)
-        if osc >= NUM_OSCS:
+
+        if osc < NUM_OSCS:
+            dsp[]._compute_osc(osc, buf_size)
+
+        barrier()
+        if osc != 0:
             return
 
-        var output = out_buf.unsafe_offset(osc * Int(buf_size))
-        dsp[]._compute_osc(osc, buf_size, output)
+        var frames = Int(buf_size)
+        var left = out_buf
+        var right = out_buf.unsafe_offset(frames)
+        for frame in range(frames):
+            var sample = FaustFloat(0.0)
+            for index in range(NUM_OSCS):
+                sample += dsp[].osc_buf[index * frames + frame]
+            left[unsafe_offset=frame] = sample
+            right[unsafe_offset=frame] = sample
 
     @always_inline
-    def _compute_osc(
-        mut dsp, osc: Int, buf_size: S32, output: Ptr[FaustFloat, MUT_NOTRK]
-    ) -> None:
+    def _compute_osc(mut dsp, osc: Int, buf_size: S32) -> None:
         var phase = dsp.phases[osc]
-        var frequency = FaustFloat(55 * (osc + 1))
+        var frequency = BASE_FREQ
+        if osc >= NUM_FIXED_OSCS:
+            frequency += dsp.freq_shift
         var step = TWO_PI * frequency / FaustFloat(dsp.sample_rate)
+        var offset = osc * Int(buf_size)
 
         for frame in range(Int(buf_size)):
-            output[unsafe_offset=frame] = AMP * sin(phase.cast[f32]()).cast[dfaust]()
+            dsp.osc_buf[offset + frame] = GAIN * sin(phase.cast[f32]()).cast[dfaust]()
             phase += step
-
             if phase >= TWO_PI:
                 phase -= TWO_PI
 
         dsp.phases[osc] = phase
 
 
+comptime BASE_FREQ = FaustFloat(80.0)
 comptime TWO_PI = FaustFloat(6.283185307179586)
-comptime AMP = FaustFloat(0.15)
-comptime NUM_OSCS = 2
+comptime GAIN = FaustFloat(0.002)
+comptime NUM_OSCS = 100
+comptime NUM_FIXED_OSCS = 50
+comptime OSC_BUF_SIZE = NUM_OSCS * Int(BUFF_SIZE)
 comptime GPU_GRID_SIZE = 1
 comptime GPU_BLOCK_SIZE = NUM_OSCS
 
@@ -119,32 +143,22 @@ def main() -> None:
     dsp.unsafe_write(ProbeDsp())
     dsp[].init(SAMP_RATE)
 
+    var gui = TerminalGui[dfaust]()
+    dsp[].build_user_interface(gui)
     var driver = PortAudioGpu[ProbeDsp](GPU_GRID_SIZE, GPU_BLOCK_SIZE)
+
     var err = driver.init()
-    if err:
+    if not err:
+        err = driver.start(dsp)
+    if not err:
+        err = gui.run()
+    if not err:
+        err = driver.stop()
+    if not err:
         dsp.unsafe_free()
-        print(err)
+        print("done")
         return
 
-    err = driver.start(dsp)
-    if err:
-        _ = driver.stop()
-        dsp.unsafe_free()
-        print(err)
-        return
-
-    err = wait_stdin()
-    if err:
-        _ = driver.stop()
-        dsp.unsafe_free()
-        print(err)
-        return
-
-    err = driver.stop()
-    if err:
-        dsp.unsafe_free()
-        print(err)
-        return
-
+    print(err)
+    _ = driver.stop()
     dsp.unsafe_free()
-    print("done")
