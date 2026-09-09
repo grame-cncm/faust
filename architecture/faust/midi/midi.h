@@ -208,7 +208,7 @@ class MidiNRPN {
     
     public:
         
-        MidiNRPN(): ctrlnew(false), nrpn_lsb(-1), nrpn_msb(-1), data_lsb(-1), data_msb(-1)
+        MidiNRPN(): ctrlnew(false), ctrlnum(0), ctrlval(0), nrpn_lsb(-1), nrpn_msb(-1), data_lsb(-1), data_msb(-1)
         {}
         
         // return true if the message has been filtered

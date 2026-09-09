@@ -26,6 +26,8 @@ architecture section is not modified.
 #define __daisy_midi__
 
 #include <cstdlib>
+#include <cstdint>
+#include <array>
 
 class daisy_midi {
     

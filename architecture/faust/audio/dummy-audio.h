@@ -86,6 +86,7 @@ class dummyaudio_real : public dummyaudio_base {
         static void* run(void* ptr)
         {
             static_cast<dummyaudio_real*>(ptr)->runAux();
+            return nullptr;
         }
     #else
         std::thread* fAudioThread = nullptr;
@@ -111,19 +112,19 @@ class dummyaudio_real : public dummyaudio_base {
                         int sample = -1,
                         bool manager = false,
                         bool exit = false)
-        :fSampleRate(sr), fBufferSize(bs),
+        :fDSP(nullptr), fSampleRate(sr), fBufferSize(bs),
         fInChannel(nullptr), fOutChannel(nullptr),
         fNumInputs(-1), fNumOutputs(-1),
-        fRender(0), fCount(count),
+        fRunning(false), fRender(0), fCount(count),
         fSample(sample), fManager(manager),
         fExit(exit)
         {}
         
         dummyaudio_real(int count = BUFFER_TO_RENDER)
-        :fSampleRate(48000), fBufferSize(512),
+        :fDSP(nullptr), fSampleRate(48000), fBufferSize(512),
         fInChannel(nullptr), fOutChannel(nullptr),
         fNumInputs(-1), fNumOutputs(-1),
-        fRender(0), fCount(count),
+        fRunning(false), fRender(0), fCount(count),
         fSample(512), fManager(false),
         fExit(false)
         {}
@@ -211,7 +212,7 @@ class dummyaudio_real : public dummyaudio_base {
             if (fNumInputs > 0) {
                 for (int frame = 0; frame < fSample; frame++) {
                     for (int chan = 0; chan < fNumInputs; chan++) {
-                        std::cout << std::fixed << std::setprecision(10) << "\t chan " << chan << " in " << fInChannel[0][frame];
+                        std::cout << std::fixed << std::setprecision(10) << "\t chan " << chan << " in " << fInChannel[chan][frame];
                     }
                     std::cout << std::endl;
                 }

@@ -275,14 +275,16 @@ inline std::string renderHTML(const RenderNode& root, const HTMLOptions& opt)
         ss << opt.fThemeCSS << "\n";
     }
     ss << "</style>\n";
-    if (!opt.fScript.empty()) {
-        ss << "<script>" << opt.fScript << "</script>\n";
-    }
     ss << "</head><body><div class=\"faust-ui\">\n";
 
     htmlGroup(ss, root, opt);
 
-    ss << "</div></body></html>\n";
+    ss << "</div>\n";
+    // The script queries the DOM when it runs, so it must come after the widgets
+    if (!opt.fScript.empty()) {
+        ss << "<script>" << opt.fScript << "</script>\n";
+    }
+    ss << "</body></html>\n";
     return ss.str();
 }
 

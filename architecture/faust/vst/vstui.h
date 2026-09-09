@@ -266,7 +266,7 @@ class vstUI : public UI {
         
         // Constructor
         vstUI()
-        : fStopped(false), freqIndex(-1), gainIndex(-1), gateIndex(-1)
+        : fStopped(false), freqIndex(-1), gainIndex(-1), gateIndex(-1), prevFreqIndex(-1), pitchbendIndex(-1)
         {}
         
         // Destructor
@@ -310,7 +310,7 @@ class vstUI : public UI {
          */
         const char* getControlMetadata(int index, const char* key, const char* defaultString)
         {
-            if (index < 0 || index > (int)fUITable.size()) {
+            if (index < 0 || index >= (int)fUITable.size()) {
                 TRACE(fprintf(stderr, "Illegal index (%d) accessed by getControlMetadata\n",
                               index));
                 return defaultString;
@@ -351,6 +351,12 @@ class vstUI : public UI {
         {
             if (anyIndex < 0) {
                 TRACE(fprintf(stderr, "=== Faust VSTi: %sIndex = %d never set!\n",
+                               str, anyIndex));
+                return -1;
+            }
+            
+            if (anyIndex >= (int)fUITable.size()) {
+                TRACE(fprintf(stderr, "=== Faust VSTi: %sIndex = %d too large!\n",
                                str, anyIndex));
                 return -1;
             }

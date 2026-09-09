@@ -27,6 +27,7 @@ architecture section is not modified.
 
 #include <string>
 #include <iostream>
+#include <cstring>
 #include <assert.h>
 
 #include "faust/dsp/dsp-adapter.h"

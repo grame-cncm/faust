@@ -22,6 +22,9 @@
  architecture section is not modified.
  ************************************************************************/
 
+#ifndef __opensles_android_dsp__
+#define __opensles_android_dsp__
+
 /*
 * This is an interface for OpenSL ES to make it easier to use with Android
 * devices.  
@@ -33,6 +36,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 typedef struct threadLock_ {
 	pthread_mutex_t m;
@@ -401,7 +405,7 @@ void android_CloseAudioDevice(OPENSL_STREAM *p) {
 	if (p->outlock != NULL) {
 		notifyThreadLock(p->outlock);
 		destroyThreadLock(p->outlock);
-		p->inlock = NULL;
+		p->outlock = NULL;
 	}
 
 	if (p->outputBuffer[0] != NULL) {
@@ -499,8 +503,12 @@ void bqRecorderCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
 // gets a buffer of size samples from the device
 int android_AudioIn(OPENSL_STREAM *p, float *buffer, int size) {
 	short *inBuffer;
-	int i, bufsamps = p->inBufSamples, index = p->currentInputIndex;
-	if (p == NULL || bufsamps == 0)
+	int i, bufsamps, index;
+	if (p == NULL)
+		return 0;
+	bufsamps = p->inBufSamples;
+	index = p->currentInputIndex;
+	if (bufsamps == 0)
 		return 0;
 
 	inBuffer = p->inputBuffer[p->currentInputBuffer];
@@ -533,12 +541,14 @@ void bqPlayerCallback(SLAndroidSimpleBufferQueueItf bq, void *context) {
 int android_AudioOut(OPENSL_STREAM *p, float **buffer, int size) {
 
 	short *outBuffer;
-	int i, bufsamps = p->outBufSamples, index = p->currentOutputIndex;
-	if (p == NULL || bufsamps == 0)
+	int i, bufsamps, index;
+	if (p == NULL)
 		return 0;
-    
-    __android_log_write(ANDROID_LOG_INFO, "FaustCPP", "Error");
-    
+	bufsamps = p->outBufSamples;
+	index = p->currentOutputIndex;
+	if (bufsamps == 0)
+		return 0;
+
 	outBuffer = p->outputBuffer[p->currentOutputBuffer];
     if (p->outchannels == 1) {
         for (i = 0; i < size; i++) {
@@ -607,6 +617,7 @@ int waitThreadLock(void *lock) {
 	}
 	p->s = (unsigned char) 0;
 	pthread_mutex_unlock(&(p->m));
+	return retval;
 }
 
 void notifyThreadLock(void *lock) {
@@ -628,4 +639,6 @@ void destroyThreadLock(void *lock) {
 	pthread_mutex_destroy(&(p->m));
 	free(p);
 }
+
+#endif
 /**************************  END  opensles-android-dsp.h **************************/

@@ -207,8 +207,8 @@ class CMDUI : public UI
         {
             fThread = new std::thread(update_gui, this);
             std::cout << "Type 'q' to quit\n";
-            char c;
-            while ((c = getchar()) && (c != 'q')) {
+            int c;
+            while (((c = getchar()) != EOF) && (c != 0) && (c != 'q')) {
                 usleep(100 * 1000); 
             }
             fRun = false;
@@ -260,10 +260,13 @@ class CMDUI : public UI
                             // Argument with a value, so also ignore the value
                             if ((i+1 < fArgc) && (fArgv[i+1][0] != '-')) i++;
                         }
-                    } else {
+                    } else if (i+1 < fArgc) {
                         char* end;
                         *(p->second.fZone) = FAUSTFLOAT(std::strtod(fArgv[i+1], &end));
                         i++;
+                    } else {
+                        std::cout << fArgv[0] << " : missing value for option " << fArgv[i] << "\n";
+                        printhelp_command(file_mode);
                     }
                 } else {
                     fFiles.push_back(fArgv[i]);
@@ -286,6 +289,10 @@ class CMDUI : public UI
                         std::cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
                         printhelp_init();
                     }
+                    if (i+1 >= fArgc) {
+                        std::cout << fArgv[0] << " : missing value for option " << fArgv[i] << "\n";
+                        printhelp_init();
+                    }
                     char* end;
                     *(p->second.fZone) = FAUSTFLOAT(std::strtod(fArgv[i+1], &end));
                     i++;
@@ -299,7 +306,7 @@ class CMDUI : public UI
             for (int i = 1; i < fArgc; i++) {
                 if (fArgv[i][0] == '-') {
                     std::map<std::string, param>::iterator p = fKeyParam.find(fArgv[i]);
-                    if ((p != fKeyParam.end()) && (strcmp(fArgv[i], param1) == 0)) {
+                    if ((p != fKeyParam.end()) && (strcmp(fArgv[i], param1) == 0) && (i+1 < fArgc)) {
                         char* end;
                         *(p->second.fZone) = FAUSTFLOAT(std::strtod(fArgv[i+1], &end));
                         break;

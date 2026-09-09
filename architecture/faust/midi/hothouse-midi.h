@@ -22,8 +22,8 @@ that work under terms of your choice, so long as this FAUST
 architecture section is not modified.
 ***************************************************************************/
 
-#ifndef __daisy_midi__
-#define __daisy_midi__
+#ifndef __hothouse_midi__
+#define __hothouse_midi__
 
 #include <cstdlib>
 
@@ -67,9 +67,8 @@ class hothouse_midi : public midi_handler {
                 switch(m.type) {
                         
                     case daisy::MidiMessageType::NoteOff: {
-                        // TODO
-                        //NoteOff p = m.AsNoteOff();
-                        //handleKeyOff(time, p.channel, p.note, p.velocity);
+                        daisy::NoteOffEvent p = m.AsNoteOff();
+                        handleKeyOff(time, p.channel, p.note, p.velocity);
                         break;
                     }
                         

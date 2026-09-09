@@ -31,8 +31,10 @@
 
 #include <map>
 #include <set>
+#include <vector>
 #include <string>
 #include <string.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <stdio.h> // We use the lighter fprintf code
 

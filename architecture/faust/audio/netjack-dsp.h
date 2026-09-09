@@ -61,7 +61,7 @@ class netjackaudio : public audio
         static void netShutdown(void* arg)
         {
             printf("Network failure, shutdown...\n");
-            static_cast<netjackaudio*>(arg)->shutdown_cb();
+            static_cast<netjackaudio*>(arg)->shutdownCb();
         }
     #endif
     

@@ -158,7 +158,6 @@ LIBFAUST_API std::string getDSPMachineTarget();
 LIBFAUST_API llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 
 /**
-/**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer. 
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with C++ delete.
  * Beware: all kept factories and DSP pointers (in local variables...) thus become invalid.

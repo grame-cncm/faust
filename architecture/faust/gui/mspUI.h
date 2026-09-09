@@ -30,7 +30,9 @@
 
 #include <math.h>
 #include <assert.h>
+#include <string.h>
 #include <string>
+#include <sstream>
 #include <map>
 
 #include "faust/gui/UI.h"

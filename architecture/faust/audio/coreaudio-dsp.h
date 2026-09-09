@@ -28,6 +28,9 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <assert.h>
+#include <unistd.h>
 #include <vector>
 #include <iostream>
 #include <sys/time.h>
@@ -899,6 +902,7 @@ class TCoreAudioRenderer
                     printError(err);
                     return -1;
                 }
+                fState = false;
                 err = AudioDeviceSetProperty(inDevice, NULL, 0, kAudioDeviceSectionGlobal, kAudioDevicePropertyNominalSampleRate, outSize, &sampleRate);
                 if (err != noErr) {
                     printf("Cannot set sample rate = %d\n", sample_rate);
@@ -996,7 +1000,7 @@ class TCoreAudioRenderer
             #endif
                 fAudio->runControlCallbacks();
             } else {
-                printf("AudioUnitRender error... %x\n", fInputData);
+                printf("AudioUnitRender error... %p\n", (void*)fInputData);
                 printError(err);
             }
             return err;
@@ -1005,7 +1009,7 @@ class TCoreAudioRenderer
     public:
     
         TCoreAudioRenderer(audio* audio)
-            :fAggregateDeviceID(-1),fAggregatePluginID(-1),
+            :fAggregateDeviceID(0),fAggregatePluginID(0),
             fDevNumInChans(0),fDevNumOutChans(0),
             fPhysicalInputs(0), fPhysicalOutputs(0),
             fInChannel(0),fOutChannel(0),
@@ -1095,9 +1099,6 @@ class TCoreAudioRenderer
             fDevNumInChans = inChan;
             fDevNumOutChans = outChan;
             
-            fInChannel = new float*[fDevNumInChans];
-            fOutChannel = new float*[fDevNumOutChans];
-            
             //printf("OpenDefault inChan = %ld outChan = %ld bufferSize = %ld sample_rate = %ld\n", inChan, outChan, bufferSize, sample_rate);
             
             SInt32 major;
@@ -1128,6 +1129,9 @@ class TCoreAudioRenderer
             }
             
             // fBufferSize now has the real value, either 'bufferSize' (if could be changed) or driver current one
+            
+            fInChannel = new float*[fDevNumInChans];
+            fOutChannel = new float*[fDevNumOutChans];
             
             // AUHAL
         #if (defined(MAC_OS_X_VERSION_10_5) && (MAC_OS_X_VERSION_MAX_ALLOWED > MAC_OS_X_VERSION_10_5))
@@ -1263,7 +1267,7 @@ class TCoreAudioRenderer
                 for (int i = 0; i < inChan; i++) {
                     chanArr[i] = i;
                 }
-                AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap , kAudioUnitScope_Input, 1, chanArr, sizeof(SInt32) * fPhysicalInputs);
+                err = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_ChannelMap , kAudioUnitScope_Input, 1, chanArr, sizeof(SInt32) * fPhysicalInputs);
                 if (err != noErr) {
                     printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_ChannelMap 1\n");
                     printError(err);
@@ -1371,7 +1375,7 @@ class TCoreAudioRenderer
                 for (int i = 0; i < inChan; i++) {
                     fInputData->mBuffers[i].mNumberChannels = 1;
                     fInputData->mBuffers[i].mData = malloc(fBufferSize * sizeof(float));
-                    assert(fInputData->mBuffers[i].mData),
+                    assert(fInputData->mBuffers[i].mData);
                     fInputData->mBuffers[i].mDataByteSize = fBufferSize * sizeof(float);
                 }
             }
@@ -1402,6 +1406,10 @@ class TCoreAudioRenderer
             AudioUnitUninitialize(fAUHAL);
             CloseComponent(fAUHAL);
             fAUHAL = 0;
+            delete[] fInChannel;
+            fInChannel = nullptr;
+            delete[] fOutChannel;
+            fOutChannel = nullptr;
             return OPEN_ERR;
         }
         
@@ -1416,6 +1424,7 @@ class TCoreAudioRenderer
             }
             if (fInputData) {
                 free(fInputData);
+                fInputData = nullptr;
             }
             AudioUnitUninitialize(fAUHAL);
             CloseComponent(fAUHAL);
@@ -1424,7 +1433,9 @@ class TCoreAudioRenderer
             DestroyAggregateDevice();
             
             delete[] fInChannel;
+            fInChannel = nullptr;
             delete[] fOutChannel;
+            fOutChannel = nullptr;
             
             AudioObjectPropertyAddress property_address;
             property_address.mScope = kAudioObjectPropertyScopeGlobal;

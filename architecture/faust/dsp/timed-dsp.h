@@ -26,6 +26,7 @@ architecture section is not modified.
 #define __timed_dsp__
 
 #include <set>
+#include <algorithm>
 #include <float.h>
 #include <assert.h>
 
@@ -197,8 +198,8 @@ class timed_dsp : public decorator_dsp {
                     next_control.fDate = convertUsecToSample(next_control.fDate);
                 }
                      
-                // Compute audio slice
-                slice = int(next_control.fDate) - offset;
+                // Compute audio slice, keeping it in the [0, count - offset] range (the control date may be outside the buffer)
+                slice = std::min(std::max(int(next_control.fDate), offset), count) - offset;
                 computeSlice(offset, slice, inputs, outputs);
                 offset += slice;
                

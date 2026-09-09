@@ -29,6 +29,7 @@ architecture section is not modified.
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <new>
 
 #include "faust/dsp/dsp.h"
 #include "faust/audio/audio.h"
@@ -122,7 +123,7 @@ class FaustPolyEngine {
             if (handler) handler->setName(meta.fName);
             
             // If driver cannot be initialized, start will fail later on...
-            if (!driver->init(meta.fName.c_str(), fFinalDSP)) {
+            if (driver && !driver->init(meta.fName.c_str(), fFinalDSP)) {
                 delete fFinalDSP;
                 throw std::bad_alloc();
             } else {
@@ -150,7 +151,7 @@ class FaustPolyEngine {
          */
         bool start()
         {
-            if (!fRunning) {
+            if (!fRunning && fDriver) {
                 fRunning = fDriver->start();
             }
             return fRunning;
@@ -549,7 +550,7 @@ class FaustPolyEngine {
          * getCPULoad()
          * Return DSP CPU load.
          */
-        float getCPULoad() { return fDriver->getCPULoad(); }
+        float getCPULoad() { return (fDriver) ? fDriver->getCPULoad() : 0.f; }
 
         /*
          * getScreenColor()

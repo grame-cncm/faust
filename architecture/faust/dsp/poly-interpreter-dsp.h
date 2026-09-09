@@ -28,6 +28,7 @@ architecture section is not modified.
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/misc.h"
+#include <iostream>
 
 /**
  *  Interpreter backend based Polyphonic DSP factory class.
@@ -66,9 +67,10 @@ struct interpreter_dsp_poly_factory : public dsp_poly_factory {
 };
 
 /**
- * Create a Faust Polyphonic DSP factory from a DSP source code as a file.
+ * Create a Faust Polyphonic DSP factory from a DSP source code as a string.
  *
- * @param filename - the DSP filename
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
  * @param error_msg - the error string to be filled
@@ -88,7 +90,7 @@ static interpreter_dsp_poly_factory* createInterpreterPolyDSPFactoryFromString(c
 }
 
 /**
- * Create a Faust Polyphonic DSP factory from a DSP source code as a string.
+ * Create a Faust Polyphonic DSP factory from a DSP source code as a file.
  *
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
@@ -115,7 +117,7 @@ static interpreter_dsp_poly_factory* createInterpreterPolyDSPFactoryFromFile(con
 static dsp_poly_factory* readInterpreterPolyDSPFactoryFromMachineFile(const std::string& bit_code_path, std::string& error_msg)
 {
     std::string process_path = bit_code_path + "_bitcode_process.fbc";
-    std::string effect_path = bit_code_path + "_bicode_effect.fbc";
+    std::string effect_path = bit_code_path + "_bitcode_effect.fbc";
     interpreter_dsp_factory* process_factory = readInterpreterDSPFactoryFromBitcodeFile(process_path, error_msg);
     interpreter_dsp_factory* effect_factory = readInterpreterDSPFactoryFromBitcodeFile(effect_path, error_msg);
     if (process_factory) {
@@ -137,7 +139,7 @@ static void writeInterpreterPolyDSPFactoryToMachineFile(dsp_poly_factory* factor
 {
     std::string process_path = bit_code_path + "_bitcode_process.fbc";
     if (factory->fEffectFactory) {
-        std::string effect_path = bit_code_path + "_bicode_effect.fbc";
+        std::string effect_path = bit_code_path + "_bitcode_effect.fbc";
         writeInterpreterDSPFactoryToBitcodeFile(static_cast<interpreter_dsp_factory*>(factory->fEffectFactory), effect_path);
     }
     writeInterpreterDSPFactoryToBitcodeFile(static_cast<interpreter_dsp_factory*>(factory->fProcessFactory), process_path);

@@ -27,6 +27,7 @@
 
 #include <cfenv>
 #include <iostream>
+#include <stdexcept>
 #include <signal.h>
 
 #ifndef HAVE_FEENABLEEXCEPT
@@ -45,11 +46,18 @@ inline int feenableexcept(unsigned int excepts)
     if (fegetenv(&fenv)) {
         return -1;
     }
+#if defined(__arm64__) || defined(__aarch64__)
+    old_excepts = (fenv.__fpcr >> 8) & FE_ALL_EXCEPT;
+    
+    // unmask (trap enable bits are FE_* << 8 in FPCR)
+    fenv.__fpcr |= (new_excepts << 8);
+#else
     old_excepts = fenv.__control & FE_ALL_EXCEPT;
     
     // unmask
     fenv.__control &= ~new_excepts;
     fenv.__mxcsr   &= ~(new_excepts << 7);
+#endif
     
     return fesetenv(&fenv) ? -1 : old_excepts;
 }
@@ -64,11 +72,18 @@ inline int fedisableexcept(unsigned int excepts)
     if (fegetenv(&fenv)) {
         return -1;
     }
+#if defined(__arm64__) || defined(__aarch64__)
+    old_excepts = (fenv.__fpcr >> 8) & FE_ALL_EXCEPT;
+    
+    // mask (trap enable bits are FE_* << 8 in FPCR)
+    fenv.__fpcr &= ~(new_excepts << 8);
+#else
     old_excepts = fenv.__control & FE_ALL_EXCEPT;
     
     // mask
     fenv.__control |= new_excepts;
     fenv.__mxcsr   |= new_excepts << 7;
+#endif
     
     return fesetenv(&fenv) ? -1 : old_excepts;
 }
@@ -126,6 +141,7 @@ struct ScopedFPEHandler {
     // Installs the handler and enables FE_INVALID/FE_DIVBYZERO/FE_OVERFLOW
     ScopedFPEHandler()
     {
+        fegetenv(&fOldEnv);
         feclearexcept(FE_ALL_EXCEPT);
         feenableexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
         

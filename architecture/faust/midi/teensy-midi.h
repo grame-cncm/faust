@@ -44,16 +44,16 @@ class teensy_midi : public midi_handler {
             while (gUSBMIDI.read()) {
                 
                 int type = gUSBMIDI.getType();       // which MIDI message, 128-255
-                int channel = gUSBMIDI.getChannel(); // which MIDI channel, 0-15
-                double time = (double)gUSBMIDI.Clock;
+                int channel = gUSBMIDI.getChannel() - 1; // Teensy channel is 1-16, midi_handler expects 0-15
+                double time = 0.;
                 
                 switch(type) {
                     case gUSBMIDI.Clock:
                         handleClock(time);
                         break;
-                    case usbMIDI.Start:
+                    case gUSBMIDI.Start:
                     // We can consider start and continue as identical messages
-                    case usbMIDI.Continue:
+                    case gUSBMIDI.Continue:
                         handleStart(time);
                         break;
                     case gUSBMIDI.Stop:

@@ -41,7 +41,7 @@
     #ifdef FAUST_EXE
         #define FAUST_API
         #define LIBFAUST_API
-    #elif FAUST_LIB
+    #elif defined(FAUST_LIB)
         #define FAUST_API __declspec(dllexport)
         #define LIBFAUST_API __declspec(dllexport)
     #else

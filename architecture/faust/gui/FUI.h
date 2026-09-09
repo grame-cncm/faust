@@ -89,8 +89,7 @@ class FUI : public UI, public PathBuilder
             std::ifstream file(filename);
             FAUSTFLOAT value;
             std::string path1, path2;
-            while (file.good()) {
-                file >> value >> path1;
+            while (file >> value >> path1) {
                 path2 = "/" + path1;
                 if (fName2Zone.count(path1) > 0) {          // Old path system
                     *(fName2Zone[path1]) = value;

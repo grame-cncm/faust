@@ -213,11 +213,15 @@ class FAUST_API httpdClientUI : public GUI, public PathBuilder, public httpdUIAu
             httpdClientUI* ui = static_cast<httpdClientUI*>(arg);
             while (ui->fRunning) {
                 for (const auto& it : ui->fZoneMap) {
-                    char* answer;
+                    char* answer = NULL;
                     std::string path = it.first;
                     http_fetch(path.c_str(), &answer);
+                    if (!answer) continue;
                     std::string answer_str = answer;
-                    (*it.second) = (FAUSTFLOAT)std::strtod(answer_str.substr(answer_str.find(' ')).c_str(), NULL);
+                    size_t pos = answer_str.find(' ');
+                    if (pos != std::string::npos) {
+                        (*it.second) = (FAUSTFLOAT)std::strtod(answer_str.substr(pos).c_str(), NULL);
+                    }
                     // 'http_fetch' result must be deallocated
                     free(answer);
                 }

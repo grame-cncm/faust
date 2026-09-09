@@ -29,6 +29,7 @@
 #include <map>
 #include <utility>
 #include <cstdlib>
+#include <clocale>
 #include <functional>
 #include <sstream>
 #include <cstring>
@@ -192,6 +193,15 @@ struct FAUST_API JSONUIDecoderReal : public JSONUIDecoderBase {
 
     void initFromJSON(const std::string& json)
     {
+        // May be called several times: release the previously allocated controls
+        for (const auto& it : fPathInputTable) delete it;
+        for (const auto& it : fPathOutputTable) delete it;
+        fPathInputTable.clear();
+        fPathOutputTable.clear();
+        fUiItems.clear();
+        fMetadata.clear();
+        fLibraryList.clear();
+        fIncludePathnames.clear();
         fJSON = json;
         const char* p = fJSON.c_str();
         std::map<std::string, std::pair<std::string, double> > meta_data1;

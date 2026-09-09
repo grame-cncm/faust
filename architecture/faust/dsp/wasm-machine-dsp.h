@@ -211,8 +211,9 @@ LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromBitcodeFile(const std::stri
  * @param factory - the DSP factory
  * @param machine_code_path - the machine code file pathname
  *
+ * @return true on success, false on failure.
  */
-LIBFAUST_API void writeWasmDSPFactoryToBitcode(wasm_dsp_factory* factory, const std::string& machine_code_path);
+LIBFAUST_API bool writeWasmDSPFactoryToBitcodeFile(wasm_dsp_factory* factory, const std::string& machine_code_path);
 
 /*!
  @}

@@ -26,7 +26,10 @@ architecture section is not modified.
 #define __dsp_compute_adapter__
 
 #include <sstream>
+#include <iostream>
+#include <cstring>
 #include "dsp.h"
+#include "faust/gui/meta.h"
 
 /*
  To be used to decorate a DSP compiled with the --compute-mix option.

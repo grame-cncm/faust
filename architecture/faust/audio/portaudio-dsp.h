@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include <memory>
 #include <portaudio.h>
 
@@ -83,7 +84,7 @@ class portaudio : public audio {
             
             // Cleanup hardware outputs that are not used by DSP
             for (int i = fDSP->getNumOutputs(); i < fDevNumOutChans; i++) {
-                memset(obuf[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
+                memset(obuf[i], 0, sizeof(float) * frames);
             }
             
             // Process samples
@@ -140,6 +141,7 @@ class portaudio : public audio {
                 fInputParameters.device = Pa_GetDefaultInputDevice();
                 fInputParameters.sampleFormat = paFloat32 | paNonInterleaved;
                 fInputParameters.channelCount = fDevNumInChans;
+                fInputParameters.suggestedLatency = idev->defaultLowInputLatency;
                 fInputParameters.hostApiSpecificStreamInfo = 0;
             }
             
@@ -150,6 +152,7 @@ class portaudio : public audio {
                 fOutputParameters.device = Pa_GetDefaultOutputDevice();
                 fOutputParameters.sampleFormat = paFloat32 | paNonInterleaved;;
                 fOutputParameters.channelCount = fDevNumOutChans;
+                fOutputParameters.suggestedLatency = odev->defaultLowOutputLatency;
                 fOutputParameters.hostApiSpecificStreamInfo = 0;
             }
             

@@ -29,8 +29,11 @@ architecture section is not modified.
 #include <string>
 #include <iostream>
 #include <mutex>
+#include <cstring>
 
 #include "faust/dsp/dsp.h"
+#include "faust/gui/GUI.h"
+#include "faust/gui/meta.h"
 #include "faust/gui/ring-buffer.h"
 
 #define BUFFER_SIZE 512
@@ -84,6 +87,8 @@ class sound_base_player : public ::dsp {
         {
             fFileName = filename;
             fSampleRate = -1;
+            // libsndfile requires a zeroed SF_INFO (format field) when opening a file for reading
+            memset(&fInfo, 0, sizeof(fInfo));
             
             if (sizeof(FAUSTFLOAT) == 4) {
                 fReaderFun = reinterpret_cast<sample_read>(sf_readf_float);
@@ -302,6 +307,7 @@ class sound_dtd_player : public sound_base_player {
                 
             } else {
                 std::cerr << "PlaySlice : missing " << (count - read_space_frames) << " frames\n";
+                clearSlice(count, dst, outputs);
             }
         }
         

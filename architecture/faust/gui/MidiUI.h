@@ -241,7 +241,7 @@ class uiMidiStop : public uiMidiTimedItem {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            if (v != FAUSTFLOAT(1)) {
+            if (v != FAUSTFLOAT(0)) {
                 fMidiOut->stopSync(0);
             }
         }
@@ -489,7 +489,7 @@ class uiMidiPitchWheel : public uiMidiTimedItem {
         void modifyZone(double date, FAUSTFLOAT v)
         {
             if (fInputCtrl) {
-                uiMidiTimedItem::modifyZone(FAUSTFLOAT(fConverter.ui2faust(v)));
+                uiMidiTimedItem::modifyZone(date, FAUSTFLOAT(fConverter.ui2faust(v)));
             }
         }
     

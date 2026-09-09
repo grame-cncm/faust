@@ -29,6 +29,8 @@
 #include <assert.h>
 #include <rtaudio/RtAudio.h>
 #include <stdlib.h>
+#include <iostream>
+#include <vector>
 
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp-adapter.h"

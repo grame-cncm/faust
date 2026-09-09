@@ -27,8 +27,10 @@ architecture section is not modified.
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 #include "faust/dsp/dsp.h"
+#include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
 #include "ysfx.h"
 
@@ -52,6 +54,11 @@ class ysfx_dsp : public ::dsp {
         std::vector<ControlValue*> fInputsValue;
         std::vector<ControlValue*> fOutputsValue;
     
+        static bool startWith(const std::string& str, const std::string& prefix)
+        {
+            return (str.substr(0, prefix.size()) == prefix);
+        }
+    
         void updateInputsControl()
         {
             for (int i = 0; i < fInputsValue.size(); i++) {
@@ -73,11 +80,11 @@ class ysfx_dsp : public ::dsp {
             fConfig = ysfx_config_new();
             fDSP = ysfx_new(fConfig);
             if (!ysfx_load_file(fDSP, filename, 0)) {
-                std::cerr << "File not found:" << filename << endl;
+                std::cerr << "File not found:" << filename << std::endl;
                 throw std::bad_alloc();
             }
             if (!ysfx_compile(fDSP, 0)) {
-                cout << "Cannot compile:" << filename << endl;
+                std::cout << "Cannot compile:" << filename << std::endl;
                 throw std::bad_alloc();
             }
             fFileName = filename;
@@ -113,7 +120,7 @@ class ysfx_dsp : public ::dsp {
                 ysfx_slider_range_t ra;
                 ysfx_slider_get_range(fDSP, i, &ra);
                 fInputsValue.push_back(new ControlValue(ra.def));
-                string name = ysfx_slider_get_name(fDSP, i);
+                std::string name = ysfx_slider_get_name(fDSP, i);
                 if (startWith(name, "button")) {
                     ui_interface->addButton(ysfx_slider_get_name(fDSP, i), &fInputsValue[i]->fValue);
                 } else if (startWith(name, "checkbox")) {

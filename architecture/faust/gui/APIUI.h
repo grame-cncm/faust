@@ -31,6 +31,7 @@ architecture section is not modified.
 #include <stdio.h>
 #include <map>
 #include <cstring>
+#include <algorithm>
 
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
@@ -285,7 +286,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                 // Fill 'shortname' field for each item
                 for (const auto& it : fFull2Short) {
                     int index = getParamIndex(it.first.c_str());
-                    fItems[index].fShortname = it.second;
+                    if (index >= 0) fItems[index].fShortname = it.second;
                 }
             }
         }
@@ -427,7 +428,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         std::map<const char*, const char*> getMetadata(int p)
         {
             std::map<const char*, const char*> res;
-            std::map<std::string, std::string> metadata = fMetaData[uint(p)];
+            const std::map<std::string, std::string>& metadata = fMetaData[uint(p)];
             for (const auto& it : metadata) {
                 res[it.first.c_str()] = it.second.c_str();
             }

@@ -94,6 +94,10 @@ class pipewire_midi: public midi_handler {
         void writeMessage(double date, unsigned char* buffer, size_t size)
         {
             size_t res;
+            if (size > sizeof(DatedMessage::fBuffer)) {
+                std::cerr << "writeMessage error: message size (" << size << ") not supported" << std::endl;
+                return;
+            }
             DatedMessage dated_message(date, buffer, size);
             if ((res = ringbuffer_write(fOutBuffer, (const char*)&dated_message, sizeof(DatedMessage))) != sizeof(DatedMessage)) {
                 std::cerr << "ringbuffer_write error DatedMessage" << std::endl;
@@ -117,7 +121,7 @@ class pipewire_midi: public midi_handler {
                 const void *data;
                 uint32_t size;
 
-                spa_pod_get_bytes(&c->value, &data, &size);
+                if (spa_pod_get_bytes(&c->value, &data, &size) < 0 || size == 0) continue;
 
                 int type = ((uint8_t *)data)[0] & 0xf0;
                 int channel = ((uint8_t *)data)[0] & 0x0f;
@@ -210,10 +214,8 @@ class pipewire_midi: public midi_handler {
                 const void *data;
                 uint32_t size;
 
-                spa_pod_get_bytes(&c->value, &data, &size);
+                if (spa_pod_get_bytes(&c->value, &data, &size) < 0 || size == 0) continue;
 
-                int type = ((uint8_t *)data)[0] & 0xf0;
-                int channel = ((uint8_t *)data)[0] & 0x0f;
                 double time = c->offset;
 
                 if (size <= 3) {
@@ -221,8 +223,8 @@ class pipewire_midi: public midi_handler {
                     MIDIMessage& mes = messages->at(count++);
                     mes.frameIndex = (uint32_t)(time - first_time_stamp);
                     mes.byte0 = ((uint8_t *)data)[0];
-                    mes.byte1 = ((uint8_t *)data)[1];
-                    mes.byte2 = ((uint8_t *)data)[2];
+                    mes.byte1 = (size > 1) ? ((uint8_t *)data)[1] : 0;
+                    mes.byte2 = (size > 2) ? ((uint8_t *)data)[2] : 0;
                 } else {
                     std::cerr << "recvMessages : long messages (" << size << ") are not supported yet\n";
                 }

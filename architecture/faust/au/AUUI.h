@@ -37,7 +37,14 @@
  the corresponding license.
  ************************************************************************/
 
+#ifndef __AUUI_H__
+#define __AUUI_H__
+
 #include <vector>
+#include <string>
+#include <cstring>
+#include <cstdio>
+#include <cassert>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/MetaDataUI.h"
@@ -243,7 +250,12 @@ struct auBox: public auUIObject {
     {}
     
     virtual ~auBox()
-    {}
+    {
+        // Nested boxes are only owned by their parent box (widgets are owned by auUI::fUITable)
+        for (size_t i = 0; i < fChildren.size(); i++) {
+            if (auBox* box = dynamic_cast<auBox*>(fChildren[i])) delete box;
+        }
+    }
   
     void add(auUIObject* child)
     {
@@ -271,7 +283,7 @@ struct auUI : public UI, public MetaDataUI {
 		for (std::vector<auUIObject*>::iterator iter = fUITable.begin();
             iter != fUITable.end(); iter++)
 			delete *iter;
-        // TODO delete boxes
+        delete boundingBox;
 	}
     
     void addButton(const char* label, FAUSTFLOAT* zone)
@@ -282,7 +294,10 @@ struct auUI : public UI, public MetaDataUI {
     }
     
     void openTabBox(const char* label)
-    {}
+    {
+        // Must open a box, since closeBox() will be called for it
+        openVerticalBox(label);
+    }
     
     void addCheckButton(const char* label, FAUSTFLOAT* zone)
     {
@@ -400,5 +415,6 @@ struct auUI : public UI, public MetaDataUI {
     
 };
 
+#endif // __AUUI_H__
 
 /**************************  END  AUUI.h **************************/

@@ -583,6 +583,11 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 }
             }
             
+            // Nothing computed: avoid a division by zero (NaN level would keep the voice alive forever)
+            if (count <= 0 || numOutputs <= 0) {
+                return FAUSTFLOAT(0);
+            }
+            
             // RMS is sqrt of mean of sum of squares across all samples in all channels
             FAUSTFLOAT meanSquare = sumSquares / (count * numOutputs);
             return std::sqrt(meanSquare);
@@ -690,7 +695,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 fprintf(stderr, "Steal playing voice : voice_date = %d cur_date = %d voice = %d \n",
                         fVoiceTable[voice_playing]->fDate,
                         fDate,
-                        voice_release);
+                        voice_playing);
                 return allocVoice(voice_playing, kLegatoVoice);
             } else {
                 assert(false);
@@ -906,7 +911,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
         void deleteVoice(MapUI* voice)
         {
-            auto it = find(fVoiceTable.begin(), fVoiceTable.end(), reinterpret_cast<dsp_voice*>(voice));
+            auto it = find(fVoiceTable.begin(), fVoiceTable.end(), static_cast<dsp_voice*>(voice));
             if (it != fVoiceTable.end()) {
                 dsp_voice* voice = *it;
                 voice->keyOff();

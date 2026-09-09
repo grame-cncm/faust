@@ -840,7 +840,7 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
                 }
             }
             if (defaultitem > -1) {
-                fComboBox.setSelectedItemIndex(defaultitem - 1);
+                fComboBox.setSelectedItemIndex(defaultitem); // defaultitem is already a 0-based index in fValues
             }
         }
 
@@ -946,6 +946,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
         virtual void resized() override
         {
             int width, height;
+            if (fButtons.size() == 0) return;
             fIsVertical ? (height = (getHeight() - kNameHeight) / fButtons.size()) : (width = getWidth() / fButtons.size());
 
             for (size_t i = 0; i < fButtons.size(); i++) {
@@ -966,11 +967,13 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
         }
 
         /** Check which button is checked, and give its "value" to the FAUST module */
-    void buttonClicked(juce::Button* button) override
+        void buttonClicked(juce::Button* button) override
         {
             juce::ToggleButton* checkButton = dynamic_cast<juce::ToggleButton*>(button);
             //std::cout << getName() << " : " << fButtons.indexOf(checkButton) << std::endl;
-            modifyZone(fButtons.indexOf(checkButton));
+            int index = fButtons.indexOf(checkButton);
+            // Give the item "value" (not its index) to the FAUST module, as done in uiMenu
+            if (index >= 0) modifyZone(FAUSTFLOAT(fValues[index]));
         }
     
 };

@@ -389,7 +389,7 @@ class dsp_merger : public dsp_binary_combiner {
 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            fDSP1->compute(count, fDSP1Inputs, fDSP1Outputs);
+            fDSP1->compute(count, inputs, fDSP1Outputs);
 
             memset(fDSP2Inputs, 0, sizeof(FAUSTFLOAT*) * fDSP2->getNumInputs());
 
@@ -517,7 +517,7 @@ class dsp_crossfader: public dsp_binary_combiner {
     
         virtual ~dsp_crossfader()
         {
-            deleteChannels(fDSPOutputs1, fDSP1->getNumInputs());
+            deleteChannels(fDSPOutputs1, fDSP1->getNumOutputs());
             deleteChannels(fDSPOutputs2, fDSP1->getNumOutputs());
         }
     

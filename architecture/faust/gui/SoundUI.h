@@ -180,6 +180,7 @@ class SoundUI : public SoundUIInterface
             } else {
                 std::cerr << "getBinaryPath CFURLGetFileSystemRepresentation error\n";
             }
+            CFRelease(bundle_ref);
         #endif
         #ifdef ANDROID_DRIVER
             bundle_path_str = "/data/data/__CURRENT_ANDROID_PACKAGE__/files";
@@ -199,7 +200,9 @@ class SoundUI : public SoundUIInterface
         {
             std::string bundle_path_str;
         #if defined(__APPLE__) && !defined(__VCVRACK__) && !defined(JUCE_32BIT) && !defined(JUCE_64BIT)
-            CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, path.c_str(), CFStringGetSystemEncoding()));
+            CFStringRef path_ref = CFStringCreateWithCString(kCFAllocatorDefault, path.c_str(), CFStringGetSystemEncoding());
+            CFBundleRef bundle = CFBundleGetBundleWithIdentifier(path_ref);
+            if (path_ref) CFRelease(path_ref);
             if (!bundle) { std::cerr << "getBinaryPathFrom CFBundleGetBundleWithIdentifier error '" << path << "'" << std::endl; return ""; }
          
             CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
@@ -211,6 +214,7 @@ class SoundUI : public SoundUIInterface
             } else {
                 std::cerr << "getBinaryPathFrom CFURLGetFileSystemRepresentation error\n";
             }
+            CFRelease(bundle_ref);
         #endif
         #ifdef ANDROID_DRIVER
             bundle_path_str = "/data/data/__CURRENT_ANDROID_PACKAGE__/files";

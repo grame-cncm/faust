@@ -30,6 +30,7 @@
 #include <string.h> // for memset
 
 #include "faust/dsp/dsp.h"
+#include "faust/audio/audio.h"
 
 #include "Arduino.h"
 #include "AudioStream.h"
@@ -105,11 +106,12 @@ class teensyaudio : public AudioStream, public audio {
     
     public:
     
-        teensyaudio():AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_INPUTS]), fRunning(false), fDSP(nullptr)
+        teensyaudio():AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_INPUTS]), fInChannel(nullptr), fOutChannel(nullptr), fRunning(false), fDSP(nullptr)
         {}
     
         virtual ~teensyaudio()
         {
+            if (!fDSP) return;
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 delete[] fInChannel[i];
             }

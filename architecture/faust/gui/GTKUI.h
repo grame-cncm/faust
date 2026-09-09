@@ -85,7 +85,7 @@ class GtkKnob {
 #define GTK_KNOB(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj), GTK_TYPE_KNOB, GtkKnob))
 #define GTK_IS_KNOB(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), GTK_TYPE_KNOB))
 #define GTK_KNOB_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST((klass), GTK_TYPE_KNOB, GtkKnobClass))
-#define GTK_IS_KNOB_CLASS(obj) (G_TYPE_CHECK_CLASS_TYPE((klass), GTK_TYPE_KNOB))
+#define GTK_IS_KNOB_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass), GTK_TYPE_KNOB))
 
 GtkKnob::GtkKnob()
 // GtkKnob constructor

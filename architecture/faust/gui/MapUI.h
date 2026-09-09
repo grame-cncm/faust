@@ -219,7 +219,7 @@ class FAUST_API MapUI : public UI, public PathBuilder
          */
         std::string getParamAddress(int index) const
         {
-            if (index < 0 || index > int(fPathZoneMap.size())) {
+            if (index < 0 || index >= int(fPathZoneMap.size())) {
                 return "";
             } else {
                 auto it = fPathZoneMap.begin();
@@ -230,7 +230,7 @@ class FAUST_API MapUI : public UI, public PathBuilder
         
         const char* getParamAddress1(int index) const
         {
-            if (index < 0 || index > int(fPathZoneMap.size())) {
+            if (index < 0 || index >= int(fPathZoneMap.size())) {
                 return nullptr;
             } else {
                 auto it = fPathZoneMap.begin();
@@ -248,7 +248,7 @@ class FAUST_API MapUI : public UI, public PathBuilder
          */
         std::string getParamShortname(int index) const
         {
-            if (index < 0 || index > int(fShortnameZoneMap.size())) {
+            if (index < 0 || index >= int(fShortnameZoneMap.size())) {
                 return "";
             } else {
                 auto it = fShortnameZoneMap.begin();
@@ -259,7 +259,7 @@ class FAUST_API MapUI : public UI, public PathBuilder
         
         const char* getParamShortname1(int index) const
         {
-            if (index < 0 || index > int(fShortnameZoneMap.size())) {
+            if (index < 0 || index >= int(fShortnameZoneMap.size())) {
                 return nullptr;
             } else {
                 auto it = fShortnameZoneMap.begin();
@@ -277,7 +277,7 @@ class FAUST_API MapUI : public UI, public PathBuilder
          */
         std::string getParamLabel(int index) const
         {
-            if (index < 0 || index > int(fLabelZoneMap.size())) {
+            if (index < 0 || index >= int(fLabelZoneMap.size())) {
                 return "";
             } else {
                 auto it = fLabelZoneMap.begin();
@@ -288,7 +288,7 @@ class FAUST_API MapUI : public UI, public PathBuilder
         
         const char* getParamLabel1(int index) const
         {
-            if (index < 0 || index > int(fLabelZoneMap.size())) {
+            if (index < 0 || index >= int(fLabelZoneMap.size())) {
                 return nullptr;
             } else {
                 auto it = fLabelZoneMap.begin();
@@ -348,7 +348,7 @@ class FAUST_API MapUI : public UI, public PathBuilder
          */
         FAUSTFLOAT* getParamZone(int index) const 
         {
-            if (index < 0 || index > int(fPathZoneMap.size())) {
+            if (index < 0 || index >= int(fPathZoneMap.size())) {
                 return nullptr;
             } else {
                 auto it = fPathZoneMap.begin();

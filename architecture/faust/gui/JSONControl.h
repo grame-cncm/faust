@@ -27,6 +27,8 @@
 
 #include <string>
 
+#include "faust/export.h"
+
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif

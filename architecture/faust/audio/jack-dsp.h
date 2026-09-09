@@ -29,6 +29,7 @@
 #include <cstdlib>
 #include <list>
 #include <vector>
+#include <string>
 #include <string.h>
 #include <jack/jack.h>
 
@@ -87,7 +88,7 @@ class jackaudio : public audio {
         
         static int _jack_buffersize(jack_nframes_t nframes, void* arg)
         {
-            fprintf(stdout, "The buffer size is now %u/sec\n", nframes);
+            fprintf(stdout, "The buffer size is now %u frames\n", nframes);
             return 0;
         }
         
@@ -315,7 +316,7 @@ class jackaudio : public audio {
                 jack_connect(fClient, fPhysicalInputs[i], jack_port_name(fInputPorts[i]));
              }
              */
-            for (size_t i = 0; i < fOutputPorts.size() && i < fPhysicalInputs.size(); i++) {
+            for (size_t i = 0; i < fOutputPorts.size() && i < fPhysicalOutputs.size(); i++) {
                 jack_connect(fClient, jack_port_name(fOutputPorts[i]), fPhysicalOutputs[i].c_str());
             }
         }
@@ -341,20 +342,20 @@ class jackaudio : public audio {
             if (driver) {
                 // Connection between drivers
                 jack_port_t* src_port = getOutputPort(src);
-                jack_port_t* dst_port = driver->getInputPort(src);
+                jack_port_t* dst_port = driver->getInputPort(dst);
                 if (src_port && dst_port) {
                     jack_connect(fClient, jack_port_name(src_port), jack_port_name(dst_port));
                 }
             } else if (reverse) {
                 // Connection to physical input
-                if ((size_t)src > fPhysicalInputs.size()) return;
+                if ((size_t)src >= fPhysicalInputs.size()) return;
                 jack_port_t* dst_port = getInputPort(dst);
                 if (dst_port) {
                     jack_connect(fClient, fPhysicalInputs[src].c_str(), jack_port_name(dst_port));
                 }
             } else {
                 // Connection to physical output
-                if ((size_t)dst > fPhysicalOutputs.size()) return;
+                if ((size_t)dst >= fPhysicalOutputs.size()) return;
                 jack_port_t* src_port = getOutputPort(src);
                 if (src_port) {
                     jack_connect(fClient, jack_port_name(src_port), fPhysicalOutputs[dst].c_str());
@@ -367,20 +368,20 @@ class jackaudio : public audio {
             if (driver) {
                 // Connection between drivers
                 jack_port_t* src_port = getOutputPort(src);
-                jack_port_t* dst_port = driver->getInputPort(src);
+                jack_port_t* dst_port = driver->getInputPort(dst);
                 if (src_port && dst_port) {
                     jack_disconnect(fClient, jack_port_name(src_port), jack_port_name(dst_port));
                 }
             } else if (reverse) {
                 // Connection to physical input
-                if ((size_t)src > fPhysicalInputs.size()) return;
+                if ((size_t)src >= fPhysicalInputs.size()) return;
                 jack_port_t* dst_port = getInputPort(dst);
                 if (dst_port) {
                     jack_disconnect(fClient, fPhysicalInputs[src].c_str(), jack_port_name(dst_port));
                 }
             } else {
                 // Connection to physical output
-                if ((size_t)dst > fPhysicalOutputs.size()) return;
+                if ((size_t)dst >= fPhysicalOutputs.size()) return;
                 jack_port_t* src_port = getOutputPort(src);
                 if (src_port) {
                     jack_disconnect(fClient, jack_port_name(src_port), fPhysicalOutputs[dst].c_str());
@@ -393,7 +394,7 @@ class jackaudio : public audio {
             if (driver) {
                 // Connection between drivers
                 jack_port_t* src_port = getOutputPort(src);
-                jack_port_t* dst_port = driver->getInputPort(src);
+                jack_port_t* dst_port = driver->getInputPort(dst);
                 if (src_port && dst_port) {
                     return jack_port_connected_to(src_port, jack_port_name(dst_port));
                 } else {
@@ -401,7 +402,7 @@ class jackaudio : public audio {
                 }
             } else if (reverse) {
                 // Connection to physical input
-                if ((size_t)src > fPhysicalInputs.size()) return false;
+                if ((size_t)src >= fPhysicalInputs.size()) return false;
                 jack_port_t* dst_port = getInputPort(dst);
                 if (dst_port) {
                     return jack_port_connected_to(dst_port, fPhysicalInputs[src].c_str());
@@ -410,7 +411,7 @@ class jackaudio : public audio {
                 }
             } else {
                 // Connection to physical output
-                if ((size_t)dst > fPhysicalOutputs.size()) return false;
+                if ((size_t)dst >= fPhysicalOutputs.size()) return false;
                 jack_port_t* src_port = getOutputPort(src);
                 if (src_port) {
                     return jack_port_connected_to(src_port, fPhysicalOutputs[dst].c_str());

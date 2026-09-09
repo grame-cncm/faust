@@ -27,6 +27,8 @@ architecture section is not modified.
 
 #include "faust/dsp/wasm-dsp.h"
 #include "faust/dsp/poly-dsp.h"
+#include "faust/misc.h"
+#include <iostream>
 
 /**
  *  wasm backend based Polyphonic DSP factory class.
@@ -84,9 +86,10 @@ struct wasm_dsp_poly_factory : public dsp_poly_factory {
 };
 
 /**
- * Create a Faust Polyphonic DSP factory from a DSP source code as a file.
+ * Create a Faust Polyphonic DSP factory from a DSP source code as a string.
  *
- * @param filename - the DSP filename
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
  * @param error_msg - the error string to be filled
@@ -108,7 +111,7 @@ static wasm_dsp_poly_factory* createWasmPolyDSPFactoryFromString(const std::stri
 }
 
 /**
- * Create a Faust Polyphonic DSP factory from a DSP source code as a string.
+ * Create a Faust Polyphonic DSP factory from a DSP source code as a file.
  *
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
@@ -134,7 +137,8 @@ wasm_dsp_poly_factory* wasm_dsp_poly_factory::createWasmPolyDSPFactoryFromString
 {
     int         argc1 = 0;
     const char* argv1[64];
-    for (size_t i = 0; i < argv.size(); i++) {
+    // Keep room for the terminating nullptr
+    for (size_t i = 0; i < argv.size() && argc1 < 63; i++) {
         argv1[argc1++] = argv[i].c_str();
     }
     argv1[argc1] = nullptr;  // NULL terminated argv

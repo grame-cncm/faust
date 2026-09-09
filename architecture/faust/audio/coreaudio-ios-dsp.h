@@ -210,7 +210,7 @@ class TiPhoneCoreAudioRenderer {
 
         static void AudioSessionPropertyListener(void* inClientData, AudioSessionPropertyID inID, UInt32 inDataSize, const void* inData)
         {
-            TiPhoneCoreAudioRenderer *obj = (TiPhoneCoreAudioRenderer*)inData;
+            TiPhoneCoreAudioRenderer *obj = (TiPhoneCoreAudioRenderer*)inClientData;
             switch (inID) {
                 case kAudioSessionProperty_ServerDied: {
                     printf("kAudioSessionProperty_ServerDied\n");
@@ -603,6 +603,7 @@ class TiPhoneCoreAudioRenderer {
         error:
             AudioUnitUninitialize(fAUHAL);
             AudioComponentInstanceDispose(fAUHAL);
+            fAUHAL = 0;
             return OPEN_ERR;
         }
 
@@ -648,8 +649,11 @@ class TiPhoneCoreAudioRenderer {
 
         int Close()
         {
-            AudioUnitUninitialize(fAUHAL);
-            AudioComponentInstanceDispose(fAUHAL);
+            if (fAUHAL) {
+                AudioUnitUninitialize(fAUHAL);
+                AudioComponentInstanceDispose(fAUHAL);
+                fAUHAL = 0;
+            }
             return NO_ERR;
         }
 

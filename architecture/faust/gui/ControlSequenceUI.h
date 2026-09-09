@@ -29,6 +29,8 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
+#include <iostream>
+#include <cmath>
 #include <assert.h>
 
 #include "faust/gui/MapUI.h"
@@ -86,7 +88,11 @@ class ControlSequenceUI : public MapUI {
             }
             
             // Keep last date
-            fCurSample = fSequence[fEvent].fDateSample;
+            if (fEvent < int(fSequence.size())) {
+                fCurSample = fSequence[fEvent].fDateSample;
+            } else {
+                fCurSample = end_sample;
+            }
         }
     
         void display()

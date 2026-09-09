@@ -323,8 +323,8 @@ int getNumInputsDsp(dsp* dsp_ext)
         audio* driver = createDriver();
         if (driver && driver->init("dummy", nullptr)) {
             res = driver->getNumInputs();
-            delete driver;
         }
+        delete driver;
         return res;
     }
 #else
@@ -342,8 +342,8 @@ int getNumOutputsDsp(dsp* dsp_ext)
         audio* driver = createDriver();
         if (driver && driver->init("dummy", nullptr)) {
             res = driver->getNumOutputs();
-            delete driver;
         }
+        delete driver;
         return res;
     }
 #else
@@ -599,11 +599,11 @@ void getAccConverterDsp(dsp* dsp_ext, int p, int* acc, int* curve, FAUSTFLOAT* a
     double amin_tmp, amid_tmp, amax_tmp;
     int    acc_tmp, curve_tmp;
     reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getAccConverter(p, acc_tmp, curve_tmp, amin_tmp, amid_tmp, amax_tmp);
-    *acc   = acc_tmp;
-    *curve = curve_tmp;
-    *amin  = FAUSTFLOAT(amin_tmp);
-    *amid  = FAUSTFLOAT(amid_tmp);
-    *amax  = FAUSTFLOAT(amax_tmp);
+    if (acc) *acc = acc_tmp;
+    if (curve) *curve = curve_tmp;
+    if (amin) *amin = FAUSTFLOAT(amin_tmp);
+    if (amid) *amid = FAUSTFLOAT(amid_tmp);
+    if (amax) *amax = FAUSTFLOAT(amax_tmp);
 }
 
 void propagateGyrDsp(dsp* dsp_ext, int gyr, FAUSTFLOAT a) noexcept
@@ -630,11 +630,11 @@ void getGyrConverterDsp(dsp* dsp_ext, int p, int* gyr, int* curve, FAUSTFLOAT* a
     double amin_tmp, amid_tmp, amax_tmp;
     int    gyr_tmp, curve_tmp;
     reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getGyrConverter(p, gyr_tmp, curve_tmp, amin_tmp, amid_tmp, amax_tmp);
-    *gyr   = gyr_tmp;
-    *curve = curve_tmp;
-    *amin  = FAUSTFLOAT(amin_tmp);
-    *amid  = FAUSTFLOAT(amid_tmp);
-    *amax  = FAUSTFLOAT(amax_tmp);
+    if (gyr) *gyr = gyr_tmp;
+    if (curve) *curve = curve_tmp;
+    if (amin) *amin = FAUSTFLOAT(amin_tmp);
+    if (amid) *amid = FAUSTFLOAT(amid_tmp);
+    if (amax) *amax = FAUSTFLOAT(amax_tmp);
 }
 
 #ifdef __cplusplus

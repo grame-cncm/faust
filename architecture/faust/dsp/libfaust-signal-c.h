@@ -23,6 +23,7 @@
  ***************************************************************************/
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifndef LIBFAUSTCOMMON_C_H
 #define LIBFAUSTCOMMON_C_H

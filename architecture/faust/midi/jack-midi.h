@@ -57,6 +57,10 @@ class jack_midi : public midi_handler {
         void writeMessage(double date, unsigned char* buffer, size_t size)
         {
             size_t res;
+            if (size > sizeof(DatedMessage::fBuffer)) {
+                std::cerr << "writeMessage error: message size (" << size << ") not supported" << std::endl;
+                return;
+            }
             DatedMessage dated_message(date, buffer, size);
             if ((res = ringbuffer_write(fOutBuffer, (const char*)&dated_message, sizeof(DatedMessage))) != sizeof(DatedMessage)) {
                 std::cerr << "ringbuffer_write error DatedMessage" << std::endl;
@@ -70,6 +74,7 @@ class jack_midi : public midi_handler {
                 if (jack_midi_event_get(&event, port_buf_in, i) == 0) {
 
                     size_t nBytes = event.size;
+                    if (nBytes == 0) continue;
                     int type = (int)event.buffer[0] & 0xf0;
                     int channel = (int)event.buffer[0] & 0x0f;
                     double time = event.time; // Timestamp in frames
@@ -148,13 +153,13 @@ class jack_midi : public midi_handler {
                 jack_midi_event_t event;
                 if (jack_midi_event_get(&event, port_buf_in, i) == 0) {
                     // Small messages
-                    if (event.size <= 3) {
+                    if (event.size > 0 && event.size <= 3) {
                         if (count == 0) first_time_stamp = event.time;
                         MIDIMessage& mes = messages->at(count++);
                         mes.frameIndex = (uint32_t)(event.time - first_time_stamp);
                         mes.byte0 = event.buffer[0];
-                        mes.byte1 = event.buffer[1];
-                        mes.byte2 = event.buffer[2];
+                        mes.byte1 = (event.size > 1) ? event.buffer[1] : 0;
+                        mes.byte2 = (event.size > 2) ? event.buffer[2] : 0;
                     } else {
                         std::cerr << "recvMessages : long messages (" << event.size << ") are not supported yet\n";
                     }

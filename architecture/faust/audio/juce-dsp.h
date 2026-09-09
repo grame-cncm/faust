@@ -59,12 +59,12 @@ class juceaudio : public audio, private juce::AudioAppComponent {
         {
             AVOIDDENORMALS;
             
-            const float** inputs = (const float**)alloca(fDSP->getNumInputs() * sizeof(float));
+            const float** inputs = (const float**)alloca(fDSP->getNumInputs() * sizeof(float*));
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 inputs[i] = bufferToFill.buffer->getReadPointer(i, bufferToFill.startSample);
             }
             
-            float** outputs = (float**)alloca(fDSP->getNumOutputs() * sizeof(float));
+            float** outputs = (float**)alloca(fDSP->getNumOutputs() * sizeof(float*));
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 outputs[i] = bufferToFill.buffer->getWritePointer(i, bufferToFill.startSample);
             }
@@ -75,7 +75,7 @@ class juceaudio : public audio, private juce::AudioAppComponent {
     
     public:
     
-        juceaudio() {}
+        juceaudio():fDSP(nullptr) {}
         virtual ~juceaudio()
         {
             shutdownAudio();

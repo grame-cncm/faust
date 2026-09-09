@@ -32,6 +32,8 @@
 #include <iostream>
 #include <ostream>
 #include <cassert>
+#include <memory>
+#include <algorithm>
 
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/PathBuilder.h"
@@ -645,9 +647,11 @@ inline RenderNode buildRenderNode(LayoutUI& ui,
                                   const LayoutUI::UIItem::shared_item& item)
 {
     RenderNode node;
+    // The root group is not part of the control paths built by buildUserInterface
+    bool is_root = (item == ui.getRootGroup());
     node.fType = renderNodeType(item);
     node.fLabel = item->fLabel;
-    node.fPath = ui.buildPath(item->fLabel);
+    node.fPath = is_root ? "/" : ui.buildPath(item->fLabel);
     FAUSTFLOAT* zone = nullptr;
     if (auto ui_item = std::dynamic_pointer_cast<LayoutUI::UIItem>(item)) {
         zone = ui_item->getZone();
@@ -674,7 +678,7 @@ inline RenderNode buildRenderNode(LayoutUI& ui,
     
     if (auto group = std::dynamic_pointer_cast<LayoutUI::Group>(item)) {
         // Prepare traversal into child labels
-        ui.pushLabel(item->fLabel);
+        if (!is_root) ui.pushLabel(item->fLabel);
         
         if (std::dynamic_pointer_cast<LayoutUI::TGroup>(item)) {
             // In a tab group, each child is a tab content
@@ -687,7 +691,7 @@ inline RenderNode buildRenderNode(LayoutUI& ui,
             }
         }
         
-        ui.popLabel();
+        if (!is_root) ui.popLabel();
     }
     
     return node;

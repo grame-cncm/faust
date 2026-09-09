@@ -28,6 +28,7 @@
 #include <string.h>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -90,7 +91,8 @@ struct Soundfile {
     template <typename REAL>
     void* allocBufferReal(int cur_chan, int length, int max_chan)
     {
-        REAL** buffers = new REAL*[max_chan];
+        // The array must hold the real channels (cur_chan) and the shared ones (up to max_chan)
+        REAL** buffers = new REAL*[std::max<int>(cur_chan, max_chan)];
         for (int chan = 0; chan < cur_chan; chan++) {
             buffers[chan] = new REAL[length];
             memset(buffers[chan], 0, sizeof(REAL) * length);
@@ -267,7 +269,7 @@ class SoundfileReader {
 
   public:
     
-    SoundfileReader() {}
+    SoundfileReader():fDriverSR(-1) {}
     virtual ~SoundfileReader() {}
     
     void setSampleRate(int sample_rate) { fDriverSR = sample_rate; }

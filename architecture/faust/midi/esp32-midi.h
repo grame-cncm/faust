@@ -31,6 +31,7 @@ architecture section is not modified.
 #include "esp_log.h"
 
 #include "faust/midi/midi.h"
+#include "faust/gui/GUI.h"
 
 #ifndef RX1
 #define RX1 GPIO_NUM_5

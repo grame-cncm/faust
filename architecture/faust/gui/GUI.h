@@ -29,6 +29,7 @@
 #include <map>
 #include <vector>
 #include <assert.h>
+#include <stdio.h>
 
 #ifdef _WIN32
 # pragma warning (disable: 4100)
@@ -162,7 +163,9 @@ class GUI : public UI
         void updateZone(FAUSTFLOAT* z)
         {
             FAUSTFLOAT v = *z;
-            clist* cl = fZoneMap[z];
+            zmap::iterator it = fZoneMap.find(z);
+            if (it == fZoneMap.end()) return;
+            clist* cl = it->second;
             for (const auto& c : *cl) {
                 if (c->cache() != v) c->reflectZone();
             }

@@ -28,6 +28,7 @@ architecture section is not modified.
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/misc.h"
+#include <iostream>
 
 /**
  *  LLVM backend based Polyphonic DSP factory class.
@@ -41,9 +42,9 @@ struct llvm_dsp_poly_factory : public dsp_poly_factory {
                           std::string& error_msg,
                           int opt_level = -1)
     {
-        fProcessFactory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg);
+        fProcessFactory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg, opt_level);
         if (fProcessFactory) {
-            fEffectFactory = createDSPFactoryFromString(name_app, getEffectCode(dsp_content), argc, argv, target, error_msg);
+            fEffectFactory = createDSPFactoryFromString(name_app, getEffectCode(dsp_content), argc, argv, target, error_msg, opt_level);
             if (!fEffectFactory) {
                 std::cerr << "llvm_dsp_poly_factory : fEffectFactory " << error_msg;
                 // The error message is not really needed...
@@ -68,9 +69,10 @@ struct llvm_dsp_poly_factory : public dsp_poly_factory {
 };
 
 /**
- * Create a Faust Polyphonic DSP factory from a DSP source code as a file.
+ * Create a Faust Polyphonic DSP factory from a DSP source code as a string.
  *
- * @param filename - the DSP filename
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
  * @param target - the LLVM machine target (using empty string will take current machine settings)
@@ -95,7 +97,7 @@ static llvm_dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& 
 }
 
 /**
- * Create a Faust Polyphonic DSP factory from a DSP source code as a string.
+ * Create a Faust Polyphonic DSP factory from a DSP source code as a file.
  *
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
@@ -131,7 +133,7 @@ static llvm_dsp_poly_factory* createPolyDSPFactoryFromFile(const std::string& fi
 static dsp_poly_factory* readPolyDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, std::string& error_msg, int opt_level = -1)
 {
     std::string process_path = bit_code_path + "_bitcode_process.bc";
-    std::string effect_path = bit_code_path + "_bicode_effect.bc";
+    std::string effect_path = bit_code_path + "_bitcode_effect.bc";
     llvm_dsp_factory* process_factory = readDSPFactoryFromBitcodeFile(process_path, target, error_msg, opt_level);
     llvm_dsp_factory* effect_factory = readDSPFactoryFromBitcodeFile(effect_path, target, error_msg, opt_level);
     if (process_factory) {
@@ -154,7 +156,7 @@ static void writePolyDSPFactoryToBitcodeFile(dsp_poly_factory* factory, const st
 {
     std::string process_path = bit_code_path + "_bitcode_process.bc";
     if (factory->fEffectFactory) {
-        std::string effect_path = bit_code_path + "_bicode_effect.bc";
+        std::string effect_path = bit_code_path + "_bitcode_effect.bc";
         writeDSPFactoryToBitcodeFile(static_cast<llvm_dsp_factory*>(factory->fEffectFactory), effect_path);
     }
     writeDSPFactoryToBitcodeFile(static_cast<llvm_dsp_factory*>(factory->fProcessFactory), process_path);

@@ -43,6 +43,7 @@ class rnbo_dsp : public ::dsp {
     FAUSTFLOAT*                                                          fOutputsZoneMap;
     std::vector<std::pair<FAUSTFLOAT*, std::function<void(FAUSTFLOAT)>>> fInputsZoneFunMap;
     std::vector<std::pair<FAUSTFLOAT*, std::function<FAUSTFLOAT()>>>     fOutputsZoneFunMap;
+    std::vector<int> fInputsParamIndex;  // RNBO parameter index of each input control
 
     int fSampleRate;
 
@@ -68,6 +69,7 @@ class rnbo_dsp : public ::dsp {
    public:
     rnbo_dsp()
     {
+        fSampleRate = 0;
         // We simply take the same upper control number 
         fInputsZoneMap  = new FAUSTFLOAT[fDSP.getNumParameters()];
         fOutputsZoneMap = new FAUSTFLOAT[fDSP.getNumParameters()];
@@ -102,7 +104,7 @@ class rnbo_dsp : public ::dsp {
     {
         for (int i = 0; i < fInputsZoneFunMap.size(); i++) {
             RNBO::ParameterInfo info;
-            fDSP.getParameterInfo(i, &info);
+            fDSP.getParameterInfo(fInputsParamIndex[i], &info);
             *fInputsZoneFunMap[i].first = info.initialValue;
         }
     }
@@ -124,12 +126,14 @@ class rnbo_dsp : public ::dsp {
                 ui_interface->addButton(name, zone);
                 fInputsZoneFunMap.push_back(
                     std::make_pair(zone, [=](FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
+                fInputsParamIndex.push_back(i);
                 ins++;
             } else if (startWith(name, "RB_checkbox_")) {
                 fInputsZoneMap[ins] = 0;
                 ui_interface->addCheckButton(name, zone);
                 fInputsZoneFunMap.push_back(
                     std::make_pair(zone, [=](FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
+                fInputsParamIndex.push_back(i);
                 ins++;
             } else if (startWith(name, "RB_hslider_")) {
                 fInputsZoneMap[ins] = info.initialValue;
@@ -138,6 +142,7 @@ class rnbo_dsp : public ::dsp {
                 ui_interface->addHorizontalSlider(name, zone, info.initialValue, info.min, info.max, step);
                 fInputsZoneFunMap.push_back(
                     std::make_pair(zone, [=](FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
+                fInputsParamIndex.push_back(i);
                 ins++;
             } else if (startWith(name, "RB_vslider_")) {
                 fInputsZoneMap[ins] = info.initialValue;
@@ -146,6 +151,7 @@ class rnbo_dsp : public ::dsp {
                 ui_interface->addVerticalSlider(name, zone, info.initialValue, info.min, info.max, step);
                 fInputsZoneFunMap.push_back(
                     std::make_pair(zone, [=](FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
+                fInputsParamIndex.push_back(i);
                 ins++;
             } else if (startWith(name, "RB_nentry_")) {
                 fInputsZoneMap[ins] = info.initialValue;
@@ -154,13 +160,16 @@ class rnbo_dsp : public ::dsp {
                 ui_interface->addNumEntry(name, zone, info.initialValue, info.min, info.max, step);
                 fInputsZoneFunMap.push_back(
                     std::make_pair(zone, [=](FAUSTFLOAT val) { fDSP.setParameterValue(i, val, 0); }));
+                fInputsParamIndex.push_back(i);
                 ins++;
             } else if (startWith(name, "RB_hbargraph_")) {
+                zone = &fOutputsZoneMap[outs];
                 fOutputsZoneMap[outs] = 0;
                 ui_interface->addHorizontalBargraph(name, zone, info.min, info.max);
                 fOutputsZoneFunMap.push_back(std::make_pair(zone, [=]() { return fDSP.getParameterValue(i); }));
                 outs++;
             } else if (startWith(name, "RB_vbargraph_")) {
+                zone = &fOutputsZoneMap[outs];
                 fOutputsZoneMap[outs] = 0;
                 ui_interface->addVerticalBargraph(name, zone, info.min, info.max);
                 fOutputsZoneFunMap.push_back(std::make_pair(zone, [=]() { return fDSP.getParameterValue(i); }));

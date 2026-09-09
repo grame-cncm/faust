@@ -76,6 +76,10 @@
 
 #include "faust/export.h"
 
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif
+
 //--------------------------------------------------------------------------------------
 // Interpolator(lo,hi,v1,v2)
 // Maps a value x between lo and hi to a value y between v1 and v2

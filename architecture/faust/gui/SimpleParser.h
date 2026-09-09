@@ -212,7 +212,34 @@ static bool parseString(const char*& p, char quote, std::string& s)
     const char* saved = p;  // to restore position if we fail
     if (*p++ == quote) {
         while ((*p != 0) && (*p != quote)) {
-            str += *p++;
+            if (*p == '\\' && p[1] != 0) {
+                // JSON escape sequences (as produced by JSONUI::escapeJSON)
+                p++;
+                switch (*p) {
+                    case 'n': str += '\n'; break;
+                    case 'r': str += '\r'; break;
+                    case 't': str += '\t'; break;
+                    case 'b': str += '\b'; break;
+                    case 'f': str += '\f'; break;
+                    case 'u': {
+                        // \uXXXX: only the Latin-1 range is decoded, the sequence is kept otherwise
+                        unsigned int code = 0;
+                        if (isxdigit((unsigned char)p[1]) && isxdigit((unsigned char)p[2]) &&
+                            isxdigit((unsigned char)p[3]) && isxdigit((unsigned char)p[4]) &&
+                            sscanf(p + 1, "%4x", &code) == 1 && code < 0x100) {
+                            str += (char)code;
+                            p += 4;
+                        } else {
+                            str += "\\u";
+                        }
+                        break;
+                    }
+                    default: str += *p; break;   // \" \\ \/ and anything else: literal character
+                }
+                p++;
+            } else {
+                str += *p++;
+            }
         }
         if (*p++ == quote) {
             s = str;
@@ -579,7 +606,12 @@ static bool parseJson(const char*& p,
             }
         } else if (key == "ui") {
             int numItems = 0;
-            parseChar(p, '[') && parseUI(p, uiItems, numItems);
+            if (parseChar(p, '[')) {
+                do {
+                    if (!parseUI(p, uiItems, numItems)) break;
+                } while (tryChar(p, ','));
+                parseChar(p, ']');
+            }
         }
     } while (tryChar(p, ','));
     

@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include <vector>
 
 #include "faust/audio/audio.h"
@@ -89,7 +90,10 @@ class miniaudio : public audio {
         
         miniaudio(long srate, long bsize) :
             fDSP(nullptr), fSampleRate(srate), fBufferSize(bsize)
-        {}
+        {
+            // So that stop/uninit are harmless if init was never called or failed
+            memset(&fAudioDevice, 0, sizeof(fAudioDevice));
+        }
         
         virtual ~miniaudio()
         {

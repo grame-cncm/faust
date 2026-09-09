@@ -27,6 +27,7 @@
 
 #include <string.h>
 #include <assert.h>
+#include <iostream>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -53,7 +54,7 @@ class real_channels
             
             // allocate audio channels
             for (int chan = 0; chan < fNumChannels; chan++) {
-                fBuffers[chan] = new FAUSTFLOAT[fNumFrames];
+                fBuffers[chan] = new REAL[fNumFrames];
             }
             
             zero();
@@ -71,7 +72,7 @@ class real_channels
         {
             // set first sample to 1 for all channels
             for (int chan = 0; chan < fNumChannels; chan++) {
-                fBuffers[chan][0] = FAUSTFLOAT(1.0);
+                fBuffers[chan][0] = REAL(1.0);
                 for (int frame = 1; frame < fNumFrames; frame++) {
                     fBuffers[chan][frame] = REAL(0.0);
                 }

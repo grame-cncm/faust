@@ -28,6 +28,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <cstdio>
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
@@ -135,6 +136,35 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             }
         }
     
+        // Escape a string so that it can be emitted between double quotes in a JSON document
+        static std::string escapeJSON(const std::string& src)
+        {
+            std::string dst;
+            dst.reserve(src.size());
+            for (size_t i = 0; i < src.size(); i++) {
+                unsigned char c = (unsigned char)src[i];
+                switch (c) {
+                    case '"':  dst += "\\\""; break;
+                    case '\\': dst += "\\\\"; break;
+                    case '\n': dst += "\\n"; break;
+                    case '\r': dst += "\\r"; break;
+                    case '\t': dst += "\\t"; break;
+                    case '\b': dst += "\\b"; break;
+                    case '\f': dst += "\\f"; break;
+                    default:
+                        if (c < 0x20) {
+                            char buf[8];
+                            snprintf(buf, sizeof(buf), "\\u%04x", c);
+                            dst += buf;
+                        } else {
+                            dst += (char)c;
+                        }
+                        break;
+                }
+            }
+            return dst;
+        }
+    
         std::string flatten(const std::string& src) const
         {
             std::string dst;
@@ -158,7 +188,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                 std::string sep = "";
                 for (size_t i = 0; i < fMetaAux.size(); i++) {
                     fUI << sep;
-                    tab(tab_val + 1, fUI); fUI << "{ \"" << fMetaAux[i].first << "\": \"" << fMetaAux[i].second << "\" }";
+                    tab(tab_val + 1, fUI); fUI << "{ \"" << escapeJSON(fMetaAux[i].first) << "\": \"" << escapeJSON(fMetaAux[i].second) << "\" }";
                     sep = ",";
                 }
                 tab(tab_val, fUI); fUI << ((quote) ? "],": "]");
@@ -234,6 +264,17 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
         {
             fTab = 1;
             fExtended = extended;
+            
+            // Init may be called multiple times: reset the whole generation state
+            fAllUI.clear();
+            fMetaAux.clear();
+            fJSON.clear();
+            fFullPaths.clear();
+            fFull2Short.clear();
+            fControlsLevel.clear();
+            fUI.clear();
+            fMeta.clear();
+            
             if (fExtended) {
                 fUI << std::setprecision(std::numeric_limits<REAL>::max_digits10);
                 fMeta << std::setprecision(std::numeric_limits<REAL>::max_digits10);
@@ -277,7 +318,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+            tab(fTab, fUI); fUI << "\"label\": \"" << escapeJSON(label) << "\",";
             addMeta(fTab);
             tab(fTab, fUI); fUI << "\"items\": [";
             fCloseUIPar = ' ';
@@ -323,8 +364,8 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << type << "\",";
-            tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
-            if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << varname << "\","; }
+            tab(fTab, fUI); fUI << "\"label\": \"" << escapeJSON(label) << "\",";
+            if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << escapeJSON(varname) << "\","; }
         
             // Generate 'shortname' entry
             tab(fTab, fUI); fUI << "\"shortname\": \"";
@@ -334,10 +375,10 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             fUI.str("");
         
             if (fPathTable.size() > 0) {
-                tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
+                tab(fTab, fUI); fUI << "\"address\": \"" << escapeJSON(path) << "\",";
                 tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ((fMetaAux.size() > 0) ? "," : "");
             } else {
-                tab(fTab, fUI); fUI << "\"address\": \"" << path << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+                tab(fTab, fUI); fUI << "\"address\": \"" << escapeJSON(path) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             }
             addMeta(fTab, false);
             fTab -= 1;
@@ -374,8 +415,8 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << type << "\",";
-            tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
-            if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << varname << "\","; }
+            tab(fTab, fUI); fUI << "\"label\": \"" << escapeJSON(label) << "\",";
+            if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << escapeJSON(varname) << "\","; }
          
             // Generate 'shortname' entry
             tab(fTab, fUI); fUI << "\"shortname\": \"";
@@ -384,7 +425,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             fAllUI.push_back(fUI.str());
             fUI.str("");
         
-            tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
+            tab(fTab, fUI); fUI << "\"address\": \"" << escapeJSON(path) << "\",";
             if (fPathTable.size() > 0) {
                 tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ",";
             }
@@ -439,8 +480,8 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << type << "\",";
-            tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
-            if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << varname << "\","; }
+            tab(fTab, fUI); fUI << "\"label\": \"" << escapeJSON(label) << "\",";
+            if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << escapeJSON(varname) << "\","; }
          
             // Generate 'shortname' entry
             tab(fTab, fUI); fUI << "\"shortname\": \"";
@@ -449,7 +490,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             fAllUI.push_back(fUI.str());
             fUI.str("");
             
-            tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
+            tab(fTab, fUI); fUI << "\"address\": \"" << escapeJSON(path) << "\",";
             if (fPathTable.size() > 0) {
                 tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ",";
             }
@@ -491,7 +532,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << "soundfile" << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
-            if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << varname << "\","; }
+            if (varname) { tab(fTab, fUI); fUI << "\"varname\": \"" << escapeJSON(varname) << "\","; }
         
             // Generate 'shortname' entry
             tab(fTab, fUI); fUI << "\"shortname\": \"";
@@ -500,12 +541,12 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             fAllUI.push_back(fUI.str());
             fUI.str("");
         
-            tab(fTab, fUI); fUI << "\"url\": \"" << url << "\"" << ",";
+            tab(fTab, fUI); fUI << "\"url\": \"" << escapeJSON(url) << "\"" << ",";
             if (fPathTable.size() > 0) {
-                tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
+                tab(fTab, fUI); fUI << "\"address\": \"" << escapeJSON(path) << "\",";
                 tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ((fMetaAux.size() > 0) ? "," : "");
             } else {
-                tab(fTab, fUI); fUI << "\"address\": \"" << path << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+                tab(fTab, fUI); fUI << "\"address\": \"" << escapeJSON(path) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             }
             addMeta(fTab, false);
             fTab -= 1;
@@ -538,7 +579,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             if ((strcmp(key, "name") == 0) && (fName == "")) fName = value;
             // fFileName found in metadata
             if ((strcmp(key, "filename") == 0) && (fFileName == "")) fFileName = value;
-            tab(fTab, fMeta); fMeta << "{ " << "\"" << key << "\"" << ": " << "\"" << value << "\" }";
+            tab(fTab, fMeta); fMeta << "{ " << "\"" << escapeJSON(key) << "\"" << ": " << "\"" << escapeJSON(value) << "\" }";
             fCloseMetaPar = ',';
         }
 
@@ -552,15 +593,15 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                 }
                 JSON << "{";
                 fTab += 1;
-                tab(fTab, JSON); JSON << "\"name\": \"" << fName << "\",";
-                tab(fTab, JSON); JSON << "\"filename\": \"" << fFileName << "\",";
-                if (fVersion != "") { tab(fTab, JSON); JSON << "\"version\": \"" << fVersion << "\","; }
-                if (fCompileOptions != "") { tab(fTab, JSON); JSON << "\"compile_options\": \"" <<  fCompileOptions << "\","; }
+                tab(fTab, JSON); JSON << "\"name\": \"" << escapeJSON(fName) << "\",";
+                tab(fTab, JSON); JSON << "\"filename\": \"" << escapeJSON(fFileName) << "\",";
+                if (fVersion != "") { tab(fTab, JSON); JSON << "\"version\": \"" << escapeJSON(fVersion) << "\","; }
+                if (fCompileOptions != "") { tab(fTab, JSON); JSON << "\"compile_options\": \"" << escapeJSON(fCompileOptions) << "\","; }
                 if (fLibraryList.size() > 0) {
                     tab(fTab, JSON);
                     JSON << "\"library_list\": [";
                     for (size_t i = 0; i < fLibraryList.size(); i++) {
-                        JSON << "\"" << fLibraryList[i] << "\"";
+                        JSON << "\"" << escapeJSON(fLibraryList[i]) << "\"";
                         if (i < (fLibraryList.size() - 1)) JSON << ",";
                     }
                     JSON << "],";
@@ -569,7 +610,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                     tab(fTab, JSON);
                     JSON << "\"include_pathnames\": [";
                     for (size_t i = 0; i < fIncludePathnames.size(); i++) {
-                        JSON << "\"" << fIncludePathnames[i] << "\"";
+                        JSON << "\"" << escapeJSON(fIncludePathnames[i]) << "\"";
                         if (i < (fIncludePathnames.size() - 1)) JSON << ",";
                     }
                     JSON << "],";
@@ -582,8 +623,8 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                         // DSP or field name, type, size, size-in-bytes, reads, writes
                         MemoryLayoutItem item = fMemoryLayout[i];
                         tab(fTab + 1, JSON);
-                        JSON << "{ \"name\": \"" << item.name << "\", ";
-                        JSON << "\"type\": \"" << item.type << "\", ";
+                        JSON << "{ \"name\": \"" << escapeJSON(item.name) << "\", ";
+                        JSON << "\"type\": \"" << escapeJSON(item.type) << "\", ";
                         JSON << "\"size\": " << item.size << ", ";
                         JSON << "\"size_bytes\": " << item.size_bytes << ", ";
                         JSON << "\"read\": " << item.read << ", ";
@@ -641,8 +682,8 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                     tab(fTab, JSON);
                     JSON << "}],";
                 }
-                if (fSHAKey != "") { tab(fTab, JSON); JSON << "\"sha_key\": \"" << fSHAKey << "\","; }
-                if (fExpandedCode != "") { tab(fTab, JSON); JSON << "\"code\": \"" << fExpandedCode << "\","; }
+                if (fSHAKey != "") { tab(fTab, JSON); JSON << "\"sha_key\": \"" << escapeJSON(fSHAKey) << "\","; }
+                if (fExpandedCode != "") { tab(fTab, JSON); JSON << "\"code\": \"" << escapeJSON(fExpandedCode) << "\","; }
                 tab(fTab, JSON); JSON << "\"inputs\": " << fInputs << ",";
                 tab(fTab, JSON); JSON << "\"outputs\": " << fOutputs << ",";
                 if (fSRIndex != -1) { tab(fTab, JSON); JSON << "\"sr_index\": " << fSRIndex << ","; }

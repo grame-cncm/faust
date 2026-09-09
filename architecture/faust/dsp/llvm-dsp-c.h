@@ -417,14 +417,14 @@ extern "C"
      * decrement reference counter when the factory is no more needed.
      * 
      * @param machine_code - the machine code string
-     * @param error_msg - the error string to be filled, has to be 4096 characters long
      * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
      *                 using an empty string takes the current machine settings,
      *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, char* error_msg, const char* target);
+    LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target, char* error_msg);
 
     /**
      * Write a Faust DSP factory into a base64 encoded machine code string.
@@ -445,10 +445,10 @@ extern "C"
      * decrement reference counter when the factory is no more needed.
      * 
      * @param machine_code_path - the machine code file pathname
-     * @param error_msg - the error string to be filled, has to be 4096 characters long
      * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
      *                 using an empty string takes the current machine settings,
      *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */

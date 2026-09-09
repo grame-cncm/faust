@@ -62,11 +62,15 @@ class gramophone_midi : public midi_handler {
                                                    void* arg)
         {
             gramophone_midi* midi = static_cast<gramophone_midi*>(arg);
-            if (len == 1) {
-                midi->handleData1(timestamp,(int)midi_status,0,
+            int type = (int)midi_status & 0xf0;
+            int channel = (int)midi_status & 0x0f;
+            if (len == 0) {
+                midi->handleSync(timestamp, (int)midi_status);
+            } else if (len == 1) {
+                midi->handleData1(timestamp, type, channel,
                                   (int)remaining_message[0]);
             } else if (len == 2) {
-                midi->handleData2(timestamp,(int)midi_status,0,
+                midi->handleData2(timestamp, type, channel,
                                   (int)remaining_message[0],
                                   (int)remaining_message[1]);
             }

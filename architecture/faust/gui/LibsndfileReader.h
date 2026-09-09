@@ -33,6 +33,7 @@
 #include <assert.h>
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 #include "faust/gui/Soundfile.h"
 
@@ -122,12 +123,12 @@ struct VFLibsndfile {
          **	This will break badly for files over 2Gig in length, but
          **	is sufficient for testing.
          */
-        if (vf->fOffset >= SIGNED_SIZEOF(vf->fBuffer)) {
+        if (vf->fOffset >= vf->fLength) {
             return 0;
         }
         
-        if (vf->fOffset + count > SIGNED_SIZEOF(vf->fBuffer)) {
-            count = sizeof (vf->fBuffer) - vf->fOffset;
+        if (vf->fOffset + count > vf->fLength) {
+            count = vf->fLength - vf->fOffset;
         }
         
         memcpy(vf->fBuffer + vf->fOffset, ptr, (size_t)count);
@@ -312,15 +313,15 @@ struct LibsndfileReader : public SoundfileReader {
                 src_data.src_ratio = double(fDriverSR)/double(snd_info.samplerate);
                 if (soundfile->fIsDouble) {
                     for (int frame = 0; frame < (BUFFER_SIZE * snd_info.channels); frame++) {
-                        src_buffer_in[frame] = float(static_cast<float*>(buffer_in)[frame]);
+                        src_buffer_in[frame] = float(static_cast<double*>(buffer_in)[frame]);
                     }
                 }
                 do {
                     if (soundfile->fIsDouble) {
-                        src_data.data_in = src_buffer_in;
+                        src_data.data_in = src_buffer_in + in_offset * snd_info.channels;
                         src_data.data_out = src_buffer_out;
                     } else {
-                        src_data.data_in = static_cast<const float*>(buffer_in);
+                        src_data.data_in = static_cast<const float*>(buffer_in) + in_offset * snd_info.channels;
                         src_data.data_out = static_cast<float*>(buffer_out);
                     }
                     src_data.input_frames = nbf - in_offset;

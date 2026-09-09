@@ -25,6 +25,9 @@ architecture section is not modified.
 #ifndef __faust_engine__
 #define __faust_engine__
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,6 +59,8 @@ extern "C" {
     void setVoiceParamValue(void*, const char*, uintptr_t, float);
     float getVoiceParamValue(void*, const char*, uintptr_t);
 
+    const char* getParamLabel(void*, int);
+    const char* getParamShortname(void*, int);
     const char* getParamAddress(void*, int);
 
     void propagateAcc(void*, int, float);

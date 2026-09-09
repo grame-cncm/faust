@@ -27,6 +27,9 @@ architecture section is not modified.
 
 #include <assert.h>
 #include <string.h>
+#include <algorithm>
+
+#include "faust/dsp/dsp.h"
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -51,6 +54,7 @@ class Deinterleaver
             fNumFrames = numFrames;
             fNumInputs = numInputs;
             fNumOutputs = std::max<int>(numInputs, numOutputs);
+            assert(fNumOutputs <= 256);
             
             // allocate interleaved input channel
             fInput = new FAUSTFLOAT[fNumFrames * fNumInputs];
@@ -104,6 +108,7 @@ class Interleaver
         {
             fNumFrames = numFrames;
             fNumInputs 	= std::max(numInputs, numOutputs);
+            assert(fNumInputs <= 256);
             fNumOutputs = numOutputs;
             
             // allocate separate input channels

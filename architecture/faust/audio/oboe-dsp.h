@@ -29,6 +29,7 @@
 #include <oboe/Oboe.h>
 #include <time.h>
 #include <assert.h>
+#include <string.h>
 #include <vector>
 
 #include "faust/audio/audio.h"
@@ -156,7 +157,9 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
         void releaseAudioChannels()
         {
             delete fInputs;
+            fInputs = nullptr;
             delete fOutputs;
+            fOutputs = nullptr;
         }
 
         bool oboeInit()
@@ -225,7 +228,9 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
         fInputs(nullptr),
         fOutputs(nullptr),
         fIsThreadAffinitySet(false)
-        {}
+        {
+            memset(fCPUTable, 0, sizeof(fCPUTable));
+        }
 
         virtual ~oboeaudio()
         {

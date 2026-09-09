@@ -54,8 +54,8 @@ class dsp_optimizer_real {
         const char** fArgv;
     
         int fOptLevel;      
-        llvm_dsp_factory* fFactory;
-        llvm_dsp* fDSP;
+        llvm_dsp_factory* fFactory = nullptr;
+        llvm_dsp* fDSP = nullptr;
     
         int fRun;
         int fCount;
@@ -317,6 +317,8 @@ class dsp_optimizer_real {
             fDSP = fFactory->createDSPInstance();
             if (!fDSP) {
                 fprintf(stderr, "Cannot create instance...\n");
+                deleteDSPFactory(fFactory);
+                fFactory = nullptr;
                 return false;
             }
             

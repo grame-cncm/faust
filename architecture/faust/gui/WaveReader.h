@@ -28,6 +28,8 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 
 #include "faust/gui/Soundfile.h"
 
@@ -216,20 +218,50 @@ struct Reader {
         read(buffer, 2);
         fWave->bits_per_sample = convert_to_int(buffer, 2);
         
+        if (fWave->num_channels <= 0 || fWave->bits_per_sample <= 0) {
+            fprintf(stderr, "This is not valid WAV file!\n");
+            return false;
+        }
+        
+        // Skip the possible extra bytes of the "fmt " chunk (cbSize, WAVE_FORMAT_EXTENSIBLE...)
+        if (fWave->subchunk_1_size > 16) {
+            if (!skip(fWave->subchunk_1_size - 16)) return false;
+        }
+        
+        // Skip the possible other chunks (LIST, fact...) until the "data" one
         read(buffer, 4);
-        if (strncmp(buffer, "data", 4) != 0) {
+        int extra_chunks = 0;
+        while (strncmp(buffer, "data", 4) != 0) {
+            if (++extra_chunks > 64) {
+                fprintf(stderr, "This is not valid WAV file!\n");
+                return false;
+            }
             read(buffer, 4);
             int _extra_size = convert_to_int(buffer, 4);
-            char _extra_data[_extra_size];
-            read(_extra_data, _extra_size);
+            // Chunks are padded to an even size
+            if (_extra_size < 0 || !skip(_extra_size + (_extra_size & 1))) return false;
             read(buffer, 4);
-            fWave->subchunk_2_id = convert_to_int(buffer, 4);
-        } else {
-            fWave->subchunk_2_id = convert_to_int(buffer, 4);
         }
+        fWave->subchunk_2_id = convert_to_int(buffer, 4);
         
         read(buffer, 4);
         fWave->subchunk_2_size = convert_to_int(buffer, 4);
+        if (fWave->subchunk_2_size < 0) {
+            fprintf(stderr, "This is not valid WAV file!\n");
+            return false;
+        }
+        return true;
+    }
+    
+    // Skip 'size' bytes using a fixed-size buffer (no VLA)
+    bool skip(int size)
+    {
+        char tmp[256];
+        while (size > 0) {
+            int n = (size > int(sizeof(tmp))) ? int(sizeof(tmp)) : size;
+            read(tmp, n);
+            size -= n;
+        }
         return true;
     }
     
@@ -257,6 +289,7 @@ struct FileReader : public Reader {
         }
         if (!load_wave_header()) {
             fprintf(stderr, "FileReader : not a WAV file!\n");
+            fclose(fFile);
             throw -1;
         }
     }
@@ -297,8 +330,12 @@ struct MemoryReader : public Reader {
     
     void read(char* buffer, unsigned int size)
     {
-        memcpy(buffer, fStart + fPos, size);
-        fPos += size;
+        // Never read past the end of the memory block
+        unsigned int available = (fStart + fPos < fEnd) ? (unsigned int)(fEnd - (fStart + fPos)) : 0;
+        unsigned int to_read = (size > available) ? available : size;
+        memcpy(buffer, fStart + fPos, to_read);
+        if (to_read < size) memset(buffer + to_read, 0, size - to_read);
+        fPos += to_read;
     }
     
 };

@@ -25,6 +25,10 @@
 #ifndef FAUST_SAVEUI_H
 #define FAUST_SAVEUI_H
 
+#include <map>
+#include <string>
+#include <iostream>
+
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/PathBuilder.h"
 

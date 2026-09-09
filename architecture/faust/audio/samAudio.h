@@ -57,6 +57,7 @@ class samAudio : public audio {
     
         samAudio(int sampleRate, int bufferSize, int numInputs, int numOutputs)
         {
+            fDSP = nullptr;
             iSampleRate = sampleRate;
             iBufferSize = bufferSize;
             iNumInputs = numInputs;

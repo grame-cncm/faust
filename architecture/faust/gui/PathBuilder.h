@@ -30,6 +30,7 @@
 #include <map>
 #include <string>
 #include <algorithm>
+#include <stdio.h>
 
 #include "faust/export.h"
 
@@ -69,7 +70,7 @@ class FAUST_API PathBuilder {
             std::string from = "/0x00";
             std::string to = "";
             size_t pos = std::string::npos;
-            while ((pos = src.find(from)) && (pos != std::string::npos)) {
+            while ((pos = src.find(from)) != std::string::npos) {
                 src = src.replace(pos, from.length(), to);
             }
             return src;

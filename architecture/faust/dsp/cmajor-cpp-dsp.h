@@ -30,6 +30,7 @@ architecture section is not modified.
 #include <string.h>
 #include <map>
 #include <algorithm>
+#include <functional>
 #include <assert.h>
 
 #include "faust/dsp/dsp.h"
@@ -51,7 +52,7 @@ class cmajor_cpp_dsp : public ::dsp {
     private:
 
         cmajordsp fDSP;
-        int fSampleRate;
+        int fSampleRate = 0;
         choc::value::Value fControllers;
         FAUSTFLOAT* fInputsZoneMap;
         FAUSTFLOAT* fOutputsZoneMap;

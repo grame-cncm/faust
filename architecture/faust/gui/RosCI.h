@@ -38,6 +38,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <string.h>
 #include <sstream>
 
 #include "faust/gui/UI.h"
@@ -65,7 +66,13 @@ class RosCI : public UI {
             
             do
             {
-                if ((label[0]<65)  // before "A" in ASCII
+                if (count < 1)
+                {
+                    label = "/topic";
+                    count = label.size();
+                    ok = true;
+                }
+                else if ((label[0]<65)  // before "A" in ASCII
                     || (label[0] <= 96 && label[0] >= 91) // After "Z" and before "a" in ASCII
                     || (label[0] > 122) // After "z" in ASCII
                     && (label[0] != FORWARD_SLASH) // not "/"
@@ -74,12 +81,6 @@ class RosCI : public UI {
                 {
                     label.erase(0,1);
                     count = label.size();
-                }
-                else if(count < 1)
-                {
-                    label = "/topic";
-                    count = label.size();
-                    ok = true;
                 }
                 else
                 {
@@ -281,7 +282,8 @@ class RosCI : public UI {
             end = file.tellp();
             
             block_size = end-begin;
-            memblock = new char[block_size];
+            memblock = new char[block_size + 1];
+            memblock[block_size] = 0;
 
             // puts the end of the file in a memory block
             // in order to overwrite without deleting information
@@ -392,6 +394,7 @@ class RosCI : public UI {
             
             file << memblock;
             file.close();
+            delete[] memblock;
         }
         
         // String parsing function, which detects every callback parameter
@@ -417,7 +420,7 @@ class RosCI : public UI {
         // Function declaring metadata
         void declare(FAUSTFLOAT* zone, const char* key, const char* val) 
         {
-            if (key == "ros") // We do not care if key is not "ros" here
+            if (strcmp(key, "ros") == 0) // We do not care if key is not "ros" here
             {
                 stringParser(val); // Parsing the string corresponding to a callback parameters
                 CallbackParams params;

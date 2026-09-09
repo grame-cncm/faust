@@ -119,12 +119,12 @@ class JuceOSCUI : private juce::OSCReceiver, private juce::OSCReceiver::Listener
             }
             
             if (!fSender.connect(fIP, fOutputPort)) {
-                std::cerr << "Error: could not connect to UDP port " << fInputPort << std::endl;
+                std::cerr << "Error: could not connect to UDP port " << fOutputPort << std::endl;
                 return false;
             }
             
             if (!connect(fInputPort)) {
-                std::cerr << "Error: could not connect to UDP port " << fOutputPort << std::endl;
+                std::cerr << "Error: could not connect to UDP port " << fInputPort << std::endl;
                 return false;
             }
             addListener(this);

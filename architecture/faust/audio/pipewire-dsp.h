@@ -132,7 +132,7 @@ class pipewireaudio : public audio {
     public:
 
         pipewireaudio()
-        : fDSP(nullptr), fLoop(nullptr)
+        : fDSP(nullptr), fLoop(nullptr), fFilter(nullptr)
         {}
         
         virtual ~pipewireaudio()
@@ -239,13 +239,13 @@ class pipewireaudio : public audio {
         virtual int getBufferSize() {
             const pw_properties *properties = pw_core_get_properties(pw_filter_get_core(fFilter));
             const char *bufsize = pw_properties_get(properties, "default.clock.quantum");
-            return atoi(bufsize);
+            return bufsize ? atoi(bufsize) : 0;
         }
     
         virtual int getSampleRate() {
             const pw_properties *properties = pw_core_get_properties(pw_filter_get_core(fFilter));
             const char *bufsize = pw_properties_get(properties, "default.clock.rate");
-            return atoi(bufsize);
+            return bufsize ? atoi(bufsize) : 0;
         }
 
         virtual int getNumInputs()
@@ -313,7 +313,7 @@ class pipewireaudio_midi : public pipewireaudio, public pipewire_midi {
             // MIDI out
             processMidiOut(nframes);
             
-            runControlCallbacks();
+            // Control callbacks are already run in pipewireaudio::process
             return 0;
         }
         

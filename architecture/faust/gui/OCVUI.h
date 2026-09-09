@@ -45,7 +45,12 @@
 
 // Basic includes
 #include <iostream>
+#include <string>
+#include <vector>
 #include <ctype.h>
+#include <string.h>
+
+#include "faust/gui/UI.h"
 
 // std::thread
 #include <pthread.h>
@@ -147,7 +152,7 @@ class OCVUI : public UI
 	 * in a metadata structure.
 	 */
 		
-	bool parser(const std::string& string2parse, metadata* pmeta)
+	bool parser(std::string string2parse, metadata* pmeta)
 	{
 	    int SPACE = 32; // Parameters separator
 	    std::vector<std::string> parameters(0);
@@ -226,7 +231,7 @@ class OCVUI : public UI
 	 */
 	void declare(FAUSTFLOAT* zone, const char* key, const char* val) 
 	{
-		if (key == "ocv")
+		if (strcmp(key, "ocv") == 0)
 		{
 			metadata newMeta;
 			bool string_parsed = false;

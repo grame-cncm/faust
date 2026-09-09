@@ -49,6 +49,7 @@ class rt_midi : public midi_handler {
         {
             rt_midi* midi = static_cast<rt_midi*>(arg);
             size_t nBytes = message->size();
+            if (nBytes == 0) return;
             int type = (int)message->at(0) & 0xf0;
             int channel = (int)message->at(0) & 0x0f;
             
@@ -199,8 +200,8 @@ class rt_midi : public midi_handler {
                     MIDIMessage& mes = messages->at(count++);
                     mes.frameIndex = (uint32_t)(time_stamp - first_time_stamp);
                     mes.byte0 = message[0];
-                    mes.byte1 = message[1];
-                    mes.byte2 = message[2];
+                    mes.byte1 = (message.size() > 1) ? message[1] : 0;
+                    mes.byte2 = (message.size() > 2) ? message[2] : 0;
                 }
             }
             return count;

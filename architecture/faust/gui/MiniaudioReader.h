@@ -96,16 +96,17 @@ struct MiniaudioReader : public SoundfileReader {
         soundfile->fSR[part]     = decoder.outputSampleRate;
         soundfile->fOffset[part] = offset;
 
-        // Read and fill channels
-        float* buffer_in = static_cast<float*>(alloca(BUFFER_SIZE * sizeof(float) * channels));
-        ma_uint64 frames;
+        // Read and fill channels: the decoder writes interleaved frames with all its output channels
+        int in_channels = decoder.outputChannels;
+        float* buffer_in = static_cast<float*>(alloca(BUFFER_SIZE * sizeof(float) * in_channels));
+        ma_uint64 frames = 0;
     
         if (soundfile->fIsDouble) {
             // Convert in double
-            double* buffer_out = static_cast<double*>(alloca(BUFFER_SIZE * sizeof(double) * channels));
+            double* buffer_out = static_cast<double*>(alloca(BUFFER_SIZE * sizeof(double) * in_channels));
             do {
                 result = ma_decoder_read_pcm_frames(&decoder, buffer_in, BUFFER_SIZE, &frames);
-                for (int frame = 0; frame < (BUFFER_SIZE * channels); frame++) {
+                for (int frame = 0; frame < (BUFFER_SIZE * in_channels); frame++) {
                     static_cast<double*>(buffer_out)[frame] = double(buffer_in[frame]);
                 }
                 soundfile->copyToOut(frames, channels, decoder.outputChannels, offset, buffer_out);

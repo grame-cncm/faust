@@ -30,7 +30,11 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <limits.h>
+#include <stdlib.h>
+#include <assert.h>
 #include <algorithm>
+#include <iostream>
+#include <memory>
 
 #include <alsa/asoundlib.h>
 #include "faust/audio/audio.h"
@@ -73,9 +77,7 @@ Some default parameters of Faust's ALSA applications are controlled by the follo
 #define display_error_msg(err,msg) if (err) { fprintf(stderr, "%s:%d, %s : %s(%d)\n", __FILE__, __LINE__, msg, snd_strerror(err), err); }
 
 /**
- * Used to set the priority and scheduling of the audi#include <sys/types.h>
-       #include <pwd.h>
-o thread
+ * Used to set the priority and scheduling of the audio thread
  */
 static bool setRealtimePriority()
 {
@@ -186,6 +188,15 @@ struct AudioInterface : public AudioParam
         fOutputDevice = 0;
         fInputParams  = 0;
         fOutputParams = 0;
+        fSampleFormat = SND_PCM_FORMAT_UNKNOWN;
+        fSampleAccess = SND_PCM_ACCESS_RW_INTERLEAVED;
+        fCardInputs   = 0;
+        fCardOutputs  = 0;
+        fChanInputs   = 0;
+        fChanOutputs  = 0;
+        fDuplexMode   = false;
+        fInputCardBuffer  = 0;
+        fOutputCardBuffer = 0;
     }
 
     /**
@@ -225,7 +236,7 @@ struct AudioInterface : public AudioParam
             if (err == 0) {
                 fDuplexMode = true;
             } else {
-                printf("Warning : no input device");
+                printf("Warning : no input device\n");
                 fDuplexMode = false;
                 fCardInputs = 0;
             }
@@ -491,6 +502,7 @@ struct AudioInterface : public AudioParam
                 fCardInputs, fCardOutputs,
                 fFrequency, fBuffering,
                 snd_pcm_format_name((_snd_pcm_format)fSampleFormat));
+        snd_ctl_close(ctl_handle);
     }
 
     /**
@@ -514,6 +526,7 @@ struct AudioInterface : public AudioParam
         snd_ctl_card_info_alloca(&card_info);
         err = snd_ctl_card_info(ctl_handle, card_info); check_error(err);
         printCardInfo(card_info);
+        snd_ctl_close(ctl_handle);
 
         // affichage des infos liees aux streams d'entree-sortie
         if (fSoftInputs > 0) printHWParams(fInputParams);
@@ -604,20 +617,20 @@ class alsaaudio : public audio
             std::cout << "prog [--device|-d <device> (default \"hw:0\")] [--frequency|-f <f> (default 44100)] [--buffer|-b <bs> (default 512)] [--periods|-p <n> (default 2)]\n";
             exit(1);
         }
-        fAudio = new AudioInterface(AudioParam().cardName(lopts1(argc, argv, "--device", "-d", getDefaultEnv("FAUST2ALSA_DEVICE", "hw:0")))
+        fAudio.reset(new AudioInterface(AudioParam().cardName(lopts1(argc, argv, "--device", "-d", getDefaultEnv("FAUST2ALSA_DEVICE", "hw:0")))
             .frequency(lopt1(argc, argv, "--frequency", "-f", getDefaultEnv("FAUST2ALSA_FREQUENCY", 44100)))
             .buffering(lopt1(argc, argv, "--buffer", "-b", getDefaultEnv("FAUST2ALSA_BUFFER", 512)))
             .periods(lopt1(argc, argv, "--periods", "-p", getDefaultEnv("FAUST2ALSA_PERIODS", 2)))
             .inputs(DSP->getNumInputs())
-            .outputs(DSP->getNumOutputs()));
+            .outputs(DSP->getNumOutputs())));
     }
     
     alsaaudio(int srate, int bsize) : fDSP(nullptr), fRunning(false)
     {
-        fAudio = new AudioInterface(AudioParam().cardName("hw:0")
+        fAudio.reset(new AudioInterface(AudioParam().cardName("hw:0")
                                     .frequency(srate)
                                     .buffering(bsize)
-                                    .periods(2));
+                                    .periods(2)));
     }
 
     virtual ~alsaaudio() { stop(); }

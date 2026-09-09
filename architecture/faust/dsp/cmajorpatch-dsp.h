@@ -31,6 +31,7 @@ architecture section is not modified.
 #include <string.h>
 #include <map>
 #include <algorithm>
+#include <functional>
 #include <libgen.h>
 
 #include <cmajor/API/cmaj_Engine.h>
@@ -58,7 +59,7 @@ class cmajorpatch_dsp : public dsp {
         cmaj::EndpointDetailsList fEndpointOutputs;
         int fNumInputs = 0;
         int fNumOutputs = 0;
-        int fSampleRate;
+        int fSampleRate = 0;
         FAUSTFLOAT* fZoneMap;
         std::map<FAUSTFLOAT*, std::function<void(FAUSTFLOAT)>> fInputsFunMap;
         std::map<FAUSTFLOAT*, std::function<FAUSTFLOAT()>> fOutputsFunMap;
@@ -241,6 +242,7 @@ class cmajor_dsp_factory : public dsp_factory {
         
         virtual std::string getName() {
             //return fDescription->name;
+            return "";
         }
         virtual std::string getSHAKey() { return ""; }
         virtual std::string getDSPCode() { return ""; }
@@ -285,6 +287,7 @@ cmajorpatch_dsp::cmajorpatch_dsp(cmajor_dsp_factory* factory, std::string& error
 
 void cmajorpatch_dsp::init(int sample_rate)
 {
+    fSampleRate = sample_rate;
     cmaj::BuildSettings settings;
     settings.setFrequency(sample_rate);
     settings.setSessionID(123456);
@@ -467,7 +470,7 @@ cmajor_dsp_factory* createCmajorDSPFactoryFromFile(const std::string& filename,
                                                std::string& error_msg)
 {
     std::string base = basename((char*)filename.c_str());
-    size_t pos = filename.find(".cmajor");
+    size_t pos = base.find(".cmajor");
     
     if (pos != std::string::npos) {
         return createCmajorDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg);

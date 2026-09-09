@@ -25,6 +25,8 @@ architecture section is not modified.
 #ifndef __juce_midi__
 #define __juce_midi__
  
+#include <iostream>
+
 #include "faust/midi/midi.h"
 
 class FAUST_API MapUI;
@@ -212,7 +214,7 @@ class juce_midi : public juce_midi_handler, public juce::MidiInputCallback {
         
         void stopMidi()
         { 
-            fMidiIn->stop();
+            if (fMidiIn) fMidiIn->stop();
         }
     
         // MIDI output API

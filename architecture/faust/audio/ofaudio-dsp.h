@@ -46,12 +46,13 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
     
     public:
     
-        ofaudio(int srate, int bsize):fSampleRate(srate), fBufferSize(bsize) {}
+        ofaudio(int srate, int bsize):fNIInputs(nullptr), fNIOutputs(nullptr), fSampleRate(srate), fBufferSize(bsize), fDSP(nullptr) {}
         virtual ~ofaudio()
         {
             fStream.stop();
             fStream.close();
             
+            if (!fDSP) return;
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 delete [] fNIInputs[i];
             }
@@ -98,11 +99,11 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
             
             fNIInputs = new float*[fDSP->getNumInputs()];
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                fNIInputs[i] = new float[4046];
+                fNIInputs[i] = new float[4096];
             }
             fNIOutputs = new float*[fDSP->getNumOutputs()];
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                fNIOutputs[i] = new float[4046];
+                fNIOutputs[i] = new float[4096];
             }
             
             if (fDSP->getNumInputs() > 0) {

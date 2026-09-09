@@ -29,6 +29,7 @@ architecture section is not modified.
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 #include <time.h>
+#include <string.h>
 
 #include "faust/audio/audio.h"
 
@@ -245,9 +246,12 @@ class androidaudio : public audio {
         : fDSP(nullptr), fSampleRate(srate),
         fBufferSize(bsize), fCPUTableIndex(0), fNumInChans(0), fNumOutChans(0),
         fOpenSLEngine(nullptr), fOutputMix(nullptr), fInputBufferQueue(nullptr), fOutputBufferQueue(nullptr),
+        fOutputBufferQueueInterface(nullptr), fInputBufferQueueInterface(nullptr),
+        fRecordInterface(nullptr), fPlayInterface(nullptr),
         fOpenSLInputs(bsize * 4, NUM_INPUTS), fOpenSLOutputs(bsize * 4, NUM_OUTPUTS)
         {
             __android_log_print(ANDROID_LOG_ERROR, "Faust", "Constructor");
+            memset(fCPUTable, 0, sizeof(fCPUTable));
             
             // Allocating memory for input channels.
             fInputs = new float*[NUM_INPUTS];

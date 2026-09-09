@@ -26,6 +26,7 @@
 #define __esp32audio__
 
 #include <utility>
+#include <algorithm>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"

@@ -30,6 +30,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <climits>
+#include <cerrno>
 #include <sys/stat.h>
 
 #include "faust/gui/DecoratorUI.h"
@@ -71,7 +72,7 @@ class PresetUI : public DecoratorUI {
 
     static std::string appendSlashIfMissing(const std::string& path)
     {
-        return (path[path.size() - 1] != '/') ? (path + "/") : path;
+        return (path.empty() || path[path.size() - 1] != '/') ? (path + "/") : path;
     }
   
     static bool tryCreateSubdirectory(const std::string& base_dir, const std::string& sub_dir, std::string& out_dir)
@@ -193,6 +194,7 @@ class PresetUI : public DecoratorUI {
     virtual void closeBox()
     {
         fUI->closeBox();
+        fFileUI.closeBox();
         if (--fGroupCount == 0) {
             // End of top-level group
             saveDefault();
@@ -311,7 +313,8 @@ class PresetUI : public DecoratorUI {
         }
         
         std::cout << "No usable XDG_DOCUMENTS_DIR, " << PRESETDIR << " is not a valid directory nor a usable environment variable.\n";
-        preset_dir = appendSlashIfMissing(getenv("HOME"));
+        const char* home = getenv("HOME");
+        preset_dir = appendSlashIfMissing(home ? home : "");
     
         // Try HOME/Documents
         std::string home_preset_dir1;

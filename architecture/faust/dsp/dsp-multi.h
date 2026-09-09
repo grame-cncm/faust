@@ -27,6 +27,7 @@ architecture section is not modified.
 
 #include <string>
 #include <iostream>
+#include <cstring>
 #include <assert.h>
 
 #include "faust/dsp/dsp-adapter.h"
@@ -680,7 +681,7 @@ class mydspmulti : public decorator_dsp {
         #endif
         
         #ifdef apple_m2
-            if (!fDSP && is_cpu("apple-m1")) {
+            if (!fDSP && is_cpu("apple-m2")) {
                 std::cout << "Allocate for apple-m2" << std::endl;
                 fDSP = createmydspapple_m2();
                 goto adapter;

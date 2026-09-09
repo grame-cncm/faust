@@ -26,6 +26,7 @@
 #define __osc_dsp__
 
 #include <stdio.h>
+#include <string.h>
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
 #include "OSCIO.h"

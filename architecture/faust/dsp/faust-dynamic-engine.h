@@ -46,6 +46,9 @@
  * like QjackCtl (https://qjackctl.sourceforge.io).
  */
 
+#ifndef __faust_dynamic_engine__
+#define __faust_dynamic_engine__
+
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
@@ -178,7 +181,7 @@ extern "C" {
      *
      * @return True if initialization is successful, false otherwise.
      */
-    bool initDsp(dsp* dsp, RendererType renderer, int sr, int bsize);
+    bool initDsp(dsp* dsp, enum RendererType renderer, int sr, int bsize);
     
     /**
      * @brief Start processing audio.
@@ -462,5 +465,7 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#endif // __faust_dynamic_engine__
 
 /************************** END faust-dynamic-engine.h **************************/

@@ -38,6 +38,8 @@
 
 #include <algorithm>
 #include <vector>
+#include <string>
+#include <string.h>
 
 #include "faust/gui/UI.h"
 #include "ros/ros.h"
@@ -70,7 +72,13 @@ class RosUI : public UI {
             
             do
             {
-                if ((label[0] < 65)  // before "A" in ASCII
+                if (count <= 1)
+                {
+                    label = "/topic";
+                    count = label.size();
+                    ok=true;
+                }
+                else if ((label[0] < 65)  // before "A" in ASCII
                     || (label[0] <= 96 && label[0] >= 91) // After "Z" and before "a" in ASCII
                     || (label[0] > 122) // After "z" in ASCII
                     && (label[0] != FORWARD_SLASH) // not "/"
@@ -79,12 +87,6 @@ class RosUI : public UI {
                 {
                     label.erase(0,1);
                     count = label.size();
-                }
-                else if(count <= 1)
-                {
-                    label = "/topic";
-                    count = label.size();
-                    ok=true;
                 }
                 else
                 {
@@ -439,7 +441,7 @@ class RosUI : public UI {
 
         void declare(FAUSTFLOAT* zone, const char* key, const char* val) 
         {
-            if (key=="ros") // We do not care if key is not "ros" here
+            if (strcmp(key, "ros") == 0) // We do not care if key is not "ros" here
             {
                 // Adds the Faust parameter's address (zone) to a zone vector
                     // if a ros metadata has been declared

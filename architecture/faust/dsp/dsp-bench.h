@@ -227,8 +227,9 @@ class time_bench_real {
             sort(V.begin(), V.end());
             
             // Mean and standard deviation of 50 best values (gives relatively stable results)
-            uint64_t meavalx = meanValue(V.begin(), V.begin() + 50);
-            double sd = standardDeviation(V.begin(), V.begin() + 50);
+            int best = std::min(50, fCount);
+            uint64_t meavalx = meanValue(V.begin(), V.begin() + best);
+            double sd = standardDeviation(V.begin(), V.begin() + best);
             return std::make_pair(megapersec(bsize, ichans + ochans, meavalx), sd);
         }
 
@@ -252,7 +253,7 @@ class time_bench_real {
             uint64_t meaval100 = meanValue(V.end() - 5, V.end());
             
             // Printing
-            fprintf(stdout, "%\t%f\t%f\t%f\t%f\t%f\n", applname,
+            fprintf(stdout, "%s\t%f\t%f\t%f\t%f\t%f\n", applname,
                     megapersec(bsize, ichans+ochans, meaval00),
                     megapersec(bsize, ichans+ochans, meaval25),
                     megapersec(bsize, ichans+ochans, meaval50),
@@ -396,7 +397,7 @@ class measure_dsp_real : public decorator_dsp {
             int policy;
             uid_t uid = getuid();
             pw = getpwnam("root");
-            setuid(pw->pw_uid);
+            if (pw) setuid(pw->pw_uid);
             
             int err = pthread_getschedparam(pthread_self(), &policy, &param);
             if (err != 0) {
