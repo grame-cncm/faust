@@ -1,4 +1,4 @@
-# portaudio-gpu-terminal.mojo
+# portaudio-gpu-proto.mojo
 
 from std.sys import has_accelerator
 
@@ -9,14 +9,10 @@ from help import *
 from meta import *
 from audio.portaudio import *
 from audio.portaudio.gpu import PortAudioGpu
-from gui.terminal import TerminalGui
+from gui.proto import ProtoGui
 
 # <<includeIntrinsic>>
 # <<includeclass>>
-
-comptime GPU_GRID_SIZE = 1
-comptime GPU_BLOCK_SIZE = 1
-
 
 def main() -> None:
     comptime assert dfaust == F32.dtype, "Expected 32 bit float driver precision."
@@ -26,9 +22,9 @@ def main() -> None:
     dsp.unsafe_write(mydsp())
     dsp[].init(SAMP_RATE)
 
-    var gui = TerminalGui[dfaust]()
+    var gui = ProtoGui[dfaust]()
     dsp[].build_user_interface(gui)
-    var driver = PortAudioGpu[mydsp](GPU_GRID_SIZE, GPU_BLOCK_SIZE)
+    var driver = PortAudioGpu[mydsp]()
 
     var err = driver.init()
     if not err:

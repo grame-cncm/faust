@@ -1,14 +1,14 @@
-# gui/terminal.mojo
+# gui/proto.mojo
 
 from conf import *
 from .gui import FaustGui
 
 # ==============================================================
-# TerminalGui architecture implementation.
+# ProtoGui architecture implementation.
 # Terminal-based GUI listening for user input for demo purposes.
 # ==============================================================
 
-struct TerminalGui[dtype: DType](FaustGui):
+struct ProtoGui[dtype: DType](FaustGui):
     comptime Real = SIMD[Self.dtype, 1]
     var widgets: Arr[Widget[Self.dtype], MAX_CAP]
     var widgets_len: S32

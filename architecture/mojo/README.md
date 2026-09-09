@@ -56,7 +56,7 @@ A normal Mojo architecture therefore has the following form:
     EOF
 ```
 
-The files `portaudio.mojo`, `portaudio-terminal.mojo`, `bench.mojo`, `inspect.mojo`, and `impulse.mojo`
+The files `portaudio.mojo`, `portaudio-proto.mojo`, `bench.mojo`, `inspect.mojo`, and `impulse.mojo`
 all follow this scheme. What changes is the code surrounding `mydsp` and, consequently, the purpose of the
 resulting program.
 
@@ -139,7 +139,7 @@ This directory uses that organization to separate the different responsibilities
     ├── gui/
     │   ├── __init__.mojo
     │   ├── gui.mojo
-    │   ├── terminal.mojo
+    │   ├── proto.mojo
     │   └── control.mojo
     ├── help/
     ├── mem/
@@ -147,7 +147,7 @@ This directory uses that organization to separate the different responsibilities
     ├── bench/
     ├── test/
     ├── portaudio.mojo
-    ├── portaudio-terminal.mojo
+    ├── portaudio-proto.mojo
     ├── bench.mojo
     ├── inspect.mojo
     └── impulse.mojo
@@ -308,11 +308,11 @@ the DSP structure, allowing an interface to modify the parameters used by `compu
 No significant development time was invested in building a complete GUI. The following implementations
 are currently available.
 
-- `TerminalGui` - A simple text interface used for demonstration and prototyping.
+- `ProtoGui` - A simple text interface used for demonstration and prototyping.
 - `ControlGui` - Used by the impulse test framework to control DSP parameters.
 
-In particular, `TerminalGui` stores a representation of the widgets built by FAUST and allows the value of
-a slider to be modified from the terminal while the audio thread continues to execute the DSP.
+In particular, `ProtoGui` stores a representation of the widgets built by FAUST and allows the value of
+a slider to be modified from the proto while the audio thread continues to execute the DSP.
 
 ### Metadata
 
@@ -361,14 +361,14 @@ The resulting program:
 The `PortAudio` driver only supports 32-bit precision, so the architecture checks at compile time that
 `DFAUST` corresponds to `f32`.
 
-**portaudio-terminal.mojo**
+**portaudio-proto.mojo**
 
-The `portaudio-terminal.mojo` architecture extends the previous case by adding `TerminalGui`.
+The `portaudio-proto.mojo` architecture extends the previous case by adding `ProtoGui`.
 
 After DSP initialization, the interface is built:
 
 ```
-    var gui = TerminalGui[dfaust]()
+    var gui = ProtoGui[dfaust]()
     dsp[].build_user_interface(gui)
 ```
 
@@ -507,7 +507,7 @@ The transpiled file can then be compiled by specifying the path to the architect
 To use a different architecture, it is sufficient to change the template passed to `-a`:
 
 ```
-    -a architecture/mojo/portaudio-terminal.mojo
+    -a architecture/mojo/portaudio-proto.mojo
     -a architecture/mojo/bench.mojo
     -a architecture/mojo/inspect.mojo
     -a architecture/mojo/impulse.mojo

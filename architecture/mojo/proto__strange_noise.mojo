@@ -11,7 +11,7 @@ from help import *
 from meta import *
 from audio.portaudio import *
 from audio.portaudio.gpu import PortAudioGpu
-from gui.terminal import TerminalGui
+from gui.proto import ProtoGui
 
 
 struct ProbeDsp(FaustDspGpu):
@@ -177,7 +177,7 @@ def main() -> None:
     dsp.unsafe_write(ProbeDsp())
     dsp[].init(SAMP_RATE)
 
-    var gui = TerminalGui[dfaust]()
+    var gui = ProtoGui[dfaust]()
     dsp[].build_user_interface(gui)
     var driver = PortAudioGpu[ProbeDsp]()
 
