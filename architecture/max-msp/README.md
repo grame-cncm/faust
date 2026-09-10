@@ -111,7 +111,10 @@ The **faust2rnbo** tool transforms a Faust DSP program into a RNBO patch includi
 
 **faust2rnbo** is used with the following options: 
 
-`faust2rnbo [options] [additional Faust options (-vec -vs 8...)] <file.dsp>` 
+`faust2rnbo [options] [additional Faust options] <file.dsp>`
+
+The Codebox backend used by RNBO does not support Faust's `-vec` option; do
+not combine it with `faust2rnbo`.
 
 ## Options
 

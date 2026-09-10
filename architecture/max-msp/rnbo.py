@@ -50,12 +50,18 @@ The maxpat file is generated with the following structure:
     - dac~ object and possibly adc~ object (if the DSP has inputs)
 """
 
-from py2max.py2max import *
 import argparse
 import json
 import logging
 import re
+import sys
+from pathlib import Path
 from typing import Dict, List, Tuple, Optional
+
+# Prefer the py2max submodule bundled with Faust over any system installation.
+# py2max 0.4.1 exposes its public API directly from the package root.
+sys.path.insert(0, str(Path(__file__).resolve().parent / "py2max"))
+from py2max import *
 
 
 def get_midi_and_nvoices(json_data: dict) -> Tuple[bool, int]:

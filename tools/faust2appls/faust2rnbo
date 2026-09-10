@@ -68,6 +68,8 @@ do
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1     
+        # Polyphonic RNBO patches require MIDI ports and routing.
+        MIDI=True
     elif [ $p = "-effect" ]; then
         POLY="POLY2"
         shift
@@ -120,15 +122,15 @@ EndOfCode
                 faust $OPTIONS effect.dsp -lang codebox -double -json -o effect.codebox || exit
                 rm effect.dsp
                 # compile codebox and JSON files to maxpat
-                python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --effect-codebox "effect.codebox" --effect-json "effect.dsp.json" --maxpat "${f%.dsp}.maxpat" --midi $MIDI --nvoices  $NVOICES --subpatcher $SUB_PATCHER
+                python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --effect-codebox "effect.codebox" --effect-json "effect.dsp.json" --maxpat "${f%.dsp}.maxpat" --cpp-export $EXPORT_PATH --cpp-filename $EXPORT_FILENAME --midi $MIDI --nvoices $NVOICES --compile $COMPILE --subpatcher $SUB_PATCHER
             else
                 faust $OPTIONS "$EFFECT" -lang codebox -double -json -o "${EFFECT%.dsp}.codebox"  || exit
                 # compile codebox and JSON files to maxpat
-                python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --effect-codebox "${EFFECT%.dsp}.codebox" --effect-json "$EFFECT.json" --maxpat "${f%.dsp}.maxpat" --midi $MIDI --nvoices $NVOICES --subpatcher $SUB_PATCHER
+                python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --effect-codebox "${EFFECT%.dsp}.codebox" --effect-json "$EFFECT.json" --maxpat "${f%.dsp}.maxpat" --cpp-export $EXPORT_PATH --cpp-filename $EXPORT_FILENAME --midi $MIDI --nvoices $NVOICES --compile $COMPILE --subpatcher $SUB_PATCHER
             fi
          else
             # compile codebox and JSON file to maxpat
-            python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --maxpat "${f%.dsp}.maxpat" --midi $MIDI --nvoices $NVOICES --subpatcher $SUB_PATCHER
+            python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --maxpat "${f%.dsp}.maxpat" --cpp-export $EXPORT_PATH --cpp-filename $EXPORT_FILENAME --midi $MIDI --nvoices $NVOICES --compile $COMPILE --subpatcher $SUB_PATCHER
         fi
     fi
   
@@ -140,4 +142,3 @@ EndOfCode
 done
 
 echo $BINARIES
-
