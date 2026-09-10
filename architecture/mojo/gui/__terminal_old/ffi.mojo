@@ -55,31 +55,31 @@ def gui_stop(ui: Handle) -> S32:
     return external_call["gui_stop", S32](ui)
 
 def gui_open_box(ui: Handle, kind: S32, var lbl: String, mut id: S32) -> S32:
-    return external_call["gui_open_box", S32](ui, kind, lbl.as_c_string_slice().unsafe_ptr(), Ptr(to=id))
+    return external_call["gui_open_box", S32](ui, kind, lbl.as_c_string_slice().ptr(), Ptr(to=id))
 
 def gui_close_box(ui: Handle) -> S32:
     return external_call["gui_close_box", S32](ui)
 
 def gui_add_button(ui: Handle, var lbl: String, mut id: S32) -> S32:
-    return external_call["gui_add_button", S32](ui, lbl.as_c_string_slice().unsafe_ptr(), Ptr(to=id))
+    return external_call["gui_add_button", S32](ui, lbl.as_c_string_slice().ptr(), Ptr(to=id))
 
 def gui_add_check_button(ui: Handle, var lbl: String, init: F64, mut id: S32) -> S32:
-    return external_call["gui_add_check_button", S32](ui, lbl.as_c_string_slice().unsafe_ptr(), init, Ptr(to=id))
+    return external_call["gui_add_check_button", S32](ui, lbl.as_c_string_slice().ptr(), init, Ptr(to=id))
 
 def gui_add_slider(ui: Handle, var lbl: String, init: F64, min: F64, max: F64, step: F64, mut id: S32) -> S32:
-    return external_call["gui_add_slider", S32](ui, lbl.as_c_string_slice().unsafe_ptr(), init, min, max, step, Ptr(to=id))
+    return external_call["gui_add_slider", S32](ui, lbl.as_c_string_slice().ptr(), init, min, max, step, Ptr(to=id))
 
 def gui_add_num_entry(ui: Handle, var lbl: String, init: F64, min: F64, max: F64, step: F64, mut id: S32) -> S32:
-    return external_call["gui_add_num_entry", S32](ui, lbl.as_c_string_slice().unsafe_ptr(), init, min, max, step, Ptr(to=id))
+    return external_call["gui_add_num_entry", S32](ui, lbl.as_c_string_slice().ptr(), init, min, max, step, Ptr(to=id))
 
 def gui_add_bargraph(ui: Handle, var lbl: String, min: F64, max: F64, mut id: S32) -> S32:
-    return external_call["gui_add_bargraph", S32](ui, lbl.as_c_string_slice().unsafe_ptr(), min, max, Ptr(to=id))
+    return external_call["gui_add_bargraph", S32](ui, lbl.as_c_string_slice().ptr(), min, max, Ptr(to=id))
 
 def gui_set_val(ui: Handle, id: S32, val: F64) -> S32:
     return external_call["gui_set_val", S32](ui, id, val)
 
 def gui_set_unit(ui: Handle, id: S32, var unit: String) -> S32:
-    return external_call["gui_set_unit", S32](ui, id, unit.as_c_string_slice().unsafe_ptr())
+    return external_call["gui_set_unit", S32](ui, id, unit.as_c_string_slice().ptr())
 
 def gui_get_value(ui: Handle, id: S32, mut ptr: Handle) -> S32:
     return external_call["gui_get_value", S32](ui, id, Ptr(to=ptr))

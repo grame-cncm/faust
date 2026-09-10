@@ -11,14 +11,14 @@ from .ffi import *
 struct Binding[dtype: DType](ImplicitlyCopyable):
     var id: S32
     var kind: S32
-    var zone: Ptr[Scalar[dtype]]
+    var zone: Ptr[Scalar[Self.dtype]]
     var slot: Value
     var own: Bool  # Aliased widgets share one slot and one DSP transfer.
 
 
 @fieldwise_init
 struct Unit[dtype: DType](Movable):
-    var zone: Ptr[Scalar[dtype]]
+    var zone: Ptr[Scalar[Self.dtype]]
     var text: String
 
 

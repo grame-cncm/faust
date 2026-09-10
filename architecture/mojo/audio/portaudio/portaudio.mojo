@@ -34,66 +34,70 @@ struct PortAudio(FaustAudio):
         return PA_NO_ERROR
 
     @always_inline
-    def stop(mut driver) -> S32:
-        if not driver.alive:
-            return FAUST_STOPPED_NOT_ALIVE
-        var result = PA_NO_ERROR
-        if driver.stream != None:
-            result = pa_stop_stream(driver.stream)
-            if result == PA_STREAM_IS_STOPPED:
-                result = PA_NO_ERROR
-            var err = pa_close_stream(driver.stream)
-            if err:
-                return err
-            driver.stream = NULL_STREAM
-        var err = pa_terminate()
-        if err:
-            return err
-        driver.alive = False
-        return result
+    def is_active(imm driver) -> S32:
+        # Main-thread query: 1 = processing, 0 = inactive, negative = error.
+        if not driver.alive or driver.stream == None:
+            return S32(0)
+        return pa_is_stream_active(driver.stream)
 
     @always_inline
-    def start[Dsp: FaustDsp](mut driver, dsp: Ptr[Dsp]) -> S32:
+    def stop(mut driver) -> S32:
+        if not driver.alive:
+            return PA_NO_ERROR
+        var err = PA_NO_ERROR
+        if driver.stream != None:
+            err = pa_stop_stream(driver.stream)
+            if err == PA_STREAM_IS_STOPPED:
+                err = PA_NO_ERROR
+            # Close also aborts an active stream when graceful stop failed.
+            var end = pa_close_stream(driver.stream)
+            if end:
+                # A non-null stream means callback quiescence is NOT proven.
+                return end
+            driver.stream = NULL_STREAM
+        driver.alive = False
+        var end = pa_terminate()
+        return err if err else end
+
+    @always_inline
+    def start[Dsp: FaustDsp](mut driver, var dsp: Ptr[Dsp]) -> S32:
         if not driver.alive:
             return PA_NOT_INITIALIZED
         if driver.stream != None:
             return FAUST_ALREADY_ALIVE
-
         var n_ins = dsp[].get_num_inputs()
-        var n_outs = dsp[].get_num_outputs()
-        var in_device = PA_NO_DEVICE
-        var out_device = PA_NO_DEVICE
-        var in_latency = PaTime(0)
-        var out_latency = PaTime(0)
-
-        if n_ins != 0:
+        var m_outs = dsp[].get_num_outputs()
+        if n_ins < 0 or m_outs < 0 or n_ins + m_outs == 0:
+            return PA_INVALID_CHANNEL_COUNT
+        var in_device = PaDeviceIndex(-1)
+        var out_device = PaDeviceIndex(-1)
+        var in_latency = F64(0)
+        var out_latency = F64(0)
+        var err = PA_NO_ERROR
+        var info: OptPtr[PaDeviceInfo, IMM_NOTRK]
+        if n_ins:
             in_device = pa_get_default_input_device()
             if in_device < 0:
                 return FAUST_NO_DEFAULT_IN_DEVICE
-
-            var info, err = faust_get_device_info(in_device)
+            info, err = faust_get_device_info(in_device)
             if err:
                 return err
-
             in_latency = info.unsafe_value()[].default_low_input_latency
-
-        if n_outs != 0:
+        if m_outs:
             out_device = pa_get_default_output_device()
             if out_device < 0:
                 return FAUST_NO_DEFAULT_OUT_DEVICE
-
-            var info, err = faust_get_device_info(out_device)
+            var info: OptPtr[PaDeviceInfo, IMM_NOTRK]
+            info, err = faust_get_device_info(out_device)
             if err:
                 return err
-
             out_latency = info.unsafe_value()[].default_low_output_latency
 
-        var err: PaError
         driver.stream, err = faust_open_stream[Dsp](
             faust_stream_param(in_device, n_ins, in_latency),
-            faust_stream_param(out_device, n_outs, out_latency),
+            faust_stream_param(out_device, m_outs, out_latency),
             BUFF_SIZE,
-            dsp
+            dsp,
         )
 
         if err:
@@ -103,9 +107,6 @@ struct PortAudio(FaustAudio):
 
         err = pa_start_stream(driver.stream)
         if err:
-            var close_err = pa_close_stream(driver.stream)
-            if not close_err:
-                driver.stream = NULL_STREAM
             return err
 
         return PA_NO_ERROR
@@ -114,21 +115,32 @@ struct PortAudio(FaustAudio):
 
 @always_inline
 def faust_callback[Dsp: FaustDsp](
-    input:  OptPtr[Void, IMM_NOTRK],
-    output: OptPtr[Void, MUT_NOTRK],
-    count:  PaULong,
-    time:   OptPtr[PaStreamCallbackTimeInfo, IMM_NOTRK],
-    flags:  PaStreamCallbackFlags,
-    data:   OptPtr[Void, MUT_NOTRK]
+    input:   OptPtr[Void, IMM_NOTRK],
+    output:  OptPtr[Void, MUT_NOTRK],
+    count:   PaULong,
+    time:    OptPtr[PaStreamCallbackTimeInfo, IMM_NOTRK],
+    flags:   PaStreamCallbackFlags,
+    data:    OptPtr[Void, MUT_NOTRK],
 ) -> S32:
-    var inputs = NULL_PTR[ImmStream, IMM_NOTRK]
-    var outputs = NULL_PTR[MutStream, MUT_NOTRK]
+    if data == None:
+        return PA_ABORT
+
+    var dsp = data.unsafe_value().unsafe_bitcast[Dsp]()
+    # Pointer is non-nullable in Mojo. Zero-channel arrays are never read by
+    # generated DSP code; use aligned dangling placeholders, not a null unwrap.
+    var inputs = ImmStreams.unsafe_dangling()
+    var outputs = MutStreams.unsafe_dangling()
     if input != None:
         inputs = input.unsafe_value().unsafe_bitcast[ImmStream]()
+    elif dsp[].get_num_inputs():
+        return PA_ABORT
     if output != None:
         outputs = output.unsafe_value().unsafe_bitcast[MutStream]()
-    var dsp = data.unsafe_value().unsafe_bitcast[Dsp]()
-    dsp[].compute(S32(count), inputs.unsafe_value(), outputs.unsafe_value())
+    elif dsp[].get_num_outputs():
+        return PA_ABORT
+
+    dsp[].compute(S32(count), inputs, outputs)
+
     return PA_CONTINUE
 
 comptime FaustCallbackFunc[Dsp: FaustDsp] = type_of(faust_callback[Dsp])
@@ -176,7 +188,14 @@ def faust_open_stream[Dsp: FaustDsp](
 def faust_stream_param(
     device: PaDeviceIndex, n_chans: PaInt, latency: PaTime
 ) -> PaStreamParameters:
-    return PaStreamParameters(device, n_chans, FAUST_FORMAT, latency, NULL_PTR[Void, MUT_NOTRK])
+    return PaStreamParameters(
+        device,
+        n_chans,
+        FAUST_FORMAT,
+        latency,
+        NULL_PTR[Void, MUT_NOTRK]
+    )
+
 
 # Faust PortAudio constant definitions.
 
@@ -192,5 +211,3 @@ comptime FAUST_NO_DEFAULT_IN_DEVICE  = PaError(-6999)
 comptime FAUST_NO_DEFAULT_OUT_DEVICE = PaError(-6998)
 comptime FAUST_STOPPED_NOT_ALIVE     = PaError(-3999)
 comptime FAUST_ALREADY_ALIVE         = PaError(-3998)
-
-

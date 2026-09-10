@@ -47,9 +47,10 @@ struct BridgeGui(FaustGui):
 
     @always_inline
     def add_vertical_slider[dreal: DType](
-        mut ui, var label: String, mut zone: SIMD[dreal, 1],
+        mut ui, 
+        var label: String,        mut zone: SIMD[dreal, 1],
         var init: SIMD[dreal, 1], var min: SIMD[dreal, 1],
-        var max: SIMD[dreal, 1], var step: SIMD[dreal, 1]
+        var max: SIMD[dreal, 1],  var step: SIMD[dreal, 1]
     ) -> None:
         ui._add_zone(zone)
 
