@@ -26,7 +26,8 @@ struct FaustGpuDevice[Dsp: FaustDspGpu](Movable):
     def enqueue_input(mut device, chan: S32, input: ImmStream) -> S32:
         try:
             device.in_chans[Int(chan)].enqueue_copy_from(input)
-        except:
+        except e:
+            print(e)
             return FAUST_GPU_ERROR
         return FAUST_GPU_NO_ERROR
 
@@ -40,21 +41,24 @@ struct FaustGpuDevice[Dsp: FaustDspGpu](Movable):
                 device.work_buf,
                 device.buf_size
             )
-        except:
+        except e:
+            print(e)
             return FAUST_GPU_ERROR
         return FAUST_GPU_NO_ERROR
 
     def enqueue_output(mut device, chan: S32, output: MutStream) -> S32:
         try:
             device.out_chans[Int(chan)].enqueue_copy_to(output)
-        except:
+        except e:
+            print(e)
             return FAUST_GPU_ERROR
         return FAUST_GPU_NO_ERROR
 
     def synchronize(mut device) -> S32:
         try:
             device.ctx.synchronize()
-        except:
+        except e:
+            print(e)
             return FAUST_GPU_ERROR
         return FAUST_GPU_NO_ERROR
 
