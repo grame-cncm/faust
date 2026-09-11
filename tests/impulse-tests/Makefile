@@ -66,6 +66,7 @@ help:
 	@echo "-------- FAUST impulse response tests --------"
 	@echo "Available targets are:"
 	@echo " 'all' (default): call all the targets below"
+	@echo " 'legs'   : list every leg (one run of Make.gcc) ; run one alone with 'make leg/<outdir>'"
 	@echo
 	@echo " 'cpp'    : check float and double outputs with the cpp backend in scalar, vec, openmp and sched modes"
 	@echo " 'cpp1'   : check double outputs with the cpp backend in scalar and -mem"
@@ -135,13 +136,312 @@ asc:
 
 #########################################################################
 # automatic travis test
-travis:
-	$(MAKE) -f Make.gcc outdir=cpp/double          lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
-	$(MAKE) -f Make.gcc outdir=cpp/double/dlt0     lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -dlt 0"
-	$(MAKE) -f Make.gcc outdir=cpp/double/vec      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec"
-	$(MAKE) -f Make.gcc outdir=cpp/double/vec/fun  lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -fun"
-	$(MAKE) -f Make.gcc outdir=cpp/double/omp      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -omp"
-	#$(MAKE) -f Make.gcc outdir=cpp/double/sch     lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -sch"
+# ---- Legs ------------------------------------------------------------------
+# A leg is one run of Make.gcc : an output directory, a language, an
+# architecture and the faust options. Each leg is its own target, so that
+# `make -k <family>` keeps going past a failing leg -- inside a single recipe
+# the first failing line ends the recipe, and -k only carries across
+# targets -- and so that one leg can be run alone : `make leg/cpp/double/vec/lv0`.
+# `make legs` lists them. A leg is defined once, even when several families use it.
+
+define LEG
+LEGS += leg/$(strip $(1))
+.PHONY: leg/$(strip $(1))
+leg/$(strip $(1)):
+	$$(MAKE) -f Make.gcc outdir=$(strip $(1)) lang=$(strip $(2)) arch=$(strip $(3)) FAUSTOPTIONS="$(strip $(4))"
+endef
+
+# travis
+$(eval $(call LEG, cpp/double                   , cpp , impulsearch.cpp     , -I dsp -double))
+$(eval $(call LEG, cpp/double/dlt0              , cpp , impulsearch.cpp     , -I dsp -double -dlt 0))
+$(eval $(call LEG, cpp/double/vec               , cpp , impulsearch.cpp     , -I dsp -double -vec))
+$(eval $(call LEG, cpp/double/vec/fun           , cpp , impulsearch.cpp     , -I dsp -double -vec -fun))
+$(eval $(call LEG, cpp/double/omp               , cpp , impulsearch.cpp     , -I dsp -double -omp))
+
+# cpp
+$(eval $(call LEG, cpp/double/uim               , cpp , impulsearch.cpp     , -I dsp -double -uim))
+$(eval $(call LEG, cpp/double/it                , cpp , impulsearch.cpp     , -I dsp -double -it))
+$(eval $(call LEG, cpp/double/fp                , cpp , impulsearch.cpp     , -I dsp -double -fp))
+$(eval $(call LEG, cpp/double/wall              , cpp , impulsearch.cpp     , -I dsp -double -wall))
+$(eval $(call LEG, cpp/double/mcd0              , cpp , impulsearch.cpp     , -I dsp -double -mcd 0))
+$(eval $(call LEG, cpp/double/mapp              , cpp , impulsearch.cpp     , -I dsp -double -mapp))
+$(eval $(call LEG, cpp/double/rui               , cpp , impulsearch.cpp     , -I dsp -double -rui))
+$(eval $(call LEG, cpp/double/nvi               , cpp , impulsearch.cpp     , -I dsp -double -nvi))
+$(eval $(call LEG, cpp/double/dlt256            , cpp , impulsearch.cpp     , -I dsp -double -dlt 256))
+$(eval $(call LEG, cpp/double/vec/lv0           , cpp , impulsearch.cpp     , -I dsp -double -vec -lv 0))
+$(eval $(call LEG, cpp/double/vec/lv0/fun       , cpp , impulsearch.cpp     , -I dsp -double -vec -lv 0 -fun))
+$(eval $(call LEG, cpp/double/vec/lv0/vs16      , cpp , impulsearch.cpp     , -I dsp -double -vec -lv 0 -vs 16))
+$(eval $(call LEG, cpp/double/vec/lv1           , cpp , impulsearch.cpp     , -I dsp -double -vec -lv 1))
+$(eval $(call LEG, cpp/double/vec/lv1/fun       , cpp , impulsearch.cpp     , -I dsp -double -vec -lv 1 -fun))
+$(eval $(call LEG, cpp/double/vec/lv1/vs16      , cpp , impulsearch.cpp     , -I dsp -double -vec -lv 1 -vs 16))
+$(eval $(call LEG, cpp/double/sched             , cpp , impulsearch.cpp     , -I dsp -double -sch))
+$(eval $(call LEG, cpp/double/sched/fun         , cpp , impulsearch.cpp     , -I dsp -double -sch -fun))
+$(eval $(call LEG, cpp/double/omp/fun           , cpp , impulsearch.cpp     , -I dsp -double -omp -fun))
+$(eval $(call LEG, cpp/float                    , cpp , impulsearch.cpp     , -I dsp -single))
+$(eval $(call LEG, cpp/float/vec                , cpp , impulsearch.cpp     , -I dsp -single -vec))
+$(eval $(call LEG, cpp/float/sched              , cpp , impulsearch.cpp     , -I dsp -single -sch))
+$(eval $(call LEG, cpp/float/omp                , cpp , impulsearch.cpp     , -I dsp -single -omp))
+
+# quad
+$(eval $(call LEG, cpp/quad                     , cpp , impulsearch.cpp     , -I dsp -quad))
+$(eval $(call LEG, cpp/quad/vec                 , cpp , impulsearch.cpp     , -I dsp -quad -vec))
+$(eval $(call LEG, cpp/quad/sched               , cpp , impulsearch.cpp     , -I dsp -quad -sch))
+$(eval $(call LEG, cpp/quad/omp                 , cpp , impulsearch.cpp     , -I dsp -quad -omp))
+$(eval $(call LEG, c/quad                       , c   , impulsearch2.cpp    , -I dsp -quad))
+$(eval $(call LEG, c/quad/vec                   , c   , impulsearch2.cpp    , -I dsp -quad -vec))
+$(eval $(call LEG, c/quad/sched                 , c   , impulsearch2.cpp    , -I dsp -quad -sch))
+$(eval $(call LEG, c/quad/omp                   , c   , impulsearch2.cpp    , -I dsp -quad -omp))
+
+# fx
+$(eval $(call LEG, cpp/fx                       , cpp , impulsearchfx.cpp   , -I dsp -fx))
+$(eval $(call LEG, c/fx                         , c   , impulsearch2.cpp    , -I dsp -fx))
+
+# fx1
+$(eval $(call LEG, cpp/fx1                      , cpp , impulsearchfx.cpp   , -I dsp -fx -fx-size -1))
+$(eval $(call LEG, c/fx1                        , c   , impulsearch2.cpp    , -I dsp -fx -fx-size -1))
+
+# cpp1
+$(eval $(call LEG, cpp1/double/mem0             , cpp , impulsearch6.cpp    , -I dsp -double -mem))
+$(eval $(call LEG, cpp1/double/mem1             , cpp , impulsearch6.cpp    , -I dsp -double -it -mem1))
+$(eval $(call LEG, cpp1/double/mem1fpgamemth0   , cpp , impulsearch6.cpp    , -I dsp -double -it -mem1 -fpga-mem-th 0))
+$(eval $(call LEG, cpp1/double/mem1fpgamemth2   , cpp , impulsearch6.cpp    , -I dsp -double -it -mem1 -fpga-mem-th 2))
+$(eval $(call LEG, cpp1/double/mem1fpgamemth8   , cpp , impulsearch6.cpp    , -I dsp -double -it -mem1 -fpga-mem-th 8))
+
+# cpp2
+$(eval $(call LEG, cpp2/double/ec               , cpp , impulsearch7.cpp    , -I dsp -double -ec))
+$(eval $(call LEG, cpp2/double/ecmem0           , cpp , impulsearch7bis.cpp , -I dsp -double -ec -mem))
+$(eval $(call LEG, cpp2/double/ecmem1it         , cpp , impulsearch7bis.cpp , -I dsp -double -ec -mem1 -it))
+$(eval $(call LEG, cpp2/double/os               , cpp , impulsearch7ter.cpp , -I dsp -double -os))
+$(eval $(call LEG, cpp2/double/osec             , cpp , impulsearch7ter.cpp , -I dsp -double -os -ec))
+$(eval $(call LEG, cpp2/double/osmem            , cpp , impulsearch7qua.cpp , -I dsp -double -os -mem))
+$(eval $(call LEG, cpp2/double/osmem1           , cpp , impulsearch7qua.cpp , -I dsp -double -os -mem1 -it))
+$(eval $(call LEG, cpp2/double/osecmem          , cpp , impulsearch7qua.cpp , -I dsp -double -os -ec -mem))
+$(eval $(call LEG, cpp2/double/osecmem1it       , cpp , impulsearch7qua.cpp , -I dsp -double -os -ec -mem1 -it))
+
+# cpp3
+$(eval $(call LEG, cpp3/double/vecec            , cpp , impulsearch7.cpp    , -I dsp -t 0 -double -vec -ec))
+$(eval $(call LEG, cpp3/double/vececmem0        , cpp , impulsearch7bis.cpp , -I dsp -t 0 -double -vec -ec -mem))
+$(eval $(call LEG, cpp3/double/vececmem1it      , cpp , impulsearch7bis.cpp , -I dsp -t 0 -double -vec -ec -mem1 -it))
+$(eval $(call LEG, cpp3/double/vecfunecmem1it   , cpp , impulsearch7bis.cpp , -I dsp -t 0 -double -vec -fun -ec -mem1 -it))
+
+# cpp4
+$(eval $(call LEG, cpp4/double/mem2             , cpp , impulsearch8.cpp    , -I dsp -double -mem2 -it))
+$(eval $(call LEG, cpp4/double/ecmem2           , cpp , impulsearch8bis.cpp , -I dsp -double -ec -mem2 -it))
+$(eval $(call LEG, cpp4/double/fpga10mem2it     , cpp , impulsearch8.cpp    , -I dsp -double -fpga-mem 10 -mem2 -it))
+$(eval $(call LEG, cpp4/double/fpga100mem2it    , cpp , impulsearch8.cpp    , -I dsp -double -fpga-mem 100 -mem2 -it))
+$(eval $(call LEG, cpp4/double/fpga1000mem2it   , cpp , impulsearch8.cpp    , -I dsp -double -fpga-mem 1000 -mem2 -it))
+$(eval $(call LEG, cpp4/double/fpga10000mem2it  , cpp , impulsearch8.cpp    , -I dsp -double -fpga-mem 10000 -mem2 -it))
+$(eval $(call LEG, cpp4/double/ecfpga10mem2it   , cpp , impulsearch8bis.cpp , -I dsp -double -ec -fpga-mem 10 -mem2 -it))
+$(eval $(call LEG, cpp4/double/ecfpga100mem2it  , cpp , impulsearch8bis.cpp , -I dsp -double -ec -fpga-mem 100 -mem2 -it))
+$(eval $(call LEG, cpp4/double/ecfpga1000mem2it , cpp , impulsearch8bis.cpp , -I dsp -double -ec -fpga-mem 1000 -mem2 -it))
+$(eval $(call LEG, cpp4/double/ecfpga10000mem2it, cpp , impulsearch8bis.cpp , -I dsp -double -ec -fpga-mem 10000 -mem2 -it))
+$(eval $(call LEG, cpp4/double/vecmem2it        , cpp , impulsearch8.cpp    , -I dsp -t 0 -double -vec -mem2 -it))
+$(eval $(call LEG, cpp4/double/vececmem2it      , cpp , impulsearch8bis.cpp , -I dsp -t 0 -double -vec -ec -mem2 -it))
+$(eval $(call LEG, cpp4/double/veclv1ecmem2it   , cpp , impulsearch8bis.cpp , -I dsp -t 0 -double -vec -lv 1 -ec -mem2 -it))
+$(eval $(call LEG, cpp4/double/vecfunecmem2it   , cpp , impulsearch8bis.cpp , -I dsp -t 0 -double -vec -fun -ec -mem2 -it))
+$(eval $(call LEG, cpp4/double/osmem2it         , cpp , impulsearch8ter.cpp , -I dsp -double -os -mem2 -it))
+$(eval $(call LEG, cpp4/double/osecmem2it       , cpp , impulsearch8ter.cpp , -I dsp -double -os -ec -mem2 -it))
+$(eval $(call LEG, cpp4/double/osfpga10mem2it   , cpp , impulsearch8ter.cpp , -I dsp -double -os -fpga-mem 10 -mem2 -it))
+$(eval $(call LEG, cpp4/double/osfpga100mem2it  , cpp , impulsearch8ter.cpp , -I dsp -double -os -fpga-mem 100 -mem2 -it))
+$(eval $(call LEG, cpp4/double/ecosfpga10mem2it , cpp , impulsearch8ter.cpp , -I dsp -double -ec -os -fpga-mem 10 -mem2 -it))
+$(eval $(call LEG, cpp4/double/ecosfpga100mem2it, cpp , impulsearch8ter.cpp , -I dsp -double -ec -os -fpga-mem 100 -mem2 -it))
+
+# ocpp
+$(eval $(call LEG, ocpp/double                  , ocpp, impulsearch.cpp     , -I dsp -double))
+$(eval $(call LEG, ocpp/double/mcd0             , ocpp, impulsearch.cpp     , -I dsp -double -mcd 0))
+$(eval $(call LEG, ocpp/double/vec/lv0          , ocpp, impulsearch.cpp     , -I dsp -double -vec -lv 0))
+$(eval $(call LEG, ocpp/double/vec/lv1          , ocpp, impulsearch.cpp     , -I dsp -double -vec -lv 1))
+
+# me
+$(eval $(call LEG, me/double                    , cpp , impulsearch3.cpp    , -I dsp -double))
+
+# c
+$(eval $(call LEG, c/double                     , c   , impulsearch2.cpp    , -I dsp -double))
+$(eval $(call LEG, c/double/it                  , c   , impulsearch2.cpp    , -I dsp -double -it))
+$(eval $(call LEG, c/double/lp                  , c   , impulsearch2.cpp    , -I dsp -double -fp))
+$(eval $(call LEG, c/double/dlt0                , c   , impulsearch2.cpp    , -I dsp -double -dlt 0))
+$(eval $(call LEG, c/double/dlt256              , c   , impulsearch2.cpp    , -I dsp -double -dlt 256))
+$(eval $(call LEG, c/double/vec/lv0             , c   , impulsearch2.cpp    , -I dsp -double -vec -lv 0))
+$(eval $(call LEG, c/double/vec/lv0/fun         , c   , impulsearch2.cpp    , -I dsp -double -vec -lv 0 -fun))
+$(eval $(call LEG, c/double/vec/lv0/vs16        , c   , impulsearch2.cpp    , -I dsp -double -vec -lv 0 -vs 16))
+$(eval $(call LEG, c/double/vec/lv1             , c   , impulsearch2.cpp    , -I dsp -double -vec -lv 1))
+$(eval $(call LEG, c/double/vec/lv1/fun         , c   , impulsearch2.cpp    , -I dsp -double -vec -lv 1 -fun))
+$(eval $(call LEG, c/double/vec/lv1/vs16        , c   , impulsearch2.cpp    , -I dsp -double -vec -lv 1 -vs 16))
+$(eval $(call LEG, c/double/sched               , c   , impulsearch2.cpp    , -I dsp -double -sch))
+$(eval $(call LEG, c/double/sched/fun           , c   , impulsearch2.cpp    , -I dsp -double -sch -fun))
+$(eval $(call LEG, c/double/omp                 , c   , impulsearch2.cpp    , -I dsp -double -omp))
+$(eval $(call LEG, c/double/omp/fun             , c   , impulsearch2.cpp    , -I dsp -double -omp -fun))
+$(eval $(call LEG, c/float                      , c   , impulsearch2.cpp    , -I dsp -single))
+$(eval $(call LEG, c/float/vec                  , c   , impulsearch2.cpp    , -I dsp -single -vec))
+$(eval $(call LEG, c/float/sched                , c   , impulsearch2.cpp    , -I dsp -single -sch))
+$(eval $(call LEG, c/float/omp                  , c   , impulsearch2.cpp    , -I dsp -single -omp))
+
+# c1
+$(eval $(call LEG, c1/double/ec                 , c   , impulsearch9.cpp    , -I dsp -double -ec))
+$(eval $(call LEG, c1/double/os                 , c   , impulsearch9bis.cpp , -I dsp -double -os))
+$(eval $(call LEG, c1/double/osec               , c   , impulsearch9ter.cpp , -I dsp -double -os -ec))
+$(eval $(call LEG, c1/double/mem2it             , c   , impulsearch9qua.cpp , -I dsp -double -mem2 -it))
+$(eval $(call LEG, c1/double/fpga10mem2it       , c   , impulsearch9qua.cpp , -I dsp -double -fpga-mem 10 -mem2 -it))
+$(eval $(call LEG, c1/double/fpga100mem2it      , c   , impulsearch9qua.cpp , -I dsp -double -fpga-mem 100 -mem2 -it))
+$(eval $(call LEG, c1/double/fpga1000mem2it     , c   , impulsearch9qua.cpp , -I dsp -double -fpga-mem 1000 -mem2 -it))
+$(eval $(call LEG, c1/double/vecfpga100mem2it   , c   , impulsearch9qua.cpp , -I dsp -double -t 0 -vec -fpga-mem 1000 -mem2 -it))
+
+# c2
+$(eval $(call LEG, c2/double/ecos0mem2it        , c   , impulsearch10.cpp   , -I dsp -double -ec -os -mem2 -it))
+$(eval $(call LEG, c2/double/ecosfpga10mem2it   , c   , impulsearch10.cpp   , -I dsp -double -fpga-mem 10 -ec -os -mem2 -it))
+$(eval $(call LEG, c2/double/ecosfpga100mem2it  , c   , impulsearch10.cpp   , -I dsp -double -fpga-mem 100 -ec -os -mem2 -it))
+$(eval $(call LEG, c2/double/vececfpga100mem2it , c   , impulsearch10bis.cpp, -I dsp -double -vec -fpga-mem 100 -ec -mem2 -it))
+
+legs:
+	@for l in $(LEGS); do echo $$l; done
+
+.PHONY: travis
+#$(MAKE) -f Make.gcc outdir=cpp/double/sch     lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -sch"
+travis: leg/cpp/double \
+	leg/cpp/double/dlt0 \
+	leg/cpp/double/vec \
+	leg/cpp/double/vec/fun \
+	leg/cpp/double/omp
+
+.PHONY: cpp
+cpp: leg/cpp/double \
+	leg/cpp/double/uim \
+	leg/cpp/double/it \
+	leg/cpp/double/fp \
+	leg/cpp/double/wall \
+	leg/cpp/double/mcd0 \
+	leg/cpp/double/mapp \
+	leg/cpp/double/rui \
+	leg/cpp/double/nvi \
+	leg/cpp/double/dlt0 \
+	leg/cpp/double/dlt256 \
+	leg/cpp/double/vec/lv0 \
+	leg/cpp/double/vec/lv0/fun \
+	leg/cpp/double/vec/lv0/vs16 \
+	leg/cpp/double/vec/lv1 \
+	leg/cpp/double/vec/lv1/fun \
+	leg/cpp/double/vec/lv1/vs16 \
+	leg/cpp/double/sched \
+	leg/cpp/double/sched/fun \
+	leg/cpp/double/omp \
+	leg/cpp/double/omp/fun \
+	leg/cpp/float \
+	leg/cpp/float/vec \
+	leg/cpp/float/sched \
+	leg/cpp/float/omp
+
+.PHONY: quad
+quad: leg/cpp/quad \
+	leg/cpp/quad/vec \
+	leg/cpp/quad/sched \
+	leg/cpp/quad/omp \
+	leg/c/quad \
+	leg/c/quad/vec \
+	leg/c/quad/sched \
+	leg/c/quad/omp
+
+.PHONY: fx
+fx: leg/cpp/fx \
+	leg/c/fx
+
+.PHONY: fx1
+fx1: leg/cpp/fx1 \
+	leg/c/fx1
+
+.PHONY: cpp1
+cpp1: leg/cpp1/double/mem0 \
+	leg/cpp1/double/mem1 \
+	leg/cpp1/double/mem1fpgamemth0 \
+	leg/cpp1/double/mem1fpgamemth2 \
+	leg/cpp1/double/mem1fpgamemth8
+
+.PHONY: cpp2
+cpp2: leg/cpp2/double/ec \
+	leg/cpp2/double/ecmem0 \
+	leg/cpp2/double/ecmem1it \
+	leg/cpp2/double/os \
+	leg/cpp2/double/osec \
+	leg/cpp2/double/osmem \
+	leg/cpp2/double/osmem1 \
+	leg/cpp2/double/osecmem \
+	leg/cpp2/double/osecmem1it
+
+.PHONY: cpp3
+cpp3: leg/cpp3/double/vecec \
+	leg/cpp3/double/vececmem0 \
+	leg/cpp3/double/vececmem1it \
+	leg/cpp3/double/vecfunecmem1it
+
+.PHONY: cpp4
+cpp4: leg/cpp4/double/mem2 \
+	leg/cpp4/double/ecmem2 \
+	leg/cpp4/double/fpga10mem2it \
+	leg/cpp4/double/fpga100mem2it \
+	leg/cpp4/double/fpga1000mem2it \
+	leg/cpp4/double/fpga10000mem2it \
+	leg/cpp4/double/ecfpga10mem2it \
+	leg/cpp4/double/ecfpga100mem2it \
+	leg/cpp4/double/ecfpga1000mem2it \
+	leg/cpp4/double/ecfpga10000mem2it \
+	leg/cpp4/double/vecmem2it \
+	leg/cpp4/double/vececmem2it \
+	leg/cpp4/double/veclv1ecmem2it \
+	leg/cpp4/double/vecfunecmem2it \
+	leg/cpp4/double/osmem2it \
+	leg/cpp4/double/osecmem2it \
+	leg/cpp4/double/osfpga10mem2it \
+	leg/cpp4/double/osfpga100mem2it \
+	leg/cpp4/double/ecosfpga10mem2it \
+	leg/cpp4/double/ecosfpga100mem2it
+
+.PHONY: ocpp
+ocpp: leg/ocpp/double \
+	leg/ocpp/double/mcd0 \
+	leg/ocpp/double/vec/lv0 \
+	leg/ocpp/double/vec/lv1
+
+.PHONY: vecocpp
+vecocpp: leg/ocpp/double/vec/lv1
+
+.PHONY: me
+me: leg/me/double
+
+.PHONY: c
+c: leg/c/double \
+	leg/c/double/it \
+	leg/c/double/lp \
+	leg/c/double/dlt0 \
+	leg/c/double/dlt256 \
+	leg/c/double/vec/lv0 \
+	leg/c/double/vec/lv0/fun \
+	leg/c/double/vec/lv0/vs16 \
+	leg/c/double/vec/lv1 \
+	leg/c/double/vec/lv1/fun \
+	leg/c/double/vec/lv1/vs16 \
+	leg/c/double/sched \
+	leg/c/double/sched/fun \
+	leg/c/double/omp \
+	leg/c/double/omp/fun \
+	leg/c/float \
+	leg/c/float/vec \
+	leg/c/float/sched \
+	leg/c/float/omp
+
+.PHONY: c1
+c1: leg/c1/double/ec \
+	leg/c1/double/os \
+	leg/c1/double/osec \
+	leg/c1/double/mem2it \
+	leg/c1/double/fpga10mem2it \
+	leg/c1/double/fpga100mem2it \
+	leg/c1/double/fpga1000mem2it \
+	leg/c1/double/vecfpga100mem2it
+
+.PHONY: c2
+c2: leg/c2/double/ecos0mem2it \
+	leg/c2/double/ecosfpga10mem2it \
+	leg/c2/double/ecosfpga100mem2it \
+	leg/c2/double/vececfpga100mem2it
 
 #########################################################################
 # automatic github action test
@@ -155,145 +455,6 @@ github_action:
 
 #########################################################################
 # c++ and c backends
-cpp:
-	$(MAKE) -f Make.gcc outdir=cpp/double           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
-	$(MAKE) -f Make.gcc outdir=cpp/double/uim       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -uim"
-	$(MAKE) -f Make.gcc outdir=cpp/double/it        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -it"
-	$(MAKE) -f Make.gcc outdir=cpp/double/fp        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -fp"
-	$(MAKE) -f Make.gcc outdir=cpp/double/wall      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -wall"
-	$(MAKE) -f Make.gcc outdir=cpp/double/mcd0      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mcd 0"
-	$(MAKE) -f Make.gcc outdir=cpp/double/mapp      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mapp"
-	$(MAKE) -f Make.gcc outdir=cpp/double/rui       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -rui"
-	$(MAKE) -f Make.gcc outdir=cpp/double/nvi       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -nvi"
-	$(MAKE) -f Make.gcc outdir=cpp/double/dlt0      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -dlt 0"
-	$(MAKE) -f Make.gcc outdir=cpp/double/dlt256    lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -dlt 256"
-	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
-	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0/fun   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -fun"
-	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0/vs16  lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -vs 16"
-	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv1       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
-	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv1/fun   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -fun"
-	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv1/vs16  lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -vs 16"
-	$(MAKE) -f Make.gcc outdir=cpp/double/sched     lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -sch"
-	$(MAKE) -f Make.gcc outdir=cpp/double/sched/fun lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -sch -fun"
-	$(MAKE) -f Make.gcc outdir=cpp/double/omp       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -omp"
-	$(MAKE) -f Make.gcc outdir=cpp/double/omp/fun   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -omp -fun"
-	$(MAKE) -f Make.gcc outdir=cpp/float            lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -single"
-	$(MAKE) -f Make.gcc outdir=cpp/float/vec        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -single -vec"
-	$(MAKE) -f Make.gcc outdir=cpp/float/sched      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -single -sch"
-	$(MAKE) -f Make.gcc outdir=cpp/float/omp        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -single -omp"
-
-quad:
-	$(MAKE) -f Make.gcc outdir=cpp/quad        lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad"
-	$(MAKE) -f Make.gcc outdir=cpp/quad/vec    lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad -vec"
-	$(MAKE) -f Make.gcc outdir=cpp/quad/sched  lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad -sch"
-	$(MAKE) -f Make.gcc outdir=cpp/quad/omp    lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad -omp"
-	$(MAKE) -f Make.gcc outdir=c/quad          lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad"
-	$(MAKE) -f Make.gcc outdir=c/quad/vec      lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -vec"
-	$(MAKE) -f Make.gcc outdir=c/quad/sched    lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -sch"
-	$(MAKE) -f Make.gcc outdir=c/quad/omp      lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -omp"
-
-fx:
-	$(MAKE) -f Make.gcc outdir=cpp/fx lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx"
-	$(MAKE) -f Make.gcc outdir=c/fx   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -fx"
-
-fx1:
-	$(MAKE) -f Make.gcc outdir=cpp/fx1 lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx -fx-size -1"
-	$(MAKE) -f Make.gcc outdir=c/fx1   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -fx -fx-size -1"
-
-cpp1:
-	$(MAKE) -f Make.gcc outdir=cpp1/double/mem0  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -mem"
-	$(MAKE) -f Make.gcc outdir=cpp1/double/mem1  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -it -mem1"
-	$(MAKE) -f Make.gcc outdir=cpp1/double/mem1fpgamemth0  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -it -mem1 -fpga-mem-th 0"
-	$(MAKE) -f Make.gcc outdir=cpp1/double/mem1fpgamemth2  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -it -mem1 -fpga-mem-th 2"
-	$(MAKE) -f Make.gcc outdir=cpp1/double/mem1fpgamemth8  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -it -mem1 -fpga-mem-th 8"
-
-cpp2:
-	$(MAKE) -f Make.gcc outdir=cpp2/double/ec  lang=cpp arch=impulsearch7.cpp FAUSTOPTIONS="-I dsp -double -ec"
-	$(MAKE) -f Make.gcc outdir=cpp2/double/ecmem0  lang=cpp arch=impulsearch7bis.cpp FAUSTOPTIONS="-I dsp -double -ec -mem"
-	$(MAKE) -f Make.gcc outdir=cpp2/double/ecmem1it  lang=cpp arch=impulsearch7bis.cpp FAUSTOPTIONS="-I dsp -double -ec -mem1 -it"
-	$(MAKE) -f Make.gcc outdir=cpp2/double/os  lang=cpp arch=impulsearch7ter.cpp FAUSTOPTIONS="-I dsp -double -os"
-	$(MAKE) -f Make.gcc outdir=cpp2/double/osec  lang=cpp arch=impulsearch7ter.cpp FAUSTOPTIONS="-I dsp -double -os -ec"
-	$(MAKE) -f Make.gcc outdir=cpp2/double/osmem  lang=cpp arch=impulsearch7qua.cpp FAUSTOPTIONS="-I dsp -double -os -mem"
-	$(MAKE) -f Make.gcc outdir=cpp2/double/osmem1  lang=cpp arch=impulsearch7qua.cpp FAUSTOPTIONS="-I dsp -double -os -mem1 -it"
-	$(MAKE) -f Make.gcc outdir=cpp2/double/osecmem  lang=cpp arch=impulsearch7qua.cpp FAUSTOPTIONS="-I dsp -double -os -ec -mem"
-	$(MAKE) -f Make.gcc outdir=cpp2/double/osecmem1it  lang=cpp arch=impulsearch7qua.cpp FAUSTOPTIONS="-I dsp -double -os -ec -mem1 -it"
-
-cpp3:
-	$(MAKE) -f Make.gcc outdir=cpp3/double/vecec  lang=cpp arch=impulsearch7.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -ec"
-	$(MAKE) -f Make.gcc outdir=cpp3/double/vececmem0  lang=cpp arch=impulsearch7bis.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -ec -mem"
-	$(MAKE) -f Make.gcc outdir=cpp3/double/vececmem1it  lang=cpp arch=impulsearch7bis.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -ec -mem1 -it"
-	$(MAKE) -f Make.gcc outdir=cpp3/double/vecfunecmem1it  lang=cpp arch=impulsearch7bis.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -fun -ec -mem1 -it"
-
-cpp4:
-	$(MAKE) -f Make.gcc outdir=cpp4/double/mem2  lang=cpp arch=impulsearch8.cpp FAUSTOPTIONS="-I dsp -double -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/ecmem2  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -double -ec -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/fpga10mem2it  lang=cpp arch=impulsearch8.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 10 -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/fpga100mem2it  lang=cpp arch=impulsearch8.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 100 -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/fpga1000mem2it  lang=cpp arch=impulsearch8.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 1000 -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/fpga10000mem2it  lang=cpp arch=impulsearch8.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 10000 -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/ecfpga10mem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -double -ec -fpga-mem 10 -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/ecfpga100mem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -double -ec -fpga-mem 100 -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/ecfpga1000mem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -double -ec -fpga-mem 1000 -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/ecfpga10000mem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -double -ec -fpga-mem 10000 -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/vecmem2it  lang=cpp arch=impulsearch8.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/vececmem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -ec -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/veclv1ecmem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -lv 1 -ec -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/vecfunecmem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -fun -ec -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/osmem2it  lang=cpp arch=impulsearch8ter.cpp FAUSTOPTIONS="-I dsp -double -os -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/osecmem2it  lang=cpp arch=impulsearch8ter.cpp FAUSTOPTIONS="-I dsp -double -os -ec -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/osfpga10mem2it  lang=cpp arch=impulsearch8ter.cpp FAUSTOPTIONS="-I dsp -double -os -fpga-mem 10  -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/osfpga100mem2it  lang=cpp arch=impulsearch8ter.cpp FAUSTOPTIONS="-I dsp -double -os -fpga-mem 100 -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/ecosfpga10mem2it  lang=cpp arch=impulsearch8ter.cpp FAUSTOPTIONS="-I dsp -double -ec -os -fpga-mem 10  -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=cpp4/double/ecosfpga100mem2it  lang=cpp arch=impulsearch8ter.cpp FAUSTOPTIONS="-I dsp -double -ec -os -fpga-mem 100  -mem2 -it"
-
-ocpp:
-	$(MAKE) -f Make.gcc outdir=ocpp/double          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
-	$(MAKE) -f Make.gcc outdir=ocpp/double/mcd0     lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mcd 0"
-	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/lv0  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
-	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/lv1  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
-
-vecocpp:
-	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/lv1  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
-
-me:
-	$(MAKE) -f Make.gcc outdir=me/double  lang=cpp arch=impulsearch3.cpp FAUSTOPTIONS="-I dsp -double"
-
-c:
-	$(MAKE) -f Make.gcc outdir=c/double             lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double"
-	$(MAKE) -f Make.gcc outdir=c/double/it          lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -it"
-	$(MAKE) -f Make.gcc outdir=c/double/lp          lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -fp"
-	$(MAKE) -f Make.gcc outdir=c/double/dlt0        lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -dlt 0"
-	$(MAKE) -f Make.gcc outdir=c/double/dlt256      lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -dlt 256"
-	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
-	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0/fun     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -fun"
-	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0/vs16    lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -vs 16"
-	$(MAKE) -f Make.gcc outdir=c/double/vec/lv1         lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
-	$(MAKE) -f Make.gcc outdir=c/double/vec/lv1/fun     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -fun"
-	$(MAKE) -f Make.gcc outdir=c/double/vec/lv1/vs16    lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -vs 16"
-	$(MAKE) -f Make.gcc outdir=c/double/sched       lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -sch"
-	$(MAKE) -f Make.gcc outdir=c/double/sched/fun   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -sch -fun"
-	$(MAKE) -f Make.gcc outdir=c/double/omp         lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -omp"
-	$(MAKE) -f Make.gcc outdir=c/double/omp/fun     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -omp -fun"
-	$(MAKE) -f Make.gcc outdir=c/float              lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -single"
-	$(MAKE) -f Make.gcc outdir=c/float/vec          lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -single -vec"
-	$(MAKE) -f Make.gcc outdir=c/float/sched        lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -single -sch"
-	$(MAKE) -f Make.gcc outdir=c/float/omp          lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -single -omp"
-
-c1:
-	$(MAKE) -f Make.gcc outdir=c1/double/ec lang=c arch=impulsearch9.cpp FAUSTOPTIONS="-I dsp -double -ec"
-	$(MAKE) -f Make.gcc outdir=c1/double/os lang=c arch=impulsearch9bis.cpp FAUSTOPTIONS="-I dsp -double -os"
-	$(MAKE) -f Make.gcc outdir=c1/double/osec lang=c arch=impulsearch9ter.cpp FAUSTOPTIONS="-I dsp -double -os -ec"
-	$(MAKE) -f Make.gcc outdir=c1/double/mem2it  lang=c arch=impulsearch9qua.cpp FAUSTOPTIONS="-I dsp -double -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=c1/double/fpga10mem2it  lang=c arch=impulsearch9qua.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 10  -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=c1/double/fpga100mem2it  lang=c arch=impulsearch9qua.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 100 -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=c1/double/fpga1000mem2it  lang=c arch=impulsearch9qua.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 1000 -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=c1/double/vecfpga100mem2it  lang=c arch=impulsearch9qua.cpp FAUSTOPTIONS="-I dsp -double -t 0 -vec -fpga-mem 1000 -mem2 -it"
-
-c2:
-	$(MAKE) -f Make.gcc outdir=c2/double/ecos0mem2it  lang=c arch=impulsearch10.cpp FAUSTOPTIONS="-I dsp -double -ec -os -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=c2/double/ecosfpga10mem2it  lang=c arch=impulsearch10.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 10 -ec -os -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=c2/double/ecosfpga100mem2it  lang=c arch=impulsearch10.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 100 -ec -os -mem2 -it"
-	$(MAKE) -f Make.gcc outdir=c2/double/vececfpga100mem2it  lang=c arch=impulsearch10bis.cpp FAUSTOPTIONS="-I dsp -double -vec -fpga-mem 100 -ec -mem2 -it"
 
 mute: ir/mute  $(mutefiles)
 
