@@ -71,21 +71,25 @@ has no such protection. But the path says nothing about the *compiler*:
 run the same options with another binary and make finds the files already
 there and does nothing. Hence the `rm -rf`.
 
-**`-k` does not protect a run inside a recipe.** The `cpp` and `ocpp`
-targets chain their legs as successive command lines of one recipe, so
-the first failing leg aborts the recipe and every leg after it never
-runs. On a real branch that means: `ocpp` stops on `osc_enable`, an
-*accepted* failure of the `control/enable` family, and the remaining
-`ocpp` legs are never exercised — while the report shows one failure, not
-an amputated run. Run **one `make` per leg** and count each of them:
+**Always run with `-k`, and read the whole table.** A leg is one run of
+`Make.gcc` — an output directory, a language, an architecture, the faust
+options — and each leg is a target of its own, `leg/<outdir>`; a family
+such as `cpp` is the list of its legs. So `-k` carries past a failing
+leg and reports every failure at the end, which it could not do when the
+legs were successive lines of one recipe: make abandons a recipe at its
+first failing line, and `-k` only carries across targets. Until this
+change, the `cpp` target stopped at its third leg on a real branch and
+the other twenty-two never ran.
 
 ```sh
-make -f Make.gcc -k outdir=cpp/double/vec/lv1 lang=cpp arch=impulsearch.cpp \
-     FAUSTOPTIONS="-I dsp -double -vec -lv 1" FAUST=<binary under test>
+make -C tests/impulse-tests cpp ocpp -k -j 8 FAUST=<binary under test>
+make -C tests/impulse-tests leg/cpp/double/vec/lv1 FAUST=<binary>   # one leg alone
+make -C tests/impulse-tests legs                                     # the 113 legs
 ```
 
-The list of legs is in the `cpp` and `ocpp` recipes of the Makefile; take
-it from there rather than retyping it, so it cannot drift.
+`-j` is shared with the legs through the jobserver, so the legs run in
+parallel and the total stays bounded. A leg used by two families
+(`cpp/double` by `cpp` and `travis`, for one) is defined once.
 
 **Count what a leg produced.** Four programs are excluded by rules in
 `Make.gcc` that succeed by printing a line, so the leg reports success
@@ -336,13 +340,11 @@ does not protect it.
    and loses the commit — the `head -1` becomes `head -2` now that the
    commit is on the second line.
 
-3. **The impulse targets chain their legs in one recipe.** `cpp` and
-   `ocpp` run their legs as successive command lines, so the first
-   failing leg — an accepted failure included — keeps the rest from
-   running, and `-k` cannot help: it keeps going across targets, not
-   across the lines of a recipe. *Fix:* make each leg its own target and
-   let `cpp` depend on them, so `-k` covers the whole set and the report
-   carries one line per leg.
+3. **The impulse targets chained their legs in one recipe** — fixed:
+   every leg is now a target of its own (see Gate 1). Kept here because
+   the same shape exists elsewhere: a recipe that chains independent
+   runs as successive lines silently stops at the first failure, and
+   `-k` will not save it.
 
 4. **The accept/reject criterion is wired to nothing.**
    `tests/error-tests/CMakeLists.txt` declares one `add_test` per file
