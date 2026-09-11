@@ -233,11 +233,24 @@ endif()
 ####################################
 # Add the different targets
 ####################################
+# The source commit, refreshed at every build (see build/gitversion.cmake).
+# A version number names a release, not a build : two binaries from different
+# commits print the same one, which leaves a test report unable to say what it
+# judged.
+set (GITVERSION_HEADER ${CMAKE_CURRENT_BINARY_DIR}/faustgitversion.h)
+add_custom_target (gitversion ALL
+    COMMAND ${CMAKE_COMMAND} -DSRC=${CMAKE_CURRENT_SOURCE_DIR}/.. -DOUT=${GITVERSION_HEADER}
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/gitversion.cmake
+    BYPRODUCTS ${GITVERSION_HEADER}
+    COMMENT "Capturing the source commit")
+
 if (INCLUDE_EXECUTABLE)
     add_executable(faust ${SRC} ${HH})
     if (NONDETERMINISM_LINT)
         add_dependencies(faust NodeMatcherPlugin)
     endif()
+    add_dependencies(faust gitversion)
+    target_include_directories (faust PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
     target_compile_definitions (faust PRIVATE ${FAUST_DEFINITIONS})
     if (INCLUDE_LLVM)
         target_link_directories(faust PRIVATE "${LLVM_LIB_DIR}")
