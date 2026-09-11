@@ -1,12 +1,10 @@
 # audio/portaudio/gpu.mojo
 
-from max.gpu.host import DeviceBuffer
-from std.ffi import external_call
-
 from conf import *
 from dsp import FaustDspGpu
 from gpu import *
 from gui import BridgeGui
+
 from .ffi import *
 from .portaudio import *
 
@@ -54,8 +52,10 @@ struct PortAudioGpu[Dsp: FaustDspGpu]:
         return PA_NO_ERROR
 
     def start(
-        mut driver, dsp: Ptr[Self.Dsp],
-        pull: GpuSync = gpu_no_sync, push: GpuSync = gpu_no_sync,
+        mut driver,
+        dsp: Ptr[Self.Dsp],
+        pull: GpuSync = gpu_no_sync,
+        push: GpuSync = gpu_no_sync,
         data: OptPtr[Void, MUT_NOTRK] = None
     ) -> S32:
         if not driver.alive:
@@ -233,10 +233,10 @@ struct PortAudioGpu[Dsp: FaustDspGpu]:
 
 
 def gpu_open_stream[Dsp: FaustDspGpu](
-    var in_param: PaStreamParameters,
-    var out_param: PaStreamParameters,
+    var in_param:    PaStreamParameters,
+    var out_param:   PaStreamParameters,
     var sample_rate: S32,
-    var driver: Ptr[PortAudioGpu[Dsp]]
+    var driver:      Ptr[PortAudioGpu[Dsp]]
 ) -> Tuple[PaStream, S32]:
     var stream = NULL_STREAM
     var ptr_in = NULL_PTR[PaStreamParameters, IMM_NOTRK]

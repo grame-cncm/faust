@@ -52,7 +52,7 @@ struct PortAudio(FaustAudio):
             # Close also aborts an active stream when graceful stop failed.
             var end = pa_close_stream(driver.stream)
             if end:
-                # A non-null stream means callback quiescence is NOT proven.
+                # A non-null stream means callback quiescence is *not* proven.
                 return end
             driver.stream = NULL_STREAM
         driver.alive = False
@@ -65,6 +65,7 @@ struct PortAudio(FaustAudio):
             return PA_NOT_INITIALIZED
         if driver.stream != None:
             return FAUST_ALREADY_ALIVE
+
         var n_ins = dsp[].get_num_inputs()
         var m_outs = dsp[].get_num_outputs()
         if n_ins < 0 or m_outs < 0 or n_ins + m_outs == 0:
@@ -73,7 +74,7 @@ struct PortAudio(FaustAudio):
         var out_device = PaDeviceIndex(-1)
         var in_latency = F64(0)
         var out_latency = F64(0)
-        var err = PA_NO_ERROR
+        var err: S32
         var info: OptPtr[PaDeviceInfo, IMM_NOTRK]
         if n_ins:
             in_device = pa_get_default_input_device()
@@ -99,7 +100,6 @@ struct PortAudio(FaustAudio):
             BUFF_SIZE,
             dsp,
         )
-
         if err:
             return err
         if driver.stream == None:
@@ -126,8 +126,6 @@ def faust_callback[Dsp: FaustDsp](
         return PA_ABORT
 
     var dsp = data.unsafe_value().unsafe_bitcast[Dsp]()
-    # Pointer is non-nullable in Mojo. Zero-channel arrays are never read by
-    # generated DSP code; use aligned dangling placeholders, not a null unwrap.
     var inputs = ImmStreams.unsafe_dangling()
     var outputs = MutStreams.unsafe_dangling()
     if input != None:
@@ -156,10 +154,10 @@ def faust_get_device_info(device: PaDeviceIndex) -> Tuple[OptPtr[PaDeviceInfo, I
 
 @always_inline
 def faust_open_stream[Dsp: FaustDsp](
-    var in_param:     PaStreamParameters,
-    var out_param:    PaStreamParameters,
-    var buff_size:    S32,
-    var dsp:          Ptr[Dsp]
+    var in_param:   PaStreamParameters,
+    var out_param:  PaStreamParameters,
+    var buff_size:  S32,
+    var dsp:        Ptr[Dsp]
 ) -> Tuple[PaStream, S32]:
     var stream = NULL_STREAM
     var ptr_in = NULL_PTR[PaStreamParameters, IMM_NOTRK]

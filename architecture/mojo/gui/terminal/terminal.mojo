@@ -92,9 +92,11 @@ struct TerminalGui[dtype: DType = dfaust](FaustGui):
             ui.err = gui_close_box(ui.raw)
 
     def add[dreal: DType, kind: S32](
-        mut ui, var label: String, mut zone: SIMD[dreal, 1],
-        init: F64, min: F64, max: F64, step: F64,
-    ):
+        mut ui,
+        var label: String, mut zone: SIMD[dreal, 1],
+        imm init: F64,     imm min: F64,
+        imm max: F64,      imm step: F64,
+    ) -> None:
         comptime assert dreal == Self.dtype, "UI zone precision mismatch"
         if not ui.building():
             return

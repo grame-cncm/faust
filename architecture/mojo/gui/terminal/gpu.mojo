@@ -26,7 +26,6 @@ def run_terminal_gpu[Dsp: FaustDspGpu](dsp: Ptr[Dsp]) raises -> None:
     # NOTE:(manu) currently no need for custom destructor in mydsp
     # comptime assert conforms_to(Dsp, Deinitable), "Expected a deinitializable DSP."
 
-
     var gui = TerminalGui[dfaust]()
     dsp[].build_user_interface(gui)
     var driver = PortAudioGpu[Dsp]()

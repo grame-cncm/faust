@@ -39,14 +39,3 @@ trait FaustDsp:
         mut dsp, var count: S32, var inputs: ImmStreams, var outputs: MutStreams
     ) -> None: ...
 
-
-trait FaustDspGpu(FaustDsp):
-    @always_inline
-    def compute(
-        mut dsp, var count: S32, var inputs: ImmStreams, var outputs: MutStreams
-    ) -> None: pass
-    @staticmethod
-    @always_inline
-    def gpu_compute(
-        dsp_raw: Ptr[U8, MUT_ANY], count: S32, in_buf: ImmStream, out_buf: MutStream
-    ) -> None: ...

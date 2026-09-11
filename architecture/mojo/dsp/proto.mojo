@@ -3,7 +3,7 @@
 from conf import *
 from meta import FaustMeta
 from gui import FaustGui
-from .dsp import FaustDspGpu
+from .gpu import FaustDspGpu
 
 # Used to snooze Mojo LSP/compiler messages while prototyping architectures.
 
@@ -49,7 +49,16 @@ struct ProtoDsp(FaustDspGpu):
         pass
     @staticmethod
     @always_inline
-    def gpu_compute(
-        dsp_raw: Ptr[U8, MUT_ANY], count: S32, in_buf: ImmStream, out_buf: MutStream
-    ) -> None:
+    def gpu_work_size(imm count: S32) -> Int:
         pass
+
+    @staticmethod
+    @always_inline
+    def gpu_compute(
+        mut ctx:       DeviceContext,
+        imm dsp_raw:   DeviceBuffer[u8],
+        imm in_buf:    DeviceBuffer[dfaust],
+        imm out_buf:   DeviceBuffer[dfaust],
+        imm work_buf:  DeviceBuffer[u8],
+        imm count:     S32
+    ) raises -> None: ...
