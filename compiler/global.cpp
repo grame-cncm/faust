@@ -125,6 +125,18 @@
 #include "template_code_container.hh"
 #endif
 
+// The source commit, generated at build time by build/gitversion.cmake. A
+// build that does not go through it -- a source archive without git, another
+// build system -- says so rather than claiming a commit it does not know.
+#if defined(__has_include)
+#if __has_include("faustgitversion.h")
+#include "faustgitversion.h"
+#endif
+#endif
+#ifndef FAUSTGITVERSION
+#define FAUSTGITVERSION "unknown"
+#endif
+
 using namespace std;
 
 #ifndef AP_INT_MAX_W
@@ -2354,7 +2366,10 @@ static void enumBackends(ostream& out)
 string global::printVersion()
 {
     stringstream sstr;
+    // The first line keeps its exact shape : scripts read it to name a
+    // directory and packagers parse it. The commit goes on a line of its own.
     sstr << "FAUST Version " << FAUSTVERSION << "\n";
+    sstr << "Source commit: " << FAUSTGITVERSION << "\n";
     sstr << "Embedded backends: \n";
     enumBackends(sstr);
 #ifdef LLVM_BUILD
