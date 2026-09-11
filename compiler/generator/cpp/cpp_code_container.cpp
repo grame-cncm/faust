@@ -491,7 +491,13 @@ void CPPCodeContainer::produceClass()
         *fOut << fKlassName << "(const " << fKlassName << "&) = default;";
         tab(n + 1, *fOut);
         tab(n + 1, *fOut);
-        *fOut << "virtual ~" << fKlassName << "() = default;";
+        // Only when generateDestructor() will not write one of its own : a
+        // container with destroy instructions -- the work stealing scheduler,
+        // for one -- gets a destructor with a body, and declaring both makes
+        // the class illegal.
+        if (fDestroyInstructions->fCode.size() == 0) {
+            *fOut << "virtual ~" << fKlassName << "() = default;";
+        }
         tab(n + 1, *fOut);
         tab(n + 1, *fOut);
         *fOut << fKlassName << "& operator=(const " << fKlassName << "&) = default;";
