@@ -260,8 +260,10 @@ SIGS_API bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
 // "select3" expressed with "select2"
 SIGS_API Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
-    return sigSelect2(sigBinOp(kEQ, selector, sigInt(0)),
-                      sigSelect2(sigBinOp(kEQ, selector, sigInt(1)), s3, s2), s1);
+    Tree is0  = sigBinOp(kEQ, selector, sigInt(0));
+    Tree is1  = sigBinOp(kEQ, selector, sigInt(1));
+    Tree rest = sigSelect2(is1, s3, s2);
+    return sigSelect2(is0, rest, s1);
 }
 
 Tree sigAssertBounds(Tree s1, Tree s2, Tree s3)

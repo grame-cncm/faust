@@ -273,7 +273,9 @@ static Tree classify(const tvec& coef)
                 for (size_t i = 1; i < coef.size(); i++) {
                     rc.push_back(isZero(coef[i]) ? coef[i] : ratioTree(ratio[i] / g));
                 }
-                return sigMul(ratioTree(g), spellDense(x, rc, lo, hi));
+                Tree gain  = ratioTree(g);
+                Tree dense = spellDense(x, rc, lo, hi);
+                return sigMul(gain, dense);
             }
         }
     }

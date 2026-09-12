@@ -126,7 +126,9 @@ Tree negSigFIR(Tree sig)
 
     // -(X+Y) -> -X+-Y
     if (Tree x, y; isSigAdd(sig, x, y)) {
-        return addSigFIR(negSigFIR(x), negSigFIR(y));
+        Tree nx = negSigFIR(x);
+        Tree ny = negSigFIR(y);
+        return addSigFIR(nx, ny);
     }
 
     // -(X-Y) -> -X+Y
@@ -488,13 +490,21 @@ Tree mulSigFIR(Tree s1, Tree s2)
     }
     // AJOUT YO
     else if (Tree x, y; isSigAdd(s1, x, y) && isSigFIR(x) && isSigFIR(y)) {
-        return addSigFIR(mulSigFIR(x, s2), mulSigFIR(y, s2));
+        Tree px = mulSigFIR(x, s2);
+        Tree py = mulSigFIR(y, s2);
+        return addSigFIR(px, py);
     } else if (Tree x, y; isSigAdd(s2, x, y) && isSigFIR(x) && isSigFIR(y)) {
-        return addSigFIR(mulSigFIR(s1, x), mulSigFIR(s1, y));
+        Tree px = mulSigFIR(s1, x);
+        Tree py = mulSigFIR(s1, y);
+        return addSigFIR(px, py);
     } else if (Tree x, y; isSigSub(s1, x, y) && isSigFIR(x) && isSigFIR(y)) {
-        return subSigFIR(mulSigFIR(x, s2), mulSigFIR(y, s2));
+        Tree px = mulSigFIR(x, s2);
+        Tree py = mulSigFIR(y, s2);
+        return subSigFIR(px, py);
     } else if (Tree x, y; isSigSub(s2, x, y) && isSigFIR(x) && isSigFIR(y)) {
-        return subSigFIR(mulSigFIR(s1, x), mulSigFIR(s1, y));
+        Tree px = mulSigFIR(s1, x);
+        Tree py = mulSigFIR(s1, y);
+        return subSigFIR(px, py);
 
     }
     // FIN AJOUT YO

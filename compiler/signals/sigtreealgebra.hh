@@ -133,7 +133,8 @@ class SIGS_API TreeAlgebra : public SignalDispatch<Tree> {
     //--- tables, waveforms, soundfiles ------------------------------------------------
     Tree Table(const Tree& size, const Tree& content) const override
     {
-        return tree(sigs::g.SIGWRTBL, size, content, ::nil(), ::nil());
+        Tree n = ::nil();
+        return tree(sigs::g.SIGWRTBL, size, content, n, n);
     }
     Tree WRTbl(const Tree& size, const Tree& gen, const Tree& wi,
                const Tree& ws) const override
@@ -246,9 +247,24 @@ class SIGS_API TreeAlgebra : public SignalDispatch<Tree> {
     //--- operations with no signal constructor ----------------------------------------
     // Not produced by the dense switch; derived transformations may use them as
     // shorthands, interpreted through the constructors they abbreviate.
-    Tree Neg(const Tree& x) const override { return tree(sigs::g.SIGBINOP, tree(kSub), tree(0), x); }
-    Tree Inv(const Tree& x) const override { return tree(sigs::g.SIGBINOP, tree(kDiv), tree(1.0), x); }
-    Tree Not(const Tree& x) const override { return tree(sigs::g.SIGBINOP, tree(kEQ), x, tree(0)); }
+    Tree Neg(const Tree& x) const override
+    {
+        Tree op   = tree(kSub);
+        Tree zero = tree(0);
+        return tree(sigs::g.SIGBINOP, op, zero, x);
+    }
+    Tree Inv(const Tree& x) const override
+    {
+        Tree op  = tree(kDiv);
+        Tree one = tree(1.0);
+        return tree(sigs::g.SIGBINOP, op, one, x);
+    }
+    Tree Not(const Tree& x) const override
+    {
+        Tree op   = tree(kEQ);
+        Tree zero = tree(0);
+        return tree(sigs::g.SIGBINOP, op, x, zero);
+    }
     Tree Sinh(const Tree& x) const override { return xt("sinh", {x}); }
     Tree Cosh(const Tree& x) const override { return xt("cosh", {x}); }
     Tree Tanh(const Tree& x) const override { return xt("tanh", {x}); }

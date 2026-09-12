@@ -329,7 +329,9 @@ class SignalPromotionAlgebra : public TransformAlgebra {
             gWarningMessages.push_back(error.str());
         }
         // the result of a division is always a float
-        return o(fBuild.Div(smartFloatCast(tx, x.out), smartFloatCast(ty, y.out)));
+        Tree fx = smartFloatCast(tx, x.out);
+        Tree fy = smartFloatCast(ty, y.out);
+        return o(fBuild.Div(fx, fy));
     }
 
     XSig And(const XSig& x, const XSig& y) const override { return intArgs(kAND, x, y); }
@@ -358,7 +360,9 @@ class SignalPromotionAlgebra : public TransformAlgebra {
         if (tx->nature() == ty->nature()) {
             return o(fBuild.Prefix(x.out, y.out));
         }
-        return o(fBuild.Prefix(smartFloatCast(tx, x.out), smartFloatCast(ty, y.out)));
+        Tree fx = smartFloatCast(tx, x.out);
+        Tree fy = smartFloatCast(ty, y.out);
+        return o(fBuild.Prefix(fx, fy));
     }
 
     XSig Select2(const XSig& sel, const XSig& x, const XSig& y) const override
@@ -369,8 +373,10 @@ class SignalPromotionAlgebra : public TransformAlgebra {
         if (tx->nature() == ty->nature()) {
             return o(fBuild.Select2(smartIntCast(ts, sel.out), x.out, y.out));
         }
-        return o(fBuild.Select2(smartIntCast(ts, sel.out), smartFloatCast(tx, x.out),
-                                smartFloatCast(ty, y.out)));
+        Tree isel = smartIntCast(ts, sel.out);
+        Tree fx   = smartFloatCast(tx, x.out);
+        Tree fy   = smartFloatCast(ty, y.out);
+        return o(fBuild.Select2(isel, fx, fy));
     }
 
     //--- casts: drop the node when the child already has the nature -------------------
@@ -390,8 +396,9 @@ class SignalPromotionAlgebra : public TransformAlgebra {
     }
     XSig WRTbl(const XSig& s, const XSig& g, const XSig& wi, const XSig& ws) const override
     {
-        return o(fBuild.WRTbl(s.out, g.out, smartIntCast(typeOf(wi), wi.out),
-                              smartCast(typeOf(g), typeOf(ws), ws.out)));
+        Tree iwi = smartIntCast(typeOf(wi), wi.out);
+        Tree cws = smartCast(typeOf(g), typeOf(ws), ws.out);
+        return o(fBuild.WRTbl(s.out, g.out, iwi, cws));
     }
     XSig SoundFileLength(const XSig& sf, const XSig& p) const override
     {
@@ -404,8 +411,9 @@ class SignalPromotionAlgebra : public TransformAlgebra {
     XSig SoundFileBuffer(const XSig& sf, const XSig& c, const XSig& p,
                          const XSig& ri) const override
     {
-        return o(fBuild.SoundFileBuffer(sf.out, c.out, smartIntCast(typeOf(p), p.out),
-                                        smartIntCast(typeOf(ri), ri.out)));
+        Tree ip  = smartIntCast(typeOf(p), p.out);
+        Tree iri = smartIntCast(typeOf(ri), ri.out);
+        return o(fBuild.SoundFileBuffer(sf.out, c.out, ip, iri));
     }
 
     //--- bargraphs display a float ----------------------------------------------------
@@ -480,13 +488,17 @@ class SignalPromotionAlgebra : public TransformAlgebra {
         if (tx->nature() == ty->nature()) {
             return o(tree(sigs::g.SIGBINOP, tree(op), x.out, y.out));
         }
-        return o(tree(sigs::g.SIGBINOP, tree(op), smartFloatCast(tx, x.out),
-                      smartFloatCast(ty, y.out)));
+        Tree top = tree(op);
+        Tree fx  = smartFloatCast(tx, x.out);
+        Tree fy  = smartFloatCast(ty, y.out);
+        return o(tree(sigs::g.SIGBINOP, top, fx, fy));
     }
     XSig intArgs(int op, const XSig& x, const XSig& y) const
     {
-        return o(tree(sigs::g.SIGBINOP, tree(op), smartIntCast(typeOf(x), x.out),
-                      smartIntCast(typeOf(y), y.out)));
+        Tree top = tree(op);
+        Tree ix  = smartIntCast(typeOf(x), x.out);
+        Tree iy  = smartIntCast(typeOf(y), y.out);
+        return o(tree(sigs::g.SIGBINOP, top, ix, iy));
     }
     XSig shift(int op, const XSig& x, const XSig& y) const
     {
@@ -562,8 +574,9 @@ class TablePromotionAlgebra final : public TransformAlgebra {
                 }
                 Tree s2, g2, wi2, ws2;
                 isSigWRTbl(t.out, s2, g2, wi2, ws2);
-                tblOut =
-                    sigWRTbl(s2, g2, sigMax(sigInt(0), sigMin(wi2, sigInt(size - 1))), ws2);
+                Tree zero = sigInt(0);
+                Tree last = sigMin(wi2, sigInt(size - 1));
+                tblOut    = sigWRTbl(s2, g2, sigMax(zero, last), ws2);
             }
         }
 
@@ -581,7 +594,9 @@ class TablePromotionAlgebra final : public TransformAlgebra {
                       << ppsig(fBuild.RDTbl(t.orig, ri.orig), MAX_ERROR_SIZE) << endl;
                 gWarningMessages.push_back(error.str());
             }
-            return o(sigRDTbl(tblOut, sigMax(sigInt(0), sigMin(ri.out, sigInt(size - 1)))));
+            Tree zero = sigInt(0);
+            Tree last = sigMin(ri.out, sigInt(size - 1));
+            return o(sigRDTbl(tblOut, sigMax(zero, last)));
         }
         return o(fBuild.RDTbl(t.out, ri.out));
     }
@@ -603,7 +618,9 @@ class IntCastPromotionAlgebra final : public TransformAlgebra {
                       << ppsig(fBuild.IntCast(x.orig), MAX_ERROR_SIZE) << endl;
                 gWarningMessages.push_back(error.str());
             }
-            return o(sigIntCast(sigMin(sigReal(INT32_MAX), sigMax(x.out, sigReal(INT32_MIN)))));
+            Tree hi = sigReal(INT32_MAX);
+            Tree lo = sigMax(x.out, sigReal(INT32_MIN));
+            return o(sigIntCast(sigMin(hi, lo)));
         }
         return o(fBuild.IntCast(x.out));
     }
@@ -672,8 +689,11 @@ class FTZPromotionAlgebra final : public TransformAlgebra {
             return def;
         }
         if (gGlobal->gFTZMode == 1) {
-            return o(
-                sigSelect2(sigGT(sigAbs(def.out), sigReal(inummin())), sigReal(0.0), def.out));
+            Tree mag  = sigAbs(def.out);
+            Tree eps  = sigReal(inummin());
+            Tree cond = sigGT(mag, eps);
+            Tree zero = sigReal(0.0);
+            return o(sigSelect2(cond, zero, def.out));
         }
         if (gGlobal->gFTZMode == 2) {
             // Bitcast the recursive value and test only its IEEE-754 exponent field.
@@ -683,12 +703,18 @@ class FTZPromotionAlgebra final : public TransformAlgebra {
             //   binary32: 0x7F800000         = 2139095040
             //   binary64: 0x7FF0000000000000 = 9218868437227405312
             if (gGlobal->gFloatSize == 1) {
-                return o(sigSelect2(sigAND(sigBitCast(def.out), sigInt(inummax())),
-                                    sigReal(0.0), def.out));
+                Tree bits = sigBitCast(def.out);
+                Tree mask = sigInt(inummax());
+                Tree cond = sigAND(bits, mask);
+                Tree zero = sigReal(0.0);
+                return o(sigSelect2(cond, zero, def.out));
             }
             if (gGlobal->gFloatSize == 2) {
-                return o(sigSelect2(sigAND(sigBitCast(def.out), sigInt64(inummax())),
-                                    sigReal(0.0), def.out));
+                Tree bits = sigBitCast(def.out);
+                Tree mask = sigInt64(inummax());
+                Tree cond = sigAND(bits, mask);
+                Tree zero = sigReal(0.0);
+                return o(sigSelect2(cond, zero, def.out));
             }
         }
         return def;

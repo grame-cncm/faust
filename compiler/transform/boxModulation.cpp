@@ -43,7 +43,9 @@ Tree BoxModulation::modulateIfMatch(Tree widget, Tree wLabel)
     // std::cerr << "BoxModulation::modulateIfMatch"
     //           << " fPath = " << *fPath << " widget path = " << *wPath << std::endl;
     if (fPath == wPath) {
-        return boxSeq(boxPar(widget, fSlot), boxPrim2(sigMul));
+        Tree pair = boxPar(widget, fSlot);
+        Tree mul  = boxPrim2(sigMul);
+        return boxSeq(pair, mul);
     } else {
         return widget;
     }

@@ -173,24 +173,27 @@ Tree SignalRetimer::transformation(Tree sig)
         Tree v   = self(x);
         Tree w   = self(y);
         int  tm  = std::max(fTiming[v], fTiming[w]);
-        Tree res = sigRegister(
-            1, sigDelay(addRegisters(v, tm - fTiming[v]), addRegisters(w, tm - fTiming[w])));
+        Tree rv  = addRegisters(v, tm - fTiming[v]);
+        Tree rw  = addRegisters(w, tm - fTiming[w]);
+        Tree res = sigRegister(1, sigDelay(rv, rw));
         fTiming[res] = tm + 1;
         return res;
     } else if (isSigPrefix(sig, x, y)) {
         Tree x2  = self(x);
         Tree y2  = self(y);
         int  tm  = std::max(fTiming[x2], fTiming[y2]);
-        Tree res = sigRegister(
-            1, sigPrefix(addRegisters(x2, tm - fTiming[x2]), addRegisters(y2, tm - fTiming[y2])));
+        Tree rx  = addRegisters(x2, tm - fTiming[x2]);
+        Tree ry  = addRegisters(y2, tm - fTiming[y2]);
+        Tree res = sigRegister(1, sigPrefix(rx, ry));
         fTiming[res] = tm + 1;
         return res;
     } else if (isSigBinOp(sig, &i, x, y)) {
         Tree x2  = self(x);
         Tree y2  = self(y);
         int  tm  = std::max(fTiming[x2], fTiming[y2]);
-        Tree res = sigRegister(
-            1, sigBinOp(i, addRegisters(x2, tm - fTiming[x2]), addRegisters(y2, tm - fTiming[y2])));
+        Tree rx  = addRegisters(x2, tm - fTiming[x2]);
+        Tree ry  = addRegisters(y2, tm - fTiming[y2]);
+        Tree res = sigRegister(1, sigBinOp(i, rx, ry));
         fTiming[res] = tm + 1;
         return res;
     }
@@ -217,8 +220,9 @@ Tree SignalRetimer::transformation(Tree sig)
             Tree w2      = self(w);
             Tree x2      = self(x);
             int  tmax    = std::max(fTiming[w2], fTiming[x2]);
-            Tree res     = sigRegister(1, sigWRTbl(addRegisters(w2, tmax - fTiming[w2]),
-                                                   addRegisters(x2, tmax - fTiming[x2])));
+            Tree rw      = addRegisters(w2, tmax - fTiming[w2]);
+            Tree rx      = addRegisters(x2, tmax - fTiming[x2]);
+            Tree res     = sigRegister(1, sigWRTbl(rw, rx));
             fTiming[res] = tmax + 1;
             return res;
         } else {
@@ -229,10 +233,11 @@ Tree SignalRetimer::transformation(Tree sig)
             Tree z2 = self(z);
             int  tmax =
                 std::max(fTiming[w2], std::max(fTiming[x2], std::max(fTiming[y2], fTiming[z2])));
-            Tree res     = sigRegister(1, sigWRTbl(addRegisters(w2, tmax - fTiming[w2]),
-                                                   addRegisters(x2, tmax - fTiming[x2]),
-                                                   addRegisters(y2, tmax - fTiming[y2]),
-                                                   addRegisters(z2, tmax - fTiming[z2])));
+            Tree rw      = addRegisters(w2, tmax - fTiming[w2]);
+            Tree rx      = addRegisters(x2, tmax - fTiming[x2]);
+            Tree ry      = addRegisters(y2, tmax - fTiming[y2]);
+            Tree rz      = addRegisters(z2, tmax - fTiming[z2]);
+            Tree res     = sigRegister(1, sigWRTbl(rw, rx, ry, rz));
             fTiming[res] = tmax + 1;
             return res;
         }
@@ -240,8 +245,9 @@ Tree SignalRetimer::transformation(Tree sig)
         Tree x2      = self(x);
         Tree y2      = self(y);
         int  tmax    = std::max(fTiming[x2], fTiming[y2]);
-        Tree res     = sigRegister(1, sigRDTbl(addRegisters(x2, tmax - fTiming[x2]),
-                                               addRegisters(y2, tmax - fTiming[y2])));
+        Tree rx      = addRegisters(x2, tmax - fTiming[x2]);
+        Tree ry      = addRegisters(y2, tmax - fTiming[y2]);
+        Tree res     = sigRegister(1, sigRDTbl(rx, ry));
         fTiming[res] = tmax + 1;
         return res;
     }
@@ -262,9 +268,10 @@ Tree SignalRetimer::transformation(Tree sig)
         Tree x2      = self(x);
         Tree y2      = self(y);
         int  tmax    = std::max(fTiming[sel2], std::max(fTiming[x2], fTiming[y2]));
-        Tree res     = sigRegister(1, sigSelect2(addRegisters(sel2, tmax - fTiming[sel2]),
-                                                 addRegisters(x2, tmax - fTiming[x2]),
-                                                 addRegisters(y2, tmax - fTiming[y2])));
+        Tree rsel    = addRegisters(sel2, tmax - fTiming[sel2]);
+        Tree rx      = addRegisters(x2, tmax - fTiming[x2]);
+        Tree ry      = addRegisters(y2, tmax - fTiming[y2]);
+        Tree res     = sigRegister(1, sigSelect2(rsel, rx, ry));
         fTiming[res] = tmax + 1;
         return res;
     }
