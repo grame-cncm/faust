@@ -6408,7 +6408,9 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree ri)
         return result;
     } else {
         // rwtable
-        return generateCacheCode(sig, subst("$0[$1]", CS(tbl), CS(ri)));
+        std::string tblcode = CS(tbl);
+        std::string ricode  = CS(ri);
+        return generateCacheCode(sig, subst("$0[$1]", tblcode, ricode));
     }
 }
 

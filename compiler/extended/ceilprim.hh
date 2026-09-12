@@ -45,9 +45,11 @@ class CeilPrim : public xtendedCodegen {
             if (gGlobal->gMathApprox) {
                 // res = T(int(n)); return (r == n) ? n : (n >= 0 ? r + 1 : r);
                 Tree r = sigFloatCast(sigIntCast(args[0]));
-                return sigSelect2(sigEQ(args[0], r),
-                                  sigSelect2(sigGE(args[0], sigInt(0)), r, sigAdd(r, sigInt(1))),
-                                  args[0]);
+                Tree isint = sigEQ(args[0], r);
+                Tree ispos = sigGE(args[0], sigInt(0));
+                Tree up    = sigAdd(r, sigInt(1));
+                Tree round = sigSelect2(ispos, r, up);
+                return sigSelect2(isint, round, args[0]);
             } else {
                 return tree(symbol(), args[0]);
             }

@@ -172,7 +172,9 @@ Occurrences* OccMarkup::retrieve(Tree t)
 // value twice, and the impulse train fell silent)
 static void markKernelTapped(Tree src)
 {
-    src->setProperty(tree(symbol("KERNELTAPPED")), tree(1));
+    Tree key = tree(symbol("KERNELTAPPED"));
+    Tree one = tree(1);
+    src->setProperty(key, one);
 }
 
 bool hasKernelDelayedTap(Tree sig)

@@ -2542,7 +2542,7 @@ yyreduce:
 
   case 65:
 #line 480 "faustparser.y"
-    { (yyval.exp) = boxWithRecDef((yyvsp[(1) - (7)].exp),formatDefinitions((yyvsp[(4) - (7)].exp)),formatDefinitions((yyvsp[(6) - (7)].exp))); ;}
+    { Tree r = formatDefinitions((yyvsp[(4) - (7)].exp)); Tree d = formatDefinitions((yyvsp[(6) - (7)].exp)); (yyval.exp) = boxWithRecDef((yyvsp[(1) - (7)].exp), r, d); ;}
     break;
 
   case 66:

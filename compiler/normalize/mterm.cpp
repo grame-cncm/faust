@@ -246,7 +246,9 @@ const mterm& mterm::operator+=(const mterm& m)
         fFactors = m.fFactors;
     } else {
         // only add mterms of same signature
-        faustassert(signatureTree() == m.signatureTree());
+        Tree s1 = signatureTree();
+        Tree s2 = m.signatureTree();
+        faustassert(s1 == s2);
         fCoef = addNums(fCoef, m.fCoef);
     }
     cleanup();
@@ -267,7 +269,9 @@ const mterm& mterm::operator-=(const mterm& m)
         fFactors = m.fFactors;
     } else {
         // only add mterms of same signature
-        faustassert(signatureTree() == m.signatureTree());
+        Tree s1 = signatureTree();
+        Tree s2 = m.signatureTree();
+        faustassert(s1 == s2);
         fCoef = subNums(fCoef, m.fCoef);
     }
     cleanup();

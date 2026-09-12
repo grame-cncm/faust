@@ -278,7 +278,9 @@ Tree makeSubFolderChain(Tree path, Tree elem)
     if (isNil(path)) {
         return elem;
     } else {
-        return putFolder(uiFolder(hd(path), gGlobal->nil), makeSubFolderChain(tl(path), elem));
+        Tree folder = uiFolder(hd(path), gGlobal->nil);
+        Tree chain  = makeSubFolderChain(tl(path), elem);
+        return putFolder(folder, chain);
     }
 }
 

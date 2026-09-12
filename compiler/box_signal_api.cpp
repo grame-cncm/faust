@@ -156,18 +156,29 @@ LIBFAUST_API Signal sigFFun(SType rtype, nvec names, svec atypes, const std::str
         names1 = cons(tree(it), names1);
     }
 
-    Tree signature = cons(tree(rtype), cons(names1, atypes1));
-    return sigFFun(ffunction(signature, tree(incfile), tree(libfile)), listConvert(largs));
+    Tree rt        = tree(rtype);
+    Tree signature = cons(rt, cons(names1, atypes1));
+    Tree inc       = tree(incfile);
+    Tree lib       = tree(libfile);
+    Tree fun       = ffunction(signature, inc, lib);
+    Tree args      = listConvert(largs);
+    return sigFFun(fun, args);
 }
 
 LIBFAUST_API Tree sigFConst(SType type, const string& name, const string& file)
 {
-    return sigFConst(tree(type), tree(name), tree(file));
+    Tree t = tree(type);
+    Tree n = tree(name);
+    Tree f = tree(file);
+    return sigFConst(t, n, f);
 }
 
 LIBFAUST_API Tree sigFVar(SType type, const string& name, const string& file)
 {
-    return sigFVar(tree(type), tree(name), tree(file));
+    Tree t = tree(type);
+    Tree n = tree(name);
+    Tree f = tree(file);
+    return sigFVar(t, n, f);
 }
 
 LIBFAUST_API SType getSigNature(Tree s)
@@ -1315,18 +1326,27 @@ LIBFAUST_API Tree boxFFun(SType rtype, nvec names, svec atypes, const string& in
         names1 = cons(tree(it), names1);
     }
 
-    Tree signature = cons(tree(rtype), cons(names1, atypes1));
-    return boxFFun(ffunction(signature, tree(incfile), tree(libfile)));
+    Tree rt        = tree(rtype);
+    Tree signature = cons(rt, cons(names1, atypes1));
+    Tree inc       = tree(incfile);
+    Tree lib       = tree(libfile);
+    return boxFFun(ffunction(signature, inc, lib));
 }
 
 LIBFAUST_API Tree boxFConst(SType type, const string& name, const string& incfile)
 {
-    return boxFConst(tree(type), tree(name), tree(incfile));
+    Tree t = tree(type);
+    Tree n = tree(name);
+    Tree f = tree(incfile);
+    return boxFConst(t, n, f);
 }
 
 LIBFAUST_API Tree boxFVar(SType type, const string& name, const string& incfile)
 {
-    return boxFVar(tree(type), tree(name), tree(incfile));
+    Tree t = tree(type);
+    Tree n = tree(name);
+    Tree f = tree(incfile);
+    return boxFVar(t, n, f);
 }
 
 LIBFAUST_API Tree boxBinOp(SOperator op)
@@ -1606,7 +1626,9 @@ LIBFAUST_API Tree boxPar5(Tree a, Tree b, Tree c, Tree d, Tree e)
 
 LIBFAUST_API Tree boxDelay(Tree s, Tree del)
 {
-    return boxSeq(boxPar(s, del), boxDelay());
+    Tree args = boxPar(s, del);
+    Tree prim = boxDelay();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxIntCast(Tree s)
@@ -1621,117 +1643,163 @@ LIBFAUST_API Tree boxFloatCast(Tree s)
 
 LIBFAUST_API Tree boxReadOnlyTable(Tree n, Tree init, Tree ridx)
 {
-    return boxSeq(boxPar3(n, init, ridx), boxReadOnlyTable());
+    Tree args = boxPar3(n, init, ridx);
+    Tree prim = boxReadOnlyTable();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
 {
-    return boxSeq(boxPar5(n, init, widx, wsig, ridx), boxWriteReadTable());
+    Tree args = boxPar5(n, init, widx, wsig, ridx);
+    Tree prim = boxWriteReadTable();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxSoundfile(const string& label, Tree chan, Tree part, Tree ridx)
 {
-    return boxSeq(boxPar(part, ridx), boxSoundfile(label, chan));
+    Tree args = boxPar(part, ridx);
+    Tree prim = boxSoundfile(label, chan);
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxSelect2(Tree selector, Tree s1, Tree s2)
 {
-    return boxSeq(boxPar3(selector, s1, s2), boxSelect2());
+    Tree args = boxPar3(selector, s1, s2);
+    Tree prim = boxSelect2();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
-    return boxSeq(boxPar4(selector, s1, s2, s3), boxSelect3());
+    Tree args = boxPar4(selector, s1, s2, s3);
+    Tree prim = boxSelect3();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxBinOp(SOperator op, Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxBinOp(op));
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxBinOp(op);
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxAdd(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxAdd());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxAdd();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxSub(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxSub());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxSub();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxMul(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxMul());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxMul();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxDiv(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxDiv());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxDiv();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxRem(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxRem());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxRem();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxLeftShift(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxLeftShift());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxLeftShift();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxLRightShift(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxLRightShift());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxLRightShift();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxARightShift(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxARightShift());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxARightShift();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxGT(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxGT());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxGT();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxLT(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxLT());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxLT();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxGE(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxGE());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxGE();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxLE(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxLE());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxLE();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxEQ(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxEQ());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxEQ();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxNE(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxNE());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxNE();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxAND(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxAND());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxAND();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxOR(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxOR());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxOR();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxXOR(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxXOR());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxXOR();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxAbs(Tree x)
@@ -1816,32 +1884,44 @@ LIBFAUST_API Tree boxAsin(Tree x)
 
 LIBFAUST_API Tree boxRemainder(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxRemainder());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxRemainder();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxPow(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxPow());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxPow();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxMin(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxMin());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxMin();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxMax(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxMax());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxMax();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxFmod(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxFmod());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxFmod();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxAtan2(Tree b1, Tree b2)
 {
-    return boxSeq(boxPar(b1, b2), boxAtan2());
+    Tree args = boxPar(b1, b2);
+    Tree prim = boxAtan2();
+    return boxSeq(args, prim);
 }
 
 LIBFAUST_API Tree boxVBargraph(const string& label, Tree min, Tree max, Tree x)
@@ -1856,7 +1936,9 @@ LIBFAUST_API Tree boxHBargraph(const string& label, Tree min, Tree max, Tree x)
 
 LIBFAUST_API Tree boxAttach(Tree s1, Tree s2)
 {
-    return boxSeq(boxPar(s1, s2), boxAttach());
+    Tree args = boxPar(s1, s2);
+    Tree prim = boxAttach();
+    return boxSeq(args, prim);
 }
 
 // ==========
@@ -2815,7 +2897,9 @@ LIBFAUST_API Tree CboxPar5(Tree a, Tree b, Tree c, Tree d, Tree e)
 
 LIBFAUST_API Tree CboxDelayAux(Tree s, Tree del)
 {
-    return CboxSeq(CboxPar(s, del), CboxDelay());
+    Tree args = CboxPar(s, del);
+    Tree prim = CboxDelay();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxIntCastAux(Tree s)
@@ -2830,117 +2914,163 @@ LIBFAUST_API Tree CboxFloatCastAux(Tree s)
 
 LIBFAUST_API Tree CboxReadOnlyTableAux(Tree n, Tree init, Tree ridx)
 {
-    return CboxSeq(CboxPar3(n, init, ridx), CboxReadOnlyTable());
+    Tree args = CboxPar3(n, init, ridx);
+    Tree prim = CboxReadOnlyTable();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxWriteReadTableAux(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
 {
-    return CboxSeq(boxPar5(n, init, widx, wsig, ridx), CboxWriteReadTable());
+    Tree args = boxPar5(n, init, widx, wsig, ridx);
+    Tree prim = CboxWriteReadTable();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CoxSoundfileAux(const char* label, Tree chan, Tree part, Tree ridx)
 {
-    return CboxSeq(CboxPar(part, ridx), CboxSoundfile(label, chan));
+    Tree args = CboxPar(part, ridx);
+    Tree prim = CboxSoundfile(label, chan);
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxSelect2Aux(Tree selector, Tree s1, Tree s2)
 {
-    return CboxSeq(CboxPar3(selector, s1, s2), CboxSelect2());
+    Tree args = CboxPar3(selector, s1, s2);
+    Tree prim = CboxSelect2();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxSelect3Aux(Tree selector, Tree s1, Tree s2, Tree s3)
 {
-    return CboxSeq(CboxPar4(selector, s1, s2, s3), CboxSelect3());
+    Tree args = CboxPar4(selector, s1, s2, s3);
+    Tree prim = CboxSelect3();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxBinOpAux(SOperator op, Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxBinOp(op));
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxBinOp(op);
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxAddAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxAdd());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxAdd();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxSubAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxSub());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxSub();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxMulAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxMul());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxMul();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxDivAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxDiv());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxDiv();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxRemAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxRem());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxRem();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxLeftShiftAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxLeftShift());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxLeftShift();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxLRightShiftAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxLRightShift());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxLRightShift();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxARightShiftAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxARightShift());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxARightShift();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxGTAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxGT());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxGT();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxLTAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxLT());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxLT();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxGEAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxGE());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxGE();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxLEAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxLE());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxLE();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxEQAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxEQ());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxEQ();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxNEAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxNE());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxNE();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxANDAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxAND());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxAND();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxORAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxOR());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxOR();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxXORAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxXOR());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxXOR();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxAbsAux(Tree x)
@@ -3025,32 +3155,44 @@ LIBFAUST_API Tree CboxAsinAux(Tree x)
 
 LIBFAUST_API Tree CboxRemainderAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxRemainder());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxRemainder();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxPowAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxPow());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxPow();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxMinAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxMin());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxMin();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxMaxAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxMax());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxMax();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxFmodAux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxFmod());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxFmod();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxAtan2Aux(Tree b1, Tree b2)
 {
-    return CboxSeq(CboxPar(b1, b2), CboxAtan2());
+    Tree args = CboxPar(b1, b2);
+    Tree prim = CboxAtan2();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API Tree CboxVBargraphAux(const char* label, Tree min, Tree max, Tree x)
@@ -3065,7 +3207,9 @@ LIBFAUST_API Tree CboxHBargraphAux(const char* label, Tree min, Tree max, Tree x
 
 LIBFAUST_API Tree CboxAttachAux(Tree s1, Tree s2)
 {
-    return CboxSeq(CboxPar(s1, s2), CboxAttach());
+    Tree args = CboxPar(s1, s2);
+    Tree prim = CboxAttach();
+    return CboxSeq(args, prim);
 }
 
 LIBFAUST_API char* CprintBox(Tree box, bool shared, int max_size)

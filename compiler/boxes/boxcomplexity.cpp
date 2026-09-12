@@ -137,15 +137,25 @@ static int computeBoxComplexity(Tree box)
 
     // block diagram binary operator
     else if (isBoxSeq(box, t1, t2)) {
-        return BC(t1) + BC(t2);
+        int c1 = BC(t1);
+        int c2 = BC(t2);
+        return c1 + c2;
     } else if (isBoxSplit(box, t1, t2)) {
-        return BC(t1) + BC(t2);
+        int c1 = BC(t1);
+        int c2 = BC(t2);
+        return c1 + c2;
     } else if (isBoxMerge(box, t1, t2)) {
-        return BC(t1) + BC(t2);
+        int c1 = BC(t1);
+        int c2 = BC(t2);
+        return c1 + c2;
     } else if (isBoxPar(box, t1, t2)) {
-        return BC(t1) + BC(t2);
+        int c1 = BC(t1);
+        int c2 = BC(t2);
+        return c1 + c2;
     } else if (isBoxRec(box, t1, t2)) {
-        return BC(t1) + BC(t2);
+        int c1 = BC(t1);
+        int c2 = BC(t2);
+        return c1 + c2;
     }
 
     // user interface widgets

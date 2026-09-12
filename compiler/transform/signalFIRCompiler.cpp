@@ -552,9 +552,10 @@ void SignalFIRCompiler::compile()
         self(out_sig);
         // Get compiled value and store in the output
         ValueInst* res = popRes();
-        writeStatement(out_sig, IB::genStoreArrayFunArgsVar(
-                                    gGlobal->getFreshID("output"), IB::genLoadLoopVar("sample"),
-                                    genCastedOutput(getCertifiedSigType(out_sig)->nature(), res)));
+        std::string outname = gGlobal->getFreshID("output");
+        ValueInst*  casted  = genCastedOutput(getCertifiedSigType(out_sig)->nature(), res);
+        writeStatement(out_sig, IB::genStoreArrayFunArgsVar(outname, IB::genLoadLoopVar("sample"),
+                                                            casted));
         // Compile next output
         output_list = tl(output_list);
     }

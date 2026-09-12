@@ -477,7 +477,7 @@ modlist         : modentry                                { $$ = cons($1,gGlobal
 
 expression      : expression WITH LBRAQ deflist RBRAQ    { $$ = boxWithLocalDef($1,formatDefinitions($4)); }
                 | expression LETREC LBRAQ reclist RBRAQ  { $$ = boxWithRecDef($1,formatDefinitions($4), gGlobal->nil); }
-                | expression LETREC LBRAQ reclist WHERE deflist RBRAQ    { $$ = boxWithRecDef($1,formatDefinitions($4),formatDefinitions($6)); }
+                | expression LETREC LBRAQ reclist WHERE deflist RBRAQ    { Tree r = formatDefinitions($4); Tree d = formatDefinitions($6); $$ = boxWithRecDef($1, r, d); }
                 | expression PAR expression              { $$ = boxPar($1,$3); }
                 | expression SEQ expression              { $$ = boxSeq($1,$3); }
                 | expression SPLIT  expression           { $$ = boxSplit($1,$3); }

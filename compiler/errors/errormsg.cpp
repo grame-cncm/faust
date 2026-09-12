@@ -102,7 +102,9 @@ void evalremark(const char* filename, int linenum, const char* msg, Tree exp)
 
 void setDefProp(Tree sym, const char* filename, int lineno)
 {
-    setProperty(sym, gGlobal->DEFLINEPROP, cons(tree(filename), tree(lineno)));
+    Tree file = tree(filename);
+    Tree line = tree(lineno);
+    setProperty(sym, gGlobal->DEFLINEPROP, cons(file, line));
 }
 
 bool hasDefProp(Tree sym)
@@ -133,7 +135,9 @@ int getDefLineProp(Tree sym)
 
 void setUseProp(Tree sym, const char* filename, int lineno)
 {
-    setProperty(sym, gGlobal->USELINEPROP, cons(tree(filename), tree(lineno)));
+    Tree file = tree(filename);
+    Tree line = tree(lineno);
+    setProperty(sym, gGlobal->USELINEPROP, cons(file, line));
 }
 
 const char* getUseFileProp(Tree sym)

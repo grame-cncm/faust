@@ -887,7 +887,12 @@ Tree sym2deBruijn(Tree t)
 // hash-consed tree.
 bool areEquiv(Tree a, Tree b)
 {
-    return (a == b) || (sym2deBruijn(a) == sym2deBruijn(b));
+    if (a == b) {
+        return true;
+    }
+    Tree da = sym2deBruijn(a);
+    Tree db = sym2deBruijn(b);
+    return da == db;
 }
 
 //-----------------------------------------------------------------------------------------

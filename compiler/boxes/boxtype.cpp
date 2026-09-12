@@ -75,7 +75,9 @@ LIBFAUST_API bool getBoxType(Tree box, int* inum, int* onum)
     } else {
         FAUST_STATS_DO(gGlobal->gStats.fGetBoxTypeComputed++);
         if (inferBoxType(box, inum, onum)) {
-            setProperty(box, gGlobal->BOXTYPEPROP, cons(tree(*inum), tree(*onum)));
+            Tree ins  = tree(*inum);
+            Tree outs = tree(*onum);
+            setProperty(box, gGlobal->BOXTYPEPROP, cons(ins, outs));
             return true;
         } else {
             setProperty(box, gGlobal->BOXTYPEPROP, gGlobal->nil);

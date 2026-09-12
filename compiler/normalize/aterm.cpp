@@ -353,7 +353,9 @@ aterm aterm::factorize(const mterm& d)
     // cerr << "tt " << *tt << endl;
 
     // Tree ttt = sigAdd(
-    A += sigMul(d.normalizedTree(), Q.normalizedTree());
+    Tree dn = d.normalizedTree();
+    Tree qn = Q.normalizedTree();
+    A += sigMul(dn, qn);
     // cerr << "Final A = " << A << endl;
     // cerr << "Final Tree " << *(A.normalizedTree()) << endl;
     return A;

@@ -1291,7 +1291,9 @@ ValueInst* InstructionsCompiler::generateBitCast(Tree sig, Tree x)
 
 ValueInst* InstructionsCompiler::generateFloatCast(Tree sig, Tree x)
 {
-    return generateCacheCode(sig, IB::genCastInst(CS(x), genFloatType(getCertifiedSigType(sig))));
+    ValueInst*  vx = CS(x);
+    BasicTyped* ft = genFloatType(getCertifiedSigType(sig));
+    return generateCacheCode(sig, IB::genCastInst(vx, ft));
 }
 
 /*****************************************************************************

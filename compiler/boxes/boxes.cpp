@@ -1212,7 +1212,9 @@ Tree boxPatternMatcher(PM::Automaton* a, int state, Tree env, Tree origRules, Tr
     // an address-hashed node contaminates every ancestor's canonHash --
     // the canonical orderings would follow the binary layout
     setPointerCanonicalHash((void*)a, origRules->canonHash());
-    return tree(gGlobal->BOXPATMATCHER, tree((void*)a), tree(state), env, origRules, revParamList);
+    Tree automaton = tree((void*)a);
+    Tree st        = tree(state);
+    return tree(gGlobal->BOXPATMATCHER, automaton, st, env, origRules, revParamList);
 }
 
 bool isBoxPatternMatcher(Tree s)
