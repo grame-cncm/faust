@@ -753,13 +753,33 @@ void global::init()
     gMathForeignFunctions["copysign"]  = true;
     gMathForeignFunctions["copysignl"] = true;
 
-    // internal state during drawing
-    gInverter[0] = boxSeq(boxPar(boxWire(), boxInt(-1)), boxPrim2(sigMul));
-    gInverter[1] = boxSeq(boxPar(boxInt(-1), boxWire()), boxPrim2(sigMul));
-    gInverter[2] = boxSeq(boxPar(boxWire(), boxReal(-1.0)), boxPrim2(sigMul));
-    gInverter[3] = boxSeq(boxPar(boxReal(-1.0), boxWire()), boxPrim2(sigMul));
-    gInverter[4] = boxSeq(boxPar(boxInt(0), boxWire()), boxPrim2(sigSub));
-    gInverter[5] = boxSeq(boxPar(boxReal(0.0), boxWire()), boxPrim2(sigSub));
+    // internal state during drawing.
+    // These are the first trees built, before any program, and hash-consing
+    // reuses them in every program : the node -1, for one, keeps forever the
+    // serial it receives here. Two node-creating arguments in one call are
+    // evaluated in the order the C++ compiler picks, so they are sequenced,
+    // left to right, one creation per statement.
+    {
+        Tree wire = boxWire();
+        Tree m1i  = boxInt(-1);
+        Tree p0   = boxPar(wire, m1i);
+        Tree mul  = boxPrim2(sigMul);
+        gInverter[0] = boxSeq(p0, mul);
+        Tree p1      = boxPar(m1i, wire);
+        gInverter[1] = boxSeq(p1, mul);
+        Tree m1f     = boxReal(-1.0);
+        Tree p2      = boxPar(wire, m1f);
+        gInverter[2] = boxSeq(p2, mul);
+        Tree p3      = boxPar(m1f, wire);
+        gInverter[3] = boxSeq(p3, mul);
+        Tree z0i     = boxInt(0);
+        Tree p4      = boxPar(z0i, wire);
+        Tree sub     = boxPrim2(sigSub);
+        gInverter[4] = boxSeq(p4, sub);
+        Tree z0f     = boxReal(0.0);
+        Tree p5      = boxPar(z0f, wire);
+        gInverter[5] = boxSeq(p5, sub);
+    }
 }
 
 string global::printFloat()
