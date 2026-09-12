@@ -106,8 +106,12 @@ Tree evalprocess(Tree eqlist)
 {
     // Init stack overflow detector
     gGlobal->gStackOverflowDetector = stackOverflowDetector(MAX_STACK_SIZE);
-    Tree b = a2sb(eval(boxIdent(gGlobal->gProcessName.c_str()), gGlobal->nil,
-                       pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
+    // Every call below that used to build two trees among its arguments now
+    // builds them one statement at a time, left to right : C++ leaves the order
+    // of arguments to the compiler, and the serials recorded that order.
+    Tree pid  = boxIdent(gGlobal->gProcessName.c_str());
+    Tree penv = pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil);
+    Tree b    = a2sb(eval(pid, gGlobal->nil, penv));
 
     if (gGlobal->gSimplifyDiagrams) {
         b = boxSimplification(b);
@@ -418,16 +422,24 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
         return re;
 
     } else if (isBoxPar(exp, e1, e2)) {
-        return boxPar(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
+        Tree v1 = eval(e1, visited, localValEnv);
+        Tree v2 = eval(e2, visited, localValEnv);
+        return boxPar(v1, v2);
 
     } else if (isBoxRec(exp, e1, e2)) {
-        return boxRec(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
+        Tree v1 = eval(e1, visited, localValEnv);
+        Tree v2 = eval(e2, visited, localValEnv);
+        return boxRec(v1, v2);
 
     } else if (isBoxSplit(exp, e1, e2)) {
-        return boxSplit(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
+        Tree v1 = eval(e1, visited, localValEnv);
+        Tree v2 = eval(e2, visited, localValEnv);
+        return boxSplit(v1, v2);
 
     } else if (isBoxMerge(exp, e1, e2)) {
-        return boxMerge(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
+        Tree v1 = eval(e1, visited, localValEnv);
+        Tree v2 = eval(e2, visited, localValEnv);
+        return boxMerge(v1, v2);
 
         // Modules
         //--------
@@ -460,16 +472,18 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxComponent(exp, label)) {
         const char* fname = tree2str(label);
         Tree        eqlst = gGlobal->gReader.expandList(gGlobal->gReader.getList(fname));
-        Tree        res   = closure(boxIdent("process"), gGlobal->nil, gGlobal->nil,
-                                    pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
+        Tree        pid   = boxIdent("process");
+        Tree        penv  = pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil);
+        Tree        res   = closure(pid, gGlobal->nil, gGlobal->nil, penv);
         setDefNameProperty(res, label);
         return res;
 
     } else if (isBoxLibrary(exp, label)) {
         const char* fname = tree2str(label);
         Tree        eqlst = gGlobal->gReader.expandList(gGlobal->gReader.getList(fname));
-        Tree        res   = closure(boxEnvironment(), gGlobal->nil, gGlobal->nil,
-                                    pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
+        Tree        benv  = boxEnvironment();
+        Tree        penv  = pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil);
+        Tree        res   = closure(benv, gGlobal->nil, gGlobal->nil, penv);
         setDefNameProperty(res, label);
         return res;
 
@@ -494,57 +508,70 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
         const char* l1 = tree2str(label);
         string      s1 = evalLabel(l1, visited, localValEnv);
         Tree        l2 = tree(s1.c_str());
-        Tree        w  = (boxVSlider(l2, tree(eval2double(cur, visited, localValEnv)),
-                                     tree(eval2double(lo, visited, localValEnv)),
-                                     tree(eval2double(hi, visited, localValEnv)),
-                                     tree(eval2double(step, visited, localValEnv))));
+        Tree        vcur  = tree(eval2double(cur, visited, localValEnv));
+        Tree        vlo   = tree(eval2double(lo, visited, localValEnv));
+        Tree        vhi   = tree(eval2double(hi, visited, localValEnv));
+        Tree        vstep = tree(eval2double(step, visited, localValEnv));
+        Tree        w     = boxVSlider(l2, vcur, vlo, vhi, vstep);
         return w;
 
     } else if (isBoxHSlider(exp, label, cur, lo, hi, step)) {
         const char* l1 = tree2str(label);
         string      s1 = evalLabel(l1, visited, localValEnv);
         Tree        l2 = tree(s1.c_str());
-        Tree        w  = (boxHSlider(l2, tree(eval2double(cur, visited, localValEnv)),
-                                     tree(eval2double(lo, visited, localValEnv)),
-                                     tree(eval2double(hi, visited, localValEnv)),
-                                     tree(eval2double(step, visited, localValEnv))));
+        Tree        vcur  = tree(eval2double(cur, visited, localValEnv));
+        Tree        vlo   = tree(eval2double(lo, visited, localValEnv));
+        Tree        vhi   = tree(eval2double(hi, visited, localValEnv));
+        Tree        vstep = tree(eval2double(step, visited, localValEnv));
+        Tree        w     = boxHSlider(l2, vcur, vlo, vhi, vstep);
         return w;
 
     } else if (isBoxNumEntry(exp, label, cur, lo, hi, step)) {
         const char* l1 = tree2str(label);
         string      s1 = evalLabel(l1, visited, localValEnv);
         Tree        l2 = tree(s1.c_str());
-        Tree        w  = (boxNumEntry(l2, tree(eval2double(cur, visited, localValEnv)),
-                                      tree(eval2double(lo, visited, localValEnv)),
-                                      tree(eval2double(hi, visited, localValEnv)),
-                                      tree(eval2double(step, visited, localValEnv))));
+        Tree        vcur  = tree(eval2double(cur, visited, localValEnv));
+        Tree        vlo   = tree(eval2double(lo, visited, localValEnv));
+        Tree        vhi   = tree(eval2double(hi, visited, localValEnv));
+        Tree        vstep = tree(eval2double(step, visited, localValEnv));
+        Tree        w     = boxNumEntry(l2, vcur, vlo, vhi, vstep);
         return w;
 
     } else if (isBoxSoundfile(exp, label, chan)) {
         const char* l1 = tree2str(label);
         string      l2 = evalLabel(l1, visited, localValEnv);
-        return boxSoundfile(tree(l2.c_str()), tree(eval2int(chan, visited, localValEnv)));
+        Tree lab = tree(l2.c_str());
+        Tree ch  = tree(eval2int(chan, visited, localValEnv));
+        return boxSoundfile(lab, ch);
 
     } else if (isBoxVGroup(exp, label, arg)) {
         const char* l1 = tree2str(label);
         string      l2 = evalLabel(l1, visited, localValEnv);
-        return boxVGroup(tree(l2.c_str()), eval(arg, visited, localValEnv));
+        Tree lab = tree(l2.c_str());
+        Tree v   = eval(arg, visited, localValEnv);
+        return boxVGroup(lab, v);
 
     } else if (isBoxHGroup(exp, label, arg)) {
         const char* l1 = tree2str(label);
         string      l2 = evalLabel(l1, visited, localValEnv);
-        return boxHGroup(tree(l2.c_str()), eval(arg, visited, localValEnv));
+        Tree lab = tree(l2.c_str());
+        Tree v   = eval(arg, visited, localValEnv);
+        return boxHGroup(lab, v);
 
     } else if (isBoxTGroup(exp, label, arg)) {
         const char* l1 = tree2str(label);
         string      l2 = evalLabel(l1, visited, localValEnv);
-        return boxTGroup(tree(l2.c_str()), eval(arg, visited, localValEnv));
+        Tree lab = tree(l2.c_str());
+        Tree v   = eval(arg, visited, localValEnv);
+        return boxTGroup(lab, v);
 
     } else if (isBoxHBargraph(exp, label, lo, hi)) {
         const char* l1 = tree2str(label);
         string      l2 = evalLabel(l1, visited, localValEnv);
-        return boxHBargraph(tree(l2.c_str()), tree(eval2double(lo, visited, localValEnv)),
-                            tree(eval2double(hi, visited, localValEnv)));
+        Tree lab = tree(l2.c_str());
+        Tree vlo = tree(eval2double(lo, visited, localValEnv));
+        Tree vhi = tree(eval2double(hi, visited, localValEnv));
+        return boxHBargraph(lab, vlo, vhi);
 
     } else if (isBoxMetadata(exp, e1, e2)) {
         gGlobal->gMetaDataSet[hd(e2)].insert(tl(e2));
@@ -553,8 +580,10 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxVBargraph(exp, label, lo, hi)) {
         const char* l1 = tree2str(label);
         string      l2 = evalLabel(l1, visited, localValEnv);
-        return boxVBargraph(tree(l2.c_str()), tree(eval2double(lo, visited, localValEnv)),
-                            tree(eval2double(hi, visited, localValEnv)));
+        Tree lab = tree(l2.c_str());
+        Tree vlo = tree(eval2double(lo, visited, localValEnv));
+        Tree vhi = tree(eval2double(hi, visited, localValEnv));
+        return boxVBargraph(lab, vlo, vhi);
 
         // Lambda calculus
         //----------------
@@ -567,7 +596,9 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
         return eval(body, visited, pushMultiClosureDefs(expandedldef, visited, localValEnv));
 
     } else if (isBoxAppl(exp, fun, arg)) {
-        return applyList(eval(fun, visited, localValEnv), revEvalList(arg, visited, localValEnv));
+        Tree f    = eval(fun, visited, localValEnv);
+        Tree args = revEvalList(arg, visited, localValEnv);
+        return applyList(f, args);
 
     } else if (isBoxAbstr(exp)) {
         // it is an abstraction : return a closure
@@ -679,7 +710,9 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
                 for (int j = o3 - 2; j >= 0; j--) {
                     b = boxPar(boxInt(wr[j]), b);
                 }
-                return boxRoute(boxInt(w1[0]), boxInt(w2[0]), b);
+                Tree n1 = boxInt(w1[0]);
+                Tree n2 = boxInt(w2[0]);
+                return boxRoute(n1, n2, b);
             } else {
                 Tree p;
                 // Allow pattern variables and wildcards in route patterns
@@ -853,10 +886,14 @@ static Tree patternSimplification(Tree pattern)
     if (isBoxNumeric(pattern, v)) {
         return v;
     } else if (isBoxPatternOpTernary(pattern, n, t1, t2, t3)) {
-        return tree(n, patternSimplification(t1), patternSimplification(t2),
-                    patternSimplification(t3));
+        Tree s1 = patternSimplification(t1);
+        Tree s2 = patternSimplification(t2);
+        Tree s3 = patternSimplification(t3);
+        return tree(n, s1, s2, s3);
     } else if (isBoxPatternOpBinary(pattern, n, t1, t2)) {
-        return tree(n, patternSimplification(t1), patternSimplification(t2));
+        Tree s1 = patternSimplification(t1);
+        Tree s2 = patternSimplification(t2);
+        return tree(n, s1, s2);
     } else {
         return pattern;
     }
@@ -1043,7 +1080,9 @@ static Tree iteratePar(Tree id, int num, Tree body, Tree visited, Tree localValE
 
     if (num == 0) {
         // zero iteration: return neutral circuit (0->0) for parallel composition
-        return boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0), boxInt(0)));
+        Tree z = boxInt(0);
+        Tree p = boxPar(z, z);
+        return boxRoute(z, z, p);
     } else {
         Tree res = eval(body, visited, pushValueDef(id, tree(num - 1), localValEnv));
         for (int i = num - 2; i >= 0; i--) {
@@ -1084,7 +1123,9 @@ static Tree neutralExpSeq(Tree id, Tree body, Tree visited, Tree localValEnv)
         }
         return bus;
     } else {
-        return boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0), boxInt(0)));
+        Tree z = boxInt(0);
+        Tree p = boxPar(z, z);
+        return boxRoute(z, z, p);
     }
 }
 
@@ -1133,12 +1174,16 @@ static Tree iterateSum(Tree id, int num, Tree body, Tree visited, Tree localValE
     FAUST_STATS_DO(gGlobal->gStats.fSumIterations += num);
 
     if (num == 0) {
-        return boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0), boxInt(0)));
+        Tree z = boxInt(0);
+        Tree p = boxPar(z, z);
+        return boxRoute(z, z, p);
     } else {
         Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
         for (int i = 1; i < num; i++) {
-            res = boxSeq(boxPar(res, eval(body, visited, pushValueDef(id, tree(i), localValEnv))),
-                         boxPrim2(sigAdd));
+            Tree env = pushValueDef(id, tree(i), localValEnv);
+            Tree v   = eval(body, visited, env);
+            Tree p   = boxPar(res, v);
+            res      = boxSeq(p, boxPrim2(sigAdd));
         }
         return res;
     }
@@ -1161,12 +1206,16 @@ static Tree iterateProd(Tree id, int num, Tree body, Tree visited, Tree localVal
     FAUST_STATS_DO(gGlobal->gStats.fProdIterations += num);
 
     if (num == 0) {
-        return boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0), boxInt(0)));
+        Tree z = boxInt(0);
+        Tree p = boxPar(z, z);
+        return boxRoute(z, z, p);
     } else {
         Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
         for (int i = 1; i < num; i++) {
-            res = boxSeq(boxPar(res, eval(body, visited, pushValueDef(id, tree(i), localValEnv))),
-                         boxPrim2(sigMul));
+            Tree env = pushValueDef(id, tree(i), localValEnv);
+            Tree v   = eval(body, visited, env);
+            Tree p   = boxPar(res, v);
+            res      = boxSeq(p, boxPrim2(sigMul));
         }
         return res;
     }
@@ -1500,7 +1549,9 @@ static Tree evalCase(Tree rules, Tree env)
     Tree pm;
     if (!getPMProperty(rules, env, pm)) {
         PM::Automaton* a = PM::make_pattern_matcher(evalRuleList(rules, env));
-        pm = boxPatternMatcher(a, 0, listn(len(rules), pushEnvBarrier(env)), rules, gGlobal->nil);
+        Tree bar = pushEnvBarrier(env);
+        Tree ln  = listn(len(rules), bar);
+        pm       = boxPatternMatcher(a, 0, ln, rules, gGlobal->nil);
         setPMProperty(rules, env, pm);
     }
     return pm;
@@ -1514,7 +1565,9 @@ static Tree evalRuleList(Tree rules, Tree env)
     if (isNil(rules)) {
         return gGlobal->nil;
     } else {
-        return cons(evalRule(hd(rules), env), evalRuleList(tl(rules), env));
+        Tree r    = evalRule(hd(rules), env);
+        Tree rest = evalRuleList(tl(rules), env);
+        return cons(r, rest);
     }
 }
 
@@ -1534,7 +1587,9 @@ static Tree evalPatternList(Tree patterns, Tree env)
     if (isNil(patterns)) {
         return gGlobal->nil;
     } else {
-        return cons(evalPattern(hd(patterns), env), evalPatternList(tl(patterns), env));
+        Tree pt   = evalPattern(hd(patterns), env);
+        Tree rest = evalPatternList(tl(patterns), env);
+        return cons(pt, rest);
     }
 }
 
