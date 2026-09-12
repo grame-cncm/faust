@@ -486,29 +486,29 @@ expression      : expression WITH LBRAQ deflist RBRAQ    { $$ = boxWithLocalDef(
                 | infixexp                               { $$ = $1; }
                 ;
 
-infixexp        : infixexp ADD infixexp     { $$ = boxSeq(boxPar($1,$3),boxAdd()); }
-                | infixexp SUB infixexp     { $$ = boxSeq(boxPar($1,$3),boxSub()); }
-                | infixexp MUL infixexp     { $$ = boxSeq(boxPar($1,$3),boxMul()); }
-                | infixexp DIV infixexp     { $$ = boxSeq(boxPar($1,$3),boxDiv()); }
-                | infixexp MOD infixexp     { $$ = boxSeq(boxPar($1,$3),boxRem()); }
-                | infixexp POWOP infixexp   { $$ = boxSeq(boxPar($1,$3),boxPow()); }
-                | infixexp FDELAY infixexp  { $$ = boxSeq(boxPar($1,$3),boxDelay()); }
+infixexp        : infixexp ADD infixexp     { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxAdd()); }
+                | infixexp SUB infixexp     { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxSub()); }
+                | infixexp MUL infixexp     { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxMul()); }
+                | infixexp DIV infixexp     { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxDiv()); }
+                | infixexp MOD infixexp     { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxRem()); }
+                | infixexp POWOP infixexp   { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxPow()); }
+                | infixexp FDELAY infixexp  { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxDelay()); }
                 | infixexp DELAY1           { $$ = boxSeq($1,boxDelay1()); }
                 | infixexp DOT ident        { $$ = boxAccess($1,$3); }
 
-                | infixexp AND infixexp     { $$ = boxSeq(boxPar($1,$3),boxAND()); }
-                | infixexp OR infixexp      { $$ = boxSeq(boxPar($1,$3),boxOR()); }
-                | infixexp XOR infixexp     { $$ = boxSeq(boxPar($1,$3),boxXOR()); }
+                | infixexp AND infixexp     { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxAND()); }
+                | infixexp OR infixexp      { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxOR()); }
+                | infixexp XOR infixexp     { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxXOR()); }
 
-                | infixexp LSH infixexp     { $$ = boxSeq(boxPar($1,$3),boxLeftShift()); }
-                | infixexp RSH infixexp     { $$ = boxSeq(boxPar($1,$3),boxARightShift()); }
+                | infixexp LSH infixexp     { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxLeftShift()); }
+                | infixexp RSH infixexp     { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxARightShift()); }
 
-                | infixexp LT infixexp      { $$ = boxSeq(boxPar($1,$3),boxLT()); }
-                | infixexp LE infixexp      { $$ = boxSeq(boxPar($1,$3),boxLE()); }
-                | infixexp GT infixexp      { $$ = boxSeq(boxPar($1,$3),boxGT()); }
-                | infixexp GE infixexp      { $$ = boxSeq(boxPar($1,$3),boxGE()); }
-                | infixexp EQ infixexp      { $$ = boxSeq(boxPar($1,$3),boxEQ()); }
-                | infixexp NE infixexp      { $$ = boxSeq(boxPar($1,$3),boxNE()); }
+                | infixexp LT infixexp      { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxLT()); }
+                | infixexp LE infixexp      { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxLE()); }
+                | infixexp GT infixexp      { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxGT()); }
+                | infixexp GE infixexp      { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxGE()); }
+                | infixexp EQ infixexp      { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxEQ()); }
+                | infixexp NE infixexp      { Tree p = boxPar($1,$3); $$ = boxSeq(p, boxNE()); }
 
                 | infixexp LPAR arglist RPAR       { $$ = buildBoxAppl($1,$3); }
                 | infixexp LCROC deflist RCROC     { $$ = boxModifLocalDef($1,formatDefinitions($3)); }
@@ -597,7 +597,7 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
                 | HIGHEST                        { $$ = boxHighest(); }
 
                 | ident                          { $$ = $1; setUseProp($1, FAUSTfilename, FAUSTlineno);}
-                | SUB ident                      { $$ = boxSeq(boxPar(boxInt(0),$2),boxSub()); }
+                | SUB ident                      { Tree z = boxInt(0); Tree p = boxPar(z,$2); $$ = boxSeq(p, boxSub()); }
 
                 | LPAR expression RPAR            { $$ = $2; }
                 | LAMBDA LPAR params RPAR DOT LPAR expression RPAR
@@ -616,9 +616,9 @@ primitive       : INT                           { $$ = boxInt(str2int(FAUSTtext)
                 | fvariable                     { $$ = $1; }
                 | COMPONENT LPAR uqstring RPAR  { $$ = boxComponent($3); }
                 | LIBRARY LPAR uqstring RPAR    { $$ = boxLibrary($3); }
-                | ENVIRONMENT LBRAQ stmtlist RBRAQ { $$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
+                | ENVIRONMENT LBRAQ stmtlist RBRAQ { Tree e = boxEnvironment(); Tree d = formatDefinitions($3); $$ = boxWithLocalDef(e, d); }
                 | WAVEFORM LBRAQ vallist RBRAQ     { $$ = boxWaveform(gGlobal->gWaveForm); gGlobal->gWaveForm.clear(); }
-                | ROUTE LPAR argument PAR argument RPAR       { $$ = boxRoute($3, $5, boxPar(boxInt(0),boxInt(0))); } // fake route
+                | ROUTE LPAR argument PAR argument RPAR       { Tree z = boxInt(0); Tree p = boxPar(z,z); $$ = boxRoute($3, $5, p); } // fake route
                 | ROUTE LPAR argument PAR argument PAR expression RPAR       { $$ = boxRoute($3, $5, $7); }
                 | button                        { $$ = $1; }
                 | checkbox                      { $$ = $1; }

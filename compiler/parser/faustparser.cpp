@@ -2577,37 +2577,37 @@ yyreduce:
 
   case 72:
 #line 489 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxAdd()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxAdd()); ;}
     break;
 
   case 73:
 #line 490 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxSub()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxSub()); ;}
     break;
 
   case 74:
 #line 491 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxMul()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxMul()); ;}
     break;
 
   case 75:
 #line 492 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxDiv()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxDiv()); ;}
     break;
 
   case 76:
 #line 493 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxRem()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxRem()); ;}
     break;
 
   case 77:
 #line 494 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPow()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxPow()); ;}
     break;
 
   case 78:
 #line 495 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxDelay()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxDelay()); ;}
     break;
 
   case 79:
@@ -2622,57 +2622,57 @@ yyreduce:
 
   case 81:
 #line 499 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxAND()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxAND()); ;}
     break;
 
   case 82:
 #line 500 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxOR()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxOR()); ;}
     break;
 
   case 83:
 #line 501 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxXOR()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxXOR()); ;}
     break;
 
   case 84:
 #line 503 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxLeftShift()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxLeftShift()); ;}
     break;
 
   case 85:
 #line 504 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxARightShift()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxARightShift()); ;}
     break;
 
   case 86:
 #line 506 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxLT()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxLT()); ;}
     break;
 
   case 87:
 #line 507 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxLE()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxLE()); ;}
     break;
 
   case 88:
 #line 508 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxGT()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxGT()); ;}
     break;
 
   case 89:
 #line 509 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxGE()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxGE()); ;}
     break;
 
   case 90:
 #line 510 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxEQ()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxEQ()); ;}
     break;
 
   case 91:
 #line 511 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxNE()); ;}
+    { Tree p = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); (yyval.exp) = boxSeq(p, boxNE()); ;}
     break;
 
   case 92:
@@ -3002,7 +3002,7 @@ yyreduce:
 
   case 157:
 #line 600 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar(boxInt(0),(yyvsp[(2) - (2)].exp)),boxSub()); ;}
+    { Tree z = boxInt(0); Tree p = boxPar(z,(yyvsp[(2) - (2)].exp)); (yyval.exp) = boxSeq(p, boxSub()); ;}
     break;
 
   case 158:
@@ -3052,7 +3052,7 @@ yyreduce:
 
   case 167:
 #line 619 "faustparser.y"
-    { (yyval.exp) = boxWithLocalDef(boxEnvironment(),formatDefinitions((yyvsp[(3) - (4)].exp))); ;}
+    { Tree e = boxEnvironment(); Tree d = formatDefinitions((yyvsp[(3) - (4)].exp)); (yyval.exp) = boxWithLocalDef(e, d); ;}
     break;
 
   case 168:
@@ -3062,7 +3062,7 @@ yyreduce:
 
   case 169:
 #line 621 "faustparser.y"
-    { (yyval.exp) = boxRoute((yyvsp[(3) - (6)].exp), (yyvsp[(5) - (6)].exp), boxPar(boxInt(0),boxInt(0))); ;}
+    { Tree z = boxInt(0); Tree p = boxPar(z,z); (yyval.exp) = boxRoute((yyvsp[(3) - (6)].exp), (yyvsp[(5) - (6)].exp), p); ;}
     break;
 
   case 170:
