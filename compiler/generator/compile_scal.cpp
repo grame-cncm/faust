@@ -5392,11 +5392,15 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         Occurrences* o = fOccMarkup->retrieve(sig);
         return (o && o->getMaxDelay() > 0) ? generateCacheCode(sig, neg) : neg;
     }
+    // CS compiles a whole subtree ; two of them as arguments of one call ran in
+    // the order the C++ compiler picks. Sequenced left to right (see the same
+    // change in InstructionsCompiler::generateBinOp).
+    std::string s1 = CS(arg1);
+    std::string s2 = CS(arg2);
     if (wrap) {
-        return generateCacheCode(sig, subst("$0($1, $2)", wrap, CS(arg1), CS(arg2)));
+        return generateCacheCode(sig, subst("$0($1, $2)", wrap, s1, s2));
     }
-    return generateCacheCode(sig,
-                             subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
+    return generateCacheCode(sig, subst("($0 $1 $2)", s1, gBinOpTable[opcode]->fName, s2));
 }
 
 /*****************************************************************************
