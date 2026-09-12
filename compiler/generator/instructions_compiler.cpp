@@ -217,7 +217,9 @@ ValueInst* InstructionsCompiler::dnf2code(Tree cc)
     if (cc == gGlobal->nil) {
         return and2code(c1);
     } else {
-        return IB::genOr(and2code(c1), dnf2code(cc));
+        ValueInst* v1 = and2code(c1);
+        ValueInst* v2 = dnf2code(cc);
+        return IB::genOr(v1, v2);
     }
 }
 
@@ -231,7 +233,9 @@ ValueInst* InstructionsCompiler::and2code(Tree cs)
     if (cs == gGlobal->nil) {
         return CS(c1);
     } else {
-        return IB::genAnd(CS(c1), and2code(cs));
+        ValueInst* v1 = CS(c1);
+        ValueInst* v2 = and2code(cs);
+        return IB::genAnd(v1, v2);
     }
 }
 
@@ -245,7 +249,9 @@ ValueInst* InstructionsCompiler::cnf2code(Tree cs)
     if (cs == gGlobal->nil) {
         return or2code(c1);
     } else {
-        return IB::genAnd(or2code(c1), cnf2code(cs));
+        ValueInst* v1 = or2code(c1);
+        ValueInst* v2 = cnf2code(cs);
+        return IB::genAnd(v1, v2);
     }
 }
 
@@ -259,7 +265,9 @@ ValueInst* InstructionsCompiler::or2code(Tree cs)
     if (cs == gGlobal->nil) {
         return CS(c1);
     } else {
-        return IB::genOr(CS(c1), or2code(cs));
+        ValueInst* v1 = CS(c1);
+        ValueInst* v2 = or2code(cs);
+        return IB::genOr(v1, v2);
     }
 }
 
@@ -789,11 +797,19 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     else if (isSigSoundfile(sig, label)) {
         return generateSoundfile(sig, label);
     } else if (isSigSoundfileLength(sig, sf, x)) {
-        return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf), CS(x)));
+        ValueInst* vsf = CS(sf);
+        ValueInst* vx  = CS(x);
+        return generateCacheCode(sig, generateSoundfileLength(sig, vsf, vx));
     } else if (isSigSoundfileRate(sig, sf, x)) {
-        return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf), CS(x)));
+        ValueInst* vsf = CS(sf);
+        ValueInst* vx  = CS(x);
+        return generateCacheCode(sig, generateSoundfileRate(sig, vsf, vx));
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
-        return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf), CS(x), CS(y), CS(z)));
+        ValueInst* vsf = CS(sf);
+        ValueInst* vx  = CS(x);
+        ValueInst* vy  = CS(y);
+        ValueInst* vz  = CS(z);
+        return generateCacheCode(sig, generateSoundfileBuffer(sig, vsf, vx, vy, vz));
     }
 
     else if (isSigAttach(sig, x, y)) {
@@ -1290,7 +1306,9 @@ ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const st
     pushDeclare(IB::genDecStructVar(varname, type));
     pushResetUIInstructions(
         IB::genStoreStructVar(varname, IB::genRealNumInst(Typed::kFloatMacro, 0)));
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    Tree uipath   = reverse(tl(path));
+    Tree uiwidget = uiWidget(hd(path), tree(varname), sig);
+    fUITree.addUIWidget(uipath, uiwidget);
 
     // Cast to internal float
     return generateCacheCode(sig, genCastedInput(IB::genLoadStructVar(varname)));
@@ -1315,7 +1333,9 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
     pushDeclare(IB::genDecStructVar(varname, type));
     pushResetUIInstructions(
         IB::genStoreStructVar(varname, IB::genRealNumInst(Typed::kFloatMacro, tree2double(cur))));
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    Tree uipath   = reverse(tl(path));
+    Tree uiwidget = uiWidget(hd(path), tree(varname), sig);
+    fUITree.addUIWidget(uipath, uiwidget);
 
     // Cast to internal float
     return generateCacheCode(sig, genCastedInput(IB::genLoadStructVar(varname)));
@@ -1340,7 +1360,9 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, ValueI
 {
     string varname = gGlobal->getFreshID(name);
     pushDeclare(IB::genDecStructVar(varname, IB::genFloatMacroTyped()));
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    Tree uipath   = reverse(tl(path));
+    Tree uiwidget = uiWidget(hd(path), tree(varname), sig);
+    fUITree.addUIWidget(uipath, uiwidget);
 
     ::Type t = getCertifiedSigType(sig);
 
@@ -1388,7 +1410,11 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
     string varname = gGlobal->getFreshID("fSoundfile");
     string SFcache = varname + "ca";
 
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    Tree uipath   = reverse(tl(path));
+
+    Tree uiwidget = uiWidget(hd(path), tree(varname), sig);
+
+    fUITree.addUIWidget(uipath, uiwidget);
 
     pushDeclare(IB::genDecStructVar(varname, Typed::kSound_ptr));
 
@@ -1820,16 +1846,18 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree size, Tree gen, Tr
     faustassert(load_value);
     string vname = load_value->fAddress->getName();
 
+    ValueInst* vwi = CS(wi);
+    ValueInst* vws = CS(ws);
     switch (getCertifiedSigType(sig)->variability()) {
         case kKonst:
-            pushInitMethod(IB::genStoreArrayStructVar(vname, CS(wi), CS(ws)));
+            pushInitMethod(IB::genStoreArrayStructVar(vname, vwi, vws));
             break;
         case kBlock:
-            pushComputeBlockMethod(IB::genStoreArrayStructVar(vname, CS(wi), CS(ws)));
+            pushComputeBlockMethod(IB::genStoreArrayStructVar(vname, vwi, vws));
             break;
         default:
             pushComputeDSPMethod(IB::genControlInst(
-                getConditionCode(sig), IB::genStoreArrayStructVar(vname, CS(wi), CS(ws))));
+                getConditionCode(sig), IB::genStoreArrayStructVar(vname, vwi, vws)));
             break;
     }
 
@@ -2183,8 +2211,9 @@ ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
     }
     */
 
-    pushComputeDSPMethod(
-        IB::genControlInst(getConditionCode(sig), IB::genStoreStructVar(vperm, CS(e))));
+    ValueInst* cond = getConditionCode(sig);
+    ValueInst* ve   = CS(e);
+    pushComputeDSPMethod(IB::genControlInst(cond, IB::genStoreStructVar(vperm, ve)));
     return IB::genLoadStackVar(vtemp);
 }
 

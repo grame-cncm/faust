@@ -982,7 +982,9 @@ Tree ScalarCompiler::prepare(Tree LS)
                     }
                 }
                 if (order >= 2 && readers.count(t) == 0) {
-                    t->setProperty(tree(symbol("SIGIIRTRANSPOSED")), tree(1));
+                    Tree key = tree(symbol("SIGIIRTRANSPOSED"));
+                    Tree one = tree(1);
+                    t->setProperty(key, one);
                 }
             }
         }
@@ -1053,7 +1055,9 @@ string ScalarCompiler::dnf2code(Tree cc)
     if (cc == gGlobal->nil) {
         return and2code(c1);
     } else {
-        return subst("($0 || $1)", and2code(c1), dnf2code(cc));
+        std::string s1 = and2code(c1);
+        std::string s2 = dnf2code(cc);
+        return subst("($0 || $1)", s1, s2);
     }
 }
 
@@ -1067,7 +1071,9 @@ string ScalarCompiler::and2code(Tree cs)
     if (cs == gGlobal->nil) {
         return CS(c1);
     } else {
-        return subst("($0 && $1)", CS(c1), and2code(cs));
+        std::string s1 = CS(c1);
+        std::string s2 = and2code(cs);
+        return subst("($0 && $1)", s1, s2);
     }
 }
 
@@ -1081,7 +1087,9 @@ string ScalarCompiler::cnf2code(Tree cs)
     if (cs == gGlobal->nil) {
         return or2code(c1);
     } else {
-        return subst("(($0) && $1)", or2code(c1), cnf2code(cs));
+        std::string s1 = or2code(c1);
+        std::string s2 = cnf2code(cs);
+        return subst("(($0) && $1)", s1, s2);
     }
 }
 
@@ -1095,7 +1103,9 @@ string ScalarCompiler::or2code(Tree cs)
     if (cs == gGlobal->nil) {
         return CS(c1);
     } else {
-        return subst("($0 || $1)", CS(c1), or2code(cs));
+        std::string s1 = CS(c1);
+        std::string s2 = or2code(cs);
+        return subst("($0 || $1)", s1, s2);
     }
 }
 
@@ -2747,7 +2757,9 @@ class LoopSplitEmitter {
             // happens inside OUR loop, as a store-op
             std::string varname = fC->getFreshID("fbargraph");
             fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
-            fC->fUITree.addUIWidget(reverse(tl(label)), uiWidget(hd(label), tree(varname), t));
+            Tree uipath   = reverse(tl(label));
+            Tree uiwidget = uiWidget(hd(label), tree(varname), t);
+            fC->fUITree.addUIWidget(uipath, uiwidget);
             Operand a = walk(z, curScc, false);
             std::vector<int> deps;
             addDep(deps, a);
@@ -5274,12 +5286,20 @@ string ScalarCompiler::generateCode(Tree sig)
     else if (isSigSoundfile(sig, label)) {
         return generateSoundfile(sig, label);
     } else if (isSigSoundfileLength(sig, sf, x)) {
-        return generateCacheCode(sig, subst("$0cache->fLength[$1]", CS(sf), CS(x)));
+        std::string ssf = CS(sf);
+        std::string sx  = CS(x);
+        return generateCacheCode(sig, subst("$0cache->fLength[$1]", ssf, sx));
     } else if (isSigSoundfileRate(sig, sf, x)) {
-        return generateCacheCode(sig, subst("$0cache->fSR[$1]", CS(sf), CS(x)));
+        std::string ssf = CS(sf);
+        std::string sx  = CS(x);
+        return generateCacheCode(sig, subst("$0cache->fSR[$1]", ssf, sx));
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
+        std::string ssf = CS(sf);
+        std::string sx  = CS(x);
+        std::string sy  = CS(y);
+        std::string sz  = CS(z);
         return generateCacheCode(sig, subst("(($1)$0cache->fBuffers)[$2][$0cache->fOffset[$3]+$4]",
-                                            CS(sf), ifloatptrptr(), CS(x), CS(y), CS(z)));
+                                            ssf, ifloatptrptr(), sx, sy, sz));
     }
 
     else if (isSigAttach(sig, x, y)) {
@@ -5659,7 +5679,9 @@ string ScalarCompiler::generateButton(Tree sig, Tree path)
     string varname = getFreshID("fbutton");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = 0.0;", varname));
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    Tree uipath   = reverse(tl(path));
+    Tree uiwidget = uiWidget(hd(path), tree(varname), sig);
+    fUITree.addUIWidget(uipath, uiwidget);
 
     // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
@@ -5670,7 +5692,9 @@ string ScalarCompiler::generateCheckbox(Tree sig, Tree path)
     string varname = getFreshID("fcheckbox");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = 0.0;", varname));
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    Tree uipath   = reverse(tl(path));
+    Tree uiwidget = uiWidget(hd(path), tree(varname), sig);
+    fUITree.addUIWidget(uipath, uiwidget);
 
     // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
@@ -5681,7 +5705,9 @@ string ScalarCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, 
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2double(cur))));
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    Tree uipath   = reverse(tl(path));
+    Tree uiwidget = uiWidget(hd(path), tree(varname), sig);
+    fUITree.addUIWidget(uipath, uiwidget);
 
     // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
@@ -5692,7 +5718,9 @@ string ScalarCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, 
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2double(cur))));
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    Tree uipath   = reverse(tl(path));
+    Tree uiwidget = uiWidget(hd(path), tree(varname), sig);
+    fUITree.addUIWidget(uipath, uiwidget);
 
     // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
@@ -5704,7 +5732,9 @@ string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min,
     string varname = getFreshID("fentry");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2double(cur))));
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    Tree uipath   = reverse(tl(path));
+    Tree uiwidget = uiWidget(hd(path), tree(varname), sig);
+    fUITree.addUIWidget(uipath, uiwidget);
 
     // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
@@ -5983,8 +6013,10 @@ std::string ScalarCompiler::displayExpr(Tree t)
     if (isSigBinOp(t, &op, x, y)) {
         const char* wrap =
             (getCertifiedSigType(t)->nature() == kInt) ? wrapHelper(op) : nullptr;
-        return wrap ? subst("$0($1, $2)", wrap, displayExpr(x), displayExpr(y))
-                    : subst("($0 $1 $2)", displayExpr(x), gBinOpTable[op]->fName, displayExpr(y));
+        std::string sx = displayExpr(x);
+        std::string sy = displayExpr(y);
+        return wrap ? subst("$0($1, $2)", wrap, sx, sy)
+                    : subst("($0 $1 $2)", sx, gBinOpTable[op]->fName, sy);
     }
     if (isSigIntCast(t, x)) {
         return subst("int(+$0)", displayExpr(x));
@@ -5993,7 +6025,10 @@ std::string ScalarCompiler::displayExpr(Tree t)
         return subst("$1(+$0)", displayExpr(x), ifloat());
     }
     if (isSigSelect2(t, sel, x, y)) {
-        return subst("(($0) ? $1 : $2)", displayExpr(sel), displayExpr(y), displayExpr(x));
+        std::string ssel = displayExpr(sel);
+        std::string sy   = displayExpr(y);
+        std::string sx   = displayExpr(x);
+        return subst("(($0) ? $1 : $2)", ssel, sy, sx);
     }
     if (tvec V; isSigSum(t, V)) {
         // the n-ary sum of the normal form (revealSum), chained left like
@@ -6099,13 +6134,17 @@ void ScalarCompiler::emitDisplayWidgets()
             }
             fClass->addDeclCode(subst("$1 \t$0;", vn, xfloat()));
             fClass->addInitUICode(subst("$0 = $1;", vn, init));
-            fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(vn), d));
+            Tree uipath   = reverse(tl(path));
+            Tree uiwidget = uiWidget(hd(path), tree(vn), d);
+            fUITree.addUIWidget(uipath, uiwidget);
             setCompiledExpression(d, subst("$1($0)", vn, ifloat()));
             continue;
         }
         std::string varname = getFreshID("fbargraph");
         fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
-        fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), d));
+        Tree uipath   = reverse(tl(path));
+        Tree uiwidget = uiWidget(hd(path), tree(varname), d);
+        fUITree.addUIWidget(uipath, uiwidget);
         fClass->addZone4(subst("$0 = $1;", varname, displayExpr(x)));
     }
 }
@@ -6114,7 +6153,9 @@ string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    Tree uipath   = reverse(tl(path));
+    Tree uiwidget = uiWidget(hd(path), tree(varname), sig);
+    fUITree.addUIWidget(uipath, uiwidget);
 
     Type t = getCertifiedSigType(sig);
     switch (t->variability()) {
@@ -6139,7 +6180,9 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    Tree uipath   = reverse(tl(path));
+    Tree uiwidget = uiWidget(hd(path), tree(varname), sig);
+    fUITree.addUIWidget(uipath, uiwidget);
 
     Type t = getCertifiedSigType(sig);
     switch (t->variability()) {
@@ -6168,7 +6211,11 @@ string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
 {
     string varname = getFreshID("fSoundfile");
 
-    fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    Tree uipath   = reverse(tl(path));
+
+    Tree uiwidget = uiWidget(hd(path), tree(varname), sig);
+
+    fUITree.addUIWidget(uipath, uiwidget);
 
     // the pointer is read before any UI writes it (instanceResetUserInterface
     // tests it for null) : an indeterminate value there is undefined
@@ -6409,8 +6456,10 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
                               nameDelayType(analyzeDelayType(sig))));
     fClass->addDeclCode(
         subst("// While its definition is of type $0", nameDelayType(analyzeDelayType(def))));
-    std::string dl0 = generateDelayLine(analyzeDelayType(sig), ctype, vecname, delay, count, mono,
-                                        CS(def), getConditionCode(def));
+    DelayType   dtype = analyzeDelayType(sig);
+    std::string code  = CS(def);
+    std::string cond  = getConditionCode(def);
+    std::string dl0   = generateDelayLine(dtype, ctype, vecname, delay, count, mono, code, cond);
 
     return dl0;
 }
@@ -6625,8 +6674,10 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
                                       nameDelayType(analyzeDelayType(exp[i]))));
             fClass->addDeclCode(subst("// While its definition is of type $0",
                                       nameDelayType(analyzeDelayType(def))));
-            generateDelayLine(analyzeDelayType(exp[i]), ctype[i], vname[i], delay[i], count[i],
-                              mono[i], CS(def), getConditionCode(def));
+            DelayType   dtype = analyzeDelayType(exp[i]);
+            std::string code  = CS(def);
+            std::string cond  = getConditionCode(def);
+            generateDelayLine(dtype, ctype[i], vname[i], delay[i], count[i], mono[i], code, cond);
         }
     }
 }
@@ -6667,7 +6718,9 @@ string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
     }
     */
 
-    fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vperm, CS(e))));
+    std::string cond = getConditionCode(sig);
+    std::string ve   = CS(e);
+    fClass->addExecCode(Statement(cond, subst("$0 = $1;", vperm, ve)));
     return vtemp;
 }
 
@@ -6677,7 +6730,10 @@ string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 
 string ScalarCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
 {
-    return generateCacheCode(sig, subst("(($0) ? $1 : $2)", CS(sel), CS(s2), CS(s1)));
+    std::string csel = CS(sel);
+    std::string cs2  = CS(s2);
+    std::string cs1  = CS(s1);
+    return generateCacheCode(sig, subst("(($0) ? $1 : $2)", csel, cs2, cs1));
 }
 
 /*****************************************************************************
@@ -7062,7 +7118,9 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
     float         density      = firDensity(coefs);
     if (coefs.size() == 2) {
         // simple gain
-        return generateCacheCode(sig, subst("($0) * ($1)", CS(coefs[1]), CS(coefs[0])));
+        std::string gain = CS(coefs[1]);
+        std::string in   = CS(coefs[0]);
+        return generateCacheCode(sig, subst("($0) * ($1)", gain, in));
     }
     if (int T; isSlidingSumFIR(coefs, T) && getConditionCode(sig).empty()) {
         // MOVING SUM : y(t) = y(t-1) + x(t) - x(t-T), O(1) whatever T.
@@ -7101,8 +7159,9 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
                 if (isZero(coefs[1 + t])) {
                     continue;
                 }
-                string pair = "(" + generateDelayAccessRaw(sig, exp, t) + " + " +
-                              generateDelayAccessRaw(sig, exp, T - 1 - t) + ")";
+                string left  = generateDelayAccessRaw(sig, exp, t);
+                string right = generateDelayAccessRaw(sig, exp, T - 1 - t);
+                string pair  = "(" + left + " + " + right + ")";
                 if (isOne(coefs[1 + t])) {
                     oss << sep << pair;
                 } else {
