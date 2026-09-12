@@ -984,7 +984,14 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
     } else if ((opcode == kMul) && isMinusOne(a2)) {
         return IB::genNeg(CS(a1));
     } else {
-        return generateCacheCode(sig, IB::genBinopInst(opcode, CS(a1), CS(a2)));
+        // CS compiles a whole subtree : fresh names, declarations, memoisation.
+        // Two of them as arguments of one call run in the order the C++ compiler
+        // picks for arguments, which GCC and clang pick differently, so the
+        // emitted code depended on the compiler that built faust. Sequenced
+        // left to right : the order clang used, hence the code emitted so far.
+        ValueInst* v1 = CS(a1);
+        ValueInst* v2 = CS(a2);
+        return generateCacheCode(sig, IB::genBinopInst(opcode, v1, v2));
     }
 }
 
