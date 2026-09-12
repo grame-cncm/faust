@@ -74,22 +74,29 @@ static bool isPathCurrent(Tree t)
 
 static Tree encodeName(char g, const string& name)
 {
+    int kind = 0;
     switch (g) {
         case 'v':
         case 'V':
-            return cons(tree(0), tree(name));
+            kind = 0;
+            break;
 
         case 'h':
         case 'H':
-            return cons(tree(1), tree(name));
+            kind = 1;
+            break;
 
         case 't':
         case 'T':
-            return cons(tree(2), tree(name));
+            kind = 2;
+            break;
 
         default:
-            return cons(tree(0), tree(name));
+            kind = 0;
     }
+    Tree k = tree(kind);
+    Tree n = tree(name);
+    return cons(k, n);
 }
 
 /**
@@ -102,13 +109,17 @@ Tree label2path(const char* label)
         return cons(tree(""), gGlobal->nil);
 
     } else if (label[0] == '/') {
-        return cons(pathRoot(), label2path(&label[1]));
+        Tree root = pathRoot();
+        Tree rest = label2path(&label[1]);
+        return cons(root, rest);
 
     } else if ((label[0] == '.') && (label[1] == '/')) {
         return label2path(&label[2]);
 
     } else if ((label[0] == '.') && (label[1] == '.') && (label[2] == '/')) {
-        return cons(pathParent(), label2path(&label[3]));
+        Tree parent = pathParent();
+        Tree rest   = label2path(&label[3]);
+        return cons(parent, rest);
 
     } else if (label[1] == ':') {
         char   g = label[0];
@@ -121,7 +132,9 @@ Tree label2path(const char* label)
         if (label[i] == '/') {
             i++;
         }
-        return cons(encodeName(g, s), label2path(&label[i]));
+        Tree group = encodeName(g, s);
+        Tree rest  = label2path(&label[i]);
+        return cons(group, rest);
 
     } else {
         return cons(tree(label), gGlobal->nil);
@@ -250,11 +263,15 @@ Tree superNormalizePath(Tree path)
         if (isList(head)) {
             std::string fulllabel = tree2str(tl(head));
             std::string label     = removeMetadata(fulllabel);
-            spath                 = cons(tree(label), superNormalizePath(tl(npath)));
+            Tree        l         = tree(label);
+            Tree        rest      = superNormalizePath(tl(npath));
+            spath                 = cons(l, rest);
         } else {
             std::string fulllabel = tree2str(head);
             std::string label     = removeMetadata(fulllabel);
-            spath                 = cons(tree(label), superNormalizePath(tl(npath)));
+            Tree        l         = tree(label);
+            Tree        rest      = superNormalizePath(tl(npath));
+            spath                 = cons(l, rest);
         }
     }
     // std::cout << "SuperNormalizePath " << *path << " -> " << *spath << std::endl;

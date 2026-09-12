@@ -160,16 +160,22 @@ static Tree simplification(Tree sig)
 
         // -n*(x-y) -> n*(y-x) ; -1*(x-y) -> y-x
         if (Mul(negNum(n), Sub(var(x), var(y))).match(sig)) {
-            return isMinusOne(n->node())
-                       ? sigBinOp(kSub, y, x)
-                       : sigBinOp(kMul, tree(minusNode(n->node())), sigBinOp(kSub, y, x));
+            if (isMinusOne(n->node())) {
+                return sigBinOp(kSub, y, x);
+            }
+            Tree m = tree(minusNode(n->node()));
+            Tree d = sigBinOp(kSub, y, x);
+            return sigBinOp(kMul, m, d);
         }
 
         // (x-y)*-n -> n*(y-x) ; (x-y)*-1 -> y-x
         if (Mul(Sub(var(x), var(y)), negNum(n)).match(sig)) {
-            return isMinusOne(n->node())
-                       ? sigBinOp(kSub, y, x)
-                       : sigBinOp(kMul, tree(minusNode(n->node())), sigBinOp(kSub, y, x));
+            if (isMinusOne(n->node())) {
+                return sigBinOp(kSub, y, x);
+            }
+            Tree m = tree(minusNode(n->node()));
+            Tree d = sigBinOp(kSub, y, x);
+            return sigBinOp(kMul, m, d);
         }
 
         // n*(m*x) -> (n*m)*x or x (if n*m == 1)

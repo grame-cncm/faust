@@ -472,7 +472,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     else if (isBoxWaveform(box)) {
         faustassert(lsig.size() == 0);
         const tvec br = box->branches();
-        return listConcat(makeList(sigInt(int(br.size()))), makeList(sigWaveform(br)));
+        siglist   size    = makeList(sigInt(int(br.size())));
+        siglist   content = makeList(sigWaveform(br));
+        return listConcat(size, content);
     }
 
     else if (isBoxFConst(box, type, name, file)) {
@@ -538,7 +540,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
             if (gGlobal->gEnableFlag) {
                 // special case for sigEnable that requires a transformation
                 // enable(X,Y) -> sigControl(X*Y, Y!=0)
-                return makeList(sigControl(sigMul(lsig[0], lsig[1]), sigNE(lsig[1], sigReal(0.0))));
+                Tree prod = sigMul(lsig[0], lsig[1]);
+                Tree cond = sigNE(lsig[1], sigReal(0.0));
+                return makeList(sigControl(prod, cond));
             } else {
                 // If gEnableFlag is false we replace enable by a simple multiplication
                 return makeList(sigMul(lsig[0], lsig[1]));
@@ -628,7 +632,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         lsig2[1] = sigSoundfileRate(soundfile, part);
 
         // compute bound limited read index : int(max(0, min(ridx,length-1)))
-        Tree ridx = sigMax(sigInt(0), sigMin(lsig[1], sigSub(lsig2[0], sigInt(1))));
+        Tree zero = sigInt(0);
+        Tree last = sigMin(lsig[1], sigSub(lsig2[0], sigInt(1)));
+        Tree ridx = sigMax(zero, last);
         for (int i1 = 0; i1 < c; i1++) {
             lsig2[i1 + 2] = sigSoundfileBuffer(soundfile, sigInt(i1), part, ridx);
         }
@@ -667,8 +673,9 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         getBoxType(t2, &in2, &out2);
 
         // No restriction in connection
-        return listConcat(propagate(slotenv, path, t1, listRange(lsig, 0, in1)),
-                          propagate(slotenv, path, t2, listRange(lsig, in1, in1 + in2)));
+        siglist l1 = propagate(slotenv, path, t1, listRange(lsig, 0, in1));
+        siglist l2 = propagate(slotenv, path, t2, listRange(lsig, in1, in1 + in2));
+        return listConcat(l1, l2);
     }
 
     else if (isBoxSplit(box, t1, t2)) {

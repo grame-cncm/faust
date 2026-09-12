@@ -449,7 +449,12 @@ static Tree def2exp(Tree ldef)
 // makeBus(3) => "_,_,_"
 static Tree makeBus(int n)
 {
-    return (n <= 1) ? boxWire() : boxPar(boxWire(), makeBus(n - 1));
+    if (n <= 1) {
+        return boxWire();
+    }
+    Tree w    = boxWire();
+    Tree rest = makeBus(n - 1);
+    return boxPar(w, rest);
 }
 
 // makeParList((a,b,d)) => "a,b,c"
@@ -487,21 +492,19 @@ static Tree makeRecProjectionsList(int n, int i, Tree lnames, Tree ldef)
         return ldef;
     } else {
         Tree sel = boxSeq(gGlobal->LETRECBODY, makeSelector(n, i));
-        return cons(cons(hd(lnames), sel), makeRecProjectionsList(n, i + 1, tl(lnames), ldef));
+        Tree proj = cons(hd(lnames), sel);
+        Tree rest = makeRecProjectionsList(n, i + 1, tl(lnames), ldef);
+        return cons(proj, rest);
     }
 }
 
 // buildRecursiveBodyDef(n,lnames,lexp) => "RECURSIVEBODY = \(lnames).(lexp) ~ bus(n);"
 static Tree buildRecursiveBodyDef(int n, Tree lnames, Tree lexp, Tree ldef2)
 {
-    if (ldef2 == gGlobal->nil) {
-        return cons(gGlobal->LETRECBODY,
-                    boxRec(makeBoxAbstr(lnames, makeParList(lexp)), makeBus(n)));
-    } else {
-        return cons(
-            gGlobal->LETRECBODY,
-            boxRec(makeBoxAbstr(lnames, boxWithLocalDef(makeParList(lexp), ldef2)), makeBus(n)));
-    }
+    Tree body = (ldef2 == gGlobal->nil) ? makeBoxAbstr(lnames, makeParList(lexp))
+                                        : makeBoxAbstr(lnames, boxWithLocalDef(makeParList(lexp), ldef2));
+    Tree bus  = makeBus(n);
+    return cons(gGlobal->LETRECBODY, boxRec(body, bus));
 }
 
 //----------------------------------------------------------------------------
@@ -994,7 +997,9 @@ static Tree preparePattern(Tree box)
         if (isBoxIdent(fun)) {
             return boxAppl(fun, lmap(preparePattern, args));
         } else {
-            return boxAppl(preparePattern(fun), lmap(preparePattern, args));
+            Tree pfun  = preparePattern(fun);
+            Tree pargs = lmap(preparePattern, args);
+            return boxAppl(pfun, pargs);
         }
     } else if (isBoxAbstr(box, arg, body)) {
         return box;
@@ -1037,17 +1042,30 @@ static Tree preparePattern(Tree box)
 
     // Block diagram binary operator
     else if (isBoxSeq(box, t1, t2)) {
-        return boxSeq(preparePattern(t1), preparePattern(t2));
+        Tree p1 = preparePattern(t1);
+        Tree p2 = preparePattern(t2);
+        return boxSeq(p1, p2);
     } else if (isBoxSplit(box, t1, t2)) {
-        return boxSplit(preparePattern(t1), preparePattern(t2));
+        Tree p1 = preparePattern(t1);
+        Tree p2 = preparePattern(t2);
+        return boxSplit(p1, p2);
     } else if (isBoxMerge(box, t1, t2)) {
-        return boxMerge(preparePattern(t1), preparePattern(t2));
+        Tree p1 = preparePattern(t1);
+        Tree p2 = preparePattern(t2);
+        return boxMerge(p1, p2);
     } else if (isBoxPar(box, t1, t2)) {
-        return boxPar(preparePattern(t1), preparePattern(t2));
+        Tree p1 = preparePattern(t1);
+        Tree p2 = preparePattern(t2);
+        return boxPar(p1, p2);
     } else if (isBoxRec(box, t1, t2)) {
-        return boxRec(preparePattern(t1), preparePattern(t2));
+        Tree p1 = preparePattern(t1);
+        Tree p2 = preparePattern(t2);
+        return boxRec(p1, p2);
     } else if (isBoxRoute(box, t1, t2, t3)) {
-        return boxRoute(preparePattern(t1), preparePattern(t2), preparePattern(t3));
+        Tree p1 = preparePattern(t1);
+        Tree p2 = preparePattern(t2);
+        Tree p3 = preparePattern(t3);
+        return boxRoute(p1, p2, p3);
     }
 
     // Iterative block diagram construction
