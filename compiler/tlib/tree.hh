@@ -161,7 +161,6 @@ class TLIB_API CTree : public Garbageable {
     static const std::size_t kInitialHashTableSize = 1009;  ///< initial size of the hash table (prime);
                                                              ///< grows as needed, see growHashTableIfNeeded
     static std::size_t   gSerialCounter;   ///< the serial number counter
-    static std::size_t   gSeqHash;         ///< rolling hash of the creation sequence
     static double        gHashLoadFactor; ///< load factor triggering table growth
     static std::size_t   gHashTableSize;   ///< current size of the hash table (grows as needed)
     static std::size_t   gHashTableCount;  ///< number of trees currently stored in the table
@@ -197,9 +196,6 @@ class TLIB_API CTree : public Garbageable {
     plist*       fProperties;   ///< lazily allocated; nullptr means no property set
     std::size_t  fHashKey;      ///< the hashtable key
     std::size_t  fSerial;       ///< the increasing serial number
-    std::size_t  fCanonHash;    ///< structural value hash, synthesized at construction
-                                ///< (node canonicalHash + children, order-sensitive) :
-                                ///< identical across processes, unlike serials
     // fAperture and fContains share one 32-bit word : a deBruijn depth never comes close to
     // 24 bits, which buys 8 synthesized flag bits for free (the pair occupies the single
     // 4-byte slot a lone aperture field would take, so the flags do not grow the struct).
@@ -286,8 +282,6 @@ class TLIB_API CTree : public Garbageable {
     std::size_t hashkey() const { return fHashKey; }  ///< return the hashkey of the tree
     std::size_t serial() const { return fSerial; }    ///< return the serial of the tree
     static std::size_t serialCounter() { return gSerialCounter; }  ///< creation-sequence probe
-    static std::size_t seqHash() { return gSeqHash; }  ///< order-sensitive creation hash
-    std::size_t canonHash() const { return fCanonHash; }  ///< structural value hash
     int         aperture() const
     {
         return fAperture;
@@ -516,18 +510,6 @@ TLIB_API bool alphaEquiv(Tree a, Tree b);  ///< direct alpha-equivalence : pair-
                                            ///< distinct pairs -- what validations should
                                            ///< call
 
-/// A TOTAL ORDER on trees derived from VALUES, never from serials : primary key the
-/// synthesized canonical hash, ties broken by a full structural comparison (node kind,
-/// value -- symbols by NAME --, then children left to right). Two processes that build
-/// the same tree values order them identically, whatever their construction history.
-/// Meant for the orderings that must survive alpha-renaming and history (the
-/// normal-form term orders); the default treeorder stays serial-based.
-TLIB_API bool canonicalTreeLess(Tree a, Tree b);
-
-struct CanonicalTreeLess {
-    bool operator()(Tree a, Tree b) const { return canonicalTreeLess(a, b); }
-};
-
 // The recursion structure of a symbolic term : every symbolic recursive node reachable
 // from a root, partitioned into strongly connected components (the mutual-recursion
 // groups) via DirectedGraph's Tarjan. It is V-independent -- it depends on the tree
@@ -569,12 +551,9 @@ TLIB_API const RecPlan& getRecPlan(Tree root);
 /// dependencies-first order, variables PRE-CREATED in that order so node serials
 /// follow the plan too. The prefix is fresh per call (immutability : a variable is
 /// never redefined), so alpha-equivalent inputs give alpha-equivalent -- NOT
-/// pointer-equal -- results, whose names agree modulo the instance prefix. What IS
-/// instance-independent is the canonical ORDER : fCanonKey (canonicalNameKey) strips
-/// the instance from R<i>_<k>, so serial-ordered consumers (symbol sets, loop
-/// scheduling) see the same order whatever the transformation history. For a true
+/// pointer-equal -- results, whose names agree modulo the instance prefix. For a true
 /// canonical form (same content, same pointer), use deBruijn2Sym, whose names are
-/// content-derived.
+/// derived from the identity of the de Bruijn form.
 TLIB_API Tree canonicalizeRecNames(Tree root);
 
 /// Normalize the recursive structure : re-partition every letrec along the strongly
@@ -583,7 +562,7 @@ TLIB_API Tree canonicalizeRecNames(Tree root);
 /// Accidental cohabitations split ; knots spanning several groups merge ; a
 /// definition in a singleton component without self-reference dissolves into a
 /// plain expression ; dead definitions (never projected) are dropped. Definitions
-/// inside a component are ordered by canonicalTreeLess, REFINED into a topological
+/// inside a component are ordered by serial (treeorder), REFINED into a topological
 /// order on the INSTANTANEOUS references between members : a definition reading
 /// another member through no delayed branch reads the value of the current tick,
 /// so consumers that emit definitions in list order need the referee first. Which
@@ -593,7 +572,7 @@ TLIB_API Tree canonicalizeRecNames(Tree root);
 /// delayed compound expression is computed at the current tick (only its result
 /// is shifted), so the references inside it stay instantaneous and are
 /// classified on their own. Without a classifier every reference counts as instantaneous, every
-/// true component is then a cycle, and the plain canonical order is kept (the
+/// true component is then a cycle, and the plain serial order is kept (the
 /// historical behaviour, and the fallback whenever an instantaneous cycle shows
 /// up : such a program is delay-free recursive and bound for rejection anyway).
 /// Dissolving members whose definition merely shifts another member (delayed

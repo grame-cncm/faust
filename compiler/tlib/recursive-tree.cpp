@@ -464,56 +464,19 @@ static Tree deBruijn2SymCachedReady(Tree t)
 }
 
 /**
- * The CONTENT-DERIVED variable of a de Bruijn group: named from the canonical hash
- * of its (closed, name-free) de Bruijn form. Alpha-equal groups thus get the SAME
- * variable and their symbolic forms collide by hash-consing -- fusion for free --
- * and any order derived from variable names becomes a pure function of the group's
- * structure, stable across passes and iterations (what a normalization fixpoint
- * needs). A 64-bit hash collision between structurally different groups would
- * surface as a recursive-variable redefinition (fatal redefinition).
- * The hash is the node's cached canonHash. With the pointer-canonical
- * registry (see node.hh) it is layout-free as long as every pointer
- * payload is registered BEFORE its tree is created (the box primitives
- * and the pattern matchers do). Replacing it with a recomputed traversal
- * hash was tried and REVERTED : the member order inside a group and the
- * group's name must be fixed points of one another, and changing the
- * naming hash alone broke the idempotence of normalizeRecGroups on
- * transversal merges (the standalone test caught it).
+ * The variable of a de Bruijn group : named from the SERIAL of its (closed,
+ * name-free) de Bruijn form. The form is hash-consed, so alpha-equal groups
+ * share it and get the SAME variable ; their symbolic forms then collide by
+ * hash-consing -- fusion for free -- and any order derived from variable names
+ * is a function of the group's structure, stable across passes and iterations
+ * (the form keeps its serial ; what a normalization fixpoint needs). The
+ * serial is a creation order : the same on every build, the constructors being
+ * sequenced (see the compiler-of-the-compiler chapter).
  */
-// Forensic lamp (TLIB_DBJ_POINTER_CENSUS=1) : walk a de Bruijn form about
-// to be NAMED from its canonHash and report every pointer payload with no
-// registered canonical hash -- each one makes the name (hence downstream
-// orders) follow the binary layout. Prints the pointer and the head symbol
-// of its parent, the two facts that identify the creator to register.
-static void dbjPointerCensus(Tree t, Tree parent, std::unordered_set<Tree>& seen)
-{
-    if (!seen.insert(t).second) {
-        return;
-    }
-    const Node& n = t->node();
-    if (n.type() == kPointerNode && !getPointerCanonicalHash(n.getPointer())) {
-        const char* ctx = "?";
-        if (parent != nullptr && parent->node().type() == kSymNode) {
-            ctx = name(parent->node().getSym());
-        }
-        fprintf(stderr, "DBJ-POINTER non-enregistre : %p sous %s\n", n.getPointer(), ctx);
-    }
-    for (int i = 0; i < t->arity(); i++) {
-        dbjPointerCensus(t->branch(i), (t->arity() > 0 && t->node().type() == kSymNode)
-                                            ? t
-                                            : parent,
-                         seen);
-    }
-}
-
 static Tree contentVar(Tree dbj)
 {
-    if (getenv("TLIB_DBJ_POINTER_CENSUS")) {
-        std::unordered_set<Tree> seen;
-        dbjPointerCensus(dbj, nullptr, seen);
-    }
     char buf[24];
-    snprintf(buf, sizeof(buf), "D%016zx", static_cast<size_t>(dbj->canonHash()));
+    snprintf(buf, sizeof(buf), "D%zu", static_cast<size_t>(dbj->serial()));
     if (getenv("TLIB_DBJ_NAME_TRACE")) {
         fprintf(stderr, "DBJ-NAME %s\n", buf);
     }
@@ -986,11 +949,8 @@ bool alphaEquiv(Tree a, Tree b)
 //
 // Every canonical group is a FRESH definition (the instance prefix guarantees no
 // collision) : the pass is immutability-clean. The price of that freshness : results
-// of separate calls are only alpha-equivalent, never pointer-equal. What is
-// instance-independent is the canonical ORDER, through fCanonKey (canonicalNameKey
-// strips the instance from R<i>_<k>) : the generated code becomes independent of the
-// transformation history. True pointer-equal canonicity is deBruijn2Sym's job
-// (content-derived names).
+// of separate calls are only alpha-equivalent, never pointer-equal. True pointer-equal
+// canonicity is deBruijn2Sym's job (names derived from the de Bruijn form's identity).
 //-----------------------------------------------------------------------------------------
 
 static Tree renameRecMemo(Tree t, std::unordered_map<Tree, Tree>& memo,
@@ -1280,8 +1240,8 @@ static Tree calcsubstituteReady(Tree t, int level, Tree id)
 //     (the recursion of the rebuild IS the topological order) ;
 //   - a singleton component without self-reference is not recursive at all :
 //     its definition dissolves into a plain expression, the letrec disappears ;
-//   - definitions inside a component are ordered by canonicalTreeLess (a
-//     value-derived order : structural twins agree on it whatever their history) ;
+//   - definitions inside a component are ordered by serial (treeorder : the
+//     creation order, the same on every build since the constructors are sequenced) ;
 //   - dead definitions (never projected) are dropped ;
 //   - the result goes through the deBruijn round trip, so recursions that BECOME
 //     alpha-equivalent under the finer grouping unify into the same pointer.
@@ -1405,13 +1365,13 @@ Tree normalizeRecGroups(Tree root, bool canonical, bool (*delayedBranch)(Tree, i
         // a definition reading another member through no delayed branch reads
         // the value of the CURRENT tick, so consumers that emit definitions
         // in list order need the referee first. The refinement is a stable
-        // repeated selection (first ready member in canonical order), hence
+        // repeated selection (first ready member in serial order), hence
         // deterministic. If no member is ready (no classifier -- a component
         // is strongly connected on all-instantaneous edges -- or a delay-free
-        // recursion bound for rejection), the canonical order is kept as is.
+        // recursion bound for rejection), the serial order is kept as is.
         std::vector<Tree>& ms = members.back();
         std::sort(ms.begin(), ms.end(),
-                  [&](Tree a, Tree b) { return canonicalTreeLess(projDef(a), projDef(b)); });
+                  [&](Tree a, Tree b) { return treeorder()(projDef(a), projDef(b)); });
         if (ms.size() > 1) {
             std::vector<Tree>        ordered;
             std::vector<char>        placed(ms.size(), 0);

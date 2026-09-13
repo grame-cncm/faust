@@ -85,7 +85,6 @@ consumers ; the library itself does not use it.)
 #include <sstream>
 
 #include "tlib-error.hh"
-#include <unordered_map>
 #include "tree.hh"
 
 using namespace std;
@@ -109,47 +108,6 @@ bool         CTree::gDetails        = false;
 unsigned int CTree::gVisitTime      = 0;
 size_t       CTree::gSerialCounter  = 0;
 
-// the pointer-canonical registry (see node.hh) : registered pointer
-// payloads hash by name, so canonical orderings never depend on the
-// binary layout. FNV-1a on the name : stable across builds and hosts.
-static std::unordered_map<const void*, std::size_t>& pointerCanonicalRegistry()
-{
-    static std::unordered_map<const void*, std::size_t> reg;
-    return reg;
-}
-std::size_t canonicalNameHash(const char* name)
-{
-    // FNV-1a in a 64-bit word, folded once (see foldHash in node.hh). Held in
-    // a size_t, the basis and the prime truncate on a 32-bit target: the
-    // multiplier degenerates to 435, which is not a usable FNV prime.
-    std::uint64_t h = 1469598103934665603ULL;
-    for (const char* c = name; *c; c++) {
-        h = (h ^ std::uint64_t(*c)) * 1099511628211ULL;
-    }
-    return foldHash(h);
-}
-void setPointerCanonicalHash(const void* p, std::size_t h)
-{
-    // first registration wins (idempotent for repeated boxPrimN calls),
-    // and a monotonic counter is mixed in : registration order follows
-    // the program flow (deterministic), so hashes are BOTH stable across
-    // builds and UNIQUE per pointer -- name collisions ("prim2???" for
-    // every primitive the name chains do not know) would otherwise tie,
-    // and canonical-order ties fall back to pointer comparison, i.e.
-    // the binary layout.
-    static std::size_t gRegCounter = 0;
-    auto& reg = pointerCanonicalRegistry();
-    if (reg.find(p) == reg.end()) {
-        reg[p] = foldHash(std::uint64_t(h) ^ (std::uint64_t(++gRegCounter) * 0x9e3779b97f4a7c15ULL));
-    }
-}
-const std::size_t* getPointerCanonicalHash(const void* p)
-{
-    auto& reg = pointerCanonicalRegistry();
-    auto  it  = reg.find(p);
-    return (it == reg.end()) ? nullptr : &it->second;
-}
-size_t       CTree::gSeqHash        = 0;
 
 // Smallest prime >= n (trial division; only called on the rare rehash path)
 static size_t nextPrimeAtLeast(size_t n)
@@ -229,21 +187,6 @@ void CTree::growHashTableIfNeeded()
 }
 
 // Constructor : add the tree to the hash table
-static std::size_t calcCanonHash(const Node& n, int ar, const Tree br[])
-{
-    // Mixed in a 64-bit word, folded once at the end: on a 32-bit size_t the
-    // shifts below would drop the high bits at every step of the chain.
-    std::uint64_t h = n.canonicalHash();
-    for (int i = 0; i < ar; i++) {
-        // hash_combine-style : the addition breaks the XOR-linearity of the
-        // 'h = h*F ^ child' form, whose contributions cancel pairwise on lists of
-        // identical elements (two equal definitions in a rec group hashed to a
-        // CONSTANT, colliding distinct groups into one content-derived name)
-        h ^= std::uint64_t(br[i]->canonHash()) + 0x9e3779b97f4a7c15ULL + (h << 12) + (h >> 4);
-    }
-    return foldHash(h);
-}
-
 CTree::CTree(size_t hk, const Node& n, const tvec& br)
     : CTree(hk, n, int(br.size()), br.empty() ? nullptr : br.data())
 {
@@ -256,21 +199,11 @@ CTree::CTree(size_t hk, const Node& n, int ar, const Tree br[])
       fProperties(nullptr),
       fHashKey(hk),
       fSerial(++gSerialCounter),
-      fCanonHash(calcCanonHash(n, ar, br)),
       fAperture(calcTreeAperture(n, ar, br)),
       fContains(calcTreeContains(n, ar, br)),
       fVisitTime(0),
       fBranch()
 {
-    // order-sensitive sequence probe. Fold the NODE's own canonical
-    // content only : fCanonHash folds branch hashes, so any ancestor of
-    // a pointer-payload node (box primitives hash by ADDRESS, layout-
-    // dependent by design) would fake a divergence. Skip pointer nodes,
-    // fold node content -- the sequence of (kind, value) is exactly the
-    // creation order the serials record.
-    if (n.type() != kPointerNode) {
-        gSeqHash = gSeqHash * 1000003u ^ n.canonicalHash() ^ (std::size_t(ar) << 1);
-    }
     if (ar > 0) {
         fBranch.assign(br, br + ar);
     }
@@ -280,50 +213,6 @@ CTree::CTree(size_t hk, const Node& n, int ar, const Tree br[])
     fNext         = gHashTable[j];
     gHashTable[j] = this;
     gHashTableCount++;
-}
-
-bool canonicalTreeLess(Tree a, Tree b)
-{
-    if (a == b) {
-        return false;
-    }
-    if (a->canonHash() != b->canonHash()) {
-        return a->canonHash() < b->canonHash();
-    }
-    // hash tie (rare) : full structural comparison
-    const Node& na = a->node();
-    const Node& nb = b->node();
-    if (na.type() != nb.type()) {
-        return na.type() < nb.type();
-    }
-    switch (na.type()) {
-        case kIntNode:
-            if (na.getInt() != nb.getInt()) return na.getInt() < nb.getInt();
-            break;
-        case kInt64Node:
-            if (na.getInt64() != nb.getInt64()) return na.getInt64() < nb.getInt64();
-            break;
-        case kDoubleNode:
-            if (na.getDouble() != nb.getDouble()) return na.getDouble() < nb.getDouble();
-            break;
-        case kSymNode: {
-            const int c = strcmp(name(na.getSym()), name(nb.getSym()));
-            if (c != 0) return c < 0;
-            break;
-        }
-        default:
-            if (na.getPointer() != nb.getPointer()) return na.getPointer() < nb.getPointer();
-            break;
-    }
-    if (a->arity() != b->arity()) {
-        return a->arity() < b->arity();
-    }
-    for (int i = 0; i < a->arity(); i++) {
-        if (a->branch(i) != b->branch(i)) {
-            return canonicalTreeLess(a->branch(i), b->branch(i));
-        }
-    }
-    return false;  // equal structure : not less
 }
 
 // Destructor

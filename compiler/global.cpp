@@ -464,7 +464,6 @@ void global::reset()
     gSelectN        = false;
     gGateEquiv      = false;
     gEtaIterations  = 1;
-    gCanonicalOrder = false;
     gLoopSplit      = false;
     gReconstructFIRIIRs = false;
     gLowerSums          = false;
@@ -871,9 +870,6 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gEtaHarvest) {
         dst << "-etai " << gEtaIterations << " ";
-    }
-    if (gCanonicalOrder) {
-        dst << "-co ";
     }
     if (gMinDelay > 0) {
         dst << "-mindelay " << gMinDelay << " ";
@@ -1711,9 +1707,6 @@ bool global::processCmdline(int argc, const char* argv[])
             gEtaRegroup = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-co", "--canonical-order")) {
-            gCanonicalOrder = true;
-            i += 1;
 
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
             gFastMathLib = argv[i + 1];
@@ -2699,10 +2692,6 @@ string global::printHelp()
     sstr << tab
          << "-etai <n>   --eta-iterations <n>        iteration budget of the eta normalization "
             "loop (implies -eta; the loop may stop earlier)."
-         << endl;
-    sstr << tab
-         << "-co         --canonical-order           order the terms of normalized sums and "
-            "products by value (history-independent) instead of the default serial order."
          << endl;
     sstr << tab
          << "-fui        --freeze-ui                 whether to freeze vslider/hslider/nentry to a "

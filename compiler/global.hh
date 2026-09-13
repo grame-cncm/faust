@@ -318,9 +318,6 @@ struct global {
                           // (stopped at state boundaries), so the emitter's guarded statements
                           // skip the STATELESS crowns of unselected branches -- the stateful
                           // parts keep Faust's strict semantics (state ticks unconditionally)
-    bool gCanonicalOrder;  // -co option, value-derived (history-independent) order for the terms
-                           // of normalized sums and products; default false = serial order (the
-                           // historical, construction-driven order). Orthogonal to -eta.
     bool gLoopSplit;
     bool gReconstructFIRIIRs;
     bool gLowerSums;  // -lsum : butterfly lowering of the revealed sums

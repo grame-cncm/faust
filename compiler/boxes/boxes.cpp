@@ -594,10 +594,6 @@ bool isImportFile(Tree s, Tree& filename)
 
 LIBFAUST_API Tree boxPrim0(prim0 foo)
 {
-    // register the primitive's NAME for the canonical hash : without it,
-    // the pointer node (and every ancestor's canonHash) depends on the
-    // binary layout -- the build-determinism phantom
-    setPointerCanonicalHash((void*)foo, canonicalNameHash(prim0name(foo)));
     return tree(gGlobal->BOXPRIM0, tree((void*)foo));
 }
 LIBFAUST_API bool isBoxPrim0(Tree s)
@@ -613,10 +609,6 @@ LIBFAUST_API bool isBoxPrim0(Tree s, prim0* p)
 
 LIBFAUST_API Tree boxPrim1(prim1 foo)
 {
-    // register the primitive's NAME for the canonical hash : without it,
-    // the pointer node (and every ancestor's canonHash) depends on the
-    // binary layout -- the build-determinism phantom
-    setPointerCanonicalHash((void*)foo, canonicalNameHash(prim1name(foo)));
     return tree(gGlobal->BOXPRIM1, tree((void*)foo));
 }
 LIBFAUST_API bool isBoxPrim1(Tree s)
@@ -632,10 +624,6 @@ LIBFAUST_API bool isBoxPrim1(Tree s, prim1* p)
 
 LIBFAUST_API Tree boxPrim2(prim2 foo)
 {
-    // register the primitive's NAME for the canonical hash : without it,
-    // the pointer node (and every ancestor's canonHash) depends on the
-    // binary layout -- the build-determinism phantom
-    setPointerCanonicalHash((void*)foo, canonicalNameHash(prim2name(foo)));
     return tree(gGlobal->BOXPRIM2, tree((void*)foo));
 }
 LIBFAUST_API bool isBoxPrim2(Tree s)
@@ -651,10 +639,6 @@ LIBFAUST_API bool isBoxPrim2(Tree s, prim2* p)
 
 LIBFAUST_API Tree boxPrim3(prim3 foo)
 {
-    // register the primitive's NAME for the canonical hash : without it,
-    // the pointer node (and every ancestor's canonHash) depends on the
-    // binary layout -- the build-determinism phantom
-    setPointerCanonicalHash((void*)foo, canonicalNameHash(prim3name(foo)));
     return tree(gGlobal->BOXPRIM3, tree((void*)foo));
 }
 LIBFAUST_API bool isBoxPrim3(Tree s)
@@ -670,10 +654,6 @@ LIBFAUST_API bool isBoxPrim3(Tree s, prim3* p)
 
 LIBFAUST_API Tree boxPrim4(prim4 foo)
 {
-    // register the primitive's NAME for the canonical hash : without it,
-    // the pointer node (and every ancestor's canonHash) depends on the
-    // binary layout -- the build-determinism phantom
-    setPointerCanonicalHash((void*)foo, canonicalNameHash(prim4name(foo)));
     return tree(gGlobal->BOXPRIM4, tree((void*)foo));
 }
 LIBFAUST_API bool isBoxPrim4(Tree s)
@@ -689,10 +669,6 @@ LIBFAUST_API bool isBoxPrim4(Tree s, prim4* p)
 
 LIBFAUST_API Tree boxPrim5(prim5 foo)
 {
-    // register the primitive's NAME for the canonical hash : without it,
-    // the pointer node (and every ancestor's canonHash) depends on the
-    // binary layout -- the build-determinism phantom
-    setPointerCanonicalHash((void*)foo, canonicalNameHash(prim5name(foo)));
     return tree(gGlobal->BOXPRIM5, tree((void*)foo));
 }
 LIBFAUST_API bool isBoxPrim5(Tree s)
@@ -1206,12 +1182,6 @@ bool isBoxPatternVar(Tree s, Tree& id)
 
 Tree boxPatternMatcher(PM::Automaton* a, int state, Tree env, Tree origRules, Tree revParamList)
 {
-    // the automaton pointer registers a CONTENT-derived canonical hash
-    // (its originating rules) : pattern-matcher nodes travel inside
-    // closures that can reach the signal world (table generators), and
-    // an address-hashed node contaminates every ancestor's canonHash --
-    // the canonical orderings would follow the binary layout
-    setPointerCanonicalHash((void*)a, origRules->canonHash());
     Tree automaton = tree((void*)a);
     Tree st        = tree(state);
     return tree(gGlobal->BOXPATMATCHER, automaton, st, env, origRules, revParamList);

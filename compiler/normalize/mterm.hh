@@ -41,22 +41,12 @@
  */
 
 /**
- * The normal-form term order (-co option) : by default SERIAL (the historical,
- * construction-driven order -- measured performance parity with the code the
- * compiler always produced) ; with -co, CANONICAL (value-derived,
- * history-independent -- the instrument of bit-identical A/B validation, and
- * a stabilizer of the -eta fixpoint). The two choices are deliberately
- * orthogonal to -eta : running the eta loop under the serial order is allowed,
- * and if it never converges the iteration budget stops it.
+ * The normal-form term order : the SERIAL order (treeorder), i.e. the creation
+ * order of the nodes -- the same on every build, the constructors being sequenced.
+ * Orthogonal to -eta : if the eta loop never converges the iteration budget stops it.
  */
 struct NormalFormTreeLess {
-    bool operator()(Tree a, Tree b) const
-    {
-        if (gGlobal->gCanonicalOrder) {
-            return CanonicalTreeLess()(a, b);
-        }
-        return treeorder()(a, b);
-    }
+    bool operator()(Tree a, Tree b) const { return treeorder()(a, b); }
 };
 
 class mterm : public virtual Garbageable {

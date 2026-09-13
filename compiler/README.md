@@ -168,7 +168,6 @@ Code generation options:
 
   **-etai** \<n>   **--eta-iterations** \<n>        iteration budget of the eta normalization loop (implies -eta; the loop may stop earlier).
 
-  **-co**         **--canonical-order**           order the terms of normalized sums and products by value (history-independent) instead of the default serial order.
 
   **-fui**        **--freeze-ui**                 whether to freeze vslider/hslider/nentry to a given value (init value by default).
 

@@ -74,30 +74,6 @@ enum NodeType { kIntNode, kInt64Node, kDoubleNode, kSymNode, kPointerNode };
  * Class Node = (type x (int + double + Sym + void*))
  */
 
-/// The pointer-canonical registry (defined in tree.cpp) : a pointer payload
-/// whose NAME was registered at creation (box primitives register through
-/// primNname) hashes by that name -- value-derived, identical across builds.
-/// Unregistered pointers fall back to the address (never canonical).
-TLIB_API void               setPointerCanonicalHash(const void* p, std::size_t h);
-TLIB_API const std::size_t* getPointerCanonicalHash(const void* p);
-TLIB_API std::size_t        canonicalNameHash(const char* name);
-
-/// Narrow a 64-bit hash to size_t. The identity where size_t is 64-bit, so
-/// every hash below keeps the value it has always had on a native build ; on
-/// a 32-bit size_t (emscripten targets wasm32) the high word is folded in
-/// rather than dropped. Hashing is computed in uint64_t throughout for this
-/// reason : written into a size_t directly, the 64-bit constants truncate --
-/// the FNV prime became 435 -- and the canonical ordering degrades exactly
-/// where it must not.
-inline std::size_t foldHash(std::uint64_t h)
-{
-    if constexpr (sizeof(std::size_t) < sizeof(std::uint64_t)) {
-        return std::size_t(h) ^ std::size_t(h >> 32);
-    } else {
-        return std::size_t(h);
-    }
-}
-
 class Node : public Garbageable {
     int fType;
     union {
@@ -112,8 +88,7 @@ class Node : public Garbageable {
 
     /// The payload as an opaque 64-bit word, without reading an inactive union
     /// member : memcpy is the C++17 spelling of bit_cast, and folds to a single
-    /// load at -O2. Used by the equality below ; canonicalHash uses the same
-    /// idiom for its double case.
+    /// load at -O2. Used by the equality below.
     std::uint64_t payload() const
     {
         std::uint64_t w;
@@ -122,35 +97,6 @@ class Node : public Garbageable {
         return w;
     }
 
-    /// Value-derived hash, identical across processes : symbols hash by NAME ;
-    /// registered pointer payloads (box primitives) hash by their registered
-    /// name ; unregistered pointers fall back to the address (non-canonical --
-    /// they must never enter the canonical orderings, and their ancestors'
-    /// canonHash is contaminated : the build-determinism phantom lived there).
-    std::size_t canonicalHash() const
-    {
-        std::uint64_t h = std::uint64_t(fType) * 0x9e3779b97f4a7c15ULL;
-        switch (fType) {
-            case kIntNode: return foldHash(h ^ std::uint64_t(fData.i));
-            case kInt64Node: return foldHash(h ^ std::uint64_t(fData.v));
-            case kDoubleNode: {
-                // The bits go into a fixed-width word, never into a size_t :
-                // `sizeof(size_t) == sizeof(double)` cannot hold on wasm32,
-                // and the assertion that said so broke the wasm build.
-                std::uint64_t bits;
-                static_assert(sizeof(bits) == sizeof(fData.f), "a double must be 64-bit");
-                memcpy(&bits, &fData.f, sizeof(bits));
-                return foldHash(h ^ bits);
-            }
-            case kSymNode: return foldHash(h ^ std::uint64_t(symbolHashKey(fData.s)));
-            default: {
-                if (const std::size_t* r = getPointerCanonicalHash(fData.p)) {
-                    return foldHash(h ^ std::uint64_t(*r));
-                }
-                return foldHash(h ^ std::uint64_t(reinterpret_cast<std::uintptr_t>(fData.p)));
-            }
-        }
-    }
     // constructors (assume size of field f is the biggest)
 
     ///< There is deliberately NO default constructor, for the same reason CTree has none

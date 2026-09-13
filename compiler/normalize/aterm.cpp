@@ -27,7 +27,7 @@
 
 using namespace std;
 
-typedef map<Tree, mterm, CanonicalTreeLess> SM;
+typedef map<Tree, mterm, treeorder> SM;
 
 aterm::aterm()
 {

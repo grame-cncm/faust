@@ -311,7 +311,7 @@ static uint64_t acHash(Tree t, std::map<Tree, uint64_t, treeorder>& memo)
         }
         h = 0x9e3779b97f4a7c15ULL * (static_cast<uint64_t>(op) + 1) ^ sum;
     } else {
-        h = t->node().canonicalHash();
+        h = t->hashkey();
         for (int i = 0; i < t->arity(); i++) {
             // hash_combine-style: the addition breaks the XOR-linearity that made
             // 'h = h*F ^ child' cancel on repeated identical elements (a stereo
@@ -589,21 +589,6 @@ static Tree simplifyToNormalFormAux(Tree LS)
     Tree L2 = signalPromote(L1);
     endTiming("Cast and Promotion");
 
-    // Canonical names BEFORE the normal form (only under -co) : the CANONICAL
-    // term orders hash the recursive variables by name, so the names must be
-    // history-independent before normalization. Under the default serial order
-    // this pass serves nothing and its fresh variables would shift the serials
-    // (a reorder of the generated code) : it follows the option it serves.
-    if (gGlobal->gCanonicalOrder) {
-        startTiming("canonicalizeRecNames");
-        L2 = canonicalizeRecNames(L2);
-        endTiming("canonicalizeRecNames");
-
-        startTiming("L2 typeAnnotation");
-        typeAnnotation(L2, gGlobal->gLocalCausalityCheck);
-        endTiming("L2 typeAnnotation");
-    }
-
     // Simplify by executing every computable operation
     startTiming("L2 simplification");
     Tree L3 = simplify(L2);
@@ -653,22 +638,11 @@ static Tree simplifyToNormalFormAux(Tree LS)
         endTiming("normalizeFixpoint");
     }
 
-    // Canonical recursive-variable naming (only under -co) : names AND node serials
-    // in plan order, so the downstream serial-ordered consumers (symbol sets, loop
-    // scheduling) become independent of the transformation history -- the generated
-    // code is the same for alpha-equivalent trees. Like the canonical term order it
-    // serves, this is opt-in : the default serial regime keeps the historical,
-    // construction-driven serials (and their measured performance).
-    if (gGlobal->gCanonicalOrder) {
-        startTiming("canonicalizeRecNames");
-        L4 = canonicalizeRecNames(L4);
-        endTiming("canonicalizeRecNames");
-    }
     // Whoever rebuilt trees above (the renaming, or the -eta fixpoint) leaves them
     // without type annotations : re-annotate for the passes that follow. This is
     // tied to the REBUILDERS, not to -co -- the eta loop under serial order needs
     // it just as much (first caught by zitaRev -etai 10 : assert sigtyperules:224).
-    if (gGlobal->gCanonicalOrder || gGlobal->gEtaHarvest) {
+    if (gGlobal->gEtaHarvest) {
         startTiming("L4 typeAnnotation");
         typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
         endTiming("L4 typeAnnotation");
