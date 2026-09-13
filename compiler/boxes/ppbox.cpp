@@ -163,11 +163,28 @@ const char* prim5name(Tree (*ptr)(Tree, Tree, Tree, Tree, Tree))
     return "prim5???";
 }
 
-// Limit the box description string to max_size characters
+// The node budget of a bounded print (see mBox) : -1 is unlimited. Boxes are
+// hash-consed DAGs printed as trees, so a subgraph shared n times is printed
+// n times and the print of a deep sharing chain is exponential -- while every
+// caller of mBox keeps a few dozen characters. The budget bounds the traversal,
+// not just the string. Thread-local : libfaust compiles on several threads.
+static thread_local int gPrintBudget = -1;
+
+struct PrintBudget {
+    int fSaved;
+    explicit PrintBudget(int n) : fSaved(gPrintBudget) { gPrintBudget = n; }
+    ~PrintBudget() { gPrintBudget = fSaved; }
+};
+
+// Limit the box description string to max_size characters, and the print to
+// max_size nodes
 string mBox(Tree b, int max_size)
 {
     stringstream error;
-    error << boxpp(b);
+    {
+        PrintBudget budget(max_size);
+        error << boxpp(b);
+    }
     string str = error.str();
     return (int(str.size()) > max_size) ? (str.substr(0, max_size) + " ...") : str;
 }
@@ -230,6 +247,14 @@ static string type2str(int type)
 // If t has a node of type symbol, return its name, otherwise error
 ostream& boxpp::print(ostream& fout) const
 {
+    // a bounded print (mBox) stops here once its node budget is spent
+    if (gPrintBudget == 0) {
+        return fout << "...";
+    }
+    if (gPrintBudget > 0) {
+        gPrintBudget--;
+    }
+
     int    i, id;
     double r;
     prim0  p0;

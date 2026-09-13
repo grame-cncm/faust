@@ -1285,6 +1285,10 @@ static Tree nwires(int n)
  * @param larg the list of arguments
  * @return the resulting expression in normal form
  */
+// the print budget (nodes and characters) of the argument in a synthesized
+// definition name f(arg) ; names printed within it are the same as before
+static const int kApplyNamePrintBudget = 4096;
+
 static Tree applyList(Tree fun, Tree larg)
 {
     Tree abstr;
@@ -1411,7 +1415,11 @@ static Tree applyList(Tree fun, Tree larg)
             stringstream s;
             s << tree2str(fname);
             if (!gGlobal->gSimpleNames) {
-                s << "(" << boxpp(arg) << ")";
+                // the argument is a shared DAG : printed as a tree it can be
+                // exponential, and setDefNameProperty keeps a few dozen
+                // characters of the result. A bounded print : names shorter
+                // than the budget are unchanged.
+                s << "(" << mBox(arg, kApplyNamePrintBudget) << ")";
             }
             setDefNameProperty(f, s.str());
         }

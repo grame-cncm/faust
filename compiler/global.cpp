@@ -413,7 +413,6 @@ void global::reset()
 
     gDetailsSwitch    = false;
     gDrawSignals      = false;
-    gOccurrences      = nullptr;
     gDrawSuperNodes   = false;
     gSchedulingStrategy = 0;
     gDrawRetiming     = false;
