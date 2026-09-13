@@ -22,14 +22,15 @@
 #include <string>
 #include <vector>
 
+#include "sigs-state.hh"
 #include "faust/export.h"
 
 /*
     Global outside of the global context, compiled here
     to be defined in libfaust and libfaustmachine libraries.
 */
-std::vector<std::string> gWarningMessages;
-bool                     gAllWarning = false;
+std::vector<std::string>& gWarningMessages = sigs::g.gWarningMessages;
+bool& gAllWarning = sigs::g.gAllWarning;
 
 // External libfaust API
 

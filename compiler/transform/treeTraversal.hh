@@ -23,7 +23,7 @@
 
 #include <cstdlib>
 #include <string>
-#include "exception.hh"
+#include "tlib-error.hh"
 #include "property.hh"
 #include "tree.hh"
 
@@ -82,7 +82,7 @@ class TreeTraversal : public Garbageable {
 
     int getVisitCount(Tree sig)
     {
-        faustassert(fVisited.find(sig) != fVisited.end());
+        TLIB_ASSERT(fVisited.find(sig) != fVisited.end());
         return fVisited[sig];
     }
 };

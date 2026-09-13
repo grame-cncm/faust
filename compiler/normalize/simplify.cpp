@@ -19,13 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
-#include "print_api.hh"
 #include <stdio.h>
 #include <map>
 
-#include "compatibility.hh"
-#include "exception.hh"
-#include "global.hh"
+#include "tlib-error.hh"
+#include "sigs-state.hh"
 #include "list.hh"
 #include "normalize.hh"
 #include "num.hh"
@@ -50,9 +48,9 @@ static Tree simplification(Tree sig);
 
 static Tree traced_simplification(Tree sig)
 {
-    faustassert(sig);
+    TLIB_ASSERT(sig);
 #ifdef TRACE
-    cerr << ++gGlobal->TABBER << "Start simplification of : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+    cerr << ++sigs::g.TABBER << "Start simplification of : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
     /*
     fprintf(stderr, "\nStart simplification of : ");
     printSignal(sig, stderr);
@@ -60,9 +58,9 @@ static Tree traced_simplification(Tree sig)
     */
 #endif
     Tree r = simplification(sig);
-    faustassert(r != nullptr);
+    TLIB_ASSERT(r != nullptr);
 #ifdef TRACE
-    cerr << --gGlobal->TABBER << "Simplification of : " << ppsig(sig, MAX_ERROR_SIZE)
+    cerr << --sigs::g.TABBER << "Simplification of : " << ppsig(sig, MAX_ERROR_SIZE)
          << " Returns : " << ppsig(r, MAX_ERROR_SIZE) << endl;
     /*
     fprintf(stderr, "Simplification of : ");
@@ -99,7 +97,7 @@ class SimplifyAlgebra final : public TransformAlgebra {
         }
         // to avoid negative power to further normalization
         Tree r = p->computeSigOutput(args);
-        return o(p != gGlobal->gPowPrim ? r : normalizeAddTerm(r));
+        return o(p != sigs::g.gPowPrim ? r : normalizeAddTerm(r));
     }
 };
 
@@ -108,7 +106,7 @@ class SimplifyAlgebra final : public TransformAlgebra {
 Tree simplify(Tree sig)
 {
     SimplifyAlgebra A;
-    return signalTransform(sig, A, gGlobal->gSimplifiedMemo);
+    return signalTransform(sig, A, sigs::g.gSimplifiedMemo);
 }
 
 Tree simplifyExpression(Tree sig)
@@ -139,7 +137,7 @@ static bool isSigBool(Tree sig)
 // Rule ORDER is semantics: it reproduces the historical cascade exactly.
 static Tree simplification(Tree sig)
 {
-    faustassert(sig);
+    TLIB_ASSERT(sig);
     using namespace pat;
 
     Tree n, m, x, y, sel;
@@ -230,7 +228,7 @@ static Tree simplification(Tree sig)
             }
         }
 
-        return (global::isOpt("FAUST_SIG_NO_NORM") ? sig : normalizeAddTerm(sig));
+        return (sigs::g.gSigNoNorm ? sig : normalizeAddTerm(sig));
     }
 
     // delays go to their normal-form engine
@@ -295,11 +293,11 @@ static Tree simplification(Tree sig)
 
     // lowest/highest collapse to their certified interval bound
     if (Lowest(var(x)).match(sig)) {
-        typeAnnotation(x, gGlobal->gLocalCausalityCheck);
+        typeAnnotation(x, sigs::g.gLocalCausalityCheck);
         return sigReal(getCertifiedSigType(x)->getInterval().lo());
     }
     if (Highest(var(x)).match(sig)) {
-        typeAnnotation(x, gGlobal->gLocalCausalityCheck);
+        typeAnnotation(x, sigs::g.gLocalCausalityCheck);
         return sigReal(getCertifiedSigType(x)->getInterval().hi());
     }
 
@@ -319,7 +317,7 @@ static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
         return (isNil(p)) ? t : p;  // trick to avoid loops
 
     } else if (isRec(t, id, body)) {
-        faustassert(isRef(t, id));  // temporary control
+        TLIB_ASSERT(isRef(t, id));  // temporary control
 
         Tree id2;
         if (searchEnv(id, id2, env)) {
@@ -347,7 +345,7 @@ static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
 
         Tree r2 = f(tree(t->node(), br));
         if (r2 == t) {
-            setProperty(t, key, gGlobal->nil);
+            setProperty(t, key, nil());
         } else {
             setProperty(t, key, r2);
         }
@@ -367,8 +365,8 @@ static void eraseProperties(Tree key, Tree t)
 	} else if (isRec(t, id, body)) {
 		t->clearProperties();
         Tree r = rec(id, body);
-        faustassert(r==t);
-		setProperty(t, key, gGlobal->nil);	// avoid infinite loop
+        TLIB_ASSERT(r==t);
+		setProperty(t, key, nil());	// avoid infinite loop
 		eraseProperties(key, body);
 
 	} else {
@@ -395,7 +393,7 @@ static Tree docTableConverter(Tree sig);
  */
 Tree docTableConvertion(Tree sig)
 {
-    Tree r = sigMapRename(gGlobal->DOCTABLES, gGlobal->NULLENV, docTableConverter, sig);
+    Tree r = sigMapRename(sigs::g.DOCTABLES, sigs::g.NULLENV, docTableConverter, sig);
     return r;
 }
 
@@ -409,12 +407,12 @@ static Tree docTableConverter(Tree sig)
         // we are in a table to convert
         if (isSigWRTbl(tbl, size, gen)) {
             // rdtable
-            faustassert(isSigGen(gen, isig));
+            TLIB_ASSERT(isSigGen(gen, isig));
             return sigDocAccessTbl(sigDocConstantTbl(size, isig), ri);
         } else {
             // rwtable
-            faustassert(isSigWRTbl(tbl, size, gen, wi, ws));
-            faustassert(isSigGen(gen, isig));
+            TLIB_ASSERT(isSigWRTbl(tbl, size, gen, wi, ws));
+            TLIB_ASSERT(isSigGen(gen, isig));
             return sigDocAccessTbl(sigDocWriteTbl(size, isig, wi, ws), ri);
         }
 

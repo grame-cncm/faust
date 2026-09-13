@@ -4,7 +4,7 @@
 #include "ppsig.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
-#include "exception.hh"
+#include "tlib-error.hh"
 
 #undef TRACE
 /**
@@ -51,7 +51,7 @@ void SigDependenciesGraph::visit(Tree t)
         // The immediate dependency of a projection is
         // its definition
         Tree id, le;
-        faustassert(isRec(w, id, le));
+        TLIB_ASSERT(isRec(w, id, le));
         Tree d = nth(le, i);
         fGraph.add(t, d, 0);
         self(d);
@@ -72,7 +72,7 @@ void SigDependenciesGraph::visit(Tree t)
         self(x);
         self(y);
     } else if (isSigDelay1(t, x)) {
-        faustassert(false);
+        TLIB_ASSERT(false);
         // We place x in the graph only if:
         // - we want the full graph
         // - or the dependency to x is immediate
@@ -87,7 +87,7 @@ void SigDependenciesGraph::visit(Tree t)
         // IIR[nil,X,C0=0,C1,...] : X and the non-zero coefficients are
         // immediate dependencies ; the self-loop (full graph only) carries
         // the delay of the first non-zero self-coefficient
-        faustassert(V.size() >= 4);
+        TLIB_ASSERT(V.size() >= 4);
         int dmin = INT32_MAX;
         for (unsigned int k = 2; k < V.size(); k++) {
             if (!isZero(V[k])) {
@@ -95,7 +95,7 @@ void SigDependenciesGraph::visit(Tree t)
                 dmin = std::min(dmin, int(k) - 2);
             }
         }
-        faustassert(dmin > 0 && dmin < INT32_MAX);
+        TLIB_ASSERT(dmin > 0 && dmin < INT32_MAX);
         fGraph.add(t, V[1], 0);
         if (fFullGraph) {
             fGraph.add(t, t, dmin);
@@ -110,7 +110,7 @@ void SigDependenciesGraph::visit(Tree t)
         // as leading zeros) : the non-zero coefficients are immediate
         // dependencies ; the source X enters with the delay of the first
         // non-zero coefficient (immediate only when that delay is 0)
-        faustassert(V.size() >= 2);
+        TLIB_ASSERT(V.size() >= 2);
         int dmin = INT32_MAX;
         for (unsigned int k = 1; k < V.size(); k++) {
             if (!isZero(V[k])) {
@@ -118,7 +118,7 @@ void SigDependenciesGraph::visit(Tree t)
                 dmin = std::min(dmin, int(k) - 1);
             }
         }
-        faustassert(dmin < INT32_MAX);
+        TLIB_ASSERT(dmin < INT32_MAX);
         if (fFullGraph || (dmin == 0)) {
             fGraph.add(t, V[0], dmin);
         }
@@ -142,11 +142,11 @@ void SigDependenciesGraph::visit(Tree t)
             self(ws);
         } else {
             // not supposed to happen
-            faustassert(false);
+            TLIB_ASSERT(false);
         }
     } else if (isSigWRTbl(t, size, gen, wi, ws)) {
         // not supposed to happen
-        faustassert(false);
+        TLIB_ASSERT(false);
     } else {
         tvec subs;
         int  n = getSubSignals(t, subs, false);

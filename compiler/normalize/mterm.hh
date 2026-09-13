@@ -26,10 +26,10 @@
 #include <list>
 #include <map>
 
-#include "exception.hh"
+#include "tlib-error.hh"
 #include "garbageable.hh"
 #include "normalize.hh"
-#include "global.hh"
+#include "sigs-state.hh"
 #include "signals.hh"
 #include "sigprint.hh"
 #include "simplify.hh"

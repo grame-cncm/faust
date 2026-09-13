@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "global.hh"
+#include "sigs-state.hh"
 #include "ppsig.hh"
 #include "rewrite.hh"
 #include "signals.hh"

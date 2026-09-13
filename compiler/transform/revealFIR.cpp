@@ -10,7 +10,7 @@
 #include "sigIIR.hh"
 #include "rewrite.hh"
 #include "sigRecursiveDependencies.hh"
-#include "global.hh"
+#include "sigs-state.hh"
 
 // ---- port shims : this branch has no clock system. The source branch
 // wraps clocked signals in sigClocked and its reveal rules unwrap them ;

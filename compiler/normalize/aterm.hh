@@ -26,7 +26,7 @@
 #include <list>
 #include <map>
 
-#include "exception.hh"
+#include "tlib-error.hh"
 #include "garbageable.hh"
 #include "mterm.hh"
 #include "normalize.hh"

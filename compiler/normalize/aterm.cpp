@@ -23,7 +23,7 @@
 #include "sigs-state.hh"
 #include "ppsig.hh"
 #include "sigtype.hh"
-#include "exception.hh"
+#include "tlib-error.hh"
 
 using namespace std;
 
@@ -52,8 +52,8 @@ aterm::aterm(Tree t)
  */
 Tree simplifyingAdd(Tree t1, Tree t2)
 {
-    faustassert(t1);
-    faustassert(t2);
+    TLIB_ASSERT(t1);
+    TLIB_ASSERT(t2);
 
     if (isNum(t1) && isNum(t2)) {
         return addNums(t1, t2);
@@ -217,7 +217,7 @@ const aterm& aterm::operator+=(Tree t)
     int  op;
     Tree x, y;
 
-    faustassert(t);
+    TLIB_ASSERT(t);
 
     if (isSigBinOp(t, &op, x, y) && (op == kAdd)) {
         *this += x;
@@ -243,7 +243,7 @@ const aterm& aterm::operator-=(Tree t)
     int  op;
     Tree x, y;
 
-    faustassert(t);
+    TLIB_ASSERT(t);
 
     if (isSigBinOp(t, &op, x, y) && (op == kAdd)) {
         *this -= x;

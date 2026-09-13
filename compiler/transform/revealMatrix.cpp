@@ -7,7 +7,7 @@
 #include <set>
 
 #include "signals.hh"
-#include "global.hh"
+#include "sigs-state.hh"
 #include "sigs-state.hh"
 
 // a factor that evaluates at control rate or slower (the kernel lesson :
@@ -170,7 +170,7 @@ MatrixPlans revealMatrix(Tree L)
         MatrixFamily F;
         F.tuple.assign(tuple.begin(), tuple.end());
         std::sort(F.tuple.begin(), F.tuple.end(), treeorder());
-        Tree kl = gGlobal->nil;
+        Tree kl = nil();
         for (auto it = F.tuple.rbegin(); it != F.tuple.rend(); ++it) {
             kl = cons(*it, kl);
         }

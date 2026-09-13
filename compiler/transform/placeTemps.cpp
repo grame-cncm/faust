@@ -5,7 +5,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "global.hh"
+#include "sigs-state.hh"
 #include "prim2.hh"
 #include "rewrite.hh"
 

@@ -40,7 +40,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "global.hh"
+#include "sigs-state.hh"
 #include "ppsig.hh"
 #include "signals.hh"
 
@@ -65,21 +65,21 @@ static std::set<Tree, treeorder> sigDependencies(std::vector<Tree>& underVisit, 
 {
     int  i;
     Tree rec, id, le;
-    if (gGlobal->gDependencies.count(sig)) {
+    if (sigs::g.gDependencies.count(sig)) {
         // 1) the dependencies of sig have already been computed
-        return gGlobal->gDependencies[sig];
+        return sigs::g.gDependencies[sig];
     } else if (isProj(sig, &i, rec)) {
         // 2) sig is a projection, its dependencies are itself and the dependecies of its definition
         std::set<Tree, treeorder> deps;
         if (std::find(underVisit.begin(), underVisit.end(), sig) == underVisit.end()) {
             // we mark the projection under visit and compute the dependencies of its definition
             underVisit.push_back(sig);
-            faustassert(isRec(rec, id, le));
+            TLIB_ASSERT(isRec(rec, id, le));
             deps = sigDependencies(underVisit, nth(le, i));
             underVisit.pop_back();
         }
         deps.insert(sig);  // insert the projection itself
-        gGlobal->gDependencies[sig] = deps;
+        sigs::g.gDependencies[sig] = deps;
         return deps;
 
     } else {
@@ -90,7 +90,7 @@ static std::set<Tree, treeorder> sigDependencies(std::vector<Tree>& underVisit, 
             std::set<Tree, treeorder> depsb = sigDependencies(underVisit, b);
             deps.insert(depsb.begin(), depsb.end());
         }
-        gGlobal->gDependencies[sig] = deps;
+        sigs::g.gDependencies[sig] = deps;
         return deps;
     }
 }
@@ -162,8 +162,8 @@ Tree getProjDefinition(Tree proj)
 {
     int  i;
     Tree w, id, le;
-    faustassert(isProj(proj, &i, w));
-    faustassert(isRec(w, id, le));
+    TLIB_ASSERT(isProj(proj, &i, w));
+    TLIB_ASSERT(isRec(w, id, le));
     return nth(le, i);
 }
 

@@ -37,7 +37,7 @@
 #define COMPILATION_OPTIONS_KEY "compile_options"
 #define COMPILATION_OPTIONS "declare compile_options "
 
-extern std::vector<std::string> gWarningMessages;
+extern std::vector<std::string>& gWarningMessages;
 
 /*
  In order to better separate compilation and execution for dynamic backends (LLVM, Interpreter,

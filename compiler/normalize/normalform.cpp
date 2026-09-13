@@ -27,13 +27,12 @@
 #include <sstream>
 #include <vector>
 
-#include "global.hh"
+#include "sigs-state.hh"
 #include "ppsig.hh"
 #include "sigNewConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigtyperules.hh"
 #include "simplify.hh"
-#include "timing.hh"
 #include "tree.hh"
 #include "rewrite.hh"
 
@@ -87,8 +86,8 @@ static Tree dissolveDelayedAliases(Tree L)
                 // reference (the guide's 'fatal erasure', asserted by
                 // rewrite.hh as well), and every signal-level letrec is a
                 // LIST of definitions accessed through projections.
-                faustassert(body != nullptr);
-                faustassert(isList(body));
+                TLIB_ASSERT(body != nullptr);
+                TLIB_ASSERT(isList(body));
                 int i = 0;
                 for (Tree l = body; isList(l); l = tl(l), i++) {
                     Tree def = hd(l);
@@ -421,7 +420,7 @@ static Tree normalizeFixpoint(Tree L)
     // (merge + propagation + simplify + eta) from the effects of iterated
     // re-normalization -- the two measure differently; the AC judge may stop
     // the loop before the budget is spent.
-    const int maxIter = gGlobal->gEtaIterations;
+    const int maxIter = sigs::g.gEtaIterations;
     while (iter < maxIter) {
         Tree d = sym2deBruijn(L);
         if (d == prev) {
@@ -444,10 +443,10 @@ static Tree normalizeFixpoint(Tree L)
         // with CONTENT-DERIVED variable names (deBruijn2Sym), so every name-derived
         // order is a pure function of the structure, stable across iterations
         L = deBruijn2Sym(d);
-        typeAnnotation(L, gGlobal->gLocalCausalityCheck);
+        typeAnnotation(L, sigs::g.gLocalCausalityCheck);
         L = newConstantPropagation(L);
         L = simplify(L);
-        if (gGlobal->gEtaRegroup) {
+        if (sigs::g.gEtaRegroup) {
             // -etar : complete the loop's two half-measures -- the merge (this
             // loop's deBruijn round trip) and the dissolution (the eta harvest
             // below) -- into the full re-partition of the letrecs along the
@@ -466,11 +465,11 @@ static Tree normalizeFixpoint(Tree L)
             // never see: re-normalize NOW, not at the next iteration -- with -eta
             // (a single pass) there is no next iteration
             L = Lh;
-            typeAnnotation(L, gGlobal->gLocalCausalityCheck);
+            typeAnnotation(L, sigs::g.gLocalCausalityCheck);
             L = newConstantPropagation(L);
             L = simplify(L);
         }
-        typeAnnotation(L, gGlobal->gLocalCausalityCheck);
+        typeAnnotation(L, sigs::g.gLocalCausalityCheck);
         L = signalPromote(L);
         iter++;
     }
@@ -484,9 +483,9 @@ static Tree normalizeFixpoint(Tree L)
 static Tree simplifyToNormalFormAux(Tree LS)
 {
     // Convert deBruijn recursion into symbolic recursion
-    startTiming("deBruijn2Sym");
+    sigs::startTiming("deBruijn2Sym");
     Tree L1 = deBruijn2Sym(LS);
-    endTiming("deBruijn2Sym");
+    sigs::endTiming("deBruijn2Sym");
 
     // Normalize the recursive structure AT THE BIRTH of the symbolic form,
     // unconditionally : the letrec packaging is a syntactic accident, the
@@ -508,10 +507,10 @@ static Tree simplifyToNormalFormAux(Tree LS)
     // (spec GC-MEMBRES par.8) : detection, re-pointing and GC are signal
     // knowledge and live here ; normalizeRecGroups keeps only the ORDER
     // classifier below. The old shiftTerm/reshift callbacks are gone.
-    startTiming("dissolveDelayedAliases");
+    sigs::startTiming("dissolveDelayedAliases");
     L1 = dissolveDelayedAliases(L1);
-    endTiming("dissolveDelayedAliases");
-    startTiming("normalizeRecGroups");
+    sigs::endTiming("dissolveDelayedAliases");
+    sigs::startTiming("normalizeRecGroups");
     L1 = normalizeRecGroups(L1, true, [](Tree t, int k) -> bool {
         Tree x, y;
         int  n;
@@ -526,7 +525,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
         }
         return false;
     });
-    endTiming("normalizeRecGroups");
+    sigs::endTiming("normalizeRecGroups");
 /*
     // PROBE: cost of the symbolic -> deBruijn -> symbolic round-trip on the
     // recursive-group representation (scalarization abandoned: n-ary groups
@@ -534,123 +533,123 @@ static Tree simplifyToNormalFormAux(Tree LS)
     // SCALARIZE-CARTOGRAPHY.md). The round-trip is the identity on the
     // already-canonical L0; it measures the benefit of the invariance
     // predicate on real programs.
-    startTiming("sharing-roundtrip-1/2 sym2deBruijn");
+    sigs::startTiming("sharing-roundtrip-1/2 sym2deBruijn");
     Tree LD = sym2deBruijn(L0);
-    endTiming("sharing-roundtrip-1/2 sym2deBruijn");
+    sigs::endTiming("sharing-roundtrip-1/2 sym2deBruijn");
 
-    startTiming("sharing-roundtrip-2/2 deBruijn2Sym");
+    sigs::startTiming("sharing-roundtrip-2/2 deBruijn2Sym");
     Tree L1 = deBruijn2Sym(LD);
-    endTiming("sharing-roundtrip-2/2 deBruijn2Sym");
+    sigs::endTiming("sharing-roundtrip-2/2 deBruijn2Sym");
 */
     // Annotate L1 with type information
-    startTiming("L1 typeAnnotation");
-    typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
-    endTiming("L1 typeAnnotation");
+    sigs::startTiming("L1 typeAnnotation");
+    typeAnnotation(L1, sigs::g.gLocalCausalityCheck);
+    sigs::endTiming("L1 typeAnnotation");
 
-    if (gGlobal->gRangeUI) {
+    if (sigs::g.gRangeUI) {
         // Generate safe values for range UI items (sliders and nentry)
-        startTiming("Safe values for range UI items");
+        sigs::startTiming("Safe values for range UI items");
         L1 = signalUIPromote(L1);
-        endTiming("Safe values for range UI items");
+        sigs::endTiming("Safe values for range UI items");
 
         // Annotate L1 with type information
-        startTiming("L1 typeAnnotation");
-        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
-        endTiming("L1 typeAnnotation");
+        sigs::startTiming("L1 typeAnnotation");
+        typeAnnotation(L1, sigs::g.gLocalCausalityCheck);
+        sigs::endTiming("L1 typeAnnotation");
     }
 
-    if (gGlobal->gFreezeUI) {
+    if (sigs::g.gFreezeUI) {
         // Freeze range UI items (sliders and nentry) to their init value
-        startTiming("Freeze values for range UI items");
+        sigs::startTiming("Freeze values for range UI items");
         L1 = signalUIFreezePromote(L1);
-        endTiming("Freeze values for range UI items");
+        sigs::endTiming("Freeze values for range UI items");
 
         // Annotate L1 with type information
-        startTiming("L1 typeAnnotation");
-        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
-        endTiming("L1 typeAnnotation");
+        sigs::startTiming("L1 typeAnnotation");
+        typeAnnotation(L1, sigs::g.gLocalCausalityCheck);
+        sigs::endTiming("L1 typeAnnotation");
     }
 
-    if (gGlobal->gFTZMode > 0) {
+    if (sigs::g.gFTZMode > 0) {
         // Wrap real signals with FTZ
-        startTiming("FTZ on recursive signals");
+        sigs::startTiming("FTZ on recursive signals");
         L1 = signalFTZPromote(L1);
-        endTiming("FTZ on recursive signals");
+        sigs::endTiming("FTZ on recursive signals");
 
         // Annotate L1 with type information
-        startTiming("L1 typeAnnotation");
-        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
-        endTiming("L1 typeAnnotation");
+        sigs::startTiming("L1 typeAnnotation");
+        typeAnnotation(L1, sigs::g.gLocalCausalityCheck);
+        sigs::endTiming("L1 typeAnnotation");
     }
 
     // Needed before 'simplify' (see sigPromotion.hh)
-    startTiming("Cast and Promotion");
+    sigs::startTiming("Cast and Promotion");
     Tree L2 = signalPromote(L1);
-    endTiming("Cast and Promotion");
+    sigs::endTiming("Cast and Promotion");
 
     // Simplify by executing every computable operation
-    startTiming("L2 simplification");
+    sigs::startTiming("L2 simplification");
     Tree L3 = simplify(L2);
-    endTiming("L2 simplification");
+    sigs::endTiming("L2 simplification");
 
     // Annotate L3 with type information
-    startTiming("L3 typeAnnotation");
-    typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
-    endTiming("L3 typeAnnotation");
+    sigs::startTiming("L3 typeAnnotation");
+    typeAnnotation(L3, sigs::g.gLocalCausalityCheck);
+    sigs::endTiming("L3 typeAnnotation");
 
-    startTiming("Cast and Promotion");
+    sigs::startTiming("Cast and Promotion");
     Tree L4 = signalPromote(L3);
-    endTiming("Cast and Promotion");
+    sigs::endTiming("Cast and Promotion");
 
-    startTiming("L4 typeAnnotation");
-    typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
-    endTiming("L4 typeAnnotation");
+    sigs::startTiming("L4 typeAnnotation");
+    typeAnnotation(L4, sigs::g.gLocalCausalityCheck);
+    sigs::endTiming("L4 typeAnnotation");
 
     // Must be done after simplification so that 'size' signal is properly simplified to a constant
-    if (gGlobal->gCheckTable) {
+    if (sigs::g.gCheckTable) {
         // Check and generate safe access to rdtable/rwtable
-        startTiming("Safe access to rdtable/rwtable");
+        sigs::startTiming("Safe access to rdtable/rwtable");
         L4 = signalTablePromote(L4);
-        endTiming("Safe access to rdtable/rwtable");
+        sigs::endTiming("Safe access to rdtable/rwtable");
 
         // Annotate L4 with type information
-        startTiming("L4 typeAnnotation");
-        typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
-        endTiming("L4 typeAnnotation");
+        sigs::startTiming("L4 typeAnnotation");
+        typeAnnotation(L4, sigs::g.gLocalCausalityCheck);
+        sigs::endTiming("L4 typeAnnotation");
     }
 
-    if (gGlobal->gCheckIntRange) {
+    if (sigs::g.gCheckIntRange) {
         // Check and generate safe float to integer range conversion
-        startTiming("Safe float to integer conversion");
+        sigs::startTiming("Safe float to integer conversion");
         L4 = signalIntCastPromote(L4);
-        endTiming("Safe float to integer conversion");
+        sigs::endTiming("Safe float to integer conversion");
 
         // Annotate L4 with type information
-        startTiming("L4 typeAnnotation");
-        typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
-        endTiming("L4 typeAnnotation");
+        sigs::startTiming("L4 typeAnnotation");
+        typeAnnotation(L4, sigs::g.gLocalCausalityCheck);
+        sigs::endTiming("L4 typeAnnotation");
     }
 
-    if (gGlobal->gEtaHarvest) {
-        startTiming("normalizeFixpoint");
+    if (sigs::g.gEtaHarvest) {
+        sigs::startTiming("normalizeFixpoint");
         L4 = normalizeFixpoint(L4);
-        endTiming("normalizeFixpoint");
+        sigs::endTiming("normalizeFixpoint");
     }
 
     // Whoever rebuilt trees above (the renaming, or the -eta fixpoint) leaves them
     // without type annotations : re-annotate for the passes that follow. This is
     // tied to the REBUILDERS, not to -co -- the eta loop under serial order needs
     // it just as much (first caught by zitaRev -etai 10 : assert sigtyperules:224).
-    if (gGlobal->gEtaHarvest) {
-        startTiming("L4 typeAnnotation");
-        typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
-        endTiming("L4 typeAnnotation");
+    if (sigs::g.gEtaHarvest) {
+        sigs::startTiming("L4 typeAnnotation");
+        typeAnnotation(L4, sigs::g.gLocalCausalityCheck);
+        sigs::endTiming("L4 typeAnnotation");
     }
 
     // Check signal tree
-    startTiming("L4 signalChecker");
+    sigs::startTiming("L4 signalChecker");
     SignalChecker checker(L4);
-    endTiming("L4 signalChecker");
+    sigs::endTiming("L4 signalChecker");
     return L4;
 }
 
@@ -658,16 +657,16 @@ static Tree simplifyToNormalFormAux(Tree LS)
 LIBFAUST_API Tree simplifyToNormalForm(Tree sig)
 {
     if (isList(sig)) {
-        startTiming("simplifyToNormalForm");
-        Tree t2 = sig->getProperty(gGlobal->NORMALFORM);
+        sigs::startTiming("simplifyToNormalForm");
+        Tree t2 = sig->getProperty(sigs::g.NORMALFORM);
         if (!t2) {
             t2 = simplifyToNormalFormAux(sig);
-            sig->setProperty(gGlobal->NORMALFORM, t2);
+            sig->setProperty(sigs::g.NORMALFORM, t2);
         }
-        endTiming("simplifyToNormalForm");
+        sigs::endTiming("simplifyToNormalForm");
         return t2;
     } else {
-        return simplifyToNormalForm(cons(sig, gGlobal->nil));
+        return simplifyToNormalForm(cons(sig, nil()));
     }
 }
 

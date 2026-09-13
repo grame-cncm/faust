@@ -22,7 +22,7 @@
 #include <map>
 #include <vector>
 
-#include "global.hh"
+#include "sigs-state.hh"
 #include "sigNewConstantPropagation.hh"
 #include "signals.hh"
 #include "sigtransform.hh"

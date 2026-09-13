@@ -5,7 +5,7 @@
 #include <set>
 #include <vector>
 
-#include "global.hh"
+#include "sigs-state.hh"
 #include "rewrite.hh"
 #include "signals.hh"
 #include "sigs-state.hh"
