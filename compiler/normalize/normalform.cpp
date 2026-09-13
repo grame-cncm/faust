@@ -654,7 +654,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
 }
 
 // Public API
-LIBFAUST_API Tree simplifyToNormalForm(Tree sig)
+SIGS_API Tree simplifyToNormalForm(Tree sig)
 {
     if (isList(sig)) {
         sigs::startTiming("simplifyToNormalForm");
@@ -670,7 +670,7 @@ LIBFAUST_API Tree simplifyToNormalForm(Tree sig)
     }
 }
 
-LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist)
+SIGS_API tvec simplifyToNormalForm2(tvec siglist)
 {
     tvec res;
     for (const auto& it : siglist) {

@@ -22,6 +22,7 @@
 #ifndef _SIMPLIFY_TO_NF_
 #define _SIMPLIFY_TO_NF_
 
+#include "sigs-export.hh"
 #include "tree.hh"
 
 /**
@@ -35,7 +36,7 @@
  *
  * @return the signal in normal form.
  */
-LIBFAUST_API Tree simplifyToNormalForm(Tree sig);
+SIGS_API Tree simplifyToNormalForm(Tree sig);
 
 /**
  *  Simplify a signal list to its normal form, where:
@@ -48,7 +49,7 @@ LIBFAUST_API Tree simplifyToNormalForm(Tree sig);
  *
  * @return the signal list in normal form.
  */
-LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist);
+SIGS_API tvec simplifyToNormalForm2(tvec siglist);
 
 /**
  * Print the signal.

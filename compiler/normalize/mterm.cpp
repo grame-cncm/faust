@@ -115,8 +115,10 @@ int mterm::complexity() const
 static bool isSigPow(Tree sig, Tree& x, int& n)
 {
     // cerr << "isSigPow("<< *sig << ')' << endl;
+    // a session without extended primitives (the standalone library) has a
+    // null gPowPrim : a plain signal, whose user data is null too, is not a power
     xtended* p = (xtended*)getUserData(sig);
-    if (p == sigs::g.gPowPrim) {
+    if (p != nullptr && p == sigs::g.gPowPrim) {
         if (isSigInt(sig->branch(1), &n)) {
             x = sig->branch(0);
             // cerr << "factor of isSigPow " << *x << endl;
