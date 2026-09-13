@@ -296,8 +296,11 @@ static char* legalFileName(Tree t, int n, char* dst)
     }
     dst[i] = 0;
     if (strcmp(dst, "process") != 0) {
-        // if it is not process add the hex address to make the name unique
-        snprintf(&dst[i], n - i, "-%p", (void*)t);
+        // if it is not process, add the node's serial number to make the name
+        // unique -- and the same from one run to the next, which an address
+        // is not (the whole set of files, and the links between them, are
+        // then reproducible)
+        snprintf(&dst[i], n - i, "-%zu", (size_t)t->serial());
     }
     return dst;
 }
