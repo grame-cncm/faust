@@ -26,7 +26,6 @@
 #include "tlib-error.hh"
 #include "sigs-state.hh"
 #include "prim2.hh"
-#include "recursivness.hh"
 #include "xtended.hh"
 
 using namespace std;
