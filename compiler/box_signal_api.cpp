@@ -31,6 +31,7 @@
 #include "instructions.hh"
 #include "labels.hh"
 #include "normalform.hh"
+#include "print_api.hh"
 #include "ppbox.hh"
 #include "prim2.hh"
 #include "propagate.hh"

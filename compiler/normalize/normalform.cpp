@@ -28,7 +28,6 @@
 #include <vector>
 
 #include "global.hh"
-#include "ppbox.hh"
 #include "ppsig.hh"
 #include "sigNewConstantPropagation.hh"
 #include "sigPromotion.hh"
@@ -681,28 +680,3 @@ LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist)
     return res;
 }
 
-LIBFAUST_API string printSignal(Tree sig, bool shared, int max_size)
-{
-    // Clear print state
-    gGlobal->clear();
-    stringstream str;
-    if (shared) {
-        ppsigShared(sig, str, max_size);
-    } else {
-        str << ppsig(sig, max_size) << endl;
-    }
-    return str.str();
-}
-
-LIBFAUST_API string printBox(Tree box, bool shared, int max_size)
-{
-    // Clear print state
-    gGlobal->clear();
-    stringstream str;
-    if (shared) {
-        boxppShared(box, str);
-    } else {
-        str << mBox(box, max_size) << endl;
-    }
-    return str.str();
-}

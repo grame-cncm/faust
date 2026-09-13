@@ -26,6 +26,7 @@
     2009-11-22 : Some clean up (kb)
 *****************************************************************************/
 
+#include "print_api.hh"
 #include <math.h>
 #include <stdio.h>
 #include <iostream>

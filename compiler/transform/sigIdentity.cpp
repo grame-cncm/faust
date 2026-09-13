@@ -20,11 +20,11 @@
  ************************************************************************/
 
 #include "sigIdentity.hh"
+#include "Text.hh"
 
 #include <stdlib.h>
 #include <cstdlib>
 
-#include "Text.hh"
 #include "global.hh"
 #include "ppsig.hh"
 #include "signals.hh"

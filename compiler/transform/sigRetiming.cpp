@@ -24,7 +24,6 @@
 #include <sstream>
 #include <vector>
 
-#include "floats.hh"
 #include "global.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
