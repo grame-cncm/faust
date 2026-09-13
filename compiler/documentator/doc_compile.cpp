@@ -107,8 +107,9 @@ Lateq* DocCompiler::compileLateq(Tree L, Lateq* compiledEqn)
                 fLateq->addOutputSigFormula(subst("y(t) = $0", CS(sig, priority)));
                 gGlobal->gDocNoticeFlagMap["outputsig"] = true;
             } else {
-                fLateq->addOutputSigFormula(
-                    subst("$0(t) = $1", getFreshID("y"), CS(sig, priority)));
+                string yname = getFreshID("y");
+                string ycode = CS(sig, priority);
+                fLateq->addOutputSigFormula(subst("$0(t) = $1", yname, ycode));
                 gGlobal->gDocNoticeFlagMap["outputsigs"] = true;
             }
         }
@@ -497,9 +498,13 @@ string DocCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2, in
 
     /* LaTeX frac{}{} handling VS general case. */
     if ((opcode == kDiv) && (!intOpDetected)) {
-        s = subst("$0\\frac{$1}{$2}$3", lpar, CS(arg1, 0), CS(arg2, 0), rpar);
+        string s1 = CS(arg1, 0);
+        string s2 = CS(arg2, 0);
+        s         = subst("$0\\frac{$1}{$2}$3", lpar, s1, s2, rpar);
     } else {
-        s = subst("$0$1 $2 $3$4", lpar, CS(arg1, thisPriority), op, CS(arg2, thisPriority), rpar);
+        string s1 = CS(arg1, thisPriority);
+        string s2 = CS(arg2, thisPriority);
+        s         = subst("$0$1 $2 $3$4", lpar, s1, op, s2, rpar);
     }
 
     //	if (opcode == kMul) {
@@ -861,7 +866,9 @@ string DocCompiler::generateDocWriteTbl(Tree /*tbl*/, Tree size, Tree isig, Tree
     ltqRWTableDef += "\\left\\{\\begin{array}{ll}\n";
     ltqRWTableDef += subst("$0 & \\mbox{if \\,} t < 0 \\mbox{\\, and \\,}  i \\in [0,$1] \\\\\n",
                            replaceTimeBy(init, 'i'), T(n - 1));
-    ltqRWTableDef += subst("$0 & \\mbox{if \\,} i = $1 \\\\\n", CS(wsig, 0), CS(widx, 0));
+    string wcode = CS(wsig, 0);
+    string icode = CS(widx, 0);
+    ltqRWTableDef += subst("$0 & \\mbox{if \\,} i = $1 \\\\\n", wcode, icode);
     ltqRWTableDef += subst("$0(t\\!-\\!1)[i] & \\mbox{otherwise} \\\\\n", vname);
     ltqRWTableDef += "\\end{array}\\right.";
 

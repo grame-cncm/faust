@@ -444,7 +444,9 @@ static schema* generateInsideSchema(Tree t)
     }
 
     else if (isBoxFFun(t, ff)) {
-        return makeBlockSchema(ffarity(ff), 1, ffname(ff), normalcolor, "");
+        int         arity = ffarity(ff);
+        std::string fname = ffname(ff);
+        return makeBlockSchema(arity, 1, fname, normalcolor, "");
     } else if (isBoxFConst(t, type, name, file)) {
         return makeBlockSchema(0, 1, tree2str(name), normalcolor, "");
     } else if (isBoxFVar(t, type, name, file)) {
@@ -492,15 +494,25 @@ static schema* generateInsideSchema(Tree t)
     }
 
     else if (isBoxSeq(t, a, b)) {
-        return makeSeqSchema(generateDiagramSchema(a), generateDiagramSchema(b));
+        schema* sa = generateDiagramSchema(a);
+        schema* sb = generateDiagramSchema(b);
+        return makeSeqSchema(sa, sb);
     } else if (isBoxPar(t, a, b)) {
-        return makeParSchema(generateDiagramSchema(a), generateDiagramSchema(b));
+        schema* sa = generateDiagramSchema(a);
+        schema* sb = generateDiagramSchema(b);
+        return makeParSchema(sa, sb);
     } else if (isBoxSplit(t, a, b)) {
-        return makeSplitSchema(generateDiagramSchema(a), generateDiagramSchema(b));
+        schema* sa = generateDiagramSchema(a);
+        schema* sb = generateDiagramSchema(b);
+        return makeSplitSchema(sa, sb);
     } else if (isBoxMerge(t, a, b)) {
-        return makeMergeSchema(generateDiagramSchema(a), generateDiagramSchema(b));
+        schema* sa = generateDiagramSchema(a);
+        schema* sb = generateDiagramSchema(b);
+        return makeMergeSchema(sa, sb);
     } else if (isBoxRec(t, a, b)) {
-        return makeRecSchema(generateDiagramSchema(a), generateDiagramSchema(b));
+        schema* sa = generateDiagramSchema(a);
+        schema* sb = generateDiagramSchema(b);
+        return makeRecSchema(sa, sb);
     }
 
     else if (isBoxSlot(t, &i)) {
