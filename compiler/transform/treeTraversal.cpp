@@ -21,8 +21,8 @@
 
 #include <cstdlib>
 
+#include "sigs-state.hh"
 #include "list.hh"
-#include "Text.hh"
 #include "treeTraversal.hh"
 
 using namespace std;
@@ -38,13 +38,13 @@ using namespace std;
 
 void TreeTraversal::traceEnter(Tree t)
 {
-    tab(fIndent, cerr);
+    sigs::tab(fIndent, cerr);
     cerr << fMessage << " Enter: " << *t << endl;
 }
 
 void TreeTraversal::traceExit(Tree t)
 {
-    tab(fIndent, cerr);
+    sigs::tab(fIndent, cerr);
     cerr << fMessage << " Exit: " << *t << endl;
 }
 

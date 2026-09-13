@@ -22,7 +22,7 @@
 #include "signalVisitor.hh"
 
 #include <cstdlib>
-#include "global.hh"
+#include "sigs-state.hh"
 #include "property.hh"
 #include "signalVisitor.hh"
 #include "signals.hh"
@@ -94,7 +94,7 @@ void SignalVisitor::visit(Tree sig)
     else if (isSigWRTbl(sig, size, gen, wi, ws)) {
         self(size);
         self(gen);
-        if (wi != gGlobal->nil) {
+        if (wi != nil()) {
             // rwtable
             self(wi);
             self(ws);
@@ -220,6 +220,6 @@ void SignalVisitor::visit(Tree sig)
         return;
     } else {
         cerr << __FILE__ << ":" << __LINE__ << " ASSERT : unrecognized signal : " << *sig << endl;
-        faustassert(false);
+        TLIB_ASSERT(false);
     }
 }

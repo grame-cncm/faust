@@ -21,8 +21,8 @@
 
 #include "mterm.hh"
 #include "sigs-state.hh"
-#include "exception.hh"
-#include "global.hh"
+#include "tlib-error.hh"
+#include "sigs-state.hh"
 #include "ppsig.hh"
 #include "signals.hh"
 #include "xtended.hh"
@@ -116,7 +116,7 @@ static bool isSigPow(Tree sig, Tree& x, int& n)
 {
     // cerr << "isSigPow("<< *sig << ')' << endl;
     xtended* p = (xtended*)getUserData(sig);
-    if (p == gGlobal->gPowPrim) {
+    if (p == sigs::g.gPowPrim) {
         if (isSigInt(sig->branch(1), &n)) {
             x = sig->branch(0);
             // cerr << "factor of isSigPow " << *x << endl;
@@ -131,7 +131,7 @@ static bool isSigPow(Tree sig, Tree& x, int& n)
  */
 static Tree sigPow(Tree x, int p)
 {
-    return tree(gGlobal->gPowPrim->symbol(), x, sigInt(p));
+    return tree(sigs::g.gPowPrim->symbol(), x, sigInt(p));
 }
 
 /**
@@ -143,7 +143,7 @@ const mterm& mterm::operator*=(Tree t)
     int  op, n;
     Tree x, y;
 
-    faustassert(t);
+    TLIB_ASSERT(t);
 
     if (isNum(t)) {
         fCoef = mulNums(fCoef, t);
@@ -176,13 +176,13 @@ const mterm& mterm::operator/=(Tree t)
     int  op, n;
     Tree x, y;
 
-    faustassert(t);
+    TLIB_ASSERT(t);
 
     if (isNum(t)) {
         if (isZero(t)) {
             stringstream error;
             error << "ERROR : division by 0 in " << *this << " / " << ppsig(t) << endl;
-            throw faustexception(error.str());
+            tlib::error(error.str());
         }
         fCoef = divExtendedNums(fCoef, t);
 
@@ -248,7 +248,7 @@ const mterm& mterm::operator+=(const mterm& m)
         // only add mterms of same signature
         Tree s1 = signatureTree();
         Tree s2 = m.signatureTree();
-        faustassert(s1 == s2);
+        TLIB_ASSERT(s1 == s2);
         fCoef = addNums(fCoef, m.fCoef);
     }
     cleanup();
@@ -271,7 +271,7 @@ const mterm& mterm::operator-=(const mterm& m)
         // only add mterms of same signature
         Tree s1 = signatureTree();
         Tree s2 = m.signatureTree();
-        faustassert(s1 == s2);
+        TLIB_ASSERT(s1 == s2);
         fCoef = subNums(fCoef, m.fCoef);
     }
     cleanup();
@@ -300,7 +300,7 @@ const mterm& mterm::operator/=(const mterm& m)
     if (m.fCoef == nullptr) {
         stringstream error;
         error << "ERROR : division by 0 in " << *this << " / " << m << endl;
-        throw faustexception(error.str());
+        tlib::error(error.str());
     }
     fCoef = divExtendedNums(fCoef, m.fCoef);
     for (const auto& p : m.fFactors) {
@@ -423,8 +423,8 @@ bool mterm::hasDivisor(const mterm& n) const
  */
 static Tree buildPowTerm(Tree f, int q)
 {
-    faustassert(f);
-    faustassert(q > 0);
+    TLIB_ASSERT(f);
+    TLIB_ASSERT(q > 0);
     if (q > 1) {
         return sigPow(f, q);
     } else {
@@ -443,7 +443,7 @@ static void combineMulLeft(Tree& R, Tree A)
         R = A;
     } else {
         cerr << "ERROR : combineMulLeft\n";
-        faustassert(false);
+        TLIB_ASSERT(false);
     }
 }
 
@@ -458,7 +458,7 @@ static void combineDivLeft(Tree& R, Tree A)
         R = sigDiv(tree(1.0f), A);
     } else {
         cerr << "ERROR : combineDivLeft\n";
-        faustassert(false);
+        TLIB_ASSERT(false);
     }
 }
 
@@ -471,7 +471,7 @@ static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
     cerr << "combineMulDiv (" << M << "/" << D << "*" << ppsig(f) << "**" << q << endl;
 #endif
     if (f) {
-        faustassert(q != 0);
+        TLIB_ASSERT(q != 0);
         if (q > 0) {
             combineMulLeft(M, buildPowTerm(f, q));
         } else if (q < 0) {
@@ -539,8 +539,8 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
             cerr << "B[0] == " << *B[0] << endl;
         }
         // in principle here zero order is empty because it corresponds to the numerical coef
-        faustassert(A[0] == nullptr);
-        faustassert(B[0] == nullptr);
+        TLIB_ASSERT(A[0] == nullptr);
+        TLIB_ASSERT(B[0] == nullptr);
 #endif
 
         // we only use a coeficient if it differs from 1 and if we are not in signature mode
@@ -579,7 +579,7 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
             RR = tree(1);  // to check *******************
         }
 
-        faustassert(RR);
+        TLIB_ASSERT(RR);
 #ifdef TRACE
         cout << "Normalized Tree of " << *this << " is " << ppsig(RR) << endl;
 #endif

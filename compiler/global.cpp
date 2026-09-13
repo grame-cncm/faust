@@ -562,6 +562,12 @@ void global::reset()
     gMemoryManager = -1;
 
     gLocalCausalityCheck = false;
+
+    sigs::g.gStartTiming = startTiming;
+
+    sigs::g.gEndTiming   = endTiming;
+
+    sigs::g.gSigNoNorm   = global::isOpt("FAUST_SIG_NO_NORM");
     gCausality           = false;
 
     gFoldingFlag = false;

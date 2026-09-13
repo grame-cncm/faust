@@ -43,12 +43,7 @@ static const char* floatname[5];        // float types
 static const char* floatptrname[5];     // float ptr types
 static const char* floatptrptrname[5];  // float ptr ptr types
 static const char* castname[5];         // float castings
-static double      floatmin[5];         // minimum float values before denormals
 
-// Despite its historical name, floatmax contains the IEEE-754 exponent masks used by
-// -ftz 2, not maximum finite values. The integer IR printers render these masks in decimal:
-// binary32 0x7F800000 -> 2139095040, binary64 0x7FF0000000000000 -> 9218868437227405312.
-static int64_t floatmax[5];
 
 void initFaustFloat()
 {
@@ -92,18 +87,6 @@ void initFaustFloat()
         castname[3] = "(dummy)";
         castname[4] = "(dummy)";
 
-        floatmin[0] = 0;
-        floatmin[1] = FLT_MIN;
-        floatmin[2] = DBL_MIN;
-        floatmin[3] = LDBL_MIN;
-        floatmin[4] = FLT_MIN;
-
-        floatmax[0] = 0;
-        floatmax[1] = 0x7F800000;
-        floatmax[2] = 0x7FF0000000000000;
-        floatmax[3] = 0x7FF0000000000000;
-        floatmax[4] = 0x7F800000;
-
         // Specific for Julia backend
     } else if (gGlobal->gOutputLang == "julia") {
         numsuffix[0] = "";
@@ -135,18 +118,6 @@ void initFaustFloat()
         castname[2] = "(Float64)";
         castname[3] = "(dummy)";
         castname[4] = "(dummy)";
-
-        floatmin[0] = 0;
-        floatmin[1] = FLT_MIN;
-        floatmin[2] = DBL_MIN;
-        floatmin[3] = LDBL_MIN;
-        floatmin[4] = FLT_MIN;
-
-        floatmax[0] = 0;
-        floatmax[1] = 0x7F800000;
-        floatmax[2] = 0x7FF0000000000000;
-        floatmax[3] = 0x7FF0000000000000;
-        floatmax[4] = 0x7F800000;
 
         // Specific for NNX/Linen backends
     } else if (gGlobal->isPythonBackend()) {
@@ -180,18 +151,6 @@ void initFaustFloat()
         castname[3] = "(dummy)";
         castname[4] = "(dummy)";
 
-        floatmin[0] = 0;
-        floatmin[1] = FLT_MIN;
-        floatmin[2] = DBL_MIN;
-        floatmin[3] = LDBL_MIN;
-        floatmin[4] = FLT_MIN;
-
-        floatmax[0] = 0;
-        floatmax[1] = 0x7F800000;
-        floatmax[2] = 0x7FF0000000000000;
-        floatmax[3] = 0x7FF0000000000000;
-        floatmax[4] = 0x7F800000;
-
         // Specific for D backend
     } else if (gGlobal->gOutputLang == "dlang") {
         numsuffix[0] = "";
@@ -223,18 +182,6 @@ void initFaustFloat()
         castname[2] = "cast(double)";
         castname[3] = "cast(real)";
         castname[4] = "cast(dummy)";
-
-        floatmin[0] = 0;
-        floatmin[1] = FLT_MIN;
-        floatmin[2] = DBL_MIN;
-        floatmin[3] = LDBL_MIN;
-        floatmin[4] = FLT_MIN;
-
-        floatmax[0] = 0;
-        floatmax[1] = 0x7F800000;
-        floatmax[2] = 0x7FF0000000000000;
-        floatmax[3] = 0x7FF0000000000000;
-        floatmax[4] = 0x7F800000;
 
         // Specific for AssemblyScript backend
     } else if (gGlobal->gOutputLang == "asc") {
@@ -268,18 +215,6 @@ void initFaustFloat()
         castname[3] = "(dummy)";
         castname[4] = "(dummy)";
 
-        floatmin[0] = 0;
-        floatmin[1] = FLT_MIN;
-        floatmin[2] = DBL_MIN;
-        floatmin[3] = LDBL_MIN;
-        floatmin[4] = FLT_MIN;
-
-        floatmax[0] = 0;
-        floatmax[1] = 0x7F800000;
-        floatmax[2] = 0x7FF0000000000000;
-        floatmax[3] = 0x7FF0000000000000;
-        floatmax[4] = 0x7F800000;
-
         // Specific for C/C++ backends
     } else {
         numsuffix[0] = "";
@@ -311,18 +246,6 @@ void initFaustFloat()
         castname[2] = "(double)";
         castname[3] = "(quad)";
         castname[4] = "(fixpoint_t)";
-
-        floatmin[0] = 0;
-        floatmin[1] = FLT_MIN;
-        floatmin[2] = DBL_MIN;
-        floatmin[3] = LDBL_MIN;
-        floatmin[4] = FLT_MIN;
-
-        floatmax[0] = 0;
-        floatmax[1] = 0x7F800000;
-        floatmax[2] = 0x7FF0000000000000;
-        floatmax[3] = 0x7FF0000000000000;
-        floatmax[4] = 0x7F800000;
     }
 }
 
@@ -360,12 +283,12 @@ const char* icast()
 
 double inummin()
 {
-    return floatmin[gGlobal->gFloatSize];
+    return sigs::inummin();
 }
 
 int64_t inummax()
 {
-    return floatmax[gGlobal->gFloatSize];
+    return sigs::inummax();
 }
 
 const char* xfloat()

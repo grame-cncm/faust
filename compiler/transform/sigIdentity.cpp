@@ -20,12 +20,11 @@
  ************************************************************************/
 
 #include "sigIdentity.hh"
-#include "Text.hh"
 
 #include <stdlib.h>
 #include <cstdlib>
 
-#include "global.hh"
+#include "sigs-state.hh"
 #include "ppsig.hh"
 #include "signals.hh"
 
@@ -38,13 +37,13 @@ using namespace std;
 
 void SignalIdentity::traceEnter(Tree t)
 {
-    tab(fIndent, cerr);
+    sigs::tab(fIndent, cerr);
     cerr << fMessage << ": " << ppsig(t, MAX_ERROR_SIZE) << endl;
 }
 
 void SignalIdentity::traceExit(Tree t, Tree r)
 {
-    tab(fIndent, cerr);
+    sigs::tab(fIndent, cerr);
     cerr << fMessage << ": " << ppsig(t, MAX_ERROR_SIZE) << " => " << ppsig(r, MAX_ERROR_SIZE)
          << endl;
 }
@@ -95,7 +94,7 @@ Tree SignalIdentity::transformation(Tree sig)
 
     // Tables
     else if (isSigWRTbl(sig, w, x, y, z)) {
-        if (y == gGlobal->nil) {
+        if (y == nil()) {
             // rdtable
             return sigWRTbl(self(w), self(x));
         } else {
@@ -138,7 +137,7 @@ Tree SignalIdentity::transformation(Tree sig)
             return sig;
         } else {
             // first visit
-            rec(var, gGlobal->nil);  // to avoid infinite recursions
+            rec(var, nil());  // to avoid infinite recursions
             return rec(var, mapselfRec(le));
         }
     }
@@ -229,7 +228,7 @@ Tree SignalIdentity::transformation(Tree sig)
 
     else {
         cerr << "ASSERT : unrecognized signal : " << *sig << endl;
-        faustassert(false);
+        TLIB_ASSERT(false);
     }
     return 0;
 }

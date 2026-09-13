@@ -22,8 +22,8 @@
 #include <stdlib.h>
 #include <cstdlib>
 
+#include "sigs-state.hh"
 #include "list.hh"
-#include "Text.hh"
 #include "treeTransform.hh"
 
 using namespace std;
@@ -58,7 +58,7 @@ Tree TreeTransform::self(Tree t)
 void TreeTransform::traceMsg(std::string msg)
 {
     if (fTrace) {
-        tab(fIndent, cerr);
+        sigs::tab(fIndent, cerr);
         cerr << msg << endl;
     }
 }
@@ -66,20 +66,20 @@ void TreeTransform::traceMsg(std::string msg)
 void TreeTransform::traceMsg(std::string msg, Tree t)
 {
     if (fTrace) {
-        tab(fIndent, cerr);
+        sigs::tab(fIndent, cerr);
         cerr << msg << ": " << *t << endl;
     }
 }
 
 void TreeTransform::traceEnter(Tree t)
 {
-    tab(fIndent, cerr);
+    sigs::tab(fIndent, cerr);
     cerr << fMessage << ": " << *t << endl;
 }
 
 void TreeTransform::traceExit(Tree t, Tree r)
 {
-    tab(fIndent, cerr);
+    sigs::tab(fIndent, cerr);
     cerr << fMessage << ": " << *t << " ==> " << *r << endl;
 }
 

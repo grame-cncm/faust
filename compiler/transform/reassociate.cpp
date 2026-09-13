@@ -5,7 +5,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "global.hh"
+#include "sigs-state.hh"
 
 //----------------------------------------------------------------------
 // Late state-join reassociation
@@ -141,7 +141,7 @@ Tree reassociate(Tree lsig)
             for (int j = 0; j < n; j++) {
                 defs.push_back(build(nth(body, j), (n == 1) ? oldp[j] : nullptr));
             }
-            Tree body2 = gGlobal->nil;
+            Tree body2 = nil();
             for (auto it2 = defs.rbegin(); it2 != defs.rend(); ++it2) {
                 body2 = cons(*it2, body2);
             }

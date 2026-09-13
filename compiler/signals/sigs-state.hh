@@ -190,10 +190,56 @@ struct State {
     /// dispatch signature dies with the tlib session, so its lifetime is one
     /// compilation. The sigXXX constructors are a facade over it.
     TreeAlgebra* gTreeAlgebra{};
+
+    /// --- options read by the normal form and the signal transformations ---
+    /// (bound by reference from the compiler's global ; a standalone session
+    /// sets them directly)
+    bool                                        gLocalCausalityCheck{};  // -lcc option, local causality errors on negative delays
+    int                                         gFTZMode{};  // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based
+    bool                                        gCheckIntRange{};  // -cir option, check float to integer range conversion
+    bool                                        gCheckTable{};  // -ct option, check rtable/rwtable index range
+    bool                                        gEtaHarvest{};  // -eta option, normalization loop with the eta harvest
+    int                                         gEtaIterations{};  // -etai option, iteration budget of the normalization loop
+    bool                                        gEtaRegroup{};  // -etar option, re-partition the letrecs along the projection SCCs
+    bool                                        gFreezeUI{};  // -fui option, freeze vslider/hslider/nentry to their initial value
+    bool                                        gRangeUI{};  // -rui option, limit vslider/hslider/nentry values to their range
+    bool                                        gMathExceptions{};  // -me option, check math functions domains
+    bool                                        gVectorSwitch{};  // -vec option
+    bool                                        gSigNoNorm{};  // FAUST_SIG_NO_NORM in FAUST_OPT : no additive normal form (a debugging switch)
+
+    /// state of the normal form and of the recursive-dependency analysis
+    std::unordered_map<Tree, Tree>                gSimplifiedMemo;
+    std::unordered_map<Tree, std::set<Tree, treeorder>> gDependencies;
+
+    /// property keys of the normal form (created by the session's init, in its order)
+    Tree                                        NORMALFORM{};
+    Tree                                        DOCTABLES{};
+    Tree                                        NULLENV{};
+
+    /// timing hooks : the compiler measures its passes through them, a
+    /// standalone session leaves them null
+    /// the warnings the transformations emit (the compiler reports them), and
+    /// whether every warning is wanted (-wall)
+    std::vector<std::string>                    gWarningMessages;
+    bool                                        gAllWarning{};
+
+    void (*gStartTiming)(const char*){};
+    void (*gEndTiming)(const char*){};
 };
+
 
 /// The state of the signal library (one per process, like tlib).
 SIGS_API extern State g;
+
+inline void startTiming(const char* msg) { if (g.gStartTiming) g.gStartTiming(msg); }
+inline void endTiming(const char* msg) { if (g.gEndTiming) g.gEndTiming(msg); }
+
+/// n tabs on a stream (the indentation of the transformation traces)
+inline void tab(int n, std::ostream& out) { while (n-- > 0) out << '\t'; }
+
+/// the range of the integer part of a float of the session's precision (gFloatSize)
+SIGS_API double  inummin();
+SIGS_API int64_t inummax();
 
 /// The initial algebra of the current session (built by initSignalSymbols()).
 SIGS_API const TreeAlgebra& algebra();

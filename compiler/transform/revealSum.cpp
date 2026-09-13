@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "global.hh"
+#include "sigs-state.hh"
 #include "revealSum.hh"
 #include "rewrite.hh"
 #include "sigs-state.hh"

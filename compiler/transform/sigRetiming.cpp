@@ -24,7 +24,7 @@
 #include <sstream>
 #include <vector>
 
-#include "global.hh"
+#include "sigs-state.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
 #include "sigPromotion.hh"
@@ -214,7 +214,7 @@ Tree SignalRetimer::transformation(Tree sig)
 
     // Tables
     else if (isSigWRTbl(sig, w, x, y, z)) {
-        if (y == gGlobal->nil) {
+        if (y == nil()) {
             // rdtable
             Tree w2      = self(w);
             Tree x2      = self(x);
@@ -300,7 +300,7 @@ Tree SignalRetimer::transformation(Tree sig)
         } else {
             // first visit
             Tree var2    = tree(Node(unique("RT")));  // New name for the transformed rec group
-            fRecVar[sig] = rec(var2, gGlobal->nil);   // temporary result to avoid infinite loops
+            fRecVar[sig] = rec(var2, nil());   // temporary result to avoid infinite loops
             Tree le2     = mapself(le);
             Tree res     = rec(var2, le2);
             fRecVar[sig] = res;  // not needed, but for clarity
@@ -400,12 +400,12 @@ Tree SignalRetimer::transformation(Tree sig)
 
     else if (isSigRegister(sig, &i, x)) {
         std::cerr << "ASSERT : already retimed : " << *sig << std::endl;
-        faustassert(false);
+        TLIB_ASSERT(false);
     }
 
     else {
         std::cerr << "ASSERT : unrecognized signal : " << *sig << std::endl;
-        faustassert(false);
+        TLIB_ASSERT(false);
     }
     return 0;
 }

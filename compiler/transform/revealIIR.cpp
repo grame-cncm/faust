@@ -8,7 +8,7 @@
 
 #include "DirectedGraph.hh"
 #include "DirectedGraphAlgorythm.hh"
-#include "global.hh"
+#include "sigs-state.hh"
 #include "ppsig.hh"
 #include "rewrite.hh"
 #include "sigFIR.hh"
@@ -256,7 +256,7 @@ Tree revealIIR(Tree L1)
         }
 
         tvec coef1;
-        faustassert(isSigFIR(R[0], coef1));
+        TLIB_ASSERT(isSigFIR(R[0], coef1));
         // The COEFFICIENTS must be slow rate : an audio-rate coefficient
         // (state or input dependent) makes a nonlinear or time-varying
         // kernel, not an IIR. O(1) by the synthesized bit. This is a
@@ -274,7 +274,7 @@ Tree revealIIR(Tree L1)
             return (it != memo.end()) ? it->second : nullptr;
         };
         tvec coef2;
-        coef2.push_back(gGlobal->nil);
+        coef2.push_back(nil());
         if (L.size() == 1) {
             Tree in = image(L[0]);
             if (!in) {

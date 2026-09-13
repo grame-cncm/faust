@@ -25,7 +25,7 @@
 
 #include "aterm.hh"
 #include "sigs-state.hh"
-#include "exception.hh"
+#include "tlib-error.hh"
 #include "mterm.hh"
 #include "normalize.hh"
 #include "ppsig.hh"

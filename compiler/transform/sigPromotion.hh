@@ -31,7 +31,7 @@
 #include "sigIdentity.hh"
 #include "signalVisitor.hh"
 #include "sigtyperules.hh"
-#include "global.hh"
+#include "sigs-state.hh"
 
 /*
  Print the type of a signal.

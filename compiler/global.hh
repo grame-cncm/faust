@@ -89,8 +89,8 @@ typedef std::map<Tree, std::set<Tree, treeorder>, comp_str> MetaDataSet;
 typedef std::map<Tree, std::set<Tree, treeorder>, treeorder>           FunMDSet;  // foo -> {(file/foo/key,value)...}
 
 // Global outside of the global context
-extern std::vector<std::string> gWarningMessages;
-extern bool                     gAllWarning;
+extern std::vector<std::string>& gWarningMessages;  // sigs::g.gWarningMessages
+extern bool&                    gAllWarning;       // sigs::g.gAllWarning
 
 #ifdef FIR_BUILD
 #define FAUST_STATS_DO(stmt)                            \
@@ -250,8 +250,8 @@ struct global {
     bool        gRustNoTraitSwitch;    // -rnt option
     bool        gRustNoLibm;           // -rnlm option
     int         gDumpNorm;             // -norm option
-    bool        gMathExceptions;       // -me option, whether to check math functions domains
-    bool gLocalCausalityCheck;  // -lcc option, when true trigs local causality errors (negative
+    bool&        gMathExceptions = sigs::g.gMathExceptions;       // -me option, whether to check math functions domains
+    bool& gLocalCausalityCheck = sigs::g.gLocalCausalityCheck;  // -lcc option, when true trigs local causality errors (negative
                                 // delay)
     bool gGraphSwitch;          // -tg option
     bool gDrawPSSwitch;         // -ps option
@@ -265,7 +265,7 @@ struct global {
     bool gExportDSP;            // -e option
 
     // code generation options
-    bool gVectorSwitch;       // -vec option
+    bool& gVectorSwitch = sigs::g.gVectorSwitch;       // -vec option
     bool gDeepFirstSwitch;    // -dfs option
     int  gVecSize;            // -vs option
     int  gVectorLoopVariant;  // -lv [0|1] option
@@ -289,16 +289,16 @@ struct global {
     bool gNoVirtual;  // -nvi option, when compiled with the C++ backend, does not add the 'virtual'
                       // keyword
     int  gMemoryManager;  // -memX options
-    bool gRangeUI;   // -rui option, whether to generate code to limit vslider/hslider/nentry values
+    bool& gRangeUI = sigs::g.gRangeUI;   // -rui option, whether to generate code to limit vslider/hslider/nentry values
                      // in [min..max] range
-    bool gFreezeUI;  // -fui option, whether to freeze vslider/hslider/nentry to a given value (init
+    bool& gFreezeUI = sigs::g.gFreezeUI;  // -fui option, whether to freeze vslider/hslider/nentry to a given value (init
                      // value by default)
-    bool gEtaHarvest;     // -eta option, normalization loop with the eta harvest (a projection
+    bool& gEtaHarvest = sigs::g.gEtaHarvest;     // -eta option, normalization loop with the eta harvest (a projection
                           // whose definition no longer references its group is replaced by the
                           // definition: the recursion and its state disappear)
-    int  gEtaIterations;  // -etai option, iteration budget of the normalization loop (default 1;
+    int&  gEtaIterations = sigs::g.gEtaIterations;  // -etai option, iteration budget of the normalization loop (default 1;
                           // the AC judge may stop earlier)
-    bool gEtaRegroup;     // -etar option, re-partition the letrecs along the projection SCCs
+    bool& gEtaRegroup = sigs::g.gEtaRegroup;     // -etar option, re-partition the letrecs along the projection SCCs
                           // inside the normalization loop (implies -eta)
     int  gStagingOps;     // -stage <n> option, ocpp emission : a single-use expression of n
                           // operations or more gains a temporary (0 = inline whatever the size)
@@ -357,7 +357,7 @@ struct global {
                            // oracle (the spill proxy, default 4)
     int  gLSLoadW;         // -ls-load option: issue slots charged per buffer load in the oracle
                            // (0 = loads free, default 1)
-    int  gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
+    int&  gFTZMode = sigs::g.gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
     double gHashLoadFactor;  // -hlf option, tlib CTree/Symbol hash table growth threshold
                               // (0.7 by default, see TLIB.md §1) : purely an internal
                               // compiler performance knob, never affects generated code
@@ -372,7 +372,7 @@ struct global {
                       // auto-vectorization
     bool gFullParentheses;  // -fp option, generate less parenthesis in some textual backends:
                             // C/C++, Cmajor, Dlang, Rust
-    bool gCheckIntRange;    // -cir option, check float to integer range conversion
+    bool& gCheckIntRange = sigs::g.gCheckIntRange;    // -cir option, check float to integer range conversion
     bool gReprC;            // (Rust) Force dsp struct layout to follow C ABI
 
     std::string gClassName;       // -cn option, name of the generated dsp class, by default 'mydsp'
@@ -382,7 +382,7 @@ struct global {
                                   // inherits from, by default 'dsp'
 
     // Debug option
-    bool gCheckTable;  // -ct to check rtable/rwtable index range and generate safe access code
+    bool& gCheckTable = sigs::g.gCheckTable;  // -ct to check rtable/rwtable index range and generate safe access code
                        // (0/1: 1 by default)
 
     // Backend configuration
@@ -432,7 +432,7 @@ struct global {
     bool gLstMdocTagsSwitch;      // mdoc listing management
     bool gLstDistributedSwitch;   // mdoc listing management
 
-    std::unordered_map<Tree, std::set<Tree, treeorder>> gDependencies;
+    std::unordered_map<Tree, std::set<Tree, treeorder>>& gDependencies = sigs::g.gDependencies;
 
 
     // Automatic documentation
@@ -508,12 +508,12 @@ struct global {
     Tree SIMPLIFIED;
     // Cross-call memo of simplify (a pure-function cache: original -> simplified).
     // Lives and dies with gGlobal, so one compilation never sees another's trees.
-    std::unordered_map<Tree, Tree> gSimplifiedMemo;
-    Tree DOCTABLES;
-    Tree NULLENV;
+    std::unordered_map<Tree, Tree>& gSimplifiedMemo = sigs::g.gSimplifiedMemo;
+    Tree& DOCTABLES = sigs::g.DOCTABLES;
+    Tree& NULLENV = sigs::g.NULLENV;
     Tree COLORPROPERTY;
     Tree& RECURSIVNESS = sigs::g.RECURSIVNESS;
-    Tree NORMALFORM;
+    Tree& NORMALFORM = sigs::g.NORMALFORM;
     Tree DEFNAMEPROPERTY;
     Tree NICKNAMEPROPERTY;
     Tree BCOMPLEXITY;  // Node used for memoization purposes
