@@ -22,8 +22,8 @@
 #include <stdlib.h>
 #include <cstdlib>
 
-#include "Text.hh"
 #include "list.hh"
+#include "Text.hh"
 #include "treeTransform.hh"
 
 using namespace std;

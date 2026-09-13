@@ -37,6 +37,7 @@
  * @brief Implementation of documentation trees support and printing.
  */
 
+#include "print_api.hh"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>

@@ -19,12 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
+#include <fstream>
+
 #include "signal2Elementary.hh"
 
 #include <stdlib.h>
 #include <cstdlib>
 
-#include "Text.hh"
 #include "global.hh"
 
 using namespace std;

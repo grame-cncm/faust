@@ -60,7 +60,6 @@ LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist);
  *
  * @return the printed signal as a string
  */
-LIBFAUST_API std::string printSignal(Tree sig, bool shared, int max_size);
 
 /**
  * Print the box.
@@ -72,6 +71,5 @@ LIBFAUST_API std::string printSignal(Tree sig, bool shared, int max_size);
  *
  * @return the printed box as a string
  */
-LIBFAUST_API std::string printBox(Tree box, bool shared, int max_size);
 
 #endif

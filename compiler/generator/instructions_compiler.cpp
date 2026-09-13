@@ -32,6 +32,7 @@
 #include "interpreter_code_container.hh"
 #include "nnx_base_instructions.hh"
 #include "normalform.hh"
+#include "print_api.hh"
 #include "prim2.hh"
 #include "recursivness.hh"
 #include "sharing.hh"

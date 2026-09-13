@@ -51,6 +51,7 @@
 #include "labels.hh"
 #include "libfaust.h"
 #include "normalform.hh"
+#include "print_api.hh"
 #include "ppbox.hh"
 #include "ppsig.hh"
 #include "propagate.hh"

@@ -22,7 +22,6 @@
 #include "signalVisitor.hh"
 
 #include <cstdlib>
-#include "Text.hh"
 #include "global.hh"
 #include "property.hh"
 #include "signalVisitor.hh"

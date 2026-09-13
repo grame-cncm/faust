@@ -27,7 +27,6 @@
 #include <string>
 #include <vector>
 
-#include "description.hh"
 #include "ppsig.hh"
 #include "sigIdentity.hh"
 #include "signalVisitor.hh"
