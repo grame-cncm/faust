@@ -153,6 +153,29 @@ void init()
 
     // Property keys
     g.RECURSIVNESS = tree(symbol("RecursivnessProp"));
+    g.DOCTABLES    = tree(symbol("DocTablesProp"));
+    g.NULLENV      = tree(symbol("NullRenameEnv"));
+    g.NORMALFORM   = tree(symbol("NormalForm"));
+    // State of the normal form and of the recursive-dependency analysis
+    g.gSimplifiedMemo.clear();
+    g.gDependencies.clear();
+    g.gWarningMessages.clear();
+    g.gStartTiming = nullptr;
+    g.gEndTiming   = nullptr;
+    // Option defaults of the normal form and the transformations (same values as global.cpp)
+    g.gLocalCausalityCheck = false;
+    g.gFTZMode             = 0;
+    g.gCheckIntRange       = false;
+    g.gCheckTable          = true;
+    g.gEtaHarvest          = false;
+    g.gEtaIterations       = 1;
+    g.gEtaRegroup          = false;
+    g.gFreezeUI            = false;
+    g.gRangeUI             = false;
+    g.gMathExceptions      = false;
+    g.gVectorSwitch        = false;
+    g.gAllWarning          = false;
+    g.gSigNoNorm           = false;
 
     // Session state
     g.TABBER = Tabber(1);

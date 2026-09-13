@@ -221,7 +221,7 @@ endif()
 # tlib is a standalone library (see compiler/tlib); its TLIB_API visibility
 # macro is mapped onto faust's LIBFAUST_API so the tlib symbols that belong to
 # the public libfaust API (isNil, tree2str, CTree...) keep being exported.
-set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DTLIB_EXPORT_HEADER=<faust/export.h> -DTLIB_API=LIBFAUST_API)
+set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DTLIB_EXPORT_HEADER=<faust/export.h> -DTLIB_API=LIBFAUST_API -DSIGS_EXPORT_HEADER=<faust/export.h> -DSIGS_API=LIBFAUST_API)
 
 if (MSVC)
 else()
