@@ -1,0 +1,16 @@
+karplus32	../impulse-tests/dsp/karplus32.dsp	-
+carre_volterra	../impulse-tests/dsp/carre_volterra.dsp	-
+freeverb	../impulse-tests/dsp/freeverb.dsp	-
+spectral_level	../impulse-tests/dsp/spectral_level.dsp	-
+virtual_analog_oscillators	../impulse-tests/dsp/virtual_analog_oscillators.dsp	-
+norm2	../impulse-tests/dsp/norm2.dsp	-
+zita_rev1	../impulse-tests/dsp/zita_rev1.dsp	-
+cubic_distortion	../impulse-tests/dsp/cubic_distortion.dsp	-
+parametric_eq	../impulse-tests/dsp/parametric_eq.dsp	-
+par_fir_32	../impulse-tests/dsp/par_fir_32.dsp	-
+fft_spectral_level_demo	../../libraries/tests/demos_tests.dsp	fft_spectral_level_demo_test
+algorithm4	../../libraries/tests/dx7_tests.dsp	algorithm4_test
+nlPluck	../../libraries/tests/mi_tests.dsp	nlPluck_test
+tu_interpolation	../../libraries/tests/tubes_tests.dsp	tu_interpolation_test
+bprod	../../libraries/tests/signals_tests.dsp	bprod_test
+waveguideFd4	../../libraries/tests/physmodels_tests.dsp	waveguideFd4_test

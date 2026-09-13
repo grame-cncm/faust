@@ -18,6 +18,10 @@ This document covers criteria 1 and 2. Criteria 3 and 4 obey different
 rules (paired measurement, named C++ judges, reserved machines) and belong
 to a separate document.
 
+A fifth property is checked by its own gate (Gate 3) : **the emitted code
+is reproducible** — for one commit of the compiler and one program it is
+the same, byte for byte, whatever C++ compiler and machine built faust.
+
 > **The central invariant.** There is **one** reference set. It is
 > produced once, by a trusted compiler, under the default options, and
 > *every* option set of the compiler under test is compared against it.
@@ -150,6 +154,97 @@ reintroduces it — would look identical to a branch that never had it.
 and `FAUST_OPT` its options (default: `-double -t 0`, i.e. the `cpp`
 backend in scalar mode). `FAUST_OPT` is also what `make reference` uses,
 so it defines the default options of the central invariant.
+
+## Gate 3 — determinism of the emitted code
+
+**What it checks.** One commit of the compiler, one program, the same
+options and the same libraries : the emitted code must be identical, byte
+for byte, whether faust was built by g++ or by clang, on Linux or on
+macOS. The compiler's trees carry a serial number given at creation, and
+every order the compiler reads — sets, the normal forms of sums and
+products, the members of a recursive group — is that creation order. When
+two arguments of one call both create trees, the C++ compiler that built
+faust chooses which is created first (the evaluation order of function
+arguments is unspecified ; GCC evaluates right to left, clang left to
+right), and the emitted code follows. Before the fix of September 2026,
+771 of 1332 programs came out differently from a g++ build and a clang
+build of the same commit.
+
+**Why one build cannot check it.** The order the code fixes is left to
+right, clang's order : a developer who builds faust with clang produces
+the reference code whatever they write. Only a right-to-left compiler or
+the static check below can see a new violation. Measured with the probe
+`tests/determinism/order.cpp` : GCC on x86-64 evaluates right to left ;
+clang, on x86-64 as on arm64, and GCC on arm64 (MacPorts gcc15 on a Mac)
+evaluate left to right. A pair of two left-to-right compilers is blind to
+this family (`build-two.sh` says so) : on an arm64 Mac, run the lint, or
+compare against a binary built with g++ on an x86-64 Linux machine.
+
+**The rule for the code.** When two arguments of one call — or two
+operands of one unsequenced operator — build trees, directly or through
+a function that does (`getFreshID` and `unique` included), compute them
+in separate statements, left to right, then call :
+
+```cpp
+// not this                              // this
+return boxSeq(boxPar(a, b), boxAdd());   Tree p = boxPar(a, b);
+                                         Tree s = boxAdd();
+                                         return boxSeq(p, s);
+```
+
+Operators the standard sequences since C++17 (`<<`, `>>`, `=`, the
+compound assignments, `[]`, `&&`, `||`, the comma) and braced
+initializer lists are not concerned. The build requires C++17 for this
+reason.
+
+**How to run it.** Everything is in `tests/determinism/` :
+
+```
+make -C tests/determinism binaries            # builds faust twice, with g++ and clang++
+                                              # (CXX_A=..., CXX_B=... to choose ; two full builds)
+make -C tests/determinism check               # the witnesses by both binaries, compared
+make -C tests/determinism check FAUST_A=/path/faust-1 FAUST_B=/path/faust-2
+make -C tests/determinism lint                # the static check, no second compiler needed
+```
+
+`check` generates sixteen witness programs — chosen among those that
+diverged most before the fix, one per family of sites, and a few tiny
+ones for speed — under six option sets (`-lang cpp` and `-lang ocpp`,
+scalar and `-vec`, then `-ftz 2` and ocpp `-fir`) with both binaries, and
+compares the outputs byte for byte. It takes seconds once the binaries
+exist. Expected : every cell `same`, exit status 0. A `DIFF` means the
+emitted code depends on how faust was built ; the outputs are left in
+`tests/determinism/out/{a,b}` for a diff. A generation that fails on both
+sides is not a verdict (exit status 2). The `-I` paths are relative so
+that the `compile_options` string the emitted code quotes is the same on
+both sides ; the same trick lets outputs of two machines be compared :
+`make -C tests/determinism fingerprint > mac.txt` on one machine, `make
+-C tests/determinism compare FILE=mac.txt` on the other — the witnesses
+that fold constants through the host's libm are reported apart.
+
+`lint` runs `tests/determinism/lint/unsequenced.py` on `compiler/` : it
+computes Fx, the set of functions that reach a tree creation or a fresh
+name (1800 of the compiler's 8200 functions), and lists every call or unsequenced operator whose
+operands reach Fx twice — the line to fix. It needs the clang python
+bindings and a matching libclang (`LIBCLANG` and `CLANG_RESOURCE_DIR`
+when the defaults do not find them) and runs in a minute or two. Expected
+: no site, exit status 0. The lint has blind spots (indirect calls,
+function pointers, units it cannot parse — it lists them) ; `check` is
+the judge, the lint is the finger.
+
+A second, older lint covers the other family of non-determinism, the
+orders by address : `make -C build ... NONDETERMINISM_LINT=yes` builds
+with a clang plugin (`build/lint.query`) that warns on every comparison
+of `CTree*` or `Symbol*` pointers.
+
+**Known residual, across machines.** Eleven programs of the library
+corpus (the bells, `rotate`, `iBasicDecoder`, `colored_noise`,
+`fft_spectral_level_demo`, `true_peak`) differ between macOS and Linux
+by one constant at the last ulp : the compiler folds constants with the
+`pow`, `tan`, `sin`, `cos` of the host's C library, and glibc and Apple's
+libm do not agree on the last bit. Not FMA (`-ffp-contract=off` changes
+nothing). A cross-machine comparison must expect exactly these ; a
+cross-compiler comparison on one machine must expect none.
 
 ## What actually decides what is being tested
 
