@@ -68,8 +68,8 @@ endif()
 
 ####################################
 # source and headers files
-file (GLOB SRC ${SRCDIR}/*.cpp ${SRCDIR}/*/*.cpp ${SRCDIR}/draw/*/*.cpp)
-file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh)
+file (GLOB SRC ${SRCDIR}/*.cpp ${SRCDIR}/*/*.cpp ${SRCDIR}/draw/*/*.cpp ${SRCDIR}/signals/*/*.cpp)
+file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh ${SRCDIR}/signals/*/*.hh)
 
 ####################################
 # include directories
@@ -90,9 +90,11 @@ set (FAUST_INC ${SRCDIR}
     ${SRCDIR}/generator/rust
     ${SRCDIR}/generator/cmajor
     ${SRCDIR}/generator/vhdl
-    ${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser
-    ${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals
-    ${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils
+    ${SRCDIR}/parallelize ${SRCDIR}/parser
+    ${SRCDIR}/patternmatcher ${SRCDIR}/propagate
+    ${SRCDIR}/signals/terms ${SRCDIR}/signals/types ${SRCDIR}/signals/traverse ${SRCDIR}/signals/analysis
+    ${SRCDIR}/signals/normalize ${SRCDIR}/signals/forms ${SRCDIR}/signals/passes ${SRCDIR}/signals/session
+    ${SRCDIR}/tlib ${SRCDIR}/utils
     ${SRCDIR}/draw/device ${SRCDIR}/draw/schema
     ${SRCDIR}/../architecture /usr/local/include)
 
