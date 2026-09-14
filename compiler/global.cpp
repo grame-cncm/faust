@@ -476,6 +476,8 @@ void global::reset()
     gLSConstLive    = false;
     gLSSchedRegisters = -1;
     gLSAdopt        = false;
+    gLSTileK        = 0;
+    gLSTileD        = 0;
     gLSFuseOps      = 1024;
     gMinDelay       = 0;
     gLSCl           = 20;
@@ -892,6 +894,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         if (gLSFuse) {
             dst << "-ls-fuse -ls-fuse-ops " << gLSFuseOps << (gLSLatency > 0 ? " -ls-latency " + std::to_string(gLSLatency) : std::string()) << (gLSRegClasses ? " -ls-regs3" : "") << (gLSRegState ? " -ls-regstate" : "") << " -ls-cl " << gLSCl
                 << " -ls-spill " << gLSSpillW << " -ls-load " << gLSLoadW << " ";
+        }
+        if (gLSTileK > 0) {
+            dst << "-ls-tile " << gLSTileK << "," << gLSTileD << " ";
         }
     }
     if (gNoVirtual) {
@@ -1323,6 +1328,15 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
     } else if (isCmd(arg, "-ls-adopt", "--loop-split-adopt-outputs")) {
         state.gLSAdopt = true;
         i += 1;
+    } else if (isCmd(arg, "-ls-tile", "--loop-split-tile")) {
+        // k,d : the forced tiling of every detected family (calibration, no oracle)
+        int k = 0, d = 0;
+        if (sscanf(value, "%d,%d", &k, &d) != 2 || k < 1 || d < 1) {
+            throw faustexception("ERROR : -ls-tile expects k,d with k >= 1 and d >= 1\n");
+        }
+        state.gLSTileK = k;
+        state.gLSTileD = d;
+        i += 2;
     } else {
         return false;
     }
@@ -2622,6 +2636,10 @@ string global::printHelp()
     sstr << tab
          << "-ls-R <n>   --loop-split-registers <n>  register budget of the model scheduler "
             "(default 20, implies -ls)."
+         << endl;
+    sstr << tab
+         << "-ls-tile <k>,<d> --loop-split-tile <k>,<d>  force the (k, d) tiling of every detected "
+            "family of isomorphic chains, no oracle (the calibration of the tiles)."
          << endl;
     sstr << tab
          << "-ls-U <n>   --loop-split-width <n>      superscalar width of the model scheduler "

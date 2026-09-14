@@ -1876,6 +1876,15 @@ class LoopSplitEmitter {
     ScalarCompiler* fC;
     Klass*          fClass;
     SuperNodeGraph  fSN;  // the partition (single source of truth)
+    // A FAMILY (the tiles spec, LES-TUILES) : P isomorphic chains of S stages, read
+    // off the finest partition before any fusion move. rep[c][s] is a member of the
+    // block at chain c, stage s -- members are stable identities, block ids are not.
+    struct Family {
+        int                           P = 0, S = 0;
+        std::vector<std::vector<int>> rep;
+    };
+    std::vector<Family> detectFamilies(bool trace) const;
+    void tileFamilies(const std::vector<Family>& fams, int k, int d, bool trace);
 
     // per-buffer emission decisions (materialized index -> ...)
     std::vector<std::string> fBufName;
@@ -4164,6 +4173,231 @@ void LoopSplitEmitter::dumpSuperNodesDot(std::ostream& out)
     out << "}\n";
 }
 
+// ---- the families : bundles first (the width), their depth second ------------------
+//
+// A BUNDLE is a class of the partition refinement that starts from the shape
+// classes and splits a class as soon as two of its members differ by the
+// multiset of classes they read or feed, to the fixed point : the nodes that
+// nothing distinguishes, by computation or by context. A stereo pair lands in
+// one bundle, and what looked like fan-out at signal level is the bundle's
+// WIDTH, not a branching (LA-FORME-ET-LE-PARTAGE, section 3). On the examples,
+// 504 of the 539 tiles of width >= 2 are k x 1 : the width is the general case.
+//
+// A LINK u -> v is a read where v is u's only reader and u is v's only read,
+// among blocks : links form disjoint paths. Two bundles A and B EXTEND each
+// other when the links from A to B are a bijection ; a maximal chain of bundles
+// so extended is a family of P chains and S stages, chains numbered by the
+// serial of their first member (the order of everything else), stages by
+// position.
+std::vector<LoopSplitEmitter::Family> LoopSplitEmitter::detectFamilies(bool trace) const
+{
+    const std::vector<Tree>& mt = fSN.materialized();
+    // The shape must be blind to the names of recursive variables : two
+    // structurally identical filters carry distinct fresh symbols, and ocppShape
+    // keeps them. The de Bruijn form is alpha-invariant by construction and,
+    // being hash-consed, equal shapes are the same tree.
+    std::map<Tree, Tree, treeorder> db;
+    digraph<Tree>                   GT;
+    for (Tree t : mt) {
+        db[t] = sym2deBruijn(t);
+        GT.add(db[t]);
+    }
+    auto      shapeOf = ocppShapeFunctor(GT);
+    const int nb      = fSN.blockCount();
+    std::vector<std::string> sig(nb);
+    for (int b = 0; b < nb; b++) {
+        std::ostringstream os;
+        for (int m : fSN.blockMembers(b)) {
+            os << shapeOf(db[mt[m]]) << ",";
+        }
+        sig[b] = os.str();
+    }
+    std::vector<std::set<int>> succ(nb), pred(nb);
+    for (int b = 0; b < nb; b++) {
+        pred[b] = fSN.blockDeps(b);
+        succ[b] = fSN.blockConsumers(b);
+        pred[b].erase(b);
+        succ[b].erase(b);
+    }
+    // the bundles : partition refinement to the fixed point
+    std::vector<int> cls(nb, 0);
+    {
+        std::map<std::string, int> byShape;
+        for (int b = 0; b < nb; b++) {
+            auto it = byShape.find(sig[b]);
+            if (it == byShape.end()) {
+                it = byShape.emplace(sig[b], (int)byShape.size()).first;
+            }
+            cls[b] = it->second;
+        }
+        for (int round = 0; round < nb + 2; round++) {
+            std::map<std::string, int> key;
+            std::vector<int>           nxt(nb);
+            for (int b = 0; b < nb; b++) {
+                std::vector<int> up, dn;
+                for (int p : pred[b]) {
+                    up.push_back(cls[p]);
+                }
+                for (int c : succ[b]) {
+                    dn.push_back(cls[c]);
+                }
+                std::sort(up.begin(), up.end());
+                std::sort(dn.begin(), dn.end());
+                std::ostringstream k;
+                k << cls[b] << "<";
+                for (int x : up) {
+                    k << x << ".";
+                }
+                k << ">";
+                for (int x : dn) {
+                    k << x << ".";
+                }
+                auto it = key.find(k.str());
+                if (it == key.end()) {
+                    it = key.emplace(k.str(), (int)key.size()).first;
+                }
+                nxt[b] = it->second;
+            }
+            bool same = true;
+            {
+                std::map<int, int> m;
+                for (int b = 0; b < nb; b++) {
+                    auto it = m.find(cls[b]);
+                    if (it == m.end()) {
+                        m[cls[b]] = nxt[b];
+                    } else if (it->second != nxt[b]) {
+                        same = false;
+                    }
+                }
+            }
+            cls = nxt;
+            if (same) {
+                break;
+            }
+        }
+    }
+    int ncls = 0;
+    for (int b = 0; b < nb; b++) {
+        ncls = std::max(ncls, cls[b] + 1);
+    }
+    std::vector<std::vector<int>> members(ncls);
+    for (int b = 0; b < nb; b++) {
+        members[cls[b]].push_back(b);
+    }
+    // the links, unique on both sides
+    std::vector<int> link(nb, -1);
+    for (int b = 0; b < nb; b++) {
+        if (succ[b].size() == 1) {
+            int v = *succ[b].begin();
+            if (pred[v].size() == 1) {
+                link[b] = v;
+            }
+        }
+    }
+    // the extensions : A -> B when the links of A are a bijection onto B
+    std::vector<int> next(ncls, -1), prev(ncls, -1);
+    for (int A = 0; A < ncls; A++) {
+        int           B  = -1;
+        bool          ok = true;
+        std::set<int> targets;
+        for (int b : members[A]) {
+            if (link[b] < 0) {
+                ok = false;
+                break;
+            }
+            int c = cls[link[b]];
+            if (B < 0) {
+                B = c;
+            } else if (B != c) {
+                ok = false;
+                break;
+            }
+            targets.insert(link[b]);
+        }
+        if (ok && B >= 0 && B != A && targets.size() == members[A].size() &&
+            members[B].size() == members[A].size() && prev[B] < 0) {
+            next[A] = B;
+            prev[B] = A;
+        }
+    }
+    // the families : maximal bundle chains of width P >= 2, chains ordered by the
+    // serial of their first member
+    treeorder            lt;
+    auto                 firstTree = [&](int b) { return mt[fSN.blockMembers(b)[0]]; };
+    std::vector<Family>  fams;
+    for (int A = 0; A < ncls; A++) {
+        if (prev[A] >= 0 || members[A].size() < 2) {
+            continue;
+        }
+        std::vector<int> heads = members[A];
+        std::sort(heads.begin(), heads.end(),
+                  [&](int a, int b) { return lt(firstTree(a), firstTree(b)); });
+        Family f;
+        f.P = (int)heads.size();
+        for (int b : heads) {
+            std::vector<int> chain;
+            for (int cur = b; cur >= 0; cur = (next[cls[cur]] >= 0) ? link[cur] : -1) {
+                chain.push_back(fSN.blockMembers(cur)[0]);
+            }
+            f.rep.push_back(chain);
+        }
+        f.S = (int)f.rep[0].size();
+        fams.push_back(f);
+    }
+    if (trace) {
+        fprintf(stderr, "ls-families : %d blocks, %d bundles, %zu families\n", nb, ncls, fams.size());
+        for (size_t i = 0; i < fams.size(); i++) {
+            fprintf(stderr, "ls-family %zu : P=%d S=%d, chain 0 =", i, fams[i].P, fams[i].S);
+            for (int m : fams[i].rep[0]) {
+                fprintf(stderr, " m%d", m);
+            }
+            fprintf(stderr, "\n");
+        }
+    }
+    return fams;
+}
+
+// ---- the forced tiling (-ls-tile k,d) : every family paved by (k, d) tiles, no
+// oracle -- the calibration instrument. A tile becomes a block by contraction of
+// its cells, the invariant of acyclicity making every contraction legal ; a
+// refusal is traced, never fatal. Block ids shift at each contraction, so the
+// tile's block is always re-read from its first cell's member.
+void LoopSplitEmitter::tileFamilies(const std::vector<Family>& fams, int k, int d, bool trace)
+{
+    for (size_t i = 0; i < fams.size(); i++) {
+        const Family& f = fams[i];
+        for (int c0 = 0; c0 < f.P; c0 += k) {
+            for (int s0 = 0; s0 < f.S; s0 += d) {
+                int cells = 1, refused = 0;
+                for (int c = c0; c < std::min(c0 + k, f.P); c++) {
+                    for (int s = s0; s < std::min(s0 + d, f.S); s++) {
+                        if (c == c0 && s == s0) {
+                            continue;
+                        }
+                        int a = fSN.blockOf(f.rep[c0][s0]);
+                        int b = fSN.blockOf(f.rep[c][s]);
+                        if (a == b) {
+                            cells++;
+                            continue;
+                        }
+                        if (!fSN.canContract(a, b)) {
+                            refused++;
+                            continue;
+                        }
+                        fSN.contract(std::min(a, b), std::max(a, b));
+                        cells++;
+                    }
+                }
+                if (trace) {
+                    fprintf(stderr, "ls-tile family %zu at (%d,%d) : %d cells in one block, %d refused\n",
+                            i, c0, s0, cells, refused);
+                }
+            }
+        }
+    }
+    fSN.retopo();
+}
+
 void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
 {
     // 0. refuse unsupported constructs before writing anything
@@ -4213,6 +4447,19 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         fSN.setForced(std::move(forced));
     }
     fSN.build(L, sched, gGlobal->gVecSize);
+
+    const bool lsTrace = global::isOpt("FAUST_LS_TRACE");  // PROBE
+
+    // 2a-ter. the families (LES-TUILES) : read off the finest partition, before
+    // any fusion move -- the recognition is a property of the program, not of
+    // the cut. Under -ls-tile k,d every family is paved without oracle ; the
+    // greedy then runs with the tiles as atoms.
+    if (gGlobal->gLSTileK > 0 || lsTrace) {
+        std::vector<Family> fams = detectFamilies(lsTrace);
+        if (gGlobal->gLSTileK > 0) {
+            tileFamilies(fams, gGlobal->gLSTileK, gGlobal->gLSTileD, lsTrace);
+        }
+    }
 
     // 2a-bis. the Dissolve move : a signal materialized ONLY for sharing
     // (not a projection, never read delayed, not an output) may be
@@ -4471,7 +4718,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         // was path-dependent: on the 9x9 filter matrix it followed the
         // chains (vertical first) and locked out the measurably better
         // square tiles the oracle itself prefers when allowed to compare.
-        const bool lsTrace = global::isOpt("FAUST_LS_TRACE");  // PROBE
         auto gainOf = [&](int b, int c) -> long {
             if (fSN.opsEstimate(b) + fSN.opsEstimate(c) > gGlobal->gLSFuseOps) {
                 if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, ops budget\n", b, c);
