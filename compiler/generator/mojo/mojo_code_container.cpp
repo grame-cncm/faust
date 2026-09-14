@@ -68,19 +68,20 @@ void MojoCodeContainer::writeFaustHeader()
     *fOut << "\n" << wbanner();
 }
 
-void MojoCodeContainer::writeDRealDefinitions()
-{
-    if (gGlobal->gFloatSize == 1) {
-        *fOut << "comptime dreal = f32\n";
-    } else if (gGlobal->gFloatSize == 2) {
-        *fOut << "comptime dreal = f64\n";
-    } else {
-        mj_panic(false, "Unsupported float size: " << gGlobal->gFloatSize);
-    }
-    *fOut << "comptime wreal = simd_width_of[dreal]()\n";
-    *fOut << "comptime Real = Scalar[dreal]\n";
-    *fOut << "comptime RVec = SIMD[dreal, simd_width_of[dreal]()]\n";
-}
+// NOTE:(manu) currently not needed
+//  void MojoCodeContainer::writeDRealDefinitions()
+//  {
+//      if (gGlobal->gFloatSize == 1) {
+//          *fOut << "comptime dreal = f32\n";
+//      } else if (gGlobal->gFloatSize == 2) {
+//          *fOut << "comptime dreal = f64\n";
+//      } else {
+//          mj_panic(false, "Unsupported float size: " << gGlobal->gFloatSize);
+//      }
+//      *fOut << "comptime wreal = simd_width_of[dreal]()\n";
+//      *fOut << "comptime Real = Scalar[dreal]\n";
+//      *fOut << "comptime RVec = SIMD[dreal, simd_width_of[dreal]()]\n";
+//  }
 
 void MojoCodeContainer::writeGlobalVariablesInlined(int n)
 {
@@ -325,8 +326,8 @@ void MojoCodeContainer::produceClass()
     n += 1;
     gScalarProducer->Tab(n);
     *fOut << wblank();
-    writeDRealDefinitions();
-    *fOut << wblank();
+    // writeDRealDefinitions(); NOTE:(manu) currently non needed
+    // *fOut << wblank();
     writeClassHeaderAndFields(n);
     *fOut << wblank();
     writeDefaultConstructor(n);

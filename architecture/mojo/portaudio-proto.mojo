@@ -35,7 +35,7 @@ def main() -> None:
     var dsp = unsafe_alloc[mydsp](1)
     dsp.unsafe_write(mydsp())
     dsp[].init(SAMP_RATE)
-    var gui = ProtoGui[dfaust]()
+    var gui = ProtoGui()
     dsp[].build_user_interface(gui)
     var driver = PortAudio()
     var err = driver.init()

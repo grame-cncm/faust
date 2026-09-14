@@ -80,7 +80,7 @@ public:
 protected:
     // Writers
     void writeFaustHeader();
-    void writeDRealDefinitions();
+    // void writeDRealDefinitions(); // NOTE:(manu) currently non needed
     void writeClassHeaderAndFields(s32 n);
     void writeGlobalVariablesInlined(s32 n);
     void writeDefaultConstructor(s32 n);

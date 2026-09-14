@@ -8,9 +8,9 @@ from .gui import FaustGui
 # Terminal-based GUI listening for user input for demo purposes.
 # ==============================================================
 
-struct ProtoGui[dtype: DType](FaustGui):
-    comptime Real = SIMD[Self.dtype, 1]
-    var widgets: Arr[Widget[Self.dtype], MAX_CAP]
+struct ProtoGui(FaustGui):
+    comptime Real = FaustFloat
+    var widgets: Arr[Widget, MAX_CAP]
     var widgets_len: S32
     var stack: Arr[S32, MAX_CAP]
     var stack_len: S32
@@ -18,14 +18,14 @@ struct ProtoGui[dtype: DType](FaustGui):
 
     @always_inline
     def __init__(out ui):
-        ui.widgets = Arr[Widget[Self.dtype], MAX_CAP](uninitialized=True)
+        ui.widgets = Arr[Widget, MAX_CAP](uninitialized=True)
         ui.widgets_len = 0
 
         ui.stack = Arr[S32, MAX_CAP](fill=0)
         ui.stack_len = 0
         ui.top = 0
 
-        ui.widgets[0] = Widget[Self.dtype](
+        ui.widgets[0] = Widget(
             WIDGET_ROOT,
             String("root"),
             0,
@@ -46,15 +46,15 @@ struct ProtoGui[dtype: DType](FaustGui):
         var parent = ui.stack[ui.top]
         var idx = ui.widgets_len 
 
-        ui.widgets[idx] = Widget[Self.dtype](
+        ui.widgets[idx] = Widget(
             WIDGET_VBOX,
             label,
             parent,
             NULL_PTR[Self.Real, MUT_NOTRK],
-            SIMD[Self.dtype, 1](0.0),
-            SIMD[Self.dtype, 1](0.0),
-            SIMD[Self.dtype, 1](0.0),
-            SIMD[Self.dtype, 1](0.0),
+            FaustFloat(0.0),
+            FaustFloat(0.0),
+            FaustFloat(0.0),
+            FaustFloat(0.0),
         )
         ui.widgets_len += 1
 
@@ -78,11 +78,11 @@ struct ProtoGui[dtype: DType](FaustGui):
         var max:      SIMD [dreal, 1],
         var step:     SIMD[dreal, 1]
     ) -> None:
-        comptime assert dreal == Self.dtype
+        comptime assert dreal == dfaust
         var parent = ui.stack[ui.top]
         var idx = ui.widgets_len 
         zone = init
-        ui.widgets[idx] = Widget[Self.dtype](
+        ui.widgets[idx] = Widget(
             WIDGET_HSLIDER,
             label,
             parent,
@@ -95,7 +95,7 @@ struct ProtoGui[dtype: DType](FaustGui):
         ui.widgets_len += 1
 
     @always_inline
-    def set_hslider_value(mut ui, index: S32, mut value: SIMD[Self.dtype, 1]) -> None:
+    def set_hslider_value(mut ui, index: S32, mut value: FaustFloat) -> None:
         if index < 0 or index >= ui.widgets_len:
             return
         if ui.widgets[index].kind != WIDGET_HSLIDER:
@@ -124,7 +124,7 @@ struct ProtoGui[dtype: DType](FaustGui):
                 var s = String(line)
                 if s == "q":
                     return 0
-                var value = SIMD[Self.dtype, 1](atof(s))
+                var value = FaustFloat(atof(s))
                 ui.set_hslider_value(slider, value)
         except Error:
             return 1
@@ -140,15 +140,15 @@ comptime WIDGET_HSLIDER = 2
 comptime MAX_CAP = 128
 
 @fieldwise_init
-struct Widget[dtype: DType](ImplicitlyCopyable, Movable):
+struct Widget(ImplicitlyCopyable, Movable):
     var kind: S32
     var label: String
     var parent: S32
 
     # Slider payload.
     # Meaningful only when kind == WIDGET_HSLIDER.
-    var zone: OptPtr[SIMD[Self.dtype, 1], MUT_NOTRK]
-    var init: SIMD[Self.dtype, 1]
-    var min: SIMD[Self.dtype, 1]
-    var max: SIMD[Self.dtype, 1]
-    var step: SIMD[Self.dtype, 1]
+    var zone: OptPtr[FaustFloat, MUT_NOTRK]
+    var init: FaustFloat
+    var min: FaustFloat
+    var max: FaustFloat
+    var step: FaustFloat
