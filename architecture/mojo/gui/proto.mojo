@@ -9,7 +9,6 @@ from .gui import FaustGui
 # ==============================================================
 
 struct ProtoGui(FaustGui):
-    comptime Real = FaustFloat
     var widgets: Arr[Widget, MAX_CAP]
     var widgets_len: S32
     var stack: Arr[S32, MAX_CAP]
@@ -29,7 +28,7 @@ struct ProtoGui(FaustGui):
             WIDGET_ROOT,
             String("root"),
             0,
-            NULL_PTR[Self.Real, MUT_NOTRK],
+            NULL_PTR[FaustFloat, MUT_NOTRK],
             0.0,
             0.0,
             0.0,
@@ -50,7 +49,7 @@ struct ProtoGui(FaustGui):
             WIDGET_VBOX,
             label,
             parent,
-            NULL_PTR[Self.Real, MUT_NOTRK],
+            NULL_PTR[FaustFloat, MUT_NOTRK],
             FaustFloat(0.0),
             FaustFloat(0.0),
             FaustFloat(0.0),
@@ -69,28 +68,22 @@ struct ProtoGui(FaustGui):
             ui.top -= 1
 
     @always_inline
-    def add_horizontal_slider[dreal: DType](
+    def add_horizontal_slider(
         mut ui,
-        var label:    String,
-        mut zone:     SIMD[dreal, 1],
-        var init:     SIMD[dreal, 1],
-        var min:      SIMD [dreal, 1],
-        var max:      SIMD [dreal, 1],
-        var step:     SIMD[dreal, 1]
+        var label: String,
+        mut zone:  FaustFloat,
+        var init:  FaustFloat,
+        var min:   FaustFloat,
+        var max:   FaustFloat,
+        var step:  FaustFloat
     ) -> None:
-        comptime assert dreal == dfaust
         var parent = ui.stack[ui.top]
         var idx = ui.widgets_len 
         zone = init
         ui.widgets[idx] = Widget(
-            WIDGET_HSLIDER,
-            label,
-            parent,
-            Ptr(to=zone).unsafe_bitcast[Self.Real]().unsafe_origin_cast[MUT_NOTRK](),
-            Self.Real(init),
-            Self.Real(min),
-            Self.Real(max),
-            Self.Real(step),
+            WIDGET_HSLIDER, label, parent,
+            Ptr(to=zone).unsafe_origin_cast[MUT_NOTRK](),
+            init, min, max, step,
         )
         ui.widgets_len += 1
 
