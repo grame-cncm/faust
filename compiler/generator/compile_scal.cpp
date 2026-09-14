@@ -4652,7 +4652,10 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // wants the shared member (x0.97). No static rule separates them
     // (three falsified in one day) : the faithful shadow oracle prices
     // both worlds per candidate, duplication included.
-    if (gGlobal->gLSFuse && !forcedTiling) {
+    // PROBE : FAUST_OPT=FAUST_LS_NODISSOLVE measures the Dissolve move by its
+    // absence (every shared member keeps its buffer)
+    const bool noDissolve = global::isOpt("FAUST_LS_NODISSOLVE");
+    if (gGlobal->gLSFuse && !forcedTiling && !noDissolve) {
         std::set<Tree, treeorder> outs;
         for (Tree l = L; isList(l); l = tl(l)) {
             outs.insert(hd(l));
@@ -4695,6 +4698,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             }
         }
         if (!dissolved.empty()) {
+            if (lsTrace) fprintf(stderr, "ls-dissolve : %zu members inlined into their consumers, graph rebuilt\n", dissolved.size());
             fSN.setExcluded(std::move(dissolved));
             fSN.reset();
             fSN.build(L, sched, gGlobal->gVecSize);
@@ -5091,6 +5095,14 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                 if (isNum(t) || isSlow(t) || isSigInput(t, &itmp) || fSN.indexOf(t) >= 0) {
                     return 0;  // buffer read, constant or slow : not tail work
                 }
+                if (fSN.isExcluded(t)) {
+                    // a DISSOLVED member, recomputed where it is read : a
+                    // producer's work, not tail work. Counted as tail, the
+                    // dissolution inflated t91's tail to a gain of 39 and
+                    // the split kept an output loop rereading ten buffers
+                    // (10.6 ns against 5.9 classic, four judges)
+                    return 0;
+                }
                 // descriptor-carrying signals : their structural branches
                 // (signature, name, file) are not signals and must not be
                 // walked -- only the real arguments count as tail work
@@ -5138,6 +5150,10 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         // stereo program stays monobloc, the M-series prefetcher
         // tracks ~8 streams.
         bool manyStreams = (nouts + fC->fClass->inputs()) > 8;
+        if (global::isOpt("FAUST_LS_TRACE")) {
+            fprintf(stderr, "ls-monobloc : blocks %d overR %ld peak %d R %d hasCall %d shortD %d tailGain %ld manyStreams %d\n",
+                    fSN.blockCount(), overR, peak, gGlobal->gLSRegisters, (int)hasCall, (int)shortD, tailGain, (int)manyStreams);
+        }
         if (fSN.blockCount() <= 1 && overR == 0 && peak < gGlobal->gLSRegisters && !hasCall &&
             shortD && tailGain <= 0 && !manyStreams) {
             throw LoopSplitUnsupported("single super-node within the register budget", true);

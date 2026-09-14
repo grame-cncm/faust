@@ -78,6 +78,7 @@ class SuperNodeGraph {
     /// shared expression whose consumers inline it -- decided by the
     /// fusion oracle, applied by a reset() + rebuild)
     void setExcluded(std::set<Tree, treeorder> e) { fExcluded = std::move(e); }
+    bool isExcluded(Tree t) const { return fExcluded.count(t) > 0; }  // a dissolved member
     /// signals materialized WHATEVER the criterion says : the display
     /// captures of the loop-split path (the block-rate tail reads each one
     /// as the last element of its vector, so each one must own a vector)
