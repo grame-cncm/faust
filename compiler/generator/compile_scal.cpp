@@ -4396,6 +4396,25 @@ void LoopSplitEmitter::tileFamilies(const std::vector<Family>& fams, int k, int 
         }
     }
     fSN.retopo();
+    if (trace) {
+        // the MODEL's verdict on the pavage : the sum of the shadow costs of the
+        // tile blocks (the calibration compares its ranking with the measure)
+        for (size_t i = 0; i < fams.size(); i++) {
+            const Family& f = fams[i];
+            std::set<int> tiles;
+            for (int c = 0; c < f.P; c++) {
+                for (int s = 0; s < f.S; s++) {
+                    tiles.insert(fSN.blockOf(f.rep[c][s]));
+                }
+            }
+            long total = 0;
+            for (int b : tiles) {
+                total += blockCostShadow(fSN.blockMembers(b));
+            }
+            fprintf(stderr, "ls-tile-cost family %zu : %d x %d tiling, %zu tiles, model %ld\n", i, k, d,
+                    tiles.size(), total);
+        }
+    }
 }
 
 void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
