@@ -352,6 +352,7 @@ struct global {
                            // the d<N freedom then cuts their feedback cycles (proof carried by
                            // the interval system). Changes the sound of sub-K settings: opt-in.
     int  gLSCl;            // -ls-cl option: per-loop per-chunk overhead in the fusion cost
+    int  gLSTileCl;        // -ls-tile-cl option: per-tile per-chunk overhead in the tiles election (-ls-tiles)
     int  gLSLatency;       // -ls-latency option: frames the core overlaps in a register-resident loop (0: the fusion cost prices one isolated iteration)
     bool gLSRegClasses;    // -ls-regs3 option: the fusion cost counts three classes of registers (states, constants, temporaries) with their own spill prices
     bool gLSRegState;      // -ls-regstate option: a member read only inside its block keeps no chunk buffer, its history crosses the chunks in scalars
