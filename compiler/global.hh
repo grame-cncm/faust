@@ -343,6 +343,7 @@ struct global {
     bool gLSAdopt;         // -ls-adopt option: outputs join their producing block's loop
     int  gLSTileK;         // -ls-tile k,d option: force the (k, d) tiling of every detected family (0: off)
     int  gLSTileD;
+    bool gLSTiles;         // -ls-tiles option: the tiles oracle elects a (k, d) pavage per family before the greedy
                            // (opt-in : measured x1.26-1.83 against on ten fusion lanes)
     int  gLSFuseOps;       // -ls-fuse-ops option: compile-time guard on fused-block op count
     int  gMinDelay;        // -mindelay option (ocpp, experimental): SEMANTIC delay floor --

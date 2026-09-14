@@ -133,6 +133,8 @@ class SuperNodeGraph {
     /// d0-topological order of the union of two blocks' members (what the
     /// merged block's emission order WOULD be -- for cost oracles)
     std::vector<int> orderedUnion(int a, int b) const;
+    /// the same over any set of blocks (a tile of a family, for the cost oracles)
+    std::vector<int> orderedUnion(const std::vector<int>& blocks) const;
 
     /// one-line summary per block
     void print(std::ostream& out) const;
