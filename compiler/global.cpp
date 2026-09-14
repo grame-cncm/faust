@@ -488,6 +488,7 @@ void global::reset()
     gLSRegState     = false;
     gLSSpillW       = 4;
     gLSLoadW        = 1;
+    gLSCLoadW       = 1;
 
     gFloatSize      = 1;             // -single by default
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
@@ -895,7 +896,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
             << " -ls-U " << gLSWidth << " ";
         if (gLSFuse) {
             dst << "-ls-fuse -ls-fuse-ops " << gLSFuseOps << (gLSLatency > 0 ? " -ls-latency " + std::to_string(gLSLatency) : std::string()) << (gLSRegClasses ? " -ls-regs3" : "") << (gLSRegState ? " -ls-regstate" : "") << " -ls-cl " << gLSCl
-                << " -ls-spill " << gLSSpillW << " -ls-load " << gLSLoadW << " ";
+                << " -ls-spill " << gLSSpillW << " -ls-load " << gLSLoadW << " -ls-cload " << gLSCLoadW << " ";
         }
         if (gLSTileK > 0) {
             dst << "-ls-tile " << gLSTileK << "," << gLSTileD << " ";
@@ -1323,6 +1324,9 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
         i += 2;
     } else if (isCmd(arg, "-ls-load", "--loop-split-load-weight")) {
         state.gLSLoadW = std::atoi(value);
+        i += 2;
+    } else if (isCmd(arg, "-ls-cload", "--loop-split-cload-weight")) {
+        state.gLSCLoadW = std::atoi(value);
         i += 2;
     } else if (isCmd(arg, "-ls-spill", "--loop-split-spill-weight")) {
         state.gLSSpillW = std::atoi(value);
@@ -2763,6 +2767,10 @@ string global::printHelp()
     sstr << tab
          << "-ls-load <n> --loop-split-load-weight <n> oracle: issue slots per buffer load "
             "(0 = free, default 1, implies -ls-fuse)."
+         << endl;
+    sstr << tab
+         << "-ls-cload <n> --loop-split-cload-weight <n> oracle: memory-port operations per "
+            "reload of a spilled constant (default 1 ; -ls-load 0 no longer makes them free)."
          << endl;
     sstr << tab
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no "

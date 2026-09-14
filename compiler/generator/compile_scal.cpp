@@ -3522,6 +3522,15 @@ class LoopSplitEmitter {
         // makes fusion visibly profitable to the oracle -- scalarized in-set
         // reads cost nothing, the same reads across a boundary cost a slot
         const int loadW = (loadWOverride >= 0) ? loadWOverride : gGlobal->gLSLoadW;
+        // a reload of a spilled constant is a memory operand folded into the
+        // arithmetic op that uses it : a memory-port operation, not an issue
+        // slot and not a streamed buffer read -- its own weight (-ls-cload), on
+        // the ports. Under the campaign tarif -ls-load 0 the shared weight made
+        // 60 reloads a frame free and the greedy fused two blocks into one that
+        // pays them (m99 : +15 % under g++ for two merges of model gain 4) ;
+        // priced as issue slots instead, the 3 x 3 tile of m99 lost its election
+        // to 2 x 5 against the measure (LES-TUILES 6.6)
+        const int cloadW = (loadWOverride >= 0) ? loadWOverride : gGlobal->gLSCLoadW;
         // the row regime prices only member sets carrying a recurrence
         // (mirror of blockHasRecurrence : same criterion as emission)
         bool shadowRowRegime = false;
@@ -3962,7 +3971,7 @@ class LoopSplitEmitter {
             // iteration : a load per use of a spilled constant, a load and
             // a store per frame for a spilled state
             const int U = std::max(1, gGlobal->gLSWidth);
-            iter += ((long)constLoads * loadW + 2L * stateSpill + U - 1) / U;
+            iter += ((long)constLoads * cloadW + 2L * stateSpill + U - 1) / U;
         }
         if (gGlobal->gLSLatency > 0) {
             // The issue slots, with the SIMD PACKING the compiler will find :
@@ -3999,12 +4008,12 @@ class LoopSplitEmitter {
                     slots += (kv.second + lanes - 1) / lanes;
                 }
             }
-            // the spilled classes : a load per use of a spilled constant
-            // (an issue slot, as the model prices a load), a load and a
+            // the spilled classes : a reload per use of a spilled constant
+            // on the memory ports (a folded memory operand), a load and a
             // store per frame for a spilled state (two issue slots and the
             // memory ports)
-            slots += (long)constLoads * loadW + 2L * stateSpill;
-            memops += 2L * stateSpill;
+            slots += 2L * stateSpill;
+            memops += (long)constLoads * cloadW + 2L * stateSpill;
             const int  U   = std::max(1, gGlobal->gLSWidth);
             const long alu = (slots + U - 1) / U;
             const long mem = (memops + 2) / 3;  // three memory ports, the eval machine's M
