@@ -1898,6 +1898,25 @@ class LoopSplitEmitter {
     std::vector<bool>        fLocal;  // maxDelay == 0: chunk-local buffer
     std::vector<bool> fRing;      // maxDelay > gMaxCopyDelay: masked ring buffer
     std::vector<int>  fCapD;      // -ls-regstate : deepest display capture of a member (-1: none)
+    // -ls-tiles : the cells of every ELECTED tile (k * d > 1). A tile is a
+    // loop decision : the greedy that follows the oracle may still pull a
+    // foreign single-consumer block into a tile, but never merges two tiles
+    // -- otherwise a larger loop cost (-ls-cl) re-fuses the pavage the
+    // oracle just chose, and the election is absorbed (measured : at
+    // -ls-cl 100 the oracle's code was the greedy's, byte for byte).
+    std::vector<char> fTileMember;
+    bool              isTileBlock(int b) const
+    {
+        if (fTileMember.empty()) {
+            return false;
+        }
+        for (int m : fSN.blockMembers(b)) {
+            if (fTileMember[m]) {
+                return true;
+            }
+        }
+        return false;
+    }
     // who reads a materialized member, and what forces it to keep a buffer
     // whatever its block : an output, a display capture, a read at a delay
     // that is not a literal. Built once (storeClasses) for the fusion oracle,
@@ -4511,9 +4530,10 @@ void LoopSplitEmitter::tileFamilies(const std::vector<Family>& fams, int k, int 
 // memoization (the shape forgets what the cost sees, LES-TUILES 4) -- and the
 // cheapest is contracted before the greedy fusion, which then runs with the
 // tiles as atoms. The pavage is a starting partition the pairwise moves cannot
-// reach (a square tile cuts k chains by d stages at once) ; the greedy can
-// still merge tiles, never split them, so the election errs on the fine side
-// (a tie goes to the larger tile, fewer loops).
+// reach (a square tile cuts k chains by d stages at once) ; the greedy never
+// splits a tile and never merges two (fTileMember) : the pavage is the loop
+// decision for the family, the greedy only settles the foreign blocks around
+// it (a tie goes to the larger tile, fewer loops).
 void LoopSplitEmitter::electTilings(const std::vector<Family>& fams, bool trace)
 {
     for (size_t i = 0; i < fams.size(); i++) {
@@ -4544,6 +4564,14 @@ void LoopSplitEmitter::electTilings(const std::vector<Family>& fams, bool trace)
         }
         if (bk * bd > 1) {
             contractTiles(f, i, bk, bd, trace);
+            if (fTileMember.empty()) {
+                fTileMember.assign(fSN.materialized().size(), 0);
+            }
+            for (int c = 0; c < f.P; c++) {
+                for (int s = 0; s < f.S; s++) {
+                    fTileMember[f.rep[c][s]] = 1;
+                }
+            }
         }
     }
     fSN.retopo();
@@ -4598,28 +4626,10 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         fSN.setForced(std::move(forced));
     }
     fSN.build(L, sched, gGlobal->gVecSize);
-
-    const bool lsTrace = global::isOpt("FAUST_LS_TRACE");  // PROBE
-
-    // 2a-ter. the families (LES-TUILES) : read off the finest partition, before
-    // any fusion move -- the recognition is a property of the program, not of
-    // the cut. Under -ls-tile k,d every family is paved without oracle, and the
-    // pavage is FINAL : the calibration compares a tiling with the measure, so
-    // neither the dissolve move nor the greedy fusion runs after it (the
-    // greedy only contracts, and would refuse or absorb the tiling at will --
-    // under the campaign tarif every forced tiling measured the same). The
-    // oracle of the tiles (section 4) is the one to run the greedy with tiles
-    // as atoms.
+    // under -ls-tile k,d the pavage is final : no dissolve, no greedy (2a-bis,
+    // 2a-ter, 2b) -- the calibration compares a tiling with the measure
     const bool forcedTiling = gGlobal->gLSTileK > 0;
-    if (forcedTiling || gGlobal->gLSTiles || lsTrace) {
-        std::vector<Family> fams = detectFamilies(lsTrace);
-        if (forcedTiling) {
-            tileFamilies(fams, gGlobal->gLSTileK, gGlobal->gLSTileD, lsTrace);
-        } else if (gGlobal->gLSTiles && gGlobal->gLSFuse) {
-            electTilings(fams, lsTrace);  // the oracle, then the greedy with tiles as atoms
-        }
-    }
-
+    const bool lsTrace = global::isOpt("FAUST_LS_TRACE");  // PROBE
     // 2a-bis. the Dissolve move : a signal materialized ONLY for sharing
     // (not a projection, never read delayed, not an output) may be
     // cheaper INLINED in each consumer than computed once and joined --
@@ -4675,6 +4685,30 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             fSN.build(L, sched, gGlobal->gVecSize);
         }
     }
+    // 2a-ter comes AFTER the dissolve : a dissolution rebuilds the graph
+    // (reset + build), which would erase the tiles just contracted and
+    // leave their member marks stale (seen at -ls-cl 100 : the oracle's 3 x 3
+    // pavage vanished before the greedy, which then started from 82 blocks).
+
+
+    // 2a-ter. the families (LES-TUILES) : read off the finest partition, before
+    // any fusion move -- the recognition is a property of the program, not of
+    // the cut. Under -ls-tile k,d every family is paved without oracle, and the
+    // pavage is FINAL : the calibration compares a tiling with the measure, so
+    // neither the dissolve move nor the greedy fusion runs after it (the
+    // greedy only contracts, and would refuse or absorb the tiling at will --
+    // under the campaign tarif every forced tiling measured the same). The
+    // oracle of the tiles (section 4) is the one to run the greedy with tiles
+    // as atoms.
+    if (forcedTiling || gGlobal->gLSTiles || lsTrace) {
+        std::vector<Family> fams = detectFamilies(lsTrace);
+        if (forcedTiling) {
+            tileFamilies(fams, gGlobal->gLSTileK, gGlobal->gLSTileD, lsTrace);
+        } else if (gGlobal->gLSTiles && gGlobal->gLSFuse) {
+            electTilings(fams, lsTrace);  // the oracle, then the greedy with tiles as atoms
+        }
+    }
+
     // every display capture must resolve to a vector (or the input
     // buffer) -- checked BEFORE anything is written, like the prescan, so
     // the classic emitter can still take over
@@ -4859,6 +4893,9 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             if (isKernelBlock(b) != isKernelBlock(c)) {
                 return false;  // -fir barrier
             }
+            if (isTileBlock(b) && isTileBlock(c)) {
+                return false;  // two elected tiles stay two loops
+            }
             if (streamBudget > 0 && streamsUnion(b, c) > streamBudget) {
                 return false;  // prefetcher stream budget
             }
@@ -4889,6 +4926,10 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             if (isKernelBlock(b) != isKernelBlock(c)) {
                 if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, kernel barrier\n", b, c);
                 return 0;  // -fir barrier
+            }
+            if (isTileBlock(b) && isTileBlock(c)) {
+                if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, tile barrier\n", b, c);
+                return 0;  // two elected tiles stay two loops
             }
             if (streamBudget > 0 && streamsUnion(b, c) > streamBudget) {
                 if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, stream budget\n", b, c);
