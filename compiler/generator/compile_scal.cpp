@@ -4543,9 +4543,15 @@ void LoopSplitEmitter::electTilings(const std::vector<Family>& fams, bool trace)
         for (int k = 1; k <= f.P; k++) {
             for (int d = 1; d <= f.S; d++) {
                 long cost = 0;
+                // a tile is a loop : the election bills it its own loop cost
+                // (-ls-tile-cl, calibrated at 100 : 3 x 3 over 2 x 5 on the 9 x 9
+                // families under both judges, LES-TUILES 6.5) in place of the
+                // greedy's -ls-cl that the shadow cost already carries -- the
+                // greedy over-fuses at 100, the election under-tiles at 20
+                const long tileCl = gGlobal->gLSTileCl - gGlobal->gLSCl;
                 for (int c0 = 0; c0 < f.P; c0 += k) {
                     for (int s0 = 0; s0 < f.S; s0 += d) {
-                        cost += blockCostShadow(fSN.orderedUnion(tileBlocks(f, c0, s0, k, d)));
+                        cost += blockCostShadow(fSN.orderedUnion(tileBlocks(f, c0, s0, k, d))) + tileCl;
                     }
                 }
                 if (k == 1 && d == 1) {

@@ -482,6 +482,7 @@ void global::reset()
     gLSFuseOps      = 1024;
     gMinDelay       = 0;
     gLSCl           = 20;
+    gLSTileCl       = 100;
     gLSLatency      = 0;
     gLSRegClasses   = false;
     gLSRegState     = false;
@@ -900,7 +901,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
             dst << "-ls-tile " << gLSTileK << "," << gLSTileD << " ";
         }
         if (gLSTiles) {
-            dst << "-ls-tiles ";
+            dst << "-ls-tiles -ls-tile-cl " << gLSTileCl << " ";
         }
     }
     if (gNoVirtual) {
@@ -1328,6 +1329,9 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
         i += 2;
     } else if (isCmd(arg, "-ls-cl", "--loop-split-cl")) {
         state.gLSCl = std::atoi(value);
+        i += 2;
+    } else if (isCmd(arg, "-ls-tile-cl", "--loop-split-tile-cl")) {
+        state.gLSTileCl = std::atoi(value);
         i += 2;
     } else if (isCmd(arg, "-ls-adopt", "--loop-split-adopt-outputs")) {
         state.gLSAdopt = true;
@@ -2747,6 +2751,10 @@ string global::printHelp()
     sstr << tab
          << "-ls-cl <n>  --loop-split-cl <n>         oracle: per-loop per-chunk overhead "
             "(default 20 cycles, implies -ls-fuse)."
+         << endl;
+    sstr << tab
+         << "-ls-tile-cl <n>  --loop-split-tile-cl <n>  tiles oracle: per-tile per-chunk "
+            "overhead in the election of a tiling (default 100 cycles ; the greedy keeps -ls-cl)."
          << endl;
     sstr << tab
          << "-ls-spill <n> --loop-split-spill-weight <n> oracle: cycles per register-cycle "
