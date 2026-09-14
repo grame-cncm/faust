@@ -34,8 +34,7 @@ struct PortAudio(FaustAudio):
         return PA_NO_ERROR
 
     @always_inline
-    def is_active(imm driver) -> S32:
-        # Main-thread query: 1 = processing, 0 = inactive, negative = error.
+    def is_alive(imm driver) -> S32:
         if not driver.alive or driver.stream == None:
             return S32(0)
         return pa_is_stream_active(driver.stream)

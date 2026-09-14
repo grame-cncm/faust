@@ -1,11 +1,13 @@
 # Public API draft for the compositional PortAudio, TerminalGui and GPU path.
 #
 # This file is a design specification, not an implementation. Method bodies are
-# intentionally omitted. The existing FaustDsp, FaustGui and FaustAudio contracts
-# are imported and preserved unchanged.
+# intentionally omitted. The existing FaustDsp and FaustGui contracts are
+# preserved unchanged. FaustAudio gains only the is_alive status operation.
+
+from max.gpu.host import DeviceBuffer, DeviceContext
 
 from conf import *
-from dsp import FaustDsp, FaustDspGpu
+from dsp import FaustDsp
 from gui import FaustGui
 from audio import FaustAudio
 from meta import FaustMeta
@@ -14,7 +16,6 @@ from meta import FaustMeta
 # ==============================================================================
 # Additional contracts
 # ==============================================================================
-
 
 # A `SyncGui` defines block-boundary exchange between GUI-owned storage and
 # host DSP zones.
@@ -35,16 +36,39 @@ trait SyncGui:
         ...
 
 
-# A `FaustAudioStatus` extends the existing `FaustAudio` contract with an
-# observable asynchronous execution state.
+# ==============================================================================
+# Generated GPU DSP contract
+# ==============================================================================
+
+# A `FaustDspGpu` is a complete generated FaustDsp with an additional GPU
+# execution capability.
 # @desc
-# - Returns 1 while the audio stream is processing.
-# - Returns 0 when the audio stream is inactive.
-# - May return a negative backend error code.
-# - Does not change the existing FaustAudio init, start and stop operations.
-trait FaustAudioStatus(FaustAudio):
-    @always_inline
-    def is_alive(imm audio) -> S32:
+# - Preserves the complete FaustDsp contract, including its CPU compute method.
+# - Adds the work-buffer sizing operation required by the GPU runtime.
+# - Adds the static operation that enqueues one DSP block on a prepared device.
+# - Contains no DeviceContext, DeviceBuffer or host-side runtime ownership.
+# - Never provides an empty CPU compute implementation.
+# @rep
+# - The generated DSP state remains a normal FaustDsp host representation.
+# - The same representation is copied to persistent device storage by FaustGpu.
+# - UI zones use FaustFloat while internal compute precision remains independent.
+# @thread
+# - Normal FaustDsp operations execute on the host.
+# - `gpu_compute` only enqueues device work through the supplied context.
+trait FaustDspGpu(FaustDsp):
+    @staticmethod
+    def gpu_work_size(imm block_size: S32) -> Int:
+        ...
+
+    @staticmethod
+    def gpu_compute(
+        mut context: DeviceContext,
+        imm dsp: DeviceBuffer[u8],
+        imm inputs: DeviceBuffer[dfaust],
+        imm outputs: DeviceBuffer[dfaust],
+        imm work: DeviceBuffer[u8],
+        imm count: S32
+    ) raises -> None:
         ...
 
 
@@ -52,8 +76,45 @@ trait FaustAudioStatus(FaustAudio):
 # Terminal GUI
 # ==============================================================================
 
-# A `TerminalGui` is a terminal-based `FaustGui` with the additional `SyncGui`
-# capability.
+# Widget kinds shared by stack-based FaustGui implementations.
+comptime GUI_WIDGET_CAP = get_defined_int["GUI_WIDGET_CAP", 256]()
+comptime GUI_STACK_CAP = get_defined_int["GUI_STACK_CAP", 64]()
+comptime assert GUI_WIDGET_CAP > 0, "Expected a positive GUI widget capacity."
+comptime assert GUI_STACK_CAP > 0, "Expected a positive GUI stack capacity."
+comptime assert GUI_STACK_CAP <= GUI_WIDGET_CAP, "GUI stack exceeds widget capacity."
+
+comptime WIDGET_ROOT = S32(0)
+comptime WIDGET_TAB_BOX = S32(1)
+comptime WIDGET_HORIZONTAL_BOX = S32(2)
+comptime WIDGET_VERTICAL_BOX = S32(3)
+comptime WIDGET_BUTTON = S32(4)
+comptime WIDGET_CHECK_BUTTON = S32(5)
+comptime WIDGET_SLIDER = S32(6)
+comptime WIDGET_NUM_ENTRY = S32(7)
+comptime WIDGET_BARGRAPH = S32(8)
+
+
+# A `Widget` is one element of the stack-built Faust GUI representation.
+# @rep
+# - Root, boxes, active controls and bargraphs use the same representation.
+# - Its index in the owning widget list is its stable identifier.
+# - `parent` is -1 for the root and otherwise indexes another Widget.
+# - `zone` is absent for the root and boxes.
+# - Range fields are meaningful only for controls and bargraphs.
+@fieldwise_init
+struct Widget(Movable):
+    var kind: S32
+    var parent: S32
+    var label: String
+    var zone: OptPtr[FaustFloat, MUT_NOTRK]
+    var init: FaustFloat
+    var min: FaustFloat
+    var max: FaustFloat
+    var step: FaustFloat
+    var unit: String
+
+
+# A `TerminalGui` is a terminal-based `FaustGui` with `SyncGui` capability.
 # @desc
 # - Builds a native terminal presentation from the generated Faust UI tree.
 # - Stores widget values in native lock-free atomic slots.
@@ -62,6 +123,10 @@ trait FaustAudioStatus(FaustAudio):
 # - Provides a split start, tick and stop lifecycle for composed entry points.
 # @rep
 # - Owns the native terminal handle and its widget storage.
+# - Stores root, boxes, controls and bargraphs together in `widgets`.
+# - Uses the top of `stack` as the parent of the next widget.
+# - Keeps fixed-capacity slots and alias ownership parallel to the widget array.
+# - Returns a capacity error instead of growing storage at runtime.
 # - Keeps an immutable binding between atomic slots and host DSP zones after check.
 # - Does not own the DSP whose zones are bound to the widgets.
 # @thread
@@ -71,7 +136,18 @@ trait FaustAudioStatus(FaustAudio):
 # @life
 # - `run` is blocking and is equivalent to start, repeated tick and stop.
 # - `close` releases native storage and must execute only after audio has stopped.
-struct TerminalGui[dtype: DType = dfaust](FaustGui, SyncGui):
+struct TerminalGui(FaustGui, SyncGui):
+    var raw: OptPtr[Void, MUT_NOTRK]
+    var widgets: Arr[Widget, GUI_WIDGET_CAP]
+    var widgets_len: S32
+    var stack: Arr[S32, GUI_STACK_CAP]
+    var stack_len: S32
+    var slots: Arr[OptPtr[Void, MUT_NOTRK], GUI_WIDGET_CAP]
+    var owns: Arr[Bool, GUI_WIDGET_CAP]
+    var error: S32
+    var frozen: Bool
+    var running: Bool
+
     def __init__(out gui):
         ...
 
@@ -118,59 +194,74 @@ struct TerminalGui[dtype: DType = dfaust](FaustGui, SyncGui):
         ...
 
     @always_inline
-    def add_button[dreal: DType](
-        mut gui, var label: String, mut zone: SIMD[dreal, 1]
+    def add_button(mut gui, var label: String, mut zone: FaustFloat) -> None:
+        ...
+
+    @always_inline
+    def add_check_button(
+        mut gui, var label: String, mut zone: FaustFloat
     ) -> None:
         ...
 
     @always_inline
-    def add_check_button[dreal: DType](
-        mut gui, var label: String, mut zone: SIMD[dreal, 1]
-    ) -> None:
-        ...
-
-    @always_inline
-    def add_vertical_slider[dreal: DType](
+    def add_vertical_slider(
         mut gui,
-        var label: String, mut zone: SIMD[dreal, 1],
-        var init: SIMD[dreal, 1], var min: SIMD[dreal, 1],
-        var max: SIMD[dreal, 1], var step: SIMD[dreal, 1]
+        var label: String,
+        mut zone: FaustFloat,
+        var init: FaustFloat,
+        var min: FaustFloat,
+        var max: FaustFloat,
+        var step: FaustFloat
     ) -> None:
         ...
 
     @always_inline
-    def add_horizontal_slider[dreal: DType](
-        mut gui, var label: String, mut zone: SIMD[dreal, 1],
-        var init: SIMD[dreal, 1], var min: SIMD[dreal, 1],
-        var max: SIMD[dreal, 1], var step: SIMD[dreal, 1]
+    def add_horizontal_slider(
+        mut gui,
+        var label: String,
+        mut zone: FaustFloat,
+        var init: FaustFloat,
+        var min: FaustFloat,
+        var max: FaustFloat,
+        var step: FaustFloat
     ) -> None:
         ...
 
     @always_inline
-    def add_num_entry[dreal: DType](
-        mut gui, var label: String, mut zone: SIMD[dreal, 1],
-        var init: SIMD[dreal, 1], var min: SIMD[dreal, 1],
-        var max: SIMD[dreal, 1], var step: SIMD[dreal, 1]
+    def add_num_entry(
+        mut gui,
+        var label: String,
+        mut zone: FaustFloat,
+        var init: FaustFloat,
+        var min: FaustFloat,
+        var max: FaustFloat,
+        var step: FaustFloat
     ) -> None:
         ...
 
     @always_inline
-    def add_vertical_bargraph[dreal: DType](
-        mut gui, var label: String, mut zone: SIMD[dreal, 1],
-        var min: SIMD[dreal, 1], var max: SIMD[dreal, 1]
+    def add_vertical_bargraph(
+        mut gui,
+        var label: String,
+        mut zone: FaustFloat,
+        var min: FaustFloat,
+        var max: FaustFloat
     ) -> None:
         ...
 
     @always_inline
-    def add_horizontal_bargraph[dreal: DType](
-        mut gui, var label: String, mut zone: SIMD[dreal, 1],
-        var min: SIMD[dreal, 1], var max: SIMD[dreal, 1]
+    def add_horizontal_bargraph(
+        mut gui,
+        var label: String,
+        mut zone: FaustFloat,
+        var min: FaustFloat,
+        var max: FaustFloat
     ) -> None:
         ...
 
     @always_inline
-    def declare[dreal: DType](
-        mut gui, mut zone: SIMD[dreal, 1], var key: String, var val: String
+    def declare(
+        mut gui, mut zone: FaustFloat, var key: String, var val: String
     ) -> None:
         ...
 
@@ -179,36 +270,34 @@ struct TerminalGui[dtype: DType = dfaust](FaustGui, SyncGui):
 # GPU control map
 # ==============================================================================
 
-# A `GpuControlZone` describes one unique Faust UI zone visible to the GPU
-# transfer layer.
-# @rep
-# - `host` addresses the zone in the initialized host DSP instance.
-# - `byte_offset` locates the corresponding zone in the device DSP state.
-# - `passive` distinguishes GPU-to-host meters from host-to-GPU controls.
-# - Aliased widgets share one descriptor.
-@fieldwise_init
-struct GpuControlZone(ImplicitlyCopyable, Movable):
-    var host: Ptr[FaustFloat, MUT_NOTRK]
-    var byte_offset: Int
-    var passive: Bool
-
-
 # A `GpuControlMap` is a `FaustGui` visitor that discovers the UI zones requiring
 # host-device exchange.
 # @desc
-# - Records buttons, check buttons, sliders and numerical entries as active zones.
-# - Records bargraphs as passive zones.
+# - Builds the same stack-based Widget representation as TerminalGui.
+# - Records device offsets parallel to the widget list.
 # - Removes duplicate aliases while rejecting mixed active and passive aliases.
 # - Validates that every zone belongs to the flat device-copyable DSP state.
-# - Ignores presentation, layout and metadata that do not affect data transfer.
 # @rep
-# - Owns an ordered collection of GpuControlZone descriptors.
+# - Stores root, boxes, controls and bargraphs together in `widgets`.
+# - Uses the top of `stack` as the parent of the next widget.
+# - Uses -1 as the offset of widgets without a DSP zone.
+# - Returns a capacity error instead of growing storage at runtime.
 # - Stores the base address used to derive byte offsets during UI construction.
 # - Does not own either the host DSP or any device allocation.
 # @thread
 # - It is built and validated on the main thread before audio starts.
 # - Its validated description is immutable while the audio thread is active.
 struct GpuControlMap(FaustGui):
+    var widgets: Arr[Widget, GUI_WIDGET_CAP]
+    var widgets_len: S32
+    var stack: Arr[S32, GUI_STACK_CAP]
+    var stack_len: S32
+    var offsets: Arr[Int, GUI_WIDGET_CAP]
+    var dsp_base: Ptr[u8, MUT_NOTRK]
+    var dsp_size: Int
+    var error: S32
+    var frozen: Bool
+
     def __init__(out controls):
         ...
 
@@ -219,60 +308,92 @@ struct GpuControlMap(FaustGui):
         ...
 
     @always_inline
-    def get_num_zones(imm controls) -> Int:
+    def open_tab_box(mut controls, var label: String) -> None:
         ...
 
     @always_inline
-    def get_zone(imm controls, imm index: Int) -> GpuControlZone:
+    def open_horizontal_box(mut controls, var label: String) -> None:
         ...
 
     @always_inline
-    def add_button[dreal: DType](
-        mut controls, var label: String, mut zone: SIMD[dreal, 1]
+    def open_vertical_box(mut controls, imm label: String) -> None:
+        ...
+
+    @always_inline
+    def close_box(mut controls) -> None:
+        ...
+
+    @always_inline
+    def add_button(
+        mut controls, var label: String, mut zone: FaustFloat
     ) -> None:
         ...
 
     @always_inline
-    def add_check_button[dreal: DType](
-        mut controls, var label: String, mut zone: SIMD[dreal, 1]
+    def add_check_button(
+        mut controls, var label: String, mut zone: FaustFloat
     ) -> None:
         ...
 
     @always_inline
-    def add_vertical_slider[dreal: DType](
-        mut controls, var label: String, mut zone: SIMD[dreal, 1],
-        var init: SIMD[dreal, 1], var min: SIMD[dreal, 1],
-        var max: SIMD[dreal, 1], var step: SIMD[dreal, 1]
+    def add_vertical_slider(
+        mut controls,
+        var label: String,
+        mut zone: FaustFloat,
+        var init: FaustFloat,
+        var min: FaustFloat,
+        var max: FaustFloat,
+        var step: FaustFloat
     ) -> None:
         ...
 
     @always_inline
-    def add_horizontal_slider[dreal: DType](
-        mut controls, var label: String, mut zone: SIMD[dreal, 1],
-        var init: SIMD[dreal, 1], var min: SIMD[dreal, 1],
-        var max: SIMD[dreal, 1], var step: SIMD[dreal, 1]
+    def add_horizontal_slider(
+        mut controls,
+        var label: String,
+        mut zone: FaustFloat,
+        var init: FaustFloat,
+        var min: FaustFloat,
+        var max: FaustFloat,
+        var step: FaustFloat
     ) -> None:
         ...
 
     @always_inline
-    def add_num_entry[dreal: DType](
-        mut controls, var label: String, mut zone: SIMD[dreal, 1],
-        var init: SIMD[dreal, 1], var min: SIMD[dreal, 1],
-        var max: SIMD[dreal, 1], var step: SIMD[dreal, 1]
+    def add_num_entry(
+        mut controls,
+        var label: String,
+        mut zone: FaustFloat,
+        var init: FaustFloat,
+        var min: FaustFloat,
+        var max: FaustFloat,
+        var step: FaustFloat
     ) -> None:
         ...
 
     @always_inline
-    def add_vertical_bargraph[dreal: DType](
-        mut controls, var label: String, mut zone: SIMD[dreal, 1],
-        var min: SIMD[dreal, 1], var max: SIMD[dreal, 1]
+    def add_vertical_bargraph(
+        mut controls,
+        var label: String,
+        mut zone: FaustFloat,
+        var min: FaustFloat,
+        var max: FaustFloat
     ) -> None:
         ...
 
     @always_inline
-    def add_horizontal_bargraph[dreal: DType](
-        mut controls, var label: String, mut zone: SIMD[dreal, 1],
-        var min: SIMD[dreal, 1], var max: SIMD[dreal, 1]
+    def add_horizontal_bargraph(
+        mut controls,
+        var label: String,
+        mut zone: FaustFloat,
+        var min: FaustFloat,
+        var max: FaustFloat
+    ) -> None:
+        ...
+
+    @always_inline
+    def declare(
+        mut controls, mut zone: FaustFloat, var key: String, var value: String
     ) -> None:
         ...
 
@@ -298,7 +419,7 @@ def build_gpu_control_map[Dsp: FaustDspGpu](
 # GPU contract
 # ==============================================================================
 
-# A `FaustGpu` defines the host-side runtime capability used by a GpuDspAdapter.
+# A `FaustGpu` defines the host-side runtime capability used by a GpuAdapter.
 # @desc
 # - Prepares persistent GPU state from an initialized FaustDspGpu.
 # - Processes one complete host audio block through the device.
@@ -333,7 +454,10 @@ trait FaustGpu:
 # GPU runtime
 # ==============================================================================
 
-# A `FaustGpuDevice` implements FaustGpu for one concrete generated FaustDspGpu.
+comptime GPU_ZONE_CAP = GUI_WIDGET_CAP
+
+
+# A `GpuDevice` implements FaustGpu for one concrete generated FaustDspGpu.
 # @desc
 # - Creates and owns the DeviceContext used by the DSP.
 # - Keeps the initialized DSP state resident on the device across audio blocks.
@@ -344,17 +468,40 @@ trait FaustGpu:
 # @rep
 # - The `Dsp` parameter fixes the only DSP layout accepted by prepare.
 # - Device allocations and sub-buffer views remain stable until release.
+# - Host zone arrays use fixed compile-time capacity.
+# - DeviceBuffer lists contain only resources successfully created by the context.
 # - The first nonzero processing error is latched until release.
 # - No allocation or list mutation occurs inside process.
 # @life
 # - A successful prepare is followed by zero or more process calls and one release.
 # - Release is idempotent and never frees storage while device work may be in flight.
-struct FaustGpuDevice[Dsp: FaustDspGpu](FaustGpu):
+struct GpuDevice[Dsp: FaustDspGpu](FaustGpu):
+    var context: DeviceContext
+    var dsp: DeviceBuffer[u8]
+    var inputs: DeviceBuffer[dfaust]
+    var outputs: DeviceBuffer[dfaust]
+    var work: DeviceBuffer[u8]
+    var input_channels: List[DeviceBuffer[dfaust]]
+    var output_channels: List[DeviceBuffer[dfaust]]
+    var active_zones: Arr[Ptr[FaustFloat, MUT_NOTRK], GPU_ZONE_CAP]
+    var active_len: S32
+    var active_buffers: List[DeviceBuffer[u8]]
+    var passive_zones: Arr[Ptr[FaustFloat, MUT_NOTRK], GPU_ZONE_CAP]
+    var passive_len: S32
+    var passive_buffers: List[DeviceBuffer[u8]]
+    var block_size: S32
+    var num_inputs: S32
+    var num_outputs: S32
+    var error: S32
+    var prepared: Bool
+
     def __init__(out gpu):
         ...
 
     def prepare[SourceDsp: FaustDspGpu](
-        mut gpu, var dsp: Ptr[SourceDsp], imm controls: GpuControlMap,
+        mut gpu,
+        var dsp: Ptr[SourceDsp],
+        imm controls: GpuControlMap,
         imm block_size: S32
     ) -> S32:
         ...
@@ -377,13 +524,15 @@ struct FaustGpuDevice[Dsp: FaustDspGpu](FaustGpu):
 # DSP adapters
 # ==============================================================================
 
-# A `GpuDspAdapter` presents GPU processing through the unchanged FaustDsp
+# A `GpuAdapter` presents GPU processing through the unchanged FaustDsp
 # contract.
 # @desc
+# - Selects the GPU capability of a FaustDspGpu instead of its CPU compute.
 # - Delegates DSP metadata, initialization and UI construction to `dsp`.
 # - Implements compute by delegating one complete block to `gpu.process`.
 # - Converts a GPU runtime failure into the failure policy required by FaustDsp,
 #   whose compute operation cannot return an error.
+# - Is not generated DSP state and does not duplicate FaustDspGpu.
 # @rep
 # - Borrows one initialized FaustDspGpu and one prepared FaustGpu implementation.
 # - Owns neither component.
@@ -392,7 +541,7 @@ struct FaustGpuDevice[Dsp: FaustDspGpu](FaustGpu):
 # - Compute belongs exclusively to the audio thread.
 # - All other FaustDsp operations execute before audio starts.
 @fieldwise_init
-struct GpuDspAdapter[Dsp: FaustDspGpu, Gpu: FaustGpu](FaustDsp):
+struct GpuAdapter[Dsp: FaustDspGpu, Gpu: FaustGpu](FaustDsp):
     var dsp: Ptr[Self.Dsp]
     var gpu: Ptr[Self.Gpu]
 
@@ -544,7 +693,7 @@ struct ControlDsp[Dsp: FaustDsp, Sync: SyncGui](FaustDsp):
 # - Stop first proves audio callback quiescence and then calls release.
 # - Failed audio shutdown leaves GPU storage alive rather than freeing in-flight data.
 @fieldwise_init
-struct GpuAudio[Audio: FaustAudioStatus, Gpu: FaustGpu](FaustAudioStatus, FaustGpu):
+struct GpuAudio[Audio: FaustAudio, Gpu: FaustGpu](FaustAudio, FaustGpu):
     var audio: Self.Audio
     var gpu: Self.Gpu
 
@@ -564,7 +713,9 @@ struct GpuAudio[Audio: FaustAudioStatus, Gpu: FaustGpu](FaustAudioStatus, FaustG
         ...
 
     def prepare[Dsp: FaustDspGpu](
-        mut runtime, var dsp: Ptr[Dsp], imm controls: GpuControlMap,
+        mut runtime,
+        var dsp: Ptr[Dsp],
+        imm controls: GpuControlMap,
         imm block_size: S32
     ) -> S32:
         ...
@@ -588,10 +739,10 @@ struct GpuAudio[Audio: FaustAudioStatus, Gpu: FaustGpu](FaustAudioStatus, FaustG
 # ==============================================================================
 
 # mydsp
-#   -> FaustGpuDevice[mydsp]
-#   -> GpuAudio[PortAudio, FaustGpuDevice[mydsp]]
-#   -> GpuDspAdapter[mydsp, GpuAudio[...]]
-#   -> ControlDsp[GpuDspAdapter[...], TerminalGui[dfaust]]
+#   -> GpuDevice[mydsp]
+#   -> GpuAudio[PortAudio, GpuDevice[mydsp]]
+#   -> GpuAdapter[mydsp, GpuAudio[...]]
+#   -> ControlDsp[GpuAdapter[...], TerminalGui]
 #   -> GpuAudio.start(control_dsp)
 #
 # Ownership remains in the architecture entry point. Destruction order is:
