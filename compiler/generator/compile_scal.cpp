@@ -3877,19 +3877,28 @@ class LoopSplitEmitter {
                 }
             }
             const int R = gGlobal->gLSRegisters;
-            // the temporaries are scheduled against what the states leave
-            modelSchedule(sops, 0, (int)sops.size(), std::max(1, R - states), gGlobal->gLSWidth,
-                          &cycles, &overR, &peak);
-            // the constants take the registers left by the states and the
-            // temporaries' peak ; the least used ones go to memory first
+            // The TEMPORARIES first : they are the flow, scheduled against the
+            // whole budget ; the states take what the flow leaves, then the
+            // constants, and the rest spills. A spilled state costs its
+            // traffic -- a load and a store per frame, two memory operations
+            // and two issue slots -- and does NOT serialize the frames. The
+            // former law (states first, the temporaries against what they
+            // leave, and a spilled state serializing the frames) priced the
+            // 3 x 9 tile of m99 (54 states over R = 40 : one register left to
+            // the flow, over-pressure 504) at 34 times the 3 x 3, where the
+            // measure says +3 to +35 % on three judges (LES-TUILES 6.1).
+            modelSchedule(sops, 0, (int)sops.size(), R, gGlobal->gLSWidth, &cycles, &overR, &peak);
+            const int statesResident = std::min(states, std::max(0, R - peak));
+            stateSpill               = states - statesResident;
+            // the constants take the registers left by the flow and the
+            // resident states ; the least used ones go to memory first
             const int C = (int)uses.size();
-            cres        = std::min(C, std::max(0, R - states - peak));
+            cres        = std::min(C, std::max(0, R - statesResident - peak));
             std::sort(uses.begin(), uses.end());
             for (int k = 0; k < C - cres; k++) {
                 constLoads += uses[k];
             }
-            stateSpill = std::max(0, states - R);
-            peak += states + cres;
+            peak += statesResident + cres;
         } else {
             modelSchedule(sops, 0, (int)sops.size(), std::max(1, gGlobal->gLSRegisters - carried),
                           gGlobal->gLSWidth, &cycles, &overR, &peak);
@@ -3925,6 +3934,7 @@ class LoopSplitEmitter {
         // it is and handed the matrices to stage-major tiles, which pay
         // for their intra-frame overlap in buffers.
         long iter = cycles;
+        long tAlu = 0, tMem = 0, tRec = 0, tOverlap = 1;  // the latency term's components, for the trace
         if (gGlobal->gLSRegClasses && gGlobal->gLSLatency == 0) {
             // the spilled classes, priced in slots under the isolated
             // iteration : a load per use of a spilled constant, a load and
@@ -3943,8 +3953,9 @@ class LoopSplitEmitter {
             }
             // the spilled classes : a load per use of a spilled constant
             // (an issue slot, as the model prices a load), a load and a
-            // store per frame for a spilled state (the memory ports)
-            slots += (long)constLoads * loadW;
+            // store per frame for a spilled state (two issue slots and the
+            // memory ports)
+            slots += (long)constLoads * loadW + 2L * stateSpill;
             memops += 2L * stateSpill;
             const int  U   = std::max(1, gGlobal->gLSWidth);
             const long alu = (slots + U - 1) / U;
@@ -3961,6 +3972,30 @@ class LoopSplitEmitter {
             // made fusion look harmful on chained filters -- on a matrix of
             // four chains of three, the oracle cut by stage (three loops,
             // twelve stores a frame) where one loop measured 34% faster.
+            // The cycle is measured in LATENCY, not in operations : the
+            // schedule's unit-latency machine bounds the issue, the recurrence
+            // is bounded by the pipeline depths of the operations on the
+            // cycle. A biquad's own cycle, five operations, counted 5 where
+            // the measure gives 7 (the 1 x 1 tiles of m99 : 7 cycles a frame,
+            // latency-bound). Contraction under fast-math halves the adds of a
+            // multiply-add chain : an add after a multiply is priced 2.
+            auto opLatency = [](const LSOp& o) -> int {
+                if (o.isCall) {
+                    return 20;
+                }
+                switch (o.shape) {
+                    case 10: case 13: return 0;   // a resident value : ready
+                    case 11: case 4: case 1: return 4;  // a load, a table read, a line read
+                    case 12: return 1;            // a store
+                    case 3: return 3;             // a cast
+                    case 2: return 1;             // a selection
+                    case 100 + kMul: return 4;
+                    case 100 + kDiv: return 10;
+                    case 100 + kRem: return 20;
+                    case 100 + kAdd: case 100 + kSub: return o.isInt ? 1 : 2;
+                    default: return (o.shape >= 100) ? (o.isInt ? 1 : 3) : 2;
+                }
+            };
             long rec = 0;
             for (const auto& kv : carriedOps) {
                 auto it = rootOf.find(kv.first);
@@ -3978,7 +4013,7 @@ class LoopSplitEmitter {
                     for (int d : sops[o].deps) {
                         int r = reach(d);
                         if (r >= 0) {
-                            best = std::max(best, r + 1);
+                            best = std::max(best, r + opLatency(sops[o]));
                         }
                     }
                     depth[o] = (best >= 0) ? best : INT_MAX;
@@ -3986,20 +4021,25 @@ class LoopSplitEmitter {
                 };
                 int r = reach(it->second);
                 if (r >= 0) {
-                    rec = std::max(rec, (long)r + 1);
+                    rec = std::max(rec, (long)r);
                 }
             }
             // the frames overlap as long as the states stay in registers ;
             // under the three classes a spilled temporary is stack traffic
             // within the frame, only a spilled state serializes the frames
-            const bool serialized = gGlobal->gLSRegClasses ? (stateSpill > 0) : (overR > 0);
+            // the frames overlap as long as the flow stays in registers : under
+            // the three classes a spilled state is traffic, not serialization
+            const bool serialized = gGlobal->gLSRegClasses ? false : (overR > 0);
             const long overlap    = serialized ? 1 : gGlobal->gLSLatency;
             iter = std::max({alu, mem, rec, (long)((cycles + overlap - 1) / overlap)});
+            tAlu = alu, tMem = mem, tRec = rec, tOverlap = overlap;
         }
         if (global::isOpt("FAUST_LS_TRACE")) {  // PROBE
-            fprintf(stderr, "  shadow [%zu members, %zu ops] cycles %d iter %ld overR %ld peak %d carried %d stateSpill %d constLoads %d -> %ld\n",
-                    members.size(), sops.size(), cycles, iter, overR, peak, carried, stateSpill, constLoads,
-                    (long)gGlobal->gVecSize * (iter + SPILLW * overR) + CL);
+            fprintf(stderr,
+                    "  shadow [%zu members, %zu ops] cycles %d alu %ld mem %ld rec %ld overlap %ld iter %ld | "
+                    "states %d cres %d constLoads %d stateSpill %d peak %d overR %ld -> %ld\n",
+                    members.size(), sops.size(), cycles, tAlu, tMem, tRec, tOverlap, iter, states, cres,
+                    constLoads, stateSpill, peak, overR, (long)gGlobal->gVecSize * (iter + SPILLW * overR) + CL);
         }
         if (sopsOut) {
             *sopsOut = std::move(sops);
