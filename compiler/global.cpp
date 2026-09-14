@@ -478,6 +478,7 @@ void global::reset()
     gLSAdopt        = false;
     gLSTileK        = 0;
     gLSTileD        = 0;
+    gLSTiles        = false;
     gLSFuseOps      = 1024;
     gMinDelay       = 0;
     gLSCl           = 20;
@@ -897,6 +898,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         }
         if (gLSTileK > 0) {
             dst << "-ls-tile " << gLSTileK << "," << gLSTileD << " ";
+        }
+        if (gLSTiles) {
+            dst << "-ls-tiles ";
         }
     }
     if (gNoVirtual) {
@@ -1337,6 +1341,9 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
         state.gLSTileK = k;
         state.gLSTileD = d;
         i += 2;
+    } else if (isCmd(arg, "-ls-tiles", "--loop-split-tiles")) {
+        state.gLSTiles = true;
+        i += 1;
     } else {
         return false;
     }
@@ -2640,6 +2647,10 @@ string global::printHelp()
     sstr << tab
          << "-ls-tile <k>,<d> --loop-split-tile <k>,<d>  force the (k, d) tiling of every detected "
             "family of isomorphic chains, no oracle (the calibration of the tiles)."
+         << endl;
+    sstr << tab
+         << "-ls-tiles   --loop-split-tiles          the tiles oracle : every family of isomorphic "
+            "chains is paved by the (k, d) tiling of least shadow cost before the fusion (implies -ls-fuse)."
          << endl;
     sstr << tab
          << "-ls-U <n>   --loop-split-width <n>      superscalar width of the model scheduler "

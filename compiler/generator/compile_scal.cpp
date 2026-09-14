@@ -1884,7 +1884,10 @@ class LoopSplitEmitter {
         std::vector<std::vector<int>> rep;
     };
     std::vector<Family> detectFamilies(bool trace) const;
+    std::vector<int>    tileBlocks(const Family& f, int c0, int s0, int k, int d) const;
+    void contractTiles(const Family& f, size_t i, int k, int d, bool trace);
     void tileFamilies(const std::vector<Family>& fams, int k, int d, bool trace);
+    void electTilings(const std::vector<Family>& fams, bool trace);
 
     // per-buffer emission decisions (materialized index -> ...)
     std::vector<std::string> fBufName;
@@ -4428,38 +4431,58 @@ std::vector<LoopSplitEmitter::Family> LoopSplitEmitter::detectFamilies(bool trac
 // its cells, the invariant of acyclicity making every contraction legal ; a
 // refusal is traced, never fatal. Block ids shift at each contraction, so the
 // tile's block is always re-read from its first cell's member.
+// the current blocks of a tile's cells (a cell's block is read through its
+// member : block ids shift under contraction)
+std::vector<int> LoopSplitEmitter::tileBlocks(const Family& f, int c0, int s0, int k, int d) const
+{
+    std::vector<int> blocks;
+    for (int c = c0; c < std::min(c0 + k, f.P); c++) {
+        for (int s = s0; s < std::min(s0 + d, f.S); s++) {
+            blocks.push_back(fSN.blockOf(f.rep[c][s]));
+        }
+    }
+    return blocks;
+}
+
+// every tile of the (k, d) pavage of a family becomes a block by contraction of
+// its cells, the invariant of acyclicity making every contraction legal ; a
+// refusal is traced, never fatal
+void LoopSplitEmitter::contractTiles(const Family& f, size_t i, int k, int d, bool trace)
+{
+    for (int c0 = 0; c0 < f.P; c0 += k) {
+        for (int s0 = 0; s0 < f.S; s0 += d) {
+            int cells = 1, refused = 0;
+            for (int c = c0; c < std::min(c0 + k, f.P); c++) {
+                for (int s = s0; s < std::min(s0 + d, f.S); s++) {
+                    if (c == c0 && s == s0) {
+                        continue;
+                    }
+                    int a = fSN.blockOf(f.rep[c0][s0]);
+                    int b = fSN.blockOf(f.rep[c][s]);
+                    if (a == b) {
+                        cells++;
+                        continue;
+                    }
+                    if (!fSN.canContract(a, b)) {
+                        refused++;
+                        continue;
+                    }
+                    fSN.contract(std::min(a, b), std::max(a, b));
+                    cells++;
+                }
+            }
+            if (trace) {
+                fprintf(stderr, "ls-tile family %zu at (%d,%d) : %d cells in one block, %d refused\n", i,
+                        c0, s0, cells, refused);
+            }
+        }
+    }
+}
+
 void LoopSplitEmitter::tileFamilies(const std::vector<Family>& fams, int k, int d, bool trace)
 {
     for (size_t i = 0; i < fams.size(); i++) {
-        const Family& f = fams[i];
-        for (int c0 = 0; c0 < f.P; c0 += k) {
-            for (int s0 = 0; s0 < f.S; s0 += d) {
-                int cells = 1, refused = 0;
-                for (int c = c0; c < std::min(c0 + k, f.P); c++) {
-                    for (int s = s0; s < std::min(s0 + d, f.S); s++) {
-                        if (c == c0 && s == s0) {
-                            continue;
-                        }
-                        int a = fSN.blockOf(f.rep[c0][s0]);
-                        int b = fSN.blockOf(f.rep[c][s]);
-                        if (a == b) {
-                            cells++;
-                            continue;
-                        }
-                        if (!fSN.canContract(a, b)) {
-                            refused++;
-                            continue;
-                        }
-                        fSN.contract(std::min(a, b), std::max(a, b));
-                        cells++;
-                    }
-                }
-                if (trace) {
-                    fprintf(stderr, "ls-tile family %zu at (%d,%d) : %d cells in one block, %d refused\n",
-                            i, c0, s0, cells, refused);
-                }
-            }
-        }
+        contractTiles(fams[i], i, k, d, trace);
     }
     fSN.retopo();
     if (trace) {
@@ -4481,6 +4504,49 @@ void LoopSplitEmitter::tileFamilies(const std::vector<Family>& fams, int k, int 
                     tiles.size(), total);
         }
     }
+}
+
+// ---- the tiles oracle (-ls-tiles) : for each family, every (k, d) pavage is
+// priced as the sum of the shadow costs of its tiles -- each tile concrete, no
+// memoization (the shape forgets what the cost sees, LES-TUILES 4) -- and the
+// cheapest is contracted before the greedy fusion, which then runs with the
+// tiles as atoms. The pavage is a starting partition the pairwise moves cannot
+// reach (a square tile cuts k chains by d stages at once) ; the greedy can
+// still merge tiles, never split them, so the election errs on the fine side
+// (a tie goes to the larger tile, fewer loops).
+void LoopSplitEmitter::electTilings(const std::vector<Family>& fams, bool trace)
+{
+    for (size_t i = 0; i < fams.size(); i++) {
+        const Family& f          = fams[i];
+        long          bestCost   = LONG_MAX, singletons = 0;
+        int           bk         = 1, bd = 1;
+        for (int k = 1; k <= f.P; k++) {
+            for (int d = 1; d <= f.S; d++) {
+                long cost = 0;
+                for (int c0 = 0; c0 < f.P; c0 += k) {
+                    for (int s0 = 0; s0 < f.S; s0 += d) {
+                        cost += blockCostShadow(fSN.orderedUnion(tileBlocks(f, c0, s0, k, d)));
+                    }
+                }
+                if (k == 1 && d == 1) {
+                    singletons = cost;
+                }
+                if (cost < bestCost || (cost == bestCost && k * d > bk * bd)) {
+                    bestCost = cost;
+                    bk       = k;
+                    bd       = d;
+                }
+            }
+        }
+        if (trace) {
+            fprintf(stderr, "ls-tiles family %zu (%d x %d) : elected %d x %d, model %ld (1 x 1 : %ld)\n", i,
+                    f.P, f.S, bk, bd, bestCost, singletons);
+        }
+        if (bk * bd > 1) {
+            contractTiles(f, i, bk, bd, trace);
+        }
+    }
+    fSN.retopo();
 }
 
 void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
@@ -4545,10 +4611,12 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // oracle of the tiles (section 4) is the one to run the greedy with tiles
     // as atoms.
     const bool forcedTiling = gGlobal->gLSTileK > 0;
-    if (forcedTiling || lsTrace) {
+    if (forcedTiling || gGlobal->gLSTiles || lsTrace) {
         std::vector<Family> fams = detectFamilies(lsTrace);
-        if (gGlobal->gLSTileK > 0) {
+        if (forcedTiling) {
             tileFamilies(fams, gGlobal->gLSTileK, gGlobal->gLSTileD, lsTrace);
+        } else if (gGlobal->gLSTiles && gGlobal->gLSFuse) {
+            electTilings(fams, lsTrace);  // the oracle, then the greedy with tiles as atoms
         }
     }
 
