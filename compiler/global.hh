@@ -360,6 +360,7 @@ struct global {
     int  gLSSpillW;        // -ls-spill option: cycles charged per register-cycle above R in the
                            // oracle (the spill proxy, default 4)
     int  gLSLoadW;         // -ls-load option: issue slots charged per buffer load in the oracle
+    int  gLSCLoadW;        // -ls-cload option: memory-port operations per reload of a spilled constant (-ls-regs3)
                            // (0 = loads free, default 1)
     int&  gFTZMode = sigs::g.gFTZMode;   // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
     double gHashLoadFactor;  // -hlf option, tlib CTree/Symbol hash table growth threshold
