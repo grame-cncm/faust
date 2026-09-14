@@ -3943,12 +3943,38 @@ class LoopSplitEmitter {
             iter += ((long)constLoads * loadW + 2L * stateSpill + U - 1) / U;
         }
         if (gGlobal->gLSLatency > 0) {
+            // The issue slots, with the SIMD PACKING the compiler will find :
+            // isomorphic operations of the same dependency level are
+            // independent and pack into one vector instruction, `lanes` at
+            // a time (two doubles, four floats on a 128-bit unit). This is
+            // what separates a square tile from a chain of the same area --
+            // 3 x 3 gives every operation three independent copies (56
+            // adjacent isomorphic pairs in the emitted loop, 18.3 cycles a
+            // frame measured), 1 x 9 gives none (8 pairs, 20.8 cycles, its
+            // scalar slot count exactly). Loads, stores, calls and composite
+            // ops stay scalar.
+            const int lanes = (gGlobal->gFloatSize == 2) ? 2 : 4;
             long slots = 0, memops = 0;
-            for (const LSOp& o : sops) {
-                if (o.shape == 12) {
-                    memops++;  // a store, one memory port
-                } else {
-                    slots += o.weight;  // an op or a buffer load : an issue slot, as the model prices it
+            {
+                std::vector<int> level(sops.size(), 0);
+                std::map<std::pair<int, int>, int> packs;  // (level, shape) -> count
+                for (size_t k = 0; k < sops.size(); k++) {
+                    const LSOp& o = sops[k];
+                    for (int d : o.deps) {
+                        if (d >= 0) {
+                            level[k] = std::max(level[k], level[d] + 1);
+                        }
+                    }
+                    if (o.shape == 12) {
+                        memops++;  // a store, one memory port
+                    } else if (o.weight == 1 && !o.isCall && o.shape != 11 && o.shape >= 100) {
+                        packs[{level[k], o.shape}]++;  // a packable arithmetic op
+                    } else {
+                        slots += o.weight;  // a load, a call, a composite op : scalar slots
+                    }
+                }
+                for (const auto& kv : packs) {
+                    slots += (kv.second + lanes - 1) / lanes;
                 }
             }
             // the spilled classes : a load per use of a spilled constant
