@@ -4471,9 +4471,15 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
 
     // 2a-ter. the families (LES-TUILES) : read off the finest partition, before
     // any fusion move -- the recognition is a property of the program, not of
-    // the cut. Under -ls-tile k,d every family is paved without oracle ; the
-    // greedy then runs with the tiles as atoms.
-    if (gGlobal->gLSTileK > 0 || lsTrace) {
+    // the cut. Under -ls-tile k,d every family is paved without oracle, and the
+    // pavage is FINAL : the calibration compares a tiling with the measure, so
+    // neither the dissolve move nor the greedy fusion runs after it (the
+    // greedy only contracts, and would refuse or absorb the tiling at will --
+    // under the campaign tarif every forced tiling measured the same). The
+    // oracle of the tiles (section 4) is the one to run the greedy with tiles
+    // as atoms.
+    const bool forcedTiling = gGlobal->gLSTileK > 0;
+    if (forcedTiling || lsTrace) {
         std::vector<Family> fams = detectFamilies(lsTrace);
         if (gGlobal->gLSTileK > 0) {
             tileFamilies(fams, gGlobal->gLSTileK, gGlobal->gLSTileD, lsTrace);
@@ -4487,7 +4493,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // wants the shared member (x0.97). No static rule separates them
     // (three falsified in one day) : the faithful shadow oracle prices
     // both worlds per candidate, duplication included.
-    if (gGlobal->gLSFuse) {
+    if (gGlobal->gLSFuse && !forcedTiling) {
         std::set<Tree, treeorder> outs;
         for (Tree l = L; isList(l); l = tl(l)) {
             outs.insert(hd(l));
@@ -4580,7 +4586,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // its only consumer when legal (quotient stays acyclic) and the merged
     // body fits the op budget. The policy of the predictor, as a walk in
     // the lattice of legal partitions.
-    if (gGlobal->gLSFuse) {
+    if (gGlobal->gLSFuse && !forcedTiling) {
         std::map<int, long> costMemo;  // block id -> shadow cost (per campaign step)
         // -fir barrier : a KERNEL block is dominated by dense recognized-FIR
         // tap reads. Fusing kernel with non-kernel code destroys the
