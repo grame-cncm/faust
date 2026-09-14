@@ -1,4 +1,4 @@
-% man(1) Version 2.88.0 (05-September-2026) | Faust man page
+% man(1) Version 2.88.1 (14-September-2026) | Faust man page
 
 NAME
 ====
@@ -167,7 +167,6 @@ Code generation options:
   **-eta**        **--eta-normalization**         normalization loop with the eta harvest: definitions no longer recursive replace their projections (one pass by default).
 
   **-etai** \<n>   **--eta-iterations** \<n>        iteration budget of the eta normalization loop (implies -eta; the loop may stop earlier).
-
 
   **-fui**        **--freeze-ui**                 whether to freeze vslider/hslider/nentry to a given value (init value by default).
 
