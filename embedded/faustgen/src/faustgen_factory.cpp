@@ -663,7 +663,8 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     err = dictionary_getstring(d, gensym("machinecode"), &bitcode); // The retrieved pointer references the string in the dictionary, it is not a copy.
     if (err == MAX_ERR_NONE) {
         sysmem_copyptr(bitcode, *fBitCode, fBitCodeSize);
-        return;
+        // Restore editable source and library paths even when using cached machine code.
+        goto read_sourcecode;
     }
 
     // Cleanup the failed allocation before falling back
