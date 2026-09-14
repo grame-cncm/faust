@@ -453,7 +453,7 @@ void global::reset()
     tlib::setHashLoadFactor(gHashLoadFactor);
     gRangeUI        = false;
     gFreezeUI       = false;
-    gEtaHarvest     = false;
+    gEtaHarvest     = true;   // the eta harvest is the default : a false recursive definition never survives
     gEtaRegroup     = false;
     gStagingOps     = 0;
     gTempOps        = 0;
@@ -463,7 +463,7 @@ void global::reset()
     gLazySelect     = false;
     gSelectN        = false;
     gGateEquiv      = false;
-    gEtaIterations  = 1;
+    gEtaIterations  = 64;  // a safety cap : the fixpoint stops by itself when an iteration changes nothing
     gLoopSplit      = false;
     gReconstructFIRIIRs = false;
     gLowerSums          = false;
@@ -1754,6 +1754,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-eta", "--eta-normalization")) {
             gEtaHarvest = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-noeta", "--no-eta-normalization")) {
+            gEtaHarvest = false;  // the A/B of the default : the normal form of before
             i += 1;
 
         } else if (isCmd(argv[i], "-etai", "--eta-iterations")) {
