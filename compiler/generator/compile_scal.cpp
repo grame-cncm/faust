@@ -3987,6 +3987,11 @@ class LoopSplitEmitter {
             const long overlap    = serialized ? 1 : gGlobal->gLSLatency;
             iter = std::max({alu, mem, rec, (long)((cycles + overlap - 1) / overlap)});
         }
+        if (global::isOpt("FAUST_LS_TRACE")) {  // PROBE
+            fprintf(stderr, "  shadow [%zu members, %zu ops] cycles %d iter %ld overR %ld peak %d carried %d stateSpill %d constLoads %d -> %ld\n",
+                    members.size(), sops.size(), cycles, iter, overR, peak, carried, stateSpill, constLoads,
+                    (long)gGlobal->gVecSize * (iter + SPILLW * overR) + CL);
+        }
         if (sopsOut) {
             *sopsOut = std::move(sops);
         }
@@ -4466,20 +4471,27 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         // was path-dependent: on the 9x9 filter matrix it followed the
         // chains (vertical first) and locked out the measurably better
         // square tiles the oracle itself prefers when allowed to compare.
+        const bool lsTrace = global::isOpt("FAUST_LS_TRACE");  // PROBE
         auto gainOf = [&](int b, int c) -> long {
             if (fSN.opsEstimate(b) + fSN.opsEstimate(c) > gGlobal->gLSFuseOps) {
+                if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, ops budget\n", b, c);
                 return 0;  // compile-time guard only: the cost oracle decides
             }
             if (!fSN.canContract(b, c)) {
+                if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, not contractible\n", b, c);
                 return 0;
             }
             if (isKernelBlock(b) != isKernelBlock(c)) {
+                if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, kernel barrier\n", b, c);
                 return 0;  // -fir barrier
             }
             if (streamBudget > 0 && streamsUnion(b, c) > streamBudget) {
+                if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, stream budget\n", b, c);
                 return 0;  // prefetcher stream budget
             }
             long costM = blockCostShadow(fSN.orderedUnion(b, c));
+            long cb = costOfBlock(b), cc = costOfBlock(c);
+            if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : cost %ld + %ld = %ld vs merged %ld -> gain %ld (ops %d + %d)\n", b, c, cb, cc, cb + cc, costM, cb + cc - costM, fSN.opsEstimate(b), fSN.opsEstimate(c));
             return costOfBlock(b) + costOfBlock(c) - costM;
         };
         bool changed = true;
@@ -4540,6 +4552,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                     bestB    = bc.second;
                 }
             }
+            if (lsTrace) fprintf(stderr, "ls-fuse round : %d blocks, %zu candidates, best %d+%d gain %ld\n", nb, cands.size(), bestA, bestB, bestGain);
             if (bestA >= 0) {
                 fSN.contract(bestA, bestB);
                 costMemo.clear();
