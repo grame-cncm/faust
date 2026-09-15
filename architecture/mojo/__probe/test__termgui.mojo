@@ -14,10 +14,8 @@ from dsp import *
 from gui import *
 from meta import *
 from audio.portaudio import *
-from audio.portaudio.ffi import PA_STREAM_IS_STOPPED
-from gui.terminal.terminal import TerminalGui, ControlDsp
+from gui.terminal.terminal import TerminalGui
 from gui.terminal.ffi import error_str
-from std.ffi import external_call
 
 # ==============================================================================
 # First section of architecture provided code end.
@@ -195,50 +193,46 @@ struct Test(FaustDsp):
 # the DSP code and be controlled via the gui.
 # ==============================================================================
 
-def main() raises -> None:
+def main() -> None:
     comptime assert dfaust == F32.dtype, "Expected 32 bit float driver precision."
     var dsp = unsafe_alloc[Test](1)
     dsp.unsafe_write(Test())
     dsp[].init(SAMP_RATE)
-    var gui = TerminalGui[dfaust]()
-    dsp[].build_user_interface(gui)
-    var ctl = ControlDsp[Test](
-        dsp, Ptr(to=gui).unsafe_origin_cast[MUT_NOTRK]()
-    )
-    var driver = PortAudio()
-    var err = gui.check()
+    var gui = unsafe_alloc[TerminalGui](1)
+    gui.unsafe_write(TerminalGui())
+    dsp[].build_user_interface(gui[])
+    var driver = unsafe_alloc[PortAudio](1)
+    driver.unsafe_write(PortAudio())
+    var err = gui[].check()
     if not err:
-        err = driver.init()
+        err = driver[].init()
     if not err:
-        err = driver.start(Ptr(to=ctl).unsafe_origin_cast[MUT_NOTRK]())
+        err = driver[].start(dsp)
     if not err:
-        err = gui.start()
-    if not err:
-        while gui.tick():
-            var state = driver.is_active()
-            if state != 1:
-                err = state if state < 0 else PA_STREAM_IS_STOPPED
-                break
-        if not err:
-            err = gui.err
-    # Every path, including open/start/run failure, unwinds in this order.
-    # Restore the tty before potentially waiting for the audio driver to stop.
-    var term = gui.stop()
-    var end = driver.stop()
-    if driver.stream != None:
-        # A failed close may leave audio running. Restore the terminal and exit
-        # WITHOUT destructors; freeing callback-owned memory would be unsafe.
+        err = gui[].run()
+    var term = gui[].stop()
+    var end = driver[].stop()
+    if driver[].stream != None:
         print("PortAudio close failed:", end)
-        external_call["_Exit", Void](S32(1))
-    _ = ctl
-    gui.close()
+        return
+    gui[].close()
+    gui.unsafe_deinit_pointee()
+    gui.unsafe_free()
+    driver.unsafe_free()
     dsp.unsafe_free()
     if not err:
+        print("here")
         err = term
-    if err > 0:
-        raise Error(error_str(err))
-    if err or end:
-        raise Error(String("PortAudio error: ", err if err else end))
+    if err:
+        if err > 0:
+            print(error_str(err))
+        else:
+            print("PortAudio error:", err)
+        return
+    if end:
+        print("PortAudio error:", end)
+        return
+    print("done")
 
 # ==============================================================================
 # Second section of architecture provided code end.

@@ -2,23 +2,90 @@
 # The injected mydsp must implement FaustDspGpu (gpu_work_size/gpu_compute).
 # Link gui/terminal/native/build/libtermgui.a and PortAudio.
 
-from max.gpu.host import DeviceBuffer, DeviceContext
-
 from conf import *
 from dsp import *
-from gpu import *
 from gui import *
 from help import *
 from meta import *
 from audio.portaudio import *
-from gui.terminal.gpu import run_terminal_gpu
+from std.sys import has_accelerator
+from gui.map import GpuControlMap, build_gpu_control_map
+from gui.terminal.terminal import TerminalGui
+from gui.terminal.ffi import error_str
+from gpu.adapter import GpuAdapter
+from gpu.device import GpuDevice
 
 <<includeIntrinsic>>
 <<includeclass>>
 
 
-def main() raises -> None:
+def main() -> None:
+    comptime assert dfaust == F32.dtype, "Expected 32-bit audio precision."
+    comptime assert has_accelerator(), "Expected a supported GPU device."
+
     var dsp = unsafe_alloc[mydsp](1)
     dsp.unsafe_write(mydsp())
     dsp[].init(SAMP_RATE)
-    run_terminal_gpu(dsp)
+    var ui = unsafe_alloc[TerminalGui](1)
+    ui.unsafe_write(TerminalGui())
+    dsp[].build_user_interface(ui[])
+    var map = unsafe_alloc[GpuControlMap](1)
+    map.unsafe_write(GpuControlMap())
+    var gpu = unsafe_alloc[GpuDevice[mydsp]](1)
+    gpu.unsafe_write(GpuDevice[mydsp]())
+    var driver = unsafe_alloc[PortAudio](1)
+    driver.unsafe_write(PortAudio())
+    var err = ui[].check()
+    if not err:
+        err = build_gpu_control_map(dsp, map[])
+    if not err:
+        err = gpu[].prepare(dsp, map[], BUFF_SIZE)
+
+    var adapter = unsafe_alloc[GpuAdapter[mydsp, GpuDevice[mydsp]]](1)
+    adapter.unsafe_write(GpuAdapter[mydsp, GpuDevice[mydsp]](dsp, gpu))
+    if not err:
+        err = driver[].init()
+    if not err:
+        err = driver[].start(adapter)
+    if not err:
+        err = ui[].run()
+
+    # Restore the terminal before verifying that the callback stopped.
+    var term = ui[].stop()
+    var end = driver[].stop()
+    if driver[].stream != None:
+        # Leave callback-reachable allocations intact if stream close failed.
+        print("PortAudio close failed:", end)
+        return
+    var gpu_err = gpu[].get_error()
+    var released = gpu[].release()
+    if gpu[].state != None:
+        # Leave device and host buffers intact if DMA completion is unknown.
+        print("GPU release failed:", released)
+        return
+    ui[].close()
+    adapter.unsafe_free()
+    driver.unsafe_free()
+    gpu.unsafe_free()
+    map.unsafe_free()
+    comptime assert conforms_to(TerminalGui, Deinitable), (
+        "Terminal GUI owns widget strings."
+    )
+    ui.unsafe_deinit_pointee()
+    ui.unsafe_free()
+    dsp.unsafe_free()
+    if not err:
+        err = term
+    if not err:
+        err = gpu_err
+    if not err:
+        err = released
+    if not err:
+        err = end
+    if err:
+        if err > 0:
+            print(error_str(err))
+        else:
+            print("GPU audio error:", err)
+        return
+    print("done")

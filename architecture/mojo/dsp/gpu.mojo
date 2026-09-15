@@ -5,11 +5,11 @@ from .dsp import FaustDsp
 
 
 trait FaustDspGpu(FaustDsp):
+
     @always_inline
     def compute(
         mut dsp, var count: S32, var inputs: ImmStreams, var outputs: MutStreams
-    ) -> None:
-        pass
+    ) -> None: pass
 
     @staticmethod
     @always_inline
@@ -19,11 +19,10 @@ trait FaustDspGpu(FaustDsp):
     @staticmethod
     @always_inline
     def gpu_compute(
-        mut ctx: DeviceContext,
-        imm dsp_raw: DeviceBuffer[u8],
-        imm in_buf: DeviceBuffer[dfaust],
-        imm out_buf: DeviceBuffer[dfaust],
-        imm work_buf: DeviceBuffer[u8],
-        imm count: S32
-    ) raises -> None:
-        ...
+        mut ctx:       DeviceContext,
+        imm dsp_raw:   DeviceBuffer[u8],
+        imm in_buf:    DeviceBuffer[dfaust],
+        imm out_buf:   DeviceBuffer[dfaust],
+        imm work_buf:  DeviceBuffer[u8],
+        imm count:     S32
+    ) raises -> None: ...

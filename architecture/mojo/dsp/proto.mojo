@@ -1,4 +1,4 @@
-# dsp/probe.mojo
+# dsp/proto.mojo
 
 from conf import *
 from meta import FaustMeta
@@ -50,7 +50,7 @@ struct ProtoDsp(FaustDspGpu):
     @staticmethod
     @always_inline
     def gpu_work_size(imm count: S32) -> Int:
-        pass
+        return 0 
 
     @staticmethod
     @always_inline

@@ -39,7 +39,8 @@ mj_static_assert(MJ_GUI_CAP > 0 && MJ_GUI_CAP <= 4096, "GUI capacity: 1..4096");
 mj_static_assert(MJ_STR_CAP > 1 && MJ_STR_CAP <= 4096, "string capacity: 2..4096");
 mj_static_assert(MJ_GUI_FPS > 0 && MJ_GUI_FPS <= 1000, "GUI FPS: 1..1000");
 
-enum {
+enum
+{
     KIND_BOX = WIDGET_BARGRAPH + 1,
     FRAME_CAP = MJ_VIEW_COLS * MJ_VIEW_ROWS * 4 + MJ_VIEW_ROWS * 48 + 64,
     GUI_WIDTH = 80,
@@ -47,20 +48,23 @@ enum {
     CLICK_SLOP = 2
 };
 
-typedef struct Rect {
+typedef struct Rect
+{
     s32 x;
     s32 y;
     s32 w;
     s32 h;
 } Rect;
 
-typedef struct Input {
+typedef struct Input
+{
     s32 kind;
     s32 x;
     s32 y;
 } Input;
 
-enum {
+enum
+{
     INPUT_NONE,
     INPUT_DOWN,
     INPUT_DRAG,
@@ -70,7 +74,8 @@ enum {
 };
 
 #if MJ_SYSTEM_UNIX
-static int const sigs[] = {
+static int const sigs[] =
+{
     SIGWINCH,
     SIGINT,
     SIGTERM,
@@ -85,12 +90,11 @@ struct Value {
     volatile LONG64 bits;
 };
 #else
-struct Value {
-    _Atomic(u64) bits;
-};
+struct Value { _Atomic(u64) bits; };
 #endif
 
-typedef struct Widget {
+typedef struct Widget
+{
     s32 kind;
     s32 par;
     s32 depth;
@@ -106,7 +110,8 @@ typedef struct Widget {
     Value slot;
 } Widget;
 
-typedef struct Term {
+typedef struct Term
+{
 #if MJ_SYSTEM_WIN
     HANDLE in;
     HANDLE out;
@@ -128,7 +133,8 @@ typedef struct Term {
     b32 live;
 } Term;
 
-struct Gui {
+struct Gui
+{
     Term term;
     Widget wdgs[MJ_GUI_CAP];
     s32 len;
@@ -189,7 +195,8 @@ static f64 clamp(f64 val, f64 min, f64 max)
 
 cstr error_str(ErrorCode err)
 {
-    static cstr const strs[] = {
+    static cstr const strs[] =
+    {
         "ok", "invalid argument", "invalid state", "allocation failed",
         "capacity exceeded", "terminal I/O failed", "not a usable terminal",
         "lock-free controls unavailable"

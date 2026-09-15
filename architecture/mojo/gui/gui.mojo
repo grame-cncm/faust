@@ -29,7 +29,7 @@ trait FaustGui:
         pass
 
     @always_inline
-    def open_vertical_box(mut ui, label: String) -> None:
+    def open_vertical_box(mut ui, var label: String) -> None:
         pass
 
     @always_inline
@@ -39,12 +39,12 @@ trait FaustGui:
     # active widgets
 
     @always_inline
-    def add_button(mut ui, var label: String, mut zone: FaustFloat) -> None: pass
+    def add_button(mut ui, var label: String, mut zone: FaustFloat) -> None:
+        pass
 
     @always_inline
-    def add_check_button(
-        mut ui, var label: String, mut zone: FaustFloat
-    ) -> None: pass
+    def add_check_button(mut ui, var label: String, mut zone: FaustFloat) -> None:
+        pass
 
     @always_inline
     def add_vertical_slider(
@@ -102,6 +102,6 @@ trait FaustGui:
     # metadata declarations
 
     @always_inline
-    def declare(
-        mut ui, mut zone: FaustFloat, var key: String, var val: String
-    ) -> None: pass
+    def declare(mut ui, mut zone: FaustFloat, var key: String, var val: String) -> None:
+        pass
+

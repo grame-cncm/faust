@@ -2,14 +2,19 @@
 # Compile from architecture/mojo with -I . and link PortAudio + libtermgui.a.
 
 from max.gpu.host import DeviceBuffer, DeviceContext
+from std.sys import has_accelerator
 
 from conf import *
 from dsp import FaustDspGpu
 from gpu import global_idx
 from gui import FaustGui
 from meta import FaustMeta
-from audio.portaudio import SAMP_RATE
-from gui.terminal.gpu import run_terminal_gpu
+from audio.portaudio import PortAudio, SAMP_RATE, BUFF_SIZE
+from gui.map import GpuControlMap, build_gpu_control_map
+from gui.terminal.terminal import TerminalGui
+from gui.terminal.ffi import error_str
+from gpu.adapter import GpuAdapter
+from gpu.device import GpuDevice
 
 
 comptime NUM_OSCS = 10_000
@@ -291,8 +296,72 @@ struct ToneDsp(FaustDspGpu):
         )
 
 
-def main() raises -> None:
+def main() -> None:
+    comptime assert dfaust == F32.dtype, "Expected 32-bit audio precision."
+    comptime assert has_accelerator(), "Expected a supported GPU device."
+
     var dsp = unsafe_alloc[ToneDsp](1)
     dsp.unsafe_write(ToneDsp())
     dsp[].init(SAMP_RATE)
-    run_terminal_gpu(dsp)
+    var ui = unsafe_alloc[TerminalGui](1)
+    ui.unsafe_write(TerminalGui())
+    dsp[].build_user_interface(ui[])
+    var map = unsafe_alloc[GpuControlMap](1)
+    map.unsafe_write(GpuControlMap())
+    var gpu = unsafe_alloc[GpuDevice[ToneDsp]](1)
+    gpu.unsafe_write(GpuDevice[ToneDsp]())
+    var driver = unsafe_alloc[PortAudio](1)
+    driver.unsafe_write(PortAudio())
+    var err = ui[].check()
+    if not err:
+        err = build_gpu_control_map(dsp, map[])
+    if not err:
+        err = gpu[].prepare(dsp, map[], BUFF_SIZE)
+
+    var adapter = unsafe_alloc[GpuAdapter[ToneDsp, GpuDevice[ToneDsp]]](1)
+    adapter.unsafe_write(GpuAdapter[ToneDsp, GpuDevice[ToneDsp]](dsp, gpu))
+    if not err:
+        err = driver[].init()
+    if not err:
+        err = driver[].start(adapter)
+    if not err:
+        err = ui[].run()
+
+    var term = ui[].stop()
+    var end = driver[].stop()
+    if driver[].stream != None:
+        # A failed close may leave the callback accessing host memory.
+        print("PortAudio close failed:", end)
+        return
+    var gpu_err = gpu[].get_error()
+    var released = gpu[].release()
+    if gpu[].state != None:
+        # DMA completion is unknown; leave host and device memory intact.
+        print("GPU release failed:", released)
+        return
+    ui[].close()
+    adapter.unsafe_free()
+    driver.unsafe_free()
+    gpu.unsafe_free()
+    map.unsafe_free()
+    comptime assert conforms_to(TerminalGui, Deinitable), (
+        "Terminal GUI owns widget strings."
+    )
+    ui.unsafe_deinit_pointee()
+    ui.unsafe_free()
+    dsp.unsafe_free()
+    if not err:
+        err = term
+    if not err:
+        err = gpu_err
+    if not err:
+        err = released
+    if not err:
+        err = end
+    if err:
+        if err > 0:
+            print(error_str(err))
+        else:
+            print("GPU audio error:", err)
+        return
+    print("done")

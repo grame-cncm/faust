@@ -82,7 +82,7 @@ struct ProbeDsp(FaustDspGpu):
         ui.close_box()
 
     @staticmethod
-    def gpu_work_size(buf_size: S32) -> Int:
+    def gpu_work_size(imm buf_size: S32) -> Int:
         return NUM_OSCS * Int(buf_size) * size_of[FaustFloat]()
 
     @staticmethod

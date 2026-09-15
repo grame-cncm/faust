@@ -41,7 +41,7 @@ struct ProtoGui(FaustGui):
         ui.top = 0
 
     @always_inline
-    def open_vertical_box(mut ui, label: String) -> None:
+    def open_vertical_box(mut ui, var label: String) -> None:
         var parent = ui.stack[ui.top]
         var idx = ui.widgets_len 
 
@@ -70,12 +70,12 @@ struct ProtoGui(FaustGui):
     @always_inline
     def add_horizontal_slider(
         mut ui,
-        var label: String,
-        mut zone:  FaustFloat,
-        var init:  FaustFloat,
-        var min:   FaustFloat,
-        var max:   FaustFloat,
-        var step:  FaustFloat
+        var label:  String,
+        mut zone:   FaustFloat,
+        var init:   FaustFloat,
+        var min:    FaustFloat,
+        var max:    FaustFloat,
+        var step:   FaustFloat
     ) -> None:
         var parent = ui.stack[ui.top]
         var idx = ui.widgets_len 
@@ -145,3 +145,4 @@ struct Widget(ImplicitlyCopyable, Movable):
     var min: FaustFloat
     var max: FaustFloat
     var step: FaustFloat
+

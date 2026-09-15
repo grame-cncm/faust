@@ -2,9 +2,10 @@
 
 from max.gpu import global_idx, thread_idx
 
+from .gpu import FaustGpu
+from .adapter import GpuAdapter
 from .device import (
-    FaustGpuDevice,
-    gpu_create_runtime,
+    GpuDevice,
     FAUST_GPU_NO_ERROR,
     FAUST_GPU_ERROR,
     FAUST_GPU_ALLOCATION_ERROR,
