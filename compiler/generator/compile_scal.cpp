@@ -653,6 +653,8 @@ static Tree gatequivNormalize(Tree L)
     return L;
 }
 
+static bool displayTailCarries(Tree t);
+
 /**
  * -xtemp : the explicit temporaries pass (LES-TEMPORAIRES 7, step 1). Every node
  * the cache would store becomes temp(node) ; the roots are rewritten, the
@@ -670,6 +672,106 @@ Tree ScalarCompiler::placeExplicitTemps(Tree L2, Tree Lx, std::function<void(Tre
     // of the signals, inspectable and testable ; the policy can then
     // leave the cache's rule (register pressure, recomputation).
     startTiming("explicit temps");
+    // the display crown : the stateless nodes between a bargraph and its
+    // capture points are computed in the block-rate tail (computeDisplayFrontier,
+    // displayExpr). A node that lives ONLY there is never a loop temporary --
+    // the cache never stored it either, and a temp would move it from once
+    // per block to once per sample (windchimes : a sigmoid). A crown node
+    // also reached from the audio side is stored in the loop as before.
+    std::set<Tree> crown, audio;
+    if (fDisplayList != nullptr && isList(fDisplayList)) {
+        std::vector<Tree> work;
+        for (Tree l = fDisplayList; isList(l); l = tl(l)) {
+            Tree path, mn, mx, x;
+            if (isSigVBargraph(hd(l), path, mn, mx, x) || isSigHBargraph(hd(l), path, mn, mx, x)) {
+                work.push_back(x);
+            }
+        }
+        std::set<Tree> walked;
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            if (!walked.insert(t).second || getCertifiedSigType(t)->variability() < kSamp) {
+                continue;
+            }
+            int  i;
+            Tree x, y, g;
+            tvec V;
+            if (isProj(t, &i, g) || isSigDelay(t, x, y) || isSigPrefix(t, x, y) || isSigFIR(t, V) || isSigIIR(t, V) ||
+                !displayTailCarries(t)) {
+                continue;  // a capture point : loop-computed below it
+            }
+            crown.insert(t);
+            for (int k = 0; k < t->arity(); k++) {
+                work.push_back(t->branch(k));
+            }
+        }
+        if (!crown.empty()) {
+            // the audio reach : from the outputs and the display state roots,
+            // the same descent as the walk below
+            std::vector<Tree> work2{L2};
+            for (Tree sd : fDisplayStateful) {
+                work2.push_back(sd);
+            }
+            std::unordered_map<Tree, Tree> parent;  // trace only : how the audio side reaches a node
+            while (!work2.empty()) {
+                Tree t = work2.back();
+                work2.pop_back();
+                if (!audio.insert(t).second) {
+                    continue;
+                }
+                if (isList(t) || isNil(t)) {
+                    for (int k = 0; k < t->arity(); k++) {
+                        work2.push_back(t->branch(k));
+                    }
+                    continue;
+                }
+                tvec subs;
+                Tree size, gen, wi, ws, ax, ay;
+                if (isSigWRTbl(t, size, gen, wi, ws)) {
+                    subs.push_back(size);
+                    if (wi != gGlobal->nil) {
+                        subs.push_back(wi);
+                        subs.push_back(ws);
+                    }
+                } else if (isSigAttach(t, ax, ay)) {
+                    // the attached signal is display-side only : the audio
+                    // path carries the first argument alone
+                    subs.push_back(ax);
+                } else if (Tree lbl, mn, mx; isSigHBargraph(t, lbl, mn, mx, ax) || isSigVBargraph(t, lbl, mn, mx, ax)) {
+                    // the audio path reads the bargraph's VARIABLE (block
+                    // rate, the legacy design) : its value is the display
+                    // list's, computed in the tail from the captures
+                } else if (!isSigGen(t)) {
+                    getSubSignals(t, subs);
+                }
+                for (Tree b : subs) {
+                    if (parent.find(b) == parent.end()) {
+                        parent[b] = t;
+                    }
+                    work2.push_back(b);
+                }
+            }
+            if (global::isOpt("FAUST_XTEMP_TRACE")) {
+                // the first crown node the audio side reaches, and its path
+                for (Tree c : crown) {
+                    if (audio.count(c)) {
+                        fprintf(stderr, "xtemp : crown node reached from the audio side ; the path from the root :\n");
+                        std::vector<Tree> path;
+                        for (Tree u = c; u != nullptr; u = (parent.count(u) ? parent[u] : nullptr)) {
+                            path.push_back(u);
+                        }
+                        for (auto it = path.rbegin(); it != path.rend(); ++it) {
+                            std::stringstream ss;
+                            ss << ppsig(*it, 24);
+                            fprintf(stderr, "xtemp :     %s\n", ss.str().c_str());
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
     std::set<Tree, treeorder> wrap;
     {
         std::set<Tree>    seen;
@@ -686,7 +788,7 @@ Tree ScalarCompiler::placeExplicitTemps(Tree L2, Tree Lx, std::function<void(Tre
                 }
                 continue;
             }
-            if (cacheWouldStore(t)) {
+            if (cacheWouldStore(t) && !(crown.count(t) > 0 && audio.count(t) == 0)) {
                 wrap.insert(t);
             } else if (global::isOpt("FAUST_XTEMP_TRACE")) {
                 // the shared nodes the pass leaves alone, with the reason
@@ -781,13 +883,14 @@ Tree ScalarCompiler::placeExplicitTemps(Tree L2, Tree Lx, std::function<void(Tre
         reanalyse(L2);
     }
     if (global::isOpt("FAUST_XTEMP_TRACE")) {
-        fprintf(stderr, "xtemp : %zu temporaries placed\n", wrap.size());
+        fprintf(stderr, "xtemp : %zu temporaries placed (crown %zu nodes, audio reach %zu)\n", wrap.size(), crown.size(), audio.size());
         for (Tree t : wrap) {
             Occurrences* o = fOccMarkup->retrieve(t);
             std::stringstream ss;
             ss << ppsig(t, 40);
-            fprintf(stderr, "xtemp :   sharing %d multi %d maxd %d : %s\n", getSharingCount(t, fSharingKey),
-                    o ? (int)o->hasMultiOccurrences() : -1, o ? o->getMaxDelay() : -1, ss.str().c_str());
+            fprintf(stderr, "xtemp :   sharing %d multi %d maxd %d crown %d audio %d : %s\n", getSharingCount(t, fSharingKey),
+                    o ? (int)o->hasMultiOccurrences() : -1, o ? o->getMaxDelay() : -1, (int)crown.count(t), (int)audio.count(t),
+                    ss.str().c_str());
         }
         // the display cones must be marked like the audio path : name
         // the first node of a capture cone the analyses did not reach
@@ -7458,6 +7561,16 @@ Tree ScalarCompiler::harvestDisplay(Tree L)
 // compile at audio rate), inputs, and any construct the block-rate tail
 // emitter does not carry (tables, generators...) : those are computed
 // in-loop and captured at the end of the loop body.
+// The stateless operators the display frontier walks through : they are
+// computed in the block-rate tail, from the captures below them.
+static bool displayTailCarries(Tree t)
+{
+    int  op;
+    Tree x, y, sel;
+    return isSigBinOp(t, &op, x, y) || isSigIntCast(t, x) || isSigFloatCast(t, x) || isSigSelect2(t, sel, x, y) ||
+           isSigSum(t) || (getUserData(t) != nullptr && t->arity() > 0);
+}
+
 void ScalarCompiler::computeDisplayFrontier()
 {
     if (fDisplayList == nullptr || !isList(fDisplayList)) {
@@ -7473,13 +7586,7 @@ void ScalarCompiler::computeDisplayFrontier()
             work.push_back({x, true});
         }
     }
-    auto tailCarries = [](Tree t) -> bool {
-        int  op;
-        Tree x, y, sel;
-        return isSigBinOp(t, &op, x, y) || isSigIntCast(t, x) || isSigFloatCast(t, x) ||
-               isSigSelect2(t, sel, x, y) || isSigSum(t) ||
-               (getUserData(t) != nullptr && t->arity() > 0);
-    };
+    auto tailCarries = displayTailCarries;
     while (!work.empty()) {
         auto [t, cap] = work.back();
         work.pop_back();
