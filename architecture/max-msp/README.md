@@ -377,7 +377,7 @@ make -C architecture/max-msp/tests
 ```
 
 Individual targets are available as `faustgen2max`, `faust2gen`, `faust2max6`,
-`faust2rnbo`, and `saveui`, for example:
+`faust2rnbo`, `saveui`, and `max-runtime-harness`, for example:
 
 ```bash
 make -C architecture/max-msp/tests faust2rnbo
@@ -408,3 +408,21 @@ This checks thin ARM64 and x86_64 bundles, a universal bundle, signatures,
 resources, exact per-file polyphony, MC/MIDI flags, `-nopatch`, effect and
 single-precision builds, OSC linkage, static/dynamic soundfile packaging, and
 Faust include paths containing spaces.
+
+An additional end-to-end test runs the compiled external in Max itself:
+
+```bash
+make -C architecture/max-msp/tests max-runtime-integration
+```
+
+This target compiles a small ARM64 polyphonic DSP, uses py2max to generate a
+self-driving test patch, launches Max, enables DSP, and sends MIDI note events
+without requiring a MIDI keyboard. It measures a non-zero signal, sends
+`polyphony 24`, plays another note, and verifies that the signal remains
+non-zero. The measured signal is muted before the audio outputs, so the test
+does not play through the speakers. The patch writes a JSON result and closes
+itself. The Python test then terminates only the Max process it launched. This
+GUI/audio test is deliberately excluded from `make test` because it opens Max
+and briefly activates the audio engine. `MAX_APPLICATION` can select a Max
+executable installed somewhere other than
+`/Applications/Max.app/Contents/MacOS/Max`.
