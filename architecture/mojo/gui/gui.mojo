@@ -5,9 +5,9 @@ from conf import *
 # ==============================================================
 # FaustGui interface declaration.
 # General contract for GUI architectures.
-# Note that we provide a default nop implementation for each
-# method, so the compiler does check for missing definitions.
-# The only exception is run(), which is required.
+# We provide an empty implementation for each method, so the
+# compiler does NOT check for missing definitions.
+# The only exception is run(), whose implementation is required.
 # ==============================================================
 
 trait FaustGui:
