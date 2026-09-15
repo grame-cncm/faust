@@ -428,7 +428,11 @@ static Tree normalizeFixpoint(Tree L)
     // the loop before the budget is spent.
     const int maxIter = sigs::g.gEtaIterations;
     while (iter < maxIter) {
-        Tree d = sym2deBruijn(L);
+        // the tree before this iteration : an iteration that harvests nothing
+        // is UNDONE (see below), so that the default normal form of a program
+        // with no false recursive definition is the plain normal form
+        const Tree L0 = L;
+        Tree       d  = sym2deBruijn(L);
         if (d == prev) {
             break;  // the de Bruijn form is pointer-stable: fixpoint reached
         }
@@ -476,6 +480,19 @@ static Tree normalizeFixpoint(Tree L)
             sigs::startTiming(label.c_str());
             sigs::endTiming(label.c_str());
         }
+        if (harvested == 0) {
+            // nothing to harvest : this iteration's merge (the de Bruijn round
+            // trip renames every group from its content, and every name-derived
+            // order with it), its re-simplification and its promotion are NOT a
+            // normal form the program asked for -- kept, they changed the emitted
+            // code of 94 impulse programs out of 96 for no harvest (reverbDesigner
+            // : 743 lines, 650 -> 757 temporaries, +45 % under g++ ; the
+            // campaign V14a saw a +-45 % lottery on 121 programs). Restore the
+            // tree of before the iteration and stop : the previous iteration, if
+            // any, harvested and left a promoted tree.
+            L = L0;
+            break;
+        }
         if (Lh != L) {
             // a harvest substitutes definition trees for projections, creating
             // compositions (nested delays, foldable constants) the backends must
@@ -489,11 +506,6 @@ static Tree normalizeFixpoint(Tree L)
         typeAnnotation(L, sigs::g.gLocalCausalityCheck);
         L = signalPromote(L);
         iter++;
-        if (harvested == 0) {
-            break;  // an iteration that harvests nothing ends the loop : its merge, its
-                    // simplifications and its promotion are kept, a further one would
-                    // change nothing of this kind
-        }
     }
 
     const int groupsAfter = countRecGroups(L);
