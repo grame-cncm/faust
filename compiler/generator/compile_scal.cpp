@@ -52,6 +52,8 @@
 #include "sigToGraph.hh"
 #include "sigprint.hh"
 #include "rewrite.hh"
+#include <optional>
+#include <unordered_map>
 #include "superNodes.hh"
 #include "revealFIR.hh"
 #include "revealIIR.hh"
@@ -651,6 +653,174 @@ static Tree gatequivNormalize(Tree L)
     return L;
 }
 
+/**
+ * -xtemp : the explicit temporaries pass (LES-TEMPORAIRES 7, step 1). Every node
+ * the cache would store becomes temp(node) ; the roots are rewritten, the
+ * annotations redone, the analyses replayed by the caller's `reanalyse`.
+ */
+Tree ScalarCompiler::placeExplicitTemps(Tree L2, Tree Lx, std::function<void(Tree)> reanalyse)
+{
+    // -xtemp, the explicit temporaries pass (LES-TEMPORAIRES 7, step 1 :
+    // reproduction). Every node the emitter's cache would STORE -- of a
+    // kind whose generator consults the cache, read without delay and
+    // shared (sharing count > 1, or occurrences in more than one place
+    // or in a faster context), or read with delay and shared -- becomes
+    // temp(node) ; the emitter obeys the temp (forceCacheCode) and its
+    // cache stores nothing else. The decision is thus a transformation
+    // of the signals, inspectable and testable ; the policy can then
+    // leave the cache's rule (register pressure, recomputation).
+    startTiming("explicit temps");
+    std::set<Tree, treeorder> wrap;
+    {
+        std::set<Tree>    seen;
+        std::vector<Tree> work{Lx};
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            if (!seen.insert(t).second) {
+                continue;
+            }
+            if (isList(t) || isNil(t)) {
+                for (int k = 0; k < t->arity(); k++) {
+                    work.push_back(t->branch(k));
+                }
+                continue;
+            }
+            if (cacheWouldStore(t)) {
+                wrap.insert(t);
+            } else if (global::isOpt("FAUST_XTEMP_TRACE")) {
+                // the shared nodes the pass leaves alone, with the reason
+                Occurrences* o = fOccMarkup->retrieve(t);
+                int sh = getSharingCount(t, fSharingKey);
+                if (sh > 1 || (o && o->hasMultiOccurrences())) {
+                    std::stringstream ss;
+                    ss << ppsig(t, 40);
+                    fprintf(stderr, "xtemp :   skipped (kind %d, occ %d, sharing %d, multi %d, maxd %d) : %s\n", (int)passCoversKind(t), o ? 1 : 0, sh,
+                            o ? (int)o->hasMultiOccurrences() : -1, o ? o->getMaxDelay() : -1, ss.str().c_str());
+                }
+            }
+            // the same descent as the analyses : sub-signals, not
+            // structural branches -- and never INTO a table generator :
+            // its content is compiled by its own sub-container, whose
+            // own analysis (prepare2) runs this pass again on it. The
+            // main-level sharing of a generator (the same waveform under
+            // two tables) is not a sharing the sub-container sees.
+            tvec subs;
+            Tree size, gen, wi, ws;
+            if (isSigWRTbl(t, size, gen, wi, ws)) {
+                subs.push_back(size);
+                if (wi != gGlobal->nil) {
+                    subs.push_back(wi);
+                    subs.push_back(ws);
+                }
+            } else if (!isSigGen(t)) {
+                getSubSignals(t, subs);
+            }
+            for (Tree b : subs) {
+                work.push_back(b);
+            }
+        }
+    }
+    if (!wrap.empty()) {
+        std::unordered_map<Tree, Tree> memo;
+        auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
+        auto rule    = [&](Tree orig, Tree rebuilt) -> Tree {
+            return wrap.count(orig) ? sigTemp(rebuilt) : rebuilt;
+        };
+        // the rewrite stops at the same boundary as the walk : a table's
+        // generator is rebuilt untouched (its own sub-container decides
+        // its temporaries), the other branches go through the rewrite --
+        // a waveform shared between a table's content and the main graph
+        // (table2) is wrapped in the main graph only
+        std::function<std::optional<Tree>(Tree)> pre;
+        pre = [&](Tree t) -> std::optional<Tree> {
+            Tree size, gen, wi, ws;
+            if (isSigWRTbl(t, size, gen, wi, ws)) {
+                Tree nsize = treeRewritePairedMemo(size, pre, rule, memo, defRule);
+                Tree nwi   = (wi == gGlobal->nil) ? wi : treeRewritePairedMemo(wi, pre, rule, memo, defRule);
+                Tree nws   = (ws == gGlobal->nil) ? ws : treeRewritePairedMemo(ws, pre, rule, memo, defRule);
+                return sigWRTbl(nsize, gen, nwi, nws);
+            }
+            return std::nullopt;
+        };
+        L2 = treeRewritePairedMemo(L2, pre, rule, memo, defRule);
+        for (Tree& sd : fDisplayStateful) {
+            sd = treeRewritePairedMemo(sd, pre, rule, memo, defRule);
+        }
+        if (fDisplayList != nullptr) {
+            fDisplayList = treeRewritePairedMemo(fDisplayList, pre, rule, memo, defRule);
+        }
+        // the rewrite made new trees : every annotation the emitters read
+        // is recomputed, in the order of the first preparation above ;
+        // the display sets that named the old trees are remapped or
+        // recomputed (stale capture points pointed into cones the
+        // analyses no longer reach : vumeter crashed on them)
+        fConditionProperty.clear();
+        conditionAnnotation(L2);
+        recursivnessAnnotation(L2);
+        typeAnnotation(L2, true);
+        {
+            std::set<Tree> preserved;
+            for (Tree t : fDisplayPreserved) {
+                auto it = memo.find(t);
+                preserved.insert(it != memo.end() ? it->second : t);
+            }
+            fDisplayPreserved = preserved;
+            fDisplayCapturePoints.clear();
+            fDisplayCaptures.clear();
+        }
+        if (fDisplayList != nullptr && isList(fDisplayList)) {
+            recursivnessAnnotation(fDisplayList);
+            typeAnnotation(fDisplayList, false);
+            computeDisplayFrontier();
+        }
+        for (Tree sd : fDisplayStateful) {
+            recursivnessAnnotation(sd);
+            typeAnnotation(sd, false);
+        }
+        reanalyse(L2);
+    }
+    if (global::isOpt("FAUST_XTEMP_TRACE")) {
+        fprintf(stderr, "xtemp : %zu temporaries placed\n", wrap.size());
+        for (Tree t : wrap) {
+            Occurrences* o = fOccMarkup->retrieve(t);
+            std::stringstream ss;
+            ss << ppsig(t, 40);
+            fprintf(stderr, "xtemp :   sharing %d multi %d maxd %d : %s\n", getSharingCount(t, fSharingKey),
+                    o ? (int)o->hasMultiOccurrences() : -1, o ? o->getMaxDelay() : -1, ss.str().c_str());
+        }
+        // the display cones must be marked like the audio path : name
+        // the first node of a capture cone the analyses did not reach
+        int unmarked = 0;
+        for (Tree p : fDisplayCapturePoints) {
+            std::set<Tree>    seen;
+            std::vector<Tree> work{p};
+            while (!work.empty()) {
+                Tree t = work.back();
+                work.pop_back();
+                if (!seen.insert(t).second || isList(t) || isNil(t) || t->arity() == 0) {
+                    continue;
+                }
+                if (!fOccMarkup->retrieve(t)) {
+                    if (unmarked++ == 0) {
+                        std::stringstream ss;
+                        ss << t->node();
+                        fprintf(stderr, "xtemp : unmarked display node %s (temp: %d, in wrap: %d)\n", ss.str().c_str(), (int)isSigTemp(t), (int)wrap.count(t));
+                    }
+                }
+                tvec subs;
+                int  n = getSubSignals(t, subs);
+                for (int k = 0; k < n; k++) {
+                    work.push_back(subs[k]);
+                }
+            }
+        }
+        fprintf(stderr, "xtemp : %zu capture points, %d unmarked nodes in their cones\n", fDisplayCapturePoints.size(), unmarked);
+    }
+    endTiming("explicit temps");
+    return L2;
+}
+
 Tree ScalarCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
@@ -863,143 +1033,153 @@ Tree ScalarCompiler::prepare(Tree LS)
     // sharing counts and occurrence marks. Both analyses run ONCE on an
     // extended root list (mark() regenerates its property key, a second
     // call would lose the first).
-    Tree Lx = L2;
-    for (Tree sd : fDisplayStateful) {
-        // spec SIGNAUX-ATTACHES : S compiles at audio rate -- same
-        // extended-root pattern as the lazy-select condition atoms
-        Lx = cons(sd, Lx);
-    }
-    if (fDisplayList != nullptr) {
-        // the display list itself joins the sharing/occurrence roots :
-        // the marks compile nothing (the schedule does), but the tail
-        // emitter's CS() on slow and constant nodes reads them
-        // (generateNumber consults getMaxDelay -- null without a mark)
-        for (Tree l = fDisplayList; isList(l); l = tl(l)) {
-            Tree path, mn, mx, x;
-            if (isSigVBargraph(hd(l), path, mn, mx, x) ||
-                isSigHBargraph(hd(l), path, mn, mx, x)) {
-                Lx = cons(hd(l), Lx);  // widget items : declaration-only, no marks needed
-            }
+    // the roots and the two analyses (sharing, occurrences) as one replayable
+    // step : the explicit temporaries pass below rewrites the trees and
+    // replays it on the wrapped roots
+    Tree Lx = nullptr;
+    auto analyseRoots = [&](Tree L2) {
+        Lx = L2;
+        for (Tree sd : fDisplayStateful) {
+            // spec SIGNAUX-ATTACHES : S compiles at audio rate -- same
+            // extended-root pattern as the lazy-select condition atoms
+            Lx = cons(sd, Lx);
         }
-    }
-    if (!fDisplayStateful.empty() || fDisplayList != nullptr) {
-        recursivnessAnnotation(Lx);
-        typeAnnotation(Lx, false);
-    }
-    if (gGlobal->gSelectN) {
-        // spec LE-SELECTN : the multiplex atoms must be compilable even
-        // when the 4-atom cliff collapsed a branch's condition to nil
-        // (the property then no longer carries them, but the emission
-        // still guards its assignments with them). They join the
-        // sharing/occurrence roots directly from the side table ; the
-        // gLazySelect block below runs the annotations on the final Lx.
-        for (const auto& e : fSelectNInfo) {
-            Lx = cons(e.second.selEff, Lx);
-            for (const auto& lf : e.second.leaves) {
-                for (Tree a : lf.atoms) {
-                    Lx = cons(a, Lx);
+        if (fDisplayList != nullptr) {
+            // the display list itself joins the sharing/occurrence roots :
+            // the marks compile nothing (the schedule does), but the tail
+            // emitter's CS() on slow and constant nodes reads them
+            // (generateNumber consults getMaxDelay -- null without a mark)
+            for (Tree l = fDisplayList; isList(l); l = tl(l)) {
+                Tree path, mn, mx, x;
+                if (isSigVBargraph(hd(l), path, mn, mx, x) ||
+                    isSigHBargraph(hd(l), path, mn, mx, x)) {
+                    Lx = cons(hd(l), Lx);  // widget items : declaration-only, no marks needed
                 }
             }
         }
-    }
-    if (gGlobal->gLazySelect) {
-        std::set<Tree, treeorder> atoms;
-        for (const auto& pc : fConditionProperty) {
-            for (Tree cc = pc.second; cc && isList(cc); cc = tl(cc)) {
-                for (Tree at = hd(cc); at && isList(at); at = tl(at)) {
-                    atoms.insert(hd(at));
-                }
-            }
+        if (!fDisplayStateful.empty() || fDisplayList != nullptr) {
+            recursivnessAnnotation(Lx);
+            typeAnnotation(Lx, false);
         }
-        for (Tree a : atoms) {
-            Lx = cons(a, Lx);
-        }
-        // the atoms are compiled : they need every annotation the emitter
-        // reads -- types, recursivness (memoized for the L2 part)
-        recursivnessAnnotation(Lx);
-        typeAnnotation(Lx, gGlobal->gLocalCausalityCheck);
-    }
-
-    startTiming("sharingAnalysis");
-    sharingAnalysis(Lx, fSharingKey);  // Annotate L2 (+ condition atoms) with sharing count
-    endTiming("sharingAnalysis");
-
-    startTiming("occurrences analysis");
-    delete fOccMarkup;
-    if (gGlobal->gLazySelect) {
-        // REFINED design : conditions must never influence caching. The
-        // condition-aware markup (built for enable, whose semantics
-        // REQUIRES materialization) forces any node used under two
-        // different conditions into a cached statement -- on select
-        // cascades this shattered the inline world (vocal : 87 -> 1422
-        // statements). Under -lazyselect the markup runs condition-BLIND
-        // (df-identical inline/statement partition) ; the conditions,
-        // computed separately, only GUARD the statements that exist
-        // anyway (getConditionCode at the Statement sites).
-        fOccMarkup = new OccMarkup();
-    } else {
-        fOccMarkup = new OccMarkup(fConditionProperty);
-    }
-    if (gGlobal->gIIRTransposed && !gGlobal->gLoopSplit) {
-        // Under -ls the election stands down : the split emitter only knows
-        // the DIRECT form, whose buffers are sized by the occurrence
-        // self-marks the election would have skipped.
-        // TOPOLOGY election (one judge for occurrences AND emission) : an
-        // order>=2 IIR kernel whose history nobody reads from outside --
-        // no sigDelay on it, never the source of a multi-tap FIR -- takes
-        // the TRANSPOSED all-pole form (scalar state chain, no delay
-        // line). The others keep the direct form ; the campaign of
-        // 2026-08-10 showed the transposed form LOSES when the delay
-        // line must survive for external readers (modal banks +25..58%)
-        // and wins ~20% when it disappears (tester/tester2).
-        std::set<Tree>    readers;  // IIRs with an external delayed read
-        std::set<Tree>    seen;
-        std::vector<Tree> work{Lx};
-        while (!work.empty()) {
-            Tree t = work.back();
-            work.pop_back();
-            if (!seen.insert(t).second) {
-                continue;
-            }
-            Tree x, d;
-            tvec cs, dd;
-            if (isSigDelay(t, x, d) && isSigIIR(x, dd)) {
-                readers.insert(x);
-            } else if (kernelWorkVec(t, cs) && cs.size() >= 3 && isSigIIR(cs[0], dd)) {
-                // kernels read their source at delays 0..n-1
-                readers.insert(cs[0]);
-            }
-            for (int k = 0; k < t->arity(); k++) {
-                work.push_back(t->branch(k));
-            }
-        }
-        for (Tree t : seen) {
-            if (tvec cs; isSigIIR(t, cs)) {
-                int order = 0, taps = 0;
-                for (size_t k = 3; k < cs.size(); k++) {
-                    if (!isZero(cs[k])) {
-                        order = int(k) - 2;
-                        taps++;
+        if (gGlobal->gSelectN) {
+            // spec LE-SELECTN : the multiplex atoms must be compilable even
+            // when the 4-atom cliff collapsed a branch's condition to nil
+            // (the property then no longer carries them, but the emission
+            // still guards its assignments with them). They join the
+            // sharing/occurrence roots directly from the side table ; the
+            // gLazySelect block below runs the annotations on the final Lx.
+            for (const auto& e : fSelectNInfo) {
+                Lx = cons(e.second.selEff, Lx);
+                for (const auto& lf : e.second.leaves) {
+                    for (Tree a : lf.atoms) {
+                        Lx = cons(a, Lx);
                     }
                 }
-                // DENSITY guard : the transposed form carries one state per
-                // unit of order, shifted every sample, where the direct form
-                // pays one product per nonzero tap and a delay line. A sparse
-                // recurrence (a feedback loop through long delays : order in
-                // the hundreds, one tap) would become hundreds of scalar
-                // states -- a loop body the C compiler cannot even allocate
-                // in reasonable time. Half the order in taps, at least.
-                if (order >= 2 && 2 * taps >= order && readers.count(t) == 0) {
-                    Tree key = tree(symbol("SIGIIRTRANSPOSED"));
-                    Tree one = tree(1);
-                    t->setProperty(key, one);
+            }
+        }
+        if (gGlobal->gLazySelect) {
+            std::set<Tree, treeorder> atoms;
+            for (const auto& pc : fConditionProperty) {
+                for (Tree cc = pc.second; cc && isList(cc); cc = tl(cc)) {
+                    for (Tree at = hd(cc); at && isList(at); at = tl(at)) {
+                        atoms.insert(hd(at));
+                    }
+                }
+            }
+            for (Tree a : atoms) {
+                Lx = cons(a, Lx);
+            }
+            // the atoms are compiled : they need every annotation the emitter
+            // reads -- types, recursivness (memoized for the L2 part)
+            recursivnessAnnotation(Lx);
+            typeAnnotation(Lx, gGlobal->gLocalCausalityCheck);
+        }
+
+        startTiming("sharingAnalysis");
+        sharingAnalysis(Lx, fSharingKey);  // Annotate L2 (+ condition atoms) with sharing count
+        endTiming("sharingAnalysis");
+
+        startTiming("occurrences analysis");
+        delete fOccMarkup;
+        if (gGlobal->gLazySelect) {
+            // REFINED design : conditions must never influence caching. The
+            // condition-aware markup (built for enable, whose semantics
+            // REQUIRES materialization) forces any node used under two
+            // different conditions into a cached statement -- on select
+            // cascades this shattered the inline world (vocal : 87 -> 1422
+            // statements). Under -lazyselect the markup runs condition-BLIND
+            // (df-identical inline/statement partition) ; the conditions,
+            // computed separately, only GUARD the statements that exist
+            // anyway (getConditionCode at the Statement sites).
+            fOccMarkup = new OccMarkup();
+        } else {
+            fOccMarkup = new OccMarkup(fConditionProperty);
+        }
+        if (gGlobal->gIIRTransposed && !gGlobal->gLoopSplit) {
+            // Under -ls the election stands down : the split emitter only knows
+            // the DIRECT form, whose buffers are sized by the occurrence
+            // self-marks the election would have skipped.
+            // TOPOLOGY election (one judge for occurrences AND emission) : an
+            // order>=2 IIR kernel whose history nobody reads from outside --
+            // no sigDelay on it, never the source of a multi-tap FIR -- takes
+            // the TRANSPOSED all-pole form (scalar state chain, no delay
+            // line). The others keep the direct form ; the campaign of
+            // 2026-08-10 showed the transposed form LOSES when the delay
+            // line must survive for external readers (modal banks +25..58%)
+            // and wins ~20% when it disappears (tester/tester2).
+            std::set<Tree>    readers;  // IIRs with an external delayed read
+            std::set<Tree>    seen;
+            std::vector<Tree> work{Lx};
+            while (!work.empty()) {
+                Tree t = work.back();
+                work.pop_back();
+                if (!seen.insert(t).second) {
+                    continue;
+                }
+                Tree x, d;
+                tvec cs, dd;
+                if (isSigDelay(t, x, d) && isSigIIR(x, dd)) {
+                    readers.insert(x);
+                } else if (kernelWorkVec(t, cs) && cs.size() >= 3 && isSigIIR(cs[0], dd)) {
+                    // kernels read their source at delays 0..n-1
+                    readers.insert(cs[0]);
+                }
+                for (int k = 0; k < t->arity(); k++) {
+                    work.push_back(t->branch(k));
+                }
+            }
+            for (Tree t : seen) {
+                if (tvec cs; isSigIIR(t, cs)) {
+                    int order = 0, taps = 0;
+                    for (size_t k = 3; k < cs.size(); k++) {
+                        if (!isZero(cs[k])) {
+                            order = int(k) - 2;
+                            taps++;
+                        }
+                    }
+                    // DENSITY guard : the transposed form carries one state per
+                    // unit of order, shifted every sample, where the direct form
+                    // pays one product per nonzero tap and a delay line. A sparse
+                    // recurrence (a feedback loop through long delays : order in
+                    // the hundreds, one tap) would become hundreds of scalar
+                    // states -- a loop body the C compiler cannot even allocate
+                    // in reasonable time. Half the order in taps, at least.
+                    if (order >= 2 && 2 * taps >= order && readers.count(t) == 0) {
+                        Tree key = tree(symbol("SIGIIRTRANSPOSED"));
+                        Tree one = tree(1);
+                        t->setProperty(key, one);
+                    }
                 }
             }
         }
-    }
-    fOccMarkup->mark(Lx);  // Annotate L2 (+ condition atoms) with occurrences analysis
-    endTiming("occurrences analysis");
+        fOccMarkup->mark(Lx);  // Annotate L2 (+ condition atoms) with occurrences analysis
+        endTiming("occurrences analysis");
+    };
+    analyseRoots(L2);
 
+    if (gGlobal->gExplicitTemps) {
+        L2 = placeExplicitTemps(L2, Lx, [&](Tree L) { analyseRoots(L); });
+    }
 
     endTiming("prepare");
 
@@ -1027,11 +1207,18 @@ Tree ScalarCompiler::prepare2(Tree L0)
 
     recursivnessAnnotation(L0);        // Annotate L0 with recursivness information
     typeAnnotation(L0, true);          // Annotate L0 with type information
-    sharingAnalysis(L0, fSharingKey);  // annotate L0 with sharing count
-
-    delete fOccMarkup;
-    fOccMarkup = new OccMarkup();
-    fOccMarkup->mark(L0);  // annotate L0 with occurrences analysis
+    auto analyse2 = [&](Tree L) {
+        sharingAnalysis(L, fSharingKey);  // annotate L0 with sharing count
+        delete fOccMarkup;
+        fOccMarkup = new OccMarkup();
+        fOccMarkup->mark(L);  // annotate L0 with occurrences analysis
+    };
+    analyse2(L0);
+    if (gGlobal->gExplicitTemps) {
+        // the table generators are compiled here, by the same cache : the
+        // pass decides for them too (subcontainer1 : the generator's constant)
+        L0 = placeExplicitTemps(L0, L0, analyse2);
+    }
 
     endTiming("ScalarCompiler::prepare2");
     return L0;
@@ -6755,6 +6942,73 @@ string ScalarCompiler::generateIotaCache(const std::string& exp, bool headSafe)
     return fIotaCache[exp];
 }
 
+/**
+ * -xtemp : would the cache store this node ? The cache's own rule, read on the
+ * annotated tree before emission : a node of a kind whose generator consults
+ * the cache, shared without delay (sharing count > 1, or occurrences in
+ * several places or in a faster context), or shared with delay. Numbers,
+ * constants, outputs, projections, tables, generators, prefix, IIR, widgets
+ * and temp nodes have their own storage and never reach the cache ; the
+ * inputs do (generateInput asks it), and are covered.
+ */
+bool ScalarCompiler::passCoversKind(Tree sig)
+{
+    int     i;
+    int64_t i64;
+    double  r;
+    Tree    x, y, z, label, type, name, file, size, gen, wi, ws;
+    if (isSigTemp(sig, x) || isSigInt(sig, &i) || isSigInt64(sig, &i64) || isSigReal(sig, &r) ||
+        isSigOutput(sig, &i, x) || isProj(sig, &i, x) ||
+        isSigFConst(sig, type, name, file) || isSigPrefix(sig, x, y) || isSigGen(sig, x) ||
+        isSigWRTbl(sig, size, gen) || isSigWRTbl(sig, size, gen, wi, ws) || isSigSoundfile(sig, label) ||
+        isSigAssertBounds(sig, x, y, z) || isList(sig) || isNil(sig) || sig->arity() == 0) {
+        return false;
+    }
+    if (tvec V; isSigIIR(sig, V)) {
+        return false;
+    }
+    // the widgets and the display decorations are matched BARE by the UI
+    // traversals and by the display list (a bargraph wrapped in temp is no
+    // longer a bargraph to emitDisplayList : its cone went unmarked, and
+    // vumeter crashed in generateDelayAccess) ; their storage is theirs
+    {
+        Tree lbl, cur, mn, mx, st;
+        if (isSigButton(sig, lbl) || isSigCheckbox(sig, lbl) || isSigHSlider(sig, lbl, cur, mn, mx, st) ||
+            isSigVSlider(sig, lbl, cur, mn, mx, st) || isSigNumEntry(sig, lbl, cur, mn, mx, st) ||
+            isSigHBargraph(sig, lbl, mn, mx, x) || isSigVBargraph(sig, lbl, mn, mx, x) ||
+            isSigAttach(sig, x, cur) || isSigEnable(sig, x, cur) || isSigControl(sig, x, cur)) {
+            return false;
+        }
+    }
+    // left to the cache in step 1 : the delayed READS (generateDelayAccess
+    // caches them or not according to the delay type, elected on the
+    // schedule, unknown before emission) and the negations (cached iff
+    // delayed or slow-and-deep, a property of the emitted spelling)
+    if (isSigDelay(sig, x, y)) {
+        return false;
+    }
+    if (isSigBinOp(sig, &i, x, y) && i == kMul && (isMinusOne(x) || isMinusOne(y))) {
+        return false;
+    }
+    return true;
+}
+
+bool ScalarCompiler::cacheWouldStore(Tree sig)
+{
+    if (!passCoversKind(sig)) {
+        return false;
+    }
+    Occurrences* o = fOccMarkup->retrieve(sig);
+    if (!o) {
+        return false;
+    }
+    int sharing = getSharingCount(sig, fSharingKey);
+    if (o->getMaxDelay() > 0) {
+        return sharing > 1;
+    }
+    return (sharing > 1) || o->hasMultiOccurrences();
+}
+
 string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 {
     string code;
@@ -6768,6 +7022,23 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
     int          sharing = getSharingCount(sig, fSharingKey);
     Occurrences* o       = fOccMarkup->retrieve(sig);
     faustassert(o);
+    if (gGlobal->gExplicitTemps) {
+        // -xtemp : a temp node reaching the cache (the delay-line path asks
+        // the cache about its source) is stored as forceCacheCode would ;
+        // a node of a kind the pass covers is never stored here (its delay
+        // line, if any, stays) ; the other kinds keep the cache's rule
+        Tree tx;
+        if (isSigTemp(sig, tx)) {
+            return forceCacheCode(sig, exp);
+        }
+        if (passCoversKind(sig)) {
+            if (o->getMaxDelay() > 0) {
+                getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
+                return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
+            }
+            return exp;
+        }
+    }
 
     // check for expression occuring in delays
     if (o->getMaxDelay() > 0) {
@@ -7192,12 +7463,14 @@ void ScalarCompiler::computeDisplayFrontier()
     if (fDisplayList == nullptr || !isList(fDisplayList)) {
         return;
     }
-    std::set<Tree>    seenS, seenC, walked;
-    std::vector<Tree> work;
+    std::set<Tree> seenS, seenC, walked, walkedNoCap;
+    // (node, captures allowed) : below an explicit temporary the descent
+    // only ROOTS the stateful parts, it captures nothing
+    std::vector<std::pair<Tree, bool>> work;
     for (Tree l = fDisplayList; isList(l); l = tl(l)) {
         Tree path, mn, mx, x;
         if (isSigVBargraph(hd(l), path, mn, mx, x) || isSigHBargraph(hd(l), path, mn, mx, x)) {
-            work.push_back(x);
+            work.push_back({x, true});
         }
     }
     auto tailCarries = [](Tree t) -> bool {
@@ -7208,9 +7481,12 @@ void ScalarCompiler::computeDisplayFrontier()
                (getUserData(t) != nullptr && t->arity() > 0);
     };
     while (!work.empty()) {
-        Tree t = work.back();
+        auto [t, cap] = work.back();
         work.pop_back();
-        if (!walked.insert(t).second) {
+        // a node walked WITH captures covers a later walk without them ;
+        // the converse does not hold (a shared node under a temporary
+        // and on a direct display path is still captured on that path)
+        if (cap ? !walked.insert(t).second : (walked.count(t) > 0 || !walkedNoCap.insert(t).second)) {
             continue;
         }
         if (getCertifiedSigType(t)->variability() < kSamp) {
@@ -7219,6 +7495,18 @@ void ScalarCompiler::computeDisplayFrontier()
         int  i;
         Tree x, y, g;
         tvec V;
+        if (isSigTemp(t, x)) {
+            // an explicit temporary is a stored variable : captured as
+            // such (the capture reads the variable), and nothing below it
+            // is captured again -- its cone is computed in the loop. The
+            // stateful parts below still need rooting : the descent goes
+            // on without captures.
+            if (cap && seenC.insert(t).second) {
+                fDisplayCapturePoints.push_back(t);
+            }
+            work.push_back({x, false});
+            continue;
+        }
         // the STATEFUL parts of a display cone (the design of
         // SIGNAUX-ATTACHES restated 2026-08-29) : projections, delays,
         // prefixes -- and the FIR/IIR kernels, which carry the state of
@@ -7241,7 +7529,7 @@ void ScalarCompiler::computeDisplayFrontier()
             if (seenS.insert(root).second) {
                 fDisplayStateful.push_back(root);
             }
-            if (seenC.insert(t).second) {
+            if (cap && seenC.insert(t).second) {
                 fDisplayCapturePoints.push_back(t);
             }
             continue;
@@ -7253,12 +7541,12 @@ void ScalarCompiler::computeDisplayFrontier()
             // octave-band kernels under the level computation), and only
             // the frontier can root them -- stopping here left them to a
             // schedule-less compilation referencing undeclared vectors.
-            if (seenC.insert(t).second) {
+            if (cap && seenC.insert(t).second) {
                 fDisplayCapturePoints.push_back(t);
             }
         }
         for (int k = 0; k < t->arity(); k++) {
-            work.push_back(t->branch(k));
+            work.push_back({t->branch(k), cap});
         }
     }
 }
@@ -7835,6 +8123,13 @@ DelayType ScalarCompiler::analyzeDelayTypeAux(Tree sig)
         if (isProj(sig, &i, x) && isRec(x, var, le)) {
             Tree         f  = sigDelay(sig, sigInt(1));
             Occurrences* fo = fOccMarkup->retrieve(f);
+            if (gGlobal->gExplicitTemps) {
+                // -xtemp : the delayed read may be wrapped in temp(f) -- its
+                // readers are the temp's ; the election looks through it
+                if (Occurrences* to = fOccMarkup->retrieve(sigTemp(f))) {
+                    fo = to;
+                }
+            }
             if (fo) {
                 bool unique = (count == 1) && !fo->hasMultiOccurrences();
                 // stage 1 -- singleton group, unique delayed read : the only
