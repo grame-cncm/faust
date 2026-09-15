@@ -5,7 +5,7 @@ from max.gpu.host import DeviceBuffer, DeviceContext
 from conf import *
 from dsp import FaustDspGpu
 from gui.map import GpuControlMap, GPU_ZONE_CAP
-from .gpu import FaustGpu
+# from .gpu import FaustGpu
 
 comptime FAUST_GPU_NO_ERROR = S32(0)
 comptime FAUST_GPU_ERROR = S32(-2999)
@@ -123,7 +123,7 @@ def gpu_create_storage[Dsp: FaustDspGpu](
 # - err: first callback error; `process` returns `None`.
 # @note
 # - Failed GPU synchronization leaves device storage allocated.
-struct GpuDevice[Dsp: FaustDspGpu](FaustGpu):
+struct GpuDevice[Dsp: FaustDspGpu]:
     var state:  OptPtr[GpuStorage[Self.Dsp], MUT_NOTRK]
     var err:    S32
 

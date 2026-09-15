@@ -3,8 +3,8 @@
 from conf import *
 from dsp import FaustDsp, FaustDspGpu
 from gui import FaustGui
+from gpu import GpuDevice
 from meta import FaustMeta
-from .gpu import FaustGpu
 
 
 # A `FaustDsp` that adapts GPU processing to the regular audio path.
@@ -17,9 +17,9 @@ from .gpu import FaustGpu
 # @note
 # - `compute` cannot return errors; the device records them.
 @fieldwise_init
-struct GpuAdapter[Dsp: FaustDspGpu, Gpu: FaustGpu](FaustDsp):
+struct AdapterDsp[Dsp: FaustDspGpu](FaustDsp):
     var dsp:  Ptr[Self.Dsp]
-    var gpu:  Ptr[Self.Gpu]
+    var gpu:  Ptr[GpuDevice[Self.Dsp]]
 
     @always_inline
     def get_num_inputs(imm adapter) -> S32:

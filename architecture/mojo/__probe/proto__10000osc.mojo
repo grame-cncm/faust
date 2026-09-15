@@ -6,15 +6,15 @@ from std.sys import has_accelerator
 
 from conf import *
 from dsp import FaustDspGpu
+from dsp.adapter import AdapterDsp
 from gpu import global_idx
+from gpu.device import GpuDevice
 from gui import FaustGui
 from meta import FaustMeta
 from audio.portaudio import PortAudio, SAMP_RATE, BUFF_SIZE
 from gui.map import GpuControlMap, build_gpu_control_map
 from gui.terminal.terminal import TerminalGui
 from gui.terminal.ffi import error_str
-from gpu.adapter import GpuAdapter
-from gpu.device import GpuDevice
 
 
 comptime NUM_OSCS = 10_000
@@ -201,8 +201,8 @@ def main() -> None:
     if not err:
         err = gpu[].prepare(dsp, map[], BUFF_SIZE)
 
-    var adapter = unsafe_alloc[GpuAdapter[ProbeDsp, GpuDevice[ProbeDsp]]](1)
-    adapter.unsafe_write(GpuAdapter[ProbeDsp, GpuDevice[ProbeDsp]](dsp, gpu))
+    var adapter = unsafe_alloc[AdapterDsp[ProbeDsp]](1)
+    adapter.unsafe_write(AdapterDsp[ProbeDsp](dsp, gpu))
     if not err:
         err = driver[].init()
     if not err:

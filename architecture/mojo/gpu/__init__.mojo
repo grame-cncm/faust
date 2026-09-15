@@ -2,7 +2,6 @@
 
 from max.gpu import global_idx, thread_idx
 
-from .gpu import FaustGpu
 from .adapter import GpuAdapter
 from .device import (
     GpuDevice,
