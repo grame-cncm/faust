@@ -339,7 +339,15 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
             
         } else if (ac > 0) {
             // Standard parameter name
-            FAUSTFLOAT value = (av[0].a_type == A_LONG) ? FAUSTFLOAT(av[0].a_w.w_long) : FAUSTFLOAT(av[0].a_w.w_float);
+            FAUSTFLOAT value;
+            if (atom_gettype(&av[0]) == A_LONG) {
+                value = FAUSTFLOAT(av[0].a_w.w_long);
+            } else if (atom_gettype(&av[0]) == A_FLOAT) {
+                value = FAUSTFLOAT(av[0].a_w.w_float);
+            } else {
+                post("Invalid argument in parameter setting");
+                goto unlock;
+            }
             res = fDSPUI->setValue(name, value);
             if (!res) {
                 post("Unknown parameter : %s", (s)->s_name);
@@ -531,7 +539,13 @@ void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
 // Route raw MIDI bytes into the Faust MIDI handler
 void faustgen::midievent(long inlet, t_symbol* s, long ac, t_atom* av)
 {
-    if (ac > 0) {
+    if ((ac > 0) && (ac <= 3)) {
+        for (int i = 0; i < ac; ++i) {
+            if (atom_gettype(&av[i]) != A_LONG) {
+                post("MIDI event bytes must be integers");
+                return;
+            }
+        }
         int type = (int)av[0].a_w.w_long & 0xf0;
         int channel = (int)av[0].a_w.w_long & 0x0f;
         if (ac == 1) {

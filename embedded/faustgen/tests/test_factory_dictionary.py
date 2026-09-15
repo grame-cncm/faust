@@ -1,29 +1,21 @@
-"""Regression test for cached patch restoration; run with Python 3 and a C++ compiler.
+"""Regression tests for cached patch restoration.
 
 Compile the actual dictionary methods with small stand-ins for Max's dictionary
 and memory APIs, so this test does not require a running Max installation.
 """
 
 from pathlib import Path
-import subprocess
 import tempfile
 import unittest
 
+from cpp_test_support import (
+    FACTORY_HEADER as HEADER,
+    FACTORY_SOURCE as SOURCE,
+    ROOT,
+    compile_and_run,
+    definition,
+)
 
-ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "src/faustgen_factory.cpp"
-HEADER = ROOT / "src/faustgen_factory.h"
-
-
-def method(source, signature):
-    start = source.index(signature)
-    opening = source.index("{", start)
-    depth = 1
-    closing = opening + 1
-    while depth:
-        depth += (source[closing] == "{") - (source[closing] == "}")
-        closing += 1
-    return source[start:closing]
 
 
 STUBS = r'''
@@ -41,6 +33,8 @@ using t_max_err = int;
 const int MAX_ERR_NONE = 0;
 const char* FAUSTGEN_VERSION = "test-version";
 const char* DEFAULT_SOURCE_CODE = "process = 0,0;";
+int allocations = 0;
+int frees = 0;
 using t_symbol = const char*;
 struct t_dictionary {
     map<string, string> strings;
@@ -64,10 +58,12 @@ void dictionary_appendlong(t_dictionary* d, t_symbol key, long value) {
     d->numbers[key] = value;
 }
 char** sysmem_newhandleclear(long size) {
+    assert(size >= 0);
+    ++allocations;
     auto handle = static_cast<char**>(malloc(sizeof(char*)));
     *handle = static_cast<char*>(calloc(size, 1)); return handle;
 }
-void sysmem_freehandle(char** handle) { free(*handle); free(handle); }
+void sysmem_freehandle(char** handle) { ++frees; free(*handle); free(handle); }
 void sysmem_copyptr(const char* source, char* target, long size) {
     memcpy(target, source, size);
 }
@@ -82,7 +78,7 @@ class faustgen_factory {
 public:
     enum sampleFormat : long { kFloat, kDouble, kNone };
     long fSourceCodeSize = 0, fBitCodeSize = 0;
-    char** fSourceCode = nullptr;
+    char** fSourceCode = sysmem_newhandleclear(1);
     char** fBitCode = nullptr;
     sampleFormat fSampleFormat = kNone;
     set<string> fLibraryPath;
@@ -92,6 +88,8 @@ public:
         if (fBitCode) sysmem_freehandle(fBitCode);
     }
     void load_library_paths(t_dictionary*);
+    void free_sourcecode();
+    void free_bitcode();
     void default_source_code();
     void load_source_code(t_dictionary*);
     void getfromdictionary(t_dictionary*);
@@ -127,6 +125,21 @@ int main() {
         assert(next.strings.at("machinecode") == "cached-code");
         saved = next;
     }
+    // Reapplying dictionaries to one named factory replaces, rather than leaks,
+    // source/cache buffers. An invalid replacement cannot retain an older cache.
+    {
+        faustgen_factory factory;
+        factory.getfromdictionary(&saved);
+        int live_before = allocations - frees;
+        factory.getfromdictionary(&saved);
+        assert(allocations - frees == live_before);
+        auto invalid = saved;
+        invalid.strings["serial_number"] = "different-machine";
+        factory.getfromdictionary(&invalid);
+        assert(!factory.fBitCode && factory.fBitCodeSize == 0);
+        assert(string(factory.get_sourcecode()) == source);
+        assert(allocations - frees == 1);
+    }
     // Invalid or absent cache must preserve the existing source fallback.
     for (int fallback = 0; fallback < 5; ++fallback) {
         auto dictionary = saved;
@@ -147,7 +160,50 @@ int main() {
     legacy.getfromdictionary(&saved);
     assert(string(legacy.get_sourcecode()) == DEFAULT_SOURCE_CODE);
     assert(legacy.fBitCode);
-    cout << "cached source, library paths, 3 save/reopen cycles, 5 fallbacks, legacy: OK\n";
+
+    // Older file imports counted the null terminator in sourcecode_size.
+    auto terminated_size = saved;
+    terminated_size.strings["sourcecode"] = source;
+    terminated_size.numbers["sourcecode_size"] = long(source.size() + 1);
+    faustgen_factory old_file_import;
+    old_file_import.getfromdictionary(&terminated_size);
+    assert(string(old_file_import.get_sourcecode()) == source);
+    assert(old_file_import.fSourceCodeSize == long(source.size()));
+
+    // A damaged in-memory state must not dereference a null source handle while saving.
+    faustgen_factory inconsistent_source;
+    sysmem_freehandle(inconsistent_source.fSourceCode);
+    inconsistent_source.fSourceCode = nullptr;
+    inconsistent_source.fSourceCodeSize = 12;
+    t_dictionary inconsistent_saved;
+    inconsistent_source.appendtodictionary(&inconsistent_saved);
+    assert(!inconsistent_saved.numbers.count("sourcecode_size"));
+    assert(!inconsistent_saved.strings.count("sourcecode"));
+
+    // Corrupt or inconsistent lengths are rejected before allocation/copying.
+    for (int malformed = 0; malformed < 6; ++malformed) {
+        auto dictionary = saved;
+        dictionary.strings["sourcecode"] = source;
+        dictionary.numbers["sourcecode_size"] = long(source.size());
+        if (malformed == 0) dictionary.numbers["sourcecode_size"] = -1;
+        if (malformed == 1) dictionary.numbers["sourcecode_size"] += 2;
+        if (malformed == 2) dictionary.numbers["machinecode_size"] = -1;
+        if (malformed == 3) dictionary.numbers["machinecode_size"]++;
+        if (malformed == 4) dictionary.numbers["sample_format"] = -1;
+        if (malformed == 5) dictionary.numbers["sample_format"] = 99;
+        faustgen_factory factory;
+        factory.getfromdictionary(&dictionary);
+        if (malformed < 2) {
+            assert(string(factory.get_sourcecode()) == DEFAULT_SOURCE_CODE);
+        } else {
+            assert(string(factory.get_sourcecode()) == source);
+        }
+        if (malformed == 2 || malformed == 3) assert(!factory.fBitCode);
+        if (malformed == 4 || malformed == 5) {
+            assert(factory.fSampleFormat == faustgen_factory::kNone);
+        }
+    }
+    cout << "cached source, repeated loads, corrupt lengths, fallbacks, legacy: OK\n";
 }
 '''
 
@@ -155,20 +211,21 @@ int main() {
 class DictionaryRestoreTest(unittest.TestCase):
     def test_cached_patch_retains_editable_source(self):
         source = SOURCE.read_text()
-        definitions = "\n".join(method(source, "void faustgen_factory::" + name)
-                                for name in ("load_library_paths", "default_source_code",
+        methods = "\n".join(definition(source, "void faustgen_factory::" + name)
+                                for name in ("load_library_paths", "free_sourcecode", "free_bitcode", "default_source_code",
                                              "load_source_code", "getfromdictionary",
                                              "appendtodictionary"))
-        getter = method(HEADER.read_text(), "char* get_sourcecode()")
+        getter = definition(HEADER.read_text(), "char* get_sourcecode()")
         getter = getter.replace("char* get_sourcecode()", "char* faustgen_factory::get_sourcecode()", 1)
         with tempfile.TemporaryDirectory(prefix="faustgen-dictionary-test-") as temporary:
-            cpp = Path(temporary) / "dictionary.cpp"
-            cpp.write_text(STUBS + definitions + getter + CASES)
             for backend in ([], ["-DINTERP_BACKEND"]):
                 with self.subTest(backend=backend):
-                    binary = Path(temporary) / "dictionary-test"
-                    subprocess.run(["c++", "-std=c++11", *backend, str(cpp), "-o", str(binary)], check=True)
-                    subprocess.run([str(binary)], check=True)
+                    compile_and_run(
+                        STUBS + methods + getter + CASES,
+                        temporary,
+                        name="dictionary-test",
+                        flags=backend,
+                    )
 
 
 if __name__ == "__main__":

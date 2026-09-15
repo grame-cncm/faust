@@ -120,6 +120,20 @@ You can launch your IDE and proceed as usual or you can use cmake build command 
 $ cmake --build . --config Release
 ~~~~
 
+### Testing
+
+The unit/regression suite exercises the production C++ methods with lightweight
+Max and libfaust stand-ins, so it can run without installing or launching Max:
+
+~~~~
+$ make test
+~~~~
+
+Python 3 and a C++11 compiler available as `c++` are required. The suite covers
+both the LLVM and interpreter persistence/DSP-selection branches.
+Additional compiler flags can be supplied through `FAUSTGEN_TEST_CXXFLAGS`, for
+example `-fsanitize=address,undefined` for a sanitizer run.
+
 ## How to package
 
 Packaging is based on the cmake install target and on the resources found the package folder.

@@ -1,5 +1,5 @@
 
-.PHONY: package
+.PHONY: all package cmake clean test help
 
 # Get the absolute path to the Makefile
 MAKEFILE_PATH := $(realpath $(lastword $(MAKEFILE_LIST)))
@@ -32,3 +32,22 @@ $(OUTDIR):
 
 clean:
 	rm -rf $(OUTDIR)
+
+test:
+	python3 -m unittest discover -s tests -v
+
+help:
+	@echo "faustgen build targets:"
+	@echo "  make all      Configure and build the faustgen external (default)"
+	@echo "  make cmake    Configure the build directory"
+	@echo "  make test     Run the unit and regression test suite"
+	@echo "  make package  Build and install the distributable package"
+	@echo "  make clean    Remove the build directory"
+	@echo "  make help     Display this help"
+	@echo ""
+	@echo "Common variables:"
+	@echo "  MAXSDK=<path>       Max SDK c74support directory"
+	@echo "  FAUST=<command>     Faust compiler executable (default: faust)"
+	@echo "  OUTDIR=<directory>  Build directory (default: build)"
+	@echo "  CMAKEOPT=<options>  Additional CMake options"
+	@echo "  GENERATOR=<option>  CMake generator option, for example -G Ninja"

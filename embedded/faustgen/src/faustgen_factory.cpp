@@ -275,9 +275,9 @@ void faustgen_factory::free_bitcode()
 {
     if (fBitCode) {
         sysmem_freehandle(fBitCode);
-        fBitCodeSize = 0;
-        fBitCode = nullptr;
     }
+    fBitCodeSize = 0;
+    fBitCode = nullptr;
 }
 
 // Free all DSP instances and delete the current DSP factory
@@ -514,6 +514,7 @@ void faustgen_factory::default_compile_options()
     // Clear and set default value
     fCompileOptions.clear();
     fSampleFormat = kNone;
+    fOptLevel = LLVM_OPTIMIZATION;
     
     // Add -svg to current compile options
     add_compile_option("-svg");
@@ -531,8 +532,12 @@ void faustgen_factory::default_compile_options()
     for (it = fOptions.begin(); it != fOptions.end(); it++) {
         // '-opt v' : parsed for LLVM optimization level
         if (*it == "-opt") {
-            it++;
-            fOptLevel = atoi((*it).c_str());
+            if (++it != fOptions.end()) {
+                fOptLevel = atoi((*it).c_str());
+            } else {
+                post("Missing value after -opt, using default optimization level");
+                break;
+            }
         } else if (*it == "-single") {
             fSampleFormat = kFloat;
             add_compile_option(*it);
@@ -586,6 +591,7 @@ void faustgen_factory::load_library_paths(t_dictionary* d)
 void faustgen_factory::default_source_code()
 {
     // Otherwise tries to create from default source code
+    free_sourcecode();
     fSourceCodeSize = strlen(DEFAULT_SOURCE_CODE);
     fSourceCode = sysmem_newhandleclear(fSourceCodeSize + 1);
     sysmem_copyptr(DEFAULT_SOURCE_CODE, *fSourceCode, fSourceCodeSize);
@@ -595,27 +601,32 @@ void faustgen_factory::load_source_code(t_dictionary* d)
 {
     // Load all library paths
     load_library_paths(d);
+
+    // getfromdictionary can be called more than once on the same factory.
+    free_sourcecode();
     
     // Read sourcecode size key
-    t_max_err err = dictionary_getlong(d, gensym("sourcecode_size"), (t_atom_long*)&fSourceCodeSize);
-    if (err != MAX_ERR_NONE) {
+    t_atom_long source_code_size = 0;
+    t_max_err err = dictionary_getlong(d, gensym("sourcecode_size"), &source_code_size);
+    if ((err != MAX_ERR_NONE) || (source_code_size < 0)) {
         default_source_code();
         return;
     }
     
-    // If OK read sourcecode
-    fSourceCode = sysmem_newhandleclear(fSourceCodeSize + 1);           // We need to use a size larger by one for the null terminator
-    const char* sourcecode;
+    // Read and validate the dictionary string before allocating/copying it.
+    const char* sourcecode = nullptr;
     err = dictionary_getstring(d, gensym("sourcecode"), &sourcecode);   // The retrieved pointer references the string in the dictionary, it is not a copy.
-    if (err == MAX_ERR_NONE) {
+    const size_t source_length = (sourcecode) ? strlen(sourcecode) : 0;
+    if ((err == MAX_ERR_NONE) && sourcecode
+        && ((source_length == static_cast<size_t>(source_code_size))
+            || (source_length + 1 == static_cast<size_t>(source_code_size)))) {
+        // Older file-import paths persisted the handle size, including the
+        // terminator. Normalize both representations to the text byte count.
+        fSourceCodeSize = static_cast<long>(source_length);
+        fSourceCode = sysmem_newhandleclear(fSourceCodeSize + 1);        // Keep room for the null terminator.
         sysmem_copyptr(sourcecode, *fSourceCode, fSourceCodeSize);
         return;
     }
-
-    // Cleanup the failed allocation before
-    sysmem_freehandle(fSourceCode);
-    fSourceCode = nullptr;
-    fSourceCodeSize = 0;
     
     // Falling back to default source
     default_source_code();
@@ -624,8 +635,18 @@ void faustgen_factory::load_source_code(t_dictionary* d)
 // Load factory settings from a saved Max dictionary
 void faustgen_factory::getfromdictionary(t_dictionary* d)
 {
+    const char* serial_number = nullptr;
+    const char* faustgen_version = nullptr;
+    const char* bitcode = nullptr;
+    t_atom_long sample_format = kNone;
+    t_atom_long bit_code_size = 0;
+
+    // A dictionary may be applied repeatedly to an existing named factory.
+    // Never let an older cache survive a failed validation of the new one.
+    free_bitcode();
+    fSampleFormat = kNone;
+
     // Read machine serial number
-    const char* serial_number;
     t_max_err err = dictionary_getstring(d, gensym("serial_number"), &serial_number);
     if ((err != MAX_ERR_NONE) || (strcmp(serial_number, getSerialNumber().c_str()) != 0)) {
         post("Patch compiled on another machine or another CPU architecture, so ignore bitcode, force recompilation and use default compileoptions");
@@ -633,7 +654,6 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     }
     
     // Read sourcecode "version" key
-    const char* faustgen_version;
     err = dictionary_getstring(d, gensym("version"), &faustgen_version);
     
     if (err != MAX_ERR_NONE) {
@@ -645,32 +665,27 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     }
     
     // Read fSampleFormat version
-    err = dictionary_getlong(d, gensym("sample_format"), (t_atom_long*)&fSampleFormat);
-    if (err != MAX_ERR_NONE) {
-        fSampleFormat = kNone;
+    err = dictionary_getlong(d, gensym("sample_format"), &sample_format);
+    if ((err == MAX_ERR_NONE) && (sample_format >= kFloat) && (sample_format <= kNone)) {
+        fSampleFormat = static_cast<sampleFormat>(sample_format);
     }
     
     // Read bitcode size key
-    err = dictionary_getlong(d, gensym("machinecode_size"), (t_atom_long*)&fBitCodeSize);
-    if (err != MAX_ERR_NONE) {
-        fBitCodeSize = 0;
+    err = dictionary_getlong(d, gensym("machinecode_size"), &bit_code_size);
+    if ((err != MAX_ERR_NONE) || (bit_code_size < 0)) {
         goto read_sourcecode;
     }
     
-    // If OK read bitcode
-    fBitCode = sysmem_newhandleclear(fBitCodeSize + 1);             // We need to use a size larger by one for the null terminator
-    const char* bitcode;
+    // Read and validate bitcode before allocating/copying it.
     err = dictionary_getstring(d, gensym("machinecode"), &bitcode); // The retrieved pointer references the string in the dictionary, it is not a copy.
-    if (err == MAX_ERR_NONE) {
+    if ((err == MAX_ERR_NONE) && bitcode
+        && (strlen(bitcode) == static_cast<size_t>(bit_code_size))) {
+        fBitCodeSize = bit_code_size;
+        fBitCode = sysmem_newhandleclear(fBitCodeSize + 1);          // Keep room for the null terminator.
         sysmem_copyptr(bitcode, *fBitCode, fBitCodeSize);
         // Restore editable source and library paths even when using cached machine code.
         goto read_sourcecode;
     }
-
-    // Cleanup the failed allocation before falling back
-    sysmem_freehandle(fBitCode);
-    fBitCode = nullptr;
-    fBitCodeSize = 0;
     
 read_sourcecode:
     load_source_code(d);
@@ -701,7 +716,7 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
     }
     
     // Write source code
-    if (fSourceCodeSize) {
+    if (fSourceCode && (fSourceCodeSize > 0)) {
         dictionary_appendlong(d, gensym("sourcecode_size"), fSourceCodeSize);
         dictionary_appendstring(d, gensym("sourcecode"), *fSourceCode);
     }
@@ -1000,7 +1015,9 @@ void faustgen_factory::compile_file(t_filehandle file_handle, short path, char* 
     sysfile_readtextfile(file_handle, fSourceCode, 0, (t_sysfile_text_flags)(TEXT_LB_UNIX | TEXT_NULL_TERMINATE));
     sysfile_setpos(file_handle, SYSFILE_FROMSTART, 0);
     
-    fSourceCodeSize = sysmem_handlesize(fSourceCode);
+    // sysmem_handlesize may include the trailing byte added by
+    // TEXT_NULL_TERMINATE; persisted source sizes count text bytes only.
+    fSourceCodeSize = strlen(*fSourceCode);
     
     // Add DSP file enclosing folder pathname in the '-I' list
     char full_path[MAX_FILENAME_CHARS];
@@ -1021,7 +1038,7 @@ void faustgen_factory::compile_file(t_filehandle file_handle, short path, char* 
 void faustgen_factory::read(long inlet, t_symbol* s)
 {
     long type = 'TEXT';
-    t_filehandle file_handle;
+    t_filehandle file_handle = 0;
     char file_name[MAX_FILENAME_CHARS];
     short path;
     
@@ -1047,11 +1064,12 @@ void faustgen_factory::read(long inlet, t_symbol* s)
     t_max_err err = path_opensysfile(file_name, path, &file_handle, READ_PERM);
     if (err) {
         post("Faust DSP file '%s' cannot be opened", file_name);
-    } else if (is_new(file_handle, file_name)) {
-        compile_file(file_handle, path, file_name);
+    } else {
+        if (is_new(file_handle, file_name)) {
+            compile_file(file_handle, path, file_name);
+        }
+        sysfile_close(file_handle);
     }
-    
-    sysfile_close(file_handle);
 }
 
 // Save current Faust source code to disk using dialog or provided path
