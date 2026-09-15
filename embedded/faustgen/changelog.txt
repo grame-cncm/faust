@@ -7,6 +7,13 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2026
 
 ----------------------------------------------------
+Version 1.85 - 15/09/2026
+
+- add comprehensive factory, persistence, file, command and runtime tests.
+- harden cached source restoration, compiler options, file handles and message types.
+- add make test and make help targets.
+
+----------------------------------------------------
 Version 1.84 - 14/09/2026
 
 - restore Faust source code and library paths when loading cached machine code.
