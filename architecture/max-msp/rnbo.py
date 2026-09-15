@@ -1503,6 +1503,13 @@ def load_files_create_rnbo_patch(
             effect_num_inputs = json_data.get("inputs", 0)
             effect_num_outputs = json_data.get("outputs", 0)
 
+        if dsp_num_outputs != effect_num_inputs:
+            raise ValueError(
+                "RNBO effect input count does not match DSP output count: "
+                f"DSP has {dsp_num_outputs} output(s), effect has "
+                f"{effect_num_inputs} input(s)"
+            )
+
         create_rnbo_patch(
             dsp_name,
             maxpat_path,

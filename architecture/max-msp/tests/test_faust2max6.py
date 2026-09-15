@@ -15,6 +15,7 @@ import shutil
 import subprocess
 import tempfile
 import unittest
+import wave
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -73,10 +74,37 @@ class Faust2Max6ArgumentTests(unittest.TestCase):
     def test_missing_input_and_invalid_options_fail(self):
         """Reject absent input, bad architectures, and invalid voice counts."""
 
-        for arguments in ((), ("-arch", "invalid"), ("-nvoices",), ("-nvoices", "0")):
+        for arguments in (
+            (),
+            ("-arch", "invalid"),
+            ("-nvoices",),
+            ("-nvoices", "0"),
+            ("-effect",),
+            ("-A",),
+        ):
             with self.subTest(arguments=arguments):
                 result = self.run_script(*arguments)
                 self.assertNotEqual(result.returncode, 0, result.stdout)
+
+    def test_faust_failure_removes_generated_intermediates(self):
+        """Leave no JSON, bundle, or wrapper when Faust source is invalid."""
+
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            dsp = directory / "broken.dsp"
+            dsp.write_text("process = ;\n", encoding="utf-8")
+            result = subprocess.run(
+                [str(FAUST2MAX6), "-arch", "arm64", str(dsp)],
+                cwd=directory,
+                env=base_environment(),
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            self.assertFalse(Path(f"{dsp}.json").exists())
+            self.assertFalse(dsp.with_name("broken~.mxo").exists())
+            self.assertFalse(directory.joinpath("broken.maxpat").exists())
 
 
 @unittest.skipUnless(
@@ -126,6 +154,24 @@ class Faust2Max6IntegrationTests(unittest.TestCase):
         declaration = f'declare nvoices "{nvoices}";\n' if nvoices else ""
         path = self.source_directory / f"{name}.dsp"
         path.write_text(f"{declaration}process = _;\n", encoding="utf-8")
+        return path
+
+    def write_source(self, name: str, source: str) -> Path:
+        """Create a DSP with custom source for optional-feature integration tests."""
+
+        path = self.source_directory / f"{name}.dsp"
+        path.write_text(source, encoding="utf-8")
+        return path
+
+    def write_wav(self, name: str) -> Path:
+        """Create a tiny valid mono WAV used by soundfile resource packaging."""
+
+        path = self.directory / name
+        with wave.open(str(path), "wb") as stream:
+            stream.setnchannels(1)
+            stream.setsampwidth(2)
+            stream.setframerate(44100)
+            stream.writeframes(b"\0\0" * 16)
         return path
 
     def run_faust2max6(self, *arguments: object) -> subprocess.CompletedProcess[str]:
@@ -189,7 +235,7 @@ class Faust2Max6IntegrationTests(unittest.TestCase):
     def test_requested_and_declared_polyphony_reach_generated_patch(self):
         """Use exact CLI and source-declared voice counts in wrapper messages."""
 
-        explicit = self.write_dsp("explicit_poly")
+        explicit = self.write_dsp("explicit_poly", nvoices=12)
         declared = self.write_dsp("declared", nvoices=12)
 
         explicit_result = self.run_faust2max6(
@@ -206,6 +252,20 @@ class Faust2Max6IntegrationTests(unittest.TestCase):
         self.assert_bundle(declared, {"arm64"})
         self.assertIn("polyphony 12", self.patch_texts(self.directory / "declared.maxpat"))
 
+    def test_mixed_mono_and_poly_files_keep_independent_wrappers(self):
+        """Choose a wrapper per input instead of leaking metadata between files."""
+
+        mono = self.write_dsp("mixed_mono")
+        poly = self.write_dsp("mixed_poly", nvoices=5)
+        result = self.run_faust2max6("-arch", "arm64", mono, poly)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assert_bundle(mono, {"arm64"})
+        self.assert_bundle(poly, {"arm64"})
+        mono_texts = self.patch_texts(self.directory / "mixed_mono.maxpat")
+        poly_texts = self.patch_texts(self.directory / "mixed_poly.maxpat")
+        self.assertFalse(any(text.startswith("polyphony ") for text in mono_texts))
+        self.assertIn("polyphony 5", poly_texts)
+
     def test_mc_midi_nopatch(self):
         """Combine MC, MIDI, and polyphony while suppressing wrapper generation."""
 
@@ -216,6 +276,71 @@ class Faust2Max6IntegrationTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout)
         self.assert_bundle(dsp, {"arm64"})
         self.assertFalse((self.directory / "mc_poly.maxpat").exists())
+
+    def test_effect_single_native_and_include_paths_with_spaces(self):
+        """Combine effect/single/native and preserve -I/-A path arguments."""
+
+        include_directory = self.directory / "Faust libraries"
+        include_directory.mkdir()
+        (include_directory / "custom.lib").write_text("gain = 0.25;\n", encoding="utf-8")
+        dsp = self.write_source(
+            "feature_flags",
+            'custom = library("custom.lib");\nprocess = custom.gain;\n',
+        )
+        effect = self.write_source("feature_effect", "process = _;\n")
+        result = self.run_faust2max6(
+            "-single",
+            "-native",
+            "-effect",
+            effect,
+            "-I",
+            include_directory,
+            "-A",
+            include_directory,
+            "-arch",
+            "arm64",
+            dsp,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assert_bundle(dsp, {"arm64"})
+
+    def test_osc_linkage(self):
+        """Compile an ARM64 external with OSC control support enabled."""
+
+        if not Path("/usr/local/lib/libOSCFaust.a").is_file():
+            self.skipTest("libOSCFaust is not installed in /usr/local/lib")
+        dsp = self.write_dsp("osc_enabled")
+        result = self.run_faust2max6("-nopatch", "-osc", "-arch", "arm64", dsp)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assert_bundle(dsp, {"arm64"})
+
+    def test_static_and_dynamic_soundfile_packaging(self):
+        """Build both soundfile modes and copy URLs containing spaces."""
+
+        sound = self.write_wav("sample sound.wav")
+        source = (
+            'process = 0, _~+(1) : soundfile("sample[url:{\'sample sound.wav\'}]", 2) '
+            ': !, !, _, _;\n'
+        )
+        for mode, name in (
+            ("-soundfile", "sound_static"),
+            ("-soundfile-dynamic", "sound_dynamic"),
+        ):
+            with self.subTest(mode=mode):
+                if mode == "-soundfile-dynamic":
+                    if not shutil.which("pkg-config"):
+                        continue
+                    pkg_config = subprocess.run(
+                        ["pkg-config", "--exists", "sndfile"], check=False
+                    )
+                    if pkg_config.returncode:
+                        continue
+                dsp = self.write_source(name, source)
+                result = self.run_faust2max6("-nopatch", mode, "-arch", "arm64", dsp)
+                self.assertEqual(result.returncode, 0, result.stdout)
+                bundle = self.assert_bundle(dsp, {"arm64"})
+                packaged = bundle / "Contents" / "Resources" / sound.name
+                self.assertEqual(packaged.read_bytes(), sound.read_bytes())
 
 
 if __name__ == "__main__":

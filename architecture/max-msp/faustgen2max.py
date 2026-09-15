@@ -395,7 +395,10 @@ def analyze_patch(
             args.append("-osc")
         if info.soundfile:
             args.append("-soundfile")
-        if info.nvoices is not None and not (info.source and _declared_nvoices(info.source)):
+        if info.nvoices is not None and (
+            nvoices_override is not None
+            or not (info.source and _declared_nvoices(info.source))
+        ):
             args.extend(["-nvoices", str(info.nvoices)])
         args.extend(compiler_args)
         info.compile_args = args
@@ -540,14 +543,13 @@ def convert_patch(
         raise ConversionError(f"sortie déjà existante ({shown}); utiliser --force")
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    # faust2max6 internally stores its file list and Faust options in shell
-    # strings, so paths containing spaces are split even when its caller uses a
-    # safe argv list.  Compile in a no-space temporary directory and expose all
-    # include directories through short symlinks, then copy the bundle back.
+    # Keep transient compiler products isolated from the requested output and
+    # expose include directories through short symlinks for compatibility with
+    # older installed faust2max6 scripts. Copy products only after all builds.
     with tempfile.TemporaryDirectory(prefix="faustgen2max-") as temporary:
         staging = Path(temporary)
+        staged_bundles: List[Path] = []
         for unit_index, unit in enumerate(units):
-            unit.source_path.write_text(unit.source, encoding="utf-8")
             staged_source = staging / f"{unit.name}.dsp"
             staged_source.write_text(unit.source, encoding="utf-8")
             staged_args = list(unit.args)
@@ -558,11 +560,18 @@ def convert_patch(
             command = [faust2max6] + staged_args + [str(staged_source)]
             compile_runner(command, patch_path.parent)
             staged_bundle = staging / f"{unit.name}~.mxo"
-            bundle = output_dir / f"{unit.name}~.mxo"
             if not staged_bundle.exists():
                 raise ConversionError(
                     f"faust2max6 n'a pas produit l'external attendu: {staged_bundle}"
                 )
+            staged_bundles.append(staged_bundle)
+
+        # Publish generated products only after every compilation unit has
+        # succeeded. This keeps a failed --force conversion from replacing a
+        # previously working source or external with a partial result.
+        for unit, staged_bundle in zip(units, staged_bundles):
+            unit.source_path.write_text(unit.source, encoding="utf-8")
+            bundle = output_dir / f"{unit.name}~.mxo"
             if bundle.exists():
                 if bundle.is_dir():
                     shutil.rmtree(bundle)

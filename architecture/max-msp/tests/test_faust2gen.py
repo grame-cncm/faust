@@ -136,6 +136,37 @@ class Faust2GenTests(unittest.TestCase):
                 self.assertNotIn("NVOICES", raw)
                 self.assertIn(f"polyphony {voices}", texts)
 
+    def test_cli_voice_count_overrides_declared_metadata(self):
+        """Prefer an explicit command-line count over declare nvoices."""
+
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            dsp = directory / "override.dsp"
+            self.write_dsp(dsp, nvoices=12)
+
+            result = self.run_faust2gen(directory, "-nvoices", 6, dsp)
+            self.assertEqual(result.returncode, 0, result.stdout)
+            _, _, texts, _ = self.load_patch(directory / "override.maxpat")
+            self.assertIn("polyphony 6", texts)
+            self.assertNotIn("polyphony 12", texts)
+
+    def test_mixed_mono_and_declared_poly_files_are_independent(self):
+        """Do not make every input polyphonic when only one declares nvoices."""
+
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            mono = directory / "mono.dsp"
+            poly = directory / "poly.dsp"
+            self.write_dsp(mono)
+            self.write_dsp(poly, nvoices=5)
+
+            result = self.run_faust2gen(directory, mono, poly)
+            self.assertEqual(result.returncode, 0, result.stdout)
+            _, _, mono_texts, _ = self.load_patch(directory / "mono.maxpat")
+            _, _, poly_texts, _ = self.load_patch(directory / "poly.maxpat")
+            self.assertFalse(any(text.startswith("polyphony ") for text in mono_texts))
+            self.assertIn("polyphony 5", poly_texts)
+
     def test_input_directory_may_contain_spaces(self):
         """Accept an input path containing spaces without splitting the filename."""
 

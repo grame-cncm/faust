@@ -171,6 +171,48 @@ class Faust2RnboTests(unittest.TestCase):
         self.assertIn("midiin", texts)
         self.assertIn("midiout", texts)
 
+    def test_cli_voice_count_overrides_metadata(self):
+        """Prefer -nvoices over the voice count embedded in Faust metadata."""
+
+        dsp = self.write_dsp(
+            "override poly",
+            'declare options "[midi:on][nvoices:5]";\nprocess = _;\n',
+        )
+        result = self.run_script("-nvoices", 3, dsp)
+        self.assertEqual(result.returncode, 0, result.stdout)
+
+        patch = self.load_patch(dsp.with_suffix(".maxpat"))
+        self.assertIn(3, list(nested_values(patch, "polyphony")))
+        self.assertNotIn(5, list(nested_values(patch, "polyphony")))
+
+    def test_audio_io_arity_and_ui_midi_controls(self):
+        """Generate exact multichannel drivers and representative UI/MIDI boxes."""
+
+        multichannel = self.write_dsp("two channels", "process = _,_;\n")
+        result = self.run_script(multichannel)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        texts = self.texts(self.load_patch(multichannel.with_suffix(".maxpat")))
+        self.assertIn("adc~ 1 2", texts)
+        self.assertIn("dac~ 1 2", texts)
+
+        controls = self.write_dsp(
+            "midi controls",
+            'declare options "[midi:on]";\n'
+            'gain = hslider("gain[midi:ctrl 7]", 0.5, 0, 1, 0.01);\n'
+            'gate = button("gate");\n'
+            'process = gain * gate <: _, hbargraph("meter", 0, 1);\n',
+        )
+        result = self.run_script(controls)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        texts = self.texts(self.load_patch(controls.with_suffix(".maxpat")))
+        for expected in ("set gain", "set gate", "ctlin 7", "ctlout 7"):
+            self.assertIn(expected, texts)
+        self.assertTrue(any(text.startswith("param gain ") for text in texts))
+        self.assertIn("midiin", texts)
+        self.assertIn("midiout", texts)
+        self.assert_no_compiler_temporaries(multichannel)
+        self.assert_no_compiler_temporaries(controls)
+
     def test_codebox_test_mode_uses_prefixed_parameters(self):
         """Generate the RB_ parameter ABI expected by the RNBO C++ test app."""
 
@@ -225,6 +267,25 @@ class Faust2RnboTests(unittest.TestCase):
         texts = self.texts(self.load_patch(automatic.with_suffix(".maxpat")))
         self.assertTrue(any("_effect.rnbopat" in text for text in texts))
         self.assert_no_compiler_temporaries(automatic)
+
+    def test_failures_reject_effect_arity_and_remove_intermediates(self):
+        """Reject invalid DSPs/effect topology without leaving compiler files."""
+
+        broken = self.write_dsp("broken", "process = ;\n")
+        result = self.run_script(broken)
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertFalse(broken.with_suffix(".maxpat").exists())
+        self.assert_no_compiler_temporaries(broken)
+
+        main = self.write_dsp("one output", "process = 0;\n")
+        incompatible = self.write_dsp("two input effect", "process = _,_;\n")
+        result = self.run_script("-effect", incompatible, main)
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("effect input count does not match", result.stdout)
+        self.assertFalse(main.with_suffix(".maxpat").exists())
+        self.assertFalse(main.with_suffix(".rnbopat").exists())
+        self.assert_no_compiler_temporaries(main)
+        self.assert_no_compiler_temporaries(incompatible)
 
 
 if __name__ == "__main__":

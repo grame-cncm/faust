@@ -25,6 +25,8 @@ POLY=""
 NOPATCH="0"
 NVOICES=-1
 FILES=()
+OPTIONS=()
+EXTRA_CXXFLAGS=()
 EFFECT=""
 ARCH="auto"
 SOUNDFILE="0"
@@ -106,6 +108,15 @@ echoHelp()
     exit "$status"
 }
 
+requireValue()
+{
+    option_name=$1
+    if [ "$#" -lt 2 ] || [ -z "$2" ]; then
+        echo "Missing value for $option_name" >&2
+        exit 1
+    fi
+}
+
 if [ "$#" -eq 0 ]; then
     echo 'Please, provide a Faust file to process !'
     echo ''
@@ -120,7 +131,7 @@ fi
 #
 
 #PHASE 2 : dispatch command arguments
-while [ "$1" ]
+while [ "$#" -gt 0 ]
 do
     p=$1
 
@@ -128,6 +139,7 @@ do
        echoHelp
     elif [ "$p" = "-opt" ]; then
         shift
+        requireValue -opt "${1:-}"
         OPT=$1
     elif [ "$p" = "-nvoices" ]; then
         shift
@@ -141,11 +153,13 @@ do
     elif [ "$p" = "-effect" ]; then
         POLYDEFS="-DPOLY2"
         shift
+        requireValue -effect "${1:-}"
         EFFECT=$1
     elif [ "$p" = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ "$p" = "-arch" ]; then
         shift
+        requireValue -arch "${1:-}"
         ARCH=$1
         if [[ "$ARCH" != "auto" && "$ARCH" != "arm64" && "$ARCH" != "x86_64" && "$ARCH" != "universal" ]]; then
             echo "Invalid architecture '$ARCH' (expected auto, arm64, x86_64, or universal)"
@@ -178,24 +192,28 @@ do
         FAUSTFLOAT="float"
     elif [ "$p" = "-us" ]; then
         shift
+        requireValue -us "${1:-}"
         US=$1
     elif [ "$p" = "-ds" ]; then
         shift
+        requireValue -ds "${1:-}"
         DS=$1
     elif [ "$p" = "-filter" ]; then
         shift
+        requireValue -filter "${1:-}"
         FILTER=$1
     # '-A path' also added as '-I path' in the C++ command
     elif [ "$p" = "-A" ]; then
         shift
-        CXXFLAGS="$CXXFLAGS -I $1"
-        OPTIONS="$OPTIONS -A $1"
+        requireValue -A "${1:-}"
+        EXTRA_CXXFLAGS+=("-I" "$1")
+        OPTIONS+=("-A" "$1")
     elif [ "${p:0:1}" = "-" ]; then
-        OPTIONS="$OPTIONS $p"
+        OPTIONS+=("$p")
     elif [[ -f "$p" ]] && [ "${p: -4}" = ".dsp" ]; then
         FILES+=("$p")
     else
-        OPTIONS="$OPTIONS $p"
+        OPTIONS+=("$p")
     fi
 
 shift
@@ -227,6 +245,7 @@ for p in "${FILES[@]}"; do
     CUR=$(pwd)
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
+    FILE_OPTIONS=("${OPTIONS[@]}")
 
     FILE_POLY=$POLY
     FILE_NVOICES=$NVOICES
@@ -251,28 +270,37 @@ for p in "${FILES[@]}"; do
     # discover best compilation options
     if [ "$OPT" = "generic" ]; then
         echo "Look for best compilation options in 'generic' mode..."
-        OPTIONS="$OPTIONS $(faustbench-llvm -notrace -generic $OPTIONS $f)"
-        echo $OPTIONS
+        BENCH_OPTIONS=$(faustbench-llvm -notrace -generic "${FILE_OPTIONS[@]}" "$f")
+        read -r -a DISCOVERED_OPTIONS <<< "$BENCH_OPTIONS"
+        FILE_OPTIONS+=("${DISCOVERED_OPTIONS[@]}")
+        echo "${FILE_OPTIONS[*]}"
     elif [ "$OPT" = "native" ]; then
         echo "Look for best compilation options in 'native' mode..."
-        OPTIONS="$OPTIONS $(faustbench-llvm -notrace $OPTIONS $f)"
-        echo $OPTIONS
+        BENCH_OPTIONS=$(faustbench-llvm -notrace "${FILE_OPTIONS[@]}" "$f")
+        read -r -a DISCOVERED_OPTIONS <<< "$BENCH_OPTIONS"
+        FILE_OPTIONS+=("${DISCOVERED_OPTIONS[@]}")
+        echo "${FILE_OPTIONS[*]}"
     fi
 
     # -double is used by default
     if [ "$FAUSTFLOAT" = "double" ]; then
-        OPTIONS="$OPTIONS -double"
+        FILE_OPTIONS+=("-double")
     fi
 
     # compile Faust to c++
     if [ "$EFFECT" = "" ]; then
-        faust -i -cn ${f%.dsp} -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -cn "${f%.dsp}" -json -a "$FAUSTARCH/max-msp/max-msp64.cpp" "${FILE_OPTIONS[@]}" "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     else
-        faust -i -cn ${f%.dsp} -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-        faust -i -cn effect -a $FAUSTARCH/minimal-effect.cpp $OPTIONS "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
+        if [[ "$EFFECT" = /* ]]; then
+            EFFECT_PATH=$EFFECT
+        else
+            EFFECT_PATH="$SRCDIR/$EFFECT"
+        fi
+        faust -i -cn "${f%.dsp}" -json -a "$FAUSTARCH/max-msp/max-msp64.cpp" "${FILE_OPTIONS[@]}" "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -cn effect -a "$FAUSTARCH/minimal-effect.cpp" "${FILE_OPTIONS[@]}" "$EFFECT_PATH" -o "$TMP/effect.h" || exit
     fi
-    # compile self-contained expansion (without $OPTIONS which is not needed)
-    faust -e "$SRCDIR/$f" $OPTIONS -o "$TMP/${f%.dsp}-exp.dsp"
+    # Compile a self-contained expansion with the same include and codegen options.
+    faust -e "$SRCDIR/$f" "${FILE_OPTIONS[@]}" -o "$TMP/${f%.dsp}-exp.dsp"
 
     # compile c++ to binary
     (
@@ -281,19 +309,19 @@ for p in "${FILES[@]}"; do
         install -d "${f%.dsp}$EXT/Contents/MacOS"
         # Keep the historical default: universal binaries are produced on M1.
         if [[ "$ARCH" = "universal" || ("$ARCH" = "auto" && $(uname -p) = arm) ]]; then
-            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64"
-            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
+            $CXX $CXXFLAGS "${EXTRA_CXXFLAGS[@]}" -DFAUST_FILE_NAME="\"$f\"" -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64"
+            $CXX $CXXFLAGS "${EXTRA_CXXFLAGS[@]}" -DFAUST_FILE_NAME="\"$f\"" -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
             $LIPO -create "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64" -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~" || exit
             # the per-architecture slices are merged now, and codesign would
             # treat the leftovers as unsigned subcomponents
             rm -f "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
         elif [ "$ARCH" = "arm64" ]; then
-            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+            $CXX $CXXFLAGS "${EXTRA_CXXFLAGS[@]}" -DFAUST_FILE_NAME="\"$f\"" -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
         elif [ "$ARCH" = "x86_64" ]; then
-            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+            $CXX $CXXFLAGS "${EXTRA_CXXFLAGS[@]}" -DFAUST_FILE_NAME="\"$f\"" -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
         else
             # Native target on Intel (the Apple Silicon auto case is above).
-            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+            $CXX $CXXFLAGS "${EXTRA_CXXFLAGS[@]}" -DFAUST_FILE_NAME="\"$f\"" -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
         fi
        ) > /dev/null || exit
 
