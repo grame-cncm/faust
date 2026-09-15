@@ -457,6 +457,7 @@ void global::reset()
     gEtaRegroup     = false;
     gStagingOps     = 0;
     gTempOps        = 0;
+    gExplicitTemps  = false;
     gReassoc        = false;
     gRingPreload    = false;
     gPrintSignature = false;
@@ -1913,6 +1914,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gTempOps = std::atoi(argv[i + 1]);
             i += 2;
 
+        } else if (isCmd(argv[i], "-xtemp", "--explicit-temps")) {
+            gExplicitTemps = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-stage", "--staging-threshold")) {
             gStagingOps = std::atoi(argv[i + 1]);
             i += 2;
@@ -2751,6 +2756,10 @@ string global::printHelp()
     sstr << tab
          << "-gatequiv   --gate-equivalence          (ocpp, experimental) one canonical form for "
             "the two spellings of a gated signal, so guards reach further."
+         << endl;
+    sstr << tab
+         << "-xtemp      --explicit-temps            (ocpp, experimental) the temporaries are "
+            "decided by a signal pass (temp nodes) ; the emitter's cache only obeys them."
          << endl;
     sstr << tab
          << "-ls-cl <n>  --loop-split-cl <n>         oracle: per-loop per-chunk overhead "

@@ -303,6 +303,7 @@ struct global {
     int  gStagingOps;     // -stage <n> option, ocpp emission : a single-use expression of n
                           // operations or more gains a temporary (0 = inline whatever the size)
     int  gTempOps;        // -temp <n> option, structural staging : sigTemp barriers placed at
+    bool gExplicitTemps;  // -xtemp : the explicit temporaries pass replaces the emitter's cache
                           // normalization on single-use expressions of n operations or more
                           // (1 = every operation, the SSA form ; 0 = off)
     bool gReassoc;        // -reassoc option : late state-join reassociation of the sums inside

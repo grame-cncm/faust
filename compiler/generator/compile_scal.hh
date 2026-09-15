@@ -25,6 +25,7 @@
 #define _DNF_ 1
 
 #include <map>
+#include <functional>
 #include <utility>
 
 #include "compile.hh"
@@ -56,6 +57,9 @@ class ScalarCompiler : public Compiler {
 
     static std::map<std::string, int>  fIDCounters;
     Tree                               fSharingKey;
+    bool cacheWouldStore(Tree sig);  // -xtemp : the cache's rule as a predicate on the annotated tree
+    bool passCoversKind(Tree sig);   // -xtemp : the kinds whose storage the pass decides
+    Tree placeExplicitTemps(Tree L2, Tree Lx, std::function<void(Tree)> reanalyse);  // -xtemp : the pass
     std::vector<std::string> fSingleDelayScalarCandidates;  // [2]-vectors, schedule-verified demotion
     // A-priori mono election, stage 3 (readers first). The soft-edge block
     // records its promise per writer x of a delayed read : kept = every edge
