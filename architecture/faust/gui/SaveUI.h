@@ -104,6 +104,28 @@ class SaveUI : public GenericUI {
                 it.second.fCurrent = *it.second.fZone;
             }
         }
+
+        // Keep the saved values while detaching zones that are about to be
+        // destroyed. A later buildUserInterface call rebinds matching items.
+        void unbind()
+        {
+            for (auto& it : fName2Zone) {
+                it.second.fZone = nullptr;
+            }
+        }
+
+        // Remove controls which were not rebound by buildUserInterface. This
+        // is needed when the old and new DSP expose different interfaces.
+        void removeUnbound()
+        {
+            for (auto it = fName2Zone.begin(); it != fName2Zone.end();) {
+                if (it->second.fZone) {
+                    ++it;
+                } else {
+                    it = fName2Zone.erase(it);
+                }
+            }
+        }
     
         void load()
         {

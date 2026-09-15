@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "faustgen2max.py"
@@ -81,6 +82,17 @@ def patch_fixture(path: Path, nested: bool = False, with_source: bool = True) ->
 
 
 class Faustgen2MaxTests(unittest.TestCase):
+    def test_default_compile_uses_matching_source_architecture(self):
+        completed = mock.Mock(returncode=0, stdout="")
+        with mock.patch.dict(faustgen2max.os.environ, {}, clear=True), mock.patch.object(
+            faustgen2max.subprocess, "run", return_value=completed
+        ) as run:
+            faustgen2max._default_compile(["faust2max6", "test.dsp"], Path("/tmp"))
+
+        environment = run.call_args.kwargs["env"]
+        self.assertEqual(environment["FAUSTARCH"], str(SCRIPT.parents[1]))
+        self.assertEqual(environment["FAUST_ARCH_PATH"], str(SCRIPT.parents[1]))
+
     def test_analyze_finds_nested_faustgen_and_infers_midi(self):
         with tempfile.TemporaryDirectory() as directory:
             patch = Path(directory) / "nested.maxpat"

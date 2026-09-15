@@ -241,22 +241,46 @@ void faust_build_mc_dsp(t_faust* x)
 /*--------------------------------------------------------------------------*/
 void faust_allocate(t_faust* x, int nvoices)
 {
-    // Delete old
-#ifdef OSCCTRL
+    // Save controller values while their zones still belong to a live DSP.
+    if (x->m_savedUI && x->m_dsp) {
+        x->m_savedUI->save();
+        x->m_savedUI->unbind();
+    }
+
+    delete x->m_dspUI;
+    x->m_dspUI = nullptr;
+
+    // Releasing a polyphonic DSP calls back into its MidiUI to unregister the
+    // DSP. Consequently MidiUI must outlive the old DSP, but must itself be
+    // removed before the new DSP is attached. Keep the process-wide GUI
+    // registry locked throughout that ordered teardown.
+#if defined(MIDICTRL) || defined(OSCCTRL)
     {
-        // The OSCUI points at the zones of the DSP deleted below, and
-        // unregisters itself from the shared GUI registry
         RecursiveLock gui_lock(gGUIRegistryMutex);
+    #ifdef OSCCTRL
         delete x->m_oscInterface;
         x->m_oscInterface = nullptr;
+    #endif
+    #ifdef MC_VERSION
+        // The multichannel adapter borrows m_dsp and must die before it.
+        delete x->m_mc_dsp;
+        x->m_mc_dsp = nullptr;
+    #endif
+        delete x->m_dsp;
+        x->m_dsp = nullptr;
+    #ifdef MIDICTRL
+        delete x->m_midiUI;
+        x->m_midiUI = nullptr;
+    #endif
     }
-#endif
+#else
+    #ifdef MC_VERSION
+        delete x->m_mc_dsp;
+        x->m_mc_dsp = nullptr;
+    #endif
     delete x->m_dsp;
-    delete x->m_dspUI;
-    if (x->m_savedUI) {
-        x->m_savedUI->save();
-    }
-    x->m_dspUI = new mspUI();
+    x->m_dsp = nullptr;
+#endif
     
     if (nvoices > 0) {
     #ifdef POST
@@ -274,16 +298,6 @@ void faust_allocate(t_faust* x, int nvoices)
         std::string error;
         x->m_dsp = createSRAdapter<FAUSTFLOAT>(new mydsp(), error, DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE);
     }
-    
-#ifdef MIDICTRL
-    x->m_dsp->buildUserInterface(x->m_midiUI);
-#endif
-  
-        // Restore saved UI to new DSP mapping
-    if (x->m_savedUI) {
-        x->m_dsp->buildUserInterface(x->m_savedUI);
-        x->m_savedUI->load();
-    }
 
     // Possible sample adaptation
     if (sizeof(FAUSTFLOAT) == 4) {
@@ -296,13 +310,33 @@ void faust_allocate(t_faust* x, int nvoices)
     
     // Initialize at the system's sampling rate
     x->m_dsp->init(long(sys_getsr()));
+
+#ifdef MIDICTRL
+    // A MidiUI cannot be reused: all of its items and zone-map entries point
+    // into the DSP for which it was built.
+    {
+        RecursiveLock gui_lock(gGUIRegistryMutex);
+        x->m_midiUI = new MidiUI(x->m_midiHandler);
+        x->m_dsp->buildUserInterface(x->m_midiUI);
+    }
+#endif
     
     // Initialize User Interface (here connnection with controls)
+    x->m_dspUI = new mspUI();
     x->m_dsp->buildUserInterface(x->m_dspUI);
     
 #ifdef SOUNDFILE
     x->m_dsp->buildUserInterface(x->m_soundInterface);
 #endif
+
+    // Rebind the saved-state entries to the new zones, then restore the
+    // values captured before the old DSP was destroyed. This has to happen
+    // after init(), which resets every DSP control to its default value.
+    if (x->m_savedUI) {
+        x->m_dsp->buildUserInterface(x->m_savedUI);
+        x->m_savedUI->removeUnbound();
+        x->m_savedUI->load();
+    }
     
     // Prepare JSON
     faust_make_json(x);
@@ -310,11 +344,8 @@ void faust_allocate(t_faust* x, int nvoices)
     // Send JSON to JS script
     faust_create_jsui(x);
     
-    // Load old controller state
-    x->m_dsp->buildUserInterface(x->m_savedUI);
-    
 #ifdef MC_VERSION
-    // x->m_dsp has just been replaced, the adapter still points at the old one
+    // Recreate the adapter for the new DSP when channel setup is available.
     faust_build_mc_dsp(x);
 #endif
 }
@@ -512,12 +543,8 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 #ifdef MIDICTRL
     x->m_midi_outlet = outlet_new((t_pxobject*)x, NULL);
     x->m_midiHandler = new max_midi(x->m_midi_outlet);
-    {
-        // MidiUI registers itself in GUI::fGuiList, which another instance of
-        // this external may be walking from its audio callback.
-        RecursiveLock gui_lock(gGUIRegistryMutex);
-        x->m_midiUI = new MidiUI(x->m_midiHandler);
-    }
+    // faust_allocate creates and binds MidiUI after the DSP is initialized.
+    x->m_midiUI = nullptr;
 #endif
     
     faust_allocate(x, nvoices);

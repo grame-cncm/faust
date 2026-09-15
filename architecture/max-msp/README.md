@@ -162,8 +162,10 @@ The input `.maxpat` is read-only and is never modified.
 - a `sourcecode` property containing the Faust program in every converted box.
 
 When run from a Faust source checkout, the converter automatically prefers that
-checkout's `tools/faust2appls/faust2max6`. Use `--faust2max6` to select another
-copy explicitly.
+checkout's `tools/faust2appls/faust2max6` and matching `architecture/` directory.
+This prevents an older installed architecture from being used accidentally.
+Existing `FAUSTARCH` and `FAUST_ARCH_PATH` environment variables remain
+authoritative. Use `--faust2max6` to select another compiler wrapper explicitly.
 
 ## Basic conversion
 

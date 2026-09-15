@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -447,8 +448,21 @@ def _compilation_units(
 def _default_compile(command: Sequence[str], cwd: Path) -> None:
     """Run faust2max6, echo its output, and turn failures into ConversionError."""
 
+    environment = os.environ.copy()
+    bundled_architecture = Path(__file__).resolve().parents[1]
+    if (bundled_architecture / "max-msp" / "max-msp64.cpp").is_file():
+        # Keep the wrapper and architecture in sync when running from a source
+        # checkout. Otherwise faust2max6 falls back to `faust -archdir`, which
+        # may silently select an older installed max-msp64.cpp.
+        environment.setdefault("FAUSTARCH", str(bundled_architecture))
+        environment.setdefault("FAUST_ARCH_PATH", str(bundled_architecture))
     process = subprocess.run(
-        list(command), cwd=str(cwd), text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        list(command),
+        cwd=str(cwd),
+        env=environment,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
     )
     if process.returncode:
         output = process.stdout.strip()

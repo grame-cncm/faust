@@ -13,6 +13,10 @@
 . faustoptflags
 . usage.sh
 
+# Keep architecture headers in sync with the selected architecture directory.
+# FAUST_ARCH_PATH is searched before the compiler's installed directories.
+export FAUST_ARCH_PATH="${FAUST_ARCH_PATH:-$FAUSTARCH}"
+
 CXXFLAGS+=" $MYGCCFLAGSGENERIC"  # So that additional CXXFLAGS can be used
 
 OSCDEFS=""
