@@ -367,3 +367,37 @@ Run the built-in help for the complete option summary:
 ```bash
 python3 architecture/max-msp/faustgen2max.py --help
 ```
+
+## Tests
+
+Run the portable Max/MSP architecture tests from the Faust repository root:
+
+```bash
+make -C architecture/max-msp/tests
+```
+
+Individual targets are available as `faustgen2max`, `faust2gen`, `faust2max6`,
+and `faust2rnbo`, for example:
+
+```bash
+make -C architecture/max-msp/tests faust2rnbo
+```
+
+The `faust2gen` tests cover mono, polyphonic, `faustgen~`, and
+`mc.faustgen~` patches, including declared voice counts and paths containing
+spaces. The `faust2rnbo` tests compile Codebox code and validate flat and
+file-based RNBO subpatchers, command-line and metadata polyphony, MIDI,
+explicit and automatic effects, and the C++ export configuration. They create
+patch files only and do not launch Max. The special `codebox-test` parameter
+naming used by the RNBO C++ test application is covered as well.
+
+The `faust2max6` suite keeps actual external compilation opt-in because it
+requires macOS, the Max SDK, the native toolchain, and code signing tools. Run
+it explicitly with:
+
+```bash
+make -C architecture/max-msp/tests faust2max6-integration
+```
+
+This checks thin ARM64 and x86_64 bundles, a universal bundle, signatures,
+resources, generated polyphony values, MC/MIDI flags, and `-nopatch`.

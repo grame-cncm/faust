@@ -14,88 +14,105 @@
 POLY="MONO"
 NVOICES=-1
 MC="0"
+FILES=()
 
 JSFILE_PATH="ui.js"
 
 echoHelp()
 {
+    status=${1:-0}
     usage faust2gen "[options] <file.dsp>"
     echo "Compiles Faust programs to a fausgen~/mc.faustgen patch"
     option
     echo '   -nvoices <num> : to produce a polyphonic ready patch to be used with MIDI events'
     echo '   -mc : to use a mc.faustgen~ object'
-    exit
+    exit "$status"
 }
 
 if [ "$#" -eq 0 ]; then
     echo 'Please, provide a Faust file to process !'
     echo ''
-    echoHelp
+    echoHelp 1
 fi
 
 # dispatch command arguments
-while [ $1 ]
+while [ "$1" ]
 do
     p=$1
 
-    if [ $p = "-help" ] || [ $p = "-h" ]; then
+    if [ "$p" = "-help" ] || [ "$p" = "--help" ] || [ "$p" = "-h" ]; then
        echoHelp
-    elif [ $p = "-mc" ]; then
+    elif [ "$p" = "-mc" ]; then
         MC="1"
-    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-        FILES="$FILES $p"
-    elif [ $p = "-nvoices" ]; then
-        POLY="POLY1"
+    elif [ "$p" = "-nvoices" ]; then
         shift
-        NVOICES=$1
-        if [ $NVOICES -ge 0 ]; then
-            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        if [[ ! "$1" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Invalid voice count '${1:-}' (expected a positive integer)" >&2
+            exit 1
         fi
+        POLY="POLY1"
+        NVOICES=$1
+    elif [[ -f "$p" ]] && [ "${p: -4}" = ".dsp" ]; then
+        FILES+=("$p")
     else
-        OPTIONS="$OPTIONS $p"
+        echo "Invalid option or DSP file '$p'" >&2
+        exit 1
     fi
 
 shift
 
 done
 
-# look for polyphonic "nvoices" metadata in the DSP file
-
-grep "declare nvoices" $FILES && POLY="POLY1" 2>/dev/null
+if [ ${#FILES[@]} -eq 0 ]; then
+    echo "No DSP file was provided" >&2
+    exit 1
+fi
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #
 
-for p in $FILES; do
+for p in "${FILES[@]}"; do
 
     f=$(basename "$p")
 
-    # create Max patch
-    if [ $POLY = "POLY1" ]; then
-    	if [ $MC = "1" ]; then
-        	cat $FAUSTARCH/max-msp/mc-faustgen-wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
-        else
-        	cat $FAUSTARCH/max-msp/faustgen-wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
-        fi
-    else
-    	if [ $MC = "1" ]; then
-        	cat $FAUSTARCH/max-msp/mc-faustgen-wrapper.maxpat > ${f%.dsp}-temp1.maxpat
-        else
-        	cat $FAUSTARCH/max-msp/faustgen-wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+    FILE_POLY=$POLY
+    FILE_NVOICES=$NVOICES
+    if [ "$FILE_POLY" != "POLY1" ]; then
+        DECLARED_NVOICES=$(sed -nE 's/.*declare[[:space:]]+nvoices[[:space:]]+"?([0-9]+)"?[[:space:]]*;.*/\1/p' "$p" | head -n 1)
+        if [ -n "$DECLARED_NVOICES" ] && [ "$DECLARED_NVOICES" -gt 0 ]; then
+            FILE_POLY="POLY1"
+            FILE_NVOICES=$DECLARED_NVOICES
         fi
     fi
-    sed -e "s/DSP_NAME/"${f%.dsp}"/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
-    sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
+
+    # create Max patch
+    if [ "$FILE_POLY" = "POLY1" ]; then
+        if [ "$MC" = "1" ]; then
+            cat "$FAUSTARCH/max-msp/mc-faustgen-wrapper-poly.maxpat" > "${f%.dsp}-temp1.maxpat"
+        else
+            cat "$FAUSTARCH/max-msp/faustgen-wrapper-poly.maxpat" > "${f%.dsp}-temp1.maxpat"
+        fi
+    else
+        if [ "$MC" = "1" ]; then
+            cat "$FAUSTARCH/max-msp/mc-faustgen-wrapper.maxpat" > "${f%.dsp}-temp1.maxpat"
+        else
+            cat "$FAUSTARCH/max-msp/faustgen-wrapper.maxpat" > "${f%.dsp}-temp1.maxpat"
+        fi
+    fi
+    sed -e "s/DSP_NAME/${f%.dsp}/g" -e "s/NVOICES/$FILE_NVOICES/g" \
+        "${f%.dsp}-temp1.maxpat" > "${f%.dsp}-temp2.maxpat"
+    sed -e "s/UI_FILE/$JSFILE_PATH/g" \
+        "${f%.dsp}-temp2.maxpat" > "${f%.dsp}.maxpat"
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES${f%.dsp}.maxpat;"
 
     # copy JavaScript UI file
-    cp $FAUSTARCH/max-msp/ui.js .
+    cp "$FAUSTARCH/max-msp/ui.js" .
 
-    rm ${f%.dsp}-temp1.maxpat
-    rm ${f%.dsp}-temp2.maxpat
+    rm "${f%.dsp}-temp1.maxpat"
+    rm "${f%.dsp}-temp2.maxpat"
 
 done
 

@@ -4,7 +4,7 @@ set -e
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to RNBO                     #
-#               (c) Grame, 20203                                    #
+#               (c) Grame, 2023                                     #
 #                                                                   #
 #####################################################################
 
@@ -12,7 +12,7 @@ set -e
 . faustoptflags
 . usage.sh
 
-ARCHFILE=$FAUSTARCH/max-msp/rnbo.py
+ARCHFILE="$FAUSTARCH/max-msp/rnbo.py"
 MIDI=False
 SUB_PATCHER=False
 NVOICES=-1
@@ -22,11 +22,14 @@ EXPORT_FILENAME="foo.cpp"
 TEST=False
 POLY="POLY"
 EFFECT=""
+OPTIONS=()
+FILES=()
 
-echoHelp() 
+echoHelp()
 {
+    status=${1:-0}
     usage faust2rnbo "[options] [Faust options] <file.dsp>"
-    echo  "Compiles Faust programs to RNBO patches"
+    echo "Compiles Faust programs to RNBO patches"
     option
     options -midi
     option "-nvoices <num>"
@@ -38,107 +41,176 @@ echoHelp()
     option "-cpp_path <path>"
     option "-cpp_filename <filename>"
     option "Faust options"
-    exit
+    exit "$status"
+}
+
+requireValue()
+{
+    option_name=$1
+    if [ "$#" -lt 2 ] || [ -z "$2" ]; then
+        echo "Missing value for $option_name" >&2
+        exit 1
+    fi
 }
 
 if [ "$#" -eq 0 ]; then
     echo 'Please, provide a Faust file to process !'
     echo ''
-    echoHelp
+    echoHelp 1
 fi
 
 #-------------------------------------------------------------------
 # dispatch command arguments
 #-------------------------------------------------------------------
 
-OPTIONS=""
-
-while [ $1 ]
-do
+while [ "$#" -gt 0 ]; do
     p=$1
 
-    if [ $p = "-help" ] || [ $p = "-h" ]; then
+    if [ "$p" = "-help" ] || [ "$p" = "--help" ] || [ "$p" = "-h" ]; then
         echoHelp
-    fi
-
-    if [ $p = "-midi" ]; then
+    elif [ "$p" = "-midi" ]; then
         MIDI=True
-    elif [ $p = "-sp" ]; then
+    elif [ "$p" = "-sp" ]; then
         SUB_PATCHER=True
-    elif [ $p = "-nvoices" ]; then
+    elif [ "$p" = "-nvoices" ]; then
         shift
-        NVOICES=$1     
+        requireValue -nvoices "${1:-}"
+        if [[ ! "$1" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Invalid voice count '$1' (expected a positive integer)" >&2
+            exit 1
+        fi
+        NVOICES=$1
         # Polyphonic RNBO patches require MIDI ports and routing.
         MIDI=True
-    elif [ $p = "-effect" ]; then
+    elif [ "$p" = "-effect" ]; then
+        shift
+        requireValue -effect "${1:-}"
         POLY="POLY2"
-        shift
-        EFFECT=$1 
-    elif [ $p = "-compile" ]; then
+        EFFECT=$1
+    elif [ "$p" = "-compile" ]; then
         COMPILE=True
-    elif [ $p = "-test" ]; then
+    elif [ "$p" = "-test" ]; then
         TEST=True
-    elif [ $p = "-cpp_path" ]; then
+    elif [ "$p" = "-cpp_path" ]; then
         shift
+        requireValue -cpp_path "${1:-}"
         EXPORT_PATH=$1
-    elif [ $p = "-cpp_filename" ]; then
+    elif [ "$p" = "-cpp_filename" ]; then
         shift
+        requireValue -cpp_filename "${1:-}"
         EXPORT_FILENAME=$1
-    elif [ ${p:0:1} = "-" ]; then
-        OPTIONS="$OPTIONS $p"
-    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-        FILES="$FILES $p"
+    elif [[ -f "$p" ]] && [ "${p: -4}" = ".dsp" ]; then
+        FILES+=("$p")
+    elif [ "${p:0:1}" = "-" ]; then
+        OPTIONS+=("$p")
+    elif [ "${p: -4}" = ".dsp" ]; then
+        echo "DSP file '$p' does not exist" >&2
+        exit 1
     else
-        OPTIONS="$OPTIONS $p"
+        # Preserve values belonging to Faust compiler options.
+        OPTIONS+=("$p")
     fi
 
-shift
-
+    shift
 done
+
+if [ ${#FILES[@]} -eq 0 ]; then
+    echo "No DSP file was provided" >&2
+    exit 1
+fi
+
+if [ "$POLY" = "POLY2" ] && [ "$EFFECT" != "auto" ] && [ ! -f "$EFFECT" ]; then
+    echo "Effect DSP file '$EFFECT' does not exist" >&2
+    exit 1
+fi
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #-------------------------------------------------------------------
 
-for f in $FILES; do
+BINARIES=""
+for f in "${FILES[@]}"; do
+    dsp_base=${f%.dsp}
+    dsp_codebox="$dsp_base.codebox"
+    dsp_json="$f.json"
+    auto_dir=""
+    effect_codebox=""
+    effect_json=""
+
+    cleanupRnboTemporaries()
+    {
+        rm -f "$dsp_codebox" "$dsp_json"
+        if [ -n "$effect_codebox" ]; then
+            rm -f "$effect_codebox" "$effect_json"
+        fi
+        if [ -n "$auto_dir" ]; then
+            rm -rf "$auto_dir"
+        fi
+    }
+    trap cleanupRnboTemporaries EXIT
 
     # compile the DSP to codebox using the architecture file
     if [ "$TEST" = "True" ]; then
-        faust $OPTIONS "$f" -lang codebox-test -double -json -o "${f%.dsp}.codebox" || exit
-        # compile codebox and JSON file to maxpat
-        python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --maxpat "${f%.dsp}.maxpat" --cpp-export $EXPORT_PATH --cpp-filename $EXPORT_FILENAME --compile $COMPILE --test $TEST --subpatcher $SUB_PATCHER
+        faust "${OPTIONS[@]}" "$f" -lang codebox-test -double -json -o "$dsp_codebox"
+        python3 "$ARCHFILE" \
+            --dsp-name "$dsp_base" --dsp-codebox "$dsp_codebox" \
+            --dsp-json "$dsp_json" --maxpat "$dsp_base.maxpat" \
+            --cpp-export "$EXPORT_PATH" --cpp-filename "$EXPORT_FILENAME" \
+            --compile "$COMPILE" --test "$TEST" --subpatcher "$SUB_PATCHER"
     else
-        faust $OPTIONS "$f" -lang codebox -double -json -o "${f%.dsp}.codebox" || exit
-        if [ $POLY = "POLY2" ]; then
-            if [ $EFFECT = "auto" ]; then
-                cat > effect.dsp << EndOfCode
-                adapt(1,1) = _;
-                adapt(2,2) = _,_;
-                adapt(1,2) = _ <: _,_;
-                adapt(2,1) = _,_ :> _;
-                adaptor(F,G) = adapt(outputs(F),inputs(G));
-                process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
-EndOfCode
-                faust $OPTIONS effect.dsp -lang codebox -double -json -o effect.codebox || exit
-                rm effect.dsp
-                # compile codebox and JSON files to maxpat
-                python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --effect-codebox "effect.codebox" --effect-json "effect.dsp.json" --maxpat "${f%.dsp}.maxpat" --cpp-export $EXPORT_PATH --cpp-filename $EXPORT_FILENAME --midi $MIDI --nvoices $NVOICES --compile $COMPILE --subpatcher $SUB_PATCHER
+        faust "${OPTIONS[@]}" "$f" -lang codebox -double -json -o "$dsp_codebox"
+        if [ "$POLY" = "POLY2" ]; then
+            if [ "$EFFECT" = "auto" ]; then
+                auto_dir=$(mktemp -d "${TMPDIR:-/tmp}/faust2rnbo.XXXXXX")
+                auto_dsp="$auto_dir/effect.dsp"
+                auto_codebox="$auto_dir/effect.codebox"
+                printf '%s\n' \
+                    'adapt(1,1) = _;' \
+                    'adapt(2,2) = _,_;' \
+                    'adapt(1,2) = _ <: _,_;' \
+                    'adapt(2,1) = _,_ :> _;' \
+                    'adaptor(F,G) = adapt(outputs(F),inputs(G));' \
+                    "process = adaptor(library(\"$f\").process, library(\"$f\").effect) : library(\"$f\").effect;" \
+                    > "$auto_dsp"
+                faust "${OPTIONS[@]}" "$auto_dsp" -lang codebox -double -json -o "$auto_codebox"
+                python3 "$ARCHFILE" \
+                    --dsp-name "$dsp_base" --dsp-codebox "$dsp_codebox" \
+                    --dsp-json "$dsp_json" --effect-codebox "$auto_codebox" \
+                    --effect-json "$auto_dsp.json" --maxpat "$dsp_base.maxpat" \
+                    --cpp-export "$EXPORT_PATH" --cpp-filename "$EXPORT_FILENAME" \
+                    --midi "$MIDI" --nvoices "$NVOICES" --compile "$COMPILE" \
+                    --subpatcher "$SUB_PATCHER"
+                rm -rf "$auto_dir"
+                auto_dir=""
             else
-                faust $OPTIONS "$EFFECT" -lang codebox -double -json -o "${EFFECT%.dsp}.codebox"  || exit
-                # compile codebox and JSON files to maxpat
-                python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --effect-codebox "${EFFECT%.dsp}.codebox" --effect-json "$EFFECT.json" --maxpat "${f%.dsp}.maxpat" --cpp-export $EXPORT_PATH --cpp-filename $EXPORT_FILENAME --midi $MIDI --nvoices $NVOICES --compile $COMPILE --subpatcher $SUB_PATCHER
+                effect_base=${EFFECT%.dsp}
+                effect_codebox="$effect_base.codebox"
+                effect_json="$EFFECT.json"
+                faust "${OPTIONS[@]}" "$EFFECT" -lang codebox -double -json -o "$effect_codebox"
+                python3 "$ARCHFILE" \
+                    --dsp-name "$dsp_base" --dsp-codebox "$dsp_codebox" \
+                    --dsp-json "$dsp_json" --effect-codebox "$effect_codebox" \
+                    --effect-json "$EFFECT.json" --maxpat "$dsp_base.maxpat" \
+                    --cpp-export "$EXPORT_PATH" --cpp-filename "$EXPORT_FILENAME" \
+                    --midi "$MIDI" --nvoices "$NVOICES" --compile "$COMPILE" \
+                    --subpatcher "$SUB_PATCHER"
             fi
-         else
-            # compile codebox and JSON file to maxpat
-            python3 $ARCHFILE --dsp-name "${f%.dsp}" --dsp-codebox "${f%.dsp}.codebox" --dsp-json "$f.json" --maxpat "${f%.dsp}.maxpat" --cpp-export $EXPORT_PATH --cpp-filename $EXPORT_FILENAME --midi $MIDI --nvoices $NVOICES --compile $COMPILE --subpatcher $SUB_PATCHER
+        else
+            python3 "$ARCHFILE" \
+                --dsp-name "$dsp_base" --dsp-codebox "$dsp_codebox" \
+                --dsp-json "$dsp_json" --maxpat "$dsp_base.maxpat" \
+                --cpp-export "$EXPORT_PATH" --cpp-filename "$EXPORT_FILENAME" \
+                --midi "$MIDI" --nvoices "$NVOICES" --compile "$COMPILE" \
+                --subpatcher "$SUB_PATCHER"
         fi
     fi
-  
+
     # remove temporary files
-    rm -f "${f%.dsp}.codebox" "$f.json"
+    cleanupRnboTemporaries
+    trap - EXIT
 
     # collect binary file name for FaustWorks
-    BINARIES="$BINARIES${f%.dsp}.maxpat;"
+    BINARIES="$BINARIES$dsp_base.maxpat;"
 done
 
-echo $BINARIES
+echo "$BINARIES"

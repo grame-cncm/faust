@@ -58,7 +58,7 @@
 					"outlettype" : [ "" ],
 					"patching_rect" : [ 21.0, 25.0, 75.0, 22.0 ],
 					"style" : "",
-					"text" : "polyphony 8"
+					"text" : "polyphony NVOICES"
 				}
 
 			}

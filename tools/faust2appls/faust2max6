@@ -24,6 +24,7 @@ OSCLIB=""
 POLY=""
 NOPATCH="0"
 NVOICES=-1
+FILES=()
 EFFECT=""
 ARCH="auto"
 SOUNDFILE="0"
@@ -82,6 +83,7 @@ createInfoPList()
 
 echoHelp()
 {
+    status=${1:-0}
     usage faust2max6 "[options] [Faust options] <file.dsp>"
     require Max/MSP SDK
     echo "Compiles Faust programs to Max6 externals using double precision samples (see https://github.com/grame-cncm/faust/tree/master-dev/architecture/max-msp)"
@@ -101,13 +103,13 @@ echoHelp()
     option -nopatch "to deactivate patch generation"
     option -nopost "to disable Faust messages to Max console"
     option "Faust options"
-    exit
+    exit "$status"
 }
 
 if [ "$#" -eq 0 ]; then
     echo 'Please, provide a Faust file to process !'
     echo ''
-    echoHelp
+    echoHelp 1
 fi
 
 #-------------------------------------------------------------------
@@ -118,78 +120,80 @@ fi
 #
 
 #PHASE 2 : dispatch command arguments
-while [ $1 ]
+while [ "$1" ]
 do
     p=$1
 
-    if [ $p = "-help" ] || [ $p = "-h" ]; then
+    if [ "$p" = "-help" ] || [ "$p" = "--help" ] || [ "$p" = "-h" ]; then
        echoHelp
-    elif [ $p = "-opt" ]; then
+    elif [ "$p" = "-opt" ]; then
         shift
         OPT=$1
-    elif [ $p = "-nvoices" ]; then
-        POLY="POLY1"
+    elif [ "$p" = "-nvoices" ]; then
         shift
-        NVOICES=$1
-        if [ $NVOICES -ge 0 ]; then
-            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        if [[ ! "$1" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Invalid voice count '${1:-}' (expected a positive integer)" >&2
+            exit 1
         fi
-    elif [ $p = "-effect" ]; then
+        POLY="POLY1"
+        NVOICES=$1
+        CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+    elif [ "$p" = "-effect" ]; then
         POLYDEFS="-DPOLY2"
         shift
         EFFECT=$1
-    elif [ $p = "-midi" ]; then
+    elif [ "$p" = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
-    elif [ $p = "-arch" ]; then
+    elif [ "$p" = "-arch" ]; then
         shift
         ARCH=$1
         if [[ "$ARCH" != "auto" && "$ARCH" != "arm64" && "$ARCH" != "x86_64" && "$ARCH" != "universal" ]]; then
             echo "Invalid architecture '$ARCH' (expected auto, arm64, x86_64, or universal)"
             exit 1
         fi
-    elif [ $p = "-universal" ]; then
+    elif [ "$p" = "-universal" ]; then
         ARCH="universal"
-    elif [ $p = "-mc" ]; then
+    elif [ "$p" = "-mc" ]; then
         MC="-DMC_VERSION"
-    elif [ $p = "-soundfile-dynamic" ]; then
+    elif [ "$p" = "-soundfile-dynamic" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
-    elif [ $p = "-soundfile" ]; then
+    elif [ "$p" = "-soundfile" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE -I$FAUSTARCH/max-msp/sndfile"
         SFDIR=$FAUSTARCH/max-msp/sndfile
         SOUNDFILELIBS_ARM="$SFDIR/arm/libsndfile.a"
         SOUNDFILELIBS_INTEL="$SFDIR/intel/libsndfile.a"
-    elif [ $p = "-osc" ]; then
+    elif [ "$p" = "-osc" ]; then
         OSCDEFS="-DOSCCTRL"
         OSCLIBS="-lOSCFaust"
-    elif [ $p = "-nopost" ]; then
+    elif [ "$p" = "-nopost" ]; then
         POST=""
-    elif [ $p = "-nopatch" ]; then
+    elif [ "$p" = "-nopatch" ]; then
         NOPATCH="1"
-    elif [ $p = "-native" ]; then
+    elif [ "$p" = "-native" ]; then
         CXXFLAGS=$MYGCCFLAGS
-    elif [ $p = "-single" ]; then
+    elif [ "$p" = "-single" ]; then
         FAUSTFLOAT="float"
-    elif [ $p = "-us" ]; then
+    elif [ "$p" = "-us" ]; then
         shift
         US=$1
-    elif [ $p = "-ds" ]; then
+    elif [ "$p" = "-ds" ]; then
         shift
         DS=$1
-    elif [ $p = "-filter" ]; then
+    elif [ "$p" = "-filter" ]; then
         shift
         FILTER=$1
     # '-A path' also added as '-I path' in the C++ command
-    elif [ $p = "-A" ]; then
+    elif [ "$p" = "-A" ]; then
         shift
         CXXFLAGS="$CXXFLAGS -I $1"
         OPTIONS="$OPTIONS -A $1"
-    elif [ ${p:0:1} = "-" ]; then
+    elif [ "${p:0:1}" = "-" ]; then
         OPTIONS="$OPTIONS $p"
-    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-        FILES="$FILES $p"
+    elif [[ -f "$p" ]] && [ "${p: -4}" = ".dsp" ]; then
+        FILES+=("$p")
     else
         OPTIONS="$OPTIONS $p"
     fi
@@ -198,8 +202,10 @@ shift
 
 done
 
-#look for polyphonic "nvoices" metadata in the DSP file
-grep "declare nvoices" $FILES && POLY="POLY1" 2>/dev/null
+if [ ${#FILES[@]} -eq 0 ]; then
+    echo "No DSP file was provided" >&2
+    exit 1
+fi
 
 #customize CXXFLAGS
 CXXFLAGS+=" -fbracket-depth=512"
@@ -216,11 +222,24 @@ fi
 #
 PATH=$PATH:/usr/local/bin
 
-for p in $FILES; do
+for p in "${FILES[@]}"; do
 
     CUR=$(pwd)
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
+
+    FILE_POLY=$POLY
+    FILE_NVOICES=$NVOICES
+    if [ "$FILE_POLY" != "POLY1" ]; then
+        DECLARED_NVOICES=$(sed -nE 's/.*declare[[:space:]]+nvoices[[:space:]]+"?([0-9]+)"?[[:space:]]*;.*/\1/p' "$p" | head -n 1)
+        if [ -n "$DECLARED_NVOICES" ] && [ "$DECLARED_NVOICES" -gt 0 ]; then
+            FILE_POLY="POLY1"
+            FILE_NVOICES=$DECLARED_NVOICES
+        fi
+    fi
+    if [ "$FILE_POLY" = "POLY1" ] && [ "$FILE_NVOICES" -lt 1 ]; then
+        FILE_NVOICES=8
+    fi
 
     # creates a temporary dir, outside of the working directory, and make sure
     # it is removed even when a step below exits early
@@ -293,7 +312,7 @@ for p in $FILES; do
 
     if [ "$SOUNDFILE" = "1" ]; then
         # get all soundfiles from the JSON file
-        cat $p.json | awk '
+        awk '
                         BEGIN { FS=":"; SOFI=0; }
                             /"soundfile"/ { SOFI=1; }
                             /"url"/ {
@@ -304,27 +323,27 @@ for p in $FILES; do
                                 SOFI=0;
                             }
                         }
-        ' > $p-tmp.txt
+        ' "$p.json" > "$p-tmp.txt"
         # copy found soundfiles in the final binary
-        for snd in $(cat $p-tmp.txt); do
-            if [ -f $snd ]; then
-                if [ ${snd:0:1} = "/" ]; then
+        while IFS= read -r snd; do
+            if [ -f "$snd" ]; then
+                if [ "${snd:0:1}" = "/" ]; then
                     echo "Warning: soundfile with absolute path is not copied !"
                 else
                     #create destination path and possibly create directory
-                    sfpath="$TMP/${f%.dsp}$EXT/Contents/Resources/$(dirname $snd)/"
-                    if ! [ -d $sfpath ]; then
+                    sfpath="$TMP/${f%.dsp}$EXT/Contents/Resources/$(dirname "$snd")/"
+                    if ! [ -d "$sfpath" ]; then
                         echo "Create $sfpath"
-                        mkdir -p $sfpath
+                        mkdir -p "$sfpath"
                     fi
                     echo "Copy $snd in ${f%.dsp}$EXT"
-                    cp $snd $sfpath
+                    cp "$snd" "$sfpath"
                 fi
             else
                 echo "Error: file $snd not found !"
             fi
-        done
-        rm $p-tmp.txt
+        done < "$p-tmp.txt"
+        rm "$p-tmp.txt"
     fi
 
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
@@ -345,27 +364,29 @@ for p in $FILES; do
 
     # create Max patch
     if [ "$NOPATCH" = "0" ]; then
-        if [ "$POLY" = "POLY1" ]; then
+        if [ "$FILE_POLY" = "POLY1" ]; then
             if [ "$MC" = "-DMC_VERSION" ]; then
-                cat $FAUSTARCH/max-msp/mc-wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+                cat "$FAUSTARCH/max-msp/mc-wrapper-poly.maxpat" > "${f%.dsp}-temp1.maxpat"
             else
-                cat $FAUSTARCH/max-msp/wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+                cat "$FAUSTARCH/max-msp/wrapper-poly.maxpat" > "${f%.dsp}-temp1.maxpat"
             fi
         else
             if [ "$MC" = "-DMC_VERSION" ]; then
-                cat $FAUSTARCH/max-msp/mc-wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+                cat "$FAUSTARCH/max-msp/mc-wrapper.maxpat" > "${f%.dsp}-temp1.maxpat"
             else
-                cat $FAUSTARCH/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+                cat "$FAUSTARCH/max-msp/wrapper.maxpat" > "${f%.dsp}-temp1.maxpat"
             fi
         fi
-        sed -e "s/DSP_NAME/"${f%.dsp}"~/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
-        sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
+        sed -e "s/DSP_NAME/${f%.dsp}~/g" -e "s/NVOICES/$FILE_NVOICES/g" \
+            "${f%.dsp}-temp1.maxpat" > "${f%.dsp}-temp2.maxpat"
+        sed -e "s/UI_FILE/$JSFILE_PATH/g" \
+            "${f%.dsp}-temp2.maxpat" > "${f%.dsp}.maxpat"
 
         # copy JavaScript UI file
-        cp $FAUSTARCH/max-msp/$JSFILE_PATH .
+        cp "$FAUSTARCH/max-msp/$JSFILE_PATH" .
 
-        rm ${f%.dsp}-temp1.maxpat
-        rm ${f%.dsp}-temp2.maxpat
+        rm "${f%.dsp}-temp1.maxpat"
+        rm "${f%.dsp}-temp2.maxpat"
     fi
 
 done
