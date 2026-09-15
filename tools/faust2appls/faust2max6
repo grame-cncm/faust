@@ -21,7 +21,7 @@ POLY=""
 NOPATCH="0"
 NVOICES=-1
 EFFECT=""
-UNIVERSAL="0"
+ARCH="auto"
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
@@ -92,7 +92,8 @@ echoHelp()
     option "-effect <effect.dsp>"
     option -mc "to activate multi-channels model"
     option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
-    option -universal "to generate a universal (arm/intel) external"
+    option "-arch auto|arm64|x86_64|universal" "selects the macOS external architecture (auto keeps the historical behavior)"
+    option -universal "alias for '-arch universal'"
     option -nopatch "to deactivate patch generation"
     option -nopost "to disable Faust messages to Max console"
     option "Faust options"
@@ -135,8 +136,15 @@ do
         EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-arch" ]; then
+        shift
+        ARCH=$1
+        if [[ "$ARCH" != "auto" && "$ARCH" != "arm64" && "$ARCH" != "x86_64" && "$ARCH" != "universal" ]]; then
+            echo "Invalid architecture '$ARCH' (expected auto, arm64, x86_64, or universal)"
+            exit 1
+        fi
     elif [ $p = "-universal" ]; then
-        UNIVERSAL="1"
+        ARCH="universal"
     elif [ $p = "-mc" ]; then
         MC="-DMC_VERSION"
     elif [ $p = "-soundfile-dynamic" ]; then
@@ -248,17 +256,21 @@ for p in $FILES; do
         # FAUST_FILE_NAME is always added
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
-        # universal binaries produced on M1
-        if [[ $(uname -p) = arm  || "$UNIVERSAL" = "1" ]]; then
+        # Keep the historical default: universal binaries are produced on M1.
+        if [[ "$ARCH" = "universal" || ("$ARCH" = "auto" && $(uname -p) = arm) ]]; then
             $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64"
             $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
             $LIPO -create "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64" -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~" || exit
             # the per-architecture slices are merged now, and codesign would
             # treat the leftovers as unsigned subcomponents
             rm -f "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
+        elif [ "$ARCH" = "arm64" ]; then
+            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+        elif [ "$ARCH" = "x86_64" ]; then
+            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
         else
-        # native target
-           $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+            # Native target on Intel (the Apple Silicon auto case is above).
+            $CXX $CXXFLAGS -DFAUST_FILE_NAME="\"$f\"" -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $MC $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I "$CUR" -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS $LINK_FLAGS -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
         fi
        ) > /dev/null || exit
 

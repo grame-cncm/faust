@@ -6,7 +6,7 @@ The **faust2max6** tool transforms a Faust DSP program into a compiled Max/MSP e
 
 **faust2max6** is used with the following options: 
 
-`faust2max6 [-osc] [-midi] [-soundfile/-soundfile-static] [-opt native|generic] [-nvoices <num>] [-us <factor>] [-ds <factor>] [-filter <filter>] [-effect <effect.dsp>] [-mc] [-native] [-universal] [-nopatch] [-nopost] [additional Faust options (-vec -vs 8...)] <file.dsp>` 
+`faust2max6 [-osc] [-midi] [-soundfile/-soundfile-static] [-opt native|generic] [-nvoices <num>] [-us <factor>] [-ds <factor>] [-filter <filter>] [-effect <effect.dsp>] [-mc] [-native] [-arch auto|arm64|x86_64|universal] [-universal] [-nopatch] [-nopost] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
 By default it will create the *file~.mxo* external along with a *file.maxpat* patch file and a *ui.js* helper file, that will load the external and automatically create a User Interface (with sliders, buttons...) ready to control it. To be fully functional, the object still has to be connected to audio inputs/outputs or other elements in the patch. **Double-click** on the object allow to display its controls with their **range**, **label**, **shortname** and **complete path**. Note that  *-double* compilation mode is used by default in **faust2max6**.
 
@@ -69,6 +69,7 @@ Here are the available options:
   - `-us <factor>` : upsample the DSP by a factor
   - `-ds <factor>` : downsample the DSP by a factor
   - `-filter <filter>` : use a filter for upsampling or downsampling [0..4]
+  - `-arch arm64` : to generate an ARM64-only external on macOS (`x86_64` and `universal` are also accepted)
   - `-universal` : to generate a 64 bits x86/ARM universal external on macOS 
   - `-nopatch` : to deactivate patch generation
   - `-nopost` : to disable Faust messages to Max console
@@ -131,3 +132,236 @@ Here are the available options:
   - `-cpp_filename <filename>` : to set C++ export filename
  
 By default it will create the *file.maxpat* patch file. 
+
+# faustgen2max
+
+`faustgen2max.py` turns Max prototypes that use `faustgen~` or `mc.faustgen~`
+into distributable patches backed by native externals compiled with
+`faust2max6`. It uses py2max to read and rewrite the complete patch hierarchy,
+including embedded subpatchers.
+
+For each faustgen box the converter:
+
+1. extracts the Faust program from its `sourcecode` property;
+2. infers the required compilation features from the source and the patch;
+3. compiles the program as a Max `.mxo` external with `faust2max6`;
+4. changes the box text to the compiled external name; and
+5. removes the faustgen source and machine-code properties from the output.
+
+The replacement is performed in place in the py2max model. Box ids, positions,
+scripting names, other attributes, and patch cords are therefore preserved.
+The input `.maxpat` is read-only and is never modified.
+
+## Requirements
+
+- Python 3.9 or newer;
+- py2max, either installed as a Python package or present in the adjacent
+  `architecture/max-msp/py2max` checkout;
+- Faust and the tools used by `faust2max6` available on `PATH`;
+- the Max SDK configured as described in the **Configuration** section above;
+- a `sourcecode` property containing the Faust program in every converted box.
+
+When run from a Faust source checkout, the converter automatically prefers that
+checkout's `tools/faust2appls/faust2max6`. Use `--faust2max6` to select another
+copy explicitly.
+
+## Basic conversion
+
+```bash
+python3 architecture/max-msp/faustgen2max.py my-prototype.maxpat
+```
+
+By default, a patch named `my-prototype.maxpat` produces the sibling directory
+`my-prototype-compiled/` with this layout:
+
+```text
+my-prototype-compiled/
+├── my-prototype-compiled.maxpat
+├── my-prototype-compiled.json
+├── external_name.dsp
+└── external_name~.mxo/
+```
+
+There is one `.dsp` and `.mxo` pair per distinct Faust source and compilation
+configuration. Identical boxes share the same external. The JSON manifest
+records the input/output paths, analysis of every box, compiler arguments,
+include directories, generated bundles, source lengths and source SHA-256
+hashes. It deliberately does not duplicate the Faust source text.
+
+Use `--output-dir` to choose the output directory for exactly one input patch:
+
+```bash
+python3 architecture/max-msp/faustgen2max.py \
+    --output-dir /tmp/compiled \
+    my-prototype.maxpat
+```
+
+Multiple files may be supplied. A directory input is searched recursively for
+`.maxpat` files. With multiple patches, `--output-root` creates one
+`<patch>-compiled` child directory per patch:
+
+```bash
+python3 architecture/max-msp/faustgen2max.py \
+    patches/ another-patch.maxpat \
+    --output-root compiled/
+```
+
+Without `--output-root`, every result is placed beside its input patch.
+`--output-dir` and `--output-root` are mutually exclusive.
+
+## Analysis mode
+
+`--analyze` prints the detected objects and compilation decisions as JSON. It
+does not invoke `faust2max6`, create directories, or write files:
+
+```bash
+python3 architecture/max-msp/faustgen2max.py \
+    --analyze \
+    my-prototype.maxpat
+```
+
+Nested objects have stable locations such as `root/obj-20/obj-2`. These
+locations, along with `object_id`, `varname`, and the one-based `index`, can be
+used to identify an object when overriding its generated name.
+
+## Feature inference and overrides
+
+The converter chooses the default `faust2max6` arguments as follows:
+
+- `mc.faustgen~` adds `-mc`;
+- a faustgen MIDI outlet layout, a detected voice count, `[midi:...]` Faust
+  metadata, or incoming MIDI/MPE objects and messages adds `-midi`;
+- an incoming `osc ...` message adds `-osc`;
+- use of the Faust `soundfile(...)` primitive adds `-soundfile`;
+- `declare nvoices "N";` in the source or an incoming constant `polyphony N`
+  message records the intended number of voices and enables MIDI inference;
+  when there is no declaration, the value is also passed as `-nvoices N`.
+
+MIDI, OSC, and soundfile detection can each be kept automatic, forced on, or
+forced off:
+
+```bash
+python3 architecture/max-msp/faustgen2max.py \
+    --midi always \
+    --osc never \
+    --soundfile auto \
+    my-prototype.maxpat
+```
+
+The accepted values are `auto`, `always`, and `never` (the French aliases
+`oui`, `non`, `toujours`, and `jamais` are also accepted). `--nvoices N`
+replaces the detected voice count for all faustgen boxes in the selected
+patches.
+
+Incoming prototype messages and their patch cords are preserved. The converter
+warns about `read`, `write`, `compileoptions`, and `librarypath`, because those
+faustgen-specific messages do not configure a compiled external.
+
+## External names
+
+The default name is selected in this order:
+
+1. the Faust `declare name "...";` metadata;
+2. the Max scripting name (`varname`), unless it is an automatically generated
+   `faustgen-N` name;
+3. the input patch filename and, when needed, the object id.
+
+Names are converted to portable lowercase C++ identifiers. Collisions receive
+a numeric suffix. Override a name with a repeatable `--name` assignment:
+
+```bash
+python3 architecture/max-msp/faustgen2max.py \
+    --name synth=poly_synth \
+    --name root/obj-20/obj-2=filter_bank \
+    my-prototype.maxpat
+```
+
+The selector before `=` may be the full nested location, Max box id, scripting
+name, or one-based occurrence number. If several selectors match one box, they
+must assign the same name.
+
+## Target architecture
+
+`--arch` controls the Mach-O architecture produced by `faust2max6` on macOS:
+
+- `auto` keeps the historical behavior: universal on Apple Silicon and
+  `x86_64` on Intel;
+- `arm64` produces a thin Apple Silicon external;
+- `x86_64` produces a thin Intel external;
+- `universal` combines both slices.
+
+An ARM64-only build is useful when an optional static dependency, such as an
+OSC or soundfile library, is only available for Apple Silicon:
+
+```bash
+python3 architecture/max-msp/faustgen2max.py \
+    --arch arm64 \
+    /Users/letz/Developpements/faust/embedded/faustgen/Faustgen-poly-midi.maxpat
+```
+
+An explicitly selected non-`auto` architecture and all inferred flags appear
+in the manifest's `args` arrays. The generated bundle can be checked with:
+
+```bash
+lipo -archs external_name~.mxo/Contents/MacOS/external_name~
+```
+
+## Additional compiler options
+
+`--compiler-arg` is repeatable and passes arguments directly to `faust2max6`.
+Use the `--compiler-arg=VALUE` form when a value begins with `-`:
+
+```bash
+python3 architecture/max-msp/faustgen2max.py \
+    --compiler-arg=-vec \
+    --compiler-arg=-lv=1 \
+    my-prototype.maxpat
+```
+
+These options apply to every compilation unit. `-nopatch` is always added so
+that `faust2max6` creates only the external; `faustgen2max.py` itself creates
+the final rewritten patch.
+
+## Python API
+
+The module can also be imported by tests or other conversion tools. Its two
+public workflow functions are:
+
+```python
+patcher, infos = analyze_patch(patch_path, **analysis_options)
+
+output_patch, manifest, infos = convert_patch(
+    patch_path,
+    output_dir,
+    faust2max6="faust2max6",
+    force=False,
+    **analysis_options,
+)
+```
+
+`analyze_patch` returns the mutable py2max `Patcher` and a `FaustgenInfo` for
+each object without writing files. `convert_patch` performs the analysis,
+compilation, rewrite, and manifest generation. It raises `ConversionError` for
+conversion failures. A custom `compile_runner(command, cwd)` may be injected by
+tests or embedding applications.
+
+## Existing outputs, paths, and exit status
+
+Existing generated products are protected by default. `--force` allows their
+replacement. It does not modify the input patch or remove unrelated files from
+the output directory.
+
+Input and output paths may contain spaces. To accommodate the internal shell
+handling in `faust2max6`, compilation takes place in a temporary directory with
+short symlinks to the original Faust include directories, after which the
+finished bundles are copied to the requested output directory.
+
+Exit status is `0` on success, `1` when analysis finds an input patch with no
+faustgen object, and `2` for invalid arguments, missing sources, existing
+outputs, compilation failures, or file errors.
+
+Run the built-in help for the complete option summary:
+
+```bash
+python3 architecture/max-msp/faustgen2max.py --help
+```
