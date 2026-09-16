@@ -5710,12 +5710,18 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                             P.internal.erase(hd.first);
                         }
                     }
-                    if (P.contributors.size() >= 2) {
-                        // two contributor blocks at least (LES-SOMMES-DISTRIBUEES 3.f) : with
-                        // one, nothing is distributed -- the contributor writes the accumulator
-                        // instead of its own buffer, same traffic, and the consumer's
-                        // read-modify-write is pure loss (V15 : construction x3, pluckedString
-                        // x3, fourSourcesToOcto x2.5, all one-contributor sums)
+                    // a distribution pays only if it frees more chunk buffers than it writes
+                    // accumulators : each contributor block writes the accumulator once per
+                    // sample, each freed member (buffer removed, or history made block-local)
+                    // saves one buffer write and the consumer's read of it. A sum that frees
+                    // nothing (its operands' members are still read elsewhere) or one member
+                    // per contributor block only moves the traffic and adds the consumer's
+                    // read-modify-write : V15 at equal form, harpe x1.22, simpleFX x1.35,
+                    // AdditiveSynth x1.35 (nothing or one per sum) against djembeMIDI and drums
+                    // x0.67-0.73 on the five judges (one contributor block, ten histories made
+                    // local). Replaces the two-contributor rule of 3.f, which also refused those.
+                    if (!P.contributors.empty() &&
+                        P.removable.size() + P.internal.size() >= P.contributors.size() + 1) {
                         // v1 : the accumulator is the consumer member's own buffer, so the
                         // member's definition must be the sum itself, or the sum under a
                         // scalar factor (a constant or a slow value : englishBell's 0.02)
@@ -5735,7 +5741,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                         }
                         plans.push_back(P);
                     } else if (!P.contributors.empty()) {
-                        plans.push_back(P);  // traced, never distributed
+                        plans.push_back(P);  // traced, never distributed (frees too little)
                     }
                     // the operands' own cones may hold sums of their own
                     for (const auto& so : SV) {
@@ -5771,7 +5777,9 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             fprintf(stderr, "ls-acc : sum of %zu operands in block %d : %zu contributor blocks {%s }, rest %zu, buffers removable %zu, histories made local %zu%s\n",
                     nops, P.consumer, P.contributors.size(), os.str().c_str(), P.rest.size(), P.removable.size(), P.internal.size(),
                     P.eligible ? (P.factor ? ", eligible (factor)" : ", eligible")
-                               : (P.contributors.size() < 2 ? ", not distributed (one contributor block, 3.f)" : ", not eligible in v1 (sum below the member's root)"));
+                               : (P.removable.size() + P.internal.size() < P.contributors.size() + 1
+                                      ? ", not distributed (frees fewer buffers than it writes accumulators)"
+                                      : ", not eligible in v1 (sum below the member's root)"));
             loopsTotal += (int)P.contributors.size();
             buffersTotal += (int)P.removable.size();
             localTotal += (int)P.internal.size();
