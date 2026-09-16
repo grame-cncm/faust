@@ -5532,12 +5532,23 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         std::vector<AccPlan>&      plans = fAccPlans;
         std::set<Tree, treeorder>  sumsSeen;
         int                        sumsTotal = 0;
-        // the external readers of every member (blocks other than its own)
+        // the external readers of every member (blocks other than its own), counted
+        // as the buffers count them (storeClasses) : a read of a tap alias is a read
+        // of its host, and an alias member reads its host. Counting only the direct
+        // refs took a host read through an alias from another loop for a member
+        // read by the sum alone : its history went block-local and the other loop
+        // read "<regstate>[i]" (crossDelay2 under the greedy fusion, V15 binary too)
         std::vector<std::set<int>> extReaders(n);
-        for (int i = 0; i < n; i++) {
-            for (int j : fSN.refs(i)) {
-                if (fSN.blockOf(i) != fSN.blockOf(j)) {
-                    extReaders[j].insert(i);
+        {
+            auto host = [&](int ix) { return (fAliasIx[ix] >= 0) ? fAliasIx[ix] : ix; };
+            for (int i = 0; i < n; i++) {
+                for (int j : fSN.refs(i)) {
+                    if (fSN.blockOf(i) != fSN.blockOf(host(j))) {
+                        extReaders[host(j)].insert(i);
+                    }
+                }
+                if (fAliasIx[i] >= 0 && fSN.blockOf(i) != fSN.blockOf(fAliasIx[i])) {
+                    extReaders[fAliasIx[i]].insert(i);
                 }
             }
         }
@@ -5554,6 +5565,25 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                 if (!seen.insert(t).second) {
                     return;
                 }
+                // a member first, whatever its node : a materialized delay line (a variable
+                // delay on an input, crossDelay2's Delay(IN[1], ...)) is a member of its own
+                // block. Testing the delay first took it for a delayed read of its input,
+                // bound nothing, and moved the operand into a loop that then read the
+                // line's buffer -- a register state there : "<regstate>[i]" (greedy fusion)
+                {
+                    int ix = fSN.indexOf(t);
+                    if (ix >= 0) {
+                        // an aliased tap is a delayed read of its host : it binds nothing
+                        // (attributing it to the alias's block moved a self-history read of
+                        // a register state into another loop : phaser_flanger)
+                        if (fAliasIx[ix] < 0) {
+                            mem.insert(ix);
+                        } else if (dreads) {
+                            dreads->push_back({fAliasIx[ix], fAliasD[ix]});
+                        }
+                        return;
+                    }
+                }
                 Tree x, y;
                 if (isSigDelay(t, x, y)) {
                     int hx = fSN.indexOf(x);
@@ -5565,18 +5595,6 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                         dreads->push_back({host, dmin + ((fAliasIx[hx] >= 0) ? fAliasD[hx] : 0)});
                     }
                     walk(y);
-                    return;
-                }
-                int ix = fSN.indexOf(t);
-                if (ix >= 0) {
-                    // an aliased tap is a delayed read of its host : it binds nothing
-                    // (attributing it to the alias's block moved a self-history read of
-                    // a register state into another loop : phaser_flanger)
-                    if (fAliasIx[ix] < 0) {
-                        mem.insert(ix);
-                    } else if (dreads) {
-                        dreads->push_back({fAliasIx[ix], fAliasD[ix]});
-                    }
                     return;
                 }
                 for (int k = 0; k < t->arity(); k++) {
