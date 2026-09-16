@@ -5668,6 +5668,28 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                             }
                         } else {
                             P.rest.push_back(so);  // no member, own block, or members of several blocks
+                            // a member the rest reads (any delay) stays read from the consumer's loop
+                            for (int j : mem) {
+                                P.removable.erase(j);
+                                P.internal.erase(j);
+                            }
+                            for (const auto& hd : dreads) {
+                                P.removable.erase(hd.first);
+                                P.internal.erase(hd.first);
+                            }
+                        }
+                    }
+                    for (const auto& so : P.rest) {  // (the rest may have been pushed before the member was marked)
+                        std::set<int>                    mem2;
+                        std::vector<std::pair<int, int>> dr2;
+                        instantMembers(so.first, mem2, &dr2);
+                        for (int j : mem2) {
+                            P.removable.erase(j);
+                            P.internal.erase(j);
+                        }
+                        for (const auto& hd : dr2) {
+                            P.removable.erase(hd.first);
+                            P.internal.erase(hd.first);
                         }
                     }
                     if (!P.contributors.empty()) {
@@ -5778,10 +5800,32 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         // a read at a variable delay -- or one of its readers sits in
         // another block. Reusing them keeps the price the oracle paid and
         // the code the emitter writes in step.
+        // -ls-acc, step 3 : a member whose only outside reader is the sum it now
+        // feeds from inside its own loop (its operand moved into its block) is no
+        // longer read from outside -- the reader below is that sum's member
+        std::map<int, int> accOnlyReader;  // member -> the sum member that was its only outside reader
+        if (gGlobal->gLSAcc) {
+            const char* only = getenv("FAUST_LS_ACC_ONLY");  // PROBE, see the emission
+            for (const AccPlan& P : fAccPlans) {
+                if (!P.eligible || fAliasIx[P.member] >= 0 || (only != nullptr && atoi(only) != P.member)) {
+                    continue;
+                }
+                for (int j : P.removable) {
+                    accOnlyReader[j] = P.member;
+                }
+                for (int j : P.internal) {
+                    accOnlyReader[j] = P.member;
+                }
+            }
+        }
         for (int m = 0; m < n; m++) {
             varRead[m] = fStoreForced[m];
             for (int r : fReadersOf[m]) {
                 if (fSN.blockOf(r) != fSN.blockOf(m)) {
+                    auto ar = accOnlyReader.find(m);
+                    if (ar != accOnlyReader.end() && ar->second == r) {
+                        continue;  // read only through its own loop's accumulation now
+                    }
                     extRead[m] = true;
                 }
             }
