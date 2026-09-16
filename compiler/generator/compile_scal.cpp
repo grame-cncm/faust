@@ -5692,7 +5692,12 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                             P.internal.erase(hd.first);
                         }
                     }
-                    if (!P.contributors.empty()) {
+                    if (P.contributors.size() >= 2) {
+                        // two contributor blocks at least (LES-SOMMES-DISTRIBUEES 3.f) : with
+                        // one, nothing is distributed -- the contributor writes the accumulator
+                        // instead of its own buffer, same traffic, and the consumer's
+                        // read-modify-write is pure loss (V15 : construction x3, pluckedString
+                        // x3, fourSourcesToOcto x2.5, all one-contributor sums)
                         // v1 : the accumulator is the consumer member's own buffer, so the
                         // member's definition must be the sum itself, or the sum under a
                         // scalar factor (a constant or a slow value : englishBell's 0.02)
@@ -5711,6 +5716,8 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                             }
                         }
                         plans.push_back(P);
+                    } else if (!P.contributors.empty()) {
+                        plans.push_back(P);  // traced, never distributed
                     }
                     // the operands' own cones may hold sums of their own
                     for (const auto& so : SV) {
@@ -5745,7 +5752,8 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             }
             fprintf(stderr, "ls-acc : sum of %zu operands in block %d : %zu contributor blocks {%s }, rest %zu, buffers removable %zu, histories made local %zu%s\n",
                     nops, P.consumer, P.contributors.size(), os.str().c_str(), P.rest.size(), P.removable.size(), P.internal.size(),
-                    P.eligible ? (P.factor ? ", eligible (factor)" : ", eligible") : ", not eligible in v1 (sum below the member's root)");
+                    P.eligible ? (P.factor ? ", eligible (factor)" : ", eligible")
+                               : (P.contributors.size() < 2 ? ", not distributed (one contributor block, 3.f)" : ", not eligible in v1 (sum below the member's root)"));
             loopsTotal += (int)P.contributors.size();
             buffersTotal += (int)P.removable.size();
             localTotal += (int)P.internal.size();
