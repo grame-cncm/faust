@@ -1,25 +1,9 @@
-/************************************************************************
- ************************************************************************
-    FAUST compiler
-    Copyright (C) 2021 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.
+/*                                                                             *
+*   SPDX-FileCopyrightText: 2026 GRAME, Centre National de Creation Musicale   *
+*   SPDX-License-Identifier: LGPL-2.1-or-later                                 *
+*                                                                             */
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- ************************************************************************
- ************************************************************************/
-
-/** @file compiler/generator/mojo/_mojo_utils.hh **/
+/** @file compiler/generator/mojo/__mojo_utils.hh **/
 
 #ifndef _MOJO_UTILS_HH
 #define _MOJO_UTILS_HH
@@ -28,12 +12,11 @@
 #include "global.hh"
 
 // mojo
-#include "_mojo_hal.hh"
-#include "_mojo_macro.hh"
+#include "__mojo_hal.hh"
+#include "__mojo_macro.hh"
 
 inline namespace mojo {
 
-////////////////////////////////////////////////////////////////
 // Namespaced type aliases for syntactic sugar
 
 using String = std::string;
@@ -44,7 +27,6 @@ template<typename... Ts> using Res = std::tuple<Ts...>;
 template<typename T> using Arr = std::vector<T>;
 
 
-////////////////////////////////////////////////////////////////
 // Writing helpers for `MojoVisitor`s and `MojoCodeContainer`s 
 
 inline constexpr ssize TAB_SIZE = 4;
@@ -88,7 +70,6 @@ inline String wmultilit(String&& s)
 }
 
 
-////////////////////////////////////////////////////////////////
 // String manip helpers for `Visitor`s and `CodeContainer`s
  
 inline String toStringTrim(f64 x)
@@ -99,15 +80,20 @@ inline String toStringTrim(f64 x)
     return res;
 }
 
-inline b32 isWhole(double n) { return n == trunc(n); }
+static b32 mj__is_whole(double n) { return n == trunc(n); }
 
 /**
+    Returns a string representation of `x` truncating the fractional part.
+    @arg
+    - `x`: a real number [f64]
     @req
     - `x` is finite and has null fractional part.
+    @ret
+    - A string representation of `x`
 **/
 inline String toStringTruncNullFraction(f64 x)
 {
-    faustassert(isWhole(x));
+    mj_panic(mj__is_whole(x), "Expected a whole number");
     auto res = std::to_string(x);
     res.erase(res.find_first_of('.'), String::npos);
     return res;

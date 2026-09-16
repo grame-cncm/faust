@@ -1,23 +1,7 @@
-/************************************************************************
- ************************************************************************
-    FAUST compiler
-    Copyright (C) 2021 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- ************************************************************************
- ************************************************************************/
+/*                                                                             *
+*   SPDX-FileCopyrightText: 2026 GRAME, Centre National de Creation Musicale   *
+*   SPDX-License-Identifier: LGPL-2.1-or-later                                 *
+*                                                                             */
 
 /** @file compiler/generator/mojo/mojo_instructions.hh */
 
@@ -29,7 +13,7 @@
 #include "text_instructions.hh"
 
 // mojo
-#include "_mojo_utils.hh"
+#include "__mojo_utils.hh"
 
 inline namespace mojo {
 
@@ -225,6 +209,53 @@ public:
     void visit(DoubleArrayNumInst* inst) override;
 
     static void gZeroInitializer(OStream* out, Typed* typed);
+};
+
+// GPU visitor aliases
+using Work  = std::unordered_map<String, Typed*>;
+using Views = std::unordered_map<String, LoadVarAddressInst*>;
+using Loops = std::unordered_map<String, String>;
+
+/**
+    A `MojoGpuInstVisitor` emits scalar FIR instructions inside GPU tasks.
+    @desc
+    - Uses device pointers for DSP fields and shared work variables.
+    - Preserves scalar loop order, including recursive state updates.
+    - Keeps task-local temporaries local to the executing GPU thread.
+    - Rejects foreign calls that require an unspecified device implementation.
+    @rep
+    - fWork: declarations stored in the preallocated device work buffer.
+    - fViews: local pointers reconstructed from inline device arrays.
+    - fLoops: active loop-index names, unique within the emitted task.
+    - fLoopId: suffix used to distinguish sequential FIR loop bindings.
+    @note
+    - Input and output channel pointers are supplied by the container.
+**/
+class MojoGpuInstVisitor : public MojoInstVisitor
+{
+
+    // NOTE:(Ari) put the fucking state here not on at the end of the scope
+    Work const&   fWork;
+    Views const&  fViews;
+    Loops         fLoops;
+    s32           fLoopId = 0;
+
+public:
+    using MojoInstVisitor::visit;
+
+    MojoGpuInstVisitor(
+        OStream* out, String const& name, Work const& work, Views const& views, s32 tab = 0
+    );
+
+    void visit(NamedAddress* inst)   override;
+    void visit(DeclareVarInst* inst) override;
+    void visit(IndexedAddress* inst) override;
+    void visit(FloatNumInst* inst)   override;
+    void visit(DoubleNumInst* inst)  override;
+    void visit(ForLoopInst* inst)    override;
+    void visit(FunCallInst* inst)    override;
+
+    static bool isChannel(String const& name);
 };
 
 }       // namespace mojo

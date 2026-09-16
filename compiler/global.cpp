@@ -443,6 +443,7 @@ void global::reset()
     gSchedulerSwitch = false;
     gOpenCLSwitch    = false;
     gCUDASwitch      = false;
+    gGPUSwitch       = false;
     gGroupTaskSwitch = false;
     gFunTaskSwitch   = false;
 
@@ -939,6 +940,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gOpenMPSwitch) {
         dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
+    }
+    if (gGPUSwitch) {
+        dst << "-gpu ";
     }
     dst << "-mcd " << gMaxCopyDelay << " ";
     dst << "-mdd " << gMaxDenseDelay << " ";
@@ -1526,6 +1530,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gCUDASwitch = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-gpu", "--gpu")) {
+            gGPUSwitch = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-g", "--groupTasks")) {
             gGroupTaskSwitch = true;
             i += 1;
@@ -1933,7 +1941,7 @@ bool global::processCmdline(int argc, const char* argv[])
     // Adjust related options
     // ========================
 
-    if (gOpenMPSwitch || gSchedulerSwitch) {
+    if (gOpenMPSwitch || gSchedulerSwitch || gGPUSwitch) {
         gVectorSwitch = true;
     }
 
@@ -1959,6 +1967,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
     if (gInPlace && gVectorSwitch) {
         throw faustexception("ERROR : '-inpl' option can only be used in scalar mode\n");
+    }
+
+    if (gGPUSwitch && gOutputLang != "mojo") {
+        throw faustexception("ERROR : '-gpu' option can only be used with 'mojo' backend\n");
     }
 
 #if 0
@@ -2753,6 +2765,10 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-ocl        --opencl                    generate tasks with OpenCL (experimental)."
+         << endl;
+    sstr << tab
+         << "-gpu        --gpu                       generate Mojo GPU tasks, activates "
+            "--vectorize option."
          << endl;
     sstr << tab
          << "-cuda       --cuda                      generate tasks with CUDA (experimental)."

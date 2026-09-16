@@ -275,6 +275,7 @@ struct global {
     bool gSchedulerSwitch;    // -sch option
     bool gOpenCLSwitch;       // -ocl option
     bool gCUDASwitch;         // -cuda option
+    bool gGPUSwitch;          // -gpu option    HACK:(manu) Mojo backend experimental feature
     bool gGroupTaskSwitch;    // -g option
     bool gFunTaskSwitch;      // -fun option
     int  gMaxCopyDelay;       // -mcd threshold

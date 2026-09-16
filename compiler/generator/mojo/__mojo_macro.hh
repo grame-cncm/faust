@@ -1,30 +1,14 @@
-/************************************************************************
- ************************************************************************
-    FAUST compiler
-    Copyright (C) 2021 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.
+/*                                                                             *
+*   SPDX-FileCopyrightText: 2026 GRAME, Centre National de Creation Musicale   *
+*   SPDX-License-Identifier: LGPL-2.1-or-later                                 *
+*                                                                             */
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- ************************************************************************
- ************************************************************************/
-
-/** @file compiler/generator/mojo/_mojo_macro.hh **/
+/** @file compiler/generator/mojo/__mojo_macro.hh **/
 
 #ifndef _MOJO_MACRO_HH
 #define _MOJO_MACRO_HH
 
-#include "_mojo_hal.hh"
+#include "__mojo_hal.hh"
 
 #define mj_debug_msg(out, ...) out << "\n======== DEBUG -- " << __VA_ARGS__ << " =========\n"
 #define mj_error_msg(out, ...) out << "\n======== ERROR -- " << __VA_ARGS__ << " =========\n"

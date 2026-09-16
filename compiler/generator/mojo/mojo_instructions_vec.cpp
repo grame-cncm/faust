@@ -1,25 +1,9 @@
-/************************************************************************
- ************************************************************************
-    FAUST compiler
-    Copyright (C) 2021 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.
+/*                                                                             *
+*   SPDX-FileCopyrightText: 2026 GRAME, Centre National de Creation Musicale   *
+*   SPDX-License-Identifier: LGPL-2.1-or-later                                 *
+*                                                                             */
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- ************************************************************************
- ************************************************************************/
-
-/** @file compiler/generator/mojo/mojo_vec_instructions.cpp **/
+/** @file compiler/generator/mojo/mojo_instructions_vec.cpp **/
 
 // mojo
 #include "mojo_instructions.hh"
@@ -34,41 +18,32 @@ using MojoDType   = VecVisitor::MojoDType;
 
 MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, String const& structName, s32 tab)
     : BaseVisitor(out, structName, tab)
-{
-    resetLoopContext();
-}
+{   resetLoopContext();   }
 
 MojoVecInstVisitor::~MojoVecInstVisitor()
-{
-}
+{}
 
 void VecVisitor::visit(IfInst* inst)
-{
-    /* do not generate remaining frames */
-}
+{   /* do not generate remaining frames */   }
 
 void VecVisitor::visit(Int32NumInst* inst)
 {
-    mj_simd_emit_check();
-    *fOut << (gSIMDHalf ? "S32Hec(" : "S32Vec(") << inst->fNum << ")";
+    mj_simd_emit_check(); *fOut << (gSIMDHalf ? "S32Hec(" : "S32Vec(") << inst->fNum << ")";
 }
 
 void VecVisitor::visit(BoolNumInst* inst)
 {
-    mj_simd_emit_check();
-    *fOut << (gSIMDHalf ? "S32Hec(" : "S32Vec(") << checkFloat(inst->fNum) << ")";
+    mj_simd_emit_check(); *fOut << (gSIMDHalf ? "S32Hec(" : "S32Vec(") << checkFloat(inst->fNum) << ")";
 }
 
 void VecVisitor::visit(FloatNumInst* inst)
 {
-    mj_simd_emit_check();
-    *fOut << (gSIMDHalf ? "F32Hec(" : "F32Vec(") << checkFloat(inst->fNum) << ")";
+    mj_simd_emit_check(); *fOut << (gSIMDHalf ? "F32Hec(" : "F32Vec(") << checkFloat(inst->fNum) << ")";
 }
 
 void VecVisitor::visit(DoubleNumInst* inst)
 {
-    mj_simd_emit_check();
-    *fOut << "F64Vec(" << checkDouble(inst->fNum) << ")";
+    mj_simd_emit_check(); *fOut << "F64Vec(" << checkDouble(inst->fNum) << ")";
 }
 
 void VecVisitor::visit(DeclareVarInst* inst)
