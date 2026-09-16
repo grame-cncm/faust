@@ -357,6 +357,7 @@ struct global {
     int  gLSLatency;       // -ls-latency option: frames the core overlaps in a register-resident loop (0: the fusion cost prices one isolated iteration)
     bool gLSRegClasses;    // -ls-regs3 option: the fusion cost counts three classes of registers (states, constants, temporaries) with their own spill prices
     bool gLSRegState;      // -ls-regstate option: a member read only inside its block keeps no chunk buffer, its history crosses the chunks in scalars
+    bool gLSAcc;           // -ls-acc option: a sum whose operands come from several loops is accumulated in place by those loops (LES-SOMMES-DISTRIBUEES)
                            // oracle (default 20 cycles)
     int  gLSSpillW;        // -ls-spill option: cycles charged per register-cycle above R in the
                            // oracle (the spill proxy, default 4)
