@@ -5507,6 +5507,166 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     }
     int                      n   = (int)mat.size();
 
+    // 2d. the distributed sums (LES-SOMMES-DISTRIBUEES, step 1 : detection
+    // and trace only, the emission does not change). A real n-ary sum whose
+    // operands are computed in other blocks could be accumulated IN PLACE by
+    // those blocks (acc[i] = p1 ; acc[i] += p2 ; ...) instead of read back
+    // from one buffer per operand : the join loop and the operand buffers
+    // disappear, the sum becomes an edge of the loop graph. Here : which sums,
+    // how many contributor blocks, how many buffers would go.
+    if (lsTrace) {
+        struct AccPlan {
+            Tree               sum;
+            int                consumer;
+            std::map<int, int> contributors;  // block -> operands attributed
+            int                rest;
+            std::set<int>      removable;     // members read only for the sum, no delay : their buffer goes
+            std::set<int>      internal;      // members read only for the sum, with delay : their history stays in the block
+        };
+        std::vector<AccPlan>       plans;
+        std::set<Tree, treeorder>  sumsSeen;
+        int                        sumsTotal = 0;
+        // the external readers of every member (blocks other than its own)
+        std::vector<std::set<int>> extReaders(n);
+        for (int i = 0; i < n; i++) {
+            for (int j : fSN.refs(i)) {
+                if (fSN.blockOf(i) != fSN.blockOf(j)) {
+                    extReaders[j].insert(i);
+                }
+            }
+        }
+        // the members an operand reads INSTANTANEOUSLY (a delayed read goes
+        // through a history buffer that exists anyway and binds nothing)
+        auto instantMembers = [&](Tree o, std::set<int>& mem) {
+            std::set<Tree>            seen;
+            std::function<void(Tree)> walk = [&](Tree t) {
+                if (!seen.insert(t).second) {
+                    return;
+                }
+                int ix = fSN.indexOf(t);
+                if (ix >= 0) {
+                    mem.insert(ix);
+                    return;
+                }
+                Tree x, y;
+                if (isSigDelay(t, x, y)) {
+                    walk(y);  // the delay amount only : x is read with delay
+                    return;
+                }
+                for (int k = 0; k < t->arity(); k++) {
+                    walk(t->branch(k));
+                }
+            };
+            walk(o);
+        };
+        // a SUM here is a maximal tree of real additions and subtractions
+        // (after -lsum the n-ary rows are lowered to combs of binary adds ;
+        // without it the source's own association), or a kept n-ary row.
+        // Its operands are the leaves of that tree.
+        auto isAddSub = [](Tree t, Tree& x, Tree& y) -> bool {
+            int op;
+            return isSigBinOp(t, &op, x, y) && (op == kAdd || op == kSub) &&
+                   getCertifiedSigType(t)->nature() == kReal;
+        };
+        auto flattenSum = [&](Tree root, tvec& ops) {
+            std::function<void(Tree)> fl = [&](Tree t) {
+                Tree x, y;
+                if (fSN.indexOf(t) < 0 && t != root && isAddSub(t, x, y)) {
+                    fl(x);
+                    fl(y);
+                    return;
+                }
+                if (t == root) {
+                    isAddSub(t, x, y);
+                    fl(x);
+                    fl(y);
+                    return;
+                }
+                ops.push_back(t);
+            };
+            fl(root);
+        };
+        for (int m = 0; m < n; m++) {
+            if (fSN.isExcluded(mat[m])) {
+                continue;
+            }
+            const int                 cb = fSN.blockOf(m);
+            std::set<Tree>            seen;
+            std::function<void(Tree)> find = [&](Tree t) {
+                if (!seen.insert(t).second) {
+                    return;
+                }
+                tvec V;
+                Tree x, y;
+                bool isRow = isSigSum(t, V) && getCertifiedSigType(t)->nature() == kReal;
+                bool rowop = isRow && fRowOp && fMatrix.rowOf.count(t) > 0;
+                if (!isRow && isAddSub(t, x, y)) {
+                    flattenSum(t, V);
+                }
+                if (!rowop && V.size() >= 2 && sumsSeen.insert(t).second) {
+                    sumsTotal++;
+                    AccPlan P{t, cb, {}, 0, {}};
+                    for (Tree o : V) {
+                        std::set<int> mem;
+                        instantMembers(o, mem);
+                        std::set<int> blocks;
+                        for (int j : mem) {
+                            blocks.insert(fSN.blockOf(j));
+                        }
+                        if (blocks.size() == 1 && *blocks.begin() != cb) {
+                            P.contributors[*blocks.begin()]++;
+                            for (int j : mem) {
+                                // a member whose only outside reader is the sum's own member leaves the
+                                // loop graph : its buffer goes (no delay), or its history becomes block-local
+                                if (extReaders[j].size() == 1 && *extReaders[j].begin() == m) {
+                                    (fSN.maxDelayOf(mat[j]) == 0 ? P.removable : P.internal).insert(j);
+                                }
+                            }
+                        } else {
+                            P.rest++;  // no member, own block, or members of several blocks
+                        }
+                    }
+                    if (!P.contributors.empty()) {
+                        plans.push_back(P);
+                    }
+                    // the operands' own cones may hold sums of their own
+                    for (Tree o : V) {
+                        if (fSN.indexOf(o) < 0) {
+                            find(o);
+                        }
+                    }
+                    return;
+                }
+                for (int k = 0; k < t->arity(); k++) {
+                    Tree br = t->branch(k);
+                    if (fSN.indexOf(br) >= 0) {
+                        continue;  // another member's territory
+                    }
+                    find(br);
+                }
+            };
+            find(SuperNodeGraph::defOf(mat[m]));
+        }
+        int loopsTotal = 0, buffersTotal = 0, localTotal = 0;
+        for (const AccPlan& P : plans) {
+            tvec V;
+            if (!isSigSum(P.sum, V)) {
+                flattenSum(P.sum, V);
+            }
+            std::ostringstream os;
+            for (const auto& kv : P.contributors) {
+                os << " b" << kv.first << ":" << kv.second;
+            }
+            fprintf(stderr, "ls-acc : sum of %zu operands in block %d : %zu contributor blocks {%s }, rest %d, buffers removable %zu, histories made local %zu\n",
+                    V.size(), P.consumer, P.contributors.size(), os.str().c_str(), P.rest, P.removable.size(), P.internal.size());
+            loopsTotal += (int)P.contributors.size();
+            buffersTotal += (int)P.removable.size();
+            localTotal += (int)P.internal.size();
+        }
+        fprintf(stderr, "ls-acc summary : blocks %d, real sums %d, distributable %zu, contributor blocks %d, buffers removable %d, histories made local %d\n",
+                fSN.blockCount(), sumsTotal, plans.size(), loopsTotal, buffersTotal, localTotal);
+    }
+
     // 3. buffers. Three flavors, by maxDelay m:
     //    m == 0                 chunk-local vector, no state
     //    0 < m <= gMaxCopyDelay class member of m+vecSize samples, the last m
