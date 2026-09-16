@@ -2551,6 +2551,19 @@ class LoopSplitEmitter {
     // exists. Variable delays that may be 0 keep the buffer access with a
     // dependency on the store (the runtime delay may be positive).
     std::map<int, Operand> fRootOf;  // materialized index -> its body root
+    // LES-SOMMES-DISTRIBUEES : a sum whose operands are computed in other blocks,
+    // accumulated in place by those blocks into the consumer member's buffer
+    struct AccPlan {
+        Tree                             sum      = nullptr;
+        int                              consumer = -1;  // the consumer's block
+        int                              member   = -1;  // the member whose definition is the sum (or factor * sum)
+        Tree                             factor   = nullptr;
+        bool                             eligible = false;
+        std::map<int, std::vector<std::pair<Tree, int>>> contributors;  // block -> its signed operands (+1/-1), in the sum's order
+        std::vector<std::pair<Tree, int>>                rest;
+        std::set<int>                    removable, internal;
+    };
+    std::vector<AccPlan> fAccPlans;
 
     // per-loop streams : read keys (buffer, delay/16 -- delays within one
     // cache line form ONE stream for the prefetcher ; -1 : variable
@@ -5514,16 +5527,9 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // from one buffer per operand : the join loop and the operand buffers
     // disappear, the sum becomes an edge of the loop graph. Here : which sums,
     // how many contributor blocks, how many buffers would go.
-    if (lsTrace) {
-        struct AccPlan {
-            Tree               sum;
-            int                consumer;
-            std::map<int, int> contributors;  // block -> operands attributed
-            int                rest;
-            std::set<int>      removable;     // members read only for the sum, no delay : their buffer goes
-            std::set<int>      internal;      // members read only for the sum, with delay : their history stays in the block
-        };
-        std::vector<AccPlan>       plans;
+    fAccPlans.clear();
+    if (lsTrace || gGlobal->gLSAcc) {
+        std::vector<AccPlan>&      plans = fAccPlans;
         std::set<Tree, treeorder>  sumsSeen;
         int                        sumsTotal = 0;
         // the external readers of every member (blocks other than its own)
@@ -5537,20 +5543,40 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         }
         // the members an operand reads INSTANTANEOUSLY (a delayed read goes
         // through a history buffer that exists anyway and binds nothing)
-        auto instantMembers = [&](Tree o, std::set<int>& mem) {
+        // the members an operand reads instantaneously (mem) and with delay (dreads :
+        // host, minimal delay). A delayed read binds the operand to no block, but it
+        // is only FRESH in a block emitted after its host's, or at a delay of a whole
+        // chunk (the reads of previous chunks) : FXChaine2's feedback matrix, moved
+        // into an earlier loop, read the lines' outputs a chunk late and died.
+        auto instantMembers = [&](Tree o, std::set<int>& mem, std::vector<std::pair<int, int>>* dreads) {
             std::set<Tree>            seen;
             std::function<void(Tree)> walk = [&](Tree t) {
                 if (!seen.insert(t).second) {
                     return;
                 }
-                int ix = fSN.indexOf(t);
-                if (ix >= 0) {
-                    mem.insert(ix);
-                    return;
-                }
                 Tree x, y;
                 if (isSigDelay(t, x, y)) {
-                    walk(y);  // the delay amount only : x is read with delay
+                    int hx = fSN.indexOf(x);
+                    if (dreads && hx >= 0) {
+                        int  dmin = 0, dmax = 0;
+                        bool dvar = false;
+                        delayBounds(y, dmin, dmax, dvar);
+                        int host = (fAliasIx[hx] >= 0) ? fAliasIx[hx] : hx;
+                        dreads->push_back({host, dmin + ((fAliasIx[hx] >= 0) ? fAliasD[hx] : 0)});
+                    }
+                    walk(y);
+                    return;
+                }
+                int ix = fSN.indexOf(t);
+                if (ix >= 0) {
+                    // an aliased tap is a delayed read of its host : it binds nothing
+                    // (attributing it to the alias's block moved a self-history read of
+                    // a register state into another loop : phaser_flanger)
+                    if (fAliasIx[ix] < 0) {
+                        mem.insert(ix);
+                    } else if (dreads) {
+                        dreads->push_back({fAliasIx[ix], fAliasD[ix]});
+                    }
                     return;
                 }
                 for (int k = 0; k < t->arity(); k++) {
@@ -5568,23 +5594,19 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             return isSigBinOp(t, &op, x, y) && (op == kAdd || op == kSub) &&
                    getCertifiedSigType(t)->nature() == kReal;
         };
-        auto flattenSum = [&](Tree root, tvec& ops) {
-            std::function<void(Tree)> fl = [&](Tree t) {
+        auto flattenSum = [&](Tree root, std::vector<std::pair<Tree, int>>& ops) {
+            std::function<void(Tree, int)> fl = [&](Tree t, int sign) {
                 Tree x, y;
-                if (fSN.indexOf(t) < 0 && t != root && isAddSub(t, x, y)) {
-                    fl(x);
-                    fl(y);
+                int  op;
+                if ((t == root || fSN.indexOf(t) < 0) && isAddSub(t, x, y)) {
+                    isSigBinOp(t, &op, x, y);
+                    fl(x, sign);
+                    fl(y, (op == kSub) ? -sign : sign);
                     return;
                 }
-                if (t == root) {
-                    isAddSub(t, x, y);
-                    fl(x);
-                    fl(y);
-                    return;
-                }
-                ops.push_back(t);
+                ops.push_back({t, sign});
             };
-            fl(root);
+            fl(root, +1);
         };
         for (int m = 0; m < n; m++) {
             if (fSN.isExcluded(mat[m])) {
@@ -5596,25 +5618,47 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                 if (!seen.insert(t).second) {
                     return;
                 }
-                tvec V;
-                Tree x, y;
+                tvec                              V;
+                std::vector<std::pair<Tree, int>> SV;  // the signed operands
+                Tree                              x, y;
                 bool isRow = isSigSum(t, V) && getCertifiedSigType(t)->nature() == kReal;
                 bool rowop = isRow && fRowOp && fMatrix.rowOf.count(t) > 0;
-                if (!isRow && isAddSub(t, x, y)) {
-                    flattenSum(t, V);
-                }
-                if (!rowop && V.size() >= 2 && sumsSeen.insert(t).second) {
-                    sumsTotal++;
-                    AccPlan P{t, cb, {}, 0, {}};
+                if (isRow) {
                     for (Tree o : V) {
-                        std::set<int> mem;
-                        instantMembers(o, mem);
+                        SV.push_back({o, +1});
+                    }
+                } else if (isAddSub(t, x, y)) {
+                    flattenSum(t, SV);
+                }
+                if (!rowop && SV.size() >= 2 && sumsSeen.insert(t).second) {
+                    sumsTotal++;
+                    AccPlan P;
+                    P.sum      = t;
+                    P.consumer = cb;
+                    P.member   = m;
+                    for (const auto& so : SV) {
+                        Tree                             o = so.first;
+                        std::set<int>                    mem;
+                        std::vector<std::pair<int, int>> dreads;
+                        instantMembers(o, mem, &dreads);
                         std::set<int> blocks;
                         for (int j : mem) {
                             blocks.insert(fSN.blockOf(j));
                         }
-                        if (blocks.size() == 1 && *blocks.begin() != cb) {
-                            P.contributors[*blocks.begin()]++;
+                        // an operand moves to a contributor block only if every delayed read it
+                        // holds is fresh there : the host's block is emitted before (or is) that
+                        // block, or the delay spans a whole chunk. This also keeps a register
+                        // state's history (readable only inside its loop) in its loop.
+                        bool fresh = true;
+                        if (blocks.size() == 1) {
+                            for (const auto& hd : dreads) {
+                                if (fSN.blockOf(hd.first) > *blocks.begin() && hd.second < gGlobal->gVecSize) {
+                                    fresh = false;
+                                }
+                            }
+                        }
+                        if (blocks.size() == 1 && *blocks.begin() != cb && fresh) {
+                            P.contributors[*blocks.begin()].push_back(so);
                             for (int j : mem) {
                                 // a member whose only outside reader is the sum's own member leaves the
                                 // loop graph : its buffer goes (no delay), or its history becomes block-local
@@ -5623,16 +5667,33 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                                 }
                             }
                         } else {
-                            P.rest++;  // no member, own block, or members of several blocks
+                            P.rest.push_back(so);  // no member, own block, or members of several blocks
                         }
                     }
                     if (!P.contributors.empty()) {
+                        // v1 : the accumulator is the consumer member's own buffer, so the
+                        // member's definition must be the sum itself, or the sum under a
+                        // scalar factor (a constant or a slow value : englishBell's 0.02)
+                        Tree d = SuperNodeGraph::defOf(mat[m]);
+                        Tree a, b2;
+                        if (d == t) {
+                            P.eligible = true;
+                        } else if (isSigMul(d, a, b2) && (a == t || b2 == t)) {
+                            Tree                             c = (a == t) ? b2 : a;
+                            std::set<int>                    cm;
+                            std::vector<std::pair<int, int>> cd;
+                            instantMembers(c, cm, &cd);
+                            if (cm.empty() && cd.empty()) {  // a constant or a slow value : no member at all
+                                P.factor   = c;
+                                P.eligible = true;
+                            }
+                        }
                         plans.push_back(P);
                     }
                     // the operands' own cones may hold sums of their own
-                    for (Tree o : V) {
-                        if (fSN.indexOf(o) < 0) {
-                            find(o);
+                    for (const auto& so : SV) {
+                        if (fSN.indexOf(so.first) < 0) {
+                            find(so.first);
                         }
                     }
                     return;
@@ -5649,22 +5710,28 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         }
         int loopsTotal = 0, buffersTotal = 0, localTotal = 0;
         for (const AccPlan& P : plans) {
-            tvec V;
-            if (!isSigSum(P.sum, V)) {
-                flattenSum(P.sum, V);
+            if (!lsTrace) {
+                break;
+            }
+            size_t nops = P.rest.size();
+            for (const auto& kv : P.contributors) {
+                nops += kv.second.size();
             }
             std::ostringstream os;
             for (const auto& kv : P.contributors) {
-                os << " b" << kv.first << ":" << kv.second;
+                os << " b" << kv.first << ":" << kv.second.size();
             }
-            fprintf(stderr, "ls-acc : sum of %zu operands in block %d : %zu contributor blocks {%s }, rest %d, buffers removable %zu, histories made local %zu\n",
-                    V.size(), P.consumer, P.contributors.size(), os.str().c_str(), P.rest, P.removable.size(), P.internal.size());
+            fprintf(stderr, "ls-acc : sum of %zu operands in block %d : %zu contributor blocks {%s }, rest %zu, buffers removable %zu, histories made local %zu%s\n",
+                    nops, P.consumer, P.contributors.size(), os.str().c_str(), P.rest.size(), P.removable.size(), P.internal.size(),
+                    P.eligible ? (P.factor ? ", eligible (factor)" : ", eligible") : ", not eligible in v1 (sum below the member's root)");
             loopsTotal += (int)P.contributors.size();
             buffersTotal += (int)P.removable.size();
             localTotal += (int)P.internal.size();
         }
-        fprintf(stderr, "ls-acc summary : blocks %d, real sums %d, distributable %zu, contributor blocks %d, buffers removable %d, histories made local %d\n",
-                fSN.blockCount(), sumsTotal, plans.size(), loopsTotal, buffersTotal, localTotal);
+        if (lsTrace) {
+            fprintf(stderr, "ls-acc summary : blocks %d, real sums %d, distributable %zu, contributor blocks %d, buffers removable %d, histories made local %d\n",
+                    fSN.blockCount(), sumsTotal, plans.size(), loopsTotal, buffersTotal, localTotal);
+        }
     }
 
     // 3. buffers. Three flavors, by maxDelay m:
@@ -5791,8 +5858,17 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             continue;
         }
         const char* ctype = fIsInt[i] ? "int" : ifloat();
+        bool accTarget = false;
+        if (gGlobal->gLSAcc) {
+            const char* only = getenv("FAUST_LS_ACC_ONLY");  // PROBE, see the emission
+            for (const AccPlan& P : fAccPlans) {
+                if (P.eligible && P.member == i && (only == nullptr || atoi(only) == i)) {
+                    accTarget = true;  // -ls-acc : the contributor loops write it, it needs its buffer
+                }
+            }
+        }
         fRegState[i] = gGlobal->gLSRegState && !fRowOp && !fRing[i] &&
-                       fMaxD[i] <= gGlobal->gMaxCopyDelay && !extRead[i] && !varRead[i];
+                       fMaxD[i] <= gGlobal->gMaxCopyDelay && !extRead[i] && !varRead[i] && !accTarget;
         if (fRegState[i]) {
             // no buffer : maxDelay+1 persistent scalars carry the history
             // across the chunks, the last one serving the display captures
@@ -5932,6 +6008,52 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // 4. loop bodies, one per block, in dependencies-first order (members
     // already come in instantaneous-dependency order) ; each block then
     // adopts the outputs it is home to, if the model accepts
+    // -ls-acc : the distributed sums that will be emitted -- consumer member ->
+    // plan. The accumulator is the member's own buffer, so the member must
+    // have one (not a register state, not an aliased tap).
+    std::map<int, int> accOf;
+    if (gGlobal->gLSAcc) {
+        for (int k = 0; k < (int)fAccPlans.size(); k++) {
+            const AccPlan& P = fAccPlans[k];
+            if (P.eligible && (fRegState[P.member] || fAliasIx[P.member] >= 0) && lsTrace) {
+                fprintf(stderr, "ls-acc : eligible sum into member %d skipped in v1 : the member has no buffer (%s)\n", P.member,
+                        fRegState[P.member] ? "register state" : "aliased tap");
+            }
+            // PROBE : FAUST_LS_ACC_ONLY=<member> distributes that one plan only (bisection of a wrong output)
+            const char* only = getenv("FAUST_LS_ACC_ONLY");
+            if (only != nullptr && atoi(only) != P.member) {
+                continue;
+            }
+            if (P.eligible && !fRegState[P.member] && fAliasIx[P.member] < 0 && !accOf.count(P.member)) {
+                accOf[P.member] = k;
+                if (lsTrace) {
+                    fprintf(stderr, "ls-acc : distributing a sum of %zu operands over %zu blocks into member %d's buffer (block %d), rest %zu%s\n",
+                            [&] { size_t c = P.rest.size(); for (auto& kv : P.contributors) c += kv.second.size(); return c; }(),
+                            P.contributors.size(), P.member, P.consumer, P.rest.size(), P.factor ? ", under a scalar factor" : "");
+                }
+            }
+        }
+    }
+    // the partial sum of some operands of a plan, in one block : the operands in
+    // the sum's order, under the plan's factor if any
+    auto accPartial = [&](const AccPlan& P, const std::vector<std::pair<Tree, int>>& ops, int b, std::vector<int>& deps) -> std::string {
+        std::string sum;
+        for (const auto& so : ops) {
+            Operand oo = walk(so.first, b, false);
+            addDep(deps, oo);
+            if (sum.empty()) {
+                sum = (so.second < 0 ? "-" : "") + operandCode(oo);
+            } else {
+                sum += (so.second < 0 ? " - " : " + ") + operandCode(oo);
+            }
+        }
+        if (P.factor != nullptr) {
+            Operand fo = walk(P.factor, b, false);
+            addDep(deps, fo);
+            return subst("($0 * ($1))", operandCode(fo), sum);
+        }
+        return subst("($0)", sum);
+    };
     std::ostringstream loops;
     for (int b = 0; b < fSN.blockCount(); b++) {
         int lo = (int)fOps.size();
@@ -5945,6 +6067,28 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         for (int m : fSN.blockMembers(b)) {
             if (fAliasIx[m] >= 0) {
                 continue;  // aliased tap: no body, no store -- reads redirect
+            }
+            if (auto ap = accOf.find(m); ap != accOf.end()) {
+                // the consumer of a distributed sum : its buffer already holds
+                // the contributions ; only the rest is added here, and the
+                // block's own readers read the completed buffer
+                const AccPlan& P = fAccPlans[ap->second];
+                if (P.rest.empty()) {
+                    Operand r;
+                    r.code     = storeCode(m);
+                    fRootOf[m] = r;
+                    continue;
+                }
+                std::vector<int> deps;
+                std::string      rest = accPartial(P, P.rest, b, deps);
+                int v = newOp(subst("($0 + $1)", storeCode(m), rest), deps, false, false, fIsInt[m]);
+                fCurWriteStreams.insert(m);
+                int st = newOp(subst("$0 = tls$1;", storeCode(m), T(v)), {v}, true, false, fIsInt[m]);
+                Operand r;
+                r.op       = v;
+                fRootOf[m] = r;
+                fStoreOf[m] = st;
+                continue;
             }
             Tree             d    = defOf(mat[m]);
             Operand          root = walk(d, b, d == mat[m]);
@@ -5965,6 +6109,21 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             int st = newOp(subst("$0 = $1;", storeCode(m), operandCode(root)), deps, true,
                            false, fIsInt[m]);
             fStoreOf[m] = st;
+        }
+        // the contributions of this block to the distributed sums : after its
+        // own stores, one accumulation per plan -- '=' from the first
+        // contributor block in emission order, '+=' from the others
+        for (const auto& kv : accOf) {
+            const AccPlan& P  = fAccPlans[kv.second];
+            auto           it = P.contributors.find(b);
+            if (it == P.contributors.end()) {
+                continue;
+            }
+            std::vector<int> deps;
+            std::string      part = accPartial(P, it->second, b, deps);
+            const bool       first = (b == P.contributors.begin()->first);
+            fCurWriteStreams.insert(P.member);
+            newOp(subst("$0 $1 $2;", storeCode(P.member), first ? "=" : "+=", part), deps, true, false, fIsInt[P.member]);
         }
         for (int m : fSN.blockMembers(b)) {
             if (fRegState[m] && fCapD[m] >= 0) {

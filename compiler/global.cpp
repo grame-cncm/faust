@@ -487,6 +487,7 @@ void global::reset()
     gLSLatency      = 0;
     gLSRegClasses   = false;
     gLSRegState     = false;
+    gLSAcc          = false;
     gLSSpillW       = 4;
     gLSLoadW        = 1;
     gLSCLoadW       = 1;
@@ -1293,6 +1294,10 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
     } else if (isCmd(arg, "-ls-regstate", "--loop-split-register-state")) {
         state.gLSRegState = true;
         state.gLoopSplit  = true;
+        i += 1;
+    } else if (isCmd(arg, "-ls-acc", "--loop-split-accumulate")) {
+        state.gLSAcc     = true;
+        state.gLoopSplit = true;
         i += 1;
     } else if (isCmd(arg, "-ls-regs3", "--loop-split-register-classes")) {
         state.gLSRegClasses = true;
@@ -2697,6 +2702,10 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-ls-regstate    --loop-split-register-state (ocpp, experimental) a materialized member read only inside its own loop, at constant delays, keeps no chunk buffer : no store per sample, its history crosses the chunks in scalars."
+         << endl;
+    sstr << tab
+         << "-ls-acc         --loop-split-accumulate     (ocpp, experimental) a sum whose operands come from "
+            "several loops is accumulated in place by those loops (acc = p1 ; acc += p2 ...), no join loop."
          << endl;
     sstr << tab
          << "-mindelay <n> --min-delay <n>           (ocpp, experimental) semantic floor for "
