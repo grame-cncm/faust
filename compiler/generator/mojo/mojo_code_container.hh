@@ -46,6 +46,8 @@ class MojoCodeContainer : public virtual CodeContainer
 {
 protected:
     OStream* fOut;
+    String   fDspType = "FaustDsp";
+    String   fFloatType = "FaustFloat";
     MojoCodeContainer() = default;
 
 public:
@@ -65,6 +67,8 @@ public:
 
 protected:
     // Writers
+    virtual void writeSupport(s32 n) { mj_unused(n); }
+    virtual void writeFieldInitializers(s32 n);
     void writeFaustHeader();
     void writeClassHeaderAndFields(s32 n);
     void writeGlobalVariablesInlined(s32 n);
@@ -128,137 +132,25 @@ protected:
 };
 
 /**
-    A `MojoGpuCodeContainer` generates a DSP and its GPU task schedule.
+    A `MojoGpuCodeContainer` connects the GPU visitor to the class writers.
     @desc
-    - Consumes the loop DAG produced by `DAGInstructionsCompiler`.
-    - Generates initialization, UI and metadata with the Mojo CPU writers.
-    - Stores block controls and intermediate arrays in a device work buffer.
-    - Runs independent tasks concurrently and orders dependent stages.
-    - Divides arbitrary audio blocks into bounded chunks of `-vs` samples.
-    - Provides the `gpu_work_size` and `gpu_compute` architecture hooks.
+    - Prepares the task schedule and declares its device work state.
+    - Uses the common class, lifecycle, UI and metadata writers.
+    - Delegates field initialization and GPU method emission to the visitor.
     @rep
-    - fWork: scratch declarations shared by device kernels.
-    - fViews: local aliases of inline arrays, recreated in each kernel.
-    - fAliases: underlying scratch resources referenced by pointer aliases.
-    - fStages: ordered batches of independent FIR task bodies.
-    @note
-    - Select with `-lang mojo -gpu -double` (64-bit internal computation).
-    - Each task preserves sample order; `par` exposes independent branches.
-    - Uses the same `CodeLoop::sortGraph` levels as `OpenMPCodeContainer`.
-      Ordered launches replace the barriers between OpenMP sections.
-    - The runtime allocates work before audio starts and synchronizes audio.
-    - This first version supports flat DSP state without soundfiles or
-      separately allocated tables. It does not distribute a reduction or
-      a recurrence over sample threads.
+    - `fVisitor`: producer of host initialization and device kernels.
 **/
 class MojoGpuCodeContainer : public MojoCodeContainer
 {
-    using Names = std::set<String>;
-    using Stage = std::vector<BlockInst*>;
-    using Aliases = std::map<String, Names>;
-    using Stages = std::vector<Stage>;
-
-    Work    fWork;
-    Views   fViews;
-    Aliases fAliases;
-    Stages  fStages;
+    MojoGpuInstVisitor* fVisitor;
 
 public:
     MojoGpuCodeContainer(String const& name, s32 n_ins, s32 n_outs, OStream* out);
 
-    void produceClass() override;
-
 protected:
-    void writeCompute(s32 n) override;
-
-
-private:
-    String workName() const { return fKlassName + "Work"; }
-
-    // Collect direct address references used to initialize scratch pointers.
-    struct AddressRefs : DispatchVisitor
-    {
-        Names names;
-        using DispatchVisitor::visit;
-        void visit(LoadVarAddressInst* inst) override
-        {
-            names.insert(inst->getName());
-            DispatchVisitor::visit(inst);
-        }
-    };
-
-    // Whole-resource conflicts conservatively protect shared state and aliases.
-    struct Accesses : DispatchVisitor
-    {
-        MojoGpuCodeContainer const& owner;
-        Names reads;
-        Names writes;
-        using DispatchVisitor::visit;
-
-        explicit Accesses(MojoGpuCodeContainer const& container) : owner(container) {}
-
-        void add(Address* address, Names& names)
-        {
-            String name = address->getName();
-            if (address->isStruct()
-                || address->isStaticStruct()
-                || owner.fWork.count(name)
-                || owner.fViews.count(name)
-                || MojoGpuInstVisitor::isChannel(name)
-            ) {
-                owner.resources(name, names);
-            }
-        }
-        void visit(LoadVarInst* inst) override
-        {
-            add(inst->fAddress, reads);
-            DispatchVisitor::visit(inst);
-        }
-        void visit(StoreVarInst* inst) override
-        {
-            add(inst->fAddress, writes);
-            DispatchVisitor::visit(inst);
-        }
-        void visit(DeclareVarInst* inst) override
-        {
-            if (inst->fValue) {
-                add(inst->fAddress, writes);
-            }
-            DispatchVisitor::visit(inst);
-        }
-        void visit(LoadVarAddressInst* inst) override
-        {
-            add(inst->fAddress, reads);
-            DispatchVisitor::visit(inst);
-        }
-    };
-
-    void resources(String const& name, Names& result) const;
-
-    static bool intersects(Names const& lhs, Names const& rhs);
-
-    static bool isFlat(Typed* type);
-
-    void checkFields();
-
-    void collectWork(BlockInst* block);
-
-    String taskKey(BlockInst* block);
-
-    void planTasks();
-
-    void writeFields(BlockInst* block, size_t width);
-
-    void writeWork();
-
-    void writeEvidence(s32 n);
-
-    void
-    writeLaunch(String const& name, s32 n, size_t tasks, String const& size, String const& offset);
-
-    void writeKernelHeader(String const& name, s32 n, bool single);
-
-    void writeBody(BlockInst* block, s32 n);
+    void writeSupport(s32 n)           override;
+    void writeFieldInitializers(s32 n) override;
+    void writeCompute(s32 n)           override;
 };
 
 };      // namespace mojo

@@ -16,8 +16,8 @@ using VecVisitor  = MojoVecInstVisitor;
 using BaseVisitor = MojoInstVisitor;
 using MojoDType   = VecVisitor::MojoDType;
 
-MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, String const& structName, s32 tab)
-    : BaseVisitor(out, structName, tab)
+MojoVecInstVisitor::MojoVecInstVisitor(OStream* out, String const& name, s32 tab)
+    : MojoInstVisitor(out, name, tab)
 {   resetLoopContext();   }
 
 MojoVecInstVisitor::~MojoVecInstVisitor()

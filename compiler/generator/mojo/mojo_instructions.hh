@@ -120,7 +120,7 @@ public:
     // Enable base class operations
     using MojoInstVisitor::visit;
 
-    MojoVecInstVisitor(OStream* out, String const& structName, s32 tab = 0);
+    MojoVecInstVisitor(OStream* out, String const& name, s32 tab = 0);
     virtual ~MojoVecInstVisitor();
 
     void visit(IfInst* inst)         override;
@@ -212,50 +212,100 @@ public:
 };
 
 // GPU visitor aliases
-using Work  = std::unordered_map<String, Typed*>;
-using Views = std::unordered_map<String, LoadVarAddressInst*>;
-using Loops = std::unordered_map<String, String>;
+using Work   = std::unordered_map<String, Typed*>;
+using Views  = std::unordered_map<String, LoadVarAddressInst*>;
+using Loops  = std::unordered_map<String, String>;
+using Binds  = std::set<String>;
+using Stage  = Arr<BlockInst*>;
+using Stages = Arr<Stage>;
+
+// A task body and the shared resources reached during its emission.
+struct GpuTask
+{
+    BlockInst* code;
+    String     text;
+    Binds      reads;
+    Binds      writes;
+};
 
 /**
-    A `MojoGpuInstVisitor` emits scalar FIR instructions inside GPU tasks.
+    A `MojoGpuInstVisitor` emits host initialization and ordered GPU tasks.
     @desc
-    - Uses device pointers for DSP fields and shared work variables.
-    - Preserves scalar loop order, including recursive state updates.
-    - Keeps task-local temporaries local to the executing GPU thread.
-    - Rejects foreign calls that require an unspecified device implementation.
+    - Uses explicit F32 for external zones and F64 for internal computation.
+    - Collects work fields and rebuilds pointer views inside each kernel.
+    - Partitions DAG levels by shared resource conflicts.
+    - Emits block controls, chunk tasks and final state updates.
     @rep
-    - fWork: declarations stored in the preallocated device work buffer.
-    - fViews: local pointers reconstructed from inline device arrays.
-    - fLoops: active loop-index names, unique within the emitted task.
-    - fLoopId: suffix used to distinguish sequential FIR loop bindings.
+    - fName: generated DSP class name.
+    - fInputs, fOutputs: audio channel counts.
+    - fControls, fPost: instructions evaluated once per audio block.
+    - fWork, fViews: device scratch fields and local pointer views.
+    - fWorkNames, fViewNames: sorted names for reproducible output.
+    - fStages: ordered batches of independent task bodies.
+    - fReads, fWrites: shared resources reached by the current task.
+    - fLoops, fLoopId: bindings used to distinguish loop indices.
+    - fKernel: selects device addressing during kernel emission.
     @note
-    - Input and output channel pointers are supplied by the container.
+    - Each task preserves sample order, including recursive updates.
+    - The architecture supplies the imports and owns device allocation.
+    - The device target must support F64 arithmetic.
 **/
 class MojoGpuInstVisitor : public MojoInstVisitor
 {
-
-    // NOTE:(Ari) put the fucking state here not on at the end of the scope
-    Work const&   fWork;
-    Views const&  fViews;
-    Loops         fLoops;
-    s32           fLoopId = 0;
+    String      fName;
+    s32         fInputs;
+    s32         fOutputs;
+    BlockInst*  fControls = nullptr;
+    BlockInst*  fPost = nullptr;
+    Work        fWork;
+    Views       fViews;
+    Arr<String> fWorkNames;
+    Arr<String> fViewNames;
+    Stages      fStages;
+    Binds       fReads;
+    Binds       fWrites;
+    Loops       fLoops;
+    s32         fLoopId = 0;
+    b32         fKernel = false;
 
 public:
     using MojoInstVisitor::visit;
 
-    MojoGpuInstVisitor(
-        OStream* out, String const& name, Work const& work, Views const& views, s32 tab = 0
+    MojoGpuInstVisitor(OStream* out, String const& name, s32 n_ins, s32 n_outs);
+
+    void visit(AddSliderInst* inst)      override;
+    void visit(AddBargraphInst* inst)    override;
+    void visit(NamedAddress* inst)       override;
+    void visit(DeclareVarInst* inst)     override;
+    void visit(IndexedAddress* inst)     override;
+    void visit(FloatNumInst* inst)       override;
+    void visit(DoubleNumInst* inst)      override;
+    void visit(ForLoopInst* inst)        override;
+    void visit(FunCallInst* inst)        override;
+    void visit(LoadVarInst* inst)        override;
+    void visit(LoadVarAddressInst* inst) override;
+    void visit(StoreVarInst* inst)       override;
+
+    void prepare(Stages const& levels, BlockInst* controls, BlockInst* post);
+    void writeWork(s32 n);
+    void writeInitializers(BlockInst* block, s32 n);
+    void writeCompute(s32 n);
+
+    static void checkFields(BlockInst* block);
+
+protected:
+    void collectWork(BlockInst* block);
+    void addResource(Address* addr, Binds& names);
+    String taskText(BlockInst* block, s32 n);
+    void writeBody(BlockInst* block, s32 n);
+    void writeKernel(String const& name, s32 n, b32 single);
+    void writeLaunch(
+        String const& name, s32 n, ssize tasks, String const& size, String const& offset
     );
 
-    void visit(NamedAddress* inst)   override;
-    void visit(DeclareVarInst* inst) override;
-    void visit(IndexedAddress* inst) override;
-    void visit(FloatNumInst* inst)   override;
-    void visit(DoubleNumInst* inst)  override;
-    void visit(ForLoopInst* inst)    override;
-    void visit(FunCallInst* inst)    override;
-
-    static bool isChannel(String const& name);
+    static b32 isChannel(String const& name);
+    static b32 isFlat(Typed* type);
+    static b32 intersects(Binds const& lhs, Binds const& rhs);
 };
 
 }       // namespace mojo

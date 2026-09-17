@@ -61,4 +61,6 @@
 
 #define mj_scalar_visit(_inst_) mj_simd_emit_set(false); MojoInstVisitor::visit(_inst_); mj_simd_emit_restore()
 
+#define mj_gpu_emit_check() if (not fKernel) return BaseVisitor::visit(inst); 
+
 #endif  // _MOJO_MACRO_HH

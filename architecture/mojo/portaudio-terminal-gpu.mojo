@@ -5,19 +5,19 @@
 from conf import *
 from dsp import *
 from gui import *
+from gpu import *
 from help import *
 from meta import *
 from audio.portaudio import *
 from std.sys import has_accelerator
+from dsp.adapter import AdapterDsp
 from gui.map import GpuControlMap, build_gpu_control_map
 from gui.terminal.terminal import TerminalGui
 from gui.terminal.ffi import error_str
-from gpu.adapter import GpuAdapter
 from gpu.device import GpuDevice
 
 <<includeIntrinsic>>
 <<includeclass>>
-
 
 def main() -> None:
     comptime assert dfaust == F32.dtype, "Expected 32-bit audio precision."
@@ -41,8 +41,8 @@ def main() -> None:
     if not err:
         err = gpu[].prepare(dsp, map[], BUFF_SIZE)
 
-    var adapter = unsafe_alloc[GpuAdapter[mydsp, GpuDevice[mydsp]]](1)
-    adapter.unsafe_write(GpuAdapter[mydsp, GpuDevice[mydsp]](dsp, gpu))
+    var adapter = unsafe_alloc[AdapterDsp[mydsp]](1)
+    adapter.unsafe_write(AdapterDsp[mydsp](dsp, gpu))
     if not err:
         err = driver[].init()
     if not err:
@@ -68,9 +68,6 @@ def main() -> None:
     driver.unsafe_free()
     gpu.unsafe_free()
     map.unsafe_free()
-    comptime assert conforms_to(TerminalGui, Deinitable), (
-        "Terminal GUI owns widget strings."
-    )
     ui.unsafe_deinit_pointee()
     ui.unsafe_free()
     dsp.unsafe_free()

@@ -811,9 +811,9 @@ struct MojoStringTypeManager : public StringTypeManager {
     using DirectTypeTable = std::map<Typed::VarType, std::string>;
 
     MojoStringTypeManager(
-        std::string const&    floatMacroName,
-        std::string const&    structName = "",
-        std::string const&    ptrRef = ""
+        std::string const& floatMacroName,
+        std::string const& structName      =  "",
+        std::string const& ptrRef          =  ""
     ) {
         fPtrRef = ptrRef;
         fTypeDirectTable = createDirectTypeTable(floatMacroName, structName);
@@ -843,14 +843,15 @@ struct MojoStringTypeManager : public StringTypeManager {
         return "";
     }
 
-    virtual std::string generateType(Typed* type, std::string const& name, bool /**/) {
+    virtual std::string generateType(Typed* type, std::string const& name, bool /**/)
+    {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
         if (basic_typed) {
             return name + ": " + fTypeDirectTable[basic_typed->fType];
-        } 
-       if (named_typed) {
+        }
+        if (named_typed) {
             std::string name_str = named_typed->fName + generateType(named_typed->fType);
             return name + (name_str != "" ? ": " + name_str : "");
         }
@@ -863,14 +864,16 @@ struct MojoStringTypeManager : public StringTypeManager {
 
 private:
 
-    static DirectTypeTable createDirectTypeTable(std::string const& floatMacroName, std::string const& structName) {
+    static DirectTypeTable createDirectTypeTable(
+        std::string const& floatMacroName, std::string const& structName
+    ) {
         return DirectTypeTable{
             {Typed::kFloatMacro,         floatMacroName},
             {Typed::kFloatMacro_ptr,     "Ptr[" + floatMacroName + "]"},
             {Typed::kFloatMacro_ptr_ptr, "Ptr[Ptr[" + floatMacroName + "]]"},
 
             {Typed::kInt32,     "S32"},
-            {Typed::kInt32_ptr, "Ptr[S32"},
+            {Typed::kInt32_ptr, "Ptr[S32]"},
             {Typed::kInt32_vec, "List[S32]"},
             
             {Typed::kInt64,     "S64"},
@@ -893,7 +896,7 @@ private:
 
             {Typed::kVoid,     "NoneType"},
             {Typed::kVoid_ptr, "AnyPtr"},
-        
+
             {Typed::kSound,     "Soundfile"},
             {Typed::kSound_ptr, "Ptr[Soundfile]"},
 

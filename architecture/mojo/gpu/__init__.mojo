@@ -2,7 +2,6 @@
 
 from max.gpu import global_idx, thread_idx
 
-from .adapter import GpuAdapter
 from .device import (
     GpuDevice,
     FAUST_GPU_NO_ERROR,
