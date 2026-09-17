@@ -15,6 +15,10 @@ def mod[dtype: DType, width: SInt](
     return num % den
 
 @always_inline
+def rint[dtype: DType](x: Scalar[dtype]) -> Scalar[dtype]:
+    return llvm_intrinsic["llvm.rint", Scalar[dtype]](x)
+
+@always_inline
 def rint[dtype: DType, width: SInt](x: SIMD[dtype, width]) -> SIMD[dtype, width]:
     return llvm_intrinsic["llvm.rint", SIMD[dtype, width]](x)
 

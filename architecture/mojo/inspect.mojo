@@ -48,7 +48,7 @@ def main() -> None:
 @no_inline
 @export("inspect_compute")
 def inspect_compute(
-    mut dsp: Some[FaustDsp], inputs: ImmStreams, outputs: MutStreams
+    mut dsp: mydsp, inputs: ImmStreams, outputs: MutStreams
 ) abi("Mojo") -> None:
     for _ in range(COMPUTE_ITERS):
         keep(inputs)
