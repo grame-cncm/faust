@@ -1,5 +1,5 @@
 # help/__init__.mojo
 
 from .math import *
-from .utils import *
-from .misc import *
+from .simd import *
+from .io import *

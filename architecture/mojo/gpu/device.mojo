@@ -5,31 +5,33 @@ from max.gpu.host import DeviceBuffer, DeviceContext
 from conf import *
 from dsp import FaustDspGpu
 from gui.map import GpuControlMap, GPU_ZONE_CAP
-# from .gpu import FaustGpu
 
 comptime FAUST_GPU_NO_ERROR = S32(0)
 comptime FAUST_GPU_ERROR = S32(-2999)
 comptime FAUST_GPU_ALLOCATION_ERROR = S32(-2997)
 comptime FAUST_GPU_INVALID_ARGUMENT = S32(-2996)
 
+# ==============================================================
+# Faust GPU device implementation.
+# ==============================================================
 
 # Resources allocated by `GpuDevice.prepare` for a concrete DSP.
 # @rep
-# - ctx: context that owns GPU operations.
-# - dsp: persistent DSP state on the device.
-# - ins: contiguous buffer for input channels.
-# - outs: contiguous buffer for output channels.
-# - work: temporary memory required by the DSP.
-# - in_chans: channel views into `ins`.
-# - out_chans: channel views into `outs`.
-# - active_zones: host addresses of control zones.
-# - active_bufs: views into device-side DSP control zones.
-# - cached: last control values sent to the device.
-# - passive_zones: host addresses of bargraph zones.
-# - passive_bufs: views into device-side DSP bargraph zones.
-# - block_size: frames in each prepared block.
-# - n_ins: number of input channels.
-# - n_outs: number of output channels.
+# - `ctx`: context that owns GPU operations.
+# - `dsp`: persistent DSP state on the device.
+# - `ins`: contiguous buffer for input channels.
+# - `outs`: contiguous buffer for output channels.
+# - `work`: temporary memory required by the DSP.
+# - `in_chans`: channel views into `ins`.
+# - `out_chans`: channel views into `outs`.
+# - `active_zones`: host addresses of control zones.
+# - `active_bufs`: views into device-side DSP control zones.
+# - `cached`: last control values sent to the device.
+# - `passive_zones`: host addresses of bargraph zones.
+# - `passive_bufs`: views into device-side DSP bargraph zones.
+# - `block_size`: frames in each prepared block.
+# - `n_ins`: number of input channels.
+# - `n_outs`: number of output channels.
 @fieldwise_init
 struct GpuStorage[Dsp: FaustDspGpu](Movable):
     var ctx:            DeviceContext
@@ -47,7 +49,6 @@ struct GpuStorage[Dsp: FaustDspGpu](Movable):
     var block_size:     S32
     var n_ins:          S32
     var n_outs:         S32
-
 
 # Creates GPU storage and converts library exceptions into error codes.
 def gpu_create_storage[Dsp: FaustDspGpu](
@@ -241,3 +242,4 @@ struct GpuDevice[Dsp: FaustDspGpu]:
         state.unsafe_free()
         gpu.state = None
         return FAUST_GPU_NO_ERROR
+

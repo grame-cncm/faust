@@ -1,4 +1,4 @@
-# gpu/adapter.mojo
+# dsp/adapter.mojo
 
 from conf import *
 from dsp import FaustDsp, FaustDspGpu
@@ -6,16 +6,19 @@ from gui import FaustGui
 from gpu import GpuDevice
 from meta import FaustMeta
 
+# ==============================================================
+# AdapterDsp definition.
+# ==============================================================
 
-# A `FaustDsp` that adapts GPU processing to the regular audio path.
+# A `FaustDsp` that adapts GPU processing to the audio path.
 # @desc
 # - Delegates metadata, initialization, and UI building to the DSP.
 # - Delegates each audio block to the GPU runtime.
 # @rep
-# - dsp: generated instance kept alive by the frontend.
-# - gpu: prepared GPU runtime kept alive by the frontend.
+# - `dsp`: generated instance kept alive by the frontend.
+# - `gpu`: prepared GPU runtime kept alive by the frontend.
 # @note
-# - `compute` cannot return errors; the device records them.
+# - `compute` cannot return errors, the `GpuDevice` records them.
 @fieldwise_init
 struct AdapterDsp[Dsp: FaustDspGpu](FaustDsp):
     var dsp:  Ptr[Self.Dsp]

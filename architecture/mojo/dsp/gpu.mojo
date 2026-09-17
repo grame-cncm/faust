@@ -1,8 +1,11 @@
-# gpu/dsp.mojo
+# dsp/gpu.mojo
 
 from conf import *
 from .dsp import FaustDsp
 
+# ==============================================================
+# FaustDspGpu interface declaration.
+# ==============================================================
 
 trait FaustDspGpu(FaustDsp):
 
@@ -26,3 +29,4 @@ trait FaustDspGpu(FaustDsp):
         imm work_buf:  DeviceBuffer[u8],
         imm count:     S32
     ) raises -> None: ...
+

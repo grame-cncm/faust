@@ -11,7 +11,7 @@ comptime AllocError_ExhaustedMem  = ErrorCode(2)
 def align_up(num: SInt, aln: SInt) -> SInt:
     return (num + aln - 1) & ~(aln - 1)
 
-# TODO: improve doc
+# TODO:(manu) improve doc
 #   Allocate memory for input and output streams with the following layout:
 #     +--------+---------+-----------------+
 #     | header | padding |      data       |
