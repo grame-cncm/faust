@@ -471,6 +471,7 @@ void global::reset()
     gMatrixRows         = false;
     gIIRTransposed      = false;
     gFIRHoist           = false;
+    gFamilyForm         = false;
     gLSSched        = 0;
     gLSRegisters    = 20;
     gLSWidth        = 4;
@@ -1908,6 +1909,11 @@ bool global::processCmdline(int argc, const char* argv[])
             gReconstructFIRIIRs = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-fam", "--family-form")) {
+            gFamilyForm         = true;
+            gReconstructFIRIIRs = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-fir-hoist", "--fir-hoist-numerators")) {
             gFIRHoist           = true;
             gReconstructFIRIIRs = true;
@@ -2735,6 +2741,11 @@ string global::printHelp()
     sstr << tab
          << "-fir        --fir-iir                   (ocpp, experimental) recognise FIR/IIR "
             "kernels in the signal graph and emit their dedicated forms."
+         << endl;
+    sstr << tab
+         << "-fam        --family-form               (ocpp, experimental, implies -fir) a family of "
+            "isomorphic sum operands (the modes of a bank, the bands of a vocoder) is emitted as one "
+            "inner loop over arrays of states and coefficients."
          << endl;
     sstr << tab
          << "-fir-hoist  --fir-hoist-numerators      (ocpp, experimental, implies -fir) a bank of "
