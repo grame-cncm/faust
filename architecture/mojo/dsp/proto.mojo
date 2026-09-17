@@ -2,7 +2,7 @@
 
 from conf import *
 from meta import FaustMeta
-from gui import FaustGui
+from gui.gui import FaustGui
 from .gpu import FaustDspGpu
 
 # ==============================================================

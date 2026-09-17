@@ -11,11 +11,9 @@
 from conf import *
 from help import *
 from dsp import *
-from gui import *
+from gui import FaustGui, TerminalGui, error_str
 from meta import *
-from audio.portaudio import *
-from gui.terminal.terminal import TerminalGui
-from gui.terminal.ffi import error_str
+from audio import *
 
 # ==============================================================================
 # First section of architecture provided code end.

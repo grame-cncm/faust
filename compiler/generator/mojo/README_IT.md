@@ -1,379 +1,330 @@
-## Faust to Mojo generator
+# Faust to Mojo architectures
 
-Il codice presente in questa cartella implementa il transpilatore da FAUST a Mojo.
+Questa directory contiene le architetture e i componenti di supporto utilizzati dal backend Mojo di FAUST
+per trasformare il DSP generato in un programma eseguibile.
 
-### File miscellanei
+Un backend FAUST comprende due parti principali:
 
-- `.clangd`: configurazione per silenziare alcuni errori dello LSP Clangd
-  - Definisce la variabile di ambiente `MOJO_BUILD=1`, utilizzata successivamente a compile time.
+- il **generatore**, che traduce la rappresentazione intermedia nel linguaggio di destinazione;
+- il **sistema di architetture**, che fornisce l'ambiente necessario per utilizzare il DSP generato.
 
-### File di configurazione
+Il generatore Mojo produce `struct mydsp`, con stato, inizializzazione, metadati, descrizione della UI e
+metodi di elaborazione. L'architettura aggiunge il punto d'ingresso, il driver audio, la GUI, la gestione
+della memoria e il codice di supporto. Il percorso CPU usa `compute`; quello GPU, ancora sperimentale,
+genera anche le operazioni richieste da `FaustDspGpu`.
 
-Si tratta dei file prefissi da `_`, contenenti codice privato che esula dalle classi strettamente utilizzate
-dalle altre componenti compilatore (`faust/compiler`, `faust/compiler/generator`).
+## Architetture FAUST
 
-- `_mojo_hal.hh`: codice per l'astrazione dall'hardware sottostante (`Hardware Abstraction Layer`).
-- `_mojo_macro.hh`: macro per ergonomia e pulizia semantica del codice pubblico.
-- `_mojo_utils.hh`: funzioni helper per le classi pubbliche principali.
-
-### File principali
-
-Contengono le classi principali del backend, le cui interfacce vengono utilizzate dalle altre componenti
-del compilatore.
-
-I file si suddividono in file di intestazione (`*.hh`), contenenti le dichiarazioni delle classi, e file
-di implementazione (`*.cpp`), contenenti le relative definizioni.
-
-Le due componenti principali sono:
-
-- `MojoInstVisitor` − Il produttore che traduce le istruzioni della `FAUST IR` in codice `Mojo` e le scrive
-  sullo stream di output.
-- `MojoCodeContainer` − Usa il produttore per costruire il tipo (`struct mydsp`) che incapsula il kernel DSP.
-
-In altri termini, il visitor attraversa le istruzioni della `FAUST IR` e ne produce la rappresentazione
-testuale in `Mojo`; il container organizza il codice prodotto per costruire la struttura che rappresenta
-il programma `FAUST`.
-
-- `mojo_instructions.hh` − Dichiara `MojoInstVisitor` e le derivate `MojoVecInstVisitor` e `MojoInitFieldsVisitor`.
-- `mojo_code_container.hh` − Dichiara `MojoCodeContainer` e le derivate `MojoScalarCodeContainer` e `MojoVecCodeContainer`.
-
-- `mojo_instructions.cpp` − Implementa `MojoInstVisitor` e `MojoInitFieldsVisitor`.
-- `mojo_vec_instructions.cpp` − Implementa `MojoVecInstVisitor`.
-- `mojo_code_container.cpp` − Implementa `MojoCodeContainer` e la derivata `MojoVecCodeContainer`.
-
-### Instructions Visitor
-
-Il linguaggio `FAUST` descrive il DSP in forma puramente funzionale. Durante la transpilazione, questa viene
-progressivamente trasformata nella `FAUST IR`, una rappresentazione intermedia procedurale e imperativa
-composta da istruzioni tipizzate per dichiarazioni, espressioni, accessi alla memoria, cicli e controllo di
-flusso. Il backend Mojo attraversa questa IR e traduce ciascuna istruzione nel corrispondente codice
-sorgente `Mojo`, organizzato dal *Code Container*  in una `struct` che rappresenta il DSP generato.
-
-La traduzione è implementata da `MojoInstVisitor` mediante il *visitor pattern*. La classe deriva da
-`TextInstVisitor`, dal quale eredita l'infrastruttura comune per attraversare l'IR e produrre codice
-testuale indentato su uno stream di output, e sovraccarica l'operazione `visit` per i differenti tipi di
-istruzione. Quando un'istruzione accetta il visitor, viene selezionata l'operazione corrispondente al suo
-tipo concreto.
-
-`MojoInitFieldsVisitor` è un visitor specializzato nella generazione delle inizializzazioni dei campi
-nel *default constructor* `__init__` della `struct` DSP. Per ogni dichiarazione emette l'assegnamento
-al relativo campo, usando il valore presente nella `FAUST IR` oppure, quando assente, un inizializzatore
-a zero appropriato al tipo.
-
-### Code Container
-
-`MojoCodeContainer` organizza il codice prodotto dagli instruction visitor e costruisce la `struct`
-che rappresenta il DSP in `Mojo`. La classe deriva da `CodeContainer` e definisce la struttura comune
-del programma generato.
-
-L'interfaccia principale del container è `produceClass`, che coordina la generazione delle diverse sezioni.
-Per convenzione, gli helper che scrivono le singole sezioni del codice hanno il prefisso `write`. Il
-container genera:
-
-- l'intestazione e le definizioni dei tipi numerici;
-- la dichiarazione della `struct` e dei relativi campi;
-- il *default constructor* e l'inizializzazione dei campi;
-- gli accessor per sample rate, numero di ingressi e numero di uscite;
-- le funzioni di inizializzazione e reset dell'istanza;
-- i metadati e la rappresentazione JSON del DSP;
-- il metodo per la costruzione dell'interfaccia utente;
-- il metodo `compute` contenente il calcolo del DSP.
-
-`MojoCodeContainer` è una classe astratta dalla quale derivano `MojoScalarCodeContainer` e
-`MojoVecCodeContainer`. La factory `createContainer` seleziona la variante appropriata in base alle
-opzioni di compilazione: il container scalare viene usato per la generazione ordinaria, mentre quello
-vettoriale viene istanziato quando è attiva l'opzione `-vec`. Le due implementazioni condividono la
-struttura generale della `struct` e specializzano la generazione di `compute` tramite `writeCompute`.
-
-La produzione delle istruzioni utilizza due visitor globali: `gScalarProducer`, condiviso dalle parti
-scalari del codice, e `gVectorProducer`, creato dal container vettoriale per la generazione esplicita
-SIMD. Anche in modalità  vettoriale, dichiarazioni, inizializzazioni, metadati e interfaccia utente
-continuano a essere prodotti dal visitor scalare; il visitor vettoriale viene utilizzato solamente
-per la generazione del metodo `compute`.
-
-Il container vettoriale deriva inoltre da `VectorCodeContainer`, il quale incapsula la rappresentazione del
-calcolo vettoriale e la capacità  di individuare i nodi ricorsivi e quelli che possono essere vettorizzati.
-
-### Explicit SIMD emission
-
-Con l'opzione `-vec`, FAUST riorganizza la rappresentazione imperativa del DSP suddividendo il calcolo in
-sottocicli ordinati secondo le dipendenze descritte dal relativo DAG. I sottocicli vengono inoltre distinti
-tra ricorsivi, quindi non vettorizzabili, e indipendenti tra le iterazioni.
-
-Nel percorso tradizionale di FAUST, questa forma permette al compilatore del linguaggio target, ad esempio
-`clang`, di autovettorizzare i sottocicli compatibili. Mojo disabilita invece i pass di autovettorizzazione
-di LLVM, per cui l'emissione scalare non viene convertita automaticamente in istruzioni vettoriali.
-
-Il backend Mojo utilizza quindi la suddivisione in sottocicli prodotta da `-vec` come base per una
-vettorizzazione esplicita, sfruttando il sistema di tipi SIMD fornito dal linguaggio.
-
-Il tipo numerico fondamentale è `SIMD[dtype, width]`, dove `dtype` è il tipo primitivo, ad esempio
-`f32`, e `width` è la larghezza del vettore, ovvero il numero di elementi sui quali l'operazione viene
-eseguita in parallelo. `SIMD[dtype, 1]` corrisponde al caso scalare `Scalar[dtype]`; la `width` viene
-inoltre utilizzata come parametro nelle operazioni di metaprogrammazione.
-
-Nel backend Mojo i sottocicli ricorsivi vengono sottoposti ad unrolling completo di `vsize` operazioni
-tramite `comptime for`, mentre i cicli indipendenti vengono tradotti in istruzioni SIMD esplicite.
-
-Il fallback scalare viene applicato anche ai cicli che, pur non essendo ricorsivi, contengono accessi alla
-memoria non compatibili con una vettorizzazione contigua. 
-
-L'implementazione richiede alcune assunzioni e workaround, descritti nei paragrafi seguenti, che in alcuni
-casi introducono un accoppiamento tra le responsabilità  del container e del visitor. Queste soluzioni
-permettono di adattare la struttura della `FAUST IR` e le espressioni generate ai vincoli del type system
-di Mojo.
-
-La prima importante assunzione riguarda la precisione di calcolo dei numeri reali. La modalità  di emissione
-SIMD supporta unicamente precisione di calcolo interna `f64` e precisione dell'architettura del driver
-esterno di `f32`.
-
-#### Vector Code Container
-
-`MojoVecCodeContainer` deriva sia da `MojoCodeContainer` sia da `VectorCodeContainer`. Il primo fornisce la
-struttura comune della `struct` DSP, mentre il secondo trasforma il kernel DSP in un grafo di cicli.
-
-Il container genera esplicitamente l'indice `vindex`, il limite `end` e l'incremento del ciclo principale.
-La dichiarazione equivalente viene rimossa dal DAG, mentre `MojoVecInstVisitor` riconosce il main loop dal
-nome `vindex`. Questo introduce un accoppiamento intenzionale tra container e visitor.
-
-Nel codice generato si ricavano le larghezze native del target:
+Un'architettura FAUST è un template Mojo selezionato con `-a`. Il compilatore inserisce il DSP fra la
+prima sezione dell'architettura (import e definizioni) e la seconda (punto d'ingresso):
 
 ```
-    vsize = simd_width_of[f32]()
-    hsize = simd_width_of[f64]()
+    import e definizioni forniti dall'architettura
+    <<includeIntrinsic>>
+    <<includeclass>>
+    main e gestione del ciclo di vita forniti dall'architettura
 ```
 
-dove `vsize` significa "vector size" ed `hsize` significa "half size".
+`<<includeclass>>` riceve la classe DSP emessa da `MojoCodeContainer.produceClass()`;
+`<<includeIntrinsic>>` rimane nel template per l'espansione dell'architettura da parte del compilatore.
+I template top-level usano commenti di sezione per delimitare queste parti.
 
-Poiché un vettore `f32` contiene il doppio delle lane di un vettore `f64`, vale la relazione:
+Seguono questa struttura `portaudio.mojo`, `portaudio-terminal.mojo`, `portaudio-proto.mojo`,
+`portaudio-terminal-gpu.mojo`, `bench.mojo`, `inspect.mojo` e `impulse.mojo`. I package sottostanti
+contengono le implementazioni riutilizzabili; i template le compongono attorno al DSP generato.
 
-```
-    vsize = 2 * hsize
-```
+## Interfaccia del DSP
 
-Il nome `vsize` è stato scelto per continuità  semantico con l'opzione `-vs` di FAUST e il loro valore deve
-coincidere ai fini della correttezza:
-
-- FAUST genera sub-loop di `-vs` frame (e.g. `for i in 0..vsize`),
-- Mojo utilizza `vsize` (ed `hsize`) per definire tipi, invocare operazioni ed avanzare nel buffer,
-
-una discrepanza tra i due valori introduce degli errori strutturali.
-
-Il backend risulta indipendente da una specifica estensione hardware SIMD, purché la compilazione FAUST usi
-la larghezza `f32` nativa del target:
+Il trait `FaustDsp`, in `dsp/dsp.mojo`, definisce il contratto comune delle architetture CPU: numero di
+ingressi e uscite, sample rate, inizializzazione e reset, metadati e JSON, costruzione della UI ed
+elaborazione a blocchi:
 
 ```
-    ARM NEON 128 bit
-        -vs 4
-        vsize = 4
-        hsize = 2
-
-    x86 AVX2 256 bit
-        -vs 8
-        vsize = 8
-        hsize = 4
-
-    x86 AVX-512 512 bit
-        -vs 16
-        vsize = 16
-        hsize = 8
+    dsp.compute(count, inputs, outputs)
 ```
 
-La generazione utilizza inoltre `-mcd 4`, che definisce la soglia oltre la quale le delay line vengono
-rappresentate mediante ring buffer anziché tramite copie.
+La `mydsp` generata implementa il contratto; la callback PortAudio può quindi elaborarla senza conoscere
+i suoi campi. Anche benchmark e impulse test usano questa interfaccia.
 
-Nella vec mode del backend Mojo, `-vs` e `-mcd` devono coincidere con `vsize`. Con `-vs 4 -mcd 4`, delay
-line inferiori alla soglia vengono arrotondate a quattro elementi, altrimenti utilizzano un ring buffer.
+La variante GPU implementa inoltre `FaustDspGpu`, in `dsp/gpu.mojo`. Il trait aggiunge le operazioni
+statiche `gpu_work_size(count)` e
+`gpu_compute(ctx, dsp_raw, in_buf, out_buf, work_buf, count)`. La sua implementazione predefinita di
+`compute` è vuota: per eseguire l'audio GPU si passa a PortAudio un `AdapterDsp[mydsp]`, il cui `compute`
+inoltra il blocco a `GpuDevice`. Passare direttamente il DSP GPU a PortAudio non avvierebbe il calcolo GPU.
 
-I sottocicli sono quindi compatibili con l'elaborazione in blocchi di `vsize` frame.
-
-L'invocazione attualmente supportata è quindi:
-
-```
-    faust -double -vec -dfs -vs 4 -mcd 4 -lang mojo [name].dsp -o [name].mojo
-```
-
-Il backend è stato testato con unicamente con tale configurazione su Apple M1 e M4, basati su SIMD NEON da
-128 bit. Le configurazioni x86 sono teoricamente supportate ma non sono state verificate.
-
-#### Vector Instructions Visitor
-
-`MojoVecInstVisitor` deriva da `MojoInstVisitor` del quale riutilizza le operazioni per istruzioni scalari. 
-
-Le operazioni `visit` specializzate, oltre a generare costruttori vettoriali, cast, operazioni binarie,
-caricamenti e scritture SIMD, classificano i sottocicli in base alla strategia di emissione richiesta.
-
-La visita di un ciclo interno puà² produrre:
-
-- una singola scrittura SIMD su destinazione `f32` (di `vsize` elementi);
-- il broadcast di un valore scalare;
-- due scritture SIMD per una destinazione `f64` (di `2 * hsize` elementi);
-- il join di due risultati `f64` con scrittura finale su `f32`;
-- un ciclo scalare con unrolling `comptime for` per i cicli ricorsivi;
-- un ciclo scalare con unrolling `comptime for` per forme con accesso a memoria non lineare;
-- un trattamento specializzato per l'aggiornamento di un bargraph e di un parametro ad esso legato;
-- un trattamento specializzato per l'aggiornamento di bargraph multipli e di un parametro non legato ad essi.
-
-Il visitor assume che l'ultima (o unica) istruzione del ciclo sia lo `StoreVarInst` principale. Da questa
-ricava la destinazione, il tipo del risultato e la strategia necessaria per generare l'intero ciclo.
-
-#### Stato di generazione
-
-`MojoVecInstVisitor` suddivide la logica di generazione tra le operazioni `visit` e i relativi helper. Per
-condividere il contesto tra questi metodi mantiene uno stato globale per il ciclo corrente.
-
-- `gSIMDEmit` indica se le istruzioni visitate devono essere emesse in forma SIMD;
-- `gSIMDHigh` indica la generazione della seconda porzione di un blocco `f64` (con shift di `hsize`);
-- `gSIMDHalf` seleziona la larghezza `H`, corrispondente alla larghezza SIMD di `f64` (`Half`);
-- `gCurLhsDT` mantiene il tipo del risultato assegnato dal ciclo corrente (`Current Lhs DType`);
-- `gCurAddrs` mantiene il nome della destinazione corrente;
-- `gCurIndex` identifica l'indice del ciclo FAUST eliminato durante la vettorizzazione;
-- `gCurBargraph` identifica un bargraph i cui valori vengono salvati temporaneamente in un array.
-
-La flag `gSIMDHalf` genera operazioni con parametro esplicito `H`, come `vstore[H]`, ed è essenziale per
-ottenere risultati nei quali il tipo numerico non corrisponde alla larghezza SIMD nativa, ad esempio:
+Generatore e architettura selezionata si incontrano nel file Mojo completo:
 
 ```
-    SIMD[f32, simd_width_of[f64]()`
+    programma FAUST               template di architettura (-a)
+          |                                  |
+    generatore Mojo                import e main dell'applicazione
+          |                                  |
+          +------------ mydsp ---------------+
+                           |
+                    compilatore Mojo
+                           |
+                      applicazione
 ```
 
-#### Macro di visita contestuale
+## Organizzazione in moduli e package Mojo
 
-Le macro SIMD applicano generalmente un pattern di salvataggio e ripristino dello stato:
-
-```
-    salva il valore corrente della flag
-    imposta il nuovo contesto
-    visita l'istruzione
-    ripristina il valore precedente
-```
-
-`mj_simd_emit_set` e `mj_simd_emit_restore` delimitano una regione di emissione SIMD, mentre
-`mj_simd_emit_accept` applica lo stesso pattern attorno alla visita di una singola istruzione.
-`mj_simd_high_accept` visita un'espressione con `gSIMDHigh` attivo per produrre la seconda porzione `f64`.
-Le macro `mj_scalar_accept` e `mj_scalar_visit` disattivano invece temporaneamente l'emissione SIMD e
-delegano la traduzione al comportamento scalare ereditato da `MojoInstVisitor`.
-
-Questo meccanismo evita di replicare manualmente la gestione delle flag in ogni operazione `visit`
-e preserva il contesto esterno durante le visite ricorsive.
-
-#### Precisione mista e larghezze SIMD
-
-La differenza tra `vsize` e `hsize` richiede una gestione esplicita delle espressioni a precisione
-mista. I valori numerici vengono emessi usando costruttori differenti secondo il tipo e il contesto:
+Un file `.mojo` è un modulo. Una directory con `__init__.mojo` è un package il cui initializer può
+riesportare l'API pubblica. La struttura attuale è:
 
 ```
-    s32  -> S32Vec / S32Hec
-    f32  -> F32Vec / F32Hec
-    f64  -> F64Vec
+    architecture/mojo/
+    ├── audio/                 FaustAudio, PortAudio, FFI PortAudio
+    ├── bench/                 esecuzione benchmark e report
+    ├── conf/                  prelude, alias e definizioni compile-time
+    ├── dsp/                   FaustDsp, FaustDspGpu, AdapterDsp
+    ├── gpu/                   GpuDevice e helper GPU
+    ├── gui/                   FaustGui, ControlGui, ProtoGui, TerminalGui, mappa GPU
+    │   └── terminal/native/   libreria terminale C11 e Makefile
+    ├── help/                  helper matematici, SIMD e I/O
+    ├── mem/                   allocazione dei buffer
+    ├── meta/                  FaustMeta
+    ├── pulse/                 esecuzione degli impulse test
+    ├── portaudio.mojo
+    ├── portaudio-terminal.mojo
+    ├── portaudio-proto.mojo
+    ├── portaudio-terminal-gpu.mojo
+    ├── bench.mojo
+    ├── inspect.mojo
+    └── impulse.mojo
 ```
 
-I tipi `Hec` rappresentano valori `s32` o `f32` con lo stesso numero di lane del vettore `f64`. Sono
-necessari, quando un intero o un valore `f32` partecipa a un'espressione `f64`.
+I template importano dai package pubblici, non dai moduli che li implementano. Importano sempre l'intero
+prelude con `from conf import *`; gli altri import dipendono dalle necessità del template. Per esempio,
+`impulse.mojo` usa `from pulse import *` e `from gui import FaustGui, ControlGui`. Il template terminale
+GPU riceve `AdapterDsp` da `dsp`, `GpuDevice` e `has_accelerator` da `gpu`, `TerminalGui` e la mappa
+dei controlli da `gui`, e `PortAudio` da `audio`.
 
-La flag `gSIMDHalf` propaga questa scelta a tutti gli operandi successivi dell'espressione, evitando
-operazioni tra vettori con larghezze incompatibili.
+I moduli di implementazione possono importare direttamente un modulo interno per evitare cicli fra i
+package. I file `__init__.mojo` stabiliscono l'interfaccia pubblica utilizzata dai template.
 
-Quando la destinazione è `f64`, il visitor genera separatamente la porzione bassa e quella alta:
+### Posizione dei file generati
 
-```
-    vstore(dst, low)
-    vstore(dst, high, hsize)
-```
-
-Durante la seconda visita `gSIMDHigh` aggiunge `hsize` agli accessi indicizzati. Quando invece
-un'espressione `f64` deve essere scritta su un'uscita `f32`, le due porzioni vengono combinate:
+Il file Mojo generato importa questi package. Occorre passare a Mojo `architecture/mojo` tramite `-I`,
+indipendentemente dalla directory che contiene il file generato:
 
 ```
-    vstore(dst, low.join(high))
+    mojo build -I architecture/mojo path/to/generated_dsp.mojo -o generated_dsp
 ```
 
-#### Analisi degli accessi alla memoria
+Se si compila da `architecture/mojo`, basta `-I .`.
 
-La vettorizzazione è consentita solamente quando ogni lane SIMD accede a indirizzi consecutivi.
-Il visitor riconosce attualmente indici affini semplici rispetto all'indice del ciclo:
+## Ambiente Pixi
 
-```
-    A[i]
-    A[i + c]
-    A[i - c]
-    A[c + i]
-```
-
-`gCurIndex` rappresenta l'indice scalare rimosso dal ciclo vettoriale, mentre `visitIndex` traduce
-queste forme in un offset per `vload` o `vstore`. Durante la generazione della porzione alta `f64`
-viene aggiunto un ulteriore offset pari a `hsize`.
-
-Indici circolari, operatori diversi da somma e sottrazione, chiamate di funzione e accessi indiretti
-sono classificati come non vettorizzabili. Espressioni quali:
+Questa directory è un workspace Pixi. `pixi.toml` usa i canali `max-nightly` e `conda-forge`, dipende
+da versioni di sviluppo di `modular` e `mojo` ed è configurato per `osx-arm64`. `pixi.lock` conserva la
+risoluzione delle dipendenze. Da questa directory:
 
 ```
-    table[f(i)]
-    buffer[(i + offset) & mask]
+    pixi install
+    pixi shell
 ```
 
-richiederebbero rispettivamente operazioni gather o una gestione esplicita dell'indirizzamento delle
-singole lane. Poiché queste operazioni non sono ancora implementate, il ciclo viene conservativamente
-tradotto mediante il percorso scalare. Un normale `vload` contiguo non sarebbe infatti semanticamente
-equivalente a un gather.
+È possibile eseguire un comando anche tramite `pixi run`.
 
-#### Fallback scalare e casi speciali
+## Componenti comuni
 
-I cicli ricorsivi e quelli con accessi non vettorizzabili vengono emessi come cicli scalari svolti
-per le `vsize` lane del blocco corrente:
+### Configurazione
+
+`conf/prelude.mojo` esporta alias aritmetici e SIMD, tipi puntatore e stream, costanti di memoria e
+allineamento e il tipo dei campioni esterni. `conf/__init__.mojo` riesporta tutto il prelude. Il prelude
+importa con `*` le definizioni comuni della libreria standard e dell'host GPU.
 
 ```
-    comptime for i in range(vsize):
-        scalar body
+    comptime dfaust = get_defined_dtype["DFAUST", f32]()
+    comptime FaustFloat = Scalar[dfaust]
 ```
 
-Il fallback usa `MojoInstVisitor` per emettere le operazioni scalari, preservandone l'ordine anche
-dopo l'unrolling.
+`DFAUST` usa `f32` per default e può essere impostato con `-D DFAUST=DType.float32`. Indica il tipo dei
+campioni esterni e delle zone UI; è distinto dalla precisione interna selezionata da FAUST con `-single`
+o `-double`. I template PortAudio e GPU attuali richiedono campioni esterni a 32 bit. Il generatore Mojo
+GPU attuale richiede anche la precisione interna `-single`.
 
-I bargraph vengono gestiti distinguendo due casi:
+### DSP
 
-- Il bargraph è direttamente collegato al parametro scritto dallo store finale. Il valore viene
-  calcolato in SIMD e il bargraph viene aggiornato con l'ultimo elemento del blocco.
+Il package `dsp` esporta `FaustDsp`, `FaustDspGpu` e `AdapterDsp`. L'adapter mantiene puntatori al DSP
+generato e a un device GPU preparato; delega al DSP inizializzazione, metadati e costruzione della UI, e
+implementa `FaustDsp.compute` chiamando `GpuDevice.process`.
 
-- Il ciclo contiene più aggiornamenti di bargraph, seguiti dallo store di un parametro non direttamente
-  correlato. Gli aggiornamenti vengono emessi scalarmente tramite `comptime for`, mentre lo store
-  finale viene elaborato separatamente secondo le regole di vettorizzazione di cui sopra.
+### Audio
 
-Il riconoscimento è basato sul numero delle istruzioni e sui nomi contenenti `bargraph`, assumendo
-che lo store del parametro sia l'ultima istruzione del ciclo.
+`audio` esporta `FaustAudio`, `PortAudio`, `SAMP_RATE` e `BUFF_SIZE`. Il contratto `FaustAudio` comprende
+`init`, `start`, `stop` e `is_alive`. `audio/portaudio/ffi.mojo` contiene i binding C; l'implementazione
+PortAudio apre uno stream `float32` non interleaved e registra una callback che richiama `compute` del DSP.
+Lo stesso driver può ricevere un DSP CPU generato oppure l'adapter GPU.
 
-#### Vincoli e workaround correnti
+PortAudio definisce `SAMP_RATE` come valore in kHz moltiplicato per 1.000: il default `96` corrisponde a
+96 kHz. Il valore predefinito di `BUFF_SIZE` è 256 frame. Per i template PortAudio, quindi, si passa
+`-D SAMP_RATE=48` per ottenere 48 kHz.
 
-- `-vs` deve corrispondere alla larghezza restituita da `simd_width_of[f32]()`.
+### GUI
 
-- Questa corrispondenza è richiesta dal backend, ma non viene ancora verificata esplicitamente.
+`gui` esporta il trait `FaustGui`, `ControlGui`, `ProtoGui`, `TerminalGui` e gli helper della mappa GPU.
+Il metodo generato `build_user_interface` descrive gruppi annidati, controlli, bargraph e metadati usando
+i metodi di `FaustGui`. `run()` è la chiamata bloccante della GUI sul thread principale; le operazioni
+per widget non supportati possono utilizzare le implementazioni predefinite vuote del trait.
 
-- Il ciclo principale è riconosciuto dal nome `vindex`.
+- `ControlGui` gestisce i pulsanti degli impulse test.
+- `ProtoGui` è un piccolo prototipo con input testuale.
+- `TerminalGui` costruisce una gerarchia di widget basata su stack ed esegue la GUI terminale nativa C11.
 
-- La dichiarazione contenente `vsize` viene ignorata perché generata direttamente dal container.
+La GUI terminale supporta slider, campi numerici, pulsanti, checkbox, bargraph, interazione con il mouse
+e inserimento di valori numerici. `gui/terminal/ffi.mojo` collega Mojo a
+`gui/terminal/native/termgui.c`. Prima del linking di un'architettura terminale va compilata la libreria:
 
-- Il primo elemento del DAG viene rimosso assumendo che sia l'inizializzazione dell'indice principale.
+```
+    make -C gui/terminal/native release
+```
 
-- Ciascun ciclo ha una singola `StoreVarInst` principale ed è l'ultima istruzione.
+Il risultato è `gui/terminal/native/build/libtermgui.a`.
 
-- I cicli possono avere una, due o più di due istruzioni:
-  - la sola store principale;
-  - l'update di un bargraph e la store principale ad esso correlata;
-  - l'update di diversi bargraph e la store principale ad essi *non* necessariamente correlata;
+### GPU
 
-- I bargraph sono riconosciuti attraverso la forma del ciclo e il nome dei campi.
+`gpu` esporta `GpuDevice`, i codici di errore GPU, gli indici dei kernel e `has_accelerator`.
+`GpuDevice.prepare` alloca sul device lo stato DSP, i buffer dei canali e la memoria di lavoro.
+`GpuControlMap` visita la UI del DSP e registra le zone attive dei controlli e le zone passive dei meter.
+Per ogni blocco, il device trasferisce i controlli modificati e gli ingressi, accoda i kernel generati,
+copia sul lato host uscite e meter, quindi sincronizza. Lo stato DSP rimane sul device fra i blocchi.
+`get_error` riporta gli errori della callback dopo la riproduzione; `release` libera le risorse GPU
+quando l'elaborazione è terminata.
 
-- La vettorizzabilità  degli indici è limitata a semplici espressioni affini.
+Questo è il percorso GPU prototipale corrente: il DSP generato implementa `FaustDspGpu` e l'integrazione
+con `FaustAudio` e `PortAudio` avviene tramite composizione con `AdapterDsp`.
 
-- Gather e scatter non sono implementati e causano il fallback scalare.
+### Metadata
 
-- Lo stato SIMD è globale e viene ripristinato manualmente alla fine di ogni ciclo.
+`meta` fornisce `FaustMeta`, l'interfaccia usata dal codice generato per esporre i metadati FAUST.
 
-- `gSIMDHalf` persiste per l'intero ciclo per mantenere coerente la larghezza degli operandi.
+### Help
 
-- La generazione non emette il percorso scalare per gli eventuali frame rimanenti dopo l'ultimo blocco
-  completo.
+`help` contiene gli helper matematici, le operazioni SIMD di load e store e l'attesa dell'input usate dal
+codice generato e dai template.
 
-L'ultimo vincolo implica che la dimensione del buffer sia compatibile con `vsize`. Il visitor ignora infatti
-l'`IfInst` prodotto dalla pipeline FAUST per la gestione dei frame rimanenti ed il ciclo principale processa
-solamente blocchi SIMD completi.
+### Memory
+
+`mem` fornisce l'allocazione e il rilascio espliciti dei buffer per benchmark, ispezione e impulse test.
+
+### Benchmark e Test
+
+`bench` implementa l'esecuzione e i report utilizzati da `bench.mojo` e `inspect.mojo`. `pulse`
+implementa il runner degli impulse test utilizzato da `impulse.mojo`. I rispettivi template top-level
+allocano DSP e buffer e invocano le funzioni dei package.
+
+## Architetture disponibili
+
+I template `.mojo` nella directory principale vengono selezionati con l'opzione FAUST `-a`.
+
+**portaudio.mojo**
+
+Alloca e inizializza un DSP CPU, avvia PortAudio, attende input standard sul thread principale, arresta
+lo stream e libera il DSP. La callback PortAudio chiama `compute` del DSP.
+
+**portaudio-terminal.mojo**
+
+Costruisce una `TerminalGui` dal DSP CPU, avvia PortAudio ed entra nel loop bloccante della GUI terminale.
+La GUI modifica le zone dei controlli nel DSP host; la callback le legge durante l'elaborazione.
+Per il linking servono PortAudio e `libtermgui.a`.
+
+**portaudio-proto.mojo**
+
+Costruisce `ProtoGui()` dal DSP CPU ed esegue il suo semplice loop testuale mentre PortAudio elabora
+l'audio. È un template per prototipi; l'architettura terminale nativa fornisce una UI più completa.
+
+**portaudio-terminal-gpu.mojo**
+
+Costruisce `TerminalGui`, `GpuControlMap`, `GpuDevice[mydsp]`, `AdapterDsp[mydsp]` e il normale driver
+`PortAudio`. Dopo aver preparato il device, passa l'adapter a PortAudio e avvia la GUI sul thread
+principale. All'uscita arresta lo stream audio prima di liberare le risorse GPU e DSP. Richiede un DSP
+GPU, un acceleratore supportato, PortAudio e `libtermgui.a`.
+
+**bench.mojo**
+
+Alloca i buffer, esegue il warmup del DSP CPU, misura ripetutamente `compute` e produce un report senza
+avviare un driver audio. Il package di benchmark controlla l'eventuale output CSV.
+
+**inspect.mojo**
+
+Esegue il DSP CPU tramite una funzione esportata e non inlined chiamata `inspect_compute`. `keep` e
+`clobber_memory` facilitano l'individuazione del codice prodotto a basso livello.
+
+**impulse.mojo**
+
+Inizializza il DSP CPU e `ControlGui`, quindi usa `pulse` per stampare la risposta all'impulso nel
+formato richiesto dagli impulse test di FAUST.
+
+## Flusso di esecuzione audio
+
+Nei template CPU, `main` inizializza `mydsp`, costruisce eventualmente la GUI e passa il DSP a
+`PortAudio.start`. La callback PortAudio chiama `mydsp.compute`. Il thread principale attende in `run`
+della GUI o nel loop di input dell'architettura, quindi arresta PortAudio e libera il DSP.
+
+```
+    main                             callback PortAudio
+      |                                      |
+      +--> mydsp.init                        |
+      +--> build_user_interface (opzionale) |
+      +--> PortAudio.start(mydsp) ---------> mydsp.compute
+      +--> GUI.run / attesa input            |
+      +--> PortAudio.stop <------------------+
+      +--> libera mydsp
+```
+
+Nel template terminale GPU, `main` crea inoltre la mappa dei controlli e il device prima di chiamare
+`PortAudio.start(adapter)`. La callback chiama `AdapterDsp.compute`, che invoca `GpuDevice.process`:
+controlli host e ingressi raggiungono il device, i kernel generati elaborano il blocco, poi uscite audio
+e meter tornano sull'host. La callback termina il blocco dopo la sincronizzazione GPU.
+
+## Configurazione a compile time
+
+Le definizioni Mojo `-D` specializzano l'architettura durante la build del file generato:
+
+```
+    -D DFAUST=DType.float32 -D SAMP_RATE=48 -D BUFF_SIZE=128
+```
+
+Per PortAudio, `SAMP_RATE=48` indica 48 kHz. Il benchmark definisce invece il sample rate direttamente
+in Hz (default 96.000); anche `pulse` usa Hz (default 44.100). `BUFF_SIZE` misura i frame. Benchmark e
+ispezione usano altre definizioni, fra cui `COMPUTE_ITERS`.
+
+Le opzioni FAUST `-single` e `-double` selezionano la precisione *interna* del DSP. `-gpu` seleziona il
+generatore Mojo GPU sperimentale, che attualmente richiede `-single` e produce un DSP conforme a
+`FaustDspGpu` per il relativo template.
+
+## Workflow essenziale
+
+Da `architecture/mojo`, si genera un DSP CPU con il template terminale:
+
+```
+    make -C gui/terminal/native release
+    /path/to/faust -lang mojo -single -a portaudio-terminal.mojo \
+        -o program.mojo src/phasorsine.dsp
+```
+
+Si compila fornendo i package dell'architettura e le librerie native al linker:
+
+```
+    mojo build -O3 -I . -D DFAUST=DType.float32 -D SAMP_RATE=48 -D BUFF_SIZE=128 \
+        -Xlinker -L/opt/homebrew/opt/portaudio/lib -Xlinker -lportaudio \
+        -Xlinker gui/terminal/native/build/libtermgui.a -Xlinker -lm \
+        -o program program.mojo
+```
+
+Per elaborare sulla GPU si selezionano il generatore e il template GPU, quindi si compila con le stesse
+opzioni di linking di PortAudio e della libreria terminale:
+
+```
+    /path/to/faust -lang mojo -gpu -single -a portaudio-terminal-gpu.mojo \
+        -o program_gpu.mojo src/phasorsine.dsp
+    mojo build -O3 -I . -D DFAUST=DType.float32 -D SAMP_RATE=48 -D BUFF_SIZE=128 \
+        -Xlinker -L/opt/homebrew/opt/portaudio/lib -Xlinker -lportaudio \
+        -Xlinker gui/terminal/native/build/libtermgui.a -Xlinker -lm \
+        -o program_gpu program_gpu.mojo
+```
+
+La directory della libreria PortAudio va adattata all'installazione locale. Per usare `portaudio.mojo`,
+`portaudio-proto.mojo`, `bench.mojo`, `inspect.mojo` o `impulse.mojo`, basta cambiare il template passato
+a `-a` e fornire le librerie richieste dal template scelto.

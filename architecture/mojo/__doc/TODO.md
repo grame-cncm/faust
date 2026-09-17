@@ -1,4 +1,4 @@
-### Exp 2 and Exp 10 optimizations (maybe Log 2 and Log 10 too)
+### Fast math
 
 `C++` fast math reference in `fastmath.cpp`
 

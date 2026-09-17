@@ -1,518 +1,330 @@
 # Faust to Mojo architectures
 
-Il contenuto di questa cartella implementa le architetture e le componenti di supporto utilizzate dal
-backend Mojo di FAUST per trasformare il codice DSP transpilato in un programma eseguibile.
+Questa directory contiene le architetture e i componenti di supporto utilizzati dal backend Mojo di FAUST
+per trasformare il DSP generato in un programma eseguibile.
 
-Un backend di FAUST si compone infatti di due parti principali:
+Un backend FAUST comprende due parti principali:
 
-- il **generatore**, che traduce la rappresentazione intermedia di FAUST nel linguaggio target;
+- il **generatore**, che traduce la rappresentazione intermedia nel linguaggio di destinazione;
 - il **sistema di architetture**, che fornisce l'ambiente necessario per utilizzare il DSP generato.
 
-Nel caso del backend Mojo, il generatore produce principalmente la `struct mydsp`, contenente lo stato,
-le operazioni di inizializzazione, i metadati, la descrizione dell'interfaccia utente e il kernel `compute`.
-
-Le architetture presenti in questa directory forniscono invece le componenti esterne al DSP: driver audio,
-interfacce utente, gestione dei buffer, funzioni di supporto e punti di ingresso dell'applicazione.
-
-In questo modo il codice di elaborazione rimane indipendente dal contesto nel quale viene eseguito. Lo
-stesso DSP può quindi essere inserito in architetture differenti senza modificare il codice prodotto dal
-generatore.
+Il generatore Mojo produce `struct mydsp`, con stato, inizializzazione, metadati, descrizione della UI e
+metodi di elaborazione. L'architettura aggiunge il punto d'ingresso, il driver audio, la GUI, la gestione
+della memoria e il codice di supporto. Il percorso CPU usa `compute`; quello GPU, ancora sperimentale,
+genera anche le operazioni richieste da `FaustDspGpu`.
 
 ## Architetture FAUST
 
-Un'architettura FAUST è un file nel linguaggo target (nella fattispecie Mojo) usato come template durante
-la compilazione. Il file contiene il codice necessario ad utilizzare il DSP e due punti nei quali il
-compilatore inserisce il codice generato:
+Un'architettura FAUST è un template Mojo selezionato con `-a`. Il compilatore inserisce il DSP fra la
+prima sezione dell'architettura (import e definizioni) e la seconda (punto d'ingresso):
 
 ```
+    import e definizioni forniti dall'architettura
     <<includeIntrinsic>>
     <<includeclass>>
+    main e gestione del ciclo di vita forniti dall'architettura
 ```
 
-Nel caso di Mojo solo `<<includeclass>>` viene effettivamente rimpiazzato. Il codice iniettato è l'output di
+`<<includeclass>>` riceve la classe DSP emessa da `MojoCodeContainer.produceClass()`;
+`<<includeIntrinsic>>` rimane nel template per l'espansione dell'architettura da parte del compilatore.
+I template top-level usano commenti di sezione per delimitare queste parti.
 
-```
-    MojoCodeContainer.produceClass()
-```
-
-tuttavia nei file si utilizza anche `<<includeIntrinsic>>` per il corretto funzionamento del compilatore.
-
-Una normale architettura Mojo assume quindi la seguente forma:
-
-```
-    codice fornito dall'architettura
-    |
-    |--> import, tipi e componenti di supporto
-    |
-    codice generato da FAUST
-    <<includeIntrinsic>>
-    <<includeclass>> 
-    |
-    |--> vengono sostituite le tag con la struct
-    |
-    codice fornito dall'architettura
-    |
-    |--> main, driver, allocazione e controllo dell'esecuzione
-    |
-    EOF
-```
-
-I file `portaudio.mojo`, `portaudio-proto.mojo`, `bench.mojo`, `inspect.mojo` e `impulse.mojo` seguono
-tutti questo schema. Ciò che cambia è il codice che circonda `mydsp` e, di conseguenza, lo scopo del
-programma risultante.
-
-Questa separazione è particolarmente importante nel modello FAUST: il generatore non deve conoscere il
-driver audio, il sistema di interfaccia utente o il framework di benchmark utilizzato. Produce solamente un
-DSP conforme al contratto atteso dalle architetture.
-
-Si precisa che, in questo contesto, viene considerato codice di architettura anche il codice di supporto
-contenuto nelle sottocartelle di `architecture/mojo`. Tali moduli sono l'implementazione interna delle
-componenti dell'architettura e vengono utilizzati dai template presenti direttamente in `architecture/mojo`. 
-
-I template vengono passati al compilatore FAUST tramite l'opzione `-a` per costruire il programma Mojo
-completo attorno al DSP generato.
+Seguono questa struttura `portaudio.mojo`, `portaudio-terminal.mojo`, `portaudio-proto.mojo`,
+`portaudio-terminal-gpu.mojo`, `bench.mojo`, `inspect.mojo` e `impulse.mojo`. I package sottostanti
+contengono le implementazioni riutilizzabili; i template le compongono attorno al DSP generato.
 
 ## Interfaccia del DSP
 
-Il contratto comune tra il DSP generato e le architetture è rappresentato dal trait `FaustDsp`, dichiarato
-in `dsp/dsp.mojo`.
-
-Il trait descrive le operazioni che una classe DSP generata deve fornire. Fra queste sono presenti:
-
-- gli accessor per sample rate, numero di ingressi e numero di uscite;
-- le operazioni di inizializzazione e reset dell'istanza;
-- la produzione dei metadati e della descrizione JSON;
-- la costruzione dell'interfaccia utente;
-- il metodo `compute`, che esegue il calcolo del DSP su un blocco di campioni.
-
-L'interfaccia principale per il calcolo è concettualmente:
+Il trait `FaustDsp`, in `dsp/dsp.mojo`, definisce il contratto comune delle architetture CPU: numero di
+ingressi e uscite, sample rate, inizializzazione e reset, metadati e JSON, costruzione della UI ed
+elaborazione a blocchi:
 
 ```
     dsp.compute(count, inputs, outputs)
 ```
 
-dove `count` indica il numero di frame da elaborare e `inputs` e `outputs` rappresentano rispettivamente
-gli stream di ingresso e di uscita.
+La `mydsp` generata implementa il contratto; la callback PortAudio può quindi elaborarla senza conoscere
+i suoi campi. Anche benchmark e impulse test usano questa interfaccia.
 
-La relazione tra generatore e architetture può essere riassunta come segue:
+La variante GPU implementa inoltre `FaustDspGpu`, in `dsp/gpu.mojo`. Il trait aggiunge le operazioni
+statiche `gpu_work_size(count)` e
+`gpu_compute(ctx, dsp_raw, in_buf, out_buf, work_buf, count)`. La sua implementazione predefinita di
+`compute` è vuota: per eseguire l'audio GPU si passa a PortAudio un `AdapterDsp[mydsp]`, il cui `compute`
+inoltra il blocco a `GpuDevice`. Passare direttamente il DSP GPU a PortAudio non avvierebbe il calcolo GPU.
+
+Generatore e architettura selezionata si incontrano nel file Mojo completo:
 
 ```
-    programma FAUST
-    |
-    FAUST compiler
-    |
-    +------------------+
-    |                  |
-    generatore Mojo          |
-    |            architecture file
-    struct mydsp            |
-    |                  |
-    +--------+---------+
-    |
-    sorgente Mojo completo
-    |
-    compilatore Mojo
-    |
-    applicazione
+    programma FAUST               template di architettura (-a)
+          |                                  |
+    generatore Mojo                import e main dell'applicazione
+          |                                  |
+          +------------ mydsp ---------------+
+                           |
+                    compilatore Mojo
+                           |
+                      applicazione
 ```
-
-Le architetture non dipendono quindi dall'implementazione interna di un particolare DSP, ma unicamente
-dall'interfaccia comune esposta dalla classe generata.
 
 ## Organizzazione in moduli e package Mojo
 
-Mojo distingue tra **moduli** e **package**. Un file `.mojo` può essere utilizzato come modulo, mentre una
-directory viene riconosciuta come package quando contiene un file `__init__.mojo`.
-
-Questa directory sfrutta tale organizzazione per separare le differenti responsabilità dell'architettura.
+Un file `.mojo` è un modulo. Una directory con `__init__.mojo` è un package il cui initializer può
+riesportare l'API pubblica. La struttura attuale è:
 
 ```
     architecture/mojo/
-    ├── audio/
-    │   ├── __init__.mojo
-    │   └── portaudio/
-    ├── conf/
-    │   ├── __init__.mojo
-    │   └── prelude.mojo
-    ├── dsp/
-    │   ├── __init__.mojo
-    │   └── dsp.mojo
-    ├── gui/
-    │   ├── __init__.mojo
-    │   ├── gui.mojo
-    │   ├── proto.mojo
-    │   └── control.mojo
-    ├── help/
-    ├── mem/
-    ├── meta/
-    ├── bench/
-    ├── test/
+    ├── audio/                 FaustAudio, PortAudio, FFI PortAudio
+    ├── bench/                 esecuzione benchmark e report
+    ├── conf/                  prelude, alias e definizioni compile-time
+    ├── dsp/                   FaustDsp, FaustDspGpu, AdapterDsp
+    ├── gpu/                   GpuDevice e helper GPU
+    ├── gui/                   FaustGui, ControlGui, ProtoGui, TerminalGui, mappa GPU
+    │   └── terminal/native/   libreria terminale C11 e Makefile
+    ├── help/                  helper matematici, SIMD e I/O
+    ├── mem/                   allocazione dei buffer
+    ├── meta/                  FaustMeta
+    ├── pulse/                 esecuzione degli impulse test
     ├── portaudio.mojo
+    ├── portaudio-terminal.mojo
     ├── portaudio-proto.mojo
+    ├── portaudio-terminal-gpu.mojo
     ├── bench.mojo
     ├── inspect.mojo
     └── impulse.mojo
 ```
 
-I file `__init__.mojo` espongono l'interfaccia pubblica del relativo package, generalmente re-esportando le
-definizioni dei moduli interni. Questo permette alle architetture top-level di utilizzare import sintetici:
+I template importano dai package pubblici, non dai moduli che li implementano. Importano sempre l'intero
+prelude con `from conf import *`; gli altri import dipendono dalle necessità del template. Per esempio,
+`impulse.mojo` usa `from pulse import *` e `from gui import FaustGui, ControlGui`. Il template terminale
+GPU riceve `AdapterDsp` da `dsp`, `GpuDevice` e `has_accelerator` da `gpu`, `TerminalGui` e la mappa
+dei controlli da `gui`, e `PortAudio` da `audio`.
 
-```
-    from conf import *
-    from dsp import *
-    from gui import *
-    from meta import *
-```
+I moduli di implementazione possono importare direttamente un modulo interno per evitare cicli fra i
+package. I file `__init__.mojo` stabiliscono l'interfaccia pubblica utilizzata dai template.
 
-### Posizione dei file transpilati
+### Posizione dei file generati
 
-Le architetture importano package locali come `conf`, `dsp`, `gui`, `meta`, `mem` e `audio`. Per rendere
-disponibili questi package al compilatore Mojo, `architecture/mojo` deve essere incluso nel percorso di
-ricerca tramite l'opzione `-I`.
-
-Ad esempio, dopo l'espansione di `portaudio.mojo`, il file transpilato contiene:
-
-```
-    from conf import *
-    from dsp import *
-    from gui import *
-    from meta import *
-    from audio.portaudio import *
-```
-
-Il file transpilato può essere generato in qualsiasi directory, purché durante la compilazione venga fornito
-il percorso che contiene i package dell'architettura:
+Il file Mojo generato importa questi package. Occorre passare a Mojo `architecture/mojo` tramite `-I`,
+indipendentemente dalla directory che contiene il file generato:
 
 ```
     mojo build -I architecture/mojo path/to/generated_dsp.mojo -o generated_dsp
 ```
 
+Se si compila da `architecture/mojo`, basta `-I .`.
+
 ## Ambiente Pixi
 
-La directory costituisce anche un workspace Pixi autonomo. Il file `pixi.toml` definisce l'ambiente nel
-quale vengono compilate ed eseguite le architetture Mojo.
-
-Il manifest utilizza i canali:
-
-```
-    channels = [
-        "https://conda.modular.com/max-nightly",
-        "conda-forge"
-    ]
-```
-
-e installa versioni nightly di `modular` e `mojo`. Il workspace è configurato per `osx-arm64`.
-
-L'ambiente può essere installato e attivato dalla directory con:
+Questa directory è un workspace Pixi. `pixi.toml` usa i canali `max-nightly` e `conda-forge`, dipende
+da versioni di sviluppo di `modular` e `mojo` ed è configurato per `osx-arm64`. `pixi.lock` conserva la
+risoluzione delle dipendenze. Da questa directory:
 
 ```
     pixi install
     pixi shell
 ```
 
-Un comando può essere eseguito direttamente nell'ambiente anche tramite `pixi run` (`pixi run mojo build ..`).
-
-Il file `pixi.lock` memorizza la risoluzione concreta delle dipendenze e permette di ricostruire lo stesso
-ambiente a partire dal manifest.
+È possibile eseguire un comando anche tramite `pixi run`.
 
 ## Componenti comuni
 
-Le sottodirectory implementano componenti riutilizzabili dalle diverse architetture top-level.
-
 ### Configurazione
 
-Il package `conf` contiene le definizioni comuni necessarie sia al codice generato sia alle architetture.
-
-Il modulo `conf/prelude.mojo` centralizza in particolare:
-
-- alias per i tipi aritmetici utilizzati dal backend;
-- tipi e costanti `DType`;
-- alias per i tipi SIMD;
-- tipi puntatore e relativi origin;
-- rappresentazione degli stream audio;
-- costanti relative all'allineamento e alla memoria;
-- definizione della precisione esterna `DFAUST`.
-
-La precisione dell'architettura viene configurata a compile time tramite l'opzione:
+`conf/prelude.mojo` esporta alias aritmetici e SIMD, tipi puntatore e stream, costanti di memoria e
+allineamento e il tipo dei campioni esterni. `conf/__init__.mojo` riesporta tutto il prelude. Il prelude
+importa con `*` le definizioni comuni della libreria standard e dell'host GPU.
 
 ```
-    -D DFAUST=DType.float32
+    comptime dfaust = get_defined_dtype["DFAUST", f32]()
+    comptime FaustFloat = Scalar[dfaust]
 ```
 
-Il tipo viene quindi recuperato nel codice attraverso `get_defined_dtype`:
-
-```
-    comptime dfaust = get_defined_dtype["DFAUST", DType.float32]()
-```
-
-e utilizzato per definire `FaustFloat`:
-
-```
-    comptime FaustFloat = Scalar[dfaust]  # SIMD[dfaust, 1]
-```
-
-`FaustFloat` rappresenta quindi il tipo numerico utilizzato dall'architettura e assume la precisione
-specificata tramite `DFAUST`; se l'opzione non viene fornita, viene utilizzato `f32`.
+`DFAUST` usa `f32` per default e può essere impostato con `-D DFAUST=DType.float32`. Indica il tipo dei
+campioni esterni e delle zone UI; è distinto dalla precisione interna selezionata da FAUST con `-single`
+o `-double`. I template PortAudio e GPU attuali richiedono campioni esterni a 32 bit. Il generatore Mojo
+GPU attuale richiede anche la precisione interna `-single`.
 
 ### DSP
 
-Il package `dsp` definisce il trait `FaustDsp` che rappresenta il contratto fra il codice prodotto dal
-generatore e il resto dell'architettura.
-
-Le architetture possono quindi essere scritte genericamente rispetto al tipo concreto del DSP. Il driver
-audio, ad esempio, richiede semplicemente un tipo conforme a `FaustDsp` e può invocarne gli accessor e il
-metodo `compute` senza conoscere i campi o le operazioni generate per un particolare programma FAUST.
+Il package `dsp` esporta `FaustDsp`, `FaustDspGpu` e `AdapterDsp`. L'adapter mantiene puntatori al DSP
+generato e a un device GPU preparato; delega al DSP inizializzazione, metadati e costruzione della UI, e
+implementa `FaustDsp.compute` chiamando `GpuDevice.process`.
 
 ### Audio
 
-Il package `audio` contiene l'astrazione del driver audio.
+`audio` esporta `FaustAudio`, `PortAudio`, `SAMP_RATE` e `BUFF_SIZE`. Il contratto `FaustAudio` comprende
+`init`, `start`, `stop` e `is_alive`. `audio/portaudio/ffi.mojo` contiene i binding C; l'implementazione
+PortAudio apre uno stream `float32` non interleaved e registra una callback che richiama `compute` del DSP.
+Lo stesso driver può ricevere un DSP CPU generato oppure l'adapter GPU.
 
-Il modulo `audio/audio.mojo` definisce il trait `FaustAudio`, composto dalle operazioni:
-
-```
-    init
-    start
-    stop
-```
-
-Un driver audio concreto implementa tale contratto e riceve un DSP conforme a `FaustDsp`.
-
-L'implementazione basata su `PortAudio` si trova nel package `audio/portaudio`, ulteriormente separato in:
-
-- `ffi.mojo`, che espone le definizioni necessarie per interagire con la API C di PortAudio;
-- `portaudio.mojo`, che implementa il driver `PortAudio` e gli helper specifici per FAUST.
-
-Il driver inizializza `PortAudio`, seleziona i dispositivi di ingresso e uscita, costruisce i parametri dello
-stream e registra una callback associata all'istanza DSP.
-
-All'arrivo di un nuovo blocco audio, la callback converte i buffer ricevuti da PortAudio nella
-rappresentazione attesa dal backend e richiama:
-
-```
-    dsp[].compute(S32(count), inputs, outputs)
-```
-
-Il thread audio diventa quindi responsabile dell'invocazione real-time del kernel generato.
+PortAudio definisce `SAMP_RATE` come valore in kHz moltiplicato per 1.000: il default `96` corrisponde a
+96 kHz. Il valore predefinito di `BUFF_SIZE` è 256 frame. Per i template PortAudio, quindi, si passa
+`-D SAMP_RATE=48` per ottenere 48 kHz.
 
 ### GUI
 
-Il package `gui` definisce l'astrazione delle interfacce utente attraverso il trait `FaustGui`.
+`gui` esporta il trait `FaustGui`, `ControlGui`, `ProtoGui`, `TerminalGui` e gli helper della mappa GPU.
+Il metodo generato `build_user_interface` descrive gruppi annidati, controlli, bargraph e metadati usando
+i metodi di `FaustGui`. `run()` è la chiamata bloccante della GUI sul thread principale; le operazioni
+per widget non supportati possono utilizzare le implementazioni predefinite vuote del trait.
 
-Il trait riproduce le operazioni utilizzate dal sistema UI di FAUST per descrivere gerarchie di widget,
-controlli attivi, bargraph e metadati. La maggior parte delle operazioni ha implementazione vuota: una GUI
-concreta può quindi implementare solamente le funzionalità di cui necessita.
+- `ControlGui` gestisce i pulsanti degli impulse test.
+- `ProtoGui` è un piccolo prototipo con input testuale.
+- `TerminalGui` costruisce una gerarchia di widget basata su stack ed esegue la GUI terminale nativa C11.
 
-Il metodo `build_user_interface` generato all'interno di `mydsp` riceve una implementazione di `FaustGui` e
-registra presso di essa i parametri del DSP. Le zone associate ai controlli fanno riferimento direttamente
-ai campi della struttura DSP, permettendo a una interfaccia di modificare i parametri utilizzati da `compute`.
+La GUI terminale supporta slider, campi numerici, pulsanti, checkbox, bargraph, interazione con il mouse
+e inserimento di valori numerici. `gui/terminal/ffi.mojo` collega Mojo a
+`gui/terminal/native/termgui.c`. Prima del linking di un'architettura terminale va compilata la libreria:
 
-Non è stato investito tempo nella realizzione di una GUI completa. Attualmente si hanno le seguenti.
+```
+    make -C gui/terminal/native release
+```
 
-- `ProtoGui` − Una semplice interfaccia testuale usata a scopo dimostrativo e di prototyping.
-- `ControlGui` − Utilizzata dal framework degli impulse test per controllare i parametri del DSP.
+Il risultato è `gui/terminal/native/build/libtermgui.a`.
 
-In particolare, `ProtoGui`, conserva una rappresentazione dei widget costruiti da FAUST e permette di
-modificare da terminale il valore di uno slider mentre il thread audio continua ad eseguire il DSP.
+### GPU
+
+`gpu` esporta `GpuDevice`, i codici di errore GPU, gli indici dei kernel e `has_accelerator`.
+`GpuDevice.prepare` alloca sul device lo stato DSP, i buffer dei canali e la memoria di lavoro.
+`GpuControlMap` visita la UI del DSP e registra le zone attive dei controlli e le zone passive dei meter.
+Per ogni blocco, il device trasferisce i controlli modificati e gli ingressi, accoda i kernel generati,
+copia sul lato host uscite e meter, quindi sincronizza. Lo stato DSP rimane sul device fra i blocchi.
+`get_error` riporta gli errori della callback dopo la riproduzione; `release` libera le risorse GPU
+quando l'elaborazione è terminata.
+
+Questo è il percorso GPU prototipale corrente: il DSP generato implementa `FaustDspGpu` e l'integrazione
+con `FaustAudio` e `PortAudio` avviene tramite composizione con `AdapterDsp`.
 
 ### Metadata
 
-Il package `meta` fornisce l'interfaccia utilizzata dal codice generato per esportare i metadati associati
-al programma FAUST.
+`meta` fornisce `FaustMeta`, l'interfaccia usata dal codice generato per esporre i metadati FAUST.
 
 ### Help
 
-Il package `help` contiene funzioni di supporto utilizzate dal codice generato. Queste utility semplificano
-l'implementazione del visitor e mantengono il codice prodotto più compatto e leggibile.
-
-Il package raccoglie principalmente helper matematici e operazioni SIMD di load e store polimorfiche che
-lavorano sia con puntatori sia con array. (`vload, vstore`).
+`help` contiene gli helper matematici, le operazioni SIMD di load e store e l'attesa dell'input usate dal
+codice generato e dai template.
 
 ### Memory
 
-Il package `mem` contiene le utility per l'allocazione e la gestione manuale dei buffer. Questo package
-viene principalmente utilizzato dalle architetture di test, benchmark e ispezione.
+`mem` fornisce l'allocazione e il rilascio espliciti dei buffer per benchmark, ispezione e impulse test.
 
 ### Benchmark e Test
 
-I package `bench` e `test` contengono il codice specifico per l'integrazione rispettivamente con il
-framework di benchmark e con i gli `impulse-tests` del backend.
-
-Le architetture top-level corrispondenti rimangono leggere: inizializzano il DSP, costruiscono i buffer
-necessari e delegano il lavoro alle funzioni fornite da questi package.
+`bench` implementa l'esecuzione e i report utilizzati da `bench.mojo` e `inspect.mojo`. `pulse`
+implementa il runner degli impulse test utilizzato da `impulse.mojo`. I rispettivi template top-level
+allocano DSP e buffer e invocano le funzioni dei package.
 
 ## Architetture disponibili
 
-I file `.mojo` presenti direttamente nella directory costituiscono i template destinati ad essere passati
-a FAUST tramite l'opzione `-a`.
+I template `.mojo` nella directory principale vengono selezionati con l'opzione FAUST `-a`.
 
 **portaudio.mojo**
 
-L'architettura `portaudio.mojo` integra il DSP generato con `PortAudio`.
+Alloca e inizializza un DSP CPU, avvia PortAudio, attende input standard sul thread principale, arresta
+lo stream e libera il DSP. La callback PortAudio chiama `compute` del DSP.
 
-Il programma risultante:
+**portaudio-terminal.mojo**
 
-1. alloca una istanza di `mydsp`;
-2. inizializza il DSP con il sample rate;
-3. inizializza il driver `PortAudio`;
-4. apre e avvia lo stream audio;
-5. mantiene attivo il thread principale mentre `PortAudio` esegue il DSP nella propria callback;
-6. arresta il driver e libera l'istanza.
-
-Il driver `PortAudio` supporta unicamente precisione a 32 bit, per cui l'architettura verifica a compile
-time che `DFAUST` corrisponda a `f32`.
+Costruisce una `TerminalGui` dal DSP CPU, avvia PortAudio ed entra nel loop bloccante della GUI terminale.
+La GUI modifica le zone dei controlli nel DSP host; la callback le legge durante l'elaborazione.
+Per il linking servono PortAudio e `libtermgui.a`.
 
 **portaudio-proto.mojo**
 
-L'architettura `portaudio-proto.mojo` estende il caso precedente aggiungendo `ProtoGui`.
+Costruisce `ProtoGui()` dal DSP CPU ed esegue il suo semplice loop testuale mentre PortAudio elabora
+l'audio. È un template per prototipi; l'architettura terminale nativa fornisce una UI più completa.
 
-Dopo l'inizializzazione del DSP viene costruita l'interfaccia:
+**portaudio-terminal-gpu.mojo**
 
-```
-    var gui = ProtoGui[dfaust]()
-    dsp[].build_user_interface(gui)
-```
-
-Il driver audio viene quindi avviato normalmente, mentre il thread principale entra nel loop della GUI.
-L'utente può modificare i parametri esposti dal DSP e tali modifiche vengono osservate dal successivo
-calcolo audio.
-
-Questa architettura mostra l'interazione fra il DSP generato, un driver audio e una implementazione del
-modello grafico di FAUST.
+Costruisce `TerminalGui`, `GpuControlMap`, `GpuDevice[mydsp]`, `AdapterDsp[mydsp]` e il normale driver
+`PortAudio`. Dopo aver preparato il device, passa l'adapter a PortAudio e avvia la GUI sul thread
+principale. All'uscita arresta lo stream audio prima di liberare le risorse GPU e DSP. Richiede un DSP
+GPU, un acceleratore supportato, PortAudio e `libtermgui.a`.
 
 **bench.mojo**
 
-L'architettura `bench.mojo` integra il codice Mojo con il framework di benchmark.
-
-Non viene utilizzato un driver audio reale. L'architettura alloca direttamente i buffer di ingresso e
-uscita, inizializza il DSP, esegue una fase di warmup e misura ripetutamente `compute`.
-
-Il risultato viene trasformato in un report e può essere scritto nei formati utilizzati dal framework,
-permettendo di confrontare il codice Mojo con le altre implementazioni senza introdurre il costo o la
-variabilità di un sistema audio real-time.
+Alloca i buffer, esegue il warmup del DSP CPU, misura ripetutamente `compute` e produce un report senza
+avviare un driver audio. Il package di benchmark controlla l'eventuale output CSV.
 
 **inspect.mojo**
 
-L'architettura `inspect.mojo` è destinata all'ispezione di codice a basso livello prodotto da Mojo.
-
-Anche in questo caso vengono allocati direttamente i buffer e viene inizializzata una istanza DSP, ma il
-kernel viene richiamato attraverso una funzione dedicata:
-
-```
-    @no_inline
-    @export("inspect_compute")
-    def inspect_compute(...)
-```
-
-Il simbolo esplicito e la disabilitazione dell'inlining rendono più semplice individuare il codice
-corrispondente a `compute` e analizzarne assembly o rappresentazioni intermedie.
-
-Le primitive `keep` e `clobber_memory` impediscono inoltre che il compilatore elimini il calcolo durante
-l'ottimizzazione.
+Esegue il DSP CPU tramite una funzione esportata e non inlined chiamata `inspect_compute`. `keep` e
+`clobber_memory` facilitano l'individuazione del codice prodotto a basso livello.
 
 **impulse.mojo**
 
-L'architettura `impulse.mojo` integra il backend con il sistema di impulse test di FAUST.
-
-L'architettura inizializza il DSP e una `ControlGui`, genera l'header previsto dal framework e delega
-l'esecuzione alle utility contenute in `test/impulse`.
-
-I campioni prodotti vengono stampati su standard output. Il framework esterno può quindi redirigerli nei
-file `.ir` e confrontare la risposta del backend Mojo con le implementazioni `.ir` di riferimento.
+Inizializza il DSP CPU e `ControlGui`, quindi usa `pulse` per stampare la risposta all'impulso nel
+formato richiesto dagli impulse test di FAUST.
 
 ## Flusso di esecuzione audio
 
-Nel caso di una applicazione PortAudio, l'interazione completa fra le componenti è:
+Nei template CPU, `main` inizializza `mydsp`, costruisce eventualmente la GUI e passa il DSP a
+`PortAudio.start`. La callback PortAudio chiama `mydsp.compute`. Il thread principale attende in `run`
+della GUI o nel loop di input dell'architettura, quindi arresta PortAudio e libera il DSP.
 
 ```
-    main
-    |
-    +--> alloca mydsp
-    |
-    +--> mydsp.init(sample_rate)
-    |
-    +--> [opzionale] mydsp.build_user_interface(gui)
-    |
-    +--> PortAudio.init()
-    |
-    +--> PortAudio.start(mydsp)
-    |        |
-    |        +--> legge numero ingressi/uscite dal DSP
-    |        +--> apre lo stream
-    |        +--> registra faust_callback
-    |
-    +--> thread principale rimane attivo
-    |
-    |                  thread PortAudio
-    |                       |
-    |                       v
-    |                faust_callback
-    |                       |
-    |                       v
-    |             mydsp.compute(...)
-    |                       |
-    |                       v
-    |                  output audio
-    |
-    +--> PortAudio.stop()
-    |
-    +--> libera mydsp
+    main                             callback PortAudio
+      |                                      |
+      +--> mydsp.init                        |
+      +--> build_user_interface (opzionale) |
+      +--> PortAudio.start(mydsp) ---------> mydsp.compute
+      +--> GUI.run / attesa input            |
+      +--> PortAudio.stop <------------------+
+      +--> libera mydsp
 ```
 
-Il punto di contatto fra le componenti rimane `FaustDsp`: il generatore produce la classe conforme al trait,
-mentre l'architettura decide quando e in quale contesto invocarne le operazioni.
+Nel template terminale GPU, `main` crea inoltre la mappa dei controlli e il device prima di chiamare
+`PortAudio.start(adapter)`. La callback chiama `AdapterDsp.compute`, che invoca `GpuDevice.process`:
+controlli host e ingressi raggiungono il device, i kernel generati elaborano il blocco, poi uscite audio
+e meter tornano sull'host. La callback termina il blocco dopo la sincronizzazione GPU.
 
 ## Configurazione a compile time
 
-Diverse proprietà delle architetture vengono configurate a compile time passando opzioni `-D` al
-compilatore Mojo, ad esempio:
+Le definizioni Mojo `-D` specializzano l'architettura durante la build del file generato:
 
 ```
-    mojo build -D DFAUST=DType.float32 -D BUFF_SIZE=128 -D SAMP_RATE=48000 ...
+    -D DFAUST=DType.float32 -D SAMP_RATE=48 -D BUFF_SIZE=128
 ```
 
-I valori vengono quindi recuperati nel codice tramite le funzioni fornite da `std.sys.defines`, come
-`get_defined_dtype` e `get_defined_int`.
+Per PortAudio, `SAMP_RATE=48` indica 48 kHz. Il benchmark definisce invece il sample rate direttamente
+in Hz (default 96.000); anche `pulse` usa Hz (default 44.100). `BUFF_SIZE` misura i frame. Benchmark e
+ispezione usano altre definizioni, fra cui `COMPUTE_ITERS`.
 
-Fra le opzioni utilizzate dalle componenti sono presenti:
-
-- `DFAUST`, che seleziona il tipo numerico degli stream esterni;
-- `BUFF_SIZE`, che controlla la dimensione del blocco nelle architetture che la espongono;
-- `SAMP_RATE`, che seleziona il sample rate;
-- ulteriori opzioni specifiche dei framework di benchmark e ispezione.
-
-Questo meccanismo permette di specializzare l'architettura durante la compilazione senza modificarne il
-codice sorgente.
+Le opzioni FAUST `-single` e `-double` selezionano la precisione *interna* del DSP. `-gpu` seleziona il
+generatore Mojo GPU sperimentale, che attualmente richiede `-single` e produce un DSP conforme a
+`FaustDspGpu` per il relativo template.
 
 ## Workflow essenziale
 
-Una tipica generazione combina un programma FAUST con una architettura attraverso l'opzione `-a`. Ad esempio,
-dalla root del repository:
+Da `architecture/mojo`, si genera un DSP CPU con il template terminale:
 
 ```
-    build/bin/faust \
-    -lang mojo \
-    -a architecture/mojo/portaudio.mojo \
-    path/to/program.dsp \
-    -o path/to/program.mojo
+    make -C gui/terminal/native release
+    /path/to/faust -lang mojo -single -a portaudio-terminal.mojo \
+        -o program.mojo src/phasorsine.dsp
 ```
 
-Il file transpilato può quindi essere compilato indicando il percorso dei package dell'architettura:
+Si compila fornendo i package dell'architettura e le librerie native al linker:
 
 ```
-    mojo build \
-    -I architecture/mojo \
-    path/to/program.mojo \
-    -o path/to/program
+    mojo build -O3 -I . -D DFAUST=DType.float32 -D SAMP_RATE=48 -D BUFF_SIZE=128 \
+        -Xlinker -L/opt/homebrew/opt/portaudio/lib -Xlinker -lportaudio \
+        -Xlinker gui/terminal/native/build/libtermgui.a -Xlinker -lm \
+        -o program program.mojo
 ```
 
-Per utilizzare una architettura diversa è sufficiente cambiare il template passato a `-a`:
+Per elaborare sulla GPU si selezionano il generatore e il template GPU, quindi si compila con le stesse
+opzioni di linking di PortAudio e della libreria terminale:
 
 ```
-    -a architecture/mojo/portaudio-proto.mojo
-    -a architecture/mojo/bench.mojo
-    -a architecture/mojo/inspect.mojo
-    -a architecture/mojo/impulse.mojo
+    /path/to/faust -lang mojo -gpu -single -a portaudio-terminal-gpu.mojo \
+        -o program_gpu.mojo src/phasorsine.dsp
+    mojo build -O3 -I . -D DFAUST=DType.float32 -D SAMP_RATE=48 -D BUFF_SIZE=128 \
+        -Xlinker -L/opt/homebrew/opt/portaudio/lib -Xlinker -lportaudio \
+        -Xlinker gui/terminal/native/build/libtermgui.a -Xlinker -lm \
+        -o program_gpu program_gpu.mojo
 ```
 
-La separazione tra generatore, interfacce comuni e architecture file permette di utilizzare lo stesso
-backend Mojo in differenti contesti di esecuzione.
+La directory della libreria PortAudio va adattata all'installazione locale. Per usare `portaudio.mojo`,
+`portaudio-proto.mojo`, `bench.mojo`, `inspect.mojo` o `impulse.mojo`, basta cambiare il template passato
+a `-a` e fornire le librerie richieste dal template scelto.

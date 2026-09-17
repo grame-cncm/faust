@@ -1,7 +1,7 @@
 # gui/map.mojo
 
 from conf import *
-from dsp import FaustDspGpu
+from dsp.gpu import FaustDspGpu
 from .gui import FaustGui
 
 comptime GPU_ZONE_CAP = 256

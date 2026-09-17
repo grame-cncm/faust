@@ -1,23 +1,32 @@
-# Faust architecture for PortAudio GPU with the native terminal GUI.
-# The injected mydsp must implement FaustDspGpu (gpu_work_size/gpu_compute).
+# ==============================================================================
+# Faust to Mojo architecture file for PortAudio, GPU processing, and TerminalGui.
+# Provides the definitions and the main entry point to run a GPU-capable DSP
+# with PortAudio and control it through the native C terminal GUI.
 # Link gui/terminal/native/build/libtermgui.a and PortAudio.
+# ==============================================================================
+# First section of architecture provided code start.
+# Imports the modules and the definitions of the architecture code.
+# ==============================================================================
 
 from conf import *
 from dsp import *
-from gui import *
+from gui import FaustGui, TerminalGui, GpuControlMap, build_gpu_control_map, error_str
 from gpu import *
 from help import *
 from meta import *
-from audio.portaudio import *
-from std.sys import has_accelerator
-from dsp.adapter import AdapterDsp
-from gui.map import GpuControlMap, build_gpu_control_map
-from gui.terminal.terminal import TerminalGui
-from gui.terminal.ffi import error_str
-from gpu.device import GpuDevice
+from audio import *
 
+# ==============================================================================
+# First section of architecture provided code end.
 <<includeIntrinsic>>
 <<includeclass>>
+# ==============================================================================
+# Faust generated DSP code end.
+# ==============================================================================
+# Second section of architecture provided code start.
+# Defines the main entry point and composes the DSP, terminal GUI, GPU device,
+# GPU adapter, and PortAudio driver.
+# ==============================================================================
 
 def main() -> None:
     comptime assert dfaust == F32.dtype, "Expected 32-bit audio precision."
@@ -83,3 +92,7 @@ def main() -> None:
             print("GPU audio error:", err)
         return
     print("done")
+
+# ==============================================================================
+# Second section of architecture provided code end.
+# ==============================================================================

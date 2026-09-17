@@ -1,7 +1,7 @@
 # test/impulse.mojo
 
 from conf import *
-from dsp import *
+from dsp.dsp import FaustDsp
 from mem import *
 from gui.control import ControlGui
 

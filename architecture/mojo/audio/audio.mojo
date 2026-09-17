@@ -1,7 +1,7 @@
 # audio/audio.mojo
 
 from conf import *
-from dsp import FaustDsp
+from dsp.dsp import FaustDsp
 
 # ==============================================================
 # FaustAudio interface declaration.

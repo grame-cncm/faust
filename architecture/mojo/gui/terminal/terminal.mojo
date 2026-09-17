@@ -1,8 +1,9 @@
 # gui/terminal/terminal.mojo
 
 from conf import *
-from gui import FaustGui
+from gui.gui import FaustGui
 from .ffi import *
+
 
 comptime GUI_WIDGET_CAP = 256
 comptime GUI_STACK_CAP = 32
@@ -340,3 +341,4 @@ struct TerminalGui(FaustGui):
                 pass
         var end = ui.stop()
         return ui.err if ui.err else end
+

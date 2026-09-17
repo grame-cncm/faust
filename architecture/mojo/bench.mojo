@@ -12,7 +12,7 @@ from help import *
 from mem import *
 from bench import *
 from dsp import *
-from gui import *
+from gui import FaustGui
 from meta import *
 
 # ==============================================================================

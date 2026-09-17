@@ -1,9 +1,10 @@
 # dsp/adapter.mojo
 
 from conf import *
-from dsp import FaustDsp, FaustDspGpu
-from gui import FaustGui
-from gpu import GpuDevice
+from .dsp import FaustDsp
+from .gpu import FaustDspGpu
+from gui.gui import FaustGui
+from gpu.device import GpuDevice
 from meta import FaustMeta
 
 # ==============================================================

@@ -1,8 +1,8 @@
 # audio/portaudio/portaudio.mojo
 
 from conf import *
-from dsp import *
-from audio import FaustAudio
+from dsp.dsp import FaustDsp
+from audio.audio import FaustAudio
 
 from .ffi import *
 

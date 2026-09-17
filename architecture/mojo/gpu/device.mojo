@@ -3,7 +3,7 @@
 from max.gpu.host import DeviceBuffer, DeviceContext
 
 from conf import *
-from dsp import FaustDspGpu
+from dsp.gpu import FaustDspGpu
 from gui.map import GpuControlMap, GPU_ZONE_CAP
 
 comptime FAUST_GPU_NO_ERROR = S32(0)

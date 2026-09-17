@@ -1,15 +1,13 @@
 # conf/prelude.mojo
 
-from max.gpu.host import DeviceBuffer, DeviceContext
+from max.gpu.host import *
 
 from std.math import *
-from std.memory import unsafe_memset_zero
-from std.memory.alloc import unsafe_alloc
-from std.memory.unsafe_pointer import pointer_to_int
-from std.sys.info import size_of, align_of, simd_width_of
-from std.sys.defines import (
-    is_defined, get_defined_int, get_defined_bool, get_defined_string, get_defined_dtype
-)
+from std.memory import *
+from std.memory.alloc import *
+from std.memory.unsafe_pointer import *
+from std.sys.info import *
+from std.sys.defines import *
 
 # Base arithmetic types aliases
 comptime U8 = UInt8

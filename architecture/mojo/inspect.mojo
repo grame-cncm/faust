@@ -11,7 +11,7 @@ from conf import *
 from help import *
 from mem import *
 from dsp import *
-from gui import *
+from gui import FaustGui
 from meta import *
 from bench import *
 
