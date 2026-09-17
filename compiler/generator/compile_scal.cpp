@@ -924,6 +924,147 @@ Tree ScalarCompiler::placeExplicitTemps(Tree L2, Tree Lx, std::function<void(Tre
     return L2;
 }
 
+//----------------------------------------------------------------------
+// The family form, step 1 : detection and trace only (LA-FORME-FAMILLE)
+//----------------------------------------------------------------------
+//
+// A FAMILY is a set of operands of one n-ary sum that are isomorphic : the same
+// operators with the same arity, walked in parallel, differing only by
+//   - COEFFICIENT slots : a slow or constant subtree on both sides (sigOrder <= 2),
+//     compared in traversal order, so the slots of every member line up ;
+//   - their own RECURSIONS : two symbolic recursive groups are matched by binding
+//     their variables, then their bodies are compared under the binding ;
+// and sharing, identically, everything else : a subtree that is the same node on
+// both sides is a COMMON input (the excitation of a bank of modes, the carrier of a
+// vocoder). Nothing is rewritten here ; FAUST_FAM_TRACE prints the families.
+struct FamilyIso {
+    std::map<Tree, Tree>                                     bind;     // recursion id (template) -> id (member)
+    std::map<std::pair<Tree, Tree>, bool>                    memo;     // pair -> result (DAG sharing, cycles)
+    std::vector<std::pair<Tree, Tree>>                       coefs;    // coefficient slots, traversal order
+    int                                                      commons = 0, recs = 0, nodes = 0;
+
+    bool iso(Tree a, Tree b)
+    {
+        auto key = std::make_pair(a, b);
+        if (auto it = memo.find(key); it != memo.end()) {
+            return it->second;
+        }
+        memo[key] = true;  // provisional : a cycle through a recursion closes on itself
+        bool r    = walk(a, b);
+        memo[key] = r;
+        return r;
+    }
+
+   private:
+    bool walk(Tree a, Tree b)
+    {
+        nodes++;
+        if (a == b) {
+            commons++;
+            return true;
+        }
+        bool sa = sigs::sigOrder(a) <= 2, sb = sigs::sigOrder(b) <= 2;
+        if (sa && sb) {
+            coefs.push_back({a, b});
+            return true;
+        }
+        if (sa != sb) {
+            return false;
+        }
+        Tree ia, ba, ib, bb;
+        if (isRec(a, ia, ba) && isRec(b, ib, bb)) {
+            if (auto it = bind.find(ia); it != bind.end()) {
+                return it->second == ib;
+            }
+            bind[ia] = ib;
+            recs++;
+            return iso(ba, bb);
+        }
+        if (isRef(a, ia) && isRef(b, ib)) {
+            auto it = bind.find(ia);
+            return it != bind.end() && it->second == ib;
+        }
+        if (!(a->node() == b->node()) || a->arity() != b->arity()) {
+            return false;
+        }
+        for (int k = 0; k < a->arity(); k++) {
+            if (!iso(a->branch(k), b->branch(k))) {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+
+static void traceFamilies(Tree L)
+{
+    std::set<Tree>    seen;
+    std::vector<Tree> st{L}, sums;
+    while (!st.empty()) {
+        Tree t = st.back();
+        st.pop_back();
+        if (!seen.insert(t).second) {
+            continue;
+        }
+        Tree id, body;
+        if (isRec(t, id, body) && body) {
+            st.push_back(body);
+            continue;
+        }
+        tvec ops;
+        if (isSigSum(t, ops) && ops.size() >= 4) {
+            sums.push_back(t);
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            st.push_back(t->branch(k));
+        }
+    }
+    int families = 0, members = 0;
+    for (Tree t : sums) {
+        tvec ops;
+        isSigSum(t, ops);
+        std::vector<int> classOf(ops.size(), -1);
+        std::vector<std::vector<int>> classes;
+        std::vector<FamilyIso> firstIso;
+        for (size_t i = 0; i < ops.size(); i++) {
+            if (classOf[i] >= 0 || sigs::sigOrder(ops[i]) <= 2) {
+                continue;
+            }
+            classOf[i] = (int)classes.size();
+            classes.push_back({(int)i});
+            FamilyIso shape;  // the template against itself : its size
+            for (size_t j = i + 1; j < ops.size(); j++) {
+                if (classOf[j] >= 0) {
+                    continue;
+                }
+                FamilyIso fi;
+                if (fi.iso(ops[i], ops[j]) && !fi.coefs.empty()) {
+                    classOf[j] = classOf[i];
+                    classes.back().push_back((int)j);
+                    if (classes.back().size() == 2) {
+                        firstIso.resize(classes.size());
+                        firstIso[classOf[i]] = fi;
+                    }
+                }
+            }
+        }
+        for (size_t c = 0; c < classes.size(); c++) {
+            if (classes[c].size() < 4) {
+                continue;
+            }
+            families++;
+            members += (int)classes[c].size();
+            const FamilyIso& fi = firstIso[c];
+            std::cerr << "fam : sum of " << ops.size() << " operands, family of " << classes[c].size()
+                      << " isomorphic members, template walk " << fi.nodes << " nodes, coefficient slots "
+                      << fi.coefs.size() << ", common inputs " << fi.commons << ", own recursions "
+                      << fi.recs << std::endl;
+        }
+    }
+    std::cerr << "fam summary : sums >= 4 operands " << sums.size() << ", families " << families
+              << ", members " << members << std::endl;
+}
+
 Tree ScalarCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
@@ -1057,6 +1198,10 @@ Tree ScalarCompiler::prepare(Tree LS)
             }
         };  // fin du lambda reveal (-fir)
         callWithLargeStack(reveal);
+        if (getenv("FAUST_FAM_TRACE")) {  // LA-FORME-FAMILLE, step 1 : detection only
+            std::function<void()> fam = [&]() { traceFamilies(L2); };
+            callWithLargeStack(fam);
+        }
     }
 
     startTiming("conditionAnnotation");
