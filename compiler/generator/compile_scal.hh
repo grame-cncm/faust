@@ -208,6 +208,28 @@ class ScalarCompiler : public Compiler {
     std::map<Tree, std::string, treeorder> fHoistedCoef;  // kernel coefficients stored at their rate
     std::string         generateIIR(Tree sig, const tvec& coefs);
     std::string         generateSum(Tree sig, const tvec& subs);
+    // the family form (-fam, LA-FORME-FAMILLE) : an isomorphic family of sum
+    // operands emitted as one inner loop over structure-of-arrays members
+    struct FamCtx;
+    struct FamPlan {
+        std::vector<int>               members;  // operand indices of the sum
+        std::vector<std::vector<Tree>> slots;    // [member][slot] coefficient tree
+        std::vector<Tree>              leaves;   // the template's slot leaves
+        std::set<Tree>                 commons;  // common inputs
+        std::set<Tree>                 priv;     // private nodes of every member
+    };
+    std::map<Tree, FamPlan>        fFamPlans;    // sum -> its family, planned before the schedule
+    std::set<Tree>                 fFamPrivate;  // nodes compiled by a family loop, never on their own
+    void                           planFamilies();
+    bool                           planFamily(Tree sig, const tvec& subs, FamPlan& plan);
+    std::string                    generateFamilySum(Tree sig, const tvec& subs, bool& ok);
+    std::string                    famExpr(FamCtx& g, Tree t);
+    std::string                    famHist(FamCtx& g, Tree x, int k);
+    bool                           famPrivateOnly(const std::set<Tree>& priv, Tree sum);
+    Tree                           fFamRoot = nullptr;
+    std::map<Tree, std::set<Tree>> fFamParents;
+    bool                           fFamParentsBuilt = false;
+    int                            fFamCount        = 0;
     std::string         generatePrefix(Tree sig, Tree x, Tree e);
     std::string         generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 
