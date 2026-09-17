@@ -231,7 +231,7 @@ struct GpuTask
 /**
     A `MojoGpuInstVisitor` emits host initialization and ordered GPU tasks.
     @desc
-    - Uses explicit F32 for external zones and F64 for internal computation.
+    - Uses FaustFloat for audio zones and F32 for internal computation.
     - Collects work fields and rebuilds pointer views inside each kernel.
     - Partitions DAG levels by shared resource conflicts.
     - Emits block controls, chunk tasks and final state updates.
@@ -248,7 +248,6 @@ struct GpuTask
     @note
     - Each task preserves sample order, including recursive updates.
     - The architecture supplies the imports and owns device allocation.
-    - The device target must support F64 arithmetic.
 **/
 class MojoGpuInstVisitor : public MojoInstVisitor
 {
@@ -273,8 +272,6 @@ public:
 
     MojoGpuInstVisitor(OStream* out, String const& name, s32 n_ins, s32 n_outs);
 
-    void visit(AddSliderInst* inst)      override;
-    void visit(AddBargraphInst* inst)    override;
     void visit(NamedAddress* inst)       override;
     void visit(DeclareVarInst* inst)     override;
     void visit(IndexedAddress* inst)     override;

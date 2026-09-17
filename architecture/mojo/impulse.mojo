@@ -11,11 +11,10 @@
 from conf import *
 from mem import *
 from dsp import *
-from gui import *
 from meta import *
 from help import *
-from test.impulse import *
-from gui.control import ControlGui
+from pulse import *
+from gui import FaustGui, ControlGui
 
 # ==============================================================================
 # First section of architecture provided code end.

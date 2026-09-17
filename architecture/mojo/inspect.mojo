@@ -13,12 +13,7 @@ from mem import *
 from dsp import *
 from gui import *
 from meta import *
-
-from std.benchmark import keep, clobber_memory
-
-comptime SAMP_RATE = S32(get_defined_int["SAMP_RATE", 96_000]())
-comptime BUFF_SIZE = S32(get_defined_int["BUFF_SIZE", 512]())
-comptime COMPUTE_ITERS = S32(get_defined_int["COMPUTE_ITERS", 100]())
+from bench import *
 
 # ==============================================================================
 # First section of architecture provided code end.
@@ -53,7 +48,7 @@ def main() -> None:
 @no_inline
 @export("inspect_compute")
 def inspect_compute(
-    mut dsp: mydsp, inputs: ImmStreams, outputs: MutStreams
+    mut dsp: Some[FaustDsp], inputs: ImmStreams, outputs: MutStreams
 ) abi("Mojo") -> None:
     for _ in range(COMPUTE_ITERS):
         keep(inputs)

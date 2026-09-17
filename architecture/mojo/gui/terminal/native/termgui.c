@@ -43,9 +43,10 @@ enum
 {
     KIND_BOX = WIDGET_BARGRAPH + 1,
     FRAME_CAP = MJ_VIEW_COLS * MJ_VIEW_ROWS * 4 + MJ_VIEW_ROWS * 48 + 64,
-    GUI_WIDTH = 80,
+    GUI_WIDTH = 120,
     CLICK_MS = 300,
-    CLICK_SLOP = 2
+    CLICK_SLOP = 2,
+    EDIT_CAP = 48
 };
 
 typedef struct Rect
@@ -61,6 +62,8 @@ typedef struct Input
     s32 kind;
     s32 x;
     s32 y;
+    s32 key;
+    b32 fine;
 } Input;
 
 enum
@@ -70,7 +73,8 @@ enum
     INPUT_DRAG,
     INPUT_UP,
     INPUT_CANCEL,
-    INPUT_QUIT
+    INPUT_QUIT,
+    INPUT_KEY
 };
 
 #if MJ_SYSTEM_UNIX
@@ -100,6 +104,7 @@ typedef struct Widget
     s32 depth;
     Rect rect;
     Rect hit;
+    Rect val_hit;
     f64 val;
     f64 init;
     f64 min;
@@ -151,7 +156,17 @@ struct Gui
     s32 click_y;
     u64 click_at;
     b32 click_ready;
+    b32 click_value;
     b32 reset;
+    s32 edit_id;
+    s32 edit_len;
+    b32 edit_invalid;
+    char edit[EDIT_CAP];
+    s32 drag_x;
+    s32 anchor_x;
+    f64 anchor_val;
+    b32 fine;
+    b32 relative;
     char buf[FRAME_CAP];
     ssize used;
 };
@@ -161,11 +176,11 @@ static Gui* owner;
 #if MJ_SYSTEM_WIN
 typedef LONG Flag;
 #define mj_flag_get(ptr) (InterlockedCompareExchange((ptr), 0, 0) != 0)
-#define mj_flag_set(ptr, val) mj_unused(InterlockedExchange((ptr), cast(LONG, val)))
+#define mj_flag_set(ptr, val) InterlockedExchange((ptr), cast(LONG, val))
 #else
 typedef sig_atomic_t Flag;
 #define mj_flag_get(ptr) (*(ptr) != 0)
-#define mj_flag_set(ptr, val) mj_unused(*(ptr) = (val))
+#define mj_flag_set(ptr, val) (*(ptr) = (val))
 #endif
 
 static volatile Flag resized;
@@ -219,7 +234,7 @@ mj_noreturn void gui_fail(
 {
     va_list args;
     if (owner) {
-        mj_unused(gui_stop(owner));
+        gui_stop(owner);
     }
 
     fprintf(stderr, "%s:%d: %s: %s", file, cast(int, line), func, kind);
@@ -268,7 +283,7 @@ void value_store(Value* ptr, f64 val)
     mj_assert(isfinite(val));
 
 #if MJ_SYSTEM_WIN
-    mj_unused(InterlockedExchange64(&ptr->bits, cast(LONG64, value_bits(val))));
+    InterlockedExchange64(&ptr->bits, cast(LONG64, value_bits(val)));
 #else
     atomic_store_explicit(&ptr->bits, value_bits(val), memory_order_relaxed);
 #endif
@@ -304,7 +319,7 @@ ErrorCode gui_create(Gui** out)
         return ERROR_UNSUPPORTED;
     }
 #endif
-    ui->par = ui->press = ui->click_id = -1;
+    ui->par = ui->press = ui->click_id = ui->edit_id = -1;
     *out = ui;
     return ERROR_NONE;
 }
@@ -314,7 +329,7 @@ void gui_destroy(Gui* ui)
     if (!ui) {
         return;
     }
-    mj_unused(gui_stop(ui));
+    gui_stop(ui);
     mj_free(ui);
 }
 
@@ -565,10 +580,12 @@ ErrorCode gui_stop(Gui* ui)
         }
     }
     ui->press = -1;
+    ui->edit_id = -1;
 
     ErrorCode err = ERROR_NONE;
 #if MJ_SYSTEM_WIN
-    static char const end[] = "\033[?1002l\033[?1004l\033[?1006l\033[?2004l\033[0m\033[?25h\033[?1049l";
+    static char const end[] = "\033[>0s\033[?1002l\033[?1004l\033[?1006l"
+        "\033[?2004l\033[0m\033[?25h\033[?1049l";
     if (term_write(end, cast(ssize, sizeof(end) - 1))) {
         err = ERROR_IO;
     }
@@ -593,7 +610,8 @@ ErrorCode gui_stop(Gui* ui)
     if (res < 0) {
         err = ERROR_TERM;
     }
-    static char const end[] = "\033[?1002l\033[?1004l\033[?1006l\033[?2004l\033[0m\033[?25h\033[?1049l";
+    static char const end[] = "\033[>0s\033[?1002l\033[?1004l\033[?1006l"
+        "\033[?2004l\033[0m\033[?25h\033[?1049l";
     if (term_write(end, cast(ssize, sizeof(end) - 1))) {
         err = ERROR_IO;
     }
@@ -637,10 +655,10 @@ static ErrorCode term_start(Gui* ui)
     }
     if (!SetConsoleMode(ui->term.in, in_mode) || !SetConsoleMode(ui->term.out, out_mode) ||
         !SetConsoleOutputCP(CP_UTF8)) {
-        mj_unused(SetConsoleOutputCP(ui->term.out_cp));
-        mj_unused(SetConsoleMode(ui->term.in, ui->term.in_mode));
-        mj_unused(SetConsoleMode(ui->term.out, ui->term.out_mode));
-        mj_unused(SetConsoleCtrlHandler(term_control, FALSE));
+        SetConsoleOutputCP(ui->term.out_cp);
+        SetConsoleMode(ui->term.in, ui->term.in_mode);
+        SetConsoleMode(ui->term.out, ui->term.out_mode);
+        SetConsoleCtrlHandler(term_control, FALSE);
         return ERROR_TERM;
     }
 #else
@@ -660,7 +678,7 @@ static ErrorCode term_start(Gui* ui)
         if (sigaction(sigs[i], &act, &ui->term.acts[i]) < 0) {
             while (i > 0) {
                 --i;
-                mj_unused(sigaction(sigs[i], &ui->term.acts[i], NULL));
+                sigaction(sigs[i], &ui->term.acts[i], NULL);
             }
             return ERROR_TERM;
         }
@@ -670,6 +688,7 @@ static ErrorCode term_start(Gui* ui)
     ui->term.esc = 0;
     ui->press = -1;
     ui->click_id = -1;
+    ui->edit_id = -1;
     ui->click_ready = ui->reset = 0;
     owner = ui;
 #if MJ_SYSTEM_UNIX
@@ -679,12 +698,14 @@ static ErrorCode term_start(Gui* ui)
     raw.c_cc[VMIN] = 0;
     raw.c_cc[VTIME] = 0;
     if (tcsetattr(STDIN_FILENO, TCSANOW, &raw) < 0) {
-        mj_unused(gui_stop(ui));
+        gui_stop(ui);
         return ERROR_TERM;
     }
 #endif
     term_size(&ui->term);
-    static char const beg[] = "\033[?1049h\033[?25l\033[2J\033[?1002h\033[?1004h\033[?1006h\033[?2004h";
+    // Ask compatible terminals to report Shift with mouse events instead of selecting text.
+    static char const beg[] = "\033[?1049h\033[?25l\033[2J\033[?1002h"
+        "\033[?1004h\033[?1006h\033[?2004h\033[>1s";
     return term_write(beg, cast(ssize, sizeof(beg) - 1));
 }
 
@@ -725,6 +746,7 @@ static s32 layout(Gui* ui, s32 par, s32 x, s32 y, s32 width)
         }
         wdg->rect = (Rect){ x, row, width, size };
         wdg->hit = (Rect){ 0, 0, 0, 0 };
+        wdg->val_hit = (Rect){ 0, 0, 0, 0 };
         gap = wdg->kind >= KIND_BOX ? 1 : 0;
         row += size + gap;
     }
@@ -832,6 +854,10 @@ static void widget_put(Gui* ui, Widget* wdg)
     if (rect.y < 0 || rect.y >= ui->rows - 1 || rect.w < 8) {
         return;
     }
+    if (rect.w >= 80) {
+        rect.x += 2;
+        rect.w -= 4;
+    }
     s32 label = min_int(12, rect.w / 4);
     text_put(ui, rect.x, rect.y, label, wdg->lbl);
     s32 x = rect.x + label + 1;
@@ -844,22 +870,24 @@ static void widget_put(Gui* ui, Widget* wdg)
     }
 
     char val[64];
-    mj_unused(snprintf(val, sizeof(val), "%.6g %.32s", wdg->val, wdg->unit));
-    if (wdg->kind == WIDGET_NUM_ENTRY) {
-        if (width >= 9) {
-            text_put(ui, x, rect.y, 3, "[-]");
-            text_put(ui, x + 4, rect.y, width - 8, val);
-            text_put(ui, x + width - 3, rect.y, 3, "[+]");
-            wdg->hit = (Rect){ x, wdg->rect.y, width, 1 };
-        } else {
-            text_put(ui, x, rect.y, width, val);
-        }
-        return;
+    if (ui->edit_id == cast(s32, wdg - ui->wdgs)) {
+        snprintf(val, sizeof(val), "%c%s", ui->edit_invalid ? '!' : '>',
+            ui->edit_len ? ui->edit : "_");
+    } else {
+        snprintf(val, sizeof(val), "%.7g%s%.32s", wdg->val,
+            wdg->unit[0] ? " " : "", wdg->unit);
     }
-    s32 tail = min_int(18, width / 2);
+    s32 tail = min_int(26, cast(s32, strlen(val)) + 1);
+    if (tail < 18) {
+        tail = 18;
+    }
+    tail = min_int(tail, width / 2);
     s32 span = width - tail - 2;
     if (span < 2) {
         text_put(ui, x, rect.y, width, val);
+        if (wdg->kind == WIDGET_SLIDER || wdg->kind == WIDGET_NUM_ENTRY) {
+            wdg->val_hit = (Rect){ x, wdg->rect.y, width, 1 };
+        }
         return;
     }
     f64 frac = wdg->max == wdg->min ? 0 :
@@ -868,6 +896,10 @@ static void widget_put(Gui* ui, Widget* wdg)
     if (meter) {
         cell_put(ui, x++, rect.y, '[');
         span -= 2;
+    }
+    if (span < 2) {
+        text_put(ui, x, rect.y, width - 1, val);
+        return;
     }
     s32 pos = cast(s32, round(frac * (span - 1)));
     for (s32 j = 0; j < span; ++j) {
@@ -879,8 +911,13 @@ static void widget_put(Gui* ui, Widget* wdg)
         cell_put(ui, x + span, rect.y, ']');
     } else {
         wdg->hit = (Rect){ x, wdg->rect.y, span, 1 };
+        wdg->val_hit = (Rect){ rect.x + rect.w - tail, wdg->rect.y, tail, 1 };
     }
-    text_put(ui, rect.x + rect.w - tail, rect.y, tail, val);
+    cstr shown = val;
+    if (ui->edit_id == cast(s32, wdg - ui->wdgs) && cast(s32, strlen(val)) > tail) {
+        shown = val + strlen(val) - cast(usize, tail);
+    }
+    text_put(ui, rect.x + rect.w - tail, rect.y, tail, shown);
 }
 
 static void buf_glyph(Gui* ui, u32 ch)
@@ -947,8 +984,9 @@ static ErrorCode gui_render(Gui* ui)
     for (s32 x = 0; x < ui->cols; ++x) {
         ui->cells[ui->rows - 1][x] = ' ';
     }
-    text_put(ui, 0, ui->rows - 1, ui->cols, "q quit");
-    if (last) {
+    text_put(ui, 0, ui->rows - 1, ui->cols,
+        ui->edit_id >= 0 ? "Enter set  Esc cancel  Backspace erase" : "q quit");
+    if (last && ui->edit_id < 0) {
         text_put(ui, 9, ui->rows - 1, ui->cols - 9, "[prev] [next]");
     }
 
@@ -986,7 +1024,7 @@ ErrorCode gui_start(Gui* ui)
         err = gui_render(ui);
     }
     if (err && owner == ui) {
-        mj_unused(gui_stop(ui));
+        gui_stop(ui);
     }
     return err;
 }
@@ -995,7 +1033,7 @@ ErrorCode gui_start(Gui* ui)
 // Consume unsupported CSI/OSC and bracketed paste instead of treating payload as keys.
 static Input term_input(Term* term, u8 ch)
 {
-    Input out = { INPUT_NONE, 0, 0 };
+    Input out = { INPUT_NONE, 0, 0, 0, 0 };
     if (term->esc == 4) {
         static cstr const end = "\033[201~";
         term->code = ch == cast(u8, end[term->code]) ? term->code + 1 : (ch == 27 ? 1 : 0);
@@ -1039,7 +1077,7 @@ static Input term_input(Term* term, u8 ch)
                 // Ignore wheel, extra buttons and passive motion in their entirety.
                 if ((btn & (64 | 128)) == 0 && (btn & 3) == 0) {
                     out = (Input){ ch == 'm' ? INPUT_UP : ((btn & 32) ? INPUT_DRAG : INPUT_DOWN),
-                        term->args[1] - 1, term->args[2] - 1 };
+                        term->args[1] - 1, term->args[2] - 1, 0, (btn & (4 | 16)) != 0 };
                 }
             }
             return out;
@@ -1065,6 +1103,11 @@ static Input term_input(Term* term, u8 ch)
     }
     if (ch == 'q') {
         out.kind = INPUT_QUIT;
+    } else if ((ch >= '0' && ch <= '9') || ch == '-' || ch == '+' ||
+        ch == '.' || ch == 'e' || ch == 'E' || ch == '\r' || ch == '\n' ||
+        ch == '\b' || ch == 127) {
+        out.kind = INPUT_KEY;
+        out.key = ch;
     }
     return out;
 }
@@ -1073,7 +1116,7 @@ static ErrorCode term_read(Term* term, s32 wait_ms, Input* out)
 {
     mj_assert(term && out);
     mj_assert(wait_ms >= 0 && wait_ms <= 1000);
-    *out = (Input){ INPUT_NONE, 0, 0 };
+    *out = (Input){ INPUT_NONE, 0, 0, 0, 0 };
 
 #if MJ_SYSTEM_WIN
     DWORD wait = WaitForSingleObject(term->in, cast(DWORD, wait_ms));
@@ -1119,10 +1162,14 @@ static ErrorCode term_read(Term* term, s32 wait_ms, Input* out)
                 return ERROR_IO;
             }
             *out = (Input){ kind, cast(s32, evt_mouse.dwMousePosition.X) - info.srWindow.Left,
-                cast(s32, evt_mouse.dwMousePosition.Y) - info.srWindow.Top };
+                cast(s32, evt_mouse.dwMousePosition.Y) - info.srWindow.Top, 0,
+                (evt_mouse.dwControlKeyState &
+                    (SHIFT_PRESSED | LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0 };
         } else if (evt.EventType == KEY_EVENT && evt.Event.KeyEvent.bKeyDown) {
             WCHAR ch = evt.Event.KeyEvent.uChar.UnicodeChar;
-            if (ch <= UINT8_MAX) {
+            if (evt.Event.KeyEvent.wVirtualKeyCode == VK_ESCAPE) {
+                out->kind = INPUT_CANCEL;
+            } else if (ch <= UINT8_MAX) {
                 *out = term_input(term, cast(u8, ch));
             }
         }
@@ -1136,7 +1183,7 @@ static ErrorCode term_read(Term* term, s32 wait_ms, Input* out)
             return ERROR_NONE;
         }
         struct pollfd fd = { STDIN_FILENO, POLLIN, 0 };
-        int res = poll(&fd, 1, i == 0 ? wait_ms : 0);
+        int res = poll(&fd, 1, i == 0 ? wait_ms : (term->esc == 1 ? 30 : 0));
         if (res < 0 && errno == EINTR) {
             return ERROR_NONE;
         }
@@ -1144,6 +1191,10 @@ static ErrorCode term_read(Term* term, s32 wait_ms, Input* out)
             return ERROR_IO;
         }
         if (!res) {
+            if (term->esc == 1) {
+                term->esc = 0;
+                out->kind = INPUT_CANCEL;
+            }
             return ERROR_NONE;
         }
         if (!(fd.revents & POLLIN) && (fd.revents & POLLHUP)) {
@@ -1179,6 +1230,7 @@ static b32 contains(Rect rect, s32 x, s32 y)
 static void gui_release(Gui* ui, Event* out)
 {
     ui->reset = 0;
+    ui->fine = ui->relative = 0;
     if (ui->press < 0) {
         return;
     }
@@ -1224,15 +1276,18 @@ static void gui_mouse(Gui* ui, Input in, Event* out)
         }
         for (s32 i = 0; i < ui->len; ++i) {
             if (ui->wdgs[i].kind < WIDGET_BARGRAPH &&
-                contains(ui->wdgs[i].hit, in.x, in.y + ui->top)) {
+                (contains(ui->wdgs[i].hit, in.x, in.y + ui->top) ||
+                    contains(ui->wdgs[i].val_hit, in.x, in.y + ui->top))) {
                 ui->press = i;
                 break;
             }
         }
         if (ui->press >= 0) {
             Widget* wdg = &ui->wdgs[ui->press];
+            b32 value = contains(wdg->val_hit, in.x, in.y + ui->top);
             u64 now = mj_ticks_ms();
             b32 twice = ui->click_ready && ui->click_id == ui->press &&
+                ui->click_value == value &&
                 now >= ui->click_at && now - ui->click_at <= CLICK_MS &&
                 abs(in.x - ui->click_x) <= CLICK_SLOP && in.y == ui->click_y;
             ui->click_ready = 0;
@@ -1240,19 +1295,38 @@ static void gui_mouse(Gui* ui, Input in, Event* out)
             ui->click_x = in.x;
             ui->click_y = in.y;
             ui->click_at = now;
+            ui->click_value = value;
             if (twice) {
                 ui->click_id = -1;
+                if (value) {
+                    ui->edit_id = ui->press;
+                    ui->edit_len = 0;
+                    ui->edit_invalid = 0;
+                    ui->edit[0] = 0;
+                    ui->press = -1;
+                    return;
+                }
                 ui->reset = 1;
                 wdg->val = wdg->init;
                 *out = (Event){ EVENT_VALUE, ui->press, wdg->init };
                 return;
             }
+            if (value) {
+                return;
+            }
+            ui->anchor_x = ui->drag_x = in.x;
+            ui->anchor_val = wdg->val;
+            ui->fine = in.fine;
+            ui->relative = in.fine;
         } else {
             ui->click_id = -1;
             ui->click_ready = 0;
         }
     }
     if (ui->press < 0) {
+        return;
+    }
+    if (in.kind == INPUT_DRAG && ui->click_value) {
         return;
     }
     if (in.kind == INPUT_DRAG && (abs(in.x - ui->click_x) > CLICK_SLOP || in.y != ui->click_y)) {
@@ -1271,22 +1345,30 @@ static void gui_mouse(Gui* ui, Input in, Event* out)
         kind = EVENT_BUTTON_PRESS;
     } else if (wdg->kind == WIDGET_CHECK_BUTTON && in.kind == INPUT_DOWN) {
         val = val == 0 ? 1 : 0;
-    } else if (wdg->kind == WIDGET_NUM_ENTRY && in.kind == INPUT_DOWN) {
-        f64 step = wdg->step > 0 ? wdg->step : (wdg->max - wdg->min) / 100;
-        if (in.x < wdg->hit.x + 3) {
-            val -= step;
-        } else if (in.x >= wdg->hit.x + wdg->hit.w - 3) {
-            val += step;
+    } else if (wdg->kind == WIDGET_SLIDER || wdg->kind == WIDGET_NUM_ENTRY) {
+        if (in.kind == INPUT_DRAG && ui->fine != in.fine) {
+            ui->fine = in.fine;
+            ui->relative = 1;
+            ui->anchor_x = ui->drag_x;
+            ui->anchor_val = wdg->val;
         }
-        val = clamp(val, wdg->min, wdg->max);
-    } else if (wdg->kind == WIDGET_SLIDER) {
+        ui->drag_x = in.x;
         mj_assert(wdg->hit.w >= 2);
-        f64 frac = clamp(cast(f64, in.x - wdg->hit.x) / (wdg->hit.w - 1), 0, 1);
-        val = wdg->min + frac * (wdg->max - wdg->min);
-        if (wdg->step > 0 && frac > 0 && frac < 1) {
-            f64 pos = (val - wdg->min) / wdg->step;
-            if (isfinite(pos)) {
-                val = wdg->min + round(pos) * wdg->step;
+        f64 coarse = (wdg->max - wdg->min) / (wdg->hit.w - 1);
+        if (ui->relative) {
+            f64 unit = coarse;
+            if (ui->fine) {
+                unit = wdg->step > 0 ? fmin(wdg->step, coarse / 8) : coarse / 16;
+            }
+            val = ui->anchor_val + cast(f64, in.x - ui->anchor_x) * unit;
+        } else {
+            f64 frac = clamp(cast(f64, in.x - wdg->hit.x) / (wdg->hit.w - 1), 0, 1);
+            val = wdg->min + frac * (wdg->max - wdg->min);
+            if (wdg->step > 0 && frac > 0 && frac < 1) {
+                f64 pos = (val - wdg->min) / wdg->step;
+                if (isfinite(pos)) {
+                    val = wdg->min + round(pos) * wdg->step;
+                }
             }
         }
         val = clamp(val, wdg->min, wdg->max);
@@ -1294,6 +1376,55 @@ static void gui_mouse(Gui* ui, Input in, Event* out)
     if (val != wdg->val) {
         wdg->val = val;
         *out = (Event){ kind, ui->press, val };
+    }
+}
+
+static void gui_edit(Gui* ui, Input in, Event* out)
+{
+    mj_assert(ui->edit_id >= 0 && ui->edit_id < ui->len);
+
+    if (in.kind == INPUT_CANCEL) {
+        ui->edit_id = -1;
+        return;
+    }
+    if (in.kind == INPUT_DOWN) {
+        ui->edit_id = -1;
+        ui->click_id = -1;
+        ui->click_ready = 0;
+        gui_mouse(ui, in, out);
+        return;
+    }
+    if (in.kind != INPUT_KEY) {
+        return;
+    }
+    if (in.key == '\r' || in.key == '\n') {
+        if (!ui->edit_len) {
+            ui->edit_id = -1;
+            return;
+        }
+        char* end;
+        f64 val = strtod(ui->edit, &end);
+        if (end == ui->edit || *end || isnan(val)) {
+            ui->edit_invalid = 1;
+            return;
+        }
+        s32 id = ui->edit_id;
+        Widget* wdg = &ui->wdgs[id];
+        val = clamp(val, wdg->min, wdg->max);
+        ui->edit_id = -1;
+        if (val != wdg->val) {
+            wdg->val = val;
+            *out = (Event){ EVENT_VALUE, id, val };
+        }
+    } else if (in.key == '\b' || in.key == 127) {
+        if (ui->edit_len) {
+            ui->edit[--ui->edit_len] = 0;
+        }
+        ui->edit_invalid = 0;
+    } else if (ui->edit_len < EDIT_CAP - 1) {
+        ui->edit[ui->edit_len++] = cast(char, in.key);
+        ui->edit[ui->edit_len] = 0;
+        ui->edit_invalid = 0;
     }
 }
 
@@ -1310,7 +1441,7 @@ ErrorCode gui_step(Gui* ui, s32 wait_ms, Event* out)
     }
     if (err) {
         if (ui && ui->term.live) {
-            mj_unused(gui_stop(ui));
+            gui_stop(ui);
         }
         return err;
     }
@@ -1318,6 +1449,7 @@ ErrorCode gui_step(Gui* ui, s32 wait_ms, Event* out)
     Input in;
     err = term_read(&ui->term, wait_ms < 0 ? 1000 / MJ_GUI_FPS : wait_ms, &in);
     if (mj_flag_get(&halted) || in.kind == INPUT_QUIT) {
+        ui->edit_id = -1;
         gui_release(ui, out);
         out->kind = EVENT_QUIT;
     } else if (mj_flag_get(&resized)) {
@@ -1325,18 +1457,23 @@ ErrorCode gui_step(Gui* ui, s32 wait_ms, Event* out)
         term_size(&ui->term);
         ui->click_id = -1;
         ui->click_ready = 0;
+        ui->edit_id = -1;
         gui_release(ui, out);
         if (out->kind == EVENT_NONE) {
             out->kind = EVENT_RESIZE;
         }
     } else if (!err) {
-        gui_mouse(ui, in, out);
+        if (ui->edit_id >= 0) {
+            gui_edit(ui, in, out);
+        } else {
+            gui_mouse(ui, in, out);
+        }
     }
     if (!err) {
         err = gui_render(ui);
     }
     if (err) {
-        mj_unused(gui_stop(ui));
+        gui_stop(ui);
     }
     return err;
 }

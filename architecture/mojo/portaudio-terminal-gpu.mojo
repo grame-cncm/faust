@@ -50,17 +50,14 @@ def main() -> None:
     if not err:
         err = ui[].run()
 
-    # Restore the terminal before verifying that the callback stopped.
     var term = ui[].stop()
     var end = driver[].stop()
     if driver[].stream != None:
-        # Leave callback-reachable allocations intact if stream close failed.
         print("PortAudio close failed:", end)
         return
     var gpu_err = gpu[].get_error()
     var released = gpu[].release()
     if gpu[].state != None:
-        # Leave device and host buffers intact if DMA completion is unknown.
         print("GPU release failed:", released)
         return
     ui[].close()

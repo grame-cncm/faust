@@ -136,8 +136,9 @@ mj_static_assert(sizeof(f64) == 8, "f64 ABI");
 #define MJ_BOX_DEPTH 64
 
 void gui_log(cstr file, s32 line, cstr func, cstr fmt, ...) mj_printf_args(4, 5);
-mj_noreturn void gui_fail(cstr kind, cstr expr, cstr file,
-                          s32 line, cstr func, cstr fmt, ...) mj_printf_args(6, 7);
+mj_noreturn void gui_fail(
+    cstr kind, cstr expr, cstr file, s32 line, cstr func, cstr fmt, ...
+) mj_printf_args(6, 7);
 
 #ifndef mj_debug_trap
 #if MJ_COMPILER_MSVC
@@ -151,14 +152,12 @@ mj_noreturn void gui_fail(cstr kind, cstr expr, cstr file,
 
 #ifndef mj_unreachable
 #if MJ_COMPILER_MSVC
-#define mj_unreachable() \
-    do {                 \
-        mj_debug_trap(); \
-        __assume(0);     \
+#define mj_unreachable() do { \
+        mj_debug_trap();      \
+        __assume(0);          \
     } while (0)
 #else
-#define mj_unreachable()         \
-    do {                         \
+#define mj_unreachable() do {    \
         mj_debug_trap();         \
         __builtin_unreachable(); \
     } while (0)
@@ -173,19 +172,18 @@ mj_noreturn void gui_fail(cstr kind, cstr expr, cstr file,
 #if MJ_DEBUG
 #define mj_debug(...) gui_log(__FILE__, __LINE__, __func__, __VA_ARGS__)
 #else
-#define mj_debug(...) mj_unused(0)
+#define mj_debug(...) ((void)0)
 #endif
 #endif
 
 #ifndef mj_assert_msg
 #if MJ_DEBUG
-#define mj_assert_msg(cond, ...) do { \
-    if (!(cond)) { \
-        gui_fail("assertion failure", #cond, __FILE__, __LINE__, __func__, __VA_ARGS__); \
-    } \
-} while (0)
+#define mj_assert_msg(cond, ...) do {                                                        \
+        if (!(cond)) {                                                                       \
+            gui_fail("assertion failure", #cond, __FILE__, __LINE__, __func__, __VA_ARGS__); \
+        }} while (0)
 #else
-#define mj_assert_msg(cond, ...) mj_unused(0)
+#define mj_assert_msg(cond, ...) ((void)0)
 #endif
 #endif
 
@@ -193,12 +191,13 @@ mj_noreturn void gui_fail(cstr kind, cstr expr, cstr file,
 #if MJ_DEBUG
 #define mj_assert(cond) mj_assert_msg(cond, "no message")
 #else
-#define mj_assert(cond) mj_unused(0)
+#define mj_assert(cond) ((void)0)
 #endif
 #endif
 
 typedef s32 ErrorCode;
-enum {
+enum
+{
     ERROR_NONE,
     ERROR_INVALID_ARG,
     ERROR_INVALID_STATE,
@@ -210,14 +209,16 @@ enum {
 };
 
 typedef s32 BoxKind;
-enum {
+enum
+{
     BOX_TAB,
     BOX_HORIZONTAL,
     BOX_VERTICAL
 };
 
 typedef s32 WidgetKind;
-enum {
+enum
+{
     WIDGET_BUTTON,
     WIDGET_CHECK_BUTTON,
     WIDGET_SLIDER,
@@ -226,7 +227,8 @@ enum {
 };
 
 typedef s32 EventKind;
-enum {
+enum
+{
     EVENT_NONE,
     EVENT_VALUE,
     EVENT_BUTTON_PRESS,
@@ -238,7 +240,8 @@ enum {
 typedef struct Gui Gui;
 typedef struct Value Value;
 
-typedef struct Event {
+typedef struct Event
+{
     EventKind kind;
     s32 id;
     f64 val;

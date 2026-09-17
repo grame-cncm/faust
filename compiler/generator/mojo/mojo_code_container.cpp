@@ -360,8 +360,8 @@ CodeContainer* MojoCodeContainer::createContainer(
         throw faustexception("ERROR : Scheduler not supported for Mojo\n");
     }
     if (gGlobal->gGPUSwitch) {
-        if (gGlobal->gFloatSize != 2) {
-            throw faustexception("ERROR : Internal precision must be 64 bits in -gpu mode\n");
+        if (gGlobal->gFloatSize != 1) {
+            throw faustexception("ERROR : Internal precision must be 32 bits in -gpu mode\n");
         }
         if (gGlobal->gFunTaskSwitch || gGlobal->gMemoryManager >= 0 || gGlobal->gExtControl
             || gGlobal->gComputeMix || gGlobal->gVectorLoopVariant == 2) {
@@ -434,7 +434,6 @@ MojoGpuCodeContainer::MojoGpuCodeContainer(
 ) : MojoCodeContainer(name, n_ins, n_outs, out)
 {
     fDspType = "FaustDspGpu";
-    fFloatType = "F32";
     fVisitor = new MojoGpuInstVisitor(out, name, n_ins, n_outs);
     gScalarProducer = fVisitor;
 }

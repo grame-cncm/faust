@@ -48,18 +48,12 @@ def main() -> None:
         err = driver[].start(dsp)
     if not err:
         err = gui[].run()
-    # Every path, including open/start/run failure, unwinds in this order.
-    # Restore the tty before potentially waiting for the audio driver to stop.
     var term = gui[].stop()
     var end = driver[].stop()
     if driver[].stream != None:
-        # A failed close may leave the callback accessing DSP memory.
         print("PortAudio close failed:", end)
         return
     gui[].close()
-    comptime assert conforms_to(TerminalGui, Deinitable), (
-        "Terminal GUI owns widget strings."
-    )
     gui.unsafe_deinit_pointee()
     gui.unsafe_free()
     driver.unsafe_free()

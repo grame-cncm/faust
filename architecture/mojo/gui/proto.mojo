@@ -25,14 +25,9 @@ struct ProtoGui(FaustGui):
         ui.top = 0
 
         ui.widgets[0] = Widget(
-            WIDGET_ROOT,
-            String("root"),
-            0,
+            WIDGET_ROOT, String("root"), 0,
             NULL_PTR[FaustFloat, MUT_NOTRK],
-            0.0,
-            0.0,
-            0.0,
-            0.0,
+            0.0, 0.0, 0.0, 0.0,
         )
         ui.widgets_len = 1
 
@@ -46,14 +41,9 @@ struct ProtoGui(FaustGui):
         var idx = ui.widgets_len 
 
         ui.widgets[idx] = Widget(
-            WIDGET_VBOX,
-            label,
-            parent,
+            WIDGET_VBOX, label, parent,
             NULL_PTR[FaustFloat, MUT_NOTRK],
-            FaustFloat(0.0),
-            FaustFloat(0.0),
-            FaustFloat(0.0),
-            FaustFloat(0.0),
+            0.0, 0.0, 0.0, 0.0,
         )
         ui.widgets_len += 1
 
@@ -122,7 +112,6 @@ struct ProtoGui(FaustGui):
         except Error:
             return 1
      
-
 # ==============================================================
 # Widget implementation
 # ==============================================================

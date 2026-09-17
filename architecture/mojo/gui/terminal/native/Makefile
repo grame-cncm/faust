@@ -13,7 +13,7 @@ BUFF_SIZE ?= 256
 MODE ?= release
 WARN = -Wall -Wextra -Wshadow -Wconversion -Werror -Wpedantic
 BASE = -std=c11 $(WARN)
-FLAGS_release = -O2 -DNDEBUG
+FLAGS_release = -O3 -DNDEBUG
 FLAGS_debug = -O0 -g -DMJ_DEBUG=1
 OBJ = build/$(MODE)/termgui.o
 LIB = build/$(MODE)/libtermgui.a

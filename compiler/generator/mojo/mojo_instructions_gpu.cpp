@@ -16,34 +16,9 @@ MojoGpuInstVisitor::MojoGpuInstVisitor(
     OStream* out, String const& name, s32 n_ins, s32 n_outs
 ) : MojoInstVisitor(out, name), fName(name), fInputs(n_ins), fOutputs(n_outs)
 {
-    fTypeManager->fTypeDirectTable[Typed::kFloatMacro] = "F32";
-    fTypeManager->fTypeDirectTable[Typed::kFloatMacro_ptr] = "Ptr[F32]";
-    fTypeManager->fTypeDirectTable[Typed::kFloatMacro_ptr_ptr] = "Ptr[Ptr[F32]]";
-}
-
-// Host UI zones use the same explicit type as device I/O.
-
-void GpuVisitor::visit(AddSliderInst* inst)
-{
-    String name;
-    switch (inst->fType) {
-        case AddSliderInst::kHorizontal: name = "add_horizontal_slider"; break;
-        case AddSliderInst::kVertical:   name = "add_vertical_slider";   break;
-        case AddSliderInst::kNumEntry:   name = "add_num_entry";         break;
-    }
-    *fOut << "ui." << name << "(" << wlit(inst->fLabel) << ", dsp."
-          << snakeCase(inst->fZone) << ", F32(" << ensureReal(inst->fInit)
-          << "), F32(" << ensureReal(inst->fMin) << "), F32(" << ensureReal(inst->fMax)
-          << "), F32(" << ensureReal(inst->fStep) << "))" << wnextl(fTab);
-}
-
-void GpuVisitor::visit(AddBargraphInst* inst)
-{
-    String name = inst->fType == AddBargraphInst::kHorizontal
-        ? "add_horizontal_bargraph" : "add_vertical_bargraph";
-    *fOut << "ui." << name << "(" << wlit(inst->fLabel) << ", dsp."
-          << snakeCase(inst->fZone) << ", F32(" << ensureReal(inst->fMin)
-          << "), F32(" << ensureReal(inst->fMax) << "))" << wnextl(fTab);
+    fTypeManager->fTypeDirectTable[Typed::kFloatMacro] = "FaustFloat";
+    fTypeManager->fTypeDirectTable[Typed::kFloatMacro_ptr] = "Ptr[FaustFloat]";
+    fTypeManager->fTypeDirectTable[Typed::kFloatMacro_ptr_ptr] = "Ptr[Ptr[FaustFloat]]";
 }
 
 void GpuVisitor::visit(NamedAddress* inst)
@@ -375,7 +350,17 @@ void GpuVisitor::writeInitializers(BlockInst* block, s32 n)
         }
         *fOut << wtab(n) << "dsp." << snakeCase(decl->getName()) << " = ";
         if (decl->fValue) {
-            decl->fValue->accept(this);
+            if (decl->fType->getType() == Typed::kFloatMacro) {
+                *fOut << "FaustFloat(";
+                if (auto* number = dycast(FloatNumInst*, decl->fValue)) {
+                    *fOut << checkFloat(number->fNum);
+                } else {
+                    decl->fValue->accept(this);
+                }
+                *fOut << ")";
+            } else {
+                decl->fValue->accept(this);
+            }
         } else if (auto* array = dycast(ArrayTyped*, decl->fType)) {
             *fOut << fTypeManager->generateType(array) << "(fill="
                   << fTypeManager->generateType(array->fType) << "(0))";
@@ -397,8 +382,8 @@ void GpuVisitor::writeCompute(s32 n)
           << "def gpu_compute(" << wnextl(n + 1)
           << "mut ctx:       DeviceContext," << wnextl(n + 1)
           << "imm dsp_raw:   DeviceBuffer[u8]," << wnextl(n + 1)
-          << "imm in_buf:    DeviceBuffer[f32]," << wnextl(n + 1)
-          << "imm out_buf:   DeviceBuffer[f32]," << wnextl(n + 1)
+          << "imm in_buf:    DeviceBuffer[dfaust]," << wnextl(n + 1)
+          << "imm out_buf:   DeviceBuffer[dfaust]," << wnextl(n + 1)
           << "imm work_buf:  DeviceBuffer[u8]," << wnextl(n + 1)
           << "imm count:     S32" << wnextl(n)
           << ") raises -> None:" << wnextl(n + 1)
@@ -458,8 +443,8 @@ void GpuVisitor::writeKernel(String const& name, s32 n, b32 single)
     *fOut << wtab(n) << "@staticmethod" << wnextl(n)
           << "def " << name << "(" << wnextl(n + 1)
           << "dsp_raw:    Ptr[U8, MUT_ANY]," << wnextl(n + 1)
-          << "ins:        Ptr[F32, MUT_ANY]," << wnextl(n + 1)
-          << "outs:       Ptr[F32, MUT_ANY]," << wnextl(n + 1)
+          << "ins:        Ptr[FaustFloat, MUT_ANY]," << wnextl(n + 1)
+          << "outs:       Ptr[FaustFloat, MUT_ANY]," << wnextl(n + 1)
           << "work_raw:   Ptr[U8, MUT_ANY]," << wnextl(n + 1)
           << "fullcount:  S32," << wnextl(n + 1)
           << "count:      S32," << wnextl(n + 1)
