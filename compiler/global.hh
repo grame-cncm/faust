@@ -327,6 +327,7 @@ struct global {
                        // families (spec LA-FORME-MATRICE) -- spares them
                        // from the sum lowering and, under -ls, emits
                        // recurrence-carried rows as table dot products
+    bool gFIRHoist;  // -fir-hoist : the common numerator of a bank of constant-coefficient IIRs on one input is applied once, to the input (LE-NUMERATEUR-COMMUN)
     bool gIIRTransposed;  // -iirt : transposed all-pole emission of the IIR kernels  // -fir : signal-level FIR/IIR recognition (side-channel)       // -ls option (ocpp, experimental): emit the materialized-signal DAG as
                            // separate loops (one per recursive group / delayed / shared signal /
                            // output) instead of one big sample loop

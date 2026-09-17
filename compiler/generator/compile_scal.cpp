@@ -1028,6 +1028,11 @@ Tree ScalarCompiler::prepare(Tree LS)
             startTiming("IIR revealer");
             L2 = revealIIR(L2);
             endTiming("IIR revealer");
+            if (gGlobal->gFIRHoist) {
+                startTiming("Numerator hoisting");
+                L2 = hoistCommonNumerators(L2);  // LE-NUMERATEUR-COMMUN
+                endTiming("Numerator hoisting");
+            }
             startTiming("FIR factorizer");
             L2 = factorizeFIRs(L2);
             L2 = kernelCandidacy(L2);  // the retiming law, per site
