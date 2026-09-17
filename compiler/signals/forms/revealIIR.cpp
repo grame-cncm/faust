@@ -1,6 +1,8 @@
 #include "revealIIR.hh"
 
+#include <cstdlib>
 #include <iostream>
+#include <map>
 #include <optional>
 #include <unordered_map>
 #include <unordered_set>
@@ -312,5 +314,144 @@ Tree revealIIR(Tree L1)
         return sigIIR(coef2);
     };
 
+    return treeRewritePairedMemo(L1, pre, rule, memo, defRule);
+}
+
+//----------------------------------------------------------------------
+// The common numerator : FIR_K(IIR_D(x)) = IIR_D(FIR_K(x))
+//----------------------------------------------------------------------
+//
+// Two linear filters with CONSTANT coefficients commute -- their transfer
+// functions do, N(z) * 1/D(z) = 1/D(z) * N(z) -- and the states of a Faust
+// filter start at zero : both orders give the same signal from the first
+// sample. A bank of IIRs on the same input x whose outputs go through the
+// same kernel K (the modal models : englishBell's 50 modes are
+// g_j * FIR[IIR[, x, 0, c1_j, c2_j], 1, 0, -1]) is rewritten so that every
+// branch reads FIR_K(x) : one hash-consed node, the kernel computed once for
+// the whole bank instead of once per filter.
+//
+// Conditions, all decided on the ORIGINAL tree :
+//   - constant coefficients (numbers or init-time values, sigOrder <= 1),
+//     for K and for D : block-rate coefficients do not commute across a
+//     block edge, where the two orders would differ ;
+//   - the IIR is read by that FIR only : otherwise the recursion would be
+//     computed twice, once on x for its other readers, once on FIR_K(x) ;
+//   - a group (x, K) of at least two such filters : alone, the moved kernel
+//     reads x's history (a delay line may be born) and shares nothing.
+// The gains stay outside : they multiply the branch after the filter in
+// both forms, so a varying gain (a strike position) keeps the rewrite exact.
+// Hoisting the kernel out of the SUM instead, K applied once to
+// sum_j g_j * IIR_j(x), would be exact for constant gains only : refused.
+Tree hoistCommonNumerators(Tree L1)
+{
+    const bool trace = getenv("FAUST_FIR_HOIST_TRACE") != nullptr;
+
+    auto constFrom = [](const tvec& V, size_t from) -> bool {
+        for (size_t i = from; i < V.size(); i++) {
+            if (sigs::sigOrder(V[i]) > 1) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    // ---- analysis : readers of every IIR, and the candidate kernels -----
+    std::unordered_map<Tree, int> iirReaders;  // IIR node -> number of distinct parent nodes
+    std::vector<Tree>             candidates;  // FIR[IIR[...], ...] nodes, discovery order
+    {
+        std::unordered_set<Tree> seen;
+        std::vector<Tree>        st{L1};
+        while (!st.empty()) {
+            Tree t = st.back();
+            st.pop_back();
+            if (!seen.insert(t).second) {
+                continue;
+            }
+            Tree var, body;
+            if (isRec(t, var, body) && body) {
+                st.push_back(body);  // the definitions are reached through the rec's body
+                continue;
+            }
+            std::unordered_set<Tree> kids;
+            for (int k = 0; k < t->arity(); k++) {
+                Tree b = t->branch(k);
+                if (kids.insert(b).second && isSigIIR(b)) {
+                    iirReaders[b]++;
+                }
+                st.push_back(b);
+            }
+            tvec K;
+            if (isSigFIR(t, K) && K.size() >= 3 && isSigIIR(K[0])) {
+                candidates.push_back(t);
+            }
+        }
+    }
+
+    // ---- groups (x, K) ----------------------------------------------------
+    std::map<tvec, std::vector<Tree>> groups;  // key : {x, k0, k1, ...} (hash-consed pointers)
+    std::vector<tvec>                 order;   // keys in discovery order (the trace)
+    int                               refusedCoefs = 0, refusedShared = 0;
+    for (Tree f : candidates) {
+        tvec K, D;
+        isSigFIR(f, K);
+        isSigIIR(K[0], D);
+        if (D.size() < 4 || !constFrom(K, 1) || !constFrom(D, 2)) {
+            refusedCoefs++;
+            continue;
+        }
+        if (iirReaders[K[0]] != 1) {
+            refusedShared++;
+            continue;
+        }
+        tvec key{D[1]};
+        key.insert(key.end(), K.begin() + 1, K.end());
+        auto& g = groups[key];
+        if (g.empty()) {
+            order.push_back(key);
+        }
+        g.push_back(f);
+    }
+    std::unordered_set<Tree> targets;
+    int                      hoisted = 0, single = 0;
+    for (const tvec& key : order) {
+        const auto& g = groups[key];
+        if (g.size() >= 2) {
+            targets.insert(g.begin(), g.end());
+            hoisted += (int)g.size();
+        } else {
+            single++;
+        }
+        if (trace) {
+            std::cerr << "fir-hoist : group of " << g.size() << " filter(s), kernel of " << (key.size() - 1)
+                      << " coefficients, " << (g.size() >= 2 ? "hoisted" : "left (alone)") << std::endl;
+        }
+    }
+    if (trace) {
+        std::cerr << "fir-hoist summary : FIR-over-IIR " << candidates.size() << ", refused (coefficients not constant) "
+                  << refusedCoefs << ", refused (IIR read elsewhere) " << refusedShared << ", groups " << order.size()
+                  << ", filters hoisted " << hoisted << ", alone " << single << std::endl;
+    }
+    if (targets.empty()) {
+        return L1;
+    }
+
+    // ---- rewrite : built from the rebuilt pieces, decided on the original --
+    std::unordered_map<Tree, Tree> memo;
+    auto pre     = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
+    auto rule    = [&](Tree orig, Tree rebuilt) -> Tree {
+        if (targets.find(orig) == targets.end()) {
+            return rebuilt;
+        }
+        tvec K, D;
+        if (!isSigFIR(rebuilt, K) || K.empty() || !isSigIIR(K[0], D) || D.size() < 4) {
+            return rebuilt;
+        }
+        tvec F = K;
+        F[0]   = D[1];  // the kernel now reads the bank's input
+        tvec D2 = D;
+        D2[1]   = sigFIR(F);  // hash-consed : the same node for the whole group
+        return sigIIR(D2);
+    };
     return treeRewritePairedMemo(L1, pre, rule, memo, defRule);
 }

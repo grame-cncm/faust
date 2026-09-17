@@ -470,6 +470,7 @@ void global::reset()
     gLowerSums          = false;
     gMatrixRows         = false;
     gIIRTransposed      = false;
+    gFIRHoist           = false;
     gLSSched        = 0;
     gLSRegisters    = 20;
     gLSWidth        = 4;
@@ -1907,6 +1908,11 @@ bool global::processCmdline(int argc, const char* argv[])
             gReconstructFIRIIRs = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-fir-hoist", "--fir-hoist-numerators")) {
+            gFIRHoist           = true;
+            gReconstructFIRIIRs = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-iirt", "--iir-transposed")) {
             gIIRTransposed = true;
             i += 1;
@@ -2729,6 +2735,11 @@ string global::printHelp()
     sstr << tab
          << "-fir        --fir-iir                   (ocpp, experimental) recognise FIR/IIR "
             "kernels in the signal graph and emit their dedicated forms."
+         << endl;
+    sstr << tab
+         << "-fir-hoist  --fir-hoist-numerators      (ocpp, experimental, implies -fir) a bank of "
+            "constant-coefficient IIRs on one input whose outputs go through the same kernel gets "
+            "that kernel once, on the input."
          << endl;
     sstr << tab
          << "-iirt       --iir-transposed            (ocpp, experimental) transposed emission "
