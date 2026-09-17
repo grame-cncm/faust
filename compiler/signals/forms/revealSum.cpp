@@ -20,10 +20,31 @@ static Tree recSafeSimplify(Tree t)
     return t->isRecFree() ? simplify(t) : t;
 }
 
-// Negate a signal: S -> -S
+// Negate a signal: S -> -S. The negation never rewrites the term : the
+// general simplifier, applied to -1 * S, renormalizes S itself, and an n-ary
+// Sum already revealed inside S (under a delay, say) went back to its binary
+// spelling. The same delayed signal then lived under two spellings -- the
+// revealed one where it is added, the binary one where it is subtracted : two
+// delay lines for one signal, and one of them out of reach of the dispatch (a
+// chain of two Hadamard matrices separated by delays wrote 15 lines for 8).
+// A constant factor is NOT folded either : -1 * (k * x) keeps the product
+// k * x it shares with its positive occurrences, where (-k) * x is one more
+// multiplication and an atom the dispatch cannot pair.
 static Tree sigNeg(Tree sig)
 {
-    return recSafeSimplify(sigMul(sigInt(-1), sig));
+    Tree x, y;
+    if (isSigMul(sig, x, y)) {
+        if (isMinusOne(x)) {
+            return y;
+        }
+        if (isMinusOne(y)) {
+            return x;
+        }
+    }
+    if (isNum(sig)) {
+        return recSafeSimplify(sigMul(sigInt(-1), sig));
+    }
+    return sigMul(sigInt(-1), sig);
 }
 
 // occurrence count on the ORIGINAL tree (one per parent edge, rec bodies
@@ -57,11 +78,13 @@ static void countOcc(Tree root, std::map<Tree, int, treeorder>& occ)
 }
 
 // Append the terms of x (rebuilt) to zsubs : spliced when x is a Sum whose
-// ORIGINAL was single-use, kept as one opaque atom otherwise.
-static void appendTerms(Tree xrebuilt, bool xShared, bool invert, tvec& zsubs)
+// ORIGINAL was single-use, kept as one opaque atom otherwise. A SHARED sum
+// is spliced too when the caller gathers through the sharing (maxShared > 0)
+// and the row stays within maxShared terms.
+static void appendTerms(Tree xrebuilt, bool xShared, bool invert, tvec& zsubs, size_t maxShared)
 {
     tvec subs;
-    if (!xShared && isSigSum(xrebuilt, subs)) {
+    if (isSigSum(xrebuilt, subs) && (!xShared || zsubs.size() + subs.size() <= maxShared)) {
         for (Tree s : subs) {
             zsubs.push_back(invert ? sigNeg(s) : s);
         }
@@ -72,8 +95,21 @@ static void appendTerms(Tree xrebuilt, bool xShared, bool invert, tvec& zsubs)
 
 // External API
 
-Tree revealSum(Tree L1)
+// throughShared : gather THROUGH the shared sub-sums. The protection above
+// is right when nothing rebuilds the sharing afterwards (-fir alone : the
+// flattened Hadamard matrix of size n costs n(n-1) additions). When the
+// dispatch of lowerSums follows, the opaque atoms are what keeps it away
+// from the optimum : the shared sub-sums of the normal form are arbitrary
+// partial nestings, not the stages of the butterfly, and the dispatch cannot
+// undo them. Gathering everything lets it rebuild n.log2(n) on the Hadamard
+// series, whatever the writing. The rows are bounded : a sum over a graph of
+// shared sums can repeat its terms exponentially, and the dispatch is
+// quadratic in the row size.
+static const size_t kMaxGatheredRow = 256;
+
+Tree revealSum(Tree L1, bool throughShared)
 {
+    const size_t maxShared = throughShared ? kMaxGatheredRow : 0;
     std::map<Tree, int, treeorder> occ;
     countOcc(L1, occ);
     auto shared = [&occ](Tree t) {
@@ -96,14 +132,14 @@ Tree revealSum(Tree L1)
         Tree xo, yo, xr, yr;
         if (isSigAdd(orig, xo, yo) && isSigAdd(rebuilt, xr, yr)) {
             tvec zsubs;
-            appendTerms(xr, shared(xo), false, zsubs);
-            appendTerms(yr, shared(yo), false, zsubs);
+            appendTerms(xr, shared(xo), false, zsubs, maxShared);
+            appendTerms(yr, shared(yo), false, zsubs, maxShared);
             return sigSum(zsubs);
         }
         if (isSigSub(orig, xo, yo) && isSigSub(rebuilt, xr, yr)) {
             tvec zsubs;
-            appendTerms(xr, shared(xo), false, zsubs);
-            appendTerms(yr, shared(yo), true, zsubs);
+            appendTerms(xr, shared(xo), false, zsubs, maxShared);
+            appendTerms(yr, shared(yo), true, zsubs, maxShared);
             return sigSum(zsubs);
         }
         return rebuilt;

@@ -1125,7 +1125,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         // reveal precedent.
         std::function<void()> lsOnly = [&]() {
             startTiming("Sum revealer (lsum standalone)");
-            L2 = revealSum(L2);
+            L2 = revealSum(L2, true);  // the dispatch follows : gather through the sharing
             endTiming("Sum revealer (lsum standalone)");
             startTiming("Sum lowering");
             std::set<Tree> keepRows;
@@ -1161,7 +1161,9 @@ Tree ScalarCompiler::prepare(Tree LS)
         // big-stack thread, joined immediately (thunder, drumkit).
         std::function<void()> reveal = [&]() {
             startTiming("Sum revealer");
-            L2 = revealSum(L2);
+            // gather through the shared sub-sums only when lowerSums rebuilds
+            // the sharing below ; alone, -fir keeps them as atoms
+            L2 = revealSum(L2, gGlobal->gLowerSums);
             endTiming("Sum revealer");
             startTiming("FIR revealer");
             L2 = revealFIR(L2);
