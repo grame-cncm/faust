@@ -45,3 +45,22 @@
  * special knowledge.
  */
 Tree kernelCandidacy(Tree L);
+
+/**
+ * A kernel whose taps are all 0, +1 or -1 has no coefficient : it is a sum
+ * of delayed reads of its source, spelled as a kernel only because every
+ * constant delay goes through the FIR form on its way to the folding rules.
+ * As a kernel it is closed to the dispatch of the sums : a bank of such
+ * kernels on ONE source is a {-1,0,+1} matrix over the atoms x@d (eight
+ * delayed copies of an input through a Hadamard matrix : 56 additions, one
+ * row at a time, where the butterfly needs 24), and its larger members are
+ * emitted as a loop over a table of +-1 coefficients, one multiplication
+ * per tap. This pass gives them back to the sums : FIR[x, c..] becomes
+ * Sum[+-x@i], spliced into its reader when the reader is a sum and the only
+ * one. The all-ones contiguous kernels of four taps and more stay kernels
+ * (moving sums, O(1)). To be run when lowerSums follows, and BEFORE
+ * kernelCandidacy : what is not a kernel is not retimed (a bank whose
+ * members share their shift would each get a delay line for nothing).
+ */
+Tree dissolveUnitKernels(Tree L);
+

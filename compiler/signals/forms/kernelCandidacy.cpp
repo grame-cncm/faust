@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <functional>
 #include <map>
+#include <optional>
+#include <unordered_map>
 #include <set>
 #include <vector>
 
@@ -131,3 +133,111 @@ Tree kernelCandidacy(Tree L)
     };
     return treeRewrite(L, rule);
 }
+
+//----------------------------------------------------------------------
+// unit kernels : back to the sums
+//----------------------------------------------------------------------
+
+// every tap is a literal 0, +1 or -1, and two taps at least are not 0. The
+// all-ones contiguous kernels of four taps and more stay kernels : they are
+// moving sums, emitted in O(1) whatever their length (generateFIR).
+static bool isUnitKernel(const tvec& V)
+{
+    bool sliding = V.size() >= 5;
+    for (size_t i = 1; sliding && i < V.size(); i++) {
+        sliding = isOne(V[i]);
+    }
+    if (sliding) {
+        return false;
+    }
+    int taps = 0;
+    for (size_t i = 1; i < V.size(); i++) {
+        if (isZero(V[i])) {
+            continue;
+        }
+        if (!isOne(V[i]) && !isMinusOne(V[i])) {
+            return false;
+        }
+        taps++;
+    }
+    return taps >= 2;
+}
+
+Tree dissolveUnitKernels(Tree L)
+{
+    // parents of every node (one per edge, rec bodies crossed once) : a
+    // dissolved kernel is spliced into its reader only when it has one
+    std::map<Tree, int, treeorder> occ;
+    {
+        std::set<Tree>    seen;
+        std::vector<Tree> work{L};
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            Tree var, body;
+            if (isRec(t, var, body)) {
+                if (seen.insert(t).second && body) {
+                    work.push_back(body);
+                }
+                continue;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                Tree c = t->branch(k);
+                occ[c] += 1;
+                if (seen.insert(c).second) {
+                    work.push_back(c);
+                }
+            }
+        }
+    }
+    std::set<Tree>                 born;  // the sums this pass made
+    std::unordered_map<Tree, Tree> memo;
+    auto pre     = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
+    auto rule    = [&](Tree orig, Tree rebuilt) -> Tree {
+        tvec V;
+        if (isSigFIR(rebuilt, V) && isUnitKernel(V)) {
+            // a shifted kernel FIR[x@d, c..] reads x itself, d samples later
+            Tree x = V[0];
+            int  d0 = 0;
+            Tree a, b;
+            if (isSigDelay(x, a, b) && isSigInt(b, &d0) && d0 > 0) {
+                x = a;
+            } else {
+                d0 = 0;
+            }
+            tvec terms;
+            for (size_t i = 1; i < V.size(); i++) {
+                if (isZero(V[i])) {
+                    continue;
+                }
+                int  d = d0 + int(i) - 1;
+                Tree t = (d == 0) ? x : sigDelay(x, sigInt(d));
+                terms.push_back(isMinusOne(V[i]) ? sigMul(sigInt(-1), t) : t);
+            }
+            Tree sum = sigSum(terms);
+            born.insert(sum);
+            return sum;
+        }
+        tvec subs, osubs;
+        if (isSigSum(rebuilt, subs) && isSigSum(orig, osubs) && subs.size() == osubs.size()) {
+            tvec flat;
+            bool spliced = false;
+            for (size_t k = 0; k < subs.size(); k++) {
+                tvec inner;
+                if (born.count(subs[k]) && occ[osubs[k]] == 1 && isSigSum(subs[k], inner)) {
+                    flat.insert(flat.end(), inner.begin(), inner.end());
+                    spliced = true;
+                } else {
+                    flat.push_back(subs[k]);
+                }
+            }
+            if (spliced) {
+                return sigSum(flat);
+            }
+        }
+        return rebuilt;
+    };
+    return treeRewritePairedMemo(L, pre, rule, memo, defRule);
+}
+
