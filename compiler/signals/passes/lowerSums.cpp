@@ -1,6 +1,7 @@
 #include "lowerSums.hh"
 
 #include <algorithm>
+#include <cstdint>
 #include <functional>
 #include <optional>
 #include <tuple>
@@ -29,8 +30,28 @@
 // 3056 -> ~823. The algorithm is its own detector : it extracts while
 // the net gain (rows served minus adders spent) is positive, and
 // degenerates into the canonical comb when no signed pair repeats.
+//
+// Ties follow the stages. On a Hadamard matrix every pair of inputs has
+// the same net gain at the start, and breaking the tie by the canonical
+// tree order pairs inputs across unrelated stages : the synthesized atoms
+// then rarely meet in the same rows, and the extraction drifts away from
+// n.log2(n) as n grows (x2.7 at n = 128). A pair splits the rows into the
+// ones using a+b and the ones using a-b ; two pairs with the SAME split
+// produce atoms that co-occur in every row, and pair again at the next
+// stage. The tie is therefore broken first by the number of already
+// extracted pairs whose split this pair repeats, then by the canonical
+// order : the butterfly is recovered whatever the order of the atoms.
 
 namespace {
+
+// order-free hash of a set of row indices, accumulated one row at a time
+inline uint64_t rowKey(size_t r)
+{
+    uint64_t z = uint64_t(r) + 0x9e3779b97f4a7c15ULL;
+    z          = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+    z          = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+    return z ^ (z >> 31);
+}
 
 struct Atom {
     Tree t;
@@ -143,14 +164,19 @@ Tree lowerSums(Tree L, const std::set<Tree>* keep)
 
     // ---- greedy signed extraction, all rows mutated simultaneously
     struct Count {
-        int cpos = 0;  // rows using the a+b combination
-        int cneg = 0;  // rows using the a-b combination
+        int      cpos = 0;  // rows using the a+b combination
+        int      cneg = 0;  // rows using the a-b combination
+        uint64_t hpos = 0;  // hash of the set of rows using a+b
+        uint64_t hneg = 0;  // hash of the set of rows using a-b
     };
-    treeorder lt;
+    treeorder             lt;
+    std::vector<uint64_t> splits;  // the a+b row sets of the extracted pairs
     for (int guard = 0; guard < 4096; guard++) {
         // count the signed pairs over every row
         std::map<TPair, Count, PairOrder> count;
-        for (const Row& row : rows) {
+        for (size_t r = 0; r < rows.size(); r++) {
+            const Row&     row = rows[r];
+            const uint64_t key = rowKey(r);
             for (size_t i = 0; i < row.size(); i++) {
                 for (size_t j = i + 1; j < row.size(); j++) {
                     if (row[i].t == row[j].t) {
@@ -163,23 +189,49 @@ Tree lowerSums(Tree L, const std::set<Tree>* keep)
                         std::swap(sa, sb);
                     }
                     Count& c = count[{a, b}];
-                    (sa * sb > 0 ? c.cpos : c.cneg)++;
+                    if (sa * sb > 0) {
+                        c.cpos++;
+                        c.hpos += key;
+                    } else {
+                        c.cneg++;
+                        c.hneg += key;
+                    }
                 }
             }
         }
-        // best net gain : rows served minus adders materialized
-        int   best = 0;
+        // the number of extracted pairs whose row split this pair repeats
+        auto aligned = [&splits](const Count& c) {
+            int n = 0;
+            for (uint64_t h : splits) {
+                n += (c.cpos > 0 && h == c.hpos) || (c.cneg > 0 && h == c.hneg);
+            }
+            return n;
+        };
+        // best net gain : rows served minus adders materialized ; ties go to
+        // the most aligned pair, then to the first in canonical order
+        int   best      = 0;
+        int   bestAlign = 0;
         TPair bkey{nullptr, nullptr};
         for (const auto& [key, c] : count) {
             int net = c.cpos + c.cneg - (c.cpos > 0) - (c.cneg > 0);
-            if (net > best || (net == best && bkey.first != nullptr && net > 0 &&
-                               PairOrder()(key, bkey))) {
-                best = net;
-                bkey = key;
+            if (net <= 0 || net < best) {
+                continue;
+            }
+            int al = aligned(c);
+            if (net > best || al > bestAlign) {
+                best      = net;
+                bestAlign = al;
+                bkey      = key;
             }
         }
         if (best <= 0) {
             break;
+        }
+        {
+            const Count& c = count[bkey];
+            if (c.cpos > 0) {
+                splits.push_back(c.hpos);
+            }
         }
         // materialize s = a+b and/or d = a-b, rewrite every row. The
         // synthetic atoms are PLACEHOLDER trees registered in gSynth :

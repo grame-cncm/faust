@@ -2,4 +2,5 @@
 
 #include "signals.hh"
 
-Tree revealSum(Tree L);
+// throughShared : gather through the shared sub-sums (only when lowerSums follows)
+Tree revealSum(Tree L, bool throughShared = false);
