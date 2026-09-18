@@ -221,7 +221,8 @@ class ScalarCompiler : public Compiler {
     std::map<Tree, FamPlan>        fFamPlans;    // sum -> its family, planned before the schedule
     std::set<Tree>                 fFamPrivate;  // nodes compiled by a family loop, never on their own
     void                           planFamilies();
-    bool                           planFamily(Tree sig, const tvec& subs, FamPlan& plan);
+    bool                           planFamily(Tree sig, const tvec& subs, FamPlan& plan, bool typed = true);
+    std::set<Tree>                 famKeepSums(Tree L);  // the sums lowerSums must leave n-ary
     std::string                    generateFamilySum(Tree sig, const tvec& subs, bool& ok);
     std::string                    famExpr(FamCtx& g, Tree t);
     std::string                    famHist(FamCtx& g, Tree x, int k);

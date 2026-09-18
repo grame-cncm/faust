@@ -1199,6 +1199,13 @@ Tree ScalarCompiler::prepare(Tree LS)
                         keepRows.insert(row);
                     }
                 }
+                if (gGlobal->gFamilyForm) {
+                    // the family sums and their members' own sums stay
+                    // n-ary : a lowered family is not seen (LA-FORME-FAMILLE)
+                    for (Tree t : famKeepSums(L2)) {
+                        keepRows.insert(t);
+                    }
+                }
                 L2 = lowerSums(L2, keepRows.empty() ? nullptr : &keepRows);
                 endTiming("Sum lowering");
             }
@@ -9723,16 +9730,18 @@ static bool famIsState(Tree x)
     return isSigIIR(x, V) || (isProj(x, i, x2) && isRec(x2, W, defs));
 }
 
-static bool famCheck(Tree t, const std::set<Tree>& slots, const std::set<Tree>& commons, std::set<Tree>& seen)
+// typed : false before the typing, where every nature test passes (the plan
+// then only tells which sums the lowering must keep)
+static bool famCheck(Tree t, const std::set<Tree>& slots, const std::set<Tree>& commons, std::set<Tree>& seen, bool typed)
 {
     if (slots.count(t) || commons.count(t) || !seen.insert(t).second) {
         return true;
     }
-    auto real = [&](Tree u) { return getCertifiedSigType(u)->nature() == kReal; };
+    auto real = [&](Tree u) { return !typed || getCertifiedSigType(u)->nature() == kReal; };
     tvec V;
     if (isSigIIR(t, V)) {
         for (size_t i = 1; i < V.size(); i++) {
-            if (i != 2 && !famCheck(V[i], slots, commons, seen)) {
+            if (i != 2 && !famCheck(V[i], slots, commons, seen, typed)) {
                 return false;
             }
         }
@@ -9743,7 +9752,7 @@ static bool famCheck(Tree t, const std::set<Tree>& slots, const std::set<Tree>& 
             return false;  // a history of a node that is not a state
         }
         for (size_t i = 0; i < V.size(); i++) {
-            if (!famCheck(V[i], slots, commons, seen)) {
+            if (!famCheck(V[i], slots, commons, seen, typed)) {
                 return false;
             }
         }
@@ -9752,7 +9761,7 @@ static bool famCheck(Tree t, const std::set<Tree>& slots, const std::set<Tree>& 
     Tree x, y, grp, W, defs;
     int  d, i;
     if (isSigDelay(t, x, y)) {
-        return isSigInt(y, &d) && (d == 0 || famIsState(x)) && famCheck(x, slots, commons, seen);
+        return isSigInt(y, &d) && (d == 0 || famIsState(x)) && famCheck(x, slots, commons, seen, typed);
     }
     if (isProj(t, i, grp)) {
         if (!isRec(grp, W, defs)) {
@@ -9763,7 +9772,7 @@ static bool famCheck(Tree t, const std::set<Tree>& slots, const std::set<Tree>& 
         }
         seen.insert(grp);
         for (Tree l = defs; isList(l); l = tl(l)) {
-            if (!real(hd(l)) || !famCheck(hd(l), slots, commons, seen)) {
+            if (!real(hd(l)) || !famCheck(hd(l), slots, commons, seen, typed)) {
                 return false;
             }
         }
@@ -9772,14 +9781,14 @@ static bool famCheck(Tree t, const std::set<Tree>& slots, const std::set<Tree>& 
     int  op;
     Tree a, b;
     if (isSigBinOp(t, &op, a, b)) {
-        return (real(t) || isBoolOpcode(op)) && famCheck(a, slots, commons, seen) && famCheck(b, slots, commons, seen);
+        return (real(t) || isBoolOpcode(op)) && famCheck(a, slots, commons, seen, typed) && famCheck(b, slots, commons, seen, typed);
     }
     if (isSigSum(t, V)) {
         if (!real(t)) {
             return false;
         }
         for (Tree u : V) {
-            if (!famCheck(u, slots, commons, seen)) {
+            if (!famCheck(u, slots, commons, seen, typed)) {
                 return false;
             }
         }
@@ -9787,21 +9796,27 @@ static bool famCheck(Tree t, const std::set<Tree>& slots, const std::set<Tree>& 
     }
     Tree sel, s0, s1;
     if (isSigSelect2(t, sel, s0, s1)) {
-        return famCheck(sel, slots, commons, seen) && famCheck(s0, slots, commons, seen) && famCheck(s1, slots, commons, seen);
+        return famCheck(sel, slots, commons, seen, typed) && famCheck(s0, slots, commons, seen, typed) && famCheck(s1, slots, commons, seen, typed);
     }
     if (getUserData(t) == (void*)gGlobal->gAbsPrim && t->arity() == 1) {
-        return real(t) && famCheck(t->branch(0), slots, commons, seen);
+        return real(t) && famCheck(t->branch(0), slots, commons, seen, typed);
     }
     if (isSigFloatCast(t, x)) {
-        return famCheck(x, slots, commons, seen);
+        return famCheck(x, slots, commons, seen, typed);
     }
     return false;
 }
 
-bool ScalarCompiler::planFamily(Tree sig, const tvec& subs, FamPlan& plan)
+// typed : the sum carries its type and condition (the ordinary call, after
+// prepare) ; false before typing, where the plan only says which sums the
+// lowering must keep n-ary, and an integer sum kept for nothing is harmless
+bool ScalarCompiler::planFamily(Tree sig, const tvec& subs, FamPlan& plan, bool typed)
 {
     const bool trace = getenv("FAUST_FAM_TRACE") != nullptr;
-    if (subs.size() < 4 || getCertifiedSigType(sig)->nature() != kReal || !getConditionCode(sig).empty()) {
+    if (subs.size() < 4) {
+        return false;
+    }
+    if (typed && (getCertifiedSigType(sig)->nature() != kReal || !getConditionCode(sig).empty())) {
         return false;
     }
     // the largest class of isomorphic operands
@@ -9891,7 +9906,7 @@ bool ScalarCompiler::planFamily(Tree sig, const tvec& subs, FamPlan& plan)
     const int P = (int)best.size();
     {
         std::set<Tree> slotSet(leaves.begin(), leaves.end()), seen;
-        if (!famCheck(t0, slotSet, commons, seen)) {
+        if (!famCheck(t0, slotSet, commons, seen, typed)) {
             return refuse("the template holds a construct the family loop cannot generate");
         }
     }
@@ -9900,6 +9915,57 @@ bool ScalarCompiler::planFamily(Tree sig, const tvec& subs, FamPlan& plan)
     plan.leaves  = leaves;
     plan.commons = commons;
     return true;
+}
+
+// The family form and the dispatch of the sums : lowerSums turns every
+// n-ary sum into binary adds, and a family is an n-ary sum of isomorphic
+// operands -- lowered, it is not seen. Planned BEFORE the lowering, on the
+// untyped tree, the family sums and the sums private to their members are
+// handed to lowerSums as rows to keep : the members stay isomorphic and the
+// plan is redone, typed, after prepare. Nothing of the plan is kept here :
+// the lowering rebuilds the tree.
+std::set<Tree> ScalarCompiler::famKeepSums(Tree L)
+{
+    std::set<Tree> keep;
+    fFamRoot         = L;
+    fFamParentsBuilt = false;
+    fFamParents.clear();
+    std::set<Tree>    seen;
+    std::vector<Tree> st{L};
+    while (!st.empty()) {
+        Tree t = st.back();
+        st.pop_back();
+        if (!seen.insert(t).second) {
+            continue;
+        }
+        Tree id, body;
+        if (isRec(t, id, body) && body) {
+            st.push_back(body);
+            continue;
+        }
+        tvec subs;
+        if (isSigSum(t, subs) && subs.size() >= 4) {
+            FamPlan plan;
+            if (planFamily(t, subs, plan, false)) {
+                keep.insert(t);
+                for (Tree u : plan.priv) {
+                    if (isSigSum(u)) {
+                        keep.insert(u);
+                    }
+                }
+            }
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            st.push_back(t->branch(k));
+        }
+    }
+    fFamRoot         = nullptr;
+    fFamParentsBuilt = false;
+    fFamParents.clear();
+    if (getenv("FAUST_FAM_TRACE")) {
+        std::cerr << "fam keep : " << keep.size() << " sum(s) left n-ary through the lowering" << std::endl;
+    }
+    return keep;
 }
 
 void ScalarCompiler::planFamilies()
