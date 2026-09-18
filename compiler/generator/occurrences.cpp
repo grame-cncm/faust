@@ -80,6 +80,14 @@ Occurrences* Occurrences::incOccurrences(int v, int r, int d, Tree xc)
     if (d > fMaxDelay) {
         // cerr << "Max delay : " << fMaxDelay << " <- " << d << endl;
         fMaxDelay = d;
+    }
+    if (d > 0) {
+        // every delayed read counts : the density that elects the dense
+        // layout is count / max delay, and counting only the reads that
+        // RAISED the maximum made it depend on the order of the visit (the
+        // taps of a kernel come in increasing order and were counted in
+        // full ; the same reads as plain delays, met out of order, counted
+        // as one, and the line fell to a ring -- FFT, 44 -> 78 ns under g++)
         fCountDelay++;
     }
 
