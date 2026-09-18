@@ -1039,8 +1039,13 @@ Tree ScalarCompiler::prepare(Tree LS)
             L2 = factorizeFIRs(L2);
             // the kernels without coefficient go back to the sums : no table
             // of +-1 to multiply by, and the dispatch below, when it runs,
-            // shares them ; BEFORE the retiming law, which is a law of kernels
-            L2 = dissolveUnitKernels(L2);
+            // shares them ; BEFORE the retiming law, which is a law of kernels.
+            // The classic emitter only : the split emitter reads a kernel's
+            // history from its informed delay line, and the dissolved sum
+            // costs it dearly (vocoder under its fused g++ tariff : 27 -> 111 ns)
+            if (!gGlobal->gLoopSplit) {
+                L2 = dissolveUnitKernels(L2);
+            }
             L2 = kernelCandidacy(L2);  // the retiming law, per site
             endTiming("FIR factorizer");
             if (gGlobal->gLowerSums) {
@@ -10268,19 +10273,22 @@ void ScalarCompiler::planFamilyClasses(Tree root, std::vector<FamPlan>& out, boo
             }
             continue;
         }
-        // an output family competes with the C++ compiler's own packing of
-        // parallel channels, which keeps shallow states in registers : its
-        // members must carry a state and enough work
+        // every member must carry a state : a family without one is per-sample
+        // arithmetic on inputs filled every sample, which the C++ compiler
+        // already packs as straight-line code (StiffString : 100 products
+        // through three input arrays of 100, x1.84 under g++). An output
+        // family competes with the compiler's own packing of parallel
+        // channels, which keeps shallow states in registers : its members
+        // must also carry enough work
         const bool outputs = !plan.hosts.empty() && plan.hosts[0] == nullptr;
-        if (outputs) {
-            const int work = famWork(plan.priv, (int)plan.trees.size()), states = famStates(plan.priv, (int)plan.trees.size());
-            if (work < gGlobal->gFamilyMinOut || states < 1) {
-                if (trace) {
-                    std::cerr << "fam refused : outputs, family of " << plan.trees.size() << " : " << work << " operations and " << states
-                              << " states per member (" << gGlobal->gFamilyMinOut << " operations and one state needed)" << std::endl;
-                }
-                continue;
+        const int  work = famWork(plan.priv, (int)plan.trees.size()), states = famStates(plan.priv, (int)plan.trees.size());
+        if (states < 1 || (outputs && work < gGlobal->gFamilyMinOut)) {
+            if (trace) {
+                std::cerr << "fam refused : " << (outputs ? "outputs, " : "") << "family of " << plan.trees.size() << " : " << work
+                          << " operations and " << states << " states per member (one state" << (outputs ? " and " + T(gGlobal->gFamilyMinOut) + " operations" : "")
+                          << " needed)" << std::endl;
             }
+            continue;
         }
         int coverage = famWork(plan.priv, 1);
         for (Tree h : plan.hosts) {
