@@ -2,13 +2,14 @@
 
 from conf import *
 from dsp.gpu import FaustDspGpu
+
 from .gui import FaustGui
 
 comptime GPU_ZONE_CAP = 256
 comptime GPU_MAP_INVALID = S32(-2996)
 
 # ==============================================================
-# Faust GPU control map implementation.
+# Faust GPU control map GUI implementation.
 # ==============================================================
 
 # A Faust zone copied between host and device.
@@ -21,7 +22,6 @@ struct GpuControlZone(ImplicitlyCopyable, Movable):
     var host:     Ptr[FaustFloat, MUT_NOTRK]
     var offset:   Int
     var passive:  Bool
-
 
 # A `FaustGui` that describes GPU DSP controls and meters.
 # @desc
@@ -36,7 +36,7 @@ struct GpuControlZone(ImplicitlyCopyable, Movable):
 # - err: first error while visiting the UI.
 # @note
 # - Widget methods return `None`; `check` reports the recorded error.
-struct GpuControlMap(FaustGui):
+struct MapGui(FaustGui):
     var base:         OptPtr[U8, MUT_NOTRK]
     var active:       Arr[GpuControlZone, GPU_ZONE_CAP]
     var active_len:   S32
@@ -167,10 +167,9 @@ struct GpuControlMap(FaustGui):
     def run(mut map) -> S32:
         return 0
 
-
 # Builds and checks the map through the regular `FaustGui` API.
 def build_gpu_control_map[Dsp: FaustDspGpu](
-    var dsp: Ptr[Dsp], mut map: GpuControlMap
+    var dsp: Ptr[Dsp], mut map: MapGui
 ) -> S32:
     map.reset(dsp)
     dsp[].build_user_interface(map)

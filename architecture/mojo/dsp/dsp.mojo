@@ -1,7 +1,7 @@
 # dsp/dsp.mojo
 
 from conf import *
-from gui.gui import FaustGui
+from gui import FaustGui
 from meta import FaustMeta
 
 # ==============================================================

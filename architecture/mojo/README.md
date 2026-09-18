@@ -5,8 +5,8 @@ generated DSP code into an executable program.
 
 A FAUST backend has two main parts:
 
-- the **generator**, which translates the FAUST intermediate representation into the target language;
-- the **architecture system**, which supplies the environment required to use the generated DSP.
+- the *generator*, which translates the FAUST intermediate representation into the target language;
+- the *architecture system*, which supplies the environment required to use the generated DSP.
 
 The Mojo generator produces `struct mydsp`: its state, initialization, metadata, user interface
 description, and processing methods. An architecture supplies the application entry point, audio driver,
@@ -74,17 +74,18 @@ re-export its public API. The current layout is:
 
 ```
     architecture/mojo/
-    ├── audio/                 FaustAudio, PortAudio, PortAudio FFI
-    ├── bench/                 benchmark runner and reports
-    ├── conf/                  prelude, type aliases, compile-time definitions
-    ├── dsp/                   FaustDsp, FaustDspGpu, AdapterDsp
-    ├── gpu/                   GpuDevice and GPU helpers
-    ├── gui/                   FaustGui, ControlGui, ProtoGui, TerminalGui, GPU control map
-    │   └── terminal/native/   C11 terminal library and Makefile
-    ├── help/                  mathematical, SIMD, and I/O helpers
-    ├── mem/                   buffer allocation helpers
-    ├── meta/                  FaustMeta
-    ├── pulse/                 impulse test runner
+    ├── audio/                          FaustAudio, PortAudio, PortAudio FFI
+    ├── bench/                          benchmark runner and reports
+    ├── conf/                           prelude, type aliases, compile-time definitions
+    ├── dsp/                            FaustDsp, FaustDspGpu, AdapterDsp
+    ├── gpu/                            GpuDevice and GPU helpers
+    ├── gui/                            FaustGui, ControlGui, ProtoGui, TerminalGui, MapGui
+    │   └── terminal/native/            C11 terminal library and Makefile
+    ├── help/                           mathematical, SIMD, and I/O helpers
+    ├── mem/                            buffer allocation helpers
+    ├── meta/                           FaustMeta
+    ├── pulse/                          impulse test runner
+    ├── test/                           test .dsp FAUSt sources
     ├── portaudio.mojo
     ├── portaudio-terminal.mojo
     ├── portaudio-proto.mojo
@@ -186,7 +187,7 @@ The resulting library is `gui/terminal/native/build/libtermgui.a`.
 ### GPU
 
 `gpu` exports `GpuDevice`, GPU error codes, kernel indices, and `has_accelerator`. `GpuDevice.prepare`
-allocates the device DSP, channel buffers, and work storage. `GpuControlMap` visits the DSP UI to record
+allocates the device DSP, channel buffers, and work storage. `MapGui` visits the DSP UI to record
 active control zones and passive meter zones. On each block, the device transfers changed controls and
 input samples, enqueues the generated kernels, copies output samples and meters back, and synchronizes.
 The DSP state stays on the device between blocks. `get_error` reports callback errors after playback,
@@ -217,40 +218,54 @@ the DSP and buffers, then invoke the corresponding package functions.
 
 The top-level `.mojo` templates are selected with FAUST's `-a` option.
 
-**portaudio.mojo**
+```
+portaudio.mojo
+```
 
 Allocates and initializes a CPU DSP, starts PortAudio, waits for standard input on the main thread,
 stops the stream, and releases the DSP. PortAudio calls its `compute` from the audio callback.
 
-**portaudio-terminal.mojo**
+```
+portaudio-terminal.mojo
+```
 
 Builds a `TerminalGui` from the CPU DSP, starts PortAudio, and enters the blocking terminal GUI loop.
 The GUI edits the DSP's host control zones; the callback reads them during processing.
 Requires PortAudio and `libtermgui.a` when linking.
 
-**portaudio-proto.mojo**
+```
+portaudio-proto.mojo
+```
 
 Builds `ProtoGui()` from a CPU DSP and runs its simple text loop while PortAudio processes audio.
 This template is intended for prototypes; the native terminal architecture provides the richer UI.
 
-**portaudio-terminal-gpu.mojo**
+```
+portaudio-terminal-gpu.mojo
+```
 
-Builds `TerminalGui`, `GpuControlMap`, `GpuDevice[mydsp]`, `AdapterDsp[mydsp]`, and the normal `PortAudio`
+Builds `TerminalGui`, `MapGui`, `GpuDevice[mydsp]`, `AdapterDsp[mydsp]`, and the normal `PortAudio`
 driver. After preparing the device, it gives the adapter to PortAudio and runs the GUI on the main thread.
 On shutdown, it stops the audio stream before releasing GPU and DSP storage. Requires a GPU-capable DSP,
 a supported accelerator, PortAudio, and `libtermgui.a`.
 
-**bench.mojo**
+```
+bench.mojo
+```
 
 Allocates buffers, warms up the CPU DSP, measures repeated `compute` calls, and reports results without
 starting an audio driver. The benchmark package controls optional CSV output.
 
-**inspect.mojo**
+```
+inspect.mojo
+```
 
 Runs the CPU DSP through an exported, non-inlined `inspect_compute` function. `keep` and
 `clobber_memory` make the generated low-level code easier to locate and examine.
 
-**impulse.mojo**
+```
+impulse.mojo
+```
 
 Initializes the CPU DSP and `ControlGui`, then uses `pulse` to print an impulse response in the format
 expected by the FAUST impulse tests.
@@ -299,7 +314,7 @@ From `architecture/mojo`, generate a CPU DSP with the terminal template:
 ```
     make -C gui/terminal/native release
     /path/to/faust -lang mojo -single -a portaudio-terminal.mojo \
-        -o program.mojo src/phasorsine.dsp
+        -o program.mojo test/phasorsine.dsp
 ```
 
 Compile it with the architecture packages and native libraries available to the linker:
@@ -316,7 +331,7 @@ PortAudio and terminal link options:
 
 ```
     /path/to/faust -lang mojo -gpu -single -a portaudio-terminal-gpu.mojo \
-        -o program_gpu.mojo src/phasorsine.dsp
+        -o program_gpu.mojo test/phasorsine.dsp
     mojo build -O3 -I . -D DFAUST=DType.float32 -D SAMP_RATE=48 -D BUFF_SIZE=128 \
         -Xlinker -L/opt/homebrew/opt/portaudio/lib -Xlinker -lportaudio \
         -Xlinker gui/terminal/native/build/libtermgui.a -Xlinker -lm \

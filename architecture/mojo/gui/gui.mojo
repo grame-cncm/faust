@@ -6,7 +6,7 @@ from conf import *
 # FaustGui interface declaration.
 # General contract for GUI architectures.
 # We provide an empty implementation for each method, so the
-# compiler does NOT check for missing definitions.
+# compiler does *not* check for missing definitions.
 # The only exception is run(), whose implementation is required.
 # ==============================================================
 

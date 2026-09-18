@@ -3,8 +3,9 @@
 from max.gpu.host import DeviceBuffer, DeviceContext
 
 from conf import *
-from dsp.gpu import FaustDspGpu
-from gui.map import GpuControlMap, GPU_ZONE_CAP
+from dsp import FaustDspGpu
+
+from gui.map import MapGui, GPU_ZONE_CAP
 
 comptime FAUST_GPU_NO_ERROR = S32(0)
 comptime FAUST_GPU_ERROR = S32(-2999)
@@ -53,7 +54,7 @@ struct GpuStorage[Dsp: FaustDspGpu](Movable):
 # Creates GPU storage and converts library exceptions into error codes.
 def gpu_create_storage[Dsp: FaustDspGpu](
     var dsp:        Ptr[Dsp],
-    imm map:        GpuControlMap,
+    imm map:        MapGui,
     imm block_size: S32,
     imm n_ins:      S32,
     imm n_outs:     S32,
@@ -114,7 +115,7 @@ def gpu_create_storage[Dsp: FaustDspGpu](
         return None, FAUST_GPU_ERROR
 
 
-# A `FaustGpu` that prepares and processes a DSP on the device.
+# A device that prepares and processes a DSP on the GPU.
 # @desc
 # - Prepares the DSP, channels, and required UI zones.
 # - Copies controls and inputs, runs kernels, and publishes outputs and meters.
@@ -133,7 +134,7 @@ struct GpuDevice[Dsp: FaustDspGpu]:
         gpu.err = FAUST_GPU_NO_ERROR
 
     def prepare[SourceDsp: FaustDspGpu](
-        mut gpu, var dsp: Ptr[SourceDsp], imm map: GpuControlMap,
+        mut gpu, var dsp: Ptr[SourceDsp], imm map: MapGui,
         imm block_size: S32
     ) -> S32:
         comptime assert SourceDsp == Self.Dsp, "GpuDevice requires its concrete DSP."
