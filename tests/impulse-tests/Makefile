@@ -49,6 +49,7 @@ all:
 	$(MAKE) ocpp
 	$(MAKE) c
 	$(MAKE) c1
+	$(MAKE) mojo
 	$(MAKE) mute
 	$(MAKE) wasm
 	$(MAKE) wast
@@ -61,6 +62,7 @@ all:
 	$(MAKE) nnx
 	$(MAKE) linen
 	$(MAKE) julia
+	$(MAKE) mojo
 
 help:
 	@echo "-------- FAUST impulse response tests --------"
@@ -92,6 +94,7 @@ help:
 	@echo " 'linen'  : check double output with Linen backend and various options"
 	@echo " 'julia'  : check double output with Julia backend and various options"
 	@echo " 'jsfx'   : check double output with JSFX backend and various options"
+	@echo " 'mojo'   : check double output with mojo backend and various options"
 	@echo " 'assemblyscript' : smoke-test output generation with AssemblyScript backend"
 	@echo " 'asc'    : AssemblyScript impulse tests with reference comparison (compare=1)"
 	@echo " 'signal' : check double output with signal interpreter"
@@ -455,6 +458,145 @@ github_action:
 
 #########################################################################
 # c++ and c backends
+cpp:
+	$(MAKE) -f Make.gcc outdir=cpp/double           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
+	$(MAKE) -f Make.gcc outdir=cpp/double/uim       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -uim"
+	$(MAKE) -f Make.gcc outdir=cpp/double/it        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -it"
+	$(MAKE) -f Make.gcc outdir=cpp/double/fp        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -fp"
+	$(MAKE) -f Make.gcc outdir=cpp/double/wall      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -wall"
+	$(MAKE) -f Make.gcc outdir=cpp/double/mcd0      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mcd 0"
+	$(MAKE) -f Make.gcc outdir=cpp/double/mapp      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mapp"
+	$(MAKE) -f Make.gcc outdir=cpp/double/rui       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -rui"
+	$(MAKE) -f Make.gcc outdir=cpp/double/nvi       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -nvi"
+	$(MAKE) -f Make.gcc outdir=cpp/double/dlt0      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -dlt 0"
+	$(MAKE) -f Make.gcc outdir=cpp/double/dlt256    lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -dlt 256"
+	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
+	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0/fun   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -fun"
+	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0/vs16  lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -vs 16"
+	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv1       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
+	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv1/fun   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -fun"
+	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv1/vs16  lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -vs 16"
+	$(MAKE) -f Make.gcc outdir=cpp/double/sched     lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -sch"
+	$(MAKE) -f Make.gcc outdir=cpp/double/sched/fun lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -sch -fun"
+	$(MAKE) -f Make.gcc outdir=cpp/double/omp       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -omp"
+	$(MAKE) -f Make.gcc outdir=cpp/double/omp/fun   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -omp -fun"
+	$(MAKE) -f Make.gcc outdir=cpp/float            lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -single"
+	$(MAKE) -f Make.gcc outdir=cpp/float/vec        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -single -vec"
+	$(MAKE) -f Make.gcc outdir=cpp/float/sched      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -single -sch"
+	$(MAKE) -f Make.gcc outdir=cpp/float/omp        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -single -omp"
+
+quad:
+	$(MAKE) -f Make.gcc outdir=cpp/quad        lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad"
+	$(MAKE) -f Make.gcc outdir=cpp/quad/vec    lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad -vec"
+	$(MAKE) -f Make.gcc outdir=cpp/quad/sched  lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad -sch"
+	$(MAKE) -f Make.gcc outdir=cpp/quad/omp    lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad -omp"
+	$(MAKE) -f Make.gcc outdir=c/quad          lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad"
+	$(MAKE) -f Make.gcc outdir=c/quad/vec      lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -vec"
+	$(MAKE) -f Make.gcc outdir=c/quad/sched    lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -sch"
+	$(MAKE) -f Make.gcc outdir=c/quad/omp      lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -omp"
+
+fx:
+	$(MAKE) -f Make.gcc outdir=cpp/fx lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx"
+	$(MAKE) -f Make.gcc outdir=c/fx   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -fx"
+
+fx1:
+	$(MAKE) -f Make.gcc outdir=cpp/fx1 lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx -fx-size -1"
+	$(MAKE) -f Make.gcc outdir=c/fx1   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -fx -fx-size -1"
+
+cpp1:
+	$(MAKE) -f Make.gcc outdir=cpp1/double/mem0  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -mem"
+	$(MAKE) -f Make.gcc outdir=cpp1/double/mem1  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -it -mem1"
+	$(MAKE) -f Make.gcc outdir=cpp1/double/mem1fpgamemth0  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -it -mem1 -fpga-mem-th 0"
+	$(MAKE) -f Make.gcc outdir=cpp1/double/mem1fpgamemth2  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -it -mem1 -fpga-mem-th 2"
+	$(MAKE) -f Make.gcc outdir=cpp1/double/mem1fpgamemth8  lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -it -mem1 -fpga-mem-th 8"
+
+cpp2:
+	$(MAKE) -f Make.gcc outdir=cpp2/double/ec  lang=cpp arch=impulsearch7.cpp FAUSTOPTIONS="-I dsp -double -ec"
+	$(MAKE) -f Make.gcc outdir=cpp2/double/ecmem0  lang=cpp arch=impulsearch7bis.cpp FAUSTOPTIONS="-I dsp -double -ec -mem"
+	$(MAKE) -f Make.gcc outdir=cpp2/double/ecmem1it  lang=cpp arch=impulsearch7bis.cpp FAUSTOPTIONS="-I dsp -double -ec -mem1 -it"
+	$(MAKE) -f Make.gcc outdir=cpp2/double/os  lang=cpp arch=impulsearch7ter.cpp FAUSTOPTIONS="-I dsp -double -os"
+	$(MAKE) -f Make.gcc outdir=cpp2/double/osec  lang=cpp arch=impulsearch7ter.cpp FAUSTOPTIONS="-I dsp -double -os -ec"
+	$(MAKE) -f Make.gcc outdir=cpp2/double/osmem  lang=cpp arch=impulsearch7qua.cpp FAUSTOPTIONS="-I dsp -double -os -mem"
+	$(MAKE) -f Make.gcc outdir=cpp2/double/osmem1  lang=cpp arch=impulsearch7qua.cpp FAUSTOPTIONS="-I dsp -double -os -mem1 -it"
+	$(MAKE) -f Make.gcc outdir=cpp2/double/osecmem  lang=cpp arch=impulsearch7qua.cpp FAUSTOPTIONS="-I dsp -double -os -ec -mem"
+	$(MAKE) -f Make.gcc outdir=cpp2/double/osecmem1it  lang=cpp arch=impulsearch7qua.cpp FAUSTOPTIONS="-I dsp -double -os -ec -mem1 -it"
+
+cpp3:
+	$(MAKE) -f Make.gcc outdir=cpp3/double/vecec  lang=cpp arch=impulsearch7.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -ec"
+	$(MAKE) -f Make.gcc outdir=cpp3/double/vececmem0  lang=cpp arch=impulsearch7bis.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -ec -mem"
+	$(MAKE) -f Make.gcc outdir=cpp3/double/vececmem1it  lang=cpp arch=impulsearch7bis.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -ec -mem1 -it"
+	$(MAKE) -f Make.gcc outdir=cpp3/double/vecfunecmem1it  lang=cpp arch=impulsearch7bis.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -fun -ec -mem1 -it"
+
+cpp4:
+	$(MAKE) -f Make.gcc outdir=cpp4/double/mem2  lang=cpp arch=impulsearch8.cpp FAUSTOPTIONS="-I dsp -double -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/ecmem2  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -double -ec -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/fpga10mem2it  lang=cpp arch=impulsearch8.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 10 -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/fpga100mem2it  lang=cpp arch=impulsearch8.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 100 -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/fpga1000mem2it  lang=cpp arch=impulsearch8.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 1000 -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/fpga10000mem2it  lang=cpp arch=impulsearch8.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 10000 -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/ecfpga10mem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -double -ec -fpga-mem 10 -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/ecfpga100mem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -double -ec -fpga-mem 100 -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/ecfpga1000mem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -double -ec -fpga-mem 1000 -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/ecfpga10000mem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -double -ec -fpga-mem 10000 -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/vecmem2it  lang=cpp arch=impulsearch8.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/vececmem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -ec -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/veclv1ecmem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -lv 1 -ec -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/vecfunecmem2it  lang=cpp arch=impulsearch8bis.cpp FAUSTOPTIONS="-I dsp -t 0 -double -vec -fun -ec -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/osmem2it  lang=cpp arch=impulsearch8ter.cpp FAUSTOPTIONS="-I dsp -double -os -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/osecmem2it  lang=cpp arch=impulsearch8ter.cpp FAUSTOPTIONS="-I dsp -double -os -ec -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/osfpga10mem2it  lang=cpp arch=impulsearch8ter.cpp FAUSTOPTIONS="-I dsp -double -os -fpga-mem 10  -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/osfpga100mem2it  lang=cpp arch=impulsearch8ter.cpp FAUSTOPTIONS="-I dsp -double -os -fpga-mem 100 -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/ecosfpga10mem2it  lang=cpp arch=impulsearch8ter.cpp FAUSTOPTIONS="-I dsp -double -ec -os -fpga-mem 10  -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=cpp4/double/ecosfpga100mem2it  lang=cpp arch=impulsearch8ter.cpp FAUSTOPTIONS="-I dsp -double -ec -os -fpga-mem 100  -mem2 -it"
+
+ocpp:
+	$(MAKE) -f Make.gcc outdir=ocpp/double          lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
+	$(MAKE) -f Make.gcc outdir=ocpp/double/mcd0     lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mcd 0"
+	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/lv0  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
+	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/lv1  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
+
+vecocpp:
+	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/lv1  lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
+
+me:
+	$(MAKE) -f Make.gcc outdir=me/double  lang=cpp arch=impulsearch3.cpp FAUSTOPTIONS="-I dsp -double"
+
+c:
+	$(MAKE) -f Make.gcc outdir=c/double             lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double"
+	$(MAKE) -f Make.gcc outdir=c/double/it          lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -it"
+	$(MAKE) -f Make.gcc outdir=c/double/lp          lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -fp"
+	$(MAKE) -f Make.gcc outdir=c/double/dlt0        lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -dlt 0"
+	$(MAKE) -f Make.gcc outdir=c/double/dlt256      lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -dlt 256"
+	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
+	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0/fun     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -fun"
+	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0/vs16    lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -vs 16"
+	$(MAKE) -f Make.gcc outdir=c/double/vec/lv1         lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
+	$(MAKE) -f Make.gcc outdir=c/double/vec/lv1/fun     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -fun"
+	$(MAKE) -f Make.gcc outdir=c/double/vec/lv1/vs16    lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -vs 16"
+	$(MAKE) -f Make.gcc outdir=c/double/sched       lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -sch"
+	$(MAKE) -f Make.gcc outdir=c/double/sched/fun   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -sch -fun"
+	$(MAKE) -f Make.gcc outdir=c/double/omp         lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -omp"
+	$(MAKE) -f Make.gcc outdir=c/double/omp/fun     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -omp -fun"
+	$(MAKE) -f Make.gcc outdir=c/float              lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -single"
+	$(MAKE) -f Make.gcc outdir=c/float/vec          lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -single -vec"
+	$(MAKE) -f Make.gcc outdir=c/float/sched        lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -single -sch"
+	$(MAKE) -f Make.gcc outdir=c/float/omp          lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -single -omp"
+
+c1:
+	$(MAKE) -f Make.gcc outdir=c1/double/ec lang=c arch=impulsearch9.cpp FAUSTOPTIONS="-I dsp -double -ec"
+	$(MAKE) -f Make.gcc outdir=c1/double/os lang=c arch=impulsearch9bis.cpp FAUSTOPTIONS="-I dsp -double -os"
+	$(MAKE) -f Make.gcc outdir=c1/double/osec lang=c arch=impulsearch9ter.cpp FAUSTOPTIONS="-I dsp -double -os -ec"
+	$(MAKE) -f Make.gcc outdir=c1/double/mem2it  lang=c arch=impulsearch9qua.cpp FAUSTOPTIONS="-I dsp -double -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=c1/double/fpga10mem2it  lang=c arch=impulsearch9qua.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 10  -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=c1/double/fpga100mem2it  lang=c arch=impulsearch9qua.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 100 -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=c1/double/fpga1000mem2it  lang=c arch=impulsearch9qua.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 1000 -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=c1/double/vecfpga100mem2it  lang=c arch=impulsearch9qua.cpp FAUSTOPTIONS="-I dsp -double -t 0 -vec -fpga-mem 1000 -mem2 -it"
+
+c2:
+	$(MAKE) -f Make.gcc outdir=c2/double/ecos0mem2it  lang=c arch=impulsearch10.cpp FAUSTOPTIONS="-I dsp -double -ec -os -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=c2/double/ecosfpga10mem2it  lang=c arch=impulsearch10.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 10 -ec -os -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=c2/double/ecosfpga100mem2it  lang=c arch=impulsearch10.cpp FAUSTOPTIONS="-I dsp -double -fpga-mem 100 -ec -os -mem2 -it"
+	$(MAKE) -f Make.gcc outdir=c2/double/vececfpga100mem2it  lang=c arch=impulsearch10bis.cpp FAUSTOPTIONS="-I dsp -double -vec -fpga-mem 100 -ec -mem2 -it"
 
 mute: ir/mute  $(mutefiles)
 
@@ -563,6 +705,13 @@ interp1:
 	$(MAKE) -f Make.interp1 outdir=interp1/double/vec/g        FAUSTOPTIONS="-I dsp -vec -lv 1 -g"
 	$(MAKE) -f Make.interp1 outdir=interp1/double/inpl         FAUSTOPTIONS="-I dsp -inpl"
 	$(MAKE) -f Make.interp1 outdir=interp1/double/ftz          FAUSTOPTIONS="-I dsp -ftz 1"
+
+#########################################################################
+# Mojo backend
+mojo_refdir ?= reference/_custom
+mojo:
+	$(MAKE) -f Make.mojo outdir=mojo/double lang=mojo arch=mojo/impulse.mojo FAUSTOPTIONS="-I dsp -double" MOJOBUILDOPTIONS-O3="-D DFAUST=DType.float64"
+	$(MAKE) -f Make.mojo outdir=mojo/vec4 lang=mojo arch=mojo/impulse.mojo FAUSTOPTIONS="-I dsp -double -vec -vs 4 -dfs -mcd 4" MOJOBUILDOPTIONS="-O3 -D DFAUST=DType.float32" refdir=$(mojo_refdir) refsuffix=_vec4
 
 #########################################################################
 # Rust backend

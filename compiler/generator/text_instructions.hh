@@ -34,8 +34,8 @@
 #include "instructions.hh"
 #include "type_manager.hh"
 
-// Base class to textual visitor: C, C++, Cmajor, Codebox, CSharp, Dlang, Julia, Linen, NNX, Rust,
-// wast
+// Base class to textual visitor: C, C++, Cmajor, Codebox, CSharp, Dlang, Julia, Linen, Mojo, NXX,
+// Rust, wast
 
 class TextInstVisitor : public InstVisitor {
    protected:
@@ -238,7 +238,7 @@ class TextInstVisitor : public InstVisitor {
      *
      * @param inst the top binary operation
      * @param arg the left expression
-     * @return true if parentheses are needed, falter otherwise
+     * @return true if parentheses are needed, false otherwise
      */
     virtual bool leftArgNeedsParentheses(BinopInst* inst, ValueInst* arg)
     {

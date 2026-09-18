@@ -1,0 +1,16 @@
+[workspace]
+authors = ["Manuel Farzini <manuel.farzini@gmail.com>"]
+channels = ["https://conda.modular.com/max-nightly", "conda-forge"]
+name = "bench"
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+modular = ">=26.7.0.dev2026091705,<27"
+mojo = ">=1.2.0.dev2026091705,<2"
+pandas = ">=3.0.5,<4"
+python = ">=3.13.15,<3.14"
+matplotlib = ">=3.11.2,<4"
+numpy = ">=2.5.3,<3"

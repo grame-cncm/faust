@@ -37,6 +37,7 @@
 #pragma warning(disable : 4800)
 #endif
 
+#include "global.hh"
 #include "Text.hh"
 #include "binop.hh"
 #include "exception.hh"
@@ -993,6 +994,8 @@ struct LabelInst : public StatementInst {
 // ====================
 
 struct BlockInst : public StatementInst {
+    using Iterator = std::list<StatementInst*>::iterator;
+
     std::list<StatementInst*> fCode;
     bool                      fIndent;
 
@@ -1042,7 +1045,14 @@ struct BlockInst : public StatementInst {
         fCode.insert(it, inst);
     }
 
-    int size() const { return int(fCode.size()); }
+    // std::list member `fCode` interface
+    int            size() const { return int(fCode.size()); }
+    StatementInst* front() { return fCode.front(); }
+    StatementInst* back() { return fCode.back(); }
+    void           pop_front() { fCode.pop_front(); }
+    void           pop_back() { fCode.pop_back(); }
+    Iterator       begin() { return fCode.begin(); }
+    Iterator       end() { return fCode.end(); }
 
     bool       hasReturn() const;
     ValueInst* getReturnValue();

@@ -1,0 +1,15 @@
+If:
+  PathMatch: .*\.c
+
+CompileFlags:
+  Remove:
+    - -std=*
+    - -x
+    - -xc
+    - -xc++
+  Add:
+    - -x
+    - c
+    - -std=gnu11
+    - -D_DARWIN_C_SOURCE
+    - -D_POSIX_C_SOURCE=200809L

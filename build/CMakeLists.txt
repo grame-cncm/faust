@@ -86,6 +86,7 @@ set (FAUST_INC ${SRCDIR}
     ${SRCDIR}/generator/csharp
     ${SRCDIR}/generator/fir
     ${SRCDIR}/generator/julia
+    ${SRCDIR}/generator/mojo
     ${SRCDIR}/generator/interpreter
     ${SRCDIR}/generator/rust
     ${SRCDIR}/generator/cmajor
@@ -541,7 +542,7 @@ else()
 endif()
 
 # install folders
-set (ARCHSRC android api AU audiokit chaos-stratus clap cmajor comparator daisy esp32 hothouse iOS jax juce julia max-msp nodejs osclib sam smartKeyboard svgplot teensy unity rust vcvrack webaudio wwise)
+set (ARCHSRC android api AU audiokit chaos-stratus clap cmajor comparator daisy esp32 hothouse iOS jax juce julia max-msp nodejs osclib sam smartKeyboard svgplot teensy unity rust vcvrack webaudio wwise mojo)
 foreach (dir ${ARCHSRC})
     set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()
@@ -554,6 +555,7 @@ install (
     GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
     PATTERN ".DS_Store" EXCLUDE
     PATTERN "*.o" EXCLUDE
+    PATTERN "mojo/gui/terminal/native/build/*" EXCLUDE
 )
 
 ####################################

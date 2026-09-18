@@ -60,6 +60,7 @@ class AudioType;
 
 class Garbageable;
 
+
 struct DispatchVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
@@ -67,6 +68,7 @@ class NNXInstVisitor;
 class LinenInstVisitor;
 class JuliaInstVisitor;
 class JSFXInstVisitor;
+inline namespace mojo { class MojoInstVisitor; }
 class AssemblyScriptInstVisitor;
 class TemplateInstVisitor;
 class CodeboxInstVisitor;
@@ -273,6 +275,7 @@ struct global {
     bool gSchedulerSwitch;    // -sch option
     bool gOpenCLSwitch;       // -ocl option
     bool gCUDASwitch;         // -cuda option
+    bool gGPUSwitch;          // -gpu option    HACK:(manu) Mojo backend experimental feature
     bool gGroupTaskSwitch;    // -g option
     bool gFunTaskSwitch;      // -fun option
     int  gMaxCopyDelay;       // -mcd threshold
@@ -757,6 +760,10 @@ struct global {
 
 #ifdef NNX_BUILD
     NNXInstVisitor* gNNXVisitor;
+#endif
+
+#ifdef MOJO_BUILD
+    MojoInstVisitor* gMojoVisitor;
 #endif
 
 #ifdef ASSEMBLYSCRIPT_BUILD

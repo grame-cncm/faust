@@ -1,0 +1,5 @@
+default-channels = [
+    "https://conda.modular.com/max-nightly",
+    "conda-forge",
+]
+run-post-link-scripts = "insecure"
