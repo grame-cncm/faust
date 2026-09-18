@@ -924,147 +924,6 @@ Tree ScalarCompiler::placeExplicitTemps(Tree L2, Tree Lx, std::function<void(Tre
     return L2;
 }
 
-//----------------------------------------------------------------------
-// The family form, step 1 : detection and trace only (LA-FORME-FAMILLE)
-//----------------------------------------------------------------------
-//
-// A FAMILY is a set of operands of one n-ary sum that are isomorphic : the same
-// operators with the same arity, walked in parallel, differing only by
-//   - COEFFICIENT slots : a slow or constant subtree on both sides (sigOrder <= 2),
-//     compared in traversal order, so the slots of every member line up ;
-//   - their own RECURSIONS : two symbolic recursive groups are matched by binding
-//     their variables, then their bodies are compared under the binding ;
-// and sharing, identically, everything else : a subtree that is the same node on
-// both sides is a COMMON input (the excitation of a bank of modes, the carrier of a
-// vocoder). Nothing is rewritten here ; FAUST_FAM_TRACE prints the families.
-struct FamilyIso {
-    std::map<Tree, Tree>                                     bind;     // recursion id (template) -> id (member)
-    std::map<std::pair<Tree, Tree>, bool>                    memo;     // pair -> result (DAG sharing, cycles)
-    std::vector<std::pair<Tree, Tree>>                       coefs;    // coefficient slots, traversal order
-    int                                                      commons = 0, recs = 0, nodes = 0;
-
-    bool iso(Tree a, Tree b)
-    {
-        auto key = std::make_pair(a, b);
-        if (auto it = memo.find(key); it != memo.end()) {
-            return it->second;
-        }
-        memo[key] = true;  // provisional : a cycle through a recursion closes on itself
-        bool r    = walk(a, b);
-        memo[key] = r;
-        return r;
-    }
-
-   private:
-    bool walk(Tree a, Tree b)
-    {
-        nodes++;
-        if (a == b) {
-            commons++;
-            return true;
-        }
-        bool sa = sigs::sigOrder(a) <= 2, sb = sigs::sigOrder(b) <= 2;
-        if (sa && sb) {
-            coefs.push_back({a, b});
-            return true;
-        }
-        if (sa != sb) {
-            return false;
-        }
-        Tree ia, ba, ib, bb;
-        if (isRec(a, ia, ba) && isRec(b, ib, bb)) {
-            if (auto it = bind.find(ia); it != bind.end()) {
-                return it->second == ib;
-            }
-            bind[ia] = ib;
-            recs++;
-            return iso(ba, bb);
-        }
-        if (isRef(a, ia) && isRef(b, ib)) {
-            auto it = bind.find(ia);
-            return it != bind.end() && it->second == ib;
-        }
-        if (!(a->node() == b->node()) || a->arity() != b->arity()) {
-            return false;
-        }
-        for (int k = 0; k < a->arity(); k++) {
-            if (!iso(a->branch(k), b->branch(k))) {
-                return false;
-            }
-        }
-        return true;
-    }
-};
-
-static void traceFamilies(Tree L)
-{
-    std::set<Tree>    seen;
-    std::vector<Tree> st{L}, sums;
-    while (!st.empty()) {
-        Tree t = st.back();
-        st.pop_back();
-        if (!seen.insert(t).second) {
-            continue;
-        }
-        Tree id, body;
-        if (isRec(t, id, body) && body) {
-            st.push_back(body);
-            continue;
-        }
-        tvec ops;
-        if (isSigSum(t, ops) && ops.size() >= 4) {
-            sums.push_back(t);
-        }
-        for (int k = 0; k < t->arity(); k++) {
-            st.push_back(t->branch(k));
-        }
-    }
-    int families = 0, members = 0;
-    for (Tree t : sums) {
-        tvec ops;
-        isSigSum(t, ops);
-        std::vector<int> classOf(ops.size(), -1);
-        std::vector<std::vector<int>> classes;
-        std::vector<FamilyIso> firstIso;
-        for (size_t i = 0; i < ops.size(); i++) {
-            if (classOf[i] >= 0 || sigs::sigOrder(ops[i]) <= 2) {
-                continue;
-            }
-            classOf[i] = (int)classes.size();
-            classes.push_back({(int)i});
-            FamilyIso shape;  // the template against itself : its size
-            for (size_t j = i + 1; j < ops.size(); j++) {
-                if (classOf[j] >= 0) {
-                    continue;
-                }
-                FamilyIso fi;
-                if (fi.iso(ops[i], ops[j]) && !fi.coefs.empty()) {
-                    classOf[j] = classOf[i];
-                    classes.back().push_back((int)j);
-                    if (classes.back().size() == 2) {
-                        firstIso.resize(classes.size());
-                        firstIso[classOf[i]] = fi;
-                    }
-                }
-            }
-        }
-        for (size_t c = 0; c < classes.size(); c++) {
-            if (classes[c].size() < 4) {
-                continue;
-            }
-            families++;
-            members += (int)classes[c].size();
-            const FamilyIso& fi = firstIso[c];
-            std::cerr << "fam : sum of " << ops.size() << " operands, family of " << classes[c].size()
-                      << " isomorphic members, template walk " << fi.nodes << " nodes, coefficient slots "
-                      << fi.coefs.size() << ", common inputs " << fi.commons << ", own recursions "
-                      << fi.recs << std::endl;
-        }
-    }
-    std::cerr << "fam summary : sums >= 4 operands " << sums.size() << ", families " << families
-              << ", members " << members << std::endl;
-}
-
 Tree ScalarCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
@@ -1211,10 +1070,6 @@ Tree ScalarCompiler::prepare(Tree LS)
             }
         };  // fin du lambda reveal (-fir)
         callWithLargeStack(reveal);
-        if (getenv("FAUST_FAM_TRACE")) {  // LA-FORME-FAMILLE, step 1 : detection only
-            std::function<void()> fam = [&]() { traceFamilies(L2); };
-            callWithLargeStack(fam);
-        }
     }
 
     startTiming("conditionAnnotation");
@@ -6785,6 +6640,9 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         }
     }
     auto G = immediateGraph(Lg);
+    if (gGlobal->gFamilyForm) {
+        famScheduleEdges(G);  // -fam : the loop of a family, emitted at its first host, needs every input of every member
+    }
     int rfAdded = 0;
     {
         // READERS FIRST (default since 2026-08-12) : for every delayed
@@ -6863,6 +6721,9 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         // internal graph (shared_ptr), a plain copy would alias the mutated
         // one -- the very bug that made the gauge blind on its first run
         auto G0   = immediateGraph(Lg);  // the SAME roots as G (display S included)
+        if (gGlobal->gFamilyForm) {
+            famScheduleEdges(G0);
+        }
         auto memf = std::function<bool(const Tree&)>(ocppIsMemNode);
         auto sq1  = squality(G, S.elements(), 8, 4, ocppShapeFunctor(G), memf, 3);
         auto S0   = ocppSchedule(G0);
@@ -6882,6 +6743,9 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         int p2 = 0;
         for (const Tree& n2 : S.elements()) {
             fSchedPos[n2] = p2++;
+        }
+        if (gGlobal->gFamilyForm) {
+            checkFamilyOrder();  // -fam : a family whose inputs come after its first host is dismantled
         }
         // last consumer slot of every delayed-read node : a consumer's
         // emission pastes the read's value at the consumer's own slot,
@@ -7129,16 +6993,13 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
             gGlobal->gSTEP++;
         }
 
-        if (gGlobal->gFamilyForm && fFamOutValid) {
-            // the family among the outputs : one loop, its results in an
-            // array, each member channel reading its cell (LA-FORME-FAMILLE)
-            std::string arr, why;
-            if (emitFamilyLoop(fFamOutPlan, false, arr, why)) {
-                for (size_t k = 0; k < fFamOutPlan.trees.size(); k++) {
-                    setCompiledExpression(fFamOutPlan.trees[k], subst("$0[$1] /* Family */", arr, T((int)k)));
+        if (gGlobal->gFamilyForm) {
+            // the families among the outputs : one loop each, its results in
+            // an array, each member channel reading its cell (LA-FORME-FAMILLE)
+            for (FamPlan& f : fFamilies) {
+                if (!f.trees.empty() && f.hosts.size() == 1 && f.hosts[0] == nullptr) {
+                    emitFamily(f);
                 }
-            } else if (getenv("FAUST_FAM_TRACE")) {
-                std::cerr << "fam refused : outputs, family of " << fFamOutPlan.trees.size() << " : " << why << std::endl;
             }
         }
         std::map<Tree, int, treeorder> firstChan;
@@ -9384,11 +9245,27 @@ string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
 // audio-rate subtree that is the same node on both sides is a common input, and the
 // rest -- operators, own recursions -- is private to the member.
 namespace {
+// slow : computed per block or once, not per sample. Typed, the certified
+// variability ; untyped (before prepare), the order -- with the caveat that
+// the generator's init-time recursions poison the kind bits (factorizeFIRs,
+// isSlowFactor), so a table read whose index is slow IS slow
+static bool famSlow(Tree t)
+{
+    if (AudioType* ty = (AudioType*)t->getType(); ty != nullptr) {
+        return ty->variability() < kSamp;
+    }
+    Tree tb, ri;
+    return sigs::sigOrder(t) <= 2 || (isSigRDTbl(t, tb, ri) && sigs::sigOrder(ri) <= 2);
+}
+
 struct FamIso2 {
     std::map<Tree, Tree>                  bind;
     std::map<std::pair<Tree, Tree>, bool> memo;
     std::vector<Tree>                     slotA, slotB;
+    std::vector<Tree>                     aslotA, aslotB;  // audio slots : an input, or a hole, on both sides
     std::set<Tree>                        commonA, privA, privB;
+    const std::set<Tree>*                 holes = nullptr;  // the rare closed subtrees, computed outside the loop
+    Tree                                  topA = nullptr, topB = nullptr;  // the members themselves : never holes
 
     bool iso(Tree a, Tree b)
     {
@@ -9403,19 +9280,21 @@ struct FamIso2 {
     }
 
    private:
-    static bool slow(Tree t)
-    {
-        // a table read whose index is slow IS slow : the generator's init-time
-        // recursions poison the kind bits (factorizeFIRs, isSlowFactor)
-        Tree tb, ri;
-        return sigs::sigOrder(t) <= 2 || (isSigRDTbl(t, tb, ri) && sigs::sigOrder(ri) <= 2);
-    }
-    bool walk(Tree a, Tree b)
+    static bool slow(Tree t) { return famSlow(t); }
+    bool        walk(Tree a, Tree b)
     {
         bool sa = slow(a), sb = slow(b);
         if (sa && sb) {
             slotA.push_back(a);
             slotB.push_back(b);
+            return true;
+        }
+        int        ka, kb;
+        const bool ha = isSigInput(a, &ka) || (holes && a != topA && holes->count(a));
+        const bool hb = isSigInput(b, &kb) || (holes && b != topB && holes->count(b));
+        if (ha && hb) {
+            aslotA.push_back(a);  // an audio slot, even when both read the same node :
+            aslotB.push_back(b);  // the slots of every member then line up (uniform = a common)
             return true;
         }
         if (a == b) {
@@ -9456,12 +9335,292 @@ struct FamIso2 {
 };
 }  // namespace
 
+// The abstract shape of a signal (LA-FORME-FAMILLE) : a hash-consed tree
+// computed bottom-up, the
+// same operators and arities with the children replaced by their shapes,
+// and three kinds of holes where the members of a family may differ -- a
+// slow or constant subtree (a coefficient slot), an audio input (an audio
+// slot), and a recursive reference, labelled by its binding depth and its
+// projection (the member's own output, read delayed : a state). The integer
+// literals stay structural (a projection index, a delay), and a recursive
+// group is its body's shape. Two nodes are of the same shape iff their
+// shapes are the same tree.
+namespace {
+struct FamShapes {
+    Tree                             SLOW  = tree(symbol("FAM_SLOW"));
+    Tree                             AUDIO = tree(symbol("FAM_AUDIO"));
+    Node                             REC{symbol("FAM_REC")}, REF{symbol("FAM_REF")};
+    std::map<Tree, Tree>             memo;   // closed subtrees only
+    std::vector<Tree>                stack;  // the enclosing groups (their identifiers), innermost last
+    // the boundary (the occurrence rule) : a closed audio subtree whose shape
+    // is rare, fewer occurrences than a family needs, is computed outside
+    // the loops of its parents, which see it as an audio input. The node
+    // keeps its own shape : it may still head a family of its own.
+    std::set<Tree> holes;
+
+    static bool slow(Tree t) { return famSlow(t); }
+    // A recursive group and its reference are the SAME node (the body is a
+    // property) : met inside its own body, the node is a reference. The
+    // groups a subtree names (its projections, bodies not entered) are
+    // structural ; a subtree naming an enclosing group is open here, its
+    // shape depends on the context and is not memoized.
+    std::map<Tree, std::set<Tree>> refs;
+    const std::set<Tree>& groupsOf(Tree t)
+    {
+        if (auto it = refs.find(t); it != refs.end()) {
+            return it->second;
+        }
+        std::set<Tree> r;
+        Tree           id, body;
+        if (isRec(t, id, body)) {
+            r.insert(id);
+        } else {
+            for (int k = 0; k < t->arity(); k++) {
+                const std::set<Tree>& c = groupsOf(t->branch(k));
+                r.insert(c.begin(), c.end());
+            }
+        }
+        return refs[t] = r;
+    }
+    bool openHere(Tree t)
+    {
+        for (Tree id : stack) {
+            if (groupsOf(t).count(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    Tree shapeOf(Tree t)
+    {
+        const bool closed = !openHere(t);
+        if (closed) {
+            if (auto it = memo.find(t); it != memo.end()) {
+                return it->second;
+            }
+        }
+        Tree r = compute(t);
+        if (closed) {
+            memo[t] = r;
+        }
+        return r;
+    }
+    Tree compute(Tree t)
+    {
+        int  i, d;
+        Tree id, body, x, y;
+        if (isSigInt(t, &i)) {
+            return t;  // an integer literal is structural
+        }
+        if (isRec(t, id, body)) {
+            int level = 0;
+            for (auto it = stack.rbegin(); it != stack.rend(); ++it, level++) {
+                if (*it == id) {
+                    return tree(REF, tree(level));  // a reference to an enclosing group
+                }
+            }
+            if (!body) {
+                return tree(REF, tree(-1));
+            }
+            stack.push_back(id);
+            Tree r = tree(REC, shapeOf(body));
+            stack.pop_back();
+            return r;
+        }
+        if (slow(t)) {
+            return SLOW;
+        }
+        if (isSigInput(t, &i)) {
+            return AUDIO;
+        }
+        tvec br;
+        for (int k = 0; k < t->arity(); k++) {
+            Tree c = t->branch(k);
+            br.push_back(holes.count(c) ? AUDIO : shapeOf(c));  // a hole is opaque to its parent only
+        }
+        return tree(t->node(), br);
+    }
+    // the size of a shape, its nodes counted with their multiplicity : a
+    // shape is a dag, and the count is memoized (dx7 : 22 s without)
+    static int size(Tree shape)
+    {
+        static std::map<Tree, int> sizes;
+        if (auto it = sizes.find(shape); it != sizes.end()) {
+            return it->second;
+        }
+        int n = 1;
+        for (int k = 0; k < shape->arity(); k++) {
+            n += size(shape->branch(k));
+        }
+        return sizes[shape] = n;
+    }
+};
+
+// every audio node reachable from the root, with its shape ; the classes are
+// the shapes shared by several nodes
+struct FamClasses {
+    std::map<Tree, std::vector<Tree>> members;  // shape -> nodes, in serial order
+    std::map<Tree, Tree>              shapeOfNode;
+    // The occurrence rule, from the leaves up. A node whose shape has fewer
+    // than 4 occurrences and whose children are all settled -- a leaf, a
+    // hole, or a node of 4 occurrences or more whose own subtree is settled
+    // -- is a hole : its parents see an audio input, their shapes coarsen,
+    // and the count is redone until no hole is added. The holes grow from
+    // the bottom through the rare regions (an oscillator feeding the bands,
+    // an excitation, a source), so a chain rare only because of a rare
+    // subtree is a member once that subtree is a hole. Inside a recursive
+    // group the nodes are open (they name the group) : the group is settled
+    // when every closed node under its body is, a reference to the group
+    // itself being a leaf. One layer of holes per round, on the holes of the
+    // previous round : a node made a hole coarsens its parent, whose count
+    // must be redone before it is judged. Monotone, hence finite.
+    void collectWithHoles(Tree root, FamShapes& S, bool trace)
+    {
+        for (int round = 0; round < 256; round++) {
+            members.clear();
+            shapeOfNode.clear();
+            S.memo.clear();
+            collect(root, S);
+            std::map<Tree, bool> settled;
+            std::set<Tree>       fresh;
+            for (auto& kv : shapeOfNode) {
+                int k;
+                if (members[kv.second].size() < 4 && !isSigInput(kv.first, &k) && !S.holes.count(kv.first)) {
+                    std::set<Tree> active;
+                    if (childrenSettled(kv.first, S, settled, active)) {
+                        fresh.insert(kv.first);
+                    }
+                }
+            }
+            if (trace) {
+                int big = 0;
+                for (auto& kv : members) {
+                    big += kv.second.size() >= 4;
+                }
+                std::cerr << "fam shapes round " << round << " : " << shapeOfNode.size() << " audio nodes, " << members.size() << " shapes, "
+                          << big << " classes of 4 or more, " << fresh.size() << " holes added (" << S.holes.size() + fresh.size() << ")"
+                          << std::endl;
+            }
+            if (fresh.empty()) {
+                break;
+            }
+            S.holes.insert(fresh.begin(), fresh.end());
+        }
+    }
+    bool rare(Tree t)
+    {
+        auto it = shapeOfNode.find(t);
+        return it != shapeOfNode.end() && members[it->second].size() < 4;
+    }
+    // settled : a leaf (a literal, a slow signal, an input), a hole, a node
+    // of 4 occurrences or more whose children are settled, or a recursive
+    // group whose body is settled
+    bool isSettled(Tree c, FamShapes& S, std::map<Tree, bool>& memo, std::set<Tree>& active)
+    {
+        int  i;
+        Tree id, body;
+        if (isSigInt(c, &i) || FamShapes::slow(c) || isSigInput(c, &i) || S.holes.count(c)) {
+            return true;
+        }
+        if (isRec(c, id, body)) {
+            if (!body || active.count(id)) {
+                return true;  // a self-reference is a leaf
+            }
+            active.insert(id);
+            bool r = childrenSettled(body, S, memo, active);  // the group : what its body reads
+            active.erase(id);
+            return r;
+        }
+        bool inside = false;  // naming an active group : part of it, transparent
+        for (Tree g : active) {
+            inside = inside || S.groupsOf(c).count(g);
+        }
+        if (inside) {
+            return childrenSettled(c, S, memo, active);
+        }
+        if (auto it = memo.find(c); it != memo.end()) {
+            return it->second;
+        }
+        bool r  = !rare(c) && childrenSettled(c, S, memo, active);  // a regular node over settled children
+        memo[c] = r;
+        return r;
+    }
+    bool childrenSettled(Tree n, FamShapes& S, std::map<Tree, bool>& memo, std::set<Tree>& active)
+    {
+        Tree id, body;
+        if (isRec(n, id, body)) {
+            return isSettled(n, S, memo, active);
+        }
+        for (int b = 0; b < n->arity(); b++) {
+            if (!isSettled(n->branch(b), S, memo, active)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    void collect(Tree root, FamShapes& S)
+    {
+        std::set<Tree>    seen;
+        std::vector<Tree> st{root};
+        while (!st.empty()) {
+            Tree t = st.back();
+            st.pop_back();
+            if (!seen.insert(t).second) {
+                continue;
+            }
+            Tree id, body;
+            if (isRec(t, id, body) && body) {
+                st.push_back(body);
+                continue;
+            }
+            if (!isList(t) && !FamShapes::slow(t)) {
+                Tree sh          = S.shapeOf(t);
+                shapeOfNode[t]   = sh;
+                members[sh].push_back(t);
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                st.push_back(t->branch(k));
+            }
+        }
+        for (auto& kv : members) {
+            std::sort(kv.second.begin(), kv.second.end(), [](Tree a, Tree b) { return a->serial() < b->serial(); });
+        }
+    }
+};
+}  // namespace
+
+static void traceFamShapes(Tree root)
+{
+    FamShapes  S;
+    FamClasses C;
+    C.collectWithHoles(root, S, true);
+    std::vector<std::pair<Tree, std::vector<Tree>>> all(C.members.begin(), C.members.end());
+    std::sort(all.begin(), all.end(), [](const auto& a, const auto& b) {
+        return a.second.size() != b.second.size() ? a.second.size() > b.second.size() : FamShapes::size(a.first) > FamShapes::size(b.first);
+    });
+    std::cerr << "fam shapes : " << C.shapeOfNode.size() << " audio nodes, " << C.members.size() << " shapes, " << S.holes.size() << " holes"
+              << std::endl;
+    int shown = 0;
+    for (auto& kv : all) {
+        if (shown++ >= 40) {
+            break;
+        }
+        std::cerr << "   " << kv.second.size() << " x shape of " << FamShapes::size(kv.first) << " nodes : " << ppsig(kv.first, 100)
+                  << "\n      e.g. " << ppsig(kv.second[0], 100) << std::endl;
+    }
+}
+
 struct ScalarCompiler::FamCtx {
     int                                        id = 0, P = 0, locals = 0;
     std::string                                ty;  // the real type of the members
     std::map<Tree, int>                        slotIndex;  // template leaf -> slot
     std::vector<bool>                          uniform;    // the slot is the same tree in every member
     std::set<int>                              usedSlots;
+    std::map<Tree, int>                        aslotIndex;  // template leaf -> audio slot
+    std::vector<bool>                          auniform;    // the same tree in every member : a common
+    std::vector<bool>                          ahostUniform;  // the same tree within every host's members : a scalar per host loop
+    std::set<int>                              usedHostASlots;
+    std::set<int>                              usedASlots;
     std::set<Tree>                             commons;
     std::map<Tree, int>                        uses;  // parents inside the template
     std::map<Tree, std::string>                val;
@@ -9491,9 +9650,9 @@ struct ScalarCompiler::FamCtx {
     }
 };
 
-// host : the sum whose operands the members are, or nullptr for the outputs,
-// whose only parents outside the family are the cells of the output list
-bool ScalarCompiler::famPrivateOnly(const std::set<Tree>& priv, Tree host)
+// hosts : the sums the members feed ; outputs : the members may also be
+// output channels, whose parents are the cells of the output list
+bool ScalarCompiler::famPrivateOnly(const std::set<Tree>& priv, const std::set<Tree>& hosts, bool outputs)
 {
     if (!fFamParentsBuilt) {
         fFamParentsBuilt = true;
@@ -9526,7 +9685,7 @@ bool ScalarCompiler::famPrivateOnly(const std::set<Tree>& priv, Tree host)
             continue;
         }
         for (Tree p : it->second) {
-            if (p != host && !priv.count(p) && !(host == nullptr && isList(p))) {
+            if (!hosts.count(p) && !priv.count(p) && !(outputs && isList(p))) {
                 return false;  // a private node read from outside its member
             }
         }
@@ -9600,6 +9759,17 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
     }
     if (g.commons.count(t)) {
         return g.val[t] = CS(t);
+    }
+    if (auto it = g.aslotIndex.find(t); it != g.aslotIndex.end()) {
+        if (g.auniform[it->second]) {
+            return g.val[t] = CS(t);  // every member reads the same input : a common
+        }
+        if (it->second < (int)g.ahostUniform.size() && g.ahostUniform[it->second]) {
+            g.usedHostASlots.insert(it->second);  // the same input within each host : a scalar set before each host loop
+            return g.val[t] = subst("fFam$0In$1v", T(g.id), T(it->second));
+        }
+        g.usedASlots.insert(it->second);
+        return g.val[t] = subst("fFam$0In$1[c]", T(g.id), T(it->second));
     }
     tvec V;
     if (isSigIIR(t, V)) {
@@ -9718,8 +9888,17 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
     if (isSigSelect2(t, sel, s0, s1)) {
         return keep(subst("(($0) ? $1 : $2)", famExpr(g, sel), famExpr(g, s1), famExpr(g, s0)));
     }
-    if (getUserData(t) == (void*)gGlobal->gAbsPrim && t->arity() == 1 && getCertifiedSigType(t)->nature() == kReal) {
-        return keep(subst("fabs$0($1)", isuffix(), famExpr(g, t->branch(0))));
+    if (getUserData(t) != nullptr && t->arity() > 0 && getCertifiedSigType(t)->nature() == kReal) {
+        // a math primitive (abs, pow, log10, max...) : its own generator, on
+        // the members' expressions
+        xtendedCodegen*          p = static_cast<xtendedCodegen*>((xtended*)getUserData(t));
+        std::vector<std::string> args;
+        std::vector<Type>        types;
+        for (int k = 0; k < t->arity(); k++) {
+            args.push_back(famExpr(g, t->branch(k)));
+            types.push_back(getCertifiedSigType(t->branch(k)));
+        }
+        return keep(p->generateCode(fClass, args, types));
     }
     if (isSigFloatCast(t, x)) {
         return keep(subst("$0($1)", ifloat(), famExpr(g, x)));
@@ -9812,8 +9991,16 @@ static bool famCheck(Tree t, const std::set<Tree>& slots, const std::set<Tree>& 
     if (isSigSelect2(t, sel, s0, s1)) {
         return famCheck(sel, slots, commons, seen, typed) && famCheck(s0, slots, commons, seen, typed) && famCheck(s1, slots, commons, seen, typed);
     }
-    if (getUserData(t) == (void*)gGlobal->gAbsPrim && t->arity() == 1) {
-        return real(t) && famCheck(t->branch(0), slots, commons, seen, typed);
+    if (getUserData(t) != nullptr && t->arity() > 0) {
+        if (!real(t)) {
+            return false;  // a math primitive : real results only
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            if (!famCheck(t->branch(k), slots, commons, seen, typed)) {
+                return false;
+            }
+        }
+        return true;
     }
     if (isSigFloatCast(t, x)) {
         return famCheck(x, slots, commons, seen, typed);
@@ -9821,121 +10008,155 @@ static bool famCheck(Tree t, const std::set<Tree>& slots, const std::set<Tree>& 
     return false;
 }
 
-// typed : the sum carries its type and condition (the ordinary call, after
-// prepare) ; false before typing, where the plan only says which sums the
-// lowering must keep n-ary, and an integer sum kept for nothing is harmless
-bool ScalarCompiler::planFamily(Tree sig, const tvec& subs, FamPlan& plan, bool typed)
+// A shape class as a family : nodes of the same abstract shape, planned against
+// the first one as the template (slots, audio slots, common inputs, private
+// recursions), their hosts read in the graph -- the sums they feed, or the
+// output list -- and the members grouped by host. typed : the tree carries its
+// types (the ordinary call, after prepare) ; false before typing, where the
+// plan only says which sums the lowering must keep n-ary.
+bool ScalarCompiler::planFamilyClass(const std::vector<Tree>& nodes0, FamPlan& plan, bool typed, std::string& why, const std::set<Tree>* holes)
 {
-    const bool trace = getenv("FAUST_FAM_TRACE") != nullptr;
-    if (subs.size() < 4) {
+    if (nodes0.size() < 4) {
+        why = "fewer than 4 members";
         return false;
     }
-    if (typed && sig && (getCertifiedSigType(sig)->nature() != kReal || !getConditionCode(sig).empty())) {
+    // ---- the hosts : one parent per member, a sum or the output list
+    std::set<Tree> dummy;
+    famPrivateOnly(dummy, dummy, false);  // builds the parent map
+    std::map<Tree, int> hostIndex;
+    std::vector<Tree>   hosts;
+    std::vector<int>    memberHost;
+    bool                outputs = false, sums = false;
+    for (Tree m : nodes0) {
+        auto it = fFamParents.find(m);
+        if (it == fFamParents.end() || it->second.size() != 1) {
+            why = "a member read by several nodes";
+            return false;
+        }
+        Tree p = *it->second.begin();
+        Tree h;
+        if (isList(p)) {
+            h       = nullptr;
+            outputs = true;
+        } else if (isSigSum(p)) {
+            h    = p;
+            sums = true;
+        } else {
+            why = "a member read by something else than a sum or the outputs";
+            return false;
+        }
+        auto hi = hostIndex.find(h);
+        if (hi == hostIndex.end()) {
+            hi = hostIndex.emplace(h, (int)hosts.size()).first;
+            hosts.push_back(h);
+        }
+        memberHost.push_back(hi->second);
+    }
+    if (outputs && sums) {
+        why = "members feeding both sums and outputs";
         return false;
     }
-    // the largest class of isomorphic operands
-    std::vector<int> best;
+    // ---- members grouped by host, hosts in serial order
+    std::vector<int> order(nodes0.size());
+    for (size_t i = 0; i < order.size(); i++) {
+        order[i] = (int)i;
+    }
+    std::stable_sort(order.begin(), order.end(), [&](int a, int b) { return memberHost[a] < memberHost[b]; });
+    std::vector<Tree> nodes;
+    std::vector<int>  mh;
+    for (int i : order) {
+        nodes.push_back(nodes0[i]);
+        mh.push_back(memberHost[i]);
+    }
+    Tree t0 = nodes[0];
+    if (typed && (getCertifiedSigType(t0)->nature() != kReal || !getConditionCode(t0).empty())) {
+        why = "not real, or conditional";
+        return false;
+    }
+    // ---- slots, audio slots, commons, private nodes : every member against the template
+    std::vector<FamIso2> isos(nodes.size());
+    std::set<Tree>       hostSet(hosts.begin(), hosts.end());
+    hostSet.erase(nullptr);
+    plan = FamPlan();
+    for (size_t m = 1; m < nodes.size(); m++) {
+        isos[m].holes = holes;
+        isos[m].topA  = t0;
+        isos[m].topB  = nodes[m];
+        if (!isos[m].iso(t0, nodes[m])) {
+            why = "a member is not isomorphic to the template (shape without audio slots)";
+            return false;
+        }
+        if (m == 1) {
+            plan.leaves  = isos[m].slotA;
+            plan.aleaves = isos[m].aslotA;
+            plan.commons = isos[m].commonA;
+            plan.priv    = isos[m].privA;
+        } else if (isos[m].slotA != plan.leaves || isos[m].aslotA != plan.aleaves || isos[m].commonA != plan.commons) {
+            why = "the members do not line up on the same slots and commons";
+            return false;
+        }
+        plan.priv.insert(isos[m].privB.begin(), isos[m].privB.end());
+    }
+    if (plan.leaves.empty() && plan.aleaves.empty()) {
+        why = "the members differ by nothing";
+        return false;
+    }
+    if (!famPrivateOnly(plan.priv, hostSet, outputs)) {
+        why = "a private node of a member is read elsewhere";
+        return false;
+    }
     {
-        std::vector<int> classOf(subs.size(), -1);
-        for (size_t i = 0; i < subs.size(); i++) {
-            if (classOf[i] >= 0 || sigs::sigOrder(subs[i]) <= 2) {
+        std::set<Tree> slotSet(plan.leaves.begin(), plan.leaves.end()), seen, com = plan.commons;
+        com.insert(plan.aleaves.begin(), plan.aleaves.end());  // an audio slot is a leaf for the loop
+        if (!famCheck(t0, slotSet, com, seen, typed)) {
+            why = "the template holds a construct the family loop cannot generate";
+            return false;
+        }
+    }
+    plan.trees = nodes;
+    plan.slots.push_back(plan.leaves);
+    plan.aslots.push_back(plan.aleaves);
+    for (size_t m = 1; m < nodes.size(); m++) {
+        plan.slots.push_back(isos[m].slotB);
+        plan.aslots.push_back(isos[m].aslotB);
+    }
+    // a member fed, through a hole, by another member of the class (two
+    // stages of one chain, the same shape once their inputs are holes) : the
+    // loop reads its input arrays before its first iteration, so the audio
+    // slots must not depend on the members
+    {
+        std::set<Tree>    memberSet(nodes.begin(), nodes.end()), seen;
+        std::vector<Tree> st;
+        for (auto& v : plan.aslots) {
+            st.insert(st.end(), v.begin(), v.end());
+        }
+        while (!st.empty()) {
+            Tree t = st.back();
+            st.pop_back();
+            if (!seen.insert(t).second) {
                 continue;
             }
-            std::vector<int> cls{(int)i};
-            classOf[i] = (int)i;
-            for (size_t j = i + 1; j < subs.size(); j++) {
-                if (classOf[j] >= 0) {
-                    continue;
+            if (memberSet.count(t)) {
+                why = "a member is fed by another member of the class";
+                return false;
+            }
+            Tree id, body;
+            if (isRec(t, id, body)) {
+                if (body) {
+                    st.push_back(body);
                 }
-                FamIso2 fi;
-                if (fi.iso(subs[i], subs[j]) && !fi.slotA.empty() && !fi.privA.empty()) {
-                    classOf[j] = (int)i;
-                    cls.push_back((int)j);
-                }
-            }
-            if (cls.size() > best.size()) {
-                best = cls;
-            }
-        }
-    }
-    if (best.size() < 4) {
-        return false;
-    }
-    Tree t0 = subs[best[0]];
-    if (typed && !sig && (getCertifiedSigType(t0)->nature() != kReal || !getConditionCode(t0).empty())) {
-        return false;  // the outputs : the template itself must be real and unconditional
-    }
-    std::vector<std::vector<Tree>> slots;
-    std::vector<Tree>              leaves;
-    std::set<Tree>                 commons;
-    auto refuse = [&](const std::string& why) {
-        if (trace) {
-            std::cerr << "fam refused : " << (sig ? "sum of " : "outputs, ") << subs.size() << (sig ? " operands" : " channels")
-                      << ", family of " << best.size() << " : " << why << std::endl;
-        }
-        return false;
-    };
-    // the template's own reference : its slots, its common inputs, its private nodes, read against the
-    // member that agrees with the most others (a duplicated member shares whole subtrees with its twin :
-    // those subtrees are common for that pair only, the pair leaves the family)
-    {
-        std::map<std::set<Tree>, int> votes;
-        std::vector<FamIso2>          isos(best.size());
-        for (size_t m = 1; m < best.size(); m++) {
-            isos[m].iso(t0, subs[best[m]]);
-            votes[isos[m].commonA]++;
-        }
-        int bestVotes = 0;
-        for (auto& kv : votes) {
-            if (kv.second > bestVotes) {
-                bestVotes = kv.second;
-                commons   = kv.first;
-            }
-        }
-        std::vector<int> kept{best[0]};
-        slots.push_back({});
-        for (size_t m = 1; m < best.size(); m++) {
-            if (isos[m].commonA != commons) {
                 continue;
             }
-            if (leaves.empty()) {
-                leaves = isos[m].slotA;
-                if (!famPrivateOnly(isos[m].privA, sig)) {
-                    return refuse("a private node of the template is read elsewhere");
-                }
+            for (int k = 0; k < t->arity(); k++) {
+                st.push_back(t->branch(k));
             }
-            if (isos[m].slotA != leaves || !famPrivateOnly(isos[m].privB, sig)) {
-                continue;
-            }
-            kept.push_back(best[m]);
-            slots.push_back(isos[m].slotB);
-            plan.priv.insert(isos[m].privA.begin(), isos[m].privA.end());
-            plan.priv.insert(isos[m].privB.begin(), isos[m].privB.end());
-        }
-        slots[0] = leaves;
-        if (kept.size() < 4) {
-            return refuse("fewer than 4 members line up");
-        }
-        if (trace && kept.size() < best.size()) {
-            std::cerr << "fam : " << best.size() - kept.size() << " member(s) left out of the family (shared subtrees)" << std::endl;
-        }
-        best = kept;
-    }
-    const int P = (int)best.size();
-    {
-        std::set<Tree> slotSet(leaves.begin(), leaves.end()), seen;
-        if (!famCheck(t0, slotSet, commons, seen, typed)) {
-            return refuse("the template holds a construct the family loop cannot generate");
         }
     }
-    plan.members = best;
-    plan.trees.clear();
-    for (int i : best) {
-        plan.trees.push_back(subs[i]);
+    plan.hosts      = hosts;
+    plan.memberHost = mh;
+    for (size_t i = 0; i < nodes.size(); i++) {
+        plan.members.push_back((int)i);
     }
-    plan.slots   = slots;
-    plan.leaves  = leaves;
-    plan.commons = commons;
     return true;
 }
 
@@ -9947,18 +10168,28 @@ static int famWork(const std::set<Tree>& priv, int members)
     int w = 0;
     for (Tree t : priv) {
         tvec ops;
-        w += isSigSum(t, ops) ? std::max(1, (int)ops.size() - 1) : 1;
+        if (isSigSum(t, ops)) {
+            w += std::max(1, (int)ops.size() - 1);
+        } else if (isSigFIR(t, ops) || isSigIIR(t, ops)) {
+            w += std::max(1, (int)ops.size() - 1);  // a kernel : one multiply-add per tap
+        } else if (getUserData(t) != nullptr && t->arity() > 0 && getUserData(t) != (void*)gGlobal->gAbsPrim &&
+                   getUserData(t) != (void*)gGlobal->gMinPrim && getUserData(t) != (void*)gGlobal->gMaxPrim) {
+            w += 4;  // a transcendental function (log10, pow, exp...) : a call
+        } else {
+            w += 1;
+        }
     }
     return w / std::max(1, members);
 }
 
-// the states of a member : its private recursive groups
+// the states of a member : its private recursive groups and kernels
 static int famStates(const std::set<Tree>& priv, int members)
 {
     int n = 0;
     for (Tree t : priv) {
         Tree id, body;
-        n += isRec(t, id, body) ? 1 : 0;
+        tvec V;
+        n += (isRec(t, id, body) || isSigIIR(t, V) || (isSigFIR(t, V) && V.size() > 2)) ? 1 : 0;
     }
     return n / std::max(1, members);
 }
@@ -9972,175 +10203,317 @@ static int famStates(const std::set<Tree>& priv, int members)
 // the lowering rebuilds the tree.
 std::set<Tree> ScalarCompiler::famKeepSums(Tree L)
 {
-    std::set<Tree> keep;
-    fFamRoot         = L;
-    fFamParentsBuilt = false;
-    fFamParents.clear();
-    std::set<Tree>    seen;
-    std::vector<Tree> st{L};
-    while (!st.empty()) {
-        Tree t = st.back();
-        st.pop_back();
-        if (!seen.insert(t).second) {
-            continue;
-        }
-        Tree id, body;
-        if (isRec(t, id, body) && body) {
-            st.push_back(body);
-            continue;
-        }
-        tvec subs;
-        if (isSigSum(t, subs) && subs.size() >= 4) {
-            FamPlan plan;
-            if (planFamily(t, subs, plan, false)) {
-                keep.insert(t);
-                for (Tree u : plan.priv) {
-                    if (isSigSum(u)) {
-                        keep.insert(u);
-                    }
-                }
+    std::set<Tree>       keep;
+    std::vector<FamPlan> fams;
+    planFamilyClasses(L, fams, false);
+    for (const FamPlan& f : fams) {
+        for (Tree u : f.priv) {
+            if (isSigSum(u)) {
+                keep.insert(u);
             }
         }
-        for (int k = 0; k < t->arity(); k++) {
-            st.push_back(t->branch(k));
-        }
-    }
-    {  // the outputs as a candidate set
-        tvec outs;
-        for (Tree l = L; isList(l); l = tl(l)) {
-            outs.push_back(hd(l));
-        }
-        FamPlan plan;
-        if (outs.size() >= 4 && planFamily(nullptr, outs, plan, false) &&
-            famWork(plan.priv, (int)plan.trees.size()) >= gGlobal->gFamilyMinOut && famStates(plan.priv, (int)plan.trees.size()) >= 1) {
-            for (Tree u : plan.priv) {
-                if (isSigSum(u)) {
-                    keep.insert(u);
-                }
+        for (Tree h : f.hosts) {
+            if (h) {
+                keep.insert(h);
             }
         }
     }
-    fFamRoot         = nullptr;
-    fFamParentsBuilt = false;
-    fFamParents.clear();
     if (getenv("FAUST_FAM_TRACE")) {
         std::cerr << "fam keep : " << keep.size() << " sum(s) left n-ary through the lowering" << std::endl;
     }
     return keep;
 }
 
+// The families of a tree, by shape class : the classes of four nodes or more,
+// widest first, the outermost of equal width first ; a class whose members are
+// already inside an accepted family is skipped (compiled by the outer loop),
+// and a class narrower than a family inside its members steps aside (four
+// output sums of P chains : the loop of P, not the loop of four).
+void ScalarCompiler::planFamilyClasses(Tree root, std::vector<FamPlan>& out, bool typed)
+{
+    const bool trace = getenv("FAUST_FAM_TRACE") != nullptr;
+    fFamRoot         = root;
+    fFamParentsBuilt = false;
+    fFamParents.clear();
+    FamShapes  S;
+    FamClasses C;
+    C.collectWithHoles(root, S, trace);
+    std::vector<std::pair<Tree, std::vector<Tree>>> classes;
+    for (auto& kv : C.members) {
+        if (kv.second.size() >= 4) {
+            classes.push_back(kv);
+        }
+    }
+    std::sort(classes.begin(), classes.end(), [](const auto& a, const auto& b) {
+        if (a.second.size() != b.second.size()) {
+            return a.second.size() > b.second.size();
+        }
+        int sa = FamShapes::size(a.first), sb = FamShapes::size(b.first);
+        return sa != sb ? sa > sb : a.second[0]->serial() < b.second[0]->serial();
+    });
+    // every class is planned first : the selection needs the coverage of
+    // each one (its work, host reductions included)
+    struct Cand {
+        FamPlan plan;
+        int     coverage;
+        bool    outputs;
+    };
+    std::vector<Cand> cands;
+    for (auto& kv : classes) {
+        FamPlan     plan;
+        std::string why;
+        if (!planFamilyClass(kv.second, plan, typed, why, &S.holes)) {
+            if (trace) {
+                std::cerr << "fam refused : class of " << kv.second.size() << " (" << FamShapes::size(kv.first) << " nodes) : " << why << std::endl;
+            }
+            continue;
+        }
+        // an output family competes with the C++ compiler's own packing of
+        // parallel channels, which keeps shallow states in registers : its
+        // members must carry a state and enough work
+        const bool outputs = !plan.hosts.empty() && plan.hosts[0] == nullptr;
+        if (outputs) {
+            const int work = famWork(plan.priv, (int)plan.trees.size()), states = famStates(plan.priv, (int)plan.trees.size());
+            if (work < gGlobal->gFamilyMinOut || states < 1) {
+                if (trace) {
+                    std::cerr << "fam refused : outputs, family of " << plan.trees.size() << " : " << work << " operations and " << states
+                              << " states per member (" << gGlobal->gFamilyMinOut << " operations and one state needed)" << std::endl;
+                }
+                continue;
+            }
+        }
+        int coverage = famWork(plan.priv, 1);
+        for (Tree h : plan.hosts) {
+            tvec ops;
+            if (h && isSigSum(h, ops)) {
+                coverage += std::max(1, (int)ops.size() - 1);  // the reduction is part of the form
+            }
+        }
+        cands.push_back({plan, coverage, outputs});
+    }
+    // The candidates by coverage, the most work first : the loop of 32 bands
+    // (1215 operations) before the loop of the 64 biquads inside them (704),
+    // the 13 analyzer chains before the 28 squares they contain. A candidate
+    // whose members are the host sums of a wider candidate steps aside : four
+    // output sums of eight chains, or the 32 chains and their reductions --
+    // the loop of 32 (a rule by coverage alone, nearly equal here, once
+    // preferred 20 inner recursions to the 19 modes of djembeMIDI : x2.9).
+    std::sort(cands.begin(), cands.end(), [](const Cand& a, const Cand& b) {
+        if (a.coverage != b.coverage) {
+            return a.coverage > b.coverage;
+        }
+        return a.plan.trees.size() != b.plan.trees.size() ? a.plan.trees.size() > b.plan.trees.size()
+                                                          : a.plan.trees[0]->serial() < b.plan.trees[0]->serial();
+    });
+    std::set<Tree> covered;  // the private nodes of the accepted families
+    for (size_t i = 0; i < cands.size(); i++) {
+        FamPlan& plan = cands[i].plan;
+        bool     inside = false;
+        for (Tree m : plan.trees) {
+            inside = inside || covered.count(m);
+        }
+        if (inside) {
+            continue;  // compiled by the loop of an accepted family
+        }
+        bool aside = false;
+        for (size_t j = i + 1; j < cands.size() && !aside; j++) {
+            if (cands[j].plan.trees.size() <= plan.trees.size()) {
+                continue;
+            }
+            std::set<Tree> hostsOfJ(cands[j].plan.hosts.begin(), cands[j].plan.hosts.end());
+            bool           hosts = true;
+            for (Tree m : plan.trees) {
+                hosts = hosts && hostsOfJ.count(m);
+            }
+            aside = hosts;
+        }
+        if (aside) {
+            if (trace) {
+                std::cerr << "fam : a family of " << plan.trees.size() << " (" << cands[i].coverage
+                          << " operations) steps aside : its members are the host sums of a wider one" << std::endl;
+            }
+            plan.trees.clear();
+            continue;
+        }
+        // a family whose members hold an accepted (wider, planned first) family
+        // steps aside : the loop of P chains, not the loop of four sums of P
+        bool swallows = false;
+        for (Tree t : plan.priv) {
+            swallows = swallows || covered.count(t);
+        }
+        if (swallows) {
+            if (trace) {
+                std::cerr << "fam : a family of " << plan.trees.size() << " steps aside for a wider one inside its members" << std::endl;
+            }
+            plan.trees.clear();
+            continue;
+        }
+        covered.insert(plan.priv.begin(), plan.priv.end());
+        if (trace) {
+            std::cerr << "fam planned : " << plan.trees.size() << " members, " << plan.hosts.size() << (cands[i].outputs ? " output" : " sum")
+                      << " host(s), " << plan.leaves.size() << " slots, " << plan.aleaves.size() << " audio slots, " << plan.commons.size()
+                      << " commons, " << plan.priv.size() << " private nodes, " << cands[i].coverage << " operations" << std::endl;
+        }
+        out.push_back(plan);
+    }
+    fFamRoot         = nullptr;
+    fFamParentsBuilt = false;
+    fFamParents.clear();
+}
+
 void ScalarCompiler::planFamilies()
 {
-    fFamPlans.clear();
+    fFamilies.clear();
+    fFamHost.clear();
     fFamPrivate.clear();
     if (!fFamRoot) {
         return;
     }
-    std::set<Tree>    seen;
-    std::vector<Tree> st{fFamRoot}, sums;
-    while (!st.empty()) {
-        Tree t = st.back();
-        st.pop_back();
-        if (!seen.insert(t).second) {
-            continue;
-        }
-        Tree id, body;
-        if (isRec(t, id, body) && body) {
-            st.push_back(body);
-            continue;
-        }
-        tvec ops;
-        if (isSigSum(t, ops) && ops.size() >= 4) {
-            sums.push_back(t);
-        }
-        for (int k = 0; k < t->arity(); k++) {
-            st.push_back(t->branch(k));
-        }
+    // the stateful roots of the harvested display cones join the outputs :
+    // computed in the loop, captured at its end through CS, a family among
+    // them stores its members in an array like an output family (the
+    // spectrum analyzers : one chain per band, one bargraph each)
+    Tree root = fFamRoot;
+    for (Tree sd : fDisplayStateful) {
+        root = cons(sd, root);
     }
-    std::sort(sums.begin(), sums.end(), [](Tree a, Tree b) { return a->serial() < b->serial(); });
-    for (Tree t : sums) {
-        tvec    ops;
-        FamPlan plan;
-        isSigSum(t, ops);
-        if (planFamily(t, ops, plan)) {
-            fFamPlans[t] = plan;
-        }
+    if (getenv("FAUST_FAM_SHAPES")) {
+        traceFamShapes(root);
     }
-    // the outputs : parallel chains that no sum gathers (a matrix of filters,
-    // one channel per chain) are a family too, its results in an array
-    fFamOutValid = false;
-    {
-        tvec outs;
-        for (Tree l = fFamRoot; isList(l); l = tl(l)) {
-            outs.push_back(hd(l));
-        }
-        FamPlan plan;
-        if (outs.size() >= 4 && planFamily(nullptr, outs, plan)) {
-            // the outputs compete with the C++ compiler's own packing of
-            // parallel channels, which keeps shallow states in registers :
-            // the loop pays only for members carrying enough work (m19, nine
-            // one-stage filters : x1.9 ; m29 and deeper : x0.2 to x0.5)
-            const int perMember = famWork(plan.priv, (int)plan.trees.size());
-            const int states    = famStates(plan.priv, (int)plan.trees.size());
-            if (perMember >= gGlobal->gFamilyMinOut && states >= 1) {
-                fFamOutPlan  = plan;
-                fFamOutValid = true;
-                if (getenv("FAUST_FAM_TRACE")) {
-                    std::cerr << "fam outputs : family of " << plan.trees.size() << ", " << perMember << " operations and " << states
-                              << " states per member" << std::endl;
-                }
-            } else if (getenv("FAUST_FAM_TRACE")) {
-                std::cerr << "fam refused : outputs, family of " << plan.trees.size() << " : " << perMember << " operations and "
-                          << states << " states per member (" << gGlobal->gFamilyMinOut << " operations and one state needed"
-                          << " : stateless rows are the matrix form's, and the C++ compiler packs them itself)" << std::endl;
+    planFamilyClasses(root, fFamilies, true);
+    fFamRoot = root;
+    for (size_t i = 0; i < fFamilies.size(); i++) {
+        for (Tree h : fFamilies[i].hosts) {
+            if (h) {
+                fFamHost[h] = (int)i;
             }
         }
-    }
-    // the widest family wins : four output sums of P isomorphic chains are
-    // themselves a family of four, each member holding P chains ; the loop of
-    // P iterations per sum beats one loop of four iterations with P chains
-    // unrolled in its body. An output family that would swallow a wider sum
-    // family steps aside.
-    if (fFamOutValid) {
-        for (auto& kv : fFamPlans) {
-            if (fFamOutPlan.priv.count(kv.first) && kv.second.trees.size() > fFamOutPlan.trees.size()) {
-                if (getenv("FAUST_FAM_TRACE")) {
-                    std::cerr << "fam outputs : family of " << fFamOutPlan.trees.size() << " steps aside for a sum family of "
-                              << kv.second.trees.size() << " inside its members" << std::endl;
-                }
-                fFamOutValid = false;
-                break;
-            }
-        }
-    }
-    // a family nested in another family's members is compiled by the outer loop
-    for (auto it = fFamPlans.begin(); it != fFamPlans.end();) {
-        bool nested = fFamOutValid && fFamOutPlan.priv.count(it->first);
-        for (auto& kv : fFamPlans) {
-            if (kv.first != it->first && kv.second.priv.count(it->first) && kv.second.trees.size() >= it->second.trees.size()) {
-                nested = true;
-            }
-        }
-        it = nested ? fFamPlans.erase(it) : std::next(it);
-    }
-    for (auto& kv : fFamPlans) {
-        fFamPrivate.insert(kv.second.priv.begin(), kv.second.priv.end());
-    }
-    if (fFamOutValid) {
-        fFamPrivate.insert(fFamOutPlan.priv.begin(), fFamOutPlan.priv.end());
+        fFamPrivate.insert(fFamilies[i].priv.begin(), fFamilies[i].priv.end());
     }
     if (getenv("FAUST_FAM_TRACE")) {
-        std::cerr << "fam plan : root " << (fFamRoot ? "set" : "missing") << ", sums >= 4 operands " << sums.size() << ", families planned "
-                  << fFamPlans.size() << (fFamOutValid ? " + the outputs (" + std::to_string(fFamOutPlan.trees.size()) + " channels)" : "")
-                  << ", private nodes " << fFamPrivate.size() << std::endl;
+        std::cerr << "fam plan : " << fFamilies.size() << " families, " << fFamHost.size() << " host sums, private nodes " << fFamPrivate.size()
+                  << std::endl;
     }
 }
 
-// The family loop : states in arrays, coefficients in tables, one statement
-// list per member ; reduce : the members' results are accumulated (name =
-// the accumulator) ; otherwise stored in an array (name = the array), one
-// cell per member, for the outputs. why : the refusal, when it fails.
-bool ScalarCompiler::emitFamilyLoop(const FamPlan& plan, bool reduce, std::string& name, std::string& why)
+// Before the schedule : the loop of a family is emitted at its first host,
+// and every audio input of every member (audio slots, commons) must be
+// computed by then. Every host depends on every input : an edge per pair,
+// unless it would close a cycle (an input reading a host through a delay),
+// in which case the check after the schedule dismantles the family.
+void ScalarCompiler::famScheduleEdges(digraph<Tree>& G)
+{
+    auto reaches = [&G](Tree from, Tree to) -> bool {
+        std::set<Tree>    seen;
+        std::vector<Tree> work{from};
+        while (!work.empty()) {
+            Tree n = work.back();
+            work.pop_back();
+            if (n == to) {
+                return true;
+            }
+            if (!seen.insert(n).second) {
+                continue;
+            }
+            for (const auto& c : G.destinations(n)) {
+                work.push_back(c.first);
+            }
+        }
+        return false;
+    };
+    int added = 0, dropped = 0;
+    for (FamPlan& f : fFamilies) {
+        std::set<Tree> inputs(f.commons.begin(), f.commons.end());
+        for (auto& v : f.aslots) {
+            inputs.insert(v.begin(), v.end());
+        }
+        for (Tree h : f.hosts) {
+            if (!h || !G.nodes().count(h)) {
+                continue;
+            }
+            for (Tree i : inputs) {
+                int k;
+                if (isSigInput(i, &k) || !G.nodes().count(i) || i == h) {
+                    continue;
+                }
+                if (reaches(i, h)) {
+                    dropped++;
+                    continue;
+                }
+                G.add(h, i, 0);  // h depends on i
+                added++;
+            }
+        }
+    }
+    if (getenv("FAUST_FAM_TRACE") && (added || dropped)) {
+        std::cerr << "fam schedule : " << added << " host-input edge(s) added, " << dropped << " dropped (cycle)" << std::endl;
+    }
+}
+
+// After the schedule : a family whose inputs still come after its first host
+// (an edge dropped for a cycle) is dismantled, its nodes go back to the
+// schedule and are compiled one by one.
+void ScalarCompiler::checkFamilyOrder()
+{
+    for (size_t i = 0; i < fFamilies.size(); i++) {
+        FamPlan& f = fFamilies[i];
+        int      first = INT_MAX;
+        for (Tree h : f.hosts) {
+            if (h) {
+                if (auto it = fSchedPos.find(h); it != fSchedPos.end()) {
+                    first = std::min(first, it->second);
+                }
+            }
+        }
+        if (first == INT_MAX) {
+            continue;  // output family : emitted after the whole schedule
+        }
+        int  latest = -1;
+        Tree culprit = nullptr;
+        auto seen    = [&](Tree t) {
+            int k;
+            if (isSigInput(t, &k)) {
+                return;  // an input of the program is read from its buffer, available anywhere
+            }
+            if (auto it = fSchedPos.find(t); it != fSchedPos.end() && it->second > latest) {
+                latest  = it->second;
+                culprit = t;
+            }
+        };
+        // the audio inputs only : the slow slots are computed per block, before the loop
+        for (Tree t : f.commons) {
+            seen(t);
+        }
+        for (auto& v : f.aslots) {
+            for (Tree t : v) {
+                seen(t);
+            }
+        }
+        if (latest > first) {
+            if (getenv("FAUST_FAM_TRACE")) {
+                std::cerr << "fam dismantled : family of " << f.trees.size() << ", an input (" << ppsig(culprit, 40)
+                          << ") is scheduled after its first host" << std::endl;
+            }
+            for (Tree t : f.priv) {
+                fFamPrivate.erase(t);
+            }
+            for (Tree h : f.hosts) {
+                if (h) {
+                    fFamHost.erase(h);
+                }
+            }
+            f.trees.clear();  // an empty family : never emitted
+        }
+    }
+}
+
+// The family loop : states in arrays, coefficients in tables, the inputs
+// that differ per member in arrays filled just before, one statement list per
+// member ; reduce : the members' results are accumulated (name = the
+// accumulator) ; otherwise stored in an array (name = the array), one cell
+// per member. why : the refusal, when it fails.
+bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& name, std::string& why,
+                                    const std::vector<std::pair<int, int>>* ranges)
 {
     const bool                            trace   = getenv("FAUST_FAM_TRACE") != nullptr;
     const std::vector<std::vector<Tree>>& slots   = plan.slots;
@@ -10164,13 +10537,38 @@ bool ScalarCompiler::emitFamilyLoop(const FamPlan& plan, bool reduce, std::strin
             }
         }
     }
+    g.auniform.assign(plan.aleaves.size(), true);
+    for (size_t k = 0; k < plan.aleaves.size(); k++) {
+        if (!g.aslotIndex.count(plan.aleaves[k])) {
+            g.aslotIndex[plan.aleaves[k]] = (int)k;
+        }
+        for (int m = 1; m < P; m++) {
+            if (plan.aslots[m][k] != plan.aleaves[k]) {
+                g.auniform[k] = false;
+            }
+        }
+    }
+    if (reduce && ranges) {
+        // an input that is the same within every host's members (the four
+        // sums of eight chains of E, two program inputs) : no array
+        g.ahostUniform.assign(plan.aleaves.size(), true);
+        for (size_t k = 0; k < plan.aleaves.size(); k++) {
+            for (const auto& r : *ranges) {
+                for (int m = r.first + 1; m < r.second; m++) {
+                    if (plan.aslots[m][k] != plan.aslots[r.first][k]) {
+                        g.ahostUniform[k] = false;
+                    }
+                }
+            }
+        }
+    }
     {  // parents inside the template, to name shared subexpressions once
         std::set<Tree>    seen;
         std::vector<Tree> st{t0};
         while (!st.empty()) {
             Tree t = st.back();
             st.pop_back();
-            if (!seen.insert(t).second || g.slotIndex.count(t) || commons.count(t)) {
+            if (!seen.insert(t).second || g.slotIndex.count(t) || g.aslotIndex.count(t) || commons.count(t)) {
                 continue;
             }
             Tree id, body;
@@ -10216,54 +10614,132 @@ bool ScalarCompiler::emitFamilyLoop(const FamPlan& plan, bool reduce, std::strin
             fClass->addZone3(subst("fFam$0T$1[$2] = $3;", T(g.id), T(k), T(m), cc));
         }
     }
+    // the inputs that differ per member : an array filled every sample, before the loop
+    std::ostringstream fill;
+    for (int k : g.usedASlots) {
+        fill << g.ty << " " << subst("fFam$0In$1[$2];", T(g.id), T(k), T(P));
+        for (int m = 0; m < P; m++) {
+            fill << subst(" fFam$0In$1[$2] = $3;", T(g.id), T(k), T(m), CS(plan.aslots[m][k]));
+        }
+    }
     std::ostringstream loop;
-    if (reduce) {
+    loop << fill.str();
+    auto body = [&](const std::string& acc, int lo, int hi) {
+        loop << " for (int c = " << lo << "; c < " << hi << "; c++) {";
+        for (const std::string& l : g.body) {
+            loop << " " << l;
+        }
+        if (acc.empty()) {
+            loop << " " << name << "[c] = " << term << ";";
+        } else {
+            loop << " " << acc << " += " << term << ";";
+        }
+        loop << shifts.str() << " }";
+    };
+    if (reduce && ranges) {
+        // one accumulating loop per host over its contiguous members : the
+        // same body, the same arrays ; no result array and no reduction
+        name = subst("fFam$0H", T(g.id));
+        for (int k : g.usedHostASlots) {
+            loop << g.ty << " " << subst("fFam$0In$1v;", T(g.id), T(k));
+        }
+        for (size_t h = 0; h < ranges->size(); h++) {
+            for (int k : g.usedHostASlots) {
+                loop << " " << subst("fFam$0In$1v = $2;", T(g.id), T(k), CS(plan.aslots[(*ranges)[h].first][k]));
+            }
+            loop << " " << g.ty << " " << name << h << " = 0;";
+            body(name + T((int)h), (*ranges)[h].first, (*ranges)[h].second);
+        }
+    } else if (reduce) {
         name = subst("fFam$0Acc", T(g.id));
-        loop << g.ty << " " << name << " = 0; for (int c = 0; c < " << P << "; c++) {";
+        loop << g.ty << " " << name << " = 0;";
+        body(name, 0, P);
     } else {
         name = subst("fFam$0Out", T(g.id));
-        loop << g.ty << " " << name << "[" << P << "]; for (int c = 0; c < " << P << "; c++) {";
+        loop << g.ty << " " << name << "[" << P << "];";
+        body("", 0, P);
     }
-    for (const std::string& l : g.body) {
-        loop << " " << l;
-    }
-    if (reduce) {
-        loop << " " << name << " += " << term << ";";
-    } else {
-        loop << " " << name << "[c] = " << term << ";";
-    }
-    loop << shifts.str() << " }";
     fClass->addExecCode(Statement("", loop.str()));
     if (trace) {
-        std::cerr << "fam emitted : family " << g.id << ", " << P << " members, " << g.need.size() << " states, "
-                  << g.usedSlots.size() << " tables, " << g.body.size() << " statements per member, "
-                  << (reduce ? "accumulated" : "stored in an array") << std::endl;
+        std::cerr << "fam emitted : family " << g.id << ", " << P << " members, " << g.need.size() << " states, " << g.usedSlots.size()
+                  << " tables, " << g.usedASlots.size() << " input arrays, " << g.usedHostASlots.size() << " inputs per host, "
+                  << g.body.size() << " statements per member, "
+                  << (reduce ? (ranges ? "accumulated per host (" + T((int)ranges->size()) + " loops)" : "accumulated") : "stored in an array")
+                  << std::endl;
     }
     return true;
 }
 
+// The family as its hosts see it : host sums -> one accumulating loop per
+// host over its contiguous members, the same body and arrays (the results
+// in an array then one reduction per host cost E, four sums of eight
+// chains, 7 to 17 % against four loops of eight) ; the outputs and the
+// displays -> the array, each channel or capture reading its cell. Emitted
+// once.
+void ScalarCompiler::emitFamily(FamPlan& plan)
+{
+    if (plan.emitted || plan.trees.empty()) {
+        return;
+    }
+    plan.emitted = true;
+    const bool trace = getenv("FAUST_FAM_TRACE") != nullptr;
+    std::string name, why;
+    const bool  sums = !plan.hosts.empty() && plan.hosts[0] != nullptr;
+    std::vector<std::pair<int, int>> ranges;
+    if (sums) {
+        for (size_t h = 0; h < plan.hosts.size(); h++) {
+            int lo = -1, hi = -1;
+            for (size_t m = 0; m < plan.memberHost.size(); m++) {
+                if (plan.memberHost[m] == (int)h) {
+                    lo = (lo < 0) ? (int)m : lo;
+                    hi = (int)m + 1;
+                }
+            }
+            ranges.push_back({lo, hi});
+        }
+    }
+    if (!emitFamilyLoop(plan, sums, name, why, sums ? &ranges : nullptr)) {
+        if (trace) {
+            std::cerr << "fam refused : family of " << plan.trees.size() << " : " << why << std::endl;
+        }
+        return;
+    }
+    plan.outName = name;
+    if (sums) {
+        for (size_t h = 0; h < plan.hosts.size(); h++) {
+            plan.hostExpr.push_back(name + T((int)h));
+        }
+        return;
+    }
+    for (size_t k = 0; k < plan.trees.size(); k++) {
+        setCompiledExpression(plan.trees[k], subst("$0[$1] /* Family */", name, T((int)k)));
+    }
+}
+
 std::string ScalarCompiler::generateFamilySum(Tree sig, const tvec& subs, bool& ok)
 {
-    ok               = false;
-    const bool trace = getenv("FAUST_FAM_TRACE") != nullptr;
-    auto       pl    = fFamPlans.find(sig);
-    if (pl == fFamPlans.end()) {
+    ok      = false;
+    auto hi = fFamHost.find(sig);
+    if (hi == fFamHost.end()) {
         return "";
     }
-    const FamPlan& plan = pl->second;
-    std::string    acc, why;
-    if (!emitFamilyLoop(plan, true, acc, why)) {
-        if (trace) {
-            std::cerr << "fam refused : sum of " << subs.size() << " operands, family of " << plan.trees.size() << " : " << why << std::endl;
-        }
+    FamPlan& plan = fFamilies[hi->second];
+    emitFamily(plan);
+    if (!plan.emitted || plan.hostExpr.empty()) {
         return "";
+    }
+    int h = 0;
+    for (size_t k = 0; k < plan.hosts.size(); k++) {
+        if (plan.hosts[k] == sig) {
+            h = (int)k;
+        }
     }
     // the operands outside the family keep their normal code
+    std::set<Tree> in(plan.trees.begin(), plan.trees.end());
     std::ostringstream oss;
-    oss << "(" << acc;
-    std::set<int> in(plan.members.begin(), plan.members.end());
+    oss << "(" << plan.hostExpr[h];
     for (size_t i = 0; i < subs.size(); i++) {
-        if (!in.count((int)i) && !isZero(subs[i])) {
+        if (!in.count(subs[i]) && !isZero(subs[i])) {
             oss << " + " << CS(subs[i]);
         }
     }

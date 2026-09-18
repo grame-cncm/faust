@@ -2748,15 +2748,16 @@ string global::printHelp()
             "kernels in the signal graph and emit their dedicated forms."
          << endl;
     sstr << tab
-         << "-fam        --family-form               (ocpp, experimental, implies -fir) a family of "
-            "isomorphic sum operands (the modes of a bank, the bands of a vocoder) is emitted as one "
-            "inner loop over arrays of states and coefficients ; a family among the outputs (parallel "
-            "chains, one channel each) is emitted the same way, its results in an array."
+         << "-fam        --family-form               (ocpp, experimental, implies -fir) the parallel isomorphic "
+            "chains of the program (the modes of a bank, the bands of a vocoder, the channels of a matrix, the "
+            "analyzers of a spectrum display) are found by shape classes -- four occurrences or more of one "
+            "abstract shape, the rare subtrees they read being holes -- and each family is emitted as one inner "
+            "loop over arrays of states, coefficients and inputs, feeding its sums, the outputs or the displays."
          << endl;
     sstr << tab
-         << "-fam-min <n> --family-min-nodes <n>      (ocpp, experimental) a family among the outputs needs members of "
-            "at least n private nodes (default 12) : shallow parallel channels are better packed by the C++ compiler "
-            "itself."
+         << "-fam-min <n> --family-min-nodes <n>      (ocpp, experimental) a family among the outputs or the displays "
+            "needs members of at least n operations (default 12) and a state : shallow parallel channels are better "
+            "packed by the C++ compiler itself."
          << endl;
     sstr << tab
          << "-fir-hoist  --fir-hoist-numerators      (ocpp, experimental, implies -fir) a bank of "
