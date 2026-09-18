@@ -223,19 +223,31 @@ class ScalarCompiler : public Compiler {
         std::set<Tree>                 priv;      // private nodes of every member
         std::vector<Tree>              hosts;     // the sums the members feed (nullptr : the outputs)
         std::vector<int>               memberHost;  // member -> index in hosts
+        // a cellular automaton (LES-AUTOMATES) : the members are definitions of
+        // one recursive group, the audio slots its projections read at delay >= 1
+        Tree                           group = nullptr;   // the host group
+        int                            groupSize = 0;     // its number of definitions
+        std::vector<int>               memberDef;         // member -> its definition index
+        std::vector<int>               aslotBase;         // audio slot -> the projection read is member's definition + base (INT_MIN : a table)
+        int                            groupDepth = 0;    // the deepest delay read on the group
+        std::vector<int>               defsBefore;        // the other definitions computed before the loop (read by the cells at the current step), in dependency order
+        std::vector<int>               defsAfter;         // and after it
+        int                            id = -1;           // fixed at plan time for an automaton (its expressions are registered then)
         bool                           emitted = false;
         std::string                    outName;   // the array of results, once emitted
         std::vector<std::string>       hostExpr;  // per host, the reduction of its members, once emitted
     };
     std::vector<FamPlan>           fFamilies;    // the families planned before the schedule, by shape class
     std::map<Tree, int>            fFamHost;     // host sum -> family index
+    std::map<Tree, int>            fFamGroup;    // host group of an automaton -> family index
     std::set<Tree>                 fFamPrivate;  // nodes compiled by a family loop, never on their own
     void                           planFamilies();
     void                           planFamilyClasses(Tree root, std::vector<FamPlan>& out, bool typed);
     bool                           planFamilyClass(const std::vector<Tree>& nodes, FamPlan& plan, bool typed, std::string& why,
                                                    const std::set<Tree>* holes = nullptr);
     void                           checkFamilyOrder();
-    void                           famScheduleEdges(digraph<Tree>& G);  // before the schedule : every input of a family before its first host
+    void                           famScheduleEdges(digraph<Tree>& G);
+    bool                           famAutoRead(Tree exp, int delay, std::string& out);  // an automaton's projection read at a constant delay : its arrays  // before the schedule : every input of a family before its first host
     bool                           emitFamilyLoop(FamPlan& plan, bool reduce, std::string& name, std::string& why,
                                                   const std::vector<std::pair<int, int>>* ranges = nullptr);
     void                           emitFamily(FamPlan& plan);  // the loop and the per-host reductions, once
@@ -243,9 +255,10 @@ class ScalarCompiler : public Compiler {
     std::string                    generateFamilySum(Tree sig, const tvec& subs, bool& ok);
     std::string                    famExpr(FamCtx& g, Tree t);
     std::string                    famHist(FamCtx& g, Tree x, int k);
-    bool                           famPrivateOnly(const std::set<Tree>& priv, const std::set<Tree>& hosts, bool outputs);
+    bool                           famPrivateOnly(const std::set<Tree>& priv, const std::set<Tree>& hosts, bool outputs, Tree group = nullptr);
     Tree                           fFamRoot = nullptr;
     std::map<Tree, std::set<Tree>> fFamParents;
+    std::map<Tree, std::pair<Tree, int>> fFamDefCell;  // a cell of a group's definition list -> (group, definition index)
     bool                           fFamParentsBuilt = false;
     int                            fFamCount        = 0;
     std::string         generatePrefix(Tree sig, Tree x, Tree e);
