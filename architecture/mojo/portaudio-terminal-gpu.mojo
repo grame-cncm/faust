@@ -10,7 +10,7 @@
 
 from conf import *
 from dsp import *
-from gui import FaustGui, TerminalGui, GpuControlMap, build_gpu_control_map, error_str
+from gui import FaustGui, TerminalGui, MapGui, build_gpu_control_map, error_str
 from gpu import *
 from help import *
 from meta import *
@@ -38,8 +38,8 @@ def main() -> None:
     var ui = unsafe_alloc[TerminalGui](1)
     ui.unsafe_write(TerminalGui())
     dsp[].build_user_interface(ui[])
-    var map = unsafe_alloc[GpuControlMap](1)
-    map.unsafe_write(GpuControlMap())
+    var map = unsafe_alloc[MapGui](1)
+    map.unsafe_write(MapGui())
     var gpu = unsafe_alloc[GpuDevice[mydsp]](1)
     gpu.unsafe_write(GpuDevice[mydsp]())
     var driver = unsafe_alloc[PortAudio](1)
