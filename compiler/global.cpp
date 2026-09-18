@@ -472,6 +472,7 @@ void global::reset()
     gIIRTransposed      = false;
     gFIRHoist           = false;
     gFamilyForm         = false;
+    gFamilyMinOut       = 12;
     gLSSched        = 0;
     gLSRegisters    = 20;
     gLSWidth        = 4;
@@ -1914,6 +1915,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gReconstructFIRIIRs = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-fam-min", "--family-min-nodes")) {
+            gFamilyMinOut = std::atoi(argv[i + 1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-fir-hoist", "--fir-hoist-numerators")) {
             gFIRHoist           = true;
             gReconstructFIRIIRs = true;
@@ -2745,7 +2750,13 @@ string global::printHelp()
     sstr << tab
          << "-fam        --family-form               (ocpp, experimental, implies -fir) a family of "
             "isomorphic sum operands (the modes of a bank, the bands of a vocoder) is emitted as one "
-            "inner loop over arrays of states and coefficients."
+            "inner loop over arrays of states and coefficients ; a family among the outputs (parallel "
+            "chains, one channel each) is emitted the same way, its results in an array."
+         << endl;
+    sstr << tab
+         << "-fam-min <n> --family-min-nodes <n>      (ocpp, experimental) a family among the outputs needs members of "
+            "at least n private nodes (default 12) : shallow parallel channels are better packed by the C++ compiler "
+            "itself."
          << endl;
     sstr << tab
          << "-fir-hoist  --fir-hoist-numerators      (ocpp, experimental, implies -fir) a bank of "
