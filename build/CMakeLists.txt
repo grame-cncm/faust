@@ -542,7 +542,7 @@ else()
 endif()
 
 # install folders
-set (ARCHSRC android api AU audiokit autodiff chaos-stratus clap cmajor comparator daisy esp32 hothouse iOS jax juce julia max-msp nodejs osclib sam smartKeyboard svgplot teensy unity rust vcvrack webaudio wwise mojo)
+set (ARCHSRC android api AU audiokit chaos-stratus clap cmajor comparator daisy esp32 hothouse iOS jax juce julia max-msp nodejs osclib sam smartKeyboard svgplot teensy unity rust vcvrack webaudio wwise mojo)
 foreach (dir ${ARCHSRC})
     set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()
