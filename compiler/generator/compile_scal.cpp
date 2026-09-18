@@ -7129,6 +7129,18 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
             gGlobal->gSTEP++;
         }
 
+        if (gGlobal->gFamilyForm && fFamOutValid) {
+            // the family among the outputs : one loop, its results in an
+            // array, each member channel reading its cell (LA-FORME-FAMILLE)
+            std::string arr, why;
+            if (emitFamilyLoop(fFamOutPlan, false, arr, why)) {
+                for (size_t k = 0; k < fFamOutPlan.trees.size(); k++) {
+                    setCompiledExpression(fFamOutPlan.trees[k], subst("$0[$1] /* Family */", arr, T((int)k)));
+                }
+            } else if (getenv("FAUST_FAM_TRACE")) {
+                std::cerr << "fam refused : outputs, family of " << fFamOutPlan.trees.size() << " : " << why << std::endl;
+            }
+        }
         std::map<Tree, int, treeorder> firstChan;
         for (int i = 0; isList(L); L = tl(L), i++) {
             Tree s = hd(L);
@@ -9479,7 +9491,9 @@ struct ScalarCompiler::FamCtx {
     }
 };
 
-bool ScalarCompiler::famPrivateOnly(const std::set<Tree>& priv, Tree sum)
+// host : the sum whose operands the members are, or nullptr for the outputs,
+// whose only parents outside the family are the cells of the output list
+bool ScalarCompiler::famPrivateOnly(const std::set<Tree>& priv, Tree host)
 {
     if (!fFamParentsBuilt) {
         fFamParentsBuilt = true;
@@ -9512,7 +9526,7 @@ bool ScalarCompiler::famPrivateOnly(const std::set<Tree>& priv, Tree sum)
             continue;
         }
         for (Tree p : it->second) {
-            if (p != sum && !priv.count(p)) {
+            if (p != host && !priv.count(p) && !(host == nullptr && isList(p))) {
                 return false;  // a private node read from outside its member
             }
         }
@@ -9816,7 +9830,7 @@ bool ScalarCompiler::planFamily(Tree sig, const tvec& subs, FamPlan& plan, bool 
     if (subs.size() < 4) {
         return false;
     }
-    if (typed && (getCertifiedSigType(sig)->nature() != kReal || !getConditionCode(sig).empty())) {
+    if (typed && sig && (getCertifiedSigType(sig)->nature() != kReal || !getConditionCode(sig).empty())) {
         return false;
     }
     // the largest class of isomorphic operands
@@ -9847,13 +9861,17 @@ bool ScalarCompiler::planFamily(Tree sig, const tvec& subs, FamPlan& plan, bool 
     if (best.size() < 4) {
         return false;
     }
-    Tree                           t0 = subs[best[0]];
+    Tree t0 = subs[best[0]];
+    if (typed && !sig && (getCertifiedSigType(t0)->nature() != kReal || !getConditionCode(t0).empty())) {
+        return false;  // the outputs : the template itself must be real and unconditional
+    }
     std::vector<std::vector<Tree>> slots;
     std::vector<Tree>              leaves;
     std::set<Tree>                 commons;
     auto refuse = [&](const std::string& why) {
         if (trace) {
-            std::cerr << "fam refused : sum of " << subs.size() << " operands, family of " << best.size() << " : " << why << std::endl;
+            std::cerr << "fam refused : " << (sig ? "sum of " : "outputs, ") << subs.size() << (sig ? " operands" : " channels")
+                      << ", family of " << best.size() << " : " << why << std::endl;
         }
         return false;
     };
@@ -9911,10 +9929,38 @@ bool ScalarCompiler::planFamily(Tree sig, const tvec& subs, FamPlan& plan, bool 
         }
     }
     plan.members = best;
+    plan.trees.clear();
+    for (int i : best) {
+        plan.trees.push_back(subs[i]);
+    }
     plan.slots   = slots;
     plan.leaves  = leaves;
     plan.commons = commons;
     return true;
+}
+
+// the work of a member : its private nodes, an n-ary sum counting for its
+// n - 1 additions, so that the count does not depend on the spelling of the
+// sums (n-ary before the lowering, binary after)
+static int famWork(const std::set<Tree>& priv, int members)
+{
+    int w = 0;
+    for (Tree t : priv) {
+        tvec ops;
+        w += isSigSum(t, ops) ? std::max(1, (int)ops.size() - 1) : 1;
+    }
+    return w / std::max(1, members);
+}
+
+// the states of a member : its private recursive groups
+static int famStates(const std::set<Tree>& priv, int members)
+{
+    int n = 0;
+    for (Tree t : priv) {
+        Tree id, body;
+        n += isRec(t, id, body) ? 1 : 0;
+    }
+    return n / std::max(1, members);
 }
 
 // The family form and the dispatch of the sums : lowerSums turns every
@@ -9957,6 +10003,21 @@ std::set<Tree> ScalarCompiler::famKeepSums(Tree L)
         }
         for (int k = 0; k < t->arity(); k++) {
             st.push_back(t->branch(k));
+        }
+    }
+    {  // the outputs as a candidate set
+        tvec outs;
+        for (Tree l = L; isList(l); l = tl(l)) {
+            outs.push_back(hd(l));
+        }
+        FamPlan plan;
+        if (outs.size() >= 4 && planFamily(nullptr, outs, plan, false) &&
+            famWork(plan.priv, (int)plan.trees.size()) >= gGlobal->gFamilyMinOut && famStates(plan.priv, (int)plan.trees.size()) >= 1) {
+            for (Tree u : plan.priv) {
+                if (isSigSum(u)) {
+                    keep.insert(u);
+                }
+            }
         }
     }
     fFamRoot         = nullptr;
@@ -10005,11 +10066,58 @@ void ScalarCompiler::planFamilies()
             fFamPlans[t] = plan;
         }
     }
+    // the outputs : parallel chains that no sum gathers (a matrix of filters,
+    // one channel per chain) are a family too, its results in an array
+    fFamOutValid = false;
+    {
+        tvec outs;
+        for (Tree l = fFamRoot; isList(l); l = tl(l)) {
+            outs.push_back(hd(l));
+        }
+        FamPlan plan;
+        if (outs.size() >= 4 && planFamily(nullptr, outs, plan)) {
+            // the outputs compete with the C++ compiler's own packing of
+            // parallel channels, which keeps shallow states in registers :
+            // the loop pays only for members carrying enough work (m19, nine
+            // one-stage filters : x1.9 ; m29 and deeper : x0.2 to x0.5)
+            const int perMember = famWork(plan.priv, (int)plan.trees.size());
+            const int states    = famStates(plan.priv, (int)plan.trees.size());
+            if (perMember >= gGlobal->gFamilyMinOut && states >= 1) {
+                fFamOutPlan  = plan;
+                fFamOutValid = true;
+                if (getenv("FAUST_FAM_TRACE")) {
+                    std::cerr << "fam outputs : family of " << plan.trees.size() << ", " << perMember << " operations and " << states
+                              << " states per member" << std::endl;
+                }
+            } else if (getenv("FAUST_FAM_TRACE")) {
+                std::cerr << "fam refused : outputs, family of " << plan.trees.size() << " : " << perMember << " operations and "
+                          << states << " states per member (" << gGlobal->gFamilyMinOut << " operations and one state needed"
+                          << " : stateless rows are the matrix form's, and the C++ compiler packs them itself)" << std::endl;
+            }
+        }
+    }
+    // the widest family wins : four output sums of P isomorphic chains are
+    // themselves a family of four, each member holding P chains ; the loop of
+    // P iterations per sum beats one loop of four iterations with P chains
+    // unrolled in its body. An output family that would swallow a wider sum
+    // family steps aside.
+    if (fFamOutValid) {
+        for (auto& kv : fFamPlans) {
+            if (fFamOutPlan.priv.count(kv.first) && kv.second.trees.size() > fFamOutPlan.trees.size()) {
+                if (getenv("FAUST_FAM_TRACE")) {
+                    std::cerr << "fam outputs : family of " << fFamOutPlan.trees.size() << " steps aside for a sum family of "
+                              << kv.second.trees.size() << " inside its members" << std::endl;
+                }
+                fFamOutValid = false;
+                break;
+            }
+        }
+    }
     // a family nested in another family's members is compiled by the outer loop
     for (auto it = fFamPlans.begin(); it != fFamPlans.end();) {
-        bool nested = false;
+        bool nested = fFamOutValid && fFamOutPlan.priv.count(it->first);
         for (auto& kv : fFamPlans) {
-            if (kv.first != it->first && kv.second.priv.count(it->first)) {
+            if (kv.first != it->first && kv.second.priv.count(it->first) && kv.second.trees.size() >= it->second.trees.size()) {
                 nested = true;
             }
         }
@@ -10018,37 +10126,32 @@ void ScalarCompiler::planFamilies()
     for (auto& kv : fFamPlans) {
         fFamPrivate.insert(kv.second.priv.begin(), kv.second.priv.end());
     }
+    if (fFamOutValid) {
+        fFamPrivate.insert(fFamOutPlan.priv.begin(), fFamOutPlan.priv.end());
+    }
     if (getenv("FAUST_FAM_TRACE")) {
         std::cerr << "fam plan : root " << (fFamRoot ? "set" : "missing") << ", sums >= 4 operands " << sums.size() << ", families planned "
-                  << fFamPlans.size() << ", private nodes " << fFamPrivate.size() << std::endl;
+                  << fFamPlans.size() << (fFamOutValid ? " + the outputs (" + std::to_string(fFamOutPlan.trees.size()) + " channels)" : "")
+                  << ", private nodes " << fFamPrivate.size() << std::endl;
     }
 }
 
-std::string ScalarCompiler::generateFamilySum(Tree sig, const tvec& subs, bool& ok)
+// The family loop : states in arrays, coefficients in tables, one statement
+// list per member ; reduce : the members' results are accumulated (name =
+// the accumulator) ; otherwise stored in an array (name = the array), one
+// cell per member, for the outputs. why : the refusal, when it fails.
+bool ScalarCompiler::emitFamilyLoop(const FamPlan& plan, bool reduce, std::string& name, std::string& why)
 {
-    ok               = false;
-    const bool trace = getenv("FAUST_FAM_TRACE") != nullptr;
-    auto       pl    = fFamPlans.find(sig);
-    if (pl == fFamPlans.end()) {
-        return "";
-    }
-    const FamPlan&                        plan    = pl->second;
-    std::vector<int>                      best    = plan.members;
+    const bool                            trace   = getenv("FAUST_FAM_TRACE") != nullptr;
     const std::vector<std::vector<Tree>>& slots   = plan.slots;
     const std::vector<Tree>&              leaves  = plan.leaves;
     const std::set<Tree>&                 commons = plan.commons;
-    Tree                                  t0      = subs[best[0]];
-    const int                             P       = (int)best.size();
-    auto refuse = [&](const std::string& why) {
-        if (trace) {
-            std::cerr << "fam refused : sum of " << subs.size() << " operands, family of " << P << " : " << why << std::endl;
-        }
-        return std::string();
-    };
+    Tree                                  t0      = plan.trees[0];
+    const int                             P       = (int)plan.trees.size();
     FamCtx g;
     g.id      = fFamCount;
     g.P       = P;
-    g.ty       = ifloat();
+    g.ty      = ifloat();
     g.commons = commons;
     g.uniform.assign(leaves.size(), true);
     for (size_t k = 0; k < leaves.size(); k++) {
@@ -10088,7 +10191,8 @@ std::string ScalarCompiler::generateFamilySum(Tree sig, const tvec& subs, bool& 
         }
     }
     if (g.failed) {
-        return refuse(g.reason);
+        why = g.reason;
+        return false;
     }
     fFamCount++;
     // states : declared, cleared, shifted at the end of each member iteration
@@ -10112,28 +10216,58 @@ std::string ScalarCompiler::generateFamilySum(Tree sig, const tvec& subs, bool& 
             fClass->addZone3(subst("fFam$0T$1[$2] = $3;", T(g.id), T(k), T(m), cc));
         }
     }
-    const std::string  acc = subst("fFam$0Acc", T(g.id));
     std::ostringstream loop;
-    loop << g.ty << " " << acc << " = 0; for (int c = 0; c < " << P << "; c++) {";
+    if (reduce) {
+        name = subst("fFam$0Acc", T(g.id));
+        loop << g.ty << " " << name << " = 0; for (int c = 0; c < " << P << "; c++) {";
+    } else {
+        name = subst("fFam$0Out", T(g.id));
+        loop << g.ty << " " << name << "[" << P << "]; for (int c = 0; c < " << P << "; c++) {";
+    }
     for (const std::string& l : g.body) {
         loop << " " << l;
     }
-    loop << " " << acc << " += " << term << ";" << shifts.str() << " }";
+    if (reduce) {
+        loop << " " << name << " += " << term << ";";
+    } else {
+        loop << " " << name << "[c] = " << term << ";";
+    }
+    loop << shifts.str() << " }";
     fClass->addExecCode(Statement("", loop.str()));
+    if (trace) {
+        std::cerr << "fam emitted : family " << g.id << ", " << P << " members, " << g.need.size() << " states, "
+                  << g.usedSlots.size() << " tables, " << g.body.size() << " statements per member, "
+                  << (reduce ? "accumulated" : "stored in an array") << std::endl;
+    }
+    return true;
+}
+
+std::string ScalarCompiler::generateFamilySum(Tree sig, const tvec& subs, bool& ok)
+{
+    ok               = false;
+    const bool trace = getenv("FAUST_FAM_TRACE") != nullptr;
+    auto       pl    = fFamPlans.find(sig);
+    if (pl == fFamPlans.end()) {
+        return "";
+    }
+    const FamPlan& plan = pl->second;
+    std::string    acc, why;
+    if (!emitFamilyLoop(plan, true, acc, why)) {
+        if (trace) {
+            std::cerr << "fam refused : sum of " << subs.size() << " operands, family of " << plan.trees.size() << " : " << why << std::endl;
+        }
+        return "";
+    }
     // the operands outside the family keep their normal code
     std::ostringstream oss;
     oss << "(" << acc;
-    std::set<int> in(best.begin(), best.end());
+    std::set<int> in(plan.members.begin(), plan.members.end());
     for (size_t i = 0; i < subs.size(); i++) {
         if (!in.count((int)i) && !isZero(subs[i])) {
             oss << " + " << CS(subs[i]);
         }
     }
     oss << " /* Family */)";
-    if (trace) {
-        std::cerr << "fam emitted : family " << g.id << ", " << P << " members, " << g.need.size() << " states, "
-                  << g.usedSlots.size() << " tables, " << g.body.size() << " statements per member" << std::endl;
-    }
     ok = true;
     return generateCacheCode(sig, oss.str());
 }

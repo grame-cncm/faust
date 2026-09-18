@@ -212,21 +212,25 @@ class ScalarCompiler : public Compiler {
     // operands emitted as one inner loop over structure-of-arrays members
     struct FamCtx;
     struct FamPlan {
-        std::vector<int>               members;  // operand indices of the sum
+        std::vector<int>               members;  // candidate indices (operands of the sum, or output channels)
+        std::vector<Tree>              trees;    // the members themselves, in the same order
         std::vector<std::vector<Tree>> slots;    // [member][slot] coefficient tree
         std::vector<Tree>              leaves;   // the template's slot leaves
         std::set<Tree>                 commons;  // common inputs
         std::set<Tree>                 priv;     // private nodes of every member
     };
     std::map<Tree, FamPlan>        fFamPlans;    // sum -> its family, planned before the schedule
+    FamPlan                        fFamOutPlan;  // the family among the OUTPUTS (no sum : an array of results)
+    bool                           fFamOutValid = false;
     std::set<Tree>                 fFamPrivate;  // nodes compiled by a family loop, never on their own
     void                           planFamilies();
-    bool                           planFamily(Tree sig, const tvec& subs, FamPlan& plan, bool typed = true);
+    bool                           planFamily(Tree sig, const tvec& subs, FamPlan& plan, bool typed = true);  // sig == nullptr : the outputs
+    bool                           emitFamilyLoop(const FamPlan& plan, bool reduce, std::string& name, std::string& why);
     std::set<Tree>                 famKeepSums(Tree L);  // the sums lowerSums must leave n-ary
     std::string                    generateFamilySum(Tree sig, const tvec& subs, bool& ok);
     std::string                    famExpr(FamCtx& g, Tree t);
     std::string                    famHist(FamCtx& g, Tree x, int k);
-    bool                           famPrivateOnly(const std::set<Tree>& priv, Tree sum);
+    bool                           famPrivateOnly(const std::set<Tree>& priv, Tree host);  // host == nullptr : the outputs
     Tree                           fFamRoot = nullptr;
     std::map<Tree, std::set<Tree>> fFamParents;
     bool                           fFamParentsBuilt = false;
