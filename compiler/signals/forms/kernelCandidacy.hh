@@ -58,9 +58,10 @@ Tree kernelCandidacy(Tree L);
  * per tap. This pass gives them back to the sums : FIR[x, c..] becomes
  * Sum[+-x@i], spliced into its reader when the reader is a sum and the only
  * one. The all-ones contiguous kernels of four taps and more stay kernels
- * (moving sums, O(1)). To be run when lowerSums follows, and BEFORE
- * kernelCandidacy : what is not a kernel is not retimed (a bank whose
- * members share their shift would each get a delay line for nothing).
+ * (moving sums, O(1)). To be run BEFORE kernelCandidacy : what is not a
+ * kernel is not retimed (a bank whose members share their shift would each
+ * get a delay line for nothing). Without lowerSums the sums stay n-ary and
+ * only the multiplications by +-1 go ; with it the bank is dispatched.
  */
 Tree dissolveUnitKernels(Tree L);
 

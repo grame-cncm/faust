@@ -1178,12 +1178,10 @@ Tree ScalarCompiler::prepare(Tree LS)
             }
             startTiming("FIR factorizer");
             L2 = factorizeFIRs(L2);
-            if (gGlobal->gLowerSums) {
-                // the kernels without coefficient go back to the sums, where
-                // the dispatch below shares them ; BEFORE the retiming law,
-                // which is a law of kernels
-                L2 = dissolveUnitKernels(L2);
-            }
+            // the kernels without coefficient go back to the sums : no table
+            // of +-1 to multiply by, and the dispatch below, when it runs,
+            // shares them ; BEFORE the retiming law, which is a law of kernels
+            L2 = dissolveUnitKernels(L2);
             L2 = kernelCandidacy(L2);  // the retiming law, per site
             endTiming("FIR factorizer");
             if (gGlobal->gLowerSums) {
