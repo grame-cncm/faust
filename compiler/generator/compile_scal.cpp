@@ -1037,13 +1037,16 @@ Tree ScalarCompiler::prepare(Tree LS)
             }
             startTiming("FIR factorizer");
             L2 = factorizeFIRs(L2);
-            // the kernels without coefficient go back to the sums : no table
-            // of +-1 to multiply by, and the dispatch below, when it runs,
-            // shares them ; BEFORE the retiming law, which is a law of kernels.
-            // The classic emitter only : the split emitter reads a kernel's
-            // history from its informed delay line, and the dissolved sum
-            // costs it dearly (vocoder under its fused g++ tariff : 27 -> 111 ns)
-            if (!gGlobal->gLoopSplit) {
+            // the kernels without coefficient go back to the sums, where the
+            // dispatch below shares them ; BEFORE the retiming law, which is a
+            // law of kernels. The classic emitter only : the split emitter
+            // reads a kernel's history from its informed delay line, and the
+            // dissolved sum costs it dearly (vocoder under its fused g++
+            // tariff : 27 -> 111 ns). And only with the dispatch : under -fir
+            // alone the +-1 multiplications it saves are not worth the
+            // spelling it changes (englishBell under clang 22 : 51 -> 142 ns,
+            // the SLP packing of the modes lost)
+            if (!gGlobal->gLoopSplit && gGlobal->gLowerSums) {
                 L2 = dissolveUnitKernels(L2);
             }
             L2 = kernelCandidacy(L2);  // the retiming law, per site
