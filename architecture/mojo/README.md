@@ -783,7 +783,7 @@ A GPU program can be generated from the repository root with:
         -o path/to/program.mojo
 ```
 
-The native terminal library must be built before linking the terminal architecture:
+The native terminal library must be built before linking the terminal architecture with the following:
 
 ```
     make -C architecture/mojo/gui/terminal/native release
