@@ -41,7 +41,7 @@ necessary and, from the repository root, enter the benchmark environment:
 
 ```
     brew install pixi
-    cd architecture/_bench
+    cd architecture/bench
     pixi install
     pixi shell
 ```
@@ -85,7 +85,7 @@ The positional `case` in `bench_plot` is optional; `bench_plot <name> all` plots
 The main components are organized according to the following structure:
 
 ```
-    architecture/_bench/
+    architecture/bench/
     ├── arch/
     │   └── cpp/
     │       ├── common.h
@@ -113,7 +113,7 @@ The `src` directory contains the FAUST sources used as benchmark cases. An expli
 source can also be provided to the framework.
 
 The `arch/cpp` directory contains the architectures dedicated to the C++ backend. The corresponding Mojo
-architectures are not duplicated inside `_bench`: they are used directly from `architecture/mojo`.
+architectures are not duplicated inside `bench`: they are used directly from `architecture/mojo`.
 
 The `script` directory contains the Python code that coordinates generation, compilation, execution,
 reporting, plotting, and inspection of the produced code.

@@ -555,6 +555,7 @@ install (
     GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
     PATTERN ".DS_Store" EXCLUDE
     PATTERN "*.o" EXCLUDE
+    PATTERN "mojo/gui/terminal/native/build/*" EXCLUDE
 )
 
 ####################################

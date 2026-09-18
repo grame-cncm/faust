@@ -53,6 +53,13 @@ default `compute` body is empty: GPU audio passes an `AdapterDsp[mydsp]` to Port
 invokes the adapter's `compute`, which forwards the block to `GpuDevice`. Directly passing the GPU DSP to
 PortAudio would not execute GPU processing.
 
+
+<!-- NOTE:(Ari) devi parlare in termini generali delle interazioni delle parti, non devi citare esplicitamente -->
+<!-- portaudio o terminal gui, le si spiega dopo esplictiamente, non ha senso citarle qui che stai spiegando il -->
+<!-- sitema in generale. Inoltre tutta la parte della gpu essendo atipica la fai alla fine, faciamo un capitolo -->
+<!-- separato di gpu processing dove spieghi tutta quella roba li. -->
+
+
 The generator and the selected architecture meet in the complete Mojo file:
 
 ```
@@ -148,6 +155,9 @@ The PortAudio and current GPU templates require 32-bit external samples. The cur
 also requires `-single` internal precision.
 
 ### DSP
+
+<!-- NOTE(Ari): non initiare mai le cazo di frasi don minuscola o con il nome di una classe struttura o modulo. -->
+<!-- ad esempio qui dovresi dire 'Il modulo dsp esporta....' -->
 
 `dsp` publicly exports `FaustDsp`, `FaustDspGpu`, and `AdapterDsp`. The adapter holds pointers to the
 generated DSP and a prepared GPU device, delegates initialization, metadata, and UI construction to the
@@ -270,6 +280,9 @@ impulse.mojo
 Initializes the CPU DSP and `ControlGui`, then uses `pulse` to print an impulse response in the format
 expected by the FAUST impulse tests.
 
+<!-- NOTE:(Ari) questa parte la devi spiegare all'inizio nella sezione del disegno generale, e non citare -->
+<!-- esplictamente portaudio, parla di callback del driver audio ad esempio, non di cose specifiche. -->
+
 ## Audio execution flow
 
 For CPU templates, `main` initializes `mydsp`, optionally builds a GUI, and passes the DSP to
@@ -308,6 +321,9 @@ FAUST's `-single`/`-double` flags select *internal* DSP precision. `-gpu` select
 GPU generator; it currently accepts `-single` and requires `FaustDspGpu` at the architecture boundary.
 
 ## Essential workflow
+
+NOTE:(Ari) anche qui non ha senso fare i riferimenti ai nomi dei file sorgenti.
+
 
 From `architecture/mojo`, generate a CPU DSP with the terminal template:
 
