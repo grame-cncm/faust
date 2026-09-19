@@ -81,16 +81,18 @@ static void countOcc(Tree root, std::map<Tree, int, treeorder>& occ)
 // ORIGINAL was single-use, kept as one opaque atom otherwise. A SHARED sum
 // is spliced too when the caller gathers through the sharing (maxShared > 0)
 // and the row stays within maxShared terms.
-static void appendTerms(Tree xrebuilt, bool xShared, bool invert, tvec& zsubs, size_t maxShared)
+// Returns whether x was spliced (its terms taken) rather than kept as an atom.
+static bool appendTerms(Tree xrebuilt, bool xShared, bool invert, tvec& zsubs, size_t maxShared)
 {
     tvec subs;
     if (isSigSum(xrebuilt, subs) && (!xShared || zsubs.size() + subs.size() <= maxShared)) {
         for (Tree s : subs) {
             zsubs.push_back(invert ? sigNeg(s) : s);
         }
-        return;
+        return true;
     }
     zsubs.push_back(invert ? sigNeg(xrebuilt) : xrebuilt);
+    return false;
 }
 
 // External API
@@ -107,7 +109,8 @@ static void appendTerms(Tree xrebuilt, bool xShared, bool invert, tvec& zsubs, s
 // quadratic in the row size.
 static const size_t kMaxGatheredRow = 256;
 
-Tree revealSum(Tree L1, bool throughShared)
+Tree revealSum(Tree L1, bool throughShared, std::unordered_map<Tree, Tree>* origins,
+               std::unordered_map<Tree, std::vector<Tree>>* consumed)
 {
     const size_t maxShared = throughShared ? kMaxGatheredRow : 0;
     std::map<Tree, int, treeorder> occ;
@@ -125,24 +128,56 @@ Tree revealSum(Tree L1, bool throughShared)
     // flattening a slow add invites cancelling distributions). The
     // original side supplies the audio bit and the occurrences ; the
     // rebuilt side supplies the terms.
-    auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
+    // the original binary sums a revealed sum absorbed : the spliced operand
+    // itself (an original node) and what it had absorbed in turn
+    auto absorb = [&](Tree result, Tree xo, Tree xr, bool spliced) {
+        if (!consumed || !spliced) {
+            return;
+        }
+        auto& v = (*consumed)[result];
+        v.push_back(xo);
+        if (auto it = consumed->find(xr); it != consumed->end()) {
+            v.insert(v.end(), it->second.begin(), it->second.end());
+        }
+    };
+    auto reveal = [&](Tree orig, Tree rebuilt) -> Tree {
         if (!sigs::isAudioRate(orig)) {
             return rebuilt;
         }
         Tree xo, yo, xr, yr;
         if (isSigAdd(orig, xo, yo) && isSigAdd(rebuilt, xr, yr)) {
             tvec zsubs;
-            appendTerms(xr, shared(xo), false, zsubs, maxShared);
-            appendTerms(yr, shared(yo), false, zsubs, maxShared);
-            return sigSum(zsubs);
+            bool sx = appendTerms(xr, shared(xo), false, zsubs, maxShared);
+            bool sy = appendTerms(yr, shared(yo), false, zsubs, maxShared);
+            Tree r  = sigSum(zsubs);
+            absorb(r, xo, xr, sx);
+            absorb(r, yo, yr, sy);
+            return r;
         }
         if (isSigSub(orig, xo, yo) && isSigSub(rebuilt, xr, yr)) {
             tvec zsubs;
-            appendTerms(xr, shared(xo), false, zsubs, maxShared);
-            appendTerms(yr, shared(yo), true, zsubs, maxShared);
-            return sigSum(zsubs);
+            bool sx = appendTerms(xr, shared(xo), false, zsubs, maxShared);
+            bool sy = appendTerms(yr, shared(yo), true, zsubs, maxShared);
+            Tree r  = sigSum(zsubs);
+            absorb(r, xo, xr, sx);
+            absorb(r, yo, yr, sy);
+            return r;
         }
         return rebuilt;
+    };
+    auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
+        Tree result = reveal(orig, rebuilt);
+        if (origins && result != orig) {
+            (*origins)[result] = orig;
+            // a group is reached through its projections only, and the rewrite
+            // gives every group a fresh variable : its origin is recorded here
+            int  i, j;
+            Tree ng, og;
+            if (isProj(result, &i, ng) && isProj(orig, &j, og) && ng != og) {
+                (*origins)[ng] = og;
+            }
+        }
+        return result;
     };
 
     return treeRewritePairedMemo(L1, pre, rule, memo, defRule);
