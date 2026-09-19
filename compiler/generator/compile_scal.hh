@@ -26,6 +26,7 @@
 
 #include <map>
 #include <functional>
+#include <unordered_map>
 #include <utility>
 
 #include "DirectedGraph.hh"
@@ -260,6 +261,21 @@ class ScalarCompiler : public Compiler {
     std::string                    famHist(FamCtx& g, Tree x, int k);
     bool                           famPrivateOnly(const std::set<Tree>& priv, const std::set<Tree>& hosts, bool outputs, Tree group = nullptr);
     Tree                           fFamRoot = nullptr;
+    // -fam alone : the plan is made on a VIEW of the tree (its audio sums
+    // revealed n-ary, built at plan time), the code is emitted from the tree
+    // itself, so that -fam changes nothing outside its families ; a view
+    // node's origin is the tree node it stands for (revealSum records them),
+    // itself when it was not rebuilt
+    std::unordered_map<Tree, Tree> fFamOrigin;
+    std::unordered_map<Tree, std::vector<Tree>> fFamConsumed;  // a view sum -> the tree's binary sums it absorbed (skipped with it)
+    std::set<Tree>                 fFamComputed;  // the tree's nodes whose expression a family registered (members stored in arrays, an automaton's projections)
+    Tree                           famOrig(Tree t) const
+    {
+        auto it = fFamOrigin.find(t);
+        return it == fFamOrigin.end() ? t : it->second;
+    }
+    std::string famCS(Tree t);    // the code of what a family reads : the tree's node, or a form the view made
+    std::string famCoef(Tree t);  // the same for a slow coefficient (coefCode)
     std::map<Tree, std::set<Tree>> fFamParents;
     std::map<Tree, std::pair<Tree, int>> fFamDefCell;  // a cell of a group's definition list -> (group, definition index)
     bool                           fFamParentsBuilt = false;
