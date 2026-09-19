@@ -230,6 +230,9 @@ class ScalarCompiler : public Compiler {
         std::vector<int>               memberDef;         // member -> its definition index
         std::vector<int>               aslotBase;         // audio slot -> the projection read is member's definition + base (INT_MIN : a table)
         int                            groupDepth = 0;    // the deepest delay read on the group
+        std::vector<std::pair<int, int>> runs;           // the members in runs of contiguous definitions [lo, hi)
+        std::vector<std::pair<Tree, std::string>> regs;  // the projections' expressions, registered when the automaton is emitted
+        std::vector<Tree>              borderInputs;      // what the definitions computed before the loop read from outside the group (order check)
         std::vector<int>               defsBefore;        // the other definitions computed before the loop (read by the cells at the current step), in dependency order
         std::vector<int>               defsAfter;         // and after it
         int                            id = -1;           // fixed at plan time for an automaton (its expressions are registered then)
@@ -244,7 +247,7 @@ class ScalarCompiler : public Compiler {
     void                           planFamilies();
     void                           planFamilyClasses(Tree root, std::vector<FamPlan>& out, bool typed);
     bool                           planFamilyClass(const std::vector<Tree>& nodes, FamPlan& plan, bool typed, std::string& why,
-                                                   const std::set<Tree>* holes = nullptr);
+                                                   const std::set<Tree>* holes = nullptr, void* shapes = nullptr);
     void                           checkFamilyOrder();
     void                           famScheduleEdges(digraph<Tree>& G);
     bool                           famAutoRead(Tree exp, int delay, std::string& out);  // an automaton's projection read at a constant delay : its arrays  // before the schedule : every input of a family before its first host
