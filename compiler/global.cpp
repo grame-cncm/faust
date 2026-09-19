@@ -1911,8 +1911,7 @@ bool global::processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-fam", "--family-form")) {
-            gFamilyForm         = true;
-            gReconstructFIRIIRs = true;
+            gFamilyForm = true;  // no longer implies -fir : the families need the revealed sums, not the kernels
             i += 1;
 
         } else if (isCmd(argv[i], "-fam-min", "--family-min-nodes")) {
@@ -2748,7 +2747,7 @@ string global::printHelp()
             "kernels in the signal graph and emit their dedicated forms."
          << endl;
     sstr << tab
-         << "-fam        --family-form               (ocpp, experimental, implies -fir) the parallel isomorphic "
+         << "-fam        --family-form               (ocpp, experimental) the parallel isomorphic "
             "chains of the program (the modes of a bank, the bands of a vocoder, the channels of a matrix, the "
             "analyzers of a spectrum display) are found by shape classes -- four occurrences or more of one "
             "abstract shape, the rare subtrees they read being holes -- and each family is emitted as one inner "
