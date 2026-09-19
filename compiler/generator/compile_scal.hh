@@ -234,6 +234,8 @@ class ScalarCompiler : public Compiler {
         std::vector<std::pair<int, int>> runs;           // the members in runs of contiguous definitions [lo, hi)
         std::vector<std::pair<Tree, std::string>> regs;  // the projections' expressions, registered when the automaton is emitted
         std::vector<Tree>              borderInputs;      // what the definitions computed before the loop read from outside the group (order check)
+        Tree                           ktemplate = nullptr;  // -fam -fir : the template with its kernels formed once for the family (famKernelizeTemplate)
+        std::unordered_map<Tree, Tree> thaw;                 // its opaque leaves -> the template's slot leaves and commons
         std::vector<int>               defsBefore;        // the other definitions computed before the loop (read by the cells at the current step), in dependency order
         std::vector<int>               defsAfter;         // and after it
         int                            id = -1;           // fixed at plan time for an automaton (its expressions are registered then)
@@ -256,6 +258,15 @@ class ScalarCompiler : public Compiler {
                                                   const std::vector<std::pair<int, int>>* ranges = nullptr);
     void                           emitFamily(FamPlan& plan);  // the loop and the per-host reductions, once
     std::set<Tree>                 famKeepSums(Tree L);  // the sums lowerSums must leave n-ary
+    // families first, kernels after (LES-AUTOMATES §9) : the families' subtrees
+    // are frozen into opaque leaves while the kernel passes run on the rest of
+    // the tree, and each family's template gets its kernels formed once, alone
+    bool                           fFamPlanned = false;  // the plan was made in prepare (the -fam -fir order)
+    Tree                           famFreeze(Tree root, const std::set<Tree>& frozen, std::unordered_map<Tree, Tree>& back, bool typed);
+    Tree                           famThaw(Tree root, const std::unordered_map<Tree, Tree>& back);
+    Tree                           famKernelizeOutside(Tree L2);
+    void                           famKernelizeTemplate(FamPlan& plan);
+    void                           famCheckPlanned(Tree L2);  // after the harvest : the planned families' nodes must still be the tree's
     std::string                    generateFamilySum(Tree sig, const tvec& subs, bool& ok);
     std::string                    famExpr(FamCtx& g, Tree t);
     std::string                    famHist(FamCtx& g, Tree x, int k);

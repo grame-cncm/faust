@@ -1015,7 +1015,26 @@ Tree ScalarCompiler::prepare(Tree LS)
         };
         callWithLargeStack(gq);
     }
-    if (gGlobal->gReconstructFIRIIRs || (gGlobal->gFamilyForm && gGlobal->gLowerSums)) {
+    if (gGlobal->gFamilyForm && gGlobal->gReconstructFIRIIRs) {
+        // FAMILIES FIRST, KERNELS AFTER (LES-AUTOMATES §9), at the place of
+        // the reveal block so that the rest of the pipeline is -fir's : the
+        // plan on the view of the tree as it is (the display roots are not
+        // harvested yet : the sum, output and automaton families only --
+        // the display families stay with -fam alone), then the kernel
+        // passes of -fir around the families, frozen ; the plan is not made
+        // again (fFamPlanned), its nodes are the tree's, checked after the
+        // harvest (famCheckPlanned)
+        startTiming("families first");
+        conditionAnnotation(L2);  // the typed plan refuses a conditional template
+        fFamRoot = L2;
+        planFamilies();
+        fFamPlanned = true;
+        L2 = famKernelizeOutside(L2);
+        fConditionProperty.clear();  // the passes rebuilt trees : the annotation below starts afresh (it merges)
+        endTiming("families first");
+    }
+    if ((gGlobal->gReconstructFIRIIRs && !gGlobal->gFamilyForm) ||
+        (gGlobal->gFamilyForm && gGlobal->gLowerSums && !gGlobal->gReconstructFIRIIRs)) {
         // -fir stage 1 : the revealed kernels are INJECTED into the
         // pipeline -- n-ary sums (revealSum) then FIR kernels (revealFIR).
         // revealIIR waits for its typing rule (WCPG, see PILE n.12). The
@@ -1026,7 +1045,8 @@ Tree ScalarCompiler::prepare(Tree LS)
         // it changes nothing outside its families (the flattened sums it
         // left behind cost pluckedString x2.4, fdnRev x1.85 under g++ 15
         // with no family at all) ; -fam -lsum reveals here and lowers with
-        // the family sums kept n-ary ; -fam -fir keeps the kernels.
+        // the family sums kept n-ary ; -fam -fir neither : families first,
+        // kernels after, at the end of the preparation (famKernelizeOutside).
         std::function<void()> reveal = [&]() {
             startTiming("Sum revealer");
             // gather through the shared sub-sums only when lowerSums rebuilds
@@ -1127,6 +1147,9 @@ Tree ScalarCompiler::prepare(Tree LS)
         fConditionProperty.clear();
         conditionAnnotation(L2);
         recursivnessAnnotation(L2);
+        if (fFamPlanned) {
+            famCheckPlanned(L2);  // a family whose nodes the harvest rebuilt is dismantled
+        }
     }
     startTiming("L2 typeAnnotation");
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
@@ -6514,7 +6537,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
     // contextor recursivness(0);
     L = prepare(L);  // optimize, share and annotate expression
     censusAdjacentReads(L);
-    if (gGlobal->gFamilyForm) {
+    if (gGlobal->gFamilyForm && !fFamPlanned) {
         planFamilies();  // -fam : after the annotations, before the schedule (members' private nodes never compiled alone)
     }
     fMainCompilePhase = true;
@@ -9097,6 +9120,428 @@ string ScalarCompiler::generateDelayAccessRaw(Tree sig, Tree exp, const string& 
     }
 }
 
+// FAMILIES FIRST, KERNELS AFTER (LES-AUTOMATES §9). The kernels are formed
+// per site (the retiming law, the factorization, the hoisting look at the
+// sharing around a site), so two isomorphic cells came out with different
+// kernel decompositions and stopped being isomorphic (the 2-D plate : 96
+// cells in classes of 16, 16, 16, 6 and 6 ; the hammered string, the glass
+// harmonica : no automaton at all under -fam -fir). The families are
+// therefore recognized on the bare tree ; then the kernel passes run on the
+// rest of the tree, the families' subtrees FROZEN into opaque leaves they
+// cannot look into ; and each family's template gets its kernels once,
+// alone, the same decision for every member.
+
+// the opaque leaf standing for a frozen subtree : an audio input for an
+// audio real node, a slow slider for a slow real one (the kernel passes ask
+// whether a coefficient is audio or not, nothing else), an int cast of either
+// for an int node ; typed later with the tree they stand in
+static Tree famPlaceholder(Tree t, int n, bool typed)
+{
+    Tree ph = sigInput(1000000 + n);
+    if (typed) {
+        Type ty = getCertifiedSigType(t);
+        if (ty->variability() < kSamp) {
+            ph = sigHSlider(tree(Node(unique("fam_frozen_"))), sigReal(0.0), sigReal(-1.0), sigReal(1.0), sigReal(0.01));
+        }
+        if (ty->nature() == kInt) {
+            ph = sigIntCast(ph);
+        }
+    }
+    return ph;
+}
+
+// the frozen nodes replaced by their placeholders, back : placeholder -> node
+Tree ScalarCompiler::famFreeze(Tree root, const std::set<Tree>& frozen, std::unordered_map<Tree, Tree>& back, bool typed)
+{
+    std::unordered_map<Tree, Tree> memo, fwd;
+    int                            n = 0;
+    auto pre = [&](Tree t) -> std::optional<Tree> {
+        if (!frozen.count(t)) {
+            return std::nullopt;
+        }
+        auto it = fwd.find(t);
+        if (it == fwd.end()) {
+            Tree ph = famPlaceholder(t, n++, typed);
+            fwd[t]  = ph;
+            back[ph] = t;
+            it = fwd.find(t);
+        }
+        return it->second;
+    };
+    auto rule    = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
+    auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
+    return treeRewritePaired(root, pre, rule, memo, defRule);
+}
+
+// the placeholders replaced by the nodes they stood for, which come back as
+// they were (the cut returns the node itself : nothing inside is rebuilt)
+Tree ScalarCompiler::famThaw(Tree root, const std::unordered_map<Tree, Tree>& back)
+{
+    std::unordered_map<Tree, Tree> memo;
+    auto pre = [&](Tree t) -> std::optional<Tree> {
+        auto it = back.find(t);
+        return it == back.end() ? std::nullopt : std::optional<Tree>(it->second);
+    };
+    auto rule    = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
+    auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
+    return treeRewritePaired(root, pre, rule, memo, defRule);
+}
+
+// -fam -fir : the kernel pipeline (the one of -fir, revealSum first, the
+// lowering last under -lsum) on the tree with the families frozen : the hosts
+// of the sum families, every projection of an automaton's group, the members
+// of the output families. What the passes rebuild outside is theirs ; what
+// they never saw comes back untouched, so the plan's nodes are still the
+// tree's. The lowering cannot reach a family's sums either : famKeepSums is
+// not needed on this path.
+Tree ScalarCompiler::famKernelizeOutside(Tree L2)
+{
+    const bool     trace = getenv("FAUST_FAM_TRACE") != nullptr;
+    std::set<Tree> frozen;
+    std::set<Tree> groups;
+    // what a family reads from outside (its slots, audio slots and commons)
+    // is frozen with it : the loop reads the tree's node, and a node the
+    // passes had rebuilt would be compiled twice, the family's copy with
+    // states of its own that nothing writes (bowed, wrong from sample 2)
+    auto freezeLeaf = [&](Tree v) {
+        Tree t = famOrig(v);
+        int  pi;
+        Tree g;
+        if (!getSigType(t) || isNum(t) || (isProj(t, &pi, g) && groups.count(g))) {
+            return;
+        }
+        frozen.insert(t);
+    };
+    for (FamPlan& f : fFamilies) {
+        if (f.trees.empty()) {
+            continue;
+        }
+        if (f.group) {
+            groups.insert(famOrig(f.group));
+        } else if (!f.hosts.empty() && f.hosts[0]) {
+            for (Tree h : f.hosts) {
+                frozen.insert(famOrig(h));
+            }
+        } else {
+            for (Tree t : f.trees) {
+                frozen.insert(famOrig(t));
+            }
+        }
+    }
+    for (FamPlan& f : fFamilies) {
+        if (f.trees.empty()) {
+            continue;
+        }
+        for (auto& v : f.slots) {
+            for (Tree t : v) {
+                freezeLeaf(t);
+            }
+        }
+        for (auto& v : f.aslots) {
+            for (Tree t : v) {
+                freezeLeaf(t);
+            }
+        }
+        for (Tree t : f.commons) {
+            freezeLeaf(t);
+        }
+        for (Tree t : f.borderInputs) {
+            freezeLeaf(t);
+        }
+    }
+    // A frozen node inside the body of a recursive group freezes the whole
+    // group : the rewrite gives every group a fresh variable, and a frozen
+    // subtree kept as it is would still refer to the old one -- two
+    // instances of the recursion, the host of bowed applied twice. The
+    // enclosing groups, to the fixpoint (a frozen group's projections may
+    // sit inside another group).
+    {
+        std::map<Tree, Tree> enclosing;  // node -> the innermost group whose body holds it
+        std::set<Tree>       seen;
+        std::function<void(Tree, Tree)> walk = [&](Tree t, Tree g) {
+            if (!seen.insert(t).second) {
+                return;
+            }
+            if (g && !enclosing.count(t)) {
+                enclosing[t] = g;
+            }
+            Tree id, body;
+            if (isRec(t, id, body)) {
+                if (body) {
+                    walk(body, t);
+                }
+                return;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                walk(t->branch(k), g);
+            }
+        };
+        walk(L2, nullptr);
+        for (Tree sd : fDisplayStateful) {
+            walk(sd, nullptr);
+        }
+        bool more = true;
+        while (more) {
+            more = false;
+            for (Tree t : frozen) {
+                auto it = enclosing.find(t);
+                if (it != enclosing.end() && !groups.count(it->second)) {
+                    groups.insert(it->second);
+                    more = true;
+                }
+            }
+            // the projections of the frozen groups are frozen ; if one sits inside a group, that group too
+            std::set<Tree>    seen2;
+            std::vector<Tree> st{L2};
+            for (Tree sd : fDisplayStateful) {
+                st.push_back(sd);
+            }
+            while (!st.empty()) {
+                Tree t = st.back();
+                st.pop_back();
+                if (!seen2.insert(t).second) {
+                    continue;
+                }
+                int  i;
+                Tree g, id, body;
+                if (isProj(t, &i, g) && groups.count(g)) {
+                    if (frozen.insert(t).second) {
+                        more = true;
+                    }
+                    continue;  // nothing below a frozen projection is the passes' business
+                }
+                if (isRec(t, id, body)) {
+                    if (body) {
+                        st.push_back(body);
+                    }
+                    continue;
+                }
+                for (int k = 0; k < t->arity(); k++) {
+                    st.push_back(t->branch(k));
+                }
+            }
+        }
+        // a node inside a frozen group is frozen with it : it needs no placeholder of its own
+        for (auto it = frozen.begin(); it != frozen.end();) {
+            int  i;
+            Tree g;
+            auto e = enclosing.find(*it);
+            it     = (e != enclosing.end() && groups.count(e->second) && !(isProj(*it, &i, g) && groups.count(g))) ? frozen.erase(it) : std::next(it);
+        }
+    }
+    if (frozen.empty()) {
+        if (trace) {
+            std::cerr << "fam kernels : no family, the kernel passes run on the whole tree" << std::endl;
+        }
+    }
+    std::unordered_map<Tree, Tree> back;
+    Tree                           L = frozen.empty() ? L2 : famFreeze(L2, frozen, back, false);
+    typeAnnotation(L, false);  // the placeholders, and the rebuilt nodes around them
+    std::function<void()> passes = [&]() {
+        L = revealSum(L, gGlobal->gLowerSums);
+        L = revealFIR(L);
+        L = revealIIR(L);
+        if (gGlobal->gFIRHoist) {
+            L = hoistCommonNumerators(L);
+        }
+        L = factorizeFIRs(L);
+        if (!gGlobal->gLoopSplit && gGlobal->gLowerSums) {
+            L = dissolveUnitKernels(L);
+        }
+        L = kernelCandidacy(L);
+        if (gGlobal->gLowerSums) {
+            std::set<Tree> keepRows;
+            if (gGlobal->gMatrixRows) {
+                for (auto& [row, id] : revealMatrix(L).rowOf) {
+                    keepRows.insert(row);
+                }
+            }
+            L = lowerSums(L, keepRows.empty() ? nullptr : &keepRows);
+        }
+    };
+    callWithLargeStack(passes);
+    if (!frozen.empty()) {
+        L = famThaw(L, back);
+    }
+    if (trace) {
+        std::cerr << "fam kernels : " << frozen.size() << " frozen subtree(s) of " << fFamilies.size() << " families, the kernel passes ran around them" << std::endl;
+    }
+    return L;
+}
+
+// -fam -fir : the family's template gets its kernels, once, alone -- its slot
+// leaves and commons frozen into opaque leaves typed like them (a slow slot
+// is a coefficient the kernel passes may take, an audio slot never), the
+// pipeline of -fir on the template as a program of its own, the leaves
+// thawed by the loop generator (FamCtx::th). The same decision for every
+// member, by construction.
+void ScalarCompiler::famKernelizeTemplate(FamPlan& plan)
+{
+    const bool     trace = getenv("FAUST_FAM_TRACE") != nullptr;
+    std::set<Tree> frozen;
+    // What is frozen : every slot, audio slot and common -- the passes see
+    // them as opaque leaves, a coefficient or an audio input, and can neither
+    // open them (a slow expression they would respell into nodes the loop
+    // generator does not know) nor fold a value of the template's member
+    // into a kernel that every member then runs. A LITERAL is never frozen :
+    // a hash-consed int is also an opcode, a projection index, a delay (the
+    // frozen 2 of the bells was the multiplication) ; a uniform literal is
+    // the same for every member and may stay ; a literal that differs
+    // between members leaves the template unkernelized (a real one could be
+    // frozen, an int one -- a delay, an index -- cannot be told apart from
+    // the structure).
+    for (size_t k = 0; k < plan.leaves.size(); k++) {
+        Tree l = plan.leaves[k];
+        if (!getSigType(l)) {
+            continue;  // a structural leaf (the nil tail of a group's definitions)
+        }
+        if (isNum(l)) {
+            bool uniform = true;
+            for (size_t m = 1; m < plan.slots.size() && uniform; m++) {
+                uniform = (k < plan.slots[m].size() && plan.slots[m][k] == l);
+            }
+            if (!uniform) {
+                if (trace) {
+                    std::cerr << "fam kernels : template of family " << plan.id << " : a literal slot differs between members, no kernel" << std::endl;
+                }
+                return;
+            }
+            continue;
+        }
+        frozen.insert(l);
+    }
+    for (Tree l : plan.aleaves) {
+        if (getSigType(l) && !isNum(l)) {
+            frozen.insert(l);
+        }
+    }
+    for (Tree l : plan.commons) {
+        if (getSigType(l) && !isNum(l)) {
+            frozen.insert(l);
+        }
+    }
+    std::unordered_map<Tree, Tree> back;
+    Tree                           t = famFreeze(plan.trees[0], frozen, back, true);
+    Tree                           L = cons(t, gGlobal->nil);
+    typeAnnotation(L, false);
+    std::function<void()> passes = [&]() {
+        L = revealSum(L, false);
+        L = revealFIR(L);
+        L = revealIIR(L);
+        if (gGlobal->gFIRHoist) {
+            L = hoistCommonNumerators(L);
+        }
+        L = factorizeFIRs(L);
+        if (!gGlobal->gLoopSplit && gGlobal->gLowerSums) {
+            L = dissolveUnitKernels(L);
+        }
+        L = kernelCandidacy(L);
+    };
+    callWithLargeStack(passes);
+    typeAnnotation(L, false);
+    plan.ktemplate = hd(L);
+    plan.thaw      = back;
+    if (trace) {
+        int kernels = 0;
+        std::set<Tree>    seen;
+        std::vector<Tree> st{plan.ktemplate};
+        while (!st.empty()) {
+            Tree u = st.back();
+            st.pop_back();
+            if (!seen.insert(u).second) {
+                continue;
+            }
+            tvec V;
+            kernels += isSigFIR(u, V) || isSigIIR(u, V);
+            Tree id, body;
+            if (isRec(u, id, body)) {
+                if (body) {
+                    st.push_back(body);
+                }
+                continue;
+            }
+            for (int k = 0; k < u->arity(); k++) {
+                st.push_back(u->branch(k));
+            }
+        }
+        std::cerr << "fam kernels : template of family " << plan.id << " : " << kernels << " kernel(s), " << back.size() << " frozen leaves" << std::endl;
+    }
+}
+
+// The plan was made before the harvest (families first) : a family whose
+// host, group or members are no longer nodes of the tree (rebuilt by a later
+// pass) is dismantled, its private nodes given back to the schedule
+void ScalarCompiler::famCheckPlanned(Tree L2)
+{
+    std::set<Tree>    nodes;
+    std::vector<Tree> st{L2};
+    for (Tree sd : fDisplayStateful) {
+        st.push_back(sd);
+    }
+    while (!st.empty()) {
+        Tree t = st.back();
+        st.pop_back();
+        if (!nodes.insert(t).second) {
+            continue;
+        }
+        Tree id, body;
+        if (isRec(t, id, body)) {
+            if (body) {
+                st.push_back(body);
+            }
+            continue;
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            st.push_back(t->branch(k));
+        }
+    }
+    for (FamPlan& f : fFamilies) {
+        if (f.trees.empty()) {
+            continue;
+        }
+        bool ok = true;
+        if (f.group) {
+            ok = nodes.count(famOrig(f.group)) > 0;
+        } else if (!f.hosts.empty() && f.hosts[0]) {
+            for (Tree h : f.hosts) {
+                ok = ok && nodes.count(famOrig(h)) > 0;
+            }
+        } else {
+            for (Tree t : f.trees) {
+                ok = ok && nodes.count(famOrig(t)) > 0;
+            }
+        }
+        if (ok) {
+            continue;
+        }
+        if (getenv("FAUST_FAM_TRACE")) {
+            std::cerr << "fam dismantled : family of " << f.trees.size() << ", its nodes were rebuilt after the plan" << std::endl;
+        }
+        for (Tree t : f.priv) {
+            fFamPrivate.erase(famOrig(t));
+            if (auto it = fFamConsumed.find(t); it != fFamConsumed.end()) {
+                for (Tree c : it->second) {
+                    fFamPrivate.erase(c);
+                }
+            }
+        }
+        for (Tree h : f.hosts) {
+            if (h) {
+                fFamHost.erase(famOrig(h));
+                if (auto it = fFamConsumed.find(h); it != fFamConsumed.end()) {
+                    for (Tree c : it->second) {
+                        fFamPrivate.erase(c);
+                    }
+                }
+            }
+        }
+        if (f.group) {
+            fFamGroup.erase(famOrig(f.group));
+        }
+        f.trees.clear();
+    }
+}
+
 // a node that accesses a group : one of its projections, or a delayed read of one
 static bool famAccessesGroup(Tree n, Tree group)
 {
@@ -9909,6 +10354,16 @@ struct ScalarCompiler::FamCtx {
     std::set<int>                              preSlots;    // audio slots that are delayed reads : captured at the top of the sample
     std::set<int>                              usedPreSlots;
     std::string                                ty;  // the real type of the members
+    const std::unordered_map<Tree, Tree>*      thaw = nullptr;  // -fam -fir : the kernelized template's opaque leaves -> the slot leaves and commons
+    Tree                                       th(Tree t) const
+    {
+        if (thaw) {
+            if (auto it = thaw->find(t); it != thaw->end()) {
+                return it->second;
+            }
+        }
+        return t;
+    }
     std::map<Tree, int>                        slotIndex;  // template leaf -> slot
     std::vector<bool>                          uniform;    // the slot is the same tree in every member
     std::set<int>                              usedSlots;
@@ -10028,6 +10483,7 @@ std::string ScalarCompiler::famHist(FamCtx& g, Tree x, int k)
     if (g.failed) {
         return "0";
     }
+    x = g.th(x);
     if (k == 0) {
         return famExpr(g, x);
     }
@@ -10084,6 +10540,7 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
     if (g.failed) {
         return "0";
     }
+    t = g.th(t);  // an opaque leaf of the kernelized template is its slot leaf or common
     if (auto it = g.val.find(t); it != g.val.end()) {
         return it->second;
     }
@@ -10221,6 +10678,14 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
             return "0";
         }
         return g.val[t] = it->second;
+    }
+    int    i2;
+    double r2;
+    if (isSigInt(t, &i2)) {
+        return g.val[t] = T(i2);  // a literal the kernel passes wrote into the template (a coefficient, a sign)
+    }
+    if (isSigReal(t, &r2)) {
+        return g.val[t] = realLiteral(r2);
     }
     int  op;
     Tree a, b;
@@ -11151,8 +11616,8 @@ void ScalarCompiler::planFamilies()
     }
     fFamOrigin.clear();
     fFamConsumed.clear();
-    if (!gGlobal->gReconstructFIRIIRs && !gGlobal->gLowerSums) {
-        // -fam alone : the plan reads a VIEW of the tree, its audio sums
+    if (gGlobal->gReconstructFIRIIRs || !gGlobal->gLowerSums) {
+        // -fam alone, and -fam -fir (families first) : the plan reads a VIEW of the tree, its audio sums
         // revealed n-ary (the families' hosts and their members' isomorphic
         // operands), typed for the plan's own needs ; the tree itself, the
         // one the schedule and the emitter see, is untouched -- every node
@@ -11453,13 +11918,14 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
     const std::vector<std::vector<Tree>>& slots   = plan.slots;
     const std::vector<Tree>&              leaves  = plan.leaves;
     const std::set<Tree>&                 commons = plan.commons;
-    Tree                                  t0      = plan.trees[0];
+    Tree                                  t0      = plan.ktemplate ? plan.ktemplate : plan.trees[0];
     const int                             P       = (int)plan.trees.size();
     FamCtx g;
     g.id      = plan.id >= 0 ? plan.id : fFamCount;
     g.P       = P;
     g.ty      = ifloat();
     g.commons = commons;
+    g.thaw    = plan.ktemplate ? &plan.thaw : nullptr;
     if (plan.group) {
         g.autoGroup = plan.group;
         g.autoDef0  = plan.memberDef.empty() ? 0 : plan.memberDef[0];
@@ -11522,7 +11988,8 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
         while (!st.empty()) {
             Tree t = st.back();
             st.pop_back();
-            if (!seen.insert(t).second || g.slotIndex.count(t) || g.aslotIndex.count(t) || commons.count(t)) {
+            Tree u = g.th(t);
+            if (!seen.insert(t).second || g.slotIndex.count(u) || g.aslotIndex.count(u) || commons.count(u)) {
                 continue;
             }
             Tree id, body;
@@ -11668,6 +12135,24 @@ void ScalarCompiler::emitFamily(FamPlan& plan)
     plan.emitted = true;
     const bool trace = getenv("FAUST_FAM_TRACE") != nullptr;
     std::string name, why;
+    // the loop from the template : under -fir the template gets its kernels
+    // first, formed once for the family ; a kernelized template the loop
+    // cannot generate falls back to the plain one
+    auto famLoop = [&](bool reduce, std::string& nm, std::string& w, const std::vector<std::pair<int, int>>* ranges) {
+        if (gGlobal->gReconstructFIRIIRs && !plan.ktemplate) {
+            famKernelizeTemplate(plan);
+        }
+        bool ok = emitFamilyLoop(plan, reduce, nm, w, ranges);
+        if (!ok && plan.ktemplate) {
+            if (trace) {
+                std::cerr << "fam kernels : the kernelized template is refused (" << w << "), the plain template is used" << std::endl;
+            }
+            plan.ktemplate = nullptr;
+            plan.thaw.clear();
+            ok = emitFamilyLoop(plan, reduce, nm, w, ranges);
+        }
+        return ok;
+    };
     if (plan.group) {
         // The automaton (LES-AUTOMATES) : the group's state arrays, one per
         // generation read, and the current generation ; the cells in the loop,
@@ -11700,7 +12185,7 @@ void ScalarCompiler::emitFamily(FamPlan& plan)
         for (int j : plan.defsBefore) {  // what the cells read at the current step
             fClass->addExecCode(Statement("", subst("fFam$0New[$1] = $2;", id, T(j), CS(def(j)))));
         }
-        if (!emitFamilyLoop(plan, false, name, why)) {
+        if (!famLoop(false, name, why, nullptr)) {
             if (trace) {
                 std::cerr << "fam refused : automaton of " << plan.trees.size() << " : " << why << std::endl;
             }
@@ -11733,7 +12218,7 @@ void ScalarCompiler::emitFamily(FamPlan& plan)
             ranges.push_back({lo, hi});
         }
     }
-    if (!emitFamilyLoop(plan, sums, name, why, sums ? &ranges : nullptr)) {
+    if (!famLoop(sums, name, why, sums ? &ranges : nullptr)) {
         if (trace) {
             std::cerr << "fam refused : family of " << plan.trees.size() << " : " << why << std::endl;
         }
