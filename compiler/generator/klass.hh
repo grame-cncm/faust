@@ -50,6 +50,8 @@ class Klass {
     // we make it global because several classes may need
     // power def but we want the code to be generated only once
     static bool fNeedPowerDef;
+    // a family loop was emitted : the loop marker macro is defined once
+    static bool fNeedFamLoop;
 
     Klass*      fParentKlass;  ///< Klass in which this Klass is embedded, void if toplevel Klass
     std::string fKlassName;
@@ -156,6 +158,8 @@ class Klass {
     void addLibrary(const std::string& str) { fLibrarySet.insert(str); }
 
     void rememberNeedPowerDef() { fNeedPowerDef = true; }
+
+    void rememberNeedFamLoop() { fNeedFamLoop = true; }
 
     void collectIncludeFile(std::set<std::string>& S);
 
