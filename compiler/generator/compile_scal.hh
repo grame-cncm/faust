@@ -264,9 +264,13 @@ class ScalarCompiler : public Compiler {
     bool                           fFamPlanned = false;  // the plan was made in prepare (the -fam -fir order)
     Tree                           famFreeze(Tree root, const std::set<Tree>& frozen, std::unordered_map<Tree, Tree>& back, bool typed);
     Tree                           famThaw(Tree root, const std::unordered_map<Tree, Tree>& back);
+    std::set<Tree>                 famFrozenSet(Tree L2);
+    Tree                           famAround(Tree L2, const std::function<Tree(Tree)>& pass);  // a rewrite with the families frozen
     Tree                           famKernelizeOutside(Tree L2);
     void                           famKernelizeTemplate(FamPlan& plan);
+    std::string                    famSlowCode(FamCtx& g, Tree t, int m, bool& ok, bool& perMember);  // a slow subtree of the kernelized template, for member m
     void                           famCheckPlanned(Tree L2);  // after the harvest : the planned families' nodes must still be the tree's
+    void                           famEmitterStructures();    // the hosts, groups, private nodes and registrations, keyed by the tree's nodes
     std::string                    generateFamilySum(Tree sig, const tvec& subs, bool& ok);
     std::string                    famExpr(FamCtx& g, Tree t);
     std::string                    famHist(FamCtx& g, Tree x, int k);

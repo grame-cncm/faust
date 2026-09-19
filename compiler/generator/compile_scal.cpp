@@ -1164,7 +1164,8 @@ Tree ScalarCompiler::prepare(Tree LS)
     if (gGlobal->gMinDelay > 0) {
         // semantic delay floor: needs the intervals just computed, rebuilds
         // trees, so the annotations are redone in the same order as above
-        L2 = applyDelayFloor(L2, gGlobal->gMinDelay);
+        L2 = fFamPlanned ? famAround(L2, [](Tree L) { return applyDelayFloor(L, gGlobal->gMinDelay); })
+                         : applyDelayFloor(L2, gGlobal->gMinDelay);
         conditionAnnotation(L2);
         recursivnessAnnotation(L2);
         typeAnnotation(L2, true);
@@ -1174,7 +1175,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         // -reassoc : late state-join (see reassociate.cpp) -- BEFORE the
         // staging pass, so barriers see the final tree shapes
         startTiming("reassociate");
-        L2 = reassociate(L2);
+        L2 = fFamPlanned ? famAround(L2, [](Tree L) { return reassociate(L); }) : reassociate(L2);
         endTiming("reassociate");
         conditionAnnotation(L2);
         recursivnessAnnotation(L2);
@@ -1189,7 +1190,8 @@ Tree ScalarCompiler::prepare(Tree LS)
         // barriers like any node. Annotations are redone : the placement
         // rebuilds trees.
         startTiming("placeTemps");
-        L2 = placeTemps(L2, gGlobal->gTempOps);
+        L2 = fFamPlanned ? famAround(L2, [](Tree L) { return placeTemps(L, gGlobal->gTempOps); })
+                         : placeTemps(L2, gGlobal->gTempOps);
         endTiming("placeTemps");
         conditionAnnotation(L2);
         recursivnessAnnotation(L2);
@@ -9194,9 +9196,10 @@ Tree ScalarCompiler::famThaw(Tree root, const std::unordered_map<Tree, Tree>& ba
 // they never saw comes back untouched, so the plan's nodes are still the
 // tree's. The lowering cannot reach a family's sums either : famKeepSums is
 // not needed on this path.
-Tree ScalarCompiler::famKernelizeOutside(Tree L2)
+// the tree's nodes a rewrite must not look into once the families are
+// planned : see famKernelizeOutside for what they are
+std::set<Tree> ScalarCompiler::famFrozenSet(Tree L2)
 {
-    const bool     trace = getenv("FAUST_FAM_TRACE") != nullptr;
     std::set<Tree> frozen;
     std::set<Tree> groups;
     // what a family reads from outside (its slots, audio slots and commons)
@@ -9329,6 +9332,33 @@ Tree ScalarCompiler::famKernelizeOutside(Tree L2)
             it     = (e != enclosing.end() && groups.count(e->second) && !(isProj(*it, &i, g) && groups.count(g))) ? frozen.erase(it) : std::next(it);
         }
     }
+    return frozen;
+}
+
+// a rewrite of the tree around the planned families : frozen, rewritten,
+// thawed (the late rewrites of the preparation -- the delay floor, the
+// reassociation, the staging temporaries -- would rebuild the families'
+// nodes and the plan would be dismantled after the harvest : englishBell
+// under -temp 8 lost its family, 6 -> 43 ns)
+Tree ScalarCompiler::famAround(Tree L2, const std::function<Tree(Tree)>& pass)
+{
+    std::set<Tree> frozen = famFrozenSet(L2);
+    if (frozen.empty()) {
+        return pass(L2);
+    }
+    std::unordered_map<Tree, Tree> back;
+    Tree                           L = famFreeze(L2, frozen, back, false);
+    typeAnnotation(L, false);
+    L = pass(L);
+    L = famThaw(L, back);
+    famEmitterStructures();
+    return L;
+}
+
+Tree ScalarCompiler::famKernelizeOutside(Tree L2)
+{
+    const bool     trace  = getenv("FAUST_FAM_TRACE") != nullptr;
+    std::set<Tree> frozen = famFrozenSet(L2);
     if (frozen.empty()) {
         if (trace) {
             std::cerr << "fam kernels : no family, the kernel passes run on the whole tree" << std::endl;
@@ -9363,6 +9393,7 @@ Tree ScalarCompiler::famKernelizeOutside(Tree L2)
     if (!frozen.empty()) {
         L = famThaw(L, back);
     }
+    famEmitterStructures();  // the emitter's structures, keyed by the tree's nodes (the frozen ones are the plan's)
     if (trace) {
         std::cerr << "fam kernels : " << frozen.size() << " frozen subtree(s) of " << fFamilies.size() << " families, the kernel passes ran around them" << std::endl;
     }
@@ -10354,6 +10385,13 @@ struct ScalarCompiler::FamCtx {
     std::set<int>                              preSlots;    // audio slots that are delayed reads : captured at the top of the sample
     std::set<int>                              usedPreSlots;
     std::string                                ty;  // the real type of the members
+    const FamPlan*                             plan = nullptr;
+    // -fam -fir : the slow subtrees the kernel passes wrote into the template
+    // (a coefficient that is a product of two slots) : computed once per
+    // block outside the loop, a table when a slot inside differs between
+    // members, a scalar otherwise (famSlowCode)
+    std::vector<std::pair<Tree, bool>>         derived;
+    std::map<Tree, std::string>                derivedName;
     const std::unordered_map<Tree, Tree>*      thaw = nullptr;  // -fam -fir : the kernelized template's opaque leaves -> the slot leaves and commons
     Tree                                       th(Tree t) const
     {
@@ -10535,10 +10573,81 @@ std::string ScalarCompiler::famHist(FamCtx& g, Tree x, int k)
     return "0";
 }
 
+// The code of a slow subtree of the kernelized template for member m : the
+// placeholders are the member's own slot values (or the commons), the rest
+// is spelled from the structure. ok is cleared on a node it cannot spell.
+std::string ScalarCompiler::famSlowCode(FamCtx& g, Tree t, int m, bool& ok, bool& perMember)
+{
+    Tree u = g.th(t);
+    if (u != t || g.slotIndex.count(u) || g.commons.count(u)) {
+        // a leaf of the template
+        if (auto it = g.slotIndex.find(u); it != g.slotIndex.end()) {
+            if (!g.uniform[it->second]) {
+                perMember = true;
+            }
+            return famCoef(g.plan->slots[m][it->second]);
+        }
+        if (g.commons.count(u)) {
+            return famCoef(u);
+        }
+        ok = false;
+        return "0";
+    }
+    int    i;
+    double r;
+    if (isSigInt(t, &i)) {
+        return T(i);
+    }
+    if (isSigReal(t, &r)) {
+        return realLiteral(r);
+    }
+    int  op;
+    Tree a, b, x;
+    if (isSigBinOp(t, &op, a, b)) {
+        std::string ca = famSlowCode(g, a, m, ok, perMember);
+        std::string cb = famSlowCode(g, b, m, ok, perMember);
+        return subst("($0 $1 $2)", ca, gBinOpTable[op]->fName, cb);
+    }
+    if (isSigIntCast(t, x)) {
+        return subst("int($0)", famSlowCode(g, x, m, ok, perMember));
+    }
+    if (isSigFloatCast(t, x)) {
+        return subst("$0($1)", ifloat(), famSlowCode(g, x, m, ok, perMember));
+    }
+    if (getUserData(t) != nullptr && t->arity() > 0) {
+        xtendedCodegen*          p = static_cast<xtendedCodegen*>((xtended*)getUserData(t));
+        std::vector<std::string> args;
+        std::vector<Type>        types;
+        for (int k = 0; k < t->arity(); k++) {
+            args.push_back(famSlowCode(g, t->branch(k), m, ok, perMember));
+            types.push_back(getCertifiedSigType(t->branch(k)));
+        }
+        return p->generateCode(fClass, args, types);
+    }
+    ok = false;
+    return "0";
+}
+
 std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
 {
     if (g.failed) {
         return "0";
+    }
+    if (g.thaw && !g.thaw->count(t) && t->arity() > 0 && getSigType(t) && getCertifiedSigType(t)->variability() < kSamp) {
+        // a slow subtree the kernel passes wrote into the template : once per
+        // block, outside the loop, if it can be spelled per member
+        if (auto it = g.derivedName.find(t); it != g.derivedName.end()) {
+            return it->second;
+        }
+        bool        ok = true, perMember = false;
+        std::string probe = famSlowCode(g, t, 0, ok, perMember);
+        if (ok) {
+            const int   n    = (int)g.derived.size();
+            std::string name = perMember ? subst("fFam$0D$1[c]", T(g.id), T(n)) : subst("fFam$0D$1", T(g.id), T(n));
+            g.derived.push_back({t, perMember});
+            g.derivedName[t] = name;
+            return g.val[t] = name;
+        }
     }
     t = g.th(t);  // an opaque leaf of the kernelized template is its slot leaf or common
     if (auto it = g.val.find(t); it != g.val.end()) {
@@ -11634,7 +11743,20 @@ void ScalarCompiler::planFamilies()
     }
     planFamilyClasses(root, fFamilies, true);
     fFamRoot = root;
+    famEmitterStructures();
+}
+
+// The emitter's structures from the plan : the hosts, the groups, the private
+// nodes and the automata's registrations, keyed by the TREE's nodes (famOrig : the
+// origins ; under -fam -fir this is run again after the kernel passes, the
+// frozen nodes being the plan's)
+void ScalarCompiler::famEmitterStructures()
+{
+    Tree root = fFamRoot;
+    fFamHost.clear();
     fFamGroup.clear();
+    fFamPrivate.clear();
+    fFamComputed.clear();
     for (size_t i = 0; i < fFamilies.size(); i++) {
         FamPlan& f = fFamilies[i];
         if (f.group) {
@@ -11649,7 +11771,9 @@ void ScalarCompiler::planFamilies()
             std::vector<std::pair<Tree, std::string>> regs;
             bool                                      ok = true;
             int                                       depth = f.groupDepth;
-            f.id = fFamCount++;
+            if (f.id < 0) {
+                f.id = fFamCount++;
+            }
             while (!st.empty() && ok) {
                 Tree t = st.back();
                 st.pop_back();
@@ -11712,7 +11836,9 @@ void ScalarCompiler::planFamilies()
         // member's sum are the tree's nodes : skipped with the family
         auto absorbed = [&](Tree v) {
             if (auto it = fFamConsumed.find(v); it != fFamConsumed.end()) {
-                fFamPrivate.insert(it->second.begin(), it->second.end());
+                for (Tree c : it->second) {
+                    fFamPrivate.insert(famOrig(c));
+                }
             }
         };
         for (Tree h : f.hosts) {
@@ -11926,6 +12052,7 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
     g.ty      = ifloat();
     g.commons = commons;
     g.thaw    = plan.ktemplate ? &plan.thaw : nullptr;
+    g.plan    = &plan;
     if (plan.group) {
         g.autoGroup = plan.group;
         g.autoDef0  = plan.memberDef.empty() ? 0 : plan.memberDef[0];
@@ -12037,6 +12164,20 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
             shifts << subst(" $0_$1[c] = $0_$2[c];", kv.first, T(k), T(k - 1));
         }
         shifts << subst(" $0_1[c] = $1;", kv.first, g.stateValue[kv.first]);
+    }
+    // the slow subtrees of the kernelized template : a table per member or a scalar, once per block
+    for (int n = 0; n < (int)g.derived.size(); n++) {
+        Tree              t  = g.derived[n].first;
+        const std::string ct = (getCertifiedSigType(t)->nature() == kInt) ? "int" : g.ty;
+        bool              ok = true, pm = false;
+        if (g.derived[n].second) {
+            fClass->addDeclCode(subst("$0 \tfFam$1D$2[$3];", ct, T(g.id), T(n), T(P)));
+            for (int m = 0; m < P; m++) {
+                fClass->addZone3(subst("fFam$0D$1[$2] = $3;", T(g.id), T(n), T(m), famSlowCode(g, t, m, ok, pm)));
+            }
+        } else {
+            fClass->addZone3(subst("$0 \tfFam$1D$2 = $3;", ct, T(g.id), T(n), famSlowCode(g, t, 0, ok, pm)));
+        }
     }
     // coefficient tables, filled once per block
     for (int k : g.usedSlots) {
