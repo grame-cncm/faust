@@ -12205,7 +12205,29 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
     }
     std::ostringstream loop;
     loop << fill.str();
+    // a short loop with a heavy body (a 2-D automaton's rows of six cells,
+    // a hundred operations each) carries the marker that keeps clang from
+    // unrolling it before the vectorizer sees it : unrolled, its body stays
+    // scalar (the plate x2.9). A long loop is vectorized as it is, and the
+    // marker would only cost it the unrolling of its vector loop (the
+    // vocoder's 32 cells : x1.23) ; a light body or a run of one to three
+    // cells is better off unrolled than masked into one vector iteration
+    // (the small automata x1.3 to x2.1). The weight is the number of private
+    // nodes per cell.
+    const int kFamLoopMarkerMax  = 16;
+    const int kFamLoopMarkerMin  = 4;
+    const int kFamLoopWeightMin  = 20;
+    const int weight             = (int)plan.priv.size() / std::max(1, P);
+    if (trace) {
+        std::cerr << "FAM LOOP family " << g.id << " : " << P << " cells, weight " << weight << " (" << plan.priv.size()
+                  << " private nodes)" << std::endl;
+    }
     auto body = [&](const std::string& acc, int lo, int hi) {
+        const int cells = hi - lo;
+        if (cells >= kFamLoopMarkerMin && cells < kFamLoopMarkerMax && weight >= kFamLoopWeightMin) {
+            fClass->rememberNeedFamLoop();
+            loop << " FAUST_FAM_LOOP";
+        }
         loop << " for (int c = " << lo << "; c < " << hi << "; c++) {";
         for (const std::string& l : g.body) {
             loop << " " << l;

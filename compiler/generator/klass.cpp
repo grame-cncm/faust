@@ -53,6 +53,7 @@ using namespace std;
 static int gTaskCount = 0;
 
 bool Klass::fNeedPowerDef = false;
+bool Klass::fNeedFamLoop  = false;
 
 /**
  * Store the loop used to compute a signal
@@ -239,6 +240,26 @@ void Klass::printAdditionalCode(ostream& fout)
             "int)b); }"
          << endl;
     fout << "#endif" << endl;
+
+    // A family loop runs over the cells of isomorphic signals and is meant
+    // for the loop vectorizer. clang fully unrolls a short one (a 2-D
+    // automaton's rows of six cells) before the vectorizer sees it, and
+    // its SLP pass then leaves the unrolled body scalar : the marker keeps
+    // the loop a loop. On x86 the cost model then vectorizes it (eight
+    // lanes, masked) ; on NEON it judges the vectorization not beneficial
+    // and is wrong (the plate x0.77 at the register's four lanes), so the
+    // width is imposed there. g++ vectorizes the loop as it is.
+    if (fNeedFamLoop) {
+        fout << "#ifndef FAUST_FAM_LOOP" << endl;
+        fout << "#if defined(__clang__) && defined(__aarch64__)" << endl;
+        fout << "#define FAUST_FAM_LOOP _Pragma(\"clang loop unroll(disable) vectorize_width(4)\")" << endl;
+        fout << "#elif defined(__clang__)" << endl;
+        fout << "#define FAUST_FAM_LOOP _Pragma(\"clang loop unroll(disable)\")" << endl;
+        fout << "#else" << endl;
+        fout << "#define FAUST_FAM_LOOP" << endl;
+        fout << "#endif" << endl;
+        fout << "#endif" << endl;
+    }
 
     if (fNeedPowerDef) {
         // Add faustpower definition to C++ code
