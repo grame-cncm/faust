@@ -474,6 +474,7 @@ void global::reset()
     gFamilyForm         = false;
     gFamilyMinOut       = 12;
     gFamilyMinHost      = 1;
+    gFamilyMinMembers   = 8;
     gLSSched        = 0;
     gLSRegisters    = 20;
     gLSWidth        = 4;
@@ -1930,6 +1931,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gFamilyMinHost = std::atoi(argv[i + 1]);
             i += 2;
 
+        } else if (isCmd(argv[i], "-fam-members", "--family-min-members") && (i + 1 < argc)) {
+            gFamilyMinMembers = std::atoi(argv[i + 1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-fir-hoist", "--fir-hoist-numerators")) {
             gFIRHoist           = true;
             gReconstructFIRIIRs = true;
@@ -2774,6 +2779,11 @@ string global::printHelp()
          << "-fam-host <n> --family-min-per-host <n>  (ocpp, experimental) a family of sums is emitted as one loop per "
             "host sum : it needs at least n members per host (default 1 ; loops of one cell pay under some C++ "
             "compilers and cost under others)."
+         << endl;
+    sstr << tab
+         << "-fam-members <n> --family-min-members <n> (ocpp, experimental) a family among the outputs or the "
+            "displays needs at least n members, that is a loop of n cells (default 8 ; a loop of six chains with "
+            "three input arrays loses to the C++ compiler's own packing)."
          << endl;
     sstr << tab
          << "-fir-hoist  --fir-hoist-numerators      (ocpp, experimental, implies -fir) a bank of "

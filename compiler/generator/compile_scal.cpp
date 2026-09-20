@@ -11667,14 +11667,17 @@ void ScalarCompiler::planFamilyClasses(Tree root, std::vector<FamPlan>& out, boo
         // must also carry enough work
         const bool outputs = !plan.hosts.empty() && plan.hosts[0] == nullptr;
         const int  work = famWork(plan.priv, (int)plan.trees.size()), states = famStates(plan.priv, (int)plan.trees.size());
-        if ((states < 1 && !plan.group) || (outputs && (work < gGlobal->gFamilyMinOut || plan.trees.size() < 8))) {
+        if ((states < 1 && !plan.group) ||
+            (outputs && (work < gGlobal->gFamilyMinOut || (int)plan.trees.size() < gGlobal->gFamilyMinMembers))) {
             // an automaton's state is its group ; an output or display family
-            // needs eight members at least (a loop of six chains with three
-            // input arrays lost to the compiler's packing : spectralLevel x1.15)
+            // needs enough members too (-fam-members, default eight : a loop of
+            // six chains with three input arrays lost to the compiler's own
+            // packing, spectralLevel x1.15)
             if (trace) {
                 std::cerr << "fam refused : " << (outputs ? "outputs, " : "") << "family of " << plan.trees.size() << " : " << work
                           << " operations and " << states << " states per member (one state"
-                          << (outputs ? " and " + T(gGlobal->gFamilyMinOut) + " operations, eight members" : "") << " needed)" << std::endl;
+                          << (outputs ? " and " + T(gGlobal->gFamilyMinOut) + " operations, " + T(gGlobal->gFamilyMinMembers) + " members" : "")
+                          << " needed)" << std::endl;
             }
             continue;
         }
