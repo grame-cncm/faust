@@ -11673,6 +11673,28 @@ void ScalarCompiler::planFamilyClasses(Tree root, std::vector<FamPlan>& out, boo
             }
             continue;
         }
+        // a family of sums is emitted as one loop per host over that host's
+        // members : with a member or two per host the loops are of one or two
+        // cells (the grid's m<S><4..7>, insects). Whether that pays is the C++
+        // compiler's business -- g++ 15 loses x1.2 to x1.7 on the whole grid,
+        // Apple clang gains x0.3 to x0.8, clang 22 draws -- so the least number
+        // of cells per host loop is an option (-fam-host, default 1), not a
+        // rule.
+        if (!outputs && !plan.group && plan.hosts.size() > 1 && gGlobal->gFamilyMinHost > 1) {
+            std::vector<int> perHost(plan.hosts.size(), 0);
+            for (int h : plan.memberHost) {
+                perHost[h]++;
+            }
+            const int least = *std::min_element(perHost.begin(), perHost.end());
+            if (least < gGlobal->gFamilyMinHost) {
+                if (trace) {
+                    std::cerr << "fam refused : family of " << plan.trees.size() << " over " << plan.hosts.size()
+                              << " hosts : a host loop of " << least << " cell(s) (-fam-host " << gGlobal->gFamilyMinHost
+                              << ")" << std::endl;
+                }
+                continue;
+            }
+        }
         int coverage = famWork(plan.priv, 1);
         for (Tree h : plan.hosts) {
             tvec ops;
