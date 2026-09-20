@@ -330,6 +330,7 @@ struct global {
     bool gFamilyForm;  // -fam : an isomorphic family of sum operands is emitted as an inner loop over arrays (LA-FORME-FAMILLE)
     int  gFamilyMinOut;  // -fam-min : a family among the OUTPUTS needs members of at least this many private nodes
     int  gFamilyMinHost;  // -fam-host : a family of sums needs at least this many members per host (per emitted loop)
+    int  gFamilyMinMembers;  // -fam-members : a family among the OUTPUTS needs at least this many members (the loop's cells)
     bool gFIRHoist;  // -fir-hoist : the common numerator of a bank of constant-coefficient IIRs on one input is applied once, to the input (LE-NUMERATEUR-COMMUN)
     bool gIIRTransposed;  // -iirt : transposed all-pole emission of the IIR kernels  // -fir : signal-level FIR/IIR recognition (side-channel)       // -ls option (ocpp, experimental): emit the materialized-signal DAG as
                            // separate loops (one per recursive group / delayed / shared signal /
