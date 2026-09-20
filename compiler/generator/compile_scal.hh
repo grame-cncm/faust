@@ -216,6 +216,7 @@ class ScalarCompiler : public Compiler {
     struct FamPlan {
         std::vector<int>               members;   // candidate indices (operands of the sum, or output channels)
         std::vector<Tree>              trees;     // the members themselves, in the same order, grouped by host
+        Tree                           tmpl = nullptr;  // the template member : trees[0] unless a leaf it shares is not shared by the others
         std::vector<std::vector<Tree>> slots;     // [member][slot] coefficient tree
         std::vector<Tree>              leaves;    // the template's slot leaves
         std::vector<std::vector<Tree>> aslots;    // [member][audio slot] the input read by the member

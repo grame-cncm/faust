@@ -9452,7 +9452,7 @@ void ScalarCompiler::famKernelizeTemplate(FamPlan& plan)
         }
     }
     std::unordered_map<Tree, Tree> back;
-    Tree                           t = famFreeze(plan.trees[0], frozen, back, true);
+    Tree                           t = famFreeze(plan.tmpl ? plan.tmpl : plan.trees[0], frozen, back, true);
     Tree                           L = cons(t, gGlobal->nil);
     typeAnnotation(L, false);
     std::function<void()> passes = [&]() {
@@ -9921,6 +9921,7 @@ static bool famSlow(Tree t)
 struct FamShapes;
 struct FamIso2 {
     std::map<Tree, Tree>                  bind;
+    std::map<Tree, Tree>                  leafBind;  // a slot leaf of the template -> the member's leaf at that slot
     std::map<std::pair<Tree, Tree>, bool> memo;
     std::vector<Tree>                     slotA, slotB;
     std::vector<Tree>                     aslotA, aslotB;  // audio slots : an input, or a hole, on both sides
@@ -9940,12 +9941,33 @@ struct FamIso2 {
         return r;
     }
 
+   public:
+    bool collided = false;  // the walk failed on a shared leaf, not on the shape : another template may do
+
    private:
     static bool slow(Tree t) { return famSlow(t); }
-    bool        walk(Tree a, Tree b)
+    // A slot is a leaf of the template, and the loop reads the member's value
+    // by that leaf : a leaf the template shares between two positions (two
+    // coefficients that happen to be equal in the first member) must be
+    // shared the same way by the member, or its two columns would read one
+    // table (the collision of META-ANALYSE 12.2). The member may share more.
+    bool bindLeaf(Tree a, Tree b)
+    {
+        auto it = leafBind.find(a);
+        if (it != leafBind.end()) {
+            collided = collided || it->second != b;
+            return it->second == b;
+        }
+        leafBind[a] = b;
+        return true;
+    }
+    bool walk(Tree a, Tree b)
     {
         bool sa = slow(a), sb = slow(b);
         if (sa && sb) {
+            if (!bindLeaf(a, b)) {
+                return false;
+            }
             slotA.push_back(a);
             slotB.push_back(b);
             return true;
@@ -9954,6 +9976,9 @@ struct FamIso2 {
         const bool ha = isSigInput(a, &ka) || (holes && a != topA && holes->count(a));
         const bool hb = isSigInput(b, &kb) || (holes && b != topB && holes->count(b));
         if (ha && hb) {
+            if (!bindLeaf(a, b)) {
+                return false;
+            }
             aslotA.push_back(a);  // an audio slot, even when both read the same node :
             aslotB.push_back(b);  // the slots of every member then line up (uniform = a common)
             return true;
@@ -11041,48 +11066,74 @@ bool ScalarCompiler::planFamilyClass(const std::vector<Tree>& nodes0, FamPlan& p
             md.push_back(memberDef[i]);
         }
     }
-    Tree t0 = nodes[0];
-    if (typed && (getCertifiedSigType(t0)->nature() != kReal || !getConditionCode(t0).empty())) {
+    if (typed && (getCertifiedSigType(nodes[0])->nature() != kReal || !getConditionCode(nodes[0]).empty())) {
         why = "not real, or conditional";
         return false;
     }
-    // ---- slots, audio slots, commons, private nodes : every member against the template
+    // ---- slots, audio slots, commons, private nodes : every member against the template.
+    // The template is the first member, unless a leaf it shares between two
+    // positions is not shared by the others (two coefficients equal in it
+    // alone) : then the first member whose sharing every other member
+    // respects is the template, and the first member is one of its members.
     std::vector<FamIso2> isos(nodes.size());
     std::set<Tree>       hostSet(hosts.begin(), hosts.end());
     hostSet.erase(nullptr);
     plan = FamPlan();
-    for (size_t m = 1; m < nodes.size(); m++) {
-        isos[m].holes  = holes;
-        isos[m].shapes = shapes;
-        isos[m].topA   = t0;
-        isos[m].topB  = nodes[m];
-        if (!isos[m].iso(t0, nodes[m])) {
-            why = "a member is not isomorphic to the template (shape without audio slots)";
-            return false;
-        }
-        if (m == 1) {
-            plan.leaves  = isos[m].slotA;
-            plan.aleaves = isos[m].aslotA;
-            plan.commons = isos[m].commonA;
-            plan.priv    = isos[m].privA;
-        } else if (isos[m].slotA != plan.leaves || isos[m].aslotA != plan.aleaves || isos[m].commonA != plan.commons) {
-            why = "the members do not line up on the same slots and commons";
-            if (getenv("FAUST_FAM_TRACE")) {
-                std::cerr << "fam line-up : member " << m << " : slots " << isos[m].slotA.size() << " vs " << plan.leaves.size() << ", audio slots "
-                          << isos[m].aslotA.size() << " vs " << plan.aleaves.size() << ", commons " << isos[m].commonA.size() << " vs "
-                          << plan.commons.size() << std::endl;
-                auto pp = [](const std::vector<Tree>& v, size_t k) { std::ostringstream o; if (k < v.size()) o << ppsig(v[k], 50); else o << "-"; return o.str(); };
-                for (size_t k = 0; k < std::max(isos[m].aslotA.size(), plan.aleaves.size()); k++) {
-                    std::cerr << "   audio slot " << k << " : " << pp(plan.aleaves, k) << "  |  " << pp(isos[m].aslotA, k) << std::endl;
-                }
-                for (size_t k = 0; k < std::max(isos[m].slotA.size(), plan.leaves.size()); k++) {
-                    if (k < plan.leaves.size() && k < isos[m].slotA.size() && plan.leaves[k] == isos[m].slotA[k]) continue;
-                    std::cerr << "   slot " << k << " : " << pp(plan.leaves, k) << "  |  " << pp(isos[m].slotA, k) << std::endl;
-                }
+    size_t tj    = 0;
+    bool   found = false;
+    for (bool retry = true; tj < nodes.size() && retry && !found; tj += found ? 0 : 1) {
+        // another template is tried only after a sharing collision, never after a shape mismatch
+        Tree t0    = nodes[tj];
+        bool first = true, ok = true;
+        retry      = false;
+        for (size_t m = 0; m < nodes.size() && ok; m++) {
+            if (m == tj) {
+                continue;
             }
-            return false;
+            isos[m]        = FamIso2();
+            isos[m].holes  = holes;
+            isos[m].shapes = shapes;
+            isos[m].topA   = t0;
+            isos[m].topB   = nodes[m];
+            if (!isos[m].iso(t0, nodes[m])) {
+                why   = isos[m].collided ? "a leaf the template shares is not shared by a member" : "a member is not isomorphic to the template (shape without audio slots)";
+                ok    = false;
+                retry = isos[m].collided;
+            } else if (first) {
+                plan.leaves  = isos[m].slotA;
+                plan.aleaves = isos[m].aslotA;
+                plan.commons = isos[m].commonA;
+                plan.priv    = isos[m].privA;
+                first        = false;
+            } else if (isos[m].slotA != plan.leaves || isos[m].aslotA != plan.aleaves || isos[m].commonA != plan.commons) {
+                why = "the members do not line up on the same slots and commons";
+                ok  = false;
+            }
         }
-        plan.priv.insert(isos[m].privB.begin(), isos[m].privB.end());
+        if (ok) {
+            found = true;
+            continue;
+        }
+        plan.leaves.clear();
+        plan.aleaves.clear();
+        plan.commons.clear();
+        plan.priv.clear();
+    }
+    if (!found) {
+        if (getenv("FAUST_FAM_TRACE")) {
+            std::cerr << "fam : no template among " << nodes.size() << " members (" << why << ")" << std::endl;
+        }
+        return false;
+    }
+    Tree t0   = nodes[tj];
+    plan.tmpl = t0;
+    for (size_t m = 0; m < nodes.size(); m++) {
+        if (m != tj) {
+            plan.priv.insert(isos[m].privB.begin(), isos[m].privB.end());
+        }
+    }
+    if (getenv("FAUST_FAM_TRACE") && tj != 0) {
+        std::cerr << "fam template : member " << tj << " (the first member shares a leaf the others do not)" << std::endl;
     }
     if (plan.leaves.empty() && plan.aleaves.empty()) {
         why = "the members differ by nothing";
@@ -11101,11 +11152,9 @@ bool ScalarCompiler::planFamilyClass(const std::vector<Tree>& nodes0, FamPlan& p
         }
     }
     plan.trees = nodes;
-    plan.slots.push_back(plan.leaves);
-    plan.aslots.push_back(plan.aleaves);
-    for (size_t m = 1; m < nodes.size(); m++) {
-        plan.slots.push_back(isos[m].slotB);
-        plan.aslots.push_back(isos[m].aslotB);
+    for (size_t m = 0; m < nodes.size(); m++) {
+        plan.slots.push_back(m == tj ? plan.leaves : isos[m].slotB);
+        plan.aslots.push_back(m == tj ? plan.aleaves : isos[m].aslotB);
     }
     // a member fed, through a hole, by another member of the class (two
     // stages of one chain, the same shape once their inputs are holes) : the
@@ -12044,7 +12093,7 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
     const std::vector<std::vector<Tree>>& slots   = plan.slots;
     const std::vector<Tree>&              leaves  = plan.leaves;
     const std::set<Tree>&                 commons = plan.commons;
-    Tree                                  t0      = plan.ktemplate ? plan.ktemplate : plan.trees[0];
+    Tree                                  t0      = plan.ktemplate ? plan.ktemplate : plan.tmpl ? plan.tmpl : plan.trees[0];
     const int                             P       = (int)plan.trees.size();
     FamCtx g;
     g.id      = plan.id >= 0 ? plan.id : fFamCount;
