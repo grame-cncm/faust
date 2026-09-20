@@ -12287,7 +12287,7 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
         const int cells = hi - lo;
         if (cells >= kFamLoopMarkerMin && cells < kFamLoopMarkerMax && weight >= kFamLoopWeightMin) {
             fClass->rememberNeedFamLoop();
-            loop << " FAUST_FAM_LOOP";
+            loop << (cells >= 8 ? " FAUST_FAM_LOOP8" : " FAUST_FAM_LOOP");
         }
         loop << " for (int c = " << lo << "; c < " << hi << "; c++) {";
         for (const std::string& l : g.body) {
