@@ -92,8 +92,8 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["sinhf"]  = "(float)Math.Sinh";
         gMathLibTable["tanhf"]  = "(float)Math.Tanh";
 
-        gMathLibTable["isnanf"] = "(float)Math.IsNan";
         // Manually implemented
+        gMathLibTable["isnanf"]    = "IsNaNF";
         gMathLibTable["isinff"]    = "IsInfinityF";
         gMathLibTable["copysignf"] = "(float)Math.CopySign";
 
@@ -132,8 +132,8 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["sinh"]  = "Math.Sinh";
         gMathLibTable["tanh"]  = "Math.Tanh";
 
-        gMathLibTable["isnan"] = "Math.IsNan";
         // Manually implemented
+        gMathLibTable["isnan"]    = "IsNaN";
         gMathLibTable["isinf"]    = "IsInfinity";
         gMathLibTable["copysign"] = "Math.CopySign";
     }

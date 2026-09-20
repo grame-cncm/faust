@@ -206,6 +206,16 @@ public class dsp
     {
         return float.IsNegativeInfinity(d) || float.IsPositiveInfinity(d);
     }
+
+    public static bool IsNaN(double d)
+    {
+        return double.IsNaN(d);
+    }
+
+    public static bool IsNaNF(float d)
+    {
+        return float.IsNaN(d);
+    }
 }
 
 
