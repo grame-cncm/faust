@@ -105,6 +105,28 @@ static const char* wrapHelper(int opcode)
     }
 }
 
+/**
+ * The FIR and IIR renderings below build their sums and products as text.
+ * Int32 add, sub and mul must wrap (the contract stated above), so those two
+ * build them through the helpers when the signal is an integer and infix
+ * otherwise -- the infix spelling is the one the emitter has always written,
+ * character for character, so a real program's code does not move.
+ * Before this, a recognised integer recurrence was emitted as plain signed
+ * arithmetic : table.dsp's LCG noise (x = 1103515245*x + 12345, whose whole
+ * point is the wraparound) answered 1.03 instead of 0.046 from sample 0 under
+ * -fir, and came back to the reference the moment the same code was compiled
+ * with -fwrapv.
+ */
+static std::string wrapAdd(bool wrapInt, const std::string& a, const std::string& b)
+{
+    return wrapInt ? subst("faust_wrap_add($0, $1)", a, b) : a + " + " + b;
+}
+
+static std::string wrapMul(bool wrapInt, const std::string& coef, const std::string& x)
+{
+    return wrapInt ? subst("faust_wrap_mul($0, $1)", coef, x) : subst("($0) * $1", coef, x);
+}
+
 static string realLiteral(double r)
 {
     if (std::isnan(r)) {
@@ -9777,7 +9799,9 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
             fClass->addZone3(subst("$0 = $0State;", sname[i2]));
             fClass->addZone3Post(subst("$0State = $0;", sname[i2]));
         }
-        std::string y = subst("($0 + $1)", coefCode(coefs[1]), sname[0]);
+        const bool  wrapInt = (ty->nature() == kInt);
+        std::string y = wrapInt ? subst("faust_wrap_add($0, $1)", coefCode(coefs[1]), sname[0])
+                                : subst("($0 + $1)", coefCode(coefs[1]), sname[0]);
         // no external delayed reader -> plain sample variable (the self
         // reads that sized the direct form's line are gone by design)
         std::string ycached =
@@ -9786,13 +9810,13 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
                 : generateVariableStore(sig, y);
         for (int i2 = 0; i2 < order; i2++) {
             Tree        c    = coefs[3 + i2];
-            std::string prod = isZero(c)      ? std::string("0")
-                               : isOne(c)     ? ycached
-                                              : subst("($0) * $1", CS(c), ycached);
+            std::string prod = isZero(c)  ? std::string("0")
+                               : isOne(c) ? ycached
+                                          : wrapMul(wrapInt, CS(c), ycached);
             std::string ccs = getConditionCode(sig);
             if (i2 < order - 1) {
-                fClass->addExecCode(
-                    Statement(ccs, subst("$0 = $1 + $2; /* IIRt */", sname[i2], prod, sname[i2 + 1])));
+                fClass->addExecCode(Statement(
+                    ccs, subst("$0 = $1; /* IIRt */", sname[i2], wrapAdd(wrapInt, prod, sname[i2 + 1]))));
             } else {
                 fClass->addExecCode(Statement(ccs, subst("$0 = $1; /* IIRt */", sname[i2], prod)));
             }
@@ -9800,20 +9824,16 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
         return ycached;
     }
 
-    std::ostringstream oss;
-    oss << coefCode(coefs[1]);
+    const bool  wrapInt = (ty->nature() == kInt);
+    std::string acc     = coefCode(coefs[1]);
     for (unsigned int i = coefs.size() - 1; i >= 3; i--) {
         if (isZero(coefs[i])) {
             continue;
         }
         string access = generateDelayAccessRaw(sig, sig, int(i) - 2);
-        if (isOne(coefs[i])) {
-            oss << " + " << access;
-        } else {
-            oss << " + (" << coefCode(coefs[i]) << ") * " << access;
-        }
+        acc = wrapAdd(wrapInt, acc, isOne(coefs[i]) ? access : wrapMul(wrapInt, coefCode(coefs[i]), access));
     }
-    return generateDelayVec(sig, oss.str(), ctype, vname, o->getMaxDelay(), o->getDelayCount());
+    return generateDelayVec(sig, acc, ctype, vname, o->getMaxDelay(), o->getDelayCount());
 }
 
 string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
@@ -12574,6 +12594,8 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
     faustassert(coefs.size() > 1);
     constexpr int kFirLoopSize = 4;  // below this many taps, no loop
     float         density      = firDensity(coefs);
+    // every sum and product below wraps when the signal is an integer
+    const bool    wrapInt      = (getCertifiedSigType(sig)->nature() == kInt);
     if (coefs.size() == 2) {
         // simple gain
         std::string gain = coefCode(coefs[1]);
@@ -12595,8 +12617,10 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
         fClass->addZone3(subst("$0 = $0State;", aname));
         std::string enter = coefCode(coefs[0]);
         std::string leave = generateDelayAccessRaw(sig, coefs[0], T);
-        fClass->addExecCode(
-            Statement("", subst("$0 = $0 + $1 - $2; /* Sliding sum */", aname, enter, leave)));
+        const std::string slide =
+            wrapInt ? subst("faust_wrap_sub(faust_wrap_add($0, $1), $2)", aname, enter, leave)
+                    : subst("$0 + $1 - $2", aname, enter, leave);
+        fClass->addExecCode(Statement("", subst("$0 = $1; /* Sliding sum */", aname, slide)));
         fClass->addZone3Post(subst("$0State = $0;", aname));
         return generateCacheCode(sig, aname);
     }
@@ -12609,63 +12633,60 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
             sym = (coefs[1 + t] == coefs[1 + (T - 1 - t)]);
         }
         if (sym) {  // (the sliding case returned above)
-            std::ostringstream oss;
-            string             sep = "";
-            Tree               exp = coefs[0];
-            oss << '(';
+            std::string acc;
+            Tree        exp = coefs[0];
             for (int t = 0; t < T / 2; t++) {
                 if (isZero(coefs[1 + t])) {
                     continue;
                 }
                 string left  = generateDelayAccessRaw(sig, exp, t);
                 string right = generateDelayAccessRaw(sig, exp, T - 1 - t);
-                string pair  = "(" + left + " + " + right + ")";
-                if (isOne(coefs[1 + t])) {
-                    oss << sep << pair;
-                } else {
-                    oss << sep << coefCode(coefs[1 + t]) << " * " << pair;
-                }
-                sep = " + ";
+                string pair  = wrapInt ? subst("faust_wrap_add($0, $1)", left, right)
+                                       : "(" + left + " + " + right + ")";
+                string term  = isOne(coefs[1 + t])
+                                   ? pair
+                                   : (wrapInt ? subst("faust_wrap_mul($0, $1)", coefCode(coefs[1 + t]), pair)
+                                              : coefCode(coefs[1 + t]) + " * " + pair);
+                acc = acc.empty() ? term : wrapAdd(wrapInt, acc, term);
             }
             if (T % 2 == 1 && !isZero(coefs[1 + T / 2])) {
-                oss << sep;
+                string mid = generateDelayAccessRaw(sig, exp, T / 2);
                 if (!isOne(coefs[1 + T / 2])) {
-                    oss << coefCode(coefs[1 + T / 2]) << " * ";
+                    mid = wrapInt ? subst("faust_wrap_mul($0, $1)", coefCode(coefs[1 + T / 2]), mid)
+                                  : coefCode(coefs[1 + T / 2]) + " * " + mid;
                 }
-                oss << generateDelayAccessRaw(sig, exp, T / 2);
+                acc = acc.empty() ? mid : wrapAdd(wrapInt, acc, mid);
             }
-            oss << ") /* symmetric FIR */";
-            return generateCacheCode(sig, oss.str());
+            return generateCacheCode(sig, "(" + acc + ") /* symmetric FIR */");
         }
     }
     bool r1 = density * 100 < gGlobal->gMinDensity;
     bool r2 = int(coefs.size()) - 1 < kFirLoopSize;
     if (r1 || r2) {
         // unrolled : small or low-density FIR
-        std::ostringstream oss;
-        string             sep = "";
-        Tree               exp = coefs[0];
-        std::string        comment = " /* ";
+        Tree        exp     = coefs[0];
+        std::string comment = " /* ";
         comment += r1 ? "low-density " : "";
         comment += r2 ? "small " : "";
         comment += "FIR */";
-        oss << '(';
+        std::string acc;
         for (unsigned int i = 1; i < coefs.size(); ++i) {
             if (isZero(coefs[i])) {
                 continue;
             }
             string access = generateDelayAccessRaw(sig, exp, int(i) - 1);
+            string term;
             if (isOne(coefs[i])) {
-                oss << sep << access;
+                term = access;
             } else if (Tree x, y; isSigAdd(coefs[i], x, y) || isSigSub(coefs[i], x, y)) {
-                oss << sep << '(' << coefCode(coefs[i]) << ") * " << access;
+                term = wrapMul(wrapInt, coefCode(coefs[i]), access);
             } else {
-                oss << sep << coefCode(coefs[i]) << " * " << access;
+                term = wrapInt ? subst("faust_wrap_mul($0, $1)", coefCode(coefs[i]), access)
+                               : coefCode(coefs[i]) + " * " + access;
             }
-            sep = " + ";
+            acc = acc.empty() ? term : wrapAdd(wrapInt, acc, term);
         }
-        oss << ')' << comment;
-        return generateCacheCode(sig, oss.str());
+        return generateCacheCode(sig, "(" + acc + ")" + comment);
     }
     // loop over a coefficient table
     Type tc;
@@ -12738,8 +12759,10 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
     getTypedNames(ty, "Acc", ftype, facc);
     fClass->addExecCode(Statement("", subst("$0 \t$1 = 0;", ftype, facc)));
     std::string accloop =
-        subst("for (int ii = $4; ii < $0; ii++) { $1 += $2[ii] * $3; } /* FIR acc. */",
-              T(int(coefs.size() - 1)), facc, ctable, idxaccess, T(mnzc - 1));
+        wrapInt ? subst("for (int ii = $4; ii < $0; ii++) { $1 = faust_wrap_add($1, faust_wrap_mul($2[ii], $3)); } /* FIR acc. */",
+                        T(int(coefs.size() - 1)), facc, ctable, idxaccess, T(mnzc - 1))
+                : subst("for (int ii = $4; ii < $0; ii++) { $1 += $2[ii] * $3; } /* FIR acc. */",
+                        T(int(coefs.size() - 1)), facc, ctable, idxaccess, T(mnzc - 1));
     fClass->addExecCode(Statement("", accloop));
     return generateCacheCode(sig, facc);
 }
