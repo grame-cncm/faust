@@ -1330,6 +1330,7 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
         } else {
             throw faustexception("ERROR : -ls-sched expects df, bf, model, layers, cs2, cs2b or profile\n");
         }
+        state.gLoopSplit = true;  // the order inside the split emitter's loops : implies -ls
         i += 2;
     } else if (isCmd(arg, "-ls-load", "--loop-split-load-weight")) {
         state.gLSLoadW = std::atoi(value);
@@ -1347,7 +1348,8 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
         state.gLSTileCl = std::atoi(value);
         i += 2;
     } else if (isCmd(arg, "-ls-adopt", "--loop-split-adopt-outputs")) {
-        state.gLSAdopt = true;
+        state.gLSAdopt   = true;
+        state.gLoopSplit = true;
         i += 1;
     } else if (isCmd(arg, "-ls-tile", "--loop-split-tile")) {
         // k,d : the forced tiling of every detected family (calibration, no oracle)
@@ -1355,11 +1357,16 @@ static bool processScheduledEmitterOption(global& state, const char* arg, const 
         if (sscanf(value, "%d,%d", &k, &d) != 2 || k < 1 || d < 1) {
             throw faustexception("ERROR : -ls-tile expects k,d with k >= 1 and d >= 1\n");
         }
-        state.gLSTileK = k;
-        state.gLSTileD = d;
+        state.gLSTileK   = k;
+        state.gLSTileD   = d;
+        state.gLSFuse    = true;
+        state.gLoopSplit = true;
         i += 2;
     } else if (isCmd(arg, "-ls-tiles", "--loop-split-tiles")) {
-        state.gLSTiles = true;
+        // the tiles are elected by the fusion oracle : -ls-tiles implies -ls-fuse
+        state.gLSTiles   = true;
+        state.gLSFuse    = true;
+        state.gLoopSplit = true;
         i += 1;
     } else {
         return false;
@@ -2679,8 +2686,8 @@ string global::printHelp()
             "model, layers, cs2, cs2b, profile (spec L-ORDONNANCEMENT-PAR-PROFILS) (implies -ls)."
          << endl;
     sstr << tab
-         << "-ls-R <n>   --loop-split-registers <n>  register budget of the model scheduler "
-            "(default 20, implies -ls)."
+         << "-ls-R <n>   --loop-split-registers <n>  register budget of the model schedulers "
+            "(-ss 9 to 12, -ls-sched model) and of the fusion oracle (default 20 ; a budget, activates nothing)."
          << endl;
     sstr << tab
          << "-ls-tile <k>,<d> --loop-split-tile <k>,<d>  force the (k, d) tiling of every detected "
@@ -2691,8 +2698,8 @@ string global::printHelp()
             "chains is paved by the (k, d) tiling of least shadow cost before the fusion (implies -ls-fuse)."
          << endl;
     sstr << tab
-         << "-ls-U <n>   --loop-split-width <n>      superscalar width of the model scheduler "
-            "(default 4, implies -ls)."
+         << "-ls-U <n>   --loop-split-width <n>      superscalar width of the model schedulers "
+            "(-ss 9 to 12, -ls-sched model) and of the fusion oracle (default 4 ; a budget, activates nothing)."
          << endl;
     sstr << tab
          << "-ls-fuse    --loop-split-fuse           greedy single-consumer fusion of the "
@@ -2805,7 +2812,7 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-ls-cl <n>  --loop-split-cl <n>         oracle: per-loop per-chunk overhead "
-            "(default 20 cycles, implies -ls-fuse)."
+            "(default 20 cycles ; a weight of the fusion oracle, activates nothing)."
          << endl;
     sstr << tab
          << "-ls-tile-cl <n>  --loop-split-tile-cl <n>  tiles oracle: per-tile per-chunk "
