@@ -74,12 +74,39 @@ Tree makeSigFIR(Tree sig, int d)
 }
 
 //-------------------------------------------------------------------------
+// A coefficient that never changes after the initialization : a number, or a
+// signal typed constant. Only such a coefficient may be moved in time.
+static bool isTimeInvariantCoef(Tree c)
+{
+    if (isNum(c)) {
+        return true;
+    }
+    Type t = getSigType(c);
+    return t && t->variability() == kKonst;
+}
+
+// A delayed FIR is a FIR whose taps are shifted only when every coefficient
+// is time-invariant : delaying the FIR delays its coefficients too, and a
+// coefficient computed per block (a slider) must not travel from t-d to t --
+// c(t-d).x(t-d-k) and c(t).x(t-d-k) are two different signals (the delay of a
+// form bears on its source, never on a coefficient).
+static bool canShiftTaps(const tvec& V)
+{
+    for (unsigned int i = 1; i < V.size(); i++) {
+        if (!isZero(V[i]) && !isTimeInvariantCoef(V[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+//-------------------------------------------------------------------------
 // Create a FIR from a delayed signal if the delay is constant
 Tree delaySigFIR(Tree s1, Tree s2)
 {
     if (int d; isSigInt(s2, &d) && (d >= 0) && (d <= sigs::g.gMaxFIRSize)) {
         if (d > 0) {
-            if (tvec V1; isSigFIR(s1, V1)) {
+            if (tvec V1; isSigFIR(s1, V1) && canShiftTaps(V1)) {
                 tvec VR;
                 VR.push_back(V1[0]);
                 for (int i = 0; i < d; i++) {
@@ -89,6 +116,9 @@ Tree delaySigFIR(Tree s1, Tree s2)
                     VR.push_back(V1[i]);
                 }
                 return sigFIR(VR);
+            } else if (isSigFIR(s1)) {
+                // a FIR with a coefficient that varies : the delay stays on its result
+                return sigDelay(s1, s2);
             } else {
                 // (port note : the source branch also unwraps sigClocked
                 // wrappers here ; this branch has no clock system)
