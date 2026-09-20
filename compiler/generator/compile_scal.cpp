@@ -9143,7 +9143,13 @@ static Tree famPlaceholder(Tree t, int n, bool typed)
     if (typed) {
         Type ty = getCertifiedSigType(t);
         if (ty->variability() < kSamp) {
-            ph = sigHSlider(tree(Node(unique("fam_frozen_"))), sigReal(0.0), sigReal(-1.0), sigReal(1.0), sigReal(0.01));
+            // one tree per statement : the arguments' creation order is the C++ compiler's choice
+            Tree label = tree(Node(unique("fam_frozen_")));
+            Tree init  = sigReal(0.0);
+            Tree lo    = sigReal(-1.0);
+            Tree hi    = sigReal(1.0);
+            Tree step  = sigReal(0.01);
+            ph         = sigHSlider(label, init, lo, hi, step);
         }
         if (ty->nature() == kInt) {
             ph = sigIntCast(ph);
@@ -10828,7 +10834,10 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
             g.fail("integer arithmetic inside a member");
             return "0";
         }
-        return keep(subst("($0 $1 $2)", famExpr(g, a), gBinOpTable[op]->fName, famExpr(g, b)));
+        // famExpr names temporaries in its own order : one call per statement
+        std::string ca = famExpr(g, a);
+        std::string cb = famExpr(g, b);
+        return keep(subst("($0 $1 $2)", ca, gBinOpTable[op]->fName, cb));
     }
     tvec subs;
     if (isSigSum(t, subs)) {
@@ -10848,7 +10857,10 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
     }
     Tree sel, s0, s1;
     if (isSigSelect2(t, sel, s0, s1)) {
-        return keep(subst("(($0) ? $1 : $2)", famExpr(g, sel), famExpr(g, s1), famExpr(g, s0)));
+        std::string csel = famExpr(g, sel);
+        std::string c1   = famExpr(g, s1);
+        std::string c0   = famExpr(g, s0);
+        return keep(subst("(($0) ? $1 : $2)", csel, c1, c0));
     }
     if (getUserData(t) != nullptr && t->arity() > 0 && getCertifiedSigType(t)->nature() == kReal) {
         // a math primitive (abs, pow, log10, max...) : its own generator, on
