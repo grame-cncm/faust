@@ -475,6 +475,7 @@ void global::reset()
     gFamilyMinOut       = 12;
     gFamilyMinHost      = 1;
     gFamilyMinMembers   = 8;
+    gFamilyAlign        = 0;
     gLSSched        = 0;
     gLSRegisters    = 20;
     gLSWidth        = 4;
@@ -1935,6 +1936,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gFamilyMinMembers = std::atoi(argv[i + 1]);
             i += 2;
 
+        } else if (isCmd(argv[i], "-fam-align", "--family-array-alignment") && (i + 1 < argc)) {
+            gFamilyAlign = std::atoi(argv[i + 1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-fir-hoist", "--fir-hoist-numerators")) {
             gFIRHoist           = true;
             gReconstructFIRIIRs = true;
@@ -2784,6 +2789,10 @@ string global::printHelp()
          << "-fam-members <n> --family-min-members <n> (ocpp, experimental) a family among the outputs or the "
             "displays needs at least n members, that is a loop of n cells (default 8 ; a loop of six chains with "
             "three input arrays loses to the C++ compiler's own packing)."
+         << endl;
+    sstr << tab
+         << "-fam-align <n> --family-array-alignment <n> (ocpp, experimental) align the family's arrays on n "
+            "bytes (default 0 : none ; 64 is a cache line, which spares the vectorizer its peeling prologue)."
          << endl;
     sstr << tab
          << "-fir-hoist  --fir-hoist-numerators      (ocpp, experimental, implies -fir) a bank of "
