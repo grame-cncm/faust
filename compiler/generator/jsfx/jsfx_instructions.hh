@@ -334,7 +334,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["acosf"]      = "acos";
         gPolyMathLibTable["asinf"]      = "asin";
         gPolyMathLibTable["atanf"]      = "atan";
-        gPolyMathLibTable["atan2f"]     = "atan";
+        gPolyMathLibTable["atan2f"]     = "atan2";
         gPolyMathLibTable["ceilf"]      = "ceil";
         gPolyMathLibTable["cosf"]       = "cos";
         gPolyMathLibTable["expf"]       = "exp";
@@ -375,7 +375,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["acos"]      = "acos";
         gPolyMathLibTable["asin"]      = "asin";
         gPolyMathLibTable["atan"]      = "atan";
-        gPolyMathLibTable["atan2"]     = "atan";
+        gPolyMathLibTable["atan2"]     = "atan2";
         gPolyMathLibTable["ceil"]      = "ceil";
         gPolyMathLibTable["cos"]       = "cos";
         gPolyMathLibTable["exp"]       = "exp";
