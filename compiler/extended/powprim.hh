@@ -76,6 +76,12 @@ class PowPrim : public xtendedCodegen {
             } else {
                 return tree(pow(double(n), double(m)));
             }
+        } else if (isNum(args[0], n)) {
+            double base = double(n);
+            if ((base == 10.) && gGlobal->gHasExp10) {
+                // pow(10, x) ==> exp10(x)
+                return tree(::symbol("exp10"), args[1]);
+            }
         } else if (isNum(args[1], m)) {
             double exponent = double(m);
             if (exponent == 0.0) {
@@ -84,9 +90,6 @@ class PowPrim : public xtendedCodegen {
             } else if (exponent == 1.0) {
                 // pow(x, 1) ==> x
                 return args[0];
-            } else if ((exponent == 10.) && gGlobal->gHasExp10) {
-                // pow(x, 10) ==> exp10(x)
-                return tree(::symbol("exp10"), args[0]);
             } else if (exponent == 0.5) {
                 // pow(x, 0.5) ==> sqrt(x)
                 return tree(::symbol("sqrt"), args[0]);
