@@ -249,14 +249,21 @@ void Klass::printAdditionalCode(ostream& fout)
     // lanes, masked) ; on NEON it judges the vectorization not beneficial
     // and is wrong (the plate x0.77 at the register's four lanes), so the
     // width is imposed there. g++ vectorizes the loop as it is.
+    // From eight cells on, clang's cost model does not know how to take
+    // "eight lanes and a remainder" (the grid's nine chains : x1.8 to x2.3
+    // slower than with the width imposed) : FAUST_FAM_LOOP8 imposes it. A
+    // width of sixteen is never right for these loops (x3 to x5).
     if (fNeedFamLoop) {
         fout << "#ifndef FAUST_FAM_LOOP" << endl;
         fout << "#if defined(__clang__) && defined(__aarch64__)" << endl;
         fout << "#define FAUST_FAM_LOOP _Pragma(\"clang loop unroll(disable) vectorize_width(4)\")" << endl;
+        fout << "#define FAUST_FAM_LOOP8 _Pragma(\"clang loop unroll(disable) vectorize_width(4)\")" << endl;
         fout << "#elif defined(__clang__)" << endl;
         fout << "#define FAUST_FAM_LOOP _Pragma(\"clang loop unroll(disable)\")" << endl;
+        fout << "#define FAUST_FAM_LOOP8 _Pragma(\"clang loop unroll(disable) vectorize_width(8)\")" << endl;
         fout << "#else" << endl;
         fout << "#define FAUST_FAM_LOOP" << endl;
+        fout << "#define FAUST_FAM_LOOP8" << endl;
         fout << "#endif" << endl;
         fout << "#endif" << endl;
     }
