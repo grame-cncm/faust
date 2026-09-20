@@ -195,7 +195,7 @@ class JuliaInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["acosh"] = true;
         gFunctionSymbolTable["asinh"] = true;
         gFunctionSymbolTable["atanh"] = true;
-        gFunctionSymbolTable["coshf"] = true;
+        gFunctionSymbolTable["cosh"]  = true;
         gFunctionSymbolTable["sinh"]  = true;
         gFunctionSymbolTable["tanh"]  = true;
 
