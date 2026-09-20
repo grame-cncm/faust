@@ -41,7 +41,7 @@ class RoundPrim : public xtendedCodegen {
         num n;
         faustassert(args.size() == arity());
         if (isNum(args[0], n)) {
-            return tree(rint(double(n)));
+            return tree(round(double(n)));
         } else {
             return tree(symbol(), args[0]);
         }
