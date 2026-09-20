@@ -10452,6 +10452,7 @@ struct ScalarCompiler::FamCtx {
     std::vector<std::string>                   stateOrder;
     std::map<Tree, int>                        sid;
     bool                                       failed = false;
+    bool                                       calls  = false;  // the body calls a transcendental function (log10, pow, exp...)
     std::string                                reason;
 
     std::string local() { return subst("fFam$0L$1", T(id), T(locals++)); }
@@ -10868,6 +10869,10 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
         xtendedCodegen*          p = static_cast<xtendedCodegen*>((xtended*)getUserData(t));
         std::vector<std::string> args;
         std::vector<Type>        types;
+        if (getUserData(t) != (void*)gGlobal->gAbsPrim && getUserData(t) != (void*)gGlobal->gMinPrim &&
+            getUserData(t) != (void*)gGlobal->gMaxPrim) {
+            g.calls = true;  // a call the C++ vectorizer cannot take without a vector math library
+        }
         for (int k = 0; k < t->arity(); k++) {
             args.push_back(famExpr(g, t->branch(k)));
             types.push_back(getCertifiedSigType(t->branch(k)));
@@ -12299,7 +12304,13 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
     // nodes per cell.
     const int kFamLoopMarkerMax  = 16;
     const int kFamLoopMarkerMin  = 4;
-    const int kFamLoopWeightMin  = 20;
+    const int kFamLoopWeightMin  = 20;  // 4 to 7 cells : one masked iteration, worth it for a heavy body only
+    // 8 to 15 cells : a full vector of eight, worth it from sixteen operations on (the fine grid, eight chains :
+    // 3.2 ns against 7.8 at 16, 3.4 against 9.3 at 18 ; at 12 the edge -- 3.1 against 3.4 there, but
+    // parametricEqLab's eleven cells of 13 lose x1.07) -- unless the body calls a transcendental function, which
+    // the vectorizer cannot take : the display chains (a log10 each) only lose to an imposed width. A masked
+    // remainder (vectorize_predicate) is never right (nine cells : 5.2 -> 18.4 ns).
+    const int kFamLoopWeightMin8 = g.calls ? kFamLoopWeightMin : 16;
     const int weight             = (int)plan.priv.size() / std::max(1, P);
     if (trace) {
         std::cerr << "FAM LOOP family " << g.id << " : " << P << " cells, weight " << weight << " (" << plan.priv.size()
@@ -12307,7 +12318,7 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
     }
     auto body = [&](const std::string& acc, int lo, int hi) {
         const int cells = hi - lo;
-        if (cells >= kFamLoopMarkerMin && cells < kFamLoopMarkerMax && weight >= kFamLoopWeightMin) {
+        if (cells >= kFamLoopMarkerMin && cells < kFamLoopMarkerMax && weight >= (cells >= 8 ? kFamLoopWeightMin8 : kFamLoopWeightMin)) {
             fClass->rememberNeedFamLoop();
             loop << (cells >= 8 ? " FAUST_FAM_LOOP8" : " FAUST_FAM_LOOP");
         }
