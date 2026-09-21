@@ -1924,7 +1924,7 @@ bool global::processCmdline(int argc, const char* argv[])
             gFamilyForm = true;  // no longer implies -fir : the families need the revealed sums, not the kernels
             i += 1;
 
-        } else if (isCmd(argv[i], "-fam-min", "--family-min-nodes")) {
+        } else if (isCmd(argv[i], "-fam-out-min", "--family-out-min-nodes")) {
             gFamilyMinOut = std::atoi(argv[i + 1]);
             i += 2;
 
@@ -1932,7 +1932,7 @@ bool global::processCmdline(int argc, const char* argv[])
             gFamilyMinHost = std::atoi(argv[i + 1]);
             i += 2;
 
-        } else if (isCmd(argv[i], "-fam-members", "--family-min-members") && (i + 1 < argc)) {
+        } else if (isCmd(argv[i], "-fam-out-members", "--family-out-min-members") && (i + 1 < argc)) {
             gFamilyMinMembers = std::atoi(argv[i + 1]);
             i += 2;
 
@@ -2776,7 +2776,7 @@ string global::printHelp()
             "loop over arrays of states, coefficients and inputs, feeding its sums, the outputs or the displays."
          << endl;
     sstr << tab
-         << "-fam-min <n> --family-min-nodes <n>      (ocpp, experimental) a family among the outputs or the displays "
+         << "-fam-out-min <n> --family-out-min-nodes <n>  (ocpp, experimental) a family among the outputs or the displays "
             "needs members of at least n operations (default 12) and a state : shallow parallel channels are better "
             "packed by the C++ compiler itself."
          << endl;
@@ -2786,7 +2786,7 @@ string global::printHelp()
             "compilers and cost under others)."
          << endl;
     sstr << tab
-         << "-fam-members <n> --family-min-members <n> (ocpp, experimental) a family among the outputs or the "
+         << "-fam-out-members <n> --family-out-min-members <n> (ocpp, experimental) a family among the outputs or the "
             "displays needs at least n members, that is a loop of n cells (default 8 ; a loop of six chains with "
             "three input arrays loses to the C++ compiler's own packing)."
          << endl;
