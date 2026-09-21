@@ -200,8 +200,14 @@ void CCodeContainer::produceInternal()
               << subst("* dsp, int $0, int* " + fTableName + ") {", counter);
     } else {
         tab(n, *fOut);
+        // In fixed-point mode the table is declared with the element type
+        // derived from its content signal's interval, so the fill function
+        // must name that same type. ifloat() gives the generic fixpoint_t,
+        // which does not match and does not compile.
+        CStringTypeManager tm(xfloat(), "*");
+        string elem = (fTableElemType) ? tm.generateType(fTableElemType) : ifloat();
         *fOut << "static void fill" << fKlassName << "(" << fKlassName
-              << subst("* dsp, int $0, $1* " + fTableName + ") {", counter, ifloat());
+              << subst("* dsp, int $0, $1* " + fTableName + ") {", counter, elem);
     }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);

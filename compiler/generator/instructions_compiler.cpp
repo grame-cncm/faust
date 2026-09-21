@@ -1599,6 +1599,13 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
     string signame = gGlobal->getFreshID("sig");
 
     CodeContainer* subcontainer = signal2Container(cname, content);
+    // Remember the element type the table will be declared with, so the
+    // generated fill function agrees with it. genFloatType is virtual and
+    // returns the interval-derived fixed type in fixed-point mode.
+    ::Type content_type = getCertifiedSigType(content);
+    if (content_type->nature() != kInt) {
+        subcontainer->setTableElemType(genFloatType(content_type));
+    }
     fContainer->addSubContainer(subcontainer);
 
     // We must allocate an object of type "cname"
@@ -1634,6 +1641,13 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
     string signame = gGlobal->getFreshID("sig");
 
     CodeContainer* subcontainer = signal2Container(cname, content);
+    // Remember the element type the table will be declared with, so the
+    // generated fill function agrees with it. genFloatType is virtual and
+    // returns the interval-derived fixed type in fixed-point mode.
+    ::Type content_type = getCertifiedSigType(content);
+    if (content_type->nature() != kInt) {
+        subcontainer->setTableElemType(genFloatType(content_type));
+    }
     fContainer->addSubContainer(subcontainer);
 
     // We must allocate an object of type "cname"

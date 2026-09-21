@@ -1031,6 +1031,9 @@ DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string&
     args.push_back(IB::genNamedTyped("count", Typed::kInt32));
     if (fSubContainerType == kInt) {
         args.push_back(IB::genNamedTyped(fTableName, Typed::kInt32_ptr));
+    } else if (fTableElemType) {
+        // Pointer to the table's own element type (ArrayTyped of size 0).
+        args.push_back(IB::genNamedTyped(fTableName, IB::genArrayTyped(fTableElemType, 0)));
     } else {
         args.push_back(IB::genNamedTyped(fTableName, itfloatptr()));
     }

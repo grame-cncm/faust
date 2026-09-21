@@ -180,6 +180,12 @@ class CStringTypeManager : public StringTypeManager {
             return generateType(named_typed->fType) + NamedTyped::AttributeMap[attr] +
                    named_typed->fName;
         } else if (array_typed) {
+            // A fixed-point element type has no entry in the direct table, and
+            // collapsing it there would throw away the binary point. Render it
+            // as a pointer to the element type instead.
+            if (dynamic_cast<FixedTyped*>(array_typed->fType)) {
+                return generateType(array_typed->fType) + "*";
+            }
             return fTypeDirectTable[array_typed->getType()];
         } else if (struct_typed) {
             std::string res = "typedef struct " + struct_typed->fName + " { ";
