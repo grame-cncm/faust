@@ -4559,55 +4559,6 @@ class LoopSplitEmitter {
             *peakOut = peak;
         }
     }
-
-    /**
-     * Order-sensitive SLP-visible features of a shadow order (RUM stage B
-     * candidates): iso-adjacency and 4-packs mirror emitLoop's computation
-     * with the shadow shape tag standing in for the digit-erased code
-     * string ; dist is the mean order-distance from a value to its
-     * consumers (x1000), the locality clang's window actually sees.
-     */
-    static void orderFeatures(const std::vector<LSOp>& ops, const std::vector<int>& order,
-                              int* isoOut, int* packs4Out, long* distX1000Out)
-    {
-        int              isoadj = 0, packs4 = 0, runlen = 0, prevIx = -1;
-        int              prevSh = -1;
-        std::vector<int> pos(ops.size(), 0);
-        for (size_t p = 0; p < order.size(); p++) {
-            pos[order[p]] = (int)p;
-        }
-        long distSum = 0, distCnt = 0;
-        for (int k : order) {
-            bool dep = false;
-            for (int d : ops[k].deps) {
-                if (d == prevIx) {
-                    dep = true;
-                }
-                distSum += pos[k] - pos[d];
-                distCnt++;
-            }
-            int sh = ops[k].shape;
-            if (prevIx >= 0 && sh == prevSh && !dep) {
-                isoadj++;
-                runlen++;
-            } else {
-                packs4 += (runlen + 1) / 4;
-                runlen = 0;
-            }
-            prevSh = sh;
-            prevIx = k;
-        }
-        packs4 += (runlen + 1) / 4;
-        if (isoOut) {
-            *isoOut = isoadj;
-        }
-        if (packs4Out) {
-            *packs4Out = packs4;
-        }
-        if (distX1000Out) {
-            *distX1000Out = distCnt ? (distSum * 1000) / distCnt : 0;
-        }
-    }
 };
 
 // -sng: the super-node DAG as graphviz clusters -- the -ls counterpart of
