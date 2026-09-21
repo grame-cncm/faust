@@ -760,6 +760,14 @@ class CodeContainer : public virtual Garbageable {
     size_t getSubContainers() { return fSubContainers.size(); }
 
     const std::string getTableName() { return fTableName; }
+
+    // In fixed-point mode a table's element type comes from the interval
+    // inferred for its content signal, so it differs per table. The fill
+    // function has to take a pointer to THAT type; without this it takes a
+    // pointer to the generic fixpoint_t and the generated code does not
+    // compile. Null in float mode, where the generic type is correct.
+    BasicTyped* fTableElemType{nullptr};
+    void        setTableElemType(BasicTyped* type) { fTableElemType = type; }
     const std::string getClassName() { return fKlassName; }
     const std::string getFaustPowerName() { return fKlassName + "_faustpower"; }
 
