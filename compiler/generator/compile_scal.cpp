@@ -11690,7 +11690,7 @@ void ScalarCompiler::planFamilyClasses(Tree root, std::vector<FamPlan>& out, boo
         if ((states < 1 && !plan.group) ||
             (outputs && (work < gGlobal->gFamilyMinOut || (int)plan.trees.size() < gGlobal->gFamilyMinMembers))) {
             // an automaton's state is its group ; an output or display family
-            // needs enough members too (-fam-members, default eight : a loop of
+            // needs enough members too (-fam-out-members, default eight : a loop of
             // six chains with three input arrays lost to the compiler's own
             // packing, spectralLevel x1.15)
             if (trace) {
