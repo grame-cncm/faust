@@ -68,6 +68,14 @@ Do not settle for the double-precision legs. A one-sample float bug can
 live for weeks under a double-only gate; the harness has float legs, a
 gate built on top of it must use them.
 
+That is not only about coverage. Performance work compiles and times the
+**single**-precision build, because that is what most audio hosts use, and
+an option can win in float and lose in double — orderings especially. So
+a gate that runs only in double does not cover the code that speed
+measurements elect. Either run both legs, or state the precision in the
+report and re-check in the elected one before concluding anything from a
+measurement.
+
 **Delete `ir/` before every run.** The suite writes each leg under a path
 that spells out its options (`ir/cpp/double/vec/lv1/…`), so a change of
 options cannot be mistaken for an up-to-date result — the libraries gate
