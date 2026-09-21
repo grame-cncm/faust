@@ -105,6 +105,10 @@
 #include "julia_code_container.hh"
 #endif
 
+#ifdef MOJO_BUILD
+#include "mojo_code_container.hh"
+#endif
+
 #ifdef JSFX_BUILD
 #include "jsfx_code_container.hh"
 #endif
@@ -439,6 +443,7 @@ void global::reset()
     gSchedulerSwitch = false;
     gOpenCLSwitch    = false;
     gCUDASwitch      = false;
+    gGPUSwitch       = false;
     gGroupTaskSwitch = false;
     gFunTaskSwitch   = false;
 
@@ -588,6 +593,10 @@ void global::reset()
 
 #ifdef NNX_BUILD
     gNNXVisitor = nullptr;  // Will be (possibly) allocated in NNX backend
+#endif
+
+#ifdef MOJO_BUILD
+    gMojoVisitor = nullptr; // Will be (possibly) allocated in Mojo backend
 #endif
 
 #ifdef ASSEMBLYSCRIPT_BUILD
@@ -932,6 +941,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gOpenMPSwitch) {
         dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
     }
+    if (gGPUSwitch) {
+        dst << "-gpu ";
+    }
     dst << "-mcd " << gMaxCopyDelay << " ";
     dst << "-mdd " << gMaxDenseDelay << " ";
     dst << "-mdy " << gMinDensity << " ";
@@ -1031,13 +1043,14 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
 #else
     bool is_linkable = false;
 #endif
-    bool internal_math_ff =
-        ((gOutputLang == "llvm") || startWith(gOutputLang, "wast") ||
-         startWith(gOutputLang, "wasm") || (gOutputLang == "interp") ||
-         startWith(gOutputLang, "cmajor") || startWith(gOutputLang, "codebox") ||
-         (gOutputLang == "dlang") || (gOutputLang == "csharp") || (gOutputLang == "rust") ||
-         (gOutputLang == "julia") || startWith(gOutputLang, "jsfx") || isPythonBackend() ||
-         (gOutputLang == "asc"));
+    bool internal_math_ff = (
+        startWith(gOutputLang, "wast")   || startWith(gOutputLang, "jsfx")    ||
+        startWith(gOutputLang, "wasm")   || startWith(gOutputLang, "codebox") ||
+        startWith(gOutputLang, "cmajor") || isPythonBackend()                 ||
+        gOutputLang == "interp" || gOutputLang == "dlang"  || gOutputLang == "jax"    ||
+        gOutputLang == "rust"   || gOutputLang == "julia"  || gOutputLang == "csharp" ||
+        gOutputLang == "mojo"   || gOutputLang == "asc"    || gOutputLang == "llvm"
+    );
 
     return (internal_math_ff &&
             (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) ||
@@ -1134,6 +1147,9 @@ global::~global()
     // LinenInstVisitor shares NNXBaseInstVisitor::gFunctionSymbolTable; clear it
     // for build configs where LINEN is enabled but NNX is not.
     LinenInstVisitor::cleanup();
+#endif
+#ifdef MOJO_BUILD
+    MojoInstVisitor::cleanup();
 #endif
 #ifdef ASSEMBLYSCRIPT_BUILD
     AssemblyScriptInstVisitor::cleanup();
@@ -1512,6 +1528,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-cuda", "--CUDA")) {
             gCUDASwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-gpu", "--gpu")) {
+            gGPUSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-g", "--groupTasks")) {
@@ -1921,7 +1941,7 @@ bool global::processCmdline(int argc, const char* argv[])
     // Adjust related options
     // ========================
 
-    if (gOpenMPSwitch || gSchedulerSwitch) {
+    if (gOpenMPSwitch || gSchedulerSwitch || gGPUSwitch) {
         gVectorSwitch = true;
     }
 
@@ -1947,6 +1967,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
     if (gInPlace && gVectorSwitch) {
         throw faustexception("ERROR : '-inpl' option can only be used in scalar mode\n");
+    }
+
+    if (gGPUSwitch && gOutputLang != "mojo") {
+        throw faustexception("ERROR : '-gpu' option can only be used with 'mojo' backend\n");
     }
 
 #if 0
@@ -2095,7 +2119,7 @@ bool global::processCmdline(int argc, const char* argv[])
         ((gOutputLang == "wast") || (gOutputLang == "wasm") || (gOutputLang == "interp") ||
          (gOutputLang == "llvm") || (gOutputLang == "fir"))) {
         throw faustexception(
-            "ERROR : -a can only be used with 'asc', 'c', 'cpp', 'ocpp', 'rust' and 'cmajor' "
+            "ERROR : -a can only be used with 'asc', 'c', 'cpp', 'ocpp', 'mojo', 'rust' and 'cmajor' "
             "backends\n");
     }
 
@@ -2358,6 +2382,14 @@ static void enumBackends(ostream& out)
     out << dspto << "SDF3" << endl;
 #endif
 
+#ifdef MOJO_BUILD
+    out << dspto << "Mojo" << endl;
+#endif
+
+#ifdef ASSEMBLYSCRIPT_BUILD
+    out << dspto << "AssemblyScript" << endl;
+#endif
+
 #ifdef TEMPLATE_BUILD
     out << dspto << "Template" << endl;
 #endif
@@ -2449,8 +2481,8 @@ string global::printHelp()
          << "                                        'lang' should be asc, c, cpp (default), "
             "cmajor, "
             "codebox, csharp, "
-            "dlang, fir, interp, java, jsfx, julia, linen, llvm, nnx, "
-            "ocpp, rust, sdf3, vhdl or wast/wasm."
+            "dlang, fir, interp, java, jax, jsfx, julia, linen, llvm, nxx, "
+            "mojo, ocpp, rust, sdf3, vhdl or wast/wasm."
          << endl;
 #endif
     sstr << tab
@@ -2733,6 +2765,10 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-ocl        --opencl                    generate tasks with OpenCL (experimental)."
+         << endl;
+    sstr << tab
+         << "-gpu        --gpu                       generate Mojo GPU tasks, activates "
+            "--vectorize option."
          << endl;
     sstr << tab
          << "-cuda       --cuda                      generate tasks with CUDA (experimental)."

@@ -175,7 +175,7 @@ class CodeLoop : public virtual Garbageable {
     // For SYFALA : loop with a fixed size (known at compile time)
     ForLoopInst* generateFixedScalarLoop();
 
-    // For Rust backend
+    // For Rust and Mojo backend
     SimpleForLoopInst*   generateSimpleScalarLoop(const std::string& counter);
     IteratorForLoopInst* generateSimpleScalarLoop(const std::vector<std::string>& iterators);
 

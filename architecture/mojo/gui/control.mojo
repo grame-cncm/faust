@@ -1,0 +1,26 @@
+# gui/control.mojo
+
+from conf import *
+from .gui import FaustGui
+
+# ControlGui architecture implementation.
+
+struct ControlGui(FaustGui):
+    var buttons: List[Ptr[FaustFloat, MUT_NOTRK]]
+
+    def __init__(out ui):
+        ui.buttons = List[Ptr[FaustFloat, MUT_NOTRK]]()
+
+    def add_button(
+        mut ui, var label: String, mut zone: FaustFloat
+    ) -> None:
+        ui.buttons.append(
+            Ptr(to=zone).unsafe_bitcast[FaustFloat]().unsafe_origin_cast[MUT_NOTRK]()
+        )
+
+    def set_buttons(mut ui, var state: Bool) -> None:
+        var value = FaustFloat(1.0) if state else FaustFloat(0.0)
+        for button in ui.buttons:
+            button[] = value
+
+    def run(mut ui) -> S32: return 0

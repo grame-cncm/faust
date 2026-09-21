@@ -458,7 +458,7 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
     CodeContainer* container = fContainer->createScalarContainer(name, t->nature());
 
     if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia" ||
-        gGlobal->gOutputLang == "asc") {
+        gGlobal->gOutputLang == "asc" || gGlobal->gOutputLang == "mojo") {
         InstructionsCompiler1 C(container);
         C.compileSingleSignal(sig);
     } else if (gGlobal->isPythonBackend()) {
@@ -1587,7 +1587,7 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
 
     // HACK for Rust, Julia and AssemblyScript backends
     if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia" &&
-        gGlobal->gOutputLang != "asc") {
+        gGlobal->gOutputLang != "asc" && gGlobal->gOutputLang != "mojo") {
         // Delete object
         Values args3;
         args3.push_back(IB::genLoadStackVar(signame));
@@ -1622,7 +1622,7 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
 
     // HACK for Rust, Julia and AssemblyScript backends
     if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia" &&
-        gGlobal->gOutputLang != "asc") {
+        gGlobal->gOutputLang != "asc" && gGlobal->gOutputLang != "mojo") {
         // Delete object
         Values args3;
         args3.push_back(IB::genLoadStackVar(signame));
@@ -1673,7 +1673,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 
         // HACK for Rust, Julia and AssemblyScript backends
         if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia" &&
-            gGlobal->gOutputLang != "asc") {
+            gGlobal->gOutputLang != "asc" && gGlobal->gOutputLang != "mojo") {
             // Delete object
             Values args3;
             args3.push_back(signame);
@@ -1749,7 +1749,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 
             // HACK for Rust, Julia and AssemblyScript backends
             if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia" &&
-                gGlobal->gOutputLang != "asc") {
+                gGlobal->gOutputLang != "asc" && gGlobal->gOutputLang != "mojo") {
                 // Delete object
                 Values args3;
                 args3.push_back(signame);

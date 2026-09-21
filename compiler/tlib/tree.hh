@@ -433,6 +433,16 @@ inline std::ostream& operator<<(std::ostream& s, const CTree& t)
 {
     return t.print(s);
 }
+inline std::string format(const CTree& t)
+{
+    std::ostringstream ss;
+    t.print(ss);
+    return ss.str();
+}
+inline std::string format(const CTree* t)
+{
+    return format(*t);
+}
 
 //-----------------------------------------------------------------------------
 // Recursive trees

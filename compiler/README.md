@@ -3,7 +3,7 @@
 NAME
 ====
 
-Faust - DSP to C/C++, CMajor, Codebox, CSharp, DLang, Interpreter, Java, LLVM IR, Julia, JSFX, Rust and WebAssembly (wast/wasm)
+Faust - DSP to C/C++, CMajor, Codebox, CSharp, DLang, Interpreter, Java, JSFX, Julia, LLVM IR, Mojo, Rust and WebAssembly (wast/wasm)
 
 SYNOPSIS
 ========
@@ -52,7 +52,7 @@ Code generation options:
 ---------------------------------------
 
   **-lang** \<lang> **--language**                 select output language,
-                                          'lang' should be asc, c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jsfx, julia, linen, llvm, nnx, ocpp, rust, sdf3, vhdl or wast/wasm.
+                                          'lang' should be asc, c, cpp (default), cmajor, codebox, csharp, dlang, fir, interp, java, jsfx, julia, linen, llvm, mojo, nxx, ocpp, rust, sdf3, vhdl or wast/wasm.
 
   **-single**     **--single-precision-floats**   use single precision floats for internal computations (default).
 

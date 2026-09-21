@@ -29,6 +29,8 @@
 
 // Visitor used to initialize array fields into the DSP structure
 struct JuliaInitFieldsVisitor : public DispatchVisitor {
+    using DispatchVisitor::visit;
+
     std::ostream* fOut;
     int           fTab;
 

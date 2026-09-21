@@ -50,12 +50,14 @@ __pycache__/
 .gradle/
 ### CMake
 CMakeFiles/
-
 # JAX test artifacts
 tests/jax-tests/generated/
 tests/jax-tests/*.test
 tests/jax-tests/*.output.log
-
 # dynamic CLAP plugin build output
 architecture/clap/FaustDynamic.clap/
 architecture/clap/*.o
+# clangd
+compile_commands.json
+.cache/
+.clangd

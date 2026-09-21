@@ -1,0 +1,5 @@
+CompileFlags:
+  Add: [
+    -DMOJO_BUILD=1,
+    -include, stddef.h
+  ]
