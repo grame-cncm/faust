@@ -5,6 +5,7 @@
 
 #include "ppsig.hh"
 #include "revealFIR.hh"
+#include "sigGenCut.hh"
 #include "sigFIR.hh"
 #include "sigs-state.hh"
 #include "sigIIR.hh"
@@ -493,8 +494,8 @@ Tree revealFIR(Tree L1)
 {
     countOcc(L1);
     gDistribute = false;
-    Tree T1 = treeRewrite(L1, firRule);
+    Tree T1 = treeRewrite(L1, sigGenCut, firRule);
     countOcc(T1);
     gDistribute = true;
-    return treeRewrite(T1, firRule);
+    return treeRewrite(T1, sigGenCut, firRule);
 }

@@ -37,6 +37,7 @@
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
+#include "sigGenCut.hh"
 #include "dlcodegen.hh"
 #include "floats.hh"
 #include "normalform.hh"
@@ -9138,7 +9139,13 @@ Tree ScalarCompiler::famFreeze(Tree root, const std::set<Tree>& frozen, std::uno
     int                            n = 0;
     auto pre = [&](Tree t) -> std::optional<Tree> {
         if (!frozen.count(t)) {
-            return std::nullopt;
+            // NEVER TRANSFORM A GENERATOR (sigGenCut.hh). The freeze is not
+            // an optimisation, but it is a traversal, and treeRewrite mints a
+            // fresh variable for every rec it walks through -- so merely
+            // walking past a table generator renames its letrec and makes the
+            // free copy a different tree from the frozen one. Two tables of
+            // 65536 floats, bit-identical, because a traversal went by.
+            return sigGenCut(t);
         }
         auto it = fwd.find(t);
         if (it == fwd.end()) {

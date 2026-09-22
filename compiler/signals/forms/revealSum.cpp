@@ -7,6 +7,7 @@
 #include "sigs-state.hh"
 #include "revealSum.hh"
 #include "rewrite.hh"
+#include "sigGenCut.hh"
 #include "sigs-state.hh"
 #include "simplify.hh"
 
@@ -121,7 +122,7 @@ Tree revealSum(Tree L1, bool throughShared, std::unordered_map<Tree, Tree>* orig
     };
 
     std::unordered_map<Tree, Tree> memo;
-    auto pre     = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto pre     = sigGenCut;  // NEVER TRANSFORM A GENERATOR (sigGenCut.hh)
     auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
 
     // AUDIO sums only (see the conditioning note in the commit history :
