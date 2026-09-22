@@ -1,4 +1,5 @@
 #include "revealIIR.hh"
+#include "sigGenCut.hh"
 
 #include <cstdlib>
 #include <iostream>
@@ -198,7 +199,7 @@ Tree revealIIR(Tree L1)
 {
     std::unordered_map<Tree, Tree> memo;
 
-    auto pre     = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto pre     = sigGenCut;  // NEVER TRANSFORM A GENERATOR (sigGenCut.hh)
     auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
 
     // The candidacy analysis runs entirely on the ORIGINAL side (closed
@@ -437,7 +438,7 @@ Tree hoistCommonNumerators(Tree L1)
 
     // ---- rewrite : built from the rebuilt pieces, decided on the original --
     std::unordered_map<Tree, Tree> memo;
-    auto pre     = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto pre     = sigGenCut;  // NEVER TRANSFORM A GENERATOR (sigGenCut.hh)
     auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
     auto rule    = [&](Tree orig, Tree rebuilt) -> Tree {
         if (targets.find(orig) == targets.end()) {

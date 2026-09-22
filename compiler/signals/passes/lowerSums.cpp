@@ -1,4 +1,5 @@
 #include "lowerSums.hh"
+#include "sigGenCut.hh"
 
 #include <algorithm>
 #include <cstdint>
@@ -295,7 +296,7 @@ Tree lowerSums(Tree L, const std::set<Tree>* keep)
         return (it != memo.end()) ? it->second : t;
     };
 
-    auto pre     = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto pre     = sigGenCut;  // NEVER TRANSFORM A GENERATOR (sigGenCut.hh)
     auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
     auto rule    = [&](Tree orig, Tree rebuilt) -> Tree {
         auto it = sumIndex.find(orig);

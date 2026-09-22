@@ -1,4 +1,5 @@
 #include "factorizeFIRs.hh"
+#include "sigGenCut.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -445,7 +446,7 @@ Tree factorizeFIRs(Tree L)
         // ---- classification into the canonical triple -----------------
         return classify(coef);
     };
-    Tree R = treeRewrite(L, rule);
+    Tree R = treeRewrite(L, sigGenCut, rule);
     return R;
 }
 

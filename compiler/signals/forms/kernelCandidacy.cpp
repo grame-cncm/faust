@@ -1,4 +1,5 @@
 #include "kernelCandidacy.hh"
+#include "sigGenCut.hh"
 
 #include <cstdio>
 #include <cstdlib>
@@ -131,7 +132,7 @@ Tree kernelCandidacy(Tree L)
         }
         return sig;
     };
-    return treeRewrite(L, rule);
+    return treeRewrite(L, sigGenCut, rule);
 }
 
 //----------------------------------------------------------------------
@@ -192,7 +193,7 @@ Tree dissolveUnitKernels(Tree L)
     }
     std::set<Tree>                 born;  // the sums this pass made
     std::unordered_map<Tree, Tree> memo;
-    auto pre     = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto pre     = sigGenCut;  // NEVER TRANSFORM A GENERATOR (sigGenCut.hh)
     auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
     auto rule    = [&](Tree orig, Tree rebuilt) -> Tree {
         tvec V;
