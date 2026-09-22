@@ -6,7 +6,11 @@ project (faustemcc)
 
 set ( CMAKE_OSX_DEPLOYMENT_TARGET "")
 set ( CMAKE_OSX_SYSROOT "")
-set ( CMAKE_CXX_COMPILER "emcc")
+# This subdirectory deliberately overrides the parent C++ driver so that it
+# can be built as part of the native CMake project.  Use the C++ driver: emcc
+# does not link libc++ and consequently leaves operators new/delete and iostream
+# symbols unresolved at the final link.
+set ( CMAKE_CXX_COMPILER "em++")
 set (CMAKE_CXX_LINK_FLAGS "")
 
 if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
@@ -30,7 +34,7 @@ set (WASM_EXPORTED "\"['UTF8ToString', 'stringToUTF8', 'FS']\"")
 set (WASM_INCOMING "\"['wasmBinary']\"")
 file (GLOB LIBSNDFILE ${WASMGLUE}/*.a)
 
-set (WASM_LINK_FLAGS "--no-heap-copy --bind -O3 --memory-init-file 0 -s LINKABLE=0 -s DYNAMIC_EXECUTION=0 -s WASM=1 -s ENVIRONMENT=web,worker,node -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 --preload-file ../../wasm-filesystem@usr -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s STACK_SIZE=8MB -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_RUNTIME_METHODS=${WASM_EXPORTED} -s INCOMING_MODULE_JS_API=${WASM_INCOMING} ${LIBSNDFILE}")
+set (WASM_LINK_FLAGS "--bind -O3 -s DYNAMIC_EXECUTION=0 -s WASM=1 -s ENVIRONMENT=web,worker,node -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 --preload-file ../../wasm-filesystem@usr -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s STACK_SIZE=8MB -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_RUNTIME_METHODS=${WASM_EXPORTED} -s INCOMING_MODULE_JS_API=${WASM_INCOMING} ${LIBSNDFILE}")
 
 ####################################
 # Add the different targets

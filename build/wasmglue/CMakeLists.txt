@@ -8,7 +8,10 @@ option (WORKLET "Compile wasm glue library for worklet" off)
 
 set (CMAKE_OSX_DEPLOYMENT_TARGET "")
 set (CMAKE_OSX_SYSROOT "")
-set (CMAKE_CXX_COMPILER "emcc")
+# This subdirectory deliberately overrides the parent C++ driver so that it
+# can be built as part of the native CMake project.  The C++ driver supplies
+# libc++, required by the glue implementation.
+set (CMAKE_CXX_COMPILER "em++")
 set (CMAKE_CXX_LINK_FLAGS "")
 
 if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64")
@@ -55,7 +58,7 @@ ${SRCDIR}/../architecture /usr/local/include)
 # emscripten support
 set (WASM_EXPORTED "\"['FS']\"")
 set (LIBSNDFILE "${ROOT}/build/wasmglue/libsndfile.a ${ROOT}/build/wasmglue/libogg.a ${ROOT}/build/wasmglue/libvorbis.a ${ROOT}/build/wasmglue/libvorbisenc.a ${ROOT}/build/wasmglue/libFLAC.a")
-set (WASM_LINK_FLAGS "--bind --memory-init-file 0 -s LINKABLE=0 -s DYNAMIC_EXECUTION=0 -s WASM=1 -s ENVIRONMENT=web,worker -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 -s ASSERTIONS=0 -s ALLOW_MEMORY_GROWTH=1 -s STACK_SIZE=5MB -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_RUNTIME_METHODS=${WASM_EXPORTED} ${LIBSNDFILE} ${WASM_LINK_FLAGS_EXTRA}")
+set (WASM_LINK_FLAGS "--bind -s DYNAMIC_EXECUTION=0 -s WASM=1 -s ENVIRONMENT=web,worker -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 -s ASSERTIONS=0 -s ALLOW_MEMORY_GROWTH=1 -s STACK_SIZE=5MB -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_RUNTIME_METHODS=${WASM_EXPORTED} ${LIBSNDFILE} ${WASM_LINK_FLAGS_EXTRA}")
  
 ####################################
 # Add the different targets

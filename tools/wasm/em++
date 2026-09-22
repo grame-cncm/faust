@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Match the emcc wrapper when CMake emits host-only `-arch` flags for the
+# target-local Emscripten C++ build.  em++ must be used for C++ linking so that
+# Emscripten supplies libc++.
+if [[ -z ${FAUST_REAL_EMCC:-} ]]; then
+    echo "error: FAUST_REAL_EMCC is not set" >&2
+    exit 1
+fi
+
+args=()
+while (($#)); do
+    if [[ $1 == -arch ]]; then
+        shift 2
+    else
+        args+=("$1")
+        shift
+    fi
+done
+
+exec "${FAUST_REAL_EMCC%/emcc}/em++" "${args[@]}"
