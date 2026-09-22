@@ -12207,10 +12207,9 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
     }
     // the family's arrays are the loop's whole traffic : an alignment on the
     // cache line spares the vectorizer its peeling prologue and its unaligned
-    // loads. Whether that pays is the C++ compiler's business, so it is an
-    // option (-fam-align <n>, default 0 = today's code) and not a rule. It
-    // prefixes every array the loop streams, the class members as the two
-    // stack arrays of the sample loop.
+    // loads. It prefixes every array the loop streams, the class members as
+    // the two stack arrays of the sample loop. -fam-align <n> sets it, and
+    // -fam-align 0 restores the unaligned code.
     const std::string ali = gGlobal->gFamilyAlign > 0 ? "alignas(" + T(gGlobal->gFamilyAlign) + ") " : "";
     // the automaton's index tables, for the neighbourhoods that are not affine
     for (int k : g.autoTables) {

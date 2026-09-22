@@ -475,7 +475,7 @@ void global::reset()
     gFamilyMinOut       = 12;
     gFamilyMinHost      = 1;
     gFamilyMinMembers   = 8;
-    gFamilyAlign        = 0;
+    gFamilyAlign        = 64;
     gLSSched        = 0;
     gLSRegisters    = 20;
     gLSWidth        = 4;
@@ -2792,7 +2792,7 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-fam-align <n> --family-array-alignment <n> (ocpp, experimental) align the family's arrays on n "
-            "bytes (default 0 : none ; 64 is a cache line, which spares the vectorizer its peeling prologue)."
+            "bytes (default 64, a cache line, which spares the vectorizer its peeling prologue ; 0 : none)."
          << endl;
     sstr << tab
          << "-fir-hoist  --fir-hoist-numerators      (ocpp, experimental, implies -fir) a bank of "
