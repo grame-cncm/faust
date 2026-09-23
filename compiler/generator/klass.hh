@@ -71,6 +71,7 @@ class Klass {
     std::list<std::string> fStaticDestroyCode;  ///< static destroy code for class constant tables
     std::list<std::string> fStaticFields;       ///< static fields after class
     std::list<std::string> fInitCode;
+    std::list<std::string> fConstructorCode;  ///< the body of a default constructor, when one is needed
     std::list<std::string> fInitUICode;
     std::list<std::string> fClearCode;
     std::list<std::string> fUICode;
@@ -170,6 +171,7 @@ class Klass {
     void addDeclCode(const std::string& str) { fDeclCode.push_back(str); }
 
     void addInitCode(const std::string& str) { fInitCode.push_back(str); }
+    void addConstructorCode(const std::string& str) { fConstructorCode.push_back(str); }
     void addInitUICode(const std::string& str) { fInitUICode.push_back(str); }
     void addClearCode(const std::string& str) { fClearCode.push_back(str); }
 

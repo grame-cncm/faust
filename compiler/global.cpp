@@ -475,7 +475,7 @@ void global::reset()
     gFamilyMinOut       = 12;
     gFamilyMinHost      = 1;
     gFamilyMinMembers   = 8;
-    gFamilyAlign        = 64;
+    gFamilyAlign        = 0;
     gLSSched        = 0;
     gLSRegisters    = 20;
     gLSWidth        = 4;
@@ -2791,9 +2791,10 @@ string global::printHelp()
             "three input arrays loses to the C++ compiler's own packing)."
          << endl;
     sstr << tab
-         << "-fam-align <n> --family-array-alignment <n> (ocpp, experimental) align the family's local arrays "
-            "on n bytes (default 64, a cache line ; 0 : none). The class members are never aligned : the "
-            "architecture file places the object, and nothing guarantees it honours an over-alignment."
+         << "-fam-align <n> --family-array-alignment <n> (ocpp, experimental) align the family's arrays on n "
+            "bytes (default 0 : none). A CONTRACT with the architecture file, which must place the DSP on an "
+            "n-byte boundary ; the generated code checks it when the DSP is constructed, and stops the program "
+            "with an explicit message when it is broken."
          << endl;
     sstr << tab
          << "-fir-hoist  --fir-hoist-numerators      (ocpp, experimental, implies -fir) a bank of "
