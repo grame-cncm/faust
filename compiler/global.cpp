@@ -2791,8 +2791,9 @@ string global::printHelp()
             "three input arrays loses to the C++ compiler's own packing)."
          << endl;
     sstr << tab
-         << "-fam-align <n> --family-array-alignment <n> (ocpp, experimental) align the family's arrays on n "
-            "bytes (default 64, a cache line, which spares the vectorizer its peeling prologue ; 0 : none)."
+         << "-fam-align <n> --family-array-alignment <n> (ocpp, experimental) align the family's local arrays "
+            "on n bytes (default 64, a cache line ; 0 : none). The class members are never aligned : the "
+            "architecture file places the object, and nothing guarantees it honours an over-alignment."
          << endl;
     sstr << tab
          << "-fir-hoist  --fir-hoist-numerators      (ocpp, experimental, implies -fir) a bank of "

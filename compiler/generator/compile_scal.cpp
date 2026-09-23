@@ -12214,13 +12214,20 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
     }
     // the family's arrays are the loop's whole traffic : an alignment on the
     // cache line spares the vectorizer its peeling prologue and its unaligned
-    // loads. It prefixes every array the loop streams, the class members as
-    // the two stack arrays of the sample loop. -fam-align <n> sets it, and
-    // -fam-align 0 restores the unaligned code.
+    // loads. It prefixes ONLY the arrays whose storage the generated code
+    // controls -- the locals of compute, placed by the C++ compiler on the
+    // stack. The class members are never aligned : the object is placed by
+    // the architecture file, with new, malloc, a buffer or inside another
+    // object, and before C++17 even new ignores an over-alignment. An
+    // alignas on a member is a promise made to the C++ compiler on the
+    // architecture's behalf ; the compiler then emits aligned loads, and an
+    // object placed at 16 mod 64 faults on them (x86, C++14 : signal 11 with
+    // no diagnostic at compile time). -fam-align <n> sets the alignment of
+    // the locals, and -fam-align 0 restores the unaligned code.
     const std::string ali = gGlobal->gFamilyAlign > 0 ? "alignas(" + T(gGlobal->gFamilyAlign) + ") " : "";
     // the automaton's index tables, for the neighbourhoods that are not affine
     for (int k : g.autoTables) {
-        fClass->addDeclCode(subst(ali + "int \tfFam$0Idx$1[$2];", T(g.id), T(k), T(P)));
+        fClass->addDeclCode(subst("int \tfFam$0Idx$1[$2];", T(g.id), T(k), T(P)));
         for (int m = 0; m < P; m++) {
             int  j;
             Tree pg;
@@ -12232,7 +12239,7 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
     std::ostringstream shifts;
     for (const auto& kv : g.need) {
         for (int k = 1; k <= kv.second; k++) {
-            fClass->addDeclCode(subst(ali + "$0 \t$1_$2[$3];", g.ty, kv.first, T(k), T(P)));
+            fClass->addDeclCode(subst("$0 \t$1_$2[$3];", g.ty, kv.first, T(k), T(P)));
             fClass->addClearCode(subst("for (int c = 0; c < $1; c++) { $0_$2[c] = 0; }", kv.first, T(P), T(k)));
         }
         for (int k = kv.second; k >= 2; k--) {
@@ -12246,7 +12253,7 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
         const std::string ct = (getCertifiedSigType(t)->nature() == kInt) ? "int" : g.ty;
         bool              ok = true, pm = false;
         if (g.derived[n].second) {
-            fClass->addDeclCode(subst(ali + "$0 \tfFam$1D$2[$3];", ct, T(g.id), T(n), T(P)));
+            fClass->addDeclCode(subst("$0 \tfFam$1D$2[$3];", ct, T(g.id), T(n), T(P)));
             for (int m = 0; m < P; m++) {
                 fClass->addZone3(subst("fFam$0D$1[$2] = $3;", T(g.id), T(n), T(m), famSlowCode(g, t, m, ok, pm)));
             }
@@ -12257,7 +12264,7 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
     // coefficient tables, filled once per block
     for (int k : g.usedSlots) {
         const std::string ctype = (getCertifiedSigType(leaves[k])->nature() == kInt) ? "int" : g.ty;
-        fClass->addDeclCode(subst(ali + "$0 \tfFam$1T$2[$3];", ctype, T(g.id), T(k), T(P)));
+        fClass->addDeclCode(subst("$0 \tfFam$1T$2[$3];", ctype, T(g.id), T(k), T(P)));
         for (int m = 0; m < P; m++) {
             const std::string cc = famCoef(slots[m][k]);
             fClass->addZone3(subst("fFam$0T$1[$2] = $3;", T(g.id), T(k), T(m), cc));
@@ -12265,7 +12272,7 @@ bool ScalarCompiler::emitFamilyLoop(FamPlan& plan, bool reduce, std::string& nam
     }
     // the delayed inputs of an automaton : captured at the top of the sample
     for (int k : g.usedPreSlots) {
-        fClass->addDeclCode(subst(ali + "$0 \tfFam$1Pre$2[$3];", g.ty, T(g.id), T(k), T(P)));
+        fClass->addDeclCode(subst("$0 \tfFam$1Pre$2[$3];", g.ty, T(g.id), T(k), T(P)));
         for (int m = 0; m < P; m++) {
             fClass->addPreCode(Statement("", subst("fFam$0Pre$1[$2] = $3;", T(g.id), T(k), T(m), famCS(plan.aslots[m][k]))));
         }
@@ -12412,10 +12419,12 @@ void ScalarCompiler::emitFamily(FamPlan& plan)
             Tree x, y;
             fFamComputed.insert(isSigDelay(r.first, x, y) ? x : r.first);
         }
-        // the automaton's own arrays, aligned like the rest of the family's (-fam-align)
+        // the automaton's own arrays : the states are class members, never
+        // aligned (see emitFamilyLoop) ; the new generation is a local of
+        // compute, aligned like the family's other locals (-fam-align)
         const std::string ali = gGlobal->gFamilyAlign > 0 ? "alignas(" + T(gGlobal->gFamilyAlign) + ") " : "";
         for (int d = 1; d <= D; d++) {
-            fClass->addDeclCode(subst(ali + "$0 \tfFam$1S_$2[$3];", ifloat(), id, T(d), T(N)));
+            fClass->addDeclCode(subst("$0 \tfFam$1S_$2[$3];", ifloat(), id, T(d), T(N)));
             fClass->addClearCode(subst("for (int j = 0; j < $2; j++) { fFam$0S_$1[j] = 0; }", id, T(d), T(N)));
         }
         fClass->addZone2(subst(ali + "$0 \tfFam$1New[$2];", ifloat(), id, T(N)));
