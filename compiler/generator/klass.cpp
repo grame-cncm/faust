@@ -946,6 +946,18 @@ void Klass::println(int n, ostream& fout)
              << "DSPThreadPool::Destroy(); }";
     }
 
+    // A default constructor, when the class needs one (-fam-align's placement
+    // contract). The scheduler's constructor above never meets it : the
+    // families that carry the contract are emitted in scalar mode only.
+    if (!fConstructorCode.empty()) {
+        faustassert(!gGlobal->gSchedulerSwitch);
+        tab(n + 1, fout);
+        fout << fKlassName << "() {";
+        printlines(n + 2, fConstructorCode, fout);
+        tab(n + 1, fout);
+        fout << "}";
+    }
+
     tab(n + 1, fout);
     fout << "virtual int getNumInputs() { "
          << "return " << fNumInputs << "; }";

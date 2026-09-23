@@ -267,6 +267,7 @@ class ScalarCompiler : public Compiler {
     Tree                           famThaw(Tree root, const std::unordered_map<Tree, Tree>& back);
     std::set<Tree>                 famFrozenSet(Tree L2);
     Tree                           famAround(Tree L2, const std::function<Tree(Tree)>& pass);  // a rewrite with the families frozen
+    void                           emitFamAlignContract();
     Tree                           famKernelizeOutside(Tree L2);
     void                           famKernelizeTemplate(FamPlan& plan);
     std::string                    famSlowCode(FamCtx& g, Tree t, int m, bool& ok, bool& perMember);  // a slow subtree of the kernelized template, for member m
@@ -296,6 +297,7 @@ class ScalarCompiler : public Compiler {
     std::map<Tree, std::pair<Tree, int>> fFamDefCell;  // a cell of a group's definition list -> (group, definition index)
     bool                           fFamParentsBuilt = false;
     int                            fFamCount        = 0;
+    bool                           fFamAlignContract = false;  // -fam-align : the contract check is emitted once per class
     std::string         generatePrefix(Tree sig, Tree x, Tree e);
     std::string         generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 
