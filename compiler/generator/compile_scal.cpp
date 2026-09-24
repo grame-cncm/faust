@@ -9374,6 +9374,18 @@ void ScalarCompiler::emitFamAlignContract()
         "(void*)this, fam_a % $0ULL);", n));
     fClass->addConstructorCode("\tabort();");
     fClass->addConstructorCode("}");
+    // A declared constructor turns `new mydsp()` from a value-initialisation
+    // (the object zero-filled by the language) into a default-initialisation
+    // (members indeterminate until init). The object is therefore put in a
+    // defined state here, once the alignment is known to hold -- the stores
+    // below are then safe : sliders at their default values, states cleared.
+    // Only the constants that depend on the sample rate wait for init, which
+    // is required anyway. Not under -mem : the memory manager allocates
+    // arrays after construction, and instanceClear would write through them.
+    if (gGlobal->gMemoryManager < 0) {
+        fClass->addConstructorCode("instanceResetUserInterface();");
+        fClass->addConstructorCode("instanceClear();");
+    }
 }
 
 Tree ScalarCompiler::famKernelizeOutside(Tree L2)
