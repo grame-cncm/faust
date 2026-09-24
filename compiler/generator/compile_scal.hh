@@ -36,6 +36,11 @@
 #include "property.hh"
 #include "sigtyperules.hh"
 
+// helpers shared by compile_scal.cpp and compile_fam.cpp (the family form)
+std::string realLiteral(double r);
+void        callWithLargeStack(std::function<void()>& function);
+bool        famReadsGroupNow(Tree n, Tree group);
+
 ////////////////////////////////////////////////////////////////////////
 /**
  * Compile a list of FAUST signals into a scalar C++ class
