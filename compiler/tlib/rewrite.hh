@@ -34,9 +34,9 @@
  *
  * treeRewrite() creates a fresh variable for every rec(var, body) : pure, the
  * old tree keeps its RECDEF untouched, but under the identity rule the
- * result is only alpha-equivalent to the input (areEquiv, not ==). This is
- * the ONLY rec discipline offered : an in-place variant reusing the same
- * variable would redefine it, which the immutability protocol forbids.
+ * result is only alpha-equivalent to the input (areEquiv, not ==). A group
+ * whose body comes back unchanged may keep its variable without redefining
+ * it : treeRewriteMinimal, at the end of this file, does exactly that.
  *
  * Rule view, for a node f(t1,...,tn) which is not a SYMREC :
  *
@@ -316,6 +316,359 @@ Tree treeRewrite(Tree root, Pre&& pre, Post&& post)
 {
     std::unordered_map<Tree, Tree> memo;
     return treeRewriteMemo(root, pre, post, memo);
+}
+
+
+/**
+ * treeRewriteMinimal : the bottom-up rewrite of treeRewrite, but a recursive
+ * group keeps its variable when its body comes back unchanged. Under the
+ * identity rule the result IS the input (==), not merely alpha-equivalent.
+ *
+ * Immutability forbids redefining a variable, so a group whose body changes
+ * still needs a fresh one ; the only question is to know it BEFORE naming.
+ * The groups reachable from the root, bodies included, are taken component by
+ * component -- the strongly connected components of "the body of X mentions
+ * Y", mutually recursive groups together -- in an order where a component
+ * comes after every component it depends on. Within a component, the decision
+ * is all or nothing : renaming one group changes every body that mentions it.
+ *
+ * For the current component C, each group of C gets a PROVISIONAL fresh name,
+ * and one descent computes, for every subtree s of its bodies, a pair :
+ *   I(s) : s with the groups of C renamed, the lower groups as they were ;
+ *   R(s) : the rule applied bottom-up, the lower groups at their decided image.
+ * If R and I agree on every body, the component keeps its names and the
+ * provisional ones are never defined ; otherwise it takes them. I sees the
+ * lower groups as they were, so a renamed lower group makes the bodies that
+ * mention it differ, as it must.
+ *
+ * Both results live in a component-local memo P until the decision, and only
+ * then reach the global memo G : a renamed component gives every s its R(s) ;
+ * a kept one gives s -> s only where I(s) and R(s) agree. A projection shared
+ * between a body and the outside would otherwise keep an image that mentions
+ * a provisional name, whose group will never be defined.
+ *
+ * Once a whole body differs, the component is renamed and I is no longer
+ * built (the decision is taken between complete bodies only : a change in a
+ * child may still be undone by an ancestor).
+ *
+ * The input must be well formed : every reachable group is defined, and no
+ * cycle is made of direct references alone (D(X) = Y, D(Y) = X). A renamed
+ * component is checked the same way before any of its definitions is posed,
+ * and so is the result. A violation goes through tlib::error.
+ *
+ * Preconditions on the rule, beyond those of treeRewrite : its result must
+ * not depend on the names of the recursive variables (a rule that orders its
+ * terms by serial number sees a provisional name as the newest node, and may
+ * order differently), and its side effects must tolerate a subtree rewritten
+ * again after a provisional result was discarded.
+ */
+#include <algorithm>
+#include <functional>
+#include <unordered_set>
+#include <vector>
+
+namespace tlibrwm {
+
+// the groups reachable from a root, bodies included, and for each group the
+// groups its body mentions ; bodies are entered once each, from their group
+struct GroupGraph {
+    std::vector<Tree>             groups;  // SYMREC nodes, in discovery order
+    std::unordered_map<Tree, int> index;
+    std::vector<std::vector<int>> deps;    // deps[k] : groups mentioned by the body of groups[k]
+};
+
+// the SYMREC nodes met from t without entering them, in depth-first order
+inline void scanGroups(Tree t, std::unordered_set<Tree>& seen, std::vector<Tree>& found)
+{
+    std::vector<Tree> stack{t};
+    while (!stack.empty()) {
+        Tree s = stack.back();
+        stack.pop_back();
+        if (!seen.insert(s).second) {
+            continue;
+        }
+        Tree var = nullptr, body = nullptr;
+        if (isRec(s, var, body)) {
+            found.push_back(s);
+            continue;
+        }
+        for (int i = s->arity() - 1; i >= 0; i--) {
+            stack.push_back(s->branch(i));
+        }
+    }
+}
+
+inline int addGroup(GroupGraph& g, Tree n)
+{
+    auto it = g.index.find(n);
+    if (it != g.index.end()) {
+        return it->second;
+    }
+    int k      = int(g.groups.size());
+    g.index[n] = k;
+    g.groups.push_back(n);
+    g.deps.emplace_back();
+    return k;
+}
+
+inline Tree groupBody(Tree n)
+{
+    Tree var = nullptr, body = nullptr;
+    isRec(n, var, body);
+    return body;
+}
+
+// builds the graph and checks the first condition : every group is defined
+inline GroupGraph groupGraph(Tree root)
+{
+    GroupGraph              g;
+    std::unordered_set<Tree> seen;
+    std::vector<Tree>        found;
+    scanGroups(root, seen, found);
+    for (Tree n : found) {
+        addGroup(g, n);
+    }
+    for (size_t k = 0; k < g.groups.size(); k++) {  // the vector grows while scanned
+        Tree body = groupBody(g.groups[k]);
+        if (body == nullptr) {
+            tlib::error("treeRewriteMinimal : a recursive group has no definition");
+        }
+        std::unordered_set<Tree> seenk;
+        std::vector<Tree>        fk;
+        scanGroups(body, seenk, fk);
+        for (Tree n : fk) {
+            // addGroup may grow g.deps, so the index is taken before g.deps[k] is named
+            int j = addGroup(g, n);
+            g.deps[k].push_back(j);
+        }
+    }
+    return g;
+}
+
+// the second condition : no cycle made of direct references alone
+inline void checkContractive(const GroupGraph& g)
+{
+    std::vector<char> state(g.groups.size(), 0);  // 0 new, 1 on the current chain, 2 done
+    for (size_t v = 0; v < g.groups.size(); v++) {
+        std::vector<int> chain;
+        int              cur = int(v);
+        while (state[cur] == 0) {
+            state[cur] = 1;
+            chain.push_back(cur);
+            Tree body = groupBody(g.groups[cur]);
+            Tree var = nullptr, sub = nullptr;
+            if (!isRec(body, var, sub)) {
+                break;
+            }
+            cur = g.index.at(body);
+        }
+        if (state[cur] == 1 && !chain.empty() && groupBody(g.groups[chain.back()]) == g.groups[cur]) {
+            tlib::error("treeRewriteMinimal : a cycle of recursive groups made of references only");
+        }
+        for (int c : chain) {
+            state[c] = 2;
+        }
+    }
+}
+
+// Tarjan : a component is emitted after every component it depends on
+inline std::vector<std::vector<int>> componentsDependenciesFirst(const GroupGraph& g)
+{
+    int                           n = int(g.groups.size());
+    std::vector<int>              idx(n, -1), low(n, 0);
+    std::vector<char>             on(n, 0);
+    std::vector<int>              stack;
+    std::vector<std::vector<int>> out;
+    int                           counter = 0;
+    std::function<void(int)>      strong  = [&](int v) {
+        idx[v] = low[v] = counter++;
+        stack.push_back(v);
+        on[v] = 1;
+        for (int w : g.deps[v]) {
+            if (idx[w] < 0) {
+                strong(w);
+                low[v] = std::min(low[v], low[w]);
+            } else if (on[w]) {
+                low[v] = std::min(low[v], idx[w]);
+            }
+        }
+        if (low[v] == idx[v]) {
+            std::vector<int> comp;
+            int              w;
+            do {
+                w = stack.back();
+                stack.pop_back();
+                on[w] = 0;
+                comp.push_back(w);
+            } while (w != v);
+            std::reverse(comp.begin(), comp.end());
+            out.push_back(comp);
+        }
+    };
+    for (int v = 0; v < n; v++) {
+        if (idx[v] < 0) {
+            strong(v);
+        }
+    }
+    return out;
+}
+
+// the pair (I(s), R(s)) of one component ; I is nullptr once no longer built
+template <class Rule>
+struct Component {
+    Rule&                                             rule;
+    std::unordered_map<Tree, Tree>&                   G;
+    std::unordered_map<Tree, Tree>                    nu;  // SYMREC node of C -> fresh variable
+    std::unordered_map<Tree, std::pair<Tree, Tree>>   P;
+    bool                                              compare = true;
+
+    std::pair<Tree, Tree> visit(Tree s)
+    {
+        auto itP = P.find(s);
+        if (itP != P.end()) {
+            return itP->second;
+        }
+        Tree i = nullptr, r = nullptr;
+        auto itG = G.find(s);
+        Tree var = nullptr, body = nullptr;
+        if (itG != G.end()) {
+            // decided earlier : it cannot mention C, so renaming C leaves it as it is
+            i = compare ? s : nullptr;
+            r = itG->second;
+        } else if (isRec(s, var, body)) {
+            auto itN = nu.find(s);
+            if (itN == nu.end()) {
+                tlib::error("treeRewriteMinimal : a group met before its component is decided");
+            }
+            Tree n = ref(itN->second);  // the reference stops the descent : bodies are visited by the component
+            i      = compare ? n : nullptr;
+            r      = n;
+        } else {
+            int  ar = s->arity();
+            tvec bi(ar), br(ar);
+            bool ci = false, cr = false;
+            for (int k = 0; k < ar; k++) {
+                auto pr = visit(s->branch(k));
+                bi[k]   = pr.first;
+                br[k]   = pr.second;
+                ci      = ci || bi[k] != s->branch(k);
+                cr      = cr || br[k] != s->branch(k);
+            }
+            if (compare) {
+                for (int k = 0; k < ar; k++) {
+                    TLIB_ASSERT(bi[k] != nullptr);
+                }
+                i = ci ? tree(s->node(), bi) : s;
+            }
+            r = rule(cr ? tree(s->node(), br) : s);
+        }
+        P[s] = {i, r};
+        return {i, r};
+    }
+};
+
+template <class Rule>
+Tree rewriteMinimal(Tree root, Rule& rule, bool stopI)
+{
+    GroupGraph gg = groupGraph(root);
+    checkContractive(gg);
+    std::unordered_map<Tree, Tree> G;  // the decided images, keyed by the input nodes
+
+    for (const std::vector<int>& comp : componentsDependenciesFirst(gg)) {
+        Component<Rule> C{rule, G, {}, {}, true};
+        for (int k : comp) {
+            C.nu[gg.groups[k]] = tree(unique("W"));
+        }
+        std::vector<Tree> B;
+        bool              differs = false;
+        for (int k : comp) {
+            auto pr = C.visit(groupBody(gg.groups[k]));
+            B.push_back(pr.second);
+            if (C.compare && pr.first != pr.second) {
+                differs = true;
+                if (stopI) {
+                    C.compare = false;
+                }
+            }
+        }
+        if (!differs) {
+            // every body unchanged : the old groups stay, the provisional names are never defined
+            for (int k : comp) {
+                G[gg.groups[k]] = gg.groups[k];
+            }
+            for (auto& e : C.P) {
+                if (e.second.first != nullptr && e.second.first == e.second.second) {
+                    G[e.first] = e.first;
+                }
+            }
+        } else {
+            // candidate bodies, checked before any definition is posed
+            std::unordered_map<Tree, Tree> cand;  // new SYMREC node -> its body
+            for (size_t j = 0; j < comp.size(); j++) {
+                cand[ref(C.nu[gg.groups[comp[j]]])] = B[j];
+            }
+            for (auto& e : cand) {
+                Tree   cur   = e.second;
+                size_t steps = 0;
+                for (auto it = cand.find(cur); it != cand.end(); it = cand.find(cur)) {
+                    cur = it->second;
+                    if (++steps > cand.size()) {
+                        tlib::error("treeRewriteMinimal : a rewritten body reduces to a cycle of references");
+                    }
+                }
+                std::unordered_set<Tree> seen;
+                std::vector<Tree>        found;
+                scanGroups(e.second, seen, found);
+                for (Tree n : found) {
+                    if (cand.find(n) == cand.end() && groupBody(n) == nullptr) {
+                        tlib::error("treeRewriteMinimal : a rewritten body mentions an undefined group");
+                    }
+                }
+            }
+            for (size_t j = 0; j < comp.size(); j++) {
+                rec(C.nu[gg.groups[comp[j]]], B[j]);
+            }
+            for (int k : comp) {
+                G[gg.groups[k]] = ref(C.nu[gg.groups[k]]);
+            }
+            for (auto& e : C.P) {
+                G[e.first] = e.second.second;
+            }
+        }
+    }
+
+    // the nodes outside every body, and the subtrees whose provisional result was discarded
+    std::function<Tree(Tree)> finish = [&](Tree s) -> Tree {
+        auto it = G.find(s);
+        if (it != G.end()) {
+            return it->second;
+        }
+        Tree var = nullptr, body = nullptr;
+        if (isRec(s, var, body)) {
+            tlib::error("treeRewriteMinimal : an undecided group outside the definitions");
+        }
+        int  ar = s->arity();
+        tvec br(ar);
+        bool c = false;
+        for (int k = 0; k < ar; k++) {
+            br[k] = finish(s->branch(k));
+            c     = c || br[k] != s->branch(k);
+        }
+        Tree res = rule(c ? tree(s->node(), br) : s);
+        G[s]     = res;
+        return res;
+    };
+    Tree u = finish(root);
+    checkContractive(groupGraph(u));  // also the groups the rule may have introduced
+    return u;
+}
+
+}  // namespace tlibrwm
+
+template <class Rule>
+Tree treeRewriteMinimal(Tree root, Rule&& rule)
+{
+    return tlibrwm::rewriteMinimal(root, rule, true);
 }
 
 #endif
