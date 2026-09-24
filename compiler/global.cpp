@@ -2879,12 +2879,19 @@ string global::printHelp()
             "in [min..max] range."
          << endl;
     sstr << tab
-         << "-eta        --eta-normalization         normalization loop with the eta harvest: "
-            "definitions no longer recursive replace their projections (one pass by default)."
+         << "-eta        --eta-normalization         normalization loop with the eta harvest (the default): "
+            "definitions no longer recursive replace their projections, until an iteration changes nothing."
          << endl;
     sstr << tab
-         << "-etai <n>   --eta-iterations <n>        iteration budget of the eta normalization "
-            "loop (implies -eta; the loop may stop earlier)."
+         << "-noeta      --no-eta-normalization      turn the eta harvest off (the normal form without it)."
+         << endl;
+    sstr << tab
+         << "-etai <n>   --eta-iterations <n>        iteration cap of the eta normalization "
+            "loop (default 64 ; implies -eta ; the loop stops earlier when an iteration changes nothing)."
+         << endl;
+    sstr << tab
+         << "-etar       --eta-regroup               (ocpp, experimental) each eta iteration also re-partitions "
+            "the recursive groups along their strongly connected components (implies -eta)."
          << endl;
     sstr << tab
          << "-fui        --freeze-ui                 whether to freeze vslider/hslider/nentry to a "
@@ -3058,8 +3065,9 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-sg         --signal-graph              print the internal signal graph in dot format."
-
-         << "-hg         --hierarchy-graph           (ocpp, -ls) print the loop-split blocks as a hierarchy of the materialized signals, in dot format (<file>-hier.dot).\n"
+         << endl;
+    sstr << tab
+         << "-hg         --hierarchy-graph           (ocpp, -ls) print the loop-split blocks as a hierarchy of the materialized signals, in dot format (<file>-hier.dot)."
          << endl;
     sstr << tab
          << "-rg         --retiming-graph            print the internal signal graph after "
