@@ -369,15 +369,21 @@ Tree treeRewrite(Tree root, Pre&& pre, Post&& post)
 
 namespace tlibrwm {
 
-// the groups reachable from a root, bodies included, and for each group the
-// groups its body mentions ; bodies are entered once each, from their group
-struct GroupGraph {
-    std::vector<Tree>             groups;  // SYMREC nodes, in discovery order
-    std::unordered_map<Tree, int> index;
-    std::vector<std::vector<int>> deps;    // deps[k] : groups mentioned by the body of groups[k]
-};
+// The groups and their components come from RecPlan (tree.hh) : every SYMREC
+// node reachable from a root, bodies included, partitioned into the strongly
+// connected components of "the body of X mentions Y" by DirectedGraph's Tarjan,
+// dependencies first. RecPlan orders independent components by structural
+// discovery rank, never by serial, so alpha-equivalent inputs get the same plan.
 
-// the SYMREC nodes met from t without entering them, in depth-first order
+inline Tree groupBody(Tree n)
+{
+    Tree var = nullptr, body = nullptr;
+    isRec(n, var, body);
+    return body;
+}
+
+// the SYMREC nodes met from t without entering them, in depth-first order ; used
+// on a candidate body, whose own groups are not defined yet
 inline void scanGroups(Tree t, std::unordered_set<Tree>& seen, std::vector<Tree>& found)
 {
     std::vector<Tree> stack{t};
@@ -398,119 +404,40 @@ inline void scanGroups(Tree t, std::unordered_set<Tree>& seen, std::vector<Tree>
     }
 }
 
-inline int addGroup(GroupGraph& g, Tree n)
+// the two conditions on the groups of a plan : every group is defined, and no
+// cycle is made of direct references alone (D(X) = Y, D(Y) = X)
+inline void checkWellFormed(const RecPlan& plan)
 {
-    auto it = g.index.find(n);
-    if (it != g.index.end()) {
-        return it->second;
-    }
-    int k      = int(g.groups.size());
-    g.index[n] = k;
-    g.groups.push_back(n);
-    g.deps.emplace_back();
-    return k;
-}
-
-inline Tree groupBody(Tree n)
-{
-    Tree var = nullptr, body = nullptr;
-    isRec(n, var, body);
-    return body;
-}
-
-// builds the graph and checks the first condition : every group is defined
-inline GroupGraph groupGraph(Tree root)
-{
-    GroupGraph              g;
-    std::unordered_set<Tree> seen;
-    std::vector<Tree>        found;
-    scanGroups(root, seen, found);
-    for (Tree n : found) {
-        addGroup(g, n);
-    }
-    for (size_t k = 0; k < g.groups.size(); k++) {  // the vector grows while scanned
-        Tree body = groupBody(g.groups[k]);
-        if (body == nullptr) {
-            tlib::error("treeRewriteMinimal : a recursive group has no definition");
-        }
-        std::unordered_set<Tree> seenk;
-        std::vector<Tree>        fk;
-        scanGroups(body, seenk, fk);
-        for (Tree n : fk) {
-            // addGroup may grow g.deps, so the index is taken before g.deps[k] is named
-            int j = addGroup(g, n);
-            g.deps[k].push_back(j);
-        }
-    }
-    return g;
-}
-
-// the second condition : no cycle made of direct references alone
-inline void checkContractive(const GroupGraph& g)
-{
-    std::vector<char> state(g.groups.size(), 0);  // 0 new, 1 on the current chain, 2 done
-    for (size_t v = 0; v < g.groups.size(); v++) {
-        std::vector<int> chain;
-        int              cur = int(v);
-        while (state[cur] == 0) {
-            state[cur] = 1;
-            chain.push_back(cur);
-            Tree body = groupBody(g.groups[cur]);
-            Tree var = nullptr, sub = nullptr;
-            if (!isRec(body, var, sub)) {
-                break;
-            }
-            cur = g.index.at(body);
-        }
-        if (state[cur] == 1 && !chain.empty() && groupBody(g.groups[chain.back()]) == g.groups[cur]) {
-            tlib::error("treeRewriteMinimal : a cycle of recursive groups made of references only");
-        }
-        for (int c : chain) {
-            state[c] = 2;
-        }
-    }
-}
-
-// Tarjan : a component is emitted after every component it depends on
-inline std::vector<std::vector<int>> componentsDependenciesFirst(const GroupGraph& g)
-{
-    int                           n = int(g.groups.size());
-    std::vector<int>              idx(n, -1), low(n, 0);
-    std::vector<char>             on(n, 0);
-    std::vector<int>              stack;
-    std::vector<std::vector<int>> out;
-    int                           counter = 0;
-    std::function<void(int)>      strong  = [&](int v) {
-        idx[v] = low[v] = counter++;
-        stack.push_back(v);
-        on[v] = 1;
-        for (int w : g.deps[v]) {
-            if (idx[w] < 0) {
-                strong(w);
-                low[v] = std::min(low[v], low[w]);
-            } else if (on[w]) {
-                low[v] = std::min(low[v], idx[w]);
+    for (const std::vector<Tree>& comp : plan.components()) {
+        for (Tree g : comp) {
+            if (groupBody(g) == nullptr) {
+                tlib::error("treeRewriteMinimal : a recursive group has no definition");
             }
         }
-        if (low[v] == idx[v]) {
-            std::vector<int> comp;
-            int              w;
-            do {
-                w = stack.back();
-                stack.pop_back();
-                on[w] = 0;
-                comp.push_back(w);
-            } while (w != v);
-            std::reverse(comp.begin(), comp.end());
-            out.push_back(comp);
-        }
-    };
-    for (int v = 0; v < n; v++) {
-        if (idx[v] < 0) {
-            strong(v);
+    }
+    std::unordered_map<Tree, char> state;  // absent new, 1 on the current chain, 2 done
+    for (const std::vector<Tree>& comp : plan.components()) {
+        for (Tree v : comp) {
+            std::vector<Tree> chain;
+            Tree              cur = v;
+            while (state[cur] == 0) {
+                state[cur] = 1;
+                chain.push_back(cur);
+                Tree body = groupBody(cur);
+                Tree var = nullptr, sub = nullptr;
+                if (!isRec(body, var, sub)) {
+                    break;
+                }
+                cur = body;
+            }
+            if (state[cur] == 1 && !chain.empty() && groupBody(chain.back()) == cur) {
+                tlib::error("treeRewriteMinimal : a cycle of recursive groups made of references only");
+            }
+            for (Tree c : chain) {
+                state[c] = 2;
+            }
         }
     }
-    return out;
 }
 
 // the pair (I(s), R(s)) of one component ; I is nullptr once no longer built
@@ -570,19 +497,19 @@ struct Component {
 template <class Rule>
 Tree rewriteMinimal(Tree root, Rule& rule, bool stopI)
 {
-    GroupGraph gg = groupGraph(root);
-    checkContractive(gg);
+    const RecPlan plan(root);
+    checkWellFormed(plan);
     std::unordered_map<Tree, Tree> G;  // the decided images, keyed by the input nodes
 
-    for (const std::vector<int>& comp : componentsDependenciesFirst(gg)) {
+    for (const std::vector<Tree>& comp : plan.components()) {
         Component<Rule> C{rule, G, {}, {}, true};
-        for (int k : comp) {
-            C.nu[gg.groups[k]] = tree(unique("W"));
+        for (Tree g : comp) {
+            C.nu[g] = tree(unique("W"));
         }
         std::vector<Tree> B;
         bool              differs = false;
-        for (int k : comp) {
-            auto pr = C.visit(groupBody(gg.groups[k]));
+        for (Tree g : comp) {
+            auto pr = C.visit(groupBody(g));
             B.push_back(pr.second);
             if (C.compare && pr.first != pr.second) {
                 differs = true;
@@ -593,8 +520,8 @@ Tree rewriteMinimal(Tree root, Rule& rule, bool stopI)
         }
         if (!differs) {
             // every body unchanged : the old groups stay, the provisional names are never defined
-            for (int k : comp) {
-                G[gg.groups[k]] = gg.groups[k];
+            for (Tree g : comp) {
+                G[g] = g;
             }
             for (auto& e : C.P) {
                 if (e.second.first != nullptr && e.second.first == e.second.second) {
@@ -605,7 +532,7 @@ Tree rewriteMinimal(Tree root, Rule& rule, bool stopI)
             // candidate bodies, checked before any definition is posed
             std::unordered_map<Tree, Tree> cand;  // new SYMREC node -> its body
             for (size_t j = 0; j < comp.size(); j++) {
-                cand[ref(C.nu[gg.groups[comp[j]]])] = B[j];
+                cand[ref(C.nu[comp[j]])] = B[j];
             }
             for (auto& e : cand) {
                 Tree   cur   = e.second;
@@ -626,10 +553,10 @@ Tree rewriteMinimal(Tree root, Rule& rule, bool stopI)
                 }
             }
             for (size_t j = 0; j < comp.size(); j++) {
-                rec(C.nu[gg.groups[comp[j]]], B[j]);
+                rec(C.nu[comp[j]], B[j]);
             }
-            for (int k : comp) {
-                G[gg.groups[k]] = ref(C.nu[gg.groups[k]]);
+            for (Tree g : comp) {
+                G[g] = ref(C.nu[g]);
             }
             for (auto& e : C.P) {
                 G[e.first] = e.second.second;
@@ -659,7 +586,7 @@ Tree rewriteMinimal(Tree root, Rule& rule, bool stopI)
         return res;
     };
     Tree u = finish(root);
-    checkContractive(groupGraph(u));  // also the groups the rule may have introduced
+    checkWellFormed(RecPlan(u));  // also the groups the rule may have introduced
     return u;
 }
 
