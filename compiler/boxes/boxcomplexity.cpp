@@ -35,6 +35,18 @@ using namespace std;
 
 static int computeBoxComplexity(Tree box);
 
+// The complexity of a shared (hash-consed) graph counts the boxes of the
+// *expanded* tree and can therefore exceed INT_MAX (e.g. ma.chebychev(300)).
+// Saturate instead of overflowing, so the folding tests in drawschema.cpp
+// still see a "very complex" value for such graphs.
+static const int MAX_BOX_COMPLEXITY = 1000000000;
+
+static int addBoxComplexity(int a, int b)
+{
+    long long r = (long long)a + (long long)b;
+    return (r > MAX_BOX_COMPLEXITY) ? MAX_BOX_COMPLEXITY : (int)r;
+}
+
 /**
  * Return the complexity property of a box expression tree.
  * If no complexity property exist, it is created and computeBoxComplexity
@@ -132,30 +144,30 @@ static int computeBoxComplexity(Tree box)
     else if (isBoxSlot(box)) {
         return 1;
     } else if (isBoxSymbolic(box, t1, t2)) {
-        return 1 + BC(t2);
+        return addBoxComplexity(1, BC(t2));
     }
 
     // block diagram binary operator
     else if (isBoxSeq(box, t1, t2)) {
         int c1 = BC(t1);
         int c2 = BC(t2);
-        return c1 + c2;
+        return addBoxComplexity(c1, c2);
     } else if (isBoxSplit(box, t1, t2)) {
         int c1 = BC(t1);
         int c2 = BC(t2);
-        return c1 + c2;
+        return addBoxComplexity(c1, c2);
     } else if (isBoxMerge(box, t1, t2)) {
         int c1 = BC(t1);
         int c2 = BC(t2);
-        return c1 + c2;
+        return addBoxComplexity(c1, c2);
     } else if (isBoxPar(box, t1, t2)) {
         int c1 = BC(t1);
         int c2 = BC(t2);
-        return c1 + c2;
+        return addBoxComplexity(c1, c2);
     } else if (isBoxRec(box, t1, t2)) {
         int c1 = BC(t1);
         int c2 = BC(t2);
-        return c1 + c2;
+        return addBoxComplexity(c1, c2);
     }
 
     // user interface widgets

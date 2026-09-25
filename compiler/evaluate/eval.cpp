@@ -60,6 +60,7 @@ static Tree   eval(Tree exp, Tree visited, Tree localValEnv);
 static Tree   realeval(Tree exp, Tree visited, Tree localValEnv);
 static Tree   revEvalList(Tree lexp, Tree visited, Tree localValEnv);
 static Tree   applyList(Tree fun, Tree larg);
+static Tree   realApplyList(Tree fun, Tree larg);
 static Tree   iteratePar(Tree var, int num, Tree body, Tree visited, Tree localValEnv);
 static Tree   iterateSeq(Tree id, int num, Tree body, Tree visited, Tree localValEnv);
 static Tree   iterateSum(Tree id, int num, Tree body, Tree visited, Tree localValEnv);
@@ -1289,7 +1290,36 @@ static Tree nwires(int n)
 // definition name f(arg) ; names printed within it are the same as before
 static const int kApplyNamePrintBudget = 4096;
 
+// Why: eval() memoizes on (expression, environment), so a recursive function
+// whose recursive calls are syntactically distinct but evaluate to the same
+// application is recomputed at every call site. ma.chebychev(n, x) is the
+// canonical case : its body calls chebychev(n-1, x) and chebychev(n-2, x) under
+// a different binding of 'n' at every level, so eval() keys never repeat and
+// the compile time grows like the Fibonacci sequence (measured: 0.24s at n=20,
+// 5.7s at n=26). applyList() is a pure function of the function box and the
+// already evaluated argument list (the environment and the visited list are
+// captured inside 'fun'), so memoizing it collapses those repeated
+// applications : each distinct application is computed once.
 static Tree applyList(Tree fun, Tree larg)
+{
+    if (isNil(larg)) {
+        return fun;
+    }
+    if (isBoxError(fun) || isBoxError(larg)) {
+        return boxError();
+    }
+
+    Tree result;
+    if (gGlobal->gApplyMemo->get(fun, larg, result)) {
+        return result;
+    }
+
+    result = realApplyList(fun, larg);
+    gGlobal->gApplyMemo->set(fun, larg, result);
+    return result;
+}
+
+static Tree realApplyList(Tree fun, Tree larg)
 {
     Tree abstr;
     Tree globalDefEnv;
