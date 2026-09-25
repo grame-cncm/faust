@@ -482,13 +482,13 @@ class JAVAInstVisitor : public TextInstVisitor {
             case Typed::kInt32:
                 *fOut << "(((";
                 inst->fCond->accept(this);
-                *fOut << "==0)?true:false)";
+                *fOut << "!=0)?true:false)";
                 break;
             case Typed::kFloat:
             case Typed::kFloatMacro:
                 *fOut << "(((";
                 inst->fCond->accept(this);
-                *fOut << "==0.f)?true:false)";
+                *fOut << "!=0.f)?true:false)";
                 break;
             case Typed::kBool:
                 *fOut << "((";
