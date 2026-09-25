@@ -52,7 +52,6 @@ class DLangInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["abs"]   = "std.math.abs";
         gPolyMathLibTable["max_i"] = "max";
         gPolyMathLibTable["min_i"] = "min";
-        gPolyMathLibTable["rint"]  = "round";
 
         // Float version
         gPolyMathLibTable["fabsf"]      = "fabs";
@@ -72,6 +71,7 @@ class DLangInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["min_f"]      = "fmin";
         gPolyMathLibTable["powf"]       = "pow";
         gPolyMathLibTable["remainderf"] = "remainder";
+        gPolyMathLibTable["rintf"]      = "rint";
         gPolyMathLibTable["roundf"]     = "round";
         gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sinhf"]      = "sinh";
@@ -109,6 +109,7 @@ class DLangInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["min_"]      = "fmin";
         gPolyMathLibTable["pow"]       = "pow";
         gPolyMathLibTable["remainder"] = "remainder";
+        gPolyMathLibTable["rint"]       = "rint";
         gPolyMathLibTable["round"]     = "round";
         gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sinh"]      = "sinh";
