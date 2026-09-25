@@ -559,6 +559,7 @@ void global::reset()
     gCausality           = false;
 
     gFoldingFlag = false;
+    gOccurrences = nullptr;
     gDevSuffix   = nullptr;
 
     gSTEP = 1;  // unique compilation step number
@@ -647,6 +648,7 @@ void global::init()
     gSymbolicBoxProperty   = new property<Tree>();
     gEvalMemo              = new property2<Tree>();
     gPMMemo                = new property2<Tree>();
+    gApplyMemo             = new property2<Tree>();
     gSimplifiedBoxProperty = new property<Tree>();
     gSymListProp           = new property<Tree>();
 

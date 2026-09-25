@@ -34,8 +34,8 @@
 Occur::Occur(Tree root)
 {
     fKey = specificKey(root);
-    countOccurrences(root);
-    setCount(root, 0);  // root as no occurrences in itself
+    std::set<Tree, treeorder> visited;
+    countOccurrences(root, visited);
 }
 
 /**
@@ -71,10 +71,14 @@ Tree Occur::specificKey(Tree root)
 /**
  * Increment the occurrences count of t and its subtrees
  */
-void Occur::countOccurrences(Tree t)
+void Occur::countOccurrences(Tree t, std::set<Tree, treeorder>& visited)
 {
-    setCount(t, getCount(t) + 1);  // increment t occurrences count
+    if (!visited.insert(t).second) {
+        return;
+    }
     for (int i = 0; i < t->arity(); i++) {
-        countOccurrences(t->branch(i));
+        Tree b = t->branch(i);
+        setCount(b, getCount(b) + 1);
+        countOccurrences(b, visited);
     }
 }

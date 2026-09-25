@@ -53,6 +53,7 @@
 #include "files.hh"
 #include "global.hh"
 #include "names.hh"
+#include "occur.hh"
 #include "occurrences.hh"
 #include "ppbox.hh"
 #include "prim2.hh"
@@ -157,6 +158,11 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
     gGlobal->gBackLink.clear();
     gGlobal->gPendingExp = std::stack<Tree>();
     gGlobal->gSchemaFileName.clear();
+
+    // Count how many parents each node has in the hash-consed DAG (linear in
+    // the number of distinct nodes), so shared nodes can be folded instead of
+    // expanded (see generateDiagramSchema).
+    gGlobal->gOccurrences = new Occur(bd);
 
     mkchDir(projname);  // create a directory to store files
 
@@ -378,8 +384,20 @@ static schema* generateDiagramSchema(Tree t)
         // cerr << t << "\tNAMED : " << s.str() << endl;
     }
 
+    bool named = getDefNameProperty(t, id);
+    // A shared node (more than one parent in the hash-consed DAG) must be
+    // folded even when it has no definition name, otherwise the drawing
+    // expands the shared graph as a tree and grows exponentially
+    // (observed: 6 GB of SVG for ma.chebychev(30)).
+    bool shared = (gGlobal->gOccurrences != nullptr) && (gGlobal->gOccurrences->getCount(t) > 1);
+
     if (gGlobal->gFoldingFlag && (boxComplexity(t) >= gGlobal->gFoldComplexity) &&
-        getDefNameProperty(t, id)) {
+        (named || shared)) {
+        if (!named) {
+            // Synthesize a name for the reference label and the scheduled file.
+            id = tree(Node(unique("diagram_")));
+            setDefNameProperty(t, id);
+        }
         char temp[1024];
         getBoxType(t, &ins, &outs);
         stringstream l;
@@ -387,7 +405,7 @@ static schema* generateDiagramSchema(Tree t)
         scheduleDrawing(t);
         return makeBlockSchema(ins, outs, tree2str(id), linkcolor, l.str());
 
-    } else if (getDefNameProperty(t, id) && !isPureRouting(t)) {
+    } else if (named && !isPureRouting(t)) {
         // named case : not a slot, with a name
         // draw a line around the object with its name
         return makeDecorateSchema(generateInsideSchema(t), 10, tree2str(id));
