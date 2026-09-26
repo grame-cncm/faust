@@ -357,7 +357,7 @@ fcautotool examples/reverb/freeverb.dsp -o freeverb.cpp
 ```
 
 ::: warning [On Linux]
-Run it under `setarch -R` (no privileges needed), so that every candidate it launches gets the same memory layout (\ref{sec:measuring}) :
+Run it under `setarch -R` (no privileges needed), so that each candidate keeps the same memory layout from one launch to the next (\ref{sec:measuring}) :
 
 ```
 setarch -R fcautotool examples/reverb/freeverb.dsp -o freeverb.cpp
