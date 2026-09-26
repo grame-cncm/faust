@@ -160,6 +160,44 @@ process = _ : @(100);
         if 'dsp_path' in locals():
             os.unlink(dsp_path)
 
+def test_exp10_mapping():
+    """Test that exp10 math function maps to jnp.exp10 without trailing 'f' suffix."""
+    print("\nTesting exp10 mapping...")
+
+    dsp_code = """
+import("stdfaust.lib");
+process = pow(10, _);
+"""
+
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.dsp', delete=False) as f:
+        f.write(dsp_code)
+        dsp_path = f.name
+
+    try:
+        faust_bin = Path(__file__).parent.parent.parent / "build" / "bin" / "faust"
+        libraries_path = Path(__file__).parent.parent.parent / "libraries"
+
+        for lang in ["nnx", "linen"]:
+            for opt in [[], ["-double"]]:
+                cmd = [
+                    str(faust_bin),
+                    "-lang", lang,
+                    "-exp10",
+                    "-I", str(libraries_path),
+                ] + opt + [dsp_path]
+
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                assert result.returncode == 0, f"Compilation failed for {lang} {opt}: {result.stderr}"
+                output = result.stdout
+                assert "jnp.exp10(" in output, f"Expected jnp.exp10 in {lang} {opt} output"
+                assert "jnp.exp10f" not in output, f"Unexpected jnp.exp10f in {lang} {opt} output"
+
+        print("✓ exp10 mapping working correctly")
+
+    finally:
+        if 'dsp_path' in locals():
+            os.unlink(dsp_path)
+
 def main():
     """Run all CI validation tests.
 
@@ -172,6 +210,7 @@ def main():
 
     test_random_generation()
     test_delay_optimization()
+    test_exp10_mapping()
 
     print("\n" + "="*60)
     print("✅ All CI validation tests passed")

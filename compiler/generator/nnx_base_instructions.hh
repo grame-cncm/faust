@@ -628,7 +628,7 @@ class NNXBaseInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["cosf"]   = "jnp.cos";
         gPolyMathLibTable["expf"]   = "jnp.exp";
         gPolyMathLibTable["exp2f"]  = "jnp.exp2";
-        gPolyMathLibTable["exp10f"] = "jnp.exp10f";
+        gPolyMathLibTable["exp10f"] = "jnp.exp10";
         gPolyMathLibTable["floorf"] = "jnp.floor";
         // jnp.fmod follows C fmodf (sign of the dividend); jnp.mod is Python's
         // floored modulo and diverges for negative operands.
