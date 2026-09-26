@@ -363,7 +363,7 @@ Run it under `setarch -R` (no privileges needed), so that every candidate it lau
 setarch -R fcautotool examples/reverb/freeverb.dsp -o freeverb.cpp
 ```
 
-Without it, on a machine that randomises addresses, the speed of the same binary is itself drawn at each launch (by about 25 %) : neither the reported times nor the name of the winner can be trusted. macOS does not have this problem.
+Without it, on a machine that randomises addresses, the speed of the same binary is itself drawn at each launch (by about 25 %) : neither the reported times nor the name of the winner can be trusted. The error has a known direction : the winner is the candidate that drew the luckiest memory layout, so its reported time is optimistic. macOS does not have this problem.
 :::
 
 On an Apple M1 with clang 22, with a development `faust` on the `PATH`, in 49 seconds (the lists are shortened here) :
