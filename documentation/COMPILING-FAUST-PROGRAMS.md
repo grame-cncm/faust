@@ -473,7 +473,9 @@ How to read it :
 
 - **The first three lines name the judge** : the `faust` and the C++
   compiler used, its flags, and the precision. The result holds for them
-  (4.3) : keep these lines with it.
+  (4.3) : keep these lines with it. The `faust` line is only a path : keep
+  the output of `faust --version` beside them, so that the result says which
+  compiler it is about.
 - **The jury** holds only the candidates that this `faust` accepts : a
   released `faust` gives a smaller jury than a development one. The
   program's signature (`-sig`) then shortlists the plausible ones ;
