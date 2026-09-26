@@ -357,8 +357,8 @@ bug : please report it.
   warm-up. Disturbances only add time. A short busy spin before timing
   makes the operating system place the process on a performance core at
   full clock : on asymmetric machines, the same binary otherwise reads 1.6,
-  2.5 or 4.0 ns per sample depending on the core it lands on. The harness
-  `tests/impulse-tests/archs/flashbench.cpp` does all of this.
+  2.5 or 4.0 ns per sample depending on the core it lands on. The tools of
+  section 4.5 do all of this.
 - **Know the memory-placement lottery.** On Linux, the stack and heap
   addresses change at each run, and with them the alignment of the state
   arrays : the same binary can spread over 50 %. `setarch -R` (no
@@ -404,95 +404,138 @@ bug : please report it.
 
 ### 4.5 An automatic search, step by step
 
-`tools/faustauto/faustauto.py` does sections 4.2 to 4.4 for one program. It
-reads the program's signature (`-sig`), shortlists the settings that the
-signature makes plausible, compiles each one with the benchmark harness
-`tests/impulse-tests/archs/flashbench.cpp`, times them in alternating rounds,
-and keeps the fastest. Run it from the root of
-the repository, with the compiler you built, on mains power (it refuses to
-time on battery) :
+Two tools of the Faust Compiler Benchmark Tools
+(<https://github.com/orlarey/faustcompilerbenchtool>) do sections 4.2 to 4.4
+for one program :
+
+- **`fcautotool`** elects the best of a jury of known option sets, in a
+  minute or so ;
+- **`fcgentool`** breeds new combinations of options by a genetic search,
+  for a program worth hours of machine time.
+
+**Installing.** They need Python 3, a C++ compiler, and `faust` on the
+`PATH` :
 
 ```
-python3 tools/faustauto/faustauto.py examples/reverb/freeverb.dsp -o freeverb.cpp
+git clone https://github.com/orlarey/faustcompilerbenchtool
+cd faustcompilerbenchtool
+sudo ./install.sh
 ```
 
-On an Apple M1 with Apple clang, in 41 seconds :
+The tools go to `/usr/local/bin`. `fcversion` tells which version is
+installed.
+
+**Running `fcautotool`.** Plug the machine in first : the tools refuse to
+time on battery power.
 
 ```
-faustauto: zone distilled ; candidates ['df', 'lb', 'fu', 'al', 'fifu', 'fibfu', 'fibmx', 't4fu', 'h2', 'rp', 'cs2b']
-  signature : nodes=372 recmii=37 nstreams=50 bankable=86% top1=83
-  fibmx: same code as fibfu, dropped
-  df   13.8760 ns
-  lb   13.8850 ns
-  fu   16.6460 ns
-  al   41.7840 ns
-  fifu 16.1860 ns
-  fibfu 15.9640 ns
-  t4fu 15.2300 ns
-  h2   12.7600 ns
-  rp   13.9160 ns
-  cs2b 14.1660 ns
-faustauto: winner h2 (12.7600 ns/sample) -- options: -ss 9 -ls-R 2 -ls-U 4  [41.2 s]
-  to reuse: faust -lang ocpp -ss 9 -ls-R 2 -ls-U 4 [-a <architecture>] examples/reverb/freeverb.dsp
-faustauto: written to freeverb.cpp
+fcautotool examples/reverb/freeverb.dsp -o freeverb.cpp
+```
+
+On an Apple M1 with clang 22, with a development `faust` on the `PATH`, in
+49 seconds (the lists are shortened here) :
+
+```
+fcautotool: faust = /Users/.../faust/build/bin/faust
+fcautotool: c++ = /opt/local/bin/clang++ (clang version 22.1.8) -O3 -ffast-math -fbracket-depth=1024 -march=native
+fcautotool: timed in single precision  (--double to elect for a double build)
+fcautotool: jury = 28/28 candidates supported: ['al', 'cs2', 'cs2b', 'df', 'fi', ...]
+fcautotool: shortlist by signature: 17/28 of the supported jury (--full races them all): ['df', 'lb', 'fu', ...]
+  r3s       12.0120 ns  (-lang ocpp -ls-fuse -ls-latency 4 -ls-regs3 -ls-R 40 -ls-load 0 -ls-regstate)
+  h2        12.7200 ns  (-lang ocpp -ss 9 -ls-R 2 -ls-U 4)
+  r3ks      13.7000 ns  (-lang ocpp -fir -iirt -lsum -ls-fuse -ls-latency 4 -ls-regs3 -ls-R 40 -ls-load 0 -ls-regstate)
+  fi        13.7060 ns  (-lang ocpp -fir -iirt)
+  df        13.8250 ns  (-lang ocpp)
+  ...
+  fu        16.5800 ns  (-lang ocpp -ls-fuse -ls-sched model)
+  cppmcd0   19.7330 ns  (-lang cpp -mcd 0)
+  cpp       24.1540 ns  (-lang cpp)
+  cppvec    33.2190 ns  (-lang cpp -vec)
+  al        43.2500 ns  (-lang ocpp -ss 8)
+  -- 20 timed of 20 raced (0 build failures, 0 without a timing)
+fcautotool: winner r3s (12.0120 ns/frame, single precision) -- -lang ocpp -ls-fuse -ls-latency 4 -ls-regs3 -ls-R 40 -ls-load 0 -ls-regstate  [49.1 s]
+fcautotool: bare faust output written to freeverb.cpp
 ```
 
 How to read it :
 
-- **The candidates** are named option sets (the table `CAND` at the top of
-  the script) : `df` is the default order, `h2` is `-ss 9 -ls-R 2 -ls-U 4`,
-  `fu` is `-ls-fuse -ls-sched model`, and so on. A candidate that emits the
-  same code as another is dropped before timing (`fibmx` here : the program
-  has no matrix family). `--full` times the whole jury instead of the
-  shortlist.
-- **The times** are nanoseconds per sample, the minimum over the rounds.
-  Here the winner is 8 % faster than the default (`df`), and one candidate
-  (`al`) is three times slower : a wrong guess would have cost more than the
-  right one gains.
+- **The first three lines name the judge** : the `faust` and the C++
+  compiler used, its flags, and the precision. The result holds for them
+  (4.3) : keep these lines with it.
+- **The jury** holds only the candidates that this `faust` accepts : a
+  released `faust` gives a smaller jury than a development one. The
+  program's signature (`-sig`) then shortlists the plausible ones ;
+  `--full` races them all.
+- **The times** are nanoseconds per frame, the minimum over alternating
+  rounds. The jury includes the `cpp` backend (`cpp`, `cpp -vec`,
+  `cpp -mcd 0`), so the table also answers which backend to use : here
+  `ocpp` with the winning options is twice as fast as `cpp`, and one
+  candidate (`al`) is more than three times slower than the default
+  (`df`). A wrong guess costs more than the right one gains.
 - **As a safeguard**, the winner's impulse response is compared with the
-  default's before it is kept. A candidate that differs beyond rounding is
-  reported `DISQUALIFIED` and the next one is taken ; such a report points
-  to a compiler bug and is worth sending.
-- **`-o`** writes the DSP class compiled with the winning options. To build
-  an application, pass the same options to `faust` with your own
-  architecture file, as the `to reuse` line shows :
+  default's before it is kept ; a candidate that differs beyond rounding is
+  reported `DISQUALIFIED` and the next one is taken. Such a report points to
+  a compiler bug and is worth sending. When the default produces silence
+  on an impulse, there is nothing to compare, and the tool says so
+  (`GATE VOID`).
+- **`-o`** writes the plain `faust` output of the winner. To build an
+  application, pass the winning options to `faust` with your own
+  architecture file :
 
   ```
-  faust -lang ocpp -ss 9 -ls-R 2 -ls-U 4 -a jack-gtk.cpp examples/reverb/freeverb.dsp -o freeverb.cpp
+  faust -lang ocpp -ls-fuse -ls-latency 4 -ls-regs3 -ls-R 40 -ls-load 0 -ls-regstate \
+        -a jack-gtk.cpp examples/reverb/freeverb.dsp -o freeverb.cpp
   ```
 
-The C++ compiler that times the candidates is part of the result (4.3) :
-choose it, and its flags, to be the ones you ship with.
+**Choosing the judge.** Time with the C++ compiler, the flags and the
+precision you ship with :
 
-| Variable | Default | Role |
+| Setting | Default | Role |
 | :--- | :--- | :--- |
-| `FAUSTAUTO_FAUST` | `build/bin/faust` | the Faust compiler |
-| `FAUSTAUTO_CXX` | `/usr/bin/c++` | the C++ compiler that builds and times the candidates |
-| `FAUSTAUTO_CXXFLAGS` | `-O3 -ffast-math -march=native -fbracket-depth=1024` | its flags ; the last one is clang's : with g++, set e.g. `-O3 -ffast-math -march=native` |
+| `FAUST` | `faust` on the `PATH` | the Faust compiler |
+| `CXX` | `clang++` | the C++ compiler that builds and times the candidates |
+| `FCBENCH_CXXFLAGS` | `-O3 -ffast-math -fbracket-depth=1024` | its optimisation flags ; the last one is clang's |
+| `FCBENCH_ARCH_FLAGS` | `-march=native` | the target flags |
+| `--double` | single precision | elect for a double build : the ranking can change between the two |
 
-For example, to search for g++ :
-
-```
-FAUSTAUTO_CXX=g++ FAUSTAUTO_CXXFLAGS="-O3 -ffast-math -march=native" \
-  python3 tools/faustauto/faustauto.py examples/reverb/freeverb.dsp
-```
-
-**Going further, for one program worth the machine time.**
-`tools/faustauto/genetic.py` searches the option space by a genetic
-algorithm : scheduler, `R`, `U`, fusion, split, staging, `-fir`, `-lsum`,
-the selection options and `-rp` are its genes. `--genes` restricts the
-search, `--pop` and `--gens` size it, and the champion goes through the same
-safeguard before it is reported :
+For example, for g++ and a double build :
 
 ```
-python3 tools/faustauto/genetic.py examples/reverb/freeverb.dsp --pop 16 --gens 20
-python3 tools/faustauto/genetic.py examples/reverb/freeverb.dsp --genes sched,R,U,fuse
+CXX=g++ FCBENCH_CXXFLAGS="-O3 -ffast-math" fcautotool --double examples/reverb/freeverb.dsp
 ```
 
-With `--book`, a valid champion is written to `tools/faustauto/recipes.tsv`,
-and `faustauto.py` then adds it to the candidates of that program (as `bk`).
-The book records the machine and the date of each recipe : a recipe found on
-another machine is a starting point, not a result.
+With several entry points in one file, `--pn NAME` elects for one of them.
+
+**Going further with `fcgentool`.** Its genome is made of the options the
+installed `faust` accepts : scheduler, `R`, `U`, fusion, split, staging,
+`-fir`, `-lsum`, the selection options, `-rp`. It evolves them by
+tournament, crossover and mutation under the same judge, and the champion
+goes through the same safeguard :
+
+```
+fcgentool examples/reverb/freeverb.dsp --pop 16 --gens 20
+```
+
+A short run (`--pop 6 --gens 3`) prints :
+
+```
+fcgentool: faust = /Users/.../faust/build/bin/faust
+fcgentool: c++ = /opt/local/bin/clang++ (clang version 22.1.8) -O3 -ffast-math -fbracket-depth=1024 -march=native
+fcgentool: bred in single precision  (--double to breed for a double build)
+fcgentool: genome = 12 genes ['R', 'U', 'fir', 'fuse', 'gq', 'lazy', 'ls', 'lsum', 'rp', 'sched', 'sn', 'temp'] (115200 combinations)
+gen  0 : best=  13.813 (global   13.813) evals=6 : -ls-R 2 -ls-U 2 -lazyselect -gatequiv -selectn {}
+...
+CHAMPION VALID: 13.813 ns (single precision) : -ls-R 2 -ls-U 2 -lazyselect -gatequiv -selectn
+```
+
+A real search takes hours, on mains power. `--pop`, `--gens`, `--stall`,
+`--mut`, `--elite`, `--tourney`, `--runs` and `--seed` tune it ;
+`--double` and `--pn` work as for `fcautotool`. With `--book`, a valid
+champion is written to `fcrecipes.tsv` (or the file given), one per program
+and per precision ; `fcautotool` then races it as candidate `bk` when it
+runs in the directory of the book (or with `FCRECIPES` pointing to it). A
+recipe is data about one machine and one C++ compiler : found elsewhere, it
+is a starting point, to be measured again.
 
 ### 4.6 Pitfalls
 
