@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """faustauto — the complete auto mode of the ocpp backend, in two layers.
 
-Layer 1 (static, free): the program signature (FAUST_SS_SIG) prunes the
+Layer 1 (static, free): the program signature (faust -sig) prunes the
 53 modes down to 3 or 4 candidates. Two outcomes:
   - safe fusion  (recmii >= 50, or >= 5 real streams)  -> fusion + BOTH ordering regimes
   - uncertain                                          -> fusion + 2 orders + df
@@ -13,7 +13,8 @@ in alternating rounds; the measured winner is emitted. Rugged landscapes
 (cap, the vocoder/filterBank twins) proved that no static rule can
 replace this measurement.
 
-Usage: faustauto.py file.dsp [-o output.cpp] [--rounds N] [--keep]
+Usage: faustauto.py file.dsp [-o output.cpp] [--rounds N] [--keep] [--full]
+-o writes the DSP class compiled with the winning options.
 """
 
 import argparse
@@ -70,8 +71,7 @@ CAND = {
     # escape the -lsum butterfly (DNN x0.50 from that saving alone), and
     # under -ls the rows of recurrent blocks become contiguous
     # table+vector dot products (statespace 9.46 -> 7.76). With no
-    # family present it is byte-identical to fibfu -- only invite it
-    # when the signature sees nmatrix >= 1.
+    # family present it is byte-identical to fibfu, and dropped as such.
     "fibmx": ["-fir", "-iirt", "-lsum", "-mxr", "-ls-fuse", "-ls-sched", "model"],
     "lz":  ["-lazyselect"],
     "lzh": ["-lazyselect", "-ss", "9", "-ls-R", "32", "-ls-U", "4"],
@@ -88,39 +88,27 @@ CAND = {
     # in 0.4-10 s: the most expensive members of the jury.
     "cs2":  ["-ss", "11", "-ls-R", "32", "-ls-U", "4"],
     "cs2b": ["-ss", "12", "-ls-R", "32", "-ls-U", "8"],
-    # rp: ring-read preloading (df + env) -- the loads leave as a burst
-    # at the head of the loop body, with a register move at the original
-    # slot. Proved by counters on freeverb (stalls -43%), a per-program
-    # candidate (zitaRev 1.03: never a default).
-    "rp":   ["-ss", "0"],
+    # rp: ring-read preloading -- the loads leave as a burst at the head
+    # of the loop body, with a register move at the original slot. Proved
+    # by counters on freeverb (stalls -43%), a per-program candidate
+    # (zitaRev 1.03: never a default).
+    "rp":   ["-rp"],
 }
 
-# candidates carried by an environment variable rather than flags
-# (the compiler is invoked with this extra environment)
-CAND_ENV = {
-    "rp": {"FAUST_SS_RINGPRELOAD": "1"},
-}
+# candidates carried by an environment variable rather than flags (the
+# compiler is invoked with this extra environment) : none since the
+# compiler's tuning variables became options ; the recipe book may still
+# fill it for candidate "bk"
+CAND_ENV = {}
 
 
 def signature(dsp):
-    env = dict(os.environ, FAUST_SS_SIG="1")
-    r = subprocess.run([FAUST, "-lang", "ocpp", dsp, "-o", os.devnull],
-                       env=env, capture_output=True, text=True)
-    m = re.search(r"SS_SIG ([^\n]*)", r.stderr)
-    if not m:
-        sys.exit(f"faustauto: pas de signature (faust a dit : {r.stderr.strip()[:200]})")
-    sig = {k: int(v) for k, v in re.findall(r"(\w+)=(\d+)", m.group(1))}
-    # the fourth form: matrix family count. A separate probe (families
-    # only exist after revealSum, outside the signature's default world)
-    # -- ~0.5 s, which only pays for inviting fibmx where it can differ
-    # from fibfu.
-    r = subprocess.run([FAUST, "-lang", "ocpp", "-fir", "-iirt", "-lsum", dsp,
-                        "-o", os.devnull],
-                       env=dict(os.environ, FAUST_MATRIX_CENSUS="1"),
+    r = subprocess.run([FAUST, "-lang", "ocpp", "-sig", dsp, "-o", os.devnull],
                        capture_output=True, text=True)
-    fams = re.findall(r"MATRIX census : \d+ candidats, (\d+) familles", r.stderr)
-    sig["nmatrix"] = int(fams[-1]) if fams else 0
-    return sig
+    m = re.search(r"SS_SIG ([^\n]*)", r.stdout + r.stderr)
+    if not m:
+        sys.exit(f"faustauto: no signature (faust said: {(r.stdout + r.stderr).strip()[:200]})")
+    return {k: int(v) for k, v in re.findall(r"(\w+)=(\d+)", m.group(1))}
 
 
 def candidates(sig, full=False):
@@ -142,14 +130,14 @@ def candidates(sig, full=False):
         order = ["h2", "cs8"] if locality else ["al", "h32"]
         lazy = ["lz", "lzh", "gq", "gqlz", "sn", "gqsn"] if sig.get("nselect", 0) >= 8 else []
         lazy += ["lb"]
-        # fibmx only where it exists: with no family it is fibfu byte
-        # for byte (the stopwatch would only be splitting noise)
-        mx = ["fibmx"] if sig.get("nmatrix", 0) >= 1 else []
+        # fibmx is fibfu byte for byte where no matrix family exists : the
+        # identical-code filter of main() then drops it before any timing
+        mx = ["fibmx"]
         if fusion_signal:
             other = "al" if locality else "h2"
-            return "fusion-sûre", ["fu", "ls", order[0], other, "t4fu", "t1fu", "df", "rp", "cs2",
+            return "safe-fusion", ["fu", "ls", order[0], other, "t4fu", "t1fu", "df", "rp", "cs2",
                                    "cs2b", "fi", "fib", "fifu", "fibfu"] + mx + lazy
-        return "incertain", ["fu", "ls", order[0], order[1], "df", "rp", "cs2", "cs2b", "t4", "fi",
+        return "uncertain", ["fu", "ls", order[0], order[1], "df", "rp", "cs2", "cs2b", "t4", "fi",
                              "fib", "fifu", "fibfu"] + mx + lazy
     n, r, st = sig["nodes"], sig["recmii"], sig["nstreams"]
     sel, alu = sig.get("nselect", 0), sig["nalu"]
@@ -158,9 +146,9 @@ def candidates(sig, full=False):
     # fir-fusion pair (fifu WITHOUT -lsum and fibfu WITH: on the guitar
     # programs -lsum costs, on the Lab ones it pays — they travel
     # together)
-    cand = ["df", "lb", "fu", "al", "fifu", "fibfu"]
-    if sig.get("nmatrix", 0) >= 1:
-        cand += ["fibmx"]        # the matrix form, where families exist
+    # fibmx (the matrix form) is dropped by the identical-code filter of
+    # main() wherever it emits fibfu's code (no matrix family)
+    cand = ["df", "lb", "fu", "al", "fifu", "fibfu", "fibmx"]
     if n < 200 or alu > 0.9 * n:
         cand += ["fi"]           # small programs or pure ALU (ambisonics)
     if r >= 80:
@@ -179,7 +167,7 @@ def candidates(sig, full=False):
         cand += ["cs2b"]         # the bf spine carries the big ones (violin, vital_rev)
     if sel >= 8:
         cand += ["lz", "gqlz", "t4", "sn", "gqsn"]
-    return "distillée", list(dict.fromkeys(cand))
+    return "distilled", list(dict.fromkeys(cand))
 
 
 def compile_candidate(dsp, name, workdir):
@@ -245,7 +233,7 @@ def _ensure_canary():
         if vals and max(vals) / min(vals) < 1.15:
             open(reff, "w").write(f"{min(vals):.6f}")
             return b, min(vals)
-        print("faustauto: etalonnage du canari instable, attente 60 s", file=sys.stderr)
+        print("faustauto: unstable canary calibration, waiting 60 s", file=sys.stderr)
         time.sleep(60)
     return None, None
 
@@ -260,10 +248,10 @@ def wait_quiet(max_waits=5):
         vals = [v for v in (run_once(b) for _ in range(3)) if v]
         if vals and min(vals) < 1.25 * ref:
             return True
-        print(f"faustauto: canari lent ({min(vals):.3f} vs {ref:.3f} etalonne), attente 60 s",
+        print(f"faustauto: slow canary ({min(vals):.3f} vs {ref:.3f} calibrated), waiting 60 s",
               file=sys.stderr)
         time.sleep(60)
-    print("ATTENTION: ordonnanceur instable persistant -- mesures non canoniques", file=sys.stderr)
+    print("WARNING: the OS scheduler stays unstable -- non-canonical measurements", file=sys.stderr)
     return False
 
 def impulse_ir(dsp, flags, env, workdir, tag):
@@ -346,9 +334,9 @@ def main():
     ap.add_argument("dsp")
     ap.add_argument("-o", "--output")
     ap.add_argument("--rounds", type=int, default=2)
-    ap.add_argument("--keep", action="store_true", help="garder le dossier de travail")
+    ap.add_argument("--keep", action="store_true", help="keep the working directory")
     ap.add_argument("--full", action="store_true",
-                    help="jury complet (mode campagne, ~15-19 candidats)")
+                    help="the full jury (campaign mode, ~15-19 candidates)")
     a = ap.parse_args()
 
     t0 = time.time()
@@ -359,21 +347,29 @@ def main():
         CAND["bk"] = recipe[0]
         CAND_ENV["bk"] = recipe[1]
         cands = cands + ["bk"]
-        print("faustauto: recette du livre injectée (candidat bk)")
-    print(f"faustauto: zone {zone} ; candidats {cands}")
+        print("faustauto: recipe from the book injected (candidate bk)")
+    print(f"faustauto: zone {zone} ; candidates {cands}")
     print(f"  signature : nodes={sig['nodes']} recmii={sig['recmii']} "
           f"nstreams={sig['nstreams']} bankable={sig['bankablepct']}% top1={sig['top1']}")
 
     workdir = tempfile.mkdtemp(prefix="faustauto-")
     built = {}
+    same = {}   # generated code, option lines removed -> first candidate that emitted it
     for name in cands:
         cpp, binp = compile_candidate(a.dsp, name, workdir)
-        if binp:
-            built[name] = (cpp, binp)
-        else:
-            print(f"  {name}: échec de construction, écarté")
+        if not binp:
+            print(f"  {name}: build failed, dropped")
+            continue
+        code = re.sub(r"Code generated with Faust.*|Compilation options:.*|\"compile_options\".*",
+                      "", open(cpp).read())
+        if code in same:
+            # racing two identical binaries would only split noise
+            print(f"  {name}: same code as {same[code]}, dropped")
+            continue
+        same[code] = name
+        built[name] = (cpp, binp)
     if not built:
-        sys.exit("faustauto: aucun candidat construit")
+        sys.exit("faustauto: no candidate could be built")
 
     # flash bench: the judge's uniform protocol (min of 10 repetitions
     # of 100 blocks of 512), alternating rounds. THERMAL PAUSE first:
@@ -387,8 +383,8 @@ def main():
     try:
         batt = subprocess.run(["pmset", "-g", "batt"], capture_output=True, text=True).stdout
         if "Battery Power" in batt:
-            sys.exit("REFUS : sur batterie (pmset). Brancher le secteur avant de bencher "
-                     "(FAUSTAUTO_ALLOW_BATTERY=1 pour outrepasser, resultats non canoniques).")                 if not os.environ.get("FAUSTAUTO_ALLOW_BATTERY") else                 print("ATTENTION : bench sur batterie (FAUSTAUTO_ALLOW_BATTERY) -- resultats non canoniques", file=sys.stderr)
+            sys.exit("REFUSED: on battery power (pmset). Plug in before benchmarking "
+                     "(FAUSTAUTO_ALLOW_BATTERY=1 to override, non-canonical results).")                 if not os.environ.get("FAUSTAUTO_ALLOW_BATTERY") else                 print("WARNING: benchmarking on battery (FAUSTAUTO_ALLOW_BATTERY) -- non-canonical results", file=sys.stderr)
     except FileNotFoundError:
         pass
     wait_quiet()
@@ -405,7 +401,7 @@ def main():
         dirty = sum(1 for r in spread if r > 1.6) / max(1, len(spread))
         if dirty <= 0.4:
             break
-        print(f"faustauto: tour disperse ({int(dirty*100)}% instables), re-essai", file=sys.stderr)
+        print(f"faustauto: scattered round ({int(dirty*100)}% unstable), retrying", file=sys.stderr)
         wait_quiet()
     # PODIUM RE-RACE: min-of-2 is fragile to spikes, and only the head
     # of the ranking matters. WIDE repechage: every candidate within 2x
@@ -439,15 +435,21 @@ def main():
         if el_ir is not None and ir_equivalent(ref_ir, el_ir):
             best, score = name, min(times[name])
             break
-        print(f"  {name}: DISQUALIFIÉ (réponse impulsionnelle fausse)")
+        print(f"  {name}: DISQUALIFIED (wrong impulse response)")
     if best is None and ranked2:
         best, score = "df" if "df" in built else ranked2[0], min(times["df" if "df" in built else ranked2[0]])
-    print(f"faustauto: gagnant {best} ({score:.4f} ns/éch.) — options : "
+    print(f"faustauto: winner {best} ({score:.4f} ns/sample) -- options: "
           f"{' '.join(CAND[best])}  [{time.time()-t0:.1f} s]")
+    print(f"  to reuse: faust -lang ocpp {' '.join(CAND[best])} [-a <architecture>] {a.dsp}")
     if a.output:
-        with open(a.output, "w") as out:
-            out.write(open(built[best][0]).read())
-        print(f"faustauto: émis dans {a.output}")
+        # the plain DSP class compiled with the winning options, not the
+        # benchmark program the election measured
+        r = subprocess.run([FAUST, "-lang", "ocpp", *CAND[best], a.dsp, "-o", a.output],
+                           env=dict(os.environ, **CAND_ENV.get(best, {})),
+                           capture_output=True, text=True)
+        if r.returncode:
+            sys.exit(f"faustauto: could not write {a.output}: {r.stderr.strip()[:200]}")
+        print(f"faustauto: written to {a.output}")
     if not a.keep:
         import shutil
         shutil.rmtree(workdir, ignore_errors=True)

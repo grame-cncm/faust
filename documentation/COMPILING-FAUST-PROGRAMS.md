@@ -398,16 +398,104 @@ Check every candidate setting against a reference before timing it.
   options imply `-ls` or `-ls-fuse` ; `-ls-R` and `-ls-U` also set the model
   of `-ss 9`, `11` and `12`. The fusion escort matters : `-fir` alone can
   lose where `-fir -ls-fuse -ls-sched model` wins.
-- **Automatically.** The search can be automated per program : read its
-  signature (`-sig`), shortlist the settings that the signature makes
-  plausible, measure them with the protocol of 4.2 under the C++ compiler
-  you ship with, check the winner (4.1), keep its code. A genetic search
-  over the options explores further, for a program worth the machine time.
+- **Automatically**, per program, with the tools of section 4.5.
 - **Keep what you find**, with the machine, the C++ compiler and the
   compiler version it was found with. A recipe found elsewhere is a
   starting point, to be measured again.
 
-### 4.5 Pitfalls
+### 4.5 An automatic search, step by step
+
+`tools/faustauto/faustauto.py` does sections 4.1 to 4.4 for one program. It
+reads the program's signature (`-sig`), shortlists the settings that the
+signature makes plausible, compiles each one with the benchmark harness
+`tests/impulse-tests/archs/flashbench.cpp`, times them in alternating rounds,
+checks the fastest against the impulse response of the default (without
+`-ffast-math`), and keeps the first one that passes. Run it from the root of
+the repository, with the compiler you built, on mains power (it refuses to
+time on battery) :
+
+```
+python3 tools/faustauto/faustauto.py examples/reverb/freeverb.dsp -o freeverb.cpp
+```
+
+On an Apple M1 with Apple clang, in 41 seconds :
+
+```
+faustauto: zone distilled ; candidates ['df', 'lb', 'fu', 'al', 'fifu', 'fibfu', 'fibmx', 't4fu', 'h2', 'rp', 'cs2b']
+  signature : nodes=372 recmii=37 nstreams=50 bankable=86% top1=83
+  fibmx: same code as fibfu, dropped
+  df   13.8760 ns
+  lb   13.8850 ns
+  fu   16.6460 ns
+  al   41.7840 ns
+  fifu 16.1860 ns
+  fibfu 15.9640 ns
+  t4fu 15.2300 ns
+  h2   12.7600 ns
+  rp   13.9160 ns
+  cs2b 14.1660 ns
+faustauto: winner h2 (12.7600 ns/sample) -- options: -ss 9 -ls-R 2 -ls-U 4  [41.2 s]
+  to reuse: faust -lang ocpp -ss 9 -ls-R 2 -ls-U 4 [-a <architecture>] examples/reverb/freeverb.dsp
+faustauto: written to freeverb.cpp
+```
+
+How to read it :
+
+- **The candidates** are named option sets (the table `CAND` at the top of
+  the script) : `df` is the default order, `h2` is `-ss 9 -ls-R 2 -ls-U 4`,
+  `fu` is `-ls-fuse -ls-sched model`, and so on. A candidate that emits the
+  same code as another is dropped before timing (`fibmx` here : the program
+  has no matrix family). `--full` times the whole jury instead of the
+  shortlist.
+- **The times** are nanoseconds per sample, the minimum over the rounds.
+  Here the winner is 8 % faster than the default (`df`), and one candidate
+  (`al`) is three times slower : a wrong guess would have cost more than the
+  right one gains.
+- **The winner** has passed the correctness check : a candidate whose
+  impulse response differs from the default's is reported `DISQUALIFIED`
+  and the next one is taken.
+- **`-o`** writes the DSP class compiled with the winning options. To build
+  an application, pass the same options to `faust` with your own
+  architecture file, as the `to reuse` line shows :
+
+  ```
+  faust -lang ocpp -ss 9 -ls-R 2 -ls-U 4 -a jack-gtk.cpp examples/reverb/freeverb.dsp -o freeverb.cpp
+  ```
+
+The C++ compiler that times the candidates is part of the result (4.3) :
+choose it, and its flags, to be the ones you ship with.
+
+| Variable | Default | Role |
+| :--- | :--- | :--- |
+| `FAUSTAUTO_FAUST` | `build/bin/faust` | the Faust compiler |
+| `FAUSTAUTO_CXX` | `/usr/bin/c++` | the C++ compiler that builds and times the candidates |
+| `FAUSTAUTO_CXXFLAGS` | `-O3 -ffast-math -march=native -fbracket-depth=1024` | its flags ; the last one is clang's : with g++, set e.g. `-O3 -ffast-math -march=native` |
+
+For example, to search for g++ :
+
+```
+FAUSTAUTO_CXX=g++ FAUSTAUTO_CXXFLAGS="-O3 -ffast-math -march=native" \
+  python3 tools/faustauto/faustauto.py examples/reverb/freeverb.dsp
+```
+
+**Going further, for one program worth the machine time.**
+`tools/faustauto/genetic.py` searches the option space by a genetic
+algorithm : scheduler, `R`, `U`, fusion, split, staging, `-fir`, `-lsum`,
+the selection options and `-rp` are its genes. `--genes` restricts the
+search, `--pop` and `--gens` size it, and the champion is checked for
+correctness before it is reported :
+
+```
+python3 tools/faustauto/genetic.py examples/reverb/freeverb.dsp --pop 16 --gens 20
+python3 tools/faustauto/genetic.py examples/reverb/freeverb.dsp --genes sched,R,U,fuse
+```
+
+With `--book`, a valid champion is written to `tools/faustauto/recipes.tsv`,
+and `faustauto.py` then adds it to the candidates of that program (as `bk`).
+The book records the machine and the date of each recipe : a recipe found on
+another machine is a starting point, not a result.
+
+### 4.6 Pitfalls
 
 - **An inert option still changes the output file.** The generated code
   records its compilation options (`declare("compile_options", ...)` and a

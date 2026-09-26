@@ -3,7 +3,7 @@
 around ONE program, under the promoted judge.
 
 Genome: one allele per gene (scheduler, R, U, fusion, split,
-staging, fir, lsum, lazy, gatequiv, selectn, rp, tau, atoms).
+staging, fir, lsum, lazy, gatequiv, selectn, rp).
 Fitness: flash ns/sample (promotion spin active), min of 2 runs;
 a broken build = infinite fitness (selection cleans it out).
 CORRECTNESS: hard constraint -- the best of each generation must
@@ -27,12 +27,12 @@ GENES = {
     "lazy":  [[], ["-lazyselect"]],
     "gq":    [[], ["-gatequiv"]],
     "sn":    [[], ["-selectn"]],
+    "rp":    [[], ["-rp"]],
 }
-ENVGENES = {
-    "rp":    [{}, {"FAUST_SS_RINGPRELOAD": "1"}],
-    "tau":   [{}, {"FAUST_GATEQUIV_TAU": "6"}, {"FAUST_GATEQUIV_TAU": "24"}],
-    "atoms": [{}, {"FAUST_LZ_ATOMS": "2"}, {"FAUST_LZ_ATOMS": "6"}],
-}
+# genes carried by an environment variable : none since the compiler's
+# tuning variables became options or fixed values (the gatequiv window
+# and the lazy-select atom limit are no longer tunable)
+ENVGENES = {}
 ALL = list(GENES) + list(ENVGENES)
 
 def flags_of(g):
@@ -106,7 +106,7 @@ def main():
                     help="comma list restricting the searched genes, e.g. sched,R,U,fuse "
                          "(the others stay locked at their off/default allele)")
     ap.add_argument("--book", action="store_true",
-                    help="inscrire le champion valide au livre de recettes")
+                    help="write the valid champion into the recipe book")
     a = ap.parse_args()
     free = set(ALL)
     if a.genes:
@@ -147,7 +147,7 @@ def main():
         print(f"gen {gen:2d} : best={gbest:8.3f} (global {best:8.3f}) "
               f"evals={ev.n} : {' '.join(fl)} {env}", flush=True)
         if stall >= a.stall:
-            print("stagnation, arret.", flush=True)
+            print("stagnation, stopping.", flush=True)
             break
         # next generation: elitism, tournament, uniform crossover, mutation
         elite = [dict(pop[i]) for _, i in scored[:a.elite]]
@@ -164,10 +164,10 @@ def main():
             nxt.append(child)
         pop = nxt
     # verdict: correctness of the champion, else walk back up the ranking
-    print("\nverification de justesse du champion...", flush=True)
+    print("\nchecking the champion's correctness...", flush=True)
     if ev.correct(bestg):
         fl, env = flags_of(bestg)
-        print(f"CHAMPION VALIDE : {best:.3f} ns : {' '.join(fl)} {env}")
+        print(f"VALID CHAMPION : {best:.3f} ns : {' '.join(fl)} {env}")
         if a.book:
             import datetime
             book = os.path.join(os.path.dirname(os.path.abspath(__file__)), "recipes.tsv")
@@ -177,9 +177,9 @@ def main():
             envs = " ".join(f"{k}={v}" for k, v in sorted(env.items()))
             lines.append(f"{base}\t{datetime.date.today()}\t{' '.join(fl)}\t{envs or '-'}\n")
             open(book, "w").writelines(lines)
-            print(f"inscrit au livre : {base}")
+            print(f"written to the recipe book : {base}")
     else:
-        print("champion DISQUALIFIE (IR fausse) — a instruire")
+        print("champion DISQUALIFIED (wrong impulse response) -- to investigate")
     shutil.rmtree(wd, ignore_errors=True)
 
 if __name__ == "__main__":
