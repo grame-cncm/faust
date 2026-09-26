@@ -1219,18 +1219,16 @@ class NNXBaseInstVisitor : public TextInstVisitor {
         *fOut << "for " << inst->getName() << " in ";
 
         if (inst->fReverse) {
-            // todo:
-            *fOut << "reverse(";
             Int32NumInst* lower_bound = dynamic_cast<Int32NumInst*>(inst->fLowerBound);
             faustassert(lower_bound);
-            *fOut << lower_bound->fNum << ":";
             Int32NumInst* upper_bound = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
             if (upper_bound) {
-                *fOut << upper_bound->fNum;
+                *fOut << "range(" << upper_bound->fNum << ", " << (lower_bound->fNum - 1) << ", -1):";
             } else {
+                *fOut << "range(";
                 inst->fUpperBound->accept(this);
+                *fOut << ", " << (lower_bound->fNum - 1) << ", -1):";
             }
-            *fOut << ")";
         } else {
             Int32NumInst* lower_bound = dynamic_cast<Int32NumInst*>(inst->fLowerBound);
             faustassert(lower_bound);
