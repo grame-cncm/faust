@@ -439,10 +439,10 @@ candidate it launches gets the same memory layout (section 4.2) :
 setarch -R fcautotool examples/reverb/freeverb.dsp -o freeverb.cpp
 ```
 
-Without it, the same binary varies by about 25 % from one launch to the next
-on a machine that randomises addresses, and the election of the winner
-becomes a draw, even though each time it reports is right. macOS does not
-have this problem.
+Without it, on a machine that randomises addresses, the speed of the same
+binary is itself drawn at each launch (by about 25 %) : neither the reported
+times nor the name of the winner can be trusted. macOS does not have this
+problem.
 
 On an Apple M1 with clang 22, with a development `faust` on the `PATH`, in
 49 seconds (the lists are shortened here) :
