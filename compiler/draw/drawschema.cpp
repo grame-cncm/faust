@@ -139,6 +139,18 @@ static char*   legalFileName(Tree t, int n, char* dst);
 static schema* addSchemaInputs(int ins, schema* x);
 static schema* addSchemaOutputs(int outs, schema* x);
 
+// Sets gGlobal->gOccurrences for the duration of a scope and restores the
+// previous value on exit, including when drawing throws (writeSchemaFile can
+// throw faustexception). The Occur itself is owned by the caller.
+struct ScopedOccurrences {
+    Occur* fSaved;
+    explicit ScopedOccurrences(Occur* occur) : fSaved(gGlobal->gOccurrences)
+    {
+        gGlobal->gOccurrences = occur;
+    }
+    ~ScopedOccurrences() { gGlobal->gOccurrences = fSaved; }
+};
+
 /**
  *The entry point to generate from a block diagram as a set of
  *svg files stored in the directory "<projname>-svg/" or
@@ -161,8 +173,13 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
 
     // Count how many parents each node has in the hash-consed DAG (linear in
     // the number of distinct nodes), so shared nodes can be folded instead of
-    // expanded (see generateDiagramSchema).
-    gGlobal->gOccurrences = new Occur(bd);
+    // expanded (see generateDiagramSchema). The counts are only needed by this
+    // drawing pass, so the Occur is scoped here instead of being left to
+    // tlib::cleanup() (one would be orphaned per -svg/-ps compilation with a
+    // long-lived createLibContext context, where global::reset() only clears
+    // the pointer).
+    Occur             occur(bd);
+    ScopedOccurrences scoped(&occur);
 
     mkchDir(projname);  // create a directory to store files
 
