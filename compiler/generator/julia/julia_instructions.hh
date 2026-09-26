@@ -247,7 +247,7 @@ class JuliaInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["cosf"]       = "cos";
         gPolyMathLibTable["expf"]       = "exp";
         gPolyMathLibTable["exp2f"]      = "exp2";
-        gPolyMathLibTable["exp10f"]     = "exp10f";
+        gPolyMathLibTable["exp10f"]     = "exp10";
         gPolyMathLibTable["floorf"]     = "floor";
         gPolyMathLibTable["fmodf"]      = "mod";
         gPolyMathLibTable["logf"]       = "log";
