@@ -50,6 +50,10 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
+
 // Always include this file, otherwise -nvoices only mode does not compile....
 #include "faust/gui/MidiUI.h"
 
@@ -220,6 +224,11 @@ int main(int argc, char* argv[])
         cerr << "Unable to init audio" << endl;
         exit(1);
     }
+
+#ifdef SOUNDFILE
+    SoundUI soundinterface("", audio.getSampleRate());
+    DSP->buildUserInterface(&soundinterface);
+#endif
     
     finterface->recallState(rcfilename);
     

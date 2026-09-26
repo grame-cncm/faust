@@ -53,6 +53,10 @@
 #include "faust/dsp/dsp-tools.h"
 #include "faust/misc.h"
 
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
+
 /******************************************************************************
  *******************************************************************************
  
@@ -130,6 +134,11 @@ int main(int argc_aux, char* argv_aux[])
     // Recall state before handling commands
     FUI finterface;
     DSP.buildUserInterface(&finterface);
+
+#ifdef SOUNDFILE
+    SoundUI soundinterface;
+    DSP.buildUserInterface(&soundinterface);
+#endif
     
     CMDUI* interface = new CMDUI(argc, argv, true);
     DSP.buildUserInterface(interface);
