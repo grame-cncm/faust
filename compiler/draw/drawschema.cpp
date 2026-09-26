@@ -148,6 +148,16 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
     gGlobal->gDevSuffix   = dev;  // .svg or .ps used to choose output device
     gGlobal->gFoldingFlag = boxComplexity(bd) > gGlobal->gFoldThreshold;
 
+    // Each call draws a complete set of files in its own directory: forget what
+    // a previous call drew (-ps then -svg, the documentator diagrams, or a
+    // previous compilation in the same libfaust context), otherwise its nodes
+    // are seen as already drawn and are not written again, and the back links
+    // point to its files.
+    gGlobal->gDrawnExp.clear();
+    gGlobal->gBackLink.clear();
+    gGlobal->gPendingExp = std::stack<Tree>();
+    gGlobal->gSchemaFileName.clear();
+
     mkchDir(projname);  // create a directory to store files
 
     scheduleDrawing(bd);  // schedule the initial drawing
