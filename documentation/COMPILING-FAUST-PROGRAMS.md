@@ -542,12 +542,60 @@ CHAMPION VALID: 13.813 ns (single precision) : -ls-R 2 -ls-U 2 -lazyselect -gate
 
 A real search takes hours, on mains power. `--pop`, `--gens`, `--stall`,
 `--mut`, `--elite`, `--tourney`, `--runs` and `--seed` tune it ;
-`--double` and `--pn` work as for `fcautotool`. With `--book`, a valid
-champion is written to `fcrecipes.tsv` (or the file given), one per program
-and per precision ; `fcautotool` then races it as candidate `bk` when it
-runs in the directory of the book (or with `FCRECIPES` pointing to it). A
-recipe is data about one machine and one C++ compiler : found elsewhere, it
-is a starting point, to be measured again.
+`--double` and `--pn` work as for `fcautotool`.
+
+**How the two tools work together.** They share one file, the *recipe
+book*. `fcgentool` writes its champions into it ; `fcautotool` reads it and
+races the recipe it finds there against its own jury. The usual circuit :
+
+1. `fcautotool` on every program, in a minute each ;
+2. `fcgentool --book` on the programs that matter, overnight ;
+3. `fcautotool` again, later, with the book at hand : the champion now runs
+   in the election, beside the jury.
+
+The book is a tab-separated text file, `fcrecipes.tsv` by default, one line
+per program and precision :
+
+```
+# fcgentool recipe book -- per-machine champions, injected by
+# fcautotool as candidate 'bk' (correctness-gated at every use).
+# basename	date	flags	env	precision
+freeverb.dsp	2026-09-26	-ls-R 2 -ls-U 4 -lsum	-	single
+```
+
+`fcgentool --book` adds the line of its champion, only if the champion is
+valid, and replaces the earlier line of the same program in the same
+precision ; `--book FILE` names another file. `fcautotool` reads
+`./fcrecipes.tsv`, or the file named by `FCRECIPES`. When it finds the
+program there, in the precision it is electing in, it says so and races the
+recipe as candidate `bk` :
+
+```
+FCRECIPES=fcrecipes.tsv fcautotool examples/reverb/freeverb.dsp
+fcautotool: book recipe joins the race (bk): -ls-R 2 -ls-U 4 -lsum
+  ...
+  bk        13.8130 ns  (-lang ocpp -ls-R 2 -ls-U 4 -lsum)
+  ...
+fcautotool: winner r3s (11.9870 ns/frame, single precision) -- ...
+```
+
+Here the recipe came from a three-generation run and loses to the jury's
+`r3s` : a recipe is not trusted, it is raced again and checked again at every
+use, so a stale or weak one simply loses. A recipe bred in the other
+precision is left out, and the tool says so :
+
+```
+fcautotool: book recipe skipped: bred in single, electing in double
+```
+
+Three things the book does not record, so keep them in mind :
+
+- **the machine and the C++ compiler** a recipe was bred with : keep one
+  book per machine and C++ compiler, and point `FCRECIPES` at the right one ;
+- **the path of the program** : the key is the file name alone, so two
+  programs named `freeverb.dsp` in different directories share one line ;
+- **the entry point** : with `--pn`, two entry points of one file share one
+  line too.
 
 ### 4.6 Pitfalls
 
