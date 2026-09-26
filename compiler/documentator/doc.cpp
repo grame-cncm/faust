@@ -1013,8 +1013,10 @@ static char* legalFileName(const Tree t, int n, char* dst)
     }
     dst[i] = 0;
     if (strcmp(dst, "process") != 0) {
-        // if it is not process add the hex address to make the name unique
-        snprintf(&dst[i], n - i, "-%p", (void*)t);
+        // if it is not process, add the node's serial number to make the name
+        // unique : the same suffix as the files written by drawSchema
+        // (drawschema.cpp), which the \includegraphics must name
+        snprintf(&dst[i], n - i, "-%zu", (size_t)t->serial());
     }
     return dst;
 }
