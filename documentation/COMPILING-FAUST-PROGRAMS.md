@@ -1,7 +1,7 @@
 # Compiling Faust programs
 
 This document is for anyone who compiles Faust programs to C++ and wants the
-generated code to be both correct and fast. It describes every option of the
+generated code to be fast. It describes every option of the
 two C++ backends, `cpp` and `ocpp`. It then explains how to find good options
 for a given program, machine and C++ compiler. The script
 `tests/doc-tests/check-compiling-doc.py` keeps the list of options in step
@@ -15,8 +15,9 @@ Three facts shape everything below.
   same generated code can run twice as fast under clang as under g++, or the
   reverse, so a setting is good for a machine and a family of C++ compilers,
   not in general.
-- **Correctness comes first.** A faster binary whose output differs from the
-  reference is a wrong program, and its speed does not count.
+- **Options change the speed, not the program.** Whatever the options, the
+  generated code computes what the Faust program says. The few options that
+  trade exactness for speed on purpose are listed in section 4.1.
 
 ## 1. Two C++ backends : `cpp` and `ocpp`
 
@@ -29,13 +30,12 @@ graph into code.
   intermediate language (FIR) and is shared with the other backends (C,
   LLVM, WebAssembly...). It is the stable, portable choice. It is also the
   only one with the vector and parallel modes (`-vec`, `-omp`, `-sch`,
-  section 2.8), and it is the reference against which the correctness of
-  every other setting is checked.
+  section 2.8).
 - **`ocpp`** (`-lang ocpp`) emits C++ directly from the signal graph. It
   is where the signal-level optimizations live : filter recognition, sum
   factorization, isomorphic families, loop splitting and instruction
   scheduling (sections 2.3 to 2.7). Almost all of these are options, off by
-  default, marked *experimental* : each is correct on the test suites, but
+  default, marked *experimental* : tested like the rest of the compiler, but
   worth using only on the programs where it measures faster.
 
 In the tables, `cpp` means that the `cpp` backend honours the option. Many
@@ -53,8 +53,8 @@ source file to the emitted class. `Backends` says which of `cpp` and `ocpp`
 take the option into account. `Status` is one of :
 
 - **stable** : part of the compiler's long-standing interface ;
-- **experimental** : correct on the test suites, off by default, worth it on
-  some programs only ;
+- **experimental** : off by default, tested like the rest of the compiler,
+  worth it on some programs only ;
 - **contract** : the option makes a promise that the architecture file must
   keep, and the generated code checks it ;
 - **diagnostic** : prints or draws something, never changes the generated
@@ -321,29 +321,29 @@ are also switches.
 
 ## 4. Finding good options
 
-### 4.1 Correctness first
+### 4.1 What the options may change in the results
 
-Check every candidate setting against a reference before timing it.
+The generated code is correct whatever the options : that is the compiler's
+job, and its test suites check it (`tests/TESTING.md`). Two kinds of change
+remain, both intended.
 
-- **The reference** is the same program compiled with `cpp` and no option.
-  Compare the impulse responses (the tools of `tests/impulse-tests/`),
-  and see `tests/TESTING.md` for the gates the compiler itself must pass.
-- **Judge the first divergence, not the final gap.** On a program with
-  feedback (a reverberator, a resonant model), a legal difference of one
-  unit in the last place, from a reordered sum, can grow into a large
-  difference after a few seconds. The first sample that differs tells
-  whether the difference is legal rounding or a wrong program ; the final
-  error tells nothing.
-- **Check in the precision you ship.** A setting checked in `-double` is not
-  checked in float : the two precisions do not always give the same code,
-  and bit-exact comparison between two backends is not possible in float
-  (different operation orders, legitimately different roundings). Compare
-  in float with a tolerance, between candidates of the same backend.
-- **Never compile the reference or the candidate with `-ffast-math`** for a
-  correctness check. It lets the C++ compiler change the results itself,
-  and then the comparison no longer judges Faust.
-- **A test that cannot fail proves nothing.** Before trusting a comparison,
-  make it fail once on purpose (change one byte of one output).
+- **Options that trade exactness for speed, on purpose.** `-fm` and `-mapp`
+  use approximate mathematical functions ; `-mindelay` gives short variable
+  delays a floor ; `-ftz` flushes denormals to zero ; `-fui` freezes the
+  controls. Use them knowing what they give up. The same goes for the C++
+  compiler's own flags : `-ffast-math` lets it change the arithmetic.
+- **The last digit.** Options that reorder arithmetic (`-lsum`, `-reassoc`,
+  `-fir`, the scheduling options) can change the rounding of a sum in its
+  last bit. Both results are correct roundings of the same computation. In a
+  program with feedback (a reverberator, a resonant model) such a difference
+  can grow over seconds into a visible one : the two outputs are then two
+  equally valid trajectories, not an error.
+- **The precision is a choice.** Pick float or double for what the program
+  needs ; a setting found fastest in double should be timed again in float
+  before it is used there, the two do not always give the same code.
+
+Anything else, an option that changes the result beyond this, is a compiler
+bug : please report it.
 
 ### 4.2 Measuring
 
@@ -366,9 +366,8 @@ Check every candidate setting against a reference before timing it.
   needed, and the minimum measures the best placement found, not the program.
 - **Build and measure separately.** A binary measured while something else
   compiles is not measured.
-- **A gain of ten is a bug until shown otherwise.** Check that the fast
-  code still does all the work (displays included : an impulse-response
-  check does not see a bargraph that is no longer computed).
+- **Be suspicious of a tenfold gain.** Check that the two measurements
+  measured what you think : the right binaries, doing the same work.
 
 ### 4.3 What a result is valid for
 
@@ -405,12 +404,11 @@ Check every candidate setting against a reference before timing it.
 
 ### 4.5 An automatic search, step by step
 
-`tools/faustauto/faustauto.py` does sections 4.1 to 4.4 for one program. It
+`tools/faustauto/faustauto.py` does sections 4.2 to 4.4 for one program. It
 reads the program's signature (`-sig`), shortlists the settings that the
 signature makes plausible, compiles each one with the benchmark harness
 `tests/impulse-tests/archs/flashbench.cpp`, times them in alternating rounds,
-checks the fastest against the impulse response of the default (without
-`-ffast-math`), and keeps the first one that passes. Run it from the root of
+and keeps the fastest. Run it from the root of
 the repository, with the compiler you built, on mains power (it refuses to
 time on battery) :
 
@@ -451,9 +449,10 @@ How to read it :
   Here the winner is 8 % faster than the default (`df`), and one candidate
   (`al`) is three times slower : a wrong guess would have cost more than the
   right one gains.
-- **The winner** has passed the correctness check : a candidate whose
-  impulse response differs from the default's is reported `DISQUALIFIED`
-  and the next one is taken.
+- **As a safeguard**, the winner's impulse response is compared with the
+  default's before it is kept. A candidate that differs beyond rounding is
+  reported `DISQUALIFIED` and the next one is taken ; such a report points
+  to a compiler bug and is worth sending.
 - **`-o`** writes the DSP class compiled with the winning options. To build
   an application, pass the same options to `faust` with your own
   architecture file, as the `to reuse` line shows :
@@ -482,8 +481,8 @@ FAUSTAUTO_CXX=g++ FAUSTAUTO_CXXFLAGS="-O3 -ffast-math -march=native" \
 `tools/faustauto/genetic.py` searches the option space by a genetic
 algorithm : scheduler, `R`, `U`, fusion, split, staging, `-fir`, `-lsum`,
 the selection options and `-rp` are its genes. `--genes` restricts the
-search, `--pop` and `--gens` size it, and the champion is checked for
-correctness before it is reported :
+search, `--pop` and `--gens` size it, and the champion goes through the same
+safeguard before it is reported :
 
 ```
 python3 tools/faustauto/genetic.py examples/reverb/freeverb.dsp --pop 16 --gens 20
