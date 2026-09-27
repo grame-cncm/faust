@@ -153,15 +153,22 @@ class PowPrim : public xtendedCodegen {
                                            std::to_string(pow_arg) +
                                            ((rtype == Typed::kInt32) ? "_i" : "_f");
 
+            // The argument's name carries its type. Variable types are kept in
+            // one global table keyed by NAME, so an int and a float helper that
+            // both called their argument "value" shared one entry: whichever
+            // was declared last decided, and the C backend then rendered the
+            // float helper's multiply as the int32 faust_wrap_mul(), truncating
+            // every float x*x to an integer square.
+            std::string arg_name = (t0 == Typed::kInt32) ? "value_i" : (t0 == Typed::kInt64) ? "value_l" : "value_f";
             Names named_args;
-            named_args.push_back(IB::genNamedTyped("value", IB::genBasicTyped(t0)));
+            named_args.push_back(IB::genNamedTyped(arg_name, IB::genBasicTyped(t0)));
 
             if (pow_arg == 0) {
                 block->pushBackInst(IB::genRetInst(IB::genTypedNum(t0, 1.0)));
             } else {
-                ValueInst* res = IB::genLoadFunArgsVar("value");
+                ValueInst* res = IB::genLoadFunArgsVar(arg_name);
                 for (int i = 0; i < pow_arg - 1; i++) {
-                    res = IB::genMul(res, IB::genLoadFunArgsVar("value"));
+                    res = IB::genMul(res, IB::genLoadFunArgsVar(arg_name));
                 }
                 block->pushBackInst(IB::genRetInst(res));
             }
