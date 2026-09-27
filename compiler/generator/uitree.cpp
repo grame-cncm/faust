@@ -161,13 +161,19 @@ static Tree sortPropList(Tree pl)
 {
     std::vector<Tree> items;
 
-    // Copy list elements into a temporary vector.
+    // Copy list elements into a temporary vector, back in insertion order:
+    // addKey() prepends, so the list holds the last inserted item first.
     for (Tree l = pl; !isNil(l); l = tl(l)) {
         items.push_back(hd(l));  // (key . val)
     }
+    std::reverse(items.begin(), items.end());
 
-    std::sort(items.begin(), items.end(),
-              [](Tree a, Tree b) { return isBefore(left(a), left(b)); });
+    // Stable, so items whose labels compare equal (unlabelled widgets, all
+    // keyed by an empty label) keep their insertion order instead of the one
+    // std::sort happens to leave them in; checkNullBargraphLabel numbers the
+    // unlabelled bargraphs in that order.
+    std::stable_sort(items.begin(), items.end(),
+                     [](Tree a, Tree b) { return isBefore(left(a), left(b)); });
 
     // Rebuild a list in the sorted order.
     Tree res = gGlobal->nil;
