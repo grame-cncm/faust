@@ -872,8 +872,20 @@ struct FamShapes {
     std::vector<std::string>         ops;     // id -> the operator (for the trace)
     std::vector<std::vector<Shape>>  kids;    // id -> the children (for the trace)
     Shape                            SLOW, AUDIO;
-    std::map<Tree, Shape>            memo;   // closed subtrees only
+    std::map<Tree, Shape>            memo;   // closed subtrees
     std::vector<Tree>                stack;  // the enclosing groups (their identifiers), innermost last
+    // Open subtrees, per stack of enclosing groups : an open subtree's shape
+    // depends on the levels of the groups it names, hence on the whole stack,
+    // and on nothing else. Without this memo, a body whose subtrees are shared
+    // (a cascade of stages under a feedback) was walked once per PATH, not once
+    // per node : d63 of the synthetic tests, 0.1 s without -fam, did not finish
+    // in 600 s with it.
+    std::map<std::vector<Tree>, std::map<Tree, Shape>> openMemo;
+    void clearMemo()
+    {
+        memo.clear();
+        openMemo.clear();
+    }
     FamShapes()
     {
         SLOW  = make("SLOW", 1, "", {});
@@ -953,16 +965,13 @@ struct FamShapes {
     }
     Shape shapeOf(Tree t)
     {
-        const bool closed = !openHere(t);
-        if (closed) {
-            if (auto it = memo.find(t); it != memo.end()) {
-                return it->second;
-            }
+        // std::map keeps its references valid across insertions : m survives compute
+        std::map<Tree, Shape>& m = openHere(t) ? openMemo[stack] : memo;
+        if (auto it = m.find(t); it != m.end()) {
+            return it->second;
         }
         Shape r = compute(t);
-        if (closed) {
-            memo[t] = r;
-        }
+        m[t]    = r;
         return r;
     }
     Shape compute(Tree t)
@@ -1061,9 +1070,10 @@ struct FamClasses {
         for (int round = 0; round < 256; round++) {
             members.clear();
             shapeOfNode.clear();
-            S.memo.clear();
+            S.clearMemo();
             collect(root, S);
             std::map<Tree, bool> settled;
+            insideMemo.clear();
             std::set<Tree>       fresh;
             for (auto& kv : shapeOfNode) {
                 int k;
@@ -1089,6 +1099,7 @@ struct FamClasses {
             S.holes.insert(fresh.begin(), fresh.end());
         }
     }
+    std::map<std::set<Tree>, std::map<Tree, bool>> insideMemo;  // isSettled of open nodes, per active set, per round
     bool rare(Tree t)
     {
         auto it = shapeOfNode.find(t);
@@ -1118,7 +1129,16 @@ struct FamClasses {
             inside = inside || S.groupsOf(c).count(g);
         }
         if (inside) {
-            return childrenSettled(c, S, memo, active);
+            // an open node depends on the active groups, and on nothing else : memoized per
+            // active set, so that a body with shared subtrees is walked once per node, not
+            // once per path (the same reason as FamShapes::openMemo)
+            std::map<Tree, bool>& m = insideMemo[active];
+            if (auto it = m.find(c); it != m.end()) {
+                return it->second;
+            }
+            bool r = childrenSettled(c, S, memo, active);
+            insideMemo[active][c] = r;
+            return r;
         }
         if (auto it = memo.find(c); it != memo.end()) {
             return it->second;
