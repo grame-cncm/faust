@@ -8,6 +8,7 @@
 #include "sigs-state.hh"
 #include "prim2.hh"
 #include "rewrite.hh"
+#include "rewriteGateA.hh"
 
 //----------------------------------------------------------------------
 // Structural staging : sigTemp barriers placed at normalization
@@ -225,5 +226,8 @@ Tree placeTemps(Tree lsig, int K)
     auto rule    = [&](Tree orig, Tree rebuilt) -> Tree {
         return stage.count(orig) ? sigTemp(rebuilt) : rebuilt;
     };
-    return treeRewritePairedMemo(lsig, pre, rule, memo, defRule);
+    // the minimal rewrite : a group whose body comes back unchanged keeps its name
+    Tree res = treeRewriteMinimalPaired(lsig, pre, rule, defRule);
+    rewriteGateA("placeTemps", res, [&] { return treeRewritePairedMemo(lsig, pre, rule, memo, defRule); });
+    return res;
 }

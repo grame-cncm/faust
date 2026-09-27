@@ -36,6 +36,7 @@
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
+#include "rewriteGateA.hh"
 #include "sigGenCut.hh"
 #include "dlcodegen.hh"
 #include "floats.hh"
@@ -134,7 +135,10 @@ Tree ScalarCompiler::famFreeze(Tree root, const std::set<Tree>& frozen, std::uno
     };
     auto rule    = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
     auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
-    return treeRewritePaired(root, pre, rule, memo, defRule);
+    // the minimal rewrite : a group whose body comes back unchanged keeps its name
+    Tree res = treeRewriteMinimalPaired(root, pre, rule, defRule);
+    rewriteGateA("famFreeze", res, [&] { return treeRewritePaired(root, pre, rule, memo, defRule); });
+    return res;
 }
 
 // the placeholders replaced by the nodes they stood for, which come back as
@@ -148,7 +152,9 @@ Tree ScalarCompiler::famThaw(Tree root, const std::unordered_map<Tree, Tree>& ba
     };
     auto rule    = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
     auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
-    return treeRewritePaired(root, pre, rule, memo, defRule);
+    Tree res     = treeRewriteMinimalPaired(root, pre, rule, defRule);
+    rewriteGateA("famThaw", res, [&] { return treeRewritePaired(root, pre, rule, memo, defRule); });
+    return res;
 }
 
 // -fam -fir : the kernel pipeline (the one of -fir, revealSum first, the

@@ -10,6 +10,7 @@
 #include "sigGenCut.hh"
 #include "sigs-state.hh"
 #include "simplify.hh"
+#include "rewriteGateA.hh"
 
 // simplify() requires closed terms : during the rewrite, the subtrees of
 // a recursive group carry open references (ref without a filled rec) that
@@ -181,5 +182,8 @@ Tree revealSum(Tree L1, bool throughShared, std::unordered_map<Tree, Tree>* orig
         return result;
     };
 
-    return treeRewritePairedMemo(L1, pre, rule, memo, defRule);
+    // the minimal rewrite : a group whose body comes back unchanged keeps its name
+    Tree res = treeRewriteMinimalPaired(L1, pre, rule, defRule);
+    rewriteGateA("revealSum", res, [&] { return treeRewritePairedMemo(L1, pre, rule, memo, defRule); });
+    return res;
 }

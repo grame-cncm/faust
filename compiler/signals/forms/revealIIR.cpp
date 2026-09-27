@@ -18,6 +18,7 @@
 #include "sigIIR.hh"
 #include "sigs-state.hh"
 #include "signals.hh"
+#include "rewriteGateA.hh"
 
 #define TRACE false
 
@@ -454,5 +455,8 @@ Tree hoistCommonNumerators(Tree L1)
         D2[1]   = sigFIR(F);  // hash-consed : the same node for the whole group
         return sigIIR(D2);
     };
-    return treeRewritePairedMemo(L1, pre, rule, memo, defRule);
+    // the minimal rewrite : a group whose body comes back unchanged keeps its name
+    Tree res = treeRewriteMinimalPaired(L1, pre, rule, defRule);
+    rewriteGateA("hoistCommonNumerators", res, [&] { return treeRewritePairedMemo(L1, pre, rule, memo, defRule); });
+    return res;
 }

@@ -13,6 +13,7 @@
 #include "rewrite.hh"
 #include "signals.hh"
 #include "sigs-state.hh"
+#include "rewriteGateA.hh"
 
 // a shifted kernel site : FIR[x@d, c..] with a literal d > 0
 static bool isShiftedKernel(Tree t, Tree& x, int& d, tvec& coef)
@@ -239,6 +240,9 @@ Tree dissolveUnitKernels(Tree L)
         }
         return rebuilt;
     };
-    return treeRewritePairedMemo(L, pre, rule, memo, defRule);
+    // the minimal rewrite : a group whose body comes back unchanged keeps its name
+    Tree res = treeRewriteMinimalPaired(L, pre, rule, defRule);
+    rewriteGateA("dissolveUnitKernels", res, [&] { return treeRewritePairedMemo(L, pre, rule, memo, defRule); });
+    return res;
 }
 
