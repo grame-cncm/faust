@@ -440,14 +440,73 @@ inline void checkWellFormed(const RecPlan& plan)
     }
 }
 
-// the pair (I(s), R(s)) of one component ; I is nullptr once no longer built
-template <class Rule>
+// The guard of a rewrite, consulted at most once per input node : its decision
+// is kept, because the plan of the groups and the rewrite both need it.
+template <class Pre>
+struct Guard {
+    Pre&                                              pre;
+    std::unordered_map<Tree, std::optional<Tree>>     decided;
+
+    const std::optional<Tree>& operator()(Tree s)
+    {
+        auto it = decided.find(s);
+        if (it == decided.end()) {
+            std::optional<Tree> c = pre(s);
+            TLIB_ASSERT(!c.has_value() || *c != nullptr);
+            it = decided.emplace(s, c).first;
+        }
+        return it->second;
+    }
+};
+
+// the pair (I(s), R(s)) of one component ; I is nullptr once no longer built.
+// The rule is paired, rule(orig, rebuilt) : orig is always an input node, never
+// a renamed one, so its annotations stay readable while C takes fresh names.
+template <class Pre, class Rule, class DefRule>
 struct Component {
+    Guard<Pre>&                                       guard;
     Rule&                                             rule;
+    DefRule&                                          defRule;
+    bool                                              listBodies;  // the definition seam of treeRewritePaired
     std::unordered_map<Tree, Tree>&                   G;
     std::unordered_map<Tree, Tree>                    nu;  // SYMREC node of C -> fresh variable
     std::unordered_map<Tree, std::pair<Tree, Tree>>   P;
+    std::unordered_map<Tree, Tree>                    renamed;  // memo of rename
     bool                                              compare = true;
+
+    // s with the groups of C renamed and nothing else : the I of a subtree that
+    // the guard cut. No rule, no guard, and the references stop the descent.
+    Tree rename(Tree s)
+    {
+        if (s->isRecFree() || G.count(s)) {
+            return s;  // a decided subtree cannot mention C
+        }
+        auto itR = renamed.find(s);
+        if (itR != renamed.end()) {
+            return itR->second;
+        }
+        Tree res = s;
+        Tree var = nullptr, body = nullptr;
+        if (isRec(s, var, body)) {
+            auto itN = nu.find(s);
+            if (itN != nu.end()) {
+                res = ref(itN->second);
+            }
+        } else {
+            int  ar = s->arity();
+            tvec br(ar);
+            bool c = false;
+            for (int k = 0; k < ar; k++) {
+                br[k] = rename(s->branch(k));
+                c     = c || br[k] != s->branch(k);
+            }
+            if (c) {
+                res = tree(s->node(), br);
+            }
+        }
+        renamed[s] = res;
+        return res;
+    }
 
     std::pair<Tree, Tree> visit(Tree s)
     {
@@ -470,6 +529,12 @@ struct Component {
             Tree n = ref(itN->second);  // the reference stops the descent : bodies are visited by the component
             i      = compare ? n : nullptr;
             r      = n;
+        } else if (const std::optional<Tree>& cut = guard(s); cut.has_value()) {
+            // what the guard cuts enters the result as it is, and I is the plain
+            // renaming : a cut that mentions C forces the renaming of C, and keeps
+            // the old names inside (LA-REECRITURE-MINIMALE, the guard)
+            i = compare ? rename(s) : nullptr;
+            r = *cut;
         } else {
             int  ar = s->arity();
             tvec bi(ar), br(ar);
@@ -487,29 +552,99 @@ struct Component {
                 }
                 i = ci ? tree(s->node(), bi) : s;
             }
-            r = rule(cr ? tree(s->node(), br) : s);
+            r = rule(s, cr ? tree(s->node(), br) : s);
         }
         P[s] = {i, r};
         return {i, r};
     }
+
+    // The pair of a group body. With the definition seam, a list-shaped body is
+    // taken definition by definition : defRule applies to R only, at its slot, and
+    // neither the cells nor the wrapped definitions enter P, as in treeRewritePaired.
+    std::pair<Tree, Tree> visitBody(Tree body)
+    {
+        if (!listBodies) {
+            return visit(body);
+        }
+        std::vector<std::pair<Tree, Tree>> defs;
+        Tree                               l = body;
+        while (isList(l)) {
+            Tree d  = hd(l);
+            auto pr = visit(d);
+            defs.push_back({pr.first, defRule(d, pr.second)});
+            l = tl(l);
+        }
+        auto tail = visit(l);
+        Tree i = tail.first, r = tail.second;
+        for (auto it = defs.rbegin(); it != defs.rend(); ++it) {
+            if (compare) {
+                i = cons(it->first, i);
+            }
+            r = cons(it->second, r);
+        }
+        return {i, r};
+    }
 };
 
-template <class Rule>
-Tree rewriteMinimal(Tree root, Rule& rule, bool stopI)
+// The groups a guarded traversal reaches from t (the root, or a group body when
+// isBody) : the guard's cuts stop the scan, and with the definition seam a
+// list-shaped body is entered at its definitions, its cells never shown to the
+// guard -- the nodes the traversal itself shows it, no other.
+template <class Pre>
+void scanGuarded(Guard<Pre>& guard, bool listBodies, Tree t, bool isBody, std::vector<Tree>& found)
 {
-    const RecPlan plan(root);
+    std::unordered_set<Tree> visited;
+    std::vector<Tree>        stack;
+    if (isBody && listBodies) {
+        Tree l = t;
+        while (isList(l)) {
+            stack.push_back(hd(l));
+            l = tl(l);
+        }
+        stack.push_back(l);
+        std::reverse(stack.begin(), stack.end());
+    } else {
+        stack.push_back(t);
+    }
+    while (!stack.empty()) {
+        Tree s = stack.back();
+        stack.pop_back();
+        if (s->isRecFree() || !visited.insert(s).second) {
+            continue;
+        }
+        Tree var = nullptr, body = nullptr;
+        if (isRec(s, var, body)) {
+            found.push_back(s);
+            continue;
+        }
+        if (guard(s).has_value()) {
+            continue;
+        }
+        for (int i = s->arity() - 1; i >= 0; i--) {
+            stack.push_back(s->branch(i));
+        }
+    }
+}
+
+template <class Pre, class Rule, class DefRule>
+Tree rewriteMinimalCore(Tree root, Pre& pre, Rule& rule, DefRule& defRule, bool listBodies, bool stopI)
+{
+    Guard<Pre>    guard{pre, {}};
+    const RecPlan plan(root, [&](Tree t, bool isBody, std::vector<Tree>& found) {
+        scanGuarded(guard, listBodies, t, isBody, found);
+    });
     checkWellFormed(plan);
     std::unordered_map<Tree, Tree> G;  // the decided images, keyed by the input nodes
 
     for (const std::vector<Tree>& comp : plan.components()) {
-        Component<Rule> C{rule, G, {}, {}, true};
+        Component<Pre, Rule, DefRule> C{guard, rule, defRule, listBodies, G, {}, {}, {}, true};
         for (Tree g : comp) {
             C.nu[g] = tree(unique("W"));
         }
         std::vector<Tree> B;
         bool              differs = false;
         for (Tree g : comp) {
-            auto pr = C.visit(groupBody(g));
+            auto pr = C.visitBody(groupBody(g));
             B.push_back(pr.second);
             if (C.compare && pr.first != pr.second) {
                 differs = true;
@@ -574,20 +709,34 @@ Tree rewriteMinimal(Tree root, Rule& rule, bool stopI)
         if (isRec(s, var, body)) {
             tlib::error("treeRewriteMinimal : an undecided group outside the definitions");
         }
-        int  ar = s->arity();
-        tvec br(ar);
-        bool c = false;
-        for (int k = 0; k < ar; k++) {
-            br[k] = finish(s->branch(k));
-            c     = c || br[k] != s->branch(k);
+        Tree res = nullptr;
+        if (const std::optional<Tree>& cut = guard(s); cut.has_value()) {
+            res = *cut;
+        } else {
+            int  ar = s->arity();
+            tvec br(ar);
+            bool c = false;
+            for (int k = 0; k < ar; k++) {
+                br[k] = finish(s->branch(k));
+                c     = c || br[k] != s->branch(k);
+            }
+            res = rule(s, c ? tree(s->node(), br) : s);
         }
-        Tree res = rule(c ? tree(s->node(), br) : s);
-        G[s]     = res;
+        G[s] = res;
         return res;
     };
     Tree u = finish(root);
     checkWellFormed(RecPlan(u));  // also the groups the rule may have introduced
     return u;
+}
+
+template <class Rule>
+Tree rewriteMinimal(Tree root, Rule& rule, bool stopI)
+{
+    auto nopre  = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto paired = [&rule](Tree, Tree rebuilt) { return rule(rebuilt); };
+    auto nodef  = [](Tree, Tree rebuilt) { return rebuilt; };
+    return rewriteMinimalCore(root, nopre, paired, nodef, false, stopI);
 }
 
 }  // namespace tlibrwm
@@ -596,6 +745,60 @@ template <class Rule>
 Tree treeRewriteMinimal(Tree root, Rule&& rule)
 {
     return tlibrwm::rewriteMinimal(root, rule, true);
+}
+
+/**
+ * The guarded minimal rewrite, the counterpart of treeRewrite(root, pre, post) :
+ * pre is consulted top-down on each input node that is not a SYMREC, at most
+ * once per node. A cut enters the result as it is, never visited, never given
+ * to post. The plan of the groups is built by a scan that stops at the same
+ * cuts, so a group reachable only through a cut belongs to no component and is
+ * left as it is. A cut is compared with the plain renaming of its subtree : a
+ * cut that mentions a group of the current component forces the renaming of
+ * that component, and keeps the old names inside -- what the guard cuts is
+ * never touched, not even a name.
+ */
+template <class Pre, class Post>
+Tree treeRewriteMinimal(Tree root, Pre&& pre, Post&& post)
+{
+    auto paired = [&post](Tree, Tree rebuilt) { return post(rebuilt); };
+    auto nodef  = [](Tree, Tree rebuilt) { return rebuilt; };
+    return tlibrwm::rewriteMinimalCore(root, pre, paired, nodef, false, true);
+}
+
+/**
+ * treeRewriteMinimalPaired : treeRewritePaired, with the minimal naming of
+ * treeRewriteMinimal. The rule receives rule(orig, rebuilt), orig being always
+ * an input node ; defRule(origDef, rebuiltDef) wraps each definition of a
+ * list-shaped group body at its slot, positionally, as in treeRewritePaired.
+ * A wrapped definition that differs from its plain rewrite makes its body
+ * differ, so its component is renamed. The optional guard pre follows the
+ * guarded treeRewriteMinimal above ; it is never shown the cells of a body.
+ *
+ * The precondition on the rule becomes one on its second argument only : for a
+ * renaming nu of the groups, rule(s, x.nu) = rule(s, x).nu, and the same for
+ * defRule. Under this condition the result is alpha-equivalent to the one of
+ * treeRewritePaired.
+ */
+template <class Pre, class Rule, class DefRule>
+Tree treeRewriteMinimalPaired(Tree root, Pre&& pre, Rule&& rule, DefRule&& defRule)
+{
+    return tlibrwm::rewriteMinimalCore(root, pre, rule, defRule, true, true);
+}
+
+template <class Rule, class DefRule>
+Tree treeRewriteMinimalPaired(Tree root, Rule&& rule, DefRule&& defRule)
+{
+    auto nopre = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    return tlibrwm::rewriteMinimalCore(root, nopre, rule, defRule, true, true);
+}
+
+template <class Rule>
+Tree treeRewriteMinimalPaired(Tree root, Rule&& rule)
+{
+    auto nopre = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto nodef = [](Tree, Tree rebuilt) { return rebuilt; };
+    return tlibrwm::rewriteMinimalCore(root, nopre, rule, nodef, true, true);
 }
 
 #endif
