@@ -275,6 +275,7 @@ void SuperNodeGraph::reset()
     fRefs0.clear();
     fScc.clear();
     fBlocks.clear();
+    fVersion.clear();
     fOpsEstimate.clear();
 }
 
@@ -333,6 +334,10 @@ void SuperNodeGraph::build(Tree L, const std::vector<Tree>& sched, int freeDelay
         }
         fBlocks.push_back(orderByInstantDeps(comp));
     }
+    fVersion.resize(fBlocks.size());
+    for (long& v : fVersion) {
+        v = fNextVersion++;
+    }
 }
 
 /**
@@ -382,20 +387,11 @@ std::set<int> SuperNodeGraph::blockDeps(int b) const
 
 std::set<int> SuperNodeGraph::blockConsumers(int b) const
 {
-    std::set<int> cons;
-    for (int b2 = 0; b2 < (int)fBlocks.size(); b2++) {
-        if (b2 == b) {
-            continue;
-        }
-        for (int m : fBlocks[b2]) {
-            for (int r : fRefs[m]) {
-                if (fScc[r] == b) {
-                    cons.insert(b2);
-                }
-            }
-        }
-    }
-    return cons;
+    // b2 consumes b exactly when b is one of b2's dependencies : the transpose of the
+    // dependency cache, instead of a walk through every member of every block
+    cachedDeps(b);
+    const std::vector<int>& c = fConsCache[b];
+    return std::set<int>(c.begin(), c.end());
 }
 
 /**
@@ -407,9 +403,13 @@ const std::vector<int>& SuperNodeGraph::cachedDeps(int b) const
 {
     if (!fDepsValid) {
         fDepsCache.assign(fBlocks.size(), {});
+        fConsCache.assign(fBlocks.size(), {});
         for (int k = 0; k < (int)fBlocks.size(); k++) {
             std::set<int> d = blockDeps(k);
             fDepsCache[k].assign(d.begin(), d.end());
+            for (int x : d) {
+                fConsCache[x].push_back(k);  // k ascending : each list comes out sorted
+            }
         }
         fDepsValid = true;
     }
@@ -468,6 +468,8 @@ void SuperNodeGraph::contract(int a, int b)
     }
     fBlocks[a] = orderByInstantDeps(merged);
     fBlocks.erase(fBlocks.begin() + b);
+    fVersion[a] = fNextVersion++;
+    fVersion.erase(fVersion.begin() + b);
     // block ids above b shift down
     for (int& s : fScc) {
         if (s > b) {
@@ -512,11 +514,14 @@ void SuperNodeGraph::retopo()
     faustassert((int)order.size() == nb);  // acyclic by invariant
     std::vector<std::vector<int>> nb2(nb);
     std::vector<int>              newId(nb);
+    std::vector<long>             nv(nb);
     for (int k = 0; k < nb; k++) {
         newId[order[k]] = k;
         nb2[k]          = fBlocks[order[k]];
+        nv[k]           = fVersion[order[k]];
     }
-    fBlocks = std::move(nb2);
+    fBlocks  = std::move(nb2);
+    fVersion = std::move(nv);
     for (int& s : fScc) {
         s = newId[s];
     }

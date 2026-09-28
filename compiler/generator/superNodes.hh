@@ -111,6 +111,7 @@ class SuperNodeGraph {
     /// members of a block, in instantaneous-dependency (d0-topological) order.
     /// Blocks themselves are numbered in dependencies-first order.
     const std::vector<int>& blockMembers(int b) const { return fBlocks[b]; }
+    long                    blockVersion(int b) const { return fVersion[b]; }
     /// materialized signals a block reads from other blocks
     std::set<int> blockIns(int b) const;
 
@@ -172,8 +173,14 @@ class SuperNodeGraph {
     // block's dependencies at each visit, through all its members, was most of -ls-fuse's time
     // (graphicEqLab 42 s).
     mutable std::vector<std::vector<int>> fDepsCache;
+    mutable std::vector<std::vector<int>> fConsCache;  // block id -> its consumers : the transpose of fDepsCache
     mutable bool                          fDepsValid = false;
     const std::vector<int>&               cachedDeps(int b) const;
+    // A version per block, fresh whenever the block's content changes (build, contract) and
+    // carried by retopo : a fusion campaign keys its cost memos on versions, without building
+    // the member lists of a union to look them up.
+    std::vector<long> fVersion;
+    long              fNextVersion = 0;
     mutable std::vector<unsigned>         fSeenMark;       // canContract : block -> stamp of its last walk
     mutable unsigned                      fSeenStamp = 0;  // canContract : the current walk's stamp
     mutable std::vector<int>              fTodo;           // canContract : the walk's stack

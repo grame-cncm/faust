@@ -5116,22 +5116,14 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
     // body fits the op budget. The policy of the predictor, as a walk in
     // the lattice of legal partitions.
     if (gGlobal->gLSFuse && !forcedTiling) {
-        // The shadow cost of a member list, kept for the whole campaign. It reads the
-        // materialized graph and the options, never the partition, so a list has one cost
-        // whatever the blocks around it : a round changes two blocks, and the costs of every
-        // other block and candidate union carry over. Keyed by the ORDERED list (the model
-        // schedules the members in that order). Keyed by block id and cleared at each
-        // contraction, the costs were recomputed for every candidate at every round.
-        std::map<std::vector<int>, long> shadowMemo;
-        auto shadowOf = [&](const std::vector<int>& members) -> long {
-            auto it = shadowMemo.find(members);
-            if (it != shadowMemo.end()) {
-                return it->second;
-            }
-            long c              = blockCostShadow(members);
-            shadowMemo[members] = c;
-            return c;
-        };
+        // The shadow costs, kept for the whole campaign. A cost reads the materialized
+        // graph and the options, never the partition, so it is a function of the member
+        // list alone : a round changes two blocks, and the costs of every other block and
+        // candidate union carry over. Keyed on block versions (a version names a content),
+        // so a hit needs neither the member list nor the union. Keyed by block id and
+        // cleared at each contraction, every candidate was re-costed at every round.
+        std::map<long, long>                  blockCostMemo;  // block version -> shadow cost
+        std::map<std::pair<long, long>, long> unionCostMemo;  // sorted versions -> cost of the union
         // -fir barrier : a KERNEL block is dominated by dense recognized-FIR
         // tap reads. Fusing kernel with non-kernel code destroys the
         // vectorizable form the informed delay-line layout just created ;
@@ -5247,7 +5239,28 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             bool k = (taps >= 4) && (2 * taps >= fSN.opsEstimate(b));
             return k;
         };
-        auto costOfBlock = [&](int b) -> long { return shadowOf(fSN.blockMembers(b)); };
+        auto costOfBlock = [&](int b) -> long {
+            long v  = fSN.blockVersion(b);
+            auto it = blockCostMemo.find(v);
+            if (it != blockCostMemo.end()) {
+                return it->second;
+            }
+            long c           = blockCostShadow(fSN.blockMembers(b));
+            blockCostMemo[v] = c;
+            return c;
+        };
+        // the union's member list does not depend on the order of b and c (orderedUnion sorts)
+        auto costOfUnion = [&](int b, int c) -> long {
+            long v1 = fSN.blockVersion(b), v2 = fSN.blockVersion(c);
+            std::pair<long, long> k{std::min(v1, v2), std::max(v1, v2)};
+            auto                  it = unionCostMemo.find(k);
+            if (it != unionCostMemo.end()) {
+                return it->second;
+            }
+            long cost        = blockCostShadow(fSN.orderedUnion(b, c));
+            unionCostMemo[k] = cost;
+            return cost;
+        };
         // fuse iff the merged loop is estimated cheaper than the two
         // separate ones (the saved C_L and the over-pressure penalty are
         // both inside the shadow cost)
@@ -5267,7 +5280,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
             if (streamBudget > 0 && streamsUnion(b, c) > streamBudget) {
                 return false;  // prefetcher stream budget
             }
-            long costM = shadowOf(fSN.orderedUnion(b, c));
+            long costM = costOfUnion(b, c);
             if (costM >= costOfBlock(b) + costOfBlock(c)) {
                 return false;
             }
@@ -5302,7 +5315,7 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                 if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, stream budget\n", b, c);
                 return 0;  // prefetcher stream budget
             }
-            long costM = shadowOf(fSN.orderedUnion(b, c));
+            long costM = costOfUnion(b, c);
             long cb = costOfBlock(b), cc = costOfBlock(c);
             if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : cost %ld + %ld = %ld vs merged %ld -> gain %ld (ops %d + %d)\n", b, c, cb, cc, cb + cc, costM, cb + cc - costM, fSN.opsEstimate(b), fSN.opsEstimate(c));
             return costOfBlock(b) + costOfBlock(c) - costM;
