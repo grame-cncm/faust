@@ -296,6 +296,7 @@ Most of these print internal traces ; the ones marked *changes the code* are als
 | `FAUST_PROPAGATE_PROFILE` | Profiles the propagation of the block diagram. |
 | `FAUST_FAM_TRACE` | Traces the family recognition of `-fam`. |
 | `FAUST_FAM_SHAPES` | Prints the shape classes seen by `-fam`. |
+| `FAUST_RWM_GATEA` | Test probe : each pass built on the minimal rewrite runs a second time with the older rewrite that renames every recursive group, and prints on stderr whether the two results agree (`SAME`, `UNFOLD-SAME`, `DIFF`). The second run creates nodes, so the generated code may differ : never compare code produced with it. |
 | `FAUST_FIR_HOIST_TRACE` | Traces `-fir-hoist`. |
 | `FAUST_LS_ACC_ONLY` | Restricts `-ls-acc` to selected sums (changes the code ; for experiments only). |
 
