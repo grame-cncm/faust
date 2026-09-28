@@ -31,6 +31,7 @@
 #include <functional>
 #include <iostream>
 #include <sstream>
+#include <tuple>
 #include <vector>
 
 #include "Schedule.hh"
@@ -5294,31 +5295,33 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
         // was path-dependent: on the 9x9 filter matrix it followed the
         // chains (vertical first) and locked out the measurably better
         // square tiles the oracle itself prefers when allowed to compare.
-        auto gainOf = [&](int b, int c) -> long {
+        // gainOf without its acyclicity test : a function of the two blocks' contents,
+        // memoized on their sorted versions (every test and cost below is symmetric)
+        std::map<std::pair<long, long>, long> contentGainMemo;
+        auto contentGain = [&](int b, int c) -> long {
+            long v1 = fSN.blockVersion(b), v2 = fSN.blockVersion(c);
+            std::pair<long, long> k{std::min(v1, v2), std::max(v1, v2)};
+            auto                  it = contentGainMemo.find(k);
+            if (it != contentGainMemo.end()) {
+                return it->second;
+            }
+            long g = 0;
             if (fSN.opsEstimate(b) + fSN.opsEstimate(c) > gGlobal->gLSFuseOps) {
                 if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, ops budget\n", b, c);
-                return 0;  // compile-time guard only: the cost oracle decides
-            }
-            if (!fSN.canContract(b, c)) {
-                if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, not contractible\n", b, c);
-                return 0;
-            }
-            if (isKernelBlock(b) != isKernelBlock(c)) {
+            } else if (isKernelBlock(b) != isKernelBlock(c)) {
                 if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, kernel barrier\n", b, c);
-                return 0;  // -fir barrier
-            }
-            if (isTileBlock(b) && isTileBlock(c)) {
+            } else if (isTileBlock(b) && isTileBlock(c)) {
                 if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, tile barrier\n", b, c);
-                return 0;  // two elected tiles stay two loops
-            }
-            if (streamBudget > 0 && streamsUnion(b, c) > streamBudget) {
+            } else if (streamBudget > 0 && streamsUnion(b, c) > streamBudget) {
                 if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, stream budget\n", b, c);
-                return 0;  // prefetcher stream budget
+            } else {
+                long costM = costOfUnion(b, c);
+                long cb = costOfBlock(b), cc = costOfBlock(c);
+                if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : cost %ld + %ld = %ld vs merged %ld -> gain %ld (ops %d + %d)\n", b, c, cb, cc, cb + cc, costM, cb + cc - costM, fSN.opsEstimate(b), fSN.opsEstimate(c));
+                g = cb + cc - costM;
             }
-            long costM = costOfUnion(b, c);
-            long cb = costOfBlock(b), cc = costOfBlock(c);
-            if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : cost %ld + %ld = %ld vs merged %ld -> gain %ld (ops %d + %d)\n", b, c, cb, cc, cb + cc, costM, cb + cc - costM, fSN.opsEstimate(b), fSN.opsEstimate(c));
-            return costOfBlock(b) + costOfBlock(c) - costM;
+            contentGainMemo[k] = g;
+            return g;
         };
         bool changed = true;
         while (changed) {
@@ -5368,15 +5371,31 @@ void LoopSplitEmitter::emit(Tree L, const std::vector<Tree>& sched, int nouts)
                     }
                 }
             }
+            // The choice is the candidate of greatest gain among those whose contraction
+            // keeps the quotient acyclic, the first in the order of cands on a tie. Every
+            // test of gainOf but acyclicity reads the two blocks' contents only, so that
+            // part of the gain is memoized on their versions across rounds (contentGain),
+            // and acyclicity is tested only down the list sorted by decreasing gain, until
+            // the first contractible candidate : the same choice as testing them all.
             long bestGain = 0;
             int  bestA = -1, bestB = -1;
+            std::vector<std::tuple<long, int, int>> positive;  // (content gain, b, c), in cands order
             for (auto& bc : cands) {
-                long g = gainOf(bc.first, bc.second);
-                if (g > bestGain) {
-                    bestGain = g;
-                    bestA    = bc.first;
-                    bestB    = bc.second;
+                long g = contentGain(bc.first, bc.second);
+                if (g > 0) {
+                    positive.emplace_back(g, bc.first, bc.second);
                 }
+            }
+            std::stable_sort(positive.begin(), positive.end(),
+                             [](const auto& x, const auto& y) { return std::get<0>(x) > std::get<0>(y); });
+            for (const auto& [g, b, c] : positive) {
+                if (fSN.canContract(b, c)) {
+                    bestGain = g;
+                    bestA    = b;
+                    bestB    = c;
+                    break;
+                }
+                if (lsTrace) fprintf(stderr, "ls-fuse %d+%d : refused, not contractible\n", b, c);
             }
             if (lsTrace) fprintf(stderr, "ls-fuse round : %d blocks, %zu candidates, best %d+%d gain %ld\n", nb, cands.size(), bestA, bestB, bestGain);
             if (bestA >= 0) {
