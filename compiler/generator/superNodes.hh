@@ -166,6 +166,17 @@ class SuperNodeGraph {
     std::vector<std::vector<int>> fBlocks;  // block id -> ordered members
 
     mutable std::map<int, int> fOpsEstimate;  // materialized index -> op count
+    // The dependencies of every block, sorted (blockDeps as vectors), computed at the first
+    // demand and invalidated by every change of the partition (build, contract, retopo,
+    // reset). canContract walks the quotient graph for each fusion candidate : recomputing a
+    // block's dependencies at each visit, through all its members, was most of -ls-fuse's time
+    // (graphicEqLab 42 s).
+    mutable std::vector<std::vector<int>> fDepsCache;
+    mutable bool                          fDepsValid = false;
+    const std::vector<int>&               cachedDeps(int b) const;
+    mutable std::vector<unsigned>         fSeenMark;       // canContract : block -> stamp of its last walk
+    mutable unsigned                      fSeenStamp = 0;  // canContract : the current walk's stamp
+    mutable std::vector<int>              fTodo;           // canContract : the walk's stack
     std::set<Tree, treeorder>  fExcluded;     // Dissolve move : never materialized
     std::set<Tree, treeorder>  fForced;       // display captures : always materialized
 

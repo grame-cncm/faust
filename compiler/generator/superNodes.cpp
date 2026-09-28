@@ -268,6 +268,7 @@ void SuperNodeGraph::tarjanVisit(int v, TarjanState& st, std::vector<std::vector
 
 void SuperNodeGraph::reset()
 {
+    fDepsValid = false;
     fMat.clear();
     fMatIdx.clear();
     fRefs.clear();
@@ -279,6 +280,7 @@ void SuperNodeGraph::reset()
 
 void SuperNodeGraph::build(Tree L, const std::vector<Tree>& sched, int freeDelayThreshold)
 {
+    fDepsValid = false;
     fFreeDelay = freeDelayThreshold;
 
     // 1. materialized signals, in schedule order (deterministic indices)
@@ -401,27 +403,52 @@ std::set<int> SuperNodeGraph::blockConsumers(int b) const
  * and b through a third block, in either direction. Check: DFS in the
  * quotient dependency graph ignoring direct a<->b edges.
  */
+const std::vector<int>& SuperNodeGraph::cachedDeps(int b) const
+{
+    if (!fDepsValid) {
+        fDepsCache.assign(fBlocks.size(), {});
+        for (int k = 0; k < (int)fBlocks.size(); k++) {
+            std::set<int> d = blockDeps(k);
+            fDepsCache[k].assign(d.begin(), d.end());
+        }
+        fDepsValid = true;
+    }
+    return fDepsCache[b];
+}
+
 bool SuperNodeGraph::canContract(int a, int b) const
 {
+    // the visited blocks are marked with a stamp, fresh for each walk, in an array kept
+    // between calls : a std::set per walk made the walk mostly allocation
+    const int nb = (int)fBlocks.size();
+    if ((int)fSeenMark.size() != nb) {
+        fSeenMark.assign(nb, 0);
+        fSeenStamp = 0;
+    }
     auto reachesThroughOthers = [&](int from, int to) -> bool {
-        std::set<int>    seen = {from};
-        std::vector<int> todo;
-        for (int d : blockDeps(from)) {
+        if (++fSeenStamp == 0) {  // the stamp wrapped : clear the marks once
+            std::fill(fSeenMark.begin(), fSeenMark.end(), 0);
+            fSeenStamp = 1;
+        }
+        fSeenMark[from] = fSeenStamp;
+        fTodo.clear();
+        for (int d : cachedDeps(from)) {
             if (d != to) {  // ignore the direct edge
-                todo.push_back(d);
+                fTodo.push_back(d);
             }
         }
-        while (!todo.empty()) {
-            int x = todo.back();
-            todo.pop_back();
+        while (!fTodo.empty()) {
+            int x = fTodo.back();
+            fTodo.pop_back();
             if (x == to) {
                 return true;
             }
-            if (!seen.insert(x).second) {
+            if (fSeenMark[x] == fSeenStamp) {
                 continue;
             }
-            for (int d : blockDeps(x)) {
-                todo.push_back(d);
+            fSeenMark[x] = fSeenStamp;
+            for (int d : cachedDeps(x)) {
+                fTodo.push_back(d);
             }
         }
         return false;
@@ -431,6 +458,7 @@ bool SuperNodeGraph::canContract(int a, int b) const
 
 void SuperNodeGraph::contract(int a, int b)
 {
+    fDepsValid = false;
     faustassert(a != b);
     std::vector<int> merged = fBlocks[a];
     merged.insert(merged.end(), fBlocks[b].begin(), fBlocks[b].end());
@@ -454,6 +482,7 @@ void SuperNodeGraph::contract(int a, int b)
  */
 void SuperNodeGraph::retopo()
 {
+    fDepsValid = false;
     int              nb = (int)fBlocks.size();
     std::vector<int> indeg(nb, 0);
     std::vector<std::set<int>> cons(nb);
