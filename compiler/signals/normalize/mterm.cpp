@@ -20,6 +20,10 @@
  ************************************************************************/
 
 #include "mterm.hh"
+
+#include <algorithm>
+#include <cmath>
+#include <unordered_map>
 #include "sigs-state.hh"
 #include "tlib-error.hh"
 #include "sigs-state.hh"
@@ -371,6 +375,58 @@ mterm gcd(const mterm& m1, const mterm& m2)
     }
     // cerr << "GCD of " << m1 << " and " << m2 << " is : " << R << endl;
     return R;
+}
+
+/**
+ * The pairs (i < j) of ms whose gcd can have a non-zero complexity. The
+ * complexity of gcd(m1, m2) counts the factors they share with a common power,
+ * and the common coefficient when the two coefficients have the same magnitude
+ * and it is not 1 : every other pair has a gcd of complexity 0. An index from
+ * each factor, and from each magnitude, to the mterms that carry it gives these
+ * pairs without trying all of them : a sum of k terms with nothing in common
+ * costs O(k) instead of k(k-1)/2 gcds (a sum of N channels, normalized at each
+ * of its N levels, was cubic). Sorted and without duplicates, so that a caller
+ * scanning them meets the pairs in the order of the full scan.
+ */
+std::vector<std::pair<int, int>> gcdCandidatePairs(const std::vector<const mterm*>& ms)
+{
+    std::unordered_map<Tree, std::vector<int>> byFactor;
+    std::map<double, std::vector<int>>        byMagnitude;
+    for (int i = 0; i < (int)ms.size(); i++) {
+        for (const auto& f : ms[i]->fFactors) {
+            byFactor[f.first].push_back(i);
+        }
+        // the same test as sameMagnitude : the magnitude as a double (exact for an int)
+        const Node& c = ms[i]->fCoef->node();
+        double      v;
+        if (c.type() == kDoubleNode) {
+            v = std::fabs(c.getDouble());
+        } else if (c.type() == kIntNode) {
+            v = std::fabs(double(c.getInt()));
+        } else {
+            continue;
+        }
+        if (!std::isnan(v) && v != 1.0) {  // a coefficient of magnitude 1 adds nothing to the complexity
+            byMagnitude[v].push_back(i);
+        }
+    }
+    std::vector<std::pair<int, int>> pairs;
+    auto                             within = [&pairs](const std::vector<int>& g) {
+        for (size_t a = 0; a < g.size(); a++) {
+            for (size_t b = a + 1; b < g.size(); b++) {
+                pairs.push_back({g[a], g[b]});
+            }
+        }
+    };
+    for (const auto& e : byFactor) {
+        within(e.second);
+    }
+    for (const auto& e : byMagnitude) {
+        within(e.second);
+    }
+    std::sort(pairs.begin(), pairs.end());
+    pairs.erase(std::unique(pairs.begin(), pairs.end()), pairs.end());
+    return pairs;
 }
 
 /**

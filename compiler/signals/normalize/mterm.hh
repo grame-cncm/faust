@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <list>
 #include <map>
+#include <utility>
+#include <vector>
 
 #include "tlib-error.hh"
 #include "garbageable.hh"
@@ -88,7 +90,11 @@ class mterm : public virtual Garbageable {
 
     bool         hasDivisor(const mterm& n) const;  ///< return true if this can be divided by n
     friend mterm gcd(const mterm& m1, const mterm& m2);  /// greatest common divisor of two mterms
+    friend std::vector<std::pair<int, int>> gcdCandidatePairs(const std::vector<const mterm*>& ms);
 };
+
+/// the pairs (i < j) of ms whose gcd can have a non-zero complexity, sorted (see mterm.cpp)
+std::vector<std::pair<int, int>> gcdCandidatePairs(const std::vector<const mterm*>& ms);
 
 inline std::ostream& operator<<(std::ostream& s, const mterm& m)
 {

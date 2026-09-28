@@ -307,16 +307,19 @@ mterm aterm::greatestDivisor() const
     mterm maxGCD(1);
     // cerr << "greatestDivisor of " << *this << endl;
 
-    for (auto p1 = fSig2MTerms.begin(); p1 != fSig2MTerms.end(); p1++) {
-        for (auto p2 = std::next(p1); p2 != fSig2MTerms.end(); p2++) {
-            mterm g = gcd(p1->second, p2->second);
-            // cerr << "TRYING " << g << " of complexity " << g.complexity() << " (max complexity so
-            // far " << maxComplexity << ")" << endl;
-            int complexity = g.complexity();
-            if (complexity > maxComplexity) {
-                maxComplexity = complexity;
-                maxGCD        = g;
-            }
+    // only the pairs whose gcd can be of non-zero complexity, in the order of the
+    // full scan (the first pair of greatest complexity wins, as before)
+    std::vector<const mterm*> ms;
+    ms.reserve(fSig2MTerms.size());
+    for (const auto& p : fSig2MTerms) {
+        ms.push_back(&p.second);
+    }
+    for (const auto& [i, j] : gcdCandidatePairs(ms)) {
+        mterm g          = gcd(*ms[i], *ms[j]);
+        int   complexity = g.complexity();
+        if (complexity > maxComplexity) {
+            maxComplexity = complexity;
+            maxGCD        = g;
         }
     }
     // cerr << "greatestDivisor of " << *this << " --> " << maxGCD << endl;
