@@ -581,6 +581,7 @@ void global::reset()
     sigs::g.gEndTiming   = endTiming;
 
     sigs::g.gSigNoNorm   = global::isOpt("FAUST_SIG_NO_NORM");
+    sigs::g.gSigNoFactor = global::isOpt("FAUST_SIG_NO_FACTOR");
     gCausality           = false;
 
     gFoldingFlag = false;
@@ -3131,6 +3132,8 @@ string global::printHelp()
          << "FAUST_DEBUG      = FAUST_LLVM_NO_FM     deactivate fast-math optimisation in LLVM IR."
          << endl;
     sstr << tab << "FAUST_OPT        = FAUST_SIG_NO_NORM    deactivate signal normalisation."
+         << endl;
+    sstr << tab << "FAUST_OPT        = FAUST_SIG_NO_FACTOR  keep the normalisation, not its greatest-divisor factorization."
          << endl;
 
     sstr << endl << "Example:" << line;

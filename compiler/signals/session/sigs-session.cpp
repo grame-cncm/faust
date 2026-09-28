@@ -50,6 +50,7 @@ void init()
     g.gVectorSwitch        = false;
     g.gAllWarning          = false;
     g.gSigNoNorm           = false;
+    g.gSigNoFactor         = false;
 
     // Session state
     g.TABBER = Tabber(1);

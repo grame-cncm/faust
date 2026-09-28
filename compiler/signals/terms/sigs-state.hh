@@ -206,6 +206,7 @@ struct State {
     bool                                        gMathExceptions{};  // -me option, check math functions domains
     bool                                        gVectorSwitch{};  // -vec option
     bool                                        gSigNoNorm{};  // FAUST_SIG_NO_NORM in FAUST_OPT : no additive normal form (a debugging switch)
+    bool                                        gSigNoFactor{};  // FAUST_SIG_NO_FACTOR in FAUST_OPT : the additive normal form without its greatest-divisor factorization (a precision experiment)
 
     /// state of the normal form and of the recursive-dependency analysis
     std::unordered_map<Tree, Tree>                gSimplifiedMemo;

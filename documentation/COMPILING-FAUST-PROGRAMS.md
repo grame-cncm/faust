@@ -288,7 +288,7 @@ Most of these print internal traces ; the ones marked *changes the code* are als
 | `FAUST_ARCHS` | C backend : emits one `compute` per listed target architecture (`__attribute__((target("arch=...")))`). |
 | `FAUST_DEFAULT_BACKEND` | The backend used when `-lang` is not given. |
 | `FAUST_DEBUG` | Internal traces : `FAUST_LLVM1`, `FAUST_LLVM2` (LLVM IR before and after optimisation), `FIR_PRINTER` (the FIR), `FAUST_LLVM_NO_FM`. |
-| `FAUST_OPT` | `FAUST_SIG_NO_NORM` turns off the signal normalization (changes the code ; for debugging only). |
+| `FAUST_OPT` | `FAUST_SIG_NO_NORM` turns off the signal normalization (changes the code ; for debugging only). `FAUST_SIG_NO_FACTOR` keeps the normalization but not its factorization by the greatest common divisor (changes the code ; a precision experiment). |
 | `FAUST_TIMING` | Appends the timing of the compilation phases to the file `FAUST_TIMING_LOG`. |
 | `FAUST_WASM` | Options of the WebAssembly backend. |
 | `FAUST_INTERP_TRACE` | Traces the interpreter backend. |

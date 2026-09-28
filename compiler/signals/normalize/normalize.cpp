@@ -52,7 +52,8 @@ Tree normalizeAddTerm(Tree t)
 #ifdef TRACE
     cerr << "ATERM of " << A << endl;
 #endif
-    mterm D = A.greatestDivisor();
+    // FAUST_SIG_NO_FACTOR : the monomials only, their greatest divisor not factored out
+    mterm D = sigs::g.gSigNoFactor ? mterm() : A.greatestDivisor();
     while (D.isNotZero() && D.complexity() > 0) {
 #ifdef TRACE
         cerr << "*** GREAT DIV : " << D << endl;
