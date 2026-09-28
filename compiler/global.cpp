@@ -582,6 +582,7 @@ void global::reset()
 
     sigs::g.gSigNoNorm   = global::isOpt("FAUST_SIG_NO_NORM");
     sigs::g.gSigNoFactor = global::isOpt("FAUST_SIG_NO_FACTOR");
+    sigs::g.gSigFactorGuard = global::isOpt("FAUST_SIG_FACTOR_GUARD");
     gCausality           = false;
 
     gFoldingFlag = false;
@@ -3134,6 +3135,8 @@ string global::printHelp()
     sstr << tab << "FAUST_OPT        = FAUST_SIG_NO_NORM    deactivate signal normalisation."
          << endl;
     sstr << tab << "FAUST_OPT        = FAUST_SIG_NO_FACTOR  keep the normalisation, not its greatest-divisor factorization."
+         << endl;
+    sstr << tab << "FAUST_OPT        = FAUST_SIG_FACTOR_GUARD  in single precision, no factorization whose constant cofactor absorbs a small term."
          << endl;
 
     sstr << endl << "Example:" << line;

@@ -60,6 +60,8 @@ class aterm : public virtual Garbageable {
     std::ostream& print(std::ostream& dst) const;  ///< print a aterm m1 + m2 + m3 +...
     mterm         greatestDivisor() const;    ///< return the greatest divisor of any two mterms
     aterm         factorize(const mterm& d);  ///< reorganize the aterm by factorizing d
+    aterm         cofactor(const mterm& d) const;  ///< the sum of the terms divisible by d, divided by d
+    std::vector<Tree> termTrees() const;          ///< the normalized tree of each term
 };
 
 inline std::ostream& operator<<(std::ostream& s, const aterm& a)

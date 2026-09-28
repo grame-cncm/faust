@@ -326,6 +326,28 @@ mterm aterm::greatestDivisor() const
     return maxGCD;
 }
 
+aterm aterm::cofactor(const mterm& d) const
+{
+    aterm Q;
+    for (const auto& p : fSig2MTerms) {
+        if (p.second.hasDivisor(d)) {
+            Q += p.second / d;
+        }
+    }
+    return Q;
+}
+
+std::vector<Tree> aterm::termTrees() const
+{
+    std::vector<Tree> v;
+    for (const auto& p : fSig2MTerms) {
+        if (p.second.isNotZero()) {
+            v.push_back(p.second.normalizedTree());
+        }
+    }
+    return v;
+}
+
 /**
  * Reorganize the aterm by factorizing d
  */

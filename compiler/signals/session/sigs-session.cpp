@@ -51,6 +51,7 @@ void init()
     g.gAllWarning          = false;
     g.gSigNoNorm           = false;
     g.gSigNoFactor         = false;
+    g.gSigFactorGuard      = false;
 
     // Session state
     g.TABBER = Tabber(1);

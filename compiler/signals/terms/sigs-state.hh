@@ -206,6 +206,7 @@ struct State {
     bool                                        gMathExceptions{};  // -me option, check math functions domains
     bool                                        gVectorSwitch{};  // -vec option
     bool                                        gSigNoNorm{};  // FAUST_SIG_NO_NORM in FAUST_OPT : no additive normal form (a debugging switch)
+    bool                                        gSigFactorGuard{};  // FAUST_SIG_FACTOR_GUARD in FAUST_OPT : no factorization whose constant cofactor absorbs a term (single precision ; under trial, normalize.cpp)
     bool                                        gSigNoFactor{};  // FAUST_SIG_NO_FACTOR in FAUST_OPT : the additive normal form without its greatest-divisor factorization (a precision experiment)
 
     /// state of the normal form and of the recursive-dependency analysis

@@ -20,6 +20,8 @@
  ************************************************************************/
 
 #include <stdio.h>
+#include <algorithm>
+#include <cmath>
 #include <list>
 #include <map>
 
@@ -31,11 +33,62 @@
 #include "ppsig.hh"
 #include "signals.hh"
 #include "sigprint.hh"
+#include "sigtype.hh"
+#include "sigtyperules.hh"
 #include "simplify.hh"
 #include "tlib.hh"
 
 using namespace std;
 #undef TRACE
+
+/**
+ * The factorization guard (FAUST_OPT=FAUST_SIG_FACTOR_GUARD, under trial), in single
+ * precision : factoring d out of A must not produce a cofactor c0 + t1 + ... + tn
+ * computed once outside the sample loop in which a term ti can be tiny next to the
+ * constant c0. That cofactor is rounded once : the part of the ti drowned in the
+ * rounding of c0 becomes a bias, which a recurrence accumulates (x - h*x factored
+ * into x*(1-h), h = 1/SR : an Euler step whose decay rate is off by 0.3 %). Kept as a
+ * sum, each product is rounded at every sample, an error without bias. A cofactor
+ * that varies at every sample is rounded at every sample anyway : factored.
+ * "Tiny" : the lower bound of |ti| over its interval under 2^-10 |c0|.
+ */
+static bool factorAbsorbs(const aterm& A, const mterm& d)
+{
+    double            c0 = 0;
+    std::vector<Tree> others;
+    for (Tree t : A.cofactor(d).termTrees()) {
+        double v;
+        if (isSigReal(t, &v)) {
+            c0 += v;
+        } else if (int i; isSigInt(t, &i)) {
+            c0 += i;
+        } else {
+            others.push_back(t);
+        }
+    }
+    if (c0 == 0 || others.empty()) {
+        return false;
+    }
+    for (Tree t : others) {
+        if (!t->isRecFree()) {
+            return false;  // a recursion : computed at every sample, no bias (and an open term does not type)
+        }
+    }
+    bool tiny = false;
+    for (Tree t : others) {
+        typeAnnotation(t, sigs::g.gLocalCausalityCheck);
+        Type ty = getCertifiedSigType(t);
+        if (ty->variability() == kSamp) {
+            return false;  // rounded at every sample : no bias
+        }
+        auto     I   = ty->getInterval();
+        double   mag = (!I.isValid() || (I.lo() <= 0 && I.hi() >= 0)) ? 0.0 : std::min(std::abs(I.lo()), std::abs(I.hi()));
+        if (mag < std::ldexp(std::abs(c0), -10)) {
+            tiny = true;
+        }
+    }
+    return tiny;
+}
 
 /**
  * Compute the Add-Normal form of a term t.
@@ -53,8 +106,12 @@ Tree normalizeAddTerm(Tree t)
     cerr << "ATERM of " << A << endl;
 #endif
     // FAUST_SIG_NO_FACTOR : the monomials only, their greatest divisor not factored out
-    mterm D = sigs::g.gSigNoFactor ? mterm() : A.greatestDivisor();
+    mterm      D     = sigs::g.gSigNoFactor ? mterm() : A.greatestDivisor();
+    const bool guard = sigs::g.gSigFactorGuard && sigs::g.gFloatSize == 1;
     while (D.isNotZero() && D.complexity() > 0) {
+        if (guard && factorAbsorbs(A, D)) {
+            break;  // the terms stay separate products
+        }
 #ifdef TRACE
         cerr << "*** GREAT DIV : " << D << endl;
 #endif
