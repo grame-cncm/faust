@@ -811,7 +811,8 @@ string global::printFloat()
 {
     switch (gFloatSize) {
         case 1:
-            return "-single ";
+            // -ifp acts in single precision only, where it changes the code
+            return sigs::g.gSigFactorGuard ? "-single -ifp " : "-single ";
         case 2:
             return "-double ";
         case 3:
@@ -1632,6 +1633,11 @@ bool global::processCmdline(int argc, const char* argv[])
             i += 1;
 
             // 'real' options
+        } else if (isCmd(argv[i], "-ifp", "--improve-float-precision")) {
+            // the factorization guard of the normal form (normalize.cpp), single precision only
+            sigs::g.gSigFactorGuard = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-single", "--single-precision-floats")) {
             if (float_size && gFloatSize != 1) {
                 throw faustexception(
@@ -2578,6 +2584,10 @@ string global::printHelp()
     sstr << tab
          << "-single     --single-precision-floats   use single precision floats for internal "
             "computations (default)."
+         << endl;
+    sstr << tab
+         << "-ifp        --improve-float-precision   in single precision, do not factor a sum whose "
+            "constant cofactor would absorb a small term (x - h*x stays so, instead of x*(1-h) rounded once)."
          << endl;
     sstr << tab
          << "-double     --double-precision-floats   use double precision floats for internal "

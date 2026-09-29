@@ -93,6 +93,7 @@ The type of the computation, and the treatment of the few operations where exact
 | `-single` | both | stable | Computes in `float` (the default). |
 | `-double` | both | stable | Computes in `double`. Resonant physical models and long feedback networks often need it. A setting found in double must be checked again in float before it is used in float : the two do not elect the same options. |
 | `-quad` | both | stable | Computes in `quad` (`long double` or a quadruple-precision type, depending on the architecture). |
+| `-ifp` | both | experimental | With `-single` : does not factor a sum whose constant cofactor would absorb a small term, when the factor is computed at every sample. `x - h*x` stays so instead of `x*(1-h)`, whose constant `1-h` rounded once is a bias a recurrence accumulates (an Euler step off by 0.3 %). Improves the float precision of a few recurrences (`pm.rk_solve` from 8 bits to 16), at a small cost in time on them (+6 % on average on the 43 library tests it changes, up to x2). |
 | `-fx` | both | stable | Computes in fixed point. |
 | `-fx-size` | both | stable | The total size of the fixed-point type, in bits (`-1` for a single `fixpoint_t` type). Meaningful with `-fx` only. |
 | `-ftz` | both | stable | Flushes denormals to zero in recursive signals : `0` none (default), `1` with `fabs`, `2` with a mask (fastest). Helps on feedback programs that decay into denormals on machines without a hardware flush-to-zero mode. |
@@ -288,7 +289,7 @@ Most of these print internal traces ; the ones marked *changes the code* are als
 | `FAUST_ARCHS` | C backend : emits one `compute` per listed target architecture (`__attribute__((target("arch=...")))`). |
 | `FAUST_DEFAULT_BACKEND` | The backend used when `-lang` is not given. |
 | `FAUST_DEBUG` | Internal traces : `FAUST_LLVM1`, `FAUST_LLVM2` (LLVM IR before and after optimisation), `FIR_PRINTER` (the FIR), `FAUST_LLVM_NO_FM`. |
-| `FAUST_OPT` | `FAUST_SIG_NO_NORM` turns off the signal normalization (changes the code ; for debugging only). `FAUST_SIG_NO_FACTOR` keeps the normalization but not its factorization by the greatest common divisor (changes the code ; a precision experiment). `FAUST_SIG_FACTOR_GUARD`, in single precision, does not factor a sum whose constant cofactor would absorb a small term (`x - h*x` stays so, instead of `x*(1-h)` rounded once ; changes the code, under trial). |
+| `FAUST_OPT` | `FAUST_SIG_NO_NORM` turns off the signal normalization (changes the code ; for debugging only). `FAUST_SIG_NO_FACTOR` keeps the normalization but not its factorization by the greatest common divisor (changes the code ; a precision experiment). `FAUST_SIG_FACTOR_GUARD` does the same as `-ifp`. |
 | `FAUST_TIMING` | Appends the timing of the compilation phases to the file `FAUST_TIMING_LOG`. |
 | `FAUST_WASM` | Options of the WebAssembly backend. |
 | `FAUST_INTERP_TRACE` | Traces the interpreter backend. |
