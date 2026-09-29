@@ -43,9 +43,9 @@ using namespace std;
 
 /**
  * The factorization guard (FAUST_OPT=FAUST_SIG_FACTOR_GUARD, under trial), in single
- * precision : factoring d out of A must not produce a cofactor c0 + t1 + ... + tn
- * computed once outside the sample loop in which a term ti can be tiny next to the
- * constant c0. That cofactor is rounded once : the part of the ti drowned in the
+ * precision : factoring a divisor d computed at every sample out of A must not produce
+ * a cofactor c0 + t1 + ... + tn computed once outside the sample loop in which a term
+ * ti can be tiny next to the constant c0. That cofactor is rounded once : the part of the ti drowned in the
  * rounding of c0 becomes a bias, which a recurrence accumulates (x - h*x factored
  * into x*(1-h), h = 1/SR : an Euler step whose decay rate is off by 0.3 %). Kept as a
  * sum, each product is rounded at every sample, an error without bias. A cofactor
@@ -54,6 +54,18 @@ using namespace std;
  */
 static bool factorAbsorbs(const aterm& A, const mterm& d)
 {
+    // the bias argument holds in the sample loop only : a factor d computed at every
+    // sample (a recursive state above all) multiplies a cofactor rounded once. A sum
+    // computed outside the loop is rounded once whatever its form, and there the
+    // factored form is often the more precise (1 - r with r near 1 is exact in float :
+    // q - q*r would round q*r first, then cancel)
+    Tree dt = d.normalizedTree();
+    if (dt->isRecFree()) {
+        typeAnnotation(dt, sigs::g.gLocalCausalityCheck);
+        if (getCertifiedSigType(dt)->variability() != kSamp) {
+            return false;
+        }
+    }
     double            c0 = 0;
     std::vector<Tree> others;
     for (Tree t : A.cofactor(d).termTrees()) {
