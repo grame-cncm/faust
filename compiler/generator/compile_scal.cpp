@@ -60,6 +60,7 @@
 #include "revealFIR.hh"
 #include "revealIIR.hh"
 #include "HierarchyDot.hh"
+#include "exactIntCasts.hh"
 #include "placeTemps.hh"
 #include "reassociate.hh"
 #include "nestSums.hh"
@@ -967,6 +968,12 @@ Tree ScalarCompiler::prepare(Tree LS)
     }
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);
+
+    // -ifp : exact integer conversions of rational coefficients
+    if (sigs::g.gSigFactorGuard && gGlobal->gFloatSize <= 2) {
+        typeAnnotation(L2, true);
+        L2 = exactIntCasts(L2);
+    }
 
 
     // enable/control escape hatch for the standalone -lsum path : the sum

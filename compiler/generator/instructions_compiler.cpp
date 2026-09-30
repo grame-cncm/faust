@@ -36,6 +36,7 @@
 #include "prim2.hh"
 #include "recursivness.hh"
 #include "sharing.hh"
+#include "exactIntCasts.hh"
 #include "sigPromotion.hh"
 #include "sigRetiming.hh"
 #include "sigToGraph.hh"
@@ -133,6 +134,12 @@ Tree InstructionsCompiler::prepare(Tree LS)
 
     // No more table privatisation
     Tree L2 = L1;
+
+    // -ifp : exact integer conversions of rational coefficients
+    if (sigs::g.gSigFactorGuard && gGlobal->gFloatSize <= 2) {
+        typeAnnotation(L2, true);
+        L2 = exactIntCasts(L2);
+    }
 
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);

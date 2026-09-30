@@ -811,10 +811,11 @@ string global::printFloat()
 {
     switch (gFloatSize) {
         case 1:
-            // -ifp acts in single precision only, where it changes the code
+            // -ifp changes the code in single and double precision (the factorization
+            // guard in single only, the exact integer conversions in both)
             return sigs::g.gSigFactorGuard ? "-single -ifp " : "-single ";
         case 2:
-            return "-double ";
+            return sigs::g.gSigFactorGuard ? "-double -ifp " : "-double ";
         case 3:
             return "-quad ";
         case 4:
@@ -2587,7 +2588,9 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-ifp        --improve-float-precision   in single precision, do not factor a sum whose "
-            "constant cofactor would absorb a small term (x - h*x stays so, instead of x*(1-h) rounded once)."
+            "constant cofactor would absorb a small term (x - h*x stays so, instead of x*(1-h) rounded once) ; "
+            "in single and double, compute int(c*x) outside the sample loop as int((p*x)/q) when c is the rational p/q "
+            "(an exact integer is no longer truncated one unit short)."
          << endl;
     sstr << tab
          << "-double     --double-precision-floats   use double precision floats for internal "
