@@ -231,13 +231,12 @@ double rdtsc2sec(double clk)
 }
     
 /**
- * Converts RDTSC clocks into Megabytes/seconds according to the
- * number of frames processed during the period, the number of channels
- * and 4 bytes samples.
+ * Converts RDTSC clocks into Mframes/sec (millions of frames per second)
+ * according to the number of frames processed during the period.
  */
-double megapersec(int frames, int chans, uint64 clk)
+double megaframespersec(int frames, uint64 clk)
 {
-	return double(frames*chans*4)/double(1024*1024*rdtsc2sec(clk));
+	return double(frames)/(1e6*rdtsc2sec(clk));
 }
 
     
@@ -253,7 +252,7 @@ static uint64 meanValue(vector<uint64>::const_iterator a, vector<uint64>::const_
 }   
 
 /**
- * Print the median value (in Megabytes/second) of KMESURE
+ * Print the median value (in Mframes/sec) of KMESURE
  * throughputs measurements
  */
 void printstats(const char* applname, int bsize, int ichans, int ochans)
@@ -276,11 +275,11 @@ void printstats(const char* applname, int bsize, int ichans, int ochans)
   
     //printing
     cout << applname
-         << '\t' << megapersec(bsize, ichans+ochans, meaval00) 
-         << '\t' << megapersec(bsize, ichans+ochans, meaval25) 
-         << '\t' << megapersec(bsize, ichans+ochans, meaval50) 
-         << '\t' << megapersec(bsize, ichans+ochans, meaval75) 
-         << '\t' << megapersec(bsize, ichans+ochans, meaval100) 
+         << '\t' << megaframespersec(bsize, meaval00) 
+         << '\t' << megaframespersec(bsize, meaval25) 
+         << '\t' << megaframespersec(bsize, meaval50) 
+         << '\t' << megaframespersec(bsize, meaval75) 
+         << '\t' << megaframespersec(bsize, meaval100) 
          << endl;
     
 }

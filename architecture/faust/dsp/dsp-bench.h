@@ -136,13 +136,14 @@ class time_bench_real {
         }
     
         /**
-         * Converts RDTSC ticks into MBytes/seconds according to the
-         * number of frames processed during the period, the number of channels
-         * and sizeof(REAL) bytes samples
+         * Converts RDTSC ticks into Mframes/sec (millions of frames per second)
+         * according to the number of frames processed during the period.
+         * Being independent of the sample size and of the number of channels,
+         * this value can be directly compared between float and double versions.
          */
-        double megapersec(int frames, int chans, uint64_t clk)
+        double megaframespersec(int frames, uint64_t clk)
         {
-            return (double(frames) * double(chans) * double(sizeof(REAL))) / (1024. * 1024. * rdtsc2sec(clk));
+            return double(frames) / (1e6 * rdtsc2sec(clk));
         }
         
         /**
@@ -217,7 +218,7 @@ class time_bench_real {
         /**
          *  Returns best estimation
          */
-        std::pair<double, double> getStats(int bsize, int ichans, int ochans)
+        std::pair<double, double> getStats(int bsize)
         {
             assert(fMeasure > fCount);
             std::vector<uint64_t> V(fCount);
@@ -225,18 +226,18 @@ class time_bench_real {
                 V[i] = fStops[i] - fStarts[i];
             }
             sort(V.begin(), V.end());
-            
+
             // Mean and standard deviation of 50 best values (gives relatively stable results)
             int best = std::min(50, fCount);
             uint64_t meavalx = meanValue(V.begin(), V.begin() + best);
             double sd = standardDeviation(V.begin(), V.begin() + best);
-            return std::make_pair(megapersec(bsize, ichans + ochans, meavalx), sd);
+            return std::make_pair(megaframespersec(bsize, meavalx), sd);
         }
 
         /**
-         * Print the median value (in Megabytes/second) of fCount throughputs measurements
+         * Print the median value (in Mframes/sec) of fCount throughputs measurements
          */
-        void printStats(const char* applname, int bsize, int ichans, int ochans)
+        void printStats(const char* applname, int bsize)
         {
             assert(fMeasure > fCount);
             std::vector<uint64_t> V(fCount);
@@ -254,11 +255,11 @@ class time_bench_real {
             
             // Printing
             fprintf(stdout, "%s\t%f\t%f\t%f\t%f\t%f\n", applname,
-                    megapersec(bsize, ichans+ochans, meaval00),
-                    megapersec(bsize, ichans+ochans, meaval25),
-                    megapersec(bsize, ichans+ochans, meaval50),
-                    megapersec(bsize, ichans+ochans, meaval75),
-                    megapersec(bsize, ichans+ochans, meaval100));
+                    megaframespersec(bsize, meaval00),
+                    megaframespersec(bsize, meaval25),
+                    megaframespersec(bsize, meaval50),
+                    megaframespersec(bsize, meaval75),
+                    megaframespersec(bsize, meaval100));
         }
     
         bool isRunning() { return (fMeasure <= (fCount + fSkip)); }
@@ -568,19 +569,19 @@ class measure_dsp_real : public decorator_dsp {
         }
     
         /**
-         *  Returns best estimation
+         *  Returns best estimation (in Mframes/sec) and its relative standard deviation (in %)
          */
         std::pair<double, double> getStats()
         {
-            return fBench->getStats(fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
+            return fBench->getStats(fBufferSize);
         }
-    
+
         /**
-         * Print the median value (in Megabytes/second) of fCount throughputs measurements
+         * Print the median value (in Mframes/sec) of fCount throughputs measurements
          */
         void printStats(const char* applname)
         {
-            fBench->printStats(applname, fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
+            fBench->printStats(applname, fBufferSize);
         }
     
         bool isRunning() { return fBench->isRunning(); }

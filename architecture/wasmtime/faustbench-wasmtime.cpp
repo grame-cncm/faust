@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
     measure_dsp mes(DSP, 512, 5.);  // Buffer_size and duration in sec of measure
     mes.measure();
     std::pair<double, double> res = mes.getStats();
-    cout << argv[argc - 1] << " : " << res.first << " MBytes/sec, SD : " << res.second
+    cout << argv[argc - 1] << " : " << res.first << " Mframes/sec, SD : " << res.second
          << "% (DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
     FAUSTBENCH_LOG<double>(res.first);
 

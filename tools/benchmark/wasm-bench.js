@@ -330,10 +330,10 @@ function benchOne(dsp, run)
     return (time2 - time1);
 }
 
-function megapersec(frames, chans, dur)
+function megaframespersec(frames, dur)
 {
-	// Use 4 bytes for samples
-	return (frames * chans * 4) / (1024 * 1024 * dur);
+	// Millions of frames per second, independent of the sample size and channel count
+	return frames / (1e6 * dur);
 }
 
 function bench(instance, display_handler)
@@ -359,12 +359,12 @@ function bench(instance, display_handler)
  		// Do the bench and keep result
 		var duration = benchOne(DSP, run);
 		var cpu = (duration * sample_rate) / (run * buffer_size * 10);
-		var mega = megapersec(buffer_size, (DSP.getNumInputs() + DSP.getNumOutputs()), duration/run/1000);
+		var mega = megaframespersec(buffer_size, duration/run/1000);
 		
 		mega_results.push(mega);
 		cpu_results.push(cpu);
     	
-		console.log("MBytes/sec : " + mega.toFixed(2));
+		console.log("Mframes/sec : " + mega.toFixed(2));
 		console.log("DSP CPU % : " + cpu.toFixed(2));
     }
     
@@ -379,7 +379,7 @@ function bench(instance, display_handler)
     var mega_mean = mega_sum/bench_num;
     var cpu_mean = cpu_sum/bench_num;
     
-	console.log("MBytes/sec mean: " + mega_mean.toFixed(2));
+	console.log("Mframes/sec mean: " + mega_mean.toFixed(2));
 	console.log("DSP CPU mean % : " + cpu_mean.toFixed(2));
 
     if (display_handler) {

@@ -31,7 +31,7 @@ faustbench-wasmtime <foo.dsp/foo.wasm>
 Typical output:
 
 ```
-myeffect.wasm : 89.32 MBytes/sec, SD : 3.14% (DSP CPU % : 27.5)
+myeffect.wasm : 89.32 Mframes/sec, SD : 3.14% (DSP CPU % : 27.5)
 ```
 
 - Measures over 5 seconds using a 512-sample buffer

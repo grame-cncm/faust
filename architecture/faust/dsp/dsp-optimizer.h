@@ -103,7 +103,7 @@ class dsp_optimizer_real {
                     mes.measure();
                     std::pair<double, double> res = mes.getStats();
                     if (fTrace) {
-                        fprintf(stdout, "%f MBytes/sec, SD : %f%% (DSP CPU : %f%% at %d Hz)\n", res.first, res.second, (mes.getCPULoad() * 100), int(BENCH_SAMPLE_RATE));
+                        fprintf(stdout, "%f Mframes/sec, SD : %f%% (DSP CPU : %f%% at %d Hz)\n", res.first, res.second, (mes.getCPULoad() * 100), int(BENCH_SAMPLE_RATE));
                     }
                     FAUSTBENCH_LOG<double>(res.first);
                 }
@@ -439,7 +439,7 @@ class dsp_optimizer_real {
         /**
          * Returns the best compilations parameters.
          *
-         * @return the best result (in Megabytes/seconds), DSP CPU (in 0..1), and compilation parameters in a vector.
+         * @return the best result (in Mframes/sec), DSP CPU (in 0..1), and compilation parameters in a vector.
          */
         std::tuple<double, double, double, TOption> findOptimizedParameters()
         {
@@ -523,7 +523,7 @@ class dsp_optimizer_real {
         /**
          * Returns the best compilations parameters in scalar mode only.
          *
-         * @return the best result (in Megabytes/seconds), DSP CPU (in 0..1), and compilation parameters in a vector.
+         * @return the best result (in Mframes/sec), DSP CPU (in 0..1), and compilation parameters in a vector.
          */
         std::tuple<double, double, double, TOption> findOptimizedScalarParameters()
         {

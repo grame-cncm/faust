@@ -47,7 +47,7 @@ static void bench(dsp* dsp, const string& name, int run, int buffer_size, bool i
     for (int i = 0; i < run; i++) {
         mes.measure();
         std::pair<double, double> res = mes.getStats();
-        cout << name << " : " << res.first << " MBytes/sec, SD : " << res.second << "% (DSP CPU : " << (mes.getCPULoad() * 100) << "% at 44100 Hz)" << endl;
+        cout << name << " : " << res.first << " Mframes/sec, SD : " << res.second << "% (DSP CPU : " << (mes.getCPULoad() * 100) << "% at 44100 Hz)" << endl;
         FAUSTBENCH_LOG<double>(res.first);
     }
 }

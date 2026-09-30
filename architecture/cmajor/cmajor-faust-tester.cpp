@@ -52,7 +52,7 @@ static double measureDSP(const string& filename, dsp* DSP)
     measure_dsp mes(DSP, buffer_size, 5., false, is_control);
     mes.measure();
     pair<double, double> res =  mes.getStats();
-    cout << filename << " : " << res.first << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at 44100 Hz)" << endl;
+    cout << filename << " : " << res.first << " Mframes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at 44100 Hz)" << endl;
     FAUSTBENCH_LOG<double>(res.first);
     return res.first;
 }

@@ -44,7 +44,7 @@ Or:
 
 # cmajor-faust-tester 
 
-The **cmajor-faust-tester** tool allows to test DSP CPU usage of Faust and Cmajor programs, dynamically compiling them, and running them in the Faust runtime or **cmajor** runtime. It measures the DSP CPU usage as MBytes/sec and % of audio bandwidth at 44.1 kHz.
+The **cmajor-faust-tester** tool allows to test DSP CPU usage of Faust and Cmajor programs, dynamically compiling them, and running them in the Faust runtime or **cmajor** runtime. It measures the DSP CPU usage as Mframes/sec and % of audio bandwidth at 44.1 kHz.
 
 `cmajor-faust-tester [-bs <frames>] [-control] [Faust options : any option (e.g. -vec -vs 8...)] <foo.dsp|foo.cmajorpatch>`
 

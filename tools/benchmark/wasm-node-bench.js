@@ -370,10 +370,10 @@ var createBuffers = function(ins, outs)
 	}
 }
 
-function megapersec(frames, chans, dur)
+function megaframespersec(frames, dur)
 {
-	// Use 4 bytes for samples
-	return (frames * chans * 4) / (1024 * 1024 * dur);
+	// Millions of frames per second, independent of the sample size and channel count
+	return frames / (1e6 * dur);
 }
 
 function benchOne(dsp, run)
@@ -419,8 +419,8 @@ function bench(instance)
     measures.push(duration);
     
 	var cpu = (duration * sample_rate) / (run * buffer_size * 10);
-	var mega = megapersec(buffer_size, (DSP.getNumInputs() + DSP.getNumOutputs()), duration/run/1000);
-	console.log("MBytes/sec : " + mega);
+	var mega = megaframespersec(buffer_size, duration/run/1000);
+	console.log("Mframes/sec : " + mega);
 	console.log("DSP CPU % : " + cpu);
 
     // Compare every two tests (normal/optimized)

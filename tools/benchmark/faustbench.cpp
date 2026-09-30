@@ -190,7 +190,7 @@ static tuple<double, double, double> bench(dsp* dsp, int dsp_size, const string&
     for (int i = 0; i < run; i++) {
         mes.measure();
         std::pair<double, double> res = mes.getStats();
-        if (is_trace) cout << name << " : " << res.first << " MBytes/sec, SD : " << res.second << "% (DSP CPU : " << (mes.getCPULoad() * 100) << "% at 44100 Hz)" << endl;
+        if (is_trace) cout << name << " : " << res.first << " Mframes/sec, SD : " << res.second << "% (DSP CPU : " << (mes.getCPULoad() * 100) << "% at 44100 Hz)" << endl;
         FAUSTBENCH_LOG<REAL>(res.first);
         if (res.first > best_res.first) {
             best_res = res;
@@ -525,7 +525,7 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     
     if (is_trace) {
         tuple<double, double, double> res = measures1[measures1.size()-1];
-        cout << "Best value is : " << get<0>(res) << " MBytes/sec, SD : " << get<1>(res) << "% (DSP CPU : " << (get<2>(res) * 100) << " at 44100 Hz) with " << options[pos] << endl;
+        cout << "Best value is : " << get<0>(res) << " Mframes/sec, SD : " << get<1>(res) << "% (DSP CPU : " << (get<2>(res) * 100) << " at 44100 Hz) with " << options[pos] << endl;
     } else {
         cout << options[pos] << endl;
     }

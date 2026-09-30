@@ -49,13 +49,13 @@ BENCH_CSV ?=
 define BENCH_SETUP
 @set -e; \
 bench_value() { \
-  : Run faustbench and echo the parsed MBytes/sec value.; \
+  : Run faustbench and echo the parsed Mframes/sec value.; \
   file="$$1"; \
   tmp=$$(mktemp); \
   if $(FAUSTBENCH) $(BENCH_OPTIONS) -I $(FAUSTLIBS1) -I $(FAUSTLIBS2) "$$file" > "$$tmp" 2>&1; then \
-    line="$$(grep -m1 'MBytes/sec' "$$tmp" || true)"; \
+    line="$$(grep -m1 'Mframes/sec' "$$tmp" || true)"; \
     if [ -n "$$line" ]; then \
-      val="$$(printf '%s\n' "$$line" | sed -nE 's/.*: ([0-9.]+) MBytes\/sec.*/\1/p')"; \
+      val="$$(printf '%s\n' "$$line" | sed -nE 's/.*: ([0-9.]+) Mframes\/sec.*/\1/p')"; \
       rm -f "$$tmp"; \
       if [ -n "$$val" ]; then \
         printf '%s' "$$val"; \

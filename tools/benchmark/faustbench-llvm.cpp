@@ -37,7 +37,7 @@ static void bench(dsp_optimizer_real<REAL> optimizer, const string& in_filename,
     tuple<double, double, double, TOption> res = is_scalar
                                                  ? optimizer.findOptimizedScalarParameters()
                                                  : optimizer.findOptimizedParameters();
-    if (is_trace) cout << "Best value for '" << in_filename << "' is : " << get<0>(res) << " MBytes/sec, SD : " << get<1>(res) << "% (DSP CPU : " << (get<2>(res) * 100) << "% at 44100 Hz) with ";
+    if (is_trace) cout << "Best value for '" << in_filename << "' is : " << get<0>(res) << " Mframes/sec, SD : " << get<1>(res) << "% (DSP CPU : " << (get<2>(res) * 100) << "% at 44100 Hz) with ";
     for (size_t i = 0; i < get<3>(res).size(); i++) {
         cout << get<3>(res)[i] << " ";
     }
@@ -53,7 +53,7 @@ static void bench_single(const string& in_filename, dsp* DSP, int buffer_size, i
     for (int i = 0; i < run; i++) {
         mes.measure();
         std::pair<double, double> res = mes.getStats();
-        if (is_trace) cout << in_filename << " : " << res.first << " MBytes/sec, SD : " << res.second << "% (DSP CPU : " << (mes.getCPULoad() * 100) << "% at 44100 Hz)" << endl;
+        if (is_trace) cout << in_filename << " : " << res.first << " Mframes/sec, SD : " << res.second << "% (DSP CPU : " << (mes.getCPULoad() * 100) << "% at 44100 Hz)" << endl;
         FAUSTBENCH_LOG<REAL>(res.first);
     }
 }

@@ -103,7 +103,7 @@ for f in $FILES; do
         echo "<H4>" >> $name.html
         echo "<button onclick=\"startBenchmark()\">Start benchmark</button>" >> $name.html
         echo "<br>" >> $name.html
-        echo "MBytes/sec :" >> $name.html
+        echo "Mframes/sec :" >> $name.html
         echo "<input id=\"megapersec\" \"type=\"text\" \"value=\"\">" >> $name.html
         echo "<br>" >> $name.html
         echo "CPU load (in % of a 1024 frames, 44.1 kHz audio buffer) :" >> $name.html

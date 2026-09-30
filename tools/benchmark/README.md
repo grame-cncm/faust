@@ -162,7 +162,7 @@ Here are the available options:
 
 The **faustbench** tool uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure the DSP CPU usage of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. Using the `-source` option allows to create and keep the intermediate C++ files, with a Makefile to produce the binary. The generated DSP struct memory size in bytes is also printed for each compiler option.
 
-Note that result is given as *MBytes/sec* (higher is better) which is computed as the mean of the 10 best values on the measurement period, and taking in account the number channels that are processed. An estimation of the DSP CPU use (in percentage of the available bandwidth at 44.1 kHz) is also computed using the effective duration of the measure. This value may not be perfectly coherent with the MBytes/sec value which is the one to be taken in account.
+Note that result is given as *Mframes/sec* (millions of audio frames processed per second, higher is better) which is computed as the mean of the 50 best values on the measurement period. Being independent of the sample size and of the number of channels, this value can be directly compared between `float` and `-double` versions of the same DSP. An estimation of the DSP CPU use (in percentage of the available bandwidth at 44.1 kHz) is also computed using the effective duration of the measure. This value may not be perfectly coherent with the Mframes/sec value which is the one to be taken in account.
 
 `faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-bs <frames>] [-source] [-double] [-opt <level(0..3|-1)>] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
@@ -190,7 +190,7 @@ Additional Faust options (like `-mcd 2...`) can be added on the list of all alre
 
 The **faustbench-llvm** tool uses the libfaust library and its LLVM backend to dynamically compile DSP objects produced with different Faust compiler options, and then measures their DSP CPU usage. Additional Faust compiler options can be given beside the ones that will be automatically explored by the tool.
 
-Note that result is given as *MBytes/sec* (higher is better) which is computed as the mean of the 10 best values on the measurement period and taking in account the number channels that are processed. An estimation of the DSP CPU use (in percentage of the available bandwidth at 44.1 kHz) is also computed using the effective duration of the measure. This value may not be perfectly coherent with the MBytes/sec value which is the one to be taken in account, and is finally used to return the best estimation.
+Note that result is given as *Mframes/sec* (millions of audio frames processed per second, higher is better) which is computed as the mean of the 50 best values on the measurement period. Being independent of the sample size and of the number of channels, this value can be directly compared between `float` and `-double` versions of the same DSP. An estimation of the DSP CPU use (in percentage of the available bandwidth at 44.1 kHz) is also computed using the effective duration of the measure. This value may not be perfectly coherent with the Mframes/sec value which is the one to be taken in account, and is finally used to return the best estimation.
 
 Alhough they are estimated using the LLVM backend, note that the result given by **faustbench-llvm** can perfectly be used to optimize the C++ code later on, since both compilation chains are based on the same LLVM infrastructure.
 
@@ -219,7 +219,7 @@ The **faustbench-wasm** tool tests a given DSP program in [node.js](https://node
 
 ## faust2benchwasm
 
-The **faust2benchwasm** tool generates an HTML page embedding benchmark code, to be tested in browsers, and displaying the performances as MBytes/sec and DSP CPU use.
+The **faust2benchwasm** tool generates an HTML page embedding benchmark code, to be tested in browsers, and displaying the performances as Mframes/sec and DSP CPU use.
 
 `faust2benchwasm [-opt] [-html] [-emcc] [-jsmem] [additional Faust options (-ftz 2...)] foo.dsp` 
 
