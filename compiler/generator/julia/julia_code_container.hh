@@ -40,6 +40,10 @@ class JuliaCodeContainer : public virtual CodeContainer {
 
     void produceMetadata(int tabs);
 
+    // The 'compute!' declaration and its closing, shared by all containers
+    void generateComputeHeader(int tab);
+    void generateComputeFooter(int tab);
+
     // Not used
     virtual void produceInternal() {}
 

@@ -616,6 +616,9 @@ static void compileJulia(Tree signals, int numInputs, int numOutputs, ostream* o
         JuliaCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
 
     if (gGlobal->gVectorSwitch) {
+        // Julia has no pointers: fold pointer aliases into indexed accesses
+        gGlobal->gRemoveVarAddress = true;
+
         gNewComp = new DAGInstructionsCompiler(gContainer);
     } else {
         gNewComp = new InstructionsCompiler1(gContainer);

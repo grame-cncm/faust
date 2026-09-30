@@ -489,8 +489,18 @@ class JuliaStringTypeManager : public StringTypeManager {
             std::string ty_str = generateType(named_typed->fType);
             return named_typed->fName + ((ty_str != "") ? ("::" + ty_str) : "");
         } else if (array_typed) {
-            return (array_typed->fSize == 0) ? "::" + fPtrRef + generateType(array_typed->fType)
-                                             : "::Vector{" + generateType(array_typed->fType) + "}";
+            // Bare, like every other branch here: the "::" belongs to
+            // whoever joins a name to a type, not to the type itself. It used
+            // to be baked in, which produced "name::::Vector{T}" the first
+            // time a function took an array parameter (-fun).
+            //
+            // A zero-sized array is a pointer in the C sense, which Julia has
+            // no syntax for : vector mode binds those names to views, whose
+            // concrete type (a SubArray over whatever was sliced) is not worth
+            // spelling out. Left unannotated, Julia infers it.
+            return (array_typed->fSize == 0)
+                       ? ""
+                       : "Vector{" + generateType(array_typed->fType) + "}";
         } else {
             faustassert(false);
             return "";
@@ -509,7 +519,8 @@ class JuliaStringTypeManager : public StringTypeManager {
             std::string ty_str = named_typed->fName + generateType(named_typed->fType);
             return name + ((ty_str != "") ? ("::" + ty_str) : "");
         } else if (array_typed) {
-            return name + generateType(type);
+            std::string ty_str = generateType(type);
+            return name + ((ty_str != "") ? ("::" + ty_str) : "");
         } else {
             faustassert(false);
             return "";

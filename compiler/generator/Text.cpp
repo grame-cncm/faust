@@ -184,14 +184,20 @@ static string ensureFloat(const string& c)
  */
 static string encodeJuliaFloat(const string& c, bool& need_suffix)
 {
-    bool   isInt = true;
+    // In Julia the exponent letter carries the type: 1.5f-10 is a Float32 literal,
+    // 1.5e-10 a Float64 one. So the 'e' printed by %g may only become an 'f' in
+    // single precision; in double precision it has to stay an 'e', otherwise the
+    // constant is silently rounded to Float32 (see the Julia backend tests).
+    char   exponent = (gGlobal->gFloatSize == 1) ? 'f' : 'e';
+    bool   isInt    = true;
     string res;
     for (size_t i = 0; i < c.size(); i++) {
         if ((c[i] == '.') || (c[i] == 'e')) {
             isInt = false;
         }
         if (c[i] == 'e') {
-            res += 'f';
+            res += exponent;
+            // An exponent already pins the literal type, no suffix needed.
             need_suffix = false;
         } else {
             res += c[i];

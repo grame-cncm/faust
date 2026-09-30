@@ -1999,7 +1999,8 @@ bool global::processCmdline(int argc, const char* argv[])
         if (!(gOutputLang == "c" || gOutputLang == "cpp" || gOutputLang == "llvm" ||
               gOutputLang == "fir")) {
             throw faustexception(
-                "ERROR : -fun can only be used with 'c', 'cpp', 'llvm' or 'fir' backends\n");
+                "ERROR : -fun can only be used with 'c', 'cpp', 'llvm' or 'fir' "
+                "backends\n");
         }
     }
 

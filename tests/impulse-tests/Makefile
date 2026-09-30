@@ -614,6 +614,22 @@ linen:
 # Julia backend
 julia:
 	$(MAKE) -f Make.julia outdir=julia/double FAUSTOPTIONS="-I dsp -double"
+# Vector mode. Four DSPs do not pass, none of them for a reason that belongs
+# to the Julia backend:
+#  - sound          'soundfile' is not supported by the backend at all, and it
+#                   fails the scalar run above just the same
+#  - subcontainer1  the backend merges subcontainers into the main struct, so a
+#                   DSP holding two fields of the same name emits a struct
+#                   Julia rejects; fails the scalar run too
+#  - osc_enable     'control/enable' is scalar-only, in every language
+#  - prefix         the vectorizer emits a scalar temporary declared in one
+#                   loop and read in another; the C++ output of the same DSP
+#                   does not compile either
+# The three variants below all give the same 92 of 96, so the vector mode adds
+# no failure of its own.
+	$(MAKE) -f Make.julia outdir=julia/double/vec FAUSTOPTIONS="-I dsp -double -vec"
+	$(MAKE) -f Make.julia outdir=julia/double/vec/vs8 FAUSTOPTIONS="-I dsp -double -vec -vs 8"
+	$(MAKE) -f Make.julia outdir=julia/double/vec/lv1 FAUSTOPTIONS="-I dsp -double -vec -lv 1"
 
 #########################################################################
 # JSFX backend

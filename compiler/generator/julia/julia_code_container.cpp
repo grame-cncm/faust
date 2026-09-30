@@ -89,8 +89,7 @@ CodeContainer* JuliaCodeContainer::createContainer(const string& name, int numIn
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler not supported for Julia\n");
     } else if (gGlobal->gVectorSwitch) {
-        // container = new JuliaVectorCodeContainer(name, numInputs, numOutputs, dst);
-        throw faustexception("ERROR : Vector not supported for Julia\n");
+        container = new JuliaVectorCodeContainer(name, numInputs, numOutputs, dst);
     } else {
         container = new JuliaScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
     }
@@ -181,7 +180,7 @@ void JuliaCodeContainer::produceClass()
     gGlobal->gJuliaVisitor->Tab(n);
     generateGetSampleRate("getSampleRate", "dsp", false, false)->accept(gGlobal->gJuliaVisitor);
 
-    // Info functions: getNumInputs/getNumOuputs
+    // Info functions: getNumInputs/getNumOutputs
     tab(n, *fOut);
     produceInfoFunctions(n, "", "dsp", false, FunTyped::kDefault, gGlobal->gJuliaVisitor);
 
@@ -316,15 +315,34 @@ JuliaScalarCodeContainer::JuliaScalarCodeContainer(const string& name, int numIn
     fSubContainerType = sub_container_type;
 }
 
-void JuliaScalarCodeContainer::generateCompute(int n)
+void JuliaCodeContainer::generateComputeHeader(int n)
 {
-    // Generates declaration
+    // Each function is its own Julia scope for local type annotations
+    gGlobal->gJuliaVisitor->clearDeclaredLocals();
+
     tab(n, *fOut);
-    *fOut << "@inbounds function compute!(dsp::" << fKlassName << "{T}, " << fFullCount
+    *fOut << "function compute!(dsp::" << fKlassName << "{T}, " << fFullCount
           << subst("::Int32, inputs::AbstractMatrix{$0}, outputs::AbstractMatrix{$0}) where {T}",
                    xfloat());
+    // Bounds checking is switched off around the body, not on the definition:
+    // `@inbounds function f(...) ... end` parses but leaves every check in place.
     tab(n + 1, *fOut);
-    gGlobal->gJuliaVisitor->Tab(n + 1);
+    *fOut << "@inbounds begin";
+    tab(n + 2, *fOut);
+    gGlobal->gJuliaVisitor->Tab(n + 2);
+}
+
+void JuliaCodeContainer::generateComputeFooter(int n)
+{
+    back(1, *fOut);
+    *fOut << "end";  // @inbounds
+    tab(n, *fOut);
+    *fOut << "end" << endl;
+}
+
+void JuliaScalarCodeContainer::generateCompute(int n)
+{
+    generateComputeHeader(n);
 
     // Generates local variables declaration and setup
     generateComputeBlock(gGlobal->gJuliaVisitor);
@@ -339,8 +357,7 @@ void JuliaScalarCodeContainer::generateCompute(int n)
      */
     generatePostComputeBlock(gGlobal->gJuliaVisitor);
 
-    back(1, *fOut);
-    *fOut << "end" << endl;
+    generateComputeFooter(n);
 }
 
 // Vector
@@ -353,18 +370,7 @@ JuliaVectorCodeContainer::JuliaVectorCodeContainer(const string& name, int numIn
 
 void JuliaVectorCodeContainer::generateCompute(int n)
 {
-    // Possibly generate separated functions
-    gGlobal->gJuliaVisitor->Tab(n + 1);
-    tab(n + 1, *fOut);
-    generateComputeFunctions(gGlobal->gJuliaVisitor);
-
-    // Generates declaration
-    tab(n + 1, *fOut);
-    *fOut << "@inbounds function compute!(dsp::" << fKlassName << "{T}, " << fFullCount
-          << subst("::Int32, inputs::AbstractMatrix{$0}, outputs::AbstractMatrix{$0}) where {T}",
-                   xfloat());
-    tab(n + 2, *fOut);
-    gGlobal->gJuliaVisitor->Tab(n + 2);
+    generateComputeHeader(n);
 
     // Generates local variables declaration and setup
     generateComputeBlock(gGlobal->gJuliaVisitor);
@@ -372,6 +378,5 @@ void JuliaVectorCodeContainer::generateCompute(int n)
     // Generates the DSP loop
     fDAGBlock->accept(gGlobal->gJuliaVisitor);
 
-    back(1, *fOut);
-    *fOut << "end";
+    generateComputeFooter(n);
 }

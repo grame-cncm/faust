@@ -22,6 +22,7 @@
 #ifndef _JULIA_INSTRUCTIONS_H
 #define _JULIA_INSTRUCTIONS_H
 
+#include <set>
 #include <string>
 
 #include "struct_manager.hh"
@@ -113,6 +114,9 @@ class JuliaInstVisitor : public TextInstVisitor {
     std::map<std::string, std::string> gPolyMathLibTable;
 
     bool fMutateFun;
+
+    // Locals already given a type in the function being generated
+    std::set<std::string> fDeclaredLocals;
 
     std::string cast2FAUSTFLOAT(const std::string& str) { return "FAUSTFLOAT(" + str + ")"; }
 
@@ -466,18 +470,44 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        if (inst->fAddress->isStaticStruct()) {
-            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
-            // Allocation is actually done in JuliaInitFieldsVisitor
+        const std::string name = inst->getName();
+        ArrayTyped*       array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+
+        // A sized local array with no initializer needs storage in Julia:
+        // a non-escaping MVector can be stack allocated.
+        std::string local_array;
+        if (inst->fAddress->isStack() && !inst->fValue && array_typed && array_typed->fSize > 0) {
+            local_array = "MVector{" + std::to_string(array_typed->fSize) + "," +
+                          fTypeManager->generateType(array_typed->fType) + "}";
+        }
+
+        // Julia scopes a local to its whole function, and rejects a second
+        // type declaration for the same name. Vector mode declares `vsize`
+        // and `i` in sibling blocks that C treats as separate scopes and
+        // Julia does not, so only the first declaration carries the type.
+        // Struct fields are each declared once, and always carry their type.
+        bool is_field = inst->fAddress->isStruct() || inst->fAddress->isStaticStruct();
+        if (!is_field && !fDeclaredLocals.insert(name).second) {
+            *fOut << name;
+        } else if (!local_array.empty()) {
+            *fOut << name << "::" << local_array;
         } else {
-            *fOut << fTypeManager->generateType(inst->fType, inst->getName());
-            if (inst->fValue) {
-                *fOut << " = ";
-                inst->fValue->accept(this);
-            }
+            *fOut << fTypeManager->generateType(inst->fType, name);
+        }
+
+        if (inst->fAddress->isStaticStruct()) {
+            // Allocation is actually done in JuliaInitFieldsVisitor
+        } else if (inst->fValue) {
+            *fOut << " = ";
+            inst->fValue->accept(this);
+        } else if (!local_array.empty()) {
+            *fOut << " = " << local_array << "(undef)";
         }
         EndLine(' ');
     }
+
+    /** Forget the locals of the function just generated. */
+    void clearDeclaredLocals() { fDeclaredLocals.clear(); }
 
     virtual void visitAux(RetInst* inst, bool gen_empty)
     {
@@ -558,24 +588,56 @@ class JuliaInstVisitor : public TextInstVisitor {
     */
     virtual void visit(IndexedAddress* indexed)
     {
-        indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
+            indexed->fAddress->accept(this);
             Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
             *fOut << "." << struct_type->fType->getName(field_index->fNum);
+            return;
+        }
+
+        // `inputs`/`outputs` arrive as an AbstractMatrix, one column per
+        // channel: indexing them selects a channel, which has to stay a view
+        // on the caller's buffer (`outputs[:, 1]` would copy). Everything
+        // else is an ordinary vector.
+        bool is_channel = isIOMatrix(indexed);
+        if (is_channel) {
+            *fOut << "@view ";
+        }
+        indexed->fAddress->accept(this);
+        *fOut << (is_channel ? "[:, " : "[");
+        // Julia arrays start at 1
+        Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->getIndex());
+        if (field_index) {
+            *fOut << (field_index->fNum + 1) << "]";
         } else {
-            *fOut << "[";
-            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->getIndex());
-            // Julia arrays start at 1
-            if (field_index) {
-                *fOut << (field_index->fNum + 1) << "]";
-            } else {
-                indexed->getIndex()->accept(this);
-                *fOut << "+1]";
-            }
+            indexed->getIndex()->accept(this);
+            *fOut << "+1]";
         }
     }
 
+    /**
+     * Whether this address selects a channel of the `inputs`/`outputs` matrix
+     * received by `compute!`.
+     */
+    static bool isIOMatrix(IndexedAddress* indexed)
+    {
+        const std::string name = indexed->getName();
+        return indexed->fAddress->isFunArgs() && (name == "inputs" || name == "outputs");
+    }
+
+    virtual void visit(LabelInst* inst)
+    {
+        // Labels are written as C comments: "/* Main loop */" => "# Main loop"
+        std::string label = inst->fLabel;
+        if (startWith(label, "/* ") && endWith(label, " */")) {
+            label = label.substr(3, label.size() - 6);
+        }
+        *fOut << "# " << label;
+        tab(fTab, *fOut);
+    }
+
+    // Pointer aliases are removed beforehand (see gRemoveVarAddress in compileJulia)
     virtual void visit(LoadVarAddressInst* inst) { faustassert(false); }
 
     virtual void visit(StoreVarInst* inst)
@@ -650,17 +712,21 @@ class JuliaInstVisitor : public TextInstVisitor {
             return;
         }
 
-        *fOut << "for ";
-        fFinishLine = false;
+        // A while loop, not a `for ... in range`. This is a C-style loop
+        // (init, condition, increment) whose variable is read *after* it ends
+        // -- vector mode uses the final `vindex` to know where the remaining
+        // frames begin. A Julia `for v = range` binds a fresh `v` scoped to
+        // the loop and leaves the outer one untouched, which would silently
+        // send the remainder block back to frame 0.
         inst->fInit->accept(this);
-        *fOut << ":";
+        *fOut << "while ";
+        fFinishLine = false;
         inst->fEnd->accept(this);
-        *fOut << "; ";
-        inst->fIncrement->accept(this);
         fFinishLine = true;
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);
+        inst->fIncrement->accept(this);
         fTab--;
         back(1, *fOut);
         *fOut << "end";

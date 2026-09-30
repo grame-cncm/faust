@@ -64,5 +64,5 @@ ir/$(outdir)/%.jl: dsp/%.dsp
 	cd $(dir $<); $(FAUST) -lang julia $(notdir $<) -a ../archs/$(arch) $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
 
 ir/$(outdir)/%.ir: ir/$(outdir)/%.jl reference/%.ir
-	julia  $< > $@ || (rm -f ../$@; false)
+	julia  $< > $@ || (rm -f $@; false)
 	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
