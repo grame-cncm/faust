@@ -72,15 +72,15 @@ std::string rmWhiteSpaces(const std::string& s);
 
 inline std::string checkFloat(float val)
 {
-    return (std::isinf(val)) ? "INFINITY" : T(val);
+    return (std::isinf(val)) ? ((val < 0) ? "-INFINITY" : "INFINITY") : T(val);
 }
 inline std::string checkDouble(double val)
 {
-    return (std::isinf(val)) ? "INFINITY" : T(val);
+    return (std::isinf(val)) ? ((val < 0) ? "-INFINITY" : "INFINITY") : T(val);
 }
 inline std::string checkQuad(long double val)
 {
-    return (std::isinf(val)) ? "INFINITY" : T(val);
+    return (std::isinf(val)) ? ((val < 0) ? "-INFINITY" : "INFINITY") : T(val);
 }
 std::string checkReal(double val);
 
