@@ -103,11 +103,11 @@ endif
 #===============================================================
 # main targets
 all: $(PROJ)
-	$(CMAKE) --build $(FAUSTDIR) $(BUILDOPT) 
+	$(CMAKE) --build $(FAUSTDIR) $(BUILDOPT) -j8
 
 full:
 	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake 
-	$(CMAKE) --build $(FAUSTDIR) $(BUILDOPT) 
+	$(CMAKE) --build $(FAUSTDIR) $(BUILDOPT) -j8
 
 clean:
 	$(CMAKE) --build $(FAUSTDIR) --target clean
