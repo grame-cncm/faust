@@ -37,6 +37,7 @@
 #include "affine_ops.hh"  // the numeric core: AffItv, AffineOps (interval library)
 #include "ppsig.hh"
 #include "signalAlgebra.hh"
+#include "sigs-state.hh"
 #include "sigtyperules.hh"
 
 //----------------------------------------------------------------------------------------
@@ -141,6 +142,34 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
     explicit HorizonAlgebra(bool defaultParams = false)
         : itv::AffineOps<SignalAlgebra<AffItv>>(horizonFromEnv(), defaultParams)
     {
+    }
+
+    //--- the fractional part ---------------------------------------------------------
+    // x - floor(x) is the fractional part of x : interval arithmetic, which reads the
+    // two operands as independent, gives [-1000, 1000] for x in [-500, 500], where the
+    // value lies in [0, 1]. Closed at 1 : in floating point, x - floor(x) rounds to 1
+    // for a tiny negative x (-1e-10 - (-1)). This is the shape of every phase of the
+    // libraries (ma.frac, ma.decimal) : a recursion through it is bounded at once.
+    static bool isFractionalPart(Tree sig)
+    {
+        int  op;
+        Tree x, y;
+        return isSigBinOp(sig, &op, x, y) && op == kSub && y->arity() == 1 &&
+               y->branch(0) == x && sigs::g.gFloorPrim != nullptr &&
+               getUserData(y) == static_cast<void*>(sigs::g.gFloorPrim);
+    }
+
+   public:
+    AffItv combine(Tree sig, const std::vector<AffItv>& c, FixPointEvaluator<AffItv>& ev) const override
+    {
+        AffItv r = itv::AffineOps<SignalAlgebra<AffItv>>::combine(sig, c, ev);
+        if (r.isEmpty() || !isFractionalPart(sig)) {
+            return r;
+        }
+        interval ri = itv::toItv(r, fT);
+        double   lo = std::max(0.0, ri.lo());
+        double   hi = std::min(1.0, ri.hi());
+        return (lo <= hi) ? itv::fromItv(interval(lo, hi, ri.lsb())) : r;
     }
 
     //--- the lattice ------------------------------------------------------------------
