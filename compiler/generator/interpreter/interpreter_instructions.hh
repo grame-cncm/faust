@@ -299,6 +299,13 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     // Memory
     virtual void visit(LoadVarInst* inst)
     {
+        // Soundfile field access
+        IndexedAddress* sf_indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+        if (sf_indexed && isStructType(sf_indexed->getName())) {
+            visitLoadSoundField(sf_indexed);
+            return;
+        }
+
         // Compile address
         inst->fAddress->accept(this);
         if (!startWith(inst->fAddress->getName(), "input")) {
@@ -331,26 +338,37 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 fCurrentBlock->push(new FBCBasicInstruction<REAL>(FBCInstruction::kLoadInput, 0, 0,
                                                                   std::atoi(num.c_str()), 0));
             } else {
-                DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
-                // For soundfile
-                if (struct_type) {
-                    std::vector<ValueInst*> indices = indexed->getIndices();
-                    // Field_index is last in the indices vector
-                    Int32NumInst*          num_val = static_cast<Int32NumInst*>(indices.back());
-                    FBCInstruction::Opcode op      = (num_val->fNum == Soundfile::kBuffers)
-                                                         ? FBCInstruction::kLoadSoundFieldReal
-                                                         : FBCInstruction::kLoadSoundFieldInt;
-                    fCurrentBlock->push(new FBCBasicInstruction<REAL>(op, indexed->getName()));
-                } else {
-                    MemoryDesc tmp = fFieldTable[indexed->getName()];
-                    faustassert(tmp.fOffset >= 0);
-                    fCurrentBlock->push(new FBCBasicInstruction<REAL>(
-                        (tmp.fType == Typed::kInt32) ? FBCInstruction::kLoadIndexedInt
-                                                     : FBCInstruction::kLoadIndexedReal,
-                        indexed->getName(), 0, 0, tmp.fOffset, tmp.fSize));
-                }
+                MemoryDesc tmp = fFieldTable[indexed->getName()];
+                faustassert(tmp.fOffset >= 0);
+                fCurrentBlock->push(new FBCBasicInstruction<REAL>(
+                    (tmp.fType == Typed::kInt32) ? FBCInstruction::kLoadIndexedInt
+                                                 : FBCInstruction::kLoadIndexedReal,
+                    indexed->getName(), 0, 0, tmp.fOffset, tmp.fSize));
             }
         }
+    }
+
+    /*
+     Soundfile field access: the field index is the last index, a constant kept in offset1 of the
+     kLoadSoundFieldInt/kLoadSoundFieldReal instruction. The other indexes are pushed on the stack,
+     and popped in reverse order:
+        - kLength, kSR, kOffset: part
+        - kChannels: none
+        - kBuffers: chan, then sample offset
+    */
+    void visitLoadSoundField(IndexedAddress* indexed)
+    {
+        std::vector<ValueInst*> indices = indexed->getIndices();
+        Int32NumInst*           field   = dynamic_cast<Int32NumInst*>(indices.back());
+        faustassert(field);
+        for (size_t i = 0; i + 1 < indices.size(); i++) {
+            indices[i]->accept(this);
+        }
+        FBCInstruction::Opcode op = (field->fNum == Soundfile::kBuffers)
+                                        ? FBCInstruction::kLoadSoundFieldReal
+                                        : FBCInstruction::kLoadSoundFieldInt;
+        fCurrentBlock->push(
+            new FBCBasicInstruction<REAL>(op, indexed->getName(), 0, 0, field->fNum, 0));
     }
 
     virtual void visit(LoadVarAddressInst* inst) { faustassert(false); }

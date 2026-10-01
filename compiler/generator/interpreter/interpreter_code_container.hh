@@ -110,8 +110,12 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         return IB::genLoadStructVar(varname);
     }
 
-    // Soundfile struct access are fully generated, instead of using intermediate local stack
-    // variables as in InstructionsCompiler
+    /*
+     Soundfile struct access are fully generated, instead of using intermediate local stack
+     variables as in InstructionsCompiler. The field index is the last index: it is a constant
+     kept in the kLoadSoundFieldInt/kLoadSoundFieldReal instruction, and the other indexes are
+     pushed on the Interp stack in reverse order.
+    */
 
     // x = part
     ValueInst* generateSoundfileLength(Tree sig, ValueInst* sf, ValueInst* x) override
@@ -119,7 +123,6 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
         faustassert(load);
 
-        // In reverse order for the Interp stack
         std::vector<ValueInst*> indices = {x, IB::genInt32NumInst(Soundfile::kLength)};
         return IB::genLoadArrayStructVar(load->fAddress->getName(), indices);
     }
@@ -130,7 +133,6 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
         faustassert(load);
 
-        // In reverse order for the Interp stack
         std::vector<ValueInst*> indices = {x, IB::genInt32NumInst(Soundfile::kSR)};
         return IB::genLoadArrayStructVar(load->fAddress->getName(), indices);
     }
@@ -141,15 +143,23 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
     {
         LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
         faustassert(load);
+        std::string name = load->fAddress->getName();
 
-        // In reverse order for the Interp stack
         std::vector<ValueInst*> indices1 = {y, IB::genInt32NumInst(Soundfile::kOffset)};
-        ValueInst* offset = IB::genLoadArrayStructVar(load->fAddress->getName(), indices1);
-        // In reverse order for the Interp stack
-        std::vector<ValueInst*> indices2 = {IB::genAdd(offset, z), x,
-                                            IB::genInt32NumInst(Soundfile::kBuffers)};
+        ValueInst*              offset   = IB::genLoadArrayStructVar(name, indices1);
 
-        return IB::genLoadArrayStructVar(load->fAddress->getName(), indices2);
+        // Channels beyond the real channel count of the soundfile wrap around (chan % fChannels),
+        // see InstructionsCompiler::generateSoundfileBuffer. Channel 0 always exists.
+        ValueInst*    chan     = x;
+        Int32NumInst* chan_num = dynamic_cast<Int32NumInst*>(x);
+        if (!chan_num || chan_num->fNum != 0) {
+            std::vector<ValueInst*> indices2 = {IB::genInt32NumInst(Soundfile::kChannels)};
+            chan = IB::genRem(x, IB::genLoadArrayStructVar(name, indices2));
+        }
+
+        std::vector<ValueInst*> indices3 = {IB::genAdd(offset, z), chan,
+                                            IB::genInt32NumInst(Soundfile::kBuffers)};
+        return IB::genLoadArrayStructVar(name, indices3);
     }
 };
 

@@ -1137,6 +1137,9 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             } else {
                 // Local variable
                 LocalVarDesc  local = fLocalVarTable[indexed->getName()];
+                // An array of pointers (like the soundfile buffers) uses 4 bytes items,
+                // whatever the sample size
+                int           shift = isRealPtrPtrType(local.fType) ? 2 : offStrNum;
                 Int32NumInst* num;
                 if ((num = dynamic_cast<Int32NumInst*>(indexed->getIndex()))) {
                     // Hack for 'soundfile'
@@ -1146,13 +1149,13 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                         *fOut << int8_t(BinaryConsts::I32Const)
                               << S32LEB(struct_type->fType->getOffset(num->fNum));
                     } else {
-                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(num->fNum << offStrNum);
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(num->fNum << shift);
                     }
                     *fOut << int8_t(WasmOp::I32Add);
                 } else {
                     *fOut << int8_t(BinaryConsts::LocalGet) << U32LEB(local.fIndex);
                     indexed->getIndex()->accept(this);
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
+                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(shift);
                     *fOut << int8_t(WasmOp::I32Shl);
                     *fOut << int8_t(WasmOp::I32Add);
                 }

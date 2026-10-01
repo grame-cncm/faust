@@ -366,7 +366,8 @@ LIBFAUST_API const char* generateCAuxFilesFromString2(const char* name_app, cons
 
 PRE_PACKED_STRUCTURE
 struct Soundfile {
-    enum { kBuffers, kLength, kSR, kOffset };
+    // Field indexes, in the order of the 'Soundfile' type declared in global.cpp
+    enum { kBuffers, kLength, kSR, kOffset, kChannels };
     double** fBuffers;   // use the largest size to cover 'float' and 'double' cases
     int*     fLength;    // length of each part
     int*     fSR;        // sample rate of each part

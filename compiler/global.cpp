@@ -703,6 +703,7 @@ void global::init()
     gInjectFile = "";     // instead of a compiled dsp file
 
     // Create type declaration for external 'soundfile' type
+    // (fields order has to match the Soundfile::kBuffers... enum in dsp_aux.hh)
     vector<NamedTyped*> sf_type_fields;
     sf_type_fields.push_back(IB::genNamedTyped("fBuffers", IB::genBasicTyped(Typed::kVoid_ptr)));
     sf_type_fields.push_back(IB::genNamedTyped("fLength", IB::genBasicTyped(Typed::kInt32_ptr)));

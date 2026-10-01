@@ -23,6 +23,7 @@
 #define _WAST_INSTRUCTIONS_H
 
 #include <ostream>
+#include <set>
 
 #include "was_instructions.hh"
 
@@ -30,6 +31,9 @@
 
 class WASTInstVisitor : public TextInstVisitor, public WASInst {
    private:
+    // Local variables that are arrays of pointers
+    std::set<std::string> fPtrPtrLocals;
+
     std::string type2String(Typed::VarType type)
     {
         if (isIntOrPtrType(type) || isBoolType(type)) {
@@ -128,6 +132,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 fStructOffset += gGlobal->audioSampleSize();
             } else {
                 *fOut << "(local $" << name << " " << type2String(inst->fType->getType()) << ")";
+                if (isRealPtrPtrType(inst->fType->getType())) {
+                    fPtrPtrLocals.insert(name);
+                }
                 // Local variable declaration has been previously separated as 'pure declaration'
                 // first, followed by 'store' later on (done in MoveVariablesInFront3)
                 faustassert(inst->fValue == nullptr);
@@ -412,21 +419,24 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 }
             } else {
                 // Local variable
+                // An array of pointers (like the soundfile buffers) uses 4 bytes items,
+                // whatever the sample size
+                int           shift = (fPtrPtrLocals.count(indexed->getName()) > 0) ? 2 : offStrNum;
                 Int32NumInst* num;
                 if ((num = dynamic_cast<Int32NumInst*>(indexed->getIndex()))) {
                     // Hack for 'soundfile'
                     DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
-                    *fOut << "(i32.add (local.get " << indexed->getName();
+                    *fOut << "(i32.add (local.get $" << indexed->getName();
                     if (struct_type) {
                         *fOut << ") (i32.const " << struct_type->fType->getOffset(num->fNum);
                     } else {
-                        *fOut << ") (i32.const " << (num->fNum << offStrNum);
+                        *fOut << ") (i32.const " << (num->fNum << shift);
                     }
                     *fOut << "))";
                 } else {
-                    *fOut << "(i32.add (local.get " << indexed->getName() << ") (i32.shl ";
+                    *fOut << "(i32.add (local.get $" << indexed->getName() << ") (i32.shl ";
                     indexed->getIndex()->accept(this);
-                    *fOut << " (i32.const " << offStrNum << ")))";
+                    *fOut << " (i32.const " << shift << ")))";
                 }
             }
         }

@@ -58,7 +58,10 @@ before calling DSP 'init'.
     - the FBCInstruction::kLoadSoundFieldInt and FBCInstruction::kLoadSoundFieldReal FBC
 instructions directly access the prepared fSoundTable in Interp mode. In Interp/[LLVM|MIR] they are
 compiled as access in a module global soundfile table built at construction time (see
-FBCLLVMCompiler/FBCMIRCompiler constructors).
+FBCLLVMCompiler/FBCMIRCompiler constructors). The accessed field index (Soundfile::kBuffers,
+kLength, kSR, kOffset, kChannels) is kept in offset1, the other indexes are on the stack. The
+soundfile channel is read as 'chan % fChannels', so that a soundfile can be read with more
+channels than it actually has.
 
 TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and
 destroy time (after global memory allocation is implemented)

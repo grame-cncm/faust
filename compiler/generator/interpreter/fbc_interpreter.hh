@@ -799,27 +799,24 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
                 Soundfile* sf = this->fSoundTable[(*it)->fName];
                 faustassert(sf);
-                int  field_index = popInt();
-                int  part        = popInt();
-                int* field       = nullptr;
-                switch (field_index) {
-                    case Soundfile::kLength: {
-                        field = sf->fLength;
+                // The field index is kept in offset1
+                switch ((*it)->fOffset1) {
+                    case Soundfile::kLength:
+                        pushInt(sf->fLength[popInt()]);
                         break;
-                    }
-                    case Soundfile::kSR: {
-                        field = sf->fSR;
+                    case Soundfile::kSR:
+                        pushInt(sf->fSR[popInt()]);
                         break;
-                    }
-                    case Soundfile::kOffset: {
-                        field = sf->fOffset;
+                    case Soundfile::kOffset:
+                        pushInt(sf->fOffset[popInt()]);
                         break;
-                    }
+                    case Soundfile::kChannels:
+                        pushInt(sf->fChannels);
+                        break;
                     default:
                         faustassert(false);
                         break;
                 }
-                pushInt(field[part]);
                 dispatchNextScal();
             }
 
@@ -827,8 +824,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
                 Soundfile* sf = this->fSoundTable[(*it)->fName];
                 faustassert(sf);
-                // field_index (unused)
-                popInt();
                 int   chan   = popInt();
                 int   offset = popInt();
                 REAL* buffer = reinterpret_cast<REAL**>(sf->fBuffers)[chan];
@@ -2938,27 +2933,24 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
         Soundfile* sf = this->fSoundTable[(*it)->fName];
         faustassert(sf);
-        int  field_index = popInt();
-        int  part        = popInt();
-        int* field       = nullptr;
-        switch (field_index) {
-            case Soundfile::kLength: {
-                field = sf->fLength;
+        // The field index is kept in offset1
+        switch ((*it)->fOffset1) {
+            case Soundfile::kLength:
+                pushInt(sf->fLength[popInt()]);
                 break;
-            }
-            case Soundfile::kSR: {
-                field = sf->fSR;
+            case Soundfile::kSR:
+                pushInt(sf->fSR[popInt()]);
                 break;
-            }
-            case Soundfile::kOffset: {
-                field = sf->fOffset;
+            case Soundfile::kOffset:
+                pushInt(sf->fOffset[popInt()]);
                 break;
-            }
+            case Soundfile::kChannels:
+                pushInt(sf->fChannels);
+                break;
             default:
                 faustassert(false);
                 break;
         }
-        pushInt(field[part]);
         dispatchNextScal();
     }
 
@@ -2966,8 +2958,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
         Soundfile* sf = this->fSoundTable[(*it)->fName];
         faustassert(sf);
-        // field_index (unused)
-        popInt();
         int   chan   = popInt();
         int   offset = popInt();
         REAL* buffer = reinterpret_cast<REAL**>(sf->fBuffers)[chan];

@@ -510,6 +510,8 @@ static std::string gFBCInstructionTable[] = {
 
     "kNop"};
 
-#define INTERP_FILE_VERSION 8
+// 9: kLoadSoundFieldInt/kLoadSoundFieldReal keep the field index in offset1, and the soundfile
+// channel is wrapped with the kChannels field (chan % fChannels)
+#define INTERP_FILE_VERSION 9
 
 #endif

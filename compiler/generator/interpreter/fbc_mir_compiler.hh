@@ -324,7 +324,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                                      MIR_new_reg_op(fContext, popValue())));
     }
 
-    void pushLoadSoundFieldInt(const std::string& sf_name)
+    MIR_reg_t genLoadSoundFile(const std::string& sf_name)
     {
         faustassert(this->fSoundTable.find(sf_name) != this->fSoundTable.end());
 
@@ -335,42 +335,74 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                         MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, sf_ptr),
                                      MIR_new_mem_op(fContext, getInt64Ty(), 0, fMIRSoundTable,
                                                     sf_reg, sizeof(int64_t))));
-        // Load SoundFile field: pointer is handled as an Int64
-        MIR_reg_t field_index = popValue();
-        MIR_reg_t field_ptr   = createVar(getInt64Ty(), "field_ptr");
-        MIR_append_insn(fContext, fCompute,
-                        MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, field_ptr),
-                                     MIR_new_mem_op(fContext, getInt64Ty(), 0, sf_ptr, field_index,
-                                                    sizeof(int64_t))));
+        return sf_ptr;
+    }
 
-        // Load SoundFile part in the field: result is an Int32
-        MIR_reg_t part     = popValue();
-        MIR_reg_t part_val = createVar(getInt64Ty(), "part_val");
-        MIR_append_insn(
-            fContext, fCompute,
-            MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, part_val),
-                         MIR_new_mem_op(fContext, getInt64Ty(), 0, field_ptr, part, sizeof(int))));
-        pushValue(part_val);
+    // Byte offset of a field in the packed Soundfile structure
+    static MIR_disp_t getSoundFieldOffset(int field_index)
+    {
+        switch (field_index) {
+            case Soundfile::kBuffers:
+                return offsetof(Soundfile, fBuffers);
+            case Soundfile::kLength:
+                return offsetof(Soundfile, fLength);
+            case Soundfile::kSR:
+                return offsetof(Soundfile, fSR);
+            case Soundfile::kOffset:
+                return offsetof(Soundfile, fOffset);
+            case Soundfile::kChannels:
+                return offsetof(Soundfile, fChannels);
+            default:
+                faustassert(false);
+                return 0;
+        }
+    }
+
+    // The field index is a constant kept in the instruction
+    void pushLoadSoundFieldInt(const std::string& sf_name, int field_index)
+    {
+        MIR_reg_t sf_ptr = genLoadSoundFile(sf_name);
+
+        if (field_index == Soundfile::kChannels) {
+            // Scalar field: result is an Int32
+            MIR_reg_t chan_val = createVar(getInt64Ty(), "chan_val");
+            MIR_append_insn(
+                fContext, fCompute,
+                MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, chan_val),
+                             MIR_new_mem_op(fContext, MIR_T_I32, getSoundFieldOffset(field_index),
+                                            sf_ptr, 0, 1)));
+            pushValue(chan_val);
+        } else {
+            // Array field: pointer is handled as an Int64
+            MIR_reg_t field_ptr = createVar(getInt64Ty(), "field_ptr");
+            MIR_append_insn(
+                fContext, fCompute,
+                MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, field_ptr),
+                             MIR_new_mem_op(fContext, getInt64Ty(),
+                                            getSoundFieldOffset(field_index), sf_ptr, 0, 1)));
+
+            // Load SoundFile part in the field: result is an Int32
+            MIR_reg_t part     = popValue();
+            MIR_reg_t part_val = createVar(getInt64Ty(), "part_val");
+            MIR_append_insn(
+                fContext, fCompute,
+                MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, part_val),
+                             MIR_new_mem_op(fContext, MIR_T_I32, 0, field_ptr, part, sizeof(int))));
+            pushValue(part_val);
+        }
     }
 
     void pushLoadSoundFieldReal(const std::string& sf_name)
     {
-        faustassert(this->fSoundTable.find(sf_name) != this->fSoundTable.end());
+        MIR_reg_t sf_ptr = genLoadSoundFile(sf_name);
 
-        // Load SoundFile: pointer is handled as an Int64
-        MIR_reg_t sf_reg = createIndexReg(fSoundTableID[sf_name]);
-        MIR_reg_t sf_ptr = createVar(getInt64Ty(), "sf_ptr");
-        MIR_append_insn(fContext, fCompute,
-                        MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, sf_ptr),
-                                     MIR_new_mem_op(fContext, getInt64Ty(), 0, fMIRSoundTable,
-                                                    sf_reg, sizeof(int64_t))));
         // Load SoundFile buffer: pointer is handled as an Int64
-        MIR_reg_t buffer_field = popValue();
-        MIR_reg_t buffer_ptr   = createVar(getInt64Ty(), "buffer_ptr");
-        MIR_append_insn(fContext, fCompute,
-                        MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, buffer_ptr),
-                                     MIR_new_mem_op(fContext, getInt64Ty(), 0, sf_ptr, buffer_field,
-                                                    sizeof(int64_t))));
+        MIR_reg_t buffer_ptr = createVar(getInt64Ty(), "buffer_ptr");
+        MIR_append_insn(
+            fContext, fCompute,
+            MIR_new_insn(fContext, MIR_MOV, MIR_new_reg_op(fContext, buffer_ptr),
+                         MIR_new_mem_op(fContext, getInt64Ty(),
+                                        getSoundFieldOffset(Soundfile::kBuffers), sf_ptr, 0, 1)));
 
         // Load SoundFile channel from the buffer: pointer is handled as an Int64
         MIR_reg_t chan     = popValue();
@@ -509,7 +541,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
                 // Memory load/store
                 case FBCInstruction::kLoadSoundFieldInt:
-                    pushLoadSoundFieldInt((*it)->fName);
+                    pushLoadSoundFieldInt((*it)->fName, (*it)->fOffset1);
                     it++;
                     break;
 

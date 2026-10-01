@@ -272,45 +272,46 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
         LLVMBuildStore(fBuilder, popValue(), output);
     }
 
-    void pushLoadSoundFieldInt(const std::string& sf_name)
+    LLVMValueRef genLoadSoundFile(const std::string& sf_name)
     {
         faustassert(this->fSoundTable.find(sf_name) != this->fSoundTable.end());
 
-        // Load SoundFile
         LLVMValueRef idx0[] = {fSoundTableID[sf_name]};
         LLVMValueRef gsf_ptr =
             LLVMBuildInBoundsGEP2(fBuilder, genSoundFileTyPtr(), fLLVMSoundTable, idx0, 1, "");
-        LLVMValueRef sf_ptr = LLVMBuildLoad2(fBuilder, genSoundFileTyPtr(), gsf_ptr, "");
+        return LLVMBuildLoad2(fBuilder, genSoundFileTyPtr(), gsf_ptr, "");
+    }
+
+    // The field index is a constant kept in the instruction
+    void pushLoadSoundFieldInt(const std::string& sf_name, int field_index)
+    {
+        LLVMValueRef sf_ptr = genLoadSoundFile(sf_name);
 
         // Load SoundFile field
-        LLVMValueRef field_index = popValue();
-        LLVMValueRef idx1[]      = {field_index};
         LLVMValueRef field_ptr =
-            LLVMBuildInBoundsGEP2(fBuilder, getInt32TyPtr(), sf_ptr, idx1, 1, "");
-        LLVMValueRef field = LLVMBuildLoad2(fBuilder, getInt32TyPtr(), field_ptr, "");
+            LLVMBuildStructGEP2(fBuilder, genSoundFileTy(), sf_ptr, field_index, "");
 
-        // Load SoundFile part in the field
-        LLVMValueRef part     = popValue();
-        LLVMValueRef idx2[]   = {part};
-        LLVMValueRef part_ptr = LLVMBuildInBoundsGEP2(fBuilder, getInt32Ty(), field, idx2, 1, "");
-        pushValue(LLVMBuildLoad2(fBuilder, getInt32Ty(), part_ptr, ""));
+        if (field_index == Soundfile::kChannels) {
+            // Scalar field
+            pushValue(LLVMBuildLoad2(fBuilder, getInt32Ty(), field_ptr, ""));
+        } else {
+            // Array field: load SoundFile part in the field
+            LLVMValueRef field  = LLVMBuildLoad2(fBuilder, getInt32TyPtr(), field_ptr, "");
+            LLVMValueRef part   = popValue();
+            LLVMValueRef idx2[] = {part};
+            LLVMValueRef part_ptr =
+                LLVMBuildInBoundsGEP2(fBuilder, getInt32Ty(), field, idx2, 1, "");
+            pushValue(LLVMBuildLoad2(fBuilder, getInt32Ty(), part_ptr, ""));
+        }
     }
 
     void pushLoadSoundFieldReal(const std::string& sf_name)
     {
-        faustassert(this->fSoundTable.find(sf_name) != this->fSoundTable.end());
-
-        // Load SoundFile
-        LLVMValueRef idx0[] = {fSoundTableID[sf_name]};
-        LLVMValueRef gsf_ptr =
-            LLVMBuildInBoundsGEP2(fBuilder, genSoundFileTyPtr(), fLLVMSoundTable, idx0, 1, "");
-        LLVMValueRef sf_ptr = LLVMBuildLoad2(fBuilder, genSoundFileTyPtr(), gsf_ptr, "");
+        LLVMValueRef sf_ptr = genLoadSoundFile(sf_name);
 
         // Load SoundFile buffer
-        LLVMValueRef field_index = popValue();
-        LLVMValueRef idx1[]      = {field_index};
         LLVMValueRef field_ptr =
-            LLVMBuildInBoundsGEP2(fBuilder, getInt8TyPtr(), sf_ptr, idx1, 1, "");
+            LLVMBuildStructGEP2(fBuilder, genSoundFileTy(), sf_ptr, Soundfile::kBuffers, "");
         LLVMValueRef field      = LLVMBuildLoad2(fBuilder, getInt8TyPtr(), field_ptr, "");
         LLVMValueRef real_field = LLVMBuildBitCast(fBuilder, field, getRealTyPtr(), "");
 
@@ -416,7 +417,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
 
                     // Memory load/store
                 case FBCInstruction::kLoadSoundFieldInt: {
-                    pushLoadSoundFieldInt((*it)->fName);
+                    pushLoadSoundFieldInt((*it)->fName, (*it)->fOffset1);
                     it++;
                     break;
                 }

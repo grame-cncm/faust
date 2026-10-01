@@ -23,6 +23,7 @@
 #include <string>
 
 #include "Text.hh"
+#include "dsp_aux.hh"
 #include "fir_to_fir.hh"
 #include "floats.hh"
 #include "instructions.hh"
@@ -1458,14 +1459,16 @@ ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf
 
     if (gGlobal->gExtControl) {
         // Struct access using an index that will be converted as a field name
-        ValueInst* v1 = IB::genLoadStructPtrVar(SFcache, Address::kStruct, IB::genInt32NumInst(1));
+        ValueInst* v1 = IB::genLoadStructPtrVar(SFcache, Address::kStruct,
+                                                IB::genInt32NumInst(Soundfile::kLength));
 
         pushDeclare(IB::genDecStructVar(SFcache_length, type));
         pushControlDeclare(IB::genStoreStructVar(SFcache_length, v1));
         return IB::genLoadArrayStructVar(SFcache_length, x);
     } else {
         // Struct access using an index that will be converted as a field name
-        ValueInst* v1 = IB::genLoadStructPtrVar(SFcache, Address::kStack, IB::genInt32NumInst(1));
+        ValueInst* v1 = IB::genLoadStructPtrVar(SFcache, Address::kStack,
+                                                IB::genInt32NumInst(Soundfile::kLength));
 
         pushComputeBlockMethod(IB::genDecStackVar(SFcache_length, type, v1));
         return IB::genLoadArrayStackVar(SFcache_length, x);
@@ -1484,14 +1487,16 @@ ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf, 
 
     if (gGlobal->gExtControl) {
         // Struct access using an index that will be converted as a field name
-        ValueInst* v1 = IB::genLoadStructPtrVar(SFcache, Address::kStruct, IB::genInt32NumInst(2));
+        ValueInst* v1 =
+            IB::genLoadStructPtrVar(SFcache, Address::kStruct, IB::genInt32NumInst(Soundfile::kSR));
 
         pushDeclare(IB::genDecStructVar(SFcache_rate, type));
         pushControlDeclare(IB::genStoreStructVar(SFcache_rate, v1));
         return IB::genLoadArrayStructVar(SFcache_rate, x);
     } else {
         // Struct access using an index that will be converted as a field name
-        ValueInst* v1 = IB::genLoadStructPtrVar(SFcache, Address::kStack, IB::genInt32NumInst(2));
+        ValueInst* v1 =
+            IB::genLoadStructPtrVar(SFcache, Address::kStack, IB::genInt32NumInst(Soundfile::kSR));
 
         pushComputeBlockMethod(IB::genDecStackVar(SFcache_rate, type, v1));
         return IB::genLoadArrayStackVar(SFcache_rate, x);
@@ -1513,16 +1518,33 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
     string SFcache_buffer_chan = gGlobal->getFreshID(SFcache + "_bu_ch");
     string SFcache_offset      = gGlobal->getFreshID(SFcache + "_of");
 
+    /*
+     The requested channel 'x' can be higher than the real number of channels of the soundfile
+     (for instance a stereo file read with soundfile(label, 4)): the real channels are then
+     duplicated by reading channel 'x % fChannels'. The runtime has to set fChannels >= 1 and
+     to provide fChannels buffers. The channel is computed once per block, with the buffer.
+    */
+    auto wrapChannel = [&](Address::AccessType access) -> ValueInst* {
+        // Channel 0 always exists
+        Int32NumInst* chan = dynamic_cast<Int32NumInst*>(x);
+        if (chan && chan->fNum == 0) {
+            return x;
+        }
+        return IB::genRem(
+            x, IB::genLoadStructPtrVar(SFcache, access, IB::genInt32NumInst(Soundfile::kChannels)));
+    };
+
     if (gGlobal->gExtControl) {
         // Struct access using an index that will be converted as a field name
-        ValueInst* v1 = IB::genLoadStructPtrVar(SFcache, Address::kStruct, IB::genInt32NumInst(3));
+        ValueInst* v1 = IB::genLoadStructPtrVar(SFcache, Address::kStruct,
+                                                IB::genInt32NumInst(Soundfile::kOffset));
 
         pushDeclare(IB::genDecStructVar(SFcache_offset, type3));
         pushControlDeclare(IB::genStoreStructVar(SFcache_offset, v1));
 
         // Struct access using an index that will be converted as a field name
-        LoadVarInst* load1 =
-            IB::genLoadStructPtrVar(SFcache, Address::kStruct, IB::genInt32NumInst(0));
+        LoadVarInst* load1 = IB::genLoadStructPtrVar(SFcache, Address::kStruct,
+                                                     IB::genInt32NumInst(Soundfile::kBuffers));
 
         pushDeclare(IB::genDecStructVar(SFcache_buffer, type1));
         // SFcache_buffer type is void* and has to be casted in the runtime buffer type
@@ -1530,26 +1552,29 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
 
         pushDeclare(IB::genDecStructVar(SFcache_buffer_chan, IB::genArrayTyped(type2, 0)));
         pushControlDeclare(IB::genStoreStructVar(
-            SFcache_buffer_chan, IB::genLoadStructPtrVar(SFcache_buffer, Address::kStruct, x)));
+            SFcache_buffer_chan, IB::genLoadStructPtrVar(SFcache_buffer, Address::kStruct,
+                                                         wrapChannel(Address::kStruct))));
 
         return IB::genLoadStructPtrVar(SFcache_buffer_chan, Address::kStruct,
                                        IB::genAdd(IB::genLoadArrayStructVar(SFcache_offset, y), z));
     } else {
         // Struct access using an index that will be converted as a field name
-        ValueInst* v1 = IB::genLoadStructPtrVar(SFcache, Address::kStack, IB::genInt32NumInst(3));
+        ValueInst* v1 = IB::genLoadStructPtrVar(SFcache, Address::kStack,
+                                                IB::genInt32NumInst(Soundfile::kOffset));
 
         pushComputeBlockMethod(IB::genDecStackVar(SFcache_offset, type3, v1));
 
         // Struct access using an index that will be converted as a field name
-        LoadVarInst* load1 =
-            IB::genLoadStructPtrVar(SFcache, Address::kStack, IB::genInt32NumInst(0));
+        LoadVarInst* load1 = IB::genLoadStructPtrVar(SFcache, Address::kStack,
+                                                     IB::genInt32NumInst(Soundfile::kBuffers));
 
         // SFcache_buffer type is void* and has to be casted in the runtime buffer type
         pushComputeBlockMethod(
             IB::genDecStackVar(SFcache_buffer, type1, IB::genCastInst(load1, type1)));
         pushComputeBlockMethod(
             IB::genDecStackVar(SFcache_buffer_chan, IB::genArrayTyped(type2, 0),
-                               IB::genLoadStructPtrVar(SFcache_buffer, Address::kStack, x)));
+                               IB::genLoadStructPtrVar(SFcache_buffer, Address::kStack,
+                                                       wrapChannel(Address::kStack))));
         return IB::genLoadStructPtrVar(SFcache_buffer_chan, Address::kStack,
                                        IB::genAdd(IB::genLoadArrayStackVar(SFcache_offset, y), z));
     }

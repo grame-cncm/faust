@@ -250,6 +250,12 @@ inline bool isRealPtrType(Typed::VarType type)
             type == Typed::kQuad_ptr || type == Typed::kQuad_ptr_ptr);
 }
 
+inline bool isRealPtrPtrType(Typed::VarType type)
+{
+    return (type == Typed::kFloat_ptr_ptr || type == Typed::kFloatMacro_ptr_ptr ||
+            type == Typed::kDouble_ptr_ptr || type == Typed::kQuad_ptr_ptr);
+}
+
 inline bool isPtrType(Typed::VarType type)
 {
     return (isRealPtrType(type) || isIntPtrType(type) || type == Typed::kVoid_ptr ||

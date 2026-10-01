@@ -5298,8 +5298,11 @@ string ScalarCompiler::generateCode(Tree sig)
         std::string sx  = CS(x);
         std::string sy  = CS(y);
         std::string sz  = CS(z);
+        // Channels beyond the real channel count of the soundfile wrap around (chan % fChannels),
+        // channel 0 always exists
+        string schan = (sx == "0") ? sx : subst("$0 % $1cache->fChannels", sx, ssf);
         return generateCacheCode(sig, subst("(($1)$0cache->fBuffers)[$2][$0cache->fOffset[$3]+$4]",
-                                            ssf, ifloatptrptr(), sx, sy, sz));
+                                            ssf, ifloatptrptr(), schan, sy, sz));
     }
 
     else if (isSigAttach(sig, x, y)) {
