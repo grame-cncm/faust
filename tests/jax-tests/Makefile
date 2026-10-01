@@ -22,7 +22,12 @@ dspfiles := $(wildcard dsp/*.dsp)
 # It is excluded from the default test run; run it manually with
 # 'make test-waveform_tabulate' once the issue is fixed.
 KNOWN_FAILURES := waveform_tabulate
-dspfiles := $(filter-out $(KNOWN_FAILURES:%=dsp/%.dsp),$(dspfiles))
+
+# Fixtures of the pytest suite (test_features.py, test_soundfile.py): they read a
+# soundfile the tests write in a temporary directory, so they cannot run standalone.
+PYTEST_ONLY := soundfile_channel_wrap soundfile_channel_wrap_learnable
+
+dspfiles := $(filter-out $(KNOWN_FAILURES:%=dsp/%.dsp) $(PYTEST_ONLY:%=dsp/%.dsp),$(dspfiles))
 
 # Output directory for generated Python files
 outdir := generated
