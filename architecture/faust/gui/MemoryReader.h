@@ -77,7 +77,7 @@ struct MemoryReader : public SoundfileReader {
      * @param path_name - the name of the file, or sound resource identified this way
      * @param part - the part number to be filled in the soundfile
      * @param offset - the offset value to be incremented with the actual sound resource length in frames
-     * @param max_chan - the maximum number of mono channels to fill
+     * @param max_chan - the number of channels of the soundfile (soundfile->fChannels)
      *
      */
     virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) override

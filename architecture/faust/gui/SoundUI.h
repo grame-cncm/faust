@@ -102,7 +102,7 @@ class SoundUI : public SoundUIInterface
                 : std::shared_ptr<SoundfileReader>(std::shared_ptr<SoundfileReader>{}, &gReader);
             fSoundReader->setSampleRate(sample_rate);
             fIsDouble = is_double;
-            if (!defaultsound) defaultsound = gReader.createSoundfile(gPathNameList, MAX_CHAN, is_double);
+            if (!defaultsound) defaultsound = gReader.createSoundfile(gPathNameList, is_double);
         }
     
         /**
@@ -124,7 +124,7 @@ class SoundUI : public SoundUIInterface
                 : std::shared_ptr<SoundfileReader>(std::shared_ptr<SoundfileReader>{}, &gReader);
             fSoundReader->setSampleRate(sample_rate);
             fIsDouble = is_double;
-            if (!defaultsound) defaultsound = gReader.createSoundfile(gPathNameList, MAX_CHAN, is_double);
+            if (!defaultsound) defaultsound = gReader.createSoundfile(gPathNameList, is_double);
         }
     
         virtual ~SoundUI()
@@ -146,7 +146,7 @@ class SoundUI : public SoundUIInterface
                 // Check all files and get their complete path
                 std::vector<std::string> path_name_list = fSoundReader->checkFiles(fSoundfileDir, file_name_list);
                 // Read them and create the Soundfile
-                Soundfile* sound_file = fSoundReader->createSoundfile(path_name_list, MAX_CHAN, fIsDouble);
+                Soundfile* sound_file = fSoundReader->createSoundfile(path_name_list, fIsDouble);
                 if (sound_file) {
                     fSoundfileMap[saved_url_real] = std::shared_ptr<Soundfile>(sound_file);
                 } else {

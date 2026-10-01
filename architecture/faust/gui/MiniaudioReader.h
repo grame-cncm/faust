@@ -88,7 +88,8 @@ struct MiniaudioReader : public SoundfileReader {
     void readFileAux(Soundfile* soundfile, ma_decoder& decoder, int part, int& offset, int max_chan)
     {
         assert(&decoder);
-        int channels = std::min<int>(max_chan, decoder.outputChannels);
+        // All channels are read
+        int channels = decoder.outputChannels;
         ma_uint64 length_aux;
         ma_result result = ma_decoder_get_length_in_pcm_frames(&decoder, &length_aux);
         assert(result == MA_SUCCESS);

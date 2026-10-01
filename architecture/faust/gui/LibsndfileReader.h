@@ -251,7 +251,8 @@ struct LibsndfileReader : public SoundfileReader {
     void readFileAux(Soundfile* soundfile, SNDFILE* snd_file, const SF_INFO& snd_info, int part, int& offset, int max_chan)
     {
         assert(snd_file);
-        int channels = std::min<int>(max_chan, snd_info.channels);
+        // All channels are read
+        int channels = snd_info.channels;
     #ifdef _SAMPLERATE
         if (isResampling(snd_info.samplerate)) {
             soundfile->fLength[part] = int(double(snd_info.frames) * double(fDriverSR) / double(snd_info.samplerate));

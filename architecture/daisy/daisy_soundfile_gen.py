@@ -33,7 +33,6 @@ from array import array
 # The Faust C++ backend clamps the (signal) "part" index to
 # [0, MAX_SOUNDFILE_PARTS-1], so these arrays must always have 256 slots.
 MAX_SOUNDFILE_PARTS = 256
-MAX_CHAN = 64
 BUFFER_SIZE = 1024      # length of an empty/silent part
 SAMPLE_RATE = 44100     # sample rate reported for empty parts
 
@@ -252,11 +251,9 @@ def compute_sd_arena_bytes(soundfiles, search_dirs):
                 return None
             cur_chan = max(cur_chan, info[0])
             frames_sum += info[1]
-        if cur_chan > MAX_CHAN:
-            cur_chan = MAX_CHAN
         total_frames = frames_sum + BUFFER_SIZE             # + trailing silent block
         per = cur_chan * total_frames * 4                   # float channel buffers
-        per += MAX_CHAN * 4                                 # fBuffers pointer array
+        per += cur_chan * 4                                 # fBuffers pointer array
         per += 3 * MAX_SOUNDFILE_PARTS * 4                  # length/sr/offset
         per += 64                                           # Soundfile struct + slack
         total += per
@@ -341,13 +338,13 @@ def _build_soundfile(out, prefix, parts):
                 buf.extend([0.0] * p['frames'])
         _emit_float_array(out, "%s_ch%d" % (prefix, c), buf)
 
-    # fBuffers : cur_chan distinct pointers, then aliased up to MAX_CHAN so any
-    # requested channel index < MAX_CHAN resolves (mirrors Soundfile::shareBuffers).
-    out.append("static const float* const %s_buffers[%d] = {\n" % (prefix, MAX_CHAN))
+    # fBuffers : the cur_chan channel pointers. The DSP reads channel 'c' as
+    # 'c % fChannels', so a soundfile can be read with more channels than it has.
+    out.append("static const float* const %s_buffers[%d] = {\n" % (prefix, cur_chan))
     line = []
     chunk = []
-    for c in range(MAX_CHAN):
-        line.append("%s_ch%d" % (prefix, c % cur_chan))
+    for c in range(cur_chan):
+        line.append("%s_ch%d" % (prefix, c))
         if len(line) == 4:
             chunk.append("    " + ", ".join(line) + ",")
             line = []
@@ -384,8 +381,7 @@ def _emit_empty_soundfile(out, nparts):
     fallback can stand in for any of them. All parts share one silent block."""
     nparts = max(nparts, 1)
     out.append("static const float sf_empty_zero[%d] = { 0.0f };\n" % BUFFER_SIZE)
-    out.append("static const float* const sf_empty_buffers[%d] = {\n" % MAX_CHAN)
-    out.append("    " + ", ".join(["sf_empty_zero"] * MAX_CHAN) + "\n};\n")
+    out.append("static const float* const sf_empty_buffers[1] = { sf_empty_zero };\n")
     _emit_int_array(out, "sf_empty_length", [BUFFER_SIZE] * nparts)
     _emit_int_array(out, "sf_empty_sr", [SAMPLE_RATE] * nparts)
     _emit_int_array(out, "sf_empty_offset", [0] * nparts)
@@ -412,13 +408,12 @@ def generate_header(soundfiles, search_dirs, out_path):
         "// flash therefore require the -qspi build mode.\n\n"
     )
     out.append("#define MAX_SOUNDFILE_PARTS %d\n" % MAX_SOUNDFILE_PARTS)
-    out.append("#define MAX_CHAN %d\n" % MAX_CHAN)
     out.append("#define BUFFER_SIZE %d\n" % BUFFER_SIZE)
     out.append("#define SAMPLE_RATE %d\n\n" % SAMPLE_RATE)
     out.append(
         "// Same field layout as architecture/faust/gui/Soundfile.h.\n"
         "struct Soundfile {\n"
-        "    void* fBuffers;  // float** : MAX_CHAN non-interleaved buffers\n"
+        "    void* fBuffers;  // float** : fChannels non-interleaved buffers\n"
         "    int* fLength;    // frames of each part\n"
         "    int* fSR;        // sample rate of each part\n"
         "    int* fOffset;    // frame offset of each part in the buffer\n"

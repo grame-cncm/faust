@@ -551,7 +551,7 @@ int main(int argc, char* argv[])
     int us = lopt(argv, "-us", 0);
     int filter = lopt(argv, "-filter", 0);
    
-    defaultsound = new Soundfile(MAX_CHAN, 1024, MAX_CHAN, 1, (sizeof(FAUSTFLOAT) == 8));
+    defaultsound = new Soundfile(1, 1024, 1, (sizeof(FAUSTFLOAT) == 8));
     int res = bench_all(argv[0], run, buffer_size, is_trace, is_control, ds, us, filter);
     delete defaultsound;
     return res;

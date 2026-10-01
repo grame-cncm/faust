@@ -25,7 +25,7 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-    defaultsound = new Soundfile(MAX_CHAN, 1024, MAX_CHAN, 1, (sizeof(FAUSTFLOAT) == 8));
+    defaultsound = new Soundfile(1, 1024, 1, (sizeof(FAUSTFLOAT) == 8));
     bench_all("Test iOS", 1, 512, true, false, DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE);
     delete defaultsound;
 }

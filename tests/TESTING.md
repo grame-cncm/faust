@@ -370,6 +370,10 @@ expected:
 - **Divergences that predate the change under test.** They must be listed
   with the date and the commit at which they were observed, otherwise
   they are indistinguishable from the regressions of the day.
+  - `sound` in the `cpp2/double/ecmem0`, `cpp2/double/osecmem` and
+    `cpp3/double/vececmem0` legs: `ERROR : wrong size`, then a trap
+    (observed 2026-10-01, `b1e46d6cf`).
+  - `sound` in the `float` legs: see "Known harness defects" 5.
 
 A program that is already broken cannot witness a second breakage: an
 innocuity test run over an already-failing case has no power there, while
@@ -447,6 +451,15 @@ does not protect it.
    `add_subdirectory` includes it and the build registers no ctest tests.
    The same holds for `tests/warning-tests`. The harness for criterion 1
    exists, written, and never runs.
+
+5. **The soundfile buffers do not follow the DSP precision.** The impulse
+   architectures create `SoundUI` with `is_double = sizeof(FAUSTFLOAT) ==
+   sizeof(double)`, and `FAUSTFLOAT` is `double` in every leg. In the
+   `float` legs (`-single`) the generated code reads `float**` buffers
+   that were filled as `double`, so `sound` ends with `ERROR : isnan`
+   (observed 2026-10-01, `b1e46d6cf`). *Fix:* derive `is_double` from the
+   precision the DSP was compiled with. `tests/soundfile-tests` passes it
+   explicitly.
 
 ## Still to be settled
 

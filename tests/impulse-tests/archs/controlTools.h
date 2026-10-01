@@ -58,17 +58,18 @@ struct TestMemoryReader : public MemoryReader {
         soundfile->fSR[part] = SOUND_SR;
         soundfile->fOffset[part] = offset;
         
-        // Audio frames have to be written for each chan
+        // Audio frames have to be written for each chan: each channel has its own phase, so that
+        // reading a soundfile with more channels than it has shows the 'chan % fChannels' wrap
        if (soundfile->fIsDouble) {
             for (int sample = 0; sample < SOUND_LENGTH; sample++) {
                 for (int chan = 0; chan < SOUND_CHAN; chan++) {
-                    static_cast<double**>(soundfile->fBuffers)[chan][offset + sample] = std::sin(part + (2 * M_PI * double(sample)/SOUND_LENGTH));
+                    static_cast<double**>(soundfile->fBuffers)[chan][offset + sample] = std::sin(part + chan + (2 * M_PI * double(sample)/SOUND_LENGTH));
                 }
             }
         } else {
             for (int sample = 0; sample < SOUND_LENGTH; sample++) {
                 for (int chan = 0; chan < SOUND_CHAN; chan++) {
-                    static_cast<float**>(soundfile->fBuffers)[chan][offset + sample] = std::sin(part + (2 * M_PI * float(sample)/SOUND_LENGTH));
+                    static_cast<float**>(soundfile->fBuffers)[chan][offset + sample] = std::sin(part + chan + (2 * M_PI * float(sample)/SOUND_LENGTH));
                 }
             }
         }

@@ -48,7 +48,7 @@
 // driver settings: the DSP sample rate and block size come from MY_SAMPLE_RATE
 // and MY_BUFFER_SIZE (set by faust2daisy -sr / -bs) and are used in main().
 #define MAX_SOUNDFILE_PARTS 256  // a Soundfile always has 256 part slots
-#define MAX_CHAN 64              // max channels addressable by the DSP
+#define SD_MAX_FRAME_BYTES 256   // largest WAV frame (all channels) that can be decoded
 #define BUFFER_SIZE 1024         // frame count reported for an empty/silent part
 #define SAMPLE_RATE 44100        // sample rate reported for an empty/silent part
 #define SD_MAX_SOUNDFILES 16  // distinct soundfile URLs cached
@@ -90,7 +90,7 @@ static bool                  faust_sd_mounted = false;
 
 // ─── default (silent) soundfile ───────────────────────────────────────
 static float     sd_empty_zero[BUFFER_SIZE];
-static float*    sd_empty_bufs[MAX_CHAN];
+static float*    sd_empty_bufs[1];
 static int       sd_empty_len[MAX_SOUNDFILE_PARTS];
 static int       sd_empty_sr[MAX_SOUNDFILE_PARTS];
 static int       sd_empty_off[MAX_SOUNDFILE_PARTS];
@@ -261,17 +261,17 @@ static Soundfile* sd_build(char names[][128], int nfiles)
         bool ok = sd_parse_header(&fil, &infos[i]);
         f_close(&fil);
         if (!ok) return nullptr;
+        if (infos[i].channels * (infos[i].bits / 8u) > SD_MAX_FRAME_BYTES) return nullptr;
         if ((int)infos[i].channels > cur_chan) cur_chan = infos[i].channels;
         total_real += infos[i].frames;
         nparts++;
     }
     if (nparts == 0) return nullptr;
-    if (cur_chan > MAX_CHAN) cur_chan = MAX_CHAN;
 
     // Concatenated per-channel buffers + one trailing silent block (for the
     // empty parts). Zeroed so gaps / mono-in-stereo read as silence.
     uint32_t total = total_real + BUFFER_SIZE;
-    float**  bufs  = (float**)sd_alloc(sizeof(float*) * MAX_CHAN);
+    float**  bufs  = (float**)sd_alloc(sizeof(float*) * cur_chan);
     if (!bufs) return nullptr;
     for (int c = 0; c < cur_chan; c++) {
         bufs[c] = (float*)sd_alloc(sizeof(float) * total);
@@ -308,7 +308,7 @@ static Soundfile* sd_build(char names[][128], int nfiles)
         uint32_t data_left = infos[i].frames * frame_bytes;
         f_lseek(&fil, fpos);
 
-        uint8_t  carry[256]; // one frame max (MAX_CHAN * 4 bytes)
+        uint8_t  carry[SD_MAX_FRAME_BYTES]; // one frame max
         uint32_t carry_n = 0;
         uint32_t fidx    = 0;
         while (data_left > 0) {
@@ -358,9 +358,7 @@ static Soundfile* sd_build(char names[][128], int nfiles)
         sr[p]     = SAMPLE_RATE;
         offset[p] = (int)total_real;
     }
-    // Alias channels up to MAX_CHAN (mirrors Soundfile::shareBuffers).
-    for (int c = cur_chan; c < MAX_CHAN; c++) bufs[c] = bufs[c % cur_chan];
-
+    // Only the cur_chan real channels: the DSP reads channel 'c' as 'c % fChannels'.
     Soundfile* sf = (Soundfile*)sd_alloc(sizeof(Soundfile));
     if (!sf) return nullptr;
     sf->fBuffers  = (void*)bufs;
@@ -408,7 +406,7 @@ Soundfile* sd_load_soundfile(const char* url)
 void sd_soundfile_init()
 {
     memset(sd_empty_zero, 0, sizeof(sd_empty_zero));
-    for (int c = 0; c < MAX_CHAN; c++) sd_empty_bufs[c] = sd_empty_zero;
+    sd_empty_bufs[0] = sd_empty_zero;
     for (int p = 0; p < MAX_SOUNDFILE_PARTS; p++) {
         sd_empty_len[p] = BUFFER_SIZE;
         sd_empty_sr[p]  = SAMPLE_RATE;

@@ -62,9 +62,10 @@ with suppress_metal_message():
 <<includeclass>>
 
 	def load_soundfile(self, filepath: str) -> Tuple[np.ndarray, int]:
-		# This pre-computed sine is desired for the impulse-tests.
-		audio = jnp.sin(jnp.linspace(0, 2*jnp.pi, num=4096, endpoint=False, dtype=self.faust_float))
-		audio = jnp.stack([audio, audio])
+		# This pre-computed sine is desired for the impulse-tests: same content as TestMemoryReader
+		# (archs/controlTools.h) for part 0, each channel having its own phase.
+		ramp = jnp.linspace(0, 2*jnp.pi, num=4096, endpoint=False, dtype=self.faust_float)
+		audio = jnp.stack([jnp.sin(chan + ramp) for chan in range(2)])
 		return audio, 44100
 
 	def add_soundfile(self, zone: str, ui_path: list[str], label: str, url: str, unnorm_funcs: dict, metadata: dict | None = None):
@@ -95,7 +96,8 @@ with suppress_metal_message():
 			"fLength": jnp.array(fLength, dtype=jnp.int32),
 			"fOffset": jnp.array(fOffset, dtype=jnp.int32),
 			"fBuffers": fBuffers,
-			"fSR": jnp.array(fSR, dtype=self.faust_float)
+			"fSR": jnp.array(fSR, dtype=self.faust_float),
+			"fChannels": num_chans
 		})
 
 	def add_button(self, zone: str, ui_path: list[str], label: str, unnorm_funcs: dict):
