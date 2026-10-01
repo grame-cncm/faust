@@ -53,7 +53,7 @@ def test_soundfile_non_trainable_with_params():
         return True
 
     rngs = nnx.Rngs(0, params=0, rng_stream=0)
-    model = mydsp(sample_rate=44100, faust_float=jnp.float32, rngs=rngs, soundfile_dirs=[str(assets_dir)])
+    model = mydsp(sample_rate=44100, faust_float=jnp.float32, rngs=rngs, soundfile_dirs=[str(assets_dir.parent)])
 
     # Get params (should be empty or 0 since soundfiles aren't in unnormalize)
     params = model.unnormalize()
@@ -101,7 +101,7 @@ def test_soundfile_trainable_with_params():
         return True
 
     rngs = nnx.Rngs(0, params=0, rng_stream=0)
-    model = mydsp(sample_rate=44100, faust_float=jnp.float32, rngs=rngs, soundfile_dirs=[str(assets_dir)])
+    model = mydsp(sample_rate=44100, faust_float=jnp.float32, rngs=rngs, soundfile_dirs=[str(assets_dir.parent)])
 
     # Soundfile buffers are accessed via state, not unnormalize()
     # So params dict might still be empty

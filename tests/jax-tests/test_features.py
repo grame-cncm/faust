@@ -14,6 +14,7 @@ import jax
 import jax.numpy as jnp
 from flax import nnx
 import numpy as np
+from pathlib import Path
 
 
 @pytest.mark.integration
@@ -155,7 +156,7 @@ class TestLearnableSoundfiles:
 			sample_rate=44100,
 			faust_float=jnp.float32,
 			rngs=default_rngs,
-			soundfile_dirs=[assets_dir]
+			soundfile_dirs=[str(Path(assets_dir).parent)]
 		)
 
 		# Check metadata
@@ -176,7 +177,7 @@ class TestLearnableSoundfiles:
 			sample_rate=44100,
 			faust_float=jnp.float32,
 			rngs=default_rngs,
-			soundfile_dirs=[assets_dir]
+			soundfile_dirs=[str(Path(assets_dir).parent)]
 		)
 
 		# Check metadata
@@ -204,7 +205,7 @@ class TestLearnableSoundfiles:
 			sample_rate=44100,
 			faust_float=jnp.float32,
 			rngs=default_rngs,
-			soundfile_dirs=[assets_dir]
+			soundfile_dirs=[str(Path(assets_dir).parent)]
 		)
 
 		inputs = impulse_input(model.num_inputs, 1024)
@@ -271,6 +272,10 @@ class TestSoundfileChannelWrap:
 		assert not np.allclose(out[0], out[1]), "left and right channels of the fixture must differ"
 		np.testing.assert_array_equal(out[2], out[0])
 		np.testing.assert_array_equal(out[3], out[1])
+		assert model.fSoundfile0["fBuffers"].shape == (2, 8)
+		if "learnable" in dsp_file:
+			grads = nnx.grad(lambda m: jnp.sum(m(num_samples=8)))(model)
+			np.testing.assert_array_equal(grads.fSoundfile0["fBuffers"][...].sum(axis=1), [16, 16])
 
 
 @pytest.mark.integration

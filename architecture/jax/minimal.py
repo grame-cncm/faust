@@ -308,6 +308,9 @@ def _load_state_safetensors(path: str | Path) -> Tuple[Dict[str, Any], Dict[str,
 		# Loop through potential paths and try to load the audio file
 		for full_path in potential_paths:
 			attempted_paths.append(str(full_path))
+			# Avoid librosa's decoder fallback warning for missing search candidates.
+			if not full_path.is_file():
+				continue
 			try:
 				# Suppress deprecation warnings from librosa (aifc, audioop deprecated in Python 3.13)
 				with warnings.catch_warnings():
