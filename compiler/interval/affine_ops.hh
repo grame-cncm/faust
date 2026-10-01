@@ -80,7 +80,11 @@ class AffineOps : public Base {
         return ajoin(x, y, fT);
     }
 
-    AffItv Input(const AffItv&) const override { return fromItv(interval(-1, 1)); }
+    // An audio input is not bounded : floating point audio may exceed [-1, 1], and an
+    // interval claimed for it would let the constant propagation fold computations that
+    // depend on its range (a limiter removed, a table of an input rounded to a constant).
+    // Sound files, normally bounded, keep [-1, 1] (SoundFileBuffer).
+    AffItv Input(const AffItv&) const override { return fromItv(interval(-HUGE_VAL, HUGE_VAL)); }
     AffItv Output(const AffItv&, const AffItv& x) const override { return x; }
 
     //--- user interface (rate 0 by nature) --------------------------------------------
