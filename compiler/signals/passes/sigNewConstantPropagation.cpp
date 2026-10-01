@@ -98,6 +98,22 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
         int  opnum;
         Tree t1, t2;
 
+        // a constant selector chooses its branch (select3 is built from select2) :
+        // 0 selects the first, any other integer the second ; a real selector only
+        // when it is exactly 0 or 1
+        Tree sel;
+        if (isSigSelect2(sig, sel, t1, t2)) {
+            int    i;
+            double r;
+            if (isSigInt(sel, &i)) {
+                return (i == 0) ? t1 : t2;
+            }
+            if (isSigReal(sel, &r) && (r == 0.0 || r == 1.0)) {
+                return (r == 0.0) ? t1 : t2;
+            }
+            return sig;
+        }
+
         if (!isSigBinOp(sig, &opnum, t1, t2)) {
             return sig;
         }

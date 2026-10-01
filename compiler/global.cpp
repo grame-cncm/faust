@@ -546,6 +546,7 @@ void global::reset()
     gInlineTable          = false;
     gComputeMix           = false;
     gBool2Int             = false;
+    gConstantPropagation  = false;
     gFastMathLib          = "";
     gNamespace            = "";
     gFullParentheses      = false;
@@ -972,6 +973,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     dst << "-mdy " << gMinDensity << " ";
     if (gUIMacroSwitch) {
         dst << "-uim ";
+    }
+    if (gConstantPropagation) {
+        dst << "-cp ";
     }
     dst << printFloat();
     dst << "-ftz " << gFTZMode << " ";
@@ -1634,6 +1638,11 @@ bool global::processCmdline(int argc, const char* argv[])
             i += 1;
 
             // 'real' options
+        } else if (isCmd(argv[i], "-cp", "--constant-propagation")) {
+            // the interval constant propagation of ocpp, for the FIR backends (cpp, c, llvm...)
+            gConstantPropagation = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-ifp", "--improve-float-precision")) {
             // the factorization guard of the normal form (normalize.cpp), single precision only
             sigs::g.gSigFactorGuard = true;
@@ -3104,6 +3113,10 @@ string global::printHelp()
          << "-sts        --strict-select             generate strict code for 'selectX' even for "
             "stateless branches "
             "(both are computed)."
+         << endl;
+    sstr << tab
+         << "-cp         --constant-propagation      in the FIR backends (cpp, c, llvm...), replace an "
+            "expression whose interval is a single value by that value, as ocpp always does."
          << endl;
     sstr << tab << "-wall       --warning-all               print all warnings." << endl;
     sstr << tab

@@ -37,6 +37,7 @@
 #include "recursivness.hh"
 #include "sharing.hh"
 #include "exactIntCasts.hh"
+#include "sigNewConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigRetiming.hh"
 #include "sigToGraph.hh"
@@ -134,6 +135,12 @@ Tree InstructionsCompiler::prepare(Tree LS)
 
     // No more table privatisation
     Tree L2 = L1;
+
+    // -cp : the interval constant propagation that ocpp always runs
+    if (gGlobal->gConstantPropagation) {
+        typeAnnotation(L2, true);
+        L2 = newConstantPropagation(L2);
+    }
 
     // -ifp : exact integer conversions of rational coefficients
     if (sigs::g.gSigFactorGuard && gGlobal->gFloatSize <= 2) {
