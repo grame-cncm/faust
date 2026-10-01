@@ -29,7 +29,7 @@ script, soundFile, modelName, peakThreshold, peakDistance = argv
 # Reading file
 print("Reading wav file...")
 (fs, x) = read(soundFile)
-if x.shape[1] == 2:
+if x.ndim == 2 and x.shape[1] == 2:
     x = x[:, 0]
 # Normalizing sound
 x = x/np.max(x)
