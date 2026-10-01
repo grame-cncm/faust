@@ -45,12 +45,13 @@ test_delay_4(s) = (s@int(c_delay_4a))@int(c_delay_4b);
 
 // --- Test 1.5 ---
 c_delay_5 = hslider("1.5_c", 20, 1, 100, 1);
-// Input: (s@(abs(s2)*10))@c_delay_5
-// Expected: (s@(abs(s2)*10))@c_delay_5  (NOT simplified)
+// Input: (s@(min(abs(s2),1)*10))@c_delay_5
+// Expected: (s@(min(abs(s2),1)*10))@c_delay_5  (NOT simplified)
 // Rule: (s@n)@m is NOT simplified when n is audio-rate.
 //       This tests the `getSigOrder(n) == 2` case, which should fail the check.
-//       Using abs() to ensure the delay time is always non-negative.
-test_delay_5(s, s2) = (s@(int(abs(s2)*10)))@int(c_delay_5);
+//       Using abs() to ensure the delay time is always non-negative, and min() to
+//       bound it : an audio input has no assumed range.
+test_delay_5(s, s2) = (s@(int(min(abs(s2), 1)*10)))@int(c_delay_5);
 
 // --- Test 1.6 ---
 // Input: s@0
