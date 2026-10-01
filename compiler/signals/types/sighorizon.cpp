@@ -159,17 +159,130 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
                getUserData(y) == static_cast<void*>(sigs::g.gFloorPrim);
     }
 
+    //--- the interpolation ------------------------------------------------------------
+    // a*X + b*Y with b = 1 - a and a in [0, 1] is an interpolation between X and Y : it
+    // lies in the hull of their intervals. Interval arithmetic reads a and 1 - a as
+    // independent and loses it ([-2, 2] for a crossfade of two signals in [-1, 1]) ;
+    // a smoother y = (1-p)*x + p*y' loses it at every step of its recursion, and the
+    // widening of the fixpoint ends at +-1e9. Two recognitions : b is the node 1 - a
+    // (the normal form keeps it : si.smooth with a variable pole, si.smoo), or a and b
+    // are two numbers >= 0 whose sum is at most 1 (a constant pole, 0.001 and 0.999) ;
+    // a sum below 1 adds 0 to the hull. Like the rest of the interval analysis, the
+    // rule reasons on reals : a floating point rounding may exceed the hull by an ulp.
+    static bool isOne(Tree t)
+    {
+        int    i;
+        double r;
+        return (isSigInt(t, &i) && i == 1) || (isSigReal(t, &r) && r == 1.0);
+    }
+    static bool isOneMinus(Tree b, Tree a)
+    {
+        int  op;
+        Tree u, v;
+        return isSigBinOp(b, &op, u, v) && op == kSub && isOne(u) && v == a;
+    }
+    // the (coefficient, operand) readings of a product : both orders
+    static int productReadings(Tree t, Tree coef[2], Tree val[2])
+    {
+        int  op;
+        Tree u, v;
+        if (!isSigBinOp(t, &op, u, v) || op != kMul) {
+            return 0;
+        }
+        coef[0] = u;
+        val[0]  = v;
+        coef[1] = v;
+        val[1]  = u;
+        return 2;
+    }
+    bool interpolationHull(Tree sig, FixPointEvaluator<AffItv>& ev, interval& out,
+                           bool* openRecursion = nullptr) const
+    {
+        int  op;
+        Tree p, q;
+        if (!isSigBinOp(sig, &op, p, q) || op != kAdd) {
+            return false;
+        }
+        Tree ca[2], xa[2], cb[2], yb[2];
+        int  na = productReadings(p, ca, xa);
+        int  nb = productReadings(q, cb, yb);
+        auto inUnit = [&](Tree a) {
+            interval ia = itv::toItv(ev.eval(a), fT);
+            return ia.isValid() && !ia.isEmpty() && ia.lo() >= 0 && ia.hi() <= 1;
+        };
+        for (int i = 0; i < na; i++) {
+            for (int j = 0; j < nb; j++) {
+                Tree   a = ca[i], b = cb[j];
+                bool   convex = false, subconvex = false;
+                double va, vb;
+                if ((isOneMinus(b, a) && inUnit(a)) || (isOneMinus(a, b) && inUnit(b))) {
+                    convex = true;
+                } else if (isSigReal(a, &va) && isSigReal(b, &vb) && va >= 0 && vb >= 0 &&
+                           va + vb <= 1 + 1e-12) {
+                    // 0.001 is computed as 1 - 0.999 in double : the sum may exceed 1 by an ulp
+                    convex    = (std::fabs(va + vb - 1) <= 1e-12);
+                    subconvex = !convex;
+                }
+                if (!convex && !subconvex) {
+                    continue;
+                }
+                interval ix = itv::toItv(ev.eval(xa[i]), fT);
+                interval iy = itv::toItv(ev.eval(yb[j]), fT);
+                bool     ex = !ix.isValid() || ix.isEmpty(), ey = !iy.isValid() || iy.isEmpty();
+                if (ex && ey) {
+                    return false;
+                }
+                double lo = ex ? iy.lo() : (ey ? ix.lo() : std::min(ix.lo(), iy.lo()));
+                double hi = ex ? iy.hi() : (ey ? ix.hi() : std::max(ix.hi(), iy.hi()));
+                if (subconvex) {
+                    lo = std::min(lo, 0.0);
+                    hi = std::max(hi, 0.0);
+                }
+                if (!std::isfinite(lo) || !std::isfinite(hi)) {
+                    return false;
+                }
+                out = interval(lo, hi);
+                if (openRecursion) {
+                    *openRecursion = !xa[i]->isRecFree() || !yb[j]->isRecFree();
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
    public:
     AffItv combine(Tree sig, const std::vector<AffItv>& c, FixPointEvaluator<AffItv>& ev) const override
     {
         AffItv r = itv::AffineOps<SignalAlgebra<AffItv>>::combine(sig, c, ev);
-        if (r.isEmpty() || !isFractionalPart(sig)) {
-            return r;
+        if (r.isEmpty()) {
+            // a recursion's first round : the generic sum is still empty, the hull is
+            // already known from the other operand -- starting from it lets the fixpoint
+            // settle at once instead of creeping up at the pole's rate into the widening
+            interval h;
+            return interpolationHull(sig, ev, h) ? itv::fromItv(h) : r;
         }
-        interval ri = itv::toItv(r, fT);
-        double   lo = std::max(0.0, ri.lo());
-        double   hi = std::min(1.0, ri.hi());
-        return (lo <= hi) ? itv::fromItv(interval(lo, hi, ri.lsb())) : r;
+        if (isFractionalPart(sig)) {
+            interval ri = itv::toItv(r, fT);
+            double   lo = std::max(0.0, ri.lo());
+            double   hi = std::min(1.0, ri.hi());
+            return (lo <= hi) ? itv::fromItv(interval(lo, hi, ri.lsb())) : r;
+        }
+        interval h;
+        bool     open = false;
+        if (interpolationHull(sig, ev, h, &open)) {
+            if (open) {
+                // inside a recursion (a smoother's state) : the hull alone. Intersected
+                // with the generic sum, the iterates would creep up at the pole's rate
+                // (0.001 per round for a pole of 0.999) until the widening blows them up
+                return itv::fromItv(h);
+            }
+            interval ri = itv::toItv(r, fT);
+            double   lo = std::max(h.lo(), ri.lo());
+            double   hi = std::min(h.hi(), ri.hi());
+            return (lo <= hi) ? itv::fromItv(interval(lo, hi, ri.lsb())) : r;
+        }
+        return r;
     }
 
     //--- the lattice ------------------------------------------------------------------
