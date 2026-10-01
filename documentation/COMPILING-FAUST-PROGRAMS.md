@@ -113,7 +113,8 @@ Rewrites of the normalized signal graph, before any code exists. They change *wh
 | `-etai` | both | stable | The iteration cap of the eta normalization (default 64 ; the loop stops earlier by itself). |
 | `-noeta` | both | stable | Turns the eta normalization off. For comparisons only : the normal form without it keeps false recursions. |
 | `-etar` | both | experimental | Each eta iteration also regroups the recursive definitions along their strongly connected components. Changes the output on few programs. |
-| `-cp` | cpp (always on in ocpp) | experimental | Constant propagation by intervals in the FIR backends : an expression whose interval is a single value is replaced by that value, and a selection whose selector becomes constant keeps only its branch. `ocpp` always does it. Changes the code where the intervals decide a comparison or a rounding. |
+| `-cp` | cpp (always on in ocpp) | stable | Constant propagation by intervals in the FIR backends, on by default : an expression whose interval is a single value is replaced by that value, and a selection whose selector becomes constant keeps only its branch. `ocpp` always does it. The option is kept for scripts that pass it. |
+| `-nocp` | cpp (ocpp ignores it) | stable | Turns off the constant propagation of the FIR backends. For comparisons only. |
 | `-reassoc` | ocpp (cpp ignores it) | experimental | Reassociates the sums inside single-definition recursions so that the recurrence chain is as short as possible. Helps feedback-bound programs (a comb network). |
 | `-gatequiv` | ocpp (cpp ignores it) | experimental | Gives one canonical form to the two spellings of a gated signal, so that `-lazyselect` finds more guards. |
 | `-lazyselect` | ocpp (cpp ignores it) | experimental | Computes the branches of a selection only when they are selected. Helps programs that switch between costly alternatives. |

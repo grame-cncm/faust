@@ -546,7 +546,7 @@ void global::reset()
     gInlineTable          = false;
     gComputeMix           = false;
     gBool2Int             = false;
-    gConstantPropagation  = false;
+    gConstantPropagation  = true;   // -nocp turns it off
     gFastMathLib          = "";
     gNamespace            = "";
     gFullParentheses      = false;
@@ -974,8 +974,8 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gUIMacroSwitch) {
         dst << "-uim ";
     }
-    if (gConstantPropagation) {
-        dst << "-cp ";
+    if (!gConstantPropagation) {
+        dst << "-nocp ";
     }
     dst << printFloat();
     dst << "-ftz " << gFTZMode << " ";
@@ -1639,8 +1639,12 @@ bool global::processCmdline(int argc, const char* argv[])
 
             // 'real' options
         } else if (isCmd(argv[i], "-cp", "--constant-propagation")) {
-            // the interval constant propagation of ocpp, for the FIR backends (cpp, c, llvm...)
+            // the interval constant propagation in the FIR backends : on by default, kept for scripts
             gConstantPropagation = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-nocp", "--no-constant-propagation")) {
+            gConstantPropagation = false;
             i += 1;
 
         } else if (isCmd(argv[i], "-ifp", "--improve-float-precision")) {
@@ -3116,7 +3120,10 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-cp         --constant-propagation      in the FIR backends (cpp, c, llvm...), replace an "
-            "expression whose interval is a single value by that value, as ocpp always does."
+            "expression whose interval is a single value by that value, as ocpp always does (default)."
+         << endl;
+    sstr << tab
+         << "-nocp       --no-constant-propagation   turn off the constant propagation of the FIR backends."
          << endl;
     sstr << tab << "-wall       --warning-all               print all warnings." << endl;
     sstr << tab

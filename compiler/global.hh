@@ -430,7 +430,7 @@ struct global {
                         // main class.
     bool        gComputeMix;         // -cm option, mix in outputs buffers
     bool        gBool2Int;           // Cast bool binary operations (comparison operations) to int
-    bool        gConstantPropagation;  // -cp : constant propagation by intervals in the FIR backends (always on in ocpp)
+    bool        gConstantPropagation;  // constant propagation by intervals in the FIR backends, on by default (-nocp ; always on in ocpp)
     std::string gNamespace;          // Wrapping namespace used with the C++ backend
     bool        gVHDLTrace;          // -vhdl-trace option
     bool        gVHDLFloatEncoding;  // -vhdl-float, floating point encoding for real numbers
