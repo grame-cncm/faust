@@ -233,6 +233,47 @@ class TestLearnableSoundfiles:
 
 
 @pytest.mark.integration
+class TestSoundfileChannelWrap:
+	"""Test soundfile(label, N) when N exceeds the real channel count of the file.
+
+	The generated code reads channel 'c' as 'c % fChannels' (fChannels comes from
+	the architecture's soundfile dictionary), so a stereo file read with 4 outputs
+	gives channels 0, 1, 0, 1. Indexing the buffers with the channel alone would
+	clamp channels 2 and 3 to channel 1 (see grame-cncm/faust#1322).
+	"""
+
+	@pytest.mark.parametrize("dsp_file", ["soundfile_channel_wrap.dsp", "soundfile_channel_wrap_learnable.dsp"])
+	@pytest.mark.parametrize("jit", [False, True])
+	def test_extra_channels_wrap(self, compile_and_load_dsp, default_rngs, tmp_path, monkeypatch, dsp_file, jit):
+		from scipy.io import wavfile
+
+		left = np.arange(1, 9, dtype=np.float32)
+		right = np.arange(10, 90, 10, dtype=np.float32)
+		wavfile.write(str(tmp_path / "channel_wrap.wav"), 44100, np.stack([left, right], axis=1))
+
+		mydsp = compile_and_load_dsp(dsp_file)
+		# The file is found at the first candidate location (the current directory):
+		# this test is about the channels, not about the soundfile_dirs search.
+		monkeypatch.chdir(tmp_path)
+		model = mydsp(
+			sample_rate=44100,
+			faust_float=jnp.float32,
+			rngs=default_rngs,
+		)
+		assert model.fSoundfile0["fChannels"] == 2
+
+		if jit:
+			out = nnx.jit(lambda m: m(num_samples=8))(model)
+		else:
+			out = model(num_samples=8)
+
+		assert out.shape[0] == 4
+		assert not np.allclose(out[0], out[1]), "left and right channels of the fixture must differ"
+		np.testing.assert_array_equal(out[2], out[0])
+		np.testing.assert_array_equal(out[3], out[1])
+
+
+@pytest.mark.integration
 class TestMagicClampIntegration:
 	"""Test magic-clamp enabled by default in compiled DSPs."""
 
