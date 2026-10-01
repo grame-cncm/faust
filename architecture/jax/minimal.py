@@ -308,6 +308,14 @@ def _load_state_safetensors(path: str | Path) -> Tuple[Dict[str, Any], Dict[str,
 		# Loop through potential paths and try to load the audio file
 		for full_path in potential_paths:
 			attempted_paths.append(str(full_path))
+			# Check existence explicitly rather than relying on the loader to
+			# raise FileNotFoundError: modern librosa/soundfile raise their own
+			# soundfile.LibsndfileError (a RuntimeError, not a FileNotFoundError)
+			# for a missing file, which would otherwise abort the directory
+			# search on the very first candidate instead of trying the rest of
+			# soundfile_dirs.
+			if not full_path.is_file():
+				continue
 			try:
 				# Suppress deprecation warnings from librosa (aifc, audioop deprecated in Python 3.13)
 				with warnings.catch_warnings():
@@ -316,9 +324,6 @@ def _load_state_safetensors(path: str | Path) -> Tuple[Dict[str, Any], Dict[str,
 				if audio.ndim == 1:
 					audio = np.expand_dims(audio, 0)
 				return audio, sr
-			except FileNotFoundError:
-				# If not found at this path, continue to the next
-				continue
 			except Exception as e:
 				# Other errors (corrupted file, unsupported format, ...) are
 				# real failures for a path that exists

@@ -36,6 +36,9 @@ class InstructionsCompilerJAX : public InstructionsCompiler {
                                  int mxd, Address::AccessType& access, ValueInst* ccs) override;
 
     ValueInst* generateSoundfile(Tree sig, Tree path) override;
+
+    ValueInst* generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y,
+                                       ValueInst* z) override;
 };
 
 #endif

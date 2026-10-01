@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include "floats.hh"
 #include "instructions_compiler_jax.hh"
 #include "ppsig.hh"
 #include "sigtyperules.hh"
@@ -171,4 +172,83 @@ ValueInst* InstructionsCompilerJAX::generateSoundfile(Tree sig, Tree path)
     }
 
     return IB::genLoadStructVar(varname);
+}
+
+ValueInst* InstructionsCompilerJAX::generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x,
+                                                            ValueInst* y, ValueInst* z)
+{
+    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
+    faustassert(load);
+
+    Typed* type1 = IB::genBasicTyped(itfloatptrptr());
+    Typed* type2 = IB::genItFloatTyped();
+    Typed* type3 = IB::genBasicTyped(Typed::kInt32_ptr);
+
+    string SFcache             = load->fAddress->getName() + "ca";
+    string SFcache_buffer      = gGlobal->getFreshID(SFcache + "_bu");
+    string SFcache_buffer_chan = gGlobal->getFreshID(SFcache + "_bu_ch");
+    string SFcache_offset      = gGlobal->getFreshID(SFcache + "_of");
+
+    // add_soundfile() (architecture/jax/minimal.py and minimal_linen.py) sizes
+    // the runtime buffer to the actual channel count of the loaded audio
+    // file(s), which can be smaller than the channel count declared in the
+    // `soundfile(label, chan)` primitive (e.g. a mono or stereo file read as
+    // if it had more channels, a documented and common case). The base
+    // (C++) architecture handles this with Soundfile::shareBuffers(), which
+    // duplicates real channels cyclically (chan % cur_chan) up to the
+    // requested count. JAX has no such runtime hook, and plain array
+    // indexing with a static out-of-range channel number silently clamps to
+    // the last real channel instead of wrapping, so channels beyond the
+    // real count end up reading the wrong (repeated) channel's audio.
+    // Wrapping the channel index with the buffer's own runtime length here
+    // reproduces the same chan % cur_chan duplication.
+    auto wrapChannel = [&](ValueInst* buffer_load) -> ValueInst* {
+        Values len_args;
+        len_args.push_back(buffer_load);
+        return IB::genRem(x, IB::genFunCallInst("len", len_args));
+    };
+
+    if (gGlobal->gExtControl) {
+        // Struct access using an index that will be converted as a field name
+        ValueInst* v1 = IB::genLoadStructPtrVar(SFcache, Address::kStruct, IB::genInt32NumInst(3));
+
+        pushDeclare(IB::genDecStructVar(SFcache_offset, type3));
+        pushControlDeclare(IB::genStoreStructVar(SFcache_offset, v1));
+
+        // Struct access using an index that will be converted as a field name
+        LoadVarInst* load1 =
+            IB::genLoadStructPtrVar(SFcache, Address::kStruct, IB::genInt32NumInst(0));
+
+        pushDeclare(IB::genDecStructVar(SFcache_buffer, type1));
+        // SFcache_buffer type is void* and has to be casted in the runtime buffer type
+        pushControlDeclare(IB::genStoreStructVar(SFcache_buffer, IB::genCastInst(load1, type1)));
+
+        pushDeclare(IB::genDecStructVar(SFcache_buffer_chan, IB::genArrayTyped(type2, 0)));
+        pushControlDeclare(IB::genStoreStructVar(
+            SFcache_buffer_chan,
+            IB::genLoadStructPtrVar(SFcache_buffer, Address::kStruct,
+                                    wrapChannel(IB::genLoadStructVar(SFcache_buffer)))));
+
+        return IB::genLoadStructPtrVar(SFcache_buffer_chan, Address::kStruct,
+                                       IB::genAdd(IB::genLoadArrayStructVar(SFcache_offset, y), z));
+    } else {
+        // Struct access using an index that will be converted as a field name
+        ValueInst* v1 = IB::genLoadStructPtrVar(SFcache, Address::kStack, IB::genInt32NumInst(3));
+
+        pushComputeBlockMethod(IB::genDecStackVar(SFcache_offset, type3, v1));
+
+        // Struct access using an index that will be converted as a field name
+        LoadVarInst* load1 =
+            IB::genLoadStructPtrVar(SFcache, Address::kStack, IB::genInt32NumInst(0));
+
+        // SFcache_buffer type is void* and has to be casted in the runtime buffer type
+        pushComputeBlockMethod(
+            IB::genDecStackVar(SFcache_buffer, type1, IB::genCastInst(load1, type1)));
+        pushComputeBlockMethod(IB::genDecStackVar(
+            SFcache_buffer_chan, IB::genArrayTyped(type2, 0),
+            IB::genLoadStructPtrVar(SFcache_buffer, Address::kStack,
+                                    wrapChannel(IB::genLoadStackVar(SFcache_buffer)))));
+        return IB::genLoadStructPtrVar(SFcache_buffer_chan, Address::kStack,
+                                       IB::genAdd(IB::genLoadArrayStackVar(SFcache_offset, y), z));
+    }
 }

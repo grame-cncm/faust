@@ -233,6 +233,45 @@ class TestLearnableSoundfiles:
 
 
 @pytest.mark.integration
+class TestSoundfileChannelWrap:
+	"""Test soundfile(label, N) when N exceeds the loaded file's channel count."""
+
+	def test_extra_channels_wrap_instead_of_repeating_last(
+		self,
+		compile_and_load_dsp,
+		default_rngs,
+		tmp_path,
+	):
+		"""Channels beyond the file's real count must cycle back through the
+		real channels (channel 2 == channel 0, channel 3 == channel 1 for a
+		2-channel file read as 4), matching the reference architecture's
+		Soundfile::shareBuffers (chan % cur_chan). Plain JAX indexing of an
+		out-of-range channel silently clamps to the last real channel
+		instead, which would make channels 2 and 3 both equal channel 1.
+		"""
+		from scipy.io import wavfile
+
+		left = np.arange(1, 9, dtype=np.float32)
+		right = np.arange(10, 90, 10, dtype=np.float32)
+		stereo = np.stack([left, right], axis=1)
+		wavfile.write(str(tmp_path / "channel_wrap.wav"), 44100, stereo)
+
+		mydsp = compile_and_load_dsp("soundfile_channel_wrap.dsp")
+		model = mydsp(
+			sample_rate=44100,
+			faust_float=jnp.float32,
+			rngs=default_rngs,
+			soundfile_dirs=[str(tmp_path)],
+		)
+
+		out = model(jnp.zeros((0, 8), dtype=jnp.float32), num_samples=8)
+
+		assert not np.allclose(out[0], out[1]), "left/right channels of the fixture must differ"
+		np.testing.assert_array_equal(out[2], out[0])
+		np.testing.assert_array_equal(out[3], out[1])
+
+
+@pytest.mark.integration
 class TestMagicClampIntegration:
 	"""Test magic-clamp enabled by default in compiled DSPs."""
 
