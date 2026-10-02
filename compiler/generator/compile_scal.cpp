@@ -8109,8 +8109,8 @@ static bool displayTailCarries(Tree t)
 {
     int  op;
     Tree x, y, sel;
-    return isSigBinOp(t, &op, x, y) || isSigIntCast(t, x) || isSigFloatCast(t, x) || isSigSelect2(t, sel, x, y) ||
-           isSigSum(t) || (getUserData(t) != nullptr && t->arity() > 0);
+    return isSigBinOp(t, &op, x, y) || isSigNeg(t, x) || isSigIntCast(t, x) || isSigFloatCast(t, x) ||
+           isSigSelect2(t, sel, x, y) || isSigSum(t) || (getUserData(t) != nullptr && t->arity() > 0);
 }
 
 void ScalarCompiler::computeDisplayFrontier()
@@ -8220,6 +8220,13 @@ std::string ScalarCompiler::displayExpr(Tree t)
         std::string sy = displayExpr(y);
         return wrap ? subst("$0($1, $2)", wrap, sx, sy)
                     : subst("($0 $1 $2)", sx, gBinOpTable[op]->fName, sy);
+    }
+    if (isSigNeg(t, x)) {
+        // -x is spelled as -1 * x always was
+        const bool  isInt = (getCertifiedSigType(t)->nature() == kInt);
+        std::string m1    = CS(isInt ? sigInt(-1) : sigReal(-1.0));
+        std::string sx    = displayExpr(x);
+        return isInt ? subst("faust_wrap_mul($0, $1)", m1, sx) : subst("($0 * $1)", m1, sx);
     }
     if (isSigIntCast(t, x)) {
         return subst("int(+$0)", displayExpr(x));
