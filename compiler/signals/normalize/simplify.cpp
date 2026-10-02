@@ -147,6 +147,24 @@ static Tree simplification(Tree sig)
 
     int  opnum;
     Tree t1, t2;
+
+    // -x meets the rules -1 * x always met (LE-MOINS-UNAIRE, step A) : a literal
+    // folds, -(x-y) -> y-x, -(m*x) -> (-m)*x, and the rest goes to the normal
+    // form engine, as every product does
+    if (Tree nx; isSigNeg(sig, nx)) {
+        if (isNum(nx->node())) {
+            return tree(minusNode(nx->node()));
+        }
+        if (Sub(var(x), var(y)).match(nx)) {
+            return sigBinOp(kSub, y, x);
+        }
+        if (Mul(pat::num(m), var(x)).match(nx) || Mul(var(x), pat::num(m)).match(nx)) {
+            Tree p = tree(minusNode(m->node()));
+            return isOne(p->node()) ? x : sigBinOp(kMul, p, x);
+        }
+        return (sigs::g.gSigNoNorm ? sig : normalizeAddTerm(sig));
+    }
+
     if (isSigBinOp(sig, &opnum, t1, t2)) {
         // the generic frame: rules valid FOR ALL operators, driven by the op tables
         ::BinOp* op = gBinOpTable[opnum];
@@ -189,9 +207,15 @@ static Tree simplification(Tree sig)
             return isOne(p->node()) ? x : sigBinOp(kMul, p, x);
         }
 
-        // 0-x -> -1*x
+        // 0-x -> -x
         if (Sub(zero(), var(x)).match(sig)) {
-            return sigBinOp(kMul, sigInt(-1), x);
+            return sigNeg(x);
+        }
+
+        // n*(-x) -> (-n)*x or x (if -n == 1) : the rule n*(m*x) with m = -1
+        if (Tree nx; opnum == kMul && isSigNeg(t2, nx) && isNum(n1)) {
+            Tree p = tree(minusNode(n1));
+            return isOne(p->node()) ? nx : sigBinOp(kMul, p, nx);
         }
 
         if (op->isLeftNeutral(n1)) {

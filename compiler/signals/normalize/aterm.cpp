@@ -181,7 +181,7 @@ Tree aterm::normalizedTree() const
     SUM   = R;
 
     if (!signe) {
-        SUM = sigBinOp(kMul, sigInt(-1), SUM);
+        SUM = sigNeg(SUM);  // -SUM : the unary minus (LE-MOINS-UNAIRE)
     }
 
 #ifdef TRACE

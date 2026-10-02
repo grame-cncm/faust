@@ -181,6 +181,10 @@ Tree normalizeDelayTerm(Tree s, Tree d)
     } else if (isZero(s)) {
         return s;
 
+    } else if (isSigNeg(s, x)) {
+        // (-x)@d -> -(x@d) : the sign stays outside, as the factor -1 did
+        return sigNeg(normalizeDelayTerm(x, d));
+
     } else if (isSigMul(s, x, y)) {
         if (sigs::sigOrder(x) < 2) {
             return /*simplify*/ (sigMul(x, normalizeDelayTerm(y, d)));

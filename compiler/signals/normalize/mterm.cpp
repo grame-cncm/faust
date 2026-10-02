@@ -154,6 +154,11 @@ const mterm& mterm::operator*=(Tree t)
     if (isNum(t)) {
         fCoef = mulNums(fCoef, t);
 
+    } else if (isSigNeg(t, x)) {
+        // -x : the factor -1, then x
+        fCoef = mulNums(fCoef, sigInt(-1));
+        *this *= x;
+
     } else if (isSigBinOp(t, &op, x, y) && (op == kMul)) {
         *this *= x;
         *this *= y;
@@ -191,6 +196,11 @@ const mterm& mterm::operator/=(Tree t)
             tlib::error(error.str());
         }
         fCoef = divExtendedNums(fCoef, t);
+
+    } else if (isSigNeg(t, x)) {
+        // / -x : the divisor -1, then x
+        fCoef = divExtendedNums(fCoef, sigInt(-1));
+        *this /= x;
 
     } else if (isSigBinOp(t, &op, x, y) && (op == kMul)) {
         *this /= x;
