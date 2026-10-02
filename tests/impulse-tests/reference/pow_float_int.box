@@ -1,0 +1,14 @@
+declare version "2.90.0";
+declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/pow_float_int.dsp -o reference/pow_float_int.box";
+declare filename "pow_float_int.dsp";
+declare name "pow_float_int";
+ID_0 = hslider("x", 0.6f, 0.0f, 1.0f, 0.01f);
+ID_1 = ID_0, ID_0;
+ID_2 = (ID_1 : *);
+ID_3 = hslider("n", 5e+04f, 0.0f, 5e+04f, 1.0f);
+ID_4 = (ID_3 : int);
+ID_5 = ID_4, ID_4;
+ID_6 = ID_5 : *;
+ID_7 = (ID_6 : float);
+ID_8 = ID_2, ID_7;
+process = ID_8;

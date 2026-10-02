@@ -1,0 +1,103 @@
+//----------------------------------------------------------
+// name: "pow_float_int"
+//
+// Code generated with Faust 2.90.0 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
+#ifndef FAUSTPOWER
+#define FAUSTPOWER
+#include <cmath>
+template <int N> inline int faustpower(int x)              { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } 
+template <> 	 inline int faustpower<0>(int x)            { return 1; }
+template <> 	 inline int faustpower<1>(int x)            { return x; }
+template <> 	 inline int faustpower<2>(int x)            { return x*x; }
+template <int N> inline float faustpower(float x)            { return faustpower<N/2>(x) * faustpower<N-N/2>(x); } 
+template <> 	 inline float faustpower<0>(float x)          { return 1; }
+template <> 	 inline float faustpower<1>(float x)          { return x; }
+template <> 	 inline float faustpower<2>(float x)          { return x*x; }
+#endif
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT 	fslider0;
+	FAUSTFLOAT 	fslider1;
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "pow_float_int.dsp");
+		m->declare("name", "pow_float_int");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 2; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 5e+04f;
+		fslider1 = 0.6f;
+	}
+	virtual void instanceClear() {
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("pow_float_int");
+		ui_interface->addHorizontalSlider("n", &fslider0, 5e+04f, 0.0f, 5e+04f, 1.0f);
+		ui_interface->addHorizontalSlider("x", &fslider1, 0.6f, 0.0f, 1.0f, 0.01f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = float(+faustpower<2>(int(+float(fslider0)))); // step: 5
+		float 	fSlow1 = powf(float(fslider1),2.0f); // step: 8
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+		// schedule: ss=0 nodes=8 cycles=5 fill=40% peak=2 isoadj=0 packs4=0 aluMII=2 memMII=0 recMII=0 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		for (int i=0; i<count; i++) {
+			output0[i] = (FAUSTFLOAT)(fSlow1);  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(fSlow0);  // Zone Exec Code
+		}
+	}
+};
+
+
