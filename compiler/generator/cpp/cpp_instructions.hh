@@ -468,11 +468,15 @@ class CPPInstVisitor : public TextInstVisitor {
             inst->fInst2->accept(this);
             *fOut << "))";
         } else if ((inst->fOpcode == kAdd || inst->fOpcode == kSub || inst->fOpcode == kMul) &&
-                   isInt32Type(TypingVisitor::getType(inst->fInst1))) {
+                   isInt32Type(TypingVisitor::getType(inst->fInst1)) &&
+                   !isRealType(TypingVisitor::getType(inst->fInst2))) {
             // Int32 add/sub/mul must wrap in two's complement (the integer
             // noise LCG relies on it) but signed overflow is UB in C++, so
             // they render as the faust_wrap_* helpers the container defines.
-            // Int64 arithmetic keeps the plain infix rendering.
+            // Int64 arithmetic keeps the plain infix rendering. The second
+            // operand must not be real : the helpers take ints, and a real
+            // operand (a tree the type promotion has not seen) would be
+            // truncated. A comparison (typed bool) is an int there.
             *fOut << ((inst->fOpcode == kAdd)   ? "faust_wrap_add("
                       : (inst->fOpcode == kSub) ? "faust_wrap_sub("
                                                 : "faust_wrap_mul(");
