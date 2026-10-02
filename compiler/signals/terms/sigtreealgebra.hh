@@ -247,12 +247,7 @@ class SIGS_API TreeAlgebra : public SignalDispatch<Tree> {
     //--- operations with no signal constructor ----------------------------------------
     // Not produced by the dense switch; derived transformations may use them as
     // shorthands, interpreted through the constructors they abbreviate.
-    Tree Neg(const Tree& x) const override
-    {
-        Tree op   = tree(kSub);
-        Tree zero = tree(0);
-        return tree(sigs::g.SIGBINOP, op, zero, x);
-    }
+    Tree Neg(const Tree& x) const override { return tree(sigs::g.SIGNEG, x); }
     Tree Inv(const Tree& x) const override
     {
         Tree op  = tree(kDiv);

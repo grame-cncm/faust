@@ -207,6 +207,8 @@ static string sigLabel(Tree sig)
         fout << "@";
     } else if (isSigPrefix(sig, x, y)) {
         fout << "prefix";
+    } else if (isSigNeg(sig, x)) {
+        fout << "neg";
     } else if (isSigBinOp(sig, &i, x, y)) {
         fout << binopname[i];
     } else if (isSigFFun(sig, ff, largs)) {

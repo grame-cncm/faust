@@ -1091,6 +1091,23 @@ SIGS_API bool isSigTemp(Tree s)
     return isTree(s, sigs::g.SIGTEMP);
 }
 
+// -x : the unary minus. It has the type and the variability of x ; every
+// interpretation reads it through the algebra's Neg.
+SIGS_API Tree sigNeg(Tree x)
+{
+    return tree(sigs::g.SIGNEG, x);
+}
+
+SIGS_API bool isSigNeg(Tree s, Tree& x)
+{
+    return isTree(s, sigs::g.SIGNEG, x);
+}
+
+SIGS_API bool isSigNeg(Tree s)
+{
+    return isTree(s, sigs::g.SIGNEG);
+}
+
 SIGS_API bool isSigFIR(Tree s, Tree c0)
 {
     return isTree(s, sigs::g.SIGFIR) && (s->branch(0) == c0);

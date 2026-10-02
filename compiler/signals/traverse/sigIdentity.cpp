@@ -218,6 +218,8 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigIIR(c);
     } else if (Tree tx; isSigTemp(sig, tx)) {
         return sigTemp(self(tx));
+    } else if (Tree nx; isSigNeg(sig, nx)) {
+        return sigNeg(self(nx));
     } else if (isSigSum(sig)) {
         tvec c = sig->branches();
         for (unsigned int k = 0; k < c.size(); k++) {

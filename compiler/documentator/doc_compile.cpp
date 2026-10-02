@@ -204,6 +204,9 @@ string DocCompiler::generateCode(Tree sig, int priority)
     } else if (isSigPrefix(sig, x, y)) {
         printGCCall(sig, "generatePrefix");
         return generatePrefix(sig, x, y, priority);
+    } else if (isSigNeg(sig, x)) {
+        printGCCall(sig, "generateBinOp");
+        return generateBinOp(sig, kMul, sigInt(-1), x, priority);
     } else if (isSigBinOp(sig, &i, x, y)) {
         printGCCall(sig, "generateBinOp");
         return generateBinOp(sig, i, x, y, priority);

@@ -7304,6 +7304,9 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateSum(sig, subs);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
+    } else if (isSigNeg(sig, x)) {
+        // -x is emitted exactly as -1 * x always was
+        return generateBinOp(sig, kMul, sigInt(-1), x);
     } else if (isSigBinOp(sig, &i, x, y)) {
         return generateBinOp(sig, i, x, y);
     } else if (isSigFFun(sig, ff, largs)) {
@@ -7627,7 +7630,7 @@ bool ScalarCompiler::passCoversKind(Tree sig)
     if (isSigDelay(sig, x, y)) {
         return false;
     }
-    if (isSigBinOp(sig, &i, x, y) && i == kMul && (isMinusOne(x) || isMinusOne(y))) {
+    if ((isSigBinOp(sig, &i, x, y) && i == kMul && (isMinusOne(x) || isMinusOne(y))) || isSigNeg(sig)) {
         return false;
     }
     return true;
@@ -9303,7 +9306,9 @@ string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
             }
             Tree a, b;
             tvec fc;
-            if (isSigMul(t, a, b) && isMinusOne(a)) {
+            if (isSigNeg(t, b)) {
+                neg.push_back(b);
+            } else if (isSigMul(t, a, b) && isMinusOne(a)) {
                 neg.push_back(b);
             } else if (isSigMul(t, a, b) && isMinusOne(b)) {
                 neg.push_back(a);

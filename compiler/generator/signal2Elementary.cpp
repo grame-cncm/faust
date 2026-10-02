@@ -90,6 +90,10 @@ void Signal2Elementary::visit(Tree sig)
         self(x);
         self(y);
         return;
+    } else if (isSigNeg(sig, x)) {
+        fOut << "el." << binopname[kMul] << "(-1, ";
+        self(x);
+        fOut << ")";
     } else if (isSigBinOp(sig, &i, x, y)) {
         fOut << "el." << binopname[i] << "(";
         self(x);

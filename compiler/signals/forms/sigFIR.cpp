@@ -144,7 +144,7 @@ Tree delaySigFIR(Tree s1, Tree s2)
 
 //-------------------------------------------------------------------------
 // Negate a signal: S -> -S
-static Tree sigNeg(Tree sig)
+static Tree firNeg(Tree sig)
 {
     return recSafeSimplify(sigMul(sigInt(-1), sig));
 }
@@ -156,7 +156,7 @@ Tree negSigFIR(Tree sig)
     // -FIR[X,C0,C1,...] -> FIR[X,-C0,-C1,...]
     if (tvec V; isSigFIR(sig, V)) {
         for (unsigned int i = 1; i < V.size(); i++) {
-            V[i] = sigNeg(V[i]);
+            V[i] = firNeg(V[i]);
         }
         return sigFIR(V);
     }
@@ -173,7 +173,7 @@ Tree negSigFIR(Tree sig)
         return addSigFIR(negSigFIR(x), y);
     }
 
-    return sigNeg(sig);
+    return firNeg(sig);
 }
 
 //-------------------------------------------------------------------------
@@ -816,7 +816,7 @@ void combine(std::map<Tree, Tree, treeorder>& M, bool subflag, Tree sig)
     // sig is a coefficient
     Tree key = ::nil();
     if (M.find(key) == M.end()) {
-        M[key] = (subflag) ? sigNeg(sig) : sig;
+        M[key] = (subflag) ? firNeg(sig) : sig;
     } else {
         M[key] = (subflag) ? recSafeSimplify(sigSub(M[key], sig)) : recSafeSimplify(sigAdd(M[key], sig));
     }

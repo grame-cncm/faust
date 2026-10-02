@@ -252,6 +252,15 @@ void SignalRenderer<REAL>::visit(Tree sig)
         if (fIOTA == 0) {
             self(x_tree);
         }
+    } else if (isSigNeg(sig, x_tree)) {
+        // -x : the product by -1, in the nature of x
+        self(x_tree);
+        Node v = popRes();
+        if (getCertifiedSigType(x_tree)->nature() == kInt) {
+            pushRes(gBinOpTable[kMul]->compute(-1, v.getInt()));
+        } else {
+            pushRes(gBinOpTable[kMul]->compute(-1.0, v.getDouble()));
+        }
     } else if (isSigBinOp(sig, &opt_op, x_tree, y_tree)) {
         self(x_tree);
         Node v1 = popRes();

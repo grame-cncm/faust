@@ -84,6 +84,12 @@ void printSignal(Tree sig, FILE* out, int prec)
         printSignal(x, out, 0);
     }
 
+    else if (isSigNeg(sig, x)) {
+        fputs("-(", out);
+        printSignal(x, out, 0);
+        fputs(")", out);
+    }
+
     else if (isSigBinOp(sig, &i, x, y)) {
         int pri = gBinOpTable[i]->fPriority;
         if (prec > pri) {

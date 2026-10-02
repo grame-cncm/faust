@@ -384,6 +384,11 @@ SIGS_API bool isSigFIR(Tree s);
 SIGS_API Tree sigTemp(Tree x);
 SIGS_API bool isSigTemp(Tree s, Tree& x);
 SIGS_API bool isSigTemp(Tree s);
+
+// -x : the unary minus, the one spelling of a negation (LE-MOINS-UNAIRE)
+SIGS_API Tree sigNeg(Tree x);
+SIGS_API bool isSigNeg(Tree s, Tree& x);
+SIGS_API bool isSigNeg(Tree s);
 SIGS_API bool isSigFIR(Tree s, Tree c0);  // true if s is a FIR on signal c0
 SIGS_API bool isSigFIR(Tree s, tvec& sigcoefs);
 

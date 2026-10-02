@@ -392,6 +392,9 @@ V SignalDispatch<V>::combine(Tree sig, const std::vector<V>& c,
             // to every interpretation (types, intervals, attributes)
             case sigs::SignalOpcode::Temp:
                 return c[0];
+            // -x : every domain already implements the negation
+            case sigs::SignalOpcode::Neg:
+                return this->Neg(c[0]);
             case sigs::SignalOpcode::Sum: {
                 V acc = c[0];
                 for (size_t k = 1; k < c.size(); k++) {

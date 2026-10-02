@@ -465,6 +465,9 @@ void SignalFIRCompiler::visit(Tree sig)
         compileSigSelect2(sig, sel, x_tree, y_tree);
     } else if (isSigPrefix(sig, x_tree, y_tree)) {
         compileSigPrefix(sig, x_tree, y_tree);
+    } else if (isSigNeg(sig, x_tree)) {
+        // -x is emitted exactly as -1 * x always was
+        compileSigBinOp(sig, kMul, sigInt(-1), x_tree);
     } else if (isSigBinOp(sig, &opt_op, x_tree, y_tree)) {
         compileSigBinOp(sig, opt_op, x_tree, y_tree);
     } else if (isSigFConst(sig, type_tree, name_tree, file_tree)) {

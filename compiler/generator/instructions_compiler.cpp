@@ -757,6 +757,9 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generateDelayAccess(sig, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
+    } else if (isSigNeg(sig, x)) {
+        // -x is emitted exactly as -1 * x always was
+        return generateBinOp(sig, kMul, sigInt(-1), x);
     } else if (isSigBinOp(sig, &i, x, y)) {
         return generateBinOp(sig, i, x, y);
     } else if (isSigFFun(sig, ff, largs)) {

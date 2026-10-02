@@ -181,6 +181,13 @@ static Tree firRule(Tree sig)
     // (port note : the source branch's Rule 0 pushes sigClocked wrappers
     // inside FIRs here ; this branch has no clock system)
 
+    // -x is revealed as -1 * x always was (a gain kernel FIR[x, -1])
+    if (Tree nx; isSigNeg(sig, nx)) {
+        Tree m = sigMul(sigInt(-1), nx);
+        Tree r = firRule(m);
+        return (r == m) ? sig : r;
+    }
+
     if (Tree f, d; isSigDelay(sig, f, d)) {
         // std::cerr << "Rule 1\n";
         int delay_val;

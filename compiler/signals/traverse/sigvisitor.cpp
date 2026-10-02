@@ -74,6 +74,10 @@ void sigvisitor::visit(Tree sig)
         visitDelay(sig, s1, s2);
     }
 
+    else if (isSigNeg(sig, s1)) {
+        visitBinOp(sig, kMul, sigInt(-1), s1);  // -x is visited as -1 * x
+    }
+
     else if (isSigBinOp(sig, &i, s1, s2)) {
         visitBinOp(sig, i, s1, s2);
     }

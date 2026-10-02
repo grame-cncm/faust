@@ -32,7 +32,7 @@ static Tree recSafeSimplify(Tree t)
 // A constant factor is NOT folded either : -1 * (k * x) keeps the product
 // k * x it shares with its positive occurrences, where (-k) * x is one more
 // multiplication and an atom the dispatch cannot pair.
-static Tree sigNeg(Tree sig)
+static Tree negTerm(Tree sig)
 {
     Tree x, y;
     if (isSigMul(sig, x, y)) {
@@ -89,11 +89,11 @@ static bool appendTerms(Tree xrebuilt, bool xShared, bool invert, tvec& zsubs, s
     tvec subs;
     if (isSigSum(xrebuilt, subs) && (!xShared || zsubs.size() + subs.size() <= maxShared)) {
         for (Tree s : subs) {
-            zsubs.push_back(invert ? sigNeg(s) : s);
+            zsubs.push_back(invert ? negTerm(s) : s);
         }
         return true;
     }
-    zsubs.push_back(invert ? sigNeg(xrebuilt) : xrebuilt);
+    zsubs.push_back(invert ? negTerm(xrebuilt) : xrebuilt);
     return false;
 }
 

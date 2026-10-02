@@ -341,6 +341,10 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "register", sigInt(i), x);
     }
 
+    else if (isSigNeg(fSig, x)) {
+        fout << "-(" << ppsig(x, fEnv, 0) << ')';
+    }
+
     else if (isSigFIR(fSig) || isSigIIR(fSig) || isSigSum(fSig)) {
         // n-ary kernels revealed by -fir : generic bracketed print
         fout << (isSigFIR(fSig) ? "FIR[" : (isSigIIR(fSig) ? "IIR[" : "Sum["));

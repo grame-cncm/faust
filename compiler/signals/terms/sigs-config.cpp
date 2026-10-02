@@ -110,6 +110,9 @@ void initSignalSymbols()
     g.SIGIIR             = signal_signature.add("SigIIR", kAudioRate);
     g.SIGSUM             = signal_signature.add("SigSum");
     g.SIGTEMP            = signal_signature.add("SigTemp");
+    // the unary minus (LE-MOINS-UNAIRE) : registered after the FIR/IIR forms,
+    // for the same reason (the order indexes the dispatch tables)
+    g.SIGNEG             = signal_signature.add("SigNeg");
 
     // The session's initial algebra: its dispatch signature was just interned,
     // and dies with the tlib session -- rebuild it here, on both init paths

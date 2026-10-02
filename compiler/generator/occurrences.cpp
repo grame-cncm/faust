@@ -282,6 +282,8 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         Tree x, y;
         if (isSigBinOp(t, &opnum, x, y) && (opnum == kMul) && isMinusOne(x)) {
             incOcc(env, v, r, d, xc, y);
+        } else if (isSigNeg(t, y)) {
+            incOcc(env, v, r, d, xc, y);  // -y : the same rule
         }
     }
 }

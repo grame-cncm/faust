@@ -243,6 +243,10 @@ void Signal2SDF::visit(Tree sig)
         self(x);
         self(y);
         return;
+    } else if (isSigNeg(sig, x)) {
+        logBinopActor(sig, sigInt(-1), x, binopname[kMul]);
+        self(x);
+        return;
     } else if (isSigBinOp(sig, &i, x, y)) {
         logBinopActor(sig, x, y, binopname[i]);
         self(x);

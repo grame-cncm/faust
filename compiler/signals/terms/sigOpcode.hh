@@ -77,6 +77,7 @@ enum class SignalOpcode : std::uint8_t {
     Iir,
     Sum,
     Temp,
+    Neg,
     Count
 };
 

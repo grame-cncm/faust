@@ -74,6 +74,9 @@ void SignalVisitor::visit(Tree sig)
         self(x);
         self(y);
         return;
+    } else if (isSigNeg(sig, x)) {
+        self(x);
+        return;
     } else if (isSigBinOp(sig, &i, x, y)) {
         self(x);
         self(y);

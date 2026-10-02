@@ -82,6 +82,9 @@ struct PairOrder {
 Atom atomOf(Tree t)
 {
     Tree a, b;
+    if (isSigNeg(t, a)) {
+        return {a, -1};
+    }
     if (isSigMul(t, a, b) && isMinusOne(a)) {
         return {b, -1};
     }

@@ -672,7 +672,7 @@ std::string ScalarCompiler::famCS(Tree t)
         return realLiteral(r);
     }
     Tree a, b;
-    if (isSigMul(t, a, b) && isMinusOne(a)) {
+    if ((isSigMul(t, a, b) && isMinusOne(a)) || isSigNeg(t, b)) {
         return "(-" + famCS(b) + ")";
     }
     std::cerr << "ASSERT : a family reads a node the tree does not hold : " << ppsig(t, 40) << std::endl;
@@ -1443,6 +1443,12 @@ std::string ScalarCompiler::famSlowCode(FamCtx& g, Tree t, int m, bool& ok, bool
     }
     int  op;
     Tree a, b, x;
+    if (isSigNeg(t, x)) {
+        // -x is spelled as -1 * x always was
+        std::string ca = famSlowCode(g, sigInt(-1), m, ok, perMember);
+        std::string cb = famSlowCode(g, x, m, ok, perMember);
+        return subst("($0 $1 $2)", ca, gBinOpTable[kMul]->fName, cb);
+    }
     if (isSigBinOp(t, &op, a, b)) {
         std::string ca = famSlowCode(g, a, m, ok, perMember);
         std::string cb = famSlowCode(g, b, m, ok, perMember);
@@ -1648,6 +1654,16 @@ std::string ScalarCompiler::famExpr(FamCtx& g, Tree t)
         std::string cb = famExpr(g, b);
         return keep(subst("($0 $1 $2)", ca, gBinOpTable[op]->fName, cb));
     }
+    if (isSigNeg(t, a)) {
+        // -x is spelled as -1 * x always was
+        if (getCertifiedSigType(t)->nature() == kInt) {
+            g.fail("integer arithmetic inside a member");
+            return "0";
+        }
+        std::string ca = famExpr(g, sigInt(-1));
+        std::string cb = famExpr(g, a);
+        return keep(subst("($0 $1 $2)", ca, gBinOpTable[kMul]->fName, cb));
+    }
     tvec subs;
     if (isSigSum(t, subs)) {
         if (getCertifiedSigType(t)->nature() != kReal) {
@@ -1762,6 +1778,9 @@ static bool famCheck(Tree t, const std::set<Tree>& slots, const std::set<Tree>& 
     Tree a, b;
     if (isSigBinOp(t, &op, a, b)) {
         return (real(t) || isBoolOpcode(op)) && famCheck(a, slots, commons, seen, typed) && famCheck(b, slots, commons, seen, typed);
+    }
+    if (isSigNeg(t, a)) {
+        return real(t) && famCheck(a, slots, commons, seen, typed);
     }
     if (isSigSum(t, V)) {
         if (!real(t)) {

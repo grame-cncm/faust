@@ -186,6 +186,8 @@ Tree SignalRetimer::transformation(Tree sig)
         Tree res = sigRegister(1, sigPrefix(rx, ry));
         fTiming[res] = tm + 1;
         return res;
+    } else if (isSigNeg(sig, x)) {
+        return sigNeg(self(x));
     } else if (isSigBinOp(sig, &i, x, y)) {
         Tree x2  = self(x);
         Tree y2  = self(y);
