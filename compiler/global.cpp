@@ -547,6 +547,7 @@ void global::reset()
     gComputeMix           = false;
     gBool2Int             = false;
     gConstantPropagation  = true;   // -nocp turns it off
+    gFixSamplingRate      = 0;      // -fsr <n> : 0 means a runtime sampling rate
     gFastMathLib          = "";
     gNamespace            = "";
     gFullParentheses      = false;
@@ -976,6 +977,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (!gConstantPropagation) {
         dst << "-nocp ";
+    }
+    if (gFixSamplingRate > 0) {
+        dst << "-fsr " << gFixSamplingRate << " ";
     }
     dst << printFloat();
     dst << "-ftz " << gFTZMode << " ";
@@ -1646,6 +1650,10 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-nocp", "--no-constant-propagation")) {
             gConstantPropagation = false;
             i += 1;
+
+        } else if (isCmd(argv[i], "-fsr", "--fix-sampling-rate") && (i + 1 < argc)) {
+            gFixSamplingRate = std::atoi(argv[i + 1]);
+            i += 2;
 
         } else if (isCmd(argv[i], "-ifp", "--improve-float-precision")) {
             // the factorization guard of the normal form (normalize.cpp), single precision only
@@ -3124,6 +3132,10 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-nocp       --no-constant-propagation   turn off the constant propagation of the FIR backends."
+         << endl;
+    sstr << tab
+         << "-fsr <n>    --fix-sampling-rate <n>     fix the sampling rate to <n> at compile time instead of "
+            "taking it at init (experimental : the code is right only at that rate)."
          << endl;
     sstr << tab << "-wall       --warning-all               print all warnings." << endl;
     sstr << tab

@@ -479,6 +479,14 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     else if (isBoxFConst(box, type, name, file)) {
         faustassert(lsig.size() == 0);
+        // -fsr : the sampling rate fixed at compile time becomes an integer constant,
+        // and everything computed from it folds
+        if (gGlobal->gFixSamplingRate > 0) {
+            std::string vname = tree2str(name);
+            if (vname == "fSamplingFreq" || vname == "fSamplingRate") {
+                return makeList(sigInt(gGlobal->gFixSamplingRate));
+            }
+        }
         return makeList(sigFConst(type, name, file));
     }
 

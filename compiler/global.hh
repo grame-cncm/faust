@@ -430,6 +430,7 @@ struct global {
                         // main class.
     bool        gComputeMix;         // -cm option, mix in outputs buffers
     bool        gBool2Int;           // Cast bool binary operations (comparison operations) to int
+    int         gFixSamplingRate;      // -fsr <n> : the sampling rate fixed at compile time, 0 = given at init
     bool        gConstantPropagation;  // constant propagation by intervals in the FIR backends, on by default (-nocp ; always on in ocpp)
     std::string gNamespace;          // Wrapping namespace used with the C++ backend
     bool        gVHDLTrace;          // -vhdl-trace option
