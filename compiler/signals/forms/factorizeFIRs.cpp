@@ -160,22 +160,22 @@ static Tree kernelSrc(Tree t, int& sh)
 
 // delayed source, collapsing a literal delay of a literal delay (the
 // kernel shifts compose : (x@a)@b reads are x@(a+b) reads)
+//
+// Every caller puts the result in the SOURCE slot of a kernel (or reads it
+// through a positive delay), and a source is not a read : the taps are. A
+// zero total shift therefore gives the bare source, a projection included.
+// The normaliser's exception (a projection is always read through a delay,
+// even of zero : normalizeDelayTerm) is about reads, and the taps honour it
+// when they are emitted. A bare projection is also the spelling the cascade
+// law below gives a kernel's source, and the one the emitter reads on the
+// recursion's own ring : spelled x@0, the source becomes another signal,
+// whose history gets a delay line of its own -- a copy of the ring (vocoder
+// under -fir : 32 copied rings, the sample loop three times slower).
 static Tree mkShiftedSrc(Tree x, int d)
 {
     int  sh0;
     Tree x0 = kernelSrc(x, sh0);
-    int  i;
-    Tree r;
-    // A projection of a recursive group is ALWAYS read through a delay, even
-    // a delay of zero : normalizeDelayTerm is explicitly forbidden from
-    // removing that one (normalize.cpp, `if (isProj(s, &i, r)) return
-    // sigDelay(s, d)`), an exception introduced with the 2008 fix of complex
-    // mutual recursions. This pass takes x@d apart with kernelSrc and puts it
-    // back together here, so it has to honour the same exception -- rebuilding
-    // a bare projection hands the rest of the compiler the one shape it never
-    // expects to see. Everything else keeps its old spelling : decomposing and
-    // recomposing x@d is the identity when the total shift is what it was.
-    if (sh0 + d == 0 && !isProj(x0, &i, r)) {
+    if (sh0 + d == 0) {
         return x0;
     }
     return sigDelay(x0, sigInt(sh0 + d));
