@@ -255,8 +255,11 @@ void CPPCodeContainer::produceInternal()
         *fOut << "void fill" << fKlassName << subst("(int $0, int* " + fTableName + ") {", counter);
     } else {
         tab(n + 1, *fOut);
+        // Match the table's interval-derived element type in fixed-point mode.
+        CStringTypeManager tm(xfloat(), "*");
+        string elem = (fTableElemType) ? tm.generateType(fTableElemType) : ifloat();
         *fOut << "void fill" << fKlassName
-              << subst("(int $0, $1* " + fTableName + ") {", counter, ifloat());
+              << subst("(int $0, $1* " + fTableName + ") {", counter, elem);
     }
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);

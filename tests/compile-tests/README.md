@@ -15,3 +15,17 @@ Type `make help` for details on the available targets.
 
 - `faust-stk` : the 'c' backend doesn't compile due to C++ specific implementation of foreign functions.
 - `TODO` : files names containing TODO
+
+### Fixed-point C++ table regression
+
+`fixed-point-tables.py` compiles generated C++ with the shipped
+`faust/dsp/fixed-point.h` and the Xilinx `ap_fixed.h` headers. It covers static
+and writable real tables, mixed integer/real tables, several fixed-point sizes,
+inline tables and the memory manager. Use a C++ compiler compatible with your
+Xilinx headers (for example GCC with libstdc++):
+
+```sh
+python3 tests/compile-tests/fixed-point-tables.py \
+  --faust build/bin/faust --cxx g++ \
+  --ap-fixed-include /path/to/xilinx/include
+```
