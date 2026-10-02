@@ -125,10 +125,17 @@ Tree delaySigFIR(Tree s1, Tree s2)
                 return makeSigFIR(s1, d);
             }
         } else {
-            // For some reason it is useful to have a clock around a rec with a delay of zero
-            // (port note : the source branch re-wraps zero-delay recursive
-            // projections in their clock here ; this branch has no clocks)
-            return s1;
+            // A READ of a recursive projection keeps its delay of zero : the
+            // normaliser never removes it (normalizeDelayTerm), and the emitter
+            // relies on it to read the recursion's state in the right order. A
+            // bare projection read let the emitter update the state before the
+            // feedback had read its previous value : (+ : @(64)) ~ *(0.6)
+            // echoed every 64 samples instead of 65 under -fir. The source
+            // branch kept this read distinct by wrapping it in its clock ; this
+            // branch has no clocks, the delay of zero plays that part.
+            int  i;
+            Tree r;
+            return isProj(s1, &i, r) ? sigDelay(s1, s2) : s1;
         }
     } else {
         return sigDelay(s1, s2);
