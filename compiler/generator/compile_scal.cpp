@@ -7404,8 +7404,10 @@ string ScalarCompiler::generateNumber(Tree sig, const string& exp)
     string       ctype, vname;
     Occurrences* o = fOccMarkup->retrieve(sig);
 
-    // check for number occuring in delays
-    if (o->getMaxDelay() > 0) {
+    // check for number occuring in delays. A number the occurrence markup never
+    // visited (the -1 of a negation -x, spelled -1 * x when its nature asks for
+    // the wrapping product) is read through no delay.
+    if (o && o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay(), o->getDelayCount());
     }
