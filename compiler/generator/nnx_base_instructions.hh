@@ -520,6 +520,9 @@ class NNXBaseInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["max_l"] = true;
         gFunctionSymbolTable["min_l"] = true;
 
+        gFunctionSymbolTable["pow_i"] = true;
+        gPolyMathLibTable["pow_i"] = "jnp.power";
+
         // Float version
         gFunctionSymbolTable["fabsf"]      = true;
         gFunctionSymbolTable["acosf"]      = true;

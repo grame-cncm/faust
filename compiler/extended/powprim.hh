@@ -137,6 +137,14 @@ class PowPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
+        // JAX's float-to-int conversion saturates on overflow. Use its native
+        // integer power for nonnegative integer exponents to preserve int32 wrap.
+        if (gGlobal->isPythonBackend() && result->nature() == kInt &&
+            types[1]->getInterval().lo() >= 0) {
+            std::vector<Typed::VarType> atypes = {Typed::kInt32, Typed::kInt32};
+            return container->pushFunction("pow_i", Typed::kInt32, atypes, args);
+        }
+
         ValuesIt it = args.begin();
         it++;
         int pow_arg = 0;
