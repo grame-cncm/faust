@@ -102,6 +102,26 @@ class PowPrim : public xtendedCodegen {
     }
 
     // Check that power argument is an integer or possibly represents an integer, up to 8
+    // a constant exponent whose interval is one integer value in [0, 8] (the
+    // range isIntPowArg expands) : read from the type, the emitter of strings
+    // receiving no tree
+    static bool isSmallIntExponent(::Type ty, int& k)
+    {
+        if ((ty->variability() != kKonst) || (ty->computability() != kComp)) {
+            return false;
+        }
+        itv::interval I = ty->getInterval();
+        if (!I.isValid() || (I.lo() != I.hi())) {
+            return false;
+        }
+        double intpart;
+        if ((std::modf(I.lo(), &intpart) != 0.) || (I.lo() < 0.) || (I.lo() > 8.)) {
+            return false;
+        }
+        k = int(I.lo());
+        return true;
+    }
+
     bool isIntPowArg(::Type ty, ValueInst* val, int& pow_arg)
     {
         if (ty->nature() == kInt) {
@@ -201,6 +221,12 @@ class PowPrim : public xtendedCodegen {
             (types[1]->computability() == kComp)) {
             klass->rememberNeedPowerDef();
             return subst("faustpower<$1>($0)", args[0], args[1]);
+        } else if (int k; isSmallIntExponent(types[1], k)) {
+            // a REAL literal exponent with an integer value (the type promotion
+            // turns x^2 into pow(x, 2.0)) : the product, as the FIR backends
+            // emit it (isIntPowArg), instead of a call left to the C++ compiler
+            klass->rememberNeedPowerDef();
+            return subst("faustpower<$1>($0)", args[0], std::to_string(k));
         } else {
             return subst("pow$2($0,$1)", args[0], args[1], isuffix());
         }
