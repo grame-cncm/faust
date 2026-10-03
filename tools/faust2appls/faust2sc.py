@@ -461,16 +461,23 @@ checkInputs {
     else:
         input_check = ""
 
+    params_init = get_parameter_list(json_data, True)
+    params = get_parameter_list(json_data, False)
+    ar_args = ("|%s|" % params_init) if params_init else ""
+    kr_args = ar_args
+    ar_new = ("'audio', %s" % params) if params else "'audio'"
+    kr_new = ("'control', %s" % params) if params else "'control'"
+
     # The final class
     return """
 %s : %s {
 
-    *ar{|%s|
-      ^this.multiNew('audio', %s)
+    *ar{%s
+      ^this.multiNew(%s)
     }
 
-    *kr{|%s|
-      ^this.multiNew('control', %s)
+    *kr{%s
+      ^this.multiNew(%s)
     }
 
     name { ^"%s" }
@@ -482,12 +489,12 @@ checkInputs {
 """ % (
             class_name, parent_class,
             # *ar
-            get_parameter_list(json_data, True),
-            get_parameter_list(json_data, False),
+            ar_args,
+            ar_new,
 
             # *kr
-            get_parameter_list(json_data, True),
-            get_parameter_list(json_data, False),
+            kr_args,
+            kr_new,
 
             # FIXME: This is pretty ugly but it matches what the normalizeClassName function does in faust's supercollider.cpp
             # Ideally, this should be fixed in the supercollider.cpp
