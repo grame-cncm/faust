@@ -53,5 +53,24 @@ class ConvertFilesTests(unittest.TestCase):
                 self.convert("oscillator.dsp")
 
 
+class GetScClassTests(unittest.TestCase):
+    def test_zero_inputs_and_controls_omits_trailing_comma(self):
+        json_data = {
+            "name": "noise_gen",
+            "inputs": 0,
+            "outputs": 1,
+            "meta": [],
+            "ui": []
+        }
+        sc_class = faust2sc.get_sc_class(json_data, noprefix=1)
+        self.assertNotIn("multiNew('audio', )", sc_class)
+        self.assertNotIn("multiNew('control', )", sc_class)
+        self.assertNotIn("*ar{||", sc_class)
+        self.assertNotIn("*kr{||", sc_class)
+        self.assertIn("*ar{\n      ^this.multiNew('audio')\n    }", sc_class)
+        self.assertIn("*kr{\n      ^this.multiNew('control')\n    }", sc_class)
+
+
 if __name__ == "__main__":
     unittest.main()
+
