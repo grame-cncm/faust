@@ -46,7 +46,7 @@ echoHelp()
     options -midi -soundfile
     option -main "add a 'main' entry point"
     option "-nvoices <num>"
-    option "-wm8978, -es8388 or -ac101" "to choose codec driver"
+    option "-wm8978, -es8388, -ac101 or -driverless" "to choose codec driver"
     option "Faust options"
     exit
 }
@@ -92,6 +92,9 @@ do
     # -soundfile
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE=1
+    # -driverless (e.g. PCM510x)
+    elif [ $p = "-driverless" ] || [ $p = "-DRIVERLESS" ]; then
+        DRIVER="driverless"
     # -wm8978 (ttgo t-audio)
     elif [ $p = "-wm8978" ] || [ $p = "-WM8978" ]; then
         DRIVER="wm8978"
@@ -176,6 +179,8 @@ if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
         cp $FAUSTARCH/esp32/drivers/es8388/es8388.cpp $MODULENAME
         cp $FAUSTARCH/esp32/drivers/es8388/es8388.h $MODULENAME
         cp $FAUSTARCH/esp32/drivers/es8388/adf_structs.h $MODULENAME
+    elif [[ $DRIVER = "driverless" ]]; then
+        : # do nothing
     else
         cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
         cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
@@ -275,6 +280,8 @@ if [[ "$LIB" == "0" && "$GRAMOPHONE" == "0" ]]; then
         cp $FAUSTARCH/esp32/drivers/es8388/es8388.cpp $MODULENAME/es8388
         cp $FAUSTARCH/esp32/drivers/es8388/es8388.h $MODULENAME/es8388/include
         cp $FAUSTARCH/esp32/drivers/es8388/adf_structs.h $MODULENAME/es8388/include
+    elif [[ $DRIVER = "driverless" ]]; then
+        : # do nothing
     else
         mkdir -p $MODULENAME/WM8978/include
         cp $FAUSTARCH/esp32/drivers/wm8978/CMakeLists.txt $MODULENAME/WM8978
