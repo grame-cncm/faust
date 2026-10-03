@@ -80,7 +80,12 @@ struct JuceReader : public SoundfileReader {
             if (!formatReader->usesFloatingPointData) {
                 for (int chan = 0; chan < int(formatReader->numChannels); ++chan) {
                     if (soundfile->fIsDouble) {
-                        // TODO
+                        double* buffer = &(static_cast<double**>(soundfile->fBuffers))[chan][soundfile->fOffset[part]];
+                        const int* intBuffer = reinterpret_cast<const int*>(buffer);
+                        // Iterate backwards: double (8 bytes) > int (4 bytes), same underlying buffer
+                        for (int i = int(formatReader->lengthInSamples) - 1; i >= 0; --i) {
+                            buffer[i] = double(intBuffer[i]) / double(0x7fffffff);
+                        }
                     } else {
                         float* buffer = &(static_cast<float**>(soundfile->fBuffers))[chan][soundfile->fOffset[part]];
                         juce::FloatVectorOperations::convertFixedToFloat(buffer, reinterpret_cast<const int*>(buffer),
