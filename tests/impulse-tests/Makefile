@@ -114,6 +114,7 @@ help:
 	@echo " 'test-type'              : test signal typing intermediate step"
 	@echo " 'test-fir'               : test FIR intermediate step"
 	@echo " 'test-cpp'               : test C++ generation step"
+	@echo " 'test-inline-sample-rate': test sample-rate tables with -it in C and C++"
 	@echo " 'clang-tidy'             : run clang-tidy (clang-analyzer checks like uninit/UB/null deref; static-only) on generated C++ in ir/$(CLANG_TIDY_OUTDIR)"
 	@echo " 'asan-cpp'               : build+run generated C++ with AddressSanitizer (runtime checks for heap/stack/UAF/OOB)"
 	@echo " 'bench'                  : benchmark using faustbench-llvm and faustbench"
@@ -446,12 +447,22 @@ c2: leg/c2/double/ecos0mem2it \
 #########################################################################
 # automatic github action test
 github_action:
+	$(MAKE) test-inline-sample-rate
 	$(MAKE) -f Make.rust outdir=rust/it CARGOOPTIONS="" FAUSTOPTIONS="-I dsp -double -it -a archs/rust/architecture_trait_ff64.rs"
 	$(MAKE) -f Make.rust outdir=rust/inpl CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -inpl -rnt -rnlm -a archs/rust/architecture_inpl.rs"
 	$(MAKE) -f Make.rust outdir=rust/no CARGOOPTIONS="" FAUSTOPTIONS="-I ../../libraries/ -double -a archs/rust/architecture_trait_ff64.rs"
 	$(MAKE) -f Make.gcc outdir=cpp/double lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I ../../libraries/ -I dsp -double"
 	# NNX/Linen impulse tests need jax/flax, which the platform CI images do not
 	# install; they are covered by the dedicated jax-tests workflow instead.
+
+# Regression for #1236: compile and compare the sample-rate table with -it.
+# Exercise both precisions and both C-family backends against the same reference.
+.PHONY: test-inline-sample-rate
+test-inline-sample-rate:
+	$(MAKE) -f Make.gcc outdir=cpp/inline-sr/single lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -single -it" filesCompare ir/cpp/inline-sr/single ir/cpp/inline-sr/single/subcontainer1.ir
+	$(MAKE) -f Make.gcc outdir=cpp/inline-sr/double lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -it" filesCompare ir/cpp/inline-sr/double ir/cpp/inline-sr/double/subcontainer1.ir
+	$(MAKE) -f Make.gcc outdir=c/inline-sr/single lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -single -it" filesCompare ir/c/inline-sr/single ir/c/inline-sr/single/subcontainer1.ir
+	$(MAKE) -f Make.gcc outdir=c/inline-sr/double lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -it" filesCompare ir/c/inline-sr/double ir/c/inline-sr/double/subcontainer1.ir
 
 #########################################################################
 # c++ and c backends
