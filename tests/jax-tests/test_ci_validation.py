@@ -198,6 +198,44 @@ process = pow(10, _);
         if 'dsp_path' in locals():
             os.unlink(dsp_path)
 
+def test_exp10_table_initialization():
+    """Test that exp10 in tables and carry maps to np.power(10.0, ...) in numpy mode."""
+    print("\nTesting exp10 table initialization mapping...")
+
+    dsp_code = """
+import("stdfaust.lib");
+process = rdtable(10, pow(10, +(1)~_), 0);
+"""
+
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.dsp', delete=False) as f:
+        f.write(dsp_code)
+        dsp_path = f.name
+
+    try:
+        faust_bin = Path(__file__).parent.parent.parent / "build" / "bin" / "faust"
+        libraries_path = Path(__file__).parent.parent.parent / "libraries"
+
+        for lang in ["nnx", "linen"]:
+            for opt in [[], ["-double"]]:
+                cmd = [
+                    str(faust_bin),
+                    "-lang", lang,
+                    "-exp10",
+                    "-I", str(libraries_path),
+                ] + opt + [dsp_path]
+
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                assert result.returncode == 0, f"Compilation failed for {lang} {opt}: {result.stderr}"
+                output = result.stdout
+                assert "np.power(10.0," in output, f"Expected np.power(10.0, ...) in {lang} {opt} output"
+                assert "np.exp10(" not in output, f"Unexpected np.exp10 in {lang} {opt} output"
+
+        print("✓ exp10 table initialization mapping working correctly")
+
+    finally:
+        if 'dsp_path' in locals():
+            os.unlink(dsp_path)
+
 def main():
     """Run all CI validation tests.
 
@@ -211,6 +249,7 @@ def main():
     test_random_generation()
     test_delay_optimization()
     test_exp10_mapping()
+    test_exp10_table_initialization()
 
     print("\n" + "="*60)
     print("✅ All CI validation tests passed")
