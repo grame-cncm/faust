@@ -1274,6 +1274,50 @@ static Tree nwires(int n)
     return l;
 }
 
+// Maximum nesting depth of recursive applications of one set of pattern
+// matching rules. A recursive library function with a non-constant argument,
+// such as fi.lowpass(N, fc) when N is a signal, applies the same rules with a
+// different, ever growing argument (N, N-2, N-4, ...) : no rule matches the
+// base cases and the recursion never terminates. The loop detector only
+// recognizes exact repetitions and the stack overflow detector needs 256 MB of
+// evaluator stack (minutes of compile time, gigabytes of memory). Legitimate
+// recursions (filter orders, physical model chains, FFT stages, ...) are orders
+// of magnitude below this limit, so count the nesting depth per rule tree and
+// fail early with a clear error instead.
+static const int kMaxPatternMatcherDepth = 1000;
+
+// Per-thread nesting depth of each set of pattern matching rules. The rules
+// tree is the key (and not the Automaton, which is rebuilt for every new
+// environment), so that recursive applications of the same function all count.
+static thread_local TreeMap<int> gPatternMatcherDepth;
+
+struct PatternMatcherDepthGuard {
+    Tree fRules;
+
+    explicit PatternMatcherDepthGuard(Tree rules)
+        : fRules(rules)
+    {
+        if (++gPatternMatcherDepth[fRules] > kMaxPatternMatcherDepth) {
+            if (--gPatternMatcherDepth[fRules] == 0) {
+                gPatternMatcherDepth.erase(fRules);
+            }
+            stringstream error;
+            error << "ERROR : endless recursive pattern matching (more than " << kMaxPatternMatcherDepth
+                  << " nested applications), most likely a non-constant argument of a recursive library "
+                     "function such as fi.lowpass(N, fc)";
+            throw faustexception(error.str());
+        }
+    }
+
+    ~PatternMatcherDepthGuard()
+    {
+        TreeMap<int>::iterator it = gPatternMatcherDepth.find(fRules);
+        if (it != gPatternMatcherDepth.end() && --(it->second) == 0) {
+            gPatternMatcherDepth.erase(it);
+        }
+    }
+};
+
 /**
  * Apply a function to a list of arguments.
  * Apply a function F to a list of arguments (a,b,c,...).
@@ -1339,6 +1383,7 @@ static Tree applyList(Tree fun, Tree larg)
             if (isClosure(result, body, globalDefEnv, visited, localValEnv)) {
                 // why ??? return simplifyPattern(eval(body, nil, localValEnv));
                 // return eval(body, nil, localValEnv);
+                PatternMatcherDepthGuard depth_guard(originalRules);
                 return applyList(eval(body, gGlobal->nil, localValEnv), tl(larg));
             } else {
                 cerr << "ERROR : wrong result from pattern matching (not a closure) : "
