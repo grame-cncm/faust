@@ -602,6 +602,7 @@ struct global {
     property<Tree>* gSymbolicBoxProperty;
     property2<Tree>* gEvalMemo;
     property2<Tree>* gPMMemo;
+    property2<Tree>* gApplyMemo;
 
     // Node has no default constructor (a node IS its content, see tlib/node.hh), and these
     // two cannot be interned in the member init list either : global::global() calls
@@ -702,6 +703,7 @@ struct global {
 
     // Internal state during drawing
     bool                        gFoldingFlag;     // true with complex block-diagrams
+    Occur*                      gOccurrences;     // parent counts of the drawn diagram (-svg folding)
     std::stack<Tree>            gPendingExp;      // Expressions that need to be drawn
     std::set<Tree, treeorder>              gDrawnExp;        // Expressions drawn or scheduled so far
     const char*                 gDevSuffix;       // .svg or .ps used to choose output device

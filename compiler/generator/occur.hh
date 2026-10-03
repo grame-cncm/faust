@@ -22,6 +22,8 @@
 #ifndef __OCCUR__
 #define __OCCUR__
 
+#include <set>
+
 #include "garbageable.hh"
 #include "tlib.hh"
 
@@ -38,9 +40,10 @@ class Occur : public Garbageable {
     int getCount(Tree t);  // return the number of occurrences of t in root
 
    private:
-    Tree specificKey(Tree root);    // specific key for occurrences counting in root
-    void countOccurrences(Tree t);  // increment the occurrences of t and its subtrees
-    void setCount(Tree t, int c);   // set the number of occurrences of t
+    Tree specificKey(Tree root);  // specific key for occurrences counting in root
+    void countOccurrences(Tree t,
+                          std::set<Tree, treeorder>& visited);  // count the parents of each subtree
+    void setCount(Tree t, int c);                               // set the number of occurrences of t
 };
 
 #endif
