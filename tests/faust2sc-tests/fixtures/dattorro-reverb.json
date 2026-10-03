@@ -1,0 +1,320 @@
+{
+  "name": "dattorro-reverb",
+  "inputs": 2,
+  "outputs": 2,
+  "meta": [
+    {
+      "basics.lib/name": "Faust Basic Element Library"
+    },
+    {
+      "basics.lib/tabulateNd": "Copyright (C) 2023 Bart Brouns <bart@magnetophon.nl>"
+    },
+    {
+      "basics.lib/version": "1.12.0"
+    },
+    {
+      "compile_options": "-lang cpp -ct 1 -es 1 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0"
+    },
+    {
+      "demos.lib/dattorro_rev_demo:author": "Jakob Zerbian"
+    },
+    {
+      "demos.lib/dattorro_rev_demo:license": "MIT-style STK-4.3 license"
+    },
+    {
+      "demos.lib/name": "Faust Demos Library"
+    },
+    {
+      "demos.lib/version": "1.1.1"
+    },
+    {
+      "filename": "dattorro-reverb.dsp"
+    },
+    {
+      "maths.lib/author": "GRAME"
+    },
+    {
+      "maths.lib/copyright": "GRAME"
+    },
+    {
+      "maths.lib/license": "LGPL with exception"
+    },
+    {
+      "maths.lib/name": "Faust Math Library"
+    },
+    {
+      "maths.lib/version": "2.7.0"
+    },
+    {
+      "name": "dattorro-reverb"
+    },
+    {
+      "platform.lib/name": "Generic Platform Library"
+    },
+    {
+      "platform.lib/version": "1.3.0"
+    },
+    {
+      "reverbs.lib/dattorro_rev:author": "Jakob Zerbian"
+    },
+    {
+      "reverbs.lib/dattorro_rev:licence": "MIT-style STK-4.3 license"
+    },
+    {
+      "reverbs.lib/name": "Faust Reverb Library"
+    },
+    {
+      "reverbs.lib/version": "1.2.1"
+    },
+    {
+      "routes.lib/name": "Faust Signal Routing Library"
+    },
+    {
+      "routes.lib/version": "1.2.0"
+    },
+    {
+      "signals.lib/name": "Faust Signal Routing Library"
+    },
+    {
+      "signals.lib/version": "1.5.0"
+    }
+  ],
+  "ui": [
+    {
+      "type": "hgroup",
+      "label": "Dattorro Reverb",
+      "meta": [
+        {
+          "0": ""
+        }
+      ],
+      "items": [
+        {
+          "type": "hgroup",
+          "label": "Input",
+          "meta": [
+            {
+              "0": ""
+            }
+          ],
+          "items": [
+            {
+              "type": "vslider",
+              "label": "Prefilter",
+              "shortname": "Prefilter",
+              "address": "/Dattorro_Reverb/Input/Prefilter",
+              "meta": [
+                {
+                  "1": ""
+                },
+                {
+                  "style": "knob"
+                },
+                {
+                  "tooltip": "lowpass-like filter, 0 = no signal, 1 = no filtering"
+                }
+              ],
+              "init": 0.7,
+              "min": 0,
+              "max": 1,
+              "step": 0.001
+            },
+            {
+              "type": "vslider",
+              "label": "Diffusion 1",
+              "shortname": "Input_Diffusion_1",
+              "address": "/Dattorro_Reverb/Input/Diffusion_1",
+              "meta": [
+                {
+                  "2": ""
+                },
+                {
+                  "style": "knob"
+                },
+                {
+                  "tooltip": "diffusion factor, influences reverb color and density"
+                }
+              ],
+              "init": 0.625,
+              "min": 0,
+              "max": 1,
+              "step": 0.001
+            },
+            {
+              "type": "vslider",
+              "label": "Diffusion 2",
+              "shortname": "Input_Diffusion_2",
+              "address": "/Dattorro_Reverb/Input/Diffusion_2",
+              "meta": [
+                {
+                  "3": ""
+                },
+                {
+                  "style": "knob"
+                },
+                {
+                  "tooltip": "diffusion factor, influences reverb color and density"
+                }
+              ],
+              "init": 0.625,
+              "min": 0,
+              "max": 1,
+              "step": 0.001
+            }
+          ]
+        },
+        {
+          "type": "hgroup",
+          "label": "Feedback",
+          "meta": [
+            {
+              "1": ""
+            }
+          ],
+          "items": [
+            {
+              "type": "vslider",
+              "label": "Diffusion 1",
+              "shortname": "Feedback_Diffusion_1",
+              "address": "/Dattorro_Reverb/Feedback/Diffusion_1",
+              "meta": [
+                {
+                  "1": ""
+                },
+                {
+                  "style": "knob"
+                },
+                {
+                  "tooltip": "diffusion factor, influences reverb color and density"
+                }
+              ],
+              "init": 0.625,
+              "min": 0,
+              "max": 1,
+              "step": 0.001
+            },
+            {
+              "type": "vslider",
+              "label": "Diffusion 2",
+              "shortname": "Feedback_Diffusion_2",
+              "address": "/Dattorro_Reverb/Feedback/Diffusion_2",
+              "meta": [
+                {
+                  "2": ""
+                },
+                {
+                  "style": "knob"
+                },
+                {
+                  "tooltip": "diffusion factor, influences reverb color and density"
+                }
+              ],
+              "init": 0.625,
+              "min": 0,
+              "max": 1,
+              "step": 0.001
+            },
+            {
+              "type": "vslider",
+              "label": "Decay Rate",
+              "shortname": "Decay_Rate",
+              "address": "/Dattorro_Reverb/Feedback/Decay_Rate",
+              "meta": [
+                {
+                  "3": ""
+                },
+                {
+                  "style": "knob"
+                },
+                {
+                  "tooltip": "decay length, 1 = infinite"
+                }
+              ],
+              "init": 0.7,
+              "min": 0,
+              "max": 1,
+              "step": 0.001
+            },
+            {
+              "type": "vslider",
+              "label": "Damping",
+              "shortname": "Damping",
+              "address": "/Dattorro_Reverb/Feedback/Damping",
+              "meta": [
+                {
+                  "4": ""
+                },
+                {
+                  "style": "knob"
+                },
+                {
+                  "tooltip": "dampening in feedback network"
+                }
+              ],
+              "init": 0.625,
+              "min": 0,
+              "max": 1,
+              "step": 0.001
+            }
+          ]
+        },
+        {
+          "type": "hgroup",
+          "label": "Output",
+          "meta": [
+            {
+              "2": ""
+            }
+          ],
+          "items": [
+            {
+              "type": "vslider",
+              "label": "Dry/Wet Mix",
+              "shortname": "Wet_Mix",
+              "address": "/Dattorro_Reverb/Output/Dry/Wet_Mix",
+              "meta": [
+                {
+                  "1": ""
+                },
+                {
+                  "style": "knob"
+                },
+                {
+                  "tooltip": "-1 = dry, 1 = wet"
+                }
+              ],
+              "init": 0,
+              "min": -1,
+              "max": 1,
+              "step": 0.01
+            },
+            {
+              "type": "vslider",
+              "label": "Level",
+              "shortname": "Level",
+              "address": "/Dattorro_Reverb/Output/Level",
+              "meta": [
+                {
+                  "2": ""
+                },
+                {
+                  "style": "knob"
+                },
+                {
+                  "tooltip": "Output Gain"
+                },
+                {
+                  "unit": "dB"
+                }
+              ],
+              "init": -6,
+              "min": -70,
+              "max": 40,
+              "step": 0.1
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

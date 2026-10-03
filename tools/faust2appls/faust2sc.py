@@ -214,16 +214,29 @@ def compile(out_dir, cpp_file, class_name, compile_supernova, headerpath, macos_
 # Help file
 ###########################################
 
+def input_controls(json_data):
+    def visit(ui):
+        for element in ui:
+            if element["type"] in ("hgroup", "vgroup", "tgroup"):
+                yield from visit(element["items"])
+            elif element["type"] in ("button", "checkbox", "hslider", "vslider", "nentry"):
+                yield element
+
+    names = {"in%s" % i for i in range(json_data["inputs"])}
+    for element in visit(json_data["ui"]):
+        label = sanitize_label(element.get("label", "")).replace(" ", "_") or "control"
+        name = label
+        suffix = 2
+        while name in names:
+            name = "%s_%s" % (label, suffix)
+            suffix += 1
+        names.add(name)
+        yield name, element
+
 # Iterate over all UI elements to get the parameter names, values and ranges
 def get_help_file_arguments(json_data):
     out_string = ""
-    # The zero index is needed because it's all in the first index, or is it? @FIXME
-    for ui_element in flatten_list_of_dicts(json_data["ui"])["items"]:
-
-        param_name = ""
-        if "label" in ui_element:
-            # Sanitize label
-            param_name = sanitize_label(ui_element["label"])
+    for param_name, ui_element in input_controls(json_data):
 
         param_min=""
         if "min" in ui_element:
@@ -327,7 +340,6 @@ def sanitize_label(label):
 # Iterate over all UI elements to get the parameter names, values and ranges
 def get_parameter_list(json_data, with_initialization):
     out_string = ""
-    # The zero index is needed because it's all in the first index, or is it? @FIXME
     counter=0
 
     inputs = ""
@@ -338,11 +350,7 @@ def get_parameter_list(json_data, with_initialization):
             else:
                 inputs = inputs + "in%s" % i
 
-    for ui_element in json_data["ui"][0]["items"]:
-
-        param_name=""
-        if "label" in ui_element:
-            param_name = sanitize_label(ui_element["label"])
+    for param_name, ui_element in input_controls(json_data):
 
         param_default = ""
         if "init" in ui_element:
