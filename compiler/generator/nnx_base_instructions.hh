@@ -1158,6 +1158,12 @@ class NNXBaseInstVisitor : public TextInstVisitor {
             // turn "jnp." into "np."
             name = name.substr(1, name.size() - 1);
         }
+        if (fUseNumpy && name == "np.exp10") {
+            *fOut << "np.power(10.0, ";
+            generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+            *fOut << ")";
+            return;
+        }
         *fOut << name << "(";
         // Compile parameters
         generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
