@@ -161,7 +161,7 @@ process = _ : @(100);
             os.unlink(dsp_path)
 
 def test_exp10_mapping():
-    """Test that exp10 math function maps to jnp.exp10 without trailing 'f' suffix."""
+    """Test that exp10 math functions map to JAX's base-10 power expression."""
     print("\nTesting exp10 mapping...")
 
     dsp_code = """
@@ -189,8 +189,8 @@ process = pow(10, _);
                 result = subprocess.run(cmd, capture_output=True, text=True)
                 assert result.returncode == 0, f"Compilation failed for {lang} {opt}: {result.stderr}"
                 output = result.stdout
-                assert "jnp.exp10(" in output, f"Expected jnp.exp10 in {lang} {opt} output"
-                assert "jnp.exp10f" not in output, f"Unexpected jnp.exp10f in {lang} {opt} output"
+                assert "jnp.power(10.0," in output, f"Expected jnp.power(10.0, ...) in {lang} {opt} output"
+                assert "jnp.exp10" not in output, f"Unexpected jnp.exp10 in {lang} {opt} output"
 
         print("✓ exp10 mapping working correctly")
 

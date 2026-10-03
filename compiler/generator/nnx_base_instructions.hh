@@ -1158,8 +1158,10 @@ class NNXBaseInstVisitor : public TextInstVisitor {
             // turn "jnp." into "np."
             name = name.substr(1, name.size() - 1);
         }
-        if (fUseNumpy && name == "np.exp10") {
-            *fOut << "np.power(10.0, ";
+        // Neither NumPy nor JAX provides exp10. Use power in initialization
+        // and in the traced audio computation (including its gradients).
+        if (name == "np.exp10" || name == "jnp.exp10") {
+            *fOut << (fUseNumpy ? "np" : "jnp") << ".power(10.0, ";
             generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             *fOut << ")";
             return;

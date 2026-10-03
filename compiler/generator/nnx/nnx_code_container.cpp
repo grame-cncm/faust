@@ -279,7 +279,9 @@ void NNXCodeContainer::produceClass()
     *fOut << "def _initialize_carry(self):";
     {
         tab(n + 2, *fOut);
-        *fOut << "state = {}";
+        // Table generators can read the sample rate before instance constants
+        // are initialized. Seed it before running the static initialization.
+        *fOut << "state = {\"fSampleRate\": self.sample_rate}";
         tab(n + 2, *fOut);
         tab(n + 2, *fOut);
         *fOut << "# global declarations:";
@@ -294,15 +296,16 @@ void NNXCodeContainer::produceClass()
         }
         tab(n + 2, *fOut);
         tab(n + 2, *fOut);
+        *fOut << "# inline subcontainers:";
+        tab(n + 2, *fOut);
+        gGlobal->gNNXVisitor->Tab(n + 2);
+        // Fill static tables before constants cache any of their entries.
+        static_init_inlined->accept(gGlobal->gNNXVisitor);
+        tab(n + 2, *fOut);
         *fOut << "# init constants:";
         tab(n + 2, *fOut);
         gGlobal->gNNXVisitor->Tab(n + 2);
         init_inlined->accept(gGlobal->gNNXVisitor);
-        tab(n + 2, *fOut);
-        *fOut << "# inline subcontainers:";
-        tab(n + 2, *fOut);
-        gGlobal->gNNXVisitor->Tab(n + 2);
-        static_init_inlined->accept(gGlobal->gNNXVisitor);
         tab(n + 2, *fOut);
         *fOut << "# instance clear:";
         tab(n + 2, *fOut);
