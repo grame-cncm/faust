@@ -19,7 +19,8 @@ def convert_files(dsp_file, out_dir, arch, faustflags):
     cpp_file = path.splitext(path.basename(dsp_file))[0] + ".cpp"
     arch_file = arch or "supercollider.cpp"
 
-    cmd = "faust -i -a %s -json %s -o %s %s" % (arch_file, dsp_file, cpp_file, faustflags)
+    cmd = ["faust", "-i", "-a", arch_file, "-json", dsp_file, "-o", cpp_file]
+    cmd.extend(faustflags.split())
 
     result = {
         "arch_file": arch_file,
@@ -31,7 +32,7 @@ def convert_files(dsp_file, out_dir, arch, faustflags):
 
     print("Converting faust file to .json and .cpp.\nCommand:\n%s.\nc++ file:%s\njson file:%s" % (cmd, cpp_file, result["json_file"]))
     try:
-        subprocess.run(cmd.split(), check = True, capture_output=False)
+        subprocess.run(cmd, check = True, capture_output=False)
         # shutil.move(result["cpp_file"], path.join(out_dir, result["cpp_file"]))
         # shutil.move(result["json_file"], path.join(out_dir, result["json_file"]))
     except subprocess.CalledProcessError:
