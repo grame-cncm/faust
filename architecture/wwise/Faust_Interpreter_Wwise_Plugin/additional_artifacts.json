@@ -1,0 +1,27 @@
+// See https://www.audiokinetic.com/library/edge/?source=SDK&id=effectplugin_tools.html#effect_plugin_tools_packaging_additional_files
+// for the documentation about the additional_artifacts.json format
+{
+    // List of additional files to package for the Authoring platform
+    "Authoring": [
+        {
+            // The files in the Help folder located at the root of the plug-in directory
+            // will be packaged so that they are installed in the Authoring/Help/Faust_Interpreter_Wwise_Plugin folder
+            // of a Wwise installation
+            "Authoring/Help/Faust_Interpreter_Wwise_Plugin": ["Help/*"],
+            // Similarly for the files in the FactoryAssets folder
+            "Authoring/Data/Factory Assets/Faust_Interpreter_Wwise_Plugin": ["FactoryAssets/*"]
+        }
+    ]
+
+    // List of additional files to package for the <DeploymentPlatform> platform
+    // "<DeploymentPlatform>": [
+    //     // Each entry is either:
+    //     //    - A path relative to the root of your Wwise installation (can contain glob patterns);
+    //     //    - A destination -> sources object where the destination is a path relative to the root
+    //     //      of your Wwise installation and the sources are paths relative to the root of the
+    //     //      plug-in directory (can contain glob patterns).
+    //     string | { string: [string] },
+    //     ...
+    // ],
+    // ...
+}

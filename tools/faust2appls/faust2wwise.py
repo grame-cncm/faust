@@ -112,11 +112,11 @@ def import_module(faust_dsp_dir:str, file:str)-> Optional[ModuleType]:
     spec.loader.exec_module(module)
     return module
 
-def print_message_on_fail() -> None:
+def print_message_on_fail(link_to_troubleshooting_guide: str) -> None:
     print("\nAn error occurred during execution.")
     print("Please review the console output above to identify the issue.")
     print("For help, refer to the Troubleshooting Guide:")
-    print("\thttps://github.com/grame-cncm/faust/blob/master-dev/architecture/wwise/README.md#troubleshooting")
+    print(f"\t{link_to_troubleshooting_guide}")
     print("If the error is not listed there, check the GitHub issues or consider reporting it:")
     print("\thttps://github.com/grame-cncm/faust/issues")
 
@@ -130,6 +130,13 @@ def print_message_on_abort() -> None:
     print("Please ensure Wwise and Faust are properly installed and configured.")
     sys.exit(1) # ERR_ENV_VARS_NOT_FOUND
 
+def print_environment_summary() -> None:
+    print("\n--------- Environment variables ----------\n")
+    print("Wwise installation:", wwise_root_dir or "Not found")
+    print(f"faust_dsp_dir {faust_dsp_dir}")
+    print(f"faust_include_dir {faust_include_dir}")
+    print("\n------------------------------------------\n")
+
 if __name__ == "__main__":
 
     wwise_root_dir = get_wwise_root_dir()
@@ -139,33 +146,67 @@ if __name__ == "__main__":
     if None in (wwise_root_dir, faust_dsp_dir, faust_include_dir):
         print_message_on_abort()
 
-    print(f"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
-    print(f"faust2wwise static compilation tool.")
-    print(f"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
-
-    print("\n--------- Environment variables ----------\n")
-    print("Wwise installation:", wwise_root_dir or "Not found")
-    print(f"faust_dsp_dir {faust_dsp_dir}")
-    print(f"faust_include_dir {faust_include_dir}")
-    print("\n------------------------------------------\n")
-
     if ("test" in sys.argv):
         
+        print(f"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        print(f"faust2wwise static compilation testing tool.")
+        print(f"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+        print_environment_summary()
+
         test_module = import_module(faust_dsp_dir,"test.py")
 
         tester = test_module.TestFaustExamples( wwiseroot = wwise_root_dir)
         
         tester.test_faust2wwise()
 
+    elif ("interpreter-install" in sys.argv):
+
+        print(f"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        print(f"faust2wwise dynamic compilation plugin installation.")
+        print(f"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+        print_environment_summary()
+
+        interpreter_module = import_module(faust_dsp_dir,"faustinterpreter.py")
+
+        installer = interpreter_module.PluginInstaller( \
+            wwiseroot = wwise_root_dir,
+            faust_dsp_dir = faust_dsp_dir,
+            faust_include_dir = faust_include_dir)
+        
+        link_to_troubleshooting_guide = "https://github.com/grame-cncm/faust/blob/master-dev/architecture/wwise/Faust_Interpreter_Wwise_Plugin/README.md#troubleshooting"
+
+        try:
+
+            installer.install_interpreter()
+        
+        except SystemExit as e:
+    
+            if e.code!=0:
+                print_message_on_fail(link_to_troubleshooting_guide)
+                sys.exit(e.code)
+    
+        except: 
+
+            print("Exiting faust2wwise with error code 1 : Missing or inaccessible environment variables or system calls.")
+            print_message_on_fail(link_to_troubleshooting_guide)
+            sys.exit(1)
+        
     else:
         
+        print(f"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        print(f"faust2wwise static compilation testing tool.")
+        print(f"%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+        print_environment_summary()
+
         orchestrator_module = import_module(faust_dsp_dir,"orchestrator.py")
 
         faust2wwiser = orchestrator_module.Faust2WwiseOrchestrator( \
             wwiseroot = wwise_root_dir,
             faust_dsp_dir = faust_dsp_dir,
             faust_include_dir = faust_include_dir)
-
+        
+        link_to_troubleshooting_guide = "https://github.com/grame-cncm/faust/blob/master-dev/architecture/wwise/README.md#troubleshooting"
+        
         try:
 
             faust2wwiser.orchestrate()
@@ -173,11 +214,11 @@ if __name__ == "__main__":
         except SystemExit as e:
     
             if e.code!=0:
-                print_message_on_fail()
+                print_message_on_fail(link_to_troubleshooting_guide)
                 sys.exit(e.code)
     
         except: 
 
             print("Exiting faust2wwise with error code 1 : Missing or inaccessible environment variables or system calls.")
-            print_message_on_fail()
+            print_message_on_fail(link_to_troubleshooting_guide)
             sys.exit(1)

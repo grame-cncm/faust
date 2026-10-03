@@ -24,21 +24,29 @@ def print_usage() -> None:
     """
     Prints general usage information for the faust2wwise command-line tool.
     """
-    print("Usage:")
-    print("faust2wwise [options] file.dsp")
     print("Converts Faust DSP files to Wwise plugins")
+    print("Usage:")
+    print("faust2wwise file.dsp [options] [wwise options]")
     print("")
-    print("Platform: Windows/macOS/Linux with Wwise SDK")
+    print("Host-Platforms: Windows/MSYS2/macOS with Wwise SDK")
+    print("Target-Platforms: Android, Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC, Mac")
     print("")
     print("Requirements: Wwise SDK, Faust compiler, Python")
     print("")
-    print("Options:")
-    print("  -h, --help     Show this help message")
-    print("  -o <dir>       Output directory (default: current directory)")
+    print("Subcommands (mutually exclusive):")
+    print(" faust2wwise test [test options] :  Run faust2wwise on all .dsp files in a directory for testing purposes")
+    print(" faust2wwise install-interpreter [install-interpreter options] :  Install the Faust interpreter as a Wwise plugin.")
     print("")
-    print("Example:")
+    print("Options:")
+    print("")
+    print("  -h, --help                     Show this help message")
+    print("  -wh,--wwise-help               Show Wwise-specific help message")
+    print("  -o <dir>                       Output directory (default: current directory)")
+    print("  Type `faust --help` to see all available faust options.")
+    print("")
+    print(" Examples:")
     print("  faust2wwise sine.dsp")
-
+    
 def print_wwise_help() -> None:
     """
     Prints Wwise-specific command-line options and examples.
@@ -47,18 +55,20 @@ def print_wwise_help() -> None:
     print("")
     print("Wwise Plugin Options:")
     print("")
-    print("Common options for both Premake and Build:")
-    print("  --platform <platform>           platform to premake (Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC)")
+    print(" Common options for both Premake and Build:")
+    print("  --platform <platform>           platform to premake (Android, Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC, Mac)")
     print("  --in-place                      Use in-place processing (default). Uses the same audio buffer for input and output; suitable for most effects without data flow changes")
     print("  --out-of-place                  Use out-of-place processing. Requires separate input and output buffers; needed for effects like time-stretching that alter data flow")
-    print("  --wwise-help                    show this help message and exit")
     print("")
-    print("Premake:")
+    print(" New:")
+    print("  --with-test-project             configure with test-project : a preconfigured unit test project (Wwise 2025 and 2026 only)")
+    print("")
+    print(" Premake:")
     print("  --toolset <toolset>             toolset used to build on Windows platforms (vc160, vc170).")
     print("  --debugger                      Enable lua debugger for premake scripts")
     print("  --disable-codesign              Disable codesign post-build steps")
     print("")
-    print("Build:")
+    print(" Build:")
     print("  --configuration <config>        configuration to build (Debug, Release, Profile,...).")
     print("  --arch <arch>                   architecture to build (x32, x64, ...).")
     print("  --build-hooks-file <path>       path to a Python file defining one or more of the supported hooks (postbuild) to be called at various step during the build process")
@@ -66,8 +76,10 @@ def print_wwise_help() -> None:
     print("  --toolchain-env-script <path>   Path to a \'GetToolchainEnv\' script, which, when executed with a version provided by the toolchain-vers file, returns a comma separated list of environment variables to apply for build step.")
     print("  --spkcfg <in_uChannelMask>      Specify an explicit speaker configuration using one of the standard channel mask macros defined in AkSpeakerConfig.h")
     print("")
-    print("Example:")
+    print(" Examples:")
     print("  faust2wwise myfaustfile.dsp -double -o myWwisePlugin --platform Authoring_Windows --toolset vc170 --configuration Release --arch x64")
+    print("  faust2wwise myfaustfilter.dsp --out-of-place --configuration Release")
+    print("  faust2wwise myfaustGenerator.dsp --spkcfg AK_SPEAKER_SETUP_5POINT1")
     print("")
 
 def detect_arch(cfg) -> str:
@@ -92,23 +104,54 @@ def detect_arch(cfg) -> str:
     else:
         sys.stderr.write(
             f"[Error] Unknown or unsupported architecture: '{arch}'.\n"
-            "Please verify if Wwise supports this platform and if yes, update the detect_arch() function to handle this platform .\n"
+            "Please verify if Wwise supports this architecture and if yes, update the detect_arch() function to handle this target architecture.\n"
         )
         sys.exit(cfg.ERR_ENVIRONMENT)
 
-def platform_dependent_setup(cfg, parsed_args:argparse.Namespace) -> None:
+def check_cross_compilation_enabled(cfg, parsed_args:argparse.Namespace, cursys: str) -> bool:
     """
-    Applies platform-specific configuration to the given config object.
-    Sets the default Wwise platform and toolset based on the current operating system 
+    Checks if cross compilation is enabled based on the explicit selection of target platform in the command line arguments. 
+    Cross compilation is enabled if either of the following conditions are met:
+    1) If the explicitly selected platform is among the supported cross-compilation platforms.
+    2) If the user has explicitly specified a target platform that is different from the current system host platform (i.e. compile for Mac on Windows).
+
+    Args:
+        cfg (Config): The configuration object to modify.
+        parsed_args (argparse.Namespace): Parsed arguments from argparse.
+        cursys (str): The current host platform as returned by platform.system().
+    
+    Returns:
+        bool: True if cross compilation is enabled, False otherwise.
+    """
+    
+    if parsed_args.platform:
+
+        if parsed_args.platform in cfg.crossCompilationSupportedPlatforms:
+            cfg.crossCompilationEnabled = True
+            return True
+    
+        if cursys == "Windows" and parsed_args.platform == "Mac":
+            cfg.crossCompilationEnabled = True
+            return True
+        
+        # .. can t compile for Windows on an Apple machine. 
+           
+    return False
+
+def os_dependent_setup(cfg, parsed_args:argparse.Namespace) -> None:
+    """
+    Checks if cross compilation is selected. In not, then:
+    Applies os-specific configuration to the given config object.
+    Sets the default Wwise target platform and toolset based on the current operating system (host platform)
     and the parsed command-line arguments.
 
     - On Windows:
         - Uses the specified toolset if provided.
-        - Otherwise, selects a default based on the Wwise platform.
+        - Otherwise, selects a default based on the Wwise target platform.
         - Sets the default Wwise platform to "Authoring".
     - On macOS:
         - Disables toolset usage.
-        - Sets the default Wwise platform to "Mac".
+        - Sets the default Wwise target platform to "Mac".
         
     Args:
         cfg (Config): The configuration object to modify.
@@ -120,6 +163,10 @@ def platform_dependent_setup(cfg, parsed_args:argparse.Namespace) -> None:
 
     # Premake-specific options - toolset
     cursys = platform.system()
+    
+    if (check_cross_compilation_enabled(cfg, parsed_args, cursys)):
+        return
+    
     if parsed_args.toolset:
         if cursys != "Windows":
             raise ValueError (f"{cursys} detected. Wwise does not support toolset options for this platform. This option is only for windows environments.")
@@ -131,7 +178,7 @@ def platform_dependent_setup(cfg, parsed_args:argparse.Namespace) -> None:
             cfg.wwise_toolset = "vc170"
         print(f"[WARNING] Using default toolset '{cfg.wwise_toolset}' — it would be better to override it with --toolset command line option.")
     
-    # set default platform
+    # set default target platform
     if cursys == "Darwin":
         cfg.wwise_platform = "Mac"  # default platform for MacOs
     elif cursys == "Windows":
@@ -147,7 +194,7 @@ def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
         parsed_args (argparse.Namespace): Parsed arguments from argparse.
     """
     
-    # Overwrite any platform specific defaults in case explicit platform is passed as an argument
+    # Overwrite any target platform specific defaults in case explicit platform is passed as an argument
     if parsed_args.platform:
         cfg.wwise_platform = parsed_args.platform
 
@@ -162,8 +209,14 @@ def create_wwise_config(cfg, parsed_args:argparse.Namespace) -> None:
 
     if parsed_args.arch:
         cfg.wwise_arch = parsed_args.arch
-    else:
+    elif not cfg.crossCompilationEnabled:
         cfg.wwise_arch = detect_arch(cfg)
+
+    if parsed_args.with_test_project:
+        if (cfg.patch_version not in ["2025", "2026"]):
+            print(f"WARNING: --with option is only supported for Wwise 2025 and above. Ignoring it.\n")
+        else:
+            cfg.wwise_with_test_project = "test-project"
 
     if parsed_args.build_hooks_file:
         cfg.wwise_build_hooks_file = parsed_args.build_hooks_file
@@ -196,15 +249,17 @@ def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> argparse.N
     parser.add_argument('-h', '--help', action='store_true', help='Show help message')
     parser.add_argument('-o', '--output_dir', help='Output directory')
     parser.add_argument('dsp_file', nargs='?', help='DSP file to convert')
-    parser.add_argument('faust_options', nargs='*', help='Additional Faust options')
-    
+    parser.add_argument('faust_options', nargs='*', help='Additional Faust options')    
     # Wwise options
-    parser.add_argument('--platform', help='Target platform for Wwise plugin (Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC)')
+    parser.add_argument('-wh', '--wwise-help', action='store_true', help='Show help message for wwise options')
+    parser.add_argument('--platform', help='Target platform for Wwise plugin (Android, Authoring_Windows, Authoring, Windows_vc160, Windows_vc170, WinGC)')
     # mutually exclussive in-place and out-of-place effect plugin options. in-place is the default choice.
     plugin_interface_group = parser.add_mutually_exclusive_group()
     plugin_interface_group.add_argument('--in-place', dest='plugin_interface', action='store_const', const='in-place', help='Uses the same audio buffer for input and output; suitable for most effects without data flow changes.')
     plugin_interface_group.add_argument('--out-of-place', dest='plugin_interface', action='store_const', const='out-of-place', help='Use out-of-place processing. Requires separate input and output buffers; needed for effects like time-stretching that alter data flow.')
     parser.set_defaults(plugin_interface='in-place')
+    # wwise new options
+    parser.add_argument('--with-test-project', action='store_true', help='test-project : a preconfigured unit test project.')
     # wwise premake options
     parser.add_argument('--toolset', help='toolset used to build on Windows platforms (vc160, vc170).')
     parser.add_argument('--debugger', action='store_true', help='Enable lua debugger for premake scripts')
@@ -224,6 +279,9 @@ def parse_arguments(cfg, args:Optional[argparse.Namespace] = None) -> argparse.N
     
     if parsed_args.help:
         print_usage()
+        print_wwise_help()
+        sys.exit(cfg.SUCCESS_EXIT_CODE)
+    elif parsed_args.wwise_help:
         print_wwise_help()
         sys.exit(cfg.SUCCESS_EXIT_CODE)
 
@@ -281,7 +339,7 @@ def check_wwise_required_arguments(cfg) -> List[str]:
         missing.append("platform (--platform)")
     if not cfg.wwise_configuration:
         missing.append("configuration (--configuration)")
-    if not cfg.wwise_arch:
+    if not cfg.wwise_arch and cfg.wwise_platform not in cfg.crossCompilationSupportedPlatforms:
         missing.append("arch (--arch)")
 
     windows_platforms = {"Authoring_Windows", "Windows_vc160", "Windows_vc170", "WinGC"}
@@ -295,9 +353,9 @@ def wwise_platform_and_toolset_compatible(cfg) -> bool:
 
     """
     Ensures that platform and toolset are compatible (on Windows only):
-    - If no toolset is provided, a default is assigned based on the platform.
+    - If no toolset is provided, a default is assigned based on the host platform.
     - If an invalid combination is detected, the function returns False.
-    - On non-Windows platforms, the toolset (if specified) is ignored with a warning.
+    - On non-Windows host platforms, the toolset (if specified) is ignored with a warning.
 
     Args:
         cfg (Config): The configuration object.
@@ -305,8 +363,12 @@ def wwise_platform_and_toolset_compatible(cfg) -> bool:
     Returns:
         bool: True if compatible, False if an invalid combination is detected.
     """
-        
-    if (platform.system() == "Windows"):
+    if cfg.crossCompilationEnabled:
+        system = cfg.wwise_platform 
+    else: 
+        system = platform.system()
+
+    if (system == "Windows"):
         default_toolset = "vc170"
 
         # Strict compatibility
@@ -424,3 +486,49 @@ def run_system_command(cmd : List[str], error_code:Optional[int]=None) -> subpro
             print(e.stderr.strip())
         print(f"Exiting with error code {error_code or e.returncode}")
         sys.exit(error_code or e.returncode)
+
+def get_installation_location(cfg) -> str:
+    """
+    Determines the installation location for the generated plugin.
+
+    Returns:
+        str: The installation path for the plugin.  
+    """
+    if cfg.crossCompilationEnabled:
+        if cfg.wwise_platform == "Android":
+
+            wwise_arch = "<armeabi-v7a, x86, arm64-v8a, x86_64>" if (cfg.wwise_arch is None) else cfg.wwise_arch
+
+            if platform.system() == "Windows":
+                return os.path.join(
+                    cfg.wwiseroot,
+                    'SDK\Android_' + wwise_arch,
+                    cfg.wwise_configuration,
+                    'bin',
+                    "lib" + cfg.plugin_name + ".so"
+                )    
+            else:
+                return cfg.build_location
+        else:
+            return cfg.build_location
+    
+    if cfg.wwise_platform in ["Authoring", "Authoring_Windows", "Windows_vc160", "Windows_vc170"]:
+        return os.path.join(
+            cfg.wwiseroot,
+            'Authoring',
+            cfg.wwise_arch,
+            cfg.wwise_configuration,
+            'bin',
+            'Plugins',
+            cfg.plugin_name
+        ) + ".(ext)"
+
+    if cfg.wwise_platform == "Mac":
+        return os.path.join(
+            cfg.wwiseroot,
+            "SDK",
+            "Mac_Xcode<Xcode_version>",
+            cfg.wwise_configuration,
+            "bin",
+            "lib" + cfg.plugin_name + ".dylib"
+        )
