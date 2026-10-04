@@ -639,6 +639,11 @@ class UpDownKeyLogic
 
 static dsp* gDSP = NULL;
 
+// The polyphonic DSP played by the Trill keyboard, NULL when the DSP is not polyphonic.
+// gDSP cannot be used for that : the polyphonic DSP may be wrapped in a dsp_sequencer
+// (with an effect), a timed_dsp or a dsp_adapter.
+static mydsp_poly* gPolyDSP = NULL;
+
 /**************************************************************************************
  BelaWidget : object used by BelaUI to ensures the connection between a Bela parameter
  and a Faust widget
@@ -1297,13 +1302,12 @@ class TrillCraftWidget : public TrillWidget
                         }
                     }
                     *fZone = val;
-                } else if (fMode == "KEYBOARD") {
-                    mydsp_poly* TmpDsp = (mydsp_poly*) gDSP;
+                } else if (fMode == "KEYBOARD" && gPolyDSP) {
                     for (int i = fLopin ; i <= fHipin ; i++) {                    //Call all keyOff
                         TrillNote* CurKey = fKeyboard[i-fLopin];
                         double sval = fSensor->rawData[i];
                         if (sval == 0 && CurKey->state > 0) {
-                            TmpDsp->keyOff(0,CurKey->note);
+                            gPolyDSP->keyOff(0,CurKey->note);
                             CurKey->state=0;
                         }
                     }
@@ -1311,7 +1315,7 @@ class TrillCraftWidget : public TrillWidget
                         TrillNote* CurKey = fKeyboard[i-fLopin];
                         double sval = fSensor->rawData[i];
                         if (sval > 0 && CurKey->state == 0) {
-                            TmpDsp->keyOn(0,CurKey->note, (int) (sval*127));
+                            gPolyDSP->keyOn(0,CurKey->note, (int) (sval*127));
                             CurKey->state=sval;
                         }
                     }                    
@@ -1815,7 +1819,7 @@ class BelaUI : public GenericUI, public Meta
                             }
                         }
                         if (found_pin != kNoPin) {
-                            TrillCraftWidget* newcraft = new TrillCraftWidget(found_pin, 0, "Keyboard", 0, 0, 0);
+                            TrillCraftWidget* newcraft = new TrillCraftWidget(found_pin, 0, "Keyboard", 0, 0, 0, 0);
                             newcraft->setParameters(values[i].c_str());
                             newcraft->setMode("KEYBOARD");
                             fTrillTable.push_back(newcraft);
@@ -1974,7 +1978,8 @@ bool setup(BelaContext* context, void* userData)
 #ifdef POLY2
     int group = 1;
     cout << "Started with " << nvoices << " voices" << endl;
-    gDSP = new mydsp_poly(new mydsp(), nvoices, true, group);
+    gPolyDSP = new mydsp_poly(new mydsp(), nvoices, true, group);
+    gDSP = gPolyDSP;
     
 #ifdef MIDICTRL
     if (midi_sync) {
@@ -1991,7 +1996,8 @@ bool setup(BelaContext* context, void* userData)
     
     if (nvoices > 0) {
         cout << "Started with " << nvoices << " voices" << endl;
-        gDSP = new mydsp_poly(new mydsp(), nvoices, true, group);
+        gPolyDSP = new mydsp_poly(new mydsp(), nvoices, true, group);
+        gDSP = gPolyDSP;
         
 #ifdef MIDICTRL
         if (midi_sync) {
@@ -2068,7 +2074,8 @@ void cleanup(BelaContext* context, void* userData)
 #endif /* HTTPDGUI */
     delete [] gInputs;
     delete [] gOutputs;
-    delete gDSP;    
+    delete gDSP;    // also deletes gPolyDSP
+    gPolyDSP = NULL;
 #ifdef MIDICTRL
     delete gMidiInterface;
 #endif
