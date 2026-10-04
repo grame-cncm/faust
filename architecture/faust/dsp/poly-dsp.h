@@ -481,6 +481,12 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
         }
     #endif
     
+        // Polyphonic API
+    
+        // Terminate all active voices, gently or immediately (depending of 'hard' value)
+        virtual void allNotesOff(bool hard = false) {}
+    
+        // MIDI API
         virtual MapUI* keyOn(int channel, int pitch, int velocity)
         {
             return midi::keyOn(channel, pitch, velocity);
@@ -896,7 +902,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         }
     
         // Terminate all active voices, gently or immediately (depending of 'hard' value)
-        void allNotesOff(bool hard = false)
+        virtual void allNotesOff(bool hard = false)
         {
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->keyOff(hard);
@@ -947,8 +953,12 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
         void ctrlChange(int channel, int ctrl, int value)
         {
-            if (ctrl == ALL_NOTES_OFF || ctrl == ALL_SOUND_OFF) {
-                allNotesOff();
+            if (ctrl == ALL_NOTES_OFF) {
+                // Release the voices
+                allNotesOff(false);
+            } else if (ctrl == ALL_SOUND_OFF) {
+                // Mute the voices immediately, whatever their release time
+                allNotesOff(true);
             }
         }
 
@@ -973,6 +983,12 @@ class dsp_poly_effect : public dsp_poly {
         virtual ~dsp_poly_effect()
         {
             // dsp_poly_effect is also a decorator_dsp, which will free fPolyDSP
+        }
+    
+        // Polyphonic API
+        void allNotesOff(bool hard = false)
+        {
+            fPolyDSP->allNotesOff(hard);
         }
     
         // MIDI API
