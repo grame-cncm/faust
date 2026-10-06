@@ -153,3 +153,63 @@ Le commit `f6967fcc9` reste valable : la garde d'écriture d'une `rwtable` étai
 3. Revenir à une garde de table décidée par l'intervalle seul, en retirant les règles de `sigPromotion.cpp` listées ci-dessus.
 4. Conserver `f6967fcc9`.
 5. Ajouter `TABLE_BUG.dsp` aux tests de régression, avec une vérification de la garde générée en `-single` et en `-double`.
+
+## Limites de l'arrondi dirigé
+
+La recommandation est implémentée dans la branche `intervals-directed-rounding`. Avec l'arrondi dirigé, un intervalle contient toutes les valeurs du programme compilé, que le compilateur C++ arrondisse chaque opération séparément ou fusionne `a*b + c` en FMA. Quatre cas restent hors de cette garantie. Le premier est un vrai risque, que la branche réintroduit ; les trois autres sont limités ou théoriques.
+
+### 1. Les NaN
+
+Les intervalles ne décrivent que des nombres : aucune valeur ne peut y être NaN. Plusieurs règles ignorent donc la partie de leur entrée où l'opération n'est pas définie. Par exemple, `Sqrt` intersecte son entrée avec [0, +∞] : `sqrt(x)` avec `x` dans [−1, 1] donne [0, 1], alors que le programme calcule NaN pour `x < 0`. Même chose pour `log` d'un négatif, `0/0`, `asin(2)`, etc.
+
+C'est grave quand un NaN arrive dans un index de table, parce que `int(NaN)` est indéfini en C++ :
+
+- sur x86, la conversion donne INT_MIN, soit une lecture à l'index −2 147 483 648 ;
+- sur arm64, elle donne 0, donc pas de plantage.
+
+Sur `rdtable(100, (+(1)~_), int(sqrt(_)))` :
+
+| Compilateur | Code généré |
+|---|---|
+| branche `intervals-directed-rounding` | `itbl0mydspSIG0[static_cast<int>(std::sqrt(input0[i0]))]` : pas de garde, l'intervalle dit `[0:1]` |
+| `master-dev` (`52de44cac`) | `itbl0mydspSIG0[std::max<int>(0, std::min<int>(…))]` : gardé |
+
+**Sur ce point, la branche recule par rapport à `master-dev`.** La règle de `52de44cac` (« un index calculé à partir d'un float garde sa garde ») protégeait ce cas par accident, sans l'avoir prévu. En la retirant, on revient au comportement d'avant `080a0ec4e`.
+
+La bonne correction est de modéliser le NaN dans l'intervalle :
+
+- un indicateur « peut être NaN », mis par `sqrt`, `log`, la division, etc. quand leur entrée sort du domaine de la fonction ;
+- `int()` d'un intervalle qui peut être NaN donne tout l'intervalle des `int`, et la garde est décidée par l'intervalle comme le reste.
+
+### 2. La réassociation sous `-ffast-math`
+
+L'intervalle est calculé dans l'ordre où l'expression est écrite. L'arrondi dirigé couvre cet ordre, que les opérations soient arrondies séparément ou fusionnées en FMA. Mais `-ffast-math` autorise le compilateur C++ à réassocier : il peut calculer `a + (b + c)` au lieu de `(a + b) + c`, et les arrondis tombent alors ailleurs. En float :
+
+- `(1e8 − 1e8) + 0.5` donne `0.5` ;
+- `1e8 + (−1e8 + 0.5)` donne `0`, parce que 0.5 est absorbé : l'écart entre deux floats autour de 1e8 est 8.
+
+Aucun intervalle calculé dans le premier ordre ne peut garantir le second. `-ffast-math` suppose aussi qu'il n'y a jamais de NaN ni d'infini, ce qui rejoint le point 1.
+
+Ce n'est pas théorique : 13 scripts de `tools/faust2appls` compilent avec `-ffast-math` (ou `-Ofast`). Sous ces options, les garanties des intervalles ne tiennent plus. Il faut au minimum le documenter.
+
+### 3. L'arrondi accumulé d'un accumulateur flottant
+
+Le domaine affine représente un accumulateur comme `x = +(r) ~ _` par une droite : `x(t) ≤ b0 + b1·t`, avec un taux `b1` d'environ `r`. Pour valider cette droite, il vérifie une récurrence sur les coefficients, et cette vérification arrondit à l'échelle de `b0`. Le programme, lui, arrondit à chaque échantillon à l'échelle de `x(t)`, qui grandit. Chaque pas peut ajouter jusqu'à un demi-ulp de `x(t)`, et ces erreurs ne sont pas dans la droite.
+
+En pratique, aucun cas n'a été trouvé où cela compte. L'intervalle utilisé est l'enveloppe de la droite sur l'horizon de 2^31 échantillons, bien au-dessus de ce qu'atteint un accumulateur float, qui se fige vers 2^24 incréments. Et un accumulateur qui indexe une table passe presque toujours par un `fmod`/`frac`, où le taux disparaît. C'est un trou dans le raisonnement, pas un bug observé.
+
+### 4. L'estimation du gain des IIR
+
+Avec l'option `-fir` seulement (désactivée par défaut), Faust reconnaît les filtres IIR, et l'intervalle de leur sortie vaut `gain × max|entrée|`. Le code (`compiler/signals/sighorizon.cpp`) le dit lui-même : c'est une heuristique.
+
+- Le gain utilisé est le pic de la réponse en fréquence, échantillonné sur 10 000 points.
+- La borne correcte pour une entrée bornée quelconque est la norme L1 de la réponse impulsionnelle, toujours supérieure ou égale à ce pic, souvent nettement pour un filtre résonant.
+- La grille de 10 000 points peut aussi manquer une résonance étroite.
+
+Avec `-fir`, l'intervalle d'un IIR peut donc être trop étroit, indépendamment de tout arrondi. La correction est indiquée dans le commentaire du code : un calcul certifié de cette borne (la méthode WCPG de Volkova, Hilaire et Lauter).
+
+### Ce qu'il reste à faire
+
+1. Modéliser le NaN dans les intervalles, avant de fusionner la branche, puisqu'elle retire une protection qui existait ; ajouter `int(sqrt(_))` à `tests/interval-tests`.
+2. Documenter que les garanties des intervalles ne tiennent pas sous `-ffast-math`.
+3. Les accumulateurs flottants et le gain des IIR (`-fir`) peuvent attendre.
