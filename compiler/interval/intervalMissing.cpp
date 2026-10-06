@@ -29,16 +29,17 @@ interval interval_algebra::Checkbox(const interval& name) const
 }
 */
 // Bargraphs observe a signal without changing its possible values; their UI
-// bounds constrain display only and therefore do not intersect the range.
+// bounds constrain display only and therefore do not intersect the range. The value
+// is read back from the FAUSTFLOAT zone : a float (zoneBounds).
 interval interval_algebra::HBargraph(const interval& name, const interval& lo, const interval& hi,
                                      const interval& signal) const
 {
-    return signal;
+    return zoneBounds(signal);
 }
 interval interval_algebra::VBargraph(const interval& name, const interval& lo, const interval& hi,
                                      const interval& signal) const
 {
-    return signal;
+    return zoneBounds(signal);
 }
 // Effect and control operands influence scheduling but not the values produced
 // by the first operand, so all three wrappers preserve its range.

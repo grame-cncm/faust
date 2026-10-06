@@ -553,6 +553,21 @@ inline double ulpStep(double b, double dir)
     return std::nextafter(b, dir);
 }
 
+/**
+ * The bounds of a value stored in a FAUSTFLOAT zone (a slider, a bargraph read back) :
+ * the zone is a float by default whatever the precision of the program, and the float
+ * of a declared bound may pass it (in -double, the float of 1.30550981 is below the
+ * minimum 1.30550981). Rounded outward to float : sound whether FAUSTFLOAT is a float
+ * or a double. An integer value (lsb >= 0) is left as it is.
+ */
+inline interval zoneBounds(const interval& r)
+{
+    if (r.isEmpty() || r.lsb() >= 0) {
+        return r;
+    }
+    return interval(floatBound(r.lo(), -1), floatBound(r.hi(), 1), r.lsb());
+}
+
 inline interval libmBounds(const interval& r, double fmin, double fmax)
 {
     // an integer result (lsb >= 0) is computed in integers, never by the libm

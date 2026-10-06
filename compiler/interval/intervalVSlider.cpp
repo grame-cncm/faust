@@ -37,6 +37,7 @@ interval interval_algebra::VSlider(const interval& name, const interval& init, c
             (int)log2(step.lo()));  // and that associated to the smallest value the step can take
     }
 
-    return {lo.lo(), hi.hi(), lsb};  // TODO: step, init
+    // the value read from its FAUSTFLOAT zone
+    return zoneBounds({lo.lo(), hi.hi(), lsb});  // TODO: step, init
 }
 }  // namespace itv

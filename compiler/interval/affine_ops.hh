@@ -119,12 +119,12 @@ class AffineOps : public Base {
     AffItv HBargraph(const AffItv&, const AffItv&, const AffItv&,
                      const AffItv& s) const override
     {
-        return s;
+        return zone(s);
     }
     AffItv VBargraph(const AffItv&, const AffItv&, const AffItv&,
                      const AffItv& s) const override
     {
-        return s;
+        return zone(s);
     }
 
     AffItv Attach(const AffItv& x, const AffItv&) const override { return x; }
@@ -457,6 +457,17 @@ class AffineOps : public Base {
     }
 
    protected:
+    /// The value of a bargraph is read back from its FAUSTFLOAT zone : a float
+    /// (zoneBounds). A float form collapses to its hull to be rounded ; an integer one
+    /// is exact.
+    AffItv zone(const AffItv& s) const
+    {
+        if (s.isEmpty() || s.lsb >= 0) {
+            return s;
+        }
+        return fromItv(zoneBounds(toItv(s, fT)));
+    }
+
     template <typename F>
     AffItv c1(const AffItv& x, F f) const
     {

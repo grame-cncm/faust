@@ -35,6 +35,7 @@ interval interval_algebra::NumEntry(const interval& name, const interval& init, 
         lsb = std::min(lsb, (int)std::log2(step.lo()));
     }
 
-    return {lo.lo(), hi.hi(), lsb};
+    // the value read from its FAUSTFLOAT zone
+    return zoneBounds({lo.lo(), hi.hi(), lsb});
 }
 }  // namespace itv
