@@ -192,7 +192,8 @@ static Tree simplification(Tree sig)
 
         // 0-x -> -1*x
         if (Sub(zero(), var(x)).match(sig)) {
-            return sigBinOp(kMul, sigInt(-1), x);
+            // Fold the rebuilt product locally, in particular -1*(-1*x) -> x.
+            return traced_simplification(sigBinOp(kMul, sigInt(-1), x));
         }
 
         if (op->isLeftNeutral(n1)) {

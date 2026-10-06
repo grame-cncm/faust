@@ -36,6 +36,7 @@
 #include "prim2.hh"
 #include "recursivness.hh"
 #include "sharing.hh"
+#include "sigNewConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigRetiming.hh"
 #include "sigToGraph.hh"
@@ -131,8 +132,10 @@ Tree InstructionsCompiler::prepare(Tree LS)
         */
     }
 
-    // No more table privatisation
-    Tree L2 = L1;
+    // The interval constant propagation, as in the ocpp compiler : a signal whose
+    // interval is a single value becomes that value (0*x with x bounded, cos(0*x))
+    typeAnnotation(L1, true);
+    Tree L2 = newConstantPropagation(L1);
 
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
