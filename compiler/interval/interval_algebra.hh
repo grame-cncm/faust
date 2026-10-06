@@ -90,40 +90,50 @@ class interval_algebra : public FaustAlgebra<interval> {
     //
 
     interval Acos(const interval& x) const override;
+    interval AcosBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testAcos();
     //
     interval Acosh(const interval& x) const override;
+    interval AcoshBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testAcosh();
     //
     interval And(const interval& x, const interval& y) const override;
     void     testAnd();
     //
     interval Asin(const interval& x) const override;
+    interval AsinBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testAsin();
     //
     interval Asinh(const interval& x) const override;
+    interval AsinhBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testAsinh();
     //
     interval Atan(const interval& x) const override;
+    interval AtanBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testAtan();
     //
     interval Atan2(const interval& x, const interval& y) const override;
+    interval Atan2Bounds(const interval& x, const interval& y) const;  // the libm bounds, uncompensated
     void     testAtan2();
     //
     interval Atanh(const interval& x) const override;
+    interval AtanhBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testAtanh();
     //
     interval Ceil(const interval& x) const override;
     void     testCeil();
     interval Cos(const interval& x) const override;
+    interval CosBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testCos();
     interval Cosh(const interval& x) const override;
+    interval CoshBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testCosh();
     interval Delay(const interval& x, const interval& y) const override;
     void     testDelay();
     interval Eq(const interval& x, const interval& y) const override;
     void     testEq();
     interval Exp(const interval& x) const override;
+    interval ExpBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testExp();
     interval Exp10(const interval& x) const override;
     interval FloatCast(const interval& x) const override;
@@ -139,8 +149,10 @@ class interval_algebra : public FaustAlgebra<interval> {
     interval Le(const interval& x, const interval& y) const override;
     void     testLe();
     interval Log(const interval& x) const override;
+    interval LogBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testLog();
     interval Log10(const interval& x) const override;
+    interval Log10Bounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testLog10();
     interval Lsh(const interval& x, const interval& y) const override;
     void     testLsh();
@@ -159,6 +171,7 @@ class interval_algebra : public FaustAlgebra<interval> {
     interval Or(const interval& x, const interval& y) const override;
     void     testOr();
     interval Pow(const interval& x, const interval& y) const override;  // for all cases
+    interval PowBounds(const interval& x, const interval& y) const;  // the libm bounds, uncompensated
     void     testPow();
     interval Remainder(const interval& x, const interval& y) const override;
     void     testRemainder();
@@ -170,14 +183,18 @@ class interval_algebra : public FaustAlgebra<interval> {
     interval LRsh(const interval& x, const interval& y) const override;
     void     testRsh();
     interval Sin(const interval& x) const override;
+    interval SinBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testSin();
     interval Sinh(const interval& x) const override;
+    interval SinhBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testSinh();
     interval Sqrt(const interval& x) const override;
     void     testSqrt();
     interval Tan(const interval& x) const override;
+    interval TanBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testTan();
     interval Tanh(const interval& x) const override;
+    interval TanhBounds(const interval& x) const;  // the libm bounds, uncompensated
     void     testTanh();
     interval Xor(const interval& x, const interval& y) const override;
     void     testXor();

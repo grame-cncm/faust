@@ -28,7 +28,7 @@ namespace itv {
 
 static const interval domain(1, HUGE_VAL);
 
-interval interval_algebra::Acosh(const interval& x) const
+interval interval_algebra::AcoshBounds(const interval& x) const
 {
     interval i = intersection(domain, x);
     if (i.isEmpty()) {

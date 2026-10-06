@@ -160,7 +160,7 @@ interval interval_algebra::iPow(const interval& x, const interval& y) const
     return z;
 }
 
-interval interval_algebra::Pow(const interval& x, const interval& y) const
+interval interval_algebra::PowBounds(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

@@ -37,15 +37,28 @@
 namespace itv {
 
 /**
- * The precision of the program the intervals describe : 0 none (the default : the
- * library computes in double and rounds nothing, as it always did), 1 single (float),
- * 2 double, 3 quad, 4 fixed point. A user declares the precision of its program ; the
+ * The precision of the program the intervals describe : 1 single (float), 2 double (the
+ * default), 3 quad, 4 fixed point. A user declares the precision of its program ; the
  * Faust compiler sets it from its float size (-single, -double...).
  */
 inline int& programPrecision()
 {
-    static int precision = 0;
+    static int precision = 2;
     return precision;
+}
+
+/**
+ * The compensation of the libm (true by default) : the functions of the libm (sin, exp,
+ * log, pow...) are not guaranteed correctly rounded, and the program calls the libm of
+ * its target, not the one that computes the intervals. Their bounds widen by 2 ulps of
+ * the program's precision (libmBounds). A user may turn it off when both libms are
+ * correctly rounded (CORE-MATH for instance) : the libm of the target, and the libm of
+ * the machine that computes the intervals.
+ */
+inline bool& libmCompensation()
+{
+    static bool compensation = true;
+    return compensation;
 }
 
 /**
@@ -351,4 +364,36 @@ inline bool operator>(const interval& i, const interval& j)
 {
     return j < i;
 }
+
+/**
+ * The bounds of a libm function, compensated : 2 ulps of the program's precision
+ * outward, within the image [fmin, fmax] of the function (sin stays in [-1, 1], exp
+ * stays >= 0), a bound of exactly 0 excepted. A point is left as it is : a function of
+ * a constant is folded by the compiler and never calls the libm of the target.
+ */
+inline double ulpStep(double b, double dir)
+{
+    if (std::isnan(b) || std::isinf(b)) return b;
+    int p = programPrecision();
+    if (p == 1 || p == 4) return double(std::nextafter(float(b), float(dir)));
+    return std::nextafter(b, dir);
+}
+
+inline interval libmBounds(const interval& r, double fmin, double fmax)
+{
+    // an integer result (lsb >= 0) is computed in integers, never by the libm
+    if (!libmCompensation() || r.isEmpty() || r.isconst() || r.lsb() >= 0) return r;
+    // a bound of exactly 0 stays : the C standard (annex F) makes the libm exact there
+    // (sin(+-0) = +-0, tan(0) = 0, log(1) = 0, pow(0, y) = 0...), and a bound of 0 comes
+    // from such an exact point
+    double lo = r.lo(), hi = r.hi();
+    for (int k = 0; k < 2; k++) {
+        if (lo != 0) lo = ulpStep(lo, -HUGE_VAL);
+        if (hi != 0) hi = ulpStep(hi, HUGE_VAL);
+    }
+    if (r.lo() >= fmin) lo = std::max(lo, fmin);
+    if (r.hi() <= fmax) hi = std::min(hi, fmax);
+    return interval(lo, hi, r.lsb());
+}
+
 }  // namespace itv

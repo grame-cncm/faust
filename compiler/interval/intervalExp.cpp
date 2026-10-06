@@ -26,7 +26,7 @@ namespace itv {
 // interval Exp(const interval& x);
 // void testExp();
 
-interval interval_algebra::Exp(const interval& x) const
+interval interval_algebra::ExpBounds(const interval& x) const
 {
     if (x.isEmpty()) {
         return empty();

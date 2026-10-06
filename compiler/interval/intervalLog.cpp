@@ -28,7 +28,7 @@ namespace itv {
 
 static const interval domain{0, HUGE_VAL, 0};
 
-interval interval_algebra::Log(const interval& x) const
+interval interval_algebra::LogBounds(const interval& x) const
 {
     interval i = intersection(x, domain);
 
