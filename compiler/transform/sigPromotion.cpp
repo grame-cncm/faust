@@ -543,11 +543,11 @@ class Bool2IntPromotionAlgebra final : public TransformAlgebra {
 
 //-------------------------TablePromotionAlgebra--------------------------
 // Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1]). Both guards
-// are decided at the read node, and the write clamp is applied only when the
-// read index is itself out of bounds -- the historical behaviour, reproduced
-// exactly (the warning, however, is always emitted). A guard is decided by the
-// proven interval of its index alone : the bounds are rounded outward (interval_def.hh),
-// they contain the values of the compiled program, an FMA contraction included.
+// are decided at the read node, each one on its own index : the write guard does not
+// depend on the read one (it used to be dropped with a read index within the table).
+// A guard is decided by the proven interval of its index alone : the bounds are
+// rounded outward (interval_def.hh), they contain the values of the compiled program,
+// an FMA contraction included.
 //------------------------------------------------------------------------
 class TablePromotionAlgebra final : public TransformAlgebra {
    public:
@@ -600,7 +600,7 @@ class TablePromotionAlgebra final : public TransformAlgebra {
             Tree last = sigMin(ri.out, sigInt(size - 1));
             return o(sigRDTbl(tblOut, sigMax(zero, last)));
         }
-        return o(fBuild.RDTbl(t.out, ri.out));
+        return o(fBuild.RDTbl(tblOut, ri.out));
     }
 };
 
