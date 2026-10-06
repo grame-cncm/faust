@@ -38,6 +38,7 @@
 #include "floorprim.hh"
 #include "fmodprim.hh"
 #include "global.hh"
+#include "interval_def.hh"
 #include "instructions.hh"
 #include "log10prim.hh"
 #include "logprim.hh"
@@ -2067,6 +2068,9 @@ bool global::processCmdline(int argc, const char* argv[])
     if (gComputeMix && gOutputLang == "cmajor") {
         throw faustexception("ERROR : -cm cannot be used with the 'cmajor' backend\n");
     }
+
+    // the intervals describe the program : float-carried bounds at its precision
+    itv::programPrecision() = gFloatSize;
 
     if (gFloatSize == 4 && gOutputLang != "cpp" && gOutputLang != "ocpp" && gOutputLang != "c" &&
         gOutputLang != "fir") {

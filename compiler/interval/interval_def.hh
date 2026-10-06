@@ -39,6 +39,50 @@ namespace itv {
 /**
  * Cast a double to an int, with saturation.
  */
+/**
+ * The precision of the program the intervals describe : 0 none (the default : the
+ * library computes in double and rounds nothing, as it always did), 1 single (float),
+ * 2 double, 3 quad, 4 fixed point. A user declares the precision of its program ; the
+ * Faust compiler sets it from its float size (-single, -double...).
+ */
+inline int& programPrecision()
+{
+    static int precision = 0;
+    return precision;
+}
+
+/**
+ * A bound of a float-carried value, at the precision of the program. Round to nearest
+ * is monotone : for a monotone operation, the bound computed in double then rounded
+ * is the value the program computes at that bound (the sum and the product of two
+ * floats are exact in double). Round to nearest, not outward : a constant stays a
+ * point. Left as they are : an integer bound beyond 2^24 (an integer value may carry a
+ * float precision by default) and a nonzero bound below the smallest normal float (its
+ * rounding to 0 would break the invariants of pow and log).
+ */
+inline double programBound(double b)
+{
+    if (programPrecision() != 1 || std::isnan(b) || std::isinf(b)) return b;
+    if (std::fabs(b) >= 16777216.0 && b == std::floor(b)) return b;
+    // below the smallest normal float, the rounding would reach 0 and break the
+    // invariants of the operations (a positive bound stays positive : pow, log)
+    if (b != 0 && std::fabs(b) < 0x1p-126) return b;
+    return double(float(b));
+}
+
+/**
+ * k ulps of the program's precision at the magnitude of [lo, hi] : the margin of a rule
+ * that reasons on reals (the hull of a convex combination), whose float evaluation can
+ * leave the hull by a few roundings. The elementary operations need none : their
+ * bounds are computed at the precision of the program (programBound).
+ */
+inline double ulpMargin(double lo, double hi, int k)
+{
+    int    p   = programPrecision();
+    double eps = (p == 1 || p == 4) ? 0x1p-23 : ((p == 3) ? 0x1p-112 : 0x1p-52);
+    return k * eps * std::max(std::fabs(lo), std::fabs(hi));
+}
+
 inline int saturatedIntCast(double d)
 {
     return int(std::min(2147483647.0, std::max(d, -2147483648.0)));
@@ -79,6 +123,11 @@ class interval {
         } else {
             fLo = std::min(n, m);
             fHi = std::max(n, m);
+            // a float-carried value : its bounds at the precision of the program
+            if (fLSB < 0) {
+                fLo = programBound(fLo);
+                fHi = programBound(fHi);
+            }
         }
     }
 
@@ -89,6 +138,8 @@ class interval {
             fHi  = 0;
             fLSB = 0;
         } else {
+            // a fractional constant is a float of the program
+            if (x != std::floor(x)) x = programBound(x);
             // compute the preficion needed to represent x
             // in the form x = 2^p * y, where y is an integer
             int    p = 0;
