@@ -667,9 +667,8 @@ static string guardWarning(const char* what, const interval& idx_i, int size, Tr
 
 //-------------------------TablePromotionAlgebra--------------------------
 // Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1]). Both guards
-// are decided at the read node, and the write clamp is applied only when the
-// read index is itself out of bounds -- the historical behaviour, reproduced
-// exactly (the warning, however, is always emitted).
+// are decided at the read node, each one on its own index : the write guard does not
+// depend on the read one (it used to be dropped with an exact read index).
 //------------------------------------------------------------------------
 class TablePromotionAlgebra final : public TransformAlgebra {
     mutable std::map<Tree, bool> fFloatFed;  // memo of floatFedIndex
@@ -718,7 +717,7 @@ class TablePromotionAlgebra final : public TransformAlgebra {
             Tree last = sigMin(ri.out, sigInt(size - 1));
             return o(sigRDTbl(tblOut, sigMax(zero, last)));
         }
-        return o(fBuild.RDTbl(t.out, ri.out));
+        return o(fBuild.RDTbl(tblOut, ri.out));
     }
 };
 
