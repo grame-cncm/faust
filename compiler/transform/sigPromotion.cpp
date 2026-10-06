@@ -541,6 +541,61 @@ class Bool2IntPromotionAlgebra final : public TransformAlgebra {
     XSig Ne(const XSig& x, const XSig& y) const override { return cmp(kNE, x, y); }
 };
 
+// An index int(x) + c whose float x is proven within a few ulps of an edge of its
+// table keeps its guard. The proven bounds are those of a program that rounds every
+// operation apart and in the written order ; the C++ compiler may fuse a*b + c into
+// an FMA (clang does by default within an expression), reassociate a sum under
+// -ffast-math, and the libm is not correctly rounded : the value can pass a proven
+// bound by an ulp, and int(x) reach the size of the table (or -1). Far from the edges,
+// the usual case, the guard stays omitted : the margin only ever adds a guard.
+static bool nearTableEdge(Tree idx, int size)
+{
+    int  off = 0;
+    Tree t   = idx;
+    for (int depth = 0; depth < 8; depth++) {
+        int  op, k;
+        Tree a, b;
+        tvec items;
+        if (isSigBinOp(t, &op, a, b) && (op == kAdd || op == kSub)) {
+            if (isSigInt(b, &k)) {
+                off += (op == kAdd) ? k : -k;
+                t = a;
+                continue;
+            }
+            if (op == kAdd && isSigInt(a, &k)) {
+                off += k;
+                t = b;
+                continue;
+            }
+            return false;
+        }
+        if (isSigSum(t, items)) {  // the n-ary sum : one term and integer numbers
+            Tree rest = nullptr;
+            for (Tree u : items) {
+                if (isSigInt(u, &k)) {
+                    off += k;
+                } else if (!rest) {
+                    rest = u;
+                } else {
+                    return false;
+                }
+            }
+            if (!rest) return false;
+            t = rest;
+            continue;
+        }
+        break;
+    }
+    Tree x;
+    if (!isSigIntCast(t, x)) return false;
+    ::Type tx = getSigType(x);
+    if (!tx) return false;
+    interval ix = tx->getInterval();
+    if (!ix.isValid() || ix.isEmpty() || ix.lsb() >= 0) return false;  // an integer : exact
+    double d = itv::ulpMargin(ix.lo(), ix.hi(), 4);
+    return ix.hi() + d >= double(size - off) || ix.lo() - d <= double(-1 - off);
+}
+
 //-------------------------TablePromotionAlgebra--------------------------
 // Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1]). Both guards
 // are decided at the read node, and the write clamp is applied only when the
@@ -564,7 +619,7 @@ class TablePromotionAlgebra final : public TransformAlgebra {
                 throw faustexception(error.str());
             }
             interval wi_i = getCertifiedSigType(wi0)->getInterval();
-            if (wi_i.lo() < 0 || wi_i.hi() >= size) {
+            if (wi_i.lo() < 0 || wi_i.hi() >= size || nearTableEdge(wi0, size)) {
                 if (gAllWarning) {
                     stringstream error;
                     error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi()
@@ -586,7 +641,7 @@ class TablePromotionAlgebra final : public TransformAlgebra {
             throw faustexception(error.str());
         }
         interval ri_i = typeOf(ri)->getInterval();
-        if (ri_i.lo() < 0 || ri_i.hi() >= size) {
+        if (ri_i.lo() < 0 || ri_i.hi() >= size || nearTableEdge(ri.orig, size)) {
             if (gAllWarning) {
                 stringstream error;
                 error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi()

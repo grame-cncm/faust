@@ -37,9 +37,6 @@
 namespace itv {
 
 /**
- * Cast a double to an int, with saturation.
- */
-/**
  * The precision of the program the intervals describe : 0 none (the default : the
  * library computes in double and rounds nothing, as it always did), 1 single (float),
  * 2 double, 3 quad, 4 fixed point. A user declares the precision of its program ; the
@@ -54,11 +51,15 @@ inline int& programPrecision()
 /**
  * A bound of a float-carried value, at the precision of the program. Round to nearest
  * is monotone : for a monotone operation, the bound computed in double then rounded
- * is the value the program computes at that bound (the sum and the product of two
- * floats are exact in double). Round to nearest, not outward : a constant stays a
- * point. Left as they are : an integer bound beyond 2^24 (an integer value may carry a
- * float precision by default) and a nonzero bound below the smallest normal float (its
- * rounding to 0 would break the invariants of pow and log).
+ * to float is the value the program computes at that bound. For +, -, *, / and sqrt
+ * of floats, the double rounding is innocuous (53 >= 2*24 + 2) : rounding in double
+ * then in float gives the float the program computes, even when the double result is
+ * not exact. Not covered : the C++ compiler's FMA contraction and reassociation, the
+ * libm (not correctly rounded) ; the decisions keep their own margin for those (the
+ * guard of a table access near its edges). Round to nearest, not outward : a constant
+ * stays a point. Left as they are : an integer bound beyond 2^24 (an integer value may
+ * carry a float precision by default) and a nonzero bound below the smallest normal
+ * float (its rounding to 0 would break the invariants of pow and log).
  */
 inline double programBound(double b)
 {
@@ -83,6 +84,9 @@ inline double ulpMargin(double lo, double hi, int k)
     return k * eps * std::max(std::fabs(lo), std::fabs(hi));
 }
 
+/**
+ * Cast a double to an int, with saturation.
+ */
 inline int saturatedIntCast(double d)
 {
     return int(std::min(2147483647.0, std::max(d, -2147483648.0)));
