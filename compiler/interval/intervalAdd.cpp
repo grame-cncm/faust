@@ -72,7 +72,7 @@ interval interval_algebra::Add(const interval& x, const interval& y) const
         return {(double)(xlo + ylo), (double)(xhi + yhi), std::min(x.lsb(), y.lsb())};
     }
 
-    return {x.lo() + y.lo(), x.hi() + y.hi(),
+    return {addDown(x.lo(), y.lo()), addUp(x.hi(), y.hi()),
             std::min(x.lsb(), y.lsb())};  // the result of an addition needs to be only as precise
                                           // as the most precise of the operands
 }

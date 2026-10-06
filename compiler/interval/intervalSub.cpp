@@ -59,7 +59,7 @@ interval interval_algebra::Sub(const interval& x, const interval& y) const
         return {(double)(xlo - yhi), (double)(xhi - ylo), std::min(x.lsb(), y.lsb())};
     }
 
-    return {x.lo() - y.hi(), x.hi() - y.lo(), std::min(x.lsb(), y.lsb())};
+    return {subDown(x.lo(), y.hi()), subUp(x.hi(), y.lo()), std::min(x.lsb(), y.lsb())};
 }
 
 void interval_algebra::testSub()

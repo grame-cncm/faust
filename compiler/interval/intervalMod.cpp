@@ -97,7 +97,9 @@ interval positiveFMod(const interval& x, const interval& y)
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
     }
-    int n = int(x.lo() / y.hi());
+    // rounded down, n never exceeds the quotient : the case of a constant quotient below
+    // holds only when it is certain
+    int n = int(divDown(x.lo(), y.hi()));
     // std::cout << "n = " << n << std::endl;
     int precision = std::min(x.lsb(), y.lsb());
 
@@ -117,7 +119,9 @@ interval positiveFMod(const interval& x, const interval& y)
     }*/
 
     // prop: n > 0 && y.hi() <= x.lo()
-    double hi = x.hi() / (n + 1);
+    // x.hi / (n + 1) rounded up : the double just below it (nexttoward) is still above
+    // every double below the exact bound
+    double hi = divUp(x.hi(), n + 1);
     if (y.hi() <= hi) {
         return interval{0.0, std::nexttoward(y.hi(), 0), precision};
     }
@@ -127,7 +131,8 @@ interval positiveFMod(const interval& x, const interval& y)
     }
     // prop : y.lo() > hi
     // in that case, the quotient between x and y is constant and equal
-    return interval{x.lo() - n * y.hi(), x.hi() - n * y.lo(), precision};
+    return interval{subDown(x.lo(), mulUp(n, y.hi())), subUp(x.hi(), mulDown(n, y.lo())),
+                    precision};
 }
 
 // fmod of two signed intervals

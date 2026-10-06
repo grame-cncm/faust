@@ -24,6 +24,7 @@
 #include <cmath>
 #include <cstdio>
 #include <iostream>
+#include <limits>
 #include <string>
 
 // #include "global"
@@ -62,39 +63,204 @@ inline bool& libmCompensation()
 }
 
 /**
- * A bound of a float-carried value, at the precision of the program. Round to nearest
- * is monotone : for a monotone operation, the bound computed in double then rounded
- * to float is the value the program computes at that bound. For +, -, *, / and sqrt
- * of floats, the double rounding is innocuous (53 >= 2*24 + 2) : rounding in double
- * then in float gives the float the program computes, even when the double result is
- * not exact. Not covered : the C++ compiler's FMA contraction and reassociation, the
- * libm (not correctly rounded) ; the decisions keep their own margin for those (the
- * guard of a table access near its edges). Round to nearest, not outward : a constant
- * stays a point. Left as they are : an integer bound beyond 2^24 (an integer value may
- * carry a float precision by default) and a nonzero bound below the smallest normal
- * float (its rounding to 0 would break the invariants of pow and log).
+ * A bound rounded to float : to nearest (dir 0), down (dir < 0) or up (dir > 0). Beyond
+ * the largest float, a lower bound stays the largest float and an upper bound reaches
+ * infinity (the value of the program overflows).
  */
-inline double programBound(double b)
+inline double floatBound(double b, int dir)
+{
+    if (std::isnan(b) || std::isinf(b)) {
+        return b;
+    }
+    const double fmax = std::numeric_limits<float>::max();
+    if (b > fmax) {
+        return (dir < 0) ? fmax : HUGE_VAL;
+    }
+    if (b < -fmax) {
+        return (dir > 0) ? -fmax : -HUGE_VAL;
+    }
+    float f = float(b);
+    if (dir < 0 && double(f) > b) {
+        f = std::nextafter(f, -HUGE_VALF);
+    }
+    if (dir > 0 && double(f) < b) {
+        f = std::nextafter(f, HUGE_VALF);
+    }
+    return double(f);
+}
+
+/**
+ * A bound of a float-carried value, at the precision of the program : rounded to
+ * nearest (dir 0, a constant of the program), down (dir < 0, a lower bound) or up
+ * (dir > 0, an upper bound). Only the single precision rounds : the bounds are doubles
+ * already, computed with directed rounding (addDown, mulUp...). Left as they are : an
+ * integer bound beyond 2^24 (an integer value may carry a float precision by default)
+ * and a nonzero bound below the smallest normal float (its rounding to 0 would break
+ * the invariants of pow and log).
+ */
+inline double programBound(double b, int dir)
 {
     if (programPrecision() != 1 || std::isnan(b) || std::isinf(b)) return b;
     if (std::fabs(b) >= 16777216.0 && b == std::floor(b)) return b;
     // below the smallest normal float, the rounding would reach 0 and break the
     // invariants of the operations (a positive bound stays positive : pow, log)
     if (b != 0 && std::fabs(b) < 0x1p-126) return b;
-    return double(float(b));
+    return floatBound(b, dir);
 }
 
-/**
- * k ulps of the program's precision at the magnitude of [lo, hi] : the margin of a rule
- * that reasons on reals (the hull of a convex combination), whose float evaluation can
- * leave the hull by a few roundings. The elementary operations need none : their
- * bounds are computed at the precision of the program (programBound).
- */
-inline double ulpMargin(double lo, double hi, int k)
+//-------------------------------------------------------------------------
+// Directed rounding. An interval must contain every value the compiled program can
+// produce. Rounded to nearest, a bound is only the value of ONE way of computing it :
+// each operation rounded apart, in the written order. The C++ compiler may compute
+// otherwise -- clang fuses a*b + c into an FMA by default, which keeps a*b exact --
+// and a bound rounded to nearest may then exclude the value of the program
+// (x = a*b + c proven >= 0.5 where the FMA gives 0.49999997). A lower bound rounded
+// down and an upper bound rounded up contain both : RD(RD(ab) + c) <= RN(RN(ab) + c)
+// and RD(RD(ab) + c) <= RD(ab + c) <= RN(ab + c), RD and RN being monotone.
+//
+// The exact result of +, -, *, / and sqrt rounded down or up, in double, from the
+// result rounded to nearest and its exact error (error-free transformations : TwoSum
+// for the sum, the FMA for the others). An exact result is left as it is : an
+// interval widens only where the value of the program is uncertain. Near the
+// underflow, where the error is no longer exact, the result steps one double outward.
+// An overflow saturates on the side of the bound (a lower bound of +inf is the
+// largest double). 0 times an infinite bound is 0, as in specialmult.
+//-------------------------------------------------------------------------
+
+namespace directed {
+constexpr double kTiny = 0x1p-969;  // 2^(-1022 + 53) : the errors are exact above
+
+inline double stepDown(double r)
 {
-    int    p   = programPrecision();
-    double eps = (p == 1 || p == 4) ? 0x1p-23 : ((p == 3) ? 0x1p-112 : 0x1p-52);
-    return k * eps * std::max(std::fabs(lo), std::fabs(hi));
+    return std::nextafter(r, -HUGE_VAL);
+}
+inline double stepUp(double r)
+{
+    return std::nextafter(r, HUGE_VAL);
+}
+// r : the result rounded to nearest, e : its exact error (the exact result is r + e)
+inline double down(double r, double e)
+{
+    return (e < 0) ? stepDown(r) : r;
+}
+inline double up(double r, double e)
+{
+    return (e > 0) ? stepUp(r) : r;
+}
+// an infinite result of finite operands is an overflow
+inline double overflow(double r, bool finiteOperands, int dir)
+{
+    if (!finiteOperands) {
+        return r;
+    }
+    if (dir < 0 && r > 0) {
+        return std::numeric_limits<double>::max();
+    }
+    if (dir > 0 && r < 0) {
+        return -std::numeric_limits<double>::max();
+    }
+    return r;
+}
+inline double add(double a, double b, int dir)
+{
+    double s = a + b;
+    if (std::isnan(s)) {
+        return s;
+    }
+    if (std::isinf(s)) {
+        return overflow(s, std::isfinite(a) && std::isfinite(b), dir);
+    }
+    double bb = s - a;
+    double e  = (a - (s - bb)) + (b - bb);  // TwoSum, exact
+    return (dir < 0) ? down(s, e) : up(s, e);
+}
+inline double mul(double a, double b, int dir)
+{
+    if (a == 0 || b == 0) {
+        return 0;
+    }
+    double p = a * b;
+    if (std::isnan(p)) {
+        return p;
+    }
+    if (std::isinf(p)) {
+        return overflow(p, std::isfinite(a) && std::isfinite(b), dir);
+    }
+    if (std::fabs(p) < kTiny) {
+        return (dir < 0) ? stepDown(p) : stepUp(p);
+    }
+    double e = std::fma(a, b, -p);  // exact
+    return (dir < 0) ? down(p, e) : up(p, e);
+}
+inline double div(double a, double b, int dir)
+{
+    double q = a / b;
+    if (std::isnan(q) || a == 0 || std::isinf(b)) {
+        return q;  // a 0 or a division by inf : exact
+    }
+    if (std::isinf(q)) {
+        return overflow(q, std::isfinite(a) && b != 0, dir);
+    }
+    if (std::fabs(q) < kTiny || std::fabs(a) < kTiny) {
+        return (dir < 0) ? stepDown(q) : stepUp(q);
+    }
+    double r = std::fma(-q, b, a);  // a - q*b, exact : the exact quotient is q + r/b
+    double e = (b > 0) ? r : -r;    // the sign of the error
+    return (dir < 0) ? down(q, e) : up(q, e);
+}
+inline double sqrt(double a, int dir)
+{
+    double s = std::sqrt(a);
+    if (std::isnan(s) || std::isinf(s) || s == 0) {
+        return s;
+    }
+    if (a < kTiny) {
+        return (dir < 0) ? stepDown(s) : stepUp(s);
+    }
+    double r = std::fma(-s, s, a);  // a - s*s, exact : the sign of the error
+    return (dir < 0) ? down(s, r) : up(s, r);
+}
+}  // namespace directed
+
+inline double addDown(double a, double b)
+{
+    return directed::add(a, b, -1);
+}
+inline double addUp(double a, double b)
+{
+    return directed::add(a, b, 1);
+}
+inline double subDown(double a, double b)
+{
+    return directed::add(a, -b, -1);
+}
+inline double subUp(double a, double b)
+{
+    return directed::add(a, -b, 1);
+}
+inline double mulDown(double a, double b)
+{
+    return directed::mul(a, b, -1);
+}
+inline double mulUp(double a, double b)
+{
+    return directed::mul(a, b, 1);
+}
+inline double divDown(double a, double b)
+{
+    return directed::div(a, b, -1);
+}
+inline double divUp(double a, double b)
+{
+    return directed::div(a, b, 1);
+}
+inline double sqrtDown(double a)
+{
+    return directed::sqrt(a, -1);
+}
+inline double sqrtUp(double a)
+{
+    return directed::sqrt(a, 1);
 }
 
 /**
@@ -140,10 +306,16 @@ class interval {
         } else {
             fLo = std::min(n, m);
             fHi = std::max(n, m);
-            // a float-carried value : its bounds at the precision of the program
+            // a float-carried value : its bounds at the precision of the program,
+            // outward ; a point is a constant of the program (or an exact result) and
+            // stays a point, the float its literal gives
             if (fLSB < 0) {
-                fLo = programBound(fLo);
-                fHi = programBound(fHi);
+                if (fLo == fHi) {
+                    fLo = fHi = programBound(fLo, 0);
+                } else {
+                    fLo = programBound(fLo, -1);
+                    fHi = programBound(fHi, 1);
+                }
             }
         }
     }
@@ -156,7 +328,9 @@ class interval {
             fLSB = 0;
         } else {
             // a fractional constant is a float of the program
-            if (x != std::floor(x)) x = programBound(x);
+            if (x != std::floor(x)) {
+                x = programBound(x, 0);
+            }
             // compute the preficion needed to represent x
             // in the form x = 2^p * y, where y is an integer
             int    p = 0;

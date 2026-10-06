@@ -28,12 +28,6 @@ namespace itv {
 //
 //==========================================================================================
 
-static double specialmult(double a, double b)
-{
-    // we want inf*0 to be 0
-    return ((a == 0.0) || (b == 0.0)) ? 0.0 : a * b;
-}
-
 static double specialmultint(double a, double b)
 {
     // we want inf*0 to be 0
@@ -45,13 +39,12 @@ interval interval_algebra::Mul(const interval& x, const interval& y) const
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
     }
-    double a = specialmult(x.lo(), y.lo());
-    double b = specialmult(x.lo(), y.hi());
-    double c = specialmult(x.hi(), y.lo());
-    double d = specialmult(x.hi(), y.hi());
-
-    double lo = min4(a, b, c, d);
-    double hi = max4(a, b, c, d);
+    // the products rounded down for the lower bound, up for the upper one (exact for
+    // integers, 0 times an infinite bound is 0)
+    double lo = min4(mulDown(x.lo(), y.lo()), mulDown(x.lo(), y.hi()), mulDown(x.hi(), y.lo()),
+                     mulDown(x.hi(), y.hi()));
+    double hi = max4(mulUp(x.lo(), y.lo()), mulUp(x.lo(), y.hi()), mulUp(x.hi(), y.lo()),
+                     mulUp(x.hi(), y.hi()));
 
     if ((x.lsb() >= 0) && (y.lsb() >= 0)) {  // operation between integers
         // if the quotient of an INT limit by an interval limit is below a limit of the other

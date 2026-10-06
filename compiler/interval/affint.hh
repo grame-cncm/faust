@@ -45,8 +45,9 @@ struct AffItv {
 
     bool   isEmpty() const { return std::isnan(a0) || std::isnan(b0); }
     bool   isConst() const { return a1 == 0 && b1 == 0; }
-    double lo(double t) const { return a1 == 0 ? a0 : a0 + a1 * t; }
-    double hi(double t) const { return b1 == 0 ? b0 : b0 + b1 * t; }
+    // the bounds at t, rounded outward (interval_def.hh, directed rounding)
+    double lo(double t) const { return a1 == 0 ? a0 : addDown(a0, mulDown(a1, t)); }
+    double hi(double t) const { return b1 == 0 ? b0 : addUp(b0, mulUp(b1, t)); }
 };
 
 /// Bottom: no values yet. Neutral in every join.
@@ -89,7 +90,9 @@ inline bool aleq(const AffItv& x, const AffItv& y, double T)
 }
 
 /// Affine chord through two endpoint values; degenerates to a constant when possible.
-inline void achord(double v0, double vT, double T, double& c0, double& c1)
+/// The rate is rounded down for a lower bound (dir < 0), up for an upper one (dir > 0) :
+/// the chord stays on its side of the endpoint value at T.
+inline void achord(double v0, double vT, double T, double& c0, double& c1, int dir)
 {
     if (!std::isfinite(v0) || !std::isfinite(vT) || v0 == vT) {
         c0 = (v0 == vT) ? v0 : (std::isfinite(v0) ? vT : v0);
@@ -99,7 +102,7 @@ inline void achord(double v0, double vT, double T, double& c0, double& c1)
         return;
     }
     c0 = v0;
-    c1 = (vT - v0) / T;
+    c1 = (dir < 0) ? divDown(subDown(vT, v0), T) : divUp(subUp(vT, v0), T);
 }
 
 /// Join (reunion) of two forms: endpoint hulls, chorded back to affine. Sound by
@@ -110,8 +113,8 @@ inline AffItv ajoin(const AffItv& x, const AffItv& y, double T)
     if (x.isEmpty()) return y;
     if (y.isEmpty()) return x;
     AffItv r;
-    achord(std::min(x.lo(0), y.lo(0)), std::min(x.lo(T), y.lo(T)), T, r.a0, r.a1);
-    achord(std::max(x.hi(0), y.hi(0)), std::max(x.hi(T), y.hi(T)), T, r.b0, r.b1);
+    achord(std::min(x.lo(0), y.lo(0)), std::min(x.lo(T), y.lo(T)), T, r.a0, r.a1, -1);
+    achord(std::max(x.hi(0), y.hi(0)), std::max(x.hi(T), y.hi(T)), T, r.b0, r.b1, 1);
     r.lsb = std::min(x.lsb, y.lsb);
     return r;
 }
@@ -134,7 +137,7 @@ inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
     AffItv r = fresh;
     if (whi) {
         if (old.b1 == fresh.b1 && old.b1 == 0 && std::isfinite(fresh.b0 - old.b0)) {
-            r.b1 = fresh.b0 - old.b0;  // propose the observed per-round rate
+            r.b1 = subUp(fresh.b0, old.b0);  // propose the observed per-round rate
         } else {
             r.b0 = (fresh.lsb >= 0) ? 2147483647.0 : HUGE_VAL;  // escalate
             r.b1 = 0;
@@ -143,7 +146,7 @@ inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
     }
     if (wlo) {
         if (old.a1 == fresh.a1 && old.a1 == 0 && std::isfinite(fresh.a0 - old.a0)) {
-            r.a1 = fresh.a0 - old.a0;
+            r.a1 = subDown(fresh.a0, old.a0);
         } else {
             r.a0 = (fresh.lsb >= 0) ? -2147483648.0 : -HUGE_VAL;
             r.a1 = 0;

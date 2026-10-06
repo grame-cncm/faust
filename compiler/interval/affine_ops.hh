@@ -135,13 +135,13 @@ class AffineOps : public Base {
     AffItv Add(const AffItv& x, const AffItv& y) const override
     {
         if (x.isEmpty() || y.isEmpty()) return aempty();
-        return {x.a0 + y.a0, x.a1 + y.a1, x.b0 + y.b0, x.b1 + y.b1,
+        return {addDown(x.a0, y.a0), addDown(x.a1, y.a1), addUp(x.b0, y.b0), addUp(x.b1, y.b1),
                 std::min(x.lsb, y.lsb)};
     }
     AffItv Sub(const AffItv& x, const AffItv& y) const override
     {
         if (x.isEmpty() || y.isEmpty()) return aempty();
-        return {x.a0 - y.b0, x.a1 - y.b1, x.b0 - y.a0, x.b1 - y.a1,
+        return {subDown(x.a0, y.b0), subDown(x.a1, y.b1), subUp(x.b0, y.a0), subUp(x.b1, y.a1),
                 std::min(x.lsb, y.lsb)};
     }
     AffItv Neg(const AffItv& x) const override
@@ -193,7 +193,7 @@ class AffineOps : public Base {
         if (x.isEmpty()) return aempty();
         if (x.isConst()) return fromItv(fItv.IntCast(toItv(x, fT)));
         // truncation keeps affinity with one unit of slack, and marks the chain integer
-        return {x.a0 - 1, x.a1, x.b0 + 1, x.b1, 0};
+        return {subDown(x.a0, 1), x.a1, addUp(x.b0, 1), x.b1, 0};
     }
     AffItv BitCast(const AffItv& x) const override { return x; }
     AffItv FloatCast(const AffItv& x) const override
@@ -488,8 +488,8 @@ class AffineOps : public Base {
         const interval r0 = at(0), rT = at(fT);
         if (r0.isEmpty() || rT.isEmpty()) return aempty();
         AffItv r;
-        achord(r0.lo(), rT.lo(), fT, r.a0, r.a1);
-        achord(r0.hi(), rT.hi(), fT, r.b0, r.b1);
+        achord(r0.lo(), rT.lo(), fT, r.a0, r.a1, -1);
+        achord(r0.hi(), rT.hi(), fT, r.b0, r.b1, 1);
         r.lsb = std::min(r0.lsb(), rT.lsb());
         return r;
     }
@@ -503,13 +503,13 @@ class AffineOps : public Base {
         if (x.isEmpty()) return fromItv(interval(0, 0));
         AffItv r = x;
         if (r.b1 >= 0) {
-            r.b0 -= r.b1 * nlo;
+            r.b0 = subUp(r.b0, mulDown(r.b1, nlo));
         } else {
             r.b0 = std::max(x.hi(0), x.hi(fT));
             r.b1 = 0;
         }
         if (r.a1 <= 0) {
-            r.a0 -= r.a1 * nlo;
+            r.a0 = subDown(r.a0, mulUp(r.a1, nlo));
         } else {
             r.a0 = std::min(x.lo(0), x.lo(fT));
             r.a1 = 0;

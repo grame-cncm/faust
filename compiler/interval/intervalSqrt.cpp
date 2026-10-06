@@ -50,7 +50,7 @@ interval interval_algebra::Sqrt(const interval& x) const
         }
     }
 
-    return {std::sqrt(i.lo()), std::sqrt(i.hi()), precision};
+    return {sqrtDown(i.lo()), sqrtUp(i.hi()), precision};
 }
 
 void interval_algebra::testSqrt()
