@@ -21,10 +21,7 @@
 
 #include <stdlib.h>
 #include <cstdlib>
-#include <map>
-#include <set>
 #include <sstream>
-#include <vector>
 
 #include "floats.hh"
 #include "global.hh"
@@ -544,85 +541,15 @@ class Bool2IntPromotionAlgebra final : public TransformAlgebra {
     XSig Ne(const XSig& x, const XSig& y) const override { return cmp(kNE, x, y); }
 };
 
-// An index computed in integers only is exact : its proven interval decides its guard.
-// An index fed by a float converted to an integer is not : the proven bounds are those
-// of a program that rounds every operation apart and in the written order, while the
-// C++ compiler may fuse a*b + c into an FMA, reassociate a sum under -ffast-math, and
-// the libm is not correctly rounded. The error is bounded by the size of the terms, not
-// of the result, and int(x) can pass a proven bound by several units : such an index
-// always keeps its guard. A comparison is exact (0 or 1), the delay of a value and the
-// choice of a select2 do not change its range, a user interface element is a stored
-// value with no operation : none of them makes an index float-fed.
-static bool isUIElement(Tree t)
-{
-    return isSigHSlider(t) || isSigVSlider(t) || isSigNumEntry(t) || isSigButton(t) ||
-           isSigCheckbox(t);
-}
-
-static bool isReal(Tree t)
-{
-    ::Type ty = getSigType(t);
-    return ty && ty->nature() == kReal;
-}
-
-// memo : an exact index makes exact every node its walk visits (what they reach, it
-// reached), a float-fed one only itself (the walk stops at the first float).
-static bool floatFedIndex(Tree idx, std::map<Tree, bool>& memo)
-{
-    auto known = memo.find(idx);
-    if (known != memo.end()) return known->second;
-    if (isReal(idx)) return memo[idx] = true;
-    std::set<Tree>    seen;
-    std::vector<Tree> todo{idx};
-    while (!todo.empty()) {
-        Tree t = todo.back();
-        todo.pop_back();
-        if (!seen.insert(t).second) continue;
-        if (isReal(t)) continue;  // a float only reaches an integer through a node seen here
-        auto m = memo.find(t);
-        if (m != memo.end()) {
-            if (m->second) return memo[idx] = true;
-            continue;
-        }
-        int  op;
-        Tree x, y, z;
-        if (isSigBinOp(t, &op, x, y) && op >= kGT && op <= kNE) continue;
-        if (isSigDelay(t, x, y)) {
-            todo.push_back(x);
-            continue;
-        }
-        if (isSigSelect2(t, x, y, z)) {
-            todo.push_back(y);
-            todo.push_back(z);
-            continue;
-        }
-        if (isSigRDTbl(t, x, y)) {
-            todo.push_back(x);
-            continue;
-        }
-        if (isSigIntCast(t, x) && isUIElement(x)) continue;
-        tvec subs;
-        getSubSignals(t, subs);
-        for (Tree u : subs) {
-            if (isReal(u)) return memo[idx] = true;
-            todo.push_back(u);
-        }
-    }
-    for (Tree t : seen) {
-        if (!isReal(t)) memo[t] = false;
-    }
-    return false;
-}
-
 //-------------------------TablePromotionAlgebra--------------------------
 // Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1]). Both guards
 // are decided at the read node, and the write clamp is applied only when the
 // read index is itself out of bounds -- the historical behaviour, reproduced
-// exactly (the warning, however, is always emitted).
+// exactly (the warning, however, is always emitted). A guard is decided by the
+// proven interval of its index alone : the bounds are rounded outward (interval_def.hh),
+// they contain the values of the compiled program, an FMA contraction included.
 //------------------------------------------------------------------------
 class TablePromotionAlgebra final : public TransformAlgebra {
-    mutable std::map<Tree, bool> fFloatFed;  // memo of floatFedIndex
-
    public:
     XSig RDTbl(const XSig& t, const XSig& ri) const override
     {
@@ -639,7 +566,7 @@ class TablePromotionAlgebra final : public TransformAlgebra {
                 throw faustexception(error.str());
             }
             interval wi_i = getCertifiedSigType(wi0)->getInterval();
-            if (wi_i.lo() < 0 || wi_i.hi() >= size || floatFedIndex(wi0, fFloatFed)) {
+            if (wi_i.lo() < 0 || wi_i.hi() >= size) {
                 if (gAllWarning) {
                     stringstream error;
                     error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi()
@@ -661,7 +588,7 @@ class TablePromotionAlgebra final : public TransformAlgebra {
             throw faustexception(error.str());
         }
         interval ri_i = typeOf(ri)->getInterval();
-        if (ri_i.lo() < 0 || ri_i.hi() >= size || floatFedIndex(ri.orig, fFloatFed)) {
+        if (ri_i.lo() < 0 || ri_i.hi() >= size) {
             if (gAllWarning) {
                 stringstream error;
                 error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi()
