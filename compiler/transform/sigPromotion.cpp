@@ -550,9 +550,11 @@ class Bool2IntPromotionAlgebra final : public TransformAlgebra {
 // C++ compiler may fuse a*b + c into an FMA, reassociate a sum under -ffast-math, and
 // the libm is not correctly rounded. The error is bounded by the size of the terms, not
 // of the result, and int(x) can pass a proven bound by several units : such an index
-// always keeps its guard. A comparison is exact (0 or 1), the delay of a value and the
-// choice of a select2 do not change its range, a user interface element is a stored
-// value with no operation : none of them makes an index float-fed.
+// always keeps its guard. A comparison proven undecided ([0:1]) stays within its bounds
+// whatever the error of its operands, the delay of a value and the choice of a select2
+// do not change its range, a user interface element is a stored value with no
+// operation : none of them makes an index float-fed. A comparison proven decided by
+// float bounds is not exact : x < 0.5 with x proven >= 0.5 at the edge can be 1.
 static bool isUIElement(Tree t)
 {
     return isSigHSlider(t) || isSigVSlider(t) || isSigNumEntry(t) || isSigButton(t) ||
@@ -586,7 +588,12 @@ static bool floatFedIndex(Tree idx, std::map<Tree, bool>& memo)
         }
         int  op;
         Tree x, y, z;
-        if (isSigBinOp(t, &op, x, y) && op >= kGT && op <= kNE) continue;
+        if (isSigBinOp(t, &op, x, y) && op >= kGT && op <= kNE) {
+            interval c = getCertifiedSigType(t)->getInterval();
+            if (c.lo() <= 0 && c.hi() >= 1) {
+                continue;  // undecided : within [0:1] whatever its operands
+            }
+        }
         if (isSigDelay(t, x, y)) {
             todo.push_back(x);
             continue;
