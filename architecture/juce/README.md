@@ -32,6 +32,12 @@ When using `-standalone` mode, it will create a standalone project, with a folde
 
 The resulting folder has to be moved on the "examples" folder of your JUCE installation, the .jucer file has to be opened, and projects for specific native platforms can be generated. Using the `-jucemodulesdir` allows to generate projects that can be used without moving them in JUCE installation.
 
+## JUCE compatibility
+
+Generated projects use macOS 12.0 as the deployment target for both Debug and Release builds. This setting applies to plugin and standalone projects, including the LLVM variants, and can be changed in Projucer for your target system and Xcode SDK.
+
+The GUI uses shaped text measurement on JUCE 8 and later, including JUCE 9, and retains the older font API on JUCE 7 and earlier. MIDI devices use the identifier-based `getDefaultDevice()` and `openDevice()` APIs. After updating Faust, regenerate the project with `faust2juce` to refresh its embedded architecture headers, then save the `.jucer` project with your JUCE version's Projucer before building in Xcode.
+
 ## Options
 
 Here are the available options:

@@ -80,6 +80,16 @@
 
 #define kMargin 4
 
+// JUCE 8 introduced shaped text measurement; JUCE 9 removed Font::getStringWidth.
+inline int getJuceStringWidth(const juce::String& text)
+{
+#if JUCE_MAJOR_VERSION >= 8
+    return juce::GlyphArrangement::getStringWidthInt(juce::Font(juce::FontOptions()), text);
+#else
+    return juce::Font().getStringWidth(text);
+#endif
+}
+
 /**
  * \brief       Custom LookAndFeel class.
  * \details     Define the appearance of all the JUCE widgets.
@@ -589,7 +599,7 @@ class uiSlider : public uiComponent, public uiConverter, private juce::Slider::L
             switch (fType) {
                     
                 case HSlider: {
-                    int nameWidth = juce::Font().getStringWidth(getName()) + kMargin * 2;
+                    int nameWidth = getJuceStringWidth(getName()) + kMargin * 2;
                     x = nameWidth;
                     y = 0;
                     width = getWidth() - nameWidth;
@@ -609,7 +619,7 @@ class uiSlider : public uiComponent, public uiConverter, private juce::Slider::L
                     height = kNumEntryHeight;
                     // x position is the top left corner horizontal position of the box
                     // and not the top left of the NumEntry label, so we have to do that
-                    x = (getWidth() - width)/2 + (juce::Font().getStringWidth(getName()) + kMargin)/2;
+                    x = (getWidth() - width)/2 + (getJuceStringWidth(getName()) + kMargin)/2;
                     y = (getHeight() - height)/2;
                     break;
                     
@@ -1882,7 +1892,7 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
             int checkButtonWidth = 0;
             for (size_t i = 0; i < names.size(); i++) {
                 // Checking the maximum of horizontal space needed to display the radio buttons
-                checkButtonWidth = juce::jmax(juce::Font().getStringWidth(juce::String(names[i])) + 15, checkButtonWidth);
+                checkButtonWidth = juce::jmax(getJuceStringWidth(juce::String(names[i])) + 15, checkButtonWidth);
             }
             
             if (vert) {
@@ -1994,7 +2004,7 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
         {
             if (isHidden(zone)) return;
-            int newWidth = juce::jmax(juce::Font().getStringWidth(juce::String(label)), kVSliderWidth) + kMargin;
+            int newWidth = juce::jmax(getJuceStringWidth(juce::String(label)), kVSliderWidth) + kMargin;
             addSlider(label, zone, init, min, max, step, newWidth, kVSliderHeight, VSlider);
         }
         
@@ -2010,7 +2020,7 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
         {
             if (isHidden(zone)) return;
             // newWidth is his text size, plus the check box size
-            int newWidth = juce::Font().getStringWidth(juce::String(label)) + kCheckButtonWidth;
+            int newWidth = getJuceStringWidth(juce::String(label)) + kCheckButtonWidth;
             fCurrentBox->add(new uiCheckButton(this, zone, newWidth, kCheckButtonHeight, juce::String(label), juce::String(fTooltip[zone])));
         }
         
@@ -2019,7 +2029,7 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
         {
             if (isHidden(zone)) return;
             // kMargin pixels between the slider and his name
-            int newWidth = juce::Font().getStringWidth(juce::String(label)) + kNumEntryWidth + kMargin;
+            int newWidth = getJuceStringWidth(juce::String(label)) + kNumEntryWidth + kMargin;
             fCurrentBox->add(new uiSlider(this, zone, newWidth, kNumEntryHeight, *zone, min, max, step, juce::String(label), juce::String(fUnit[zone]), juce::String(fTooltip[zone]), getScale(zone), NumEntry));
         }
         

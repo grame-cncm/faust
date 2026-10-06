@@ -14,8 +14,8 @@
     <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-I /usr/local/include/ -I /opt/local/include -DNVOICES=NUM_VOICES"
                extraDefs="PreProcDef" extraLinkerFlags="-L /opt/local/lib ../../dynamic.o">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME" macOSDeploymentTarget="12.0"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME" macOSDeploymentTarget="12.0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../modules"/>
