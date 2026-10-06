@@ -21,7 +21,10 @@
 
 #include <stdlib.h>
 #include <cstdlib>
+#include <map>
+#include <set>
 #include <sstream>
+#include <vector>
 
 #include "floats.hh"
 #include "global.hh"
@@ -541,59 +544,74 @@ class Bool2IntPromotionAlgebra final : public TransformAlgebra {
     XSig Ne(const XSig& x, const XSig& y) const override { return cmp(kNE, x, y); }
 };
 
-// An index int(x) + c whose float x is proven within a few ulps of an edge of its
-// table keeps its guard. The proven bounds are those of a program that rounds every
-// operation apart and in the written order ; the C++ compiler may fuse a*b + c into
-// an FMA (clang does by default within an expression), reassociate a sum under
-// -ffast-math, and the libm is not correctly rounded : the value can pass a proven
-// bound by an ulp, and int(x) reach the size of the table (or -1). Far from the edges,
-// the usual case, the guard stays omitted : the margin only ever adds a guard.
-static bool nearTableEdge(Tree idx, int size)
+// An index computed in integers only is exact : its proven interval decides its guard.
+// An index fed by a float converted to an integer is not : the proven bounds are those
+// of a program that rounds every operation apart and in the written order, while the
+// C++ compiler may fuse a*b + c into an FMA, reassociate a sum under -ffast-math, and
+// the libm is not correctly rounded. The error is bounded by the size of the terms, not
+// of the result, and int(x) can pass a proven bound by several units : such an index
+// always keeps its guard. A comparison is exact (0 or 1), the delay of a value and the
+// choice of a select2 do not change its range, a user interface element is a stored
+// value with no operation : none of them makes an index float-fed.
+static bool isUIElement(Tree t)
 {
-    int  off = 0;
-    Tree t   = idx;
-    for (int depth = 0; depth < 8; depth++) {
-        int  op, k;
-        Tree a, b;
-        tvec items;
-        if (isSigBinOp(t, &op, a, b) && (op == kAdd || op == kSub)) {
-            if (isSigInt(b, &k)) {
-                off += (op == kAdd) ? k : -k;
-                t = a;
-                continue;
-            }
-            if (op == kAdd && isSigInt(a, &k)) {
-                off += k;
-                t = b;
-                continue;
-            }
-            return false;
-        }
-        if (isSigSum(t, items)) {  // the n-ary sum : one term and integer numbers
-            Tree rest = nullptr;
-            for (Tree u : items) {
-                if (isSigInt(u, &k)) {
-                    off += k;
-                } else if (!rest) {
-                    rest = u;
-                } else {
-                    return false;
-                }
-            }
-            if (!rest) return false;
-            t = rest;
+    return isSigHSlider(t) || isSigVSlider(t) || isSigNumEntry(t) || isSigButton(t) ||
+           isSigCheckbox(t);
+}
+
+static bool isReal(Tree t)
+{
+    ::Type ty = getSigType(t);
+    return ty && ty->nature() == kReal;
+}
+
+// memo : an exact index makes exact every node its walk visits (what they reach, it
+// reached), a float-fed one only itself (the walk stops at the first float).
+static bool floatFedIndex(Tree idx, std::map<Tree, bool>& memo)
+{
+    auto known = memo.find(idx);
+    if (known != memo.end()) return known->second;
+    if (isReal(idx)) return memo[idx] = true;
+    std::set<Tree>    seen;
+    std::vector<Tree> todo{idx};
+    while (!todo.empty()) {
+        Tree t = todo.back();
+        todo.pop_back();
+        if (!seen.insert(t).second) continue;
+        if (isReal(t)) continue;  // a float only reaches an integer through a node seen here
+        auto m = memo.find(t);
+        if (m != memo.end()) {
+            if (m->second) return memo[idx] = true;
             continue;
         }
-        break;
+        int  op;
+        Tree x, y, z;
+        if (isSigBinOp(t, &op, x, y) && op >= kGT && op <= kNE) continue;
+        if (isSigDelay(t, x, y)) {
+            todo.push_back(x);
+            continue;
+        }
+        if (isSigSelect2(t, x, y, z)) {
+            todo.push_back(y);
+            todo.push_back(z);
+            continue;
+        }
+        if (isSigRDTbl(t, x, y)) {
+            todo.push_back(x);
+            continue;
+        }
+        if (isSigIntCast(t, x) && isUIElement(x)) continue;
+        tvec subs;
+        getSubSignals(t, subs);
+        for (Tree u : subs) {
+            if (isReal(u)) return memo[idx] = true;
+            todo.push_back(u);
+        }
     }
-    Tree x;
-    if (!isSigIntCast(t, x)) return false;
-    ::Type tx = getSigType(x);
-    if (!tx) return false;
-    interval ix = tx->getInterval();
-    if (!ix.isValid() || ix.isEmpty() || ix.lsb() >= 0) return false;  // an integer : exact
-    double d = itv::ulpMargin(ix.lo(), ix.hi(), 4);
-    return ix.hi() + d >= double(size - off) || ix.lo() - d <= double(-1 - off);
+    for (Tree t : seen) {
+        if (!isReal(t)) memo[t] = false;
+    }
+    return false;
 }
 
 //-------------------------TablePromotionAlgebra--------------------------
@@ -603,6 +621,8 @@ static bool nearTableEdge(Tree idx, int size)
 // exactly (the warning, however, is always emitted).
 //------------------------------------------------------------------------
 class TablePromotionAlgebra final : public TransformAlgebra {
+    mutable std::map<Tree, bool> fFloatFed;  // memo of floatFedIndex
+
    public:
     XSig RDTbl(const XSig& t, const XSig& ri) const override
     {
@@ -619,7 +639,7 @@ class TablePromotionAlgebra final : public TransformAlgebra {
                 throw faustexception(error.str());
             }
             interval wi_i = getCertifiedSigType(wi0)->getInterval();
-            if (wi_i.lo() < 0 || wi_i.hi() >= size || nearTableEdge(wi0, size)) {
+            if (wi_i.lo() < 0 || wi_i.hi() >= size || floatFedIndex(wi0, fFloatFed)) {
                 if (gAllWarning) {
                     stringstream error;
                     error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi()
@@ -641,7 +661,7 @@ class TablePromotionAlgebra final : public TransformAlgebra {
             throw faustexception(error.str());
         }
         interval ri_i = typeOf(ri)->getInterval();
-        if (ri_i.lo() < 0 || ri_i.hi() >= size || nearTableEdge(ri.orig, size)) {
+        if (ri_i.lo() < 0 || ri_i.hi() >= size || floatFedIndex(ri.orig, fFloatFed)) {
             if (gAllWarning) {
                 stringstream error;
                 error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi()
