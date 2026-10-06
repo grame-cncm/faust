@@ -68,11 +68,11 @@ inline bool& libmCompensation()
  * of floats, the double rounding is innocuous (53 >= 2*24 + 2) : rounding in double
  * then in float gives the float the program computes, even when the double result is
  * not exact. Not covered : the C++ compiler's FMA contraction and reassociation, the
- * libm (not correctly rounded) ; the decisions keep their own margin for those (the
- * guard of a table access near its edges). Round to nearest, not outward : a constant
- * stays a point. Left as they are : an integer bound beyond 2^24 (an integer value may
- * carry a float precision by default) and a nonzero bound below the smallest normal
- * float (its rounding to 0 would break the invariants of pow and log).
+ * libm (not correctly rounded) ; a table index fed by a float keeps its guard for those
+ * (sigPromotion.cpp). Round to nearest, not outward : a constant stays a point. Left as
+ * they are : an integer bound beyond 2^24 (an integer value may carry a float precision
+ * by default) and a nonzero bound below the smallest normal float (its rounding to 0
+ * would break the invariants of pow and log).
  */
 inline double programBound(double b)
 {
@@ -82,19 +82,6 @@ inline double programBound(double b)
     // invariants of the operations (a positive bound stays positive : pow, log)
     if (b != 0 && std::fabs(b) < 0x1p-126) return b;
     return double(float(b));
-}
-
-/**
- * k ulps of the program's precision at the magnitude of [lo, hi] : the margin of a rule
- * that reasons on reals (the hull of a convex combination), whose float evaluation can
- * leave the hull by a few roundings. The elementary operations need none : their
- * bounds are computed at the precision of the program (programBound).
- */
-inline double ulpMargin(double lo, double hi, int k)
-{
-    int    p   = programPrecision();
-    double eps = (p == 1 || p == 4) ? 0x1p-23 : ((p == 3) ? 0x1p-112 : 0x1p-52);
-    return k * eps * std::max(std::fabs(lo), std::fabs(hi));
 }
 
 /**

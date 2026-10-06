@@ -614,6 +614,57 @@ static bool floatFedIndex(Tree idx, std::map<Tree, bool>& memo)
     return false;
 }
 
+// An integer min or max returns one of its operands : its constant operand bounds it
+// exactly on one side, whatever the error of the other one. So max(k0, min(x, k1)) is
+// within [k0, k1] even when x is fed by a float -- the clamp of ba.tabulate(1, ...)
+// (basics.lib rid). Not a float min or max : it may let a NaN through, depending on the
+// order of its operands, and int(NaN) is undefined. Elsewhere, an exact index is
+// bounded by its proven interval.
+static bool boundedSide(Tree t, bool low, int bound, std::map<Tree, bool>& memo)
+{
+    int k;
+    if (isSigInt(t, &k)) {
+        return low ? k >= bound : k <= bound;
+    }
+    xtended* p = (xtended*)getUserData(t);
+    if ((p == gGlobal->gMinPrim || p == gGlobal->gMaxPrim) && t->arity() == 2 && !isReal(t)) {
+        bool a = boundedSide(t->branch(0), low, bound, memo);
+        bool b = boundedSide(t->branch(1), low, bound, memo);
+        // max(a, b) >= k when one of them is, <= k when both are ; the converse for min
+        return (low == (p == gGlobal->gMaxPrim)) ? (a || b) : (a && b);
+    }
+    if (floatFedIndex(t, memo)) {
+        return false;
+    }
+    interval i_t = getCertifiedSigType(t)->getInterval();
+    return low ? i_t.lo() >= bound : i_t.hi() <= bound;
+}
+
+// The guard of an index is needed unless the index is proven within [0, size-1] :
+// exact and within by its interval, or clamped by constants (boundedSide).
+static bool needsGuard(Tree idx, const interval& idx_i, int size, std::map<Tree, bool>& memo)
+{
+    if (idx_i.lo() >= 0 && idx_i.hi() < size && !floatFedIndex(idx, memo)) {
+        return false;
+    }
+    return !(boundedSide(idx, true, 0, memo) && boundedSide(idx, false, size - 1, memo));
+}
+
+// The warning of a guarded index : out of the table, or within it but fed by a float
+static string guardWarning(const char* what, const interval& idx_i, int size, Tree sig)
+{
+    stringstream error;
+    error << "WARNING : " << what << " [" << idx_i.lo() << ":" << idx_i.hi() << "] ";
+    if (idx_i.lo() < 0 || idx_i.hi() >= size) {
+        error << "is outside of table size (" << size << ")";
+    } else {
+        error << "is within table size (" << size
+              << ") but computed from a float, so it keeps its guard";
+    }
+    error << " in " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+    return error.str();
+}
+
 //-------------------------TablePromotionAlgebra--------------------------
 // Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1]). Both guards
 // are decided at the read node, and the write clamp is applied only when the
@@ -639,13 +690,10 @@ class TablePromotionAlgebra final : public TransformAlgebra {
                 throw faustexception(error.str());
             }
             interval wi_i = getCertifiedSigType(wi0)->getInterval();
-            if (wi_i.lo() < 0 || wi_i.hi() >= size || floatFedIndex(wi0, fFloatFed)) {
+            if (needsGuard(wi0, wi_i, size, fFloatFed)) {
                 if (gAllWarning) {
-                    stringstream error;
-                    error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi()
-                          << "] is outside of table size (" << size << ") in "
-                          << ppsig(t.orig, MAX_ERROR_SIZE) << endl;
-                    gWarningMessages.push_back(error.str());
+                    gWarningMessages.push_back(
+                        guardWarning("WRTbl write index", wi_i, size, t.orig));
                 }
                 Tree s2, g2, wi2, ws2;
                 isSigWRTbl(t.out, s2, g2, wi2, ws2);
@@ -661,13 +709,10 @@ class TablePromotionAlgebra final : public TransformAlgebra {
             throw faustexception(error.str());
         }
         interval ri_i = typeOf(ri)->getInterval();
-        if (ri_i.lo() < 0 || ri_i.hi() >= size || floatFedIndex(ri.orig, fFloatFed)) {
+        if (needsGuard(ri.orig, ri_i, size, fFloatFed)) {
             if (gAllWarning) {
-                stringstream error;
-                error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi()
-                      << "] is outside of table size (" << size << ") in "
-                      << ppsig(fBuild.RDTbl(t.orig, ri.orig), MAX_ERROR_SIZE) << endl;
-                gWarningMessages.push_back(error.str());
+                gWarningMessages.push_back(
+                    guardWarning("RDTbl read index", ri_i, size, fBuild.RDTbl(t.orig, ri.orig)));
             }
             Tree zero = sigInt(0);
             Tree last = sigMin(ri.out, sigInt(size - 1));

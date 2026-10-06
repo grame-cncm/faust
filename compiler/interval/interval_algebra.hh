@@ -113,7 +113,8 @@ class interval_algebra : public FaustAlgebra<interval> {
     void     testAtan();
     //
     interval Atan2(const interval& x, const interval& y) const override;
-    interval Atan2Bounds(const interval& x, const interval& y) const;  // the libm bounds, uncompensated
+    // the libm bounds, uncompensated
+    interval Atan2Bounds(const interval& x, const interval& y) const;
     void     testAtan2();
     //
     interval Atanh(const interval& x) const override;
@@ -171,7 +172,8 @@ class interval_algebra : public FaustAlgebra<interval> {
     interval Or(const interval& x, const interval& y) const override;
     void     testOr();
     interval Pow(const interval& x, const interval& y) const override;  // for all cases
-    interval PowBounds(const interval& x, const interval& y) const;  // the libm bounds, uncompensated
+    // the libm bounds, uncompensated
+    interval PowBounds(const interval& x, const interval& y) const;
     void     testPow();
     interval Remainder(const interval& x, const interval& y) const override;
     void     testRemainder();
