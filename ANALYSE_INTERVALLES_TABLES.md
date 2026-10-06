@@ -156,11 +156,13 @@ Le commit `f6967fcc9` reste valable : la garde d'écriture d'une `rwtable` étai
 
 ## Limites de l'arrondi dirigé
 
-La recommandation est implémentée dans la branche `intervals-directed-rounding`. Avec l'arrondi dirigé, un intervalle contient toutes les valeurs du programme compilé, que le compilateur C++ arrondisse chaque opération séparément ou fusionne `a*b + c` en FMA. Quatre cas restent hors de cette garantie. Le premier est un vrai risque, que la branche réintroduit ; les trois autres sont limités ou théoriques.
+La recommandation est implémentée dans la branche `intervals-directed-rounding`. Avec l'arrondi dirigé, un intervalle contient toutes les valeurs du programme compilé, que le compilateur C++ arrondisse chaque opération séparément ou fusionne `a*b + c` en FMA. Quatre cas restaient hors de cette garantie. Le premier, les NaN, était un vrai risque que la branche réintroduisait : il est corrigé (`a37177724`), à l'exception des NaN nés d'un infini. Les trois autres sont limités ou théoriques.
 
 ### 1. Les NaN
 
-Les intervalles ne décrivent que des nombres : aucune valeur ne peut y être NaN. Plusieurs règles ignorent donc la partie de leur entrée où l'opération n'est pas définie. Par exemple, `Sqrt` intersecte son entrée avec [0, +∞] : `sqrt(x)` avec `x` dans [−1, 1] donne [0, 1], alors que le programme calcule NaN pour `x < 0`. Même chose pour `log` d'un négatif, `0/0`, `asin(2)`, etc.
+#### Le problème
+
+Les intervalles ne décrivaient que des nombres : aucune valeur ne pouvait y être NaN. Plusieurs règles ignorent la partie de leur entrée où l'opération n'est pas définie. Par exemple, `Sqrt` intersecte son entrée avec [0, +∞] : `sqrt(x)` avec `x` dans [−1, 1] donne [0, 1], alors que le programme calcule NaN pour `x < 0`. Même chose pour `log` d'un négatif, `0/0`, `asin(2)`, etc.
 
 C'est grave quand un NaN arrive dans un index de table, parce que `int(NaN)` est indéfini en C++ :
 
@@ -171,15 +173,35 @@ Sur `rdtable(100, (+(1)~_), int(sqrt(_)))` :
 
 | Compilateur | Code généré |
 |---|---|
-| branche `intervals-directed-rounding` | `itbl0mydspSIG0[static_cast<int>(std::sqrt(input0[i0]))]` : pas de garde, l'intervalle dit `[0:1]` |
 | `master-dev` (`52de44cac`) | `itbl0mydspSIG0[std::max<int>(0, std::min<int>(…))]` : gardé |
+| branche, avant `a37177724` | `itbl0mydspSIG0[static_cast<int>(std::sqrt(input0[i0]))]` : pas de garde, l'intervalle dit `[0:1]` |
+| branche, depuis `a37177724` | `itbl0mydspSIG0[std::max<int>(0, std::min<int>(…))]` : gardé, l'intervalle dit « tout `int` » |
 
-**Sur ce point, la branche recule par rapport à `master-dev`.** La règle de `52de44cac` (« un index calculé à partir d'un float garde sa garde ») protégeait ce cas par accident, sans l'avoir prévu. En la retirant, on revient au comportement d'avant `080a0ec4e`.
+La règle de `52de44cac` (« un index calculé à partir d'un float garde sa garde ») protégeait ce cas par accident, sans l'avoir prévu. En la retirant, la branche était revenue au comportement d'avant `080a0ec4e`.
 
-La bonne correction est de modéliser le NaN dans l'intervalle :
+#### La correction (`a37177724`)
 
-- un indicateur « peut être NaN », mis par `sqrt`, `log`, la division, etc. quand leur entrée sort du domaine de la fonction ;
-- `int()` d'un intervalle qui peut être NaN donne tout l'intervalle des `int`, et la garde est décidée par l'intervalle comme le reste.
+Chaque intervalle porte un indicateur « peut être NaN » (`interval::maybeNaN`, `AffItv::nan`) :
+
+- **création** : quand une fonction sort de son domaine : `sqrt`, `log`, `log10`, `acos`, `asin`, `acosh`, `atanh`, `pow` d'un négatif à une puissance non entière, `0/0`, `fmod` et `remainder` par 0 ;
+- **propagation** : il suit la valeur à travers les calculs flottants, les `select2`, les retards, les tables et les récursions ; l'élargissement et l'ordre du point fixe le conservent ;
+- **consommation** :
+  - une comparaison avec un NaN est fausse (`!=` est vraie) : un résultat tranché s'élargit et n'est plus remplacé par une constante ;
+  - `int()` d'une valeur qui peut être NaN donne n'importe quel `int`, et la garde de table est décidée par l'intervalle comme le reste ;
+- **types** : l'indicateur fait partie de l'identité d'un type (`sigtype.cpp`), et une valeur qui peut être NaN n'est pas une constante (`isconst`).
+
+Le code généré des 98 tests d'impulsion et des 273 exemples, en `-single` et `-double`, est inchangé. Deux tests s'ajoutent à `tests/interval-tests` :
+
+- `nan_index.dsp` : six index bornés par un clamp, chacun calculé à partir d'une source de NaN ; 6 gardes, contre 0 avant `a37177724` et 5 sur `master-dev` ;
+- `nan_compare.dsp` : `sqrt(x) >= 0` n'est plus remplacé par la constante « vrai » ; `master-dev` lisait `itbl0mydspSIG0[0]`, ce qui est faux pour `x < 0`.
+
+#### Ce qui reste hors du modèle : les NaN nés d'un infini
+
+`inf − inf`, `0 × inf`, `inf / inf`, `sin(inf)`, `fmod(inf, y)` donnent NaN, mais le modèle ne les crée pas : un côté non borné d'un intervalle est pris comme fini. Les bornes ±∞ viennent le plus souvent de l'élargissement d'une récursion, et les valeurs réelles sont finies.
+
+Ce choix a été mesuré. En prenant un côté non borné comme un infini possible, 18 compilations des exemples échouaient (9 programmes, en `-single` et `-double`). Ce sont des oscillateurs : ils calculent un retard en bornant `SR / signal récursif`, la valeur bornée devenait « peut-être NaN », donc n'importe quel `int`, et le compilateur refusait le retard (« possible negative values »).
+
+Un vrai infini ne vient que d'un débordement ou d'une division par 0 ; un programme qui en produit peut encore produire un NaN que les intervalles ne voient pas. Les valeurs des entrées, des soundfiles et des constantes externes (`ma.SR`…) sont supposées ne jamais être NaN, comme leur plage est déjà supposée.
 
 ### 2. La réassociation sous `-ffast-math`
 
@@ -188,7 +210,7 @@ L'intervalle est calculé dans l'ordre où l'expression est écrite. L'arrondi d
 - `(1e8 − 1e8) + 0.5` donne `0.5` ;
 - `1e8 + (−1e8 + 0.5)` donne `0`, parce que 0.5 est absorbé : l'écart entre deux floats autour de 1e8 est 8.
 
-Aucun intervalle calculé dans le premier ordre ne peut garantir le second. `-ffast-math` suppose aussi qu'il n'y a jamais de NaN ni d'infini, ce qui rejoint le point 1.
+Aucun intervalle calculé dans le premier ordre ne peut garantir le second. `-ffast-math` suppose aussi qu'il n'y a jamais de NaN ni d'infini : le compilateur peut alors supprimer ce qui, dans le programme, se protège d'un NaN.
 
 Ce n'est pas théorique : 13 scripts de `tools/faust2appls` compilent avec `-ffast-math` (ou `-Ofast`). Sous ces options, les garanties des intervalles ne tiennent plus. Il faut au minimum le documenter.
 
@@ -210,6 +232,6 @@ Avec `-fir`, l'intervalle d'un IIR peut donc être trop étroit, indépendamment
 
 ### Ce qu'il reste à faire
 
-1. Modéliser le NaN dans les intervalles, avant de fusionner la branche, puisqu'elle retire une protection qui existait ; ajouter `int(sqrt(_))` à `tests/interval-tests`.
+1. ~~Modéliser le NaN dans les intervalles~~ : fait (`a37177724`), à l'exception des NaN nés d'un infini.
 2. Documenter que les garanties des intervalles ne tiennent pas sous `-ffast-math`.
-3. Les accumulateurs flottants et le gain des IIR (`-fir`) peuvent attendre.
+3. Les NaN nés d'un infini, les accumulateurs flottants et le gain des IIR (`-fir`) peuvent attendre.
