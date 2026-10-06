@@ -125,6 +125,10 @@ inline double programBound(double b, int dir)
 // underflow, where the error is no longer exact, the result steps one double outward.
 // An overflow saturates on the side of the bound (a lower bound of +inf is the
 // largest double). 0 times an infinite bound is 0, as in specialmult.
+//
+// Not covered : a C++ code compiled with -ffast-math (or -Ofast). The C++ compiler may
+// then reassociate the operations ((a + b) + c computed as a + (b + c), its roundings
+// elsewhere) and assume that no value is NaN or infinite.
 //-------------------------------------------------------------------------
 
 namespace directed {

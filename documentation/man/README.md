@@ -88,7 +88,7 @@ Code generation options:
 
   **-cm**         **--compute-mix**               mix in outputs buffers.
 
-  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access code [0/1: 1 by default].
+  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access code [0/1: 1 by default], the proven ranges do not hold for a C++ code compiled with -ffast-math or -Ofast (see NOTES in the man page).
 
   **-cn** \<name>  **--class-name** \<name>         specify the name of the dsp class to be used instead of mydsp.
 
@@ -319,6 +319,11 @@ Example:
 ---------------------------------------
 
 faust **-a** jack-gtk.cpp -o myfx.cpp myfx.dsp
+
+NOTES
+=====
+
+**Interval analysis and -ffast-math.** Faust computes the range of every signal. The ranges decide the safe access code of the tables (**-ct**), the comparisons decided at compile time and the size of the delay lines. They hold for a C++ code computed as written: each operation rounded apart, or a*b + c fused into an FMA, as clang does by default. They do not hold for a C++ code compiled with **-ffast-math** or **-Ofast**: the C++ compiler may then reassociate the operations ((a + b) + c computed as a + (b + c), whose roundings may leave the proven range) and assume that no value is NaN or infinite. Some faust2xxx scripts use these options: compile the generated code without them when the safety of the table accesses matters.
 
 SEE ALSO
 ========

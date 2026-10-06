@@ -100,7 +100,9 @@ in the main class.
 \f[B]\-cm\f[R] \f[B]\-\-compute\-mix\f[R] mix in outputs buffers.
 .PP
 \f[B]\-ct\f[R] \f[B]\-\-check\-table\f[R] check rtable/rwtable index
-range and generate safe access code [0/1: 1 by default].
+range and generate safe access code [0/1: 1 by default], the proven
+ranges do not hold for a C++ code compiled with \-ffast\-math or \-Ofast
+(see NOTES in the man page).
 .PP
 \f[B]\-cn\f[R] <name> \f[B]\-\-class\-name\f[R] <name> specify the name
 of the dsp class to be used instead of mydsp.
@@ -431,6 +433,19 @@ optimisation in LLVM IR.
 FAUST_OPT = FAUST_SIG_NO_NORM deactivate signal normalisation.
 .SS Example:
 faust \f[B]\-a\f[R] jack\-gtk.cpp \-o myfx.cpp myfx.dsp
+.SH NOTES
+\f[B]Interval analysis and \-ffast\-math.\f[R] Faust computes the range
+of every signal.
+The ranges decide the safe access code of the tables (\f[B]\-ct\f[R]),
+the comparisons decided at compile time and the size of the delay lines.
+They hold for a C++ code computed as written: each operation rounded
+apart, or a*b + c fused into an FMA, as clang does by default.
+They do not hold for a C++ code compiled with \f[B]\-ffast\-math\f[R] or
+\f[B]\-Ofast\f[R]: the C++ compiler may then reassociate the operations
+((a + b) + c computed as a + (b + c), whose roundings may leave the
+proven range) and assume that no value is NaN or infinite.
+Some faust2xxx scripts use these options: compile the generated code
+without them when the safety of the table accesses matters.
 .SH SEE ALSO
 Grame Faust site at: \f[B]\c
 .UR https://faust.grame.fr

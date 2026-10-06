@@ -2523,7 +2523,8 @@ string global::printHelp()
     sstr << tab
          << "-ct         --check-table               check rtable/rwtable index range and generate "
             "safe access code "
-            "[0/1: 1 by default]."
+            "[0/1: 1 by default], the proven ranges do not hold for a C++ code compiled with "
+            "-ffast-math or -Ofast (see NOTES in the man page)."
          << endl;
     sstr << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used "

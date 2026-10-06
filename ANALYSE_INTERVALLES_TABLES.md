@@ -212,7 +212,7 @@ L'intervalle est calculé dans l'ordre où l'expression est écrite. L'arrondi d
 
 Aucun intervalle calculé dans le premier ordre ne peut garantir le second. `-ffast-math` suppose aussi qu'il n'y a jamais de NaN ni d'infini : le compilateur peut alors supprimer ce qui, dans le programme, se protège d'un NaN.
 
-Ce n'est pas théorique : 13 scripts de `tools/faust2appls` compilent avec `-ffast-math` (ou `-Ofast`). Sous ces options, les garanties des intervalles ne tiennent plus. Il faut au minimum le documenter.
+Ce n'est pas théorique : 13 scripts de `tools/faust2appls` compilent avec `-ffast-math` (ou `-Ofast`). Sous ces options, les garanties des intervalles ne tiennent plus. C'est documenté : l'aide de l'option `-ct` (`faust -h`), la section NOTES de la page de manuel (`documentation/man`), les commentaires de `interval_def.hh` et de `sigPromotion.cpp`, et le README de `tests/interval-tests`.
 
 ### 3. L'arrondi accumulé d'un accumulateur flottant
 
@@ -233,5 +233,5 @@ Avec `-fir`, l'intervalle d'un IIR peut donc être trop étroit, indépendamment
 ### Ce qu'il reste à faire
 
 1. ~~Modéliser le NaN dans les intervalles~~ : fait (`a37177724`), à l'exception des NaN nés d'un infini.
-2. Documenter que les garanties des intervalles ne tiennent pas sous `-ffast-math`.
+2. ~~Documenter que les garanties des intervalles ne tiennent pas sous `-ffast-math`~~ : fait (aide de `-ct`, page de manuel, commentaires du code).
 3. Les NaN nés d'un infini, les accumulateurs flottants et le gain des IIR (`-fir`) peuvent attendre.

@@ -547,7 +547,7 @@ class Bool2IntPromotionAlgebra final : public TransformAlgebra {
 // depend on the read one (it used to be dropped with a read index within the table).
 // A guard is decided by the proven interval of its index alone : the bounds are
 // rounded outward (interval_def.hh), they contain the values of the compiled program,
-// an FMA contraction included.
+// an FMA contraction included -- not under -ffast-math (interval_def.hh).
 //------------------------------------------------------------------------
 class TablePromotionAlgebra final : public TransformAlgebra {
    public:

@@ -2,7 +2,9 @@
 
 The intervals of the Faust compiler must contain every value the compiled program can
 produce : the guards of the table accesses, among others, are decided by them. Their
-bounds are rounded outward (`compiler/interval/interval_def.hh`).
+bounds are rounded outward (`compiler/interval/interval_def.hh`). They do not hold for a
+C++ code compiled with `-ffast-math` or `-Ofast` (`faust -h`, `-ct`) : the tests compile
+without them.
 
 ```sh
 make -C tests/interval-tests test          # FAUST=... to choose the compiler
