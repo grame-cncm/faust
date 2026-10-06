@@ -134,20 +134,34 @@ class AffineOps : public Base {
     //--- the affine-preserving (linear) regime ----------------------------------------
     AffItv Add(const AffItv& x, const AffItv& y) const override
     {
-        if (x.isEmpty() || y.isEmpty()) return aempty();
-        return {addDown(x.a0, y.a0), addDown(x.a1, y.a1), addUp(x.b0, y.b0), addUp(x.b1, y.b1),
-                std::min(x.lsb, y.lsb)};
+        const bool nan = x.nan || y.nan;
+        if (x.isEmpty() || y.isEmpty()) {
+            return nanOnly(x, y, nan);
+        }
+        AffItv r = {addDown(x.a0, y.a0), addDown(x.a1, y.a1), addUp(x.b0, y.b0), addUp(x.b1, y.b1),
+                    std::min(x.lsb, y.lsb)};
+        r.nan    = nan;
+        return r;
     }
     AffItv Sub(const AffItv& x, const AffItv& y) const override
     {
-        if (x.isEmpty() || y.isEmpty()) return aempty();
-        return {subDown(x.a0, y.b0), subDown(x.a1, y.b1), subUp(x.b0, y.a0), subUp(x.b1, y.a1),
-                std::min(x.lsb, y.lsb)};
+        const bool nan = x.nan || y.nan;
+        if (x.isEmpty() || y.isEmpty()) {
+            return nanOnly(x, y, nan);
+        }
+        AffItv r = {subDown(x.a0, y.b0), subDown(x.a1, y.b1), subUp(x.b0, y.a0), subUp(x.b1, y.a1),
+                    std::min(x.lsb, y.lsb)};
+        r.nan    = nan;
+        return r;
     }
     AffItv Neg(const AffItv& x) const override
     {
-        if (x.isEmpty()) return aempty();
-        return {-x.b0, -x.b1, -x.a0, -x.a1, x.lsb};
+        if (x.isEmpty()) {
+            return x;
+        }
+        AffItv r = {-x.b0, -x.b1, -x.a0, -x.a1, x.lsb};
+        r.nan    = x.nan;
+        return r;
     }
     AffItv Mul(const AffItv& x, const AffItv& y) const override
     {
@@ -176,9 +190,11 @@ class AffineOps : public Base {
     {
         const interval l = toItv(lo, fT), h = toItv(hi, fT), xx = toItv(x, fT);
         if (l.isEmpty() || h.isEmpty()) return x;
-        if (xx.isEmpty()) return fromItv(interval(l.lo(), h.hi()));
-        return fromItv(
-            interval(std::max(xx.lo(), l.lo()), std::min(xx.hi(), h.hi()), xx.lsb()));
+        if (xx.isEmpty()) {
+            return fromItv(interval(l.lo(), h.hi()).withNaN(xx.maybeNaN()));
+        }
+        return fromItv(interval(std::max(xx.lo(), l.lo()), std::min(xx.hi(), h.hi()), xx.lsb())
+                           .withNaN(xx.maybeNaN()));
     }
 
     //--- selection: value attribute, the selector is excluded -------------------------
@@ -190,8 +206,13 @@ class AffineOps : public Base {
     //--- casts ------------------------------------------------------------------------
     AffItv IntCast(const AffItv& x) const override
     {
-        if (x.isEmpty()) return aempty();
-        if (x.isConst()) return fromItv(fItv.IntCast(toItv(x, fT)));
+        if (x.isVoid()) {
+            return aempty();
+        }
+        // a NaN, the truncation of a constant form : the ordinary rule (int(NaN) : every int)
+        if (x.nan || x.isEmpty() || x.isConst()) {
+            return fromItv(fItv.IntCast(toItv(x, fT)));
+        }
         // truncation keeps affinity with one unit of slack, and marks the chain integer
         return {subDown(x.a0, 1), x.a1, addUp(x.b0, 1), x.b1, 0};
     }
@@ -231,65 +252,65 @@ class AffineOps : public Base {
     }
     AffItv Gt(const AffItv& x, const AffItv& y) const override
     {
-        return c2(x, y, [this](const interval& a, const interval& b) { return fItv.Gt(a, b); });
+        return cmp2(x, y, [this](const interval& a, const interval& b) { return fItv.Gt(a, b); });
     }
     AffItv Lt(const AffItv& x, const AffItv& y) const override
     {
-        return c2(x, y, [this](const interval& a, const interval& b) { return fItv.Lt(a, b); });
+        return cmp2(x, y, [this](const interval& a, const interval& b) { return fItv.Lt(a, b); });
     }
     AffItv Ge(const AffItv& x, const AffItv& y) const override
     {
-        return c2(x, y, [this](const interval& a, const interval& b) { return fItv.Ge(a, b); });
+        return cmp2(x, y, [this](const interval& a, const interval& b) { return fItv.Ge(a, b); });
     }
     AffItv Le(const AffItv& x, const AffItv& y) const override
     {
-        return c2(x, y, [this](const interval& a, const interval& b) { return fItv.Le(a, b); });
+        return cmp2(x, y, [this](const interval& a, const interval& b) { return fItv.Le(a, b); });
     }
     AffItv Eq(const AffItv& x, const AffItv& y) const override
     {
-        return c2(x, y, [this](const interval& a, const interval& b) { return fItv.Eq(a, b); });
+        return cmp2(x, y, [this](const interval& a, const interval& b) { return fItv.Eq(a, b); });
     }
     AffItv Ne(const AffItv& x, const AffItv& y) const override
     {
-        return c2(x, y, [this](const interval& a, const interval& b) { return fItv.Ne(a, b); });
+        return cmp2(x, y, [this](const interval& a, const interval& b) { return fItv.Ne(a, b); });
     }
     AffItv Not(const AffItv& x) const override
     {
-        return c1(x, [this](const interval& a) { return fItv.Not(a); });
+        return int1(x, [this](const interval& a) { return fItv.Not(a); });
     }
     AffItv And(const AffItv& x, const AffItv& y) const override
     {
-        return c2(x, y, [this](const interval& a, const interval& b) {
+        return int2(x, y, [this](const interval& a, const interval& b) {
             return fItv.IntCast(fItv.And(a, b));
         });
     }
     AffItv Or(const AffItv& x, const AffItv& y) const override
     {
-        return c2(x, y, [this](const interval& a, const interval& b) {
+        return int2(x, y, [this](const interval& a, const interval& b) {
             return fItv.IntCast(fItv.Or(a, b));
         });
     }
     AffItv Xor(const AffItv& x, const AffItv& y) const override
     {
-        return c2(x, y, [this](const interval& a, const interval& b) {
+        return int2(x, y, [this](const interval& a, const interval& b) {
             return fItv.IntCast(fItv.Xor(a, b));
         });
     }
     AffItv Lsh(const AffItv& x, const AffItv& y) const override
     {
-        return c2(x, y, [this](const interval& a, const interval& b) {
+        return int2(x, y, [this](const interval& a, const interval& b) {
             return fItv.IntCast(fItv.Lsh(a, b));
         });
     }
     AffItv ARsh(const AffItv& x, const AffItv& y) const override
     {
-        return c2(x, y, [this](const interval& a, const interval& b) {
+        return int2(x, y, [this](const interval& a, const interval& b) {
             return fItv.IntCast(fItv.ARsh(a, b));
         });
     }
     AffItv LRsh(const AffItv& x, const AffItv& y) const override
     {
-        return c2(x, y, [this](const interval& a, const interval& b) {
+        return int2(x, y, [this](const interval& a, const interval& b) {
             return fItv.IntCast(fItv.LRsh(a, b));
         });
     }
@@ -468,17 +489,61 @@ class AffineOps : public Base {
         return fromItv(zoneBounds(toItv(s, fT)));
     }
 
+    // NaN follows the value through the float operations (c1, c2) ; a comparison
+    // consumes it (cmp2, interval_algebra) ; an integer operation of a NaN converted to
+    // an int may give every int (int1, int2).
     template <typename F>
     AffItv c1(const AffItv& x, F f) const
     {
-        if (x.isEmpty()) return aempty();
-        return fromItv(f(toItv(x, fT)));
+        if (x.isVoid()) {
+            return aempty();
+        }
+        AffItv r = fromItv(f(toItv(x, fT)));
+        r.nan    = r.nan || x.nan;
+        return r;
     }
     template <typename F>
     AffItv c2(const AffItv& x, const AffItv& y, F f) const
     {
-        if (x.isEmpty() || y.isEmpty()) return aempty();
+        if (x.isVoid() || y.isVoid()) {
+            return aempty();
+        }
+        AffItv r = fromItv(f(toItv(x, fT), toItv(y, fT)));
+        r.nan    = r.nan || x.nan || y.nan;
+        return r;
+    }
+    template <typename F>
+    AffItv cmp2(const AffItv& x, const AffItv& y, F f) const
+    {
+        if (x.isVoid() || y.isVoid()) {
+            return aempty();
+        }
         return fromItv(f(toItv(x, fT), toItv(y, fT)));
+    }
+    template <typename F>
+    AffItv int1(const AffItv& x, F f) const
+    {
+        if (x.nan) {
+            return fromItv(interval(-2147483648.0, 2147483647.0, 0));
+        }
+        return c1(x, f);
+    }
+    template <typename F>
+    AffItv int2(const AffItv& x, const AffItv& y, F f) const
+    {
+        if (x.nan || y.nan) {
+            return fromItv(interval(-2147483648.0, 2147483647.0, 0));
+        }
+        return c2(x, y, f);
+    }
+
+    /// The result of an operation with an operand without values (empty bounds) : no value
+    /// if an operand has none at all, a NaN if the operands hold a NaN.
+    static AffItv nanOnly(const AffItv& x, const AffItv& y, bool nan)
+    {
+        AffItv r = aempty();
+        r.nan    = nan && !x.isVoid() && !y.isVoid();
+        return r;
     }
 
     /// Multiplication (or division) where at most one operand carries a rate: evaluate
@@ -486,15 +551,19 @@ class AffineOps : public Base {
     /// convexity). Two rated operands would be quadratic in t: collapse.
     AffItv mulDivByConst(const AffItv& x, const AffItv& y, bool isDiv) const
     {
-        if (x.isEmpty() || y.isEmpty()) return aempty();
+        if (x.isVoid() || y.isVoid()) {
+            return aempty();
+        }
         auto op = [&](const interval& a, const interval& b) {
             return isDiv ? fItv.Div(a, b) : fItv.Mul(a, b);
         };
-        if (x.isConst() == y.isConst()) {  // both const, or both rated (quadratic)
+        // both const, or both rated (quadratic), or a NaN alone : the oracle on the hulls
+        if (x.isConst() == y.isConst() || x.isEmpty() || y.isEmpty()) {
             return fromItv(op(toItv(x, fT), toItv(y, fT)));
         }
         auto at = [&](double t) {
-            return op(interval(x.lo(t), x.hi(t), x.lsb), interval(y.lo(t), y.hi(t), y.lsb));
+            return op(interval(x.lo(t), x.hi(t), x.lsb).withNaN(x.nan),
+                      interval(y.lo(t), y.hi(t), y.lsb).withNaN(y.nan));
         };
         const interval r0 = at(0), rT = at(fT);
         if (r0.isEmpty() || rT.isEmpty()) return aempty();
@@ -502,6 +571,7 @@ class AffineOps : public Base {
         achord(r0.lo(), rT.lo(), fT, r.a0, r.a1, -1);
         achord(r0.hi(), rT.hi(), fT, r.b0, r.b1, 1);
         r.lsb = std::min(r0.lsb(), rT.lsb());
+        r.nan = r0.maybeNaN() || rT.maybeNaN();
         return r;
     }
 
@@ -511,7 +581,9 @@ class AffineOps : public Base {
     /// rate has the wrong sign collapses to its worst constant over the window.
     AffItv delayed(const AffItv& x, double nlo) const
     {
-        if (x.isEmpty()) return fromItv(interval(0, 0));
+        if (x.isEmpty()) {
+            return fromItv(interval(0, 0).withNaN(x.nan));
+        }
         AffItv r = x;
         if (r.b1 >= 0) {
             r.b0 = subUp(r.b0, mulDown(r.b1, nlo));

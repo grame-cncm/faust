@@ -276,6 +276,7 @@ class interval {
     double fLo{std::numeric_limits<double>::lowest()};  ///< minimal value
     double fHi{std::numeric_limits<double>::max()};     ///< maximal value
     int    fLSB{-24};                                   ///< lsb in bits
+    bool   fNaN{false};  ///< the value may also be NaN (a NaN alone : empty bounds)
 
    public:
     //-------------------------------------------------------------------------
@@ -361,7 +362,28 @@ class interval {
     bool is(double x) const { return (fLo == x) && (fHi == x); }
     bool hasZero() const { return has(0.0); }
     bool isZero() const { return is(0.0); }
-    bool isconst() const { return (fLo == fHi) && !std::isnan(fLo); }
+    bool isconst() const { return (fLo == fHi) && !std::isnan(fLo) && !fNaN; }
+
+    /**
+     * NaN. The bounds describe the numbers ; a value that may also be NaN carries the
+     * flag : created by an operation outside its domain (sqrt(-1), log(-1), acos(2),
+     * pow(-1, 0.5), 0/0, fmod(x, 0)...), it follows the value through the operations,
+     * and is consumed by a comparison (false with a NaN, but !=) and by the conversion
+     * to an integer (int(NaN) is undefined : every int).
+     *
+     * Not modeled : the NaN of the infinities (inf - inf, 0 * inf, inf / inf, sin(inf)...).
+     * An unbounded side of an interval is taken as finite : the widening of a recursion
+     * gives ±inf bounds to finite values, and taking them as infinities would make NaN
+     * of most recursive signals (a delay computed from them would no longer compile).
+     * An infinity comes only from an overflow or a division by 0.
+     */
+    bool     maybeNaN() const { return fNaN; }
+    interval withNaN(bool nan) const
+    {
+        interval r = *this;
+        r.fNaN     = fNaN || nan;
+        return r;
+    }
 
     bool ispowerof2() const
     {
@@ -408,10 +430,10 @@ class interval {
     std::string to_string() const
     {
         if (isEmpty()) {
-            return "[]";
+            return fNaN ? "[] or NaN" : "[]";
         } else {
             char buffer[64];
-            snprintf(buffer, 63, "[%g, %g]", fLo, fHi);
+            snprintf(buffer, 63, "[%g, %g]%s", fLo, fHi, fNaN ? " or NaN" : "");
             return std::string(buffer);
         }
     }
@@ -424,9 +446,10 @@ class interval {
 inline std::ostream& operator<<(std::ostream& dst, const interval& i)
 {
     if (i.isEmpty()) {
-        return dst << "empty()";
+        return dst << (i.maybeNaN() ? "empty() or NaN" : "empty()");
     } else {
-        return dst << "interval(" << i.lo() << ',' << i.hi() << ',' << i.lsb() << ")";
+        dst << "interval(" << i.lo() << ',' << i.hi() << ',' << i.lsb() << ")";
+        return i.maybeNaN() ? dst << " or NaN" : dst;
     }
 }
 
@@ -437,6 +460,13 @@ inline std::ostream& operator<<(std::ostream& dst, const interval& i)
 inline interval empty() noexcept
 {
     return {NAN, NAN, 0};
+}
+
+/// NaN for the values of x outside [lo, hi], the domain of a function (sqrt, log, acos...),
+/// or a NaN of x itself.
+inline bool nanOutside(const interval& x, double lo, double hi)
+{
+    return x.maybeNaN() || (!x.isEmpty() && (x.lo() < lo || x.hi() > hi));
 }
 
 /**
@@ -452,19 +482,19 @@ inline interval fullFinite(int lsb = -24) noexcept
 
 inline interval intersection(const interval& i, const interval& j)
 {
-    if (i.isEmpty()) {
-        return i;
-    } else if (j.isEmpty()) {
-        return j;
+    // NaN belongs to the intersection when it belongs to both
+    const bool nan = i.maybeNaN() && j.maybeNaN();
+    if (i.isEmpty() || j.isEmpty()) {
+        return empty().withNaN(nan);
     } else {
         double l = std::max(i.lo(), j.lo());
         double h = std::min(i.hi(), j.hi());
         int    p = std::min(i.lsb(),
                             j.lsb());  // precision of the intersection should be the finest of the two
         if (l > h) {
-            return empty();
+            return empty().withNaN(nan);
         } else {
-            return {l, h, p};
+            return interval{l, h, p}.withNaN(nan);
         }
     }
 }
@@ -472,16 +502,23 @@ inline interval intersection(const interval& i, const interval& j)
 inline interval reunion(const interval& i, const interval& j)
 {
     if (i.isEmpty()) {
-        return j;
+        return j.withNaN(i.maybeNaN());
     } else if (j.isEmpty()) {
-        return i;
+        return i.withNaN(j.maybeNaN());
     } else {
         double l = std::min(i.lo(), j.lo());
         double h = std::max(i.hi(), j.hi());
         int    p =
             std::min(i.lsb(), j.lsb());  // precision of the reunion should be the finest of the two
-        return {l, h, p};
+        return interval{l, h, p}.withNaN(i.maybeNaN() || j.maybeNaN());
     }
+}
+
+/// A comparison with a NaN operand is false (!= true) : its proven result widens to the
+/// value v of a comparison with NaN. The result, an integer, is never NaN.
+inline interval comparison(const interval& r, bool nan, double v)
+{
+    return nan ? reunion(r, interval(v, v, 0)) : r;
 }
 
 inline interval singleton(double x)
@@ -510,12 +547,13 @@ inline interval singleton(double x)
 // basic predicates
 inline bool operator==(const interval& i, const interval& j)
 {
-    return (i.isEmpty() && j.isEmpty()) || ((i.lo() == j.lo()) && (i.hi() == j.hi()));
+    return ((i.isEmpty() && j.isEmpty()) || ((i.lo() == j.lo()) && (i.hi() == j.hi()))) &&
+           i.maybeNaN() == j.maybeNaN();
 }
 
 inline bool operator<=(const interval& i, const interval& j)
 {
-    return (i.lo() >= j.lo()) && (i.hi() <= j.hi());
+    return (i.lo() >= j.lo()) && (i.hi() <= j.hi()) && (!i.maybeNaN() || j.maybeNaN());
 }
 
 // additional predicates
@@ -565,7 +603,7 @@ inline interval zoneBounds(const interval& r)
     if (r.isEmpty() || r.lsb() >= 0) {
         return r;
     }
-    return interval(floatBound(r.lo(), -1), floatBound(r.hi(), 1), r.lsb());
+    return interval(floatBound(r.lo(), -1), floatBound(r.hi(), 1), r.lsb()).withNaN(r.maybeNaN());
 }
 
 inline interval libmBounds(const interval& r, double fmin, double fmax)
@@ -582,7 +620,7 @@ inline interval libmBounds(const interval& r, double fmin, double fmax)
     }
     if (r.lo() >= fmin) lo = std::max(lo, fmin);
     if (r.hi() <= fmax) hi = std::min(hi, fmax);
-    return interval(lo, hi, r.lsb());
+    return interval(lo, hi, r.lsb()).withNaN(r.maybeNaN());
 }
 
 }  // namespace itv

@@ -33,17 +33,19 @@ static double myEq(double x, double y)
 
 interval interval_algebra::Eq(const interval& x, const interval& y) const
 {
+    // a comparison with NaN is false
+    const bool nan = x.maybeNaN() || y.maybeNaN();
     // boolean value => precision 0
     if (x.isEmpty() || y.isEmpty()) {
-        return empty();
+        return nan ? interval(0, 0, 0) : empty();
     }
     if (x.lo() == x.hi() && x.lo() == y.lo() && x.lo() == y.hi()) {
-        return interval{1, 1, 0};
+        return comparison(interval{1, 1, 0}, nan, 0);
     }
     if (x.hi() < y.lo() || x.lo() > y.hi()) {
-        return interval{0, 0, 0};
+        return comparison(interval{0, 0, 0}, nan, 0);
     }
-    return interval{0, 1, 0};
+    return comparison(interval{0, 1, 0}, nan, 0);
 }
 
 void interval_algebra::testEq()

@@ -133,7 +133,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
             return top(sig);  // unstable filter, or unbounded input
         }
         const double m = gain * std::max(std::fabs(ix.lo()), std::fabs(ix.hi()));
-        return itv::fromItv(interval(-m, m));
+        return itv::fromItv(interval(-m, m).withNaN(ix.maybeNaN()));
     }
 
     /// defaultParams: parameters held at their DEFAULT values (nominal reading) instead
@@ -192,6 +192,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
                 if (wlo) r.a0 = p.a0;
                 if (whi) r.b0 = p.b0;
                 r.lsb = std::min(fresh.lsb, p.lsb);
+                r.nan = fresh.nan || old.nan;
                 return r;
             }
         }

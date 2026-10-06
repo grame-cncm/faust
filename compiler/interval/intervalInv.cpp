@@ -35,7 +35,7 @@ static double inv(double x)
 interval interval_algebra::Inv(const interval& x) const
 {
     if (x.isEmpty()) {
-        return empty();
+        return empty().withNaN(x.maybeNaN());
     }
 
     int    sign = signMaxValAbs(x);
@@ -58,19 +58,19 @@ interval interval_algebra::Inv(const interval& x) const
     // precision = std::max(precision, -31);
 
     if ((x.hi() < 0) || (x.lo() >= 0)) {
-        return {divDown(1.0, x.hi()), divUp(1.0, x.lo()), precision};
+        return interval{divDown(1.0, x.hi()), divUp(1.0, x.lo()), precision}.withNaN(x.maybeNaN());
     }
     if (x.hi() == 0 && x.lo() < 0) {
-        return {-HUGE_VAL, divUp(1.0, x.lo()), precision};
+        return interval{-HUGE_VAL, divUp(1.0, x.lo()), precision}.withNaN(x.maybeNaN());
         // normally, we don't divide by 0
         // so the bounds of the image interval are not infinity but 1/ulp
         // return {-pow(2, -x.lsb()), 1.0 / x.lo(), precision};
     }
     if (x.lo() == 0 && x.hi() > 0) {
-        return {divDown(1.0, x.hi()), HUGE_VAL, precision};
+        return interval{divDown(1.0, x.hi()), HUGE_VAL, precision}.withNaN(x.maybeNaN());
         // return {1 / x.hi(), pow(2, -x.lsb()), precision};
     }
-    return {-HUGE_VAL, HUGE_VAL, precision};
+    return interval{-HUGE_VAL, HUGE_VAL, precision}.withNaN(x.maybeNaN());
     // return {-pow(2, -x.lsb()), pow(2, -x.lsb()), precision};
 }
 

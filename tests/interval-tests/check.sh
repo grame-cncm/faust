@@ -30,8 +30,8 @@ for dsp in *.dsp; do
 done
 
 # 3. the generated code : an FMA shows at run time only where the C++ compiler fuses
-#    a*b + c (arm64), a comparison wrongly decided at compile time and a double guard
-#    never do
+#    a*b + c (arm64), int(NaN) where it gives INT_MIN (x86), a comparison wrongly decided
+#    at compile time and a double guard never do
 count() { # count <dsp> <precision> <pattern>
     $FAUST -$2 $1 | grep -c -F -e "$3"
 }
@@ -42,6 +42,10 @@ for p in single double; do
     result $? "fma_edge-$p keeps its guard"
     [ "$(count tabulate_clamped.dsp $p "$twice")" = 0 ]
     result $? "tabulate_clamped-$p is not guarded twice"
+    [ "$(count nan_index.dsp $p "$guarded")" = 6 ]
+    result $? "nan_index-$p keeps its 6 guards"
+    [ "$(count nan_compare.dsp $p 'std::sqrt(')" = 1 ]
+    result $? "nan_compare-$p keeps its comparison"
 done
 [ "$(count zone_edge.dsp double 'static_cast<double>(fHslider0) < 0.7)')" = 1 ]
 result $? "zone_edge-double keeps its comparison"

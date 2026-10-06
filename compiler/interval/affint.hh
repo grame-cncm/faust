@@ -38,12 +38,15 @@
 namespace itv {
 
 struct AffItv {
-    // The whole value is these five fields: two affine bounds and a precision.
+    // The whole value is these six fields: two affine bounds, a precision, and NaN.
     double a0 = NAN, a1 = 0;  ///< lo(t) = a0 + a1·t
     double b0 = NAN, b1 = 0;  ///< hi(t) = b0 + b1·t
     int    lsb = 0;           ///< precision, as in itv::interval
+    bool   nan = false;       ///< the value may also be NaN, as in itv::interval
 
-    bool   isEmpty() const { return std::isnan(a0) || std::isnan(b0); }
+    bool isEmpty() const { return std::isnan(a0) || std::isnan(b0); }
+    /// no value at all : empty bounds, not even a NaN
+    bool   isVoid() const { return isEmpty() && !nan; }
     bool   isConst() const { return a1 == 0 && b1 == 0; }
     // the bounds at t, rounded outward (interval_def.hh, directed rounding)
     double lo(double t) const { return a1 == 0 ? a0 : addDown(a0, mulDown(a1, t)); }
@@ -59,8 +62,9 @@ inline AffItv aempty()
 /// Lift an ordinary interval: a horizontal corridor.
 inline AffItv fromItv(const interval& x)
 {
-    if (x.isEmpty()) return aempty();
-    return {x.lo(), 0, x.hi(), 0, x.lsb()};
+    AffItv r = x.isEmpty() ? aempty() : AffItv{x.lo(), 0, x.hi(), 0, x.lsb()};
+    r.nan    = x.maybeNaN();
+    return r;
 }
 
 /// Collapse to the ordinary interval hull over [0, T] — THE bridge from affine claims
@@ -71,18 +75,23 @@ inline AffItv fromItv(const interval& x)
 /// past absorption — the value freezes, the form keeps over-approximating it.
 inline interval toItv(const AffItv& x, double T)
 {
-    if (x.isEmpty()) return empty();
+    if (x.isEmpty()) {
+        return empty().withNaN(x.nan);
+    }
     const double lo = std::min(x.lo(0), x.lo(T));
     const double hi = std::max(x.hi(0), x.hi(T));
     if (x.lsb >= 0 && (hi > 2147483647.0 || lo < -2147483648.0)) {
-        return {-2147483648.0, 2147483647.0, x.lsb};
+        return interval{-2147483648.0, 2147483647.0, x.lsb}.withNaN(x.nan);
     }
-    return {lo, hi, x.lsb};
+    return interval{lo, hi, x.lsb}.withNaN(x.nan);
 }
 
 /// x ⊑ y over [0, T]: affine bounds compare at the endpoints.
 inline bool aleq(const AffItv& x, const AffItv& y, double T)
 {
+    if (x.nan && !y.nan) {
+        return false;
+    }
     if (x.isEmpty()) return true;
     if (y.isEmpty()) return false;
     return y.lo(0) <= x.lo(0) && y.lo(T) <= x.lo(T) && x.hi(0) <= y.hi(0) &&
@@ -110,12 +119,15 @@ inline void achord(double v0, double vT, double T, double& c0, double& c1, int d
 /// [0, T] (and min is concave, chord below). Exact when both are constant.
 inline AffItv ajoin(const AffItv& x, const AffItv& y, double T)
 {
-    if (x.isEmpty()) return y;
-    if (y.isEmpty()) return x;
     AffItv r;
-    achord(std::min(x.lo(0), y.lo(0)), std::min(x.lo(T), y.lo(T)), T, r.a0, r.a1, -1);
-    achord(std::max(x.hi(0), y.hi(0)), std::max(x.hi(T), y.hi(T)), T, r.b0, r.b1, 1);
-    r.lsb = std::min(x.lsb, y.lsb);
+    if (x.isEmpty() || y.isEmpty()) {
+        r = x.isEmpty() ? y : x;
+    } else {
+        achord(std::min(x.lo(0), y.lo(0)), std::min(x.lo(T), y.lo(T)), T, r.a0, r.a1, -1);
+        achord(std::max(x.hi(0), y.hi(0)), std::max(x.hi(T), y.hi(T)), T, r.b0, r.b1, 1);
+        r.lsb = std::min(x.lsb, y.lsb);
+    }
+    r.nan = x.nan || y.nan;
     return r;
 }
 
@@ -127,7 +139,7 @@ inline AffItv ajoin(const AffItv& x, const AffItv& y, double T)
 /// domain information-preserving where interval widening is destructive: growth gets a
 /// coefficient to live in instead of being discarded into infinity.
 /// (A domain may run a certification stage before this one — e.g. a probe threshold.)
-inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
+inline AffItv awidenBounds(const AffItv& old, const AffItv& fresh, double T)
 {
     if (old.isEmpty() || fresh.isEmpty()) return fresh;
     const bool wlo = fresh.lo(0) < old.lo(0) || fresh.lo(T) < old.lo(T);
@@ -153,6 +165,14 @@ inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
             if (fresh.lsb < 0) r.lsb = std::min(fresh.lsb, -24);
         }
     }
+    return r;
+}
+
+/// Widening keeps the NaN of either.
+inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
+{
+    AffItv r = awidenBounds(old, fresh, T);
+    r.nan    = old.nan || fresh.nan;
     return r;
 }
 

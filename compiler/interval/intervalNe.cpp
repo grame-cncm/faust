@@ -28,16 +28,18 @@ namespace itv {
 
 interval interval_algebra::Ne(const interval& x, const interval& y) const
 {
+    // a comparison with NaN is true
+    const bool nan = x.maybeNaN() || y.maybeNaN();
     if (x.isEmpty() || y.isEmpty()) {
-        return empty();
+        return nan ? interval(1, 1, 0) : empty();
     }
     if ((x.hi() < y.lo()) || x.lo() > y.hi()) {
-        return interval{1, 1, 0};
+        return comparison(interval{1, 1, 0}, nan, 1);
     }
     if ((x.hi() == y.hi() && x.lo() == y.lo()) && x.lo() == y.hi()) {
-        return interval{0, 0, 0};
+        return comparison(interval{0, 0, 0}, nan, 1);
     }
-    return {0, 1, 0};
+    return comparison(interval{0, 1, 0}, nan, 1);
 }
 
 void interval_algebra::testNe()

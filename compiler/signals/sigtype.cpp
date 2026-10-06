@@ -149,7 +149,8 @@ bool operator==(const Type& t1, const Type& t2)
                (st1->vectorability() == st2->vectorability()) &&
                (st1->boolean() == st2->boolean()) &&
                (st1->getInterval().lo() == st2->getInterval().lo()) &&
-               (st1->getInterval().hi() == st2->getInterval().hi());
+               (st1->getInterval().hi() == st2->getInterval().hi()) &&
+               (st1->getInterval().maybeNaN() == st2->getInterval().maybeNaN());
     }
     return false;
 }
@@ -283,6 +284,7 @@ static Tree codeSimpleType(SimpleType* st)
     elems.push_back(tree(st->getInterval().isValid()));
     elems.push_back(tree(st->getInterval().lo()));
     elems.push_back(tree(st->getInterval().hi()));
+    elems.push_back(tree(int(st->getInterval().maybeNaN())));
 
     elems.push_back(tree(st->getRes().valid));
     elems.push_back(tree(st->getRes().index));

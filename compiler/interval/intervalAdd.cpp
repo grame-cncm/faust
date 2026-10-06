@@ -37,8 +37,9 @@ static double addint(double x, double y)
 
 interval interval_algebra::Add(const interval& x, const interval& y) const
 {
+    const bool nan = x.maybeNaN() || y.maybeNaN();
     if (x.isEmpty() || y.isEmpty()) {
-        return empty();
+        return empty().withNaN(nan);
     }
 
     if ((x.lsb() >= 0) && (y.lsb() >= 0)) {  // if both intervals are integers
@@ -72,9 +73,10 @@ interval interval_algebra::Add(const interval& x, const interval& y) const
         return {(double)(xlo + ylo), (double)(xhi + yhi), std::min(x.lsb(), y.lsb())};
     }
 
-    return {addDown(x.lo(), y.lo()), addUp(x.hi(), y.hi()),
-            std::min(x.lsb(), y.lsb())};  // the result of an addition needs to be only as precise
-                                          // as the most precise of the operands
+    // the result of an addition needs to be only as precise as the most precise of the
+    // operands
+    return interval{addDown(x.lo(), y.lo()), addUp(x.hi(), y.hi()), std::min(x.lsb(), y.lsb())}
+        .withNaN(nan);
 }
 
 void interval_algebra::testAdd()

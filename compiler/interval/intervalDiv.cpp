@@ -26,8 +26,8 @@ namespace itv {
 
 interval interval_algebra::Div(const interval& x, const interval& y) const
 {
-    interval D = Mul(x, Inv(y));
-    return D;
+    // 0/0 is NaN (the NaN of the operands follows through Inv and Mul)
+    return Mul(x, Inv(y)).withNaN(x.hasZero() && y.hasZero());
 }
 
 double div(double x, double y)

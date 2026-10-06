@@ -32,8 +32,9 @@ static double sub(double a, double b)
 
 interval interval_algebra::Sub(const interval& x, const interval& y) const
 {
+    const bool nan = x.maybeNaN() || y.maybeNaN();
     if (x.isEmpty() || y.isEmpty()) {
-        return empty();
+        return empty().withNaN(nan);
     }
 
     if ((x.lsb() >= 0) && (y.lsb() >= 0)) {  // integer subtraction wraps around int32
@@ -59,7 +60,8 @@ interval interval_algebra::Sub(const interval& x, const interval& y) const
         return {(double)(xlo - yhi), (double)(xhi - ylo), std::min(x.lsb(), y.lsb())};
     }
 
-    return {subDown(x.lo(), y.hi()), subUp(x.hi(), y.lo()), std::min(x.lsb(), y.lsb())};
+    return interval{subDown(x.lo(), y.hi()), subUp(x.hi(), y.lo()), std::min(x.lsb(), y.lsb())}
+        .withNaN(nan);
 }
 
 void interval_algebra::testSub()

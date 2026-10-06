@@ -17,7 +17,8 @@ make -C tests/interval-tests test          # FAUST=... to choose the compiler
    `-single` and `-double`, by a C++ compiler with `-fsanitize=array-bounds` : an
    access out of a table stops the program.
 3. **The generated code** : where the run time cannot show the defect (an FMA on a
-   machine that does not fuse, a comparison wrongly decided, a guard written twice).
+   machine that does not fuse, `int(NaN)` on a machine where it gives 0, a comparison
+   wrongly decided, a guard written twice).
 
 | Program | Defect it guards against |
 | :--- | :--- |
@@ -25,3 +26,5 @@ make -C tests/interval-tests test          # FAUST=... to choose the compiler
 | `zone_edge.dsp` | a slider read from a float `FAUSTFLOAT` zone passes its declared minimum (the float of 0.7 is below 0.7) : in `-double`, `x < 0.7` was decided false and folded |
 | `rwtable_write.dsp` | the write guard of an `rwtable` dropped when its read index needs none |
 | `tabulate_clamped.dsp` | an index clamped by `ba.tabulate(1, ...)` guarded a second time |
+| `nan_index.dsp` | an index computed from a NaN (`sqrt(-1)`, `log(-1)`, `acos(2)`, `pow(-1, 0.5)`, `0/0`, `fmod(x, 0)`) proven within its table by its clamp : `int(NaN)` is undefined (`INT_MIN` on x86) |
+| `nan_compare.dsp` | `sqrt(x) >= 0` decided true and folded, while it is false for `x < 0` |

@@ -27,74 +27,83 @@ namespace itv {
 // guaranteed correctly rounded (IEEE 754 requires it of +, -, *, /, sqrt only) : the
 // bounds widen by 2 ulps of the program's precision (libmBounds), within the image of
 // the function, unless the user declares correctly rounded libms (libmCompensation).
+// NaN outside the domain of the function (acos(2), log(-1)...), for pow of a negative to
+// a power not an integer.
 //------------------------------------------------------------------------------------------
+// pow(x < 0, y not an integer) is NaN
+static bool powNaN(const interval& x, const interval& y)
+{
+    const bool integerY = y.lsb() >= 0 || (y.isconst() && y.lo() == std::floor(y.lo()));
+    return x.maybeNaN() || y.maybeNaN() || (!x.isEmpty() && x.lo() < 0 && !integerY);
+}
+
 interval interval_algebra::Acos(const interval& x) const
 {
-    return libmBounds(AcosBounds(x), 0, M_PI);
+    return libmBounds(AcosBounds(x), 0, M_PI).withNaN(nanOutside(x, -1, 1));
 }
 interval interval_algebra::Acosh(const interval& x) const
 {
-    return libmBounds(AcoshBounds(x), 0, HUGE_VAL);
+    return libmBounds(AcoshBounds(x), 0, HUGE_VAL).withNaN(nanOutside(x, 1, HUGE_VAL));
 }
 interval interval_algebra::Asin(const interval& x) const
 {
-    return libmBounds(AsinBounds(x), -HUGE_VAL, HUGE_VAL);
+    return libmBounds(AsinBounds(x), -HUGE_VAL, HUGE_VAL).withNaN(nanOutside(x, -1, 1));
 }
 interval interval_algebra::Asinh(const interval& x) const
 {
-    return libmBounds(AsinhBounds(x), -HUGE_VAL, HUGE_VAL);
+    return libmBounds(AsinhBounds(x), -HUGE_VAL, HUGE_VAL).withNaN(x.maybeNaN());
 }
 interval interval_algebra::Atan(const interval& x) const
 {
-    return libmBounds(AtanBounds(x), -HUGE_VAL, HUGE_VAL);
+    return libmBounds(AtanBounds(x), -HUGE_VAL, HUGE_VAL).withNaN(x.maybeNaN());
 }
 interval interval_algebra::Atan2(const interval& x, const interval& y) const
 {
-    return libmBounds(Atan2Bounds(x, y), -HUGE_VAL, HUGE_VAL);
+    return libmBounds(Atan2Bounds(x, y), -HUGE_VAL, HUGE_VAL).withNaN(x.maybeNaN() || y.maybeNaN());
 }
 interval interval_algebra::Atanh(const interval& x) const
 {
-    return libmBounds(AtanhBounds(x), -HUGE_VAL, HUGE_VAL);
+    return libmBounds(AtanhBounds(x), -HUGE_VAL, HUGE_VAL).withNaN(nanOutside(x, -1, 1));
 }
 interval interval_algebra::Cos(const interval& x) const
 {
-    return libmBounds(CosBounds(x), -1, 1);
+    return libmBounds(CosBounds(x), -1, 1).withNaN(x.maybeNaN());
 }
 interval interval_algebra::Cosh(const interval& x) const
 {
-    return libmBounds(CoshBounds(x), 1, HUGE_VAL);
+    return libmBounds(CoshBounds(x), 1, HUGE_VAL).withNaN(x.maybeNaN());
 }
 interval interval_algebra::Exp(const interval& x) const
 {
-    return libmBounds(ExpBounds(x), 0, HUGE_VAL);
+    return libmBounds(ExpBounds(x), 0, HUGE_VAL).withNaN(x.maybeNaN());
 }
 interval interval_algebra::Log(const interval& x) const
 {
-    return libmBounds(LogBounds(x), -HUGE_VAL, HUGE_VAL);
+    return libmBounds(LogBounds(x), -HUGE_VAL, HUGE_VAL).withNaN(nanOutside(x, 0, HUGE_VAL));
 }
 interval interval_algebra::Log10(const interval& x) const
 {
-    return libmBounds(Log10Bounds(x), -HUGE_VAL, HUGE_VAL);
+    return libmBounds(Log10Bounds(x), -HUGE_VAL, HUGE_VAL).withNaN(nanOutside(x, 0, HUGE_VAL));
 }
 interval interval_algebra::Pow(const interval& x, const interval& y) const
 {
-    return libmBounds(PowBounds(x, y), -HUGE_VAL, HUGE_VAL);
+    return libmBounds(PowBounds(x, y), -HUGE_VAL, HUGE_VAL).withNaN(powNaN(x, y));
 }
 interval interval_algebra::Sin(const interval& x) const
 {
-    return libmBounds(SinBounds(x), -1, 1);
+    return libmBounds(SinBounds(x), -1, 1).withNaN(x.maybeNaN());
 }
 interval interval_algebra::Sinh(const interval& x) const
 {
-    return libmBounds(SinhBounds(x), -HUGE_VAL, HUGE_VAL);
+    return libmBounds(SinhBounds(x), -HUGE_VAL, HUGE_VAL).withNaN(x.maybeNaN());
 }
 interval interval_algebra::Tan(const interval& x) const
 {
-    return libmBounds(TanBounds(x), -HUGE_VAL, HUGE_VAL);
+    return libmBounds(TanBounds(x), -HUGE_VAL, HUGE_VAL).withNaN(x.maybeNaN());
 }
 interval interval_algebra::Tanh(const interval& x) const
 {
-    return libmBounds(TanhBounds(x), -1, 1);
+    return libmBounds(TanhBounds(x), -1, 1).withNaN(x.maybeNaN());
 }
 void interval_algebra::testAll()
 {

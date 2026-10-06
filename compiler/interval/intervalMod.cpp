@@ -139,7 +139,7 @@ interval positiveFMod(const interval& x, const interval& y)
 interval interval_algebra::Mod(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
-        return empty();
+        return empty().withNaN(x.maybeNaN() || y.maybeNaN());
     }
 
     // INTEGER modulo (C semantics) : the result has the SIGN of x and its magnitude is
@@ -161,6 +161,9 @@ interval interval_algebra::Mod(const interval& x, const interval& y) const
         return {lo, hi, std::min(x.lsb(), y.lsb())};
     }
 
+    // fmod(x, 0) is NaN
+    const bool nan = x.maybeNaN() || y.maybeNaN() || y.hasZero();
+
     auto [xn, xp] = split(x);    // slipts x into a negative and a positive interval
     auto [yn, yp] = splitnz(y);  // slipts y into a negative and a positive interval (zero excluded)
 
@@ -177,7 +180,7 @@ interval interval_algebra::Mod(const interval& x, const interval& y) const
     bb = interval{bb.lo(), bb.hi(), std::min(x.lsb(), y.lsb())};
 
     // combine all the intervals
-    return bb + xnyn + xnyp + xpyn + xpyp;
+    return (bb + xnyn + xnyp + xpyn + xpyp).withNaN(nan);
 }
 
 // fmod carries the modulo semantics this file already computes : the two differ by

@@ -50,7 +50,9 @@ interval interval_algebra::Remainder(const interval& x, const interval& y) const
         return x;
     }
     const double b = std::min(xmax, m / 2);
-    return {-b, b, std::min(x.lsb(), y.lsb())};
+    // remainder(x, 0) is NaN
+    return interval{-b, b, std::min(x.lsb(), y.lsb())}.withNaN(x.maybeNaN() || y.maybeNaN() ||
+                                                               y.hasZero());
 }
 
 void interval_algebra::testRemainder()

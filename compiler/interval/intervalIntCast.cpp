@@ -31,6 +31,10 @@ namespace itv {
 
 interval interval_algebra::IntCast(const interval& x) const
 {
+    // int(NaN) is undefined (x86 gives INT_MIN, ARM 0) : every int
+    if (x.maybeNaN()) {
+        return {(double)INT_MIN, (double)INT_MAX, 0};
+    }
     if (x.isEmpty()) {
         return empty();
     }

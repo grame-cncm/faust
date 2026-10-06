@@ -30,10 +30,11 @@ static const interval SqrtDomain(0, HUGE_VAL, 0);
 
 interval interval_algebra::Sqrt(const interval& x) const
 {
-    interval i = intersection(SqrtDomain, x);
+    interval   i   = intersection(SqrtDomain, x);
+    const bool nan = nanOutside(x, 0, HUGE_VAL);  // sqrt(x < 0) is NaN
 
     if (i.isEmpty()) {
-        return empty();
+        return empty().withNaN(nan);
     }
     /* if (i.lo() < 0) {
         return {};  // sqrt of negative numbers
@@ -50,7 +51,7 @@ interval interval_algebra::Sqrt(const interval& x) const
         }
     }
 
-    return {sqrtDown(i.lo()), sqrtUp(i.hi()), precision};
+    return interval{sqrtDown(i.lo()), sqrtUp(i.hi()), precision}.withNaN(nan);
 }
 
 void interval_algebra::testSqrt()

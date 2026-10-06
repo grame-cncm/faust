@@ -36,8 +36,9 @@ static double specialmultint(double a, double b)
 
 interval interval_algebra::Mul(const interval& x, const interval& y) const
 {
+    const bool nan = x.maybeNaN() || y.maybeNaN();
     if (x.isEmpty() || y.isEmpty()) {
-        return empty();
+        return empty().withNaN(nan);
     }
     // the products rounded down for the lower bound, up for the upper one (exact for
     // integers, 0 times an infinite bound is 0)
@@ -75,10 +76,8 @@ interval interval_algebra::Mul(const interval& x, const interval& y) const
         return {min4(aint, bint, cint, dint), max4(aint, bint, cint, dint), x.lsb() + y.lsb()};*/
     }
 
-    return {
-        lo, hi,
-        x.lsb() +
-            y.lsb()};  // the worst case, we need all the precision digits from both the operands
+    // the worst case, we need all the precision digits from both the operands
+    return interval{lo, hi, x.lsb() + y.lsb()}.withNaN(nan);
 }
 
 void interval_algebra::testMul()
