@@ -573,11 +573,27 @@ void CodeContainer::mergeSubContainers()
 {
     BlockInst* sub_ui = new BlockInst();
 
+    set<string> declared_vars;
+    for (const auto& inst : fDeclarationInstructions->fCode) {
+        if (DeclareVarInst* decl = dynamic_cast<DeclareVarInst*>(inst)) {
+            declared_vars.insert(decl->getName());
+        }
+    }
+
     for (const auto& it : fSubContainers) {
         // Merge the subcontainer in the main one
         fExtGlobalDeclarationInstructions->merge(it->fExtGlobalDeclarationInstructions);
         fGlobalDeclarationInstructions->merge(it->fGlobalDeclarationInstructions);
-        fDeclarationInstructions->merge(it->fDeclarationInstructions);
+        for (const auto& inst : it->fDeclarationInstructions->fCode) {
+            if (DeclareVarInst* decl = dynamic_cast<DeclareVarInst*>(inst)) {
+                if (declared_vars.find(decl->getName()) == declared_vars.end()) {
+                    fDeclarationInstructions->pushBackInst(decl);
+                    declared_vars.insert(decl->getName());
+                }
+            } else {
+                fDeclarationInstructions->pushBackInst(inst);
+            }
+        }
         fControlDeclarationInstructions->merge(it->fControlDeclarationInstructions);
         sub_ui->merge(it->fUserInterfaceInstructions);
         // TO CHECK (used for waveform initialisation which has to be moved first...)

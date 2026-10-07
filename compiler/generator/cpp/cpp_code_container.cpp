@@ -175,14 +175,14 @@ void CPPCodeContainer::produceInit(int tabs)
     tab(tabs, *fOut);
     *fOut << genVirtual() << "void instanceInit(int sample_rate) {";
     tab(tabs + 1, *fOut);
+    *fOut << "instanceConstants(sample_rate);";
+    tab(tabs + 1, *fOut);
     // staticInit has to be called for each instance since the tables are actually not shared
     // between instances
     if (gGlobal->gInlineTable) {
         *fOut << "staticInit(sample_rate);";
         tab(tabs + 1, *fOut);
     }
-    *fOut << "instanceConstants(sample_rate);";
-    tab(tabs + 1, *fOut);
     if (gGlobal->gMemoryManager == 2) {
         *fOut << "instanceConstantsToMem(sample_rate);";
         tab(tabs + 1, *fOut);

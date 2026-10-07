@@ -547,12 +547,12 @@ void RustCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     *fOut << "pub fn instance_init(&mut self, sample_rate: i32) {";
+    tab(n + 2, *fOut);
+    *fOut << "self.instance_constants(sample_rate);";
     if (gGlobal->gInlineTable) {
         tab(n + 2, *fOut);
         *fOut << "self.static_init(sample_rate);";
     }
-    tab(n + 2, *fOut);
-    *fOut << "self.instance_constants(sample_rate);";
     tab(n + 2, *fOut);
     *fOut << "self.instance_reset_params();";
     tab(n + 2, *fOut);

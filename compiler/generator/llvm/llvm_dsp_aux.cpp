@@ -408,10 +408,10 @@ void llvm_dsp::classInit(int sample_rate)
 
 void llvm_dsp::instanceInit(int sample_rate)
 {
+    instanceConstants(sample_rate);
     if (fFactory->getFactory()->fStaticInit) {
         fFactory->getFactory()->fStaticInit(fDSP, sample_rate);
     }
-    instanceConstants(sample_rate);
     instanceResetUserInterface();
     instanceClear();
 }

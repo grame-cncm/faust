@@ -104,14 +104,14 @@ void CCodeContainer::produceInit(int tabs)
     tab(tabs, *fOut);
     *fOut << "void instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate) {";
     tab(tabs + 1, *fOut);
+    *fOut << "instanceConstants" << fKlassName << "(dsp, sample_rate);";
+    tab(tabs + 1, *fOut);
     // staticInit has to be called for each instance since the tables are actually not shared
     // between instances
     if (gGlobal->gInlineTable) {
         *fOut << "staticInit" << fKlassName << "(dsp, sample_rate);";
         tab(tabs + 1, *fOut);
     }
-    *fOut << "instanceConstants" << fKlassName << "(dsp, sample_rate);";
-    tab(tabs + 1, *fOut);
     if (gGlobal->gMemoryManager == 2) {
         *fOut << "instanceConstantsToMem" << fKlassName << "(dsp, sample_rate);";
         tab(tabs + 1, *fOut);
