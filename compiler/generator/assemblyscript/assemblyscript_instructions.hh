@@ -125,6 +125,9 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
             gMathLibTable["coshf"]      = "Mathf.cosh";
             gMathLibTable["sinhf"]      = "Mathf.sinh";
             gMathLibTable["tanhf"]      = "Mathf.tanh";
+            gMathLibTable["isnanf"]     = "isNaN";
+            gMathLibTable["isinff"]     = "isinff";
+            gMathLibTable["copysignf"]  = "copysign";
             gMathLibTable["fmodf"]      = "%";
             gMathLibTable["remainderf"] = "NativeMathf.rem";
             gMathLibTable["rintf"]      = "Mathf.round";
@@ -152,6 +155,9 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
             gMathLibTable["cosh"]       = "Math.cosh";
             gMathLibTable["sinh"]       = "Math.sinh";
             gMathLibTable["tanh"]       = "Math.tanh";
+            gMathLibTable["isnan"]      = "isNaN";
+            gMathLibTable["isinf"]      = "isinf";
+            gMathLibTable["copysign"]   = "copysign";
             gMathLibTable["fmod"]       = "%";
             gMathLibTable["remainder"]  = "NativeMath.rem";
             gMathLibTable["rint"]       = "Math.round";
