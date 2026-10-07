@@ -1041,7 +1041,7 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
          startWith(gOutputLang, "cmajor") || startWith(gOutputLang, "codebox") ||
          (gOutputLang == "dlang") || (gOutputLang == "csharp") || (gOutputLang == "rust") ||
          (gOutputLang == "julia") || startWith(gOutputLang, "jsfx") || isPythonBackend() ||
-         (gOutputLang == "asc"));
+         (gOutputLang == "asc") || (gOutputLang == "java"));
 
     return (internal_math_ff &&
             (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) ||
