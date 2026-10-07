@@ -189,6 +189,23 @@ class PowPrim : public xtendedCodegen {
             truncated_args.push_back((*args.begin()));
             return IB::genFunCallInst(faust_power_name, truncated_args);
 
+        } else if (result->nature() == kInt) {
+            // Compute integer power in double precision and round to nearest integer to avoid
+            // truncation errors under -ffast-math and beyond 2^24 in single precision mode
+            std::vector<Typed::VarType> atypes = {Typed::kDouble, Typed::kDouble};
+
+            Values cargs;
+            for (auto arg : args) {
+                cargs.push_back(IB::genCastInst(arg, IB::genDoubleTyped()));
+            }
+
+            ValueInst*                  dpow   = container->pushFunction("pow", Typed::kDouble, atypes, cargs);
+            std::vector<Typed::VarType> rtypes = {Typed::kDouble};
+            Values                      rargs  = {dpow};
+            ValueInst*                  rounded =
+                container->pushFunction("rint", Typed::kDouble, rtypes, rargs);
+            return IB::genCastInt32Inst(rounded);
+
         } else {
             // Both arguments forced to itfloat()
             std::vector<Typed::VarType> atypes = {itfloat(), itfloat()};
@@ -216,6 +233,8 @@ class PowPrim : public xtendedCodegen {
             (types[1]->computability() == kComp)) {
             klass->rememberNeedPowerDef();
             return subst("faustpower<$1>($0)", args[0], args[1]);
+        } else if ((types[0]->nature() == kInt) && (types[1]->nature() == kInt)) {
+            return subst("int(rint(pow(double($0),double($1))))", args[0], args[1]);
         } else {
             return subst("pow$2($0,$1)", args[0], args[1], isuffix());
         }
