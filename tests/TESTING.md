@@ -43,7 +43,7 @@ Reference responses are versioned in the repository, so this gate needs no
 trusted compiler and is re-derivable from the commit alone.
 
 ```sh
-rm -rf tests/impulse-tests/ir/          # discard the previous run
+make -C tests/impulse-tests clean-ir    # discard the previous run
 make -C tests/impulse-tests all         # everything (long)
 make -C tests/impulse-tests help        # what else can be run
 ```
@@ -75,12 +75,16 @@ Do not settle for the double-precision legs. A one-sample float bug can
 live for weeks under a double-only gate; the harness has float legs, a
 gate built on top of it must use them.
 
-**Delete `ir/` before every run.** The suite writes each leg under a path
-that spells out its options (`ir/cpp/double/vec/lv1/…`), so a change of
+**Run `make -C tests/impulse-tests clean-ir` before every run.** The suite
+writes each leg under a path that spells out its options
+(`ir/cpp/double/vec/lv1/…`), so a change of
 options cannot be mistaken for an up-to-date result — the libraries gate
 has no such protection. But the path says nothing about the *compiler*:
 run the same options with another binary and make finds the files already
-there and does nothing. Hence the `rm -rf`.
+there and does nothing. The `clean-ir` target removes only `ir/`, keeping
+the test harness executables. To remove those executables separately,
+run `make -C tests/impulse-tests clean`. Both targets preserve the
+versioned references.
 
 **Always run with `-k`, and read the whole table.** A leg is one run of
 `Make.gcc` — an output directory, a language, an architecture, the faust

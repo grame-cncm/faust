@@ -34,7 +34,7 @@ section per gate. Do not stop at the first gate that passes.
 
 ## Rules that are not up for discussion
 
-- `rm -rf tests/impulse-tests/ir/` before every impulse run: the output
+- `make -C tests/impulse-tests clean-ir` before every impulse run: the output
   paths spell the options, not the compiler.
 - Run gates with `-k`, and read the whole table, one line per leg.
 - Name the binary under test explicitly (`FAUST=<path>`) in every gate:

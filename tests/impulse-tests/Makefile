@@ -31,7 +31,7 @@ CLANG_TIDY_CXXFLAGS ?= -std=c++11 -I../../architecture -I/usr/local/include/ap_f
 CLANG_TIDY_FAUSTOPTIONS ?= -I dsp -double
 CLANG_TIDY_ARCH ?= impulsearch.cpp
 
-.PHONY: test reference clang-tidy clang-tidy-cpp asan-cpp asc
+.PHONY: test reference clang-tidy clang-tidy-cpp asan-cpp asc clean clean-ir
 
 dspfiles := $(wildcard dsp/*.dsp)
 mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir)
@@ -679,6 +679,9 @@ tools: filesCompare impulsellvm impulseinterp impulseinterp1 impulsesignal
 
 clean:
 	rm -f filesCompare impulsellvm impulseinterp impulseinterp1 impulsesignal
+
+clean-ir:
+	rm -rf ir/
 
 #########################################################################
 # Testing Box, Signal, Type and C++ creation steps
