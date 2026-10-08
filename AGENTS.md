@@ -20,6 +20,78 @@ which is the reference whenever the two seem to disagree.
   may judge objects up to date: touch the changed files, or check that the
   binary's timestamp moved.
 
+## Compiler version — when and how to change it
+
+- Change the version when preparing a compiler release or when explicitly
+  asked to identify a new compiler revision. Compiler fixes, changes to
+  generated code, new features and public API/backend changes belong in
+  that revision. Do not bump it automatically for every commit; documentation,
+  tests or formatting alone do not require a new compiler version. Use the
+  `Source commit:` line to identify intermediate builds.
+- Agree on the target version before changing it. Use three numeric
+  components (`major.minor.patch`): normally increment the patch for fixes,
+  the minor for a feature release, and reserve a major change for a planned
+  compatibility break. Do not invent a release number or publish a release
+  as part of an unrelated fix.
+- Always run **`./version <major.minor.patch>` from the repository root**;
+  do not edit `FAUSTVERSION` or the build version strings individually.
+  The script synchronizes the build definitions, CI, exported version
+  macros, Windows resources and documentation, runs `make man`, and writes
+  `version.txt`. It asks for the exact confirmation `OK`.
+
+For example, only if `2.90.5` is the intended next version:
+
+```sh
+./version 2.90.5
+# Type OK at the prompt.
+git diff --check
+git diff
+make
+build/bin/faust --version
+```
+
+Review all changed files and any errors from the script or `make man`;
+the script's exit status alone does not prove every update succeeded.
+Check that the printed version matches the requested number and read the
+`Source commit:` line as well. Commit the coherent tracked version updates
+together, preserving unrelated local or untracked files. After committing,
+rebuild if a binary identifying the final commit is needed. To reproduce
+an older release, check out its tag/commit in a separate worktree; this
+script updates the current sources and does not restore older compiler code.
+
+## Git — keep master-dev history linear
+
+- Integrate feature branches and PRs by **rebase, then fast-forward**.
+  A linear history keeps changes in one readable sequence and makes it
+  easier to identify, bisect and revert individual changes. Do not create
+  merge commits on `master-dev`: never use a plain `git merge` or
+  `git merge --no-ff` to integrate a branch.
+- Start with no uncommitted tracked changes. Preserve local work and
+  untracked files. Rebase onto the current `master-dev`, resolve any
+  conflicts, and rerun the required tests if conflict resolution changes
+  the tested code. Rebase changes commit IDs, so report the new IDs.
+
+For a branch named `codex/topic`, use:
+
+```sh
+integration_base=$(git rev-parse master-dev)
+git switch codex/topic
+git rebase master-dev
+# If needed: resolve conflicts, git add <resolved-files>, git rebase --continue.
+# Run the required tests before integration.
+git switch master-dev
+git merge --ff-only codex/topic
+git rev-list --merges "$integration_base"..master-dev
+```
+
+The final command must print nothing. If `--ff-only` fails because
+`master-dev` advanced, rebase the feature branch onto it again; do not
+fall back to a merge commit. With separate worktrees, run the rebase in
+the feature branch's worktree and the fast-forward in the `master-dev`
+worktree, rather than switching a branch already checked out elsewhere.
+Do not rewrite published `master-dev` history or force-push without an
+explicit request.
+
 ## What to run before calling a change tested
 
 | the change touches | run at least |
