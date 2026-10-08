@@ -23,7 +23,63 @@ The use of `make` allows to benefit from parallelism (option -j n).
 The generated impulse responses are stored in a folder named `ir`.
 Type `make help` for details about the available targets.
 
-There is no target `clean`: simply delete the `ir` folder or one of its subfolders to regenerate the impulse responses.
+`make clean-ir` deletes generated impulse-test sources, executables and responses
+under `ir/`; run it before each comparison. `make clean` removes the test
+harness executables.
+
+##### Java impulse responses
+
+`make java` (or `make leg/java/double`) generates the corpus in `-double`
+using `archs/impulsearch.java`, compiles it with `javac`, runs it with `java`,
+and compares the results with the existing `reference/` files via
+`filesCompare`. Sources, classes and responses are kept in `ir/java/double/`.
+
+```sh
+make -C tests/impulse-tests clean-ir
+make -C tests/impulse-tests java -k -j4 FAUST="$(pwd)/build/bin/faust" \
+  JAVA=/path/to/jdk/bin/java JAVAC=/path/to/jdk/bin/javac
+```
+
+The test requires Python 3 and a working JDK. Tool selection uses explicit
+`JAVA`/`JAVAC` overrides first, then `JAVA_HOME`, the macOS JDK locator, and
+finally `PATH`. For example, with a JDK installed:
+
+```sh
+JAVA_HOME=/path/to/jdk make -C tests/impulse-tests java -k -j4 \
+  FAUST="$(pwd)/build/bin/faust"
+```
+
+`JAVAFLAGS` and `JAVACFLAGS` allow extra toolchain options. Preflight prints
+the compiler source commit and JDK versions, compiles and runs a small Java
+program, then exercises the validator and comparator with negative controls.
+A missing or incompatible JDK fails with instructions for configuring it.
+
+Every invocation regenerates and compiles the selected corpus, executes each
+DSP in fixed and fragmented modes and performs all comparisons, including when `ir/` already exists.
+The modes use fixed 64-frame blocks and deterministic fragmented blocks
+(1, 7, 3, 19, 2, 11, 5 frames), keeping the same input and control timeline.
+Each response is compared with the reference and the modes are compared with
+each other. A passing program reports two reference comparisons and one
+block-partition comparison. `bs.dsp` runs only in fixed mode because its foreign
+`count` variable makes the signal depend on block size; this exclusion is
+reported explicitly. `-k` continues through the corpus after a failure;
+the final success summary is printed only if every selected program passed.
+
+`tools/java-impulse.py` validates header labels, dimensions, frame count,
+consecutive indices, channel counts, finite samples and end of file before
+calling `filesCompare`. Automatic negative controls cover altered values,
+truncated/empty responses, bad headers/indices/channel counts, NaN/infinity
+and extra data. Failed generation, compilation, execution or comparison
+fails the target; incomplete output is removed.
+
+The architecture matches the first 15000-frame scalar segment of the native
+reference: 44100 Hz, an impulse on every input, default UI controls and
+buttons pressed for the first 64 frames. `filesCompare -part` compares that
+segment without regenerating references. The polyphonic segments of the
+C++ harness are not exercised by this architecture.
+`sound.dsp` is explicitly excluded because Java has no soundfile support.
+Targeted math regressions remain in `tests/compile-tests/java-math.py`.
+The Ubuntu workflow runs this gate with Temurin JDK 21.
 
 ##### AssemblyScript shortcut
 

@@ -15,6 +15,8 @@ else
 endif
 
 MAKE ?= make
+JAVA ?=
+JAVAC ?=
 # -fwrapv: Faust-generated code assumes two's-complement wrapping for the
 # integer noise LCG (1103515245 * i + 12345 overflows int, which is UB in
 # C/C++). Newer compilers (observed with Apple clang 21) exploit that UB
@@ -31,7 +33,7 @@ CLANG_TIDY_CXXFLAGS ?= -std=c++11 -I../../architecture -I/usr/local/include/ap_f
 CLANG_TIDY_FAUSTOPTIONS ?= -I dsp -double
 CLANG_TIDY_ARCH ?= impulsearch.cpp
 
-.PHONY: test reference clang-tidy clang-tidy-cpp asan-cpp asc clean clean-ir
+.PHONY: test reference clang-tidy clang-tidy-cpp asan-cpp asc java clean clean-ir
 
 dspfiles := $(wildcard dsp/*.dsp)
 mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir)
@@ -66,7 +68,7 @@ help:
 	@echo "-------- FAUST impulse response tests --------"
 	@echo "Available targets are:"
 	@echo " 'all' (default): call all the targets below"
-	@echo " 'legs'   : list every leg (one run of Make.gcc) ; run one alone with 'make leg/<outdir>'"
+	@echo " 'legs'   : list named test legs ; run one alone with 'make leg/<outdir>'"
 	@echo
 	@echo " 'cpp'    : check float and double outputs with the cpp backend in scalar, vec, openmp and sched modes"
 	@echo " 'cpp1'   : check double outputs with the cpp backend in scalar and -mem"
@@ -91,6 +93,7 @@ help:
 	@echo " 'nnx'    : check double output with NNX backend and various options"
 	@echo " 'linen'  : check double output with Linen backend and various options"
 	@echo " 'julia'  : check double output with Julia backend and various options"
+	@echo " 'java'   : compare double Java scalar impulse responses against reference/ (requires a JDK)"
 	@echo " 'jsfx'   : check double output with JSFX backend and various options"
 	@echo " 'assemblyscript' : smoke-test output generation with AssemblyScript backend"
 	@echo " 'asc'    : AssemblyScript impulse tests with reference comparison (compare=1)"
@@ -99,6 +102,7 @@ help:
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
 	@echo "Specific targets:"
+	@echo " 'clean-ir'               : remove generated sources, executables and responses in ir/; run before each impulse test"
 	@echo " 'travis'                 : tests subset for travis"
 	@echo " 'web'                    : call the wast/wasm targets"
 	@echo " 'reference'              : build the reference files"
@@ -137,7 +141,7 @@ asc:
 #########################################################################
 # automatic travis test
 # ---- Legs ------------------------------------------------------------------
-# A leg is one run of Make.gcc : an output directory, a language, an
+# A native leg is one run of Make.gcc : an output directory, a language, an
 # architecture and the faust options. Each leg is its own target, so that
 # `make -k <family>` keeps going past a failing leg -- inside a single recipe
 # the first failing line ends the recipe, and -k only carries across
@@ -635,6 +639,14 @@ julia:
 # JSFX backend
 jsfx:
 	$(MAKE) -f Make.jsfx outdir=jsfx/double   FAUSTOPTIONS="-I dsp -double"
+
+#########################################################################
+# Java backend scalar impulse responses
+LEGS += leg/java/double
+.PHONY: leg/java/double
+java: leg/java/double
+leg/java/double:
+	$(MAKE) -f Make.java outdir=java/double FAUSTOPTIONS="-I dsp -double"
 
 #########################################################################
 # AssemblyScript backend (experimental smoke test)

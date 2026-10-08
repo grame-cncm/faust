@@ -29,6 +29,17 @@ jobs:
          mkdir -p architecture/faust/dsp/
          cp compiler/generator/libfaust.h architecture/faust/dsp/
 
+    - name: Set up Java
+      uses: actions/setup-java@v6
+      with:
+        distribution: temurin
+        java-version: '21'
+
+    - name: Run Java double impulse tests
+      run: |
+        make -C tests/impulse-tests clean-ir
+        make -C tests/impulse-tests java -k -j2 FAUST="$PWD/build/bin/faust"
+
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
       with:

@@ -333,6 +333,9 @@ void JAVAScalarCodeContainer::generateCompute(int n)
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     loop->accept(&fCodeProducer);
 
+    // Preserve clocked values between successive compute calls.
+    generatePostComputeBlock(&fCodeProducer);
+
     tab(n + 1, *fOut);
     *fOut << "}";
 }
