@@ -433,6 +433,61 @@ differing sample may well be inside the tolerance while a later one is
 not — a resonant filter amplifies an initial difference of one ulp. Judge
 the **first** divergence, not the loudest.
 
+## Gate 5 — public C++ Signal and Box API exports
+
+Run this gate when changing the public Signal/Box headers, their
+implementations, visibility macros or libfaust build definitions. It
+checks the external shared-library interface that static-library clients
+cannot validate (issue #1343).
+
+`tests/signal-tests/signal-api-test.cpp` and `box-api-test.cpp` are two
+independent clients. At build time, `generate-api-references.py` reads
+each selected public header and emits typed, volatile function pointers
+for **every exported free-function signature, including overloads and
+the common API**. This forces linker relocations even with optimisation
+and LTO; newly declared functions are covered automatically. The opaque
+`CTree` declaration and the inline methods of `dsp_factory_base` require
+no external function symbols. An unsupported declaration makes the
+generator fail rather than silently omit it.
+
+The clients link directly to `libfaust.dylib` on macOS or `libfaust.so` on
+Linux. They also run small constructor/predicate checks inside a paired
+`createLibContext()` / `destroyLibContext()` scope. Taking an address
+checks link coverage; it does not claim to exercise every function's
+semantics. The final lines report the number of signatures linked for
+each API. No missing export is an accepted failure.
+
+From the repository root:
+
+```sh
+make compiler CMAKEOPT="-DINCLUDE_STATIC=ON -DINCLUDE_DYNAMIC=ON"
+make -C tests/signal-tests clean-api
+make -C tests/signal-tests check-shared-api -k \
+  FAUST="$(pwd)/build/bin/faust" LIB="$(pwd)/build/lib" \
+  INC="$(pwd)/architecture" CXX=c++ CXXFLAGS="-O2 -ffp-contract=off"
+```
+
+The gate prints the compiler's full version output, including
+`Source commit:`, the C++ compiler, machine, shared-library path and
+header path. Read these before the results and ensure the library and
+compiler come from the same root build. Override `SHARED_LIBFAUST` to
+select a different shared-library filename explicitly. Match any required
+SDK/deployment flags through `CXXFLAGS`/`LDFLAGS`.
+
+`clean-api` removes only these two clients and their generated reference
+files; use it before changing the library, headers or build options.
+`check-signal-api` and `check-box-api` can run separately, but the combined
+gate is required for interface changes. Run with `-k` so a signal link
+failure does not prevent the box client from being checked. Record two
+client results and both signature counts; these are link checks, not
+impulse-program comparisons.
+
+Before trusting this gate on a new platform or after changing its
+harness, verify a negative control: link against a disposable shared
+library missing one referenced signal export, then one box export. Each
+corresponding client must fail at link time, including with optimisation
+enabled. Do not alter the library under test or suppress linker errors.
+
 ## Accepted failures
 
 A gate that does not know its legitimate failures stops at the first one

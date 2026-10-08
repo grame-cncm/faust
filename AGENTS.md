@@ -28,6 +28,7 @@ which is the reference whenever the two seem to disagree.
 | a pass shared by several backends (normal form, typing, promotion, scheduling) | Gate 1, plus Gate 2, the library specifications |
 | code that creates trees (`tree(...)`, `sigXxx(...)`, `boxXxx(...)`, fresh names) | Gate 3, determinism (`make -C tests/determinism lint`, then `check`) |
 | table accesses, delay lines, the interval library, casts to integers | Gate 4, memory safety |
+| public libfaust Signal/Box APIs, symbol visibility, or library build definitions | Gate 5, complete C++ Signal and Box API links against shared libfaust |
 
 Commands, expected results and accepted failures are in TESTING.md, one
 section per gate. Do not stop at the first gate that passes.
@@ -43,6 +44,10 @@ section per gate. Do not stop at the first gate that passes.
 - Library gate: `make clean` between two option sets (outputs do not
   depend on `FAUST_OPT`), and the references and the check on the
   **same** commit of `libraries`.
+- Shared API gate: run `make -C tests/signal-tests clean-api`, then
+  `check-shared-api -k` with explicit `FAUST`, `LIB` and `INC` paths from
+  the build under test. Linking only `libfaust.a` cannot detect missing
+  shared-library exports. Both API clients must link and run.
 - Pin the arithmetic of the C++ compiler in semantic gates
   (`-ffp-contract=off`). Never `-ffast-math` nor `-Ofast` there.
 - One reference set, produced by the trusted compiler under default

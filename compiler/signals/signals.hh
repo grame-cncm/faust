@@ -48,7 +48,7 @@ typedef std::vector<Tree> siglist;
 
 // Constant signals : for all t, x(t)=n
 SIGS_API Tree sigInt(int n);
-Tree              sigInt64(int64_t n);
+SIGS_API Tree sigInt64(int64_t n);
 SIGS_API Tree sigReal(double n);
 
 SIGS_API bool isSigInt(Tree t, int* i);

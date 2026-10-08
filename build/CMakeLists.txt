@@ -223,6 +223,9 @@ endif()
 # the public libfaust API (isNil, tree2str, CTree...) keep being exported.
 set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DTLIB_EXPORT_HEADER=<faust/export.h> -DTLIB_API=LIBFAUST_API)
 
+# Export the public signal API when building libfaust with hidden visibility.
+set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DSIGS_EXPORT_HEADER=<faust/export.h> -DSIGS_API=LIBFAUST_API)
+
 if (MSVC)
 else()
     #set(CMAKE_CXX_FLAGS_DEBUG "-g -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
