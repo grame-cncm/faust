@@ -22,6 +22,13 @@ A fifth property is checked by its own gate (Gate 3) : **the emitted code
 is reproducible** — for one commit of the compiler and one program it is
 the same, byte for byte, whatever C++ compiler and machine built faust.
 
+A sixth property is checked by Gate 4 : **the generated code never reads
+or writes outside the memory it owns**, whatever the control values, the
+audio inputs and the C++ compiler options. It is a security requirement,
+since a Faust program may come from an untrusted source, and it must hold
+even where the semantics are no longer defined (a control value outside
+its declared range, a NaN, `-ffast-math`).
+
 > **The central invariant.** There is **one** reference set. It is
 > produced once, by a trusted compiler, under the default options, and
 > *every* option set of the compiler under test is compared against it.
@@ -246,6 +253,71 @@ libm do not agree on the last bit. Not FMA (`-ffp-contract=off` changes
 nothing). A cross-machine comparison must expect exactly these ; a
 cross-compiler comparison on one machine must expect none.
 
+## Gate 4 — memory safety
+
+**The rule it protects.** The compiler removes the guard of a table index
+(`-ct`, on by default) or sizes a delay line from the interval it proved
+for the index or the delay. Those intervals are exact for integer
+arithmetic, but the bounds of a float are those of a program that rounds
+every operation apart and in the written order — which neither the
+compiler's own rewriting nor the C++ compiler keeps (fused multiply-add,
+reassociation under `-ffast-math`, the libm) — and a conversion to an
+integer turns one ulp into a whole unit of the index. Hence the rule:
+**a memory-safety decision never relies on a bound computed from floats**;
+it relies on exact integer arithmetic or on a test at run time. Control
+values are a second door: nothing clamps them to their declared range
+unless `-rui` is given, so a host can write any value, NaN included.
+
+**Leg 1 — the impulse suite under sanitizers.**
+
+```sh
+ASAN_OPTIONS=detect_leaks=0 make -C tests/impulse-tests -f Make.gcc -k -j 8 \
+    FAUST=<binary> outdir=cpp/asan lang=cpp arch=impulsearch.cpp \
+    FAUSTOPTIONS="-I dsp -double" \
+    GCCOPTIONS="-O1 -I../../architecture -Iarchs -pthread -std=c++11 \
+                -fsanitize=address,undefined -fno-omit-frame-pointer"
+grep -c "ERROR: AddressSanitizer" <log>; grep -c "runtime error" <log>
+```
+
+then the same with `-O2 -march=native -ffast-math -ffp-contract=fast` in
+place of `-O1`, so that contraction and reassociation act on the code.
+Expected: 95 responses of 96 (`prefix` is excluded, see Gate 1), zero
+AddressSanitizer report, zero `runtime error`. `SAN=asan` in `Make.gcc`
+adds AddressSanitizer only; the explicit `GCCOPTIONS` adds the undefined
+behaviour sanitizer too. `detect_leaks=0` is required: see "Known harness
+defects".
+
+What this leg does **not** see: the impulse driver draws control values
+at random *inside* their ranges, for a few thousand samples. A rounding
+overflow needs a value within one ulp of an edge; an interface overflow
+needs a value outside the range. Neither is exercised, so zero reports is
+not a proof of safety. The leg guards against gross regressions.
+
+**Leg 2 — witnesses, executed.** Programs written to reach an edge — an
+index that a fused multiply-add pushes past the last element, a write
+index that leaves its table while the read index stays inside, a short
+delay driven by a control value — compiled by Faust in `cpp` and `ocpp`,
+single and double, then by the C++ compiler with
+`-O2 -march=native -ffp-contract=fast -fsanitize=address`, and run with
+their control values set at the edge by their defaults. On the compiler
+under test: no report. On the reference compiler: the known overflows,
+which proves that each witness still reaches its edge. Contraction must be
+asked for explicitly: in ISO mode (`-std=c++17`) g++ does not contract by
+default, and without the fused multiply-add the rounding witnesses do not
+overflow. The witnesses are kept out of the public tree.
+
+**Leg 3 — the emitted code, before and after.** A change that only adds
+guards changes many bytes: compare the code emitted by both binaries over
+the impulse programs, the examples and the library specifications, then
+normalize each differing pair — replace every `max(K, min(E, H))` by `E`
+(both the `cpp` and the `ocpp` spellings), inline the trivial integer
+copies a guard introduces, rename variables by order of first appearance —
+and classify: identical once normalized, the same lines in another order,
+or other. What remains "other" is validated by output, the library sweep
+comparing `cpp` with `ocpp`, or a direct comparison of the outputs before
+and after the change. Check first that the comparator fails on an output
+altered on purpose, on a value and not on a separator.
+
 ## What actually decides what is being tested
 
 A gate compares three things one believes one knows: a compiler, a
@@ -374,6 +446,8 @@ expected:
     `cpp3/double/vececmem0` legs: `ERROR : wrong size`, then a trap
     (observed 2026-10-01, `b1e46d6cf`).
   - `sound` in the `float` legs: see "Known harness defects" 5.
+  - every program in the `ocpp` leg under `-dlt 0`: no response at all
+    (observed 2026-10-07, `52de44cac`).
 
 A program that is already broken cannot witness a second breakage: an
 innocuity test run over an already-failing case has no power there, while
@@ -407,7 +481,11 @@ states:
 - the exact command line, including `FAUST_OPT`;
 - the compiler under test by the `Source commit:` line of its
   `--version`, and the trusted compiler that produced the references, by
-  version and commit;
+  version and commit. A scripted gate prints, at the top of its verdict,
+  the commit it actually built on each side; read it first and compare
+  it with the expected one — a gate script derived from another by text
+  substitution once rebuilt the previous branch while reporting on the
+  new one;
 - the sha of the `libraries` sub-project;
 - the C++ compiler by name and version, and the machine;
 - **how many programs were actually compared** — "zero divergence" means
@@ -461,6 +539,13 @@ does not protect it.
    precision the DSP was compiled with. `tests/soundfile-tests` passes it
    explicitly.
 
+6. **The impulse driver leaks memory.** `impulsearch` does not free all
+   it allocates, so under AddressSanitizer every program fails on
+   LeakSanitizer before its output is compared: the leg shows 0 responses
+   of 96, which looks like a catastrophe and is only a false start. Run
+   with `ASAN_OPTIONS=detect_leaks=0`. *Fix:* free what the driver
+   allocates.
+
 ## Still to be settled
 
 - The status of each of the other suites under `tests/` — gate,
@@ -469,3 +554,9 @@ does not protect it.
   threshold, or a global one over the corpus.
 - Whether the library gate should run in float as well as double, as the
   impulse suite already can.
+- A "hostile controls" leg for Gate 4: control values outside their
+  ranges, NaN and infinities injected by the driver under
+  AddressSanitizer — what the impulse driver avoids by construction.
+- Whether `-rui` (control values clamped to their declared range at the
+  start of `compute`, once per block) becomes the default: its cost was
+  measured nil on the ten most expensive examples (2026-10-08).
