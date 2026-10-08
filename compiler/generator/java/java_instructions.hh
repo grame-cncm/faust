@@ -83,6 +83,9 @@ class JAVAInstVisitor : public TextInstVisitor {
         gMathLibTable["tanf"]   = "(float)java.lang.Math.tan";
         gMathLibTable["tanhf"]  = "(float)java.lang.Math.tanh";
 
+        gMathLibTable["remainderf"] = "(float)java.lang.Math.IEEEremainder";
+        gMathLibTable["rintf"]      = "(float)java.lang.Math.rint";
+
         // Double version
         gMathLibTable["fabs"]  = "java.lang.Math.abs";
         gMathLibTable["acos"]  = "java.lang.Math.acos";
@@ -106,6 +109,9 @@ class JAVAInstVisitor : public TextInstVisitor {
         gMathLibTable["sqrt"]  = "java.lang.Math.sqrt";
         gMathLibTable["tan"]   = "java.lang.Math.tan";
         gMathLibTable["tanh"]  = "java.lang.Math.tanh";
+
+        gMathLibTable["remainder"] = "java.lang.Math.IEEEremainder";
+        gMathLibTable["rint"]      = "java.lang.Math.rint";
     }
 
     virtual ~JAVAInstVisitor() {}
