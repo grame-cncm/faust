@@ -204,7 +204,7 @@ void RustCodeContainer::produceLibMBlob()
         tab(n, *fOut);
         *fOut << "mod ffi {";
         tab(n + 1, *fOut);
-        *fOut << "use core::ffi::c_float;";
+        *fOut << "use core::ffi::{c_float, c_double};";
         tab(n + 1, *fOut);
         *fOut << "// Conditionally compile the link attribute only on non-Windows platforms";
         tab(n + 1, *fOut);
@@ -215,6 +215,8 @@ void RustCodeContainer::produceLibMBlob()
         *fOut << "pub fn remainderf(from: c_float, to: c_float) -> c_float;";
         tab(n + 2, *fOut);
         *fOut << "pub fn rintf(val: c_float) -> c_float;";
+        tab(n + 2, *fOut);
+        *fOut << "pub fn rint(val: c_double) -> c_double;";
         tab(n + 1, *fOut);
         *fOut << "}";
         tab(n, *fOut);
@@ -283,6 +285,14 @@ void RustCodeContainer::produceLibMBlob()
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
+        /*
+        tab(n, *fOut);
+        *fOut << "fn remainder_f64(a: f64, b: f64) -> f64 { let n = (a/b).round(); a - b*n }";
+        tab(n, *fOut);
+        */
+    }
+    // Integer powers use double precision even in a single precision DSP.
+    if (gGlobal->gFloatSize == 1 || gGlobal->gFloatSize == 2) {
         *fOut << "fn rint(val: f64) -> f64 {";
         tab(n + 1, *fOut);
         *fOut << "#[cfg(not(target_arch = \"wasm32\"))] // non-wasm targets use ffi bindings";
@@ -295,11 +305,6 @@ void RustCodeContainer::produceLibMBlob()
         tab(n, *fOut);
         *fOut << "}";
         tab(n, *fOut);
-        /*
-        tab(n, *fOut);
-        *fOut << "fn remainder_f64(a: f64, b: f64) -> f64 { let n = (a/b).round(); a - b*n }";
-        tab(n, *fOut);
-        */
     }
     tab(n, *fOut);
 }

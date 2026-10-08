@@ -93,7 +93,7 @@ def main():
                 str(dsp_file),
                 "-o", str(work / "generated.cpp")
             ]
-            subprocess.run(cmd_faust, check=True)
+            subprocess.run(cmd_faust, cwd=work, check=True)
 
             cmd_build = [
                 args.cxx,
@@ -102,9 +102,9 @@ def main():
                 str(runner_file),
                 "-o", str(work / "runner")
             ]
-            subprocess.run(cmd_build, check=True)
+            subprocess.run(cmd_build, cwd=work, check=True)
 
-            res = subprocess.run([str(work / "runner")], capture_output=True, text=True)
+            res = subprocess.run([str(work / "runner")], cwd=work, capture_output=True, text=True)
             if res.returncode != 0:
                 print(res.stderr.strip())
                 print(f"FAILED under {flags_desc}")

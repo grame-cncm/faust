@@ -29,3 +29,22 @@ python3 tests/compile-tests/fixed-point-tables.py \
   --faust build/bin/faust --cxx g++ \
   --ap-fixed-include /path/to/xilinx/include
 ```
+
+### Integer powers with run-time exponents
+
+`integer-pow.py` executes the C++ regression, including `-ffast-math`.
+`integer-pow-backends.py` compiles and executes six integer-power expressions
+in both single and double precision for Rust and Julia. Integer differences
+are checked before conversion to sample floats, including `25^6`, negative bases,
+negative exponents with half-way rounding, and values near the Int32 limit.
+
+```sh
+python3 tests/compile-tests/integer-pow.py --faust build/bin/faust --cxx clang++
+python3 tests/compile-tests/integer-pow-backends.py --faust build/bin/faust
+```
+
+The backend test requires Cargo (`libm` and `num-traits`) and Julia
+with `StaticArrays`. Use `--backends rust julia` to select installed
+toolchains, `--offline` for cached Cargo dependencies. A missing toolchain or a failed compilation fails the test;
+backends are never silently skipped. Each backend/precision leg compares six
+expressions over two samples.

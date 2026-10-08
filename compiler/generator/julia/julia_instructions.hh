@@ -653,6 +653,9 @@ class JuliaInstVisitor : public TextInstVisitor {
         if (isIntType(inst->fType->getType())) {
             *fOut << "trunc(";
             *fOut << fTypeManager->generateType(inst->fType) << ", ";
+        } else if (inst->fType->getType() == Typed::kDouble) {
+            // Explicit FIR double casts can differ from the DSP sample type T.
+            *fOut << "Float64(";
         } else {
             *fOut << fTypeManager->generateType(inst->fType) << "(";
         }
