@@ -1,0 +1,90 @@
+# AGENTS.md — working on the Faust compiler
+
+Rules for coding agents (and humans in a hurry). They are short on purpose;
+the reasons behind each one are in [tests/TESTING.md](tests/TESTING.md),
+which is the reference whenever the two seem to disagree.
+
+## Build
+
+- Build with `make` **at the repository root**. Never run `cmake .` (or
+  `cmake -C backends/... .`) inside `build/`: it overwrites the
+  meta-Makefile tracked by git.
+- The binary is `build/bin/faust`. `build/bin/faust --version` prints a
+  second line, `Source commit: <sha>`, with `-modified` when the tree had
+  uncommitted changes. Quote that line, not the version number: two
+  binaries from different commits print the same version.
+- The root `make` resets the `libraries` sub-project to its recorded
+  commit. Never experiment inside `libraries/` and then rebuild: work on a
+  copy, or commit the sub-project first.
+- After `git stash`, `checkout` or `pull`, a rebuild in the same second
+  may judge objects up to date: touch the changed files, or check that the
+  binary's timestamp moved.
+
+## What to run before calling a change tested
+
+| the change touches | run at least |
+| :--- | :--- |
+| anything in the compiler | Gate 1, the impulse suite: `cpp` and `ocpp`, **float and double** |
+| a pass shared by several backends (normal form, typing, promotion, scheduling) | Gate 1, plus Gate 2, the library specifications |
+| code that creates trees (`tree(...)`, `sigXxx(...)`, `boxXxx(...)`, fresh names) | Gate 3, determinism (`make -C tests/determinism lint`, then `check`) |
+| table accesses, delay lines, the interval library, casts to integers | Gate 4, memory safety |
+
+Commands, expected results and accepted failures are in TESTING.md, one
+section per gate. Do not stop at the first gate that passes.
+
+## Rules that are not up for discussion
+
+- `rm -rf tests/impulse-tests/ir/` before every impulse run: the output
+  paths spell the options, not the compiler.
+- Run gates with `-k`, and read the whole table, one line per leg.
+- Name the binary under test explicitly (`FAUST=<path>`) in every gate:
+  the impulse suite defaults to the build tree, the library gate to the
+  installed `faust`.
+- Library gate: `make clean` between two option sets (outputs do not
+  depend on `FAUST_OPT`), and the references and the check on the
+  **same** commit of `libraries`.
+- Pin the arithmetic of the C++ compiler in semantic gates
+  (`-ffp-contract=off`). Never `-ffast-math` nor `-Ofast` there.
+- One reference set, produced by the trusted compiler under default
+  options; every option set of the compiler under test is compared with
+  it. Never regenerate references to make a gate pass.
+
+## Rules for the code
+
+- **Determinism.** When two arguments of one call (or two operands of an
+  unsequenced operator) create trees, compute them in separate
+  statements, left to right, then call. The order of evaluation of
+  function arguments is unspecified, and the emitted code follows it.
+- **Memory safety.** Never remove a guard, size a buffer or accept a
+  delay on the strength of a bound computed from floats: the C++ compiler
+  (fused multiply-add, reassociation, libm) can move a float past a
+  proven bound, and a conversion to an integer turns one ulp into a whole
+  unit. Rely on exact integer arithmetic or on a test at run time.
+  Control values are not bounded by their declared range unless `-rui`
+  is given.
+- **Clocks.** Never strip `sigClocked`, not even with a nil clock:
+  downstream code pattern-matches on it. The only safe simplification is
+  flattening nested clocks, keeping the outer one.
+- Comments describe the code and its reasons, never who wrote it or who
+  found the bug.
+- Do not commit generated files, test outputs or local scratch files.
+  Do not push, tag or open pull requests unless asked to.
+
+## What a report must state
+
+A number without its command is not a measurement. For every gate run:
+
+- the exact command line, options included;
+- the `Source commit:` line of every binary involved, printed by the gate
+  itself and **read first**: a scripted gate that rebuilt the wrong
+  commit looks exactly like a passing one;
+- the C++ compiler (name and version) and the machine;
+- **how many programs were compared** on each leg: "zero divergence"
+  means nothing without the count, and a gate that fails on both sides
+  passes in silence;
+- which failures were expected, from the list in TESTING.md, and which
+  were not.
+
+Before trusting a comparison tool, make it fail once: alter an output on
+purpose, on a value, and check that the tool says so. Never send the error
+channel of a verdict command to `/dev/null`.
