@@ -70,13 +70,13 @@ class JAVAInstVisitor : public TextInstVisitor {
         gMathLibTable["coshf"]  = "(float)java.lang.Math.cosh";
         gMathLibTable["expf"]   = "(float)java.lang.Math.exp";
         gMathLibTable["floorf"] = "(float)java.lang.Math.floor";
-        gMathLibTable["fmodf"]  = "(float)java.lang.Math.IEEEremainder";
+        gMathLibTable["fmodf"]  = "fmodf";  // Emitted as the Java % operator.
         gMathLibTable["logf"]   = "(float)java.lang.Math.log";
         gMathLibTable["log10f"] = "(float)java.lang.Math.log10";
         gMathLibTable["max_f"]  = "(float)java.lang.Math.max";
         gMathLibTable["min_f"]  = "(float)java.lang.Math.min";
         gMathLibTable["powf"]   = "(float)java.lang.Math.pow";
-        gMathLibTable["roundf"] = "(float)java.lang.Math.round";
+        gMathLibTable["roundf"] = "(float)faust_round";
         gMathLibTable["sinf"]   = "(float)java.lang.Math.sin";
         gMathLibTable["sinhf"]  = "(float)java.lang.Math.sinh";
         gMathLibTable["sqrtf"]  = "(float)java.lang.Math.sqrt";
@@ -85,6 +85,13 @@ class JAVAInstVisitor : public TextInstVisitor {
 
         gMathLibTable["remainderf"] = "(float)java.lang.Math.IEEEremainder";
         gMathLibTable["rintf"]      = "(float)java.lang.Math.rint";
+
+        gMathLibTable["copysignf"] = "java.lang.Math.copySign";
+        gMathLibTable["isnanf"]    = "isnanf";
+        gMathLibTable["isinff"]    = "isinff";
+        gMathLibTable["acoshf"]    = "(float)faust_acosh";
+        gMathLibTable["asinhf"]    = "(float)faust_asinh";
+        gMathLibTable["atanhf"]    = "(float)faust_atanh";
 
         // Double version
         gMathLibTable["fabs"]  = "java.lang.Math.abs";
@@ -97,13 +104,13 @@ class JAVAInstVisitor : public TextInstVisitor {
         gMathLibTable["cosh"]  = "java.lang.Math.cosh";
         gMathLibTable["exp"]   = "java.lang.Math.exp";
         gMathLibTable["floor"] = "java.lang.Math.floor";
-        gMathLibTable["fmod"]  = "java.lang.Math.IEEEremainder";
+        gMathLibTable["fmod"]  = "fmod";  // Emitted as the Java % operator.
         gMathLibTable["log"]   = "java.lang.Math.log";
         gMathLibTable["log10"] = "java.lang.Math.log10";
         gMathLibTable["max_"]  = "java.lang.Math.max";
         gMathLibTable["min_"]  = "java.lang.Math.min";
         gMathLibTable["pow"]   = "java.lang.Math.pow";
-        gMathLibTable["round"] = "java.lang.Math.round";
+        gMathLibTable["round"] = "faust_round";
         gMathLibTable["sin"]   = "java.lang.Math.sin";
         gMathLibTable["sinh"]  = "java.lang.Math.sinh";
         gMathLibTable["sqrt"]  = "java.lang.Math.sqrt";
@@ -112,6 +119,12 @@ class JAVAInstVisitor : public TextInstVisitor {
 
         gMathLibTable["remainder"] = "java.lang.Math.IEEEremainder";
         gMathLibTable["rint"]      = "java.lang.Math.rint";
+        gMathLibTable["copysign"]  = "java.lang.Math.copySign";
+        gMathLibTable["isnan"]     = "isnan";
+        gMathLibTable["isinf"]     = "isinf";
+        gMathLibTable["acosh"]     = "faust_acosh";
+        gMathLibTable["asinh"]     = "faust_asinh";
+        gMathLibTable["atanh"]     = "faust_atanh";
     }
 
     virtual ~JAVAInstVisitor() {}
@@ -139,7 +152,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                    "\t\t\t\tpublic void set(double val) { " +
                    varname +
                    " = val; }\n"
-                   "\t\t\t\tpublic float get() { return (double)" +
+                   "\t\t\t\tpublic double get() { return (double)" +
                    varname +
                    "; }\n"
                    "\t\t\t}\n"
@@ -234,6 +247,57 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual void visit(LabelInst* inst) {}
 
+    static Typed::VarType javaValueType(ValueInst* value)
+    {
+        if (Select2Inst* select = dynamic_cast<Select2Inst*>(value)) {
+            Typed::VarType then_type = javaValueType(select->fThen);
+            Typed::VarType else_type = javaValueType(select->fElse);
+            // Mixed selects become numeric after converting their boolean arm to 0/1.
+            if (then_type == Typed::kBool && else_type != Typed::kBool) {
+                return else_type;
+            }
+            if (else_type == Typed::kBool && then_type != Typed::kBool) {
+                return then_type;
+            }
+        }
+        return TypingVisitor::getType(value);
+    }
+
+    virtual void visitCond(ValueInst* cond)
+    {
+        *fOut << "(";
+        cond->accept(this);
+        if (javaValueType(cond) != Typed::kBool) {
+            *fOut << " != 0";
+        }
+        *fOut << ")";
+    }
+
+    // FIR comparisons can initialize numeric values, but Java booleans cannot.
+    void generateNumericValue(ValueInst* value, Typed::VarType target)
+    {
+        if ((isIntType(target) || isRealType(target)) && javaValueType(value) == Typed::kBool) {
+            *fOut << "((";
+            value->accept(this);
+            *fOut << ")?1:0)";
+        } else {
+            value->accept(this);
+        }
+    }
+
+    virtual void visit(StoreVarInst* inst)
+    {
+        // Table-fill parameters are numeric and may not be in the global type table.
+        LoadVarInst          load(inst->fAddress);
+        const Typed::VarType target = gGlobal->hasVarType(inst->fAddress->getName())
+                                          ? TypingVisitor::getType(&load)
+                                          : Typed::kInt32;
+        inst->fAddress->accept(this);
+        *fOut << " = ";
+        generateNumericValue(inst->fValue, target);
+        EndLine();
+    }
+
     virtual void visit(DeclareVarInst* inst)
     {
         if (inst->fAddress->isStaticStruct()) {
@@ -245,7 +309,7 @@ class JAVAInstVisitor : public TextInstVisitor {
             std::string type = fTypeManager->fTypeDirectTable[array_typed->fType->getType()];
             if (inst->fValue) {
                 *fOut << type << " " << inst->getName() << "[] = ";
-                inst->fValue->accept(this);
+                generateNumericValue(inst->fValue, inst->fType->getType());
             } else {
                 *fOut << type << " " << inst->getName() << "[] = new " << type << "["
                       << array_typed->fSize << "]";
@@ -254,7 +318,7 @@ class JAVAInstVisitor : public TextInstVisitor {
             *fOut << fTypeManager->generateType(inst->fType, inst->getName());
             if (inst->fValue) {
                 *fOut << " = ";
-                inst->fValue->accept(this);
+                generateNumericValue(inst->fValue, inst->fType->getType());
             }
         }
 
@@ -268,6 +332,68 @@ class JAVAInstVisitor : public TextInstVisitor {
             return;
         } else {
             gFunctionSymbolTable[inst->fName] = true;
+        }
+
+        if (inst->fName == "round" || inst->fName == "roundf") {
+            if (!gFunctionSymbolTable["faust_round"]) {
+                gFunctionSymbolTable["faust_round"] = true;
+                // Math.round uses ties toward +infinity; Faust uses ties away from zero.
+                *fOut << "private static double faust_round(double value) {";
+                tab(fTab + 1, *fOut);
+                *fOut << "double magnitude = java.lang.Math.abs(value);";
+                tab(fTab + 1, *fOut);
+                *fOut << "double integral = java.lang.Math.floor(magnitude);";
+                tab(fTab + 1, *fOut);
+                *fOut << "return java.lang.Math.copySign(integral + "
+                         "((magnitude - integral >= 0.5) ? 1.0 : 0.0), value);";
+                tab(fTab, *fOut);
+                *fOut << "}";
+                tab(fTab, *fOut);
+            }
+            return;
+        }
+
+        std::string inverse;
+        if (inst->fName == "asinh" || inst->fName == "asinhf") {
+            inverse = "asinh";
+        }
+        if (inst->fName == "acosh" || inst->fName == "acoshf") {
+            inverse = "acosh";
+        }
+        if (inst->fName == "atanh" || inst->fName == "atanhf") {
+            inverse = "atanh";
+        }
+        if (!inverse.empty()) {
+            const std::string helper = "faust_" + inverse;
+            if (!gFunctionSymbolTable[helper]) {
+                gFunctionSymbolTable[helper] = true;
+                *fOut << "private static double " << helper << "(double value) {";
+                tab(fTab + 1, *fOut);
+                // log1p preserves tiny values; logarithmic limits avoid squaring overflow.
+                if (inverse == "asinh") {
+                    *fOut << "double magnitude = java.lang.Math.abs(value);";
+                    tab(fTab + 1, *fOut);
+                    *fOut << "double result = (magnitude > 1e154) ? "
+                             "java.lang.Math.log(magnitude) + java.lang.Math.log(2.0) : "
+                             "java.lang.Math.log1p(magnitude + magnitude * magnitude / "
+                             "(1.0 + java.lang.Math.hypot(1.0, magnitude)));";
+                    tab(fTab + 1, *fOut);
+                    *fOut << "return java.lang.Math.copySign(result, value);";
+                } else if (inverse == "acosh") {
+                    *fOut
+                        << "return (value > 1e154) ? "
+                           "java.lang.Math.log(value) + java.lang.Math.log(2.0) : "
+                           "java.lang.Math.log1p((value - 1.0) + "
+                           "java.lang.Math.sqrt(value - 1.0) * java.lang.Math.sqrt(value + 1.0));";
+                } else {
+                    *fOut << "return 0.5 * (java.lang.Math.log1p(value) - "
+                             "java.lang.Math.log1p(-value));";
+                }
+                tab(fTab, *fOut);
+                *fOut << "}";
+                tab(fTab, *fOut);
+            }
+            return;
         }
 
         // Do not declare Math library functions, they are defined in java.lang.Math and used in a
@@ -320,108 +446,18 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual void visit(BinopInst* inst)
     {
-        if (isBoolOpcode(inst->fOpcode)) {
-            *fOut << "(";
-            inst->fInst1->accept(this);
-            *fOut << " ";
-            *fOut << gBinOpTable[inst->fOpcode]->fName;
-            *fOut << " ";
-            inst->fInst2->accept(this);
-            *fOut << ")";
-        } else {
-            inst->fInst1->accept(&fTypingVisitor);
-            Typed::VarType type1 = fTypingVisitor.fCurType;
-
-            inst->fInst2->accept(&fTypingVisitor);
-            Typed::VarType type2 = fTypingVisitor.fCurType;
-
-            *fOut << "(";
-
-            if (type1 == Typed::kInt32 && type2 == Typed::kInt32) {
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-            } else if (type1 == Typed::kInt32 && type2 == Typed::kFloat) {
-                *fOut << "(float)";
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-            } else if (type1 == Typed::kFloat && type2 == Typed::kInt32) {
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                *fOut << "(float)";
-                inst->fInst2->accept(this);
-            } else if (type1 == Typed::kFloat && type2 == Typed::kFloat) {
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-            } else if (type1 == Typed::kInt32 && type2 == Typed::kBool) {
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                *fOut << "((";
-                inst->fInst2->accept(this);
-                *fOut << ")?1:0)";
-            } else if (type1 == Typed::kBool && type2 == Typed::kInt32) {
-                *fOut << "((";
-                inst->fInst1->accept(this);
-                *fOut << ")?1:0)";
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-            } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
-                *fOut << "((";
-                inst->fInst1->accept(this);
-                *fOut << ")?1:0)";
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                *fOut << "((";
-                inst->fInst2->accept(this);
-                *fOut << ")?1:0)";
-            } else if (type1 == Typed::kFloat && type2 == Typed::kBool) {
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                *fOut << "((";
-                inst->fInst2->accept(this);
-                *fOut << ")?1.f:0.f)";
-            } else if (type1 == Typed::kBool && type2 == Typed::kFloat) {
-                *fOut << "((";
-                inst->fInst1->accept(this);
-                *fOut << ")?1.f:0.f)";
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-            } else {  // Default
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-            }
-
-            *fOut << ")";
-        }
-
+        *fOut << "(";
+        // Java promotes numeric operands itself; Faust comparison values need 0/1.
+        generateNumericValue(inst->fInst1, Typed::kInt32);
+        *fOut << " " << gBinOpTable[inst->fOpcode]->fName << " ";
+        generateNumericValue(inst->fInst2, Typed::kInt32);
+        *fOut << ")";
         fTypingVisitor.visit(inst);
     }
 
     virtual void visit(::CastInst* inst)
     {
-        inst->fInst->accept(&fTypingVisitor);
+        fTypingVisitor.fCurType = javaValueType(inst->fInst);
 
         if (fTypeManager->generateType(inst->fType) == "int") {
             switch (fTypingVisitor.fCurType) {
@@ -445,25 +481,15 @@ class JAVAInstVisitor : public TextInstVisitor {
                     break;
             }
         } else {
-            switch (fTypingVisitor.fCurType) {
-                case Typed::kDouble:
-                case Typed::kInt32:
-                    *fOut << "(float)";
-                    inst->fInst->accept(this);
-                    break;
-                case Typed::kFloat:
-                case Typed::kFloatMacro:
-                    inst->fInst->accept(this);
-                    break;
-                case Typed::kBool:
-                    *fOut << "((";
-                    inst->fInst->accept(this);
-                    *fOut << ")?1.f:0.f)";
-                    break;
-                default:
-                    std::cerr << "visitor.fCurType " << fTypingVisitor.fCurType << std::endl;
-                    faustassert(false);
-                    break;
+            const std::string type = fTypeManager->generateType(inst->fType);
+            if (fTypingVisitor.fCurType == Typed::kBool) {
+                *fOut << "((";
+                inst->fInst->accept(this);
+                *fOut << ")?(" << type << ")1:(" << type << ")0)";
+            } else {
+                *fOut << "(" << type << ")(";
+                inst->fInst->accept(this);
+                *fOut << ")";
             }
         }
         fTypingVisitor.visit(inst);
@@ -473,6 +499,23 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual void visit(FunCallInst* inst)
     {
+        if (inst->fName == "isnan" || inst->fName == "isnanf" || inst->fName == "isinf" ||
+            inst->fName == "isinff") {
+            *fOut << "(java.lang.Double."
+                  << ((inst->fName == "isnan" || inst->fName == "isnanf") ? "isNaN" : "isInfinite")
+                  << "(";
+            inst->fArgs.front()->accept(this);
+            *fOut << ") ? 1 : 0)";
+            return;
+        }
+        if (inst->fName == "fmod" || inst->fName == "fmodf") {
+            *fOut << "(";
+            inst->fArgs.front()->accept(this);
+            *fOut << " % ";
+            inst->fArgs.back()->accept(this);
+            *fOut << ")";
+            return;
+        }
         std::string fun_name = (gMathLibTable.find(inst->fName) != gMathLibTable.end())
                                    ? gMathLibTable[inst->fName]
                                    : inst->fName;
@@ -481,37 +524,14 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     virtual void visit(Select2Inst* inst)
     {
-        inst->fCond->accept(&fTypingVisitor);
-
-        switch (fTypingVisitor.fCurType) {
-            case Typed::kDouble:
-            case Typed::kInt32:
-                *fOut << "(((";
-                inst->fCond->accept(this);
-                *fOut << "!=0)?true:false)";
-                break;
-            case Typed::kFloat:
-            case Typed::kFloatMacro:
-                *fOut << "(((";
-                inst->fCond->accept(this);
-                *fOut << "!=0.f)?true:false)";
-                break;
-            case Typed::kBool:
-                *fOut << "((";
-                inst->fCond->accept(this);
-                *fOut << ")";
-                break;
-            default:
-                faustassert(false);
-                break;
-        }
-
-        *fOut << "?";
-        inst->fThen->accept(this);
-        *fOut << ":";
-        inst->fElse->accept(this);
+        const Typed::VarType target = javaValueType(inst);
+        *fOut << "(";
+        visitCond(inst->fCond);
+        *fOut << " ? ";
+        generateNumericValue(inst->fThen, target);
+        *fOut << " : ";
+        generateNumericValue(inst->fElse, target);
         *fOut << ")";
-
         fTypingVisitor.visit(inst);
     }
 

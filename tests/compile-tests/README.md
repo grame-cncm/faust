@@ -48,3 +48,25 @@ with `StaticArrays`. Use `--backends rust julia` to select installed
 toolchains, `--offline` for cached Cargo dependencies. A missing toolchain or a failed compilation fails the test;
 backends are never silently skipped. Each backend/precision leg compares six
 expressions over two samples.
+
+### Java backend execution
+
+`java-math.py` generates Java, compiles it with `javac`, and executes it with
+`java`, in both single and double precision. It checks hyperbolic functions
+and their inverses, NaN/infinity classification, signed zeros, `copysign`,
+IEEE remainder versus modulo, both rounding modes, integer powers, boolean
+conversions, mixed selections, enable conditions, double casts, UI accessors
+and integer/real table initialization.
+The numeric comparator must reject an intentionally corrupted output before
+its results are accepted. A missing JDK, compilation error or wrong value
+fails the test; neither precision is skipped.
+
+```sh
+python3 tests/compile-tests/java-math.py --faust build/bin/faust \
+  --javac /path/to/jdk/bin/javac --java /path/to/jdk/bin/java
+```
+
+The default commands are `javac` and `java` from `PATH`. Use
+`--work-dir /tmp/faust-java-math` to keep generated sources and diagnostic
+logs. The test provides a minimal Java DSP/UI harness with sample types
+matching each precision; it does not depend on an installed Faust runtime.
