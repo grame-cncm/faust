@@ -121,6 +121,60 @@ static void splitTarget(const string& target, string& triple, string& cpu)
     }
 }
 
+// Canonicalize the target exactly as initJIT() selects it. An empty target uses
+// the host triple and CPU; a triple without a CPU also uses the host CPU. Keeping
+// this spelling in the factory makes both cache identity and getTarget() report
+// the code-generation target, rather than the caller's default/abbreviated form.
+static string effectiveJITTarget(const string& target)
+{
+    if (target.empty()) {
+        return getDSPMachineTarget();
+    }
+    string triple, cpu;
+    splitTarget(target, triple, cpu);
+    return triple + ":" + (cpu.empty() ? GET_CPU_NAME : cpu);
+}
+
+// Match setOptlevel() followed by initJIT()'s pipeline selection. LLVM < 17
+// retains the extended legacy levels; LLVM >= 17 maps every level above O3 to
+// O3. Thus -1 and an explicitly requested maximum share a cache entry, whereas
+// O0 and O3 never do. Callers must reject values below -1 before using this.
+static int effectiveJITOptLevel(int opt_level)
+{
+    int level = ((opt_level == -1) || (opt_level > LLVM_MAX_OPT_LEVEL))
+                    ? LLVM_MAX_OPT_LEVEL
+                    : opt_level;
+#if LLVM_VERSION_MAJOR >= 17
+    return std::min(level, 3);
+#else
+    return level;
+#endif
+}
+
+static string jitFactoryCacheKey(const string& content_key, const string& target, int opt_level)
+{
+    // content_key is the existing source/name/normalized-options SHA, or the
+    // SHA of the serialized IR/bitcode. It identifies the input, not the JIT
+    // factory: target and opt_level are separate public API parameters and
+    // were previously omitted, allowing the first request to override later
+    // ones. Include both effective parameters in the published factory SHA.
+    // Length-prefix the canonical target so its separators cannot alias a key.
+    // Signals factories do not use this source/serialization lookup cache.
+    return generateSHA1("llvm-jit:" + content_key + ":" + std::to_string(target.size()) + ":"
+                        + target + ":" + std::to_string(effectiveJITOptLevel(opt_level)));
+}
+
+static bool validJITOptLevel(int opt_level, string& error_msg)
+{
+    // A negative array index would be possible once the requested level is
+    // applied before initJIT(). Reject invalid levels even on cache hits.
+    if (opt_level < -1) {
+        error_msg = "ERROR : LLVM optimization level must be -1 or non-negative\n";
+        return false;
+    }
+    return true;
+}
+
 static string getParam(int argc, const char* argv[], const string& param, const string& def)
 {
     for (int i = 0; i < argc; i++) {
@@ -438,7 +492,12 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, const string& target,
                                                       string& error_msg, int opt_level)
 {
-    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    if (!validJITOptLevel(opt_level, error_msg)) {
+        return nullptr;
+    }
+    string effective_target = effectiveJITTarget(target);
+    string sha_key = jitFactoryCacheKey(generateSHA1(MEMORY_BUFFER_GET(buffer).str()),
+                                        effective_target, opt_level);
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -462,7 +521,7 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
 
             // Build factory
             llvm_dynamic_dsp_factory_aux* factory_aux =
-                new llvm_dynamic_dsp_factory_aux(sha_key, module, context, target, opt_level);
+                new llvm_dynamic_dsp_factory_aux(sha_key, module, context, effective_target, opt_level);
 
             if (factory_aux->initJIT(error_msg)) {
                 llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
@@ -583,7 +642,12 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFile(const string&
 static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const string& target,
                                                  string& error_msg, int opt_level)
 {
-    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    if (!validJITOptLevel(opt_level, error_msg)) {
+        return nullptr;
+    }
+    string effective_target = effectiveJITTarget(target);
+    string sha_key = jitFactoryCacheKey(generateSHA1(MEMORY_BUFFER_GET(buffer).str()),
+                                        effective_target, opt_level);
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -618,7 +682,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
                 free(tmp_local);
             }
             llvm_dynamic_dsp_factory_aux* factory_aux =
-                new llvm_dynamic_dsp_factory_aux(sha_key, module, context, target, opt_level);
+                new llvm_dynamic_dsp_factory_aux(sha_key, module, context, effective_target, opt_level);
             if (factory_aux->initJIT(error_msg)) {
                 llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
                 llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
@@ -714,11 +778,16 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const string& name_app
                                                           string& error_msg, int opt_level)
 {
     LOCK_API
+    if (!validJITOptLevel(opt_level, error_msg)) {
+        return nullptr;
+    }
+    string effective_target = effectiveJITTarget(target);
     string expanded_dsp_content, sha_key;
 
     if ((expanded_dsp_content = sha1FromDSP(name_app, dsp_content, argc, argv, sha_key)) == "") {
         return nullptr;
     } else {
+        sha_key = jitFactoryCacheKey(sha_key, effective_target, opt_level);
         dsp_factory_table<SDsp_factory>::factory_iterator it;
         if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
@@ -735,17 +804,18 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const string& name_app
                 llvm_dynamic_dsp_factory_aux* factory_aux =
                     static_cast<llvm_dynamic_dsp_factory_aux*>(createFactory(
                         name_app, dsp_content, argv1.size() - 1, argv1.data(), error_msg, true));
-                // setTarget() must precede initJIT(): initJIT() reads fTarget to
+                // Target and optimization level must precede initJIT(): it reads
+                // fOptLevel to optimize the module and fTarget to
                 // pick the triple and mcpu, and an empty fTarget makes it fall
                 // back to sys::getHostCPUName(). Setting it afterwards left the
                 // JIT host-tuned whatever target the caller asked for. The
                 // bitcode/IR entry points already pass the target through the
                 // factory constructor, i.e. before initJIT().
                 if (factory_aux) {
-                    factory_aux->setTarget(target);
+                    factory_aux->setTarget(effective_target);
+                    factory_aux->setOptlevel(opt_level);
                 }
                 if (factory_aux && factory_aux->initJIT(error_msg)) {
-                    factory_aux->setOptlevel(opt_level);
                     factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
                     factory_aux->setName(name_app);
                     llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
@@ -771,6 +841,9 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const string& name_ap
                                                            int opt_level)
 {
     LOCK_API
+    if (!validJITOptLevel(opt_level, error_msg)) {
+        return nullptr;
+    }
     try {
         vector<const char*> argv1 = {"faust", "-lang", "llvm", "-o", "string"};
         for (int i = 0; i < argc; i++) {
@@ -780,12 +853,12 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const string& name_ap
 
         llvm_dynamic_dsp_factory_aux* factory_aux = static_cast<llvm_dynamic_dsp_factory_aux*>(
             createFactory(name_app, signals, argv1.size() - 1, argv1.data(), error_msg));
-        // See the note above: setTarget() must precede initJIT().
+        // Both target and optimization level must be set before initJIT().
         if (factory_aux) {
-            factory_aux->setTarget(target);
+            factory_aux->setTarget(effectiveJITTarget(target));
+            factory_aux->setOptlevel(opt_level);
         }
         if (factory_aux && factory_aux->initJIT(error_msg)) {
-            factory_aux->setOptlevel(opt_level);
             factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
             factory_aux->setName(name_app);
             llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);

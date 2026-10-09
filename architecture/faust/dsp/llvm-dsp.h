@@ -204,9 +204,13 @@ class LIBFAUST_API llvm_dsp_factory : public dsp_factory {
 LIBFAUST_API std::string getDSPMachineTarget();
 
 /**
- * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
+ * Get the Faust DSP factory associated with a given factory SHA key (returned by getSHAKey()),
  * if already allocated in the factories cache and increment it's reference counter. You will have to explicitly
  * use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
+ *
+ * For source/IR/bitcode factories the key includes the effective target and
+ * IR optimization level. Precompiled machine-code keys retain their identity.
+ * It is not the source SHA returned by DSP expansion; obtain it from getSHAKey().
  *
  * @param sha_key - the SHA key for an already created factory, kept in the factory cache
  *
@@ -217,7 +221,8 @@ LIBFAUST_API llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_ke
 /**
  * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
  * allocated factories so that the compilation of the same DSP code (that is same source code and 
- * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will have to explicitly
+ * same set of 'normalized' compilation options, effective target and optimization level) will return
+ * the same (reference counted) factory pointer. You will have to explicitly
  * use deleteDSPFactory to properly decrement the reference counter when the factory is no more needed.
  * 
  * @param filename - the DSP filename
@@ -241,7 +246,8 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filen
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
  * allocated factories so that the compilation of the same DSP code (that is same source code and 
- * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will have to explicitly
+ * same set of 'normalized' compilation options, effective target and optimization level) will return
+ * the same (reference counted) factory pointer. You will have to explicitly
  * use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
  * 
  * @param name_app - the name of the Faust program
@@ -358,7 +364,8 @@ extern "C" LIBFAUST_API void stopMTDSPFactories();
 
 /**
  * Create a Faust DSP factory from a base64 encoded LLVM bitcode string. Note that the library keeps an internal cache of all 
- * allocated factories so that the compilation of the same DSP code (that is the same LLVM bitcode string) will return 
+ * allocated factories so that the compilation of the same DSP code (that is the same LLVM bitcode string,
+ * effective target and optimization level) will return
  * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
  * decrement reference counter when the factory is no more needed.
  * 
@@ -414,7 +421,8 @@ LIBFAUST_API bool writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const 
 
 /**
  * Create a Faust DSP factory from a LLVM IR (textual) string. Note that the library keeps an internal cache of all 
- * allocated factories so that the compilation of the same DSP code (that is the same LLVM IR string) will return 
+ * allocated factories so that the compilation of the same DSP code (that is the same LLVM IR string,
+ * effective target and optimization level) will return
  * the same (reference counted) factory pointer. You will have to explicitly use deleteDSPFactory to properly 
  * decrement reference counter when the factory is no more needed.
  * 

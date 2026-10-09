@@ -75,4 +75,19 @@ help:
 	@echo "  test         - test the factory/instance API"
 	@echo "  test-c       - test the factory/instance API in C"
 	@echo "  test-poly    - test the polyphonic factory/instance API, then with a gloabl effect"
+	@echo "  check-opt-cache - test JIT optimization levels and factory cache identity"
 	@echo "  help         - Display this help message"
+
+# Use the library and compiler from the same build explicitly in regression gates.
+FAUST ?= ../../build/bin/faust
+OPT_CACHE_LIB ?= ../../build/lib/libfaust.dylib
+OPT_CACHE_INC ?= ../../architecture
+LLVM_TEST_MAX_LEVEL ?= 3
+OPT_CACHE_TEST ?= /tmp/faust-llvm-opt-cache-test
+
+.PHONY: check-opt-cache
+check-opt-cache:
+	$(FAUST) --version
+	$(CXX) --version
+	$(CXX) -std=c++11 -O1 -ffp-contract=off -DLLVM_TEST_MAX_LEVEL=$(LLVM_TEST_MAX_LEVEL) -I$(OPT_CACHE_INC) llvm-opt-cache-test.cpp $(OPT_CACHE_LIB) -Wl,-rpath,$(abspath $(dir $(OPT_CACHE_LIB))) -o $(OPT_CACHE_TEST)
+	$(OPT_CACHE_TEST)
