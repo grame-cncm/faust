@@ -182,6 +182,27 @@ bool hasKernelDelayedTap(Tree sig)
     return sig->getProperty(tree(symbol("KERNELTAPPED"))) != nullptr;
 }
 
+// The operand y of -1*y or y*-1, and the -1 in minusOne. The code generators
+// compile such a product as -y and do not cache the product itself (see
+// generateBinOp), so y is computed wherever the product is used.
+// nullptr for any other signal.
+static Tree negatedOperand(Tree t, Tree& minusOne)
+{
+    int  opnum;
+    Tree x, y;
+    if (isSigBinOp(t, &opnum, x, y) && (opnum == kMul)) {
+        if (isMinusOne(x)) {
+            minusOne = x;
+            return y;
+        }
+        if (isMinusOne(y)) {
+            minusOne = y;
+            return x;
+        }
+    }
+    return nullptr;
+}
+
 void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 {
     // Check if we have already visited this tree
@@ -197,8 +218,18 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         setOcc(t, occ);
 
         // We mark the subtrees of t
-        Tree x, y;
-        if (isSigDelay(t, x, y)) {
+        Tree x, y, m;
+        if (Tree z = negatedOperand(t, m)) {
+            // -1*y is compiled as -y, so y is used in the context of the
+            // product (v, r, d, xc), not in its own (v0, r0, 0, c0). Marked in
+            // its own context, a constant or control-rate y used in a faster
+            // context (a select2 branch, a sample-rate sum) was not seen as
+            // such (hasMultiOccurrences stayed false), so it was not hoisted
+            // and ran at every sample: 0 - exp(-k) in a select2 branch
+            // recomputed exp and the division of k in the sample loop.
+            incOcc(env, v0, r0, 0, c0, m);
+            incOcc(env, v, r, d, xc, z);
+        } else if (isSigDelay(t, x, y)) {
             Type g2 = getCertifiedSigType(y);
             int  d2 = checkDelayInterval(g2);
             faustassert(d2 >= 0);
@@ -268,12 +299,12 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
     occ->incOccurrences(v, r, d, xc);
 
     if (!firstVisit) {
-        // Special case for -1*y. Because the sharing of -1*y will be ignored
-        // at code generation, we need to propagate its sharing to y
-        int  opnum;
-        Tree x, y;
-        if (isSigBinOp(t, &opnum, x, y) && (opnum == kMul) && isMinusOne(x)) {
-            incOcc(env, v, r, d, xc, y);
+        // Special case for -1*y and y*-1. Because the sharing of the product
+        // will be ignored at code generation, we need to propagate its
+        // sharing to y (the first visit marked y the same way)
+        Tree m;
+        if (Tree z = negatedOperand(t, m)) {
+            incOcc(env, v, r, d, xc, z);
         }
     }
 }

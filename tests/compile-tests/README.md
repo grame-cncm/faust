@@ -49,6 +49,17 @@ toolchains, `--offline` for cached Cargo dependencies. A missing toolchain or a 
 backends are never silently skipped. Each backend/precision leg compares six
 expressions over two samples.
 
+### Hoisting of negated constants
+
+`hoist-negation.py` checks that a negated constant or control-rate
+expression (`0 - exp(-k)`, `0 - expm1(-k)`, `y*-1`) used once in a
+select2 branch is computed in `instanceConstants` or once per block, not
+in the sample loop, with the cpp, c and ocpp backends:
+
+```sh
+python3 tests/compile-tests/hoist-negation.py --faust build/bin/faust
+```
+
 ### Java backend execution
 
 `java-math.py` generates Java, compiles it with `javac`, and executes it with
