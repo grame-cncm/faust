@@ -34,6 +34,11 @@
 #include <string>
 #include <vector>
 
+#if defined(__SSE__) || defined(_M_X64) || (defined(_M_IX86_FP) && (_M_IX86_FP >= 1))
+#include <xmmintrin.h>
+#define FAUST_HAVE_MXCSR 1
+#endif
+
 #include "Text.hh"
 #include "compatibility.hh"
 #include "dag_instructions_compiler.hh"
@@ -1282,9 +1287,28 @@ static void expandDSPInternalAux(Tree process_tree, int argc, const char* argv[]
     boxppShared(process_tree, out);
 }
 
+static void check_denormal_mode()
+{
+#if defined(FAUST_HAVE_MXCSR)
+    // The interval analysis relies on subnormal values being preserved
+    // (e.g. nexttoward(0.0, 1.0) is used as a strict positive bound), so DAZ
+    // (denormals-are-zero) makes it compute incorrect ranges and possibly fail
+    // with internal assertions. Report a clear error instead.
+    if ((_mm_getcsr() & 0x0040) != 0) {
+        throw faustexception(
+            "Faust compilation requires subnormal (denormal) floating-point semantics, but DAZ "
+            "(denormals-are-zero, MXCSR bit 6) is enabled on the compiling thread.\n"
+            "Clear DAZ before calling the Faust compiler, for instance with "
+            "_mm_setcsr(_mm_getcsr() & ~0x8040), and retry.\n");
+    }
+#endif
+}
+
 static void* expandDSPInternal(void* arg)
 {
     try {
+        check_denormal_mode();
+
         CallContext* context     = static_cast<CallContext*>(arg);
         string       name_app    = context->fNameApp;
         string       dsp_content = context->fDSPContent;
@@ -1397,6 +1421,8 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
 static void* createFactoryAux1(void* arg)
 {
     try {
+        check_denormal_mode();
+
         CallContext* context     = static_cast<CallContext*>(arg);
         string       name_app    = context->fNameApp;
         string       dsp_content = context->fDSPContent;
@@ -1513,6 +1539,8 @@ static void* createFactoryAux2(void* arg)
     };
 
     try {
+        check_denormal_mode();
+
         CallContext* context  = static_cast<CallContext*>(arg);
         string       name_app = context->fNameApp;
         Tree         signals1 = context->fTree;
