@@ -202,6 +202,12 @@ void AssemblyScriptCodeContainer::produceClass()
     *fOut << "// Language: AssemblyScript (experimental)";
     tab(n, *fOut);
 
+    tab(n, *fOut);
+    *fOut << "function isinff(x: f32): bool { return x == Infinity || x == -Infinity; }";
+    tab(n, *fOut);
+    *fOut << "function isinf(x: f64): bool { return x == Infinity || x == -Infinity; }";
+    tab(n, *fOut);
+
     // Generate module-level helper functions first.
     // In-class methods are emitted later in `export class <name>`.
     gGlobal->gAssemblyScriptVisitor->Tab(n);
