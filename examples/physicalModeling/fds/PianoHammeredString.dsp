@@ -80,7 +80,9 @@ JCoeff = (k^2/den/rho/Area);
 
 KH = 1000;
 mH = 0.9;
-omega0SqrH = KH/mH;
+// fd.hammer takes the squared angular frequency of the hammer oscillator;
+// this model was tuned with the oscillator at KH/mH rad/s
+omega0SqrH = (KH/mH)^2;
 sigma0H = 14;
 alpha = 2.5;
 offset = 0.23;
