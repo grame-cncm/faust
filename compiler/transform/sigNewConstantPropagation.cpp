@@ -20,6 +20,8 @@
  ************************************************************************/
 
 #include <map>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "global.hh"
@@ -37,6 +39,8 @@ namespace {
 // binary operators, applied to every rebuilt node.
 class ConstantPropagationAlgebra final : public TransformAlgebra {
    public:
+    explicit ConstantPropagationAlgebra(Tree root) { collectInputDependents(root); }
+
     Tree cut(Tree orig) const override
     {
         Type     tt = getCertifiedSigType(orig);
@@ -51,6 +55,13 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
         if (hasSideEffect(orig)) {
             return nullptr;
         }
+        // The interval of an audio input, [-1, 1], is a convention, not a
+        // guarantee: a host can send any value (a control voltage, a
+        // frequency in Hz). A singleton interval derived from it is not a
+        // proof: _ * 0.4 : rint would become 0, and _ > 2 always false.
+        if (fFromInput.count(orig)) {
+            return nullptr;
+        }
         Tree res = (tt->nature() == kInt) ? sigInt(int(I.lo())) : sigReal(I.lo());
         Tree exp;
         // We want to keep the sigGen indication, we don't want
@@ -61,14 +72,69 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
         return res;
     }
 
-    XSig combine(Tree orig, const std::vector<XSig>& c,
-                 FixPointEvaluator<XSig>& ev) const override
+    XSig combine(Tree orig, const std::vector<XSig>& c, FixPointEvaluator<XSig>& ev) const override
     {
         XSig r = TransformAlgebra::combine(orig, c, ev);
         return o(numericFrame(r.out));
     }
 
    private:
+    // The signals that depend on an audio input, computed once for the whole tree:
+    // the inputs, then whatever uses them, by reverse reachability, which is exact
+    // through the cycles of the recursive groups. A symbolic group is one node, its
+    // definitions hang off a property: the walk crosses to them explicitly. A de
+    // Bruijn reference does not say which group it reads: it is counted as
+    // depending on an input, which can only prevent a folding.
+    std::unordered_set<Tree> fFromInput;
+
+    void collectInputDependents(Tree root)
+    {
+        std::unordered_map<Tree, std::vector<Tree>> users;
+        std::unordered_set<Tree>                    seen{root};
+        std::vector<Tree>                           work{root};
+        std::vector<Tree>                           sources;
+        auto                                        uses = [&](Tree user, Tree used) {
+            users[used].push_back(user);
+            if (seen.insert(used).second) {
+                work.push_back(used);
+            }
+        };
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            int  i;
+            Tree var, body;
+            if (isSigInput(t, &i) || isRef(t, i)) {
+                sources.push_back(t);
+            }
+            if (isRec(t, var, body)) {
+                if (body != nullptr) {
+                    uses(t, body);
+                }
+                continue;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                uses(t, t->branch(k));
+            }
+        }
+        for (Tree t : sources) {
+            fFromInput.insert(t);
+        }
+        while (!sources.empty()) {
+            Tree t = sources.back();
+            sources.pop_back();
+            auto it = users.find(t);
+            if (it == users.end()) {
+                continue;
+            }
+            for (Tree u : it->second) {
+                if (fFromInput.insert(u).second) {
+                    sources.push_back(u);
+                }
+            }
+        }
+    }
+
     // Memoized "this subtree contains an observable side effect" predicate.
     // The provisional-false insertion before descending cuts the cycles of
     // recursive trees (conservative fixpoint, standard for rec groups).
@@ -142,6 +208,6 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
 
 Tree newConstantPropagation(Tree sig)
 {
-    ConstantPropagationAlgebra A;
+    ConstantPropagationAlgebra A(sig);
     return signalTransform(sig, A);
 }

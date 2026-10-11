@@ -60,6 +60,19 @@ in the sample loop, with the cpp, c and ocpp backends:
 python3 tests/compile-tests/hoist-negation.py --faust build/bin/faust
 ```
 
+### No constant folding from the interval of an audio input
+
+`input-interval-folding.py` checks that a signal depending on an audio
+input is not replaced by a constant because its interval, derived from
+the input's conventional [-1, 1], is a single value (`_ * 0.4 : rint`,
+`select2(_ > 2, 0, 1)`, a sample and hold): the program is run on inputs
+outside [-1, 1] with the cpp and ocpp backends, in float and double, and
+compared with the C library:
+
+```sh
+python3 tests/compile-tests/input-interval-folding.py --faust build/bin/faust
+```
+
 ### Java backend execution
 
 `java-math.py` generates Java, compiles it with `javac`, and executes it with
