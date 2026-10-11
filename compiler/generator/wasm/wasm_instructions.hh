@@ -1262,9 +1262,14 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     inst->fInst->accept(this);
                     *fOut << int8_t(BinaryConsts::I32WrapI64);
                 } else {
+                    // The saturating conversion: i32.trunc_f32_s traps on a NaN or
+                    // a value out of the int range, which stops the module (an
+                    // AudioWorklet stops rendering); i32.trunc_sat_f32_s gives 0
+                    // for a NaN and the nearest bound of the int range otherwise.
                     inst->fInst->accept(this);
-                    *fOut << (isF64(type) ? int8_t(BinaryConsts::I32STruncF64)
-                                          : int8_t(BinaryConsts::I32STruncF32));
+                    *fOut << int8_t(BinaryConsts::MiscPrefix);
+                    *fOut << int8_t(isF64(type) ? BinaryConsts::I32STruncSatF64
+                                                : BinaryConsts::I32STruncSatF32);
                 }
                 break;
 

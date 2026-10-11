@@ -544,7 +544,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                     inst->fInst->accept(this);
                     *fOut << ")";
                 } else {
-                    *fOut << "(i32.trunc_" << (isF64(type) ? "f64" : "f32") << "_s ";
+                    // Saturating: i32.trunc_f32_s traps on a NaN or a value out of
+                    // the int range, which stops the module
+                    *fOut << "(i32.trunc_sat_" << (isF64(type) ? "f64" : "f32") << "_s ";
                     inst->fInst->accept(this);
                     *fOut << ")";
                 }

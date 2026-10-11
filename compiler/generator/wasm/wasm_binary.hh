@@ -270,8 +270,15 @@ enum ASTNodes {
     I32ReinterpretF32 = 0xbc,
     I64ReinterpretF64 = 0xbd,
     F32ReinterpretI32 = 0xbe,
-    F64ReinterpretI64 = 0xbf
+    F64ReinterpretI64 = 0xbf,
+
+    // The prefix of the non-trapping float-to-int conversions, followed by
+    // their opcode in MiscOpcodes
+    MiscPrefix = 0xfc
 };
+
+// Opcodes after MiscPrefix, encoded as an unsigned LEB128 (one byte for these)
+enum MiscOpcodes { I32STruncSatF32 = 0x00, I32STruncSatF64 = 0x02 };
 
 enum MemoryAccess {
     Offset           = 0x10,  // bit 4
