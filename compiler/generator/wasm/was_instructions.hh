@@ -319,6 +319,15 @@ struct WASInst {
 
     static DeclareFunInst* generateIntMin();
     static DeclareFunInst* generateIntMax();
+
+    // Whether a real FIR type is f64 in WebAssembly: kDouble is, kFloat is not, the other real
+    // types (kFloatMacro) are the internal real type. A pow of two integers with a variable
+    // exponent is computed in double even in single precision (PowPrim casts its arguments to
+    // double and rounds the result with rint)
+    static bool isF64(Typed::VarType type)
+    {
+        return (type == Typed::kDouble) || ((type != Typed::kFloat) && (gGlobal->gFloatSize == 2));
+    }
 };
 
 #endif

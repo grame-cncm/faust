@@ -1263,8 +1263,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     *fOut << int8_t(BinaryConsts::I32WrapI64);
                 } else {
                     inst->fInst->accept(this);
-                    *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::I32STruncF32)
-                                                         : int8_t(BinaryConsts::I32STruncF64));
+                    *fOut << (isF64(type) ? int8_t(BinaryConsts::I32STruncF64)
+                                          : int8_t(BinaryConsts::I32STruncF32));
                 }
                 break;
 
@@ -1281,12 +1281,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     faustassert(false);
                 } else if (isInt64Type(type)) {
                     inst->fInst->accept(this);
-                    *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32SConvertI64)
-                                                         : int8_t(BinaryConsts::F64SConvertI64));
+                    *fOut << (isF64(inst->fType->getType()) ? int8_t(BinaryConsts::F64SConvertI64)
+                                                            : int8_t(BinaryConsts::F32SConvertI64));
                 } else if (isInt32Type(type) || isBoolType(type)) {
                     inst->fInst->accept(this);
-                    *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32SConvertI32)
-                                                         : int8_t(BinaryConsts::F64SConvertI32));
+                    *fOut << (isF64(inst->fType->getType()) ? int8_t(BinaryConsts::F64SConvertI32)
+                                                            : int8_t(BinaryConsts::F32SConvertI32));
                 } else {
                     dump2FIR(inst);
                     faustassert(false);

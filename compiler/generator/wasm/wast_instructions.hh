@@ -544,7 +544,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                     inst->fInst->accept(this);
                     *fOut << ")";
                 } else {
-                    *fOut << "(i32.trunc_" << realStr << "_s ";
+                    *fOut << "(i32.trunc_" << (isF64(type) ? "f64" : "f32") << "_s ";
                     inst->fInst->accept(this);
                     *fOut << ")";
                 }
@@ -562,11 +562,13 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                     dump2FIR(inst);
                     faustassert(false);
                 } else if (isInt64Type(type)) {
-                    *fOut << "(" << realStr << ".convert_i64_s ";
+                    *fOut << "(" << (isF64(inst->fType->getType()) ? "f64" : "f32")
+                          << ".convert_i64_s ";
                     inst->fInst->accept(this);
                     *fOut << ")";
                 } else if (isInt32Type(type) || isBoolType(type)) {
-                    *fOut << "(" << realStr << ".convert_i32_s ";
+                    *fOut << "(" << (isF64(inst->fType->getType()) ? "f64" : "f32")
+                          << ".convert_i32_s ";
                     inst->fInst->accept(this);
                     *fOut << ")";
                 } else {
@@ -637,7 +639,8 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 if (checkMinMax(desc.fName)) {
                     generateMinMax(inst->fArgs, desc.fName);
                 } else {
-                    *fOut << "(" << realStr << "." << desc.fName << " ";
+                    *fOut << "(" << (isF64(desc.fTypeOut) ? "f64" : "f32") << "." << desc.fName
+                          << " ";
                 }
             } else {
                 *fOut << "(call $" << inst->fName << " ";
