@@ -17710,8 +17710,16 @@ static const uint32_t* pow_table = fast_pow_table;
 static float powFastLookup(const float val, const float ilog2, const uint32_t* pTable,
                            const uint32_t precision)
 {
+    /* the float bits of 2^(val/ilog2), as a number, kept where their exponent field is
+       that of a normal float (1 to 254): below, the bits would wrap into the sign bit (a huge
+       negative result), above, into an infinity or a NaN. The result saturates at 2^-126 and
+       at about 2^128 instead. The bound is applied to the sum itself, so that the results in
+       range are those of the unbounded expression */
+    float bits = (val * (_2p23 * ilog2)) + (127.0f * _2p23);
+    bits       = (bits < 8388608.0f) ? 8388608.0f : ((bits > 2139094912.0f) ? 2139094912.0f : bits);
+
     /* build float bits */
-    const int32_t i = (int32_t)((val * (_2p23 * ilog2)) + (127.0f * _2p23));
+    const int32_t i = (int32_t)bits;
 
     /* replace mantissa with lookup */
     const int32_t it = (i & 0xFF800000) | pTable[(i & 0x7FFFFF) >>  /* E */
