@@ -84,6 +84,10 @@ class CodeContainer : public virtual Garbageable {
     BlockInst* fExtGlobalDeclarationInstructions;
     BlockInst* fGlobalDeclarationInstructions;
 
+    // 'faustpower' functions taken out of fGlobalDeclarationInstructions, to be inlined
+    // (see extractFaustPowerFuns)
+    std::map<std::string, DeclareFunInst*> fFaustPowerFuns;
+
     // For DSP Struct
     BlockInst* fDeclarationInstructions;
 
@@ -213,6 +217,11 @@ class CodeContainer : public virtual Garbageable {
     }
 
     BlockInst* inlineSubcontainersFunCalls(BlockInst* block);
+
+    // For the backends that cannot declare the functions in which PowPrim expands an integer
+    // power: take them out of the global declarations, then inline their calls in each block
+    void       extractFaustPowerFuns();
+    BlockInst* inlineFaustPowerFunCalls(BlockInst* block);
 
     Names genMethod(const std::string& obj, bool ismethod)
     {

@@ -34,7 +34,8 @@ using namespace std;
 imported from JS "global.Math", or are externally implemented (fmod and remainder in JS)
  - local variables have to be declared first on the block, before being actually initialized or set:
 this is done using MoveVariablesInFront3
- - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
+ - integer powers are expanded by PowPrim in 'faustpower' functions, which are taken out of the
+ global declarations (extractFaustPowerFuns) and inlined in each function (inlineFaustPowerFunCalls)
  - subcontainers are inlined in 'classInit' and 'instanceConstants' functions
  - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of
 generateInstanceInitFun
@@ -190,6 +191,9 @@ void WASTCodeContainer::produceClass()
 
     // Sub containers are merged in the main module, before functions generation
     mergeSubContainers();
+
+    // The module only holds the functions it exports: the 'faustpower' ones are inlined
+    extractFaustPowerFuns();
 
     // All mathematical functions (got from math library as variables) have to be first
     generateGlobalDeclarations(gGlobal->gWASTVisitor);
@@ -441,7 +445,8 @@ void WASTCodeContainer::generateComputeAux2(BlockInst* compute_block, int n)
     fComputeBlockInstructions->pushBackInst(compute_block);
 
     // Put local variables at the begining
-    BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
+    BlockInst* block =
+        MoveVariablesInFront2().getCode(inlineFaustPowerFunCalls(fComputeBlockInstructions), true);
 
     block->accept(gGlobal->gWASTVisitor);
     back(1, fOutAux);

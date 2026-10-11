@@ -35,7 +35,8 @@ using namespace std;
  imported from JS "global.Math", or are externally implemented (fmod and remainder in JS)
  - local variables have to be declared first on the block, before being actually initialized or set
  : this is done using MoveVariablesInFront3
- - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
+ - integer powers are expanded by PowPrim in 'faustpower' functions, which are taken out of the
+ global declarations (extractFaustPowerFuns) and inlined in each function (inlineFaustPowerFunCalls)
  - subcontainers are inlined in 'classInit' and 'instanceConstants' functions
  - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of
  generateInstanceInitFun
@@ -145,8 +146,9 @@ DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
     args.push_back(IB::genNamedTyped("dsp", Typed::kObj_ptr));
     args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
 
-    BlockInst* inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
-    BlockInst* block   = MoveVariablesInFront3().getCode(inlined);
+    BlockInst* inlined =
+        inlineFaustPowerFunCalls(inlineSubcontainersFunCalls(fStaticInitInstructions));
+    BlockInst* block = MoveVariablesInFront3().getCode(inlined);
 
     // Creates function
     FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped(), FunTyped::kDefault);
@@ -162,7 +164,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, con
     }
 
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-    BlockInst* renamed = DspRenamer().getCode(fClearInstructions);
+    BlockInst* renamed = inlineFaustPowerFunCalls(DspRenamer().getCode(fClearInstructions));
     BlockInst* block   = MoveVariablesInFront3().getCode(renamed);
 
     // Creates function
@@ -179,7 +181,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
     }
     args.push_back(IB::genNamedTyped("sample_rate", Typed::kInt32));
 
-    BlockInst* inlined = inlineSubcontainersFunCalls(fInitInstructions);
+    BlockInst* inlined = inlineFaustPowerFunCalls(inlineSubcontainersFunCalls(fInitInstructions));
     BlockInst* block   = MoveVariablesInFront3().getCode(inlined);
 
     // Creates function
@@ -197,8 +199,9 @@ DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const stri
     }
 
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-    BlockInst* renamed = DspRenamer().getCode(fResetUserInterfaceInstructions);
-    BlockInst* block   = MoveVariablesInFront3().getCode(renamed);
+    BlockInst* renamed =
+        inlineFaustPowerFunCalls(DspRenamer().getCode(fResetUserInterfaceInstructions));
+    BlockInst* block = MoveVariablesInFront3().getCode(renamed);
 
     // Creates function
     FunTyped* fun_type = IB::genFunTyped(args, IB::genVoidTyped(), FunTyped::kDefault);
@@ -255,6 +258,9 @@ void WASMCodeContainer::produceClass()
 
     // Sub containers are merged in the main module, before functions generation
     mergeSubContainers();
+
+    // The module only holds the functions it exports: the 'faustpower' ones are inlined
+    extractFaustPowerFuns();
 
     // Mathematical functions and global variables are handled in a separated visitor that creates
     // functions types and global variable offset
@@ -394,7 +400,8 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
     fComputeBlockInstructions->pushBackInst(compute_block);
 
     // Put local variables at the begining
-    BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
+    BlockInst* block =
+        MoveVariablesInFront2().getCode(inlineFaustPowerFunCalls(fComputeBlockInstructions), true);
 
     // Creates function and visit it
     Names args;

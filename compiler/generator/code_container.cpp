@@ -803,6 +803,55 @@ BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
     return block;
 }
 
+void CodeContainer::extractFaustPowerFuns()
+{
+    // PowPrim declares them (kLocal, named after getFaustPowerName()) in the container that
+    // compiles the power; the subcontainers' ones are here too once mergeSubContainers has run
+    std::list<StatementInst*>& code = fGlobalDeclarationInstructions->fCode;
+    for (auto it = code.begin(); it != code.end();) {
+        DeclareFunInst* fun = dynamic_cast<DeclareFunInst*>(*it);
+        if (fun && (fun->fType->fAttribute & FunTyped::kLocal) &&
+            fun->fName.find("_faustpower") != std::string::npos) {
+            fFaustPowerFuns[fun->fName] = fun;
+            it                          = code.erase(it);
+        } else {
+            ++it;
+        }
+    }
+}
+
+BlockInst* CodeContainer::inlineFaustPowerFunCalls(BlockInst* block)
+{
+    // Whether a block still calls one of the 'faustpower' functions
+    struct FaustPowerCallFinder : public DispatchVisitor {
+        const std::map<std::string, DeclareFunInst*>& fFuns;
+        bool                                          fFound = false;
+
+        FaustPowerCallFinder(const std::map<std::string, DeclareFunInst*>& funs) : fFuns(funs) {}
+
+        virtual void visit(FunCallInst* inst)
+        {
+            fFound = fFound || (fFuns.find(inst->fName) != fFuns.end());
+            DispatchVisitor::visit(inst);
+        }
+    };
+
+    // A call whose argument is not a simple value gets a stack variable (see FunctionInliner):
+    // to be done before the variables are moved in front of the function. The arguments of an
+    // inlined call are copied as they are, so a power nested in the argument of a power of the
+    // same function, faustpower2(1 - faustpower2(x)), is only inlined by the next pass
+    while (true) {
+        FaustPowerCallFinder finder(fFaustPowerFuns);
+        block->accept(&finder);
+        if (!finder.fFound) {
+            return block;
+        }
+        for (const auto& it : fFaustPowerFuns) {
+            block = FunctionCallInliner(it.second).getCode(block);
+        }
+    }
+}
+
 void CodeContainer::printMacros(ostream& fout, int n)
 {
     // generate user interface macros if needed

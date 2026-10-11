@@ -38,9 +38,10 @@ class WASTCodeContainer : public virtual CodeContainer {
 
     void generateWASTBlock(BlockInst* block)
     {
-        // Moves all variables declaration at the beginning of the block
+        // Moves all variables declaration at the beginning of the block, once the 'faustpower'
+        // calls are inlined
         MoveVariablesInFront3 mover;
-        BlockInst*            block_res = mover.getCode(block);
+        BlockInst*            block_res = mover.getCode(inlineFaustPowerFunCalls(block));
         block_res->accept(gGlobal->gWASTVisitor);
     }
 
