@@ -17785,16 +17785,13 @@ float fast_atan2f(float y, float x)
 }
 */
 
-/* fast log lookup table, precision 16, size 65536 */
+/* fast log and pow lookup tables, precision 16, size 65536 */
 
-/*
-static uint32_t log_precision = log2i(16);
-static uint32_t pow_precision = log2i(65536);
-*/
-
-// Done manually for the C compiler to work
-static uint32_t log_precision = 4;        // log2i(16) is 4
-static uint32_t pow_precision = 16;       // log2i(65536) is 16
+// A precision is the number of mantissa bits that index a table, log2 of its
+// size: log2i(65536) = 16 for both tables. Written as constants for the C
+// compiler, where log2i() cannot initialize a static variable.
+static uint32_t log_precision = 16;
+static uint32_t pow_precision = 16;
 
 float fast_powf(float x, float y)
 {
