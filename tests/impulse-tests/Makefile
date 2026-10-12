@@ -71,11 +71,13 @@ help:
 	@echo " 'legs'   : list named test legs ; run one alone with 'make leg/<outdir>'"
 	@echo
 	@echo " 'cpp'    : check float and double outputs with the cpp backend in scalar, vec, openmp and sched modes"
+	@echo " 'cpp-core': required cpp checks, float and double, without openmp or sched"
 	@echo " 'cpp1'   : check double outputs with the cpp backend in scalar and -mem"
 	@echo " 'cpp2'   : check double outputs with the cpp backend in scalar and -ec, -os and -mem0/-mem1"
 	@echo " 'cpp3'   : check double outputs with the cpp backend in vec and -ec and -mem0/-mem1"
 	@echo " 'cpp4'   : check double outputs with the cpp backend in scalar and -ec, -os/-vec, -fpga-mem and -mem2"
-	@echo " 'ocpp'   : check double outputs with the ocpp backend in scalar mode"
+	@echo " 'ocpp'   : check double outputs with the ocpp backend in scalar and vec modes"
+	@echo " 'ocpp-float': check float outputs with the ocpp backend in scalar and vec modes"
 	@echo " 'c'      : check float and double outputs with the c backend in scalar, vec, openmp and sched modes"
 	@echo " 'c1'     : check double outputs with the cpp backend in scalar and -ec, -os and -mem0/-mem1"
 	@echo " 'c2'     : check double outputs with the cpp backend in -ec, -os/-vec -fpga-mem and -mem2"
@@ -307,8 +309,7 @@ travis: leg/cpp/double \
 	leg/cpp/double/vec/fun \
 	leg/cpp/double/omp
 
-.PHONY: cpp
-cpp: leg/cpp/double \
+CPP_LEGS := leg/cpp/double \
 	leg/cpp/double/uim \
 	leg/cpp/double/it \
 	leg/cpp/double/fp \
@@ -333,6 +334,14 @@ cpp: leg/cpp/double \
 	leg/cpp/float/vec \
 	leg/cpp/float/sched \
 	leg/cpp/float/omp
+
+.PHONY: cpp cpp-core
+cpp: $(CPP_LEGS)
+
+# OpenMP and the scheduler are optional for routine compiler validation.
+cpp-core: $(filter-out leg/cpp/double/omp leg/cpp/double/omp/fun \
+	leg/cpp/float/omp leg/cpp/double/sched leg/cpp/double/sched/fun \
+	leg/cpp/float/sched,$(CPP_LEGS))
 
 .PHONY: quad
 quad: leg/cpp/quad \
@@ -403,6 +412,15 @@ ocpp: leg/ocpp/double \
 	leg/ocpp/double/mcd0 \
 	leg/ocpp/double/vec/lv0 \
 	leg/ocpp/double/vec/lv1
+
+$(eval $(call LEG, ocpp/float, ocpp, impulsearch.cpp, -I dsp -single))
+$(eval $(call LEG, ocpp/float/mcd0, ocpp, impulsearch.cpp, -I dsp -single -mcd 0))
+$(eval $(call LEG, ocpp/float/vec/lv0, ocpp, impulsearch.cpp, -I dsp -single -vec -lv 0))
+$(eval $(call LEG, ocpp/float/vec/lv1, ocpp, impulsearch.cpp, -I dsp -single -vec -lv 1))
+
+.PHONY: ocpp-float
+ocpp-float: leg/ocpp/float leg/ocpp/float/mcd0 \
+	leg/ocpp/float/vec/lv0 leg/ocpp/float/vec/lv1
 
 .PHONY: vecocpp
 vecocpp: leg/ocpp/double/vec/lv1

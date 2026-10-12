@@ -64,12 +64,19 @@ binary explicitly in both, and have the report say which one was judged.
 `nnx`, `linen`, `julia`. Several need toolchains that are not installed
 everywhere, so running a subset is normal — but choose it knowingly:
 
-- `cpp` alone covers twenty-five option sets, **float and double**,
-  `-vec` at `lv 0` / `lv 1` / `vs 16` / `-fun`, `-sch`, `-omp`, plus
+- `cpp-core` is the required C++ subset: nineteen option sets, **float and
+  double**, `-vec` at `lv 0` / `lv 1` / `vs 16` / `-fun`, plus
   `-uim`, `-it`, `-fp`, `-wall`, `-mcd 0`, `-mapp`, `-rui`, `-nvi`,
   `-dlt 0`, `-dlt 256`.
-- `ocpp` covers the legacy backend, which the continuous integration
-  never exercises.
+- `ocpp` and `ocpp-float` cover the legacy backend in double and single
+  precision, each in scalar mode, with `-mcd 0`, and with `-vec` at
+  `lv 0` / `lv 1`. The continuous integration never exercises it.
+
+**OpenMP (`-omp`) and the scheduler (`-sch`) are optional.** Neither is
+required for routine compiler validation or integration into `master-dev`;
+an omitted leg is not a failing gate. The broader `cpp` target still runs
+all twenty-five option sets, including these six optional legs, when
+their coverage is wanted. Use `cpp-core` for the required gate.
 
 Do not settle for the double-precision legs. A one-sample float bug can
 live for weeks under a double-only gate; the harness has float legs, a
@@ -97,9 +104,9 @@ change, the `cpp` target stopped at its third leg on a real branch and
 the other twenty-two never ran.
 
 ```sh
-make -C tests/impulse-tests cpp ocpp -k -j 8 FAUST=<binary under test>
+make -C tests/impulse-tests cpp-core ocpp ocpp-float -k -j 8 FAUST=<binary under test>
 make -C tests/impulse-tests leg/cpp/double/vec/lv1 FAUST=<binary>   # one leg alone
-make -C tests/impulse-tests legs                                     # the 113 legs
+make -C tests/impulse-tests legs                                # list available legs
 ```
 
 `-j` is shared with the legs through the jobserver, so the legs run in
