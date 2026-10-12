@@ -31,6 +31,16 @@
 #include "faust/gui/PathBuilder.h"
 #include "text_instructions.hh"
 
+// Cmajor's non-finite literals: the C macros INFINITY and NAN are undefined there
+inline const NonFiniteNames gCmajorNonFiniteNames = {"inf", "-inf", "nan"};
+
+// A real given in double (a control's bounds), in the precision of the program
+inline std::string cmajorReal(double val)
+{
+    return (strcmp(ifloat(), "float") == 0) ? checkNonFinite(float(val), gCmajorNonFiniteNames)
+                                            : checkNonFinite(val, gCmajorNonFiniteNames);
+}
+
 inline std::string buildLabel(const std::string& label)
 {
     return replaceCharList(label, {' ', '(', ')', '\\', '/', '.', '-'}, '_');
@@ -133,9 +143,9 @@ struct CmajorInstUIVisitor : public ShortnameInstVisitor {
                 fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
                      << short_name << " [[ name: " << quote(short_name)
                      << ", group: " << quote(buildPath(inst->fLabel))
-                     << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
-                     << ", init: " << checkReal(inst->fInit)
-                     << ", step: " << checkReal(inst->fStep);
+                     << ", min: " << cmajorReal(inst->fMin) << ", max: " << cmajorReal(inst->fMax)
+                     << ", init: " << cmajorReal(inst->fInit)
+                     << ", step: " << cmajorReal(inst->fStep);
                 addMeta();
                 fOut << " ]];";
             } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
@@ -144,18 +154,18 @@ struct CmajorInstUIVisitor : public ShortnameInstVisitor {
                      << ((cmajor_meta != "") ? cmajor_meta : short_name)
                      << " [[ name: " << quote(short_name)
                      << ", group: " << quote(buildPath(inst->fLabel))
-                     << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
-                     << ", init: " << checkReal(inst->fInit)
-                     << ", step: " << checkReal(inst->fStep);
+                     << ", min: " << cmajorReal(inst->fMin) << ", max: " << cmajorReal(inst->fMax)
+                     << ", init: " << cmajorReal(inst->fInit)
+                     << ", step: " << cmajorReal(inst->fStep);
                 addMeta();
                 fOut << " ]];";
             } else {
                 fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event"
                      << inst->fZone << " [[ name: " << quote(inst->fLabel)
                      << ", group: " << quote(buildPath(inst->fLabel))
-                     << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
-                     << ", init: " << checkReal(inst->fInit)
-                     << ", step: " << checkReal(inst->fStep);
+                     << ", min: " << cmajorReal(inst->fMin) << ", max: " << cmajorReal(inst->fMax)
+                     << ", init: " << cmajorReal(inst->fInit)
+                     << ", step: " << cmajorReal(inst->fStep);
                 addMeta();
                 fOut << " ]];";
             }
@@ -177,14 +187,14 @@ struct CmajorInstUIVisitor : public ShortnameInstVisitor {
                 fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
                      << short_name << " [[ name: " << quote(short_name)
                      << ", group: " << quote(buildPath(inst->fLabel))
-                     << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax);
+                     << ", min: " << cmajorReal(inst->fMin) << ", max: " << cmajorReal(inst->fMax);
                 addMeta();
                 fOut << " ]];";
             } else {
                 fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()] << " event"
                      << inst->fZone << " [[ name: " << quote(short_name)
                      << ", group: " << quote(buildPath(inst->fLabel))
-                     << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax);
+                     << ", min: " << cmajorReal(inst->fMin) << ", max: " << cmajorReal(inst->fMax);
                 addMeta();
                 fOut << " ]];";
             }
@@ -228,8 +238,7 @@ class CmajorInstVisitor : public TextInstVisitor {
 
     std::vector<std::pair<std::string, std::string>> fMetaAux;
 
-    inline std::string checkFloat(float val) { return (std::isinf(val)) ? "inf" : T(val); }
-    inline std::string checkDouble(double val) { return (std::isinf(val)) ? "inf" : T(val); }
+    virtual NonFiniteNames nonFiniteNames(bool single) const { return gCmajorNonFiniteNames; }
 
     std::string getCmajorMetadata() const
     {
@@ -285,8 +294,9 @@ class CmajorInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinhf"]  = "sinh";
         gPolyMathLibTable["tanhf"]  = "tanh";
 
-        gPolyMathLibTable["isnanf"] = "isnan";
-        gPolyMathLibTable["isinff"] = "isinf";
+        // Cmajor's isnan and isinf return a bool, Faust's an int: see faust_isnan in the container
+        gPolyMathLibTable["isnanf"] = "faust_isnan";
+        gPolyMathLibTable["isinff"] = "faust_isinf";
         // Manually implemented
         gPolyMathLibTable["copysignf"] = "copysign";
 
@@ -325,8 +335,8 @@ class CmajorInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinh"]  = "sinh";
         gPolyMathLibTable["tanh"]  = "tanh";
 
-        gPolyMathLibTable["isnan"] = "isnan";
-        gPolyMathLibTable["isinf"] = "isinf";
+        gPolyMathLibTable["isnan"] = "faust_isnan";
+        gPolyMathLibTable["isinf"] = "faust_isinf";
         // Manually implemented
         gPolyMathLibTable["copysignf"] = "copysign";
     }
@@ -384,9 +394,9 @@ class CmajorInstVisitor : public TextInstVisitor {
     {
         if (fShortNameVisitor.hasShortname()) {
             std::string short_name = fShortNameVisitor.buildShortname(inst->fLabel);
-            *fOut << "// " << short_name << " [init = " << checkReal(inst->fInit)
-                  << ", min = " << checkReal(inst->fMin) << ", max = " << checkReal(inst->fMax)
-                  << ", step = " << checkReal(inst->fStep) << "]";
+            *fOut << "// " << short_name << " [init = " << cmajorReal(inst->fInit)
+                  << ", min = " << cmajorReal(inst->fMin) << ", max = " << cmajorReal(inst->fMax)
+                  << ", step = " << cmajorReal(inst->fStep) << "]";
             EndLine(' ');
             if (gGlobal->gOutputLang == "cmajor-poly") {
                 *fOut << "event event_" << short_name << " ("
@@ -416,8 +426,8 @@ class CmajorInstVisitor : public TextInstVisitor {
     {
         if (fShortNameVisitor.hasShortname()) {
             std::string short_name = fShortNameVisitor.buildShortname(inst->fLabel);
-            *fOut << "// " << short_name << " [min = " << checkReal(inst->fMin)
-                  << ", max = " << checkReal(inst->fMax) << "]";
+            *fOut << "// " << short_name << " [min = " << cmajorReal(inst->fMin)
+                  << ", max = " << cmajorReal(inst->fMax) << "]";
             EndLine(' ');
         } else {
             fShortNameVisitor.visit(inst);
@@ -515,13 +525,13 @@ class CmajorInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(FloatNumInst* inst) { *fOut << checkFloat(inst->fNum); }
+    virtual void visit(FloatNumInst* inst) { *fOut << floatLiteral(inst->fNum); }
 
     virtual void visit(FloatArrayNumInst* inst)
     {
         char sep = '(';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            *fOut << sep << floatLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ')';
@@ -539,13 +549,13 @@ class CmajorInstVisitor : public TextInstVisitor {
 
     virtual void visit(Int64NumInst* inst) { *fOut << inst->fNum << "L"; }
 
-    virtual void visit(DoubleNumInst* inst) { *fOut << checkDouble(inst->fNum); }
+    virtual void visit(DoubleNumInst* inst) { *fOut << doubleLiteral(inst->fNum); }
 
     virtual void visit(DoubleArrayNumInst* inst)
     {
         char sep = '(';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            *fOut << sep << doubleLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ')';

@@ -48,6 +48,18 @@ python3 tests/compile-tests/nonfinite-constants.py --faust build/bin/faust
 python3 tests/compile-tests/nonfinite-constants.py --faust build/bin/faust --backends dlang csharp
 ```
 
+### Math functions out of their domain (Julia, Cmajor)
+
+`math-domain.py` reads -2 and runs `sqrt`, `log`, `log10`, `asin`, `acos`,
+`acosh`, `atanh` and `pow(x, 0.5)`, which must give NaN as in C (Julia's
+functions throw `DomainError` there), then `isnan` and `isinf` as integers
+(Cmajor's return a `bool`) and the constant -inf, in Julia and with
+`cmaj render`, in single and double precision:
+
+```sh
+python3 tests/compile-tests/math-domain.py --faust build/bin/faust
+```
+
 ### Float-to-integer conversions in Julia
 
 `julia-float-to-int.py` runs `process = _ : int;` in Julia on 0.5, -2.7, NaN,

@@ -273,8 +273,8 @@ class JuliaInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["min_f"] = "min";
 
         gPolyMathLibTable["fabsf"]      = "abs";
-        gPolyMathLibTable["acosf"]      = "acos";
-        gPolyMathLibTable["asinf"]      = "asin";
+        gPolyMathLibTable["acosf"]      = "faust_acos";
+        gPolyMathLibTable["asinf"]      = "faust_asin";
         gPolyMathLibTable["atanf"]      = "atan";
         gPolyMathLibTable["atan2f"]     = "atan";
         gPolyMathLibTable["ceilf"]      = "ceil";
@@ -284,21 +284,21 @@ class JuliaInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["exp10f"]     = "exp10";
         gPolyMathLibTable["floorf"]     = "floor";
         gPolyMathLibTable["fmodf"]      = "mod";
-        gPolyMathLibTable["logf"]       = "log";
-        gPolyMathLibTable["log2f"]      = "log2";
-        gPolyMathLibTable["log10f"]     = "log10";
+        gPolyMathLibTable["logf"]       = "faust_log";
+        gPolyMathLibTable["log2f"]      = "faust_log2";
+        gPolyMathLibTable["log10f"]     = "faust_log10";
         gPolyMathLibTable["powf"]       = "pow";
         gPolyMathLibTable["remainderf"] = "remainder";
         gPolyMathLibTable["rintf"]      = "rint";
         gPolyMathLibTable["roundf"]     = "round";
         gPolyMathLibTable["sinf"]       = "sin";
-        gPolyMathLibTable["sqrtf"]      = "sqrt";
+        gPolyMathLibTable["sqrtf"]      = "faust_sqrt";
         gPolyMathLibTable["tanf"]       = "tan";
 
         // Hyperbolic
-        gPolyMathLibTable["acoshf"] = "acosh";
+        gPolyMathLibTable["acoshf"] = "faust_acosh";
         gPolyMathLibTable["asinhf"] = "asinh";
-        gPolyMathLibTable["atanhf"] = "atanh";
+        gPolyMathLibTable["atanhf"] = "faust_atanh";
         gPolyMathLibTable["coshf"]  = "cosh";
         gPolyMathLibTable["sinhf"]  = "sinh";
         gPolyMathLibTable["tanhf"]  = "tanh";
@@ -312,8 +312,8 @@ class JuliaInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["min_"] = "min";
 
         gPolyMathLibTable["fabs"]      = "abs";
-        gPolyMathLibTable["acos"]      = "acos";
-        gPolyMathLibTable["asin"]      = "asin";
+        gPolyMathLibTable["acos"]      = "faust_acos";
+        gPolyMathLibTable["asin"]      = "faust_asin";
         gPolyMathLibTable["atan"]      = "atan";
         gPolyMathLibTable["atan2"]     = "atan";
         gPolyMathLibTable["ceil"]      = "ceil";
@@ -323,21 +323,21 @@ class JuliaInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["exp10"]     = "exp10";
         gPolyMathLibTable["floor"]     = "floor";
         gPolyMathLibTable["fmod"]      = "mod";
-        gPolyMathLibTable["log"]       = "log";
-        gPolyMathLibTable["log2"]      = "log2";
-        gPolyMathLibTable["log10"]     = "log10";
+        gPolyMathLibTable["log"]       = "faust_log";
+        gPolyMathLibTable["log2"]      = "faust_log2";
+        gPolyMathLibTable["log10"]     = "faust_log10";
         gPolyMathLibTable["pow"]       = "pow";
         gPolyMathLibTable["remainder"] = "remainder";
         gPolyMathLibTable["rint"]      = "rint";
         gPolyMathLibTable["round"]     = "round";
         gPolyMathLibTable["sin"]       = "sin";
-        gPolyMathLibTable["sqrt"]      = "sqrt";
+        gPolyMathLibTable["sqrt"]      = "faust_sqrt";
         gPolyMathLibTable["tan"]       = "tan";
 
         // Hyperbolic
-        gPolyMathLibTable["acosh"] = "acosh";
+        gPolyMathLibTable["acosh"] = "faust_acosh";
         gPolyMathLibTable["asinh"] = "asinh";
-        gPolyMathLibTable["atanh"] = "atanh";
+        gPolyMathLibTable["atanh"] = "faust_atanh";
         gPolyMathLibTable["cosh"]  = "cosh";
         gPolyMathLibTable["sinh"]  = "sinh";
         gPolyMathLibTable["tanh"]  = "tanh";

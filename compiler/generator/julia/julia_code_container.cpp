@@ -121,6 +121,27 @@ void JuliaCodeContainer::produceClass()
 
     // Missing mathematical functions
     *fOut << "pow(x, y) = x ^ y";
+    // Out of their domain, Julia's math functions throw DomainError where C returns NaN
+    // (sqrt(-1), log(-1), a negative base to a fractional power): these return NaN, as
+    // the C, C++ and WebAssembly backends do
+    tab(n, *fOut);
+    *fOut << "pow(x::AbstractFloat, y::Real) = (x < 0 && !isinteger(y)) ? oftype(x, NaN) : x ^ y";
+    tab(n, *fOut);
+    *fOut << "faust_sqrt(x) = x < 0 ? oftype(float(x), NaN) : sqrt(x)";
+    tab(n, *fOut);
+    *fOut << "faust_log(x) = x < 0 ? oftype(float(x), NaN) : log(x)";
+    tab(n, *fOut);
+    *fOut << "faust_log2(x) = x < 0 ? oftype(float(x), NaN) : log2(x)";
+    tab(n, *fOut);
+    *fOut << "faust_log10(x) = x < 0 ? oftype(float(x), NaN) : log10(x)";
+    tab(n, *fOut);
+    *fOut << "faust_asin(x) = abs(x) > 1 ? oftype(float(x), NaN) : asin(x)";
+    tab(n, *fOut);
+    *fOut << "faust_acos(x) = abs(x) > 1 ? oftype(float(x), NaN) : acos(x)";
+    tab(n, *fOut);
+    *fOut << "faust_acosh(x) = x < 1 ? oftype(float(x), NaN) : acosh(x)";
+    tab(n, *fOut);
+    *fOut << "faust_atanh(x) = abs(x) > 1 ? oftype(float(x), NaN) : atanh(x)";
     tab(n, *fOut);
     *fOut << "rint(x) = round(x, Base.Rounding.RoundNearest)";
     tab(n, *fOut);

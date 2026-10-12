@@ -318,6 +318,15 @@ void CmajorCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "float64 round(float64 x) { return float64(roundToInt(x)); }";
     }
+    // Faust's isnan and isinf return an int; Cmajor's a bool, which an int32 does not take
+    tab(n + 1, *fOut);
+    *fOut << "int32 faust_isnan(float32 x) { return isnan(x) ? 1 : 0; }";
+    tab(n + 1, *fOut);
+    *fOut << "int32 faust_isnan(float64 x) { return isnan(x) ? 1 : 0; }";
+    tab(n + 1, *fOut);
+    *fOut << "int32 faust_isinf(float32 x) { return isinf(x) ? 1 : 0; }";
+    tab(n + 1, *fOut);
+    *fOut << "int32 faust_isinf(float64 x) { return isinf(x) ? 1 : 0; }";
     tab(n + 1, *fOut);
 
     // inputs/outputs
