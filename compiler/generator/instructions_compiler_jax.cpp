@@ -162,7 +162,7 @@ ValueInst* InstructionsCompilerJAX::generateSoundfile(Tree sig, Tree path)
             block, IB::genBlockInst()));
     }
 
-    if (gGlobal->gOneSample >= 0) {
+    if (gGlobal->gOneSample) {
         pushDeclare(IB::genDecStructVar(SFcache, IB::genBasicTyped(Typed::kSound_ptr)));
         pushComputeBlockMethod(IB::genStoreStructVar(SFcache, IB::genLoadStructVar(varname)));
     } else {
