@@ -103,13 +103,17 @@ static const char* wrapHelper(int opcode)
     }
 }
 
+// A real constant as a literal. The test is on the value in the precision of the program: a
+// double beyond the float range (1e38 * 10, folded in double) is an infinity in single
+// precision, which T() would print as "inf.0f"
 static string realLiteral(double r)
 {
-    if (std::isnan(r)) {
+    double v = (gGlobal->gFloatSize == 1) ? double(float(r)) : r;
+    if (std::isnan(v)) {
         return "NAN";
     }
-    if (std::isinf(r)) {
-        return (r < 0) ? "-INFINITY" : "INFINITY";
+    if (std::isinf(v)) {
+        return (v < 0) ? "-INFINITY" : "INFINITY";
     }
     return T(r);
 }
@@ -2503,7 +2507,7 @@ class LoopSplitEmitter {
                             double      cr;
                             std::string cc = isSigInt(cf, &ci)     ? T(ci)
                                              : isSigInt64(cf, &cl) ? T(cl)
-                                             : isSigReal(cf, &cr)  ? T(cr)
+                                             : isSigReal(cf, &cr)  ? realLiteral(cr)
                                                                    : fC->CS(cf);
                             fClass->addZone2(subst("$0[$1] = $2;", tab,
                                                    T((int)r2 * n + j), cc));
@@ -7246,7 +7250,7 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
         } else if (isSigInt64(cf, &cl)) {
             coefInitStream << T(cl);
         } else if (isSigReal(cf, &cr)) {
-            coefInitStream << T(cr);
+            coefInitStream << realLiteral(cr);
         } else {
             coefInitStream << CS(cf);
         }

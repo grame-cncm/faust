@@ -70,17 +70,30 @@ void        printlines(int n, std::list<std::string>& lines, std::ostream& fout,
                        const std::string& sep = "");
 std::string rmWhiteSpaces(const std::string& s);
 
+// The non-finite constants as the C macros of <math.h>: INFINITY keeps the sign of -inf,
+// which a value printed as INFINITY loses, and NAN replaces the "nan" of printf
+template <typename REAL>
+inline std::string checkNonFinite(REAL val)
+{
+    if (std::isnan(val)) {
+        return "NAN";
+    }
+    if (std::isinf(val)) {
+        return (val < 0) ? "-INFINITY" : "INFINITY";
+    }
+    return T(val);
+}
 inline std::string checkFloat(float val)
 {
-    return (std::isinf(val)) ? "INFINITY" : T(val);
+    return checkNonFinite(val);
 }
 inline std::string checkDouble(double val)
 {
-    return (std::isinf(val)) ? "INFINITY" : T(val);
+    return checkNonFinite(val);
 }
 inline std::string checkQuad(long double val)
 {
-    return (std::isinf(val)) ? "INFINITY" : T(val);
+    return checkNonFinite(val);
 }
 std::string checkReal(double val);
 

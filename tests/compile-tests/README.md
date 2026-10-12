@@ -33,9 +33,11 @@ python3 tests/compile-tests/fixed-point-tables.py \
 ### Non-finite constants
 
 `nonfinite-constants.py` generates a program whose outputs are the constants
-+inf and -inf at its first sample, in single and double precision, and runs
-it in Julia, where the literals are `Inf32` and `Inf` (the C macro `INFINITY`
-is undefined there):
++inf, -inf and `1e38 * 10` (an infinity in single precision, folded in double)
+at its first sample, in single and double precision, and runs it with the
+cpp, ocpp and Julia backends: the sign of -inf is kept, ocpp tests a constant
+in the precision of the program, and Julia uses its literals `Inf32` and `Inf`
+(the C macro `INFINITY` is undefined there):
 
 ```sh
 python3 tests/compile-tests/nonfinite-constants.py --faust build/bin/faust
