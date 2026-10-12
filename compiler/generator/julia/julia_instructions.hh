@@ -22,7 +22,9 @@
 #ifndef _JULIA_INSTRUCTIONS_H
 #define _JULIA_INSTRUCTIONS_H
 
+#include <regex>
 #include <set>
+#include <sstream>
 #include <string>
 
 #include "struct_manager.hh"
@@ -134,6 +136,9 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
 
 class JuliaInstVisitor : public TextInstVisitor {
    private:
+    // Whether the arguments of the function being declared have the type parameter T
+    bool fFunUsesT = true;
+
     /*
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
@@ -572,8 +577,15 @@ class JuliaInstVisitor : public TextInstVisitor {
             gFunctionSymbolTable[inst->fName] = true;
         }
 
-        *fOut << "function " << inst->fName;
+        // The arguments first, to know whether one of them has the type parameter T: a
+        // function of integers (mydsp_faustpower3_i) declaring an unused T makes Julia warn
+        std::ostream*     out = fOut;
+        std::stringstream args;
+        fOut = &args;
         generateFunDefArgs(inst);
+        fOut      = out;
+        fFunUsesT = std::regex_search(args.str(), std::regex("\\bT\\b"));
+        *fOut << "function " << inst->fName << args.str();
         generateFunDefBody(inst);
     }
 
@@ -593,11 +605,12 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
+        const char* where = fFunUsesT ? ") where {T}" : ")";
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ") where {T}" << std::endl;  // Pure prototype
+            *fOut << where << std::endl;  // Pure prototype
         } else {
             // Function body
-            *fOut << ") where {T}";
+            *fOut << where;
             fTab++;
             tab(fTab, *fOut);
             inst->fCode->accept(this);
