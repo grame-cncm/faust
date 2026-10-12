@@ -70,16 +70,25 @@ void        printlines(int n, std::list<std::string>& lines, std::ostream& fout,
                        const std::string& sep = "");
 std::string rmWhiteSpaces(const std::string& s);
 
-// The non-finite constants as the C macros of <math.h>: INFINITY keeps the sign of -inf,
-// which a value printed as INFINITY loses, and NAN replaces the "nan" of printf
+// How a target language spells +inf, -inf and NaN
+struct NonFiniteNames {
+    const char* fPosInf;
+    const char* fNegInf;
+    const char* fNaN;
+};
+
+// The C macros of <math.h>: -INFINITY keeps the sign of -inf, which a value printed as
+// INFINITY loses, and NAN replaces the "nan" of printf
+inline const NonFiniteNames gCNonFiniteNames = {"INFINITY", "-INFINITY", "NAN"};
+
 template <typename REAL>
-inline std::string checkNonFinite(REAL val)
+inline std::string checkNonFinite(REAL val, const NonFiniteNames& names = gCNonFiniteNames)
 {
     if (std::isnan(val)) {
-        return "NAN";
+        return names.fNaN;
     }
     if (std::isinf(val)) {
-        return (val < 0) ? "-INFINITY" : "INFINITY";
+        return (val < 0) ? names.fNegInf : names.fPosInf;
     }
     return T(val);
 }

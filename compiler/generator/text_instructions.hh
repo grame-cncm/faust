@@ -53,6 +53,25 @@ class TextInstVisitor : public InstVisitor {
         }
     }
 
+    // The non-finite constants as the target language spells them, for a single (float) or a
+    // double precision constant: the C macros by default
+    virtual NonFiniteNames nonFiniteNames(bool single) const { return gCNonFiniteNames; }
+
+    std::string floatLiteral(float val) const { return checkNonFinite(val, nonFiniteNames(true)); }
+    std::string doubleLiteral(double val) const
+    {
+        return checkNonFinite(val, nonFiniteNames(false));
+    }
+    std::string quadLiteral(long double val) const
+    {
+        return checkNonFinite(val, nonFiniteNames(false));
+    }
+    // A real given in double (a control's bounds), in the precision of the program
+    std::string realLiteral(double val) const
+    {
+        return (strcmp(ifloat(), "float") == 0) ? floatLiteral(float(val)) : doubleLiteral(val);
+    }
+
     // To be adapted in subclasses
     virtual void visitCond(ValueInst* cond)
     {
@@ -155,13 +174,13 @@ class TextInstVisitor : public InstVisitor {
         EndLine();
     }
 
-    virtual void visit(FloatNumInst* inst) { *fOut << checkFloat(inst->fNum); }
+    virtual void visit(FloatNumInst* inst) { *fOut << floatLiteral(inst->fNum); }
 
     virtual void visit(FloatArrayNumInst* inst)
     {
         char sep = '{';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            *fOut << sep << floatLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << '}';
@@ -183,37 +202,37 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(BoolNumInst* inst) { *fOut << ((inst->fNum) ? "true" : "false"); }
 
-    virtual void visit(DoubleNumInst* inst) { *fOut << checkDouble(inst->fNum); }
+    virtual void visit(DoubleNumInst* inst) { *fOut << doubleLiteral(inst->fNum); }
 
     virtual void visit(DoubleArrayNumInst* inst)
     {
         char sep = '{';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            *fOut << sep << doubleLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << '}';
     }
 
-    virtual void visit(QuadNumInst* inst) { *fOut << checkQuad(inst->fNum); }
+    virtual void visit(QuadNumInst* inst) { *fOut << quadLiteral(inst->fNum); }
 
     virtual void visit(QuadArrayNumInst* inst)
     {
         char sep = '{';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkQuad(inst->fNumTable[i]);
+            *fOut << sep << quadLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << '}';
     }
 
-    virtual void visit(FixedPointNumInst* inst) { *fOut << checkFloat(inst->fNum); }
+    virtual void visit(FixedPointNumInst* inst) { *fOut << floatLiteral(inst->fNum); }
 
     virtual void visit(FixedPointArrayNumInst* inst)
     {
         char sep = '{';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            *fOut << sep << floatLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << '}';

@@ -36,6 +36,15 @@ class CSharpInstVisitor : public TextInstVisitor {
     static std::map<std::string, std::string> gMathLibTable;
 
    public:
+    // C# has no INFINITY: its own constants
+    virtual NonFiniteNames nonFiniteNames(bool single) const
+    {
+        return single
+                   ? NonFiniteNames{"float.PositiveInfinity", "float.NegativeInfinity", "float.NaN"}
+                   : NonFiniteNames{"double.PositiveInfinity", "double.NegativeInfinity",
+                                    "double.NaN"};
+    }
+
     using TextInstVisitor::visit;
 
     CSharpInstVisitor(std::ostream* out, int tab = 0)
@@ -234,8 +243,8 @@ class CSharpInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", "
-              << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
-              << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << "))";
+              << realLiteral(inst->fInit) << ", " << realLiteral(inst->fMin) << ", "
+              << realLiteral(inst->fMax) << ", " << realLiteral(inst->fStep) << "))";
         EndLine();
     }
 
@@ -255,7 +264,7 @@ class CSharpInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", "
-              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << "))";
+              << realLiteral(inst->fMin) << ", " << realLiteral(inst->fMax) << "))";
         EndLine();
     }
 

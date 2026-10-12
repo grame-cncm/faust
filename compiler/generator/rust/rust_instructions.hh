@@ -96,6 +96,13 @@ class RustInstVisitor : public TextInstVisitor {
     }
 
    public:
+    // Rust has no INFINITY: its own constants
+    virtual NonFiniteNames nonFiniteNames(bool single) const
+    {
+        return single ? NonFiniteNames{"f32::INFINITY", "f32::NEG_INFINITY", "f32::NAN"}
+                      : NonFiniteNames{"f64::INFINITY", "f64::NEG_INFINITY", "f64::NAN"};
+    }
+
     using TextInstVisitor::visit;
 
     RustInstVisitor(std::ostream* out, const std::string& structname, int tab = 0)
@@ -388,7 +395,7 @@ class RustInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            *fOut << sep << floatLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ']';
@@ -408,7 +415,7 @@ class RustInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            *fOut << sep << doubleLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ']';
@@ -800,6 +807,13 @@ class RustUIInstVisitor : public TextInstVisitor {
     }
 
    public:
+    // Rust has no INFINITY: its own constants
+    virtual NonFiniteNames nonFiniteNames(bool single) const
+    {
+        return single ? NonFiniteNames{"f32::INFINITY", "f32::NEG_INFINITY", "f32::NAN"}
+                      : NonFiniteNames{"f64::INFINITY", "f64::NEG_INFINITY", "f64::NAN"};
+    }
+
     using TextInstVisitor::visit;
 
     RustUIInstVisitor(std::ostream* out, const std::string& structname,
@@ -875,9 +889,9 @@ class RustUIInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", "
-              << "ParamIndex(" << getParameterIndex(inst->fZone) << "), " << checkReal(inst->fInit)
-              << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", "
-              << checkReal(inst->fStep) << ")";
+              << "ParamIndex(" << getParameterIndex(inst->fZone) << "), "
+              << realLiteral(inst->fInit) << ", " << realLiteral(inst->fMin) << ", "
+              << realLiteral(inst->fMax) << ", " << realLiteral(inst->fStep) << ")";
         EndLine();
     }
 
@@ -893,8 +907,8 @@ class RustUIInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", ParamIndex("
-              << getParameterIndex(inst->fZone) << "), " << checkReal(inst->fMin) << ", "
-              << checkReal(inst->fMax) << ")";
+              << getParameterIndex(inst->fZone) << "), " << realLiteral(inst->fMin) << ", "
+              << realLiteral(inst->fMax) << ")";
         EndLine();
     }
 

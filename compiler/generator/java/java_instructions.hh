@@ -39,6 +39,15 @@ class JAVAInstVisitor : public TextInstVisitor {
     TypingVisitor fTypingVisitor;
 
    public:
+    // Java has no INFINITY: its own constants
+    virtual NonFiniteNames nonFiniteNames(bool single) const
+    {
+        return single ? NonFiniteNames{"Float.POSITIVE_INFINITY", "Float.NEGATIVE_INFINITY",
+                                       "Float.NaN"}
+                      : NonFiniteNames{"Double.POSITIVE_INFINITY", "Double.NEGATIVE_INFINITY",
+                                       "Double.NaN"};
+    }
+
     using TextInstVisitor::visit;
 
     JAVAInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", ifloat(), "[]", tab)
@@ -218,8 +227,8 @@ class JAVAInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", "
-              << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
-              << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+              << realLiteral(inst->fInit) << ", " << realLiteral(inst->fMin) << ", "
+              << realLiteral(inst->fMax) << ", " << realLiteral(inst->fStep) << ")";
         EndLine();
     }
 
@@ -235,7 +244,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", "
-              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+              << realLiteral(inst->fMin) << ", " << realLiteral(inst->fMax) << ")";
         EndLine();
     }
 

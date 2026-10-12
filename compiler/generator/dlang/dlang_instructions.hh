@@ -39,6 +39,13 @@ class DLangInstVisitor : public TextInstVisitor {
     std::string cast2FAUSTFLOAT(const std::string& str) { return "cast(FAUSTFLOAT)" + str; }
 
    public:
+    // D has no INFINITY: its own constants
+    virtual NonFiniteNames nonFiniteNames(bool single) const
+    {
+        return single ? NonFiniteNames{"float.infinity", "-float.infinity", "float.nan"}
+                      : NonFiniteNames{"double.infinity", "-double.infinity", "double.nan"};
+    }
+
     using TextInstVisitor::visit;
 
     DLangInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", xfloat(), "*", tab)
@@ -195,10 +202,10 @@ class DLangInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", "
-              << "&" << inst->fZone << ", " << cast2FAUSTFLOAT(checkReal(inst->fInit)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fStep)) << ")";
+              << "&" << inst->fZone << ", " << cast2FAUSTFLOAT(realLiteral(inst->fInit)) << ", "
+              << cast2FAUSTFLOAT(realLiteral(inst->fMin)) << ", "
+              << cast2FAUSTFLOAT(realLiteral(inst->fMax)) << ", "
+              << cast2FAUSTFLOAT(realLiteral(inst->fStep)) << ")";
         EndLine();
     }
 
@@ -214,8 +221,8 @@ class DLangInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", &" << inst->fZone << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ")";
+              << cast2FAUSTFLOAT(realLiteral(inst->fMin)) << ", "
+              << cast2FAUSTFLOAT(realLiteral(inst->fMax)) << ")";
         EndLine();
     }
 
@@ -379,7 +386,7 @@ class DLangInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            *fOut << sep << floatLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ']';
@@ -399,7 +406,7 @@ class DLangInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            *fOut << sep << doubleLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ']';
