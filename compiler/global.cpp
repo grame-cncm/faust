@@ -22,6 +22,7 @@
 #include <limits.h>
 #include <cstdint>
 
+#include "propagate.hh"
 #include "absprim.hh"
 #include "acosprim.hh"
 #include "asinprim.hh"
@@ -645,6 +646,9 @@ void global::init()
     // Default init
     initFaustFloat();
 
+    // the propagation memo of a previous compilation points to deleted trees
+    clearPropagateMemo();
+
     gPureRoutingProperty   = new property<bool>();
     gSymbolicBoxProperty   = new property<Tree>();
     gEvalMemo              = new property2<Tree>();
@@ -1096,6 +1100,9 @@ global::~global()
     // the static sigs::g must not keep stale pointers.
     gMemoizedTypes = nullptr;
     gSymListProp   = nullptr;
+
+    // the propagation memo points to the trees that tlib::cleanup deletes
+    clearPropagateMemo();
 
     tlib::cleanup();
     BasicTyped::cleanup();

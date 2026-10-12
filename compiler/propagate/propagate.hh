@@ -40,6 +40,9 @@ siglist makeSigInputList(int n);
  */
 Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig);
 
+/// empty the propagation memo : at the start and at the end of a compilation
+void clearPropagateMemo();
+
 /**
  * Propagate a list of signals into a block diagram. Do memoization.
  *

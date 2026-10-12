@@ -127,30 +127,16 @@ class PropagateMemo {
 
 static PropagateMemo gPropagateMemo;
 
-class PropagateMemoScope {
-    static int gDepth;
-
-   public:
-    PropagateMemoScope()
-    {
-        // Why: propagation memo entries are tied to the current compiler tree population and must
-        // not survive into another libfaust compilation. Also, boxPropagateSig can be used outside
-        // the main top-level propagation during evaluation. How: clear on the outermost scope
-        // boundary only, so nested uses do not destroy the enclosing call's cache.
-        if (gDepth++ == 0) {
-            gPropagateMemo.clear();
-        }
-    }
-
-    ~PropagateMemoScope()
-    {
-        if (--gDepth == 0) {
-            gPropagateMemo.clear();
-        }
-    }
-};
-
-int PropagateMemoScope::gDepth = 0;
+// The memo lives as long as one compilation : its entries point to the trees of the
+// compilation, deleted with it (global::destroy, libfaust compiles again in the same
+// process). It is cleared when a compilation starts and when it ends (global::init,
+// global::~global), never between two calls of boxPropagateSig : the evaluator calls it to
+// fold a pattern argument to a number, and an argument that grows by one node at every
+// level of a recursion would otherwise be propagated again in full at every level.
+void clearPropagateMemo()
+{
+    gPropagateMemo.clear();
+}
 
 // Why: -time showed the whole propagation phase, but not whether time was spent in useful
 // propagation rules or in memoization overhead. This distinction matters for FFT-like programs
@@ -852,7 +838,6 @@ siglist makeSigInputList(int n)
 
 Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig)
 {
-    PropagateMemoScope memoScope;
     if (gTimingSwitch && propagateProfileSwitch()) {
         resetPropagateProfile();
     }
