@@ -48,6 +48,18 @@ python3 tests/compile-tests/nonfinite-constants.py --faust build/bin/faust
 python3 tests/compile-tests/nonfinite-constants.py --faust build/bin/faust --backends dlang csharp
 ```
 
+### Float-to-integer conversions in Julia
+
+`julia-float-to-int.py` runs `process = _ : int;` in Julia on 0.5, -2.7, NaN,
+1e10, -1e10 and 3e9, in single and double precision: the conversion
+saturates (0 for a NaN, the nearest bound of the Int32 range beyond it), as
+in the C++ (arm64) and WebAssembly backends, where `trunc` threw
+`InexactError`:
+
+```sh
+python3 tests/compile-tests/julia-float-to-int.py --faust build/bin/faust
+```
+
 ### Integer powers with run-time exponents
 
 `integer-pow.py` executes the C++ regression, including `-ffast-math`.

@@ -125,6 +125,15 @@ void JuliaCodeContainer::produceClass()
     *fOut << "rint(x) = round(x, Base.Rounding.RoundNearest)";
     tab(n, *fOut);
     *fOut << "remainder(x, y) = rem(x, y, Base.Rounding.RoundNearest)";
+    // A float converted to an integer saturates, as in the C++ (arm64) and WebAssembly
+    // backends: 0 for a NaN, the nearest bound of the integer range beyond it. trunc(I, x)
+    // throws InexactError there, which stops the computation.
+    tab(n, *fOut);
+    *fOut << "faust_trunc(::Type{I}, x::AbstractFloat) where {I<:Integer} = isnan(x) ? zero(I) : "
+             "(x >= -float(typemin(I)) ? typemax(I) : (x < float(typemin(I)) ? typemin(I) : "
+             "unsafe_trunc(I, x)))";
+    tab(n, *fOut);
+    *fOut << "faust_trunc(::Type{I}, x::Integer) where {I<:Integer} = trunc(I, x)";
 
     // Merge sub containers
     mergeSubContainers();

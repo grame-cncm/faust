@@ -685,7 +685,8 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void visit(::CastInst* inst)
     {
         if (isIntType(inst->fType->getType())) {
-            *fOut << "trunc(";
+            // Saturating, see faust_trunc in the code container
+            *fOut << "faust_trunc(";
             *fOut << fTypeManager->generateType(inst->fType) << ", ";
         } else if (inst->fType->getType() == Typed::kDouble) {
             // Explicit FIR double casts can differ from the DSP sample type T.
