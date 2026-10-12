@@ -55,12 +55,12 @@
 struct GroupNode {
     enum Kind { kLeaf, kLoop, kAtomic, kAdjacent, kFree };
     Kind             kind;
-    Tree             sig = nullptr;  ///< leaves : the signal
-    int              mat = -1;       ///< leaves : materialized index, -1 if pure
-    std::string      regime;         ///< atomic : the emission regime's name
-    int              a = -1, b = -1;  ///< atomic : regime parameters (family, row)
-    int              weight = 1;      ///< atomic : declared scheduling weight
-    std::vector<int> children;        ///< node ids, in order
+    Tree             sig    = nullptr;  ///< leaves : the signal
+    int              mat    = -1;       ///< leaves : materialized index, -1 if pure
+    std::string      regime = {};       ///< atomic : the emission regime's name
+    int              a = -1, b = -1;    ///< atomic : regime parameters (family, row)
+    int              weight   = 1;      ///< atomic : declared scheduling weight
+    std::vector<int> children = {};     ///< node ids, in order
 };
 
 struct GroupPlan {

@@ -415,7 +415,6 @@ static Tree normalizeFixpoint(Tree L)
     Tree      prev         = nullptr;
     int       iter         = 0;
 
-    Tree       prevPrev = nullptr;
     uint64_t   prevAch  = 0;
     bool       haveAch  = false;
     // Iteration budget (-etai, default 1): one pass isolates the eta harvest
@@ -439,7 +438,6 @@ static Tree normalizeFixpoint(Tree L)
             prevAch = ach;
             haveAch = true;
         }
-        prevPrev = prev;
         prev     = d;
         // the merge: alpha-equivalent groups are now shared, back to symbolic --
         // with CONTENT-DERIVED variable names (deBruijn2Sym), so every name-derived

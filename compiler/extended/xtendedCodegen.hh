@@ -38,7 +38,7 @@ class CodeContainer;
 
 /*
  Code generation layer of the math primitives: the concrete primitives of the
- compiler (extended/*prim.hh) derive from this class, which extends the
+ compiler (the extended/...prim.hh files) derive from this class, which extends the
  signal-level interface xtended (signals/xtended.hh) with the code generation
  methods of the FIR, old CPP and documentation backends.
  */

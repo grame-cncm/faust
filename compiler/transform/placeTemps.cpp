@@ -77,7 +77,7 @@ static bool isStageable(Tree t)
     int     i;
     int64_t i64;
     double  r;
-    Tree    x, y, var, body;
+    Tree    x, var, body;
     if (t->arity() == 0) {
         return false;  // numbers, inputs, UI leaves, symbols
     }
@@ -153,8 +153,7 @@ Tree placeTemps(Tree lsig, int K)
         }
         int c = 0;
         if (isStageable(t)) {
-            Tree var, body;
-            int  raw = 1;
+            int raw = 1;
             for (int k = 0; k < t->arity(); k++) {
                 raw += costOf(t->branch(k));
             }

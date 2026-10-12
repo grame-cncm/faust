@@ -556,7 +556,7 @@ static void prepareDocEqns(const vector<Tree>& docBoxes, vector<Lateq*>& docComp
  */
 static void collectDocEqns(const vector<Tree>& docBoxes, vector<Tree>& eqBoxes)
 {
-    int nbdoceqn = 0;
+    [[maybe_unused]] int nbdoceqn = 0;  // read by the trace below
 
     for (vector<Tree>::const_iterator doc = docBoxes.begin(); doc < docBoxes.end(); doc++) {
         Tree L = reverse(*doc);

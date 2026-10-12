@@ -1534,7 +1534,7 @@ void ScalarCompiler::conditionAnnotation(Tree l)
 static bool isConditionBoundary(Tree t)
 {
     int     i;
-    Tree    x, y, z, u, v, w, lbl, mn, mx;
+    Tree    x, y, u, v, lbl, mn, mx;
     if (isSigDelay(t, x, y) || isSigDelay1(t, x) || isSigPrefix(t, x, y)) {
         return true;
     }
@@ -2028,7 +2028,7 @@ class LoopSplitEmitter {
     void prescan(Tree t, std::set<Tree, treeorder>& seen)
     {
         int  i;
-        Tree x, y, z, sel, w, ff, largs, tb, size, gen, wi, ws, ri, label;
+        Tree x, y, z, sel, w, ff, largs, tb, size, gen, ri, label;
         if (seen.count(t)) {
             return;
         }
@@ -2334,7 +2334,7 @@ class LoopSplitEmitter {
         int     i;
         int64_t i64;
         double  r;
-        Tree    x, y, z, sel, w, ff, largs, tb, size, gen, ri, label, c;
+        Tree    x, y, z, sel, ff, largs, tb, size, gen, ri, label;
         Operand o;
 
         // shared sample-rate op already walked in this loop
@@ -3154,9 +3154,7 @@ class LoopSplitEmitter {
                 }
             }
             int     i;
-            int64_t i64;
-            double  r;
-            Tree    x, y, z, sel, ff, largs, tb, size, gen, wi, ws, ri, label;
+            Tree    x, y, z, sel, ff, largs, tb, size, gen, ri, label;
             auto op = [&](std::vector<int> deps, bool call, int shp = 0) -> int {
                 LSOp o;
                 for (int d : deps) {
@@ -4722,7 +4720,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
             }
             return false;
         };
-        int added = 0, dropped = 0;
+        int added = 0;
         std::vector<std::pair<Tree, Tree>> soft;
         for (const Tree& t : G.nodes()) {
             Tree x, y;
@@ -4735,7 +4733,6 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         }
         for (auto& p : soft) {
             if (reaches(p.second, p.first)) {
-                dropped++;
                 fRFSacrificedWriters.insert(p.first);
                 continue;
             }
@@ -4965,10 +4962,10 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
     {
         int jj = 0;
         for (auto& s : S.elements()) {
-            int  pnum;
-            Tree rg;
             fScheduleOrder[s] = ++jj;
 #if 0
+            int  pnum;
+            Tree rg;
             if (isProj(s, &pnum, rg)) {
                 if (isSignalRecursive(s)) {
                     // std::cerr << jj << " proj " << pnum << " of " << *rg << " is recursive"
@@ -5024,7 +5021,7 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
                           << std::endl;
                 faustassert(false);
             }
-            int lSTEP = gGlobal->gSTEP;  // conveninient for debug
+            [[maybe_unused]] int lSTEP = gGlobal->gSTEP;  // convenient for debug
             CS(s);
             gGlobal->gSTEP++;
         }
@@ -5065,11 +5062,8 @@ void ScalarCompiler::compileMultiSignalAux(Tree L)
         // emission used to grant : freeverb's one-pole comb states live in
         // 2-definition groups, which the kMonoDelay criterion (singleton
         // self-recursions only) cannot serve.
-        {
-            int done = 0;
-            for (const auto& v : fSingleDelayScalarCandidates) {
-                done += fClass->scalarizeSingleDelay(v);
-            }
+        for (const auto& v : fSingleDelayScalarCandidates) {
+            fClass->scalarizeSingleDelay(v);
         }
     }
 
@@ -5123,7 +5117,7 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
             std::cerr << "NOT SUPPOSED TO HAPPEN: We have a Nil in the schedule !" << std::endl;
             faustassert(false);
         }
-        int lSTEP = gGlobal->gSTEP;  // convenient for debug
+        [[maybe_unused]] int lSTEP = gGlobal->gSTEP;  // convenient for debug
         CS(s);
         gGlobal->gSTEP++;
     }
@@ -5771,7 +5765,6 @@ Tree ScalarCompiler::harvestDisplay(Tree L)
     {
         std::set<Tree>    seen;
         std::vector<Tree> work{L};
-        bool              under = false;
         std::function<void(Tree, bool)> scan = [&](Tree t, bool u) {
             auto it = seen.find(t);
             if (it != seen.end() && !u) {
@@ -6397,8 +6390,8 @@ string ScalarCompiler::generateWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tre
 string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree ri)
 {
     // Test the special case of a read only table that can be compiled as a static member
-    Occurrences* o = fOccMarkup->retrieve(sig);
 #ifdef TRACE
+    Occurrences* o = fOccMarkup->retrieve(sig);
     std::cerr << "generateRDTbl : " << sig << "; mxd=" << o->getMaxDelay()
               << "; delay count=" << o->getDelayCount() << "\n";
 #endif
