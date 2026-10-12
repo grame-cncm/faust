@@ -28,6 +28,36 @@
 #include "struct_manager.hh"
 #include "text_instructions.hh"
 
+// Julia has no INFINITY: the non-finite literals are Inf32 and NaN32 for Float32, Inf and
+// NaN for Float64. checkFloat and checkDouble print the C macro, which is undefined in Julia,
+// and lose the sign of -inf.
+inline std::string juliaFloat(float val)
+{
+    if (std::isnan(val)) {
+        return "NaN32";
+    }
+    if (std::isinf(val)) {
+        return (val < 0) ? "-Inf32" : "Inf32";
+    }
+    return T(val);
+}
+
+inline std::string juliaDouble(double val)
+{
+    if (std::isnan(val)) {
+        return "NaN";
+    }
+    if (std::isinf(val)) {
+        return (val < 0) ? "-Inf" : "Inf";
+    }
+    return T(val);
+}
+
+inline std::string juliaReal(double val)
+{
+    return (strcmp(ifloat(), "float") == 0) ? juliaFloat(float(val)) : juliaDouble(val);
+}
+
 // Visitor used to initialize array fields into the DSP structure
 struct JuliaInitFieldsVisitor : public DispatchVisitor {
     std::ostream* fOut;
@@ -85,7 +115,7 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            *fOut << sep << juliaFloat(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ']';
@@ -95,7 +125,7 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            *fOut << sep << juliaDouble(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ']';
@@ -383,10 +413,10 @@ class JuliaInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << "ui_interface, " << quote(inst->fLabel) << ", :" << inst->fZone << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fInit)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fStep)) << ")";
+              << cast2FAUSTFLOAT(juliaReal(inst->fInit)) << ", "
+              << cast2FAUSTFLOAT(juliaReal(inst->fMin)) << ", "
+              << cast2FAUSTFLOAT(juliaReal(inst->fMax)) << ", "
+              << cast2FAUSTFLOAT(juliaReal(inst->fStep)) << ")";
         EndLine(' ');
     }
 
@@ -402,8 +432,8 @@ class JuliaInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << "ui_interface, " << quote(inst->fLabel) << ", :" << inst->fZone << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ")";
+              << cast2FAUSTFLOAT(juliaReal(inst->fMin)) << ", "
+              << cast2FAUSTFLOAT(juliaReal(inst->fMax)) << ")";
         EndLine(' ');
     }
 
@@ -416,6 +446,10 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void visit(Int32NumInst* inst) { *fOut << "Int32(" << inst->fNum << ")"; }
 
     virtual void visit(Int64NumInst* inst) { *fOut << "Int64(" << inst->fNum << ")"; }
+
+    virtual void visit(FloatNumInst* inst) { *fOut << juliaFloat(inst->fNum); }
+
+    virtual void visit(DoubleNumInst* inst) { *fOut << juliaDouble(inst->fNum); }
 
     virtual void visit(Int32ArrayNumInst* inst)
     {
@@ -431,7 +465,7 @@ class JuliaInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            *fOut << sep << juliaFloat(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ']';
@@ -441,7 +475,7 @@ class JuliaInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            *fOut << sep << juliaDouble(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ']';

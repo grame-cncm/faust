@@ -30,6 +30,17 @@ python3 tests/compile-tests/fixed-point-tables.py \
   --ap-fixed-include /path/to/xilinx/include
 ```
 
+### Non-finite constants
+
+`nonfinite-constants.py` generates a program whose outputs are the constants
++inf and -inf at its first sample, in single and double precision, and runs
+it in Julia, where the literals are `Inf32` and `Inf` (the C macro `INFINITY`
+is undefined there):
+
+```sh
+python3 tests/compile-tests/nonfinite-constants.py --faust build/bin/faust
+```
+
 ### Integer powers with run-time exponents
 
 `integer-pow.py` executes the C++ regression, including `-ffast-math`.
