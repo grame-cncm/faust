@@ -45,6 +45,7 @@
 #include "signalFIRCompiler.hh"
 #include "signalVisitor.hh"
 #include "sigprint.hh"
+#include "gap_smoother.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
 #include "xtendedCodegen.hh"
@@ -2402,10 +2403,15 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
         if (used[i]) {
             Address::AccessType access;
             ValueInst*          ccs = getConditionCode(nth(le, i));
+            // a smoother of a slow target is computed as its gap to the target
+            Tree       c, target;
+            ValueInst* def = (dynamic_cast<NullValueInst*>(ccs) && isGapSmoother(sigProj(i, sig), nth(le, i), c, target))
+                                 ? generateGapSmoother(c, target, ctype[i])
+                                 : CS(nth(le, i));
             if (index == i) {
-                res = generateDelayLine(CS(nth(le, i)), ctype[i], vname[i], delay[i], access, ccs);
+                res = generateDelayLine(def, ctype[i], vname[i], delay[i], access, ccs);
             } else {
-                generateDelayLine(CS(nth(le, i)), ctype[i], vname[i], delay[i], access, ccs);
+                generateDelayLine(def, ctype[i], vname[i], delay[i], access, ccs);
             }
             fUnstoredRecMembers.erase(sigProj(i, sig));
             flushPendingDelayWrites();
@@ -2413,6 +2419,32 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
     }
 
     return res;
+}
+
+/**
+ * The smoother y = mix(c, y', T) of a slow target, computed as its gap e = T - y to the
+ * target (see gap_smoother.hh) : e = (1 - c) * (e' + (T - T')), y = T - e, 1 - c at the
+ * rate of c ; the gap and the previous target are states, 0 at start.
+ */
+ValueInst* InstructionsCompiler::generateGapSmoother(Tree c, Tree target, BasicTyped* ctype)
+{
+    ValueInst* vt   = compoundOperand(target);
+    ValueInst* vc   = compoundOperand(c);
+    ValueInst* w    = compoundSlowStore(getCertifiedSigType(c)->variability(),
+                                        IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0), vc));
+    string     gap  = subst("f$0", gGlobal->getFreshID("Gap"));
+    string     prev = subst("f$0", gGlobal->getFreshID("GapTarget"));
+    string     tmp  = subst("f$0", gGlobal->getFreshID("GapTemp"));
+    pushDeclare(IB::genDecStructVar(gap, ctype));
+    pushDeclare(IB::genDecStructVar(prev, ctype));
+    pushClearMethod(IB::genStoreStructVar(gap, IB::genTypedZero(ctype)));
+    pushClearMethod(IB::genStoreStructVar(prev, IB::genTypedZero(ctype)));
+    ValueInst* step = IB::genBinopInst(kSub, vt, IB::genLoadStructVar(prev));
+    ValueInst* sum  = IB::genBinopInst(kAdd, IB::genLoadStructVar(gap), step);
+    pushComputeDSPMethod(IB::genDecStackVar(tmp, ctype, IB::genBinopInst(kMul, w, sum)));
+    pushComputeDSPMethod(IB::genStoreStructVar(gap, IB::genLoadStackVar(tmp)));
+    pushComputeDSPMethod(IB::genStoreStructVar(prev, vt));
+    return IB::genBinopInst(kSub, vt, IB::genLoadStackVar(tmp));
 }
 
 /**
