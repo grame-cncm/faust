@@ -662,17 +662,15 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("prepare");
     Tree L1 = simplifyToNormalForm(LS);
 
-    // dump normal form
+    // dump normal form : the equations, with the types the typing gives them ; the checks
+    // that refuse a program are left out, so that a refused program is printed too
     if (gGlobal->gDumpNorm == 0) {
-        cout << ppsig(L1) << endl;
+        try {
+            typeAnnotation(L1, false);
+        } catch (faustexception&) {
+        }
+        ppsigEquations(L1, cout);
         throw faustexception("Dump normal form finished...\n");
-    } else if (gGlobal->gDumpNorm == 1) {
-        ppsigShared(L1, cout);
-        throw faustexception("Dump shared normal form finished...\n");
-    } else if (gGlobal->gDumpNorm == 2) {
-        // Print signal tree type
-        SignalTypePrinter printer(L1);
-        throw faustexception("Dump signal type finished...\n");
     }
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);

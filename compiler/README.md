@@ -270,9 +270,7 @@ Debug options:
 
   **-rg**         **--retiming-graph**            print the internal signal graph after retiming in dot format.
 
-  **-norm**       **--normalized-form**           print signals in normalized form and exit.
-
-  **-norm1**      **--normalized-form1**          print signals in normalized form with IDs for shared sub-expressions and exit.
+  **-norm**       **--normalized-form**           print signals in normalized form, as equations with their types, and exit.
 
   **-me**         **--math-exceptions**           check / for 0 as denominator and remainder, fmod, sqrt, log10, log, acos, asin functions domain.
 
