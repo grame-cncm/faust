@@ -111,13 +111,11 @@ help:
 	@echo " 'reference-box'          : build the reference box files"
 	@echo " 'reference-signal'       : build the reference signal files"
 	@echo " 'reference-signal-wn'    : build the reference signal files without normalisation (FAUST_OPT=FAUST_SIG_NO_NORM)"
-	@echo " 'reference-type'         : build the reference signal type files"
 	@echo " 'reference-fir'          : build the reference FIR files"
 	@echo " 'reference-cpp'          : build the reference C++ files"
 	@echo " 'test-box'               : test box creation intermediate step"
 	@echo " 'test-signal'            : test signal creation intermediate step"
 	@echo " 'test-signal-wn'         : test signal creation intermediate step without normalisation (FAUST_OPT=FAUST_SIG_NO_NORM)"
-	@echo " 'test-type'              : test signal typing intermediate step"
 	@echo " 'test-fir'               : test FIR intermediate step"
 	@echo " 'test-cpp'               : test C++ generation step"
 	@echo " 'clang-tidy'             : run clang-tidy (clang-analyzer checks like uninit/UB/null deref; static-only) on generated C++ in ir/$(CLANG_TIDY_OUTDIR)"
@@ -693,10 +691,6 @@ reference-signal:
 	cd reference && rm -f *.sig
 	$(MAKE) -f Make.ref reference-signal FAUSTOPTIONS="-I dsp"
 
-reference-type:
-	cd reference && rm -f *.type
-	$(MAKE) -f Make.ref reference-type FAUSTOPTIONS="-I dsp"
-	
 reference-fir:
 	cd reference && rm -f *.fir
 	$(MAKE) -f Make.ref reference-fir FAUSTOPTIONS="-I dsp"
@@ -724,9 +718,6 @@ test-signal-wn:
 	
 test-signal:
 	cd dsp && ./sig-script *.dsp
-
-test-type:
-	 cd dsp && ./type-script *.dsp
 
 test-fir:
 	cd dsp && ./fir-script *.dsp

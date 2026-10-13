@@ -1624,17 +1624,8 @@ bool global::processCmdline(int argc, const char* argv[])
             gDumpNorm = 0;
             i += 1;
 
-        } else if (isCmd(argv[i], "-norm1", "--normalized-form1")) {
-            gDumpNorm = 1;
-            i += 1;
 
-        } else if (isCmd(argv[i], "-norm2", "--normalized-form2")) {
-            gDumpNorm = 2;
-            i += 1;
 
-        } else if (isCmd(argv[i], "-norm3", "--normalized-form3")) {
-            gDumpNorm = 3;
-            i += 1;
 
         } else if (isCmd(argv[i], "-cn", "--class-name") && (i + 1 < argc)) {
             vector<char> rep = {'@', ' ', '(', ')', '/', '\\', '.'};
@@ -2891,11 +2882,8 @@ string global::printHelp()
             "retiming in dot format."
          << endl;
     sstr << tab
-         << "-norm       --normalized-form           print signals in normalized form and exit."
-         << endl;
-    sstr << tab
-         << "-norm1      --normalized-form1          print signals in normalized form with IDs for "
-            "shared sub-expressions and exit."
+         << "-norm       --normalized-form           print signals in normalized form, as equations "
+            "with their types, and exit."
          << endl;
     sstr << tab
          << "-me         --math-exceptions           check / for 0 as denominator and remainder, "
