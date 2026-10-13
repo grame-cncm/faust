@@ -317,7 +317,15 @@ struct LocalVariableCounter : public DispatchVisitor {
         Typed::VarType      type   = inst->fType->getType();
         Address::AccessType access = inst->getAccess();
 
-        faustassert(fLocalVarTable.find(name) == fLocalVarTable.end());
+        // A block inlined twice in one function declares its locals again : the fill code of
+        // a table generator that fills two tables, in classInit. The copies run one after
+        // the other and each one writes a local before reading it, so the same name, with
+        // the same type and access, is the same local.
+        auto prev = fLocalVarTable.find(name);
+        if (prev != fLocalVarTable.end()) {
+            faustassert(prev->second.fType == type && prev->second.fAccess == access);
+            return;
+        }
 
         // stack/loop variables accessed by [var_num, type] pairs
         if (access & Address::kStack || access & Address::kLoop) {
