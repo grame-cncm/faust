@@ -39,6 +39,7 @@
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
+#include "gap_smoother.hh"
 #include "dlcodegen.hh"
 #include "floats.hh"
 #include "normalform.hh"
@@ -6692,11 +6693,37 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
     fClass->addDeclCode(
         subst("// While its definition is of type $0", nameDelayType(analyzeDelayType(def))));
     DelayType   dtype = analyzeDelayType(sig);
-    std::string code  = CS(def);
     std::string cond  = getConditionCode(def);
-    std::string dl0   = generateDelayLine(dtype, ctype, vecname, delay, count, mono, code, cond);
+    // a smoother of a slow target is computed as its gap to the target
+    Tree        c, target;
+    std::string code = (cond.empty() && isGapSmoother(sig, def, c, target)) ? generateGapSmoother(c, target, ctype)
+                                                                          : CS(def);
+    std::string dl0  = generateDelayLine(dtype, ctype, vecname, delay, count, mono, code, cond);
 
     return dl0;
+}
+
+/**
+ * The smoother y = mix(c, y', T) of a slow target, computed as its gap e = T - y to the
+ * target (see gap_smoother.hh) : e = (1 - c) * (e' + (T - T')), y = T - e, 1 - c at the
+ * rate of c ; the gap and the previous target are states, 0 at start.
+ */
+string ScalarCompiler::generateGapSmoother(Tree c, Tree target, const string& ctype)
+{
+    string vt   = compoundOperand(target);
+    string vc   = compoundOperand(c);
+    string w    = compoundSlowStore(getCertifiedSigType(c)->variability(), subst("($0 - $1)", realLiteral(1.0), vc));
+    string gap  = subst("f$0", getFreshID("Gap"));
+    string prev = subst("f$0", getFreshID("GapTarget"));
+    string tmp  = subst("f$0", getFreshID("GapTemp"));
+    fClass->addDeclCode(subst("$0 \t$1;", ctype, gap));
+    fClass->addDeclCode(subst("$0 \t$1;", ctype, prev));
+    fClass->addClearCode(subst("$0 = 0;", gap));
+    fClass->addClearCode(subst("$0 = 0;", prev));
+    fClass->addExecCode(Statement("", subst("$0 \t$1 = ($2 * ($3 + ($4 - $5)));", ctype, tmp, w, gap, vt, prev)));
+    fClass->addExecCode(Statement("", subst("$0 = $1;", gap, tmp)));
+    fClass->addExecCode(Statement("", subst("$0 = $1;", prev, vt)));
+    return subst("($0 - $1)", vt, tmp);
 }
 
 /**
