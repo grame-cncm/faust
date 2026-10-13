@@ -51,6 +51,9 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     virtual ValueInst* generateInput(Tree sig, int idx) override;
 
     virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree size) override;
+    virtual ValueInst* generateTapAccess(Tree exp, int delay) override;
+    virtual ValueInst* lineRead(const std::string& vname, int mxd, int delay) override;
+    virtual ValueInst* writeIIRLine(Tree sig, ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd) override;
     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype,
                                         const std::string& vname, int mxd) override;
     virtual ValueInst* generateDelayLine(ValueInst* exp, BasicTyped* ctype,

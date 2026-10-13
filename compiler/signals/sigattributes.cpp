@@ -162,6 +162,17 @@ class NatureAlgebra : public SignalAlgebra<int> {
     int Exp(const int&) const override { return kReal; }
     int Exp10(const int&) const override { return kReal; }
     int Floor(const int&) const override { return kReal; }
+    // the compound operations compute in floating point (a floor, a division, a 1.0)
+    int Frac(const int& x) const override { return x | kReal; }
+    int Cfrac(const int& x) const override { return x | kReal; }
+    int Mix(const int& c, const int& a, const int& b) const override { return kReal | c | a | b; }
+    int Phase(const int& x, const int& p) const override { return kReal | x | p; }
+    int Tpt(const int&) const override { return kReal; }
+    // the kernels : their definitions (exact for this attribute, see SignalDispatch)
+    int Sum(const std::vector<int>& t) const override { return sumDefinition(t); }
+    int Prod(const std::vector<int>& t) const override { return prodDefinition(t); }
+    int Fir(const int& x, const std::vector<int>& c) const override { return firDefinition(x, c); }
+    int Iir(const int& x, const std::vector<int>& c) const override { return iirFeedforward(x, c); }
     int Log(const int&) const override { return kReal; }
     int Log10(const int&) const override { return kReal; }
     int Pow(const int& x, const int& y) const override { return x | y; }
@@ -317,6 +328,17 @@ class VariabilityAlgebra : public SignalAlgebra<int> {
     int Exp(const int& x) const override { return x; }
     int Exp10(const int& x) const override { return x; }
     int Floor(const int& x) const override { return x; }
+    // the compound operations : the variability of their operands (the constant 1.0 is kKonst)
+    int Frac(const int& x) const override { return x; }
+    int Cfrac(const int& x) const override { return x; }
+    int Mix(const int& c, const int& a, const int& b) const override { return kKonst | c | a | b; }
+    int Phase(const int& x, const int& p) const override { return kKonst | x | p; }
+    int Tpt(const int& x) const override { return x | kKonst; }
+    // the kernels : their definitions (exact for this attribute, see SignalDispatch)
+    int Sum(const std::vector<int>& t) const override { return sumDefinition(t); }
+    int Prod(const std::vector<int>& t) const override { return prodDefinition(t); }
+    int Fir(const int& x, const std::vector<int>& c) const override { return firDefinition(x, c); }
+    int Iir(const int& x, const std::vector<int>& c) const override { return iirFeedforward(x, c); }
     int Log(const int& x) const override { return x; }
     int Log10(const int& x) const override { return x; }
     int Pow(const int& x, const int& y) const override { return x | y; }
@@ -466,6 +488,17 @@ class ComputabilityAlgebra : public SignalAlgebra<int> {
     int Exp(const int& x) const override { return x; }
     int Exp10(const int& x) const override { return x; }
     int Floor(const int& x) const override { return x; }
+    // the compound operations : the computability of their operands (the constant 1.0 is kComp)
+    int Frac(const int& x) const override { return x; }
+    int Cfrac(const int& x) const override { return x; }
+    int Mix(const int& c, const int& a, const int& b) const override { return kComp | c | a | b; }
+    int Phase(const int& x, const int& p) const override { return kComp | x | p; }
+    int Tpt(const int& x) const override { return x | kComp; }
+    // the kernels : their definitions (exact for this attribute, see SignalDispatch)
+    int Sum(const std::vector<int>& t) const override { return sumDefinition(t); }
+    int Prod(const std::vector<int>& t) const override { return prodDefinition(t); }
+    int Fir(const int& x, const std::vector<int>& c) const override { return firDefinition(x, c); }
+    int Iir(const int& x, const std::vector<int>& c) const override { return iirFeedforward(x, c); }
     int Log(const int& x) const override { return x; }
     int Log10(const int& x) const override { return x; }
     int Pow(const int& x, const int& y) const override { return x | y; }
@@ -619,6 +652,17 @@ class VectorabilityAlgebra : public SignalAlgebra<int> {
     int Exp(const int& x) const override { return x; }
     int Exp10(const int& x) const override { return x; }
     int Floor(const int& x) const override { return x; }
+    // the compound operations : the vectorability of their operands (the constant 1.0 is kVect)
+    int Frac(const int& x) const override { return x; }
+    int Cfrac(const int& x) const override { return x; }
+    int Mix(const int& c, const int& a, const int& b) const override { return kVect | c | a | b; }
+    int Phase(const int& x, const int& p) const override { return kVect | x | p; }
+    int Tpt(const int& x) const override { return x | kVect; }
+    // the kernels : their definitions (exact for this attribute, see SignalDispatch)
+    int Sum(const std::vector<int>& t) const override { return sumDefinition(t); }
+    int Prod(const std::vector<int>& t) const override { return prodDefinition(t); }
+    int Fir(const int& x, const std::vector<int>& c) const override { return firDefinition(x, c); }
+    int Iir(const int& x, const std::vector<int>& c) const override { return iirFeedforward(x, c); }
     int Log(const int& x) const override { return x; }
     int Log10(const int& x) const override { return x; }
     int Pow(const int& x, const int& y) const override { return x | y; }
@@ -764,6 +808,18 @@ class BooleanAlgebra : public SignalAlgebra<int> {
     int Exp(const int& x) const override { return x; }
     int Exp10(const int& x) const override { return x; }
     int Floor(const int& x) const override { return x; }
+    // the compound operations : the booleanity of their definition : frac of a boolean is 0, a mix or a
+    // tpt is numeric (the constant 1.0 is kNum)
+    int Frac(const int& x) const override { return x; }
+    int Cfrac(const int& x) const override { return x; }
+    int Mix(const int& c, const int& a, const int& b) const override { return kNum | c | a | b; }
+    int Phase(const int& x, const int& p) const override { return kNum | x | p; }
+    int Tpt(const int& x) const override { return x | kNum; }
+    // the kernels : their definitions (exact for this attribute, see SignalDispatch)
+    int Sum(const std::vector<int>& t) const override { return sumDefinition(t); }
+    int Prod(const std::vector<int>& t) const override { return prodDefinition(t); }
+    int Fir(const int& x, const std::vector<int>& c) const override { return firDefinition(x, c); }
+    int Iir(const int& x, const std::vector<int>& c) const override { return iirFeedforward(x, c); }
     int Log(const int& x) const override { return x; }
     int Log10(const int& x) const override { return x; }
     int Pow(const int& x, const int& y) const override { return x | y; }

@@ -24,6 +24,7 @@
     22/01/05 : corrected bug on bool signals cached in float variables
 *****************************************************************************/
 
+#include <regex>
 #include <math.h>
 #include <stdio.h>
 #include <climits>
@@ -33,6 +34,7 @@
 #include <sstream>
 #include <vector>
 
+#include "aterm.hh"
 #include "Schedule.hh"
 #include "compatibility.hh"
 #include "compile.hh"
@@ -980,9 +982,9 @@ Tree ScalarCompiler::prepare(Tree LS)
         for (Tree t : seen) {
             if (tvec cs; isSigIIR(t, cs)) {
                 int order = 0;
-                for (size_t k = 3; k < cs.size(); k++) {
+                for (size_t k = 1; k < cs.size(); k++) {
                     if (!isZero(cs[k])) {
-                        order = int(k) - 2;
+                        order = int(k);
                     }
                 }
                 if (order >= 2 && readers.count(t) == 0) {
@@ -994,6 +996,8 @@ Tree ScalarCompiler::prepare(Tree LS)
         }
     }
     fOccMarkup->mark(Lx);  // Annotate L2 (+ condition atoms) with occurrences analysis
+    fDefinitions.build(Lx);  // the subterms of compound definitions the program holds
+    fDefinitions.countReads(fSharingKey);
     endTiming("occurrences analysis");
 
 
@@ -2119,7 +2123,7 @@ class LoopSplitEmitter {
             return;
         }
         if (tvec V; isSigIIR(t, V)) {
-            for (size_t k = 1; k < V.size(); k++) {  // branch 0 is nil
+            for (size_t k = 0; k < V.size(); k++) {  // the input, then the coefficients
                 prescan(V[k], seen);
             }
             return;
@@ -2619,12 +2623,12 @@ class LoopSplitEmitter {
             // modal banks came from. Descending taps from X, the scalar
             // association of generateIIR, bit-exact.
             const bool kInt2 = (getCertifiedSigType(t)->nature() == kInt);
-            Operand    acc   = walk(V[1], curScc, false);
-            for (size_t k = V.size() - 1; k >= 3; k--) {
+            Operand    acc   = walk(V[0], curScc, false);
+            for (size_t k = V.size() - 1; k >= 1; k--) {
                 if (isZero(V[k])) {
                     continue;
                 }
-                Operand tap = refOperand(ixSelf, T(int(k) - 2), false, curScc);
+                Operand tap = refOperand(ixSelf, T(int(k)), false, curScc);
                 Operand term;
                 if (isOne(V[k])) {
                     term = tap;
@@ -3366,8 +3370,8 @@ class LoopSplitEmitter {
                 // RESIDENT VALUES (the transposed emission keeps them in
                 // scalars), each non-zero tap a multiply by a live slow
                 // coefficient and an add into the recurrence.
-                int acc = sw(V[1], false);
-                for (size_t k2 = 3; k2 < V.size(); k2++) {
+                int acc = sw(V[0], false);
+                for (size_t k2 = 1; k2 < V.size(); k2++) {
                     if (isZero(V[k2])) {
                         continue;
                     }
@@ -5227,10 +5231,24 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateIIR(sig, V);
     } else if (tvec subs; isSigSum(sig, subs)) {
         return generateSum(sig, subs);
+    } else if (tvec fs; isSigProd(sig, fs)) {
+        return generateProd(sig, fs);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
     } else if (isSigBinOp(sig, &i, x, y)) {
         return generateBinOp(sig, i, x, y);
+    } else if (isSigNeg(sig, x)) {
+        return generateNeg(sig, x);
+    } else if (isSigFrac(sig, x)) {
+        return generateRemainder(sig, x, gGlobal->gFloorPrim);
+    } else if (isSigCfrac(sig, x)) {
+        return generateRemainder(sig, x, gGlobal->gRintPrim);
+    } else if (isSigTpt(sig, x)) {
+        return generateTpt(sig, x);
+    } else if (Tree c, a, b; isSigMix(sig, c, a, b)) {
+        return generateMix(sig, c, a, b);
+    } else if (Tree a, p; isSigPhase(sig, a, p)) {
+        return generatePhase(sig, a, p);
     } else if (isSigFFun(sig, ff, largs)) {
         return generateFFun(sig, ff, largs);
     } else if (isSigFConst(sig, type, name, file)) {
@@ -5422,6 +5440,213 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         return generateCacheCode(sig, subst("$0($1, $2)", wrap, s1, s2));
     }
     return generateCacheCode(sig, subst("($0 $1 $2)", s1, gBinOpTable[opcode]->fName, s2));
+}
+
+/**
+ * neg(x) = -x : a unary minus, cached as every operation (a slow negation read in a faster
+ * context is stored at its rate) ; an integer negation wraps, through the product by -1.
+ */
+string ScalarCompiler::generateNeg(Tree sig, Tree x)
+{
+    const char* wrap = (getCertifiedSigType(sig)->nature() == kInt) ? wrapHelper(kMul) : nullptr;
+    if (wrap) {
+        std::string sx = CS(x);
+        return generateCacheCode(sig, subst("$0($1, $2)", wrap, T(-1), sx));
+    }
+    std::string res = CS(x);
+    std::string neg = ((res[0] == '(') || (res[0] == 'f') || (res[0] == 'i')) ? subst("-$0", res)
+                                                                            : subst("-($0)", res);
+    return generateCacheCode(sig, neg);
+}
+
+/*****************************************************************************
+ Compound operations : the node is the operation of FaustAlgebra, its children
+ the arguments ; the emitter writes the definition, as for a sum or a FIR.
+ *****************************************************************************/
+
+/**
+ * x read where the occurrences did not see it (the operand of a neg that a sum, a FIR or an
+ * IIR subtracts) : stored at its rate when slower than the sample, as it is otherwise.
+ */
+string ScalarCompiler::operandAtRate(Tree x)
+{
+    return (getCertifiedSigType(x)->variability() < kSamp) ? compoundOperand(x) : CS(x);
+}
+
+/**
+ * An operand that the definition reads twice : a name or a number as it is, an
+ * expression in a variable of its own, placed at the operand's rate. The variable
+ * becomes the operand's compiled expression : a second read finds it.
+ */
+string ScalarCompiler::compoundOperand(Tree x)
+{
+    static const std::regex simple("^-?([A-Za-z_][A-Za-z0-9_]*(\\[.*\\])?|[0-9][0-9.eE+-]*f?)$");
+    std::string             sx = CS(x);
+    if (std::regex_match(sx, simple)) {
+        return sx;
+    }
+    return setCompiledExpression(x, generateVariableStore(x, sx));
+}
+
+/**
+ * lead * t, written as the normal form writes a product : the factors slower than the
+ * product (lead included) multiplied first and stored at their own rate, then the
+ * others ; the whole stored when slower than its consumer.
+ */
+string ScalarCompiler::compoundProduct(const string& lead, int vlead, Tree t, int consumer)
+{
+    std::vector<Tree>         factors;
+    std::function<void(Tree)> flatten = [&](Tree u) {
+        Tree x, y;
+        tvec fs;
+        if (isSigMul(u, x, y)) {
+            flatten(x);
+            flatten(y);
+        } else if (isSigProd(u, fs)) {
+            for (Tree f : fs) flatten(f);
+        } else {
+            factors.push_back(u);
+        }
+    };
+    flatten(t);
+    const int   vprod = std::max(vlead, getCertifiedSigType(t)->variability());
+    static const std::regex simple("^-?([A-Za-z_][A-Za-z0-9_]*(\\[.*\\])?|[0-9][0-9.eE+-]*f?)$");
+    std::string             slow, fast;
+    int                     vslow = kKonst;
+    bool                    computed = false;  // the slow part is an operation, not a name
+    auto                    join     = [](const string& acc, const string& f) {
+        return acc.empty() ? f : subst("($0 * $1)", acc, f);
+    };
+    if (vlead < vprod) {
+        slow     = lead;
+        vslow    = vlead;
+        computed = !std::regex_match(lead, simple);
+    } else {
+        fast = lead;
+    }
+    for (Tree f : factors) {
+        const int   vf = getCertifiedSigType(f)->variability();
+        std::string sf = CS(f);
+        if (vf < vprod) {
+            computed = computed || !slow.empty();
+            slow     = join(slow, sf);
+            vslow    = std::max(vslow, vf);
+        } else {
+            fast = join(fast, sf);
+        }
+    }
+    if (computed && !fast.empty() && vslow < kSamp) {
+        slow = compoundSlowStore(vslow, slow);
+    }
+    std::string r = fast.empty() ? slow : join(slow, fast);
+    return (vprod < consumer && vprod < kSamp) ? compoundSlowStore(vprod, r) : r;
+}
+
+/**
+ * A part of a definition slower than its consumer, stored at its own rate : a constant
+ * in the instance, a slow value at the block (what a slow node in a faster context is).
+ */
+string ScalarCompiler::compoundSlowStore(int variability, const string& exp, bool isInt)
+{
+    faustassert(variability == kKonst || variability == kBlock);
+    string ctype = isInt ? "int" : ifloat();
+    if (variability == kKonst) {
+        string vname = subst("f$0", getFreshID("Const"));
+        fClass->addDeclCode(subst("$0 \t$1; // step: $2", ctype, vname, T(gGlobal->gSTEP)));
+        fClass->addInitCode(subst("$0 = $1; // step: $2", vname, exp, T(gGlobal->gSTEP)));
+        return vname;
+    }
+    string vname = subst("f$0", getFreshID("Slow"));
+    fClass->addFirstPrivateDecl(vname);
+    fClass->addZone2(subst("$0 \t$1 = $2; // step: $3", ctype, vname, exp, T(gGlobal->gSTEP)));
+    return vname;
+}
+
+/**
+ * frac(x) = x - floor(x), cfrac(x) = x - rint(x) : x computed once, the rounding by its
+ * primitive, then the subtraction.
+ */
+string ScalarCompiler::generateRemainder(Tree sig, Tree x, xtended* round)
+{
+    // the program's own rounding of x, when it holds one
+    Tree held = (round == gGlobal->gFloorPrim) ? fDefinitions.floorOf(x) : fDefinitions.rintOf(x);
+    if (held != nullptr) {
+        std::string sx = compoundOperand(x);
+        std::string sr = compoundOperand(held);
+        return generateCacheCode(sig, subst("($0 - $1)", sx, sr));
+    }
+    std::string                    sx = compoundOperand(x);
+    const std::vector<std::string> args{sx};
+    const std::vector<Type>        types{getCertifiedSigType(x)};
+    std::string r = static_cast<xtendedCodegen*>(round)->generateCode(fClass, args, types);
+    return generateCacheCode(sig, subst("($0 - $1)", sx, r));
+}
+
+/**
+ * tpt(x) = x / (x + 1) : x computed once.
+ */
+string ScalarCompiler::generateTpt(Tree sig, Tree x)
+{
+    std::string sx = compoundOperand(x);
+    if (Tree d = fDefinitions.plusOneOf(x)) {
+        // the program's own x + 1
+        return generateCacheCode(sig, subst("($0 / $1)", sx, compoundOperand(d)));
+    }
+    return generateCacheCode(sig, subst("($0 / ($0 + $1))", sx, realLiteral(1.0)));
+}
+
+/**
+ * phase(x, p) = (x % p) / p : the program's own remainder when it holds one (the
+ * definition of a counter, ba.period), read from its variable ; the division is real, a
+ * product by 1/p when phaseByReciprocal says so.
+ */
+string ScalarCompiler::generatePhase(Tree sig, Tree x, Tree p)
+{
+    const bool  isInt = getCertifiedSigType(x)->nature() == kInt && getCertifiedSigType(p)->nature() == kInt;
+    std::string sp    = compoundOperand(p);
+    std::string sr;
+    if (Tree held = fDefinitions.remOf(x, p)) {
+        sr = compoundOperand(held);
+    } else if (isInt) {
+        sr = subst("($0 % $1)", compoundOperand(x), sp);
+    } else {
+        const std::vector<std::string> args{compoundOperand(x), sp};
+        const std::vector<Type>        types{getCertifiedSigType(x), getCertifiedSigType(p)};
+        sr = static_cast<xtendedCodegen*>(gGlobal->gFmodPrim)->generateCode(fClass, args, types);
+    }
+    if (isInt) {
+        sr = subst("$1($0)", sr, ifloat());
+        if (phaseByReciprocal(p)) {
+            std::string inv = compoundSlowStore(getCertifiedSigType(p)->variability(),
+                                                subst("($0 / $2($1))", realLiteral(1.0), sp, ifloat()));
+            return generateCacheCode(sig, subst("($0 * $1)", sr, inv));
+        }
+        sp = subst("$1($0)", sp, ifloat());
+    }
+    return generateCacheCode(sig, subst("($0 / $1)", sr, sp));
+}
+
+/**
+ * mix(c, a, b) = (1 - c) * a + c * b, computed as an interpolation from the operand whose
+ * weight may be near 1 (itv::mixFromB, on the interval of c) : b + (1 - c) * (a - b) when
+ * c >= 1/2, 1 - c being then exact, a + c * (b - a) otherwise. Either keeps its fixed point
+ * exactly, and costs about one rounding of the result when the weight of the difference is
+ * small (a slow smoother) ; the interval of the node bounds this same computation.
+ */
+string ScalarCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b)
+{
+    std::string sa = compoundOperand(a);
+    std::string sb = compoundOperand(b);
+    std::string sc = compoundOperand(c);
+    if (itv::mixFromB(getCertifiedSigType(c)->getInterval())) {
+        const int   vrc = getCertifiedSigType(c)->variability();
+        std::string w   = subst("($0 - $1)", realLiteral(1.0), sc);
+        if (vrc < getCertifiedSigType(sig)->variability() && vrc != kSamp) {
+            w = compoundSlowStore(vrc, w);  // 1 - c at the rate of c
+        }
+        return generateCacheCode(sig, subst("($0 + $1 * ($2 - $0))", sb, w, sa));
+    }
+    return generateCacheCode(sig, subst("($0 + $1 * ($2 - $0))", sa, sc, sb));
 }
 
 /*****************************************************************************
@@ -5938,7 +6163,7 @@ void ScalarCompiler::computeDisplayFrontier()
         int  op;
         Tree x, y, sel;
         return isSigBinOp(t, &op, x, y) || isSigIntCast(t, x) || isSigFloatCast(t, x) ||
-               isSigSelect2(t, sel, x, y) || isSigSum(t) ||
+               isSigSelect2(t, sel, x, y) || isSigSum(t) || isSigProd(t) || isSigNeg(t, x) ||
                (getUserData(t) != nullptr && t->arity() > 0);
     };
     while (!work.empty()) {
@@ -6031,27 +6256,37 @@ std::string ScalarCompiler::displayExpr(Tree t)
         return subst("(($0) ? $1 : $2)", ssel, sy, sx);
     }
     if (tvec V; isSigSum(t, V)) {
-        // the n-ary sum of the normal form (revealSum), chained left like
-        // generateSum -- same association, bit-exact ; int sums wrap
-        // pairwise through unsigned arithmetic. Without this arm a
-        // level-in-dB crown (20*log10(...) + offset) was a capture,
-        // computed per sample on both emitters (spectralLevel).
-        const bool  wrapInt = (getCertifiedSigType(t)->nature() == kInt);
-        std::string acc;
-        for (Tree b : V) {
-            if (isZero(b)) {
-                continue;
-            }
-            std::string a = displayExpr(b);
-            if (acc.empty()) {
-                acc = a;
-            } else if (wrapInt) {
-                acc = subst("faust_wrap_add($0, $1)", acc, a);
-            } else {
-                acc = subst("($0 + $1)", acc, a);
-            }
-        }
-        return acc.empty() ? std::string("0") : acc;
+        // the chain of generateSum -- same association, bit-exact ; a slow prefix is
+        // written in place instead of stored. Without this arm a level-in-dB crown
+        // (20*log10(...) + offset) was a capture, computed per sample on both emitters
+        // (spectralLevel).
+        struct Ops {
+            ScalarCompiler* fC;
+            bool            fInt;
+            std::string     term(Tree b) { return fC->displayExpr(b); }
+            std::string     negatedTerm(Tree b) { return fC->displayExpr(b); }
+            std::string add(const std::string& a, const std::string& b) { return fInt ? subst("faust_wrap_add($0, $1)", a, b) : subst("($0 + $1)", a, b); }
+            std::string sub(const std::string& a, const std::string& b) { return fInt ? subst("faust_wrap_sub($0, $1)", a, b) : subst("($0 - $1)", a, b); }
+            std::string neg(const std::string& a) { return fInt ? subst("faust_wrap_sub(0, $0)", a) : subst("(-$0)", a); }
+            std::string store(int, const std::string& a) { return a; }
+            std::string zero() { return "0"; }
+        } ops{this, getCertifiedSigType(t)->nature() == kInt};
+        return emitSum<std::string>(t, V, ops);
+    }
+    if (tvec F; isSigProd(t, F)) {
+        struct Ops {
+            ScalarCompiler* fC;
+            bool            fInt;
+            std::string     term(Tree b) { return fC->displayExpr(b); }
+            std::string mul(const std::string& a, const std::string& b) { return fInt ? subst("faust_wrap_mul($0, $1)", a, b) : subst("($0 * $1)", a, b); }
+            std::string store(int, const std::string& a) { return a; }
+        } ops{this, getCertifiedSigType(t)->nature() == kInt};
+        return emitProd<std::string>(t, F, ops);
+    }
+    if (isSigNeg(t, x)) {
+        std::string sx = displayExpr(x);
+        return (getCertifiedSigType(t)->nature() == kInt) ? subst("faust_wrap_sub(0, $0)", sx)
+                                                          : subst("(-$0)", sx);
     }
     if (getUserData(t) != nullptr && t->arity() > 0) {
         xtendedCodegen*          p = static_cast<xtendedCodegen*>((xtended*)getUserData(t));
@@ -6914,48 +7149,24 @@ string ScalarCompiler::generateDelayAccessRaw(Tree sig, Tree exp, int delay)
     return generateDelayAccessRaw(sig, exp, T(delay));
 }
 
-// density of the non-zero coefficients of a FIR, from its first non-zero one
-static float firDensity(const tvec& coefs)
-{
-    unsigned int fnz = 0;
-    for (unsigned int i = 1; i < coefs.size(); ++i) {
-        if (!isZero(coefs[i])) {
-            fnz = i;
-            break;
-        }
-    }
-    unsigned int cnz = 0;
-    for (unsigned int i = fnz; i < coefs.size(); ++i) {
-        if (!isZero(coefs[i])) {
-            cnz++;
-        }
-    }
-    faustassert(cnz > 0);
-    return float(cnz) / float(coefs.size() - fnz);
-}
-
 /**
- * Generate code for a n-ary sum node (revealed by revealSum) : a flat
- * parenthesis-free addition, the association left to the C compiler.
- */
-/**
- * Generate code for an IIR kernel IIR[nil,X,C0=0,C1..Cn] :
- * y = X + C1*y@1 + ... + Cn*y@n. The node reads ITSELF through the
- * standard delay machinery (its occurrences case declares the self reads,
- * which size the delay line). Ported from fir18 (compile_scal_iir.cpp) ;
- * reversed coefficient order kept ("seems faster").
+ * Generate code for an IIR kernel IIR[X,C1..Cn] : y = X + C1*y@1 + ... + Cn*y@n. The node
+ * reads ITSELF through the standard delay machinery (its occurrences case declares the
+ * self reads, which size the delay line). The direct form is the chain of the definition,
+ * the association of its interval : X, then the taps from the first delay to the last, a
+ * neg(c) or -1 coefficient subtracted (the same value, bit for bit).
  */
 string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
 {
     Type         ty = getCertifiedSigType(sig);
     Occurrences* o  = fOccMarkup->retrieve(sig);
     faustassert(o);
-    faustassert(coefs.size() > 3);
+    faustassert(coefs.size() > 1);
 
     std::string vname, ctype;
     getTypedNames(ty, "IIR", ctype, vname);
 
-    const int order = int(coefs.size()) - 3;
+    const int order = int(coefs.size()) - 1;
     if (sig->getProperty(tree(symbol("SIGIIRTRANSPOSED"))) != nullptr) {
         // TRANSPOSED all-pole (DF-IIt pole half) : y = X + s1' ;
         // si = ci*y + s(i+1)' ; sk = ck*y. The states are 1-delay
@@ -6973,7 +7184,7 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
             fClass->addZone3(subst("$0 = $0State;", sname[i2]));
             fClass->addZone3Post(subst("$0State = $0;", sname[i2]));
         }
-        std::string y = subst("($0 + $1)", CS(coefs[1]), sname[0]);
+        std::string y = subst("($0 + $1)", CS(coefs[0]), sname[0]);
         // no external delayed reader -> plain sample variable (the self
         // reads that sized the direct form's line are gone by design)
         std::string ycached =
@@ -6981,7 +7192,7 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
                 ? generateDelayVec(sig, y, ctype, vname, o->getMaxDelay(), o->getDelayCount())
                 : generateVariableStore(sig, y);
         for (int i2 = 0; i2 < order; i2++) {
-            Tree        c    = coefs[3 + i2];
+            Tree        c    = coefs[1 + i2];
             std::string prod = isZero(c)      ? std::string("0")
                                : isOne(c)     ? ycached
                                               : subst("($0) * $1", CS(c), ycached);
@@ -6996,296 +7207,107 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
         return ycached;
     }
 
-    std::ostringstream oss;
-    oss << CS(coefs[1]);
-    for (unsigned int i = coefs.size() - 1; i >= 3; i--) {
+    const bool isInt = (ty->nature() == kInt);
+    string     acc   = CS(coefs[0]);
+    for (unsigned int i = 1; i < coefs.size(); i++) {
         if (isZero(coefs[i])) {
             continue;
         }
-        string access = generateDelayAccessRaw(sig, sig, int(i) - 2);
-        if (isOne(coefs[i])) {
-            oss << " + " << access;
+        string     access = generateDelayAccessRaw(sig, sig, int(i));
+        Tree       m;
+        const bool sub = negativeCoefficient(coefs[i], m);
+        Tree       c   = sub ? m : coefs[i];
+        string     term;
+        if (c == nullptr || isOne(c)) {
+            term = access;
         } else {
-            oss << " + (" << CS(coefs[i]) << ") * " << access;
+            string sc = sub ? operandAtRate(c) : CS(c);
+            term      = isInt ? subst("faust_wrap_mul($0, $1)", sc, access) : subst("($0 * $1)", sc, access);
+        }
+        if (isInt) {
+            acc = subst("$0($1, $2)", sub ? "faust_wrap_sub" : "faust_wrap_add", acc, term);
+        } else {
+            acc = subst("($0 $1 $2)", acc, sub ? "-" : "+", term);
         }
     }
-    return generateDelayVec(sig, oss.str(), ctype, vname, o->getMaxDelay(), o->getDelayCount());
+    return generateDelayVec(sig, acc, ctype, vname, o->getMaxDelay(), o->getDelayCount());
 }
 
+/**
+ * Prod(f0, ..., fn) : the chain of the node (emitProd), a slow prefix stored at its rate ;
+ * an int product wraps.
+ */
+string ScalarCompiler::generateProd(Tree sig, const tvec& factors)
+{
+    struct Ops {
+        ScalarCompiler* fC;
+        bool            fInt;
+        string          term(Tree t) { return fC->CS(t); }
+        string mul(const string& a, const string& b) { return fInt ? subst("faust_wrap_mul($0, $1)", a, b) : subst("($0 * $1)", a, b); }
+        string store(int variability, const string& a) { return fC->compoundSlowStore(variability, a, fInt); }
+    } ops{this, getCertifiedSigType(sig)->nature() == kInt};
+    return generateCacheCode(sig, emitProd<string>(sig, factors, ops));
+}
+
+/**
+ * Sum(t0, ..., tn) : the chain of the node (emitSum), a slow prefix stored at its rate.
+ */
 string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
 {
-    faustassert(subs.size() > 1);
-    // INT sums wrap through the faust_wrap_add helper, like every Int32
-    // add/sub/mul of this emitter : a flat signed chain is UB on overflow,
-    // and clang -O3 reassociates it under the no-overflow assumption --
-    // false for anything that lives off the wrap (the LCG noise family :
-    // bit-exact under -fwrapv, garbage without).
-    const bool wrapInt = (getCertifiedSigType(sig)->nature() == kInt);
-    ostringstream oss;
-    string        sep   = "";
-    int           terms = 0;
-    oss << '(';
-    if (!wrapInt) {
-        // negative-weight terms (mul(-1, x)) render as subtractions after
-        // the positive ones -- the reveal spells a - b as a + (-1)*b, and
-        // emitting the multiply costs a real op per sample. The unsigned
-        // int path keeps its uniform spelling (the LCG wrap families).
-        std::vector<Tree> pos, neg;
-        for (Tree t : subs) {
-            if (isZero(t)) {
-                continue;
-            }
-            Tree a, b;
-            tvec fc;
-            if (isSigMul(t, a, b) && isMinusOne(a)) {
-                neg.push_back(b);
-            } else if (isSigMul(t, a, b) && isMinusOne(b)) {
-                neg.push_back(a);
-            } else if (isSigFIR(t, fc) && fc.size() == 2 && isMinusOne(fc[1])) {
-                // the reveal spells -x as a gain kernel FIR[x, -1]
-                neg.push_back(fc[0]);
-            } else {
-                pos.push_back(t);
-            }
-        }
-        if (!pos.empty()) {
-            for (Tree t : pos) {
-                oss << sep << CS(t);
-                terms++;
-                sep = " + ";
-            }
-            for (Tree t : neg) {
-                oss << " - " << CS(t);
-                terms++;
-            }
-            oss << " /* Sum */)";
-            return generateCacheCode(sig, oss.str());
-        }
-    }
-    if (wrapInt) {
-        // pairwise faust_wrap_add chain, left-associated like the real
-        // case (mod-2^32 addition is associative : any order agrees)
-        std::string acc;
-        for (Tree t : subs) {
-            if (isZero(t)) {
-                continue;
-            }
-            acc = acc.empty() ? CS(t) : subst("faust_wrap_add($0, $1)", acc, CS(t));
-            terms++;
-        }
-        oss << (terms == 0 ? std::string("0") : acc) << " /* Sum */)";
-        return generateCacheCode(sig, oss.str());
-    }
-    for (unsigned int i = 0; i < subs.size(); ++i) {
-        if (!isZero(subs[i])) {
-            oss << sep << CS(subs[i]);
-            terms++;
-            sep = " + ";
-        }
-    }
-    if (terms == 0) {
-        oss << "0";
-    }
-    oss << " /* Sum */)";
-    return generateCacheCode(sig, oss.str());
+    // An int sum wraps through the faust_wrap_add/sub helpers, like every Int32 add, sub
+    // and mul of this emitter : a signed chain is UB on overflow, and clang -O3
+    // reassociates it under the no-overflow assumption, false for anything that lives off
+    // the wrap (the LCG noise family).
+    struct Ops {
+        ScalarCompiler* fC;
+        bool            fInt;
+        string          term(Tree t) { return fC->CS(t); }
+        string          negatedTerm(Tree t) { return fC->operandAtRate(t); }
+        string add(const string& a, const string& b) { return fInt ? subst("faust_wrap_add($0, $1)", a, b) : subst("($0 + $1)", a, b); }
+        string sub(const string& a, const string& b) { return fInt ? subst("faust_wrap_sub($0, $1)", a, b) : subst("($0 - $1)", a, b); }
+        string neg(const string& a) { return fInt ? subst("faust_wrap_sub(0, $0)", a) : subst("(-$0)", a); }
+        string store(int variability, const string& a) { return fC->compoundSlowStore(variability, a, fInt); }
+        string zero() { return "0"; }
+    } ops{this, getCertifiedSigType(sig)->nature() == kInt};
+    return generateCacheCode(sig, emitSum<string>(sig, subs, ops));
 }
 
 /**
  * Generate code for a FIR kernel FIR[X,C0,C1,...] = C0.X + C1.X@1 + ...
- * Three regimes : simple gain (2 coefs), unrolled sum (small or sparse),
- * loop over a coefficient table (large and dense). Ported from the fir18
- * branch (compile_scal_fir.cpp), HLS pragmas left out.
  */
-
-// an all-ones CONTIGUOUS FIR from tap 0 with at least 4 taps : a moving
-// sum, eligible for the O(1) sliding emission (y = y' + x - x@T)
-static bool isSlidingSumFIR(const tvec& coef, int& T)
-{
-    if (coef.size() < 5) {
-        return false;  // fewer than 4 taps
-    }
-    for (size_t i = 1; i < coef.size(); i++) {
-        if (!isOne(coef[i])) {
-            return false;
-        }
-    }
-    T = int(coef.size()) - 1;
-    return true;
-}
-
 string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
 {
+    // the chain of the definition, the association of its interval : the taps from the
+    // first delay to the last, c[k] * x@k, the null coefficients left out ; an int FIR wraps
     faustassert(coefs.size() > 1);
-    constexpr int kFirLoopSize = 4;  // below this many taps, no loop
-    float         density      = firDensity(coefs);
-    if (coefs.size() == 2) {
-        // simple gain
-        std::string gain = CS(coefs[1]);
-        std::string in   = CS(coefs[0]);
-        return generateCacheCode(sig, subst("($0) * ($1)", gain, in));
-    }
-    if (int T; isSlidingSumFIR(coefs, T) && getConditionCode(sig).empty()) {
-        // MOVING SUM : y(t) = y(t-1) + x(t) - x(t-T), O(1) whatever T.
-        // The accumulator is a scalar state (same idiom as kMonoDelay) ;
-        // its occurrences case declared the x@T read that feeds the exit.
-        // Numerics : exact for ints ; float accumulators drift (judged by
-        // the -double discriminator like every reassociation).
-        Type        ty = getCertifiedSigType(sig);
-        std::string ctype, aname;
-        getTypedNames(ty, "Slide", ctype, aname);
-        fClass->addDeclCode(subst("$0 \t$1State; // Sliding sum", ctype, aname));
-        fClass->addClearCode(subst("$0State = 0;", aname));
-        fClass->addZone2(subst("$0 \t$1;", ctype, aname));
-        fClass->addZone3(subst("$0 = $0State;", aname));
-        std::string enter = CS(coefs[0]);
-        std::string leave = generateDelayAccessRaw(sig, coefs[0], T);
-        fClass->addExecCode(
-            Statement("", subst("$0 = $0 + $1 - $2; /* Sliding sum */", aname, enter, leave)));
-        fClass->addZone3Post(subst("$0State = $0;", aname));
-        return generateCacheCode(sig, aname);
-    }
-    {
-        // LINEAR PHASE : symmetric coefficients (c_t == c_{T-1-t}) pre-add
-        // the mirrored taps before multiplying -- half the products
-        const int T = int(coefs.size()) - 1;
-        bool      sym = (T >= 4);
-        for (int t = 0; sym && t < T / 2; t++) {
-            sym = (coefs[1 + t] == coefs[1 + (T - 1 - t)]);
-        }
-        if (sym) {  // (the sliding case returned above)
-            std::ostringstream oss;
-            string             sep = "";
-            Tree               exp = coefs[0];
-            oss << '(';
-            for (int t = 0; t < T / 2; t++) {
-                if (isZero(coefs[1 + t])) {
-                    continue;
-                }
-                string left  = generateDelayAccessRaw(sig, exp, t);
-                string right = generateDelayAccessRaw(sig, exp, T - 1 - t);
-                string pair  = "(" + left + " + " + right + ")";
-                if (isOne(coefs[1 + t])) {
-                    oss << sep << pair;
-                } else {
-                    oss << sep << CS(coefs[1 + t]) << " * " << pair;
-                }
-                sep = " + ";
-            }
-            if (T % 2 == 1 && !isZero(coefs[1 + T / 2])) {
-                oss << sep;
-                if (!isOne(coefs[1 + T / 2])) {
-                    oss << CS(coefs[1 + T / 2]) << " * ";
-                }
-                oss << generateDelayAccessRaw(sig, exp, T / 2);
-            }
-            oss << ") /* symmetric FIR */";
-            return generateCacheCode(sig, oss.str());
-        }
-    }
-    bool r1 = density * 100 < gGlobal->gMinDensity;
-    bool r2 = int(coefs.size()) - 1 < kFirLoopSize;
-    if (r1 || r2) {
-        // unrolled : small or low-density FIR
-        std::ostringstream oss;
-        string             sep = "";
-        Tree               exp = coefs[0];
-        std::string        comment = " /* ";
-        comment += r1 ? "low-density " : "";
-        comment += r2 ? "small " : "";
-        comment += "FIR */";
-        oss << '(';
-        for (unsigned int i = 1; i < coefs.size(); ++i) {
-            if (isZero(coefs[i])) {
-                continue;
-            }
-            string access = generateDelayAccessRaw(sig, exp, int(i) - 1);
-            if (isOne(coefs[i])) {
-                oss << sep << access;
-            } else if (Tree x, y; isSigAdd(coefs[i], x, y) || isSigSub(coefs[i], x, y)) {
-                oss << sep << '(' << CS(coefs[i]) << ") * " << access;
-            } else {
-                oss << sep << CS(coefs[i]) << " * " << access;
-            }
-            sep = " + ";
-        }
-        oss << ')' << comment;
-        return generateCacheCode(sig, oss.str());
-    }
-    // loop over a coefficient table
-    Type tc;
+    const bool isInt = (getCertifiedSigType(sig)->nature() == kInt);
+    Tree       x     = coefs[0];
+    string     acc;
     for (unsigned int i = 1; i < coefs.size(); ++i) {
-        Type t = getCertifiedSigType(coefs[i]);
-        tc     = (i == 1) ? t : (tc | t);
-    }
-    std::string ctype, ctable;
-    getTypedNames(tc, "FIRCoefs", ctype, ctable);
-
-    int                mnzc = 1 << 20;  // first non-zero coefficient
-    std::ostringstream coefInitStream;
-    coefInitStream << "{";
-    for (unsigned int i = 1; i < coefs.size(); ++i) {
-        if (i > 1) {
-            coefInitStream << ", ";
+        if (isZero(coefs[i])) {
+            continue;
         }
-        if (!isZero(coefs[i]) && (int(i) < mnzc)) {
-            mnzc = i;
-        }
-        // numeric cells are spelled directly : CS's generateNumber
-        // consults an occurrence mark that fresh literals (the shifted
-        // kernels' leading zeros) never received (the DNN table lesson,
-        // paid again by guitarix's 133-tap table)
-        Tree    cf = coefs[i];
-        int     ci;
-        int64_t cl;
-        double  cr;
-        if (isSigInt(cf, &ci)) {
-            coefInitStream << T(ci);
-        } else if (isSigInt64(cf, &cl)) {
-            coefInitStream << T(cl);
-        } else if (isSigReal(cf, &cr)) {
-            coefInitStream << realLiteral(cr);
+        string access = generateDelayAccessRaw(sig, x, int(i) - 1);
+        // a negative coefficient after the first tap : the tap subtracted
+        Tree       m;
+        const bool sub = !acc.empty() && negativeCoefficient(coefs[i], m);
+        Tree       c   = sub ? m : coefs[i];
+        string     term;
+        if (c == nullptr || isOne(c)) {
+            term = access;
         } else {
-            coefInitStream << CS(cf);
+            string sc = sub ? operandAtRate(c) : CS(c);
+            term      = isInt ? subst("faust_wrap_mul($0, $1)", sc, access) : subst("($0 * $1)", sc, access);
+        }
+        if (acc.empty()) {
+            acc = term;
+        } else if (isInt) {
+            acc = subst("$0($1, $2)", sub ? "faust_wrap_sub" : "faust_wrap_add", acc, term);
+        } else {
+            acc = subst("($0 $1 $2)", acc, sub ? "-" : "+", term);
         }
     }
-    coefInitStream << "}";
-    std::string coefInit   = coefInitStream.str();
-    std::string csize      = T(int(coefs.size() - 1));
-    std::string ctabledecl = subst("const $0 \t$1[$2] = $3;", ctype, ctable, csize, coefInit);
-    switch (tc->variability()) {
-        case kKonst:
-            if (tc->computability() == kComp) {
-                fClass->addDeclCode(ctabledecl);
-            } else {
-                // constants only computable at init time
-                fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, ctable, csize));
-                fClass->addInitCode(
-                    subst("const $0 \t$1tmp[$2] = $3;", ctype, ctable, csize, coefInit));
-                fClass->addInitCode(
-                    subst("for (int i = 0; i < $0; i++) { $1[i] = $1tmp[i]; }", csize, ctable));
-            }
-            break;
-        case kBlock:
-            fClass->addZone2(ctabledecl);
-            break;
-        case kSamp:
-            fClass->addExecCode(Statement("", ctabledecl));
-            break;
-        default:
-            faustassert(false);
-    }
-
-    Tree        exp       = coefs[0];
-    std::string idxaccess = generateDelayAccessRaw(sig, exp, "ii");
-    Type        ty        = getCertifiedSigType(sig);
-    std::string ftype, facc;
-    getTypedNames(ty, "Acc", ftype, facc);
-    fClass->addExecCode(Statement("", subst("$0 \t$1 = 0;", ftype, facc)));
-    std::string accloop =
-        subst("for (int ii = $4; ii < $0; ii++) { $1 += $2[ii] * $3; } /* FIR acc. */",
-              T(int(coefs.size() - 1)), facc, ctable, idxaccess, T(mnzc - 1));
-    fClass->addExecCode(Statement("", accloop));
-    return generateCacheCode(sig, facc);
+    return generateCacheCode(sig, acc.empty() ? string("0") : acc);
 }
 
 string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)

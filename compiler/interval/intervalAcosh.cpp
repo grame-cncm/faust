@@ -19,6 +19,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -28,8 +29,12 @@ namespace itv {
 
 static const interval domain(1, HUGE_VAL);
 
-interval interval_algebra::AcoshBounds(const interval& x) const
+// Numeric kernel: numeric acosh image on its valid domain. In float/double,
+// the native kernel encloses endpoints and extrema; quad/fixed retain
+// their historical rule. LSB is an estimate; Validity is attached by the public transfer.
+interval interval_algebra::numericAcoshBounds(const interval& x) const
 {
+    if (detail::usesNativeBounds()) return detail::doubleUnaryBounds(detail::UnaryOp::Acosh, x);
     interval i = intersection(domain, x);
     if (i.isEmpty()) {
         return empty();

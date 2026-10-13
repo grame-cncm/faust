@@ -20,8 +20,8 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Label
 
-interval interval_algebra::Label(const std::string& x) const
+interval interval_algebra::numericLabel(const std::string& x) const
 {
-    return {NAN, NAN, 0};  // a string don't represent numbers, therefore the interval is empty
+    return empty();  // a label has no numeric values, and is not an invalid execution
 }
 }  // namespace itv

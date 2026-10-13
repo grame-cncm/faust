@@ -261,6 +261,26 @@ class SIGS_API TransformAlgebra : public SignalDispatch<XSig> {
     XSig Or(const XSig& x, const XSig& y) const override { return o(fBuild.Or(x.out, y.out)); }
     XSig Xor(const XSig& x, const XSig& y) const override { return o(fBuild.Xor(x.out, y.out)); }
 
+    //--- compound operations : nodes of their own, rebuilt as such ---------------------
+    XSig Frac(const XSig& x) const override { return o(fBuild.Frac(x.out)); }
+    XSig Cfrac(const XSig& x) const override { return o(fBuild.Cfrac(x.out)); }
+    XSig Mix(const XSig& c, const XSig& a, const XSig& b) const override
+    {
+        return o(fBuild.Mix(c.out, a.out, b.out));
+    }
+    XSig Tpt(const XSig& x) const override { return o(fBuild.Tpt(x.out)); }
+    XSig Phase(const XSig& x, const XSig& p) const override { return o(fBuild.Phase(x.out, p.out)); }
+    XSig Sum(const std::vector<XSig>& t) const override { return o(fBuild.Sum(outs(t))); }
+    XSig Prod(const std::vector<XSig>& t) const override { return o(fBuild.Prod(outs(t))); }
+    XSig Fir(const XSig& x, const std::vector<XSig>& c) const override
+    {
+        return o(fBuild.Fir(x.out, outs(c)));
+    }
+    XSig Iir(const XSig& x, const std::vector<XSig>& c) const override
+    {
+        return o(fBuild.Iir(x.out, outs(c)));
+    }
+
     //--- extended primitives (per-op forms: ex-nihilo construction only) --------------
     XSig Abs(const XSig& x) const override { return o(fBuild.Abs(x.out)); }
     XSig Acos(const XSig& x) const override { return o(fBuild.Acos(x.out)); }
@@ -317,6 +337,15 @@ class SIGS_API TransformAlgebra : public SignalDispatch<XSig> {
    protected:
     /// Wrap a built tree as a value; the driver fills the `orig` side.
     static XSig o(Tree out) { return {nullptr, out}; }
+
+    /// the built trees of a list of values
+    static std::vector<Tree> outs(const std::vector<XSig>& v)
+    {
+        std::vector<Tree> r;
+        r.reserve(v.size());
+        for (const XSig& x : v) r.push_back(x.out);
+        return r;
+    }
 
     /// Unreachable through the driver (xtended applications go to xtdApp).
     XSig xtendedOp(xtended* p, const std::vector<XSig>& c) const override;

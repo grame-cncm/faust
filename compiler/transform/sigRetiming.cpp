@@ -198,6 +198,74 @@ Tree SignalRetimer::transformation(Tree sig)
         return res;
     }
 
+    // the compound operations : one operation stage, like a binary operation
+    else if (isSigFrac(sig, x) || isSigCfrac(sig, x) || isSigTpt(sig, x) || isSigNeg(sig, x)) {
+        Tree x2  = self(x);
+        Tree op  = isSigFrac(sig, x)    ? sigFrac(x2)
+                   : isSigCfrac(sig, x) ? sigCfrac(x2)
+                   : isSigTpt(sig, x)   ? sigTpt(x2)
+                                        : sigNeg(x2);
+        Tree res = sigRegister(1, op);
+        fTiming[res] = fTiming[x2] + 1;
+        return res;
+    } else if (isSigPhase(sig, x, y)) {
+        Tree x2  = self(x);
+        Tree y2  = self(y);
+        int  tm  = std::max(fTiming[x2], fTiming[y2]);
+        Tree rx  = addRegisters(x2, tm - fTiming[x2]);
+        Tree ry  = addRegisters(y2, tm - fTiming[y2]);
+        Tree res = sigRegister(1, sigPhase(rx, ry));
+        fTiming[res] = tm + 1;
+        return res;
+    } else if (isSigMix(sig, x, y, z)) {
+        Tree x2  = self(x);
+        Tree y2  = self(y);
+        Tree z2  = self(z);
+        int  tm  = std::max({fTiming[x2], fTiming[y2], fTiming[z2]});
+        Tree rx  = addRegisters(x2, tm - fTiming[x2]);
+        Tree ry  = addRegisters(y2, tm - fTiming[y2]);
+        Tree rz  = addRegisters(z2, tm - fTiming[z2]);
+        Tree res = sigRegister(1, sigMix(rx, ry, rz));
+        fTiming[res] = tm + 1;
+        return res;
+    } else if (tvec terms; isSigSum(sig, terms) || isSigProd(sig, terms)) {
+        // the operands aligned on the latest one, as for a binary operation
+        const bool sum = isSigSum(sig);
+        tvec t2;
+        int  tm = 0;
+        for (Tree t : terms) {
+            Tree u = self(t);
+            t2.push_back(u);
+            tm = std::max(tm, fTiming[u]);
+        }
+        tvec rt;
+        for (Tree u : t2) {
+            Tree r = addRegisters(u, tm - fTiming[u]);
+            rt.push_back(r);
+        }
+        Tree res     = sigRegister(1, sum ? sigSum(rt) : sigProd(rt));
+        fTiming[res] = tm + 1;
+        return res;
+    } else if (tvec fir; isSigFIR(sig, fir) || isSigIIR(sig, fir)) {
+        // the source (the input) and the coefficients aligned on the latest one
+        const bool isFir = isSigFIR(sig);
+        tvec t2;
+        int  tm = 0;
+        for (Tree t : fir) {
+            Tree u = self(t);
+            t2.push_back(u);
+            tm = std::max(tm, fTiming[u]);
+        }
+        tvec rt;
+        for (Tree u : t2) {
+            Tree r = addRegisters(u, tm - fTiming[u]);
+            rt.push_back(r);
+        }
+        Tree res     = sigRegister(1, isFir ? sigFIR(rt) : sigIIR(rt));
+        fTiming[res] = tm + 1;
+        return res;
+    }
+
     // Foreign functions
     else if (isSigFFun(sig, ff, largs)) {
         Tree largs2  = mapself(largs);

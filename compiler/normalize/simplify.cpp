@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include <stdio.h>
+#include <cmath>
 #include <map>
 
 #include "compatibility.hh"
@@ -115,6 +116,87 @@ Tree simplifyExpression(Tree sig)
     return traced_simplification(sig);
 }
 
+// the value of a numeric literal
+static bool literal(Tree t, double& d)
+{
+    int i;
+    if (isInt(t->node(), &i)) {
+        d = i;
+        return true;
+    }
+    return isDouble(t->node(), &d);
+}
+
+Tree simplifyCompound(Tree sig)
+{
+    Tree   x, c, a, b;
+    double d, e, f;
+    // frac, cfrac and tpt fold on literals, as their definitions did
+    if (isSigFrac(sig, x) || isSigCfrac(sig, x)) {
+        return literal(x, d) ? tree(d - (isSigFrac(sig, x) ? std::floor(d) : std::rint(d))) : sig;
+    }
+    if (isSigTpt(sig, x)) {
+        return literal(x, d) ? tree(d / (d + 1.0)) : sig;
+    }
+    if (isSigPhase(sig, x, c)) {
+        return (literal(x, d) && literal(c, e) && e != 0) ? tree(std::fmod(d, e) / e) : sig;
+    }
+    // a product of numbers folds ; a product of one factor is that factor
+    if (tvec fs; isSigProd(sig, fs)) {
+        if (fs.size() == 1) return fs[0];
+        bool numbers = true;
+        for (Tree t : fs) numbers = numbers && isNum(t);
+        if (!numbers) return sig;
+        Tree acc = tree(1);
+        for (Tree t : fs) acc = mulNums(acc, t);
+        return acc;
+    }
+    // a sum of numbers folds ; a sum of one term is that term
+    if (tvec terms; isSigSum(sig, terms)) {
+        if (terms.size() == 1) return terms[0];
+        bool numbers = true;
+        for (Tree t : terms) numbers = numbers && isNum(t);
+        if (!numbers) return sig;
+        Tree acc = tree(0);
+        for (Tree t : terms) acc = addNums(acc, t);
+        return acc;
+    }
+    // neg folds on a number, and -(-y) is y
+    if (isSigNeg(sig, x)) {
+        Tree y;
+        if (isNum(x)) return minusNum(x);
+        if (isSigNeg(x, y)) return y;
+        return sig;
+    }
+    // mix(c, a, b) = (1 - c) * a + c * b : the neutral and absorbing elements of its
+    // products and sum
+    if (isSigMix(sig, c, a, b)) {
+        if (literal(c, d) && literal(a, e) && literal(b, f)) {
+            return tree((1.0 - d) * e + d * f);
+        }
+        if (literal(c, d) && d == 0) {
+            return a;
+        }
+        if (literal(c, d) && d == 1) {
+            return b;
+        }
+        if (a == b) {
+            return a;
+        }
+        if (literal(a, e) && e == 0) {
+            return sigBinOp(kMul, c, b);
+        }
+        if (literal(b, f) && f == 0) {
+            // 1 - c as the normal form writes it
+            Tree one = sigReal(1.0);
+            Tree nc  = sigNeg(c);
+            Tree w   = sigSum({one, nc});
+            return sigBinOp(kMul, w, a);
+        }
+    }
+    return sig;
+}
+
 // Implementation
 
 static bool isSigBool(Tree sig)
@@ -176,6 +258,23 @@ static Tree simplification(Tree sig)
             Tree m = tree(minusNode(n->node()));
             Tree d = sigBinOp(kSub, y, x);
             return sigBinOp(kMul, m, d);
+        }
+
+        // the same rules on the sum of the normal form : -n*s -> n*(-s) ; -1*s -> -s,
+        // when the opposite of s is itself a sum with a positive term (x - y, not x + y)
+        if (opnum == kMul && ((isNum(n1) && isNegative(n1) && isSigSum(t2)) ||
+                              (isNum(n2) && isNegative(n2) && isSigSum(t1)))) {
+            const bool left = isNum(n1) && isSigSum(t2);
+            Tree       k    = left ? t1 : t2;
+            Tree       s    = left ? t2 : t1;
+            Tree       opp  = normalizeAddTerm(sigNeg(s));
+            if (isSigSum(opp)) {
+                if (isMinusOne(k->node())) {
+                    return opp;
+                }
+                Tree m = tree(minusNode(k->node()));
+                return sigBinOp(kMul, m, opp);
+            }
         }
 
         // n*(m*x) -> (n*m)*x or x (if n*m == 1)
@@ -280,6 +379,29 @@ static Tree simplification(Tree sig)
             return x;
         }
         return sig;
+    }
+
+    // the compound operations : the rules of their definitions
+    if (isSigFrac(sig, x) || isSigCfrac(sig, x) || isSigTpt(sig, x) || isSigMix(sig, x, y, sel) ||
+        isSigPhase(sig, x, y)) {
+        return simplifyCompound(sig);
+    }
+    // a FIR : the normal form of sums, which reads its taps and writes it again
+    if (isSigFIR(sig)) {
+        return global::isOpt("FAUST_SIG_NO_NORM") ? sig : normalizeAddTerm(sig);
+    }
+    // an n-ary sum or product : the normal form of sums
+    if (isSigSum(sig) || isSigProd(sig)) {
+        Tree r = simplifyCompound(sig);
+        if (r != sig) return r;
+        return global::isOpt("FAUST_SIG_NO_NORM") ? sig : normalizeAddTerm(sig);
+    }
+    // a negation : folded on a number, -(-x) = x, otherwise the normal form of sums,
+    // which writes a negation as neg as well
+    if (isSigNeg(sig, x)) {
+        Tree r = simplifyCompound(sig);
+        if (r != sig) return r;
+        return global::isOpt("FAUST_SIG_NO_NORM") ? sig : normalizeAddTerm(sig);
     }
 
     // enable/control against a constant guard

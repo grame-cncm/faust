@@ -181,6 +181,32 @@ class SIGS_API TreeAlgebra : public SignalDispatch<Tree> {
     {
         return tree(sigs::g.SIGSELECT2, sel, x, y);
     }
+    // the compound operations stay nodes : their definition is the business of the code
+    // generators, as for a sum or a FIR
+    Tree Frac(const Tree& x) const override { return tree(sigs::g.SIGFRAC, x); }
+    Tree Cfrac(const Tree& x) const override { return tree(sigs::g.SIGCFRAC, x); }
+    Tree Mix(const Tree& c, const Tree& a, const Tree& b) const override
+    {
+        return tree(sigs::g.SIGMIX, c, a, b);
+    }
+    Tree Tpt(const Tree& x) const override { return tree(sigs::g.SIGTPT, x); }
+    Tree Phase(const Tree& x, const Tree& p) const override { return tree(sigs::g.SIGPHASE, x, p); }
+    // the kernels stay nodes, their children the arguments of their operations :
+    // FIR[x, c0, ...], IIR[x, c1, ...], Sum[t0, ...], Prod[f0, ...]
+    Tree Sum(const std::vector<Tree>& t) const override { return tree(sigs::g.SIGSUM, t); }
+    Tree Prod(const std::vector<Tree>& t) const override { return tree(sigs::g.SIGPROD, t); }
+    Tree Fir(const Tree& x, const std::vector<Tree>& c) const override
+    {
+        tvec b{x};
+        b.insert(b.end(), c.begin(), c.end());
+        return tree(sigs::g.SIGFIR, b);
+    }
+    Tree Iir(const Tree& x, const std::vector<Tree>& c) const override
+    {
+        tvec b{x};
+        b.insert(b.end(), c.begin(), c.end());
+        return tree(sigs::g.SIGIIR, b);
+    }
     Tree AssertBounds(const Tree& lo, const Tree& hi, const Tree& x) const override
     {
         return tree(sigs::g.SIGASSERTBOUNDS, lo, hi, x);
@@ -247,12 +273,7 @@ class SIGS_API TreeAlgebra : public SignalDispatch<Tree> {
     //--- operations with no signal constructor ----------------------------------------
     // Not produced by the dense switch; derived transformations may use them as
     // shorthands, interpreted through the constructors they abbreviate.
-    Tree Neg(const Tree& x) const override
-    {
-        Tree op   = tree(kSub);
-        Tree zero = tree(0);
-        return tree(sigs::g.SIGBINOP, op, zero, x);
-    }
+    Tree Neg(const Tree& x) const override { return tree(sigs::g.SIGNEG, x); }
     Tree Inv(const Tree& x) const override
     {
         Tree op  = tree(kDiv);

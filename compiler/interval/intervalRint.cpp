@@ -19,6 +19,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -26,14 +27,18 @@ namespace itv {
 // interval Rint(const interval& x);
 // void testRint();
 
-interval interval_algebra::Rint(const interval& x) const
+// Numeric kernel: numeric rint image; empty stays empty, and integer inputs
+// first convert to the target float. Results keep floating nature in every precision,
+// so subsequent operations cannot incorrectly enter the int32 wrapping branch.
+interval interval_algebra::numericRint(const interval& input) const
 {
+    const interval x = detail::floatingOperand(input);
     if (x.isEmpty()) {
         return empty();
     }
 
     return {std::rint(x.lo()), std::rint(x.hi()),
-            std::max(0, x.lsb())};  // round to nearest integral value => integer => precision 0
+            detail::floatingLSB(std::max(0, x.lsb()))};  // integral grid, with floating nature
 }
 
 void interval_algebra::testRint()

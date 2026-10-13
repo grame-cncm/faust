@@ -67,6 +67,120 @@ bool mterm::isNotZero() const
 }
 
 /**
+ * true if the mterm is coef*factor : a single factor, of power 1
+ */
+bool mterm::isScaledFactor(Tree& coef, Tree& factor) const
+{
+    if (fFactors.size() != 1 || fFactors.begin()->second != 1) {
+        return false;
+    }
+    coef   = fCoef;
+    factor = fFactors.begin()->first;
+    return true;
+}
+
+/**
+ * the factors of power 1, in the order of the term
+ */
+std::vector<Tree> mterm::unitFactors() const
+{
+    std::vector<Tree> r;
+    for (const auto& p : fFactors) {
+        if (p.second == 1) {
+            r.push_back(p.first);
+        }
+    }
+    return r;
+}
+
+/**
+ * true if the term holds g and (g + 1)^-k : the gain of a trapezoidal integrator,
+ * g / (g + 1), can be taken out of it
+ */
+bool mterm::tptFactors(Tree& g, Tree& d) const
+{
+    for (const auto& p : fFactors) {
+        int  op;
+        Tree l, r;
+        tvec subs;
+        if (p.second >= 0) {
+            continue;
+        }
+        if (isSigSum(p.first, subs) && subs.size() == 2) {
+            l = subs[0];  // g + 1, as the normal form writes it
+            r = subs[1];
+        } else if (!isSigBinOp(p.first, &op, l, r) || op != kAdd) {
+            continue;
+        }
+        Tree x = isOne(r) ? l : (isOne(l) ? r : nullptr);
+        if (x == nullptr || isNum(x)) {
+            continue;
+        }
+        auto it = fFactors.find(x);
+        if (it != fFactors.end() && it->second >= 1) {
+            g = x;
+            d = p.first;
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * true if the term is c * x@k : one factor of order 3 or more, of power 1, the source x
+ * delayed by a constant k >= 0 (x itself, or x@0, for k = 0), and a coefficient c, the other
+ * factors, all of them of order 2 or less (constant in the sample : a FIR multiplies the
+ * sample of x read k samples ago by the coefficient of the current sample)
+ */
+bool mterm::tapOf(Tree& source, int& delay, mterm& coef) const
+{
+    if (isZero(fCoef)) {
+        return false;
+    }
+    Tree f = nullptr;
+    for (const auto& p : fFactors) {
+        if (sigs::sigOrder(p.first) >= 3) {
+            if (f != nullptr || p.second != 1) {
+                return false;
+            }
+            f = p.first;
+        }
+    }
+    if (f == nullptr) {
+        return false;
+    }
+    // (a recursive projection read at delay 0 is written x@0 by the normal form)
+    Tree x, d;
+    int  k;
+    if (isSigDelay(f, x, d) && isSigInt(d, &k) && k >= 0) {
+        source = x;
+        delay  = k;
+    } else {
+        source = f;
+        delay  = 0;
+    }
+    if (isNum(source)) {
+        return false;  // a delayed constant is a step, not a tap
+    }
+    coef = *this / mterm(f);
+    return true;
+}
+
+/**
+ * this without the factors that q holds (with a non null power), coefficient kept
+ */
+mterm mterm::withoutFactorsOf(const mterm& q) const
+{
+    mterm r(*this);
+    for (const auto& p : q.fFactors) {
+        if (p.second != 0) {
+            r.fFactors.erase(p.first);
+        }
+    }
+    return r;
+}
+
+/**
  * true if mterm is strictly negative
  */
 bool mterm::isNegative() const
@@ -110,16 +224,21 @@ int mterm::complexity() const
 }
 
 /**
- * Match x^p with p:int
+ * Match x^p with p:int, or p a real holding an integer in [1, 8] : the promotion makes the
+ * exponent of a real base real (x^2 is pow(x, 2.0)), and the generator writes such a power
+ * as the product of its factors, as x * x
  */
 static bool isSigPow(Tree sig, Tree& x, int& n)
 {
-    // cerr << "isSigPow("<< *sig << ')' << endl;
     xtended* p = (xtended*)getUserData(sig);
     if (p == gGlobal->gPowPrim) {
+        double r;
         if (isSigInt(sig->branch(1), &n)) {
             x = sig->branch(0);
-            // cerr << "factor of isSigPow " << *x << endl;
+            return true;
+        } else if (isSigReal(sig->branch(1), &r) && r >= 1 && r <= 8 && r == double(int(r))) {
+            n = int(r);
+            x = sig->branch(0);
             return true;
         }
     }
@@ -152,9 +271,16 @@ const mterm& mterm::operator*=(Tree t)
         *this *= x;
         *this *= y;
 
+    } else if (tvec fs; isSigProd(t, fs)) {
+        for (Tree f : fs) *this *= f;
+
     } else if (isSigBinOp(t, &op, x, y) && (op == kDiv)) {
         *this *= x;
         *this /= y;
+
+    } else if (isSigNeg(t, x)) {
+        fCoef = minusNum(fCoef);
+        *this *= x;
 
     } else {
         if (isSigPow(t, x, n)) {
@@ -190,9 +316,16 @@ const mterm& mterm::operator/=(Tree t)
         *this /= x;
         *this /= y;
 
+    } else if (tvec fs; isSigProd(t, fs)) {
+        for (Tree f : fs) *this /= f;
+
     } else if (isSigBinOp(t, &op, x, y) && (op == kDiv)) {
         *this /= x;
         *this *= y;
+
+    } else if (isSigNeg(t, x)) {
+        fCoef = minusNum(fCoef);
+        *this /= x;
 
     } else {
         if (isSigPow(t, x, n)) {
@@ -433,56 +566,8 @@ static Tree buildPowTerm(Tree f, int q)
 }
 
 /**
- * Combine R and A doing R = R*A or R = A
- */
-static void combineMulLeft(Tree& R, Tree A)
-{
-    if (R && A) {
-        R = sigMul(R, A);
-    } else if (A) {
-        R = A;
-    } else {
-        cerr << "ERROR : combineMulLeft\n";
-        faustassert(false);
-    }
-}
-
-/**
- * Combine R and A doing R = R/A or R = A
- */
-static void combineDivLeft(Tree& R, Tree A)
-{
-    if (R && A) {
-        R = sigDiv(R, A);
-    } else if (A) {
-        R = sigDiv(tree(1.0f), A);
-    } else {
-        cerr << "ERROR : combineDivLeft\n";
-        faustassert(false);
-    }
-}
-
-/**
- * Do M = M * f**q or D = D * f**-q
- */
-static void combineMulDiv(Tree& M, Tree& D, Tree f, int q)
-{
-#ifdef TRACE
-    cerr << "combineMulDiv (" << M << "/" << D << "*" << ppsig(f) << "**" << q << endl;
-#endif
-    if (f) {
-        faustassert(q != 0);
-        if (q > 0) {
-            combineMulLeft(M, buildPowTerm(f, q));
-        } else if (q < 0) {
-            combineMulLeft(D, buildPowTerm(f, -q));
-        }
-    }
-}
-
-/**
  * Returns a normalized (canonical) tree expression of structure :
- * 		((v1/v2)*(c1/c2))*(s1/s2)
+ * 		Prod(v1/v2, c1/c2, s1/s2)
  */
 Tree mterm::signatureTree() const
 {
@@ -491,7 +576,7 @@ Tree mterm::signatureTree() const
 
 /**
  * Returns a normalized (canonical) tree expression of structure :
- * 		((k*(v1/v2))*(c1/c2))*(s1/s2)
+ * 		Prod(k, v1/v2, c1/c2, s1/s2), each part a Prod of its factors
  * In signature mode the fCoef factor is ommited
  * In negativeMode the sign of the fCoef factor is inverted
  */
@@ -513,12 +598,9 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
         }
     } else {
         // it's not a pure number, it has factors
-        Tree A[5], B[5];
-
-        // group by order
+        // the numerator and denominator factors of each order, in the order of the term
+        std::vector<Tree> A[5], B[5];
         for (int order = 0; order < 5; order++) {
-            A[order] = 0;
-            B[order] = 0;
             for (const auto& p : fFactors) {
                 Tree f = p.first;   // f = factor
                 int  q = p.second;  // q = power of f
@@ -527,57 +609,59 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
                 // recMII-neutral and the regrouping only flips clang's
                 // scheduling luck (brightOrgan bisection, exp-rec4)
                 if (f && q && std::min(sigs::sigOrder(f), 3) == order) {
-                    combineMulDiv(A[order], B[order], f, q);
+                    if (q > 0) {
+                        A[order].push_back(buildPowTerm(f, q));
+                    } else {
+                        B[order].push_back(buildPowTerm(f, -q));
+                    }
                 }
             }
         }
-#if 1
-        if (A[0] != 0) {
-            cerr << "A[0] == " << *A[0] << endl;
-        }
-        if (B[0] != 0) {
-            cerr << "B[0] == " << *B[0] << endl;
-        }
         // in principle here zero order is empty because it corresponds to the numerical coef
-        faustassert(A[0] == nullptr);
-        faustassert(B[0] == nullptr);
-#endif
+        faustassert(A[0].empty());
+        faustassert(B[0].empty());
 
-        // we only use a coeficient if it differs from 1 and if we are not in signature mode
-        if (!(signatureMode || isOne(fCoef))) {
-            A[0] = (negativeMode) ? minusNum(fCoef) : fCoef;
+        // a negative coefficient written positively is the negation of the opposite : the
+        // sign is carried by neg, the magnitude by the positive writing (-2x = neg(2x))
+        if (!signatureMode && !negativeMode && isNegative()) {
+            Tree opp = normalizedTree(false, true);
+            return sigNeg(opp);
         }
-
+        Tree       coef   = nullptr;
         if (signatureMode) {
-            A[0] = 0;
+            coef = nullptr;
         } else if (negativeMode) {
-            if (isMinusOne(fCoef)) {
-                A[0] = 0;
-            } else {
-                A[0] = minusNum(fCoef);
-            }
-        } else if (isOne(fCoef)) {
-            A[0] = 0;
-        } else {
-            A[0] = fCoef;
+            coef = isMinusOne(fCoef) ? nullptr : minusNum(fCoef);
+        } else if (!isOne(fCoef)) {
+            coef = fCoef;
         }
 
-        // combine each order separately : R[i] = A[i]/B[i] -- ascending,
-        // so the audio-recursive factors (order 4) multiply nearest the
-        // root, off every slower factor's path
-        Tree RR = 0;
+        // Prod(f0, ..., fn) is the chain ((f0 * f1) * ...) * fn. The coefficient, then the
+        // orders ascending, each one R = A / B, so the audio-recursive factors (order 4)
+        // multiply nearest the root, off every slower factor's path ; an order with a
+        // denominator only divides the product so far.
+        auto product = [](const std::vector<Tree>& fs) -> Tree {
+            if (fs.empty()) return nullptr;
+            return (fs.size() == 1) ? fs[0] : sigProd(fs);
+        };
+        std::vector<Tree> chain;
+        if (coef) {
+            chain.push_back(coef);
+        }
         for (int order = 0; order < 5; order++) {
-            if (A[order] && B[order]) {
-                combineMulLeft(RR, sigDiv(A[order], B[order]));
-            } else if (A[order]) {
-                combineMulLeft(RR, A[order]);
-            } else if (B[order]) {
-                combineDivLeft(RR, B[order]);
+            Tree a = product(A[order]);
+            Tree b = product(B[order]);
+            if (a && b) {
+                chain.push_back(sigDiv(a, b));
+            } else if (a) {
+                chain.push_back(a);
+            } else if (b) {
+                Tree num = chain.empty() ? tree(1.0f) : product(chain);
+                Tree d   = sigDiv(num, b);
+                chain    = {d};
             }
         }
-        if (RR == nullptr) {
-            RR = tree(1);  // to check *******************
-        }
+        Tree RR = chain.empty() ? tree(1) : product(chain);
 
         faustassert(RR);
 #ifdef TRACE

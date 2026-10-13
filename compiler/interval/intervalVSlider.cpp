@@ -15,12 +15,13 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval IntNum
 
-interval interval_algebra::VSlider(const interval& name, const interval& init, const interval& lo,
+interval interval_algebra::numericVSlider(const interval& name, const interval& init, const interval& lo,
                                    const interval& hi, const interval& step) const
 {
     if (init.isEmpty() || lo.isEmpty() || hi.isEmpty() || step.isEmpty()) {
@@ -31,12 +32,13 @@ interval interval_algebra::VSlider(const interval& name, const interval& init, c
     // k an integer the precision needed to represent such elements is the minimum between
     int lsb =
         std::min(step.lsb(), lo.lsb());  // the precision of the lower bound and that of the step
-    if (step.lo() > 0) {                 // if we don't have negative or zero steps
+    if (step.lo() > 0 && std::isfinite(step.lo())) {                 // if we don't have negative or zero steps
         lsb = std::min(
             lsb,
             (int)log2(step.lo()));  // and that associated to the smallest value the step can take
     }
 
-    return {lo.lo(), hi.hi(), lsb};  // TODO: step, init
+    // UI zones carry float values even when their declared step is integral.
+    return {lo.lo(), hi.hi(), detail::floatingLSB(lsb)};  // TODO: step, init
 }
 }  // namespace itv

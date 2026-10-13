@@ -292,6 +292,28 @@ static string sigLabel(Tree sig)
         fout << "register " << i;  // for FPGA Retiming
     }
 
+    else if (isSigFrac(sig, x)) {
+        fout << "frac";
+    } else if (isSigCfrac(sig, x)) {
+        fout << "cfrac";
+    } else if (isSigMix(sig, x, y, z)) {
+        fout << "mix";
+    } else if (isSigTpt(sig, x)) {
+        fout << "tpt";
+    } else if (isSigPhase(sig, x, y)) {
+        fout << "phase";
+    } else if (isSigNeg(sig, x)) {
+        fout << "neg";
+    } else if (isSigSum(sig)) {
+        fout << "sum";
+    } else if (isSigProd(sig)) {
+        fout << "prod";
+    } else if (isSigFIR(sig)) {
+        fout << "FIR";
+    } else if (isSigIIR(sig)) {
+        fout << "IIR";
+    }
+
     else {
         stringstream error;
         error << "ERROR : sigToGraph.cpp, unrecognized signal : " << *sig << endl;

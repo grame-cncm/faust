@@ -21,7 +21,7 @@ static Tree recSafeSimplify(Tree t)
 }
 
 // Negate a signal: S -> -S
-static Tree sigNeg(Tree sig)
+static Tree minusOneTimes(Tree sig)
 {
     return recSafeSimplify(sigMul(sigInt(-1), sig));
 }
@@ -63,11 +63,11 @@ static void appendTerms(Tree xrebuilt, bool xShared, bool invert, tvec& zsubs)
     tvec subs;
     if (!xShared && isSigSum(xrebuilt, subs)) {
         for (Tree s : subs) {
-            zsubs.push_back(invert ? sigNeg(s) : s);
+            zsubs.push_back(invert ? minusOneTimes(s) : s);
         }
         return;
     }
-    zsubs.push_back(invert ? sigNeg(xrebuilt) : xrebuilt);
+    zsubs.push_back(invert ? minusOneTimes(xrebuilt) : xrebuilt);
 }
 
 // External API

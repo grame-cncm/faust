@@ -20,13 +20,18 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
 // negation, invert sign of an interval
 
-interval interval_algebra::Neg(const interval& x) const
+// Numeric kernel: enclose wrapping int32 negation or floating sign reversal.
+// Empty stays empty. Normalize widened integer corridors before endpoint work;
+// the result retains the input nature, including integral-valued floating zero.
+interval interval_algebra::numericNeg(const interval& input) const
 {
+    const interval x = detail::int32Hull(input);
     if (x.isEmpty()) {
         return empty();
     }

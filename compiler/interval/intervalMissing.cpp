@@ -3,20 +3,23 @@
 
 namespace itv {
 //------------------------------------------------------------------------------------------
-// Missing operations. A default implementation is provided for the code to compile. A real
-// implementation has to be provided.
+// Structural value attributes. Unknown external domains must remain visible
+// as invalidity; value passthrough and joins must not invent zero constants.
 
-interval interval_algebra::FixPointUpdate(const interval& x, const interval& y) const
+interval interval_algebra::numericFixPointUpdate(const interval& x, const interval& y) const
 {
-    return interval(0);
+    return reunion(x, y);
 }
-interval interval_algebra::Input(const interval& c) const
+// An audio input has no assumed range : a host may send any value through it (a control
+// voltage, a frequency, a phase), and the intervals state what is guaranteed, never a
+// convention. Sound files, normally bounded, keep [-1, 1] (SoundFileBuffer).
+interval interval_algebra::numericInput(const interval& c) const
 {
-    return interval(0);
+    return interval(-HUGE_VAL, HUGE_VAL);
 }
-interval interval_algebra::Output(const interval& c, const interval& y) const
+interval interval_algebra::numericOutput(const interval& c, const interval& y) const
 {
-    return interval(0);
+    return y;
 }
 /*
 interval interval_algebra::Button(const interval& name) const
@@ -30,31 +33,31 @@ interval interval_algebra::Checkbox(const interval& name) const
 */
 // Bargraphs observe a signal without changing its possible values; their UI
 // bounds constrain display only and therefore do not intersect the range.
-interval interval_algebra::HBargraph(const interval& name, const interval& lo, const interval& hi,
+interval interval_algebra::numericHBargraph(const interval& name, const interval& lo, const interval& hi,
                                      const interval& signal) const
 {
     return signal;
 }
-interval interval_algebra::VBargraph(const interval& name, const interval& lo, const interval& hi,
+interval interval_algebra::numericVBargraph(const interval& name, const interval& lo, const interval& hi,
                                      const interval& signal) const
 {
     return signal;
 }
 // Effect and control operands influence scheduling but not the values produced
 // by the first operand, so all three wrappers preserve its range.
-interval interval_algebra::Attach(const interval& x, const interval& y) const
+interval interval_algebra::numericAttach(const interval& x, const interval& y) const
 {
     return x;
 }
-interval interval_algebra::Enable(const interval& x, const interval& control) const
+interval interval_algebra::numericEnable(const interval& x, const interval& control) const
 {
     return x;
 }
-interval interval_algebra::Control(const interval& x, const interval& control) const
+interval interval_algebra::numericControl(const interval& x, const interval& control) const
 {
     return x;
 }
-interval interval_algebra::AssertBounds(const interval& lo, const interval& hi, const interval& x) const
+interval interval_algebra::numericAssertBounds(const interval& lo, const interval& hi, const interval& x) const
 {
     if (lo.isEmpty() || hi.isEmpty() || x.isEmpty()) {
         return empty();
@@ -63,60 +66,70 @@ interval interval_algebra::AssertBounds(const interval& lo, const interval& hi, 
     // that envelope with the candidate range remains a sound refinement.
     return intersection(x, interval(lo.lo(), hi.hi(), std::min(lo.lsb(), hi.lsb())));
 }
-interval interval_algebra::Highest(const interval& x) const
+interval interval_algebra::numericHighest(const interval& x) const
 {
-    return interval(0);
+    return x.isEmpty() ? empty() : interval(x.hi());
 }
-interval interval_algebra::Lowest(const interval& x) const
+interval interval_algebra::numericLowest(const interval& x) const
 {
-    return interval(0);
+    return x.isEmpty() ? empty() : interval(x.lo());
 }
-interval interval_algebra::BitCast(const interval& x) const
+interval interval_algebra::numericBitCast(const interval& x) const
 {
-    return interval(0);
+    return x.isEmpty() ? empty() : interval(-2147483648.0, 2147483647.0, 0);
 }
-interval interval_algebra::Select2(const interval& x, const interval& y, const interval& z) const
+interval interval_algebra::numericSelect2(const interval& x, const interval& y, const interval& z) const
 {
-    return interval(0);
+    return reunion(y, z);
 }
-interval interval_algebra::Prefix(const interval& x, const interval& y) const
+interval interval_algebra::numericPrefix(const interval& x, const interval& y) const
 {
-    return interval(0);
+    return reunion(x, y);
 }
-interval interval_algebra::RDTbl(const interval& wtbl, const interval& ri) const
+interval interval_algebra::numericRDTbl(const interval& wtbl, const interval& ri) const
 {
-    return interval(0);
+    // This value domain does not retain table extent. Without that metadata,
+    // the upper index bound cannot be certified; the compiler must supply it.
+    return wtbl.withInvalid(true);
 }
-interval interval_algebra::WRTbl(const interval& n, const interval& g, const interval& wi,
+interval interval_algebra::numericWRTbl(const interval& n, const interval& g, const interval& wi,
                                  const interval& ws) const
 {
-    return interval(0);
+    // Table values are initialized by g and subsequently written from ws.
+    // Validate the write against the size before certifying this value attribute.
+    const interval indices = IntCast(wi);
+    const bool bad = n.isEmpty() || !n.isconst() || n.lo() <= 0 ||
+                     n.lsb() < 0 || indices.isEmpty() || indices.lo() < 0 ||
+                     indices.hi() >= n.lo();
+    return reunion(g, ws).withInvalid(bad || indices.mayBeInvalid());
 }
-interval interval_algebra::Gen(const interval& x) const
+interval interval_algebra::numericGen(const interval& x) const
 {
-    return interval(0);
+    return x;
 }
 
-interval interval_algebra::SoundFile(const interval& label) const
+interval interval_algebra::numericSoundFile(const interval& label) const
 {
-    return interval(0);
+    return interval(0, 2147483647.0, 0);
 }
-interval interval_algebra::SoundFileRate(const interval& sf, const interval& x) const
+interval interval_algebra::numericSoundFileRate(const interval& sf, const interval& x) const
 {
-    return interval(0);
+    return interval(0, 2147483647.0, 0);
 }
-interval interval_algebra::SoundFileLength(const interval& sf, const interval& x) const
+interval interval_algebra::numericSoundFileLength(const interval& sf, const interval& x) const
 {
-    return interval(0);
+    return interval(0, 2147483647.0, 0);
 }
-interval interval_algebra::SoundFileBuffer(const interval& sf, const interval& x, const interval& y,
+interval interval_algebra::numericSoundFileBuffer(const interval& sf, const interval& x, const interval& y,
                                            const interval& z) const
 {
-    return interval(0);
+    return interval(-1, 1);  // the declared soundfile sample domain
 }
-interval interval_algebra::Waveform(const std::vector<interval>& w) const
+interval interval_algebra::numericWaveform(const std::vector<interval>& w) const
 {
-    return interval(0);
+    interval result = empty();
+    for (const interval& value : w) result = reunion(result, value);
+    return result;
 }
 /*
 interval interval_algebra::VSlider(const interval& name, const interval& init, const interval& lo,
@@ -153,20 +166,28 @@ interval interval_algebra::Label(const std::string& x) const
 }
 */
 // Foreign functions
-interval interval_algebra::ForeignFunction(int resultNature,
+interval interval_algebra::numericForeignFunction(int resultNature,
                                           const std::vector<interval>& args) const
 {
-    return interval(0);
+    // A foreign function has no domain/result contract in this interface.
+    return interval(resultNature == 0 ? -2147483648.0 : -HUGE_VAL,
+                    resultNature == 0 ? 2147483647.0 : HUGE_VAL,
+                    resultNature == 0 ? 0 : -24, true);
 }
-interval interval_algebra::ForeignVar(int declaredNature, const interval& name,
+interval interval_algebra::numericForeignVar(int declaredNature, const interval& name,
                                       const interval& file) const
 {
-    return interval(0);
+    // Integer storage cannot contain NaN; unknown floating storage can.
+    return interval(declaredNature == 0 ? -2147483648.0 : -HUGE_VAL,
+                    declaredNature == 0 ? 2147483647.0 : HUGE_VAL,
+                    declaredNature == 0 ? 0 : -24, declaredNature != 0);
 }
-interval interval_algebra::ForeignConst(int declaredNature, const interval& name,
+interval interval_algebra::numericForeignConst(int declaredNature, const interval& name,
                                         const interval& file) const
 {
-    return interval(0);
+    return interval(declaredNature == 0 ? -2147483648.0 : -HUGE_VAL,
+                    declaredNature == 0 ? 2147483647.0 : HUGE_VAL,
+                    declaredNature == 0 ? 0 : -24, declaredNature != 0);
 }
 
 }  // namespace itv
