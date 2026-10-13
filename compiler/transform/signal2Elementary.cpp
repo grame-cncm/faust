@@ -211,6 +211,22 @@ void Signal2Elementary::visit(Tree sig)
         return;
     }
 
+    // the compound operations
+    else if (isSigFrac(sig, x) || isSigCfrac(sig, x) || isSigTpt(sig, x) || isSigNeg(sig, x)) {
+        self(x);
+        return;
+    } else if (isSigMix(sig, c, x, y)) {
+        self(c), self(x), self(y);
+        return;
+    } else if (isSigPhase(sig, x, y)) {
+        self(x), self(y);
+        return;
+    } else if (tvec terms; isSigSum(sig, terms) || isSigProd(sig, terms) || isSigFIR(sig, terms) ||
+                           isSigIIR(sig, terms)) {
+        for (Tree t : terms) self(t);
+        return;
+    }
+
     else if (isNil(sig)) {
         // now nil can appear in table write instructions
         return;

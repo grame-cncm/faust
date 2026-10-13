@@ -84,19 +84,19 @@ void SigDependenciesGraph::visit(Tree t)
         }
         self(x);
     } else if (tvec V; isSigIIR(t, V)) {
-        // IIR[nil,X,C0=0,C1,...] : X and the non-zero coefficients are
-        // immediate dependencies ; the self-loop (full graph only) carries
-        // the delay of the first non-zero self-coefficient
-        faustassert(V.size() >= 4);
+        // IIR[X,C1,...] : X and the non-zero coefficients are immediate
+        // dependencies ; the self-loop (full graph only) carries the delay
+        // of the first non-zero self-coefficient
+        faustassert(V.size() >= 2);
         int dmin = INT32_MAX;
-        for (unsigned int k = 2; k < V.size(); k++) {
+        for (unsigned int k = 1; k < V.size(); k++) {
             if (!isZero(V[k])) {
                 fGraph.add(t, V[k], 0);
-                dmin = std::min(dmin, int(k) - 2);
+                dmin = std::min(dmin, int(k));
             }
         }
         faustassert(dmin > 0 && dmin < INT32_MAX);
-        fGraph.add(t, V[1], 0);
+        fGraph.add(t, V[0], 0);
         if (fFullGraph) {
             fGraph.add(t, t, dmin);
         }

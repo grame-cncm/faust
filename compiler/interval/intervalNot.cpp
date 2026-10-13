@@ -26,32 +26,14 @@ namespace itv {
 // interval Not(const interval& x);
 // void testNot();
 
-interval interval_algebra::Not(const interval& x) const
+// Numeric kernel: enclose int32 bitwise complement after integer conversion.
+// ~x = -1-x reverses signed order, so endpoints suffice even for full int32;
+// enumerating that range would not terminate. The low bit is always significant.
+interval interval_algebra::numericNot(const interval& input) const
 {
-    if (x.isEmpty()) {
-        return empty();
-    }
-    int x0 = saturatedIntCast(x.lo());
-    int x1 = saturatedIntCast(x.hi());
-
-    int z0 = INT32_MAX;
-    int z1 = INT32_MIN;
-
-    for (int i = x0; i <= x1; i++) {
-        int z = ~i;
-        if (z < z0) {
-            z0 = z;
-        }
-        if (z > z1) {
-            z1 = z;
-        }
-    }
-
-    // the interval is made up of integer so no need to have a precision finer than 0
-    // but take the precision of the original interval if it is even coarser
-    int precision = std::max(0, x.lsb());
-
-    return {double(z0), double(z1), precision};
+    const interval x = IntCast(input);
+    if (x.isEmpty()) return empty();
+    return {-1.0 - x.hi(), -1.0 - x.lo(), 0};
 }
 
 static double myNot(double x)

@@ -77,6 +77,14 @@ enum class SignalOpcode : std::uint8_t {
     Iir,
     Sum,
     Temp,
+    // the compound operations of FaustAlgebra, registered after the FIR/IIR port
+    Frac,
+    Cfrac,
+    Mix,
+    Tpt,
+    Neg,
+    Prod,
+    Phase,
     Count
 };
 

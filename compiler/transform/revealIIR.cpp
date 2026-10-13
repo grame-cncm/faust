@@ -1,6 +1,11 @@
 #include "revealIIR.hh"
+#include <set>
+#include "simplify.hh"
+#include <map>
+#include <functional>
 
 #include <iostream>
+#include <numeric>
 #include <optional>
 #include <unordered_map>
 #include <unordered_set>
@@ -192,6 +197,261 @@ static bool containsSelf(Tree f, Tree self)
     return false;
 }
 
+// t is a feedback tap c * self@k (k >= 1) : self delayed by a constant k, times slow
+// factors free of self (none : c = 1), possibly negated. Gives k, the factors of c and the
+// sign.
+static bool feedbackTap(Tree t, Tree self, int& k, std::vector<Tree>& coef, bool& negated)
+{
+    negated = false;
+    Tree u;
+    if (isSigNeg(t, u)) {
+        negated = true;
+        t       = u;
+    }
+    std::vector<Tree> fs;
+    tvec              ps;
+    Tree              x, y;
+    if (isSigProd(t, ps)) {
+        fs = ps;
+    } else if (isSigMul(t, x, y)) {
+        fs = {x, y};
+    } else {
+        fs = {t};
+    }
+    int found = -1;
+    for (size_t i = 0; i < fs.size(); i++) {
+        Tree d, n;
+        if (isSigDelay(fs[i], d, n) && d == self && isSigInt(n, &k) && k >= 1) {
+            if (found >= 0) {
+                return false;
+            }
+            found = int(i);
+        }
+    }
+    if (found < 0) {
+        return false;
+    }
+    coef.clear();
+    for (size_t i = 0; i < fs.size(); i++) {
+        if (int(i) == found) {
+            continue;
+        }
+        if (sigs::isAudioRate(fs[i]) || containsSelf(fs[i], self)) {
+            return false;
+        }
+        coef.push_back(fs[i]);
+    }
+    return true;
+}
+
+// A linear recursion whose feedback lies under slow factors : y = c + k * (x + y@1),
+// y = -k * (x + k' * y@1). The definition is read as a sum of signed terms, each one
+// carrying the slow factors around it : a term free of y belongs to the input, a tap
+// c * y@k to the feedback. Two forms are left as they are, the precision of the program
+// asking so : a FIR on y under a factor (a biquad whose coefficients share a factor,
+// y = x - k * FIR[y, 0, a, b] : the products k * a, computed in the precision of the
+// program, move the poles of a low-frequency filter), and a delay fed by several terms
+// (y@1 + g * (x - y@1), an interpolation : as IIR[g * x, 1 - g] it would repeat g, and
+// 1 - g loses the precision of a small g). The factors are thereby distributed over the
+// sum they multiply : the recursion is then bounded by its gain instead of its iterated
+// definition. Any other reading of y (y@0, a product of two readings, a factor that
+// changes every sample) leaves the recursion as it is. The images come from the memo of
+// the rewrite ; the input and the coefficients are put in normal form.
+namespace {
+struct LinearTerm {
+    std::vector<Tree> slow;  // the factors around the term (original side)
+    bool              neg;
+    Tree              core;  // the term, or the tap
+    int               kind;  // 0 input, 1 tap y@k
+    int               k;
+};
+}  // namespace
+
+// does t read target, crossing into the definitions of the recursions it reads ? seen
+// holds the nodes already explored (none of them reaches target), shared by the calls
+static bool readsBack(Tree t, Tree target, std::set<Tree>& seen)
+{
+    std::vector<Tree> st{t};
+    while (!st.empty()) {
+        Tree u = st.back();
+        st.pop_back();
+        if (u == target) {
+            return true;
+        }
+        if (!seen.insert(u).second) {
+            continue;
+        }
+        int  i;
+        Tree g, var, body;
+        if (isProj(u, &i, g) && isRec(g, var, body) && body != nullptr) {
+            st.push_back(body);
+            continue;
+        }
+        for (int k = 0; k < u->arity(); k++) {
+            st.push_back(u->branch(k));
+        }
+    }
+    return false;
+}
+
+// IIR[k * x, c] = k * IIR[x, c] for a constant k, and IIR[-u, c] = -IIR[u, c] : the filter
+// is linear in its input. The constant factors of the input go out, read once and applied
+// to the output. A factor that may change in time (a control, the block size) stays in : the
+// filter sums its past inputs, each one scaled by the value of k at its own instant.
+static Tree scaledIIR(const tvec& iir)
+{
+    Tree in = iir[0];
+    Tree u;
+    bool neg = false;
+    if (isSigNeg(in, u)) {
+        neg = true;
+        in  = u;
+    }
+    tvec fs, konst, rest;
+    if (isSigProd(in, fs)) {
+        for (Tree f : fs) {
+            (sigs::sigOrder(f) <= 1 ? konst : rest).push_back(f);
+        }
+    }
+    Tree r;
+    if (!konst.empty() && !rest.empty()) {
+        tvec v = iir;
+        v[0]   = (rest.size() == 1) ? rest[0] : sigProd(rest);
+        konst.push_back(sigIIR(v));
+        r = sigProd(konst);
+    } else {
+        tvec v = iir;
+        v[0]   = in;
+        r      = sigIIR(v);
+    }
+    return neg ? sigNeg(r) : r;
+}
+
+static bool linearRecursion(Tree def, Tree self, const std::function<Tree(Tree)>& image, Tree& result)
+{
+    std::vector<LinearTerm>                                     terms;
+    std::function<bool(Tree, const std::vector<Tree>&, bool)> expand = [&](Tree t, const std::vector<Tree>& slow,
+                                                                            bool neg) -> bool {
+        Tree u, d, n;
+        int  k;
+        tvec v;
+        if (!containsSelf(t, self)) {
+            terms.push_back({slow, neg, t, 0, 0});
+            return true;
+        }
+        if (isSigNeg(t, u)) {
+            return expand(u, slow, !neg);
+        }
+        if (isSigSum(t, v)) {
+            for (Tree b : v) {
+                if (!expand(b, slow, neg)) return false;
+            }
+            return true;
+        }
+        if (isSigDelay(t, d, n) && d == self && isSigInt(n, &k) && k >= 1) {
+            terms.push_back({slow, neg, t, 1, k});
+            return true;
+        }
+        if (isSigFIR(t, v) && v[0] == self) {
+            return false;  // a FIR on y under a factor : left as it is (see above)
+        }
+        std::vector<Tree> fs;
+        Tree              x, y;
+        if (isSigProd(t, v)) {
+            fs = v;
+        } else if (isSigMul(t, x, y)) {
+            fs = {x, y};
+        } else {
+            return false;
+        }
+        Tree              inner = nullptr;
+        std::vector<Tree> s2    = slow;
+        for (Tree f : fs) {
+            if (containsSelf(f, self)) {
+                if (inner != nullptr) return false;  // two readings of y : not linear
+                inner = f;
+            } else if (sigs::isAudioRate(f)) {
+                return false;  // a coefficient that changes every sample
+            } else {
+                s2.push_back(f);
+            }
+        }
+        return inner != nullptr && expand(inner, s2, neg);
+    };
+    if (!expand(def, {}, false)) {
+        return false;
+    }
+    // an input that reads y back through another recursion : the filter is a part of a
+    // larger loop, whose analysis would bound it again at every one of its own steps
+    std::set<Tree> seen;  // the nodes that do not reach y, shared by the terms
+    for (const LinearTerm& t : terms) {
+        if (t.kind == 0 && !t.core->isRecFree() && readsBack(t.core, self, seen)) {
+            return false;
+        }
+    }
+    // normal form of a piece free of recursion ; a piece holding a recursion is kept as it
+    // is : rewritten again, its groups would be copies, computed twice
+    auto normal = [](Tree t) { return t->isRecFree() ? simplify(t) : t; };
+    // a signed product of images : the slow factors (in normal form) then the given factor
+    // (nullptr : none)
+    auto product = [&](const LinearTerm& t, Tree last) -> Tree {
+        Tree k = nullptr;
+        for (Tree f : t.slow) {
+            Tree g = image(f);
+            if (g == nullptr) return nullptr;
+            k = (k == nullptr) ? g : sigMul(k, g);
+        }
+        Tree p;
+        if (last == nullptr) {
+            p = (k == nullptr) ? sigInt(1) : normal(k);
+        } else if (k == nullptr) {
+            p = last;
+        } else if (last->isRecFree()) {
+            p = normal(sigMul(k, last));
+        } else {
+            Tree nk = normal(k);
+            p       = sigProd({nk, last});
+        }
+        return t.neg ? sigNeg(p) : p;
+    };
+    std::map<int, Tree> coefs;  // delay -> coefficient
+    tvec                inputs;
+    for (const LinearTerm& t : terms) {
+        if (t.kind == 0) {
+            Tree c = image(t.core);
+            Tree p = (c == nullptr) ? nullptr : product(t, c);
+            if (p == nullptr) return false;
+            inputs.push_back(p);
+        } else if (t.kind == 1) {
+            if (coefs.count(t.k)) return false;  // a delay fed by several terms (see above)
+            Tree p = product(t, nullptr);
+            if (p == nullptr) return false;
+            coefs[t.k] = p;
+        }
+    }
+    if (inputs.empty() || coefs.empty()) {
+        return false;
+    }
+    // the order, after the decimation by the step of the non null coefficients (as above)
+    size_t step = 0;
+    for (const auto& c : coefs) step = std::gcd(step, size_t(c.first));
+    const int order = coefs.rbegin()->first;
+    if (step == 0 || size_t(order) / step > 128) {
+        return false;
+    }
+    Tree input = (inputs.size() == 1) ? inputs[0] : sigSum(inputs);
+    tvec iir{normal(input)};
+    for (int k = 1; k <= order; k++) {
+        auto it = coefs.find(k);
+        iir.push_back(it == coefs.end() ? tree(0) : simplify(it->second));
+    }
+    for (size_t j = 1; j < iir.size(); j++) {
+        if (sigs::isAudioRate(iir[j])) return false;
+    }
+    result = scaledIIR(iir);
+    return true;
+}
+
 Tree revealIIR(Tree L1)
 {
     std::unordered_map<Tree, Tree> memo;
@@ -206,6 +466,14 @@ Tree revealIIR(Tree L1)
     // already rebuilt, so the images of x and of the coefficients are
     // present : read, never re-descend.
     auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
+        // a projection read at delay 0 (x@0, the normal form's writing) that became an
+        // IIR : the IIR itself
+        // (or the product by its slow factors, see scaledIIR : the normal form keeps x@0 for
+        // a recursive projection only, any other x@0 comes from this rewrite)
+        int pz;
+        if (Tree x, d, g; isSigDelay(rebuilt, x, d) && isZero(d) && !isProj(x, &pz, g)) {
+            return x;
+        }
         int  p;
         Tree rgroup, var, le;
         if (!(isProj(orig, &p, rgroup) && isRec(rgroup, var, le) && le && !isNil(le))) {
@@ -227,27 +495,40 @@ Tree revealIIR(Tree L1)
             return rebuilt;  // a true knot : never an IIR host (see header)
         }
         Tree def = nth(le, p);
+        auto image = [&](Tree t) -> Tree {
+            auto it = memo.find(t);
+            return (it != memo.end()) ? it->second : nullptr;
+        };
+        // the feedback under slow factors, when the direct reading below does not apply
+        auto fallback = [&]() -> Tree {
+            Tree r;
+            return linearRecursion(def, orig, image, r) ? r : rebuilt;
+        };
         if (!isSigSum(def)) {
-            return rebuilt;
+            return fallback();
         }
 
-        // def(Wi) = x + FIR[Wi, 0, c1, c2, ...] : exactly one FIR whose
-        // source IS this projection (pointer equality, hash-consing)
+        // def(Wi) = x + FIR[Wi, 0, c1, c2, ...], or x + c * Wi@k (a single feedback tap,
+        // which the normal form does not write as a FIR) : exactly one feedback term
+        // whose source IS this projection (pointer equality, hash-consing)
         std::vector<Tree> R, L;
         for (Tree f : def->branches()) {
-            if (isSigFIR(f) && (f->branch(0) == orig)) {
+            int               k;
+            std::vector<Tree> cf;
+            bool              neg;
+            if ((isSigFIR(f) && (f->branch(0) == orig)) || feedbackTap(f, orig, k, cf, neg)) {
                 R.push_back(f);
             }
         }
         if (R.size() != 1) {
-            return rebuilt;
+            return fallback();
         }
         for (Tree f : def->branches()) {
-            if (isSigFIR(f) && (f->branch(0) == orig)) {
+            if (f == R[0]) {
                 continue;
             }
             if (containsSelf(f, orig)) {
-                return rebuilt;  // the feedback is not solely through the FIR
+                return fallback();  // the feedback is not solely through the FIR
             }
             L.push_back(f);
         }
@@ -255,32 +536,74 @@ Tree revealIIR(Tree L1)
             return rebuilt;
         }
 
-        tvec coef1;
-        faustassert(isSigFIR(R[0], coef1));
-        // The COEFFICIENTS must be slow rate : an audio-rate coefficient
-        // (state or input dependent) makes a nonlinear or time-varying
-        // kernel, not an IIR. O(1) by the synthesized bit. This is a
-        // DIFFERENT requirement from x's independence : well-foundedness
-        // there, the LTI doctrine here.
-        for (unsigned int i = 1; i < coef1.size(); i++) {
-            if (sigs::isAudioRate(coef1[i])) {
+        // the coefficients c1, c2, ... (rebuilt side) : the FIR's beyond its null c0, or
+        // the single tap's, zeros before its delay
+        tvec coefs;
+        if (tvec coef1; isSigFIR(R[0], coef1)) {
+            // The COEFFICIENTS must be slow rate : an audio-rate coefficient
+            // (state or input dependent) makes a nonlinear or time-varying
+            // kernel, not an IIR. O(1) by the synthesized bit. This is a
+            // DIFFERENT requirement from x's independence : well-foundedness
+            // there, the LTI doctrine here.
+            if (coef1.size() < 3 || !isZero(coef1[1])) {
+                return rebuilt;  // a feedback at delay 0 : not a recursion of the past
+            }
+            for (unsigned int i = 2; i < coef1.size(); i++) {
+                if (sigs::isAudioRate(coef1[i])) {
+                    return rebuilt;
+                }
+                Tree c = image(coef1[i]);
+                if (!c) {
+                    return rebuilt;
+                }
+                coefs.push_back(c);
+            }
+        } else {
+            int               k;
+            std::vector<Tree> cf;
+            bool              neg;
+            feedbackTap(R[0], orig, k, cf, neg);
+            tvec ci;
+            for (Tree f : cf) {
+                Tree c = image(f);
+                if (!c) {
+                    return rebuilt;
+                }
+                ci.push_back(c);
+            }
+            Tree c = ci.empty() ? tree(1) : (ci.size() == 1 ? ci[0] : sigProd(ci));
+            if (neg) {
+                c = sigNeg(c);
+            }
+            for (int d = 1; d < k; d++) {
+                coefs.push_back(tree(0));
+            }
+            coefs.push_back(c);
+        }
+
+        // An IIR of a high order stays a recursion : its bound (companion matrices of the
+        // order, after the decimation by the step of its non null coefficients) would
+        // cost more than it brings. A comb x + g y@N is of order 1 after decimation.
+        {
+            size_t step = 0;
+            for (size_t k = 0; k < coefs.size(); k++) {
+                if (!isZero(coefs[k])) {
+                    step = std::gcd(step, k + 1);
+                }
+            }
+            if (step == 0 || coefs.size() / step > 128) {
                 return rebuilt;
             }
         }
 
-        // Assemble IIR[nil, x, 0, c1, c2, ...] from the memoized images
-        auto image = [&](Tree t) -> Tree {
-            auto it = memo.find(t);
-            return (it != memo.end()) ? it->second : nullptr;
-        };
-        tvec coef2;
-        coef2.push_back(gGlobal->nil);
+        // Assemble IIR[x, c1, c2, ...] from the memoized images
+        tvec iir;
         if (L.size() == 1) {
             Tree in = image(L[0]);
             if (!in) {
                 return rebuilt;
             }
-            coef2.push_back(in);
+            iir.push_back(in);
         } else {
             tvec ins;
             for (Tree f : L) {
@@ -290,26 +613,20 @@ Tree revealIIR(Tree L1)
                 }
                 ins.push_back(in);
             }
-            coef2.push_back(sigSum(ins));
-        }
-        for (unsigned int i = 1; i < coef1.size(); i++) {
-            Tree c = image(coef1[i]);
-            if (!c) {
-                return rebuilt;
-            }
-            coef2.push_back(c);
+            iir.push_back(sigSum(ins));
         }
         // an IIR whose denominator coefficients are audio-rate is not a
         // polynomial over slow values : every product the kernel algebra
         // would build with them runs per sample, and the lift only
         // de-factors what the canonical recursion shared (dattorro's
         // smoothed allpass gains). Refuse the lift.
-        for (size_t i = 3; i < coef2.size(); i++) {
-            if (sigs::isAudioRate(coef2[i])) {
+        for (Tree c : coefs) {
+            if (sigs::isAudioRate(c)) {
                 return rebuilt;
             }
+            iir.push_back(c);
         }
-        return sigIIR(coef2);
+        return scaledIIR(iir);
     };
 
     return treeRewritePairedMemo(L1, pre, rule, memo, defRule);

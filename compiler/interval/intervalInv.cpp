@@ -19,6 +19,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -32,10 +33,32 @@ static double inv(double x)
     return 1 / x;
 }
 
-interval interval_algebra::Inv(const interval& x) const
+// Numeric kernel: reciprocal bounds and their LSB estimate; empty stays empty.
+// Zero gives both signed infinities in float/double (signed zero is not tracked). Float/double reciprocal endpoints
+// round outward; LSB remains an estimate.
+interval interval_algebra::numericInv(const interval& input) const
 {
+    const interval x = detail::floatingOperand(input);
     if (x.isEmpty()) {
         return empty();
+    }
+    if (x.isZero()) {
+        // Numeric endpoints merge +0 and -0. Both precisions must retain the
+        // two possible infinities so a later operation can detect invalid pairs.
+        if (detail::usesNativeBounds()) return {-HUGE_VAL, HUGE_VAL, -24};
+        return {HUGE_VAL, HUGE_VAL, -24};
+    }
+
+    if (detail::usesNativeBounds()) {
+        const int lsb = std::min(x.lsb(), -24);
+        if (x.lo() < 0 && x.hi() > 0) return {-HUGE_VAL, HUGE_VAL, lsb};
+        // Zero is normalized as +0 by interval: a negative corridor ending at
+        // zero must also contain its +inf reciprocal, not only the -inf limit.
+        if (x.lo() < 0 && x.hi() == 0) return {-HUGE_VAL, HUGE_VAL, lsb};
+        return {x.hi() == 0 ? -HUGE_VAL : detail::directedBinary(
+                    detail::BinaryOp::Div, 1, x.hi(), detail::Direction::Down),
+                x.lo() == 0 ? HUGE_VAL : detail::directedBinary(
+                    detail::BinaryOp::Div, 1, x.lo(), detail::Direction::Up), lsb};
     }
 
     int    sign = signMaxValAbs(x);

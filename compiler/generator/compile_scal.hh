@@ -27,6 +27,8 @@
 #include <map>
 #include <utility>
 
+#include "definitionIndex.hh"
+#include "sumLayout.hh"
 #include "compile.hh"
 #include "dcond.hh"
 #include "occurrences.hh"
@@ -202,8 +204,19 @@ class ScalarCompiler : public Compiler {
     std::string         generateFIR(Tree sig, const tvec& coefs);
     std::string         generateIIR(Tree sig, const tvec& coefs);
     std::string         generateSum(Tree sig, const tvec& subs);
+    std::string         generateProd(Tree sig, const tvec& factors);
+    std::string         operandAtRate(Tree x);
     std::string         generatePrefix(Tree sig, Tree x, Tree e);
     std::string         generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
+    DefinitionIndex     fDefinitions;  // the subterms of compound definitions the program holds
+    std::string         generateNeg(Tree sig, Tree x);
+    std::string         compoundOperand(Tree x);
+    std::string         compoundSlowStore(int variability, const std::string& exp, bool isInt = false);
+    std::string         compoundProduct(const std::string& lead, int vlead, Tree t, int consumer);
+    std::string         generateRemainder(Tree sig, Tree x, xtended* round);
+    std::string         generateTpt(Tree sig, Tree x);
+    std::string         generatePhase(Tree sig, Tree x, Tree p);
+    std::string         generateMix(Tree sig, Tree c, Tree a, Tree b);
 
     std::string         generateFFun(Tree sig, Tree ff, Tree largs);
     virtual std::string generateWaveform(Tree sig);

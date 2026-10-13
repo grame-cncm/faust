@@ -98,6 +98,11 @@ class DocCompiler : public virtual Garbageable {
     std::string generateDelayAccess(Tree sig, Tree arg, Tree size, int priority);
     std::string generatePrefix(Tree sig, Tree x, Tree e, int priority);
     std::string generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2, int priority);
+    std::string generateCompound(Tree sig, int priority);
+    std::string generateSum(Tree sig, const tvec& terms, int priority);
+    std::string generateProd(Tree sig, const tvec& factors, int priority);
+    std::string generateFIR(Tree sig, const tvec& fir, int priority);
+    std::string generateIIR(Tree sig, const tvec& iir, int priority);
 
     std::string generateFFun(Tree sig, Tree ff, Tree largs, int priority);
 

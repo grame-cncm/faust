@@ -60,6 +60,9 @@ struct PairOrder {
 Atom atomOf(Tree t)
 {
     Tree a, b;
+    if (isSigNeg(t, a)) {
+        return {a, -1};
+    }
     if (isSigMul(t, a, b) && isMinusOne(a)) {
         return {b, -1};
     }
@@ -88,7 +91,7 @@ Tree rebuildRow(const Row& row)
             acc = sigAdd(acc, pos[i]);
         }
     } else {
-        acc = sigMul(sigInt(-1), neg[0]);
+        acc = sigNeg(neg[0]);
         k   = 1;
     }
     for (; k < neg.size(); k++) {
