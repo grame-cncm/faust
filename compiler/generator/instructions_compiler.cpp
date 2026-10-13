@@ -107,30 +107,15 @@ Tree InstructionsCompiler::prepare(Tree LS)
         L1 = signalBool2IntPromote(L1);
     }
 
+    // dump normal form : the equations, with the types the typing gives them ; the checks
+    // that refuse a program are left out, so that a refused program is printed too
     if (gGlobal->gDumpNorm == 0) {
-        cout << ppsig(L1) << endl;
+        try {
+            typeAnnotation(L1, false);
+        } catch (faustexception&) {
+        }
+        ppsigEquations(L1, cout);
         throw faustexception("Dump normal form finished...\n");
-    } else if (gGlobal->gDumpNorm == 1) {
-        ppsigShared(L1, cout, false);
-        throw faustexception("Dump shared normal form finished...\n");
-    } else if (gGlobal->gDumpNorm == 2) {
-        // Print signal tree type
-        SignalTypePrinter types(L1);
-        std::cout << types.print();
-        throw faustexception("Dump signal type finished...\n");
-    } else if (gGlobal->gDumpNorm == 3) {
-        /*
-        SignalFIRCompiler fir_compiler(fContainer->inputs(), fContainer->outputs(), L1);
-        // dump2FIR(fir_compiler.genFIRModule());
-        ModuleInst* fir_module = fir_compiler.genFIRModule();
-
-        std::stringstream stream;
-        CPPInstVisitor    visitor(&stream, fir_module->getName());
-        // CInstVisitor    visitor(&stream, fir_module->getName());
-        fir_module->accept(&visitor);
-        std::cout << stream.str();
-        throw faustexception("Dump FIR compiler finished...\n");
-        */
     }
 
     // The interval constant propagation, as in the ocpp compiler : a signal whose
