@@ -33,25 +33,28 @@ static double lsh(double x, double k)
     return x * pow(2, k);
 }
 
-interval interval_algebra::Lsh(const interval& x, const interval& k) const
+// Numeric kernel: enclose wrapping int32 left shift for counts in [0,31].
+// Convert operands to integers first. Invalid counts have no portable execution
+// contract and conservatively return full int32; this does not define such shifts.
+interval interval_algebra::numericLsh(const interval& input, const interval& counts) const
 {
-    if (x.isEmpty() || k.isEmpty()) {
-        return empty();
+    const interval x = IntCast(input), k = IntCast(counts);
+    if (x.isEmpty() || k.isEmpty()) return empty();
+    if (k.lo() < 0 || k.hi() > 31) return {double(INT_MIN), double(INT_MAX), 0};
+    interval result = empty();
+    for (int shift = int(k.lo()); shift <= int(k.hi()); ++shift) {
+        if (x.isconst()) {
+            const uint32_t bits = uint32_t(int32_t(x.lo())) << shift;
+            result = reunion(result, IntNum(compat::bit_cast<int32_t>(bits)));
+        } else {
+            // Scaling int32 by powers up to 2^31 is exact in binary64. Once a
+            // wrap is possible a single contiguous interval uses the full hull.
+            const double lo = std::ldexp(x.lo(), shift), hi = std::ldexp(x.hi(), shift);
+            if (lo < INT_MIN || hi > INT_MAX) return {double(INT_MIN), double(INT_MAX), 0};
+            result = reunion(result, interval(lo, hi, 0));
+        }
     }
-
-    interval j{pow(2, k.lo()), std::pow(2, k.hi())};
-    interval z = Mul(x, j);
-
-    // integer left shift wraps around int32 : once the mathematical bounds escape the
-    // integer range, every value in it is reachable (same envelope as Mul's)
-    if ((x.lsb() >= 0) &&
-        ((z.lo() < (double)INT_MIN) || (z.hi() > (double)INT_MAX))) {
-        return {(double)INT_MIN, (double)INT_MAX, x.lsb() + (int)k.lo()};
-    }
-
-    return {z.lo(), z.hi(),
-            x.lsb() +
-                (int)k.lo()};  // lshifts shave some precision off the numbers, at least y.lo() bits
+    return result;
 }
 
 void interval_algebra::testLsh()

@@ -33,37 +33,44 @@ static double rsh(double x, double k)
     return x * std::pow(2, -k);
 }
 
-interval interval_algebra::ARsh(const interval& x, const interval& k) const
+// Numeric kernel: enclose arithmetic int32 right shift for counts in [0,31].
+// Arithmetic shifts round negative quotients downward; real scaling alone can
+// miss the actual integer result. Invalid counts conservatively return full int32.
+interval interval_algebra::numericARsh(const interval& input, const interval& counts) const
 {
-    if (x.isEmpty() || k.isEmpty()) {
-        return empty();
-    }
-
-    interval j{pow(2, -k.hi()), std::pow(2, -k.lo())};
-    interval z = Mul(x, j);
-
-    return {
-        z.lo(), z.hi(),
-        x.lsb() - (int)k.hi()};  // rshifts add some precision to the numbers, at most y.hi() bits
+    const interval x = IntCast(input), k = IntCast(counts);
+    if (x.isEmpty() || k.isEmpty()) return empty();
+    if (k.lo() < 0 || k.hi() > 31) return {double(INT_MIN), double(INT_MAX), 0};
+    interval result = empty();
+    for (int shift = int(k.lo()); shift <= int(k.hi()); ++shift)
+        result = reunion(result, interval(std::floor(std::ldexp(x.lo(), -shift)),
+                                          std::floor(std::ldexp(x.hi(), -shift)), 0));
+    return result;
 }
 
-interval interval_algebra::LRsh(const interval& x, const interval& k) const
+// Numeric kernel: enclose logical int32 right shift for counts in [0,31].
+// A positive shift sees the uint32 bit pattern; shift zero retains the original
+// signed value. Split at zero to handle the unsigned ordering discontinuity.
+interval interval_algebra::numericLRsh(const interval& input, const interval& counts) const
 {
-    if (x.isEmpty() || k.isEmpty()) {
-        return empty();
+    const interval x = IntCast(input), k = IntCast(counts);
+    if (x.isEmpty() || k.isEmpty()) return empty();
+    if (k.lo() < 0 || k.hi() > 31) return {double(INT_MIN), double(INT_MAX), 0};
+    interval result = empty();
+    for (int shift = int(k.lo()); shift <= int(k.hi()); ++shift) {
+        if (shift == 0) { result = reunion(result, x); continue; }
+        if (x.lo() < 0) {
+            const uint32_t lo = uint32_t(int32_t(x.lo())) >> shift;
+            const uint32_t hi = uint32_t(int32_t(std::min(x.hi(), -1.0))) >> shift;
+            result = reunion(result, interval(double(lo), double(hi), 0));
+        }
+        if (x.hi() >= 0) {
+            const uint32_t lo = uint32_t(std::max(x.lo(), 0.0)) >> shift;
+            const uint32_t hi = uint32_t(x.hi()) >> shift;
+            result = reunion(result, interval(double(lo), double(hi), 0));
+        }
     }
-    if (x.lo() >= 0) {
-        return ARsh(x, k);
-    }
-    // Negative operands are reinterpreted as uint32 before shifting. A shift by 0
-    // passes them through UNCHANGED (still negative once stored back in int32), so
-    // when k can be 0 the whole integer range is reachable. For k >= 1 the result is
-    // nonnegative and bounded by 2^(32-k) - 1.
-    if (k.lo() < 1) {
-        return {(double)INT_MIN, (double)INT_MAX, 0};
-    }
-    double hi = std::min((double)INT_MAX, std::pow(2.0, 32.0 - k.lo()) - 1);
-    return {0, hi, 0};
+    return result;
 }
 
 void interval_algebra::testRsh()

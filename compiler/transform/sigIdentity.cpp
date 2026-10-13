@@ -210,15 +210,29 @@ Tree SignalIdentity::transformation(Tree sig)
         }
         return sigFIR(c);
     } else if (isSigIIR(sig)) {
-        // branch 0 is the recursive reference : NOT traversed (the source
-        // branch does the same -- descending into it would loop)
+        // the input and the coefficients (the node reads its own past without a branch)
         tvec c = sig->branches();
-        for (unsigned int k = 1; k < c.size(); k++) {
+        for (unsigned int k = 0; k < c.size(); k++) {
             c[k] = self(c[k]);
         }
         return sigIIR(c);
     } else if (Tree tx; isSigTemp(sig, tx)) {
         return sigTemp(self(tx));
+    } else if (Tree tx; isSigNeg(sig, tx)) {
+        return sigNeg(self(tx));
+    } else if (Tree tx; isSigFrac(sig, tx)) {
+        return sigFrac(self(tx));
+    } else if (Tree tx; isSigCfrac(sig, tx)) {
+        return sigCfrac(self(tx));
+    } else if (Tree tx; isSigTpt(sig, tx)) {
+        return sigTpt(self(tx));
+    } else if (Tree tx, tp; isSigPhase(sig, tx, tp)) {
+        Tree x = self(tx);
+        return sigPhase(x, self(tp));
+    } else if (Tree tc, ta, tb; isSigMix(sig, tc, ta, tb)) {
+        Tree c = self(tc);
+        Tree a = self(ta);
+        return sigMix(c, a, self(tb));
     } else if (isSigSum(sig)) {
         tvec c = sig->branches();
         for (unsigned int k = 0; k < c.size(); k++) {

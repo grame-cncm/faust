@@ -19,6 +19,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -27,8 +28,12 @@ namespace itv {
 // void testAsinh();
 static const interval domain(-HUGE_VAL, HUGE_VAL);
 
-interval interval_algebra::AsinhBounds(const interval& x) const
+// Numeric kernel: numeric asinh image on its valid domain. In float/double,
+// the native kernel encloses endpoints and extrema; quad/fixed retain
+// their historical rule. LSB is an estimate; Validity is attached by the public transfer.
+interval interval_algebra::numericAsinhBounds(const interval& x) const
 {
+    if (detail::usesNativeBounds()) return detail::doubleUnaryBounds(detail::UnaryOp::Asinh, x);
     if (x.isEmpty()) {
         return empty();
     }

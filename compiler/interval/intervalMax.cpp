@@ -19,6 +19,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -26,8 +27,13 @@ namespace itv {
 // interval Max(const interval& x);
 // void testMax();
 
-interval interval_algebra::Max(const interval& x, const interval& y) const
+// Numeric kernel: enclose maximum after target operand conversions.
+// Empty stays empty; widened integers recover their signed hull.
+// The result is floating exactly when either operand is floating.
+interval interval_algebra::numericMax(const interval& xInput, const interval& yInput) const
 {
+    // Compare target values after integer widening and any implicit float cast.
+    const auto [x, y] = detail::comparisonOperands(xInput, yInput);
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
     }

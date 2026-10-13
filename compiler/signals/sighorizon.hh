@@ -83,12 +83,16 @@ SIGS_API HorizonReport horizonAnalysis(Tree L, bool verbose);
  * FOR THE DECLARED LIFETIME, and the integer bits of a fixed-point format come back.
  * Worst-case parameters (full declared ranges).
  */
+class ExactSolvers;
+
 class SIGS_API HorizonReader {
     struct Impl;
     Impl* fImpl;  ///< plan + algebra + iterator, hidden behind the compilation firewall
 
    public:
-    explicit HorizonReader(Tree L);
+    /// exact : the exact attributes of the same root, when known (the nature of a value
+    /// decides how a comparison restricts it) ; without them, the lsb decides
+    explicit HorizonReader(Tree L, const ExactSolvers* exact = nullptr);
     ~HorizonReader();
     HorizonReader(const HorizonReader&)            = delete;
     HorizonReader& operator=(const HorizonReader&) = delete;

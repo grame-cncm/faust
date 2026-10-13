@@ -19,6 +19,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -26,8 +27,12 @@ namespace itv {
 // interval Exp(const interval& x);
 // void testExp();
 
-interval interval_algebra::ExpBounds(const interval& x) const
+// Numeric kernel: numeric exp image on its valid domain. In float/double,
+// the native kernel encloses endpoints and extrema; quad/fixed retain
+// their historical rule. LSB is an estimate; Validity is attached by the public transfer.
+interval interval_algebra::numericExpBounds(const interval& x) const
 {
+    if (detail::usesNativeBounds()) return detail::doubleUnaryBounds(detail::UnaryOp::Exp, x);
     if (x.isEmpty()) {
         return empty();
     }
@@ -47,11 +52,11 @@ interval interval_algebra::ExpBounds(const interval& x) const
     return {exp(x.lo()), exp(x.hi()), precision};
 }
 
-interval interval_algebra::Exp10(const interval& x) const
+interval interval_algebra::numericExp10(const interval& x) const
 {
-    // Reuse the general power transfer so base-10 exponentiation follows the
-    // same domain and precision policy as Pow.
-    return Pow(interval(10), x);
+    // Base-10 exponentiation is floating even for an integer exponent; otherwise
+    // 10^10 would take the int32 wrapping path instead of the libm image.
+    return Pow(FloatNum(10), FloatCast(x));
 }
 
 void interval_algebra::testExp()

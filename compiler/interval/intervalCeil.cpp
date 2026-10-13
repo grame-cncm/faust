@@ -19,6 +19,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -26,8 +27,12 @@ namespace itv {
 // interval Ceil(const interval& x);
 // void testCeil();
 
-interval interval_algebra::Ceil(const interval& x) const
+// Numeric kernel: numeric ceil image; empty stays empty, and integer inputs
+// first convert to the target float. Results keep floating nature in every precision,
+// so subsequent operations cannot incorrectly enter the int32 wrapping branch.
+interval interval_algebra::numericCeil(const interval& input) const
 {
+    const interval x = detail::floatingOperand(input);
     if (x.isEmpty()) {
         return empty();
     }
