@@ -736,6 +736,56 @@ LIBFAUST_API bool isSigSoundfileBuffer(Signal s, Signal& sf, Signal& chan, Signa
                                        Signal& ridx);
 
 /**
+ * The nodes of the normal form.
+ *
+ * simplifyToNormalForm writes sums, products and negations as n-ary nodes, the taps of a
+ * source and the linear recursions as filter kernels, and some compound operations as
+ * nodes that carry the operands of their definition, written once:
+ *
+ * - sigNeg(x) = -x
+ * - sigSum({t0, t1, ..., tn}) = t0 + t1 + ... + tn, computed from left to right
+ * - sigProd({f0, f1, ..., fn}) = f0 * f1 * ... * fn, computed from left to right
+ * - sigFIR({x, c0, c1, ..., cn}) = c0*x + c1*x@1 + ... + cn*x@n
+ * - sigIIR({x, c1, ..., cn}) = y, where y = x + c1*y@1 + ... + cn*y@n
+ * - sigFrac(x) = x - floor(x)
+ * - sigCfrac(x) = x - rint(x)
+ * - sigMix(c, a, b) = (1 - c)*a + c*b
+ * - sigTpt(x) = x/(x + 1)
+ * - sigPhase(x, p) = (x % p)/p
+ *
+ * The order of the operands of a sum or a product is their association, for the interval
+ * analysis as for the generated code. The constructors build these nodes as they are, for
+ * instance to rebuild a transformed normal form; the predicates read them.
+ */
+LIBFAUST_API Signal sigNeg(Signal x);
+LIBFAUST_API Signal sigSum(const tvec& terms);
+LIBFAUST_API Signal sigProd(const tvec& factors);
+LIBFAUST_API Signal sigFIR(const tvec& coefs);
+LIBFAUST_API Signal sigIIR(const tvec& coefs);
+LIBFAUST_API Signal sigFrac(Signal x);
+LIBFAUST_API Signal sigCfrac(Signal x);
+LIBFAUST_API Signal sigMix(Signal c, Signal a, Signal b);
+LIBFAUST_API Signal sigTpt(Signal x);
+LIBFAUST_API Signal sigPhase(Signal x, Signal p);
+
+/**
+ * Test the nodes of the normal form, and fill their operands: the terms of a sum, the
+ * factors of a product, the source then the coefficients of a FIR or an IIR.
+ *
+ * @return true if the signal is a node of the given kind, false otherwise
+ */
+LIBFAUST_API bool isSigNeg(Signal s, Signal& x);
+LIBFAUST_API bool isSigSum(Signal s, tvec& terms);
+LIBFAUST_API bool isSigProd(Signal s, tvec& factors);
+LIBFAUST_API bool isSigFIR(Signal s, tvec& coefs);
+LIBFAUST_API bool isSigIIR(Signal s, tvec& coefs);
+LIBFAUST_API bool isSigFrac(Signal s, Signal& x);
+LIBFAUST_API bool isSigCfrac(Signal s, Signal& x);
+LIBFAUST_API bool isSigMix(Signal s, Signal& c, Signal& a, Signal& b);
+LIBFAUST_API bool isSigTpt(Signal s, Signal& x);
+LIBFAUST_API bool isSigPhase(Signal s, Signal& x, Signal& p);
+
+/**
  *  Simplify a signal to its normal form, where:
  *  - all possible optimisations, simplications, and compile time computations have been done
  *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile
