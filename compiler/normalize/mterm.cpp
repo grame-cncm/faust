@@ -520,6 +520,29 @@ static bool contains(int a, int b)
  * x**u has divisor x**v if u >= v
  * x**-u has divisor x**-v if -u <= -v
  */
+/**
+ * this divided by n stays a product, its divisions included : every factor of n with a
+ * positive power divides this ; a factor with a negative power (a ratio : the mterm of
+ * 44.1/SR is 44.1 * SR^-1) passes to the quotient as a product (44.1 * d / (44.1 * SR^-1) is
+ * d * SR), which creates no division
+ */
+bool mterm::hasDivisorUpToReciprocals(const mterm& n) const
+{
+    if (n.fFactors.size() == 0) {
+        return sameMagnitude(fCoef, n.fCoef);
+    }
+    for (const auto& p1 : n.fFactors) {
+        if (p1.second < 0) {
+            continue;
+        }
+        MP::const_iterator p2 = fFactors.find(p1.first);
+        if (p2 == fFactors.end() || !contains(p2->second, p1.second)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool mterm::hasDivisor(const mterm& n) const
 {
     if (n.fFactors.size() == 0) {
