@@ -38,13 +38,13 @@
 /**
  * Return the current runtime sample rate.
  *
- * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
+ * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(50.0, fconstant(int fSamplingFreq, <math.h>)));
  *
  * @return the current runtime sample rate.
  */
 inline Signal SR()
 {
-    return CsigMin(CsigReal(192000.0), CsigMax(CsigReal(1.0), CsigFConst(kSInt, "fSamplingFreq", "<math.h>")));
+    return CsigMin(CsigReal(192000.0), CsigMax(CsigReal(50.0), CsigFConst(kSInt, "fSamplingFreq", "<math.h>")));
 }
 
 /**

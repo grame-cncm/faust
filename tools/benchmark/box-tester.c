@@ -37,13 +37,13 @@
 /**
  * Return the current runtime sample rate.
  *
- * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
+ * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(50.0, fconstant(int fSamplingFreq, <math.h>)));
  *
  * @return the current runtime sample rate.
  */
 inline Box SR()
 {
-    return CboxMinAux(CboxReal(192000.0), CboxMaxAux(CboxReal(1.0), CboxFConst(kSInt, "fSamplingFreq", "<math.h>")));
+    return CboxMinAux(CboxReal(192000.0), CboxMaxAux(CboxReal(50.0), CboxFConst(kSInt, "fSamplingFreq", "<math.h>")));
 }
 
 /**
