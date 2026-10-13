@@ -1,5 +1,5 @@
 
-SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
+SR = min(192000.0, max(50.0, fconstant(int fSamplingFreq, <math.h>)));
 
 // test various simplifications
 t1 (x) = -x; // OK
