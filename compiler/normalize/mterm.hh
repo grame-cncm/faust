@@ -95,6 +95,7 @@ class mterm : public virtual Garbageable {
     Tree signatureTree() const;                   ///< return a signature (a normalized tree)
 
     bool         hasDivisor(const mterm& n) const;  ///< return true if this can be divided by n
+    bool         hasDivisorUpToReciprocals(const mterm& n) const;  ///< divisible by the factors of n with a positive power
     friend mterm gcd(const mterm& m1, const mterm& m2);  /// greatest common divisor of two mterms
 };
 
