@@ -62,13 +62,13 @@ static void runAudio(dsp* dsp, const char* name, int argc, char* argv[])
 /**
  * Return the current runtime sample rate.
  *
- * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
+ * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(50.0, fconstant(int fSamplingFreq, <math.h>)));
  *
  * @return the current runtime sample rate.
  */
 inline Box SR()
 {
-    return boxMin(boxReal(192000.0), boxMax(boxReal(1.0), boxFConst(SType::kSInt, "fSamplingFreq", "<math.h>")));
+    return boxMin(boxReal(192000.0), boxMax(boxReal(50.0), boxFConst(SType::kSInt, "fSamplingFreq", "<math.h>")));
 }
 
 /**
