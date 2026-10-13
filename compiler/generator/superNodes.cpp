@@ -201,11 +201,11 @@ void SuperNodeGraph::collectRefs(Tree t, std::set<int>& refs, std::set<int>& ref
     if (tvec cs; isSigIIR(t, cs)) {
         // the kernel reads ITSELF delayed -- an implicit self loop that no
         // sigDelay child encodes (a recursive projection gets the same edge
-        // through its explicit delayed self-reads). Branch 0 is nil.
+        // through its explicit delayed self-reads). Branch 0 is the input.
         int dmin = 0;
-        for (size_t k = 3; k < cs.size(); k++) {
+        for (size_t k = 1; k < cs.size(); k++) {
             if (!isZero(cs[k])) {
-                dmin = int(k) - 2;
+                dmin = int(k);
                 break;
             }
         }
@@ -562,13 +562,13 @@ int SuperNodeGraph::opsOfMember(int m) const
         }
         if (tvec cs; isSigIIR(t, cs)) {
             count++;  // the X add
-            for (size_t k = 3; k < cs.size(); k++) {
+            for (size_t k = 1; k < cs.size(); k++) {
                 if (!isZero(cs[k])) {
                     count++;
                 }
                 walk(cs[k], false);
             }
-            walk(cs[1], false);
+            walk(cs[0], false);
             return;
         }
         count++;

@@ -28,6 +28,9 @@
 #include <vector>
 
 #include "global.hh"
+#include "revealIIR.hh"
+#include "revealPhase.hh"
+#include "orderSums.hh"
 #include "ppbox.hh"
 #include "ppsig.hh"
 #include "sigNewConstantPropagation.hh"
@@ -592,10 +595,23 @@ static Tree simplifyToNormalFormAux(Tree LS)
     Tree L3 = simplify(L2);
     endTiming("L2 simplification");
 
+    // the linear recursions of the normal form, y = x + FIR[y, 0, c1, ...] or x + c y@k,
+    // become IIR[x, c1, ...] nodes (the smoothers are mixes already)
+    startTiming("IIR revealer");
+    L3 = revealIIR(L3);
+    endTiming("IIR revealer");
+
     // Annotate L3 with type information
     startTiming("L3 typeAnnotation");
     typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
     endTiming("L3 typeAnnotation");
+
+    // phase(x, P) = (x % P) / P, decided on the types of the normal form, which it
+    // completes : the promotion and the typing below see the new nodes
+    startTiming("Phase revealer");
+    L3 = revealPhase(L3);
+    endTiming("Phase revealer");
+    typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
 
     startTiming("Cast and Promotion");
     Tree L4 = signalPromote(L3);
@@ -644,6 +660,14 @@ static Tree simplifyToNormalFormAux(Tree LS)
         startTiming("L4 typeAnnotation");
         typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
         endTiming("L4 typeAnnotation");
+    }
+
+    // experimental : the terms of the sums ordered by their intervals (FAUST_SUMORDER=1)
+    if (const char* e = getenv("FAUST_SUMORDER"); e && e[0] == '1') {
+        startTiming("orderSumsByIntervals");
+        L4 = orderSumsByIntervals(L4);
+        typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
+        endTiming("orderSumsByIntervals");
     }
 
     // Check signal tree

@@ -240,7 +240,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         return 1;
     }
 
-    else if (isSigFIR(sig) || isSigIIR(sig) || isSigSum(sig)) {
+    else if (isSigFIR(sig) || isSigIIR(sig) || isSigSum(sig) || isSigProd(sig)) {
         // nil (the IIR's first branch) is a layout placeholder, not a
         // subsignal : generic walkers would try to type it
         for (Tree b : sig->branches()) {
@@ -249,6 +249,21 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
             }
         }
         return int(vsigs.size());
+    }
+
+    // the compound operations : their arguments
+    else if (isSigFrac(sig, x) || isSigCfrac(sig, x) || isSigTpt(sig, x) || isSigNeg(sig, x)) {
+        vsigs.push_back(x);
+        return 1;
+    } else if (isSigMix(sig, c, x, y)) {
+        vsigs.push_back(c);
+        vsigs.push_back(x);
+        vsigs.push_back(y);
+        return 3;
+    } else if (isSigPhase(sig, x, y)) {
+        vsigs.push_back(x);
+        vsigs.push_back(y);
+        return 2;
     }
 
     else {

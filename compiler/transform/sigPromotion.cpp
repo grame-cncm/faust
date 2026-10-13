@@ -20,11 +20,10 @@
  ************************************************************************/
 
 #include <stdlib.h>
+#include <algorithm>
+#include <climits>
 #include <cstdlib>
-#include <map>
-#include <set>
 #include <sstream>
-#include <vector>
 
 #include "floats.hh"
 #include "global.hh"
@@ -300,6 +299,52 @@ class SignalPromotionAlgebra : public TransformAlgebra {
     XSig Add(const XSig& x, const XSig& y) const override { return sameNature(kAdd, x, y); }
     XSig Sub(const XSig& x, const XSig& y) const override { return sameNature(kSub, x, y); }
     XSig Mul(const XSig& x, const XSig& y) const override { return sameNature(kMul, x, y); }
+
+    //--- a FIR : one real operand makes the source and every coefficient real ------------
+    XSig Fir(const XSig& x, const std::vector<XSig>& coefs) const override
+    {
+        bool real = typeOf(x)->nature() == kReal;
+        for (const XSig& c : coefs) real = real || typeOf(c)->nature() == kReal;
+        tvec out;
+        out.reserve(coefs.size() + 1);
+        out.push_back(real ? smartFloatCast(typeOf(x), x.out) : x.out);
+        for (const XSig& c : coefs) out.push_back(real ? smartFloatCast(typeOf(c), c.out) : c.out);
+        return o(fBuild.Fir(out[0], tvec(out.begin() + 1, out.end())));
+    }
+
+    //--- an IIR : one real operand makes the input and every coefficient real ------------
+    XSig Iir(const XSig& x, const std::vector<XSig>& coefs) const override
+    {
+        bool real = typeOf(x)->nature() == kReal;
+        for (const XSig& c : coefs) real = real || typeOf(c)->nature() == kReal;
+        tvec out;
+        out.reserve(coefs.size() + 1);
+        out.push_back(real ? smartFloatCast(typeOf(x), x.out) : x.out);
+        for (const XSig& c : coefs) out.push_back(real ? smartFloatCast(typeOf(c), c.out) : c.out);
+        return o(fBuild.Iir(out[0], tvec(out.begin() + 1, out.end())));
+    }
+
+    //--- an n-ary product : one real factor makes every factor real ------------------------
+    XSig Prod(const std::vector<XSig>& factors) const override
+    {
+        bool real = false;
+        for (const XSig& f : factors) real = real || typeOf(f)->nature() == kReal;
+        tvec out;
+        out.reserve(factors.size());
+        for (const XSig& f : factors) out.push_back(real ? smartFloatCast(typeOf(f), f.out) : f.out);
+        return o(fBuild.Prod(out));
+    }
+
+    //--- an n-ary sum : one real term makes every term real ------------------------------
+    XSig Sum(const std::vector<XSig>& terms) const override
+    {
+        bool real = false;
+        for (const XSig& t : terms) real = real || typeOf(t)->nature() == kReal;
+        tvec out;
+        out.reserve(terms.size());
+        for (const XSig& t : terms) out.push_back(real ? smartFloatCast(typeOf(t), t.out) : t.out);
+        return o(fBuild.Sum(out));
+    }
     XSig Gt(const XSig& x, const XSig& y) const override { return sameNature(kGT, x, y); }
     XSig Lt(const XSig& x, const XSig& y) const override { return sameNature(kLT, x, y); }
     XSig Ge(const XSig& x, const XSig& y) const override { return sameNature(kGE, x, y); }
@@ -335,6 +380,31 @@ class SignalPromotionAlgebra : public TransformAlgebra {
         Tree fx = smartFloatCast(tx, x.out);
         Tree fy = smartFloatCast(ty, y.out);
         return o(fBuild.Div(fx, fy));
+    }
+
+    //--- the compound operations compute in floating point ----------------------------
+    XSig Frac(const XSig& x) const override { return o(fBuild.Frac(smartFloatCast(typeOf(x), x.out))); }
+    XSig Cfrac(const XSig& x) const override { return o(fBuild.Cfrac(smartFloatCast(typeOf(x), x.out))); }
+    XSig Tpt(const XSig& x) const override { return o(fBuild.Tpt(smartFloatCast(typeOf(x), x.out))); }
+    // phase(x, p) = (x % p) / p : the remainder of two integers stays an integer remainder
+    // (the division is real anyway), a real operand makes both real (fmod), as for Mod
+    XSig Phase(const XSig& x, const XSig& p) const override
+    {
+        Type tx = typeOf(x);
+        Type tp = typeOf(p);
+        if (tx->nature() == kInt && tp->nature() == kInt) {
+            return o(fBuild.Phase(x.out, p.out));
+        }
+        Tree fx = smartFloatCast(tx, x.out);
+        Tree fp = smartFloatCast(tp, p.out);
+        return o(fBuild.Phase(fx, fp));
+    }
+    XSig Mix(const XSig& c, const XSig& a, const XSig& b) const override
+    {
+        Tree fc = smartFloatCast(typeOf(c), c.out);
+        Tree fa = smartFloatCast(typeOf(a), a.out);
+        Tree fb = smartFloatCast(typeOf(b), b.out);
+        return o(fBuild.Mix(fc, fa, fb));
     }
 
     XSig And(const XSig& x, const XSig& y) const override { return intArgs(kAND, x, y); }
@@ -544,85 +614,62 @@ class Bool2IntPromotionAlgebra final : public TransformAlgebra {
     XSig Ne(const XSig& x, const XSig& y) const override { return cmp(kNE, x, y); }
 };
 
-// An index computed in integers only is exact : its proven interval decides its guard.
-// An index fed by a float converted to an integer is not : the proven bounds are those
-// of a program that rounds every operation apart and in the written order, while the
-// C++ compiler may fuse a*b + c into an FMA, reassociate a sum under -ffast-math, and
-// the libm is not correctly rounded. The error is bounded by the size of the terms, not
-// of the result, and int(x) can pass a proven bound by several units : such an index
-// always keeps its guard. A comparison is exact (0 or 1), the delay of a value and the
-// choice of a select2 do not change its range, a user interface element is a stored
-// value with no operation : none of them makes an index float-fed.
-static bool isUIElement(Tree t)
-{
-    return isSigHSlider(t) || isSigVSlider(t) || isSigNumEntry(t) || isSigButton(t) ||
-           isSigCheckbox(t);
-}
-
+// A memory access never trusts a bound proven on floats. The proven bounds are those of
+// a program that rounds every operation apart and in the written order, which neither
+// the normal form nor the C++ compiler keeps : an FMA, a sum reassociated under
+// -ffast-math, the libm, can move a float past a proven bound, and int(x), floor(x) or
+// a comparison turn that ulp into a whole unit of the index. So every table index keeps
+// its guard, but one bounded by integer constants alone : a literal, or an integer min
+// or max of literals around anything -- an integer min or max returns one of its
+// operands, so max(k0, min(x, k1)) is within [k0, k1] whatever x (the clamp of
+// ba.tabulate). Not a float min or max : it may let a NaN through, and int(NaN) is
+// undefined.
 static bool isReal(Tree t)
 {
     ::Type ty = getSigType(t);
     return ty && ty->nature() == kReal;
 }
 
-// memo : an exact index makes exact every node its walk visits (what they reach, it
-// reached), a float-fed one only itself (the walk stops at the first float).
-static bool floatFedIndex(Tree idx, std::map<Tree, bool>& memo)
+// t >= bound (low) or t <= bound (!low), by its integer constants alone
+static bool boundedSide(Tree t, bool low, int bound)
 {
-    auto known = memo.find(idx);
-    if (known != memo.end()) return known->second;
-    if (isReal(idx)) return memo[idx] = true;
-    std::set<Tree>    seen;
-    std::vector<Tree> todo{idx};
-    while (!todo.empty()) {
-        Tree t = todo.back();
-        todo.pop_back();
-        if (!seen.insert(t).second) continue;
-        if (isReal(t)) continue;  // a float only reaches an integer through a node seen here
-        auto m = memo.find(t);
-        if (m != memo.end()) {
-            if (m->second) return memo[idx] = true;
-            continue;
-        }
-        int  op;
-        Tree x, y, z;
-        if (isSigBinOp(t, &op, x, y) && op >= kGT && op <= kNE) continue;
-        if (isSigDelay(t, x, y)) {
-            todo.push_back(x);
-            continue;
-        }
-        if (isSigSelect2(t, x, y, z)) {
-            todo.push_back(y);
-            todo.push_back(z);
-            continue;
-        }
-        if (isSigRDTbl(t, x, y)) {
-            todo.push_back(x);
-            continue;
-        }
-        if (isSigIntCast(t, x) && isUIElement(x)) continue;
-        tvec subs;
-        getSubSignals(t, subs);
-        for (Tree u : subs) {
-            if (isReal(u)) return memo[idx] = true;
-            todo.push_back(u);
-        }
+    int k;
+    if (isSigInt(t, &k)) {
+        return low ? k >= bound : k <= bound;
     }
-    for (Tree t : seen) {
-        if (!isReal(t)) memo[t] = false;
+    xtended* p = (xtended*)getUserData(t);
+    if ((p == gGlobal->gMinPrim || p == gGlobal->gMaxPrim) && t->arity() == 2 && !isReal(t)) {
+        bool a = boundedSide(t->branch(0), low, bound);
+        bool b = boundedSide(t->branch(1), low, bound);
+        // max(a, b) >= k when one of them is, <= k when both are ; the converse for min
+        return (low == (p == gGlobal->gMaxPrim)) ? (a || b) : (a && b);
     }
     return false;
 }
 
+static bool boundedBy(Tree t, int lo, int hi)
+{
+    return boundedSide(t, true, lo) && boundedSide(t, false, hi);
+}
+
+// The warning of an index proven out of its table
+static string guardWarning(const char* what, const interval& idx_i, int size, Tree sig)
+{
+    stringstream error;
+    error << "WARNING : " << what << " [" << idx_i.lo() << ":" << idx_i.hi()
+          << "] is outside of table size (" << size << ") in " << ppsig(sig, MAX_ERROR_SIZE)
+          << endl;
+    return error.str();
+}
+
 //-------------------------TablePromotionAlgebra--------------------------
 // Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1]). Both guards
-// are decided at the read node, and the write clamp is applied only when the
-// read index is itself out of bounds -- the historical behaviour, reproduced
-// exactly (the warning, however, is always emitted).
+// are decided at the read node, each one on its own index : the write guard does not
+// depend on the read one (it used to be dropped with an exact read index). An index
+// keeps its guard unless its integer constants bound it (boundedBy). A variable delay
+// read from an indexed line is held within its proven interval the same way.
 //------------------------------------------------------------------------
 class TablePromotionAlgebra final : public TransformAlgebra {
-    mutable std::map<Tree, bool> fFloatFed;  // memo of floatFedIndex
-
    public:
     XSig RDTbl(const XSig& t, const XSig& ri) const override
     {
@@ -639,13 +686,10 @@ class TablePromotionAlgebra final : public TransformAlgebra {
                 throw faustexception(error.str());
             }
             interval wi_i = getCertifiedSigType(wi0)->getInterval();
-            if (wi_i.lo() < 0 || wi_i.hi() >= size || floatFedIndex(wi0, fFloatFed)) {
-                if (gAllWarning) {
-                    stringstream error;
-                    error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi()
-                          << "] is outside of table size (" << size << ") in "
-                          << ppsig(t.orig, MAX_ERROR_SIZE) << endl;
-                    gWarningMessages.push_back(error.str());
+            if (!boundedBy(wi0, 0, size - 1)) {
+                if (gAllWarning && (wi_i.lo() < 0 || wi_i.hi() >= size)) {
+                    gWarningMessages.push_back(
+                        guardWarning("WRTbl write index", wi_i, size, t.orig));
                 }
                 Tree s2, g2, wi2, ws2;
                 isSigWRTbl(t.out, s2, g2, wi2, ws2);
@@ -661,19 +705,50 @@ class TablePromotionAlgebra final : public TransformAlgebra {
             throw faustexception(error.str());
         }
         interval ri_i = typeOf(ri)->getInterval();
-        if (ri_i.lo() < 0 || ri_i.hi() >= size || floatFedIndex(ri.orig, fFloatFed)) {
-            if (gAllWarning) {
-                stringstream error;
-                error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi()
-                      << "] is outside of table size (" << size << ") in "
-                      << ppsig(fBuild.RDTbl(t.orig, ri.orig), MAX_ERROR_SIZE) << endl;
-                gWarningMessages.push_back(error.str());
+        if (!boundedBy(ri.orig, 0, size - 1)) {
+            if (gAllWarning && (ri_i.lo() < 0 || ri_i.hi() >= size)) {
+                gWarningMessages.push_back(
+                    guardWarning("RDTbl read index", ri_i, size, fBuild.RDTbl(t.orig, ri.orig)));
             }
             Tree zero = sigInt(0);
             Tree last = sigMin(ri.out, sigInt(size - 1));
             return o(sigRDTbl(tblOut, sigMax(zero, last)));
         }
-        return o(fBuild.RDTbl(t.out, ri.out));
+        return o(fBuild.RDTbl(tblOut, ri.out));
+    }
+
+    // A variable delay read by index from a line that is not a masked ring (a copy line,
+    // a dense line of ocpp, a select ring under -dlt) is held within its proven interval
+    // [lo, hi] : hi sizes the line, and a float can pass it (see above). The form is
+    // chosen on the largest delay of the line, never below hi : past the copy and dense
+    // thresholds, the line is a masked ring, which no amount can leave.
+    XSig Delay(const XSig& x, const XSig& n) const override
+    {
+        int k;
+        if (isSigInt(n.orig, &k)) {
+            return o(fBuild.Delay(x.out, n.out));
+        }
+        interval n_i = getCertifiedSigType(n.orig)->getInterval();
+        int      lo  = std::max(0, int(n_i.lo()));
+        int      hi  = int(n_i.hi());
+        int      unmasked = gGlobal->gMaxCopyDelay;
+        if (gGlobal->gOutputLang == "ocpp") {
+            unmasked = std::max(unmasked, gGlobal->gMaxDenseDelay);
+        }
+        bool indexed = hi <= unmasked || gGlobal->gMaskDelayLineThreshold < INT_MAX;
+        if (!indexed || boundedBy(n.orig, lo, hi)) {
+            return o(fBuild.Delay(x.out, n.out));
+        }
+        if (gAllWarning) {
+            stringstream error;
+            error << "WARNING : variable delay [" << lo << ":" << hi
+                  << "] read from an indexed line is held within its proven interval in "
+                  << ppsig(n.orig, MAX_ERROR_SIZE) << endl;
+            gWarningMessages.push_back(error.str());
+        }
+        Tree low  = sigInt(lo);
+        Tree high = sigMin(n.out, sigInt(hi));
+        return o(fBuild.Delay(x.out, sigMax(low, high)));
     }
 };
 

@@ -29,6 +29,7 @@ endif()
 
 file (GLOB BINDINGS ${ROOT}/compiler/generator/wasm/bindings/*.cpp)
 set (SRC ${SRC} ${BINDINGS})
+include (${CMAKE_CURRENT_SOURCE_DIR}/../misc/interval_flags.cmake)
 
 set (WASM_EXPORTED "\"['UTF8ToString', 'stringToUTF8', 'FS']\"")
 set (WASM_INCOMING "\"['wasmBinary']\"")

@@ -65,6 +65,14 @@ class mterm : public virtual Garbageable {
     void cleanup();           ///< remove used factors
     bool isNotZero() const;   ///< true if mterm doesn't represent number 0
     bool isNegative() const;  ///< true if mterm has a negative coefficient
+    bool isScaledFactor(Tree& coef,
+                        Tree& factor) const;  ///< true for coef*factor, one factor of power 1
+    Tree coefficient() const { return fCoef; }  ///< the constant part of the term
+    std::vector<Tree> unitFactors() const;       ///< the factors of power 1
+    bool tptFactors(Tree& g, Tree& d) const;     ///< g and d = g + 1, d of negative power
+    bool tapOf(Tree& source, int& delay, mterm& coef) const;  ///< c * x@k, a tap of a FIR
+    mterm withoutFactorsOf(const mterm& q) const;  ///< this without the factors present in q
+    const std::map<Tree, int, NormalFormTreeLess>& factors() const { return fFactors; }  ///< factors and powers
 
     const mterm& operator=(const mterm& m);  ///< replace the content with a copy of m
 

@@ -69,6 +69,7 @@ endif()
 ####################################
 # source and headers files
 file (GLOB SRC ${SRCDIR}/*.cpp ${SRCDIR}/*/*.cpp ${SRCDIR}/draw/*/*.cpp)
+include (misc/interval_flags.cmake)
 file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh)
 
 ####################################

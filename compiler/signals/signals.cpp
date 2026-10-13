@@ -1154,3 +1154,90 @@ SIGS_API bool isSigSum(Tree s, tvec& sigsubs)
         return false;
     }
 }
+
+// PROD : ((f0 * f1) * ...) * fn
+
+SIGS_API Tree sigProd(const tvec& sigsubs)
+{
+    return tree(sigs::g.SIGPROD, sigsubs);
+}
+
+SIGS_API bool isSigProd(Tree s)
+{
+    return isTree(s, sigs::g.SIGPROD);
+}
+
+SIGS_API bool isSigProd(Tree s, tvec& sigsubs)
+{
+    if (isTree(s, sigs::g.SIGPROD)) {
+        sigsubs = s->branches();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// The compound operations : frac(x) = x - floor(x), cfrac(x) = x - rint(x),
+// mix(c, a, b) = (1 - c) * a + c * b, tpt(x) = x / (x + 1). Each one is an operation of
+// FaustAlgebra, written once so that an analysis sees its repeated operand once ; the
+// node's children are its arguments.
+SIGS_API Tree sigFrac(Tree x)
+{
+    return tree(sigs::g.SIGFRAC, x);
+}
+
+SIGS_API bool isSigFrac(Tree s, Tree& x)
+{
+    return isTree(s, sigs::g.SIGFRAC, x);
+}
+
+SIGS_API Tree sigCfrac(Tree x)
+{
+    return tree(sigs::g.SIGCFRAC, x);
+}
+
+SIGS_API bool isSigCfrac(Tree s, Tree& x)
+{
+    return isTree(s, sigs::g.SIGCFRAC, x);
+}
+
+SIGS_API Tree sigMix(Tree c, Tree a, Tree b)
+{
+    return tree(sigs::g.SIGMIX, c, a, b);
+}
+
+SIGS_API bool isSigMix(Tree s, Tree& c, Tree& a, Tree& b)
+{
+    return isTree(s, sigs::g.SIGMIX, c, a, b);
+}
+
+// phase(x, p) = (x % p) / p
+SIGS_API Tree sigPhase(Tree x, Tree p)
+{
+    return tree(sigs::g.SIGPHASE, x, p);
+}
+
+SIGS_API bool isSigPhase(Tree s, Tree& x, Tree& p)
+{
+    return isTree(s, sigs::g.SIGPHASE, x, p);
+}
+
+SIGS_API Tree sigNeg(Tree x)
+{
+    return tree(sigs::g.SIGNEG, x);
+}
+
+SIGS_API bool isSigNeg(Tree s, Tree& x)
+{
+    return isTree(s, sigs::g.SIGNEG, x);
+}
+
+SIGS_API Tree sigTpt(Tree x)
+{
+    return tree(sigs::g.SIGTPT, x);
+}
+
+SIGS_API bool isSigTpt(Tree s, Tree& x)
+{
+    return isTree(s, sigs::g.SIGTPT, x);
+}

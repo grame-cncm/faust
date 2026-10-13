@@ -26,15 +26,20 @@ namespace itv {
 // interval Delay(const interval& x);
 // void testDelay();
 
-interval interval_algebra::Delay(const interval& x, const interval& y) const
+interval interval_algebra::numericDelay(const interval& x, const interval& y) const
 {
-    if (x.isEmpty() || y.isEmpty()) {
-        return empty();
-    }
-    if (y.isZero()) {
+    const interval amount = IntCast(y);
+    // A zero sample count has no initialization phase. Test numeric endpoints
+    // independently of alerts: the public transfer retains both input flags.
+    if (!amount.isEmpty() && amount.lo() == 0 && amount.hi() == 0) {
         return x;
     }
-    interval z = reunion(x, interval{0});
+    if (x.isEmpty() || amount.isEmpty()) {
+        return empty();
+    }
+    // A possibly positive count still reads initialized memory, even when its
+    // minimum is zero. The initial value has the signal's nature and grid.
+    interval z = reunion(x, interval(0, 0, x.lsb()));
     return {z.lo(), z.hi(), x.lsb()};
 }
 

@@ -38,6 +38,11 @@ Tree simplify(Tree sig);
 /// normalize.cpp, normalizeDelayTerm).
 Tree simplifyExpression(Tree sig);
 
+/// The rules of the compound operations (frac, cfrac, tpt, mix), taken from their
+/// definitions : folding on literals, neutral and absorbing elements. sig itself when
+/// none applies.
+Tree simplifyCompound(Tree sig);
+
 /**
  * Converts regular tables into doc tables in order to
  * facilitate the mathematical documentation generation

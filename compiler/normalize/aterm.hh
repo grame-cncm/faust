@@ -59,6 +59,11 @@ class aterm : public virtual Garbageable {
 
     std::ostream& print(std::ostream& dst) const;  ///< print a aterm m1 + m2 + m3 +...
     mterm         greatestDivisor() const;    ///< return the greatest divisor of any two mterms
+    void          expandCancellations();      ///< (f+4c)^2 - 16c^2 -> f^2 + 8fc
+    void          extractRemainders();        ///< k*S - k*floor(S) -> k*frac(S), same for cfrac
+    void          extractSelects();           ///< A*[c] + B*[not c] -> select2(c, B, A)
+    void          extractMixes();             ///< k*(1-c)*A + k*c*B -> k*mix(c, A, B)
+    void          extractTpts();              ///< g*(g+1)^-1 -> tpt(g) in every term
     aterm         factorize(const mterm& d);  ///< reorganize the aterm by factorizing d
 };
 
@@ -68,5 +73,6 @@ inline std::ostream& operator<<(std::ostream& s, const aterm& a)
 }
 
 Tree simplifyingAdd(Tree t1, Tree t2);
+
 
 #endif

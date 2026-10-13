@@ -44,8 +44,8 @@
 #include "floorprim.hh"
 #include "fmodprim.hh"
 #include "global.hh"
-#include "interval_def.hh"
 #include "instructions.hh"
+#include "interval_def.hh"
 #include "log10prim.hh"
 #include "logprim.hh"
 #include "maxprim.hh"
@@ -54,13 +54,13 @@
 #include "remainderprim.hh"
 #include "rintprim.hh"
 #include "roundprim.hh"
+#include "sigs-config.hh"
 #include "sinprim.hh"
 #include "sourcereader.hh"
 #include "sqrtprim.hh"
 #include "tanprim.hh"
 #include "timing.hh"
 #include "tlib.hh"
-#include "sigs-config.hh"
 #include "tree.hh"
 
 #ifdef _WIN32
@@ -186,6 +186,7 @@ global::global()
     TABBER = Tabber(1);
     gSignalTable.clear();
     gSignalTrace.clear();
+    sigs::g.gCertifiedSamples.clear();
 
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     reset();

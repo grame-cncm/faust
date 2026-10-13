@@ -20,6 +20,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -89,7 +90,7 @@ interval bmAnd(const interval& x, int mask)
     int p  = mask + 1;
 
     if (w >= p) {
-        return interval{0, double(mask)};
+        return interval{0, double(mask), 0};
     }
 
     // shit x to be positive
@@ -100,10 +101,10 @@ interval bmAnd(const interval& x, int mask)
     hi = lo + w;
 
     if (hi < p) {
-        return interval{double(lo), double(hi)};
+        return interval{double(lo), double(hi), 0};
     }
 
-    return interval{0, double(mask)};
+    return interval{0, double(mask), 0};
 }
 /*
 interval interval_algebra::And(const interval& x, const interval& y) const
@@ -127,8 +128,15 @@ interval interval_algebra::And(const interval& x, const interval& y) const
 */
 
 // BRUTE FORCE
-interval interval_algebra::And(const interval& x, const interval& y) const
+// Numeric kernel: enclose int32 bitwise operations after integer conversion.
+// Normalize widened integers before bit analysis; empty stays empty.
+// Floating inputs are truncated and nonempty results remain integer.
+interval interval_algebra::numericAnd(const interval& xInput, const interval& yInput) const
 {
+    // Bitwise results are int32 even for floating inputs; IntCast also recovers
+    // the full signed hull of widened integer operands before bit analysis.
+    const interval x = xInput.lsb() >= 0 ? detail::int32Hull(xInput) : IntCast(xInput);
+    const interval y = yInput.lsb() >= 0 ? detail::int32Hull(yInput) : IntCast(yInput);
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
     }
