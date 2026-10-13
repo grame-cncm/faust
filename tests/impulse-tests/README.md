@@ -99,8 +99,7 @@ To run the quick reference subset check:
 ### Testing the Box, Signal, Type and FIR intermediate steps
 
 - the Box tree (created by the `-e`option) can be generated as a textual file. A set of references files can be created using `make reference-box`, then tested using `make test-box`.
-- the Signal tree (created by the `-norm1`option) can be generated as a textual file. A set of references files can be created using `make reference-signal`, then tested using `make test-signal`.
-- the Type tree (created by the `-norm2`option) can be generated as a textual file. A set of references files can be created using `make reference-type`, then tested using `make test-type`.
+- the Signal tree, with its types (created by the `-norm` option), can be generated as a textual file. A set of references files can be created using `make reference-signal`, then tested using `make test-signal`.
 - the FIR output can be generated as a textual file. A set of references files can be created using `make reference-fir`, then tested using `make test-fir`.
 
 ### Testing C++ output

@@ -22,14 +22,17 @@
 #include <stdio.h>
 
 #include <iostream>
+#include <map>
 #include <regex>
 #include <set>
 #include <sstream>
 #include <string>
 #include <vector>
 
+#include "binop.hh"
 #include "exception.hh"
 #include "interval.hh"
+#include "ppsig.hh"
 #include "sigToGraph.hh"
 #include "signals.hh"
 #include "sigtype.hh"
@@ -38,9 +41,13 @@
 
 using namespace std;
 
+// the names of the recursions, R0 or R4.0, R4.1..., as the equations of the signal print them
+static const ppsigNames* gRecNames = nullptr;
+
 static void   recdraw(Tree sig, set<Tree, treeorder>& drawn, ostream& fout);
 static string nodeattr(Type t);
-static string edgeattr(Type t);
+static string edgeattr(Type t, const string& role = "");
+static string role(Tree sig, int i);
 static string sigLabel(Tree sig);
 
 /**
@@ -49,9 +56,11 @@ static string sigLabel(Tree sig);
 void sigToGraph(Tree L, ostream& fout)
 {
     set<Tree, treeorder> alreadyDrawn;
+    ppsigEquations       equations(L);
+    gRecNames = &equations.names();
 
     fout << "strict digraph loopgraph {\n"
-         << "    rankdir=LR; node [fontsize=10];" << endl;
+         << "    rankdir=LR; newrank=true; node [fontsize=10];" << endl;
     int out = 0;
     while (isList(L)) {
         recdraw(hd(L), alreadyDrawn, fout);
@@ -62,7 +71,30 @@ void sigToGraph(Tree L, ostream& fout)
         L = tl(L);
     }
 
+    // each recursive group in a frame, with its projections : the members of a mutually
+    // recursive group are drawn together
+    map<string, vector<Tree>> frames;
+    for (Tree sig : alreadyDrawn) {
+        int         i;
+        Tree        group, var, le;
+        std::string name;
+        if (isProj(sig, &i, group) && gRecNames->groupName(group, name)) {
+            frames[name].push_back(sig);
+        } else if (isRec(sig, var, le) && gRecNames->groupName(sig, name)) {
+            frames[name].push_back(sig);
+        }
+    }
+    for (const auto& frame : frames) {
+        fout << "subgraph cluster_" << frame.first << " { label=\"" << frame.first
+             << "\"; style=\"rounded,dashed\";";
+        for (Tree sig : frame.second) {
+            fout << " S" << sig << ";";
+        }
+        fout << " }" << endl;
+    }
+
     fout << "}" << endl;
+    gRecNames = nullptr;
 }
 
 /******************************* IMPLEMENTATION ***********************************/
@@ -85,8 +117,8 @@ static void recdraw(Tree sig, set<Tree, treeorder>& drawn, ostream& fout)
             } while (isList(sig));
         } else {
             // draw the node
-            fout << 'S' << sig << "[label=\"" << sigLabel(sig) << "\""
-                 << nodeattr(getCertifiedSigType(sig)) << "];" << endl;
+            fout << 'S' << sig << "[label=\"" << sigLabel(sig) << "\"" << nodeattr(getSigType(sig)) << "];"
+                 << endl;
 
             // draw the subsignals
             n = getSubSignals(sig, subsig);
@@ -110,7 +142,7 @@ static void recdraw(Tree sig, set<Tree, treeorder>& drawn, ostream& fout)
                 for (int i = 0; i < n; i++) {
                     recdraw(subsig[i], drawn, fout);
                     fout << 'S' << subsig[i] << " -> " << 'S' << sig << "["
-                         << edgeattr(getCertifiedSigType(subsig[i])) << "];" << endl;
+                         << edgeattr(getSigType(subsig[i]), role(sig, i)) << "];" << endl;
                 }
             }
         }
@@ -121,6 +153,7 @@ static void recdraw(Tree sig, set<Tree, treeorder>& drawn, ostream& fout)
 string commonAttr(Type t)
 {
     string sout;
+    if (!t) return " style=\"dashed\"";  // a node the typing does not annotate (a recursive group)
     // nature
     if (t->nature() == kInt) {
         sout += " color=\"blue\"";
@@ -138,15 +171,39 @@ string commonAttr(Type t)
  * Convert a signal type into edge attributes
  */
 
-static string edgeattr(Type t)
+static string edgeattr(Type t, const string& role)
 {
     string sout(commonAttr(t));
     sout += " label =\"";
-    sout += t->getInterval().to_string();
-    sout += ", ";
-    sout += t->getRes().toString();
+    if (!role.empty()) sout += role + (t ? " : " : "");
+    if (t) {
+        sout += t->getInterval().to_string();
+        sout += ", ";
+        sout += t->getRes().toString();
+    }
     sout += "\"";
     return sout;
+}
+
+/**
+ * The role of the i-th operand of an operation whose operands are not interchangeable : the
+ * rank in the chain of an n-ary sum or product (its association), the source and the
+ * coefficients of a FIR or an IIR, the weight and the two values of a mix ; empty otherwise
+ */
+static string role(Tree sig, int i)
+{
+    Tree        x, y, z, var, le;
+    std::string name;
+    if (isRec(sig, var, le) && gRecNames && gRecNames->groupName(sig, name)) {
+        // the member i of a recursive group
+        return (len(le) > 1) ? name + "." + std::to_string(i) : name;
+    }
+    if (isSigSum(sig) || isSigProd(sig)) return std::to_string(i + 1);
+    if (isSigFIR(sig)) return i == 0 ? "x" : "c" + std::to_string(i - 1);
+    if (isSigIIR(sig)) return i == 0 ? "x" : "c" + std::to_string(i);
+    if (isSigMix(sig, x, y, z)) return i == 0 ? "c" : (i == 1 ? "a" : "b");
+    if (isSigPhase(sig, x, y)) return i == 0 ? "x" : "P";
+    return "";
 }
 
 /**
@@ -155,6 +212,7 @@ static string edgeattr(Type t)
 static string nodeattr(Type t)
 {
     string sout(commonAttr(t));
+    if (!t) return sout;
 
     // variability
     if (t->variability() == kKonst) {
@@ -170,8 +228,6 @@ static string nodeattr(Type t)
 /**
  * translate signal binary operations into strings
  */
-static const char* binopname[] = {"+", "-",  "*",  "/",  "%",  "<<", ">>", ">",
-                                  "<", ">=", "<=", "==", "!=", "&",  "|",  "^"};
 
 /**
  * return the label of a signal as a string
@@ -208,7 +264,7 @@ static string sigLabel(Tree sig)
     } else if (isSigPrefix(sig, x, y)) {
         fout << "prefix";
     } else if (isSigBinOp(sig, &i, x, y)) {
-        fout << binopname[i];
+        fout << gBinOpTable[i]->fName;
     } else if (isSigFFun(sig, ff, largs)) {
         fout << "ffunction:" << *ff;
     } else if (isSigFConst(sig, type, name, file)) {
@@ -232,9 +288,19 @@ static string sigLabel(Tree sig)
     }
 
     else if (isProj(sig, &i, x)) {
-        fout << "Proj" << i;
+        std::string name;
+        if (gRecNames && gRecNames->lookup(sig, name)) {
+            fout << name;
+        } else {
+            fout << "Proj" << i;
+        }
     } else if (isRec(sig, var, le)) {
-        fout << "REC " << *var;
+        std::string name;
+        if (gRecNames && gRecNames->groupName(sig, name)) {
+            fout << name;
+        } else {
+            fout << "REC " << *var;
+        }
     }
 
     else if (isSigIntCast(sig, x)) {
@@ -303,21 +369,34 @@ static string sigLabel(Tree sig)
     } else if (isSigPhase(sig, x, y)) {
         fout << "phase";
     } else if (isSigNeg(sig, x)) {
-        fout << "neg";
+        fout << "−";  // the negation, U+2212
     } else if (isSigSum(sig)) {
-        fout << "sum";
+        fout << "Σ";
     } else if (isSigProd(sig)) {
-        fout << "prod";
+        fout << "Π";
     } else if (isSigFIR(sig)) {
         fout << "FIR";
     } else if (isSigIIR(sig)) {
         fout << "IIR";
     }
 
+    else if (isSigControl(sig, x, y)) {
+        fout << "control";
+    } else if (isSigEnable(sig, x, y)) {
+        fout << "enable";
+    } else if (isSigSoundfile(sig, label)) {
+        fout << "soundfile";
+    } else if (isSigSoundfileLength(sig, x, y)) {
+        fout << "length";
+    } else if (isSigSoundfileRate(sig, x, y)) {
+        fout << "rate";
+    } else if (isSigSoundfileBuffer(sig, x, y, z, c)) {
+        fout << "buffer";
+    }
+
     else {
-        stringstream error;
-        error << "ERROR : sigToGraph.cpp, unrecognized signal : " << *sig << endl;
-        throw faustexception(error.str());
+        // any other node : the name of its constructor
+        fout << sig->node();
     }
 
     return std::regex_replace(fout.str(), std::regex("\""), "\\\"");
