@@ -64,7 +64,7 @@ declare deprecated "This library is deprecated and is not maintained anymore. It
 // ### Usage:
 //    `SR:_`
 //-----------------------------------------------------------------------------
-SR 			= min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
+SR 			= min(192000.0, max(50.0, fconstant(int fSamplingFreq, <math.h>)));
 
 
 //--------------------------------- BS ---------------------------------------

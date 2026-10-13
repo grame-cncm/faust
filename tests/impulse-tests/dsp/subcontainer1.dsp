@@ -6,7 +6,7 @@ process = rdtable(100, ma.SR, ba.time % 100);
 */
 
 ID_0 = fconstant(int fSamplingFreq, <math.h>);
-ID_1 = 1.0f, ID_0;
+ID_1 = 50.0f, ID_0;
 ID_2 = (ID_1 : max);
 ID_3 = 1.92e+05f, ID_2;
 ID_4 = (ID_3 : min);
