@@ -588,6 +588,53 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         return false;
     }
 
+    /// The interpolation A + c * (B - A) : a sum of exactly two terms, A and a product whose
+    /// last factor is the difference B - A, the weight c being the product of the other
+    /// factors, computed first (a product associates from left to right). A is read twice,
+    /// and the sum rule forgets it : for c in [0, 1] the value lies between A and B, the
+    /// bound of mix (c, A, B), with the rounding of this very computation and its envelope.
+    /// The library computes a mix from B when c is at least 1/2 (mixFromB) : the rule
+    /// applies only below, where its model is the program's. The state of a TPT one-pole
+    /// filter, s' = s + 2g * (x - s), is such an interpolation.
+    bool interpolationSum(Tree sig, FixPointEvaluator<AffItv>& ev, AffItv& result) const
+    {
+        std::vector<std::pair<Tree, int>> terms;
+        sumTerms(sig, 1, terms);
+        if (terms.size() != 2) return false;
+        for (int i = 0; i < 2; i++) {
+            Tree a = terms[i].first, t = terms[1 - i].first;
+            if (terms[i].second < 0 || terms[1 - i].second < 0) return false;
+            // the product : its factors, the difference last
+            std::vector<Tree> fs;
+            int               op;
+            Tree              x, y;
+            tvec              subs;
+            if (isSigProd(t, subs) && subs.size() >= 2) {
+                fs.assign(subs.begin(), subs.end());
+            } else if (isSigBinOp(t, &op, x, y) && op == kMul) {
+                fs = {x, y};
+            } else {
+                continue;
+            }
+            Tree d = fs.back();
+            fs.pop_back();
+            std::vector<std::pair<Tree, int>> diff;
+            sumTerms(d, 1, diff);
+            if (diff.size() != 2) continue;
+            Tree b = nullptr;
+            for (int k = 0; k < 2; k++) {
+                if (diff[k].first == a && diff[k].second < 0 && diff[1 - k].second > 0) b = diff[1 - k].first;
+            }
+            if (b == nullptr) continue;
+            const AffItv   ac = productOf(fs, ev);
+            const interval ic = itv::toItv(ac, fT);
+            if (ic.isEmpty() || ic.lo() < 0 || ic.hi() > 1 || itv::mixFromB(ic)) continue;
+            result = this->Mix(ac, ev.eval(a), ev.eval(b));
+            return true;
+        }
+        return false;
+    }
+
     /// Cheap filter of the mix rule, memoized : does the sum rooted at t hold a product
     /// with a factor 1 - c ?
     bool hasComplementTerm(Tree t) const
@@ -1417,6 +1464,10 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         const bool hasGuards = isSum(sig) && guardedSum(sig, ev, guarded);
         if (isSum(sig) && hasRoundingTerm(sig) && fractionalSum(sig, ev, r)) return hasGuards ? meet(r, guarded) : r;
         if (isSum(sig) && hasComplementTerm(sig) && mixSum(sig, ev, r)) return hasGuards ? meet(r, guarded) : r;
+        if (isSum(sig) && interpolationSum(sig, ev, r)) {
+            r = meet(r, itv::AffineOps<SignalAlgebra<AffItv>>::combine(sig, c, ev));
+            return hasGuards ? meet(r, guarded) : r;
+        }
         if (hasGuards) return meet(guarded, itv::AffineOps<SignalAlgebra<AffItv>>::combine(sig, c, ev));
         // A table generated at init : its content is the generator over n samples
         {
