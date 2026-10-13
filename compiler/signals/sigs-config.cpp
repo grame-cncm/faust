@@ -111,6 +111,14 @@ void initSignalSymbols()
     g.SIGIIR             = signal_signature.add("SigIIR", kAudioRate);
     g.SIGSUM             = signal_signature.add("SigSum");
     g.SIGTEMP            = signal_signature.add("SigTemp");
+    // the compound operations : registered after the port, in the order of the enum
+    g.SIGFRAC            = signal_signature.add("SigFrac");
+    g.SIGCFRAC           = signal_signature.add("SigCfrac");
+    g.SIGMIX             = signal_signature.add("SigMix");
+    g.SIGTPT             = signal_signature.add("SigTpt");
+    g.SIGNEG             = signal_signature.add("SigNeg");
+    g.SIGPROD            = signal_signature.add("SigProd");
+    g.SIGPHASE           = signal_signature.add("SigPhase");
 
     // The session's initial algebra: its dispatch signature was just interned,
     // and dies with the tlib session -- rebuild it here, on both init paths

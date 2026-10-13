@@ -21,9 +21,12 @@
 
 #include <limits.h>
 #include <algorithm>
+#include "cxx_compat.hh"
 #include <cmath>
 #include <cstdio>
+#include <cstdint>
 #include <iostream>
+#include <limits>
 #include <string>
 
 // #include "global"
@@ -31,7 +34,8 @@
 // ***************************************************************************
 //
 //     An Interval is a (possibly empty) set of numbers approximated by two
-//     boundaries. Empty intervals have NAN as boundaries.
+//     boundaries. NaN boundaries encode an empty numeric part; a separate flag
+//     records possible invalid execution, including a NaN or undefined conversion.
 //
 //****************************************************************************
 namespace itv {
@@ -48,12 +52,10 @@ inline int& programPrecision()
 }
 
 /**
- * The compensation of the libm (true by default) : the functions of the libm (sin, exp,
- * log, pow...) are not guaranteed correctly rounded, and the program calls the libm of
- * its target, not the one that computes the intervals. Their bounds widen by 2 ulps of
- * the program's precision (libmBounds). A user may turn it off when both libms are
- * correctly rounded (CORE-MATH for instance) : the libm of the target, and the libm of
- * the machine that computes the intervals.
+ * Public API: legacy target-libm compensation, enabled by default. The two-ULP
+ * widening is a configurable assumption, not a universal error guarantee.
+ * Float/double reference bounds use the native kernel independently of this setting;
+ * quad/fixed retain the host libm. Disable only under an established target contract.
  */
 inline bool& libmCompensation()
 {
@@ -62,33 +64,59 @@ inline bool& libmCompensation()
 }
 
 /**
- * A bound of a float-carried value, at the precision of the program. Round to nearest
- * is monotone : for a monotone operation, the bound computed in double then rounded
- * to float is the value the program computes at that bound. For +, -, *, / and sqrt
- * of floats, the double rounding is innocuous (53 >= 2*24 + 2) : rounding in double
- * then in float gives the float the program computes, even when the double result is
- * not exact. Not covered : the C++ compiler's FMA contraction and reassociation, the
- * libm (not correctly rounded) ; the decisions keep their own margin for those (the
- * guard of a table access near its edges). Round to nearest, not outward : a constant
- * stays a point. Left as they are : an integer bound beyond 2^24 (an integer value may
- * carry a float precision by default) and a nonzero bound below the smallest normal
- * float (its rounding to 0 would break the invariants of pow and log).
+ * Public API: round an explicitly known literal/conversion to program precision.
+ * Float selects nearest-even independently of the host rounding mode, including
+ * gradual underflow. Handle overflow before narrowing a finite double.
+ * Double is unchanged. Computed/domain bounds must use programDirectedBound instead:
+ * singleton shape alone does not identify a literal or prove exact arithmetic.
  */
 inline double programBound(double b)
 {
     if (programPrecision() != 1 || std::isnan(b) || std::isinf(b)) return b;
-    if (std::fabs(b) >= 16777216.0 && b == std::floor(b)) return b;
-    // below the smallest normal float, the rounding would reach 0 and break the
-    // invariants of the operations (a positive bound stays positive : pow, log)
-    if (b != 0 && std::fabs(b) < 0x1p-126) return b;
-    return double(float(b));
+    // Nearest-even overflows only at the midpoint above max-finite. Avoid an
+    // out-of-range C++ narrowing cast even below that midpoint.
+    if (b > std::numeric_limits<float>::max())
+        return b >= 0x1.ffffffp127 ? HUGE_VAL : double(std::numeric_limits<float>::max());
+    if (b < -std::numeric_limits<float>::max())
+        return b <= -0x1.ffffffp127 ? -HUGE_VAL : -double(std::numeric_limits<float>::max());
+    const float rounded = float(b);
+    if (double(rounded) == b) return b;
+    // Any IEEE host rounding gives an adjacent float. Its neighbour brackets b;
+    // the sum and midpoint of two adjacent binary32 values are exact in binary64.
+    // Integer parity selects the even significand at a midpoint, without fenv changes.
+    const float lower = double(rounded) < b ? rounded : std::nextafter(rounded, -INFINITY);
+    const float upper = double(rounded) > b ? rounded : std::nextafter(rounded, INFINITY);
+    const double midpoint = (double(lower) + double(upper)) * 0.5;
+    if (b < midpoint) return double(lower);
+    if (b > midpoint) return double(upper);
+    return double((compat::bit_cast<uint32_t>(lower) & 1u) == 0 ? lower : upper);
+}
+
+/**
+ * Public API: enclose an exact binary64 bound in program precision, downward for
+ * a lower endpoint and upward for an upper endpoint. Float narrowing is corrected
+ * by comparison and nextafter; exact floats stay unchanged. Overflow brackets the
+ * finite real value between max-finite and infinity, and underflow between zero
+ * and the least subnormal. Integer-looking floating bounds receive the same rule.
+ * Double/quad/fixed are unchanged; IEEE conversion and gradual underflow are assumed.
+ */
+inline double programDirectedBound(double b, bool upper)
+{
+    if (programPrecision() != 1 || !std::isfinite(b)) return b;
+    const double largest = std::numeric_limits<float>::max();
+    if (b > largest) return upper ? HUGE_VAL : largest;
+    if (b < -largest) return upper ? -largest : -HUGE_VAL;
+    const float rounded = float(b);
+    if ((upper && double(rounded) < b) || (!upper && double(rounded) > b))
+        return double(std::nextafter(rounded, upper ? INFINITY : -INFINITY));
+    return double(rounded);
 }
 
 /**
  * k ulps of the program's precision at the magnitude of [lo, hi] : the margin of a rule
  * that reasons on reals (the hull of a convex combination), whose float evaluation can
- * leave the hull by a few roundings. The elementary operations need none : their
- * bounds are computed at the precision of the program (programBound).
+ * leave the hull by a few roundings. Elementary float/double operations use
+ * directed bounds instead of this heuristic margin.
  */
 inline double ulpMargin(double lo, double hi, int k)
 {
@@ -110,6 +138,7 @@ class interval {
     double fLo{std::numeric_limits<double>::lowest()};  ///< minimal value
     double fHi{std::numeric_limits<double>::max()};     ///< maximal value
     int    fLSB{-24};                                   ///< lsb in bits
+    bool   fMayBeInvalid{false};                         ///< independent of numeric bounds
 
    public:
     //-------------------------------------------------------------------------
@@ -118,12 +147,18 @@ class interval {
 
     interval() = default;
 
-    interval(double n, double m, int lsb = -24) noexcept
+    // Public API: construct a numeric enclosure and optional invalidity. NaN
+    // endpoints describe an invalid-only value; use empty() for numeric bottom.
+    interval(double n, double m, int lsb = -24, bool mayBeInvalid = false) noexcept
     {
+        fMayBeInvalid = mayBeInvalid || std::isnan(n) || std::isnan(m);
         if (n == 0.0 && m == 0.0) {
             fLo  = 0.0;
             fHi  = 0.0;
-            fLSB = 0;
+            // Zero carries the requested nature and grid in every precision.
+            // Otherwise a computed floating zero can turn a later operation into
+            // int32 wrapping, or a delay can discard an integer signal's grid.
+            fLSB = lsb == INT_MIN ? -24 : lsb;
             // std::cerr << "Warning: creating an interval with both bounds equal to zero."
             //           << std::endl;
             return;
@@ -140,16 +175,25 @@ class interval {
         } else {
             fLo = std::min(n, m);
             fHi = std::max(n, m);
-            // a float-carried value : its bounds at the precision of the program
+            // A computed/domain point is not a literal: independently enclose
+            // both endpoints, even when analyzer rounding collapsed them.
             if (fLSB < 0) {
-                fLo = programBound(fLo);
-                fHi = programBound(fHi);
+                fLo = programDirectedBound(fLo, false);
+                fHi = programDirectedBound(fHi, true);
             }
         }
     }
 
     explicit interval(double x) noexcept
     {
+        // Exceptional points have no finite grid exponent. Avoid precision
+        // inference on NaN/inf; a NaN point has no numeric value and is invalid.
+        if (!std::isfinite(x)) {
+            fLo = x;
+            fHi = x;
+            fMayBeInvalid = std::isnan(x);
+            return;
+        }
         if (x == 0) {
             fLo  = 0;
             fHi  = 0;
@@ -180,23 +224,48 @@ class interval {
     //-------------------------------------------------------------------------
 
     bool isEmpty() const { return std::isnan(fLo) || std::isnan(fHi); }
-    bool isValid() const { return !isEmpty(); }  // for compatibility reasons
+    // Public API: isEmpty() tests only numeric bottom; isValid() additionally
+    // requires proven validity. Invalid-only and partially invalid values differ.
+    bool isValid() const { return !isEmpty() && !fMayBeInvalid; }
+    // Public API: true means an invalid execution is possible, not certain.
+    bool mayBeInvalid() const { return fMayBeInvalid; }
+    // Public API: monotonically add an alert without changing bounds or nature.
+    // Passing false cannot erase an alert produced earlier in the computation.
+    interval withInvalid(bool possible = true) const noexcept
+    {
+        interval result = *this;
+        result.fMayBeInvalid = fMayBeInvalid || possible;
+        return result;
+    }
+    // Public API: numeric bottom with no alert. NaN endpoints are storage
+    // sentinels here, not injected NaN values; retain the requested nature.
+    static interval numericEmpty(int lsb = 0) noexcept
+    {
+        interval result;
+        result.fLo = result.fHi = NAN;
+        result.fLSB = lsb;
+        return result;
+    }
     bool isUnbounded() const { return std::isinf(fLo) || std::isinf(fHi); }
     bool isBounded() const { return !isUnbounded(); }
     bool has(double x) const { return (fLo <= x) && (fHi >= x); }
-    bool is(double x) const { return (fLo == x) && (fHi == x); }
+    // An alerted numeric point also represents possible invalid execution, so
+    // singleton predicates must not let a consumer fold away that possibility.
+    bool is(double x) const { return !fMayBeInvalid && (fLo == x) && (fHi == x); }
     bool hasZero() const { return has(0.0); }
     bool isZero() const { return is(0.0); }
-    bool isconst() const { return (fLo == fHi) && !std::isnan(fLo); }
+    bool isconst() const { return (fLo == fHi) && !std::isnan(fLo) && !fMayBeInvalid; }
 
     bool ispowerof2() const
     {
+        if (!isconst() || fHi < 1 || fHi > INT_MAX) return false;
         auto n = int(fHi);
         return isconst() && ((n & (-n)) == n);
     }
 
     bool isbitmask() const
     {
+        if (!isconst() || fHi < 0 || fHi >= INT_MAX) return false;
         int n = int(fHi) + 1;
         return isconst() && ((n & (-n)) == n);
     }
@@ -209,6 +278,9 @@ class interval {
     // position of the most significant bit of the value, without taking the sign bit into account
     int msb() const
     {
+        // Numeric bottom has no grid magnitude. Avoid a NaN-to-int metadata
+        // conversion; callers must inspect validity before using an empty format.
+        if (isEmpty()) return 0;
         if ((fLo == 0) && (fHi == 0)) {
             return 0;
         }
@@ -234,11 +306,11 @@ class interval {
     std::string to_string() const
     {
         if (isEmpty()) {
-            return "[]";
+            return fMayBeInvalid ? "[] + invalid" : "[]";
         } else {
             char buffer[64];
             snprintf(buffer, 63, "[%g, %g]", fLo, fHi);
-            return std::string(buffer);
+            return std::string(buffer) + (fMayBeInvalid ? " + invalid" : "");
         }
     }
 };
@@ -250,9 +322,10 @@ class interval {
 inline std::ostream& operator<<(std::ostream& dst, const interval& i)
 {
     if (i.isEmpty()) {
-        return dst << "empty()";
+        return dst << (i.mayBeInvalid() ? "empty() + invalid" : "empty()");
     } else {
-        return dst << "interval(" << i.lo() << ',' << i.hi() << ',' << i.lsb() << ")";
+        return dst << "interval(" << i.lo() << ',' << i.hi() << ',' << i.lsb() << ")"
+                   << (i.mayBeInvalid() ? " + invalid" : "");
     }
 }
 
@@ -260,9 +333,10 @@ inline std::ostream& operator<<(std::ostream& dst, const interval& i)
 // set operations
 //-------------------------------------------------------------------------
 
-inline interval empty() noexcept
+// Public API: numeric bottom, distinct from an invalid-only execution.
+inline interval empty(int lsb = 0) noexcept
 {
-    return {NAN, NAN, 0};
+    return interval::numericEmpty(lsb);
 }
 
 /**
@@ -278,40 +352,44 @@ inline interval fullFinite(int lsb = -24) noexcept
 
 inline interval intersection(const interval& i, const interval& j)
 {
+    // Numeric refinement must not silently clear an existing validity alert.
+    const bool invalid = i.mayBeInvalid() || j.mayBeInvalid();
     if (i.isEmpty()) {
-        return i;
+        return i.withInvalid(invalid);
     } else if (j.isEmpty()) {
-        return j;
+        return j.withInvalid(invalid);
     } else {
         double l = std::max(i.lo(), j.lo());
         double h = std::min(i.hi(), j.hi());
         int    p = std::min(i.lsb(),
                             j.lsb());  // precision of the intersection should be the finest of the two
         if (l > h) {
-            return empty();
+            return empty().withInvalid(invalid);
         } else {
-            return {l, h, p};
+            return {l, h, p, invalid};
         }
     }
 }
 
 inline interval reunion(const interval& i, const interval& j)
 {
+    const bool invalid = i.mayBeInvalid() || j.mayBeInvalid();
     if (i.isEmpty()) {
-        return j;
+        return j.withInvalid(invalid);
     } else if (j.isEmpty()) {
-        return i;
+        return i.withInvalid(invalid);
     } else {
         double l = std::min(i.lo(), j.lo());
         double h = std::max(i.hi(), j.hi());
         int    p =
             std::min(i.lsb(), j.lsb());  // precision of the reunion should be the finest of the two
-        return {l, h, p};
+        return {l, h, p, invalid};
     }
 }
 
 inline interval singleton(double x)
 {
+    if (!std::isfinite(x)) return {x, x, -24};
     if (x == 0) {
         return {0, 0, 0};
     }
@@ -336,11 +414,21 @@ inline interval singleton(double x)
 // basic predicates
 inline bool operator==(const interval& i, const interval& j)
 {
-    return (i.isEmpty() && j.isEmpty()) || ((i.lo() == j.lo()) && (i.hi() == j.hi()));
+    return i.mayBeInvalid() == j.mayBeInvalid() &&
+           ((i.isEmpty() && j.isEmpty()) || ((i.lo() == j.lo()) && (i.hi() == j.hi())));
 }
 
+// Public API: numeric and validity inclusion, independent of LSB. An alert can
+// only be included in another alert; numeric bottom without an alert is bottom.
 inline bool operator<=(const interval& i, const interval& j)
 {
+    if (i.mayBeInvalid() && !j.mayBeInvalid()) return false;
+    if (i.isEmpty()) {
+        return true;
+    }
+    if (j.isEmpty()) {
+        return false;
+    }
     return (i.lo() >= j.lo()) && (i.hi() <= j.hi());
 }
 
@@ -368,8 +456,9 @@ inline bool operator>(const interval& i, const interval& j)
 /**
  * The bounds of a libm function, compensated : 2 ulps of the program's precision
  * outward, within the image [fmin, fmax] of the function (sin stays in [-1, 1], exp
- * stays >= 0), a bound of exactly 0 excepted. A point is left as it is : a function of
- * a constant is folded by the compiler and never calls the libm of the target.
+ * stays >= 0), a bound of exactly 0 excepted. A float/double singleton is not
+ * automatically a folded constant, so it receives the target margin too.
+ * Quad/fixed retain the historical singleton exemption. This margin is heuristic.
  */
 inline double ulpStep(double b, double dir)
 {
@@ -381,8 +470,11 @@ inline double ulpStep(double b, double dir)
 
 inline interval libmBounds(const interval& r, double fmin, double fmax)
 {
-    // an integer result (lsb >= 0) is computed in integers, never by the libm
-    if (!libmCompensation() || r.isEmpty() || r.isconst() || r.lsb() >= 0) return r;
+    // A singleton alone is not evidence that Faust folded an operation. Float/double
+    // references are certified independently; the legacy two-ULP target margin
+    // still applies to singleton results unless they are explicitly integer.
+    if (!libmCompensation() || r.isEmpty() || r.lsb() >= 0 ||
+        (programPrecision() != 1 && programPrecision() != 2 && r.isconst())) return r;
     // a bound of exactly 0 stays : the C standard (annex F) makes the libm exact there
     // (sin(+-0) = +-0, tan(0) = 0, log(1) = 0, pow(0, y) = 0...), and a bound of 0 comes
     // from such an exact point
@@ -393,7 +485,7 @@ inline interval libmBounds(const interval& r, double fmin, double fmax)
     }
     if (r.lo() >= fmin) lo = std::max(lo, fmin);
     if (r.hi() <= fmax) hi = std::min(hi, fmax);
-    return interval(lo, hi, r.lsb());
+    return interval(lo, hi, r.lsb(), r.mayBeInvalid());
 }
 
 }  // namespace itv

@@ -27,10 +27,14 @@ unsigned faust_alarm(unsigned seconds)
 }
 #else
 
+#include <cmath>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include "compatibility.hh"
 #include "dsp_factory.hh"
 #include "global.hh"
+#include "sigs-state.hh"
 
 using namespace std;
 
@@ -44,6 +48,22 @@ int main(int argc, const char* argv[])
 {
     string            error_msg;
     dsp_factory_base* factory = createFactory("FaustDSP", "", argc, argv, error_msg, true);
+
+    // The validity certificates of the interval analysis, always : a program bounded
+    // only for a limited time says for how long
+    if (factory) {
+        for (const auto& [reason, samples] : sigs::g.gCertifiedSamples) {
+            const double seconds = samples / 48000.0;
+            std::stringstream duration;
+            if (seconds >= 10) {
+                duration << std::llround(seconds);
+            } else {
+                duration << std::setprecision(2) << seconds;
+            }
+            cerr << "WARNING : this program is certified for " << duration.str()
+                 << " seconds at 48000 Hz (" << reason << ")" << endl;
+        }
+    }
 
     // Possibly print warnings
     if (factory) {

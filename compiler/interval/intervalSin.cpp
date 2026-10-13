@@ -20,6 +20,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -32,8 +33,12 @@ static double sinPi(double x)
     return std::sin(x * M_PI);
 }
 
-interval interval_algebra::SinBounds(const interval& x) const
+// Numeric kernel: numeric sin image on its valid domain. In float/double,
+// the native kernel encloses endpoints and extrema; quad/fixed retain
+// their historical rule. LSB is an estimate; Validity is attached by the public transfer.
+interval interval_algebra::numericSinBounds(const interval& x) const
 {
+    if (detail::usesNativeBounds()) return detail::doubleUnaryBounds(detail::UnaryOp::Sin, x);
     if (x.isEmpty()) {
         return empty();
     }

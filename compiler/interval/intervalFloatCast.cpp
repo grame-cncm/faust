@@ -19,6 +19,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -26,10 +27,16 @@ namespace itv {
 // interval FloatCast(const interval& x);
 // void testFloatCast();
 
-interval interval_algebra::FloatCast(const interval& x) const
+// Numeric kernel: enclose conversion to the program's floating type. In float mode,
+// convert the source endpoints once; IEEE narrowing is monotone. This is a known
+// conversion, not a bound calculation with an unknown analyzer rounding residual.
+// Normalize widened integer sources before conversion, retaining a negative
+// floating LSB in every precision. NaN keeps the historical empty convention.
+interval interval_algebra::numericFloatCast(const interval& input) const
 {
+    const interval x = detail::int32Hull(input);
     // LSB with -1 value to force the float typing
-    return {x.lo(), x.hi(), std::min(x.lsb(), -1)};
+    return {programBound(x.lo()), programBound(x.hi()), std::min(x.lsb(), -1)};
 }
 
 void interval_algebra::testFloatCast()

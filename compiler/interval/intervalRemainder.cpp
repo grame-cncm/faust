@@ -23,6 +23,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -30,8 +31,12 @@ namespace itv {
 // interval Remainder(const interval& x, const interval& y);
 // void testRemainder();
 
-interval interval_algebra::Remainder(const interval& x, const interval& y) const
+// Numeric kernel: numeric IEEE remainder image. Float/double half-divisor bounds round
+// outward, including subnormals; invalid-only domains yield empty. Validity is
+// attached by the public transfer; LSB remains an estimate.
+interval interval_algebra::numericRemainder(const interval& xInput, const interval& yInput) const
 {
+    const interval x = detail::floatingOperand(xInput), y = detail::floatingOperand(yInput);
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
     }
@@ -46,10 +51,14 @@ interval interval_algebra::Remainder(const interval& x, const interval& y) const
     }
     const double mmin = (y.lo() > 0) ? y.lo() : ((y.hi() < 0) ? -y.hi() : 0.0);
     const double xmax = std::max(std::fabs(x.lo()), std::fabs(x.hi()));
-    if (mmin > 0 && xmax < mmin / 2) {
+    const double halfMin = detail::usesNativeBounds() ? detail::directedBinary(
+        detail::BinaryOp::Div, mmin, 2, detail::Direction::Down) : mmin / 2;
+    if (mmin > 0 && xmax < halfMin) {
         return x;
     }
-    const double b = std::min(xmax, m / 2);
+    const double halfMax = detail::usesNativeBounds() ? detail::directedBinary(
+        detail::BinaryOp::Div, m, 2, detail::Direction::Up) : m / 2;
+    const double b = std::min(xmax, halfMax);
     return {-b, b, std::min(x.lsb(), y.lsb())};
 }
 

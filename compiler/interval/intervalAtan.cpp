@@ -19,6 +19,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -29,8 +30,12 @@ namespace itv {
 // interval Atan(const interval& x);
 // void testAtan();
 
-interval interval_algebra::AtanBounds(const interval& x) const
+// Numeric kernel: numeric atan image on its valid domain. In float/double,
+// the native kernel encloses endpoints and extrema; quad/fixed retain
+// their historical rule. LSB is an estimate; Validity is attached by the public transfer.
+interval interval_algebra::numericAtanBounds(const interval& x) const
 {
+    if (detail::usesNativeBounds()) return detail::doubleUnaryBounds(detail::UnaryOp::Atan, x);
     if (x.isEmpty()) {
         return empty();
     }

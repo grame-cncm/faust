@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <string>
 
+#include "aterm.hh"
 #include "Text.hh"
 #include "dsp_aux.hh"
 #include "fir_to_fir.hh"
@@ -157,6 +158,8 @@ Tree InstructionsCompiler::prepare(Tree LS)
     delete fOccMarkup;
     fOccMarkup = new OccMarkup(fConditionProperty);
     fOccMarkup->mark(L2);  // Annotate L2 with occurrences analysis
+    fDefinitions.build(L2);  // the subterms of compound definitions the program holds
+    fDefinitions.countReads(fSharingKey);
     endTiming("occurrences analysis");
 
     endTiming("prepare");
@@ -748,6 +751,26 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generatePrefix(sig, x, y);
     } else if (isSigBinOp(sig, &i, x, y)) {
         return generateBinOp(sig, i, x, y);
+    } else if (tvec subs; isSigSum(sig, subs)) {
+        return generateSum(sig, subs);
+    } else if (tvec fs; isSigProd(sig, fs)) {
+        return generateProd(sig, fs);
+    } else if (tvec fir; isSigFIR(sig, fir)) {
+        return generateFIR(sig, fir);
+    } else if (tvec iir; isSigIIR(sig, iir)) {
+        return generateIIR(sig, iir);
+    } else if (isSigNeg(sig, x)) {
+        return generateNeg(sig, x);
+    } else if (isSigFrac(sig, x)) {
+        return generateRemainder(sig, x, gGlobal->gFloorPrim);
+    } else if (isSigCfrac(sig, x)) {
+        return generateRemainder(sig, x, gGlobal->gRintPrim);
+    } else if (isSigTpt(sig, x)) {
+        return generateTpt(sig, x);
+    } else if (Tree a, p; isSigPhase(sig, a, p)) {
+        return generatePhase(sig, a, p);
+    } else if (Tree c, a, b; isSigMix(sig, c, a, b)) {
+        return generateMix(sig, c, a, b);
     } else if (isSigFFun(sig, ff, largs)) {
         return generateFFun(sig, ff, largs);
     } else if (isSigFConst(sig, type, name, file)) {
@@ -1013,6 +1036,266 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
         ValueInst* v2 = CS(a2);
         return generateCacheCode(sig, IB::genBinopInst(opcode, v1, v2));
     }
+}
+
+/**
+ * Prod(f0, ..., fn) : the chain of the node (emitProd), a slow prefix stored at its rate.
+ */
+ValueInst* InstructionsCompiler::generateProd(Tree sig, const tvec& factors)
+{
+    struct Ops {
+        InstructionsCompiler* fC;
+        bool                  fInt;
+        ValueInst*            term(Tree t) { return fC->CS(t); }
+        ValueInst*            mul(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kMul, a, b); }
+        ValueInst*            store(int variability, ValueInst* a) { return fC->compoundSlowStore(variability, a, fInt); }
+    } ops{this, getCertifiedSigType(sig)->nature() == kInt};
+    return generateCacheCode(sig, emitProd<ValueInst*>(sig, factors, ops));
+}
+
+/**
+ * Sum(t0, ..., tn) : the chain of the node (emitSum), a slow prefix stored at its rate.
+ */
+ValueInst* InstructionsCompiler::generateSum(Tree sig, const tvec& subs)
+{
+    struct Ops {
+        InstructionsCompiler* fC;
+        bool                  fInt;
+        ValueInst*            term(Tree t) { return fC->CS(t); }
+        ValueInst*            negatedTerm(Tree t) { return fC->operandAtRate(t); }
+        ValueInst*            add(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kAdd, a, b); }
+        ValueInst*            sub(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kSub, a, b); }
+        ValueInst*            neg(ValueInst* a) { return IB::genNeg(a); }
+        ValueInst*            store(int variability, ValueInst* a) { return fC->compoundSlowStore(variability, a, fInt); }
+        ValueInst*            zero()
+        {
+            return fInt ? static_cast<ValueInst*>(IB::genInt32NumInst(0))
+                        : static_cast<ValueInst*>(IB::genRealNumInst(itfloat(), 0.0));
+        }
+    } ops{this, getCertifiedSigType(sig)->nature() == kInt};
+    return generateCacheCode(sig, emitSum<ValueInst*>(sig, subs, ops));
+}
+
+/**
+ * neg(x) = -x : a negation instruction, cached as every operation (a slow negation read in
+ * a faster context is stored at its rate).
+ */
+ValueInst* InstructionsCompiler::generateNeg(Tree sig, Tree x)
+{
+    ValueInst* v = IB::genNeg(CS(x));
+    return generateCacheCode(sig, v);
+}
+
+/*****************************************************************************
+ Compound operations : the node is the operation of FaustAlgebra, its children
+ the arguments ; the emitter writes the definition, as for a sum or a FIR.
+ *****************************************************************************/
+
+/**
+ * x read where the occurrences did not see it (the operand of a neg that a sum, a FIR or an
+ * IIR subtracts) : stored at its rate when slower than the sample, as it is otherwise.
+ */
+ValueInst* InstructionsCompiler::operandAtRate(Tree x)
+{
+    return (getCertifiedSigType(x)->variability() < kSamp) ? compoundOperand(x) : CS(x);
+}
+
+/**
+ * An operand that the definition reads twice : a variable or a number as it is, an
+ * expression in a variable of its own, placed at the operand's rate.
+ */
+ValueInst* InstructionsCompiler::compoundOperand(Tree x)
+{
+    ValueInst* vx = CS(x);
+    if (dynamic_cast<LoadVarInst*>(vx) || dynamic_cast<NumValueInst*>(vx)) {
+        return vx;
+    }
+    // the variable becomes the operand's compiled expression : a second read finds it
+    return setCompiledExpression(x, generateVariableStore(x, vx));
+}
+
+/**
+ * lead * t, written as the normal form writes a product : the factors slower than the
+ * product (lead included) multiplied first and stored at their own rate, then the
+ * others ; the whole stored when slower than its consumer.
+ */
+ValueInst* InstructionsCompiler::compoundProduct(ValueInst* lead, int vlead, Tree t, int consumer)
+{
+    std::vector<Tree>         factors;
+    std::function<void(Tree)> flatten = [&](Tree u) {
+        Tree x, y;
+        tvec fs;
+        if (isSigMul(u, x, y)) {
+            flatten(x);
+            flatten(y);
+        } else if (isSigProd(u, fs)) {
+            for (Tree f : fs) flatten(f);
+        } else {
+            factors.push_back(u);
+        }
+    };
+    flatten(t);
+    const int  vprod = std::max(vlead, getCertifiedSigType(t)->variability());
+    ValueInst* slow     = nullptr;
+    ValueInst* fast     = nullptr;
+    int        vslow    = kKonst;
+    bool       computed = false;  // the slow part is an operation, not a variable
+    auto       join     = [](ValueInst* acc, ValueInst* f) {
+        return acc ? IB::genBinopInst(kMul, acc, f) : f;
+    };
+    if (vlead < vprod) {
+        slow     = lead;
+        vslow    = vlead;
+        computed = !(dynamic_cast<LoadVarInst*>(lead) || dynamic_cast<NumValueInst*>(lead));
+    } else {
+        fast = lead;
+    }
+    for (Tree f : factors) {
+        const int  vf = getCertifiedSigType(f)->variability();
+        ValueInst* cf = CS(f);
+        if (vf < vprod) {
+            computed = computed || slow != nullptr;
+            slow     = join(slow, cf);
+            vslow    = std::max(vslow, vf);
+        } else {
+            fast = join(fast, cf);
+        }
+    }
+    if (computed && fast && vslow < kSamp) {
+        slow = compoundSlowStore(vslow, slow);
+    }
+    ValueInst* r = fast ? join(slow, fast) : slow;
+    return (vprod < consumer && vprod < kSamp) ? compoundSlowStore(vprod, r) : r;
+}
+
+/**
+ * A part of a definition slower than its consumer, stored at its own rate : a constant
+ * in the instance, a slow value at the block (what a slow node in a faster context is).
+ */
+ValueInst* InstructionsCompiler::compoundSlowStore(int variability, ValueInst* exp, bool isInt)
+{
+    faustassert(variability == kKonst || variability == kBlock);
+    BasicTyped* ctype = IB::genBasicTyped(isInt ? Typed::kInt32 : itfloat());
+    if (variability == kKonst) {
+        string vname = subst("f$0", gGlobal->getFreshID("Const"));
+        pushDeclare(IB::genDecStructVar(vname, ctype));
+        pushInitMethod(IB::genStoreStructVar(vname, exp));
+        return IB::genLoadStructVar(vname);
+    }
+    string vname = subst("f$0", gGlobal->getFreshID("Slow"));
+    if (gGlobal->gExtControl) {
+        if (gGlobal->gMemoryManager >= 1) {
+            if (isInt) {
+                pushControlDeclare(fContainer->fIntControl->store(exp));
+                return fContainer->fIntControl->load();
+            }
+            pushControlDeclare(fContainer->fRealControl->store(exp));
+            return fContainer->fRealControl->load();
+        }
+        pushDeclare(IB::genDecStructVar(vname, ctype));
+        pushControlDeclare(IB::genStoreStructVar(vname, exp));
+        return IB::genLoadStructVar(vname);
+    }
+    pushComputeBlockMethod(IB::genDecStackVar(vname, ctype, exp));
+    return IB::genLoadStackVar(vname);
+}
+
+/**
+ * frac(x) = x - floor(x), cfrac(x) = x - rint(x) : x computed once, the rounding by its
+ * primitive, then the subtraction.
+ */
+ValueInst* InstructionsCompiler::generateRemainder(Tree sig, Tree x, xtended* round)
+{
+    // the program's own rounding of x, when it holds one
+    Tree held = (round == gGlobal->gFloorPrim) ? fDefinitions.floorOf(x) : fDefinitions.rintOf(x);
+    if (held != nullptr) {
+        ValueInst* hx = compoundOperand(x);
+        ValueInst* hr = compoundOperand(held);
+        return generateCacheCode(sig, IB::genBinopInst(kSub, hx, hr));
+    }
+    ValueInst*     vx = compoundOperand(x);
+    Values         args{vx};
+    vector<::Type> types{getCertifiedSigType(x)};
+    ValueInst*     r = static_cast<xtendedCodegen*>(round)->generateCode(fContainer, args,
+                                                                         getCertifiedSigType(sig), types);
+    return generateCacheCode(sig, IB::genBinopInst(kSub, vx, r));
+}
+
+/**
+ * tpt(x) = x / (x + 1) : x computed once.
+ */
+ValueInst* InstructionsCompiler::generateTpt(Tree sig, Tree x)
+{
+    ValueInst* vx   = compoundOperand(x);
+    Tree       held = fDefinitions.plusOneOf(x);  // the program's own x + 1
+    ValueInst* d    = held ? compoundOperand(held)
+                           : IB::genBinopInst(kAdd, vx, IB::genRealNumInst(itfloat(), 1.0));
+    return generateCacheCode(sig, IB::genBinopInst(kDiv, vx, d));
+}
+
+/**
+ * phase(x, p) = (x % p) / p : the program's own remainder when it holds one (the
+ * definition of a counter, ba.period), read from its variable ; the division is real, a
+ * product by 1/p when phaseByReciprocal says so.
+ */
+ValueInst* InstructionsCompiler::generatePhase(Tree sig, Tree x, Tree p)
+{
+    const bool isInt = getCertifiedSigType(x)->nature() == kInt && getCertifiedSigType(p)->nature() == kInt;
+    ValueInst* vp    = compoundOperand(p);
+    ValueInst* vr;
+    if (Tree held = fDefinitions.remOf(x, p)) {
+        vr = compoundOperand(held);
+    } else if (isInt) {
+        vr = IB::genBinopInst(kRem, compoundOperand(x), vp);
+    } else {
+        Values         args{compoundOperand(x), vp};
+        vector<::Type> types{getCertifiedSigType(x), getCertifiedSigType(p)};
+        vr = static_cast<xtendedCodegen*>(gGlobal->gFmodPrim)->generateCode(fContainer, args,
+                                                                            getCertifiedSigType(x), types);
+    }
+    if (isInt) {
+        BasicTyped* ft = genFloatType(getCertifiedSigType(sig));
+        vr             = IB::genCastInst(vr, ft);
+        vp             = IB::genCastInst(vp, ft);
+        if (phaseByReciprocal(p)) {
+            ValueInst* one = IB::genRealNumInst(itfloat(), 1.0);
+            ValueInst* inv = compoundSlowStore(getCertifiedSigType(p)->variability(),
+                                               IB::genBinopInst(kDiv, one, vp));
+            // the product in a variable : the text printers write a product nested on the
+            // right without parentheses (k * r * inv is (k * r) * inv in C) ; stored, the
+            // phase is r * inv whatever multiplies it
+            ValueInst* ph = IB::genBinopInst(kMul, vr, inv);
+            return setCompiledExpression(sig, generateVariableStore(sig, ph));
+        }
+    }
+    return generateCacheCode(sig, IB::genBinopInst(kDiv, vr, vp));
+}
+
+/**
+ * mix(c, a, b) = (1 - c) * a + c * b, computed as an interpolation from the operand whose
+ * weight may be near 1 (itv::mixFromB, on the interval of c) : b + (1 - c) * (a - b) when
+ * c >= 1/2, 1 - c being then exact, a + c * (b - a) otherwise. Either keeps its fixed point
+ * exactly, and costs about one rounding of the result when the weight of the difference is
+ * small (a slow smoother) ; the interval of the node bounds this same computation.
+ */
+ValueInst* InstructionsCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b)
+{
+    ValueInst* va = compoundOperand(a);
+    ValueInst* vb = compoundOperand(b);
+    ValueInst* vc = compoundOperand(c);
+    if (itv::mixFromB(getCertifiedSigType(c)->getInterval())) {
+        const int  vrc = getCertifiedSigType(c)->variability();
+        ValueInst* w   = IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0), vc);
+        if (vrc < getCertifiedSigType(sig)->variability() && vrc != kSamp) {
+            w = compoundSlowStore(vrc, w);  // 1 - c at the rate of c
+        }
+        ValueInst* d = IB::genBinopInst(kSub, va, vb);
+        ValueInst* p = IB::genBinopInst(kMul, w, d);
+        return generateCacheCode(sig, IB::genBinopInst(kAdd, vb, p));
+    }
+    ValueInst* d = IB::genBinopInst(kSub, vb, va);
+    ValueInst* p = IB::genBinopInst(kMul, vc, d);
+    return generateCacheCode(sig, IB::genBinopInst(kAdd, va, p));
 }
 
 /*****************************************************************************
@@ -2208,6 +2491,20 @@ bool InstructionsCompiler::reachesUnstoredRecMember(Tree t)
                                 // sdelay)
             continue;
         }
+        if (tvec fir; isSigFIR(n, fir)) {
+            // the coefficients are read now ; a projection source with a null c0 only in
+            // the past, as by a delay >= 1 (the FIR of a fractional delay in a feedback :
+            // greyhole again)
+            for (size_t k = 1; k < fir.size(); k++) {
+                work.push_back(fir[k]);
+            }
+            int  i;
+            Tree g;
+            if (!(isProj(fir[0], &i, g) && isZero(fir[1]))) {
+                work.push_back(fir[0]);
+            }
+            continue;
+        }
         for (int k = 0; k < n->arity(); k++) {
             work.push_back(n->branch(k));
         }
@@ -2363,6 +2660,161 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
  * Generate code for accessing a delayed signal. The generated code depend of
  * the maximum delay attached to exp.
  */
+/**
+ * The name of the delay line of exp, read in the past : a line whose write is deferred
+ * keeps its name, a line that cannot be written yet is reserved (decoupled write, see
+ * generateDelayAccess), otherwise exp is compiled. immediate is the value of exp when it
+ * has no line (mxd == 0), nullptr otherwise.
+ */
+std::string InstructionsCompiler::delayLineName(Tree exp, int mxd, const char* prefix, ValueInst*& immediate)
+{
+    string vname;
+    immediate = nullptr;
+    if (std::find(fPendingDelayWrites.begin(), fPendingDelayWrites.end(), exp) !=
+        fPendingDelayWrites.end()) {
+        getVectorNameProperty(exp, vname);
+    } else if (!getVectorNameProperty(exp, vname) && mxd > 0 && !fUnstoredRecMembers.empty() &&
+               reachesUnstoredRecMember(exp)) {
+        BasicTyped* ctype;
+        getTypedNames(getCertifiedSigType(exp), prefix, ctype, vname);
+        setVectorNameProperty(exp, vname);
+        fPendingDelayWrites.push_back(exp);
+    } else {
+        ValueInst* code = CS(exp);
+        if (!getVectorNameProperty(exp, vname)) {
+            faustassert(mxd == 0);
+            immediate = code;
+        }
+    }
+    return vname;
+}
+
+/**
+ * exp@delay for a FIR tap, delay a constant : the read of the delay line, never cached on
+ * the FIR node (the tap is not a node)
+ */
+ValueInst* InstructionsCompiler::generateTapAccess(Tree exp, int delay)
+{
+    // a source with a line is read in its line, at delay 0 too (a recursive projection
+    // read at delay 0 is its stored value, not its definition)
+    int        mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
+    ValueInst* immediate;
+    string     vname = delayLineName(exp, mxd, "Vec", immediate);
+    if (immediate != nullptr) {
+        faustassert(delay == 0);
+        return immediate;
+    }
+    if (mxd == 0) {
+        return IB::genLoadStackVar(vname);
+    }
+    return lineRead(vname, mxd, delay);
+}
+
+/**
+ * The sample delay ago of the line vname of maximum delay mxd (the structure
+ * generateDelayLine gives it), the index never cached
+ */
+ValueInst* InstructionsCompiler::lineRead(const string& vname, int mxd, int delay)
+{
+    faustassert(mxd >= delay);
+    if (mxd < gGlobal->gMaxCopyDelay) {
+        return IB::genLoadArrayStructVar(vname, IB::genInt32NumInst(delay));
+    } else if (mxd < gGlobal->gMaskDelayLineThreshold) {
+        int N = pow2limit(mxd + 1);
+        ensureIotaCode();
+        FIRIndex index = (FIRIndex(IB::genLoadStructVar(fCurrentIOTA)) - delay) & FIRIndex(N - 1);
+        return IB::genLoadArrayStructVar(vname, index);
+    } else {
+        string   ridx_name = gGlobal->getFreshID(vname + "_ridx_tmp");
+        FIRIndex widx1     = FIRIndex(IB::genLoadStructVar(vname + "_widx"));
+        pushComputeDSPMethod(IB::genDecStackVar(ridx_name, Typed::kInt32, widx1 - delay));
+        FIRIndex ridx1 = FIRIndex(IB::genLoadStackVar(ridx_name));
+        FIRIndex ridx2 = FIRIndex(IB::genSelect2Inst(ridx1 < 0, ridx1 + FIRIndex(mxd + 1), ridx1));
+        return IB::genLoadArrayStructVar(vname, ridx2);
+    }
+}
+
+/**
+ * IIR[x, c1, ...] : y = x + c1*y@1 + ..., the node reading its own past in its own line.
+ * The line is named first, the chain of the definition (the association of its interval :
+ * x, then the taps from the first delay to the last, a neg(c) or -1 coefficient
+ * subtracted) reads it, and the line is written with the result.
+ */
+ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
+{
+    faustassert(iir.size() > 1);
+    int mxd = fOccMarkup->retrieve(sig)->getMaxDelay();
+    faustassert(mxd >= int(iir.size()) - 1);
+    BasicTyped* ctype;
+    string      vname;
+    if (getVectorNameProperty(sig, vname)) {
+        // the line was reserved by a deferred delay access (decoupled write)
+        ::Type t = getCertifiedSigType(sig);
+        ctype    = (t->nature() == kInt) ? IB::genBasicTyped(Typed::kInt32) : genFloatType(t);
+    } else {
+        getTypedNames(getCertifiedSigType(sig), "IIR", ctype, vname);
+        setVectorNameProperty(sig, vname);
+    }
+    ValueInst* acc = CS(iir[0]);
+    for (size_t i = 1; i < iir.size(); i++) {
+        if (isZero(iir[i])) {
+            continue;
+        }
+        ValueInst* access = lineRead(vname, mxd, int(i));
+        Tree       m;
+        const bool sub  = negativeCoefficient(iir[i], m);
+        Tree       c    = sub ? m : iir[i];
+        ValueInst* term = access;
+        if (c != nullptr && !isOne(c)) {
+            ValueInst* vc = sub ? operandAtRate(c) : CS(c);
+            term          = IB::genBinopInst(kMul, vc, access);
+        }
+        acc = IB::genBinopInst(sub ? kSub : kAdd, acc, term);
+    }
+    return writeIIRLine(sig, acc, ctype, vname, mxd);
+}
+
+/**
+ * The value of an IIR, stored once in a variable : the line and the readers read it
+ */
+ValueInst* InstructionsCompiler::writeIIRLine(Tree sig, ValueInst* exp, BasicTyped* ctype, const string& vname, int mxd)
+{
+    ValueInst* v = generateVariableStore(sig, exp);
+    return generateDelayVec(sig, v, ctype, vname, mxd);
+}
+
+/**
+ * FIR[x, c0, c1, ...] : the chain of the definition, the association of its interval, the
+ * taps c[k] * x@k from the first delay to the last, the null coefficients left out.
+ */
+ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& fir)
+{
+    faustassert(fir.size() > 1);
+    Tree       x   = fir[0];
+    ValueInst* acc = nullptr;
+    for (size_t i = 1; i < fir.size(); i++) {
+        if (isZero(fir[i])) {
+            continue;
+        }
+        ValueInst* access = generateTapAccess(x, int(i) - 1);
+        // a negative coefficient after the first tap : the tap subtracted
+        Tree       m;
+        const bool sub  = acc && negativeCoefficient(fir[i], m);
+        Tree       c    = sub ? m : fir[i];
+        ValueInst* term = access;
+        if (c != nullptr && !isOne(c)) {
+            ValueInst* vc = sub ? operandAtRate(c) : CS(c);
+            term          = IB::genBinopInst(kMul, vc, access);
+        }
+        acc = acc ? IB::genBinopInst(sub ? kSub : kAdd, acc, term) : term;
+    }
+    if (acc == nullptr) {
+        acc = (getCertifiedSigType(sig)->nature() == kInt) ? static_cast<ValueInst*>(IB::genInt32NumInst(0))
+                                                           : static_cast<ValueInst*>(IB::genRealNumInst(itfloat(), 0.0));
+    }
+    return generateCacheCode(sig, acc);
+}
+
 ValueInst* InstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
     int    mxd = fOccMarkup->retrieve(exp)->getMaxDelay();

@@ -19,6 +19,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -31,8 +32,13 @@ static double myEq(double x, double y)
     return (x == y);
 }
 
-interval interval_algebra::Eq(const interval& x, const interval& y) const
+// Numeric kernel: enclose comparison after target operand conversions.
+// Normalize widened integers before deciding a predicate.
+// Empty stays empty; a nonempty result is integer zero, one or both.
+interval interval_algebra::numericEq(const interval& xInput, const interval& yInput) const
 {
+    // Compare target values after integer widening and any implicit float cast.
+    const auto [x, y] = detail::comparisonOperands(xInput, yInput);
     // boolean value => precision 0
     if (x.isEmpty() || y.isEmpty()) {
         return empty();

@@ -27,6 +27,7 @@
 #include "signals.hh"
 #include "sigtransform.hh"
 #include "sigtyperules.hh"
+#include "simplify.hh"
 
 namespace {
 
@@ -99,7 +100,8 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
         Tree t1, t2;
 
         if (!isSigBinOp(sig, &opnum, t1, t2)) {
-            return sig;
+            // the compound operations have the rules of their definitions
+            return simplifyCompound(sig);
         }
 
         BinOp* op = gBinOpTable[opnum];

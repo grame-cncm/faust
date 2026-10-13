@@ -49,6 +49,11 @@ Tree normalizeAddTerm(Tree t)
 #endif
 
     aterm A(t);
+    A.expandCancellations();
+    A.extractSelects();
+    A.extractRemainders();
+    A.extractMixes();
+    A.extractTpts();
 #ifdef TRACE
     cerr << "ATERM of " << A << endl;
 #endif
@@ -119,6 +124,30 @@ Tree normalizeDelayTerm(Tree s, Tree d)
         } else {
             return sigDelay(s, d);
         }
+
+    } else if (tvec fs; isSigProd(s, fs)) {
+        // Prod(k, ..., x)@d -> Prod(k, ..., x@d) when x is the only factor of order 2 or
+        // more (the last one when there is none), as for k*x ; otherwise the product delayed
+        int j = -1, n = 0;
+        for (int i = 0; i < int(fs.size()); i++) {
+            if (sigs::sigOrder(fs[i]) >= 2) {
+                j = i;
+                n++;
+            }
+        }
+        if (n > 1) {
+            return sigDelay(s, d);
+        }
+        if (j < 0) {
+            j = int(fs.size()) - 1;
+        }
+        tvec ds = fs;
+        ds[j]   = normalizeDelayTerm(fs[j], d);
+        return sigProd(ds);
+
+    } else if (isSigNeg(s, x)) {
+        // (-x)@d -> -(x@d)
+        return sigNeg(normalizeDelayTerm(x, d));
 
     } else if (isSigDiv(s, x, y)) {
         if (sigs::sigOrder(y) < 2) {

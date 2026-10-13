@@ -68,7 +68,7 @@ struct TypeSolver::Impl {
     std::unordered_map<Tree, Type>  fTypes;
 
     explicit Impl(Tree root)
-        : fExact(root), fInterval(root), fSignature(sigs::signalSignature())
+        : fExact(root), fInterval(root, &fExact), fSignature(sigs::signalSignature())
     {
     }
 };

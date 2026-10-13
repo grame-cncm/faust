@@ -19,6 +19,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -26,8 +27,13 @@ namespace itv {
 // interval Ne(const interval& x, const interval& y);
 // void testNe();
 
-interval interval_algebra::Ne(const interval& x, const interval& y) const
+// Numeric kernel: enclose comparison after target operand conversions.
+// Normalize widened integers before deciding a predicate.
+// Empty stays empty; a nonempty result is integer zero, one or both.
+interval interval_algebra::numericNe(const interval& xInput, const interval& yInput) const
 {
+    // Compare target values after integer widening and any implicit float cast.
+    const auto [x, y] = detail::comparisonOperands(xInput, yInput);
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
     }

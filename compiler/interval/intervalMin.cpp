@@ -19,6 +19,7 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
@@ -26,8 +27,13 @@ namespace itv {
 // interval Min(const interval& x);
 // void testMin();
 
-interval interval_algebra::Min(const interval& x, const interval& y) const
+// Numeric kernel: enclose minimum after target operand conversions.
+// Empty stays empty; widened integers recover their signed hull.
+// The result is floating exactly when either operand is floating.
+interval interval_algebra::numericMin(const interval& xInput, const interval& yInput) const
 {
+    // Compare target values after integer widening and any implicit float cast.
+    const auto [x, y] = detail::comparisonOperands(xInput, yInput);
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
     }

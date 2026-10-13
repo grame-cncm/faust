@@ -81,27 +81,44 @@ class SignalDispatch : public FaustAlgebra<V> {
    public:
     virtual ~SignalDispatch() = default;
 
-    /// Virtual so a transformation can wrap the dispatch with a post-rule applied to
-    /// every rebuilt signal node (a simplifier's rule cascade, typically).
-    /// IIR[nil, X, C0=0, C1..Cn] : y = X + sum Ci*y@i. The default is the
-    /// FEEDFORWARD approximation (y replaced by X in the feedback reads) :
-    /// sound and exact for the exact attribute algebras -- y introduces no
-    /// generator beyond X and the coefficients, and Delay forces the sample
-    /// variability. Zero coefficients are SKIPPED (bottom is absorbing
-    /// through Mul/Add in interval-like domains ; same lesson as Fir).
-    /// Interval-like domains MUST override with a genuine gain rule.
-    virtual V Iir(Tree sig, const std::vector<V>& c) const
+    /// The definitions of the kernels, for the algebras whose value of a kernel IS its
+    /// definition (the exact attributes) : not defaults -- an algebra calls them by
+    /// choice, in its own Sum, Prod, Fir and Iir.
+    V sumDefinition(const std::vector<V>& t) const
     {
-        V acc = c[1];
-        for (size_t k = 3; k < c.size(); k++) {
-            if (isZero(sig->branch(int(k)))) {
-                continue;
-            }
-            acc = this->Add(acc,
-                            this->Mul(c[k], this->Delay(c[1], this->IntNum(int(k) - 2))));
+        if (t.empty()) return this->IntNum(0);
+        V acc = t[0];
+        for (size_t k = 1; k < t.size(); k++) acc = this->Add(acc, t[k]);
+        return acc;
+    }
+    V prodDefinition(const std::vector<V>& t) const
+    {
+        if (t.empty()) return this->IntNum(1);
+        V acc = t[0];
+        for (size_t k = 1; k < t.size(); k++) acc = this->Mul(acc, t[k]);
+        return acc;
+    }
+    V firDefinition(const V& x, const std::vector<V>& c) const
+    {
+        if (c.empty()) return this->IntNum(0);
+        V acc = this->Mul(c[0], x);
+        for (size_t k = 1; k < c.size(); k++) {
+            acc = this->Add(acc, this->Mul(c[k], this->Delay(x, this->IntNum(int(k)))));
         }
         return acc;
     }
+    /// y = X + sum c[k] y@(k+1), y replaced by X in the feedback reads : exact for the
+    /// exact attributes -- y introduces no generator beyond X and the coefficients, and
+    /// Delay forces the sample variability
+    V iirFeedforward(const V& x, const std::vector<V>& c) const
+    {
+        V acc = x;
+        for (size_t k = 0; k < c.size(); k++) {
+            acc = this->Add(acc, this->Mul(c[k], this->Delay(x, this->IntNum(int(k) + 1))));
+        }
+        return acc;
+    }
+
 
     virtual V combine(Tree sig, const std::vector<V>& c, FixPointEvaluator<V>& ev) const;
 
@@ -352,53 +369,33 @@ V SignalDispatch<V>::combine(Tree sig, const std::vector<V>& c,
             // interval this yields is the L1 bound (sum |ci|*|X|) -- the
             // sound worst-case for arbitrary bounded inputs ; the tighter
             // frequency-domain gain (max |H|) is a later refinement.
+            // the kernels, operations of FaustAlgebra : FIR[x, c0, c1, ...] is
+            // Fir(x, [c0, c1, ...]) ; IIR[nil, x, C0 = 0, C1, ..., Cn] is
+            // Iir(x, [C1, ..., Cn]), its branch 0 a placeholder for the recursive
+            // reference and C0 the null coefficient of y itself
             case sigs::SignalOpcode::Fir: {
-                // ZERO coefficients are SKIPPED, not multiplied : the fixpoint
-                // iterates recursive sources from bottom, and bottom is
-                // absorbing through Mul/Add -- a synthetic 0*X term (which the
-                // normal form never produces, only this expansion does) would
-                // freeze the whole sum at bottom. The delayed terms escape
-                // through Delay's zero-history rule ; the k==1 term is the
-                // undelayed source, which a causal FIR on a recursive source
-                // cannot carry anyway (its coefficient is always zero there).
-                bool first = true;
-                V    acc{};
-                for (size_t k = 1; k < c.size(); k++) {
-                    if (isZero(sig->branch(int(k)))) {
-                        continue;
-                    }
-                    V term = (k == 1)
-                                 ? this->Mul(c[1], c[0])
-                                 : this->Mul(c[k], this->Delay(c[0], this->IntNum(int(k) - 1)));
-                    acc  = first ? term : this->Add(acc, term);
-                    first = false;
-                }
-                if (first) {
-                    return this->IntNum(0);  // degenerated all-zero FIR
-                }
-                return acc;
+                std::vector<V> coefs(c.begin() + 1, c.end());
+                return this->Fir(c[0], coefs);
             }
-
-            // The IIR value obeys a RECURSIVE equation (y = X + sum ci*y@i)
-            // that a pure function of children cannot express. The Iir hook
-            // below carries a sound DEFAULT (feedforward approximation :
-            // exact for the five exact attribute algebras, whose joins gain
-            // no generator from y itself) ; the interval domain overrides
-            // it with the worst-peak-gain rule (see sighorizon.cpp).
-            case sigs::SignalOpcode::Iir:
-                return this->Iir(sig, c);
+            case sigs::SignalOpcode::Iir: {
+                std::vector<V> coefs(c.begin() + 1, c.end());
+                return this->Iir(c[0], coefs);
+            }
 
             // temp(x) = x : a staging barrier for the emitter, transparent
             // to every interpretation (types, intervals, attributes)
             case sigs::SignalOpcode::Temp:
                 return c[0];
-            case sigs::SignalOpcode::Sum: {
-                V acc = c[0];
-                for (size_t k = 1; k < c.size(); k++) {
-                    acc = this->Add(acc, c[k]);
-                }
-                return acc;
-            }
+            case sigs::SignalOpcode::Sum: return this->Sum(c);
+
+            // the compound operations of FaustAlgebra
+            case sigs::SignalOpcode::Frac: return this->Frac(c[0]);
+            case sigs::SignalOpcode::Cfrac: return this->Cfrac(c[0]);
+            case sigs::SignalOpcode::Mix: return this->Mix(c[0], c[1], c[2]);
+            case sigs::SignalOpcode::Tpt: return this->Tpt(c[0]);
+            case sigs::SignalOpcode::Neg: return this->Neg(c[0]);
+            case sigs::SignalOpcode::Prod: return this->Prod(c);
+            case sigs::SignalOpcode::Phase: return this->Phase(c[0], c[1]);
 
             case sigs::SignalOpcode::Count: break;  // not a constructor
         }

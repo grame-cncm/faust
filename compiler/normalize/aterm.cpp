@@ -19,9 +19,16 @@
  ************************************************************************
  ************************************************************************/
 
+#include <algorithm>
+#include <cmath>
+#include <set>
+#include <unordered_set>
+
 #include "aterm.hh"
+#include "global.hh"
 #include "sigs-state.hh"
 #include "ppsig.hh"
+#include "xtended.hh"
 #include "sigtype.hh"
 #include "exception.hh"
 
@@ -73,121 +80,188 @@ Tree simplifyingAdd(Tree t1, Tree t2)
 }
 
 /**
- * Return the corresponding normalized expression tree
+ * The taps c[k] * x@k of FIR[x, c0, c1, ...], the null coefficients left out : what the
+ * normal form reads of a FIR, which it writes again from them
  */
-
-/*====================================================
-
- addTermsWithSign:
-
- (s1 v1 s2 v2) -> (s3 v3)
-
- (s1  0 s2 v2) -> (s2 v2)
- (s1 v1 s2  0) -> (s1 v1)
- (+  v1 +  v2) -> (+ (v1+v2))
- (+  v1 -  v2) -> (+ (v1-v2))
- (-  v1 +  v2) -> (+ (v2-v1))
- (-  v1 -  v2) -> (- (v1+v2))
-
- */
-
-static void addTermsWithSign(bool p1, Tree v1, bool p2, Tree v2, bool& p3, Tree& v3)
+static std::vector<Tree> firTaps(const tvec& fir)
 {
-    if (isZero(v1)) {
-        p3 = p2;
-        v3 = v2;
-        return;
+    std::vector<Tree> taps;
+    Tree              x = fir[0];
+    for (size_t k = 1; k < fir.size(); k++) {
+        if (isZero(fir[k])) {
+            continue;
+        }
+        int  i;
+        Tree g;
+        if (k == 1 && !isProj(x, &i, g)) {
+            Tree t = sigMul(fir[k], x);
+            taps.push_back(t);
+        } else {
+            // x@k, a recursive projection read at delay 0 written x@0 as the normal form does
+            Tree d = sigDelay(x, sigInt(int(k) - 1));
+            Tree t = sigMul(fir[k], d);
+            taps.push_back(t);
+        }
     }
-    if (isZero(v2)) {
-        p3 = p1;
-        v3 = v1;
-        return;
+    return taps;
+}
+
+/**
+ * The FIRs of a sum : the terms c * x@k of a same source x, and the terms k * FIR[x, ...]
+ * (k a number, a scaled FIR read as its taps k * c[j] * x@j), are written as one
+ * FIR[x, c0, c1, ...] when there are two of them or more : the source then appears once
+ * (a factorization that kept a number out of a FIR left x in two terms). The coefficient
+ * of a delay is the sum of its contributions, the missing delays a null coefficient.
+ * Records in taken the key of each term that a FIR takes ; the other written terms are
+ * returned in written.
+ */
+static std::vector<Tree> writeFirs(const std::map<Tree, mterm, NormalFormTreeLess>& terms,
+                                   std::set<Tree>& taken, std::vector<Tree>& written)
+{
+    // the contributions of each source, in the order of the terms (the sources in the
+    // order of their first contribution)
+    std::vector<Tree>                                        sources;
+    std::map<Tree, std::map<int, aterm>, NormalFormTreeLess> coefs;
+    std::map<Tree, std::vector<Tree>, NormalFormTreeLess>    keys;
+    auto contribution = [&](Tree x, Tree key) {
+        if (coefs.find(x) == coefs.end()) {
+            sources.push_back(x);
+        }
+        keys[x].push_back(key);
+        return &coefs[x];
+    };
+    for (const auto& p : terms) {
+        Tree  x, k, f;
+        int   d;
+        mterm c;
+        tvec  fir;
+        if (p.second.isScaledFactor(k, f) && isSigFIR(f, fir)) {
+            auto* cx = contribution(fir[0], p.first);
+            for (size_t j = 1; j < fir.size(); j++) {
+                if (isZero(fir[j])) {
+                    continue;
+                }
+                Tree t = sigMul(k, fir[j]);
+                (*cx)[int(j) - 1] += t;
+            }
+        } else if (p.second.tapOf(x, d, c)) {
+            auto* cx = contribution(x, p.first);
+            (*cx)[d] += c;
+        }
     }
-    if (p1 && p2) {
-        p3 = true;
-        v3 = sigAdd(v1, v2);
-        return;
+    std::vector<Tree> firs;
+    for (Tree x : sources) {
+        if (keys[x].size() < 2) {
+            continue;  // a single tap, or a single scaled FIR : nothing to gather
+        }
+        taken.insert(keys[x].begin(), keys[x].end());
+        // the coefficients, the trailing null ones left out
+        std::map<int, Tree> cs;
+        for (const auto& q : coefs[x]) {
+            Tree c = q.second.normalizedTree();
+            if (!isZero(c)) {
+                cs[q.first] = c;
+            }
+        }
+        if (cs.empty()) {
+            continue;
+        }
+        if (cs.size() == 1) {
+            // one tap left : the term c * x@d
+            int  d  = cs.begin()->first;
+            Tree c  = cs.begin()->second;
+            Tree xd = (d == 0) ? x : sigDelay(x, sigInt(d));
+            Tree t  = sigMul(c, xd);
+            written.push_back(t);
+            continue;
+        }
+        const int n = cs.rbegin()->first;
+        tvec      fir{x};
+        for (int d = 0; d <= n; d++) {
+            auto it = cs.find(d);
+            fir.push_back(it == cs.end() ? tree(0) : it->second);
+        }
+        firs.push_back(sigFIR(fir));
     }
-    if (p1) {
-        p3 = true;
-        v3 = sigSub(v1, v2);
-        return;
-    }
-    if (p2) {
-        p3 = true;
-        v3 = sigSub(v2, v1);
-        return;
-    } else {
-        p3 = false;
-        v3 = sigAdd(v1, v2);
-        return;
-    }
+    return firs;
 }
 
 Tree aterm::normalizedTree() const
 {
-    // store positive and negative terms by order and sign
-    // positive terms are stored in P[]
-    // negative terms are inverted (made positive) and stored in N[]
-    // terms sorted by order: to better enable the sharing of expensive expressions (like signal
-    // over control.etc)
-    Tree P[5], N[5];
-
-    // prepare
-    for (int order = 0; order < 5; order++) {
-        P[order] = N[order] = tree(0);
+    // Sum(t0, ..., tn) is the chain ((t0 + t1) + ...) + tn : the order of its terms is its
+    // association, for the intervals as for the code. The number first, then the terms by
+    // increasing order, the positive ones before the negative ones neg(t) within an order :
+    // the terms slower than the sum form a prefix of the chain, computed at their rate.
+    // The audio-recursive terms (order 4) come last, negative then positive, the
+    // late state-join. Within an order and a sign, the canonical order of the normal form.
+    // A sum whose terms are all negative is the negation of the sum of their opposites.
+    std::vector<Tree> P[5], N[5];
+    Tree              number = tree(0);
+    // the FIRs first : a FIR is a positive term of the order of its source
+    std::set<Tree>    taken;
+    std::vector<Tree> single;  // a gathering left with one tap
+    for (Tree f : writeFirs(fSig2MTerms, taken, single)) {
+        P[sigs::sigOrder(f)].push_back(f);
     }
-
-    // sum by order and sign
-    for (const auto& p : fSig2MTerms) {
-        const mterm& m = p.second;
+    auto place = [&](const mterm& m) {
         if (m.isNegative()) {
-            Tree t     = m.normalizedTree(false, true);  // not in signatureMode
-            int  order = sigs::sigOrder(t);
-            N[order]   = simplifyingAdd(N[order], t);
+            Tree t = m.normalizedTree(false, true);  // its opposite, a positive writing
+            if (isNum(t)) {
+                number = subNums(number, t);
+            } else {
+                N[sigs::sigOrder(t)].push_back(t);
+            }
         } else {
-            Tree t     = m.normalizedTree();
-            int  order = sigs::sigOrder(t);
-            P[order]   = simplifyingAdd(P[order], t);
+            Tree t = m.normalizedTree();
+            if (isNum(t)) {
+                number = addNums(number, t);
+            } else {
+                P[sigs::sigOrder(t)].push_back(t);
+            }
+        }
+    };
+    for (const auto& p : fSig2MTerms) {
+        if (!taken.count(p.first)) {
+            place(p.second);
         }
     }
-
-    Tree SUM   = subNums(P[0], N[0]);
-    bool signe = true;
-    Tree R;
-    bool s;
-
-    for (int order = 3; order > 0; order--) {
-        addTermsWithSign(false, N[order], signe, SUM, s, R);
-        signe = s;
-        SUM   = R;
-
-        addTermsWithSign(true, P[order], signe, SUM, s, R);
-        signe = s;
-        SUM   = R;
+    for (Tree t : single) {
+        place(mterm(t));
     }
-
-    // audio-recursive terms (order 4) join LAST, nearest the root : the
-    // state-to-state chain then crosses no foreign addition -- the late
-    // state-join, served by the normal form itself. They join as the
-    // RIGHT operand (SUM comes first) : a two-term sum {slow, state}
-    // then keeps its historical operand order (slow + state), so only
-    // sums with several off-path terms actually change shape
-    addTermsWithSign(signe, SUM, false, N[4], s, R);
-    signe = s;
-    SUM   = R;
-    addTermsWithSign(signe, SUM, true, P[4], s, R);
-    signe = s;
-    SUM   = R;
-
-    if (!signe) {
-        SUM = sigBinOp(kMul, sigInt(-1), SUM);
+    const bool hasNumber = !isZero(number);
+    bool       positive  = hasNumber && !isNegative(number->node());
+    for (int order = 0; order < 5; order++) {
+        positive = positive || !P[order].empty();
     }
+    // the terms, or their opposites when every term is negative
+    const bool        opposite = !positive;
+    std::vector<Tree> terms;
+    auto              negative = [&](Tree t) {
+        if (opposite) {
+            terms.push_back(t);
+        } else {
+            Tree n = sigNeg(t);
+            terms.push_back(n);
+        }
+    };
+    if (hasNumber) {
+        terms.push_back(opposite ? minusNum(number) : number);
+    }
+    for (int order = 0; order < 4; order++) {
+        terms.insert(terms.end(), P[order].begin(), P[order].end());
+        for (Tree t : N[order]) negative(t);
+    }
+    for (Tree t : N[4]) negative(t);
+    terms.insert(terms.end(), P[4].begin(), P[4].end());
 
-#ifdef TRACE
-    cerr << __LINE__ << ":" << __FUNCTION__ << "(" << *this << ") ---> " << ppsig(SUM) << endl;
-#endif
-    return SUM;
+    if (terms.empty()) {
+        return tree(0);
+    }
+    if (terms.size() == 1 && isNum(terms[0])) {
+        return opposite ? minusNum(terms[0]) : terms[0];  // a number stays a number
+    }
+    Tree sum = (terms.size() == 1) ? terms[0] : sigSum(terms);
+    return opposite ? sigNeg(sum) : sum;
 }
 
 /**
@@ -227,6 +301,15 @@ const aterm& aterm::operator+=(Tree t)
         *this += x;
         *this -= y;
 
+    } else if (isSigNeg(t, x)) {
+        *this -= x;
+
+    } else if (tvec subs; isSigSum(t, subs)) {
+        for (Tree u : subs) *this += u;
+
+    } else if (tvec fir; isSigFIR(t, fir)) {
+        for (Tree u : firTaps(fir)) *this += u;
+
     } else {
         mterm m(t);
         *this += m;
@@ -252,6 +335,15 @@ const aterm& aterm::operator-=(Tree t)
     } else if (isSigBinOp(t, &op, x, y) && (op == kSub)) {
         *this -= x;
         *this += y;
+
+    } else if (tvec subs; isSigSum(t, subs)) {
+        for (Tree u : subs) *this -= u;
+
+    } else if (tvec fir; isSigFIR(t, fir)) {
+        for (Tree u : firTaps(fir)) *this -= u;
+
+    } else if (isSigNeg(t, x)) {
+        *this += x;
 
     } else {
         mterm m(t);
@@ -301,17 +393,582 @@ const aterm& aterm::operator-=(const mterm& m)
     return *this;
 }
 
+/**
+ * A term k * S^n * R, S a sum and n a small positive power, is developed when one of
+ * its developed terms cancels a non constant term of the sum :
+ * (f + 4c)^2 - 16c^2 -> f^2 + 8fc. The cancelled value appeared twice, in S and in the
+ * other term, and the interval of the difference lost that the two occurrences cancel.
+ * Otherwise the term is kept : developing a product by a sum repeats the factors of the
+ * product, and a cancelled number is no gain (1 - (1 - x)^2 is better than 2x - x^2).
+ * The trial creates no tree : the order of the normal form follows the creation of the
+ * trees, a tree created by a trial that is not adopted would reorder other sums.
+ */
+namespace {
+struct Monomial {
+    num                                     coef;
+    std::map<Tree, int, NormalFormTreeLess> factors;
+};
+
+Monomial monomialOf(const mterm& m)
+{
+    Monomial r;
+    isNum(m.coefficient(), r.coef);
+    r.factors = m.factors();
+    return r;
+}
+
+Monomial product(const Monomial& a, const Monomial& b)
+{
+    Monomial r{a.coef * b.coef, a.factors};
+    for (const auto& f : b.factors) {
+        if ((r.factors[f.first] += f.second) == 0) {
+            r.factors.erase(f.first);
+        }
+    }
+    return r;
+}
+}  // namespace
+
+static bool developmentCancels(const std::map<Tree, mterm, NormalFormTreeLess>& terms, Tree key,
+                               const mterm& m, Tree s, int n)
+{
+    const size_t maxTerms = 64;
+    tvec         subs;
+    isSigSum(s, subs);
+    std::vector<Monomial> sum;
+    for (Tree u : subs) {
+        sum.push_back(monomialOf(mterm(u)));
+    }
+    Monomial rest = monomialOf(m);
+    rest.factors.erase(s);
+    std::vector<Monomial> dev{rest};
+    for (int i = 0; i < n; i++) {
+        if (dev.size() * sum.size() > maxTerms) {
+            return false;
+        }
+        std::vector<Monomial> next;
+        for (const Monomial& a : dev) {
+            for (const Monomial& b : sum) {
+                Monomial c = product(a, b);
+                auto     it = std::find_if(next.begin(), next.end(), [&](const Monomial& x) {
+                    return x.factors == c.factors;
+                });
+                if (it == next.end()) {
+                    next.push_back(c);
+                } else {
+                    it->coef = it->coef + c.coef;
+                }
+            }
+        }
+        dev = next;
+    }
+    for (const Monomial& d : dev) {
+        if (double(d.coef) == 0 || d.factors.empty()) {
+            continue;  // a number is not a value that repeats : its cancellation is no gain
+        }
+        for (const auto& t : terms) {
+            if (t.first != key && t.second.isNotZero() && t.second.factors() == d.factors) {
+                num c;
+                isNum(t.second.coefficient(), c);
+                if (double(c + d.coef) == 0) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+void aterm::expandCancellations()
+{
+    const int maxPower = 3;
+    for (int budget = 16, changed = 1; changed && budget > 0; budget--) {
+        changed = 0;
+        for (const auto& p : fSig2MTerms) {
+            if (!p.second.isNotZero()) {
+                continue;
+            }
+            for (const auto& q : p.second.factors()) {
+                if (q.second < 1 || q.second > maxPower || !isSigSum(q.first) ||
+                    !developmentCancels(fSig2MTerms, p.first, p.second, q.first, q.second)) {
+                    continue;
+                }
+                // the development : (k * R) * S * ... * S, added to the other terms, the
+                // terms of S read as the trial reads them
+                tvec subs;
+                isSigSum(q.first, subs);
+                std::vector<mterm> dev{p.second.withoutFactorsOf(mterm(q.first))};
+                for (int i = 0; i < q.second; i++) {
+                    std::vector<mterm> next;
+                    for (const mterm& a : dev) {
+                        for (Tree u : subs) {
+                            next.push_back(a * mterm(u));
+                        }
+                    }
+                    dev = next;
+                }
+                aterm r(*this);
+                r.fSig2MTerms.erase(p.first);
+                for (const mterm& m : dev) {
+                    r += m;
+                }
+                *this   = r;
+                changed = 1;
+                break;
+            }
+            if (changed) {
+                break;
+            }
+        }
+    }
+}
+
+/**
+ * The conditions : a comparison, or the & and | of two conditions. Their value is 0 or 1.
+ */
+static bool isCondition(Tree t)
+{
+    int  op;
+    Tree x, y;
+    if (!isSigBinOp(t, &op, x, y)) {
+        return false;
+    }
+    if (op == kGT || op == kLT || op == kGE || op == kLE || op == kEQ || op == kNE) {
+        return true;
+    }
+    return (op == kAND || op == kOR) && isCondition(x) && isCondition(y);
+}
+
+/**
+ * The signals whose values are integers : the integer numbers, the conditions, the
+ * buttons and checkboxes (0 or 1), the conversions to an integer, and the conversion to a
+ * float of an integer signal
+ */
+static bool isIntegerValued(Tree t)
+{
+    int  i;
+    Tree x;
+    return isSigInt(t, &i) || isCondition(t) || isSigButton(t) || isSigCheckbox(t) ||
+           isSigIntCast(t) || (isSigFloatCast(t, x) && isIntegerValued(x));
+}
+
+static bool numberValue(Tree t, double& v)
+{
+    int i;
+    if (isSigInt(t, &i)) {
+        v = i;
+        return true;
+    }
+    return isSigReal(t, &v);
+}
+
+/**
+ * A condition on an integer signal x read as a half line of integers : x >= m (upper
+ * false) or x <= m (upper true). A condition c is itself c >= 1.
+ */
+static bool integerHalfLine(Tree t, Tree& x, double& m, bool& upper)
+{
+    int    op;
+    Tree   a, b;
+    double k;
+    if (isSigBinOp(t, &op, a, b) && op != kAND && op != kOR && op != kEQ && op != kNE) {
+        if (numberValue(b, k) && isIntegerValued(a)) {
+            x = a;
+        } else if (numberValue(a, k) && isIntegerValued(b)) {
+            x = b;
+            // k op x is x op' k, the comparison mirrored
+            op = (op == kGT) ? kLT : (op == kLT) ? kGT : (op == kGE) ? kLE : kGE;
+        } else {
+            return false;
+        }
+        switch (op) {
+            case kGT: m = std::floor(k) + 1, upper = false; return true;
+            case kGE: m = std::ceil(k), upper = false; return true;
+            case kLT: m = std::ceil(k) - 1, upper = true; return true;
+            default: m = std::floor(k), upper = true; return true;  // kLE
+        }
+    }
+    if (isCondition(t)) {
+        x = t, m = 1, upper = false;
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Whether b is the negation of the condition a, decided on the trees as they are (no
+ * tree is created) : a comparison and its negation, the same half line of integers on
+ * both sides of a bound (a button is 0 or 1 : trig > 0 and trig < 1), and De Morgan.
+ * The negation of a comparison is exact for the values that are not NaN.
+ */
+static bool isNegation(Tree a, Tree b)
+{
+    int  opa, opb;
+    Tree xa, ya, xb, yb;
+    if (isSigBinOp(a, &opa, xa, ya) && isSigBinOp(b, &opb, xb, yb)) {
+        auto negated = [](int op) -> int {
+            switch (op) {
+                case kGT: return kLE;
+                case kLT: return kGE;
+                case kGE: return kLT;
+                case kLE: return kGT;
+                case kEQ: return kNE;
+                case kNE: return kEQ;
+                default: return -1;
+            }
+        };
+        auto mirrored = [](int op) -> int {
+            switch (op) {
+                case kGT: return kLT;
+                case kLT: return kGT;
+                case kGE: return kLE;
+                case kLE: return kGE;
+                default: return op;
+            }
+        };
+        if (negated(opa) >= 0) {
+            if (opb == negated(opa) && xa == xb && ya == yb) {
+                return true;
+            }
+            if (opb == negated(mirrored(opa)) && xa == yb && ya == xb) {
+                return true;
+            }
+        }
+        // De Morgan : not (p & q) = (not p) | (not q), and the converse
+        if ((opa == kAND && opb == kOR) || (opa == kOR && opb == kAND)) {
+            if (isCondition(a) && isCondition(b) &&
+                ((isNegation(xa, xb) && isNegation(ya, yb)) ||
+                 (isNegation(xa, yb) && isNegation(ya, xb)))) {
+                return true;
+            }
+        }
+    }
+    Tree   x1, x2;
+    double m1, m2;
+    bool   u1, u2;
+    if (integerHalfLine(a, x1, m1, u1) && integerHalfLine(b, x2, m2, u2) && x1 == x2 && u1 != u2) {
+        // x >= m and x <= m - 1 share no integer and leave none out
+        return u1 ? (m1 == m2 - 1) : (m2 == m1 - 1);
+    }
+    return false;
+}
+
+/**
+ * The condition held by a factor of a term : c, or float(c)
+ */
+static bool conditionOf(Tree f, Tree& c)
+{
+    Tree x;
+    if (isSigFloatCast(f, x)) {
+        f = x;
+    }
+    if (isCondition(f)) {
+        c = f;
+        return true;
+    }
+    return false;
+}
+
+/**
+ * A * [c] + B * [not c], [c] the value 0 or 1 of a condition, is written select2(c, B, A) :
+ * the two terms are never both non null, and the interval of the sum no longer adds the
+ * two values (asympT60 of instruments.lib : 0.03 * [c] + 0.996 * [not c] stays in [0, 1]).
+ * The condition and its negation are found without creating trees.
+ */
+void aterm::extractSelects()
+{
+    for (bool changed = true; changed;) {
+        changed = false;
+        // the first pair of terms A * [c] and B * [not c]
+        Tree k1 = nullptr, k2 = nullptr, f1 = nullptr, f2 = nullptr, c1 = nullptr;
+        for (const auto& p1 : fSig2MTerms) {
+            if (k1 == nullptr && p1.second.isNotZero()) {
+                for (Tree g1 : p1.second.unitFactors()) {
+                    Tree d1;
+                    if (k1 != nullptr || !conditionOf(g1, d1)) {
+                        continue;
+                    }
+                    for (const auto& p2 : fSig2MTerms) {
+                        if (k1 != nullptr || p2.first == p1.first || !p2.second.isNotZero()) {
+                            continue;
+                        }
+                        for (Tree g2 : p2.second.unitFactors()) {
+                            Tree d2;
+                            if (k1 == nullptr && conditionOf(g2, d2) && isNegation(d1, d2)) {
+                                k1 = p1.first, f1 = g1, c1 = d1;
+                                k2 = p2.first, f2 = g2;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (k1 == nullptr) {
+            break;
+        }
+        mterm a  = fSig2MTerms[k1].withoutFactorsOf(mterm(f1));
+        mterm b  = fSig2MTerms[k2].withoutFactorsOf(mterm(f2));
+        Tree  ta = a.normalizedTree();
+        Tree  tb = b.normalizedTree();
+        Tree  s  = sigSelect2(c1, tb, ta);
+        fSig2MTerms.erase(k1);
+        fSig2MTerms.erase(k2);
+        *this += mterm(s);
+        changed = true;
+    }
+}
+
+/**
+ * The compound operations frac and cfrac. A sum holding k*S and -k*floor(S) (resp.
+ * -k*rint(S)), every term of k*S present with its exact coefficient, is rewritten
+ * with k*frac(S) (resp. k*cfrac(S)) : the operand then appears once, and its interval
+ * no longer loses that S - floor(S) lies in [0, 1] (the dependency problem).
+ */
+void aterm::extractRemainders()
+{
+    for (bool changed = true; changed;) {
+        changed = false;
+        for (const auto& p : fSig2MTerms) {
+            Tree coef, f;
+            if (!p.second.isScaledFactor(coef, f) || f->arity() != 1) {
+                continue;
+            }
+            xtended*   round   = static_cast<xtended*>(getUserData(f));
+            const bool isFloor = round != nullptr && round == gGlobal->gFloorPrim;
+            if (!isFloor && (round == nullptr || round != gGlobal->gRintPrim)) {
+                continue;
+            }
+            Tree  x = f->branch(0);
+            mterm k(minusNum(coef));
+            aterm X(x);
+            bool  present = !X.fSig2MTerms.empty();
+            for (const auto& q : X.fSig2MTerms) {
+                auto it = fSig2MTerms.find(q.first);
+                if (it == fSig2MTerms.end() || it->first == p.first) {
+                    present = false;
+                    break;
+                }
+                mterm d = it->second;
+                d -= q.second * k;
+                if (d.isNotZero()) {
+                    present = false;
+                    break;
+                }
+            }
+            if (!present) {
+                continue;
+            }
+            Tree key = p.first;
+            for (const auto& q : X.fSig2MTerms) {
+                fSig2MTerms.erase(q.first);
+            }
+            fSig2MTerms.erase(key);
+            Tree r = isFloor ? sigFrac(x) : sigCfrac(x);
+            *this += mterm(r) * k;
+            changed = true;
+            break;
+        }
+    }
+}
+
+/**
+ * w is 1 - c, c not a number : a binary 1 - c, or the Sum(1, neg(t1), ..., neg(tn)) of the
+ * normal form, c being t1 or the Sum(t1, ..., tn) of the same terms in the same order
+ * (the writing of t1 + ... + tn by the normal form)
+ */
+static bool complementOf(Tree w, Tree& c)
+{
+    int  op;
+    Tree one, x;
+    tvec ws;
+    if (isSigBinOp(w, &op, one, x) && op == kSub && isOne(one)) {
+        c = x;
+        return !isNum(c);
+    }
+    if (!isSigSum(w, ws) || ws.size() < 2 || !isOne(ws[0])) {
+        return false;
+    }
+    tvec ts;
+    for (size_t i = 1; i < ws.size(); i++) {
+        if (!isSigNeg(ws[i], x)) {
+            return false;
+        }
+        ts.push_back(x);
+    }
+    c = (ts.size() == 1) ? ts[0] : sigSum(ts);
+    return !isNum(c);
+}
+
+/**
+ * The compound operation mix. A sum holding k*(1 - c)*A and k*c*B is rewritten with
+ * mix(c, k*A, k*B) : the weight then appears once, and the interval of the mix no
+ * longer loses that it lies between k*A and k*B (the dependency problem).
+ */
+void aterm::extractMixes()
+{
+    for (;;) {
+        // find one pair (k*(1 - c)*A, k*c*B), then rewrite it outside of the iteration
+        Tree  k1 = nullptr, k2 = nullptr, c = nullptr;
+        mterm q1, q2;
+        for (const auto& p1 : fSig2MTerms) {
+            for (Tree f : p1.second.unitFactors()) {
+                // c : what f complements, a divisor of the other term (a product or a
+                // ratio as well : the mterm of 44.1/SR is 44.1 * SR^-1)
+                Tree x;
+                if (!complementOf(f, x)) {
+                    continue;
+                }
+                const mterm mx(x);
+                for (const auto& p2 : fSig2MTerms) {
+                    if (p2.first == p1.first || !p2.second.hasDivisor(mx)) {
+                        continue;
+                    }
+                    const mterm r1 = p1.second / mterm(f);
+                    const mterm r2 = p2.second / mx;
+                    if (isZero(subNums(r1.coefficient(), r2.coefficient()))) {
+                        k1 = p1.first, k2 = p2.first, c = x, q1 = r1, q2 = r2;
+                        break;
+                    }
+                }
+                if (k1) {
+                    break;
+                }
+            }
+            if (k1) {
+                break;
+            }
+        }
+        if (!k1) {
+            return;
+        }
+        // mix is linear in its two operands : two negative operands give the negation of
+        // the mix of their opposites, the sign carried by the sum (see the normal form of a
+        // sum : the sign is carried by neg)
+        const bool neg = q1.isNegative() && q2.isNegative();
+        Tree       a   = q1.normalizedTree(false, neg);
+        Tree       b   = q2.normalizedTree(false, neg);
+        fSig2MTerms.erase(k1);
+        fSig2MTerms.erase(k2);
+        mterm m(sigMix(c, a, b));
+        if (neg) {
+            *this -= m;
+        } else {
+            *this += m;
+        }
+    }
+}
+
+/**
+ * The compound operation tpt. A term holding g and (g + 1)^-k is rewritten with
+ * tpt(g) * (g + 1)^-(k-1) : g then appears once, and the interval of g / (g + 1) no
+ * longer loses that it lies in [0, 1[ for g >= 0 (the dependency problem).
+ */
+void aterm::extractTpts()
+{
+    for (;;) {
+        Tree  key = nullptr, g = nullptr, d = nullptr;
+        mterm m;
+        for (const auto& p : fSig2MTerms) {
+            if (p.second.tptFactors(g, d)) {
+                key = p.first;
+                m   = p.second;
+                break;
+            }
+        }
+        if (key == nullptr) {
+            return;
+        }
+        fSig2MTerms.erase(key);
+        mterm ratio(g);
+        ratio /= mterm(d);
+        mterm rest = m / ratio;
+        mterm node(sigTpt(g));
+        *this += rest * node;
+    }
+}
+
+/**
+ * The recursive sources a term reads otherwise than as a tap (the product of two audio
+ * factors, a power) : a recursion read so is not linear, and never becomes an IIR.
+ */
+static std::unordered_set<Tree> nonlinearSources(const std::map<Tree, mterm, NormalFormTreeLess>& terms)
+{
+    std::unordered_set<Tree> sources;
+    for (const auto& p : terms) {
+        Tree  src;
+        int   d;
+        mterm c;
+        if (!p.second.isNotZero() || p.second.tapOf(src, d, c)) {
+            continue;
+        }
+        for (const auto& f : p.second.factors()) {
+            Tree x = f.first, y, n;
+            int  i;
+            Tree g;
+            if (isSigDelay(x, y, n)) {
+                x = y;
+            }
+            if (isProj(x, &i, g)) {
+                sources.insert(x);
+            }
+        }
+    }
+    return sources;
+}
+
+/**
+ * A term c * y@k whose source y is a recursion : the feedback of a linear recursion, which
+ * the normal form keeps as it is, so that the taps of a recursion gather into a FIR and the
+ * recursion is revealed as an IIR (bounded by its gain, where a factor taken out of its
+ * feedback would hide it). A source the sum also reads in a nonlinear term is not
+ * protected : its recursion is no IIR, and the factorization reads it once
+ * (y - p * w * y = y * (1 - p * w), within [0, y] for y >= 0 and p * w in [0, 1]).
+ */
+static bool isRecursiveTap(const mterm& m, const std::unordered_set<Tree>& nonlinear)
+{
+    Tree  src;
+    int   d;
+    mterm c;
+    int   i;
+    Tree  g;
+    return m.tapOf(src, d, c) && isProj(src, &i, g) && nonlinear.count(src) == 0;
+}
+
 mterm aterm::greatestDivisor() const
 {
-    int   maxComplexity = 0;
-    mterm maxGCD(1);
-    // cerr << "greatestDivisor of " << *this << endl;
-
+    // The greatest common divisor of two terms, of the highest complexity, kept only for
+    // its factors that leave every quotient : a factor still present in a quotient (y in
+    // y + 3y^2 = y (1 + 3y)) is read as often after the factorization as before, and its
+    // power, exact for an interval, would be lost. Never a number alone (complexity 0).
+    // A term that cancelled (x - x, a null coefficient) divides nothing and is skipped.
+    // The taps of a recursion are left out (isRecursiveTap).
+    const std::unordered_set<Tree> nonlinear = nonlinearSources(fSig2MTerms);
+    int                            maxComplexity = 0;
+    mterm                          maxGCD(1);
     for (auto p1 = fSig2MTerms.begin(); p1 != fSig2MTerms.end(); p1++) {
+        if (!p1->second.isNotZero() || isRecursiveTap(p1->second, nonlinear)) {
+            continue;
+        }
         for (auto p2 = std::next(p1); p2 != fSig2MTerms.end(); p2++) {
+            if (!p2->second.isNotZero() || isRecursiveTap(p2->second, nonlinear)) {
+                continue;
+            }
             mterm g = gcd(p1->second, p2->second);
-            // cerr << "TRYING " << g << " of complexity " << g.complexity() << " (max complexity so
-            // far " << maxComplexity << ")" << endl;
+            for (bool changed = true; changed && g.complexity() > 0;) {
+                changed = false;
+                for (const auto& p : fSig2MTerms) {
+                    if (!p.second.isNotZero() || !p.second.hasDivisor(g) || isRecursiveTap(p.second, nonlinear)) {
+                        continue;
+                    }
+                    const mterm q  = p.second / g;
+                    const mterm g2 = g.withoutFactorsOf(q);
+                    if (g2.complexity() < g.complexity()) {
+                        g       = g2;
+                        changed = true;
+                        break;
+                    }
+                }
+            }
             int complexity = g.complexity();
             if (complexity > maxComplexity) {
                 maxComplexity = complexity;
@@ -319,7 +976,6 @@ mterm aterm::greatestDivisor() const
             }
         }
     }
-    // cerr << "greatestDivisor of " << *this << " --> " << maxGCD << endl;
     return maxGCD;
 }
 
@@ -333,9 +989,10 @@ aterm aterm::factorize(const mterm& d)
     aterm Q;
 
     // separate the multiple of m from the others
+    const std::unordered_set<Tree> nonlinear = nonlinearSources(fSig2MTerms);
     for (const auto& p1 : fSig2MTerms) {
         mterm t = p1.second;
-        if (t.hasDivisor(d)) {
+        if (t.hasDivisor(d) && !isRecursiveTap(t, nonlinear)) {
             mterm q = t / d;
             // cerr << "q = " << q << endl;
             Q += q;

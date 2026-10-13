@@ -16,6 +16,7 @@
 #pragma once
 
 #include <cmath>
+#include <climits>
 #include "check.hh"
 
 /**
@@ -74,8 +75,11 @@ int lsb_number(double x)
  */
 int exactPrecisionUnary(ufun f, long double x, long double u)
 {
-    int res = floor((double)log2(std::abs(f(x + u) - f(x))));
-    return res;
+    // Coincident evaluations yield log2(0), and invalid/huge steps can yield
+    // NaN or infinity. Return the existing fallback sentinel before any int cast.
+    const double estimate = floor((double)log2(std::abs(f(x + u) - f(x))));
+    return std::isfinite(estimate) && estimate > INT_MIN && estimate <= INT_MAX
+        ? int(estimate) : INT_MIN;
 }
 
 /**
@@ -89,6 +93,7 @@ int exactPrecisionUnary(ufun f, long double x, long double u)
  */
 int exactPrecisionUnaryBackwards(ufun f, ufun finv, double x, double u)
 {
-    int res = ceil((double)log2(std::abs(finv(f(x) + u) - x)));
-    return res;
+    const double estimate = ceil((double)log2(std::abs(finv(f(x) + u) - x)));
+    return std::isfinite(estimate) && estimate > INT_MIN && estimate <= INT_MAX
+        ? int(estimate) : INT_MIN;
 }

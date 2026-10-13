@@ -464,6 +464,54 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
     }
 }
 
+/**
+ * exp@delay for a FIR tap in the vector loops, delay a constant : the read of the line,
+ * never cached on the FIR node
+ */
+ValueInst* DAGInstructionsCompiler::generateTapAccess(Tree exp, int delay)
+{
+    int        mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
+    ValueInst* immediate;
+    string     vname = delayLineName(exp, mxd, "Yec", immediate);
+    if (immediate != nullptr) {
+        faustassert(delay == 0);
+        return immediate;
+    }
+    if (mxd == 0) {
+        return IB::genLoadArrayStackVar(vname, getCurrentLoopIndex());
+    }
+    return lineRead(vname, mxd, delay);
+}
+
+/**
+ * The value of an IIR in the vector loops : its line, which the readers read
+ */
+ValueInst* DAGInstructionsCompiler::writeIIRLine(Tree sig, ValueInst* exp, BasicTyped* ctype, const string& vname, int mxd)
+{
+    return generateDelayVec(sig, exp, ctype, vname, mxd);
+}
+
+/**
+ * The sample delay ago of the vector line vname of maximum delay mxd, in the current loop
+ */
+ValueInst* DAGInstructionsCompiler::lineRead(const string& vname, int mxd, int delay)
+{
+    if (mxd < gGlobal->gMaxCopyDelay) {
+        if (delay == 0) {
+            return IB::genLoadArrayStackVar(vname, getCurrentLoopIndex());
+        }
+        FIRIndex index = getCurrentLoopIndex() - delay;
+        return IB::genLoadArrayStackVar(vname, index);
+    } else {
+        int      N         = pow2limit(mxd + gGlobal->gVecSize);
+        string   vname_idx = vname + "_idx";
+        FIRIndex index1    = getCurrentLoopIndex() + IB::genLoadStructVar(vname_idx);
+        FIRIndex index2    = index1 - delay;
+        FIRIndex index3    = index2 & (N - 1);
+        return IB::genLoadArrayStructVar(vname, index3);
+    }
+}
+
 ValueInst* DAGInstructionsCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
     string vname;

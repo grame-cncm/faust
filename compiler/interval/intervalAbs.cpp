@@ -20,15 +20,18 @@
 #include "check.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "directed_rounding.hh"
 
 namespace itv {
 //------------------------------------------------------------------------------------------
-// Interval Acos
-// interval Acos(const interval& x);
-// void testAcos();
+// Interval Abs
 
-interval interval_algebra::Abs(const interval& x) const
+// Numeric kernel: enclose wrapping int32 absolute value or floating absolute value.
+// Empty stays empty. Normalize widened integer corridors before endpoint work;
+// the result retains the input nature, including integral-valued floating zero.
+interval interval_algebra::numericAbs(const interval& input) const
 {
+    const interval x = detail::int32Hull(input);
     if (x.isEmpty()) {
         return empty();
     }

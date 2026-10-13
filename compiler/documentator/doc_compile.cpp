@@ -32,6 +32,7 @@
 #include <sstream>
 #include <vector>
 
+#include "aterm.hh"
 #include "compatibility.hh"
 #include "doc.hh"
 #include "doc_compile.hh"
@@ -206,6 +207,26 @@ string DocCompiler::generateCode(Tree sig, int priority)
     } else if (isSigBinOp(sig, &i, x, y)) {
         printGCCall(sig, "generateBinOp");
         return generateBinOp(sig, i, x, y, priority);
+    } else if (tvec terms; isSigSum(sig, terms)) {
+        printGCCall(sig, "generateSum");
+        return generateSum(sig, terms, priority);
+    } else if (tvec factors; isSigProd(sig, factors)) {
+        printGCCall(sig, "generateProd");
+        return generateProd(sig, factors, priority);
+    } else if (tvec fir; isSigFIR(sig, fir)) {
+        printGCCall(sig, "generateFIR");
+        return generateFIR(sig, fir, priority);
+    } else if (tvec iir; isSigIIR(sig, iir)) {
+        printGCCall(sig, "generateIIR");
+        return generateIIR(sig, iir, priority);
+    } else if (isSigNeg(sig, x)) {
+        printGCCall(sig, "generateNeg");
+        int mul = gBinOpLateqTable[kMul]->fPriority;
+        return generateCacheCode(sig, subst("-$0", CS(x, mul)));
+    } else if (Tree c, a, b; isSigFrac(sig, x) || isSigCfrac(sig, x) || isSigTpt(sig, x) ||
+                                 isSigMix(sig, c, a, b) || isSigPhase(sig, a, b)) {
+        printGCCall(sig, "generateCompound");
+        return generateCompound(sig, priority);
     } else if (isSigFFun(sig, ff, largs)) {
         printGCCall(sig, "generateFFun");
         return generateFFun(sig, ff, largs, priority);
@@ -444,6 +465,125 @@ static bool associative(int opcode)
 string DocCompiler::generateControl(Tree sig, Tree arg1, Tree arg2, int priority)
 {
     return generateBinOp(sig, kMul, arg1, arg2, priority);
+}
+
+/**
+ * The compound operations, written as their definitions : x - floor(x), x - rint(x),
+ * x / (x + 1), (1 - c) a + c b, (x mod p) / p.
+ */
+string DocCompiler::generateCompound(Tree sig, int priority)
+{
+    Tree   x, c, a, b;
+    int    sub   = gBinOpLateqTable[kSub]->fPriority;
+    int    add   = gBinOpLateqTable[kAdd]->fPriority;
+    int    mul   = gBinOpLateqTable[kMul]->fPriority;
+    string times = gBinOpLateqTable[kMul]->fName;
+    auto   paren = [&](int own, const string& s) {
+        return (own < priority) ? subst(" \\left($0\\right) ", s) : s;
+    };
+    if (isSigFrac(sig, x) || isSigCfrac(sig, x)) {
+        xtended*       round = isSigFrac(sig, x) ? gGlobal->gFloorPrim : gGlobal->gRintPrim;
+        vector<string> args{CS(x, 0)};
+        vector<Type>   types{getCertifiedSigType(x)};
+        string         r = static_cast<xtendedCodegen*>(round)->generateLateq(fLateq, args, types);
+        return generateCacheCode(sig, paren(sub, subst("$0 - $1", CS(x, sub), r)));
+    }
+    if (isSigTpt(sig, x)) {
+        return generateCacheCode(sig, subst("\\frac{$0}{$0 + 1}", CS(x, 0)));
+    }
+    if (isSigPhase(sig, a, b)) {
+        string sa = CS(a, mul);
+        string sb = CS(b, 0);
+        return generateCacheCode(sig, subst("\\frac{$0 \\bmod $1}{$1}", sa, sb));
+    }
+    faustassert(isSigMix(sig, c, a, b));
+    string w = subst("\\left(1 - $0\\right)", CS(c, sub));
+    string p = subst("$0 $1 $2", w, times, CS(a, mul));
+    string sc = CS(c, mul);
+    string sb = CS(b, mul);
+    string q  = subst("$0 $1 $2", sc, times, sb);
+    return generateCacheCode(sig, paren(add, subst("$0 + $1", p, q)));
+}
+
+/**
+ * Sum(t0, ..., tn) : t0 + t1 - t2 ..., a negated term subtracted.
+ */
+string DocCompiler::generateSum(Tree sig, const tvec& terms, int priority)
+{
+    int    add = gBinOpLateqTable[kAdd]->fPriority;
+    int    sub = gBinOpLateqTable[kSub]->fPriority;
+    string acc;
+    for (Tree t : terms) {
+        Tree u;
+        if (acc.empty()) {
+            acc = CS(t, add);
+        } else if (isSigNeg(t, u)) {
+            string su = CS(u, sub + 1);
+            acc       = subst("$0 - $1", acc, su);
+        } else {
+            string st = CS(t, add);
+            acc       = subst("$0 + $1", acc, st);
+        }
+    }
+    return generateCacheCode(sig, (add < priority) ? subst(" \\left($0\\right) ", acc) : acc);
+}
+
+/**
+ * Prod(f0, ..., fn) : f0 f1 ... fn.
+ */
+string DocCompiler::generateProd(Tree sig, const tvec& factors, int priority)
+{
+    int    mul   = gBinOpLateqTable[kMul]->fPriority;
+    string times = gBinOpLateqTable[kMul]->fName;
+    string acc;
+    for (Tree f : factors) {
+        string sf = CS(f, mul);
+        acc       = acc.empty() ? sf : subst("$0 $1 $2", acc, times, sf);
+    }
+    return generateCacheCode(sig, (mul < priority) ? subst(" \\left($0\\right) ", acc) : acc);
+}
+
+/**
+ * FIR[x, c0, c1, ...] : c0 x(t) + c1 x(t-1) + ...
+ */
+string DocCompiler::generateFIR(Tree sig, const tvec& fir, int priority)
+{
+    int    add   = gBinOpLateqTable[kAdd]->fPriority;
+    int    mul   = gBinOpLateqTable[kMul]->fPriority;
+    string times = gBinOpLateqTable[kMul]->fName;
+    string sx    = CS(fir[0], 0);
+    string acc;
+    for (size_t k = 1; k < fir.size(); k++) {
+        if (isZero(fir[k])) {
+            continue;
+        }
+        string tap  = (k == 1) ? sx : subst("\\left($0\\right)(t-$1)", sx, T(int(k) - 1));
+        string c    = CS(fir[k], mul);
+        string term = subst("$0 $1 $2", c, times, tap);
+        acc         = acc.empty() ? term : subst("$0 + $1", acc, term);
+    }
+    return generateCacheCode(sig, (add < priority) ? subst(" \\left($0\\right) ", acc) : acc);
+}
+
+/**
+ * IIR[x, c1, ...] : y(t) = x(t) + c1 y(t-1) + ..., written as its recursive definition
+ * with a fresh name for y
+ */
+string DocCompiler::generateIIR(Tree sig, const tvec& iir, int priority)
+{
+    int    add   = gBinOpLateqTable[kAdd]->fPriority;
+    int    mul   = gBinOpLateqTable[kMul]->fPriority;
+    string times = gBinOpLateqTable[kMul]->fName;
+    string y     = subst("y_{$0}", T(int(sig->serial())));
+    string acc   = CS(iir[0], add);
+    for (size_t k = 1; k < iir.size(); k++) {
+        if (isZero(iir[k])) {
+            continue;
+        }
+        string c = CS(iir[k], mul);
+        acc      = subst("$0 + $1 $2 $3(t-$4)", acc, c, times, y, T(int(k)));
+    }
+    return generateCacheCode(sig, subst("$0 \\;\\mathrm{where}\\; $1(t) = $2", y, y, acc));
 }
 
 string DocCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2, int priority)

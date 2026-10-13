@@ -121,22 +121,6 @@ Tree Occurrences::getExecCondition() const
 //----------------------------------------------------
 
 
-// an all-ones CONTIGUOUS FIR from tap 0 with at least 4 taps : a moving
-// sum, eligible for the O(1) sliding emission (y = y' + x - x@T)
-static bool isSlidingSumFIR(const tvec& coef, int& T)
-{
-    if (coef.size() < 5) {
-        return false;  // fewer than 4 taps
-    }
-    for (size_t i = 1; i < coef.size(); i++) {
-        if (!isOne(coef[i])) {
-            return false;
-        }
-    }
-    T = int(coef.size()) - 1;
-    return true;
-}
-
 void OccMarkup::mark(Tree root)
 {
     fRootTree = root;
@@ -239,31 +223,22 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
             incOcc(env, v0, r0, 1, c0, x);
             incOcc(env, v0, r0, 0, c0, y);
         } else if (tvec V; isSigIIR(t, V)) {
-            // IIR[nil,X,C0=0,C1,...] : y = X + sum Ci*y@i -- the node reads
-            // ITSELF at delays i-2 (that sizes its own delay line), the
-            // input and the coefficients at delay 0
-            faustassert(V.size() >= 4);
-            incOcc(env, v0, r0, 0, c0, V[1]);
+            // IIR[X,C1,...] : y = X + sum Ci*y@i -- the node reads ITSELF at
+            // delays i (that sizes its own delay line), the input and the
+            // coefficients at delay 0
+            faustassert(V.size() >= 2);
+            incOcc(env, v0, r0, 0, c0, V[0]);
             // the direct form reads ITSELF delayed ; a kernel ELECTED
             // transposed (property set by the pre-markup scan, same judge
             // as the emission) replaces those reads by its state chain
             bool transposed = (t->getProperty(tree(symbol("SIGIIRTRANSPOSED"))) != nullptr);
-            for (unsigned int k = 3; k < V.size(); k++) {
+            for (unsigned int k = 1; k < V.size(); k++) {
                 incOcc(env, v0, r0, 0, c0, V[k]);
                 if (!isZero(V[k]) && !transposed) {
-                    incOcc(env, v0, r0, int(k) - 2, c0, t);
+                    incOcc(env, v0, r0, int(k), c0, t);
                 }
             }
         } else if (tvec V; kernelWorkVec(t, V)) {
-            // sliding-sum candidates read the source one slot FURTHER
-            // (x@T) than the widest tap : declare it here so the delay
-            // line covers the O(1) emission (see generateFIR)
-            {
-                int T;
-                if (isSlidingSumFIR(V, T)) {
-                    incOcc(env, v0, r0, T, c0, V[0]);
-                }
-            }
             // FIR[X,C0,C1,...] : the source X is read at delays 0..n-1 (one
             // per non-zero coefficient) -- this is what sizes its delay
             // line ; the coefficients are ordinary immediate reads
@@ -301,10 +276,13 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
     if (!firstVisit) {
         // Special case for -1*y and y*-1. Because the sharing of the product
         // will be ignored at code generation, we need to propagate its
-        // sharing to y (the first visit marked y the same way)
-        Tree m;
+        // sharing to y (the first visit marked y the same way) ; the sharing
+        // of a negation of the normal form is propagated to its operand too
+        Tree m, y;
         if (Tree z = negatedOperand(t, m)) {
             incOcc(env, v, r, d, xc, z);
+        } else if (isSigNeg(t, y)) {
+            incOcc(env, v, r, d, xc, y);
         }
     }
 }

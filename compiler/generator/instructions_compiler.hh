@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+#include "definitionIndex.hh"
+#include "sumLayout.hh"
 #include "Text.hh"
 #include "code_container.hh"
 #include "dcond.hh"
@@ -233,11 +235,29 @@ class InstructionsCompiler : public virtual Garbageable {
 
     virtual ValueInst* generateXtended(Tree sig);
     virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree size);
+    virtual ValueInst* generateTapAccess(Tree exp, int delay);  ///< exp@delay, a tap of a FIR
+    virtual ValueInst* lineRead(const std::string& vname, int mxd, int delay);  ///< a past sample of a line
+    virtual ValueInst* writeIIRLine(Tree sig, ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd);
+    std::string        delayLineName(Tree exp, int mxd, const char* prefix, ValueInst*& immediate);
     void               flushPendingDelayWrites();
     bool               reachesUnstoredRecMember(Tree t);
     std::vector<int> instantaneousMemberOrder(Tree sig, Tree le, const std::vector<bool>& used);
     virtual ValueInst* generatePrefix(Tree sig, Tree x, Tree e);
     virtual ValueInst* generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
+    DefinitionIndex    fDefinitions;  // the subterms of compound definitions the program holds
+    virtual ValueInst* generateNeg(Tree sig, Tree x);
+    ValueInst*         compoundOperand(Tree x);
+    ValueInst*         compoundSlowStore(int variability, ValueInst* exp, bool isInt = false);
+    ValueInst*         generateSum(Tree sig, const tvec& subs);
+    ValueInst*         generateProd(Tree sig, const tvec& factors);
+    ValueInst*         generateFIR(Tree sig, const tvec& fir);
+    ValueInst*         generateIIR(Tree sig, const tvec& iir);
+    ValueInst*         operandAtRate(Tree x);
+    ValueInst*         compoundProduct(ValueInst* lead, int vlead, Tree t, int consumer);
+    virtual ValueInst* generateRemainder(Tree sig, Tree x, xtended* round);
+    virtual ValueInst* generateTpt(Tree sig, Tree x);
+    virtual ValueInst* generatePhase(Tree sig, Tree x, Tree p);
+    virtual ValueInst* generateMix(Tree sig, Tree c, Tree a, Tree b);
 
     virtual ValueInst* generateFFun(Tree sig, Tree ff, Tree largs);
     virtual ValueInst* generateWaveform(Tree sig);
