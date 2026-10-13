@@ -637,6 +637,56 @@ LIBFAUST_API bool CisSigSoundfileBuffer(Signal s, Signal* sf, Signal* chan, Sign
                                         Signal* ridx);
 
 /**
+ * The nodes of the normal form.
+ *
+ * CsimplifyToNormalForm writes sums, products and negations as n-ary nodes, the taps of a
+ * source and the linear recursions as filter kernels, and some compound operations as
+ * nodes that carry the operands of their definition, written once:
+ *
+ * - CsigNeg(x) = -x
+ * - CsigSum({t0, t1, ..., tn}) = t0 + t1 + ... + tn, computed from left to right
+ * - CsigProd({f0, f1, ..., fn}) = f0 * f1 * ... * fn, computed from left to right
+ * - CsigFIR({x, c0, c1, ..., cn}) = c0*x + c1*x@1 + ... + cn*x@n
+ * - CsigIIR({x, c1, ..., cn}) = y, where y = x + c1*y@1 + ... + cn*y@n
+ * - CsigFrac(x) = x - floor(x)
+ * - CsigCfrac(x) = x - rint(x)
+ * - CsigMix(c, a, b) = (1 - c)*a + c*b
+ * - CsigTpt(x) = x/(x + 1)
+ * - CsigPhase(x, p) = (x % p)/p
+ *
+ * The arrays are null terminated. The order of the operands of a sum or a product is their
+ * association, for the interval analysis as for the generated code.
+ */
+LIBFAUST_API Signal CsigNeg(Signal x);
+LIBFAUST_API Signal CsigSum(Signal* terms);
+LIBFAUST_API Signal CsigProd(Signal* factors);
+LIBFAUST_API Signal CsigFIR(Signal* coefs);
+LIBFAUST_API Signal CsigIIR(Signal* coefs);
+LIBFAUST_API Signal CsigFrac(Signal x);
+LIBFAUST_API Signal CsigCfrac(Signal x);
+LIBFAUST_API Signal CsigMix(Signal c, Signal a, Signal b);
+LIBFAUST_API Signal CsigTpt(Signal x);
+LIBFAUST_API Signal CsigPhase(Signal x, Signal p);
+
+/**
+ * Test the nodes of the normal form, and fill their operands. The operands of a sum, a
+ * product, a FIR or an IIR (the source, then the coefficients) are returned as a null
+ * terminated array, to be deleted by the caller using freeCMemory.
+ *
+ * @return true if the signal is a node of the given kind, false otherwise
+ */
+LIBFAUST_API bool CisSigNeg(Signal s, Signal* x);
+LIBFAUST_API bool CisSigSum(Signal s, Signal** terms);
+LIBFAUST_API bool CisSigProd(Signal s, Signal** factors);
+LIBFAUST_API bool CisSigFIR(Signal s, Signal** coefs);
+LIBFAUST_API bool CisSigIIR(Signal s, Signal** coefs);
+LIBFAUST_API bool CisSigFrac(Signal s, Signal* x);
+LIBFAUST_API bool CisSigCfrac(Signal s, Signal* x);
+LIBFAUST_API bool CisSigMix(Signal s, Signal* c, Signal* a, Signal* b);
+LIBFAUST_API bool CisSigTpt(Signal s, Signal* x);
+LIBFAUST_API bool CisSigPhase(Signal s, Signal* x, Signal* p);
+
+/**
  *  Simplify a signal to its normal form, where:
  *  - all possible optimisations, simplications, and compile time computations have been done
  *  - the mathematical functions (primitives and binary functions), delay, select2, soundfile
