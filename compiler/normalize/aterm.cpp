@@ -820,7 +820,10 @@ void aterm::extractMixes()
                 }
                 const mterm mx(x);
                 for (const auto& p2 : fSig2MTerms) {
-                    if (p2.first == p1.first || !p2.second.hasDivisor(mx)) {
+                    // the other term divided by c : a ratio c = k/SR gives the target
+                    // of the smoother c * (SR * d) + (1 - c) * y', which the normal form
+                    // wrote 44.1 * d, back as d * SR
+                    if (p2.first == p1.first || !p2.second.hasDivisorUpToReciprocals(mx)) {
                         continue;
                     }
                     const mterm r1 = p1.second / mterm(f);
