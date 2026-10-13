@@ -616,7 +616,7 @@ LIBFAUST_API Signal* CsigRecursionN(Signal* ins_aux)
 {
     tvec ins;
     int  i = 0;
-    while (ins[i]) {
+    while (ins_aux[i]) {
         ins.push_back(ins_aux[i]);
         i++;
     }
@@ -1120,6 +1120,170 @@ LIBFAUST_API bool CisSigSoundfileBuffer(Tree s, Tree* sf_aux, Tree* chan_aux, Tr
     } else {
         return false;
     }
+}
+
+// the nodes of the normal form
+
+static tvec array2list(Tree* arr)
+{
+    tvec res;
+    for (int i = 0; arr && arr[i]; i++) {
+        res.push_back(arr[i]);
+    }
+    return res;
+}
+
+LIBFAUST_API Tree CsigNeg(Tree x)
+{
+    return sigNeg(x);
+}
+
+LIBFAUST_API Tree CsigSum(Tree* terms)
+{
+    return sigSum(array2list(terms));
+}
+
+LIBFAUST_API Tree CsigProd(Tree* factors)
+{
+    return sigProd(array2list(factors));
+}
+
+LIBFAUST_API Tree CsigFIR(Tree* coefs)
+{
+    return sigFIR(array2list(coefs));
+}
+
+LIBFAUST_API Tree CsigIIR(Tree* coefs)
+{
+    return sigIIR(array2list(coefs));
+}
+
+LIBFAUST_API Tree CsigFrac(Tree x)
+{
+    return sigFrac(x);
+}
+
+LIBFAUST_API Tree CsigCfrac(Tree x)
+{
+    return sigCfrac(x);
+}
+
+LIBFAUST_API Tree CsigMix(Tree c, Tree a, Tree b)
+{
+    return sigMix(c, a, b);
+}
+
+LIBFAUST_API Tree CsigTpt(Tree x)
+{
+    return sigTpt(x);
+}
+
+LIBFAUST_API Tree CsigPhase(Tree x, Tree p)
+{
+    return sigPhase(x, p);
+}
+
+LIBFAUST_API bool CisSigNeg(Tree s, Tree* x_aux)
+{
+    Tree x;
+    if (isSigNeg(s, x)) {
+        *x_aux = x;
+        return true;
+    }
+    return false;
+}
+
+LIBFAUST_API bool CisSigSum(Tree s, Tree** terms_aux)
+{
+    tvec terms;
+    if (isSigSum(s, terms)) {
+        *terms_aux = list2array(terms);
+        return true;
+    }
+    return false;
+}
+
+LIBFAUST_API bool CisSigProd(Tree s, Tree** factors_aux)
+{
+    tvec factors;
+    if (isSigProd(s, factors)) {
+        *factors_aux = list2array(factors);
+        return true;
+    }
+    return false;
+}
+
+LIBFAUST_API bool CisSigFIR(Tree s, Tree** coefs_aux)
+{
+    tvec coefs;
+    if (isSigFIR(s, coefs)) {
+        *coefs_aux = list2array(coefs);
+        return true;
+    }
+    return false;
+}
+
+LIBFAUST_API bool CisSigIIR(Tree s, Tree** coefs_aux)
+{
+    tvec coefs;
+    if (isSigIIR(s, coefs)) {
+        *coefs_aux = list2array(coefs);
+        return true;
+    }
+    return false;
+}
+
+LIBFAUST_API bool CisSigFrac(Tree s, Tree* x_aux)
+{
+    Tree x;
+    if (isSigFrac(s, x)) {
+        *x_aux = x;
+        return true;
+    }
+    return false;
+}
+
+LIBFAUST_API bool CisSigCfrac(Tree s, Tree* x_aux)
+{
+    Tree x;
+    if (isSigCfrac(s, x)) {
+        *x_aux = x;
+        return true;
+    }
+    return false;
+}
+
+LIBFAUST_API bool CisSigMix(Tree s, Tree* c_aux, Tree* a_aux, Tree* b_aux)
+{
+    Tree c, a, b;
+    if (isSigMix(s, c, a, b)) {
+        *c_aux = c;
+        *a_aux = a;
+        *b_aux = b;
+        return true;
+    }
+    return false;
+}
+
+LIBFAUST_API bool CisSigTpt(Tree s, Tree* x_aux)
+{
+    Tree x;
+    if (isSigTpt(s, x)) {
+        *x_aux = x;
+        return true;
+    }
+    return false;
+}
+
+LIBFAUST_API bool CisSigPhase(Tree s, Tree* x_aux, Tree* p_aux)
+{
+    Tree x, p;
+    if (isSigPhase(s, x, p)) {
+        *x_aux = x;
+        *p_aux = p;
+        return true;
+    }
+    return false;
 }
 
 LIBFAUST_API Tree CsimplifyToNormalForm(Tree s)
