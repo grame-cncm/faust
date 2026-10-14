@@ -52,6 +52,8 @@ Tree normalizeAddTerm(Tree t)
     A.expandCancellations();
     A.extractSelects();
     A.extractRemainders();
+    A.extractLerps();
+    A.extractMixSteps();
     A.extractMixes();
     A.extractTpts();
 #ifdef TRACE
