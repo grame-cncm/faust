@@ -814,6 +814,29 @@ static bool extrapolates(const mterm& g, int sign)
 }
 
 /**
+ * the weight w varies at every sample while A and the other terms of S (B) are slower :
+ * A + w * (B - A) is then read with the wrong weight. The smoother written
+ * E + y' * (1 - E), a constant E and its state y', is y' + E * (1 - y'), mix(E, y', 1), not
+ * mix(y', E, 1) : the rule of the complementary weights (extractMixes) reads it so.
+ */
+static bool fastWeightOverSlowOperands(const mterm& w, const mterm& a, const tvec& subs, Tree inS)
+{
+    auto audio = [](const mterm& m) {
+        for (const auto& f : m.factors()) {
+            if (sigs::isAudioRate(f.first)) return true;
+        }
+        return false;
+    };
+    if (!audio(w) || audio(a)) {
+        return false;
+    }
+    for (Tree u : subs) {
+        if (u != inS && sigs::isAudioRate(u)) return false;
+    }
+    return true;
+}
+
+/**
  * An interpolation A + g * (B - A) is written mix(g, A, B) = (1 - g) * A + g * B : A, read
  * twice (as a term and, negated, in the difference), is read once, and the mix of a
  * weight g in [0, 1] lies between A and B. A is a term of the sum, g * S another one, S a
@@ -843,6 +866,7 @@ void aterm::extractLerps()
                         isNum(pa.second.coefficient(), ca);
                         isNum(mu.coefficient(), cu);
                         const mterm w = pg.second.withoutFactorsOf(mterm(q.first));
+                        if (fastWeightOverSlowOperands(w, pa.second, subs, u)) continue;
                         if (double(ca + cu) == 0 && !extrapolates(w, 1)) {
                             ka = pa.first, kg = pg.first, s = q.first, inS = u, negated = false;
                             break;
