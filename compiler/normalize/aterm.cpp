@@ -800,6 +800,35 @@ static bool complementOf(Tree w, Tree& c)
 }
 
 /**
+ * t takes the values 0 and 1 only : a condition, a button, a checkbox, a logical
+ * operation of such values, or one of them converted
+ */
+static bool isBooleanValued(Tree t)
+{
+    int  op;
+    Tree x, y;
+    if (isSigFloatCast(t, x) || isSigIntCast(t, x)) {
+        return isBooleanValued(x);
+    }
+    if (isCondition(t) || isSigButton(t) || isSigCheckbox(t)) {
+        return true;
+    }
+    return isSigBinOp(t, &op, x, y) && (op == kAND || op == kOR || op == kXOR) && isBooleanValued(x) &&
+           isBooleanValued(y);
+}
+
+/**
+ * (1 - c) * a + c * b : an interpolation, mix(c, a, b), when the weight c is continuous ; a
+ * selection, select2(c, a, b), when c is 0 or 1 (isBooleanValued). Each node is one regime
+ * of computation : the selection is exact, keeps the nature of its branches and ignores
+ * the branch it does not choose, the interpolation rounds and reads both operands.
+ */
+static Tree mixOrSelect(Tree c, Tree a, Tree b)
+{
+    return isBooleanValued(c) ? sigSelect2(c, a, b) : sigMix(c, a, b);
+}
+
+/**
  * g, a weight times sign, is a number outside ]0, 1[ : A + g * (B - A) is then an
  * extrapolation (the state 2 * (s + v) - s of a TPT integrator is s + 2v), not a mix
  */
@@ -897,7 +926,7 @@ void aterm::extractLerps()
         mterm g  = fSig2MTerms[kg].withoutFactorsOf(mterm(s));
         Tree  tg = g.normalizedTree(false, negated);
         Tree  c;
-        Tree  m = complementOf(tg, c) ? sigMix(c, b, a) : sigMix(tg, a, b);
+        Tree  m = complementOf(tg, c) ? mixOrSelect(c, b, a) : mixOrSelect(tg, a, b);
         fSig2MTerms.erase(ka);
         fSig2MTerms.erase(kg);
         *this += mterm(m);
@@ -1010,7 +1039,7 @@ void aterm::extractMixSteps()
         }
         Tree tw = w.normalizedTree();
         Tree cc;
-        *this += mterm(complementOf(tw, cc) ? sigMix(cc, b, a) : sigMix(tw, a, b));
+        *this += mterm(complementOf(tw, cc) ? mixOrSelect(cc, b, a) : mixOrSelect(tw, a, b));
     }
 }
 
@@ -1067,7 +1096,7 @@ void aterm::extractMixes()
         Tree       b   = q2.normalizedTree(false, neg);
         fSig2MTerms.erase(k1);
         fSig2MTerms.erase(k2);
-        mterm m(sigMix(c, a, b));
+        mterm m(mixOrSelect(c, a, b));
         if (neg) {
             *this -= m;
         } else {
