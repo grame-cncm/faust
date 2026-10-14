@@ -230,6 +230,23 @@ static Tree simplification(Tree sig)
 
     int  opnum;
     Tree t1, t2;
+    // a read-only table of constant content read at a constant index : the element read
+    // (the break points of a waveform, piano1). A real table gives its integer elements
+    // as reals, the type of what the table returns.
+    if (Tree tb, ri, size, gen, content; isSigRDTbl(sig, tb, ri) && isSigWRTbl(tb, size, gen) &&
+                                         isSigGen(gen, content) && isSigWaveform(content)) {
+        int k;
+        if (isSigInt(ri, &k) && k >= 0 && k < content->arity()) {
+            bool real = false;
+            for (int j = 0; j < content->arity(); j++) {
+                double d;
+                real = real || isSigReal(content->branch(j), &d);
+            }
+            Tree e = content->branch(k);
+            int  i;
+            return (real && isSigInt(e, &i)) ? sigReal(double(i)) : e;
+        }
+    }
     if (isSigBinOp(sig, &opnum, t1, t2)) {
         // the generic frame: rules valid FOR ALL operators, driven by the op tables
         ::BinOp* op = gBinOpTable[opnum];
