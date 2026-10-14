@@ -64,6 +64,12 @@ std::string nameDelayType(DelayType dt);
 /// seconds at 192000 Hz)"
 std::string certifiedDuration(double samples);
 
+/// FAUST_CHECK_LIGHT_TYPES=1 : the attributes of the certified typing (nature,
+/// variability, computability, vectorability, booleanity) compared, signal by signal,
+/// with those of the exact attribute algebras alone (no interval) ; the differences are
+/// reported on stderr. The light typing of the computation form rests on this equality.
+void checkLightTypes(Tree L);
+
 /// A program bounded only for a limited time is refused under 10 seconds at 48000 Hz
 /// (480000 samples) ; the developer is told the duration otherwise (main)
 void checkCertificates();
