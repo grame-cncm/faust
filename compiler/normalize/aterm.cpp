@@ -800,6 +800,172 @@ static bool complementOf(Tree w, Tree& c)
 }
 
 /**
+ * An interpolation A + g * (B - A) is written mix(g, A, B) = (1 - g) * A + g * B : A, read
+ * twice (as a term and, negated, in the difference), is read once, and the mix of a
+ * weight g in [0, 1] lies between A and B. A is a term of the sum, g * S another one, S a
+ * sum holding the term -A exactly ; B is S without it. A product with a negative
+ * coefficient whose S holds +A is the same interpolation with S and g negated :
+ * B - (1 - c) * (B - A) is mix(1 - c, B, A). A weight 1 - c is then written as its
+ * complement, mix(c, A, B) for mix(1 - c, B, A), so that every writing of an
+ * interpolation reaches the same node. The match compares the monomials.
+ */
+void aterm::extractLerps()
+{
+    for (;;) {
+        Tree ka = nullptr, kg = nullptr, s = nullptr, inS = nullptr;
+        bool negated = false;
+        for (const auto& pg : fSig2MTerms) {
+            if (!pg.second.isNotZero() || kg != nullptr) continue;
+            for (const auto& q : pg.second.factors()) {
+                tvec subs;
+                if (q.second != 1 || !isSigSum(q.first, subs) || subs.size() < 2 || kg != nullptr) continue;
+                for (Tree u : subs) {
+                    if (kg != nullptr) break;
+                    mterm mu(u);
+                    for (const auto& pa : fSig2MTerms) {
+                        if (pa.first == pg.first || !pa.second.isNotZero()) continue;
+                        if (pa.second.factors() != mu.factors()) continue;
+                        num ca, cu;
+                        isNum(pa.second.coefficient(), ca);
+                        isNum(mu.coefficient(), cu);
+                        if (double(ca + cu) == 0) {
+                            ka = pa.first, kg = pg.first, s = q.first, inS = u, negated = false;
+                            break;
+                        }
+                        if (double(ca - cu) == 0 && pg.second.isNegative()) {
+                            ka = pa.first, kg = pg.first, s = q.first, inS = u, negated = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (kg == nullptr) {
+            return;
+        }
+        // the rewrite : A, B = S without the reading of A (negated with S), g = the term
+        // without S (negated with S)
+        tvec subs;
+        isSigSum(s, subs);
+        tvec rest;
+        for (Tree u : subs) {
+            if (u == inS) continue;
+            Tree x;
+            rest.push_back(!negated ? u : (isSigNeg(u, x) ? x : sigNeg(u)));
+        }
+        Tree  a  = fSig2MTerms[ka].normalizedTree();
+        Tree  b  = (rest.size() == 1) ? rest[0] : sigSum(rest);
+        mterm g  = fSig2MTerms[kg].withoutFactorsOf(mterm(s));
+        Tree  tg = g.normalizedTree(false, negated);
+        Tree  c;
+        Tree  m = complementOf(tg, c) ? sigMix(c, b, a) : sigMix(tg, a, b);
+        fSig2MTerms.erase(ka);
+        fSig2MTerms.erase(kg);
+        *this += mterm(m);
+    }
+}
+
+/**
+ * x and y are the same monomial up to the sign : sign * x == y
+ */
+static bool sameMonomial(const mterm& x, const mterm& y, int sign)
+{
+    if (x.factors() != y.factors()) {
+        return false;
+    }
+    num cx, cy;
+    isNum(x.coefficient(), cx);
+    isNum(y.coefficient(), cy);
+    return double(cx) * sign == double(cy);
+}
+
+/**
+ * A mix and its own step : mix(c, A, B) + g * (B - A) is A + (c + g) * (B - A), written
+ * mix(c + g, A, B) when g is c up to a constant (the weight stays a monomial). The state
+ * s' = y + g * (x - s) of a TPT one-pole filter, whose output y = s + g * (x - s) is
+ * revealed as mix(g, s, x), is then the smoother mix(2g, s, x) : each operand read once,
+ * the step not repeated outside the mix. A difference A - B is the step negated. A scaled
+ * mix is the same step : k * mix(c, A, B) + (1 - k) * A is mix(k * c, A, B) (the state
+ * 2y - s of the same filter).
+ */
+void aterm::extractMixSteps()
+{
+    for (;;) {
+        Tree km = nullptr, kg = nullptr, m = nullptr, s = nullptr;
+        int  sign = 0;
+        for (const auto& pm : fSig2MTerms) {
+            const mterm& tm = pm.second;
+            Tree         c, a, b;
+            if (km != nullptr || !tm.isNotZero() || tm.factors().size() != 1 ||
+                tm.factors().begin()->second != 1 || !isSigMix(tm.factors().begin()->first, c, a, b)) {
+                continue;
+            }
+            num cm;
+            if (!isNum(tm.coefficient(), cm)) {
+                continue;
+            }
+            const Tree mn = tm.factors().begin()->first;
+            mterm      ma(a), mb(b), mc(c);
+            if (double(cm) != 1) {
+                // k * mix(c, A, B) + (1 - k) * A
+                mterm rest(ma);
+                rest *= mterm(1.0 - double(cm));
+                for (const auto& pa : fSig2MTerms) {
+                    if (pa.first != pm.first && pa.second.isNotZero() && sameMonomial(rest, pa.second, 1)) {
+                        km = pm.first, kg = pa.first, m = mn, s = nullptr;
+                        break;
+                    }
+                }
+                continue;
+            }
+            for (const auto& pg : fSig2MTerms) {
+                if (pg.first == pm.first || !pg.second.isNotZero() || km != nullptr) continue;
+                for (const auto& q : pg.second.factors()) {
+                    tvec subs;
+                    if (q.second != 1 || !isSigSum(q.first, subs) || subs.size() != 2) continue;
+                    mterm u0(subs[0]), u1(subs[1]);
+                    int   sg = 0;
+                    if ((sameMonomial(mb, u0, 1) && sameMonomial(ma, u1, -1)) ||
+                        (sameMonomial(mb, u1, 1) && sameMonomial(ma, u0, -1))) {
+                        sg = 1;
+                    } else if ((sameMonomial(ma, u0, 1) && sameMonomial(mb, u1, -1)) ||
+                               (sameMonomial(ma, u1, 1) && sameMonomial(mb, u0, -1))) {
+                        sg = -1;
+                    }
+                    if (sg == 0 || pg.second.withoutFactorsOf(mterm(q.first)).factors() != mc.factors()) continue;
+                    km = pm.first, kg = pg.first, m = mn, s = q.first, sign = sg;
+                    break;
+                }
+            }
+        }
+        if (km == nullptr) {
+            return;
+        }
+        Tree c, a, b;
+        isSigMix(m, c, a, b);
+        mterm w(c);
+        if (s == nullptr) {
+            w *= mterm(fSig2MTerms[km].coefficient());
+        } else {
+            mterm g = fSig2MTerms[kg].withoutFactorsOf(mterm(s));
+            if (sign < 0) {
+                g *= mterm(-1);
+            }
+            w += g;
+        }
+        fSig2MTerms.erase(km);
+        fSig2MTerms.erase(kg);
+        if (!w.isNotZero()) {
+            *this += mterm(a);
+            continue;
+        }
+        Tree tw = w.normalizedTree();
+        Tree cc;
+        *this += mterm(complementOf(tw, cc) ? sigMix(cc, b, a) : sigMix(tw, a, b));
+    }
+}
+
+/**
  * The compound operation mix. A sum holding k*(1 - c)*A and k*c*B is rewritten with
  * mix(c, k*A, k*B) : the weight then appears once, and the interval of the mix no
  * longer loses that it lies between k*A and k*B (the dependency problem).

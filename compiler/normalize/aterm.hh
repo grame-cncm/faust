@@ -62,6 +62,8 @@ class aterm : public virtual Garbageable {
     void          expandCancellations();      ///< (f+4c)^2 - 16c^2 -> f^2 + 8fc
     void          extractRemainders();        ///< k*S - k*floor(S) -> k*frac(S), same for cfrac
     void          extractSelects();           ///< A*[c] + B*[not c] -> select2(c, B, A)
+    void          extractLerps();             ///< A + g*(B - A) -> mix(g, A, B)
+    void          extractMixSteps();          ///< mix(c, A, B) + k*c*(B - A) -> mix((1+k)*c, A, B)
     void          extractMixes();             ///< k*(1-c)*A + k*c*B -> k*mix(c, A, B)
     void          extractTpts();              ///< g*(g+1)^-1 -> tpt(g) in every term
     aterm         factorize(const mterm& d);  ///< reorganize the aterm by factorizing d
