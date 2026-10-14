@@ -38,6 +38,9 @@ unsigned faust_alarm(unsigned seconds)
 
 using namespace std;
 
+// the duration a certificate of the interval analysis covers (generator/compile.cpp)
+std::string certifiedDuration(double samples);
+
 // Standalone compiler uses the real 'alarm' function
 unsigned faust_alarm(unsigned seconds)
 {
@@ -53,15 +56,8 @@ int main(int argc, const char* argv[])
     // only for a limited time says for how long
     if (factory) {
         for (const auto& [reason, samples] : sigs::g.gCertifiedSamples) {
-            const double seconds = samples / 48000.0;
-            std::stringstream duration;
-            if (seconds >= 10) {
-                duration << std::llround(seconds);
-            } else {
-                duration << std::setprecision(2) << seconds;
-            }
-            cerr << "WARNING : this program is certified for " << duration.str()
-                 << " seconds at 48000 Hz (" << reason << ")" << endl;
+            cerr << "WARNING : this program is certified for " << certifiedDuration(samples) << " ("
+                 << reason << ")" << endl;
         }
     }
 

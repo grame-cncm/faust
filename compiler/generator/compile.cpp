@@ -34,9 +34,14 @@ Compile a list of FAUST signals into a C++ class.
 *****************************************************************************/
 
 #include <stdio.h>
+#include <cmath>
+#include <iomanip>
+#include <sstream>
 #include <string>
 
 #include "compile.hh"
+#include "exception.hh"
+#include "sigs-state.hh"
 #include "floats.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
@@ -73,6 +78,33 @@ std::string nameDelayType(DelayType dt)
 /*****************************************************************************
                                constructor
 *****************************************************************************/
+
+string certifiedDuration(double samples)
+{
+    auto seconds = [](double s) {
+        std::stringstream d;
+        if (s >= 10) {
+            d << std::llround(s);
+        } else {
+            d << std::setprecision(2) << s;
+        }
+        return d.str();
+    };
+    return seconds(samples / 48000.0) + " seconds at 48000 Hz (" + seconds(samples / 192000.0) +
+           " seconds at 192000 Hz)";
+}
+
+void checkCertificates()
+{
+    for (const auto& [reason, samples] : sigs::g.gCertifiedSamples) {
+        if (samples < 10 * 48000.0) {
+            std::stringstream error;
+            error << "ERROR : this program is certified for only " << certifiedDuration(samples) << " ("
+                  << reason << ") : at least 10 seconds at 48000 Hz are required" << endl;
+            throw faustexception(error.str());
+        }
+    }
+}
 
 Compiler::Compiler(const string& name, const string& super, int numInputs, int numOutputs, bool vec)
     : fClass(new Klass(name, super, numInputs, numOutputs, vec)),
