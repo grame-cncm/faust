@@ -59,6 +59,15 @@ enum class DelayType {
 };
 std::string nameDelayType(DelayType dt);
 
+/// The duration a certificate of the interval analysis covers, n samples, written at
+/// 48000 Hz and at the largest sampling rate, 192000 Hz : "30 seconds at 48000 Hz (7.5
+/// seconds at 192000 Hz)"
+std::string certifiedDuration(double samples);
+
+/// A program bounded only for a limited time is refused under 10 seconds at 48000 Hz
+/// (480000 samples) ; the developer is told the duration otherwise (main)
+void checkCertificates();
+
 class Compiler : public virtual Garbageable {
    protected:
     Klass*       fClass;
