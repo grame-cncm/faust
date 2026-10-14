@@ -386,8 +386,20 @@ interval doubleFmodBounds(const interval& xInput, const interval& yInput)
         const NumericBounds value = referenceBinary(BinaryOp::Fmod, x.lo(), y.lo());
         return {value.lo, value.hi, lsb};
     }
-    const double magnitude = std::min(std::max(std::abs(x.lo()), std::abs(x.hi())),
-                                      std::max(std::abs(y.lo()), std::abs(y.hi())));
+    // fmod is exact, and its result, a value of the program, is strictly below |y| : at
+    // most the program's float that precedes the largest |y| (frac(z) = fmod(z, 1) for a
+    // nonnegative z is then [0, 1[, as frac's own bound)
+    const double ymax  = std::max(std::abs(y.lo()), std::abs(y.hi()));
+    double       below = ymax;
+    if (std::isfinite(ymax)) {
+        if (programPrecision() == 1) {
+            const float yf = float(ymax);
+            if (double(yf) == ymax) below = double(std::nextafter(yf, 0.0f));
+        } else {
+            below = std::nextafter(ymax, 0.0);
+        }
+    }
+    const double magnitude = std::min(std::max(std::abs(x.lo()), std::abs(x.hi())), below);
     return {x.lo() >= 0 ? 0 : -magnitude, x.hi() <= 0 ? 0 : magnitude, lsb};
 }
 
