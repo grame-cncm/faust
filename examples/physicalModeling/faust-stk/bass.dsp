@@ -8,6 +8,71 @@ declare licence "STK-4.3";
 
 import("instruments.lib");
 
+//==================== BREAK-POINT FUNCTIONS ================
+
+// The coefficients of the loop filter as functions of the note number, interpolated
+// linearly between their points and held beyond them (the tables of the STK bass,
+// formerly read from bass.h through ffunction, with the 18 points the C++ table reads) :
+// written as ba.bpf, they are bounded exactly by the compiler and run on every backend.
+
+getValueBassLoopFiltera1 = ba.bpf.start(24, -0.81486)
+    : ba.bpf.point(26, -0.81486)
+    : ba.bpf.point(27, -0.81147)
+    : ba.bpf.point(29, -0.81147)
+    : ba.bpf.point(32, -0.81147)
+    : ba.bpf.point(33, -0.76078)
+    : ba.bpf.point(36, -0.76078)
+    : ba.bpf.point(43, -0.76078)
+    : ba.bpf.point(44, -0.77075)
+    : ba.bpf.point(48, -0.77075)
+    : ba.bpf.point(51, -0.77075)
+    : ba.bpf.point(52, -0.73548)
+    : ba.bpf.point(54, -0.73548)
+    : ba.bpf.point(57, -0.73548)
+    : ba.bpf.point(58, -0.8881)
+    : ba.bpf.point(60, -0.8881)
+    : ba.bpf.point(61, -0.8881)
+    : ba.bpf.end(63, -0.88537);
+
+getValueBassLoopFilterb0 = ba.bpf.start(24, 0.54355)
+    : ba.bpf.point(26, 0.54355)
+    : ba.bpf.point(27, 0.55677)
+    : ba.bpf.point(29, 0.55677)
+    : ba.bpf.point(32, 0.55677)
+    : ba.bpf.point(33, 0.83598)
+    : ba.bpf.point(36, 0.83598)
+    : ba.bpf.point(43, 0.83598)
+    : ba.bpf.point(44, 0.88292)
+    : ba.bpf.point(48, 0.88292)
+    : ba.bpf.point(51, 0.88292)
+    : ba.bpf.point(52, 0.77805)
+    : ba.bpf.point(54, 0.77805)
+    : ba.bpf.point(57, 0.77805)
+    : ba.bpf.point(58, 0.9182)
+    : ba.bpf.point(60, 0.9182)
+    : ba.bpf.point(61, 0.9182)
+    : ba.bpf.end(63, 0.94594);
+
+getValueBassLoopFilterb1 = ba.bpf.start(24, -0.36586)
+    : ba.bpf.point(26, -0.36586)
+    : ba.bpf.point(27, -0.37628)
+    : ba.bpf.point(29, -0.37628)
+    : ba.bpf.point(32, -0.37628)
+    : ba.bpf.point(33, -0.60228)
+    : ba.bpf.point(36, -0.60228)
+    : ba.bpf.point(43, -0.60228)
+    : ba.bpf.point(44, -0.65721)
+    : ba.bpf.point(48, -0.65721)
+    : ba.bpf.point(51, -0.65721)
+    : ba.bpf.point(52, -0.51902)
+    : ba.bpf.point(54, -0.51902)
+    : ba.bpf.point(57, -0.51902)
+    : ba.bpf.point(58, -0.80765)
+    : ba.bpf.point(60, -0.80765)
+    : ba.bpf.point(61, -0.80765)
+    : ba.bpf.end(63, -0.8323);
+
+
 //==================== GUI SPECIFICATION ================
 
 freq = nentry("h:Basic_Parameters/freq [1][unit:Hz] [tooltip:Tone frequency]", 120, 20, 20000, 1);
@@ -66,10 +131,10 @@ bodyFilter = bandPass(108, 0.997);
 //modulated in function of the tone being played
 reflexionFilter = poleZero(b0, b1, a1)
     with {
-        //filter coefficients are stored in a C++ function
-        loopFilterb0 = ffunction(float getValueBassLoopFilterb0(float), <bass.h>, "");
-        loopFilterb1 = ffunction(float getValueBassLoopFilterb1(float), <bass.h>, "");
-        loopFiltera1 = ffunction(float getValueBassLoopFiltera1(float), <bass.h>, "");
+        //filter coefficients are break-point functions of the note number (above)
+        loopFilterb0 = getValueBassLoopFilterb0;
+        loopFilterb1 = getValueBassLoopFilterb1;
+        loopFiltera1 = getValueBassLoopFiltera1;
         freqToNoteNumber = (log-log(440))/log(2)*12+69+0.5:int;
         freqn = freq:freqToNoteNumber;
         b0 = loopFilterb0(freqn);
