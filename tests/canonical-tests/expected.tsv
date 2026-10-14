@@ -23,7 +23,7 @@ interpolation	c-from-b.dsp	differs	b - (1 - c) (b - a) is neither revealed nor b
 interpolation	d-commuted.dsp	same	
 interpolation	e-lib-interpolate.dsp	intervals	it.interpolate_linear is written a + c (b - a) : see b-from-a
 phase	b-floor.dsp	same	
-phase	c-fmod.dsp	differs	fmod(z, 1) of a nonnegative z is frac(z), not identified ; the interval of fmod is [0, 1], closed
+phase	c-fmod.dsp	intervals	fmod(z, 1) of a nonnegative z is frac(z), not identified ; the bounds agree, [0, 1[
 phase	d-lambda.dsp	same	
 product	b-right.dsp	same	
 product	c-signal-first.dsp	same	
