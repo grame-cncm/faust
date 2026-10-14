@@ -1,6 +1,7 @@
 #include "revealIIR.hh"
 #include <set>
 #include "simplify.hh"
+#include "mterm.hh"
 #include <map>
 #include <functional>
 
@@ -680,7 +681,8 @@ static bool complements(Tree a, Tree b)
     return isOneMinus(a, b) || isOneMinus(b, a);
 }
 
-// IIR(x; c) of order 1 whose input is (1 - c) * A : IRM(A; c), y = (1 - c) A + c y@1. The
+// IIR(x; c) of order 1 whose input is (1 - c) * A, up to a constant : IRM(A; c),
+// y = (1 - c) A + c y@1. The
 // IIR reveal reads the smoother whose target is 1, or whose input carries the weight, as a
 // linear recursion ; as a mix it is bounded by its target instead of its gain.
 static Tree iirAsIRM(Tree t)
@@ -694,17 +696,29 @@ static Tree iirAsIRM(Tree t)
         return sigIRM(sigReal(1.0), c);
     }
     tvec fs;
-    if (!isSigProd(x, fs)) {
-        return nullptr;
-    }
-    for (size_t k = 0; k < fs.size(); k++) {
-        if (!complements(fs[k], c)) continue;
-        tvec rest;
-        for (size_t j = 0; j < fs.size(); j++) {
-            if (j != k) rest.push_back(fs[j]);
+    if (isSigProd(x, fs)) {
+        for (size_t k = 0; k < fs.size(); k++) {
+            if (!complements(fs[k], c)) continue;
+            tvec rest;
+            for (size_t j = 0; j < fs.size(); j++) {
+                if (j != k) rest.push_back(fs[j]);
+            }
+            Tree a = (rest.size() == 1) ? rest[0] : sigProd(rest);
+            return sigIRM(a, c);
         }
-        Tree a = (rest.size() == 1) ? rest[0] : sigProd(rest);
-        return sigIRM(a, c);
+    }
+    // the weight w = 1 - c divides x up to a constant : the normal form merges the
+    // constants, si.smoo of 340 / f writing its input 14994 / SR / f for (44.1 / SR) * A.
+    // Every factor of w must cancel in x with the same sign of its power (hasDivisor) : A
+    // never divides by w.
+    Tree w;
+    if (isSigSum(c, fs) && fs.size() == 2 && isOne(fs[0]) && isSigNeg(fs[1], w) && x->isRecFree() &&
+        w->isRecFree()) {
+        const mterm mx(x), mw(w);
+        if (mw.isNotZero() && !mw.factors().empty() && mx.hasDivisor(mw)) {
+            const mterm q = mx / mw;
+            return sigIRM(q.normalizedTree(), c);
+        }
     }
     return nullptr;
 }
