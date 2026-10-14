@@ -37,6 +37,11 @@ int main()
     Signal irm = sigIRM(input, sigReal(0.9));
     Signal ix = nullptr, ip = nullptr;
     ok = ok && isSigIRM(irm, ix, ip) && ix == input && !isSigIRM(mix, ix, ip);
+    // the break-point function Bpf(x; t; r) : x, its thresholds, its regions
+    Signal bpf = sigBpf(input, {sigReal(0.0), sigReal(1.0)}, {sigReal(0.0), input, sigReal(1.0)});
+    Signal bx  = nullptr;
+    tvec   bt, br;
+    ok = ok && isSigBpf(bpf, bx, bt, br) && bx == input && bt.size() == 2 && br.size() == 3 && br[1] == input;
     // simplifyToNormalForm of one signal returns the list of that signal : its first
     // branch is the signal in normal form
     Signal sum2 = sigAdd(sum, sigInput(1));

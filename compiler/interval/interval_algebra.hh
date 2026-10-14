@@ -530,6 +530,9 @@ class interval_algebra : public FaustAlgebra<interval> {
     // and 0 widened by a margin, the power-of-two envelope ; anything, NaN included, for a
     // pole beyond [0, 1] or an unbounded x
     interval Irm(const interval& x, const interval& c) const override;
+    // Bpf(x, t, r) : the hull of the regions r[i] whose range [t[i-1], t[i][ meets x, the
+    // last one also when x may be NaN (every comparison false)
+    interval Bpf(const interval& x, const std::vector<interval>& t, const std::vector<interval>& r) const override;
     void     testRint();
     // Public API: numeric round image; empty stays empty, and integer inputs
     // first convert to the target float. Results keep floating nature in every precision,

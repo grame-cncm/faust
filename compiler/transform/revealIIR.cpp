@@ -776,3 +776,130 @@ Tree revealIRM(Tree L1)
 
     return treeRewritePairedMemo(L1, pre, rule, memo, defRule);
 }
+
+//----------------------------------------------------------------------
+// The break-point function
+//----------------------------------------------------------------------
+//
+// A chain of select2 whose conditions all compare the same x to constants, x < c (or
+// c > x), is the selection of a break-point function (ba.bpf) : the node
+// Bpf(x; t1, ..., tn; r0, ..., rn), x read once, each region r the leaf the chain gives
+// for x in its range. A chain met below (rewritten first) is absorbed with its
+// thresholds. Two regions in a row with the same expression are one. A single
+// comparison stays a select2.
+
+// t compares x to a constant : x < c or c > x ; gives x and c
+static bool lessThanConstant(Tree t, Tree& x, double& c)
+{
+    int  op;
+    Tree a, b;
+    if (!isSigBinOp(t, &op, a, b)) return false;
+    auto num = [](Tree u, double& v) {
+        int i;
+        return isSigReal(u, &v) || (isSigInt(u, &i) && ((v = i), true));
+    };
+    if (op == kLT && num(b, c)) {
+        x = a;
+        return true;
+    }
+    if (op == kGT && num(a, c)) {
+        x = b;
+        return true;
+    }
+    return false;
+}
+
+// the thresholds (value -> tree) of the chain rooted at t on x
+static void bpfThresholds(Tree t, Tree x, std::map<double, Tree>& th)
+{
+    Tree sel, s0, s1, y;
+    double c;
+    tvec   bt, br;
+    if (isSigSelect2(t, sel, s0, s1) && lessThanConstant(sel, y, c) && y == x) {
+        int  op;
+        Tree a, b;
+        isSigBinOp(sel, &op, a, b);
+        th.emplace(c, op == kLT ? b : a);
+        bpfThresholds(s0, x, th);
+        bpfThresholds(s1, x, th);
+    } else if (isSigBpf(t, y, bt, br) && y == x) {
+        for (Tree ti : bt) {
+            double v;
+            int    i;
+            if (isSigReal(ti, &v) || (isSigInt(ti, &i) && ((v = i), true))) th.emplace(v, ti);
+        }
+        for (Tree r : br) bpfThresholds(r, x, th);
+    }
+}
+
+// the leaf of the chain rooted at t for x in [lo, hi[ (lo and hi consecutive thresholds)
+static Tree bpfRegion(Tree t, Tree x, double lo, double hi)
+{
+    Tree   sel, s0, s1, y;
+    double c;
+    tvec   bt, br;
+    if (isSigSelect2(t, sel, s0, s1) && lessThanConstant(sel, y, c) && y == x) {
+        // select2(x < c, s0, s1) : s1 when x < c, the whole region lying below c or above
+        return bpfRegion(hi <= c ? s1 : s0, x, lo, hi);
+    }
+    if (isSigBpf(t, y, bt, br) && y == x) {
+        size_t i = 0;
+        for (; i < bt.size(); i++) {
+            double v;
+            int    k;
+            if (!(isSigReal(bt[i], &v) || (isSigInt(bt[i], &k) && ((v = k), true)))) return t;
+            if (hi <= v) break;
+        }
+        return bpfRegion(br[i], x, lo, hi);
+    }
+    return t;
+}
+
+static Tree bpfOf(Tree t)
+{
+    Tree   sel, s0, s1, x;
+    double c;
+    if (!isSigSelect2(t, sel, s0, s1) || !lessThanConstant(sel, x, c)) {
+        return nullptr;
+    }
+    std::map<double, Tree> th;
+    bpfThresholds(t, x, th);
+    if (th.size() < 2) {
+        return nullptr;
+    }
+    std::vector<double> v;
+    tvec                tt;
+    for (const auto& p : th) {
+        v.push_back(p.first);
+        tt.push_back(p.second);
+    }
+    tvec regions;
+    for (size_t i = 0; i <= v.size(); i++) {
+        const double lo = (i == 0) ? -HUGE_VAL : v[i - 1];
+        const double hi = (i == v.size()) ? HUGE_VAL : v[i];
+        regions.push_back(bpfRegion(t, x, lo, hi));
+    }
+    // two regions in a row with the same expression are one
+    tvec t2{}, r2{regions[0]};
+    for (size_t i = 0; i < tt.size(); i++) {
+        if (regions[i + 1] == r2.back()) continue;
+        t2.push_back(tt[i]);
+        r2.push_back(regions[i + 1]);
+    }
+    if (t2.size() < 2) {
+        return nullptr;
+    }
+    return sigBpf(x, t2, r2);
+}
+
+Tree revealBpf(Tree L1)
+{
+    std::unordered_map<Tree, Tree> memo;
+    auto pre     = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
+    auto rule    = [&](Tree, Tree rebuilt) -> Tree {
+        Tree b = bpfOf(rebuilt);
+        return b ? b : rebuilt;
+    };
+    return treeRewritePairedMemo(L1, pre, rule, memo, defRule);
+}

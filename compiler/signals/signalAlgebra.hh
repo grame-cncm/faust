@@ -120,6 +120,13 @@ class SignalDispatch : public FaustAlgebra<V> {
     }
     /// y = mix(c, x, y@1), y replaced by x in the feedback read, as for the IIR
     V irmFeedforward(const V& x, const V& c) const { return this->Mix(c, x, this->Delay(x, this->IntNum(1))); }
+    /// Bpf as its chain of selections : x < t1 ? r0 : (x < t2 ? r1 : ... rn)
+    V bpfDefinition(const V& x, const std::vector<V>& t, const std::vector<V>& r) const
+    {
+        V acc = r.back();
+        for (size_t i = t.size(); i-- > 0;) acc = this->Select2(this->Lt(x, t[i]), acc, r[i]);
+        return acc;
+    }
 
 
     virtual V combine(Tree sig, const std::vector<V>& c, FixPointEvaluator<V>& ev) const;
@@ -399,6 +406,11 @@ V SignalDispatch<V>::combine(Tree sig, const std::vector<V>& c,
             case sigs::SignalOpcode::Prod: return this->Prod(c);
             case sigs::SignalOpcode::Phase: return this->Phase(c[0], c[1]);
             case sigs::SignalOpcode::Irm: return this->Irm(c[0], c[1]);
+            case sigs::SignalOpcode::Bpf: {
+                const size_t   n = (c.size() - 2) / 2;
+                std::vector<V> t(c.begin() + 1, c.begin() + 1 + n), r(c.begin() + 1 + n, c.end());
+                return this->Bpf(c[0], t, r);
+            }
 
             case sigs::SignalOpcode::Count: break;  // not a constructor
         }

@@ -219,6 +219,21 @@ string DocCompiler::generateCode(Tree sig, int priority)
     } else if (tvec iir; isSigIIR(sig, iir)) {
         printGCCall(sig, "generateIIR");
         return generateIIR(sig, iir, priority);
+    } else if (Tree bx; isSigBpf(sig)) {
+        // Bpf(x; t; r) : r0 if x < t1, r1 if x < t2, ..., rn otherwise
+        printGCCall(sig, "generateBpf");
+        tvec bt, br;
+        isSigBpf(sig, bx, bt, br);
+        string sx    = CS(bx, 0);
+        string cases = "";
+        for (size_t k = 0; k < bt.size(); k++) {
+            string rk = CS(br[k], 0);
+            string tk = CS(bt[k], 0);
+            cases += subst("$0 & \\mathrm{if}\\; $1 < $2 \\\\ ", rk, sx, tk);
+        }
+        string last = CS(br.back(), 0);
+        cases += subst("$0 & \\mathrm{otherwise}", last);
+        return generateCacheCode(sig, subst("\\left\\{\\begin{array}{ll} $0 \\end{array}\\right.", cases));
     } else if (Tree ix, ip; isSigIRM(sig, ix, ip)) {
         // IRM(x; p) : y(t) = (1 - p) x(t) + p y(t-1)
         printGCCall(sig, "generateIRM");

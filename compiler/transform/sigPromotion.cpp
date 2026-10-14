@@ -406,6 +406,26 @@ class SignalPromotionAlgebra : public TransformAlgebra {
         Tree fb = smartFloatCast(typeOf(b), b.out);
         return o(fBuild.Mix(fc, fa, fb));
     }
+    //--- a break-point function : x compared with its thresholds in one nature, its regions
+    // in the nature of the result, as for select2 ----------------------------------------
+    XSig Bpf(const XSig& x, const std::vector<XSig>& t, const std::vector<XSig>& r) const override
+    {
+        bool realCmp = typeOf(x)->nature() == kReal, realRes = false;
+        for (const XSig& ti : t) realCmp = realCmp || typeOf(ti)->nature() == kReal;
+        for (const XSig& ri : r) realRes = realRes || typeOf(ri)->nature() == kReal;
+        Tree fx = realCmp ? smartFloatCast(typeOf(x), x.out) : x.out;
+        tvec ft, fr;
+        for (const XSig& ti : t) {
+            Tree c = realCmp ? smartFloatCast(typeOf(ti), ti.out) : ti.out;
+            ft.push_back(c);
+        }
+        for (const XSig& ri : r) {
+            Tree c = realRes ? smartFloatCast(typeOf(ri), ri.out) : ri.out;
+            fr.push_back(c);
+        }
+        return o(fBuild.Bpf(fx, ft, fr));
+    }
+
     //--- the recursive mix is real : its input and its pole ------------------------------
     XSig Irm(const XSig& x, const XSig& c) const override
     {

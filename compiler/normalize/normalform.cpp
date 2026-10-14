@@ -606,6 +606,11 @@ static Tree simplifyToNormalFormAux(Tree LS)
     L3 = revealIRM(L3);
     endTiming("IRM revealer");
 
+    // the chains of select2 on x < constant become Bpf nodes, bounded region by region
+    startTiming("Bpf revealer");
+    L3 = revealBpf(L3);
+    endTiming("Bpf revealer");
+
     // Annotate L3 with type information
     startTiming("L3 typeAnnotation");
     typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
