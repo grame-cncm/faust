@@ -228,6 +228,27 @@ Tree SignalRetimer::transformation(Tree sig)
         Tree res = sigRegister(1, sigMix(rx, ry, rz));
         fTiming[res] = tm + 1;
         return res;
+    } else if (isSigBpf(sig)) {
+        // x, the thresholds and the regions aligned on the latest one
+        tvec t2;
+        int  tm = 0;
+        for (Tree t : sig->branches()) {
+            Tree u = self(t);
+            t2.push_back(u);
+            tm = std::max(tm, fTiming[u]);
+        }
+        tvec rt;
+        for (Tree u : t2) {
+            Tree r = addRegisters(u, tm - fTiming[u]);
+            rt.push_back(r);
+        }
+        tvec t, r;
+        isSigBpf(sig, x, t, r);
+        const size_t n   = t.size();
+        Tree         b   = sigBpf(rt[0], tvec(rt.begin() + 1, rt.begin() + 1 + n), tvec(rt.begin() + 1 + n, rt.end()));
+        Tree         res = sigRegister(1, b);
+        fTiming[res]     = tm + 1;
+        return res;
     } else if (isSigIRM(sig, x, y)) {
         // the input and the pole aligned on the latest one, as for an IIR
         Tree x2  = self(x);

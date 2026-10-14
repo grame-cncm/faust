@@ -286,6 +286,30 @@ bool filterOutput(const std::vector<double>& c, const interval& fx, double& lo, 
 
 }  // namespace
 
+// Bpf : the selection of the regions that x may reach. A threshold is a constant ; a
+// threshold that is not a point leaves both of its sides possible.
+interval interval_algebra::Bpf(const interval& x, const std::vector<interval>& t,
+                               const std::vector<interval>& r) const
+{
+    if (x.isEmpty() || r.size() != t.size() + 1) return empty();
+    interval acc     = empty();
+    bool     invalid = false;
+    for (size_t i = 0; i < r.size(); i++) {
+        // the range [lo, hi[ of region i ; the last one is also reached by a NaN x
+        const double lo   = (i == 0) ? -HUGE_VAL : t[i - 1].lo();
+        const double hi   = (i == t.size()) ? HUGE_VAL : t[i].hi();
+        const bool   last = (i == t.size());
+        const bool   meet = (x.hi() >= lo && x.lo() < hi) || (last && x.mayBeInvalid());
+        if (!meet) continue;
+        if (r[i].isEmpty()) continue;
+        acc     = acc.isEmpty() ? r[i] : interval(std::min(acc.lo(), r[i].lo()), std::max(acc.hi(), r[i].hi()),
+                                                  std::min(acc.lsb(), r[i].lsb()));
+        invalid = invalid || r[i].mayBeInvalid();
+    }
+    for (const interval& ti : t) invalid = invalid || ti.mayBeInvalid();
+    return acc.withInvalid(invalid);
+}
+
 // Iir : the certified gain of a stable filter with constant coefficients, the program's
 // rounding included ; anything, NaN included, otherwise
 interval interval_algebra::Iir(const interval& x, const std::vector<interval>& coefs) const

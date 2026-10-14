@@ -1000,6 +1000,25 @@ class AffineOps : public Base {
         }
         return fromItv(fItv.Iir(toItv(x, fT), cs));
     }
+    AffItv Bpf(const AffItv& x, const std::vector<AffItv>& t, const std::vector<AffItv>& r) const override
+    {
+        // the regions that x may reach, joined as corridors
+        if (x.isEmpty() || r.size() != t.size() + 1) return aempty();
+        const interval ix = toItv(x, fT);
+        AffItv         acc;
+        bool           any = false, invalid = false;
+        for (size_t i = 0; i < r.size(); i++) {
+            const double lo   = (i == 0) ? -HUGE_VAL : toItv(t[i - 1], fT).lo();
+            const double hi   = (i == t.size()) ? HUGE_VAL : toItv(t[i], fT).hi();
+            const bool   last = (i == t.size());
+            if (!((ix.hi() >= lo && ix.lo() < hi) || (last && x.mayBeInvalid)) || r[i].isEmpty()) continue;
+            acc     = any ? ajoin(acc, r[i], fT) : r[i];
+            any     = true;
+            invalid = invalid || r[i].mayBeInvalid;
+        }
+        for (const AffItv& ti : t) invalid = invalid || ti.mayBeInvalid;
+        return any ? acc.withInvalid(invalid) : aempty();
+    }
     AffItv Irm(const AffItv& x, const AffItv& c) const override
     {
         if (x.isEmpty() || c.isEmpty()) return aempty();

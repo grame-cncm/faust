@@ -216,6 +216,16 @@ Tree SignalIdentity::transformation(Tree sig)
             c[k] = self(c[k]);
         }
         return sigIIR(c);
+    } else if (Tree tx; isSigBpf(sig)) {
+        // x, the thresholds, the regions
+        tvec c = sig->branches();
+        for (unsigned int k = 0; k < c.size(); k++) {
+            c[k] = self(c[k]);
+        }
+        tvec t, r;
+        isSigBpf(sig, tx, t, r);
+        const size_t n = t.size();
+        return sigBpf(c[0], tvec(c.begin() + 1, c.begin() + 1 + n), tvec(c.begin() + 1 + n, c.end()));
     } else if (Tree tx, tc; isSigIRM(sig, tx, tc)) {
         // the input and the pole (the node reads its own past without a branch)
         Tree x = self(tx);

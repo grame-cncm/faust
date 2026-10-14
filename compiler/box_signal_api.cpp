@@ -1188,6 +1188,13 @@ LIBFAUST_API Tree CsigIRM(Tree x, Tree p)
     return sigIRM(x, p);
 }
 
+LIBFAUST_API Tree CsigBpf(Tree x, Tree* thresholds, Tree* regions)
+{
+    tvec t = array2list(thresholds);
+    tvec r = array2list(regions);
+    return sigBpf(x, t, r);
+}
+
 LIBFAUST_API bool CisSigNeg(Tree s, Tree* x_aux)
 {
     Tree x;
@@ -1286,6 +1293,19 @@ LIBFAUST_API bool CisSigPhase(Tree s, Tree* x_aux, Tree* p_aux)
     if (isSigPhase(s, x, p)) {
         *x_aux = x;
         *p_aux = p;
+        return true;
+    }
+    return false;
+}
+
+LIBFAUST_API bool CisSigBpf(Tree s, Tree* x_aux, Tree** thresholds_aux, Tree** regions_aux)
+{
+    Tree x;
+    tvec t, r;
+    if (isSigBpf(s, x, t, r)) {
+        *x_aux          = x;
+        *thresholds_aux = list2array(t);
+        *regions_aux    = list2array(r);
         return true;
     }
     return false;
