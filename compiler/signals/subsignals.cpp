@@ -260,7 +260,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         vsigs.push_back(x);
         vsigs.push_back(y);
         return 3;
-    } else if (isSigPhase(sig, x, y)) {
+    } else if (isSigPhase(sig, x, y) || isSigIRM(sig, x, y)) {
         vsigs.push_back(x);
         vsigs.push_back(y);
         return 2;

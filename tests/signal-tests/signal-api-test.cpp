@@ -33,6 +33,10 @@ int main()
     ok = ok && isSigNeg(neg, operand) && operand == input
             && isSigSum(nsum, terms) && terms.size() == 2 && terms[0] == input
             && isSigMix(mix, c, a, b) && a == input && b == integer;
+    // the infinite recursive mix IRM(x; p) : its input and its pole
+    Signal irm = sigIRM(input, sigReal(0.9));
+    Signal ix = nullptr, ip = nullptr;
+    ok = ok && isSigIRM(irm, ix, ip) && ix == input && !isSigIRM(mix, ix, ip);
     // simplifyToNormalForm of one signal returns the list of that signal : its first
     // branch is the signal in normal form
     Signal sum2 = sigAdd(sum, sigInput(1));

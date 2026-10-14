@@ -525,6 +525,11 @@ class interval_algebra : public FaustAlgebra<interval> {
     interval Prod(const std::vector<interval>& factors) const override;
     interval Fir(const interval& x, const std::vector<interval>& coefs) const override;
     interval Iir(const interval& x, const std::vector<interval>& coefs) const override;
+    // Irm(x, c) : the smallest of two intervals that hold 0 (the state before the first
+    // sample) and that the mix maps into themselves, Mix(c, x, Y) within Y : the hull of x
+    // and 0 widened by a margin, the power-of-two envelope ; anything, NaN included, for a
+    // pole beyond [0, 1] or an unbounded x
+    interval Irm(const interval& x, const interval& c) const override;
     void     testRint();
     // Public API: numeric round image; empty stays empty, and integer inputs
     // first convert to the target float. Results keep floating nature in every precision,
@@ -698,6 +703,9 @@ class interval_algebra : public FaustAlgebra<interval> {
     interval phaseDefinition(const interval& x, const interval& p) const;
     interval numericPhase(const interval& x, const interval& p) const;
     interval numericMix(const interval& c, const interval& a, const interval& b) const;
+    // numericMix with the rounding of either form of the interpolation (from a or from b)
+    interval numericMixAnyForm(const interval& c, const interval& a, const interval& b) const;
+    interval numericMixWeight(const interval& c, const interval& a, const interval& b, double w) const;
     interval numericRound(const interval& input) const;
     interval numericSelect2(const interval& x, const interval& y, const interval& z) const;
     interval numericSin(const interval& x) const;

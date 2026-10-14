@@ -1000,6 +1000,11 @@ class AffineOps : public Base {
         }
         return fromItv(fItv.Iir(toItv(x, fT), cs));
     }
+    AffItv Irm(const AffItv& x, const AffItv& c) const override
+    {
+        if (x.isEmpty() || c.isEmpty()) return aempty();
+        return fromItv(fItv.Irm(toItv(x, fT), toItv(c, fT))).withInvalid(x.mayBeInvalid || c.mayBeInvalid);
+    }
 
     // Public API: enclose Round over the horizon, retaining possible invalidity.
     AffItv Round(const AffItv& x) const override

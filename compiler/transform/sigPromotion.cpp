@@ -406,6 +406,13 @@ class SignalPromotionAlgebra : public TransformAlgebra {
         Tree fb = smartFloatCast(typeOf(b), b.out);
         return o(fBuild.Mix(fc, fa, fb));
     }
+    //--- the recursive mix is real : its input and its pole ------------------------------
+    XSig Irm(const XSig& x, const XSig& c) const override
+    {
+        Tree fx = smartFloatCast(typeOf(x), x.out);
+        Tree fc = smartFloatCast(typeOf(c), c.out);
+        return o(fBuild.Irm(fx, fc));
+    }
 
     XSig And(const XSig& x, const XSig& y) const override { return intArgs(kAND, x, y); }
     XSig Or(const XSig& x, const XSig& y) const override { return intArgs(kOR, x, y); }

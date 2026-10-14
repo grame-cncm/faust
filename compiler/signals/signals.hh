@@ -421,6 +421,16 @@ SIGS_API Tree sigTpt(Tree x);
 SIGS_API bool isSigTpt(Tree s, Tree& x);
 
 /*****************************************************************************
+                       The infinite recursive mix
+    IRM(x; c) is the signal y with y = mix(c, x, y@1) and y = 0 before the first
+    sample : a smoother of x whose pole is c (FaustAlgebra's Irm). The node reads
+    its own past without a branch, as an IIR does ; its children are x and c.
+*****************************************************************************/
+SIGS_API Tree sigIRM(Tree x, Tree c);
+SIGS_API bool isSigIRM(Tree s);
+SIGS_API bool isSigIRM(Tree s, Tree& x, Tree& c);
+
+/*****************************************************************************
                              Negation
     neg(x) = -x, the operation Neg of FaustAlgebra : the normal form writes a
     negation with it, instead of a product by -1.
