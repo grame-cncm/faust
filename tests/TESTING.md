@@ -495,6 +495,47 @@ library missing one referenced signal export, then one box export. Each
 corresponding client must fail at link time, including with optimisation
 enabled. Do not alter the library under test or suppress linker errors.
 
+## Gate 6 — canonicity of the normal form
+
+Run this gate when changing the normal form or the rules around it
+(`compiler/normalize/`, `compiler/transform/`, the reveals of mix, FIR and
+IIR, the interval rules of `compiler/signals/sighorizon.cpp`). The interval
+analysis, and the acceptance or refusal of a program, are computed on the
+normal form : equivalent writings of one computation should give the same
+normal form, or at least the same intervals, so that a program is not
+refused, or bounded less precisely, for the way it is written.
+
+`tests/canonical-tests/` holds one directory per family : its `.dsp` files
+are writings of the same computation, with the same controls and inputs
+clipped to [-1, 1] (unbounded inputs would make every interval infinite).
+`canonical.py` compares every writing with the first one (in name order) on
+the output of `faust -norm` :
+
+| status | meaning |
+| :--- | :--- |
+| `same` | the equations and their types are identical |
+| `intervals` | the equations differ ; the intervals of the outputs have the same bounds and validity (a different lsb is reported) |
+| `differs` | the intervals of the outputs differ |
+| `error` | the writing does not compile |
+
+`expected.tsv` records the status each writing is expected to reach, with
+the reason when it is not `same`. The gate fails when a writing does worse
+than expected ; a writing that does better is reported, and its
+expectation raised with `make update` (which keeps the reasons). The text
+of `-norm` depends only on the signal (names are numbered in the order of
+the equations), and it was checked identical for faust built by Apple
+clang, g++ 15 and clang 22.
+
+```sh
+make -C tests/canonical-tests check FAUST=<binary under test>
+make -C tests/canonical-tests update FAUST=<binary>   # after an improvement
+```
+
+The writings that use a library function (`si.smooth`, `fi.fir`,
+`it.interpolate_linear`) depend on the `libraries` sub-project ; the others
+are written out in Faust. The report starts with the `Source commit:` of the
+binary : read it first.
+
 ## Accepted failures
 
 A gate that does not know its legitimate failures stops at the first one
