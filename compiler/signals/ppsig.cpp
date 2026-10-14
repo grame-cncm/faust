@@ -402,6 +402,18 @@ ostream& ppsig::print(ostream& fout) const
         if (fPriority > pr) fout << ")";
     }
 
+    else if (isSigBpf(fSig)) {
+        // Bpf(x; t1, ..., tn; r0, ..., rn)
+        Tree x;
+        tvec t, r;
+        isSigBpf(fSig, x, t, r);
+        fout << "Bpf(" << ppsig(x, fEnv, 0, fMaxSize, fNames) << "; ";
+        for (size_t k = 0; k < t.size(); k++) fout << (k ? ", " : "") << ppsig(t[k], fEnv, 0, fMaxSize, fNames);
+        fout << "; ";
+        for (size_t k = 0; k < r.size(); k++) fout << (k ? ", " : "") << ppsig(r[k], fEnv, 0, fMaxSize, fNames);
+        fout << ')';
+    }
+
     else if (isSigFIR(fSig) || isSigIIR(fSig) || isSigIRM(fSig)) {
         // FIR(x; c0, c1, ...), IIR(x; c1, ...) and IRM(x; c) : the source, then the
         // coefficients
@@ -689,6 +701,18 @@ ostream& ppsigShared::print(ostream& fout) const
             }
         };
         SIG_INSERT_ID(chain(s));
+    } else if (isSigBpf(fSig)) {
+        auto bpf = [&](std::ostream& o) {
+            Tree x;
+            tvec t, r;
+            isSigBpf(fSig, x, t, r);
+            o << "Bpf(" << ppsigShared(x, fEnv, 0) << "; ";
+            for (size_t k = 0; k < t.size(); k++) o << (k ? ", " : "") << ppsigShared(t[k], fEnv, 0);
+            o << "; ";
+            for (size_t k = 0; k < r.size(); k++) o << (k ? ", " : "") << ppsigShared(r[k], fEnv, 0);
+            o << ')';
+        };
+        SIG_INSERT_ID(bpf(s));
     } else if (isSigFIR(fSig) || isSigIIR(fSig) || isSigIRM(fSig)) {
         auto kernel = [&](std::ostream& o) {
             o << (isSigFIR(fSig) ? "FIR(" : isSigIIR(fSig) ? "IIR(" : "IRM(");

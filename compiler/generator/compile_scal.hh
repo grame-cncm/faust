@@ -237,6 +237,7 @@ class ScalarCompiler : public Compiler {
     std::string generateRecProj(Tree sig, Tree exp, int i);
     std::string generateGapSmoother(Tree c, Tree target, const std::string& ctype, Tree pole = nullptr);
     std::string generateIRM(Tree sig, Tree x, Tree p);
+    std::string generateBpf(Tree sig);
     void        generateRec(Tree sig, Tree var, Tree le);
 
     std::string generateIntCast(Tree sig, Tree x);

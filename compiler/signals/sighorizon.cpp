@@ -1020,6 +1020,58 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         return true;
     }
 
+    /// Bpf typed region by region : the expression of each region that x may reach,
+    /// evaluated with x restricted to the range of the region (closed : a sound hull of the
+    /// half-open range) ; a NaN x reaches the last region with x unrestricted
+    bool regionBpf(Tree sig, FixPointEvaluator<AffItv>& ev, AffItv& result) const
+    {
+        Tree x;
+        tvec t, rs;
+        if (!isSigBpf(sig, x, t, rs) || rs.size() != t.size() + 1) return false;
+        std::vector<double> th;
+        for (Tree ti : t) {
+            double k;
+            if (!constNum(ti, k)) return false;
+            th.push_back(k);
+        }
+        const interval ix = itv::toItv(ev.eval(x), fT);
+        if (ix.isEmpty()) return false;
+        auto known = fSelectReads.find(x);
+        if (known == fSelectReads.end()) {
+            known = fSelectReads.emplace(x, SelectReads()).first;
+            chainOf(x, known->second.keys, 0);
+        }
+        SelectReads& sr  = known->second;
+        AffItv       acc;
+        bool         any = false;
+        for (size_t i = 0; i < rs.size(); i++) {
+            const double lo   = (i == 0) ? -HUGE_VAL : th[i - 1];
+            const double hi   = (i == th.size()) ? HUGE_VAL : th[i];
+            const bool   last = (i == th.size());
+            const bool   inRange = ix.hi() >= lo && ix.lo() < hi;
+            AffItv       ri;
+            bool         reached = false;
+            if (inRange) {
+                Overrides ov;
+                narrowTo(x, interval(std::max(lo, ix.lo()), std::min(hi, ix.hi()), ix.lsb()), ov, ev, 0);
+                Overrides memo;
+                ri      = itv::toItv(ov[x], fT).isEmpty() ? itv::aempty() : evalUnder(rs[i], ov, ev, sr, memo);
+                reached = !ri.isEmpty();
+            }
+            if (last && ix.mayBeInvalid()) {
+                const AffItv u = ev.eval(rs[i]);
+                ri             = reached ? itv::ajoin(ri, u, fT) : u;
+                reached        = true;
+            }
+            if (!reached) continue;
+            acc = any ? itv::ajoin(acc, ri, fT) : ri;
+            any = true;
+        }
+        if (!any) return false;
+        result = acc;
+        return true;
+    }
+
     /// select2 typed under its condition, or nothing
     bool guardedSelect(Tree sig, const std::vector<AffItv>& c, FixPointEvaluator<AffItv>& ev,
                        AffItv& result) const
@@ -1454,6 +1506,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         AffItv r;
         if (exactRemainder(sig, c, ev, r)) return r;
         if (guardedSelect(sig, c, ev, r)) return r;
+        if (isSigBpf(sig) && regionBpf(sig, ev, r)) return r;
         if (rotationBody(sig, ev, r)) return r;
         if (isSigIIR(sig) && firstOrderMix(sig, c, ev, r)) return r;
         if (isSigIIR(sig) && integerAccumulator(sig, c, r)) return r;
