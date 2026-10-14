@@ -138,6 +138,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");
     checkCertificates();  // a program bounded for less than 10 seconds is refused
+    checkLightTypes(L2);  // FAUST_CHECK_LIGHT_TYPES : the light typing against the certified one
 
     startTiming("sharingAnalysis");
     sharingAnalysis(L2, fSharingKey);  // Annotate L2 with sharing count
