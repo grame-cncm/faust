@@ -101,6 +101,7 @@ explicit request.
 | code that creates trees (`tree(...)`, `sigXxx(...)`, `boxXxx(...)`, fresh names) | Gate 3, determinism (`make -C tests/determinism lint`, then `check`) |
 | table accesses, delay lines, the interval library, casts to integers | Gate 4, memory safety |
 | public libfaust Signal/Box APIs, symbol visibility, or library build definitions | Gate 5, complete C++ Signal and Box API links against shared libfaust |
+| the normal form or its rules (`normalize/`, `transform/`, the reveals, the interval rules of `sighorizon.cpp`) | Gate 6, canonicity : `make -C tests/canonical-tests check` |
 
 Commands, expected results and accepted failures are in TESTING.md, one
 section per gate. Do not stop at the first gate that passes.

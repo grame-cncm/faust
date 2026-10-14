@@ -1,0 +1,16 @@
+# family	writing	status (same, intervals, differs)	reason
+delayed-sum	b-shuffled.dsp	same	
+delayed-sum	c-right.dsp	same	
+delayed-sum	d-grouped.dsp	same	
+delayed-sum	e-lib-fir.dsp	same	
+interpolation	b-from-a.dsp	intervals	a + c (b - a) is not revealed as mix (the reveal was withdrawn for the TPT filters) ; the interpolation rule of the analysis gives it the same bounds
+interpolation	c-from-b.dsp	differs	b - (1 - c) (b - a) is neither revealed nor bounded : the interpolation rule reads A + c (B - A) only
+interpolation	d-commuted.dsp	same	
+interpolation	e-lib-interpolate.dsp	intervals	it.interpolate_linear is written a + c (b - a) : see b-from-a
+scaled-sum	b-factored.dsp	same	
+scaled-sum	c-divided.dsp	same	
+scaled-sum	d-mem.dsp	same	
+smoother	b-interpolation.dsp	intervals	y' + c (x - y') is not revealed as mix ; the interpolation rule of the analysis gives it the same bounds
+smoother	c-convex.dsp	same	
+smoother	d-from-target.dsp	differs	x - (1 - c) (x - y') is neither revealed nor bounded : x and y' read twice, the probe fails
+smoother	e-lib-smooth.dsp	same	
