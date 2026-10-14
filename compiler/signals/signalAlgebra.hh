@@ -118,6 +118,8 @@ class SignalDispatch : public FaustAlgebra<V> {
         }
         return acc;
     }
+    /// y = mix(c, x, y@1), y replaced by x in the feedback read, as for the IIR
+    V irmFeedforward(const V& x, const V& c) const { return this->Mix(c, x, this->Delay(x, this->IntNum(1))); }
 
 
     virtual V combine(Tree sig, const std::vector<V>& c, FixPointEvaluator<V>& ev) const;
@@ -396,6 +398,7 @@ V SignalDispatch<V>::combine(Tree sig, const std::vector<V>& c,
             case sigs::SignalOpcode::Neg: return this->Neg(c[0]);
             case sigs::SignalOpcode::Prod: return this->Prod(c);
             case sigs::SignalOpcode::Phase: return this->Phase(c[0], c[1]);
+            case sigs::SignalOpcode::Irm: return this->Irm(c[0], c[1]);
 
             case sigs::SignalOpcode::Count: break;  // not a constructor
         }

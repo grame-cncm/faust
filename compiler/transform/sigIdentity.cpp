@@ -216,6 +216,10 @@ Tree SignalIdentity::transformation(Tree sig)
             c[k] = self(c[k]);
         }
         return sigIIR(c);
+    } else if (Tree tx, tc; isSigIRM(sig, tx, tc)) {
+        // the input and the pole (the node reads its own past without a branch)
+        Tree x = self(tx);
+        return sigIRM(x, self(tc));
     } else if (Tree tx; isSigTemp(sig, tx)) {
         return sigTemp(self(tx));
     } else if (Tree tx; isSigNeg(sig, tx)) {

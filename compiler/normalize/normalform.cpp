@@ -601,6 +601,11 @@ static Tree simplifyToNormalFormAux(Tree LS)
     L3 = revealIIR(L3);
     endTiming("IIR revealer");
 
+    // the smoothers y = mix(c, x, y@1) become IRM nodes, bounded by an invariant of the mix
+    startTiming("IRM revealer");
+    L3 = revealIRM(L3);
+    endTiming("IRM revealer");
+
     // Annotate L3 with type information
     startTiming("L3 typeAnnotation");
     typeAnnotation(L3, gGlobal->gLocalCausalityCheck);

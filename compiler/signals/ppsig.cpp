@@ -402,9 +402,10 @@ ostream& ppsig::print(ostream& fout) const
         if (fPriority > pr) fout << ")";
     }
 
-    else if (isSigFIR(fSig) || isSigIIR(fSig)) {
-        // FIR(x; c0, c1, ...) and IIR(x; c1, ...) : the source, then the coefficients
-        fout << (isSigFIR(fSig) ? "FIR(" : "IIR(");
+    else if (isSigFIR(fSig) || isSigIIR(fSig) || isSigIRM(fSig)) {
+        // FIR(x; c0, c1, ...), IIR(x; c1, ...) and IRM(x; c) : the source, then the
+        // coefficients
+        fout << (isSigFIR(fSig) ? "FIR(" : isSigIIR(fSig) ? "IIR(" : "IRM(");
         int k = 0;
         for (Tree b : fSig->branches()) {
             fout << (k == 0 ? "" : (k == 1 ? "; " : ", ")) << ppsig(b, fEnv, 0, fMaxSize, fNames);
@@ -688,9 +689,9 @@ ostream& ppsigShared::print(ostream& fout) const
             }
         };
         SIG_INSERT_ID(chain(s));
-    } else if (isSigFIR(fSig) || isSigIIR(fSig)) {
+    } else if (isSigFIR(fSig) || isSigIIR(fSig) || isSigIRM(fSig)) {
         auto kernel = [&](std::ostream& o) {
-            o << (isSigFIR(fSig) ? "FIR(" : "IIR(");
+            o << (isSigFIR(fSig) ? "FIR(" : isSigIIR(fSig) ? "IIR(" : "IRM(");
             int k = 0;
             for (Tree b : fSig->branches()) {
                 o << (k == 0 ? "" : (k == 1 ? "; " : ", ")) << ppsigShared(b, fEnv, 0);

@@ -228,6 +228,16 @@ Tree SignalRetimer::transformation(Tree sig)
         Tree res = sigRegister(1, sigMix(rx, ry, rz));
         fTiming[res] = tm + 1;
         return res;
+    } else if (isSigIRM(sig, x, y)) {
+        // the input and the pole aligned on the latest one, as for an IIR
+        Tree x2  = self(x);
+        Tree y2  = self(y);
+        int  tm  = std::max(fTiming[x2], fTiming[y2]);
+        Tree rx  = addRegisters(x2, tm - fTiming[x2]);
+        Tree ry  = addRegisters(y2, tm - fTiming[y2]);
+        Tree res = sigRegister(1, sigIRM(rx, ry));
+        fTiming[res] = tm + 1;
+        return res;
     } else if (tvec terms; isSigSum(sig, terms) || isSigProd(sig, terms)) {
         // the operands aligned on the latest one, as for a binary operation
         const bool sum = isSigSum(sig);

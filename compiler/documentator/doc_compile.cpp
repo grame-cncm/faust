@@ -219,6 +219,18 @@ string DocCompiler::generateCode(Tree sig, int priority)
     } else if (tvec iir; isSigIIR(sig, iir)) {
         printGCCall(sig, "generateIIR");
         return generateIIR(sig, iir, priority);
+    } else if (Tree ix, ip; isSigIRM(sig, ix, ip)) {
+        // IRM(x; p) : y(t) = (1 - p) x(t) + p y(t-1)
+        printGCCall(sig, "generateIRM");
+        int    sub   = gBinOpLateqTable[kSub]->fPriority;
+        int    mul   = gBinOpLateqTable[kMul]->fPriority;
+        string times = gBinOpLateqTable[kMul]->fName;
+        string y     = subst("y_{$0}", T(int(sig->serial())));
+        string w     = CS(ip, sub);
+        string sx    = CS(ix, mul);
+        string sp    = CS(ip, mul);
+        string def   = subst("\\left(1 - $0\\right) $1 $2 + $3 $1 $4(t-1)", w, times, sx, sp, y);
+        return generateCacheCode(sig, subst("$0 \\;\\mathrm{where}\\; $1(t) = $2", y, y, def));
     } else if (isSigNeg(sig, x)) {
         printGCCall(sig, "generateNeg");
         int mul = gBinOpLateqTable[kMul]->fPriority;

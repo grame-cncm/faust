@@ -58,4 +58,33 @@ inline bool isGapSmoother(Tree proj, Tree def, Tree& c, Tree& target)
     return ic.isValid() && ic.lo() > 0 && ic.hi() <= 1;
 }
 
+/**
+ * IRM(x; p), the smoother y = mix(p, x, y'), p its pole : the weight of x, 1 - p, when the
+ * normal form wrote the pole as the complement Sum(1, neg(w)) (the state of a TPT filter,
+ * p = 1 - 2g) : w, read as it is, exact ; nullptr otherwise.
+ */
+inline Tree irmInputWeight(Tree p)
+{
+    Tree w;
+    tvec ws;
+    if (isSigSum(p, ws) && ws.size() == 2 && isOne(ws[0]) && isSigNeg(ws[1], w)) {
+        return w;
+    }
+    return nullptr;
+}
+
+/**
+ * IRM(x; p) computed as its gap to x (see above) : real, x and p slower than the sample,
+ * p in [0, 1[ (the weight of x in ]0, 1]).
+ */
+inline bool isGapIRM(Tree sig, Tree x, Tree p)
+{
+    ::Type ts = getSigType(sig), tp = getSigType(p), tx = getSigType(x);
+    if (!ts || !tp || !tx || ts->nature() != kReal || tp->variability() == kSamp || tx->variability() == kSamp) {
+        return false;
+    }
+    const auto ip = tp->getInterval();
+    return ip.isValid() && ip.lo() >= 0 && ip.hi() < 1;
+}
+
 #endif

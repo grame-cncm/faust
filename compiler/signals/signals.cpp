@@ -1211,6 +1211,22 @@ SIGS_API bool isSigMix(Tree s, Tree& c, Tree& a, Tree& b)
     return isTree(s, sigs::g.SIGMIX, c, a, b);
 }
 
+// IRM(x; c) = y, y = mix(c, x, y@1)
+SIGS_API Tree sigIRM(Tree x, Tree c)
+{
+    return tree(sigs::g.SIGIRM, x, c);
+}
+
+SIGS_API bool isSigIRM(Tree s)
+{
+    return isTree(s, sigs::g.SIGIRM);
+}
+
+SIGS_API bool isSigIRM(Tree s, Tree& x, Tree& c)
+{
+    return isTree(s, sigs::g.SIGIRM, x, c);
+}
+
 // phase(x, p) = (x % p) / p
 SIGS_API Tree sigPhase(Tree x, Tree p)
 {
