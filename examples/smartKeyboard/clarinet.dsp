@@ -75,11 +75,11 @@ pitchShift = // calculate pitch shfit in function of "keys" combination
 ((kb0k0status==0)&(kb0k1status==0)&(kb0k2status==0)&(kb1k0status==0)&(kb1k1status==0)&(kb1k2status==0)&(kb1k3status==1))*(-12)+// C#
 ((kb0k0status==1)&(kb0k1status==1)&(kb0k2status==1)&(kb1k0status==1)&(kb1k1status==1)&(kb1k2status==1)&(kb1k3status==1))*(-13);
 // C
-octaveShiftUp = +(kb0k3status:ba.impulsify)~_;
-// counting up
-octaveShiftDown = +(kb1k4status:ba.impulsify)~_;
-// counting down
-octaveShift = (octaveShiftUp-octaveShiftDown)*(12);
+octaveUp = kb0k3status:ba.impulsify;
+octaveDown = kb1k4status:ba.impulsify;
+// counting the octave steps up and down, held within 4 octaves around the base pitch
+octaveSteps = (+(octaveUp-octaveDown) : max(-4) : min(4))~_;
+octaveShift = octaveSteps*(12);
 // tube length is just smoothed: could be improved
 tubeLength = basePitch+pitchShift+octaveShift:ba.midikey2hz:pm.f2l:si.smoo;
 bellOpening = 0.5;

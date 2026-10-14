@@ -227,7 +227,8 @@ legatoPole = select2(legatoButton, 0.5, ba.tau2pole(glide*exp(1.0f)/2.0f));
 keyFreqGlided = keyFreqBent:si.smooth(legatoPole);
 
 mmix = gmmg(vslider("[1] Mod. Mix [midi:ctrl 48] [style:knob] [tooltip: Modulation Mix: Osc3 (0) to Noise (1)]", 0.0, 0.0, 1.0, 0.001));
-oscNoiseModulation = (mmix*noise)+((1.0-mmix)*osc(3));
+// the modulation source, held within [-1, 1] (osc3 and the noise are nominally in it)
+oscNoiseModulation = ((mmix*noise)+((1.0-mmix)*osc(3))) : max(-1) : min(1);
 // noise amplitude and off-switch ignored here
 oscModEnable = dsg(vslider("[0] Osc. Mod. [midi:ctrl 22] [color:red] [style:knob] [tooltip:Oscillator Modulation adds Modulation Mix output to osc1&2 frequencies", 1, 0, 1, 1));
 // any offset?
