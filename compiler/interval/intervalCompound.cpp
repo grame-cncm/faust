@@ -188,6 +188,20 @@ interval interval_algebra::numericCfrac(const interval& x) const
 // unbounded operand), the mix is its definition.
 interval interval_algebra::numericMix(const interval& c, const interval& a, const interval& b) const
 {
+    const interval fc = detail::floatingOperand(c);
+    return numericMixWeight(c, a, b, fc.isEmpty() ? 0 : (mixFromB(fc) ? 1 - fc.lo() : fc.hi()));
+}
+
+// either form : the largest weight the difference may have in one of them
+interval interval_algebra::numericMixAnyForm(const interval& c, const interval& a, const interval& b) const
+{
+    const interval fc = detail::floatingOperand(c);
+    return numericMixWeight(c, a, b, fc.isEmpty() ? 0 : std::max(1 - fc.lo(), fc.hi()));
+}
+
+// w : the largest weight of the difference in the computation bounded
+interval interval_algebra::numericMixWeight(const interval& c, const interval& a, const interval& b, double weight) const
+{
     if (c.isEmpty() || a.isEmpty() || b.isEmpty()) return empty();
     const interval fc = detail::floatingOperand(c), fa = detail::floatingOperand(a),
                    fb = detail::floatingOperand(b);
@@ -202,7 +216,7 @@ interval interval_algebra::numericMix(const interval& c, const interval& a, cons
     }
     const double mag = std::max({std::abs(fa.lo()), std::abs(fa.hi()), std::abs(fb.lo()), std::abs(fb.hi())});
     const double u   = unitRoundoff();
-    const double w   = mixFromB(fc) ? 1 - fc.lo() : fc.hi();
+    const double w   = weight;
     const double W   = std::max(fa.hi(), fb.hi()) - std::min(fa.lo(), fb.lo());
     const double eps = ((2 * u + u * u) * w * W + u * mag) * (1 + std::ldexp(1.0, -20)) +
                        std::ldexp(1.0, -50) * mag + std::ldexp(1.0, -122);
@@ -214,6 +228,74 @@ interval interval_algebra::numericMix(const interval& c, const interval& a, cons
         rhi = std::min(rhi, M);
     }
     return interval(rlo, rhi, std::min({fc.lsb(), fa.lsb(), fb.lsb()}));
+}
+
+// Irm(x, c) = y, y(n) = mix(c, x(n), y(n - 1)), y(-1) = 0. An interval Y that holds 0 and
+// that the mix maps into itself, Mix(c, x, Y) within Y, holds every y(n) : y(-1) is in Y,
+// and y(n) is a mix of x(n) and of y(n - 1), in Y. Two such intervals are tried, and their
+// intersection, an invariant as well (the mix of intervals is monotone), is the result :
+//  - the hull of x and 0, widened on each side that may move by a margin doubled from one
+//    rounding of the result until the mix maps it into itself, then narrowed by
+//    bisection : the exact mix of values of Y moves a bound inwards by (1 - c) times its
+//    distance to x, which pays for the rounding once the margin reaches about one
+//    rounding divided by 1 - c ;
+//  - the power-of-two envelope of x and 0 (see numericMix), which needs no margin, for a
+//    pole that may reach 1.
+// The rounding is the one of either form of the interpolation, from x or from the state :
+// a code generator may choose one or the other (the weight of x is sometimes exact, the
+// pole computed from it is not). The result is then the image of the invariant by one more
+// mix : the samples are mixes of x and of a state in the invariant, the state 0 before the
+// first sample aside. A pole beyond [0, 1] (a recursion that may diverge) or an unbounded
+// x : anything, NaN included.
+interval interval_algebra::Irm(const interval& x, const interval& c) const
+{
+    if (x.isEmpty() || c.isEmpty()) return empty();
+    const bool     invalid  = x.mayBeInvalid() || c.mayBeInvalid();
+    const int      lsb      = std::min({x.lsb(), c.lsb(), -1});
+    const interval anything = interval(-HUGE_VAL, HUGE_VAL, lsb, true);
+    const interval fc = detail::floatingOperand(c), fx = detail::floatingOperand(x);
+    if (fc.lo() < 0 || fc.hi() > 1 || !fx.isBounded()) return anything;
+
+    const double lo0 = std::min(fx.lo(), 0.0), hi0 = std::max(fx.hi(), 0.0);
+    auto         invariant = [&](const interval& Y) {
+        const interval m = numericMixAnyForm(fc, fx, Y);
+        return !m.isEmpty() && m.lo() >= Y.lo() && m.hi() <= Y.hi();
+    };
+    interval best = anything;
+    // the hull with a margin : a bound at 0 that x does not cross stays there (the sign of
+    // the mix), the other ones move
+    const double mag  = std::max(std::abs(lo0), std::abs(hi0));
+    const bool   keepLo = fx.lo() >= 0, keepHi = fx.hi() <= 0;
+    double       m      = unitRoundoff() * mag + std::ldexp(1.0, -122);
+    auto widened = [&](double margin) {
+        return interval(keepLo ? lo0 : lo0 - margin, keepHi ? hi0 : hi0 + margin, lsb);
+    };
+    for (int k = 0; k < 64 && m <= mag; k++, m *= 2) {
+        if (invariant(widened(m))) {
+            // the smallest margin, within an eighth, between m / 2 (refused, or the first
+            // try) and m (accepted)
+            double refused = (k == 0) ? 0 : m / 2, accepted = m;
+            for (int j = 0; j < 3; j++) {
+                const double mid = (refused + accepted) / 2;
+                (invariant(widened(mid)) ? accepted : refused) = mid;
+            }
+            best = widened(accepted);
+            break;
+        }
+    }
+    // the power-of-two envelope, on the sides that may move ; met with the hull when both
+    // are invariants
+    if (const double M = mixEnvelope(mag); M > 0) {
+        const interval E(keepLo ? 0.0 : -M, keepHi ? 0.0 : M, lsb);
+        if (invariant(E)) {
+            best = std::isfinite(best.hi()) ? interval(std::max(best.lo(), E.lo()), std::min(best.hi(), E.hi()), lsb) : E;
+        }
+    }
+    if (!std::isfinite(best.lo()) || !std::isfinite(best.hi())) return anything;
+    // the samples themselves are mixes of x and of a state in the invariant : one more step
+    // (a smoother of a positive x is positive, the state 0 before the first sample aside)
+    const interval step = numericMixAnyForm(fc, fx, best);
+    return interval(std::max(best.lo(), step.lo()), std::min(best.hi(), step.hi()), lsb).withInvalid(invalid);
 }
 
 // Numeric kernel : x / (x + 1) is increasing on ]-1, +inf[, so for a finite x in that

@@ -198,6 +198,16 @@ void SuperNodeGraph::collectRefs(Tree t, std::set<int>& refs, std::set<int>& ref
         }
         return;
     }
+    if (Tree ix, ic; isSigIRM(t, ix, ic)) {
+        // the recursive mix reads ITSELF at delay 1, as an IIR of order 1
+        auto self = fMatIdx.find(t);
+        if (self != fMatIdx.end() && (fFreeDelay == 0 || 1 < fFreeDelay)) {
+            refs.insert(self->second);
+        }
+        collectRefs(ix, refs, refs0, seen, false);
+        collectRefs(ic, refs, refs0, seen, false);
+        return;
+    }
     if (tvec cs; isSigIIR(t, cs)) {
         // the kernel reads ITSELF delayed -- an implicit self loop that no
         // sigDelay child encodes (a recursive projection gets the same edge
@@ -558,6 +568,12 @@ int SuperNodeGraph::opsOfMember(int m) const
                 walk(cs[k], false);
             }
             walk(cs[0], false);
+            return;
+        }
+        if (Tree ix, ic; isSigIRM(t, ix, ic)) {
+            count += 3;  // the difference, the product, the add of the interpolation
+            walk(ix, false);
+            walk(ic, false);
             return;
         }
         if (tvec cs; isSigIIR(t, cs)) {

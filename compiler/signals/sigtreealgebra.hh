@@ -207,6 +207,7 @@ class SIGS_API TreeAlgebra : public SignalDispatch<Tree> {
         b.insert(b.end(), c.begin(), c.end());
         return tree(sigs::g.SIGIIR, b);
     }
+    Tree Irm(const Tree& x, const Tree& c) const override { return tree(sigs::g.SIGIRM, x, c); }
     Tree AssertBounds(const Tree& lo, const Tree& hi, const Tree& x) const override
     {
         return tree(sigs::g.SIGASSERTBOUNDS, lo, hi, x);

@@ -653,6 +653,7 @@ LIBFAUST_API bool CisSigSoundfileBuffer(Signal s, Signal* sf, Signal* chan, Sign
  * - CsigMix(c, a, b) = (1 - c)*a + c*b
  * - CsigTpt(x) = x/(x + 1)
  * - CsigPhase(x, p) = (x % p)/p
+ * - CsigIRM(x, p) = y, where y = (1 - p)*x + p*y@1 : the smoother of x whose pole is p
  *
  * The arrays are null terminated. The order of the operands of a sum or a product is their
  * association, for the interval analysis as for the generated code.
@@ -667,6 +668,7 @@ LIBFAUST_API Signal CsigCfrac(Signal x);
 LIBFAUST_API Signal CsigMix(Signal c, Signal a, Signal b);
 LIBFAUST_API Signal CsigTpt(Signal x);
 LIBFAUST_API Signal CsigPhase(Signal x, Signal p);
+LIBFAUST_API Signal CsigIRM(Signal x, Signal p);
 
 /**
  * Test the nodes of the normal form, and fill their operands. The operands of a sum, a
@@ -685,6 +687,7 @@ LIBFAUST_API bool CisSigCfrac(Signal s, Signal* x);
 LIBFAUST_API bool CisSigMix(Signal s, Signal* c, Signal* a, Signal* b);
 LIBFAUST_API bool CisSigTpt(Signal s, Signal* x);
 LIBFAUST_API bool CisSigPhase(Signal s, Signal* x, Signal* p);
+LIBFAUST_API bool CisSigIRM(Signal s, Signal* x, Signal* p);
 
 /**
  *  Simplify a signal to its normal form, where:

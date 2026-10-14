@@ -201,6 +201,7 @@ static string role(Tree sig, int i)
     if (isSigSum(sig) || isSigProd(sig)) return std::to_string(i + 1);
     if (isSigFIR(sig)) return i == 0 ? "x" : "c" + std::to_string(i - 1);
     if (isSigIIR(sig)) return i == 0 ? "x" : "c" + std::to_string(i);
+    if (isSigIRM(sig)) return i == 0 ? "x" : "p";
     if (isSigMix(sig, x, y, z)) return i == 0 ? "c" : (i == 1 ? "a" : "b");
     if (isSigPhase(sig, x, y)) return i == 0 ? "x" : "P";
     return "";
@@ -378,6 +379,8 @@ static string sigLabel(Tree sig)
         fout << "FIR";
     } else if (isSigIIR(sig)) {
         fout << "IIR";
+    } else if (isSigIRM(sig)) {
+        fout << "IRM";
     }
 
     else if (isSigControl(sig, x, y)) {

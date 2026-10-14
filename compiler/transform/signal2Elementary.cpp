@@ -218,7 +218,7 @@ void Signal2Elementary::visit(Tree sig)
     } else if (isSigMix(sig, c, x, y)) {
         self(c), self(x), self(y);
         return;
-    } else if (isSigPhase(sig, x, y)) {
+    } else if (isSigPhase(sig, x, y) || isSigIRM(sig, x, y)) {
         self(x), self(y);
         return;
     } else if (tvec terms; isSigSum(sig, terms) || isSigProd(sig, terms) || isSigFIR(sig, terms) ||
