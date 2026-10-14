@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 
+#include "global.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
 
@@ -120,10 +121,36 @@ V emitSum(Tree sig, const tvec& subs, Ops& ops)
 }
 
 /**
+ * A real factor whose literal in the precision of the generated code is exactly 1 : a
+ * product of constants folded in double can land a few ulps away from 1 (the gains of a
+ * normalized feedback matrix) and still be written 1.0f in single precision. The product by it is x itself, bit for bit, and is left out. Only the single
+ * and double precisions, whose literals are the rounding of the double value.
+ */
+inline bool isOneAtPrecision(Tree f)
+{
+    double v;
+    int    i;
+    if (isSigInt(f, &i)) {
+        return i == 1;
+    }
+    if (!isSigReal(f, &v)) {
+        return false;
+    }
+    if (gGlobal->gFloatSize == 1) {
+        return float(v) == 1.0f;
+    }
+    if (gGlobal->gFloatSize == 2) {
+        return v == 1.0;
+    }
+    return false;
+}
+
+/**
  * The code of Prod(f0, ..., fn), shared by the code generators : the chain
  * ((f0 * f1) * ...) * fn of the node, the association its interval follows ; a computed
  * prefix slower than the next factor and than the product is stored at its rate (the
- * normal form puts the slow factors first). Ops provides term(Tree), mul(V, V) and
+ * normal form puts the slow factors first). A factor that is 1 in the precision of the
+ * code is left out (isOneAtPrecision). Ops provides term(Tree), mul(V, V) and
  * store(int variability, V), the factors compiled in the order of the node.
  */
 template <class V, class Ops>
@@ -133,7 +160,21 @@ V emitProd(Tree sig, const tvec& factors, Ops& ops)
     V         acc{};
     int       variability = 0;
     int       count       = 0;  // factors in acc : two or more, an operation
+    // the factors that are not 1 ; a real product keeps a real factor, so that the code
+    // still computes in the real type (an int factor alone would make it an int expression)
+    const int nprod = getCertifiedSigType(sig)->nature();
+    tvec      kept;
+    bool      typed = false;
     for (Tree f : factors) {
+        if (!isOneAtPrecision(f)) {
+            kept.push_back(f);
+            typed = typed || getCertifiedSigType(f)->nature() == nprod;
+        }
+    }
+    if (kept.empty() || !typed) {
+        kept = factors;
+    }
+    for (Tree f : kept) {
         const int vf = getCertifiedSigType(f)->variability();
         if (count >= 2 && variability < vf && variability < vprod) {
             acc   = ops.store(variability, acc);
