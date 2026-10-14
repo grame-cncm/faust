@@ -40,6 +40,10 @@ Compile a list of FAUST signals into a C++ class.
 #include <string>
 
 #include "compile.hh"
+#include <vector>
+#include <unordered_set>
+#include "ppsig.hh"
+#include "sigattributes.hh"
 #include "exception.hh"
 #include "sigs-state.hh"
 #include "floats.hh"
@@ -92,6 +96,44 @@ string certifiedDuration(double samples)
     };
     return seconds(samples / 48000.0) + " seconds at 48000 Hz (" + seconds(samples / 192000.0) +
            " seconds at 192000 Hz)";
+}
+
+void checkLightTypes(Tree L)
+{
+    if (getenv("FAUST_CHECK_LIGHT_TYPES") == nullptr) {
+        return;
+    }
+    const ExactSolvers        exact(L);
+    std::unordered_set<Tree> seen;
+    std::vector<Tree>        work{L};
+    int                      signals = 0, differ = 0;
+    while (!work.empty()) {
+        Tree t = work.back();
+        work.pop_back();
+        if (!seen.insert(t).second) continue;
+        Tree var, body;
+        if (isRec(t, var, body)) {
+            if (body) work.push_back(body);
+            continue;
+        }
+        for (int i = 0; i < t->arity(); i++) work.push_back(t->branch(i));
+        ::Type ty = getSigType(t);
+        if (!ty) continue;
+        signals++;
+        const bool same = ty->nature() == exact.nature(t) && ty->variability() == exact.variability(t) &&
+                          ty->computability() == exact.computability(t) &&
+                          ty->vectorability() == exact.vectorability(t) && ty->boolean() == exact.booleanity(t);
+        if (!same) {
+            if (differ < 10) {
+                cerr << "light type differs : " << ty->nature() << "/" << exact.nature(t) << " "
+                     << ty->variability() << "/" << exact.variability(t) << " " << ty->computability() << "/"
+                     << exact.computability(t) << " " << ty->vectorability() << "/" << exact.vectorability(t)
+                     << " " << ty->boolean() << "/" << exact.booleanity(t) << " : " << ppsig(t, 10) << endl;
+            }
+            differ++;
+        }
+    }
+    cerr << "light types : " << signals << " signals, " << differ << " differ" << endl;
 }
 
 void checkCertificates()
