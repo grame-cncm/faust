@@ -637,7 +637,8 @@ Tree revealIIR(Tree L1)
 //----------------------------------------------------------------------
 //
 // A single-definition recursion y = mix(c, x, y@1) or mix(c, y@1, x), x and c free of y,
-// is the node IRM(x; p) : y = mix(p, x, y@1), p the pole, the weight of y@1 (c, or 1 - c
+// or an IIR of order 1 whose input carries the factor 1 - c of its coefficient c, is the
+// node IRM(x; p) : y = mix(p, x, y@1), p the pole, the weight of y@1 (c, or 1 - c
 // for the second writing). The two writings of a smoother reach one node, and its
 // interval is an invariant of the mix instead of the fixpoint of a recursion. The
 // external readings of the projection become readings of the node, as for an IIR ; x
@@ -668,6 +669,46 @@ static Tree complementWeight(Tree c)
     return sigSum({sigReal(1.0), sigNeg(c)});
 }
 
+// a and b are complements : one is Sum(1, neg(other)), the normal form's 1 - other
+static bool complements(Tree a, Tree b)
+{
+    tvec ws;
+    Tree x;
+    auto isOneMinus = [&](Tree s, Tree t) {
+        return isSigSum(s, ws) && ws.size() == 2 && isOne(ws[0]) && isSigNeg(ws[1], x) && x == t;
+    };
+    return isOneMinus(a, b) || isOneMinus(b, a);
+}
+
+// IIR(x; c) of order 1 whose input is (1 - c) * A : IRM(A; c), y = (1 - c) A + c y@1. The
+// IIR reveal reads the smoother whose target is 1, or whose input carries the weight, as a
+// linear recursion ; as a mix it is bounded by its target instead of its gain.
+static Tree iirAsIRM(Tree t)
+{
+    tvec v;
+    if (!isSigIIR(t, v) || v.size() != 2) {
+        return nullptr;
+    }
+    Tree x = v[0], c = v[1];
+    if (complements(x, c)) {
+        return sigIRM(sigReal(1.0), c);
+    }
+    tvec fs;
+    if (!isSigProd(x, fs)) {
+        return nullptr;
+    }
+    for (size_t k = 0; k < fs.size(); k++) {
+        if (!complements(fs[k], c)) continue;
+        tvec rest;
+        for (size_t j = 0; j < fs.size(); j++) {
+            if (j != k) rest.push_back(fs[j]);
+        }
+        Tree a = (rest.size() == 1) ? rest[0] : sigProd(rest);
+        return sigIRM(a, c);
+    }
+    return nullptr;
+}
+
 Tree revealIRM(Tree L1)
 {
     std::unordered_map<Tree, Tree> memo;
@@ -680,6 +721,9 @@ Tree revealIRM(Tree L1)
         int pz;
         if (Tree x, d, g; isSigDelay(rebuilt, x, d) && isZero(d) && !isProj(x, &pz, g)) {
             return x;
+        }
+        if (Tree m = iirAsIRM(rebuilt)) {
+            return m;
         }
         int  p;
         Tree rgroup, var, le;
