@@ -795,7 +795,9 @@ class IntCastPromotionAlgebra final : public TransformAlgebra {
                       << ppsig(fBuild.IntCast(x.orig), MAX_ERROR_SIZE) << endl;
                 gWarningMessages.push_back(error.str());
             }
-            Tree hi = sigReal(INT32_MAX);
+            // the largest value of the program below 2^31 : INT32_MAX itself is no float
+            // (it rounds to 2^31, which overflows) ; -2^31 is exact in every precision
+            Tree hi = sigReal(gGlobal->gFloatSize == 1 ? 2147483520.0 : double(INT32_MAX));
             Tree lo = sigMax(x.out, sigReal(INT32_MIN));
             return o(sigIntCast(sigMin(hi, lo)));
         }

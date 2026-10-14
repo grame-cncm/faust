@@ -644,8 +644,11 @@ static Tree simplifyToNormalFormAux(Tree LS)
         endTiming("L4 typeAnnotation");
     }
 
-    if (gGlobal->gCheckIntRange) {
-        // Check and generate safe float to integer range conversion
+    {
+        // A conversion to an integer saturates : a value that the analysis cannot place
+        // within the integers is clamped first, so that the conversion is always defined
+        // (a NaN is not removed by the clamp : its interval stays invalid). Always on ;
+        // -cir is kept as an option without further effect.
         startTiming("Safe float to integer conversion");
         L4 = signalIntCastPromote(L4);
         endTiming("Safe float to integer conversion");
