@@ -208,6 +208,13 @@ class SIGS_API TreeAlgebra : public SignalDispatch<Tree> {
         return tree(sigs::g.SIGIIR, b);
     }
     Tree Irm(const Tree& x, const Tree& c) const override { return tree(sigs::g.SIGIRM, x, c); }
+    Tree Bpf(const Tree& x, const std::vector<Tree>& t, const std::vector<Tree>& r) const override
+    {
+        tvec b{x};
+        b.insert(b.end(), t.begin(), t.end());
+        b.insert(b.end(), r.begin(), r.end());
+        return tree(sigs::g.SIGBPF, b);
+    }
     Tree AssertBounds(const Tree& lo, const Tree& hi, const Tree& x) const override
     {
         return tree(sigs::g.SIGASSERTBOUNDS, lo, hi, x);

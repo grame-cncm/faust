@@ -156,11 +156,16 @@ class FaustAlgebra
     //   Iir(x, c) = y, where y(n) = x(n) + sum_k c[k] * y(n - 1 - k) and y(n < 0) = 0
     //   Irm(x, c) = y, where y(n) = mix(c(n), x(n), y(n - 1)) and y(n < 0) = 0, the
     //               infinite recursive mix : a smoother of x whose pole is c
+    //   Bpf(x, t, r) = r[i] for t[i-1] <= x < t[i] (t[-1] = -inf, t[n] = +inf ; a NaN x
+    //               selects the last region) : the break-point function, a selection by
+    //               the position of x among increasing thresholds, r having one more
+    //               element than t
     virtual T Sum(const std::vector<T>& terms) const                = 0;
     virtual T Prod(const std::vector<T>& factors) const             = 0;
     virtual T Fir(const T& x, const std::vector<T>& coefs) const    = 0;
     virtual T Iir(const T& x, const std::vector<T>& coefs) const    = 0;
     virtual T Irm(const T& x, const T& c) const                     = 0;
+    virtual T Bpf(const T& x, const std::vector<T>& t, const std::vector<T>& r) const = 0;
 
     // Delays, Tables and SoundFiles
     virtual T Mem(const T& x) const = 0;

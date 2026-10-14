@@ -747,6 +747,8 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generateIIR(sig, iir);
     } else if (Tree ix, ip; isSigIRM(sig, ix, ip)) {
         return generateIRM(sig, ix, ip);
+    } else if (isSigBpf(sig)) {
+        return generateBpf(sig);
     } else if (isSigNeg(sig, x)) {
         return generateNeg(sig, x);
     } else if (isSigFrac(sig, x)) {
@@ -2843,6 +2845,28 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
         }
     }
     return writeIIRLine(sig, code, ctype, vname, mxd);
+}
+
+/**
+ * Bpf(x; t1, ..., tn; r0, ..., rn) : the chain of comparisons of ba.bpf, x computed once,
+ * x < t1 ? r0 : (x < t2 ? r1 : ... rn) ; the regions are computed as the branches of a
+ * select2.
+ */
+ValueInst* InstructionsCompiler::generateBpf(Tree sig)
+{
+    Tree x;
+    tvec t, r;
+    isSigBpf(sig, x, t, r);
+    std::vector<ValueInst*> vt, vr;
+    for (Tree ti : t) vt.push_back(CS(ti));
+    for (Tree ri : r) vr.push_back(CS(ri));
+    ValueInst* acc = vr.back();
+    for (size_t i = t.size(); i-- > 0;) {
+        ValueInst* vx   = compoundOperand(x);
+        ValueInst* cond = IB::genBinopInst(kLT, vx, vt[i]);
+        acc             = IB::genSelect2Inst(cond, vr[i], acc);
+    }
+    return generateCacheCode(sig, acc);
 }
 
 /**

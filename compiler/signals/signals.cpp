@@ -1227,6 +1227,30 @@ SIGS_API bool isSigIRM(Tree s, Tree& x, Tree& c)
     return isTree(s, sigs::g.SIGIRM, x, c);
 }
 
+// Bpf(x; t; r) : the children x, t1..tn, r0..rn
+SIGS_API Tree sigBpf(Tree x, const tvec& t, const tvec& r)
+{
+    tvec b{x};
+    b.insert(b.end(), t.begin(), t.end());
+    b.insert(b.end(), r.begin(), r.end());
+    return tree(sigs::g.SIGBPF, b);
+}
+
+SIGS_API bool isSigBpf(Tree s)
+{
+    return isTree(s, sigs::g.SIGBPF);
+}
+
+SIGS_API bool isSigBpf(Tree s, Tree& x, tvec& t, tvec& r)
+{
+    if (!isTree(s, sigs::g.SIGBPF)) return false;
+    const int n = (s->arity() - 2) / 2;
+    x           = s->branch(0);
+    t.assign(s->branches().begin() + 1, s->branches().begin() + 1 + n);
+    r.assign(s->branches().begin() + 1 + n, s->branches().end());
+    return true;
+}
+
 // phase(x, p) = (x % p) / p
 SIGS_API Tree sigPhase(Tree x, Tree p)
 {

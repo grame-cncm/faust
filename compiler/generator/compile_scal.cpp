@@ -5230,6 +5230,8 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateIIR(sig, V);
     } else if (Tree ix, ip; isSigIRM(sig, ix, ip)) {
         return generateIRM(sig, ix, ip);
+    } else if (isSigBpf(sig)) {
+        return generateBpf(sig);
     } else if (tvec subs; isSigSum(sig, subs)) {
         return generateSum(sig, subs);
     } else if (tvec fs; isSigProd(sig, fs)) {
@@ -6770,6 +6772,27 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
         }
     }
     return generateDelayVec(sig, code, ctype, vname, o->getMaxDelay(), o->getDelayCount());
+}
+
+/**
+ * Bpf(x; t1, ..., tn; r0, ..., rn) : the chain of comparisons of ba.bpf, x computed once,
+ * x < t1 ? r0 : (x < t2 ? r1 : ... rn) ; the regions are computed as the branches of a
+ * select2.
+ */
+string ScalarCompiler::generateBpf(Tree sig)
+{
+    Tree x;
+    tvec t, r;
+    isSigBpf(sig, x, t, r);
+    const std::string sx = compoundOperand(x);
+    std::vector<std::string> st, sr;
+    for (Tree ti : t) st.push_back(CS(ti));
+    for (Tree ri : r) sr.push_back(CS(ri));
+    std::string acc = sr.back();
+    for (size_t i = t.size(); i-- > 0;) {
+        acc = subst("(($0 < $1) ? $2 : $3)", sx, st[i], sr[i], acc);
+    }
+    return generateCacheCode(sig, acc);
 }
 
 /**

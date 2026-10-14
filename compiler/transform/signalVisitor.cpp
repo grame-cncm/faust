@@ -226,6 +226,9 @@ void SignalVisitor::visit(Tree sig)
     } else if (isSigPhase(sig, x, y) || isSigIRM(sig, x, y)) {
         self(x), self(y);
         return;
+    } else if (isSigBpf(sig)) {
+        for (Tree t : sig->branches()) self(t);
+        return;
     } else if (tvec terms; isSigSum(sig, terms) || isSigProd(sig, terms) || isSigFIR(sig, terms) ||
                            isSigIIR(sig, terms)) {
         for (Tree t : terms) self(t);
