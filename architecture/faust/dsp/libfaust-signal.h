@@ -752,6 +752,7 @@ LIBFAUST_API bool isSigSoundfileBuffer(Signal s, Signal& sf, Signal& chan, Signa
  * - sigMix(c, a, b) = (1 - c)*a + c*b
  * - sigTpt(x) = x/(x + 1)
  * - sigPhase(x, p) = (x % p)/p
+ * - sigIRM(x, p) = y, where y = (1 - p)*x + p*y@1 : the smoother of x whose pole is p
  *
  * The order of the operands of a sum or a product is their association, for the interval
  * analysis as for the generated code. The constructors build these nodes as they are, for
@@ -767,6 +768,7 @@ LIBFAUST_API Signal sigCfrac(Signal x);
 LIBFAUST_API Signal sigMix(Signal c, Signal a, Signal b);
 LIBFAUST_API Signal sigTpt(Signal x);
 LIBFAUST_API Signal sigPhase(Signal x, Signal p);
+LIBFAUST_API Signal sigIRM(Signal x, Signal p);
 
 /**
  * Test the nodes of the normal form, and fill their operands: the terms of a sum, the
@@ -784,6 +786,7 @@ LIBFAUST_API bool isSigCfrac(Signal s, Signal& x);
 LIBFAUST_API bool isSigMix(Signal s, Signal& c, Signal& a, Signal& b);
 LIBFAUST_API bool isSigTpt(Signal s, Signal& x);
 LIBFAUST_API bool isSigPhase(Signal s, Signal& x, Signal& p);
+LIBFAUST_API bool isSigIRM(Signal s, Signal& x, Signal& p);
 
 /**
  *  Simplify a signal to its normal form, where:
