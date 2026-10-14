@@ -46,6 +46,7 @@
 #include "signalVisitor.hh"
 #include "sigprint.hh"
 #include "gap_smoother.hh"
+#include "bpf_table.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
 #include "xtendedCodegen.hh"
@@ -2857,6 +2858,9 @@ ValueInst* InstructionsCompiler::generateBpf(Tree sig)
     Tree x;
     tvec t, r;
     isSigBpf(sig, x, t, r);
+    if (BpfTable tb; gGlobal->gMemoryManager < 1 && !gGlobal->gWaveformInDSP && bpfTableOf(sig, tb)) {
+        return generateBpfTable(sig, x, tb);
+    }
     std::vector<ValueInst*> vt, vr;
     for (Tree ti : t) vt.push_back(CS(ti));
     for (Tree ri : r) vr.push_back(CS(ri));
@@ -2867,6 +2871,93 @@ ValueInst* InstructionsCompiler::generateBpf(Tree sig)
         acc             = IB::genSelect2Inst(cond, vr[i], acc);
     }
     return generateCacheCode(sig, acc);
+}
+
+/**
+ * Bpf by its table of cells (bpf_table.hh) : constant static arrays, the region of x in
+ * constant time, then a[r] + b[r] * (xc - c[r]). The comparisons are selects of 1 or 0,
+ * whatever the backend's type of a comparison.
+ */
+ValueInst* InstructionsCompiler::generateBpfTable(Tree sig, Tree x, const BpfTable& tb)
+{
+    const Typed::VarType rtype = itfloat();
+    auto declareReals = [&](const std::vector<double>& v) {
+        const string name = subst("$0Bpf$1", fContainer->getClassName(), gGlobal->getFreshID("f"));
+        ValueInst*   arr  = IB::genArrayNumInst(rtype, int(v.size()));
+        if (rtype == Typed::kFloat) {
+            FloatArrayNumInst* fa = dynamic_cast<FloatArrayNumInst*>(arr);
+            faustassert(fa);
+            for (size_t k = 0; k < v.size(); k++) fa->setValue(int(k), float(v[k]));
+        } else {
+            DoubleArrayNumInst* da = dynamic_cast<DoubleArrayNumInst*>(arr);
+            faustassert(da);
+            for (size_t k = 0; k < v.size(); k++) da->setValue(int(k), v[k]);
+        }
+        pushGlobalDeclare(IB::genDecConstStaticStructVar(name, IB::genArrayTyped(rtype, int(v.size())), arr));
+        return name;
+    };
+    auto declareInts = [&](const std::vector<int>& v) {
+        const string       name = subst("$0Bpf$1", fContainer->getClassName(), gGlobal->getFreshID("i"));
+        Int32ArrayNumInst* ia   = dynamic_cast<Int32ArrayNumInst*>(IB::genArrayNumInst(Typed::kInt32, int(v.size())));
+        faustassert(ia);
+        for (size_t k = 0; k < v.size(); k++) ia->setValue(int(k), v[k]);
+        pushGlobalDeclare(IB::genDecConstStaticStructVar(name, IB::genArrayTyped(Typed::kInt32, int(v.size())), ia));
+        return name;
+    };
+    const string lo = declareReals(tb.lo), hi = declareReals(tb.hi);
+    const string a = declareReals(tb.a), b = declareReals(tb.b), c = declareReals(tb.c);
+    const string cell = declareInts(tb.cell);
+    const string use  = tb.u ? declareInts(tb.useU) : string();
+
+    BasicTyped* ftype = IB::genBasicTyped(rtype);
+    BasicTyped* itype = IB::genInt32Typed();
+    auto real   = [&](double v) { return IB::genRealNumInst(rtype, v); };
+    auto intv   = [&](int v) { return IB::genInt32NumInst(v); };
+    auto stackR = [&](const string& prefix, ValueInst* v) {
+        const string n = gGlobal->getFreshID(prefix);
+        pushComputeDSPMethod(IB::genDecStackVar(n, ftype, v));
+        return n;
+    };
+    auto stackI = [&](const string& prefix, ValueInst* v) {
+        const string n = gGlobal->getFreshID(prefix);
+        pushComputeDSPMethod(IB::genDecStackVar(n, itype, v));
+        return n;
+    };
+    auto loadR  = [&](const string& n) { return IB::genLoadStackVar(n); };
+    auto loadI  = [&](const string& n) { return IB::genLoadStackVar(n); };
+    auto one0   = [&](ValueInst* cond) { return IB::genSelect2Inst(cond, intv(1), intv(0)); };
+    auto lt     = [&](ValueInst* p, ValueInst* q) { return IB::genBinopInst(kLT, p, q); };
+    auto ge     = [&](ValueInst* p, ValueInst* q) { return IB::genBinopInst(kGE, p, q); };
+
+    // xc : x inside [t1, tn[, t1 outside or NaN (a finite value for the conversion below)
+    const string xs = stackR("fBpfS", compoundOperand(x));
+    const string xc = stackR("fBpfX", IB::genSelect2Inst(lt(loadR(xs), real(tb.t1)), real(tb.t1),
+                                                         IB::genSelect2Inst(lt(loadR(xs), real(tb.tn)), loadR(xs), real(tb.t1))));
+    // k : the cell, bounded by an integer test
+    ValueInst*   kf = IB::genBinopInst(kMul, IB::genBinopInst(kSub, loadR(xc), real(tb.t1)), real(tb.invh));
+    const string k0 = stackI("iBpfK", IB::genCastInst(kf, itype));
+    const string k1 = stackI("iBpfK", IB::genSelect2Inst(lt(loadI(k0), intv(tb.K)), loadI(k0), intv(tb.K - 1)));
+    // r : the region of the cell, corrected by the thresholds (twice up, once down)
+    const string r0 = stackI("iBpfR", IB::genLoadArrayStaticStructVar(cell, loadI(k1)));
+    const string r1 = stackI("iBpfR", IB::genBinopInst(kAdd, loadI(r0), one0(ge(loadR(xc), IB::genLoadArrayStaticStructVar(hi, loadI(r0))))));
+    const string r2 = stackI("iBpfR", IB::genBinopInst(kAdd, loadI(r1), one0(ge(loadR(xc), IB::genLoadArrayStaticStructVar(hi, loadI(r1))))));
+    const string r3 = stackI("iBpfR", IB::genBinopInst(kSub, loadI(r2), one0(lt(loadR(xc), IB::genLoadArrayStaticStructVar(lo, loadI(r2))))));
+    const string r  = stackI("iBpfR", IB::genSelect2Inst(lt(loadR(xs), real(tb.t1)), intv(0),
+                                                         IB::genSelect2Inst(lt(loadR(xs), real(tb.tn)), loadI(r3), intv(tb.n))));
+    // the variable of the region : x, or u inside [t1, tn[ (0 outside)
+    ValueInst* var = loadR(xc);
+    if (tb.u) {
+        const string uc = stackR("fBpfU", IB::genSelect2Inst(lt(loadR(xs), real(tb.t1)), real(0),
+                                                             IB::genSelect2Inst(lt(loadR(xs), real(tb.tn)), compoundOperand(tb.u), real(0))));
+        var = IB::genSelect2Inst(IB::genBinopInst(kNE, IB::genLoadArrayStaticStructVar(use, loadI(r)), intv(0)), loadR(uc), loadR(xc));
+    }
+    ValueInst* d = IB::genBinopInst(kSub, var, IB::genLoadArrayStaticStructVar(c, loadI(r)));
+    ValueInst* p = IB::genBinopInst(kMul, IB::genLoadArrayStaticStructVar(b, loadI(r)), d);
+    // the value in a variable : the text printers write a sum nested on the right without
+    // parentheses (y + (a + p) would become (y + a) + p in C) ; stored, it is a + p whatever
+    // adds it
+    ValueInst* v = IB::genBinopInst(kAdd, IB::genLoadArrayStaticStructVar(a, loadI(r)), p);
+    return setCompiledExpression(sig, generateVariableStore(sig, v));
 }
 
 /**

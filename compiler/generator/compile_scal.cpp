@@ -40,6 +40,7 @@
 #include "compile.hh"
 #include "compile_scal.hh"
 #include "gap_smoother.hh"
+#include "bpf_table.hh"
 #include "dlcodegen.hh"
 #include "floats.hh"
 #include "normalform.hh"
@@ -6784,6 +6785,9 @@ string ScalarCompiler::generateBpf(Tree sig)
     Tree x;
     tvec t, r;
     isSigBpf(sig, x, t, r);
+    if (BpfTable tb; bpfTableOf(sig, tb)) {
+        return generateBpfTable(sig, x, tb);
+    }
     const std::string sx = compoundOperand(x);
     std::vector<std::string> st, sr;
     for (Tree ti : t) st.push_back(CS(ti));
@@ -6793,6 +6797,59 @@ string ScalarCompiler::generateBpf(Tree sig)
         acc = subst("(($0 < $1) ? $2 : $3)", sx, st[i], sr[i], acc);
     }
     return generateCacheCode(sig, acc);
+}
+
+/**
+ * Bpf by its table of cells (bpf_table.hh) : static arrays of the class, the region of x in
+ * constant time, then a[r] + b[r] * (xc - c[r]).
+ */
+string ScalarCompiler::generateBpfTable(Tree sig, Tree x, const BpfTable& tb)
+{
+    const string ctype = ifloat();
+    auto declare       = [&](const string& type, const string& prefix, const vector<string>& values) {
+        const string name = subst("$0$1", prefix, getFreshID("Bpf"));
+        string       content;
+        for (size_t k = 0; k < values.size(); k++) content += (k ? "," : "{") + values[k];
+        content += "}";
+        fClass->addDeclCode(subst("static $0 \t$1[$2];", type, name, T(int(values.size()))));
+        fClass->getTopParentKlass()->addStaticFields(
+            subst("$0 \t$1::$2[$3] = ", type, fClass->getFullClassName(), name, T(int(values.size()))) + content + ";");
+        return name;
+    };
+    auto reals = [](const vector<double>& v) {
+        vector<string> s;
+        for (double d : v) s.push_back(realLiteral(d));
+        return s;
+    };
+    vector<string> cells, uses;
+    for (int k : tb.cell) cells.push_back(T(k));
+    for (int k : tb.useU) uses.push_back(T(k));
+    const string lo = declare(ctype, "f", reals(tb.lo)), hi = declare(ctype, "f", reals(tb.hi));
+    const string a = declare(ctype, "f", reals(tb.a)), b = declare(ctype, "f", reals(tb.b)), c = declare(ctype, "f", reals(tb.c));
+    const string cell = declare("int", "i", cells);
+    const string use  = tb.u ? declare("int", "i", uses) : string();
+    const string sx   = compoundOperand(x);
+    const string su   = tb.u ? compoundOperand(tb.u) : string();
+    const string t1 = realLiteral(tb.t1), tn = realLiteral(tb.tn);
+    const string xc = subst("f$0", getFreshID("BpfX")), k = subst("i$0", getFreshID("BpfK")),
+                 reg = subst("i$0", getFreshID("BpfR"));
+    const string cond = getConditionCode(sig);
+    fClass->addExecCode(Statement(cond, subst("$0 \t$1 = (($2 < $3) ? $3 : (($2 < $4) ? $2 : $3));", ctype, xc, sx, t1, tn)));
+    fClass->addExecCode(Statement(cond, subst("int \t$0 = int(($1 - $2) * $3);", k, xc, t1, realLiteral(tb.invh))));
+    fClass->addExecCode(Statement(cond, subst("$0 = (($0 < $1) ? $0 : $2);", k, T(tb.K), T(tb.K - 1))));
+    fClass->addExecCode(Statement(cond, subst("int \t$0 = $1[$2];", reg, cell, k)));
+    fClass->addExecCode(Statement(cond, subst("$0 += (($1 >= $2[$0]) ? 1 : 0);", reg, xc, hi)));
+    fClass->addExecCode(Statement(cond, subst("$0 += (($1 >= $2[$0]) ? 1 : 0);", reg, xc, hi)));
+    fClass->addExecCode(Statement(cond, subst("$0 -= (($1 < $2[$0]) ? 1 : 0);", reg, xc, lo)));
+    fClass->addExecCode(
+        Statement(cond, subst("$0 = (($1 < $2) ? 0 : (($1 < $3) ? $0 : $4));", reg, sx, t1, tn, T(tb.n))));
+    if (tb.u == nullptr) {
+        return generateCacheCode(sig, subst("($0[$1] + $2[$1] * ($3 - $4[$1]))", a, reg, b, xc, c));
+    }
+    // the regions written in u : u inside [t1, tn[, 0 outside (the outer regions are constants)
+    const string uc = subst("f$0", getFreshID("BpfU"));
+    fClass->addExecCode(Statement(cond, subst("$0 \t$1 = (($2 < $3) ? 0 : (($2 < $4) ? $5 : 0));", ctype, uc, sx, t1, tn, su)));
+    return generateCacheCode(sig, subst("($0[$1] + $2[$1] * ((($3[$1]) ? $4 : $5) - $6[$1]))", a, reg, b, use, uc, xc, c));
 }
 
 /**
