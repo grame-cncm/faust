@@ -431,6 +431,17 @@ SIGS_API bool isSigIRM(Tree s);
 SIGS_API bool isSigIRM(Tree s, Tree& x, Tree& c);
 
 /*****************************************************************************
+                       The break-point function
+    Bpf(x; t1, ..., tn; r0, ..., rn) is r0 for x < t1, ri for ti <= x < t(i+1), rn for
+    x >= tn and for a NaN x (every comparison false) : a selection by the position of x
+    among increasing constant thresholds (FaustAlgebra's Bpf). The children are x, the
+    thresholds, then the regions.
+*****************************************************************************/
+SIGS_API Tree sigBpf(Tree x, const tvec& t, const tvec& r);
+SIGS_API bool isSigBpf(Tree s);
+SIGS_API bool isSigBpf(Tree s, Tree& x, tvec& t, tvec& r);
+
+/*****************************************************************************
                              Negation
     neg(x) = -x, the operation Neg of FaustAlgebra : the normal form writes a
     negation with it, instead of a product by -1.
