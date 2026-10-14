@@ -1,12 +1,38 @@
 # family	writing	status (same, intervals, differs)	reason
+biquad	b-fir-then-iir.dsp	same	
+biquad	c-lib-tf2.dsp	intervals	fi.tf2 gives FIR(IIR(x)) (poles first), the difference equation IIR(FIR(x)) (zeros first) : the order of a cascade is not normalized
+biquad	d-lib-iir.dsp	intervals	fi.iir : as fi.tf2, FIR(IIR(x)) instead of IIR(FIR(x))
+boolean-weight	b-convex.dsp	intervals	(1 - g) a + g b is a mix, select2(g, a, b) a selection : equal for a boolean g, not identified
+boolean-weight	c-interpolation.dsp	intervals	a + g (b - a) : not revealed as mix : the reveal of an interpolation a + c (b - a) was withdrawn for the TPT filters
+decibels	b-exp.dsp	intervals	exp and pow are different functions, equal on the reals only : the intervals agree
+decibels	c-lib.dsp	same	
 delayed-sum	b-shuffled.dsp	same	
 delayed-sum	c-right.dsp	same	
 delayed-sum	d-grouped.dsp	same	
 delayed-sum	e-lib-fir.dsp	same	
+difference	b-times-minus-one.dsp	same	
+difference	c-negated.dsp	same	
+difference	d-plus-negation.dsp	same	
+factored-sum	b-factored.dsp	same	
+factored-sum	c-commuted.dsp	same	
+factored-sum	d-factor-last.dsp	same	
+fractional-delay	b-interpolation.dsp	intervals	x@n + frac(d) (x@(n+1) - x@n) : not revealed as mix : the reveal of an interpolation a + c (b - a) was withdrawn for the TPT filters
+fractional-delay	c-lib-interpolate.dsp	intervals	it.interpolate_linear writes a + c (b - a) : not revealed as mix : the reveal of an interpolation a + c (b - a) was withdrawn for the TPT filters
 interpolation	b-from-a.dsp	intervals	a + c (b - a) is not revealed as mix (the reveal was withdrawn for the TPT filters) ; the interpolation rule of the analysis gives it the same bounds
 interpolation	c-from-b.dsp	differs	b - (1 - c) (b - a) is neither revealed nor bounded : the interpolation rule reads A + c (B - A) only
 interpolation	d-commuted.dsp	same	
 interpolation	e-lib-interpolate.dsp	intervals	it.interpolate_linear is written a + c (b - a) : see b-from-a
+phase	b-floor.dsp	same	
+phase	c-fmod.dsp	differs	fmod(z, 1) of a nonnegative z is frac(z), not identified ; the interval of fmod is [0, 1], closed
+phase	d-lambda.dsp	same	
+product	b-right.dsp	same	
+product	c-signal-first.dsp	same	
+product	d-shuffled.dsp	same	
+quotient	b-reciprocal.dsp	same	
+quotient	c-reciprocal-first.dsp	same	
+scaled-smoother	b-scaled-output.dsp	differs	the smoother of d then scaled by SR is bounded [0, 384000] ; the reference mix(c, y', d SR) only [0, 389999.16] : the bound of a slow recursive mix is not tight
+scaled-smoother	c-interpolation.dsp	intervals	y' + c (d SR - y') : not revealed as mix : the reveal of an interpolation a + c (b - a) was withdrawn for the TPT filters ; the analysis rule gives the same bounds
+scaled-smoother	d-lib-smoo.dsp	same	
 scaled-sum	b-factored.dsp	same	
 scaled-sum	c-divided.dsp	same	
 scaled-sum	d-mem.dsp	same	
