@@ -800,6 +800,20 @@ static bool complementOf(Tree w, Tree& c)
 }
 
 /**
+ * g, a weight times sign, is a number outside ]0, 1[ : A + g * (B - A) is then an
+ * extrapolation (the state 2 * (s + v) - s of a TPT integrator is s + 2v), not a mix
+ */
+static bool extrapolates(const mterm& g, int sign)
+{
+    if (!g.factors().empty()) {
+        return false;
+    }
+    num k;
+    isNum(g.coefficient(), k);
+    return !(double(k) * sign > 0 && double(k) * sign < 1);
+}
+
+/**
  * An interpolation A + g * (B - A) is written mix(g, A, B) = (1 - g) * A + g * B : A, read
  * twice (as a term and, negated, in the difference), is read once, and the mix of a
  * weight g in [0, 1] lies between A and B. A is a term of the sum, g * S another one, S a
@@ -828,11 +842,12 @@ void aterm::extractLerps()
                         num ca, cu;
                         isNum(pa.second.coefficient(), ca);
                         isNum(mu.coefficient(), cu);
-                        if (double(ca + cu) == 0) {
+                        const mterm w = pg.second.withoutFactorsOf(mterm(q.first));
+                        if (double(ca + cu) == 0 && !extrapolates(w, 1)) {
                             ka = pa.first, kg = pg.first, s = q.first, inS = u, negated = false;
                             break;
                         }
-                        if (double(ca - cu) == 0 && pg.second.isNegative()) {
+                        if (double(ca - cu) == 0 && pg.second.isNegative() && !extrapolates(w, -1)) {
                             ka = pa.first, kg = pg.first, s = q.first, inS = u, negated = true;
                             break;
                         }
@@ -910,8 +925,11 @@ void aterm::extractMixSteps()
                 // k * mix(c, A, B) + (1 - k) * A
                 mterm rest(ma);
                 rest *= mterm(1.0 - double(cm));
+                mterm w(c);
+                w *= mterm(tm.coefficient());
                 for (const auto& pa : fSig2MTerms) {
-                    if (pa.first != pm.first && pa.second.isNotZero() && sameMonomial(rest, pa.second, 1)) {
+                    if (pa.first != pm.first && pa.second.isNotZero() && sameMonomial(rest, pa.second, 1) &&
+                        !extrapolates(w, 1)) {
                         km = pm.first, kg = pa.first, m = mn, s = nullptr;
                         break;
                     }
@@ -932,7 +950,14 @@ void aterm::extractMixSteps()
                                (sameMonomial(ma, u1, 1) && sameMonomial(mb, u0, -1))) {
                         sg = -1;
                     }
-                    if (sg == 0 || pg.second.withoutFactorsOf(mterm(q.first)).factors() != mc.factors()) continue;
+                    mterm g = pg.second.withoutFactorsOf(mterm(q.first));
+                    if (sg == 0 || g.factors() != mc.factors()) continue;
+                    if (sg < 0) {
+                        g *= mterm(-1);
+                    }
+                    mterm w(c);
+                    w += g;
+                    if (w.isNotZero() && extrapolates(w, 1)) continue;
                     km = pm.first, kg = pg.first, m = mn, s = q.first, sign = sg;
                     break;
                 }
