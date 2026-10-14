@@ -243,6 +243,7 @@ class InstructionsCompiler : public virtual Garbageable {
     ValueInst*         generateGapSmoother(Tree c, Tree target, BasicTyped* ctype, Tree pole = nullptr);
     ValueInst*         generateIRM(Tree sig, Tree x, Tree p);
     ValueInst*         generateBpf(Tree sig);
+    ValueInst*         generateBpfTable(Tree sig, Tree x, const struct BpfTable& tb);
     bool               reachesUnstoredRecMember(Tree t);
     std::vector<int> instantaneousMemberOrder(Tree sig, Tree le, const std::vector<bool>& used);
     virtual ValueInst* generatePrefix(Tree sig, Tree x, Tree e);
