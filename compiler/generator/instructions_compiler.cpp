@@ -745,6 +745,8 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generateFIR(sig, fir);
     } else if (tvec iir; isSigIIR(sig, iir)) {
         return generateIIR(sig, iir);
+    } else if (Tree ix, ip; isSigIRM(sig, ix, ip)) {
+        return generateIRM(sig, ix, ip);
     } else if (isSigNeg(sig, x)) {
         return generateNeg(sig, x);
     } else if (isSigFrac(sig, x)) {
@@ -2405,7 +2407,8 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
             ValueInst*          ccs = getConditionCode(nth(le, i));
             // a smoother of a slow target is computed as its gap to the target
             Tree       c, target;
-            ValueInst* def = (dynamic_cast<NullValueInst*>(ccs) && isGapSmoother(sigProj(i, sig), nth(le, i), c, target))
+            Tree       member = sigProj(i, sig);
+            ValueInst* def = (dynamic_cast<NullValueInst*>(ccs) && isGapSmoother(member, nth(le, i), c, target))
                                  ? generateGapSmoother(c, target, ctype[i])
                                  : CS(nth(le, i));
             if (index == i) {
@@ -2426,12 +2429,14 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
  * target (see gap_smoother.hh) : e = (1 - c) * (e' + (T - T')), y = T - e, 1 - c at the
  * rate of c ; the gap and the previous target are states, 0 at start.
  */
-ValueInst* InstructionsCompiler::generateGapSmoother(Tree c, Tree target, BasicTyped* ctype)
+ValueInst* InstructionsCompiler::generateGapSmoother(Tree c, Tree target, BasicTyped* ctype, Tree pole)
 {
+    // the pole 1 - c, or the pole itself when given (c is then nullptr)
     ValueInst* vt   = compoundOperand(target);
-    ValueInst* vc   = compoundOperand(c);
-    ValueInst* w    = compoundSlowStore(getCertifiedSigType(c)->variability(),
-                                        IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0), vc));
+    ValueInst* w    = pole ? compoundOperand(pole)
+                           : compoundSlowStore(getCertifiedSigType(c)->variability(),
+                                               IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0),
+                                                                compoundOperand(c)));
     string     gap  = subst("f$0", gGlobal->getFreshID("Gap"));
     string     prev = subst("f$0", gGlobal->getFreshID("GapTarget"));
     string     tmp  = subst("f$0", gGlobal->getFreshID("GapTemp"));
@@ -2789,6 +2794,55 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
         acc = IB::genBinopInst(sub ? kSub : kAdd, acc, term);
     }
     return writeIIRLine(sig, acc, ctype, vname, mxd);
+}
+
+/**
+ * IRM(x; p) = y, y = mix(p, x, y') : a gap smoother when x and p are slow (isGapIRM),
+ * otherwise an interpolation. When the normal form wrote the pole 1 - w (irmInputWeight),
+ * w is the exact weight of x : y' + w * (x - y'), the computation of the source (the state
+ * of a TPT filter, s + 2g (x - s)). Otherwise from the operand whose weight may be near 1,
+ * as generateMix : x + p * (y' - x) when p may be below 1/2, y' + (1 - p) * (x - y'), 1 - p
+ * exact, otherwise. The interval of the node bounds both forms (Irm). The value is stored
+ * in the node's line, read back at delay 1.
+ */
+ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
+{
+    int mxd = fOccMarkup->retrieve(sig)->getMaxDelay();
+    faustassert(mxd >= 1);
+    BasicTyped* ctype;
+    string      vname;
+    if (getVectorNameProperty(sig, vname)) {
+        ctype = genFloatType(getCertifiedSigType(sig));
+    } else {
+        getTypedNames(getCertifiedSigType(sig), "IRM", ctype, vname);
+        setVectorNameProperty(sig, vname);
+    }
+    Tree       w = irmInputWeight(p);
+    ValueInst* code;
+    if (dynamic_cast<NullValueInst*>(getConditionCode(sig)) && isGapIRM(sig, x, p)) {
+        code = w ? generateGapSmoother(w, x, ctype) : generateGapSmoother(nullptr, x, ctype, p);
+    } else {
+        ValueInst* prev = lineRead(vname, mxd, 1);
+        ValueInst* vx   = compoundOperand(x);
+        if (!w && !itv::mixFromB(getCertifiedSigType(p)->getInterval())) {
+            ValueInst* d = IB::genBinopInst(kSub, prev, vx);
+            code         = IB::genBinopInst(kAdd, vx, IB::genBinopInst(kMul, compoundOperand(p), d));
+        } else {
+            ValueInst* vw;
+            if (w) {
+                vw = compoundOperand(w);
+            } else {
+                const int vrp = getCertifiedSigType(p)->variability();
+                vw            = IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0), compoundOperand(p));
+                if (vrp != kSamp) {
+                    vw = compoundSlowStore(vrp, vw);  // 1 - p at the rate of p
+                }
+            }
+            ValueInst* d = IB::genBinopInst(kSub, vx, prev);
+            code         = IB::genBinopInst(kAdd, lineRead(vname, mxd, 1), IB::genBinopInst(kMul, vw, d));
+        }
+    }
+    return writeIIRLine(sig, code, ctype, vname, mxd);
 }
 
 /**

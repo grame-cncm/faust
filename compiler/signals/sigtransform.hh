@@ -280,6 +280,7 @@ class SIGS_API TransformAlgebra : public SignalDispatch<XSig> {
     {
         return o(fBuild.Iir(x.out, outs(c)));
     }
+    XSig Irm(const XSig& x, const XSig& c) const override { return o(fBuild.Irm(x.out, c.out)); }
 
     //--- extended primitives (per-op forms: ex-nihilo construction only) --------------
     XSig Abs(const XSig& x) const override { return o(fBuild.Abs(x.out)); }

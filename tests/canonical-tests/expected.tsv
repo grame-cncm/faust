@@ -30,7 +30,7 @@ product	c-signal-first.dsp	same
 product	d-shuffled.dsp	same	
 quotient	b-reciprocal.dsp	same	
 quotient	c-reciprocal-first.dsp	same	
-scaled-smoother	b-scaled-output.dsp	differs	the smoother of d then scaled by SR is bounded [0, 384000] ; the reference mix(c, y', d SR) only [0, 389999.16] : the bound of a slow recursive mix is not tight
+scaled-smoother	b-scaled-output.dsp	differs	the smoother of d then scaled by SR is bounded [0, 384000] ; the reference IRM(d SR; c) [0, 384304.7] : the margin of the invariant pays for the rounding over 1 - c, where the scaled form reaches the envelope of its target
 scaled-smoother	c-interpolation.dsp	same	
 scaled-smoother	d-lib-smoo.dsp	same	
 scaled-sum	b-factored.dsp	same	

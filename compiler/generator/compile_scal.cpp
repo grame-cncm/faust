@@ -5228,6 +5228,8 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateFIR(sig, V);
     } else if (tvec V; isSigIIR(sig, V)) {
         return generateIIR(sig, V);
+    } else if (Tree ix, ip; isSigIRM(sig, ix, ip)) {
+        return generateIRM(sig, ix, ip);
     } else if (tvec subs; isSigSum(sig, subs)) {
         return generateSum(sig, subs);
     } else if (tvec fs; isSigProd(sig, fs)) {
@@ -6185,7 +6187,7 @@ void ScalarCompiler::computeDisplayFrontier()
         // then orders its whole cone, kernel sources included), and the
         // stateless crown stays in the block-rate tail.
         bool stateful = isProj(t, &i, g) || isSigDelay(t, x, y) || isSigPrefix(t, x, y) ||
-                        isSigFIR(t, V) || isSigIIR(t, V);
+                        isSigFIR(t, V) || isSigIIR(t, V) || isSigIRM(t);
         if (stateful) {
             // the SCHEDULING root is the WRITER under the read : a delayed
             // read has no immediate edge to its writer, so rooting the
@@ -6708,11 +6710,13 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
  * target (see gap_smoother.hh) : e = (1 - c) * (e' + (T - T')), y = T - e, 1 - c at the
  * rate of c ; the gap and the previous target are states, 0 at start.
  */
-string ScalarCompiler::generateGapSmoother(Tree c, Tree target, const string& ctype)
+string ScalarCompiler::generateGapSmoother(Tree c, Tree target, const string& ctype, Tree pole)
 {
-    string vt   = compoundOperand(target);
-    string vc   = compoundOperand(c);
-    string w    = compoundSlowStore(getCertifiedSigType(c)->variability(), subst("($0 - $1)", realLiteral(1.0), vc));
+    // the pole 1 - c, or the pole itself when given (c is then nullptr)
+    string vt = compoundOperand(target);
+    string w  = pole ? compoundOperand(pole)
+                     : compoundSlowStore(getCertifiedSigType(c)->variability(),
+                                         subst("($0 - $1)", realLiteral(1.0), compoundOperand(c)));
     string gap  = subst("f$0", getFreshID("Gap"));
     string prev = subst("f$0", getFreshID("GapTarget"));
     string tmp  = subst("f$0", getFreshID("GapTemp"));
@@ -6724,6 +6728,48 @@ string ScalarCompiler::generateGapSmoother(Tree c, Tree target, const string& ct
     fClass->addExecCode(Statement("", subst("$0 = $1;", gap, tmp)));
     fClass->addExecCode(Statement("", subst("$0 = $1;", prev, vt)));
     return subst("($0 - $1)", vt, tmp);
+}
+
+/**
+ * IRM(x; p) = y, y = mix(p, x, y') : a gap smoother when x and p are slow (isGapIRM),
+ * otherwise an interpolation. When the normal form wrote the pole 1 - w (irmInputWeight),
+ * w is the exact weight of x : y' + w * (x - y'), the computation of the source (the state
+ * of a TPT filter, s + 2g (x - s)). Otherwise from the operand whose weight may be near 1,
+ * as generateMix : x + p * (y' - x) when p may be below 1/2, y' + (1 - p) * (x - y'), 1 - p
+ * exact, otherwise. The interval of the node bounds both forms (Irm). The value is stored
+ * in the node's line, read back at delay 1.
+ */
+string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
+{
+    Type         ty = getCertifiedSigType(sig);
+    Occurrences* o  = fOccMarkup->retrieve(sig);
+    faustassert(o);
+    std::string vname, ctype;
+    getTypedNames(ty, "IRM", ctype, vname);
+    Tree        w = irmInputWeight(p);
+    std::string code;
+    if (getConditionCode(sig).empty() && isGapIRM(sig, x, p)) {
+        code = w ? generateGapSmoother(w, x, ctype) : generateGapSmoother(nullptr, x, ctype, p);
+    } else {
+        std::string prev = generateDelayAccessRaw(sig, sig, 1);
+        std::string sx   = compoundOperand(x);
+        if (!w && !itv::mixFromB(getCertifiedSigType(p)->getInterval())) {
+            code = subst("($0 + $1 * ($2 - $0))", sx, compoundOperand(p), prev);
+        } else {
+            std::string sw;
+            if (w) {
+                sw = compoundOperand(w);
+            } else {
+                const int vrp = getCertifiedSigType(p)->variability();
+                sw            = subst("($0 - $1)", realLiteral(1.0), compoundOperand(p));
+                if (vrp != kSamp) {
+                    sw = compoundSlowStore(vrp, sw);  // 1 - p at the rate of p
+                }
+            }
+            code = subst("($0 + $1 * ($2 - $0))", prev, sw, sx);
+        }
+    }
+    return generateDelayVec(sig, code, ctype, vname, o->getMaxDelay(), o->getDelayCount());
 }
 
 /**

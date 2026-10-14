@@ -222,6 +222,12 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
         } else if (isSigPrefix(t, y, x)) {
             incOcc(env, v0, r0, 1, c0, x);
             incOcc(env, v0, r0, 0, c0, y);
+        } else if (Tree ix, ic; isSigIRM(t, ix, ic)) {
+            // IRM(X; C) : y = mix(C, X, y@1) -- the node reads ITSELF at delay 1, the
+            // input and the pole at delay 0
+            incOcc(env, v0, r0, 0, c0, ix);
+            incOcc(env, v0, r0, 0, c0, ic);
+            incOcc(env, v0, r0, 1, c0, t);
         } else if (tvec V; isSigIIR(t, V)) {
             // IIR[X,C1,...] : y = X + sum Ci*y@i -- the node reads ITSELF at
             // delays i (that sizes its own delay line), the input and the

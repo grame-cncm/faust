@@ -631,3 +631,104 @@ Tree revealIIR(Tree L1)
 
     return treeRewritePairedMemo(L1, pre, rule, memo, defRule);
 }
+
+//----------------------------------------------------------------------
+// The infinite recursive mix
+//----------------------------------------------------------------------
+//
+// A single-definition recursion y = mix(c, x, y@1) or mix(c, y@1, x), x and c free of y,
+// is the node IRM(x; p) : y = mix(p, x, y@1), p the pole, the weight of y@1 (c, or 1 - c
+// for the second writing). The two writings of a smoother reach one node, and its
+// interval is an invariant of the mix instead of the fixpoint of a recursion. The
+// external readings of the projection become readings of the node, as for an IIR ; x
+// and c are read through the memo of the rewrite. An x or a c that reads y back through
+// another recursion leaves y as it is : the smoother is a part of a larger loop.
+
+// t is y@1, y the projection self
+static bool isSelfDelay1(Tree t, Tree self)
+{
+    Tree x, d;
+    int  k;
+    return isSigDelay(t, x, d) && x == self && isSigInt(d, &k) && k == 1;
+}
+
+// 1 - c as the normal form writes a complement, Sum(1, neg(c)) : the code generators read
+// the weight c of the input back from it, exact (1 - (1 - c) would lose the precision of a
+// small c). The complement of a complement Sum(1, neg(t)) is t ; of a number, a number.
+static Tree complementWeight(Tree c)
+{
+    Tree x;
+    tvec ws;
+    if (isSigSum(c, ws) && ws.size() == 2 && isOne(ws[0]) && isSigNeg(ws[1], x)) {
+        return x;
+    }
+    if (isNum(c)) {
+        return simplify(sigSub(sigReal(1.0), c));
+    }
+    return sigSum({sigReal(1.0), sigNeg(c)});
+}
+
+Tree revealIRM(Tree L1)
+{
+    std::unordered_map<Tree, Tree> memo;
+
+    auto pre     = [](Tree) -> std::optional<Tree> { return std::nullopt; };
+    auto defRule = [](Tree, Tree rebuilt) -> Tree { return rebuilt; };
+
+    auto rule = [&](Tree orig, Tree rebuilt) -> Tree {
+        // a projection read at delay 0 that became an IRM : the IRM itself
+        int pz;
+        if (Tree x, d, g; isSigDelay(rebuilt, x, d) && isZero(d) && !isProj(x, &pz, g)) {
+            return x;
+        }
+        int  p;
+        Tree rgroup, var, le;
+        if (!(isProj(orig, &p, rgroup) && isRec(rgroup, var, le) && le && !isNil(le))) {
+            return rebuilt;
+        }
+        // an internal occurrence (the group is being rebuilt) stays a projection
+        if (auto it = memo.find(rgroup); it != memo.end()) {
+            Tree v2, b2;
+            if (isRec(it->second, v2, b2) && (b2 == nullptr)) {
+                return rebuilt;
+            }
+        }
+        if (len(le) != 1) {
+            return rebuilt;
+        }
+        Tree def = nth(le, p);
+        Tree c, a, b;
+        if (!isSigMix(def, c, a, b)) {
+            return rebuilt;
+        }
+        Tree x;
+        bool swapped;
+        if (isSelfDelay1(b, orig)) {
+            x = a, swapped = false;
+        } else if (isSelfDelay1(a, orig)) {
+            x = b, swapped = true;
+        } else {
+            return rebuilt;
+        }
+        if (containsSelf(x, orig) || containsSelf(c, orig)) {
+            return rebuilt;
+        }
+        std::set<Tree> seen;
+        for (Tree t : {x, c}) {
+            if (!t->isRecFree() && readsBack(t, orig, seen)) {
+                return rebuilt;
+            }
+        }
+        auto image = [&](Tree t) -> Tree {
+            auto it = memo.find(t);
+            return (it != memo.end()) ? it->second : nullptr;
+        };
+        Tree ix = image(x), ic = image(c);
+        if (ix == nullptr || ic == nullptr) {
+            return rebuilt;
+        }
+        return sigIRM(ix, swapped ? complementWeight(ic) : ic);
+    };
+
+    return treeRewritePairedMemo(L1, pre, rule, memo, defRule);
+}

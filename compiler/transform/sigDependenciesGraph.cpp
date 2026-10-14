@@ -83,6 +83,16 @@ void SigDependenciesGraph::visit(Tree t)
             fGraph.add(t, x, 1);
         }
         self(x);
+    } else if (Tree ix, ic; isSigIRM(t, ix, ic)) {
+        // IRM(X; C) : X and C are immediate dependencies ; the self-loop (full graph only)
+        // carries the delay 1 of the state
+        fGraph.add(t, ix, 0);
+        fGraph.add(t, ic, 0);
+        if (fFullGraph) {
+            fGraph.add(t, t, 1);
+        }
+        self(ix);
+        self(ic);
     } else if (tvec V; isSigIIR(t, V)) {
         // IIR[X,C1,...] : X and the non-zero coefficients are immediate
         // dependencies ; the self-loop (full graph only) carries the delay

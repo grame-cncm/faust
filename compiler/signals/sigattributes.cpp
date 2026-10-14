@@ -173,6 +173,7 @@ class NatureAlgebra : public SignalAlgebra<int> {
     int Prod(const std::vector<int>& t) const override { return prodDefinition(t); }
     int Fir(const int& x, const std::vector<int>& c) const override { return firDefinition(x, c); }
     int Iir(const int& x, const std::vector<int>& c) const override { return iirFeedforward(x, c); }
+    int Irm(const int& x, const int& c) const override { return irmFeedforward(x, c); }
     int Log(const int&) const override { return kReal; }
     int Log10(const int&) const override { return kReal; }
     int Pow(const int& x, const int& y) const override { return x | y; }
@@ -339,6 +340,7 @@ class VariabilityAlgebra : public SignalAlgebra<int> {
     int Prod(const std::vector<int>& t) const override { return prodDefinition(t); }
     int Fir(const int& x, const std::vector<int>& c) const override { return firDefinition(x, c); }
     int Iir(const int& x, const std::vector<int>& c) const override { return iirFeedforward(x, c); }
+    int Irm(const int& x, const int& c) const override { return irmFeedforward(x, c); }
     int Log(const int& x) const override { return x; }
     int Log10(const int& x) const override { return x; }
     int Pow(const int& x, const int& y) const override { return x | y; }
@@ -499,6 +501,7 @@ class ComputabilityAlgebra : public SignalAlgebra<int> {
     int Prod(const std::vector<int>& t) const override { return prodDefinition(t); }
     int Fir(const int& x, const std::vector<int>& c) const override { return firDefinition(x, c); }
     int Iir(const int& x, const std::vector<int>& c) const override { return iirFeedforward(x, c); }
+    int Irm(const int& x, const int& c) const override { return irmFeedforward(x, c); }
     int Log(const int& x) const override { return x; }
     int Log10(const int& x) const override { return x; }
     int Pow(const int& x, const int& y) const override { return x | y; }
@@ -663,6 +666,7 @@ class VectorabilityAlgebra : public SignalAlgebra<int> {
     int Prod(const std::vector<int>& t) const override { return prodDefinition(t); }
     int Fir(const int& x, const std::vector<int>& c) const override { return firDefinition(x, c); }
     int Iir(const int& x, const std::vector<int>& c) const override { return iirFeedforward(x, c); }
+    int Irm(const int& x, const int& c) const override { return irmFeedforward(x, c); }
     int Log(const int& x) const override { return x; }
     int Log10(const int& x) const override { return x; }
     int Pow(const int& x, const int& y) const override { return x | y; }
@@ -820,6 +824,7 @@ class BooleanAlgebra : public SignalAlgebra<int> {
     int Prod(const std::vector<int>& t) const override { return prodDefinition(t); }
     int Fir(const int& x, const std::vector<int>& c) const override { return firDefinition(x, c); }
     int Iir(const int& x, const std::vector<int>& c) const override { return iirFeedforward(x, c); }
+    int Irm(const int& x, const int& c) const override { return irmFeedforward(x, c); }
     int Log(const int& x) const override { return x; }
     int Log10(const int& x) const override { return x; }
     int Pow(const int& x, const int& y) const override { return x | y; }
