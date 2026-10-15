@@ -142,7 +142,8 @@ void checkCertificates()
         if (samples < 10 * 48000.0) {
             std::stringstream error;
             error << "ERROR : this program is certified for only " << certifiedDuration(samples) << " ("
-                  << reason << ") : at least 10 seconds at 48000 Hz are required" << endl;
+                  << reason << ") : at least 10 seconds at 48000 Hz are required" << endl
+                  << kIntervalRefusalHint;
             throw faustexception(error.str());
         }
     }
@@ -152,6 +153,16 @@ void checkCertificates()
                 "analysis does not bound : the certification of this program does not cover them"
              << endl;
     }
+}
+
+void dumpEquations(Tree L)
+{
+    try {
+        typeAnnotation(L, false);
+    } catch (faustexception&) {
+    }
+    ppsigEquations(L, cout);
+    throw faustexception("Dump normal form finished...\n");
 }
 
 Compiler::Compiler(const string& name, const string& super, int numInputs, int numOutputs, bool vec)
