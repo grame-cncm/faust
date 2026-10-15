@@ -15,7 +15,7 @@
 #include "signals.hh"
 
 /**
- * The exact weights of a program (by default ; -noxw keeps the products). The normal form
+ * The exact weights of a program (option -xw). The normal form
  * folds y - om * y into (1 - om) * y. When om is small, 1 - om rounded to the precision of
  * the code loses most of the digits of om : in single precision, the floats below 1 are
  * 6e-8 apart, and a weight om = 1.6e-7 is off by 12 % once 1 - om is rounded. The error

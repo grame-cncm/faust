@@ -528,7 +528,7 @@ void global::reset()
     gHasTeeLocal          = false;
     gMathApprox           = false;
     gShareSums            = true;
-    gExactWeights         = true;
+    gExactWeights         = false;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
@@ -2802,8 +2802,8 @@ string global::printHelp()
             "default they are factored by coefficient and their common sub-sums shared)."
          << endl;
     sstr << tab
-         << "-noxw       --no-exact-weights          keep the products (1 + w) * y of the normal form "
-            "(by default written y + w * y, w read exactly)."
+         << "-xw         --exact-weights             write the products (1 + w) * y of the normal form "
+            "as w * y + y, w read exactly (more precise, a little slower)."
          << endl;
     sstr << tab
          << "-noreprc    --no-reprc                  (Rust only) Don't force dsp struct layout to "
