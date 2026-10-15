@@ -29,6 +29,7 @@
 #include "floats.hh"
 #include "instructions.hh"
 #include "instructions_compiler.hh"
+#include "shareSums.hh"
 #include "instructions_compiler1.hh"
 #include "instructions_compiler_jax.hh"
 #include "interpreter_code_container.hh"
@@ -125,6 +126,13 @@ Tree InstructionsCompiler::prepare(Tree LS)
     // interval is a single value becomes that value (0*x with x bounded, cos(0*x))
     typeAnnotation(L1, true);
     Tree L2 = newConstantPropagation(L1);
+    if (gGlobal->gShareSums) {
+        // -shs : the dense sums factored by coefficient, their common sub-sums shared,
+        // before the certified typing, which bounds the rewritten program
+        startTiming("shareSums");
+        L2 = shareSums(L2);
+        endTiming("shareSums");
+    }
 
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);

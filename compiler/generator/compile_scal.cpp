@@ -39,6 +39,7 @@
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
+#include "shareSums.hh"
 #include "gap_smoother.hh"
 #include "bpf_table.hh"
 #include "dlcodegen.hh"
@@ -676,6 +677,13 @@ Tree ScalarCompiler::prepare(Tree LS)
     }
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);
+    if (gGlobal->gShareSums) {
+        // -shs : the dense sums factored by coefficient, their common sub-sums shared,
+        // before the certified typing, which bounds the rewritten program
+        startTiming("shareSums");
+        L2 = shareSums(L2);
+        endTiming("shareSums");
+    }
 
 
     // enable/control escape hatch for the standalone -lsum path : the sum

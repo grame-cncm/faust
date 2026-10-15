@@ -399,6 +399,7 @@ struct global {
     std::string gFastMathLib;  // -fm faster version of some mathematical functions (pow/exp/log),
                                // the fastmath code mapping file
     bool gMathApprox;  // -mapp option, simpler/faster versions of 'floor/fmod/remainder' functions
+    bool gShareSums;   // -shs option, the dense sums factored and their common sub-sums shared
     bool gNeedManualPow;     // If manual pow(x, y) generation when y is an integer is needed
     bool gRemoveVarAddress;  // If use of variable addresses (like &foo or &foo[n]) have to be
                              // removed
