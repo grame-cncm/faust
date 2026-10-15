@@ -686,8 +686,8 @@ Tree ScalarCompiler::prepare(Tree LS)
         endTiming("shareSums");
     }
     if (gGlobal->gExactWeights) {
-        // (1 + w) * y written y + w * y : a small w read exactly, not through 1 + w rounded
-        // (-noxw), before the certified typing
+        // -xw : (1 + w) * y written w * y + y, a small w read exactly, not through 1 + w
+        // rounded, before the certified typing
         startTiming("exactWeights");
         L2 = exactWeights(L2);
         endTiming("exactWeights");
