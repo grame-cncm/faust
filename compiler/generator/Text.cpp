@@ -35,6 +35,7 @@
 #include "compatibility.hh"
 #include "floats.hh"
 #include "global.hh"
+#include "sigtype.hh"
 
 using namespace std;
 
@@ -486,7 +487,8 @@ int pow2limit(int x, int def)
 {
     if (x > INT_MAX / 2) {
         throw faustexception("ERROR : too big delay value '" + std::to_string(x) +
-                             "' which cannot be implemented with a power-of-two delay line\n");
+                             "' which cannot be implemented with a power-of-two delay line\n" +
+                             kIntervalRefusalHint);
     }
 
     int n = def;

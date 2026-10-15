@@ -226,7 +226,8 @@ int checkDelayInterval(Type t)
     } else {
         stringstream error;
         error << "ERROR : invalid delay parameter range: " << i
-              << ". The range must be between 0 and INT_MAX" << endl;
+              << ". The range must be between 0 and INT_MAX" << endl
+              << kIntervalRefusalHint;
         tlib::error(error.str());
     }
 }
