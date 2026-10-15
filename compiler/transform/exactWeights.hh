@@ -15,11 +15,11 @@
 #include "signals.hh"
 
 /**
- * The exact weights of a program (option -xw). The normal form
- * folds y - om * y into (1 - om) * y. When om is small, 1 - om rounded to the precision of
- * the code loses most of the digits of om : in single precision, the floats below 1 are
- * 6e-8 apart, and a weight om = 1.6e-7 is off by 12 % once 1 - om is rounded. The error
- * is systematic : a smoother with that pole is that much too fast.
+ * The exact weights of a program (option -xw). The normal form folds y - om * y into
+ * (1 - om) * y. When om is small, 1 - om rounded to the precision of the code loses most of
+ * the digits of om : in single precision, the floats below 1 are 6e-8 apart, and a weight
+ * om = 1.6e-7 is off by 12 % once 1 - om is rounded. The error is systematic : a smoother
+ * with that pole is that much too fast.
  *
  * exactWeights rewrites a real product whose factor is 1 + w, w a signal, as w * P + P
  * (P the other factors ; -(om * P) + P when w = -om) : om is read exactly. In a sum, the
@@ -28,5 +28,9 @@
  * that may reach a decision (a delay amount, an integer conversion, an index) is left as
  * it is : P read twice widens its interval. The pass runs before the certified typing,
  * which bounds the rewritten program.
+ *
+ * It is not on by default. The rewriting adds an operation on the path of a recursion (2 to
+ * 7 % on a Karplus-Strong string bank) for a precision finer than the uncertainty of a
+ * weight set by a control ; its gain is the precision of si.smoothq, written for it.
  */
 Tree exactWeights(Tree L);
