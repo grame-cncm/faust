@@ -21,6 +21,7 @@
 
 #include <math.h>
 #include "Text.hh"
+#include "approxRound.hh"
 
 #include "floats.hh"
 #include "sigtyperules.hh"
@@ -43,17 +44,7 @@ class FloorPrim : public xtendedCodegen {
         if (isNum(args[0], n)) {
             return tree(floor(double(n)));
         } else {
-            if (gGlobal->gMathApprox) {
-                // r = T(int(n)); return (r == n) ? n : (n >= 0 ? r : r - 1); }
-                Tree r = sigFloatCast(sigIntCast(args[0]));
-                Tree isint = sigEQ(args[0], r);
-                Tree ispos = sigGE(args[0], sigInt(0));
-                Tree down  = sigSub(r, sigInt(1));
-                Tree round = sigSelect2(ispos, down, r);
-                return sigSelect2(isint, round, args[0]);
-            } else {
-                return tree(symbol(), args[0]);
-            }
+            return tree(symbol(), args[0]);
         }
     }
 
@@ -63,6 +54,10 @@ class FloorPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
+        // -mapp : the approximation, exact on the certified interval of x (approxRound.hh)
+        if (approxRoundApplies(types[0])) {
+            return genApproxRound(container, args.front(), false);
+        }
         return generateFun(container, subst("floor$0", isuffix()), args, result, types);
     }
 
@@ -72,6 +67,10 @@ class FloorPrim : public xtendedCodegen {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
+        if (approxRoundApplies(types[0])) {
+            klass->rememberNeedApproxRoundDef();
+            return subst("faust_floor_approx($0)", args[0]);
+        }
         return subst("floor$1($0)", args[0], isuffix());
     }
 
