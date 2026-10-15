@@ -112,15 +112,14 @@ Tree InstructionsCompiler::prepare(Tree LS)
         L1 = signalBool2IntPromote(L1);
     }
 
-    // dump normal form : the equations, with the types the typing gives them ; the checks
-    // that refuse a program are left out, so that a refused program is printed too
+    // -norm prints the certified program, typed below ; a program refused before is
+    // printed in its normal form
     if (gGlobal->gDumpNorm == 0) {
         try {
-            typeAnnotation(L1, false);
+            typeAnnotation(L1, true);
         } catch (faustexception&) {
+            dumpEquations(L1);
         }
-        ppsigEquations(L1, cout);
-        throw faustexception("Dump normal form finished...\n");
     }
 
     // The interval constant propagation, as in the ocpp compiler : a signal whose
@@ -150,6 +149,9 @@ Tree InstructionsCompiler::prepare(Tree LS)
     recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
     endTiming("recursivnessAnnotation");
 
+    if (gGlobal->gDumpNorm == 0) {
+        dumpEquations(L2);  // -norm : the program the certified typing bounds
+    }
     startTiming("L2 typeAnnotation");
     typeAnnotation(L2, true);  // Annotate L2 with type information and check causality
     endTiming("L2 typeAnnotation");

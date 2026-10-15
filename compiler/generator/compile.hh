@@ -74,6 +74,11 @@ void checkLightTypes(Tree L);
 /// (480000 samples) ; the developer is told the duration otherwise (main)
 void checkCertificates();
 
+/// -norm : the equations of L printed with the types the typing gives them, then the
+/// compilation stopped ; the checks that refuse a program are left out, so that a refused
+/// program is printed too
+[[noreturn]] void dumpEquations(Tree L);
+
 class Compiler : public virtual Garbageable {
    protected:
     Klass*       fClass;

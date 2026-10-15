@@ -347,6 +347,10 @@ Type checkInit(Type t);   ///< check that t is known at init time
 
 int checkDelayInterval(Type t);  ///< check if the interval of t is appropriate for a delay
 
+/// The last line of a refusal by the intervals : where to read them
+inline constexpr const char* kIntervalRefusalHint =
+    "        (the -norm option prints the program with the interval of each equation)\n";
+
 //--------------------------------------------------
 // Type conversion
 
