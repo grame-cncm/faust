@@ -678,7 +678,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     // No more table privatisation
     Tree L2 = newConstantPropagation(L1);
     if (gGlobal->gShareSums) {
-        // -shs : the dense sums factored by coefficient, their common sub-sums shared,
+        // the dense sums factored by coefficient, their common sub-sums shared (-noshs),
         // before the certified typing, which bounds the rewritten program
         startTiming("shareSums");
         L2 = shareSums(L2);

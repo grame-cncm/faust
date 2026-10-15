@@ -527,7 +527,7 @@ void global::reset()
     gUseDefaultSound      = true;
     gHasTeeLocal          = false;
     gMathApprox           = false;
-    gShareSums            = false;
+    gShareSums            = true;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
@@ -1731,6 +1731,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gShareSums = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-noshs", "--no-share-sums")) {
+            gShareSums = false;
+            i += 1;
+
         } else if (isCmd(argv[i], "-ns", "--namespace")) {
             gNamespace = argv[i + 1];
             i += 2;
@@ -2782,8 +2786,8 @@ string global::printHelp()
             "'floor/ceil/fmod/remainder' functions."
          << endl;
     sstr << tab
-         << "-shs        --share-sums                dense sums factored by coefficient, their "
-            "common sub-sums shared."
+         << "-noshs      --no-share-sums             keep the dense sums of the normal form (by "
+            "default they are factored by coefficient and their common sub-sums shared)."
          << endl;
     sstr << tab
          << "-noreprc    --no-reprc                  (Rust only) Don't force dsp struct layout to "
