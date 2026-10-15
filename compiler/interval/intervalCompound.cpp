@@ -192,15 +192,25 @@ interval interval_algebra::numericMix(const interval& c, const interval& a, cons
     return numericMixWeight(c, a, b, fc.isEmpty() ? 0 : (mixFromB(fc) ? 1 - fc.lo() : fc.hi()));
 }
 
-// either form : the largest weight the difference may have in one of them
+// any form : the largest weight the difference may have in an interpolation, and the
+// weighted sum
 interval interval_algebra::numericMixAnyForm(const interval& c, const interval& a, const interval& b) const
 {
     const interval fc = detail::floatingOperand(c);
-    return numericMixWeight(c, a, b, fc.isEmpty() ? 0 : std::max(1 - fc.lo(), fc.hi()));
+    return numericMixWeight(c, a, b, fc.isEmpty() ? 0 : std::max(1 - fc.lo(), fc.hi()), true);
 }
 
-// w : the largest weight of the difference in the computation bounded
-interval interval_algebra::numericMixWeight(const interval& c, const interval& a, const interval& b, double weight) const
+// w : the largest weight of the difference in the computation bounded. weightedSum : the
+// computation may also be the weighted sum fl(fl(w' a) + fl(c' b)) of a slow smoother, its
+// pole c' = fl(1 - w') computed from the weight w' it holds, or its weight w' = fl(1 - c')
+// computed from the pole : w' + c' differs from 1 by at most u, which moves the result by
+// u |a| or u |b| ; the two products and the sum round once each, about u (1 + w' + 1) times
+// the largest operand. In all, (4u + 4u^2) times it bounds the distance to the exact mix
+// (1 - c') a + c' b. The two envelopes hold as well : the products of nonnegative operands
+// are nonnegative, and with |a|, |b| <= M a power of two, w' M + c' M = (w' + c') M stays
+// below M (1 + u), the midpoint rounded to M.
+interval interval_algebra::numericMixWeight(const interval& c, const interval& a, const interval& b, double weight,
+                                            bool weightedSum) const
 {
     if (c.isEmpty() || a.isEmpty() || b.isEmpty()) return empty();
     const interval fc = detail::floatingOperand(c), fa = detail::floatingOperand(a),
@@ -218,8 +228,8 @@ interval interval_algebra::numericMixWeight(const interval& c, const interval& a
     const double u   = unitRoundoff();
     const double w   = weight;
     const double W   = std::max(fa.hi(), fb.hi()) - std::min(fa.lo(), fb.lo());
-    const double eps = ((2 * u + u * u) * w * W + u * mag) * (1 + std::ldexp(1.0, -20)) +
-                       std::ldexp(1.0, -50) * mag + std::ldexp(1.0, -122);
+    const double rnd = std::max((2 * u + u * u) * w * W + u * mag, weightedSum ? (4 * u + 4 * u * u) * mag : 0.0);
+    const double eps = rnd * (1 + std::ldexp(1.0, -20)) + std::ldexp(1.0, -50) * mag + std::ldexp(1.0, -122);
     double       rlo = lo - eps, rhi = hi + eps;
     if (fa.lo() >= 0 && fb.lo() >= 0) rlo = std::max(rlo, 0.0);
     if (fa.hi() <= 0 && fb.hi() <= 0) rhi = std::min(rhi, 0.0);
@@ -241,9 +251,10 @@ interval interval_algebra::numericMixWeight(const interval& c, const interval& a
 //    rounding divided by 1 - c ;
 //  - the power-of-two envelope of x and 0 (see numericMix), which needs no margin, for a
 //    pole that may reach 1.
-// The rounding is the one of either form of the interpolation, from x or from the state :
-// a code generator may choose one or the other (the weight of x is sometimes exact, the
-// pole computed from it is not). The result is then the image of the invariant by one more
+// The rounding is the one of any form of the computation, an interpolation from x or from
+// the state, or the weighted sum (1 - c) x + c y' of a slow smoother : a code generator may
+// choose one or the other (the weight of x is sometimes exact, the pole computed from it is
+// not). The result is then the image of the invariant by one more
 // mix : the samples are mixes of x and of a state in the invariant, the state 0 before the
 // first sample aside. A pole beyond [0, 1] (a recursion that may diverge) or an unbounded
 // x : anything, NaN included.
