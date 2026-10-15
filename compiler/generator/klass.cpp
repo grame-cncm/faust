@@ -53,6 +53,7 @@ using namespace std;
 static int gTaskCount = 0;
 
 bool Klass::fNeedPowerDef = false;
+bool Klass::fNeedApproxRoundDef = false;
 
 /**
  * Store the loop used to compute a signal
@@ -239,6 +240,18 @@ void Klass::printAdditionalCode(ostream& fout)
             "int)b); }"
          << endl;
     fout << "#endif" << endl;
+
+    if (fNeedApproxRoundDef) {
+        // -mapp : floor and ceil through the conversion to int, exact for |x| < 2^31 (the
+        // calls are emitted only there, see approxRound.hh)
+        fout << "#ifndef FAUSTAPPROXROUND" << endl;
+        fout << "#define FAUSTAPPROXROUND" << endl;
+        fout << "inline float faust_floor_approx(float x) { float r = float(int(x)); return (x == r) ? x : ((x >= 0.f) ? r : r - 1.f); }" << endl;
+        fout << "inline double faust_floor_approx(double x) { double r = double(int(x)); return (x == r) ? x : ((x >= 0.) ? r : r - 1.); }" << endl;
+        fout << "inline float faust_ceil_approx(float x) { float r = float(int(x)); return (x == r) ? x : ((x >= 0.f) ? r + 1.f : r); }" << endl;
+        fout << "inline double faust_ceil_approx(double x) { double r = double(int(x)); return (x == r) ? x : ((x >= 0.) ? r + 1. : r); }" << endl;
+        fout << "#endif" << endl;
+    }
 
     if (fNeedPowerDef) {
         // Add faustpower definition to C++ code
