@@ -245,18 +245,38 @@ class AffineOps : public Base {
 
     //--- casts ------------------------------------------------------------------------
     // Numeric kernel: enclose integer truncation; constant corridors use the ordinary
-    // rule, moving corridors add one unit of outward slack. A later hull caps
-    // integer claims at int32 limits; this does not define an invalid runtime cast.
+    // rule. A later hull caps integer claims at int32 limits; this does not define an
+    // invalid runtime cast. Truncation toward 0 is monotone, and moves a value by less
+    // than one unit toward 0 : down for a positive value, up for a negative one. So each
+    // line of a moving corridor is handled on its own : a constant line maps to its
+    // truncation ; a moving line keeps its slope, with one unit of slack only on the side
+    // the truncation can move it (none at the bottom of a corridor that stays negative,
+    // none at the top of a corridor that stays nonnegative).
     AffItv numericIntCast(const AffItv& x) const
     {
         if (x.isEmpty()) return aempty();
         if (x.isConst() || detail::intCastInvalid(toItv(x, fT)))
             return fromItv(fItv.IntCast(toItv(x, fT)));
-        // truncation keeps affinity with one unit of slack, and marks the chain integer
-        return {detail::usesNativeBounds() ? detail::directedBinary(
-                    detail::BinaryOp::Sub, x.a0, 1, detail::Direction::Down) : x.a0 - 1,
-                x.a1, detail::usesNativeBounds() ? detail::directedBinary(
-                    detail::BinaryOp::Add, x.b0, 1, detail::Direction::Up) : x.b0 + 1, x.b1, 0};
+        const bool nonneg = std::min(x.lo(0), x.lo(fT)) >= 0;  // the bottom line stays >= 0
+        const bool nonpos = std::max(x.hi(0), x.hi(fT)) <= 0;  // the top line stays <= 0
+        double     a0     = x.a0;
+        double     b0     = x.b0;
+        if (x.a1 == 0) {
+            a0 = double(saturatedIntCast(x.a0));
+        } else if (!nonpos) {
+            a0 = detail::usesNativeBounds()
+                     ? detail::directedBinary(detail::BinaryOp::Sub, x.a0, 1, detail::Direction::Down)
+                     : x.a0 - 1;
+        }
+        if (x.b1 == 0) {
+            b0 = double(saturatedIntCast(x.b0));
+        } else if (!nonneg) {
+            b0 = detail::usesNativeBounds()
+                     ? detail::directedBinary(detail::BinaryOp::Add, x.b0, 1, detail::Direction::Up)
+                     : x.b0 + 1;
+        }
+        // the chain is integer from here
+        return {a0, x.a1, b0, x.b1, 0};
     }
     AffItv numericBitCast(const AffItv& x) const
     { return c1(x, [this](const interval& a) { return fItv.BitCast(a); }); }
