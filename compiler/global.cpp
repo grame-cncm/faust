@@ -528,6 +528,7 @@ void global::reset()
     gHasTeeLocal          = false;
     gMathApprox           = false;
     gShareSums            = true;
+    gExactWeights         = true;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
@@ -915,6 +916,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gShareSums) {
         dst << "-shs ";
+    }
+    if (gExactWeights) {
+        dst << "-xw ";
     }
     if (gMathExceptions) {
         dst << "-me ";
@@ -1733,6 +1737,14 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-noshs", "--no-share-sums")) {
             gShareSums = false;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-xw", "--exact-weights")) {
+            gExactWeights = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-noxw", "--no-exact-weights")) {
+            gExactWeights = false;
             i += 1;
 
         } else if (isCmd(argv[i], "-ns", "--namespace")) {
@@ -2788,6 +2800,10 @@ string global::printHelp()
     sstr << tab
          << "-noshs      --no-share-sums             keep the dense sums of the normal form (by "
             "default they are factored by coefficient and their common sub-sums shared)."
+         << endl;
+    sstr << tab
+         << "-noxw       --no-exact-weights          keep the products (1 + w) * y of the normal form "
+            "(by default written y + w * y, w read exactly)."
          << endl;
     sstr << tab
          << "-noreprc    --no-reprc                  (Rust only) Don't force dsp struct layout to "
