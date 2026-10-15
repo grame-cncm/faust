@@ -50,6 +50,7 @@ class Klass {
     // we make it global because several classes may need
     // power def but we want the code to be generated only once
     static bool fNeedPowerDef;
+    static bool fNeedApproxRoundDef;  ///< -mapp : faust_floor_approx, faust_ceil_approx
 
     Klass*      fParentKlass;  ///< Klass in which this Klass is embedded, void if toplevel Klass
     std::string fKlassName;
@@ -156,6 +157,7 @@ class Klass {
     void addLibrary(const std::string& str) { fLibrarySet.insert(str); }
 
     void rememberNeedPowerDef() { fNeedPowerDef = true; }
+    void rememberNeedApproxRoundDef() { fNeedApproxRoundDef = true; }
 
     void collectIncludeFile(std::set<std::string>& S);
 
