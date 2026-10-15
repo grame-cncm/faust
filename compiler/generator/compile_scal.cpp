@@ -39,6 +39,7 @@
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_scal.hh"
+#include "exactWeights.hh"
 #include "shareSums.hh"
 #include "gap_smoother.hh"
 #include "bpf_table.hh"
@@ -683,6 +684,13 @@ Tree ScalarCompiler::prepare(Tree LS)
         startTiming("shareSums");
         L2 = shareSums(L2);
         endTiming("shareSums");
+    }
+    if (gGlobal->gExactWeights) {
+        // (1 + w) * y written y + w * y : a small w read exactly, not through 1 + w rounded
+        // (-noxw), before the certified typing
+        startTiming("exactWeights");
+        L2 = exactWeights(L2);
+        endTiming("exactWeights");
     }
 
 
