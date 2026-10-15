@@ -240,7 +240,6 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* writeIIRLine(Tree sig, ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd);
     std::string        delayLineName(Tree exp, int mxd, const char* prefix, ValueInst*& immediate);
     void               flushPendingDelayWrites();
-    ValueInst*         generateGapSmoother(Tree c, Tree target, BasicTyped* ctype, Tree pole = nullptr);
     ValueInst*         generateIRM(Tree sig, Tree x, Tree p);
     ValueInst*         generateBpf(Tree sig);
     ValueInst*         generateBpfTable(Tree sig, Tree x, const struct BpfTable& tb);

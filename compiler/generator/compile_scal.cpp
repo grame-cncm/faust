@@ -41,7 +41,7 @@
 #include "compile_scal.hh"
 #include "exactWeights.hh"
 #include "shareSums.hh"
-#include "gap_smoother.hh"
+#include "irm_weight.hh"
 #include "bpf_table.hh"
 #include "dlcodegen.hh"
 #include "floats.hh"
@@ -6717,43 +6717,15 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
         subst("// While its definition is of type $0", nameDelayType(analyzeDelayType(def))));
     DelayType   dtype = analyzeDelayType(sig);
     std::string cond  = getConditionCode(def);
-    // a smoother of a slow target is computed as its gap to the target
-    Tree        c, target;
-    std::string code = (cond.empty() && isGapSmoother(sig, def, c, target)) ? generateGapSmoother(c, target, ctype)
-                                                                          : CS(def);
+    std::string code = CS(def);
     std::string dl0  = generateDelayLine(dtype, ctype, vecname, delay, count, mono, code, cond);
 
     return dl0;
 }
 
 /**
- * The smoother y = mix(c, y', T) of a slow target, computed as its gap e = T - y to the
- * target (see gap_smoother.hh) : e = (1 - c) * (e' + (T - T')), y = T - e, 1 - c at the
- * rate of c ; the gap and the previous target are states, 0 at start.
- */
-string ScalarCompiler::generateGapSmoother(Tree c, Tree target, const string& ctype, Tree pole)
-{
-    // the pole 1 - c, or the pole itself when given (c is then nullptr)
-    string vt = compoundOperand(target);
-    string w  = pole ? compoundOperand(pole)
-                     : compoundSlowStore(getCertifiedSigType(c)->variability(),
-                                         subst("($0 - $1)", realLiteral(1.0), compoundOperand(c)));
-    string gap  = subst("f$0", getFreshID("Gap"));
-    string prev = subst("f$0", getFreshID("GapTarget"));
-    string tmp  = subst("f$0", getFreshID("GapTemp"));
-    fClass->addDeclCode(subst("$0 \t$1;", ctype, gap));
-    fClass->addDeclCode(subst("$0 \t$1;", ctype, prev));
-    fClass->addClearCode(subst("$0 = 0;", gap));
-    fClass->addClearCode(subst("$0 = 0;", prev));
-    fClass->addExecCode(Statement("", subst("$0 \t$1 = ($2 * ($3 + ($4 - $5)));", ctype, tmp, w, gap, vt, prev)));
-    fClass->addExecCode(Statement("", subst("$0 = $1;", gap, tmp)));
-    fClass->addExecCode(Statement("", subst("$0 = $1;", prev, vt)));
-    return subst("($0 - $1)", vt, tmp);
-}
-
-/**
- * IRM(x; p) = y, y = mix(p, x, y') : a gap smoother when x and p are slow (isGapIRM),
- * otherwise an interpolation. When the normal form wrote the pole 1 - w (irmInputWeight),
+ * IRM(x; p) = y, y = mix(p, x, y') : an interpolation. When the normal form wrote the pole
+ * 1 - w (irmInputWeight),
  * w is the exact weight of x : y' + w * (x - y'), the computation of the source (the state
  * of a TPT filter, s + 2g (x - s)). Otherwise from the operand whose weight may be near 1,
  * as generateMix : x + p * (y' - x) when p may be below 1/2, y' + (1 - p) * (x - y'), 1 - p
@@ -6769,26 +6741,22 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
     getTypedNames(ty, "IRM", ctype, vname);
     Tree        w = irmInputWeight(p);
     std::string code;
-    if (getConditionCode(sig).empty() && isGapIRM(sig, x, p)) {
-        code = w ? generateGapSmoother(w, x, ctype) : generateGapSmoother(nullptr, x, ctype, p);
+    std::string prev = generateDelayAccessRaw(sig, sig, 1);
+    std::string sx   = compoundOperand(x);
+    if (!w && !itv::mixFromB(getCertifiedSigType(p)->getInterval())) {
+        code = subst("($0 + $1 * ($2 - $0))", sx, compoundOperand(p), prev);
     } else {
-        std::string prev = generateDelayAccessRaw(sig, sig, 1);
-        std::string sx   = compoundOperand(x);
-        if (!w && !itv::mixFromB(getCertifiedSigType(p)->getInterval())) {
-            code = subst("($0 + $1 * ($2 - $0))", sx, compoundOperand(p), prev);
+        std::string sw;
+        if (w) {
+            sw = compoundOperand(w);
         } else {
-            std::string sw;
-            if (w) {
-                sw = compoundOperand(w);
-            } else {
-                const int vrp = getCertifiedSigType(p)->variability();
-                sw            = subst("($0 - $1)", realLiteral(1.0), compoundOperand(p));
-                if (vrp != kSamp) {
-                    sw = compoundSlowStore(vrp, sw);  // 1 - p at the rate of p
-                }
+            const int vrp = getCertifiedSigType(p)->variability();
+            sw            = subst("($0 - $1)", realLiteral(1.0), compoundOperand(p));
+            if (vrp != kSamp) {
+                sw = compoundSlowStore(vrp, sw);  // 1 - p at the rate of p
             }
-            code = subst("($0 + $1 * ($2 - $0))", prev, sw, sx);
         }
+        code = subst("($0 + $1 * ($2 - $0))", prev, sw, sx);
     }
     return generateDelayVec(sig, code, ctype, vname, o->getMaxDelay(), o->getDelayCount());
 }

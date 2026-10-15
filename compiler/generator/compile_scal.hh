@@ -235,7 +235,6 @@ class ScalarCompiler : public Compiler {
 
     bool        isSigSimpleRec(Tree sig);
     std::string generateRecProj(Tree sig, Tree exp, int i);
-    std::string generateGapSmoother(Tree c, Tree target, const std::string& ctype, Tree pole = nullptr);
     std::string generateIRM(Tree sig, Tree x, Tree p);
     std::string generateBpf(Tree sig);
     std::string generateBpfTable(Tree sig, Tree x, const struct BpfTable& tb);
