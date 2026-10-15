@@ -400,6 +400,7 @@ struct global {
                                // the fastmath code mapping file
     bool gMathApprox;  // -mapp option, simpler/faster versions of 'floor/fmod/remainder' functions
     bool gShareSums;   // the dense sums factored and their common sub-sums shared (default, -noshs)
+    bool gExactWeights;  // (1 + w) * y written y + w * y, w read exactly (default, -noxw)
     bool gNeedManualPow;     // If manual pow(x, y) generation when y is an integer is needed
     bool gRemoveVarAddress;  // If use of variable addresses (like &foo or &foo[n]) have to be
                              // removed
