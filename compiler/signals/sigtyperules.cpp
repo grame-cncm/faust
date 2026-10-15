@@ -87,7 +87,8 @@ static void checkPartInterval(Tree s, Type t)
         stringstream error;
         error << "ERROR : out of range soundfile part number (" << i << " instead of interval(0,"
               << MAX_SOUNDFILE_PARTS - 1 << ")) in expression : " << ppsig(s, MAX_ERROR_SIZE)
-              << endl;
+              << endl
+              << kIntervalRefusalHint;
         tlib::error(error.str());
     }
 }
@@ -105,7 +106,8 @@ static void checkDelayCausality(Tree s1, Tree s2, const interval& i1)
         st2 << ppsig(s2, MAX_ERROR_SIZE);
         error << "ERROR : can't compute the min and max values of : " << st2.str() << endl
               << "        used in delay expression : " << st1.str() << endl
-              << "        (probably a recursive signal)" << endl;
+              << "        (probably a recursive signal)" << endl
+              << kIntervalRefusalHint;
         tlib::error(error.str());
     } else if (i1.lo() < 0) {
         stringstream error, st1, st2;
@@ -114,7 +116,8 @@ static void checkDelayCausality(Tree s1, Tree s2, const interval& i1)
         st2 << ppsig(s2, MAX_ERROR_SIZE);
         error << "ERROR : possible negative values of : " << st2.str() << endl
               << "        used in delay expression : " << st1.str() << endl
-              << "        " << i1 << endl;
+              << "        " << i1 << endl
+              << kIntervalRefusalHint;
         tlib::error(error.str());
     }
 }
