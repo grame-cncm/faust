@@ -305,10 +305,10 @@ class TextInstVisitor : public InstVisitor {
             if (special(gBinOpTable[a->fOpcode]->fName)) {
                 // to silence warnings we add also parentheses to special arguments
                 return true;
-            } else if ((p0 < p1) || ((inst->fOpcode == a->fOpcode) &&
-                                     gBinOpTable[inst->fOpcode]->fAssociativity)) {
-                // no parentheses for higher priority right arguments or in case of associative
-                // operation
+            } else if (p0 < p1) {
+                // no parentheses for higher priority right arguments ; a right argument of the
+                // same operation keeps them : a + (b + c) is not (a + b) + c in floating point,
+                // and the order of the operands is the association the analysis bounded
                 return false;
             } else {
                 return true;
