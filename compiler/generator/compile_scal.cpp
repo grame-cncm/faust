@@ -6726,13 +6726,16 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
 }
 
 /**
- * IRM(x; p) = y, y = mix(p, x, y') : an interpolation. When the normal form wrote the pole
- * 1 - w (irmInputWeight),
- * w is the exact weight of x : y' + w * (x - y'), the computation of the source (the state
- * of a TPT filter, s + 2g (x - s)). Otherwise from the operand whose weight may be near 1,
- * as generateMix : x + p * (y' - x) when p may be below 1/2, y' + (1 - p) * (x - y'), 1 - p
- * exact, otherwise. The interval of the node bounds both forms (Irm). The value is stored
- * in the node's line, read back at delay 1.
+ * IRM(x; p) = y, y = mix(p, x, y'). A slow smoother (x and p computed at most once per
+ * block) is the weighted sum w * x + p * y' of the source (si.smooth), w * x at the rate of
+ * x and p, w the weight of x when the normal form wrote the pole 1 - w (irmInputWeight),
+ * 1 - p otherwise : in float, it stops nearer to its target than the interpolation, whose
+ * increments vanish before it. Otherwise an interpolation. When the normal form wrote the
+ * pole 1 - w, w is the exact weight of x : y' + w * (x - y'), the computation of the source
+ * (the state of a TPT filter, s + 2g (x - s)). Otherwise from the operand whose weight may
+ * be near 1, as generateMix : x + p * (y' - x) when p may be below 1/2, y' + (1 - p) *
+ * (x - y'), 1 - p exact, otherwise. The interval of the node bounds all these forms (Irm).
+ * The value is stored in the node's line, read back at delay 1.
  */
 string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
 {
@@ -6745,7 +6748,13 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
     std::string code;
     std::string prev = generateDelayAccessRaw(sig, sig, 1);
     std::string sx   = compoundOperand(x);
-    if (!w && !itv::mixFromB(getCertifiedSigType(p)->getInterval())) {
+    const int   vr   = std::max(getCertifiedSigType(x)->variability(), getCertifiedSigType(p)->variability());
+    if (ty->nature() == kReal && vr != kSamp) {
+        const std::string sw = w ? compoundOperand(w) : subst("($0 - $1)", realLiteral(1.0), compoundOperand(p));
+        const std::string wx = compoundSlowStore(vr, subst("($0 * $1)", sw, sx));
+        const std::string sp = compoundOperand(p);
+        code                 = subst("($0 + $1 * $2)", wx, sp, prev);
+    } else if (!w && !itv::mixFromB(getCertifiedSigType(p)->getInterval())) {
         code = subst("($0 + $1 * ($2 - $0))", sx, compoundOperand(p), prev);
     } else {
         std::string sw;
