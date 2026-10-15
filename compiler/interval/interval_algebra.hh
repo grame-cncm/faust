@@ -706,9 +706,11 @@ class interval_algebra : public FaustAlgebra<interval> {
     interval phaseDefinition(const interval& x, const interval& p) const;
     interval numericPhase(const interval& x, const interval& p) const;
     interval numericMix(const interval& c, const interval& a, const interval& b) const;
-    // numericMix with the rounding of either form of the interpolation (from a or from b)
+    // numericMix with the rounding of any form of a recursive mix : either interpolation
+    // (from a or from b), or the weighted sum (1 - c) a + c b of a slow smoother
     interval numericMixAnyForm(const interval& c, const interval& a, const interval& b) const;
-    interval numericMixWeight(const interval& c, const interval& a, const interval& b, double w) const;
+    interval numericMixWeight(const interval& c, const interval& a, const interval& b, double w,
+                              bool weightedSum = false) const;
     interval numericRound(const interval& input) const;
     interval numericSelect2(const interval& x, const interval& y, const interval& z) const;
     interval numericSin(const interval& x) const;
