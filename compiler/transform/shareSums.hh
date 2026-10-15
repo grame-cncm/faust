@@ -15,9 +15,9 @@
 #include "signals.hh"
 
 /**
- * The shared sums of a program (option -shs). The normal form writes a linear
- * combination of signals as one dense row : a Sum of terms c * x, or a FIR of a signal
- * over its taps. The rows of a Hadamard matrix or of a discrete Fourier transform then
+ * The shared sums of a program (by default ; -noshs keeps the dense rows). The normal
+ * form writes a linear combination of signals as one dense row : a Sum of terms c * x,
+ * or a FIR of a signal over its taps. The rows of a Hadamard matrix or of a discrete Fourier transform then
  * repeat the sub-sums that butterflies would share. shareSums rewrites the real rows :
  *
  *  1. in each row, the terms whose coefficients have the same magnitude are factored :
