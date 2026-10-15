@@ -146,6 +146,12 @@ void checkCertificates()
             throw faustexception(error.str());
         }
     }
+    // -fm replaces mathematical functions by approximations that the intervals do not bound
+    if (gGlobal->gFastMathLib != "") {
+        cerr << "WARNING : -fm computes mathematical functions by approximations that the interval "
+                "analysis does not bound : the certification of this program does not cover them"
+             << endl;
+    }
 }
 
 Compiler::Compiler(const string& name, const string& super, int numInputs, int numOutputs, bool vec)
