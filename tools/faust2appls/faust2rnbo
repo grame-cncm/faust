@@ -165,11 +165,10 @@ for f in "${FILES[@]}"; do
                 auto_dsp="$auto_dir/effect.dsp"
                 auto_codebox="$auto_dir/effect.codebox"
                 printf '%s\n' \
-                    'adapt(1,1) = _;' \
-                    'adapt(2,2) = _,_;' \
-                    'adapt(1,2) = _ <: _,_;' \
-                    'adapt(2,1) = _,_ :> _;' \
-                    'adaptor(F,G) = adapt(outputs(F),inputs(G));' \
+                    'bus(n) = par(i,n,_);' \
+                    'adapt(1,n,m) = bus(n) <: bus(m);' \
+                    'adapt(0,n,m) = bus(n) :> bus(m);' \
+                    'adaptor(F,G) = adapt(outputs(F) <= inputs(G), outputs(F), inputs(G));' \
                     "process = adaptor(library(\"$f\").process, library(\"$f\").effect) : library(\"$f\").effect;" \
                     > "$auto_dsp"
                 faust "${OPTIONS[@]}" "$auto_dsp" -lang codebox -double -json -o "$auto_codebox"

@@ -106,12 +106,10 @@ if [[ "$POLY" == *POLY2* ]]; then
     if [ $EFFECT = "auto" ]; then
         # Creer un fichier .dsp simple
         cat > $TMP/effect.dsp << EndOfCode
-        adapt(1,1) = _;
-        adapt(2,2) = _,_;
-        adapt(1,2) = _ <: _,_;
-        adapt(2,1) = _,_ :> _;
-
-        adaptor(F,G) = adapt(outputs(F),inputs(G));
+        bus(n) = par(i,n,_);
+        adapt(1,n,m) = bus(n) <: bus(m);
+        adapt(0,n,m) = bus(n) :> bus(m);
+        adaptor(F,G) = adapt(outputs(F) <= inputs(G), outputs(F), inputs(G));
 
         process = adaptor(library("$INPUT_FILE").process, library("$INPUT_FILE").effect) : library("$INPUT_FILE").effect;
 EndOfCode

@@ -108,11 +108,10 @@ for f in $FILES; do
     if [ $POLY = "POLY2" ]; then
         if [ $EFFECT = "auto" ]; then
             cat > effect.dsp << EndOfCode
-            adapt(1,1) = _;
-            adapt(2,2) = _,_;
-            adapt(1,2) = _ <: _,_;
-            adapt(2,1) = _,_ :> _;
-            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            bus(n) = par(i,n,_);
+            adapt(1,n,m) = bus(n) <: bus(m);
+            adapt(0,n,m) = bus(n) :> bus(m);
+            adaptor(F,G) = adapt(outputs(F) <= inputs(G), outputs(F), inputs(G));
             process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
 EndOfCode
             faust -i -json -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit

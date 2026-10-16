@@ -1060,9 +1060,11 @@ struct dsp_poly_factory : public dsp_factory {
    
     std::string getEffectCode(const std::string& dsp_content)
     {
+        // 'adaptor' connects the process outputs to the effect inputs: split (<:) when the effect has
+        // at least as many inputs, merge (:>) otherwise, so one count must be a multiple of the other
         std::stringstream effect_code;
-        effect_code << "adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;";
-        effect_code << "adaptor(F,G) = adapt(outputs(F),inputs(G)); dsp_code = environment{ " << dsp_content << " };";
+        effect_code << "bus(n) = par(i,n,_); adapt(1,n,m) = bus(n) <: bus(m); adapt(0,n,m) = bus(n) :> bus(m);";
+        effect_code << "adaptor(F,G) = adapt(outputs(F) <= inputs(G), outputs(F), inputs(G)); dsp_code = environment{ " << dsp_content << " };";
         effect_code << "process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;";
         return effect_code.str();
     }

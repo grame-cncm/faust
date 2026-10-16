@@ -241,11 +241,10 @@ if [ "$NVOICES" -gt "0" ]; then
 if [ "$EFFECT" = "auto" ]; then
     EFFECT="$APIFOLDER/autoeffect.dsp"
     cat > "$EFFECT" << EndOfCode
-    adapt(1,1) = _;
-    adapt(2,2) = _,_;
-    adapt(1,2) = _ <: _,_;
-    adapt(2,1) = _,_ :> _;
-    adaptor(F,G) = adapt(outputs(F),inputs(G));
+    bus(n) = par(i,n,_);
+    adapt(1,n,m) = bus(n) <: bus(m);
+    adapt(0,n,m) = bus(n) :> bus(m);
+    adaptor(F,G) = adapt(outputs(F) <= inputs(G), outputs(F), inputs(G));
     process = adaptor(library("$FILE").process, library("$FILE").effect) : library("$FILE").effect;
 EndOfCode
     # We check this is a faust valid code. No error if it is not.
