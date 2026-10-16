@@ -70,6 +70,8 @@ class Faust2Max6ArgumentTests(unittest.TestCase):
 
         result = self.run_script("--help")
         self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertIn("-nosrc", result.stdout)
+        self.assertIn("-nopost", result.stdout)
 
     def test_missing_input_and_invalid_options_fail(self):
         """Reject absent input, bad architectures, and invalid voice counts."""
@@ -186,7 +188,9 @@ class Faust2Max6IntegrationTests(unittest.TestCase):
             stderr=subprocess.STDOUT,
         )
 
-    def assert_bundle(self, dsp: Path, architectures: set[str]) -> Path:
+    def assert_bundle(
+        self, dsp: Path, architectures: set[str], include_sources: bool = True
+    ) -> Path:
         """Validate binary slices, signature, resources, and Info.plist metadata."""
 
         bundle = dsp.with_name(f"{dsp.stem}~.mxo")
@@ -203,9 +207,12 @@ class Faust2Max6IntegrationTests(unittest.TestCase):
         subprocess.run(
             ["codesign", "--verify", "--deep", "--strict", str(bundle)], check=True
         )
-        self.assertTrue((resources / dsp.name).is_file())
-        self.assertTrue((resources / f"{dsp.stem}-exp.dsp").is_file())
-        self.assertTrue((resources / f"{dsp.stem}.cpp").is_file())
+        for name in (dsp.name, f"{dsp.stem}-exp.dsp", f"{dsp.stem}.cpp"):
+            self.assertEqual((resources / name).is_file(), include_sources, name)
+        if not include_sources:
+            self.assertFalse(
+                [path for path in bundle.rglob("*") if path.suffix in {".dsp", ".cpp"}]
+            )
         with (bundle / "Contents" / "Info.plist").open("rb") as stream:
             info = plistlib.load(stream)
         self.assertEqual(info["CFBundleExecutable"], f"{dsp.stem}~")
@@ -277,6 +284,38 @@ class Faust2Max6IntegrationTests(unittest.TestCase):
         self.assert_bundle(dsp, {"arm64"})
         self.assertFalse((self.directory / "mc_poly.maxpat").exists())
 
+    def test_source_packaging_and_startup_messages_are_independent(self):
+        """Omit sources and startup banners independently without losing the patch."""
+
+        for name, options, sources, messages in (
+            ("default", (), True, True),
+            ("nosrc", ("-nosrc",), False, True),
+            ("nopost", ("-nopost",), True, False),
+            ("nosrc_nopost", ("-nosrc", "-nopost", "-nvoices", "4"), False, False),
+        ):
+            with self.subTest(options=options):
+                dsp = self.write_source(
+                    f"packaging_{name}",
+                    'process = *(hslider("gain", 0.5, 0, 1, 0.01));\n',
+                )
+                result = self.run_faust2max6(*options, "-arch", "arm64", dsp)
+                self.assertEqual(result.returncode, 0, result.stdout)
+                bundle = self.assert_bundle(dsp, {"arm64"}, include_sources=sources)
+                binary = (bundle / "Contents" / "MacOS" / f"{dsp.stem}~").read_bytes()
+                # Check direct startup banners. Virtual UI methods can remain
+                # in the binary even when their startup call is disabled.
+                for message in (
+                    b"Faust DSP object v",
+                    b"monophonic DSP",
+                    b"polyphonic DSP voices =",
+                ):
+                    self.assertEqual(message in binary, messages, message)
+                self.assertIn(b"Unknown parameter : %s", binary)
+                self.assertIn(
+                    f"{dsp.stem}~", self.patch_texts(self.directory / f"{dsp.stem}.maxpat")
+                )
+                self.assertFalse(Path(f"{dsp}.json").exists())
+
     def test_effect_single_native_and_include_paths_with_spaces(self):
         """Combine effect/single/native and preserve -I/-A path arguments."""
 
@@ -322,11 +361,13 @@ class Faust2Max6IntegrationTests(unittest.TestCase):
             'process = 0, _~+(1) : soundfile("sample[url:{\'sample sound.wav\'}]", 2) '
             ': !, !, _, _;\n'
         )
-        for mode, name in (
-            ("-soundfile", "sound_static"),
-            ("-soundfile-dynamic", "sound_dynamic"),
+        for mode, name, nosrc in (
+            ("-soundfile", "sound_static", False),
+            ("-soundfile-dynamic", "sound_dynamic", False),
+            ("-soundfile", "sound_static_nosrc", True),
+            ("-soundfile-dynamic", "sound_dynamic_nosrc", True),
         ):
-            with self.subTest(mode=mode):
+            with self.subTest(mode=mode, nosrc=nosrc):
                 if mode == "-soundfile-dynamic":
                     if not shutil.which("pkg-config"):
                         continue
@@ -336,9 +377,12 @@ class Faust2Max6IntegrationTests(unittest.TestCase):
                     if pkg_config.returncode:
                         continue
                 dsp = self.write_source(name, source)
-                result = self.run_faust2max6("-nopatch", mode, "-arch", "arm64", dsp)
+                options = ("-nosrc", "-nopost") if nosrc else ()
+                result = self.run_faust2max6(
+                    "-nopatch", *options, mode, "-arch", "arm64", dsp
+                )
                 self.assertEqual(result.returncode, 0, result.stdout)
-                bundle = self.assert_bundle(dsp, {"arm64"})
+                bundle = self.assert_bundle(dsp, {"arm64"}, include_sources=not nosrc)
                 packaged = bundle / "Contents" / "Resources" / sound.name
                 self.assertEqual(packaged.read_bytes(), sound.read_bytes())
 

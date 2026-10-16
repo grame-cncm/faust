@@ -72,7 +72,8 @@ Here are the available options:
   - `-arch arm64` : to generate an ARM64-only external on macOS (`x86_64` and `universal` are also accepted)
   - `-universal` : to generate a 64 bits x86/ARM universal external on macOS 
   - `-nopatch` : to deactivate patch generation
-  - `-nopost` : to disable Faust messages to Max console
+  - `-nosrc` : to omit the original DSP, expanded DSP and generated C++ sources from the external's `Contents/Resources` directory
+  - `-nopost` : to disable informational Faust messages in the Max console when the external loads or an object is created; error diagnostics remain enabled
   - `-soundfile`: when compiling DSP using 'soundfile' primitive, to add the needed resources (soundfiles) in the produced .mxo file, and have the required libsndfile library statically linked
   - `-soundfile-dynamic` : when compiling DSP using 'soundfile' primitive, to add the needed resources (soundfiles) in the produced .mxo file, and use the installed libsndfile library (so possibly using dynamic link)
   - `-help or -h` : shows the different options 
@@ -87,7 +88,13 @@ If you plan to use **faust2max6** on your own machine, you will have to:
 
 ## Misc
 
-- the original DSP file as well as the compiled self-contained C++ file are kept in the compiled `.mxo` external, in `Contents/Resources`, to be accessed using the *Show Package Contents* option. Soundfiles added with `-soundfile` are copied there too, so that the external can be code signed.
+- by default, the original DSP file, its self-contained expansion and the generated self-contained C++ file are kept in the compiled `.mxo` external, in `Contents/Resources`, to be accessed using the *Show Package Contents* option. `-nosrc` omits these sources while preserving runtime resources, including soundfiles added with `-soundfile` or `-soundfile-dynamic`. The external can still be code signed.
+
+To build an external without packaged sources or informational messages in the Max console:
+
+```bash
+faust2max6 -nosrc -nopost effect.dsp
+```
 
 # faust2gen
 
@@ -407,7 +414,9 @@ make -C architecture/max-msp/tests faust2max6-integration
 This checks thin ARM64 and x86_64 bundles, a universal bundle, signatures,
 resources, exact per-file polyphony, MC/MIDI flags, `-nopatch`, effect and
 single-precision builds, OSC linkage, static/dynamic soundfile packaging, and
-Faust include paths containing spaces.
+Faust include paths containing spaces. It also checks source omission with
+`-nosrc`, startup message removal with `-nopost`, and soundfile packaging with
+both options enabled.
 
 An additional end-to-end test runs the compiled external in Max itself:
 

@@ -23,6 +23,7 @@ OSCDEFS=""
 OSCLIB=""
 POLY=""
 NOPATCH="0"
+NOSRC="0"
 NVOICES=-1
 FILES=()
 OPTIONS=()
@@ -103,7 +104,8 @@ echoHelp()
     option "-arch auto|arm64|x86_64|universal" "selects the macOS external architecture (auto keeps the historical behavior)"
     option -universal "alias for '-arch universal'"
     option -nopatch "to deactivate patch generation"
-    option -nopost "to disable Faust messages to Max console"
+    option -nosrc "to omit the original DSP, expanded DSP and generated C++ sources from the external"
+    option -nopost "to disable informational Faust messages in the Max console"
     option "Faust options"
     exit "$status"
 }
@@ -184,6 +186,8 @@ do
         OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-nopost" ]; then
         POST=""
+    elif [ "$p" = "-nosrc" ]; then
+        NOSRC="1"
     elif [ "$p" = "-nopatch" ]; then
         NOPATCH="1"
     elif [ "$p" = "-native" ]; then
@@ -299,8 +303,10 @@ for p in "${FILES[@]}"; do
         faust -i -cn "${f%.dsp}" -json -a "$FAUSTARCH/max-msp/max-msp64.cpp" "${FILE_OPTIONS[@]}" "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
         faust -i -cn effect -a "$FAUSTARCH/minimal-effect.cpp" "${FILE_OPTIONS[@]}" "$EFFECT_PATH" -o "$TMP/effect.h" || exit
     fi
-    # Compile a self-contained expansion with the same include and codegen options.
-    faust -e "$SRCDIR/$f" "${FILE_OPTIONS[@]}" -o "$TMP/${f%.dsp}-exp.dsp"
+    if [ "$NOSRC" = "0" ]; then
+        # Compile a self-contained expansion with the same include and codegen options.
+        faust -e "$SRCDIR/$f" "${FILE_OPTIONS[@]}" -o "$TMP/${f%.dsp}-exp.dsp"
+    fi
 
     # compile c++ to binary
     (
@@ -327,13 +333,14 @@ for p in "${FILES[@]}"; do
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
-    # Keep .dsp, self-contained expanded .dsp and self-contained .cpp files in the
-    # plugin. They go in Contents/Resources: codesign refuses to seal a bundle
-    # that has unsealed contents in its root.
+    # Runtime assets still need Resources when source packaging is disabled.
+    # Bundle resources must be installed before code signing.
     install -d "$TMP/${f%.dsp}$EXT/Contents/Resources"
-    cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT/Contents/Resources"
-    cp "$TMP/${f%.dsp}-exp.dsp" "$TMP/${f%.dsp}$EXT/Contents/Resources"
-    cp "$SRCDIR/$f" "$TMP/${f%.dsp}$EXT/Contents/Resources"
+    if [ "$NOSRC" = "0" ]; then
+        cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT/Contents/Resources"
+        cp "$TMP/${f%.dsp}-exp.dsp" "$TMP/${f%.dsp}$EXT/Contents/Resources"
+        cp "$SRCDIR/$f" "$TMP/${f%.dsp}$EXT/Contents/Resources"
+    fi
  
     # Create Info.plist
     createInfoPList "${f%.dsp}~" "$TMP/${f%.dsp}$EXT/Contents/Info.plist"
