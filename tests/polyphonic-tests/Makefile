@@ -4,9 +4,10 @@ CPPFLAGS ?= -I../../architecture
 
 .PHONY: check clean
 
-check: voice-steal-repro legato-fade-repro
+check: voice-steal-repro legato-fade-repro bargraph-current-repro
 	./voice-steal-repro
 	./legato-fade-repro
+	./bargraph-current-repro
 
 voice-steal-repro: voice-steal-repro.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
@@ -14,5 +15,8 @@ voice-steal-repro: voice-steal-repro.cpp
 legato-fade-repro: legato-fade-repro.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
+bargraph-current-repro: bargraph-current-repro.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+
 clean:
-	rm -f voice-steal-repro legato-fade-repro
+	rm -f voice-steal-repro legato-fade-repro bargraph-current-repro

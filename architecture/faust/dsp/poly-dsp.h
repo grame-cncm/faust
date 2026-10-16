@@ -32,6 +32,7 @@ architecture section is not modified.
 #include <functional>
 #include <ostream>
 #include <sstream>
+#include <utility>
 #include <vector>
 #include <limits.h>
 #include <float.h>
@@ -58,7 +59,14 @@ architecture section is not modified.
 #define MIX_BUFFER_SIZE  4096
 
 /**
- * Allows to control zones in a grouped manner.
+ * Groups host-written controls across all voices of a polyphonic DSP.
+ *
+ * Its first UI pass receives zones from the non-computing proxy DSP.  Each
+ * following pass receives the corresponding zones from a real voice.  A
+ * uiGroupItem keeps the proxy zone as its input and copies a host change to
+ * every real-voice zone.  Consequently this class handles active widgets
+ * only: a bargraph is written by DSP computation, not by the host, and the
+ * proxy zone of a bargraph is never updated.
  */
 class GroupUI : public GUI, public PathBuilder {
 
@@ -140,16 +148,152 @@ class GroupUI : public GUI, public PathBuilder {
             insertMap(buildPath(label), zone);
         }
 
-        // -- passive widgets
-        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
+        // Passive widgets must keep a zone from a computing voice when the
+        // public UI is built; they cannot be grouped as host controls here.
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax) {}
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax) {}
+
+};
+
+/**
+ * Builds one public polyphonic UI from two DSP UI descriptions.
+ *
+ * The UI description is built once through the proxy DSP for active widgets:
+ * their zones are the GroupUI inputs, so a host change is distributed to all
+ * voices.  It is built again through one real voice for passive widgets:
+ * those zones are written by compute(), while the proxy DSP never computes.
+ * This filter forwards only the widget type selected by Mode, so the host
+ * receives each widget once while preserving its original box hierarchy.
+ *
+ * Zone metadata is emitted before its widget.  It is therefore buffered until
+ * the widget is accepted, then applied to that widget's zone; metadata for a
+ * filtered widget is discarded rather than leaking to the next widget.
+ */
+class PolyphonicUI : public GenericUI {
+
+    public:
+
+        enum class Mode {
+            kControls,
+            kBargraphs
+        };
+
+    private:
+
+        UI* fUI;
+        Mode fMode;
+        std::vector<std::pair<std::string, std::string>> fMetadata;
+
+        void clearMetadata()
         {
-            insertMap(buildPath(label), zone);
-        }
-        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
-        {
-            insertMap(buildPath(label), zone);
+            fMetadata.clear();
         }
 
+        void applyMetadata(FAUSTFLOAT* zone)
+        {
+            for (const auto& it : fMetadata) {
+                fUI->declare(zone, it.first.c_str(), it.second.c_str());
+            }
+            clearMetadata();
+        }
+
+    public:
+
+        PolyphonicUI(UI* ui, Mode mode)
+        : fUI(ui), fMode(mode)
+        {}
+
+        void openTabBox(const char* label) { fUI->openTabBox(label); }
+        void openHorizontalBox(const char* label) { fUI->openHorizontalBox(label); }
+        void openVerticalBox(const char* label) { fUI->openVerticalBox(label); }
+        void closeBox() { fUI->closeBox(); }
+
+        void addButton(const char* label, FAUSTFLOAT* zone)
+        {
+            if (fMode == Mode::kControls) {
+                applyMetadata(zone);
+                fUI->addButton(label, zone);
+            } else {
+                clearMetadata();
+            }
+        }
+
+        void addCheckButton(const char* label, FAUSTFLOAT* zone)
+        {
+            if (fMode == Mode::kControls) {
+                applyMetadata(zone);
+                fUI->addCheckButton(label, zone);
+            } else {
+                clearMetadata();
+            }
+        }
+
+        void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            if (fMode == Mode::kControls) {
+                applyMetadata(zone);
+                fUI->addVerticalSlider(label, zone, init, min, max, step);
+            } else {
+                clearMetadata();
+            }
+        }
+
+        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            if (fMode == Mode::kControls) {
+                applyMetadata(zone);
+                fUI->addHorizontalSlider(label, zone, init, min, max, step);
+            } else {
+                clearMetadata();
+            }
+        }
+
+        void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        {
+            if (fMode == Mode::kControls) {
+                applyMetadata(zone);
+                fUI->addNumEntry(label, zone, init, min, max, step);
+            } else {
+                clearMetadata();
+            }
+        }
+
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        {
+            if (fMode == Mode::kBargraphs) {
+                applyMetadata(zone);
+                fUI->addHorizontalBargraph(label, zone, min, max);
+            } else {
+                clearMetadata();
+            }
+        }
+
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        {
+            if (fMode == Mode::kBargraphs) {
+                applyMetadata(zone);
+                fUI->addVerticalBargraph(label, zone, min, max);
+            } else {
+                clearMetadata();
+            }
+        }
+
+        void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
+        {
+            clearMetadata();
+            if (fMode == Mode::kControls) {
+                fUI->addSoundfile(label, filename, sf_zone);
+            }
+        }
+
+        void declare(FAUSTFLOAT* zone, const char* key, const char* value)
+        {
+            if (zone) {
+                fMetadata.emplace_back(key, value);
+            } else {
+                fUI->declare(zone, key, value);
+            }
+        }
 };
 
 /**
@@ -384,7 +528,16 @@ struct dsp_voice_group {
             // Grouped voices UI
             ui_interface->openVerticalBox("Voices");
             ui_interface->addButton("Panic", &fPanic);
-            fVoiceGroup->buildUserInterface(ui_interface);
+
+            // First pass: publish active widgets through proxy zones. GroupUI
+            // copies each host value from those zones to all real voices.
+            PolyphonicUI controls(ui_interface, PolyphonicUI::Mode::kControls);
+            fVoiceGroup->buildUserInterface(&controls);
+
+            // Second pass: publish passive widgets through one real voice.
+            // Its bargraph zones are updated by compute(); proxy zones are not.
+            PolyphonicUI bargraphs(ui_interface, PolyphonicUI::Mode::kBargraphs);
+            fVoiceTable[0]->buildUserInterface(&bargraphs);
             ui_interface->closeBox();
 
             // If not grouped, also add individual voices UI
