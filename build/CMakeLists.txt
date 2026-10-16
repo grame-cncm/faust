@@ -579,6 +579,7 @@ endif()
 ####################################
 set (CPACK_PACKAGE_NAME   "Faust")
 set (CPACK_PACKAGE_VENDOR "GRAME")
+set (CPACK_DEBIAN_PACKAGE_MAINTAINER "nobody@localhost.internal")
 set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "FAUST - a functional programming language designed for real-time signal processing and synthesis.")
 set (CPACK_PACKAGE_VERSION   ${VERSION})
 set (CPACK_PACKAGE_VERSION_MAJOR   ${VERSION_MAJOR})

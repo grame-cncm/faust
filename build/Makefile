@@ -235,7 +235,10 @@ mactools:
 	$(MAKE) -C ../tools/sound2faust install PREFIX=$(FAUSTDIR) TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)" USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE)
 
 linuxpack:
-	@echo Linux packaging not implemented. 
+	cd $(FAUSTDIR) && $(CMAKE) -C ../backends/all.cmake -C ../targets/developer.cmake ..
+	$(MAKE)
+	cd $(FAUSTDIR) && cpack -G DEB
+	@echo Linux packaging in primitive state, use with care
 
 package/README.html: ../README.md
 	echo "<!DOCTYPE html><html><xmp>" > package/README.html
