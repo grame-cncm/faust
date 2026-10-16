@@ -7288,6 +7288,18 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
     return generateCacheCode(sig, facc);
 }
 
+// Same as InstructionsCompiler::safeDelayIndex, for the kSingleDelay, kCopyDelay and kDenseDelay
+// lines.
+string ScalarCompiler::safeDelayIndex(Tree delay, int mxd)
+{
+    Tree x;
+    if (isSigIntCast(delay, x) && getCertifiedSigType(x)->nature() == kReal) {
+        string fx = CS(x);
+        return subst("(($0 < $1) ? (($0 >= 0) ? int($0) : 0) : $2)", fx, T(mxd + 1), T(mxd));
+    }
+    return CS(delay);
+}
+
 string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
 {
 #if OLDDELAY
@@ -7370,7 +7382,7 @@ string ScalarCompiler::generateDelayAccess(Tree sig, Tree exp, Tree delay)
         case DelayType::kSingleDelay:
         case DelayType::kCopyDelay:
         case DelayType::kDenseDelay:
-            result = subst("$0[$1]", vecname, CS(delay));
+            result = subst("$0[$1]", vecname, safeDelayIndex(delay, mxd));
             break;
 
         case DelayType::kMaskRingDelay:
