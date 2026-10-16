@@ -458,7 +458,7 @@ void global::reset()
     gFTZMode        = 0;
     gHashLoadFactor = 0.7;
     tlib::setHashLoadFactor(gHashLoadFactor);
-    gRangeUI        = false;
+    gRangeUI        = true;
     gFreezeUI       = false;
     gEtaHarvest     = false;
     gEtaRegroup     = false;
@@ -1708,6 +1708,10 @@ bool global::processCmdline(int argc, const char* argv[])
             gRangeUI = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-norui", "--no-range-ui")) {
+            gRangeUI = false;
+            i += 1;
+
         } else if (isCmd(argv[i], "-fui", "--freeze-ui")) {
             gFreezeUI = true;
             i += 1;
@@ -2727,10 +2731,9 @@ string global::printHelp()
          << endl;
 #ifndef EMCC
     sstr << tab
-         << "-rui        --range-ui                  whether to generate code to constraint "
-            "vslider/hslider/nentry "
-            "values "
-            "in [min..max] range."
+         << "-norui      --no-range-ui               do not constrain the vslider/hslider/nentry values "
+            "in their [min..max] range (by default they are constrained : the certification "
+            "assumes these ranges)."
          << endl;
     sstr << tab
          << "-eta        --eta-normalization         normalization loop with the eta harvest: "
