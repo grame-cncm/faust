@@ -806,15 +806,25 @@ class IntCastPromotionAlgebra final : public TransformAlgebra {
 };
 
 //-------------------------UIPromotionAlgebra-----------------------------
-// Generate safe access to range UI items (sliders and nentry).
+// Generate safe access to UI items : sliders and nentry clamped to their range, buttons
+// and checkboxes read as 0 or 1 (b > 0, a NaN read as 0), the values the typing assumes.
 //------------------------------------------------------------------------
 class UIPromotionAlgebra final : public TransformAlgebra {
     XSig clamp(const XSig& lo, const XSig& hi, Tree w) const
     {
         return o(sigMax(lo.out, sigMin(hi.out, w)));
     }
+    XSig binary(Tree b) const
+    {
+        // a real, as the item it replaces : (1 - b) * x + b * y stays a selection
+        Tree zero = sigReal(0.0);
+        Tree on   = sigGT(b, zero);
+        return o(sigFloatCast(on));
+    }
 
    public:
+    XSig Button(const XSig& n) const override { return binary(fBuild.Button(n.out)); }
+    XSig Checkbox(const XSig& n) const override { return binary(fBuild.Checkbox(n.out)); }
     XSig VSlider(const XSig& n, const XSig& i, const XSig& lo, const XSig& hi,
                  const XSig& st) const override
     {
