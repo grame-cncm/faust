@@ -102,6 +102,20 @@ in the sample loop, with the cpp, c and ocpp backends:
 python3 tests/compile-tests/hoist-negation.py --faust build/bin/faust
 ```
 
+### Shared nodes in a bargraph's block-rate tail
+
+`display-tail-sharing.py` compiles a bargraph showing a chain of 16
+`_ <: sin + cos`, each level using the previous one twice, with the ocpp
+and cpp backends in single and double precision. The generated code must
+call `sin` 16 times (the ocpp backend used to inline the shared levels,
+65535 calls here, and grew past 100 GB on an octave analyzer of the
+libraries), and the bargraph must hold the chain computed on the last
+input sample:
+
+```sh
+python3 tests/compile-tests/display-tail-sharing.py --faust build/bin/faust
+```
+
 ### Java backend execution
 
 `java-math.py` generates Java, compiles it with `javac`, and executes it with
