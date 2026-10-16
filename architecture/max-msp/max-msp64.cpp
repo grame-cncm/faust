@@ -144,7 +144,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.88"
+#define EXTERNAL_VERSION    "0.89"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"

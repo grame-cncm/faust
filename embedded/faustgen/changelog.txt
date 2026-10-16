@@ -7,6 +7,11 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2026
 
 ----------------------------------------------------
+Version 1.86 - 16/10/2026
+
+- report grouped polyphonic bargraphs from a computing voice.
+
+----------------------------------------------------
 Version 1.85 - 15/09/2026
 
 - add comprehensive factory, persistence, file, command and runtime tests.
