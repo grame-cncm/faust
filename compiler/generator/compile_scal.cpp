@@ -40,6 +40,7 @@
 #include "compile.hh"
 #include "compile_scal.hh"
 #include "exactWeights.hh"
+#include "sumLanes.hh"
 #include "shareSums.hh"
 #include "irm_weight.hh"
 #include "bpf_table.hh"
@@ -690,6 +691,13 @@ Tree ScalarCompiler::prepare(Tree LS)
         startTiming("exactWeights");
         L2 = exactWeights(L2);
         endTiming("exactWeights");
+    }
+    if (gGlobal->gSumLanes) {
+        // the long sums in interleaved partial sums (-nosl), before the certified typing,
+        // which bounds the rewritten program
+        startTiming("sumLanes");
+        L2 = sumLanes(L2);
+        endTiming("sumLanes");
     }
 
 
