@@ -288,7 +288,7 @@ struct global {
     bool gNoVirtual;  // -nvi option, when compiled with the C++ backend, does not add the 'virtual'
                       // keyword
     int  gMemoryManager;  // -memX options
-    bool gRangeUI;   // -rui option, whether to generate code to limit vslider/hslider/nentry values
+    bool gRangeUI;   // vslider/hslider/nentry values limited to their range (default, -norui)
                      // in [min..max] range
     bool gFreezeUI;  // -fui option, whether to freeze vslider/hslider/nentry to a given value (init
                      // value by default)
