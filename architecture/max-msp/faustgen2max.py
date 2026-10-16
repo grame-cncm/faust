@@ -43,6 +43,7 @@ from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Seque
 # shipped next to this tool in the Faust repository.
 try:
     from py2max import Box, Patcher
+    from py2max.core.patchline import Patchline
 except (ImportError, ModuleNotFoundError):
     sys.path.insert(0, str(Path(__file__).resolve().parent / "py2max"))
     # Running the script from architecture/max-msp can first discover the
@@ -50,6 +51,7 @@ except (ImportError, ModuleNotFoundError):
     # partial import before resolving the actual py2max/py2max package.
     sys.modules.pop("py2max", None)
     from py2max import Box, Patcher
+    from py2max.core.patchline import Patchline
 
 
 FAUSTGEN_CLASSES = {"faustgen~", "mc.faustgen~"}
@@ -488,6 +490,83 @@ def _remove_faustgen_state(box: Box) -> None:
             del box._kwds[key]
 
 
+def _insert_midi_event_prefixes(infos: Sequence[FaustgenInfo]) -> None:
+    """Adapt direct ``midiformat`` outputs to the compiled external API.
+
+    faustgen~ accepts raw MIDI bytes, whereas a faust2max6 external requires
+    the ``midievent`` selector.  Keep the original patch's MIDI wiring by
+    inserting ``prepend midievent`` only on direct MIDI formatter connections.
+    """
+
+    formatter_classes = {"midiformat", "mpeformat"}
+    for info in infos:
+        if not info.midi:
+            continue
+        patcher = info.patcher
+        for line_index, line in enumerate(list(patcher._lines), start=1):
+            if line.dst != info.object_id:
+                continue
+            source = patcher._objects.get(line.src)
+            source_text = getattr(source, "text", "") if source is not None else ""
+            words = source_text.strip().split() if isinstance(source_text, str) else []
+            if not words or words[0] not in formatter_classes:
+                continue
+
+            prefix_id = f"{info.object_id}-midievent-{line_index}"
+            while prefix_id in patcher._objects:
+                prefix_id += "_"
+            source_rect = source.patching_rect
+            prefix = Box.from_dict(
+                {
+                    "id": prefix_id,
+                    "maxclass": "newobj",
+                    "numinlets": 1,
+                    "numoutlets": 1,
+                    "outlettype": [""],
+                    "patching_rect": [
+                        source_rect.x,
+                        source_rect.y + source_rect.h + 10.0,
+                        112.0,
+                        22.0,
+                    ],
+                    "text": "prepend midievent",
+                }
+            )
+            patcher._objects[prefix_id] = prefix
+            patcher._boxes.append(prefix)
+            patcher._node_ids.append(prefix_id)
+
+            original_destination = list(line.destination)
+            line.destination = [prefix_id, 0]
+            line._kwds.pop("midpoints", None)
+            patcher._lines.append(
+                Patchline(
+                    source=[prefix_id, 0],
+                    destination=original_destination,
+                )
+            )
+
+
+def _remap_midi_outlets(infos: Sequence[FaustgenInfo]) -> None:
+    """Map faustgen~ control/MIDI outlets to the faust2max6 layout.
+
+    faustgen~ places its control and MIDI outlets at indices 1 and 2.  The
+    compiled external creates its control outlet before its MIDI outlet, and
+    Max lays outlets out right-to-left, so those two indices are reversed.
+    """
+
+    for info in infos:
+        if not info.midi:
+            continue
+        for line in info.patcher._lines:
+            if line.src != info.object_id:
+                continue
+            if line.source[1] == 1:
+                line.source[1] = 2
+            elif line.source[1] == 2:
+                line.source[1] = 1
+
+
 def convert_patch(
     patch_path: Path,
     output_dir: Path,
@@ -586,6 +665,9 @@ def convert_patch(
         assert info.external_name is not None
         _remove_faustgen_state(info.box)
         info.box.__dict__["text"] = f"{info.external_name}~"
+
+    _insert_midi_event_prefixes(infos)
+    _remap_midi_outlets(infos)
 
     # A stale cache entry can make Max resolve faustgen~ even though no such box
     # remains.  New externals are siblings of the generated patch and resolve via

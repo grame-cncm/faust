@@ -280,6 +280,50 @@ class Faustgen2MaxTests(unittest.TestCase):
             self.assertTrue(manifest.is_file())
             self.assertEqual(infos[0].object_id, "obj-2")
 
+    def test_convert_adapts_midiformat_for_compiled_midi_external(self):
+        """A raw Max MIDI stream is wrapped in the faust2max6 selector."""
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            patch = root / "midi.maxpat"
+            output = root / "compiled"
+            patch_fixture(patch)
+            data = json.loads(patch.read_text(encoding="utf-8"))
+            data["patcher"]["boxes"][0]["box"]["text"] = "midiformat"
+            data["patcher"]["boxes"].append(
+                {
+                    "box": {
+                        "id": "obj-3",
+                        "maxclass": "newobj",
+                        "numinlets": 1,
+                        "numoutlets": 0,
+                        "patching_rect": [220.0, 100.0, 40.0, 22.0],
+                        "text": "print",
+                    }
+                }
+            )
+            data["patcher"]["lines"].append(
+                {"patchline": {"source": ["obj-2", 1], "destination": ["obj-3", 0]}}
+            )
+            patch.write_text(json.dumps(data), encoding="utf-8")
+
+            def fake_compiler(command, cwd):
+                dsp = Path(command[-1])
+                (dsp.parent / f"{dsp.stem}~.mxo").mkdir()
+
+            generated, _, _ = faustgen2max.convert_patch(
+                patch, output, compile_runner=fake_compiler
+            )
+            compiled = json.loads(generated.read_text(encoding="utf-8"))["patcher"]
+            boxes = {item["box"]["id"]: item["box"] for item in compiled["boxes"]}
+            prefix = next(box for box in boxes.values() if box.get("text") == "prepend midievent")
+            lines = [line["patchline"] for line in compiled["lines"]]
+            self.assertIn(["obj-1", 0], [line["source"] for line in lines])
+            self.assertIn([prefix["id"], 0], [line["destination"] for line in lines])
+            self.assertIn([prefix["id"], 0], [line["source"] for line in lines])
+            self.assertIn(["obj-2", 0], [line["destination"] for line in lines])
+            self.assertIn(["obj-2", 2], [line["source"] for line in lines])
+
     def test_multiple_nested_objects_deduplicate_and_resolve_name_collisions(self):
         """Compile identical units once and suffix a distinct colliding source."""
 

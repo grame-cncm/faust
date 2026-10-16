@@ -9,6 +9,8 @@
 #include <list>
 
 #include "faust/dsp/poly-dsp.h"
+#include "faust/gui/MidiUI.h"
+#include "faust/midi/midi.h"
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -84,6 +86,12 @@ int main()
     mydsp_poly poly(new bargraph_tone(), 2, true, true);
     poly.init(48000);
 
+    // This is the path used by the Max external: MIDI is delivered through
+    // a midi_interface that has registered the polyphonic DSP.
+    midi_handler midi_handler;
+    MidiUI midi_ui(&midi_handler);
+    poly.buildUserInterface(&midi_ui);
+
     BargraphUI ui;
     poly.buildUserInterface(&ui);
     if (!ui.fZone) {
@@ -91,7 +99,7 @@ int main()
         return EXIT_FAILURE;
     }
 
-    poly.keyOn(0, 60, 127);
+    midi_handler.handleData2(0, midi::MIDI_NOTE_ON, 0, 60, 127);
     FAUSTFLOAT output[64];
     FAUSTFLOAT* outputs[] = {output};
     poly.compute(64, nullptr, outputs);
