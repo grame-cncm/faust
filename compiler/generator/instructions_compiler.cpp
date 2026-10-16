@@ -30,6 +30,7 @@
 #include "instructions.hh"
 #include "instructions_compiler.hh"
 #include "exactWeights.hh"
+#include "sumLanes.hh"
 #include "shareSums.hh"
 #include "instructions_compiler1.hh"
 #include "instructions_compiler_jax.hh"
@@ -139,6 +140,13 @@ Tree InstructionsCompiler::prepare(Tree LS)
         startTiming("exactWeights");
         L2 = exactWeights(L2);
         endTiming("exactWeights");
+    }
+    if (gGlobal->gSumLanes) {
+        // the long sums in interleaved partial sums (-nosl), before the certified typing,
+        // which bounds the rewritten program
+        startTiming("sumLanes");
+        L2 = sumLanes(L2);
+        endTiming("sumLanes");
     }
 
     startTiming("conditionAnnotation");

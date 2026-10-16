@@ -529,6 +529,7 @@ void global::reset()
     gMathApprox           = false;
     gShareSums            = true;
     gExactWeights         = false;
+    gSumLanes             = true;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
     gOneSample            = false;
@@ -919,6 +920,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gExactWeights) {
         dst << "-xw ";
+    }
+    if (gSumLanes) {
+        dst << "-sl ";
     }
     if (gMathExceptions) {
         dst << "-me ";
@@ -1745,6 +1749,14 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-noxw", "--no-exact-weights")) {
             gExactWeights = false;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-sl", "--sum-lanes")) {
+            gSumLanes = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-nosl", "--no-sum-lanes")) {
+            gSumLanes = false;
             i += 1;
 
         } else if (isCmd(argv[i], "-ns", "--namespace")) {
@@ -2804,6 +2816,10 @@ string global::printHelp()
     sstr << tab
          << "-xw         --exact-weights             write the products (1 + w) * y of the normal form "
             "as w * y + y, w read exactly (more precise, a little slower)."
+         << endl;
+    sstr << tab
+         << "-nosl       --no-sum-lanes              keep the long sums as chains (by default their "
+            "sample-rate terms are added in 4 interleaved partial sums)."
          << endl;
     sstr << tab
          << "-noreprc    --no-reprc                  (Rust only) Don't force dsp struct layout to "
