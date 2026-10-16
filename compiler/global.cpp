@@ -2727,8 +2727,8 @@ string global::printHelp()
 #ifndef EMCC
     sstr << tab
          << "-norui      --no-range-ui               do not constrain the vslider/hslider/nentry values "
-            "in their [min..max] range (by default they are constrained : the certification "
-            "assumes these ranges)."
+            "in their [min..max] range, nor read the buttons and checkboxes as 0 or 1 (by default "
+            "they are : the certification assumes these values)."
          << endl;
     sstr << tab
          << "-eta        --eta-normalization         normalization loop with the eta harvest: "
