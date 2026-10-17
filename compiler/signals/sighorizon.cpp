@@ -1682,7 +1682,16 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
 
     //--- the lattice ------------------------------------------------------------------
     AffItv bottom(Tree) const override { return itv::aempty(); }
-    AffItv top(Tree) const override { return itv::fromItv(interval(-HUGE_VAL, HUGE_VAL)); }
+    /// unknown : any value of the nature of var, and possibly an invalid execution (a
+    /// NaN, an integer division by zero) -- without the alert, the fallback would claim
+    /// a validity that nothing proved
+    AffItv top(Tree var) const override
+    {
+        if (fExact && fExact->nature(var) == kInt) {
+            return itv::fromItv(interval(-2147483648.0, 2147483647.0, 0, true));
+        }
+        return itv::fromItv(interval(-HUGE_VAL, HUGE_VAL, -24, true));
+    }
     bool   lessEqual(const AffItv& x, const AffItv& y) const override
     {
         return itv::aleq(x, y, fT);
