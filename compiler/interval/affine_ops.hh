@@ -240,6 +240,10 @@ class AffineOps : public Base {
     //--- selection: numeric hull; the public transfer retains selector invalidity -------------------------
     AffItv numericSelect2(const AffItv& arg0, const AffItv& x, const AffItv& y) const
     {
+        // a selector of one value over the horizon chooses its branch : the program
+        // converts it to an integer
+        const interval s = toItv(arg0, fT);
+        if (!s.isEmpty() && s.lo() == s.hi()) return (std::trunc(s.lo()) == 0) ? x : y;
         return ajoin(x, y, fT);
     }
 

@@ -80,6 +80,8 @@ interval interval_algebra::numericBitCast(const interval& x) const
 }
 interval interval_algebra::numericSelect2(const interval& x, const interval& y, const interval& z) const
 {
+    // a selector of one value chooses its branch : the program converts it to an integer
+    if (!x.isEmpty() && x.lo() == x.hi()) return (std::trunc(x.lo()) == 0) ? y : z;
     return reunion(y, z);
 }
 interval interval_algebra::numericPrefix(const interval& x, const interval& y) const
