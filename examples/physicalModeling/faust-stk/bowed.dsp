@@ -113,4 +113,4 @@ stereo = stereoizer(ma.SR/freq);
 bowVelocity = envelope*maxVelocity;
 instrumentBody(feedBckBridge) = (*(-1)<:+(feedBckBridge), _:(bowVelocity-_<:*(bowTable)<:_, _), _:_, +:+(feedBckBridge), _)~(neckDelay):!, _;
 
-process = (stringFilter:instrumentBody)~(bridgeDelay:NLFM):bodyFilter(*(0.2)):_*gain*8:stereo:instrReverb;
+process = (stringFilter:instrumentBody)~(bridgeDelay:NLFM):(*(0.2) : bodyFilter):_*gain*8:stereo:instrReverb;
