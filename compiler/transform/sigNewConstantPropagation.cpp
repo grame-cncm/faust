@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include <cmath>
 #include <map>
 #include <vector>
 
@@ -66,6 +67,7 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
                  FixPointEvaluator<XSig>& ev) const override
     {
         XSig r = TransformAlgebra::combine(orig, c, ev);
+        if (Tree b = selectedBranch(r.out)) return o(b);
         return o(numericFrame(r.out));
     }
 
@@ -90,6 +92,27 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
         }
         fSideEffect[t] = se;
         return se;
+    }
+
+    // A select2 whose selector is a literal (a cut condition) is its branch : the
+    // program converts the selector to an integer. The other branch is dropped only
+    // when it carries no observable effect, since both branches are computed.
+    Tree selectedBranch(Tree sig) const
+    {
+        Tree   sel, s0, s1;
+        int    i;
+        double d;
+        if (!isSigSelect2(sig, sel, s0, s1)) return nullptr;
+        bool first;
+        if (isInt(sel->node(), &i)) {
+            first = (i == 0);
+        } else if (isDouble(sel->node(), &d)) {
+            first = (std::trunc(d) == 0);
+        } else {
+            return nullptr;
+        }
+        if (hasSideEffect(first ? s1 : s0)) return nullptr;
+        return first ? s0 : s1;
     }
 
     // The generic frame: rules valid FOR ALL binary operators, driven by the op
