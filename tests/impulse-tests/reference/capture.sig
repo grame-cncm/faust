@@ -1,41 +1,5 @@
-// Size = 39
-ID_0 = button("Capture/Audio Capture");
-ID_1 = (1.0f-ID_0);
-ID_2 = W0;
-ID_3 = proj0(ID_2);
-ID_4 = ID_3';
-ID_5 = ID_1*ID_4;
-ID_6 = ID_0*IN[0];
-ID_7 = (ID_5+ID_6);
-ID_8 = int(ID_0);
-ID_9 = W1;
-ID_10 = proj0(ID_9);
-ID_11 = ID_10';
-ID_12 = (ID_8+ID_11);
-ID_13 = ID_8';
-ID_14 = ID_8-ID_13;
-ID_15 = (ID_14<=0);
-ID_16 = ID_12*ID_15;
-ID_17 = letrec(W1 = (ID_16));
-ID_18 = proj0(ID_17);
-ID_19 = ID_18@0;
-ID_20 = ID_19+-1;
-ID_21 = (ID_20&524287);
-ID_22 = ID_7@ID_21;
-ID_23 = letrec(W0 = (ID_22));
-ID_24 = proj0(ID_23);
-ID_25 = ID_24@0;
-ID_26 = hslider("level (db)/Audio Capture",0.0f,-96.0f,4.0f,0.1f);
-ID_27 = 0.05f*ID_26;
-ID_28 = pow(1e+01f, ID_27);
-ID_29 = 0.001f*ID_28;
-ID_30 = W2;
-ID_31 = proj0(ID_30);
-ID_32 = ID_31';
-ID_33 = 0.999f*ID_32;
-ID_34 = ID_29+ID_33;
-ID_35 = letrec(W2 = (ID_34));
-ID_36 = proj0(ID_35);
-ID_37 = ID_36@0;
-ID_38 = ID_25*ID_37;
-SIG = (ID_38);
+E0 = int(float(button("Capture/Audio Capture")>0.0f));  // int block [0, 1] lsb 0
+R0 = (E0+R0')*(E0-E0'<=0);                              // int samp [-2147483648, 2147483647] lsb 0
+R1 = select2(E0, R1', IN[0])@(-1+R0&524287);            // real samp [-inf, inf]
+// real samp [-inf, inf]
+process = (R1*(0.001f*IIR(pow(1e+01f, 0.05f*max(-96.0f, min(4.0f, hslider("level (db)/Audio Capture",0.0f,-96.0f,4.0f,0.1f)))); 0.999f)));

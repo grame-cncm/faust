@@ -1,143 +1,17 @@
-// Size = 141
-ID_0 = hslider("comb_res",0.999f,-0.999f,0.999f,0.01f);
-ID_1 = W0;
-ID_2 = proj0(ID_1);
-ID_3 = ID_2';
-ID_4 = ID_0*ID_3;
-ID_5 = hslider("vitesse",127.0f,0.0f,127.0f,1.0f);
-ID_6 = 3.6666243e-12f*ID_5;
-ID_7 = W1;
-ID_8 = proj0(ID_7);
-ID_9 = ID_8';
-ID_10 = 1103515245*ID_9;
-ID_11 = ID_10+12345;
-ID_12 = letrec(W1 = (ID_11));
-ID_13 = proj0(ID_12);
-ID_14 = ID_13@0;
-ID_15 = float(ID_14);
-ID_16 = float(fSamplingFreq);
-ID_17 = max(1.0f, ID_16);
-ID_18 = min(1.92e+05f, ID_17);
-ID_19 = hslider("env_a",0.95f,0.001f,1.0f,0.01f);
-ID_20 = ID_18*ID_19;
-ID_21 = max(1.0f, ID_20);
-ID_22 = 1.0f/ID_21;
-ID_23 = W2;
-ID_24 = proj0(ID_23);
-ID_25 = ID_24';
-ID_26 = (ID_25>0);
-ID_27 = (ID_25+ID_26);
-ID_28 = button("gate");
-ID_29 = ID_28';
-ID_30 = (ID_28<=ID_29);
-ID_31 = ID_27*ID_30;
-ID_32 = (ID_28>ID_29);
-ID_33 = ID_31+ID_32;
-ID_34 = letrec(W2 = (ID_33));
-ID_35 = proj0(ID_34);
-ID_36 = ID_35@0;
-ID_37 = float(ID_36);
-ID_38 = ID_22*ID_37;
-ID_39 = hslider("env_r",0.95f,0.001f,1.0f,0.01f);
-ID_40 = ID_18*ID_39;
-ID_41 = max(1.0f, ID_40);
-ID_42 = 1.0f/ID_41;
-ID_43 = (ID_21-ID_37);
-ID_44 = ID_42*ID_43;
-ID_45 = ID_44+1.0f;
-ID_46 = min(ID_38, ID_45);
-ID_47 = max(0.0f, ID_46);
-ID_48 = ID_15*ID_47;
-ID_49 = 0.1f*ID_18;
-ID_50 = max(1.0f, ID_49);
-ID_51 = 1.0f/ID_50;
-ID_52 = W3;
-ID_53 = proj0(ID_52);
-ID_54 = ID_53';
-ID_55 = ID_29>=ID_28;
-ID_56 = float(ID_55);
-ID_57 = ID_54*ID_56;
-ID_58 = ID_28+ID_57;
-ID_59 = letrec(W3 = (ID_58));
-ID_60 = proj0(ID_59);
-ID_61 = ID_60@0;
-ID_62 = ID_51*ID_61;
-ID_63 = min(ID_62, 1.0f);
-ID_64 = 0.01f*ID_18;
-ID_65 = max(1.0f, ID_64);
-ID_66 = 1.0f/ID_65;
-ID_67 = (ID_28==0.0f);
-ID_68 = W4;
-ID_69 = proj0(ID_68);
-ID_70 = ID_69';
-ID_71 = (ID_70+1);
-ID_72 = ID_67*ID_71;
-ID_73 = letrec(W4 = (ID_72));
-ID_74 = proj0(ID_73);
-ID_75 = ID_74@0;
-ID_76 = float(ID_75);
-ID_77 = ID_66*ID_76;
-ID_78 = ID_63-ID_77;
-ID_79 = max(0.0f, ID_78);
-ID_80 = ID_48*ID_79;
-ID_81 = ID_6*ID_80;
-ID_82 = (ID_4+ID_81);
-ID_83 = 1e+03f/ID_18;
-ID_84 = -1.0f*ID_83;
-ID_85 = exp(ID_84);
-ID_86 = (1.0f-ID_85);
-ID_87 = hslider("freq",2e+02f,2e+02f,8e+02f,1.0f);
-ID_88 = ID_86*ID_87;
-ID_89 = W5;
-ID_90 = proj0(ID_89);
-ID_91 = ID_90';
-ID_92 = ID_85*ID_91;
-ID_93 = ID_88+ID_92;
-ID_94 = letrec(W5 = (ID_93));
-ID_95 = proj0(ID_94);
-ID_96 = ID_95@0;
-ID_97 = ID_18/ID_96;
-ID_98 = floor(ID_97);
-ID_99 = ID_97-ID_98;
-ID_100 = ID_99<=0.06f;
-ID_101 = ID_99>=0.95f;
-ID_102 = 0.9993265f*ID_18;
-ID_103 = ID_102/ID_96;
-ID_104 = select2(ID_101,ID_97,ID_103);
-ID_105 = 1.0006735f*ID_18;
-ID_106 = ID_105/ID_96;
-ID_107 = select2(ID_100,ID_104,ID_106);
-ID_108 = ID_107+-1.0f;
-ID_109 = int(ID_108);
-ID_110 = max(0, ID_109);
-ID_111 = min(1025, ID_110);
-ID_112 = ID_82@ID_111;
-ID_113 = floor(ID_108);
-ID_114 = 2.0f-ID_107;
-ID_115 = (ID_113+ID_114);
-ID_116 = ID_112*ID_115;
-ID_117 = -1.0f-ID_113;
-ID_118 = (ID_107+ID_117);
-ID_119 = ID_109+1;
-ID_120 = max(0, ID_119);
-ID_121 = min(1025, ID_120);
-ID_122 = ID_82@ID_121;
-ID_123 = ID_118*ID_122;
-ID_124 = ID_116+ID_123;
-ID_125 = letrec(W0 = (ID_124, ID_82));
-ID_126 = proj1(ID_125);
-ID_127 = ID_126@0;
-ID_128 = hslider("gain",0.8f,0.0f,1.0f,0.01f);
-ID_129 = 0.001f*ID_128;
-ID_130 = W6;
-ID_131 = proj0(ID_130);
-ID_132 = ID_131';
-ID_133 = 0.999f*ID_132;
-ID_134 = ID_129+ID_133;
-ID_135 = letrec(W6 = (ID_134));
-ID_136 = proj0(ID_135);
-ID_137 = ID_136@0;
-ID_138 = ID_127*ID_137;
-ID_139 = ID_138';
-ID_140 = 0.3f*ID_139;
-SIG = (ID_140, ID_140);
+E0  = min(1.92e+05f, max(5e+01f, float(fSamplingFreq)));                                             // real konst [50, 192000] lsb -27
+E1  = IRM(max(2e+02f, min(8e+02f, hslider("freq",2e+02f,2e+02f,8e+02f,1.0f))); exp(-(1e+03f/E0)));   // real samp [1.038742, 800.0397] lsb -32
+E2  = E0/E1;                                                                                         // real samp [0.0624969, 184838.98] lsb -32
+E3  = frac(E2);                                                                                      // real samp [0, 0.99999994] lsb -32
+E4  = -1.0f+select2(E3<=0.06f, select2(E3>=0.95f, E2, 0.9993265f*E0/E1), 1.0006735f*E0/E1);          // real samp [-0.9375452, 184962.48] lsb -60
+E5  = int(E4);                                                                                       // int samp [0, 184962] lsb 0
+E6  = max(1.0f, E0*max(0.001f, min(1.0f, hslider("env_a",0.95f,0.001f,1.0f,0.01f))));                // real block [1, 192000] lsb -69
+E7  = float(button("gate")>0.0f);                                                                    // real block [0, 1] lsb -1
+E8  = E7';                                                                                           // real samp [0, 1] lsb -1
+R0  = select2(E7<=E8, 1, R0'+(R0'>0));                                                               // int samp [-2147483648, 2147483647] lsb 0
+E9  = E7==0.0f;                                                                                      // int block [0, 1] lsb 0
+R1  = E7+R1'*float(E8>=E7);                                                                          // real samp [0, 16777216] lsb -12
+// real samp [-4.6216207e+21, 4.6216207e+21] lsb -784
+E10 = max(-0.999f, min(0.999f, hslider("comb_res",0.999f,-0.999f,0.999f,0.01f)))*R2'+3.6666243e-12f*max(0.0f, min(127.0f, hslider("vitesse",127.0f,0.0f,127.0f,1.0f)))*(float(IIR(12345; 1103515245))*max(0.0f, min(1.0f/E6*float(R0), 1.0f+1.0f/max(1.0f, E0*max(0.001f, min(1.0f, hslider("env_r",0.95f,0.001f,1.0f,0.01f))))*(E6-float(R0))))*max(0.0f, -(1.0f/max(1.0f, 0.01f*E0)*float(IIR(E9; E9)))+min(1.0f/max(1.0f, 0.1f*E0)*R1, 1.0f)));
+R2  = mix(frac(E4), E10@min(1025, max(0, E5)), E10@min(1025, max(0, 1+E5)));                         // real samp [-4.6216305e+21, 4.6216305e+21] lsb -745
+E11 = 0.3f*(E10*(0.001f*IIR(max(0.0f, min(1.0f, hslider("gain",0.8f,0.0f,1.0f,0.01f))); 0.999f)))';  // real samp [-1.3866696e+21, 1.3866696e+21] lsb -1262
+process = (E11, E11);                                                                                // real samp [-1.3866696e+21, 1.3866696e+21] lsb -1262 ; real samp [-1.3866696e+21, 1.3866696e+21] lsb -1262

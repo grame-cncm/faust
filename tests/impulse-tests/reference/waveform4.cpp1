@@ -1,11 +1,23 @@
 //----------------------------------------------------------
 // name: "waveform4"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -32,7 +44,7 @@ class mydsp : public dsp {
 		void fill(int count, int output[]) {
 			int fullcount = count;
 			for (int index = 0; index < fullcount; index += 32) {
-				int count = min(32, fullcount-index);
+				int count = faustmini(32, fullcount-index);
 				for (int i=0; i<count; i++) {
 					output[i] = iWave0[idxiWave0];
 					// post processing
@@ -59,7 +71,7 @@ class mydsp : public dsp {
 		void fill(int count, float output[]) {
 			int fullcount = count;
 			for (int index = 0; index < fullcount; index += 32) {
-				int count = min(32, fullcount-index);
+				int count = faustmini(32, fullcount-index);
 				for (int i=0; i<count; i++) {
 					output[i] = fWave1[idxfWave1];
 					// post processing
@@ -80,6 +92,7 @@ class mydsp : public dsp {
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "waveform4.dsp");
 		m->declare("name", "waveform4");
 	}
@@ -123,20 +136,18 @@ class mydsp : public dsp {
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		int 	iVeeec0;
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			iVeeec0 = iVeeec0State;
-			for (int i=0; i<count; i++) {
-				iVeeec0 = ((iVeeec0 + 3) % 7);
-				int 	iTemp0 = max(0, min(iVeeec0, 6)); // step: 12
-				output0[i] = (FAUSTFLOAT)(itbl0[iTemp0]);  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(ftbl1[iTemp0]);  // Zone Exec Code
-			}
-			iVeeec0State = iVeeec0;
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+		// schedule: ss=0 nodes=14 cycles=9 fill=38% peak=5 isoadj=3 packs4=0 aluMII=4 memMII=1 recMII=18 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		iVeeec0 = iVeeec0State;
+		for (int i=0; i<count; i++) {
+			iVeeec0 = (faust_wrap_add(3, iVeeec0) % 7);
+			int 	iTemp0 = faustmaxi(0, faustmini(iVeeec0, 6)); // step: 12
+			output0[i] = (FAUSTFLOAT)(itbl0[iTemp0]);  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(ftbl1[iTemp0]);  // Zone Exec Code
 		}
+		iVeeec0State = iVeeec0;
 	}
 };
 

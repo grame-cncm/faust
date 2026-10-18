@@ -1,24 +1,2 @@
-// Size = 22
-ID_0 = hslider("c_add_2",0.0f,-1e+01f,1e+01f,0.1f);
-ID_1 = 2.0f*IN[1];
-ID_2 = ID_0+ID_1;
-ID_3 = hslider("c_add_3",0.0f,-1e+01f,1e+01f,0.1f);
-ID_4 = 2.0f*ID_3;
-ID_5 = ID_4+IN[2];
-ID_6 = hslider("c_mul_2",1.0f,-1e+01f,1e+01f,0.1f);
-ID_7 = pow(ID_6, 2.0f);
-ID_8 = ID_7*IN[4];
-ID_9 = hslider("c_cmpd_2",1.0f,-1e+01f,1e+01f,0.1f);
-ID_10 = 2.0f*ID_9;
-ID_11 = ID_10*IN[6];
-ID_12 = hslider("c_adv_1",1.0f,-1e+01f,1e+01f,0.1f);
-ID_13 = hslider("c_adv_2",1.0f,-1e+01f,1e+01f,0.1f);
-ID_14 = (ID_12+ID_13);
-ID_15 = ID_14*IN[7];
-ID_16 = hslider("c_adv_4",1.0f,-1e+01f,1e+01f,0.1f);
-ID_17 = hslider("c_adv_5",1.0f,-1e+01f,1e+01f,0.1f);
-ID_18 = ID_16+ID_17;
-ID_19 = hslider("c_adv_6",1.0f,-1e+01f,1e+01f,0.1f);
-ID_20 = pow(IN[9], 2.0f);
-ID_21 = ID_19*ID_20;
-SIG = (IN[0], ID_2, ID_5, IN[3], ID_8, IN[5], ID_11, ID_15, ID_18, ID_21);
+// real samp [-inf, inf] ; real samp [-inf, inf] ; real samp [-inf, inf] ; real samp [-inf, inf] ; real samp [-inf, inf] invalid ; real samp [-inf, inf] ; real samp [-inf, inf] invalid ; real samp [-inf, inf] invalid ; real block [-20, 20] lsb -36 ; real samp [-inf, inf] invalid
+process = (IN[0], max(-1e+01f, min(1e+01f, hslider("c_add_2",0.0f,-1e+01f,1e+01f,0.1f)))+2.0f*IN[1], 2.0f*max(-1e+01f, min(1e+01f, hslider("c_add_3",0.0f,-1e+01f,1e+01f,0.1f)))+IN[2], IN[3], pow(max(-1e+01f, min(1e+01f, hslider("c_mul_2",1.0f,-1e+01f,1e+01f,0.1f))), 2.0f)*IN[4], IN[5], 2.0f*max(-1e+01f, min(1e+01f, hslider("c_cmpd_2",1.0f,-1e+01f,1e+01f,0.1f)))*IN[6], (max(-1e+01f, min(1e+01f, hslider("c_adv_1",1.0f,-1e+01f,1e+01f,0.1f)))+max(-1e+01f, min(1e+01f, hslider("c_adv_2",1.0f,-1e+01f,1e+01f,0.1f))))*IN[7], max(-1e+01f, min(1e+01f, hslider("c_adv_4",1.0f,-1e+01f,1e+01f,0.1f)))+max(-1e+01f, min(1e+01f, hslider("c_adv_5",1.0f,-1e+01f,1e+01f,0.1f))), max(-1e+01f, min(1e+01f, hslider("c_adv_6",1.0f,-1e+01f,1e+01f,0.1f)))*pow(IN[9], 2.0f));

@@ -1,105 +1,14 @@
-// Size = 103
-ID_0 = float(fSamplingFreq);
-ID_1 = max(1.0f, ID_0);
-ID_2 = min(1.92e+05f, ID_1);
-ID_3 = 1e+03f/ID_2;
-ID_4 = hslider("grainsize [unit:msec]",1e+02f,1.0f,1e+03f,1.0f);
-ID_5 = ID_3/ID_4;
-ID_6 = W1;
-ID_7 = proj0(ID_6);
-ID_8 = ID_7';
-ID_9 = ID_5+ID_8;
-ID_10 = floor(ID_9);
-ID_11 = ID_8-ID_10;
-ID_12 = ID_5+ID_11;
-ID_13 = letrec(W1 = (ID_12));
-ID_14 = proj0(ID_13);
-ID_15 = ID_14@0;
-ID_16 = (ID_15>0.0001f);
-ID_17 = (ID_8<=0.0001f);
-ID_18 = ID_16*ID_17;
-ID_19 = W5;
-ID_20 = proj0(ID_19);
-ID_21 = ID_20';
-ID_22 = W2;
-ID_23 = proj0(ID_22);
-ID_24 = ID_23';
-ID_25 = 1103515245*ID_24;
-ID_26 = ID_25+12345;
-ID_27 = letrec(W2 = (ID_26));
-ID_28 = proj0(ID_27);
-ID_29 = ID_28@0;
-ID_30 = float(ID_29);
-ID_31 = 4.656613e-10f*ID_30;
-ID_32 = (ID_31+1.0f);
-ID_33 = 0.5f*ID_32;
-ID_34 = hslider("rarefaction",0.2f,0.0f,1.0f,0.01f);
-ID_35 = ID_33>ID_34;
-ID_36 = select2(ID_18,ID_21,ID_35);
-ID_37 = letrec(W5 = (ID_36));
-ID_38 = proj0(ID_37);
-ID_39 = ID_38@0;
-ID_40 = float(ID_39);
-ID_41 = W0;
-ID_42 = proj0(ID_41);
-ID_43 = ID_42';
-ID_44 = 0.0005f*ID_2;
-ID_45 = hslider("delaymax",1e+03f,1e+01f,1e+04f,1.0f);
-ID_46 = ID_44*ID_45;
-ID_47 = ID_46*ID_32;
-ID_48 = select2(ID_18,ID_43,ID_47);
-ID_49 = letrec(W0 = (ID_48));
-ID_50 = proj0(ID_49);
-ID_51 = ID_50@0;
-ID_52 = int(ID_51);
-ID_53 = max(0, ID_52);
-ID_54 = min(524289, ID_53);
-ID_55 = IN[0]@ID_54;
-ID_56 = floor(ID_51);
-ID_57 = 1.0f-ID_51;
-ID_58 = (ID_56+ID_57);
-ID_59 = ID_55*ID_58;
-ID_60 = (ID_51-ID_56);
-ID_61 = ID_52+1;
-ID_62 = max(0, ID_61);
-ID_63 = min(524289, ID_62);
-ID_64 = IN[0]@ID_63;
-ID_65 = ID_60*ID_64;
-ID_66 = (ID_59+ID_65);
-ID_67 = ID_40*ID_66;
-ID_68 = W3;
-ID_69 = proj0(ID_68);
-ID_70 = ID_69';
-ID_71 = ID_70+1;
-ID_72 = letrec(W3 = (ID_71));
-ID_73 = proj0(ID_72);
-ID_74 = ID_73@0;
-ID_75 = ID_74+-1;
-ID_76 = float(ID_75);
-ID_77 = 9.58738e-05f*ID_76;
-ID_78 = sin(ID_77);
-ID_79 = sigGen(ID_78);
-ID_80 = WRTbl2p(65536,ID_79);
-ID_81 = W4;
-ID_82 = proj0(ID_81);
-ID_83 = ID_82';
-ID_84 = floor(ID_83);
-ID_85 = ID_83-ID_84;
-ID_86 = letrec(W4 = (ID_85));
-ID_87 = proj0(ID_86);
-ID_88 = ID_87@0;
-ID_89 = 65536.0f*ID_88;
-ID_90 = int(ID_89);
-ID_91 = sigRDTbl(ID_80,ID_90);
-ID_92 = 3.1415927f*ID_15;
-ID_93 = cos(ID_92);
-ID_94 = ID_91*ID_93;
-ID_95 = cos(ID_77);
-ID_96 = sigGen(ID_95);
-ID_97 = WRTbl2p(65536,ID_96);
-ID_98 = sigRDTbl(ID_97,ID_90);
-ID_99 = sin(ID_92);
-ID_100 = ID_98*ID_99;
-ID_101 = (ID_94+ID_100);
-ID_102 = ID_67*ID_101;
-SIG = (ID_102);
+E0 = min(1.92e+05f, max(5e+01f, float(fSamplingFreq)));                                            // real konst [50, 192000] lsb -27
+// real samp [0, 0.99999994] lsb -32
+R0 = frac(1e+03f/E0/max(1.0f, min(1e+03f, hslider("grainsize [unit:msec]",1e+02f,1.0f,1e+03f,1.0f)))+R0');
+E1 = (R0>0.0001f)*(R0'<=0.0001f);                                                                  // int samp [0, 1] lsb 0
+E2 = 1.0f+4.656613e-10f*float(IIR(12345; 1103515245));                                             // real samp [0, 2] lsb -64
+// real samp [0, 1920000.2] lsb -166
+R1 = select2(E1, R1', 0.0005f*E0*max(1e+01f, min(1e+04f, hslider("delaymax",1e+03f,1e+01f,1e+04f,1.0f)))*E2);
+E3 = 9.58738e-05f*float(-1+IIR(1; 1));                                                             // real samp [-205887.42, 205887.42] lsb -47
+R2 = frac(R2');                                                                                    // real samp [0, 0.99999994] lsb -1 invalid  <-- invalid from here (the recursion)
+E4 = max(0, min(int(65536.0f*R2), 65535));                                                         // int samp [0, 65535] lsb 0 invalid
+E5 = 3.1415927f*R0;                                                                                // real samp [0, 3.1415927] lsb -63
+R3 = select2(E1, R3', 0.5f*E2>max(0.0f, min(1.0f, hslider("rarefaction",0.2f,0.0f,1.0f,0.01f))));  // int samp [0, 1] lsb 0
+// real samp [-inf, inf] invalid
+process = (mix(frac(R1), IN[0]@min(524289, max(0, int(R1))), IN[0]@min(524289, max(0, 1+int(R1))))*(sigRDTbl(WRTbl2p(65536, sigGen(sin(E3))), E4)*cos(E5)+sigRDTbl(WRTbl2p(65536, sigGen(cos(E3))), E4)*sin(E5))*float(R3));

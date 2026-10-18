@@ -157,3 +157,52 @@ Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 Field = fRec0 size = 2 size_bytes = 8 read = 4 write = 2 ratio = 3
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            150
+  eval() cache hits:       26 (17.3333%)
+  eval() cache misses:     124
+  Loop detector calls:     124
+  Stack detector calls:    124
+
+--- Phase 3: Propagation ---
+  propagate() calls:       68
+  propagate() cache hits:  16 (23.5294%)
+  propagate() cache misses:52
+
+--- Box Type Computation ---
+  getBoxType() calls:      114
+  getBoxType() cache hits: 83 (72.807%)
+  getBoxType() computed:   31
+
+--- Environment Operations ---
+  Environment lookups:     3
+  Average lookup depth:    0
+  Env layers pushed:       13
+
+--- Pattern Matching ---
+  build automaton calls:        1
+  build total time (ms):        0.007458
+  build avg time (ms):          0.007458
+  apply calls:                  3
+  apply total time (ms):        0.013333
+  apply avg time (ms):          0.00444433
+
+--- Tree Operations ---
+  Trees created:           660
+  Trees reused (hash):     1311 (66.5145% reuse rate)
+  Property set ops:        289
+  Property get ops:        1030
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

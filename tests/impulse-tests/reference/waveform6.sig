@@ -1,11 +1,2 @@
-// Size = 9
-ID_0 = sigGen(waveform{...});
-ID_1 = WRTbl2p(6,ID_0);
-ID_2 = abs(IN[0]);
-ID_3 = 4.0f*ID_2;
-ID_4 = int(ID_3);
-ID_5 = sigRDTbl(ID_1,ID_4);
-ID_6 = float(ID_5);
-ID_7 = sin(ID_6);
-ID_8 = IN[1]*ID_7;
-SIG = (ID_8);
+// real samp [-inf, inf] invalid
+process = (IN[1]*sin(float(sigRDTbl(WRTbl2p(6, sigGen(waveform{...})), max(0, min(int(min(2.1474835e+09f, max(4.0f*abs(IN[0]), -2.1474836e+09f))), 5))))));

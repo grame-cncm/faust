@@ -5,11 +5,23 @@
 // name: "NoiseMD"
 // version: "1.1"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -21,9 +33,7 @@
 
 class mydsp : public dsp {
   private:
-	// Recursion delay iVeeec0 is of type kMonoDelay
-	// While its definition is of type kZeroDelay
-	int 	iVeeec0State; // Mono Delay
+	int 	iVeeec0State; // Single Delay
 	FAUSTFLOAT 	fslider0;
 	int fSampleRate;
 
@@ -31,6 +41,7 @@ class mydsp : public dsp {
 	virtual void metadata(Meta* m) { 
 		m->declare("author", "Grame");
 		m->declare("contributor", "Yghe");
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2009");
 		m->declare("filename", "noisemetadata.dsp");
 		m->declare("license", "BSD");
@@ -74,18 +85,17 @@ class mydsp : public dsp {
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		int 	iVeeec0;
-		float 	fSlow0 = (4.656613e-10f * float(fslider0)); // step: 13
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			iVeeec0 = iVeeec0State;
-			for (int i=0; i<count; i++) {
-				iVeeec0 = ((1103515245 * iVeeec0) + 12345);
-				output0[i] = (FAUSTFLOAT)((fSlow0 * float(iVeeec0)));  // Zone Exec Code
-			}
-			iVeeec0State = iVeeec0;
+		float 	fSlow0 = fmaxf(0.0f, fminf(1.0f, float(fslider0))); // step: 10
+		float 	fSlow1 = (4.656613e-10f * fSlow0); // step: 11
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		// schedule: ss=0 nodes=11 cycles=7 fill=39% peak=5 isoadj=3 packs4=0 aluMII=3 memMII=0 recMII=0 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		iVeeec0 = iVeeec0State;
+		for (int i=0; i<count; i++) {
+			iVeeec0 = faust_wrap_add(12345, faust_wrap_mul(1103515245, iVeeec0));
+			output0[i] = (FAUSTFLOAT)((fSlow1 * float(+iVeeec0)));  // Zone Exec Code
 		}
+		iVeeec0State = iVeeec0;
 	}
 };
 

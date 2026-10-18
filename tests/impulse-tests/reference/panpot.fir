@@ -23,6 +23,8 @@ EndBlockInst
 ======= Global declarations begin ==========
 
 BlockInst 
+	DeclareFunInst("float", "min_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("float", "max_f", "float", dummy0, "float", dummy1)
 	DeclareFunInst("float", "sqrtf", "float", dummy0)
 EndBlockInst
 
@@ -57,22 +59,22 @@ EndBlockInst
 ======= ResetUI begin ==========
 
 BlockInst 
-	StoreVarInst(Address(fEntry0, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
+	StoreVarInst(Address(fEntry0, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
 EndBlockInst
 
 ======= ResetUI end ==========
 
 ======= Compute control begin ==========
 
-Instructions complexity : Load = 6 Store = 0 Binop = 3 [ { Real(*) = 1 } { Real(+) = 2 } ] Mathop = 2 [ { sqrtf = 2 } ] Numbers = 6 Declare = 6 Cast = 1 Select = 0 Loop = 0
+Instructions complexity : Load = 6 Store = 0 Binop = 3 [ { Real(*) = 1 } { Real(+) = 2 } ] Mathop = 4 [ { max_f = 1 } { min_f = 1 } { sqrtf = 2 } ] Numbers = 8 Declare = 6 Cast = 1 Select = 0 Loop = 0
 
 BlockInst 
 	DeclareVarInst("FAUSTFLOAT*", input0, kStack, LoadVarInst(Address(inputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output1, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(1)]))
-	DeclareVarInst("float", fSlow0, kStack, BinopInst("*", Float(0.0055555557f), BinopInst("+", CastInst("float", LoadVarInst(Address(fEntry0, kStruct))), Float(-9e+01f))))
-	DeclareVarInst("float", fSlow1, kStack, FunCallInst("sqrtf", MinusInst(LoadVarInst(Address(fSlow0, kStack)))))
-	DeclareVarInst("float", fSlow2, kStack, FunCallInst("sqrtf", BinopInst("+", LoadVarInst(Address(fSlow0, kStack)), Float(1.0f))))
+	DeclareVarInst("float", fSlow0, kStack, BinopInst("*", Float(0.0055555557f), BinopInst("+", Float(-9e+01f), FunCallInst("max_f", Float(-9e+01f), FunCallInst("min_f", Float(9e+01f), CastInst("float", LoadVarInst(Address(fEntry0, kStruct))))))))
+	DeclareVarInst("float", fSlow1, kStack, FunCallInst("sqrtf", NegInst(LoadVarInst(Address(fSlow0, kStack)))))
+	DeclareVarInst("float", fSlow2, kStack, FunCallInst("sqrtf", BinopInst("+", Float(1.0f), LoadVarInst(Address(fSlow0, kStack)))))
 EndBlockInst
 
 ======= Compute control end ==========
@@ -105,12 +107,14 @@ EndBlockInst
 
 BlockInst 
 	========== Declaration part ==========
+	DeclareFunInst("float", "min_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("float", "max_f", "float", dummy0, "float", dummy1)
 	DeclareFunInst("float", "sqrtf", "float", dummy0)
 	DeclareVarInst("FAUSTFLOAT", fEntry0, kStruct)
 	DeclareVarInst("int", fSampleRate, kStruct)
 	========== Init method ==========
 	StoreVarInst(Address(fSampleRate, kStruct), LoadVarInst(Address(sample_rate, kFunArgs)))
-	StoreVarInst(Address(fEntry0, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
+	StoreVarInst(Address(fEntry0, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
 	========== Static init method ==========
 	========== Subcontainers ==========
 	========== Control ==========
@@ -118,9 +122,9 @@ BlockInst
 	DeclareVarInst("FAUSTFLOAT*", input0, kStack, LoadVarInst(Address(inputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output1, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(1)]))
-	DeclareVarInst("float", fSlow0, kStack, BinopInst("*", Float(0.0055555557f), BinopInst("+", CastInst("float", LoadVarInst(Address(fEntry0, kStruct))), Float(-9e+01f))))
-	DeclareVarInst("float", fSlow1, kStack, FunCallInst("sqrtf", MinusInst(LoadVarInst(Address(fSlow0, kStack)))))
-	DeclareVarInst("float", fSlow2, kStack, FunCallInst("sqrtf", BinopInst("+", LoadVarInst(Address(fSlow0, kStack)), Float(1.0f))))
+	DeclareVarInst("float", fSlow0, kStack, BinopInst("*", Float(0.0055555557f), BinopInst("+", Float(-9e+01f), FunCallInst("max_f", Float(-9e+01f), FunCallInst("min_f", Float(9e+01f), CastInst("float", LoadVarInst(Address(fEntry0, kStruct))))))))
+	DeclareVarInst("float", fSlow1, kStack, FunCallInst("sqrtf", NegInst(LoadVarInst(Address(fSlow0, kStack)))))
+	DeclareVarInst("float", fSlow2, kStack, FunCallInst("sqrtf", BinopInst("+", Float(1.0f), LoadVarInst(Address(fSlow0, kStack)))))
 	========== Compute DSP ==========
 	ForLoopInst 
 		DeclareVarInst("int", i0, kLoop, Int32(0))
@@ -159,3 +163,49 @@ Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 Field = fEntry0 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            39
+  eval() cache hits:       6 (15.3846%)
+  eval() cache misses:     33
+  Loop detector calls:     33
+  Stack detector calls:    33
+
+--- Phase 3: Propagation ---
+  propagate() calls:       32
+  propagate() cache hits:  2 (6.25%)
+  propagate() cache misses:30
+
+--- Box Type Computation ---
+  getBoxType() calls:      62
+  getBoxType() cache hits: 36 (58.0645%)
+  getBoxType() computed:   26
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       3
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           282
+  Trees reused (hash):     621 (68.7708% reuse rate)
+  Property set ops:        172
+  Property get ops:        348
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

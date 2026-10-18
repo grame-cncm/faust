@@ -74,6 +74,10 @@ EndBlockInst
 BlockInst 
 	DeclareVarInst("int", itbl0mydspSIG0[6], kStaticStruct)
 	DeclareFunInst("float", "fabsf", "float", dummy0)
+	DeclareFunInst("float", "max_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("float", "min_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("int", "min_i", "int", dummy0, "int", dummy1)
+	DeclareFunInst("int", "max_i", "int", dummy0, "int", dummy1)
 	DeclareFunInst("float", "sinf", "float", dummy0)
 EndBlockInst
 
@@ -132,14 +136,14 @@ EndBlockInst
 
 ======= Compute DSP begin ==========
 
-Instructions complexity : Load = 9 Store = 2 Binop = 4 [ { Int(+) = 1 } { Int(<) = 1 } { Real(*) = 2 } ] Mathop = 2 [ { fabsf = 1 } { sinf = 1 } ] Numbers = 3 Declare = 1 Cast = 5 Select = 0 Loop = 1
+Instructions complexity : Load = 9 Store = 2 Binop = 4 [ { Int(+) = 1 } { Int(<) = 1 } { Real(*) = 2 } ] Mathop = 6 [ { fabsf = 1 } { max_f = 1 } { max_i = 1 } { min_f = 1 } { min_i = 1 } { sinf = 1 } ] Numbers = 7 Declare = 1 Cast = 5 Select = 0 Loop = 1
 
 ForLoopInst 
 	DeclareVarInst("int", i0, kLoop, Int32(0))
 	BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 	StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 	BlockInst 
-		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("*", CastInst("float", LoadVarInst(Address(input1, kStack)[LoadVarInst(Address(i0, kLoop))])), FunCallInst("sinf", CastInst("float", LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[CastInst("int", BinopInst("*", Float(4.0f), FunCallInst("fabsf", CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])))))]))))))
+		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("*", CastInst("float", LoadVarInst(Address(input1, kStack)[LoadVarInst(Address(i0, kLoop))])), FunCallInst("sinf", CastInst("float", LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[FunCallInst("max_i", Int32(0), FunCallInst("min_i", CastInst("int", FunCallInst("min_f", Float(2.1474835e+09f), FunCallInst("max_f", BinopInst("*", Float(4.0f), FunCallInst("fabsf", CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])))), Float(-2.1474836e+09f)))), Int32(5)))]))))))
 	EndBlockInst
 EndForLoopInst
 
@@ -158,6 +162,10 @@ BlockInst
 	========== Declaration part ==========
 	DeclareVarInst("int", itbl0mydspSIG0[6], kStaticStruct)
 	DeclareFunInst("float", "fabsf", "float", dummy0)
+	DeclareFunInst("float", "max_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("float", "min_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("int", "min_i", "int", dummy0, "int", dummy1)
+	DeclareFunInst("int", "max_i", "int", dummy0, "int", dummy1)
 	DeclareFunInst("float", "sinf", "float", dummy0)
 	DeclareVarInst("int", fSampleRate, kStruct)
 	========== Init method ==========
@@ -199,7 +207,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 		StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("*", CastInst("float", LoadVarInst(Address(input1, kStack)[LoadVarInst(Address(i0, kLoop))])), FunCallInst("sinf", CastInst("float", LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[CastInst("int", BinopInst("*", Float(4.0f), FunCallInst("fabsf", CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])))))]))))))
+			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", BinopInst("*", CastInst("float", LoadVarInst(Address(input1, kStack)[LoadVarInst(Address(i0, kLoop))])), FunCallInst("sinf", CastInst("float", LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[FunCallInst("max_i", Int32(0), FunCallInst("min_i", CastInst("int", FunCallInst("min_f", Float(2.1474835e+09f), FunCallInst("max_f", BinopInst("*", Float(4.0f), FunCallInst("fabsf", CastInst("float", LoadVarInst(Address(input0, kStack)[LoadVarInst(Address(i0, kLoop))])))), Float(-2.1474836e+09f)))), Int32(5)))]))))))
 		EndBlockInst
 	EndForLoopInst
 	========== Post compute DSP ==========
@@ -226,3 +234,49 @@ Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 ======= Variable access in compute DSP ==========
 
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            42
+  eval() cache hits:       2 (4.7619%)
+  eval() cache misses:     40
+  Loop detector calls:     40
+  Stack detector calls:    40
+
+--- Phase 3: Propagation ---
+  propagate() calls:       28
+  propagate() cache hits:  0 (0%)
+  propagate() cache misses:28
+
+--- Box Type Computation ---
+  getBoxType() calls:      52
+  getBoxType() cache hits: 32 (61.5385%)
+  getBoxType() computed:   20
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       4
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           277
+  Trees reused (hash):     519 (65.201% reuse rate)
+  Property set ops:        190
+  Property get ops:        396
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

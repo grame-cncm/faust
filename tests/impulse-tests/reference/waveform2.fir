@@ -152,7 +152,7 @@ ForLoopInst
 	BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 	StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 	BlockInst 
-		StoreVarInst(Address(iRec0, kStruct)[Int32(0)], BinopInst("%", BinopInst("+", LoadVarInst(Address(iRec0, kStruct)[Int32(1)]), Int32(3)), Int32(7)))
+		StoreVarInst(Address(iRec0, kStruct)[Int32(0)], BinopInst("%", BinopInst("+", Int32(3), LoadVarInst(Address(iRec0, kStruct)[Int32(1)])), Int32(7)))
 		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[FunCallInst("min_i", Int32(6), FunCallInst("max_i", Int32(0), LoadVarInst(Address(iRec0, kStruct)[Int32(0)])))])))
 		StoreVarInst(Address(iRec0, kStruct)[Int32(1)], LoadVarInst(Address(iRec0, kStruct)[Int32(0)]))
 	EndBlockInst
@@ -221,7 +221,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 		StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(iRec0, kStruct)[Int32(0)], BinopInst("%", BinopInst("+", LoadVarInst(Address(iRec0, kStruct)[Int32(1)]), Int32(3)), Int32(7)))
+			StoreVarInst(Address(iRec0, kStruct)[Int32(0)], BinopInst("%", BinopInst("+", Int32(3), LoadVarInst(Address(iRec0, kStruct)[Int32(1)])), Int32(7)))
 			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[FunCallInst("min_i", Int32(6), FunCallInst("max_i", Int32(0), LoadVarInst(Address(iRec0, kStruct)[Int32(0)])))])))
 			StoreVarInst(Address(iRec0, kStruct)[Int32(1)], LoadVarInst(Address(iRec0, kStruct)[Int32(0)]))
 		EndBlockInst
@@ -253,3 +253,49 @@ Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 Field = iRec0 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            25
+  eval() cache hits:       1 (4%)
+  eval() cache misses:     24
+  Loop detector calls:     24
+  Stack detector calls:    24
+
+--- Phase 3: Propagation ---
+  propagate() calls:       28
+  propagate() cache hits:  0 (0%)
+  propagate() cache misses:28
+
+--- Box Type Computation ---
+  getBoxType() calls:      66
+  getBoxType() cache hits: 38 (57.5758%)
+  getBoxType() computed:   28
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       1
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           359
+  Trees reused (hash):     732 (67.0944% reuse rate)
+  Property set ops:        179
+  Property get ops:        622
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================
