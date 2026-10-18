@@ -1062,8 +1062,10 @@ SIGS_API Tree sigFIR(const tvec& sigcoefs)
     // one-coefficient form FIR[x, c0] is a plain product with no mask : it
     // is only truthful when x itself is audio rate, which the reveal rules
     // guarantee and this assert makes contractual.
-    TLIB_ASSERT(sigcoefs.size() > 2 ||
-                (sigcoefs.size() == 2 && sigs::isAudioRate(sigcoefs[0])));
+    if (!(sigcoefs.size() > 2 || (sigcoefs.size() == 2 && sigs::isAudioRate(sigcoefs[0])))) {
+        tlib::error("ERROR : sigFIR needs a signal and at least one coefficient, and a signal "
+                    "at audio rate when there is only one coefficient\n");
+    }
     return tree(sigs::g.SIGFIR, sigcoefs);
 }
 
@@ -1110,6 +1112,10 @@ SIGS_API bool isSigFIR(Tree s, tvec& sigcoefs)
 
 SIGS_API Tree sigIIR(const tvec& sigcoefs)
 {
+    // IIR[X, C1..Cn] : y = X + C1 y' + ... + Cn y@n
+    if (sigcoefs.size() < 2) {
+        tlib::error("ERROR : sigIIR needs a signal and at least one coefficient\n");
+    }
     return tree(sigs::g.SIGIIR, sigcoefs);
 }
 
@@ -1230,6 +1236,12 @@ SIGS_API bool isSigIRM(Tree s, Tree& x, Tree& c)
 // Bpf(x; t; r) : the children x, t1..tn, r0..rn
 SIGS_API Tree sigBpf(Tree x, const tvec& t, const tvec& r)
 {
+    // isSigBpf splits the children by their number : n thresholds, n + 1 regions
+    if (r.size() != t.size() + 1) {
+        tlib::error("ERROR : sigBpf needs one region more than thresholds (" +
+                    std::to_string(t.size()) + " thresholds, " + std::to_string(r.size()) +
+                    " regions)\n");
+    }
     tvec b{x};
     b.insert(b.end(), t.begin(), t.end());
     b.insert(b.end(), r.begin(), r.end());
