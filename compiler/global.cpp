@@ -2545,7 +2545,8 @@ string global::printHelp()
     sstr << tab << "-fp         --full-parentheses          always add parentheses around binops."
          << endl;
     sstr << tab
-         << "-cir        --check-integer-range       check float to integer range conversion."
+         << "-cir        --check-integer-range       kept for compatibility, without effect : a float "
+            "to integer conversion always saturates."
          << endl;
     sstr
         << tab

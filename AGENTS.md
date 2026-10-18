@@ -138,8 +138,8 @@ section per gate. Do not stop at the first gate that passes.
   (fused multiply-add, reassociation, libm) can move a float past a
   proven bound, and a conversion to an integer turns one ulp into a whole
   unit. Rely on exact integer arithmetic or on a test at run time.
-  Control values are not bounded by their declared range unless `-rui`
-  is given.
+  Control values are bounded by their declared range by default (`-rui`),
+  not under `-norui`.
 - **Clocks.** Never strip `sigClocked`, not even with a nil clock:
   downstream code pattern-matches on it. The only safe simplification is
   flattening nested clocks, keeping the outer one.
