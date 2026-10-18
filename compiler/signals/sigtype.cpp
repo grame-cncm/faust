@@ -20,6 +20,8 @@
  ************************************************************************/
 
 #include <climits>
+#include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <sstream>
 
@@ -46,8 +48,7 @@ AudioType::AudioType(int n, int v, int c, int vec, int b, interval i, res r)
       fVectorability(vec),
       fBoolean(b),
       fInterval(i),
-      fRes(r),
-      fCode(nullptr)
+      fRes(r)
 {
     TRACE(cerr << sigs::g.TABBER << "Building audioType : n="
                << "NR"[n] << ", v="
@@ -234,68 +235,10 @@ int checkDelayInterval(Type t)
     }
 }
 
-/*****************************************************************************
- *
- *      codeAudioType(Type) -> Tree
- *      Code an audio type as a tree in order to benefit of memoization
- *
- *****************************************************************************/
-
-static Tree codeSimpleType(SimpleType* st);
-
-/**
- * codeAudioType(Type) -> Tree
- * Code an audio type as a tree in order to benefit of memoization
- * The type field (of the coded type) is used to store the audio
- * type
- */
-Tree codeAudioType(AudioType* t)
-{
-    SimpleType* st;
-
-    Tree r;
-
-    if ((r = t->getCode())) {
-        return r;
-    }
-
-    if ((st = isSimpleType(t))) {
-        r = codeSimpleType(st);
-    } else {
-        stringstream error;
-        error << "ERROR : codeAudioType(), invalid pointer " << t << endl;
-        tlib::error(error.str());
-    }
-
-    r->setType(t);
-    return r;
-}
-
 void deferredIntervalRead()
 {
     tlib::error(
         "ASSERT : interval read from a typing that deferred the intervals (use sigInterval)\n");
-}
-
-/**
- * Code a simple audio type as a tree in order to benefit of memoization
- */
-static Tree codeSimpleType(SimpleType* st)
-{
-    vector<Tree> elems;
-    elems.push_back(tree(st->nature()));
-    elems.push_back(tree(st->variability()));
-    elems.push_back(tree(st->computability()));
-    elems.push_back(tree(st->vectorability()));
-    elems.push_back(tree(st->boolean()));
-
-    elems.push_back(tree(st->rawInterval().isValid()));
-    elems.push_back(tree(st->rawInterval().lo()));
-    elems.push_back(tree(st->rawInterval().hi()));
-
-    elems.push_back(tree(st->getRes().valid));
-    elems.push_back(tree(st->getRes().index));
-    return tree(sigs::g.SIMPLETYPE, elems);
 }
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i)
@@ -305,18 +248,18 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i, const res& lsb)
 {
-    SimpleType prototype(n, v, c, vec, b, i, lsb);
-    Tree       code = codeAudioType(&prototype);
-
-    AudioType* t;
-    if (sigs::g.gMemoizedTypes->get(code, t)) {
-        return t;
-    } else {
-        sigs::g.gAllocationCount++;
-        t = new SimpleType(n, v, c, vec, b, i, lsb);
-        sigs::g.gMemoizedTypes->set(code, t);
-        t->setCode(code);
-        return t;
-    }
+    auto bits = [](double x) {
+        std::uint64_t w;
+        std::memcpy(&w, &x, sizeof(w));
+        return w;
+    };
+    const SimpleTypeKey key{n,       v,          c,         vec,       b, i.isValid(),
+                            bits(i.lo()), bits(i.hi()), lsb.valid, lsb.index};
+    auto it = sigs::g.gMemoizedTypes.find(key);
+    if (it != sigs::g.gMemoizedTypes.end()) return it->second;
+    sigs::g.gAllocationCount++;
+    AudioType* t = new SimpleType(n, v, c, vec, b, i, lsb);
+    sigs::g.gMemoizedTypes.emplace(key, t);
+    return t;
 }
 
