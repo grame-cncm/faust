@@ -161,6 +161,16 @@ Tree simplifyCompound(Tree sig)
         for (Tree t : terms) acc = addNums(acc, t);
         return acc;
     }
+    // an IIR whose last coefficients are 0 (coefficients the constant propagation cut) is
+    // the IIR of the others : its delay line is sized by the last nonzero coefficient.
+    // With none left, y = x.
+    if (tvec cs; isSigIIR(sig, cs)) {
+        size_t n = cs.size();
+        while (n > 1 && isZero(cs[n - 1])) n--;
+        if (n == cs.size()) return sig;
+        if (n == 1) return cs[0];
+        return sigIIR(tvec(cs.begin(), cs.begin() + n));
+    }
     // neg folds on a number, and -(-y) is y
     if (isSigNeg(sig, x)) {
         Tree y;
