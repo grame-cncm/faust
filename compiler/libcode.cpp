@@ -1522,11 +1522,6 @@ static void* createFactoryAux2(void* arg)
         const char** argv     = context->fArgv;
         bool         generate = context->fGenerate;
 
-        Tree             signals2 = simplifyToNormalForm(signals1);
-        MaxInputsCounter counter(signals2);
-        int              numInputs  = counter.fMaxInputs;
-        int              numOutputs = context->fNumOutputs;
-
         /****************************************************************
          1 - process command line
          *****************************************************************/
@@ -1535,6 +1530,13 @@ static void* createFactoryAux2(void* arg)
         gGlobal->processCmdline(argc, argv);
 
         gGlobal->initDocumentNames();
+
+        // the normal form under the options of the command line (-double, -rui...), and
+        // after the reset of the state, whose certificates it fills
+        Tree             signals2 = simplifyToNormalForm(signals1);
+        MaxInputsCounter counter(signals2);
+        int              numInputs  = counter.fMaxInputs;
+        int              numOutputs = context->fNumOutputs;
 
         // Open output file
         openOutfile();
