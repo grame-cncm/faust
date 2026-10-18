@@ -31,7 +31,9 @@
 #ifndef __SIGS_STATE__
 #define __SIGS_STATE__
 
+#include <cstdint>
 #include <map>
+#include <unordered_map>
 #include <string>
 #include <vector>
 
@@ -42,6 +44,50 @@
 
 class AudioType;
 typedef P<AudioType> Type;
+
+/**
+ * The key of a simple type in the table of the memoized types : its attributes, the
+ * bounds of its interval compared bit for bit. A plain value : coding a type creates
+ * no tree, so the typing leaves the trees of the program, and their creation order,
+ * untouched.
+ */
+struct SimpleTypeKey {
+    int           nature, variability, computability, vectorability, boolean;
+    bool          valid;
+    std::uint64_t lo, hi;  ///< the bit patterns of the bounds
+    bool          resValid;
+    int           resIndex;
+
+    bool operator==(const SimpleTypeKey& k) const
+    {
+        return nature == k.nature && variability == k.variability &&
+               computability == k.computability && vectorability == k.vectorability &&
+               boolean == k.boolean && valid == k.valid && lo == k.lo && hi == k.hi &&
+               resValid == k.resValid && resIndex == k.resIndex;
+    }
+};
+
+struct SimpleTypeKeyHash {
+    std::size_t operator()(const SimpleTypeKey& k) const
+    {
+        std::uint64_t h = 1469598103934665603ULL;  // FNV-1a over the fields
+        auto mix = [&h](std::uint64_t x) {
+            h ^= x;
+            h *= 1099511628211ULL;
+        };
+        mix(std::uint64_t(k.nature));
+        mix(std::uint64_t(k.variability));
+        mix(std::uint64_t(k.computability));
+        mix(std::uint64_t(k.vectorability));
+        mix(std::uint64_t(k.boolean));
+        mix(std::uint64_t(k.valid));
+        mix(k.lo);
+        mix(k.hi);
+        mix(std::uint64_t(k.resValid));
+        mix(std::uint64_t(std::uint32_t(k.resIndex)));
+        return std::size_t(h);
+    }
+};
 class xtended;
 class TreeAlgebra;
 
@@ -143,7 +189,7 @@ struct State {
     xtended*                                    gAtan2Prim{};
     xtended*                                    gAsinPrim{};
     property<Tree>*                             gSymListProp{};
-    property<AudioType*>*                       gMemoizedTypes{};
+    std::unordered_map<SimpleTypeKey, AudioType*, SimpleTypeKeyHash> gMemoizedTypes;
     Sym                                         FFUN{};
     Sym                                         SIGINPUT{};
     Sym                                         SIGOUTPUT{};
@@ -197,7 +243,6 @@ struct State {
     Sym                                         SIGSOUNDFILERATE{};
     Sym                                         SIGSOUNDFILEBUFFER{};
     Sym                                         SIGREGISTER{};  // for FPGA Retiming
-    Sym                                         SIMPLETYPE{};
 
     /// The initial algebra of the session, rebuilt by initSignalSymbols(): its
     /// dispatch signature dies with the tlib session, so its lifetime is one
