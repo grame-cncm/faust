@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "exception.hh"
+#include "global.hh"
 #include "rewrite.hh"
 #include "shareSums.hh"
 #include "sigattributes.hh"
@@ -230,18 +231,24 @@ void Planner::plan()
     fRewrite.assign(R, false);
     if (R == 0) return;
 
-    // 1. the magnitudes of the coefficients, in clusters of relative width 2^-40 ; the
-    //    representative is 1 when the cluster holds it, else its most frequent value
+    // 1. the magnitudes of the coefficients, in clusters of the magnitudes the program
+    //    cannot tell apart : in single precision, equal once rounded to a float (no value
+    //    of the program moves) ; in double, within a relative 2^-46, about 64 ulps -- the
+    //    error of the coefficients computed at compilation, cos(pi/4) and sin(pi/4) of an
+    //    FFT -- a coefficient moving by 1.4e-14 at most ; the representative is 1 when the
+    //    cluster holds it, else its most frequent value
     std::map<double, int> mags;
     for (auto& row : fRows) {
         for (auto& [a, c] : row.terms) mags[std::fabs(c)]++;
     }
+    const bool   single = (gGlobal->gFloatSize == 1);
+    auto         inPrecision = [single](double m) { return single ? double(float(m)) : m; };
+    const double tol         = single ? 0.0 : std::ldexp(1.0, -46);
     std::map<double, double> rep;
-    const double             tol = std::ldexp(1.0, -40);
     for (auto it = mags.begin(); it != mags.end();) {
-        const double     start = it->first;
+        const double     start = inPrecision(it->first);
         std::vector<std::pair<double, int>> cluster;
-        while (it != mags.end() && it->first - start <= tol * start) {
+        while (it != mags.end() && inPrecision(it->first) - start <= tol * start) {
             cluster.push_back(*it);
             ++it;
         }
