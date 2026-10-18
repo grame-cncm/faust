@@ -23,6 +23,8 @@
 #include <cmath>
 #include <set>
 #include <unordered_set>
+#include <vector>
+#include <map>
 
 #include "aterm.hh"
 #include "global.hh"
@@ -1190,32 +1192,46 @@ mterm aterm::greatestDivisor() const
     // A term that cancelled (x - x, a null coefficient) divides nothing and is skipped.
     // The taps of a recursion are left out (isRecursiveTap).
     const std::unordered_set<Tree> nonlinear = nonlinearSources(fSig2MTerms);
-    int                            maxComplexity = 0;
-    mterm                          maxGCD(1);
-    for (auto p1 = fSig2MTerms.begin(); p1 != fSig2MTerms.end(); p1++) {
-        if (!p1->second.isNotZero() || isRecursiveTap(p1->second, nonlinear)) {
-            continue;
-        }
-        for (auto p2 = std::next(p1); p2 != fSig2MTerms.end(); p2++) {
-            if (!p2->second.isNotZero() || isRecursiveTap(p2->second, nonlinear)) {
-                continue;
-            }
-            mterm g = gcd(p1->second, p2->second);
-            for (bool changed = true; changed && g.complexity() > 0;) {
-                changed = false;
-                for (const auto& p : fSig2MTerms) {
-                    if (!p.second.isNotZero() || !p.second.hasDivisor(g) || isRecursiveTap(p.second, nonlinear)) {
-                        continue;
-                    }
-                    const mterm q  = p.second / g;
-                    const mterm g2 = g.withoutFactorsOf(q);
-                    if (g2.complexity() < g.complexity()) {
-                        g       = g2;
-                        changed = true;
-                        break;
-                    }
+
+    // the terms that may divide, in the order of the sum, decided once per term
+    std::vector<const mterm*> terms;
+    for (const auto& p : fSig2MTerms) {
+        if (p.second.isNotZero() && !isRecursiveTap(p.second, nonlinear)) terms.push_back(&p.second);
+    }
+
+    // The common divisor of a pair, without the factors a quotient keeps : it depends on
+    // the divisor alone, not on the pair (the same g + sum of g * x_i gives every pair the
+    // divisor g), so it is computed once per divisor
+    using Key = std::pair<Tree, std::vector<std::pair<Tree, int>>>;
+    std::map<Key, mterm> kept;
+    auto keep = [&](const mterm& g0) -> mterm {
+        Key key(g0.coefficient(), std::vector<std::pair<Tree, int>>(g0.factors().begin(), g0.factors().end()));
+        auto it = kept.find(key);
+        if (it != kept.end()) return it->second;
+        mterm g = g0;
+        for (bool changed = true; changed && g.complexity() > 0;) {
+            changed = false;
+            for (const mterm* t : terms) {
+                if (!t->hasDivisor(g)) continue;
+                const mterm q  = *t / g;
+                const mterm g2 = g.withoutFactorsOf(q);
+                if (g2.complexity() < g.complexity()) {
+                    g       = g2;
+                    changed = true;
+                    break;
                 }
             }
+        }
+        kept.emplace(std::move(key), g);
+        return g;
+    };
+
+    int   maxComplexity = 0;
+    mterm maxGCD(1);
+    for (size_t i = 0; i < terms.size(); i++) {
+        for (size_t j = i + 1; j < terms.size(); j++) {
+            mterm g = gcd(*terms[i], *terms[j]);
+            if (g.complexity() > 0) g = keep(g);
             int complexity = g.complexity();
             if (complexity > maxComplexity) {
                 maxComplexity = complexity;
