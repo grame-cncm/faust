@@ -546,7 +546,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
 */
     // Annotate L1 with type information
     startTiming("L1 typeAnnotation");
-    typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
+    typeAnnotation(L1, gGlobal->gLocalCausalityCheck, false);
     endTiming("L1 typeAnnotation");
 
     if (gGlobal->gRangeUI) {
@@ -557,7 +557,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
 
         // Annotate L1 with type information
         startTiming("L1 typeAnnotation");
-        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
+        typeAnnotation(L1, gGlobal->gLocalCausalityCheck, false);
         endTiming("L1 typeAnnotation");
     }
 
@@ -569,7 +569,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
 
         // Annotate L1 with type information
         startTiming("L1 typeAnnotation");
-        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
+        typeAnnotation(L1, gGlobal->gLocalCausalityCheck, false);
         endTiming("L1 typeAnnotation");
     }
 
@@ -581,7 +581,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
 
         // Annotate L1 with type information
         startTiming("L1 typeAnnotation");
-        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
+        typeAnnotation(L1, gGlobal->gLocalCausalityCheck, false);
         endTiming("L1 typeAnnotation");
     }
 
@@ -613,7 +613,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
 
     // Annotate L3 with type information
     startTiming("L3 typeAnnotation");
-    typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
+    typeAnnotation(L3, gGlobal->gLocalCausalityCheck, false);
     endTiming("L3 typeAnnotation");
 
     // phase(x, P) = (x % P) / P, decided on the types of the normal form, which it
@@ -621,14 +621,14 @@ static Tree simplifyToNormalFormAux(Tree LS)
     startTiming("Phase revealer");
     L3 = revealPhase(L3);
     endTiming("Phase revealer");
-    typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
+    typeAnnotation(L3, gGlobal->gLocalCausalityCheck, false);
 
     startTiming("Cast and Promotion");
     Tree L4 = signalPromote(L3);
     endTiming("Cast and Promotion");
 
     startTiming("L4 typeAnnotation");
-    typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
+    typeAnnotation(L4, gGlobal->gLocalCausalityCheck, false);
     endTiming("L4 typeAnnotation");
 
     // Must be done after simplification so that 'size' signal is properly simplified to a constant
@@ -640,7 +640,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
 
         // Annotate L4 with type information
         startTiming("L4 typeAnnotation");
-        typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
+        typeAnnotation(L4, gGlobal->gLocalCausalityCheck, false);
         endTiming("L4 typeAnnotation");
     }
 
@@ -655,7 +655,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
 
         // Annotate L4 with type information
         startTiming("L4 typeAnnotation");
-        typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
+        typeAnnotation(L4, gGlobal->gLocalCausalityCheck, false);
         endTiming("L4 typeAnnotation");
     }
 
@@ -671,7 +671,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     // it just as much (first caught by zitaRev -etai 10 : assert sigtyperules:224).
     if (gGlobal->gEtaHarvest) {
         startTiming("L4 typeAnnotation");
-        typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
+        typeAnnotation(L4, gGlobal->gLocalCausalityCheck, false);
         endTiming("L4 typeAnnotation");
     }
 
@@ -679,9 +679,16 @@ static Tree simplifyToNormalFormAux(Tree LS)
     if (const char* e = getenv("FAUST_SUMORDER"); e && e[0] == '1') {
         startTiming("orderSumsByIntervals");
         L4 = orderSumsByIntervals(L4);
-        typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
+        typeAnnotation(L4, gGlobal->gLocalCausalityCheck, false);
         endTiming("orderSumsByIntervals");
     }
+
+    // The passes above read the few intervals they need through sigInterval, computed
+    // on demand ; the normal form leaves with all its intervals, for every consumer
+    startTiming("L4 typeAnnotation with intervals");
+    typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
+    endTiming("L4 typeAnnotation with intervals");
+    releaseDeferredIntervals();
 
     // Check signal tree
     startTiming("L4 signalChecker");
