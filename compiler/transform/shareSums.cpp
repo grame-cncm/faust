@@ -304,18 +304,35 @@ void Planner::plan()
     for (auto& s : fSums) work += s.size() * s.size();
     const size_t kBudget = 50000000;
     while (work > 0) {
-        std::unordered_map<uint64_t, int> count;
-        size_t                            pass = 0;
+        // past the budget, stop before a counting pass whose result would be dropped (a
+        // dense FIR of 32768 taps alone counts 5e8 pairs)
+        if (work > kBudget) break;
+        // a pair held twice is made of atoms held by two sums at least : the pairs of the
+        // other atoms are counted once and never chosen, they are not counted. The work,
+        // which the budget reads, stays that of the whole sums.
+        std::unordered_map<int, int> holders;
         for (auto& s : fSums) {
             if (s.size() < 2) continue;
-            for (auto i = s.begin(); i != s.end(); ++i) {
-                for (auto j = std::next(i); j != s.end(); ++j) {
-                    const uint64_t key = (uint64_t(i->first) << 33) | (uint64_t(j->first) << 1) |
-                                         uint64_t(i->second * j->second > 0);
+            for (auto& [a, sign] : s) holders[a]++;
+        }
+        std::unordered_map<uint64_t, int> count;
+        size_t                            pass = 0;
+        std::vector<std::pair<int, int>>  shared;
+        for (auto& s : fSums) {
+            if (s.size() < 2) continue;
+            pass += s.size() * s.size();
+            shared.clear();
+            for (auto& [a, sign] : s) {
+                if (holders[a] > 1) shared.emplace_back(a, sign);
+            }
+            for (size_t i = 0; i < shared.size(); ++i) {
+                for (size_t j = i + 1; j < shared.size(); ++j) {
+                    const uint64_t key = (uint64_t(shared[i].first) << 33) |
+                                         (uint64_t(shared[j].first) << 1) |
+                                         uint64_t(shared[i].second * shared[j].second > 0);
                     count[key]++;
                 }
             }
-            pass += s.size() * s.size();
         }
         uint64_t bestKey = 0;
         int      bestN   = 1;
