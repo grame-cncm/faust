@@ -159,7 +159,6 @@ void init()
 
     // Foreign function head and type constructors (ordinary symbols)
     g.FFUN       = symbol("ForeignFunction");
-    g.SIMPLETYPE = symbol("SimpleType");
 
     // Property keys
     g.RECURSIVNESS = tree(symbol("RecursivnessProp"));
@@ -171,7 +170,7 @@ void init()
     g.gSignalCounter   = 0;
     g.gAllocationCount = 0;
     g.gSymListProp     = new property<Tree>();
-    g.gMemoizedTypes   = new property<AudioType*>();
+    g.gMemoizedTypes.clear();
 
     // Option defaults (same values as global.cpp)
     g.gCausality      = false;
