@@ -48,7 +48,22 @@
  * @param sig the signal term tree to annotate
  * @param causality when true check causality issues
  */
-void typeAnnotation(Tree sig, bool causality);
+void typeAnnotation(Tree sig, bool causality, bool intervals = true);
+
+/**
+ * The interval of a previously annotated signal term. After a typing without intervals,
+ * it is computed on demand, solving only the recursive groups the signal reaches ; the
+ * session that computes it lives until the next typing without intervals, or until
+ * releaseDeferredIntervals.
+ */
+itv::interval sigInterval(Tree term);
+
+/**
+ * The delay causality checks of typeAnnotation(sig, true), on the types sig already
+ * carries : for a term typed without the checks, and unchanged since.
+ */
+void typeCheckDelayCausality(Tree sig);
+void          releaseDeferredIntervals();
 
 /**
  *  Return the type of a previously annotated signal term,

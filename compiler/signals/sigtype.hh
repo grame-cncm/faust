@@ -22,6 +22,7 @@
 #ifndef _SigType_
 #define _SigType_
 
+#include <climits>
 #include <iostream>
 #include <vector>
 #include "garbageable.hh"
@@ -85,6 +86,16 @@ enum Vectorability {
 class AudioType;
 
 typedef P<AudioType>             Type;
+
+// A typing may defer the intervals (typeAnnotation without intervals) : its types carry
+// this mark instead, an lsb no interval has, and their interval is read through
+// sigInterval, which computes it on demand. Reading the mark is an error.
+inline constexpr int kDeferredIntervalLSB = INT_MAX - 1;
+inline itv::interval deferredInterval()
+{
+    return itv::interval(0.0, 0.0, kDeferredIntervalLSB);
+}
+[[noreturn]] void deferredIntervalRead();
 typedef const std::vector<Type>& ConstTypes;
 
 /**
@@ -130,8 +141,11 @@ class AudioType : public virtual Garbageable {
 
     interval getInterval() const
     {
+        if (fInterval.lsb() == kDeferredIntervalLSB) deferredIntervalRead();
         return fInterval;
     }  ///< returns the interval (min and max values) of a signal
+    bool hasDeferredInterval() const { return fInterval.lsb() == kDeferredIntervalLSB; }
+    const interval& rawInterval() const { return fInterval; }  ///< deferred mark included
     void setInterval(const interval& r) { fInterval = r; }
     res  getRes() const { return fRes; }  ///< returns the resolution of the signal (fixed)
 

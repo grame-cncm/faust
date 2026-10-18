@@ -46,7 +46,9 @@ class SIGS_API TypeSolver {
     Impl* fImpl;
 
    public:
-    explicit TypeSolver(Tree root);
+    /// deferIntervals : the types carry a deferred interval, computed on demand by
+    /// interval() only for the signals asked about
+    explicit TypeSolver(Tree root, bool deferIntervals = false);
     ~TypeSolver();
     TypeSolver(const TypeSolver&)            = delete;
     TypeSolver& operator=(const TypeSolver&) = delete;
@@ -62,6 +64,9 @@ class SIGS_API TypeSolver {
     /// The i-th type of a recursive group: type(proj(i, X)). Errors if X is not a
     /// recursive node.
     Type recType(Tree X, int i);
+
+    /// The interval of a signal, computed on demand in a deferred session.
+    itv::interval interval(Tree sig);
 };
 
 /// Memoized access: one solving session per root per session (cleared by sigs::init).

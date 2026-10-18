@@ -101,7 +101,8 @@ InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
 Tree InstructionsCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
-    Tree L1 = simplifyToNormalForm(LS);
+    Tree L0 = simplifyToNormalForm(LS);
+    Tree L1 = L0;
 
     /*
      Possibly cast bool binary operations (comparison operations) to int.
@@ -124,8 +125,13 @@ Tree InstructionsCompiler::prepare(Tree LS)
     }
 
     // The interval constant propagation, as in the ocpp compiler : a signal whose
-    // interval is a single value becomes that value (0*x with x bounded, cos(0*x))
-    typeAnnotation(L1, true);
+    // interval is a single value becomes that value (0*x with x bounded, cos(0*x)).
+    // The normal form leaves typed : only the delay causality is left to check.
+    if (L1 == L0 && !gGlobal->gLocalCausalityCheck) {
+        typeCheckDelayCausality(L1);
+    } else {
+        typeAnnotation(L1, true);
+    }
     Tree L2 = newConstantPropagation(L1);
     if (gGlobal->gShareSums) {
         // the dense sums factored by coefficient, their common sub-sums shared (-noshs),

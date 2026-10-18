@@ -91,7 +91,9 @@ ostream& operator<<(ostream& dst, const SimpleType& t)
 ostream& SimpleType::print(ostream& dst) const
 {
     return dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()]
-               << "VS?TS"[vectorability()] << "N?B"[boolean()] << " " << fInterval;
+               << "VS?TS"[vectorability()] << "N?B"[boolean()] << " ";
+    if (hasDeferredInterval()) return dst << "[deferred]";
+    return dst << fInterval;
 }
 
 /**
@@ -269,6 +271,12 @@ Tree codeAudioType(AudioType* t)
     return r;
 }
 
+void deferredIntervalRead()
+{
+    tlib::error(
+        "ASSERT : interval read from a typing that deferred the intervals (use sigInterval)\n");
+}
+
 /**
  * Code a simple audio type as a tree in order to benefit of memoization
  */
@@ -281,9 +289,9 @@ static Tree codeSimpleType(SimpleType* st)
     elems.push_back(tree(st->vectorability()));
     elems.push_back(tree(st->boolean()));
 
-    elems.push_back(tree(st->getInterval().isValid()));
-    elems.push_back(tree(st->getInterval().lo()));
-    elems.push_back(tree(st->getInterval().hi()));
+    elems.push_back(tree(st->rawInterval().isValid()));
+    elems.push_back(tree(st->rawInterval().lo()));
+    elems.push_back(tree(st->rawInterval().hi()));
 
     elems.push_back(tree(st->getRes().valid));
     elems.push_back(tree(st->getRes().index));
