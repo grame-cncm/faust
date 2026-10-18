@@ -114,7 +114,6 @@ class AudioType : public virtual Garbageable {
     int           fBoolean;        ///< When a signal stands for a boolean value
     itv::interval fInterval;       ///< Minimal and maximal values the signal can take
     res           fRes;            ///< Resolution (fixed-point)
-    Tree          fCode;           ///< Tree representation (for memoization purposes)
 
    public:
     AudioType(int n, int v, int c, int vec = kVect, int b = kNum, itv::interval i = interval(),
@@ -149,8 +148,6 @@ class AudioType : public virtual Garbageable {
     void setInterval(const interval& r) { fInterval = r; }
     res  getRes() const { return fRes; }  ///< returns the resolution of the signal (fixed)
 
-    void setCode(Tree code) { fCode = code; }  ///< sets the memoized code of a signal
-    Tree getCode() { return fCode; }           ///< returns the memoized code of a signal
 
     virtual AudioType* promoteNature(int n)        = 0;  ///< promote the nature of a type
     virtual AudioType* promoteVariability(int n)   = 0;  ///< promote the variability of a type
@@ -368,6 +365,5 @@ inline constexpr const char* kIntervalRefusalHint =
 //--------------------------------------------------
 // Type conversion
 
-Tree codeAudioType(AudioType* t);  ///< Code an audio type as a tree (memoization)
 
 #endif
