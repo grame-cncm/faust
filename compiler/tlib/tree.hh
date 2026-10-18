@@ -70,6 +70,7 @@
 #define __TREE__
 
 #include <cstddef>
+#include <functional>
 #include <map>
 #include <set>
 #include <string>
@@ -528,8 +529,17 @@ class TLIB_API RecPlan {
     std::unordered_map<Tree, int>  fSccOf;
     std::vector<std::vector<Tree>> fComponents;
 
+    void build(Tree root, const std::function<void(Tree, bool, std::vector<Tree>&)>& scan);
+
    public:
     explicit RecPlan(Tree root);
+
+    ///< the plan of the groups as a traversal sees them : scan(t, isBody, found)
+    ///< appends to found the symbolic recursive nodes reachable from t (the root,
+    ///< or a group body when isBody) without entering them. The default scan
+    ///< reaches every one ; a guarded rewrite passes one that stops where its guard
+    ///< cuts, so a group reachable only through a cut belongs to no component.
+    RecPlan(Tree root, const std::function<void(Tree, bool, std::vector<Tree>&)>& scan);
 
     ///< component id of a symbolic recursive node, or -1 if it is not one of the
     ///< recursive nodes reachable from root. Two nodes share a component iff their ids
