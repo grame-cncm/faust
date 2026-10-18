@@ -291,7 +291,14 @@ bool filterOutput(const std::vector<double>& c, const interval& fx, double& lo, 
 interval interval_algebra::Bpf(const interval& x, const std::vector<interval>& t,
                                const std::vector<interval>& r) const
 {
-    if (x.isEmpty() || r.size() != t.size() + 1) return empty();
+    // a malformed node (|r| != |t| + 1) bounds nothing
+    if (r.size() != t.size() + 1) return interval(-HUGE_VAL, HUGE_VAL, -24, true);
+    if (x.isEmpty()) {
+        bool alert = x.mayBeInvalid();
+        for (const interval& ti : t) alert = alert || ti.mayBeInvalid();
+        for (const interval& ri : r) alert = alert || ri.mayBeInvalid();
+        return empty().withInvalid(alert);
+    }
     interval acc     = empty();
     bool     invalid = false;
     for (size_t i = 0; i < r.size(); i++) {
@@ -331,11 +338,14 @@ interval interval_algebra::Iir(const interval& x, const std::vector<interval>& c
             return Iir(x, reduced);
         }
     }
-    if (x.isEmpty()) return empty();
+    if (x.isEmpty() || std::any_of(coefs.begin(), coefs.end(), [](const interval& c) { return c.isEmpty(); })) {
+        bool alert = x.mayBeInvalid();
+        for (const interval& ci : coefs) alert = alert || ci.mayBeInvalid();
+        return empty().withInvalid(alert);
+    }
     bool invalid = x.mayBeInvalid();
     int  lsb     = std::min(x.lsb(), -1);
     for (const interval& ci : coefs) {
-        if (ci.isEmpty()) return empty();
         invalid = invalid || ci.mayBeInvalid();
         lsb     = std::min(lsb, ci.lsb());
     }
