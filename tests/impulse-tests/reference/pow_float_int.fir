@@ -22,6 +22,8 @@ EndBlockInst
 ======= Global declarations begin ==========
 
 BlockInst 
+	DeclareFunInst("float", "min_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("float", "max_f", "float", dummy0, "float", dummy1)
 	DeclareFunInst("float", "mydsp_faustpower2_f", "float", value_f)
 		BlockInst 
 			RetInst(BinopInst("*", LoadVarInst(Address(value_f, kFunArgs)), LoadVarInst(Address(value_f, kFunArgs))))
@@ -73,13 +75,13 @@ EndBlockInst
 
 ======= Compute control begin ==========
 
-Instructions complexity : Load = 4 Store = 0 Binop = 0 Mathop = 2 [ { mydsp_faustpower2_f = 1 } { mydsp_faustpower2_i = 1 } ] Numbers = 2 Declare = 4 Cast = 4 Select = 0 Loop = 0
+Instructions complexity : Load = 4 Store = 0 Binop = 0 Mathop = 6 [ { max_f = 2 } { min_f = 2 } { mydsp_faustpower2_f = 1 } { mydsp_faustpower2_i = 1 } ] Numbers = 6 Declare = 4 Cast = 4 Select = 0 Loop = 0
 
 BlockInst 
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output1, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(1)]))
-	DeclareVarInst("float", fSlow0, kStack, FunCallInst("mydsp_faustpower2_f", CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))
-	DeclareVarInst("float", fSlow1, kStack, CastInst("float", FunCallInst("mydsp_faustpower2_i", CastInst("int", CastInst("float", LoadVarInst(Address(fHslider1, kStruct)))))))
+	DeclareVarInst("float", fSlow0, kStack, FunCallInst("mydsp_faustpower2_f", FunCallInst("max_f", Float(0.0f), FunCallInst("min_f", Float(1.0f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))))
+	DeclareVarInst("float", fSlow1, kStack, CastInst("float", FunCallInst("mydsp_faustpower2_i", CastInst("int", FunCallInst("max_f", Float(0.0f), FunCallInst("min_f", Float(5e+04f), CastInst("float", LoadVarInst(Address(fHslider1, kStruct)))))))))
 EndBlockInst
 
 ======= Compute control end ==========
@@ -111,6 +113,8 @@ EndBlockInst
 
 BlockInst 
 	========== Declaration part ==========
+	DeclareFunInst("float", "min_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("float", "max_f", "float", dummy0, "float", dummy1)
 	DeclareFunInst("float", "mydsp_faustpower2_f", "float", value_f)
 		BlockInst 
 			RetInst(BinopInst("*", LoadVarInst(Address(value_f, kFunArgs)), LoadVarInst(Address(value_f, kFunArgs))))
@@ -134,8 +138,8 @@ BlockInst
 	========== Compute control ==========
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output1, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(1)]))
-	DeclareVarInst("float", fSlow0, kStack, FunCallInst("mydsp_faustpower2_f", CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))
-	DeclareVarInst("float", fSlow1, kStack, CastInst("float", FunCallInst("mydsp_faustpower2_i", CastInst("int", CastInst("float", LoadVarInst(Address(fHslider1, kStruct)))))))
+	DeclareVarInst("float", fSlow0, kStack, FunCallInst("mydsp_faustpower2_f", FunCallInst("max_f", Float(0.0f), FunCallInst("min_f", Float(1.0f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))))
+	DeclareVarInst("float", fSlow1, kStack, CastInst("float", FunCallInst("mydsp_faustpower2_i", CastInst("int", FunCallInst("max_f", Float(0.0f), FunCallInst("min_f", Float(5e+04f), CastInst("float", LoadVarInst(Address(fHslider1, kStruct)))))))))
 	========== Compute DSP ==========
 	ForLoopInst 
 		DeclareVarInst("int", i0, kLoop, Int32(0))
@@ -191,8 +195,8 @@ Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 --- Phase 3: Propagation ---
   propagate() calls:       23
-  propagate() cache hits:  2 (8.69565%)
-  propagate() cache misses:21
+  propagate() cache hits:  5 (21.7391%)
+  propagate() cache misses:18
 
 --- Box Type Computation ---
   getBoxType() calls:      41
@@ -210,10 +214,10 @@ Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
   apply total time (ms):        0
 
 --- Tree Operations ---
-  Trees created:           221
-  Trees reused (hash):     1034 (82.3904% reuse rate)
-  Property set ops:        125
-  Property get ops:        291
+  Trees created:           218
+  Trees reused (hash):     468 (68.2216% reuse rate)
+  Property set ops:        139
+  Property get ops:        288
 
 --- Iteration Constructs ---
   par() iterations:        0

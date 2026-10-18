@@ -1,8 +1,8 @@
 //----------------------------------------------------------
 // name: "long_convolution"
 //
-// Code generated with Faust 2.87.10 (https://faust.grame.fr)
-// Compilation options: -lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
@@ -11,6 +11,12 @@
 #define FAUSTMAXI
 static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
 static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
 #endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -26,47 +32,46 @@ class mydsp : public dsp {
 	class SIG0 {
 	  private:
 		int fSampleRate;
-		// Recursion delay iVeeec4 is of type kMonoDelay
-		// While its definition is of type kZeroDelay
-		int 	iVeeec4State; // Mono Delay
+		int 	iVeeec29State; // Single Delay
 	  public:
 		int getNumInputs() { return 0; }
 		int getNumOutputs() { return 1; }
 		void init(int sample_rate) {
 			fSampleRate = sample_rate;
-			iVeeec4State = 0;
+			iVeeec29State = 0;
 		}
 		void fill(int count, float output[]) {
-			int 	iVeeec4;
+			int 	iVeeec29[2];
 			int fullcount = count;
 			for (int index = 0; index < fullcount; index += 32) {
 				int count = faustmini(32, fullcount-index);
-				iVeeec4 = iVeeec4State;
+				iVeeec29[1] = iVeeec29State;
 				for (int i=0; i<count; i++) {
-					iVeeec4 = (1 + iVeeec4);
-					output[i] = sinf((9.58738e-05f * float(+(-1 + iVeeec4))));
+					iVeeec29[0] = faust_wrap_add(1, iVeeec29[1]);
+					output[i] = sinf((9.58738e-05f * float(+faust_wrap_add(-1, iVeeec29[0]))));
+					// post processing
+					iVeeec29[1] = iVeeec29[0];
 				}
-				iVeeec4State = iVeeec4;
+				iVeeec29State = iVeeec29[1];
 				output += 32;
 			}
 		}
 	};
 
 
-	// Recursion delay fVeeec0 is of type kMonoDelay
+	float 	fVeeec26State; // Single Delay
+	float 	fConst0; // step: 131
+	// Recursion delay fVeeec27 is of type kMonoDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec0State; // Mono Delay
-	float 	fConst0; // step: 22
-	// Recursion delay fVeeec2 is of type kSingleDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec2State; // Single Delay
+	float 	fVeeec27State; // Mono Delay
 	static float 	ftbl0[65536];
-	float 	fVec0State[47]; // Dense Delay
+	float 	fVeeec0[64]; // Ring Delay
+	int 	IOTA;
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
-		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "long_convolution.dsp");
 		m->declare("filter.lib/author", "Julius O. Smith (jos at ccrma.stanford.edu)");
 		m->declare("filter.lib/copyright", "Julius O. Smith III");
@@ -97,14 +102,15 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = (4.4e+02f / fminf(1.92e+05f, fmaxf(1.0f, float(+fSampleRate)))); // step: 22
+		fConst0 = (4.4e+02f / fminf(1.92e+05f, fmaxf(5e+01f, float(+fSampleRate)))); // step: 131
 	}
 	virtual void instanceResetUserInterface() {
 	}
 	virtual void instanceClear() {
-		fVeeec0State = 0;
-		fVeeec2State = 0;
-		for (int j = 0; j < 47; j++) { fVec0State[j] = 0; }
+		fVeeec26State = 0;
+		fVeeec27State = 0;
+		for (int i = 0; i < 64; i++) { fVeeec0[i] = 0; }
+		IOTA = 0;
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -126,33 +132,166 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fVeeec0;
-		float 	fVeeec2;
-		float 	fVec0Cache[32+47];
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = faustmini(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			// schedule: ss=0 nodes=266 cycles=163 fill=40% peak=12 isoadj=2 packs4=0 aluMII=54 memMII=17 recMII=17 streams(peak/avg,win64)=4/2 (eval machine R=8 U=4 M=3)
-			fVeeec0 = fVeeec0State;
-			fVeeec2 = fVeeec2State;
-			float* 	fVec0 = fVec0Cache + 32 - 1;
-			for (int j = 0; j < 47; j++) { fVec0[j+1] = fVec0State[j]; }
-			for (int i=0; i<count; i++) {
-				fVeeec0 = ((float)input0[i] + (0.5f * fVeeec0));
-				float 	fTemp0 = fVeeec2; // step: 14
-				fVeeec2 = ((fConst0 - floorf((fConst0 + fTemp0))) + fTemp0);
-				float 	fTemp1 = (fVeeec0 + (0.25f * ftbl0[faustmaxi(0, faustmini(int(+(65536.0f * fVeeec2)), 65535))])); // step: 47
-				fVec0[0] = fTemp1;
-				output0[i] = (FAUSTFLOAT)((((((((((((((((((((((((((((((0.000488281f * fVec0[0]) + (0.000561523f * fVec0[2])) + (0.000634766f * fVec0[4])) + (0.000512695f * fVec0[6])) + (0.000146484f * fVec0[8])) + (0.00706787f * fVec0[17])) + (0.0202148f * fVec0[19])) + (0.0953003f * fVec0[21])) + (0.312427f * fVec0[23])) + (0.75f * fVec0[24])) + (0.399963f * fVec0[26])) + (0.200696f * fVec0[27])) + (0.0267334f * fVec0[32])) + (0.0312134f * fVec0[33])) + (0.164685f * fVec0[34])) + (0.0443481f * fVec0[35])) + (0.186621f * fVec0[36])) + (0.0540039f * fVec0[37])) + (0.123303f * fVec0[38])) + (0.0805054f * fVec0[39])) + (0.0739868f * fVec0[40])) + (0.0591797f * fVec0[41])) + (0.0661743f * fVec0[42])) + (0.0400391f * fVec0[43])) + (0.0429932f * fVec0[44])) + (0.0339844f * fVec0[45])) + (0.0320557f * fVec0[46])) + (0.02323f * fVec0[47])) - ((((((((((((0.00438232f * fVec0[14]) + ((2.44141e-05f * fVec0[13]) + ((0.00202637f * fVec0[12]) + ((0.00145264f * fVec0[11]) + ((0.000622559f * fVec0[10]) + (((0.0020752f * fVec0[1]) + (0.00231934f * fVec0[3])) + (0.00219727f * fVec0[9]))))))) + (0.00247803f * ((fVec0[5] + fVec0[7]) - fVec0[15]))) + (0.00822754f * fVec0[16])) + (0.0159546f * fVec0[18])) + (0.0471558f * fVec0[20])) + (0.208582f * fVec0[22])) + (0.26803f * fVec0[25])) + (0.146655f * fVec0[28])) + (0.29303f * fVec0[29])) + (0.222168f * fVec0[30])) + (0.113098f * fVec0[31]))));  // Zone Exec Code
-				// post processing
-				--fVec0;
-			}
-			fVeeec0State = fVeeec0;
-			fVeeec2State = fVeeec2;
-			for (int j = 0; j < 47; j++) { fVec0State[j] = fVec0[j+1]; }
+		float 	fAdj0;
+		float 	fAdj1;
+		float 	fAdj2;
+		float 	fAdj3;
+		float 	fAdj4;
+		float 	fAdj5;
+		float 	fAdj6;
+		float 	fAdj7;
+		float 	fAdj8;
+		float 	fAdj9;
+		float 	fAdj10;
+		float 	fAdj11;
+		float 	fAdj12;
+		float 	fAdj13;
+		float 	fAdj14;
+		float 	fAdj15;
+		float 	fAdj16;
+		float 	fAdj17;
+		float 	fAdj18;
+		float 	fAdj19;
+		float 	fAdj20;
+		float 	fAdj21;
+		float 	fAdj22;
+		float 	fAdj23;
+		float 	fAdj24;
+		float 	fVeeec26;
+		float 	fVeeec27;
+		float 	fAdj25;
+		float 	fAdj26;
+		float 	fAdj27;
+		float 	fAdj28;
+		float 	fAdj29;
+		float 	fAdj30;
+		float 	fAdj31;
+		float 	fAdj32;
+		float 	fAdj33;
+		float 	fAdj34;
+		float 	fAdj35;
+		float 	fAdj36;
+		float 	fAdj37;
+		float 	fAdj38;
+		float 	fAdj39;
+		float 	fAdj40;
+		float 	fAdj41;
+		float 	fAdj42;
+		float 	fAdj43;
+		float 	fAdj44;
+		float 	fAdj45;
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		// schedule: ss=0 nodes=240 cycles=139 fill=43% peak=15 isoadj=5 packs4=1 aluMII=48 memMII=17 recMII=10 streams(peak/avg,win64)=5/3 (eval machine R=8 U=4 M=3)
+		fAdj0 = fVeeec0[faust_wrap_sub(IOTA, 13)&63];
+		fAdj1 = fVeeec0[faust_wrap_sub(IOTA, 2)&63];
+		fAdj2 = fVeeec0[faust_wrap_sub(IOTA, 12)&63];
+		fAdj3 = fVeeec0[faust_wrap_sub(IOTA, 5)&63];
+		fAdj4 = fVeeec0[faust_wrap_sub(IOTA, 7)&63];
+		fAdj5 = fVeeec0[faust_wrap_sub(IOTA, 15)&63];
+		fAdj6 = fVeeec0[faust_wrap_sub(IOTA, 18)&63];
+		fAdj7 = fVeeec0[faust_wrap_sub(IOTA, 33)&63];
+		fAdj8 = fVeeec0[faust_wrap_sub(IOTA, 44)&63];
+		fAdj9 = fVeeec0[faust_wrap_sub(IOTA, 41)&63];
+		fAdj10 = fVeeec0[faust_wrap_sub(IOTA, 21)&63];
+		fAdj11 = fVeeec0[faust_wrap_sub(IOTA, 34)&63];
+		fAdj12 = fVeeec0[faust_wrap_sub(IOTA, 30)&63];
+		fAdj13 = fVeeec0[faust_wrap_sub(IOTA, 26)&63];
+		fAdj14 = fVeeec0[faust_wrap_sub(IOTA, 8)&63];
+		fAdj15 = fVeeec0[faust_wrap_sub(IOTA, 10)&63];
+		fAdj16 = fVeeec0[faust_wrap_sub(IOTA, 14)&63];
+		fAdj17 = fVeeec0[faust_wrap_sub(IOTA, 19)&63];
+		fAdj18 = fVeeec0[faust_wrap_sub(IOTA, 46)&63];
+		fAdj19 = fVeeec0[faust_wrap_sub(IOTA, 35)&63];
+		fAdj20 = fVeeec0[faust_wrap_sub(IOTA, 42)&63];
+		fAdj21 = fVeeec0[faust_wrap_sub(IOTA, 31)&63];
+		fAdj22 = fVeeec0[faust_wrap_sub(IOTA, 36)&63];
+		fAdj23 = fVeeec0[faust_wrap_sub(IOTA, 25)&63];
+		fAdj24 = fVeeec0[faust_wrap_sub(IOTA, 24)&63];
+		fVeeec26 = fVeeec26State;
+		fVeeec27 = fVeeec27State;
+		fAdj25 = fVeeec0[faust_wrap_sub(IOTA, 4)&63];
+		fAdj26 = fVeeec0[faust_wrap_sub(IOTA, 9)&63];
+		fAdj27 = fVeeec0[faust_wrap_sub(IOTA, 17)&63];
+		fAdj28 = fVeeec0[faust_wrap_sub(IOTA, 47)&63];
+		fAdj29 = fVeeec0[faust_wrap_sub(IOTA, 45)&63];
+		fAdj30 = fVeeec0[faust_wrap_sub(IOTA, 20)&63];
+		fAdj31 = fVeeec0[faust_wrap_sub(IOTA, 40)&63];
+		fAdj32 = fVeeec0[faust_wrap_sub(IOTA, 38)&63];
+		fAdj33 = fVeeec0[faust_wrap_sub(IOTA, 27)&63];
+		fAdj34 = fVeeec0[faust_wrap_sub(IOTA, 29)&63];
+		fAdj35 = fVeeec0[faust_wrap_sub(IOTA, 6)&63];
+		fAdj36 = fVeeec0[faust_wrap_sub(IOTA, 11)&63];
+		fAdj37 = fVeeec0[faust_wrap_sub(IOTA, 3)&63];
+		fAdj38 = fVeeec0[faust_wrap_sub(IOTA, 16)&63];
+		fAdj39 = fVeeec0[faust_wrap_sub(IOTA, 32)&63];
+		fAdj40 = fVeeec0[faust_wrap_sub(IOTA, 43)&63];
+		fAdj41 = fVeeec0[faust_wrap_sub(IOTA, 37)&63];
+		fAdj42 = fVeeec0[faust_wrap_sub(IOTA, 39)&63];
+		fAdj43 = fVeeec0[faust_wrap_sub(IOTA, 28)&63];
+		fAdj44 = fVeeec0[faust_wrap_sub(IOTA, 22)&63];
+		fAdj45 = fVeeec0[faust_wrap_sub(IOTA, 23)&63];
+		for (int i=0; i<count; i++) {
+			int vIota0 = faust_wrap_sub(IOTA, 1)&63;
+			fVeeec26 = ((float)input0[i] + (0.5f * fVeeec26));
+			float 	fTemp0 = (fConst0 + fVeeec27); // step: 134
+			fVeeec27 = (fTemp0 - floorf(fTemp0));
+			float 	fTemp1 = (fVeeec26 + (0.25f * ftbl0[faustmaxi(0, faustmini(int(+(65536.0f * fVeeec27)), 65535))])); // step: 151
+			int vIota1 = IOTA&63;
+			fVeeec0[vIota1] = fTemp1;
+			output0[i] = (FAUSTFLOAT)(((((((((((((((0.000561523f * fAdj1) - (2.44141e-05f * fAdj0)) - (0.00202637f * fAdj2)) - (0.00247803f * ((fAdj3 + fAdj4) - fAdj5))) - (0.0159546f * fAdj6)) + (0.0312134f * fAdj7)) + (0.0429932f * fAdj8)) + (0.0591797f * fAdj9)) + (0.0953003f * fAdj10)) + (0.164685f * fAdj11)) - (0.222168f * fAdj12)) + (0.399963f * fAdj13)) + ((((((((((((0.000146484f * fAdj14) - (0.000622559f * fAdj15)) - (0.0020752f * fVeeec0[vIota0])) - (0.00438232f * fAdj16)) + (0.0202148f * fAdj17)) + (0.0320557f * fAdj18)) + (0.0443481f * fAdj19)) + (0.0661743f * fAdj20)) - (0.113098f * fAdj21)) + (0.186621f * fAdj22)) - (0.26803f * fAdj23)) + (0.75f * fAdj24))) + ((((((((((((0.000488281f * fVeeec0[vIota1]) + (0.000634766f * fAdj25)) - (0.00219727f * fAdj26)) + (0.00706787f * fAdj27)) + (0.02323f * fAdj28)) + (0.0339844f * fAdj29)) - (0.0471558f * fAdj30)) + (0.0739868f * fAdj31)) + (0.123303f * fAdj32)) + (0.200696f * fAdj33)) - (0.29303f * fAdj34)) + (((((((((((0.000512695f * fAdj35) - (0.00145264f * fAdj36)) - (0.00231934f * fAdj37)) - (0.00822754f * fAdj38)) + (0.0267334f * fAdj39)) + (0.0400391f * fAdj40)) + (0.0540039f * fAdj41)) + (0.0805054f * fAdj42)) - (0.146655f * fAdj43)) - (0.208582f * fAdj44)) + (0.312427f * fAdj45)))));  // Zone Exec Code
+			// post processing
+			IOTA = faust_wrap_add(IOTA, 1);
+			fAdj28 = fAdj18;
+			fAdj18 = fAdj29;
+			fAdj29 = fAdj8;
+			fAdj8 = fAdj40;
+			fAdj40 = fAdj20;
+			fAdj20 = fAdj9;
+			fAdj9 = fAdj31;
+			fAdj31 = fAdj42;
+			fAdj42 = fAdj32;
+			fAdj32 = fAdj41;
+			fAdj41 = fAdj22;
+			fAdj22 = fAdj19;
+			fAdj19 = fAdj11;
+			fAdj11 = fAdj7;
+			fAdj7 = fAdj39;
+			fAdj39 = fAdj21;
+			fAdj21 = fAdj12;
+			fAdj12 = fAdj34;
+			fAdj34 = fAdj43;
+			fAdj43 = fAdj33;
+			fAdj33 = fAdj13;
+			fAdj13 = fAdj23;
+			fAdj23 = fAdj24;
+			fAdj24 = fAdj45;
+			fAdj45 = fAdj44;
+			fAdj44 = fAdj10;
+			fAdj10 = fAdj30;
+			fAdj30 = fAdj17;
+			fAdj17 = fAdj6;
+			fAdj6 = fAdj27;
+			fAdj27 = fAdj38;
+			fAdj38 = fAdj5;
+			fAdj5 = fAdj16;
+			fAdj16 = fAdj0;
+			fAdj0 = fAdj2;
+			fAdj2 = fAdj36;
+			fAdj36 = fAdj15;
+			fAdj15 = fAdj26;
+			fAdj26 = fAdj14;
+			fAdj14 = fAdj4;
+			fAdj4 = fAdj35;
+			fAdj35 = fAdj3;
+			fAdj3 = fAdj25;
+			fAdj25 = fAdj37;
+			fAdj37 = fAdj1;
+			fAdj1 = fVeeec0[vIota0];
 		}
+		fVeeec26State = fVeeec26;
+		fVeeec27State = fVeeec27;
 	}
 };
 

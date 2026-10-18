@@ -82,7 +82,7 @@ EndDeclare
 
 BlockInst 
 	StoreVarInst(Address(fSampleRate, kStruct), LoadVarInst(Address(sample_rate, kFunArgs)))
-	StoreVarInst(Address(fConst0, kStruct), BinopInst("/", Float(8e+01f), FunCallInst("min_f", Float(1.92e+05f), FunCallInst("max_f", Float(1.0f), CastInst("float", LoadVarInst(Address(fSampleRate, kStruct)))))))
+	StoreVarInst(Address(fConst0, kStruct), BinopInst("/", Float(8e+01f), FunCallInst("min_f", Float(1.92e+05f), FunCallInst("max_f", Float(5e+01f), CastInst("float", LoadVarInst(Address(fSampleRate, kStruct)))))))
 	StoreVarInst(Address(iConst1, kStruct), Int32(0))
 	StoreVarInst(Address(iConst2, kStruct), Int32(0))
 	StoreVarInst(Address(iConst3, kStruct), Int32(0))
@@ -288,7 +288,7 @@ BlockInst
 	DeclareVarInst("int", iConst8, kStruct)
 	========== Init method ==========
 	StoreVarInst(Address(fSampleRate, kStruct), LoadVarInst(Address(sample_rate, kFunArgs)))
-	StoreVarInst(Address(fConst0, kStruct), BinopInst("/", Float(8e+01f), FunCallInst("min_f", Float(1.92e+05f), FunCallInst("max_f", Float(1.0f), CastInst("float", LoadVarInst(Address(fSampleRate, kStruct)))))))
+	StoreVarInst(Address(fConst0, kStruct), BinopInst("/", Float(8e+01f), FunCallInst("min_f", Float(1.92e+05f), FunCallInst("max_f", Float(5e+01f), CastInst("float", LoadVarInst(Address(fSampleRate, kStruct)))))))
 	StoreVarInst(Address(iConst1, kStruct), Int32(0))
 	StoreVarInst(Address(iConst2, kStruct), Int32(0))
 	StoreVarInst(Address(iConst3, kStruct), Int32(0))
@@ -528,3 +528,49 @@ Field = iConst7 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
 Field = fRec7 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
 Field = fVbargraph7 size = 1 size_bytes = 4 read = 0 write = 1 ratio = 1
 Field = iConst8 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            137
+  eval() cache hits:       19 (13.8686%)
+  eval() cache misses:     118
+  Loop detector calls:     118
+  Stack detector calls:    118
+
+--- Phase 3: Propagation ---
+  propagate() calls:       524
+  propagate() cache hits:  16 (3.05344%)
+  propagate() cache misses:508
+
+--- Box Type Computation ---
+  getBoxType() calls:      604
+  getBoxType() cache hits: 522 (86.4238%)
+  getBoxType() computed:   82
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       13
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           6382
+  Trees reused (hash):     13601 (68.0629% reuse rate)
+  Property set ops:        3063
+  Property get ops:        5618
+
+--- Iteration Constructs ---
+  par() iterations:        8
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

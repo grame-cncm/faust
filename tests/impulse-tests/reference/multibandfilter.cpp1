@@ -5,11 +5,23 @@
 // name: "multibandfilter"
 // version: "1.0"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -22,66 +34,46 @@
 class mydsp : public dsp {
   private:
 	FAUSTFLOAT 	fentry0;
-	float 	fConst0; // step: 9
-	FAUSTFLOAT 	fentry1;
+	float 	fConst0; // step: 15
 	FAUSTFLOAT 	fslider0;
+	FAUSTFLOAT 	fentry1;
 	FAUSTFLOAT 	fentry2;
-	FAUSTFLOAT 	fentry3;
 	FAUSTFLOAT 	fslider1;
+	FAUSTFLOAT 	fentry3;
 	FAUSTFLOAT 	fentry4;
-	FAUSTFLOAT 	fentry5;
 	FAUSTFLOAT 	fslider2;
+	FAUSTFLOAT 	fentry5;
 	FAUSTFLOAT 	fentry6;
-	FAUSTFLOAT 	fentry7;
 	FAUSTFLOAT 	fslider3;
+	FAUSTFLOAT 	fentry7;
 	FAUSTFLOAT 	fentry8;
-	FAUSTFLOAT 	fentry9;
 	FAUSTFLOAT 	fslider4;
+	FAUSTFLOAT 	fentry9;
 	FAUSTFLOAT 	fentry10;
-	FAUSTFLOAT 	fentry11;
 	FAUSTFLOAT 	fslider5;
+	FAUSTFLOAT 	fentry11;
 	FAUSTFLOAT 	fentry12;
-	FAUSTFLOAT 	fentry13;
 	FAUSTFLOAT 	fslider6;
+	FAUSTFLOAT 	fentry13;
 	FAUSTFLOAT 	fentry14;
-	FAUSTFLOAT 	fentry15;
 	FAUSTFLOAT 	fslider7;
+	FAUSTFLOAT 	fentry15;
 	FAUSTFLOAT 	fentry16;
-	FAUSTFLOAT 	fentry17;
 	FAUSTFLOAT 	fslider8;
+	FAUSTFLOAT 	fentry17;
 	FAUSTFLOAT 	fentry18;
-	FAUSTFLOAT 	fentry19;
 	FAUSTFLOAT 	fslider9;
-	// Recursion delay fVeeec9 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec9State[2]; // Copy Delay
-	// Recursion delay fVeeec8 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec8State[2]; // Copy Delay
-	// Recursion delay fVeeec7 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec7State[2]; // Copy Delay
-	// Recursion delay fVeeec6 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec6State[2]; // Copy Delay
-	// Recursion delay fVeeec5 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec5State[2]; // Copy Delay
-	// Recursion delay fVeeec4 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec4State[2]; // Copy Delay
-	// Recursion delay fVeeec3 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec3State[2]; // Copy Delay
-	// Recursion delay fVeeec2 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec2State[2]; // Copy Delay
-	// Recursion delay fVeeec1 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec1State[2]; // Copy Delay
-	// Recursion delay fVeeec0 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
+	FAUSTFLOAT 	fentry19;
 	float 	fVeeec0State[2]; // Copy Delay
+	float 	fVeeec5State[2]; // Copy Delay
+	float 	fVeeec10State[2]; // Copy Delay
+	float 	fVeeec15State[2]; // Copy Delay
+	float 	fVeeec20State[2]; // Copy Delay
+	float 	fVeeec25State[2]; // Copy Delay
+	float 	fVeeec30State[2]; // Copy Delay
+	float 	fVeeec35State[2]; // Copy Delay
+	float 	fVeeec40State[2]; // Copy Delay
+	float 	fVeeec45State[2]; // Copy Delay
 	int fSampleRate;
 
   public:
@@ -92,6 +84,7 @@ class mydsp : public dsp {
 		m->declare("bandfilter.dsp/license", "BSD");
 		m->declare("bandfilter.dsp/name", "bandfilter");
 		m->declare("bandfilter.dsp/version", "1.0");
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2006");
 		m->declare("filename", "multibandfilter.dsp");
 		m->declare("license", "BSD");
@@ -116,51 +109,51 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = (3.1415927f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 9
+		fConst0 = (3.1415927f / fminf(1.92e+05f, fmaxf(5e+01f, float(+fSampleRate)))); // step: 15
 	}
 	virtual void instanceResetUserInterface() {
 		fentry0 = 1e+04f;
-		fentry1 = 5e+01f;
 		fslider0 = 0.0f;
+		fentry1 = 5e+01f;
 		fentry2 = 9e+03f;
-		fentry3 = 5e+01f;
 		fslider1 = 0.0f;
+		fentry3 = 5e+01f;
 		fentry4 = 8e+03f;
-		fentry5 = 5e+01f;
 		fslider2 = 0.0f;
+		fentry5 = 5e+01f;
 		fentry6 = 7e+03f;
-		fentry7 = 5e+01f;
 		fslider3 = 0.0f;
+		fentry7 = 5e+01f;
 		fentry8 = 6e+03f;
-		fentry9 = 5e+01f;
 		fslider4 = 0.0f;
+		fentry9 = 5e+01f;
 		fentry10 = 5e+03f;
-		fentry11 = 5e+01f;
 		fslider5 = 0.0f;
+		fentry11 = 5e+01f;
 		fentry12 = 4e+03f;
-		fentry13 = 5e+01f;
 		fslider6 = 0.0f;
+		fentry13 = 5e+01f;
 		fentry14 = 3e+03f;
-		fentry15 = 5e+01f;
 		fslider7 = 0.0f;
+		fentry15 = 5e+01f;
 		fentry16 = 2e+03f;
-		fentry17 = 5e+01f;
 		fslider8 = 0.0f;
+		fentry17 = 5e+01f;
 		fentry18 = 1e+03f;
-		fentry19 = 5e+01f;
 		fslider9 = 0.0f;
+		fentry19 = 5e+01f;
 	}
 	virtual void instanceClear() {
-		for (int j = 0; j < 2; j++) { fVeeec9State[j] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec8State[j] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec7State[j] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec6State[j] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec5State[j] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec4State[j] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec3State[j] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec2State[j] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec1State[j] = 0; }
 		for (int j = 0; j < 2; j++) { fVeeec0State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec5State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec10State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec15State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec20State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec25State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec30State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec35State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec40State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec45State[j] = 0; }
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -272,206 +265,224 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = tanf((fConst0 * float(fentry0))); // step: 11
-		float 	fSlow1 = float(fentry1); // step: 12
-		float 	fSlow2 = (powf(1e+01f,-(0.05f * float(fslider0))) / fSlow1); // step: 20
-		float 	fSlow3 = (1.0f / ((fSlow0 * (fSlow0 + fSlow2)) + 1.0f)); // step: 24
-		float 	fSlow4 = (1.0f / fSlow1); // step: 27
-		float 	fSlow5 = (1.0f - (fSlow0 * (fSlow4 - fSlow0))); // step: 30
-		float 	fSlow6 = tanf((fConst0 * float(fentry2))); // step: 35
-		float 	fSlow7 = float(fentry3); // step: 36
-		float 	fSlow8 = (powf(1e+01f,-(0.05f * float(fslider1))) / fSlow7); // step: 41
-		float 	fSlow9 = (1.0f / ((fSlow6 * (fSlow6 + fSlow8)) + 1.0f)); // step: 45
-		float 	fSlow10 = (1.0f / fSlow7); // step: 47
-		float 	fSlow11 = (1.0f - (fSlow6 * (fSlow10 - fSlow6))); // step: 50
-		float 	fSlow12 = tanf((fConst0 * float(fentry4))); // step: 54
-		float 	fSlow13 = float(fentry5); // step: 55
-		float 	fSlow14 = (powf(1e+01f,-(0.05f * float(fslider2))) / fSlow13); // step: 60
-		float 	fSlow15 = (1.0f / ((fSlow12 * (fSlow12 + fSlow14)) + 1.0f)); // step: 64
-		float 	fSlow16 = (1.0f / fSlow13); // step: 66
-		float 	fSlow17 = (1.0f - (fSlow12 * (fSlow16 - fSlow12))); // step: 69
-		float 	fSlow18 = tanf((fConst0 * float(fentry6))); // step: 73
-		float 	fSlow19 = float(fentry7); // step: 74
-		float 	fSlow20 = (powf(1e+01f,-(0.05f * float(fslider3))) / fSlow19); // step: 79
-		float 	fSlow21 = (1.0f / ((fSlow18 * (fSlow18 + fSlow20)) + 1.0f)); // step: 83
-		float 	fSlow22 = (1.0f / fSlow19); // step: 85
-		float 	fSlow23 = (1.0f - (fSlow18 * (fSlow22 - fSlow18))); // step: 88
-		float 	fSlow24 = tanf((fConst0 * float(fentry8))); // step: 92
-		float 	fSlow25 = float(fentry9); // step: 93
-		float 	fSlow26 = (powf(1e+01f,-(0.05f * float(fslider4))) / fSlow25); // step: 98
-		float 	fSlow27 = (1.0f / ((fSlow24 * (fSlow24 + fSlow26)) + 1.0f)); // step: 102
-		float 	fSlow28 = (1.0f / fSlow25); // step: 104
-		float 	fSlow29 = (1.0f - (fSlow24 * (fSlow28 - fSlow24))); // step: 107
-		float 	fSlow30 = tanf((fConst0 * float(fentry10))); // step: 111
-		float 	fSlow31 = float(fentry11); // step: 112
-		float 	fSlow32 = (powf(1e+01f,-(0.05f * float(fslider5))) / fSlow31); // step: 117
-		float 	fSlow33 = (1.0f / ((fSlow30 * (fSlow30 + fSlow32)) + 1.0f)); // step: 121
-		float 	fSlow34 = (1.0f / fSlow31); // step: 123
-		float 	fSlow35 = (1.0f - (fSlow30 * (fSlow34 - fSlow30))); // step: 126
-		float 	fSlow36 = tanf((fConst0 * float(fentry12))); // step: 130
-		float 	fSlow37 = float(fentry13); // step: 131
-		float 	fSlow38 = (powf(1e+01f,-(0.05f * float(fslider6))) / fSlow37); // step: 136
-		float 	fSlow39 = (1.0f / ((fSlow36 * (fSlow36 + fSlow38)) + 1.0f)); // step: 140
-		float 	fSlow40 = (1.0f / fSlow37); // step: 142
-		float 	fSlow41 = (1.0f - (fSlow36 * (fSlow40 - fSlow36))); // step: 145
-		float 	fSlow42 = tanf((fConst0 * float(fentry14))); // step: 149
-		float 	fSlow43 = float(fentry15); // step: 150
-		float 	fSlow44 = (powf(1e+01f,-(0.05f * float(fslider7))) / fSlow43); // step: 155
-		float 	fSlow45 = (1.0f / ((fSlow42 * (fSlow42 + fSlow44)) + 1.0f)); // step: 159
-		float 	fSlow46 = (1.0f / fSlow43); // step: 161
-		float 	fSlow47 = (1.0f - (fSlow42 * (fSlow46 - fSlow42))); // step: 164
-		float 	fSlow48 = tanf((fConst0 * float(fentry16))); // step: 168
-		float 	fSlow49 = float(fentry17); // step: 169
-		float 	fSlow50 = (powf(1e+01f,-(0.05f * float(fslider8))) / fSlow49); // step: 174
-		float 	fSlow51 = (1.0f / ((fSlow48 * (fSlow48 + fSlow50)) + 1.0f)); // step: 178
-		float 	fSlow52 = (1.0f / fSlow49); // step: 180
-		float 	fSlow53 = (1.0f - (fSlow48 * (fSlow52 - fSlow48))); // step: 183
-		float 	fSlow54 = tanf((fConst0 * float(fentry18))); // step: 187
-		float 	fSlow55 = float(fentry19); // step: 188
-		float 	fSlow56 = (powf(1e+01f,-(0.05f * float(fslider9))) / fSlow55); // step: 193
-		float 	fSlow57 = (1.0f / ((fSlow54 * (fSlow54 + fSlow56)) + 1.0f)); // step: 197
-		float 	fSlow58 = (1.0f / fSlow55); // step: 199
-		float 	fSlow59 = (1.0f - (fSlow54 * (fSlow58 - fSlow54))); // step: 202
-		float 	fSlow60 = ((fSlow54 * (fSlow54 - fSlow56)) + 1.0f); // step: 207
-		float 	fSlow61 = (2.0f * (powf(fSlow54,2.0f) + -1.0f)); // step: 214
-		float 	fVeeec9[3];
-		float 	fSlow62 = ((fSlow54 * (fSlow54 + fSlow58)) + 1.0f); // step: 223
-		float 	fSlow63 = ((fSlow48 * (fSlow48 - fSlow50)) + 1.0f); // step: 230
-		float 	fSlow64 = (2.0f * (powf(fSlow48,2.0f) + -1.0f)); // step: 235
-		float 	fVeeec8[3];
-		float 	fSlow65 = ((fSlow48 * (fSlow48 + fSlow52)) + 1.0f); // step: 244
-		float 	fSlow66 = ((fSlow42 * (fSlow42 - fSlow44)) + 1.0f); // step: 251
-		float 	fSlow67 = (2.0f * (powf(fSlow42,2.0f) + -1.0f)); // step: 256
-		float 	fVeeec7[3];
-		float 	fSlow68 = ((fSlow42 * (fSlow42 + fSlow46)) + 1.0f); // step: 265
-		float 	fSlow69 = ((fSlow36 * (fSlow36 - fSlow38)) + 1.0f); // step: 272
-		float 	fSlow70 = (2.0f * (powf(fSlow36,2.0f) + -1.0f)); // step: 277
-		float 	fVeeec6[3];
-		float 	fSlow71 = ((fSlow36 * (fSlow36 + fSlow40)) + 1.0f); // step: 286
-		float 	fSlow72 = ((fSlow30 * (fSlow30 - fSlow32)) + 1.0f); // step: 293
-		float 	fSlow73 = (2.0f * (powf(fSlow30,2.0f) + -1.0f)); // step: 298
-		float 	fVeeec5[3];
-		float 	fSlow74 = ((fSlow30 * (fSlow30 + fSlow34)) + 1.0f); // step: 307
-		float 	fSlow75 = ((fSlow24 * (fSlow24 - fSlow26)) + 1.0f); // step: 314
-		float 	fSlow76 = (2.0f * (powf(fSlow24,2.0f) + -1.0f)); // step: 319
-		float 	fVeeec4[3];
-		float 	fSlow77 = ((fSlow24 * (fSlow24 + fSlow28)) + 1.0f); // step: 328
-		float 	fSlow78 = ((fSlow18 * (fSlow18 - fSlow20)) + 1.0f); // step: 335
-		float 	fSlow79 = (2.0f * (powf(fSlow18,2.0f) + -1.0f)); // step: 340
-		float 	fVeeec3[3];
-		float 	fSlow80 = ((fSlow18 * (fSlow18 + fSlow22)) + 1.0f); // step: 349
-		float 	fSlow81 = ((fSlow12 * (fSlow12 - fSlow14)) + 1.0f); // step: 356
-		float 	fSlow82 = (2.0f * (powf(fSlow12,2.0f) + -1.0f)); // step: 361
-		float 	fVeeec2[3];
-		float 	fSlow83 = ((fSlow12 * (fSlow12 + fSlow16)) + 1.0f); // step: 370
-		float 	fSlow84 = ((fSlow6 * (fSlow6 - fSlow8)) + 1.0f); // step: 377
-		float 	fSlow85 = (2.0f * (powf(fSlow6,2.0f) + -1.0f)); // step: 382
-		float 	fVeeec1[3];
-		float 	fSlow86 = ((fSlow6 * (fSlow6 + fSlow10)) + 1.0f); // step: 391
-		float 	fSlow87 = ((fSlow0 * (fSlow0 - fSlow2)) + 1.0f); // step: 398
-		float 	fSlow88 = (2.0f * (powf(fSlow0,2.0f) + -1.0f)); // step: 403
+		float 	fSlow0 = tanf((fConst0 * fmaxf(2e+01f, fminf(2e+04f, float(fentry0))))); // step: 17
+		float 	fSlow1 = powf(fSlow0,2.0f); // step: 18
+		float 	fSlow2 = fmaxf(0.1f, fminf(1e+02f, float(fentry1))); // step: 34
+		float 	fSlow3 = ((fSlow0 * powf(1e+01f,-(0.05f * fmaxf(-5e+01f, fminf(5e+01f, float(fslider0)))))) / fSlow2); // step: 35
+		float 	fSlow4 = (1.0f + fSlow1); // step: 37
+		float 	fSlow5 = (fSlow3 + fSlow4); // step: 38
+		float 	fSlow6 = (2.0f * ((-1.0f + fSlow1) / fSlow5)); // step: 40
+		float 	fSlow7 = tanf((fConst0 * fmaxf(2e+01f, fminf(2e+04f, float(fentry2))))); // step: 45
+		float 	fSlow8 = powf(fSlow7,2.0f); // step: 46
+		float 	fSlow9 = fmaxf(0.1f, fminf(1e+02f, float(fentry3))); // step: 57
+		float 	fSlow10 = ((fSlow7 * powf(1e+01f,-(0.05f * fmaxf(-5e+01f, fminf(5e+01f, float(fslider1)))))) / fSlow9); // step: 58
+		float 	fSlow11 = (1.0f + fSlow8); // step: 59
+		float 	fSlow12 = (fSlow10 + fSlow11); // step: 60
+		float 	fSlow13 = (2.0f * ((-1.0f + fSlow8) / fSlow12)); // step: 62
+		float 	fSlow14 = tanf((fConst0 * fmaxf(2e+01f, fminf(2e+04f, float(fentry4))))); // step: 67
+		float 	fSlow15 = powf(fSlow14,2.0f); // step: 68
+		float 	fSlow16 = fmaxf(0.1f, fminf(1e+02f, float(fentry5))); // step: 79
+		float 	fSlow17 = ((fSlow14 * powf(1e+01f,-(0.05f * fmaxf(-5e+01f, fminf(5e+01f, float(fslider2)))))) / fSlow16); // step: 80
+		float 	fSlow18 = (1.0f + fSlow15); // step: 81
+		float 	fSlow19 = (fSlow17 + fSlow18); // step: 82
+		float 	fSlow20 = (2.0f * ((-1.0f + fSlow15) / fSlow19)); // step: 84
+		float 	fSlow21 = tanf((fConst0 * fmaxf(2e+01f, fminf(2e+04f, float(fentry6))))); // step: 89
+		float 	fSlow22 = powf(fSlow21,2.0f); // step: 90
+		float 	fSlow23 = fmaxf(0.1f, fminf(1e+02f, float(fentry7))); // step: 101
+		float 	fSlow24 = ((fSlow21 * powf(1e+01f,-(0.05f * fmaxf(-5e+01f, fminf(5e+01f, float(fslider3)))))) / fSlow23); // step: 102
+		float 	fSlow25 = (1.0f + fSlow22); // step: 103
+		float 	fSlow26 = (fSlow24 + fSlow25); // step: 104
+		float 	fSlow27 = (2.0f * ((-1.0f + fSlow22) / fSlow26)); // step: 106
+		float 	fSlow28 = tanf((fConst0 * fmaxf(2e+01f, fminf(2e+04f, float(fentry8))))); // step: 111
+		float 	fSlow29 = powf(fSlow28,2.0f); // step: 112
+		float 	fSlow30 = fmaxf(0.1f, fminf(1e+02f, float(fentry9))); // step: 123
+		float 	fSlow31 = ((fSlow28 * powf(1e+01f,-(0.05f * fmaxf(-5e+01f, fminf(5e+01f, float(fslider4)))))) / fSlow30); // step: 124
+		float 	fSlow32 = (1.0f + fSlow29); // step: 125
+		float 	fSlow33 = (fSlow31 + fSlow32); // step: 126
+		float 	fSlow34 = (2.0f * ((-1.0f + fSlow29) / fSlow33)); // step: 128
+		float 	fSlow35 = tanf((fConst0 * fmaxf(2e+01f, fminf(2e+04f, float(fentry10))))); // step: 133
+		float 	fSlow36 = powf(fSlow35,2.0f); // step: 134
+		float 	fSlow37 = fmaxf(0.1f, fminf(1e+02f, float(fentry11))); // step: 145
+		float 	fSlow38 = ((fSlow35 * powf(1e+01f,-(0.05f * fmaxf(-5e+01f, fminf(5e+01f, float(fslider5)))))) / fSlow37); // step: 146
+		float 	fSlow39 = (1.0f + fSlow36); // step: 147
+		float 	fSlow40 = (fSlow38 + fSlow39); // step: 148
+		float 	fSlow41 = (2.0f * ((-1.0f + fSlow36) / fSlow40)); // step: 150
+		float 	fSlow42 = tanf((fConst0 * fmaxf(2e+01f, fminf(2e+04f, float(fentry12))))); // step: 155
+		float 	fSlow43 = powf(fSlow42,2.0f); // step: 156
+		float 	fSlow44 = fmaxf(0.1f, fminf(1e+02f, float(fentry13))); // step: 167
+		float 	fSlow45 = ((fSlow42 * powf(1e+01f,-(0.05f * fmaxf(-5e+01f, fminf(5e+01f, float(fslider6)))))) / fSlow44); // step: 168
+		float 	fSlow46 = (1.0f + fSlow43); // step: 169
+		float 	fSlow47 = (fSlow45 + fSlow46); // step: 170
+		float 	fSlow48 = (2.0f * ((-1.0f + fSlow43) / fSlow47)); // step: 172
+		float 	fSlow49 = tanf((fConst0 * fmaxf(2e+01f, fminf(2e+04f, float(fentry14))))); // step: 177
+		float 	fSlow50 = powf(fSlow49,2.0f); // step: 178
+		float 	fSlow51 = fmaxf(0.1f, fminf(1e+02f, float(fentry15))); // step: 189
+		float 	fSlow52 = ((fSlow49 * powf(1e+01f,-(0.05f * fmaxf(-5e+01f, fminf(5e+01f, float(fslider7)))))) / fSlow51); // step: 190
+		float 	fSlow53 = (1.0f + fSlow50); // step: 191
+		float 	fSlow54 = (fSlow52 + fSlow53); // step: 192
+		float 	fSlow55 = (2.0f * ((-1.0f + fSlow50) / fSlow54)); // step: 194
+		float 	fSlow56 = tanf((fConst0 * fmaxf(2e+01f, fminf(2e+04f, float(fentry16))))); // step: 199
+		float 	fSlow57 = powf(fSlow56,2.0f); // step: 200
+		float 	fSlow58 = fmaxf(0.1f, fminf(1e+02f, float(fentry17))); // step: 211
+		float 	fSlow59 = ((fSlow56 * powf(1e+01f,-(0.05f * fmaxf(-5e+01f, fminf(5e+01f, float(fslider8)))))) / fSlow58); // step: 212
+		float 	fSlow60 = (1.0f + fSlow57); // step: 213
+		float 	fSlow61 = (fSlow59 + fSlow60); // step: 214
+		float 	fSlow62 = (2.0f * ((-1.0f + fSlow57) / fSlow61)); // step: 216
+		float 	fSlow63 = tanf((fConst0 * fmaxf(2e+01f, fminf(2e+04f, float(fentry18))))); // step: 221
+		float 	fSlow64 = powf(fSlow63,2.0f); // step: 222
+		float 	fSlow65 = fmaxf(0.1f, fminf(1e+02f, float(fentry19))); // step: 233
+		float 	fSlow66 = ((fSlow63 * powf(1e+01f,-(0.05f * fmaxf(-5e+01f, fminf(5e+01f, float(fslider9)))))) / fSlow65); // step: 234
+		float 	fSlow67 = (fSlow64 + 1.0f); // step: 235
+		float 	fSlow68 = (fSlow66 + fSlow67); // step: 236
+		float 	fSlow69 = (2.0f * ((-1.0f + fSlow64) / fSlow68)); // step: 238
+		float 	fSlow70 = -fSlow69; // step: 240
+		float 	fSlow71 = -((fSlow67 - fSlow66) / fSlow68); // step: 244
+		float 	fSlow72 = ((fSlow67 - fSlow66) / fSlow68); // step: 245
 		float 	fVeeec0[3];
-		float 	fSlow89 = ((fSlow0 * (fSlow0 + fSlow4)) + 1.0f); // step: 412
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			fVeeec9[1] = fVeeec9State[0];
-			fVeeec9[2] = fVeeec9State[1];
-			fVeeec8[1] = fVeeec8State[0];
-			fVeeec8[2] = fVeeec8State[1];
-			fVeeec7[1] = fVeeec7State[0];
-			fVeeec7[2] = fVeeec7State[1];
-			fVeeec6[1] = fVeeec6State[0];
-			fVeeec6[2] = fVeeec6State[1];
-			fVeeec5[1] = fVeeec5State[0];
-			fVeeec5[2] = fVeeec5State[1];
-			fVeeec4[1] = fVeeec4State[0];
-			fVeeec4[2] = fVeeec4State[1];
-			fVeeec3[1] = fVeeec3State[0];
-			fVeeec3[2] = fVeeec3State[1];
-			fVeeec2[1] = fVeeec2State[0];
-			fVeeec2[2] = fVeeec2State[1];
-			fVeeec1[1] = fVeeec1State[0];
-			fVeeec1[2] = fVeeec1State[1];
-			fVeeec0[1] = fVeeec0State[0];
-			fVeeec0[2] = fVeeec0State[1];
-			for (int i=0; i<count; i++) {
-				float 	fTemp0 = fVeeec0[2]; // step: 26
-				float 	fTemp1 = fVeeec1[2]; // step: 46
-				float 	fTemp2 = fVeeec2[2]; // step: 65
-				float 	fTemp3 = fVeeec3[2]; // step: 84
-				float 	fTemp4 = fVeeec4[2]; // step: 103
-				float 	fTemp5 = fVeeec5[2]; // step: 122
-				float 	fTemp6 = fVeeec6[2]; // step: 141
-				float 	fTemp7 = fVeeec7[2]; // step: 160
-				float 	fTemp8 = fVeeec8[2]; // step: 179
-				float 	fTemp9 = fVeeec9[2]; // step: 198
-				float 	fTemp10 = (fSlow61 * fVeeec9[1]); // step: 215
-				fVeeec9[0] = ((float)input0[i] - (fSlow57 * ((fSlow60 * fTemp9) + fTemp10)));
-				float 	fTemp11 = (fSlow64 * fVeeec8[1]); // step: 236
-				fVeeec8[0] = ((fSlow57 * ((fTemp10 + (fSlow62 * fVeeec9[0])) + (fSlow59 * fTemp9))) - (fSlow51 * ((fSlow63 * fTemp8) + fTemp11)));
-				float 	fTemp12 = (fSlow67 * fVeeec7[1]); // step: 257
-				fVeeec7[0] = ((fSlow51 * ((fTemp11 + (fSlow65 * fVeeec8[0])) + (fSlow53 * fTemp8))) - (fSlow45 * ((fSlow66 * fTemp7) + fTemp12)));
-				float 	fTemp13 = (fSlow70 * fVeeec6[1]); // step: 278
-				fVeeec6[0] = ((fSlow45 * ((fTemp12 + (fSlow68 * fVeeec7[0])) + (fSlow47 * fTemp7))) - (fSlow39 * ((fSlow69 * fTemp6) + fTemp13)));
-				float 	fTemp14 = (fSlow73 * fVeeec5[1]); // step: 299
-				fVeeec5[0] = ((fSlow39 * ((fTemp13 + (fSlow71 * fVeeec6[0])) + (fSlow41 * fTemp6))) - (fSlow33 * ((fSlow72 * fTemp5) + fTemp14)));
-				float 	fTemp15 = (fSlow76 * fVeeec4[1]); // step: 320
-				fVeeec4[0] = ((fSlow33 * ((fTemp14 + (fSlow74 * fVeeec5[0])) + (fSlow35 * fTemp5))) - (fSlow27 * ((fSlow75 * fTemp4) + fTemp15)));
-				float 	fTemp16 = (fSlow79 * fVeeec3[1]); // step: 341
-				fVeeec3[0] = ((fSlow27 * ((fTemp15 + (fSlow77 * fVeeec4[0])) + (fSlow29 * fTemp4))) - (fSlow21 * ((fSlow78 * fTemp3) + fTemp16)));
-				float 	fTemp17 = (fSlow82 * fVeeec2[1]); // step: 362
-				fVeeec2[0] = ((fSlow21 * ((fTemp16 + (fSlow80 * fVeeec3[0])) + (fSlow23 * fTemp3))) - (fSlow15 * ((fSlow81 * fTemp2) + fTemp17)));
-				float 	fTemp18 = (fSlow85 * fVeeec1[1]); // step: 383
-				fVeeec1[0] = ((fSlow15 * ((fTemp17 + (fSlow83 * fVeeec2[0])) + (fSlow17 * fTemp2))) - (fSlow9 * ((fSlow84 * fTemp1) + fTemp18)));
-				float 	fTemp19 = (fSlow88 * fVeeec0[1]); // step: 404
-				fVeeec0[0] = ((fSlow9 * ((fTemp18 + (fSlow86 * fVeeec1[0])) + (fSlow11 * fTemp1))) - (fSlow3 * ((fSlow87 * fTemp0) + fTemp19)));
-				output0[i] = (FAUSTFLOAT)((fSlow3 * ((fTemp19 + (fSlow89 * fVeeec0[0])) + (fSlow5 * fTemp0))));  // Zone Exec Code
-				// post processing
-				fVeeec0[2] = fVeeec0[1];
-				fVeeec0[1] = fVeeec0[0];
-				fVeeec1[2] = fVeeec1[1];
-				fVeeec1[1] = fVeeec1[0];
-				fVeeec2[2] = fVeeec2[1];
-				fVeeec2[1] = fVeeec2[0];
-				fVeeec3[2] = fVeeec3[1];
-				fVeeec3[1] = fVeeec3[0];
-				fVeeec4[2] = fVeeec4[1];
-				fVeeec4[1] = fVeeec4[0];
-				fVeeec5[2] = fVeeec5[1];
-				fVeeec5[1] = fVeeec5[0];
-				fVeeec6[2] = fVeeec6[1];
-				fVeeec6[1] = fVeeec6[0];
-				fVeeec7[2] = fVeeec7[1];
-				fVeeec7[1] = fVeeec7[0];
-				fVeeec8[2] = fVeeec8[1];
-				fVeeec8[1] = fVeeec8[0];
-				fVeeec9[2] = fVeeec9[1];
-				fVeeec9[1] = fVeeec9[0];
-			}
-			fVeeec9State[0] = fVeeec9[1];
-			fVeeec9State[1] = fVeeec9[2];
-			fVeeec8State[0] = fVeeec8[1];
-			fVeeec8State[1] = fVeeec8[2];
-			fVeeec7State[0] = fVeeec7[1];
-			fVeeec7State[1] = fVeeec7[2];
-			fVeeec6State[0] = fVeeec6[1];
-			fVeeec6State[1] = fVeeec6[2];
-			fVeeec5State[0] = fVeeec5[1];
-			fVeeec5State[1] = fVeeec5[2];
-			fVeeec4State[0] = fVeeec4[1];
-			fVeeec4State[1] = fVeeec4[2];
-			fVeeec3State[0] = fVeeec3[1];
-			fVeeec3State[1] = fVeeec3[2];
-			fVeeec2State[0] = fVeeec2[1];
-			fVeeec2State[1] = fVeeec2[2];
-			fVeeec1State[0] = fVeeec1[1];
-			fVeeec1State[1] = fVeeec1[2];
-			fVeeec0State[0] = fVeeec0[1];
-			fVeeec0State[1] = fVeeec0[2];
+		float 	fSlow73 = (fSlow63 / fSlow65); // step: 246
+		float 	fSlow74 = ((fSlow73 + fSlow67) / fSlow68); // step: 248
+		float 	fSlow75 = ((fSlow67 - fSlow73) / fSlow68); // step: 251
+		float 	fSlow76 = -fSlow62; // step: 253
+		float 	fSlow77 = -((fSlow60 - fSlow59) / fSlow61); // step: 257
+		float 	fSlow78 = ((fSlow60 - fSlow59) / fSlow61); // step: 258
+		float 	fVeeec5[3];
+		float 	fSlow79 = (fSlow56 / fSlow58); // step: 259
+		float 	fSlow80 = ((fSlow79 + fSlow60) / fSlow61); // step: 261
+		float 	fSlow81 = ((fSlow60 - fSlow79) / fSlow61); // step: 264
+		float 	fSlow82 = -fSlow55; // step: 266
+		float 	fSlow83 = -((fSlow53 - fSlow52) / fSlow54); // step: 270
+		float 	fSlow84 = ((fSlow53 - fSlow52) / fSlow54); // step: 271
+		float 	fVeeec10[3];
+		float 	fSlow85 = (fSlow49 / fSlow51); // step: 272
+		float 	fSlow86 = ((fSlow85 + fSlow53) / fSlow54); // step: 274
+		float 	fSlow87 = ((fSlow53 - fSlow85) / fSlow54); // step: 277
+		float 	fSlow88 = -fSlow48; // step: 279
+		float 	fSlow89 = -((fSlow46 - fSlow45) / fSlow47); // step: 283
+		float 	fSlow90 = ((fSlow46 - fSlow45) / fSlow47); // step: 284
+		float 	fVeeec15[3];
+		float 	fSlow91 = (fSlow42 / fSlow44); // step: 285
+		float 	fSlow92 = ((fSlow91 + fSlow46) / fSlow47); // step: 287
+		float 	fSlow93 = ((fSlow46 - fSlow91) / fSlow47); // step: 290
+		float 	fSlow94 = -fSlow41; // step: 292
+		float 	fSlow95 = -((fSlow39 - fSlow38) / fSlow40); // step: 296
+		float 	fSlow96 = ((fSlow39 - fSlow38) / fSlow40); // step: 297
+		float 	fVeeec20[3];
+		float 	fSlow97 = (fSlow35 / fSlow37); // step: 298
+		float 	fSlow98 = ((fSlow97 + fSlow39) / fSlow40); // step: 300
+		float 	fSlow99 = ((fSlow39 - fSlow97) / fSlow40); // step: 303
+		float 	fSlow100 = -fSlow34; // step: 305
+		float 	fSlow101 = -((fSlow32 - fSlow31) / fSlow33); // step: 309
+		float 	fSlow102 = ((fSlow32 - fSlow31) / fSlow33); // step: 310
+		float 	fVeeec25[3];
+		float 	fSlow103 = (fSlow28 / fSlow30); // step: 311
+		float 	fSlow104 = ((fSlow103 + fSlow32) / fSlow33); // step: 313
+		float 	fSlow105 = ((fSlow32 - fSlow103) / fSlow33); // step: 316
+		float 	fSlow106 = -fSlow27; // step: 318
+		float 	fSlow107 = -((fSlow25 - fSlow24) / fSlow26); // step: 322
+		float 	fSlow108 = ((fSlow25 - fSlow24) / fSlow26); // step: 323
+		float 	fVeeec30[3];
+		float 	fSlow109 = (fSlow21 / fSlow23); // step: 324
+		float 	fSlow110 = ((fSlow109 + fSlow25) / fSlow26); // step: 326
+		float 	fSlow111 = ((fSlow25 - fSlow109) / fSlow26); // step: 329
+		float 	fSlow112 = -fSlow20; // step: 331
+		float 	fSlow113 = -((fSlow18 - fSlow17) / fSlow19); // step: 335
+		float 	fSlow114 = ((fSlow18 - fSlow17) / fSlow19); // step: 336
+		float 	fVeeec35[3];
+		float 	fSlow115 = (fSlow14 / fSlow16); // step: 337
+		float 	fSlow116 = ((fSlow115 + fSlow18) / fSlow19); // step: 339
+		float 	fSlow117 = ((fSlow18 - fSlow115) / fSlow19); // step: 342
+		float 	fSlow118 = -fSlow13; // step: 344
+		float 	fSlow119 = -((fSlow11 - fSlow10) / fSlow12); // step: 348
+		float 	fSlow120 = ((fSlow11 - fSlow10) / fSlow12); // step: 349
+		float 	fVeeec40[3];
+		float 	fSlow121 = (fSlow7 / fSlow9); // step: 350
+		float 	fSlow122 = ((fSlow121 + fSlow11) / fSlow12); // step: 352
+		float 	fSlow123 = ((fSlow11 - fSlow121) / fSlow12); // step: 355
+		float 	fSlow124 = -fSlow6; // step: 357
+		float 	fSlow125 = -((fSlow4 - fSlow3) / fSlow5); // step: 361
+		float 	fSlow126 = ((fSlow4 - fSlow3) / fSlow5); // step: 362
+		float 	fVeeec45[3];
+		float 	fSlow127 = (fSlow0 / fSlow2); // step: 363
+		float 	fSlow128 = ((fSlow127 + fSlow4) / fSlow5); // step: 365
+		float 	fSlow129 = ((fSlow4 - fSlow127) / fSlow5); // step: 368
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		// schedule: ss=0 nodes=369 cycles=279 fill=33% peak=67 isoadj=17 packs4=1 aluMII=92 memMII=1 recMII=0 streams(peak/avg,win64)=1/0 (eval machine R=8 U=4 M=3)
+		fVeeec0[1] = fVeeec0State[0];
+		fVeeec0[2] = fVeeec0State[1];
+		fVeeec5[1] = fVeeec5State[0];
+		fVeeec5[2] = fVeeec5State[1];
+		fVeeec10[1] = fVeeec10State[0];
+		fVeeec10[2] = fVeeec10State[1];
+		fVeeec15[1] = fVeeec15State[0];
+		fVeeec15[2] = fVeeec15State[1];
+		fVeeec20[1] = fVeeec20State[0];
+		fVeeec20[2] = fVeeec20State[1];
+		fVeeec25[1] = fVeeec25State[0];
+		fVeeec25[2] = fVeeec25State[1];
+		fVeeec30[1] = fVeeec30State[0];
+		fVeeec30[2] = fVeeec30State[1];
+		fVeeec35[1] = fVeeec35State[0];
+		fVeeec35[2] = fVeeec35State[1];
+		fVeeec40[1] = fVeeec40State[0];
+		fVeeec40[2] = fVeeec40State[1];
+		fVeeec45[1] = fVeeec45State[0];
+		fVeeec45[2] = fVeeec45State[1];
+		for (int i=0; i<count; i++) {
+			fVeeec0[0] = (((float)input0[i] - (fSlow69 * fVeeec0[1])) - (fSlow72 * fVeeec0[2]));
+			fVeeec5[0] = (((((fSlow74 * fVeeec0[0]) + (fSlow69 * fVeeec0[1])) + (fSlow75 * fVeeec0[2])) - (fSlow62 * fVeeec5[1])) - (fSlow78 * fVeeec5[2]));
+			fVeeec10[0] = (((((fSlow80 * fVeeec5[0]) + (fSlow62 * fVeeec5[1])) + (fSlow81 * fVeeec5[2])) - (fSlow55 * fVeeec10[1])) - (fSlow84 * fVeeec10[2]));
+			fVeeec15[0] = (((((fSlow86 * fVeeec10[0]) + (fSlow55 * fVeeec10[1])) + (fSlow87 * fVeeec10[2])) - (fSlow48 * fVeeec15[1])) - (fSlow90 * fVeeec15[2]));
+			fVeeec20[0] = (((((fSlow92 * fVeeec15[0]) + (fSlow48 * fVeeec15[1])) + (fSlow93 * fVeeec15[2])) - (fSlow41 * fVeeec20[1])) - (fSlow96 * fVeeec20[2]));
+			fVeeec25[0] = (((((fSlow98 * fVeeec20[0]) + (fSlow41 * fVeeec20[1])) + (fSlow99 * fVeeec20[2])) - (fSlow34 * fVeeec25[1])) - (fSlow102 * fVeeec25[2]));
+			fVeeec30[0] = (((((fSlow104 * fVeeec25[0]) + (fSlow34 * fVeeec25[1])) + (fSlow105 * fVeeec25[2])) - (fSlow27 * fVeeec30[1])) - (fSlow108 * fVeeec30[2]));
+			fVeeec35[0] = (((((fSlow110 * fVeeec30[0]) + (fSlow27 * fVeeec30[1])) + (fSlow111 * fVeeec30[2])) - (fSlow20 * fVeeec35[1])) - (fSlow114 * fVeeec35[2]));
+			fVeeec40[0] = (((((fSlow116 * fVeeec35[0]) + (fSlow20 * fVeeec35[1])) + (fSlow117 * fVeeec35[2])) - (fSlow13 * fVeeec40[1])) - (fSlow120 * fVeeec40[2]));
+			fVeeec45[0] = (((((fSlow122 * fVeeec40[0]) + (fSlow13 * fVeeec40[1])) + (fSlow123 * fVeeec40[2])) - (fSlow6 * fVeeec45[1])) - (fSlow126 * fVeeec45[2]));
+			output0[i] = (FAUSTFLOAT)((((fSlow128 * fVeeec45[0]) + (fSlow6 * fVeeec45[1])) + (fSlow129 * fVeeec45[2])));  // Zone Exec Code
+			// post processing
+			fVeeec45[2] = fVeeec45[1];
+			fVeeec45[1] = fVeeec45[0];
+			fVeeec40[2] = fVeeec40[1];
+			fVeeec40[1] = fVeeec40[0];
+			fVeeec35[2] = fVeeec35[1];
+			fVeeec35[1] = fVeeec35[0];
+			fVeeec30[2] = fVeeec30[1];
+			fVeeec30[1] = fVeeec30[0];
+			fVeeec25[2] = fVeeec25[1];
+			fVeeec25[1] = fVeeec25[0];
+			fVeeec20[2] = fVeeec20[1];
+			fVeeec20[1] = fVeeec20[0];
+			fVeeec15[2] = fVeeec15[1];
+			fVeeec15[1] = fVeeec15[0];
+			fVeeec10[2] = fVeeec10[1];
+			fVeeec10[1] = fVeeec10[0];
+			fVeeec5[2] = fVeeec5[1];
+			fVeeec5[1] = fVeeec5[0];
+			fVeeec0[2] = fVeeec0[1];
+			fVeeec0[1] = fVeeec0[0];
 		}
+		fVeeec0State[0] = fVeeec0[1];
+		fVeeec0State[1] = fVeeec0[2];
+		fVeeec5State[0] = fVeeec5[1];
+		fVeeec5State[1] = fVeeec5[2];
+		fVeeec10State[0] = fVeeec10[1];
+		fVeeec10State[1] = fVeeec10[2];
+		fVeeec15State[0] = fVeeec15[1];
+		fVeeec15State[1] = fVeeec15[2];
+		fVeeec20State[0] = fVeeec20[1];
+		fVeeec20State[1] = fVeeec20[2];
+		fVeeec25State[0] = fVeeec25[1];
+		fVeeec25State[1] = fVeeec25[2];
+		fVeeec30State[0] = fVeeec30[1];
+		fVeeec30State[1] = fVeeec30[2];
+		fVeeec35State[0] = fVeeec35[1];
+		fVeeec35State[1] = fVeeec35[2];
+		fVeeec40State[0] = fVeeec40[1];
+		fVeeec40State[1] = fVeeec40[2];
+		fVeeec45State[0] = fVeeec45[1];
+		fVeeec45State[1] = fVeeec45[2];
 	}
 };
 

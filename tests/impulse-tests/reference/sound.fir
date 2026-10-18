@@ -29,7 +29,7 @@ EndBlockInst
 
 ======= DSP struct begin ==========
 
-DeclareStructTypeInst(StructType<"mydsp",("Soundfile*", fSoundfile0)("int[2]", iRec0)("int", fSampleRate)>)
+DeclareStructTypeInst(StructType<"mydsp",("Soundfile*", fSoundfile0)("int[2]", iIIR0)("int", fSampleRate)>)
 
 ======= DSP struct end ==========
 
@@ -74,7 +74,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l0, kLoop)), Int32(2))
 		StoreVarInst(Address(l0, kLoop), BinopInst("+", LoadVarInst(Address(l0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(iRec0, kStruct)[LoadVarInst(Address(l0, kLoop))], Int32(0))
+			StoreVarInst(Address(iIIR0, kStruct)[LoadVarInst(Address(l0, kLoop))], Int32(0))
 		EndBlockInst
 	EndForLoopInst
 EndBlockInst
@@ -91,7 +91,7 @@ EndBlockInst
 
 ======= Compute control begin ==========
 
-Instructions complexity : Load = 19 Store = 0 Binop = 1 [ { Int(+) = 1 } ] Mathop = 0 Numbers = 19 Declare = 19 Cast = 4 Select = 0 Loop = 0
+Instructions complexity : Load = 22 Store = 0 Binop = 4 [ { Int(%) = 3 } { Int(+) = 1 } ] Mathop = 0 Numbers = 22 Declare = 19 Cast = 4 Select = 0 Loop = 0
 
 BlockInst 
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
@@ -100,39 +100,40 @@ BlockInst
 	DeclareVarInst("FAUSTFLOAT*", output3, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(3)]))
 	DeclareVarInst("Soundfile*", fSoundfile0ca, kStack, LoadVarInst(Address(fSoundfile0, kStruct)))
 	DeclareVarInst("int*", fSoundfile0ca_le0, kStack, LoadVarInst(Address(fSoundfile0ca, kStack)->fLength))
-	DeclareVarInst("int", iSlow0, kStack, BinopInst("+", LoadVarInst(Address(fSoundfile0ca_le0, kStack)[Int32(0)]), Int32(-1)))
+	DeclareVarInst("int", iSlow0, kStack, BinopInst("+", Int32(-1), LoadVarInst(Address(fSoundfile0ca_le0, kStack)[Int32(0)])))
 	DeclareVarInst("int*", fSoundfile0ca_of0, kStack, LoadVarInst(Address(fSoundfile0ca, kStack)->fOffset))
 	DeclareVarInst("float**", fSoundfile0ca_bu0, kStack, CastInst("float**", LoadVarInst(Address(fSoundfile0ca, kStack)->fBuffers)))
 	DeclareVarInst("float*", fSoundfile0ca_bu_ch0, kStack, LoadVarInst(Address(fSoundfile0ca_bu0, kStack)[Int32(0)]))
 	DeclareVarInst("int*", fSoundfile0ca_of1, kStack, LoadVarInst(Address(fSoundfile0ca, kStack)->fOffset))
 	DeclareVarInst("float**", fSoundfile0ca_bu1, kStack, CastInst("float**", LoadVarInst(Address(fSoundfile0ca, kStack)->fBuffers)))
-	DeclareVarInst("float*", fSoundfile0ca_bu_ch1, kStack, LoadVarInst(Address(fSoundfile0ca_bu1, kStack)[Int32(1)]))
+	DeclareVarInst("float*", fSoundfile0ca_bu_ch1, kStack, LoadVarInst(Address(fSoundfile0ca_bu1, kStack)[BinopInst("%", Int32(1), LoadVarInst(Address(fSoundfile0ca, kStack)->fChannels))]))
 	DeclareVarInst("int*", fSoundfile0ca_of2, kStack, LoadVarInst(Address(fSoundfile0ca, kStack)->fOffset))
 	DeclareVarInst("float**", fSoundfile0ca_bu2, kStack, CastInst("float**", LoadVarInst(Address(fSoundfile0ca, kStack)->fBuffers)))
-	DeclareVarInst("float*", fSoundfile0ca_bu_ch2, kStack, LoadVarInst(Address(fSoundfile0ca_bu2, kStack)[Int32(2)]))
+	DeclareVarInst("float*", fSoundfile0ca_bu_ch2, kStack, LoadVarInst(Address(fSoundfile0ca_bu2, kStack)[BinopInst("%", Int32(2), LoadVarInst(Address(fSoundfile0ca, kStack)->fChannels))]))
 	DeclareVarInst("int*", fSoundfile0ca_of3, kStack, LoadVarInst(Address(fSoundfile0ca, kStack)->fOffset))
 	DeclareVarInst("float**", fSoundfile0ca_bu3, kStack, CastInst("float**", LoadVarInst(Address(fSoundfile0ca, kStack)->fBuffers)))
-	DeclareVarInst("float*", fSoundfile0ca_bu_ch3, kStack, LoadVarInst(Address(fSoundfile0ca_bu3, kStack)[Int32(3)]))
+	DeclareVarInst("float*", fSoundfile0ca_bu_ch3, kStack, LoadVarInst(Address(fSoundfile0ca_bu3, kStack)[BinopInst("%", Int32(3), LoadVarInst(Address(fSoundfile0ca, kStack)->fChannels))]))
 EndBlockInst
 
 ======= Compute control end ==========
 
 ======= Compute DSP begin ==========
 
-Instructions complexity : Load = 23 Store = 7 Binop = 7 [ { Int(+) = 6 } { Int(<) = 1 } ] Mathop = 2 [ { max_i = 1 } { min_i = 1 } ] Numbers = 13 Declare = 2 Cast = 4 Select = 0 Loop = 1
+Instructions complexity : Load = 24 Store = 7 Binop = 7 [ { Int(+) = 6 } { Int(<) = 1 } ] Mathop = 2 [ { max_i = 1 } { min_i = 1 } ] Numbers = 12 Declare = 3 Cast = 4 Select = 0 Loop = 1
 
 ForLoopInst 
 	DeclareVarInst("int", i0, kLoop, Int32(0))
 	BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 	StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 	BlockInst 
-		StoreVarInst(Address(iRec0, kStruct)[Int32(0)], BinopInst("+", LoadVarInst(Address(iRec0, kStruct)[Int32(1)]), Int32(1)))
-		DeclareVarInst("int", iTemp0, kStack, FunCallInst("max_i", Int32(0), FunCallInst("min_i", LoadVarInst(Address(iRec0, kStruct)[Int32(0)]), LoadVarInst(Address(iSlow0, kStack)))))
-		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch0, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of0, kStack)[Int32(0)]), LoadVarInst(Address(iTemp0, kStack)))])))
-		StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch1, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of1, kStack)[Int32(0)]), LoadVarInst(Address(iTemp0, kStack)))])))
-		StoreVarInst(Address(output2, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch2, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of2, kStack)[Int32(0)]), LoadVarInst(Address(iTemp0, kStack)))])))
-		StoreVarInst(Address(output3, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch3, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of3, kStack)[Int32(0)]), LoadVarInst(Address(iTemp0, kStack)))])))
-		StoreVarInst(Address(iRec0, kStruct)[Int32(1)], LoadVarInst(Address(iRec0, kStruct)[Int32(0)]))
+		DeclareVarInst("int", iTemp0, kStack, BinopInst("+", Int32(1), LoadVarInst(Address(iIIR0, kStruct)[Int32(1)])))
+		StoreVarInst(Address(iIIR0, kStruct)[Int32(0)], LoadVarInst(Address(iTemp0, kStack)))
+		DeclareVarInst("int", iTemp1, kStack, FunCallInst("max_i", Int32(0), FunCallInst("min_i", LoadVarInst(Address(iTemp0, kStack)), LoadVarInst(Address(iSlow0, kStack)))))
+		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch0, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of0, kStack)[Int32(0)]), LoadVarInst(Address(iTemp1, kStack)))])))
+		StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch1, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of1, kStack)[Int32(0)]), LoadVarInst(Address(iTemp1, kStack)))])))
+		StoreVarInst(Address(output2, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch2, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of2, kStack)[Int32(0)]), LoadVarInst(Address(iTemp1, kStack)))])))
+		StoreVarInst(Address(output3, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch3, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of3, kStack)[Int32(0)]), LoadVarInst(Address(iTemp1, kStack)))])))
+		StoreVarInst(Address(iIIR0, kStruct)[Int32(1)], LoadVarInst(Address(iIIR0, kStruct)[Int32(0)]))
 	EndBlockInst
 EndForLoopInst
 BlockInst 
@@ -156,7 +157,7 @@ BlockInst
 	DeclareFunInst("int", "min_i", "int", dummy0, "int", dummy1)
 	DeclareFunInst("int", "max_i", "int", dummy0, "int", dummy1)
 	DeclareVarInst("Soundfile*", fSoundfile0, kStruct)
-	DeclareVarInst("int", iRec0[2], kStruct)
+	DeclareVarInst("int", iIIR0[2], kStruct)
 	DeclareVarInst("int", fSampleRate, kStruct)
 	========== Init method ==========
 	StoreVarInst(Address(fSampleRate, kStruct), LoadVarInst(Address(sample_rate, kFunArgs)))
@@ -171,7 +172,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l0, kLoop)), Int32(2))
 		StoreVarInst(Address(l0, kLoop), BinopInst("+", LoadVarInst(Address(l0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(iRec0, kStruct)[LoadVarInst(Address(l0, kLoop))], Int32(0))
+			StoreVarInst(Address(iIIR0, kStruct)[LoadVarInst(Address(l0, kLoop))], Int32(0))
 		EndBlockInst
 	EndForLoopInst
 	========== Static init method ==========
@@ -184,32 +185,33 @@ BlockInst
 	DeclareVarInst("FAUSTFLOAT*", output3, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(3)]))
 	DeclareVarInst("Soundfile*", fSoundfile0ca, kStack, LoadVarInst(Address(fSoundfile0, kStruct)))
 	DeclareVarInst("int*", fSoundfile0ca_le0, kStack, LoadVarInst(Address(fSoundfile0ca, kStack)->fLength))
-	DeclareVarInst("int", iSlow0, kStack, BinopInst("+", LoadVarInst(Address(fSoundfile0ca_le0, kStack)[Int32(0)]), Int32(-1)))
+	DeclareVarInst("int", iSlow0, kStack, BinopInst("+", Int32(-1), LoadVarInst(Address(fSoundfile0ca_le0, kStack)[Int32(0)])))
 	DeclareVarInst("int*", fSoundfile0ca_of0, kStack, LoadVarInst(Address(fSoundfile0ca, kStack)->fOffset))
 	DeclareVarInst("float**", fSoundfile0ca_bu0, kStack, CastInst("float**", LoadVarInst(Address(fSoundfile0ca, kStack)->fBuffers)))
 	DeclareVarInst("float*", fSoundfile0ca_bu_ch0, kStack, LoadVarInst(Address(fSoundfile0ca_bu0, kStack)[Int32(0)]))
 	DeclareVarInst("int*", fSoundfile0ca_of1, kStack, LoadVarInst(Address(fSoundfile0ca, kStack)->fOffset))
 	DeclareVarInst("float**", fSoundfile0ca_bu1, kStack, CastInst("float**", LoadVarInst(Address(fSoundfile0ca, kStack)->fBuffers)))
-	DeclareVarInst("float*", fSoundfile0ca_bu_ch1, kStack, LoadVarInst(Address(fSoundfile0ca_bu1, kStack)[Int32(1)]))
+	DeclareVarInst("float*", fSoundfile0ca_bu_ch1, kStack, LoadVarInst(Address(fSoundfile0ca_bu1, kStack)[BinopInst("%", Int32(1), LoadVarInst(Address(fSoundfile0ca, kStack)->fChannels))]))
 	DeclareVarInst("int*", fSoundfile0ca_of2, kStack, LoadVarInst(Address(fSoundfile0ca, kStack)->fOffset))
 	DeclareVarInst("float**", fSoundfile0ca_bu2, kStack, CastInst("float**", LoadVarInst(Address(fSoundfile0ca, kStack)->fBuffers)))
-	DeclareVarInst("float*", fSoundfile0ca_bu_ch2, kStack, LoadVarInst(Address(fSoundfile0ca_bu2, kStack)[Int32(2)]))
+	DeclareVarInst("float*", fSoundfile0ca_bu_ch2, kStack, LoadVarInst(Address(fSoundfile0ca_bu2, kStack)[BinopInst("%", Int32(2), LoadVarInst(Address(fSoundfile0ca, kStack)->fChannels))]))
 	DeclareVarInst("int*", fSoundfile0ca_of3, kStack, LoadVarInst(Address(fSoundfile0ca, kStack)->fOffset))
 	DeclareVarInst("float**", fSoundfile0ca_bu3, kStack, CastInst("float**", LoadVarInst(Address(fSoundfile0ca, kStack)->fBuffers)))
-	DeclareVarInst("float*", fSoundfile0ca_bu_ch3, kStack, LoadVarInst(Address(fSoundfile0ca_bu3, kStack)[Int32(3)]))
+	DeclareVarInst("float*", fSoundfile0ca_bu_ch3, kStack, LoadVarInst(Address(fSoundfile0ca_bu3, kStack)[BinopInst("%", Int32(3), LoadVarInst(Address(fSoundfile0ca, kStack)->fChannels))]))
 	========== Compute DSP ==========
 	ForLoopInst 
 		DeclareVarInst("int", i0, kLoop, Int32(0))
 		BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 		StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(iRec0, kStruct)[Int32(0)], BinopInst("+", LoadVarInst(Address(iRec0, kStruct)[Int32(1)]), Int32(1)))
-			DeclareVarInst("int", iTemp0, kStack, FunCallInst("max_i", Int32(0), FunCallInst("min_i", LoadVarInst(Address(iRec0, kStruct)[Int32(0)]), LoadVarInst(Address(iSlow0, kStack)))))
-			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch0, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of0, kStack)[Int32(0)]), LoadVarInst(Address(iTemp0, kStack)))])))
-			StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch1, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of1, kStack)[Int32(0)]), LoadVarInst(Address(iTemp0, kStack)))])))
-			StoreVarInst(Address(output2, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch2, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of2, kStack)[Int32(0)]), LoadVarInst(Address(iTemp0, kStack)))])))
-			StoreVarInst(Address(output3, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch3, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of3, kStack)[Int32(0)]), LoadVarInst(Address(iTemp0, kStack)))])))
-			StoreVarInst(Address(iRec0, kStruct)[Int32(1)], LoadVarInst(Address(iRec0, kStruct)[Int32(0)]))
+			DeclareVarInst("int", iTemp0, kStack, BinopInst("+", Int32(1), LoadVarInst(Address(iIIR0, kStruct)[Int32(1)])))
+			StoreVarInst(Address(iIIR0, kStruct)[Int32(0)], LoadVarInst(Address(iTemp0, kStack)))
+			DeclareVarInst("int", iTemp1, kStack, FunCallInst("max_i", Int32(0), FunCallInst("min_i", LoadVarInst(Address(iTemp0, kStack)), LoadVarInst(Address(iSlow0, kStack)))))
+			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch0, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of0, kStack)[Int32(0)]), LoadVarInst(Address(iTemp1, kStack)))])))
+			StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch1, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of1, kStack)[Int32(0)]), LoadVarInst(Address(iTemp1, kStack)))])))
+			StoreVarInst(Address(output2, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch2, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of2, kStack)[Int32(0)]), LoadVarInst(Address(iTemp1, kStack)))])))
+			StoreVarInst(Address(output3, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSoundfile0ca_bu_ch3, kStack)[BinopInst("+", LoadVarInst(Address(fSoundfile0ca_of3, kStack)[Int32(0)]), LoadVarInst(Address(iTemp1, kStack)))])))
+			StoreVarInst(Address(iIIR0, kStruct)[Int32(1)], LoadVarInst(Address(iIIR0, kStruct)[Int32(0)]))
 		EndBlockInst
 	EndForLoopInst
 	========== Post compute DSP ==========
@@ -229,17 +231,63 @@ Stack size in compute = 148 bytes
 ======= Variable access in Control ==========
 
 Field = fSoundfile0 size = 1 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = iRec0 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = iIIR0 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 ======= Variable access in compute control ==========
 
 Field = fSoundfile0 size = 1 size_bytes = 8 read = 1 write = 0 ratio = 1
-Field = iRec0 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = iIIR0 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 ======= Variable access in compute DSP ==========
 
 Field = fSoundfile0 size = 1 size_bytes = 8 read = 0 write = 0 ratio = 0
-Field = iRec0 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
+Field = iIIR0 size = 2 size_bytes = 8 read = 2 write = 2 ratio = 2
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            24
+  eval() cache hits:       5 (20.8333%)
+  eval() cache misses:     19
+  Loop detector calls:     19
+  Stack detector calls:    19
+
+--- Phase 3: Propagation ---
+  propagate() calls:       24
+  propagate() cache hits:  0 (0%)
+  propagate() cache misses:24
+
+--- Box Type Computation ---
+  getBoxType() calls:      48
+  getBoxType() cache hits: 30 (62.5%)
+  getBoxType() computed:   18
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       1
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           265
+  Trees reused (hash):     453 (63.0919% reuse rate)
+  Property set ops:        133
+  Property get ops:        381
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

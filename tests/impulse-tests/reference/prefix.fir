@@ -293,3 +293,49 @@ Field = fVec2 size = 2 size_bytes = 8 read = 1 write = 2 ratio = 1.5
 Field = pfPerm4 size = 1 size_bytes = 4 read = 1 write = 1 ratio = 2
 Field = fVec3 size = 2 size_bytes = 8 read = 1 write = 2 ratio = 1.5
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            27
+  eval() cache hits:       5 (18.5185%)
+  eval() cache misses:     22
+  Loop detector calls:     22
+  Stack detector calls:    22
+
+--- Phase 3: Propagation ---
+  propagate() calls:       33
+  propagate() cache hits:  1 (3.0303%)
+  propagate() cache misses:32
+
+--- Box Type Computation ---
+  getBoxType() calls:      77
+  getBoxType() cache hits: 52 (67.5325%)
+  getBoxType() computed:   25
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       1
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           178
+  Trees reused (hash):     298 (62.605% reuse rate)
+  Property set ops:        124
+  Property get ops:        290
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

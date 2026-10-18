@@ -1,8 +1,2 @@
-// Size = 6
-ID_0 = hslider("n",5e+04f,0.0f,5e+04f,1.0f);
-ID_1 = int(ID_0);
-ID_2 = pow(ID_1, 2);
-ID_3 = float(ID_2);
-ID_4 = hslider("x",0.6f,0.0f,1.0f,0.01f);
-ID_5 = pow(ID_4, 2.0f);
-SIG = (ID_3, ID_5);
+// real block [-2147483648, 2147483648] lsb -1 ; real block [0, 1.0000002] lsb -39
+process = (float(pow(int(max(0.0f, min(5e+04f, hslider("n",5e+04f,0.0f,5e+04f,1.0f)))), 2)), pow(max(0.0f, min(1.0f, hslider("x",0.6f,0.0f,1.0f,0.01f))), 2.0f));

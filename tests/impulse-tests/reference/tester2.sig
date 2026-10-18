@@ -1,127 +1,19 @@
-// Size = 125
-ID_0 = hslider("[2] volume [unit:dB]/Stereo Audio Tester",-31.9968f,-96.0f,0.0f,1.0f);
-ID_1 = 0.05f*ID_0;
-ID_2 = pow(1e+01f, ID_1);
-ID_3 = 0.001f*ID_2;
-ID_4 = W4;
-ID_5 = proj0(ID_4);
-ID_6 = ID_5';
-ID_7 = 0.999f*ID_6;
-ID_8 = ID_3+ID_7;
-ID_9 = letrec(W4 = (ID_8));
-ID_10 = proj0(ID_9);
-ID_11 = ID_10@0;
-ID_12 = W5;
-ID_13 = proj0(ID_12);
-ID_14 = ID_13';
-ID_15 = hslider("[4] channel [style:radio{'none':0;'left':1;'right':2;'both':3}]/Stereo Audio Tester",1.0f,0.0f,3.0f,1.0f);
-ID_16 = int(ID_15);
-ID_17 = (ID_16&1);
-ID_18 = ID_17!=0;
-ID_19 = float(ID_18);
-ID_20 = ID_14<ID_19;
-ID_21 = ID_14+-0.00022675737f;
-ID_22 = max(ID_21, ID_19);
-ID_23 = ID_14+0.00022675737f;
-ID_24 = min(ID_23, ID_19);
-ID_25 = select2(ID_20,ID_22,ID_24);
-ID_26 = letrec(W5 = (ID_25));
-ID_27 = proj0(ID_26);
-ID_28 = ID_27@0;
-ID_29 = ID_11*ID_28;
-ID_30 = hslider("[3] signal [style:menu{'white noise':0;'pink noise':1;'sine':2}]/Stereo Audio Tester",0.0f,0.0f,2.0f,1.0f);
-ID_31 = int(ID_30);
-ID_32 = ID_31==0;
-ID_33 = ID_31==1;
-ID_34 = W0;
-ID_35 = proj0(ID_34);
-ID_36 = ID_35';
-ID_37 = ID_36+1;
-ID_38 = letrec(W0 = (ID_37));
-ID_39 = proj0(ID_38);
-ID_40 = ID_39@0;
-ID_41 = ID_40+-1;
-ID_42 = float(ID_41);
-ID_43 = 9.58738e-05f*ID_42;
-ID_44 = sin(ID_43);
-ID_45 = sigGen(ID_44);
-ID_46 = WRTbl2p(65537,ID_45);
-ID_47 = float(fSamplingFreq);
-ID_48 = max(1.0f, ID_47);
-ID_49 = min(1.92e+05f, ID_48);
-ID_50 = 1.0f/ID_49;
-ID_51 = hslider("[1] freq [unit:Hz][scale:log]/Stereo Audio Tester",3043.0f,4e+01f,2e+04f,1.0f);
-ID_52 = ID_50*ID_51;
-ID_53 = W1;
-ID_54 = proj0(ID_53);
-ID_55 = ID_54';
-ID_56 = ID_52+ID_55;
-ID_57 = floor(ID_56);
-ID_58 = ID_55-ID_57;
-ID_59 = ID_52+ID_58;
-ID_60 = letrec(W1 = (ID_59));
-ID_61 = proj0(ID_60);
-ID_62 = ID_61@0;
-ID_63 = 65536.0f*ID_62;
-ID_64 = int(ID_63);
-ID_65 = min(ID_64, 65536);
-ID_66 = max(0, ID_65);
-ID_67 = sigRDTbl(ID_46,ID_66);
-ID_68 = floor(ID_63);
-ID_69 = (ID_63-ID_68);
-ID_70 = ID_64+1;
-ID_71 = min(ID_70, 65536);
-ID_72 = max(0, ID_71);
-ID_73 = sigRDTbl(ID_46,ID_72);
-ID_74 = (ID_73-ID_67);
-ID_75 = ID_69*ID_74;
-ID_76 = ID_67+ID_75;
-ID_77 = W3;
-ID_78 = proj0(ID_77);
-ID_79 = ID_78';
-ID_80 = 1103515245*ID_79;
-ID_81 = ID_80+12345;
-ID_82 = letrec(W3 = (ID_81));
-ID_83 = proj0(ID_82);
-ID_84 = ID_83@0;
-ID_85 = float(ID_84);
-ID_86 = ID_85@2;
-ID_87 = 6.906783e-12f*ID_86;
-ID_88 = W2;
-ID_89 = proj0(ID_88);
-ID_90 = ID_89';
-ID_91 = 1.8011608f*ID_90;
-ID_92 = 2.308528e-11f*ID_85;
-ID_93 = ID_91+ID_92;
-ID_94 = ID_87+ID_93;
-ID_95 = ID_89@2;
-ID_96 = 0.8025774f*ID_95;
-ID_97 = ID_85';
-ID_98 = 2.936265e-11f*ID_97;
-ID_99 = ID_96+ID_98;
-ID_100 = ID_94-ID_99;
-ID_101 = letrec(W2 = (ID_100));
-ID_102 = proj0(ID_101);
-ID_103 = ID_102@0;
-ID_104 = select2(ID_33,ID_76,ID_103);
-ID_105 = 4.656613e-10f*ID_85;
-ID_106 = select2(ID_32,ID_104,ID_105);
-ID_107 = ID_29*ID_106;
-ID_108 = W6;
-ID_109 = proj0(ID_108);
-ID_110 = ID_109';
-ID_111 = (ID_16&2);
-ID_112 = ID_111!=0;
-ID_113 = float(ID_112);
-ID_114 = ID_110<ID_113;
-ID_115 = ID_110+-0.00022675737f;
-ID_116 = max(ID_115, ID_113);
-ID_117 = ID_110+0.00022675737f;
-ID_118 = min(ID_117, ID_113);
-ID_119 = select2(ID_114,ID_116,ID_118);
-ID_120 = letrec(W6 = (ID_119));
-ID_121 = proj0(ID_120);
-ID_122 = ID_121@0;
-ID_123 = ID_11*ID_122;
-ID_124 = ID_123*ID_106;
-SIG = (ID_107, ID_124);
+// int block [0, 2] lsb 0
+E0 = int(max(0.0f, min(2.0f, hslider("[3] signal [style:menu{'white noise':0;'pink noise':1;'sine':2}]/Stereo Audio Tester",0.0f,0.0f,2.0f,1.0f))));
+// real samp [0, 0.99999994] lsb -64
+R0 = frac(1.0f/min(1.92e+05f, max(5e+01f, float(fSamplingFreq)))*max(4e+01f, min(2e+04f, hslider("[1] freq [unit:Hz][scale:log]/Stereo Audio Tester",3043.0f,4e+01f,2e+04f,1.0f)))+R0');
+E1 = 65536.0f*R0;                                                                 // real samp [0, 65535.996] lsb -80
+E2 = WRTbl2p(65537, sigGen(sin(9.58738e-05f*float(-1+IIR(1; 1)))));               // real konst [-1, 1] lsb -47
+E3 = int(E1);                                                                     // int samp [0, 65535] lsb 0
+E4 = float(IIR(12345; 1103515245));                                               // real samp [-2147483648, 2147483648] lsb -1
+// real samp [-90.01021, 90.01021] lsb -80
+E5 = select2(E0==0, select2(E0==1, mix(frac(E1), sigRDTbl(E2, max(0, min(E3, 65536))), sigRDTbl(E2, max(0, min(1+E3, 65536)))), IIR(FIR(E4; 2.308528e-11f, -2.936265e-11f, 6.906783e-12f); 1.8011608f, -0.8025774f)), 4.656613e-10f*E4);
+// real samp [1.584892e-08, 1.0001324] lsb -474
+E6 = 0.001f*IIR(pow(1e+01f, 0.05f*max(-96.0f, min(0.0f, hslider("[2] volume [unit:dB]/Stereo Audio Tester",-31.9968f,-96.0f,0.0f,1.0f)))); 0.999f);
+// int block [0, 3] lsb 0
+E7 = int(max(0.0f, min(3.0f, hslider("[4] channel [style:radio{'none':0;'left':1;'right':2;'both':3}]/Stereo Audio Tester",1.0f,0.0f,3.0f,1.0f))));
+E8 = float((E7&1)!=0);                                                            // real block [0, 1] lsb -1
+R1 = select2(R1'<E8, max(-0.00022675737f+R1', E8), min(0.00022675737f+R1', E8));  // real samp [0, 1] lsb -45
+E9 = float((E7&2)!=0);                                                            // real block [0, 1] lsb -1
+R2 = select2(R2'<E9, max(-0.00022675737f+R2', E9), min(0.00022675737f+R2', E9));  // real samp [0, 1] lsb -45
+process = (E5*E6*R1, E5*E6*R2);                                                   // real samp [-90.02213, 90.02213] lsb -599 ; real samp [-90.02213, 90.02213] lsb -599

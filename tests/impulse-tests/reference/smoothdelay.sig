@@ -1,84 +1,19 @@
-// Size = 82
-ID_0 = W1;
-ID_1 = proj0(ID_0);
-ID_2 = ID_1';
-ID_3 = ID_2!=0.0f;
-ID_4 = proj1(ID_0);
-ID_5 = ID_4';
-ID_6 = ID_5==0.0f;
-ID_7 = float(fSamplingFreq);
-ID_8 = max(1.0f, ID_7);
-ID_9 = min(1.92e+05f, ID_8);
-ID_10 = 0.001f*ID_9;
-ID_11 = hslider("delay[unit:ms][style:knob]",114.5f,0.0f,5e+03f,0.1f);
-ID_12 = ID_10*ID_11;
-ID_13 = proj2(ID_0);
-ID_14 = ID_13';
-ID_15 = ID_12!=ID_14;
-ID_16 = ID_6&ID_15;
-ID_17 = ID_5==1.0f;
-ID_18 = proj3(ID_0);
-ID_19 = ID_18';
-ID_20 = ID_12!=ID_19;
-ID_21 = ID_17&ID_20;
-ID_22 = 1e+03f/ID_9;
-ID_23 = hslider("interpolation[unit:ms][style:knob]",68.0329f,1.0f,1e+02f,0.1f);
-ID_24 = ID_22/ID_23;
-ID_25 = -1.0f*ID_24;
-ID_26 = select2(ID_21,0.0f,ID_25);
-ID_27 = select2(ID_16,ID_26,ID_24);
-ID_28 = ID_5>0.0f;
-ID_29 = ID_5<1.0f;
-ID_30 = ID_28&ID_29;
-ID_31 = select2(ID_30,0.0f,ID_2);
-ID_32 = select2(ID_3,ID_27,ID_31);
-ID_33 = ID_5+ID_32;
-ID_34 = min(1.0f, ID_33);
-ID_35 = max(0.0f, ID_34);
-ID_36 = ID_5>=1.0f;
-ID_37 = ID_19!=ID_12;
-ID_38 = ID_36&ID_37;
-ID_39 = select2(ID_38,ID_14,ID_12);
-ID_40 = ID_5<=0.0f;
-ID_41 = ID_14!=ID_12;
-ID_42 = ID_40&ID_41;
-ID_43 = select2(ID_42,ID_19,ID_12);
-ID_44 = letrec(W1 = (ID_32, ID_35, ID_39, ID_43));
-ID_45 = proj1(ID_44);
-ID_46 = ID_45@0;
-ID_47 = (1.0f-ID_46);
-ID_48 = hslider("feedback[style:knob]",87.11f,0.0f,1e+02f,0.1f);
-ID_49 = 0.01f*ID_48;
-ID_50 = W0;
-ID_51 = proj0(ID_50);
-ID_52 = ID_51';
-ID_53 = ID_49*ID_52;
-ID_54 = (IN[0]+ID_53);
-ID_55 = ID_13@0;
-ID_56 = int(ID_55);
-ID_57 = (ID_56&524287);
-ID_58 = ID_54@ID_57;
-ID_59 = ID_47*ID_58;
-ID_60 = ID_18@0;
-ID_61 = int(ID_60);
-ID_62 = (ID_61&524287);
-ID_63 = ID_54@ID_62;
-ID_64 = ID_46*ID_63;
-ID_65 = ID_59+ID_64;
-ID_66 = letrec(W0 = (ID_65));
-ID_67 = proj0(ID_66);
-ID_68 = ID_67@0;
-ID_69 = W2;
-ID_70 = proj0(ID_69);
-ID_71 = ID_70';
-ID_72 = ID_49*ID_71;
-ID_73 = (IN[1]+ID_72);
-ID_74 = ID_73@ID_57;
-ID_75 = ID_47*ID_74;
-ID_76 = ID_73@ID_62;
-ID_77 = ID_46*ID_76;
-ID_78 = ID_75+ID_77;
-ID_79 = letrec(W2 = (ID_78));
-ID_80 = proj0(ID_79);
-ID_81 = ID_80@0;
-SIG = (ID_68, ID_81);
+E0   = min(1.92e+05f, max(5e+01f, float(fSamplingFreq)));                                // real konst [50, 192000] lsb -27
+// real block [0, 960000.1] lsb -105
+E1   = 0.001f*E0*max(0.0f, min(5e+03f, hslider("delay[unit:ms][style:knob]",114.5f,0.0f,5e+03f,0.1f)));
+// real block [5.2083327e-05, 20] lsb -36
+E2   = 1e+03f/E0/max(1.0f, min(1e+02f, hslider("interpolation[unit:ms][style:knob]",68.0329f,1.0f,1e+02f,0.1f)));
+// real samp [-20, 20] lsb -36
+R0.0 = select2(R0.0'!=0.0f, select2(R0.1'==0.0f&E1!=R0.2', select2(R0.1'==1.0f&E1!=R0.3', 0.0f, -E2), E2), select2(R0.1'>0.0f&R0.1'<1.0f, 0.0f, R0.0'));
+// real samp [0, 1] lsb -36
+R0.1 = max(0.0f, min(1.0f, R0.1'+select2(R0.0'!=0.0f, select2(R0.1'==0.0f&E1!=R0.2', select2(R0.1'==1.0f&E1!=R0.3', 0.0f, -E2), E2), select2(R0.1'>0.0f&R0.1'<1.0f, 0.0f, R0.0'))));
+R0.2 = select2(R0.1'>=1.0f&R0.3'!=E1, R0.2', E1);                                        // real samp [0, 960000.1] lsb -105
+R0.3 = select2(R0.1'<=0.0f&R0.2'!=E1, R0.3', E1);                                        // real samp [0, 960000.1] lsb -105
+E3   = max(0.0f, min(1e+02f, hslider("feedback[style:knob]",87.11f,0.0f,1e+02f,0.1f)));  // real block [0, 100] lsb -36
+E4   = IN[0]+0.01f*E3*R1';                                                               // real samp [-inf, inf] invalid
+E5   = int(R0.2)&524287;                                                                 // int samp [0, 524287] lsb 0
+E6   = int(R0.3)&524287;                                                                 // int samp [0, 524287] lsb 0
+R1   = mix(R0.1, E4@E5, E4@E6);                                                          // real samp [-inf, inf] invalid  <-- invalid from unbounded operands (the recursion)
+E7   = IN[1]+0.01f*E3*R2';                                                               // real samp [-inf, inf] invalid
+R2   = mix(R0.1, E7@E5, E7@E6);                                                          // real samp [-inf, inf] invalid  <-- invalid from unbounded operands (the recursion)
+process = (R1, R2);                                                                      // real samp [-inf, inf] invalid ; real samp [-inf, inf] invalid

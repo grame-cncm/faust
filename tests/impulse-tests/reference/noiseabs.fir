@@ -27,7 +27,7 @@ EndBlockInst
 
 ======= DSP struct begin ==========
 
-DeclareStructTypeInst(StructType<"mydsp",("int[2]", iRec0)("int", fSampleRate)>)
+DeclareStructTypeInst(StructType<"mydsp",("int[2]", iIIR0)("int", fSampleRate)>)
 
 ======= DSP struct end ==========
 
@@ -59,7 +59,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l0, kLoop)), Int32(2))
 		StoreVarInst(Address(l0, kLoop), BinopInst("+", LoadVarInst(Address(l0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(iRec0, kStruct)[LoadVarInst(Address(l0, kLoop))], Int32(0))
+			StoreVarInst(Address(iIIR0, kStruct)[LoadVarInst(Address(l0, kLoop))], Int32(0))
 		EndBlockInst
 	EndForLoopInst
 EndBlockInst
@@ -78,16 +78,17 @@ EndBlockInst
 
 ======= Compute DSP begin ==========
 
-Instructions complexity : Load = 7 Store = 4 Binop = 5 [ { Int(*) = 1 } { Int(+) = 2 } { Int(<) = 1 } { Real(*) = 1 } ] Mathop = 1 [ { fabsf = 1 } ] Numbers = 10 Declare = 1 Cast = 2 Select = 0 Loop = 1
+Instructions complexity : Load = 8 Store = 4 Binop = 5 [ { Int(*) = 1 } { Int(+) = 2 } { Int(<) = 1 } { Real(*) = 1 } ] Mathop = 1 [ { fabsf = 1 } ] Numbers = 9 Declare = 2 Cast = 2 Select = 0 Loop = 1
 
 ForLoopInst 
 	DeclareVarInst("int", i0, kLoop, Int32(0))
 	BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 	StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 	BlockInst 
-		StoreVarInst(Address(iRec0, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", Int32(1103515245), LoadVarInst(Address(iRec0, kStruct)[Int32(1)])), Int32(12345)))
-		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", FunCallInst("fabsf", BinopInst("*", Float(4.656613e-10f), CastInst("float", LoadVarInst(Address(iRec0, kStruct)[Int32(0)]))))))
-		StoreVarInst(Address(iRec0, kStruct)[Int32(1)], LoadVarInst(Address(iRec0, kStruct)[Int32(0)]))
+		DeclareVarInst("int", iTemp0, kStack, BinopInst("+", Int32(12345), BinopInst("*", Int32(1103515245), LoadVarInst(Address(iIIR0, kStruct)[Int32(1)]))))
+		StoreVarInst(Address(iIIR0, kStruct)[Int32(0)], LoadVarInst(Address(iTemp0, kStack)))
+		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", FunCallInst("fabsf", BinopInst("*", Float(4.656613e-10f), CastInst("float", LoadVarInst(Address(iTemp0, kStack)))))))
+		StoreVarInst(Address(iIIR0, kStruct)[Int32(1)], LoadVarInst(Address(iIIR0, kStruct)[Int32(0)]))
 	EndBlockInst
 EndForLoopInst
 
@@ -105,7 +106,7 @@ EndBlockInst
 BlockInst 
 	========== Declaration part ==========
 	DeclareFunInst("float", "fabsf", "float", dummy0)
-	DeclareVarInst("int", iRec0[2], kStruct)
+	DeclareVarInst("int", iIIR0[2], kStruct)
 	DeclareVarInst("int", fSampleRate, kStruct)
 	========== Init method ==========
 	StoreVarInst(Address(fSampleRate, kStruct), LoadVarInst(Address(sample_rate, kFunArgs)))
@@ -114,7 +115,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(l0, kLoop)), Int32(2))
 		StoreVarInst(Address(l0, kLoop), BinopInst("+", LoadVarInst(Address(l0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(iRec0, kStruct)[LoadVarInst(Address(l0, kLoop))], Int32(0))
+			StoreVarInst(Address(iIIR0, kStruct)[LoadVarInst(Address(l0, kLoop))], Int32(0))
 		EndBlockInst
 	EndForLoopInst
 	========== Static init method ==========
@@ -128,9 +129,10 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 		StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(iRec0, kStruct)[Int32(0)], BinopInst("+", BinopInst("*", Int32(1103515245), LoadVarInst(Address(iRec0, kStruct)[Int32(1)])), Int32(12345)))
-			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", FunCallInst("fabsf", BinopInst("*", Float(4.656613e-10f), CastInst("float", LoadVarInst(Address(iRec0, kStruct)[Int32(0)]))))))
-			StoreVarInst(Address(iRec0, kStruct)[Int32(1)], LoadVarInst(Address(iRec0, kStruct)[Int32(0)]))
+			DeclareVarInst("int", iTemp0, kStack, BinopInst("+", Int32(12345), BinopInst("*", Int32(1103515245), LoadVarInst(Address(iIIR0, kStruct)[Int32(1)]))))
+			StoreVarInst(Address(iIIR0, kStruct)[Int32(0)], LoadVarInst(Address(iTemp0, kStack)))
+			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", FunCallInst("fabsf", BinopInst("*", Float(4.656613e-10f), CastInst("float", LoadVarInst(Address(iTemp0, kStack)))))))
+			StoreVarInst(Address(iIIR0, kStruct)[Int32(1)], LoadVarInst(Address(iIIR0, kStruct)[Int32(0)]))
 		EndBlockInst
 	EndForLoopInst
 	========== Post compute DSP ==========
@@ -148,15 +150,61 @@ Stack size in compute = 8 bytes
 
 ======= Variable access in Control ==========
 
-Field = iRec0 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = iIIR0 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 ======= Variable access in compute control ==========
 
-Field = iRec0 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
+Field = iIIR0 size = 2 size_bytes = 8 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 ======= Variable access in compute DSP ==========
 
-Field = iRec0 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
+Field = iIIR0 size = 2 size_bytes = 8 read = 2 write = 2 ratio = 2
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            19
+  eval() cache hits:       0 (0%)
+  eval() cache misses:     19
+  Loop detector calls:     19
+  Stack detector calls:    19
+
+--- Phase 3: Propagation ---
+  propagate() calls:       17
+  propagate() cache hits:  0 (0%)
+  propagate() cache misses:17
+
+--- Box Type Computation ---
+  getBoxType() calls:      37
+  getBoxType() cache hits: 21 (56.7568%)
+  getBoxType() computed:   16
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       1
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           243
+  Trees reused (hash):     398 (62.0905% reuse rate)
+  Property set ops:        99
+  Property get ops:        226
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

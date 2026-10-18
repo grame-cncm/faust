@@ -1,11 +1,4 @@
-// Size = 9
-ID_0 = nentry("[1]pan[style:knob]",0.0f,-9e+01f,9e+01f,1.0f);
-ID_1 = (ID_0+-9e+01f);
-ID_2 = 0.0055555557f*ID_1;
-ID_3 = -1.0f*ID_2;
-ID_4 = sqrt(ID_3);
-ID_5 = ID_4*IN[0];
-ID_6 = ID_2+1.0f;
-ID_7 = sqrt(ID_6);
-ID_8 = ID_7*IN[0];
-SIG = (ID_5, ID_8);
+// real block [-1.0000001, 0] lsb -72
+E0 = 0.0055555557f*(-9e+01f+max(-9e+01f, min(9e+01f, nentry("[1]pan[style:knob]",0.0f,-9e+01f,9e+01f,1.0f))));
+E1 = sqrt(1.0f+E0);  // real block [0, 1] lsb -72 invalid  <-- invalid from here
+process = (sqrt(-E0)*IN[0], E1*IN[0]);  // real samp [-inf, inf] invalid ; real samp [-inf, inf] invalid

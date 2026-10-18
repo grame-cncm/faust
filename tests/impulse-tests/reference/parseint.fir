@@ -180,3 +180,49 @@ Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 ======= Variable access in compute DSP ==========
 
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            33
+  eval() cache hits:       6 (18.1818%)
+  eval() cache misses:     27
+  Loop detector calls:     27
+  Stack detector calls:    27
+
+--- Phase 3: Propagation ---
+  propagate() calls:       31
+  propagate() cache hits:  6 (19.3548%)
+  propagate() cache misses:25
+
+--- Box Type Computation ---
+  getBoxType() calls:      61
+  getBoxType() cache hits: 36 (59.0164%)
+  getBoxType() computed:   25
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       1
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           145
+  Trees reused (hash):     261 (64.2857% reuse rate)
+  Property set ops:        119
+  Property get ops:        254
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

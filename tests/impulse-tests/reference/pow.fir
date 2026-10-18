@@ -23,14 +23,14 @@ BlockInst
 	DeclareVarInst("float", fmydspWave0[4], kStaticStruct|kConst, FloatArrayNumInst{0.1f,0.56f,1.3f,8.9f})
 	DeclareFunInst("float", "sqrtf", "float", dummy0)
 	DeclareFunInst("float", "powf", "float", dummy0, "float", dummy1)
-	DeclareFunInst("float", "mydsp_faustpower2_f", "float", value)
+	DeclareFunInst("float", "mydsp_faustpower2_f", "float", value_f)
 		BlockInst 
-			RetInst(BinopInst("*", LoadVarInst(Address(value, kFunArgs)), LoadVarInst(Address(value, kFunArgs))))
+			RetInst(BinopInst("*", LoadVarInst(Address(value_f, kFunArgs)), LoadVarInst(Address(value_f, kFunArgs))))
 		EndBlockInst
 	EndDeclare
-	DeclareFunInst("int", "mydsp_faustpower2_i", "int", value)
+	DeclareFunInst("int", "mydsp_faustpower2_i", "int", value_i)
 		BlockInst 
-			RetInst(BinopInst("*", LoadVarInst(Address(value, kFunArgs)), LoadVarInst(Address(value, kFunArgs))))
+			RetInst(BinopInst("*", LoadVarInst(Address(value_i, kFunArgs)), LoadVarInst(Address(value_i, kFunArgs))))
 		EndBlockInst
 	EndDeclare
 EndBlockInst
@@ -136,14 +136,14 @@ BlockInst
 	DeclareVarInst("float", fmydspWave0[4], kStaticStruct|kConst, FloatArrayNumInst{0.1f,0.56f,1.3f,8.9f})
 	DeclareFunInst("float", "sqrtf", "float", dummy0)
 	DeclareFunInst("float", "powf", "float", dummy0, "float", dummy1)
-	DeclareFunInst("float", "mydsp_faustpower2_f", "float", value)
+	DeclareFunInst("float", "mydsp_faustpower2_f", "float", value_f)
 		BlockInst 
-			RetInst(BinopInst("*", LoadVarInst(Address(value, kFunArgs)), LoadVarInst(Address(value, kFunArgs))))
+			RetInst(BinopInst("*", LoadVarInst(Address(value_f, kFunArgs)), LoadVarInst(Address(value_f, kFunArgs))))
 		EndBlockInst
 	EndDeclare
-	DeclareFunInst("int", "mydsp_faustpower2_i", "int", value)
+	DeclareFunInst("int", "mydsp_faustpower2_i", "int", value_i)
 		BlockInst 
-			RetInst(BinopInst("*", LoadVarInst(Address(value, kFunArgs)), LoadVarInst(Address(value, kFunArgs))))
+			RetInst(BinopInst("*", LoadVarInst(Address(value_i, kFunArgs)), LoadVarInst(Address(value_i, kFunArgs))))
 		EndBlockInst
 	EndDeclare
 	DeclareVarInst("int", fmydspWave0_idx, kStruct)
@@ -225,3 +225,49 @@ Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 Field = fmydspWave0_idx size = 1 size_bytes = 4 read = 2 write = 1 ratio = 3
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            107
+  eval() cache hits:       34 (31.7757%)
+  eval() cache misses:     73
+  Loop detector calls:     73
+  Stack detector calls:    73
+
+--- Phase 3: Propagation ---
+  propagate() calls:       117
+  propagate() cache hits:  15 (12.8205%)
+  propagate() cache misses:102
+
+--- Box Type Computation ---
+  getBoxType() calls:      277
+  getBoxType() cache hits: 194 (70.0361%)
+  getBoxType() computed:   83
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       1
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           561
+  Trees reused (hash):     1263 (69.2434% reuse rate)
+  Property set ops:        376
+  Property get ops:        939
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

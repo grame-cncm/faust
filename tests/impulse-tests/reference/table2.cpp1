@@ -1,11 +1,23 @@
 //----------------------------------------------------------
 // name: "table2"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -20,27 +32,27 @@ class mydsp : public dsp {
 	class SIG0 {
 	  private:
 		int fSampleRate;
-		// Recursion delay iVeeec2 is of type kMonoDelay
-		// While its definition is of type kZeroDelay
-		int 	iVeeec2State; // Mono Delay
+		int 	iVeeec1State; // Single Delay
 	  public:
 		int getNumInputs() { return 0; }
 		int getNumOutputs() { return 1; }
 		void init(int sample_rate) {
 			fSampleRate = sample_rate;
-			iVeeec2State = 0;
+			iVeeec1State = 0;
 		}
 		void fill(int count, int output[]) {
-			int 	iVeeec2;
+			int 	iVeeec1[2];
 			int fullcount = count;
 			for (int index = 0; index < fullcount; index += 32) {
-				int count = min(32, fullcount-index);
-				iVeeec2 = iVeeec2State;
+				int count = faustmini(32, fullcount-index);
+				iVeeec1[1] = iVeeec1State;
 				for (int i=0; i<count; i++) {
-					iVeeec2 = (iVeeec2 + 1);
-					output[i] = iVeeec2;
+					iVeeec1[0] = faust_wrap_add(1, iVeeec1[1]);
+					output[i] = iVeeec1[0];
+					// post processing
+					iVeeec1[1] = iVeeec1[0];
 				}
-				iVeeec2State = iVeeec2;
+				iVeeec1State = iVeeec1[1];
 				output += 32;
 			}
 		}
@@ -50,27 +62,27 @@ class mydsp : public dsp {
 	class SIG1 {
 	  private:
 		int fSampleRate;
-		// Recursion delay fVeeec6 is of type kMonoDelay
-		// While its definition is of type kZeroDelay
-		float 	fVeeec6State; // Mono Delay
+		float 	fVeeec3State; // Single Delay
 	  public:
 		int getNumInputs() { return 0; }
 		int getNumOutputs() { return 1; }
 		void init(int sample_rate) {
 			fSampleRate = sample_rate;
-			fVeeec6State = 0;
+			fVeeec3State = 0;
 		}
 		void fill(int count, float output[]) {
-			float 	fVeeec6;
+			float 	fVeeec3[2];
 			int fullcount = count;
 			for (int index = 0; index < fullcount; index += 32) {
-				int count = min(32, fullcount-index);
-				fVeeec6 = fVeeec6State;
+				int count = faustmini(32, fullcount-index);
+				fVeeec3[1] = fVeeec3State;
 				for (int i=0; i<count; i++) {
-					fVeeec6 = (fVeeec6 + 0.1f);
-					output[i] = fVeeec6;
+					fVeeec3[0] = (0.1f + fVeeec3[1]);
+					output[i] = fVeeec3[0];
+					// post processing
+					fVeeec3[1] = fVeeec3[0];
 				}
-				fVeeec6State = fVeeec6;
+				fVeeec3State = fVeeec3[1];
 				output += 32;
 			}
 		}
@@ -92,7 +104,7 @@ class mydsp : public dsp {
 		void fill(int count, int output[]) {
 			int fullcount = count;
 			for (int index = 0; index < fullcount; index += 32) {
-				int count = min(32, fullcount-index);
+				int count = faustmini(32, fullcount-index);
 				for (int i=0; i<count; i++) {
 					output[i] = iWave1[idxiWave1];
 					// post processing
@@ -119,7 +131,7 @@ class mydsp : public dsp {
 		void fill(int count, float output[]) {
 			int fullcount = count;
 			for (int index = 0; index < fullcount; index += 32) {
-				int count = min(32, fullcount-index);
+				int count = faustmini(32, fullcount-index);
 				for (int i=0; i<count; i++) {
 					output[i] = fWave3[idxfWave3];
 					// post processing
@@ -131,13 +143,9 @@ class mydsp : public dsp {
 	};
 
 
-	// Recursion delay iVeeec0 is of type kMonoDelay
-	// While its definition is of type kZeroDelay
-	int 	iVeeec0State; // Mono Delay
+	int 	iVeeec0State; // Single Delay
 	int 	itbl0[10];
-	// Recursion delay fVeeec4 is of type kMonoDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec4State; // Mono Delay
+	float 	fVeeec2State; // Single Delay
 	float 	ftbl1[7];
 	static int 	iWave0[7];
 	int 	idxiWave0;
@@ -149,6 +157,7 @@ class mydsp : public dsp {
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "table2.dsp");
 		m->declare("name", "table2");
 	}
@@ -178,7 +187,7 @@ class mydsp : public dsp {
 	}
 	virtual void instanceClear() {
 		iVeeec0State = 0;
-		fVeeec4State = 0;
+		fVeeec2State = 0;
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -201,37 +210,36 @@ class mydsp : public dsp {
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		int 	iVeeec0;
-		float 	fVeeec4;
+		float 	fVeeec2;
 		int fullcount = count;
 		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
+			int count = faustmini(32, fullcount-index);
 			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
 			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
 			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
 			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			// schedule: ss=0 nodes=72 cycles=49 fill=36% peak=14 isoadj=14 packs4=2 aluMII=18 memMII=0 recMII=0 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
 			iVeeec0 = iVeeec0State;
-			fVeeec4 = fVeeec4State;
+			fVeeec2 = fVeeec2State;
 			for (int i=0; i<count; i++) {
-				iVeeec0 = (iVeeec0 + 1);
-				int 	iTemp0 = iVeeec0; // step: 7
-				itbl0[((iTemp0 + 1) % 10)] = (2 * iTemp0);
-				fVeeec4 = (fVeeec4 + 0.1f);
-				float 	fTemp1 = fVeeec4; // step: 26
-				ftbl1[int(fmodf((fTemp1 + 1.0f),7.0f))] = (1.24f * fTemp1);
-				int 	iTemp2 = iWave0[idxiWave0]; // step: 49
-				itbl2[((iTemp2 + 1) % 10)] = int((1.24f * float(iTemp2)));
-				float 	fTemp3 = fWave2[idxfWave2]; // step: 72
-				ftbl3[int(fmodf((fTemp3 + 1.0f),7.0f))] = (1.24f * fTemp3);
-				output0[i] = (FAUSTFLOAT)(itbl0[((iTemp0 + 2) % 10)]);  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(ftbl1[int(fmodf((fTemp1 + 2.0f),7.0f))]);  // Zone Exec Code
-				output2[i] = (FAUSTFLOAT)(itbl2[((iTemp2 + 2) % 10)]);  // Zone Exec Code
-				output3[i] = (FAUSTFLOAT)(ftbl3[int(fmodf((fTemp3 + 2.0f),7.0f))]);  // Zone Exec Code
+				iVeeec0 = faust_wrap_add(1, iVeeec0);
+				itbl0[faustmaxi(0, faustmini((faust_wrap_add(1, iVeeec0) % 10), 9))] = faust_wrap_mul(2, iVeeec0);
+				fVeeec2 = (0.1f + fVeeec2);
+				ftbl1[faustmaxi(0, faustmini(int(+fmodf((1.0f + fVeeec2),7.0f)), 6))] = (1.24f * fVeeec2);
+				int 	iTemp0 = iWave0[idxiWave0]; // step: 45
+				itbl2[faustmaxi(0, faustmini((faust_wrap_add(1, iTemp0) % 10), 9))] = int(+(1.24f * float(+iTemp0)));
+				float 	fTemp1 = fWave2[idxfWave2]; // step: 72
+				ftbl3[faustmaxi(0, faustmini(int(+fmodf((1.0f + fTemp1),7.0f)), 6))] = (1.24f * fTemp1);
+				output0[i] = (FAUSTFLOAT)(itbl0[faustmaxi(0, faustmini((faust_wrap_add(2, iVeeec0) % 10), 9))]);  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(ftbl1[faustmaxi(0, faustmini(int(+fmodf((2.0f + fVeeec2),7.0f)), 6))]);  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(itbl2[faustmaxi(0, faustmini((faust_wrap_add(2, iTemp0) % 10), 9))]);  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(ftbl3[faustmaxi(0, faustmini(int(+fmodf((2.0f + fTemp1),7.0f)), 6))]);  // Zone Exec Code
 				// post processing
 				idxfWave2 = (idxfWave2 + 1) % 7;
 				idxiWave0 = (idxiWave0 + 1) % 7;
 			}
 			iVeeec0State = iVeeec0;
-			fVeeec4State = fVeeec4;
+			fVeeec2State = fVeeec2;
 		}
 	}
 };

@@ -1,11 +1,23 @@
 //----------------------------------------------------------
 // name: "parseint"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -21,6 +33,7 @@ class mydsp : public dsp {
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "parseint.dsp");
 		m->declare("name", "parseint");
 	}
@@ -56,44 +69,42 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
-			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
-			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
-			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
-			FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
-			FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
-			FAUSTFLOAT* output8 = &output[8][index]; // Zone 3
-			FAUSTFLOAT* output9 = &output[9][index]; // Zone 3
-			FAUSTFLOAT* output10 = &output[10][index]; // Zone 3
-			FAUSTFLOAT* output11 = &output[11][index]; // Zone 3
-			FAUSTFLOAT* output12 = &output[12][index]; // Zone 3
-			FAUSTFLOAT* output13 = &output[13][index]; // Zone 3
-			FAUSTFLOAT* output14 = &output[14][index]; // Zone 3
-			FAUSTFLOAT* output15 = &output[15][index]; // Zone 3
-			for (int i=0; i<count; i++) {
-				output0[i] = (FAUSTFLOAT)(10);  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(-10);  // Zone Exec Code
-				output2[i] = (FAUSTFLOAT)(2147483647);  // Zone Exec Code
-				output3[i] = (FAUSTFLOAT)(-2147483647);  // Zone Exec Code
-				output4[i] = (FAUSTFLOAT)(-2147483648);  // Zone Exec Code
-				output5[i] = (FAUSTFLOAT)(-2147483648);  // Zone Exec Code
-				output6[i] = (FAUSTFLOAT)(-2147483647);  // Zone Exec Code
-				output7[i] = (FAUSTFLOAT)(2147483647);  // Zone Exec Code
-				output8[i] = (FAUSTFLOAT)(-1);  // Zone Exec Code
-				output9[i] = (FAUSTFLOAT)(1);  // Zone Exec Code
-				output10[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
-				output11[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
-				output12[i] = (FAUSTFLOAT)(1);  // Zone Exec Code
-				output13[i] = (FAUSTFLOAT)(-1);  // Zone Exec Code
-				output14[i] = (FAUSTFLOAT)(2);  // Zone Exec Code
-				output15[i] = (FAUSTFLOAT)(-2);  // Zone Exec Code
-			}
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+		FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+		FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+		FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+		FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+		FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+		FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
+		FAUSTFLOAT* output8 = &output[8][index]; // Zone 3
+		FAUSTFLOAT* output9 = &output[9][index]; // Zone 3
+		FAUSTFLOAT* output10 = &output[10][index]; // Zone 3
+		FAUSTFLOAT* output11 = &output[11][index]; // Zone 3
+		FAUSTFLOAT* output12 = &output[12][index]; // Zone 3
+		FAUSTFLOAT* output13 = &output[13][index]; // Zone 3
+		FAUSTFLOAT* output14 = &output[14][index]; // Zone 3
+		FAUSTFLOAT* output15 = &output[15][index]; // Zone 3
+		// schedule: ss=0 nodes=10 cycles=3 fill=83% peak=0 isoadj=9 packs4=2 aluMII=3 memMII=0 recMII=0 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		for (int i=0; i<count; i++) {
+			output0[i] = (FAUSTFLOAT)(10);  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(-10);  // Zone Exec Code
+			output2[i] = (FAUSTFLOAT)(2147483647);  // Zone Exec Code
+			output3[i] = (FAUSTFLOAT)(-2147483647);  // Zone Exec Code
+			output4[i] = (FAUSTFLOAT)(-2147483648);  // Zone Exec Code
+			output8[i] = (FAUSTFLOAT)(-1);  // Zone Exec Code
+			output9[i] = (FAUSTFLOAT)(1);  // Zone Exec Code
+			output10[i] = (FAUSTFLOAT)(0);  // Zone Exec Code
+			output14[i] = (FAUSTFLOAT)(2);  // Zone Exec Code
+			output15[i] = (FAUSTFLOAT)(-2);  // Zone Exec Code
 		}
+		for (int k=0; k<count; k++) output5[k] = output4[k];
+		for (int k=0; k<count; k++) output6[k] = output3[k];
+		for (int k=0; k<count; k++) output7[k] = output2[k];
+		for (int k=0; k<count; k++) output11[k] = output10[k];
+		for (int k=0; k<count; k++) output12[k] = output9[k];
+		for (int k=0; k<count; k++) output13[k] = output8[k];
 	}
 };
 
