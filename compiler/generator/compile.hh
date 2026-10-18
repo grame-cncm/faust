@@ -64,6 +64,11 @@ std::string nameDelayType(DelayType dt);
 /// seconds at 192000 Hz)"
 std::string certifiedDuration(double samples);
 
+/// The warnings of the certification (the duration a program is certified for, -fm),
+/// recorded with the other warnings (getWarningMessages) ; the command line prints them
+/// even without -wall
+bool isCertificationWarning(const std::string& warning);
+
 /// FAUST_CHECK_LIGHT_TYPES=1 : the attributes of the certified typing (nature,
 /// variability, computability, vectorability, booleanity) compared, signal by signal,
 /// with those of the exact attribute algebras alone (no interval) ; the differences are
