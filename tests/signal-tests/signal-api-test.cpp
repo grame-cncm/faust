@@ -1,6 +1,8 @@
 #include "faust/dsp/libfaust-signal.h"
 #include <iostream>
 #include <cstddef>
+#include <exception>
+#include <functional>
 
 #include "signal-api-references.inc"
 
@@ -42,6 +44,19 @@ int main()
     Signal bx  = nullptr;
     tvec   bt, br;
     ok = ok && isSigBpf(bpf, bx, bt, br) && bx == input && bt.size() == 2 && br.size() == 3 && br[1] == input;
+    // a malformed node is an error at construction : a Bpf with as many regions as
+    // thresholds, an IIR or a FIR without coefficient
+    auto refused = [](std::function<void()> build) {
+        try {
+            build();
+        } catch (std::exception&) {
+            return true;
+        }
+        return false;
+    };
+    ok = ok && refused([&] { sigBpf(input, {sigReal(0.0), sigReal(1.0)}, {sigReal(0.0), input}); })
+            && refused([&] { sigIIR({input}); }) && refused([&] { sigFIR({input}); })
+            && !refused([&] { sigIIR({input, sigReal(0.5)}); });
     // simplifyToNormalForm of one signal returns the list of that signal : its first
     // branch is the signal in normal form
     Signal sum2 = sigAdd(sum, sigInput(1));
@@ -54,6 +69,6 @@ int main()
         return 1;
     }
     std::cout << "C++ signal API: " << linked << " function signatures linked; "
-              << "constructors and predicates passed, nodes of the normal form included\n";
+              << "constructors and predicates passed, nodes of the normal form included, arity checked\n";
     return 0;
 }
