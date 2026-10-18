@@ -38,8 +38,8 @@ unsigned faust_alarm(unsigned seconds)
 
 using namespace std;
 
-// the duration a certificate of the interval analysis covers (generator/compile.cpp)
-std::string certifiedDuration(double samples);
+// the warnings of the certification, printed even without -wall (generator/compile.cpp)
+bool isCertificationWarning(const std::string& warning);
 
 // Standalone compiler uses the real 'alarm' function
 unsigned faust_alarm(unsigned seconds)
@@ -52,12 +52,11 @@ int main(int argc, const char* argv[])
     string            error_msg;
     dsp_factory_base* factory = createFactory("FaustDSP", "", argc, argv, error_msg, true);
 
-    // The validity certificates of the interval analysis, always : a program bounded
-    // only for a limited time says for how long
+    // The warnings of the certification, always : a program bounded only for a limited
+    // time says for how long, and -fm says what the certification does not cover
     if (factory) {
-        for (const auto& [reason, samples] : sigs::g.gCertifiedSamples) {
-            cerr << "WARNING : this program is certified for " << certifiedDuration(samples) << " ("
-                 << reason << ")" << endl;
+        for (const auto& it : factory->getWarningMessages()) {
+            if (isCertificationWarning(it)) cerr << it;
         }
     }
 
@@ -67,13 +66,15 @@ int main(int argc, const char* argv[])
         if (gAllWarning && warnings.size() > 0) {
             set<string> warnings_set;
             for (const auto& it : warnings) {
-                warnings_set.insert(it);
+                if (!isCertificationWarning(it)) warnings_set.insert(it);
             }
-            cerr << endl << "===== Warnings ======" << endl;
-            for (const auto& it : warnings_set) {
-                cerr << it;
+            if (!warnings_set.empty()) {
+                cerr << endl << "===== Warnings ======" << endl;
+                for (const auto& it : warnings_set) {
+                    cerr << it;
+                }
+                cerr << "=====================" << endl;
             }
-            cerr << "=====================" << endl;
         }
     }
     delete factory;
