@@ -368,13 +368,16 @@ class SignalPromotionAlgebra : public TransformAlgebra {
     {
         Type     tx = typeOf(x);
         Type     ty = typeOf(y);
-        interval i1 = tx->getInterval();
-        interval j1 = ty->getInterval();
-        if (i1.isValid() && j1.isValid() && gGlobal->gMathExceptions && j1.hasZero()) {
-            stringstream error;
-            error << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")"
-                  << endl;
-            gWarningMessages.push_back(error.str());
+        if (gGlobal->gMathExceptions) {
+            // the intervals are computed on demand : only for the warning
+            interval i1 = sigInterval(x.orig);
+            interval j1 = sigInterval(y.orig);
+            if (i1.isValid() && j1.isValid() && j1.hasZero()) {
+                stringstream error;
+                error << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")"
+                      << endl;
+                gWarningMessages.push_back(error.str());
+            }
         }
         // the result of a division is always a float
         Tree fx = smartFloatCast(tx, x.out);
@@ -602,13 +605,14 @@ class SignalPromotionAlgebra : public TransformAlgebra {
     }
     XSig shift(int op, const XSig& x, const XSig& y) const
     {
-        Type     ty = typeOf(y);
-        interval i1 = ty->getInterval();
-        if (i1.isValid() && gGlobal->gMathExceptions && i1.lo() < 0) {
-            stringstream error;
-            error << "WARNING : bit shift operation with negative argument (" << i1 << ")"
-                  << endl;
-            gWarningMessages.push_back(error.str());
+        if (gGlobal->gMathExceptions) {
+            interval i1 = sigInterval(y.orig);
+            if (i1.isValid() && i1.lo() < 0) {
+                stringstream error;
+                error << "WARNING : bit shift operation with negative argument (" << i1 << ")"
+                      << endl;
+                gWarningMessages.push_back(error.str());
+            }
         }
         return intArgs(op, x, y);
     }
@@ -712,8 +716,8 @@ class TablePromotionAlgebra final : public TransformAlgebra {
                 error << "ERROR : WRTbl size = " << size << " should be > 0 \n";
                 throw faustexception(error.str());
             }
-            interval wi_i = getCertifiedSigType(wi0)->getInterval();
             if (!boundedBy(wi0, 0, size - 1)) {
+                interval wi_i = gAllWarning ? sigInterval(wi0) : interval();
                 if (gAllWarning && (wi_i.lo() < 0 || wi_i.hi() >= size)) {
                     gWarningMessages.push_back(
                         guardWarning("WRTbl write index", wi_i, size, t.orig));
@@ -731,8 +735,8 @@ class TablePromotionAlgebra final : public TransformAlgebra {
             error << "ERROR : RDTbl size = " << size << " should be > 0 \n";
             throw faustexception(error.str());
         }
-        interval ri_i = typeOf(ri)->getInterval();
         if (!boundedBy(ri.orig, 0, size - 1)) {
+            interval ri_i = gAllWarning ? sigInterval(ri.orig) : interval();
             if (gAllWarning && (ri_i.lo() < 0 || ri_i.hi() >= size)) {
                 gWarningMessages.push_back(
                     guardWarning("RDTbl read index", ri_i, size, fBuild.RDTbl(t.orig, ri.orig)));
@@ -755,7 +759,7 @@ class TablePromotionAlgebra final : public TransformAlgebra {
         if (isSigInt(n.orig, &k)) {
             return o(fBuild.Delay(x.out, n.out));
         }
-        interval n_i = getCertifiedSigType(n.orig)->getInterval();
+        interval n_i = sigInterval(n.orig);
         int      lo  = std::max(0, int(n_i.lo()));
         int      hi  = int(n_i.hi());
         int      unmasked = gGlobal->gMaxCopyDelay;
@@ -786,7 +790,7 @@ class IntCastPromotionAlgebra final : public TransformAlgebra {
    public:
     XSig IntCast(const XSig& x) const override
     {
-        interval x_i = typeOf(x)->getInterval();
+        interval x_i = sigInterval(x.orig);
         if (x_i.lo() <= INT32_MIN || x_i.hi() >= INT32_MAX) {
             if (gAllWarning) {
                 stringstream error;

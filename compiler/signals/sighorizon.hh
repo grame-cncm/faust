@@ -92,7 +92,8 @@ class SIGS_API HorizonReader {
    public:
     /// exact : the exact attributes of the same root, when known (the nature of a value
     /// decides how a comparison restricts it) ; without them, the lsb decides
-    explicit HorizonReader(Tree L, const ExactSolvers* exact = nullptr);
+    /// lazy : solve only the recursive components a question reaches (see FixPointIterator)
+    explicit HorizonReader(Tree L, const ExactSolvers* exact = nullptr, bool lazy = false);
     ~HorizonReader();
     HorizonReader(const HorizonReader&)            = delete;
     HorizonReader& operator=(const HorizonReader&) = delete;

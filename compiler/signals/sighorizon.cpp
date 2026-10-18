@@ -1975,14 +1975,17 @@ struct HorizonReader::Impl {
     HorizonAlgebra           algebra;
     FixPointIterator<AffItv> it;
 
-    Impl(Tree L, const ExactSolvers* exact)
-        : plan(getRecPlan(L)), algebra(/*defaultParams*/ false), it(plan, algebra)
+    Impl(Tree L, const ExactSolvers* exact, bool lazy)
+        : plan(getRecPlan(L)), algebra(/*defaultParams*/ false), it(plan, algebra, lazy)
     {
         algebra.setExact(exact);
     }
 };
 
-HorizonReader::HorizonReader(Tree L, const ExactSolvers* exact) : fImpl(new Impl(L, exact)) {}
+HorizonReader::HorizonReader(Tree L, const ExactSolvers* exact, bool lazy)
+    : fImpl(new Impl(L, exact, lazy))
+{
+}
 
 HorizonReader::~HorizonReader()
 {

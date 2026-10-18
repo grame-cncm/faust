@@ -66,14 +66,20 @@ struct TypeSolver::Impl {
     HorizonReader                   fInterval;
     Signature                       fSignature;
     std::unordered_map<Tree, Type>  fTypes;
+    bool                            fDeferIntervals;
 
-    explicit Impl(Tree root)
-        : fExact(root), fInterval(root, &fExact), fSignature(sigs::signalSignature())
+    Impl(Tree root, bool deferIntervals)
+        : fExact(root),
+          fInterval(root, &fExact, deferIntervals),
+          fSignature(sigs::signalSignature()),
+          fDeferIntervals(deferIntervals)
     {
     }
 };
 
-TypeSolver::TypeSolver(Tree root) : fImpl(new Impl(root)) {}
+TypeSolver::TypeSolver(Tree root, bool deferIntervals) : fImpl(new Impl(root, deferIntervals))
+{
+}
 
 TypeSolver::~TypeSolver()
 {
@@ -96,9 +102,14 @@ Type TypeSolver::type(Tree sig)
     Type t = makeSimpleType(fImpl->fExact.nature(sig), fImpl->fExact.variability(sig),
                             fImpl->fExact.computability(sig),
                             fImpl->fExact.vectorability(sig), fImpl->fExact.booleanity(sig),
-                            fImpl->fInterval.at(sig));
+                            fImpl->fDeferIntervals ? deferredInterval() : fImpl->fInterval.at(sig));
     fImpl->fTypes[sig] = t;
     return t;
+}
+
+itv::interval TypeSolver::interval(Tree sig)
+{
+    return fImpl->fInterval.at(sig);
 }
 
 bool TypeSolver::isSignal(Tree t) const
