@@ -136,6 +136,16 @@ void checkLightTypes(Tree L)
     cerr << "light types : " << signals << " signals, " << differ << " differ" << endl;
 }
 
+static const char* kCertifiedWarning = "WARNING : this program is certified for ";
+static const char* kFastMathWarning =
+    "WARNING : -fm computes mathematical functions by approximations that the interval "
+    "analysis does not bound : the certification of this program does not cover them\n";
+
+bool isCertificationWarning(const std::string& warning)
+{
+    return warning.rfind(kCertifiedWarning, 0) == 0 || warning == kFastMathWarning;
+}
+
 void checkCertificates()
 {
     for (const auto& [reason, samples] : sigs::g.gCertifiedSamples) {
@@ -147,11 +157,15 @@ void checkCertificates()
             throw faustexception(error.str());
         }
     }
+    // a program bounded only for a limited time says for how long
+    for (const auto& [reason, samples] : sigs::g.gCertifiedSamples) {
+        std::stringstream warning;
+        warning << kCertifiedWarning << certifiedDuration(samples) << " (" << reason << ")" << endl;
+        gWarningMessages.push_back(warning.str());
+    }
     // -fm replaces mathematical functions by approximations that the intervals do not bound
     if (gGlobal->gFastMathLib != "") {
-        cerr << "WARNING : -fm computes mathematical functions by approximations that the interval "
-                "analysis does not bound : the certification of this program does not cover them"
-             << endl;
+        gWarningMessages.push_back(kFastMathWarning);
     }
 }
 
