@@ -629,6 +629,19 @@ static void scanForRecs(Tree t, std::unordered_set<Tree>& visited, std::vector<T
 // self-loop, hence again a singleton, which is the intended behaviour for x = f(x).
 RecPlan::RecPlan(Tree root)
 {
+    build(root, [](Tree t, bool, std::vector<Tree>& found) {
+        std::unordered_set<Tree> visited;
+        scanForRecs(t, visited, found);
+    });
+}
+
+RecPlan::RecPlan(Tree root, const std::function<void(Tree, bool, std::vector<Tree>&)>& scan)
+{
+    build(root, scan);
+}
+
+void RecPlan::build(Tree root, const std::function<void(Tree, bool, std::vector<Tree>&)>& scan)
+{
     std::vector<Tree>              work;
     std::unordered_set<Tree>       known;
     std::unordered_map<Tree, int>  rank;  // structural discovery rank, value-canonical
@@ -642,9 +655,8 @@ RecPlan::RecPlan(Tree root)
     };
 
     {
-        std::unordered_set<Tree> visited;
-        std::vector<Tree>        found;
-        scanForRecs(root, visited, found);
+        std::vector<Tree> found;
+        scan(root, false, found);
         for (Tree r : found) {
             note(r);
         }
@@ -657,9 +669,8 @@ RecPlan::RecPlan(Tree root)
         if (!(isSymbolicRec(r, var, body) && body)) {
             continue;  // free reference: reported by the conversion itself
         }
-        std::unordered_set<Tree> visited;
-        std::vector<Tree>        found;
-        scanForRecs(body, visited, found);
+        std::vector<Tree> found;
+        scan(body, true, found);
         std::unordered_set<Tree> dedup;
         for (Tree s2 : found) {
             if (dedup.insert(s2).second) {
