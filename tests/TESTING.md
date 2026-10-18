@@ -276,8 +276,10 @@ reassociation under `-ffast-math`, the libm) — and a conversion to an
 integer turns one ulp into a whole unit of the index. Hence the rule:
 **a memory-safety decision never relies on a bound computed from floats**;
 it relies on exact integer arithmetic or on a test at run time. Control
-values are a second door: nothing clamps them to their declared range
-unless `-rui` is given, so a host can write any value, NaN included.
+values are a second door: by default (`-rui`) sliders and numerical
+entries are clamped to their declared range once per block, and buttons
+and checkboxes read as 0 or 1; under `-norui` nothing clamps them, so a
+host can write any value, NaN included.
 
 **Leg 1 — the impulse suite under sanitizers.**
 
@@ -676,6 +678,3 @@ does not protect it.
 - A "hostile controls" leg for Gate 4: control values outside their
   ranges, NaN and infinities injected by the driver under
   AddressSanitizer — what the impulse driver avoids by construction.
-- Whether `-rui` (control values clamped to their declared range at the
-  start of `compute`, once per block) becomes the default: its cost was
-  measured nil on the ten most expensive examples (2026-10-08).
