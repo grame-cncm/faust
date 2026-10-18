@@ -181,7 +181,6 @@ global::global()
     TABBER = Tabber(1);
     gSignalTable.clear();
     gSignalTrace.clear();
-    sigs::g.gCertifiedSamples.clear();
 
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     reset();
@@ -409,6 +408,9 @@ void global::reset()
 {
     gAllWarning = false;
     gWarningMessages.clear();
+    // the validity certificates of the previous compilation (the signal library state
+    // lives across the calls of the Box/Signal API)
+    sigs::g.gCertifiedSamples.clear();
 
     gResult          = nullptr;
     gExpandedDefList = nullptr;
