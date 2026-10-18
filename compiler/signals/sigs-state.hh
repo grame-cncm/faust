@@ -46,15 +46,16 @@ class AudioType;
 typedef P<AudioType> Type;
 
 /**
- * The key of a simple type in the table of the memoized types : its attributes, the
- * bounds of its interval compared bit for bit. A plain value : coding a type creates
- * no tree, so the typing leaves the trees of the program, and their creation order,
- * untouched.
+ * The key of a simple type in the table of the memoized types : all its attributes,
+ * the bounds of its interval compared bit for bit, its grid and its possible
+ * invalidity. A plain value : coding a type creates no tree, so the typing leaves the
+ * trees of the program, and their creation order, untouched.
  */
 struct SimpleTypeKey {
     int           nature, variability, computability, vectorability, boolean;
-    bool          valid;
     std::uint64_t lo, hi;  ///< the bit patterns of the bounds
+    int           lsb;
+    bool          mayBeInvalid;
     bool          resValid;
     int           resIndex;
 
@@ -62,8 +63,9 @@ struct SimpleTypeKey {
     {
         return nature == k.nature && variability == k.variability &&
                computability == k.computability && vectorability == k.vectorability &&
-               boolean == k.boolean && valid == k.valid && lo == k.lo && hi == k.hi &&
-               resValid == k.resValid && resIndex == k.resIndex;
+               boolean == k.boolean && lo == k.lo && hi == k.hi && lsb == k.lsb &&
+               mayBeInvalid == k.mayBeInvalid && resValid == k.resValid &&
+               resIndex == k.resIndex;
     }
 };
 
@@ -80,9 +82,10 @@ struct SimpleTypeKeyHash {
         mix(std::uint64_t(k.computability));
         mix(std::uint64_t(k.vectorability));
         mix(std::uint64_t(k.boolean));
-        mix(std::uint64_t(k.valid));
         mix(k.lo);
         mix(k.hi);
+        mix(std::uint64_t(std::uint32_t(k.lsb)));
+        mix(std::uint64_t(k.mayBeInvalid));
         mix(std::uint64_t(k.resValid));
         mix(std::uint64_t(std::uint32_t(k.resIndex)));
         return std::size_t(h);
