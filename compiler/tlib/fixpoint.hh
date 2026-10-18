@@ -36,6 +36,7 @@
 #include <cstddef>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "list.hh"
@@ -130,6 +131,14 @@ class FixPointIterator : public FixPointEvaluator<V> {
     bool fSolved     = false;
     int  fCurrentScc = -1;  ///< component being solved ; -1 outside solveComponent
 
+    // On demand (lazy) : a value solves only the components its signal reaches, the
+    // definitions read as they were when the iterator was built -- a pass may redefine
+    // a recursive node afterwards, while its old signals are still being asked about.
+    bool                           fLazy = false;
+    std::unordered_map<Tree, Tree> fBodies;    ///< definitions at construction (lazy only)
+    std::vector<char>              fReached;   ///< per component : met by a query (lazy)
+    std::unordered_set<Tree>       fExplored;  ///< subtrees already walked by a query (lazy)
+
     std::unordered_map<Tree, Row> fCurrentApprox;  ///< frozen snapshot of the current cycle
     std::unordered_map<Tree, Row> fSettledVars;    ///< converged components, permanent
 
@@ -141,22 +150,40 @@ class FixPointIterator : public FixPointEvaluator<V> {
     std::unordered_map<Tree, int> fMaxScc;     ///< memo of maxSccReached
 
    public:
-    FixPointIterator(const RecPlan& plan, const FixPointDomain<V>& domain)
-        : fPlan(plan), fDomain(domain)
+    FixPointIterator(const RecPlan& plan, const FixPointDomain<V>& domain, bool lazy = false)
+        : fPlan(plan), fDomain(domain), fLazy(lazy)
     {
+        if (fLazy) {
+            const std::vector<std::vector<Tree>>& comps = fPlan.components();
+            fReached.assign(comps.size(), 0);
+            for (const std::vector<Tree>& members : comps) {
+                for (Tree x : members) {
+                    Tree id, body;
+                    if (isRec(x, id, body) && body) fBodies[x] = body;
+                }
+            }
+        }
     }
 
     /// Attribute of an ordinary signal (any component it reaches is solved first).
     V value(Tree sig)
     {
-        solveAll();
+        if (fLazy) {
+            require(sig, -1);
+        } else {
+            solveAll();
+        }
         return eval(sig);
     }
 
     /// Attribute of ONE recursive variable : one V per branch of its body.
     const std::vector<V>& variableValue(Tree recNode)
     {
-        solveAll();
+        if (fLazy) {
+            require(nullptr, fPlan.sccOf(recNode));
+        } else {
+            solveAll();
+        }
         return fSettledVars.at(recNode);
     }
 
@@ -172,6 +199,42 @@ class FixPointIterator : public FixPointEvaluator<V> {
         for (int c = 0; c < static_cast<int>(comps.size()); ++c) {
             probeComponent(c);    // descending probe first : certificate + thresholds
             solveComponent(c);    // then the real ascending pass, guided by the probe
+        }
+    }
+
+    // Lazy regime : solve the components reached from sig (and from component c when
+    // c >= 0), in plan order. Reaching a component walks its definitions, so every
+    // component it depends on is reached too ; plan order then solves them first. A
+    // component depends only on lower ones, so its value does not depend on which
+    // other components were solved before : the values are those of solveAll.
+    void require(Tree sig, int c)
+    {
+        std::vector<Tree> work;
+        std::vector<int>  fresh;
+        auto reach = [&](int k) {
+            if (k < 0 || fReached[k]) return;
+            fReached[k] = 1;
+            fresh.push_back(k);
+            for (Tree x : fPlan.components()[k]) work.push_back(bodyOf(x));
+        };
+        if (sig) work.push_back(sig);
+        reach(c);
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            if (t->isRecFree() || !fExplored.insert(t).second) continue;
+            int  i;
+            Tree group;
+            if (isProj(t, i, group)) {
+                reach(fPlan.sccOf(group));
+                continue;
+            }
+            for (int j = 0; j < t->arity(); ++j) work.push_back(t->branch(j));
+        }
+        std::sort(fresh.begin(), fresh.end());
+        for (int k : fresh) {
+            probeComponent(k);
+            solveComponent(k);
         }
     }
 
@@ -258,6 +321,10 @@ class FixPointIterator : public FixPointEvaluator<V> {
     // Body list of a component member, with the signals-form check.
     Tree bodyOf(Tree var) const
     {
+        if (fLazy) {
+            auto it = fBodies.find(var);
+            if (it != fBodies.end()) return it->second;
+        }
         Tree id, body;
         if (!isRec(var, id, body) || !body) {
             tlib::error("ASSERT : component member without a body in fixpoint (free reference?)\n");
