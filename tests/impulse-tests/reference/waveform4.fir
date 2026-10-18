@@ -210,7 +210,7 @@ ForLoopInst
 	BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 	StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 	BlockInst 
-		StoreVarInst(Address(iRec0, kStruct)[Int32(0)], BinopInst("%", BinopInst("+", LoadVarInst(Address(iRec0, kStruct)[Int32(1)]), Int32(3)), Int32(7)))
+		StoreVarInst(Address(iRec0, kStruct)[Int32(0)], BinopInst("%", BinopInst("+", Int32(3), LoadVarInst(Address(iRec0, kStruct)[Int32(1)])), Int32(7)))
 		DeclareVarInst("int", iTemp0, kStack, FunCallInst("max_i", Int32(0), FunCallInst("min_i", LoadVarInst(Address(iRec0, kStruct)[Int32(0)]), Int32(6))))
 		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[LoadVarInst(Address(iTemp0, kStack))])))
 		StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(ftbl1mydspSIG1, kStaticStruct)[LoadVarInst(Address(iTemp0, kStack))])))
@@ -307,7 +307,7 @@ BlockInst
 		BinopInst("<", LoadVarInst(Address(i0, kLoop)), LoadVarInst(Address(count, kFunArgs)))
 		StoreVarInst(Address(i0, kLoop), BinopInst("+", LoadVarInst(Address(i0, kLoop)), Int32(1)))
 		BlockInst 
-			StoreVarInst(Address(iRec0, kStruct)[Int32(0)], BinopInst("%", BinopInst("+", LoadVarInst(Address(iRec0, kStruct)[Int32(1)]), Int32(3)), Int32(7)))
+			StoreVarInst(Address(iRec0, kStruct)[Int32(0)], BinopInst("%", BinopInst("+", Int32(3), LoadVarInst(Address(iRec0, kStruct)[Int32(1)])), Int32(7)))
 			DeclareVarInst("int", iTemp0, kStack, FunCallInst("max_i", Int32(0), FunCallInst("min_i", LoadVarInst(Address(iRec0, kStruct)[Int32(0)]), Int32(6))))
 			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[LoadVarInst(Address(iTemp0, kStack))])))
 			StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(ftbl1mydspSIG1, kStaticStruct)[LoadVarInst(Address(iTemp0, kStack))])))
@@ -341,3 +341,49 @@ Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 Field = iRec0 size = 2 size_bytes = 8 read = 3 write = 2 ratio = 2.5
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            19
+  eval() cache hits:       2 (10.5263%)
+  eval() cache misses:     17
+  Loop detector calls:     17
+  Stack detector calls:    17
+
+--- Phase 3: Propagation ---
+  propagate() calls:       21
+  propagate() cache hits:  1 (4.7619%)
+  propagate() cache misses:20
+
+--- Box Type Computation ---
+  getBoxType() calls:      45
+  getBoxType() cache hits: 27 (60%)
+  getBoxType() computed:   18
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       1
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           396
+  Trees reused (hash):     803 (66.9725% reuse rate)
+  Property set ops:        205
+  Property get ops:        661
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

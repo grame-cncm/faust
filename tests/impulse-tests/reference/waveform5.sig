@@ -1,11 +1,3 @@
-// Size = 9
-ID_0 = sigGen(waveform{...});
-ID_1 = WRTbl2p(5,ID_0);
-ID_2 = hslider("value",0.0f,0.0f,1.0f,0.01f);
-ID_3 = 4.0f*ID_2;
-ID_4 = int(ID_3);
-ID_5 = sigRDTbl(ID_1,ID_4);
-ID_6 = float(ID_5);
-ID_7 = sin(ID_6);
-ID_8 = IN[0]*ID_7;
-SIG = (ID_8, ID_5);
+// int block [10, 50] lsb 0
+E0 = sigRDTbl(WRTbl2p(5, sigGen(waveform{...})), max(0, min(int(4.0f*max(0.0f, min(1.0f, hslider("value",0.0f,0.0f,1.0f,0.01f)))), 4)));
+process = (IN[0]*sin(float(E0)), E0);  // real samp [-inf, inf] invalid ; int block [10, 50] lsb 0

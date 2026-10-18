@@ -5,11 +5,23 @@
 // name: "osc"
 // version: "1.0"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -24,27 +36,27 @@ class mydsp : public dsp {
 	class SIG0 {
 	  private:
 		int fSampleRate;
-		// Recursion delay iVeeec4 is of type kMonoDelay
-		// While its definition is of type kZeroDelay
-		int 	iVeeec4State; // Mono Delay
+		int 	iVeeec3State; // Single Delay
 	  public:
 		int getNumInputs() { return 0; }
 		int getNumOutputs() { return 1; }
 		void init(int sample_rate) {
 			fSampleRate = sample_rate;
-			iVeeec4State = 0;
+			iVeeec3State = 0;
 		}
 		void fill(int count, float output[]) {
-			int 	iVeeec4;
+			int 	iVeeec3[2];
 			int fullcount = count;
 			for (int index = 0; index < fullcount; index += 32) {
-				int count = min(32, fullcount-index);
-				iVeeec4 = iVeeec4State;
+				int count = faustmini(32, fullcount-index);
+				iVeeec3[1] = iVeeec3State;
 				for (int i=0; i<count; i++) {
-					iVeeec4 = (iVeeec4 + 1);
-					output[i] = sinf((9.58738e-05f * float((iVeeec4 + -1))));
+					iVeeec3[0] = faust_wrap_add(1, iVeeec3[1]);
+					output[i] = sinf((9.58738e-05f * float(+faust_wrap_add(-1, iVeeec3[0]))));
+					// post processing
+					iVeeec3[1] = iVeeec3[0];
 				}
-				iVeeec4State = iVeeec4;
+				iVeeec3State = iVeeec3[1];
 				output += 32;
 			}
 		}
@@ -52,20 +64,19 @@ class mydsp : public dsp {
 
 
 	FAUSTFLOAT 	fslider0;
-	// Recursion delay fVeeec0 is of type kMonoDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec0State; // Mono Delay
+	float 	fVeeec0State; // Single Delay
 	FAUSTFLOAT 	fslider1;
-	float 	fConst0; // step: 24
-	// Recursion delay fVeeec2 is of type kSingleDelay
+	float 	fConst0; // step: 31
+	// Recursion delay fVeeec1 is of type kMonoDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec2State; // Single Delay
+	float 	fVeeec1State; // Mono Delay
 	static float 	ftbl0[65536];
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
 		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2009");
 		m->declare("filename", "osc.dsp");
 		m->declare("license", "BSD");
@@ -93,7 +104,7 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = (1.0f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 24
+		fConst0 = (1.0f / fminf(1.92e+05f, fmaxf(5e+01f, float(+fSampleRate)))); // step: 31
 	}
 	virtual void instanceResetUserInterface() {
 		fslider0 = 0.0f;
@@ -101,7 +112,7 @@ class mydsp : public dsp {
 	}
 	virtual void instanceClear() {
 		fVeeec0State = 0;
-		fVeeec2State = 0;
+		fVeeec1State = 0;
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -127,27 +138,23 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = (0.001f * powf(1e+01f,(0.05f * float(fslider0)))); // step: 12
+		float 	fSlow0 = powf(1e+01f,(0.05f * fmaxf(-96.0f, fminf(0.0f, float(fslider0))))); // step: 10
 		float 	fVeeec0;
-		float 	fSlow1 = (fConst0 * float(fslider1)); // step: 25
-		float 	fVeeec2[2];
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			fVeeec0 = fVeeec0State;
-			fVeeec2[1] = fVeeec2State;
-			for (int i=0; i<count; i++) {
-				fVeeec0 = (fSlow0 + (0.999f * fVeeec0));
-				float 	fTemp0 = fVeeec2[1]; // step: 26
-				fVeeec2[0] = (fSlow1 + (fTemp0 - floorf((fSlow1 + fTemp0))));
-				output0[i] = (FAUSTFLOAT)((fVeeec0 * ftbl0[max(0, min(int((65536.0f * fVeeec2[0])), 65535))]));  // Zone Exec Code
-				// post processing
-				fVeeec2[1] = fVeeec2[0];
-			}
-			fVeeec0State = fVeeec0;
-			fVeeec2State = fVeeec2[1];
+		float 	fSlow1 = (fConst0 * fmaxf(2e+01f, fminf(2.4e+04f, float(fslider1)))); // step: 32
+		float 	fVeeec1;
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		// schedule: ss=0 nodes=42 cycles=28 fill=37% peak=10 isoadj=8 packs4=1 aluMII=11 memMII=1 recMII=10 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		fVeeec0 = fVeeec0State;
+		fVeeec1 = fVeeec1State;
+		for (int i=0; i<count; i++) {
+			fVeeec0 = (fSlow0 + (0.999f * fVeeec0));
+			float 	fTemp0 = (fSlow1 + fVeeec1); // step: 34
+			fVeeec1 = (fTemp0 - floorf(fTemp0));
+			output0[i] = (FAUSTFLOAT)((ftbl0[faustmaxi(0, faustmini(int(+(65536.0f * fVeeec1)), 65535))] * (0.001f * fVeeec0)));  // Zone Exec Code
 		}
+		fVeeec0State = fVeeec0;
+		fVeeec1State = fVeeec1;
 	}
 };
 

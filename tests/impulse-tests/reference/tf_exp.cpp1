@@ -1,11 +1,23 @@
 //----------------------------------------------------------
 // name: "tf_exp"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -17,63 +29,76 @@
 
 class mydsp : public dsp {
   private:
-	float 	fConst0; // step: 9
-	float 	fConst1; // step: 11
-	float 	fConst2; // step: 12
-	float 	fConst3; // step: 13
-	float 	fConst4; // step: 16
-	float 	fConst5; // step: 22
-	float 	fConst6; // step: 23
-	float 	fConst7; // step: 24
+	float 	fConst0; // step: 7
+	float 	fConst1; // step: 10
+	float 	fConst2; // step: 11
+	float 	fConst3; // step: 12
+	float 	fConst4; // step: 14
+	float 	fConst5; // step: 15
+	float 	fConst6; // step: 17
+	float 	fConst7; // step: 18
+	float 	fConst8; // step: 21
+	float 	fConst9; // step: 22
+	float 	fConst10; // step: 23
+	float 	fConst11; // step: 24
 	int 	iVec0State; // Single Delay
 	float 	fVec1State; // Single Delay
-	float 	fConst8; // step: 36
-	// Recursion delay fVeeec2 is of type kMonoDelay
+	float 	fConst12; // step: 31
+	float 	fConst13; // step: 33
+	float 	fConst14; // step: 34
+	float 	fVeeec3State; // Single Delay
+	float 	fConst15; // step: 37
+	float 	fConst16; // step: 38
+	float 	fConst17; // step: 41
+	float 	fConst18; // step: 42
+	float 	fConst19; // step: 44
+	float 	fConst20; // step: 45
+	float 	fConst21; // step: 47
+	float 	fConst22; // step: 48
+	float 	fVeeec4State[2]; // Copy Delay
+	float 	fVec2State[2]; // Copy Delay
+	float 	fConst23; // step: 51
+	float 	fConst24; // step: 52
+	float 	fVeeec6State; // Single Delay
+	float 	fVeeec10State; // Single Delay
+	float 	fConst25; // step: 58
+	float 	fConst26; // step: 59
+	float 	fConst27; // step: 62
+	float 	fConst28; // step: 63
+	float 	fConst29; // step: 65
+	float 	fConst30; // step: 66
+	float 	fConst31; // step: 68
+	float 	fConst32; // step: 69
+	float 	fVeeec11State[2]; // Copy Delay
+	float 	fVec4State[2]; // Copy Delay
+	float 	fConst33; // step: 72
+	float 	fConst34; // step: 73
+	float 	fConst35; // step: 75
+	float 	fConst36; // step: 76
+	float 	fConst37; // step: 77
+	float 	fVeeec16State; // Single Delay
+	float 	fVeeec17State[2]; // Copy Delay
+	float 	fVeeec19State[2]; // Copy Delay
+	float 	fConst38; // step: 83
+	float 	fConst39; // step: 89
+	float 	fVeeec26State; // Single Delay
+	float 	fVeeec27State[2]; // Copy Delay
+	float 	fVeeec29State[2]; // Copy Delay
+	float 	fConst40; // step: 96
+	float 	fConst41; // step: 97
+	float 	fConst42; // step: 101
+	float 	fConst43; // step: 102
+	float 	fConst44; // step: 103
+	// Recursion delay fVeeec22 is of type kCopyDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec2State; // Mono Delay
-	float 	fConst9; // step: 44
-	float 	fConst10; // step: 45
-	float 	fConst11; // step: 49
-	float 	fConst12; // step: 53
-	float 	fConst13; // step: 56
-	// Recursion delay fVeeec1 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec1State[2]; // Copy Delay
-	float 	fConst14; // step: 67
-	float 	fConst15; // step: 69
-	float 	fConst16; // step: 71
-	float 	fConst17; // step: 75
-	float 	fConst18; // step: 77
-	// Recursion delay fVeeec0 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec0State[2]; // Copy Delay
-	float 	fConst19; // step: 91
-	float 	fConst20; // step: 93
-	// Recursion delay fVeeec13 is of type kMonoDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec13State; // Mono Delay
-	// Recursion delay fVeeec12 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec12State[2]; // Copy Delay
-	float 	fVec2State; // Single Delay
-	// Recursion delay fVeeec11 is of type kMonoDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec11State; // Mono Delay
-	float 	fConst21; // step: 126
-	// Recursion delay fVeeec10 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec10State[2]; // Copy Delay
-	float 	fConst22; // step: 143
-	// Recursion delay fVeeec22 is of type kMonoDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec22State; // Mono Delay
-	// Recursion delay fVeeec21 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec21State[2]; // Copy Delay
+	float 	fVeeec22State[2]; // Copy Delay
+	float 	fConst45; // step: 110
+	float 	fConst46; // step: 111
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "tf_exp.dsp");
 		m->declare("name", "tf_exp");
 	}
@@ -84,45 +109,73 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = min(1.92e+05f, max(1.0f, float(fSampleRate))); // step: 9
-		fConst1 = tanf((1776.5707f / fConst0)); // step: 11
-		fConst2 = (1.0f / fConst1); // step: 12
-		fConst3 = (fConst2 + 1.0f); // step: 13
-		fConst4 = (1.0f / ((fConst3 / fConst1) + 1.0f)); // step: 16
-		fConst5 = tanf((3553.1414f / fConst0)); // step: 22
-		fConst6 = (1.0f / fConst5); // step: 23
-		fConst7 = (1.0f - fConst6); // step: 24
-		fConst8 = (1.0f / (fConst6 + 1.0f)); // step: 36
-		fConst9 = (((fConst6 + 1.0f) / fConst5) + 1.0f); // step: 44
-		fConst10 = (1.0f / fConst9); // step: 45
-		fConst11 = (((fConst6 + -1.0f) / fConst5) + 1.0f); // step: 49
-		fConst12 = powf(fConst5,2.0f); // step: 53
-		fConst13 = (2.0f * (1.0f - (1.0f / fConst12))); // step: 56
-		fConst14 = (1.0f / (fConst12 * fConst9)); // step: 67
-		fConst15 = (1.0f - fConst2); // step: 69
-		fConst16 = (1.0f - (fConst15 / fConst1)); // step: 71
-		fConst17 = (1.0f / powf(fConst1,2.0f)); // step: 75
-		fConst18 = (2.0f * (1.0f - fConst17)); // step: 77
-		fConst19 = (1.0f / (((fConst2 + 1.0f) / fConst1) + 1.0f)); // step: 91
-		fConst20 = (1.0f / fConst3); // step: 93
-		fConst21 = (((fConst2 + -1.0f) / fConst1) + 1.0f); // step: 126
-		fConst22 = (1.0f / (fConst1 * fConst9)); // step: 143
+		fConst0 = fminf(1.92e+05f, fmaxf(5e+01f, float(+fSampleRate))); // step: 7
+		fConst1 = tanf((1776.5707f / fConst0)); // step: 10
+		fConst2 = (1.0f / fConst1); // step: 11
+		fConst3 = (1.0f + fConst2); // step: 12
+		fConst4 = (1.0f / (fConst1 * fConst3)); // step: 14
+		fConst5 = -fConst2; // step: 15
+		fConst6 = ((1.0f - fConst2) / fConst3); // step: 17
+		fConst7 = -fConst6; // step: 18
+		fConst8 = tanf((3553.1414f / fConst0)); // step: 21
+		fConst9 = (1.0f / fConst8); // step: 22
+		fConst10 = (1.0f + fConst9); // step: 23
+		fConst11 = (1.0f / fConst10); // step: 24
+		fConst12 = -fConst9; // step: 31
+		fConst13 = ((1.0f - fConst9) / fConst10); // step: 33
+		fConst14 = -fConst13; // step: 34
+		fConst15 = powf(fConst8,2.0f); // step: 37
+		fConst16 = (1.0f / fConst15); // step: 38
+		fConst17 = (1.0f + fConst16); // step: 41
+		fConst18 = (fConst9 + fConst17); // step: 42
+		fConst19 = (2.0f * ((1.0f - fConst16) / fConst18)); // step: 44
+		fConst20 = -fConst19; // step: 45
+		fConst21 = ((fConst17 - fConst9) / fConst18); // step: 47
+		fConst22 = -fConst21; // step: 48
+		fConst23 = (1.0f / fConst18); // step: 51
+		fConst24 = (2.0f / fConst18); // step: 52
+		fConst25 = powf(fConst1,2.0f); // step: 58
+		fConst26 = (1.0f / fConst25); // step: 59
+		fConst27 = (1.0f + fConst26); // step: 62
+		fConst28 = (fConst2 + fConst27); // step: 63
+		fConst29 = (2.0f * ((1.0f - fConst26) / fConst28)); // step: 65
+		fConst30 = -fConst29; // step: 66
+		fConst31 = ((fConst27 - fConst2) / fConst28); // step: 68
+		fConst32 = -fConst31; // step: 69
+		fConst33 = (fConst25 * fConst28); // step: 72
+		fConst34 = (1.0f / fConst33); // step: 73
+		fConst35 = -(2.0f / fConst33); // step: 75
+		fConst36 = (2.0f / fConst33); // step: 76
+		fConst37 = (1.0f / fConst3); // step: 77
+		fConst38 = (1.0f / fConst28); // step: 83
+		fConst39 = (1.0f / (fConst8 * fConst10)); // step: 89
+		fConst40 = (fConst15 * fConst18); // step: 96
+		fConst41 = (1.0f / fConst40); // step: 97
+		fConst42 = (fConst25 / fConst40); // step: 101
+		fConst43 = (2.0f * fConst42); // step: 102
+		fConst44 = (2.0f / fConst28); // step: 103
+		fConst45 = (fConst25 / fConst28); // step: 110
+		fConst46 = (2.0f * fConst45); // step: 111
 	}
 	virtual void instanceResetUserInterface() {
 	}
 	virtual void instanceClear() {
 		iVec0State = 0;
 		fVec1State = 0;
-		fVeeec2State = 0;
-		for (int j = 0; j < 2; j++) { fVeeec1State[j] = 0; }
-		for (int j = 0; j < 2; j++) { fVeeec0State[j] = 0; }
-		fVeeec13State = 0;
-		for (int j = 0; j < 2; j++) { fVeeec12State[j] = 0; }
-		fVec2State = 0;
-		fVeeec11State = 0;
-		for (int j = 0; j < 2; j++) { fVeeec10State[j] = 0; }
-		fVeeec22State = 0;
-		for (int j = 0; j < 2; j++) { fVeeec21State[j] = 0; }
+		fVeeec3State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec4State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVec2State[j] = 0; }
+		fVeeec6State = 0;
+		fVeeec10State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec11State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVec4State[j] = 0; }
+		fVeeec16State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec17State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec19State[j] = 0; }
+		fVeeec26State = 0;
+		for (int j = 0; j < 2; j++) { fVeeec27State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec29State[j] = 0; }
+		for (int j = 0; j < 2; j++) { fVeeec22State[j] = 0; }
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -146,98 +199,121 @@ class mydsp : public dsp {
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		int 	iVec0[2];
 		float 	fVec1[2];
-		float 	fVeeec2;
-		float 	fVeeec1[3];
-		float 	fVeeec0[3];
-		float 	fVeeec13;
-		float 	fVeeec12[3];
-		float 	fVec2[2];
-		float 	fVeeec11;
-		float 	fVeeec10[3];
-		float 	fVeeec22;
-		float 	fVeeec21[3];
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			iVec0[1] = iVec0State;
-			fVec1[1] = fVec1State;
-			fVeeec2 = fVeeec2State;
-			fVeeec1[1] = fVeeec1State[0];
-			fVeeec1[2] = fVeeec1State[1];
-			fVeeec0[1] = fVeeec0State[0];
-			fVeeec0[2] = fVeeec0State[1];
-			fVeeec13 = fVeeec13State;
-			fVeeec12[1] = fVeeec12State[0];
-			fVeeec12[2] = fVeeec12State[1];
-			fVec2[1] = fVec2State;
-			fVeeec11 = fVeeec11State;
-			fVeeec10[1] = fVeeec10State[0];
-			fVeeec10[2] = fVeeec10State[1];
-			fVeeec22 = fVeeec22State;
-			fVeeec21[1] = fVeeec21State[0];
-			fVeeec21[2] = fVeeec21State[1];
-			for (int i=0; i<count; i++) {
-				float 	fTemp0 = fVeeec0[2]; // step: 2
-				float 	fTemp1 = fVeeec1[2]; // step: 18
-				iVec0[0] = 1;
-				float 	fTemp2 = float((1 - iVec0[1])); // step: 30
-				fVec1[0] = fTemp2;
-				float 	fTemp3 = fVec1[1]; // step: 31
-				fVeeec2 = -(fConst8 * ((fConst7 * fVeeec2) - (fConst6 * (fVec1[0] - fTemp3))));
-				float 	fTemp4 = fVeeec1[1]; // step: 51
-				fVeeec1[0] = (fVeeec2 - (fConst10 * ((fConst11 * fTemp1) + (fConst13 * fTemp4))));
-				float 	fTemp5 = (fConst18 * fVeeec0[1]); // step: 78
-				fVeeec0[0] = ((fConst14 * (fTemp1 + (fVeeec1[0] - (2.0f * fTemp4)))) - (fConst4 * ((fConst16 * fTemp0) + fTemp5)));
-				float 	fTemp6 = fVeeec10[2]; // step: 92
-				float 	fTemp7 = fVeeec12[2]; // step: 96
-				fVeeec13 = -(fConst8 * ((fConst7 * fVeeec13) - (fVec1[0] + fTemp3)));
-				float 	fTemp8 = fVeeec12[1]; // step: 106
-				fVeeec12[0] = (fVeeec13 - (fConst10 * ((fConst11 * fTemp7) + (fConst13 * fTemp8))));
-				float 	fTemp9 = (fTemp7 + (fVeeec12[0] + (2.0f * fTemp8))); // step: 115
-				fVec2[0] = fTemp9;
-				float 	fTemp10 = fVec2[1]; // step: 116
-				fVeeec11 = -(fConst20 * ((fConst15 * fVeeec11) - (fConst10 * (fVec2[0] + fTemp10))));
-				float 	fTemp11 = fVeeec10[1]; // step: 128
-				fVeeec10[0] = (fVeeec11 - (fConst19 * ((fConst21 * fTemp6) + (fConst18 * fTemp11))));
-				float 	fTemp12 = fVeeec21[2]; // step: 138
-				fVeeec22 = -(fConst20 * ((fConst15 * fVeeec22) - (fConst22 * (fVec2[0] - fTemp10))));
-				float 	fTemp13 = fVeeec21[1]; // step: 151
-				fVeeec21[0] = (fVeeec22 - (fConst19 * ((fConst21 * fTemp12) + (fConst18 * fTemp13))));
-				output0[i] = (FAUSTFLOAT)(((fTemp0 + (fConst4 * (fTemp5 + (fConst16 * fVeeec0[0])))) + (fConst19 * ((fTemp6 + (fVeeec10[0] + (2.0f * fTemp11))) + (fConst17 * (fTemp12 + (fVeeec21[0] - (2.0f * fTemp13))))))));  // Zone Exec Code
-				// post processing
-				fVeeec21[2] = fVeeec21[1];
-				fVeeec21[1] = fVeeec21[0];
-				fVeeec10[2] = fVeeec10[1];
-				fVeeec10[1] = fVeeec10[0];
-				fVec2[1] = fVec2[0];
-				fVeeec12[2] = fVeeec12[1];
-				fVeeec12[1] = fVeeec12[0];
-				fVeeec0[2] = fVeeec0[1];
-				fVeeec0[1] = fVeeec0[0];
-				fVeeec1[2] = fVeeec1[1];
-				fVeeec1[1] = fVeeec1[0];
-				fVec1[1] = fVec1[0];
-				iVec0[1] = iVec0[0];
-			}
-			iVec0State = iVec0[1];
-			fVec1State = fVec1[1];
-			fVeeec2State = fVeeec2;
-			fVeeec1State[0] = fVeeec1[1];
-			fVeeec1State[1] = fVeeec1[2];
-			fVeeec0State[0] = fVeeec0[1];
-			fVeeec0State[1] = fVeeec0[2];
-			fVeeec13State = fVeeec13;
-			fVeeec12State[0] = fVeeec12[1];
-			fVeeec12State[1] = fVeeec12[2];
-			fVec2State = fVec2[1];
-			fVeeec11State = fVeeec11;
-			fVeeec10State[0] = fVeeec10[1];
-			fVeeec10State[1] = fVeeec10[2];
-			fVeeec22State = fVeeec22;
-			fVeeec21State[0] = fVeeec21[1];
-			fVeeec21State[1] = fVeeec21[2];
+		float 	fVeeec3;
+		float 	fVeeec4[3];
+		float 	fVec2[3];
+		float 	fVeeec6;
+		float 	fVeeec10;
+		float 	fVeeec11[3];
+		float 	fVec4[3];
+		float 	fVeeec16;
+		float 	fVeeec17[3];
+		float 	fVeeec19[3];
+		float 	fVeeec26;
+		float 	fVeeec27[3];
+		float 	fVeeec29[3];
+		float 	fVeeec22[3];
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		// schedule: ss=0 nodes=113 cycles=79 fill=35% peak=24 isoadj=9 packs4=0 aluMII=27 memMII=2 recMII=14 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		iVec0[1] = iVec0State;
+		fVec1[1] = fVec1State;
+		fVeeec3 = fVeeec3State;
+		fVeeec4[1] = fVeeec4State[0];
+		fVeeec4[2] = fVeeec4State[1];
+		fVec2[1] = fVec2State[0];
+		fVec2[2] = fVec2State[1];
+		fVeeec6 = fVeeec6State;
+		fVeeec10 = fVeeec10State;
+		fVeeec11[1] = fVeeec11State[0];
+		fVeeec11[2] = fVeeec11State[1];
+		fVec4[1] = fVec4State[0];
+		fVec4[2] = fVec4State[1];
+		fVeeec16 = fVeeec16State;
+		fVeeec17[1] = fVeeec17State[0];
+		fVeeec17[2] = fVeeec17State[1];
+		fVeeec19[1] = fVeeec19State[0];
+		fVeeec19[2] = fVeeec19State[1];
+		fVeeec26 = fVeeec26State;
+		fVeeec27[1] = fVeeec27State[0];
+		fVeeec27[2] = fVeeec27State[1];
+		fVeeec29[1] = fVeeec29State[0];
+		fVeeec29[2] = fVeeec29State[1];
+		fVeeec22[1] = fVeeec22State[0];
+		fVeeec22[2] = fVeeec22State[1];
+		for (int i=0; i<count; i++) {
+			iVec0[0] = 1;
+			float 	fTemp0 = float(+faust_wrap_sub(1, iVec0[1])); // step: 29
+			fVec1[0] = fTemp0;
+			fVeeec3 = ((fVec1[0] + fVec1[1]) - (fConst13 * fVeeec3));
+			fVeeec4[0] = ((fVeeec3 - (fConst19 * fVeeec4[1])) - (fConst21 * fVeeec4[2]));
+			fVec2[0] = (fConst11 * fVeeec4[0]);
+			float 	fTemp1 = fVeeec6; // step: 53
+			float 	fTemp2 = (((fConst23 * fVec2[0]) + (fConst24 * fVec2[1])) + (fConst23 * fVec2[2])); // step: 54
+			fVeeec6 = fTemp2;
+			fVeeec10 = ((fVeeec6 - fTemp1) - (fConst6 * fVeeec10));
+			fVeeec11[0] = ((fVeeec10 - (fConst29 * fVeeec11[1])) - (fConst31 * fVeeec11[2]));
+			fVec4[0] = (fConst4 * fVeeec11[0]);
+			fVeeec16 = ((fVeeec6 + fTemp1) - (fConst6 * fVeeec16));
+			fVeeec17[0] = ((fVeeec16 - (fConst29 * fVeeec17[1])) - (fConst31 * fVeeec17[2]));
+			float 	fTemp3 = (fConst37 * fVeeec17[0]); // step: 82
+			fVeeec19[0] = fTemp3;
+			fVeeec26 = ((fVec1[0] - fVec1[1]) - (fConst13 * fVeeec26));
+			fVeeec27[0] = ((fVeeec26 - (fConst19 * fVeeec27[1])) - (fConst21 * fVeeec27[2]));
+			float 	fTemp4 = (fConst39 * fVeeec27[0]); // step: 95
+			fVeeec29[0] = fTemp4;
+			float 	fTemp5 = (fConst44 * fVeeec22[1]); // step: 104
+			float 	fTemp6 = (fConst43 * fVeeec29[1]); // step: 105
+			fVeeec22[0] = (((fConst41 * fVeeec29[0]) + (fConst41 * fVeeec29[2])) - ((fConst31 * fVeeec22[2]) + (fTemp5 + fConst26 * (fTemp6 - fTemp5))));
+			float 	fTemp7 = (fConst46 * fVeeec19[1]); // step: 112
+			output0[i] = (FAUSTFLOAT)((((((fConst31 * fVeeec22[0]) + fVeeec22[2]) + (((fConst34 * fVec4[0]) - (fConst36 * fVec4[1])) + (fConst34 * fVec4[2]))) + ((fConst38 * fVeeec19[0]) + (fConst38 * fVeeec19[2]))) + (fTemp5 + fConst26 * (fTemp7 - fTemp5))));  // Zone Exec Code
+			// post processing
+			fVeeec22[2] = fVeeec22[1];
+			fVeeec22[1] = fVeeec22[0];
+			fVeeec29[2] = fVeeec29[1];
+			fVeeec29[1] = fVeeec29[0];
+			fVeeec27[2] = fVeeec27[1];
+			fVeeec27[1] = fVeeec27[0];
+			fVeeec19[2] = fVeeec19[1];
+			fVeeec19[1] = fVeeec19[0];
+			fVeeec17[2] = fVeeec17[1];
+			fVeeec17[1] = fVeeec17[0];
+			fVec4[2] = fVec4[1];
+			fVec4[1] = fVec4[0];
+			fVeeec11[2] = fVeeec11[1];
+			fVeeec11[1] = fVeeec11[0];
+			fVec2[2] = fVec2[1];
+			fVec2[1] = fVec2[0];
+			fVeeec4[2] = fVeeec4[1];
+			fVeeec4[1] = fVeeec4[0];
+			fVec1[1] = fVec1[0];
+			iVec0[1] = iVec0[0];
 		}
+		iVec0State = iVec0[1];
+		fVec1State = fVec1[1];
+		fVeeec3State = fVeeec3;
+		fVeeec4State[0] = fVeeec4[1];
+		fVeeec4State[1] = fVeeec4[2];
+		fVec2State[0] = fVec2[1];
+		fVec2State[1] = fVec2[2];
+		fVeeec6State = fVeeec6;
+		fVeeec10State = fVeeec10;
+		fVeeec11State[0] = fVeeec11[1];
+		fVeeec11State[1] = fVeeec11[2];
+		fVec4State[0] = fVec4[1];
+		fVec4State[1] = fVec4[2];
+		fVeeec16State = fVeeec16;
+		fVeeec17State[0] = fVeeec17[1];
+		fVeeec17State[1] = fVeeec17[2];
+		fVeeec19State[0] = fVeeec19[1];
+		fVeeec19State[1] = fVeeec19[2];
+		fVeeec26State = fVeeec26;
+		fVeeec27State[0] = fVeeec27[1];
+		fVeeec27State[1] = fVeeec27[2];
+		fVeeec29State[0] = fVeeec29[1];
+		fVeeec29State[1] = fVeeec29[2];
+		fVeeec22State[0] = fVeeec22[1];
+		fVeeec22State[1] = fVeeec22[2];
 	}
 };
 

@@ -141,3 +141,49 @@ Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 Field = fmydspWave0_idx size = 1 size_bytes = 4 read = 2 write = 1 ratio = 3
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            3
+  eval() cache hits:       0 (0%)
+  eval() cache misses:     3
+  Loop detector calls:     3
+  Stack detector calls:    3
+
+--- Phase 3: Propagation ---
+  propagate() calls:       1
+  propagate() cache hits:  0 (0%)
+  propagate() cache misses:1
+
+--- Box Type Computation ---
+  getBoxType() calls:      1
+  getBoxType() cache hits: 0 (0%)
+  getBoxType() computed:   1
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       1
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           119
+  Trees reused (hash):     327 (73.3184% reuse rate)
+  Property set ops:        86
+  Property get ops:        143
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

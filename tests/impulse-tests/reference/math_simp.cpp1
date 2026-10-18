@@ -1,11 +1,23 @@
 //----------------------------------------------------------
 // name: "math_simp"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -17,12 +29,14 @@
 
 class mydsp : public dsp {
   private:
-	float 	fVec0State[10]; // Copy Delay
-	float 	fConst0; // step: 16
+	float 	fVeeec0State[10]; // Copy Delay
+	float 	fConst0; // step: 21
+	float 	fConst1; // step: 22
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "math_simp.dsp");
 		m->declare("name", "math_simp");
 	}
@@ -33,12 +47,13 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = min(1.92e+05f, max(1.0f, float(fSampleRate))); // step: 16
+		fConst0 = fminf(1.92e+05f, fmaxf(5e+01f, float(+fSampleRate))); // step: 21
+		fConst1 = -fConst0; // step: 22
 	}
 	virtual void instanceResetUserInterface() {
 	}
 	virtual void instanceClear() {
-		for (int j = 0; j < 10; j++) { fVec0State[j] = 0; }
+		for (int j = 0; j < 10; j++) { fVeeec0State[j] = 0; }
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -60,123 +75,125 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fVec0[11];
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
-			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
-			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
-			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
-			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
-			FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
-			FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
-			FAUSTFLOAT* output8 = &output[8][index]; // Zone 3
-			FAUSTFLOAT* output9 = &output[9][index]; // Zone 3
-			FAUSTFLOAT* output10 = &output[10][index]; // Zone 3
-			FAUSTFLOAT* output11 = &output[11][index]; // Zone 3
-			FAUSTFLOAT* output12 = &output[12][index]; // Zone 3
-			FAUSTFLOAT* output13 = &output[13][index]; // Zone 3
-			FAUSTFLOAT* output14 = &output[14][index]; // Zone 3
-			FAUSTFLOAT* output15 = &output[15][index]; // Zone 3
-			FAUSTFLOAT* output16 = &output[16][index]; // Zone 3
-			FAUSTFLOAT* output17 = &output[17][index]; // Zone 3
-			FAUSTFLOAT* output18 = &output[18][index]; // Zone 3
-			FAUSTFLOAT* output19 = &output[19][index]; // Zone 3
-			FAUSTFLOAT* output20 = &output[20][index]; // Zone 3
-			FAUSTFLOAT* output21 = &output[21][index]; // Zone 3
-			FAUSTFLOAT* output22 = &output[22][index]; // Zone 3
-			FAUSTFLOAT* output23 = &output[23][index]; // Zone 3
-			FAUSTFLOAT* output24 = &output[24][index]; // Zone 3
-			FAUSTFLOAT* output25 = &output[25][index]; // Zone 3
-			FAUSTFLOAT* output26 = &output[26][index]; // Zone 3
-			FAUSTFLOAT* output27 = &output[27][index]; // Zone 3
-			FAUSTFLOAT* output28 = &output[28][index]; // Zone 3
-			FAUSTFLOAT* output29 = &output[29][index]; // Zone 3
-			FAUSTFLOAT* output30 = &output[30][index]; // Zone 3
-			FAUSTFLOAT* output31 = &output[31][index]; // Zone 3
-			fVec0[1] = fVec0State[0];
-			fVec0[2] = fVec0State[1];
-			fVec0[3] = fVec0State[2];
-			fVec0[4] = fVec0State[3];
-			fVec0[5] = fVec0State[4];
-			fVec0[6] = fVec0State[5];
-			fVec0[7] = fVec0State[6];
-			fVec0[8] = fVec0State[7];
-			fVec0[9] = fVec0State[8];
-			fVec0[10] = fVec0State[9];
-			for (int i=0; i<count; i++) {
-				float 	fTemp0 = (float)input0[i]; // step: 2
-				fVec0[0] = fTemp0;
-				float 	fTemp1 = (float)input1[i]; // step: 5
-				float 	fTemp2 = (fVec0[0] + fTemp1); // step: 6
-				float 	fTemp3 = fVec0[10]; // step: 9
-				float 	fTemp4 = (fVec0[0] - (fTemp1 + (float)input2[i])); // step: 20
-				float 	fTemp5 = (fTemp1 - fVec0[0]); // step: 21
-				float 	fTemp6 = (fVec0[0] - fTemp1); // step: 24
-				float 	fTemp7 = fVec0[1]; // step: 32
-				float 	fTemp8 = (3.0f * fTemp7); // step: 33
-				float 	fTemp9 = fVec0[2]; // step: 35
-				float 	fTemp10 = (fConst0 * fVec0[0]); // step: 38
-				output0[i] = (FAUSTFLOAT)(-fVec0[0]);  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(-fVec0[0]);  // Zone Exec Code
-				output2[i] = (FAUSTFLOAT)(-fVec0[0]);  // Zone Exec Code
-				output3[i] = (FAUSTFLOAT)(fVec0[0]);  // Zone Exec Code
-				output4[i] = (FAUSTFLOAT)(fTemp6);  // Zone Exec Code
-				output5[i] = (FAUSTFLOAT)(fTemp5);  // Zone Exec Code
-				output6[i] = (FAUSTFLOAT)(fTemp6);  // Zone Exec Code
-				output7[i] = (FAUSTFLOAT)(fTemp4);  // Zone Exec Code
-				output8[i] = (FAUSTFLOAT)(fTemp4);  // Zone Exec Code
-				output9[i] = (FAUSTFLOAT)((3.0f * fTemp5));  // Zone Exec Code
-				output10[i] = (FAUSTFLOAT)(((fTemp1 + (3.0f * fTemp6)) - fVec0[0]));  // Zone Exec Code
-				output11[i] = (FAUSTFLOAT)((4.0f * fabsf(fTemp5)));  // Zone Exec Code
-				output12[i] = (FAUSTFLOAT)(-fConst0);  // Zone Exec Code
-				output13[i] = (FAUSTFLOAT)(-fTemp10);  // Zone Exec Code
-				output14[i] = (FAUSTFLOAT)(-(-fVec0[0]));  // Zone Exec Code
-				output15[i] = (FAUSTFLOAT)(-fVec0[0]);  // Zone Exec Code
-				output16[i] = (FAUSTFLOAT)(-fConst0);  // Zone Exec Code
-				output17[i] = (FAUSTFLOAT)(-fTemp10);  // Zone Exec Code
-				output18[i] = (FAUSTFLOAT)(fTemp10);  // Zone Exec Code
-				output19[i] = (FAUSTFLOAT)(-fConst0);  // Zone Exec Code
-				output20[i] = (FAUSTFLOAT)(-fTemp10);  // Zone Exec Code
-				output21[i] = (FAUSTFLOAT)(fConst0);  // Zone Exec Code
-				output22[i] = (FAUSTFLOAT)(-fTemp2);  // Zone Exec Code
-				output23[i] = (FAUSTFLOAT)(-fTemp2);  // Zone Exec Code
-				output24[i] = (FAUSTFLOAT)(-fTemp3);  // Zone Exec Code
-				output25[i] = (FAUSTFLOAT)(-fTemp3);  // Zone Exec Code
-				output26[i] = (FAUSTFLOAT)(fTemp8);  // Zone Exec Code
-				output27[i] = (FAUSTFLOAT)((3.0f * fTemp9));  // Zone Exec Code
-				output28[i] = (FAUSTFLOAT)(fTemp8);  // Zone Exec Code
-				output29[i] = (FAUSTFLOAT)((4.0f * fTemp9));  // Zone Exec Code
-				output30[i] = (FAUSTFLOAT)(-(fConst0 * fTemp7));  // Zone Exec Code
-				output31[i] = (FAUSTFLOAT)(-(fConst0 * fTemp9));  // Zone Exec Code
-				// post processing
-				fVec0[10] = fVec0[9];
-				fVec0[9] = fVec0[8];
-				fVec0[8] = fVec0[7];
-				fVec0[7] = fVec0[6];
-				fVec0[6] = fVec0[5];
-				fVec0[5] = fVec0[4];
-				fVec0[4] = fVec0[3];
-				fVec0[3] = fVec0[2];
-				fVec0[2] = fVec0[1];
-				fVec0[1] = fVec0[0];
-			}
-			fVec0State[0] = fVec0[1];
-			fVec0State[1] = fVec0[2];
-			fVec0State[2] = fVec0[3];
-			fVec0State[3] = fVec0[4];
-			fVec0State[4] = fVec0[5];
-			fVec0State[5] = fVec0[6];
-			fVec0State[6] = fVec0[7];
-			fVec0State[7] = fVec0[8];
-			fVec0State[8] = fVec0[9];
-			fVec0State[9] = fVec0[10];
+		float 	fVeeec0[11];
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+		FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+		FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+		FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+		FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+		FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+		FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+		FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+		FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
+		FAUSTFLOAT* output8 = &output[8][index]; // Zone 3
+		FAUSTFLOAT* output9 = &output[9][index]; // Zone 3
+		FAUSTFLOAT* output10 = &output[10][index]; // Zone 3
+		FAUSTFLOAT* output11 = &output[11][index]; // Zone 3
+		FAUSTFLOAT* output12 = &output[12][index]; // Zone 3
+		FAUSTFLOAT* output13 = &output[13][index]; // Zone 3
+		FAUSTFLOAT* output14 = &output[14][index]; // Zone 3
+		FAUSTFLOAT* output15 = &output[15][index]; // Zone 3
+		FAUSTFLOAT* output16 = &output[16][index]; // Zone 3
+		FAUSTFLOAT* output17 = &output[17][index]; // Zone 3
+		FAUSTFLOAT* output18 = &output[18][index]; // Zone 3
+		FAUSTFLOAT* output19 = &output[19][index]; // Zone 3
+		FAUSTFLOAT* output20 = &output[20][index]; // Zone 3
+		FAUSTFLOAT* output21 = &output[21][index]; // Zone 3
+		FAUSTFLOAT* output22 = &output[22][index]; // Zone 3
+		FAUSTFLOAT* output23 = &output[23][index]; // Zone 3
+		FAUSTFLOAT* output24 = &output[24][index]; // Zone 3
+		FAUSTFLOAT* output25 = &output[25][index]; // Zone 3
+		FAUSTFLOAT* output26 = &output[26][index]; // Zone 3
+		FAUSTFLOAT* output27 = &output[27][index]; // Zone 3
+		FAUSTFLOAT* output28 = &output[28][index]; // Zone 3
+		FAUSTFLOAT* output29 = &output[29][index]; // Zone 3
+		FAUSTFLOAT* output30 = &output[30][index]; // Zone 3
+		FAUSTFLOAT* output31 = &output[31][index]; // Zone 3
+		// schedule: ss=0 nodes=42 cycles=22 fill=47% peak=10 isoadj=6 packs4=1 aluMII=9 memMII=2 recMII=0 streams(peak/avg,win64)=3/2 (eval machine R=8 U=4 M=3)
+		fVeeec0[1] = fVeeec0State[0];
+		fVeeec0[2] = fVeeec0State[1];
+		fVeeec0[3] = fVeeec0State[2];
+		fVeeec0[4] = fVeeec0State[3];
+		fVeeec0[5] = fVeeec0State[4];
+		fVeeec0[6] = fVeeec0State[5];
+		fVeeec0[7] = fVeeec0State[6];
+		fVeeec0[8] = fVeeec0State[7];
+		fVeeec0[9] = fVeeec0State[8];
+		fVeeec0[10] = fVeeec0State[9];
+		for (int i=0; i<count; i++) {
+			float 	fTemp0 = (float)input1[i]; // step: 2
+			float 	fTemp1 = fVeeec0[10]; // step: 4
+			float 	fTemp2 = fVeeec0[1]; // step: 6
+			float 	fTemp3 = fVeeec0[2]; // step: 8
+			float 	fTemp4 = (float)input0[i]; // step: 9
+			fVeeec0[0] = fTemp4;
+			float 	fTemp5 = -fVeeec0[0]; // step: 10
+			float 	fTemp6 = (fTemp0 - fVeeec0[0]); // step: 11
+			float 	fTemp7 = (fConst0 * fVeeec0[0]); // step: 23
+			float 	fTemp8 = -fTemp7; // step: 24
+			float 	fTemp9 = (fVeeec0[0] + fTemp0); // step: 25
+			float 	fTemp10 = -fTemp9; // step: 26
+			float 	fTemp11 = -fTemp1; // step: 27
+			float 	fTemp12 = (3.0f * fTemp2); // step: 28
+			float 	fTemp13 = (fVeeec0[0] - fTemp0); // step: 36
+			float 	fTemp14 = (fTemp13 - (float)input2[i]); // step: 39
+			output0[i] = (FAUSTFLOAT)(fTemp5);  // Zone Exec Code
+			output3[i] = (FAUSTFLOAT)(fVeeec0[0]);  // Zone Exec Code
+			output4[i] = (FAUSTFLOAT)(fTemp13);  // Zone Exec Code
+			output5[i] = (FAUSTFLOAT)(fTemp6);  // Zone Exec Code
+			output7[i] = (FAUSTFLOAT)(fTemp14);  // Zone Exec Code
+			output9[i] = (FAUSTFLOAT)((3.0f * fTemp6));  // Zone Exec Code
+			output10[i] = (FAUSTFLOAT)(((3.0f * fTemp13) - fTemp13));  // Zone Exec Code
+			output11[i] = (FAUSTFLOAT)((4.0f * fabsf(fTemp6)));  // Zone Exec Code
+			output12[i] = (FAUSTFLOAT)(fConst1);  // Zone Exec Code
+			output13[i] = (FAUSTFLOAT)(fTemp8);  // Zone Exec Code
+			output18[i] = (FAUSTFLOAT)(fTemp7);  // Zone Exec Code
+			output21[i] = (FAUSTFLOAT)(fConst0);  // Zone Exec Code
+			output22[i] = (FAUSTFLOAT)(fTemp10);  // Zone Exec Code
+			output24[i] = (FAUSTFLOAT)(fTemp11);  // Zone Exec Code
+			output26[i] = (FAUSTFLOAT)(fTemp12);  // Zone Exec Code
+			output27[i] = (FAUSTFLOAT)((3.0f * fTemp3));  // Zone Exec Code
+			output29[i] = (FAUSTFLOAT)((4.0f * fTemp3));  // Zone Exec Code
+			output30[i] = (FAUSTFLOAT)(-(fConst0 * fTemp2));  // Zone Exec Code
+			output31[i] = (FAUSTFLOAT)(-(fConst0 * fTemp3));  // Zone Exec Code
+			// post processing
+			fVeeec0[10] = fVeeec0[9];
+			fVeeec0[9] = fVeeec0[8];
+			fVeeec0[8] = fVeeec0[7];
+			fVeeec0[7] = fVeeec0[6];
+			fVeeec0[6] = fVeeec0[5];
+			fVeeec0[5] = fVeeec0[4];
+			fVeeec0[4] = fVeeec0[3];
+			fVeeec0[3] = fVeeec0[2];
+			fVeeec0[2] = fVeeec0[1];
+			fVeeec0[1] = fVeeec0[0];
 		}
+		fVeeec0State[0] = fVeeec0[1];
+		fVeeec0State[1] = fVeeec0[2];
+		fVeeec0State[2] = fVeeec0[3];
+		fVeeec0State[3] = fVeeec0[4];
+		fVeeec0State[4] = fVeeec0[5];
+		fVeeec0State[5] = fVeeec0[6];
+		fVeeec0State[6] = fVeeec0[7];
+		fVeeec0State[7] = fVeeec0[8];
+		fVeeec0State[8] = fVeeec0[9];
+		fVeeec0State[9] = fVeeec0[10];
+		for (int k=0; k<count; k++) output1[k] = output0[k];
+		for (int k=0; k<count; k++) output2[k] = output0[k];
+		for (int k=0; k<count; k++) output6[k] = output4[k];
+		for (int k=0; k<count; k++) output8[k] = output7[k];
+		for (int k=0; k<count; k++) output14[k] = output3[k];
+		for (int k=0; k<count; k++) output15[k] = output0[k];
+		for (int k=0; k<count; k++) output16[k] = output12[k];
+		for (int k=0; k<count; k++) output17[k] = output13[k];
+		for (int k=0; k<count; k++) output19[k] = output12[k];
+		for (int k=0; k<count; k++) output20[k] = output13[k];
+		for (int k=0; k<count; k++) output23[k] = output22[k];
+		for (int k=0; k<count; k++) output25[k] = output24[k];
+		for (int k=0; k<count; k++) output28[k] = output26[k];
 	}
 };
 

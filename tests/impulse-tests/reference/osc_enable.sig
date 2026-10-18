@@ -1,41 +1,6 @@
-// Size = 39
-ID_0 = W0;
-ID_1 = proj0(ID_0);
-ID_2 = ID_1';
-ID_3 = ID_2+1;
-ID_4 = letrec(W0 = (ID_3));
-ID_5 = proj0(ID_4);
-ID_6 = ID_5@0;
-ID_7 = ID_6+-1;
-ID_8 = float(ID_7);
-ID_9 = 9.58738e-05f*ID_8;
-ID_10 = sin(ID_9);
-ID_11 = sigGen(ID_10);
-ID_12 = WRTbl2p(65536,ID_11);
-ID_13 = float(fSamplingFreq);
-ID_14 = max(1.0f, ID_13);
-ID_15 = min(1.92e+05f, ID_14);
-ID_16 = 4e+02f/ID_15;
-ID_17 = W1;
-ID_18 = proj0(ID_17);
-ID_19 = ID_18';
-ID_20 = ID_16+ID_19;
-ID_21 = floor(ID_20);
-ID_22 = ID_19-ID_21;
-ID_23 = ID_16+ID_22;
-ID_24 = letrec(W1 = (ID_23));
-ID_25 = proj0(ID_24);
-ID_26 = ID_25@0;
-ID_27 = 65536.0f*ID_26;
-ID_28 = int(ID_27);
-ID_29 = min(ID_28, 65535);
-ID_30 = max(0, ID_29);
-ID_31 = sigRDTbl(ID_12,ID_30);
-ID_32 = waveform{...}!=0.0f;
-ID_33 = control(ID_31,ID_32);
-ID_34 = waveform{...}*ID_31;
-ID_35 = control(ID_34,ID_32);
-ID_36 = control(waveform{...},ID_32);
-ID_37 = pow(waveform{...}, 2.0f);
-ID_38 = control(ID_37,ID_32);
-SIG = (waveform{...}, ID_33, ID_35, ID_36, ID_38);
+R0 = frac(4e+02f/min(1.92e+05f, max(5e+01f, float(fSamplingFreq)))+R0');  // real samp [0, 0.99999994] lsb -27
+// real samp [-1, 1] lsb -47
+E0 = sigRDTbl(WRTbl2p(65536, sigGen(sin(9.58738e-05f*float(-1+IIR(1; 1))))), max(0, min(int(65536.0f*R0), 65535)));
+E1 = waveform{...}!=0.0f;                                                 // int samp [0, 1] lsb 0
+// real samp [-1, 1] lsb -33 ; real samp [-1, 1] lsb -47 ; real samp [-1, 1] lsb -80 ; real samp [-1, 1] lsb -33 ; real samp [0, 1.0000002] lsb -33
+process = (waveform{...}, control(E0, E1), control(waveform{...}*E0, E1), control(waveform{...}, E1), control(pow(waveform{...}, 2.0f), E1));

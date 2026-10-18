@@ -1,58 +1,7 @@
-// Size = 56
-ID_0 = hslider("volume [unit:dB]/Oscillator",0.0f,-96.0f,0.0f,0.1f);
-ID_1 = 0.05f*ID_0;
-ID_2 = pow(1e+01f, ID_1);
-ID_3 = 0.001f*ID_2;
-ID_4 = W2;
-ID_5 = proj0(ID_4);
-ID_6 = ID_5';
-ID_7 = 0.999f*ID_6;
-ID_8 = ID_3+ID_7;
-ID_9 = letrec(W2 = (ID_8));
-ID_10 = proj0(ID_9);
-ID_11 = ID_10@0;
-ID_12 = W0;
-ID_13 = proj0(ID_12);
-ID_14 = ID_13';
-ID_15 = ID_14+1;
-ID_16 = letrec(W0 = (ID_15));
-ID_17 = proj0(ID_16);
-ID_18 = ID_17@0;
-ID_19 = ID_18+-1;
-ID_20 = float(ID_19);
-ID_21 = 9.58738e-05f*ID_20;
-ID_22 = sin(ID_21);
-ID_23 = sigGen(ID_22);
-ID_24 = WRTbl2p(65537,ID_23);
-ID_25 = float(fSamplingFreq);
-ID_26 = max(1.0f, ID_25);
-ID_27 = min(1.92e+05f, ID_26);
-ID_28 = 1.0f/ID_27;
-ID_29 = hslider("freq [unit:Hz]/Oscillator",564.0f,2e+01f,2.4e+04f,1.0f);
-ID_30 = ID_28*ID_29;
-ID_31 = W1;
-ID_32 = proj0(ID_31);
-ID_33 = ID_32';
-ID_34 = ID_30+ID_33;
-ID_35 = floor(ID_34);
-ID_36 = ID_33-ID_35;
-ID_37 = ID_30+ID_36;
-ID_38 = letrec(W1 = (ID_37));
-ID_39 = proj0(ID_38);
-ID_40 = ID_39@0;
-ID_41 = 65536.0f*ID_40;
-ID_42 = int(ID_41);
-ID_43 = min(ID_42, 65536);
-ID_44 = max(0, ID_43);
-ID_45 = sigRDTbl(ID_24,ID_44);
-ID_46 = floor(ID_41);
-ID_47 = (ID_41-ID_46);
-ID_48 = ID_42+1;
-ID_49 = min(ID_48, 65536);
-ID_50 = max(0, ID_49);
-ID_51 = sigRDTbl(ID_24,ID_50);
-ID_52 = (ID_51-ID_45);
-ID_53 = ID_47*ID_52;
-ID_54 = (ID_45+ID_53);
-ID_55 = ID_11*ID_54;
-SIG = (ID_55);
+// real samp [0, 0.99999994] lsb -64
+R0 = frac(1.0f/min(1.92e+05f, max(5e+01f, float(fSamplingFreq)))*max(2e+01f, min(2.4e+04f, hslider("freq [unit:Hz]/Oscillator",564.0f,2e+01f,2.4e+04f,1.0f)))+R0');
+E0 = 65536.0f*R0;                                                    // real samp [0, 65535.996] lsb -80
+E1 = WRTbl2p(65537, sigGen(sin(9.58738e-05f*float(-1+IIR(1; 1)))));  // real konst [-1, 1] lsb -47
+E2 = int(E0);                                                        // int samp [0, 65535] lsb 0
+// real samp [-1.0001324, 1.0001324] lsb -558
+process = (mix(frac(E0), sigRDTbl(E1, max(0, min(E2, 65536))), sigRDTbl(E1, max(0, min(1+E2, 65536))))*(0.001f*IIR(pow(1e+01f, 0.05f*max(-96.0f, min(0.0f, hslider("volume [unit:dB]/Oscillator",0.0f,-96.0f,0.0f,0.1f)))); 0.999f)));

@@ -13,8 +13,8 @@ DeclareStructTypeInst(StructType<"Soundfile",("void*", fBuffers)("int*", fLength
 BlockInst 
 	OpenVerticalBox("norm1")
 	AddHorizontalSlider("1.1_x", fHslider0, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("1.2_x", fHslider2, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("1.2_y", fHslider1, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("1.2_x", fHslider1, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("1.2_y", fHslider2, 0.0f, -1e+01f, 1e+01f, 0.1f)
 	AddHorizontalSlider("1.3_x", fHslider3, 0.0f, -1e+01f, 1e+01f, 0.1f)
 	AddHorizontalSlider("1.4_x", fHslider4, 0.0f, -1e+01f, 1e+01f, 0.1f)
 	AddHorizontalSlider("1.5_y", fHslider5, 0.0f, -1e+01f, 1e+01f, 0.1f)
@@ -26,9 +26,9 @@ BlockInst
 	AddHorizontalSlider("2.3_x", fHslider11, 0.0f, -1e+01f, 1e+01f, 0.1f)
 	AddHorizontalSlider("2.3_y", fHslider12, 0.0f, -1e+01f, 1e+01f, 0.1f)
 	AddHorizontalSlider("2.3_z", fHslider13, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("2.4_x", fHslider15, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("2.4_y", fHslider16, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("2.4_z", fHslider14, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("2.4_x", fHslider14, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("2.4_y", fHslider15, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("2.4_z", fHslider16, 0.0f, -1e+01f, 1e+01f, 0.1f)
 	AddHorizontalSlider("2.5_x", fHslider18, 0.0f, -1e+01f, 1e+01f, 0.1f)
 	AddHorizontalSlider("2.5_y", fHslider17, 0.0f, -1e+01f, 1e+01f, 0.1f)
 	AddHorizontalSlider("3.1_x", fHslider19, 0.0f, -1e+01f, 1e+01f, 0.1f)
@@ -52,19 +52,18 @@ BlockInst
 	AddHorizontalSlider("5.3_x", fHslider37, 0.0f, -1e+01f, 1e+01f, 0.1f)
 	AddHorizontalSlider("5.3_y", fHslider38, 0.0f, -1e+01f, 1e+01f, 0.1f)
 	AddHorizontalSlider("5.4_x", fHslider39, 1.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("5.5_x", fHslider40, 1.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("6.1_x", fHslider41, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("6.1_y", fHslider42, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("6.1_z", fHslider43, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("6.2_x", fHslider44, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("6.2_y", fHslider45, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("6.3_x", fHslider46, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("6.3_y", fHslider47, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("6.4_x", fHslider48, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("6.5_a", fHslider51, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("6.5_b", fHslider52, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("6.5_x", fHslider49, 0.0f, -1e+01f, 1e+01f, 0.1f)
-	AddHorizontalSlider("6.5_y", fHslider50, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("6.1_x", fHslider40, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("6.1_y", fHslider41, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("6.1_z", fHslider42, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("6.2_x", fHslider43, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("6.2_y", fHslider44, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("6.3_x", fHslider45, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("6.3_y", fHslider46, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("6.4_x", fHslider47, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("6.5_a", fHslider50, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("6.5_b", fHslider51, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("6.5_x", fHslider48, 0.0f, -1e+01f, 1e+01f, 0.1f)
+	AddHorizontalSlider("6.5_y", fHslider49, 0.0f, -1e+01f, 1e+01f, 0.1f)
 	CloseboxInst
 EndBlockInst
 
@@ -73,19 +72,16 @@ EndBlockInst
 ======= Global declarations begin ==========
 
 BlockInst 
-	DeclareFunInst("float", "mydsp_faustpower2_f", "float", value)
+	DeclareFunInst("float", "min_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("float", "max_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("float", "mydsp_faustpower2_f", "float", value_f)
 		BlockInst 
-			RetInst(BinopInst("*", LoadVarInst(Address(value, kFunArgs)), LoadVarInst(Address(value, kFunArgs))))
+			RetInst(BinopInst("*", LoadVarInst(Address(value_f, kFunArgs)), LoadVarInst(Address(value_f, kFunArgs))))
 		EndBlockInst
 	EndDeclare
-	DeclareFunInst("float", "mydsp_faustpower3_f", "float", value)
+	DeclareFunInst("float", "mydsp_faustpower3_f", "float", value_f)
 		BlockInst 
-			RetInst(BinopInst("*", BinopInst("*", LoadVarInst(Address(value, kFunArgs)), LoadVarInst(Address(value, kFunArgs))), LoadVarInst(Address(value, kFunArgs))))
-		EndBlockInst
-	EndDeclare
-	DeclareFunInst("float", "mydsp_faustpower5_f", "float", value)
-		BlockInst 
-			RetInst(BinopInst("*", BinopInst("*", BinopInst("*", BinopInst("*", LoadVarInst(Address(value, kFunArgs)), LoadVarInst(Address(value, kFunArgs))), LoadVarInst(Address(value, kFunArgs))), LoadVarInst(Address(value, kFunArgs))), LoadVarInst(Address(value, kFunArgs))))
+			RetInst(BinopInst("*", BinopInst("*", LoadVarInst(Address(value_f, kFunArgs)), LoadVarInst(Address(value_f, kFunArgs))), LoadVarInst(Address(value_f, kFunArgs))))
 		EndBlockInst
 	EndDeclare
 EndBlockInst
@@ -94,7 +90,7 @@ EndBlockInst
 
 ======= DSP struct begin ==========
 
-DeclareStructTypeInst(StructType<"mydsp",("FAUSTFLOAT", fHslider0)("FAUSTFLOAT", fHslider1)("FAUSTFLOAT", fHslider2)("FAUSTFLOAT", fHslider3)("FAUSTFLOAT", fHslider4)("FAUSTFLOAT", fHslider5)("FAUSTFLOAT", fHslider6)("FAUSTFLOAT", fHslider7)("FAUSTFLOAT", fHslider8)("FAUSTFLOAT", fHslider9)("FAUSTFLOAT", fHslider10)("FAUSTFLOAT", fHslider11)("FAUSTFLOAT", fHslider12)("FAUSTFLOAT", fHslider13)("FAUSTFLOAT", fHslider14)("FAUSTFLOAT", fHslider15)("FAUSTFLOAT", fHslider16)("FAUSTFLOAT", fHslider17)("FAUSTFLOAT", fHslider18)("FAUSTFLOAT", fHslider19)("FAUSTFLOAT", fHslider20)("FAUSTFLOAT", fHslider21)("FAUSTFLOAT", fHslider22)("FAUSTFLOAT", fHslider23)("FAUSTFLOAT", fHslider24)("FAUSTFLOAT", fHslider25)("FAUSTFLOAT", fHslider26)("FAUSTFLOAT", fHslider27)("FAUSTFLOAT", fHslider28)("FAUSTFLOAT", fHslider29)("FAUSTFLOAT", fHslider30)("FAUSTFLOAT", fHslider31)("FAUSTFLOAT", fHslider32)("FAUSTFLOAT", fHslider33)("FAUSTFLOAT", fHslider34)("FAUSTFLOAT", fHslider35)("FAUSTFLOAT", fHslider36)("FAUSTFLOAT", fHslider37)("FAUSTFLOAT", fHslider38)("FAUSTFLOAT", fHslider39)("FAUSTFLOAT", fHslider40)("FAUSTFLOAT", fHslider41)("FAUSTFLOAT", fHslider42)("FAUSTFLOAT", fHslider43)("FAUSTFLOAT", fHslider44)("FAUSTFLOAT", fHslider45)("FAUSTFLOAT", fHslider46)("FAUSTFLOAT", fHslider47)("FAUSTFLOAT", fHslider48)("FAUSTFLOAT", fHslider49)("FAUSTFLOAT", fHslider50)("FAUSTFLOAT", fHslider51)("FAUSTFLOAT", fHslider52)("int", fSampleRate)>)
+DeclareStructTypeInst(StructType<"mydsp",("FAUSTFLOAT", fHslider0)("FAUSTFLOAT", fHslider1)("FAUSTFLOAT", fHslider2)("FAUSTFLOAT", fHslider3)("FAUSTFLOAT", fHslider4)("FAUSTFLOAT", fHslider5)("FAUSTFLOAT", fHslider6)("FAUSTFLOAT", fHslider7)("FAUSTFLOAT", fHslider8)("FAUSTFLOAT", fHslider9)("FAUSTFLOAT", fHslider10)("FAUSTFLOAT", fHslider11)("FAUSTFLOAT", fHslider12)("FAUSTFLOAT", fHslider13)("FAUSTFLOAT", fHslider14)("FAUSTFLOAT", fHslider15)("FAUSTFLOAT", fHslider16)("FAUSTFLOAT", fHslider17)("FAUSTFLOAT", fHslider18)("FAUSTFLOAT", fHslider19)("FAUSTFLOAT", fHslider20)("FAUSTFLOAT", fHslider21)("FAUSTFLOAT", fHslider22)("FAUSTFLOAT", fHslider23)("FAUSTFLOAT", fHslider24)("FAUSTFLOAT", fHslider25)("FAUSTFLOAT", fHslider26)("FAUSTFLOAT", fHslider27)("FAUSTFLOAT", fHslider28)("FAUSTFLOAT", fHslider29)("FAUSTFLOAT", fHslider30)("FAUSTFLOAT", fHslider31)("FAUSTFLOAT", fHslider32)("FAUSTFLOAT", fHslider33)("FAUSTFLOAT", fHslider34)("FAUSTFLOAT", fHslider35)("FAUSTFLOAT", fHslider36)("FAUSTFLOAT", fHslider37)("FAUSTFLOAT", fHslider38)("FAUSTFLOAT", fHslider39)("FAUSTFLOAT", fHslider40)("FAUSTFLOAT", fHslider41)("FAUSTFLOAT", fHslider42)("FAUSTFLOAT", fHslider43)("FAUSTFLOAT", fHslider44)("FAUSTFLOAT", fHslider45)("FAUSTFLOAT", fHslider46)("FAUSTFLOAT", fHslider47)("FAUSTFLOAT", fHslider48)("FAUSTFLOAT", fHslider49)("FAUSTFLOAT", fHslider50)("FAUSTFLOAT", fHslider51)("int", fSampleRate)>)
 
 ======= DSP struct end ==========
 
@@ -121,66 +117,65 @@ EndBlockInst
 ======= ResetUI begin ==========
 
 BlockInst 
-	StoreVarInst(Address(fHslider0, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider1, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider2, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider3, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider4, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider5, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider6, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider7, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider8, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider9, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider10, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider11, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider12, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider13, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider14, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider15, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider16, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider17, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider18, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider19, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider20, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider21, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider22, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider23, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider24, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider25, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider26, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider27, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider28, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider29, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider30, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider31, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider32, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider33, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider34, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider35, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider36, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider37, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider38, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider39, kStruct), CastInst("FAUSTFLOAT", Double(1.0f)))
-	StoreVarInst(Address(fHslider40, kStruct), CastInst("FAUSTFLOAT", Double(1.0f)))
-	StoreVarInst(Address(fHslider41, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider42, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider43, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider44, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider45, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider46, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider47, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider48, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider49, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider50, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider51, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider52, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
+	StoreVarInst(Address(fHslider0, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider1, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider2, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider3, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider4, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider5, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider6, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider7, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider8, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider9, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider10, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider11, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider12, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider13, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider14, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider15, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider16, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider17, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider18, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider19, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider20, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider21, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider22, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider23, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider24, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider25, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider26, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider27, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider28, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider29, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider30, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider31, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider32, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider33, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider34, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider35, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider36, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider37, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider38, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider39, kStruct), CastInst("FAUSTFLOAT", Float(1.0f)))
+	StoreVarInst(Address(fHslider40, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider41, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider42, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider43, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider44, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider45, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider46, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider47, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider48, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider49, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider50, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider51, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
 EndBlockInst
 
 ======= ResetUI end ==========
 
 ======= Compute control begin ==========
 
-Instructions complexity : Load = 97 Store = 0 Binop = 38 [ { Real(*) = 19 } { Real(+) = 16 } { Real(-) = 1 } { Real(/) = 2 } ] Mathop = 8 [ { mydsp_faustpower2_f = 5 } { mydsp_faustpower3_f = 2 } { mydsp_faustpower5_f = 1 } ] Numbers = 46 Declare = 70 Cast = 52 Select = 0 Loop = 0
+Instructions complexity : Load = 95 Store = 0 Binop = 37 [ { Real(*) = 20 } { Real(+) = 15 } { Real(-) = 2 } ] Mathop = 113 [ { max_f = 52 } { min_f = 52 } { mydsp_faustpower2_f = 8 } { mydsp_faustpower3_f = 1 } ] Numbers = 151 Declare = 70 Cast = 52 Select = 0 Loop = 0
 
 BlockInst 
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
@@ -218,48 +213,48 @@ BlockInst
 	DeclareVarInst("FAUSTFLOAT*", output32, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(32)]))
 	DeclareVarInst("FAUSTFLOAT*", output33, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(33)]))
 	DeclareVarInst("FAUSTFLOAT*", output34, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(34)]))
-	DeclareVarInst("float", fSlow0, kStack, BinopInst("*", Float(2.0f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))
-	DeclareVarInst("float", fSlow1, kStack, BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider1, kStruct))), BinopInst("*", Float(2.0f), CastInst("float", LoadVarInst(Address(fHslider2, kStruct))))))
-	DeclareVarInst("float", fSlow2, kStack, BinopInst("*", Float(3.0f), CastInst("float", LoadVarInst(Address(fHslider3, kStruct)))))
-	DeclareVarInst("float", fSlow3, kStack, CastInst("float", LoadVarInst(Address(fHslider5, kStruct))))
-	DeclareVarInst("float", fSlow4, kStack, BinopInst("*", Float(3.7f), CastInst("float", LoadVarInst(Address(fHslider6, kStruct)))))
-	DeclareVarInst("float", fSlow5, kStack, BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider7, kStruct))), CastInst("float", LoadVarInst(Address(fHslider8, kStruct)))))
-	DeclareVarInst("float", fSlow6, kStack, BinopInst("*", CastInst("float", LoadVarInst(Address(fHslider9, kStruct))), CastInst("float", LoadVarInst(Address(fHslider10, kStruct)))))
-	DeclareVarInst("float", fSlow7, kStack, BinopInst("+", BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider11, kStruct))), CastInst("float", LoadVarInst(Address(fHslider12, kStruct)))), CastInst("float", LoadVarInst(Address(fHslider13, kStruct)))))
-	DeclareVarInst("float", fSlow8, kStack, BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider14, kStruct))), BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider15, kStruct))), CastInst("float", LoadVarInst(Address(fHslider16, kStruct))))))
-	DeclareVarInst("float", fSlow9, kStack, BinopInst("*", Float(2.0f), BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider17, kStruct))), CastInst("float", LoadVarInst(Address(fHslider18, kStruct))))))
-	DeclareVarInst("float", fSlow10, kStack, CastInst("float", LoadVarInst(Address(fHslider19, kStruct))))
-	DeclareVarInst("float", fSlow11, kStack, CastInst("float", LoadVarInst(Address(fHslider20, kStruct))))
-	DeclareVarInst("float", fSlow12, kStack, CastInst("float", LoadVarInst(Address(fHslider21, kStruct))))
-	DeclareVarInst("float", fSlow13, kStack, CastInst("float", LoadVarInst(Address(fHslider22, kStruct))))
-	DeclareVarInst("float", fSlow14, kStack, CastInst("float", LoadVarInst(Address(fHslider23, kStruct))))
-	DeclareVarInst("float", fSlow15, kStack, BinopInst("*", Float(2.0f), BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider24, kStruct))), CastInst("float", LoadVarInst(Address(fHslider25, kStruct))))))
-	DeclareVarInst("float", fSlow16, kStack, BinopInst("-", BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider26, kStruct))), CastInst("float", LoadVarInst(Address(fHslider27, kStruct)))), CastInst("float", LoadVarInst(Address(fHslider28, kStruct)))))
-	DeclareVarInst("float", fSlow17, kStack, BinopInst("*", BinopInst("*", FunCallInst("mydsp_faustpower2_f", CastInst("float", LoadVarInst(Address(fHslider29, kStruct)))), CastInst("float", LoadVarInst(Address(fHslider30, kStruct)))), CastInst("float", LoadVarInst(Address(fHslider31, kStruct)))))
-	DeclareVarInst("float", fSlow18, kStack, CastInst("float", LoadVarInst(Address(fHslider32, kStruct))))
-	DeclareVarInst("float", fSlow19, kStack, BinopInst("*", Float(0.5f), BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider33, kStruct))), CastInst("float", LoadVarInst(Address(fHslider34, kStruct))))))
-	DeclareVarInst("float", fSlow20, kStack, FunCallInst("mydsp_faustpower2_f", CastInst("float", LoadVarInst(Address(fHslider35, kStruct)))))
-	DeclareVarInst("float", fSlow21, kStack, FunCallInst("mydsp_faustpower2_f", CastInst("float", LoadVarInst(Address(fHslider36, kStruct)))))
-	DeclareVarInst("float", fSlow22, kStack, BinopInst("*", FunCallInst("mydsp_faustpower2_f", CastInst("float", LoadVarInst(Address(fHslider37, kStruct)))), FunCallInst("mydsp_faustpower3_f", CastInst("float", LoadVarInst(Address(fHslider38, kStruct))))))
-	DeclareVarInst("float", fSlow23, kStack, CastInst("float", LoadVarInst(Address(fHslider39, kStruct))))
-	DeclareVarInst("float", fSlow24, kStack, BinopInst("/", FunCallInst("mydsp_faustpower5_f", LoadVarInst(Address(fSlow23, kStack))), FunCallInst("mydsp_faustpower3_f", LoadVarInst(Address(fSlow23, kStack)))))
-	DeclareVarInst("float", fSlow25, kStack, FunCallInst("mydsp_faustpower2_f", CastInst("float", LoadVarInst(Address(fHslider40, kStruct)))))
-	DeclareVarInst("float", fSlow26, kStack, BinopInst("/", LoadVarInst(Address(fSlow25, kStack)), LoadVarInst(Address(fSlow25, kStack))))
-	DeclareVarInst("float", fSlow27, kStack, BinopInst("*", CastInst("float", LoadVarInst(Address(fHslider41, kStruct))), BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider42, kStruct))), CastInst("float", LoadVarInst(Address(fHslider43, kStruct))))))
-	DeclareVarInst("float", fSlow28, kStack, BinopInst("+", BinopInst("*", Float(4.0f), CastInst("float", LoadVarInst(Address(fHslider44, kStruct)))), BinopInst("*", Float(2.0f), CastInst("float", LoadVarInst(Address(fHslider45, kStruct))))))
-	DeclareVarInst("float", fSlow29, kStack, CastInst("float", LoadVarInst(Address(fHslider46, kStruct))))
-	DeclareVarInst("float", fSlow30, kStack, CastInst("float", LoadVarInst(Address(fHslider47, kStruct))))
-	DeclareVarInst("float", fSlow31, kStack, BinopInst("*", BinopInst("*", LoadVarInst(Address(fSlow29, kStack)), LoadVarInst(Address(fSlow30, kStack))), BinopInst("+", LoadVarInst(Address(fSlow29, kStack)), LoadVarInst(Address(fSlow30, kStack)))))
-	DeclareVarInst("float", fSlow32, kStack, CastInst("float", LoadVarInst(Address(fHslider48, kStruct))))
-	DeclareVarInst("float", fSlow33, kStack, BinopInst("*", LoadVarInst(Address(fSlow32, kStack)), BinopInst("+", BinopInst("*", Float(3.0f), LoadVarInst(Address(fSlow32, kStack))), Float(-6.0f))))
-	DeclareVarInst("float", fSlow34, kStack, BinopInst("*", BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider49, kStruct))), CastInst("float", LoadVarInst(Address(fHslider50, kStruct)))), BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider51, kStruct))), CastInst("float", LoadVarInst(Address(fHslider52, kStruct))))))
+	DeclareVarInst("float", fSlow0, kStack, BinopInst("*", Float(2.0f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))))
+	DeclareVarInst("float", fSlow1, kStack, BinopInst("+", BinopInst("*", Float(2.0f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider1, kStruct)))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider2, kStruct)))))))
+	DeclareVarInst("float", fSlow2, kStack, BinopInst("*", Float(3.0f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider3, kStruct)))))))
+	DeclareVarInst("float", fSlow3, kStack, NegInst(BinopInst("*", Float(3.0f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider4, kStruct))))))))
+	DeclareVarInst("float", fSlow4, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider5, kStruct))))))
+	DeclareVarInst("float", fSlow5, kStack, BinopInst("*", Float(3.7f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider6, kStruct)))))))
+	DeclareVarInst("float", fSlow6, kStack, BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider7, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider8, kStruct)))))))
+	DeclareVarInst("float", fSlow7, kStack, BinopInst("*", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider9, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider10, kStruct)))))))
+	DeclareVarInst("float", fSlow8, kStack, BinopInst("+", BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider11, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider12, kStruct)))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider13, kStruct)))))))
+	DeclareVarInst("float", fSlow9, kStack, BinopInst("+", BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider14, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider15, kStruct)))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider16, kStruct)))))))
+	DeclareVarInst("float", fSlow10, kStack, BinopInst("*", Float(2.0f), BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider17, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider18, kStruct))))))))
+	DeclareVarInst("float", fSlow11, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider19, kStruct))))))
+	DeclareVarInst("float", fSlow12, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider20, kStruct))))))
+	DeclareVarInst("float", fSlow13, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider21, kStruct))))))
+	DeclareVarInst("float", fSlow14, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider22, kStruct))))))
+	DeclareVarInst("float", fSlow15, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider23, kStruct))))))
+	DeclareVarInst("float", fSlow16, kStack, BinopInst("*", Float(2.0f), BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider24, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider25, kStruct))))))))
+	DeclareVarInst("float", fSlow17, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider28, kStruct))))))
+	DeclareVarInst("float", fSlow18, kStack, BinopInst("-", BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider26, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider27, kStruct)))))), LoadVarInst(Address(fSlow17, kStack))))
+	DeclareVarInst("float", fSlow19, kStack, BinopInst("*", BinopInst("*", FunCallInst("mydsp_faustpower2_f", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider29, kStruct)))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider30, kStruct)))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider31, kStruct)))))))
+	DeclareVarInst("float", fSlow20, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider32, kStruct))))))
+	DeclareVarInst("float", fSlow21, kStack, BinopInst("*", Float(0.5f), BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider33, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider34, kStruct))))))))
+	DeclareVarInst("float", fSlow22, kStack, FunCallInst("mydsp_faustpower2_f", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider35, kStruct)))))))
+	DeclareVarInst("float", fSlow23, kStack, FunCallInst("mydsp_faustpower2_f", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider36, kStruct)))))))
+	DeclareVarInst("float", fSlow24, kStack, BinopInst("*", FunCallInst("mydsp_faustpower2_f", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider37, kStruct)))))), FunCallInst("mydsp_faustpower3_f", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider38, kStruct))))))))
+	DeclareVarInst("float", fSlow25, kStack, FunCallInst("mydsp_faustpower2_f", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider39, kStruct)))))))
+	DeclareVarInst("float", fSlow26, kStack, BinopInst("*", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider40, kStruct))))), BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider41, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider42, kStruct))))))))
+	DeclareVarInst("float", fSlow27, kStack, BinopInst("+", BinopInst("*", Float(4.0f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider43, kStruct)))))), BinopInst("*", Float(2.0f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider44, kStruct))))))))
+	DeclareVarInst("float", fSlow28, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider45, kStruct))))))
+	DeclareVarInst("float", fSlow29, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider46, kStruct))))))
+	DeclareVarInst("float", fSlow30, kStack, BinopInst("+", BinopInst("*", FunCallInst("mydsp_faustpower2_f", LoadVarInst(Address(fSlow28, kStack))), LoadVarInst(Address(fSlow29, kStack))), BinopInst("*", LoadVarInst(Address(fSlow28, kStack)), FunCallInst("mydsp_faustpower2_f", LoadVarInst(Address(fSlow29, kStack))))))
+	DeclareVarInst("float", fSlow31, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider47, kStruct))))))
+	DeclareVarInst("float", fSlow32, kStack, BinopInst("*", Float(6.0f), LoadVarInst(Address(fSlow31, kStack))))
+	DeclareVarInst("float", fSlow33, kStack, BinopInst("-", BinopInst("*", Float(3.0f), FunCallInst("mydsp_faustpower2_f", LoadVarInst(Address(fSlow31, kStack)))), LoadVarInst(Address(fSlow32, kStack))))
+	DeclareVarInst("float", fSlow34, kStack, BinopInst("*", BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider48, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider49, kStruct)))))), BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider50, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider51, kStruct))))))))
 EndBlockInst
 
 ======= Compute control end ==========
 
 ======= Compute DSP begin ==========
 
-Instructions complexity : Load = 71 Store = 36 Binop = 3 [ { Int(+) = 1 } { Int(<) = 1 } { Real(*) = 1 } ] Mathop = 0 Numbers = 5 Declare = 1 Cast = 36 Select = 0 Loop = 1
+Instructions complexity : Load = 70 Store = 36 Binop = 2 [ { Int(+) = 1 } { Int(<) = 1 } ] Mathop = 0 Numbers = 5 Declare = 1 Cast = 35 Select = 0 Loop = 1
 
 ForLoopInst 
 	DeclareVarInst("int", i0, kLoop, Int32(0))
@@ -269,36 +264,36 @@ ForLoopInst
 		StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow0, kStack))))
 		StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow1, kStack))))
 		StoreVarInst(Address(output2, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow2, kStack))))
-		StoreVarInst(Address(output3, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", MinusInst(BinopInst("*", Float(3.0f), CastInst("float", LoadVarInst(Address(fHslider4, kStruct)))))))
-		StoreVarInst(Address(output4, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow3, kStack))))
-		StoreVarInst(Address(output5, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow4, kStack))))
-		StoreVarInst(Address(output6, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow5, kStack))))
-		StoreVarInst(Address(output7, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow5, kStack))))
-		StoreVarInst(Address(output8, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow6, kStack))))
-		StoreVarInst(Address(output9, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow6, kStack))))
-		StoreVarInst(Address(output10, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow7, kStack))))
-		StoreVarInst(Address(output11, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow8, kStack))))
-		StoreVarInst(Address(output12, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow9, kStack))))
-		StoreVarInst(Address(output13, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow10, kStack))))
-		StoreVarInst(Address(output14, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow11, kStack))))
-		StoreVarInst(Address(output15, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow12, kStack))))
+		StoreVarInst(Address(output3, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow3, kStack))))
+		StoreVarInst(Address(output4, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow4, kStack))))
+		StoreVarInst(Address(output5, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow5, kStack))))
+		StoreVarInst(Address(output6, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow6, kStack))))
+		StoreVarInst(Address(output7, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow6, kStack))))
+		StoreVarInst(Address(output8, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow7, kStack))))
+		StoreVarInst(Address(output9, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow7, kStack))))
+		StoreVarInst(Address(output10, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow8, kStack))))
+		StoreVarInst(Address(output11, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow9, kStack))))
+		StoreVarInst(Address(output12, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow10, kStack))))
+		StoreVarInst(Address(output13, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow11, kStack))))
+		StoreVarInst(Address(output14, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow12, kStack))))
+		StoreVarInst(Address(output15, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow13, kStack))))
 		StoreVarInst(Address(output16, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", Float(0.0f)))
 		StoreVarInst(Address(output17, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", Int32(0)))
-		StoreVarInst(Address(output18, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow13, kStack))))
-		StoreVarInst(Address(output19, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow14, kStack))))
-		StoreVarInst(Address(output20, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow15, kStack))))
-		StoreVarInst(Address(output21, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow16, kStack))))
-		StoreVarInst(Address(output22, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow17, kStack))))
-		StoreVarInst(Address(output23, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow18, kStack))))
-		StoreVarInst(Address(output24, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow19, kStack))))
-		StoreVarInst(Address(output25, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow20, kStack))))
-		StoreVarInst(Address(output26, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow21, kStack))))
-		StoreVarInst(Address(output27, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow22, kStack))))
-		StoreVarInst(Address(output28, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow24, kStack))))
-		StoreVarInst(Address(output29, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow26, kStack))))
-		StoreVarInst(Address(output30, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow27, kStack))))
-		StoreVarInst(Address(output31, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow28, kStack))))
-		StoreVarInst(Address(output32, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow31, kStack))))
+		StoreVarInst(Address(output18, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow14, kStack))))
+		StoreVarInst(Address(output19, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow15, kStack))))
+		StoreVarInst(Address(output20, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow16, kStack))))
+		StoreVarInst(Address(output21, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow18, kStack))))
+		StoreVarInst(Address(output22, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow19, kStack))))
+		StoreVarInst(Address(output23, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow20, kStack))))
+		StoreVarInst(Address(output24, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow21, kStack))))
+		StoreVarInst(Address(output25, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow22, kStack))))
+		StoreVarInst(Address(output26, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow23, kStack))))
+		StoreVarInst(Address(output27, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow24, kStack))))
+		StoreVarInst(Address(output28, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow25, kStack))))
+		StoreVarInst(Address(output29, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", Int32(1)))
+		StoreVarInst(Address(output30, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow26, kStack))))
+		StoreVarInst(Address(output31, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow27, kStack))))
+		StoreVarInst(Address(output32, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow30, kStack))))
 		StoreVarInst(Address(output33, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow33, kStack))))
 		StoreVarInst(Address(output34, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow34, kStack))))
 	EndBlockInst
@@ -317,19 +312,16 @@ EndBlockInst
 
 BlockInst 
 	========== Declaration part ==========
-	DeclareFunInst("float", "mydsp_faustpower2_f", "float", value)
+	DeclareFunInst("float", "min_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("float", "max_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("float", "mydsp_faustpower2_f", "float", value_f)
 		BlockInst 
-			RetInst(BinopInst("*", LoadVarInst(Address(value, kFunArgs)), LoadVarInst(Address(value, kFunArgs))))
+			RetInst(BinopInst("*", LoadVarInst(Address(value_f, kFunArgs)), LoadVarInst(Address(value_f, kFunArgs))))
 		EndBlockInst
 	EndDeclare
-	DeclareFunInst("float", "mydsp_faustpower3_f", "float", value)
+	DeclareFunInst("float", "mydsp_faustpower3_f", "float", value_f)
 		BlockInst 
-			RetInst(BinopInst("*", BinopInst("*", LoadVarInst(Address(value, kFunArgs)), LoadVarInst(Address(value, kFunArgs))), LoadVarInst(Address(value, kFunArgs))))
-		EndBlockInst
-	EndDeclare
-	DeclareFunInst("float", "mydsp_faustpower5_f", "float", value)
-		BlockInst 
-			RetInst(BinopInst("*", BinopInst("*", BinopInst("*", BinopInst("*", LoadVarInst(Address(value, kFunArgs)), LoadVarInst(Address(value, kFunArgs))), LoadVarInst(Address(value, kFunArgs))), LoadVarInst(Address(value, kFunArgs))), LoadVarInst(Address(value, kFunArgs))))
+			RetInst(BinopInst("*", BinopInst("*", LoadVarInst(Address(value_f, kFunArgs)), LoadVarInst(Address(value_f, kFunArgs))), LoadVarInst(Address(value_f, kFunArgs))))
 		EndBlockInst
 	EndDeclare
 	DeclareVarInst("FAUSTFLOAT", fHslider0, kStruct)
@@ -384,63 +376,61 @@ BlockInst
 	DeclareVarInst("FAUSTFLOAT", fHslider49, kStruct)
 	DeclareVarInst("FAUSTFLOAT", fHslider50, kStruct)
 	DeclareVarInst("FAUSTFLOAT", fHslider51, kStruct)
-	DeclareVarInst("FAUSTFLOAT", fHslider52, kStruct)
 	DeclareVarInst("int", fSampleRate, kStruct)
 	========== Init method ==========
 	StoreVarInst(Address(fSampleRate, kStruct), LoadVarInst(Address(sample_rate, kFunArgs)))
-	StoreVarInst(Address(fHslider0, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider1, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider2, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider3, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider4, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider5, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider6, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider7, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider8, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider9, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider10, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider11, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider12, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider13, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider14, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider15, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider16, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider17, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider18, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider19, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider20, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider21, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider22, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider23, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider24, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider25, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider26, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider27, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider28, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider29, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider30, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider31, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider32, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider33, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider34, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider35, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider36, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider37, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider38, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider39, kStruct), CastInst("FAUSTFLOAT", Double(1.0f)))
-	StoreVarInst(Address(fHslider40, kStruct), CastInst("FAUSTFLOAT", Double(1.0f)))
-	StoreVarInst(Address(fHslider41, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider42, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider43, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider44, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider45, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider46, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider47, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider48, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider49, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider50, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider51, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
-	StoreVarInst(Address(fHslider52, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
+	StoreVarInst(Address(fHslider0, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider1, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider2, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider3, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider4, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider5, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider6, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider7, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider8, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider9, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider10, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider11, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider12, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider13, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider14, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider15, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider16, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider17, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider18, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider19, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider20, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider21, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider22, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider23, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider24, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider25, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider26, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider27, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider28, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider29, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider30, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider31, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider32, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider33, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider34, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider35, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider36, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider37, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider38, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider39, kStruct), CastInst("FAUSTFLOAT", Float(1.0f)))
+	StoreVarInst(Address(fHslider40, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider41, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider42, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider43, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider44, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider45, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider46, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider47, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider48, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider49, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider50, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
+	StoreVarInst(Address(fHslider51, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
 	========== Static init method ==========
 	========== Subcontainers ==========
 	========== Control ==========
@@ -480,41 +470,41 @@ BlockInst
 	DeclareVarInst("FAUSTFLOAT*", output32, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(32)]))
 	DeclareVarInst("FAUSTFLOAT*", output33, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(33)]))
 	DeclareVarInst("FAUSTFLOAT*", output34, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(34)]))
-	DeclareVarInst("float", fSlow0, kStack, BinopInst("*", Float(2.0f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))
-	DeclareVarInst("float", fSlow1, kStack, BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider1, kStruct))), BinopInst("*", Float(2.0f), CastInst("float", LoadVarInst(Address(fHslider2, kStruct))))))
-	DeclareVarInst("float", fSlow2, kStack, BinopInst("*", Float(3.0f), CastInst("float", LoadVarInst(Address(fHslider3, kStruct)))))
-	DeclareVarInst("float", fSlow3, kStack, CastInst("float", LoadVarInst(Address(fHslider5, kStruct))))
-	DeclareVarInst("float", fSlow4, kStack, BinopInst("*", Float(3.7f), CastInst("float", LoadVarInst(Address(fHslider6, kStruct)))))
-	DeclareVarInst("float", fSlow5, kStack, BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider7, kStruct))), CastInst("float", LoadVarInst(Address(fHslider8, kStruct)))))
-	DeclareVarInst("float", fSlow6, kStack, BinopInst("*", CastInst("float", LoadVarInst(Address(fHslider9, kStruct))), CastInst("float", LoadVarInst(Address(fHslider10, kStruct)))))
-	DeclareVarInst("float", fSlow7, kStack, BinopInst("+", BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider11, kStruct))), CastInst("float", LoadVarInst(Address(fHslider12, kStruct)))), CastInst("float", LoadVarInst(Address(fHslider13, kStruct)))))
-	DeclareVarInst("float", fSlow8, kStack, BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider14, kStruct))), BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider15, kStruct))), CastInst("float", LoadVarInst(Address(fHslider16, kStruct))))))
-	DeclareVarInst("float", fSlow9, kStack, BinopInst("*", Float(2.0f), BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider17, kStruct))), CastInst("float", LoadVarInst(Address(fHslider18, kStruct))))))
-	DeclareVarInst("float", fSlow10, kStack, CastInst("float", LoadVarInst(Address(fHslider19, kStruct))))
-	DeclareVarInst("float", fSlow11, kStack, CastInst("float", LoadVarInst(Address(fHslider20, kStruct))))
-	DeclareVarInst("float", fSlow12, kStack, CastInst("float", LoadVarInst(Address(fHslider21, kStruct))))
-	DeclareVarInst("float", fSlow13, kStack, CastInst("float", LoadVarInst(Address(fHslider22, kStruct))))
-	DeclareVarInst("float", fSlow14, kStack, CastInst("float", LoadVarInst(Address(fHslider23, kStruct))))
-	DeclareVarInst("float", fSlow15, kStack, BinopInst("*", Float(2.0f), BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider24, kStruct))), CastInst("float", LoadVarInst(Address(fHslider25, kStruct))))))
-	DeclareVarInst("float", fSlow16, kStack, BinopInst("-", BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider26, kStruct))), CastInst("float", LoadVarInst(Address(fHslider27, kStruct)))), CastInst("float", LoadVarInst(Address(fHslider28, kStruct)))))
-	DeclareVarInst("float", fSlow17, kStack, BinopInst("*", BinopInst("*", FunCallInst("mydsp_faustpower2_f", CastInst("float", LoadVarInst(Address(fHslider29, kStruct)))), CastInst("float", LoadVarInst(Address(fHslider30, kStruct)))), CastInst("float", LoadVarInst(Address(fHslider31, kStruct)))))
-	DeclareVarInst("float", fSlow18, kStack, CastInst("float", LoadVarInst(Address(fHslider32, kStruct))))
-	DeclareVarInst("float", fSlow19, kStack, BinopInst("*", Float(0.5f), BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider33, kStruct))), CastInst("float", LoadVarInst(Address(fHslider34, kStruct))))))
-	DeclareVarInst("float", fSlow20, kStack, FunCallInst("mydsp_faustpower2_f", CastInst("float", LoadVarInst(Address(fHslider35, kStruct)))))
-	DeclareVarInst("float", fSlow21, kStack, FunCallInst("mydsp_faustpower2_f", CastInst("float", LoadVarInst(Address(fHslider36, kStruct)))))
-	DeclareVarInst("float", fSlow22, kStack, BinopInst("*", FunCallInst("mydsp_faustpower2_f", CastInst("float", LoadVarInst(Address(fHslider37, kStruct)))), FunCallInst("mydsp_faustpower3_f", CastInst("float", LoadVarInst(Address(fHslider38, kStruct))))))
-	DeclareVarInst("float", fSlow23, kStack, CastInst("float", LoadVarInst(Address(fHslider39, kStruct))))
-	DeclareVarInst("float", fSlow24, kStack, BinopInst("/", FunCallInst("mydsp_faustpower5_f", LoadVarInst(Address(fSlow23, kStack))), FunCallInst("mydsp_faustpower3_f", LoadVarInst(Address(fSlow23, kStack)))))
-	DeclareVarInst("float", fSlow25, kStack, FunCallInst("mydsp_faustpower2_f", CastInst("float", LoadVarInst(Address(fHslider40, kStruct)))))
-	DeclareVarInst("float", fSlow26, kStack, BinopInst("/", LoadVarInst(Address(fSlow25, kStack)), LoadVarInst(Address(fSlow25, kStack))))
-	DeclareVarInst("float", fSlow27, kStack, BinopInst("*", CastInst("float", LoadVarInst(Address(fHslider41, kStruct))), BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider42, kStruct))), CastInst("float", LoadVarInst(Address(fHslider43, kStruct))))))
-	DeclareVarInst("float", fSlow28, kStack, BinopInst("+", BinopInst("*", Float(4.0f), CastInst("float", LoadVarInst(Address(fHslider44, kStruct)))), BinopInst("*", Float(2.0f), CastInst("float", LoadVarInst(Address(fHslider45, kStruct))))))
-	DeclareVarInst("float", fSlow29, kStack, CastInst("float", LoadVarInst(Address(fHslider46, kStruct))))
-	DeclareVarInst("float", fSlow30, kStack, CastInst("float", LoadVarInst(Address(fHslider47, kStruct))))
-	DeclareVarInst("float", fSlow31, kStack, BinopInst("*", BinopInst("*", LoadVarInst(Address(fSlow29, kStack)), LoadVarInst(Address(fSlow30, kStack))), BinopInst("+", LoadVarInst(Address(fSlow29, kStack)), LoadVarInst(Address(fSlow30, kStack)))))
-	DeclareVarInst("float", fSlow32, kStack, CastInst("float", LoadVarInst(Address(fHslider48, kStruct))))
-	DeclareVarInst("float", fSlow33, kStack, BinopInst("*", LoadVarInst(Address(fSlow32, kStack)), BinopInst("+", BinopInst("*", Float(3.0f), LoadVarInst(Address(fSlow32, kStack))), Float(-6.0f))))
-	DeclareVarInst("float", fSlow34, kStack, BinopInst("*", BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider49, kStruct))), CastInst("float", LoadVarInst(Address(fHslider50, kStruct)))), BinopInst("+", CastInst("float", LoadVarInst(Address(fHslider51, kStruct))), CastInst("float", LoadVarInst(Address(fHslider52, kStruct))))))
+	DeclareVarInst("float", fSlow0, kStack, BinopInst("*", Float(2.0f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))))
+	DeclareVarInst("float", fSlow1, kStack, BinopInst("+", BinopInst("*", Float(2.0f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider1, kStruct)))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider2, kStruct)))))))
+	DeclareVarInst("float", fSlow2, kStack, BinopInst("*", Float(3.0f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider3, kStruct)))))))
+	DeclareVarInst("float", fSlow3, kStack, NegInst(BinopInst("*", Float(3.0f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider4, kStruct))))))))
+	DeclareVarInst("float", fSlow4, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider5, kStruct))))))
+	DeclareVarInst("float", fSlow5, kStack, BinopInst("*", Float(3.7f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider6, kStruct)))))))
+	DeclareVarInst("float", fSlow6, kStack, BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider7, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider8, kStruct)))))))
+	DeclareVarInst("float", fSlow7, kStack, BinopInst("*", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider9, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider10, kStruct)))))))
+	DeclareVarInst("float", fSlow8, kStack, BinopInst("+", BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider11, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider12, kStruct)))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider13, kStruct)))))))
+	DeclareVarInst("float", fSlow9, kStack, BinopInst("+", BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider14, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider15, kStruct)))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider16, kStruct)))))))
+	DeclareVarInst("float", fSlow10, kStack, BinopInst("*", Float(2.0f), BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider17, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider18, kStruct))))))))
+	DeclareVarInst("float", fSlow11, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider19, kStruct))))))
+	DeclareVarInst("float", fSlow12, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider20, kStruct))))))
+	DeclareVarInst("float", fSlow13, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider21, kStruct))))))
+	DeclareVarInst("float", fSlow14, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider22, kStruct))))))
+	DeclareVarInst("float", fSlow15, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider23, kStruct))))))
+	DeclareVarInst("float", fSlow16, kStack, BinopInst("*", Float(2.0f), BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider24, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider25, kStruct))))))))
+	DeclareVarInst("float", fSlow17, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider28, kStruct))))))
+	DeclareVarInst("float", fSlow18, kStack, BinopInst("-", BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider26, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider27, kStruct)))))), LoadVarInst(Address(fSlow17, kStack))))
+	DeclareVarInst("float", fSlow19, kStack, BinopInst("*", BinopInst("*", FunCallInst("mydsp_faustpower2_f", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider29, kStruct)))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider30, kStruct)))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider31, kStruct)))))))
+	DeclareVarInst("float", fSlow20, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider32, kStruct))))))
+	DeclareVarInst("float", fSlow21, kStack, BinopInst("*", Float(0.5f), BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider33, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider34, kStruct))))))))
+	DeclareVarInst("float", fSlow22, kStack, FunCallInst("mydsp_faustpower2_f", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider35, kStruct)))))))
+	DeclareVarInst("float", fSlow23, kStack, FunCallInst("mydsp_faustpower2_f", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider36, kStruct)))))))
+	DeclareVarInst("float", fSlow24, kStack, BinopInst("*", FunCallInst("mydsp_faustpower2_f", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider37, kStruct)))))), FunCallInst("mydsp_faustpower3_f", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider38, kStruct))))))))
+	DeclareVarInst("float", fSlow25, kStack, FunCallInst("mydsp_faustpower2_f", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider39, kStruct)))))))
+	DeclareVarInst("float", fSlow26, kStack, BinopInst("*", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider40, kStruct))))), BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider41, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider42, kStruct))))))))
+	DeclareVarInst("float", fSlow27, kStack, BinopInst("+", BinopInst("*", Float(4.0f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider43, kStruct)))))), BinopInst("*", Float(2.0f), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider44, kStruct))))))))
+	DeclareVarInst("float", fSlow28, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider45, kStruct))))))
+	DeclareVarInst("float", fSlow29, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider46, kStruct))))))
+	DeclareVarInst("float", fSlow30, kStack, BinopInst("+", BinopInst("*", FunCallInst("mydsp_faustpower2_f", LoadVarInst(Address(fSlow28, kStack))), LoadVarInst(Address(fSlow29, kStack))), BinopInst("*", LoadVarInst(Address(fSlow28, kStack)), FunCallInst("mydsp_faustpower2_f", LoadVarInst(Address(fSlow29, kStack))))))
+	DeclareVarInst("float", fSlow31, kStack, FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider47, kStruct))))))
+	DeclareVarInst("float", fSlow32, kStack, BinopInst("*", Float(6.0f), LoadVarInst(Address(fSlow31, kStack))))
+	DeclareVarInst("float", fSlow33, kStack, BinopInst("-", BinopInst("*", Float(3.0f), FunCallInst("mydsp_faustpower2_f", LoadVarInst(Address(fSlow31, kStack)))), LoadVarInst(Address(fSlow32, kStack))))
+	DeclareVarInst("float", fSlow34, kStack, BinopInst("*", BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider48, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider49, kStruct)))))), BinopInst("+", FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider50, kStruct))))), FunCallInst("max_f", Float(-1e+01f), FunCallInst("min_f", Float(1e+01f), CastInst("float", LoadVarInst(Address(fHslider51, kStruct))))))))
 	========== Compute DSP ==========
 	ForLoopInst 
 		DeclareVarInst("int", i0, kLoop, Int32(0))
@@ -524,36 +514,36 @@ BlockInst
 			StoreVarInst(Address(output0, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow0, kStack))))
 			StoreVarInst(Address(output1, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow1, kStack))))
 			StoreVarInst(Address(output2, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow2, kStack))))
-			StoreVarInst(Address(output3, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", MinusInst(BinopInst("*", Float(3.0f), CastInst("float", LoadVarInst(Address(fHslider4, kStruct)))))))
-			StoreVarInst(Address(output4, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow3, kStack))))
-			StoreVarInst(Address(output5, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow4, kStack))))
-			StoreVarInst(Address(output6, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow5, kStack))))
-			StoreVarInst(Address(output7, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow5, kStack))))
-			StoreVarInst(Address(output8, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow6, kStack))))
-			StoreVarInst(Address(output9, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow6, kStack))))
-			StoreVarInst(Address(output10, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow7, kStack))))
-			StoreVarInst(Address(output11, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow8, kStack))))
-			StoreVarInst(Address(output12, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow9, kStack))))
-			StoreVarInst(Address(output13, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow10, kStack))))
-			StoreVarInst(Address(output14, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow11, kStack))))
-			StoreVarInst(Address(output15, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow12, kStack))))
+			StoreVarInst(Address(output3, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow3, kStack))))
+			StoreVarInst(Address(output4, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow4, kStack))))
+			StoreVarInst(Address(output5, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow5, kStack))))
+			StoreVarInst(Address(output6, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow6, kStack))))
+			StoreVarInst(Address(output7, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow6, kStack))))
+			StoreVarInst(Address(output8, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow7, kStack))))
+			StoreVarInst(Address(output9, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow7, kStack))))
+			StoreVarInst(Address(output10, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow8, kStack))))
+			StoreVarInst(Address(output11, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow9, kStack))))
+			StoreVarInst(Address(output12, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow10, kStack))))
+			StoreVarInst(Address(output13, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow11, kStack))))
+			StoreVarInst(Address(output14, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow12, kStack))))
+			StoreVarInst(Address(output15, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow13, kStack))))
 			StoreVarInst(Address(output16, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", Float(0.0f)))
 			StoreVarInst(Address(output17, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", Int32(0)))
-			StoreVarInst(Address(output18, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow13, kStack))))
-			StoreVarInst(Address(output19, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow14, kStack))))
-			StoreVarInst(Address(output20, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow15, kStack))))
-			StoreVarInst(Address(output21, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow16, kStack))))
-			StoreVarInst(Address(output22, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow17, kStack))))
-			StoreVarInst(Address(output23, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow18, kStack))))
-			StoreVarInst(Address(output24, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow19, kStack))))
-			StoreVarInst(Address(output25, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow20, kStack))))
-			StoreVarInst(Address(output26, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow21, kStack))))
-			StoreVarInst(Address(output27, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow22, kStack))))
-			StoreVarInst(Address(output28, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow24, kStack))))
-			StoreVarInst(Address(output29, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow26, kStack))))
-			StoreVarInst(Address(output30, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow27, kStack))))
-			StoreVarInst(Address(output31, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow28, kStack))))
-			StoreVarInst(Address(output32, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow31, kStack))))
+			StoreVarInst(Address(output18, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow14, kStack))))
+			StoreVarInst(Address(output19, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow15, kStack))))
+			StoreVarInst(Address(output20, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow16, kStack))))
+			StoreVarInst(Address(output21, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow18, kStack))))
+			StoreVarInst(Address(output22, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow19, kStack))))
+			StoreVarInst(Address(output23, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow20, kStack))))
+			StoreVarInst(Address(output24, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow21, kStack))))
+			StoreVarInst(Address(output25, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow22, kStack))))
+			StoreVarInst(Address(output26, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow23, kStack))))
+			StoreVarInst(Address(output27, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow24, kStack))))
+			StoreVarInst(Address(output28, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow25, kStack))))
+			StoreVarInst(Address(output29, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", Int32(1)))
+			StoreVarInst(Address(output30, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow26, kStack))))
+			StoreVarInst(Address(output31, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow27, kStack))))
+			StoreVarInst(Address(output32, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow30, kStack))))
 			StoreVarInst(Address(output33, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow33, kStack))))
 			StoreVarInst(Address(output34, kStack)[LoadVarInst(Address(i0, kLoop))], CastInst("FAUSTFLOAT", LoadVarInst(Address(fSlow34, kStack))))
 		EndBlockInst
@@ -567,8 +557,8 @@ EndBlockInst
 
 Heap size int = 4 bytes
 Heap size int* = 0 bytes
-Heap size real = 212 bytes
-Total heap size = 216 bytes
+Heap size real = 208 bytes
+Total heap size = 212 bytes
 Stack size in compute = 420 bytes
 
 ======= Variable access in Control ==========
@@ -625,7 +615,6 @@ Field = fHslider48 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider49 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider50 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider51 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
-Field = fHslider52 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 ======= Variable access in compute control ==========
@@ -634,7 +623,7 @@ Field = fHslider0 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
 Field = fHslider1 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
 Field = fHslider2 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
 Field = fHslider3 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
-Field = fHslider4 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+Field = fHslider4 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
 Field = fHslider5 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
 Field = fHslider6 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
 Field = fHslider7 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
@@ -682,7 +671,6 @@ Field = fHslider48 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
 Field = fHslider49 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
 Field = fHslider50 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
 Field = fHslider51 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
-Field = fHslider52 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 ======= Variable access in compute DSP ==========
@@ -691,7 +679,7 @@ Field = fHslider0 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider1 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider2 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider3 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
-Field = fHslider4 size = 1 size_bytes = 4 read = 1 write = 0 ratio = 1
+Field = fHslider4 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider5 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider6 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider7 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
@@ -739,5 +727,50 @@ Field = fHslider48 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider49 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider50 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fHslider51 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
-Field = fHslider52 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            771
+  eval() cache hits:       364 (47.2114%)
+  eval() cache misses:     407
+  Loop detector calls:     407
+  Stack detector calls:    407
+
+--- Phase 3: Propagation ---
+  propagate() calls:       641
+  propagate() cache hits:  286 (44.6178%)
+  propagate() cache misses:355
+
+--- Box Type Computation ---
+  getBoxType() calls:      1053
+  getBoxType() cache hits: 776 (73.6942%)
+  getBoxType() computed:   277
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       1
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           3879
+  Trees reused (hash):     10799 (73.5727% reuse rate)
+  Property set ops:        2170
+  Property get ops:        5308
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

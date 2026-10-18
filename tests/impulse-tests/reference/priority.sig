@@ -1,81 +1,9 @@
-// Size = 79
-ID_0 = 1';
-ID_1 = W0;
-ID_2 = proj0(ID_1);
-ID_3 = ID_2';
-ID_4 = (ID_0+ID_3);
-ID_5 = ID_4%65536;
-ID_6 = letrec(W0 = (ID_5));
-ID_7 = proj0(ID_6);
-ID_8 = ID_7@0;
-ID_9 = float(ID_8);
-ID_10 = 9.58738e-05f*ID_9;
-ID_11 = sin(ID_10);
-ID_12 = sigGen(ID_11);
-ID_13 = WRTbl2p(65536,ID_12);
-ID_14 = W1;
-ID_15 = proj0(ID_14);
-ID_16 = ID_15';
-ID_17 = float(fSamplingFreq);
-ID_18 = max(1.0f, ID_17);
-ID_19 = min(1.92e+05f, ID_18);
-ID_20 = 1.0f/ID_19;
-ID_21 = W2;
-ID_22 = proj0(ID_21);
-ID_23 = ID_22';
-ID_24 = W3;
-ID_25 = proj0(ID_24);
-ID_26 = ID_25';
-ID_27 = (ID_0+ID_26);
-ID_28 = 0.5f*ID_19;
-ID_29 = int(ID_28);
-ID_30 = ID_27%ID_29;
-ID_31 = letrec(W3 = (ID_30));
-ID_32 = proj0(ID_31);
-ID_33 = ID_32@0;
-ID_34 = ID_33<=ID_26;
-ID_35 = ID_34';
-ID_36 = (ID_34>ID_35);
-ID_37 = ID_23+ID_36;
-ID_38 = letrec(W2 = (ID_37));
-ID_39 = proj0(ID_38);
-ID_40 = ID_39@0;
-ID_41 = ID_40%2;
-ID_42 = W4;
-ID_43 = proj0(ID_42);
-ID_44 = ID_43';
-ID_45 = W5;
-ID_46 = proj0(ID_45);
-ID_47 = ID_46';
-ID_48 = (ID_0+ID_47);
-ID_49 = int(ID_19);
-ID_50 = ID_48%ID_49;
-ID_51 = letrec(W5 = (ID_50));
-ID_52 = proj0(ID_51);
-ID_53 = ID_52@0;
-ID_54 = ID_53<=ID_47;
-ID_55 = ID_54';
-ID_56 = (ID_54>ID_55);
-ID_57 = ID_44+ID_56;
-ID_58 = letrec(W4 = (ID_57));
-ID_59 = proj0(ID_58);
-ID_60 = ID_59@0;
-ID_61 = ID_60%2;
-ID_62 = 2*ID_61;
-ID_63 = ID_41+ID_62;
-ID_64 = (ID_63+1);
-ID_65 = 200*ID_64;
-ID_66 = float(ID_65);
-ID_67 = ID_20*ID_66;
-ID_68 = ID_16+ID_67;
-ID_69 = floor(ID_68);
-ID_70 = ID_68-ID_69;
-ID_71 = letrec(W1 = (ID_70));
-ID_72 = proj0(ID_71);
-ID_73 = ID_72@0;
-ID_74 = 65536.0f*ID_73;
-ID_75 = int(ID_74);
-ID_76 = min(ID_75, 65535);
-ID_77 = max(0, ID_76);
-ID_78 = sigRDTbl(ID_13,ID_77);
-SIG = (ID_78);
+R0 = (1'+R0')%65536;                                                          // int samp [0, 65535] lsb 0
+E0 = min(1.92e+05f, max(5e+01f, float(fSamplingFreq)));                       // real konst [50, 192000] lsb -27
+R1 = (1'+R1')%int(0.5f*E0);                                                   // int samp [0, 95999] lsb 0
+E1 = R1<=R1';                                                                 // int samp [0, 1] lsb 0
+R2 = (1'+R2')%int(E0);                                                        // int samp [0, 191999] lsb 0
+E2 = R2<=R2';                                                                 // int samp [0, 1] lsb 0
+R3 = frac(R3'+1.0f/E0*float(200*(1+IIR(E1>E1'; 1)%2+2*(IIR(E2>E2'; 1)%2))));  // real samp [0, 1] lsb -33
+// real samp [-1, 1] lsb -47
+process = (sigRDTbl(WRTbl2p(65536, sigGen(sin(9.58738e-05f*float(R0)))), max(0, min(int(65536.0f*R3), 65535))));
