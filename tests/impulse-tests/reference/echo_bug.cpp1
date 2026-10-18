@@ -1,11 +1,23 @@
 //----------------------------------------------------------
 // name: "echo_bug"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -17,16 +29,14 @@
 
 class mydsp : public dsp {
   private:
-	// Recursion delay fVeeec0 is of type kMaskRingDelay
-	// While its definition is of type kZeroDelay
-	float 	fVeeec0[2048]; // Ring Delay
 	FAUSTFLOAT 	fslider0;
+	// Recursion delay fRiiic0 is of type kZeroDelay
+	// While its definition is of type kZeroDelay
 	// Recursion delay fRiiic1 is of type kZeroDelay
 	// While its definition is of type kZeroDelay
-	// Recursion delay fRiiic2 is of type kZeroDelay
+	// Recursion delay fVeeec2 is of type kMaskRingDelay
 	// While its definition is of type kZeroDelay
-	// Recursion delay fRiiic3 is of type kZeroDelay
-	// While its definition is of type kZeroDelay
+	float 	fVeeec2[256]; // Ring Delay
 	int 	IOTA;
 	int fSampleRate;
 
@@ -37,6 +47,7 @@ class mydsp : public dsp {
 		m->declare("basics_lib_name", "Faust Basic Element Library");
 		m->declare("basics_lib_version", "0.0");
 		m->declare("compilation_options", "-single -scal -e echo_bug.dsp -o echo_bug.dsp");
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("compressors_lib_name", "Faust Compressor Effect Library");
 		m->declare("compressors_lib_version", "0.0");
 		m->declare("delays_lib_name", "Faust Delay Library");
@@ -94,7 +105,7 @@ class mydsp : public dsp {
 		fslider0 = 0.0f;
 	}
 	virtual void instanceClear() {
-		for (int i = 0; i < 2048; i++) { fVeeec0[i] = 0; }
+		for (int i = 0; i < 256; i++) { fVeeec2[i] = 0; }
 		IOTA = 0;
 	}
 	virtual void init(int sample_rate) {
@@ -119,28 +130,25 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			for (int i=0; i<count; i++) {
-				float 	fTemp0 = (float)input0[i]; // step: 1
-				int vIota0 = (IOTA-1)&2047;
-				int vIota1 = IOTA&2047;
-				fVeeec0[vIota1] = ((0.995f * fVeeec0[vIota0]) + (0.005f * fTemp0));
-				float 	fRiiic1 = float(fslider0); // Zero delay
-				float 	fRiiic2 = (1e+02f * (fRiiic1 + 1.0f)); // Zero delay
-				float 	fTemp1 = fRiiic2; // step: 20
-				int 	iTemp2 = int(fTemp1); // step: 21
-				int vIota2 = (IOTA-min(1025, max(0, iTemp2)))&2047;
-				float 	fTemp3 = floorf(fTemp1); // step: 25
-				int vIota3 = (IOTA-min(1025, max(0, (iTemp2 + 1))))&2047;
-				float 	fRiiic3 = ((fVeeec0[vIota2] * (fTemp3 + (1.0f - fTemp1))) + ((fTemp1 - fTemp3) * fVeeec0[vIota3])); // Zero delay
-				output0[i] = (FAUSTFLOAT)((fTemp0 + fRiiic3));  // Zone Exec Code
-				// post processing
-				IOTA = IOTA+1;
-			}
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		// schedule: ss=0 nodes=40 cycles=28 fill=35% peak=10 isoadj=3 packs4=0 aluMII=10 memMII=1 recMII=10 streams(peak/avg,win64)=4/3 (eval machine R=8 U=4 M=3)
+		for (int i=0; i<count; i++) {
+			float 	fTemp0 = (float)input0[i]; // step: 1
+			float 	fRiiic0 = fmaxf(-1.0f, fminf(1.0f, float(fslider0))); // Zero delay
+			float 	fRiiic1 = (1e+02f * (1.0f + fRiiic0)); // Zero delay
+			float 	fTemp1 = fRiiic1; // step: 14
+			int vIota0 = faust_wrap_sub(IOTA, 1)&255;
+			int 	iTemp2 = int(+fTemp1); // step: 25
+			int vIota1 = faust_wrap_sub(IOTA, faustmaxi(1, faustmini(faustmini(1025, faustmaxi(0, faust_wrap_add(1, iTemp2))), 201)))&255;
+			int vIota2 = IOTA&255;
+			fVeeec2[vIota2] = ((0.005f * fTemp0) + (0.995f * fVeeec2[vIota0]));
+			int vIota3 = faust_wrap_sub(IOTA, faustmaxi(0, faustmini(faustmini(1025, faustmaxi(0, iTemp2)), 200)))&255;
+			float 	fTemp3 = (fTemp1 - floorf(fTemp1)); // step: 39
+			output0[i] = (FAUSTFLOAT)((fTemp0 + (fVeeec2[vIota3] + fTemp3 * (fVeeec2[vIota1] - fVeeec2[vIota3]))));  // Zone Exec Code
+			// post processing
+			IOTA = faust_wrap_add(IOTA, 1);
 		}
 	}
 };

@@ -55,7 +55,7 @@ EndBlockInst
 
 ======= Compute control begin ==========
 
-Instructions complexity : Load = 20 Store = 10 Binop = 0 Mathop = 0 Numbers = 20 Declare = 20 Cast = 10 Select = 0 Loop = 0
+Instructions complexity : Load = 20 Store = 10 Binop = 0 Mathop = 0 Numbers = 20 Declare = 20 Cast = 20 Select = 0 Loop = 0
 
 BlockInst 
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
@@ -69,25 +69,25 @@ BlockInst
 	DeclareVarInst("FAUSTFLOAT*", output8, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(8)]))
 	DeclareVarInst("FAUSTFLOAT*", output9, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(9)]))
 	StoreVarInst(Address(fVbargraph0, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
-	DeclareVarInst("float", fSlow0, kStack, LoadVarInst(Address(fVbargraph0, kStruct)))
+	DeclareVarInst("float", fSlow0, kStack, CastInst("float", LoadVarInst(Address(fVbargraph0, kStruct))))
 	StoreVarInst(Address(fVbargraph1, kStruct), CastInst("FAUSTFLOAT", Float(1e+01f)))
-	DeclareVarInst("float", fSlow1, kStack, LoadVarInst(Address(fVbargraph1, kStruct)))
+	DeclareVarInst("float", fSlow1, kStack, CastInst("float", LoadVarInst(Address(fVbargraph1, kStruct))))
 	StoreVarInst(Address(fVbargraph2, kStruct), CastInst("FAUSTFLOAT", Float(2e+01f)))
-	DeclareVarInst("float", fSlow2, kStack, LoadVarInst(Address(fVbargraph2, kStruct)))
+	DeclareVarInst("float", fSlow2, kStack, CastInst("float", LoadVarInst(Address(fVbargraph2, kStruct))))
 	StoreVarInst(Address(fVbargraph3, kStruct), CastInst("FAUSTFLOAT", Float(3e+01f)))
-	DeclareVarInst("float", fSlow3, kStack, LoadVarInst(Address(fVbargraph3, kStruct)))
+	DeclareVarInst("float", fSlow3, kStack, CastInst("float", LoadVarInst(Address(fVbargraph3, kStruct))))
 	StoreVarInst(Address(fVbargraph4, kStruct), CastInst("FAUSTFLOAT", Float(4e+01f)))
-	DeclareVarInst("float", fSlow4, kStack, LoadVarInst(Address(fVbargraph4, kStruct)))
+	DeclareVarInst("float", fSlow4, kStack, CastInst("float", LoadVarInst(Address(fVbargraph4, kStruct))))
 	StoreVarInst(Address(fVbargraph5, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
-	DeclareVarInst("float", fSlow5, kStack, LoadVarInst(Address(fVbargraph5, kStruct)))
+	DeclareVarInst("float", fSlow5, kStack, CastInst("float", LoadVarInst(Address(fVbargraph5, kStruct))))
 	StoreVarInst(Address(fVbargraph6, kStruct), CastInst("FAUSTFLOAT", Float(10.5f)))
-	DeclareVarInst("float", fSlow6, kStack, LoadVarInst(Address(fVbargraph6, kStruct)))
+	DeclareVarInst("float", fSlow6, kStack, CastInst("float", LoadVarInst(Address(fVbargraph6, kStruct))))
 	StoreVarInst(Address(fVbargraph7, kStruct), CastInst("FAUSTFLOAT", Float(21.0f)))
-	DeclareVarInst("float", fSlow7, kStack, LoadVarInst(Address(fVbargraph7, kStruct)))
+	DeclareVarInst("float", fSlow7, kStack, CastInst("float", LoadVarInst(Address(fVbargraph7, kStruct))))
 	StoreVarInst(Address(fVbargraph8, kStruct), CastInst("FAUSTFLOAT", Float(31.5f)))
-	DeclareVarInst("float", fSlow8, kStack, LoadVarInst(Address(fVbargraph8, kStruct)))
+	DeclareVarInst("float", fSlow8, kStack, CastInst("float", LoadVarInst(Address(fVbargraph8, kStruct))))
 	StoreVarInst(Address(fVbargraph9, kStruct), CastInst("FAUSTFLOAT", Float(42.0f)))
-	DeclareVarInst("float", fSlow9, kStack, LoadVarInst(Address(fVbargraph9, kStruct)))
+	DeclareVarInst("float", fSlow9, kStack, CastInst("float", LoadVarInst(Address(fVbargraph9, kStruct))))
 EndBlockInst
 
 ======= Compute control end ==========
@@ -155,25 +155,25 @@ BlockInst
 	DeclareVarInst("FAUSTFLOAT*", output8, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(8)]))
 	DeclareVarInst("FAUSTFLOAT*", output9, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(9)]))
 	StoreVarInst(Address(fVbargraph0, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
-	DeclareVarInst("float", fSlow0, kStack, LoadVarInst(Address(fVbargraph0, kStruct)))
+	DeclareVarInst("float", fSlow0, kStack, CastInst("float", LoadVarInst(Address(fVbargraph0, kStruct))))
 	StoreVarInst(Address(fVbargraph1, kStruct), CastInst("FAUSTFLOAT", Float(1e+01f)))
-	DeclareVarInst("float", fSlow1, kStack, LoadVarInst(Address(fVbargraph1, kStruct)))
+	DeclareVarInst("float", fSlow1, kStack, CastInst("float", LoadVarInst(Address(fVbargraph1, kStruct))))
 	StoreVarInst(Address(fVbargraph2, kStruct), CastInst("FAUSTFLOAT", Float(2e+01f)))
-	DeclareVarInst("float", fSlow2, kStack, LoadVarInst(Address(fVbargraph2, kStruct)))
+	DeclareVarInst("float", fSlow2, kStack, CastInst("float", LoadVarInst(Address(fVbargraph2, kStruct))))
 	StoreVarInst(Address(fVbargraph3, kStruct), CastInst("FAUSTFLOAT", Float(3e+01f)))
-	DeclareVarInst("float", fSlow3, kStack, LoadVarInst(Address(fVbargraph3, kStruct)))
+	DeclareVarInst("float", fSlow3, kStack, CastInst("float", LoadVarInst(Address(fVbargraph3, kStruct))))
 	StoreVarInst(Address(fVbargraph4, kStruct), CastInst("FAUSTFLOAT", Float(4e+01f)))
-	DeclareVarInst("float", fSlow4, kStack, LoadVarInst(Address(fVbargraph4, kStruct)))
+	DeclareVarInst("float", fSlow4, kStack, CastInst("float", LoadVarInst(Address(fVbargraph4, kStruct))))
 	StoreVarInst(Address(fVbargraph5, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
-	DeclareVarInst("float", fSlow5, kStack, LoadVarInst(Address(fVbargraph5, kStruct)))
+	DeclareVarInst("float", fSlow5, kStack, CastInst("float", LoadVarInst(Address(fVbargraph5, kStruct))))
 	StoreVarInst(Address(fVbargraph6, kStruct), CastInst("FAUSTFLOAT", Float(10.5f)))
-	DeclareVarInst("float", fSlow6, kStack, LoadVarInst(Address(fVbargraph6, kStruct)))
+	DeclareVarInst("float", fSlow6, kStack, CastInst("float", LoadVarInst(Address(fVbargraph6, kStruct))))
 	StoreVarInst(Address(fVbargraph7, kStruct), CastInst("FAUSTFLOAT", Float(21.0f)))
-	DeclareVarInst("float", fSlow7, kStack, LoadVarInst(Address(fVbargraph7, kStruct)))
+	DeclareVarInst("float", fSlow7, kStack, CastInst("float", LoadVarInst(Address(fVbargraph7, kStruct))))
 	StoreVarInst(Address(fVbargraph8, kStruct), CastInst("FAUSTFLOAT", Float(31.5f)))
-	DeclareVarInst("float", fSlow8, kStack, LoadVarInst(Address(fVbargraph8, kStruct)))
+	DeclareVarInst("float", fSlow8, kStack, CastInst("float", LoadVarInst(Address(fVbargraph8, kStruct))))
 	StoreVarInst(Address(fVbargraph9, kStruct), CastInst("FAUSTFLOAT", Float(42.0f)))
-	DeclareVarInst("float", fSlow9, kStack, LoadVarInst(Address(fVbargraph9, kStruct)))
+	DeclareVarInst("float", fSlow9, kStack, CastInst("float", LoadVarInst(Address(fVbargraph9, kStruct))))
 	========== Compute DSP ==========
 	ForLoopInst 
 		DeclareVarInst("int", i0, kLoop, Int32(0))
@@ -246,3 +246,49 @@ Field = fVbargraph7 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fVbargraph8 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fVbargraph9 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            117
+  eval() cache hits:       21 (17.9487%)
+  eval() cache misses:     96
+  Loop detector calls:     96
+  Stack detector calls:    96
+
+--- Phase 3: Propagation ---
+  propagate() calls:       81
+  propagate() cache hits:  27 (33.3333%)
+  propagate() cache misses:54
+
+--- Box Type Computation ---
+  getBoxType() calls:      159
+  getBoxType() cache hits: 94 (59.1195%)
+  getBoxType() computed:   65
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       11
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           423
+  Trees reused (hash):     719 (62.9597% reuse rate)
+  Property set ops:        230
+  Property get ops:        606
+
+--- Iteration Constructs ---
+  par() iterations:        10
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

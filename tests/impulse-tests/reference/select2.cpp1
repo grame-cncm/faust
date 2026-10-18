@@ -1,11 +1,23 @@
 //----------------------------------------------------------
 // name: "select2"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -19,16 +31,13 @@ class mydsp : public dsp {
   private:
 	static int 	iWave0[4];
 	int 	idxiWave0;
-	// Recursion delay iVeeec0 is of type kMonoDelay
-	// While its definition is of type kZeroDelay
-	int 	iVeeec0State; // Mono Delay
-	// Recursion delay iVeeec2 is of type kMonoDelay
-	// While its definition is of type kZeroDelay
-	int 	iVeeec2State; // Mono Delay
+	int 	iVeeec0State; // Single Delay
+	int 	iVeeec1State; // Single Delay
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "select2.dsp");
 		m->declare("name", "select2");
 	}
@@ -45,7 +54,7 @@ class mydsp : public dsp {
 	}
 	virtual void instanceClear() {
 		iVeeec0State = 0;
-		iVeeec2State = 0;
+		iVeeec1State = 0;
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -68,23 +77,21 @@ class mydsp : public dsp {
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		int 	iVeeec0;
-		int 	iVeeec2;
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			iVeeec0 = iVeeec0State;
-			iVeeec2 = iVeeec2State;
-			for (int i=0; i<count; i++) {
-				iVeeec0 = (iVeeec0 + 1);
-				iVeeec2 = (iVeeec2 + 2);
-				output0[i] = (FAUSTFLOAT)(((iWave0[idxiWave0]) ? iVeeec2 : iVeeec0));  // Zone Exec Code
-				// post processing
-				idxiWave0 = (idxiWave0 + 1) % 4;
-			}
-			iVeeec0State = iVeeec0;
-			iVeeec2State = iVeeec2;
+		int 	iVeeec1;
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		// schedule: ss=0 nodes=7 cycles=4 fill=43% peak=4 isoadj=1 packs4=0 aluMII=2 memMII=0 recMII=0 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		iVeeec0 = iVeeec0State;
+		iVeeec1 = iVeeec1State;
+		for (int i=0; i<count; i++) {
+			iVeeec0 = faust_wrap_add(1, iVeeec0);
+			iVeeec1 = faust_wrap_add(2, iVeeec1);
+			output0[i] = (FAUSTFLOAT)(((iWave0[idxiWave0]) ? iVeeec1 : iVeeec0));  // Zone Exec Code
+			// post processing
+			idxiWave0 = (idxiWave0 + 1) % 4;
 		}
+		iVeeec0State = iVeeec0;
+		iVeeec1State = iVeeec1;
 	}
 };
 

@@ -1,6 +1,9 @@
+# the compiler and the libraries of this tree (not the installed ones), as Make.ref
+FAUST=${FAUST:-../../../build/bin/faust}
+LIB=${LIB:-../../../libraries}
 for f in $@
 do
   echo "Processing $f file..."
-  faust -norm $f > ${f%.dsp}.sig
+  $FAUST -I $LIB -norm $f > ${f%.dsp}.sig
   diff ${f%.dsp}.sig ../reference/${f%.dsp}.sig ; echo Done
 done

@@ -1,6 +1,9 @@
+# the compiler and the libraries of this tree (not the installed ones), as Make.ref
+FAUST=${FAUST:-../../../build/bin/faust}
+LIB=${LIB:-../../../libraries}
 for f in $@
 do
   echo "Processing $f file..."
-  faust -lang ocpp $f > ${f%.dsp}.cpp
+  $FAUST -I $LIB -lang ocpp $f > ${f%.dsp}.cpp
   diff ${f%.dsp}.cpp ../reference/${f%.dsp}.cpp1 ; echo Done
 done

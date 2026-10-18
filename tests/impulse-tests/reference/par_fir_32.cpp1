@@ -2,11 +2,23 @@
 // name: "par_fir_32"
 // version: "2.76.0"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -72,14 +84,14 @@ class mydsp : public dsp {
 		float 	fVec0Cache[32+31];
 		int fullcount = count;
 		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
+			int count = faustmini(32, fullcount-index);
 			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
 			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			// schedule: ss=0 nodes=34 cycles=9 fill=94% peak=33 isoadj=30 packs4=7 aluMII=9 memMII=1 recMII=0 streams(peak/avg,win64)=2/1 (eval machine R=8 U=4 M=3)
 			float* 	fVec0 = fVec0Cache + 32 - 1;
 			for (int j = 0; j < 31; j++) { fVec0[j+1] = fVec0State[j]; }
 			for (int i=0; i<count; i++) {
-				float 	fTemp0 = (float)input0[i]; // step: 1
-				fVec0[0] = fTemp0;
+				fVec0[0] = (float)input0[i];
 				output0[i] = (FAUSTFLOAT)((((((((((((((((((((((((((((((((fVec0[0] + (0.5f * fVec0[1])) + (0.33333334f * fVec0[2])) + (0.25f * fVec0[3])) + (0.2f * fVec0[4])) + (0.16666667f * fVec0[5])) + (0.14285715f * fVec0[6])) + (0.125f * fVec0[7])) + (0.11111111f * fVec0[8])) + (0.1f * fVec0[9])) + (0.09090909f * fVec0[10])) + (0.083333336f * fVec0[11])) + (0.07692308f * fVec0[12])) + (0.071428575f * fVec0[13])) + (0.06666667f * fVec0[14])) + (0.0625f * fVec0[15])) + (0.05882353f * fVec0[16])) + (0.055555556f * fVec0[17])) + (0.05263158f * fVec0[18])) + (0.05f * fVec0[19])) + (0.04761905f * fVec0[20])) + (0.045454547f * fVec0[21])) + (0.04347826f * fVec0[22])) + (0.041666668f * fVec0[23])) + (0.04f * fVec0[24])) + (0.03846154f * fVec0[25])) + (0.037037037f * fVec0[26])) + (0.035714287f * fVec0[27])) + (0.03448276f * fVec0[28])) + (0.033333335f * fVec0[29])) + (0.032258064f * fVec0[30])) + (0.03125f * fVec0[31])));  // Zone Exec Code
 				// post processing
 				--fVec0;

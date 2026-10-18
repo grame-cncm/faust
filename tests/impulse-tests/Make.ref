@@ -74,17 +74,20 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 $(refdir)/%.box: dsp/%.dsp
 	$(FAUST) $(FAUSTOPTIONS) -e $< -o $@ ; echo $<
 	
-# rules for reference-signal : the normal form as equations, with their types
+# rules for reference-signal, reference-fir and reference-cpp : the commands of
+# dsp/sig-script, dsp/fir-script and dsp/cpp-script (make test-signal, test-fir,
+# test-cpp), run from dsp/ with the libraries of this tree
+# the normal form as equations, with their types
 $(refdir)/%.sig: dsp/%.dsp
-	$(FAUST) $(FAUSTOPTIONS) -norm $<  > $@ ; echo $<
+	cd dsp && $(abspath $(FAUST)) -I $(abspath ../../libraries) -norm $(notdir $<) > ../$@ ; echo $<
 
 # rules for reference-fir
 $(refdir)/%.fir: dsp/%.dsp
-	$(FAUST) -lang fir $(FAUSTOPTIONS) $<  > $@ ; echo $<
+	cd dsp && $(abspath $(FAUST)) -I $(abspath ../../libraries) -lang fir $(notdir $<) -o ../$@ ; echo $<
 
 # rules for reference-cpp
 $(refdir)/%.cpp1: dsp/%.dsp
-	$(FAUST) -lang ocpp $(FAUSTOPTIONS) $<  > $@ ; echo $<
+	cd dsp && $(abspath $(FAUST)) -I $(abspath ../../libraries) -lang ocpp $(notdir $<) > ../$@ ; echo $<
 
 # rules for reference
 $(refdir)/%.ir: dsp/% $(refdir)/vec/%.ir dsp/%.dsp dsp/%.cpp 
