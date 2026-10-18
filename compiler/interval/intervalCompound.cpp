@@ -260,7 +260,7 @@ interval interval_algebra::numericMixWeight(const interval& c, const interval& a
 // x : anything, NaN included.
 interval interval_algebra::Irm(const interval& x, const interval& c) const
 {
-    if (x.isEmpty() || c.isEmpty()) return empty();
+    if (x.isEmpty() || c.isEmpty()) return empty().withInvalid(x.mayBeInvalid() || c.mayBeInvalid());
     const bool     invalid  = x.mayBeInvalid() || c.mayBeInvalid();
     const int      lsb      = std::min({x.lsb(), c.lsb(), -1});
     const interval anything = interval(-HUGE_VAL, HUGE_VAL, lsb, true);
@@ -350,7 +350,7 @@ interval interval_algebra::Mix(const interval& c, const interval& a, const inter
 // Public API : inside its domain Tpt is valid when x is ; outside, the definition says
 interval interval_algebra::Tpt(const interval& x) const
 {
-    if (x.isEmpty()) return empty();
+    if (x.isEmpty()) return empty().withInvalid(x.mayBeInvalid());
     const interval fx = detail::floatingOperand(x);
     if (!(fx.lo() > -1) || !std::isfinite(fx.hi())) return tptDefinition(x);
     return numericTpt(x).withInvalid(x.mayBeInvalid());
@@ -359,7 +359,7 @@ interval interval_algebra::Tpt(const interval& x) const
 // Public API : the validity of the definition (a divisor that may be 0, an invalid operand)
 interval interval_algebra::Phase(const interval& x, const interval& p) const
 {
-    if (x.isEmpty() || p.isEmpty()) return empty();
+    if (x.isEmpty() || p.isEmpty()) return empty().withInvalid(x.mayBeInvalid() || p.mayBeInvalid());
     return numericPhase(x, p).withInvalid(phaseDefinition(x, p).mayBeInvalid());
 }
 

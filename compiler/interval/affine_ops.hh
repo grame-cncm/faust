@@ -970,7 +970,9 @@ class AffineOps : public Base {
     }
     AffItv Mix(const AffItv& c, const AffItv& a, const AffItv& b) const override
     {
-        if (c.isEmpty() || a.isEmpty() || b.isEmpty()) return aempty();
+        if (c.isEmpty() || a.isEmpty() || b.isEmpty()) {
+            return aempty().withInvalid(c.mayBeInvalid || a.mayBeInvalid || b.mayBeInvalid);
+        }
         return fromItv(fItv.Mix(toItv(c, fT), toItv(a, fT), toItv(b, fT)))
             .withInvalid(c.mayBeInvalid || a.mayBeInvalid || b.mayBeInvalid);
     }
@@ -980,7 +982,7 @@ class AffineOps : public Base {
     }
     AffItv Phase(const AffItv& x, const AffItv& p) const override
     {
-        if (x.isEmpty() || p.isEmpty()) return aempty();
+        if (x.isEmpty() || p.isEmpty()) return aempty().withInvalid(x.mayBeInvalid || p.mayBeInvalid);
         const interval r = fItv.Phase(toItv(x, fT), toItv(p, fT));
         return fromItv(r).withInvalid(x.mayBeInvalid || p.mayBeInvalid || r.mayBeInvalid());
     }
@@ -1016,18 +1018,26 @@ class AffineOps : public Base {
     }
     AffItv Iir(const AffItv& x, const std::vector<AffItv>& coefs) const override
     {
-        if (x.isEmpty()) return aempty();
-        std::vector<interval> cs;
+        bool alert = x.mayBeInvalid;
+        bool none  = x.isEmpty();
         for (const AffItv& ck : coefs) {
-            if (ck.isEmpty()) return aempty();
-            cs.push_back(toItv(ck, fT));
+            alert = alert || ck.mayBeInvalid;
+            none  = none || ck.isEmpty();
         }
+        if (none) return aempty().withInvalid(alert);
+        std::vector<interval> cs;
+        for (const AffItv& ck : coefs) cs.push_back(toItv(ck, fT));
         return fromItv(fItv.Iir(toItv(x, fT), cs));
     }
     AffItv Bpf(const AffItv& x, const std::vector<AffItv>& t, const std::vector<AffItv>& r) const override
     {
         // the regions that x may reach, joined as corridors
-        if (x.isEmpty() || r.size() != t.size() + 1) return aempty();
+        // a malformed node (|r| != |t| + 1) bounds nothing
+        if (r.size() != t.size() + 1) return fromItv(interval(-HUGE_VAL, HUGE_VAL, -24, true));
+        bool alert = x.mayBeInvalid;
+        for (const AffItv& ti : t) alert = alert || ti.mayBeInvalid;
+        for (const AffItv& ri : r) alert = alert || ri.mayBeInvalid;
+        if (x.isEmpty()) return aempty().withInvalid(alert);
         const interval ix = toItv(x, fT);
         AffItv         acc;
         bool           any = false, invalid = false;
@@ -1041,11 +1051,11 @@ class AffineOps : public Base {
             invalid = invalid || r[i].mayBeInvalid;
         }
         for (const AffItv& ti : t) invalid = invalid || ti.mayBeInvalid;
-        return any ? acc.withInvalid(invalid) : aempty();
+        return any ? acc.withInvalid(invalid) : aempty().withInvalid(alert);
     }
     AffItv Irm(const AffItv& x, const AffItv& c) const override
     {
-        if (x.isEmpty() || c.isEmpty()) return aempty();
+        if (x.isEmpty() || c.isEmpty()) return aempty().withInvalid(x.mayBeInvalid || c.mayBeInvalid);
         return fromItv(fItv.Irm(toItv(x, fT), toItv(c, fT))).withInvalid(x.mayBeInvalid || c.mayBeInvalid);
     }
 
