@@ -71,7 +71,7 @@ Note that using the `-inj foo.cpp` option allows to compile any C++ class contai
 
 The **dynamic-jack-gtk/dynamic-coreaudio-gtk** tools use the dynamic compilation chain, compile a Faust DSP source, and run it with the LLVM or Interpreter backend. They can also read a precompiled DSP factory, either in IR (.ll), bitcode (.bc), or machine code (.mc) when using the LLVM backend, or byte code (.fbc) when using the Interpreter backend. The `-edit` option can be used to start an *edit/compile/run loop* where the DSP can be edited with an external editor, will be recompiled on the fly each time it changes, and then executed. 
 
-`dynamic-jack-gtk|dynamic-coreaudio-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.ll/foo.bc/foo.mc/foo.fbc`
+`dynamic-jack-gtk|dynamic-coreaudio-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-effect <effect.dsp>|auto] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.ll/foo.bc/foo.mc/foo.fbc`
 
 Here are the available options:
 
@@ -80,11 +80,15 @@ Here are the available options:
 - `-edit' to start an edit/compile/run loop, using a foo.dsp kind of source file`
 - `-generic to JIT for a generic CPU (otherwise 'native' mode is used)`
 - `-nvoices <num> to start the DSP in polyphonic mode with <num> voices`
+- `-effect <effect.dsp> to connect a global output effect after the DSP or the mixed polyphonic voices`
+- `-effect auto to use the effect defined as 'effect' in the input .dsp file, with automatic channel adaptation`
 - `-all' to active the 'all voices always playing' mode when polyphony is used`
 - `-midi to activate MIDI control`
 - `-osc to activate OSC control`
 - `-httpd to activate HTTPD control`
 - `-resample' to resample soundfiles to the audio driver sample rate`
+
+With `-effect <effect.dsp>`, the effect inputs must match the DSP outputs. In `-edit` mode, changes to the effect file also trigger recompilation.
 
 Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers, the *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 7 (see the [interp-tracer](#interp-tracer) tool). 
 

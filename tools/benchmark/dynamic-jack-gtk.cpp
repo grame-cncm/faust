@@ -91,6 +91,21 @@ static double dopt(char* argv[], const char* key, double def)
     return def;
 }
 
+static string effectCode(const string& filename)
+{
+    string path;
+    for (char c : filename) {
+        if (c == '\\' || c == '"') path += '\\';
+        path += c;
+    }
+    return "bus(n) = par(i,n,_); "
+           "adapt(1,n,m) = bus(n) <: bus(m); "
+           "adapt(0,n,m) = bus(n) :> bus(m); "
+           "adaptor(F,G) = adapt(outputs(F) <= inputs(G), outputs(F), inputs(G)); "
+           "dsp_code = library(\"" + path + "\"); "
+           "process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;";
+}
+
 struct DynamicDSP {
     
     bool hasCompileOption(const string& compile_options, const string& option)
@@ -104,6 +119,7 @@ struct DynamicDSP {
     }
     
     dsp_factory* fFactory = nullptr;
+    dsp_factory* fEffectFactory = nullptr;
     dsp* fDSP = nullptr;
     MidiUI* fMIDIInterface = nullptr;
     httpdUI* fHTTPDinterface = nullptr;
@@ -165,15 +181,17 @@ struct DynamicDSP {
         
         if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
         #ifdef JACK
-            cout << "dynamic-jack-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [-smooth-lin <sec>] [-smooth-exp <sec>] [-smooth-step <samples>] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+            cout << "dynamic-jack-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-effect <effect.dsp>|auto] [-all] [-midi] [-osc] [-httpd] [-resample] [-smooth-lin <sec>] [-smooth-exp <sec>] [-smooth-step <samples>] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
         #else
-            cout << "dynamic-coreaudio-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [-smooth-lin <sec>] [-smooth-exp <sec>] [-smooth-step <samples>] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+            cout << "dynamic-coreaudio-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-effect <effect.dsp>|auto] [-all] [-midi] [-osc] [-httpd] [-resample] [-smooth-lin <sec>] [-smooth-exp <sec>] [-smooth-step <samples>] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
         #endif
             cout << "Use '-llvm' to use LLVM backend, using either .dsp, .ll, .bc or .mc files\n";
             cout << "Use '-interp' to use Interpreter backend, using either .dsp or .fbc (Faust Byte Code) files\n";
             cout << "Use '-edit' to start an edit/compile/run loop, using a foo.dsp kind of source file\n";
             cout << "Use '-generic' to JIT for a generic CPU (otherwise 'native' mode is used)\n";
             cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
+            cout << "Use '-effect <effect.dsp>' to connect a global output effect after the DSP or polyphonic voices\n";
+            cout << "Use '-effect auto' to extract the global output effect defined as 'effect' in the input .dsp file\n";
             cout << "Use '-all' to active the 'all voices always playing' mode when polyphony is used\n";
             cout << "Use '-midi' to activate MIDI control\n";
             cout << "Use '-osc' to activate OSC control\n";
@@ -197,7 +215,7 @@ struct DynamicDSP {
             "-osc", "-all", "-httpd", "-resample"
         };
         static const unordered_set<string> flags_with_arg = {
-            "-nvoices", "-smooth-lin", "-smooth-exp", "-smooth-step",
+            "-nvoices", "-effect", "-smooth-lin", "-smooth-exp", "-smooth-step",
             "-port", "-outport", "-errport", "-desthost", "-xmit"
         };
         
@@ -208,6 +226,10 @@ struct DynamicDSP {
                 continue;
             }
             if (flags_with_arg.count(arg)) {
+                if (arg == "-effect" && (i + 1 >= argc - 1 || argv[i + 1][0] == '-')) {
+                    cerr << "Missing effect file or 'auto' after -effect" << endl;
+                    exit(EXIT_FAILURE);
+                }
                 ++i; // skip parameter
                 continue;
             }
@@ -219,9 +241,18 @@ struct DynamicDSP {
         cout << endl;
         argv1[argc1] = nullptr;  // NULL terminated argv
         
+        string effect = lopts(argv, "-effect", "");
+        if (isopt(argv, "-effect") && effect.empty()) {
+            cerr << "Missing effect file or 'auto' after -effect" << endl;
+            exit(EXIT_FAILURE);
+        }
+        if (effect == "auto" && !endWith(argv[argc-1], ".dsp")) {
+            cerr << "Use an input .dsp file with -effect auto" << endl;
+            exit(EXIT_FAILURE);
+        }
+        string opt_target;
         if (is_llvm) {
             
-            string opt_target;
             if (is_generic) {
                 string triple, cpu;
                 splitTarget(getDSPMachineTarget(), triple, cpu);
@@ -270,6 +301,24 @@ struct DynamicDSP {
             cerr << error_msg;
             throw bad_alloc();
         }
+
+        if (!effect.empty()) {
+            cout << "Compiling global output effect : " << effect << endl;
+            if (is_llvm) {
+                fEffectFactory = (effect == "auto")
+                    ? createDSPFactoryFromString("effect", effectCode(argv[argc-1]), argc1, argv1, opt_target, error_msg, -1)
+                    : createDSPFactoryFromFile(effect, argc1, argv1, opt_target, error_msg, -1);
+            } else {
+                fEffectFactory = (effect == "auto")
+                    ? createInterpreterDSPFactoryFromString("effect", effectCode(argv[argc-1]), argc1, argv1, error_msg)
+                    : createInterpreterDSPFactoryFromFile(effect, argc1, argv1, error_msg);
+            }
+            if (!fEffectFactory) {
+                cerr << "Cannot compile effect: " << error_msg << endl;
+                deleteFactories();
+                throw bad_alloc();
+            }
+        }
         
         cout << "getCompileOptions " << fFactory->getCompileOptions() << endl;
         bool is_double = hasCompileOption(fFactory->getCompileOptions(), "-double");
@@ -283,6 +332,7 @@ struct DynamicDSP {
         fDSP = fFactory->createDSPInstance();
         if (!fDSP) {
             cerr << "Cannot create instance "<< endl;
+            deleteFactories();
             throw bad_alloc();
         }
         
@@ -304,6 +354,22 @@ struct DynamicDSP {
         if (nvoices > 0) {
             cout << "Starting polyphonic mode 'nvoices' : " << nvoices << " and 'all' : " << is_all << endl;
             fDSP = new mydsp_poly(fDSP, nvoices, !is_all, true);
+        }
+
+        if (fEffectFactory) {
+            dsp* effect_dsp = fEffectFactory->createDSPInstance();
+            if (!effect_dsp || fDSP->getNumOutputs() != effect_dsp->getNumInputs()) {
+                cerr << "Cannot connect effect: its inputs must match the DSP outputs" << endl;
+                delete effect_dsp;
+                delete fDSP;
+                fDSP = nullptr;
+                deleteFactories();
+                throw bad_alloc();
+            }
+            if (hasCompileOption(fEffectFactory->getCompileOptions(), "-double")) {
+                effect_dsp = new dsp_sample_adapter<double, float>(effect_dsp);
+            }
+            fDSP = new dsp_sequencer(fDSP, effect_dsp);
         }
         
         if (is_smoothing && smoothing_sec > 0) {
@@ -376,6 +442,19 @@ struct DynamicDSP {
     {
         fInterface->stop();
     }
+
+    void deleteFactories()
+    {
+        if (is_llvm) {
+            deleteDSPFactory(static_cast<llvm_dsp_factory*>(fEffectFactory));
+            deleteDSPFactory(static_cast<llvm_dsp_factory*>(fFactory));
+        } else {
+            deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fEffectFactory));
+            deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fFactory));
+        }
+        fEffectFactory = nullptr;
+        fFactory = nullptr;
+    }
     
     ~DynamicDSP()
     {
@@ -390,11 +469,7 @@ struct DynamicDSP {
         delete fOSCinterface;
         delete fSoundinterface;
         
-        if (is_llvm) {
-            deleteDSPFactory(static_cast<llvm_dsp_factory*>(fFactory));
-        } else {
-            deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fFactory));
-        }
+        deleteFactories();
     #ifdef JACK
     #else
         delete fMidiHandler;
@@ -419,6 +494,10 @@ static void run(Context* context)
 {
     while (true) {
         string sha_key = generateSHA1(pathToContent(context->fArgv[context->fArgc-1]));
+        string effect = lopts(context->fArgv, "-effect", "");
+        if (!effect.empty() && effect != "auto") {
+            sha_key += generateSHA1(pathToContent(effect));
+        }
         if (sha_key != context->fSHAKey) {
             context->fSHAKey = sha_key;
             gMutex.lock();
