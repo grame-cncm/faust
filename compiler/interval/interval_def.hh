@@ -468,7 +468,7 @@ inline double ulpStep(double b, double dir)
     return std::nextafter(b, dir);
 }
 
-inline interval libmBounds(const interval& r, double fmin, double fmax)
+inline interval libmBounds(const interval& r, double fmin, double fmax, int steps = 2)
 {
     // A singleton alone is not evidence that Faust folded an operation. Float/double
     // references are certified independently; the legacy two-ULP target margin
@@ -479,7 +479,7 @@ inline interval libmBounds(const interval& r, double fmin, double fmax)
     // (sin(+-0) = +-0, tan(0) = 0, log(1) = 0, pow(0, y) = 0...), and a bound of 0 comes
     // from such an exact point
     double lo = r.lo(), hi = r.hi();
-    for (int k = 0; k < 2; k++) {
+    for (int k = 0; k < steps; k++) {
         if (lo != 0) lo = ulpStep(lo, -HUGE_VAL);
         if (hi != 0) hi = ulpStep(hi, HUGE_VAL);
     }
