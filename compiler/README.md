@@ -76,7 +76,7 @@ Code generation options:
 
   **-fp**         **--full-parentheses**          always add parentheses around binops.
 
-  **-cir**        **--check-integer-range**       check float to integer range conversion.
+  **-cir**        **--check-integer-range**       kept for compatibility, without effect : a float to integer conversion always saturates.
 
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
@@ -162,7 +162,7 @@ Code generation options:
 
   **-hlf** \<n>    **--hash-load-factor** \<n>      load factor that triggers tlib hash table growth (0.7 by default) ; internal compiler tuning knob, never changes generated code, see TLIB.md.
 
-  **-rui**        **--range-ui**                  whether to generate code to constraint vslider/hslider/nentry values in [min..max] range.
+  **-norui**      **--no-range-ui**               do not constrain the vslider/hslider/nentry values in their [min..max] range, nor read the buttons and checkboxes as 0 or 1 (by default they are : the certification assumes these values).
 
   **-eta**        **--eta-normalization**         normalization loop with the eta harvest: definitions no longer recursive replace their projections (one pass by default).
 
@@ -201,6 +201,12 @@ Code generation options:
   **-fm** \<file>  **--fast-math** \<file>          use optimized versions of mathematical functions implemented in \<file>, use 'faust/dsp/fastmath.cpp' when file is 'def', assume functions are defined in the architecture file when file is 'arch'.
 
   **-mapp**       **--math-approximation**        simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
+
+  **-noshs**      **--no-share-sums**             keep the dense sums of the normal form (by default they are factored by coefficient and their common sub-sums shared).
+
+  **-xw**         **--exact-weights**             write the products (1 + w) * y of the normal form as w * y + y, w read exactly (more precise, a little slower).
+
+  **-nosl**       **--no-sum-lanes**              keep the long sums as chains (by default their sample-rate terms are added in 4 interleaved partial sums).
 
   **-noreprc**    **--no-reprc**                  (Rust only) Don't force dsp struct layout to follow C ABI.
 
