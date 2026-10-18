@@ -140,10 +140,15 @@ static const char* kCertifiedWarning = "WARNING : this program is certified for 
 static const char* kFastMathWarning =
     "WARNING : -fm computes mathematical functions by approximations that the interval "
     "analysis does not bound : the certification of this program does not cover them\n";
+static const char* kNoRangeUIWarning =
+    "WARNING : -norui leaves the controls as the host writes them, while the certification "
+    "assumes the sliders and numerical entries within their declared range and the buttons "
+    "and checkboxes at 0 or 1 : other values are not covered\n";
 
 bool isCertificationWarning(const std::string& warning)
 {
-    return warning.rfind(kCertifiedWarning, 0) == 0 || warning == kFastMathWarning;
+    return warning.rfind(kCertifiedWarning, 0) == 0 || warning == kFastMathWarning ||
+           warning == kNoRangeUIWarning;
 }
 
 void checkCertificates()
@@ -166,6 +171,10 @@ void checkCertificates()
     // -fm replaces mathematical functions by approximations that the intervals do not bound
     if (gGlobal->gFastMathLib != "") {
         gWarningMessages.push_back(kFastMathWarning);
+    }
+    // -norui : the controls are not brought within the values the typing assumes
+    if (!gGlobal->gRangeUI) {
+        gWarningMessages.push_back(kNoRangeUIWarning);
     }
 }
 
