@@ -381,7 +381,6 @@ global::global()
     // signature by the library, so they carry the dense opcodes signal
     // dispatch can use. The members below are references to sigs::g.
     sigs::initSignalSymbols();
-    SIMPLETYPE         = symbol("SimpleType");
 
     gMachineFloatSize      = sizeof(float);
     gMachineInt32Size      = sizeof(int);
@@ -662,7 +661,7 @@ void global::init()
     gSymListProp           = new property<Tree>();
 
     // Essential predefined types
-    gMemoizedTypes          = new property<AudioType*>();
+    gMemoizedTypes.clear();
     gAllocationCount        = 0;
     gMaskDelayLineThreshold = INT_MAX;
 
@@ -1111,7 +1110,7 @@ global::~global()
     // Release the memoized types of the signal library state while the
     // AudioType objects are still alive (destroyed by tlib::cleanup below);
     // the static sigs::g must not keep stale pointers.
-    gMemoizedTypes = nullptr;
+    gMemoizedTypes.clear();
     gSymListProp   = nullptr;
 
     // the propagation memo points to the trees that tlib::cleanup deletes

@@ -620,7 +620,8 @@ struct global {
     property<Tree>*& gSymListProp = sigs::g.gSymListProp;
 
     // Memoized type contruction
-    property<AudioType*>*& gMemoizedTypes = sigs::g.gMemoizedTypes;
+    std::unordered_map<SimpleTypeKey, AudioType*, SimpleTypeKeyHash>& gMemoizedTypes =
+        sigs::g.gMemoizedTypes;
 
     // Symbols
     Sym UIFOLDER;
@@ -670,7 +671,6 @@ struct global {
     Sym& SIGREGISTER = sigs::g.SIGREGISTER;  // for FPGA Retiming
 
     // Types
-    Sym& SIMPLETYPE = sigs::g.SIMPLETYPE;
 
     // The map of types and associated Structured types
     std::map<Typed::VarType, DeclareStructTypeInst*> gExternalStructTypes;
