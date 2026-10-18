@@ -30,7 +30,6 @@
 #include "global.hh"
 #include "revealIIR.hh"
 #include "revealPhase.hh"
-#include "orderSums.hh"
 #include "ppbox.hh"
 #include "ppsig.hh"
 #include "sigNewConstantPropagation.hh"
@@ -673,14 +672,6 @@ static Tree simplifyToNormalFormAux(Tree LS)
         startTiming("L4 typeAnnotation");
         typeAnnotation(L4, gGlobal->gLocalCausalityCheck, false);
         endTiming("L4 typeAnnotation");
-    }
-
-    // experimental : the terms of the sums ordered by their intervals (FAUST_SUMORDER=1)
-    if (const char* e = getenv("FAUST_SUMORDER"); e && e[0] == '1') {
-        startTiming("orderSumsByIntervals");
-        L4 = orderSumsByIntervals(L4);
-        typeAnnotation(L4, gGlobal->gLocalCausalityCheck, false);
-        endTiming("orderSumsByIntervals");
     }
 
     // The passes above read the few intervals they need through sigInterval, computed
