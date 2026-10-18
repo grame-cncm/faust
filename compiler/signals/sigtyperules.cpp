@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <unordered_set>
 #include <vector>
@@ -63,12 +64,11 @@ using namespace std;
  * Convert a constant signal into a double using its type's bounds.
  * Errors if the signal is not a compile-time numeric constant.
  */
-static double constSig2double(Tree sig, Type ty)
+static double constSig2double(Tree sig, Type ty, const interval& bds)
 {
     if (ty->variability() != kKonst) {
         tlib::error("ERROR : constSig2double, must a constant numerical expression\n");
     }
-    interval bds = ty->getInterval();
     if (bds.lo() != bds.hi()) {
         tlib::error(
             "ERROR : constSig2double, constant value with non-singleton interval, don't know what"
@@ -80,9 +80,8 @@ static double constSig2double(Tree sig, Type ty)
 /**
  * The soundfile part number must provably lie in [0, MAX_SOUNDFILE_PARTS).
  */
-static void checkPartInterval(Tree s, Type t)
+static void checkPartInterval(Tree s, const interval& i)
 {
-    interval i = t->getInterval();
     if (!i.isValid() || (i.lo() < 0) || (i.hi() >= MAX_SOUNDFILE_PARTS)) {
         stringstream error;
         error << "ERROR : out of range soundfile part number (" << i << " instead of interval(0,"
@@ -131,22 +130,22 @@ static void checkSignal(Tree t, TypeSolver& solver)
 
     if (isSigDelay(t, s1, s2)) {
         if (sigs::g.gCausality) {
-            checkDelayCausality(s1, s2, solver.type(s2)->getInterval());
+            checkDelayCausality(s1, s2, solver.interval(s2));
         }
     } else if (isSigPrefix(t, s1, s2)) {
         checkInit(solver.type(s1));  // the initial value must be known at init time
     } else if (isSigSoundfileLength(t, sf, part) || isSigSoundfileRate(t, sf, part)) {
-        checkPartInterval(t, solver.type(part));
+        checkPartInterval(t, solver.interval(part));
     } else if (isSigSoundfileBuffer(t, sf, x, part, z)) {
-        checkPartInterval(t, solver.type(part));
+        checkPartInterval(t, solver.interval(part));
     } else if (isSigWRTbl(t, s1, s2, s3, s4)) {
         checkInt(checkInit(solver.type(s1)));  // size : an integer known at init time
         checkInit(solver.type(s2));            // generator : computable at init time
     } else if (isSigDocConstantTbl(t, x, y) || isSigDocWriteTbl(t, x, y, z, u)) {
         checkKonst(checkInt(checkInit(solver.type(x))));  // size : an integer constant
     } else if (isSigAssertBounds(t, min, max, cur)) {
-        constSig2double(min, solver.type(min));  // both bounds must be numeric constants
-        constSig2double(max, solver.type(max));
+        constSig2double(min, solver.type(min), solver.interval(min));  // both bounds must be
+        constSig2double(max, solver.type(max), solver.interval(max));  // numeric constants
     }
 }
 
@@ -158,20 +157,14 @@ static void checkSignal(Tree t, TypeSolver& solver)
  * Fully annotate every subtree of term with type information.
  * @param sig the signal term tree to annotate
  * @param causality when true check causality issues
+ * @param intervals when false, the types carry a deferred interval, read by sigInterval
  */
-void typeAnnotation(Tree sig, bool causality)
+
+// Every signal node reachable from sig, crossing rec bodies, in the order of the
+// annotation walk ; structure (list spines, labels, rec nodes) is traversed only.
+template <typename F>
+static void walkSignals(Tree sig, const TypeSolver& solver, F visit)
 {
-    typeSolverReset();  // rec bodies are mutable properties : solving sessions are
-                        // phase-local (see sigtypesolver.cpp)
-    sigs::g.gCausality = causality;
-
-    TypeSolver& solver = getTypeSolver(sig);
-
-    // Every signal node reachable from sig (crossing rec bodies) receives its
-    // assembled type ; structure (list spines, labels, rec nodes) is traversed but
-    // never typed -- the facade would refuse anyway. The diagnostics run per node,
-    // reading operand types from the solver (children may not be annotated yet :
-    // the walk is top-down while the solver is demand-driven).
     std::unordered_set<Tree> visited;
     std::vector<Tree>        work{sig};
     while (!work.empty()) {
@@ -190,15 +183,63 @@ void typeAnnotation(Tree sig, bool causality)
         }
 
         if (!solver.isSignal(t)) continue;
+        visit(t);
+    }
+}
+
+// The session of the last typing without intervals : sigInterval computes from it, on
+// demand. It is not one of the memoized sessions, which a typing of a subterm clears in
+// the middle of a pass.
+static std::unique_ptr<TypeSolver> gDeferredSolver;
+
+void typeAnnotation(Tree sig, bool causality, bool intervals)
+{
+    typeSolverReset();  // rec bodies are mutable properties : solving sessions are
+                        // phase-local (see sigtypesolver.cpp)
+    sigs::g.gCausality = causality;
+
+    if (!intervals) {
+        gDeferredSolver = std::make_unique<TypeSolver>(sig, /*deferIntervals*/ true);
+    }
+    TypeSolver& solver = intervals ? getTypeSolver(sig) : *gDeferredSolver;
+
+    // Every signal node reachable from sig (crossing rec bodies) receives its
+    // assembled type ; structure (list spines, labels, rec nodes) is traversed but
+    // never typed -- the facade would refuse anyway. The diagnostics run per node,
+    // reading operand types from the solver (children may not be annotated yet :
+    // the walk is top-down while the solver is demand-driven).
+    walkSignals(sig, solver, [&](Tree t) {
         setSigType(t, solver.type(t));
         checkSignal(t, solver);
-    }
+    });
+}
 
+void typeCheckDelayCausality(Tree sig)
+{
+    // the walk of typeAnnotation, in the same order : the same delay is reported first
+    TypeSolver solver(sig, /*deferIntervals*/ true);
+    walkSignals(sig, solver, [&](Tree t) {
+        Tree s1, s2;
+        if (isSigDelay(t, s1, s2)) checkDelayCausality(s1, s2, sigInterval(s2));
+    });
 }
 
 //----------------------------------------------------------------------------------------
 // The type slot consumers read.
 //----------------------------------------------------------------------------------------
+
+interval sigInterval(Tree sig)
+{
+    Type ty = getCertifiedSigType(sig);
+    if (!ty->hasDeferredInterval()) return ty->getInterval();
+    TLIB_ASSERT(gDeferredSolver);
+    return gDeferredSolver->interval(sig);
+}
+
+void releaseDeferredIntervals()
+{
+    gDeferredSolver.reset();
+}
 
 /**
  * Retrieve the type of sig and check it exists. Produces an
