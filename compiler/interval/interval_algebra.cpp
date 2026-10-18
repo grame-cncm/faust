@@ -77,9 +77,19 @@ interval interval_algebra::numericLog10(const interval& x) const
 {
     return libmBounds(Log10Bounds(x), -HUGE_VAL, HUGE_VAL);
 }
+// A power by an integer n from 2 to 8 is computed by the backends as n - 1 products
+// (powprim.hh), not by the libm : each product rounds once, a relative error of at most
+// u, so the chain stays within (n - 1) u of the power, less than n - 1 ulps ; below the
+// normal range each product adds at most half a step, which the next products (|x| < 1)
+// do not enlarge. n steps cover the chain, the 2 steps of the libm cover pow.
 interval interval_algebra::numericPow(const interval& x, const interval& y) const
 {
-    return libmBounds(PowBounds(x, y), -HUGE_VAL, HUGE_VAL);
+    int steps = 2;
+    if (!y.isEmpty() && y.lo() == y.hi() && y.lo() >= 2 && y.lo() <= 8 &&
+        y.lo() == std::floor(y.lo())) {
+        steps = std::max(steps, int(y.lo()));
+    }
+    return libmBounds(PowBounds(x, y), -HUGE_VAL, HUGE_VAL, steps);
 }
 interval interval_algebra::numericSin(const interval& x) const
 {
