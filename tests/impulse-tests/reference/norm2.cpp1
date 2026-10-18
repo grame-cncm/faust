@@ -1,11 +1,23 @@
 //----------------------------------------------------------
 // name: "norm2"
 //
-// Code generated with Faust 2.81.2 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -30,6 +42,7 @@ class mydsp : public dsp {
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "norm2.dsp");
 		m->declare("name", "norm2");
 	}
@@ -42,12 +55,12 @@ class mydsp : public dsp {
 		fSampleRate = sample_rate;
 	}
 	virtual void instanceResetUserInterface() {
-		fslider0 = 1.0f;
-		fslider1 = 1.0f;
+		fslider0 = 0.0f;
+		fslider1 = 0.0f;
 		fslider2 = 1.0f;
 		fslider3 = 1.0f;
-		fslider4 = 0.0f;
-		fslider5 = 0.0f;
+		fslider4 = 1.0f;
+		fslider5 = 1.0f;
 		fslider6 = 1.0f;
 		fslider7 = 1.0f;
 		fslider8 = 1.0f;
@@ -71,28 +84,29 @@ class mydsp : public dsp {
 	}
 	virtual void buildUserInterface(UI* ui_interface) {
 		ui_interface->openVerticalBox("norm2");
-		ui_interface->addHorizontalSlider("c_add_2", &fslider4, 0.0f, -1e+01f, 1e+01f, 0.1f);
-		ui_interface->addHorizontalSlider("c_add_3", &fslider5, 0.0f, -1e+01f, 1e+01f, 0.1f);
-		ui_interface->addHorizontalSlider("c_adv_1", &fslider0, 1.0f, -1e+01f, 1e+01f, 0.1f);
-		ui_interface->addHorizontalSlider("c_adv_2", &fslider1, 1.0f, -1e+01f, 1e+01f, 0.1f);
-		ui_interface->addHorizontalSlider("c_adv_4", &fslider2, 1.0f, -1e+01f, 1e+01f, 0.1f);
-		ui_interface->addHorizontalSlider("c_adv_5", &fslider3, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_add_2", &fslider0, 0.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_add_3", &fslider1, 0.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_adv_1", &fslider4, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_adv_2", &fslider5, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_adv_4", &fslider6, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_adv_5", &fslider7, 1.0f, -1e+01f, 1e+01f, 0.1f);
 		ui_interface->addHorizontalSlider("c_adv_6", &fslider8, 1.0f, -1e+01f, 1e+01f, 0.1f);
-		ui_interface->addHorizontalSlider("c_cmpd_2", &fslider7, 1.0f, -1e+01f, 1e+01f, 0.1f);
-		ui_interface->addHorizontalSlider("c_mul_2", &fslider6, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_cmpd_2", &fslider3, 1.0f, -1e+01f, 1e+01f, 0.1f);
+		ui_interface->addHorizontalSlider("c_mul_2", &fslider2, 1.0f, -1e+01f, 1e+01f, 0.1f);
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = (float(fslider0) + float(fslider1)); // step: 7
-		float 	fSlow1 = (float(fslider2) + float(fslider3)); // step: 11
-		float 	fSlow2 = float(fslider4); // step: 12
-		float 	fSlow3 = (2.0f * float(fslider5)); // step: 19
-		float 	fSlow4 = powf(float(fslider6),2.0f); // step: 23
-		float 	fSlow5 = (2.0f * float(fslider7)); // step: 27
-		float 	fSlow6 = float(fslider8); // step: 29
+		float 	fSlow0 = fmaxf(-1e+01f, fminf(1e+01f, float(fslider0))); // step: 11
+		float 	fSlow1 = (2.0f * fmaxf(-1e+01f, fminf(1e+01f, float(fslider1)))); // step: 17
+		float 	fSlow2 = powf(fmaxf(-1e+01f, fminf(1e+01f, float(fslider2))),2.0f); // step: 23
+		float 	fSlow3 = fmaxf(-1e+01f, fminf(1e+01f, float(fslider3))); // step: 28
+		float 	fSlow4 = (2.0f * fSlow3); // step: 29
+		float 	fSlow5 = (fmaxf(-1e+01f, fminf(1e+01f, float(fslider4))) + fmaxf(-1e+01f, fminf(1e+01f, float(fslider5)))); // step: 37
+		float 	fSlow6 = (fmaxf(-1e+01f, fminf(1e+01f, float(fslider6))) + fmaxf(-1e+01f, fminf(1e+01f, float(fslider7)))); // step: 45
+		float 	fSlow7 = fmaxf(-1e+01f, fminf(1e+01f, float(fslider8))); // step: 50
 		int fullcount = count;
 		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
+			int count = faustmini(32, fullcount-index);
 			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
 			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
 			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
@@ -113,17 +127,18 @@ class mydsp : public dsp {
 			FAUSTFLOAT* output7 = &output[7][index]; // Zone 3
 			FAUSTFLOAT* output8 = &output[8][index]; // Zone 3
 			FAUSTFLOAT* output9 = &output[9][index]; // Zone 3
+			// schedule: ss=0 nodes=51 cycles=32 fill=39% peak=6 isoadj=4 packs4=1 aluMII=11 memMII=3 recMII=0 streams(peak/avg,win64)=9/4 (eval machine R=8 U=4 M=3)
 			for (int i=0; i<count; i++) {
 				output0[i] = (FAUSTFLOAT)((float)input0[i]);  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)((fSlow2 + (2.0f * (float)input1[i])));  // Zone Exec Code
-				output2[i] = (FAUSTFLOAT)((fSlow3 + (float)input2[i]));  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)((fSlow0 + (2.0f * (float)input1[i])));  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)((fSlow1 + (float)input2[i]));  // Zone Exec Code
 				output3[i] = (FAUSTFLOAT)((float)input3[i]);  // Zone Exec Code
-				output4[i] = (FAUSTFLOAT)((fSlow4 * (float)input4[i]));  // Zone Exec Code
+				output4[i] = (FAUSTFLOAT)((fSlow2 * (float)input4[i]));  // Zone Exec Code
 				output5[i] = (FAUSTFLOAT)((float)input5[i]);  // Zone Exec Code
-				output6[i] = (FAUSTFLOAT)((fSlow5 * (float)input6[i]));  // Zone Exec Code
-				output7[i] = (FAUSTFLOAT)((fSlow0 * (float)input7[i]));  // Zone Exec Code
-				output8[i] = (FAUSTFLOAT)(fSlow1);  // Zone Exec Code
-				output9[i] = (FAUSTFLOAT)((fSlow6 * powf((float)input9[i],2.0f)));  // Zone Exec Code
+				output6[i] = (FAUSTFLOAT)((fSlow4 * (float)input6[i]));  // Zone Exec Code
+				output7[i] = (FAUSTFLOAT)((fSlow5 * (float)input7[i]));  // Zone Exec Code
+				output8[i] = (FAUSTFLOAT)(fSlow6);  // Zone Exec Code
+				output9[i] = (FAUSTFLOAT)((fSlow7 * powf((float)input9[i],2.0f)));  // Zone Exec Code
 			}
 		}
 	}

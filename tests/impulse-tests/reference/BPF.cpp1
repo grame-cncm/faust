@@ -1,11 +1,23 @@
 //----------------------------------------------------------
 // name: "BPF"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -18,15 +30,14 @@
 class mydsp : public dsp {
   private:
 	FAUSTFLOAT 	fslider0;
-	float 	fConst0; // step: 12
+	float 	fConst0; // step: 17
 	FAUSTFLOAT 	fslider1;
-	// Recursion delay fVeeec0 is of type kCopyDelay
-	// While its definition is of type kZeroDelay
 	float 	fVeeec0State[2]; // Copy Delay
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "BPF.dsp");
 		m->declare("math.lib/author", "GRAME");
 		m->declare("math.lib/copyright", "GRAME");
@@ -53,7 +64,7 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = (6.2831855f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 12
+		fConst0 = (6.2831855f / fminf(1.92e+05f, fmaxf(5e+01f, float(+fSampleRate)))); // step: 17
 	}
 	virtual void instanceResetUserInterface() {
 		fslider0 = 1e+03f;
@@ -84,34 +95,32 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = (fConst0 * max(0.0f, float(fslider0))); // step: 13
-		float 	fSlow1 = sinf(fSlow0); // step: 14
-		float 	fSlow2 = max(0.001f, float(fslider1)); // step: 17
-		float 	fSlow3 = (0.5f * (fSlow1 / fSlow2)); // step: 19
-		float 	fSlow4 = (fSlow3 + 1.0f); // step: 20
-		float 	fSlow5 = (0.5f * (fSlow1 / (fSlow2 * fSlow4))); // step: 23
-		float 	fSlow6 = (1.0f / fSlow4); // step: 26
-		float 	fSlow7 = (1.0f - fSlow3); // step: 27
-		float 	fSlow8 = (2.0f * cosf(fSlow0)); // step: 33
+		float 	fSlow0 = (fConst0 * fmaxf(0.0f, fmaxf(1e+02f, fminf(1e+04f, float(fslider0))))); // step: 18
+		float 	fSlow1 = sinf(fSlow0); // step: 22
+		float 	fSlow2 = fmaxf(0.001f, fmaxf(0.01f, fminf(1e+02f, float(fslider1)))); // step: 28
+		float 	fSlow3 = (0.5f * (fSlow1 / fSlow2)); // step: 30
+		float 	fSlow4 = (1.0f + fSlow3); // step: 31
+		float 	fSlow5 = (2.0f * (cosf(fSlow0) / fSlow4)); // step: 33
+		float 	fSlow6 = -((1.0f - fSlow3) / fSlow4); // step: 37
+		float 	fSlow7 = ((1.0f - fSlow3) / fSlow4); // step: 38
 		float 	fVeeec0[3];
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			fVeeec0[1] = fVeeec0State[0];
-			fVeeec0[2] = fVeeec0State[1];
-			for (int i=0; i<count; i++) {
-				float 	fTemp0 = fVeeec0[2]; // step: 29
-				fVeeec0[0] = ((float)input0[i] - (fSlow6 * ((fSlow7 * fTemp0) - (fSlow8 * fVeeec0[1]))));
-				output0[i] = (FAUSTFLOAT)((fSlow5 * (fVeeec0[0] - fTemp0)));  // Zone Exec Code
-				// post processing
-				fVeeec0[2] = fVeeec0[1];
-				fVeeec0[1] = fVeeec0[0];
-			}
-			fVeeec0State[0] = fVeeec0[1];
-			fVeeec0State[1] = fVeeec0[2];
+		float 	fSlow8 = (0.5f * (fSlow1 / (fSlow2 * fSlow4))); // step: 41
+		float 	fSlow9 = -fSlow8; // step: 42
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		// schedule: ss=0 nodes=43 cycles=28 fill=38% peak=10 isoadj=6 packs4=1 aluMII=11 memMII=1 recMII=0 streams(peak/avg,win64)=1/0 (eval machine R=8 U=4 M=3)
+		fVeeec0[1] = fVeeec0State[0];
+		fVeeec0[2] = fVeeec0State[1];
+		for (int i=0; i<count; i++) {
+			fVeeec0[0] = (((float)input0[i] + (fSlow5 * fVeeec0[1])) - (fSlow7 * fVeeec0[2]));
+			output0[i] = (FAUSTFLOAT)(((fSlow8 * fVeeec0[0]) - (fSlow8 * fVeeec0[2])));  // Zone Exec Code
+			// post processing
+			fVeeec0[2] = fVeeec0[1];
+			fVeeec0[1] = fVeeec0[0];
 		}
+		fVeeec0State[0] = fVeeec0[1];
+		fVeeec0State[1] = fVeeec0[2];
 	}
 };
 

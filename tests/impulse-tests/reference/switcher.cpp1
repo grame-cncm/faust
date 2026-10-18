@@ -5,11 +5,23 @@
 // name: "switcher"
 // version: "1.0"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -27,6 +39,7 @@ class mydsp : public dsp {
   public:
 	virtual void metadata(Meta* m) { 
 		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2007");
 		m->declare("filename", "switcher.dsp");
 		m->declare("license", "BSD");
@@ -67,21 +80,22 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = float(fslider0); // step: 1
-		float 	fSlow1 = (1.0f - fSlow0); // step: 6
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
-			FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
-			FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			for (int i=0; i<count; i++) {
-				output0[i] = (FAUSTFLOAT)(((fSlow0 * (float)input2[i]) + (fSlow1 * (float)input0[i])));  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(((fSlow0 * (float)input3[i]) + (fSlow1 * (float)input1[i])));  // Zone Exec Code
-			}
+		float 	fSlow0 = fmaxf(0.0f, fminf(1.0f, float(fslider0))); // step: 7
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+		FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+		FAUSTFLOAT* input2 = &input[2][index]; // Zone 3
+		FAUSTFLOAT* input3 = &input[3][index]; // Zone 3
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+		// schedule: ss=0 nodes=11 cycles=5 fill=55% peak=5 isoadj=3 packs4=0 aluMII=2 memMII=2 recMII=0 streams(peak/avg,win64)=4/4 (eval machine R=8 U=4 M=3)
+		for (int i=0; i<count; i++) {
+			float 	fTemp0 = (float)input0[i]; // step: 8
+			float 	fTemp1 = (float)input2[i]; // step: 8
+			float 	fTemp2 = (float)input1[i]; // step: 11
+			float 	fTemp3 = (float)input3[i]; // step: 11
+			output0[i] = (FAUSTFLOAT)((fTemp0 + fSlow0 * (fTemp1 - fTemp0)));  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)((fTemp2 + fSlow0 * (fTemp3 - fTemp2)));  // Zone Exec Code
 		}
 	}
 };

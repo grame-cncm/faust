@@ -74,6 +74,10 @@ EndBlockInst
 
 BlockInst 
 	DeclareVarInst("int", itbl0mydspSIG0[5], kStaticStruct)
+	DeclareFunInst("float", "min_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("float", "max_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("int", "min_i", "int", dummy0, "int", dummy1)
+	DeclareFunInst("int", "max_i", "int", dummy0, "int", dummy1)
 	DeclareFunInst("float", "sinf", "float", dummy0)
 EndBlockInst
 
@@ -121,20 +125,20 @@ EndBlockInst
 ======= ResetUI begin ==========
 
 BlockInst 
-	StoreVarInst(Address(fHslider0, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
+	StoreVarInst(Address(fHslider0, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
 EndBlockInst
 
 ======= ResetUI end ==========
 
 ======= Compute control begin ==========
 
-Instructions complexity : Load = 6 Store = 0 Binop = 1 [ { Real(*) = 1 } ] Mathop = 1 [ { sinf = 1 } ] Numbers = 4 Declare = 5 Cast = 3 Select = 0 Loop = 0
+Instructions complexity : Load = 6 Store = 0 Binop = 1 [ { Real(*) = 1 } ] Mathop = 5 [ { max_f = 1 } { max_i = 1 } { min_f = 1 } { min_i = 1 } { sinf = 1 } ] Numbers = 8 Declare = 5 Cast = 3 Select = 0 Loop = 0
 
 BlockInst 
 	DeclareVarInst("FAUSTFLOAT*", input0, kStack, LoadVarInst(Address(inputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output1, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(1)]))
-	DeclareVarInst("int", iSlow0, kStack, LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[CastInst("int", BinopInst("*", Float(4.0f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))]))
+	DeclareVarInst("int", iSlow0, kStack, LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[FunCallInst("max_i", Int32(0), FunCallInst("min_i", CastInst("int", BinopInst("*", Float(4.0f), FunCallInst("max_f", Float(0.0f), FunCallInst("min_f", Float(1.0f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct))))))), Int32(4)))]))
 	DeclareVarInst("float", fSlow1, kStack, FunCallInst("sinf", CastInst("float", LoadVarInst(Address(iSlow0, kStack)))))
 EndBlockInst
 
@@ -168,12 +172,16 @@ EndBlockInst
 BlockInst 
 	========== Declaration part ==========
 	DeclareVarInst("int", itbl0mydspSIG0[5], kStaticStruct)
+	DeclareFunInst("float", "min_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("float", "max_f", "float", dummy0, "float", dummy1)
+	DeclareFunInst("int", "min_i", "int", dummy0, "int", dummy1)
+	DeclareFunInst("int", "max_i", "int", dummy0, "int", dummy1)
 	DeclareFunInst("float", "sinf", "float", dummy0)
 	DeclareVarInst("FAUSTFLOAT", fHslider0, kStruct)
 	DeclareVarInst("int", fSampleRate, kStruct)
 	========== Init method ==========
 	StoreVarInst(Address(fSampleRate, kStruct), LoadVarInst(Address(sample_rate, kFunArgs)))
-	StoreVarInst(Address(fHslider0, kStruct), CastInst("FAUSTFLOAT", Double(0.0f)))
+	StoreVarInst(Address(fHslider0, kStruct), CastInst("FAUSTFLOAT", Float(0.0f)))
 	========== Static init method ==========
 	DeclareVarInst("mydspSIG0", sig0, kStack, FunCallInst("newmydspSIG0"))
 	DropInst(MethodFunCallInst("instanceInitmydspSIG0", LoadVarInst(Address(sig0, kStack)), LoadVarInst(Address(sample_rate, kFunArgs))))
@@ -205,7 +213,7 @@ BlockInst
 	DeclareVarInst("FAUSTFLOAT*", input0, kStack, LoadVarInst(Address(inputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output0, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(0)]))
 	DeclareVarInst("FAUSTFLOAT*", output1, kStack, LoadVarInst(Address(outputs, kFunArgs)[Int32(1)]))
-	DeclareVarInst("int", iSlow0, kStack, LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[CastInst("int", BinopInst("*", Float(4.0f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct)))))]))
+	DeclareVarInst("int", iSlow0, kStack, LoadVarInst(Address(itbl0mydspSIG0, kStaticStruct)[FunCallInst("max_i", Int32(0), FunCallInst("min_i", CastInst("int", BinopInst("*", Float(4.0f), FunCallInst("max_f", Float(0.0f), FunCallInst("min_f", Float(1.0f), CastInst("float", LoadVarInst(Address(fHslider0, kStruct))))))), Int32(4)))]))
 	DeclareVarInst("float", fSlow1, kStack, FunCallInst("sinf", CastInst("float", LoadVarInst(Address(iSlow0, kStack)))))
 	========== Compute DSP ==========
 	ForLoopInst 
@@ -244,3 +252,49 @@ Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 
 Field = fHslider0 size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
 Field = fSampleRate size = 1 size_bytes = 4 read = 0 write = 0 ratio = 0
+
+========== COMPILER STATISTICS ==========
+
+--- Phase 1: Parsing ---
+  (not instrumented)
+
+--- Phase 2: Box Evaluation ---
+  eval() calls:            45
+  eval() cache hits:       8 (17.7778%)
+  eval() cache misses:     37
+  Loop detector calls:     37
+  Stack detector calls:    37
+
+--- Phase 3: Propagation ---
+  propagate() calls:       32
+  propagate() cache hits:  9 (28.125%)
+  propagate() cache misses:23
+
+--- Box Type Computation ---
+  getBoxType() calls:      56
+  getBoxType() cache hits: 34 (60.7143%)
+  getBoxType() computed:   22
+
+--- Environment Operations ---
+  Environment lookups:     0
+  Env layers pushed:       2
+
+--- Pattern Matching ---
+  build automaton calls:        0
+  build total time (ms):        0
+  apply calls:                  0
+  apply total time (ms):        0
+
+--- Tree Operations ---
+  Trees created:           282
+  Trees reused (hash):     595 (67.8449% reuse rate)
+  Property set ops:        178
+  Property get ops:        394
+
+--- Iteration Constructs ---
+  par() iterations:        0
+  seq() iterations:        0
+  sum() iterations:        0
+  prod() iterations:       0
+
+==========================================

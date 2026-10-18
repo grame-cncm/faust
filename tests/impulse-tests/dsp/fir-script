@@ -1,6 +1,16 @@
+#!/bin/bash
+# the compiler and the libraries of this tree (not the installed ones), as Make.ref
+FAUST=${FAUST:-../../../build/bin/faust}
+LIB=${LIB:-../../../libraries}
 for f in $@
 do
   echo "Processing $f file..."
-  faust -lang fir $f -o ${f%.dsp}.fir
-  diff ${f%.dsp}.fir ../reference/${f%.dsp}.fir ; echo Done
+  $FAUST -I $LIB -lang fir $f -o ${f%.dsp}.fir
+  # the FIR statistics hold compilation times, which differ from run to run
+  if [ -e ../reference/${f%.dsp}.fir ]; then
+    diff <(grep -v "time (ms)" ${f%.dsp}.fir) <(grep -v "time (ms)" ../reference/${f%.dsp}.fir)
+  else
+    echo "no reference ${f%.dsp}.fir"
+  fi
+  echo Done
 done

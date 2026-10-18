@@ -4,11 +4,23 @@
 // name: "Faust Midi Tester"
 // version: "1.0"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -20,11 +32,42 @@
 
 class mydsp : public dsp {
   private:
+	FAUSTFLOAT 	fslider0;
+	FAUSTFLOAT 	fbargraph0;
+	FAUSTFLOAT 	fcheckbox0;
+	FAUSTFLOAT 	fbargraph1;
+	FAUSTFLOAT 	fslider1;
+	FAUSTFLOAT 	fbargraph2;
+	FAUSTFLOAT 	fcheckbox1;
+	FAUSTFLOAT 	fbargraph3;
+	FAUSTFLOAT 	fslider2;
+	FAUSTFLOAT 	fbargraph4;
+	FAUSTFLOAT 	fcheckbox2;
+	FAUSTFLOAT 	fbargraph5;
+	FAUSTFLOAT 	fcheckbox3;
+	FAUSTFLOAT 	fcheckbox4;
+	FAUSTFLOAT 	fslider3;
+	FAUSTFLOAT 	fbargraph6;
+	FAUSTFLOAT 	fcheckbox5;
+	FAUSTFLOAT 	fbargraph7;
+	FAUSTFLOAT 	fslider4;
+	FAUSTFLOAT 	fbargraph8;
+	FAUSTFLOAT 	fcheckbox6;
+	FAUSTFLOAT 	fbargraph9;
+	FAUSTFLOAT 	fslider5;
+	FAUSTFLOAT 	fbargraph10;
+	FAUSTFLOAT 	fcheckbox7;
+	FAUSTFLOAT 	fbargraph11;
+	FAUSTFLOAT 	fslider6;
+	FAUSTFLOAT 	fbargraph12;
+	FAUSTFLOAT 	fcheckbox8;
+	FAUSTFLOAT 	fbargraph13;
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
 		m->declare("author", "Vincent Rateau, GRAME");
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "midi_tester.dsp");
 		m->declare("license", "GPL v3");
 		m->declare("name", "Faust Midi Tester");
@@ -40,6 +83,22 @@ class mydsp : public dsp {
 		fSampleRate = sample_rate;
 	}
 	virtual void instanceResetUserInterface() {
+		fslider0 = 6e+01f;
+		fcheckbox0 = 0.0;
+		fslider1 = 6e+01f;
+		fcheckbox1 = 0.0;
+		fslider2 = 6e+01f;
+		fcheckbox2 = 0.0;
+		fcheckbox3 = 0.0;
+		fcheckbox4 = 0.0;
+		fslider3 = 6e+01f;
+		fcheckbox5 = 0.0;
+		fslider4 = 6e+01f;
+		fcheckbox6 = 0.0;
+		fslider5 = 6e+01f;
+		fcheckbox7 = 0.0;
+		fslider6 = 0.0f;
+		fcheckbox8 = 0.0;
 	}
 	virtual void instanceClear() {
 	}
@@ -59,19 +118,114 @@ class mydsp : public dsp {
 		return fSampleRate;
 	}
 	virtual void buildUserInterface(UI* ui_interface) {
-		ui_interface->openVerticalBox("Faust Midi Tester");
+		ui_interface->openVerticalBox("FAUST MIDI TESTER");
+		ui_interface->declare(0, "1", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->openVerticalBox("CTRL IN/OUT");
+		ui_interface->declare(&fcheckbox0, "midi", "ctrl 100");
+		ui_interface->addCheckButton("Ctrl Bool IN (Ctrl 100)", &fcheckbox0);
+		ui_interface->declare(&fbargraph1, "midi", "ctrl 101");
+		ui_interface->addHorizontalBargraph("Ctrl Bool OUT (Ctrl 101)", &fbargraph1, 0.0f, 1.0f);
+		ui_interface->declare(&fslider0, "midi", "ctrl 50");
+		ui_interface->addHorizontalSlider("Ctrl Value IN (Ctrl 50)", &fslider0, 6e+01f, 0.0f, 127.0f, 1.0f);
+		ui_interface->declare(&fbargraph0, "midi", "ctrl 51");
+		ui_interface->addHorizontalBargraph("Ctrl Value OUT (Ctrl 51)", &fbargraph0, 0.0f, 127.0f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("MIDI SYNC (IN)");
+		ui_interface->declare(&fcheckbox4, "midi", "start");
+		ui_interface->declare(&fcheckbox4, "midi", "stop");
+		ui_interface->addCheckButton("MIDI START/STOP", &fcheckbox4);
+		ui_interface->declare(&fcheckbox3, "midi", "clock");
+		ui_interface->addCheckButton("MIDI clock signal", &fcheckbox3);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("NOTE OFF IN/OUT");
+		ui_interface->declare(&fcheckbox2, "midi", "keyoff 100");
+		ui_interface->addCheckButton("NoteOff Bool IN (Note 100)", &fcheckbox2);
+		ui_interface->declare(&fbargraph5, "midi", "keyoff 101");
+		ui_interface->addHorizontalBargraph("NoteOff Bool OUT (Note 101)", &fbargraph5, 0.0f, 1.0f);
+		ui_interface->declare(&fslider2, "midi", "keyoff 50");
+		ui_interface->addHorizontalSlider("NoteOff Value IN (Note 50)", &fslider2, 6e+01f, 0.0f, 127.0f, 1.0f);
+		ui_interface->declare(&fbargraph4, "midi", "keyoff 51");
+		ui_interface->addHorizontalBargraph("NoteOff Value OUT (Note 51)", &fbargraph4, 0.0f, 127.0f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("NOTE ON IN/OUT");
+		ui_interface->declare(&fcheckbox1, "midi", "keyon 100");
+		ui_interface->addCheckButton("NoteOn Bool IN (Note 100)", &fcheckbox1);
+		ui_interface->declare(&fbargraph3, "midi", "keyon 101");
+		ui_interface->addHorizontalBargraph("NoteOn Bool OUT (Note 101)", &fbargraph3, 0.0f, 1.0f);
+		ui_interface->declare(&fslider1, "midi", "keyon 50");
+		ui_interface->addHorizontalSlider("NoteOn Value IN (Note 50)", &fslider1, 6e+01f, 0.0f, 127.0f, 1.0f);
+		ui_interface->declare(&fbargraph2, "midi", "keyon 51");
+		ui_interface->addHorizontalBargraph("NoteOn Value OUT (Note 51)", &fbargraph2, 0.0f, 127.0f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
+		ui_interface->declare(0, "2", "");
+		ui_interface->openHorizontalBox("0x00");
+		ui_interface->openVerticalBox("CHANNEL AFTERTOUCH (CHAT) IN/OUT");
+		ui_interface->declare(&fcheckbox7, "midi", "chanpress 100");
+		ui_interface->addCheckButton("Note CHAT Bool IN (Note 100)", &fcheckbox7);
+		ui_interface->declare(&fbargraph11, "midi", "chanpress 101");
+		ui_interface->addHorizontalBargraph("Note CHAT Bool OUT (Note 101)", &fbargraph11, 0.0f, 1.0f);
+		ui_interface->declare(&fslider5, "midi", "chanpress 50");
+		ui_interface->addHorizontalSlider("Note CHAT Value IN (Note 50)", &fslider5, 6e+01f, 0.0f, 127.0f, 1.0f);
+		ui_interface->declare(&fbargraph10, "midi", "chanpress 51");
+		ui_interface->addHorizontalBargraph("Note CHAT Value OUT (Note 51)", &fbargraph10, 0.0f, 127.0f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("KEY AFTERTOUCH (KAT) IN/OUT");
+		ui_interface->declare(&fcheckbox5, "midi", "keypress 100");
+		ui_interface->addCheckButton("Note KAT Bool IN (Note 100)", &fcheckbox5);
+		ui_interface->declare(&fbargraph7, "midi", "keypress 101");
+		ui_interface->addHorizontalBargraph("Note KAT Bool OUT (Note 101)", &fbargraph7, 0.0f, 1.0f);
+		ui_interface->declare(&fslider3, "midi", "keypress 50");
+		ui_interface->addHorizontalSlider("Note KAT Value IN (Note 50)", &fslider3, 6e+01f, 0.0f, 127.0f, 1.0f);
+		ui_interface->declare(&fbargraph6, "midi", "keypress 51");
+		ui_interface->addHorizontalBargraph("Note KAT Value OUT (Note 51)", &fbargraph6, 0.0f, 127.0f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("PITCHWHEEL IN/OUT");
+		ui_interface->declare(&fcheckbox8, "midi", "pitchwheel");
+		ui_interface->addCheckButton("Pitchwheel Bool IN", &fcheckbox8);
+		ui_interface->declare(&fbargraph13, "midi", "pitchwheel");
+		ui_interface->addHorizontalBargraph("Pitchwheel Bool OUT", &fbargraph13, 0.0f, 1.0f);
+		ui_interface->declare(&fslider6, "midi", "pitchwheel");
+		ui_interface->addHorizontalSlider("Pitchwheel Value IN", &fslider6, 0.0f, -8192.0f, 8191.0f, 1.0f);
+		ui_interface->declare(&fbargraph12, "midi", "pitchwheel");
+		ui_interface->addHorizontalBargraph("Pitchwheel Value OUT", &fbargraph12, -8192.0f, 8191.0f);
+		ui_interface->closeBox();
+		ui_interface->openVerticalBox("PROGRAM CHANGE (PC) IN/OUT");
+		ui_interface->declare(&fcheckbox6, "midi", "pgm 100");
+		ui_interface->addCheckButton("ProgramChange Bool IN (PC 100)", &fcheckbox6);
+		ui_interface->declare(&fbargraph9, "midi", "pgm 101");
+		ui_interface->addHorizontalBargraph("ProgramChange Bool OUT (PC 101)", &fbargraph9, 0.0f, 1.0f);
+		ui_interface->declare(&fslider4, "midi", "pgm 50");
+		ui_interface->addHorizontalSlider("ProgramChange Value IN (PC 50)", &fslider4, 6e+01f, 0.0f, 127.0f, 1.0f);
+		ui_interface->declare(&fbargraph8, "midi", "pgm 51");
+		ui_interface->addHorizontalBargraph("ProgramChange Value OUT (PC 51)", &fbargraph8, 0.0f, 127.0f);
+		ui_interface->closeBox();
+		ui_interface->closeBox();
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			for (int i=0; i<count; i++) {
-				output0[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
-			}
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		// schedule: ss=0 nodes=1 cycles=1 fill=25% peak=0 isoadj=0 packs4=0 aluMII=1 memMII=0 recMII=0 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		for (int i=0; i<count; i++) {
+			output0[i] = (FAUSTFLOAT)(0.0f);  // Zone Exec Code
 		}
+		fbargraph0 = fmaxf(0.0f, fminf(127.0f, float(fslider0)));
+		fbargraph1 = float(+(float(fcheckbox0) > 0.0f));
+		fbargraph2 = fmaxf(0.0f, fminf(127.0f, float(fslider1)));
+		fbargraph3 = float(+(float(fcheckbox1) > 0.0f));
+		fbargraph4 = fmaxf(0.0f, fminf(127.0f, float(fslider2)));
+		fbargraph5 = float(+(float(fcheckbox2) > 0.0f));
+		fbargraph6 = fmaxf(0.0f, fminf(127.0f, float(fslider3)));
+		fbargraph7 = float(+(float(fcheckbox5) > 0.0f));
+		fbargraph8 = fmaxf(0.0f, fminf(127.0f, float(fslider4)));
+		fbargraph9 = float(+(float(fcheckbox6) > 0.0f));
+		fbargraph10 = fmaxf(0.0f, fminf(127.0f, float(fslider5)));
+		fbargraph11 = float(+(float(fcheckbox7) > 0.0f));
+		fbargraph12 = fmaxf(-8192.0f, fminf(8191.0f, float(fslider6)));
+		fbargraph13 = float(+(float(fcheckbox8) > 0.0f));
 	}
 };
 

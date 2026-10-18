@@ -5,11 +5,23 @@
 // name: "vumeter"
 // version: "1.0"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif 
@@ -22,19 +34,21 @@
 class mydsp : public dsp {
   private:
 	float 	fConst0; // step: 12
+	float 	fConst1; // step: 13
 	// Recursion delay fVeeec0 is of type kMonoDelay
 	// While its definition is of type kZeroDelay
 	float 	fVeeec0State; // Mono Delay
-	FAUSTFLOAT 	fbargraph0;
-	// Recursion delay fVeeec2 is of type kMonoDelay
+	// Recursion delay fVeeec1 is of type kMonoDelay
 	// While its definition is of type kZeroDelay
-	float 	fVeeec2State; // Mono Delay
+	float 	fVeeec1State; // Mono Delay
+	FAUSTFLOAT 	fbargraph0;
 	FAUSTFLOAT 	fbargraph1;
 	int fSampleRate;
 
   public:
 	virtual void metadata(Meta* m) { 
 		m->declare("author", "Grame");
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("copyright", "(c)GRAME 2006");
 		m->declare("filename", "vumeter.dsp");
 		m->declare("license", "BSD");
@@ -59,13 +73,14 @@ class mydsp : public dsp {
 	}
 	virtual void instanceConstants(int sample_rate) {
 		fSampleRate = sample_rate;
-		fConst0 = (1.0f / min(1.92e+05f, max(1.0f, float(fSampleRate)))); // step: 12
+		fConst0 = (1.0f / fminf(1.92e+05f, fmaxf(5e+01f, float(+fSampleRate)))); // step: 12
+		fConst1 = -fConst0; // step: 13
 	}
 	virtual void instanceResetUserInterface() {
 	}
 	virtual void instanceClear() {
 		fVeeec0State = 0;
-		fVeeec2State = 0;
+		fVeeec1State = 0;
 	}
 	virtual void init(int sample_rate) {
 		classInit(sample_rate);
@@ -94,29 +109,31 @@ class mydsp : public dsp {
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		float 	fVeeec0;
-		float 	fVeeec2;
-		int fullcount = count;
-		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
-			FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-			FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
-			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-			fVeeec0 = fVeeec0State;
-			fVeeec2 = fVeeec2State;
-			for (int i=0; i<count; i++) {
-				float 	fTemp0 = (float)input0[i]; // step: 1
-				fVeeec0 = max((fVeeec0 - fConst0), fabsf(fTemp0));
-				fbargraph0 = (2e+01f * log10f(max(0.00031622776f, fVeeec0)));
-				float 	fTemp1 = (float)input1[i]; // step: 24
-				fVeeec2 = max((fVeeec2 - fConst0), fabsf(fTemp1));
-				fbargraph1 = (2e+01f * log10f(max(0.00031622776f, fVeeec2)));
-				output0[i] = (FAUSTFLOAT)(fTemp0);  // Zone Exec Code
-				output1[i] = (FAUSTFLOAT)(fTemp1);  // Zone Exec Code
-			}
-			fVeeec0State = fVeeec0;
-			fVeeec2State = fVeeec2;
+		float 	fVeeec1;
+		float 	fDpyCap0;
+		float 	fDpyCap1;
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+		FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+		// schedule: ss=0 nodes=22 cycles=15 fill=36% peak=7 isoadj=2 packs4=0 aluMII=5 memMII=2 recMII=0 streams(peak/avg,win64)=2/2 (eval machine R=8 U=4 M=3)
+		fVeeec0 = fVeeec0State;
+		fVeeec1 = fVeeec1State;
+		for (int i=0; i<count; i++) {
+			float 	fTemp0 = (float)input0[i]; // step: 3
+			fVeeec0 = fmaxf((fVeeec0 - fConst0), fabsf(fTemp0));
+			float 	fTemp1 = (float)input1[i]; // step: 18
+			fVeeec1 = fmaxf((fVeeec1 - fConst0), fabsf(fTemp1));
+			output0[i] = (FAUSTFLOAT)(fTemp0);  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(fTemp1);  // Zone Exec Code
+			fDpyCap0 = fVeeec1;
+			fDpyCap1 = fVeeec0;
 		}
+		fVeeec0State = fVeeec0;
+		fVeeec1State = fVeeec1;
+		fbargraph0 = (2e+01f * log10f(fmaxf(0.00031622776f, fDpyCap1)));
+		fbargraph1 = (2e+01f * log10f(fmaxf(0.00031622776f, fDpyCap0)));
 	}
 };
 

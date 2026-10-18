@@ -1,11 +1,23 @@
 //----------------------------------------------------------
 // name: "pow"
 //
-// Code generated with Faust 2.81.0 (https://faust.grame.fr)
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
 #include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
 #ifndef FAUSTPOWER
 #define FAUSTPOWER
 #include <cmath>
@@ -35,6 +47,7 @@ class mydsp : public dsp {
 
   public:
 	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "pow.dsp");
 		m->declare("name", "pow");
 	}
@@ -73,7 +86,7 @@ class mydsp : public dsp {
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		int fullcount = count;
 		for (int index = 0; index < fullcount; index += 32) {
-			int count = min(32, fullcount-index);
+			int count = faustmini(32, fullcount-index);
 			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
 			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
 			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
@@ -88,30 +101,31 @@ class mydsp : public dsp {
 			FAUSTFLOAT* output11 = &output[11][index]; // Zone 3
 			FAUSTFLOAT* output12 = &output[12][index]; // Zone 3
 			FAUSTFLOAT* output13 = &output[13][index]; // Zone 3
+			// schedule: ss=0 nodes=36 cycles=19 fill=47% peak=5 isoadj=8 packs4=1 aluMII=9 memMII=0 recMII=0 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
 			for (int i=0; i<count; i++) {
-				float 	fTemp0 = fWave0[idxfWave0]; // step: 6
+				float 	fTemp0 = fWave0[idxfWave0]; // step: 7
 				float 	fTemp1 = sqrtf((3.0f * fTemp0)); // step: 9
 				float 	fTemp2 = (4.0f * fTemp0); // step: 13
-				float 	fTemp3 = powf((5.0f * fTemp0),2.0f); // step: 20
-				int 	iTemp4 = int((6.0f * fTemp0)); // step: 24
-				float 	fTemp5 = (7.0f * fTemp0); // step: 30
+				int 	iTemp4 = int(+(6.0f * fTemp0)); // step: 24
+				float 	fTemp5 = (7.0f * fTemp0); // step: 29
 				output0[i] = (FAUSTFLOAT)(fTemp1);  // Zone Exec Code
 				output1[i] = (FAUSTFLOAT)(sqrtf(fTemp1));  // Zone Exec Code
 				output2[i] = (FAUSTFLOAT)(powf(fTemp2,0.125f));  // Zone Exec Code
 				output3[i] = (FAUSTFLOAT)(powf(fTemp2,0.0625f));  // Zone Exec Code
+				float 	fTemp3 = powf((5.0f * fTemp0),2.0f); // step: 20
 				output4[i] = (FAUSTFLOAT)(fTemp3);  // Zone Exec Code
-				output5[i] = (FAUSTFLOAT)(fTemp3);  // Zone Exec Code
 				output6[i] = (FAUSTFLOAT)(faustpower<2>(iTemp4));  // Zone Exec Code
-				output7[i] = (FAUSTFLOAT)(powf(float(iTemp4),2.0f));  // Zone Exec Code
+				output7[i] = (FAUSTFLOAT)(powf(float(+iTemp4),2.0f));  // Zone Exec Code
 				output8[i] = (FAUSTFLOAT)(powf(fTemp5,2.0001f));  // Zone Exec Code
 				output9[i] = (FAUSTFLOAT)(powf(fTemp5,2.0f));  // Zone Exec Code
 				output10[i] = (FAUSTFLOAT)(1.0f);  // Zone Exec Code
 				output11[i] = (FAUSTFLOAT)((8.0f * fTemp0));  // Zone Exec Code
-				output12[i] = (FAUSTFLOAT)(1.0f);  // Zone Exec Code
 				output13[i] = (FAUSTFLOAT)((9.0f * fTemp0));  // Zone Exec Code
 				// post processing
 				idxfWave0 = (idxfWave0 + 1) % 4;
 			}
+			for (int k=0; k<count; k++) output5[k] = output4[k];
+			for (int k=0; k<count; k++) output12[k] = output10[k];
 		}
 	}
 };

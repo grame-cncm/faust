@@ -1,8 +1,8 @@
 //----------------------------------------------------------
 // name: "pow_int_float"
 //
-// Code generated with Faust 2.90.0 (https://faust.grame.fr)
-// Compilation options: -lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
 /* link with  */
@@ -47,7 +47,7 @@ class mydsp : public dsp {
 
   public:
 	virtual void metadata(Meta* m) { 
-		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
 		m->declare("filename", "pow_int_float.dsp");
 		m->declare("name", "pow_int_float");
 	}
@@ -87,12 +87,12 @@ class mydsp : public dsp {
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-		float 	fSlow0 = float(+faustpower<2>(int(+float(fslider0)))); // step: 5
-		float 	fSlow1 = powf(float(fslider1),2.0f); // step: 8
+		float 	fSlow0 = float(+faustpower<2>(int(+fmaxf(0.0f, fminf(5e+04f, float(fslider0)))))); // step: 9
+		float 	fSlow1 = powf(fmaxf(0.0f, fminf(1.0f, float(fslider1))),2.0f); // step: 15
 		const int index = 0; (void)index; // flat: single-loop scalar
 		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
 		FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-		// schedule: ss=0 nodes=8 cycles=5 fill=40% peak=2 isoadj=0 packs4=0 aluMII=2 memMII=0 recMII=0 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+		// schedule: ss=0 nodes=15 cycles=9 fill=41% peak=4 isoadj=2 packs4=0 aluMII=4 memMII=0 recMII=0 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
 		for (int i=0; i<count; i++) {
 			output0[i] = (FAUSTFLOAT)(fSlow0);  // Zone Exec Code
 			output1[i] = (FAUSTFLOAT)(fSlow1);  // Zone Exec Code
