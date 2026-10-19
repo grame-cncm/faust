@@ -17,18 +17,24 @@ SET LIBSNDFILE_B="%MYPATH%/../../libsndfile"
 SET VS_REDIST=%VCToolsRedistDir%vc_redist.x64.exe
 SET "VS_REDIST=%VS_REDIST:\=/%"
 
+REM An llvm-config given by the environment (LLVM_CONFIG) is used as is.
+IF DEFINED LLVM_CONFIG (
+    echo llvm-config.exe given at %LLVM_CONFIG%
+    GOTO LLVM_CONFIG_FOUND
+)
 IF EXIST %LLVM_CONFIG_A% (
     SET LLVM_CONFIG=%LLVM_CONFIG_A%
-    echo llvm-config.exe found at %LLVM_CONFIG%
+    echo llvm-config.exe found at %LLVM_CONFIG_A%
 ) ELSE (
     IF EXIST %LLVM_CONFIG_B% (
         SET LLVM_CONFIG=%LLVM_CONFIG_B%
-        echo llvm-config.exe found at %LLVM_CONFIG%
+        echo llvm-config.exe found at %LLVM_CONFIG_B%
     ) ELSE (
         echo llvm-config.exe not found at %LLVM_CONFIG_A% or %LLVM_CONFIG_B%
-        EXIT /B
+        EXIT /B 1
     )
 )
+:LLVM_CONFIG_FOUND
 
 IF EXIST %MAXSDK_A% (
     SET MAXSDK=%MAXSDK_A%
@@ -39,7 +45,7 @@ IF EXIST %MAXSDK_A% (
         echo max-sdk-base found at %MAXSDK%
     ) ELSE (
         echo max-sdk-base not found at %MAXSDK_A% or %MAXSDK_B%
-        EXIT /B
+        EXIT /B 1
     )
 )
 
@@ -52,7 +58,7 @@ IF EXIST %LIBSNDFILE_A% (
         echo libsndfile install found at %LIBSNDFILE%
     ) ELSE (
         echo libsndfile install not found at %LIBSNDFILE_A% or %LIBSNDFILE_B%
-        EXIT /B
+        EXIT /B 1
     )
 )
 
@@ -70,8 +76,12 @@ echo "Make sure that faust submodules are up-to-date"
 echo "###################### Building Faust package ######################"
 mkdir build
 cd build
-cmake -C ..\backends\most.cmake -C ../targets/all-win64.cmake -DUSE_LLVM_CONFIG=ON -DLLVM_CONFIG="%LLVM_CONFIG%" -Ax64 ..
+REM LLVM_REQUIRED_VERSION and LLVM_FORBID_ASSERTIONS (see build/misc/llvm.cmake)
+REM are empty unless the environment sets them.
+cmake -C ..\backends\most.cmake -C ../targets/all-win64.cmake -DUSE_LLVM_CONFIG=ON -DLLVM_CONFIG=%LLVM_CONFIG% -DLLVM_REQUIRED_VERSION="%LLVM_REQUIRED_VERSION%" -DLLVM_FORBID_ASSERTIONS=%LLVM_FORBID_ASSERTIONS% -Ax64 ..
+IF ERRORLEVEL 1 EXIT /B %ERRORLEVEL%
 cmake --build . --config Release --  /maxcpucount:4
+IF ERRORLEVEL 1 EXIT /B %ERRORLEVEL%
 CALL ../MakePkg.bat
 cmake -DCMAKE_INSTALL_PREFIX=faust -DPACK=off ..
 REM Install faust locally - to be used to build faustgen and faustlive
