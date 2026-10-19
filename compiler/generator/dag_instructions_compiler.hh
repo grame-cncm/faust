@@ -38,6 +38,7 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     virtual void       generateCodeRecursions(Tree sig);
     virtual ValueInst* generateCodeNonRec(Tree sig);
     virtual ValueInst* generateLoopCode(Tree sig);
+    virtual ValueInst* compoundOperand(Tree x) override;
 
     virtual ValueInst* generateWaveform(Tree sig) override;
 

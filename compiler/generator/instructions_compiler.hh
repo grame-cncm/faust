@@ -249,7 +249,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
     DefinitionIndex    fDefinitions;  // the subterms of compound definitions the program holds
     virtual ValueInst* generateNeg(Tree sig, Tree x);
-    ValueInst*         compoundOperand(Tree x);
+    virtual ValueInst* compoundOperand(Tree x);
     ValueInst*         compoundSlowStore(int variability, ValueInst* exp, bool isInt = false);
     ValueInst*         generateSum(Tree sig, const tvec& subs);
     ValueInst*         generateProd(Tree sig, const tvec& factors);
