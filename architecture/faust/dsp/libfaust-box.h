@@ -879,6 +879,10 @@ LIBFAUST_API bool getBoxType(Box box, int* inputs, int* outputs);
  * Compile a box expression in a list of signals in normal form
  * (see simplifyToNormalForm in libfaust-signal.h)
  *
+ * The normal form is computed with the default options, since none are given here :
+ * options passed later to a factory or to createSourceFromSignals do not undo what the
+ * default options did (for instance the slider bounds of -rui).
+ *
  * @param box - the box expression
  * @param error_msg - the error string to be filled
  *
