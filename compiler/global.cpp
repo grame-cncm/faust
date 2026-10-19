@@ -410,13 +410,68 @@ global::global()
 }
 
 // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
+// The tables of the code generators : the functions already declared in the generated
+// code (getNumInputs, the math functions...). One compilation must not inherit them.
+static void cleanupCodeGenerators()
+{
+#ifdef C_BUILD
+    CInstVisitor::cleanup();
+#endif
+#ifdef CPP_BUILD
+    CPPInstVisitor::cleanup();
+#endif
+#ifdef CODEBOX_BUILD
+    CodeboxInstVisitor::cleanup();
+#endif
+#ifdef CSHARP_BUILD
+    CSharpInstVisitor::cleanup();
+#endif
+#ifdef DLANG_BUILD
+    DLangInstVisitor::cleanup();
+#endif
+#ifdef FIR_BUILD
+    FIRInstVisitor::cleanup();
+#endif
+#ifdef JAVA_BUILD
+    JAVAInstVisitor::cleanup();
+#endif
+#ifdef JULIA_BUILD
+    JuliaInstVisitor::cleanup();
+#endif
+#ifdef JSFX_BUILD
+    JSFXInstVisitor::cleanup();
+#endif
+#ifdef NNX_BUILD
+    NNXInstVisitor::cleanup();
+#endif
+#ifdef LINEN_BUILD
+    // LinenInstVisitor shares NNXBaseInstVisitor::gFunctionSymbolTable; clear it
+    // for build configs where LINEN is enabled but NNX is not.
+    LinenInstVisitor::cleanup();
+#endif
+#ifdef ASSEMBLYSCRIPT_BUILD
+    AssemblyScriptInstVisitor::cleanup();
+#endif
+#ifdef TEMPLATE_BUILD
+    TemplateInstVisitor::cleanup();
+#endif
+#ifdef RUST_BUILD
+    RustInstVisitor::cleanup();
+#endif
+}
+
 void global::reset()
 {
     gAllWarning = false;
     gWarningMessages.clear();
     // the validity certificates of the previous compilation (the signal library state
-    // lives across the calls of the Box/Signal API)
+    // lives across the calls of the Box/Signal API), and its normal forms
     sigs::g.gCertifiedSamples.clear();
+    gNormalForms.clear();
+    // the names, the variable types and the declared functions of the previous generated code
+    gIDCounters.clear();
+    clearVarTypeTable();  // what DeclareVarInst::cleanup does, without gGlobal (set after the constructor)
+    cleanupCodeGenerators();
 
     gResult          = nullptr;
     gExpandedDefList = nullptr;
@@ -494,6 +549,7 @@ void global::reset()
     gLSLoadW        = 1;
 
     gFloatSize      = 1;             // -single by default
+    itv::programPrecision() = gFloatSize;  // the precision of the intervals follows it
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
     gFixedPointMSB  = 0;
     gFixedPointLSB  = 0;
@@ -697,7 +753,6 @@ void global::init()
     NULLENV          = tree(symbol("NullRenameEnv"));
     COLORPROPERTY    = tree(symbol("ColorProperty"));
     RECURSIVNESS     = tree(symbol("RecursivnessProp"));
-    NORMALFORM       = tree(symbol("NormalForm"));
     DEFNAMEPROPERTY  = tree(symbol("DEFNAMEPROPERTY"));
     NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
     BCOMPLEXITY      = tree("BCOMPLEXITY");
@@ -979,13 +1034,15 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
             << ((gGroupTaskSwitch) ? "-g " : "") << ((gDeepFirstSwitch) ? "-dfs " : "");
     }
 
-    // Add 'compile_options' metadata. A metadata string is copied as is into the
-    // string literals of the generated code, which is why the lexer refuses a
-    // backslash in a source string. The -a path is the part of this line that
-    // can bring one, as the separator of a Windows path, where "\s" or "\o"
-    // would then be read as escape sequences. Windows accepts '/' as well.
+    // Add 'compile_options' metadata : the options of this compilation only. A
+    // metadata string is copied as is into the string literals of the generated
+    // code, which is why the lexer refuses a backslash in a source string. The -a
+    // path is the part of this line that can bring one, as the separator of a
+    // Windows path, where "\s" or "\o" would then be read as escape sequences.
+    // Windows accepts '/' as well.
     string res = dst.str();
     std::replace(res.begin(), res.end(), '\\', '/');
+    gMetaDataSet[tree("compile_options")].clear();
     gMetaDataSet[tree("compile_options")].insert(tree("\"" + res.substr(0, res.size() - 1) + "\""));
 }
 
@@ -1139,51 +1196,7 @@ global::~global()
     setlocale(LC_ALL, gCurrentLocal);
     free(gCurrentLocal);
 
-    // Cleanup
-#ifdef C_BUILD
-    CInstVisitor::cleanup();
-#endif
-#ifdef CPP_BUILD
-    CPPInstVisitor::cleanup();
-#endif
-#ifdef CODEBOX_BUILD
-    CodeboxInstVisitor::cleanup();
-#endif
-#ifdef CSHARP_BUILD
-    CSharpInstVisitor::cleanup();
-#endif
-#ifdef DLANG_BUILD
-    DLangInstVisitor::cleanup();
-#endif
-#ifdef FIR_BUILD
-    FIRInstVisitor::cleanup();
-#endif
-#ifdef JAVA_BUILD
-    JAVAInstVisitor::cleanup();
-#endif
-#ifdef JULIA_BUILD
-    JuliaInstVisitor::cleanup();
-#endif
-#ifdef JSFX_BUILD
-    JSFXInstVisitor::cleanup();
-#endif
-#ifdef NNX_BUILD
-    NNXInstVisitor::cleanup();
-#endif
-#ifdef LINEN_BUILD
-    // LinenInstVisitor shares NNXBaseInstVisitor::gFunctionSymbolTable; clear it
-    // for build configs where LINEN is enabled but NNX is not.
-    LinenInstVisitor::cleanup();
-#endif
-#ifdef ASSEMBLYSCRIPT_BUILD
-    AssemblyScriptInstVisitor::cleanup();
-#endif
-#ifdef TEMPLATE_BUILD
-    TemplateInstVisitor::cleanup();
-#endif
-#ifdef RUST_BUILD
-    RustInstVisitor::cleanup();
-#endif
+    cleanupCodeGenerators();
 }
 
 void global::allocate()
