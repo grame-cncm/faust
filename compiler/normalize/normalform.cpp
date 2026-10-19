@@ -693,10 +693,14 @@ LIBFAUST_API Tree simplifyToNormalForm(Tree sig)
 {
     if (isList(sig)) {
         startTiming("simplifyToNormalForm");
-        Tree t2 = sig->getProperty(gGlobal->NORMALFORM);
-        if (!t2) {
-            t2 = simplifyToNormalFormAux(sig);
-            sig->setProperty(gGlobal->NORMALFORM, t2);
+        Tree t2;
+        auto it = gGlobal->gNormalForms.find(sig);
+        if (it != gGlobal->gNormalForms.end()) {
+            t2 = it->second;
+        } else {
+            t2                         = simplifyToNormalFormAux(sig);
+            gGlobal->gNormalForms[sig] = t2;
+            gGlobal->gNormalForms[t2]  = t2;  // a normal form is its own normal form
         }
         endTiming("simplifyToNormalForm");
         return t2;

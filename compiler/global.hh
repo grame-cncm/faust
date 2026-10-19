@@ -504,11 +504,14 @@ struct global {
     // Cross-call memo of simplify (a pure-function cache: original -> simplified).
     // Lives and dies with gGlobal, so one compilation never sees another's trees.
     std::unordered_map<Tree, Tree> gSimplifiedMemo;
+    // The normal forms computed by the current compilation (simplifyToNormalForm), emptied
+    // by reset() : a compilation never reuses the normal form, its options and its
+    // certificates, of another one in the same context.
+    std::unordered_map<Tree, Tree> gNormalForms;
     Tree DOCTABLES;
     Tree NULLENV;
     Tree COLORPROPERTY;
     Tree& RECURSIVNESS = sigs::g.RECURSIVNESS;
-    Tree NORMALFORM;
     Tree DEFNAMEPROPERTY;
     Tree NICKNAMEPROPERTY;
     Tree BCOMPLEXITY;  // Node used for memoization purposes
