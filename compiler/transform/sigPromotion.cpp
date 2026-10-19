@@ -799,8 +799,13 @@ class IntCastPromotionAlgebra final : public TransformAlgebra {
    public:
     XSig IntCast(const XSig& x) const override
     {
-        interval x_i = sigInterval(x.orig);
-        if (x_i.lo() <= INT32_MIN || x_i.hi() >= INT32_MAX) {
+        // the largest value of the program below 2^31 : INT32_MAX itself is no float
+        // (it rounds to 2^31, which overflows) ; -2^31 is exact in every precision. The
+        // test is against these bounds themselves : a value within them converts exactly,
+        // and the bounded value [-2^31, high] is not bounded again.
+        const double high = (gGlobal->gFloatSize == 1) ? 2147483520.0 : double(INT32_MAX);
+        interval     x_i  = sigInterval(x.orig);
+        if (x_i.lo() < double(INT32_MIN) || x_i.hi() > high) {
             if (gAllWarning) {
                 stringstream error;
                 error << "WARNING : float to integer conversion [" << x_i.lo() << ":" << x_i.hi()
@@ -808,9 +813,7 @@ class IntCastPromotionAlgebra final : public TransformAlgebra {
                       << ppsig(fBuild.IntCast(x.orig), MAX_ERROR_SIZE) << endl;
                 gWarningMessages.push_back(error.str());
             }
-            // the largest value of the program below 2^31 : INT32_MAX itself is no float
-            // (it rounds to 2^31, which overflows) ; -2^31 is exact in every precision
-            Tree hi = sigReal(gGlobal->gFloatSize == 1 ? 2147483520.0 : double(INT32_MAX));
+            Tree hi = sigReal(high);
             Tree lo = sigMax(x.out, sigReal(INT32_MIN));
             return o(sigIntCast(sigMin(hi, lo)));
         }
