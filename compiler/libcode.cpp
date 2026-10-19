@@ -50,6 +50,7 @@
 #include "instructions_compiler_jax.hh"
 #include "labels.hh"
 #include "libfaust.h"
+#include "lowerNormalForm.hh"
 #include "normalform.hh"
 #include "ppbox.hh"
 #include "ppsig.hh"
@@ -930,7 +931,8 @@ static void compileDlang(Tree signals, int numInputs, int numOutputs, ostream* o
 static void compileVhdl(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef VHDL_BUILD
-    signals                = simplifyToNormalForm(signals);
+    // the backend knows the binary operations : the nodes of the normal form lowered
+    signals                = lowerNormalForm(simplifyToNormalForm(signals));
     VhdlProducer vhdl_prod = VhdlProducer(signals, gGlobal->gClassName, numInputs, numOutputs);
     vhdl_prod.optimize();
     if (gGlobal->gVHDLTrace) {
@@ -950,7 +952,8 @@ static void compileVhdl(Tree signals, int numInputs, int numOutputs, ostream* ou
 static void compileSdf3(Tree signals, ostream* out)
 {
 #ifdef SDF3_BUILD
-    signals = simplifyToNormalForm(signals);
+    // the backend knows the binary operations : the nodes of the normal form lowered
+    signals = lowerNormalForm(simplifyToNormalForm(signals));
     Signal2SDF V;
     V.sigToSDF(signals, *out);
     if (gUseCout) {
