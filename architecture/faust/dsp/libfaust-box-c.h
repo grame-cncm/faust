@@ -800,6 +800,10 @@ LIBFAUST_API bool CgetBoxType(Box box, int* inputs, int* outputs);
  * Compile a box expression in a null terminated array of signals in normal form
  * (see CsimplifyToNormalForm in libfaust-signal-c.h)
  *
+ * The normal form is computed with the default options, since none are given here :
+ * options passed later to a factory or to CcreateSourceFromSignals do not undo what the
+ * default options did (for instance the slider bounds of -rui).
+ *
  * @param box - the box expression
  * @param error_msg - the error string to be filled, has to be 4096 characters long
  *
