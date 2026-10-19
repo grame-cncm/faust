@@ -100,7 +100,9 @@ jobs:
       LLVM_SOURCE_SHA256: ${{ needs.config.outputs.llvm-source-sha256 }}
       LLVM_TARGETS: ${{ needs.config.outputs.llvm-targets }}
       TAG: ${{ needs.config.outputs.tag }}
-      PLATFORM: ${{ matrix.platform }}
+      # Not PLATFORM: on Windows, msvc-dev-cmd exports Platform=x64, and
+      # environment variable names are case-insensitive there.
+      PACKAGE_PLATFORM: ${{ matrix.platform }}
       CMAKE_VERSION: "3.31.6"
       NINJA_VERSION: "1.11.1.4"
 
@@ -190,7 +192,7 @@ jobs:
           -DLLVM_INSTALL_UTILS=OFF
           -DLLVM_DISTRIBUTION_COMPONENTS="llvm-config;llvm-headers;llvm-libraries;cmake-exports"
         )
-        case "$PLATFORM" in
+        case "$PACKAGE_PLATFORM" in
           macos-*)
             options+=(-DCMAKE_OSX_ARCHITECTURES="${{ matrix.osx-arch }}"
                       -DCMAKE_OSX_DEPLOYMENT_TARGET="${{ needs.config.outputs.macosx-deployment-target }}") ;;
@@ -225,7 +227,7 @@ jobs:
         set -euo pipefail
         root=$(pwd -W 2>/dev/null || pwd)
         options=(-G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_DIR="$root/llvm/lib/cmake/llvm")
-        case "$PLATFORM" in
+        case "$PACKAGE_PLATFORM" in
           macos-*)
             options+=(-DCMAKE_OSX_ARCHITECTURES="${{ matrix.osx-arch }}"
                       -DCMAKE_OSX_DEPLOYMENT_TARGET="${{ needs.config.outputs.macosx-deployment-target }}") ;;
@@ -241,7 +243,7 @@ jobs:
         set -euo pipefail
         cfg=llvm/bin/llvm-config
         {
-          echo "Package     : faust-$TAG-$PLATFORM"
+          echo "Package     : faust-$TAG-$PACKAGE_PLATFORM"
           echo "LLVM        : $LLVM_VERSION (llvmorg-$LLVM_VERSION, source sha256 $LLVM_SOURCE_SHA256)"
           echo "Built by    : $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
           echo "From commit : $GITHUB_SHA"
@@ -260,7 +262,7 @@ jobs:
     - name: Package
       run: |
         set -euo pipefail
-        base="faust-$TAG-$PLATFORM"
+        base="faust-$TAG-$PACKAGE_PLATFORM"
         if [ "${RUNNER_OS}" = Windows ]; then
           7z a -tzip "$base.zip" llvm > /dev/null
           echo "ASSET=$base.zip" >> "$GITHUB_ENV"
@@ -297,6 +299,10 @@ jobs:
       run: |
         set -euo pipefail
         cd dist
+        # The names fetch-llvm looks for, one per platform of the build matrix.
+        for name in linux-x86_64.tar.xz linux-aarch64.tar.xz macos-arm64.tar.xz macos-x86_64.tar.xz windows-x64.zip; do
+          [ -f "faust-$TAG-$name" ] || { echo "::error::faust-$TAG-$name is missing"; ls; exit 1; }
+        done
         sha256sum faust-"$TAG"-* > SHA256SUMS
         cat SHA256SUMS
         [ "$(wc -l < SHA256SUMS)" -eq 5 ] || { echo "::error::expected 5 packages"; exit 1; }
