@@ -1362,6 +1362,7 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
      1 - process command line
      *****************************************************************/
     gGlobal->reset();
+    gGlobal->gMetaDataSet.clear();  // a new program : the metadata of the previous one go
     gGlobal->initDirectories(argc1, argv1);
     gGlobal->processCmdline(argc1, argv1);
 
