@@ -223,7 +223,7 @@ void SuperNodeGraph::collectRefs(Tree t, std::set<int>& refs, std::set<int>& ref
         if (self != fMatIdx.end() && (fFreeDelay == 0 || dmin < fFreeDelay)) {
             refs.insert(self->second);
         }
-        for (size_t k = 1; k < cs.size(); k++) {
+        for (size_t k = 0; k < cs.size(); k++) {  // the input, then the coefficients
             collectRefs(cs[k], refs, refs0, seen, false);
         }
         return;
