@@ -280,6 +280,23 @@ ValueInst* DAGInstructionsCompiler::generateLoopCode(Tree sig)
     }
 }
 
+/**
+ * An operand that a compound definition reads twice (frac, tpt, mix, phase, the recursive
+ * mix, a Bpf). A sample-rate operand is not stored in a vector of the current loop : that
+ * vector would belong to no loop, and a loop reading the operand later would not depend
+ * on the one writing it, and could run first. Its compiled code is read twice instead, as
+ * the compiled code of any shared signal is : the same value, and a shared operand that
+ * deserves a vector already has one (generateCacheCode). A slower operand is stored at its
+ * rate, outside the loops, as in the scalar compiler.
+ */
+ValueInst* DAGInstructionsCompiler::compoundOperand(Tree x)
+{
+    if (getCertifiedSigType(x)->variability() == kSamp) {
+        return CS(x);
+    }
+    return InstructionsCompiler::compoundOperand(x);
+}
+
 ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 {
     string       vname;
