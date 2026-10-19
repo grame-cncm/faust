@@ -2156,6 +2156,31 @@ class LoopSplitEmitter {
             }
             return;
         }
+        if (Tree p; isSigIRM(t, x, p)) {
+            // the node reads itself at delay 1 : the occurrences give it a history
+            prescan(x, seen);
+            prescan(p, seen);
+            if (Tree wx = irmInputWeight(p)) {
+                prescan(wx, seen);
+            }
+            return;
+        }
+        if (isSigBpf(t)) {
+            if (BpfTable bt; bpfTableOf(t, bt)) {
+                throw LoopSplitUnsupported("Bpf table");
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                prescan(t->branch(k), seen);
+            }
+            return;
+        }
+        if (Tree c, a, b; isSigProd(t) || isSigNeg(t, x) || isSigFrac(t, x) || isSigCfrac(t, x) ||
+                          isSigTpt(t, x) || isSigMix(t, c, a, b) || isSigPhase(t, a, b)) {
+            for (int k = 0; k < t->arity(); k++) {
+                prescan(t->branch(k), seen);
+            }
+            return;
+        }
         std::ostringstream what;
         what << "signal " << t->node();
         throw LoopSplitUnsupported(what.str());
@@ -2193,6 +2218,112 @@ class LoopSplitEmitter {
             deps.push_back(o.op);
         }
     }
+
+    static Operand leafOperand(const std::string& code)
+    {
+        Operand o;
+        o.code = code;
+        return o;
+    }
+
+    // the walk of t gave a name or a number computed outside the loops : a slow signal
+    // that has no buffer of its own (a delayed slow signal is read from its buffer)
+    bool slowLeaf(Tree t, const Operand& o) const
+    {
+        return o.op < 0 && getCertifiedSigType(t)->variability() < kSamp && fSN.indexOf(t) < 0;
+    }
+
+    // an operation of the body : $0, $1... in the pattern are the codes of the operands
+    Operand bodyOp(const std::string& pattern, const std::vector<Operand>& args, bool isInt,
+                   bool isCall = false)
+    {
+        std::vector<int>         deps;
+        std::vector<std::string> codes;
+        for (const Operand& a : args) {
+            addDep(deps, a);
+            codes.push_back(operandCode(a));
+        }
+        Operand o;
+        o.op = newOp(subst(pattern, codes), deps, false, isCall, isInt);
+        return o;
+    }
+
+    // a part of a definition slower than the sample, an expression of slow names (a leaf),
+    // stored at its rate as the scalar emission stores it ; an operation of the body stays
+    // as it is, the same value
+    Operand slowStore(int variability, const Operand& a, bool isInt)
+    {
+        if (a.op >= 0 || (variability != kKonst && variability != kBlock)) {
+            return a;
+        }
+        return leafOperand(fC->compoundSlowStore(variability, a.code, isInt));
+    }
+
+    // the operations of emitSum and emitProd (sumLayout.hh) on the body : the slow prefix of
+    // the chain stays an expression of slow names, so that it can be stored at its rate
+    struct RatedOperand {
+        Operand o;
+        bool    slow = true;
+    };
+    struct ChainOps {
+        LoopSplitEmitter* fE;
+        int               fScc;
+        bool              fInt;
+
+        RatedOperand term(Tree t)
+        {
+            RatedOperand r;
+            r.o    = fE->walk(t, fScc, false);
+            r.slow = fE->slowLeaf(t, r.o);
+            return r;
+        }
+        RatedOperand negatedTerm(Tree t) { return term(t); }
+        RatedOperand combine(const char* real, const char* wrap, const RatedOperand& a,
+                             const RatedOperand& b)
+        {
+            const char*  pattern = fInt ? wrap : real;
+            RatedOperand r;
+            r.slow = a.slow && b.slow;
+            if (r.slow) {
+                r.o = leafOperand(subst(pattern, a.o.code, b.o.code));
+            } else {
+                r.o = fE->bodyOp(pattern, {a.o, b.o}, fInt);
+            }
+            return r;
+        }
+        RatedOperand add(const RatedOperand& a, const RatedOperand& b)
+        {
+            return combine("($0 + $1)", "faust_wrap_add($0, $1)", a, b);
+        }
+        RatedOperand sub(const RatedOperand& a, const RatedOperand& b)
+        {
+            return combine("($0 - $1)", "faust_wrap_sub($0, $1)", a, b);
+        }
+        RatedOperand mul(const RatedOperand& a, const RatedOperand& b)
+        {
+            return combine("($0 * $1)", "faust_wrap_mul($0, $1)", a, b);
+        }
+        RatedOperand neg(const RatedOperand& a)
+        {
+            const char*  pattern = fInt ? "faust_wrap_sub(0, $0)" : "(-$0)";
+            RatedOperand r;
+            r.slow = a.slow;
+            r.o    = r.slow ? leafOperand(subst(pattern, a.o.code)) : fE->bodyOp(pattern, {a.o}, fInt);
+            return r;
+        }
+        RatedOperand store(int variability, const RatedOperand& a)
+        {
+            RatedOperand r = a;
+            r.o            = fE->slowStore(variability, a.o, fInt);
+            return r;
+        }
+        RatedOperand zero()
+        {
+            RatedOperand r;
+            r.o = leafOperand("0");
+            return r;
+        }
+    };
 
     // read access into a materialized signal's buffer
     std::string accessCode(int idx, const std::string& dcode) const
@@ -2432,7 +2563,9 @@ class LoopSplitEmitter {
             const int ix = fSN.indexOf(V[0]);
             faustassert(ix >= 0);
             // lowering at scheduling time : one product op per tap, then a
-            // left chain of adds (ascending taps, the scalar association)
+            // left chain of adds -- the association of generateFIR : ascending
+            // taps, a negative coefficient after the first tap subtracted, an
+            // int kernel wrapping
             const bool kInt2 = (getCertifiedSigType(t)->nature() == kInt);
             Operand    acc;
             bool       first = true;
@@ -2440,30 +2573,28 @@ class LoopSplitEmitter {
                 if (isZero(V[k])) {
                     continue;
                 }
-                Operand tap = refOperand(ix, T(int(k) - 1), k == 1, curScc);
-                Operand term;
-                if (isOne(V[k])) {
+                Operand    tap = refOperand(ix, T(int(k) - 1), k == 1, curScc);
+                Tree       m;
+                const bool sub = !first && negativeCoefficient(V[k], m);
+                Tree       c   = sub ? m : V[k];
+                Operand    term;
+                if (c == nullptr || isOne(c)) {
                     term = tap;
                 } else {
-                    Operand          c = walk(V[k], curScc, false);
-                    std::vector<int> pd;
-                    addDep(pd, c);
-                    addDep(pd, tap);
-                    term.op = newOp(subst("(($0) * $1)", operandCode(c), operandCode(tap)),
-                                    pd, false, false, kInt2);
+                    Operand oc = walk(c, curScc, false);
+                    term = bodyOp(kInt2 ? "faust_wrap_mul($0, $1)" : "($0 * $1)", {oc, tap}, kInt2);
                 }
                 if (first) {
                     acc   = term;
                     first = false;
                 } else {
-                    std::vector<int> ad;
-                    addDep(ad, acc);
-                    addDep(ad, term);
-                    Operand n2;
-                    n2.op = newOp(subst("($0 + $1)", operandCode(acc), operandCode(term)),
-                                  ad, false, false, kInt2);
-                    acc = n2;
+                    const char* pattern = kInt2 ? (sub ? "faust_wrap_sub($0, $1)" : "faust_wrap_add($0, $1)")
+                                                : (sub ? "($0 - $1)" : "($0 + $1)");
+                    acc = bodyOp(pattern, {acc, term}, kInt2);
                 }
+            }
+            if (first) {
+                acc = leafOperand("0");
             }
             o = acc;
             if (o.op >= 0) {
@@ -2597,42 +2728,14 @@ class LoopSplitEmitter {
                 return o;
             }
             // LOWERING AT SCHEDULING TIME : the revealed sum becomes a left
-            // chain of BINARY add ops -- each one an atom the RUM scheduler
+            // chain of BINARY ops -- each one an atom the RUM scheduler
             // places, so isomorphic kernels interleave (the monolithic
-            // emission was an opaque brick for isoadj/SLP). Left-chain
-            // association == the scalar generateSum, bit-exact ; INT sums
-            // wrap through unsigned arithmetic pairwise (mod-2^32 addition
-            // is associative, the flat and chained forms agree).
-            Operand    acc;
-            bool       first = true;
-            for (Tree b : V) {
-                if (isZero(b)) {
-                    continue;
-                }
-                Operand a = walk(b, curScc, false);
-                if (first) {
-                    acc   = a;
-                    first = false;
-                    continue;
-                }
-                std::vector<int> deps;
-                addDep(deps, acc);
-                addDep(deps, a);
-                Operand n2;
-                if (wrapInt) {
-                    n2.op = newOp(subst("faust_wrap_add($0, $1)", operandCode(acc), operandCode(a)),
-                                  deps, false, false, true);
-                } else {
-                    n2.op = newOp(subst("($0 + $1)", operandCode(acc), operandCode(a)),
-                                  deps, false, false, false);
-                }
-                acc = n2;
-            }
-            if (first) {
-                o.code = "0";
-                return o;
-            }
-            o = acc;
+            // emission was an opaque brick for isoadj/SLP). The chain of
+            // emitSum, the one of the scalar generateSum : the same
+            // association, the negated terms subtracted, the slow prefix
+            // stored at its rate, bit-exact ; INT sums wrap pairwise.
+            ChainOps ops{this, curScc, wrapInt};
+            o = emitSum<RatedOperand>(t, V, ops).o;
             if (o.op >= 0) {
                 fOpOf[t] = o.op;
             }
@@ -2641,40 +2744,35 @@ class LoopSplitEmitter {
         if (tvec V; isSigIIR(t, V)) {
             // stage 1 : DIRECT form only (y = X + sum ci*y@i) -- under -ls
             // the transposed election stands down, so the occurrence
-            // self-marks size this member's buffer. Descending tap order
-            // mirrors generateIIR (bit-exact with the scalar emission).
+            // self-marks size this member's buffer.
             const int ixSelf = fSN.indexOf(t);
             faustassert(ixSelf >= 0);
             // lowering at scheduling time : the recurrence stays a chain
             // PER KERNEL (its nature) but fifty kernels' chains interleave
             // BETWEEN them -- which is where plain fusion's win on the
-            // modal banks came from. Descending taps from X, the scalar
-            // association of generateIIR, bit-exact.
+            // modal banks came from. The association of generateIIR,
+            // bit-exact : X, then the taps in ascending order, a negative
+            // coefficient subtracted ; an int recurrence wraps.
             const bool kInt2 = (getCertifiedSigType(t)->nature() == kInt);
             Operand    acc   = walk(V[0], curScc, false);
-            for (size_t k = V.size() - 1; k >= 1; k--) {
+            for (size_t k = 1; k < V.size(); k++) {
                 if (isZero(V[k])) {
                     continue;
                 }
-                Operand tap = refOperand(ixSelf, T(int(k)), false, curScc);
-                Operand term;
-                if (isOne(V[k])) {
+                Operand    tap = refOperand(ixSelf, T(int(k)), false, curScc);
+                Tree       m;
+                const bool sub = negativeCoefficient(V[k], m);
+                Tree       c   = sub ? m : V[k];
+                Operand    term;
+                if (c == nullptr || isOne(c)) {
                     term = tap;
                 } else {
-                    Operand          c = walk(V[k], curScc, false);
-                    std::vector<int> pd;
-                    addDep(pd, c);
-                    addDep(pd, tap);
-                    term.op = newOp(subst("(($0) * $1)", operandCode(c), operandCode(tap)),
-                                    pd, false, false, kInt2);
+                    Operand oc = walk(c, curScc, false);
+                    term = bodyOp(kInt2 ? "faust_wrap_mul($0, $1)" : "($0 * $1)", {oc, tap}, kInt2);
                 }
-                std::vector<int> ad;
-                addDep(ad, acc);
-                addDep(ad, term);
-                Operand n2;
-                n2.op = newOp(subst("($0 + $1)", operandCode(acc), operandCode(term)), ad,
-                              false, false, kInt2);
-                acc = n2;
+                const char* pattern = kInt2 ? (sub ? "faust_wrap_sub($0, $1)" : "faust_wrap_add($0, $1)")
+                                            : (sub ? "($0 - $1)" : "($0 + $1)");
+                acc = bodyOp(pattern, {acc, term}, kInt2);
             }
             o = acc;
             if (o.op >= 0) {
@@ -2688,6 +2786,169 @@ class LoopSplitEmitter {
         std::string       code;
         bool              call  = false;
         bool              isInt = getCertifiedSigType(t)->nature() == kInt;
+
+        if (tvec V; isSigProd(t, V)) {
+            // the chain of emitProd, the one of the scalar generateProd
+            ChainOps ops{this, curScc, isInt};
+            o = emitProd<RatedOperand>(t, V, ops).o;
+            if (o.op >= 0) {
+                fOpOf[t] = o.op;
+            }
+            return o;
+        }
+        if (isSigNeg(t, x)) {
+            // as generateNeg : an int negation wraps
+            Operand a = walk(x, curScc, false);
+            o         = bodyOp(isInt ? "faust_wrap_mul(-1, $0)" : "(-$0)", {a}, isInt);
+            fOpOf[t]  = o.op;
+            return o;
+        }
+        if (isSigFrac(t, x) || isSigCfrac(t, x)) {
+            // as generateRemainder : x - floor(x), x - rint(x)
+            xtended*    round = isSigFrac(t, x) ? gGlobal->gFloorPrim : gGlobal->gRintPrim;
+            Operand     a     = walk(x, curScc, false);
+            std::string rcode = static_cast<xtendedCodegen*>(round)->generateCode(
+                fClass, {operandCode(a)}, {getCertifiedSigType(x)});
+            std::vector<int> deps;
+            addDep(deps, a);
+            Operand r;
+            r.op     = newOp(rcode, deps, false, isCallPrim(round->name()), false);
+            o        = bodyOp("($0 - $1)", {a, r}, false);
+            fOpOf[t] = o.op;
+            return o;
+        }
+        if (isSigTpt(t, x)) {
+            // as generateTpt : x / (x + 1)
+            Operand a = walk(x, curScc, false);
+            Operand d = bodyOp("($0 + $1)", {a, leafOperand(realLiteral(1.0))}, false);
+            o         = bodyOp("($0 / $1)", {a, d}, false);
+            fOpOf[t]  = o.op;
+            return o;
+        }
+        if (Tree c, a, b; isSigMix(t, c, a, b)) {
+            // as generateMix : the interpolation from b, 1 - c stored at the rate of c,
+            // when c may be near 1, from a otherwise
+            Operand oa = walk(a, curScc, false);
+            Operand ob = walk(b, curScc, false);
+            Operand oc = walk(c, curScc, false);
+            if (itv::mixFromB(getCertifiedSigType(c)->getInterval())) {
+                const int vrc = getCertifiedSigType(c)->variability();
+                Operand   w   = slowLeaf(c, oc) ? leafOperand(subst("($0 - $1)", realLiteral(1.0), oc.code))
+                                            : bodyOp("($0 - $1)", {leafOperand(realLiteral(1.0)), oc}, false);
+                if (vrc < getCertifiedSigType(t)->variability() && vrc != kSamp) {
+                    w = slowStore(vrc, w, false);
+                }
+                Operand dif = bodyOp("($0 - $1)", {oa, ob}, false);
+                Operand m   = bodyOp("($0 * $1)", {w, dif}, false);
+                o           = bodyOp("($0 + $1)", {ob, m}, false);
+            } else {
+                Operand dif = bodyOp("($0 - $1)", {ob, oa}, false);
+                Operand m   = bodyOp("($0 * $1)", {oc, dif}, false);
+                o           = bodyOp("($0 + $1)", {oa, m}, false);
+            }
+            fOpOf[t] = o.op;
+            return o;
+        }
+        if (Tree a, p; isSigPhase(t, a, p)) {
+            // as generatePhase : (x % p) / p, the division by a product by 1/p when
+            // phaseByReciprocal says so
+            const bool pInt = getCertifiedSigType(a)->nature() == kInt &&
+                              getCertifiedSigType(p)->nature() == kInt;
+            Operand ox = walk(a, curScc, false);
+            Operand op = walk(p, curScc, false);
+            Operand r;
+            if (pInt) {
+                r = bodyOp("($0 % $1)", {ox, op}, true);
+                r = bodyOp(std::string(ifloat()) + "($0)", {r}, false);
+                if (phaseByReciprocal(p)) {
+                    const std::string inv =
+                        subst("($0 / $2($1))", realLiteral(1.0), operandCode(op), ifloat());
+                    Operand oi = slowLeaf(p, op)
+                                     ? slowStore(getCertifiedSigType(p)->variability(), leafOperand(inv), false)
+                                     : bodyOp("(" + realLiteral(1.0) + " / " + ifloat() + "($0))", {op}, false);
+                    o = bodyOp("($0 * $1)", {r, oi}, false);
+                    fOpOf[t] = o.op;
+                    return o;
+                }
+                op = bodyOp(std::string(ifloat()) + "($0)", {op}, false);
+            } else {
+                std::string rcode = static_cast<xtendedCodegen*>(gGlobal->gFmodPrim)
+                                        ->generateCode(fClass, {operandCode(ox), operandCode(op)},
+                                                       {getCertifiedSigType(a), getCertifiedSigType(p)});
+                std::vector<int> deps;
+                addDep(deps, ox);
+                addDep(deps, op);
+                r.op = newOp(rcode, deps, false, isCallPrim(gGlobal->gFmodPrim->name()), false);
+            }
+            o        = bodyOp("($0 / $1)", {r, op}, false);
+            fOpOf[t] = o.op;
+            return o;
+        }
+        if (Tree ix, ip; isSigIRM(t, ix, ip)) {
+            // as generateIRM : y = mix(p, x, y@1), y@1 the member's own history
+            const int ixSelf = fSN.indexOf(t);
+            faustassert(ixSelf >= 0);
+            Operand   prev = refOperand(ixSelf, "1", false, curScc);
+            Operand   sx   = walk(ix, curScc, false);
+            Operand   sp   = walk(ip, curScc, false);
+            Tree      w    = irmInputWeight(ip);
+            const int vr = std::max(getCertifiedSigType(ix)->variability(), getCertifiedSigType(ip)->variability());
+            bool wslow  = false;  // the weight is a slow leaf
+            auto weight = [&]() {
+                // w, or 1 - p
+                if (w) {
+                    Operand ow = walk(w, curScc, false);
+                    wslow      = slowLeaf(w, ow);
+                    return ow;
+                }
+                wslow = slowLeaf(ip, sp);
+                return wslow ? leafOperand(subst("($0 - $1)", realLiteral(1.0), sp.code))
+                             : bodyOp("($0 - $1)", {leafOperand(realLiteral(1.0)), sp}, false);
+            };
+            if (getCertifiedSigType(t)->nature() == kReal && vr != kSamp) {
+                Operand sw = weight();
+                Operand wx = (wslow && slowLeaf(ix, sx))
+                                 ? slowStore(vr, leafOperand(subst("($0 * $1)", sw.code, sx.code)), false)
+                                 : bodyOp("($0 * $1)", {sw, sx}, false);
+                Operand m  = bodyOp("($0 * $1)", {sp, prev}, false);
+                o          = bodyOp("($0 + $1)", {wx, m}, false);
+            } else if (!w && !itv::mixFromB(getCertifiedSigType(ip)->getInterval())) {
+                Operand dif = bodyOp("($0 - $1)", {prev, sx}, false);
+                Operand m   = bodyOp("($0 * $1)", {sp, dif}, false);
+                o           = bodyOp("($0 + $1)", {sx, m}, false);
+            } else {
+                Operand sw = weight();
+                if (!w && wslow) {
+                    const int vrp = getCertifiedSigType(ip)->variability();
+                    if (vrp != kSamp) {
+                        sw = slowStore(vrp, sw, false);  // 1 - p at the rate of p
+                    }
+                }
+                Operand dif = bodyOp("($0 - $1)", {sx, prev}, false);
+                Operand m   = bodyOp("($0 * $1)", {sw, dif}, false);
+                o           = bodyOp("($0 + $1)", {prev, m}, false);
+            }
+            fOpOf[t] = o.op;
+            return o;
+        }
+        if (Tree bx; isSigBpf(t)) {
+            // as generateBpf : the chain of comparisons, x < t1 ? r0 : (x < t2 ? r1 : ... rn)
+            tvec th, rg;
+            isSigBpf(t, bx, th, rg);
+            Operand              sx = walk(bx, curScc, false);
+            std::vector<Operand> st, sr;
+            for (Tree ti : th) st.push_back(walk(ti, curScc, false));
+            for (Tree ri : rg) sr.push_back(walk(ri, curScc, false));
+            Operand acc = sr.back();
+            for (size_t k = th.size(); k-- > 0;) {
+                acc = bodyOp("(($0 < $1) ? $2 : $3)", {sx, st[k], sr[k], acc}, isInt);
+            }
+            o = acc;
+            if (o.op >= 0) {
+                fOpOf[t] = o.op;
+            }
+            return o;
+        }
 
         if (isSigBinOp(t, &i, x, y)) {
             Operand a = walk(x, curScc, false), b = walk(y, curScc, false);
