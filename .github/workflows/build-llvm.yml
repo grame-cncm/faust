@@ -1,0 +1,313 @@
+name: build-llvm
+
+# Builds the static LLVM libraries used by libfaust.yml, for the version
+# chosen in .github/llvm/release.env, and publishes them as a GitHub release
+# of this repository. Run it by hand when that version changes; the libfaust
+# workflow only downloads the result.
+#
+# Each package is built natively (no cross-compilation, no merge of two
+# architectures): the native target recorded in llvm/Config/llvm-config.h
+# is then the one of the platform. Assertions are off, and LLVM has no
+# system dependency besides the C/C++ runtime (no zlib, zstd, libxml2,
+# libedit, terminfo).
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        type: boolean
+        description: Publish the release named in release.env (refused if it exists)
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+
+  config:
+    runs-on: ubuntu-24.04
+    outputs:
+      llvm-version: ${{ steps.read.outputs.llvm-version }}
+      llvm-source-sha256: ${{ steps.read.outputs.llvm-source-sha256 }}
+      llvm-targets: ${{ steps.read.outputs.llvm-targets }}
+      tag: ${{ steps.read.outputs.tag }}
+      manylinux-tag: ${{ steps.read.outputs.manylinux-tag }}
+      macosx-deployment-target: ${{ steps.read.outputs.macosx-deployment-target }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        sparse-checkout: .github/llvm
+
+    - name: Read release.env
+      id: read
+      run: |
+        set -euo pipefail
+        . .github/llvm/release.env
+        for v in LLVM_VERSION LLVM_SOURCE_SHA256 LLVM_TARGETS FAUST_LLVM_REVISION MANYLINUX_TAG MACOSX_DEPLOYMENT_TARGET; do
+          test -n "${!v:-}" || { echo "::error::$v is not set in .github/llvm/release.env"; exit 1; }
+        done
+        {
+          echo "llvm-version=$LLVM_VERSION"
+          echo "llvm-source-sha256=$LLVM_SOURCE_SHA256"
+          echo "llvm-targets=$LLVM_TARGETS"
+          echo "tag=llvm-$LLVM_VERSION-$FAUST_LLVM_REVISION"
+          echo "manylinux-tag=$MANYLINUX_TAG"
+          echo "macosx-deployment-target=$MACOSX_DEPLOYMENT_TARGET"
+        } >> "$GITHUB_OUTPUT"
+
+    - name: Refuse to replace a release
+      if: ${{ inputs.publish }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TAG: ${{ steps.read.outputs.tag }}
+      run: |
+        if gh release view "$TAG" -R "$GITHUB_REPOSITORY" > /dev/null 2>&1 \
+           || gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" > /dev/null 2>&1; then
+          echo "::error::$TAG already exists: increment FAUST_LLVM_REVISION in .github/llvm/release.env"
+          exit 1
+        fi
+
+  build:
+    needs: config
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x86_64
+            os: ubuntu-24.04
+            image: quay.io/pypa/manylinux_2_28_x86_64
+          - platform: linux-aarch64
+            os: ubuntu-24.04-arm
+            image: quay.io/pypa/manylinux_2_28_aarch64
+          - platform: macos-arm64
+            os: macos-15
+            osx-arch: arm64
+          - platform: macos-x86_64
+            os: macos-15-intel
+            osx-arch: x86_64
+          - platform: windows-x64
+            os: windows-2022
+
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.image && format('{0}:{1}', matrix.image, needs.config.outputs.manylinux-tag) || '' }}
+    timeout-minutes: 360
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      LLVM_VERSION: ${{ needs.config.outputs.llvm-version }}
+      LLVM_SOURCE_SHA256: ${{ needs.config.outputs.llvm-source-sha256 }}
+      LLVM_TARGETS: ${{ needs.config.outputs.llvm-targets }}
+      TAG: ${{ needs.config.outputs.tag }}
+      PLATFORM: ${{ matrix.platform }}
+      CMAKE_VERSION: "3.31.6"
+      NINJA_VERSION: "1.11.1.4"
+
+    steps:
+    - name: Install build tools (manylinux)
+      if: ${{ matrix.image }}
+      run: |
+        set -euo pipefail
+        dnf install -y git xz
+        python=/opt/python/cp312-cp312/bin/python
+        "$python" -m pip install "cmake==$CMAKE_VERSION" "ninja==$NINJA_VERSION"
+        dirname "$python" >> "$GITHUB_PATH"
+
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v5
+      if: ${{ !matrix.image }}
+      with:
+        python-version: "3.12"
+
+    - name: Install build tools
+      if: ${{ !matrix.image }}
+      run: python -m pip install "cmake==$CMAKE_VERSION" "ninja==$NINJA_VERSION"
+
+    - uses: ilammy/msvc-dev-cmd@v1
+      if: ${{ runner.os == 'Windows' }}
+      with:
+        arch: x64
+
+    - name: Download and check the LLVM sources
+      run: |
+        set -euo pipefail
+        src="llvm-project-$LLVM_VERSION.src"
+        curl -fL --retry 3 -o "$src.tar.xz" \
+          "https://github.com/llvm/llvm-project/releases/download/llvmorg-$LLVM_VERSION/$src.tar.xz"
+        if command -v sha256sum > /dev/null; then
+          sum=$(sha256sum "$src.tar.xz" | cut -d' ' -f1)
+        else
+          sum=$(shasum -a 256 "$src.tar.xz" | cut -d' ' -f1)
+        fi
+        if [ "$sum" != "$LLVM_SOURCE_SHA256" ]; then
+          echo "::error::$src.tar.xz has sha256 $sum, release.env expects $LLVM_SOURCE_SHA256"
+          exit 1
+        fi
+        # Only what an LLVM-only build reads; short paths for Windows.
+        mkdir s
+        tar -xJf "$src.tar.xz" -C s --strip-components=1 "$src/llvm" "$src/cmake" "$src/third-party"
+        rm "$src.tar.xz"
+
+    - name: Configure LLVM
+      run: |
+        set -euo pipefail
+        # A path CMake can read on Windows too (pwd -W exists only in Git Bash).
+        root=$(pwd -W 2>/dev/null || pwd)
+        options=(
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_INSTALL_PREFIX="$root/llvm"
+          -DLLVM_TARGETS_TO_BUILD="$LLVM_TARGETS"
+          -DLLVM_ENABLE_ASSERTIONS=OFF
+          -DLLVM_ENABLE_RTTI=OFF
+          -DLLVM_ENABLE_PIC=ON
+          -DLLVM_BUILD_LLVM_DYLIB=OFF
+          -DLLVM_LINK_LLVM_DYLIB=OFF
+          -DLLVM_ENABLE_ZLIB=OFF
+          -DLLVM_ENABLE_ZSTD=OFF
+          -DLLVM_ENABLE_LIBXML2=OFF
+          -DLLVM_ENABLE_LIBEDIT=OFF
+          -DLLVM_ENABLE_LIBPFM=OFF
+          -DLLVM_ENABLE_CURL=OFF
+          -DLLVM_ENABLE_HTTPLIB=OFF
+          -DLLVM_ENABLE_BINDINGS=OFF
+          -DLLVM_INCLUDE_TESTS=OFF
+          -DLLVM_INCLUDE_EXAMPLES=OFF
+          -DLLVM_INCLUDE_BENCHMARKS=OFF
+          -DLLVM_INCLUDE_DOCS=OFF
+          -DLLVM_INSTALL_UTILS=OFF
+          -DLLVM_DISTRIBUTION_COMPONENTS="llvm-config;llvm-headers;llvm-libraries;cmake-exports"
+        )
+        case "$PLATFORM" in
+          macos-*)
+            options+=(-DCMAKE_OSX_ARCHITECTURES="${{ matrix.osx-arch }}"
+                      -DCMAKE_OSX_DEPLOYMENT_TARGET="${{ needs.config.outputs.macosx-deployment-target }}") ;;
+          windows-*)
+            options+=(-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL
+                      -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl) ;;
+        esac
+        printf '%s\n' "${options[@]}" > cmake-options.txt
+        cmake -S s/llvm -B b "${options[@]}"
+
+    - name: Build and install LLVM
+      run: cmake --build b --target install-distribution --parallel
+
+    - name: Check the installed LLVM
+      run: |
+        set -euo pipefail
+        cfg=llvm/bin/llvm-config
+        fail() { echo "::error::$*"; exit 1; }
+        [ "$($cfg --version)" = "$LLVM_VERSION" ] || fail "llvm-config --version is $($cfg --version), not $LLVM_VERSION"
+        [ "$($cfg --assertion-mode)" = OFF ] || fail "LLVM was built with assertions"
+        [ "$($cfg --build-mode)" = Release ] || fail "build mode is $($cfg --build-mode)"
+        [ "$($cfg --shared-mode)" = static ] || fail "LLVM libraries are not static"
+        grep -q '^#define LLVM_ENABLE_ABI_BREAKING_CHECKS 0' llvm/include/llvm/Config/abi-breaking.h \
+          || fail "ABI breaking checks are enabled"
+        built=$($cfg --targets-built | tr ' ' '\n' | sort | paste -sd';' -)
+        wanted=$(echo "$LLVM_TARGETS" | tr ';' '\n' | sort | paste -sd';' -)
+        [ "$built" = "$wanted" ] || fail "targets built: $built, expected: $wanted"
+        echo "system libraries: '$($cfg --link-static --system-libs)'"
+
+    - name: Link and run a JIT program against the package
+      run: |
+        set -euo pipefail
+        root=$(pwd -W 2>/dev/null || pwd)
+        options=(-G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_DIR="$root/llvm/lib/cmake/llvm")
+        case "$PLATFORM" in
+          macos-*)
+            options+=(-DCMAKE_OSX_ARCHITECTURES="${{ matrix.osx-arch }}"
+                      -DCMAKE_OSX_DEPLOYMENT_TARGET="${{ needs.config.outputs.macosx-deployment-target }}") ;;
+          windows-*)
+            options+=(-DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl) ;;
+        esac
+        cmake -S .github/llvm/smoke -B smoke "${options[@]}"
+        cmake --build smoke
+        ./smoke/llvm-smoke
+
+    - name: Write BUILDINFO.txt
+      run: |
+        set -euo pipefail
+        cfg=llvm/bin/llvm-config
+        {
+          echo "Package     : faust-$TAG-$PLATFORM"
+          echo "LLVM        : $LLVM_VERSION (llvmorg-$LLVM_VERSION, source sha256 $LLVM_SOURCE_SHA256)"
+          echo "Built by    : $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          echo "From commit : $GITHUB_SHA"
+          echo "Runner      : ${ImageOS:-?} ${ImageVersion:-?} ($RUNNER_OS $RUNNER_ARCH)"
+          echo "Container   : ${{ matrix.image && format('{0}:{1}', matrix.image, needs.config.outputs.manylinux-tag) || 'none' }}"
+          echo "CMake       : $(cmake --version | head -n1)"
+          grep -h -E '^set\(CMAKE_CXX_COMPILER(_ID|_VERSION)? ' b/CMakeFiles/*/CMakeCXXCompiler.cmake | sed 's/^/Compiler    : /'
+          echo "Targets     : $($cfg --targets-built)"
+          echo "Assertions  : $($cfg --assertion-mode)"
+          echo "System libs : $($cfg --link-static --system-libs)"
+          echo "CMake options:"
+          sed 's/^/  /' cmake-options.txt
+        } > llvm/BUILDINFO.txt
+        cat llvm/BUILDINFO.txt
+
+    - name: Package
+      run: |
+        set -euo pipefail
+        base="faust-$TAG-$PLATFORM"
+        if [ "${RUNNER_OS}" = Windows ]; then
+          7z a -tzip "$base.zip" llvm > /dev/null
+          echo "ASSET=$base.zip" >> "$GITHUB_ENV"
+        else
+          XZ_OPT="-T0 -6" tar -cJf "$base.tar.xz" llvm
+          echo "ASSET=$base.tar.xz" >> "$GITHUB_ENV"
+        fi
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.ASSET }}
+        path: ${{ env.ASSET }}
+        if-no-files-found: error
+        retention-days: 30
+
+  publish:
+    if: ${{ inputs.publish }}
+    needs: [config, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    env:
+      TAG: ${{ needs.config.outputs.tag }}
+      LLVM_VERSION: ${{ needs.config.outputs.llvm-version }}
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        path: dist
+        merge-multiple: true
+
+    - name: Checksums
+      run: |
+        set -euo pipefail
+        cd dist
+        sha256sum faust-"$TAG"-* > SHA256SUMS
+        cat SHA256SUMS
+        [ "$(wc -l < SHA256SUMS)" -eq 5 ] || { echo "::error::expected 5 packages"; exit 1; }
+
+    - uses: actions/attest-build-provenance@v2
+      with:
+        subject-path: dist/faust-*
+
+    - name: Create the release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+        cat > notes.md <<EOF
+        Static LLVM $LLVM_VERSION libraries used to build libfaust (assertions off,
+        no system dependency), built by the build-llvm workflow from $GITHUB_SHA:
+        $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+
+        Each archive extracts to llvm/ and contains BUILDINFO.txt. Copy SHA256SUMS
+        into .github/llvm/SHA256SUMS for libfaust.yml to accept these archives.
+        EOF
+        gh release create "$TAG" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+          --title "LLVM $LLVM_VERSION for libfaust ($TAG)" --notes-file notes.md --latest=false \
+          dist/*

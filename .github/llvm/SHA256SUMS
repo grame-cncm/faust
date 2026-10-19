@@ -1,0 +1,4 @@
+# sha256 of the archives of the release named in release.env, one line per
+# platform as printed by sha256sum. Copy here the SHA256SUMS asset of the
+# release published by build-llvm.yml: libfaust.yml refuses an archive that
+# is not listed.
