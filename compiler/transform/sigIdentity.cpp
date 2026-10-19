@@ -253,6 +253,12 @@ Tree SignalIdentity::transformation(Tree sig)
             c[k] = self(c[k]);
         }
         return sigSum(c);
+    } else if (isSigProd(sig)) {
+        tvec c = sig->branches();
+        for (unsigned int k = 0; k < c.size(); k++) {
+            c[k] = self(c[k]);
+        }
+        return sigProd(c);
     }
 
     else {
