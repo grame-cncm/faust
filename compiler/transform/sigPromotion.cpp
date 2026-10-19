@@ -753,6 +753,12 @@ class TablePromotionAlgebra final : public TransformAlgebra {
     // [lo, hi] : hi sizes the line, and a float can pass it (see above). The form is
     // chosen on the largest delay of the line, never below hi : past the copy and dense
     // thresholds, the line is a masked ring, which no amount can leave.
+    //
+    // The guard only protects an amount whose bounds the analysis has proven within
+    // [0, INT_MAX], against the rounding of the code : any other amount (possibly
+    // negative, beyond INT_MAX, or of unknown bounds) is refused here, before any guard
+    // could hide it. Its validity is judged by the certified typing, after the saturation
+    // of the int casts.
     XSig Delay(const XSig& x, const XSig& n) const override
     {
         int k;
@@ -760,8 +766,11 @@ class TablePromotionAlgebra final : public TransformAlgebra {
             return o(fBuild.Delay(x.out, n.out));
         }
         interval n_i = sigInterval(n.orig);
-        int      lo  = std::max(0, int(n_i.lo()));
-        int      hi  = int(n_i.hi());
+        if (n_i.isEmpty() || n_i.isUnbounded() || n_i.lo() < 0 || n_i.hi() > double(INT_MAX)) {
+            checkDelayCausality(x.orig, n.orig, n_i);  // refuses
+        }
+        int lo = int(n_i.lo());
+        int hi = int(n_i.hi());
         int      unmasked = gGlobal->gMaxCopyDelay;
         if (gGlobal->gOutputLang == "ocpp") {
             unmasked = std::max(unmasked, gGlobal->gMaxDenseDelay);

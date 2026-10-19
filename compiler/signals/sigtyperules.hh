@@ -63,6 +63,12 @@ itv::interval sigInterval(Tree term);
  * carries : for a term typed without the checks, and unchanged since.
  */
 void typeCheckDelayCausality(Tree sig);
+
+/**
+ * The causality check of one delay x@n whose amount n has the interval i : refuses (an
+ * error) an amount that is invalid, unbounded, or not within [0, INT_MAX].
+ */
+void checkDelayCausality(Tree x, Tree n, const itv::interval& i);
 void          releaseDeferredIntervals();
 
 /**
