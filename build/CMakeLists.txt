@@ -115,6 +115,7 @@ if (INCLUDE_LLVM)
     endif()
 
     endif()
+    llvm_check()
 
     string (REGEX REPLACE "([0-9]+)\\.[0-9]+.*" "\\1" LLVM_MAJOR_VERSION ${LLVM_PACKAGE_VERSION})
     string (REGEX REPLACE "[0-9]+\\.([0-9]+).*" "\\1" LLVM_MINOR_VERSION ${LLVM_PACKAGE_VERSION})

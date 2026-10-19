@@ -105,6 +105,25 @@ function (scan_backends TARGET FLAG)
 endfunction()
 
 ####################################
+# LLVM checks, enforced on every way of finding LLVM (see llvm_check)
+set (LLVM_REQUIRED_VERSION "" CACHE STRING "Refuse any LLVM whose headers are not this version (empty: any version)")
+option (LLVM_FORBID_ASSERTIONS "Refuse an LLVM built with assertions" off)
+
+####################################
+# Run llvm-config and stop when it fails: an empty answer must never
+# silently become an empty list of libraries or include directories.
+function (llvm_config_query VAR)
+    execute_process (COMMAND ${LLVM_CONFIG_EXE} ${ARGN}
+                     OUTPUT_VARIABLE OUT ERROR_VARIABLE ERR RESULT_VARIABLE RES
+                     OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if (NOT RES EQUAL 0)
+        message (FATAL_ERROR "${LLVM_CONFIG_EXE} ${ARGN} failed (${RES}): ${ERR}")
+    endif()
+    string (STRIP "${OUT}" OUT)
+    set (${VAR} "${OUT}" PARENT_SCOPE)
+endfunction()
+
+####################################
 # Manual LLVM scan
 macro (llvm_config)
     if ( NOT DEFINED LLVM_CONFIG)
@@ -114,33 +133,36 @@ macro (llvm_config)
     if (${LC} STREQUAL LC-NOTFOUND)
         message (FATAL_ERROR "Cannot find program ${LLVM_CONFIG} (llvm-config or derived expected)")
     endif()
-    execute_process (COMMAND ${LLVM_CONFIG} --version OUTPUT_VARIABLE LLVM_VERSION)
-    string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
-    message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+    # The full path is also given to Make.llvm.static, so that the archive
+    # embeds the libraries of this llvm-config and not those of another one.
+    set (LLVM_CONFIG_EXE ${LC})
+    llvm_config_query (LLVM_PACKAGE_VERSION --version)
+    message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION} (${LLVM_CONFIG_EXE})")
 
-    execute_process (COMMAND ${LLVM_CONFIG} --includedir OUTPUT_VARIABLE LLVM_INCLUDE)
-    string ( STRIP ${LLVM_INCLUDE} LLVM_INCLUDE_DIRS )
-    execute_process (COMMAND ${LLVM_CONFIG} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
-    string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
-    
+    llvm_config_query (LLVM_INCLUDE_DIRS --includedir)
+    llvm_config_query (LLVM_LIB_DIR --libdir)
+    llvm_config_query (LLVM_LD_FLAGS --ldflags)
+
     # Check the option to decide whether to link statically or dynamically
     if (LINK_LLVM_STATIC)
-        execute_process(COMMAND ${LLVM_CONFIG} --link-static --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
-        execute_process(COMMAND ${LLVM_CONFIG} --link-static --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
+        set (LLVM_LINK_MODE --link-static)
     else()
-        execute_process(COMMAND ${LLVM_CONFIG} --link-shared --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
-        execute_process(COMMAND ${LLVM_CONFIG} --link-shared --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
+        set (LLVM_LINK_MODE --link-shared)
     endif()
-    
-    string ( STRIP "${LLVM_LIBS_TMP}" LLVM_LIBS_TMP2 )
-    string ( REPLACE "C:\\Program Files\\LLVM\\lib\\" "" LLVM_LIBS "${LLVM_LIBS_TMP2}")
-    string ( STRIP "${LLVM_SYS_LIBS_TMP}" LLVM_SYS_LIBS)
-    
+    llvm_config_query (LLVM_LIBS_TMP ${LLVM_LINK_MODE} --libs)
+    llvm_config_query (LLVM_SYS_LIBS ${LLVM_LINK_MODE} --system-libs)
+    if ("${LLVM_LIBS_TMP}" STREQUAL "")
+        message (FATAL_ERROR "${LLVM_CONFIG_EXE} ${LLVM_LINK_MODE} --libs returned no library")
+    endif()
+
+    string ( REPLACE "C:\\Program Files\\LLVM\\lib\\" "" LLVM_LIBS "${LLVM_LIBS_TMP}")
+
     # on ubuntu, expecting to find "-lz -lpthread -ledit -lcurses -lm"
     # on macos, expecting to find "-lm -lcurses -lxml2"
-    
+
     string ( APPEND LLVM_LIBS " ${LLVM_SYS_LIBS}")
-    string ( REPLACE " " ";" LLVM_LIBS ${LLVM_LIBS} )
+    string ( STRIP "${LLVM_LIBS}" LLVM_LIBS )
+    string ( REPLACE " " ";" LLVM_LIBS "${LLVM_LIBS}" )
 
 endmacro()
 
@@ -151,39 +173,81 @@ macro (llvm_cmake)
     if (COMMAND llvm_map_components_to_libnames)
         message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
         message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-        # Find the libraries that correspond to the LLVM components that we wish to use
+        set (LLVM_LIB_DIR "${LLVM_LIBRARY_DIR}")
+        # An llvm-config installed next to LLVMConfig.cmake gives the libraries
+        # with their system dependencies; without it, every LLVM component
+        # library exported by the package is used.
+        find_program (LLVM_CONFIG_EXE llvm-config PATHS ${LLVM_TOOLS_BINARY_DIR} ${LLVM_DIR}/../../../bin NO_DEFAULT_PATH)
         if(MSVC)
-        # Normally we'd just want to do the following:
-        # execute_process(COMMAND ${LLVM_DIR}/../../../Release/bin/llvm-config.exe --libs all
-        #                 OUTPUT_VARIABLE LLVM_LIBS)
-        # But this results in LLVM_LIBS having a list of full paths to .lib files.
-        # With MSVC, link.exe wasn't working with full paths, so instead
-        # what we want is a list of basenames of .lib files.
-        FILE(GLOB LLVM_LIBS ${LLVM_DIR}/../../../Release/lib/*.lib)
-        list(FILTER LLVM_LIBS EXCLUDE REGEX ".*LLVM-C\.lib")
-        else()
-        execute_process(COMMAND ${LLVM_DIR}/../../../bin/llvm-config --libs all
-                        OUTPUT_VARIABLE LLVM_LIBS)
-        endif()
-        
-        string(STRIP "${LLVM_LIBS}" LLVM_LIBS)
-
-        if(NOT MSVC)
+        # llvm-config --libs prints full paths to .lib files with MSVC, and
+        # link.exe wasn't working with full paths, so instead what we want is a
+        # list of the .lib files of the library directory. The import
+        # libraries of the LLVM DLLs (LLVM-C, LTO, Remarks) are left out.
+        FILE(GLOB LLVM_LIBS ${LLVM_LIB_DIR}/LLVM*.lib ${LLVM_DIR}/../../../Release/lib/LLVM*.lib)
+        list(FILTER LLVM_LIBS EXCLUDE REGEX ".*LLVM-C\\.lib$")
+        elseif(LLVM_CONFIG_EXE)
+        llvm_config_query(LLVM_LIBS --libs all)
         # Expecting to find -lz -lpthread -ledit -lcurses -lm
-        execute_process(COMMAND ${LLVM_DIR}/../../../bin/llvm-config --system-libs
-                OUTPUT_VARIABLE LLVM_SYSLIBS)
-        string(STRIP "${LLVM_SYSLIBS}" LLVM_SYSLIBS)
+        llvm_config_query(LLVM_SYSLIBS --system-libs)
         message(STATUS "LLVM_SYSLIBS: ${LLVM_SYSLIBS}")
-        set(LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYSLIBS})
+        string(REPLACE " " ";" LLVM_LIBS "${LLVM_LIBS} ${LLVM_SYSLIBS}")
+        else()
+        set (LLVM_LIBS ${LLVM_AVAILABLE_LIBS})
+        list(FILTER LLVM_LIBS INCLUDE REGEX "^LLVM[A-Za-z0-9]+$")
         endif()
 
+        if ("${LLVM_LIBS}" STREQUAL "")
+            message (FATAL_ERROR "No LLVM library found from ${LLVM_DIR}")
+        endif()
         message(STATUS "LLVM_LIBS: ${LLVM_LIBS}")
-        
-#        list(REMOVE_ITEM LLVM_LIBS LTO)
     else()
         llvm_config()
     endif()
 endmacro()
+
+####################################
+# Check that the LLVM about to be used is the one announced. The version is
+# read in the headers the LLVM backend is compiled with, so a version given
+# by hand (LLVM_PACKAGE_VERSION) cannot label the build with another LLVM:
+# it appears in 'faust --version' and in the options of the factories.
+function (llvm_check)
+    set (CONFIG_H "")
+    foreach (DIR ${LLVM_INCLUDE_DIRS})
+        if (EXISTS "${DIR}/llvm/Config/llvm-config.h")
+            set (CONFIG_H "${DIR}/llvm/Config/llvm-config.h")
+            set (ABI_H "${DIR}/llvm/Config/abi-breaking.h")
+            break()
+        endif()
+    endforeach()
+    if ("${CONFIG_H}" STREQUAL "")
+        message (FATAL_ERROR "llvm/Config/llvm-config.h not found in LLVM_INCLUDE_DIRS (${LLVM_INCLUDE_DIRS})")
+    endif()
+
+    file (STRINGS "${CONFIG_H}" LINE REGEX "^#define LLVM_VERSION_STRING ")
+    string (REGEX REPLACE "^#define LLVM_VERSION_STRING \"([^\"]*)\".*$" "\\1" HEADER_VERSION "${LINE}")
+    if (NOT "${HEADER_VERSION}" STREQUAL "${LLVM_PACKAGE_VERSION}")
+        message (FATAL_ERROR "LLVM_PACKAGE_VERSION is '${LLVM_PACKAGE_VERSION}' but ${CONFIG_H} is LLVM '${HEADER_VERSION}'")
+    endif()
+    if (NOT "${LLVM_REQUIRED_VERSION}" STREQUAL "" AND NOT "${HEADER_VERSION}" STREQUAL "${LLVM_REQUIRED_VERSION}")
+        message (FATAL_ERROR "LLVM ${LLVM_REQUIRED_VERSION} is required (LLVM_REQUIRED_VERSION) but ${CONFIG_H} is LLVM ${HEADER_VERSION}")
+    endif()
+
+    if (LLVM_FORBID_ASSERTIONS)
+        # The ABI breaking checks follow the assertions unless asked otherwise:
+        # this test also covers an LLVM found without llvm-config.
+        file (STRINGS "${ABI_H}" ABI_CHECKS REGEX "^#define LLVM_ENABLE_ABI_BREAKING_CHECKS 1")
+        if (NOT "${ABI_CHECKS}" STREQUAL "")
+            message (FATAL_ERROR "LLVM was built with assertions (LLVM_ENABLE_ABI_BREAKING_CHECKS is 1 in ${ABI_H})")
+        endif()
+        if (LLVM_CONFIG_EXE)
+            llvm_config_query (ASSERTION_MODE --assertion-mode)
+            if (NOT "${ASSERTION_MODE}" STREQUAL "OFF")
+                message (FATAL_ERROR "LLVM was built with assertions (${LLVM_CONFIG_EXE} --assertion-mode: ${ASSERTION_MODE})")
+            endif()
+        endif()
+    endif()
+    message (STATUS "LLVM ${HEADER_VERSION} checked against ${CONFIG_H}")
+endfunction()
 
 
 ####################################
