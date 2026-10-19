@@ -107,7 +107,20 @@ file (GLOB DSPLIBS ${ROOT}/../../libraries/*.lib)
 ####################################
 # compiler dependent settings
 if (WIN32)
-    set (FAUSTLIBS ${FAUSTLIB}/libfaustwithllvm.lib ${FAUSTLIB}/libOSCFaust.lib)
+    # libfaustwithllvm.lib embeds LLVM but not its system libraries (LLVM 23
+    # needs ntdll.lib): they come from the llvm-config libfaust was built
+    # with (given by MakeRelease.bat), or else are those of LLVM 23.
+    set (LLVM_SYSTEM_LIBS psapi.lib shell32.lib ole32.lib uuid.lib advapi32.lib ws2_32.lib ntdll.lib)
+    if (DEFINED LLVM_CONFIG AND NOT "${LLVM_CONFIG}" STREQUAL "")
+        execute_process (COMMAND ${LLVM_CONFIG} --link-static --system-libs
+                         OUTPUT_VARIABLE LLVM_SYSTEM_LIBS_OUT RESULT_VARIABLE LLVM_SYSTEM_LIBS_RES
+                         OUTPUT_STRIP_TRAILING_WHITESPACE)
+        if (LLVM_SYSTEM_LIBS_RES EQUAL 0 AND NOT "${LLVM_SYSTEM_LIBS_OUT}" STREQUAL "")
+            separate_arguments (LLVM_SYSTEM_LIBS NATIVE_COMMAND "${LLVM_SYSTEM_LIBS_OUT}")
+        endif()
+    endif()
+    message (STATUS "LLVM system libraries: ${LLVM_SYSTEM_LIBS}")
+    set (FAUSTLIBS ${FAUSTLIB}/libfaustwithllvm.lib ${FAUSTLIB}/libOSCFaust.lib ${LLVM_SYSTEM_LIBS})
     set (WINSRC ${MAXSDK}/max-includes/common/dllmain_win.c ${MAXSDK}/max-includes/common/commonsyms.c)
 else()
 
