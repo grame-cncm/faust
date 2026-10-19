@@ -242,6 +242,17 @@ if (APPLE)
 install (
     # not sure this is the right place, but it works...
     CODE  "execute_process (COMMAND codesign --sign - --deep --force ${PACKDIR}/${DST}/faustgen/externals/msp/faustgen\~.mxo)"
-    CODE  "execute_process (COMMAND hdiutil create ${PACKDIR}/${DST}-macosx.dmg -fs HFS+ -srcfolder ${PACKDIR}/${DST} -format UDBZ -ov)"
+    # hdiutil fails now and then with 'Resource busy': try again, as the Faust
+    # package does (build/Makefile, macpack), and fail if it never succeeds.
+    CODE  "foreach (TRY RANGE 1 30)
+               execute_process (COMMAND hdiutil create ${PACKDIR}/${DST}-macosx.dmg -fs HFS+ -srcfolder ${PACKDIR}/${DST} -format UDBZ -ov RESULT_VARIABLE DMG_RESULT)
+               if (DMG_RESULT EQUAL 0)
+                   break ()
+               endif ()
+               execute_process (COMMAND sleep 2)
+           endforeach ()
+           if (NOT DMG_RESULT EQUAL 0)
+               message (FATAL_ERROR \"hdiutil create ${PACKDIR}/${DST}-macosx.dmg failed\")
+           endif ()"
 )
 endif()
