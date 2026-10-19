@@ -33,6 +33,7 @@
 #include "ppbox.hh"
 #include "ppsig.hh"
 #include "sigNewConstantPropagation.hh"
+#include "placeGains.hh"
 #include "sigPromotion.hh"
 #include "sigtyperules.hh"
 #include "simplify.hh"
@@ -609,6 +610,12 @@ static Tree simplifyToNormalFormAux(Tree LS)
     startTiming("Bpf revealer");
     L3 = revealBpf(L3);
     endTiming("Bpf revealer");
+
+    // one place for a gain through a FIR, an IIR or an IRM, whatever the writing : a number
+    // in the coefficients of a FIR, any other gain at the output of the node
+    startTiming("Gain placement");
+    L3 = placeGains(L3);
+    endTiming("Gain placement");
 
     // Annotate L3 with type information
     startTiming("L3 typeAnnotation");
