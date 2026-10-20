@@ -121,8 +121,45 @@ Tree rule(Tree orig, Tree rebuilt)
     return (r != rebuilt) ? placed(r) : r;
 }
 
+// 1 - c as the normal form writes it : t when c is 1 - t
+Tree complementOf(Tree c)
+{
+    tvec ws;
+    Tree x;
+    if (isSigSum(c, ws) && ws.size() == 2 && isOne(ws[0]) && isSigNeg(ws[1], x)) {
+        return x;
+    }
+    aterm complement(sigReal(1.0));
+    complement -= c;
+    return complement.normalizedTree();
+}
+
 Tree ruleAux(Tree orig, Tree rebuilt)
 {
+    if (Tree c, a, b; isSigMix(rebuilt, c, a, b)) {
+        // mix(c, 1, b) is mix(1 - c, b, 1), and mix(c, a, 1) = a + c - a c is symmetric :
+        // the weight is the first of a and c in the order of the normal form
+        if (isOne(a) && !isOne(b)) {
+            c = complementOf(c);
+            a = b;
+            b = sigReal(1.0);
+        }
+        if (isOne(b) && !isNum(a) && !isNum(c) && NormalFormTreeLess()(a, c)) {
+            std::swap(a, c);
+        }
+        // mix(c, a, b) = mix(1 - c, b, a) : one orientation, its operands in the order of
+        // the normal form, whatever the writing (after the reveals, which read the mixes
+        // in the orientation they were built in)
+        if (NormalFormTreeLess()(b, a)) {
+            Tree cc = complementOf(c);
+            Tree bb = b;
+            b       = a;
+            a       = bb;
+            c       = cc;
+        }
+        Tree m = sigMix(c, a, b);
+        return (m == rebuilt) ? rebuilt : m;
+    }
     if (Tree x, c; isSigIRM(rebuilt, x, c)) {
         return placeIRM(x, c);
     }
