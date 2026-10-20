@@ -241,17 +241,21 @@ void Planner::plan()
     for (auto& row : fRows) {
         for (auto& [a, c] : row.terms) mags[std::fabs(c)]++;
     }
+    // (a magnitude beyond FLT_MAX is an infinity in single precision : the test is an
+    // equality, inf - inf being no number, and a cluster always takes its first magnitude)
     const bool   single = (gGlobal->gFloatSize == 1);
-    auto         inPrecision = [single](double m) { return single ? double(float(m)) : m; };
-    const double tol         = single ? 0.0 : std::ldexp(1.0, -46);
+    const double tol    = std::ldexp(1.0, -46);
+    auto         same   = [single, tol](double m, double start) {
+        return single ? double(float(m)) == double(float(start)) : m - start <= tol * start;
+    };
     std::map<double, double> rep;
     for (auto it = mags.begin(); it != mags.end();) {
-        const double     start = inPrecision(it->first);
+        const double                        start = it->first;
         std::vector<std::pair<double, int>> cluster;
-        while (it != mags.end() && inPrecision(it->first) - start <= tol * start) {
+        do {
             cluster.push_back(*it);
             ++it;
-        }
+        } while (it != mags.end() && same(it->first, start));
         double best = cluster[0].first;
         int    n    = cluster[0].second;
         for (auto& [v, k] : cluster) {
