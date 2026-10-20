@@ -17,10 +17,8 @@ endif
 MAKE ?= make
 JAVA ?=
 JAVAC ?=
-# -fwrapv: Faust-generated code assumes two's-complement wrapping for the
-# integer noise LCG (1103515245 * i + 12345 overflows int, which is UB in
-# C/C++). Newer compilers (observed with Apple clang 21) exploit that UB
-# at -O2/-O3 and miscompile the table-fill variant (dsp/table.dsp).
+# No -fwrapv: the generated code wraps its int32 operations itself (the
+# faust_wrap_* helpers), and the suite must see an operation that does not.
 GCCOPTIONS := -O3 -I../../architecture -I/usr/local/include/ap_fixed -Iarchs -pthread -std=c++14
 outdir ?= float
 arch ?= ./archs/impulsearch.cpp
