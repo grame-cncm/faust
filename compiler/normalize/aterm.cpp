@@ -27,6 +27,7 @@
 #include <map>
 
 #include "aterm.hh"
+#include "valueOrder.hh"
 #include "global.hh"
 #include "sigs-state.hh"
 #include "ppsig.hh"
@@ -1155,7 +1156,7 @@ void aterm::extractMixes()
 /**
  * The symmetric mix. x + y - x*y is mix(x, y, 1) = mix(y, x, 1) : a sum holding k*x, k*y and
  * -k*x*y, x and y symbols, is rewritten with k*mix(w, o, 1), each symbol then read once ; the
- * weight w is the first of the two in the order of the normal form, the same whatever the
+ * weight w is the first of the two by value (valueOrder.hh), the same whatever the
  * writing (the written forms (1 - x)*y + x and x*(1 - y) + y reach mix(x, y, 1) or
  * mix(y, x, 1), which the final placement brings to the same weight).
  */
@@ -1193,7 +1194,7 @@ void aterm::extractSymmetricMixes()
         fSig2MTerms.erase(kxy);
         fSig2MTerms.erase(kx);
         fSig2MTerms.erase(ky);
-        Tree  w   = NormalFormTreeLess()(x, y) ? x : y;
+        Tree  w   = valueLess(x, y) ? x : y;
         Tree  o   = (w == x) ? y : x;
         Tree  one = sigReal(1.0);
         mterm m(mixOrSelect(w, o, one));
