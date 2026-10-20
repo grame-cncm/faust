@@ -511,6 +511,9 @@ class interval_algebra : public FaustAlgebra<interval> {
     interval Frac(const interval& x) const override;
     interval Cfrac(const interval& x) const override;
     interval Mix(const interval& c, const interval& a, const interval& b) const override;
+    // Public API : mix(1 - t, a, b) = t a + (1 - t) b, computed b + t (a - b) from the weight
+    // t of a itself, 1 - t never computed (its rounding would lose t when t is small)
+    interval MixOfComplement(const interval& t, const interval& a, const interval& b) const;
     // Tpt(x) = x / (x + 1), increasing on ]-1, +inf[ : its image there, the definition
     // elsewhere
     interval Tpt(const interval& x) const override;

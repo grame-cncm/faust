@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <string>
 
+#include "mixForm.hh"
 #include "aterm.hh"
 #include "Text.hh"
 #include "dsp_aux.hh"
@@ -1308,6 +1309,13 @@ ValueInst* InstructionsCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b)
 {
     ValueInst* va = compoundOperand(a);
     ValueInst* vb = compoundOperand(b);
+    // c written 1 - t : b + t * (a - b), 1 - t never computed (mixForm.hh)
+    if (Tree t; mixFromWeight(c, getCertifiedSigType(c)->getInterval(), t)) {
+        ValueInst* vt = compoundOperand(t);
+        ValueInst* d  = IB::genBinopInst(kSub, va, vb);
+        ValueInst* p  = IB::genBinopInst(kMul, vt, d);
+        return generateCacheCode(sig, IB::genBinopInst(kAdd, vb, p));
+    }
     ValueInst* vc = compoundOperand(c);
     if (itv::mixFromB(getCertifiedSigType(c)->getInterval())) {
         const int  vrc = getCertifiedSigType(c)->variability();

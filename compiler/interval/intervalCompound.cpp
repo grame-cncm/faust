@@ -347,6 +347,24 @@ interval interval_algebra::Mix(const interval& c, const interval& a, const inter
     return numericMix(c, a, b).withInvalid(c.mayBeInvalid() || a.mayBeInvalid() || b.mayBeInvalid());
 }
 
+// The interpolation from b with the weight t of the difference, as numericMix bounds the one
+// from b when c = 1 - t >= 1/2 : the hull of the exact mix, whose weight c is 1 - t computed
+// here in double and enclosed outwards, and the rounding of b + t (a - b) (a difference
+// weighted by at most t). Outside of [0, 1], the definition.
+interval interval_algebra::MixOfComplement(const interval& t, const interval& a, const interval& b) const
+{
+    const bool invalid = t.mayBeInvalid() || a.mayBeInvalid() || b.mayBeInvalid();
+    if (t.isEmpty() || a.isEmpty() || b.isEmpty()) return empty().withInvalid(invalid);
+    const interval ft = detail::floatingOperand(t);
+    if (!(ft.lo() >= 0) || !(ft.hi() <= 1)) {
+        return Add(b, Mul(t, Sub(a, b))).withInvalid(invalid);
+    }
+    const double   clo = std::max(0.0, std::nextafter(1 - ft.hi(), -HUGE_VAL));
+    const double   chi = std::min(1.0, std::nextafter(1 - ft.lo(), HUGE_VAL));
+    const interval c(clo, chi, ft.lsb());
+    return numericMixWeight(c, a, b, ft.hi()).withInvalid(invalid);
+}
+
 // Public API : inside its domain Tpt is valid when x is ; outside, the definition says
 interval interval_algebra::Tpt(const interval& x) const
 {

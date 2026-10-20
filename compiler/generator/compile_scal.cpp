@@ -34,6 +34,7 @@
 #include <sstream>
 #include <vector>
 
+#include "mixForm.hh"
 #include "aterm.hh"
 #include "Schedule.hh"
 #include "compatibility.hh"
@@ -2830,6 +2831,15 @@ class LoopSplitEmitter {
             // when c may be near 1, from a otherwise
             Operand oa = walk(a, curScc, false);
             Operand ob = walk(b, curScc, false);
+            if (Tree tw; mixFromWeight(c, getCertifiedSigType(c)->getInterval(), tw)) {
+                // c written 1 - t : b + t * (a - b) (mixForm.hh)
+                Operand ot  = walk(tw, curScc, false);
+                Operand dif = bodyOp("($0 - $1)", {oa, ob}, false);
+                Operand m   = bodyOp("($0 * $1)", {ot, dif}, false);
+                o           = bodyOp("($0 + $1)", {ob, m}, false);
+                fOpOf[t]    = o.op;
+                return o;
+            }
             Operand oc = walk(c, curScc, false);
             if (itv::mixFromB(getCertifiedSigType(c)->getInterval())) {
                 const int vrc = getCertifiedSigType(c)->variability();
@@ -5930,6 +5940,11 @@ string ScalarCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b)
 {
     std::string sa = compoundOperand(a);
     std::string sb = compoundOperand(b);
+    // c written 1 - t : b + t * (a - b), 1 - t never computed (mixForm.hh)
+    if (Tree t; mixFromWeight(c, getCertifiedSigType(c)->getInterval(), t)) {
+        std::string st = compoundOperand(t);
+        return generateCacheCode(sig, subst("($0 + $1 * ($2 - $0))", sb, st, sa));
+    }
     std::string sc = compoundOperand(c);
     if (itv::mixFromB(getCertifiedSigType(c)->getInterval())) {
         const int   vrc = getCertifiedSigType(c)->variability();
