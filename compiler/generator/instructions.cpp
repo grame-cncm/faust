@@ -522,14 +522,16 @@ DeclareVarInst* IB::genDecStructVar(const string& vname, Typed* type, ValueInst*
     if (gGlobal->gMemoryManager >= 1) {
         if (dynamic_cast<ArrayTyped*>(type) &&
             (startWith(vname, "iRec") || startWith(vname, "iVec") || startWith(vname, "iYec") ||
-             startWith(vname, "iZec") || startWith(vname, "itbl"))) {
+             startWith(vname, "iZec") || startWith(vname, "itbl") || startWith(vname, "iIIR") ||
+             startWith(vname, "iIRM"))) {
             // The "iRec/iVec..." array has a base index in the iZone array, to be added to the
             // actual index
             return gGlobal->gIntZone->declare(vname, type, exp);
         } else if (dynamic_cast<ArrayTyped*>(type) &&
                    (startWith(vname, "fRec") || startWith(vname, "fVec") ||
                     startWith(vname, "fYec") || startWith(vname, "fZec") ||
-                    startWith(vname, "ftbl"))) {
+                    startWith(vname, "ftbl") || startWith(vname, "fIIR") ||
+                    startWith(vname, "fIRM"))) {
             // The "fRec/fVec..." array has a base index in the fZone array, to be added to the
             // actual index
             return gGlobal->gRealZone->declare(vname, type, exp);
