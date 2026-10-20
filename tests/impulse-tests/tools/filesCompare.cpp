@@ -52,6 +52,23 @@ static bool isopt(char* argv[], const char* name)
     return false;
 }
 
+// responses compared so far : the test file may hold several in sequence,
+// and its end after at least one complete response is the normal end
+static int gResponses = 0;
+
+// an end of file where a line was due : the file is empty or truncated, and
+// the comparison must FAIL rather than stop (a truncated response passed
+// silently before, and so did an empty one)
+static bool truncated(istream* in, const char* which, const char* where)
+{
+    if (in->rdstate() & ifstream::eofbit) {
+        cerr << which << " file ends in the " << where << (gResponses ? " of a further response" : "") << endl;
+        gResult = 1;
+        exit(gResult);
+    }
+    return false;
+}
+
 static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_part)
 {
     string line1, line2, dummy;
@@ -63,11 +80,18 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
         getline(*in2, line2);
         
         if ((in1->rdstate() & ifstream::eofbit)) {
-            return false;
+            if (gResponses == 0) {
+                cerr << "test file is empty" << endl;
+                gResult = 1;
+                exit(gResult);
+            }
+            return false;  // the normal end of the test file
         }
         
         if ((in2->rdstate() & ifstream::eofbit)) {
-            return false;
+            cerr << "reference file is empty" << endl;
+            gResult = 1;
+            exit(gResult);
         }
         
         stringstream l1reader(line1);
@@ -91,14 +115,8 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
     {
         getline(*in1, line1);
         getline(*in2, line2);
-        
-        if ((in1->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
-        
-        if ((in2->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
+        truncated(in1, "test", "header");
+        truncated(in2, "reference", "header");
         
         stringstream l1reader(line1);
         stringstream l2reader(line2);
@@ -121,14 +139,8 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
     {
         getline(*in1, line1);
         getline(*in2, line2);
-        
-        if ((in1->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
-        
-        if ((in2->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
+        truncated(in1, "test", "header");
+        truncated(in2, "reference", "header");
         
         stringstream l1reader(line1);
         stringstream l2reader(line2);
@@ -152,14 +164,8 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
         
         getline(*in1, line1);
         getline(*in2, line2);
-        
-        if ((in1->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
-        
-        if ((in2->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
+        truncated(in1, "test", "samples");
+        truncated(in2, "reference", "samples");
         
         stringstream l1reader(line1);
         stringstream l2reader(line2);
@@ -188,6 +194,7 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
             }
         }
     }
+    gResponses++;
     return true;
 }
 
