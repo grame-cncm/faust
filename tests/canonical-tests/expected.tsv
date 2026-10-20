@@ -61,7 +61,7 @@ smoother	e-lib-smooth.dsp	same
 smoother-gain	b-before.dsp	same	
 smoother-gain-sr	b-before.dsp	same	
 symmetric-mix	b-grouped.dsp	same	
-symmetric-mix	c-weight-w.dsp	intervals	mix(c, a, 1) is symmetric in a and c : the weight is the first of the two in the order of the normal form, which is the order of creation of the trees, not of their values ; this writing creates them in the other order
+symmetric-mix	c-weight-w.dsp	same	
 symmetric-mix	d-weight-a.dsp	same	
 tpt-one-pole	b-output-plus-step.dsp	same	
 tpt-one-pole	c-twice-output.dsp	same	
