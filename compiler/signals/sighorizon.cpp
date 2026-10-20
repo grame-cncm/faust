@@ -22,6 +22,7 @@
 #include <limits>
 
 #include "sighorizon.hh"
+#include "mixForm.hh"
 
 #include <algorithm>
 #include <cmath>
@@ -1531,6 +1532,13 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         if (isSigIIR(sig) && firstOrderMix(sig, c, ev, r)) return r;
         if (isSigIIR(sig) && integerAccumulator(sig, c, r)) return r;
         if (isSigIIR(sig)) return iirBound(sig, c);
+        // a mix computed from the weight t of its complement c = 1 - t (mixForm.hh) : the
+        // interval of that computation
+        if (Tree mc, ma, mb, t; isSigMix(sig, mc, ma, mb) && c.size() == 3 &&
+                                mixFromWeight(mc, itv::toItv(c[0], fT), t)) {
+            return itv::fromItv(fItv.MixOfComplement(itv::toItv(ev.eval(t), fT), itv::toItv(c[1], fT),
+                                                     itv::toItv(c[2], fT)));
+        }
         // a sum typed in the cases of its guards, and by the sum rules : two sound bounds,
         // intersected
         AffItv     guarded;
