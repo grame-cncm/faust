@@ -451,14 +451,16 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << "(";
             TextInstVisitor::visit(inst);
             *fOut << ") as " << fTypeManager->generateType(IB::genInt32Typed());
-        } else if (isIntType(type1) &&
+        } else if (isIntType(TypingVisitor::getType(inst)) &&
                    fWrappingOpTable.find(inst->fOpcode) != fWrappingOpTable.end()) {
             // Special case for integer add, sub and mul:
             // Overflowing is an error by default in Rust, but should wrap in Faust
-            // Use their wrapping equivalent instead
-            if (isInt32Type(type1)) {
+            // Use their wrapping equivalent instead. The type of the result decides :
+            // a comparison (cast to i32) minus an int is an i32 operation.
+            auto type = TypingVisitor::getType(inst);
+            if (isInt32Type(type)) {
                 *fOut << "i32::";
-            } else if (isInt64Type(type1)) {
+            } else if (isInt64Type(type)) {
                 *fOut << "i64::";
             } else {
                 faustassert(false);
