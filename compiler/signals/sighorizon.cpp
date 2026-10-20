@@ -1240,6 +1240,22 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         return imp;
     }
 
+    /// t reads the group : one of its projections is reachable from t, through any
+    /// operation (a delay, a filter, another recursion)
+    static bool readsGroup(Tree t, Tree group)
+    {
+        std::unordered_set<Tree> seen;
+        std::vector<Tree>        todo{t};
+        while (!todo.empty()) {
+            Tree u = todo.back();
+            todo.pop_back();
+            if (u == group) return true;
+            if (!seen.insert(u).second) continue;
+            for (int j = 0; j < u->arity(); j++) todo.push_back(u->branch(j));
+        }
+        return false;
+    }
+
     /// the closed bound of the rotation group, or nothing (ok false)
     Rotation rotationOf(Tree group, FixPointEvaluator<AffItv>& ev) const
     {
@@ -1280,6 +1296,10 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
                 } else if (isSigDelay(t, d, n) && constNum(n, k) && k == 1 && constNum(d, k)) {
                     late += sign * k;
                 } else {
+                    // an input is bounded apart from the oscillator : a term that reads the
+                    // group again is part of the recursion, and the rotation alone no
+                    // longer bounds the radius
+                    if (readsGroup(t, group)) return rot;
                     const AffItv   v  = ev.eval(t);
                     const interval iv = itv::toItv(v, fT);
                     if (iv.isEmpty() || !iv.isBounded()) return rot;
