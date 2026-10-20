@@ -162,6 +162,10 @@ class CodeLoop : public virtual Garbageable {
 
     bool isRecursive() { return fIsRecursive; }
 
+    // a loop that reads back what it wrote at a previous sample (the line of an IIR, of an
+    // IRM) is recursive, though it defines no recursive symbol
+    void setRecursive() { fIsRecursive = true; }
+
     int getIndex() { return fIndex; }
     int getRank() const { return fRank; }
 
