@@ -42,6 +42,9 @@ class TextInstVisitor : public InstVisitor {
     int                fTab;
     std::ostream*      fOut;
     bool               fFinishLine;
+    // writing the increment of a for loop : an index stays below the bound of its loop and
+    // cannot overflow, its addition is written plainly (the form OpenMP requires)
+    bool               fLoopIncrement = false;
     std::string        fObjectAccess;
     StringTypeManager* fTypeManager;
 
@@ -476,8 +479,10 @@ class TextInstVisitor : public InstVisitor {
         *fOut << "; ";
         inst->fEnd->accept(this);
         *fOut << "; ";
+        fLoopIncrement = true;
         inst->fIncrement->accept(this);
-        fFinishLine = true;
+        fLoopIncrement = false;
+        fFinishLine    = true;
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
