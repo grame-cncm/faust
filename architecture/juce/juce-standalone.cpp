@@ -82,7 +82,7 @@ class FaustComponent : public juce::AudioAppComponent, private juce::Timer
         #ifdef POLY2
             assert(nvoices > 0);
             std::cout << "Started with " << nvoices << " voices\n";
-            dsp* dsp = std::make_unique<mydsp_poly>(new mydsp(), nvoices, true, group);
+            dsp* dsp = new mydsp_poly(new mydsp(), nvoices, true, group);
                 
         #if MIDICTRL
             if (midi_sync) {
@@ -144,7 +144,7 @@ class FaustComponent : public juce::AudioAppComponent, private juce::Timer
         #if defined(SOUNDFILE)
             auto file = juce::File::getSpecialLocation(juce::File::currentExecutableFile)
                 .getParentDirectory().getParentDirectory().getChildFile("Resources");
-            fSoundUI = std::make_unique<SoundUI>(file.getFullPathName().toStdString());
+            fSoundUI = std::make_unique<SoundUI>(file.getFullPathName().toStdString(), -1, nullptr, sizeof(FAUSTFLOAT) == 8);
             fDSP->buildUserInterface(fSoundUI.get());
         #endif
             

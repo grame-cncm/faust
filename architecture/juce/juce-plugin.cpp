@@ -95,20 +95,64 @@ class FaustVoice : public juce::SynthesiserVoice, public dsp_voice {
     
     private:
         
+        static constexpr int kMaxSlice = 8192;   // frames of fBuffer
+        
         std::unique_ptr<juce::AudioBuffer<FAUSTFLOAT>> fBuffer;
+        
+        /*
+            Computes the voice and mixes it into 'outputBuffer', in samples of type FloatType
+            (float, or double when the host processes in double precision), converting from
+            FAUSTFLOAT if needed. Blocks longer than fBuffer are computed in several slices.
+        */
+        template <typename FloatType>
+        void renderVoice (juce::AudioBuffer<FloatType>& outputBuffer, int startSample, int numSamples)
+        {
+            // Only plays when the voice is active
+            if (!isVoiceActive()) {
+                return;
+            }
+            
+            const int outputs = std::min(fDSP->getNumOutputs(), outputBuffer.getNumChannels());
+            for (int offset = 0; offset < numSamples; offset += kMaxSlice) {
+                const int slice = std::min(kMaxSlice, numSamples - offset);
+                
+                // Play the voice
+                compute(slice, nullptr, (FAUSTFLOAT**)fBuffer->getArrayOfWritePointers());
+                
+                // Mix it in outputs
+                for (int chan = 0; chan < outputs; chan++) {
+                    const FAUSTFLOAT* voice = fBuffer->getReadPointer(chan);
+                    FloatType* output = outputBuffer.getWritePointer(chan, startSample + offset);
+                    for (int frame = 0; frame < slice; frame++) {
+                        output[frame] += FloatType(voice[frame]);
+                    }
+                }
+            }
+        }
         
     public:
         
         FaustVoice(dsp* dsp):dsp_voice(dsp)
         {
             // Allocate buffer for mixing
-            fBuffer = std::make_unique<juce::AudioBuffer<FAUSTFLOAT>>(dsp->getNumOutputs(), 8192);
+            fBuffer = std::make_unique<juce::AudioBuffer<FAUSTFLOAT>>(dsp->getNumOutputs(), kMaxSlice);
             fDSP->init(juce::SynthesiserVoice::getSampleRate());
         }
         
         bool canPlaySound (juce::SynthesiserSound* sound) override
         {
             return dynamic_cast<FaustSound*> (sound) != nullptr;
+        }
+        
+        // The voice DSP is initialized in the constructor before the host gives the sample rate:
+        // its constants are recomputed (keeping its controls) when the sample rate is set
+        void setCurrentPlaybackSampleRate (double newRate) override
+        {
+            juce::SynthesiserVoice::setCurrentPlaybackSampleRate(newRate);
+            if (newRate > 0) {
+                fDSP->instanceConstants(int(newRate));
+                fDSP->instanceClear();
+            }
         }
         
         void startNote (int midiNoteNumber,
@@ -135,21 +179,19 @@ class FaustVoice : public juce::SynthesiserVoice, public dsp_voice {
             // not implemented for now
         }
         
-        void renderNextBlock (juce::AudioBuffer<FAUSTFLOAT>& outputBuffer,
+        // The host can process in float or in double precision, whatever FAUSTFLOAT is
+        void renderNextBlock (juce::AudioBuffer<float>& outputBuffer,
                               int startSample,
                               int numSamples) override
         {
-            // Only plays when the voice is active
-            if (isVoiceActive()) {
-                
-                // Play the voice
-                compute(numSamples, nullptr, (FAUSTFLOAT**)fBuffer->getArrayOfWritePointers());
-                
-                // Mix it in outputs
-                for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                    outputBuffer.addFrom(i, startSample, *fBuffer, i, 0, numSamples);
-                }
-            }
+            renderVoice(outputBuffer, startSample, numSamples);
+        }
+        
+        void renderNextBlock (juce::AudioBuffer<double>& outputBuffer,
+                              int startSample,
+                              int numSamples) override
+        {
+            renderVoice(outputBuffer, startSample, numSamples);
         }
     
 };
@@ -162,7 +204,7 @@ class FaustSynthesiser : public juce::Synthesiser, public dsp_voice_group {
         
         juce::Synthesiser fSynth;
     
-        static void panic(float val, void* arg)
+        static void panic(FAUSTFLOAT val, void* arg)
         {
             static_cast<FaustSynthesiser*>(arg)->allNotesOff(0, false); // 0 stops all voices
         }
@@ -525,7 +567,7 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     // Use bundle path
     auto file = juce::File::getSpecialLocation(juce::File::currentExecutableFile)
         .getParentDirectory().getParentDirectory().getChildFile("Resources");
-    fSoundUI = std::make_unique<SoundUI>(file.getFullPathName().toStdString());
+    fSoundUI = std::make_unique<SoundUI>(file.getFullPathName().toStdString(), -1, nullptr, sizeof(FAUSTFLOAT) == 8);
     fDSP->buildUserInterface(fSoundUI.get());
 #endif
     
@@ -634,6 +676,7 @@ bool FaustPlugInAudioProcessor::supportsDoublePrecisionProcessing() const
 void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
 #ifdef JUCE_POLY
+    mydsp::classInit(int(sampleRate));
     fSynth->setCurrentPlaybackSampleRate (sampleRate);
 #else
     
@@ -695,6 +738,11 @@ void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, j
     juce::ScopedNoDenormals noDenormals;
     
 #ifdef JUCE_POLY
+    // The voices are added to the output channels: clear those that do not carry an input,
+    // since the host does not guarantee their content
+    for (int chan = getTotalNumInputChannels(); chan < getTotalNumOutputChannels(); chan++) {
+        buffer.clear(chan, 0, buffer.getNumSamples());
+    }
     fSynth->renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 #else
 #if defined(MIDICTRL)

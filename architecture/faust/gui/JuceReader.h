@@ -25,6 +25,7 @@
 #ifndef __JuceReader__
 #define __JuceReader__
 
+#include <algorithm>
 #include <assert.h>
 
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -65,30 +66,24 @@ struct JuceReader : public SoundfileReader {
         soundfile->fSR[part] = int(formatReader->sampleRate);
         soundfile->fOffset[part] = offset;
         
-        void* buffers;
-        if (soundfile->fIsDouble) {
-            buffers = alloca(soundfile->fChannels * sizeof(double*));
-            soundfile->getBuffersOffsetReal<double>(buffers, offset);
-        } else {
-            buffers = alloca(soundfile->fChannels * sizeof(float*));
-            soundfile->getBuffersOffsetReal<float>(buffers, offset);
-        }
-        
-        if (formatReader->read(reinterpret_cast<int *const *>(buffers), int(formatReader->numChannels), 0, int(formatReader->lengthInSamples), false)) {
-            
-            // Possibly convert samples
-            if (!formatReader->usesFloatingPointData) {
-                for (int chan = 0; chan < int(formatReader->numChannels); ++chan) {
-                    if (soundfile->fIsDouble) {
-                        // TODO
-                    } else {
-                        float* buffer = &(static_cast<float**>(soundfile->fBuffers))[chan][soundfile->fOffset[part]];
-                        juce::FloatVectorOperations::convertFixedToFloat(buffer, reinterpret_cast<const int*>(buffer),
-                                                                         1.0f/0x7fffffff, int(formatReader->lengthInSamples));
+        // Reads the file as float samples (the reader converts from the file format), then copies
+        // them in the soundfile buffers, which are double when the DSP is compiled with -double
+        const int channels = std::min(int(formatReader->numChannels), soundfile->fChannels);
+        const int length = soundfile->fLength[part];
+        juce::AudioBuffer<float> samples(int(formatReader->numChannels), length);
+        if (formatReader->read(&samples, 0, length, 0, true, true)) {
+            for (int chan = 0; chan < channels; chan++) {
+                const float* src = samples.getReadPointer(chan);
+                if (soundfile->fIsDouble) {
+                    double* dst = &(static_cast<double**>(soundfile->fBuffers))[chan][offset];
+                    for (int frame = 0; frame < length; frame++) {
+                        dst[frame] = double(src[frame]);
                     }
+                } else {
+                    float* dst = &(static_cast<float**>(soundfile->fBuffers))[chan][offset];
+                    std::copy(src, src + length, dst);
                 }
             }
-            
         } else {
             std::cerr << "Error reading the file : " << path_name << std::endl;
         }
