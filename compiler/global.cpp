@@ -20,7 +20,12 @@
  ************************************************************************/
 
 #include <limits.h>
+#include <cfenv>
 #include <cstdint>
+
+#if defined(__SSE__) || defined(_M_X64) || (defined(_M_IX86_FP) && (_M_IX86_FP >= 1))
+#include <xmmintrin.h>
+#endif
 
 #include "propagate.hh"
 #include "absprim.hh"
@@ -3138,25 +3143,64 @@ void CompilerStats::print(std::ostream& out) const
     Threaded calls API: the compilation code is executed in a separate
     thread so that the stack size can be raised to MAX_STACK_SIZE.
  */
+
+#if !defined(EMCC)
+/*
+    The compilation needs the default floating-point environment: rounding to
+    nearest, subnormal values preserved and exceptions masked. The interval
+    analysis takes nexttoward(0.0, 1.0) as a strict positive bound, which
+    DAZ (denormals-are-zero) reads as 0. The compilation thread may inherit
+    the environment of the calling thread (glibc does), and audio hosts often
+    enable DAZ and FTZ (x86) or FZ (AArch64) there. The thread only runs the
+    compilation, so the environment is not restored.
+ */
+static void setDefaultFloatEnv()
+{
+    std::fesetenv(FE_DFL_ENV);
+#if defined(__SSE__) || defined(_M_X64) || (defined(_M_IX86_FP) && (_M_IX86_FP >= 1))
+    // Exceptions masked, rounding to nearest, DAZ and FTZ cleared
+    _mm_setcsr(0x1F80);
+#elif defined(__aarch64__)
+    // Rounding to nearest, FZ, FZ16, DN and AH cleared, traps disabled
+    uint64_t fpcr = 0;
+    __asm__ __volatile__("msr fpcr, %0" : : "r"(fpcr));
+#endif
+}
+
+struct ThreadedCall {
+    threaded_fun fFun;
+    void*        fArg;
+};
+
+static void* callWithDefaultFloatEnv(void* arg)
+{
+    ThreadedCall* call = static_cast<ThreadedCall*>(arg);
+    setDefaultFloatEnv();
+    return call->fFun(call->fArg);
+}
+#endif
+
 void callFunWithStackSize(threaded_fun fun, void* arg, size_t stack_size)
 {
 #if defined(EMCC)
     // No thread support in JavaScript
     fun(arg);
 #elif defined(_WIN32)
-    DWORD  id;
+    ThreadedCall call{fun, arg};
+    DWORD        id;
     // reserve, do not commit : the stack is only touched as far as used
-    HANDLE thread = CreateThread(NULL, stack_size, LPTHREAD_START_ROUTINE(fun), arg,
-                                 STACK_SIZE_PARAM_IS_A_RESERVATION, &id);
+    HANDLE thread = CreateThread(NULL, stack_size, LPTHREAD_START_ROUTINE(callWithDefaultFloatEnv),
+                                 &call, STACK_SIZE_PARAM_IS_A_RESERVATION, &id);
     faustassert(thread != NULL);
     WaitForSingleObject(thread, INFINITE);
 #else
+    ThreadedCall   call{fun, arg};
     pthread_t      thread;
     pthread_attr_t attr;
     faustassert(pthread_attr_init(&attr) == 0);
     faustassert(pthread_attr_setstacksize(&attr, stack_size) == 0);
     faustassert(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) == 0);
-    faustassert(pthread_create(&thread, &attr, fun, arg) == 0);
+    faustassert(pthread_create(&thread, &attr, callWithDefaultFloatEnv, &call) == 0);
     faustassert(pthread_join(thread, nullptr) == 0);
     faustassert(pthread_attr_destroy(&attr) == 0);
 #endif

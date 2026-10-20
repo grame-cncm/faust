@@ -20,6 +20,7 @@
 #include <random>
 
 #include "check.hh"
+#include "exception.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
 
@@ -121,7 +122,7 @@ interval interval_algebra::fPow(const interval& x, const interval& y) const
         return empty();
     }
 
-    assert(x.lo() > 0);
+    faustassert(x.lo() > 0);
     // x all positive
     return Exp(Mul(y, Log(x)));
 }
