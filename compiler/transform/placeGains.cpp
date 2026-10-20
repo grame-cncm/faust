@@ -31,6 +31,7 @@
 #include "rewrite.hh"
 #include "signals.hh"
 #include "sigs-state.hh"
+#include "valueOrder.hh"
 
 namespace {
 
@@ -138,19 +139,19 @@ Tree ruleAux(Tree orig, Tree rebuilt)
 {
     if (Tree c, a, b; isSigMix(rebuilt, c, a, b)) {
         // mix(c, 1, b) is mix(1 - c, b, 1), and mix(c, a, 1) = a + c - a c is symmetric :
-        // the weight is the first of a and c in the order of the normal form
+        // the weight is the first of a and c by value (valueOrder.hh)
         if (isOne(a) && !isOne(b)) {
             c = complementOf(c);
             a = b;
             b = sigReal(1.0);
         }
-        if (isOne(b) && !isNum(a) && !isNum(c) && NormalFormTreeLess()(a, c)) {
+        if (isOne(b) && !isNum(a) && !isNum(c) && valueLess(a, c)) {
             std::swap(a, c);
         }
-        // mix(c, a, b) = mix(1 - c, b, a) : one orientation, its operands in the order of
-        // the normal form, whatever the writing (after the reveals, which read the mixes
-        // in the orientation they were built in)
-        if (NormalFormTreeLess()(b, a)) {
+        // mix(c, a, b) = mix(1 - c, b, a) : one orientation, its operands in their order
+        // by value, whatever the writing (after the reveals, which read the mixes in the
+        // orientation they were built in)
+        if (valueLess(b, a)) {
             Tree cc = complementOf(c);
             Tree bb = b;
             b       = a;
