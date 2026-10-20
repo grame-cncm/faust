@@ -3,9 +3,10 @@ name: libfaust
 env:
   FAUST_VERSION: 2.90.10
   FAUSTGEN_VERSION: "1.86"
-  LLVM_PACKAGE_VERSION: "18.1.8"
   CMAKE_OSX_DEPLOYMENT_TARGET: "10.15"
-  LLVM_COMMIT: 8dfdcc7b7bf66834a761bd8de445840ef68e4d1a
+  # The LLVM version is chosen in .github/llvm/release.env: every job builds
+  # with the package of that release (see build-llvm.yml and
+  # .github/actions/fetch-llvm), checked against .github/llvm/SHA256SUMS.
 
 # Controls when the action will run.
 on:
@@ -20,42 +21,98 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
 
-  build-ubuntu:
+  config:
+    runs-on: ubuntu-24.04
+    outputs:
+      manylinux-tag: ${{ steps.read.outputs.manylinux-tag }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        sparse-checkout: .github/llvm
+
+    - name: Read release.env
+      id: read
+      run: |
+        set -euo pipefail
+        . .github/llvm/release.env
+        test -n "$MANYLINUX_TAG"
+        echo "manylinux-tag=$MANYLINUX_TAG" >> "$GITHUB_OUTPUT"
+
+  build-linux:
+    needs: config
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: ubuntu-x86_64
-            os: ubuntu-22.04
-            cmake-options: >-
-              -DCMAKE_BUILD_TYPE=Release
-              -DCMAKE_VERBOSE_MAKEFILE=ON
+            os: ubuntu-24.04
+            llvm-platform: linux-x86_64
+            image: quay.io/pypa/manylinux_2_28_x86_64
+          - name: ubuntu-aarch64
+            os: ubuntu-24.04-arm
+            llvm-platform: linux-aarch64
+            image: quay.io/pypa/manylinux_2_28_aarch64
 
     runs-on: ${{ matrix.os }}
+    # The image of the LLVM build: one toolchain for LLVM and libfaust, and a
+    # libfaust.so that needs glibc 2.28 only.
+    container: ${{ matrix.image }}:${{ needs.config.outputs.manylinux-tag }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
+    - name: Install dependencies
+      run: |
+        set -euo pipefail
+        yum install -y git zip pkgconfig libmicrohttpd-devel
+        /opt/python/cp312-cp312/bin/python -m pip install cmake==3.31.6
+        echo /opt/python/cp312-cp312/bin >> "$GITHUB_PATH"
+
     - uses: actions/checkout@v4
       with:
         submodules: true
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get install -y zstd libncurses-dev libxml2-dev
+    # checkout only trusts the repository for its own step; in the container
+    # (root, files of the runner user) git refuses it afterwards, and the
+    # build cannot name its source commit.
+    - name: Trust the repository
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get install -y libllvm15 llvm-15 llvm-15-dev
+    - uses: ./.github/actions/fetch-llvm
+      with:
+        platform: ${{ matrix.llvm-platform }}
 
     - name: Build libfaust
       run: |
-        find /usr -name llvm-config
-        export PATH="/usr/lib/llvm-15/bin:$PATH"
-        export LLVM_ROOT=$(llvm-config --prefix | tr '\n' ' ')
-        echo "LLVM_ROOT: " $LLVM_ROOT
+        set -euo pipefail
         cd build
-        cmake -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=ON
-        cmake --build build --config Release
-   
+        cmake -C ./backends/all.cmake . -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=ON \
+          -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=ON \
+          -DLLVM_CONFIG="$LLVM_CONFIG" -DLLVM_REQUIRED_VERSION="$LLVM_REQUIRED_VERSION" \
+          -DLLVM_FORBID_ASSERTIONS="$LLVM_FORBID_ASSERTIONS"
+        # A bare --parallel is an unbounded make -j with this generator: it
+        # starves the runner of memory.
+        cmake --build build --config Release --parallel "$(nproc)"
+
+    - name: Check libfaust
+      run: |
+        set -euo pipefail
+        build/bin/faust --version | tee faust-version.txt
+        grep -Fx "Build with LLVM version $LLVM_REQUIRED_VERSION" faust-version.txt
+        # The binary names the commit it was built from, from an unmodified tree.
+        grep -Fx "Source commit: $(git rev-parse --short=9 HEAD)" faust-version.txt
+        lib=$(ls build/lib/libfaust.so.* | sort -V | tail -n1)
+        if ldd "$lib" | grep -i llvm; then
+          echo "::error::$lib depends on a shared LLVM"
+          exit 1
+        fi
+        c++ -std=c++17 -O1 -Iarchitecture .github/llvm/libfaust-smoke.cpp -o libfaust-smoke \
+          -Lbuild/lib -lfaust -Wl,-rpath,"$PWD/build/lib"
+        ./libfaust-smoke run
+        ./libfaust-smoke write "$RUNNER_TEMP/smoke.machine"
+        ./libfaust-smoke read "$RUNNER_TEMP/smoke.machine"
+
     - name: Make distribution
       run: |
         cd build/lib
@@ -65,90 +122,13 @@ jobs:
         strip --strip-unneeded libfaust.so
         cd ..
         zip -r libfaust-${{ matrix.name }}.zip lib
-        
+
     - name: Upload libfaust artifact
       uses: actions/upload-artifact@v4
       with:
         name: libfaust-${{ matrix.name }}.zip
         path: build/libfaust-${{ matrix.name }}.zip
         if-no-files-found: error
-
-  build-ubuntu-aarch64:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: ubuntu-aarch64
-            os: ubuntu-22.04
-            llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-17.0.6-ubuntu-aarch64.zip
-            cmake-options: >-
-              -DCMAKE_BUILD_TYPE=Release
-              -DCMAKE_VERBOSE_MAKEFILE=ON
-              
-    runs-on: ${{ matrix.os }}
-
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: true
-
-    - name: Download LLVM
-      run: |
-        # Libfaust will need to link against LLVM.
-        # Since we're using an x86_64 GitHub actions runner, we're unable to build arm64 LLVM on-demand.
-        # To get around this, we download a compatible LLVM build that we've built in advance.
-        curl -L ${{ matrix.llvm-url }} -o llvm.zip
-        unzip -o llvm.zip
-        rm llvm.zip
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: arm64
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Free Disk Space (Ubuntu)
-      uses: jlumbroso/free-disk-space@main
-      with:
-        # this might remove tools that are actually needed,
-        # if set to "true" but frees about 6 GB
-        tool-cache: false
-        
-        # all of these default to true, but feel free to set to
-        # "false" if necessary for your workflow
-        android: true
-        dotnet: true
-        haskell: true
-        large-packages: true
-        docker-images: true
-        swap-storage: true
-
-    - name: Build and push
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: Dockerfile-aarch64
-        tags: mylibrary-builder:latest
-        platforms: linux/arm64
-        load: true
-
-    - name: Create Container from Image
-      run: docker create --name mylib-container mylibrary-builder:latest
-
-    - name: Copy Compiled Library from Container
-      run: |
-        docker cp mylib-container:/faust/build/libfaust-${{ matrix.name }}.zip libfaust-${{ matrix.name }}.zip
-        docker rm mylib-container
-        
-    - name: Upload libfaust artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: libfaust-${{ matrix.name }}.zip
-        path: libfaust-${{ matrix.name }}.zip
-        if-no-files-found: error
-
 
   build-macos:
     strategy:
@@ -157,12 +137,14 @@ jobs:
         include:
           - name: arm64
             os: macos-15
+            llvm-platform: macos-arm64
             ARCHS: "-arch arm64"
             CMAKE_OSX_ARCHITECTURES: arm64
             HOST: aarch64-apple-darwin
             ENABLE_MPEG: OFF
           - name: x64
             os: macos-15-intel
+            llvm-platform: macos-x86_64
             ARCHS: "-arch x86_64"
             CMAKE_OSX_ARCHITECTURES: x86_64
             HOST: x86_64-apple-darwin
@@ -175,11 +157,9 @@ jobs:
       with:
         submodules: true
 
-    - name: Checkout LLVM universal binaries (shallow)
-      run: |
-        git clone --depth 1 --filter=blob:none --sparse https://github.com/cmajor-lang/llvm.git llvm-universal
-        cd llvm-universal
-        git sparse-checkout set release/osx/universal
+    - uses: ./.github/actions/fetch-llvm
+      with:
+        platform: ${{ matrix.llvm-platform }}
 
     - name: Build libmicrohttpd
       run: |
@@ -272,17 +252,6 @@ jobs:
         repository: Cycling74/max-sdk-base
         path: max-sdk-base
 
-    - name: Slim LLVM libraries
-      env:
-       CMAKE_ARCH: ${{ matrix.CMAKE_OSX_ARCHITECTURES }}
-      run: |
-        echo "Slimming LLVM universal libs to ${{matrix.CMAKE_OSX_ARCHITECTURES}}"
-        mkdir -p slim-llvm-libs
-        for lib in llvm-universal/release/osx/universal/lib/lib*.a; do
-          base=$(basename "$lib")
-          lipo "$lib" -extract $CMAKE_ARCH -output slim-llvm-libs/"$base"
-        done
-
     # - name: Clone faustlive
     #   uses: actions/checkout@v4
     #   with:
@@ -293,24 +262,17 @@ jobs:
       # todo: do we need to specify the qt@5 path for PKG_CONFIG_PATH?
       run: |  
         export PKG_CONFIG_PATH="$QT_ROOT_DIR/lib/pkgconfig:$PWD/libsndfile/install/lib/pkgconfig:$PWD/libmicrohttpd/libmicrohttpd/lib/pkgconfig"
-     
-        export LLVM_DIR=${{ github.workspace }}/llvm-universal/release/osx/universal
-        export LLVM_LIB_DIR=$PWD/slim-llvm-libs
-        export LLVM_INCLUDE_DIRS=$LLVM_DIR/include 
 
-        export LLVM_LIBS=$(ls $LLVM_LIB_DIR/lib*.a | sed "s|$LLVM_LIB_DIR/lib\(.*\)\.a|-l\1|g" | tr '\n' ' ')
-        export LLVM_LIBS="-lm -lcurses -lxml2 -lz $LLVM_LIBS"
-        export LLVM_LIBS="$(echo "$LLVM_LIBS" | sed 's/[[:space:]]*$//')"
-        export LLVM_DEFINITIONS="-D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS"
-        export LLVM_LD_FLAGS="-L$LLVM_LIB_DIR -Wl,-search_paths_first -Wl,-headerpad_max_install_names"
-        export LLVM="$LLVM_LD_FLAGS $LLVM_LIBS"
+        # LLVM_CONFIG, LLVM_REQUIRED_VERSION and LLVM_FORBID_ASSERTIONS come
+        # from fetch-llvm; LLVM is the link line of the tools (tools/benchmark).
+        export LLVM="$("$LLVM_CONFIG" --link-static --ldflags --libs all --system-libs | tr '\n' ' ')"
 
         export FAUSTLIVE=$PWD/faustlive
         export BUILD_HTTP_STATIC=ON
         export USE_STATIC_SNDFILE=1
         export CMAKEOPT="-DCMAKE_OSX_ARCHITECTURES="$CMAKE_OSX_ARCHITECTURES" -DCMAKE_OSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET -DCMAKE_BUILD_TYPE=Release"
         export INCLUDE_LLVM=ON
-        export USE_LLVM_CONFIG=off
+        export USE_LLVM_CONFIG=ON
     
         cd build
         make release
@@ -321,6 +283,25 @@ jobs:
       env:
         CMAKE_OSX_ARCHITECTURES: ${{matrix.CMAKE_OSX_ARCHITECTURES}}
         ARCHS: ${{matrix.ARCHS}}
+
+    - name: Check libfaust
+      run: |
+        set -euo pipefail
+        build/bin/faust --version | tee faust-version.txt
+        grep -Fx "Build with LLVM version $LLVM_REQUIRED_VERSION" faust-version.txt
+        # The binary names the commit it was built from, from an unmodified tree.
+        grep -Fx "Source commit: $(git rev-parse --short=9 HEAD)" faust-version.txt
+        for lib in build/lib/libfaust*.dylib; do
+          if otool -L "$lib" | tail -n +2 | grep -i llvm; then
+            echo "::error::$lib depends on a shared LLVM"
+            exit 1
+          fi
+        done
+        c++ -std=c++17 -O1 ${{ matrix.ARCHS }} -Iarchitecture .github/llvm/libfaust-smoke.cpp -o libfaust-smoke \
+          -Lbuild/lib -lfaust -Wl,-rpath,"$PWD/build/lib"
+        ./libfaust-smoke run
+        ./libfaust-smoke write "$RUNNER_TEMP/smoke.machine"
+        ./libfaust-smoke read "$RUNNER_TEMP/smoke.machine"
 
     - name: Upload Faust artifact
       uses: actions/upload-artifact@v4
@@ -351,7 +332,6 @@ jobs:
         include:
           - name: win64
             os: windows-2022
-            llvm-url: https://github.com/grame-cncm/faust/releases/download/2.59.5-llvm/llvm-17.0.6-win11-x86_64.zip
             libsndfile-url: https://github.com/libsndfile/libsndfile/releases/download/1.2.0/libsndfile-1.2.0-win64.zip
 
     steps:
@@ -361,12 +341,9 @@ jobs:
     
     - uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Download LLVM
-      run: |
-        # Libfaust will need to link against LLVM.
-        # We download a Windows x86_64 LLVM build that we've built in advance.
-        curl -L ${{ matrix.llvm-url }} -o llvm.zip
-        7z x llvm.zip -y
+    - uses: ./.github/actions/fetch-llvm
+      with:
+        platform: windows-x64
 
     - name: Download Libsndfile
       run: |
@@ -391,8 +368,22 @@ jobs:
       run: |
         cd build
         call MakeRelease.bat
-      env:
-        LLVM_PACKAGE_VERSION: 17.0.6
+        IF ERRORLEVEL 1 EXIT /B 1
+
+    - name: Check libfaust
+      shell: bash
+      run: |
+        set -euo pipefail
+        build/build/faust/bin/faust.exe --version | tr -d '\r' | tee faust-version.txt
+        grep -Fx "Build with LLVM version $LLVM_REQUIRED_VERSION" faust-version.txt
+        # The binary names the commit it was built from, from an unmodified tree.
+        grep -Fx "Source commit: $(git rev-parse --short=9 HEAD)" faust-version.txt
+        for dll in $(find build -name faust.dll); do
+          if MSYS_NO_PATHCONV=1 dumpbin /dependents "$dll" | grep -i llvm; then
+            echo "::error::$dll depends on a shared LLVM"
+            exit 1
+          fi
+        done
 
     - name: Make distribution
       shell: cmd
@@ -416,7 +407,7 @@ jobs:
 
   create-release:
     if: ${{ inputs.create_release }} 
-    needs: [build-ubuntu, build-ubuntu-aarch64, build-macos, build-windows]
+    needs: [build-linux, build-macos, build-windows]
     runs-on: ubuntu-latest
     name: "Create Release on GitHub"
     permissions:

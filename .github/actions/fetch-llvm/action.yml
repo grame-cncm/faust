@@ -1,0 +1,88 @@
+name: Fetch LLVM
+description: >-
+  Downloads the LLVM package of .github/llvm/release.env for one platform,
+  checks it against .github/llvm/SHA256SUMS, extracts it to llvm/ and sets
+  LLVM_CONFIG, LLVM_REQUIRED_VERSION and LLVM_FORBID_ASSERTIONS for the build.
+
+inputs:
+  platform:
+    description: linux-x86_64, linux-aarch64, macos-arm64, macos-x86_64 or windows-x64
+    required: true
+
+runs:
+  using: composite
+  steps:
+  - name: Locate the LLVM package
+    id: locate
+    shell: bash
+    run: |
+      set -euo pipefail
+      . .github/llvm/release.env
+      tag="llvm-$LLVM_VERSION-$FAUST_LLVM_REVISION"
+      case "${{ inputs.platform }}" in
+        windows-*) asset="faust-$tag-${{ inputs.platform }}.zip" ;;
+        *)         asset="faust-$tag-${{ inputs.platform }}.tar.xz" ;;
+      esac
+      # The checksum comes from the repository, not from the release: a
+      # replaced asset is refused.
+      sum=$(awk -v f="$asset" '$1 !~ /^#/ && ($2 == f || $2 == "*" f) { print $1 }' .github/llvm/SHA256SUMS)
+      if [ -z "$sum" ]; then
+        echo "::error::$asset is not listed in .github/llvm/SHA256SUMS: run the build-llvm workflow with 'publish', then commit the SHA256SUMS of its release"
+        exit 1
+      fi
+      {
+        echo "asset=$asset"
+        echo "sha256=$sum"
+        echo "url=https://github.com/$FAUST_LLVM_REPOSITORY/releases/download/$tag/$asset"
+        echo "version=$LLVM_VERSION"
+        echo "dir=$RUNNER_TEMP/faust-llvm"
+      } >> "$GITHUB_OUTPUT"
+
+  - uses: actions/cache@v4
+    with:
+      path: ${{ steps.locate.outputs.dir }}
+      key: ${{ steps.locate.outputs.asset }}-${{ steps.locate.outputs.sha256 }}
+
+  - name: Download, check and extract
+    shell: bash
+    env:
+      ASSET: ${{ steps.locate.outputs.asset }}
+      SHA256: ${{ steps.locate.outputs.sha256 }}
+      URL: ${{ steps.locate.outputs.url }}
+      DIR: ${{ steps.locate.outputs.dir }}
+      VERSION: ${{ steps.locate.outputs.version }}
+    run: |
+      set -euo pipefail
+      mkdir -p "$DIR"
+      file="$DIR/$ASSET"
+      [ -f "$file" ] || curl -fL --retry 3 -o "$file" "$URL"
+      # A cached archive is checked as well as a downloaded one. The archive
+      # is read on stdin: given a path with backslashes (Windows), sha256sum
+      # escapes it and prefixes the digest with a backslash.
+      if command -v sha256sum > /dev/null; then
+        sum=$(sha256sum < "$file" | cut -d' ' -f1)
+      else
+        sum=$(shasum -a 256 < "$file" | cut -d' ' -f1)
+      fi
+      if [ "$sum" != "$SHA256" ]; then
+        rm -f "$file"
+        echo "::error::$ASSET has sha256 $sum, .github/llvm/SHA256SUMS expects $SHA256"
+        exit 1
+      fi
+      rm -rf llvm
+      case "$ASSET" in
+        *.zip) 7z x -y "$file" > /dev/null ;;
+        *)     tar -xJf "$file" ;;
+      esac
+      cfg=llvm/bin/llvm-config
+      [ "$("$cfg" --version)" = "$VERSION" ] || { echo "::error::$ASSET contains LLVM $("$cfg" --version), not $VERSION"; exit 1; }
+      cat llvm/BUILDINFO.txt
+      # Native paths (and the .exe CMake looks for) for CMake and cmd.exe on Windows.
+      root=$(pwd -W 2>/dev/null || pwd)
+      [ -f "$cfg.exe" ] && cfg="$cfg.exe"
+      {
+        echo "LLVM_CONFIG=$root/$cfg"
+        echo "LLVM_REQUIRED_VERSION=$VERSION"
+        echo "LLVM_FORBID_ASSERTIONS=ON"
+      } >> "$GITHUB_ENV"
+      echo "$root/llvm/bin" >> "$GITHUB_PATH"
