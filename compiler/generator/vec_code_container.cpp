@@ -34,6 +34,8 @@ void VectorCodeContainer::moveStack2Struct()
     VariableMover::Move(this, "Zec");
     VariableMover::Move(this, "Yec");
     VariableMover::Move(this, "Rec");
+    VariableMover::Move(this, "IIR");  // the lines of the IIR and IRM nodes, recursions as Rec
+    VariableMover::Move(this, "IRM");
 
     // Remove marked variables from fComputeBlockInstructions
     RemoverCloneVisitor remover;
