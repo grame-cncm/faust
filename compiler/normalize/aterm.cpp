@@ -285,6 +285,27 @@ ostream& aterm::print(ostream& dst) const
 }
 
 /**
+ * m is k * s, k a number other than 1 and 0, s a sum (of power 1), its only factor : gives
+ * s. With symbols beside the sum (k * g * (x - y)), k stays the coefficient of the product :
+ * moving it into the sum would remove no duplication, and would split a weight k * g.
+ */
+static bool numberOverSum(const mterm& m, Tree& sum)
+{
+    Tree k = m.coefficient();
+    if (isOne(k) || isZero(k) || !isNum(k) || m.factors().size() != 1) {
+        return false;
+    }
+    const auto& p = *m.factors().begin();
+    int         op;
+    Tree        x, y;
+    if (p.second == 1 && (isSigSum(p.first) || (isSigBinOp(p.first, &op, x, y) && (op == kAdd || op == kSub)))) {
+        sum = p.first;
+        return true;
+    }
+    return false;
+}
+
+/**
  * Add in place an additive expression tree. Go down recursively looking
  * for additions and substractions
  */
@@ -362,6 +383,18 @@ const aterm& aterm::operator+=(const mterm& m)
 #ifdef TRACE
     cerr << *this << " aterm::+= " << m << endl;
 #endif
+    Tree sum;
+    if (numberOverSum(m, sum)) {
+        // a number times a sum : the number is distributed, it duplicates no symbol
+        Tree  k = m.coefficient();
+        aterm inner(sum);
+        for (const auto& q : inner.fSig2MTerms) {
+            mterm kq = q.second;
+            kq *= k;
+            *this += kq;
+        }
+        return *this;
+    }
     Tree signature = m.signatureTree();
 #ifdef TRACE
     cerr << "signature " << *signature << endl;
@@ -383,6 +416,9 @@ const aterm& aterm::operator+=(const mterm& m)
 const aterm& aterm::operator-=(const mterm& m)
 {
     // cerr << *this << " aterm::-= " << m << endl;
+    if (Tree sum; numberOverSum(m, sum)) {
+        return *this += m * mterm(-1);  // the distribution of operator+=
+    }
     Tree sig = m.signatureTree();
     // cerr << "signature " << *sig << endl;
     SM::const_iterator p = fSig2MTerms.find(sig);
@@ -787,17 +823,26 @@ static bool complementOf(Tree w, Tree& c)
         c = x;
         return !isNum(c);
     }
-    if (!isSigSum(w, ws) || ws.size() < 2 || !isOne(ws[0])) {
+    if (!isSigSum(w, ws) || ws.size() < 2 || !isNum(ws[0])) {
         return false;
     }
-    tvec ts;
-    for (size_t i = 1; i < ws.size(); i++) {
-        if (!isSigNeg(ws[i], x)) {
-            return false;
+    if (isOne(ws[0])) {
+        tvec ts;
+        bool negs = true;
+        for (size_t i = 1; i < ws.size() && negs; i++) {
+            negs = isSigNeg(ws[i], x);
+            ts.push_back(x);
         }
-        ts.push_back(x);
+        if (negs) {
+            c = (ts.size() == 1) ? ts[0] : sigSum(ts);
+            return !isNum(c);
+        }
     }
-    c = (ts.size() == 1) ? ts[0] : sigSum(ts);
+    // a sum with a number, the distributed writing of a complement (51 - 0.25 f for
+    // 1 - (0.25 f - 50)) : c is 1 - w as the normal form writes it
+    aterm complement(sigReal(1.0));
+    complement -= w;
+    c = complement.normalizedTree();
     return !isNum(c);
 }
 
@@ -1108,6 +1153,56 @@ void aterm::extractMixes()
 }
 
 /**
+ * The symmetric mix. x + y - x*y is mix(x, y, 1) = mix(y, x, 1) : a sum holding k*x, k*y and
+ * -k*x*y, x and y symbols, is rewritten with k*mix(w, o, 1), each symbol then read once ; the
+ * weight w is the first of the two in the order of the normal form, the same whatever the
+ * writing (the written forms (1 - x)*y + x and x*(1 - y) + y reach mix(x, y, 1) or
+ * mix(y, x, 1), which the final placement brings to the same weight).
+ */
+void aterm::extractSymmetricMixes()
+{
+    for (;;) {
+        Tree kxy = nullptr, kx = nullptr, ky = nullptr, x = nullptr, y = nullptr, k = nullptr;
+        for (const auto& p : fSig2MTerms) {
+            const mterm& m = p.second;
+            if (!m.isNegative() || m.factors().size() != 2) {
+                continue;
+            }
+            auto f1 = m.factors().begin();
+            auto f2 = std::next(f1);
+            if (f1->second != 1 || f2->second != 1 || isNum(f1->first) || isNum(f2->first)) {
+                continue;
+            }
+            Tree kpos = subNums(tree(0), m.coefficient());
+            auto px   = fSig2MTerms.find(mterm(f1->first).signatureTree());
+            auto py   = fSig2MTerms.find(mterm(f2->first).signatureTree());
+            if (px == fSig2MTerms.end() || py == fSig2MTerms.end() || px == py) {
+                continue;
+            }
+            if (!isZero(subNums(px->second.coefficient(), kpos)) ||
+                !isZero(subNums(py->second.coefficient(), kpos))) {
+                continue;
+            }
+            kxy = p.first, kx = px->first, ky = py->first;
+            x = f1->first, y = f2->first, k = kpos;
+            break;
+        }
+        if (!kxy) {
+            return;
+        }
+        fSig2MTerms.erase(kxy);
+        fSig2MTerms.erase(kx);
+        fSig2MTerms.erase(ky);
+        Tree  w   = NormalFormTreeLess()(x, y) ? x : y;
+        Tree  o   = (w == x) ? y : x;
+        Tree  one = sigReal(1.0);
+        mterm m(mixOrSelect(w, o, one));
+        m *= k;
+        *this += m;
+    }
+}
+
+/**
  * The compound operation tpt. A term holding g and (g + 1)^-k is rewritten with
  * tpt(g) * (g + 1)^-(k-1) : g then appears once, and the interval of g / (g + 1) no
  * longer loses that it lies in [0, 1[ for g >= 0 (the dependency problem).
@@ -1231,6 +1326,8 @@ mterm aterm::greatestDivisor() const
     for (size_t i = 0; i < terms.size(); i++) {
         for (size_t j = i + 1; j < terms.size(); j++) {
             mterm g = gcd(*terms[i], *terms[j]);
+            // only symbols are factored : a number duplicates none
+            if (!isOne(g.coefficient()) && !isZero(g.coefficient())) g = g / mterm(g.coefficient());
             if (g.complexity() > 0) g = keep(g);
             int complexity = g.complexity();
             if (complexity > maxComplexity) {
