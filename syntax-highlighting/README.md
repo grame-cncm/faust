@@ -79,11 +79,7 @@ Copy the directory `atom/language-faust` into `~/.atom/packages/` and follow the
 
 ## Visual Studio Code
 
-1. From within Visual Studio Code bring up the Extensions view by clicking on the `Extensions` icon in the Activity Bar on the side of VS Code or the `View: Extensions` command.
-2. Enter `faust` in the search field, press Enter and then select the extension.
-3. Click Install to automatically download and install the extension.
-
-Get the [GRAME reworkded version](https://github.com/grame-cncm/vscode-faust) with a release [to be installed](https://github.com/grame-cncm/vscode-faust/releases).
+Get the [GRAME reworkded version](https://github.com/grame-cncm/vscode-faust) extension with a release [to be installed](https://github.com/grame-cncm/vscode-faust/releases).
 
 ## Sublime Text 4 completions and snippets
 
