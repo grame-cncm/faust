@@ -474,6 +474,20 @@ class RustInstVisitor : public TextInstVisitor {
         }
     }
 
+    // An integer negation wraps too : -MIN is MIN, an overflow being an error by default
+    // in Rust
+    virtual void visit(NegInst* inst)
+    {
+        Typed::VarType type = TypingVisitor::getType(inst->fInst);
+        if (isInt32Type(type) || isInt64Type(type)) {
+            *fOut << (isInt32Type(type) ? "i32::wrapping_neg(" : "i64::wrapping_neg(");
+            inst->fInst->accept(this);
+            *fOut << ")";
+        } else {
+            TextInstVisitor::visit(inst);
+        }
+    }
+
     virtual void visit(::CastInst* inst)
     {
         bool needParentheses = dynamic_cast<CastInst*>(inst->fInst) == nullptr;
