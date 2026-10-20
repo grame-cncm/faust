@@ -259,13 +259,14 @@ void Klass::printAdditionalCode(ostream& fout)
         fout << "#define FAUSTPOWER" << endl;
         fout << "#include <cmath>" << endl;
 
+        // the int products wrap, as every Int32 multiplication (faust_wrap_mul above)
         fout << "template <int N> inline int faustpower(int x)              { return "
-                "faustpower<N/2>(x) * "
-                "faustpower<N-N/2>(x); } "
+                "faust_wrap_mul(faustpower<N/2>(x), "
+                "faustpower<N-N/2>(x)); } "
              << endl;
         fout << "template <> 	 inline int faustpower<0>(int x)            { return 1; }" << endl;
         fout << "template <> 	 inline int faustpower<1>(int x)            { return x; }" << endl;
-        fout << "template <> 	 inline int faustpower<2>(int x)            { return x*x; }"
+        fout << "template <> 	 inline int faustpower<2>(int x)            { return faust_wrap_mul(x, x); }"
              << endl;
 
         if (gGlobal->gFloatSize == 1) {
