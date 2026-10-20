@@ -34,6 +34,7 @@
 
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/dsp-adapter.h"
+#include "faust/dsp/juce-dsp-adapter.h"
 #include "faust/gui/MidiUI.h"
 #include "faust/dsp/poly-dsp.h"
 #ifndef PLUGIN_MAGIC
@@ -283,6 +284,7 @@ class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::T
         std::unique_ptr<MidiUI> fMIDIUI;
     #endif
         std::unique_ptr<dsp> fDSP;
+        FaustHostAdapter fHostAdapter;
     #endif
         
     #if defined(OSCCTRL)
@@ -295,8 +297,6 @@ class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::T
         
         JuceStateUI fStateUI;
         JuceParameterUI fParameterUI;
-        
-        std::atomic<bool> fFirstCall = true;
         
     private:
         
@@ -367,6 +367,7 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
         std::unique_ptr<MidiUI> fMIDIUI;
     #endif
         std::unique_ptr<dsp> fDSP;
+        FaustHostAdapter fHostAdapter;
     #endif
         
     #if defined(OSCCTRL)
@@ -379,8 +380,6 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
     
         JuceStateUI fStateUI;
         JuceParameterUI fParameterUI;
-    
-        std::atomic<bool> fFirstCall = true;
     
     private:
     
@@ -634,9 +633,6 @@ bool FaustPlugInAudioProcessor::supportsDoublePrecisionProcessing() const
 //==============================================================================
 void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Reset DSP adaptation
-    fFirstCall = true;
-    
 #ifdef JUCE_POLY
     fSynth->setCurrentPlaybackSampleRate (sampleRate);
 #else
@@ -672,6 +668,14 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
         setLatencySamples(meta.fLatencySec * sampleRate);
     }
     
+    // Builds the DSP adapters outside the audio thread for the expected configuration;
+    // process rebuilds them if the host finally uses another one
+    if (isUsingDoublePrecision()) {
+        fHostAdapter.prepare<double>(fDSP.get(), getTotalNumInputChannels(), getTotalNumOutputChannels());
+    } else {
+        fHostAdapter.prepare<float>(fDSP.get(), getTotalNumInputChannels(), getTotalNumOutputChannels());
+    }
+    
 #endif
 #ifdef MAGIC_LEVEL_SOURCE
     magicState.prepareToPlay(sampleRate, samplesPerBlock);
@@ -690,39 +694,6 @@ void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, j
 {
     juce::ScopedNoDenormals noDenormals;
     
-    /*
-        prepareToPlay is possibly called several times with different values for sampleRate
-        and isUsingDoublePrecision() state (this has been seen in particular with VTS3),
-        making proper sample format (float/double) and the inputs/outputs layout adaptation
-        more complex at this stage.
-        
-        So adapting the sample format (float/double) and the inputs/outputs layout is done
-        once at first process call even if this possibly allocates memory, which is not RT safe.
-    */
-    if (fFirstCall) {
-        fFirstCall = false;
-        
-        // Possible sample size adaptation
-        if (supportsDoublePrecisionProcessing()) {
-            if (isUsingDoublePrecision()) {
-                // Nothing to do
-            } else {
-                fDSP = std::make_unique<dsp_sample_adapter<double, float, 16384>>(fDSP.release());
-            }
-        } else {
-            if (isUsingDoublePrecision()) {
-                fDSP = std::make_unique<dsp_sample_adapter<float, double, 16384>>(fDSP.release());
-            } else {
-                // Nothing to do
-            }
-        }
-        
-        // Possibly adapt DSP inputs/outputs number
-        if (fDSP->getNumInputs() > getTotalNumInputChannels() || fDSP->getNumOutputs() > getTotalNumOutputChannels()) {
-            fDSP = std::make_unique<dsp_adapter>(fDSP.release(), getTotalNumInputChannels(), getTotalNumOutputChannels(), 16384);
-        }
-    }
-    
 #ifdef JUCE_POLY
     fSynth->renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 #else
@@ -732,10 +703,8 @@ void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, j
     // Then write MIDI output events to midiMessages
     fMIDIHandler->encodeBuffer(midiMessages);
 #endif
-    // MIDI timestamp is expressed in frames
-    fDSP->compute(-1, buffer.getNumSamples(),
-                  (FAUSTFLOAT**)buffer.getArrayOfReadPointers(),
-                  (FAUSTFLOAT**)buffer.getArrayOfWritePointers());
+    // Adapts the DSP to the sample format and the channel counts of 'buffer'
+    fHostAdapter.compute(fDSP.get(), buffer, 0, buffer.getNumSamples(), getTotalNumInputChannels(), getTotalNumOutputChannels());
 #endif
 }
 

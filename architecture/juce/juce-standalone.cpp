@@ -34,6 +34,7 @@
 
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/dsp-adapter.h"
+#include "faust/dsp/juce-dsp-adapter.h"
 #include "faust/gui/MidiUI.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/gui/JuceGUI.h"
@@ -174,15 +175,15 @@ class FaustComponent : public juce::AudioAppComponent, private juce::Timer
             const int maxInputChannels = activeInputChannels.getHighestBit() + 1;
             const int maxOutputChannels = activeOutputChannels.getHighestBit() + 1;
             
-            // Possible sample size adaptation
-            if (sizeof(FAUSTFLOAT) == 8) {
-                fDSP = std::make_unique<dsp_sample_adapter<FAUSTFLOAT, float>>(fDSP.release());
-            }
-            
-            // Possibly adapt DSP inputs/outputs number
-            if (fDSP->getNumInputs() > maxInputChannels || fDSP->getNumOutputs() > maxOutputChannels) {
-                fDSP = std::make_unique<dsp_adapter>(fDSP.release(), maxInputChannels, maxOutputChannels, 4096);
-            }
+            /*
+                prepareToPlay is called again each time the audio device restarts (sample rate,
+                buffer size or device change), possibly with other channel counts: the DSP
+                adapters are rebuilt here if needed, outside the audio thread. The audio
+                device always gives float samples.
+            */
+            fHWInputs = maxInputChannels;
+            fHWOutputs = maxOutputChannels;
+            fHostAdapter.prepare<float>(fDSP.get(), fHWInputs, fHWOutputs);
             
             fDSP->init(int(sampleRate));
         }
@@ -194,18 +195,14 @@ class FaustComponent : public juce::AudioAppComponent, private juce::Timer
         {
             juce::ScopedNoDenormals noDenormals;
             
-            const float** inputs = (const float**)alloca(fDSP->getNumInputs() * sizeof(float));
-            for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                inputs[i] = bufferToFill.buffer->getReadPointer(i, bufferToFill.startSample);
+            if (fHWOutputs < 0) {
+                // prepareToPlay has not been called yet
+                bufferToFill.clearActiveBufferRegion();
+                return;
             }
             
-            float** outputs = (float**)alloca(fDSP->getNumOutputs() * sizeof(float));
-            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                outputs[i] = bufferToFill.buffer->getWritePointer(i, bufferToFill.startSample);
-            }
-            
-            // MIDI timestamp is expressed in frames
-            fDSP->compute(-1, bufferToFill.numSamples, (float**)inputs, outputs);
+            // Adapts the DSP to the sample format and the channel counts of the audio device
+            fHostAdapter.compute(fDSP.get(), *bufferToFill.buffer, bufferToFill.startSample, bufferToFill.numSamples, fHWInputs, fHWOutputs);
         }
 
         void paint (juce::Graphics& g) override
@@ -246,6 +243,9 @@ class FaustComponent : public juce::AudioAppComponent, private juce::Timer
         JuceGUI fJuceGUI;
         
         std::unique_ptr<dsp> fDSP;
+        FaustHostAdapter fHostAdapter;
+        int fHWInputs = -1;     // audio device channels, set by prepareToPlay
+        int fHWOutputs = -1;
     
         juce::Rectangle<int> recommendedSize;
     juce::Rectangle<int> r = juce::Desktop::getInstance().getDisplays().getMainDisplay().userArea;

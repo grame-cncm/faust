@@ -131,6 +131,7 @@ class dsp_sample_adapter : public decorator_dsp {
     
         REAL_INT** fAdaptedInputs;
         REAL_INT** fAdaptedOutputs;
+        bool fDelete;
     
         void adaptInputBuffers(int count, FAUSTFLOAT** inputs)
         {
@@ -152,7 +153,7 @@ class dsp_sample_adapter : public decorator_dsp {
     
     public:
     
-        dsp_sample_adapter(::dsp* dsp):decorator_dsp(dsp)
+        dsp_sample_adapter(::dsp* dsp, bool to_delete = true):decorator_dsp(dsp), fDelete(to_delete)
         {
             fAdaptedInputs = new REAL_INT*[dsp->getNumInputs()];
             for (int i = 0; i < dsp->getNumInputs(); i++) {
@@ -176,6 +177,9 @@ class dsp_sample_adapter : public decorator_dsp {
                 delete [] fAdaptedOutputs[i];
             }
             delete [] fAdaptedOutputs;
+            
+            // Decorator should not delete the decorated fDSP
+            if (!fDelete) fDSP = nullptr;
         }
     
         virtual dsp_sample_adapter* clone() { return new dsp_sample_adapter(fDSP->clone()); }
