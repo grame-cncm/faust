@@ -67,8 +67,11 @@ void WSSCodeContainer::moveCompute2ComputeThread()
         }
     };
 
-    // Transform stack variables in struct variables
+    // Transform stack variables in struct variables (the lines of the IIR and IRM nodes
+    // are the lines of recursions, as Rec)
     VariableMover::Move(this, "Rec");
+    VariableMover::Move(this, "IIR");
+    VariableMover::Move(this, "IRM");
     VariableMover::Move(this, "tmp");
     VariableMover::Move(this, "Zec");
     VariableMover::Move(this, "Yec");

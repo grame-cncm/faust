@@ -1101,7 +1101,8 @@ class JSFXInstVisitor : public TextInstVisitor {
         }
         // Close brackets if opened
         if (((named->isStruct() && !isControl(named->fName) && !is_slow &&
-              !strfind(named->fName, "Rec") && !strfind(named->fName, "Vec")) ||
+              !strfind(named->fName, "Rec") && !strfind(named->fName, "Vec") &&
+              !strfind(named->fName, "IIR") && !strfind(named->fName, "IRM")) ||
              (named->isStack() && is_slow)) &&
             !isTable(named->fName)) {
             *fOut << "]";
