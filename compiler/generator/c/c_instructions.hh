@@ -363,7 +363,7 @@ class CInstVisitor : public TextInstVisitor {
             inst->fInst2->accept(this);
             *fOut << "))";
         } else if ((inst->fOpcode == kAdd || inst->fOpcode == kSub || inst->fOpcode == kMul) &&
-                   isInt32Type(TypingVisitor::getType(inst->fInst1))) {
+                   isInt32Type(TypingVisitor::getType(inst->fInst1)) && !fLoopIncrement) {
             // Int32 add/sub/mul must wrap in two's complement (the integer
             // noise LCG relies on it) but signed overflow is UB in C, so
             // they render as the faust_wrap_* helpers the container defines.
@@ -450,8 +450,10 @@ class CInstVisitor : public TextInstVisitor {
         *fOut << "; ";
         inst->fEnd->accept(this);
         *fOut << "; ";
+        fLoopIncrement = true;
         inst->fIncrement->accept(this);
-        fFinishLine = true;
+        fLoopIncrement = false;
+        fFinishLine    = true;
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
