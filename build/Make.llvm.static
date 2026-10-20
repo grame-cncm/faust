@@ -11,29 +11,54 @@ OUTPUT ?= lib/libfaustwithllvm.a
 # start to determine the current platform
 system := $(shell uname -s)
 
+# The LLVM libraries come from LLVM_CONFIG (the llvm-config CMake used to
+# compile libfaust, given on the command line) or else from every libLLVM*.a
+# of LLVM_LIB_DIR. When neither is given, the llvm-config of the PATH is used.
+# The command line sets them, hence the overrides below.
+LLVM_CONFIG ?=
+LLVM_LIB_DIR ?=
+ifeq ($(strip $(LLVM_CONFIG)$(LLVM_LIB_DIR)),)
+override LLVM_CONFIG := $(shell command -v llvm-config 2>/dev/null)
+endif
+
+ifneq ($(strip $(LLVM_CONFIG)),)
+override LLVM_LIB_DIR := $(shell $(LLVM_CONFIG) --libdir)
+INPUT        := $(shell $(LLVM_CONFIG) --libnames --link-static)
+SYSLIBS      := $(shell $(LLVM_CONFIG) --link-static --system-libs)
+else
+INPUT := $(notdir $(wildcard $(LLVM_LIB_DIR)/libLLVM*.a))
+ifeq ($(system), Darwin)
+SYSLIBS ?= -lm -lz -lcurses -lxml2
+else
+SYSLIBS ?= -lpthread -ldl -lm -lz
+endif
+endif
+
+# An archive without LLVM would link nowhere: stop instead of producing it.
+ifeq ($(strip $(INPUT)),)
+$(error No LLVM library found (LLVM_CONFIG='$(LLVM_CONFIG)', LLVM_LIB_DIR='$(LLVM_LIB_DIR)'))
+endif
+
 ifeq ($(system), Darwin)
 NCURSES_PRIMARY_PREFIX := /usr/local/Cellar/ncurses
 NCURSES_BACKUP1_PREFIX := /opt/homebrew/Cellar/ncurses
 NCURSES_BACKUP2_PREFIX := /opt/local
-LIBNCURSES_PATH ?= $(shell find $(NCURSES_PRIMARY_PREFIX) -name libncurses.a 2>/dev/null | head -n1 || find $(NCURSES_BACKUP1_PREFIX) -name libncurses.a 2>/dev/null | head -n1 || find $(NCURSES_BACKUP2_PREFIX) -name libncurses.a 2>/dev/null | head -n1)
+NCURSES_SEARCH := $(shell find $(NCURSES_PRIMARY_PREFIX) -name libncurses.a 2>/dev/null | head -n1 || find $(NCURSES_BACKUP1_PREFIX) -name libncurses.a 2>/dev/null | head -n1 || find $(NCURSES_BACKUP2_PREFIX) -name libncurses.a 2>/dev/null | head -n1)
 
 # Use libtool instead of ar on macOS
 AR = libtool
 ARFLAGS = -static -o
-
-INPUT   := $(shell ls $(LLVM_LIB_DIR)/lib*.a | sed "s|$(LLVM_LIB_DIR)/\(lib.*\.a\)|\1|g" | tr '\n' ' ')
-SYSLIBS := -lm -lz -lcurses -lxml2
 else
 # Ubuntu or others
-LIBNCURSES_PATH ?= $(shell find /usr -name libncurses.a)
-
-LLVM_CONFIG ?= llvm-config
-INPUT := $(shell $(LLVM_CONFIG) --libnames --link-static)
-LLVM_LIB_DIR := $(shell $(LLVM_CONFIG) --libdir)
-SYSLIBS := $(shell $(LLVM_CONFIG) --system-libs)
+NCURSES_SEARCH := $(shell find /usr -name libncurses.a 2>/dev/null | head -n1)
 
 AR = ar
 ARFLAGS = rcs
+endif
+
+# ncurses is only embedded for an LLVM that needs it (terminfo, before LLVM 19).
+ifneq ($(filter -lcurses -lncurses -ltinfo,$(SYSLIBS)),)
+LIBNCURSES_PATH ?= $(NCURSES_SEARCH)
 endif
 
 ifneq ($(strip $(LIBNCURSES_PATH)),)
@@ -43,7 +68,12 @@ NCURSES_FOLDER :=
 endif
 
 FOLDERS := $(INPUT:%.a=$(TMP)/%.dir) $(TMP)/libfaust.dir $(NCURSES_FOLDER)
-CONFIG  := ../tools/faust-config
+# faust-config gets the system libraries of this LLVM. It is written next to
+# the faust binary (bin/, installed from there by CMake) rather than over the
+# tracked tools/faust-config: a modified source tree marks the build
+# '-modified' and rebuilds it during 'make install'.
+CONFIG_IN := ../tools/faust-config
+CONFIG    := bin/faust-config
 
 MAKEFILE := $(lastword $(MAKEFILE_LIST))
 
@@ -58,23 +88,26 @@ $(OUTPUT): $(FOLDERS)
 	rm -rf $(TMP)
 
 syslibs:
-	sed -e "s|^SYSTEMLIBS..*|SYSTEMLIBS=\"$(SYSLIBS)\"|" $(CONFIG) > __tmp__ 
-	mv __tmp__ $(CONFIG)
+	mkdir -p $(dir $(CONFIG))
+	sed -e "s|^SYSTEMLIBS..*|SYSTEMLIBS=\"$(SYSLIBS)\"|" $(CONFIG_IN) > $(CONFIG)
 	chmod +x $(CONFIG)
 
 ##########################################
 # Determine system for extraction handling
+# (no PREFIX here: this makefile runs inside 'make install PREFIX=...', whose
+# PREFIX reaches it through MAKEFLAGS)
 
 ifeq ($(system), Darwin)
 ARCH := $(shell uname -m)
-EXTRACT = mkdir -p $@ && lipo -thin $(ARCH) $(PREFIX)$< -o $@/thin.a && cd $@ && ar -x thin.a && rm thin.a
+# A universal library is thinned to the current architecture, a thin one is used as is.
+EXTRACT = mkdir -p $@ && if lipo -info $< | grep -q '^Architectures in the fat file'; then lipo -thin $(ARCH) $< -o $@/thin.a; else cp $< $@/thin.a; fi && cd $@ && ar -x thin.a && rm thin.a
 else
-EXTRACT = mkdir -p $@ && cd $@ && ar -x $(PREFIX)$<
+EXTRACT = mkdir -p $@ && cd $@ && ar -x $<
 endif
 
 $(TMP)/%.dir: $(LLVM_LIB_DIR)/%.a
 	@-[ -d $@ ] && rm -rf $@ 
-	PREFIX= $(EXTRACT)
+	$(EXTRACT)
 
 $(TMP)/libfaust.dir: lib/libfaust.a
 	@-[ -d $@ ] && rm -rf $@ 

@@ -298,10 +298,12 @@ if (INCLUDE_STATIC)
     set (INSTALL_TARGETS ${INSTALL_TARGETS} staticlib)
     scan_backends (staticlib STATIC)
     if (INCLUDE_LLVM AND INCLUDE_LLVM_STATIC_IN_ARCHIVE)
+        # The archive embeds the libraries of the LLVM found above: llvm-config
+        # when it was used, else every LLVM library of LLVM_LIB_DIR.
         if (WIN32)
-            set (MAKELIBCMD Make.llvm.static.bat) 
+            set (MAKELIBCMD Make.llvm.static.bat "${LLVM_CONFIG_EXE}" "${LLVM_LIB_DIR}")
         else()
-            set (MAKELIBCMD make -f Make.llvm.static) 
+            set (MAKELIBCMD make -f Make.llvm.static "LLVM_CONFIG=${LLVM_CONFIG_EXE}" "LLVM_LIB_DIR=${LLVM_LIB_DIR}")
         endif()
         add_custom_command(TARGET staticlib POST_BUILD
                    COMMAND ${MAKELIBCMD}
@@ -460,8 +462,15 @@ install (
     FILES ${FAUST2XXX} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
 )
+# With LLVM embedded in libfaustwithllvm.a, Make.llvm.static writes a
+# faust-config with the system libraries of that LLVM next to the binary.
+if (INCLUDE_LLVM AND INCLUDE_STATIC AND INCLUDE_LLVM_STATIC_IN_ARCHIVE AND NOT WIN32)
+    set (FAUST_CONFIG ${BINDIR}/faust-config)
+else()
+    set (FAUST_CONFIG ${ROOT}/tools/faust-config)
+endif()
 install (
-    FILES  ${ROOT}/tools/faust-config ${ROOT}/tools/faust2appls/faustoptflags ${ROOT}/tools/faust2appls/faustpath DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    FILES  ${FAUST_CONFIG} ${ROOT}/tools/faust2appls/faustoptflags ${ROOT}/tools/faust2appls/faustpath DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
 )
 
