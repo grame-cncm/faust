@@ -380,6 +380,19 @@ class CInstVisitor : public TextInstVisitor {
         }
     }
 
+    // An Int32 negation wraps too : -INT_MIN is INT_MIN, signed overflow being undefined
+    // in C/C++, it renders as 0 - x through faust_wrap_sub.
+    virtual void visit(NegInst* inst)
+    {
+        if (isInt32Type(TypingVisitor::getType(inst->fInst))) {
+            *fOut << "faust_wrap_sub(0, ";
+            inst->fInst->accept(this);
+            *fOut << ")";
+        } else {
+            TextInstVisitor::visit(inst);
+        }
+    }
+
     virtual void visit(::CastInst* inst)
     {
         *fOut << "(" << fTypeManager->generateType(inst->fType) << ")(";
