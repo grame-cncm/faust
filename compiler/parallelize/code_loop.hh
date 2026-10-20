@@ -89,8 +89,9 @@ class CodeLoop : public virtual Garbageable {
     std::list<CodeLoop*> fExtraLoops;  ///< extra loops that where in sequences
 
     std::set<Tree, treeorder>      fRecDependencies;  ///< Loops having recursive dependencies must be merged
-    std::set<CodeLoop*> fBackwardLoopDependencies;  ///< Loops that must be computed before this one
-    std::set<CodeLoop*> fForwardLoopDependencies;   ///< Loops that will be computed after this one
+    // ordered by rank, as the loops of a level : the tasks of -sch are activated in this order
+    lclset fBackwardLoopDependencies;  ///< Loops that must be computed before this one
+    lclset fForwardLoopDependencies;   ///< Loops that will be computed after this one
 
     void pushBlock(BlockInst* block, BlockInst* loop)
     {
@@ -169,8 +170,8 @@ class CodeLoop : public virtual Garbageable {
     int getIndex() { return fIndex; }
     int getRank() const { return fRank; }
 
-    std::set<CodeLoop*>& getForwardLoopDependencies() { return fForwardLoopDependencies; }
-    std::set<CodeLoop*>& getBackwardLoopDependencies() { return fBackwardLoopDependencies; }
+    lclset& getForwardLoopDependencies() { return fForwardLoopDependencies; }
+    lclset& getBackwardLoopDependencies() { return fBackwardLoopDependencies; }
 
     ValueInst* getLoopIndex() { return IB::genLoadLoopVar(fLoopIndex); }
 
