@@ -1,0 +1,110 @@
+//----------------------------------------------------------
+// name: "mono_behind_delay"
+//
+// Code generated with Faust 2.90.10 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	// Recursion delay fVeeec0 is of type kSingleDelay
+	// While its definition is of type kZeroDelay
+	float 	fVeeec0State; // Single Delay
+	float 	fVeeec1State[4]; // Copy Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -rui -ct 1 -shs -sl -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "mono_behind_delay.dsp");
+		m->declare("name", "mono_behind_delay");
+	}
+
+	virtual int getNumInputs() { return 1; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		fVeeec0State = 0;
+		for (int j = 0; j < 4; j++) { fVeeec1State[j] = 0; }
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("mono_behind_delay");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fVeeec0[2];
+		float 	fVeeec1[5];
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		// schedule: ss=0 nodes=11 cycles=7 fill=39% peak=4 isoadj=0 packs4=0 aluMII=2 memMII=1 recMII=0 streams(peak/avg,win64)=1/1 (eval machine R=8 U=4 M=3)
+		fVeeec0[1] = fVeeec0State;
+		fVeeec1[1] = fVeeec1State[0];
+		fVeeec1[2] = fVeeec1State[1];
+		fVeeec1[3] = fVeeec1State[2];
+		fVeeec1[4] = fVeeec1State[3];
+		for (int i=0; i<count; i++) {
+			fVeeec0[0] = fVeeec1[4];
+			float 	fTemp0 = (float)input0[i]; // step: 6
+			float 	fTemp1 = (0.5f * fVeeec0[1]); // step: 8
+			fVeeec1[0] = (fTemp0 + fTemp1);
+			output0[i] = (FAUSTFLOAT)(((0.5f * fTemp0) + fTemp1));  // Zone Exec Code
+			// post processing
+			fVeeec1[4] = fVeeec1[3];
+			fVeeec1[3] = fVeeec1[2];
+			fVeeec1[2] = fVeeec1[1];
+			fVeeec1[1] = fVeeec1[0];
+			fVeeec0[1] = fVeeec0[0];
+		}
+		fVeeec0State = fVeeec0[1];
+		fVeeec1State[0] = fVeeec1[1];
+		fVeeec1State[1] = fVeeec1[2];
+		fVeeec1State[2] = fVeeec1[3];
+		fVeeec1State[3] = fVeeec1[4];
+	}
+};
+
+

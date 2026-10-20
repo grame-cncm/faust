@@ -7153,11 +7153,13 @@ bool ScalarCompiler::isSigSimpleRec(Tree sig)
 }
 
 /**
- * @brief is the node needle contained in the tree def ? Projections are
- * opaque leaves : the walk must not escape into sibling definitions
- * through the recursive node.
+ * needle is computed by def in the same sample : it is reached from def through operations
+ * of the current sample only. A delay, a prefix, a filter or a table stores a value of an
+ * earlier sample : what lies under it does not have to be computed before def. Projections
+ * are opaque leaves : the walk must not escape into sibling definitions through the
+ * recursive node.
  */
-static bool occursWithin(Tree needle, Tree def)
+static bool occursNow(Tree needle, Tree def)
 {
     std::set<Tree>    seen;
     std::vector<Tree> work{def};
@@ -7171,8 +7173,10 @@ static bool occursWithin(Tree needle, Tree def)
             continue;
         }
         int  i;
-        Tree g;
-        if (isProj(t, &i, g)) {
+        Tree g, x, y, z, w;
+        tvec v;
+        if (isProj(t, &i, g) || isSigDelay(t, x, y) || isSigPrefix(t, x, y) || isSigFIR(t, v) ||
+            isSigIIR(t, v) || isSigIRM(t, x, y) || isSigWRTbl(t, x, y, z, w) || isSigRDTbl(t, x, y)) {
             continue;
         }
         for (int k = 0; k < t->arity(); k++) {
@@ -7223,14 +7227,12 @@ DelayType ScalarCompiler::analyzeDelayTypeAux(Tree sig)
             Occurrences* fo = fOccMarkup->retrieve(f);
             if (fo) {
                 bool unique = (count == 1) && !fo->hasMultiOccurrences();
-                // stage 1 -- singleton group, unique delayed read : the only
-                // reader of the old value is the definition itself
-                if (unique && len(le) == 1) {
-                    return DelayType::kMonoDelay;
-                }
-                // stage 2 -- mutual group, but the unique delayed read lives
-                // in sig's own definition : safe whatever the member order
-                if (unique && occursWithin(f, nth(le, i))) {
+                // stages 1 and 2 -- the unique delayed read lives in sig's own
+                // definition, computed in the same sample : the write needs the
+                // read, which comes first whatever the order of the members. A
+                // read under a delay of the definition (R = (x + g*R')@4) feeds
+                // the delay line, not the write : the write may come first.
+                if (unique && occursNow(f, nth(le, i))) {
                     return DelayType::kMonoDelay;
                 }
                 // stage 3 -- cross readers : safe iff the readers-first
