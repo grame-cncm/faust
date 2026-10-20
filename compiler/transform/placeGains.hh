@@ -35,7 +35,9 @@
  * - g*IIR(x; c) of order 1, g a gain times the weight 1 - c of its input, is
  *   (g/(1 - c))*IRM(x; c) ;
  * - a sum whose terms change is written again, so that the contributions of a source
- *   still gather in one FIR.
+ *   still gather in one FIR ;
+ * - a mix has one orientation : mix(c, a, b) = mix(1 - c, b, a), its operands in the order
+ *   of the normal form.
  *
  * Applied after the IIR, IRM and Bpf reveals, whose gains it places too.
  */

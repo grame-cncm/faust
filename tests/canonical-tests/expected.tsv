@@ -1,4 +1,6 @@
 # family	writing	status (same, intervals, differs)	reason
+affine-weight	b-difference.dsp	same	
+affine-weight	c-distributed.dsp	same	
 biquad	b-fir-then-iir.dsp	same	
 biquad	c-lib-tf2.dsp	intervals	fi.tf2 gives FIR(IIR(x)) (poles first), the difference equation IIR(FIR(x)) (zeros first) : the order of a cascade is not normalized
 biquad	d-lib-iir.dsp	intervals	fi.iir : as fi.tf2, FIR(IIR(x)) instead of IIR(FIR(x))
@@ -6,6 +8,10 @@ boolean-weight	b-convex.dsp	same
 boolean-weight	c-interpolation.dsp	same	
 break-point	b-ifs-from-left.dsp	same	
 break-point	c-ifs-balanced.dsp	same	
+constant-weight	b-factored.dsp	same	
+constant-weight	c-divided.dsp	same	
+constant-weight	d-complement.dsp	same	
+constant-weight	e-two-paths.dsp	same	
 decibels	b-exp.dsp	intervals	exp and pow are different functions, equal on the reals only : the intervals agree
 decibels	c-lib.dsp	same	
 delayed-sum	b-shuffled.dsp	same	
@@ -54,6 +60,9 @@ smoother	d-from-target.dsp	same
 smoother	e-lib-smooth.dsp	same	
 smoother-gain	b-before.dsp	same	
 smoother-gain-sr	b-before.dsp	same	
+symmetric-mix	b-grouped.dsp	same	
+symmetric-mix	c-weight-w.dsp	intervals	mix(c, a, 1) is symmetric in a and c : the weight is the first of the two in the order of the normal form, which is the order of creation of the trees, not of their values ; this writing creates them in the other order
+symmetric-mix	d-weight-a.dsp	same	
 tpt-one-pole	b-output-plus-step.dsp	same	
 tpt-one-pole	c-twice-output.dsp	same	
 tpt-one-pole	d-convex-output.dsp	same	

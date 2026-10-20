@@ -65,6 +65,7 @@ class aterm : public virtual Garbageable {
     void          extractLerps();             ///< A + g*(B - A) -> mix(g, A, B)
     void          extractMixSteps();          ///< mix(c, A, B) + k*c*(B - A) -> mix((1+k)*c, A, B)
     void          extractMixes();             ///< k*(1-c)*A + k*c*B -> k*mix(c, A, B)
+    void          extractSymmetricMixes();    ///< k*x + k*y - k*x*y -> k*mix(x, y, 1)
     void          extractTpts();              ///< g*(g+1)^-1 -> tpt(g) in every term
     aterm         factorize(const mterm& d);  ///< reorganize the aterm by factorizing d
 };

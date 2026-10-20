@@ -55,6 +55,7 @@ Tree normalizeAddTerm(Tree t)
     A.extractLerps();
     A.extractMixSteps();
     A.extractMixes();
+    A.extractSymmetricMixes();
     A.extractTpts();
 #ifdef TRACE
     cerr << "ATERM of " << A << endl;
