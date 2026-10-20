@@ -501,10 +501,13 @@ ValueInst* DAGInstructionsCompiler::generateTapAccess(Tree exp, int delay)
 }
 
 /**
- * The value of an IIR in the vector loops : its line, which the readers read
+ * The value of an IIR in the vector loops : its line, which the readers read. The loop
+ * that writes it reads it back at the previous samples : it is recursive, its samples run
+ * in order (not split between the threads of -omp, not vectorized).
  */
 ValueInst* DAGInstructionsCompiler::writeIIRLine(Tree sig, ValueInst* exp, BasicTyped* ctype, const string& vname, int mxd)
 {
+    fContainer->getCurLoop()->setRecursive();
     return generateDelayVec(sig, exp, ctype, vname, mxd);
 }
 
