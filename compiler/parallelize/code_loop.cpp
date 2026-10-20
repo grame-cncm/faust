@@ -207,6 +207,7 @@ void CodeLoop::absorb(CodeLoop* l)
     // the loops must have the same number of iterations
     faustassert(fSize == l->fSize);
     fRecSymbolSet = setUnion(fRecSymbolSet, l->fRecSymbolSet);
+    fIsRecursive  = fIsRecursive || l->fIsRecursive;
 
     // update loop dependencies by adding those from the absorbed loop
     fBackwardLoopDependencies.insert(l->fBackwardLoopDependencies.begin(),
