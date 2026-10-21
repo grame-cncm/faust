@@ -22,7 +22,8 @@ man:
 
 faust.1 : man1 readme
 	pandoc --standalone --to man README.md -o faust.1
-	sed -i '' 's/\\\[en]/\\-\\-/g' faust.1
+	# the en dash pandoc makes of "--" (\[en] before pandoc 3.7, \(en after) back to "--"
+	sed -e 's/\\\[en]/\\-\\-/g' -e 's/\\(en/\\-\\-/g' faust.1 > faust.1.tmp && mv faust.1.tmp faust.1
 	mv -f faust.1 man1
 
 man1:
