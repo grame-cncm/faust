@@ -466,6 +466,7 @@ void global::reset()
     // the validity certificates of the previous compilation (the signal library state
     // lives across the calls of the Box/Signal API), and its normal forms
     sigs::g.gCertifiedSamples.clear();
+    sigs::g.gCertificationWaivers.clear();
     gNormalForms.clear();
     // the names, the variable types and the declared functions of the previous generated code
     gIDCounters.clear();
@@ -587,6 +588,7 @@ void global::reset()
     gShareSums            = true;
     gExactWeights         = false;
     gMinCertifiedSeconds  = 10;
+    gNoCert               = false;
     gSumLanes             = true;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
@@ -980,6 +982,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gMinCertifiedSeconds != 10) {
         dst << "-mcs " << gMinCertifiedSeconds << " ";
+    }
+    if (gNoCert) {
+        dst << "-nocert ";
     }
     if (gSumLanes) {
         dst << "-sl ";
@@ -1876,6 +1881,10 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-nvi", "--no-virtual")) {
             gNoVirtual = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-nocert", "--no-certification")) {
+            gNoCert = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-mcs", "--min-certified-seconds") && (i + 1 < argc)) {
@@ -2847,6 +2856,11 @@ string global::printHelp()
             "seconds at 48000 Hz (default 10, 0 accepts any duration)."
          << endl;
     sstr << tab
+         << "-nocert     --no-certification          accept, with a warning, a delay whose lower bound "
+            "may be negative and a soundfile part beyond its range, held within their range at run "
+            "time, and a program certified for too short a time."
+         << endl;
+    sstr << tab
          << "-nosl       --no-sum-lanes              keep the long sums as chains (by default their "
             "sample-rate terms are added in 4 interleaved partial sums)."
          << endl;
@@ -3001,6 +3015,23 @@ string global::printHelp()
          << endl;
     sstr << tab
          << "-pathslist  --pathslist                 print the architectures and dsp library paths."
+         << endl;
+
+    sstr << endl << "Certification:" << line;
+    sstr << tab << "A program is accepted only when the interval analysis proves that its table indices, "
+                   "delays and integer conversions stay within their bounds (-norm prints the interval "
+                   "of each equation)."
+         << endl;
+    sstr << tab << "The proof assumes IEEE arithmetic rounded to nearest, the operations computed in the "
+                   "order the code is emitted, and the mathematical functions of the C library within 2 ulps."
+         << endl;
+    sstr << tab << "It does not cover code compiled under fast-math : the LLVM backend (unless "
+                   "FAUST_DEBUG=FAUST_LLVM_NO_FM), a C++ compiler run with -ffast-math (as faustoptflags "
+                   "may do), or the approximations of -fm, which may reassociate, contract or approximate "
+                   "the operations and produce values the analysis does not bound."
+         << endl;
+    sstr << tab << "-mcs <n> sets the shortest certified duration accepted ; -nocert accepts, with a "
+                   "warning, what the analysis may only have approximated."
          << endl;
 
     sstr << endl << "Environment variables:" << line;

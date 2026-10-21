@@ -206,6 +206,10 @@ Code generation options:
 
   **-xw**         **--exact-weights**             write the products (1 + w) * y of the normal form as w * y + y, w read exactly (more precise, a little slower).
 
+  **-mcs** \<n>    **--min-certified-seconds** \<n> refuse a program certified for less than n seconds at 48000 Hz (default 10, 0 accepts any duration).
+
+  **-nocert**     **--no-certification**          accept, with a warning, a delay whose lower bound may be negative and a soundfile part beyond its range, held within their range at run time, and a program certified for too short a time.
+
   **-nosl**       **--no-sum-lanes**              keep the long sums as chains (by default their sample-rate terms are added in 4 interleaved partial sums).
 
   **-noreprc**    **--no-reprc**                  (Rust only) Don't force dsp struct layout to follow C ABI.
@@ -303,6 +307,18 @@ Information options:
   **-dspdir**     **--dspdir**                    print directory containing the Faust dsp libraries.
 
   **-pathslist**  **--pathslist**                 print the architectures and dsp library paths.
+
+
+Certification:
+---------------------------------------
+
+  A program is accepted only when the interval analysis proves that its table indices, delays and integer conversions stay within their bounds (**-norm** prints the interval of each equation).
+
+  The proof assumes IEEE arithmetic rounded to nearest, the operations computed in the order the code is emitted, and the mathematical functions of the C library within 2 ulps.
+
+  It does not cover code compiled under fast**-math** : the LLVM backend (unless FAUST_DEBUG=FAUST_LLVM_NO_FM), a C++ compiler run with -ffast-math (as faustoptflags may do), or the approximations of -fm, which may reassociate, contract or approximate the operations and produce values the analysis does not bound.
+
+  **-mcs** \<n> sets the shortest certified duration accepted ; -nocert accepts, with a warning, what the analysis may only have approximated.
 
 
 Environment variables:
