@@ -6,10 +6,13 @@ libraries and architecture files next to its binary. It used to run
 `which faust` through a shell, and the deprecated which(1) of Debian
 bookworm then printed a warning on stderr at every invocation (issue #676).
 
-The test calls faust as `faust`, through a symbolic link, with a `which`
-that fails loudly first in PATH, then a directory and a non-executable file
-named `faust`, which the lookup must skip. faust must print nothing on
-stderr, and `--libdir` must be the lib directory next to the real binary.
+The test calls faust as `faust`, through two symbolic links, as
+/usr/bin/faust -> /etc/alternatives/faust -> /usr/bin/faust-x.y.z, the
+first one relative: the directory of the last link used to be taken for
+that of the binary (issue #677). A `which` that fails loudly comes first
+in PATH, then a directory and a non-executable file named `faust`, which
+the lookup must skip. faust must print nothing on stderr, and `--libdir`
+must be the lib directory next to the real binary.
 The other runs find the link through an empty PATH entry, which stands for
 the current directory, and through a relative one-letter entry, which a
 "./" prefix test used to strip from the path.
@@ -34,14 +37,16 @@ def main():
     failures = 0
     with tempfile.TemporaryDirectory(prefix="faust-exe-path-") as temp:
         work = Path(temp)
-        noisy, as_dir, as_file, link_dir = (work / d for d in ("noisy", "dir", "file", "b"))
-        for d in (noisy, as_dir, as_file, link_dir):
+        noisy, as_dir, as_file, alt, link_dir = (
+            work / d for d in ("noisy", "dir", "file", "alternatives", "b"))
+        for d in (noisy, as_dir, as_file, alt, link_dir):
             d.mkdir()
         (noisy / "which").write_text("#!/bin/sh\necho 'which: deprecated' >&2\nexit 1\n")
         (noisy / "which").chmod(0o755)
         (as_dir / "faust").mkdir()
         (as_file / "faust").write_text("")
-        (link_dir / "faust").symlink_to(faust)
+        (alt / "faust").symlink_to(faust)
+        (link_dir / "faust").symlink_to(Path("..") / alt.name / "faust")
 
         prefix = os.pathsep.join(str(d) for d in (noisy, as_dir, as_file))
         cases = [
