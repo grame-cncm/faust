@@ -180,7 +180,8 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
 int main(int argc, char* argv[])
 {
     double tolerance = 2e-06;
-    if (argc == 4) {
+    // the tolerance, when given, is the third argument ; -part may follow it or replace it
+    if (argc >= 4 && strcmp(argv[3], "-part") != 0) {
         double param = strtod(argv[3], NULL);
         // -1 value used to take default value
         tolerance = (param > 0) ? param : tolerance;
