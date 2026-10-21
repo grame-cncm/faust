@@ -90,6 +90,14 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
    public:
     using TextInstVisitor::visit;
 
+    // AssemblyScript has no INFINITY or NAN: its own constants
+    virtual NonFiniteNames nonFiniteNames(bool single) const
+    {
+        return single
+                   ? NonFiniteNames{"f32.POSITIVE_INFINITY", "f32.NEGATIVE_INFINITY", "f32.NaN"}
+                   : NonFiniteNames{"f64.POSITIVE_INFINITY", "f64.NEGATIVE_INFINITY", "f64.NaN"};
+    }
+
     AssemblyScriptInstVisitor(std::ostream* out, const std::string& struct_name, int tab = 0)
         : TextInstVisitor(out, ".", new AssemblyScriptStringTypeManager(xfloat(), "", struct_name),
                           tab),
@@ -214,7 +222,7 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
     virtual void visit(FloatNumInst* inst)
     {
         *fOut << "<f32>(";
-        *fOut << checkFloat(inst->fNum);
+        *fOut << floatLiteral(inst->fNum);
         *fOut << ")";
     }
 
@@ -222,7 +230,7 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << "<f32>(" << checkFloat(inst->fNumTable[i]) << ")";
+            *fOut << sep << "<f32>(" << floatLiteral(inst->fNumTable[i]) << ")";
             sep = ',';
         }
         *fOut << ']';
@@ -231,7 +239,7 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
     virtual void visit(DoubleNumInst* inst)
     {
         *fOut << "<f64>(";
-        *fOut << checkDouble(inst->fNum);
+        *fOut << doubleLiteral(inst->fNum);
         *fOut << ")";
     }
 
@@ -239,7 +247,7 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << "<f64>(" << checkDouble(inst->fNumTable[i]) << ")";
+            *fOut << sep << "<f64>(" << doubleLiteral(inst->fNumTable[i]) << ")";
             sep = ',';
         }
         *fOut << ']';
@@ -251,7 +259,7 @@ class AssemblyScriptInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            *fOut << sep << floatLiteral(inst->fNumTable[i]);
             sep = ',';
         }
         *fOut << ']';

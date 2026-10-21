@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile and execute non-finite constants (C++, Julia, Rust, Java, D, C#).
+"""Compile and execute non-finite constants (C++, Julia, Rust, Java, D, C#, AssemblyScript).
 
 An infinite constant was printed as INFINITY whatever its sign, so the C++
 code computed +inf where the program has -inf. The ocpp backend tested the
@@ -11,6 +11,8 @@ Julia literals are Inf32 and NaN32 for Float32, Inf and NaN for Float64.
 Rust, Java, D and C# had the same INFINITY and did not compile; each now
 uses its own constants (f32::INFINITY, Float.POSITIVE_INFINITY,
 float.infinity, float.PositiveInfinity, and the double ones).
+AssemblyScript had the same issue; it now uses f32.POSITIVE_INFINITY,
+f32.NEGATIVE_INFINITY, f32.NaN and the f64 ones.
 
 The program outputs +inf, -inf and 1e38 * 10 (+inf in single precision) at
 its first sample, and 0 after; it is generated in single and double
@@ -19,6 +21,7 @@ with stubs for the dplug imports), C# only generated (--backends csharp):
 the generated names are checked.
 """
 import re
+import shutil
 import argparse
 from pathlib import Path
 import subprocess
@@ -150,6 +153,21 @@ void main() {
 CSHARP_NAMES = {"single": ["float.PositiveInfinity", "float.NegativeInfinity"],
                 "double": ["double.PositiveInfinity", "double.NegativeInfinity"]}
 
+ASC_NAMES = {"single": ["f32.POSITIVE_INFINITY", "f32.NEGATIVE_INFINITY"],
+             "double": ["f64.POSITIVE_INFINITY", "f64.NEGATIVE_INFINITY"]}
+
+ASC_RUNNER = """
+export function run(): void {
+    let d = new mydsp();
+    let ins = new Array<Array<SAMPLE>>(0);
+    let outs = new Array<Array<SAMPLE>>(3);
+    outs[0] = new Array<SAMPLE>(1);
+    outs[1] = new Array<SAMPLE>(1);
+    outs[2] = new Array<SAMPLE>(1);
+    d.compute(1, ins, outs);
+}
+"""
+
 
 def run(command, work):
     print("+", " ".join(map(str, command)), flush=True)
@@ -167,8 +185,9 @@ def main():
     parser.add_argument("--javac", default="javac")
     parser.add_argument("--java", default="java")
     parser.add_argument("--ldc", default="ldc2")
+    parser.add_argument("--asc", default="asc")
     parser.add_argument("--backends", nargs="+",
-                        choices=["cpp", "ocpp", "julia", "rust", "java", "dlang", "csharp"],
+                        choices=["cpp", "ocpp", "julia", "rust", "java", "dlang", "csharp", "asc"],
                         default=["cpp", "ocpp", "julia", "rust", "java"])
     args = parser.parse_args()
     faust = args.faust.resolve()
@@ -243,6 +262,24 @@ def main():
             if missing or re.search(r"\bINFINITY\b", code):
                 raise SystemExit(f"FAIL csharp {precision}: missing {missing} or INFINITY left")
             print(f"PASS csharp {precision}: non-finite constants generated", flush=True)
+    for precision in ["single", "double"] if "asc" in args.backends else []:
+        with tempfile.TemporaryDirectory(prefix="faust-nonfinite-asc-") as temp:
+            work = Path(temp)
+            (work / "nonfinite.dsp").write_text(SOURCE)
+            run([faust, "-I", repo / "libraries", "-lang", "asc", "-" + precision,
+                 work / "nonfinite.dsp", "-o", work / "mydsp.ts"], work)
+            code = (work / "mydsp.ts").read_text()
+            missing = [n for n in ASC_NAMES[precision] if n not in code]
+            if missing or re.search(r"\bINFINITY\b", code) or re.search(r"\bNAN\b", code):
+                raise SystemExit(f"FAIL asc {precision}: missing {missing} or INFINITY/NAN left")
+            sample = "f32" if precision == "single" else "f64"
+            (work / "mydsp.ts").write_text(code + ASC_RUNNER.replace("SAMPLE", sample))
+            asc_cmd = [args.asc] if shutil.which(args.asc) else ["npx", "-p", "assemblyscript", "asc"] if shutil.which("npx") else None
+            if asc_cmd:
+                run([*asc_cmd, "mydsp.ts", "--outFile", "mydsp.wasm"], work)
+                print(f"PASS asc {precision}: non-finite constants compile", flush=True)
+            else:
+                print(f"PASS asc {precision}: non-finite constants generated", flush=True)
     if "julia" not in args.backends:
         return
     run([args.julia, "--version"], repo)
