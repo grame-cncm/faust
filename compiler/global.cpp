@@ -1253,6 +1253,32 @@ static bool isCmd(const char* cmd, const char* kw1, const char* kw2)
     return (strcmp(cmd, kw1) == 0) || (strcmp(cmd, kw2) == 0);
 }
 
+// The class and super class names are pasted into the generated code and into the
+// architecture file, so they must be identifiers in every backend: each character
+// outside [A-Za-z0-9_] becomes '_', and a name that does not start with a letter or
+// '_' gets the prefix "dsp" (a leading '_' would make it a reserved name in the C++
+// global namespace). A changed name is reported with -wall.
+static string makeClassName(const char* option, const string& name)
+{
+    auto isLetter = [](char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); };
+    string res = name;
+    for (char& c : res) {
+        if (!isLetter(c) && !(c >= '0' && c <= '9') && c != '_') {
+            c = '_';
+        }
+    }
+    if (!name.empty() && !isLetter(name[0]) && name[0] != '_') {
+        res = "dsp" + res;
+    }
+    if (res != name) {
+        stringstream warning;
+        warning << "WARNING : " << option << " '" << name << "' is not a valid identifier, '"
+                << res << "' is used instead" << endl;
+        gWarningMessages.push_back(warning.str());
+    }
+    return res;
+}
+
 // Keep the scheduled-emitter options out of processCmdline's already large
 // conditional chain. Besides making this group self-contained, this avoids
 // exceeding MSVC's nesting limit while preserving the existing syntax.
@@ -1636,8 +1662,7 @@ bool global::processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-cn", "--class-name") && (i + 1 < argc)) {
-            vector<char> rep = {'@', ' ', '(', ')', '/', '\\', '.'};
-            gClassName       = replaceCharList(argv[i + 1], rep, '_');
+            gClassName = makeClassName("-cn", argv[i + 1]);
             i += 2;
 
         }
@@ -1646,7 +1671,7 @@ bool global::processCmdline(int argc, const char* argv[])
         // as nested blocks and rejects the historical monolithic parser.
         if (i == option_index) {
             if (isCmd(argv[i], "-scn", "--super-class-name") && (i + 1 < argc)) {
-            gSuperClassName = argv[i + 1];
+            gSuperClassName = makeClassName("-scn", argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-pn", "--process-name") && (i + 1 < argc)) {
