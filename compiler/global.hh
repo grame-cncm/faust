@@ -401,6 +401,7 @@ struct global {
     bool gMathApprox;  // -mapp option, simpler/faster versions of 'floor/fmod/remainder' functions
     bool gShareSums;   // the dense sums factored and their common sub-sums shared (default, -noshs)
     bool gExactWeights;  // -xw option, (1 + w) * y written w * y + y, w read exactly
+    double gMinCertifiedSeconds;  // -mcs option, the shortest certified duration accepted (10 s)
     bool gSumLanes;      // the long sums in interleaved partial sums (default, -nosl)
     bool gNeedManualPow;     // If manual pow(x, y) generation when y is an integer is needed
     bool gRemoveVarAddress;  // If use of variable addresses (like &foo or &foo[n]) have to be
