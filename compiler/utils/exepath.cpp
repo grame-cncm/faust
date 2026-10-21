@@ -19,11 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
-#include <array>
 #include <cstdio>
-#include <memory>
+#include <cstdlib>
 #include <regex>
-#include <sstream>
 #include <string>
 
 #ifdef _WIN32
@@ -31,6 +29,7 @@
 #define kPSEP '\\'
 #else
 #include <libgen.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #define GetCurrentDir getcwd
 #define kPSEP '/'
@@ -104,21 +103,31 @@ string exepath::get(const string& name)
 
 #else
 //-----------------------------------------------------------------
-// exec any command and get the result from a pipe
-static std::string exec(const string& cmd)
+// searches PATH for an executable file, as 'command -v' does, but without
+// running a shell or which(1), which is deprecated on some systems and then
+// prints a warning on stderr at every faust invocation
+static string searchPath(const string& name)
 {
-    std::array<char, FILENAME_MAX> buffer;
-    std::string                    result;
-    std::shared_ptr<FILE>          pipe(popen(cmd.c_str(), "r"), pclose);
-    if (!pipe) {
+    const char* env = getenv("PATH");
+    if (!env) {
         return "";
     }
-    while (!feof(pipe.get())) {
-        if (fgets(buffer.data(), FILENAME_MAX, pipe.get()) != nullptr) {
-            result += buffer.data();
+    string paths = env;
+    for (size_t start = 0, end; start <= paths.size(); start = end + 1) {
+        end = paths.find(':', start);
+        if (end == string::npos) {
+            end = paths.size();
+        }
+        // an empty PATH entry stands for the current directory
+        string      dir  = paths.substr(start, end - start);
+        string      file = dir.empty() ? name : dir + kPSEP + name;
+        struct stat st;
+        if (stat(file.c_str(), &st) == 0 && S_ISREG(st.st_mode) &&
+            access(file.c_str(), X_OK) == 0) {
+            return file;
         }
     }
-    return result;
+    return "";
 }
 
 static string GetCurrentWorkingDir()
@@ -136,7 +145,7 @@ string exepath::relative2absolute(const string& path)
 
     string pwd = GetCurrentWorkingDir();
     // the next line removes the form "./"
-    string tmp = (path[1] == kPSEP) ? path.substr(2) : path;
+    string tmp = (path[0] == '.' && path[1] == kPSEP) ? path.substr(2) : path;
     return stripPath(pwd + kPSEP + tmp);
 }
 
@@ -154,15 +163,11 @@ string exepath::get(const string& argv0)
         // app call is relative to the current location
         which = relative2absolute(argv0);
     } else {
-        stringstream cmd;
-        cmd << "which " << argv0;
-        which = exec(cmd.str());
+        which = searchPath(argv0);
         if (which.empty()) {
             return "";
         }
-        if (which.back() == '\n') {
-            which.pop_back();
-        }
+        which = relative2absolute(which);
     }
     string target = resolvelink(which);
     if (!target.empty()) {
