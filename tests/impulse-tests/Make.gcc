@@ -34,6 +34,8 @@ endif
 .DELETE_ON_ERROR:
 
 dspfiles := $(wildcard dsp/*.dsp)
+# osc_enable is not tested : the enable and control primitives it uses are being removed
+dspfiles := $(filter-out dsp/osc_enable.dsp,$(dspfiles))
 
 listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 listintermediate = $(dspfiles:dsp/%.dsp=ir/$1/%) $(dspfiles:dsp/%.dsp=ir/$1/%.cpp) 
@@ -142,11 +144,20 @@ ir/$(lang)/float/carre_volterra.ir: 		precision=0.0015
 ir/c/double/sched/parametric_eq.ir:		precision=0.004
 ir/cpp/double/sched/parametric_eq.ir: 	precision=0.04
 
+# the drivers without the two polyphonic runs print half of the samples (their header says
+# so) : they are compared with the first half of the reference
+HALF_ARCHS := impulsearch6.cpp impulsearch7bis.cpp impulsearch7qua.cpp impulsearch8.cpp \
+              impulsearch8bis.cpp impulsearch8ter.cpp impulsearch9.cpp impulsearch9bis.cpp \
+              impulsearch9ter.cpp impulsearch9qua.cpp impulsearch10.cpp impulsearch10bis.cpp
+ifneq ($(filter $(arch),$(HALF_ARCHS)),)
+PART := -part
+endif
+
 #########################################################################
 # rules 
 ir/$(outdir)/%.ir: ir/$(outdir)/% reference/%.ir
 	$< -n 60000 > $@
-	$(COMPARE) $@ reference/$(notdir $@) $(precision)
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) $(PART)
 	
 ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
 	$(CXX) $(GCCOPTIONS) $(SANFLAGS) $< -o $@
@@ -156,38 +167,17 @@ ir/$(outdir)/control.cpp : dsp/control.dsp
 	@echo "Can only be tested in scalar mode"
 	$(FAUST) -lang $(lang) -double -i -A ../../architecture -a archs/$(arch) $< -o $@
 
-ir/cpp/double/os/osc_enable.ir:
-	@echo "osc_enable test is broken with flag -os"
-
-# Specific rule to test 'enable/control' primitives that currently only work in scalar mode, used for 'cpp', 'c' and 'travis'
-ir/$(outdir)/osc_enable.$(ext) : dsp/osc_enable.dsp
-	@echo "Can only be tested in scalar mode"
-	$(FAUST) -lang $(lang) -double -i -A ../../architecture -a archs/$(arch) $< -o $@
-
-# Three rules for -c1 (= -os) mode
-# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
-ir/c1/double/osc_enable.c : dsp/osc_enable.dsp
-	@echo "Can only be tested in scalar mode"
-	$(FAUST) -lang $(lang) -double -os -i -A ../../architecture -a archs/$(arch) $< -o $@
-
-# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
-ir/c1/double/dlt0/osc_enable.c : dsp/osc_enable.dsp
-	@echo "Can only be tested in scalar mode"
-	$(FAUST) -lang $(lang) -double -os -i -A ../../architecture -a archs/$(arch) $< -o $@
-
-# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
-ir/c1/double/dlt256/osc_enable.c : dsp/osc_enable.dsp
-	@echo "Can only be tested in scalar mode"
-	$(FAUST) -lang $(lang) -double -os -i -A ../../architecture -a archs/$(arch) $< -o $@
-
 ir/$(outdir)/prefix.ir:
 	echo "todo fix bug #1071 to test dsp/prefix.dsp"
 
 ir/cpp/double/mapp/constant.ir:
 	echo "todo fix bug #1074 to test dsp/constant.dsp"
 
-ir/cpp/double/os/bs.ir:
-	@echo "accessing foreign variable 'count' is not allowed in this compilation mode"
+# -os and -ec do not allow the foreign variable 'count' that bs.dsp reads : not tested there
+ifneq ($(filter -os -ec,$(FAUSTOPTIONS)),)
+ir/$(outdir)/bs.ir:
+	@echo "bs.dsp not tested with -os or -ec : accessing foreign variable 'count' is not allowed in this compilation mode"
+endif
 
 ir/$(outdir)/%.$(ext) : dsp/%.dsp
 	$(FAUST) -lang $(lang) $(FAUSTOPTIONS) -i -A ../../architecture -a archs/$(arch) $< -o $@

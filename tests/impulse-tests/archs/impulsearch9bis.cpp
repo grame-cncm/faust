@@ -189,7 +189,8 @@ int main(int argc, char* argv[])
     int nbsamples = 60000;
   
     // print general informations
-    printHeader(new Cdsp(), nbsamples);
+    // two runs of nbsamples/4 and no polyphonic run : half of the samples of the reference
+    printHeader(new Cdsp(), nbsamples/2);
     
     // linenum is incremented in runDSP
     runDSP(new OneSample(new Cdsp()), argv[0], linenum, nbsamples/4);

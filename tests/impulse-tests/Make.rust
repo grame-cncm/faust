@@ -22,6 +22,8 @@ precision ?=		# filesCompare precision (empty by default)
 .DELETE_ON_ERROR:
 
 dspfiles := $(wildcard dsp/*.dsp)
+# osc_enable is not tested : the enable and control primitives it uses are being removed
+dspfiles := $(filter-out dsp/osc_enable.dsp,$(dspfiles))
 listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 
 #########################################################################
@@ -55,14 +57,6 @@ ir/rust/os/bs.ir: dsp/bs.dsp
 ir/rust/ecrnt/bs.ir: dsp/bs.dsp
 	$(FAUST) -lang rust $(FAUSTOPTIONS) dsp/bs.dsp -o archs/rust/src/bin/bs.rs > $@ 2>&1 || (echo "expected failure")
 	grep "ERROR : accessing foreign variable 'count' is not allowed in this compilation mode" $@
-
-ir/rust/vec4/osc_enable.ir: dsp/osc_enable.dsp
-	$(FAUST) -lang rust $(FAUSTOPTIONS) dsp/osc_enable.dsp -o archs/rust/src/bin/osc_enable.rs > $@ 2>&1 || (echo "expected failure")
-	grep "ERROR : 'control/enable' can only be used in scalar mode" $@
-
-ir/rust/vec32/osc_enable.ir: dsp/osc_enable.dsp
-	$(FAUST) -lang rust $(FAUSTOPTIONS) dsp/osc_enable.dsp -o archs/rust/src/bin/osc_enable.rs > $@ 2>&1 || (echo "expected failure")
-	grep "ERROR : 'control/enable' can only be used in scalar mode" $@
 
 ir/rust/vec4/prefix.ir:
 	echo "todo fix bug #1071 to test dsp/prefix.dsp"

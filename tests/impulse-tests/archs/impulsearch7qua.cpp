@@ -238,7 +238,8 @@ int main(int argc, char* argv[])
     mydsp::classInit(44100);
     
     // print general informations
-    printHeader(mydsp::create(), nbsamples);
+    // two runs of nbsamples/4 and no polyphonic run : half of the samples of the reference
+    printHeader(mydsp::create(), nbsamples/2);
     
     // linenum is incremented in runDSP and runPolyDSP
     runDSP2(new OneSample(mydsp::create()), argv[0], linenum, nbsamples/4);

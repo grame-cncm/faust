@@ -34,6 +34,8 @@ CLANG_TIDY_ARCH ?= impulsearch.cpp
 .PHONY: test reference clang-tidy clang-tidy-cpp asan-cpp asc java clean clean-ir
 
 dspfiles := $(wildcard dsp/*.dsp)
+# osc_enable is not tested : the enable and control primitives it uses are being removed
+dspfiles := $(filter-out dsp/osc_enable.dsp,$(dspfiles))
 mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir)
 CLANG_TIDY_CPP_FILES := $(dspfiles:dsp/%.dsp=ir/$(CLANG_TIDY_OUTDIR)/%.cpp)
 
@@ -167,7 +169,7 @@ $(eval $(call LEG, cpp/double/fp                , cpp , impulsearch.cpp     , -I
 $(eval $(call LEG, cpp/double/wall              , cpp , impulsearch.cpp     , -I dsp -double -wall))
 $(eval $(call LEG, cpp/double/mcd0              , cpp , impulsearch.cpp     , -I dsp -double -mcd 0))
 $(eval $(call LEG, cpp/double/mapp              , cpp , impulsearch.cpp     , -I dsp -double -mapp))
-$(eval $(call LEG, cpp/double/rui               , cpp , impulsearch.cpp     , -I dsp -double -rui))
+$(eval $(call LEG, cpp/double/norui             , cpp , impulsearch.cpp     , -I dsp -double -norui))
 $(eval $(call LEG, cpp/double/nvi               , cpp , impulsearch.cpp     , -I dsp -double -nvi))
 $(eval $(call LEG, cpp/double/dlt256            , cpp , impulsearch.cpp     , -I dsp -double -dlt 256))
 $(eval $(call LEG, cpp/double/vec/lv0           , cpp , impulsearch.cpp     , -I dsp -double -vec -lv 0))
@@ -312,7 +314,7 @@ CPP_LEGS := leg/cpp/double \
 	leg/cpp/double/wall \
 	leg/cpp/double/mcd0 \
 	leg/cpp/double/mapp \
-	leg/cpp/double/rui \
+	leg/cpp/double/norui \
 	leg/cpp/double/nvi \
 	leg/cpp/double/dlt0 \
 	leg/cpp/double/dlt256 \
@@ -509,7 +511,7 @@ llvm:
 	$(MAKE) -f Make.llvm outdir=llvm/double/ftz2          FAUSTOPTIONS="-I dsp -ftz 2"
 	$(MAKE) -f Make.llvm outdir=llvm/double/ct            FAUSTOPTIONS="-I dsp -ct 0"
 	$(MAKE) -f Make.llvm outdir=llvm/double/mapp          FAUSTOPTIONS="-I dsp -mapp"
-	$(MAKE) -f Make.llvm outdir=llvm/double/rui           FAUSTOPTIONS="-I dsp -rui"
+	$(MAKE) -f Make.llvm outdir=llvm/double/norui         FAUSTOPTIONS="-I dsp -norui"
 	$(MAKE) -f Make.llvm outdir=llvm/double/inpl          FAUSTOPTIONS="-I dsp -inpl"
 	$(MAKE) -f Make.llvm outdir=llvm/double/dlt0          FAUSTOPTIONS="-I dsp -dlt 0"
 	$(MAKE) -f Make.llvm outdir=llvm/double/dlt256        FAUSTOPTIONS="-I dsp -dlt 256"
@@ -555,7 +557,7 @@ interp:
 	$(MAKE) -f Make.interp outdir=interp/double/ct           FAUSTOPTIONS="-I dsp -ct 0"
 	$(MAKE) -f Make.interp outdir=interp/double/cir          FAUSTOPTIONS="-I dsp -cir"
 	$(MAKE) -f Make.interp outdir=interp/double/mapp         FAUSTOPTIONS="-I dsp -mapp"
-	$(MAKE) -f Make.interp outdir=interp/double/rui          FAUSTOPTIONS="-I dsp -rui"
+	$(MAKE) -f Make.interp outdir=interp/double/norui        FAUSTOPTIONS="-I dsp -norui"
 	$(MAKE) -f Make.interp outdir=interp/double/dlt0         FAUSTOPTIONS="-I dsp -dlt 0"
 	$(MAKE) -f Make.interp outdir=interp/double/dlt256       FAUSTOPTIONS="-I dsp -dlt 256"
 	#$(MAKE) -f Make.interp outdir=interp/double/lv0         FAUSTOPTIONS="-I dsp -vec -lv 0"
@@ -632,19 +634,18 @@ linen:
 # Julia backend
 julia:
 	$(MAKE) -f Make.julia outdir=julia/double FAUSTOPTIONS="-I dsp -double"
-# Vector mode. Four DSPs do not pass, none of them for a reason that belongs
+# Vector mode. Three DSPs do not pass, none of them for a reason that belongs
 # to the Julia backend:
 #  - sound          'soundfile' is not supported by the backend at all, and it
 #                   fails the scalar run above just the same
 #  - subcontainer1  the backend merges subcontainers into the main struct, so a
 #                   DSP holding two fields of the same name emits a struct
 #                   Julia rejects; fails the scalar run too
-#  - osc_enable     'control/enable' is scalar-only, in every language
 #  - prefix         the vectorizer emits a scalar temporary declared in one
 #                   loop and read in another; the C++ output of the same DSP
 #                   does not compile either
-# The three variants below all give the same 92 of 96, so the vector mode adds
-# no failure of its own.
+# The three variants below fail on the same DSPs, so the vector mode adds no
+# failure of its own.
 	$(MAKE) -f Make.julia outdir=julia/double/vec FAUSTOPTIONS="-I dsp -double -vec"
 	$(MAKE) -f Make.julia outdir=julia/double/vec/vs8 FAUSTOPTIONS="-I dsp -double -vec -vs 8"
 	$(MAKE) -f Make.julia outdir=julia/double/vec/lv1 FAUSTOPTIONS="-I dsp -double -vec -lv 1"
