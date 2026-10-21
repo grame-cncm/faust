@@ -127,7 +127,8 @@ matching each precision; it does not depend on an installed Faust runtime.
 
 ### Locating the faust binary through PATH
 
-`exe-path.py` calls faust by a bare name, through a symbolic link, with a
+`exe-path.py` calls faust by a bare name, through two symbolic links (as
+`/usr/bin/faust -> /etc/alternatives/faust -> /usr/bin/faust-x.y.z`), with a
 `which` that writes to stderr and fails first in `PATH` (as the deprecated
 which(1) of Debian bookworm warns), and a directory and a non-executable
 file named `faust` before the real one. faust must find its own directory

@@ -74,20 +74,17 @@ string exepath::resolvelink(const string& path)
 #else
 
 //-----------------------------------------------------------------
+// follows every level of symbolic links (/usr/bin/faust -> /etc/alternatives/faust
+// -> /usr/bin/faust-x.y.z), relative or absolute, and removes . and .. components
 string exepath::resolvelink(const string& path)
 {
-    char    buff[FILENAME_MAX + 1];
-    ssize_t n = readlink(path.c_str(), buff, FILENAME_MAX);
-    if (n > 0) {
-        buff[n]       = 0;
-        bool relative = (buff[0] != '/');
-        if (relative) {  // this is a relative link
-            string tmp = dirup(path);
-            return (tmp[0] == '/') ? stripPath(tmp + "/" + buff) : relative2absolute(buff);
-        }
-        return buff;
+    char* real = realpath(path.c_str(), nullptr);
+    if (!real) {
+        return "";
     }
-    return "";
+    string resolved = real;
+    free(real);
+    return resolved;
 }
 
 #endif
