@@ -5,6 +5,7 @@
 #   make lint                            the unsequenced-construction lint on compiler/
 #   make fingerprint [FAUST=...]         the witnesses by ONE binary, as "md5 name.set" lines on stdout
 #   make compare FILE=other.txt [FAUST=...]  fingerprint here, compare with a fingerprint made elsewhere
+#                                        (FILE absolute, or relative to tests/determinism)
 #   make clean
 
 FAUST   ?= ../../build/bin/faust
@@ -30,8 +31,10 @@ lint:
 fingerprint:
 	@./fingerprint.sh $(FAUST)
 
+# the fingerprint goes to a temporary file : determinism.sh empties out/ before writing to it
 compare:
-	@./fingerprint.sh $(FAUST) > out/fingerprint.txt && ./compare.sh out/fingerprint.txt $(FILE)
+	@test -n "$(FILE)" || { echo "FILE must name a fingerprint (absolute, or relative to tests/determinism)"; exit 2; }
+	@f=$$(mktemp); ./fingerprint.sh $(FAUST) > $$f && ./compare.sh $$f $(FILE); r=$$?; rm -f $$f; exit $$r
 
 clean:
 	rm -rf out bin
