@@ -60,7 +60,7 @@ QTextBrowser:document{
 text-decoration: underline;
 color: black;
 font: Menlo;
-font-size: 14px
+font-size: 14px;
 }
 
 QLabel{
