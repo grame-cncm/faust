@@ -278,6 +278,7 @@ struct global {
     int  gMaxCopyDelay;       // -mcd threshold
     int  gMaxDenseDelay;      // -mdd threshold
     int  gMinDensity;         // -mdy threshold
+    bool& gNoCert = sigs::g.gNoCertification;  // -nocert option, see sigs-state.hh
     int& gFloatSize = sigs::g.gFloatSize;  // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad',
                       // 4 for 'fixed-point')
     int  gFixedPointSize;          // -fx-size (-1 by default = not used)

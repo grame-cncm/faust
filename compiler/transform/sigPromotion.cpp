@@ -748,6 +748,29 @@ class TablePromotionAlgebra final : public TransformAlgebra {
         return o(fBuild.RDTbl(tblOut, ri.out));
     }
 
+    // A soundfile part beyond [0, MAX_SOUNDFILE_PARTS) is refused by the typing, unless
+    // -nocert waives it : it is then held within that range at run time
+    Tree heldPart(const XSig& p) const
+    {
+        if (!gGlobal->gNoCert) return p.out;  // the typing refuses a part it does not prove
+        const interval i = sigInterval(p.orig);
+        if (i.isValid() && i.lo() >= 0 && i.hi() <= MAX_SOUNDFILE_PARTS - 1) return p.out;
+        Tree last = sigMin(p.out, sigInt(MAX_SOUNDFILE_PARTS - 1));
+        return sigMax(sigInt(0), last);
+    }
+    XSig SoundFileLength(const XSig& sf, const XSig& p) const override
+    {
+        return o(fBuild.SoundFileLength(sf.out, heldPart(p)));
+    }
+    XSig SoundFileRate(const XSig& sf, const XSig& p) const override
+    {
+        return o(fBuild.SoundFileRate(sf.out, heldPart(p)));
+    }
+    XSig SoundFileBuffer(const XSig& sf, const XSig& c, const XSig& p, const XSig& ri) const override
+    {
+        return o(fBuild.SoundFileBuffer(sf.out, c.out, heldPart(p), ri.out));
+    }
+
     // A variable delay read by index from a line that is not a masked ring (a copy line,
     // a dense line of ocpp, a select ring under -dlt) is held within its proven interval
     // [lo, hi] : hi sizes the line, and a float can pass it (see above). The form is
@@ -767,16 +790,18 @@ class TablePromotionAlgebra final : public TransformAlgebra {
         }
         interval n_i = sigInterval(n.orig);
         if (n_i.isEmpty() || n_i.isUnbounded() || n_i.lo() < 0 || n_i.hi() > double(INT_MAX)) {
-            checkDelayCausality(x.orig, n.orig, n_i);  // refuses
+            checkDelayCausality(x.orig, n.orig, n_i);  // refuses, or waives a negative low (-nocert)
         }
-        int lo = int(n_i.lo());
-        int hi = int(n_i.hi());
+        // -nocert : a lower bound below 0 waived, the amount held at 0 on every line
+        const bool waived = n_i.lo() < 0;
+        int        lo     = waived ? 0 : int(n_i.lo());
+        int        hi     = std::max(0, int(n_i.hi()));
         int      unmasked = gGlobal->gMaxCopyDelay;
         if (gGlobal->gOutputLang == "ocpp") {
             unmasked = std::max(unmasked, gGlobal->gMaxDenseDelay);
         }
         bool indexed = hi <= unmasked || gGlobal->gMaskDelayLineThreshold < INT_MAX;
-        if (!indexed || boundedBy(n.orig, lo, hi)) {
+        if (!waived && (!indexed || boundedBy(n.orig, lo, hi))) {
             return o(fBuild.Delay(x.out, n.out));
         }
         if (gAllWarning) {
