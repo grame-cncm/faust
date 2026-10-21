@@ -21,6 +21,8 @@ FAUSTOPTIONS ?=
 .PHONY: test 
 
 dspfiles := $(wildcard dsp/*.dsp)
+# osc_enable is not tested : the enable and control primitives it uses are being removed
+dspfiles := $(filter-out dsp/osc_enable.dsp,$(dspfiles))
 listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) 
 
 SRCDIR := tools
@@ -46,7 +48,6 @@ help:
 ir/$(outdir):
 	mkdir -p ir/$(outdir)
 
-
 #########################################################################
 # tools
 filesCompare: $(SRCDIR)/filesCompare.cpp
@@ -54,7 +55,6 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 
 impulsesignal: $(SRCDIR)/impulsesignal.cpp $(LIB)
 	$(MAKE) impulsesignal
-
 
 #########################################################################
 # precision issues
@@ -67,15 +67,7 @@ impulsesignal: $(SRCDIR)/impulsesignal.cpp $(LIB)
 ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
 	@echo "Cannot be tested with the Interp backend"
 
-# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
-ir/$(outdir)/osc_enable.ir: dsp/osc_enable.dsp reference/osc_enable.ir | ir/$(outdir)
-	@echo "Can only be tested in scalar mode"
-	cd $(dir $<); ../impulsesignal $(notdir $<) -double > ../$@ || (rm -f ../$@; false)
-	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
-
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir | ir/$(outdir)
 	cd $(dir $<); ../impulsesignal $(notdir $<) -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
 	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
-
-
 

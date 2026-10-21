@@ -23,6 +23,8 @@ FAUSTOPTIONS ?=
 .PHONY: test 
 
 dspfiles := $(wildcard dsp/*.dsp)
+# osc_enable is not tested : the enable and control primitives it uses are being removed
+dspfiles := $(filter-out dsp/osc_enable.dsp,$(dspfiles))
 listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) 
 
 SRCDIR := tools

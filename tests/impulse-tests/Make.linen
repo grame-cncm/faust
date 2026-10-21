@@ -25,7 +25,7 @@ FAUSTOPTIONS ?= -double
 
 dspfiles := $(wildcard dsp/*.dsp)
 
-# todo: don't ignore bs.dsp and osc_enable.dsp
+# todo: don't ignore bs.dsp
 dspfiles := $(filter-out dsp/bs.dsp,$(dspfiles))
 dspfiles := $(filter-out dsp/osc_enable.dsp,$(dspfiles))
 
