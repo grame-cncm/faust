@@ -75,8 +75,8 @@ bool isCertificationWarning(const std::string& warning);
 /// reported on stderr. The light typing of the computation form rests on this equality.
 void checkLightTypes(Tree L);
 
-/// A program bounded only for a limited time is refused under 10 seconds at 48000 Hz
-/// (480000 samples) ; the developer is told the duration otherwise (main)
+/// A program bounded only for a limited time is refused under -mcs seconds at 48000 Hz (10
+/// by default, 480000 samples) ; the developer is told the duration otherwise (main)
 void checkCertificates();
 
 /// -norm : the equations of L printed with the types the typing gives them, then the

@@ -586,6 +586,7 @@ void global::reset()
     gMathApprox           = false;
     gShareSums            = true;
     gExactWeights         = false;
+    gMinCertifiedSeconds  = 10;
     gSumLanes             = true;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
@@ -976,6 +977,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gExactWeights) {
         dst << "-xw ";
+    }
+    if (gMinCertifiedSeconds != 10) {
+        dst << "-mcs " << gMinCertifiedSeconds << " ";
     }
     if (gSumLanes) {
         dst << "-sl ";
@@ -1873,6 +1877,10 @@ bool global::processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-nvi", "--no-virtual")) {
             gNoVirtual = true;
             i += 1;
+
+        } else if (isCmd(argv[i], "-mcs", "--min-certified-seconds") && (i + 1 < argc)) {
+            gMinCertifiedSeconds = std::atof(argv[i + 1]);
+            i += 2;
 
         } else if (isCmd(argv[i], "-ct", "--check-table")) {
             gCheckTable = (std::atoi(argv[i + 1]) == 1);
@@ -2833,6 +2841,10 @@ string global::printHelp()
     sstr << tab
          << "-xw         --exact-weights             write the products (1 + w) * y of the normal form "
             "as w * y + y, w read exactly (more precise, a little slower)."
+         << endl;
+    sstr << tab
+         << "-mcs <n>    --min-certified-seconds <n> refuse a program certified for less than n "
+            "seconds at 48000 Hz (default 10, 0 accepts any duration)."
          << endl;
     sstr << tab
          << "-nosl       --no-sum-lanes              keep the long sums as chains (by default their "
