@@ -124,3 +124,17 @@ The default commands are `javac` and `java` from `PATH`. Use
 `--work-dir /tmp/faust-java-math` to keep generated sources and diagnostic
 logs. The test provides a minimal Java DSP/UI harness with sample types
 matching each precision; it does not depend on an installed Faust runtime.
+
+### Class and super class names
+
+`class-name.py` checks that the names given with `-cn` and `-scn` become valid
+identifiers: every character outside `[A-Za-z0-9_]` becomes `_`, a name that
+does not start with a letter or `_` gets the prefix `dsp` (`2-band` gives
+`dsp2_band`), and `-wall` reports the change. Each name is compiled with the
+cpp, ocpp and c backends through the minimal architectures, inlined with `-i`
+as the faust2* scripts do, then built and run. Valid names, an empty `-cn`
+(an error) and an empty `-scn` (a class without a base class) are unchanged:
+
+```sh
+python3 tests/compile-tests/class-name.py --faust build/bin/faust --cxx g++ --cc gcc
+```
