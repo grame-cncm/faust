@@ -52,6 +52,8 @@ api-info:
 	uname -sm
 	@echo "Shared library under test: $(SHARED_LIBFAUST)"
 	@echo "Public headers under test: $(INC)"
+	@echo "Dates of the compiler and of the library (they must come from the same build):"
+	@ls -lL "$(FAUST)" "$(SHARED_LIBFAUST)" | awk '{print "    " $$6, $$7, $$8, $$9}'
 
 check-signal-api: signal-api-test
 	./signal-api-test
@@ -62,8 +64,7 @@ check-box-api: box-api-test
 check-shared-api: check-signal-api check-box-api
 
 # Successive compilations in one context against each compilation in a fresh process : the
-# same refusals and the same generated code. The programs import stdfaust.lib, read from
-# FAUST_LIB_PATH.
+# same refusals and the same generated code.
 check-api-sequence: api-sequence-test
 	@out=$$(mktemp -d); n=$$(./api-sequence-test count); \
 	./api-sequence-test seq > $$out/seq.txt; \

@@ -14,8 +14,7 @@
 //   api-sequence-test seq     every step in one context
 //   api-sequence-test one i   step i alone
 //
-// The Makefile target check-api-sequence runs both and compares them. The programs import
-// stdfaust.lib : FAUST_LIB_PATH must name the libraries.
+// The Makefile target check-api-sequence runs both and compares them.
 
 #include <iostream>
 #include <string>
@@ -26,9 +25,13 @@
 
 using namespace std;
 
-// a filter certified for less than 10 seconds : always refused
+// a delay driven by a rotation oscillator (os.oscrs), certified for 30 seconds : refused
+// under -mcs 60, accepted with a warning by default
 static const char* kShortCertificate =
-    "import(\"stdfaust.lib\"); process = 1-1' : fi.nlf2(440, 1.000001) : _,!;";
+    "SR = min(192000, max(50, fconstant(int fSamplingFreq, <math.h>)));"
+    "th = 2*3.141592653589793*440/SR; c = cos(th); s = sin(th); cross = _,_ <: !,_,_,!;"
+    "nlf2(x) = ((_<:_,_),(_<:_,_) : (*(s),*(c),*(c),*(0-s)) :> (_,+(x))) ~ cross;"
+    "process = _ @ int(10*(nlf2(1-1') : _,!) + 20);";
 // a slider and a button, read according to -rui / -norui and the precision
 static const char* kControls = "process = int(hslider(\"v\",0.5,0,1,0.01)*7), button(\"b\")*3;";
 
@@ -46,7 +49,7 @@ static const vector<Step> kSteps = {
     {false, nullptr, {}},
     {false, nullptr, {"-double"}},
     {false, nullptr, {}},
-    {true, kShortCertificate, {}},
+    {true, kShortCertificate, {"-mcs", "60"}},
     {true, kShortCertificate, {}},
     {true, kControls, {"-norui"}},
     {true, kControls, {}},
