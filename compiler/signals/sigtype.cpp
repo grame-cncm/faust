@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include <algorithm>
 #include <climits>
 #include <cstdint>
 #include <cstring>
@@ -226,6 +227,9 @@ int checkDelayInterval(Type t)
     interval i = t->getInterval();
     if (i.isValid() && i.lo() >= 0 && i.hi() < INT_MAX) {
         return int(i.hi() + 0.5);
+    } else if (sigs::g.gNoCertification && i.isValid() && i.isBounded() && i.hi() < INT_MAX) {
+        // -nocert : a lower bound below 0 waived, the amount held at 0 (checkDelayCausality)
+        return std::max(0, int(i.hi() + 0.5));
     } else {
         stringstream error;
         error << "ERROR : invalid delay parameter range: " << i

@@ -19,6 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -80,8 +81,23 @@ static double constSig2double(Tree sig, Type ty, const interval& bds)
 /**
  * The soundfile part number must provably lie in [0, MAX_SOUNDFILE_PARTS).
  */
+static void waive(const std::string& message)
+{
+    auto& w = sigs::g.gCertificationWaivers;
+    if (std::find(w.begin(), w.end(), message) == w.end()) w.push_back(message);
+}
+
 static void checkPartInterval(Tree s, const interval& i)
 {
+    if (i.isValid() && ((i.lo() < 0) || (i.hi() >= MAX_SOUNDFILE_PARTS)) && sigs::g.gNoCertification) {
+        // one warning per interval : the length, rate and buffer of a part, and the successive
+        // typings, check the same number
+        stringstream warning;
+        warning << "WARNING : a soundfile part number in " << i << " is held within interval(0,"
+                << MAX_SOUNDFILE_PARTS - 1 << ") (-nocert)" << endl;
+        waive(warning.str());
+        return;
+    }
     if (!i.isValid() || (i.lo() < 0) || (i.hi() >= MAX_SOUNDFILE_PARTS)) {
         stringstream error;
         error << "ERROR : out of range soundfile part number (" << i << " instead of interval(0,"
@@ -108,6 +124,16 @@ void checkDelayCausality(Tree s1, Tree s2, const interval& i1)
               << "        (probably a recursive signal)" << endl
               << kIntervalRefusalHint;
         tlib::error(error.str());
+    } else if (i1.lo() < 0 && sigs::g.gNoCertification && i1.hi() <= double(INT_MAX)) {
+        // -nocert : the lower bound may be an approximation of the analysis ; the amount is
+        // held at 0 at run time
+        stringstream warning, st1, st2;
+        st1 << ppsig(s1, MAX_ERROR_SIZE);
+        st2 << ppsig(s2, MAX_ERROR_SIZE);
+        warning << "WARNING : possible negative values of : " << st2.str() << endl
+                << "        used in delay expression : " << st1.str() << endl
+                << "        " << i1 << ", held at 0 (-nocert)" << endl;
+        waive(warning.str());
     } else if (i1.lo() < 0) {
         stringstream error, st1, st2;
         // Prepare two separated streams for MAX_ERROR_SIZE model to work properly

@@ -167,6 +167,11 @@ struct State {
     // for a limited number of samples records it here, keyed by its reason (the
     // smallest count wins). The compiler reports them, by default.
     std::map<std::string, double>               gCertifiedSamples{};
+    // -nocert : a delay of proven upper bound whose lower bound may be negative, and a
+    // soundfile part beyond its range, are accepted and held within their range at run time
+    // instead of refused ; each waiver is recorded here, for the compiler to report
+    bool                                        gNoCertification{};
+    std::vector<std::string>                    gCertificationWaivers{};
     int                                         gAllocationCount{};  // Internal signal types counter
     bool                                        gCausality{};  // FIXME: global used as a parameter of typeAnnotation when true trigs
     Tree                                        RECURSIVNESS{};
