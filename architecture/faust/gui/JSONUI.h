@@ -42,7 +42,7 @@
 
 /*******************************************************************************
  * JSONUI : Faust User Interface
- * This class produce a complete JSON description of the DSP instance.
+ * This class produces a complete JSON description of the DSP instance.
  *
  * Since 'shortname' can only be computed when all paths have been created,
  * the fAllUI vector is progressively filled with partially built UI items,

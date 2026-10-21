@@ -5,7 +5,7 @@ min-width : 80px;
 border: 2px solid grey;
 border-radius: 6px;
 margin-top: 1ex;
-color:white
+color:white;
 }
     
 QPushButton:hover {
@@ -62,7 +62,7 @@ QTextDocument{
 text-decoration: underline;
 color: white;
 font: Menlo;
-font-size: 14px
+font-size: 14px;
 }
 
 QLabel{
