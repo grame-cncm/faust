@@ -41,7 +41,7 @@ macro `INFINITY` use their own constants (`Inf32`, `f32::INFINITY`,
 `Float.POSITIVE_INFINITY`, `f32.POSITIVE_INFINITY`...). `--backends dlang`
 compiles the D code with `ldc2` (stubs replace the dplug imports), `--backends csharp`
 checks the generated C# names, `--backends asc` compiles the AssemblyScript code
-with `asc`; Rust needs Cargo with `libm` and `num-traits` (`--offline`
+with `asc` and runs it with Node (`--asc`, `--node`); Rust needs Cargo with `libm` and `num-traits` (`--offline`
 for cached dependencies):
 
 ```sh

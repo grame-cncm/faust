@@ -18,10 +18,10 @@ The program outputs +inf, -inf and 1e38 * 10 (+inf in single precision) at
 its first sample, and 0 after; it is generated in single and double
 precision for each backend and run. D is compiled only (--backends dlang,
 with stubs for the dplug imports), C# only generated (--backends csharp):
-the generated names are checked.
+the generated names are checked. AssemblyScript (--backends asc) is compiled
+with asc and run with Node, after the same check of the names.
 """
 import re
-import shutil
 import argparse
 from pathlib import Path
 import subprocess
@@ -156,16 +156,28 @@ CSHARP_NAMES = {"single": ["float.PositiveInfinity", "float.NegativeInfinity"],
 ASC_NAMES = {"single": ["f32.POSITIVE_INFINITY", "f32.NEGATIVE_INFINITY"],
              "double": ["f64.POSITIVE_INFINITY", "f64.NEGATIVE_INFINITY"]}
 
+# asc only checks the code reached from an export: init reaches the constants computed at
+# initialization, compute the others
 ASC_RUNNER = """
+let outs = new Array<Array<SAMPLE>>(3);
+
 export function run(): void {
     let d = new mydsp();
-    let ins = new Array<Array<SAMPLE>>(0);
-    let outs = new Array<Array<SAMPLE>>(3);
-    outs[0] = new Array<SAMPLE>(1);
-    outs[1] = new Array<SAMPLE>(1);
-    outs[2] = new Array<SAMPLE>(1);
-    d.compute(1, ins, outs);
+    d.init(44100);
+    for (let c = 0; c < 3; c++) outs[c] = new Array<SAMPLE>(2);
+    d.compute(2, new Array<Array<SAMPLE>>(0), outs);
 }
+
+// The first sample of each output, then the second
+export function value(i: i32): f64 { return <f64>outs[i % 3][i / 3]; }
+"""
+
+NODE_RUNNER = """
+const fs = require("fs");
+const m = new WebAssembly.Instance(new WebAssembly.Module(fs.readFileSync("mydsp.wasm")),
+                                   {env: {abort() { throw new Error("abort"); }}}).exports;
+m.run();
+console.log([0, 1, 2, 3, 4, 5].map(i => m.value(i)).join(" "));
 """
 
 
@@ -186,6 +198,7 @@ def main():
     parser.add_argument("--java", default="java")
     parser.add_argument("--ldc", default="ldc2")
     parser.add_argument("--asc", default="asc")
+    parser.add_argument("--node", default="node")
     parser.add_argument("--backends", nargs="+",
                         choices=["cpp", "ocpp", "julia", "rust", "java", "dlang", "csharp", "asc"],
                         default=["cpp", "ocpp", "julia", "rust", "java"])
@@ -270,16 +283,16 @@ def main():
                  work / "nonfinite.dsp", "-o", work / "mydsp.ts"], work)
             code = (work / "mydsp.ts").read_text()
             missing = [n for n in ASC_NAMES[precision] if n not in code]
-            if missing or re.search(r"\bINFINITY\b", code) or re.search(r"\bNAN\b", code):
+            if missing or re.search(r"\b(INFINITY|NAN)\b", code):
                 raise SystemExit(f"FAIL asc {precision}: missing {missing} or INFINITY/NAN left")
             sample = "f32" if precision == "single" else "f64"
             (work / "mydsp.ts").write_text(code + ASC_RUNNER.replace("SAMPLE", sample))
-            asc_cmd = [args.asc] if shutil.which(args.asc) else ["npx", "-p", "assemblyscript", "asc"] if shutil.which("npx") else None
-            if asc_cmd:
-                run([*asc_cmd, "mydsp.ts", "--outFile", "mydsp.wasm"], work)
-                print(f"PASS asc {precision}: non-finite constants compile", flush=True)
-            else:
-                print(f"PASS asc {precision}: non-finite constants generated", flush=True)
+            run([args.asc, "mydsp.ts", "--outFile", "mydsp.wasm"], work)
+            (work / "runner.js").write_text(NODE_RUNNER)
+            out = subprocess.run([args.node, "runner.js"], cwd=work, check=True,
+                                 capture_output=True, text=True).stdout
+            check_printed("asc", precision, out)
+            print(f"PASS asc {precision}: non-finite constants", flush=True)
     if "julia" not in args.backends:
         return
     run([args.julia, "--version"], repo)
