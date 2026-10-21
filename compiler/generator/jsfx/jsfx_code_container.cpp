@@ -220,6 +220,20 @@ void JSFXCodeContainer::produceClass()
           << " res = remainder(abs(x), y); \n"
           << " (res < 0) ? res += y; \n"
           << " (x < 0) ? -res : res; \n"
+          << ");\n"
+          // Hyperbolic functions, computed from exp/log/sqrt
+          << "function sinh(x) ((exp(x) - exp(-x)) * 0.5); \n"
+          << "function cosh(x) ((exp(x) + exp(-x)) * 0.5); \n"
+          // exp of a non-positive argument only: no overflow, and exactly +/-1 for large |x|
+          << "function tanh(x) local(e) ( \n"
+          << " e = exp(-2 * abs(x)); \n"
+          << " sign(x) * (1 - e) / (1 + e); \n"
+          << ");\n"
+          << "function asinh(x) (sign(x) * log(abs(x) + sqrt(x * x + 1))); \n"
+          << "function acosh(x) (log(x + sqrt(x * x - 1))); \n"
+          << "function atanh(x) local(a) ( \n"
+          << " a = abs(x); \n"
+          << " sign(x) * 0.5 * log((1 + a) / (1 - a)); \n"
           << ");\n";
 
     *fOut << "/* \n"

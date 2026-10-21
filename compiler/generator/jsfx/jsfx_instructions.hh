@@ -287,7 +287,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["acosh"] = false;
         gFunctionSymbolTable["asinh"] = false;
         gFunctionSymbolTable["atanh"] = false;
-        gFunctionSymbolTable["coshf"] = false;
+        gFunctionSymbolTable["cosh"]  = false;
         gFunctionSymbolTable["sinh"]  = false;
         gFunctionSymbolTable["tanh"]  = false;
 
@@ -353,8 +353,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sqrtf"]      = "sqrt";
         gPolyMathLibTable["tanf"]       = "tan";
 
-        // Hyperbolic - Not available in JSFX yet
-        /*
+        // Hyperbolic - not native in JSFX, defined in the generated code
         gPolyMathLibTable["acoshf"]     = "acosh";
         gPolyMathLibTable["asinhf"]     = "asinh";
         gPolyMathLibTable["atanhf"]     = "atanh";
@@ -362,6 +361,8 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinhf"]      = "sinh";
         gPolyMathLibTable["tanhf"]      = "tanh";
 
+        // Not available in JSFX yet
+        /*
         gPolyMathLibTable["isnanf"]     = "isnan";
         gPolyMathLibTable["isinff"]     = "isinf";
         gPolyMathLibTable["copysignf"]  = "copysign";
@@ -394,8 +395,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sqrt"]      = "sqrt";
         gPolyMathLibTable["tan"]       = "tan";
 
-        // Hyperbolic - Not available in JSFX yet
-        /*
+        // Hyperbolic - not native in JSFX, defined in the generated code
         gPolyMathLibTable["acosh"]     = "acosh";
         gPolyMathLibTable["asinh"]     = "asinh";
         gPolyMathLibTable["atanh"]     = "atanh";
@@ -403,6 +403,8 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinh"]      = "sinh";
         gPolyMathLibTable["tanh"]      = "tanh";
 
+        // Not available in JSFX yet
+        /*
         gPolyMathLibTable["isnan"]     = "isnan";
         gPolyMathLibTable["isinf"]     = "isinf";
         gPolyMathLibTable["copysign"]  = "copysign";
