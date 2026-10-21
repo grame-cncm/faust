@@ -79,13 +79,13 @@ ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
 	$(CXX) $(GCCOPTIONS) archs/$(arch) $< -o $@
 
 # Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
-ir/$(outdir)/control.cpp : dsp/control.dsp
+ir/$(outdir)/control.cpp : dsp/control.dsp | ir/$(outdir)
 	$(FAUST) -lang ocpp -double -i -A ../../architecture -a archs/$(arch) $< -o $@
 
 # Specific rule to test 'enable/control' primitives that currently only work in scalar mode
-ir/$(outdir)/osc_enable.$(ext) : dsp/osc_enable.dsp
+ir/$(outdir)/osc_enable.$(ext) : dsp/osc_enable.dsp | ir/$(outdir)
 	@echo "Can only be tested in scalar mode"
 	$(DYNFAUST) -double  $< -o $@
 
-ir/$(outdir)/%.$(ext) : dsp/%.dsp
+ir/$(outdir)/%.$(ext) : dsp/%.dsp | ir/$(outdir)
 	$(DYNFAUST) $(FAUSTOPTIONS) $< -o $@

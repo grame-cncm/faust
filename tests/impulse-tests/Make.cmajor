@@ -64,7 +64,7 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
 	@echo "Cannot be tested with the Cmajor backend"
 	
-ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
+ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir | ir/$(outdir)
 	$(FAUST) -lang cmajor -cn cmajordsp $(FAUSTOPTIONS) $< -o cmajordsp.cmajor
 	cmaj generate --target=cpp cmajordsp.cmajorpatch --output=cmajordsp.h
 	$(CXX) $(GCCOPTIONS) archs/$(arch) -o impulsecmajor

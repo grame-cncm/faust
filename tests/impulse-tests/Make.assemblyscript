@@ -49,7 +49,7 @@ help:
 ir/$(outdir):
 	mkdir -p ir/$(outdir)
 
-ir/$(outdir)/%.ts: dsp/%.dsp
+ir/$(outdir)/%.ts: dsp/%.dsp | ir/$(outdir)
 	cd $(dir $<); $(FAUST) -lang asc $(notdir $<) $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
 
 ir/$(outdir)/%.wasm: ir/$(outdir)/%.ts

@@ -98,7 +98,7 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 #########################################################################
 # rules for NNX
 
-ir/$(outdir)/nnx_%.py: dsp/%.dsp 
+ir/$(outdir)/nnx_%.py: dsp/%.dsp | ir/$(outdir)
 	cd $(dir $<); $(FAUST) -lang nnx $(notdir $<) -a ../archs/$(arch) $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
 
 ir/$(outdir)/%.ir: ir/$(outdir)/nnx_%.py reference/%.ir

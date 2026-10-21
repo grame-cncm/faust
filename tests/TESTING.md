@@ -612,6 +612,18 @@ does not protect it.
    with `ASAN_OPTIONS=detect_leaks=0`. *Fix:* free what the driver
    allocates.
 
+7. **Parallel legs raced on their output directory** — fixed: the rules
+   that write the first file of a leg into `ir/<outdir>` did not depend
+   on the rule that creates it, so under `-j` faust could open
+   `ir/<outdir>/APF.cpp` before `mkdir -p` had run. The program failed
+   with `ERROR : file '…' cannot be opened` and counted as a failure of
+   the leg; rerun alone, it passed (observed in `ocpp/double/vec/lv1`
+   with `ocpp ocpp-float -k -j 20`). Each such rule, in `Make.gcc` and
+   the other `Make.*` files, now has the directory as an order-only
+   prerequisite: `ir/$(outdir)/%.$(ext) : dsp/%.dsp | ir/$(outdir)`.
+   Kept here for reading older logs: a program that failed this way,
+   and only under `-j`, says nothing about the compiler.
+
 ## Still to be settled
 
 - The status of each of the other suites under `tests/` — gate,
