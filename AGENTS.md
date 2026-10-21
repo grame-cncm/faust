@@ -102,6 +102,9 @@ explicit request.
 | table accesses, delay lines, the interval library, casts to integers | Gate 4, memory safety |
 | public libfaust Signal/Box APIs, symbol visibility, or library build definitions | Gate 5, complete C++ Signal and Box API links against shared libfaust |
 | the normal form or its rules (`normalize/`, `transform/`, the reveals, the interval rules of `sighorizon.cpp`) | Gate 6, canonicity : `make -C tests/canonical-tests check` |
+| the interval analysis, the certificates, the checks of delays and soundfile parts, `-nocert`, `-mcs` | Gate 7, the acceptance policy : `make -C tests/acceptance-tests check check-nocert check-mcs` |
+| a pass that may slow compilation (normal form, typing, interval analysis) | Gate 8, the compile-time budget : `make -C tests/compile-time-budget check REF=<master-dev faust>` |
+| libfaust state kept between compilations (options, certificates, warnings) | Gate 5, plus `make -C tests/signal-tests check-api-sequence` |
 
 Commands, expected results and accepted failures are in TESTING.md, one
 section per gate. Do not stop at the first gate that passes.
