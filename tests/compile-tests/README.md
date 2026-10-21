@@ -124,3 +124,17 @@ The default commands are `javac` and `java` from `PATH`. Use
 `--work-dir /tmp/faust-java-math` to keep generated sources and diagnostic
 logs. The test provides a minimal Java DSP/UI harness with sample types
 matching each precision; it does not depend on an installed Faust runtime.
+
+### Locating the faust binary through PATH
+
+`exe-path.py` calls faust by a bare name, through a symbolic link, with a
+`which` that writes to stderr and fails first in `PATH` (as the deprecated
+which(1) of Debian bookworm warns), and a directory and a non-executable
+file named `faust` before the real one. faust must find its own directory
+without running `which` and without printing on stderr, through a regular,
+an empty (the current directory) and a relative `PATH` entry: `--libdir`
+must name the `lib` directory next to the binary.
+
+```sh
+python3 tests/compile-tests/exe-path.py --faust build/bin/faust
+```
