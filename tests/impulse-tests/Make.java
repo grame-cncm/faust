@@ -18,6 +18,8 @@ config := ir/$(outdir)/toolchain.json
 
 # Java currently has no soundfile implementation. Keep the exclusion visible.
 dspfiles ?= $(filter-out dsp/sound.dsp,$(wildcard dsp/*.dsp))
+# osc_enable is not tested : the enable and control primitives it uses are being removed
+dspfiles := $(filter-out dsp/osc_enable.dsp,$(dspfiles))
 java_run_options :=
 checks := $(patsubst dsp/%.dsp,check-java-%,$(dspfiles))
 
