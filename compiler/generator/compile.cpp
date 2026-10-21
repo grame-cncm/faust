@@ -147,15 +147,16 @@ static const char* kNoRangeUIWarning =
 
 bool isCertificationWarning(const std::string& warning)
 {
+    // the waivers of -nocert end with the name of the option
     return warning.rfind(kCertifiedWarning, 0) == 0 || warning == kFastMathWarning ||
-           warning == kNoRangeUIWarning;
+           warning == kNoRangeUIWarning || warning.find("(-nocert)") != std::string::npos;
 }
 
 void checkCertificates()
 {
     const double seconds = gGlobal->gMinCertifiedSeconds;
     for (const auto& [reason, samples] : sigs::g.gCertifiedSamples) {
-        if (samples < seconds * 48000.0) {
+        if (samples < seconds * 48000.0 && !gGlobal->gNoCert) {
             std::stringstream error;
             error << "ERROR : this program is certified for only " << certifiedDuration(samples) << " ("
                   << reason << ") : at least " << seconds << " seconds at 48000 Hz are required (-mcs)"
@@ -169,6 +170,10 @@ void checkCertificates()
         std::stringstream warning;
         warning << kCertifiedWarning << certifiedDuration(samples) << " (" << reason << ")" << endl;
         gWarningMessages.push_back(warning.str());
+    }
+    // -nocert : what was accepted although the analysis did not prove it
+    for (const auto& waiver : sigs::g.gCertificationWaivers) {
+        gWarningMessages.push_back(waiver);
     }
     // -fm replaces mathematical functions by approximations that the intervals do not bound
     if (gGlobal->gFastMathLib != "") {
