@@ -59,7 +59,7 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 #########################################################################
 # rules for JSFX
 
-ir/$(outdir)/%.jsfx: dsp/%.dsp 
+ir/$(outdir)/%.jsfx: dsp/%.dsp | ir/$(outdir)
 	cd $(dir $<); $(FAUST) -lang $(lang) $(notdir $<) $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
 
 ir/$(outdir)/%.ir: ir/$(outdir)/%.jsfx reference/%.ir

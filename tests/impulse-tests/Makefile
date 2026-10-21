@@ -788,7 +788,7 @@ impulsesignal: $(SRCDIR)/impulsesignal.cpp ./archs/controlTools.h $(LIB)
 ir/mute/%.ir: ir/mute/% reference/%.ir
 	$< -n 30000 > $@
 	$(COMPARE)  $@ reference/$(notdir $@)
-ir/mute/%.cpp : dsp/%-mute.dsp
+ir/mute/%.cpp : dsp/%-mute.dsp | ir/mute
 	$(FAUST) $(FAUSTOPTIONS) $<  -o $@
 ir/mute/% : ir/mute/%.cpp
 	$(CXX) $(GCCOPTIONS) $<  -o $@

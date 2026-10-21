@@ -98,7 +98,7 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 #########################################################################
 # rules for Linen
 
-ir/$(outdir)/linen_%.py: dsp/%.dsp
+ir/$(outdir)/linen_%.py: dsp/%.dsp | ir/$(outdir)
 	cd $(dir $<); $(FAUST) -lang linen $(notdir $<) -a ../archs/$(arch) $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
 
 ir/$(outdir)/%.ir: ir/$(outdir)/linen_%.py reference/%.ir
