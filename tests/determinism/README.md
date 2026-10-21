@@ -19,7 +19,7 @@ chosen among the programs that diverged most between a g++ build and a
 clang build before the fix, one per family of construction sites
 (propagation, normalization, vectorization, widgets, recursive groups,
 FIR), plus a few tiny ones. To add one, append a line ; keep the list
-short, this gate is meant to run in seconds.
+short, this gate is meant to run in a minute or two.
 
 The two compilers of a pair must evaluate the arguments of a call in
 different orders, or the pair is blind to the family this gate exists for :
