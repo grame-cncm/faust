@@ -9,18 +9,23 @@ trusted, and how to run each check so that its result means something.
    incorrect program must be rejected, and both in a reasonable time.
 2. **Preserve the semantics.** Whatever the compiler's internal
    strategies and whatever the compilation options, a given program must
-   produce the same samples.
+   produce the same samples, within the tolerances stated in "What
+   conforming means numerically" below.
 3. **Speed of the generated code.**
 4. **Speed of compilation** — a real criterion, the least critical of the
    four.
 
 This document covers criteria 1 and 2. Criteria 3 and 4 obey different
 rules (paired measurement, named C++ judges, reserved machines) and belong
-to a separate document.
+to a separate document. Gate 8 is the one exception : it does not measure
+the speed of compilation, it only checks that a change does not pass a
+ceiling. `AGENTS.md` lists the gates to run for each kind of change.
 
 A fifth property is checked by its own gate (Gate 3) : **the emitted code
 is reproducible** — for one commit of the compiler and one program it is
-the same, byte for byte, whatever C++ compiler and machine built faust.
+the same, byte for byte, whatever C++ compiler built faust on one machine.
+Between machines, only the constants the compiler folds through the host's
+libm may differ (see Gate 3).
 
 A sixth property is checked by Gate 4 : **the generated code never reads
 or writes outside the memory it owns**, whatever the control values, the
@@ -48,7 +53,7 @@ make -C tests/impulse-tests all         # everything (long)
 make -C tests/impulse-tests help        # what else can be run
 ```
 
-The two gates select their compiler by **opposite defaults**, which is
+The impulse suite and the library gate select their compiler by **opposite defaults**, which is
 worth knowing before reading any result:
 
 | gate | variable | default |
@@ -64,10 +69,11 @@ binary explicitly in both, and have the report say which one was judged.
 `nnx`, `linen`, `julia`. Several need toolchains that are not installed
 everywhere, so running a subset is normal — but choose it knowingly:
 
-- `cpp-core` is the required C++ subset: nineteen option sets, **float and
-  double**, `-vec` at `lv 0` / `lv 1` / `vs 16` / `-fun`, plus
-  `-uim`, `-it`, `-fp`, `-wall`, `-mcd 0`, `-mapp`, `-rui`, `-nvi`,
-  `-dlt 0`, `-dlt 256`.
+- `cpp-core` is the required C++ subset: nineteen option sets, seventeen
+  in double (scalar, `-vec` at `lv 0` and `lv 1`, each plain, with `-fun`
+  and with `-vs 16`, plus `-uim`, `-it`, `-fp`, `-wall`, `-mcd 0`, `-mapp`,
+  `-norui`, `-nvi`, `-dlt 0`, `-dlt 256`) and two in float (scalar and
+  `-vec`).
 - `ocpp` and `ocpp-float` cover the legacy backend in double and single
   precision, each in scalar mode, with `-mcd 0`, and with `-vec` at
   `lv 0` / `lv 1`. The continuous integration never exercises it.
@@ -113,45 +119,63 @@ make -C tests/impulse-tests legs                                # list available
 parallel and the total stays bounded. A leg used by two families
 (`cpp/double` by `cpp` and `travis`, for one) is defined once.
 
-**Count what a leg produced.** Four programs are excluded by rules in
+**Count what a leg produced.** Three programs are excluded by rules in
 `Make.gcc` that succeed by printing a line, so the leg reports success
 and the program is simply never tested. The count is the only trace:
 
 | program | legs | reason |
 | :------ | :--- | :----- |
-| `prefix` | every C++ leg | issue #1071, whose title names only rust with `-vec` |
+| `prefix` | every leg run through `Make.gcc` (C++, ocpp, C) | issue #1071, whose title names only rust with `-vec` |
 | `constant` | `cpp/double/mapp` | issue #1074 |
-| `osc_enable` | `cpp/double/os` | broken with `-os` |
-| `bs` | `cpp/double/os` | foreign variable `count` not allowed in that mode |
+| `bs` | every leg whose options contain `-os` or `-ec` | these modes do not allow the foreign variable `count` it reads |
 
-An exclusion is legitimate; an exclusion nobody can see is not. A leg
-that yields 94 of 96 with no reported failure has silently dropped two
-programs, and a report must say which ones and why.
+`osc_enable` is not tested at all : the `enable` and `control` primitives
+it uses are being removed, and every harness file leaves it out of its
+list of programs.
+
+**Half-length legs.** Twelve drivers (`impulsearch6`, `7bis`, `7qua`, `8`,
+`8bis`, `8ter`, `9`, `9bis`, `9ter`, `9qua`, `10`, `10bis`) have no
+polyphonic run and print 30000 samples instead of 60000 ; their header
+says so, and `Make.gcc` compares their legs with `filesCompare -part`,
+against the first half of the reference. A response shorter than its
+header still fails.
+
+An exclusion is legitimate; an exclusion nobody can see is not. The suite
+holds 102 programs (`ls tests/impulse-tests/dsp/*.dsp | wc -l`), and a
+leg tests 100 of them (`prefix` and `osc_enable` left out), 99 under
+`-os` or `-ec` : a leg that yields 98 with no reported failure has silently
+dropped two programs, and a report must say which ones and why.
 
 ## Gate 2 — the library specifications
 
-The 1236 `*_test` specifications of the `libraries` sub-project are the
-widest semantic gate available. Their reference outputs are **not**
+The `*_test` specifications of the `libraries` sub-project (2346 at
+`libraries` db56585 ; `cd libraries && scripts/extract_tests.sh tests/*.dsp | wc -l`
+counts them) are the widest semantic gate available. Their reference outputs are **not**
 versioned — they would take too much space — so they must be computed,
 and that computation is where the validity of the whole gate is decided.
 
 The trusted compiler is the latest released version. At the time of
-writing: 2.88.0, `171b603ac93e65fa5ec047e13441d3969d1658c7`.
+writing: 2.88.0, tag `2.88.0`, commit
+`8c00913e44d42f9d25aa3f1a0d500bde5662d7bc`.
 
 ```sh
+# the arithmetic of the C++ compiler, the same for the references and every check
+X="CXXFLAGS=-O2 -std=c++17 -ffp-contract=off"
+
 # 1. with the TRUSTED compiler installed, from the libraries directory
 cd libraries
-make reference                 # writes tests/reference/*.ref and tests/reference/PARAMS
+make distclean                 # no reference left from another compiler or option set
+make reference "$X"            # writes tests/reference/*.ref and tests/reference/PARAMS
 
 # 2. with the compiler UNDER TEST installed
 make clean
-make check FAUST_OPT="-lang cpp  -double -t 0"        -k -j 8
+make check "$X" FAUST_OPT="-lang cpp  -double -t 0"        -k -j 8
 make clean
-make check FAUST_OPT="-lang cpp  -double -t 0 -vec"   -k -j 8
+make check "$X" FAUST_OPT="-lang cpp  -double -t 0 -vec"   -k -j 8
 make clean
-make check FAUST_OPT="-lang ocpp -double -t 0"        -k -j 8
+make check "$X" FAUST_OPT="-lang ocpp -double -t 0"        -k -j 8
 make clean
-make check FAUST_OPT="-lang ocpp -double -t 0 -vec"   -k -j 8
+make check "$X" FAUST_OPT="-lang ocpp -double -t 0 -vec"   -k -j 8
 ```
 
 `make clean` between two option sets is **mandatory, not a precaution**:
@@ -229,31 +253,36 @@ make -C tests/determinism lint                # the static check, no second comp
 diverged most before the fix, one per family of sites, and a few tiny
 ones for speed — under six option sets (`-lang cpp` and `-lang ocpp`,
 scalar and `-vec`, then `-ftz 2` and ocpp `-fir`) with both binaries, and
-compares the outputs byte for byte. It takes seconds once the binaries
-exist. Expected : every cell `same`, exit status 0. A `DIFF` means the
-emitted code depends on how faust was built ; the outputs are left in
-`tests/determinism/out/{a,b}` for a diff. A generation that fails on both
-sides is not a verdict (exit status 2). The `-I` paths are relative so
+compares the outputs byte for byte. All six sets are in double
+precision. It takes a minute or two once the binaries exist (the library
+witnesses dominate). Expected : every cell `same`, exit status 0. A
+`DIFF` gives exit status 1 and means the emitted code depends on how
+faust was built ; the outputs are left in `tests/determinism/out/{a,b}`
+for a diff. A generation that fails on either side is not a verdict
+(exit status 2, with the first error). The `-I` paths are relative so
 that the `compile_options` string the emitted code quotes is the same on
 both sides ; the same trick lets outputs of two machines be compared :
-`make -C tests/determinism fingerprint > mac.txt` on one machine, `make
--C tests/determinism compare FILE=mac.txt` on the other — the witnesses
-that fold constants through the host's libm are reported apart.
+`make -s --no-print-directory -C tests/determinism fingerprint > /abs/mac.txt`
+on one machine, `make -C tests/determinism compare FILE=/abs/mac.txt` on
+the other (`FILE` absolute, or relative to `tests/determinism`) — the
+witnesses that fold constants through the host's libm are reported apart.
 
 `lint` runs `tests/determinism/lint/unsequenced.py` on `compiler/` : it
 computes Fx, the set of functions that reach a tree creation or a fresh
-name (1800 of the compiler's 8200 functions), and lists every call or unsequenced operator whose
+name (about 2000 of the compiler's 9100 functions), and lists every call or unsequenced operator whose
 operands reach Fx twice — the line to fix. It needs the clang python
 bindings and a matching libclang (`LIBCLANG` and `CLANG_RESOURCE_DIR`
-when the defaults do not find them) and runs in a minute or two. Expected
+when the defaults do not find them) and runs in a few minutes. Expected
 : no site, exit status 0. The lint has blind spots (indirect calls,
 function pointers, units it cannot parse — it lists them) ; `check` is
 the judge, the lint is the finger.
 
 A second, older lint covers the other family of non-determinism, the
 orders by address : `make -C build ... NONDETERMINISM_LINT=yes` builds
-with a clang plugin (`build/lint.query`) that warns on every comparison
-of `CTree*` or `Symbol*` pointers.
+with a clang plugin (`build/lint.query`) that warns on every ordering
+comparison (`<`, `>`, `<=`, `>=`) of `CTree*` or `Symbol*` pointers,
+including those made inside standard-library calls. It needs the
+`node-matcher-plugin` sub-project.
 
 **Known residual, across machines.** Eleven programs of the library
 corpus (the bells, `rotate`, `iBasicDecoder`, `colored_noise`,
@@ -261,8 +290,10 @@ corpus (the bells, `rotate`, `iBasicDecoder`, `colored_noise`,
 by one constant at the last ulp : the compiler folds constants with the
 `pow`, `tan`, `sin`, `cos` of the host's C library, and glibc and Apple's
 libm do not agree on the last bit. Not FMA (`-ffp-contract=off` changes
-nothing). A cross-machine comparison must expect exactly these ; a
-cross-compiler comparison on one machine must expect none.
+nothing). Of the gate's sixteen witnesses, only `fft_spectral_level_demo`
+is among them (`tests/determinism/libm-witnesses.txt`). A cross-machine
+comparison must expect exactly these ; a cross-compiler comparison on one
+machine must expect none.
 
 ## Gate 4 — memory safety
 
@@ -281,7 +312,7 @@ entries are clamped to their declared range once per block, and buttons
 and checkboxes read as 0 or 1; under `-norui` nothing clamps them, so a
 host can write any value, NaN included.
 
-**Leg 1 — the impulse suite under sanitizers.**
+**The impulse suite under sanitizers.**
 
 ```sh
 ASAN_OPTIONS=detect_leaks=0 make -C tests/impulse-tests -f Make.gcc -k -j 8 \
@@ -294,42 +325,17 @@ grep -c "ERROR: AddressSanitizer" <log>; grep -c "runtime error" <log>
 
 then the same with `-O2 -march=native -ffast-math -ffp-contract=fast` in
 place of `-O1`, so that contraction and reassociation act on the code.
-Expected: 95 responses of 96 (`prefix` is excluded, see Gate 1), zero
+Expected: 100 responses (`prefix` and `osc_enable` are left out, see Gate 1), zero
 AddressSanitizer report, zero `runtime error`. `SAN=asan` in `Make.gcc`
 adds AddressSanitizer only; the explicit `GCCOPTIONS` adds the undefined
 behaviour sanitizer too. `detect_leaks=0` is required: see "Known harness
 defects".
 
-What this leg does **not** see: the impulse driver draws control values
+What this gate does **not** see: the impulse driver draws control values
 at random *inside* their ranges, for a few thousand samples. A rounding
 overflow needs a value within one ulp of an edge; an interface overflow
 needs a value outside the range. Neither is exercised, so zero reports is
-not a proof of safety. The leg guards against gross regressions.
-
-**Leg 2 — witnesses, executed.** Programs written to reach an edge — an
-index that a fused multiply-add pushes past the last element, a write
-index that leaves its table while the read index stays inside, a short
-delay driven by a control value — compiled by Faust in `cpp` and `ocpp`,
-single and double, then by the C++ compiler with
-`-O2 -march=native -ffp-contract=fast -fsanitize=address`, and run with
-their control values set at the edge by their defaults. On the compiler
-under test: no report. On the reference compiler: the known overflows,
-which proves that each witness still reaches its edge. Contraction must be
-asked for explicitly: in ISO mode (`-std=c++17`) g++ does not contract by
-default, and without the fused multiply-add the rounding witnesses do not
-overflow. The witnesses are kept out of the public tree.
-
-**Leg 3 — the emitted code, before and after.** A change that only adds
-guards changes many bytes: compare the code emitted by both binaries over
-the impulse programs, the examples and the library specifications, then
-normalize each differing pair — replace every `max(K, min(E, H))` by `E`
-(both the `cpp` and the `ocpp` spellings), inline the trivial integer
-copies a guard introduces, rename variables by order of first appearance —
-and classify: identical once normalized, the same lines in another order,
-or other. What remains "other" is validated by output, the library sweep
-comparing `cpp` with `ocpp`, or a direct comparison of the outputs before
-and after the change. Check first that the comparator fails on an output
-altered on purpose, on a value and not on a separator.
+not a proof of safety. The gate guards against gross regressions.
 
 ## What actually decides what is being tested
 
@@ -356,14 +362,15 @@ rather than let the reader assume both halves were covered.
 Whichever mode is used, the binary says which source it was built from:
 
 ```console
-$ faust --version
-FAUST Version 2.88.0
-Source commit: 8c00913e4
+$ build/bin/faust --version
+FAUST Version 2.90.10
+Source commit: eaf608dd1
 ```
 
 A version number names a release, not a build: two binaries from
 different commits print the same one. The second line is the one to quote
-in a report. It carries a `-modified` suffix when the working tree had
+in a report (releases up to 2.88.0 predate it and print only the
+version). It carries a `-modified` suffix when the working tree had
 uncommitted changes, because a binary built from a modified tree is not
 the commit it names — and `unknown` when the build did not go through
 CMake, or had no git available.
@@ -429,12 +436,12 @@ reassociation, and then every option set is entitled to its own answer.
 
 ### What "conforming" means numerically
 
-The two gates do not use the same criterion, and neither is exact
-equality:
+The impulse suite and the library gate do not use the same criterion, and
+neither is exact equality:
 
 | gate | criterion | default |
 | :--- | :-------- | :------ |
-| impulse suite | absolute difference ≤ tolerance, in `filesCompare` | `2e-6`, with per-file overrides up to `0.015` on some float/omp legs |
+| impulse suite | absolute difference ≤ tolerance, in `filesCompare` | `2e-6` ; per-file overrides in `Make.gcc` on every float leg (scalar, `vec`, `sched`, `omp`), up to `0.065`, and `0.04` on `cpp/double/sched/parametric_eq` ; the Rust cross-precision legs override the whole leg (up to `24`) |
 | library specs | `math.isclose(rel_tol=t, abs_tol=t)`, `floatdiff.py` | `t = FLOAT_TOL = 1e-5`, so either criterion suffices |
 
 A consequence worth keeping in mind when reading a divergence: the first
@@ -478,13 +485,15 @@ make -C tests/signal-tests check-shared-api -k \
 
 The gate prints the compiler's full version output, including
 `Source commit:`, the C++ compiler, machine, shared-library path and
-header path. Read these before the results and ensure the library and
-compiler come from the same root build. Override `SHARED_LIBFAUST` to
+header path, then the dates of the compiler and of the library. Read these
+before the results and ensure the library and compiler come from the same
+root build : the `Source commit:` line is the compiler's, and a library
+left from an older build fails on what it does not know yet. Override `SHARED_LIBFAUST` to
 select a different shared-library filename explicitly. Match any required
 SDK/deployment flags through `CXXFLAGS`/`LDFLAGS`.
 
-`clean-api` removes only these two clients and their generated reference
-files; use it before changing the library, headers or build options.
+`clean-api` removes the two clients, `api-sequence-test`, and the
+generated reference files; use it before changing the library, headers or build options.
 `check-signal-api` and `check-box-api` can run separately, but the combined
 gate is required for interface changes. Run with `-k` so a signal link
 failure does not prevent the box client from being checked. Record two
@@ -496,6 +505,30 @@ harness, verify a negative control: link against a disposable shared
 library missing one referenced signal export, then one box export. Each
 corresponding client must fail at link time, including with optimisation
 enabled. Do not alter the library under test or suppress linker errors.
+
+### Successive compilations in one context
+
+A libfaust client often compiles several programs in one context. Each
+compilation must give what it gives alone : the same refusal, or the same
+generated code. A certificate, a warning or an option left over from the
+previous compilation must not leak into the next one.
+
+`api-sequence-test` runs ten steps, once in a single context (`seq`), then
+each one in a fresh process (`one i`), and the target compares the two
+outputs. The steps alternate the options (`-norui`, none, `-double`, none)
+on signals built with the Signal API and on a program read through the Box
+API, and compile a program certified for 30 seconds, first under `-mcs 60`
+(refused), then without the option (accepted) : an option or a certificate
+that survives its compilation changes the output of the next step.
+
+```sh
+make -C tests/signal-tests check-api-sequence \
+  FAUST="$(pwd)/build/bin/faust" LIB="$(pwd)/build/lib" \
+  INC="$(pwd)/architecture" CXX=c++
+```
+
+The last line gives the number of steps and the verdict. When the two runs
+differ, the gate prints the first lines of the difference and fails.
 
 ## Gate 6 — canonicity of the normal form
 
@@ -523,7 +556,9 @@ the output of `faust -norm` :
 `expected.tsv` records the status each writing is expected to reach, with
 the reason when it is not `same`. The gate fails when a writing does worse
 than expected ; a writing that does better is reported, and its
-expectation raised with `make update` (which keeps the reasons). The text
+expectation raised with `make update`, which rewrites every status from
+the run, worse ones included (read the report first), and keeps the
+reasons. The text
 of `-norm` depends only on the signal (names are numbered in the order of
 the equations), and it was checked identical for faust built by Apple
 clang, g++ 15 and clang 22.
@@ -533,10 +568,89 @@ make -C tests/canonical-tests check FAUST=<binary under test>
 make -C tests/canonical-tests update FAUST=<binary>   # after an improvement
 ```
 
-The writings that use a library function (`si.smooth`, `fi.fir`,
-`it.interpolate_linear`) depend on the `libraries` sub-project ; the others
-are written out in Faust. The report starts with the `Source commit:` of the
+67 of the 101 writings import `stdfaust.lib`, for a library function
+(`si.smooth`, `fi.fir`, `fi.iir`, `ba.bpf`, …) or only for `ma.SR`, and
+depend on the `libraries` sub-project ; the others are written out in
+Faust. The report starts with the `Source commit:` of the
 binary : read it first.
+
+## Gate 7 — the acceptance policy
+
+Run this gate when changing the interval analysis, the certificates, the
+checks of delays and soundfile parts, or the `-nocert` and `-mcs` options. It checks criterion 1 on small programs written for it, one
+property per program.
+
+`tests/acceptance-tests/` holds four directories :
+
+| directory | content | expected |
+| :--- | :--- | :--- |
+| `accepted/` | delays the analysis must bound, and a coefficient beyond `FLT_MAX` that must not stop the compilation | accepted under every option set |
+| `refused/` | delays that are unbounded, beyond the integer range, or possibly negative | refused under every option set |
+| `nocert/` | programs refused only for what the analysis could not prove | refused by default, accepted under `-nocert` |
+| `mcs/` | programs certified for a duration between 10 and 60 seconds | accepted by default, refused under `-mcs 60`, accepted under `-mcs 60 -nocert` |
+
+`make check` compiles every program of `accepted/` and `refused/` under
+eight option sets (`cpp`, `ocpp`, `c`, `-double`, `-mcd 2000`, `-dlt 0`,
+`rust -dlt 0`, `ocpp -ls`). `make check-nocert` compiles every program of
+`refused/` and `nocert/` without and with `-nocert` : without, all are
+refused ; with it, the programs of `nocert/` and the delay whose lower
+bound only may be negative (`refused/delay-slider-negative.dsp`) are
+accepted, and every other program of `refused/` stays refused.
+`make check-mcs` compiles every program of `mcs/` under the three option
+sets of its line in the table.
+
+```sh
+make -C tests/acceptance-tests check FAUST=<binary under test>
+make -C tests/acceptance-tests check-nocert FAUST=<binary under test>
+make -C tests/acceptance-tests check-mcs FAUST=<binary under test>
+```
+
+Each line is a verdict (`ok` or `MISMATCH`, with the first two lines of
+the error). The last line gives the number of verdicts and of mismatches;
+every program and option set is run, and the gate fails when there is at least one mismatch. A new program goes in the
+directory of its expected verdict, with a first comment line that says why.
+
+To check the gate, move one program of `refused/` into `accepted/` in a
+copy of the directory : `check` must report a mismatch for each of the
+eight option sets, and fail.
+
+## Gate 8 — the compile-time budget
+
+Compilation speed is criterion 4, measured elsewhere. This gate does not
+measure it : it only checks that a change does not pass a ceiling.
+
+`budget.py` compiles two sets of programs with the binary under test and
+with a reference binary (normally the current `master-dev`), in single and
+double precision, and keeps the best of `RUNS` runs of each. The sets are
+the impulse tests (`tests/impulse-tests/dsp`) and the seven programs whose
+compilation was the slowest against `master-dev` when the gate was set.
+The gate fails when the ratio of the total times of a set passes `TOTAL`
+(3 by default), when the ratio of one program passes `ONE` (8 by default),
+when the binary under test refuses a program the reference accepts
+(leaving out a costly program would lower the ratio), or when a compilation takes
+more than `TIMEOUT` seconds (300 by default). A program the reference
+refuses is left out and counted.
+A reference time below `FLOOR` (0.05 s) counts as `FLOOR`, since a fixed
+step of a few milliseconds multiplies the time of a program the reference
+compiles at once.
+
+```sh
+make -C tests/compile-time-budget check FAUST=<binary under test> REF=<reference binary>
+```
+
+The report gives both `Source commit:` lines and the machine with the
+ceilings, then one line per set and precision : the number of programs measured and of programs the reference
+refuses, the two total times and their ratio, the largest single ratio and its
+program, then the programs over the
+ceiling, refused by the binary under test, or too long. The last line
+gives the number of failed legs. Run it on a quiet machine : a
+measurement shared with another load only adds time, and can fail the gate
+without a cause in the compiler. A failure caused by load disappears when
+the gate is run again ; a failure caused by the compiler does not.
+
+When the gate was set (2026-10-21, `eaf608dd1` against `1a52f7785`), the set
+ratios were 2.0 to 2.2, and the largest single ratios were 5.7
+(`reverb_tester`) and 5.6 (`table`).
 
 ## Accepted failures
 
@@ -544,19 +658,41 @@ A gate that does not know its legitimate failures stops at the first one
 and hides everything after it. Run with `-k`, and read the following as
 expected:
 
-- **`control` / `enable` in vector mode.** `ERROR : 'control/enable' can
-  only be used in scalar mode` is a documented limitation, not a
-  regression. These primitives are scheduled to disappear in favour of
-  `ondemand`; nothing is to be invested in making them vectorisable.
+- **`-dlt` with `ocpp` or `-vec`.** `ERROR : '-dlt < INT_MAX' option can
+  only be used in scalar mode and not with the 'ocpp' backend` is a
+  documented refusal ; the harness defines no such leg.
 - **Divergences that predate the change under test.** They must be listed
   with the date and the commit at which they were observed, otherwise
-  they are indistinguishable from the regressions of the day.
+  they are indistinguishable from the regressions of the day. Observed on
+  2026-10-21 with `master-dev` `1a52f7785` and `libraries` db56585, every
+  `Make.gcc` leg, Linux x86-64, g++ 15 :
+  - every program in the `sched` legs (`cpp` and `c`, double, float and
+    `quad`) : the program crashes at run time (signal 11) ;
+  - every program but three in the `fx` legs : they need the `ap_fixed`
+    headers in `/usr/local/include/ap_fixed` (`sfx_t` is not declared
+    without them) ;
+  - `subcontainer1` in the `-it` and `-mem` legs : the emitted C++ does not
+    compile (`redeclaration of 'int mydsp::fSampleRate'`) ;
+  - in the float legs (`cpp/float`, `c/float`, their `vec` and `omp`
+    legs, `ocpp/float`), nineteen programs beyond the tolerance : `bells`,
+    `comb_bug_exp`, `comb_delay1`, `comb_delay2`, `grain3`,
+    `long_convolution`, `math`, `modulations`, `osc`, `pow`, `priority`,
+    `priority1`, `sound`, `table`, `table2`, `tester`, `tester2`, `tf_exp`,
+    `vocal_impulse_train` ; in `ocpp/float/mcd0` and its `vec` legs,
+    twenty-eight ;
+  - in the `quad` legs, nine programs beyond the tolerance : `comb_delay1`,
+    `comb_delay2`, `grain3`, `long_convolution`, `osc`, `sound`, `table`,
+    `table2`, `vocal_impulse_train` ;
   - `sound` in the `cpp2/double/ecmem0`, `cpp2/double/osecmem` and
     `cpp3/double/vececmem0` legs: `ERROR : wrong size`, then a trap
-    (observed 2026-10-01, `b1e46d6cf`).
-  - `sound` in the `float` legs: see "Known harness defects" 5.
-  - every program in the `ocpp` leg under `-dlt 0`: no response at all
-    (observed 2026-10-07, `52de44cac`).
+    (observed 2026-10-01, `b1e46d6cf`), and in the float legs (see "Known
+    harness defects" 5).
+- **`table2` under `-mapp`** (`cpp/double/mapp`, `master-dev-certification`
+  only). `-mapp` replaces `fmod(2 + x, 7)` by an approximation whose
+  integer part indexes a table ; the normal form distributes the constant
+  factor over `2 + x`, and at `x = 19` the integer part gives 7 instead of
+  0. Over 30000 samples the index differs from the exact one 3 times, 2
+  with `master-dev` and with the exact `fmod`.
 
 A program that is already broken cannot witness a second breakage: an
 innocuity test run over an already-failing case has no power there, while
@@ -571,16 +707,16 @@ above, and fix the flags rather than excuse the tests.
 
 | workflow | what it actually does |
 | :------- | :-------------------- |
-| `ubuntu.yml` | builds, then `tests/impulse-tests make github_action` |
+| `ubuntu.yml` | builds, then the Java impulse leg (`java -k`, double, scalar), then `tests/impulse-tests make github_action` |
 | `macos.yml` | builds only, no test |
 | `windows.yml` | builds only, no test |
-| `libfaust.yml` | builds and packages libfaust, no test |
+| `libfaust.yml` | manual only (`workflow_dispatch`) : builds and packages libfaust, no test |
 | `jax-tests.yml` | builds, then the jax / nnx / linen tests |
 
-`github_action` is three Rust legs and **one** C++ leg, in `-double`
-scalar. No `-vec`, no `ocpp`, no float, no library specification. Vector
+`github_action` is three Rust legs and **one** C++ leg, and the workflow
+adds one Java leg, all in `-double` scalar. No `-vec`, no `ocpp`, no float, no library specification. Vector
 backend regressions are invisible to it by construction, which is why the
-two gates above are run by hand before anything is trusted.
+gates of this document are run by hand before anything is trusted.
 
 ## What a run report must state
 
@@ -608,36 +744,44 @@ These are the places where the procedure above is correct but the tooling
 does not protect it.
 
 1. **Outputs do not depend on the options.** `tests/output/<test>.out`
-   records nothing about the options that produced it, so re-running with
-   a different `FAUST_OPT` does not invalidate it: make answers `Nothing
-   to be done for 'check'` and tests nothing. This is why `make clean` is
+   records nothing about the options that produced it, nor about the
+   faust binary or the reference it was compared with, so re-running with
+   a different `FAUST_OPT`, another binary or new references does not
+   invalidate it: make answers `Nothing to be done for 'check'` and tests
+   nothing. This is why `make clean` is
    mandatory. *Fix:* make the outputs depend on a stamp holding
    `FAUST_OPT` and the identity of the faust binary.
 
 2. **The reference stamp is written but never read.** `make reference`
    writes `tests/reference/PARAMS` (faust version, `FAUST_OPT`, sample
    count, sample rate, tolerance), but `check` never opens it, and
-   `PARAMS` has no prerequisite, so it is never rewritten. After a
+   `PARAMS` has only an order-only prerequisite (its directory), so once
+   written it is never rewritten. After a
    partial deletion of the `.ref` files without `make distclean`, it
    lies. *Fix:* have `check` print `PARAMS` in its header and refuse a
    reference set that was not produced by the declared trusted compiler;
    add the `libraries` sha and the C++ compiler to it. `PARAMS` also
    keeps only the first line of `--version`, so it records the release
-   and loses the commit — the `head -1` becomes `head -2` now that the
-   commit is on the second line.
+   and, for a binary that prints it, loses the commit : record the
+   `Source commit:` line by matching it (`grep '^Source commit:'`) rather
+   than by its position, since releases up to 2.88.0 do not print it.
 
-3. **The impulse targets chained their legs in one recipe** — fixed:
-   every leg is now a target of its own (see Gate 1). Kept here because
-   the same shape exists elsewhere: a recipe that chains independent
-   runs as successive lines silently stops at the first failure, and
-   `-k` will not save it.
+3. **Some impulse targets chain their legs in one recipe.** The legs run
+   through `Make.gcc`, and `java`, are targets of their own (see Gate 1).
+   Still chained : `all` (one line per family, so `make all -k` stops at
+   the first failing family), `github_action` (which the continuous
+   integration runs without `-k`), and the `wasm`, `wast`, `llvm`,
+   `llvm1`, `interp`, `interp1`, `rust`, `dlang`, `julia` and `cmajor`
+   families. A recipe that chains independent runs as successive lines
+   stops at the first failure, and `-k` will not save it.
 
-4. **The accept/reject criterion is wired to nothing.**
+4. **The error and warning suites are wired to nothing.**
    `tests/error-tests/CMakeLists.txt` declares one `add_test` per file
    with `WILL_FAIL TRUE`, which is exactly right, but no
    `add_subdirectory` includes it and the build registers no ctest tests.
-   The same holds for `tests/warning-tests`. The harness for criterion 1
-   exists, written, and never runs.
+   The same holds for `tests/warning-tests`. Gate 7 checks the acceptance
+   and refusal of the certification ; the syntax and typing errors these
+   two suites cover are checked by nothing.
 
 5. **The soundfile buffers do not follow the DSP precision.** The impulse
    architectures create `SoundUI` with `is_double = sizeof(FAUSTFLOAT) ==
@@ -651,9 +795,13 @@ does not protect it.
 6. **The impulse driver leaks memory.** `impulsearch` does not free all
    it allocates, so under AddressSanitizer every program fails on
    LeakSanitizer before its output is compared: the leg shows 0 responses
-   of 96, which looks like a catastrophe and is only a false start. Run
+   of 102, which looks like a catastrophe and is only a false start. Run
    with `ASAN_OPTIONS=detect_leaks=0`. *Fix:* free what the driver
    allocates.
+
+7. **Dead rules for `control`.** Several harness files keep a rule for
+   `dsp/control.dsp`, a program that no longer exists. They are never
+   used. *Fix:* remove them.
 
 ## Still to be settled
 
