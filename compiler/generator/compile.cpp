@@ -153,11 +153,13 @@ bool isCertificationWarning(const std::string& warning)
 
 void checkCertificates()
 {
+    const double seconds = gGlobal->gMinCertifiedSeconds;
     for (const auto& [reason, samples] : sigs::g.gCertifiedSamples) {
-        if (samples < 10 * 48000.0) {
+        if (samples < seconds * 48000.0) {
             std::stringstream error;
             error << "ERROR : this program is certified for only " << certifiedDuration(samples) << " ("
-                  << reason << ") : at least 10 seconds at 48000 Hz are required" << endl
+                  << reason << ") : at least " << seconds << " seconds at 48000 Hz are required (-mcs)"
+                  << endl
                   << kIntervalRefusalHint;
             throw faustexception(error.str());
         }
