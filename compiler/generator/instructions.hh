@@ -1460,8 +1460,9 @@ struct BoolNumInst : public ValueInst, public NumValueInst {
 // Negate the wrapped value
 struct NegInst : public ValueInst {
     ValueInst* fInst;
+    bool       fWrap;  ///< an Int32 negation that may overflow : it wraps (C and C++)
 
-    NegInst(ValueInst* inst) : ValueInst(), fInst(inst) {}
+    NegInst(ValueInst* inst, bool wrap = true) : ValueInst(), fInst(inst), fWrap(wrap) {}
 
     virtual ~NegInst() {}
 
@@ -1480,9 +1481,10 @@ struct BinopInst : public ValueInst {
     const int  fOpcode;
     ValueInst* fInst1;
     ValueInst* fInst2;
+    bool       fWrap;  ///< an Int32 add, sub or mul that may overflow : it wraps (C and C++)
 
-    BinopInst(int opcode, ValueInst* inst1, ValueInst* inst2)
-        : ValueInst(), fOpcode(opcode), fInst1(inst1), fInst2(inst2)
+    BinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, bool wrap = true)
+        : ValueInst(), fOpcode(opcode), fInst1(inst1), fInst2(inst2), fWrap(wrap)
     {
     }
 
@@ -1885,14 +1887,14 @@ class BasicCloneVisitor : public CloneVisitor {
     }
 
     // Numerical computation
-    virtual ValueInst* visit(NegInst* inst) { return new NegInst(inst->fInst->clone(this)); }
+    virtual ValueInst* visit(NegInst* inst) { return new NegInst(inst->fInst->clone(this), inst->fWrap); }
 
     virtual ValueInst* visit(BinopInst* inst)
     {
         // To be sure args are evaluated in order
         ValueInst* cloned_arg1 = inst->fInst1->clone(this);
         ValueInst* cloned_arg2 = inst->fInst2->clone(this);
-        return new BinopInst(inst->fOpcode, cloned_arg1, cloned_arg2);
+        return new BinopInst(inst->fOpcode, cloned_arg1, cloned_arg2, inst->fWrap);
     }
 
     // Cast
@@ -2580,7 +2582,13 @@ struct IB {
     static BoolNumInst*  genBoolNumInst(bool num) { return new BoolNumInst(num); }
 
     // Numerical computation
-    static NegInst*   genNeg(ValueInst* inst) { return new NegInst(inst); }
+    static NegInst*   genNeg(ValueInst* inst, bool wrap = true) { return new NegInst(inst, wrap); }
+    static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, bool wrap)
+    {
+        BinopInst* b = genBinopInst(opcode, inst1, inst2);
+        b->fWrap     = wrap;
+        return b;
+    }
     static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2)
     {
         return new BinopInst(opcode, inst1, inst2);

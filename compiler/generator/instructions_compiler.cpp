@@ -1061,7 +1061,10 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
         // left to right : the order clang used, hence the code emitted so far.
         ValueInst* v1 = CS(a1);
         ValueInst* v2 = CS(a2);
-        return generateCacheCode(sig, IB::genBinopInst(opcode, v1, v2));
+        // an operation that is not Int32 keeps the default : its code may still be an int
+        // (a comparison minus an int)
+        const bool wrap = binOpWraps(sig, opcode, a1, a2) || getCertifiedSigType(sig)->nature() != kInt;
+        return generateCacheCode(sig, IB::genBinopInst(opcode, v1, v2, wrap));
     }
 }
 
@@ -1074,7 +1077,7 @@ ValueInst* InstructionsCompiler::generateProd(Tree sig, const tvec& factors)
         InstructionsCompiler* fC;
         bool                  fInt;
         ValueInst*            term(Tree t) { return fC->CS(t); }
-        ValueInst*            mul(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kMul, a, b); }
+        ValueInst*            mul(ValueInst* a, ValueInst* b, bool w) { return IB::genBinopInst(kMul, a, b, w || !fInt); }
         ValueInst*            store(int variability, ValueInst* a) { return fC->compoundSlowStore(variability, a, fInt); }
     } ops{this, getCertifiedSigType(sig)->nature() == kInt};
     return generateCacheCode(sig, emitProd<ValueInst*>(sig, factors, ops));
@@ -1090,9 +1093,9 @@ ValueInst* InstructionsCompiler::generateSum(Tree sig, const tvec& subs)
         bool                  fInt;
         ValueInst*            term(Tree t) { return fC->CS(t); }
         ValueInst*            negatedTerm(Tree t) { return fC->operandAtRate(t); }
-        ValueInst*            add(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kAdd, a, b); }
-        ValueInst*            sub(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kSub, a, b); }
-        ValueInst*            neg(ValueInst* a) { return IB::genNeg(a); }
+        ValueInst*            add(ValueInst* a, ValueInst* b, bool w) { return IB::genBinopInst(kAdd, a, b, w || !fInt); }
+        ValueInst*            sub(ValueInst* a, ValueInst* b, bool w) { return IB::genBinopInst(kSub, a, b, w || !fInt); }
+        ValueInst*            neg(ValueInst* a, bool w) { return IB::genNeg(a, w || !fInt); }
         ValueInst*            store(int variability, ValueInst* a) { return fC->compoundSlowStore(variability, a, fInt); }
         ValueInst*            zero()
         {
@@ -1109,7 +1112,7 @@ ValueInst* InstructionsCompiler::generateSum(Tree sig, const tvec& subs)
  */
 ValueInst* InstructionsCompiler::generateNeg(Tree sig, Tree x)
 {
-    ValueInst* v = IB::genNeg(CS(x));
+    ValueInst* v = IB::genNeg(CS(x), negWraps(sig, x) || getCertifiedSigType(sig)->nature() != kInt);
     return generateCacheCode(sig, v);
 }
 

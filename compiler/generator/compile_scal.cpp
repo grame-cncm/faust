@@ -93,7 +93,8 @@ using namespace std;
 /**
  * Int32 add, sub and mul must wrap in two's complement (the integer noise
  * LCG relies on it) but signed overflow is undefined in C++, and clang -O2
- * exploits it ; they render as the faust_wrap_* helpers the class header
+ * exploits it ; where the exact result may leave Int32 (binOpWraps,
+ * sumLayout.hh) they render as the faust_wrap_* helpers the class header
  * defines, the same three the cpp backend emits. Other operations, and
  * every real operation, keep the infix rendering.
  */
@@ -2280,9 +2281,9 @@ class LoopSplitEmitter {
         }
         RatedOperand negatedTerm(Tree t) { return term(t); }
         RatedOperand combine(const char* real, const char* wrap, const RatedOperand& a,
-                             const RatedOperand& b)
+                             const RatedOperand& b, bool w)
         {
-            const char*  pattern = fInt ? wrap : real;
+            const char*  pattern = (fInt && w) ? wrap : real;
             RatedOperand r;
             r.slow = a.slow && b.slow;
             if (r.slow) {
@@ -2292,21 +2293,21 @@ class LoopSplitEmitter {
             }
             return r;
         }
-        RatedOperand add(const RatedOperand& a, const RatedOperand& b)
+        RatedOperand add(const RatedOperand& a, const RatedOperand& b, bool w)
         {
-            return combine("($0 + $1)", "faust_wrap_add($0, $1)", a, b);
+            return combine("($0 + $1)", "faust_wrap_add($0, $1)", a, b, w);
         }
-        RatedOperand sub(const RatedOperand& a, const RatedOperand& b)
+        RatedOperand sub(const RatedOperand& a, const RatedOperand& b, bool w)
         {
-            return combine("($0 - $1)", "faust_wrap_sub($0, $1)", a, b);
+            return combine("($0 - $1)", "faust_wrap_sub($0, $1)", a, b, w);
         }
-        RatedOperand mul(const RatedOperand& a, const RatedOperand& b)
+        RatedOperand mul(const RatedOperand& a, const RatedOperand& b, bool w)
         {
-            return combine("($0 * $1)", "faust_wrap_mul($0, $1)", a, b);
+            return combine("($0 * $1)", "faust_wrap_mul($0, $1)", a, b, w);
         }
-        RatedOperand neg(const RatedOperand& a)
+        RatedOperand neg(const RatedOperand& a, bool w)
         {
-            const char*  pattern = fInt ? "faust_wrap_sub(0, $0)" : "(-$0)";
+            const char*  pattern = (fInt && w) ? "faust_wrap_sub(0, $0)" : "(-$0)";
             RatedOperand r;
             r.slow = a.slow;
             r.o    = r.slow ? leafOperand(subst(pattern, a.o.code)) : fE->bodyOp(pattern, {a.o}, fInt);
@@ -2966,7 +2967,7 @@ class LoopSplitEmitter {
             addDep(deps, a);
             addDep(deps, b);
             call = (i == kRem) && !isInt;
-            const char* wrap = isInt ? wrapHelper(i) : nullptr;
+            const char* wrap = binOpWraps(t, i, x, y) ? wrapHelper(i) : nullptr;
             o.op = newOp(wrap ? subst("$0($1, $2)", wrap, operandCode(a), operandCode(b))
                               : subst("($0 $1 $2)", operandCode(a), gBinOpTable[i]->fName,
                                       operandCode(b)),
@@ -5724,8 +5725,7 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
     // reader spells the node as a delay vector, and that vector is
     // declared by generateCacheCode alone, so a negation with a delayed
     // occurrence takes the cache route like every other operation.
-    const char* wrap =
-        (getCertifiedSigType(sig)->nature() == kInt) ? wrapHelper(opcode) : nullptr;
+    const char* wrap = binOpWraps(sig, opcode, arg1, arg2) ? wrapHelper(opcode) : nullptr;
     if ((opcode == kMul) && (isMinusOne(arg1) || isMinusOne(arg2)) && !wrap) {
         std::string res = CS(isMinusOne(arg1) ? arg2 : arg1);
         std::string neg = ((res[0] == '(') || (res[0] == 'f') || (res[0] == 'i'))
@@ -5751,7 +5751,7 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
  */
 string ScalarCompiler::generateNeg(Tree sig, Tree x)
 {
-    const char* wrap = (getCertifiedSigType(sig)->nature() == kInt) ? wrapHelper(kMul) : nullptr;
+    const char* wrap = negWraps(sig, x) ? wrapHelper(kMul) : nullptr;
     if (wrap) {
         std::string sx = CS(x);
         return generateCacheCode(sig, subst("$0($1, $2)", wrap, T(-1), sx));
@@ -6544,8 +6544,7 @@ std::string ScalarCompiler::displayExpr(Tree t)
     int  op;
     Tree x, y, sel;
     if (isSigBinOp(t, &op, x, y)) {
-        const char* wrap =
-            (getCertifiedSigType(t)->nature() == kInt) ? wrapHelper(op) : nullptr;
+        const char* wrap = binOpWraps(t, op, x, y) ? wrapHelper(op) : nullptr;
         std::string sx = displayExpr(x);
         std::string sy = displayExpr(y);
         return wrap ? subst("$0($1, $2)", wrap, sx, sy)
@@ -6573,9 +6572,9 @@ std::string ScalarCompiler::displayExpr(Tree t)
             bool            fInt;
             std::string     term(Tree b) { return fC->displayExpr(b); }
             std::string     negatedTerm(Tree b) { return fC->displayExpr(b); }
-            std::string add(const std::string& a, const std::string& b) { return fInt ? subst("faust_wrap_add($0, $1)", a, b) : subst("($0 + $1)", a, b); }
-            std::string sub(const std::string& a, const std::string& b) { return fInt ? subst("faust_wrap_sub($0, $1)", a, b) : subst("($0 - $1)", a, b); }
-            std::string neg(const std::string& a) { return fInt ? subst("faust_wrap_sub(0, $0)", a) : subst("(-$0)", a); }
+            std::string add(const std::string& a, const std::string& b, bool w) { return w ? subst("faust_wrap_add($0, $1)", a, b) : subst("($0 + $1)", a, b); }
+            std::string sub(const std::string& a, const std::string& b, bool w) { return w ? subst("faust_wrap_sub($0, $1)", a, b) : subst("($0 - $1)", a, b); }
+            std::string neg(const std::string& a, bool w) { return w ? subst("faust_wrap_sub(0, $0)", a) : subst("(-$0)", a); }
             std::string store(int, const std::string& a) { return a; }
             std::string zero() { return "0"; }
         } ops{this, getCertifiedSigType(t)->nature() == kInt};
@@ -6586,15 +6585,14 @@ std::string ScalarCompiler::displayExpr(Tree t)
             ScalarCompiler* fC;
             bool            fInt;
             std::string     term(Tree b) { return fC->displayExpr(b); }
-            std::string mul(const std::string& a, const std::string& b) { return fInt ? subst("faust_wrap_mul($0, $1)", a, b) : subst("($0 * $1)", a, b); }
+            std::string mul(const std::string& a, const std::string& b, bool w) { return w ? subst("faust_wrap_mul($0, $1)", a, b) : subst("($0 * $1)", a, b); }
             std::string store(int, const std::string& a) { return a; }
         } ops{this, getCertifiedSigType(t)->nature() == kInt};
         return emitProd<std::string>(t, F, ops);
     }
     if (isSigNeg(t, x)) {
         std::string sx = displayExpr(x);
-        return (getCertifiedSigType(t)->nature() == kInt) ? subst("faust_wrap_sub(0, $0)", sx)
-                                                          : subst("(-$0)", sx);
+        return negWraps(t, x) ? subst("faust_wrap_sub(0, $0)", sx) : subst("(-$0)", sx);
     }
     if (getUserData(t) != nullptr && t->arity() > 0) {
         xtendedCodegen*          p = static_cast<xtendedCodegen*>((xtended*)getUserData(t));
@@ -7677,7 +7675,7 @@ string ScalarCompiler::generateProd(Tree sig, const tvec& factors)
         ScalarCompiler* fC;
         bool            fInt;
         string          term(Tree t) { return fC->CS(t); }
-        string mul(const string& a, const string& b) { return fInt ? subst("faust_wrap_mul($0, $1)", a, b) : subst("($0 * $1)", a, b); }
+        string mul(const string& a, const string& b, bool w) { return w ? subst("faust_wrap_mul($0, $1)", a, b) : subst("($0 * $1)", a, b); }
         string store(int variability, const string& a) { return fC->compoundSlowStore(variability, a, fInt); }
     } ops{this, getCertifiedSigType(sig)->nature() == kInt};
     return generateCacheCode(sig, emitProd<string>(sig, factors, ops));
@@ -7688,18 +7686,18 @@ string ScalarCompiler::generateProd(Tree sig, const tvec& factors)
  */
 string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
 {
-    // An int sum wraps through the faust_wrap_add/sub helpers, like every Int32 add, sub
-    // and mul of this emitter : a signed chain is UB on overflow, and clang -O3
-    // reassociates it under the no-overflow assumption, false for anything that lives off
-    // the wrap (the LCG noise family).
+    // An int sum wraps through the faust_wrap_add/sub helpers where a partial sum may
+    // overflow, like every Int32 add, sub and mul of this emitter : a signed chain is UB on
+    // overflow, and clang -O3 reassociates it under the no-overflow assumption, false for
+    // anything that lives off the wrap (the LCG noise family).
     struct Ops {
         ScalarCompiler* fC;
         bool            fInt;
         string          term(Tree t) { return fC->CS(t); }
         string          negatedTerm(Tree t) { return fC->operandAtRate(t); }
-        string add(const string& a, const string& b) { return fInt ? subst("faust_wrap_add($0, $1)", a, b) : subst("($0 + $1)", a, b); }
-        string sub(const string& a, const string& b) { return fInt ? subst("faust_wrap_sub($0, $1)", a, b) : subst("($0 - $1)", a, b); }
-        string neg(const string& a) { return fInt ? subst("faust_wrap_sub(0, $0)", a) : subst("(-$0)", a); }
+        string add(const string& a, const string& b, bool w) { return w ? subst("faust_wrap_add($0, $1)", a, b) : subst("($0 + $1)", a, b); }
+        string sub(const string& a, const string& b, bool w) { return w ? subst("faust_wrap_sub($0, $1)", a, b) : subst("($0 - $1)", a, b); }
+        string neg(const string& a, bool w) { return w ? subst("faust_wrap_sub(0, $0)", a) : subst("(-$0)", a); }
         string store(int variability, const string& a) { return fC->compoundSlowStore(variability, a, fInt); }
         string zero() { return "0"; }
     } ops{this, getCertifiedSigType(sig)->nature() == kInt};
