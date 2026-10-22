@@ -1099,32 +1099,6 @@ ValueInst* InstructionsCompiler::generateSum(Tree sig, const tvec& subs)
             return fInt ? static_cast<ValueInst*>(IB::genInt32NumInst(0))
                         : static_cast<ValueInst*>(IB::genRealNumInst(itfloat(), 0.0));
         }
-        // acc +/- head * last as faust_fma(+/- head, last, acc), a product nothing else reads
-        bool fuse(Tree t, bool positive, ValueInst* acc, ValueInst*& out)
-        {
-            tvec head;
-            Tree last;
-            if (fInt || !fusableProduct(t, head, last) || getSharingCount(t, fC->fSharingKey) > 1) {
-                return false;
-            }
-            ValueInst* h;
-            if (head.size() == 1) {
-                h = fC->CS(head[0]);
-            } else {
-                struct ProdOps {
-                    InstructionsCompiler* fC;
-                    ValueInst*            term(Tree f) { return fC->CS(f); }
-                    ValueInst*            mul(ValueInst* a, ValueInst* b) { return IB::genBinopInst(kMul, a, b); }
-                    ValueInst*            store(int variability, ValueInst* a) { return fC->compoundSlowStore(variability, a, false); }
-                } pops{fC};
-                h = emitProd<ValueInst*>(t, head, pops);
-            }
-            if (!positive) h = IB::genNeg(h);
-            ValueInst*             l     = fC->CS(last);
-            std::vector<Typed::VarType> types = {itfloat(), itfloat(), itfloat()};
-            out = fC->fContainer->pushFunction(subst("faust_fma$0", isuffix()), itfloat(), types, {h, l, acc});
-            return true;
-        }
     } ops{this, getCertifiedSigType(sig)->nature() == kInt};
     return generateCacheCode(sig, emitSum<ValueInst*>(sig, subs, ops));
 }
