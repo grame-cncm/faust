@@ -1032,7 +1032,8 @@ class AffineOps : public Base {
         AffItv acc;
         for (size_t k = 0; k < coefs.size(); k++) {
             const AffItv& ck = coefs[k];
-            if (!ck.isEmpty() && ck.isConst() && ck.a0 == 0 && ck.b0 == 0 && !ck.mayBeInvalid) continue;
+            // a null coefficient adds nothing, unless it moves past the horizon
+            if (!ck.isEmpty() && !ck.moving() && ck.a0 == 0 && ck.b0 == 0 && !ck.mayBeInvalid) continue;
             AffItv term = (k == 0) ? this->Mul(ck, x) : this->Mul(ck, this->Delay(x, this->IntNum(int(k))));
             acc         = first ? term : this->Add(acc, term);
             overflow    = overflow || term.mayOverflow || acc.mayOverflow;

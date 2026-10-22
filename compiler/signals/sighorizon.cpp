@@ -1471,7 +1471,8 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         int k;
         if (c.size() != 2 || !isSigInt(sig->branch(1), &k) || k != 1) return false;
         const AffItv& x = c[0];
-        if (x.isEmpty() || !x.isConst() || x.lsb < 0 || !std::isfinite(x.a0) || !std::isfinite(x.b0)) {
+        // x constant for all time : a moving x is left to the other rules
+        if (x.isEmpty() || x.moving() || x.lsb < 0 || !std::isfinite(x.a0) || !std::isfinite(x.b0)) {
             return false;
         }
         result      = x;
@@ -1625,7 +1626,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
             AffItv acc = x;
             for (size_t k = 0; k < cs.size(); k++) {
                 const AffItv& ck = cs[k];
-                if (ck.isConst() && ck.a0 == 0 && ck.b0 == 0 && !ck.mayBeInvalid) continue;
+                if (!ck.moving() && ck.a0 == 0 && ck.b0 == 0 && !ck.mayBeInvalid) continue;
                 acc = this->Add(acc, this->Mul(ck, this->Delay(y, this->IntNum(int(k) + 1))));
             }
             return acc;
