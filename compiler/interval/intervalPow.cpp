@@ -161,7 +161,8 @@ interval interval_algebra::numericiPow(const interval& x, const interval& y) con
     // modulo 2^32. Once a wrap is possible, the current interval domain cannot
     // represent the resulting disjoint set precisely, so use a sound envelope.
     if ((x.lsb() >= 0) && (y.lsb() >= 0) && integerPowerMayWrap(x, y1)) {
-        return fullIntegerRange();
+        // the products that compute the power may wrap
+        return fullIntegerRange().withOverflow();
     }
 
     interval z  = ipow(x, y0);
