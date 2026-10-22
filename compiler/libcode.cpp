@@ -1093,6 +1093,7 @@ static void printHeader(ostream& dst)
     // particular -- never have to guess the options from the command line.
     dst << "// Compilation options: " << gGlobal->printCompilationOptions1() << endl;
     dst << "//----------------------------------------------------------" << endl << endl;
+    printNoContraction(dst);
 }
 
 static void generateCodeAux2(unique_ptr<ifstream>& enrobage, unique_ptr<ostream>& dst)
