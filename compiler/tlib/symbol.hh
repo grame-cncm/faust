@@ -91,7 +91,9 @@ class Symbol : public Garbageable {
     static std::size_t        gHashTableSize;   ///< current size of the hash table (grows as needed)
     static std::size_t        gHashTableCount;  ///< number of symbols currently stored in the table
     static Symbol**       gSymbolTable;     ///< hash table used to store the symbols (grows by rehashing)
-    static std::map<std::string, std::size_t> gPrefixCounters;
+    ///< the counter of each prefix of unique(), built on first use : a symbol may be made
+    ///< during the static initialization, before the tables of symbol.cpp are built
+    static std::map<std::string, std::size_t>& prefixCounters();
 
     static double gHashLoadFactor;  ///< load factor triggering table growth (see setHashLoadFactor)
 

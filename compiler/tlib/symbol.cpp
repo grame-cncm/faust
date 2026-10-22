@@ -40,7 +40,14 @@ size_t   Symbol::gHashTableSize   = 0;
 size_t   Symbol::gHashTableCount  = 0;
 double   Symbol::gHashLoadFactor  = 0.7;
 
-map<string, size_t> Symbol::gPrefixCounters;
+// Built on first use, as the table of the symbols : a symbol may be made during the static
+// initialization (a property declared at namespace scope), before a table defined here
+// would be built.
+map<string, size_t>& Symbol::prefixCounters()
+{
+    static map<string, size_t> counters;
+    return counters;
+}
 
 namespace {
 
@@ -51,7 +58,11 @@ struct SignatureState {
     std::uint16_t nextLocalOpcode;
 };
 
-map<Sym, SignatureState> gSignatureTable;
+map<Sym, SignatureState>& signatureTable()
+{
+    static map<Sym, SignatureState> table;
+    return table;
+}
 std::uint64_t            gNextSignatureBase = 0;
 
 }  // namespace
@@ -190,7 +201,7 @@ Sym Symbol::prefix(const string& str)
     string name;
 
     for (int n = 0; n < 10000; n++) {
-        name = str + std::to_string(gPrefixCounters[str]++);
+        name = str + std::to_string(prefixCounters()[str]++);
         if (isnew(name)) {
             return get(name);
         }
@@ -259,8 +270,8 @@ ostream& Symbol::print(ostream& fout) const  ///< print a symbol on a stream
 
 void Symbol::init()
 {
-    gPrefixCounters.clear();
-    gSignatureTable.clear();
+    prefixCounters().clear();
+    signatureTable().clear();
     gNextSignatureBase = 0;
     gHashTableCount = 0;
     delete[] gSymbolTable;
@@ -291,11 +302,11 @@ Signature signature(const std::string& signatureName)
     }
 
     Sym identity = Symbol::get(signatureName);
-    if (gSignatureTable.find(identity) == gSignatureTable.end()) {
+    if (signatureTable().find(identity) == signatureTable().end()) {
         if (gNextSignatureBase > lastBase) {
             tlib::error("signature: global opcode space exhausted");
         }
-        gSignatureTable.emplace(
+        signatureTable().emplace(
             identity, SignatureState {static_cast<SymbolOpcode>(gNextSignatureBase), 0});
         gNextSignatureBase += kOpcodesPerSignature;
     }
@@ -312,8 +323,8 @@ Signature signature(const std::string& signatureName)
  */
 Sym Signature::add(const std::string& symbolName) const
 {
-    auto stateIt = gSignatureTable.find(fIdentity);
-    if (stateIt == gSignatureTable.end()) {
+    auto stateIt = signatureTable().find(fIdentity);
+    if (stateIt == signatureTable().end()) {
         tlib::error("Signature::add: invalid signature handle");
     }
 
