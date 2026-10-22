@@ -105,6 +105,24 @@ struct AffItv {
     }
 };
 
+/// A bound of the rounding error of one double operation of the program whose result is at
+/// most m in magnitude : a power of two at least half an ulp of m (2^(e-53) for m < 2^e),
+/// plus the smallest subnormal. A power of two does not move when m moves by little, so
+/// that the corridor of a recursion that carries it can be stationary.
+inline double roundingQuantum(double m)
+{
+    if (!std::isfinite(m)) return HUGE_VAL;
+    int e = 0;
+    std::frexp(m, &e);  // m < 2^e
+    return std::ldexp(1.0, std::max(e - 53, -1074)) + std::ldexp(1.0, -1074);
+}
+
+/// The largest magnitude that x reaches over [0, T]
+inline double magnitude(const AffItv& x, double T)
+{
+    return std::max({std::abs(x.lo(0)), std::abs(x.lo(T)), std::abs(x.hi(0)), std::abs(x.hi(T))});
+}
+
 /// x, its bounds drifting as well where those of y drift (a join, a widening)
 inline AffItv adrift(AffItv x, const AffItv& y)
 {
@@ -319,9 +337,20 @@ inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
     AffItv r = adrift(fresh, old);
     r.mayBeInvalid = invalid;
     r.mayOverflow  = overflow;
+    // the rounding that the double operations of one round add, absorbed by the rate : an
+    // accumulator in double gains at most a few rounding quanta of its magnitude per round
+    // (on its intercept, and on its rate through the outward chords of its joins), a growth
+    // that its rate, proposed on a smaller magnitude, did not count
+    const double creep = 4 * roundingQuantum(magnitude(fresh, T));
+    auto absorbs = [&](double d1, double d0) {
+        return fresh.lsb < 0 && d0 >= 0 && d0 <= creep && d1 >= 0 && d1 * std::max(T, 1.0) <= creep;
+    };
     if (whi) {
         if (old.b1 == fresh.b1 && old.b1 == 0 && std::isfinite(fresh.b0 - old.b0)) {
             r.b1 = fresh.b0 - old.b0;  // propose the observed per-round rate
+        } else if (old.b1 != 0 && absorbs(fresh.b1 - old.b1, fresh.b0 - old.b0)) {
+            r.b0 = std::max(fresh.b0, old.b0);
+            r.b1 = detail::directedBinary(detail::BinaryOp::Add, fresh.b1, creep, detail::Direction::Up);
         } else {
             r.b0 = (fresh.lsb >= 0) ? 2147483647.0 : HUGE_VAL;  // escalate
             r.b1 = 0;
@@ -331,6 +360,9 @@ inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
     if (wlo) {
         if (old.a1 == fresh.a1 && old.a1 == 0 && std::isfinite(fresh.a0 - old.a0)) {
             r.a1 = fresh.a0 - old.a0;
+        } else if (old.a1 != 0 && absorbs(old.a1 - fresh.a1, old.a0 - fresh.a0)) {
+            r.a0 = std::min(fresh.a0, old.a0);
+            r.a1 = detail::directedBinary(detail::BinaryOp::Sub, fresh.a1, creep, detail::Direction::Down);
         } else {
             r.a0 = (fresh.lsb >= 0) ? -2147483648.0 : -HUGE_VAL;
             r.a1 = 0;
