@@ -888,6 +888,9 @@ static std::string typeComment(Type t)
     if (i.mayBeInvalid()) {
         str << " invalid";
     }
+    if (i.mayOverflow()) {
+        str << " overflow";
+    }
     return str.str();
 }
 

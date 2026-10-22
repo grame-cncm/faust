@@ -259,7 +259,7 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
     };
     const SimpleTypeKey key{n,          v,           c,       vec,
                             b,          bits(i.lo()), bits(i.hi()), i.lsb(),
-                            i.mayBeInvalid(), lsb.valid, lsb.index};
+                            i.mayBeInvalid(), i.mayOverflow(), lsb.valid, lsb.index};
     auto it = sigs::g.gMemoizedTypes.find(key);
     if (it != sigs::g.gMemoizedTypes.end()) return it->second;
     sigs::g.gAllocationCount++;

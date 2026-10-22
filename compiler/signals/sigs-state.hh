@@ -56,6 +56,7 @@ struct SimpleTypeKey {
     std::uint64_t lo, hi;  ///< the bit patterns of the bounds
     int           lsb;
     bool          mayBeInvalid;
+    bool          mayOverflow;  ///< the int32 operation may wrap
     bool          resValid;
     int           resIndex;
 
@@ -64,7 +65,8 @@ struct SimpleTypeKey {
         return nature == k.nature && variability == k.variability &&
                computability == k.computability && vectorability == k.vectorability &&
                boolean == k.boolean && lo == k.lo && hi == k.hi && lsb == k.lsb &&
-               mayBeInvalid == k.mayBeInvalid && resValid == k.resValid &&
+               mayBeInvalid == k.mayBeInvalid && mayOverflow == k.mayOverflow &&
+               resValid == k.resValid &&
                resIndex == k.resIndex;
     }
 };
@@ -86,6 +88,7 @@ struct SimpleTypeKeyHash {
         mix(k.hi);
         mix(std::uint64_t(std::uint32_t(k.lsb)));
         mix(std::uint64_t(k.mayBeInvalid));
+        mix(std::uint64_t(k.mayOverflow));
         mix(std::uint64_t(k.resValid));
         mix(std::uint64_t(std::uint32_t(k.resIndex)));
         return std::size_t(h);
