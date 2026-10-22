@@ -26,6 +26,7 @@
 #include "exception.hh"
 #include "global.hh"
 #include "list.hh"
+#include "names.hh"
 #include "prim2.hh"
 #include "signals.hh"
 #include "xtended.hh"
@@ -176,6 +177,17 @@ struct PrintBudget {
     ~PrintBudget() { gPrintBudget = fSaved; }
 };
 
+// Whether a function value (a closure, a pattern matcher) prints as its
+// definition name rather than as its contents (see mBoxName). Thread-local,
+// as gPrintBudget.
+static thread_local bool gPrintFunctionsByName = false;
+
+struct PrintFunctionsByName {
+    bool fSaved;
+    PrintFunctionsByName() : fSaved(gPrintFunctionsByName) { gPrintFunctionsByName = true; }
+    ~PrintFunctionsByName() { gPrintFunctionsByName = fSaved; }
+};
+
 // Limit the box description string to max_size characters, and the print to
 // max_size nodes
 string mBox(Tree b, int max_size)
@@ -187,6 +199,24 @@ string mBox(Tree b, int max_size)
     }
     string str = error.str();
     return (int(str.size()) > max_size) ? (str.substr(0, max_size) + " ...") : str;
+}
+
+// mBox for a name made from an expression (the f(arg) of an application, the
+// label of a folded diagram): a function value inside it prints as its
+// definition name, `delay(8192)(1031)`, or `\(...)` when it has none. Printed
+// as itself, a closure is its abstraction and both its environments, of which
+// the truncation of a name keeps unreadable debris (`...ER5[nil]]]}`).
+string mBoxName(Tree b, int max_size)
+{
+    PrintFunctionsByName byName;
+    return mBox(b, max_size);
+}
+
+// The name a function value prints as under mBoxName.
+static string functionName(Tree t)
+{
+    Tree name;
+    return getDefNameProperty(t, name) ? tree2str(name) : "\\(...)";
 }
 
 static void streambinop(ostream& fout, Tree t1, const char* op, Tree t2, int curPriority,
@@ -437,8 +467,12 @@ ostream& boxpp::print(ostream& fout) const
         fout << "environment";
 
     } else if (isClosure(fBox, abstr, genv, vis, lenv)) {
-        fout << "closure[" << boxpp(abstr) << ", genv = " << envpp(genv)
-             << ", lenv = " << envpp(lenv) << "]";
+        if (gPrintFunctionsByName) {
+            fout << functionName(fBox);
+        } else {
+            fout << "closure[" << boxpp(abstr) << ", genv = " << envpp(genv)
+                 << ", lenv = " << envpp(lenv) << "]";
+        }
     } else if (isBoxComponent(fBox, label)) {
         fout << "component(" << tree2quotedstr(label) << ')';
     } else if (isBoxAccess(fBox, t1, t2)) {
@@ -474,7 +508,11 @@ ostream& boxpp::print(ostream& fout) const
 #endif
 
     else if (isBoxPatternMatcher(fBox)) {
-        fout << "PM[" << fBox << "]";
+        if (gPrintFunctionsByName) {
+            fout << functionName(fBox);
+        } else {
+            fout << "PM[" << fBox << "]";
+        }
     }
 
     else if (isBoxRoute(fBox, ins, outs, lroutes)) {

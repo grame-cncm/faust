@@ -1449,7 +1449,9 @@ static Tree realApplyList(Tree fun, Tree larg)
                 // exponential, and setDefNameProperty keeps a few dozen
                 // characters of the result. A bounded print : names shorter
                 // than the budget are unchanged.
-                s << "(" << mBox(arg, kApplyNamePrintBudget) << ")";
+                // A function argument, or one inside the argument, is
+                // written by its own name (mBoxName).
+                s << "(" << mBoxName(arg, kApplyNamePrintBudget) << ")";
             }
             setDefNameProperty(f, s.str());
         }

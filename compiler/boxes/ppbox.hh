@@ -106,4 +106,8 @@ inline std::ostream& operator<<(std::ostream& file, const envpp& epp)
 // Limit the box description string to max_size characters
 std::string mBox(Tree b, int max_size);
 
+// mBox for a name made from an expression: function values print as their
+// definition name
+std::string mBoxName(Tree b, int max_size);
+
 #endif
