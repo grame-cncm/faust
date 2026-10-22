@@ -556,7 +556,9 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         if (ia.lo() >= 0 && ib.lo() >= 0) rlo = std::max(rlo, 0.0);
         if (ia.hi() <= 0 && ib.hi() <= 0) rhi = std::min(rhi, 0.0);
         const int lsb = std::min({ic.lsb(), ia.lsb(), ib.lsb()});
-        return itv::fromItv(interval(rlo, rhi, lsb, aa.mayBeInvalid || ab.mayBeInvalid || ic.mayBeInvalid()));
+        // between its operands : a bound drifts where one of them moves past the horizon
+        return itv::hullDrift(itv::fromItv(interval(rlo, rhi, lsb, aa.mayBeInvalid || ab.mayBeInvalid || ic.mayBeInvalid())),
+                              {aa, ab});
     }
 
     /// a convex mix recognized in the sum sig, or nothing ; the remaining terms are added
@@ -728,7 +730,8 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
                   int depth) const
     {
         auto           known = ov.find(t);
-        const interval cur   = itv::toItv(known != ov.end() ? known->second : ev.eval(t), fT);
+        const AffItv   orig  = known != ov.end() ? known->second : ev.eval(t);
+        const interval cur   = itv::toItv(orig, fT);
         if (cur.isEmpty()) return;
         interval n = itv::intersection(cur, interval(target.lo(), target.hi(), cur.lsb()));
         n          = interval(n.lo(), n.hi(), cur.lsb(), cur.mayBeInvalid());
@@ -736,7 +739,11 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
             ov[t] = itv::aempty();
             return;
         }
-        ov[t] = itv::fromItv(n);
+        // a bound the guard sets holds for all time ; one the value sets keeps its motion
+        AffItv narrowed = itv::fromItv(n);
+        narrowed.loDrifts = target.lo() < cur.lo() && itv::loFalls(orig);
+        narrowed.hiDrifts = target.hi() > cur.hi() && itv::hiRises(orig);
+        ov[t] = narrowed;
         if (depth >= 8 || integerValue(t, cur)) return;  // integer arithmetic may wrap
         int    op;
         Tree   x, y;
@@ -888,7 +895,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         const interval ia = itv::toItv(a, fT), ib = itv::toItv(b, fT);
         const double   lo = std::max(ia.lo(), ib.lo()), hi = std::min(ia.hi(), ib.hi());
         if (lo > hi) return a;
-        AffItv r       = itv::fromItv(interval(lo, hi, std::min(ia.lsb(), ib.lsb())));
+        AffItv r       = itv::meetDrift(itv::fromItv(interval(lo, hi, std::min(ia.lsb(), ib.lsb()))), a, b);
         r.mayBeInvalid = a.mayBeInvalid && b.mayBeInvalid;
         return r;
     }
@@ -1035,8 +1042,12 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
             if (!constNum(ti, k)) return false;
             th.push_back(k);
         }
-        const interval ix = itv::toItv(ev.eval(x), fT);
+        const AffItv   ax = ev.eval(x);
+        const interval ix = itv::toItv(ax, fT);
         if (ix.isEmpty()) return false;
+        // past the horizon, a moving x may reach regions it does not reach over [0, T]
+        const interval fx    = itv::forever(ax, fT);
+        bool           later = false;
         auto known = fSelectReads.find(x);
         if (known == fSelectReads.end()) {
             known = fSelectReads.emplace(x, SelectReads()).first;
@@ -1050,6 +1061,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
             const double hi   = (i == th.size()) ? HUGE_VAL : th[i];
             const bool   last = (i == th.size());
             const bool   inRange = ix.hi() >= lo && ix.lo() < hi;
+            later                = later || (!inRange && fx.hi() >= lo && fx.lo() < hi);
             AffItv       ri;
             bool         reached = false;
             if (inRange) {
@@ -1069,6 +1081,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
             any = true;
         }
         if (!any) return false;
+        if (later) acc.loDrifts = acc.hiDrifts = true;
         result = acc;
         return true;
     }
@@ -1146,6 +1159,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         bool   ok = false;
         double radius = 0;  ///< bound of |x| and |y|
         bool   invalid = false;
+        bool   moves = false;  ///< the bound holds for a limited time, or an input moves past the horizon
     };
     mutable std::unordered_map<Tree, Rotation> fRotations;  ///< per recursive group
 
@@ -1304,7 +1318,8 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
                     const AffItv   v  = ev.eval(t);
                     const interval iv = itv::toItv(v, fT);
                     if (iv.isEmpty() || !iv.isBounded()) return rot;
-                    invalid = invalid || v.mayBeInvalid;
+                    invalid   = invalid || v.mayBeInvalid;
+                    rot.moves = rot.moves || v.moving();
                     uu += std::max(std::abs(iv.lo()), std::abs(iv.hi()));
                 }
             }
@@ -1325,6 +1340,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
             rot.radius = A + U / (1 - rho);
         } else {
             if (U > 0) return rot;  // a driven undamped resonator grows even exactly
+            rot.moves             = true;  // the radius may grow past the certified duration
             const double doubling = std::log(2.0) / std::log(rho);
             const double n        = std::min(doubling, fT);
             rot.radius            = A * std::pow(rho, n);
@@ -1385,6 +1401,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         const Rotation& rot = it->second;
         if (!rot.ok) return false;
         result = itv::fromItv(interval(-rot.radius, rot.radius, -24, rot.invalid));
+        if (rot.moves) result.loDrifts = result.hiDrifts = true;
         return true;
     }
 
@@ -1439,6 +1456,9 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         if (iA.hi() <= 0) hi = (1 - ia.hi()) * iA.hi() * shrink;
         result = itv::fromItv(interval(lo, hi, std::min(iA.lsb(), ia.lsb()),
                                        prod.mayBeInvalid || c[0].mayBeInvalid || c[1].mayBeInvalid));
+        // a smoothing of A : a bound drifts where A moves ; a moving pole may leave [0, 1)
+        result = itv::hullDrift(result, {prod});
+        if (c[1].moving()) result.loDrifts = result.hiDrifts = true;
         return true;
     }
 
@@ -1538,8 +1558,13 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         // interval of that computation
         if (Tree mc, ma, mb, t; isSigMix(sig, mc, ma, mb) && c.size() == 3 &&
                                 mixFromWeight(mc, itv::toItv(c[0], fT), t)) {
-            return itv::fromItv(fItv.MixOfComplement(itv::toItv(ev.eval(t), fT), itv::toItv(c[1], fT),
-                                                     itv::toItv(c[2], fT)));
+            const AffItv at = ev.eval(t);
+            AffItv       r  = itv::hullDrift(itv::fromItv(fItv.MixOfComplement(itv::toItv(at, fT), itv::toItv(c[1], fT),
+                                                                         itv::toItv(c[2], fT))),
+                                             {c[1], c[2]});
+            // a moving weight may leave [0, 1] past the horizon
+            if (at.moving()) r.loDrifts = r.hiDrifts = true;
+            return r;
         }
         // a sum typed in the cases of its guards, and by the sum rules : two sound bounds,
         // intersected
@@ -1659,7 +1684,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         // both bounded : their intersection ; NaN only when both allow it
         const double lo = std::max(ig.lo(), id.lo()), hi = std::min(ig.hi(), id.hi());
         AffItv       r  = (ig.hi() - ig.lo() <= id.hi() - id.lo()) ? gain : def;
-        if (lo <= hi) r = itv::fromItv(interval(lo, hi, std::min(ig.lsb(), id.lsb())));
+        if (lo <= hi) r = itv::meetDrift(itv::fromItv(interval(lo, hi, std::min(ig.lsb(), id.lsb()))), gain, def);
         r.mayBeInvalid = gain.mayBeInvalid && def.mayBeInvalid;
         return r.withOverflow(overflow);
     }
