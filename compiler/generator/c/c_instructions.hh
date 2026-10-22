@@ -52,8 +52,6 @@ class CInstVisitor : public TextInstVisitor {
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
-        gFunctionSymbolTable["faust_fmaf"] = true;  // defined in the prelude (printNoContraction)
-        gFunctionSymbolTable["faust_fma"]  = true;
 
         gFunctionSymbolTable["min_i"] = true;
         gFunctionSymbolTable["max_i"] = true;
