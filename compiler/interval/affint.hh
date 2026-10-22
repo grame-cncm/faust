@@ -14,6 +14,8 @@
  */
 #pragma once
 
+#include <initializer_list>
+
 #include <algorithm>
 #include <cmath>
 
@@ -230,6 +232,36 @@ inline void achord(double v0, double vT, double T, double& c0, double& c1, bool 
 /// Join (reunion) of two forms: endpoint hulls, chorded back to affine. Sound by
 /// convexity — max of affine functions is convex, so its chord lies above it on
 /// [0, T] (and min is concave, chord below). Exact when both are constant.
+/// the upper bound of x may rise past the horizon, its lower bound fall
+inline bool hiRises(const AffItv& x)
+{
+    return x.b1 > 0 || x.hiDrifts;
+}
+inline bool loFalls(const AffItv& x)
+{
+    return x.a1 < 0 || x.loDrifts;
+}
+
+/// r, a constant corridor rebuilt from the hulls over [0, T] of values that hold it between
+/// them (a mix, a smoothing) : a bound drifts where one of them moves past the horizon
+inline AffItv hullDrift(AffItv r, std::initializer_list<AffItv> xs)
+{
+    for (const AffItv& x : xs) {
+        r.loDrifts = r.loDrifts || loFalls(x);
+        r.hiDrifts = r.hiDrifts || hiRises(x);
+    }
+    return r;
+}
+
+/// r, rebuilt as the intersection of two sound bounds a and b of one value : a bound drifts
+/// only where both move past the horizon
+inline AffItv meetDrift(AffItv r, const AffItv& a, const AffItv& b)
+{
+    r.loDrifts = r.loDrifts || (loFalls(a) && loFalls(b));
+    r.hiDrifts = r.hiDrifts || (hiRises(a) && hiRises(b));
+    return r;
+}
+
 /// r, a chord through the bounds of a result at 0 and T, with a bound that does not rise
 /// drifting where all, the result on the values of its operands for all time, goes beyond
 /// it : the chord bounds [0, T] only (a bound that rises leaves every value past T anyway)
