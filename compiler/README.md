@@ -1,4 +1,4 @@
-% man(1) Version 2.90.14 (20-October-2026) | Faust man page
+% man(1) Version 2.90.15 (22-October-2026) | Faust man page
 
 NAME
 ====
