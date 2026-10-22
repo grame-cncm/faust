@@ -21,7 +21,9 @@
 
 #include <stdio.h>
 #include <cmath>
+#include <climits>
 #include <map>
+#include <sstream>
 
 #include "compatibility.hh"
 #include "exception.hh"
@@ -47,6 +49,29 @@ using namespace std;
 // declarations
 
 static Tree simplification(Tree sig);
+
+// The bound of x that holds for all time : its certified bound when that bound does not move
+// past the analysis horizon, the limit of its nature otherwise, with a warning.
+static double foreverBound(Tree x, bool upper)
+{
+    Type     t     = getCertifiedSigType(x);
+    interval i     = t->getInterval();
+    bool     moves = upper ? i.hiMoves() : i.loMoves();
+    if (!moves) {
+        return upper ? i.hi() : i.lo();
+    }
+    std::stringstream warning;
+    warning << "WARNING : " << (upper ? "highest" : "lowest") << " of a signal whose "
+            << (upper ? "upper" : "lower")
+            << " bound holds over the analysis horizon only is the limit of its type ; bound it "
+               "with min/max to get a useful value : "
+            << ppsig(x, MAX_ERROR_SIZE) << std::endl;
+    gWarningMessages.push_back(warning.str());
+    if (t->nature() == kInt) {
+        return upper ? double(INT_MAX) : double(INT_MIN);
+    }
+    return upper ? HUGE_VAL : -HUGE_VAL;
+}
 
 static Tree traced_simplification(Tree sig)
 {
@@ -442,14 +467,15 @@ static Tree simplification(Tree sig)
         return sig;
     }
 
-    // lowest/highest collapse to their certified interval bound
+    // lowest/highest collapse to their certified interval bound ; a bound that moves past
+    // the analysis horizon holds for all time only at the limit of its nature
     if (Lowest(var(x)).match(sig)) {
         typeAnnotation(x, gGlobal->gLocalCausalityCheck);
-        return sigReal(getCertifiedSigType(x)->getInterval().lo());
+        return sigReal(foreverBound(x, false));
     }
     if (Highest(var(x)).match(sig)) {
         typeAnnotation(x, gGlobal->gLocalCausalityCheck);
-        return sigReal(getCertifiedSigType(x)->getInterval().hi());
+        return sigReal(foreverBound(x, true));
     }
 
     return sig;
