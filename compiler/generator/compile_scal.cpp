@@ -5936,15 +5936,6 @@ string ScalarCompiler::generatePhase(Tree sig, Tree x, Tree p)
  * exactly, and costs about one rounding of the result when the weight of the difference is
  * small (a slow smoother) ; the interval of the node bounds this same computation.
  */
-static bool fmaWanted(Tree sig);
-
-/// a + w * (b - a), as faust_fma(w, b - a, a) when it is fused (-fma)
-static string mixForm(Tree sig, const string& a, const string& w, const string& b)
-{
-    return fmaWanted(sig) ? subst("faust_fma$3($1, ($2 - $0), $0)", a, w, b, isuffix())
-                          : subst("($0 + $1 * ($2 - $0))", a, w, b);
-}
-
 string ScalarCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b)
 {
     std::string sa = compoundOperand(a);
@@ -5952,7 +5943,7 @@ string ScalarCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b)
     // c written 1 - t : b + t * (a - b), 1 - t never computed (mixForm.hh)
     if (Tree t; mixFromWeight(c, getCertifiedSigType(c)->getInterval(), t)) {
         std::string st = compoundOperand(t);
-        return generateCacheCode(sig, mixForm(sig, sb, st, sa));
+        return generateCacheCode(sig, subst("($0 + $1 * ($2 - $0))", sb, st, sa));
     }
     std::string sc = compoundOperand(c);
     if (itv::mixFromB(getCertifiedSigType(c)->getInterval())) {
@@ -5961,9 +5952,9 @@ string ScalarCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b)
         if (vrc < getCertifiedSigType(sig)->variability() && vrc != kSamp) {
             w = compoundSlowStore(vrc, w);  // 1 - c at the rate of c
         }
-        return generateCacheCode(sig, mixForm(sig, sb, w, sa));
+        return generateCacheCode(sig, subst("($0 + $1 * ($2 - $0))", sb, w, sa));
     }
-    return generateCacheCode(sig, mixForm(sig, sa, sc, sb));
+    return generateCacheCode(sig, subst("($0 + $1 * ($2 - $0))", sa, sc, sb));
 }
 
 /*****************************************************************************
@@ -7046,10 +7037,9 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
         const std::string sw = w ? compoundOperand(w) : subst("($0 - $1)", realLiteral(1.0), compoundOperand(p));
         const std::string wx = compoundSlowStore(vr, subst("($0 * $1)", sw, sx));
         const std::string sp = compoundOperand(p);
-        code                 = fmaWanted(sig) ? subst("faust_fma$3($1, $2, $0)", wx, sp, prev, isuffix())
-                                              : subst("($0 + $1 * $2)", wx, sp, prev);
+        code                 = subst("($0 + $1 * $2)", wx, sp, prev);
     } else if (!w && !itv::mixFromB(getCertifiedSigType(p)->getInterval())) {
-        code = mixForm(sig, sx, compoundOperand(p), prev);
+        code = subst("($0 + $1 * ($2 - $0))", sx, compoundOperand(p), prev);
     } else {
         std::string sw;
         if (w) {
@@ -7061,7 +7051,7 @@ string ScalarCompiler::generateIRM(Tree sig, Tree x, Tree p)
                 sw = compoundSlowStore(vrp, sw);  // 1 - p at the rate of p
             }
         }
-        code = mixForm(sig, prev, sw, sx);
+        code = subst("($0 + $1 * ($2 - $0))", prev, sw, sx);
     }
     return generateDelayVec(sig, code, ctype, vname, o->getMaxDelay(), o->getDelayCount());
 }
@@ -7135,18 +7125,11 @@ string ScalarCompiler::generateBpfTable(Tree sig, Tree x, const BpfTable& tb)
     fClass->addExecCode(
         Statement(cond, subst("$0 = (($1 < $2) ? 0 : (($1 < $3) ? $0 : $4));", reg, sx, t1, tn, T(tb.n))));
     if (tb.u == nullptr) {
-        if (fmaWanted(sig)) {
-            return generateCacheCode(sig, subst("faust_fma$5($2[$1], ($3 - $4[$1]), $0[$1])", a, reg, b, xc, c, isuffix()));
-        }
         return generateCacheCode(sig, subst("($0[$1] + $2[$1] * ($3 - $4[$1]))", a, reg, b, xc, c));
     }
     // the regions written in u : u inside [t1, tn[, 0 outside (the outer regions are constants)
     const string uc = subst("f$0", getFreshID("BpfU"));
     fClass->addExecCode(Statement(cond, subst("$0 \t$1 = (($2 < $3) ? 0 : (($2 < $4) ? $5 : 0));", ctype, uc, sx, t1, tn, su)));
-    if (fmaWanted(sig)) {
-        return generateCacheCode(sig, subst("faust_fma$7($2[$1], ((($3[$1]) ? $4 : $5) - $6[$1]), $0[$1])",
-                                            std::vector<std::string>{a, reg, b, use, uc, xc, c, isuffix()}));
-    }
     return generateCacheCode(sig, subst("($0[$1] + $2[$1] * ((($3[$1]) ? $4 : $5) - $6[$1]))", a, reg, b, use, uc, xc, c));
 }
 
@@ -7607,14 +7590,6 @@ string ScalarCompiler::generateDelayAccessRaw(Tree sig, Tree exp, int delay)
  * the association of its interval : X, then the taps from the first delay to the last, a
  * neg(c) or -1 coefficient subtracted (the same value, bit for bit).
  */
-/// -fma : sig, a real value at the sample rate, has its taps fused into faust_fma
-static bool fmaWanted(Tree sig)
-{
-    if (!gGlobal->gFMA || (gGlobal->gFloatSize != 1 && gGlobal->gFloatSize != 2)) return false;
-    ::Type t = getCertifiedSigType(sig);
-    return t->nature() == kReal && t->variability() == kSamp;
-}
-
 string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
 {
     Type         ty = getCertifiedSigType(sig);
@@ -7656,12 +7631,7 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
                                : isOne(c)     ? ycached
                                               : subst("($0) * $1", CS(c), ycached);
             std::string ccs = getConditionCode(sig);
-            if (i2 < order - 1 && !isZero(c) && !isOne(c) && fmaWanted(sig)) {
-                // ci * y + s(i+1) as one rounding
-                fClass->addExecCode(Statement(
-                    ccs, subst("$0 = faust_fma$4($1, $2, $3); /* IIRt */", sname[i2], CS(c), ycached,
-                               sname[i2 + 1], isuffix())));
-            } else if (i2 < order - 1) {
+            if (i2 < order - 1) {
                 fClass->addExecCode(
                     Statement(ccs, subst("$0 = $1 + $2; /* IIRt */", sname[i2], prod, sname[i2 + 1])));
             } else {
@@ -7672,7 +7642,6 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
     }
 
     const bool isInt = (ty->nature() == kInt);
-    const bool fuse  = !isInt && fmaWanted(sig);
     string     acc   = CS(coefs[0]);
     for (unsigned int i = 1; i < coefs.size(); i++) {
         if (isZero(coefs[i])) {
@@ -7687,10 +7656,6 @@ string ScalarCompiler::generateIIR(Tree sig, const tvec& coefs)
             term = access;
         } else {
             string sc = sub ? operandAtRate(c) : CS(c);
-            if (fuse) {  // acc +/- c * y@i as one rounding
-                acc = subst("faust_fma$3($0, $1, $2)", sub ? subst("(-$0)", sc) : sc, access, acc, isuffix());
-                continue;
-            }
             term      = isInt ? subst("faust_wrap_mul($0, $1)", sc, access) : subst("($0 * $1)", sc, access);
         }
         if (isInt) {
@@ -7774,7 +7739,6 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
     // first delay to the last, c[k] * x@k, the null coefficients left out ; an int FIR wraps
     faustassert(coefs.size() > 1);
     const bool isInt = (getCertifiedSigType(sig)->nature() == kInt);
-    const bool fuse  = !isInt && fmaWanted(sig);
     Tree       x     = coefs[0];
     string     acc;
     for (unsigned int i = 1; i < coefs.size(); ++i) {
@@ -7791,10 +7755,6 @@ string ScalarCompiler::generateFIR(Tree sig, const tvec& coefs)
             term = access;
         } else {
             string sc = sub ? operandAtRate(c) : CS(c);
-            if (fuse && !acc.empty()) {  // acc +/- c * x@k as one rounding
-                acc = subst("faust_fma$3($0, $1, $2)", sub ? subst("(-$0)", sc) : sc, access, acc, isuffix());
-                continue;
-            }
             term      = isInt ? subst("faust_wrap_mul($0, $1)", sc, access) : subst("($0 * $1)", sc, access);
         }
         if (acc.empty()) {
