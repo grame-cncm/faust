@@ -140,6 +140,8 @@ class interval {
     int    fLSB{-24};                                   ///< lsb in bits
     bool   fMayBeInvalid{false};                         ///< independent of numeric bounds
     bool   fMayOverflow{false};                          ///< the int32 operation may wrap
+    bool   fLoMoves{false};  ///< the lower bound holds over the analysis horizon only : it may fall past it
+    bool   fHiMoves{false};  ///< the upper bound holds over the analysis horizon only : it may rise past it
 
    public:
     //-------------------------------------------------------------------------
@@ -252,6 +254,20 @@ class interval {
         result.fMayOverflow = fMayOverflow || possible;
         return result;
     }
+    // Public API: a bound that moves holds over the analysis horizon only, a bound that
+    // does not holds for all time. A decision that must hold for all time (remove a guard,
+    // fold a constant) needs a bound that does not move.
+    bool loMoves() const { return fLoMoves; }
+    bool hiMoves() const { return fHiMoves; }
+    bool moves() const { return fLoMoves || fHiMoves; }
+    // Public API: monotonically add the motion of the bounds.
+    interval withMotion(bool lo, bool hi) const noexcept
+    {
+        interval result = *this;
+        result.fLoMoves = fLoMoves || lo;
+        result.fHiMoves = fHiMoves || hi;
+        return result;
+    }
     // Public API: numeric bottom with no alert. NaN endpoints are storage
     // sentinels here, not injected NaN values; retain the requested nature.
     static interval numericEmpty(int lsb = 0) noexcept
@@ -326,7 +342,8 @@ class interval {
             char buffer[64];
             snprintf(buffer, 63, "[%g, %g]", fLo, fHi);
             return std::string(buffer) + (fMayBeInvalid ? " + invalid" : "") +
-                   (fMayOverflow ? " + overflow" : "");
+                   (fMayOverflow ? " + overflow" : "") + (fLoMoves ? " + lo moves" : "") +
+                   (fHiMoves ? " + hi moves" : "");
         }
     }
 };
@@ -342,7 +359,8 @@ inline std::ostream& operator<<(std::ostream& dst, const interval& i)
     } else {
         return dst << "interval(" << i.lo() << ',' << i.hi() << ',' << i.lsb() << ")"
                    << (i.mayBeInvalid() ? " + invalid" : "")
-                   << (i.mayOverflow() ? " + overflow" : "");
+                   << (i.mayOverflow() ? " + overflow" : "") << (i.loMoves() ? " + lo moves" : "")
+                   << (i.hiMoves() ? " + hi moves" : "");
     }
 }
 
@@ -384,7 +402,10 @@ inline interval intersection(const interval& i, const interval& j)
         if (l > h) {
             return empty().withInvalid(invalid).withOverflow(overflow);
         } else {
-            return interval(l, h, p, invalid).withOverflow(overflow);
+            // a bound moves where the bound that sets it moves (both, when they are equal)
+            const bool lo = i.lo() > j.lo() ? i.loMoves() : j.lo() > i.lo() ? j.loMoves() : (i.loMoves() && j.loMoves());
+            const bool hi = i.hi() < j.hi() ? i.hiMoves() : j.hi() < i.hi() ? j.hiMoves() : (i.hiMoves() && j.hiMoves());
+            return interval(l, h, p, invalid).withOverflow(overflow).withMotion(lo, hi);
         }
     }
 }
@@ -402,7 +423,10 @@ inline interval reunion(const interval& i, const interval& j)
         double h = std::max(i.hi(), j.hi());
         int    p =
             std::min(i.lsb(), j.lsb());  // precision of the reunion should be the finest of the two
-        return interval(l, h, p, invalid).withOverflow(overflow);
+        // a bound moves where either one moves
+        return interval(l, h, p, invalid)
+            .withOverflow(overflow)
+            .withMotion(i.loMoves() || j.loMoves(), i.hiMoves() || j.hiMoves());
     }
 }
 
@@ -434,6 +458,7 @@ inline interval singleton(double x)
 inline bool operator==(const interval& i, const interval& j)
 {
     return i.mayBeInvalid() == j.mayBeInvalid() && i.mayOverflow() == j.mayOverflow() &&
+           i.loMoves() == j.loMoves() && i.hiMoves() == j.hiMoves() &&
            ((i.isEmpty() && j.isEmpty()) || ((i.lo() == j.lo()) && (i.hi() == j.hi())));
 }
 
@@ -443,6 +468,7 @@ inline bool operator<=(const interval& i, const interval& j)
 {
     if (i.mayBeInvalid() && !j.mayBeInvalid()) return false;
     if (i.mayOverflow() && !j.mayOverflow()) return false;
+    if ((i.loMoves() && !j.loMoves()) || (i.hiMoves() && !j.hiMoves())) return false;
     if (i.isEmpty()) {
         return true;
     }

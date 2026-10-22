@@ -88,7 +88,7 @@ bool phaseNumerator(Tree f, Tree& x, Tree& p, int& k)
     // k * W in int32 : the types of W must prove the product exact
     interval iw = sigInterval(w);
     double   m  = std::max(std::abs(iw.lo()), std::abs(iw.hi())) * std::abs(double(k));
-    return iw.isValid() && iw.isBounded() && m <= 2147483647.0;
+    return iw.isValid() && iw.isBounded() && !iw.moves() && m <= 2147483647.0;
 }
 
 /// d is the divisor p, or float(p)

@@ -749,12 +749,13 @@ class TablePromotionAlgebra final : public TransformAlgebra {
     }
 
     // A soundfile part beyond [0, MAX_SOUNDFILE_PARTS) is refused by the typing, unless
-    // -nocert waives it : it is then held within that range at run time
+    // -nocert waives it : it is then held within that range at run time, as is a part whose
+    // interval moves (it holds over the analysis horizon only)
     Tree heldPart(const XSig& p) const
     {
-        if (!gGlobal->gNoCert) return p.out;  // the typing refuses a part it does not prove
         const interval i = sigInterval(p.orig);
-        if (i.isValid() && i.lo() >= 0 && i.hi() <= MAX_SOUNDFILE_PARTS - 1) return p.out;
+        if (!gGlobal->gNoCert && !i.moves()) return p.out;  // the typing refuses a part it does not prove
+        if (i.isValid() && !i.moves() && i.lo() >= 0 && i.hi() <= MAX_SOUNDFILE_PARTS - 1) return p.out;
         Tree last = sigMin(p.out, sigInt(MAX_SOUNDFILE_PARTS - 1));
         return sigMax(sigInt(0), last);
     }
@@ -801,7 +802,10 @@ class TablePromotionAlgebra final : public TransformAlgebra {
             unmasked = std::max(unmasked, gGlobal->gMaxDenseDelay);
         }
         bool indexed = hi <= unmasked || gGlobal->gMaskDelayLineThreshold < INT_MAX;
-        if (!waived && (!indexed || boundedBy(n.orig, lo, hi))) {
+        // an interval that moves holds over the analysis horizon only : the amount is held
+        // within it, which makes the size of the line and its minimal delay hold for all time
+        const bool moves = n_i.moves();
+        if (!waived && (boundedBy(n.orig, lo, hi) || (!indexed && !moves))) {
             return o(fBuild.Delay(x.out, n.out));
         }
         if (gAllWarning) {
@@ -830,7 +834,8 @@ class IntCastPromotionAlgebra final : public TransformAlgebra {
         // and the bounded value [-2^31, high] is not bounded again.
         const double high = (gGlobal->gFloatSize == 1) ? 2147483520.0 : double(INT32_MAX);
         interval     x_i  = sigInterval(x.orig);
-        if (x_i.lo() < double(INT32_MIN) || x_i.hi() > high) {
+        // an interval that moves holds over the analysis horizon only : the saturation stays
+        if (x_i.lo() < double(INT32_MIN) || x_i.hi() > high || x_i.moves()) {
             if (gAllWarning) {
                 stringstream error;
                 error << "WARNING : float to integer conversion [" << x_i.lo() << ":" << x_i.hi()

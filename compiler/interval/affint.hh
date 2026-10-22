@@ -166,6 +166,16 @@ inline interval forever(const AffItv& x, double T)
     return interval(lo, hi, h.lsb(), h.mayBeInvalid()).withOverflow(h.mayOverflow());
 }
 
+/// The hull of x over [0, T] with the motion of its bounds : a bound moves where the value
+/// of x for all time goes beyond it (a rate, a drift, a possible wrap of an integer).
+inline interval hullWithMotion(const AffItv& x, double T)
+{
+    const interval h = toItv(x, T);
+    if (h.isEmpty() || !x.moving()) return h;
+    const interval all = forever(x, T);
+    return h.withMotion(all.lo() < h.lo(), all.hi() > h.hi());
+}
+
 /// Public API: prove x ⊑ y over [0,T], T>=0, by comparing exact affine lines at
 /// both endpoints. In float/double mode an upward enclosure of each difference must
 /// be nonpositive; comparing two separately rounded values could give a false proof.

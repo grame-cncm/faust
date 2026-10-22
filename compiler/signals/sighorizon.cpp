@@ -2057,5 +2057,6 @@ HorizonReader::~HorizonReader()
 
 itv::interval HorizonReader::at(Tree sig) const
 {
-    return itv::toItv(fImpl->it.value(sig), fImpl->algebra.horizon());
+    // each bound says whether it holds for all time or over the horizon only
+    return itv::hullWithMotion(fImpl->it.value(sig), fImpl->algebra.horizon());
 }
