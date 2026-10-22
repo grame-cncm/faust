@@ -56,6 +56,14 @@ static double foreverBound(Tree x, bool upper)
 {
     Type     t     = getCertifiedSigType(x);
     interval i     = t->getInterval();
+    // a signal that may be NaN, or come from an undefined operation, has no bound to fold
+    if (i.mayBeInvalid()) {
+        std::stringstream error;
+        error << "ERROR : " << (upper ? "highest" : "lowest")
+              << " of a signal that may be invalid (NaN or an undefined operation) : "
+              << ppsig(x, MAX_ERROR_SIZE) << std::endl;
+        throw faustexception(error.str());
+    }
     bool     moves = upper ? i.hiMoves() : i.loMoves();
     if (!moves) {
         return upper ? i.hi() : i.lo();
