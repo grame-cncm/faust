@@ -72,19 +72,6 @@ inline void printNoContraction(std::ostream& dst)
     dst << "#if defined(__clang__)\n#pragma STDC FP_CONTRACT OFF\n"
            "#elif defined(__GNUC__)\n#pragma GCC optimize(\"fp-contract=off\")\n#endif\n"
         << std::endl;
-    // -fma : the fused multiply-adds faust writes itself, an instruction where the target has
-    // one, a product and a sum otherwise (never the slow emulation of the C library)
-    if (gGlobal->gFMA) {
-        dst << "#include <math.h>\n"
-               "#if defined(__FMA__) || defined(__ARM_FEATURE_FMA) || defined(__FP_FAST_FMA)\n"
-               "static inline float faust_fmaf(float a, float b, float c) { return fmaf(a, b, c); }\n"
-               "static inline double faust_fma(double a, double b, double c) { return fma(a, b, c); }\n"
-               "#else\n"
-               "static inline float faust_fmaf(float a, float b, float c) { return a * b + c; }\n"
-               "static inline double faust_fma(double a, double b, double c) { return a * b + c; }\n"
-               "#endif\n"
-            << std::endl;
-    }
 }
 
 class CodeContainer : public virtual Garbageable {
