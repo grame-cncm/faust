@@ -51,8 +51,6 @@ class CPPInstVisitor : public TextInstVisitor {
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
-        gFunctionSymbolTable["faust_fmaf"] = true;  // defined in the prelude (printNoContraction)
-        gFunctionSymbolTable["faust_fma"]  = true;
 
         gFunctionSymbolTable["max_i"] = true;
         gFunctionSymbolTable["min_i"] = true;
