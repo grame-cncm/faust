@@ -236,6 +236,10 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateXtended(Tree sig);
     virtual ValueInst* generateDelayAccess(Tree sig, Tree arg, Tree size);
     virtual ValueInst* generateTapAccess(Tree exp, int delay);  ///< exp@delay, a tap of a FIR
+    /// -fma : sig, a real value at the sample rate in C or C++, has its taps fused (fma)
+    bool       fmaWanted(Tree sig);
+    /// faust_fma(a, b, c), the fused multiply-add of the prelude
+    ValueInst* genFma(ValueInst* a, ValueInst* b, ValueInst* c);
     virtual ValueInst* lineRead(const std::string& vname, int mxd, int delay);  ///< a past sample of a line
     virtual ValueInst* writeIIRLine(Tree sig, ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd);
     std::string        delayLineName(Tree exp, int mxd, const char* prefix, ValueInst*& immediate);
