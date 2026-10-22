@@ -55,6 +55,8 @@ interval interval_algebra::numericInv(const interval& input) const
         // Zero is normalized as +0 by interval: a negative corridor ending at
         // zero must also contain its +inf reciprocal, not only the -inf limit.
         if (x.lo() < 0 && x.hi() == 0) return {-HUGE_VAL, HUGE_VAL, lsb};
+        // and a corridor starting at zero may hold -0 (ceil(-0.3), -x of a zero) : 1/-0 = -inf
+        if (x.lo() == 0 && x.hi() > 0) return {-HUGE_VAL, HUGE_VAL, lsb};
         return {x.hi() == 0 ? -HUGE_VAL : detail::directedBinary(
                     detail::BinaryOp::Div, 1, x.hi(), detail::Direction::Down),
                 x.lo() == 0 ? HUGE_VAL : detail::directedBinary(

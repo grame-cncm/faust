@@ -233,9 +233,23 @@ class AffineOps : public Base {
             (nn.isEmpty() || !std::isfinite(nn.lo())) ? 0 : std::max(0.0, nn.lo());
         return delayed(x, nlo);
     }
+    // prefix(x, y) is x at t = 0, then y(t - 1) : x joined with the corridor of y shifted by
+    // one sample (a moving line evaluated one sample earlier is not within its own corridor)
     AffItv numericPrefix(const AffItv& x, const AffItv& y) const
     {
-        return ajoin(x, y, fT);
+        if (y.isEmpty()) return ajoin(x, y, fT);
+        AffItv s = y;
+        if (y.a1 != 0) {
+            s.a0 = detail::usesNativeBounds()
+                       ? detail::directedBinary(detail::BinaryOp::Sub, y.a0, y.a1, detail::Direction::Down)
+                       : y.a0 - y.a1;
+        }
+        if (y.b1 != 0) {
+            s.b0 = detail::usesNativeBounds()
+                       ? detail::directedBinary(detail::BinaryOp::Sub, y.b0, y.b1, detail::Direction::Up)
+                       : y.b0 - y.b1;
+        }
+        return ajoin(x, s, fT);
     }
     AffItv numericAssertBounds(const AffItv& lo, const AffItv& hi, const AffItv& x) const
     {
@@ -270,6 +284,9 @@ class AffineOps : public Base {
     AffItv numericIntCast(const AffItv& x) const
     {
         if (x.isEmpty()) return aempty();
+        // the conversion of an int32 is the identity : its lines, beyond int32 once it has
+        // wrapped, are read as the whole int32 range by toItv, never saturated
+        if (x.lsb >= 0) return x;
         if (x.isConst() || detail::intCastInvalid(toItv(x, fT)))
             return collapse(x.moving(), [&](auto hull) { return fItv.IntCast(hull(x)); });
         const bool nonneg = std::min(x.lo(0), x.lo(fT)) >= 0;  // the bottom line stays >= 0
@@ -444,8 +461,8 @@ class AffineOps : public Base {
     }
     AffItv numericExp10(const AffItv& x) const
     {
-        // mirrors exp10prim: Pow(10, x)
-        return c1(x, [this](const interval& a) { return fItv.Pow(interval(10, 10, 0), a); });
+        // the oracle computes a floating power of 10 (an integer power of 10 would wrap)
+        return c1(x, [this](const interval& a) { return fItv.Exp10(a); });
     }
     AffItv numericFloor(const AffItv& x) const
     {
@@ -475,8 +492,8 @@ class AffineOps : public Base {
     }
     AffItv numericRound(const AffItv& x) const
     {
-        // mirrors roundprim: delegated to Rint
-        return c1(x, [this](const interval& a) { return fItv.Rint(a); });
+        // the generated code calls round (halves away from zero), not rint
+        return c1(x, [this](const interval& a) { return fItv.Round(a); });
     }
     AffItv numericSin(const AffItv& x) const
     {
@@ -510,9 +527,12 @@ class AffineOps : public Base {
     //--- tables -----------------------------------------------------------------------
     AffItv numericRDTbl(const AffItv& tbl, const AffItv& arg1) const
     { return tbl; }
+    // a cell read at t was written at some t' <= t : the values written, over [0, T] and not
+    // as corridors, drifting where they move past the horizon
     AffItv numericWRTbl(const AffItv& arg0, const AffItv& g, const AffItv& arg2, const AffItv& ws) const
     {
-        return ajoin(g, ws, fT);
+        if (g.isEmpty() || ws.isEmpty()) return ajoin(g, ws, fT);
+        return hullDrift(fromItv(reunion(toItv(g, fT), toItv(ws, fT))), {g, ws});
     }
     AffItv numericGen(const AffItv& x) const
     { return x; }
@@ -1271,7 +1291,11 @@ class AffineOps : public Base {
         // conversion: a wrap between endpoints cannot be represented by a chord.
         // A drifting operand has no line to evaluate at both endpoints.
         const bool drifts = x.loDrifts || x.hiDrifts || y.loDrifts || y.hiDrifts;
-        if ((programPrecision() == 1 && (isDiv || x.lsb < 0 || y.lsb < 0)) ||
+        // an int32 product that may wrap over [0, T] has no chord : its wrapped values are
+        // not between the values at 0 and T
+        const bool productWraps = !isDiv && x.lsb >= 0 && y.lsb >= 0 &&
+                                  fItv.Mul(toItv(x, fT), toItv(y, fT)).mayOverflow();
+        if ((programPrecision() == 1 && (isDiv || x.lsb < 0 || y.lsb < 0)) || productWraps ||
             ((isDiv || x.lsb < 0 || y.lsb < 0) && (integerMayWrap(x) || integerMayWrap(y))) ||
             (isDiv && !y.isConst()) || x.isConst() == y.isConst() || drifts) {
             return collapse(x.moving() || y.moving(), [&](auto hull) { return op(hull(x), hull(y)); });

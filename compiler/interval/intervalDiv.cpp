@@ -34,7 +34,8 @@ interval interval_algebra::numericDiv(const interval& x, const interval& y) cons
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
     }
-    if (y.hasZero()) {
+    // an integer divisor beyond int32 has wrapped : any int32 value, zero included
+    if (detail::int32Hull(y).hasZero()) {
         return {-HUGE_VAL, HUGE_VAL, std::min({x.lsb(), y.lsb(), -24})};
     }
 
