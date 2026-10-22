@@ -327,6 +327,13 @@ static char* legalFileName(Tree t, int n, char* dst)
             dst[i] = src[i];
         }
     }
+    if (i == 0 || !isalpha(dst[0])) {
+        // a name that does not start with a letter (`_tanhalf(...)`, or no
+        // name at all) would give `-111553.svg`, which reads as an option,
+        // or `0-23908.svg`
+        snprintf(dst, n, "diagram");
+        i = int(strlen(dst));
+    }
     dst[i] = 0;
     if (strcmp(dst, "process") != 0) {
         // if it is not process, add the node's serial number to make the name
