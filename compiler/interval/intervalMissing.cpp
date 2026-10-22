@@ -83,11 +83,12 @@ interval interval_algebra::numericAssertBounds(const interval& lo, const interva
 }
 interval interval_algebra::numericHighest(const interval& x) const
 {
-    return x.isEmpty() ? empty() : interval(x.hi());
+    // a bound of x, of the nature of x (an integral bound of a float stays a float)
+    return x.isEmpty() ? empty() : interval(x.hi(), x.hi(), x.lsb());
 }
 interval interval_algebra::numericLowest(const interval& x) const
 {
-    return x.isEmpty() ? empty() : interval(x.lo());
+    return x.isEmpty() ? empty() : interval(x.lo(), x.lo(), x.lsb());
 }
 // A bitcast reinterprets the IEEE-754 encoding of x: the integer it gives has no relation
 // to the numeric range of x (0.5f is 0x3F000000, any negative float a negative integer), so
