@@ -143,6 +143,27 @@ class AffineOps : public Base {
     { return x; }
 
     //--- the affine-preserving (linear) regime ----------------------------------------
+    /// r, the corridor of a floating operation of the program in double : the exact result
+    /// of its operands, widened by the rounding of the operation itself (the program rounds
+    /// at every sample). Rounding to nearest is monotone : a constant bound, a double, also
+    /// bounds the rounded result, and keeps no margin. A moving bound is a line whose values
+    /// are not doubles : it widens by a rounding quantum of the largest value it reaches
+    /// over [0, T]. In a recursion the quantum accumulates round after round, and the
+    /// widening absorbs it in the rate (awiden).
+    AffItv rounded(AffItv r) const
+    {
+        if (r.isEmpty() || r.lsb >= 0 || programPrecision() != 2) return r;
+        if (r.a1 != 0) {
+            const double e = roundingQuantum(std::max(std::abs(r.lo(0)), std::abs(r.lo(fT))));
+            r.a0 = detail::directedBinary(detail::BinaryOp::Sub, r.a0, e, detail::Direction::Down);
+        }
+        if (r.b1 != 0) {
+            const double e = roundingQuantum(std::max(std::abs(r.hi(0)), std::abs(r.hi(fT))));
+            r.b0 = detail::directedBinary(detail::BinaryOp::Add, r.b0, e, detail::Direction::Up);
+        }
+        return r;
+    }
+
     // Numeric kernel: coefficient-wise enclosure of x+y over a nonnegative horizon.
     // Double coefficients round outward (they are not values of the program); float
     // operations use a constant hull through the ordinary oracle because rounding need not
@@ -169,7 +190,7 @@ class AffineOps : public Base {
             // Indeterminate coefficients must not erase numeric execution paths.
             if (result.isEmpty() || std::isnan(result.a1) || std::isnan(result.b1))
                 return fromItv(interval(-HUGE_VAL, HUGE_VAL, std::min(x.lsb, y.lsb)));
-            return integerOverflow(adrift(adrift(result, x), y), x, y, add);
+            return integerOverflow(adrift(adrift(rounded(result), x), y), x, y, add);
         }
         return integerOverflow(adrift(adrift({x.a0 + y.a0, x.a1 + y.a1, x.b0 + y.b0, x.b1 + y.b1,
                                               std::min(x.lsb, y.lsb)},
@@ -196,7 +217,7 @@ class AffineOps : public Base {
                     std::min(x.lsb, y.lsb)};
             if (result.isEmpty() || std::isnan(result.a1) || std::isnan(result.b1))
                 return fromItv(interval(-HUGE_VAL, HUGE_VAL, std::min(x.lsb, y.lsb)));
-            return integerOverflow(adrift(adrift(result, x), flipped(y)), x, y, sub);
+            return integerOverflow(adrift(adrift(rounded(result), x), flipped(y)), x, y, sub);
         }
         return integerOverflow(adrift(adrift({x.a0 - y.b0, x.a1 - y.b1, x.b0 - y.a0, x.b1 - y.a1,
                                               std::min(x.lsb, y.lsb)},
@@ -1309,6 +1330,7 @@ class AffineOps : public Base {
         achord(r0.lo(), rT.lo(), fT, r.a0, r.a1);
         achord(r0.hi(), rT.hi(), fT, r.b0, r.b1, true);
         r.lsb         = std::min(r0.lsb(), rT.lsb());
+        r             = rounded(r);  // the program rounds the product at every sample, not only at the ends
         // an int32 product may wrap on the values of its operands for all time
         const interval all = op(forever(x, fT), forever(y, fT));
         r.mayOverflow      = r.lsb >= 0 && all.mayOverflow();
