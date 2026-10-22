@@ -171,8 +171,9 @@ string exepath::get(const string& argv0)
         which = target;
     }
 
+    // dirup("/faust") is "", the root directory
     string path = dirup(which);
-    return (path.back() != kPSEP) ? path + kPSEP : path;
+    return (path.empty() || path.back() != kPSEP) ? path + kPSEP : path;
 }
 #endif
 
