@@ -36,7 +36,7 @@ inline bool approxRoundApplies(::Type x)
     if (!gGlobal->gMathApprox || x->nature() != kReal) return false;
     if (gGlobal->gFloatSize != 1 && gGlobal->gFloatSize != 2) return false;
     const itv::interval i = x->getInterval();
-    return i.isValid() && !i.isEmpty() && i.lo() > -2147483648.0 && i.hi() < 2147483647.0;
+    return i.isValid() && !i.isEmpty() && !i.moves() && i.lo() > -2147483648.0 && i.hi() < 2147483647.0;
 }
 
 /// the call of the helper that computes floor (up = false) or ceil (up = true) of arg

@@ -41,7 +41,7 @@ inline bool phaseByReciprocal(Tree p)
     }
     const double   m = (gGlobal->gFloatSize == 1) ? 16777216.0 : 9007199254740992.0;
     const interval i = t->getInterval();
-    return i.isValid() && ((i.lo() >= 1 && i.hi() <= m) || (i.hi() <= -1 && i.lo() >= -m));
+    return i.isValid() && !i.moves() && ((i.lo() >= 1 && i.hi() <= m) || (i.hi() <= -1 && i.lo() >= -m));
 }
 
 /**
