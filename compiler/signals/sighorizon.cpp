@@ -1458,6 +1458,8 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         result.a1   = x.a0;
         result.b1   = x.b0;
         result.lsb  = 0;
+        // a sum that keeps adding a non null x leaves the int32 range one day : it may wrap
+        result      = result.withOverflow(x.a0 < 0 || x.b0 > 0);
         return true;
     }
 
@@ -1609,7 +1611,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         AffItv probed    = bottom(sig);
         for (const AffItv& s : probeSeeds(sig)) {
             const AffItv f = step(s);
-            if (lessEqual(f, s)) {
+            if (probeLessEqual(f, s)) {
                 certified = true;
                 probed    = f;
                 for (int n = 0; n < maxNarrowingIterations(); n++) {
@@ -1649,15 +1651,17 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         if (gain.isEmpty() || def.isEmpty()) return itv::aempty();
         const interval ig = itv::toItv(gain, fT), id = itv::toItv(def, fT);
         const bool     gb = ig.isBounded(), db = id.isBounded();
-        if (!gb && !db) return def.withInvalid(gain.mayBeInvalid && def.mayBeInvalid);
-        if (!gb) return def;
-        if (!db) return gain;
+        // the recursion may wrap when either reading says so
+        const bool overflow = gain.mayOverflow || def.mayOverflow;
+        if (!gb && !db) return def.withInvalid(gain.mayBeInvalid && def.mayBeInvalid).withOverflow(overflow);
+        if (!gb) return def.withOverflow(overflow);
+        if (!db) return gain.withOverflow(overflow);
         // both bounded : their intersection ; NaN only when both allow it
         const double lo = std::max(ig.lo(), id.lo()), hi = std::min(ig.hi(), id.hi());
         AffItv       r  = (ig.hi() - ig.lo() <= id.hi() - id.lo()) ? gain : def;
         if (lo <= hi) r = itv::fromItv(interval(lo, hi, std::min(ig.lsb(), id.lsb())));
         r.mayBeInvalid = gain.mayBeInvalid && def.mayBeInvalid;
-        return r;
+        return r.withOverflow(overflow);
     }
 
     /// defaultParams: parameters held at their DEFAULT values (nominal reading) instead
@@ -1723,6 +1727,11 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
     bool   lessEqual(const AffItv& x, const AffItv& y) const override
     {
         return itv::aleq(x, y, fT);
+    }
+    // a probe seed claims a bound over [0, T] : its image keeps its own drifts
+    bool probeLessEqual(const AffItv& x, const AffItv& y) const override
+    {
+        return itv::aleqWithin(x, y, fT);
     }
     bool converged(const AffItv& prev, const AffItv& cur) const override
     {

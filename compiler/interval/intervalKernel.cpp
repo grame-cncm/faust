@@ -199,38 +199,51 @@ bool filterGain(const std::vector<double>& c, FilterGain& gain)
     return std::isfinite(gain.spread);
 }
 
-// Sum : the sum of the terms
+// Sum : the sum of the terms, from left to right ; it may overflow when one of its
+// partial sums may
 interval interval_algebra::Sum(const std::vector<interval>& terms) const
 {
     if (terms.empty()) return IntNum(0);
-    interval acc = terms[0];
-    for (size_t k = 1; k < terms.size(); k++) acc = Add(acc, terms[k]);
-    return acc;
+    interval acc      = terms[0];
+    bool     overflow = false;
+    for (size_t k = 1; k < terms.size(); k++) {
+        acc      = Add(acc, terms[k]);
+        overflow = overflow || acc.mayOverflow();
+    }
+    return acc.withOverflow(overflow);
 }
 
-// Prod : the products from left to right
+// Prod : the products from left to right ; it may overflow when one of its partial
+// products may
 interval interval_algebra::Prod(const std::vector<interval>& factors) const
 {
     if (factors.empty()) return IntNum(1);
-    interval acc = factors[0];
-    for (size_t k = 1; k < factors.size(); k++) acc = Mul(acc, factors[k]);
-    return acc;
+    interval acc      = factors[0];
+    bool     overflow = false;
+    for (size_t k = 1; k < factors.size(); k++) {
+        acc      = Mul(acc, factors[k]);
+        overflow = overflow || acc.mayOverflow();
+    }
+    return acc.withOverflow(overflow);
 }
 
 // Fir : the products of the coefficients by the delayed samples, a null coefficient
-// skipped (the definition, as the signal dispatch expanded it)
+// skipped (the definition, as the signal dispatch expanded it) ; it may overflow when one
+// of its products or partial sums may
 interval interval_algebra::Fir(const interval& x, const std::vector<interval>& coefs) const
 {
-    bool     first = true;
+    bool     first    = true;
+    bool     overflow = false;
     interval acc;
     for (size_t k = 0; k < coefs.size(); k++) {
         const interval& ck = coefs[k];
         if (!ck.isEmpty() && ck.lo() == 0 && ck.hi() == 0 && !ck.mayBeInvalid()) continue;
         const interval term = (k == 0) ? Mul(ck, x) : Mul(ck, Delay(x, IntNum(int(k))));
         acc                 = first ? term : Add(acc, term);
+        overflow            = overflow || term.mayOverflow() || acc.mayOverflow();
         first               = false;
     }
-    return first ? IntNum(0) : acc;
+    return first ? IntNum(0) : acc.withOverflow(overflow);
 }
 
 namespace {
@@ -352,10 +365,11 @@ interval interval_algebra::Iir(const interval& x, const std::vector<interval>& c
     const interval anything = interval(-HUGE_VAL, HUGE_VAL, lsb, true);
 
     // an integer recursion wraps modulo 2^32 : whatever its coefficients, its values stay
-    // in int32, and it never makes a NaN (a congruential noise generator)
+    // in int32, and it never makes a NaN (a congruential noise generator) ; its operations
+    // may wrap
     bool integer = x.lsb() >= 0;
     for (const interval& ci : coefs) integer = integer && ci.lsb() >= 0;
-    if (integer) return interval(-2147483648.0, 2147483647.0, 0).withInvalid(invalid);
+    if (integer) return interval(-2147483648.0, 2147483647.0, 0).withInvalid(invalid).withOverflow();
 
     // the coefficients of the program : constants at the program's precision, one value,
     // or the two neighbours enclosing a constant the precision cannot represent (the

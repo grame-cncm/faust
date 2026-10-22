@@ -77,6 +77,10 @@ class FixPointDomain {
     virtual V combine(Tree node, const std::vector<V>& children,
                       FixPointEvaluator<V>& ev) const   = 0;  ///< dense switch
     virtual bool lessEqual(const V& x, const V& y) const = 0;  ///< x ⊑ y
+    /// The inclusion that certifies a probe seed : the image of the seed within the seed.
+    /// A domain whose values also describe what happens beyond what the seed claims (past
+    /// an analysis horizon, say) may compare only what the seed claims ; the image is kept.
+    virtual bool probeLessEqual(const V& x, const V& y) const { return lessEqual(x, y); }
 
     virtual bool converged(const V& prev, const V& cur) const
     {
@@ -437,7 +441,7 @@ class FixPointIterator : public FixPointEvaluator<V> {
                 Row       row(k);
                 for (int b = 0; b < k; ++b) {
                     row[b] = eval(nth(body, b));
-                    if (!fDomain.lessEqual(row[b], approx[x][b])) certified = false;
+                    if (!fDomain.probeLessEqual(row[b], approx[x][b])) certified = false;
                 }
                 fresh[x] = std::move(row);
             }

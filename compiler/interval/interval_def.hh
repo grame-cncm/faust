@@ -139,6 +139,7 @@ class interval {
     double fHi{std::numeric_limits<double>::max()};     ///< maximal value
     int    fLSB{-24};                                   ///< lsb in bits
     bool   fMayBeInvalid{false};                         ///< independent of numeric bounds
+    bool   fMayOverflow{false};                          ///< the int32 operation may wrap
 
    public:
     //-------------------------------------------------------------------------
@@ -237,6 +238,20 @@ class interval {
         result.fMayBeInvalid = fMayBeInvalid || possible;
         return result;
     }
+    // Public API: true when the int32 operation that computed this value may leave the
+    // int32 range, so the program must compute it with wrapping arithmetic. The flag
+    // describes that operation only : the operations of a value (+, -, *, negation, the
+    // sums and products of the kernels) compute it from their operands, and a value
+    // passed through unchanged (a delay, a selection) keeps the flag of its source,
+    // which no consumer reads.
+    bool mayOverflow() const { return fMayOverflow; }
+    // Public API: monotonically add a possible overflow without changing bounds or nature.
+    interval withOverflow(bool possible = true) const noexcept
+    {
+        interval result = *this;
+        result.fMayOverflow = fMayOverflow || possible;
+        return result;
+    }
     // Public API: numeric bottom with no alert. NaN endpoints are storage
     // sentinels here, not injected NaN values; retain the requested nature.
     static interval numericEmpty(int lsb = 0) noexcept
@@ -310,7 +325,8 @@ class interval {
         } else {
             char buffer[64];
             snprintf(buffer, 63, "[%g, %g]", fLo, fHi);
-            return std::string(buffer) + (fMayBeInvalid ? " + invalid" : "");
+            return std::string(buffer) + (fMayBeInvalid ? " + invalid" : "") +
+                   (fMayOverflow ? " + overflow" : "");
         }
     }
 };
@@ -325,7 +341,8 @@ inline std::ostream& operator<<(std::ostream& dst, const interval& i)
         return dst << (i.mayBeInvalid() ? "empty() + invalid" : "empty()");
     } else {
         return dst << "interval(" << i.lo() << ',' << i.hi() << ',' << i.lsb() << ")"
-                   << (i.mayBeInvalid() ? " + invalid" : "");
+                   << (i.mayBeInvalid() ? " + invalid" : "")
+                   << (i.mayOverflow() ? " + overflow" : "");
     }
 }
 
@@ -353,37 +370,39 @@ inline interval fullFinite(int lsb = -24) noexcept
 inline interval intersection(const interval& i, const interval& j)
 {
     // Numeric refinement must not silently clear an existing validity alert.
-    const bool invalid = i.mayBeInvalid() || j.mayBeInvalid();
+    const bool invalid  = i.mayBeInvalid() || j.mayBeInvalid();
+    const bool overflow = i.mayOverflow() || j.mayOverflow();
     if (i.isEmpty()) {
-        return i.withInvalid(invalid);
+        return i.withInvalid(invalid).withOverflow(overflow);
     } else if (j.isEmpty()) {
-        return j.withInvalid(invalid);
+        return j.withInvalid(invalid).withOverflow(overflow);
     } else {
         double l = std::max(i.lo(), j.lo());
         double h = std::min(i.hi(), j.hi());
         int    p = std::min(i.lsb(),
                             j.lsb());  // precision of the intersection should be the finest of the two
         if (l > h) {
-            return empty().withInvalid(invalid);
+            return empty().withInvalid(invalid).withOverflow(overflow);
         } else {
-            return {l, h, p, invalid};
+            return interval(l, h, p, invalid).withOverflow(overflow);
         }
     }
 }
 
 inline interval reunion(const interval& i, const interval& j)
 {
-    const bool invalid = i.mayBeInvalid() || j.mayBeInvalid();
+    const bool invalid  = i.mayBeInvalid() || j.mayBeInvalid();
+    const bool overflow = i.mayOverflow() || j.mayOverflow();
     if (i.isEmpty()) {
-        return j.withInvalid(invalid);
+        return j.withInvalid(invalid).withOverflow(overflow);
     } else if (j.isEmpty()) {
-        return i.withInvalid(invalid);
+        return i.withInvalid(invalid).withOverflow(overflow);
     } else {
         double l = std::min(i.lo(), j.lo());
         double h = std::max(i.hi(), j.hi());
         int    p =
             std::min(i.lsb(), j.lsb());  // precision of the reunion should be the finest of the two
-        return {l, h, p, invalid};
+        return interval(l, h, p, invalid).withOverflow(overflow);
     }
 }
 
@@ -414,7 +433,7 @@ inline interval singleton(double x)
 // basic predicates
 inline bool operator==(const interval& i, const interval& j)
 {
-    return i.mayBeInvalid() == j.mayBeInvalid() &&
+    return i.mayBeInvalid() == j.mayBeInvalid() && i.mayOverflow() == j.mayOverflow() &&
            ((i.isEmpty() && j.isEmpty()) || ((i.lo() == j.lo()) && (i.hi() == j.hi())));
 }
 
@@ -423,6 +442,7 @@ inline bool operator==(const interval& i, const interval& j)
 inline bool operator<=(const interval& i, const interval& j)
 {
     if (i.mayBeInvalid() && !j.mayBeInvalid()) return false;
+    if (i.mayOverflow() && !j.mayOverflow()) return false;
     if (i.isEmpty()) {
         return true;
     }

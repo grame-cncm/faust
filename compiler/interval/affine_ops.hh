@@ -150,6 +150,7 @@ class AffineOps : public Base {
     AffItv numericAdd(const AffItv& x, const AffItv& y) const
     {
         if (x.isEmpty() || y.isEmpty()) return aempty();
+        auto add = [this](const interval& a, const interval& b) { return fItv.Add(a, b); };
         if (x.lsb < 0 && y.lsb < 0 && x.isConst() && y.isConst())
             return c2(x, y, [this](const interval& a, const interval& b) { return fItv.Add(a, b); });
         // Binary32 rounding is a staircase, not an affine function of time.
@@ -168,16 +169,20 @@ class AffineOps : public Base {
             // Indeterminate coefficients must not erase numeric execution paths.
             if (result.isEmpty() || std::isnan(result.a1) || std::isnan(result.b1))
                 return fromItv(interval(-HUGE_VAL, HUGE_VAL, std::min(x.lsb, y.lsb)));
-            return result;
+            return integerOverflow(adrift(adrift(result, x), y), x, y, add);
         }
-        return {x.a0 + y.a0, x.a1 + y.a1, x.b0 + y.b0, x.b1 + y.b1,
-                std::min(x.lsb, y.lsb)};
+        return integerOverflow(adrift(adrift({x.a0 + y.a0, x.a1 + y.a1, x.b0 + y.b0, x.b1 + y.b1,
+                                              std::min(x.lsb, y.lsb)},
+                                             x),
+                                      y),
+                               x, y, add);
     }
     // Numeric kernel: coefficient-wise enclosure of x-y over a nonnegative horizon (see
     // numericAdd for the constant corridors).
     AffItv numericSub(const AffItv& x, const AffItv& y) const
     {
         if (x.isEmpty() || y.isEmpty()) return aempty();
+        auto sub = [this](const interval& a, const interval& b) { return fItv.Sub(a, b); };
         if (x.lsb < 0 && y.lsb < 0 && x.isConst() && y.isConst())
             return c2(x, y, [this](const interval& a, const interval& b) { return fItv.Sub(a, b); });
         if ((x.lsb < 0 || y.lsb < 0) &&
@@ -191,15 +196,19 @@ class AffineOps : public Base {
                     std::min(x.lsb, y.lsb)};
             if (result.isEmpty() || std::isnan(result.a1) || std::isnan(result.b1))
                 return fromItv(interval(-HUGE_VAL, HUGE_VAL, std::min(x.lsb, y.lsb)));
-            return result;
+            return integerOverflow(adrift(adrift(result, x), flipped(y)), x, y, sub);
         }
-        return {x.a0 - y.b0, x.a1 - y.b1, x.b0 - y.a0, x.b1 - y.a1,
-                std::min(x.lsb, y.lsb)};
+        return integerOverflow(adrift(adrift({x.a0 - y.b0, x.a1 - y.b1, x.b0 - y.a0, x.b1 - y.a1,
+                                              std::min(x.lsb, y.lsb)},
+                                             x),
+                                      flipped(y)),
+                               x, y, sub);
     }
     AffItv numericNeg(const AffItv& x) const
     {
         if (x.isEmpty()) return aempty();
-        return {-x.b0, -x.b1, -x.a0, -x.a1, x.lsb};
+        return integerOverflow(adrift({-x.b0, -x.b1, -x.a0, -x.a1, x.lsb}, flipped(x)), x, x,
+                               [this](const interval& a, const interval&) { return fItv.Neg(a); });
     }
     AffItv numericMul(const AffItv& x, const AffItv& y) const
     {
@@ -230,11 +239,12 @@ class AffineOps : public Base {
     }
     AffItv numericAssertBounds(const AffItv& lo, const AffItv& hi, const AffItv& x) const
     {
-        const interval l = toItv(lo, fT), h = toItv(hi, fT), xx = toItv(x, fT);
-        if (l.isEmpty() || h.isEmpty()) return x;
-        if (xx.isEmpty()) return fromItv(interval(l.lo(), h.hi()));
-        return fromItv(
-            interval(std::max(xx.lo(), l.lo()), std::min(xx.hi(), h.hi()), xx.lsb()));
+        if (toItv(lo, fT).isEmpty() || toItv(hi, fT).isEmpty()) return x;
+        return collapse(lo.moving() || hi.moving() || x.moving(), [&](auto hull) {
+            const interval l = hull(lo), h = hull(hi), xx = hull(x);
+            if (xx.isEmpty()) return interval(l.lo(), h.hi());
+            return interval(std::max(xx.lo(), l.lo()), std::min(xx.hi(), h.hi()), xx.lsb());
+        });
     }
 
     //--- selection: numeric hull; the public transfer retains selector invalidity -------------------------
@@ -243,7 +253,8 @@ class AffineOps : public Base {
         // a selector of one value over the horizon chooses its branch : the program
         // converts it to an integer
         const interval s = toItv(arg0, fT);
-        if (!s.isEmpty() && s.lo() == s.hi()) return (std::trunc(s.lo()) == 0) ? x : y;
+        if (!arg0.moving() && !s.isEmpty() && s.lo() == s.hi())
+            return (std::trunc(s.lo()) == 0) ? x : y;
         return ajoin(x, y, fT);
     }
 
@@ -260,7 +271,7 @@ class AffineOps : public Base {
     {
         if (x.isEmpty()) return aempty();
         if (x.isConst() || detail::intCastInvalid(toItv(x, fT)))
-            return fromItv(fItv.IntCast(toItv(x, fT)));
+            return collapse(x.moving(), [&](auto hull) { return fItv.IntCast(hull(x)); });
         const bool nonneg = std::min(x.lo(0), x.lo(fT)) >= 0;  // the bottom line stays >= 0
         const bool nonpos = std::max(x.hi(0), x.hi(fT)) <= 0;  // the top line stays <= 0
         double     a0     = x.a0;
@@ -280,7 +291,7 @@ class AffineOps : public Base {
                      : x.b0 + 1;
         }
         // the chain is integer from here
-        return {a0, x.a1, b0, x.b1, 0};
+        return adrift({a0, x.a1, b0, x.b1, 0}, x);
     }
     AffItv numericBitCast(const AffItv& x) const
     { return c1(x, [this](const interval& a) { return fItv.BitCast(a); }); }
@@ -316,11 +327,11 @@ class AffineOps : public Base {
     }
     AffItv numericHighest(const AffItv& x) const
     {
-        return fromItv(interval(toItv(x, fT).hi()));
+        return collapse(x.moving(), [&](auto hull) { return interval(hull(x).hi()); });
     }
     AffItv numericLowest(const AffItv& x) const
     {
-        return fromItv(interval(toItv(x, fT).lo()));
+        return collapse(x.moving(), [&](auto hull) { return interval(hull(x).lo()); });
     }
     AffItv numericGt(const AffItv& x, const AffItv& y) const
     {
@@ -973,7 +984,8 @@ class AffineOps : public Base {
         if (c.isEmpty() || a.isEmpty() || b.isEmpty()) {
             return aempty().withInvalid(c.mayBeInvalid || a.mayBeInvalid || b.mayBeInvalid);
         }
-        return fromItv(fItv.Mix(toItv(c, fT), toItv(a, fT), toItv(b, fT)))
+        return collapse(c.moving() || a.moving() || b.moving(),
+                        [&](auto hull) { return fItv.Mix(hull(c), hull(a), hull(b)); })
             .withInvalid(c.mayBeInvalid || a.mayBeInvalid || b.mayBeInvalid);
     }
     AffItv Tpt(const AffItv& x) const override
@@ -984,7 +996,9 @@ class AffineOps : public Base {
     {
         if (x.isEmpty() || p.isEmpty()) return aempty().withInvalid(x.mayBeInvalid || p.mayBeInvalid);
         const interval r = fItv.Phase(toItv(x, fT), toItv(p, fT));
-        return fromItv(r).withInvalid(x.mayBeInvalid || p.mayBeInvalid || r.mayBeInvalid());
+        return collapse(x.moving() || p.moving(),
+                        [&](auto hull) { return fItv.Phase(hull(x), hull(p)); })
+            .withInvalid(x.mayBeInvalid || p.mayBeInvalid || r.mayBeInvalid());
     }
 
     // The kernels : Sum, Prod and Fir as their definitions over the corridors (from left
@@ -992,29 +1006,39 @@ class AffineOps : public Base {
     AffItv Sum(const std::vector<AffItv>& terms) const override
     {
         if (terms.empty()) return this->IntNum(0);
-        AffItv acc = terms[0];
-        for (size_t k = 1; k < terms.size(); k++) acc = this->Add(acc, terms[k]);
-        return acc;
+        AffItv acc      = terms[0];
+        bool   overflow = false;  // one of the partial sums may wrap
+        for (size_t k = 1; k < terms.size(); k++) {
+            acc      = this->Add(acc, terms[k]);
+            overflow = overflow || acc.mayOverflow;
+        }
+        return acc.withOverflow(overflow);
     }
     AffItv Prod(const std::vector<AffItv>& factors) const override
     {
         if (factors.empty()) return this->IntNum(1);
-        AffItv acc = factors[0];
-        for (size_t k = 1; k < factors.size(); k++) acc = this->Mul(acc, factors[k]);
-        return acc;
+        AffItv acc      = factors[0];
+        bool   overflow = false;  // one of the partial products may wrap
+        for (size_t k = 1; k < factors.size(); k++) {
+            acc      = this->Mul(acc, factors[k]);
+            overflow = overflow || acc.mayOverflow;
+        }
+        return acc.withOverflow(overflow);
     }
     AffItv Fir(const AffItv& x, const std::vector<AffItv>& coefs) const override
     {
-        bool   first = true;
+        bool   first    = true;
+        bool   overflow = false;  // one of the products or partial sums may wrap
         AffItv acc;
         for (size_t k = 0; k < coefs.size(); k++) {
             const AffItv& ck = coefs[k];
             if (!ck.isEmpty() && ck.isConst() && ck.a0 == 0 && ck.b0 == 0 && !ck.mayBeInvalid) continue;
             AffItv term = (k == 0) ? this->Mul(ck, x) : this->Mul(ck, this->Delay(x, this->IntNum(int(k))));
             acc         = first ? term : this->Add(acc, term);
+            overflow    = overflow || term.mayOverflow || acc.mayOverflow;
             first       = false;
         }
-        return first ? this->IntNum(0) : acc;
+        return first ? this->IntNum(0) : acc.withOverflow(overflow);
     }
     AffItv Iir(const AffItv& x, const std::vector<AffItv>& coefs) const override
     {
@@ -1025,9 +1049,13 @@ class AffineOps : public Base {
             none  = none || ck.isEmpty();
         }
         if (none) return aempty().withInvalid(alert);
-        std::vector<interval> cs;
-        for (const AffItv& ck : coefs) cs.push_back(toItv(ck, fT));
-        return fromItv(fItv.Iir(toItv(x, fT), cs));
+        bool moving = x.moving();
+        for (const AffItv& ck : coefs) moving = moving || ck.moving();
+        return collapse(moving, [&](auto hull) {
+            std::vector<interval> cs;
+            for (const AffItv& ck : coefs) cs.push_back(hull(ck));
+            return fItv.Iir(hull(x), cs);
+        });
     }
     AffItv Bpf(const AffItv& x, const std::vector<AffItv>& t, const std::vector<AffItv>& r) const override
     {
@@ -1038,12 +1066,13 @@ class AffineOps : public Base {
         for (const AffItv& ti : t) alert = alert || ti.mayBeInvalid;
         for (const AffItv& ri : r) alert = alert || ri.mayBeInvalid;
         if (x.isEmpty()) return aempty().withInvalid(alert);
-        const interval ix = toItv(x, fT);
+        // a moving x, or moving thresholds, may reach other regions past the horizon
+        const interval ix = forever(x, fT);
         AffItv         acc;
         bool           any = false, invalid = false;
         for (size_t i = 0; i < r.size(); i++) {
-            const double lo   = (i == 0) ? -HUGE_VAL : toItv(t[i - 1], fT).lo();
-            const double hi   = (i == t.size()) ? HUGE_VAL : toItv(t[i], fT).hi();
+            const double lo   = (i == 0) ? -HUGE_VAL : forever(t[i - 1], fT).lo();
+            const double hi   = (i == t.size()) ? HUGE_VAL : forever(t[i], fT).hi();
             const bool   last = (i == t.size());
             if (!((ix.hi() >= lo && ix.lo() < hi) || (last && x.mayBeInvalid)) || r[i].isEmpty()) continue;
             acc     = any ? ajoin(acc, r[i], fT) : r[i];
@@ -1056,7 +1085,9 @@ class AffineOps : public Base {
     AffItv Irm(const AffItv& x, const AffItv& c) const override
     {
         if (x.isEmpty() || c.isEmpty()) return aempty().withInvalid(x.mayBeInvalid || c.mayBeInvalid);
-        return fromItv(fItv.Irm(toItv(x, fT), toItv(c, fT))).withInvalid(x.mayBeInvalid || c.mayBeInvalid);
+        return collapse(x.moving() || c.moving(),
+                        [&](auto hull) { return fItv.Irm(hull(x), hull(c)); })
+            .withInvalid(x.mayBeInvalid || c.mayBeInvalid);
     }
 
     // Public API: enclose Round over the horizon, retaining possible invalidity.
@@ -1182,17 +1213,46 @@ class AffineOps : public Base {
                              std::max(x.hi(0), x.hi(fT)) > 2147483647.0);
     }
 
+    /// r, the result of a linear int32 operation op on x and y, flagged when the
+    /// operation may wrap on the values of its operands for all time (a moving operand
+    /// reaches the limit of the int32 range, a wrapped one holds any int32 value), and
+    /// drifting where its operands do
+    template <typename Op>
+    AffItv integerOverflow(AffItv r, const AffItv& x, const AffItv& y, Op op) const
+    {
+        if (r.lsb < 0) return r;
+        return r.withOverflow(op(forever(x, fT), forever(y, fT)).mayOverflow());
+    }
+
+    /// The corridor of a nonlinear operation, g applied to the hulls of its operands :
+    /// g receives the function that gives the hull of an operand. Over the horizon, the
+    /// hull over [0, T] ; when an operand moves, g is evaluated again on the values of the
+    /// operands for all time : a bound of the result that differs drifts past the
+    /// horizon, and an int32 operation that may wrap on those values may wrap.
+    template <typename G>
+    AffItv collapse(bool moving, G g) const
+    {
+        const interval r   = g([this](const AffItv& a) { return toItv(a, fT); });
+        AffItv         out = fromItv(r);
+        if (!moving) return out;
+        const interval all = g([this](const AffItv& a) { return forever(a, fT); });
+        if (all.isEmpty()) return out;
+        out.loDrifts = r.isEmpty() || all.lo() < r.lo();
+        out.hiDrifts = r.isEmpty() || all.hi() > r.hi();
+        return out.withOverflow(all.mayOverflow());
+    }
+
     template <typename F>
     AffItv c1(const AffItv& x, F f) const
     {
         if (x.isEmpty()) return aempty();
-        return fromItv(f(toItv(x, fT)));
+        return collapse(x.moving(), [&](auto hull) { return f(hull(x)); });
     }
     template <typename F>
     AffItv c2(const AffItv& x, const AffItv& y, F f) const
     {
         if (x.isEmpty() || y.isEmpty()) return aempty();
-        return fromItv(f(toItv(x, fT), toItv(y, fT)));
+        return collapse(x.moving() || y.moving(), [&](auto hull) { return f(hull(x), hull(y)); });
     }
 
     /// Multiplication with at most one rated operand, or division by a constant
@@ -1208,11 +1268,12 @@ class AffineOps : public Base {
         // Chording rounded endpoint values need not enclose staircase values.
         // Mixed/division paths also collapse integer corridors before floating
         // conversion: a wrap between endpoints cannot be represented by a chord.
+        // A drifting operand has no line to evaluate at both endpoints.
+        const bool drifts = x.loDrifts || x.hiDrifts || y.loDrifts || y.hiDrifts;
         if ((programPrecision() == 1 && (isDiv || x.lsb < 0 || y.lsb < 0)) ||
-            ((isDiv || x.lsb < 0 || y.lsb < 0) && (integerMayWrap(x) || integerMayWrap(y))))
-            return fromItv(op(toItv(x, fT), toItv(y, fT)));
-        if ((isDiv && !y.isConst()) || x.isConst() == y.isConst()) {
-            return fromItv(op(toItv(x, fT), toItv(y, fT)));
+            ((isDiv || x.lsb < 0 || y.lsb < 0) && (integerMayWrap(x) || integerMayWrap(y))) ||
+            (isDiv && !y.isConst()) || x.isConst() == y.isConst() || drifts) {
+            return collapse(x.moving() || y.moving(), [&](auto hull) { return op(hull(x), hull(y)); });
         }
         auto at = [&](double t) {
             return op(interval(x.lo(t), x.hi(t), x.lsb), interval(y.lo(t), y.hi(t), y.lsb));
@@ -1222,8 +1283,12 @@ class AffineOps : public Base {
         AffItv r;
         achord(r0.lo(), rT.lo(), fT, r.a0, r.a1);
         achord(r0.hi(), rT.hi(), fT, r.b0, r.b1, true);
-        r.lsb = std::min(r0.lsb(), rT.lsb());
-        return r;
+        r.lsb         = std::min(r0.lsb(), rT.lsb());
+        // an int32 product may wrap on the values of its operands for all time
+        const interval all = op(forever(x, fT), forever(y, fT));
+        r.mayOverflow      = r.lsb >= 0 && all.mayOverflow();
+        // an operand that crosses zero, times a constant of either sign, grows again past T
+        return chordDrift(r, all, fT).wrapDrift();
     }
 
     /// x delayed by at least nlo samples, with a positive delay still possible,
