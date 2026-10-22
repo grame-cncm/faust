@@ -314,9 +314,9 @@ Certification:
 
   A program is accepted only when the interval analysis proves that its table indices, delays and integer conversions stay within their bounds (**-norm** prints the interval of each equation).
 
-  The proof assumes IEEE arithmetic rounded to nearest, the operations computed in the order the code is emitted, and the mathematical functions of the C library within 2 ulps.
+  The proof assumes IEEE arithmetic rounded to nearest, the operations computed in the order the code is emitted, and the mathematical functions of the C library within 2 ulps. A C compiler may contract a product and a sum into a fused multiply**-add** : the bounds hold the contracted values too.
 
-  It does not cover code compiled under fast**-math** : the LLVM backend (unless FAUST_DEBUG=FAUST_LLVM_NO_FM), a C++ compiler run with -ffast-math (as faustoptflags may do), or the approximations of -fm, which may reassociate, contract or approximate the operations and produce values the analysis does not bound.
+  It does not cover code compiled under fast**-math** : the LLVM backend (unless FAUST_DEBUG=FAUST_LLVM_NO_FM), a C++ compiler run with -ffast-math (as faustoptflags may do), or the approximations of -fm, which may reassociate or approximate the operations and produce values the analysis does not bound.
 
   **-mcs** \<n> sets the shortest certified duration accepted ; -nocert accepts, with a warning, what the analysis may only have approximated.
 
