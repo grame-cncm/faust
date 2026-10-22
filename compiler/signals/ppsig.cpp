@@ -891,6 +891,9 @@ static std::string typeComment(Type t)
     if (i.mayOverflow()) {
         str << " overflow";
     }
+    if (i.loMoves() || i.hiMoves()) {
+        str << (i.loMoves() && i.hiMoves() ? " moves" : i.loMoves() ? " lo moves" : " hi moves");
+    }
     return str.str();
 }
 

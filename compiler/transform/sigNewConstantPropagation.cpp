@@ -43,7 +43,8 @@ class ConstantPropagationAlgebra final : public TransformAlgebra {
     {
         Type     tt = getCertifiedSigType(orig);
         interval I  = tt->getInterval();
-        if (!I.isconst()) {
+        // a value constant over the analysis horizon that moves past it is not a constant
+        if (!I.isconst() || I.moves()) {
             return nullptr;
         }
         // Cutting replaces the whole subtree by its value: only licit when
