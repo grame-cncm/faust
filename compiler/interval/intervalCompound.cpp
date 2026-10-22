@@ -83,7 +83,9 @@ interval remainder(const interval& input, double (*round)(double), double lo, do
     const interval x = detail::floatingOperand(input);
     if (x.isEmpty()) return empty();
     if (input.lsb() >= 0) return interval(0, 0, -1);  // an integer is its own rounding
-    if (!std::isfinite(x.lo()) || !std::isfinite(x.hi())) return interval(lo, hi, -1);
+    // the contraction margin, half an ulp of x, is unbounded with x : a product computing x
+    // and contracted with the subtraction may leave the range by any amount
+    if (!std::isfinite(x.lo()) || !std::isfinite(x.hi())) return interval(-HUGE_VAL, HUGE_VAL, -1);
     const double rl = round(x.lo()), rh = round(x.hi());
     double       a = lo, b = hi;
     if (rl == rh) {
