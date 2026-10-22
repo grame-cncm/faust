@@ -94,7 +94,7 @@ struct SignalRenderer : public SignalVisitor {
     {
         Type     ty = getCertifiedSigType(sig);
         interval it = ty->getInterval();
-        return (it.hi() == 0.0);
+        return (it.hi() == 0.0) && !it.hiMoves();
     }
 
     /**
