@@ -289,7 +289,7 @@ class interval {
 
     bool ispowerof2() const
     {
-        if (!isconst() || fHi < 1 || fHi > INT_MAX) return false;
+        if (!isconst() || fHi < 1 || fHi > INT_MAX || fHi != std::floor(fHi)) return false;
         auto n = int(fHi);
         return isconst() && ((n & (-n)) == n);
     }

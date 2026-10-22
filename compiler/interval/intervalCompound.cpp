@@ -145,9 +145,11 @@ interval interval_algebra::numericPhase(const interval& x, const interval& p) co
     const interval def = phaseDefinition(x, p);
     if (def.isEmpty() || !(p.lo() > 0 || p.hi() < 0)) return def;
     double lo = -1, hi = 1;
-    if (x.lo() >= 0) {
+    // the sign of x read on its int32 values : an integer beyond int32 has wrapped
+    const interval xs = detail::int32Hull(x);
+    if (xs.lo() >= 0) {
         (p.lo() > 0 ? lo : hi) = 0;
-    } else if (x.hi() <= 0) {
+    } else if (xs.hi() <= 0) {
         (p.lo() > 0 ? hi : lo) = 0;
     }
     return interval(std::max(lo, def.lo()), std::min(hi, def.hi()), def.lsb());

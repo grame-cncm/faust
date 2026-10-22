@@ -351,8 +351,8 @@ interval doublePowBounds(const interval& xInput, const interval& yInput)
     // exceptional results instead of dropping the infinite endpoint entirely.
     if (x.lo() == -HUGE_VAL) {
         if (y.hi() > 0) result = reunion(result, interval(-HUGE_VAL, HUGE_VAL, lsb));
-        if (y.lo() < 0) result = reunion(result, interval(0));
-        if (y.hasZero()) result = reunion(result, interval(1));
+        if (y.lo() < 0) result = reunion(result, interval(0, 0, lsb));
+        if (y.hasZero()) result = reunion(result, interval(1, 1, lsb));
     }
     if (x.lo() < 0) {
         double first = std::ceil(y.lo()), last = std::floor(y.hi());
