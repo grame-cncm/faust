@@ -7702,6 +7702,30 @@ string ScalarCompiler::generateSum(Tree sig, const tvec& subs)
         string neg(const string& a) { return fInt ? subst("faust_wrap_sub(0, $0)", a) : subst("(-$0)", a); }
         string store(int variability, const string& a) { return fC->compoundSlowStore(variability, a, fInt); }
         string zero() { return "0"; }
+        // acc +/- head * last as faust_fma(+/- head, last, acc), a product nothing else reads
+        bool fuse(Tree t, bool positive, const string& acc, string& out)
+        {
+            tvec head;
+            Tree last;
+            if (fInt || !fusableProduct(t, head, last) || getSharingCount(t, fC->fSharingKey) > 1) {
+                return false;
+            }
+            string h;
+            if (head.size() == 1) {
+                h = fC->CS(head[0]);
+            } else {
+                struct ProdOps {
+                    ScalarCompiler* fC;
+                    string          term(Tree f) { return fC->CS(f); }
+                    string mul(const string& a, const string& b) { return subst("($0 * $1)", a, b); }
+                    string store(int variability, const string& a) { return fC->compoundSlowStore(variability, a, false); }
+                } pops{fC};
+                h = emitProd<string>(t, head, pops);
+            }
+            if (!positive) h = subst("(-$0)", h);
+            out = subst("faust_fma$3($0, $1, $2)", h, fC->CS(last), acc, isuffix());
+            return true;
+        }
     } ops{this, getCertifiedSigType(sig)->nature() == kInt};
     return generateCacheCode(sig, emitSum<string>(sig, subs, ops));
 }

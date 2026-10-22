@@ -401,6 +401,7 @@ struct global {
                                // the fastmath code mapping file
     bool gMathApprox;  // -mapp option, simpler/faster versions of 'floor/fmod/remainder' functions
     bool gShareSums;   // the dense sums factored and their common sub-sums shared (default, -noshs)
+    bool gFMA;         // a product added to a sum fused into faust_fma in C and C++ (default, -nofma)
     bool gExactWeights;  // -xw option, (1 + w) * y written w * y + y, w read exactly
     double gMinCertifiedSeconds;  // -mcs option, the shortest certified duration accepted (10 s)
     bool gSumLanes;      // the long sums in interleaved partial sums (default, -nosl)
