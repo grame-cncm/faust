@@ -3018,10 +3018,7 @@ string global::printHelp()
                    "of each equation)."
          << endl;
     sstr << tab << "The proof assumes IEEE arithmetic rounded to nearest, the operations computed in the "
-                   "order the code is emitted, each one rounded (no contraction into fused multiply-adds), "
-                   "and the mathematical functions of the C library within 2 ulps. The C and C++ code "
-                   "forbids contraction to its compiler (#pragma STDC FP_CONTRACT OFF for clang, "
-                   "#pragma GCC optimize(\"fp-contract=off\") for gcc)."
+                   "order the code is emitted, and the mathematical functions of the C library within 2 ulps."
          << endl;
     sstr << tab << "It does not cover code compiled under fast-math : the LLVM backend (unless "
                    "FAUST_DEBUG=FAUST_LLVM_NO_FM), a C++ compiler run with -ffast-math (as faustoptflags "
