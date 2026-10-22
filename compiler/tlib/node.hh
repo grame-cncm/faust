@@ -50,6 +50,7 @@
 #ifndef __NODE__
 #define __NODE__
 
+#include <climits>
 #include <cstdint>
 #include <cstring>
 #include <stdint.h>
@@ -316,21 +317,31 @@ inline bool isPointer(const Node& n, void** x)
 // Mathematical operations on nodes
 //-------------------------------------------------------------------------
 
-// arithmetic operations
+// arithmetic operations : on two int32 constants, the arithmetic of the generated code, the
+// sum, difference and product wrapping modulo 2^32, computed without undefined behavior
+
+/// v modulo 2^32, as an int32
+inline int wrapInt32(std::int64_t v)
+{
+    return int(std::uint32_t(std::uint64_t(v)));
+}
 
 inline const Node addNode(const Node& x, const Node& y)
 {
-    return (isDouble(x) || isDouble(y)) ? Node(double(x) + double(y)) : Node(int(x) + int(y));
+    return (isDouble(x) || isDouble(y)) ? Node(double(x) + double(y))
+                                        : Node(wrapInt32(std::int64_t(int(x)) + int(y)));
 }
 
 inline const Node subNode(const Node& x, const Node& y)
 {
-    return (isDouble(x) || isDouble(y)) ? Node(double(x) - double(y)) : Node(int(x) - int(y));
+    return (isDouble(x) || isDouble(y)) ? Node(double(x) - double(y))
+                                        : Node(wrapInt32(std::int64_t(int(x)) - int(y)));
 }
 
 inline const Node mulNode(const Node& x, const Node& y)
 {
-    return (isDouble(x) || isDouble(y)) ? Node(double(x) * double(y)) : Node(int(x) * int(y));
+    return (isDouble(x) || isDouble(y)) ? Node(double(x) * double(y))
+                                        : Node(wrapInt32(std::int64_t(int(x)) * int(y)));
 }
 
 inline const Node divExtendedNode(const Node& x, const Node& y)
@@ -342,11 +353,13 @@ inline const Node divExtendedNode(const Node& x, const Node& y)
     } else if (isDouble(x) || isDouble(y)) {
         return Node(double(x) / double(y));
     } else {
-        int    xi     = int(x);
-        int    yi     = int(y);
-        int    intDiv = xi / yi;
-        double dblDiv = double(xi) / double(yi);
-        return (double(intDiv) == dblDiv) ? Node(intDiv) : Node(dblDiv);
+        // the exact quotient : an int when it is one, in the int32 range (INT_MIN / -1 is not)
+        std::int64_t xi     = int(x);
+        std::int64_t yi     = int(y);
+        std::int64_t intDiv = xi / yi;
+        double       dblDiv = double(xi) / double(yi);
+        return (double(intDiv) == dblDiv && intDiv >= INT_MIN && intDiv <= INT_MAX) ? Node(int(intDiv))
+                                                                                   : Node(dblDiv);
     }
 }
 
@@ -357,7 +370,7 @@ inline const Node remNode(const Node& x, const Node& y)
         error << "ERROR : % by 0 in " << x << " % " << y << std::endl;
         tlib::error(error.str());
     } else if (isInt(x) && isInt(y)) {
-        return Node(int(x) % int(y));
+        return Node(int(std::int64_t(int(x)) % int(y)));  // INT_MIN % -1 is 0
     } else {
         return Node(std::fmod(double(x), double(y)));
     }
@@ -375,21 +388,25 @@ inline const Node inverseNode(const Node& x)
     return divExtendedNode(1.0, x);
 }
 
-// bit shifting operations
+// bit shifting operations : the count is taken modulo 32 (as the wasm, JavaScript and x86
+// shifts do), the bits shifted on unsigned values ; the logical right shift brings zeros in,
+// the arithmetic one copies the sign
 
 inline const Node lshNode(const Node& x, const Node& y)
 {
-    return Node(int(x) << int(y));
+    return Node(int(std::uint32_t(int(x)) << (unsigned(int(y)) & 31)));
 }
 
 inline const Node arshNode(const Node& x, const Node& y)
 {
-    return Node(int(x) >> int(y));
+    const int      v = int(x);
+    const unsigned n = unsigned(int(y)) & 31;
+    return Node(v < 0 ? int(~(~std::uint32_t(v) >> n)) : int(std::uint32_t(v) >> n));
 }
 
 inline const Node lrshNode(const Node& x, const Node& y)
 {
-    return Node(int(x) >> int(y));
+    return Node(int(std::uint32_t(int(x)) >> (unsigned(int(y)) & 31)));
 }
 
 // boolean operations on bits
