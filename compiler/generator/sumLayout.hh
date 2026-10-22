@@ -13,7 +13,6 @@
 #pragma once
 
 #include <algorithm>
-#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -62,40 +61,6 @@ inline std::vector<std::pair<bool, Tree>> signedTerms(const tvec& subs)
  * Ops provides term(Tree), negatedTerm(Tree) (the operand of a neg), add(V, V), sub(V, V),
  * neg(V), store(int variability, V) and zero(), the terms compiled in the order of the node.
  */
-/**
- * A product t added to a sum, fusable into fma(head, last, acc) in C and C++ (-fma) : a real
- * product that changes at every sample, its factors the head and the last one apart (the
- * normal form puts the slower factors first, so the head is often a coefficient). The
- * interval of the sum holds the fused value : every partial sum is bounded outward by
- * representable values, and a fused multiply-add rounds the exact value to nearest, which
- * never crosses a representable bound.
- */
-inline bool fusableProduct(Tree t, tvec& head, Tree& last)
-{
-    const std::string& lang = gGlobal->gOutputLang;
-    if (!gGlobal->gFMA || (lang != "c" && lang != "cpp" && lang != "ocpp")) return false;
-    if (gGlobal->gFloatSize != 1 && gGlobal->gFloatSize != 2) return false;
-    tvec fs;
-    if (!isSigProd(t, fs) || fs.size() < 2) return false;
-    ::Type ty = getCertifiedSigType(t);
-    if (ty->nature() != kReal || ty->variability() != kSamp) return false;
-    for (Tree f : fs) {
-        if (getCertifiedSigType(f)->nature() != kReal) return false;
-    }
-    last = fs.back();
-    head.assign(fs.begin(), fs.end() - 1);
-    return true;
-}
-
-/// Ops may fuse acc +/- t into one operation, fuse(t, positive, acc, out) returning true
-/// (a product t added to the sum : a fused multiply-add)
-template <class Ops, class V, class = void>
-struct SumFuses : std::false_type {};
-template <class Ops, class V>
-struct SumFuses<Ops, V,
-                std::void_t<decltype(std::declval<Ops&>().fuse(std::declval<Tree>(), true, std::declval<V>(),
-                                                               std::declval<V&>()))>> : std::true_type {};
-
 template <class V, class Ops>
 V emitSum(Tree sig, const tvec& subs, Ops& ops)
 {
@@ -118,15 +83,6 @@ V emitSum(Tree sig, const tvec& subs, Ops& ops)
         if (acc.count >= 2 && acc.variability < vt && acc.variability < vsum) {
             acc.value = ops.store(acc.variability, acc.value);
             acc.count = 1;
-        }
-        if constexpr (SumFuses<Ops, V>::value) {
-            V fused{};
-            if (acc.count > 0 && ops.fuse(t, positive, acc.value, fused)) {
-                acc.value       = fused;
-                acc.variability = std::max(acc.variability, vt);
-                acc.count++;
-                return;
-            }
         }
         V x = negated ? ops.negatedTerm(t) : ops.term(t);
         if (acc.count == 0) {

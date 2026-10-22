@@ -586,7 +586,6 @@ void global::reset()
     gHasTeeLocal          = false;
     gMathApprox           = false;
     gShareSums            = true;
-    gFMA                  = true;
     gExactWeights         = false;
     gMinCertifiedSeconds  = 10;
     gNoCert               = false;
@@ -977,9 +976,6 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gShareSums) {
         dst << "-shs ";
-    }
-    if (gFMA) {
-        dst << "-fma ";
     }
     if (gExactWeights) {
         dst << "-xw ";
@@ -1771,14 +1767,6 @@ bool global::processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-noshs", "--no-share-sums")) {
             gShareSums = false;
-            i += 1;
-
-        } else if (isCmd(argv[i], "-fma", "--fused-multiply-add")) {
-            gFMA = true;
-            i += 1;
-
-        } else if (isCmd(argv[i], "-nofma", "--no-fused-multiply-add")) {
-            gFMA = false;
             i += 1;
 
         } else if (isCmd(argv[i], "-xw", "--exact-weights")) {
@@ -2858,11 +2846,6 @@ string global::printHelp()
     sstr << tab
          << "-noshs      --no-share-sums             keep the dense sums of the normal form (by "
             "default they are factored by coefficient and their common sub-sums shared)."
-         << endl;
-    sstr << tab
-         << "-nofma      --no-fused-multiply-add     write a product added to a sum as a product and a sum (by "
-            "default, in C and C++, the sample-rate ones are fused into faust_fma, a fused multiply-add where "
-            "the target has the instruction)."
          << endl;
     sstr << tab
          << "-xw         --exact-weights             write the products (1 + w) * y of the normal form "
