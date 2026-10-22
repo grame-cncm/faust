@@ -1339,6 +1339,7 @@ ValueInst* InstructionsCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b)
     if (Tree t; mixFromWeight(c, getCertifiedSigType(c)->getInterval(), t)) {
         ValueInst* vt = compoundOperand(t);
         ValueInst* d  = IB::genBinopInst(kSub, va, vb);
+        if (fmaWanted(sig)) return generateCacheCode(sig, genFma(vt, d, vb));
         ValueInst* p  = IB::genBinopInst(kMul, vt, d);
         return generateCacheCode(sig, IB::genBinopInst(kAdd, vb, p));
     }
@@ -1350,10 +1351,12 @@ ValueInst* InstructionsCompiler::generateMix(Tree sig, Tree c, Tree a, Tree b)
             w = compoundSlowStore(vrc, w);  // 1 - c at the rate of c
         }
         ValueInst* d = IB::genBinopInst(kSub, va, vb);
+        if (fmaWanted(sig)) return generateCacheCode(sig, genFma(w, d, vb));
         ValueInst* p = IB::genBinopInst(kMul, w, d);
         return generateCacheCode(sig, IB::genBinopInst(kAdd, vb, p));
     }
     ValueInst* d = IB::genBinopInst(kSub, vb, va);
+    if (fmaWanted(sig)) return generateCacheCode(sig, genFma(vc, d, va));
     ValueInst* p = IB::genBinopInst(kMul, vc, d);
     return generateCacheCode(sig, IB::genBinopInst(kAdd, va, p));
 }
@@ -2775,6 +2778,21 @@ ValueInst* InstructionsCompiler::generateTapAccess(Tree exp, int delay)
  * The sample delay ago of the line vname of maximum delay mxd (the structure
  * generateDelayLine gives it), the index never cached
  */
+bool InstructionsCompiler::fmaWanted(Tree sig)
+{
+    const std::string& lang = gGlobal->gOutputLang;
+    if (!gGlobal->gFMA || (lang != "c" && lang != "cpp")) return false;
+    if (gGlobal->gFloatSize != 1 && gGlobal->gFloatSize != 2) return false;
+    ::Type t = getCertifiedSigType(sig);
+    return t->nature() == kReal && t->variability() == kSamp;
+}
+
+ValueInst* InstructionsCompiler::genFma(ValueInst* a, ValueInst* b, ValueInst* c)
+{
+    std::vector<Typed::VarType> types = {itfloat(), itfloat(), itfloat()};
+    return fContainer->pushFunction(subst("faust_fma$0", isuffix()), itfloat(), types, {a, b, c});
+}
+
 ValueInst* InstructionsCompiler::lineRead(const string& vname, int mxd, int delay)
 {
     faustassert(mxd >= delay);
@@ -2816,7 +2834,8 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
         getTypedNames(getCertifiedSigType(sig), "IIR", ctype, vname);
         setVectorNameProperty(sig, vname);
     }
-    ValueInst* acc = CS(iir[0]);
+    ValueInst* acc  = CS(iir[0]);
+    const bool fuse = fmaWanted(sig);
     for (size_t i = 1; i < iir.size(); i++) {
         if (isZero(iir[i])) {
             continue;
@@ -2828,7 +2847,11 @@ ValueInst* InstructionsCompiler::generateIIR(Tree sig, const tvec& iir)
         ValueInst* term = access;
         if (c != nullptr && !isOne(c)) {
             ValueInst* vc = sub ? operandAtRate(c) : CS(c);
-            term          = IB::genBinopInst(kMul, vc, access);
+            if (fuse) {  // acc +/- c * y@i as one rounding
+                acc = genFma(sub ? IB::genNeg(vc) : vc, access, acc);
+                continue;
+            }
+            term = IB::genBinopInst(kMul, vc, access);
         }
         acc = IB::genBinopInst(sub ? kSub : kAdd, acc, term);
     }
@@ -2869,10 +2892,11 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
                           : IB::genBinopInst(kSub, IB::genRealNumInst(itfloat(), 1.0), compoundOperand(p));
         ValueInst* wx = compoundSlowStore(vr, IB::genBinopInst(kMul, vw, vx));
         ValueInst* vp = compoundOperand(p);
-        code          = IB::genBinopInst(kAdd, wx, IB::genBinopInst(kMul, vp, prev));
+        code          = fmaWanted(sig) ? genFma(vp, prev, wx) : IB::genBinopInst(kAdd, wx, IB::genBinopInst(kMul, vp, prev));
     } else if (!w && !itv::mixFromB(getCertifiedSigType(p)->getInterval())) {
         ValueInst* d = IB::genBinopInst(kSub, prev, vx);
-        code         = IB::genBinopInst(kAdd, vx, IB::genBinopInst(kMul, compoundOperand(p), d));
+        code         = fmaWanted(sig) ? genFma(compoundOperand(p), d, vx)
+                                      : IB::genBinopInst(kAdd, vx, IB::genBinopInst(kMul, compoundOperand(p), d));
     } else {
         ValueInst* vw;
         if (w) {
@@ -2885,7 +2909,8 @@ ValueInst* InstructionsCompiler::generateIRM(Tree sig, Tree x, Tree p)
             }
         }
         ValueInst* d = IB::genBinopInst(kSub, vx, prev);
-        code         = IB::genBinopInst(kAdd, lineRead(vname, mxd, 1), IB::genBinopInst(kMul, vw, d));
+        code         = fmaWanted(sig) ? genFma(vw, d, lineRead(vname, mxd, 1))
+                                      : IB::genBinopInst(kAdd, lineRead(vname, mxd, 1), IB::genBinopInst(kMul, vw, d));
     }
     return writeIIRLine(sig, code, ctype, vname, mxd);
 }
@@ -2994,11 +3019,13 @@ ValueInst* InstructionsCompiler::generateBpfTable(Tree sig, Tree x, const BpfTab
         var = IB::genSelect2Inst(IB::genBinopInst(kNE, IB::genLoadArrayStaticStructVar(use, loadI(r)), intv(0)), loadR(uc), loadR(xc));
     }
     ValueInst* d = IB::genBinopInst(kSub, var, IB::genLoadArrayStaticStructVar(c, loadI(r)));
-    ValueInst* p = IB::genBinopInst(kMul, IB::genLoadArrayStaticStructVar(b, loadI(r)), d);
     // the value in a variable : the text printers write a sum nested on the right without
     // parentheses (y + (a + p) would become (y + a) + p in C) ; stored, it is a + p whatever
     // adds it
-    ValueInst* v = IB::genBinopInst(kAdd, IB::genLoadArrayStaticStructVar(a, loadI(r)), p);
+    ValueInst* v = fmaWanted(sig)
+                       ? genFma(IB::genLoadArrayStaticStructVar(b, loadI(r)), d, IB::genLoadArrayStaticStructVar(a, loadI(r)))
+                       : IB::genBinopInst(kAdd, IB::genLoadArrayStaticStructVar(a, loadI(r)),
+                                          IB::genBinopInst(kMul, IB::genLoadArrayStaticStructVar(b, loadI(r)), d));
     return setCompiledExpression(sig, generateVariableStore(sig, v));
 }
 
@@ -3018,8 +3045,9 @@ ValueInst* InstructionsCompiler::writeIIRLine(Tree sig, ValueInst* exp, BasicTyp
 ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& fir)
 {
     faustassert(fir.size() > 1);
-    Tree       x   = fir[0];
-    ValueInst* acc = nullptr;
+    Tree       x    = fir[0];
+    ValueInst* acc  = nullptr;
+    const bool fuse = fmaWanted(sig);
     for (size_t i = 1; i < fir.size(); i++) {
         if (isZero(fir[i])) {
             continue;
@@ -3032,7 +3060,11 @@ ValueInst* InstructionsCompiler::generateFIR(Tree sig, const tvec& fir)
         ValueInst* term = access;
         if (c != nullptr && !isOne(c)) {
             ValueInst* vc = sub ? operandAtRate(c) : CS(c);
-            term          = IB::genBinopInst(kMul, vc, access);
+            if (fuse && acc) {  // acc +/- c * x@k as one rounding
+                acc = genFma(sub ? IB::genNeg(vc) : vc, access, acc);
+                continue;
+            }
+            term = IB::genBinopInst(kMul, vc, access);
         }
         acc = acc ? IB::genBinopInst(sub ? kSub : kAdd, acc, term) : term;
     }
