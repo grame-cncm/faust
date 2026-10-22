@@ -60,13 +60,11 @@ interval interval_algebra::numericMul(const interval& xIn, const interval& yIn) 
 
     const bool integerOperands = detail::hasInt32Bounds(x) && detail::hasInt32Bounds(y);
     if (integerOperands) {
-        // if the quotient of an INT limit by an interval limit is below a limit of the other
-        // interval ie, if there is something big enough in the other interval to make the interval
-        // limit go beyond an INT limit
-        if (std::max(std::abs(x.lo()), std::abs(x.hi())) *
-                std::max(std::abs(y.lo()), std::abs(y.hi())) >=
-            (double)INT_MAX) {
-            return {(double)INT_MIN, (double)INT_MAX, detail::sumLSB(x.lsb(), y.lsb())};
+        // the products of the bounds, in double : exact when they lie in the int32 range, and
+        // a product beyond it cannot round back into it. A product beyond the range wraps.
+        if (lo < (double)INT_MIN || hi > (double)INT_MAX) {
+            return interval((double)INT_MIN, (double)INT_MAX, detail::sumLSB(x.lsb(), y.lsb()))
+                .withOverflow();
         }
         /* interval z{lo, hi, x.lsb()+y.lsb()};
         interval shift{pow(2, 31), pow(2, 31), 31};

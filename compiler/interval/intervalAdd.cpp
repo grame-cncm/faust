@@ -65,18 +65,24 @@ interval interval_algebra::numericAdd(const interval& xIn, const interval& yIn) 
         double lo = x.lo() + y.lo();
         double hi = x.hi() + y.hi();
 
+        // the exact bounds, in double, beyond the int32 range : the operation may wrap
+        const bool overflow = lo < (double)INT_MIN || hi > (double)INT_MAX;
+
         // if there is a discontinuity by the lower end of integers
         if ((lo <= (double)INT_MIN - 1) && (hi >= (double)INT_MIN)) {
-            return {(double)INT_MIN, (double)INT_MAX, std::min(x.lsb(), y.lsb())};
+            return interval((double)INT_MIN, (double)INT_MAX, std::min(x.lsb(), y.lsb()))
+                .withOverflow();
         }
 
         // if there is a discontinuity by the higher end of integers
         if ((lo <= (double)INT_MAX) && (hi >= (double)INT_MAX + 1)) {
-            return {(double)INT_MIN, (double)INT_MAX, std::min(x.lsb(), y.lsb())};
+            return interval((double)INT_MIN, (double)INT_MAX, std::min(x.lsb(), y.lsb()))
+                .withOverflow();
         }
 
-        // if there is potential wrapping but no discontinuity
-        return {(double)(xlo + ylo), (double)(xhi + yhi), std::min(x.lsb(), y.lsb())};
+        // no wrapping, or a certain one : the bounds shifted by 2^32 (-fwrapv)
+        return interval((double)(xlo + ylo), (double)(xhi + yhi), std::min(x.lsb(), y.lsb()))
+            .withOverflow(overflow);
     }
 
     if (detail::usesNativeBounds()) {

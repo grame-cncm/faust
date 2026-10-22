@@ -45,6 +45,11 @@ struct AffItv {
     double b0 = NAN, b1 = 0;  ///< hi(t) = b0 + b1·t
     int    lsb = 0;           ///< precision, as in itv::interval
     bool   mayBeInvalid = false;  ///< a possible NaN or undefined operation
+    bool   mayOverflow  = false;  ///< the int32 operation may wrap (interval::mayOverflow)
+    // A bound that keeps moving past the horizon although its rate is 0 : the corridor of
+    // a nonlinear operation whose operands move, reduced to its hull over [0, T].
+    bool   loDrifts = false;  ///< the lower bound may go on decreasing past T
+    bool   hiDrifts = false;  ///< the upper bound may go on increasing past T
 
     // Public API: monotonically add invalidity without changing the corridor.
     AffItv withInvalid(bool possible = true) const
@@ -53,9 +58,27 @@ struct AffItv {
         result.mayBeInvalid = mayBeInvalid || possible;
         return result;
     }
+    // Public API: monotonically add a possible overflow. An int32 value that may wrap may
+    // hold any int32 value once it has wrapped : both its bounds move past the horizon.
+    AffItv withOverflow(bool possible = true) const
+    {
+        AffItv result = *this;
+        result.mayOverflow = mayOverflow || possible;
+        return result.wrapDrift();
+    }
+    // Public API: an int32 value that may wrap drifts on both sides.
+    AffItv wrapDrift() const
+    {
+        AffItv result = *this;
+        if (result.lsb >= 0 && result.mayOverflow) result.loDrifts = result.hiDrifts = true;
+        return result;
+    }
 
     bool   isEmpty() const { return std::isnan(a0) || std::isnan(b0); }
     bool   isConst() const { return a1 == 0 && b1 == 0; }
+    // A corridor that does not move bounds its values for all time ; a moving one only up
+    // to the horizon.
+    bool   moving() const { return a1 != 0 || b1 != 0 || loDrifts || hiDrifts; }
     // Public API: enclose evaluation of the lower/upper affine line. In float/double
     // mode both product and sum round outward; t=0 avoids an inf*0 corner.
     double lo(double t) const
@@ -80,6 +103,22 @@ struct AffItv {
     }
 };
 
+/// x, its bounds drifting as well where those of y drift (a join, a widening)
+inline AffItv adrift(AffItv x, const AffItv& y)
+{
+    x.loDrifts = x.loDrifts || y.loDrifts;
+    x.hiDrifts = x.hiDrifts || y.hiDrifts;
+    return x;
+}
+
+/// x with its bounds exchanged for the drifts : the bound of -x or of z - x that x's
+/// upper bound makes is a lower one
+inline AffItv flipped(AffItv x)
+{
+    std::swap(x.loDrifts, x.hiDrifts);
+    return x;
+}
+
 /// Bottom: no values yet. Neutral in every join.
 inline AffItv aempty()
 {
@@ -91,7 +130,7 @@ inline AffItv aempty()
 inline AffItv fromItv(const interval& x)
 {
     // Empty numeric bounds can still carry invalid execution and its nature.
-    return {x.lo(), 0, x.hi(), 0, x.lsb(), x.mayBeInvalid()};
+    return AffItv{x.lo(), 0, x.hi(), 0, x.lsb(), x.mayBeInvalid(), x.mayOverflow()}.wrapDrift();
 }
 
 /// Collapse to the ordinary interval hull over [0, T] — THE bridge from affine claims
@@ -102,13 +141,27 @@ inline AffItv fromItv(const interval& x)
 /// past absorption — the value freezes, the form keeps over-approximating it.
 inline interval toItv(const AffItv& x, double T)
 {
-    if (x.isEmpty()) return empty(x.lsb).withInvalid(x.mayBeInvalid);
+    if (x.isEmpty()) return empty(x.lsb).withInvalid(x.mayBeInvalid).withOverflow(x.mayOverflow);
     const double lo = std::min(x.lo(0), x.lo(T));
     const double hi = std::max(x.hi(0), x.hi(T));
     if (x.lsb >= 0 && (hi > 2147483647.0 || lo < -2147483648.0)) {
-        return {-2147483648.0, 2147483647.0, x.lsb, x.mayBeInvalid};
+        return interval(-2147483648.0, 2147483647.0, x.lsb, x.mayBeInvalid)
+            .withOverflow(x.mayOverflow);
     }
-    return {lo, hi, x.lsb, x.mayBeInvalid};
+    return interval(lo, hi, x.lsb, x.mayBeInvalid).withOverflow(x.mayOverflow);
+}
+
+/// The values of x for all time : its hull over [0, T], each moving bound pushed to the
+/// limit of its nature (the int32 range for an integer, infinity for a float). An integer
+/// does not leave the int32 range without an operation that may wrap, flagged on its own.
+inline interval forever(const AffItv& x, double T)
+{
+    const interval h = toItv(x, T);
+    if (h.isEmpty() || !x.moving()) return h;
+    const bool   integer = x.lsb >= 0;
+    const double lo      = (x.a1 != 0 || x.loDrifts) ? (integer ? -2147483648.0 : -HUGE_VAL) : h.lo();
+    const double hi      = (x.b1 != 0 || x.hiDrifts) ? (integer ? 2147483647.0 : HUGE_VAL) : h.hi();
+    return interval(lo, hi, h.lsb(), h.mayBeInvalid()).withOverflow(h.mayOverflow());
 }
 
 /// Public API: prove x ⊑ y over [0,T], T>=0, by comparing exact affine lines at
@@ -119,6 +172,8 @@ inline bool aleq(const AffItv& x, const AffItv& y, double T)
 {
     // An unchanged corridor with a new alert is a new abstract state.
     if (x.mayBeInvalid && !y.mayBeInvalid) return false;
+    if (x.mayOverflow && !y.mayOverflow) return false;
+    if ((x.loDrifts && !y.loDrifts) || (x.hiDrifts && !y.hiDrifts)) return false;
     if (x.isEmpty()) return true;
     if (y.isEmpty()) return false;
     if (detail::usesNativeBounds()) {
@@ -140,6 +195,16 @@ inline bool aleq(const AffItv& x, const AffItv& y, double T)
     }
     return y.lo(0) <= x.lo(0) && y.lo(T) <= x.lo(T) && x.hi(0) <= y.hi(0) &&
            x.hi(T) <= y.hi(T);
+}
+
+/// x ⊑ y over [0, T] only : what happens past the horizon (the drifts, an overflow on the
+/// values for all time) set aside. A probe seed claims a bound over [0, T] ; its image
+/// keeps its own drifts.
+inline bool aleqWithin(AffItv x, AffItv y, double T)
+{
+    x.loDrifts = x.hiDrifts = x.mayOverflow = false;
+    y.loDrifts = y.hiDrifts = y.mayOverflow = false;
+    return aleq(x, y, T);
 }
 
 /// Public API: write a lower chord (upper when upper=true) over [0,T], T>=0.
@@ -165,17 +230,30 @@ inline void achord(double v0, double vT, double T, double& c0, double& c1, bool 
 /// Join (reunion) of two forms: endpoint hulls, chorded back to affine. Sound by
 /// convexity — max of affine functions is convex, so its chord lies above it on
 /// [0, T] (and min is concave, chord below). Exact when both are constant.
+/// r, a chord through the bounds of a result at 0 and T, with a bound that does not rise
+/// drifting where all, the result on the values of its operands for all time, goes beyond
+/// it : the chord bounds [0, T] only (a bound that rises leaves every value past T anyway)
+inline AffItv chordDrift(AffItv r, const interval& all, double T)
+{
+    if (r.isEmpty() || all.isEmpty()) return r;
+    if (r.a1 >= 0 && all.lo() < std::min(r.lo(0), r.lo(T))) r.loDrifts = true;
+    if (r.b1 <= 0 && all.hi() > std::max(r.hi(0), r.hi(T))) r.hiDrifts = true;
+    return r;
+}
+
 inline AffItv ajoin(const AffItv& x, const AffItv& y, double T)
 {
-    const bool invalid = x.mayBeInvalid || y.mayBeInvalid;
-    if (x.isEmpty()) return y.withInvalid(invalid);
-    if (y.isEmpty()) return x.withInvalid(invalid);
+    const bool invalid  = x.mayBeInvalid || y.mayBeInvalid;
+    const bool overflow = x.mayOverflow || y.mayOverflow;
+    if (x.isEmpty()) return adrift(y.withInvalid(invalid).withOverflow(overflow), x);
+    if (y.isEmpty()) return adrift(x.withInvalid(invalid).withOverflow(overflow), y);
     AffItv r;
     achord(std::min(x.lo(0), y.lo(0)), std::min(x.lo(T), y.lo(T)), T, r.a0, r.a1);
     achord(std::max(x.hi(0), y.hi(0)), std::max(x.hi(T), y.hi(T)), T, r.b0, r.b1, true);
     r.lsb = std::min(x.lsb, y.lsb);
     r.mayBeInvalid = invalid;
-    return r;
+    r.mayOverflow  = overflow;
+    return chordDrift(adrift(adrift(r, x), y), reunion(forever(x, T), forever(y, T)), T).wrapDrift();
 }
 
 /// The numeric core of widening, in two stages: the first widening of a moving bound
@@ -188,14 +266,17 @@ inline AffItv ajoin(const AffItv& x, const AffItv& y, double T)
 /// (A domain may run a certification stage before this one — e.g. a probe threshold.)
 inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
 {
-    const bool invalid = old.mayBeInvalid || fresh.mayBeInvalid;
-    if (old.isEmpty() || fresh.isEmpty()) return fresh.withInvalid(invalid);
+    const bool invalid  = old.mayBeInvalid || fresh.mayBeInvalid;
+    const bool overflow = old.mayOverflow || fresh.mayOverflow;
+    if (old.isEmpty() || fresh.isEmpty())
+        return adrift(fresh.withInvalid(invalid).withOverflow(overflow), old);
     const bool wlo = fresh.lo(0) < old.lo(0) || fresh.lo(T) < old.lo(T);
     const bool whi = fresh.hi(0) > old.hi(0) || fresh.hi(T) > old.hi(T);
-    if (!wlo && !whi) return fresh.withInvalid(invalid);
+    if (!wlo && !whi) return adrift(fresh.withInvalid(invalid).withOverflow(overflow), old);
 
-    AffItv r = fresh;
+    AffItv r = adrift(fresh, old);
     r.mayBeInvalid = invalid;
+    r.mayOverflow  = overflow;
     if (whi) {
         if (old.b1 == fresh.b1 && old.b1 == 0 && std::isfinite(fresh.b0 - old.b0)) {
             r.b1 = fresh.b0 - old.b0;  // propose the observed per-round rate

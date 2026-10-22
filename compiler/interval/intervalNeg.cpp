@@ -43,18 +43,21 @@ interval interval_algebra::numericNeg(const interval& input) const
         double lo = -x.hi();
         double hi = -x.lo();
 
+        // -INT_MIN is beyond the int32 range : the negation may wrap
+        const bool overflow = hi > (double)INT_MAX;
+
         // if there is a discontinuity by the lower end of integers
         if ((lo <= (double)INT_MIN - 1) && (hi >= (double)INT_MIN)) {
-            return {(double)INT_MIN, (double)INT_MAX, x.lsb()};
+            return interval((double)INT_MIN, (double)INT_MAX, x.lsb()).withOverflow();
         }
 
         // if there is a discontinuity by the higher end of integers
         if ((lo <= (double)INT_MAX) && (hi >= (double)INT_MAX + 1)) {
-            return {(double)INT_MIN, (double)INT_MAX, x.lsb()};
+            return interval((double)INT_MIN, (double)INT_MAX, x.lsb()).withOverflow();
         }
 
-        // if there is potential wrapping but no discontinuity
-        return {(double)(-xhi), (double)(-xlo), x.lsb()};
+        // no wrapping, or a certain one : -INT_MIN is INT_MIN (-fwrapv)
+        return interval((double)(-xhi), (double)(-xlo), x.lsb()).withOverflow(overflow);
     }
 
     return {-x.hi(), -x.lo(), x.lsb()};
