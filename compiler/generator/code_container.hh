@@ -62,6 +62,18 @@ struct SearchSubcontainer : public DispatchVisitor {
 // DSP or field name, type, size, size-in-bytes, reads, writes
 typedef std::vector<MemoryLayoutItem> MemoryLayoutType;
 
+/// The certification assumes every operation rounded as it is emitted : the C and C++ code
+/// forbids its compiler to contract a product and a sum into a fused multiply-add (clang reads
+/// the standard pragma, gcc ignores it and reads its own)
+inline void printNoContraction(std::ostream& dst)
+{
+    const std::string& lang = gGlobal->gOutputLang;
+    if (lang != "c" && lang != "cpp" && lang != "ocpp") return;
+    dst << "#if defined(__clang__)\n#pragma STDC FP_CONTRACT OFF\n"
+           "#elif defined(__GNUC__)\n#pragma GCC optimize(\"fp-contract=off\")\n#endif\n"
+        << std::endl;
+}
+
 class CodeContainer : public virtual Garbageable {
    protected:
     std::list<CodeContainer*> fSubContainers;
@@ -205,7 +217,9 @@ class CodeContainer : public virtual Garbageable {
         dst << "Compilation options: ";
         dst << gGlobal->printCompilationOptions1();
         dst << "\n------------------------------------------------------------ */" << std::endl;
+        printNoContraction(dst);
     }
+
 
     virtual void generateSR()
     {

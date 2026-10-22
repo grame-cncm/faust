@@ -314,7 +314,7 @@ Certification:
 
   A program is accepted only when the interval analysis proves that its table indices, delays and integer conversions stay within their bounds (**-norm** prints the interval of each equation).
 
-  The proof assumes IEEE arithmetic rounded to nearest, the operations computed in the order the code is emitted, and the mathematical functions of the C library within 2 ulps.
+  The proof assumes IEEE arithmetic rounded to nearest, the operations computed in the order the code is emitted, each one rounded (no contraction into fused multiply**-adds**), and the mathematical functions of the C library within 2 ulps. The C and C++ code forbids contraction to its compiler (#pragma STDC FP_CONTRACT OFF for clang, #pragma GCC optimize("fp-contract=off") for gcc).
 
   It does not cover code compiled under fast**-math** : the LLVM backend (unless FAUST_DEBUG=FAUST_LLVM_NO_FM), a C++ compiler run with -ffast-math (as faustoptflags may do), or the approximations of -fm, which may reassociate, contract or approximate the operations and produce values the analysis does not bound.
 
