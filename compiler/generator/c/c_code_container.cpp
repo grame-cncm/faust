@@ -256,6 +256,16 @@ void CCodeContainer::produceClass()
              "(unsigned int)b); }"
           << endl;
     *fOut << "#endif" << endl;
+    // Int32 shifts and abs in a defined form : a shift count taken modulo 32, a left shift on
+    // the unsigned bits, abs(INT_MIN) = INT_MIN ; written where the operands do not prove
+    // the plain form defined
+    *fOut << "#ifndef FAUST_INT_SHIFT" << endl;
+    *fOut << "#define FAUST_INT_SHIFT" << endl;
+    *fOut << "static inline int faust_wrap_shl(int a, int k) { return (int)((unsigned int)a << (k & 31)); }" << endl;
+    *fOut << "static inline int faust_wrap_shr(int a, int k) { return a >> (k & 31); }" << endl;
+    *fOut << "static inline int faust_wrap_ushr(int a, int k) { return (int)((unsigned int)a >> (k & 31)); }" << endl;
+    *fOut << "static inline int faust_wrap_abs(int a) { return (a < 0) ? (int)(0u - (unsigned int)a) : a; }" << endl;
+    *fOut << "#endif" << endl;
     tab(n, *fOut);
 
     if (gGlobal->gInlineTable) {
