@@ -138,6 +138,7 @@ class Symbol : public Garbageable {
     friend Sym         symbol(const std::string& str);
     friend Sym         unique(const char* str);
     friend const char* name(Sym sym);
+    friend bool        symbolExists(const std::string& str);
 
     friend void* getUserData(Sym sym);
     friend void  setUserData(Sym sym, void* d);
@@ -200,6 +201,11 @@ inline Sym symbol(const char* str)
 {
     return Symbol::get(str);
 }  ///< Returns (and creates if new) the symbol of name \p str
+inline bool symbolExists(const std::string& str)
+{
+    return !Symbol::isnew(str);
+}  ///< Returns \b true if a symbol of name \p str exists (symbol(str) would not make it)
+
 inline Sym symbol(const std::string& str)
 {
     return Symbol::get(str);
