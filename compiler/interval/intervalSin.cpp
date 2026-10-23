@@ -95,8 +95,9 @@ interval interval_algebra::numericSinBounds(const interval& x) const
     precision = exactPrecisionUnary(std::sin, v, std::pow(2, x.lsb()));
     if ((precision == INT_MIN) || taylor_lsb) {
         if (v != 0.5 * M_PI) {
-            precision = x.lsb() + (int)std::floor(std::log2(std::abs(std::cos(
-                                      v))));  // (int)floor(log2(M_PI*cos(M_PI*v))) + x.lsb();
+            // log2 of a zero derivative is -inf : no estimate, the lsb of x
+            const double e = std::floor(std::log2(std::abs(std::cos(v))));
+            precision      = std::isfinite(e) ? x.lsb() + int(std::max(e, -1074.0)) : x.lsb();
         } else {
             precision = 2 * x.lsb() - 1;  // - (int)floor(2*log2(M_PI));
         }

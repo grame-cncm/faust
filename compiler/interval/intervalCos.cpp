@@ -94,8 +94,9 @@ interval interval_algebra::numericCosBounds(const interval& x) const
         /* cos(x + u) - cos(x) = - u·sin(x) if x != 0
                                 = - u^2/2 · cos(x) = -u^2/2 if x == 0*/
         if (v != 0) {
-            precision = x.lsb() + (int)std::floor(std::log2(std::abs(sin(
-                                      v))));  // (int)floor(log2(M_PI*abs(cos(M_PI*v)))) + x.lsb();
+            // log2 of a zero derivative is -inf : no estimate, the lsb of x
+            const double e = std::floor(std::log2(std::abs(std::sin(v))));
+            precision      = std::isfinite(e) ? x.lsb() + int(std::max(e, -1074.0)) : x.lsb();
         } else {
             precision = 2 * x.lsb() - 1;  //- (int)floor(2*log2(M_PI));
         }

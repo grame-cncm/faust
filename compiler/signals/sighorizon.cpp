@@ -909,9 +909,9 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
     };
 
     /// g is a guard, a value 0 or 1 : a comparison, a conjunction (& or a product) of
-    /// guards, the negation 1 - c of a guard, or the float of a guard ; the comparisons of
-    /// a value with a number it asserts when it is 1 are added to cmps (the other ones
-    /// hold too, but restrict nothing ; a negated conjunction asserts none)
+    /// guards, the negation 1 - c of a guard, or the float or the int of a guard ; the
+    /// comparisons of a value with a number it asserts when it is 1 are added to cmps (the
+    /// other ones hold too, but restrict nothing ; a negated conjunction asserts none)
     static bool guardOf(Tree g, std::vector<Comparison>& cmps, int depth, bool truth = true)
     {
         Tree   x, y, u;
@@ -919,7 +919,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         double k;
         tvec   fs;
         if (depth > 8) return false;
-        if (isSigFloatCast(g, x)) return guardOf(x, cmps, depth + 1, truth);
+        if (isSigFloatCast(g, x) || isSigIntCast(g, x)) return guardOf(x, cmps, depth + 1, truth);
         // 1 - c : the negation of a guard c, true when c is false (an n-ary sum of the
         // normal form, or a binary subtraction)
         const bool negation = (isSigSum(g, fs) && fs.size() == 2 && constNum(fs[0], k) && k == 1 && isSigNeg(fs[1], u)) ||
@@ -1093,6 +1093,9 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         Tree sel, s0, s1, l, r;
         int  op;
         if (!isSigSelect2(sig, sel, s0, s1)) return false;
+        // the int or the float of a comparison is the comparison, a value 0 or 1 (the
+        // backends that convert a boolean condition explicitly, Cmajor)
+        for (Tree x; isSigIntCast(sel, x) || isSigFloatCast(sel, x);) sel = x;
         if (!isSigBinOp(sel, &op, l, r) || op < kGT || op > kNE) return false;
         double k;
         Tree   v;
