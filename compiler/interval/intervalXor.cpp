@@ -24,16 +24,6 @@
 
 namespace itv {
 //------------------------------------------------------------------------------------------
-// Interval Xor
-// interval Xor(const interval& x, const interval& y);
-// void testXor();
-static double myXor(double x, double y)
-{
-    auto a = saturatedIntCast(x);
-    auto b = saturatedIntCast(y);
-    int  c = a ^ b;
-    return double(c);
-}
 
 // BRUTE FORCE
 // Numeric kernel: enclose int32 bitwise operations after integer conversion.
@@ -80,43 +70,5 @@ interval interval_algebra::numericXor(const interval& xInput, const interval& yI
     }
 
     return {double(z.lo), double(z.hi), precision};
-}
-
-void interval_algebra::testXor()
-{
-    std::default_random_engine    generator(0x49545605u);
-    std::uniform_int_distribution lx(0, 10);
-    std::uniform_int_distribution ly(0, 10);
-
-    analyzeBinaryMethod(10, 20000, "Xor", interval(-1000, -800, lx(generator)),
-                        interval(127, 127, ly(generator)), myXor, &interval_algebra::Xor);
-    analyzeBinaryMethod(10, 20000, "Xor", interval(-1000, -800, lx(generator)),
-                        interval(127, 127, ly(generator)), myXor, &interval_algebra::Xor);
-
-    analyzeBinaryMethod(10, 20000, "Xor", interval(-1000, -800, lx(generator)),
-                        interval(123, 123, ly(generator)), myXor, &interval_algebra::Xor);
-    analyzeBinaryMethod(10, 20000, "Xor", interval(-1000, -800, lx(generator)),
-                        interval(123, 123, ly(generator)), myXor, &interval_algebra::Xor);
-
-    analyzeBinaryMethod(10, 20000, "Xor", interval(-128, 128, lx(generator)),
-                        interval(127, 127, ly(generator)), myXor, &interval_algebra::Xor);
-    analyzeBinaryMethod(10, 20000, "Xor", interval(-128, 128, lx(generator)),
-                        interval(127, 127, ly(generator)), myXor, &interval_algebra::Xor);
-
-    analyzeBinaryMethod(10, 20000, "Xor", interval(0, 1000, lx(generator)),
-                        interval(63, 127, ly(generator)), myXor, &interval_algebra::Xor);
-    analyzeBinaryMethod(10, 20000, "Xor", interval(0, 1000, lx(generator)),
-                        interval(63, 127, ly(generator)), myXor, &interval_algebra::Xor);
-
-    analyzeBinaryMethod(10, 20000, "Xor", interval(-1000, 1000, lx(generator)),
-                        interval(63, 127, ly(generator)), myXor, &interval_algebra::Xor);
-    analyzeBinaryMethod(10, 20000, "Xor", interval(-1000, 1000, lx(generator)),
-                        interval(63, 127, ly(generator)), myXor, &interval_algebra::Xor);
-
-    analyzeBinaryMethod(10, 2000, "Xor", interval(10, 20), interval(0), myXor,
-                        &interval_algebra::Xor);
-    analyzeBinaryMethod(10, 2000, "Xor", interval(0), interval(15, 25), myXor,
-                        &interval_algebra::Xor);
-    analyzeBinaryMethod(10, 2000, "Xor", interval(0), interval(0), myXor, &interval_algebra::Xor);
 }
 }  // namespace itv

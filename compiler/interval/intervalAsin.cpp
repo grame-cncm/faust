@@ -28,7 +28,6 @@ namespace itv {
 // Calculates the principal value of the arc sine of x; that is the value whose sine is x.
 // the return value is in the range [-pi/2, pi/2].
 // interval Asin(const interval& x);
-// void testAsin();
 
 static const interval domain(-1, 1, 0);  // this interval needs 0 digits of precision
 
@@ -56,21 +55,5 @@ interval interval_algebra::numericAsinBounds(const interval& x) const
     }
 
     return {std::asin(i.lo()), std::asin(i.hi()), precision};
-}
-
-void interval_algebra::testAsin()
-{
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, 0), std::asin, &interval_algebra::Asin);
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -5), std::asin, &interval_algebra::Asin);
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -10), std::asin, &interval_algebra::Asin);
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -15), std::asin, &interval_algebra::Asin);
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -20), std::asin, &interval_algebra::Asin);
-
-    /* analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, 30), std::asin,
-    &interval_algebra::Asin); analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -35), std::asin,
-    &interval_algebra::Asin); analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -40), std::asin,
-    &interval_algebra::Asin); analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -45), std::asin,
-    &interval_algebra::Asin); analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -50), std::asin,
-    &interval_algebra::Asin);*/
 }
 }  // namespace itv

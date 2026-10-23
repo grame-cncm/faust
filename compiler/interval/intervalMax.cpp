@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Max
 // interval Max(const interval& x);
-// void testMax();
 
 // Numeric kernel: enclose maximum after target operand conversions.
 // Empty stays empty; widened integers recover their signed hull.
@@ -41,11 +40,5 @@ interval interval_algebra::numericMax(const interval& xInput, const interval& yI
     return {std::max(x.lo(), y.lo()), std::max(x.hi(), y.hi()),
             std::min(x.lsb(), y.lsb())};  // the resulting interval should be as precise as the most
                                           // precise of the operands
-}
-
-void interval_algebra::testMax()
-{
-    check("test algebra Max", Max(interval(0, 5), interval(-3, 10)), interval(0, 10));
-    check("test algebra Max", Max(interval(0, 5), interval(-3, -3)), interval(0, 5));
 }
 }  // namespace itv

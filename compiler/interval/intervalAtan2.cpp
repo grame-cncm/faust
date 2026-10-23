@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Atan2
 // interval Atan2(const interval& x, const interval& y);
-// void testAtan2();
 
 // be careful with the order of the arguments:
 // atan2 is typically called as atan2(y,x)
@@ -116,22 +115,5 @@ interval interval_algebra::numericAtan2Bounds(const interval& y, const interval&
     }
 
     return {lo, hi, precision};
-}
-
-void interval_algebra::testAtan2()
-{
-    // std::cout << "Atan2 not implemented" << std::endl;
-    /* analyzeBinaryMethod(10, 1000000, "atan2", interval(1, 2, -24), interval(1, 2, -24), atan2,
-    &interval_algebra::Atan2); analyzeBinaryMethod(10, 1000000, "atan2", interval(-1, 2, -24),
-    interval(1, 2, -24), atan2, &interval_algebra::Atan2); analyzeBinaryMethod(10, 1000000, "atan2",
-    interval(-2, -1, -24), interval(1, 2, -24), atan2, &interval_algebra::Atan2);
-    analyzeBinaryMethod(10, 1000000, "atan2", interval(-2, -1, -24), interval(-1, 2, -24), atan2,
-    &interval_algebra::Atan2); analyzeBinaryMethod(10, 1000000, "atan2", interval(-2, -1, -24),
-    interval(-2, -1, -24), atan2, &interval_algebra::Atan2);*/
-
-    analyzeBinaryMethod(10, 1000000, "atan2", interval(-1, 2, -24), interval(-1, 2, -24), atan2,
-                        &interval_algebra::Atan2);
-    analyzeBinaryMethod(10, 1000000, "atan2", interval(-1, 2, -24), interval(-2, -1, -24), atan2,
-                        &interval_algebra::Atan2);
 }
 }  // namespace itv

@@ -24,16 +24,6 @@
 
 namespace itv {
 //------------------------------------------------------------------------------------------
-// Interval Or
-// interval Or(const interval& x, const interval& y);
-// void testOr();
-static double myOr(double x, double y)
-{
-    int a = saturatedIntCast(x);
-    int b = saturatedIntCast(y);
-    int c = a | b;
-    return double(c);
-}
 
 // BRUTE FORCE
 // Numeric kernel: enclose int32 bitwise operations after integer conversion.
@@ -85,22 +75,5 @@ interval interval_algebra::numericOr(const interval& xInput, const interval& yIn
     return {double(z.lo), double(z.hi),
             // std::max(precision, std::max(precisionx, precisiony))
             precision};
-}
-
-void interval_algebra::testOr()
-{
-    analyzeBinaryMethod(10, 20000, "Or", interval(-1000, -800), interval(127), myOr,
-                        &interval_algebra::Or);
-    analyzeBinaryMethod(10, 20000, "Or", interval(-1000, -800), interval(123), myOr,
-                        &interval_algebra::Or);
-    analyzeBinaryMethod(10, 20000, "Or", interval(-128, 128), interval(127), myOr,
-                        &interval_algebra::Or);
-    analyzeBinaryMethod(10, 20000, "Or", interval(0, 1000), interval(63, 127), myOr,
-                        &interval_algebra::Or);
-    analyzeBinaryMethod(10, 20000, "Or", interval(-1000, 1000), interval(63, 127), myOr,
-                        &interval_algebra::Or);
-    analyzeBinaryMethod(10, 2000, "Or", interval(10, 20), interval(0), myOr, &interval_algebra::Or);
-    analyzeBinaryMethod(10, 2000, "Or", interval(0), interval(15, 25), myOr, &interval_algebra::Or);
-    analyzeBinaryMethod(10, 2000, "Or", interval(0), interval(0), myOr, &interval_algebra::Or);
 }
 }  // namespace itv

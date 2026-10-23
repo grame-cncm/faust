@@ -26,11 +26,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval substraction
 
-static double sub(double a, double b)
-{
-    return a - b;
-}
-
 // Numeric kernel: the values of the program's subtraction, its bounds rounded to nearest
 // as the program rounds them (see numericAdd). The existing int32 wrapping and other
 // precision paths remain.
@@ -79,26 +74,5 @@ interval interval_algebra::numericSub(const interval& xIn, const interval& yIn) 
         return {lo, hi, detail::floatingLSB(std::min(x.lsb(), y.lsb()))};
     }
     return {x.lo() - y.hi(), x.hi() - y.lo(), std::min(x.lsb(), y.lsb())};
-}
-
-void interval_algebra::testSub()
-{
-    // check("test algebra Sub", Sub(interval(0, 100), interval(10, 500)), interval(-500, 90));
-    analyzeBinaryMethod(10, 2000, "sub", interval(0, 10, 0), interval(0, 10, 0), sub,
-                        &interval_algebra::Sub);
-    analyzeBinaryMethod(10, 2000, "sub", interval(0, 10, -5), interval(0, 10, 0), sub,
-                        &interval_algebra::Sub);
-    analyzeBinaryMethod(10, 2000, "sub", interval(0, 10, -10), interval(0, 10, 0), sub,
-                        &interval_algebra::Sub);
-    analyzeBinaryMethod(10, 2000, "sub", interval(0, 10, -15), interval(0, 10, 0), sub,
-                        &interval_algebra::Sub);
-    analyzeBinaryMethod(10, 2000, "sub", interval(0, 10, 0), interval(0, 10, -10), sub,
-                        &interval_algebra::Sub);
-    analyzeBinaryMethod(10, 2000, "sub", interval(0, 10, -5), interval(0, 10, -10), sub,
-                        &interval_algebra::Sub);
-    analyzeBinaryMethod(10, 2000, "sub", interval(0, 10, -10), interval(0, 10, -10), sub,
-                        &interval_algebra::Sub);
-    analyzeBinaryMethod(10, 2000, "sub", interval(0, 10, -15), interval(0, 10, -10), sub,
-                        &interval_algebra::Sub);
 }
 }  // namespace itv

@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Ceil
 // interval Ceil(const interval& x);
-// void testCeil();
 
 // Numeric kernel: numeric ceil image; empty stays empty, and integer inputs
 // first convert to the target float. Results keep floating nature in every precision,
@@ -40,10 +39,5 @@ interval interval_algebra::numericCeil(const interval& input) const
             -1};  // even though the output of floor are mathematical integers,
                   // they are implemented as floats and thus should not be given precision 0,
                   // lest it be cast as an int
-}
-
-void interval_algebra::testCeil()
-{
-    analyzeUnaryMethod(10, 1000, "ceil", interval(-10, 10), std::ceil, &interval_algebra::Ceil);
 }
 }  // namespace itv

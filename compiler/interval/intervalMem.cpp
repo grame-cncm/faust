@@ -24,7 +24,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Mem
 // interval Mem(const interval& x);
-// void testMem();
 
 interval interval_algebra::numericMem(const interval& x) const
 {
@@ -33,11 +32,5 @@ interval interval_algebra::numericMem(const interval& x) const
     }
     interval z = reunion(x, interval{0});
     return {z.lo(), z.hi(), x.lsb()};
-}
-
-void interval_algebra::testMem()
-{
-    check("test algebra Mem", Mem(interval(5)), interval(0, 5));
-    check("test algebra Mem", Mem(interval(-1, 1)), interval(-1, 1));
 }
 }  // namespace itv

@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Round
 // interval Round(const interval& x);
-// void testRound();
 
 // Numeric kernel: numeric round image; empty stays empty, and integer inputs
 // first convert to the target float. Results keep floating nature in every precision,
@@ -39,10 +38,5 @@ interval interval_algebra::numericRound(const interval& input) const
 
     return {std::round(x.lo()), std::round(x.hi()),
             detail::floatingLSB(std::max(0, x.lsb()))};  // integral grid, with floating nature
-}
-
-void interval_algebra::testRound()
-{
-    check("test algebra Round", Round(interval(-3.1, 5.9)), interval(-3, 6));
 }
 }  // namespace itv

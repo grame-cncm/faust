@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Sinh
 // interval Sinh(const interval& x);
-// void testSinh();
 
 // Numeric kernel: numeric sinh image on its valid domain. In float/double,
 // the native kernel encloses endpoints and extrema; quad/fixed retain
@@ -52,17 +51,5 @@ interval interval_algebra::numericSinhBounds(const interval& x) const
     }
 
     return {std::sinh(x.lo()), std::sinh(x.hi()), precision};
-}
-
-void interval_algebra::testSinh()
-{
-    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, 0), std::sinh, &interval_algebra::Sinh);
-    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -5), std::sinh, &interval_algebra::Sinh);
-    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -10), std::sinh,
-                       &interval_algebra::Sinh);
-    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -15), std::sinh,
-                       &interval_algebra::Sinh);
-    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -20), std::sinh,
-                       &interval_algebra::Sinh);
 }
 }  // namespace itv

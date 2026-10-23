@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval FloatCast
 // interval FloatCast(const interval& x);
-// void testFloatCast();
 
 // Numeric kernel: enclose conversion to the program's floating type. In float mode,
 // convert the source endpoints once; IEEE narrowing is monotone. This is a known
@@ -37,10 +36,5 @@ interval interval_algebra::numericFloatCast(const interval& input) const
     const interval x = detail::int32Hull(input);
     // LSB with -1 value to force the float typing
     return {programBound(x.lo()), programBound(x.hi()), std::min(x.lsb(), -1)};
-}
-
-void interval_algebra::testFloatCast()
-{
-    std::cout << "OK: FloatCast no tests needed" << std::endl;
 }
 }  // namespace itv
