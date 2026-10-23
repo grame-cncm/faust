@@ -170,6 +170,11 @@ namespace tlib {
 /// lazy internals over a live population, silently breaking pointer
 /// equality, treeorder and the uniqueness of nil. cleanup() is the one real
 /// reset -- after it, a new init() is legal but not required.
+/// No tree and no symbol may be made before the first init() : a tree(...),
+/// symbol(...) or signature(...) at namespace scope, run by a static
+/// initializer, makes it fail with an explicit error (its serial and its name
+/// would otherwise be issued again). A property declared at namespace scope is
+/// allowed : it makes its key on first use.
 TLIB_API void init();
 
 /// End a session : delete every Garbageable object created so far (all trees,
