@@ -3042,7 +3042,9 @@ class LoopSplitEmitter {
             Operand a = walk(x, curScc, false);
             std::vector<int> deps;
             addDep(deps, a);
-            o.op = newOp(subst("(*(int*)&$0)", operandCode(a)), deps, false, false, true);
+            // the bits in the precision of the program, as generateBitCast
+            const char* bits = (gGlobal->gFloatSize == 2) ? "faust_double_bits($0)" : "faust_float_bits($0)";
+            o.op = newOp(subst(bits, operandCode(a)), deps, false, false, true);
             fOpOf[t] = o.op;
             return o;
         }
@@ -6195,10 +6197,12 @@ string ScalarCompiler::generateIntCast(Tree sig, Tree x)
 
 string ScalarCompiler::generateBitCast(Tree sig, Tree x)
 {
+    // the helpers of the class header (a copy of the bytes) : an expression has no address,
+    // and a pointer of another type is undefined behaviour
     if (gGlobal->gFloatSize == 1) {
-        return generateCacheCode(sig, subst("(*(int*)&$0)", CS(x)));
+        return generateCacheCode(sig, subst("faust_float_bits($0)", CS(x)));
     } else if (gGlobal->gFloatSize == 2) {
-        return generateCacheCode(sig, subst("((*(int64_t*)&$0)", CS(x)));
+        return generateCacheCode(sig, subst("faust_double_bits($0)", CS(x)));
     } else {
         faustassert(false);
         return "";
