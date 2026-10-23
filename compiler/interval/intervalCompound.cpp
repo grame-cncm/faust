@@ -41,14 +41,14 @@ namespace {
 /// the unit roundoff of the program (float for the precisions without one)
 double unitRoundoff()
 {
-    return programPrecision() == 2 ? std::ldexp(1.0, -53) : std::ldexp(1.0, -24);
+    return modelPrecision() == 2 ? std::ldexp(1.0, -53) : std::ldexp(1.0, -24);
 }
 
 /// the largest program value below 1
 double belowOne()
 {
     if (programPrecision() == 1) return double(std::nextafter(1.0f, 0.0f));
-    if (programPrecision() == 2) return std::nextafter(1.0, 0.0);
+    if (modelPrecision() == 2) return std::nextafter(1.0, 0.0);
     return 1;
 }
 
@@ -58,7 +58,7 @@ double belowOne()
 /// roundings, and M * (1 + 2u) finite)
 double mixEnvelope(double mag)
 {
-    const int precision = programPrecision();
+    const int precision = modelPrecision();
     if (precision != 1 && precision != 2) return 0;
     if (!(mag > 0) || !std::isfinite(mag)) return 0;
     int          e;
