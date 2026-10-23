@@ -49,10 +49,9 @@ class RemainderPrim : public xtendedCodegen {
             return tree(remainder(double(n), double(m)));
         } else {
             if (gGlobal->gMathApprox) {
-                // res = x - (y * T(int(0.5f + x / y)));
-                Tree half  = sigReal(0.5);
+                // res = x - (y * rint(x / y));
                 Tree ratio = sigDiv(args[0], args[1]);
-                Tree n     = sigFloatCast(sigIntCast(sigAdd(half, ratio)));
+                Tree n     = tree(gGlobal->gRintPrim->symbol(), ratio);
                 return sigSub(args[0], sigBinOp(kMul, args[1], n));
             } else {
                 return tree(symbol(), args[0], args[1]);
