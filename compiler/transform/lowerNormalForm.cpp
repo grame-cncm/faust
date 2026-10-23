@@ -21,6 +21,8 @@
 
 #include "lowerNormalForm.hh"
 
+#include <map>
+
 #include "global.hh"
 #include "sigIdentity.hh"
 #include "signals.hh"
@@ -29,6 +31,13 @@
 namespace {
 
 class SignalLowering : public SignalIdentity {
+    // the groups of the result, a fresh one for each group met (sig -> its new node)
+    std::map<Tree, Tree> fGroups;
+
+   public:
+    // the generators of the tables too : their content is a signal of the normal form
+    SignalLowering() { fVisitGen = true; }
+
    protected:
     // the zero of the nature of sig
     static Tree zeroOf(Tree sig)
@@ -50,6 +59,20 @@ class SignalLowering : public SignalIdentity {
 
     Tree transformation(Tree sig) override
     {
+        Tree var, le;
+        if (isRec(sig, var, le)) {
+            // A group becomes a new group : redefining it in place would change a tree that
+            // the memoized recursion plans (getRecPlan) take as immutable, and a group that
+            // the lowering adds in its body would belong to no plan
+            if (auto it = fGroups.find(sig); it != fGroups.end()) {
+                return it->second;
+            }
+            Tree nvar    = tree(unique("LR"));
+            Tree group   = ref(nvar);
+            fGroups[sig] = group;
+            rec(nvar, mapselfRec(le));
+            return group;
+        }
         if (tvec subs; isSigSum(sig, subs)) {
             // the chain of the node, a negated term subtracted
             Tree acc = nullptr;
