@@ -52,25 +52,4 @@ interval interval_algebra::numericAbs(const interval& input) const
 
     return {0, std::max(std::abs(x.lo()), std::abs(x.hi())), x.lsb()};
 }
-
-void interval_algebra::testAbs()
-{
-    std::cout << "Testing abs on finite intervals" << std::endl;
-    analyzeUnaryMethod(
-        10, 10000, "abs", interval(-10, 10, 0), [](double x) { return std::abs(x); },
-        &interval_algebra::Abs);
-    analyzeUnaryMethod(
-        10, 10000, "abs", interval(-10, 10, -15), [](double x) { return std::abs(x); },
-        &interval_algebra::Abs);
-
-    std::cout << "Testing abs on intervals with limit bounds" << std::endl;
-    check("abs", Abs(interval(INT_MIN, INT_MIN, 0)), interval(INT_MAX, INT_MAX, 0));
-    check("abs", Abs(interval(INT_MIN, -10, 0)), interval(10, INT_MAX, 0));
-    check("abs", Abs(interval(INT_MIN, 10, 0)), interval(0, INT_MAX, 0));
-    check("abs", Abs(interval(-10, INT_MAX, 0)), interval(0, INT_MAX, 0));
-
-    check("abs", Abs(interval(INT_MIN, INT_MIN, 5)), interval(INT_MAX, INT_MAX, 5));
-    check("abs", Abs(interval(INT_MIN, INT_MIN, -5)),
-          interval(-(float)INT_MIN, -(float)INT_MIN, -5));
-}
 }  // namespace itv

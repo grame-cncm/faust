@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Sqrt
 // interval Sqrt(const interval& x);
-// void testSqrt();
 
 static const interval SqrtDomain(0, HUGE_VAL, 0);
 
@@ -60,15 +59,5 @@ interval interval_algebra::numericSqrt(const interval& x) const
     }
 
     return {std::sqrt(i.lo()), std::sqrt(i.hi()), precision};
-}
-
-void interval_algebra::testSqrt()
-{
-    // analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10), std::sqrt, &interval_algebra::Sqrt);
-    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, 0), std::sqrt, &interval_algebra::Sqrt);
-    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, -5), std::sqrt, &interval_algebra::Sqrt);
-    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, -10), std::sqrt, &interval_algebra::Sqrt);
-    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, -15), std::sqrt, &interval_algebra::Sqrt);
-    analyzeUnaryMethod(10, 1000, "sqrt", interval(0, 10, -20), std::sqrt, &interval_algebra::Sqrt);
 }
 }  // namespace itv

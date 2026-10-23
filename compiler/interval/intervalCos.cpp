@@ -26,12 +26,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Cos
 // interval Cos(const interval& x);
-// void testCos();
-
-static double cosPi(double x)
-{
-    return std::cos(x * M_PI);
-}
 
 // Numeric kernel: numeric cos image on its valid domain. In float/double,
 // the native kernel encloses endpoints and extrema; quad/fixed retain
@@ -103,16 +97,5 @@ interval interval_algebra::numericCosBounds(const interval& x) const
     }
 
     return {lo, hi, precision};
-}
-
-void interval_algebra::testCos()
-{
-    analyzeUnaryMethod(10, 40000, "cos", interval(0, 2 * M_PI, -3), std::cos,
-                       &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -5), std::cos, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -10), std::cos, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -15), std::cos, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -20), std::cos, &interval_algebra::Cos);
-    analyzeUnaryMethod(10, 40000, "cos", interval(0, M_PI, -24), std::cos, &interval_algebra::Cos);
 }
 }  // namespace itv

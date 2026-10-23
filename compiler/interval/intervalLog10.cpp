@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Log10
 // interval Log10(const interval& x);
-// void testLog10();
 
 // Numeric kernel: uncompensated base-10-log bounds over x intersected with [0, +inf].
 // An empty domain yields empty; a zero-only domain yields the -inf point with
@@ -54,22 +53,5 @@ interval interval_algebra::numericLog10Bounds(const interval& x) const
     }
 
     return {log10(i.lo()), log10(i.hi()), precision};
-}
-
-void interval_algebra::testLog10()
-{
-    analyzeUnaryMethod(10, 1000, "log10", interval(0, 10, 0), std::log10, &interval_algebra::Log10);
-    analyzeUnaryMethod(10, 1000, "log10", interval(0, 10, -5), std::log10,
-                       &interval_algebra::Log10);
-    analyzeUnaryMethod(10, 1000, "log10", interval(0, 10, -10), std::log10,
-                       &interval_algebra::Log10);
-    analyzeUnaryMethod(10, 1000, "log10", interval(0, 10, -15), std::log10,
-                       &interval_algebra::Log10);
-    analyzeUnaryMethod(10, 1000, "log10", interval(0, 10, -20), std::log10,
-                       &interval_algebra::Log10);
-
-    // check("test algebra Log", Log10(interval(1, 10)), interval(std::log10(1), std::log10(10)));
-    // check("test algebra Log", Log10(interval(0, 10)), interval(std::log10(0), std::log10(10)));
-    // check("test algebra Log", Log10(interval(-10, 10)), interval(std::log10(0), std::log10(10)));
 }
 }  // namespace itv

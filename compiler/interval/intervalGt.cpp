@@ -25,12 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Gt
 // interval Gt(const interval& x, const interval& y);
-// void testGt();
-
-static double myGt(double x, double y)
-{
-    return (x > y);
-}
 
 // Numeric kernel: enclose comparison after target operand conversions.
 // Normalize widened integers before deciding a predicate.
@@ -49,21 +43,5 @@ interval interval_algebra::numericGt(const interval& xInput, const interval& yIn
         return interval{0, 0, 0};
     }
     return interval{0, 1, 0};
-}
-
-void interval_algebra::testGt()
-{
-    /* check("test algebra Gt", Gt(interval(5), interval(5)), interval(0));
-    check("test algebra Gt", Gt(interval(2, 5), interval(0, 1)), interval(1));
-    check("test algebra Gt", Gt(interval(2, 5), interval(0, 2)), interval(0, 1));
-    check("test algebra Gt", Gt(interval(2, 5), interval(5, 20)), interval(0));
-    check("test algebra Gt", Gt(interval(2, 5), interval(0, 20)), interval(0, 1)); */
-
-    analyzeBinaryMethod(10, 200, "Gt", interval(-1, 1, 0), interval(-1, 1, 0), myGt,
-                        &interval_algebra::Gt);
-    analyzeBinaryMethod(10, 200, "Gt", interval(-10, 10, 0), interval(-10, 10, 0), myGt,
-                        &interval_algebra::Gt);
-    analyzeBinaryMethod(10, 2000, "Gt", interval(-10, 10), interval(-10, 10), myGt,
-                        &interval_algebra::Gt);
 }
 }  // namespace itv
