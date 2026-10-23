@@ -40,6 +40,7 @@ class Parameter:
 
         self.io_type = self._derive_io_type()
         self.initValue = self._derive_init_value(self.init)
+        self.num_decimals = self._derive_decimals(self.step)
         self.paramVarname = self.varname
         self.paramCastedType = self._derive_casted_type(faustfloatType)
         self.isRTPC = self._derive_is_rtpc()
@@ -53,6 +54,7 @@ class Parameter:
         self.Wwise_Type_Specific_GetFunction = self._derive_Wwise_GetFunction()
     
     def _derive_io_type(self):
+        """Determine if the parameter is an input or output based on its type. The only outputs are bargraphs."""
         if self.is_bargraph():
             return "output"
         return "input"
@@ -73,6 +75,14 @@ class Parameter:
             "button": "false"
         }.get(self.type, "0")
 
+    def _derive_decimals(self, step: Any) -> int:
+        """Derive the number of decimal places from the step value. Max decimals supported in Wwise Authoring part is 3."""
+        step_str = f"{step:.10f}".rstrip('0') # avoid scientific notation
+        if '.' in step_str:
+            num_decimals = len(step_str.split('.')[1])
+            return min(num_decimals, 3)
+        return 0
+
     def _derive_casted_type(self, faustfloatType : str) -> str:
         """Map Faust UI type to C++ type."""
         return {
@@ -86,9 +96,7 @@ class Parameter:
         }.get(self.type, "auto")
 
     def _derive_is_rtpc(self) -> str:
-        """
-        Check metadata to see if RTPC is enabled.
-        """
+        """Check metadata to see if RTPC is enabled."""
         try:
             meta = self.raw.get("meta", [])
             for item in meta:
@@ -103,6 +111,7 @@ class Parameter:
             return "NonRTPC"
     
     def _derive_rtpc_type(self, val):
+        """Derive the RTPC type from the metadata value."""
         val = val.lower()
         return {
             "additive": "Additive",
@@ -184,7 +193,9 @@ class Parameter:
         return self.initValue or "0"
     
     def is_bargraph(self) -> bool:
+        """Return True if this parameter is a bargraph (horizontal or vertical)."""
         return self.type=="vbargraph" or self.type=="hbargraph"
     
     def xml_applicable(self) -> bool:
+        """Return True if this parameter should be included in the Wwise XML properties."""
         return not self.is_bargraph()
