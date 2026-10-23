@@ -50,6 +50,16 @@ static bool gInitialized = false;
 void init()
 {
     TLIB_ASSERT(!gInitialized);
+    // A tree or a symbol made before the first init() (from a static initializer) would keep
+    // its serial and leave the tables : init() would issue its serial again to another tree,
+    // and its name to another symbol, mixing them up in silence. A property declared at
+    // namespace scope makes its key on first use, so it makes none then. (After cleanup(),
+    // the trees of the session are gone, and the symbols left are tlib's own internals.)
+    if (CTree::session() == 0 && (CTree::serialCounter() != 0 || Symbol::count() != 0)) {
+        tlib::error("ERROR : a tree or a symbol was made before tlib::init() (" +
+                    std::to_string(CTree::serialCounter()) + " trees, " + std::to_string(Symbol::count()) +
+                    " symbols)\n");
+    }
     gInitialized = true;
     resetInternals();
 }

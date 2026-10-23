@@ -72,6 +72,19 @@
 enum NodeType { kIntNode, kInt64Node, kDoubleNode, kSymNode, kPointerNode };
 
 /**
+ * A real converted to an int as Faust's int() : truncated toward zero, saturated at the
+ * bounds of int32, a NaN giving 0. The plain conversion of a real out of the int32 range is
+ * undefined behaviour.
+ */
+inline int saturatedInt(double x)
+{
+    if (std::isnan(x)) return 0;
+    if (x >= 2147483647.0) return 2147483647;
+    if (x <= -2147483648.0) return -2147483647 - 1;
+    return int(x);
+}
+
+/**
  * Class Node = (type x (int + double + Sym + void*))
  */
 
@@ -169,7 +182,7 @@ class Node : public Garbageable {
     // conversions and promotion for numbers
     operator int() const
     {
-        return (fType == kIntNode) ? fData.i : (fType == kDoubleNode) ? int(fData.f) : 0;
+        return (fType == kIntNode) ? fData.i : (fType == kDoubleNode) ? saturatedInt(fData.f) : 0;
     }
     operator double() const
     {
