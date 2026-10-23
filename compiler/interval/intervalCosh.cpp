@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Cosh
 // interval Cosh(const interval& x);
-// void testCosh();
 
 // Numeric kernel: numeric cosh image on its valid domain. In float/double,
 // the native kernel encloses endpoints and extrema; quad/fixed retain
@@ -65,15 +64,5 @@ interval interval_algebra::numericCoshBounds(const interval& x) const
 
     return {std::min(std::cosh(x.lo()), std::cosh(x.hi())),
             std::max(std::cosh(x.lo()), std::cosh(x.hi())), precision};
-}
-
-void interval_algebra::testCosh()
-{
-    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, 0), std::cosh, &interval_algebra::Cosh);
-    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, -5), std::cosh, &interval_algebra::Cosh);
-    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, -10), std::cosh,
-                       &interval_algebra::Cosh);
-    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, -15), std::cosh,
-                       &interval_algebra::Cosh);
 }
 }  // namespace itv

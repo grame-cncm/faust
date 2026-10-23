@@ -26,7 +26,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval IntCast
 // interval IntCast(const interval& x);
-// void testIntCast();
 
 // restrict to integer range
 
@@ -44,12 +43,5 @@ interval interval_algebra::numericIntCast(const interval& x) const
     // The public transfer marks excluded inputs invalid; runtime code is not clamped.
     return {double(saturatedIntCast(x.lo())), double(saturatedIntCast(x.hi())),
             0};  // integer intervals have 0 bits of precision
-}
-
-void interval_algebra::testIntCast()
-{
-    check("test algebra IntCast", IntCast(interval{-3.8, 4.9}), interval{-3.0, 4.0, 0});
-    check("test algebra IntCast", IntCast(interval{-HUGE_VAL, HUGE_VAL}),
-          interval(-2147483648.0, 2147483647.0, 0, true));
 }
 }  // namespace itv

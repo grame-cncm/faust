@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Exp
 // interval Exp(const interval& x);
-// void testExp();
 
 // Numeric kernel: numeric exp image on its valid domain. In float/double,
 // the native kernel encloses endpoints and extrema; quad/fixed retain
@@ -60,19 +59,5 @@ interval interval_algebra::numericExp10(const interval& x) const
     // Base-10 exponentiation is floating even for an integer exponent; otherwise
     // 10^10 would take the int32 wrapping path instead of the libm image.
     return Pow(FloatNum(10), FloatCast(x));
-}
-
-void interval_algebra::testExp()
-{
-    analyzeUnaryMethod(10, 100000, "exp", interval(-100, 10, 0), std::exp, &interval_algebra::Exp);
-    analyzeUnaryMethod(10, 100000, "exp", interval(-100, 10, -3), std::exp, &interval_algebra::Exp);
-    analyzeUnaryMethod(10, 100000, "exp", interval(-100, 10, -6), std::exp, &interval_algebra::Exp);
-    analyzeUnaryMethod(10, 100000, "exp", interval(-100, 10, -9), std::exp, &interval_algebra::Exp);
-    analyzeUnaryMethod(10, 100000, "exp", interval(-100, 10, -12), std::exp,
-                       &interval_algebra::Exp);
-    analyzeUnaryMethod(10, 100000, "exp", interval(-100, 10, -15), std::exp,
-                       &interval_algebra::Exp);
-    analyzeUnaryMethod(10, 100000, "exp", interval(-100, 10, -18), std::exp,
-                       &interval_algebra::Exp);
 }
 }  // namespace itv

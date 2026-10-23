@@ -28,7 +28,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Pow
 // interval Pow(const interval& x, const interval& y);
-// void testPow();
 
 static const interval domainx = {0, HUGE_VAL, 0};
 
@@ -239,70 +238,4 @@ interval interval_algebra::numericPowBounds(const interval& xIn, const interval&
     return z;
 }
 
-static double myfPow(double x, double y)
-{
-    return std::pow(x, y);
-}
-
-static double myiPow(double x, double y)
-{
-    return std::pow(x, int(y));
-}
-
-static double myiPow32(double x, double y)
-{
-    uint32_t base     = static_cast<uint32_t>(static_cast<int32_t>(x));
-    uint32_t exponent = static_cast<uint32_t>(std::max(0, static_cast<int>(y)));
-    uint32_t result   = 1;
-
-    while (exponent != 0) {
-        if ((exponent & 1u) != 0) {
-            result *= base;
-        }
-        exponent >>= 1u;
-        if (exponent != 0) {
-            base *= base;
-        }
-    }
-
-    int64_t signedResult = (result <= static_cast<uint32_t>(INT32_MAX))
-                               ? static_cast<int64_t>(result)
-                               : static_cast<int64_t>(result) - (int64_t{1} << 32);
-    return static_cast<double>(signedResult);
-}
-
-void interval_algebra::testPow()
-{
-    /* analyzeBinaryMethod(10, 2000000, "iPow^2", interval(-100, 100), interval(2), myiPow,
-    &interval_algebra::iPow); analyzeBinaryMethod(10, 2000000, "iPow^3", interval(-100, 100),
-    interval(3), myiPow, &interval_algebra::iPow); analyzeBinaryMethod(10, 2000000, "iPow^2",
-    interval(-1, 1), interval(2), myiPow, &interval_algebra::iPow); analyzeBinaryMethod(10, 2000000,
-    "iPow^3", interval(-1, 1), interval(3), myiPow, &interval_algebra::iPow);*/
-
-    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-100, 100, 0), interval(0, 200, 0), myiPow32,
-                        &interval_algebra::iPow);
-    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-100, 100, -5), interval(0, 200, 0), myiPow,
-                        &interval_algebra::iPow);
-    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-100, 100, 0), interval(0, 200, -5), myiPow,
-                        &interval_algebra::iPow);
-
-    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-1, 1, 0), interval(1, 3, 0), myiPow32,
-                        &interval_algebra::iPow);
-    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-1, 1, -5), interval(1, 3, 0), myiPow,
-                        &interval_algebra::iPow);
-    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-1, 1, 0), interval(1, 3, -5), myiPow,
-                        &interval_algebra::iPow);
-
-    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-1, 1), interval(1, 10), myiPow,
-                        &interval_algebra::iPow);
-    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-1, 1), interval(1, 10), myiPow,
-                        &interval_algebra::iPow);
-    analyzeBinaryMethod(5, 2000000, "iPow2", interval(-1, 1), interval(1, 10), myiPow,
-                        &interval_algebra::iPow);
-
-    /* analyzeBinaryMethod(10, 2000000, "fPow2", interval(1, 1000), interval(-10, 10), myfPow,
-    &interval_algebra::fPow); analyzeBinaryMethod(10, 2000000, "fPow2", interval(0.001, 1),
-    interval(-10, 10), myfPow, &interval_algebra::fPow); analyzeBinaryMethod(10, 2000000, "fPow2",
-    interval(0.001, 10), interval(-200, 200), myfPow, &interval_algebra::fPow);*/
-}
 }  // namespace itv

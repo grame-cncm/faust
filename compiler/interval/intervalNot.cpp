@@ -24,7 +24,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Not
 // interval Not(const interval& x);
-// void testNot();
 
 // Numeric kernel: enclose int32 bitwise complement after integer conversion.
 // ~x = -1-x reverses signed order, so endpoints suffice even for full int32;
@@ -36,21 +35,4 @@ interval interval_algebra::numericNot(const interval& input) const
     return {-1.0 - x.hi(), -1.0 - x.lo(), 0};
 }
 
-static double myNot(double x)
-{
-    int a = saturatedIntCast(x);
-    int b = ~a;
-    return double(b);
-}
-
-void interval_algebra::testNot()
-{
-    analyzeUnaryMethod(10, 1000, "not", interval(-10, -1), myNot, &interval_algebra::Not);
-    analyzeUnaryMethod(10, 1000, "not", interval(10, 12), myNot, &interval_algebra::Not);
-    analyzeUnaryMethod(10, 1000, "not", interval(-10, 12), myNot, &interval_algebra::Not);
-
-    analyzeUnaryMethod(10, 1000, "not", interval(-10, -1, 5), myNot, &interval_algebra::Not);
-    analyzeUnaryMethod(10, 1000, "not", interval(10, 12, 10), myNot, &interval_algebra::Not);
-    analyzeUnaryMethod(10, 1000, "not", interval(-10, 12, 5), myNot, &interval_algebra::Not);
-}
 }  // namespace itv

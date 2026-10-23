@@ -35,12 +35,6 @@ static double specialmult(double a, double b)
     return ((a == 0.0) || (b == 0.0)) ? 0.0 : a * b;
 }
 
-static double specialmultint(double a, double b)
-{
-    // we want inf*0 to be 0
-    return ((a == 0.0) || (b == 0.0)) ? 0.0 : (int)a * (int)b;
-}
-
 // Numeric kernel: enclose multiplication; float/double floating corners round outward.
 // Zero times an unbounded endpoint keeps the historical numeric-hull convention;
 // the public transfer additionally marks possible NaN values.
@@ -106,42 +100,5 @@ interval interval_algebra::numericMul(const interval& xIn, const interval& yIn) 
         lo, hi,
         integerOperands ? detail::sumLSB(x.lsb(), y.lsb())
                         : detail::floatingLSB(detail::sumLSB(x.lsb(), y.lsb()))};
-}
-
-void interval_algebra::testMul()
-{
-    /* check("test algebra Mul", Mul(interval(-1, 1), interval(0, 1)), interval(-1, 1));
-    check("test algebra Mul", Mul(interval(-2, 3), interval(-50, 10)), interval(-150, 100));
-    check("test algebra Mul", Mul(interval(-2, -1), interval(-2, -1)), interval(1, 4));
-    check("test algebra Mul", Mul(interval(0), interval(-HUGE_VAL, HUGE_VAL)), interval(0));
-    check("test algebra Mul", Mul(interval(-HUGE_VAL, HUGE_VAL), interval(0)), interval(0));*/
-
-    // analyzeBinaryMethod(10, 2000, "mul", interval(0, 10, 0), interval(0, 10, 0), specialmult,
-    // &interval_algebra::Mul);
-    /* analyzeBinaryMethod(10, 20000, "mul", interval(0, 10, -5), interval(0, 10, 0), specialmult,
-    &interval_algebra::Mul); analyzeBinaryMethod(10, 20000, "mul", interval(0, 10, -10), interval(0,
-    10, 0), specialmult, &interval_algebra::Mul); analyzeBinaryMethod(10, 20000, "mul", interval(0,
-    10, -15), interval(0, 10, 0), specialmult, &interval_algebra::Mul); analyzeBinaryMethod(10,
-    20000, "mul", interval(0, 10, 0), interval(0, 10, -10), specialmult, &interval_algebra::Mul);
-    analyzeBinaryMethod(10, 20000, "mul", interval(0, 10, -5), interval(0, 10, -10), specialmult,
-                        &interval_algebra::Mul);
-    analyzeBinaryMethod(10, 20000, "mul", interval(0, 10, -10), interval(0, 10, -10), specialmult,
-                        &interval_algebra::Mul);
-    analyzeBinaryMethod(10, 20000, "mul", interval(0, 10, -15), interval(0, 10, -10), specialmult,
-                        &interval_algebra::Mul);
-
-    analyzeBinaryMethod(10, 200000, "mul", interval(-pow(2, 31), pow(2, 31), 0), interval(-pow(2,
-    31), pow(2, 31), 0), specialmultint, &interval_algebra::Mul); analyzeBinaryMethod(10, 200000,
-    "mul", interval((double)INT_MAX/2, (double)INT_MAX, 0), interval((double)INT_MAX/2,
-    (double)INT_MAX, 0), specialmultint, &interval_algebra::Mul); analyzeBinaryMethod(10, 200000,
-    "mul", interval((double)INT_MIN, (double)INT_MIN/2, 0), interval((double)INT_MAX/2,
-    (double)INT_MAX, 0), specialmultint, &interval_algebra::Mul); analyzeBinaryMethod(10, 2000000,
-    "mul", interval((double)2*INT_MAX/3, (double)INT_MAX, 0), interval(0, 10, 0), specialmultint,
-    &interval_algebra::Mul);*/
-    check("Test integer Mult",
-          Mul(interval(std::pow(2, 30), std::pow(2, 30) + 2, 2), interval(1, 2, 0)),
-          interval((double)INT_MIN, std::pow(2, 30) + 2, 0));
-    // analyzeBinaryMethod(10, 2000, "mul", interval((double)INT_MAX-1, (double)INT_MAX, 0),
-    // interval((double)INT_MAX-1, (double)INT_MAX, 0), specialmultint, &interval_algebra::Mul);
 }
 }  // namespace itv

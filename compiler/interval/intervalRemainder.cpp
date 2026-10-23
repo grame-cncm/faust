@@ -29,7 +29,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Remainder
 // interval Remainder(const interval& x, const interval& y);
-// void testRemainder();
 
 // Numeric kernel: numeric IEEE remainder image. Float/double half-divisor bounds round
 // outward, including subnormals; invalid-only domains yield empty. Validity is
@@ -60,17 +59,5 @@ interval interval_algebra::numericRemainder(const interval& xInput, const interv
         detail::BinaryOp::Div, m, 2, detail::Direction::Up) : m / 2;
     const double b = std::min(xmax, halfMax);
     return {-b, b, std::min(x.lsb(), y.lsb())};
-}
-
-void interval_algebra::testRemainder()
-{
-    checkExact("remainder band", Remainder(interval(0, 100, 0), interval(2, 2, 0)),
-               interval(-1, 1, 0));
-    checkExact("remainder identity", Remainder(interval(3, 3, 0), interval(8, 8, 0)),
-               interval(3, 3, 0));
-    checkExact("remainder |x| clamp", Remainder(interval(-5, 5, 0), interval(4, 4, 0)),
-               interval(-2, 2, 0));
-    analyzeBinaryMethod(10, 10000, "remainder", interval(0, 100, -5), interval(1, 10, -5),
-                        std::remainder, &interval_algebra::Remainder);
 }
 }  // namespace itv

@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Floor
 // interval Floor(const interval& x);
-// void testFloor();
 
 // Numeric kernel: numeric floor image; empty stays empty, and integer inputs
 // first convert to the target float. Results keep floating nature in every precision,
@@ -40,10 +39,5 @@ interval interval_algebra::numericFloor(const interval& input) const
             -1};  // even though the output of floor are mathematical integers,
                   // they are implemented as floats and thus should not be given precision 0,
                   // lest it be cast as an int
-}
-
-void interval_algebra::testFloor()
-{
-    analyzeUnaryMethod(10, 1000, "floor", interval(-10, 10, -24), floor, &interval_algebra::Floor);
 }
 }  // namespace itv

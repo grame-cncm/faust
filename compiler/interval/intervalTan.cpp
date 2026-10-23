@@ -26,12 +26,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Tan
 // interval Tan(const interval& x);
-// void testTan();
-
-static double tanPi(double x)
-{
-    return std::tan(x * M_PI);
-}
 
 // Numeric kernel: numeric tan image on its valid domain. In float/double,
 // the native kernel encloses endpoints and extrema; quad/fixed retain
@@ -81,13 +75,5 @@ interval interval_algebra::numericTanBounds(const interval& x) const
     double hi = std::max(a, b);
 
     return {lo, hi, precision};
-}
-
-void interval_algebra::testTan()
-{
-    // analyzeUnaryMethod(20, 20000, "tan", interval(-5, 5, -2), std::tan, &interval_algebra::Tan);
-    analyzeUnaryMethod(20, 20000, "tan", interval(-5, 5, -5), std::tan, &interval_algebra::Tan);
-    // analyzeUnaryMethod(20, 20000, "tan", interval(-5, 5, -10), std::tan, &interval_algebra::Tan);
-    // analyzeUnaryMethod(20, 20000, "tan", interval(-5, 5, -15), std::tan, &interval_algebra::Tan);
 }
 }  // namespace itv

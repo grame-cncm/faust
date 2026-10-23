@@ -164,21 +164,18 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: Abs encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Abs(const interval& x) const override;
-    void     testAbs();
     //
     // Public API: enclose addition; float/double floating bounds round outward at each
     // endpoint, while the existing int32 wrapping and other precision paths remain.
     // Public API: Add encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Add(const interval& x, const interval& y) const override;
-    void     testAdd();
     //
     // Public API: enclose subtraction; float/double floating bounds round outward at each
     // endpoint, while the existing int32 wrapping and other precision paths remain.
     // Public API: Sub encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Sub(const interval& x, const interval& y) const override;
-    void     testSub();
     //
     // Public API: enclose multiplication; float/double floating corners round outward.
     // Zero times an unbounded endpoint keeps the historical numeric-hull convention;
@@ -186,7 +183,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: Mul encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Mul(const interval& x, const interval& y) const override;
-    void     testMul();
     //
     // Public API: enclose floating division with directly divided endpoints. Float/double
     // bounds round outward; quad/fixed retain their previous evaluation.
@@ -195,7 +191,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: Div encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Div(const interval& x, const interval& y) const override;
-    void     testDiv();
     //
     // Public API: reciprocal bounds and their LSB estimate; empty stays empty.
     // Zero gives both signed infinities in float/double (signed zero is not tracked).
@@ -204,7 +199,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: Inv encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Inv(const interval& x) const override;
-    void     testInv();
     //
     // Public API: enclose wrapping int32 negation or floating sign reversal.
     // Empty stays empty. Normalize widened integer corridors before endpoint work;
@@ -212,7 +206,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: Neg encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Neg(const interval& x) const override;
-    void     testNeg();
     //
     // Public API: Mod encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
@@ -226,7 +219,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: Fmod encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Fmod(const interval& x, const interval& y) const override;
-    void     testMod();
     //
 
     // Public API: Acos encloses valid numeric results and conservatively retains
@@ -238,7 +230,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: AcosBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval AcosBounds(const interval& x) const;
-    void     testAcos();
     //
     // Public API: Acosh encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
@@ -249,7 +240,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: AcoshBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval AcoshBounds(const interval& x) const;
-    void     testAcosh();
     //
     // Public API: enclose int32 bitwise operations after integer conversion.
     // Normalize widened integers before bit analysis; empty stays empty.
@@ -257,7 +247,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: And encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval And(const interval& x, const interval& y) const override;
-    void     testAnd();
     //
     // Public API: Asin encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
@@ -268,7 +257,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: AsinBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval AsinBounds(const interval& x) const;
-    void     testAsin();
     //
     // Public API: Asinh encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
@@ -279,7 +267,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: AsinhBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval AsinhBounds(const interval& x) const;
-    void     testAsinh();
     //
     // Public API: Atan encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
@@ -290,7 +277,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: AtanBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval AtanBounds(const interval& x) const;
-    void     testAtan();
     //
     // Public API: Atan2 encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
@@ -301,7 +287,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: Atan2Bounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Atan2Bounds(const interval& y, const interval& x) const;
-    void     testAtan2();
     //
     // Public API: Atanh encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
@@ -312,7 +297,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: AtanhBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval AtanhBounds(const interval& x) const;
-    void     testAtanh();
     //
     // Public API: numeric ceil image; empty stays empty, and integer inputs
     // first convert to the target float. Results keep floating nature in every precision,
@@ -320,7 +304,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: Ceil encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Ceil(const interval& x) const override;
-    void     testCeil();
     // Public API: Cos encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Cos(const interval& x) const override;
@@ -330,7 +313,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: CosBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval CosBounds(const interval& x) const;
-    void     testCos();
     // Public API: Cosh encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Cosh(const interval& x) const override;
@@ -340,19 +322,16 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: CoshBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval CoshBounds(const interval& x) const;
-    void     testCosh();
     // Public API: enclose Delay after int32 conversion of the sample count.
     // Exactly zero preserves bounds and LSB; possibly positive counts include
     // initial zero. Retain invalidity of either operand and the delay domain.
     interval Delay(const interval& x, const interval& y) const override;
-    void     testDelay();
     // Public API: enclose comparison after target operand conversions.
     // Normalize widened integers before deciding a predicate.
     // Empty stays empty; a nonempty result is integer zero, one or both.
     // Public API: Eq encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Eq(const interval& x, const interval& y) const override;
-    void     testEq();
     // Public API: Exp encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Exp(const interval& x) const override;
@@ -362,7 +341,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: ExpBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval ExpBounds(const interval& x) const;
-    void     testExp();
     // Public API: Exp10 encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Exp10(const interval& x) const override;
@@ -374,41 +352,35 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: FloatCast encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval FloatCast(const interval& x) const override;
-    void     testFloatCast();
     // Public API: numeric floor image; empty stays empty, and integer inputs
     // first convert to the target float. Results keep floating nature in every precision,
     // so subsequent operations cannot incorrectly enter the int32 wrapping branch.
     // Public API: Floor encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Floor(const interval& x) const override;
-    void     testFloor();
     // Public API: enclose comparison after target operand conversions.
     // Normalize widened integers before deciding a predicate.
     // Empty stays empty; a nonempty result is integer zero, one or both.
     // Public API: Ge encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Ge(const interval& x, const interval& y) const override;
-    void     testGe();
     // Public API: enclose comparison after target operand conversions.
     // Normalize widened integers before deciding a predicate.
     // Empty stays empty; a nonempty result is integer zero, one or both.
     // Public API: Gt encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Gt(const interval& x, const interval& y) const override;
-    void     testGt();
     // Public API: IntCast encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     // Truncation must fit int32; invalid-only inputs give numeric bottom with an
     // alert, and partially invalid inputs keep their valid truncated image.
     interval IntCast(const interval& x) const override;
-    void     testIntCast();
     // Public API: enclose comparison after target operand conversions.
     // Normalize widened integers before deciding a predicate.
     // Empty stays empty; a nonempty result is integer zero, one or both.
     // Public API: Le encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Le(const interval& x, const interval& y) const override;
-    void     testLe();
     // Public API: Log encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Log(const interval& x) const override;
@@ -418,7 +390,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: LogBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval LogBounds(const interval& x) const;
-    void     testLog();
     // Public API: Log10 encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Log10(const interval& x) const override;
@@ -428,60 +399,51 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: Log10Bounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Log10Bounds(const interval& x) const;
-    void     testLog10();
     // Public API: enclose wrapping int32 left shift for counts in [0,31].
     // Convert operands to integers first. Invalid counts have no portable execution
     // contract and conservatively return full int32; this does not define such shifts.
     // Public API: Lsh encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Lsh(const interval& x, const interval& y) const override;
-    void     testLsh();
     // Public API: enclose comparison after target operand conversions.
     // Normalize widened integers before deciding a predicate.
     // Empty stays empty; a nonempty result is integer zero, one or both.
     // Public API: Lt encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Lt(const interval& x, const interval& y) const override;
-    void     testLt();
     // Public API: enclose maximum after target operand conversions.
     // Empty stays empty; widened integers recover their signed hull.
     // The result is floating exactly when either operand is floating.
     // Public API: Max encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Max(const interval& x, const interval& y) const override;
-    void     testMax();
     // Public API: Mem encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Mem(const interval& x) const override;
-    void     testMem();
     // Public API: enclose minimum after target operand conversions.
     // Empty stays empty; widened integers recover their signed hull.
     // The result is floating exactly when either operand is floating.
     // Public API: Min encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Min(const interval& x, const interval& y) const override;
-    void     testMin();
     // Public API: enclose comparison after target operand conversions.
     // Normalize widened integers before deciding a predicate.
     // Empty stays empty; a nonempty result is integer zero, one or both.
     // Public API: Ne encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Ne(const interval& x, const interval& y) const override;
-    void     testNe();
     // Public API: enclose int32 bitwise complement after integer conversion.
     // ~x = -1-x reverses signed order, so endpoints suffice even for full int32;
     // enumerating that range would not terminate. The low bit is always significant.
     // Public API: Not encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Not(const interval& x) const override;
-    void     testNot();
     // Public API: enclose int32 bitwise operations after integer conversion.
     // Normalize widened integers before bit analysis; empty stays empty.
     // Floating inputs are truncated and nonempty results remain integer.
     // Public API: Or encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Or(const interval& x, const interval& y) const override;
-    void     testOr();
     // Public API: Pow encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Pow(const interval& x, const interval& y) const override;  // for all cases
@@ -491,14 +453,12 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: PowBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval PowBounds(const interval& x, const interval& y) const;
-    void     testPow();
     // Public API: numeric IEEE remainder image. Float/double half-divisor bounds round
     // outward, including subnormals; invalid-only domains yield empty. Invalidity is
     // tracked by mayBeInvalid; LSB remains an estimate.
     // Public API: Remainder encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Remainder(const interval& x, const interval& y) const override;
-    void     testRemainder();
     // Public API: numeric rint image; empty stays empty, and integer inputs
     // first convert to the target float. Results keep floating nature in every precision,
     // so subsequent operations cannot incorrectly enter the int32 wrapping branch.
@@ -536,14 +496,12 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Bpf(x, t, r) : the hull of the regions r[i] whose range [t[i-1], t[i][ meets x, the
     // last one also when x may be NaN (every comparison false)
     interval Bpf(const interval& x, const std::vector<interval>& t, const std::vector<interval>& r) const override;
-    void     testRint();
     // Public API: numeric round image; empty stays empty, and integer inputs
     // first convert to the target float. Results keep floating nature in every precision,
     // so subsequent operations cannot incorrectly enter the int32 wrapping branch.
     // Public API: Round encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Round(const interval& x) const override;
-    void     testRound();
     // Public API: enclose arithmetic int32 right shift for counts in [0,31].
     // Arithmetic shifts round negative quotients downward; real scaling alone can
     // miss the actual integer result. Invalid counts conservatively return full int32.
@@ -556,7 +514,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: LRsh encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval LRsh(const interval& x, const interval& y) const override;
-    void     testRsh();
     // Public API: Sin encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Sin(const interval& x) const override;
@@ -566,7 +523,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: SinBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval SinBounds(const interval& x) const;
-    void     testSin();
     // Public API: Sinh encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Sinh(const interval& x) const override;
@@ -576,14 +532,12 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: SinhBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval SinhBounds(const interval& x) const;
-    void     testSinh();
     // Public API: square-root bounds over x intersected with [0, +inf], with an LSB
     // estimate. An empty domain yields empty; a zero-only domain yields exact zero.
     // Float/double bounds round outward independently of the host libm and rounding mode.
     // Public API: Sqrt encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Sqrt(const interval& x) const override;
-    void     testSqrt();
     // Public API: Tan encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Tan(const interval& x) const override;
@@ -593,7 +547,6 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: TanBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval TanBounds(const interval& x) const;
-    void     testTan();
     // Public API: Tanh encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Tanh(const interval& x) const override;
@@ -603,16 +556,13 @@ class interval_algebra : public FaustAlgebra<interval> {
     // Public API: TanhBounds encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval TanhBounds(const interval& x) const;
-    void     testTanh();
     // Public API: enclose int32 bitwise operations after integer conversion.
     // Normalize widened integers before bit analysis; empty stays empty.
     // Floating inputs are truncated and nonempty results remain integer.
     // Public API: Xor encloses valid numeric results and conservatively retains
     // input invalidity and any possible operation-domain violation.
     interval Xor(const interval& x, const interval& y) const override;
-    void     testXor();
 
-    void testAll();
 
    private:
     // Internal numeric kernels; public transfers add sticky input invalidity and

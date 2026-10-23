@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Acos
 // interval Acos(const interval& x);
-// void testAcos();
 
 static const interval AcosDomain(-1, 1, 0);  // this interval needs 0 digits of precision
 
@@ -55,22 +54,5 @@ interval interval_algebra::numericAcosBounds(const interval& x) const
     }
 
     return {std::acos(i.hi()), std::acos(i.lo()), precision};
-}
-
-void interval_algebra::testAcos()
-{
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -1), std::acos, &interval_algebra::Acos);
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -5), std::acos, &interval_algebra::Acos);
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -10), std::acos, &interval_algebra::Acos);
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -15), std::acos, &interval_algebra::Acos);
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -20), std::acos, &interval_algebra::Acos);
-
-    // very fine input precision
-    /* analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -100), acos, &interval_algebra::Acos);
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, -0.85, -100), acos, &interval_algebra::Acos);
-    analyzeUnaryMethod(10, 1000, "acos", interval(0.85, 1, -100), acos, &interval_algebra::Acos);
-
-    // out of bounds input interval
-    analyzeUnaryMethod(10, 1000, "acos", interval(-2, 2, -20), acos, &interval_algebra::Acos);*/
 }
 }  // namespace itv

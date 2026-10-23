@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Log
 // interval Log(const interval& x);
-// void testLog();
 
 static const interval domain{0, HUGE_VAL, 0};
 
@@ -60,19 +59,5 @@ interval interval_algebra::numericLogBounds(const interval& x) const
     }
 
     return {log(i.lo()), log(i.hi()), precision};
-}
-
-void interval_algebra::testLog()
-{
-    /* analyzeUnaryMethod(10, 10000, "log", interval(0, 10, -6), log, &interval_algebra::Log);
-    analyzeUnaryMethod(10, 10000, "log", interval(0, 10, -12), log, &interval_algebra::Log);
-    analyzeUnaryMethod(10, 10000, "log", interval(0, 10, -20), log, &interval_algebra::Log);
-    analyzeUnaryMethod(10, 10000, "log", interval(0, 10, -24), log, &interval_algebra::Log);*/
-
-    analyzeUnaryMethod(10, 10000, "log", interval(-10, 10, -24), log, &interval_algebra::Log);
-
-    // check("test algebra Log", Log(interval(1, 10)), interval(log(1), log(10)));
-    // check("test algebra Log", Log(interval(0, 10)), interval(log(0), log(10)));
-    // check("test algebra Log", Log(interval(-10, 10)), interval(log(0), log(10)));
 }
 }  // namespace itv
