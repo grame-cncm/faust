@@ -51,6 +51,7 @@ class CPPInstVisitor : public TextInstVisitor {
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
+        gFunctionSymbolTable["faust_wrap_abs"] = true;  // defined by the container
 
         gFunctionSymbolTable["max_i"] = true;
         gFunctionSymbolTable["min_i"] = true;
@@ -453,6 +454,19 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(BinopInst* inst)
     {
+        // An Int32 shift that the operands do not prove defined (fWrap, sumLayout.hh) : the
+        // faust_wrap_* helpers the container defines
+        if ((inst->fOpcode == kLsh || inst->fOpcode == kARsh || inst->fOpcode == kLRsh) && inst->fWrap &&
+            isInt32Type(TypingVisitor::getType(inst->fInst1))) {
+            *fOut << ((inst->fOpcode == kLsh)    ? "faust_wrap_shl("
+                      : (inst->fOpcode == kARsh) ? "faust_wrap_shr("
+                                                 : "faust_wrap_ushr(");
+            inst->fInst1->accept(this);
+            *fOut << ", ";
+            inst->fInst2->accept(this);
+            *fOut << ")";
+            return;
+        }
         // Special case for 'logical right-shift'
         if (strcmp(gBinOpTable[inst->fOpcode]->fName, ">>>") == 0) {
             Typed::VarType type = TypingVisitor::getType(inst->fInst1);
