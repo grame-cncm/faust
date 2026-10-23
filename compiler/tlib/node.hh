@@ -75,21 +75,6 @@ enum NodeType { kIntNode, kInt64Node, kDoubleNode, kSymNode, kPointerNode };
  * Class Node = (type x (int + double + Sym + void*))
  */
 
-
-/**
- * The rounding of the real numbers that the nodes hold : none by default. An application
- * whose computations run in another precision (single precision floats) installs the
- * rounding of that precision, so that every real node -- a literal, the result of an
- * operation folded at compile time -- is a value the computation can hold, and an
- * operation on such nodes gives the value the computation gives.
- */
-using RealRounding = double (*)(double);
-inline RealRounding& realRounding()
-{
-    static RealRounding rounding = nullptr;
-    return rounding;
-}
-
 class Node : public Garbageable {
     int fType;
     union {
@@ -129,7 +114,7 @@ class Node : public Garbageable {
         fData.i = x;
     }
 
-    Node(double x) : fType(kDoubleNode) { fData.f = realRounding() ? realRounding()(x) : x; }
+    Node(double x) : fType(kDoubleNode) { fData.f = x; }
 
     Node(int64_t x) : fType(kInt64Node) { fData.v = x; }
 
