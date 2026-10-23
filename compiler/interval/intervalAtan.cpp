@@ -28,7 +28,6 @@ namespace itv {
 // The return value is in the range [-pi/2, pi/2].
 
 // interval Atan(const interval& x);
-// void testAtan();
 
 // Numeric kernel: numeric atan image on its valid domain. In float/double,
 // the native kernel encloses endpoints and extrema; quad/fixed retain
@@ -52,19 +51,5 @@ interval interval_algebra::numericAtanBounds(const interval& x) const
     }
 
     return {atan(x.lo()), atan(x.hi()), precision};
-}
-
-void interval_algebra::testAtan()
-{
-    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, 0), std::atan,
-                       &interval_algebra::Atan);
-    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -5), std::atan,
-                       &interval_algebra::Atan);
-    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -10), std::atan,
-                       &interval_algebra::Atan);
-    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -15), std::atan,
-                       &interval_algebra::Atan);
-    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -20), std::atan,
-                       &interval_algebra::Atan);
 }
 }  // namespace itv

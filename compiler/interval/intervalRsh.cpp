@@ -26,12 +26,6 @@ namespace itv {
 // Interval arithmetic and logical right shifts
 // interval ARsh(const interval& x, const interval& y);
 // interval LRsh(const interval& x, const interval& y);
-// void testRsh();
-
-static double rsh(double x, double k)
-{
-    return x * std::pow(2, -k);
-}
 
 // Numeric kernel: enclose arithmetic int32 right shift for counts in [0,31].
 // Arithmetic shifts round negative quotients downward; real scaling alone can
@@ -71,22 +65,5 @@ interval interval_algebra::numericLRsh(const interval& input, const interval& co
         }
     }
     return result;
-}
-
-void interval_algebra::testRsh()
-{
-    // check("test algebra Rsh", ARsh(interval(8, 16), interval(4)), interval(0.5, 1));
-    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 32, 0), interval(8, 8, 1), rsh,
-                        &interval_algebra::ARsh);
-    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 0), interval(-10, 10, 0), rsh,
-                        &interval_algebra::ARsh);
-    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 2), interval(-10, 10, 0), rsh,
-                        &interval_algebra::ARsh);
-    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 0), interval(-10, 10, 1), rsh,
-                        &interval_algebra::ARsh);
-    analyzeBinaryMethod(10, 1000, "rshift", interval(0, 1024, 2), interval(-10, 10, 1), rsh,
-                        &interval_algebra::ARsh);
-    // analyzeBinaryMethod(10, 1000, "rshift", interval(0, 32, 0), interval(-3, 0, 0), rsh,
-    // &interval_algebra::ARsh);
 }
 }  // namespace itv
