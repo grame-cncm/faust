@@ -40,14 +40,19 @@ struct IntRange {
  * does not move, the immobile doctrine of the guards) and is certified ; the whole Int32
  * range otherwise, and under -nocert.
  */
-inline IntRange intRange(Tree t)
+inline IntRange intRange(const Type& ty)
 {
-    interval i = getCertifiedSigType(t)->getInterval();
+    interval i = ty->getInterval();
     if (gGlobal->gNoCert || !i.isValid() || i.moves() || !(i.lo() >= double(INT32_MIN)) ||
         !(i.hi() <= double(INT32_MAX))) {
         return {};
     }
     return {int64_t(std::floor(i.lo())), int64_t(std::ceil(i.hi()))};
+}
+
+inline IntRange intRange(Tree t)
+{
+    return intRange(getCertifiedSigType(t));
 }
 
 /**
@@ -75,16 +80,47 @@ inline bool intOpWraps(int opcode, const IntRange& a, const IntRange& b, IntRang
 }
 
 /**
- * Whether the Int32 operation sig = x op y (kAdd, kSub or kMul) wraps ; never for a real
- * operation.
+ * Whether the Int32 shift x op k (kLsh, kARsh or kLRsh) takes its defined form : a count
+ * that may leave [0, 31] is undefined in C and C++, and is taken modulo 32 (the constant
+ * folding, wasm and the hardware) ; a left shift of a negative x, or past Int32, is
+ * undefined in C and before C++20, and is done on the unsigned bits.
+ */
+inline bool shiftWraps(int opcode, const IntRange& x, const IntRange& k)
+{
+    if (k.lo < 0 || k.hi > 31) {
+        return true;
+    }
+    // x.hi < 2^31 and k.hi <= 31 : the product fits in an int64
+    return opcode == kLsh && (x.lo < 0 || x.hi * (int64_t(1) << k.hi) > INT32_MAX);
+}
+
+/**
+ * Whether the Int32 operation sig = x op y takes its defined form : an add, a sub or a mul
+ * that may overflow wraps (intOpWraps), a shift that may be undefined is masked
+ * (shiftWraps) ; never for a real operation or another operation.
  */
 inline bool binOpWraps(Tree sig, int opcode, Tree x, Tree y)
 {
-    if (getCertifiedSigType(sig)->nature() != kInt || (opcode != kAdd && opcode != kSub && opcode != kMul)) {
+    if (getCertifiedSigType(sig)->nature() != kInt) {
         return false;
     }
-    IntRange r;
-    return intOpWraps(opcode, intRange(x), intRange(y), r);
+    if (opcode == kAdd || opcode == kSub || opcode == kMul) {
+        IntRange r;
+        return intOpWraps(opcode, intRange(x), intRange(y), r);
+    }
+    if (opcode == kLsh || opcode == kARsh || opcode == kLRsh) {
+        return shiftWraps(opcode, intRange(x), intRange(y));
+    }
+    return false;
+}
+
+/**
+ * Whether abs of an Int32 of type ty takes its defined form : abs(INT32_MIN) is undefined in
+ * C and C++, and is INT32_MIN again in the defined form (the interval of Abs says so).
+ */
+inline bool absWraps(const Type& ty)
+{
+    return ty->nature() == kInt && intRange(ty).lo <= INT32_MIN;
 }
 
 /**
