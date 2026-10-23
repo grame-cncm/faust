@@ -336,6 +336,15 @@ void CPPCodeContainer::produceClass()
     *fOut << "inline int faust_wrap_ushr(int a, int k) { return int((unsigned int)a >> (k & 31)); }" << endl;
     *fOut << "inline int faust_wrap_abs(int a) { return (a < 0) ? int(0u - (unsigned int)a) : a; }" << endl;
     *fOut << "#endif" << endl;
+    // The bits of a real (-ftz 2) : a copy of its bytes, a pointer of another type being
+    // undefined behaviour (strict aliasing)
+    *fOut << "#ifndef FAUST_FLOAT_BITS" << endl;
+    *fOut << "#define FAUST_FLOAT_BITS" << endl;
+    *fOut << "#include <cstdint>" << endl;
+    *fOut << "#include <cstring>" << endl;
+    *fOut << "inline int faust_float_bits(float x) { int i; std::memcpy(&i, &x, sizeof(i)); return i; }" << endl;
+    *fOut << "inline int64_t faust_double_bits(double x) { int64_t i; std::memcpy(&i, &x, sizeof(i)); return i; }" << endl;
+    *fOut << "#endif" << endl;
     tab(n, *fOut);
 
     if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
