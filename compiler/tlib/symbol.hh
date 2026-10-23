@@ -133,6 +133,7 @@ class Symbol : public Garbageable {
 
    public:
     std::ostream& print(std::ostream& fout) const;  ///< print a symbol on a stream
+    static std::size_t count() { return gHashTableCount; }  ///< the number of symbols in the table
 
     friend Sym         symbol(const char* str);
     friend Sym         symbol(const std::string& str);
