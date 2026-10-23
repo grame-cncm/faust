@@ -39,15 +39,18 @@ interval interval_algebra::numericExpBounds(const interval& x) const
 
     // lowest slope is attained at the lowest boundary
     // int precision = exactPrecisionUnary(exp, x.lo(), pow(2, x.lsb()));
-    double delta = std::exp(std::pow(2, x.lsb())) - 1;
-    int    p1    = std::floor(x.lo() * std::log2(M_E));  // log2(exp(x.lo()))
-    int    p2    = 0;
-    if (delta == 0) {  // avoid absorption of 2^l into v
+    // The estimate is computed in double : an infinite lower bound has none (exp of -inf
+    // is 0), and an int conversion of an infinity, or the sum of two large estimates, is
+    // undefined. exp is a real : its lsb stays negative, a positive one reads as an int.
+    double       delta = std::exp(std::pow(2, x.lsb())) - 1;
+    const double p1    = std::isfinite(x.lo()) ? std::floor(x.lo() * std::log2(M_E)) : -1074.0;  // log2(exp(x.lo()))
+    double       p2    = 0;
+    if (delta == 0 || !std::isfinite(delta)) {  // avoid absorption of 2^l into v
         p2 = x.lsb();  // exp(v) - 1 ≃ v if v very small, so delta2 ≃ pow(2, x.lsb())
     } else {
         p2 = std::floor((double)std::log2(delta));
     }
-    int precision = p1 + p2;
+    const int precision = int(std::min(std::max(p1 + p2, -1074.0), -1.0));
 
     return {exp(x.lo()), exp(x.hi()), precision};
 }
