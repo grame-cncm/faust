@@ -51,6 +51,7 @@ struct NormalFormTreeLess {
 
 class mterm : public virtual Garbageable {
     Tree                fCoef;     ///< constant part of the term (usually 1 or -1)
+    double              fLo = 0.0;  ///< the error of a real fCoef : the coefficient is fCoef + fLo
     // Canonical order : the normalized product must emit its factors in an order
     // derived from VALUES, never from node serials (construction history).
     std::map<Tree, int, NormalFormTreeLess> fFactors;  ///< non constant terms and their power
