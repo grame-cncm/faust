@@ -337,6 +337,12 @@ class FaustDSP {
      * @returns {Object} Import object for WebAssembly.instantiate.
      */
     static createImportObject() {
+        // Math.round uses ties toward +infinity; rint uses ties to even, round ties away from zero.
+        const rint = function (x) {
+            const n = Math.round(x);
+            return (n - x === 0.5 && n % 2 !== 0) ? n - 1 : n;
+        };
+        const round = function (x) { return Math.sign(x) * Math.round(Math.abs(x)); };
         return {
             env: {
                 memoryBase: 0,
@@ -359,9 +365,9 @@ class FaustDSP {
                 _log10f: Math.log10,
                 _max_f: Math.max,
                 _min_f: Math.min,
-                _remainderf: function (x, y) { return x - Math.round(x / y) * y; },
+                _remainderf: function (x, y) { return x - rint(x / y) * y; },
                 _powf: Math.pow,
-                _roundf: Math.round,
+                _roundf: round,
                 _sinf: Math.sin,
                 _sqrtf: Math.sqrt,
                 _tanf: Math.tan,
@@ -389,9 +395,9 @@ class FaustDSP {
                 _log10: Math.log10,
                 _max_: Math.max,
                 _min_: Math.min,
-                _remainder: function (x, y) { return x - Math.round(x / y) * y; },
+                _remainder: function (x, y) { return x - rint(x / y) * y; },
                 _pow: Math.pow,
-                _round: Math.round,
+                _round: round,
                 _sin: Math.sin,
                 _sqrt: Math.sqrt,
                 _tan: Math.tan,
