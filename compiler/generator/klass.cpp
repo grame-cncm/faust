@@ -248,6 +248,14 @@ void Klass::printAdditionalCode(ostream& fout)
     fout << "inline int faust_wrap_ushr(int a, int k) { return int((unsigned int)a >> (k & 31)); }" << endl;
     fout << "inline int faust_wrap_abs(int a) { return (a < 0) ? int(0u - (unsigned int)a) : a; }" << endl;
     fout << "#endif" << endl;
+    // The bits of a real (-ftz 2), as the cpp backend
+    fout << "#ifndef FAUST_FLOAT_BITS" << endl;
+    fout << "#define FAUST_FLOAT_BITS" << endl;
+    fout << "#include <cstdint>" << endl;
+    fout << "#include <cstring>" << endl;
+    fout << "inline int faust_float_bits(float x) { int i; std::memcpy(&i, &x, sizeof(i)); return i; }" << endl;
+    fout << "inline int64_t faust_double_bits(double x) { int64_t i; std::memcpy(&i, &x, sizeof(i)); return i; }" << endl;
+    fout << "#endif" << endl;
 
     if (fNeedApproxRoundDef) {
         // -mapp : floor and ceil through the conversion to int, exact for |x| < 2^31 (the
