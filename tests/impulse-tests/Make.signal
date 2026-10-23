@@ -28,7 +28,7 @@ listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 SRCDIR := tools
 
 #########################################################################
-signal:  impulsesignal ir/$(outdir) $(call listfiles,$(outdir))
+signal:  impulsesignal filesCompare ir/$(outdir) $(call listfiles,$(outdir))
 
 test:
 	@echo $(call listfiles,$(outdir))
@@ -69,5 +69,5 @@ ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
 
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
 	cd $(dir $<); ../impulsesignal $(notdir $<) -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
-	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) -part || (rm -f $@; false)
 

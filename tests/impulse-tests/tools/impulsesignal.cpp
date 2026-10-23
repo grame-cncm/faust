@@ -33,8 +33,9 @@ int main(int argc, char* argv[])
         exit(-1);
     }
     
-    // print general informations
-    printHeader(DSP, nbsamples);
+    // print general informations : the signal interpreter is slow, a quarter of the samples
+    // is computed, and the header says so (compared with -part)
+    printHeader(DSP, nbsamples/4);
     
     runDSP1(factory, argv[1], linenum, nbsamples/4);
    
