@@ -152,7 +152,7 @@ class AffineOps : public Base {
     /// widening absorbs it in the rate (awiden).
     AffItv rounded(AffItv r) const
     {
-        if (r.isEmpty() || r.lsb >= 0 || programPrecision() != 2) return r;
+        if (r.isEmpty() || r.lsb >= 0 || modelPrecision() != 2) return r;
         if (r.a1 != 0) {
             const double e = roundingQuantum(std::max(std::abs(r.lo(0)), std::abs(r.lo(fT))));
             r.a0 = detail::directedBinary(detail::BinaryOp::Sub, r.a0, e, detail::Direction::Down);
@@ -181,7 +181,7 @@ class AffineOps : public Base {
         if ((x.lsb < 0 || y.lsb < 0) &&
             (programPrecision() == 1 || integerMayWrap(x) || integerMayWrap(y)))
             return c2(x, y, [this](const interval& a, const interval& b) { return fItv.Add(a, b); });
-        if (programPrecision() == 2) {
+        if (modelPrecision() == 2) {
             const AffItv result{detail::directedBinary(detail::BinaryOp::Add, x.a0, y.a0, detail::Direction::Down),
                     detail::directedBinary(detail::BinaryOp::Add, x.a1, y.a1, detail::Direction::Down),
                     detail::directedBinary(detail::BinaryOp::Add, x.b0, y.b0, detail::Direction::Up),
@@ -209,7 +209,7 @@ class AffineOps : public Base {
         if ((x.lsb < 0 || y.lsb < 0) &&
             (programPrecision() == 1 || integerMayWrap(x) || integerMayWrap(y)))
             return c2(x, y, [this](const interval& a, const interval& b) { return fItv.Sub(a, b); });
-        if (programPrecision() == 2) {
+        if (modelPrecision() == 2) {
             const AffItv result{detail::directedBinary(detail::BinaryOp::Sub, x.a0, y.b0, detail::Direction::Down),
                     detail::directedBinary(detail::BinaryOp::Sub, x.a1, y.b1, detail::Direction::Down),
                     detail::directedBinary(detail::BinaryOp::Sub, x.b0, y.a0, detail::Direction::Up),

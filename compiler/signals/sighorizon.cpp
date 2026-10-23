@@ -430,7 +430,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
             }
             if (!std::isfinite(mag)) return false;
             const double n     = double(terms.size());
-            const double u     = itv::programPrecision() == 2 ? std::ldexp(1.0, -53) : std::ldexp(1.0, -24);
+            const double u     = itv::modelPrecision() == 2 ? std::ldexp(1.0, -53) : std::ldexp(1.0, -24);
             const double gamma = n * u / (1 - n * u);
             double       eps   = (3 * gamma * mag + n * std::ldexp(1.0, -125)) * (1 + std::ldexp(1.0, -20));
             // The plain form X - floor(X), X one term : the subtraction is exact (Sterbenz,
@@ -547,7 +547,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         // most 3 rounding errors of the largest operand, once (the double slack covers
         // the exact ends, this margin covers the program and the values of c in between).
         const double mag = std::max({std::abs(ia.lo()), std::abs(ia.hi()), std::abs(ib.lo()), std::abs(ib.hi())});
-        const double u   = itv::programPrecision() == 2 ? std::ldexp(1.0, -53) : std::ldexp(1.0, -24);
+        const double u   = itv::modelPrecision() == 2 ? std::ldexp(1.0, -53) : std::ldexp(1.0, -24);
         const double eps = (3 * u + std::ldexp(1.0, -50)) * mag + std::ldexp(1.0, -122);
         // the weights are nonnegative floats : a mix of nonnegative operands stays
         // nonnegative whatever the rounding (and symmetrically), so the margin never
@@ -680,7 +680,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
     static double step(double k, bool integer, double dir)
     {
         if (integer) return dir > 0 ? std::floor(k) + 1 : std::ceil(k) - 1;
-        if (itv::programPrecision() == 2) return std::nextafter(k, dir * HUGE_VAL);
+        if (itv::modelPrecision() == 2) return std::nextafter(k, dir * HUGE_VAL);
         return double(std::nextafter(float(k), float(dir * HUGE_VAL)));
     }
 
@@ -719,7 +719,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         if (k < 0) std::swap(lo, hi);
         const double m  = std::ldexp(1.0, -20);
         double       rl = lo - std::abs(lo) * m, rh = hi + std::abs(hi) * m;
-        const double tiny = itv::programPrecision() == 2 ? std::numeric_limits<double>::denorm_min()
+        const double tiny = itv::modelPrecision() == 2 ? std::numeric_limits<double>::denorm_min()
                                                          : double(std::numeric_limits<float>::denorm_min());
         if (lo > 0) rl = std::max(rl, tiny);
         if (hi < 0) rh = std::min(rh, -tiny);
@@ -1336,7 +1336,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         }
         const AffItv ct = ev.eval(t0);
         invalid         = invalid || ct.mayBeInvalid;
-        const double u   = itv::programPrecision() == 2 ? std::ldexp(1.0, -53) : std::ldexp(1.0, -24);
+        const double u   = itv::modelPrecision() == 2 ? std::ldexp(1.0, -53) : std::ldexp(1.0, -24);
         const double rho = std::max(std::abs(r[0]), std::abs(r[1])) * (1 + 8 * u);
         const double A = std::sqrt(amp2) * (1 + u), U = std::sqrt(u2) * (1 + u);
         if (rho < 1) {
@@ -1445,7 +1445,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         }
         iA = itv::toItv(prod, fT);
         if (iA.isEmpty() || !iA.isBounded()) return false;
-        const double u     = itv::programPrecision() == 2 ? std::ldexp(1.0, -53) : std::ldexp(1.0, -24);
+        const double u     = itv::modelPrecision() == 2 ? std::ldexp(1.0, -53) : std::ldexp(1.0, -24);
         const double room  = 1 - ia.hi() - 3 * u;
         if (!(room > 0)) return false;
         const double mag   = std::max(std::abs(iA.lo()), std::abs(iA.hi()));
@@ -1533,7 +1533,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
             hi = 1;
             if (!ix.isEmpty() && ix.lo() >= 0) {
                 hi = itv::programPrecision() == 1 ? double(std::nextafter(1.0f, 0.0f))
-                     : itv::programPrecision() == 2 ? std::nextafter(1.0, 0.0)
+                     : itv::modelPrecision() == 2 ? std::nextafter(1.0, 0.0)
                                                     : 1.0;
             }
         }

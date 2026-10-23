@@ -32,7 +32,7 @@ enum class UnaryOp {
 
 // Float reuses the binary64 proof, then interval construction narrows outward.
 // Quad/fixed keep their old rules; the analyzer never narrows a reference step.
-inline bool usesNativeBounds() { return programPrecision() == 1 || programPrecision() == 2; }
+inline bool usesNativeBounds() { return modelPrecision() == 1 || modelPrecision() == 2; }
 
 // LSB is the nature marker independently of the program's floating precision.
 // Only bounded int32 corridors may reach the integer rules' C++ endpoint casts.
