@@ -137,23 +137,11 @@ Type operator|(const Type& t1, const Type& t2)
 
 bool operator==(const Type& t1, const Type& t2)
 {
+    // makeSimpleType shares the simple types on every field, the interval with its lsb, its
+    // flags and the resolution included : two equal simple types are the same object
     SimpleType *st1, *st2;
-
-    if (t1->variability() != t2->variability()) {
-        return false;
-    }
-    if (t1->computability() != t2->computability()) {
-        return false;
-    }
-
     if ((st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2))) {
-        // we need to ignore fix point resolution, because it never converges
-        return (st1->nature() == st2->nature()) && (st1->variability() == st2->variability()) &&
-               (st1->computability() == st2->computability()) &&
-               (st1->vectorability() == st2->vectorability()) &&
-               (st1->boolean() == st2->boolean()) &&
-               (st1->getInterval().lo() == st2->getInterval().lo()) &&
-               (st1->getInterval().hi() == st2->getInterval().hi());
+        return st1 == st2;
     }
     return false;
 }
