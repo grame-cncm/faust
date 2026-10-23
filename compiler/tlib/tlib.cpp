@@ -61,7 +61,11 @@ void init()
                     " symbols)\n");
     }
     gInitialized = true;
-    resetInternals();
+    // After cleanup(), the tables are already reset and tlib's internals interned again : a
+    // second reset would drop them from the tables without deleting them.
+    if (CTree::session() == 0) {
+        resetInternals();
+    }
 }
 
 void cleanup()
