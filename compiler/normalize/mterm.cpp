@@ -26,10 +26,46 @@
 #include "ppsig.hh"
 #include "signals.hh"
 #include "xtended.hh"
+#include "double_double.hh"
 
 using namespace std;
 
 typedef map<Tree, int, treeorder> MP;
+
+/**
+ * The coefficient c + clo op (t + tlo), folded as exactly as possible : in double-double when
+ * the result is a real, its hi the tree of the coefficient (the value rounded once), its lo
+ * the error kept for the next operations ; plain is the result of the operation on the
+ * trees, kept as it is otherwise (an int, an infinity...).
+ */
+static void foldCoef(Tree& c, double& clo, Tree t, double tlo, Tree plain,
+                     itv::DoubleDouble (*op)(itv::DoubleDouble, itv::DoubleDouble))
+{
+    // the value of a number node, an int or a double (an int64 is left to the plain result)
+    auto value = [](Tree n, double& v) {
+        const Node& x = n->node();
+        if (x.type() == kDoubleNode) {
+            v = x.getDouble();
+            return true;
+        }
+        if (x.type() == kIntNode) {
+            v = double(x.getInt());
+            return true;
+        }
+        return false;
+    };
+    double a, b;
+    if (plain->node().type() == kDoubleNode && value(c, a) && value(t, b)) {
+        const itv::DoubleDouble r = op({a, clo}, {b, tlo});
+        if (std::isfinite(r.hi)) {
+            c   = tree(r.hi);
+            clo = r.lo;
+            return;
+        }
+    }
+    c   = plain;
+    clo = 0.0;
+}
 
 mterm::mterm() : fCoef(sigInt(0))
 {
@@ -40,7 +76,7 @@ mterm::mterm(int k) : fCoef(sigInt(k))
 mterm::mterm(double k) : fCoef(sigReal(k))
 {
 }
-mterm::mterm(const mterm& m) : fCoef(m.fCoef), fFactors(m.fFactors)
+mterm::mterm(const mterm& m) : fCoef(m.fCoef), fLo(m.fLo), fFactors(m.fFactors)
 {
 }
 
@@ -265,7 +301,7 @@ const mterm& mterm::operator*=(Tree t)
     faustassert(t);
 
     if (isNum(t)) {
-        fCoef = mulNums(fCoef, t);
+        foldCoef(fCoef, fLo, t, 0.0, mulNums(fCoef, t), itv::ddMul);
 
     } else if (isSigBinOp(t, &op, x, y) && (op == kMul)) {
         *this *= x;
@@ -280,6 +316,7 @@ const mterm& mterm::operator*=(Tree t)
 
     } else if (isSigNeg(t, x)) {
         fCoef = minusNum(fCoef);
+        fLo   = -fLo;
         *this *= x;
 
     } else {
@@ -310,7 +347,7 @@ const mterm& mterm::operator/=(Tree t)
             error << "ERROR : division by 0 in " << *this << " / " << ppsig(t) << endl;
             throw faustexception(error.str());
         }
-        fCoef = divExtendedNums(fCoef, t);
+        foldCoef(fCoef, fLo, t, 0.0, divExtendedNums(fCoef, t), itv::ddDiv);
 
     } else if (isSigBinOp(t, &op, x, y) && (op == kMul)) {
         *this /= x;
@@ -325,6 +362,7 @@ const mterm& mterm::operator/=(Tree t)
 
     } else if (isSigNeg(t, x)) {
         fCoef = minusNum(fCoef);
+        fLo   = -fLo;
         *this /= x;
 
     } else {
@@ -343,6 +381,7 @@ const mterm& mterm::operator/=(Tree t)
 const mterm& mterm::operator=(const mterm& m)
 {
     fCoef    = m.fCoef;
+    fLo      = m.fLo;
     fFactors = m.fFactors;
     return *this;
 }
@@ -376,13 +415,14 @@ const mterm& mterm::operator+=(const mterm& m)
     } else if (isZero(fCoef)) {
         // copy of m
         fCoef    = m.fCoef;
+        fLo      = m.fLo;
         fFactors = m.fFactors;
     } else {
         // only add mterms of same signature
         Tree s1 = signatureTree();
         Tree s2 = m.signatureTree();
         faustassert(s1 == s2);
-        fCoef = addNums(fCoef, m.fCoef);
+        foldCoef(fCoef, fLo, m.fCoef, m.fLo, addNums(fCoef, m.fCoef), itv::ddAdd);
     }
     cleanup();
     return *this;
@@ -399,13 +439,14 @@ const mterm& mterm::operator-=(const mterm& m)
     } else if (isZero(fCoef)) {
         // minus of m
         fCoef    = minusNum(m.fCoef);
+        fLo      = -m.fLo;
         fFactors = m.fFactors;
     } else {
         // only add mterms of same signature
         Tree s1 = signatureTree();
         Tree s2 = m.signatureTree();
         faustassert(s1 == s2);
-        fCoef = subNums(fCoef, m.fCoef);
+        foldCoef(fCoef, fLo, m.fCoef, m.fLo, subNums(fCoef, m.fCoef), itv::ddSub);
     }
     cleanup();
     return *this;
@@ -416,7 +457,7 @@ const mterm& mterm::operator-=(const mterm& m)
  */
 const mterm& mterm::operator*=(const mterm& m)
 {
-    fCoef = mulNums(fCoef, m.fCoef);
+    foldCoef(fCoef, fLo, m.fCoef, m.fLo, mulNums(fCoef, m.fCoef), itv::ddMul);
     for (const auto& p : m.fFactors) {
         fFactors[p.first] += p.second;
     }
@@ -435,7 +476,7 @@ const mterm& mterm::operator/=(const mterm& m)
         error << "ERROR : division by 0 in " << *this << " / " << m << endl;
         throw faustexception(error.str());
     }
-    fCoef = divExtendedNums(fCoef, m.fCoef);
+    foldCoef(fCoef, fLo, m.fCoef, m.fLo, divExtendedNums(fCoef, m.fCoef), itv::ddDiv);
     for (const auto& p : m.fFactors) {
         fFactors[p.first] -= p.second;
     }
