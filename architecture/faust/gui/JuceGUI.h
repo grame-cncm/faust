@@ -1092,46 +1092,8 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
          */
         void drawHBargraphDB(juce::Graphics& g, int y, int height)
         {
-            // Drawing Scale
-            g.setFont(9.0f);
-            g.setColour(juce::Colours::white);
-            for (int i = -10; i > fMin; i -= 10) {
-                paintScale(g, i);
-            }
-            for (int i = -6; i < fMax; i += 3)  {
-                paintScale(g, i);
-            }
-            
-            int alpha = 200;
-            FAUSTFLOAT dblevel = dB2Scale(fLevel);
-            
-            // We need to test here every color changing levels, to avoid to mix colors because of the alpha,
-            // and so to start the new color rectangle at the end of the previous one.
-            
-            // Drawing from the minimal range to the current level, or -10dB.
-            g.setColour(juce::Colour((juce::uint8)40, (juce::uint8)160, (juce::uint8)40, (juce::uint8)alpha));
-            g.fillRect(dB2x(fMin), y+1.0f, juce::jmin(dB2x(fLevel)-dB2x(fMin), dB2x(-10)-dB2x(fMin)), (float)height-2);
-            
-            // Drawing from -10dB to the current level, or -6dB.
-            if (dblevel > dB2Scale(-10)) {
-                g.setColour(juce::Colour((juce::uint8)160, (juce::uint8)220, (juce::uint8)20, (juce::uint8)alpha));
-                g.fillRect(dB2x(-10), y+1.0f, juce::jmin(dB2x(fLevel)-dB2x(-10), dB2x(-6)-dB2x(-10)), (float)height-2);
-            }
-            // Drawing from -6dB to the current level, or -3dB.
-            if (dblevel > dB2Scale(-6)) {
-                g.setColour(juce::Colour((juce::uint8)220, (juce::uint8)220, (juce::uint8)20, (juce::uint8)alpha));
-                g.fillRect(dB2x(-6), y+1.0f, juce::jmin(dB2x(fLevel)-dB2x(-6), dB2x(-3)-dB2x(-6)), (float)height-2);
-            }
-            // Drawing from -3dB to the current level, or 0dB.
-            if (dblevel > dB2Scale(-3)) {
-                g.setColour(juce::Colour((juce::uint8)240, (juce::uint8)160, (juce::uint8)20, (juce::uint8)alpha));
-                g.fillRect(dB2x(-3), y+1.0f, juce::jmin(dB2x(fLevel)-dB2x(-3), dB2x(0)-dB2x(-3)), (float)height-2);
-            }
-            // Drawing from 0dB to the current level, or the max range.
-            if (dblevel > dB2Scale(0)) {
-                g.setColour(juce::Colour((juce::uint8)240, (juce::uint8)0, (juce::uint8)20, (juce::uint8)alpha));
-                g.fillRect(dB2x(0), y+1.0f, juce::jmin(dB2x(fLevel)-dB2x(0), dB2x(fMax)-dB2x(0)), (float)height-2);
-            }
+            paintScales(g);
+            drawDBBands(g, false, (float)y, (float)height);
         }
         
         /**
@@ -1216,45 +1178,39 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
          */
         void drawVBargraphDB(juce::Graphics& g, int x, int width)
         {
-            // Drawing Scale
-            g.setFont(9.0f);
-            g.setColour(juce::Colours::white);
-            for (int i = -10; i > fMin; i -= 10) {
-                paintScale(g, i);
-            }
-            for (int i = -6; i < fMax; i += 3)  {
-                paintScale(g, i);
-            }
-            
-            int alpha = 200;
-            FAUSTFLOAT dblevel = dB2Scale(fLevel);
-            
-            // We need to test here every color changing levels, to avoid to mix colors because of the alpha,
-            // and so to start the new color rectangle at the end of the previous one.
-            
-            // Drawing from the minimal range to the current level, or -10dB.
-            g.setColour(juce::Colour((juce::uint8)40, (juce::uint8)160, (juce::uint8)40, (juce::uint8)alpha));
-            g.fillRect(x+1.0f, juce::jmax(dB2y(fLevel), dB2y(-10)), (float)width-2, dB2y(fMin)-juce::jmax(dB2y(fLevel), dB2y(-10)));
-            
-            // Drawing from -10dB to the current level, or -6dB.
-            if (dblevel > dB2Scale(-10)) {
-                g.setColour(juce::Colour((juce::uint8)160, (juce::uint8)220, (juce::uint8)20, (juce::uint8)alpha));
-                g.fillRect(x+1.0f, juce::jmax(dB2y(fLevel), dB2y(-6)), (float)width-2, dB2y(-10)-juce::jmax(dB2y(fLevel), dB2y(-6)));
-            }
-            // Drawing from -6dB to the current level, or -3dB.
-            if (dblevel > dB2Scale(-6)) {
-                g.setColour(juce::Colour((juce::uint8)220, (juce::uint8)220, (juce::uint8)20, (juce::uint8)alpha));
-                g.fillRect(x+1.0f, juce::jmax(dB2y(fLevel), dB2y(-3)), (float)width-2, dB2y(-6)-juce::jmax(dB2y(fLevel), dB2y(-3)));
-            }
-            // Drawing from -3dB to the current level, or 0dB.
-            if (dblevel > dB2Scale(-3)) {
-                g.setColour(juce::Colour((juce::uint8)240, (juce::uint8)160, (juce::uint8)20, (juce::uint8)alpha));
-                g.fillRect(x+1.0f, juce::jmax(dB2y(fLevel), dB2y(0)), (float)width-2, dB2y(-3)-juce::jmax(dB2y(fLevel), dB2y(0)));
-            }
-            // Drawing from 0dB to the current level, or the maximum range.
-            if (dblevel > dB2Scale(0)) {
-                g.setColour(juce::Colour((juce::uint8)240, (juce::uint8)0, (juce::uint8)20, (juce::uint8)alpha));
-                g.fillRect(x+1.0f, juce::jmax(dB2y(fLevel), dB2y(fMax)), (float)width-2, dB2y(0)-juce::jmax(dB2y(fLevel), dB2y(fMax)));
+            paintScales(g);
+            drawDBBands(g, true, (float)x, (float)width);
+        }
+
+        /**
+         * Draw the colour bands of a dB VU-meter, from fMin to the current level: green below
+         * -10dB, then -6dB, -3dB, 0dB and red above. Each band is restricted to the range of the
+         * VU-meter, so that a range that does not span these levels is not drawn out of its frame.
+         *
+         * \param   g           JUCE graphics context, used to draw components or images.
+         * \param   vertical    True for a vertical VU-meter, false for an horizontal one.
+         * \param   pos         x coordinate of a vertical VU-meter, y coordinate of an horizontal one.
+         * \param   size        Width of a vertical VU-meter, height of an horizontal one.
+         */
+        void drawDBBands(juce::Graphics& g, bool vertical, float pos, float size)
+        {
+            static const juce::uint8 colours[5][3] = {
+                {40, 160, 40}, {160, 220, 20}, {220, 220, 20}, {240, 160, 20}, {240, 0, 20}
+            };
+            const FAUSTFLOAT limits[6] = {fMin, -10, -6, -3, 0, fMax};
+
+            // Each band starts at the end of the previous one, so that colours are not mixed by the alpha.
+            for (int i = 0; i < 5; i++) {
+                FAUSTFLOAT lo = juce::jmax(limits[i], fMin);
+                FAUSTFLOAT hi = juce::jmin(limits[i+1], fMax, fLevel);
+                if (hi > lo) {
+                    g.setColour(juce::Colour(colours[i][0], colours[i][1], colours[i][2], (juce::uint8)200));
+                    if (vertical) {
+                        g.fillRect(pos+1.0f, (float)dB2y(hi), size-2, (float)(dB2y(lo)-dB2y(hi)));
+                    } else {
+                        g.fillRect((float)dB2x(lo), pos+1.0f, (float)(dB2x(hi)-dB2x(lo)), size-2);
+                    }
+                }
             }
         }
         
@@ -1273,7 +1229,7 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
             
             // Drawing from the minimal range to the current level, or 20% of the VU-meter.
             g.setColour(c.brighter());
-            g.fillRect(x+1.0f, juce::jmax(lin2y(fLevel), lin2y(0.2)), (float)width-2, lin2y(fMin)-juce::jmax(lin2y(fLevel), lin2y(0.2)));
+            g.fillRect(x+1.0f, juce::jmax(lin2y(fLevel), lin2y(0.2)), (float)width-2, lin2y(0)-juce::jmax(lin2y(fLevel), lin2y(0.2)));
             
             // Drawing from 20% of the VU-meter to the current level, or 90% of the VU-meter.
             if (fLevel > 0.2f) {
@@ -1284,7 +1240,7 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
             // Drawing from 90% of the VU-meter to the current level, or the maximum range.
             if (fLevel > 0.9f) {
                 g.setColour(c.darker());
-                g.fillRect(x+1.0f, juce::jmax(lin2y(fLevel), lin2y(fMax)), (float)width-2, lin2y(0.9)-juce::jmax(lin2y(fLevel), lin2y(fMax)));
+                g.fillRect(x+1.0f, juce::jmax(lin2y(fLevel), lin2y(1)), (float)width-2, lin2y(0.9)-juce::jmax(lin2y(fLevel), lin2y(1)));
             }
         }
         
@@ -1416,6 +1372,22 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
             return treshold + w - w*(s1-sx)/(s1-s0);
         }
         
+        /**
+         * Write the dB levels of the scale that are strictly inside the VU-Meter range: a level
+         * written at either end would be drawn partly out of the frame.
+         */
+        void paintScales(juce::Graphics& g)
+        {
+            g.setFont(9.0f);
+            g.setColour(juce::Colours::white);
+            for (int i = -10; i > fMin; i -= 10) {
+                if (i < fMax) paintScale(g, i);
+            }
+            for (int i = -6; i < fMax; i += 3) {
+                if (i > fMin) paintScale(g, i);
+            }
+        }
+
         /** Write the different level included in the VU-Meter range. */
         void paintScale(juce::Graphics& g, float num)
         {
@@ -1448,7 +1420,9 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
             if (fDB) {
                 fLevel = range(rawLevel);
             } else {
-                fLevel = range((rawLevel-fMin)/(fMax-fMin));
+                // A linear level is normalized: 0 at fMin, 1 at fMax (also when fMax < fMin)
+                FAUSTFLOAT level = (fMax != fMin) ? (rawLevel-fMin)/(fMax-fMin) : FAUSTFLOAT(0);
+                fLevel = (level > 1) ? FAUSTFLOAT(1) : ((level < 0) ? FAUSTFLOAT(0) : level);
             }
             fLabel.setText(juce::String(rawLevel) + " " + fUnit, juce::dontSendNotification);
         }
@@ -1529,24 +1503,17 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
                             break;
                     }
                 } else {
+                    // The linear level is normalized and already kept in [0, 1] by setLevel()
                     switch (fStyle) {
                         case VVUMeter:
-                            if (((int)lin2y(lastLevel) != (int)lin2y(fLevel) && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                            if (((int)lin2y(lastLevel) != (int)lin2y(fLevel)) || forceRepaint) {
                                 repaint();
                             }
                             break;
                         case HVUMeter:
-                            if ((std::abs(lastLevel-fLevel) > 0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
-                                repaint();
-                            }
-                            break;
                         case NumDisplay:
-                            if ((std::abs(lastLevel-fLevel) > 0.01 && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
-                                repaint();
-                            }
-                            break;
                         case Led:
-                            if (((int)lastLevel != (int)fLevel && fLevel >= fMin && fLevel <= fMax) || forceRepaint) {
+                            if ((std::abs(lastLevel-fLevel) > 0.01) || forceRepaint) {
                                 repaint();
                             }
                             break;
