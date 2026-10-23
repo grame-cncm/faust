@@ -107,6 +107,12 @@ static const char* wrapHelper(int opcode)
             return "faust_wrap_sub";
         case kMul:
             return "faust_wrap_mul";
+        case kLsh:
+            return "faust_wrap_shl";
+        case kARsh:
+            return "faust_wrap_shr";
+        case kLRsh:
+            return "faust_wrap_ushr";
         default:
             return nullptr;
     }
