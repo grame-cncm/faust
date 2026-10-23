@@ -240,6 +240,14 @@ void Klass::printAdditionalCode(ostream& fout)
             "int)b); }"
          << endl;
     fout << "#endif" << endl;
+    // Int32 shifts and abs in a defined form, as the cpp backend
+    fout << "#ifndef FAUST_INT_SHIFT" << endl;
+    fout << "#define FAUST_INT_SHIFT" << endl;
+    fout << "inline int faust_wrap_shl(int a, int k) { return int((unsigned int)a << (k & 31)); }" << endl;
+    fout << "inline int faust_wrap_shr(int a, int k) { return a >> (k & 31); }" << endl;
+    fout << "inline int faust_wrap_ushr(int a, int k) { return int((unsigned int)a >> (k & 31)); }" << endl;
+    fout << "inline int faust_wrap_abs(int a) { return (a < 0) ? int(0u - (unsigned int)a) : a; }" << endl;
+    fout << "#endif" << endl;
 
     if (fNeedApproxRoundDef) {
         // -mapp : floor and ceil through the conversion to int, exact for |x| < 2^31 (the
