@@ -52,6 +52,18 @@ inline int& programPrecision()
 }
 
 /**
+ * The precision whose model the intervals use : the program's, quad precision excepted,
+ * analyzed with the double model. Its values are taken as doubles (a literal, a value
+ * between two doubles) ; its roundings, finer than those of double on every platform (a
+ * long double has 128, 80 or 64 bits), are bounded by the double ones. An approximation
+ * of quad precision, until a model of its own.
+ */
+inline int modelPrecision()
+{
+    return programPrecision() == 3 ? 2 : programPrecision();
+}
+
+/**
  * Public API: legacy target-libm compensation, enabled by default. The two-ULP
  * widening is a configurable assumption, not a universal error guarantee.
  * Float/double reference bounds use the native kernel independently of this setting;
@@ -121,7 +133,7 @@ inline double programDirectedBound(double b, bool upper)
 inline double ulpMargin(double lo, double hi, int k)
 {
     int    p   = programPrecision();
-    double eps = (p == 1 || p == 4) ? 0x1p-23 : ((p == 3) ? 0x1p-112 : 0x1p-52);
+    double eps = (p == 1 || p == 4) ? 0x1p-23 : 0x1p-52;  // quad : the double model
     return k * eps * std::max(std::fabs(lo), std::fabs(hi));
 }
 
@@ -520,7 +532,7 @@ inline interval libmBounds(const interval& r, double fmin, double fmax, int step
     // references are certified independently; the legacy two-ULP target margin
     // still applies to singleton results unless they are explicitly integer.
     if (!libmCompensation() || r.isEmpty() || r.lsb() >= 0 ||
-        (programPrecision() != 1 && programPrecision() != 2 && r.isconst())) return r;
+        (modelPrecision() != 1 && modelPrecision() != 2 && r.isconst())) return r;
     // a bound of exactly 0 stays : the C standard (annex F) makes the libm exact there
     // (sin(+-0) = +-0, tan(0) = 0, log(1) = 0, pow(0, y) = 0...), and a bound of 0 comes
     // from such an exact point

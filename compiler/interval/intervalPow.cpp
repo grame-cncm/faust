@@ -54,7 +54,7 @@ static bool integerPowerMayWrap(const interval& x, int exponent)
     // Conservatively consider 2^31 a possible wrap. The exceptional value
     // INT32_MIN for an odd power of a negative singleton is deliberately not
     // special-cased here: returning the full range remains sound.
-    if (programPrecision() == 2) {
+    if (modelPrecision() == 2) {
         // Round the magnitude upward before comparing with the wrap threshold;
         // an approximate logarithm must not turn a possible wrap into a proof.
         return detail::directedBinary(detail::BinaryOp::Pow, magnitude, exponent,
@@ -109,7 +109,7 @@ static interval ipow(const interval& x, int k)
 
     if ((k & 1) == 0) {
         // k is even
-        if (programPrecision() == 2) {
+        if (modelPrecision() == 2) {
             return {x.hasZero() ? 0 : std::min(
                         detail::directedBinary(detail::BinaryOp::Pow, x.lo(), k, detail::Direction::Down),
                         detail::directedBinary(detail::BinaryOp::Pow, x.hi(), k, detail::Direction::Down)),
@@ -127,7 +127,7 @@ static interval ipow(const interval& x, int k)
     }
 
     // k is odd
-    if (programPrecision() == 2) {
+    if (modelPrecision() == 2) {
         return {detail::directedBinary(detail::BinaryOp::Pow, x.lo(), k, detail::Direction::Down),
                 detail::directedBinary(detail::BinaryOp::Pow, x.hi(), k, detail::Direction::Up), precision};
     }
@@ -201,7 +201,7 @@ interval interval_algebra::numericPowBounds(const interval& xIn, const interval&
     // Use the certified scalar reference and narrow its bounds outward once.
     if (programPrecision() == 1) return detail::doublePowBounds(x, y);
 
-    if (programPrecision() == 2) {
+    if (modelPrecision() == 2) {
         // Preserve the established grid estimate for bounded integer exponents;
         // their endpoint powers are now themselves evaluated with outward arithmetic.
         if (y.lsb() >= 0 && y.lo() >= 0 && y.hi() <= INT32_MAX &&
