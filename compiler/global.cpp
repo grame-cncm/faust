@@ -541,7 +541,6 @@ void global::reset()
 
     gFloatSize      = 1;             // -single by default
     itv::programPrecision() = gFloatSize;  // the precision of the intervals follows it
-    realRounding()          = nullptr;     // set once the precision is known (the options)
     gFixedPointSize = AP_INT_MAX_W;  // Special -1 value will be used to generate fixpoint_t type
     gFixedPointMSB  = 0;
     gFixedPointLSB  = 0;
@@ -2141,9 +2140,6 @@ bool global::processCmdline(int argc, const char* argv[])
 
     // the intervals describe the program : float-carried bounds at its precision
     itv::programPrecision() = gFloatSize;
-    // a value computed at compile time is a value the program computes : in single
-    // precision, every real constant, a literal or a folded operation, is a float
-    realRounding() = (gFloatSize == 1) ? [](double x) { return itv::programBound(x); } : nullptr;
 
     if (gFloatSize == 4 && gOutputLang != "cpp" && gOutputLang != "ocpp" && gOutputLang != "c" &&
         gOutputLang != "fir") {
