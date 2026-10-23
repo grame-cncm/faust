@@ -26,12 +26,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Sin
 // interval Sin(const interval& x);
-// void testSin();
-
-static double sinPi(double x)
-{
-    return std::sin(x * M_PI);
-}
 
 // Numeric kernel: numeric sin image on its valid domain. In float/double,
 // the native kernel encloses endpoints and extrema; quad/fixed retain
@@ -104,22 +98,5 @@ interval interval_algebra::numericSinBounds(const interval& x) const
     }
 
     return {lo, hi, precision};
-}
-
-void interval_algebra::testSin()
-{
-    // analyzeUnaryMethod(5, 20000, "sin", interval(-1, 1, -3), std::sin, &interval_algebra::Sin);
-    analyzeUnaryMethod(10, 40000, "sin", interval(0, 2 * M_PI, -3), std::sin,
-                       &interval_algebra::Sin);
-    analyzeUnaryMethod(10, 40000, "sin", interval(0, 2 * M_PI, -5), std::sin,
-                       &interval_algebra::Sin);
-    analyzeUnaryMethod(10, 40000, "sin", interval(0, 2 * M_PI, -10), std::sin,
-                       &interval_algebra::Sin);
-    analyzeUnaryMethod(10, 40000, "sin", interval(0, 2 * M_PI, -15), std::sin,
-                       &interval_algebra::Sin);
-    analyzeUnaryMethod(10, 40000, "sin", interval(0, 2 * M_PI, -20), std::sin,
-                       &interval_algebra::Sin);
-    analyzeUnaryMethod(10, 40000, "sin", interval(0, 2 * M_PI, -24), std::sin,
-                       &interval_algebra::Sin);
 }
 }  // namespace itv

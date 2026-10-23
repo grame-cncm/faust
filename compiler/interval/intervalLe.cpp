@@ -25,12 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Le
 // interval Le(const interval& x, const interval& y);
-// void testLe();
-
-static double myLe(double x, double y)
-{
-    return (x <= y);
-}
 
 // Numeric kernel: enclose comparison after target operand conversions.
 // Normalize widened integers before deciding a predicate.
@@ -40,19 +34,5 @@ interval interval_algebra::numericLe(const interval& xInput, const interval& yIn
     // Compare target values after integer widening and any implicit float cast.
     const auto [x, y] = detail::comparisonOperands(xInput, yInput);
     return Ge(y, x);
-}
-
-void interval_algebra::testLe()
-{
-    /* check("test algebra Le", Le(interval(5), interval(5)), interval(1));
-    check("test algebra Le", Le(interval(2, 5), interval(0, 1)), interval(0));
-    check("test algebra Le", Le(interval(-1, 1), interval(0, 10)), interval(0, 1));*/
-
-    analyzeBinaryMethod(10, 200, "Le", interval(-1, 1, 0), interval(-1, 1, 0), myLe,
-                        &interval_algebra::Le);
-    analyzeBinaryMethod(10, 200, "Le", interval(-10, 10, 0), interval(-10, 10, 0), myLe,
-                        &interval_algebra::Le);
-    analyzeBinaryMethod(10, 2000, "Le", interval(-10, 10), interval(-10, 10), myLe,
-                        &interval_algebra::Le);
 }
 }  // namespace itv

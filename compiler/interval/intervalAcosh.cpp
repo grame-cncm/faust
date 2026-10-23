@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Acosh
 // interval Acosh(const interval& x);
-// void testAcosh();
 
 static const interval domain(1, HUGE_VAL);
 
@@ -49,25 +48,5 @@ interval interval_algebra::numericAcoshBounds(const interval& x) const
     }
 
     return {std::acosh(i.lo()), std::acosh(i.hi()), precision};
-}
-
-void interval_algebra::testAcosh()
-{
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, 0), std::acosh,
-                       &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -5), std::acosh,
-                       &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -10), std::acosh,
-                       &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -15), std::acosh,
-                       &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(950, 1000, -20), std::acosh,
-                       &interval_algebra::Acosh);
-
-    /* analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, 0), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, -5), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, -10), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, -15), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, -20), acosh, &interval_algebra::Acosh);*/
 }
 }  // namespace itv

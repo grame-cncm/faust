@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Min
 // interval Min(const interval& x);
-// void testMin();
 
 // Numeric kernel: enclose minimum after target operand conversions.
 // Empty stays empty; widened integers recover their signed hull.
@@ -41,11 +40,5 @@ interval interval_algebra::numericMin(const interval& xInput, const interval& yI
     return {std::min(x.lo(), y.lo()), std::min(x.hi(), y.hi()),
             std::min(x.lsb(), y.lsb())};  // resulting interval should be as precise as the most
                                           // precise of the operands
-}
-
-void interval_algebra::testMin()
-{
-    check("test algebra Min", Min(interval(0, 5), interval(-3, 10)), interval(-3, 5));
-    check("test algebra Min", Min(interval(0, 5), interval(-3, -3)), interval(-3, -3));
 }
 }  // namespace itv

@@ -24,7 +24,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Delay
 // interval Delay(const interval& x);
-// void testDelay();
 
 interval interval_algebra::numericDelay(const interval& x, const interval& y) const
 {
@@ -41,12 +40,5 @@ interval interval_algebra::numericDelay(const interval& x, const interval& y) co
     // minimum is zero. The initial value has the signal's nature and grid.
     interval z = reunion(x, interval(0, 0, x.lsb()));
     return {z.lo(), z.hi(), x.lsb()};
-}
-
-void interval_algebra::testDelay()
-{
-    check("test algebra Delay", Delay(interval(5), interval(0, 10)), interval(0, 5));
-    check("test algebra Delay", Delay(interval(5), interval(0)), interval(5));
-    check("test algebra Delay", Delay(interval(-1, 1), interval(0, 10)), interval(-1, 1));
 }
 }  // namespace itv

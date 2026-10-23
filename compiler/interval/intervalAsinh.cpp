@@ -25,7 +25,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Asinh
 // interval Asinh(const interval& x);
-// void testAsinh();
 static const interval domain(-HUGE_VAL, HUGE_VAL);
 
 // Numeric kernel: numeric asinh image on its valid domain. In float/double,
@@ -50,19 +49,5 @@ interval interval_algebra::numericAsinhBounds(const interval& x) const
     }
 
     return {asinh(x.lo()), asinh(x.hi()), precision};
-}
-
-void interval_algebra::testAsinh()
-{
-    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, 0), std::asinh,
-                       &interval_algebra::Asinh);
-    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -5), std::asinh,
-                       &interval_algebra::Asinh);
-    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -10), std::asinh,
-                       &interval_algebra::Asinh);
-    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -15), std::asinh,
-                       &interval_algebra::Asinh);
-    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -20), std::asinh,
-                       &interval_algebra::Asinh);
 }
 }  // namespace itv

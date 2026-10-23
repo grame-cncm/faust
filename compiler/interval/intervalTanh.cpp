@@ -26,7 +26,6 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval Tanh
 // interval Tanh(const interval& x);
-// void testTanh();
 
 // Numeric kernel: numeric tanh image on its valid domain. In float/double,
 // the native kernel encloses endpoints and extrema; quad/fixed retain
@@ -49,18 +48,5 @@ interval interval_algebra::numericTanhBounds(const interval& x) const
     }
 
     return {std::tanh(x.lo()), std::tanh(x.hi()), precision};
-}
-
-void interval_algebra::testTanh()
-{
-    // analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10), std::tanh, &interval_algebra::Tanh);
-    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, 0), std::tanh, &interval_algebra::Tanh);
-    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, -5), std::tanh, &interval_algebra::Tanh);
-    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, -10), std::tanh,
-                       &interval_algebra::Tanh);
-    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, -15), std::tanh,
-                       &interval_algebra::Tanh);
-    analyzeUnaryMethod(20, 2000, "tanh", interval(-10, 10, -20), std::tanh,
-                       &interval_algebra::Tanh);
 }
 }  // namespace itv

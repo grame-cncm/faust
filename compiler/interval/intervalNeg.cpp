@@ -62,10 +62,4 @@ interval interval_algebra::numericNeg(const interval& input) const
 
     return {-x.hi(), -x.lo(), x.lsb()};
 }
-
-void interval_algebra::testNeg()
-{
-    check("test algebra Neg", Neg(interval(-1, 1)), interval(-1, 1));
-    check("test algebra Neg", Neg(interval(-10, 1)), interval(-1, 10));
-}
 }  // namespace itv

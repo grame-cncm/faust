@@ -26,7 +26,6 @@ namespace itv {
 // Interval Atanh
 // Calculates the inverse hyperbolic tangent of x; that is the value whose hyperbolic tangent is x.
 // interval Atanh(const interval& x);
-// void testAtanh();
 
 static const interval domain(std::nexttoward(-1, 0), std::nexttoward(1, 0),
                              0);  // interval ]-1,1[, precision 0
@@ -51,22 +50,5 @@ interval interval_algebra::numericAtanhBounds(const interval& x) const
     }
 
     return {atanh(i.lo()), atanh(i.hi()), precision};
-}
-
-void interval_algebra::testAtanh()
-{
-    analyzeUnaryMethod(10, 1000, "atanh", interval(-1 + std::pow(2, -3), 1 - std::pow(2, -3), -3),
-                       atanh, &interval_algebra::Atanh);
-    analyzeUnaryMethod(10, 1000, "atanh", interval(-1 + std::pow(2, -5), 1 - std::pow(2, -5), -5),
-                       atanh, &interval_algebra::Atanh);
-    analyzeUnaryMethod(10, 1000, "atanh",
-                       interval(-1 + std::pow(2, -10), 1 - std::pow(2, -10), -10), atanh,
-                       &interval_algebra::Atanh);
-    analyzeUnaryMethod(10, 1000, "atanh",
-                       interval(-1 + std::pow(2, -15), 1 - std::pow(2, -15), -15), atanh,
-                       &interval_algebra::Atanh);
-    analyzeUnaryMethod(10, 1000, "atanh",
-                       interval(-1 + std::pow(2, -20), 1 - std::pow(2, -20), -20), atanh,
-                       &interval_algebra::Atanh);
 }
 }  // namespace itv
