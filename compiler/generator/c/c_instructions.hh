@@ -417,13 +417,19 @@ class CInstVisitor : public TextInstVisitor {
         *fOut << ")";
     }
 
-    // TODO : does not work, put this code in a function
+    // The bits of a real : the helpers the container defines (a copy of the bytes)
     virtual void visit(BitcastInst* inst)
     {
-        std::string type = fTypeManager->generateType(inst->fType);
-        *fOut << "*((" << type << "*(&";
+        Typed::VarType type = inst->fType->getType();
+        if (type == Typed::kInt32 || type == Typed::kInt64) {
+            *fOut << ((type == Typed::kInt32) ? "faust_float_bits(" : "faust_double_bits(");
+            inst->fInst->accept(this);
+            *fOut << ")";
+            return;
+        }
+        *fOut << "(*(" << fTypeManager->generateType(inst->fType) << "*)(&";
         inst->fInst->accept(this);
-        *fOut << ")";
+        *fOut << "))";
     }
 
     // Generate standard funcall (not 'method' like funcall...)
