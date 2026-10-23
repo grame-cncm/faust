@@ -1,0 +1,102 @@
+//----------------------------------------------------------
+// name: "round_ties"
+//
+// Code generated with Faust 2.90.8 (https://faust.grame.fr)
+// Compilation options: -lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
+//----------------------------------------------------------
+
+/* link with  */
+#include <math.h>
+#ifndef FAUSTMAXI
+#define FAUSTMAXI
+static inline int faustmaxi(int a, int b) { return (a > b) ? a : b; }
+static inline int faustmini(int a, int b) { return (a < b) ? a : b; }
+#endif
+#ifndef FAUST_INT_WRAP
+#define FAUST_INT_WRAP
+inline int faust_wrap_add(int a, int b) { return int((unsigned int)a + (unsigned int)b); }
+inline int faust_wrap_sub(int a, int b) { return int((unsigned int)a - (unsigned int)b); }
+inline int faust_wrap_mul(int a, int b) { return int((unsigned int)a * (unsigned int)b); }
+#endif
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	// Recursion delay iVeeec0 is of type kMonoDelay
+	// While its definition is of type kZeroDelay
+	int 	iVeeec0State; // Mono Delay
+	int fSampleRate;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
+		m->declare("filename", "round_ties.dsp");
+		m->declare("name", "round_ties");
+	}
+
+	virtual int getNumInputs() { return 2; }
+	virtual int getNumOutputs() { return 6; }
+	static void classInit(int sample_rate) {
+	}
+	virtual void instanceConstants(int sample_rate) {
+		fSampleRate = sample_rate;
+	}
+	virtual void instanceResetUserInterface() {
+	}
+	virtual void instanceClear() {
+		iVeeec0State = 0;
+	}
+	virtual void init(int sample_rate) {
+		classInit(sample_rate);
+		instanceInit(sample_rate);
+	}
+	virtual void instanceInit(int sample_rate) {
+		instanceConstants(sample_rate);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSampleRate;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("round_ties");
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		int 	iVeeec0;
+		const int index = 0; (void)index; // flat: single-loop scalar
+		FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
+		FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
+		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+		FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+		FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+		FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+		FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+		FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+		// schedule: ss=0 nodes=27 cycles=18 fill=37% peak=7 isoadj=4 packs4=0 aluMII=6 memMII=1 recMII=9 streams(peak/avg,win64)=2/1 (eval machine R=8 U=4 M=3)
+		iVeeec0 = iVeeec0State;
+		for (int i=0; i<count; i++) {
+			iVeeec0 = faust_wrap_add(1, iVeeec0);
+			float 	fTemp0 = (1.5f + (2.0f * float(+(iVeeec0 % 8)))); // step: 22
+			output0[i] = (FAUSTFLOAT)(roundf(fTemp0));  // Zone Exec Code
+			output1[i] = (FAUSTFLOAT)(roundf(-fTemp0));  // Zone Exec Code
+			output2[i] = (FAUSTFLOAT)(roundf(-(1.5f * (float)input0[i])));  // Zone Exec Code
+			output3[i] = (FAUSTFLOAT)(rintf(fTemp0));  // Zone Exec Code
+			output4[i] = (FAUSTFLOAT)(rintf(-fTemp0));  // Zone Exec Code
+			output5[i] = (FAUSTFLOAT)(rintf(-(1.5f * (float)input1[i])));  // Zone Exec Code
+		}
+		iVeeec0State = iVeeec0;
+	}
+};
+
+
