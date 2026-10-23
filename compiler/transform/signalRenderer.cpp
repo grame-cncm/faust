@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include "signalRenderer.hh"
+#include "lowerNormalForm.hh"
 #include "compatibility.hh"  // For basename, pathToContent
 #include "xtended.hh"
 
@@ -472,8 +473,10 @@ signal_dsp_factory* createSignalDSPFactoryFromString(const string& name_app,
             goto error;
         }
 
+        // The interpreter knows the binary operations : the nodes of the normal form (Sum,
+        // Prod, Neg, FIR, IIR, IRM, Mix, Frac, Cfrac, Tpt, Phase, Bpf) lowered to them
+        Tree res = lowerNormalForm(listConvert(signals));
         // Rewrite prefix trees
-        Tree         res = listConvert(signals);
         SignalPrefix SP;
         res = SP.mapself(res);
         typeAnnotation(res, gGlobal->gLocalCausalityCheck);
