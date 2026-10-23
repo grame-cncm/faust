@@ -22,14 +22,41 @@
 #ifndef __PROPERTY__
 #define __PROPERTY__
 
+#include <string>
 #include <unordered_map>
 
 #include "garbageable.hh"
 #include "tree.hh"
 
+
+/**
+ * The key of a property : a tree made on first use in each tlib session. A property declared
+ * at namespace scope is built before tlib::init() ; a key made then would keep its serial
+ * through init(), which issues it again to another tree (two keys mixed up in the property
+ * list of a node), and a key made in an earlier session dies with cleanup().
+ */
+class PropertyKey {
+    std::string         fName;    ///< the name of the key, or the prefix of a fresh one
+    bool                fFresh;   ///< a fresh name (unique) or the name itself
+    mutable Tree        fKey     = nullptr;
+    mutable std::size_t fSession = 0;
+
+   public:
+    PropertyKey(const char* name, bool fresh) : fName(name), fFresh(fresh) {}
+
+    Tree operator()() const
+    {
+        if (fKey == nullptr || fSession != CTree::session()) {
+            fKey     = fFresh ? tree(Node(unique(fName.c_str()))) : tree(Node(fName.c_str()));
+            fSession = CTree::session();
+        }
+        return fKey;
+    }
+};
+
 template <class P>
 class property : public Garbageable {
-    Tree fKey;
+    PropertyKey fKey;
 
     // The stored pointer is the OWNING GarbageablePtr wrapper, never its
     // payload : the wrapper frees the payload (at cleanup(), or when clear()
@@ -38,7 +65,7 @@ class property : public Garbageable {
     // owners and a double free at cleanup().
     GarbageablePtr<P>* wrapper(Tree t)
     {
-        Tree d = t->getProperty(fKey);
+        Tree d = t->getProperty(fKey());
         return d ? (GarbageablePtr<P>*)(d->node().getPointer()) : nullptr;
     }
 
@@ -49,16 +76,16 @@ class property : public Garbageable {
     }
 
    public:
-    property() : fKey(tree(Node(unique("property_")))) {}
+    property() : fKey("property_", true) {}
 
-    property(const char* keyname) : fKey(tree(Node(keyname))) {}
+    property(const char* keyname) : fKey(keyname, false) {}
 
     void set(Tree t, const P& data)
     {
         if (P* p = access(t)) {
             *p = data;
         } else {
-            t->setProperty(fKey, tree(Node((void*)new GarbageablePtr<P>(data))));
+            t->setProperty(fKey(), tree(Node((void*)new GarbageablePtr<P>(data))));
         }
     }
 
@@ -77,24 +104,24 @@ class property : public Garbageable {
         if (GarbageablePtr<P>* w = wrapper(t)) {
             delete w;
         }
-        t->clearProperty(fKey);
+        t->clearProperty(fKey());
     }
 };
 
 template <>
 class property<Tree> : public Garbageable {
-    Tree fKey;
+    PropertyKey fKey;
 
    public:
-    property() : fKey(tree(Node(unique("property_")))) {}
+    property() : fKey("property_", true) {}
 
-    property(const char* keyname) : fKey(tree(Node(keyname))) {}
+    property(const char* keyname) : fKey(keyname, false) {}
 
-    void set(Tree t, Tree data) { t->setProperty(fKey, data); }
+    void set(Tree t, Tree data) { t->setProperty(fKey(), data); }
 
     bool get(Tree t, Tree& data)
     {
-        if (Tree d = t->getProperty(fKey)) {
+        if (Tree d = t->getProperty(fKey())) {
             data = d;
             return true;
         } else {
@@ -102,23 +129,23 @@ class property<Tree> : public Garbageable {
         }
     }
 
-    void clear(Tree t) { t->clearProperty(fKey); }
+    void clear(Tree t) { t->clearProperty(fKey()); }
 };
 
 template <>
 class property<int> : public Garbageable {
-    Tree fKey;
+    PropertyKey fKey;
 
    public:
-    property() : fKey(tree(Node(unique("property_")))) {}
+    property() : fKey("property_", true) {}
 
-    property(const char* keyname) : fKey(tree(Node(keyname))) {}
+    property(const char* keyname) : fKey(keyname, false) {}
 
-    void set(Tree t, int i) { t->setProperty(fKey, tree(Node(i))); }
+    void set(Tree t, int i) { t->setProperty(fKey(), tree(Node(i))); }
 
     bool get(Tree t, int& i)
     {
-        if (Tree d = t->getProperty(fKey)) {
+        if (Tree d = t->getProperty(fKey())) {
             i = d->node().getInt();
             return true;
         } else {
@@ -126,23 +153,23 @@ class property<int> : public Garbageable {
         }
     }
 
-    void clear(Tree t) { t->clearProperty(fKey); }
+    void clear(Tree t) { t->clearProperty(fKey()); }
 };
 
 template <>
 class property<double> : public Garbageable {
-    Tree fKey;
+    PropertyKey fKey;
 
    public:
-    property() : fKey(tree(Node(unique("property_")))) {}
+    property() : fKey("property_", true) {}
 
-    property(const char* keyname) : fKey(tree(Node(keyname))) {}
+    property(const char* keyname) : fKey(keyname, false) {}
 
-    void set(Tree t, double x) { t->setProperty(fKey, tree(Node(x))); }
+    void set(Tree t, double x) { t->setProperty(fKey(), tree(Node(x))); }
 
     bool get(Tree t, double& x)
     {
-        if (Tree d = t->getProperty(fKey)) {
+        if (Tree d = t->getProperty(fKey())) {
             x = d->node().getDouble();
             return true;
         } else {
@@ -150,7 +177,7 @@ class property<double> : public Garbageable {
         }
     }
 
-    void clear(Tree t) { t->clearProperty(fKey); }
+    void clear(Tree t) { t->clearProperty(fKey()); }
 };
 
 // Why: `property<P>` only memoizes unary functions (one Tree -> P). Some call sites actually
@@ -167,7 +194,7 @@ class property<double> : public Garbageable {
 // still isn't cheap enough when P = Tree, which is the actually-used case (box evaluator memo).
 template <class P>
 class property2 : public Garbageable {
-    Tree fOuterKey;
+    PropertyKey fOuterKey;
     typedef std::map<Tree, P, treeorder> Inner;
 
     // A Garbageable : Slots die with the session like the trees they annotate
@@ -184,14 +211,14 @@ class property2 : public Garbageable {
 
     Slot* access(Tree a)
     {
-        Tree d = a->getProperty(fOuterKey);
+        Tree d = a->getProperty(fOuterKey());
         return d ? (Slot*)(d->node().getPointer()) : nullptr;
     }
 
    public:
-    property2() : fOuterKey(tree(Node(unique("property2_")))) {}
+    property2() : fOuterKey("property2_", true) {}
 
-    property2(const char* keyname) : fOuterKey(tree(Node(keyname))) {}
+    property2(const char* keyname) : fOuterKey(keyname, false) {}
 
     void set(Tree a, Tree b, const P& value)
     {
@@ -204,7 +231,7 @@ class property2 : public Garbageable {
             s->fB      = b;
             s->fValue  = value;
             s->fInner  = nullptr;
-            a->setProperty(fOuterKey, tree(Node((void*)s)));
+            a->setProperty(fOuterKey(), tree(Node((void*)s)));
         } else if (s->fInner) {
             (*s->fInner)[b] = value;
         } else if (s->fB == b) {
@@ -239,7 +266,7 @@ class property2 : public Garbageable {
         if (Slot* s = access(a)) {
             delete s;  // ~Slot frees the promoted map
         }
-        a->clearProperty(fOuterKey);
+        a->clearProperty(fOuterKey());
     }
 };
 
