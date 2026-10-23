@@ -107,6 +107,7 @@ double       CTree::gHashLoadFactor  = 0.7;
 bool         CTree::gDetails        = false;
 unsigned int CTree::gVisitTime      = 0;
 size_t       CTree::gSerialCounter  = 0;
+size_t       CTree::gSession        = 0;
 
 
 // Smallest prime >= n (trial division; only called on the rare rehash path)
@@ -291,6 +292,18 @@ Tree CTree::make(const Node& n, int ar, const Tree tbl[])
     }
 }
 
+Tree CTree::find(const Node& n, int ar, const Tree br[])
+{
+    if (gHashTable == nullptr) {
+        return nullptr;
+    }
+    Tree t = gHashTable[calcTreeHash(n, ar, br) % gHashTableSize];
+    while (t && !t->equiv(n, ar, br)) {
+        t = t->fNext;
+    }
+    return t;
+}
+
 Tree CTree::make(const Node& n, const tvec& br)
 {
     return CTree::make(n, int(br.size()), br.empty() ? nullptr : br.data());
@@ -337,6 +350,7 @@ void CTree::control()
 
 void CTree::init()
 {
+    ++gSession;
     gSerialCounter  = 0;
     gVisitTime      = 0;
     gDetails        = false;
@@ -356,7 +370,7 @@ TLIB_API int tree2int(Tree t)
     if (isInt(t->node(), &i)) {
         // nothing to do
     } else if (isDouble(t->node(), &x)) {
-        i = int(x);
+        i = saturatedInt(x);
     } else {
         ERROR("ERROR : the parameter must be an integer constant numerical expression : ", t);
     }

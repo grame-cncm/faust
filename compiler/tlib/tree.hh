@@ -162,6 +162,7 @@ class TLIB_API CTree : public Garbageable {
     static const std::size_t kInitialHashTableSize = 1009;  ///< initial size of the hash table (prime);
                                                              ///< grows as needed, see growHashTableIfNeeded
     static std::size_t   gSerialCounter;   ///< the serial number counter
+    static std::size_t   gSession;         ///< the number of the tlib session, one more at each init()
     static double        gHashLoadFactor; ///< load factor triggering table growth
     static std::size_t   gHashTableSize;   ///< current size of the hash table (grows as needed)
     static std::size_t   gHashTableCount;  ///< number of trees currently stored in the table
@@ -271,6 +272,8 @@ class TLIB_API CTree : public Garbageable {
                      const Tree br[]);  ///< return a new tree or an existing equivalent one
     static Tree make(const Node& n,
                      const tvec& br);  ///< return a new tree or an existing equivalent one
+    ///< the existing tree of node n and branches br, or nullptr : creates nothing
+    static Tree find(const Node& n, int ar, const Tree br[]);
 
     // Accessors
     const Node& node() const { return fNode; }  ///< return the content of the tree
@@ -283,6 +286,7 @@ class TLIB_API CTree : public Garbageable {
     std::size_t hashkey() const { return fHashKey; }  ///< return the hashkey of the tree
     std::size_t serial() const { return fSerial; }    ///< return the serial of the tree
     static std::size_t serialCounter() { return gSerialCounter; }  ///< creation-sequence probe
+    static std::size_t session() { return gSession; }  ///< the current tlib session (init() starts one)
     int         aperture() const
     {
         return fAperture;

@@ -41,6 +41,17 @@
  * if A n B = A
  */
 
+// true in DNF is nil ; a DNF holding the empty conjunction {} is true as well, and is read as nil
+static Tree dnfCanonical(Tree c)
+{
+    for (Tree l = c; isList(l); l = tl(l)) {
+        if (isNil(hd(l))) {
+            return nil();
+        }
+    }
+    return c;
+}
+
 // create a dnfCond from a simple expression
 Tree dnfCond(Tree c)
 {
@@ -113,15 +124,16 @@ Tree cnfOr(Tree c1, Tree c2)
             }
         }
 
-        // simplify conditions that can be simplied
+        // absorption : a clause that holds another one is weaker, and the conjunction keeps
+        // the smaller one
         size_t n = A.size();
         for (size_t i = 0; i < n; i++) {          // for each A[i]
-            for (size_t j = i + 1; j < n; j++) {  // for each A[i]
+            for (size_t j = i + 1; j < n; j++) {  // for each A[j]
                 Tree ii = setUnion(A[i], A[j]);
                 if (A[j] == ii) {
-                    A[i] = A[j];  // A[j] is more general and replace A[i]
+                    A[j] = A[i];  // A[j] holds A[i] : A[i] is the stronger clause
                 } else if (A[i] == ii) {
-                    A[j] = A[i];  // A[i] is more general and replace A[j]
+                    A[i] = A[j];  // A[i] holds A[j] : A[j] is the stronger clause
                 }
             }
         }
@@ -159,14 +171,15 @@ Tree cnfAnd(Tree c1, Tree c2)
             m++;
         }
 
-        // simplify conditions that can be simplied
+        // absorption : a clause that holds another one is weaker, and the conjunction keeps
+        // the smaller one
         for (int i = 0; i < n; i++) {      // for each A[i]
-            for (int j = 0; j < m; j++) {  // for each B[i]
+            for (int j = 0; j < m; j++) {  // for each B[j]
                 Tree ii = setUnion(A[i], B[j]);
                 if (B[j] == ii) {
-                    A[i] = B[j];  // B[j] is more general and replace A[i]
+                    B[j] = A[i];  // B[j] holds A[i] : A[i] is the stronger clause
                 } else if (A[i] == ii) {
-                    B[j] = A[i];  // A[i] is more general and replace B[j]
+                    A[i] = B[j];  // A[i] holds B[j] : B[j] is the stronger clause
                 }
             }
         }
@@ -233,7 +246,7 @@ Tree TRACE_dnfAnd(Tree c1, Tree c2)
 
 Tree dnfAnd(Tree c1, Tree c2)
 {
-    return TRACE_dnfAnd(c1, c2);
+    return TRACE_dnfAnd(dnfCanonical(c1), dnfCanonical(c2));
 }
 
 // Or operation between two boolean expressions in DNF
@@ -285,11 +298,12 @@ Tree TRACE_dnfOr(Tree c1, Tree c2)
 
 Tree dnfOr(Tree c1, Tree c2)
 {
-    return TRACE_dnfOr(c1, c2);
+    return TRACE_dnfOr(dnfCanonical(c1), dnfCanonical(c2));
 }
 
 // True c1 is less specific (i.e. more general) than c2
 bool dnfLess(Tree c1, Tree c2)
 {
-    return c1 == dnfOr(c1, c2);
+    Tree k1 = dnfCanonical(c1);
+    return k1 == dnfOr(k1, c2);
 }
