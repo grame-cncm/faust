@@ -124,9 +124,59 @@ and the program is simply never tested. The count is the only trace:
 | `osc_enable` | `cpp/double/os` | broken with `-os` |
 | `bs` | `cpp/double/os` | foreign variable `count` not allowed in that mode |
 
+Two more are compiled by rules of their own, which drop the leg's options:
+`osc_enable` and `control` are generated with `-double` alone in every
+leg, the float and `-vec` legs included (`control/enable` is scalar-only).
+They count as passing in a float leg without having been compiled in
+single precision.
+
 An exclusion is legitimate; an exclusion nobody can see is not. A leg
 that yields 94 of 96 with no reported failure has silently dropped two
 programs, and a report must say which ones and why.
+
+**Mind the disk.** A leg keeps the response of every program that passes:
+about 325 MB, the size of `reference/`, plus the executables. The
+`cpp-core ocpp ocpp-float` run keeps some 9 GB. On a short disk, run the
+families one after the other with `clean-ir` in between: a full disk
+makes programs fail for a reason that has nothing to do with the compiler.
+
+### Float legs
+
+The float legs (`-single`) are compared with the same double reference
+set: the central invariant has no float reference. The comparison is an
+absolute difference, and single precision cannot meet the default `2e-6`
+on a resonant filter, a phase accumulator, or values above 16, where the
+ulp of a float is already `2e-6`. The four-voice polyphonic run of the
+driver also sums four identical voices, which multiplies each rounding
+error by four. So `Make.gcc` holds one table of per-program tolerances,
+`float_precision_<program>`, applied to every float leg of every language
+by the pattern `ir/$(lang)/float/%.ir` (`float/`, `float/vec/lv1/`,
+`float/mcd0/`, …).
+
+How the table was established, and how to extend it (2026-10-24,
+`48cb8aeb2`, Linux x86-64, g++ 13.3, `-ffp-contract=off`):
+
+- The largest delta of each program was measured on nine float legs
+  (`cpp/float`, `cpp/float/vec`, `cpp/float/omp`, the four `ocpp` float
+  legs, `c/float`, `c/float/vec`). It came out the same on all nine, so
+  one table serves every leg. Each tolerance is twice that delta, rounded
+  up to one digit.
+- A tolerance is only admitted for a delta that comes from rounding. The
+  test: take the code generated with `-single`, retype it to double
+  (`float` → `double`, the `f` of the literals and of the float libm
+  calls removed), build and run it. That build must match the reference
+  within `2e-6`, or within a residual explained by a constant that single
+  precision cannot represent (`2.0000001f` is `2.0f`). Then the
+  structure of the code is right and the delta is arithmetic. A program
+  whose retyped build diverges has a single-precision bug, not a
+  tolerance.
+- `comb_delay1` and `comb_delay2` read a delay at an index computed in
+  float. Their tolerance, `0.26`, is a bound and not a measurement: one
+  sample of `osc(440)` moves by at most `2π·440/44100 = 0.0627`, times
+  four voices.
+- `float-leg.sh` complements the table: within one backend the float
+  outputs of three emission orders must be bit-identical, which needs no
+  reference and no tolerance.
 
 ## Gate 2 — the library specifications
 
@@ -432,7 +482,7 @@ equality:
 
 | gate | criterion | default |
 | :--- | :-------- | :------ |
-| impulse suite | absolute difference ≤ tolerance, in `filesCompare` | `2e-6`, with per-file overrides up to `0.015` on some float/omp legs |
+| impulse suite | absolute difference ≤ tolerance, in `filesCompare` | `2e-6`; in the float legs, the per-program table of `Make.gcc` (see Gate 1, "Float legs") |
 | library specs | `math.isclose(rel_tol=t, abs_tol=t)`, `floatdiff.py` | `t = FLOAT_TOL = 1e-5`, so either criterion suffices |
 
 A consequence worth keeping in mind when reading a divergence: the first
@@ -511,7 +561,25 @@ expected:
   - `sound` in the `cpp2/double/ecmem0`, `cpp2/double/osecmem` and
     `cpp3/double/vececmem0` legs: `ERROR : wrong size`, then a trap
     (observed 2026-10-01, `b1e46d6cf`).
-  - `sound` in the `float` legs: see "Known harness defects" 5.
+  - `grain3`, `table` and `table2` in every float leg (observed
+    2026-10-24, `48cb8aeb2`, Linux x86-64, g++ 13.3). Their output
+    depends discontinuously on a float value: the trigger threshold of a
+    grain (`grain3`), a table index from a float phase (`table`) or from
+    an accumulated `0.1` (`table2`). One ulp moves the trigger or the
+    index by one, and the sample read is unrelated: deltas up to 0.42,
+    0.39 and 5.5, the size of the signal. Their code retyped to double
+    matches the reference, so this is the arithmetic of single
+    precision, not a bug; `float-leg.sh` still checks them.
+  - `parseint` in every leg: the reference holds 15001 of 60000 frames,
+    see "Known harness defects" 10.
+  - `subcontainer1` in `cpp/double/it`: the generated C++ does not
+    compile, `redeclaration of 'int mydsp::fSampleRate'` (observed
+    2026-10-24, `48cb8aeb2`).
+  - every program in the `-sch` legs (`cpp/double/sched`,
+    `cpp/float/sched`, …): segmentation fault after the first of the four
+    runs, in double as in float, with the committed driver as with the
+    patched one (observed 2026-10-24, `48cb8aeb2`). These legs are
+    optional.
   - every program in the `ocpp` leg under `-dlt 0`: no response at all
     (observed 2026-10-07, `52de44cac`).
 
@@ -596,14 +664,17 @@ does not protect it.
    The same holds for `tests/warning-tests`. The harness for criterion 1
    exists, written, and never runs.
 
-5. **The soundfile buffers do not follow the DSP precision.** The impulse
-   architectures create `SoundUI` with `is_double = sizeof(FAUSTFLOAT) ==
-   sizeof(double)`, and `FAUSTFLOAT` is `double` in every leg. In the
-   `float` legs (`-single`) the generated code reads `float**` buffers
-   that were filled as `double`, so `sound` ends with `ERROR : isnan`
-   (observed 2026-10-01, `b1e46d6cf`). *Fix:* derive `is_double` from the
-   precision the DSP was compiled with. `tests/soundfile-tests` passes it
-   explicitly.
+5. **The soundfile buffers did not follow the DSP precision** — fixed in
+   the driver used by the `cpp`, `ocpp` and `c` legs
+   (`archs/controlTools.h`): it created `SoundUI` with `is_double =
+   sizeof(FAUSTFLOAT) == sizeof(double)`, and `FAUSTFLOAT` is `double` in
+   every leg. In the `float` legs (`-single`) the generated code read
+   `float**` buffers that were filled as `double`, so `sound` ended with
+   `ERROR : isnan` (observed 2026-10-01, `b1e46d6cf`). The precision is
+   now read from the `compile_options` metadata (`-single` / `-double`),
+   falling back on `FAUSTFLOAT` when it names neither. The other
+   `archs/impulsearch*.cpp` drivers, used by double legs only, still
+   apply the old rule. `tests/soundfile-tests` passes it explicitly.
 
 6. **The impulse driver leaks memory.** `impulsearch` does not free all
    it allocates, so under AddressSanitizer every program fails on
@@ -623,6 +694,37 @@ does not protect it.
    prerequisite: `ir/$(outdir)/%.$(ext) : dsp/%.dsp | ir/$(outdir)`.
    Kept here for reading older logs: a program that failed this way,
    and only under `-j`, says nothing about the compiler.
+
+8. **`filesCompare` passed a truncated output** — fixed: a test file that
+   ended inside a response, or was empty, compared as equal to the
+   reference over the samples it had. The driver stops a run at its first
+   NaN or infinity (`ERROR : isnan`) and goes on with the next one, so a
+   program whose last run produced a NaN passed. A reference shorter than
+   the test was likewise cut short in silence, and an unreadable sample
+   (`nan`) was compared as the previous value. All four now fail, and so
+   does a NaN delta. Measured on the old comparator against
+   `reference/osc.ir`: the file cut at half its length and the empty file
+   both exited 0 (2026-10-24, `48cb8aeb2`).
+
+9. **The float tolerances were stale, and missing from half the float
+   legs** — fixed. The per-program tolerances of `Make.gcc` were set in
+   November 2018 (`37c6a3354`), three weeks before the driver gained the
+   four-voice polyphonic run (`eb3ec25af`), which sums four identical
+   voices and multiplies every float rounding error by four. And they
+   were written for `float/`, `float/vec/`, `float/sched/` and
+   `float/omp/` only, so `float/mcd0`, `float/vec/lv0` and
+   `float/vec/lv1` ran with the default `2e-6`: 66 of 98 programs passed
+   there, 78 in `cpp/float` (2026-10-24, `48cb8aeb2`). One table now
+   applies to every float leg; see "Float legs" in Gate 1.
+
+10. **`reference/parseint.ir` is truncated.** It was committed (2022-01-30,
+    `94201190a`) with 15001 of its 60000 frames, the last one without its
+    newline, while its header announces 60000. The comparator used to
+    stop at the end of the reference without a word; since defect 8 was
+    fixed, `parseint` fails in every leg with `ERROR : line 15001
+    output 0 : missing or unreadable sample` (the last line of the
+    reference is cut in the middle of the row). Every response the program writes is the same
+    constant row. *Fix:* complete the reference with a trusted compiler.
 
 ## Still to be settled
 

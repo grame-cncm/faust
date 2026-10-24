@@ -69,75 +69,67 @@ filesCompare:
 	$(MAKE) filesCompare
 
 #########################################################################
-# precision issues 
+# precision issues
 
-ir/$(lang)/float/omp/zita_rev1.ir:			precision=0.00001
-ir/$(lang)/float/omp/virtual_analog_oscillators.ir: precision=0.00004
-ir/$(lang)/float/omp/thru_zero_flanger.ir: 	precision=0.002
-ir/$(lang)/float/omp/tester2.ir:			precision=0.000003
-ir/$(lang)/float/omp/tester.ir:				precision=0.00008
-ir/$(lang)/float/omp/spectral_tilt.ir:		precision=0.003
-ir/$(lang)/float/omp/phaser_flanger.ir:		precision=0.005
-ir/$(lang)/float/omp/parametric_eq.ir:		precision=0.015
-ir/$(lang)/float/omp/osci.ir:				precision=0.005
-ir/$(lang)/float/omp/osc.ir:				precision=0.002
-ir/$(lang)/float/omp/lowcut.ir:				precision=0.000005
-ir/$(lang)/float/omp/lfboost.ir:			precision=0.000005
-ir/$(lang)/float/omp/cubic_distortion.ir:	precision=0.03
-ir/$(lang)/float/omp/comb_delay2.ir:		precision=0.065
-ir/$(lang)/float/omp/comb_delay1.ir:		precision=0.065
-ir/$(lang)/float/omp/carre_volterra.ir:		precision=0.002
+# Float legs (-single) are compared with the double reference set, at an
+# absolute tolerance (filesCompare, default 2e-6). Single precision cannot
+# meet 2e-6 on a resonant filter, a phase accumulator, or values above 16
+# (the ulp of a float at 16 is 2e-6). And the four-voice polyphonic run of
+# the driver sums four identical voices, which multiplies every rounding
+# error by four. One table applies to every float leg of every language,
+# whatever its options : the pattern below matches ir/cpp/float/osc.ir as
+# well as ir/ocpp/float/vec/lv1/osc.ir.
+#
+# Each value is twice the largest delta measured over the legs cpp/float,
+# cpp/float/vec, cpp/float/omp, ocpp/float, ocpp/float/mcd0,
+# ocpp/float/vec/lv0, ocpp/float/vec/lv1, c/float and c/float/vec, rounded
+# up to one digit (2026-10-24, 48cb8aeb2, Linux x86-64, g++ 13.3,
+# -ffp-contract=off). The largest delta was the same on all nine legs. For
+# each of these programs, the single-precision code retyped to double
+# (float -> double, float literals and float libm calls included) matches
+# the reference: the deltas come from rounding, not from the structure of
+# the code. A different libm may need more margin; a value raised for that
+# reason should say so here.
+#
+# comb_delay1 and comb_delay2 read a delay line at an index computed in
+# float : one ulp moves the index by one sample, which changes the output
+# by at most one step of osc(440), 2*pi*440/44100 = 0.0627, times four
+# voices = 0.2508.
+#
+# grain3, table and table2 have no entry : their output depends
+# discontinuously on a float value (a trigger threshold, a table index), so
+# a different rounding gives an unrelated sample and no tolerance short of
+# the signal amplitude would pass. They are accepted failures of the float
+# legs, listed in tests/TESTING.md.
 
-ir/$(lang)/float/sched/zita_rev1.ir:		precision=0.00001
-ir/$(lang)/float/sched/virtual_analog_oscillators.ir: precision=0.00004
-ir/$(lang)/float/sched/thru_zero_flanger.ir: precision=0.002
-ir/$(lang)/float/sched/tester2.ir:			precision=0.000003
-ir/$(lang)/float/sched/tester.ir:			precision=0.00008
-ir/$(lang)/float/sched/spectral_tilt.ir:	precision=0.003
-ir/$(lang)/float/sched/phaser_flanger.ir:	precision=0.005
-ir/$(lang)/float/sched/parametric_eq.ir:	precision=0.015
-ir/$(lang)/float/sched/osci.ir:				precision=0.005
-ir/$(lang)/float/sched/osc.ir:				precision=0.002
-ir/$(lang)/float/sched/lowcut.ir:			precision=0.000005
-ir/$(lang)/float/sched/lfboost.ir:			precision=0.000005
-ir/$(lang)/float/sched/cubic_distortion.ir:	precision=0.03
-ir/$(lang)/float/sched/comb_delay2.ir:		precision=0.065
-ir/$(lang)/float/sched/comb_delay1.ir:		precision=0.065
-ir/$(lang)/float/sched/carre_volterra.ir:	precision=0.002
+float_precision_bells                      := 0.002
+float_precision_carre_volterra             := 0.0006
+float_precision_comb_bug_exp               := 0.004
+float_precision_comb_delay1                := 0.26
+float_precision_comb_delay2                := 0.26
+float_precision_cubic_distortion           := 0.007
+float_precision_lfboost                    := 0.000008
+float_precision_long_convolution           := 0.002
+float_precision_lowcut                     := 0.000008
+float_precision_math                       := 0.007
+float_precision_modulations                := 0.05
+float_precision_osc                        := 0.005
+float_precision_osci                       := 0.005
+float_precision_parametric_eq              := 0.005
+float_precision_phaser_flanger             := 0.003
+float_precision_pow                        := 0.02
+float_precision_priority                   := 0.009
+float_precision_priority1                  := 0.00002
+float_precision_spectral_tilt              := 0.001
+float_precision_tester                     := 0.0003
+float_precision_tester2                    := 0.00001
+float_precision_tf_exp                     := 0.000004
+float_precision_thru_zero_flanger          := 0.003
+float_precision_virtual_analog_oscillators := 0.00007
+float_precision_vocal_impulse_train        := 0.0002
+float_precision_zita_rev1                  := 0.00002
 
-ir/$(lang)/float/vec/zita_rev1.ir:			precision=0.00001
-ir/$(lang)/float/vec/virtual_analog_oscillators.ir: precision=0.00004
-ir/$(lang)/float/vec/thru_zero_flanger.ir:	precision=0.002
-ir/$(lang)/float/vec/tester2.ir:			precision=0.000003
-ir/$(lang)/float/vec/tester.ir:				precision=0.00008
-ir/$(lang)/float/vec/spectral_tilt.ir:		precision=0.003
-ir/$(lang)/float/vec/phaser_flanger.ir:		precision=0.005
-ir/$(lang)/float/vec/parametric_eq.ir:		precision=0.015
-ir/$(lang)/float/vec/osci.ir:				precision=0.005
-ir/$(lang)/float/vec/osc.ir:				precision=0.002
-ir/$(lang)/float/vec/lowcut.ir:				precision=0.000005
-ir/$(lang)/float/vec/lfboost.ir:			precision=0.000005
-ir/$(lang)/float/vec/cubic_distortion.ir:	precision=0.03
-ir/$(lang)/float/vec/comb_delay2.ir:		precision=0.065
-ir/$(lang)/float/vec/comb_delay1.ir:		precision=0.065
-ir/$(lang)/float/vec/carre_volterra.ir:		precision=0.002
- 
-ir/$(lang)/float/zita_rev1.ir:				precision=0.00001
-ir/$(lang)/float/virtual_analog_oscillators.ir: precision=0.00004
-ir/$(lang)/float/thru_zero_flanger.ir:		precision=0.002
-ir/$(lang)/float/tester2.ir:				precision=0.000003
-ir/$(lang)/float/tester.ir:					precision=0.00008
-ir/$(lang)/float/spectral_tilt.ir:			precision=0.003
-ir/$(lang)/float/phaser_flanger.ir:			precision=0.005
-ir/$(lang)/float/parametric_eq.ir:			precision=0.015
-ir/$(lang)/float/osci.ir:					precision=0.005
-ir/$(lang)/float/osc.ir:					precision=0.002
-ir/$(lang)/float/lowcut.ir:					precision=1e-05
-ir/$(lang)/float/lfboost.ir:				precision=5e-05
-ir/$(lang)/float/cubic_distortion.ir:		precision=0.03
-ir/$(lang)/float/comb_delay2.ir:			precision=0.065
-ir/$(lang)/float/comb_delay1.ir:			precision=0.065
-ir/$(lang)/float/carre_volterra.ir: 		precision=0.0015
+ir/$(lang)/float/%.ir: precision = $(float_precision_$(basename $(notdir $@)))
 
 ir/c/double/sched/parametric_eq.ir:		precision=0.004
 ir/cpp/double/sched/parametric_eq.ir: 	precision=0.04
