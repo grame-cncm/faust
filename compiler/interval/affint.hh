@@ -162,8 +162,8 @@ inline AffItv fromItv(const interval& x)
 inline interval toItv(const AffItv& x, double T)
 {
     if (x.isEmpty()) return empty(x.lsb).withInvalid(x.mayBeInvalid).withOverflow(x.mayOverflow);
-    const double lo = std::min(x.lo(0), x.lo(T));
-    const double hi = std::max(x.hi(0), x.hi(T));
+    const double lo = minTotal(x.lo(0), x.lo(T));
+    const double hi = maxTotal(x.hi(0), x.hi(T));
     if (x.lsb >= 0 && (hi > 2147483647.0 || lo < -2147483648.0)) {
         return interval(-2147483648.0, 2147483647.0, x.lsb, x.mayBeInvalid)
             .withOverflow(x.mayOverflow);
@@ -192,6 +192,24 @@ inline interval hullWithMotion(const AffItv& x, double T)
     if (h.isEmpty() || !x.moving()) return h;
     const interval all = forever(x, T);
     return h.withMotion(all.lo() < h.lo(), all.hi() > h.hi());
+}
+
+/// r for a program that may flush subnormals to zero (see flushedToZero of an interval) : a
+/// bound line whose extreme over [0, T] lies strictly between 0 and the smallest normal is
+/// shifted to reach 0 there. A line that crosses 0 already holds 0 in its hull over [0, T].
+/// Idempotent : a shifted line reaches 0, out of the band.
+inline AffItv flushedToZero(AffItv r, double T)
+{
+    if (r.isEmpty() || r.lsb >= 0) return r;
+    const double m  = modelPrecision() == 1 ? 0x1p-126 : 0x1p-1022;
+    const double lo = std::min(r.lo(0), r.lo(T)), hi = std::max(r.hi(0), r.hi(T));
+    if (lo > 0 && lo < m) {
+        r.a0 = (r.a1 == 0) ? 0.0 : detail::directedBinary(detail::BinaryOp::Sub, r.a0, lo, detail::Direction::Down);
+    }
+    if (hi < 0 && hi > -m) {
+        r.b0 = (r.b1 == 0) ? -0.0 : detail::directedBinary(detail::BinaryOp::Sub, r.b0, hi, detail::Direction::Up);
+    }
+    return r;
 }
 
 /// Public API: prove x ⊑ y over [0,T], T>=0, by comparing exact affine lines at

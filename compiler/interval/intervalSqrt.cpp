@@ -33,7 +33,15 @@ static const interval SqrtDomain(0, HUGE_VAL, 0);
 // Float/double bounds round outward independently of the host libm and rounding mode.
 interval interval_algebra::numericSqrt(const interval& x) const
 {
-    if (detail::usesNativeBounds()) return detail::doubleUnaryBounds(detail::UnaryOp::Sqrt, x);
+    if (detail::usesNativeBounds()) {
+        // sqrt(-0) is -0 and sqrt(+0) is +0 : the zeros of the operand are those of the result
+        const interval r = detail::doubleUnaryBounds(detail::UnaryOp::Sqrt, x);
+        if (r.isEmpty()) return r;
+        auto holds = [&](double z) { return leTotal(x.lo(), z) && leTotal(z, x.hi()); };
+        const double lo = holds(-0.0) ? minTotal(r.lo(), -0.0) : r.lo();
+        const double hi = holds(0.0) ? maxTotal(r.hi(), 0.0) : r.hi();
+        return interval(lo, hi, r.lsb(), r.mayBeInvalid());
+    }
     interval i = intersection(SqrtDomain, x);
 
     if (i.isEmpty()) {

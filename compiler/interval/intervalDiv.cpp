@@ -34,8 +34,13 @@ interval interval_algebra::numericDiv(const interval& x, const interval& y) cons
     if (x.isEmpty() || y.isEmpty()) {
         return empty();
     }
-    // an integer divisor beyond int32 has wrapped : any int32 value, zero included
-    if (detail::int32Hull(y).hasZero()) {
+    // an integer divisor beyond int32 has wrapped : any int32 value, zero included. A float
+    // divisor whose only zero is a bound of known sign (+0 at the bottom, -0 at the top) is
+    // divided by its corners : x / +0 and x / -0 are infinities of known signs.
+    const bool signedZeroDivisor = detail::usesNativeBounds() && y.lsb() < 0 &&
+                                   ((y.lo() == 0 && !std::signbit(y.lo()) && y.hi() >= 0) ||
+                                    (y.hi() == 0 && std::signbit(y.hi()) && y.lo() <= 0));
+    if (detail::int32Hull(y).hasZero() && !signedZeroDivisor) {
         return {-HUGE_VAL, HUGE_VAL, std::min({x.lsb(), y.lsb(), -24})};
     }
 
@@ -49,8 +54,8 @@ interval interval_algebra::numericDiv(const interval& x, const interval& y) cons
                 const double b = detail::directedBinary(detail::BinaryOp::Div, numerator,
                                                        denominator, detail::Direction::Up);
                 if (std::isnan(a) || std::isnan(b)) return {-HUGE_VAL, HUGE_VAL, -24};
-                lo = std::min(lo, a);
-                hi = std::max(hi, b);
+                lo = minTotal(lo, a);
+                hi = maxTotal(hi, b);
             }
         }
         return {lo, hi, std::min({x.lsb(), y.lsb(), -24})};

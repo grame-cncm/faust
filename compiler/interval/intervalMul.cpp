@@ -86,13 +86,15 @@ interval interval_algebra::numericMul(const interval& xIn, const interval& yIn) 
         hi = -HUGE_VAL;
         for (double u : {xFloat.lo(), xFloat.hi()}) {
             for (double v : {yFloat.lo(), yFloat.hi()}) {
-                // 0*inf describes a zero endpoint limit in the numeric hull.
-                const double lower = (u == 0 || v == 0) ? 0 : detail::directedBinary(
+                // 0*inf describes a zero endpoint limit in the numeric hull ; a zero product
+                // has the sign of the product of the signs
+                const double zero  = (std::signbit(u) != std::signbit(v)) ? -0.0 : 0.0;
+                const double lower = (u == 0 || v == 0) ? zero : detail::directedBinary(
                     detail::BinaryOp::Mul, u, v, detail::Direction::Down);
-                const double upper = (u == 0 || v == 0) ? 0 : detail::directedBinary(
+                const double upper = (u == 0 || v == 0) ? zero : detail::directedBinary(
                     detail::BinaryOp::Mul, u, v, detail::Direction::Up);
-                lo = std::min(lo, lower);
-                hi = std::max(hi, upper);
+                lo = minTotal(lo, lower);
+                hi = maxTotal(hi, upper);
             }
         }
     }

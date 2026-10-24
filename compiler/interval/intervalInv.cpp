@@ -43,20 +43,20 @@ interval interval_algebra::numericInv(const interval& input) const
         return empty();
     }
     if (x.isZero()) {
-        // Numeric endpoints merge +0 and -0. Both precisions must retain the
-        // two possible infinities so a later operation can detect invalid pairs.
-        if (detail::usesNativeBounds()) return {-HUGE_VAL, HUGE_VAL, -24};
+        // 1/+0 = +inf, 1/-0 = -inf : the zeros the interval holds give their infinities
+        if (detail::usesNativeBounds()) {
+            return {std::signbit(x.lo()) ? -HUGE_VAL : HUGE_VAL, std::signbit(x.hi()) ? -HUGE_VAL : HUGE_VAL, -24};
+        }
         return {HUGE_VAL, HUGE_VAL, -24};
     }
 
     if (detail::usesNativeBounds()) {
         const int lsb = std::min(x.lsb(), -24);
         if (x.lo() < 0 && x.hi() > 0) return {-HUGE_VAL, HUGE_VAL, lsb};
-        // Zero is normalized as +0 by interval: a negative corridor ending at
-        // zero must also contain its +inf reciprocal, not only the -inf limit.
-        if (x.lo() < 0 && x.hi() == 0) return {-HUGE_VAL, HUGE_VAL, lsb};
-        // and a corridor starting at zero may hold -0 (ceil(-0.3), -x of a zero) : 1/-0 = -inf
-        if (x.lo() == 0 && x.hi() > 0) return {-HUGE_VAL, HUGE_VAL, lsb};
+        // an upper bound +0 holds +0 (1/+0 = +inf), a lower bound -0 holds -0 (1/-0 = -inf) ;
+        // a zero bound of the other sign holds only that zero, whose infinity is a bound
+        if (x.lo() < 0 && x.hi() == 0 && !std::signbit(x.hi())) return {-HUGE_VAL, HUGE_VAL, lsb};
+        if (x.lo() == 0 && x.hi() > 0 && std::signbit(x.lo())) return {-HUGE_VAL, HUGE_VAL, lsb};
         return {x.hi() == 0 ? -HUGE_VAL : detail::directedBinary(
                     detail::BinaryOp::Div, 1, x.hi(), detail::Direction::Down),
                 x.lo() == 0 ? HUGE_VAL : detail::directedBinary(
