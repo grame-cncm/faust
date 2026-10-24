@@ -227,9 +227,13 @@ make -C tests/determinism lint                # the static check, no second comp
 
 `check` generates sixteen witness programs — chosen among those that
 diverged most before the fix, one per family of sites, and a few tiny
-ones for speed — under six option sets (`-lang cpp` and `-lang ocpp`,
-scalar and `-vec`, then `-ftz 2` and ocpp `-fir`) with both binaries, and
-compares the outputs byte for byte. It takes seconds once the binaries
+ones for speed — under seven option sets (`-lang cpp` and `-lang ocpp`,
+scalar and `-vec`, then `-ftz 2`, ocpp `-fir` and `-sch`) with both
+binaries, and compares the outputs byte for byte. The `-sch` set emits the
+task graph, every task with the tasks it activates : an order taken from
+heap addresses shows there, and it differs between two runs of the *same*
+binary (address space layout randomisation), so `check FAUST_A=x
+FAUST_B=x` is meaningful too. It takes seconds once the binaries
 exist. Expected : every cell `same`, exit status 0. A `DIFF` means the
 emitted code depends on how faust was built ; the outputs are left in
 `tests/determinism/out/{a,b}` for a diff. A generation that fails on both

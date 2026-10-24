@@ -29,9 +29,11 @@ arm64 (MacPorts gcc15) evaluate left to right. On an arm64 Mac, a local
 pair is therefore not discriminating : use the lint, or compare against a
 binary built with g++ on an x86-64 Linux machine.
 
-`determinism.sh` generates every witness under six option sets with both
-binaries into `out/a` and `out/b` and compares ; `build-two.sh` builds
-the two binaries (the two builds share `build/bin/faust`, so they run one
+`determinism.sh` generates every witness under seven option sets with both
+binaries into `out/a` and `out/b` and compares ; given the same binary
+twice, it compares two runs of that binary, which an order taken from heap
+addresses breaks (`-sch` emits the dependencies of every task) ;
+`build-two.sh` builds the two binaries (the two builds share `build/bin/faust`, so they run one
 after the other, from `build/det-a` and `build/det-b`).
 
 Across two machines (a Mac with clang, a Linux with g++) : `make
