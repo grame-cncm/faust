@@ -71,6 +71,7 @@ static double eval2double(Tree exp, Tree visited, Tree localValEnv);
 static string evalLabel(const char* l, Tree visited, Tree localValEnv);
 
 static Tree evalIdDef(Tree id, Tree visited, Tree env);
+static Tree findIdDef(Tree id, Tree lenv);
 
 static Tree evalCase(Tree rules, Tree env);
 static Tree evalRuleList(Tree rules, Tree env);
@@ -166,16 +167,16 @@ static Tree real_a2sb(Tree exp);
 static Tree a2sb(Tree exp)
 {
     Tree result;
-    Tree id;
 
     if (gGlobal->gSymbolicBoxProperty->get(exp, result)) {
         return result;
     }
 
-    result = real_a2sb(exp);
-    if (result != exp && getDefNameProperty(exp, id)) {
+    size_t stamp = defNameStamp();
+    result       = real_a2sb(exp);
+    if (result != exp) {
         // Propagate definition name property when needed
-        setDefNameProperty(result, id);
+        transferDefNameProperty(exp, result, stamp);
     }
     gGlobal->gSymbolicBoxProperty->set(exp, result);
     return result;
@@ -183,17 +184,16 @@ static Tree a2sb(Tree exp)
 
 static Tree real_a2sb(Tree exp)
 {
-    Tree abstr, visited, unusedEnv, localValEnv, var, name, body;
+    Tree abstr, visited, unusedEnv, localValEnv, var, body;
 
     if (isClosure(exp, abstr, unusedEnv, visited, localValEnv)) {
         if (isBoxIdent(abstr)) {
             // Special case introduced with access and components
-            Tree result = a2sb(eval(abstr, visited, localValEnv));
+            size_t stamp  = defNameStamp();
+            Tree   result = a2sb(eval(abstr, visited, localValEnv));
 
             // Propagate definition name property when needed
-            if (getDefNameProperty(exp, name)) {
-                setDefNameProperty(result, name);
-            }
+            transferDefNameProperty(exp, result, stamp);
             return result;
 
         } else if (isBoxAbstr(abstr, var, body)) {
@@ -206,13 +206,12 @@ static Tree real_a2sb(Tree exp)
             setDefNameProperty(slot, s.str());
 
             // Apply the abstraction to the slot
-            Tree result =
+            size_t stamp = defNameStamp();
+            Tree   result =
                 boxSymbolic(slot, a2sb(eval(body, visited, pushValueDef(var, slot, localValEnv))));
 
             // Propagate definition name property when needed
-            if (getDefNameProperty(exp, name)) {
-                setDefNameProperty(result, name);
-            }
+            transferDefNameProperty(exp, result, stamp);
             return result;
 
         } else if (isBoxEnvironment(abstr)) {
@@ -235,12 +234,11 @@ static Tree real_a2sb(Tree exp)
         setDefNameProperty(slot, s.str());
 
         // Apply the PM rules to the slot and transfoms the result in a symbolic box
-        Tree result = boxSymbolic(slot, a2sb(applyList(exp, cons(slot, gGlobal->nil))));
+        size_t stamp  = defNameStamp();
+        Tree   result = boxSymbolic(slot, a2sb(applyList(exp, cons(slot, gGlobal->nil))));
 
         // Propagate definition name property when needed
-        if (getDefNameProperty(exp, name)) {
-            setDefNameProperty(result, name);
-        }
+        transferDefNameProperty(exp, result, stamp);
         return result;
 
     } else if (isBoxWaveform(exp)) {
@@ -313,7 +311,6 @@ static bool getEvalProperty(Tree box, Tree env, Tree& value)
  */
 static Tree eval(Tree exp, Tree visited, Tree localValEnv)
 {
-    Tree id;
     Tree result;
 
     // cerr << "eval : " << boxpp(exp) << " in env " << envpp(localValEnv) << endl;
@@ -328,13 +325,22 @@ static Tree eval(Tree exp, Tree visited, Tree localValEnv)
         });
         gGlobal->gLoopDetector.detect(cons(exp, localValEnv));
         gGlobal->gStackOverflowDetector.detect();
-        result = realeval(exp, visited, localValEnv);
+        size_t stamp = defNameStamp();
+        result       = realeval(exp, visited, localValEnv);
         setEvalProperty(exp, localValEnv, result);
-        if (getDefNameProperty(exp, id)) {
-            setDefNameProperty(result, id);  // propagate definition name property
-        }
+        transferDefNameProperty(exp, result, stamp);  // propagate definition name property
     } else {
         FAUST_STATS_DO(gGlobal->gStats.fEvalCacheHits++);
+        // The value of a definition used again : it may have been renamed meanwhile by
+        // another definition (an alias evaluated first : `foo = bar; process = foo : bar;`).
+        // An identifier is checked against the name of its definition.
+        Tree name;
+        if (getDefNameProperty(result, name)) {
+            Tree def = isBoxIdent(exp) ? findIdDef(exp, localValEnv) : exp;
+            if (def) {
+                checkDefNameProperty(def, result);
+            }
+        }
     }
     return result;
 }
@@ -1438,7 +1444,8 @@ static Tree realApplyList(Tree fun, Tree larg)
         if (isBoxNumeric(arg, narg)) {
             arg = narg;
         }
-        Tree f = eval(body, visited, pushValueDef(id, arg, localValEnv));
+        size_t stamp = defNameStamp();
+        Tree   f     = eval(body, visited, pushValueDef(id, arg, localValEnv));
 
         Tree fname;
         if (getDefNameProperty(fun, fname)) {
@@ -1453,7 +1460,7 @@ static Tree realApplyList(Tree fun, Tree larg)
                 // written by its own name (mBoxName).
                 s << "(" << mBoxName(arg, kApplyNamePrintBudget) << ")";
             }
-            setDefNameProperty(f, s.str());
+            setDefNameProperty(f, s.str(), stamp, isDefNameAmbiguous(fun));
         }
         return applyList(f, tl(larg));
     }
@@ -1507,6 +1514,19 @@ static Tree larg2par(Tree larg)
  * @param lenv the environment where to search
  * @return the evaluated definition of ID
  */
+/**
+ * The definition of the identifier <id> in the environment <lenv>, or nullptr.
+ */
+static Tree findIdDef(Tree id, Tree lenv)
+{
+    Tree def;
+    while (!isNil(lenv) && !getProperty(lenv, id, def)) {
+        faustassert(lenv->arity() > 0);
+        lenv = lenv->branch(0);
+    }
+    return isNil(lenv) ? nullptr : def;
+}
+
 static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 {
     Tree def  = nullptr;
@@ -1703,13 +1723,11 @@ static Tree boxSimplification(Tree box)
         return simplified;
 
     } else {
-        simplified = numericBoxSimplification(box);
+        size_t stamp = defNameStamp();
+        simplified   = numericBoxSimplification(box);
 
         // Transfers name property if any
-        Tree name;
-        if (getDefNameProperty(box, name)) {
-            setDefNameProperty(simplified, name);
-        }
+        transferDefNameProperty(box, simplified, stamp);
 
         // Attach simplified expression as a property of original box
         gGlobal->gSimplifiedBoxProperty->set(box, simplified);
