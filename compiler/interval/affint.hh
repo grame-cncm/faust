@@ -281,12 +281,17 @@ inline AffItv hullDrift(AffItv r, std::initializer_list<AffItv> xs)
     return r;
 }
 
-/// r, rebuilt as the intersection of two sound bounds a and b of one value : a bound drifts
-/// only where both move past the horizon
-inline AffItv meetDrift(AffItv r, const AffItv& a, const AffItv& b)
+/// r, rebuilt as the intersection over [0, T] of two sound bounds a and b of one value : a
+/// bound moves past the horizon where the bound that sets it moves (both, when they are
+/// equal), as in intersection()
+inline AffItv meetDrift(AffItv r, const AffItv& a, const AffItv& b, double T)
 {
-    r.loDrifts = r.loDrifts || (loFalls(a) && loFalls(b));
-    r.hiDrifts = r.hiDrifts || (hiRises(a) && hiRises(b));
+    const double aLo = std::min(a.lo(0), a.lo(T)), bLo = std::min(b.lo(0), b.lo(T));
+    const double aHi = std::max(a.hi(0), a.hi(T)), bHi = std::max(b.hi(0), b.hi(T));
+    const bool   lo  = aLo > bLo ? loFalls(a) : bLo > aLo ? loFalls(b) : (loFalls(a) && loFalls(b));
+    const bool   hi  = aHi < bHi ? hiRises(a) : bHi < aHi ? hiRises(b) : (hiRises(a) && hiRises(b));
+    r.loDrifts = r.loDrifts || lo;
+    r.hiDrifts = r.hiDrifts || hi;
     return r;
 }
 
@@ -307,6 +312,15 @@ inline AffItv ajoin(const AffItv& x, const AffItv& y, double T)
     const bool overflow = x.mayOverflow || y.mayOverflow;
     if (x.isEmpty()) return adrift(y.withInvalid(invalid).withOverflow(overflow), x);
     if (y.isEmpty()) return adrift(x.withInvalid(invalid).withOverflow(overflow), y);
+    // one corridor within the other, over [0, T] (aleq) and for all time (forever), is the
+    // join, at the finer precision of the two : the chords, rounded outward, would move its
+    // bounds by an ulp at each join of an iteration
+    auto larger = [&](AffItv r) {
+        r.lsb = std::min(x.lsb, y.lsb);
+        return adrift(adrift(r, x), y).withInvalid(invalid).withOverflow(overflow);
+    };
+    if (aleq(y, x, T) && forever(y, T) <= forever(x, T)) return larger(x);
+    if (aleq(x, y, T) && forever(x, T) <= forever(y, T)) return larger(y);
     AffItv r;
     achord(std::min(x.lo(0), y.lo(0)), std::min(x.lo(T), y.lo(T)), T, r.a0, r.a1);
     achord(std::max(x.hi(0), y.hi(0)), std::max(x.hi(T), y.hi(T)), T, r.b0, r.b1, true);
@@ -330,11 +344,31 @@ inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
     const bool overflow = old.mayOverflow || fresh.mayOverflow;
     if (old.isEmpty() || fresh.isEmpty())
         return adrift(fresh.withInvalid(invalid).withOverflow(overflow), old);
+    // an int corridor with a line out of int32 stands for any int32 (its values have wrapped)
+    auto leavesInt32 = [T](const AffItv& x) {
+        return x.lsb >= 0 && (std::min(x.lo(0), x.lo(T)) < -2147483648.0 || std::max(x.hi(0), x.hi(T)) > 2147483647.0);
+    };
+    if (leavesInt32(old) || leavesInt32(fresh)) {
+        AffItv r = adrift(fromItv(interval(-2147483648.0, 2147483647.0, 0, invalid)), adrift(fresh, old));
+        r.mayOverflow = true;
+        return r;
+    }
     const bool wlo = fresh.lo(0) < old.lo(0) || fresh.lo(T) < old.lo(T);
     const bool whi = fresh.hi(0) > old.hi(0) || fresh.hi(T) > old.hi(T);
     if (!wlo && !whi) return adrift(fresh.withInvalid(invalid).withOverflow(overflow), old);
 
+    // a side that does not widen keeps the bound of old, which holds fresh there : a widening
+    // never narrows (the iteration stops on widen(old, fresh) within old, which proves fresh
+    // within old only if the widening holds fresh)
     AffItv r = adrift(fresh, old);
+    if (!wlo) {
+        r.a0 = old.a0;
+        r.a1 = old.a1;
+    }
+    if (!whi) {
+        r.b0 = old.b0;
+        r.b1 = old.b1;
+    }
     r.mayBeInvalid = invalid;
     r.mayOverflow  = overflow;
     // the rounding that the double operations of one round add, absorbed by the rate : an
@@ -342,15 +376,19 @@ inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
     // (on its intercept, and on its rate through the outward chords of its joins), a growth
     // that its rate, proposed on a smaller magnitude, did not count
     const double creep = 4 * roundingQuantum(magnitude(fresh, T));
+    // fresh goes past old by d0 + d1 t : absorbed when that excess stays within the creep over
+    // [0, T], whatever the signs of d0 and d1 (a leaky integrator gains on its intercept while
+    // its rate decreases)
     auto absorbs = [&](double d1, double d0) {
-        return fresh.lsb < 0 && d0 >= 0 && d0 <= creep && d1 >= 0 && d1 * std::max(T, 1.0) <= creep;
+        return fresh.lsb < 0 && std::isfinite(d0) && std::isfinite(d1) &&
+               std::max(d0, d0 + d1 * std::max(T, 1.0)) <= creep;
     };
     if (whi) {
         if (old.b1 == fresh.b1 && old.b1 == 0 && std::isfinite(fresh.b0 - old.b0)) {
             r.b1 = fresh.b0 - old.b0;  // propose the observed per-round rate
         } else if (old.b1 != 0 && absorbs(fresh.b1 - old.b1, fresh.b0 - old.b0)) {
             r.b0 = std::max(fresh.b0, old.b0);
-            r.b1 = detail::directedBinary(detail::BinaryOp::Add, fresh.b1, creep, detail::Direction::Up);
+            r.b1 = detail::directedBinary(detail::BinaryOp::Add, std::max(fresh.b1, old.b1), creep, detail::Direction::Up);
         } else {
             r.b0 = (fresh.lsb >= 0) ? 2147483647.0 : HUGE_VAL;  // escalate
             r.b1 = 0;
@@ -362,13 +400,25 @@ inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
             r.a1 = fresh.a0 - old.a0;
         } else if (old.a1 != 0 && absorbs(old.a1 - fresh.a1, old.a0 - fresh.a0)) {
             r.a0 = std::min(fresh.a0, old.a0);
-            r.a1 = detail::directedBinary(detail::BinaryOp::Sub, fresh.a1, creep, detail::Direction::Down);
+            r.a1 = detail::directedBinary(detail::BinaryOp::Sub, std::min(fresh.a1, old.a1), creep, detail::Direction::Down);
         } else {
             r.a0 = (fresh.lsb >= 0) ? -2147483648.0 : -HUGE_VAL;
             r.a1 = 0;
             if (fresh.lsb < 0) r.lsb = std::min(fresh.lsb, -24);
         }
     }
+    // the result holds old and fresh over [0, T] : a side that does not escalates
+    const bool holdsLo = r.lo(0) <= std::min(old.lo(0), fresh.lo(0)) && r.lo(T) <= std::min(old.lo(T), fresh.lo(T));
+    const bool holdsHi = r.hi(0) >= std::max(old.hi(0), fresh.hi(0)) && r.hi(T) >= std::max(old.hi(T), fresh.hi(T));
+    if (!holdsLo) {
+        r.a0 = (fresh.lsb >= 0) ? -2147483648.0 : -HUGE_VAL;
+        r.a1 = 0;
+    }
+    if (!holdsHi) {
+        r.b0 = (fresh.lsb >= 0) ? 2147483647.0 : HUGE_VAL;
+        r.b1 = 0;
+    }
+    if ((!holdsLo || !holdsHi) && fresh.lsb < 0) r.lsb = std::min(fresh.lsb, -24);
     return r;
 }
 
