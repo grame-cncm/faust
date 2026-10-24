@@ -234,16 +234,20 @@ interval interval_algebra::Fir(const interval& x, const std::vector<interval>& c
 {
     bool     first    = true;
     bool     overflow = false;
+    bool     real     = x.lsb() < 0;  // the nature of the products, for a sum of none
     interval acc;
     for (size_t k = 0; k < coefs.size(); k++) {
         const interval& ck = coefs[k];
+        real               = real || ck.lsb() < 0;
         if (!ck.isEmpty() && ck.lo() == 0 && ck.hi() == 0 && !ck.mayBeInvalid()) continue;
         const interval term = (k == 0) ? Mul(ck, x) : Mul(ck, Delay(x, IntNum(int(k))));
         acc                 = first ? term : Add(acc, term);
         overflow            = overflow || term.mayOverflow() || acc.mayOverflow();
         first               = false;
     }
-    return first ? IntNum(0) : acc.withOverflow(overflow);
+    // only null coefficients : a zero of the nature of the products
+    if (first) return real ? FloatNum(0) : IntNum(0);
+    return acc.withOverflow(overflow);
 }
 
 namespace {

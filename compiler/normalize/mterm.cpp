@@ -639,6 +639,22 @@ Tree mterm::signatureTree() const
 }
 
 /**
+ * The coefficient fCoef + fLo as written into the program. fCoef is the double nearest to it,
+ * written as it is in double ; in a float program, the float nearest to fCoef is the float
+ * nearest to the coefficient, unless fCoef lies halfway between two floats : fLo then says
+ * on which side the coefficient lies.
+ */
+Tree mterm::writtenCoef() const
+{
+    if (fLo == 0.0 || gGlobal->gFloatSize != 1 || fCoef->node().type() != kDoubleNode) {
+        return fCoef;
+    }
+    const double hi = fCoef->node().getDouble();
+    const float  f  = itv::ddToFloat({hi, fLo});
+    return (f == static_cast<float>(hi)) ? fCoef : tree(double(f));
+}
+
+/**
  * Returns a normalized (canonical) tree expression of structure :
  * 		Prod(k, v1/v2, c1/c2, s1/s2), each part a Prod of its factors
  * In signature mode the fCoef factor is ommited
@@ -656,9 +672,9 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
             return tree(1);
         }
         if (negativeMode) {
-            return minusNum(fCoef);
+            return minusNum(writtenCoef());
         } else {
-            return fCoef;
+            return writtenCoef();
         }
     } else {
         // it's not a pure number, it has factors
@@ -695,9 +711,9 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
         if (signatureMode) {
             coef = nullptr;
         } else if (negativeMode) {
-            coef = isMinusOne(fCoef) ? nullptr : minusNum(fCoef);
+            coef = isMinusOne(fCoef) ? nullptr : minusNum(writtenCoef());
         } else if (!isOne(fCoef)) {
-            coef = fCoef;
+            coef = writtenCoef();
         }
 
         // Prod(f0, ..., fn) is the chain ((f0 * f1) * ...) * fn. The coefficient, then the
