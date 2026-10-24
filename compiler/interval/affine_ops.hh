@@ -606,145 +606,149 @@ class AffineOps : public Base {
 
 
    public:
+    // a result for a program that may flush subnormals to zero (FTZ, DAZ)
+    AffItv   ftz(const AffItv& r) const { return flushedToZero(r, fT); }
+    interval ftz(const interval& r) const { return flushedToZero(r); }
+
     // Public API: validity-aware affine transfers. All incoming alerts survive
     // numeric early exits; linear operations also check their collapsed domains.
 
     // Public API: enclose Label over the horizon, retaining possible invalidity.
     AffItv Label(const std::string& arg0) const override
     {
-        return numericLabel(arg0).withInvalid(false);
+        return ftz(numericLabel(arg0).withInvalid(false));
     }
 
     // Public API: enclose IntNum over the horizon, retaining possible invalidity.
     AffItv IntNum(int x) const override
     {
-        return numericIntNum(x).withInvalid(false);
+        return ftz(numericIntNum(x).withInvalid(false));
     }
 
     // Public API: enclose Int64Num over the horizon, retaining possible invalidity.
     AffItv Int64Num(int64_t x) const override
     {
-        return numericInt64Num(x).withInvalid(false);
+        return ftz(numericInt64Num(x).withInvalid(false));
     }
 
     // Public API: enclose FloatNum over the horizon, retaining possible invalidity.
     AffItv FloatNum(double x) const override
     {
-        return numericFloatNum(x).withInvalid(std::isnan(x));
+        return ftz(numericFloatNum(x).withInvalid(std::isnan(x)));
     }
 
     // Public API: enclose FixPointUpdate over the horizon, retaining possible invalidity.
     AffItv FixPointUpdate(const AffItv& x, const AffItv& y) const override
     {
-        return numericFixPointUpdate(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericFixPointUpdate(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Input over the horizon, retaining possible invalidity.
     AffItv Input(const AffItv& arg0) const override
     {
-        return numericInput(arg0).withInvalid(arg0.mayBeInvalid);
+        return ftz(numericInput(arg0).withInvalid(arg0.mayBeInvalid));
     }
 
     // Public API: enclose Output over the horizon, retaining possible invalidity.
     AffItv Output(const AffItv& arg0, const AffItv& x) const override
     {
-        return numericOutput(arg0, x).withInvalid(arg0.mayBeInvalid || x.mayBeInvalid);
+        return ftz(numericOutput(arg0, x).withInvalid(arg0.mayBeInvalid || x.mayBeInvalid));
     }
 
     // Public API: enclose Button over the horizon, retaining possible invalidity.
     AffItv Button(const AffItv& arg0) const override
     {
-        return numericButton(arg0).withInvalid(arg0.mayBeInvalid);
+        return ftz(numericButton(arg0).withInvalid(arg0.mayBeInvalid));
     }
 
     // Public API: enclose Checkbox over the horizon, retaining possible invalidity.
     AffItv Checkbox(const AffItv& arg0) const override
     {
-        return numericCheckbox(arg0).withInvalid(arg0.mayBeInvalid);
+        return ftz(numericCheckbox(arg0).withInvalid(arg0.mayBeInvalid));
     }
 
     // Public API: enclose VSlider over the horizon, retaining possible invalidity.
     AffItv VSlider(const AffItv& arg0, const AffItv& c, const AffItv& l, const AffItv& h, const AffItv& s) const override
     {
-        return numericVSlider(arg0, c, l, h, s).withInvalid(arg0.mayBeInvalid || detail::widgetInvalid(toItv(c, fT), toItv(l, fT), toItv(h, fT), toItv(s, fT)));
+        return ftz(numericVSlider(arg0, c, l, h, s).withInvalid(arg0.mayBeInvalid || detail::widgetInvalid(toItv(c, fT), toItv(l, fT), toItv(h, fT), toItv(s, fT))));
     }
 
     // Public API: enclose HSlider over the horizon, retaining possible invalidity.
     AffItv HSlider(const AffItv& arg0, const AffItv& c, const AffItv& l, const AffItv& h, const AffItv& s) const override
     {
-        return numericHSlider(arg0, c, l, h, s).withInvalid(arg0.mayBeInvalid || detail::widgetInvalid(toItv(c, fT), toItv(l, fT), toItv(h, fT), toItv(s, fT)));
+        return ftz(numericHSlider(arg0, c, l, h, s).withInvalid(arg0.mayBeInvalid || detail::widgetInvalid(toItv(c, fT), toItv(l, fT), toItv(h, fT), toItv(s, fT))));
     }
 
     // Public API: enclose NumEntry over the horizon, retaining possible invalidity.
     AffItv NumEntry(const AffItv& arg0, const AffItv& c, const AffItv& l, const AffItv& h, const AffItv& s) const override
     {
-        return numericNumEntry(arg0, c, l, h, s).withInvalid(arg0.mayBeInvalid || detail::widgetInvalid(toItv(c, fT), toItv(l, fT), toItv(h, fT), toItv(s, fT)));
+        return ftz(numericNumEntry(arg0, c, l, h, s).withInvalid(arg0.mayBeInvalid || detail::widgetInvalid(toItv(c, fT), toItv(l, fT), toItv(h, fT), toItv(s, fT))));
     }
 
     // Public API: enclose HBargraph over the horizon, retaining possible invalidity.
     AffItv HBargraph(const AffItv& arg0, const AffItv& arg1, const AffItv& arg2, const AffItv& s) const override
     {
-        return numericHBargraph(arg0, arg1, arg2, s).withInvalid(arg0.mayBeInvalid || arg1.mayBeInvalid || arg2.mayBeInvalid || s.mayBeInvalid);
+        return ftz(numericHBargraph(arg0, arg1, arg2, s).withInvalid(arg0.mayBeInvalid || arg1.mayBeInvalid || arg2.mayBeInvalid || s.mayBeInvalid));
     }
 
     // Public API: enclose VBargraph over the horizon, retaining possible invalidity.
     AffItv VBargraph(const AffItv& arg0, const AffItv& arg1, const AffItv& arg2, const AffItv& s) const override
     {
-        return numericVBargraph(arg0, arg1, arg2, s).withInvalid(arg0.mayBeInvalid || arg1.mayBeInvalid || arg2.mayBeInvalid || s.mayBeInvalid);
+        return ftz(numericVBargraph(arg0, arg1, arg2, s).withInvalid(arg0.mayBeInvalid || arg1.mayBeInvalid || arg2.mayBeInvalid || s.mayBeInvalid));
     }
 
     // Public API: enclose Attach over the horizon, retaining possible invalidity.
     AffItv Attach(const AffItv& x, const AffItv& arg1) const override
     {
-        return numericAttach(x, arg1).withInvalid(x.mayBeInvalid || arg1.mayBeInvalid);
+        return ftz(numericAttach(x, arg1).withInvalid(x.mayBeInvalid || arg1.mayBeInvalid));
     }
 
     // Public API: enclose Enable over the horizon, retaining possible invalidity.
     AffItv Enable(const AffItv& x, const AffItv& arg1) const override
     {
-        return numericEnable(x, arg1).withInvalid(x.mayBeInvalid || arg1.mayBeInvalid);
+        return ftz(numericEnable(x, arg1).withInvalid(x.mayBeInvalid || arg1.mayBeInvalid));
     }
 
     // Public API: enclose Control over the horizon, retaining possible invalidity.
     AffItv Control(const AffItv& x, const AffItv& arg1) const override
     {
-        return numericControl(x, arg1).withInvalid(x.mayBeInvalid || arg1.mayBeInvalid);
+        return ftz(numericControl(x, arg1).withInvalid(x.mayBeInvalid || arg1.mayBeInvalid));
     }
 
     // Public API: enclose Add over the horizon, retaining possible invalidity.
     AffItv Add(const AffItv& x, const AffItv& y) const override
     {
-        return numericAdd(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Add, toItv(x, fT), toItv(y, fT)));
+        return ftz(numericAdd(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Add, toItv(x, fT), toItv(y, fT))));
     }
 
     // Public API: enclose Sub over the horizon, retaining possible invalidity.
     AffItv Sub(const AffItv& x, const AffItv& y) const override
     {
-        return numericSub(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Sub, toItv(x, fT), toItv(y, fT)));
+        return ftz(numericSub(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Sub, toItv(x, fT), toItv(y, fT))));
     }
 
     // Public API: enclose Neg over the horizon, retaining possible invalidity.
     AffItv Neg(const AffItv& x) const override
     {
-        return numericNeg(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericNeg(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Mul over the horizon, retaining possible invalidity.
     AffItv Mul(const AffItv& x, const AffItv& y) const override
     {
-        return numericMul(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Mul, toItv(x, fT), toItv(y, fT)));
+        return ftz(numericMul(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Mul, toItv(x, fT), toItv(y, fT))));
     }
 
     // Public API: enclose Div over the horizon, retaining possible invalidity.
     AffItv Div(const AffItv& x, const AffItv& y) const override
     {
-        return numericDiv(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Div, toItv(x, fT), toItv(y, fT)));
+        return ftz(numericDiv(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Div, toItv(x, fT), toItv(y, fT))));
     }
 
     // Public API: enclose Mem over the horizon, retaining possible invalidity.
     AffItv Mem(const AffItv& x) const override
     {
-        return numericMem(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericMem(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Delay after int32 conversion of the sample count.
@@ -752,322 +756,322 @@ class AffineOps : public Base {
     // initial zero. Retain invalidity of either operand and the delay domain.
     AffItv Delay(const AffItv& x, const AffItv& n) const override
     {
-        return numericDelay(x, n).withInvalid(detail::delayInvalid(toItv(x, fT), toItv(n, fT)));
+        return ftz(numericDelay(x, n).withInvalid(detail::delayInvalid(toItv(x, fT), toItv(n, fT))));
     }
 
     // Public API: enclose Prefix over the horizon, retaining possible invalidity.
     AffItv Prefix(const AffItv& x, const AffItv& y) const override
     {
-        return numericPrefix(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericPrefix(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose AssertBounds over the horizon, retaining possible invalidity.
     AffItv AssertBounds(const AffItv& lo, const AffItv& hi, const AffItv& x) const override
     {
-        return numericAssertBounds(lo, hi, x).withInvalid(detail::assertionInvalid(toItv(lo, fT), toItv(hi, fT), toItv(x, fT)));
+        return ftz(numericAssertBounds(lo, hi, x).withInvalid(detail::assertionInvalid(toItv(lo, fT), toItv(hi, fT), toItv(x, fT))));
     }
 
     // Public API: enclose Select2 over the horizon, retaining possible invalidity.
     AffItv Select2(const AffItv& arg0, const AffItv& x, const AffItv& y) const override
     {
-        return numericSelect2(arg0, x, y).withInvalid(arg0.mayBeInvalid || x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericSelect2(arg0, x, y).withInvalid(arg0.mayBeInvalid || x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose IntCast over the horizon, retaining possible invalidity.
     AffItv IntCast(const AffItv& x) const override
     {
-        return numericIntCast(x).withInvalid(detail::intCastInvalid(toItv(x, fT)));
+        return ftz(numericIntCast(x).withInvalid(detail::intCastInvalid(toItv(x, fT))));
     }
 
     // Public API: enclose BitCast over the horizon, retaining possible invalidity.
     AffItv BitCast(const AffItv& x) const override
     {
-        return numericBitCast(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericBitCast(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose FloatCast over the horizon, retaining possible invalidity.
     AffItv FloatCast(const AffItv& x) const override
     {
-        return numericFloatCast(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericFloatCast(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Mod over the horizon, retaining possible invalidity.
     AffItv Mod(const AffItv& x, const AffItv& y) const override
     {
-        return numericMod(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericMod(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Fmod over the horizon, retaining possible invalidity.
     AffItv Fmod(const AffItv& x, const AffItv& y) const override
     {
-        return numericFmod(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericFmod(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Inv over the horizon, retaining possible invalidity.
     AffItv Inv(const AffItv& x) const override
     {
-        return numericInv(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericInv(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Abs over the horizon, retaining possible invalidity.
     AffItv Abs(const AffItv& x) const override
     {
-        return numericAbs(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericAbs(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Highest over the horizon, retaining possible invalidity.
     AffItv Highest(const AffItv& x) const override
     {
-        return numericHighest(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericHighest(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Lowest over the horizon, retaining possible invalidity.
     AffItv Lowest(const AffItv& x) const override
     {
-        return numericLowest(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericLowest(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Gt over the horizon, retaining possible invalidity.
     AffItv Gt(const AffItv& x, const AffItv& y) const override
     {
-        return numericGt(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericGt(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Lt over the horizon, retaining possible invalidity.
     AffItv Lt(const AffItv& x, const AffItv& y) const override
     {
-        return numericLt(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericLt(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Ge over the horizon, retaining possible invalidity.
     AffItv Ge(const AffItv& x, const AffItv& y) const override
     {
-        return numericGe(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericGe(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Le over the horizon, retaining possible invalidity.
     AffItv Le(const AffItv& x, const AffItv& y) const override
     {
-        return numericLe(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericLe(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Eq over the horizon, retaining possible invalidity.
     AffItv Eq(const AffItv& x, const AffItv& y) const override
     {
-        return numericEq(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericEq(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Ne over the horizon, retaining possible invalidity.
     AffItv Ne(const AffItv& x, const AffItv& y) const override
     {
-        return numericNe(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericNe(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Not over the horizon, retaining possible invalidity.
     AffItv Not(const AffItv& x) const override
     {
-        return numericNot(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericNot(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose And over the horizon, retaining possible invalidity.
     AffItv And(const AffItv& x, const AffItv& y) const override
     {
-        return numericAnd(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericAnd(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Or over the horizon, retaining possible invalidity.
     AffItv Or(const AffItv& x, const AffItv& y) const override
     {
-        return numericOr(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericOr(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Xor over the horizon, retaining possible invalidity.
     AffItv Xor(const AffItv& x, const AffItv& y) const override
     {
-        return numericXor(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericXor(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Lsh over the horizon, retaining possible invalidity.
     AffItv Lsh(const AffItv& x, const AffItv& y) const override
     {
-        return numericLsh(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericLsh(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose ARsh over the horizon, retaining possible invalidity.
     AffItv ARsh(const AffItv& x, const AffItv& y) const override
     {
-        return numericARsh(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericARsh(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose LRsh over the horizon, retaining possible invalidity.
     AffItv LRsh(const AffItv& x, const AffItv& y) const override
     {
-        return numericLRsh(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericLRsh(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Acos over the horizon, retaining possible invalidity.
     AffItv Acos(const AffItv& x) const override
     {
-        return numericAcos(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericAcos(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Acosh over the horizon, retaining possible invalidity.
     AffItv Acosh(const AffItv& x) const override
     {
-        return numericAcosh(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericAcosh(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Asin over the horizon, retaining possible invalidity.
     AffItv Asin(const AffItv& x) const override
     {
-        return numericAsin(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericAsin(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Asinh over the horizon, retaining possible invalidity.
     AffItv Asinh(const AffItv& x) const override
     {
-        return numericAsinh(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericAsinh(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Atan over the horizon, retaining possible invalidity.
     AffItv Atan(const AffItv& x) const override
     {
-        return numericAtan(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericAtan(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Atan2 over the horizon, retaining possible invalidity.
     AffItv Atan2(const AffItv& x, const AffItv& y) const override
     {
-        return numericAtan2(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericAtan2(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Atanh over the horizon, retaining possible invalidity.
     AffItv Atanh(const AffItv& x) const override
     {
-        return numericAtanh(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericAtanh(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Ceil over the horizon, retaining possible invalidity.
     AffItv Ceil(const AffItv& x) const override
     {
-        return numericCeil(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericCeil(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Cos over the horizon, retaining possible invalidity.
     AffItv Cos(const AffItv& x) const override
     {
-        return numericCos(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericCos(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Cosh over the horizon, retaining possible invalidity.
     AffItv Cosh(const AffItv& x) const override
     {
-        return numericCosh(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericCosh(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Exp over the horizon, retaining possible invalidity.
     AffItv Exp(const AffItv& x) const override
     {
-        return numericExp(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericExp(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Exp10 over the horizon, retaining possible invalidity.
     AffItv Exp10(const AffItv& x) const override
     {
-        return numericExp10(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericExp10(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Floor over the horizon, retaining possible invalidity.
     AffItv Floor(const AffItv& x) const override
     {
-        return numericFloor(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericFloor(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Log over the horizon, retaining possible invalidity.
     AffItv Log(const AffItv& x) const override
     {
-        return numericLog(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericLog(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Log10 over the horizon, retaining possible invalidity.
     AffItv Log10(const AffItv& x) const override
     {
-        return numericLog10(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericLog10(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Pow over the horizon, retaining possible invalidity.
     AffItv Pow(const AffItv& x, const AffItv& y) const override
     {
-        return numericPow(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericPow(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Remainder over the horizon, retaining possible invalidity.
     AffItv Remainder(const AffItv& x, const AffItv& y) const override
     {
-        return numericRemainder(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericRemainder(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Rint over the horizon, retaining possible invalidity.
     AffItv Rint(const AffItv& x) const override
     {
-        return numericRint(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericRint(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: the compound operations collapse to the interval rule over the
     // horizon (nonlinear), retaining possible invalidity.
     AffItv Frac(const AffItv& x) const override
     {
-        return c1(x, [this](const interval& a) { return fItv.Frac(a); }).withInvalid(x.mayBeInvalid);
+        return ftz(c1(x, [this](const interval& a) { return fItv.Frac(a); }).withInvalid(x.mayBeInvalid));
     }
     AffItv Cfrac(const AffItv& x) const override
     {
-        return c1(x, [this](const interval& a) { return fItv.Cfrac(a); }).withInvalid(x.mayBeInvalid);
+        return ftz(c1(x, [this](const interval& a) { return fItv.Cfrac(a); }).withInvalid(x.mayBeInvalid));
     }
     AffItv Mix(const AffItv& c, const AffItv& a, const AffItv& b) const override
     {
         if (c.isEmpty() || a.isEmpty() || b.isEmpty()) {
-            return aempty().withInvalid(c.mayBeInvalid || a.mayBeInvalid || b.mayBeInvalid);
+            return ftz(aempty().withInvalid(c.mayBeInvalid || a.mayBeInvalid || b.mayBeInvalid));
         }
-        return collapse(c.moving() || a.moving() || b.moving(),
+        return ftz(collapse(c.moving() || a.moving() || b.moving(),
                         [&](auto hull) { return fItv.Mix(hull(c), hull(a), hull(b)); })
-            .withInvalid(c.mayBeInvalid || a.mayBeInvalid || b.mayBeInvalid);
+            .withInvalid(c.mayBeInvalid || a.mayBeInvalid || b.mayBeInvalid));
     }
     AffItv Tpt(const AffItv& x) const override
     {
-        return c1(x, [this](const interval& a) { return fItv.Tpt(a); }).withInvalid(x.mayBeInvalid);
+        return ftz(c1(x, [this](const interval& a) { return fItv.Tpt(a); }).withInvalid(x.mayBeInvalid));
     }
     AffItv Phase(const AffItv& x, const AffItv& p) const override
     {
-        if (x.isEmpty() || p.isEmpty()) return aempty().withInvalid(x.mayBeInvalid || p.mayBeInvalid);
+        if (x.isEmpty() || p.isEmpty()) return ftz(aempty().withInvalid(x.mayBeInvalid || p.mayBeInvalid));
         const interval r = fItv.Phase(toItv(x, fT), toItv(p, fT));
-        return collapse(x.moving() || p.moving(),
+        return ftz(collapse(x.moving() || p.moving(),
                         [&](auto hull) { return fItv.Phase(hull(x), hull(p)); })
-            .withInvalid(x.mayBeInvalid || p.mayBeInvalid || r.mayBeInvalid());
+            .withInvalid(x.mayBeInvalid || p.mayBeInvalid || r.mayBeInvalid()));
     }
 
     // The kernels : Sum, Prod and Fir as their definitions over the corridors (from left
     // to right), Iir by the gain rule of the intervals over the horizon
     AffItv Sum(const std::vector<AffItv>& terms) const override
     {
-        if (terms.empty()) return this->IntNum(0);
+        if (terms.empty()) return ftz(this->IntNum(0));
         AffItv acc      = terms[0];
         bool   overflow = false;  // one of the partial sums may wrap
         for (size_t k = 1; k < terms.size(); k++) {
             acc      = this->Add(acc, terms[k]);
             overflow = overflow || acc.mayOverflow;
         }
-        return acc.withOverflow(overflow);
+        return ftz(acc.withOverflow(overflow));
     }
     AffItv Prod(const std::vector<AffItv>& factors) const override
     {
-        if (factors.empty()) return this->IntNum(1);
+        if (factors.empty()) return ftz(this->IntNum(1));
         AffItv acc      = factors[0];
         bool   overflow = false;  // one of the partial products may wrap
         for (size_t k = 1; k < factors.size(); k++) {
             acc      = this->Mul(acc, factors[k]);
             overflow = overflow || acc.mayOverflow;
         }
-        return acc.withOverflow(overflow);
+        return ftz(acc.withOverflow(overflow));
     }
     AffItv Fir(const AffItv& x, const std::vector<AffItv>& coefs) const override
     {
@@ -1086,8 +1090,8 @@ class AffineOps : public Base {
             first       = false;
         }
         // only null coefficients : a zero of the nature of the products
-        if (first) return real ? this->FloatNum(0) : this->IntNum(0);
-        return acc.withOverflow(overflow);
+        if (first) return ftz(real ? this->FloatNum(0) : this->IntNum(0));
+        return ftz(acc.withOverflow(overflow));
     }
     AffItv Iir(const AffItv& x, const std::vector<AffItv>& coefs) const override
     {
@@ -1097,24 +1101,24 @@ class AffineOps : public Base {
             alert = alert || ck.mayBeInvalid;
             none  = none || ck.isEmpty();
         }
-        if (none) return aempty().withInvalid(alert);
+        if (none) return ftz(aempty().withInvalid(alert));
         bool moving = x.moving();
         for (const AffItv& ck : coefs) moving = moving || ck.moving();
-        return collapse(moving, [&](auto hull) {
+        return ftz(collapse(moving, [&](auto hull) {
             std::vector<interval> cs;
             for (const AffItv& ck : coefs) cs.push_back(hull(ck));
             return fItv.Iir(hull(x), cs);
-        });
+        }));
     }
     AffItv Bpf(const AffItv& x, const std::vector<AffItv>& t, const std::vector<AffItv>& r) const override
     {
         // the regions that x may reach, joined as corridors
         // a malformed node (|r| != |t| + 1) bounds nothing
-        if (r.size() != t.size() + 1) return fromItv(interval(-HUGE_VAL, HUGE_VAL, -24, true));
+        if (r.size() != t.size() + 1) return ftz(fromItv(interval(-HUGE_VAL, HUGE_VAL, -24, true)));
         bool alert = x.mayBeInvalid;
         for (const AffItv& ti : t) alert = alert || ti.mayBeInvalid;
         for (const AffItv& ri : r) alert = alert || ri.mayBeInvalid;
-        if (x.isEmpty()) return aempty().withInvalid(alert);
+        if (x.isEmpty()) return ftz(aempty().withInvalid(alert));
         // a moving x, or moving thresholds, may reach other regions past the horizon
         const interval ix = forever(x, fT);
         AffItv         acc;
@@ -1129,128 +1133,128 @@ class AffineOps : public Base {
             invalid = invalid || r[i].mayBeInvalid;
         }
         for (const AffItv& ti : t) invalid = invalid || ti.mayBeInvalid;
-        return any ? acc.withInvalid(invalid) : aempty().withInvalid(alert);
+        return ftz(any ? acc.withInvalid(invalid) : aempty().withInvalid(alert));
     }
     AffItv Irm(const AffItv& x, const AffItv& c) const override
     {
-        if (x.isEmpty() || c.isEmpty()) return aempty().withInvalid(x.mayBeInvalid || c.mayBeInvalid);
-        return collapse(x.moving() || c.moving(),
+        if (x.isEmpty() || c.isEmpty()) return ftz(aempty().withInvalid(x.mayBeInvalid || c.mayBeInvalid));
+        return ftz(collapse(x.moving() || c.moving(),
                         [&](auto hull) { return fItv.Irm(hull(x), hull(c)); })
-            .withInvalid(x.mayBeInvalid || c.mayBeInvalid);
+            .withInvalid(x.mayBeInvalid || c.mayBeInvalid));
     }
 
     // Public API: enclose Round over the horizon, retaining possible invalidity.
     AffItv Round(const AffItv& x) const override
     {
-        return numericRound(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericRound(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Sin over the horizon, retaining possible invalidity.
     AffItv Sin(const AffItv& x) const override
     {
-        return numericSin(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericSin(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Sinh over the horizon, retaining possible invalidity.
     AffItv Sinh(const AffItv& x) const override
     {
-        return numericSinh(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericSinh(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Sqrt over the horizon, retaining possible invalidity.
     AffItv Sqrt(const AffItv& x) const override
     {
-        return numericSqrt(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericSqrt(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Tan over the horizon, retaining possible invalidity.
     AffItv Tan(const AffItv& x) const override
     {
-        return numericTan(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericTan(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Tanh over the horizon, retaining possible invalidity.
     AffItv Tanh(const AffItv& x) const override
     {
-        return numericTanh(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericTanh(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Max over the horizon, retaining possible invalidity.
     AffItv Max(const AffItv& x, const AffItv& y) const override
     {
-        return numericMax(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericMax(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose Min over the horizon, retaining possible invalidity.
     AffItv Min(const AffItv& x, const AffItv& y) const override
     {
-        return numericMin(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid);
+        return ftz(numericMin(x, y).withInvalid(x.mayBeInvalid || y.mayBeInvalid));
     }
 
     // Public API: enclose RDTbl over the horizon, retaining possible invalidity.
     AffItv RDTbl(const AffItv& tbl, const AffItv& arg1) const override
     {
-        return numericRDTbl(tbl, arg1).withInvalid(true);
+        return ftz(numericRDTbl(tbl, arg1).withInvalid(true));
     }
 
     // Public API: enclose WRTbl over the horizon, retaining possible invalidity.
     AffItv WRTbl(const AffItv& arg0, const AffItv& g, const AffItv& arg2, const AffItv& ws) const override
     {
-        return numericWRTbl(arg0, g, arg2, ws).withInvalid(g.mayBeInvalid || ws.mayBeInvalid || detail::tableWriteInvalid(toItv(arg0, fT), toItv(arg2, fT)));
+        return ftz(numericWRTbl(arg0, g, arg2, ws).withInvalid(g.mayBeInvalid || ws.mayBeInvalid || detail::tableWriteInvalid(toItv(arg0, fT), toItv(arg2, fT))));
     }
 
     // Public API: enclose Gen over the horizon, retaining possible invalidity.
     AffItv Gen(const AffItv& x) const override
     {
-        return numericGen(x).withInvalid(x.mayBeInvalid);
+        return ftz(numericGen(x).withInvalid(x.mayBeInvalid));
     }
 
     // Public API: enclose Waveform over the horizon, retaining possible invalidity.
     AffItv Waveform(const std::vector<AffItv>& w) const override
     {
-        return numericWaveform(w).withInvalid(std::any_of(w.begin(), w.end(), [](const AffItv& x) { return x.mayBeInvalid; }));
+        return ftz((numericWaveform(w).withInvalid(std::any_of(w.begin(), w.end(), [](const AffItv& x) { return x.mayBeInvalid; }))));
     }
 
     // Public API: enclose SoundFile over the horizon, retaining possible invalidity.
     AffItv SoundFile(const AffItv& arg0) const override
     {
-        return numericSoundFile(arg0).withInvalid(arg0.mayBeInvalid);
+        return ftz(numericSoundFile(arg0).withInvalid(arg0.mayBeInvalid));
     }
 
     // Public API: enclose SoundFileRate over the horizon, retaining possible invalidity.
     AffItv SoundFileRate(const AffItv& arg0, const AffItv& arg1) const override
     {
-        return numericSoundFileRate(arg0, arg1).withInvalid(true);
+        return ftz(numericSoundFileRate(arg0, arg1).withInvalid(true));
     }
 
     // Public API: enclose SoundFileLength over the horizon, retaining possible invalidity.
     AffItv SoundFileLength(const AffItv& arg0, const AffItv& arg1) const override
     {
-        return numericSoundFileLength(arg0, arg1).withInvalid(true);
+        return ftz(numericSoundFileLength(arg0, arg1).withInvalid(true));
     }
 
     // Public API: enclose SoundFileBuffer over the horizon, retaining possible invalidity.
     AffItv SoundFileBuffer(const AffItv& arg0, const AffItv& arg1, const AffItv& arg2, const AffItv& arg3) const override
     {
-        return numericSoundFileBuffer(arg0, arg1, arg2, arg3).withInvalid(true);
+        return ftz(numericSoundFileBuffer(arg0, arg1, arg2, arg3).withInvalid(true));
     }
 
     // Public API: enclose ForeignConst over the horizon, retaining possible invalidity.
     AffItv ForeignConst(int arg0, const AffItv& arg1, const AffItv& arg2) const override
     {
-        return numericForeignConst(arg0, arg1, arg2).withInvalid(arg1.mayBeInvalid || arg2.mayBeInvalid);
+        return ftz(numericForeignConst(arg0, arg1, arg2).withInvalid(arg1.mayBeInvalid || arg2.mayBeInvalid));
     }
 
     // Public API: enclose ForeignVar over the horizon, retaining possible invalidity.
     AffItv ForeignVar(int arg0, const AffItv& arg1, const AffItv& arg2) const override
     {
-        return numericForeignVar(arg0, arg1, arg2).withInvalid(arg1.mayBeInvalid || arg2.mayBeInvalid);
+        return ftz(numericForeignVar(arg0, arg1, arg2).withInvalid(arg1.mayBeInvalid || arg2.mayBeInvalid));
     }
 
     // Public API: enclose ForeignFunction over the horizon, retaining possible invalidity.
     AffItv ForeignFunction(int arg0, const std::vector<AffItv>& arg1) const override
     {
-        return numericForeignFunction(arg0, arg1).withInvalid(std::any_of(arg1.begin(), arg1.end(), [](const AffItv& x) { return x.mayBeInvalid; }));
+        return ftz((numericForeignFunction(arg0, arg1).withInvalid(std::any_of(arg1.begin(), arg1.end(), [](const AffItv& x) { return x.mayBeInvalid; }))));
     }
 
    protected:

@@ -29,6 +29,20 @@ namespace itv {
 // Numeric kernel: enclose minimum after target operand conversions.
 // Empty stays empty; widened integers recover their signed hull.
 // The result is floating exactly when either operand is floating.
+namespace {
+// min and max return their first operand between two zeros : a zero bound of the result
+// takes every zero that either operand may hold
+interval zeroBoundsOf(interval r, const interval& x, const interval& y)
+{
+    if (r.isEmpty()) return r;
+    auto holds = [](const interval& i, double z) { return leTotal(i.lo(), z) && leTotal(z, i.hi()); };
+    double lo = r.lo(), hi = r.hi();
+    if (lo == 0 && (holds(x, -0.0) || holds(y, -0.0))) lo = -0.0;
+    if (hi == 0 && (holds(x, 0.0) || holds(y, 0.0))) hi = 0.0;
+    return interval(lo, hi, r.lsb(), r.mayBeInvalid());
+}
+}  // namespace
+
 interval interval_algebra::numericMin(const interval& xInput, const interval& yInput) const
 {
     // Compare target values after integer widening and any implicit float cast.
@@ -37,8 +51,8 @@ interval interval_algebra::numericMin(const interval& xInput, const interval& yI
         return empty();
     }
 
-    return {std::min(x.lo(), y.lo()), std::min(x.hi(), y.hi()),
-            std::min(x.lsb(), y.lsb())};  // resulting interval should be as precise as the most
+    return zeroBoundsOf(interval{minTotal(x.lo(), y.lo()), minTotal(x.hi(), y.hi()),
+            std::min(x.lsb(), y.lsb())}, x, y);  // resulting interval should be as precise as the most
                                           // precise of the operands
 }
 }  // namespace itv
