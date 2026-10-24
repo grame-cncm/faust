@@ -112,6 +112,25 @@ inline double programBound(double b)
  * and the least subnormal. Integer-looking floating bounds receive the same rule.
  * Double/quad/fixed are unchanged; IEEE conversion and gradual underflow are assumed.
  */
+/// a <= b in the total order of IEEE 754, -0 before +0 : the order in which the bounds of an
+/// interval are read (a lower bound -0 holds -0 and +0, a lower bound +0 holds +0 only ; an
+/// upper bound +0 holds both zeros, an upper bound -0 holds -0 only)
+inline bool leTotal(double a, double b)
+{
+    if (a == 0 && b == 0) return std::signbit(a) || !std::signbit(b);
+    return a <= b;
+}
+inline double minTotal(double a, double b)
+{
+    if (std::isnan(a) || std::isnan(b)) return std::min(a, b);
+    return leTotal(a, b) ? a : b;
+}
+inline double maxTotal(double a, double b)
+{
+    if (std::isnan(a) || std::isnan(b)) return std::max(a, b);
+    return leTotal(a, b) ? b : a;
+}
+
 inline double programDirectedBound(double b, bool upper)
 {
     if (programPrecision() != 1 || !std::isfinite(b)) return b;
@@ -168,8 +187,9 @@ class interval {
     {
         fMayBeInvalid = mayBeInvalid || std::isnan(n) || std::isnan(m);
         if (n == 0.0 && m == 0.0) {
-            fLo  = 0.0;
-            fHi  = 0.0;
+            // the zeros keep their signs : [-0, +0] holds both, [+0, +0] and [-0, -0] one
+            fLo  = minTotal(n, m);
+            fHi  = maxTotal(n, m);
             // Zero carries the requested nature and grid in every precision.
             // Otherwise a computed floating zero can turn a later operation into
             // int32 wrapping, or a delay can discard an integer signal's grid.
@@ -188,8 +208,8 @@ class interval {
             fLo = NAN;
             fHi = NAN;
         } else {
-            fLo = std::min(n, m);
-            fHi = std::max(n, m);
+            fLo = minTotal(n, m);
+            fHi = maxTotal(n, m);
             // A computed/domain point is not a literal: independently enclose
             // both endpoints, even when analyzer rounding collapsed them.
             if (fLSB < 0) {
@@ -210,8 +230,8 @@ class interval {
             return;
         }
         if (x == 0) {
-            fLo  = 0;
-            fHi  = 0;
+            fLo  = x;  // the zero of its sign
+            fHi  = x;
             fLSB = 0;
         } else {
             // a fractional constant is a float of the program
@@ -407,11 +427,11 @@ inline interval intersection(const interval& i, const interval& j)
     } else if (j.isEmpty()) {
         return j.withInvalid(invalid).withOverflow(overflow);
     } else {
-        double l = std::max(i.lo(), j.lo());
-        double h = std::min(i.hi(), j.hi());
+        double l = maxTotal(i.lo(), j.lo());
+        double h = minTotal(i.hi(), j.hi());
         int    p = std::min(i.lsb(),
                             j.lsb());  // precision of the intersection should be the finest of the two
-        if (l > h) {
+        if (!leTotal(l, h)) {
             return empty().withInvalid(invalid).withOverflow(overflow);
         } else {
             // a bound moves where the bound that sets it moves (both, when they are equal)
@@ -431,8 +451,8 @@ inline interval reunion(const interval& i, const interval& j)
     } else if (j.isEmpty()) {
         return i.withInvalid(invalid).withOverflow(overflow);
     } else {
-        double l = std::min(i.lo(), j.lo());
-        double h = std::max(i.hi(), j.hi());
+        double l = minTotal(i.lo(), j.lo());
+        double h = maxTotal(i.hi(), j.hi());
         int    p =
             std::min(i.lsb(), j.lsb());  // precision of the reunion should be the finest of the two
         // a bound moves where either one moves
@@ -471,7 +491,9 @@ inline bool operator==(const interval& i, const interval& j)
 {
     return i.mayBeInvalid() == j.mayBeInvalid() && i.mayOverflow() == j.mayOverflow() &&
            i.loMoves() == j.loMoves() && i.hiMoves() == j.hiMoves() &&
-           ((i.isEmpty() && j.isEmpty()) || ((i.lo() == j.lo()) && (i.hi() == j.hi())));
+           ((i.isEmpty() && j.isEmpty()) ||
+            ((i.lo() == j.lo()) && (i.hi() == j.hi()) && std::signbit(i.lo()) == std::signbit(j.lo()) &&
+             std::signbit(i.hi()) == std::signbit(j.hi())));
 }
 
 // Public API: numeric and validity inclusion, independent of LSB. An alert can
@@ -487,7 +509,7 @@ inline bool operator<=(const interval& i, const interval& j)
     if (j.isEmpty()) {
         return false;
     }
-    return (i.lo() >= j.lo()) && (i.hi() <= j.hi());
+    return leTotal(j.lo(), i.lo()) && leTotal(i.hi(), j.hi());
 }
 
 // additional predicates
@@ -509,6 +531,21 @@ inline bool operator>=(const interval& i, const interval& j)
 inline bool operator>(const interval& i, const interval& j)
 {
     return j < i;
+}
+
+/**
+ * r for a program that may flush subnormals to zero (FTZ, and DAZ for its operands) : a bound
+ * strictly between 0 and the smallest normal of the model's precision is 0. Audio hosts and
+ * Faust's architecture files enable both, subnormals being very slow on many processors.
+ */
+inline interval flushedToZero(const interval& r)
+{
+    if (r.isEmpty() || r.lsb() >= 0) return r;
+    const double m  = modelPrecision() == 1 ? 0x1p-126 : 0x1p-1022;
+    const double lo = (r.lo() > 0 && r.lo() < m) ? 0.0 : r.lo();
+    const double hi = (r.hi() < 0 && r.hi() > -m) ? -0.0 : r.hi();  // a negative one flushes to -0
+    if (lo == r.lo() && hi == r.hi()) return r;
+    return interval(lo, hi, r.lsb(), r.mayBeInvalid()).withOverflow(r.mayOverflow()).withMotion(r.loMoves(), r.hiMoves());
 }
 
 /**
