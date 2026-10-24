@@ -895,7 +895,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         const interval ia = itv::toItv(a, fT), ib = itv::toItv(b, fT);
         const double   lo = std::max(ia.lo(), ib.lo()), hi = std::min(ia.hi(), ib.hi());
         if (lo > hi) return a;
-        AffItv r       = itv::meetDrift(itv::fromItv(interval(lo, hi, std::min(ia.lsb(), ib.lsb()))), a, b);
+        AffItv r       = itv::meetDrift(itv::fromItv(interval(lo, hi, std::min(ia.lsb(), ib.lsb()))), a, b, fT);
         r.mayBeInvalid = a.mayBeInvalid && b.mayBeInvalid;
         return r;
     }
@@ -1688,7 +1688,7 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
         // both bounded : their intersection ; NaN only when both allow it
         const double lo = std::max(ig.lo(), id.lo()), hi = std::min(ig.hi(), id.hi());
         AffItv       r  = (ig.hi() - ig.lo() <= id.hi() - id.lo()) ? gain : def;
-        if (lo <= hi) r = itv::meetDrift(itv::fromItv(interval(lo, hi, std::min(ig.lsb(), id.lsb()))), gain, def);
+        if (lo <= hi) r = itv::meetDrift(itv::fromItv(interval(lo, hi, std::min(ig.lsb(), id.lsb()))), gain, def, fT);
         r.mayBeInvalid = gain.mayBeInvalid && def.mayBeInvalid;
         return r.withOverflow(overflow);
     }
