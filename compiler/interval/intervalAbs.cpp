@@ -36,9 +36,10 @@ interval interval_algebra::numericAbs(const interval& input) const
         return empty();
     }
 
-    // precision stays the same
+    // precision stays the same ; |-0| is +0
     if (x.lo() >= 0) {
-        return x;
+        if (x.lo() != 0 && x.hi() != 0) return x;
+        return {x.lo() == 0 ? 0.0 : x.lo(), x.hi() == 0 ? 0.0 : x.hi(), x.lsb()};
     }
 
     // integer wrapping : abs(INT_MIN) is INT_MIN again, so when INT_MIN is in x the
