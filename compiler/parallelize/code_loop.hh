@@ -56,10 +56,12 @@
 
 class CodeLoop;
 
-// The loops of one level are emitted in the order of this set. Ordering the
-// pointers themselves would follow the allocator, which on some systems hands
-// out addresses per CPU : the emitted order would then vary from one run to
-// the next. The rank is the creation order, which follows the traversal.
+// The loops of one level, and the dependencies of a loop, are emitted in the
+// order of this set (-sch numbers the tasks and activates them in it, -dfs
+// follows it). Ordering the pointers themselves would follow the allocator,
+// whose addresses vary from one run to the next (address space layout
+// randomisation, per-CPU arenas) : so would the emitted code. The rank is the
+// creation order, which follows the traversal.
 struct CodeLoopOrder {
     bool operator()(const CodeLoop* a, const CodeLoop* b) const;
 };
@@ -89,8 +91,8 @@ class CodeLoop : public virtual Garbageable {
     std::list<CodeLoop*> fExtraLoops;  ///< extra loops that where in sequences
 
     std::set<Tree, treeorder>      fRecDependencies;  ///< Loops having recursive dependencies must be merged
-    std::set<CodeLoop*> fBackwardLoopDependencies;  ///< Loops that must be computed before this one
-    std::set<CodeLoop*> fForwardLoopDependencies;   ///< Loops that will be computed after this one
+    lclset fBackwardLoopDependencies;  ///< Loops that must be computed before this one
+    lclset fForwardLoopDependencies;   ///< Loops that will be computed after this one
 
     void pushBlock(BlockInst* block, BlockInst* loop)
     {
@@ -165,8 +167,8 @@ class CodeLoop : public virtual Garbageable {
     int getIndex() { return fIndex; }
     int getRank() const { return fRank; }
 
-    std::set<CodeLoop*>& getForwardLoopDependencies() { return fForwardLoopDependencies; }
-    std::set<CodeLoop*>& getBackwardLoopDependencies() { return fBackwardLoopDependencies; }
+    lclset& getForwardLoopDependencies() { return fForwardLoopDependencies; }
+    lclset& getBackwardLoopDependencies() { return fBackwardLoopDependencies; }
 
     ValueInst* getLoopIndex() { return IB::genLoadLoopVar(fLoopIndex); }
 
