@@ -516,8 +516,8 @@ inline bool operator>(const interval& i, const interval& j)
  * exact result, the ulp of the exact result in its binade (the spacing of the floats of the
  * program's precision between the powers of two around it). Just above a power of two, 2
  * ulps reach 4 floats below it, where the spacing is half. The image of the function bounds
- * the exact result, so the image widened by 2 ulps bounds the value (sin <= 1 + 2 ulp(1)). A
- * bound of exactly 0 stays : the C standard (annex F) makes the libm exact there. A
+ * the exact result (see below : sin stays within [-1, 1], cosh >= 1 - 2 ulp(1)). A bound of
+ * exactly 0 stays : the C standard (annex F) makes the libm exact there. A
  * float/double singleton is not automatically a folded constant, so it receives the target
  * margin too. Quad/fixed retain the historical singleton exemption.
  */
@@ -562,8 +562,22 @@ inline interval libmBounds(const interval& r, double fmin, double fmax, int step
     double lo = r.lo(), hi = r.hi();
     if (lo != 0) lo = ulpsAway(lo, steps, -HUGE_VAL);
     if (hi != 0) hi = ulpsAway(hi, steps, HUGE_VAL);
-    if (r.lo() >= fmin && std::isfinite(fmin)) lo = std::max(lo, fmin == 0 ? 0.0 : ulpsAway(fmin, steps, -HUGE_VAL));
-    if (r.hi() <= fmax && std::isfinite(fmax)) hi = std::min(hi, fmax == 0 ? 0.0 : ulpsAway(fmax, steps, HUGE_VAL));
+    // The image [fmin, fmax] bounds the exact result. A bound of the image that is a power
+    // of two, on the side of smaller magnitudes (sin, cos, tanh <= 1 and >= -1), holds the
+    // value as it is : the exact result reaches it only where the C standard makes the libm
+    // exact (cos(0), tanh(+-inf)) or never (sin), and below it lies in the binade below, where
+    // 2 ulps stay within it. Any other bound of the image is widened by 2 ulps (cosh >= 1 -
+    // 2 ulp(1) : its exact result lies above 1).
+    auto isPow2 = [](double b) {
+        int e = 0;
+        return std::isfinite(b) && b != 0 && std::frexp(std::abs(b), &e) == 0.5;
+    };
+    if (r.lo() >= fmin && std::isfinite(fmin)) {
+        lo = std::max(lo, (fmin == 0 || (fmin < 0 && isPow2(fmin))) ? fmin : ulpsAway(fmin, steps, -HUGE_VAL));
+    }
+    if (r.hi() <= fmax && std::isfinite(fmax)) {
+        hi = std::min(hi, (fmax == 0 || (fmax > 0 && isPow2(fmax))) ? fmax : ulpsAway(fmax, steps, HUGE_VAL));
+    }
     return interval(lo, hi, r.lsb(), r.mayBeInvalid());
 }
 
