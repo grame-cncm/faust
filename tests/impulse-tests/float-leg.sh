@@ -1,14 +1,18 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 # FLOAT LEG : the order auto-differential in float.
 # Within one backend, changing the emission order does not change the
 # arithmetic DAG ; without -ffast-math the float outputs of the default,
 # -ss 11 and -ss 12 orders must be BIT-IDENTICAL. Any difference is an
 # order-dependent read (the one-sample class). Each program is its own
 # oracle : no references to maintain, resonance irrelevant.
-# Usage : ./float-leg.sh   (from tests/impulse-tests ; faust in ../../build/bin)
+# Usage : FAUST=<binary under test> ./float-leg.sh   (default : ../../build/bin/faust)
+# The arithmetic is pinned (-ffp-contract=off) : a contraction that differs
+# between two orders would be reported as an order-dependent read.
 setopt shwordsplit 2>/dev/null
 IT=$(cd "$(dirname "$0")" && pwd)
-FAUST="$IT/../../build/bin/faust"
+FAUST="${FAUST:-$IT/../../build/bin/faust}"
+[ -x "$FAUST" ] || { echo "float-leg : no faust at $FAUST" >&2; exit 1; }
+"$FAUST" --version | head -2
 W="$IT/ir/float-leg"
 mkdir -p "$W"; cd "$W" || exit 1
 pass=0; fail=0; skip=0
@@ -23,7 +27,7 @@ for f in "$IT"/dsp/*.dsp; do
     done
     [ $okgen -eq 0 ] && { echo "SKIP_GEN $p"; skip=$((skip+1)); rm -f "$p-"*; continue; }
     for v in def s11 s12; do
-        c++ -O3 -I"$IT/../../architecture" -I"$IT/archs" -pthread -std=c++11 \
+        c++ -O3 -ffp-contract=off -I"$IT/../../architecture" -I"$IT/archs" -pthread -std=c++11 \
             "$p-$v.cpp" -o "$p-$v" 2>/dev/null &
     done
     wait
