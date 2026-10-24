@@ -549,11 +549,14 @@ class AffineOps : public Base {
     AffItv numericRDTbl(const AffItv& tbl, const AffItv& arg1) const
     { return tbl; }
     // a cell read at t was written at some t' <= t : the values written, over [0, T] and not
-    // as corridors, drifting where they move past the horizon
+    // as corridors, drifting where they move past the horizon ; cell i first holds g(i), for
+    // every i below the size, past the horizon too
     AffItv numericWRTbl(const AffItv& arg0, const AffItv& g, const AffItv& arg2, const AffItv& ws) const
     {
         if (g.isEmpty() || ws.isEmpty()) return ajoin(g, ws, fT);
-        return hullDrift(fromItv(reunion(toItv(g, fT), toItv(ws, fT))), {g, ws});
+        const double   last = arg0.isEmpty() ? 0 : std::max(arg0.hi(0), arg0.hi(fT)) - 1;
+        const interval init = (last <= fT) ? toItv(g, fT) : forever(g, fT);
+        return hullDrift(fromItv(reunion(init, toItv(ws, fT))), {g, ws});
     }
     AffItv numericGen(const AffItv& x) const
     { return x; }
@@ -1070,9 +1073,11 @@ class AffineOps : public Base {
     {
         bool   first    = true;
         bool   overflow = false;  // one of the products or partial sums may wrap
+        bool   real     = x.lsb < 0;  // the nature of the products, for a sum of none
         AffItv acc;
         for (size_t k = 0; k < coefs.size(); k++) {
             const AffItv& ck = coefs[k];
+            real             = real || ck.lsb < 0;
             // a null coefficient adds nothing, unless it moves past the horizon
             if (!ck.isEmpty() && !ck.moving() && ck.a0 == 0 && ck.b0 == 0 && !ck.mayBeInvalid) continue;
             AffItv term = (k == 0) ? this->Mul(ck, x) : this->Mul(ck, this->Delay(x, this->IntNum(int(k))));
@@ -1080,7 +1085,9 @@ class AffineOps : public Base {
             overflow    = overflow || term.mayOverflow || acc.mayOverflow;
             first       = false;
         }
-        return first ? this->IntNum(0) : acc.withOverflow(overflow);
+        // only null coefficients : a zero of the nature of the products
+        if (first) return real ? this->FloatNum(0) : this->IntNum(0);
+        return acc.withOverflow(overflow);
     }
     AffItv Iir(const AffItv& x, const std::vector<AffItv>& coefs) const override
     {
@@ -1358,16 +1365,19 @@ class AffineOps : public Base {
                 detail::directedBinary(detail::BinaryOp::Mul, r.b1, nlo, detail::Direction::Down),
                 detail::Direction::Up) : r.b0 - r.b1 * nlo;
         } else {
-            r.b0 = std::max(x.hi(0), x.hi(fT));
-            r.b1 = 0;
+            // the worst constant over the window ; the bound still moves past the horizon
+            r.b0       = std::max(x.hi(0), x.hi(fT));
+            r.b1       = 0;
+            r.hiDrifts = true;
         }
         if (r.a1 <= 0) {
             r.a0 = detail::usesNativeBounds() ? detail::directedBinary(detail::BinaryOp::Sub, r.a0,
                 detail::directedBinary(detail::BinaryOp::Mul, r.a1, nlo, detail::Direction::Up),
                 detail::Direction::Down) : r.a0 - r.a1 * nlo;
         } else {
-            r.a0 = std::min(x.lo(0), x.lo(fT));
-            r.a1 = 0;
+            r.a0       = std::min(x.lo(0), x.lo(fT));
+            r.a1       = 0;
+            r.loDrifts = true;
         }
         if (r.isEmpty())
             return fromItv(x.lsb >= 0 ? interval(-2147483648.0, 2147483647.0, x.lsb)

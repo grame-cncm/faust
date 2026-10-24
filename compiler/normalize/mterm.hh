@@ -91,6 +91,7 @@ class mterm : public virtual Garbageable {
     std::ostream& print(std::ostream& dst) const;   ///< print a mterm k*x1**n1*x2**n2...
 
     int  complexity() const;  ///< return an evaluation of the complexity
+    Tree writtenCoef() const;  ///< the coefficient as written into the program, rounded once
     Tree normalizedTree(bool sign = false,
                         bool neg  = false) const;  ///< return the normalized tree of the mterm
     Tree signatureTree() const;                   ///< return a signature (a normalized tree)
