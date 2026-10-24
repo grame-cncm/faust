@@ -512,11 +512,14 @@ inline bool operator>(const interval& i, const interval& j)
 }
 
 /**
- * The bounds of a libm function, compensated : 2 ulps of the program's precision
- * outward, within the image [fmin, fmax] of the function (sin stays in [-1, 1], exp
- * stays >= 0), a bound of exactly 0 excepted. A float/double singleton is not
- * automatically a folded constant, so it receives the target margin too.
- * Quad/fixed retain the historical singleton exemption. This margin is heuristic.
+ * The bounds of a libm function, compensated : the libm returns a value within 2 ulps of the
+ * exact result, the ulp of the exact result in its binade (the spacing of the floats of the
+ * program's precision between the powers of two around it). Just above a power of two, 2
+ * ulps reach 4 floats below it, where the spacing is half. The image of the function bounds
+ * the exact result, so the image widened by 2 ulps bounds the value (sin <= 1 + 2 ulp(1)). A
+ * bound of exactly 0 stays : the C standard (annex F) makes the libm exact there. A
+ * float/double singleton is not automatically a folded constant, so it receives the target
+ * margin too. Quad/fixed retain the historical singleton exemption.
  */
 inline double ulpStep(double b, double dir)
 {
@@ -526,23 +529,41 @@ inline double ulpStep(double b, double dir)
     return std::nextafter(b, dir);
 }
 
+/// the ulp of b in its binade, in the model's precision : the spacing of the floats of b's
+/// binade, the smallest subnormal below the normals
+inline double binadeUlp(double b)
+{
+    const bool   single = modelPrecision() == 1;
+    const int    digits = single ? 24 : 53;
+    const int    emin   = single ? -126 : -1022;
+    const double a      = std::abs(b);
+    if (a == 0 || !std::isfinite(a)) return std::ldexp(1.0, emin - digits + 1);
+    return std::ldexp(1.0, std::max(std::ilogb(a), emin) - digits + 1);
+}
+
+/// b moved by n ulps of its binade toward dir (the result is exact : a multiple of the finer
+/// spacing below a power of two)
+inline double ulpsAway(double b, int n, double dir)
+{
+    if (std::isnan(b) || std::isinf(b)) return b;
+    return dir > 0 ? b + n * binadeUlp(b) : b - n * binadeUlp(b);
+}
+
 inline interval libmBounds(const interval& r, double fmin, double fmax, int steps = 2)
 {
     // A singleton alone is not evidence that Faust folded an operation. Float/double
-    // references are certified independently; the legacy two-ULP target margin
-    // still applies to singleton results unless they are explicitly integer.
+    // references are certified independently; the two-ulp target margin still applies to
+    // singleton results unless they are explicitly integer.
     if (!libmCompensation() || r.isEmpty() || r.lsb() >= 0 ||
         (modelPrecision() != 1 && modelPrecision() != 2 && r.isconst())) return r;
     // a bound of exactly 0 stays : the C standard (annex F) makes the libm exact there
     // (sin(+-0) = +-0, tan(0) = 0, log(1) = 0, pow(0, y) = 0...), and a bound of 0 comes
     // from such an exact point
     double lo = r.lo(), hi = r.hi();
-    for (int k = 0; k < steps; k++) {
-        if (lo != 0) lo = ulpStep(lo, -HUGE_VAL);
-        if (hi != 0) hi = ulpStep(hi, HUGE_VAL);
-    }
-    if (r.lo() >= fmin) lo = std::max(lo, fmin);
-    if (r.hi() <= fmax) hi = std::min(hi, fmax);
+    if (lo != 0) lo = ulpsAway(lo, steps, -HUGE_VAL);
+    if (hi != 0) hi = ulpsAway(hi, steps, HUGE_VAL);
+    if (r.lo() >= fmin && std::isfinite(fmin)) lo = std::max(lo, fmin == 0 ? 0.0 : ulpsAway(fmin, steps, -HUGE_VAL));
+    if (r.hi() <= fmax && std::isfinite(fmax)) hi = std::min(hi, fmax == 0 ? 0.0 : ulpsAway(fmax, steps, HUGE_VAL));
     return interval(lo, hi, r.lsb(), r.mayBeInvalid());
 }
 
