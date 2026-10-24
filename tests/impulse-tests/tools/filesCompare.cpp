@@ -31,6 +31,17 @@ static bool isopt(char* argv[], const char* name)
     return false;
 }
 
+// A file that ends inside a response is a failure: the driver stops a run at
+// its first NaN or infinity, and a truncated output must not pass on the
+// strength of the samples written before.
+static void readLine(istream* in, string& line, const char* name)
+{
+    if (!getline(*in, line)) {
+        cerr << "ERROR : " << name << " file ends inside a response" << endl;
+        exit(1);
+    }
+}
+
 static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_part)
 {
     string line1, line2, dummy;
@@ -38,16 +49,13 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
     
     // Read inputs
     {
-        getline(*in1, line1);
-        getline(*in2, line2);
-        
-        if ((in1->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
-        
-        if ((in2->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
+        // The test file may end here, after a complete response (and blank lines), and only here
+        do {
+            if (!getline(*in1, line1)) {
+                return false;
+            }
+        } while (line1.find_first_not_of(" \t\r") == string::npos);
+        readLine(in2, line2, "reference");
         
         stringstream l1reader(line1);
         stringstream l2reader(line2);
@@ -68,16 +76,8 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
         
     // Read outputs
     {
-        getline(*in1, line1);
-        getline(*in2, line2);
-        
-        if ((in1->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
-        
-        if ((in2->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
+        readLine(in1, line1, "test");
+        readLine(in2, line2, "reference");
         
         stringstream l1reader(line1);
         stringstream l2reader(line2);
@@ -98,16 +98,8 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
     
     // Read count
     {
-        getline(*in1, line1);
-        getline(*in2, line2);
-        
-        if ((in1->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
-        
-        if ((in2->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
+        readLine(in1, line1, "test");
+        readLine(in2, line2, "reference");
         
         stringstream l1reader(line1);
         stringstream l2reader(line2);
@@ -129,16 +121,8 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
     // Compare samples
     for (int i = 0; i < count1; i++) {
         
-        getline(*in1, line1);
-        getline(*in2, line2);
-        
-        if ((in1->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
-        
-        if ((in2->rdstate() & ifstream::eofbit)) {
-            return false;
-        }
+        readLine(in1, line1, "test");
+        readLine(in2, line2, "reference");
         
         stringstream l1reader(line1);
         stringstream l2reader(line2);
@@ -152,11 +136,14 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
         
         for (int j = 0; j < output1; j++) {
         
-            l1reader >> sample1;
-            l2reader >> sample2;
+            if (!(l1reader >> sample1) || !(l2reader >> sample2)) {
+                cerr << "ERROR : line " << line_num1 << " output " << j << " : missing or unreadable sample" << endl;
+                exit(1);
+            }
             double delta = fabs(sample1 - sample2);
             
-            if (delta > tolerance) {
+            // Written so that a NaN fails
+            if (!(delta <= tolerance)) {
                 
                 cerr << "Line : " << line_num1 << " output : " << j << " sample1 : " << sample1 << " different from sample2 : " << sample2 << " delta : " << delta << endl;
                 gResult = 1;
@@ -185,10 +172,16 @@ int main(int argc, char* argv[])
     // Test files may have several consecutive impulse responses, test all of them in sequence with the same reference
     ifstream test(argv[1]);
     bool compare = false;
+    int responses = -1;
     do {
         ifstream reference(argv[2]);
         compare = compareFiles(&test, &reference, tolerance, is_part);
+        responses++;
     } while (compare);
-    
+
+    if (responses == 0) {
+        cerr << "ERROR : no response in test file '" << argv[1] << "'" << endl;
+        gResult = 1;
+    }
     exit(gResult);
 }
