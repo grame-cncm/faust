@@ -998,6 +998,7 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
     private:
     
         FAUSTFLOAT fLevel;               // Current level of the VU-meter.
+        FAUSTFLOAT fPaintedLevel;        // Level drawn by the last repaint of a linear LED, numerical display or horizontal VU-meter.
         FAUSTFLOAT fMin, fMax;           // Linear range of the VU-meter.
         FAUSTFLOAT fScaleMin, fScaleMax; // Range in dB if needed.
         bool fDB;                        // True if it's a dB VU-meter, false otherwise.
@@ -1446,6 +1447,7 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
             : uiComponent(gui, zone, w, h, label), fMin(mini), fMax(maxi), fStyle(style)
         {
             fLevel = 0;         // Initialization of the level
+            fPaintedLevel = 0;
             startTimer(50);     // Launch a timer that trigger a callback every 50ms
             this->fUnit = unit;
             fDB = (unit == "dB");
@@ -1513,7 +1515,12 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
                         case HVUMeter:
                         case NumDisplay:
                         case Led:
-                            if ((std::abs(lastLevel-fLevel) > 0.01) || forceRepaint) {
+                            // Compare with the level drawn last, not with the previous sample, so that a
+                            // slow change is drawn too; the ends of the range are always drawn exactly.
+                            if (std::abs(fPaintedLevel-fLevel) > 0.01
+                                || (fLevel != fPaintedLevel && (fLevel == 0 || fLevel == 1))
+                                || forceRepaint) {
+                                fPaintedLevel = fLevel;
                                 repaint();
                             }
                             break;
