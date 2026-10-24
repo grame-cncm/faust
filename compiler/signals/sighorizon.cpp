@@ -1782,18 +1782,20 @@ class HorizonAlgebra : public itv::AffineOps<SignalAlgebra<AffItv>> {
     // at 2^30 : the narrowing steps cannot descend from it. Each rung also tries a seed
     // bounded above only, [-inf, m] : an accumulator that stops growing in float but may
     // decrease without bound (a max bounds it below afterwards).
+    // a seed is certified over [0, T] only : itv::probeSeed makes its bounds drift, so that
+    // its image holds what the recursion may do past the horizon
     std::vector<AffItv> probeSeeds(Tree) const override
     {
         const int           lsb = 0;
         std::vector<AffItv> seeds;
         for (int e = 0; e <= 28; e += 4) {
             const double m = std::ldexp(1.0, e);
-            seeds.push_back(itv::fromItv(interval(0, m, lsb)));
-            seeds.push_back(itv::fromItv(interval(-m, m, lsb)));
-            seeds.push_back(itv::fromItv(interval(-HUGE_VAL, m, lsb)));
+            seeds.push_back(itv::probeSeed(interval(0, m, lsb)));
+            seeds.push_back(itv::probeSeed(interval(-m, m, lsb)));
+            seeds.push_back(itv::probeSeed(interval(-HUGE_VAL, m, lsb)));
         }
-        seeds.push_back(itv::fromItv(interval(0, kBig, lsb)));
-        seeds.push_back(itv::fromItv(interval(-kBig, kBig, lsb)));
+        seeds.push_back(itv::probeSeed(interval(0, kBig, lsb)));
+        seeds.push_back(itv::probeSeed(interval(-kBig, kBig, lsb)));
         return seeds;
     }
     void recordProbe(Tree var, const AffItv& probed, bool certified) const override

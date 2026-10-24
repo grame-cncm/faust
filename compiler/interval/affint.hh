@@ -186,6 +186,9 @@ inline interval forever(const AffItv& x, double T)
 
 /// The hull of x over [0, T] with the motion of its bounds : a bound moves where the value
 /// of x for all time goes beyond it (a rate, a drift, a possible wrap of an integer).
+/// The result is read (its bounds, moves()), not computed with : the operations of
+/// interval_algebra do not carry the motion of their operands, and an operation on a moving
+/// interval would claim bounds for all time. reunion and intersection carry it.
 inline interval hullWithMotion(const AffItv& x, double T)
 {
     const interval h = toItv(x, T);
@@ -246,13 +249,26 @@ inline bool aleq(const AffItv& x, const AffItv& y, double T)
 }
 
 /// x ⊑ y over [0, T] only : what happens past the horizon (the drifts, an overflow on the
-/// values for all time) set aside. A probe seed claims a bound over [0, T] ; its image
-/// keeps its own drifts.
+/// values for all time) set aside. A probe seed claims a bound over [0, T] only : build it
+/// with probeSeed, whose bounds drift, so that its image holds what the recursion may do
+/// past the horizon.
 inline bool aleqWithin(AffItv x, AffItv y, double T)
 {
     x.loDrifts = x.hiDrifts = x.mayOverflow = false;
     y.loDrifts = y.hiDrifts = y.mayOverflow = false;
     return aleq(x, y, T);
+}
+
+/// A probe seed : the guess s of a recursion's values, checked by aleqWithin over [0, T]
+/// only. Its bounds drift : past the horizon the recursion may leave it, and an image
+/// computed from a seed that held for all time would claim bounds for all time (10 - y'
+/// computed from y' <= 10 gives a lower bound 0 that a value past T breaks).
+inline AffItv probeSeed(const interval& s)
+{
+    AffItv r   = fromItv(s);
+    r.loDrifts = true;
+    r.hiDrifts = true;
+    return r;
 }
 
 /// Public API: write a lower chord (upper when upper=true) over [0,T], T>=0.
