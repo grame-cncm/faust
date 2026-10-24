@@ -1,4 +1,5 @@
 #include <string>
+#include <cstring>
 #include <map>
 #include <iostream>
 #include <sstream>
@@ -251,7 +252,41 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 // Soundfile: has to be global to be share across multiple instances
 //----------------------------------------------------------------------
 static TestMemoryReader* memory_reader = new TestMemoryReader();
-static SoundUI* sound_ui = new SoundUI("", -1, memory_reader, (sizeof(FAUSTFLOAT) == sizeof(double)));
+
+// The generated code reads the soundfile buffers in its internal precision
+// (float** with -single, double** with -double), which FAUSTFLOAT does not
+// tell: the drivers define it as double whatever the precision. The precision
+// is read from the "compile_options" metadata; when it names none, the buffers
+// follow FAUSTFLOAT as before.
+struct PrecisionMeta : public Meta {
+
+    int fIsDouble = -1;
+
+    void declare(const char* key, const char* value)
+    {
+        if (strcmp(key, "compile_options") != 0) return;
+        std::stringstream tokens(value);
+        std::string token;
+        while (tokens >> token) {
+            if (token == "-double") fIsDouble = 1;
+            if (token == "-single") fIsDouble = 0;
+        }
+    }
+};
+
+static bool isDoubleDSP(dsp* DSP)
+{
+    PrecisionMeta meta;
+    DSP->metadata(&meta);
+    return (meta.fIsDouble < 0) ? (sizeof(FAUSTFLOAT) == sizeof(double)) : (meta.fIsDouble == 1);
+}
+
+// Created by the first DSP that asks: one driver runs one program, so one precision.
+static SoundUI* getSoundUI(dsp* DSP)
+{
+    static SoundUI* sound_ui = new SoundUI("", -1, memory_reader, isDoubleDSP(DSP));
+    return sound_ui;
+}
 
 // To be used in static context
 static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4)
@@ -261,7 +296,7 @@ static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4
     mydsp_poly* DSP = new mydsp_poly(dsp, num_voices, true, false);
 
     // Soundfile setting
-    DSP->buildUserInterface(sound_ui);
+    DSP->buildUserInterface(getSoundUI(DSP));
   
     // Get control and then 'initRandom'
     CheckControlUI controlui;
@@ -354,7 +389,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     DSP->buildUserInterface(&finterface);
     
     // Soundfile setting
-    DSP->buildUserInterface(sound_ui);
+    DSP->buildUserInterface(getSoundUI(DSP));
     
     // Get control and then 'initRandom'
     CheckControlUI controlui;
@@ -399,7 +434,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     
     // Init UIs on cloned DSP
     DSP->buildUserInterface(&finterface);
-    DSP->buildUserInterface(sound_ui);
+    DSP->buildUserInterface(getSoundUI(DSP));
     DSP->buildUserInterface(&midi_ui);
     
     int nins = DSP->getNumInputs();
