@@ -207,6 +207,13 @@ void AssemblyScriptCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "function isinf(x: f64): bool { return x == Infinity || x == -Infinity; }";
     tab(n, *fOut);
+    // Math.round uses ties toward +infinity; Faust uses ties away from zero.
+    *fOut << "function faust_roundf(x: f32): f32 { "
+             "return copysign<f32>(Mathf.round(Mathf.abs(x)), x); }";
+    tab(n, *fOut);
+    *fOut << "function faust_round(x: f64): f64 { "
+             "return copysign<f64>(Math.round(Math.abs(x)), x); }";
+    tab(n, *fOut);
 
     // Generate module-level helper functions first.
     // In-class methods are emitted later in `export class <name>`.
