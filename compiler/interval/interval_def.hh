@@ -466,7 +466,7 @@ inline interval singleton(double x)
 {
     if (!std::isfinite(x)) return {x, x, -24};
     if (x == 0) {
-        return {0, 0, 0};
+        return {x, x, 0};  // the zero of its sign
     }
 
     /* int precision = lsb;
@@ -537,6 +537,8 @@ inline bool operator>(const interval& i, const interval& j)
  * r for a program that may flush subnormals to zero (FTZ, and DAZ for its operands) : a bound
  * strictly between 0 and the smallest normal of the model's precision is 0. Audio hosts and
  * Faust's architecture files enable both, subnormals being very slow on many processors.
+ * Every operation of the algebras returns a flushed result, and fromItv flushes : an operand
+ * built otherwise, by interval(lo, hi), is passed through flushedToZero first.
  */
 inline interval flushedToZero(const interval& r)
 {
@@ -545,6 +547,23 @@ inline interval flushedToZero(const interval& r)
     const double lo = (r.lo() > 0 && r.lo() < m) ? 0.0 : r.lo();
     const double hi = (r.hi() < 0 && r.hi() > -m) ? -0.0 : r.hi();  // a negative one flushes to -0
     if (lo == r.lo() && hi == r.hi()) return r;
+    return interval(lo, hi, r.lsb(), r.mayBeInvalid()).withOverflow(r.mayOverflow()).withMotion(r.loMoves(), r.hiMoves());
+}
+
+/**
+ * r, the result of an operation whose zero takes the sign of its operand s (an odd function :
+ * sin(-0) = -0 ; pow(-0, 3) = -0 ; fmod(-0, y) = -0 ; atan2(-0, x) = -0) : a zero bound of r
+ * holds the zero of the other sign too when s may have that sign.
+ */
+inline interval zeroSignFrom(const interval& r, const interval& s)
+{
+    if (r.isEmpty() || s.isEmpty() || r.lsb() >= 0) return r;
+    double lo = r.lo(), hi = r.hi();
+    if (lo == 0 && !std::signbit(lo) && leTotal(s.lo(), -0.0)) lo = -0.0;
+    if (hi == 0 && std::signbit(hi) && leTotal(0.0, s.hi())) hi = 0.0;
+    if (lo == r.lo() && std::signbit(lo) == std::signbit(r.lo()) && hi == r.hi() && std::signbit(hi) == std::signbit(r.hi())) {
+        return r;
+    }
     return interval(lo, hi, r.lsb(), r.mayBeInvalid()).withOverflow(r.mayOverflow()).withMotion(r.loMoves(), r.hiMoves());
 }
 
