@@ -105,7 +105,15 @@
 // The whole system in one equation, doors only in the seed set :
 //
 //   a(n) = join( S(n) u { contrib(p, i, a(p)) | p --i--> n by a branch } )
-//   S(n) = { seed | n = root } u { doorSeed(W) | def(W) = n }
+//   S(n) = { seed(r) | n = r, a root } u { doorSeed(W) | def(W) = n }
+//
+// SEVERAL ROOTS. The descent may start from several roots, each with its
+// own seed (the outputs of a program and its displays, say) : the
+// discovery starts from all of them, every seed is injected into its root,
+// and a root that is also reached from another one joins its seed with its
+// incoming contributions -- a root is a node like any other, whose seed set
+// is not empty. The descent stays one global Kahn order over the union of
+// the graphs : each node and each edge is processed once.
 //
 // Door edges appear ONLY in S(n) : unlike a branch edge, a door does not
 // transmit its source's attribute. That single asymmetry is why every
@@ -129,13 +137,16 @@
 #include "tlib-error.hh"
 #include "tree.hh"
 
+// The roots and their seeds ; doorSeed is required (with several roots, no
+// seed is the seed of a definition by default).
 template <typename A>
 std::map<Tree, A, treeorder> descendAttribute(
-    Tree root, const A& seed,
-    std::function<A(Tree, int, const A&)> contrib,
-    std::function<A(const A&, const A&)>  join,
-    std::function<A(Tree)>                doorSeed = nullptr)
+    const std::vector<std::pair<Tree, A>>& roots,
+    std::function<A(Tree, int, const A&)>  contrib,
+    std::function<A(const A&, const A&)>   join,
+    std::function<A(Tree)>                 doorSeed)
 {
+    TLIB_ASSERT(doorSeed != nullptr);
     // ---- phase 1 : discover the extended graph (branches + doors), count
     // the incoming BRANCH edges of every node. Door edges are not counted :
     // they carry doorSeed(W) and fire unconditionally.
@@ -143,9 +154,15 @@ std::map<Tree, A, treeorder> descendAttribute(
     std::vector<std::pair<Tree, Tree>> doors;    // (door, definition)
     {
         std::map<Tree, bool, treeorder> seen;
-        std::vector<Tree>               work{root};
-        seen[root] = true;
-        pending[root];  // ensure the entry exists (in-degree 0 so far)
+        std::vector<Tree>               work;
+        for (const auto& rs : roots) {
+            Tree root = rs.first;
+            if (!seen[root]) {
+                seen[root] = true;
+                work.push_back(root);
+            }
+            pending[root];  // ensure the entry exists (in-degree 0 so far)
+        }
         while (!work.empty()) {
             Tree n = work.back();
             work.pop_back();
@@ -184,9 +201,11 @@ std::map<Tree, A, treeorder> descendAttribute(
             it->second = join(it->second, a);
         }
     };
-    inject(root, seed);
+    for (const auto& rs : roots) {
+        inject(rs.first, rs.second);
+    }
     for (const auto& [w, body] : doors) {
-        inject(body, doorSeed ? doorSeed(w) : seed);
+        inject(body, doorSeed(w));
     }
     std::vector<Tree> ready;
     for (const auto& [t, p] : pending) {
@@ -212,6 +231,19 @@ std::map<Tree, A, treeorder> descendAttribute(
     // node would keep a positive count and this would fail
     TLIB_ASSERT(processed == pending.size());
     return attr;
+}
+
+// One root and its seed ; a definition receives the seed unless doorSeed
+// says otherwise.
+template <typename A>
+std::map<Tree, A, treeorder> descendAttribute(
+    Tree root, const A& seed,
+    std::function<A(Tree, int, const A&)> contrib,
+    std::function<A(const A&, const A&)>  join,
+    std::function<A(Tree)>                doorSeed = nullptr)
+{
+    std::function<A(Tree)> door = doorSeed ? doorSeed : std::function<A(Tree)>([seed](Tree) { return seed; });
+    return descendAttribute<A>(std::vector<std::pair<Tree, A>>{{root, seed}}, contrib, join, door);
 }
 
 // ---------------------------------------------------------------------------
