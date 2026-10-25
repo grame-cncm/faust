@@ -26,26 +26,66 @@ inline bool mixFromB(const interval& c)
     return !c.isEmpty() && c.lo() >= 0.5;
 }
 
-inline bool movesAny(const interval& i)
+inline bool movesOne(const interval& i)
 {
     return i.moves();
 }
-inline bool movesAny(const std::vector<interval>& v)
+inline bool movesOne(const std::vector<interval>& v)
 {
     for (const interval& i : v) {
         if (i.moves()) return true;
     }
     return false;
 }
-/// r, the result of an operation on these operands, with their motion : past the analysis
-/// horizon an operand that moves may take values its interval does not hold, and the
-/// operation may send them to either side (a negation turns a rising bound into a falling
-/// one, a product by a value of either sign mixes both). When an operand moves, both bounds
-/// of r move. Every public operation of interval_algebra returns its result through it.
 template <typename... Operands>
-interval withMotionOf(const interval& r, const Operands&... operands)
+bool movesAny(const Operands&... operands)
 {
-    return (false || ... || movesAny(operands)) ? r.withMotion(true, true) : r;
+    return (false || ... || movesOne(operands));
+}
+
+/// i without the motion of its bounds : its values over the analysis horizon
+inline interval still(const interval& i)
+{
+    if (i.isEmpty() || !i.moves()) return i;
+    return interval(i.lo(), i.hi(), i.lsb(), i.mayBeInvalid()).withOverflow(i.mayOverflow());
+}
+inline std::vector<interval> still(const std::vector<interval>& v)
+{
+    std::vector<interval> r;
+    for (const interval& i : v) r.push_back(still(i));
+    return r;
+}
+
+/// i for all time : a bound that moves is unbounded (an integer stays an Int32, which a
+/// wrapping operation never leaves)
+inline interval forAllTime(const interval& i)
+{
+    if (i.isEmpty() || !i.moves()) return i;
+    const bool   integer = i.lsb() >= 0;
+    const double lo      = i.loMoves() ? (integer ? -2147483648.0 : -HUGE_VAL) : i.lo();
+    const double hi      = i.hiMoves() ? (integer ? 2147483647.0 : HUGE_VAL) : i.hi();
+    return interval(lo, hi, i.lsb(), i.mayBeInvalid()).withOverflow(i.mayOverflow());
+}
+inline std::vector<interval> forAllTime(const std::vector<interval>& v)
+{
+    std::vector<interval> r;
+    for (const interval& i : v) r.push_back(forAllTime(i));
+    return r;
+}
+
+/// The result of an operation whose operands may move : r, computed on their values over
+/// the horizon (still), and f, computed on their values for all time (forAllTime). f holds
+/// every value the operation may produce, at any time : a bound of r that f does not pass
+/// holds for all time, a bound that f passes moves. A possible invalid value or overflow
+/// past the horizon is one of r (sqrt(10 - t) is NaN past t = 10). Every public operation
+/// of interval_algebra whose operand moves returns its result through it.
+inline interval withMotionFrom(const interval& r, const interval& f)
+{
+    if (r.isEmpty()) return r;
+    if (f.isEmpty()) return r;
+    const bool loMoves = !leTotal(r.lo(), f.lo());  // f reaches below r
+    const bool hiMoves = !leTotal(f.hi(), r.hi());  // f reaches above r
+    return r.withInvalid(f.mayBeInvalid()).withOverflow(f.mayOverflow()).withMotion(loMoves, hiMoves);
 }
 
 class interval_algebra : public FaustAlgebra<interval> {
@@ -587,11 +627,6 @@ class interval_algebra : public FaustAlgebra<interval> {
 
 
    private:
-    // Iir, Irm and Bpf on operands taken as they are over the horizon ; the public ones add
-    // the motion of the operands (withMotionOf)
-    interval fixedIir(const interval& x, const std::vector<interval>& coefs) const;
-    interval fixedIrm(const interval& x, const interval& c) const;
-    interval fixedBpf(const interval& x, const std::vector<interval>& t, const std::vector<interval>& r) const;
     // Internal numeric kernels; public transfers add sticky input invalidity and
     // domain checks centrally, so early numeric returns cannot erase an alert.
     interval numericARsh(const interval& input, const interval& counts) const;

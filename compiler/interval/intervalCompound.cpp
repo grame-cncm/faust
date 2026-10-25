@@ -264,11 +264,7 @@ interval interval_algebra::numericMixWeight(const interval& c, const interval& a
 // x : anything, NaN included.
 interval interval_algebra::Irm(const interval& x, const interval& c) const
 {
-    return withMotionOf(fixedIrm(x, c), x, c);
-}
-
-interval interval_algebra::fixedIrm(const interval& x, const interval& c) const
-{
+    if (movesAny(x, c)) return withMotionFrom(Irm(still(x), still(c)), Irm(forAllTime(x), forAllTime(c)));
     if (x.isEmpty() || c.isEmpty()) return empty().withInvalid(x.mayBeInvalid() || c.mayBeInvalid());
     const bool     invalid  = x.mayBeInvalid() || c.mayBeInvalid();
     const int      lsb      = std::min({x.lsb(), c.lsb(), -1});
@@ -341,19 +337,22 @@ interval interval_algebra::numericTpt(const interval& x) const
 // Public API : an x that may be infinite gives a possible NaN (inf - inf)
 interval interval_algebra::Frac(const interval& x) const
 {
+    if (movesAny(x)) return withMotionFrom(Frac(still(x)), Frac(forAllTime(x)));
     const bool infinite = !x.isEmpty() && (!std::isfinite(x.lo()) || !std::isfinite(x.hi()));
-    return withMotionOf(numericFrac(x).withInvalid(x.mayBeInvalid() || infinite), x);
+    return numericFrac(x).withInvalid(x.mayBeInvalid() || infinite);
 }
 
 interval interval_algebra::Cfrac(const interval& x) const
 {
+    if (movesAny(x)) return withMotionFrom(Cfrac(still(x)), Cfrac(forAllTime(x)));
     const bool infinite = !x.isEmpty() && (!std::isfinite(x.lo()) || !std::isfinite(x.hi()));
-    return withMotionOf(numericCfrac(x).withInvalid(x.mayBeInvalid() || infinite), x);
+    return numericCfrac(x).withInvalid(x.mayBeInvalid() || infinite);
 }
 
 interval interval_algebra::Mix(const interval& c, const interval& a, const interval& b) const
 {
-    return withMotionOf(numericMix(c, a, b).withInvalid(c.mayBeInvalid() || a.mayBeInvalid() || b.mayBeInvalid()), c, a, b);
+    if (movesAny(c, a, b)) return withMotionFrom(Mix(still(c), still(a), still(b)), Mix(forAllTime(c), forAllTime(a), forAllTime(b)));
+    return numericMix(c, a, b).withInvalid(c.mayBeInvalid() || a.mayBeInvalid() || b.mayBeInvalid());
 }
 
 // The interpolation from b with the weight t of the difference, as numericMix bounds the one
@@ -362,32 +361,35 @@ interval interval_algebra::Mix(const interval& c, const interval& a, const inter
 // weighted by at most t). Outside of [0, 1], the definition.
 interval interval_algebra::MixOfComplement(const interval& t, const interval& a, const interval& b) const
 {
+    if (movesAny(t, a, b)) return withMotionFrom(MixOfComplement(still(t), still(a), still(b)), MixOfComplement(forAllTime(t), forAllTime(a), forAllTime(b)));
     const bool invalid = t.mayBeInvalid() || a.mayBeInvalid() || b.mayBeInvalid();
-    if (t.isEmpty() || a.isEmpty() || b.isEmpty()) return withMotionOf(empty().withInvalid(invalid), t, a, b);
+    if (t.isEmpty() || a.isEmpty() || b.isEmpty()) return empty().withInvalid(invalid);
     const interval ft = detail::floatingOperand(t);
     if (!(ft.lo() >= 0) || !(ft.hi() <= 1)) {
-        return withMotionOf(Add(b, Mul(t, Sub(a, b))).withInvalid(invalid), t, a, b);
+        return Add(b, Mul(t, Sub(a, b))).withInvalid(invalid);
     }
     const double   clo = std::max(0.0, std::nextafter(1 - ft.hi(), -HUGE_VAL));
     const double   chi = std::min(1.0, std::nextafter(1 - ft.lo(), HUGE_VAL));
     const interval c(clo, chi, ft.lsb());
-    return withMotionOf(numericMixWeight(c, a, b, ft.hi()).withInvalid(invalid), t, a, b);
+    return numericMixWeight(c, a, b, ft.hi()).withInvalid(invalid);
 }
 
 // Public API : inside its domain Tpt is valid when x is ; outside, the definition says
 interval interval_algebra::Tpt(const interval& x) const
 {
-    if (x.isEmpty()) return withMotionOf(empty().withInvalid(x.mayBeInvalid()), x);
+    if (movesAny(x)) return withMotionFrom(Tpt(still(x)), Tpt(forAllTime(x)));
+    if (x.isEmpty()) return empty().withInvalid(x.mayBeInvalid());
     const interval fx = detail::floatingOperand(x);
-    if (!(fx.lo() > -1) || !std::isfinite(fx.hi())) return withMotionOf(tptDefinition(x), x);
-    return withMotionOf(numericTpt(x).withInvalid(x.mayBeInvalid()), x);
+    if (!(fx.lo() > -1) || !std::isfinite(fx.hi())) return tptDefinition(x);
+    return numericTpt(x).withInvalid(x.mayBeInvalid());
 }
 
 // Public API : the validity of the definition (a divisor that may be 0, an invalid operand)
 interval interval_algebra::Phase(const interval& x, const interval& p) const
 {
-    if (x.isEmpty() || p.isEmpty()) return withMotionOf(empty().withInvalid(x.mayBeInvalid() || p.mayBeInvalid()), x, p);
-    return withMotionOf(numericPhase(x, p).withInvalid(phaseDefinition(x, p).mayBeInvalid()), x, p);
+    if (movesAny(x, p)) return withMotionFrom(Phase(still(x), still(p)), Phase(forAllTime(x), forAllTime(p)));
+    if (x.isEmpty() || p.isEmpty()) return empty().withInvalid(x.mayBeInvalid() || p.mayBeInvalid());
+    return numericPhase(x, p).withInvalid(phaseDefinition(x, p).mayBeInvalid());
 }
 
 }  // namespace itv
