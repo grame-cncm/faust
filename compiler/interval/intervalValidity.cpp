@@ -70,7 +70,7 @@ interval interval_algebra::And(const interval& xInput, const interval& yInput) c
 // input invalidity and any possible operation-domain violation.
 interval interval_algebra::Asin(const interval& x) const
 {
-    return flushedToZero(numericAsin(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Asin, x)));
+    return flushedToZero(zeroSignFrom(numericAsin(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Asin, x)), x));
 }
 
 // Public API: AsinBounds encloses valid numeric results and conservatively retains
@@ -84,7 +84,7 @@ interval interval_algebra::AsinBounds(const interval& x) const
 // input invalidity and any possible operation-domain violation.
 interval interval_algebra::Asinh(const interval& x) const
 {
-    return flushedToZero(numericAsinh(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Asinh, x)));
+    return flushedToZero(zeroSignFrom(numericAsinh(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Asinh, x)), x));
 }
 
 // Public API: AsinhBounds encloses valid numeric results and conservatively retains
@@ -105,14 +105,14 @@ interval interval_algebra::AssertBounds(const interval& lo, const interval& hi, 
 // input invalidity and any possible operation-domain violation.
 interval interval_algebra::Atan(const interval& x) const
 {
-    return flushedToZero(numericAtan(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Atan, x)));
+    return flushedToZero(zeroSignFrom(numericAtan(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Atan, x)), x));
 }
 
 // Public API: Atan2 encloses valid numeric results and conservatively retains
 // input invalidity and any possible operation-domain violation.
 interval interval_algebra::Atan2(const interval& x, const interval& y) const
 {
-    return flushedToZero(numericAtan2(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Atan2, x, y)));
+    return flushedToZero(zeroSignFrom(numericAtan2(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Atan2, x, y)), x));
 }
 
 // Public API: Atan2Bounds encloses valid numeric results and conservatively retains
@@ -133,7 +133,7 @@ interval interval_algebra::AtanBounds(const interval& x) const
 // input invalidity and any possible operation-domain violation.
 interval interval_algebra::Atanh(const interval& x) const
 {
-    return flushedToZero(numericAtanh(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Atanh, x)));
+    return flushedToZero(zeroSignFrom(numericAtanh(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Atanh, x)), x));
 }
 
 // Public API: AtanhBounds encloses valid numeric results and conservatively retains
@@ -295,7 +295,7 @@ interval interval_algebra::Floor(const interval& input) const
 // input invalidity and any possible operation-domain violation.
 interval interval_algebra::Fmod(const interval& x, const interval& y) const
 {
-    return flushedToZero(numericFmod(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Fmod, x, y)));
+    return flushedToZero(zeroSignFrom(numericFmod(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Fmod, x, y)), x));
 }
 
 // Public API: ForeignConst encloses valid numeric results and conservatively retains
@@ -493,7 +493,7 @@ interval interval_algebra::Min(const interval& xInput, const interval& yInput) c
 // input invalidity and any possible operation-domain violation.
 interval interval_algebra::Mod(const interval& xIn, const interval& yIn) const
 {
-    return flushedToZero(numericMod(xIn, yIn).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Mod, xIn, yIn)));
+    return flushedToZero(zeroSignFrom(numericMod(xIn, yIn).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Mod, xIn, yIn)), xIn));
 }
 
 // Public API: Mul encloses valid numeric results and conservatively retains
@@ -549,7 +549,7 @@ interval interval_algebra::Output(const interval& c, const interval& y) const
 // input invalidity and any possible operation-domain violation.
 interval interval_algebra::Pow(const interval& x, const interval& y) const
 {
-    return flushedToZero(numericPow(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Pow, x, y)));
+    return flushedToZero(zeroSignFrom(numericPow(x, y).withInvalid(detail::binaryInvalid(detail::ValidityBinary::Pow, x, y)), x));
 }
 
 // Public API: PowBounds encloses valid numeric results and conservatively retains
@@ -607,7 +607,7 @@ interval interval_algebra::Select2(const interval& x, const interval& y, const i
 // input invalidity and any possible operation-domain violation.
 interval interval_algebra::Sin(const interval& x) const
 {
-    return flushedToZero(numericSin(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Sin, x)));
+    return flushedToZero(zeroSignFrom(numericSin(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Sin, x)), x));
 }
 
 // Public API: SinBounds encloses valid numeric results and conservatively retains
@@ -621,7 +621,7 @@ interval interval_algebra::SinBounds(const interval& x) const
 // input invalidity and any possible operation-domain violation.
 interval interval_algebra::Sinh(const interval& x) const
 {
-    return flushedToZero(numericSinh(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Sinh, x)));
+    return flushedToZero(zeroSignFrom(numericSinh(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Sinh, x)), x));
 }
 
 // Public API: SinhBounds encloses valid numeric results and conservatively retains
@@ -679,7 +679,7 @@ interval interval_algebra::Sub(const interval& xIn, const interval& yIn) const
 // input invalidity and any possible operation-domain violation.
 interval interval_algebra::Tan(const interval& x) const
 {
-    return flushedToZero(numericTan(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Tan, x)));
+    return flushedToZero(zeroSignFrom(numericTan(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Tan, x)), x));
 }
 
 // Public API: TanBounds encloses valid numeric results and conservatively retains
@@ -693,7 +693,7 @@ interval interval_algebra::TanBounds(const interval& x) const
 // input invalidity and any possible operation-domain violation.
 interval interval_algebra::Tanh(const interval& x) const
 {
-    return flushedToZero(numericTanh(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Tanh, x)));
+    return flushedToZero(zeroSignFrom(numericTanh(x).withInvalid(detail::unaryInvalid(detail::UnaryOp::Tanh, x)), x));
 }
 
 // Public API: TanhBounds encloses valid numeric results and conservatively retains
