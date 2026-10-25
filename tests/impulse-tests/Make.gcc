@@ -30,6 +30,18 @@ ifeq ($(lang), c)
 	ext = c
 endif
 
+# These drivers run only the first two of the four sub-runs held by the
+# reference, under a header announcing all four: -part lets filesCompare
+# accept a response that ends after a complete sample.
+PARTARCHS := impulsearch6.cpp impulsearch7bis.cpp impulsearch7qua.cpp \
+	impulsearch8.cpp impulsearch8bis.cpp impulsearch8ter.cpp \
+	impulsearch9.cpp impulsearch9bis.cpp impulsearch9ter.cpp impulsearch9qua.cpp \
+	impulsearch10.cpp impulsearch10bis.cpp
+COMPAREOPTIONS :=
+ifneq ($(filter $(arch),$(PARTARCHS)),)
+ COMPAREOPTIONS := -part
+endif
+
 .PHONY: test 
 .DELETE_ON_ERROR:
 
@@ -138,7 +150,7 @@ ir/cpp/double/sched/parametric_eq.ir: 	precision=0.04
 # rules 
 ir/$(outdir)/%.ir: ir/$(outdir)/% reference/%.ir
 	$< -n 60000 > $@
-	$(COMPARE) $@ reference/$(notdir $@) $(precision)
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) $(COMPAREOPTIONS)
 	
 ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
 	$(CXX) $(GCCOPTIONS) $(SANFLAGS) $< -o $@

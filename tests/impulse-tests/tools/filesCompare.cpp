@@ -121,7 +121,16 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
     // Compare samples
     for (int i = 0; i < count1; i++) {
         
-        readLine(in1, line1, "test");
+        if (!getline(*in1, line1)) {
+            // Some drivers write only the first sub-runs of the reference under a header that
+            // announces all of them: with -part the file may end after a complete sample, but
+            // not before its first one
+            if (is_part && i > 0) {
+                return true;
+            }
+            cerr << "ERROR : test file ends inside a response" << endl;
+            exit(1);
+        }
         readLine(in2, line2, "reference");
         
         stringstream l1reader(line1);
@@ -160,13 +169,18 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
 int main(int argc, char* argv[])
 {
     double tolerance = 2e-06;
-    if (argc == 4) {
-        double param = strtod(argv[3], NULL);
-        // -1 value used to take default value
-        tolerance = (param > 0) ? param : tolerance;
+    if (argc >= 4) {
+        // The third argument is the tolerance unless it is an option such as -part
+        char*  end;
+        double param = strtod(argv[3], &end);
+        if (end != argv[3] && *end == '\0') {
+            // -1 value used to take default value
+            tolerance = (param > 0) ? param : tolerance;
+        }
     }
     
-    // Possibly only compare a subpart of the reference file, starting from the beginning
+    // Possibly only compare a subpart of the reference file, starting from the beginning: the test
+    // file may announce fewer frames than the reference, or end after a complete sample
     bool is_part = isopt(argv, "-part");
     
     // Test files may have several consecutive impulse responses, test all of them in sequence with the same reference

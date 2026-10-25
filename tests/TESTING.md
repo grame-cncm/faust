@@ -726,6 +726,31 @@ does not protect it.
     reference is cut in the middle of the row). Every response the program writes is the same
     constant row. *Fix:* complete the reference with a trusted compiler.
 
+11. **Some drivers write fewer sub-runs than their header announces** —
+    fixed with `-part`. The reference holds four sub-runs of 15000
+    frames, and every driver announces all 60000. The old comparator
+    stopped silently at the end of the test file; once defect 8 was
+    fixed, every driver that writes less failed with `ERROR : test file
+    ends inside a response`. These are the architectures
+    `impulsearch6`, `7bis`, `7qua`, `8`, `8bis`, `8ter`, `9`, `9bis`,
+    `9ter`, `9qua`, `10` and `10bis` of `Make.gcc` (two sub-runs, no
+    polyphonic one: 46 of the 117 legs of the Makefile failed on
+    program `APF`, 2026-10-25, `48cb8aeb2`), the Rust drivers and
+    `impulsejulia.jl` (the first sub-run), `architecture.d`,
+    `impulse_nnx.py` and `impulse_linen.py` (the first two),
+    `impulsesignal` (the first), and the Cmajor and RNBO drivers (the
+    first two). With `-part`, a test file may end after a complete
+    sample, but not before its first one, and an altered value still
+    fails. These legs pass it: `Make.gcc` for the architectures above,
+    and `Make.rust`, `Make.julia`, `Make.dlang`, `Make.nnx`,
+    `Make.linen`, `Make.signal`, `Make.cmajor` and `Make.rnbo`; the
+    others keep the strict comparison. A tolerance given before `-part`
+    is now honoured: the comparator used to read it only when it was the
+    last argument. *Residual:* such a leg cannot tell a file cut at a
+    sample boundary from a complete one, so a driver that crashes after
+    7000 samples passes. *Fix:* have these drivers announce the frames
+    they write, or run the missing sub-runs.
+
 ## Still to be settled
 
 - The status of each of the other suites under `tests/` — gate,
