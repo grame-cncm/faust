@@ -34,7 +34,7 @@
 
 //==============================================================================
 //
-//          CSOUND6 architecture file for FAUST
+//          CSOUND6/7 architecture file for FAUST
 //          Y. Orlarey & V. Lazzarini
 //
 //          Usage : faust -uim -a csound.cpp <myfx>.dsp -o <myfx>.cpp
@@ -212,7 +212,11 @@ static int init(CSOUND* csound, dataspace* p)
 
     if ((p->DSP == 0) | (p->interface == 0)) return NOTOK;
 
+#if CS_VERSION >= 7
+    p->DSP->init((int)CS_ESR);
+#else
     p->DSP->init((int)csound->GetSr(csound));
+#endif
     p->DSP->buildUserInterface(p->interface);
 
     return OK;
@@ -230,13 +234,17 @@ static int process32bits(CSOUND* csound, dataspace* p)
     // update all the control values
     p->interface->copyfrom(p->ktl);
 
-    p->DSP->compute(csound->GetKsmps(csound), p->ain, p->aout);
+    p->DSP->compute(CS_KSMPS, p->ain, p->aout);
     return OK;
 }
 
 extern "C" {
     static OENTRY localops[] = {
-        {(char*)sym(OPCODE_NAME), sizeof(dataspace), 0, 3, makeDescription(FAUST_OUTPUTS), makeDescription(FAUST_INPUTS, FAUST_ACTIVES),
+        {(char*)sym(OPCODE_NAME), sizeof(dataspace), 0,
+#if CS_VERSION < 7
+            3, // Csound 6 opcode thread flags
+#endif
+            makeDescription(FAUST_OUTPUTS), makeDescription(FAUST_INPUTS, FAUST_ACTIVES),
             (SUBR)init, (SUBR)process32bits }
     };
     LINKAGE
