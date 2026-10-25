@@ -1,7 +1,7 @@
 //----------------------------------------------------------
-// name: "round_ties"
+// name: "round_rint_remainder"
 //
-// Code generated with Faust 2.90.8 (https://faust.grame.fr)
+// Code generated with Faust 2.90.15 (https://faust.grame.fr)
 // Compilation options: -lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0
 //----------------------------------------------------------
 
@@ -37,12 +37,12 @@ class mydsp : public dsp {
   public:
 	virtual void metadata(Meta* m) { 
 		m->declare("compile_options", "-lang ocpp -fpga-mem-th 4 -ct 1 -es 0 -mcd 16 -mdd 1024 -mdy 33 -single -ftz 0");
-		m->declare("filename", "round_ties.dsp");
-		m->declare("name", "round_ties");
+		m->declare("filename", "round_rint_remainder.dsp");
+		m->declare("name", "round_rint_remainder");
 	}
 
-	virtual int getNumInputs() { return 2; }
-	virtual int getNumOutputs() { return 6; }
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 7; }
 	static void classInit(int sample_rate) {
 	}
 	virtual void instanceConstants(int sample_rate) {
@@ -69,33 +69,39 @@ class mydsp : public dsp {
 		return fSampleRate;
 	}
 	virtual void buildUserInterface(UI* ui_interface) {
-		ui_interface->openVerticalBox("round_ties");
+		ui_interface->openVerticalBox("round_rint_remainder");
 		ui_interface->closeBox();
 	}
 	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
 		int 	iVeeec0;
-		const int index = 0; (void)index; // flat: single-loop scalar
-		FAUSTFLOAT* input0 = &input[0][index]; // Zone 3
-		FAUSTFLOAT* input1 = &input[1][index]; // Zone 3
-		FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
-		FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
-		FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
-		FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
-		FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
-		FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
-		// schedule: ss=0 nodes=27 cycles=18 fill=37% peak=7 isoadj=4 packs4=0 aluMII=6 memMII=1 recMII=9 streams(peak/avg,win64)=2/1 (eval machine R=8 U=4 M=3)
-		iVeeec0 = iVeeec0State;
-		for (int i=0; i<count; i++) {
-			iVeeec0 = faust_wrap_add(1, iVeeec0);
-			float 	fTemp0 = (1.5f + (2.0f * float(+(iVeeec0 % 8)))); // step: 22
-			output0[i] = (FAUSTFLOAT)(roundf(fTemp0));  // Zone Exec Code
-			output1[i] = (FAUSTFLOAT)(roundf(-fTemp0));  // Zone Exec Code
-			output2[i] = (FAUSTFLOAT)(roundf(-(1.5f * (float)input0[i])));  // Zone Exec Code
-			output3[i] = (FAUSTFLOAT)(rintf(fTemp0));  // Zone Exec Code
-			output4[i] = (FAUSTFLOAT)(rintf(-fTemp0));  // Zone Exec Code
-			output5[i] = (FAUSTFLOAT)(rintf(-(1.5f * (float)input1[i])));  // Zone Exec Code
+		int fullcount = count;
+		for (int index = 0; index < fullcount; index += 32) {
+			int count = faustmini(32, fullcount-index);
+			FAUSTFLOAT* output0 = &output[0][index]; // Zone 3
+			FAUSTFLOAT* output1 = &output[1][index]; // Zone 3
+			FAUSTFLOAT* output2 = &output[2][index]; // Zone 3
+			FAUSTFLOAT* output3 = &output[3][index]; // Zone 3
+			FAUSTFLOAT* output4 = &output[4][index]; // Zone 3
+			FAUSTFLOAT* output5 = &output[5][index]; // Zone 3
+			FAUSTFLOAT* output6 = &output[6][index]; // Zone 3
+			// schedule: ss=0 nodes=34 cycles=21 fill=40% peak=6 isoadj=6 packs4=0 aluMII=9 memMII=1 recMII=9 streams(peak/avg,win64)=0/0 (eval machine R=8 U=4 M=3)
+			iVeeec0 = iVeeec0State;
+			for (int i=0; i<count; i++) {
+				iVeeec0 = faust_wrap_add(1, iVeeec0);
+				int 	iTemp0 = iVeeec0; // step: 9
+				float 	fTemp1 = (-4.0f + (0.5f * float(+(iTemp0 % 16)))); // step: 13
+				float 	fTemp2 = float(+(iTemp0 % 11)); // step: 22
+				float 	fTemp3 = (-7.1f + (1.37f * fTemp2)); // step: 24
+				output0[i] = (FAUSTFLOAT)(roundf(fTemp1));  // Zone Exec Code
+				output1[i] = (FAUSTFLOAT)(rintf(fTemp1));  // Zone Exec Code
+				output2[i] = (FAUSTFLOAT)(remainderf(fTemp1,1.0f));  // Zone Exec Code
+				output3[i] = (FAUSTFLOAT)(roundf(fTemp3));  // Zone Exec Code
+				output4[i] = (FAUSTFLOAT)(rintf(fTemp3));  // Zone Exec Code
+				output5[i] = (FAUSTFLOAT)(remainderf(fTemp3,0.9f));  // Zone Exec Code
+				output6[i] = (FAUSTFLOAT)(remainderf((0.25f + (1001.0f * fTemp2)),0.6875f));  // Zone Exec Code
+			}
+			iVeeec0State = iVeeec0;
 		}
-		iVeeec0State = iVeeec0;
 	}
 };
 
