@@ -153,13 +153,37 @@ class AffineOps : public Base {
     AffItv rounded(AffItv r) const
     {
         if (r.isEmpty() || r.lsb >= 0 || modelPrecision() != 2) return r;
+        // A bound of the sign of 0 (a lower bound >= 0, an upper bound <= 0) that the quantum
+        // would carry past 0, and whose values at the sample times are 0 or normal, takes a
+        // relative margin instead : rounding to nearest keeps a value s >= b >= 0 above
+        // b (1 - u), so a lower bound 0 stays 0 (an accumulator of positive values stays
+        // positive). Every other bound widens by a quantum.
+        constexpr double kKeep = 1 - 0x1p-53;
+        const double     m     = 0x1p-1022;
+        auto normalOrZero = [m](double v0, double v1, double vT) {
+            auto ok = [m](double v) { return v == 0 || std::abs(v) >= m; };
+            return ok(v0) && ok(vT) && (v1 == 0 || std::abs(v1) >= m);
+        };
+        auto scaled = [](double v, detail::Direction d) {
+            return detail::directedBinary(detail::BinaryOp::Mul, v, kKeep, d);
+        };
         if (r.a1 != 0) {
             const double e = roundingQuantum(std::max(std::abs(r.lo(0)), std::abs(r.lo(fT))));
-            r.a0 = detail::directedBinary(detail::BinaryOp::Sub, r.a0, e, detail::Direction::Down);
+            if (r.a0 >= 0 && r.lo(fT) >= 0 && std::min(r.a0, r.lo(fT)) < e && normalOrZero(r.a0, r.a1, r.lo(fT))) {
+                r.a0 = scaled(r.a0, detail::Direction::Down);
+                r.a1 = scaled(r.a1, detail::Direction::Down);
+            } else {
+                r.a0 = detail::directedBinary(detail::BinaryOp::Sub, r.a0, e, detail::Direction::Down);
+            }
         }
         if (r.b1 != 0) {
             const double e = roundingQuantum(std::max(std::abs(r.hi(0)), std::abs(r.hi(fT))));
-            r.b0 = detail::directedBinary(detail::BinaryOp::Add, r.b0, e, detail::Direction::Up);
+            if (r.b0 <= 0 && r.hi(fT) <= 0 && std::max(r.b0, r.hi(fT)) > -e && normalOrZero(r.b0, r.b1, r.hi(fT))) {
+                r.b0 = scaled(r.b0, detail::Direction::Up);
+                r.b1 = scaled(r.b1, detail::Direction::Up);
+            } else {
+                r.b0 = detail::directedBinary(detail::BinaryOp::Add, r.b0, e, detail::Direction::Up);
+            }
         }
         return r;
     }
@@ -233,6 +257,13 @@ class AffineOps : public Base {
     }
     AffItv numericMul(const AffItv& x, const AffItv& y) const
     {
+        // x * 1 is x, exactly, when the product keeps the nature of x (an int times the
+        // float 1.0 is a float, and its conversion may round)
+        auto one = [](const AffItv& c) {
+            return !c.isEmpty() && !c.moving() && c.a0 == 1 && c.b0 == 1 && !c.mayBeInvalid && !c.mayOverflow;
+        };
+        if (one(y) && (x.lsb < 0 || y.lsb >= 0)) return x;
+        if (one(x) && (y.lsb < 0 || x.lsb >= 0)) return y;
         return mulDivByConst(x, y, /*isDiv*/ false);
     }
     AffItv numericDiv(const AffItv& x, const AffItv& y) const
