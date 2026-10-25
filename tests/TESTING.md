@@ -570,8 +570,6 @@ expected:
     0.39 and 5.5, the size of the signal. Their code retyped to double
     matches the reference, so this is the arithmetic of single
     precision, not a bug; `float-leg.sh` still checks them.
-  - `parseint` in every leg: the reference holds 15001 of 60000 frames,
-    see "Known harness defects" 10.
   - `subcontainer1` in `cpp/double/it`: the generated C++ does not
     compile, `redeclaration of 'int mydsp::fSampleRate'` (observed
     2026-10-24, `48cb8aeb2`).
@@ -717,14 +715,18 @@ does not protect it.
    there, 78 in `cpp/float` (2026-10-24, `48cb8aeb2`). One table now
    applies to every float leg; see "Float legs" in Gate 1.
 
-10. **`reference/parseint.ir` is truncated.** It was committed (2022-01-30,
-    `94201190a`) with 15001 of its 60000 frames, the last one without its
-    newline, while its header announces 60000. The comparator used to
-    stop at the end of the reference without a word; since defect 8 was
-    fixed, `parseint` fails in every leg with `ERROR : line 15001
-    output 0 : missing or unreadable sample` (the last line of the
-    reference is cut in the middle of the row). Every response the program writes is the same
-    constant row. *Fix:* complete the reference with a trusted compiler.
+10. **`reference/parseint.ir` was truncated** — fixed. It was committed
+    (2022-01-30, `94201190a`) with 15001 of its 60000 frames, the last
+    one cut in the middle of its row, while its header announces 60000.
+    The comparator used to stop at the end of the reference without a
+    word; once defect 8 was fixed, `parseint` failed in every leg with
+    `ERROR : line 15001 output 0 : missing or unreadable sample`. The
+    reference was completed from the scalar `cpp/double` leg
+    (2026-10-25, `48cb8aeb2`): the `-vec -lv 1`, `ocpp` and `c` legs
+    write the same 60003 lines byte for byte, and the first 15004 lines
+    are those that were committed. The rows are one constant row, except
+    for frames 30000 to 44999, the four-voice polyphonic run, which holds
+    four times that row.
 
 11. **Some drivers write fewer sub-runs than their header announces** —
     fixed with `-part`. The reference holds four sub-runs of 15000
