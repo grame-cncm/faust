@@ -188,9 +188,8 @@ inline interval forever(const AffItv& x, double T)
 
 /// The hull of x over [0, T] with the motion of its bounds : a bound moves where the value
 /// of x for all time goes beyond it (a rate, a drift, a possible wrap of an integer).
-/// The result is read (its bounds, moves()), not computed with : the operations of
-/// interval_algebra do not carry the motion of their operands, and an operation on a moving
-/// interval would claim bounds for all time. reunion and intersection carry it.
+/// An operation of interval_algebra on a moving interval gives a result whose two bounds
+/// move (withMotionOf) ; reunion and intersection carry the motion bound by bound.
 inline interval hullWithMotion(const AffItv& x, double T)
 {
     const interval h = toItv(x, T);

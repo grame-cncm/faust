@@ -264,6 +264,11 @@ interval interval_algebra::numericMixWeight(const interval& c, const interval& a
 // x : anything, NaN included.
 interval interval_algebra::Irm(const interval& x, const interval& c) const
 {
+    return withMotionOf(fixedIrm(x, c), x, c);
+}
+
+interval interval_algebra::fixedIrm(const interval& x, const interval& c) const
+{
     if (x.isEmpty() || c.isEmpty()) return empty().withInvalid(x.mayBeInvalid() || c.mayBeInvalid());
     const bool     invalid  = x.mayBeInvalid() || c.mayBeInvalid();
     const int      lsb      = std::min({x.lsb(), c.lsb(), -1});
@@ -337,18 +342,18 @@ interval interval_algebra::numericTpt(const interval& x) const
 interval interval_algebra::Frac(const interval& x) const
 {
     const bool infinite = !x.isEmpty() && (!std::isfinite(x.lo()) || !std::isfinite(x.hi()));
-    return numericFrac(x).withInvalid(x.mayBeInvalid() || infinite);
+    return withMotionOf(numericFrac(x).withInvalid(x.mayBeInvalid() || infinite), x);
 }
 
 interval interval_algebra::Cfrac(const interval& x) const
 {
     const bool infinite = !x.isEmpty() && (!std::isfinite(x.lo()) || !std::isfinite(x.hi()));
-    return numericCfrac(x).withInvalid(x.mayBeInvalid() || infinite);
+    return withMotionOf(numericCfrac(x).withInvalid(x.mayBeInvalid() || infinite), x);
 }
 
 interval interval_algebra::Mix(const interval& c, const interval& a, const interval& b) const
 {
-    return numericMix(c, a, b).withInvalid(c.mayBeInvalid() || a.mayBeInvalid() || b.mayBeInvalid());
+    return withMotionOf(numericMix(c, a, b).withInvalid(c.mayBeInvalid() || a.mayBeInvalid() || b.mayBeInvalid()), c, a, b);
 }
 
 // The interpolation from b with the weight t of the difference, as numericMix bounds the one
@@ -358,31 +363,31 @@ interval interval_algebra::Mix(const interval& c, const interval& a, const inter
 interval interval_algebra::MixOfComplement(const interval& t, const interval& a, const interval& b) const
 {
     const bool invalid = t.mayBeInvalid() || a.mayBeInvalid() || b.mayBeInvalid();
-    if (t.isEmpty() || a.isEmpty() || b.isEmpty()) return empty().withInvalid(invalid);
+    if (t.isEmpty() || a.isEmpty() || b.isEmpty()) return withMotionOf(empty().withInvalid(invalid), t, a, b);
     const interval ft = detail::floatingOperand(t);
     if (!(ft.lo() >= 0) || !(ft.hi() <= 1)) {
-        return Add(b, Mul(t, Sub(a, b))).withInvalid(invalid);
+        return withMotionOf(Add(b, Mul(t, Sub(a, b))).withInvalid(invalid), t, a, b);
     }
     const double   clo = std::max(0.0, std::nextafter(1 - ft.hi(), -HUGE_VAL));
     const double   chi = std::min(1.0, std::nextafter(1 - ft.lo(), HUGE_VAL));
     const interval c(clo, chi, ft.lsb());
-    return numericMixWeight(c, a, b, ft.hi()).withInvalid(invalid);
+    return withMotionOf(numericMixWeight(c, a, b, ft.hi()).withInvalid(invalid), t, a, b);
 }
 
 // Public API : inside its domain Tpt is valid when x is ; outside, the definition says
 interval interval_algebra::Tpt(const interval& x) const
 {
-    if (x.isEmpty()) return empty().withInvalid(x.mayBeInvalid());
+    if (x.isEmpty()) return withMotionOf(empty().withInvalid(x.mayBeInvalid()), x);
     const interval fx = detail::floatingOperand(x);
-    if (!(fx.lo() > -1) || !std::isfinite(fx.hi())) return tptDefinition(x);
-    return numericTpt(x).withInvalid(x.mayBeInvalid());
+    if (!(fx.lo() > -1) || !std::isfinite(fx.hi())) return withMotionOf(tptDefinition(x), x);
+    return withMotionOf(numericTpt(x).withInvalid(x.mayBeInvalid()), x);
 }
 
 // Public API : the validity of the definition (a divisor that may be 0, an invalid operand)
 interval interval_algebra::Phase(const interval& x, const interval& p) const
 {
-    if (x.isEmpty() || p.isEmpty()) return empty().withInvalid(x.mayBeInvalid() || p.mayBeInvalid());
-    return numericPhase(x, p).withInvalid(phaseDefinition(x, p).mayBeInvalid());
+    if (x.isEmpty() || p.isEmpty()) return withMotionOf(empty().withInvalid(x.mayBeInvalid() || p.mayBeInvalid()), x, p);
+    return withMotionOf(numericPhase(x, p).withInvalid(phaseDefinition(x, p).mayBeInvalid()), x, p);
 }
 
 }  // namespace itv

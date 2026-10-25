@@ -26,6 +26,28 @@ inline bool mixFromB(const interval& c)
     return !c.isEmpty() && c.lo() >= 0.5;
 }
 
+inline bool movesAny(const interval& i)
+{
+    return i.moves();
+}
+inline bool movesAny(const std::vector<interval>& v)
+{
+    for (const interval& i : v) {
+        if (i.moves()) return true;
+    }
+    return false;
+}
+/// r, the result of an operation on these operands, with their motion : past the analysis
+/// horizon an operand that moves may take values its interval does not hold, and the
+/// operation may send them to either side (a negation turns a rising bound into a falling
+/// one, a product by a value of either sign mixes both). When an operand moves, both bounds
+/// of r move. Every public operation of interval_algebra returns its result through it.
+template <typename... Operands>
+interval withMotionOf(const interval& r, const Operands&... operands)
+{
+    return (false || ... || movesAny(operands)) ? r.withMotion(true, true) : r;
+}
+
 class interval_algebra : public FaustAlgebra<interval> {
    private:
     interval iPow(const interval& x, const interval& y) const;  // integer power, when x can be negative
@@ -565,6 +587,11 @@ class interval_algebra : public FaustAlgebra<interval> {
 
 
    private:
+    // Iir, Irm and Bpf on operands taken as they are over the horizon ; the public ones add
+    // the motion of the operands (withMotionOf)
+    interval fixedIir(const interval& x, const std::vector<interval>& coefs) const;
+    interval fixedIrm(const interval& x, const interval& c) const;
+    interval fixedBpf(const interval& x, const std::vector<interval>& t, const std::vector<interval>& r) const;
     // Internal numeric kernels; public transfers add sticky input invalidity and
     // domain checks centrally, so early numeric returns cannot erase an alert.
     interval numericARsh(const interval& input, const interval& counts) const;
