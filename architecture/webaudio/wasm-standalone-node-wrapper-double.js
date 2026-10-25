@@ -365,12 +365,22 @@ class FaustDSP {
      * @returns {Object} Import object for WebAssembly.instantiate.
      */
     static createImportObject() {
-        // Math.round uses ties toward +infinity; rint uses ties to even, round ties away from zero.
-        const rint = function (x) {
-            const n = Math.round(x);
-            return (n - x === 0.5 && n % 2 !== 0) ? n - 1 : n;
-        };
+        // Math.round uses ties toward +infinity; round uses ties away from zero.
         const round = function (x) { return Math.sign(x) * Math.round(Math.abs(x)); };
+        // JS % is an exact fmod, so the IEEE remainder is exact too.
+        const remainder = function (x, y) {
+            const p = Math.abs(y);
+            let r = Math.abs(x);
+            // Exact; NaN for y = 0, y = NaN or x = inf.
+            if (!(p > 8.98846567431158e307) || p === Infinity) r = r % (p + p);
+            if (p < 4.450147717014403e-308) {
+                if (r + r > p) { r -= p; if (r + r >= p) r -= p; }
+            } else {
+                const h = 0.5 * p;
+                if (r > h) { r -= p; if (r >= h) r -= p; }
+            }
+            return (x < 0 || Object.is(x, -0)) ? -r : r;
+        };
         return {
             env: {
                 memoryBase: 0,
@@ -393,7 +403,7 @@ class FaustDSP {
                 _log10f: Math.log10,
                 _max_f: Math.max,
                 _min_f: Math.min,
-                _remainderf: function (x, y) { return x - rint(x / y) * y; },
+                _remainderf: remainder,
                 _powf: Math.pow,
                 _roundf: round,
                 _sinf: Math.sin,
@@ -423,7 +433,7 @@ class FaustDSP {
                 _log10: Math.log10,
                 _max_: Math.max,
                 _min_: Math.min,
-                _remainder: function (x, y) { return x - rint(x / y) * y; },
+                _remainder: remainder,
                 _pow: Math.pow,
                 _round: round,
                 _sin: Math.sin,
