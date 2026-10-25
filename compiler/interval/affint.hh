@@ -218,8 +218,10 @@ inline interval hullWithMotion(const AffItv& x, double T)
 ///   - it is at least m at both ends : the values above it are normal, no flush ;
 ///   - it is at most 0 at both ends : a flushed value is a zero of its sign, above it ;
 ///   - its two coefficients are integer multiples of m : lo(t) = a0 + a1 t is one too at an
-///     integer t, never strictly between 0 and m (every double of magnitude at least 2^-970
-///     is a multiple of 2^-1022, and so is 0 : the corridors of ordinary values).
+///     integer t, never strictly between 0 and m (every double of magnitude at least 2^52 m
+///     is a multiple of m, and so is 0 : the corridors of ordinary values ; 2^52 m is 2^-970
+///     in double, 2^-74 in float, where an anti-denormal constant such as 1e-25 rounds to a
+///     multiple of 2^-126).
 /// Any other lower line rounds its coefficients down to multiples of m : a line below the
 /// first, of the third kind. Symmetrically for the upper line. Idempotent : a rounded line is
 /// of the third kind.

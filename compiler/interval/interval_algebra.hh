@@ -77,12 +77,14 @@ inline std::vector<interval> forAllTime(const std::vector<interval>& v)
 /// the horizon (still), and f, computed on their values for all time (forAllTime). f holds
 /// every value the operation may produce, at any time : a bound of r that f does not pass
 /// holds for all time, a bound that f passes moves. A possible invalid value or overflow
-/// past the horizon is one of r (sqrt(10 - t) is NaN past t = 10). Every public operation
-/// of interval_algebra whose operand moves returns its result through it.
+/// past the horizon is one of r (sqrt(10 - t) is NaN past t = 10). An r with no value (every
+/// value of the operands out of the domain over the horizon) is f : sqrt(t/10 - 1), empty
+/// over T = 5, is 1 at t = 20. Every public operation of interval_algebra whose operand moves
+/// returns its result through it.
 inline interval withMotionFrom(const interval& r, const interval& f)
 {
-    if (r.isEmpty()) return r;
     if (f.isEmpty()) return r;
+    if (r.isEmpty()) return f.withInvalid(r.mayBeInvalid()).withOverflow(r.mayOverflow());
     const bool loMoves = !leTotal(r.lo(), f.lo());  // f reaches below r
     const bool hiMoves = !leTotal(f.hi(), r.hi());  // f reaches above r
     return r.withInvalid(f.mayBeInvalid()).withOverflow(f.mayOverflow()).withMotion(loMoves, hiMoves);
