@@ -433,7 +433,9 @@ inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
     };
     if (whi) {
         if (old.b1 == fresh.b1 && old.b1 == 0 && std::isfinite(fresh.b0 - old.b0)) {
-            r.b1 = fresh.b0 - old.b0;  // propose the observed per-round rate
+            // propose the observed per-round rate, rounded outward : a rate rounded to nearest
+            // may fall an ulp or two short of the growth, and miss the absorption after
+            r.b1 = detail::directedBinary(detail::BinaryOp::Sub, fresh.b0, old.b0, detail::Direction::Up);
         } else if (old.b1 != 0 && absorbs(fresh.b1 - old.b1, fresh.b0 - old.b0)) {
             r.b0 = std::max(fresh.b0, old.b0);
             r.b1 = detail::directedBinary(detail::BinaryOp::Add, std::max(fresh.b1, old.b1), creep, detail::Direction::Up);
@@ -445,7 +447,7 @@ inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
     }
     if (wlo) {
         if (old.a1 == fresh.a1 && old.a1 == 0 && std::isfinite(fresh.a0 - old.a0)) {
-            r.a1 = fresh.a0 - old.a0;
+            r.a1 = detail::directedBinary(detail::BinaryOp::Sub, fresh.a0, old.a0, detail::Direction::Down);
         } else if (old.a1 != 0 && absorbs(old.a1 - fresh.a1, old.a0 - fresh.a0)) {
             r.a0 = std::min(fresh.a0, old.a0);
             r.a1 = detail::directedBinary(detail::BinaryOp::Sub, std::min(fresh.a1, old.a1), creep, detail::Direction::Down);

@@ -20,7 +20,6 @@
 #include <random>
 
 #include "check.hh"
-#include "exception.hh"
 #include "interval_algebra.hh"
 #include "interval_def.hh"
 #include "directed_rounding.hh"
@@ -143,7 +142,7 @@ interval interval_algebra::numericfPow(const interval& x, const interval& y) con
         return empty();
     }
 
-    faustassert(x.lo() > 0);
+    assert(x.lo() > 0);
     // x all positive
     return Exp(Mul(y, Log(x)));
 }

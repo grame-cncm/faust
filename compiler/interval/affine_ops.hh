@@ -1371,8 +1371,30 @@ class AffineOps : public Base {
         AffItv r;
         achord(r0.lo(), rT.lo(), fT, r.a0, r.a1);
         achord(r0.hi(), rT.hi(), fT, r.b0, r.b1, true);
-        r.lsb         = std::min(r0.lsb(), rT.lsb());
-        r             = rounded(r);  // the program rounds the product at every sample, not only at the ends
+        r.lsb = std::min(r0.lsb(), rT.lsb());
+        // the program rounds the product at every sample, not only at the ends ; a product by
+        // a power of two (x * 0.5, x / 4) is exact where its values stay normal : a bound of
+        // one sign, at least the smallest normal in magnitude at both ends, keeps no margin
+        const AffItv& c   = x.isConst() ? x : y;
+        int           e   = 0;
+        const bool    pow2 = c.lsb < 0 && c.a0 == c.b0 && c.a0 != 0 && std::isfinite(c.a0) &&
+                          std::frexp(std::abs(c.a0), &e) == 0.5;
+        auto exactLine = [](double v0, double vT) {
+            const double m = 0x1p-1022;
+            return std::isfinite(v0) && std::isfinite(vT) && ((v0 >= m && vT >= m) || (v0 <= -m && vT <= -m));
+        };
+        const AffItv exact = r;
+        r                  = rounded(r);
+        if (pow2 && modelPrecision() == 2) {
+            if (exactLine(exact.lo(0), exact.lo(fT))) {
+                r.a0 = exact.a0;
+                r.a1 = exact.a1;
+            }
+            if (exactLine(exact.hi(0), exact.hi(fT))) {
+                r.b0 = exact.b0;
+                r.b1 = exact.b1;
+            }
+        }
         // an int32 product may wrap on the values of its operands for all time
         const interval all = op(forever(x, fT), forever(y, fT));
         r.mayOverflow      = r.lsb >= 0 && all.mayOverflow();
