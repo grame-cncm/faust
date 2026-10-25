@@ -90,9 +90,15 @@ class ScalarCompiler : public Compiler {
     std::vector<Tree>                      fDisplayStateful;
     std::vector<Tree>                      fDisplayCapturePoints;
     std::map<Tree, std::string, treeorder> fDisplayCaptures;
+    // the control context (spec LE-CONTEXTE-DES-OCCURRENCES) : the nodes of
+    // control usage rate and their control occurrences, compiled once per
+    // block (Zone4) by the same generator, with a memo of their own
+    std::map<Tree, int, treeorder>         fDisplayUses;
+    std::map<Tree, std::string, treeorder> fControlCode;
+    bool                                   fControlContext = false;
     Tree        harvestDisplay(Tree L);
-    void        computeDisplayFrontier();
-    std::string displayExpr(Tree t);
+    void        computeDisplayFrontier(Tree L2);
+    std::string controlCS(Tree sig);
     void        emitDisplayList();
     void        emitDisplayWidgets();
     // iota caches hoisted to the head of the loop body (ring-preload) :
