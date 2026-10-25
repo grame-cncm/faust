@@ -418,7 +418,12 @@ inline AffItv awiden(const AffItv& old, const AffItv& fresh, double T)
     // accumulator in double gains at most a few rounding quanta of its magnitude per round
     // (on its intercept, and on its rate through the outward chords of its joins), a growth
     // that its rate, proposed on a smaller magnitude, did not count
-    const double creep = 4 * roundingQuantum(magnitude(fresh, T));
+    // (over the finite values : an infinite bound on one side leaves the other side's creep)
+    double finiteMagnitude = 0;
+    for (double v : {fresh.lo(0), fresh.lo(T), fresh.hi(0), fresh.hi(T)}) {
+        if (std::isfinite(v)) finiteMagnitude = std::max(finiteMagnitude, std::abs(v));
+    }
+    const double creep = 4 * roundingQuantum(finiteMagnitude);
     // fresh goes past old by d0 + d1 t : absorbed when that excess stays within the creep over
     // [0, T], whatever the signs of d0 and d1 (a leaky integrator gains on its intercept while
     // its rate decreases)
