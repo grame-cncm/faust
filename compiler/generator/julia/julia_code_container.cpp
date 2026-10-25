@@ -145,6 +145,8 @@ void JuliaCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "rint(x) = round(x, Base.Rounding.RoundNearest)";
     tab(n, *fOut);
+    *fOut << "faust_round(x) = round(x, Base.Rounding.RoundNearestTiesAway)";
+    tab(n, *fOut);
     *fOut << "remainder(x, y) = rem(x, y, Base.Rounding.RoundNearest)";
     // A float converted to an integer saturates, as in the C++ (arm64) and WebAssembly
     // backends: 0 for a NaN, the nearest bound of the integer range beyond it. trunc(I, x)
