@@ -83,24 +83,35 @@ struct AffItv {
     bool   moving() const { return a1 != 0 || b1 != 0 || loDrifts || hiDrifts; }
     // Public API: enclose evaluation of the lower/upper affine line. In float/double
     // mode both product and sum round outward; t=0 avoids an inf*0 corner.
+    // A line that reaches 0 at t (a0 + a1 t = 0, an exact cancellation) bounds a value the
+    // program may compute as either zero, -(t - T) = -0 at t = T : a lower bound 0 is -0, an
+    // upper bound 0 is +0.
     double lo(double t) const
     {
         if (a1 == 0 || t == 0) return a0;
-        if (!detail::usesNativeBounds()) return a0 + a1 * t;
+        if (!detail::usesNativeBounds()) {
+            const double r = a0 + a1 * t;
+            return (r == 0) ? -0.0 : r;
+        }
         const double result = detail::directedBinary(detail::BinaryOp::Add, a0,
             detail::directedBinary(detail::BinaryOp::Mul, a1, t, detail::Direction::Down),
             detail::Direction::Down);
         // An indeterminate extended-real expression must not remove other
         // numeric states from a corridor used as an analysis bound.
+        if (result == 0) return -0.0;
         return std::isnan(result) ? -HUGE_VAL : result;
     }
     double hi(double t) const
     {
         if (b1 == 0 || t == 0) return b0;
-        if (!detail::usesNativeBounds()) return b0 + b1 * t;
+        if (!detail::usesNativeBounds()) {
+            const double r = b0 + b1 * t;
+            return (r == 0) ? 0.0 : r;
+        }
         const double result = detail::directedBinary(detail::BinaryOp::Add, b0,
             detail::directedBinary(detail::BinaryOp::Mul, b1, t, detail::Direction::Up),
             detail::Direction::Up);
+        if (result == 0) return 0.0;
         return std::isnan(result) ? HUGE_VAL : result;
     }
 };
@@ -188,8 +199,9 @@ inline interval forever(const AffItv& x, double T)
 
 /// The hull of x over [0, T] with the motion of its bounds : a bound moves where the value
 /// of x for all time goes beyond it (a rate, a drift, a possible wrap of an integer).
-/// An operation of interval_algebra on a moving interval gives a result whose two bounds
-/// move (withMotionOf) ; reunion and intersection carry the motion bound by bound.
+/// An operation of interval_algebra on a moving interval gives a result whose bound moves
+/// where the operation on the values for all time passes it (withMotionFrom) ; reunion and
+/// intersection carry the motion bound by bound.
 inline interval hullWithMotion(const AffItv& x, double T)
 {
     const interval h = toItv(x, T);
