@@ -7,7 +7,7 @@ directories `interval/` and `FaustAlgebra/` of the interval library :
 | :--- | :--- |
 | repository | https://github.com/grame-cncm/interval |
 | branch | compound-nodes |
-| commit | 8af329323ad58de868bf9e2c7401efd292427f99 |
+| commit | 9bd4602096da7512b793b70835262f16e04fa452 |
 
 A change is made and tested there first, then copied here ; this file names the commit the
 copy was taken from, and changes with every copy.
