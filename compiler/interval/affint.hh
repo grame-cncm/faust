@@ -147,9 +147,11 @@ inline AffItv aempty()
 
 /// Public API: lift an ordinary interval to a horizontal corridor, preserving
 /// numeric emptiness, nature and possible invalid execution.
-inline AffItv fromItv(const interval& x)
+inline AffItv fromItv(const interval& i)
 {
-    // Empty numeric bounds can still carry invalid execution and its nature.
+    // Empty numeric bounds can still carry invalid execution and its nature. An interval built
+    // outside the algebra enters the corridors flushed (a subnormal bound may be zero, FTZ/DAZ).
+    const interval x = flushedToZero(i);
     return AffItv{x.lo(), 0, x.hi(), 0, x.lsb(), x.mayBeInvalid(), x.mayOverflow()}.wrapDrift();
 }
 
@@ -203,6 +205,12 @@ inline interval hullWithMotion(const AffItv& x, double T)
 /// Idempotent : a shifted line reaches 0, out of the band.
 inline AffItv flushedToZero(AffItv r, double T)
 {
+    // a bound line of infinite intercept is infinite everywhere : its slope is 0, so that one
+    // bound has one writing (+inf + s t and +inf + s' t would never compare)
+    if (!r.isEmpty()) {
+        if (std::isinf(r.a0)) r.a1 = 0;
+        if (std::isinf(r.b0)) r.b1 = 0;
+    }
     if (r.isEmpty() || r.lsb >= 0) return r;
     const double m  = modelPrecision() == 1 ? 0x1p-126 : 0x1p-1022;
     const double lo = std::min(r.lo(0), r.lo(T)), hi = std::max(r.hi(0), r.hi(T));
@@ -230,6 +238,7 @@ inline bool aleq(const AffItv& x, const AffItv& y, double T)
     if (detail::usesNativeBounds()) {
         auto leq = [](double a0, double a1, double b0, double b1, double t) {
             if (a0 == b0 && a1 == b1) return true;
+            if (std::isinf(a0) && a0 == b0) return true;  // the same infinite bound, whatever the slopes
             double difference = detail::directedBinary(detail::BinaryOp::Sub, a0, b0,
                                                        detail::Direction::Up);
             if (t != 0) {
