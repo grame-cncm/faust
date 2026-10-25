@@ -7,7 +7,7 @@ library, except `simplify.hh`, which the compiler takes from `compiler/normalize
 | :--- | :--- |
 | repository | https://github.com/orlarey/signals |
 | branch | faust-intervals-nodes |
-| commit | 9803d8d4fe4398d444ccd7b89293b9a43950fe1c |
+| commit | a410738738163175013fefea17e32c5f8921df1b |
 
 A change is made and tested there first, then copied here ; this file names the commit the
 copy was taken from, and changes with every copy.

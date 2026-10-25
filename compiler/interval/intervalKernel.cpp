@@ -308,12 +308,7 @@ bool filterOutput(const std::vector<double>& c, const interval& fx, double& lo, 
 interval interval_algebra::Bpf(const interval& x, const std::vector<interval>& t,
                                const std::vector<interval>& r) const
 {
-    return withMotionOf(fixedBpf(x, t, r), x, t, r);
-}
-
-interval interval_algebra::fixedBpf(const interval& x, const std::vector<interval>& t,
-                                    const std::vector<interval>& r) const
-{
+    if (movesAny(x, t, r)) return withMotionFrom(Bpf(still(x), still(t), still(r)), Bpf(forAllTime(x), forAllTime(t), forAllTime(r)));
     // a malformed node (|r| != |t| + 1) bounds nothing
     if (r.size() != t.size() + 1) return interval(-HUGE_VAL, HUGE_VAL, -24, true);
     if (x.isEmpty()) {
@@ -344,11 +339,7 @@ interval interval_algebra::fixedBpf(const interval& x, const std::vector<interva
 // rounding included ; anything, NaN included, otherwise
 interval interval_algebra::Iir(const interval& x, const std::vector<interval>& coefs) const
 {
-    return withMotionOf(fixedIir(x, coefs), x, coefs);
-}
-
-interval interval_algebra::fixedIir(const interval& x, const std::vector<interval>& coefs) const
-{
+    if (movesAny(x, coefs)) return withMotionFrom(Iir(still(x), still(coefs)), Iir(forAllTime(x), forAllTime(coefs)));
     // A filter whose non null coefficients sit at the multiples of a step d,
     // y(n) = x(n) + c_d y(n-d) + c_2d y(n-2d) + ..., has the impulse response of the filter
     // c_d, c_2d, ... with d - 1 zeros between its samples : the same sum of |h|, the same
