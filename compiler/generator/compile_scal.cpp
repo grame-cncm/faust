@@ -862,7 +862,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         // the display cones need every annotation the emitters read
         recursivnessAnnotation(fDisplayList);
         typeAnnotation(fDisplayList, false);
-        computeDisplayFrontier();
+        computeDisplayFrontier(L2);
     }
 
     if (gGlobal->gMinDelay > 0) {
@@ -1836,6 +1836,9 @@ std::string ScalarCompiler::ensureVectorNameProperty(const std::string altname, 
 
 string ScalarCompiler::CS(Tree sig)
 {
+    if (fControlContext) {
+        return controlCS(sig);
+    }
     // contextor contextRecursivness;
     string code;
 
@@ -5496,7 +5499,7 @@ string ScalarCompiler::generateCode(Tree sig)
 
     // printf("compilation of %p : ", sig); print(sig); printf("\n");
 
-    if (gGlobal->gSelectN) {
+    if (gGlobal->gSelectN && !fControlContext) {
         // spec LE-SELECTN : a certified root compiles as an N-way
         // multiplex ; its select2 spine below is dead from this path.
         // Sample-rate roots only : a slow root multiplexed in the loop
@@ -6033,6 +6036,17 @@ string ScalarCompiler::generateIotaCache(const std::string& exp, bool headSafe)
 
 string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 {
+    if (fControlContext) {
+        // the control context : a node with several control occurrences is
+        // stored once in a block temporary, before the store that reads it
+        if (fDisplayUses[sig] < 2) {
+            return exp;
+        }
+        std::string ctype = (getCertifiedSigType(sig)->nature() == kInt) ? "int" : ifloat();
+        std::string name  = getFreshID("fDpyTmp");
+        fClass->addZone4(subst("$0 $1 = $2;", ctype, name, exp));
+        return name;
+    }
     string code;
 
     // check reentrance
@@ -6457,32 +6471,112 @@ Tree ScalarCompiler::harvestDisplay(Tree L)
     return L2;
 }
 
-// The frontier of D : walking each display cone through branches, stop at
-// (a) sub-sample-rate nodes -- inlined at emission through the normal
-// machinery ; (b) the CAPTURE POINTS -- stateful signals (delayed or
-// recursive : the list S of the spec, also made scheduling roots so they
-// compile at audio rate), inputs, and any construct the block-rate tail
-// emitter does not carry (tables, generators...) : those are computed
-// in-loop and captured at the end of the loop body.
-void ScalarCompiler::computeDisplayFrontier()
+// The stateless operators a display may compute once per block : the
+// generator emits them in the control context (spec
+// LE-CONTEXTE-DES-OCCURRENCES). Any other sample-rate node is of audio
+// usage rate : computed in the loop, its end-of-block value captured.
+static bool displayStateless(Tree t)
+{
+    int  op;
+    Tree x, y, sel;
+    return isSigBinOp(t, &op, x, y) || isSigIntCast(t, x) || isSigFloatCast(t, x) ||
+           isSigSelect2(t, sel, x, y) || isSigSum(t) || isSigProd(t) || isSigNeg(t, x) ||
+           (getUserData(t) != nullptr && t->arity() > 0);
+}
+
+// The stateful nodes : their state is written at every sample, an audio
+// occurrence of themselves.
+static bool displayStateful(Tree t)
+{
+    int  i;
+    Tree x, y, g, id, body;
+    tvec V;
+    return isProj(t, &i, g) || isSigDelay(t, x, y) || isSigPrefix(t, x, y) || isSigFIR(t, V) ||
+           isSigIIR(t, V) || isSigIRM(t) || isRec(t, id, body);
+}
+
+// The contexts of the occurrences (spec LE-CONTEXTE-DES-OCCURRENCES) : the
+// outputs are audio occurrences, the harvested bargraphs control ones. A
+// node of control usage rate -- a stateless node without an audio
+// occurrence -- passes the control context to its operands ; any other
+// node passes the audio context. A recursive definition receives one audio
+// occurrence through its door. One Kahn descent (descendAttribute) : each
+// node and each edge once.
+//
+// The frontier follows : the CAPTURE POINTS are the sample-rate nodes of
+// audio usage rate read by the control part ; those not computed for the
+// outputs already root their stateful parts (fDisplayStateful : the writer
+// under a delayed read, made a scheduling and marking root).
+void ScalarCompiler::computeDisplayFrontier(Tree L2)
 {
     if (fDisplayList == nullptr || !isList(fDisplayList)) {
         return;
     }
+    struct OccCount {
+        int audio   = 0;
+        int control = 0;
+    };
+    std::set<Tree, treeorder>                   displayRoots;
+    std::vector<std::pair<Tree, OccCount>>      roots;
+    for (Tree l = L2; isList(l); l = tl(l)) {
+        roots.push_back({hd(l), OccCount{1, 0}});
+    }
+    for (Tree l = fDisplayList; isList(l); l = tl(l)) {
+        Tree path, mn, mx, x;
+        if (isSigVBargraph(hd(l), path, mn, mx, x) || isSigHBargraph(hd(l), path, mn, mx, x)) {
+            roots.push_back({hd(l), OccCount{0, 1}});
+            displayRoots.insert(hd(l));
+        }
+    }
+    auto audioRate = [&](Tree t, const OccCount& a) {
+        return a.audio > 0 || (!displayStateless(t) && displayRoots.count(t) == 0);
+    };
+    std::map<Tree, OccCount, treeorder> occ = descendAttribute<OccCount>(
+        roots,
+        [&](Tree p, int, const OccCount& a) { return audioRate(p, a) ? OccCount{1, 0} : OccCount{0, 1}; },
+        [](const OccCount& a, const OccCount& b) { return OccCount{a.audio + b.audio, a.control + b.control}; },
+        [](Tree) { return OccCount{1, 0}; });
+
+    // the nodes the outputs compute anyway : their cones are scheduled and marked
+    std::set<Tree, treeorder> audioCone;
+    {
+        std::vector<Tree> work;
+        for (Tree l = L2; isList(l); l = tl(l)) {
+            work.push_back(hd(l));
+        }
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            if (!audioCone.insert(t).second) {
+                continue;
+            }
+            for (int k = 0; k < t->arity(); k++) {
+                work.push_back(t->branch(k));
+            }
+        }
+    }
+
     std::set<Tree>    seenS, seenC, walked;
-    std::vector<Tree> work;
+    std::vector<Tree> work;  // the control part, from the bargraphs
+    std::vector<Tree> below;  // under a capture the outputs do not compute
     for (Tree l = fDisplayList; isList(l); l = tl(l)) {
         Tree path, mn, mx, x;
         if (isSigVBargraph(hd(l), path, mn, mx, x) || isSigHBargraph(hd(l), path, mn, mx, x)) {
             work.push_back(x);
         }
     }
-    auto tailCarries = [](Tree t) -> bool {
-        int  op;
-        Tree x, y, sel;
-        return isSigBinOp(t, &op, x, y) || isSigIntCast(t, x) || isSigFloatCast(t, x) ||
-               isSigSelect2(t, sel, x, y) || isSigSum(t) || isSigProd(t) || isSigNeg(t, x) ||
-               (getUserData(t) != nullptr && t->arity() > 0);
+    // a stateful node is rooted through its writer : a delayed read has no
+    // immediate edge to its writer, so rooting the read alone would never
+    // compile (nor declare) the line
+    auto rootStateful = [&](Tree t) {
+        Tree root = t;
+        Tree dx, dy;
+        while (isSigDelay(root, dx, dy)) {
+            root = dx;
+        }
+        if (seenS.insert(root).second) {
+            fDisplayStateful.push_back(root);
+        }
     };
     while (!work.empty()) {
         Tree t = work.back();
@@ -6491,132 +6585,69 @@ void ScalarCompiler::computeDisplayFrontier()
             continue;
         }
         if (getCertifiedSigType(t)->variability() < kSamp) {
-            continue;  // consts and slow : inlined at emission
+            continue;  // consts and slow : compiled at their own rate
         }
-        int  i;
-        Tree x, y, g;
-        tvec V;
-        // the STATEFUL parts of a display cone (the design of
-        // SIGNAUX-ATTACHES restated 2026-08-29) : projections, delays,
-        // prefixes -- and the FIR/IIR kernels, which carry the state of
-        // the delays they absorbed. Every stateful part is ROOTED (it
-        // joins the scheduling and marking lists ; the immediate graph
-        // then orders its whole cone, kernel sources included), and the
-        // stateless crown stays in the block-rate tail.
-        bool stateful = isProj(t, &i, g) || isSigDelay(t, x, y) || isSigPrefix(t, x, y) ||
-                        isSigFIR(t, V) || isSigIIR(t, V) || isSigIRM(t);
-        if (stateful) {
-            // the SCHEDULING root is the WRITER under the read : a delayed
-            // read has no immediate edge to its writer, so rooting the
-            // read alone would never compile (nor declare) the line. The
-            // read itself stays the capture point.
-            Tree root = t;
-            Tree dx, dy;
-            while (isSigDelay(root, dx, dy)) {
-                root = dx;
-            }
-            if (seenS.insert(root).second) {
-                fDisplayStateful.push_back(root);
-            }
-            if (seenC.insert(t).second) {
-                fDisplayCapturePoints.push_back(t);
+        if (!audioRate(t, occ[t])) {
+            fDisplayUses[t] = occ[t].control;  // control usage rate : computed once per block
+            for (int k = 0; k < t->arity(); k++) {
+                work.push_back(t->branch(k));
             }
             continue;
         }
-        if (!tailCarries(t)) {
-            // inputs, tables, generators... : computed in-loop, captured.
-            // The DESCENT CONTINUES below the capture : a captured node
-            // may sit above stateful parts (spectralLevel : fifteen
-            // octave-band kernels under the level computation), and only
-            // the frontier can root them -- stopping here left them to a
-            // schedule-less compilation referencing undeclared vectors.
-            if (seenC.insert(t).second) {
-                fDisplayCapturePoints.push_back(t);
-            }
+        // audio usage rate : computed in the loop, captured at its end
+        if (seenC.insert(t).second) {
+            fDisplayCapturePoints.push_back(t);
+        }
+        if (audioCone.count(t)) {
+            continue;
+        }
+        if (displayStateful(t)) {
+            rootStateful(t);
+        } else {
+            below.push_back(t);
+        }
+    }
+    // a captured node the outputs do not compute (an input, a table read...)
+    // may sit above stateful parts : only the frontier can root them
+    std::set<Tree> walkedBelow;
+    while (!below.empty()) {
+        Tree t = below.back();
+        below.pop_back();
+        if (!walkedBelow.insert(t).second || audioCone.count(t)) {
+            continue;
+        }
+        if (displayStateful(t)) {
+            rootStateful(t);
+            continue;
         }
         for (int k = 0; k < t->arity(); k++) {
-            work.push_back(t->branch(k));
+            below.push_back(t->branch(k));
         }
     }
 }
 
-// The block-rate tail : builds the expression string of a display signal
-// from capture variables, slow values (normal machinery) and the
-// stateless operators the frontier walked through.
-std::string ScalarCompiler::displayExpr(Tree t)
+// A signal compiled in the control context, once per block : a capture
+// for a node of audio usage rate, its own rate for a slow one, and the
+// common generator, with the memo of the context, for a node of control
+// usage rate.
+std::string ScalarCompiler::controlCS(Tree sig)
 {
-    if (auto it = fDisplayCaptures.find(t); it != fDisplayCaptures.end()) {
+    if (auto it = fDisplayCaptures.find(sig); it != fDisplayCaptures.end()) {
         return it->second;
     }
-    if (getCertifiedSigType(t)->variability() < kSamp) {
-        return CS(t);  // const or slow : loop-independent by construction
+    if (getCertifiedSigType(sig)->variability() < kSamp) {
+        fControlContext = false;  // const or slow : loop-independent, compiled at its rate
+        std::string code = CS(sig);
+        fControlContext = true;
+        return code;
     }
-    int  op;
-    Tree x, y, sel;
-    if (isSigBinOp(t, &op, x, y)) {
-        const char* wrap = binOpWraps(t, op, x, y) ? wrapHelper(op) : nullptr;
-        std::string sx = displayExpr(x);
-        std::string sy = displayExpr(y);
-        return wrap ? subst("$0($1, $2)", wrap, sx, sy)
-                    : subst("($0 $1 $2)", sx, gBinOpTable[op]->fName, sy);
+    if (auto it = fControlCode.find(sig); it != fControlCode.end()) {
+        return it->second;
     }
-    if (isSigIntCast(t, x)) {
-        return subst("int(+$0)", displayExpr(x));
-    }
-    if (isSigFloatCast(t, x)) {
-        return subst("$1(+$0)", displayExpr(x), ifloat());
-    }
-    if (isSigSelect2(t, sel, x, y)) {
-        std::string ssel = displayExpr(sel);
-        std::string sy   = displayExpr(y);
-        std::string sx   = displayExpr(x);
-        return subst("(($0) ? $1 : $2)", ssel, sy, sx);
-    }
-    if (tvec V; isSigSum(t, V)) {
-        // the chain of generateSum -- same association, bit-exact ; a slow prefix is
-        // written in place instead of stored. Without this arm a level-in-dB crown
-        // (20*log10(...) + offset) was a capture, computed per sample on both emitters
-        // (spectralLevel).
-        struct Ops {
-            ScalarCompiler* fC;
-            bool            fInt;
-            std::string     term(Tree b) { return fC->displayExpr(b); }
-            std::string     negatedTerm(Tree b) { return fC->displayExpr(b); }
-            std::string add(const std::string& a, const std::string& b, bool w) { return w ? subst("faust_wrap_add($0, $1)", a, b) : subst("($0 + $1)", a, b); }
-            std::string sub(const std::string& a, const std::string& b, bool w) { return w ? subst("faust_wrap_sub($0, $1)", a, b) : subst("($0 - $1)", a, b); }
-            std::string neg(const std::string& a, bool w) { return w ? subst("faust_wrap_sub(0, $0)", a) : subst("(-$0)", a); }
-            std::string store(int, const std::string& a) { return a; }
-            std::string zero() { return "0"; }
-        } ops{this, getCertifiedSigType(t)->nature() == kInt};
-        return emitSum<std::string>(t, V, ops);
-    }
-    if (tvec F; isSigProd(t, F)) {
-        struct Ops {
-            ScalarCompiler* fC;
-            bool            fInt;
-            std::string     term(Tree b) { return fC->displayExpr(b); }
-            std::string mul(const std::string& a, const std::string& b, bool w) { return w ? subst("faust_wrap_mul($0, $1)", a, b) : subst("($0 * $1)", a, b); }
-            std::string store(int, const std::string& a) { return a; }
-        } ops{this, getCertifiedSigType(t)->nature() == kInt};
-        return emitProd<std::string>(t, F, ops);
-    }
-    if (isSigNeg(t, x)) {
-        std::string sx = displayExpr(x);
-        return negWraps(t, x) ? subst("faust_wrap_sub(0, $0)", sx) : subst("(-$0)", sx);
-    }
-    if (getUserData(t) != nullptr && t->arity() > 0) {
-        xtendedCodegen*          p = static_cast<xtendedCodegen*>((xtended*)getUserData(t));
-        std::vector<std::string> args;
-        std::vector<Type>        types;
-        for (int k = 0; k < t->arity(); k++) {
-            args.push_back(displayExpr(t->branch(k)));
-            types.push_back(getCertifiedSigType(t->branch(k)));
-        }
-        return p->generateCode(fClass, args, types);
-    }
-    std::stringstream err;
-    err << "ERROR : DISPLAYBLOCK tail cannot carry " << ppsig(t, 32) << "\n";
-    throw faustexception(err.str());
+    faustassert(fDisplayUses.count(sig) != 0);  // a node of control usage rate
+    std::string code = generateCode(sig);
+    fControlCode[sig] = code;
+    return code;
 }
 
 // Emission : the capture stores at the end of the loop body, then one
@@ -6696,7 +6727,10 @@ void ScalarCompiler::emitDisplayWidgets()
         Tree uipath   = reverse(tl(path));
         Tree uiwidget = uiWidget(hd(path), tree(varname), d);
         fUITree.addUIWidget(uipath, uiwidget);
-        fClass->addZone4(subst("$0 = $1;", varname, displayExpr(x)));
+        fControlContext  = true;
+        std::string code = CS(x);
+        fControlContext  = false;
+        fClass->addZone4(subst("$0 = $1;", varname, code));
     }
 }
 
