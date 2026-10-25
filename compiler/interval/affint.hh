@@ -198,10 +198,19 @@ inline interval hullWithMotion(const AffItv& x, double T)
     return h.withMotion(all.lo() < h.lo(), all.hi() > h.hi());
 }
 
-/// r for a program that may flush subnormals to zero (see flushedToZero of an interval) : a
-/// bound line whose extreme over [0, T] lies strictly between 0 and the smallest normal is
-/// shifted to reach 0 there. A line that crosses 0 already holds 0 in its hull over [0, T].
-/// Idempotent : a shifted line reaches 0, out of the band.
+/// r for a program that may flush subnormals to zero (see flushedToZero of an interval), m
+/// the smallest normal. A value v of the program at a sample time t (an integer of [0, T])
+/// lies above the lower line, lo(t) <= v ; flushed, v becomes a zero of its sign, which the
+/// line still bounds unless lo(t) lies strictly between 0 and m. A lower line is kept when
+/// that cannot happen :
+///   - it is at least m at both ends : the values above it are normal, no flush ;
+///   - it is at most 0 at both ends : a flushed value is a zero of its sign, above it ;
+///   - its two coefficients are integer multiples of m : lo(t) = a0 + a1 t is one too at an
+///     integer t, never strictly between 0 and m (every double of magnitude at least 2^-970
+///     is a multiple of 2^-1022, and so is 0 : the corridors of ordinary values).
+/// Any other lower line rounds its coefficients down to multiples of m : a line below the
+/// first, of the third kind. Symmetrically for the upper line. Idempotent : a rounded line is
+/// of the third kind.
 inline AffItv flushedToZero(AffItv r, double T)
 {
     // a bound line of infinite intercept is infinite everywhere : its slope is 0, so that one
@@ -211,13 +220,33 @@ inline AffItv flushedToZero(AffItv r, double T)
         if (std::isinf(r.b0)) r.b1 = 0;
     }
     if (r.isEmpty() || r.lsb >= 0) return r;
-    const double m  = modelPrecision() == 1 ? 0x1p-126 : 0x1p-1022;
-    const double lo = std::min(r.lo(0), r.lo(T)), hi = std::max(r.hi(0), r.hi(T));
-    if (lo > 0 && lo < m) {
-        r.a0 = (r.a1 == 0) ? 0.0 : detail::directedBinary(detail::BinaryOp::Sub, r.a0, lo, detail::Direction::Down);
+    const double m = modelPrecision() == 1 ? 0x1p-126 : 0x1p-1022;
+    // the value of a line at T, rounded in the given direction
+    auto at = [T](double c0, double c1, detail::Direction d) {
+        if (c1 == 0 || T == 0) return c0;
+        if (!detail::usesNativeBounds()) return c0 + c1 * T;
+        return detail::directedBinary(detail::BinaryOp::Add, c0, detail::directedBinary(detail::BinaryOp::Mul, c1, T, d), d);
+    };
+    // c / m is exact below 2^52 m, and every double beyond it is a multiple of m
+    auto multiple = [m](double c) { return std::abs(c) >= 0x1p52 * m || (c / m) == std::trunc(c / m); };
+    if (std::isfinite(r.a0)) {
+        const bool normal    = r.a0 >= m && at(r.a0, r.a1, detail::Direction::Down) >= m;
+        const bool nonpos    = r.a0 <= 0 && at(r.a0, r.a1, detail::Direction::Up) <= 0;
+        const bool multiples = multiple(r.a0) && multiple(r.a1);
+        if (!normal && !nonpos && !multiples) {
+            if (!multiple(r.a0)) r.a0 = std::floor(r.a0 / m) * m;
+            if (!multiple(r.a1)) r.a1 = std::floor(r.a1 / m) * m;
+        }
     }
-    if (hi < 0 && hi > -m) {
-        r.b0 = (r.b1 == 0) ? -0.0 : detail::directedBinary(detail::BinaryOp::Sub, r.b0, hi, detail::Direction::Up);
+    if (std::isfinite(r.b0)) {
+        const bool normal    = r.b0 <= -m && at(r.b0, r.b1, detail::Direction::Up) <= -m;
+        const bool nonneg    = r.b0 >= 0 && at(r.b0, r.b1, detail::Direction::Down) >= 0;
+        const bool multiples = multiple(r.b0) && multiple(r.b1);
+        if (!normal && !nonneg && !multiples) {
+            // ceil(-0.5) is -0 : an upper line of -0 holds -0
+            if (!multiple(r.b0)) r.b0 = std::ceil(r.b0 / m) * m;
+            if (!multiple(r.b1)) r.b1 = std::ceil(r.b1 / m) * m;
+        }
     }
     return r;
 }
@@ -285,7 +314,7 @@ inline AffItv probeSeed(const interval& s)
 inline void achord(double v0, double vT, double T, double& c0, double& c1, bool upper = false)
 {
     if (!std::isfinite(v0) || !std::isfinite(vT) || v0 == vT || T <= 0 || !std::isfinite(T)) {
-        c0 = upper ? std::max(v0, vT) : std::min(v0, vT);
+        c0 = upper ? maxTotal(v0, vT) : minTotal(v0, vT);  // -0 == +0 : the order of IEEE 754 decides
         c1 = 0;
         return;
     }
