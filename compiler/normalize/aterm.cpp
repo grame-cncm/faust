@@ -1327,8 +1327,9 @@ mterm aterm::greatestDivisor() const
     for (size_t i = 0; i < terms.size(); i++) {
         for (size_t j = i + 1; j < terms.size(); j++) {
             mterm g = gcd(*terms[i], *terms[j]);
-            // only symbols are factored : a number duplicates none
-            if (!isOne(g.coefficient()) && !isZero(g.coefficient())) g = g / mterm(g.coefficient());
+            // only symbols are factored : a number duplicates none (its coefficient is dropped,
+            // not divided out : an infinite coefficient divided by itself is NaN)
+            g = g.symbols();
             if (g.complexity() > 0) g = keep(g);
             int complexity = g.complexity();
             if (complexity > maxComplexity) {

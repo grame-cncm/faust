@@ -15,10 +15,22 @@ Type `make help` for details on the available targets.
 
 Each script below checks one defect once fixed. `make check-scripts
 FAUST=<binary>` runs those that need only faust and a C/C++ compiler
-(`display-tail-sharing`, `exe-path`, `hoist-negation`, `integer-pow`) ;
+(`display-tail-sharing`, `exe-path`, `hoist-negation`, `infinite-coefficients`,
+`integer-pow`) ;
 `make check-scripts-all` runs every one, the others needing Java, Julia,
 Cargo, Node or the Xilinx `ap_fixed.h` header (`SCRIPT_ARGS` passes their
 paths). One verdict per script ; the target fails when one script fails.
+
+### Infinite coefficients in a sum
+
+`infinite-coefficients.py` compiles a sum whose terms have an infinite
+coefficient (`1e308*10`, `ma.INFINITY*2` in single and double precision) :
+the normal form must finish within 30 seconds (the common divisor of the
+terms keeps its symbols, its coefficient dropped and not divided out) :
+
+```sh
+python3 tests/compile-tests/infinite-coefficients.py --faust build/bin/faust
+```
 
 ### Files excluded from tests
 
