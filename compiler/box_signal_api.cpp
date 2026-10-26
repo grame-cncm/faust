@@ -757,6 +757,10 @@ LIBFAUST_API bool CisSigGen(Tree t, Tree* x_aux)
         return false;
     }
 }
+LIBFAUST_API bool CisSigGen1(Tree t)
+{
+    return isSigGen(t);
+}
 LIBFAUST_API bool CisSigDocConstantTbl(Tree t, Tree* n_aux, Tree* sig_aux)
 {
     Tree n, sig;
@@ -2884,6 +2888,22 @@ LIBFAUST_API bool CisBoxPar(Tree t, Tree* x_aux, Tree* y_aux)
     if (isBoxPar(t, x, y)) {
         *x_aux = x;
         *y_aux = y;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxPatternMatcher(Tree t)
+{
+    return isBoxPatternMatcher(t);
+}
+
+LIBFAUST_API bool CisBoxPatternVar(Tree t, Tree* id_aux)
+{
+    Tree id;
+    if (isBoxPatternVar(t, id)) {
+        *id_aux = id;
         return true;
     } else {
         return false;
