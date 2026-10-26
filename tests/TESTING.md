@@ -669,14 +669,23 @@ make -C tests/acceptance-tests check-nocert FAUST=<binary under test>
 make -C tests/acceptance-tests check-mcs FAUST=<binary under test>
 ```
 
-Each line is a verdict (`ok` or `MISMATCH`, with the first two lines of
-the error). The last line gives the number of verdicts and of mismatches;
-every program and option set is run, and the gate fails when there is at least one mismatch. A new program goes in the
+Each line is a verdict (`ok` or `MISMATCH`, with the first error line).
+A verdict comes from `verdict.sh` : `accepted`, `refused` when faust stops
+with a refusal of the certification (one of its messages : `can't compute
+the min and max values`, `possible negative values`, `highest` or `lowest
+of a signal that may be invalid`, `certified for only`, `out of range
+soundfile part number`, `invalid delay parameter range`, `too big delay
+value`), or `failed` for anything else : a syntax error, an unknown
+symbol, a missing library, a signal or an assertion of the compiler is
+never an expected refusal. The last line gives the number of verdicts and
+of mismatches; every program and option set is run, and the gate fails
+when there is at least one mismatch, or when no verdict was given. A new program goes in the
 directory of its expected verdict, with a first comment line that says why.
 
 To check the gate, move one program of `refused/` into `accepted/` in a
 copy of the directory : `check` must report a mismatch for each of the
-eight option sets, and fail.
+eight option sets, and fail. A program with a syntax error placed in
+`refused/` must fail the gate too.
 
 ## Gate 8 — the compile-time budget
 
