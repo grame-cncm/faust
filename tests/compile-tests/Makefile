@@ -113,6 +113,34 @@ json-compare:
 	$(call GENJSON,$$newdir); \
 	diff -ru $$olddir $$newdir
 	
+# The regression scripts of the README : check-scripts runs those that need only faust and
+# a C/C++ compiler ; check-scripts-all runs every one (they also need Java, Julia, Cargo,
+# Node or the Xilinx ap_fixed.h header : SCRIPT_ARGS passes their paths). One verdict per
+# script ; the target fails when one script fails.
+SCRIPTS_CORE := display-tail-sharing exe-path hoist-negation integer-pow
+SCRIPTS_ALL  := $(SCRIPTS_CORE) fixed-point-tables integer-pow-backends java-math \
+                julia-float-to-int math-domain nonfinite-constants
+SCRIPT_ARGS  ?=
+SCRIPT_LIB   ?= $(abspath ../../libraries)
+runscripts = test -f $(SCRIPT_LIB)/stdfaust.lib || { echo "NOT A VERDICT : $(SCRIPT_LIB) has no stdfaust.lib"; exit 2; }; \
+	export FAUST_LIB_PATH=$(SCRIPT_LIB); log=$$(mktemp -d); bad=0; n=0; \
+	$(abspath $(FAUST)) --version | grep "Source commit"; \
+	echo "libraries : $(SCRIPT_LIB) $$(git -C $(SCRIPT_LIB) rev-parse --short HEAD 2>/dev/null)"; \
+	for s in $(1); do \
+	  n=$$((n+1)); \
+	  if python3 $$s.py --faust $(abspath $(FAUST)) $(SCRIPT_ARGS) > $$log/$$s.txt 2>&1; then echo "ok    $$s"; \
+	  else echo "FAIL  $$s"; tail -3 $$log/$$s.txt | sed 's/^/      /'; bad=$$((bad+1)); fi; \
+	done; \
+	rm -rf $$log; \
+	echo "$$n scripts, $$bad failed"; \
+	test $$n -gt 0 && test $$bad -eq 0
+
+check-scripts:
+	@$(call runscripts,$(SCRIPTS_CORE))
+
+check-scripts-all:
+	@$(call runscripts,$(SCRIPTS_ALL))
+
 check: 
 	export FAUST_DEBUG=FIR_VAR_CHECKER; \
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -a ./min.cpp"

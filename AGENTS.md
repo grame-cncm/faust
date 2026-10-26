@@ -96,7 +96,7 @@ explicit request.
 
 | the change touches | run at least |
 | :--- | :--- |
-| anything in the compiler | Gate 1, the impulse suite: `cpp` and `ocpp`, **float and double** |
+| anything in the compiler | Gate 1, the impulse suite: `cpp` and `ocpp`, **float and double**, and its regression scripts (`make -C tests/compile-tests check-scripts`) |
 | a pass shared by several backends (normal form, typing, promotion, scheduling) | Gate 1, plus Gate 2, the library specifications |
 | code that creates trees (`tree(...)`, `sigXxx(...)`, `boxXxx(...)`, fresh names) | Gate 3, determinism (`make -C tests/determinism lint`, then `check`) |
 | table accesses, delay lines, the interval library, casts to integers | Gate 4, memory safety |
