@@ -13,8 +13,9 @@ ONE   ?= 8.0
 FLOOR ?= 0.05
 RUNS  ?= 3
 TIMEOUT ?= 300
+LIB   ?= ../../libraries
 
 .PHONY: check
 check:
 	@test -n "$(REF)" || { echo "REF must name the reference faust binary"; exit 1; }
-	@python3 budget.py $(FAUST) $(REF) --total $(TOTAL) --one $(ONE) --floor $(FLOOR) --runs $(RUNS) --timeout $(TIMEOUT)
+	@python3 budget.py $(FAUST) $(REF) --total $(TOTAL) --one $(ONE) --floor $(FLOOR) --runs $(RUNS) --timeout $(TIMEOUT) --lib $(LIB)
