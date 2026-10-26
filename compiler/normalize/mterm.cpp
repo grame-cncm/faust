@@ -217,6 +217,18 @@ mterm mterm::withoutFactorsOf(const mterm& q) const
 }
 
 /**
+ * The factors of this term, with the coefficient 1. Dropping a coefficient is not dividing
+ * by it : a coefficient infinite or NaN divided by itself is NaN, never 1.
+ */
+mterm mterm::symbols() const
+{
+    mterm r(*this);
+    r.fCoef = tree(1);
+    r.fLo   = 0.0;
+    return r;
+}
+
+/**
  * true if mterm is strictly negative
  */
 bool mterm::isNegative() const

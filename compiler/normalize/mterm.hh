@@ -73,6 +73,7 @@ class mterm : public virtual Garbageable {
     bool tptFactors(Tree& g, Tree& d) const;     ///< g and d = g + 1, d of negative power
     bool tapOf(Tree& source, int& delay, mterm& coef) const;  ///< c * x@k, a tap of a FIR
     mterm withoutFactorsOf(const mterm& q) const;  ///< this without the factors present in q
+    mterm symbols() const;  ///< the factors of this, coefficient 1 : no arithmetic on the coefficient
     const std::map<Tree, int, NormalFormTreeLess>& factors() const { return fFactors; }  ///< factors and powers
 
     const mterm& operator=(const mterm& m);  ///< replace the content with a copy of m
