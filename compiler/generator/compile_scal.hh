@@ -24,6 +24,7 @@
 
 #define _DNF_ 1
 
+#include <functional>
 #include <map>
 #include <utility>
 
@@ -97,6 +98,8 @@ class ScalarCompiler : public Compiler {
     std::map<Tree, std::string, treeorder> fControlCode;
     bool                                   fControlContext = false;
     Tree        harvestDisplay(Tree L);
+    Tree        programRoots(Tree L2);
+    Tree        rewriteProgram(Tree L2, const std::function<Tree(Tree)>& rewrite);
     void        computeDisplayFrontier(Tree L2);
     std::string controlCS(Tree sig);
     void        emitDisplayList();

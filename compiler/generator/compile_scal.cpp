@@ -847,7 +847,7 @@ Tree ScalarCompiler::prepare(Tree LS)
         // compiles (the gate_compressor phantom -- a second, undeclared
         // copy of the whole gate machinery).
         fConditionProperty.clear();
-        conditionAnnotation(L2);
+        conditionAnnotation(programRoots(L2));
         recursivnessAnnotation(L2);
     }
     if (gGlobal->gDumpNorm == 0) {
@@ -858,31 +858,36 @@ Tree ScalarCompiler::prepare(Tree LS)
     endTiming("L2 typeAnnotation");
     checkCertificates();  // a program bounded for less than 10 seconds is refused
     checkLightTypes(L2);  // FAUST_CHECK_LIGHT_TYPES : the light typing against the certified one
-    if (fDisplayList != nullptr && isList(fDisplayList)) {
-        // the display cones need every annotation the emitters read
-        recursivnessAnnotation(fDisplayList);
-        typeAnnotation(fDisplayList, false);
-        computeDisplayFrontier(L2);
-    }
+    // the display cones need every annotation the emitters and the rewrites read
+    const bool display        = fDisplayList != nullptr && isList(fDisplayList);
+    auto       annotateDisplay = [&]() {
+        if (display) {
+            recursivnessAnnotation(fDisplayList);
+            typeAnnotation(fDisplayList, false);
+        }
+    };
+    annotateDisplay();
 
     if (gGlobal->gMinDelay > 0) {
         // semantic delay floor: needs the intervals just computed, rebuilds
         // trees, so the annotations are redone in the same order as above
-        L2 = applyDelayFloor(L2, gGlobal->gMinDelay);
-        conditionAnnotation(L2);
+        L2 = rewriteProgram(L2, [](Tree L) { return applyDelayFloor(L, gGlobal->gMinDelay); });
+        conditionAnnotation(programRoots(L2));
         recursivnessAnnotation(L2);
         typeAnnotation(L2, true);
+        annotateDisplay();
     }
 
     if (gGlobal->gReassoc) {
         // -reassoc : late state-join (see reassociate.cpp) -- BEFORE the
         // staging pass, so barriers see the final tree shapes
         startTiming("reassociate");
-        L2 = reassociate(L2);
+        L2 = rewriteProgram(L2, [](Tree L) { return reassociate(L); });
         endTiming("reassociate");
-        conditionAnnotation(L2);
+        conditionAnnotation(programRoots(L2));
         recursivnessAnnotation(L2);
         typeAnnotation(L2, true);
+        annotateDisplay();
     }
 
     if (gGlobal->gTempOps > 0) {
@@ -893,11 +898,17 @@ Tree ScalarCompiler::prepare(Tree LS)
         // barriers like any node. Annotations are redone : the placement
         // rebuilds trees.
         startTiming("placeTemps");
-        L2 = placeTemps(L2, gGlobal->gTempOps);
+        L2 = rewriteProgram(L2, [](Tree L) { return placeTemps(L, gGlobal->gTempOps); });
         endTiming("placeTemps");
-        conditionAnnotation(L2);
+        conditionAnnotation(programRoots(L2));
         recursivnessAnnotation(L2);
         typeAnnotation(L2, true);
+        annotateDisplay();
+    }
+
+    if (display) {
+        // the contexts of the final program : after every rewrite
+        computeDisplayFrontier(L2);
     }
 
     // -lazyselect : the synthesized condition atoms (sel==0, sel!=0) are
@@ -2412,7 +2423,8 @@ class LoopSplitEmitter {
         bool dvar;
         Tree x, y;
         if (isSigInput(p, &k)) {
-            return subst("$1input$0[count-1]", T(k), icast());
+            // the block's buffer, not input<k> : that one points into the current chunk
+            return subst("$1input[$0][count-1]", T(k), icast());
         }
         int ix = fSN.indexOf(p);
         if (ix >= 0) {
@@ -4675,7 +4687,13 @@ void LoopSplitEmitter::emitDisplayCaptures()
         std::string ctype = (ty->nature() == kInt) ? "int" : ifloat();
         std::string name  = subst("fDpyCap$0", T(k++));
         fClass->addZone2(subst("$0 \t$1;", ctype, name));
-        fClass->addZone3(subst("$0 = $1;", name, captureCode(p)));
+        if (int i; isSigInput(p, &i)) {
+            // read before the loops, once : computed in place (-inpl), an
+            // output overwrites the input buffer
+            fClass->addZone2(subst("if (count > 0) $0 = $1;", name, captureCode(p)));
+        } else {
+            fClass->addZone3(subst("$0 = $1;", name, captureCode(p)));
+        }
         fC->fDisplayCaptures[p] = name;
     }
 }
@@ -5757,8 +5775,10 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 }
 
 /**
- * neg(x) = -x : a unary minus, cached as every operation (a slow negation read in a faster
- * context is stored at its rate) ; an integer negation wraps, through the product by -1.
+ * neg(x) = -x : a signed read of x, inline wherever it is read, as the product by -1 (see
+ * generateBinOp) ; the occurrences of the negation are its operand's, so a shared or slow x
+ * is the one stored. A negation with a delayed occurrence takes the cache route, which
+ * declares its delay vector. An integer negation wraps, through the product by -1.
  */
 string ScalarCompiler::generateNeg(Tree sig, Tree x)
 {
@@ -5767,10 +5787,11 @@ string ScalarCompiler::generateNeg(Tree sig, Tree x)
         std::string sx = CS(x);
         return generateCacheCode(sig, subst("$0($1, $2)", wrap, T(-1), sx));
     }
-    std::string res = CS(x);
-    std::string neg = ((res[0] == '(') || (res[0] == 'f') || (res[0] == 'i')) ? subst("-$0", res)
-                                                                            : subst("-($0)", res);
-    return generateCacheCode(sig, neg);
+    std::string  res = CS(x);
+    std::string  neg = ((res[0] == '(') || (res[0] == 'f') || (res[0] == 'i')) ? subst("-$0", res)
+                                                                             : subst("-($0)", res);
+    Occurrences* o   = fOccMarkup->retrieve(sig);
+    return (o && o->getMaxDelay() > 0) ? generateCacheCode(sig, neg) : neg;
 }
 
 /*****************************************************************************
@@ -6471,6 +6492,84 @@ Tree ScalarCompiler::harvestDisplay(Tree L)
     return L2;
 }
 
+// The roots of the program : the outputs, then the harvested bargraphs. The
+// analyses that decide how a node is computed (conditions) see the display
+// uses as well as the audio ones (spec LE-CONTEXTE-DES-OCCURRENCES).
+Tree ScalarCompiler::programRoots(Tree L2)
+{
+    std::vector<Tree> roots;
+    for (Tree l = L2; isList(l); l = tl(l)) {
+        roots.push_back(hd(l));
+    }
+    if (fDisplayList != nullptr) {
+        for (Tree l = fDisplayList; isList(l); l = tl(l)) {
+            if (isSigVBargraph(hd(l)) || isSigHBargraph(hd(l))) {
+                roots.push_back(hd(l));
+            }
+        }
+    }
+    Tree R = gGlobal->nil;
+    for (auto it = roots.rbegin(); it != roots.rend(); ++it) {
+        R = cons(*it, R);
+    }
+    return R;
+}
+
+// A rewrite of the final program (-mindelay, -reassoc, -temp) : the outputs
+// and the operands of the harvested bargraphs are rewritten together, in
+// one call, so that a node shared by both stays one node and the display
+// reads the program the outputs compute. The bargraphs are rebuilt on
+// their rewritten operands ; the outputs are returned.
+Tree ScalarCompiler::rewriteProgram(Tree L2, const std::function<Tree(Tree)>& rewrite)
+{
+    std::vector<Tree> roots;
+    for (Tree l = L2; isList(l); l = tl(l)) {
+        roots.push_back(hd(l));
+    }
+    const size_t nout = roots.size();
+    if (fDisplayList != nullptr) {
+        for (Tree l = fDisplayList; isList(l); l = tl(l)) {
+            Tree path, mn, mx, x;
+            if (isSigVBargraph(hd(l), path, mn, mx, x) || isSigHBargraph(hd(l), path, mn, mx, x)) {
+                roots.push_back(x);
+            }
+        }
+    }
+    Tree all = gGlobal->nil;
+    for (auto it = roots.rbegin(); it != roots.rend(); ++it) {
+        all = cons(*it, all);
+    }
+    std::vector<Tree> res;
+    for (Tree l = rewrite(all); isList(l); l = tl(l)) {
+        res.push_back(hd(l));
+    }
+    faustassert(res.size() == roots.size());
+    Tree L = gGlobal->nil;
+    for (size_t k = nout; k-- > 0;) {
+        L = cons(res[k], L);
+    }
+    if (fDisplayList != nullptr) {
+        std::vector<Tree> items;
+        size_t            k = nout;
+        for (Tree l = fDisplayList; isList(l); l = tl(l)) {
+            Tree path, mn, mx, x;
+            if (isSigVBargraph(hd(l), path, mn, mx, x)) {
+                items.push_back(sigVBargraph(path, mn, mx, res[k++]));
+            } else if (isSigHBargraph(hd(l), path, mn, mx, x)) {
+                items.push_back(sigHBargraph(path, mn, mx, res[k++]));
+            } else {
+                items.push_back(hd(l));
+            }
+        }
+        Tree D = gGlobal->nil;
+        for (auto it = items.rbegin(); it != items.rend(); ++it) {
+            D = cons(*it, D);
+        }
+        fDisplayList = D;
+    }
+    return L;
+}
+
 // The stateless operators a display may compute once per block : the
 // generator emits them in the control context (spec
 // LE-CONTEXTE-DES-OCCURRENCES). Any other sample-rate node is of audio
@@ -6499,9 +6598,11 @@ static bool displayStateful(Tree t)
 // outputs are audio occurrences, the harvested bargraphs control ones. A
 // node of control usage rate -- a stateless node without an audio
 // occurrence -- passes the control context to its operands ; any other
-// node passes the audio context. A recursive definition receives one audio
-// occurrence through its door. One Kahn descent (descendAttribute) : each
-// node and each edge once.
+// node passes the audio context. A negation is a signed read of its
+// operand, never a value of its own : it passes its own occurrences to its
+// operand, and a sum reads the operands of its negated terms. A recursive
+// definition receives one audio occurrence through its door. One Kahn
+// descent (descendAttribute) : each node and each edge once.
 //
 // The frontier follows : the CAPTURE POINTS are the sample-rate nodes of
 // audio usage rate read by the control part ; those not computed for the
@@ -6533,7 +6634,12 @@ void ScalarCompiler::computeDisplayFrontier(Tree L2)
     };
     std::map<Tree, OccCount, treeorder> occ = descendAttribute<OccCount>(
         roots,
-        [&](Tree p, int, const OccCount& a) { return audioRate(p, a) ? OccCount{1, 0} : OccCount{0, 1}; },
+        [&](Tree p, int, const OccCount& a) {
+            if (negationOperand(p)) {
+                return a;  // a signed read : the occurrences of the negation are its operand's
+            }
+            return audioRate(p, a) ? OccCount{1, 0} : OccCount{0, 1};
+        },
         [](const OccCount& a, const OccCount& b) { return OccCount{a.audio + b.audio, a.control + b.control}; },
         [](Tree) { return OccCount{1, 0}; });
 
@@ -6587,10 +6693,22 @@ void ScalarCompiler::computeDisplayFrontier(Tree L2)
         if (getCertifiedSigType(t)->variability() < kSamp) {
             continue;  // consts and slow : compiled at their own rate
         }
+        if (Tree x = negationOperand(t)) {
+            // never captured : the control part reads its operand
+            fDisplayUses[t] = occ[t].control;
+            work.push_back(x);
+            continue;
+        }
         if (!audioRate(t, occ[t])) {
             fDisplayUses[t] = occ[t].control;  // control usage rate : computed once per block
-            for (int k = 0; k < t->arity(); k++) {
-                work.push_back(t->branch(k));
+            if (tvec V; isSigSum(t, V)) {
+                for (const auto& [positive, u] : signedTerms(V)) {
+                    work.push_back(u);  // what the sum reads : the operands of its negations
+                }
+            } else {
+                for (int k = 0; k < t->arity(); k++) {
+                    work.push_back(t->branch(k));
+                }
             }
             continue;
         }
@@ -6626,6 +6744,17 @@ void ScalarCompiler::computeDisplayFrontier(Tree L2)
     }
 }
 
+// Sets the context of the generator for its lifetime ; the previous one is
+// restored on exit, an exception included.
+namespace {
+struct ContextGuard {
+    bool& fContext;
+    bool  fSaved;
+    ContextGuard(bool& context, bool value) : fContext(context), fSaved(context) { fContext = value; }
+    ~ContextGuard() { fContext = fSaved; }
+};
+}  // namespace
+
 // A signal compiled in the control context, once per block : a capture
 // for a node of audio usage rate, its own rate for a slow one, and the
 // common generator, with the memo of the context, for a node of control
@@ -6636,10 +6765,8 @@ std::string ScalarCompiler::controlCS(Tree sig)
         return it->second;
     }
     if (getCertifiedSigType(sig)->variability() < kSamp) {
-        fControlContext = false;  // const or slow : loop-independent, compiled at its rate
-        std::string code = CS(sig);
-        fControlContext = true;
-        return code;
+        ContextGuard audio(fControlContext, false);  // const or slow : loop-independent, compiled at its rate
+        return CS(sig);
     }
     if (auto it = fControlCode.find(sig); it != fControlCode.end()) {
         return it->second;
@@ -6672,12 +6799,15 @@ void ScalarCompiler::emitDisplayList()
 
 // The widget stores : one Zone4 store per harvested bargraph, computed
 // from the capture scalars -- taken at the end of the loop body on the
-// classic path, as the last element of each vector on the split path.
+// classic path, as the last element of each vector on the split path. A
+// block of no sample captures nothing : the stores are guarded, and a
+// bargraph keeps its value.
 void ScalarCompiler::emitDisplayWidgets()
 {
     if (fDisplayList == nullptr || !isList(fDisplayList)) {
         return;
     }
+    bool guarded = false;
     for (Tree l = fDisplayList; isList(l); l = tl(l)) {
         Tree d = hd(l);
         Tree path, mn, mx, x;
@@ -6724,13 +6854,23 @@ void ScalarCompiler::emitDisplayWidgets()
         }
         std::string varname = getFreshID("fbargraph");
         fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
+        fClass->addInitUICode(subst("$0 = 0;", varname));  // its value before the first block
         Tree uipath   = reverse(tl(path));
         Tree uiwidget = uiWidget(hd(path), tree(varname), d);
         fUITree.addUIWidget(uipath, uiwidget);
-        fControlContext  = true;
-        std::string code = CS(x);
-        fControlContext  = false;
-        fClass->addZone4(subst("$0 = $1;", varname, code));
+        if (!guarded) {
+            fClass->addZone4("if (count > 0) {");
+            guarded = true;
+        }
+        std::string code;
+        {
+            ContextGuard control(fControlContext, true);
+            code = CS(x);
+        }
+        fClass->addZone4(subst("    $0 = $1;", varname, code));
+    }
+    if (guarded) {
+        fClass->addZone4("}");
     }
 }
 
