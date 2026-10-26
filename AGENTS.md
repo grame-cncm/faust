@@ -123,7 +123,8 @@ section per gate. Do not stop at the first gate that passes.
 - Shared API gate: run `make -C tests/signal-tests clean-api`, then
   `check-shared-api -k` with explicit `FAUST`, `LIB` and `INC` paths from
   the build under test. Linking only `libfaust.a` cannot detect missing
-  shared-library exports. Both API clients must link and run.
+  shared-library exports. The four API clients (C++ and C, Signal and Box)
+  must link and run.
 - Pin the arithmetic of the C++ compiler in semantic gates
   (`-ffp-contract=off`). Never `-ffast-math` nor `-Ofast` there.
 - One reference set, produced by the trusted compiler under default
