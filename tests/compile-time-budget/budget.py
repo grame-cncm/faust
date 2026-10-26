@@ -3,7 +3,7 @@
 The compile-time budget : the time faust takes on two sets of programs, against a reference
 binary, and two ceilings it must not pass.
 
-  budget.py FAUST REF [--total T] [--one O] [--floor F] [--runs N] [--timeout S]
+  budget.py FAUST REF [--total T] [--one O] [--floor F] [--runs N] [--timeout S] [--lib DIR]
 
 Each program is compiled N times by each binary (the minimum is kept : the noise of the
 machine only adds time), in single and double precision. The gate fails when the ratio of
@@ -52,9 +52,19 @@ def main():
     ap.add_argument("--floor", type=float, default=0.05)
     ap.add_argument("--runs", type=int, default=3)
     ap.add_argument("--timeout", type=float, default=300.0)
+    ap.add_argument("--lib", default=os.path.join(ROOT, "libraries"))
     a = ap.parse_args()
+    # the libraries of the tree, named and checked : with an empty sub-project, faust would
+    # silently read the library installed on the machine
+    lib = os.path.abspath(a.lib)
+    if not os.path.isfile(os.path.join(lib, "stdfaust.lib")):
+        print("NOT A VERDICT : %s has no stdfaust.lib (git submodule update --init libraries)" % lib)
+        sys.exit(2)
+    os.environ["FAUST_LIB_PATH"] = lib
     print("faust : %s (%s)" % (a.faust, version(a.faust)))
     print("ref   : %s (%s)" % (a.ref, version(a.ref)))
+    sha = subprocess.run(["git", "-C", lib, "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
+    print("libraries : %s %s" % (lib, sha or "(not a git checkout)"))
     print("machine : %s %s, %d runs per compilation, ceilings : total x%.2f, one x%.2f (floor %.3f s), "
           "timeout %.0f s" % (platform.machine(), platform.system(), a.runs, a.total, a.one, a.floor, a.timeout))
     impulse = sorted(os.path.join("tests/impulse-tests/dsp", f)
@@ -66,7 +76,7 @@ def main():
             tb = tr = 0.0; n = 0; skipped = 0; worst = (0.0, ""); over = []; failed = []
             for f in files:
                 path = os.path.join(ROOT, f)
-                args = ["-lang", "cpp", prec, "-I", os.path.dirname(path), path, "-o", os.devnull]
+                args = ["-lang", "cpp", prec, "-I", os.path.dirname(path), "-I", lib, path, "-o", os.devnull]
                 sb, b = timed(a.faust, args, a.runs, a.timeout)
                 sr, r = timed(a.ref, args, a.runs, a.timeout)
                 if sb == "timeout" or sr == "timeout":
