@@ -15,6 +15,16 @@ MAKE ?= make
 
 GCCOPTIONS := -O3 -I../../architecture -I/usr/local/include/ap_fixed -Iarchs -pthread -std=c++11
 outdir ?= cpp/double
+# the reference set the leg is compared with (reference-controls for the controls driver)
+refdir ?= reference
+# the libraries : FAUST_LIB_PATH when set, the tree's otherwise ; checked, and exported to
+# faust (with an empty sub-project, faust would silently read the library installed on the
+# machine)
+FAUSTLIB ?= $(or $(FAUST_LIB_PATH),../../libraries)
+ifeq ($(wildcard $(FAUSTLIB)/stdfaust.lib),)
+$(error $(FAUSTLIB) has no stdfaust.lib : git submodule update --init libraries, or set FAUST_LIB_PATH)
+endif
+export FAUST_LIB_PATH := $(abspath $(FAUSTLIB))
 lang ?= cpp
 ext  ?= cpp
 arch ?= impulsearch.cpp
@@ -111,9 +121,9 @@ endif
 
 #########################################################################
 # rules 
-ir/$(outdir)/%.ir: ir/$(outdir)/% reference/%.ir
+ir/$(outdir)/%.ir: ir/$(outdir)/% $(refdir)/%.ir
 	$< -n 60000 > $@
-	$(COMPARE) $@ reference/$(notdir $@) $(precision) $(PART)
+	$(COMPARE) $@ $(refdir)/$(notdir $@) $(precision) $(PART)
 	
 ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
 	$(CXX) $(GCCOPTIONS) $(SANFLAGS) $< -o $@

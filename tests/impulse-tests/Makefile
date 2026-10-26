@@ -429,6 +429,28 @@ $(eval $(call LEG, ocpp/float/vec/lv1, ocpp, impulsearch.cpp, -I dsp -single -ve
 ocpp-float: leg/ocpp/float leg/ocpp/float/mcd0 leg/ocpp/float/ftz2 \
 	leg/ocpp/float/vec/lv0 leg/ocpp/float/vec/lv1
 
+# The controls legs (rule 6 of "The contract of a gate", tests/TESTING.md) : the controls
+# driver sets every slider, numerical entry and checkbox to a value drawn inside its range,
+# then to its minimum, then to its maximum ; compared with reference-controls, produced by the
+# trusted compiler (make reference-controls FAUST=<trusted faust>)
+define CLEG
+LEGS += leg/$(strip $(1))
+.PHONY: leg/$(strip $(1))
+leg/$(strip $(1)):
+	$$(MAKE) -f Make.gcc outdir=$(strip $(1)) lang=$(strip $(2)) arch=impulsecontrols.cpp refdir=reference-controls FAUSTOPTIONS="$(strip $(3))"
+endef
+
+$(eval $(call CLEG, cpp/double/controls         , cpp , -I dsp -double))
+$(eval $(call CLEG, cpp/float/controls          , cpp , -I dsp -single))
+$(eval $(call CLEG, ocpp/double/controls        , ocpp, -I dsp -double))
+$(eval $(call CLEG, ocpp/float/controls         , ocpp, -I dsp -single))
+
+.PHONY: controls reference-controls
+controls: leg/cpp/double/controls leg/cpp/float/controls leg/ocpp/double/controls leg/ocpp/float/controls
+
+reference-controls: filesCompare
+	$(MAKE) -f Make.refcontrols FAUST=$(abspath $(FAUST))
+
 .PHONY: vecocpp
 vecocpp: leg/ocpp/double/vec/lv1
 
