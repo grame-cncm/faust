@@ -684,6 +684,10 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     // by 'buildUserInterface(&fStateUI)', using the saved values or the default ones.
     // What has to be done to finish the DSP initialization is done now.
     mydsp::classInit(int(sampleRate));
+#ifdef POLY2
+    // The effect has its own static tables, initialized before instance constants.
+    effect::classInit(int(sampleRate));
+#endif
     fDSP->instanceConstants(int(sampleRate));
     fDSP->instanceClear();
     
