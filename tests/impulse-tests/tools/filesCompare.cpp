@@ -48,7 +48,7 @@ static bool truncated(istream* in, const char* which, const char* where)
     return false;
 }
 
-static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_part)
+static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_part, int expected)
 {
     string line1, line2, dummy;
     int input1, input2, output1, output2, count1, count2;
@@ -136,6 +136,15 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
             gResult = 1;
             exit(gResult);
         }
+        // a partial comparison checks the count it claims : the expected one when given
+        // (-part N), otherwise at least one sample and no more than the reference
+        if (is_part && ((expected > 0 && count1 != expected) || count1 <= 0 || count1 > count2)) {
+            cerr << "count1 : " << count1 << " is not a part of count2 : " << count2;
+            if (expected > 0) cerr << " (expected " << expected << ")";
+            cerr << endl;
+            gResult = 1;
+            exit(gResult);
+        }
     }
     
     // Compare samples
@@ -189,13 +198,22 @@ int main(int argc, char* argv[])
     
     // Possibly only compare a subpart of the reference file, starting from the beginning
     bool is_part = isopt(argv, "-part");
+    // -part N : the number of samples the partial response must hold
+    int expected = 0;
+    for (int k = 3; k + 1 < argc; k++) {
+        if (strcmp(argv[k], "-part") == 0) {
+            char* end = nullptr;
+            long  n   = strtol(argv[k + 1], &end, 10);
+            if (end && *end == 0 && n > 0) expected = int(n);
+        }
+    }
     
     // Test files may have several consecutive impulse responses, test all of them in sequence with the same reference
     ifstream test(argv[1]);
     bool compare = false;
     do {
         ifstream reference(argv[2]);
-        compare = compareFiles(&test, &reference, tolerance, is_part);
+        compare = compareFiles(&test, &reference, tolerance, is_part, expected);
     } while (compare);
     
     exit(gResult);

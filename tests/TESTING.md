@@ -183,8 +183,11 @@ list of programs.
 **Half-length legs.** Twelve drivers (`impulsearch6`, `7bis`, `7qua`, `8`,
 `8bis`, `8ter`, `9`, `9bis`, `9ter`, `9qua`, `10`, `10bis`) have no
 polyphonic run and print 30000 samples instead of 60000 ; their header
-says so, and `Make.gcc` compares their legs with `filesCompare -part`,
-against the first half of the reference. A response shorter than its
+says so, and `Make.gcc` compares their legs with `filesCompare -part 30000`,
+against the first half of the reference : the response must hold exactly
+30000 samples (the `signal` leg, a quarter : `-part 15000` ; a `-part`
+without a count still requires at least one sample and no more than the
+reference). A response shorter than its
 header still fails.
 
 An exclusion is legitimate; an exclusion nobody can see is not. The suite
@@ -499,7 +502,7 @@ neither is exact equality:
 
 | gate | criterion | default |
 | :--- | :-------- | :------ |
-| impulse suite | absolute difference ≤ tolerance, in `filesCompare` | `2e-6` ; per-file overrides in `Make.gcc` on every float leg (scalar, `vec`, `sched`, `omp`), up to `0.065`, and `0.04` on `cpp/double/sched/parametric_eq` ; the Rust cross-precision legs override the whole leg (up to `24`) |
+| impulse suite | absolute difference ≤ tolerance, in `filesCompare` | `2e-6` ; per-program overrides in `Make.gcc` (`FLOAT_TOLERANCES`, one value per program) on every float leg, whatever its option directory (`vec`, `sched`, `omp`, `ftz2`, `vec/lv0`…), up to `0.065`, and `0.04` on `cpp/double/sched/parametric_eq` ; the Rust cross-precision legs override the whole leg (up to `24`) |
 | library specs | `math.isclose(rel_tol=t, abs_tol=t)`, `floatdiff.py` | `t = FLOAT_TOL = 1e-5`, so either criterion suffices |
 
 A consequence worth keeping in mind when reading a divergence: the first
