@@ -313,6 +313,13 @@ both sides ; the same trick lets outputs of two machines be compared :
 on one machine, `make -C tests/determinism compare FILE=/abs/mac.txt` on
 the other (`FILE` absolute, or relative to `tests/determinism`) — the
 witnesses that fold constants through the host's libm are reported apart.
+A generation that failed is written `FAIL name` in the fingerprint, never
+as the md5 of its failure marker : `fingerprint` exits 1, and `compare`
+refuses to conclude (exit status 2) on a failed or missing generation, or
+when nothing is identical. Every mode checks that `libraries` holds
+`stdfaust.lib` (exit status 2 otherwise : with an empty sub-project, faust
+would silently read the library installed on the machine), passes it as
+`FAUST_LIB_PATH`, and prints its path and sha.
 
 `lint` runs `tests/determinism/lint/unsequenced.py` on `compiler/` : it
 computes Fx, the set of functions that reach a tree creation or a fresh
