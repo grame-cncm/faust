@@ -711,7 +711,12 @@ compiles at once.
 make -C tests/compile-time-budget check FAUST=<binary under test> REF=<reference binary>
 ```
 
-The report gives both `Source commit:` lines and the machine with the
+The gate passes the library explicitly (`LIB`, the tree's `libraries` by
+default, as `-I` and `FAUST_LIB_PATH`) and refuses to run when it has no
+`stdfaust.lib` (exit status 2) : the slowest programs import it, and the
+library installed on a machine may refuse one of them for a cause foreign to
+the compiler. The report gives both `Source commit:` lines, the path and sha
+of the library and the machine with the
 ceilings, then one line per set and precision : the number of programs measured and of programs the reference
 refuses, the two total times and their ratio, the largest single ratio and its
 program, then the programs over the
