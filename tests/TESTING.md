@@ -629,8 +629,14 @@ make -C tests/canonical-tests update FAUST=<binary>   # after an improvement
 67 of the 101 writings import `stdfaust.lib`, for a library function
 (`si.smooth`, `fi.fir`, `fi.iir`, `ba.bpf`, …) or only for `ma.SR`, and
 depend on the `libraries` sub-project ; the others are written out in
-Faust. The report starts with the `Source commit:` of the
-binary : read it first.
+Faust. The gate passes the library explicitly (`LIB`, the tree's
+`libraries` by default, given as `-I` and `FAUST_LIB_PATH`) and refuses to
+run when it has no `stdfaust.lib` (exit status 2) : with an empty
+sub-project, faust would silently read the library installed on the
+machine, whose `SR` may start at 1 and change the intervals. A run that
+compares no writing gives no verdict either (exit status 2). The report
+starts with the `Source commit:` of the binary and the path and sha of
+the library : read them first.
 
 ## Gate 7 — the acceptance policy
 

@@ -18,6 +18,8 @@ that do better : their expectation is then raised (--update rewrites the statuse
 keeping the reasons).
 
 usage : canonical.py --faust BIN [--lib DIR] [--update]
+(exit status 1 when a writing is worse than expected, 2 when the libraries are missing or
+nothing was compared : no verdict)
 """
 import argparse, os, re, subprocess, sys
 
@@ -29,11 +31,18 @@ ap.add_argument("--faust", required=True)
 ap.add_argument("--lib", default=os.path.join(HERE, "..", "..", "libraries"))
 ap.add_argument("--update", action="store_true")
 opt = ap.parse_args()
+# the libraries of the tree, named and checked : with an empty sub-project, faust would
+# silently read the library installed on the machine
+LIB = os.path.abspath(opt.lib)
+if not os.path.isfile(os.path.join(LIB, "stdfaust.lib")):
+    print(f"NOT A VERDICT : {LIB} has no stdfaust.lib (git submodule update --init libraries)")
+    sys.exit(2)
+os.environ["FAUST_LIB_PATH"] = LIB
 
 
 def normal_form(path):
     """the equations and the types of the outputs printed by faust -norm, or None"""
-    cmd = [opt.faust, "-norm", "-I", os.path.abspath(opt.lib), os.path.basename(path)]
+    cmd = [opt.faust, "-norm", "-I", LIB, os.path.basename(path)]
     r = subprocess.run(cmd, capture_output=True, text=True, cwd=os.path.dirname(path))
     if "Dump normal form finished" not in r.stdout + r.stderr:
         return None, (r.stderr or r.stdout).strip().splitlines()[:1]
@@ -84,6 +93,8 @@ if os.path.exists(exp_path):
 version = subprocess.run([opt.faust, "--version"], capture_output=True, text=True).stdout.splitlines()
 print("faust :", opt.faust)
 print(" ", " / ".join(l for l in version if "Version" in l or "Source commit" in l))
+sha = subprocess.run(["git", "-C", LIB, "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
+print("libraries :", LIB, sha or "(not a git checkout)")
 observed, worse, better, total = [], 0, 0, 0
 for fam in sorted(d for d in os.listdir(HERE) if os.path.isdir(os.path.join(HERE, d))):
     files = sorted(f for f in os.listdir(os.path.join(HERE, fam)) if f.endswith(".dsp"))
@@ -123,4 +134,7 @@ if opt.update:
         for fam, f, st, reason in observed:
             out.write(f"{fam}\t{f}\t{st}\t{reason}\n")
     print("expected.tsv rewritten from the observed statuses")
+if total == 0:
+    print("NOT A VERDICT : no writing was compared")
+    sys.exit(2)
 sys.exit(1 if worse else 0)
