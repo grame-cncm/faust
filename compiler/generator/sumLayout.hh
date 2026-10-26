@@ -136,8 +136,29 @@ inline bool negWraps(Tree sig, Tree x)
 }
 
 /**
+ * The operand x of a negation, neg(x), -1*x or x*-1 : a signed read of x, never a value of its
+ * own (spec LE-CONTEXTE-DES-OCCURRENCES) ; nullptr for any other signal.
+ */
+inline Tree negationOperand(Tree t)
+{
+    Tree a, b;
+    if (isSigNeg(t, a)) {
+        return a;
+    }
+    if (isSigMul(t, a, b)) {
+        if (isMinusOne(a)) {
+            return b;
+        }
+        if (isMinusOne(b)) {
+            return a;
+        }
+    }
+    return nullptr;
+}
+
+/**
  * The terms of Sum(t0, ..., tn) with their signs, in the order of the node, the zeros left
- * out : neg(x), a product by -1 or the gain kernel FIR[x, -1] is x subtracted.
+ * out : a negation (negationOperand) or the gain kernel FIR[x, -1] is x subtracted.
  */
 inline std::vector<std::pair<bool, Tree>> signedTerms(const tvec& subs)
 {
@@ -146,14 +167,9 @@ inline std::vector<std::pair<bool, Tree>> signedTerms(const tvec& subs)
         if (isZero(t)) {
             continue;
         }
-        Tree a, b;
         tvec fc;
-        if (isSigNeg(t, a)) {
-            st.push_back({false, a});
-        } else if (isSigMul(t, a, b) && isMinusOne(a)) {
-            st.push_back({false, b});
-        } else if (isSigMul(t, a, b) && isMinusOne(b)) {
-            st.push_back({false, a});
+        if (Tree x = negationOperand(t)) {
+            st.push_back({false, x});
         } else if (isSigFIR(t, fc) && fc.size() == 2 && isMinusOne(fc[1])) {
             st.push_back({false, fc[0]});
         } else {

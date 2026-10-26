@@ -213,6 +213,10 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
             // recomputed exp and the division of k in the sample loop.
             incOcc(env, v0, r0, 0, c0, m);
             incOcc(env, v, r, d, xc, z);
+        } else if (isSigNeg(t, y)) {
+            // neg(y) is compiled as -y, inline as -1*y : y is used in the
+            // context of the negation, for the same reason
+            incOcc(env, v, r, d, xc, y);
         } else if (isSigDelay(t, x, y)) {
             Type g2 = getCertifiedSigType(y);
             int  d2 = checkDelayInterval(g2);
