@@ -808,12 +808,6 @@ expected:
       `lfboost`, `lowcut`, `osci`, `parametric_eq`, `phaser_flanger`,
       `spectral_tilt`, `thru_zero_flanger`, `virtual_analog_oscillators`
       and `zita_rev1` (65 responses).
-- **`table2` under `-mapp`** (`cpp/double/mapp`, `master-dev-certification`
-  only). `-mapp` replaces `fmod(2 + x, 7)` by an approximation whose
-  integer part indexes a table ; the normal form distributes the constant
-  factor over `2 + x`, and at `x = 19` the integer part gives 7 instead of
-  0. Over 30000 samples the index differs from the exact one 3 times, 2
-  with `master-dev` and with the exact `fmod`.
 
 A program that is already broken cannot witness a second breakage: an
 innocuity test run over an already-failing case has no power there, while
@@ -936,6 +930,15 @@ does not protect it.
    used. *Fix:* remove them.
 
 ## Still to be settled
+
+- **`table2` under `-mapp`** (`cpp/double/mapp`) fails with the branch and
+  passes with `master-dev` : a defect of the branch, open, not an accepted
+  failure. `-mapp` replaces `fmod(2 + x, 7)` by an approximation whose
+  integer part indexes a table ; the normal form distributes the constant
+  factor over `2 + x`, and at `x = 19` the integer part gives 7 instead of
+  0. An approximation that changes the rounding must not reach a table
+  index (`LA-FORME-DE-CALCUL`, the transformations) ; the two index
+  differences `master-dev` makes too do not change its output.
 
 - The status of each of the other suites under `tests/` — gate,
   informative, or abandoned. This has to be written down once.
