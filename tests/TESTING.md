@@ -190,6 +190,16 @@ without a count still requires at least one sample and no more than the
 reference). A response shorter than its
 header still fails.
 
+**Regression scripts.** `tests/compile-tests` holds one script per defect
+once fixed (a shared node of a bargraph's tail computed once, a negation
+hoisted out of the loop, integer powers, the path of the executable…), each
+documented in its README. `make -C tests/compile-tests check-scripts
+FAUST=<binary under test>` runs those that need only faust and a C/C++
+compiler, as part of this gate ; `check-scripts-all` runs every one (Java,
+Julia, Cargo, Node, the Xilinx `ap_fixed.h` header ; `SCRIPT_ARGS` passes
+their paths). Both pass the tree's `libraries` (checked, as `FAUST_LIB_PATH`),
+print one verdict per script, and fail when one script fails.
+
 An exclusion is legitimate; an exclusion nobody can see is not. The suite
 holds 102 programs (`ls tests/impulse-tests/dsp/*.dsp | wc -l`), and a
 leg tests 100 of them (`prefix` and `osc_enable` left out), 99 under

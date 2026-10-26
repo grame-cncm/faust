@@ -11,6 +11,15 @@ All examples found is the `examples` and `regression` folders are compiled using
 Type `make help` for details on the available targets.
 
 
+### The regression scripts
+
+Each script below checks one defect once fixed. `make check-scripts
+FAUST=<binary>` runs those that need only faust and a C/C++ compiler
+(`display-tail-sharing`, `exe-path`, `hoist-negation`, `integer-pow`) ;
+`make check-scripts-all` runs every one, the others needing Java, Julia,
+Cargo, Node or the Xilinx `ap_fixed.h` header (`SCRIPT_ARGS` passes their
+paths). One verdict per script ; the target fails when one script fails.
+
 ### Files excluded from tests
 
 - `faust-stk` : the 'c' backend doesn't compile due to C++ specific implementation of foreign functions.
