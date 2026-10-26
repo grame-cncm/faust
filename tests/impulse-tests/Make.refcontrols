@@ -1,0 +1,52 @@
+#
+# The references of the controls legs (rule 6 of "The contract of a gate", tests/TESTING.md) :
+# archs/impulsecontrols.cpp compiled by the TRUSTED faust (FAUST=...) with the libraries of
+# the tree, one response per program, each checked against the -vec response of the same
+# compiler. The intermediate files live in their own directory, apart from those of Make.ref.
+#
+
+FAUST ?= ../../build/bin/faust
+FAUSTLIB ?= $(or $(FAUST_LIB_PATH),../../libraries)
+CXX   ?= c++
+COMPARE := ./filesCompare
+
+refdir := reference-controls
+bld    := build-controls
+arch   := archs/impulsecontrols.cpp
+GCCOPTIONS := -O3 -ffp-contract=off -I../../architecture -Iarchs -pthread -std=c++11
+
+# prefix is left out of every leg of Make.gcc (issue #1071), and so of these references
+dspfiles := $(filter-out dsp/prefix.dsp, $(wildcard dsp/*.dsp))
+reffiles := $(patsubst dsp/%.dsp, $(refdir)/%.ir, $(dspfiles))
+
+.PHONY: reference-controls check-lib
+.SECONDARY:
+
+reference-controls: check-lib $(reffiles)
+
+check-lib:
+	@test -f $(FAUSTLIB)/stdfaust.lib || { echo "NOT A REFERENCE : $(FAUSTLIB) has no stdfaust.lib"; exit 2; }
+	@$(FAUST) --version | grep "Source commit"
+	@echo "libraries : $(abspath $(FAUSTLIB)) $$(git -C $(FAUSTLIB) rev-parse --short HEAD 2>/dev/null)"
+
+$(refdir)/%.ir: $(bld)/% $(bld)/vec/%
+	@mkdir -p $(@D)
+	$(bld)/vec/$* > $(bld)/vec/$*.ir
+	$< > $@
+	$(COMPARE) $@ $(bld)/vec/$*.ir
+
+$(bld)/%: $(bld)/%.cpp
+	$(CXX) $(GCCOPTIONS) $< -o $@
+
+$(bld)/%.cpp: dsp/%.dsp
+	@mkdir -p $(@D)
+	FAUST_LIB_PATH=$(abspath $(FAUSTLIB)) $(FAUST) -I $(abspath $(FAUSTLIB)) -I dsp -double -i -a $(arch) $< -o $@
+
+# enable/control only work in scalar mode
+$(bld)/vec/osc_enable.cpp: dsp/osc_enable.dsp
+	@mkdir -p $(@D)
+	FAUST_LIB_PATH=$(abspath $(FAUSTLIB)) $(FAUST) -I $(abspath $(FAUSTLIB)) -I dsp -lang cpp -double -i -a $(arch) $< -o $@
+
+$(bld)/vec/%.cpp: dsp/%.dsp
+	@mkdir -p $(@D)
+	FAUST_LIB_PATH=$(abspath $(FAUSTLIB)) $(FAUST) -I $(abspath $(FAUSTLIB)) -I dsp -double -vec -i -a $(arch) $< -o $@
