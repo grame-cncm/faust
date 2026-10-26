@@ -48,6 +48,8 @@ static bool truncated(istream* in, const char* which, const char* where)
     return false;
 }
 
+static const double kHalfPrintedDigit = 0.5e-6;
+
 static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_part, int expected)
 {
     string line1, line2, dummy;
@@ -171,7 +173,10 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
             l2reader >> sample2;
             double delta = fabs(sample1 - sample2);
             
-            if (delta > tolerance) {
+            // the drivers print 6 decimals (%8.6f) : a printed difference is a multiple of 1e-6,
+            // up to the conversion of the two decimals ; it fails when it passes the tolerance by
+            // half a printed digit, never for the rounding of the printing itself
+            if (delta > tolerance + kHalfPrintedDigit) {
                 
                 cerr << "Line : " << line_num1 << " output : " << j << " sample1 : " << sample1 << " different from sample2 : " << sample2 << " delta : " << delta << endl;
                 gResult = 1;

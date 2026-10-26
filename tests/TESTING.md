@@ -194,12 +194,15 @@ header still fails.
 checkboxes at their default values. Four legs drive them inside their
 ranges (rule 6 of "The contract of a gate") : `archs/impulsecontrols.cpp`
 runs three passes of 4000 samples after an impulse, every control set to a
-value drawn inside its range (fixed seed), then to its minimum, then to its
-maximum, buttons pressed during the first block of each pass. They are
-compared with `reference-controls/`, produced once by the trusted compiler
-with the libraries of the tree (`Make.refcontrols` : every response is
-checked against the `-vec` response of the same compiler ; `prefix` is left
-out, as in every leg) :
+value drawn inside its range, then to its minimum, then to its maximum,
+buttons pressed during the first block of each pass. A checkbox is drawn 0
+or 1, its range ; the value drawn for a control depends on its path in the
+interface (its groups and label) and a fixed seed, not on its rank, so that
+a compiler that leaves out an unused control does not change the values of
+the others. The legs are compared with `reference-controls/`, produced once
+by the trusted compiler with the libraries of the tree (`Make.refcontrols` :
+every response is checked against the `-vec` response of the same compiler
+; `prefix` is left out, as in every leg) :
 
 ```sh
 make -C tests/impulse-tests controls FAUST=<binary under test>      # cpp and ocpp, double and float
@@ -209,15 +212,22 @@ make -C tests/impulse-tests reference-controls FAUST=<trusted faust>  # once, fo
 The references in the tree come from `master-dev` `923ac1776`, libraries
 `db56585` ; `master-dev` passes the double legs on all 100 programs. In
 the float legs, a float response is compared with double references :
-`master-dev` fails 32 programs there, in cpp and in ocpp, and these are the
-float legs' accepted failures. On 2026-10-26, `515b25417` fails, beyond
-them, 12 programs that are not accepted failures but differences to
-analyse : `carre_volterra` (double and float), `cubic_distortion`,
-`int_bool_left`, `norm1`, `reverb_designer`, `reverb_tester`,
-`spectral_tilt`, `UITester`, `virtual_analog_oscillators` (double),
-`bandfilter`, `lfboost` (float) ; `priority1` passes the float legs, which
-`master-dev` fails. With the controls at their defaults, these 12 programs
-pass Gate 1.
+`master-dev` fails 29 programs there, in cpp and in ocpp, the float legs'
+accepted failures. On 2026-10-26, `515b25417` fails two more programs :
+
+- `int_bool_left` (double, the pass at the maximum) : `int()` of a value
+  beyond Int32 saturates on the branch, where `master-dev` converts with an
+  undefined behaviour (INT_MIN on x86-64) ; a stated and approved
+  difference, the conversion to an integer saturates always ;
+- `lfboost` (float, the pass at the minimum) : an error of 6.2e-5 against
+  the double reference, 4.2e-5 with `master-dev`, beyond its tolerance of
+  5e-5 ; an open defect of the branch, to fix in the computing form (see
+  "Still to be settled").
+
+`norm1` passes : the normal form reads `pow(x, 2)/(x*x)` as 1, and its
+slider leaves the interface ; `master-dev` computes the quotient, NaN at
+`x = 0` only, a value the passes do not draw. The normal form holds `x/x =
+1`.
 
 Every leg of `Make.gcc` checks its library : `FAUST_LIB_PATH` when set, the
 tree's `libraries` otherwise, which must hold `stdfaust.lib` ; it is
@@ -546,7 +556,7 @@ neither is exact equality:
 
 | gate | criterion | default |
 | :--- | :-------- | :------ |
-| impulse suite | absolute difference ≤ tolerance, in `filesCompare` | `2e-6` ; per-program overrides in `Make.gcc` (`FLOAT_TOLERANCES`, one value per program) on every float leg, whatever its option directory (`vec`, `sched`, `omp`, `ftz2`, `vec/lv0`…), up to `0.065`, and `0.04` on `cpp/double/sched/parametric_eq` ; the Rust cross-precision legs override the whole leg (up to `24`) |
+| impulse suite | absolute difference ≤ tolerance plus half a printed digit (the drivers print 6 decimals : 5e-7), in `filesCompare` | `2e-6` ; per-program overrides in `Make.gcc` (`FLOAT_TOLERANCES`, one value per program) on every float leg, whatever its option directory (`vec`, `sched`, `omp`, `ftz2`, `vec/lv0`…), up to `0.065`, and `0.04` on `cpp/double/sched/parametric_eq` ; the Rust cross-precision legs override the whole leg (up to `24`) |
 | library specs | `math.isclose(rel_tol=t, abs_tol=t)`, `floatdiff.py` | `t = FLOAT_TOL = 1e-5`, so either criterion suffices |
 
 A consequence worth keeping in mind when reading a divergence: the first
@@ -938,6 +948,11 @@ does not protect it.
    used. *Fix:* remove them.
 
 ## Still to be settled
+
+- **`lfboost` in the float controls legs** : an error of 6.2e-5 against the
+  double reference with the branch, 4.2e-5 with `master-dev` (tolerance
+  5e-5), at the pass where every control is at its minimum ; a defect of
+  the computing form, open.
 
 - **`table2` under `-mapp`** (`cpp/double/mapp`) fails with the branch and
   passes with `master-dev` : a defect of the branch, open, not an accepted
