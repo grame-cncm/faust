@@ -15,8 +15,8 @@ Type `make help` for details on the available targets.
 
 Each script below checks one defect once fixed. `make check-scripts
 FAUST=<binary>` runs those that need only faust and a C/C++ compiler
-(`display-tail-sharing`, `exe-path`, `hoist-negation`, `infinite-coefficients`,
-`integer-pow`) ;
+(`display-contexts`, `display-tail-sharing`, `exe-path`, `hoist-negation`,
+`infinite-coefficients`, `integer-pow`) ;
 `make check-scripts-all` runs every one, the others needing Java, Julia,
 Cargo, Node or the Xilinx `ap_fixed.h` header (`SCRIPT_ARGS` passes their
 paths). One verdict per script ; the target fails when one script fails.
@@ -135,6 +135,23 @@ input sample:
 
 ```sh
 python3 tests/compile-tests/display-tail-sharing.py --faust build/bin/faust
+```
+
+### Display contexts
+
+`display-contexts.py` compiles, with the ocpp backend, fifteen programs
+whose harvested bargraph displays an expression, and for each a witness
+program that outputs the same expression. After each of 30 blocks, the
+bargraph must hold the last sample of the witness channel. The cases cover
+a negation shared by an output and the display, a node shared with the
+branch of `enable`, `control` or `select2` (`-lazyselect`, `-selectn`),
+the rewrites `-reassoc`, `-temp 1` and `-mindelay 2`, a block of no sample
+(the bargraph keeps its value, 0 at first) and an input read by the display
+only under `-ls`, and under `-inpl` and `-ls -inpl` (called in place). The chain of 16 shared
+negations must call `sin` 16 times:
+
+```sh
+python3 tests/compile-tests/display-contexts.py --faust build/bin/faust
 ```
 
 ### Java backend execution
