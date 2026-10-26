@@ -190,6 +190,39 @@ without a count still requires at least one sample and no more than the
 reference). A response shorter than its
 header still fails.
 
+**Controls legs.** The legs above keep the sliders, numerical entries and
+checkboxes at their default values. Four legs drive them inside their
+ranges (rule 6 of "The contract of a gate") : `archs/impulsecontrols.cpp`
+runs three passes of 4000 samples after an impulse, every control set to a
+value drawn inside its range (fixed seed), then to its minimum, then to its
+maximum, buttons pressed during the first block of each pass. They are
+compared with `reference-controls/`, produced once by the trusted compiler
+with the libraries of the tree (`Make.refcontrols` : every response is
+checked against the `-vec` response of the same compiler ; `prefix` is left
+out, as in every leg) :
+
+```sh
+make -C tests/impulse-tests controls FAUST=<binary under test>      # cpp and ocpp, double and float
+make -C tests/impulse-tests reference-controls FAUST=<trusted faust>  # once, for the references
+```
+
+The references in the tree come from `master-dev` `923ac1776`, libraries
+`db56585` ; `master-dev` passes the double legs on all 100 programs. In
+the float legs, a float response is compared with double references :
+`master-dev` fails 32 programs there, in cpp and in ocpp, and these are the
+float legs' accepted failures. On 2026-10-26, `515b25417` fails, beyond
+them, 12 programs that are not accepted failures but differences to
+analyse : `carre_volterra` (double and float), `cubic_distortion`,
+`int_bool_left`, `norm1`, `reverb_designer`, `reverb_tester`,
+`spectral_tilt`, `UITester`, `virtual_analog_oscillators` (double),
+`bandfilter`, `lfboost` (float) ; `priority1` passes the float legs, which
+`master-dev` fails. With the controls at their defaults, these 12 programs
+pass Gate 1.
+
+Every leg of `Make.gcc` checks its library : `FAUST_LIB_PATH` when set, the
+tree's `libraries` otherwise, which must hold `stdfaust.lib` ; it is
+exported to faust.
+
 **Regression scripts.** `tests/compile-tests` holds one script per defect
 once fixed (a shared node of a bargraph's tail computed once, a negation
 hoisted out of the loop, integer powers, the path of the executable…), each
@@ -405,8 +438,9 @@ bound to MIDI move), so a control is never driven to another value of its
 range, nor to an edge. A rounding overflow needs a value within one ulp of
 an edge; an interface overflow needs a value outside the range. Neither is
 exercised, so zero reports is not a proof of safety. The gate guards
-against gross regressions; rule 6 of "The contract of a gate" is not met
-yet.
+against gross regressions. The controls legs of Gate 1 drive the controls
+inside their ranges and to their bounds (rule 6 of "The contract of a
+gate") ; no leg of this gate does yet.
 
 ## What actually decides what is being tested
 
