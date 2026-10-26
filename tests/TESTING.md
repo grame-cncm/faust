@@ -42,6 +42,53 @@ its declared range, a NaN, `-ffast-math`).
 > vectorisation, nor on the scheduling strategy. A reference set per
 > option would only check each option against itself.
 
+## The contract of a gate
+
+A gate is a script whose verdict can be trusted without reading its log.
+Every gate, and every script a gate calls, satisfies the rules below. A
+gate that breaks one of them is a defect of the gate, whatever its
+verdict.
+
+1. **The verdict is the exit code.** A gate exits 0 only when it passed,
+   and a script that compares (an output, a fingerprint) exits non-zero
+   on a difference. A line such as `diff a b ; echo Done` is not a
+   comparison.
+2. **A failure on either side is not an identity.** A comparison counts
+   only the outputs both sides produced. When a generation, a compilation
+   or a run fails on one side or both, the gate reports it, and it does
+   not conclude "same". Two identical failure markers are not two
+   identical outputs.
+3. **A gate names and checks its inputs.** It prints the `Source commit:`
+   line of every binary, and the path and sha of the library it uses. It
+   passes that library explicitly (`-I` and `FAUST_LIB_PATH`) and refuses
+   to run when it does not contain `stdfaust.lib`: the library installed
+   on a machine is not the library of the tree. It prints how many
+   programs it compared, and fails when that number is zero.
+4. **A verdict is qualified.** An expected refusal is a refusal by the
+   certification, recognised by its message. A syntax error, an unknown
+   symbol, a missing library or a crash of the compiler (a signal, an
+   assertion) is a failure of the gate, never an expected refusal.
+5. **A comparison checks what it claims.** A partial comparison checks
+   the number of samples it expects. A tolerance stated for a program
+   applies to every leg of the same precision.
+6. **A gate exercises the controls.** The certification decides on the
+   whole range of each control, not on its default value: a gate that
+   checks semantics also runs each program with its controls at other
+   values inside their ranges, and at both bounds.
+7. **Every test is run, and what is not a gate says so.** A test script
+   that no gate or target runs is attached to one. The snapshots of
+   `tests/impulse-tests/reference` (`.sig`, `.fir`, `.cpp1`) are not a
+   gate: no verdict depends on them, and their scripts only print the
+   differences.
+8. **An accepted failure is not a regression.** A program enters the list
+   of accepted failures only when the reference compiler fails it too, or
+   when the difference is stated and approved. A program that passes with
+   `master-dev` and fails with the branch is a defect of the branch.
+
+Before a gate is trusted, it is made to fail once: an output altered on a
+value, a program refused for a wrong reason, an empty corpus. Each must
+turn its verdict into a failure.
+
 ## Gate 1 — the impulse suite
 
 Reference responses are versioned in the repository, so this gate needs no
@@ -331,11 +378,15 @@ adds AddressSanitizer only; the explicit `GCCOPTIONS` adds the undefined
 behaviour sanitizer too. `detect_leaks=0` is required: see "Known harness
 defects".
 
-What this gate does **not** see: the impulse driver draws control values
-at random *inside* their ranges, for a few thousand samples. A rounding
-overflow needs a value within one ulp of an edge; an interface overflow
-needs a value outside the range. Neither is exercised, so zero reports is
-not a proof of safety. The gate guards against gross regressions.
+What this gate does **not** see: the impulse driver keeps the sliders,
+numerical entries and checkboxes at their default values for the whole
+response (only the buttons, pressed at the first block, and the controls
+bound to MIDI move), so a control is never driven to another value of its
+range, nor to an edge. A rounding overflow needs a value within one ulp of
+an edge; an interface overflow needs a value outside the range. Neither is
+exercised, so zero reports is not a proof of safety. The gate guards
+against gross regressions; rule 6 of "The contract of a gate" is not met
+yet.
 
 ## What actually decides what is being tested
 
