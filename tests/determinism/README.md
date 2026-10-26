@@ -38,7 +38,9 @@ Across two machines (a Mac with clang, a Linux with g++) : `make
 fingerprint > mac.txt` on one, copy the file, `make compare FILE=mac.txt`
 on the other. The witnesses whose constants go through the host's libm
 (`libm-witnesses.txt`) are reported apart : they may differ at the last
-ulp between two C libraries, and that is the known residual.
+ulp between two C libraries, and that is the known residual. A failed
+generation is a `FAIL` line of the fingerprint, and `compare` gives no
+verdict on it (exit status 2).
 
 `lint/unsequenced.py` : `--why NAME` prints why a function is considered
 order-significant ; `--out DIR` saves the call graph and the sites as

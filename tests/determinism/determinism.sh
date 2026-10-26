@@ -5,7 +5,8 @@
 # from the same commit (by two C++ compilers, or on two machines), compared byte
 # to byte. Every witness is generated under six option sets. The -I paths are
 # relative, so that the compile_options the emitted code quotes are the same on
-# both sides. Exit status 1 when any output differs.
+# both sides. Exit status 1 when any output differs, 2 when a generation failed or the
+# libraries are missing (no verdict).
 set -u; export LC_ALL=C
 HERE=$(cd "$(dirname "$0")" && pwd)
 A=${1:?usage: determinism.sh <faust-A> <faust-B> [witnesses]}; B=${2:?usage: determinism.sh <faust-A> <faust-B> [witnesses]}
@@ -14,12 +15,20 @@ W=${3:-$HERE/witnesses.txt}
 A=$(cd "$(dirname "$A")" && pwd)/$(basename "$A"); B=$(cd "$(dirname "$B")" && pwd)/$(basename "$B")
 W=$(cd "$(dirname "$W")" && pwd)/$(basename "$W")
 cd "$HERE"
+# the libraries of the tree, named and checked : with an empty sub-project, faust would
+# silently take the library installed on the machine
+LIB=../../libraries
+if [ ! -f "$LIB/stdfaust.lib" ]; then
+    echo "NOT A VERDICT : $HERE/$LIB has no stdfaust.lib (git submodule update --init libraries)"; exit 2
+fi
+export FAUST_LIB_PATH=$(cd "$LIB" && pwd)
 OUT=$HERE/out; rm -rf "$OUT"; mkdir -p "$OUT/a" "$OUT/b"
-INC="-I ../impulse-tests/dsp -I ../../libraries"
+INC="-I ../impulse-tests/dsp -I $LIB"
 SETS=("-lang cpp -double -t 0" "-lang cpp -double -t 0 -vec" "-lang ocpp -double -t 0" "-lang ocpp -double -t 0 -vec"
       "-lang cpp -double -t 0 -ftz 2" "-lang ocpp -double -t 0 -fir")
 echo "A : $A"; "$A" --version | sed 's/^/    /'
 echo "B : $B"; "$B" --version | sed 's/^/    /'
+echo "libraries : $FAUST_LIB_PATH $(git -C "$LIB" rev-parse --short HEAD 2>/dev/null || echo '(not a git checkout)')"
 n=0; same=0; diff=0; fail=0; bad=""; firsterr=""
 while IFS=$'\t' read -r name file pn; do
     [ -z "$name" ] && continue; case "$name" in \#*) continue;; esac
@@ -47,14 +56,14 @@ while IFS=$'\t' read -r name file pn; do
 done < "$W"
 echo
 echo "option sets : ${SETS[*]/#/| }"
-echo "generations : $n   identical : $same   different : $diff   failed on both sides : $fail"
+echo "generations : $n   identical : $same   different : $diff   failed (on one side or both) : $fail"
 if [ $diff -gt 0 ]; then
     echo; echo "DIFFERENT (the emitted code depends on how faust was built) :"; printf '%s' "$bad" | sed 's/^/    /'
     echo "the outputs are in $OUT/a and $OUT/b"
     exit 1
 fi
 if [ $same -eq 0 ] || [ $fail -gt 0 ]; then
-    echo; echo "NOT A VERDICT : $fail generation(s) failed on both sides (a gate that cannot generate proves nothing)"
+    echo; echo "NOT A VERDICT : $fail generation(s) failed, on one side or both (a gate that cannot generate proves nothing)"
     [ -n "$firsterr" ] && echo "    first error : $firsterr"
     exit 2
 fi
