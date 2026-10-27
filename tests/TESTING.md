@@ -709,8 +709,8 @@ property per program.
 
 | directory | content | expected |
 | :--- | :--- | :--- |
-| `accepted/` | delays the analysis must bound, and a coefficient beyond `FLT_MAX` that must not stop the compilation | accepted under every option set |
-| `refused/` | delays that are unbounded, beyond the integer range, or possibly negative | refused under every option set |
+| `accepted/` | delays the analysis must bound, a coefficient beyond `FLT_MAX` that must not stop the compilation, and programs whose code is defined although they are not certified free of NaN : a conversion of a value that may be NaN, an integer power of variable exponent, a foreign function, a table index beyond the table, the square root of an input | accepted under every option set |
+| `refused/` | delays that are unbounded, beyond the integer range, or possibly negative ; integer remainders that may stop the execution (a divisor that may be 0, or `-2147483648 % -1`) ; signals without any valid value, even kept away from the outputs | refused under every option set |
 | `nocert/` | programs refused only for what the analysis could not prove | refused by default, accepted under `-nocert` |
 | `mcs/` | programs certified for a duration between 10 and 60 seconds | accepted by default, refused under `-mcs 60`, accepted under `-mcs 60 -nocert` |
 
@@ -736,7 +736,8 @@ with a refusal of the certification (one of its messages : `can't compute
 the min and max values`, `possible negative values`, `highest` or `lowest
 of a signal that may be invalid`, `certified for only`, `out of range
 soundfile part number`, `invalid delay parameter range`, `too big delay
-value`), or `failed` for anything else : a syntax error, an unknown
+value`, `an integer remainder may stop the execution`, `a signal has no
+valid value`), or `failed` for anything else : a syntax error, an unknown
 symbol, a missing library, a signal or an assertion of the compiler is
 never an expected refusal. The last line gives the number of verdicts and
 of mismatches; every program and option set is run, and the gate fails
