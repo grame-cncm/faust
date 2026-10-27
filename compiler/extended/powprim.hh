@@ -101,6 +101,46 @@ class PowPrim : public xtendedCodegen {
         return tree(symbol(), args[0], args[1]);
     }
 
+    // The integer power of the analysis, for C and C++ : x^k by squaring, the products
+    // wrapping on 32 bits (faust_wrap_mul) ; for k < 0, 1/x^k truncated toward 0 (0 but for
+    // x = 1 and x = -1), and 0 for x = 0. Converting a double power to int would be
+    // undefined beyond the integers.
+    static DeclareFunInst* intPowFunction(const std::string& name)
+    {
+        ValueInst* base     = IB::genLoadFunArgsVar("ipow_base");
+        ValueInst* exponent = IB::genLoadFunArgsVar("ipow_exponent");
+        BlockInst* block    = IB::genBlockInst();
+        block->pushBackInst(IB::genDecStackVar("ipow_power", Typed::kInt32, IB::genInt32NumInst(1)));
+        block->pushBackInst(IB::genDecStackVar("ipow_square", Typed::kInt32, base));
+        block->pushBackInst(IB::genDecStackVar("ipow_count", Typed::kInt32, exponent));
+
+        BlockInst* step = IB::genBlockInst();
+        ValueInst* odd  = IB::genAnd(IB::genLoadStackVar("ipow_count"), IB::genInt32NumInst(1));
+        ValueInst* prod = IB::genBinopInst(kMul, IB::genLoadStackVar("ipow_power"), IB::genLoadStackVar("ipow_square"));
+        step->pushBackInst(IB::genStoreStackVar("ipow_power", IB::genSelect2Inst(odd, prod, IB::genLoadStackVar("ipow_power"))));
+        step->pushBackInst(IB::genStoreStackVar(
+            "ipow_square", IB::genBinopInst(kMul, IB::genLoadStackVar("ipow_square"), IB::genLoadStackVar("ipow_square"))));
+        step->pushBackInst(IB::genStoreStackVar(
+            "ipow_count", IB::genBinopInst(kARsh, IB::genLoadStackVar("ipow_count"), IB::genInt32NumInst(1))));
+        block->pushBackInst(IB::genWhileLoopInst(IB::genGreaterThan(IB::genLoadStackVar("ipow_count"), IB::genInt32NumInst(0)), step));
+
+        ValueInst* oddExponent = IB::genAnd(IB::genLoadFunArgsVar("ipow_exponent"), IB::genInt32NumInst(1));
+        ValueInst* minusOne    = IB::genSelect2Inst(oddExponent, IB::genInt32NumInst(-1), IB::genInt32NumInst(1));
+        ValueInst* negative    = IB::genSelect2Inst(
+            IB::genEqual(IB::genLoadFunArgsVar("ipow_base"), IB::genInt32NumInst(1)), IB::genInt32NumInst(1),
+            IB::genSelect2Inst(IB::genEqual(IB::genLoadFunArgsVar("ipow_base"), IB::genInt32NumInst(-1)), minusOne,
+                               IB::genInt32NumInst(0)));
+        block->pushBackInst(IB::genRetInst(IB::genSelect2Inst(
+            IB::genLessThan(IB::genLoadFunArgsVar("ipow_exponent"), IB::genInt32NumInst(0)), negative,
+            IB::genLoadStackVar("ipow_power"))));
+
+        Names named_args;
+        named_args.push_back(IB::genNamedTyped("ipow_base", IB::genBasicTyped(Typed::kInt32)));
+        named_args.push_back(IB::genNamedTyped("ipow_exponent", IB::genBasicTyped(Typed::kInt32)));
+        return IB::genDeclareFunInst(
+            name, IB::genFunTyped(named_args, IB::genBasicTyped(Typed::kInt32), FunTyped::kLocal), block);
+    }
+
     // Check that power argument is an integer or possibly represents an integer, up to 8
     bool isIntPowArg(::Type ty, ValueInst* val, int& pow_arg)
     {
@@ -189,6 +229,12 @@ class PowPrim : public xtendedCodegen {
             truncated_args.push_back((*args.begin()));
             return IB::genFunCallInst(faust_power_name, truncated_args);
 
+        } else if (result->nature() == kInt && (gGlobal->gOutputLang == "cpp" || gGlobal->gOutputLang == "c")) {
+            // the integer power of the analysis, defined for every exponent (intPowFunction)
+            std::string name = container->getFaustPowerName() + "_i";
+            container->pushGlobalDeclare(intPowFunction(name));
+            return IB::genFunCallInst(name, args);
+
         } else if (result->nature() == kInt) {
             // Compute integer power in double precision and round to nearest integer to avoid
             // truncation errors under -ffast-math and beyond 2^24 in single precision mode
@@ -234,7 +280,9 @@ class PowPrim : public xtendedCodegen {
             klass->rememberNeedPowerDef();
             return subst("faustpower<$1>($0)", args[0], args[1]);
         } else if ((types[0]->nature() == kInt) && (types[1]->nature() == kInt)) {
-            return subst("int(rint(pow(double($0),double($1))))", args[0], args[1]);
+            // the integer power of the analysis, defined for every exponent (klass.cpp)
+            klass->rememberNeedIntPowerDef();
+            return subst("faust_ipow($0, $1)", args[0], args[1]);
         } else {
             return subst("pow$2($0,$1)", args[0], args[1], isuffix());
         }
