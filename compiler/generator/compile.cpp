@@ -52,6 +52,9 @@ Compile a list of FAUST signals into a C++ class.
 #include "sigtyperules.hh"
 #include "simplify.hh"
 #include "timing.hh"
+#include "rewrite.hh"
+#include "prim2.hh"
+#include "sigtypesolver.hh"
 
 using namespace std;
 
@@ -183,6 +186,310 @@ void checkCertificates()
     if (!gGlobal->gRangeUI) {
         gWarningMessages.push_back(kNoRangeUIWarning);
     }
+}
+
+// The certified type of a signal, when it has one
+static SimpleType* certifiedSimpleType(Tree t)
+{
+    ::Type ty = getSigType(t);
+    return ty ? isSimpleType(ty.pointee()) : nullptr;
+}
+
+// The operands of t as the analysis reads them : a projection reads its definition
+static std::vector<Tree> analysisOperands(Tree t)
+{
+    std::vector<Tree> ops;
+    int               i, op;
+    Tree              g, var, body, x, y;
+    if (isProj(t, &i, g) && isRec(g, var, body) && body != nullptr && isList(body)) {
+        ops.push_back(nth(body, i));
+        return ops;
+    }
+    if (isSigBinOp(t, &op, x, y)) {
+        return {x, y};
+    }
+    for (int k = 0; k < t->arity(); k++) {
+        ops.push_back(t->branch(k));
+    }
+    return ops;
+}
+
+// A signal as a refusal prints it : ppsig stops at a position of its stream, so each one
+// is printed in a stream of its own
+static std::string showSignal(Tree t)
+{
+    std::stringstream s;
+    s << ppsig(t, MAX_ERROR_SIZE);
+    return s.str();
+}
+
+// An interval as a refusal prints it
+static std::string showInterval(const interval& i)
+{
+    std::stringstream s;
+    // an integer exactly, a real with the digits of the precision of the program
+    auto bound = [](double b) {
+        std::stringstream d;
+        if (std::isfinite(b) && b == std::trunc(b) && std::fabs(b) < 0x1p53) {
+            d << std::llround(b);
+        } else {
+            d << std::setprecision(gGlobal->gFloatSize == 1 ? 8 : 16) << b;
+        }
+        return d.str();
+    };
+    if (i.isEmpty()) {
+        s << "no valid value";
+    } else {
+        s << "[" << bound(i.lo()) << ", " << bound(i.hi()) << "]";
+    }
+    if (!i.isEmpty() && i.mayBeInvalid()) {
+        s << ", possibly invalid";
+    }
+    if (i.moves()) {
+        s << ", a bound holding over the analysis horizon only";
+    }
+    return s.str();
+}
+
+// An integer that may take the value v at some time : a value that may be invalid, or
+// whose bound moves past the analysis horizon, is any integer for all time
+static bool mayBeInt(const interval& i, double v)
+{
+    return i.mayBeInvalid() || i.moves() || i.has(v);
+}
+
+// The program the certified typing bounded, from checkValidity to the -wall report, which
+// runs after the generation of the code
+static Tree gCertifiedRoots = nullptr;
+
+void checkValidity(Tree roots)
+{
+    gCertifiedRoots = roots;
+    std::unordered_set<Tree> seen;
+    std::vector<Tree>        work{roots};
+    std::vector<Tree>        certain;  // the signals without a valid value, as found
+    while (!work.empty()) {
+        Tree t = work.back();
+        work.pop_back();
+        if (!seen.insert(t).second) continue;
+        Tree var, body;
+        if (isRec(t, var, body)) {
+            if (body) work.push_back(body);
+            continue;
+        }
+        for (int k = 0; k < t->arity(); k++) {
+            work.push_back(t->branch(k));
+        }
+        SimpleType* st = certifiedSimpleType(t);
+        if (!st) continue;
+        const interval it = st->getInterval();
+        if (it.isEmpty() && it.mayBeInvalid()) {
+            certain.push_back(t);
+        }
+        int  op;
+        Tree x, y;
+        if (st->nature() == kInt && isSigBinOp(t, &op, x, y) && op == kRem) {
+            SimpleType* sx = certifiedSimpleType(x);
+            SimpleType* sy = certifiedSimpleType(y);
+            if (!sx || !sy) continue;
+            const interval ix = sx->getInterval();
+            const interval iy = sy->getInterval();
+            const bool     zero    = mayBeInt(iy, 0);
+            const bool     extreme = mayBeInt(ix, double(INT32_MIN)) && mayBeInt(iy, -1);
+            if (zero || extreme) {
+                std::stringstream error;
+                error << "ERROR : an integer remainder may stop the execution, "
+                      << (zero ? "its divisor may be 0" : "it may compute -2147483648 % -1") << " : "
+                      << showSignal(t) << endl
+                      << "        dividend " << showSignal(x) << " in " << showInterval(ix)
+                      << endl
+                      << "        divisor " << showSignal(y) << " in " << showInterval(iy)
+                      << endl
+                      << kIntervalRefusalHint;
+                throw faustexception(error.str());
+            }
+        }
+    }
+    // the source of a certain invalidity : a signal without a valid value whose operands
+    // all have one, or the first one found when they all belong to a loop
+    std::unordered_set<Tree> invalid(certain.begin(), certain.end());
+    for (size_t n = 0; n < certain.size(); n++) {
+        Tree t      = certain[n];
+        bool source = true;
+        for (Tree c : analysisOperands(t)) {
+            if (invalid.count(c)) {
+                source = false;
+            }
+        }
+        if (!source && n + 1 < certain.size()) continue;
+        if (!source) t = certain.front();
+        std::stringstream error;
+        error << "ERROR : a signal has no valid value, it is always NaN or an undefined operation : "
+              << showSignal(t) << endl;
+        for (Tree c : analysisOperands(t)) {
+            if (SimpleType* sc = certifiedSimpleType(c)) {
+                error << "        operand " << showSignal(c) << " in "
+                      << showInterval(sc->getInterval()) << endl;
+            }
+        }
+        error << kIntervalRefusalHint;
+        throw faustexception(error.str());
+    }
+}
+
+void reportNumericCertificate()
+{
+    Tree roots      = gCertifiedRoots;
+    gCertifiedRoots = nullptr;
+    if (!gAllWarning || roots == nullptr) return;
+    std::stringstream report;
+    try {
+        // the hypothesis on the audio inputs, written as a bound in a copy of the program ;
+        // the copy renames its recursive groups, the compiled program keeps its definitions
+        std::unordered_map<Tree, Tree> memo;
+        auto bound = [](Tree t) -> Tree {
+            int i;
+            if (isSigInput(t, &i)) {
+                Tree hi = sigMin(sigReal(1.0), t);
+                return sigMax(sigReal(-1.0), hi);
+            }
+            return t;
+        };
+        Tree                           H = treeRewriteMemo(roots, bound, memo);
+        std::unordered_map<Tree, Tree> original;  // a signal of the copy, printed as written
+        for (const auto& [o, h] : memo) {
+            original[h] = o;
+        }
+        std::unordered_set<Tree> inputs;  // a bounded audio input : a hypothesis, not a signal to report
+        for (const auto& [o, h] : memo) {
+            int n;
+            if (isSigInput(o, &n)) inputs.insert(h);
+        }
+        auto shown = [&](Tree h) {
+            auto it = original.find(h);
+            return showSignal(it != original.end() ? it->second : h);
+        };
+
+        TypeSolver solver(H);
+        auto       bad = [&](Tree t, bool& invalid, bool& infinite) {
+            if (!solver.isSignal(t)) return false;
+            const interval i = solver.interval(t);
+            invalid          = i.mayBeInvalid();
+            infinite = !invalid && solver.type(t)->nature() == kReal && !i.isEmpty() &&
+                       (std::isinf(i.lo()) || std::isinf(i.hi()));
+            return invalid || infinite;
+        };
+        auto operands = [&](Tree t) {
+            std::stringstream s;
+            const char*       sep = "";
+            for (Tree c : analysisOperands(t)) {
+                if (solver.isSignal(c)) {
+                    s << sep << showInterval(solver.interval(c));
+                    sep = ", ";
+                }
+            }
+            return s.str();
+        };
+
+        std::set<Tree>           outputs;
+        std::unordered_set<Tree> seen;
+        std::vector<Tree>        work;
+        for (Tree l = H; isList(l); l = tl(l)) {
+            outputs.insert(hd(l));
+        }
+        work.push_back(H);
+        std::vector<std::string> sources, foreign, lines;
+        std::vector<Tree>        carriers;  // the bad signals whose operands are bad too
+        int  invalids = 0, infinites = 0;
+        bool output = false, bargraph = false;
+        while (!work.empty()) {
+            Tree t = work.back();
+            work.pop_back();
+            if (!seen.insert(t).second) continue;
+            Tree var, body, ff, largs;
+            if (isRec(t, var, body)) {
+                if (body) work.push_back(body);
+                continue;
+            }
+            if (inputs.count(t)) continue;
+            for (int k = 0; k < t->arity(); k++) {
+                work.push_back(t->branch(k));
+            }
+            bool invalid, infinite;
+            const bool wrong = bad(t, invalid, infinite);
+            if (wrong) {
+                (invalid ? invalids : infinites)++;
+                output   = output || outputs.count(t);
+                bargraph = bargraph || isSigHBargraph(t) || isSigVBargraph(t);
+            }
+            // a foreign function is not certified, whatever its interval
+            if (isSigFFun(t, ff, largs)) {
+                foreign.push_back("foreign function " + std::string(ffname(ff)) + ", whose domain is unknown : " +
+                                  shown(t));
+                continue;
+            }
+            if (!wrong) continue;
+            // a source : no operand invalid, and for an infinity no operand infinite ; an
+            // audio input is a hypothesis, not a source
+            int  n;
+            bool source = !isSigInput(t, &n);
+            for (Tree c : analysisOperands(t)) {
+                bool ci, cf;
+                if (bad(c, ci, cf) && (ci || !invalid)) source = false;
+            }
+            if (source && (isSigIIR(t) || isSigIRM(t))) {
+                // a revealed recursion : the coefficients are its operands
+                sources.push_back("a recursion the analysis does not prove contracting : " + shown(t) +
+                                  " ; operands in " + operands(t));
+            } else if (source) {
+                sources.push_back(std::string(invalid ? "may be NaN or undefined" : "may be infinite") + " : " +
+                                  shown(t) + " ; operands in " + operands(t));
+            } else {
+                carriers.push_back(t);
+            }
+        }
+        lines = sources;
+        if (sources.empty() && !carriers.empty()) {
+            // a recursion without a source outside it : its first recursive signal, and the
+            // factor, the coefficient or the weight that the analysis could not bound, a
+            // valid operand that is neither a constant nor an audio input
+            Tree rec = nullptr, factor = nullptr;
+            for (Tree t : carriers) {
+                int  i;
+                Tree g;
+                if (rec == nullptr && isProj(t, &i, g)) rec = t;
+                for (Tree c : analysisOperands(t)) {
+                    bool   ci, cf;
+                    int    iv;
+                    double rv;
+                    if (factor == nullptr && solver.isSignal(c) && !inputs.count(c) && !bad(c, ci, cf) &&
+                        !isSigInt(c, &iv) && !isSigReal(c, &rv)) {
+                        factor = c;
+                    }
+                }
+            }
+            std::string line =
+                "a recursion the analysis does not prove contracting : " + shown(rec ? rec : carriers.front());
+            if (factor) line += " ; operand " + shown(factor) + " in " + showInterval(solver.interval(factor));
+            lines.push_back(line);
+        }
+        lines.insert(lines.end(), foreign.begin(), foreign.end());
+        if (lines.empty() && invalids + infinites == 0) return;
+        report << "WARNING : this program is not certified free of NaN and infinity, under the "
+                  "assumptions of the certificate (audio inputs within [-1, 1], controls within "
+                  "their ranges) :"
+               << endl;
+        for (size_t k = 0; k < lines.size() && k < 3; k++) {
+            report << "        " << lines[k] << endl;
+        }
+        report << "        " << invalids << (invalids == 1 ? " signal" : " signals") << " may be NaN or undefined, "
+               << infinites << " may be infinite" << (output ? " ; an output is concerned" : "")
+               << (bargraph ? " ; a bargraph is concerned" : "")
+               << ((output || bargraph) ? "" : " ; no output nor bargraph is concerned") << endl;
+    } catch (faustexception& e) {
+        report << "WARNING : the numeric certificate could not be checked : " << e.what();
+    }
+    gWarningMessages.push_back(report.str());
 }
 
 void dumpEquations(Tree L)

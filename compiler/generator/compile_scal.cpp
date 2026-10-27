@@ -867,6 +867,9 @@ Tree ScalarCompiler::prepare(Tree LS)
         }
     };
     annotateDisplay();
+    // an integer remainder that may stop, a signal never valid : the bargraphs computed
+    // once per block included
+    checkValidity(programRoots(L2));
 
     if (gGlobal->gMinDelay > 0) {
         // semantic delay floor: needs the intervals just computed, rebuilds

@@ -3018,9 +3018,17 @@ string global::printHelp()
          << endl;
 
     sstr << endl << "Certification:" << line;
-    sstr << tab << "A program is accepted only when the interval analysis proves that its table indices, "
-                   "delays and integer conversions stay within their bounds (-norm prints the interval "
-                   "of each equation)."
+    sstr << tab << "A program is accepted only when the interval analysis proves its code defined : its "
+                   "delays stay within their lines, and no integer remainder may stop the execution (a "
+                   "divisor that may be 0, or -2147483648 % -1). Table indices and soundfile parts are held "
+                   "within their range at run time, and a conversion to an integer saturates (NaN gives 0). "
+                   "A signal without any valid value (always NaN or an undefined operation) is refused, even "
+                   "when the outputs do not depend on it (-norm prints the interval of each equation)."
+         << endl;
+    sstr << tab << "Under -wall, a second analysis checks that no signal computes NaN or an infinity when "
+                   "the audio inputs stay within [-1, 1] and the controls within their ranges : it names the "
+                   "sources it finds, the foreign functions, whose domain is unknown, and the recursions it "
+                   "does not prove contracting. It does not change the code."
          << endl;
     sstr << tab << "The proof assumes IEEE arithmetic rounded to nearest, the operations computed in the "
                    "order the code is emitted, and the mathematical functions of the C library within 2 ulps. "
