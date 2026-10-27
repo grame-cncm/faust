@@ -77,6 +77,14 @@ class SignalChecker final : public SignalVisitor {
 };
 
 
+// An integer that may take the value v at some time : a value that may be invalid, or whose
+// bound holds over the analysis horizon only, is any integer for all time
+bool mayBeInteger(const itv::interval& i, double v);
+
+// The divisor of an integer remainder in its defined form, select2(y == 0, y, 1) : y, the
+// divisor whose 0 is replaced by 1
+bool isGuardedDivisor(Tree d, Tree& y);
+
 // Public API
 Tree signalPromote(Tree sig);
 Tree signalBool2IntPromote(Tree sig);

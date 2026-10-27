@@ -55,6 +55,7 @@ Compile a list of FAUST signals into a C++ class.
 #include "rewrite.hh"
 #include "prim2.hh"
 #include "sigtypesolver.hh"
+#include "sigPromotion.hh"
 
 using namespace std;
 
@@ -251,13 +252,6 @@ static std::string showInterval(const interval& i)
     return s.str();
 }
 
-// An integer that may take the value v at some time : a value that may be invalid, or
-// whose bound moves past the analysis horizon, is any integer for all time
-static bool mayBeInt(const interval& i, double v)
-{
-    return i.mayBeInvalid() || i.moves() || i.has(v);
-}
-
 // The program the certified typing bounded, from checkValidity to the -wall report, which
 // runs after the generation of the code
 static Tree gCertifiedRoots = nullptr;
@@ -292,10 +286,17 @@ void checkValidity(Tree roots)
             SimpleType* sx = certifiedSimpleType(x);
             SimpleType* sy = certifiedSimpleType(y);
             if (!sx || !sy) continue;
-            const interval ix = sx->getInterval();
-            const interval iy = sy->getInterval();
-            const bool     zero    = mayBeInt(iy, 0);
-            const bool     extreme = mayBeInt(ix, double(INT32_MIN)) && mayBeInt(iy, -1);
+            // the defined form of the normal form (sigPromotion.cpp) replaces a divisor 0 by 1 :
+            // the divisor it guards decides, 0 excepted
+            Tree guarded;
+            bool guards0 = isGuardedDivisor(y, guarded);
+            if (guards0) {
+                if (SimpleType* sg = certifiedSimpleType(guarded)) sy = sg;
+            }
+            const interval ix      = sx->getInterval();
+            const interval iy      = sy->getInterval();
+            const bool     zero    = mayBeInteger(iy, 0) && !guards0;
+            const bool     extreme = mayBeInteger(ix, double(INT32_MIN)) && mayBeInteger(iy, -1);
             if (zero || extreme) {
                 std::stringstream error;
                 error << "ERROR : an integer remainder may stop the execution, "
@@ -437,7 +438,13 @@ void reportNumericCertificate()
                 bool ci, cf;
                 if (bad(c, ci, cf) && (ci || !invalid)) source = false;
             }
-            if (source && (isSigIIR(t) || isSigIRM(t))) {
+            Tree rx, ry, guarded;
+            int  rop;
+            if (source && isSigBinOp(t, &rop, rx, ry) && rop == kRem && isGuardedDivisor(ry, guarded)) {
+                // the defined form of an integer remainder : the divisor it guards
+                sources.push_back("an integer remainder whose divisor may be 0, where it gives 0 : " + shown(rx) +
+                                  " % " + shown(guarded) + " ; divisor in " + showInterval(solver.interval(guarded)));
+            } else if (source && (isSigIIR(t) || isSigIRM(t))) {
                 // a revealed recursion : the coefficients are its operands
                 sources.push_back("a recursion the analysis does not prove contracting : " + shown(t) +
                                   " ; operands in " + operands(t));
