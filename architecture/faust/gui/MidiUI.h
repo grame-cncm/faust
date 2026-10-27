@@ -28,6 +28,7 @@ architecture section is not modified.
 #include <vector>
 #include <string>
 #include <utility>
+#include <cstdio>
 #include <cstdlib>
 #include <cmath>
 
@@ -47,38 +48,38 @@ architecture section is not modified.
 #endif
 
 /**
- * Note-allocation policy for the polyphonic engine.
+ * Note-allocation policy of the polyphonic engine, read from the 'options' metadata:
  *
- * Selects the "flavour" of note-stealing, mirroring hardware synthesizers:
+ *   declare options "[nvoices:8][voicing:mono][note_priority:last][trigger:single]";
  *
- *  - note_priority: which held notes sound when more keys are down than voices may
- *    sound. 'last' = most recently pressed (Prophet, ARP Odyssey, most modern),
- *    'low' = lowest pitch (vintage Moog, SH-101, bass), 'high' = highest pitch
- *    (Korg MS-20, Yamaha CS, lead-over-bass).
- *  - trigger: whether the envelope restarts when a note changes while other keys
- *    are held. 'multi' = re-strike on every new note; 'single' = legato, re-strike
- *    only when coming from silence (Minimoog "legato").
- *  - steal: on true polyphonic overflow, which sounding voice is reused.
- *    'oldest' (historical Faust default), 'quietest' (lowest envelope level),
- *    'low'/'high' pitch.
- *  - voicing: 'mono' (1 sounding note), 'duo' (2), 'poly' (all voices). 'mono'/'duo'
- *    cap the number of simultaneously-sounding notes while keeping the physical
- *    voice pool (nvoices) intact so the legato crossfade still has a spare instance.
+ *  - voicing: how many notes may sound together. 'poly' (default) = as many as there
+ *    are voices, 'mono' = 1, 'duo' = 2. 'mono' and 'duo' cap the sounding notes but
+ *    keep the whole voice pool (nvoices), so the legato crossfade still has a spare
+ *    instance.
+ *  - note_priority: which of the held keys sound when more keys are down than the
+ *    voicing allows, and so which one comes back when a sounding key is released
+ *    while others are still held. 'last' (default) = the most recently pressed,
+ *    'low' (or 'lowest') = the lowest pitch, 'high' (or 'highest') = the highest pitch.
+ *  - trigger: whether a new note re-strikes the envelope. 'multi' (default) = every
+ *    new note does, and so does a key pressed again while its note still sounds
+ *    (with its new velocity). 'single' (or 'legato') = the envelope is struck only
+ *    when going from silence to sound: a new note just changes the pitch of the
+ *    sounding voice.
  *
- * All defaults reproduce the historical Faust behavior, so existing patches that
- * do not declare these options are unaffected. Declared via 'declare options',
- * e.g. declare options "[nvoices:8][voicing:mono][note_priority:last][trigger:single]";
+ * Without these options, the engine differs from the one that did not remember held
+ * keys only when more keys are held than voices can sound: a key that was displaced
+ * is remembered and sounds again when a voice is released (with nvoices=1, pressing a
+ * second key and releasing it brings back the first one, which is still held).
+ * Unknown values are reported on stderr and ignored.
  */
+enum class Voicing { Poly, Mono, Duo };
 enum class NotePriority { Last, Low, High };
 enum class TriggerMode { Multi, Single };
-enum class StealMode { Oldest, Quietest, Lowest, Highest };
-enum class Voicing { Poly, Mono, Duo };
 
 struct PolyPolicy {
+    Voicing      voicing  = Voicing::Poly;
     NotePriority priority = NotePriority::Last;
     TriggerMode  trigger  = TriggerMode::Multi;
-    StealMode    steal    = StealMode::Oldest;
-    Voicing      voicing  = Voicing::Poly;
 };
 
 /**
@@ -147,58 +148,46 @@ struct MidiMeta : public Meta {
     #endif
     }
 
-    // Parse the note-allocation policy tokens from an already-extracted options map.
-    static void parsePolicy(std::map<std::string, std::string>& md, PolyPolicy& policy)
+    // Set 'value' from the option 'key' of an already-extracted options map, using the
+    // given (name, value) pairs. An unknown name is reported and leaves 'value' as is.
+    template <typename T>
+    static void parseOption(std::map<std::string, std::string>& md, const char* key,
+                            const std::vector<std::pair<const char*, T>>& names, T& value)
     {
-        auto it = md.find("voicing");
-        if (it != md.end()) {
-            if (it->second == "mono") {
-                policy.voicing = Voicing::Mono;
-            } else if (it->second == "duo") {
-                policy.voicing = Voicing::Duo;
-            } else if (it->second == "poly") {
-                policy.voicing = Voicing::Poly;
+        auto it = md.find(key);
+        if (it == md.end()) {
+            return;
+        }
+        for (const auto& name : names) {
+            if (it->second == name.first) {
+                value = name.second;
+                return;
             }
         }
-        it = md.find("note_priority");
-        if (it != md.end()) {
-            if (it->second == "last") {
-                policy.priority = NotePriority::Last;
-            } else if (it->second == "low") {
-                policy.priority = NotePriority::Low;
-            } else if (it->second == "high") {
-                policy.priority = NotePriority::High;
-            }
-        }
-        it = md.find("trigger");
-        if (it != md.end()) {
-            if (it->second == "multi") {
-                policy.trigger = TriggerMode::Multi;
-            } else if (it->second == "single" || it->second == "legato") {
-                policy.trigger = TriggerMode::Single;
-            }
-        }
-        it = md.find("steal");
-        if (it != md.end()) {
-            if (it->second == "oldest") {
-                policy.steal = StealMode::Oldest;
-            } else if (it->second == "quietest") {
-                policy.steal = StealMode::Quietest;
-            } else if (it->second == "low" || it->second == "lowest") {
-                policy.steal = StealMode::Lowest;
-            } else if (it->second == "high" || it->second == "highest") {
-                policy.steal = StealMode::Highest;
-            }
-        }
+        fprintf(stderr, "Unknown value '%s' for the '%s' option ignored\n", it->second.c_str(), key);
     }
 
-    // Extended analysis that also fills the note-allocation policy from 'declare options'.
-    // Kept separate from the 4-argument overload so existing callers are unchanged.
-    static void analyse(dsp* mono_dsp, bool& midi, bool& midi_sync, int& nvoices,
-                        PolyPolicy& policy)
+    // Parse the note-allocation policy from an already-extracted options map.
+    static void parsePolicy(std::map<std::string, std::string>& md, PolyPolicy& policy)
     {
-        analyse(mono_dsp, midi, midi_sync, nvoices);
+        parseOption<Voicing>(md, "voicing",
+                             {{"poly", Voicing::Poly}, {"mono", Voicing::Mono}, {"duo", Voicing::Duo}},
+                             policy.voicing);
+        parseOption<NotePriority>(md, "note_priority",
+                                  {{"last", NotePriority::Last},
+                                   {"low", NotePriority::Low}, {"lowest", NotePriority::Low},
+                                   {"high", NotePriority::High}, {"highest", NotePriority::High}},
+                                  policy.priority);
+        parseOption<TriggerMode>(md, "trigger",
+                                 {{"multi", TriggerMode::Multi},
+                                  {"single", TriggerMode::Single}, {"legato", TriggerMode::Single}},
+                                 policy.trigger);
+    }
 
+    // Fill the note-allocation policy from the 'options' metadata of the DSP, leaving
+    // the options it does not declare unchanged.
+    static void analysePolicy(dsp* mono_dsp, PolyPolicy& policy)
+    {
         MidiMeta meta;
         mono_dsp->metadata(&meta);
         std::string options = meta.get("options", "");
