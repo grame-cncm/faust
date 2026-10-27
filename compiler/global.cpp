@@ -632,7 +632,6 @@ void global::reset()
     gFoldingFlag = false;
     gOccurrences = nullptr;
     gDevSuffix   = nullptr;
-    gTopDiagram  = nullptr;
 
     gSTEP = 1;  // unique compilation step number
 

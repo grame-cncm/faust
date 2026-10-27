@@ -866,15 +866,17 @@ static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout,
     drawSchema(docdgm, thisdgmdir.c_str(), "svg");
 
     /** 3. Print LaTeX figure code. */
+    // drawSchema writes the root of each drawing to kSchemaRootName, whatever
+    // its definition (the file faust2mathdoc converts to PDF)
     char         temp[1024];
-    const string dgmfilename = legalFileName(docdgm, 1024, temp);
+    const string dgmname = legalFileName(docdgm, 1024, temp);
     // docout << "figure \\ref{figure" << i << "}";
     docout << "\\begin{figure}[ht!]" << endl;
     docout << "\t\\centering" << endl;
     docout << "\t\\includegraphics[width=\\textwidth]{" << subst("../svg/svg-$0/", dgmid)
-           << dgmfilename << "}" << endl;
-    docout << "\t\\caption{" << gGlobal->gDocMathStringMap["dgmcaption"] << " \\texttt{"
-           << dgmfilename << "}}" << endl;
+           << kSchemaRootName << "}" << endl;
+    docout << "\t\\caption{" << gGlobal->gDocMathStringMap["dgmcaption"] << " \\texttt{" << dgmname
+           << "}}" << endl;
     docout << "\t\\label{figure" << i << "}" << endl;
     docout << "\\end{figure}" << endl << endl;
 
@@ -1013,9 +1015,9 @@ static char* legalFileName(const Tree t, int n, char* dst)
     }
     dst[i] = 0;
     if (strcmp(dst, "process") != 0) {
-        // if it is not process, add the node's serial number to make the name
-        // unique : the same suffix as the files written by drawSchema
-        // (drawschema.cpp), which the \includegraphics must name
+        // if it is not process, add the node's serial number, as drawSchema
+        // does in the names of the files of the inner diagrams
+        // (drawschema.cpp) : this name is the caption of the figure
         snprintf(&dst[i], n - i, "-%zu", (size_t)t->serial());
     }
     return dst;

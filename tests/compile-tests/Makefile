@@ -119,7 +119,7 @@ json-compare:
 # script ; the target fails when one script fails.
 SCRIPTS_CORE := defined-integer-operations display-contexts display-tail-sharing division-by-zero exe-path \
                 hoist-negation infinite-coefficients integer-pow multiplicative-algebra power-nature \
-                svg-inner-process
+                svg-inner-process svg-root-name
 SCRIPTS_ALL  := $(SCRIPTS_CORE) fixed-point-tables integer-pow-backends java-math \
                 julia-float-to-int math-domain nonfinite-constants signal-renderer-pow
 SCRIPT_ARGS  ?=

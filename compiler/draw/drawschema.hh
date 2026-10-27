@@ -25,6 +25,15 @@
 #include "boxes.hh"
 
 /**
+ * The stem of the file of the root diagram : drawSchema writes <bd> to
+ * "<projname>/process.<dev>", whatever the name of its definition (-pn, a
+ * <diagram> of the documentator), so that a tool opening the drawing finds
+ * it. The other files are "<name>-<serial>.<dev>", a definition named
+ * process included.
+ */
+inline constexpr const char* kSchemaRootName = "process";
+
+/**
  *The entry point to generate from a block diagram as a set of
  *svg files stored in the directory "<projname>-svg/" or
  *"<projname>-ps/" depending of <dev>.
