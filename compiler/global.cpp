@@ -3018,12 +3018,12 @@ string global::printHelp()
          << endl;
 
     sstr << endl << "Certification:" << line;
-    sstr << tab << "A program is accepted only when the interval analysis proves its code defined : its "
-                   "delays stay within their lines, and no integer remainder may stop the execution (a "
-                   "divisor that may be 0, or -2147483648 % -1). Table indices and soundfile parts are held "
-                   "within their range at run time, and a conversion to an integer saturates (NaN gives 0). "
-                   "A signal without any valid value (always NaN or an undefined operation) is refused, even "
-                   "when the outputs do not depend on it (-norm prints the interval of each equation)."
+    sstr << tab << "A program is accepted only when the interval analysis proves that its delays stay "
+                   "within their lines. Table indices and soundfile parts are held within their range at "
+                   "run time, a conversion to an integer saturates (NaN gives 0), and an integer remainder "
+                   "by 0 gives 0 (-2147483648 % -1 its exact value, 0). A signal without any valid value "
+                   "(always NaN or an undefined operation) is refused, even when the outputs do not depend "
+                   "on it (-norm prints the interval of each equation)."
          << endl;
     sstr << tab << "Under -wall, a second analysis checks that no signal computes NaN or an infinity when "
                    "the audio inputs stay within [-1, 1] and the controls within their ranges : it names the "

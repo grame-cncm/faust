@@ -7,10 +7,12 @@ analysis allows.
 2. An integer power of variable exponent is the integer power of the analysis : x^k by
    products wrapping on 32 bits ; for k < 0, 1/x^k truncated toward 0, and 0 for x = 0.
    Compared, for 15 bases and 111 exponents, with the same model computed here.
+3. An integer remainder whose divisor may be 0 or -1 : x % 0 gives 0, and
+   -2147483648 % -1 its exact value, 0. Compared with the exact remainder otherwise.
 
 Each program runs under the undefined-behaviour sanitizer (with float-cast-overflow,
 which GCC leaves out of -fsanitize=undefined) : a conversion out of the integers stops it.
-Legs : cpp, ocpp and c, single and double precision.
+Legs : cpp, ocpp and c (the remainder and the power), single and double precision.
 """
 
 import argparse
@@ -27,6 +29,13 @@ EXPONENTS = range(-40, 71)
 CAST_DSP = """
 process = int(fmod(1.0/_, 7.0)), int(sqrt(hslider("x", 0, -1, 1, 0.01)) * 9);
 """
+
+REM_DSP = """
+process = int(nentry("x", 0, -2147483648, 1000000, 1)) % int(nentry("k", 1, -2, 7, 1));
+"""
+
+REM_DIVIDENDS = [-2147483648, -7, -1, 0, 5, 1000000]
+REM_DIVISORS = [-2, -1, 0, 1, 3, 7]
 
 POW_DSP = """
 process = pow(int(nentry("b", 0, -70000, 70000, 1)), int(nentry("k", 0, -40, 70, 1)));
@@ -113,6 +122,49 @@ POW_C = """
 """ + LOOP_TAIL
 
 
+REM_CPP = UI_CPP + """
+int main() {
+    static const long long xs[] = {%s};
+    static const long long ks[] = {%s};
+    long bad = 0, n = 0;
+    for (long long x : xs) for (long long k : ks) {
+        mydsp d; RUI ui; d.init(48000); d.buildUserInterface(&ui);
+        *ui.z["x"] = FAUSTFLOAT(x); *ui.z["k"] = FAUSTFLOAT(k);
+        FAUSTFLOAT o[1]; FAUSTFLOAT* op[1] = {o}; d.compute(1, nullptr, op);
+        long long want = (k == 0) ? 0 : x %% k;
+        n++;
+        if (o[0] != (FAUSTFLOAT)want) { printf("x = %%lld, k = %%lld : got %%.17g\\n", x, k, (double)o[0]); bad++; }
+    }
+    printf("%%ld cases, %%ld differ\\n", n, bad);
+    return bad != 0;
+}
+""" % (", ".join(map(str, REM_DIVIDENDS)), ", ".join(map(str, REM_DIVISORS)))
+
+
+REM_C = """
+#include <stdio.h>
+#include <stdlib.h>
+#include "faust/gui/CInterface.h"
+#include "generated.c"
+int main() {
+    static const long long xs[] = {%s};
+    static const long long ks[] = {%s};
+    long bad = 0, n = 0;
+    for (int i = 0; i < %d; i++) for (int j = 0; j < %d; j++) {
+        mydsp* d = newmydsp(); initmydsp(d, 48000);
+        d->fEntry0 = xs[i]; d->fEntry1 = ks[j];
+        FAUSTFLOAT o[1]; FAUSTFLOAT* op[1] = {o}; computemydsp(d, 1, NULL, op);
+        deletemydsp(d);
+        long long want = (ks[j] == 0) ? 0 : xs[i] %% ks[j];
+        n++;
+        if (o[0] != (FAUSTFLOAT)want) { printf("x = %%lld, k = %%lld : got %%.17g\\n", xs[i], ks[j], (double)o[0]); bad++; }
+    }
+    printf("%%ld cases, %%ld differ\\n", n, bad);
+    return bad != 0;
+}
+""" % (", ".join(map(str, REM_DIVIDENDS)), ", ".join(map(str, REM_DIVISORS)), len(REM_DIVIDENDS), len(REM_DIVISORS))
+
+
 def run(command, work):
     result = subprocess.run(command, cwd=work, capture_output=True, text=True)
     if result.returncode != 0:
@@ -158,6 +210,10 @@ def main():
             print("conversion of a value that may be NaN")
             for lang in ["cpp", "ocpp"]:
                 ok &= leg(args, repo, work, CAST_DSP, CAST_CPP, lang, precision)
+            print("integer remainder by a divisor that may be 0 or -1")
+            for lang in ["cpp", "ocpp"]:
+                ok &= leg(args, repo, work, REM_DSP, REM_CPP, lang, precision)
+            ok &= leg(args, repo, work, REM_DSP, REM_C, "c", precision)
             print("integer power of variable exponent")
             for lang in ["cpp", "ocpp"]:
                 ok &= leg(args, repo, work, POW_DSP, POW_CPP, lang, precision)

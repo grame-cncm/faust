@@ -821,11 +821,48 @@ class TablePromotionAlgebra final : public TransformAlgebra {
     }
 };
 
+bool mayBeInteger(const interval& i, double v)
+{
+    return i.mayBeInvalid() || i.moves() || i.has(v);
+}
+
+bool isGuardedDivisor(Tree d, Tree& y)
+{
+    Tree guard, one, a, b;
+    int  op, k, v;
+    return isSigSelect2(d, guard, y, one) && isSigInt(one, &k) && k == 1 && isSigBinOp(guard, &op, a, b) &&
+           op == kEQ && a == y && isSigInt(b, &v) && v == 0;
+}
+
 //-------------------------IntCastPromotionAlgebra------------------------
-// Float to integer conversion, checking the range.
+// Float to integer conversion, checking the range ; integer remainder, checking the divisor.
 //------------------------------------------------------------------------
 class IntCastPromotionAlgebra final : public TransformAlgebra {
    public:
+    // An integer remainder that may stop the execution is defined. x % y = x % -y, the sign
+    // of the remainder being that of the dividend : x % abs(y) gives -2147483648 % -1 its
+    // exact value, 0, which the processor does not (it computes the quotient with the
+    // remainder, and 2^31 overflows), and the analysis bounds abs(y) away from -1. A
+    // divisor 0 is replaced by 1 : x % 0 gives 0.
+    XSig Mod(const XSig& x, const XSig& y) const override
+    {
+        if (typeOf(x)->nature() != kInt || typeOf(y)->nature() != kInt) {
+            return o(fBuild.Mod(x.out, y.out));
+        }
+        const interval ix = sigInterval(x.orig);
+        const interval iy = sigInterval(y.orig);
+        Tree           d  = y.out;
+        if (mayBeInteger(ix, double(INT32_MIN)) && mayBeInteger(iy, -1)) {
+            d = sigAbs(d);
+        }
+        if (mayBeInteger(iy, 0)) {
+            Tree zero = sigEQ(d, sigInt(0));
+            Tree one  = sigInt(1);
+            d         = sigSelect2(zero, d, one);
+        }
+        return o(fBuild.Mod(x.out, d));
+    }
+
     XSig IntCast(const XSig& x) const override
     {
         // the largest value of the program below 2^31 : INT32_MAX itself is no float
