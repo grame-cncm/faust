@@ -16,10 +16,22 @@ Type `make help` for details on the available targets.
 Each script below checks one defect once fixed. `make check-scripts
 FAUST=<binary>` runs those that need only faust and a C/C++ compiler
 (`display-contexts`, `display-tail-sharing`, `exe-path`, `hoist-negation`,
-`infinite-coefficients`, `integer-pow`) ;
+`infinite-coefficients`, `integer-pow`, `defined-integer-operations`) ;
 `make check-scripts-all` runs every one, the others needing Java, Julia,
 Cargo, Node or the Xilinx `ap_fixed.h` header (`SCRIPT_ARGS` passes their
 paths). One verdict per script ; the target fails when one script fails.
+
+### Defined integer operations
+
+`defined-integer-operations.py` runs, under the undefined-behaviour sanitizer, the
+conversion to an integer of a value that may be NaN (it gives 0) and an integer power of
+variable exponent, compared with the integer power of the analysis (products wrapping on
+32 bits ; for a negative exponent, 1/x^k truncated toward 0, and 0 for x = 0) on 15 bases
+and 111 exponents. Legs : `cpp`, `ocpp` and `c`, single and double precision :
+
+```sh
+python3 tests/compile-tests/defined-integer-operations.py --faust build/bin/faust
+```
 
 ### Infinite coefficients in a sum
 

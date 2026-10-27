@@ -54,6 +54,7 @@ static int gTaskCount = 0;
 
 bool Klass::fNeedPowerDef = false;
 bool Klass::fNeedApproxRoundDef = false;
+bool Klass::fNeedIntPowerDef    = false;
 
 /**
  * Store the loop used to compute a signal
@@ -256,6 +257,21 @@ void Klass::printAdditionalCode(ostream& fout)
     fout << "inline int faust_float_bits(float x) { int i; std::memcpy(&i, &x, sizeof(i)); return i; }" << endl;
     fout << "inline int64_t faust_double_bits(double x) { int64_t i; std::memcpy(&i, &x, sizeof(i)); return i; }" << endl;
     fout << "#endif" << endl;
+
+    if (fNeedIntPowerDef) {
+        // an integer power of variable exponent : x^k by squaring, the products wrapping on
+        // 32 bits as every Int32 multiplication ; for k < 0, 1/x^k truncated toward 0, and 0
+        // for x = 0 (the conversion of a double power to int is undefined beyond the integers)
+        fout << "#ifndef FAUST_INT_POW" << endl;
+        fout << "#define FAUST_INT_POW" << endl;
+        fout << "inline int faust_ipow(int x, int k) { if (k < 0) { return (x == 1) ? 1 : (x == -1) ? "
+                "((k & 1) ? -1 : 1) : 0; } int p = 1; while (k > 0) { if (k & 1) p = faust_wrap_mul(p, x); "
+                "x = faust_wrap_mul(x, x); k >>= 1; } return p; }"
+             << endl;
+        fout << "#endif" << endl;
+        // read once per compilation : the next one starts without it
+        fNeedIntPowerDef = false;
+    }
 
     if (fNeedApproxRoundDef) {
         // -mapp : floor and ceil through the conversion to int, exact for |x| < 2^31 (the
