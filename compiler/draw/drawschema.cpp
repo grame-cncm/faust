@@ -220,9 +220,6 @@ void drawSchema(Tree bd, const char* projname, const char* dev, Tree stepInput)
     gGlobal->gBackLink.clear();
     gGlobal->gPendingExp = std::stack<Tree>();
     gGlobal->gSchemaFileName.clear();
-    // the root alone is drawn in process.<suffix> : a definition named process inside it
-    // (env.process, an environment's own process) has its own file
-    gGlobal->gTopDiagram = bd;
 
     // Count how many parents each node has in the hash-consed DAG (linear in
     // the number of distinct nodes), so shared nodes can be folded instead of
