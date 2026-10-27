@@ -38,15 +38,16 @@ at its first sample, in single and double precision, and runs it with the
 cpp, ocpp, Julia, Rust and Java backends: the sign of -inf is kept, ocpp tests
 a constant in the precision of the program, and the languages without the C
 macro `INFINITY` use their own constants (`Inf32`, `f32::INFINITY`,
-`Float.POSITIVE_INFINITY`, `f32.POSITIVE_INFINITY`...). `--backends dlang`
+`Float.POSITIVE_INFINITY`, `f32.POSITIVE_INFINITY`, `float('inf')`...). `--backends dlang`
 compiles the D code with `ldc2` (stubs replace the dplug imports), `--backends csharp`
 checks the generated C# names, `--backends asc` compiles the AssemblyScript code
-with `asc` and runs it with Node (`--asc`, `--node`); Rust needs Cargo with `libm` and `num-traits` (`--offline`
+with `asc` and runs it with Node (`--asc`, `--node`), `--backends nnx linen`
+checks generated Python names and validates syntax with `ast.parse`; Rust needs Cargo with `libm` and `num-traits` (`--offline`
 for cached dependencies):
 
 ```sh
 python3 tests/compile-tests/nonfinite-constants.py --faust build/bin/faust
-python3 tests/compile-tests/nonfinite-constants.py --faust build/bin/faust --backends dlang csharp asc
+python3 tests/compile-tests/nonfinite-constants.py --faust build/bin/faust --backends dlang csharp asc nnx linen
 ```
 
 ### Math functions out of their domain (Julia, Cmajor)
