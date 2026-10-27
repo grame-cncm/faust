@@ -588,6 +588,26 @@ void faustgen_factory::load_library_paths(t_dictionary* d)
     }
 }
 
+void faustgen_factory::load_compile_options(t_dictionary* d)
+{
+    // Load fOptions: options like '-pn <name>' define which DSP is compiled from the source,
+    // so they are needed when the cache is ignored. Older patches have none.
+    fOptions.clear();
+    int i = 0;
+    const char* read_compile_option;
+    char compile_option[32];
+
+    while (true) {
+        snprintf(compile_option, 32, "compile_option%d", i++);
+        t_max_err err = dictionary_getstring(d, gensym(compile_option), &read_compile_option);
+        if (err == MAX_ERR_NONE) {
+            fOptions.push_back(read_compile_option);
+        } else {
+            break;
+        }
+    }
+}
+
 void faustgen_factory::default_source_code()
 {
     // Otherwise tries to create from default source code
@@ -646,10 +666,13 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     free_bitcode();
     fSampleFormat = kNone;
 
+    // The compile options do not depend on the machine: restore them even if the cache is ignored
+    load_compile_options(d);
+    
     // Read machine serial number
     t_max_err err = dictionary_getstring(d, gensym("serial_number"), &serial_number);
     if ((err != MAX_ERR_NONE) || (strcmp(serial_number, getSerialNumber().c_str()) != 0)) {
-        post("Patch compiled on another machine or another CPU architecture, so ignore bitcode, force recompilation and use default compileoptions");
+        post("Patch compiled on another machine or another CPU architecture, so ignore bitcode and force recompilation");
         goto read_sourcecode;
     }
     
@@ -657,10 +680,10 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     err = dictionary_getstring(d, gensym("version"), &faustgen_version);
     
     if (err != MAX_ERR_NONE) {
-        post("Cannot read \"version\" key, so ignore bitcode, force recompilation and use default compileoptions");
+        post("Cannot read \"version\" key, so ignore bitcode and force recompilation");
         goto read_sourcecode;
     } else if (strcmp(faustgen_version, FAUSTGEN_VERSION) != 0) {
-        post("Older version of faustgen~/mc.faustgen~ (%s versus %s), so ignore bitcode, force recompilation and use default compileoptions", FAUSTGEN_VERSION, faustgen_version);
+        post("Older version of faustgen~/mc.faustgen~ (%s versus %s), so ignore bitcode and force recompilation", FAUSTGEN_VERSION, faustgen_version);
         goto read_sourcecode;
     }
     
@@ -689,6 +712,12 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     
 read_sourcecode:
     load_source_code(d);
+    
+    // Rebuild the effective option list, shown by 'View compile options' and used to generate codebox,
+    // also when the DSP comes from the cache, whose sample format stays the one it was compiled with
+    sampleFormat cache_sample_format = fSampleFormat;
+    default_compile_options();
+    fSampleFormat = cache_sample_format;
 }
 
 // Called when saving the Max patcher
@@ -696,7 +725,7 @@ read_sourcecode:
 // Persist factory version, paths, source, and bitcode into the patcher dictionary
 void faustgen_factory::appendtodictionary(t_dictionary* d)
 {
-    post("Saving object version, library_path, sourcecode and bitcode...");
+    post("Saving object version, library_path, compile options, sourcecode and bitcode...");
     
     // Write machine serial number
     dictionary_appendstring(d, gensym("serial_number"), getSerialNumber().c_str());
@@ -713,6 +742,14 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
         char library_path[32];
         snprintf(library_path, 32, "library_path%d", i++);
         dictionary_appendstring(d, gensym(library_path), it.c_str());
+    }
+    
+    // Write fOptions, one key per option since an option may contain spaces
+    i = 0;
+    for (const auto& it : fOptions) {
+        char compile_option[32];
+        snprintf(compile_option, 32, "compile_option%d", i++);
+        dictionary_appendstring(d, gensym(compile_option), it.c_str());
     }
     
     // Write source code

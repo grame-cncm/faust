@@ -324,6 +324,34 @@ successfully both from the repository root with
 `python3 -m unittest discover -s embedded/faustgen/tests -v` and from the module
 with `make test`.
 
+### FG-016 — `compileoptions` options, `-pn` included, were lost on reopening
+
+**Symptom.** A DSP compiled after `compileoptions -pn p2` (another entry point
+than `process`) was saved with its machine code but, after reopening the patch,
+either fell back to `process` (when the cache was ignored: other machine or
+other faustgen~ version) or was rebuilt from `process` at the next compilation
+from source (editor, `read`). `View compile options` showed no option.
+
+**Cause.** `appendtodictionary()` saved the source, library paths and machine
+code, but not `fOptions`, the arguments of the `compileoptions` message; the
+effective list `fCompileOptions` was only built when compiling from source.
+
+**Risk.** Each object built from one Faust file with different `-pn` options
+reopened with the same `process` DSP, with the wrong number of channels; the
+same for any option changing the generated DSP (`-single`, `-vec`, `-I`...).
+
+**Verified fix.** Each option is saved as `compile_option<i>` (one key per
+option, since an option may contain spaces) and restored whether or not the
+cache is used; older patches have no such key and keep the default options.
+The effective option list is rebuilt after restoring, without changing the
+sample format of the cached code.
+
+**Test.** `test_factory_dictionary.py::DictionaryRestoreTest::test_cached_patch_retains_editable_source`,
+scenarios from “The 'compileoptions' arguments are saved with the patch”:
+valid cache, ignored cache (other machine, other version, no machine code),
+patch without options, six objects with `-pn p2` to `-pn p7`, and the sample
+format of an older `-single` cache.
+
 ## Important regressions covered
 
 The following behaviors did not all require a new fix, but they are explicitly

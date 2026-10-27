@@ -157,6 +157,9 @@ class faustgen_factory {
         // Load library paths in the dictionary
         void load_library_paths(t_dictionary* d);
     
+        // Load the 'compileoptions' options in the dictionary
+        void load_compile_options(t_dictionary* d);
+    
         // Load source code
         void load_source_code(t_dictionary* d);
     
