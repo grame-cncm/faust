@@ -1221,6 +1221,9 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         faustassert(false);
     }
 
+    // -wall : the numeric certificate, by a second analysis that leaves the code unchanged
+    reportNumericCertificate();
+
     endTiming("generateCode");
 }
 
