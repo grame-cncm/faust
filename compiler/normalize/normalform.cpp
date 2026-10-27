@@ -651,10 +651,10 @@ static Tree simplifyToNormalFormAux(Tree LS)
     }
 
     {
-        // A conversion to an integer saturates : a value that the analysis cannot place
-        // within the integers is clamped first, so that the conversion is always defined
-        // (a NaN is not removed by the clamp : its interval stays invalid). Always on ;
-        // -cir is kept as an option without further effect.
+        // A conversion to an integer is always defined : a value that the analysis cannot
+        // place within the integers is clamped first, and a value that may be NaN gives 0
+        // (its interval stays invalid). Always on ; -cir is kept as an option without
+        // further effect.
         startTiming("Safe float to integer conversion");
         L4 = signalIntCastPromote(L4);
         endTiming("Safe float to integer conversion");
