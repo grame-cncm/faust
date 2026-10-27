@@ -85,6 +85,10 @@ bool mayBeInteger(const itv::interval& i, double v);
 // divisor whose 0 is replaced by 1
 bool isGuardedDivisor(Tree d, Tree& y);
 
+// The divisor the defined form takes in absolute value : never -1, whatever its interval
+// (the absolute value of an integer is 0 or more, or -2147483648)
+bool isAbsDivisor(Tree d);
+
 // Public API
 Tree signalPromote(Tree sig);
 Tree signalBool2IntPromote(Tree sig);
