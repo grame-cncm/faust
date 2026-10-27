@@ -79,6 +79,21 @@ void checkLightTypes(Tree L);
 /// by default, 480000 samples) ; the developer is told the duration otherwise (main)
 void checkCertificates();
 
+/// The refusals that no run-time guard can replace, on the certified types of the program
+/// reached from roots (its outputs and the bargraphs it computes) : an integer remainder
+/// that may stop the execution (a divisor that may be 0, or -2147483648 % -1), and a signal
+/// without any valid value (always NaN or an undefined operation), even when a
+/// conversion, a comparison or a selection keeps it away from the outputs. -nocert does
+/// not waive them.
+void checkValidity(Tree roots);
+
+/// -wall : the numeric certificate (no NaN, no infinity on any signal) checked by a second
+/// analysis of the program checkValidity last saw, with the audio inputs within [-1, 1] ;
+/// the sources of NaN and infinity, the foreign functions and the recursions the analysis
+/// does not prove contracting are reported in one warning. Run after the generation of the
+/// code, which it does not change.
+void reportNumericCertificate();
+
 /// -norm : the equations of L printed with the types the typing gives them, then the
 /// compilation stopped ; the checks that refuse a program are left out, so that a refused
 /// program is printed too
