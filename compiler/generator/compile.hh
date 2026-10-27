@@ -80,11 +80,11 @@ void checkLightTypes(Tree L);
 void checkCertificates();
 
 /// The refusals that no run-time guard can replace, on the certified types of the program
-/// reached from roots (its outputs and the bargraphs it computes) : an integer remainder
-/// that may stop the execution (a divisor that may be 0, or -2147483648 % -1), and a signal
-/// without any valid value (always NaN or an undefined operation), even when a
-/// conversion, a comparison or a selection keeps it away from the outputs. -nocert does
-/// not waive them.
+/// reached from roots (its outputs and the bargraphs it computes) : a signal without any
+/// valid value (always NaN or an undefined operation), even when a conversion, a comparison
+/// or a selection keeps it away from the outputs, and an integer remainder that may stop
+/// the execution (a divisor that may be 0, or -2147483648 % -1) without the defined form
+/// the normal form gives it. -nocert does not waive them.
 void checkValidity(Tree roots);
 
 /// -wall : the numeric certificate (no NaN, no infinity on any signal) checked by a second
