@@ -296,7 +296,8 @@ void checkValidity(Tree roots)
             const interval ix      = sx->getInterval();
             const interval iy      = sy->getInterval();
             const bool     zero    = mayBeInteger(iy, 0) && !guards0;
-            const bool     extreme = mayBeInteger(ix, double(INT32_MIN)) && mayBeInteger(iy, -1);
+            const bool     extreme = mayBeInteger(ix, double(INT32_MIN)) && mayBeInteger(iy, -1) &&
+                                 !isAbsDivisor(guards0 ? guarded : y);
             if (zero || extreme) {
                 std::stringstream error;
                 error << "ERROR : an integer remainder may stop the execution, "
