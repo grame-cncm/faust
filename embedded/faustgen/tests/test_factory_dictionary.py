@@ -19,6 +19,7 @@ from cpp_test_support import (
 
 
 STUBS = r'''
+#include <algorithm>
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
@@ -27,7 +28,9 @@ STUBS = r'''
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 using namespace std;
+#define LLVM_OPTIMIZATION -1
 using t_atom_long = long;
 using t_max_err = int;
 const int MAX_ERR_NONE = 0;
@@ -70,12 +73,35 @@ void sysmem_copyptr(const char* source, char* target, long size) {
 void post(const char*, ...) {}
 string getSerialNumber() { return "test-machine"; }
 string getTarget() { return "test-target"; }
-struct llvm_dsp_factory {};
+struct dsp_factory {
+    vector<string> getIncludePathnames() { return {}; }
+};
+struct llvm_dsp_factory : dsp_factory {};
 using interpreter_dsp_factory = llvm_dsp_factory;
 string writeDSPFactoryToMachine(llvm_dsp_factory*, const string&) { return "cached-code"; }
 string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory*) { return "cached-code"; }
+// Records the arguments given to libfaust when a DSP is compiled from its source.
+llvm_dsp_factory compiled_from_source;
+vector<string> compiled_arguments;
+llvm_dsp_factory* createDSPFactoryFromString(const string&, const string&, int argc,
+                                             const char* argv[], const string&, string&, int) {
+    compiled_arguments.assign(argv, argv + argc);
+    return &compiled_from_source;
+}
+interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const string&, const string&, int argc,
+                                                               const char* argv[], string&) {
+    compiled_arguments.assign(argv, argv + argc);
+    return &compiled_from_source;
+}
+struct SoundUI {
+    SoundUI(const vector<string>&, int, void*, bool) {}
+};
+struct faustgen {
+    void hilight_error(const string&) {}
+};
 class faustgen_factory {
 public:
+    using StringVectorIt = vector<string>::const_iterator;
     enum sampleFormat : long { kFloat, kDouble, kNone };
     long fSourceCodeSize = 0, fBitCodeSize = 0;
     char** fSourceCode = sysmem_newhandleclear(1);
@@ -83,10 +109,25 @@ public:
     sampleFormat fSampleFormat = kNone;
     set<string> fLibraryPath;
     llvm_dsp_factory* fDSPfactory = nullptr;
+    set<faustgen*> fInstances;
+    SoundUI* fSoundUI = nullptr;
+    string fDrawPath = "/draw/";
+    vector<string> fOptions;
+    vector<string> fCompileOptions;
+    int fOptLevel = LLVM_OPTIMIZATION;
+    int fFaustNumber = 1;
     ~faustgen_factory() {
         if (fSourceCode) sysmem_freehandle(fSourceCode);
         if (fBitCode) sysmem_freehandle(fBitCode);
+        delete fSoundUI;
     }
+    void remove_svg() {}
+    void add_compile_option(const string&, const string&);
+    void add_compile_option(const string&);
+    void default_compile_options();
+    void print_compile_options();
+    dsp_factory* create_factory_from_sourcecode();
+    void load_compile_options(t_dictionary*);
     void load_library_paths(t_dictionary*);
     void free_sourcecode();
     void free_bitcode();
@@ -204,6 +245,136 @@ int main() {
         }
     }
     cout << "cached source, repeated loads, corrupt lengths, fallbacks, legacy: OK\n";
+
+    // The 'compileoptions' arguments are saved with the patch and restored, so a DSP
+    // compiled with an entry point other than 'process' (-pn) keeps it after reopening,
+    // whether the machine code cache is used or ignored.
+    const string program = "import(\"stdfaust.lib\");\nprocess = _;\n"
+                           "p2 = _ <: si.bus(2);\np3 = _ <: si.bus(3);";
+    const vector<string> options = {"-pn", "myDsp", "--process-name", "p2",
+                                    "-I", "/Users/somebody/My Faust Libraries/"};
+    auto contains = [](const vector<string>& arguments, const vector<string>& sequence) {
+        return search(arguments.begin(), arguments.end(), sequence.begin(), sequence.end())
+               != arguments.end();
+    };
+    t_dictionary with_options;
+    {
+        t_dictionary source_only;
+        source_only.strings = {{"sourcecode", program}};
+        source_only.numbers = {{"sourcecode_size", long(program.size())}};
+        faustgen_factory factory;
+        factory.getfromdictionary(&source_only);
+        // State after 'compileoptions -pn myDsp --process-name p2 -I ...' and compilation.
+        factory.fOptions = options;
+        compiled_arguments.clear();
+        factory.fDSPfactory = static_cast<llvm_dsp_factory*>(factory.create_factory_from_sourcecode());
+        assert(contains(compiled_arguments, options));
+        assert(factory.fSampleFormat == faustgen_factory::kDouble);
+        factory.appendtodictionary(&with_options);
+    }
+    for (size_t i = 0; i < options.size(); ++i) {
+        assert(with_options.strings.at("compile_option" + to_string(i)) == options[i]);
+    }
+    assert(!with_options.strings.count("compile_option" + to_string(options.size())));
+
+    // A valid cache restores the compiled DSP and the options it was compiled with.
+    {
+        faustgen_factory factory;
+        factory.getfromdictionary(&with_options);
+        assert(factory.fBitCode && string(*factory.fBitCode) == "cached-code");
+        assert(factory.fOptions == options);
+        assert(contains(factory.fCompileOptions, options));
+        assert(factory.fSampleFormat == faustgen_factory::kDouble);
+        // A later recompilation from source keeps the entry point.
+        compiled_arguments.clear();
+        factory.create_factory_from_sourcecode();
+        assert(contains(compiled_arguments, options));
+    }
+
+    // An ignored cache (other machine, other faustgen~ version) recompiles the source
+    // with the saved options rather than with the default 'process' entry point.
+    for (int ignored = 0; ignored < 3; ++ignored) {
+        auto dictionary = with_options;
+        if (ignored == 0) dictionary.strings["serial_number"] = "other-machine";
+        if (ignored == 1) dictionary.strings["version"] = "other-version";
+        if (ignored == 2) dictionary.strings.erase("machinecode");
+        faustgen_factory factory;
+        factory.getfromdictionary(&dictionary);
+        assert(!factory.fBitCode);
+        assert(factory.fOptions == options);
+        compiled_arguments.clear();
+        factory.create_factory_from_sourcecode();
+        assert(contains(compiled_arguments, options));
+        assert(contains(compiled_arguments, {"-I", "/Users/somebody/My Faust Libraries/"}));
+        // Saving again writes back the same options.
+        llvm_dsp_factory compiled;
+        factory.fDSPfactory = &compiled;
+        t_dictionary resaved;
+        factory.appendtodictionary(&resaved);
+        for (size_t i = 0; i < options.size(); ++i) {
+            assert(resaved.strings.at("compile_option" + to_string(i)) == options[i]);
+        }
+    }
+
+    // A patch saved without options (older faustgen~, or no 'compileoptions') restores
+    // none, even on a factory that had some.
+    {
+        faustgen_factory factory;
+        factory.getfromdictionary(&with_options);
+        auto without_options = with_options;
+        for (size_t i = 0; i < options.size(); ++i) {
+            without_options.strings.erase("compile_option" + to_string(i));
+        }
+        factory.getfromdictionary(&without_options);
+        assert(factory.fOptions.empty());
+        assert(!contains(factory.fCompileOptions, {"--process-name"}));
+    }
+
+    // Instances with their own saved state (six abstractions, -pn p2 ... p7) each get
+    // back their own entry point.
+    {
+        vector<t_dictionary> patches(6);
+        for (int n = 0; n < 6; ++n) {
+            faustgen_factory factory;
+            factory.getfromdictionary(&with_options);
+            factory.fOptions = {"-pn", "myDsp", "--process-name", "p" + to_string(n + 2)};
+            llvm_dsp_factory compiled;
+            factory.fDSPfactory = &compiled;
+            factory.appendtodictionary(&patches[n]);
+        }
+        vector<faustgen_factory> reopened(6);
+        for (int n = 0; n < 6; ++n) {
+            patches[n].strings["version"] = "other-version";
+            reopened[n].getfromdictionary(&patches[n]);
+        }
+        for (int n = 0; n < 6; ++n) {
+            compiled_arguments.clear();
+            reopened[n].create_factory_from_sourcecode();
+            assert(contains(compiled_arguments, {"--process-name", "p" + to_string(n + 2)}));
+            for (int other = 0; other < 6; ++other) {
+                if (other != n) {
+                    assert(!contains(compiled_arguments, {"--process-name", "p" + to_string(other + 2)}));
+                }
+            }
+            assert(!contains(compiled_arguments, {"-I", "/Users/somebody/My Faust Libraries/"}));
+        }
+    }
+
+    // Rebuilding the option list never changes the sample format of the cached code,
+    // even for an older patch whose '-single' option was not saved.
+    for (int with_single = 0; with_single < 2; ++with_single) {
+        auto dictionary = with_options;
+        dictionary.numbers["sample_format"] = faustgen_factory::kFloat;
+        for (size_t i = 0; i < options.size(); ++i) {
+            dictionary.strings.erase("compile_option" + to_string(i));
+        }
+        if (with_single) dictionary.strings["compile_option0"] = "-single";
+        faustgen_factory factory;
+        factory.getfromdictionary(&dictionary);
+        assert(factory.fBitCode);
+        assert(factory.fSampleFormat == faustgen_factory::kFloat);
+    }
+    cout << "compile options and process name saved, restored and recompiled: OK\n";
 }
 '''
 
@@ -211,10 +382,16 @@ int main() {
 class DictionaryRestoreTest(unittest.TestCase):
     def test_cached_patch_retains_editable_source(self):
         source = SOURCE.read_text()
-        methods = "\n".join(definition(source, "void faustgen_factory::" + name)
-                                for name in ("load_library_paths", "free_sourcecode", "free_bitcode", "default_source_code",
-                                             "load_source_code", "getfromdictionary",
-                                             "appendtodictionary"))
+        signatures = ["void faustgen_factory::" + name
+                      for name in ("add_compile_option(const string& key",
+                                   "add_compile_option(const string& value",
+                                   "default_compile_options", "print_compile_options",
+                                   "load_compile_options",
+                                   "load_library_paths", "free_sourcecode", "free_bitcode", "default_source_code",
+                                   "load_source_code", "getfromdictionary",
+                                   "appendtodictionary")]
+        signatures.append("dsp_factory* faustgen_factory::create_factory_from_sourcecode")
+        methods = "\n".join(definition(source, signature) for signature in signatures)
         getter = definition(HEADER.read_text(), "char* get_sourcecode()")
         getter = getter.replace("char* get_sourcecode()", "char* faustgen_factory::get_sourcecode()", 1)
         with tempfile.TemporaryDirectory(prefix="faustgen-dictionary-test-") as temporary:
