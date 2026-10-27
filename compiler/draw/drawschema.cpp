@@ -123,7 +123,7 @@
 using namespace std;
 
 // prototypes of internal functions
-static void    writeSchemaFile(Tree bd);
+static void    writeSchemaFile(Tree bd, bool root);
 static schema* generateDiagramSchema(Tree bd);
 static schema* generateInsideSchema(Tree t);
 static void    scheduleDrawing(Tree t);
@@ -187,7 +187,7 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
 
     Tree t;
     while (pendingDrawing(t)) {
-        writeSchemaFile(t);  // generate all the pending drawing
+        writeSchemaFile(t, t == bd);  // generate all the pending drawing
     }
 
     choldDir();  // return to current directory
@@ -259,9 +259,10 @@ static bool pendingDrawing(Tree& t)
 /**
  * Write a top level diagram. A top level diagram
  * is decorated with its definition name property
- * and is drawn in an individual file.
+ * and is drawn in an individual file. The <root> diagram
+ * of the drawing is written to kSchemaRootName.
  */
-static void writeSchemaFile(Tree bd)
+static void writeSchemaFile(Tree bd, bool root)
 {
     Tree    id;
     schema* ts;
@@ -279,9 +280,11 @@ static void writeSchemaFile(Tree bd)
         id = tree(Node(unique("diagram_")));
     }
 
-    // generate legal file name for the schema
+    // generate legal file name for the schema : the root is not named after
+    // its definition, which is not process with -pn. No link names the
+    // root's file : a node is not one of its own descendants.
     stringstream s1;
-    s1 << legalFileName(bd, 1024, temp) << "." << gGlobal->gDevSuffix;
+    s1 << (root ? kSchemaRootName : legalFileName(bd, 1024, temp)) << "." << gGlobal->gDevSuffix;
     string res1              = s1.str();
     gGlobal->gSchemaFileName = res1;
 
@@ -335,13 +338,13 @@ static char* legalFileName(Tree t, int n, char* dst)
         i = int(strlen(dst));
     }
     dst[i] = 0;
-    if (strcmp(dst, "process") != 0) {
-        // if it is not process, add the node's serial number to make the name
-        // unique -- and the same from one run to the next, which an address
-        // is not (the whole set of files, and the links between them, are
-        // then reproducible)
-        snprintf(&dst[i], n - i, "-%zu", (size_t)t->serial());
-    }
+    // add the node's serial number to make the name unique -- and the same
+    // from one run to the next, which an address is not (the whole set of
+    // files, and the links between them, are then reproducible). A node
+    // named process gets one too : it is not the root here (the entry point
+    // of -pn can use process, a component can redefine it), and would
+    // otherwise overwrite the root's file.
+    snprintf(&dst[i], n - i, "-%zu", (size_t)t->serial());
     return dst;
 }
 

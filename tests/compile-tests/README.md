@@ -139,3 +139,23 @@ must name the `lib` directory next to the binary.
 ```sh
 python3 tests/compile-tests/exe-path.py --faust build/bin/faust
 ```
+
+### Root of an -svg drawing
+
+`svg-root-name.py` checks that `-svg` writes the root diagram to
+`process.svg`, the file that faustgen~, `faust2firefox`, `faust2svgviewer`,
+`faust2feh` and `faust2mathdoc` open, whatever the name of the entry point:
+without `-pn`, with `-pn p2`, with `-pn test` where `test` uses `process`,
+and with a component whose `process` is redefined. The root must be the only
+file without a back link and carry the name of the entry point; every other
+file is `<name>-<serial>.svg`, an inner `process` included, with a back link
+to a file that links to it; every link names an existing file and every file
+is reachable from the root; a second run writes the same bytes. It also
+checks the `-ps` file names (`process-1.ps` for the root) and the figures of
+`-mdoc`, which include the `process.svg` of each diagram directory. The
+checks must first reject corrupted drawings (a missing link target, an inner
+diagram as root, no `process.svg`, a changed file).
+
+```sh
+python3 tests/compile-tests/svg-root-name.py --faust build/bin/faust
+```
