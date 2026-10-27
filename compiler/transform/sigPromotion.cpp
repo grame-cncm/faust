@@ -834,6 +834,11 @@ bool isGuardedDivisor(Tree d, Tree& y)
            op == kEQ && a == y && isSigInt(b, &v) && v == 0;
 }
 
+bool isAbsDivisor(Tree d)
+{
+    return getUserData(d) == gGlobal->gAbsPrim;
+}
+
 //-------------------------IntCastPromotionAlgebra------------------------
 // Float to integer conversion, checking the range ; integer remainder, checking the divisor.
 //------------------------------------------------------------------------
