@@ -709,8 +709,8 @@ property per program.
 
 | directory | content | expected |
 | :--- | :--- | :--- |
-| `accepted/` | delays the analysis must bound, a coefficient beyond `FLT_MAX` that must not stop the compilation, and programs whose code is defined although they are not certified free of NaN : a conversion of a value that may be NaN, an integer power of variable exponent, a foreign function, a table index beyond the table, the square root of an input | accepted under every option set |
-| `refused/` | delays that are unbounded, beyond the integer range, or possibly negative ; integer remainders that may stop the execution (a divisor that may be 0, or `-2147483648 % -1`) ; signals without any valid value, even kept away from the outputs | refused under every option set |
+| `accepted/` | delays the analysis must bound, a coefficient beyond `FLT_MAX` that must not stop the compilation, and programs whose code is defined although they are not certified free of NaN : a conversion of a value that may be NaN, an integer remainder by a divisor that may be 0 or -1, an integer power of variable exponent, a foreign function, a table index beyond the table, the square root of an input | accepted under every option set |
+| `refused/` | delays that are unbounded, beyond the integer range, or possibly negative ; signals without any valid value, even kept away from the outputs | refused under every option set |
 | `nocert/` | programs refused only for what the analysis could not prove | refused by default, accepted under `-nocert` |
 | `mcs/` | programs certified for a duration between 10 and 60 seconds | accepted by default, refused under `-mcs 60`, accepted under `-mcs 60 -nocert` |
 

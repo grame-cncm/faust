@@ -24,10 +24,12 @@ paths). One verdict per script ; the target fails when one script fails.
 ### Defined integer operations
 
 `defined-integer-operations.py` runs, under the undefined-behaviour sanitizer, the
-conversion to an integer of a value that may be NaN (it gives 0) and an integer power of
-variable exponent, compared with the integer power of the analysis (products wrapping on
-32 bits ; for a negative exponent, 1/x^k truncated toward 0, and 0 for x = 0) on 15 bases
-and 111 exponents. Legs : `cpp`, `ocpp` and `c`, single and double precision :
+conversion to an integer of a value that may be NaN (it gives 0), an integer remainder by a
+divisor that may be 0 or -1 (x % 0 gives 0, -2147483648 % -1 its exact value, 0), and an
+integer power of variable exponent, compared with the integer power of the analysis
+(products wrapping on 32 bits ; for a negative exponent, 1/x^k truncated toward 0, and 0
+for x = 0) on 15 bases and 111 exponents. Legs : `cpp`, `ocpp` and `c`, single and double
+precision :
 
 ```sh
 python3 tests/compile-tests/defined-integer-operations.py --faust build/bin/faust
