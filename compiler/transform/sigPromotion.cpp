@@ -835,14 +835,35 @@ class IntCastPromotionAlgebra final : public TransformAlgebra {
         const double high = (gGlobal->gFloatSize == 1) ? 2147483520.0 : double(INT32_MAX);
         interval     x_i  = sigInterval(x.orig);
         // an interval that moves holds over the analysis horizon only : the saturation stays
-        if (x_i.lo() < double(INT32_MIN) || x_i.hi() > high || x_i.moves()) {
-            if (gAllWarning) {
-                stringstream error;
-                error << "WARNING : float to integer conversion [" << x_i.lo() << ":" << x_i.hi()
-                      << "] is outside of integer range in "
-                      << ppsig(fBuild.IntCast(x.orig), MAX_ERROR_SIZE) << endl;
-                gWarningMessages.push_back(error.str());
+        const bool outside = x_i.lo() < double(INT32_MIN) || x_i.hi() > high || x_i.moves();
+        // an empty interval has NaN bounds, that no comparison above detects
+        const bool nan = x_i.mayBeInvalid() || x_i.isEmpty();
+        if (outside && gAllWarning) {
+            stringstream error;
+            error << "WARNING : float to integer conversion [" << x_i.lo() << ":" << x_i.hi()
+                  << "] is outside of integer range in "
+                  << ppsig(fBuild.IntCast(x.orig), MAX_ERROR_SIZE) << endl;
+            gWarningMessages.push_back(error.str());
+        }
+        if (nan) {
+            // NaN converts to 0, by a test false for NaN only : min and max give NaN its
+            // value by the order of their operands, which differs from one backend to the
+            // next, and x == x folds to 1. Within the integers, x >= -2^31 is that test ;
+            // beyond them, (x >= -2^31) | (x < -2^31), then the saturation. The interval of
+            // the conversion holds 0, the value of NaN.
+            Tree lo   = sigReal(INT32_MIN);
+            Tree zero = sigReal(0.0);
+            if (!outside) {
+                return o(sigIntCast(sigSelect2(sigGE(x.out, lo), zero, x.out)));
             }
+            Tree above   = sigGE(x.out, lo);
+            Tree below   = sigLT(x.out, lo);
+            Tree ordered = sigOR(above, below);
+            Tree v       = sigSelect2(ordered, zero, x.out);
+            Tree low     = sigMax(sigReal(INT32_MIN), v);
+            return o(sigIntCast(sigMin(sigReal(high), low)));
+        }
+        if (outside) {
             Tree hi = sigReal(high);
             Tree lo = sigMax(x.out, sigReal(INT32_MIN));
             return o(sigIntCast(sigMin(hi, lo)));
