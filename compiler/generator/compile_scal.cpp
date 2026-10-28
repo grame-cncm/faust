@@ -30,6 +30,7 @@
 #include <climits>
 #include <fstream>
 #include <functional>
+#include <memory>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -58,6 +59,7 @@
 #include "sigRecursiveDependencies.hh"
 #include "sigRetiming.hh"
 #include "sigToGraph.hh"
+#include "sigtypesolver.hh"
 #include "sigprint.hh"
 #include "rewrite.hh"
 #include "superNodes.hh"
@@ -1215,14 +1217,19 @@ void ScalarCompiler::conditionStatistics(Tree l)
  * (or grouped runs), ..., [N-1,+inf). Two threshold modes : integer
  * (all four monotone ops) and real-integral (kGE/kLT only : every
  * split is then half-open [k,..) and [k,k+1) identifies with the
- * integer pair, so int(x) is an exact selector -- NaN corner excepted,
- * the gatequiv-admitted one). Verify-everything-or-drop ; N >= 3.
+ * integer pair, so int(x), in its defined form, is an exact selector :
+ * NaN converts to the leaf its failed comparisons reach).
+ * Verify-everything-or-drop ; N >= 3.
  * No tree surgery : certified roots enter fSelectNInfo, the spelling
  * stays in place.
  */
 void ScalarCompiler::computeSelectNInfo(Tree L)
 {
     fSelectNInfo.clear();
+    // the intervals of the real selectors : the trees are not typed yet (the condition
+    // annotation precedes the typing of the program), they are solved on demand
+    const Tree                  roots = L;
+    std::unique_ptr<TypeSolver> solver;
     // family collection : select2 grouped by comparison base (casts stripped)
     std::map<Tree, std::vector<Tree>> families;    // monotone selectors (V1)
     std::map<Tree, std::vector<Tree>> eqFamilies;  // ==/!= selectors (V1.2 chains)
@@ -1366,7 +1373,29 @@ void ScalarCompiler::computeSelectNInfo(Tree L)
                 continue;
             }
             SelectNInfo info;
-            info.selEff = realMode ? sigIntCast(selLhs) : selLhs;
+            info.selEff = selLhs;
+            if (realMode) {
+                // the selector converted in its defined form : a value beyond the integers
+                // saturates into the first or the last leaf, as its comparisons do. A NaN
+                // fails every comparison, select2(c, x, y) = c ? y : x takes x down to its
+                // leaf : NaN converts to an index of that leaf
+                Tree t = root;
+                Tree sel, x, y;
+                while (infam.count(t) && isSigSelect2(t, sel, x, y)) {
+                    t = x;
+                }
+                int nan = 0;
+                for (const auto& lf : leaves) {
+                    if (lf.leaf == t) {
+                        nan = (int)std::max(lf.lo, 0LL);
+                        break;
+                    }
+                }
+                if (!solver) {
+                    solver = std::make_unique<TypeSolver>(roots, /*deferIntervals*/ true);
+                }
+                info.selEff = definedIntCast(selLhs, solver->interval(selLhs), nan);
+            }
             int N       = (int)leaves.back().lo + 1;
             for (const auto& lf : leaves) {
                 long long a = std::max(lf.lo, 0LL);
