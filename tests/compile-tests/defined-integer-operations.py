@@ -3,7 +3,8 @@
 analysis allows.
 
 1. A conversion to an integer of a value that may be NaN gives 0 : int(fmod(1/x, 7)) and
-   int(9*sqrt(x)) at x = 0 and x = -1.
+   int(9*sqrt(x)) at x = 0 and x = -1. A NaN operand makes min return the other one :
+   int(min(3e10, sqrt(x))) at x = -1 converts 3e10, which saturates.
 2. An integer power of variable exponent is the integer power of the analysis : x^k by
    products wrapping on 32 bits ; for k < 0, 1/x^k truncated toward 0, and 0 for x = 0.
    Compared, for 15 bases and 111 exponents, with the same model computed here.
@@ -32,7 +33,8 @@ BASES = [0, 1, -1, 2, -2, 3, -3, 7, 25, 46340, 46341, -46341, 65536, 69999, -700
 EXPONENTS = range(-40, 71)
 
 CAST_DSP = """
-process = int(fmod(1.0/_, 7.0)), int(sqrt(hslider("x", 0, -1, 1, 0.01)) * 9);
+x = hslider("x", 0, -1, 1, 0.01);
+process = int(fmod(1.0/_, 7.0)), int(sqrt(x) * 9), int(min(3e10, sqrt(x)));
 """
 
 REM_DSP = """
@@ -79,13 +81,16 @@ struct RUI : public UI {
 CAST_CPP = UI_CPP + """
 int main() {
     int bad = 0;
+    // the largest integer the conversion saturates to : 2^31 - 128 in single precision
+    const FAUSTFLOAT high = FAUSTFLOAT(sizeof(FAUSTFLOAT) == 4 ? 2147483520 : 2147483647);
     for (double x : {0.0, -1.0}) {
         mydsp d; RUI ui; d.init(48000); d.buildUserInterface(&ui);
         *ui.z["x"] = FAUSTFLOAT(x);
-        FAUSTFLOAT in[1] = {FAUSTFLOAT(0)}, o0[1], o1[1];
-        FAUSTFLOAT* ip[1] = {in}; FAUSTFLOAT* op[2] = {o0, o1};
+        FAUSTFLOAT in[1] = {FAUSTFLOAT(0)}, o0[1], o1[1], o2[1];
+        FAUSTFLOAT* ip[1] = {in}; FAUSTFLOAT* op[3] = {o0, o1, o2};
         d.compute(1, ip, op);
-        if (o0[0] != 0 || o1[0] != 0) { printf("x = %g : got %g %g, want 0 0\\n", x, double(o0[0]), double(o1[0])); bad++; }
+        FAUSTFLOAT want = (x < 0) ? high : 0;
+        if (o0[0] != 0 || o1[0] != 0 || o2[0] != want) { printf("x = %g : got %g %g %g, want 0 0 %g\\n", x, double(o0[0]), double(o1[0]), double(o2[0]), double(want)); bad++; }
     }
     printf("2 cases, %d differ\\n", bad);
     return bad != 0;
