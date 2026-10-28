@@ -71,6 +71,14 @@ class PowPrim : public xtendedCodegen {
         num n, m;
         faustassert(args.size() == arity());
         if (isNum(args[0], n) && isNum(args[1], m)) {
+            // 0 to a negative power is 1 / 0^|k| : a certain division by 0, refused as the
+            // constant division it stands for, not folded to an infinity
+            if (double(n) == 0.0 && double(m) < 0.0) {
+                std::stringstream error;
+                error << "ERROR : division by 0 in pow(" << ppsig(args[0], MAX_ERROR_SIZE) << ", "
+                      << ppsig(args[1], MAX_ERROR_SIZE) << ")" << std::endl;
+                throw faustexception(error.str());
+            }
             if (!isfloat(n) && !isfloat(m) && int(m) > 0) {
                 return tree(ipow(int(n), int(m)));
             } else {

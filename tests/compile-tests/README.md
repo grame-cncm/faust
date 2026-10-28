@@ -15,7 +15,7 @@ Type `make help` for details on the available targets.
 
 Each script below checks one defect once fixed. `make check-scripts
 FAUST=<binary>` runs those that need only faust and a C/C++ compiler
-(`display-contexts`, `display-tail-sharing`, `exe-path`, `hoist-negation`,
+(`display-contexts`, `display-tail-sharing`, `division-by-zero`, `exe-path`, `hoist-negation`,
 `infinite-coefficients`, `integer-pow`, `defined-integer-operations`,
 `svg-inner-process`) ;
 `make check-scripts-all` runs every one, the others needing Java, Julia,
@@ -39,6 +39,18 @@ comparisons give it), compared with the tree of comparisons. Legs : `cpp`, `ocpp
 
 ```sh
 python3 tests/compile-tests/defined-integer-operations.py --faust build/bin/faust
+```
+
+### A certain division by 0
+
+`division-by-zero.py` compiles programs that divide by a constant 0, written as a division
+(`1/0`, `_/0.0`) or as a power of 0 with a negative exponent (`pow(0.0, -1)`, `pow(0,
+-0.5)`, `pow(0.5 - 0.5, -2)`, which stands for 1 / 0^|k|) : each must stop with `ERROR :
+division by 0` ; a power of 0 used to be folded to INFINITY. A power of 0 with an exponent
+>= 0, and a power whose base may be 0 only at run time, must compile :
+
+```sh
+python3 tests/compile-tests/division-by-zero.py --faust build/bin/faust
 ```
 
 ### Infinite coefficients in a sum
